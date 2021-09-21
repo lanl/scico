@@ -28,7 +28,7 @@ See the ``INSTALL.rst`` file or the `online documentation <https://scico.rtfd.io
 Usage Examples
 ==============
 
-Usage examples are available as Python scripts and Jupyter Notebooks. Example scripts are located in ``examples/scripts``. The corresponding Jupyter Notebooks are provided in the `scico-data <https://github.com/lanl/scico-data>`_ submodule and symlinked to ``examples/notebooks``. They are also viewable on `GitHub <https://github.com/lanl/scico-data/tree/main/notebooks>`_.
+Usage examples are available as Python scripts and Jupyter Notebooks. Example scripts are located in ``examples/scripts``. The corresponding Jupyter Notebooks are provided in the `scico-data <https://github.com/lanl/scico-data>`_ submodule and symlinked to ``examples/notebooks``. They are also viewable on `GitHub <https://github.com/lanl/scico-data/tree/main/notebooks>`_ or `nbviewer <https://nbviewer.jupyter.org/github/lanl/scico-data/tree/main/notebooks/>`_.
 
 
 License
