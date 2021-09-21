@@ -36,15 +36,3 @@ Contributors
 - `Oleg Korobkin <https://github.com/korobkin>`_ (BlockArray improvements)
 - `Yanpeng Yuan <https://github.com/yanpeng7>`_ (Improvements to ASTRA interface)
 
-|
-
-Note
-====
-
-For a full list of contributors, run
-
-::
-
-  git shortlog --summary --numbered
-
-in a clone of the SCICO repoistory.
