@@ -6,6 +6,12 @@ __pycache__/
 # C extensions
 *.so
 
+# Editor backups
+.*~
+
+# Docs generation
+docs/source/_autosummary/
+
 # Distribution / packaging
 .Python
 build/
