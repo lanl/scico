@@ -16,19 +16,19 @@ Scientific Computational Imaging COde (SCICO)
 
 SCICO is a Python package for solving imaging inverse problems, with an emphasis on problems arising in scientific imaging applications. One of the primary focuses of the package is providing methods for solving ill-posed inverse problems with the use of an appropriate prior model of the reconstruction space.
 
-`Documentation is available online <http://scico.rtfd.io/>`_. If you use this software for published work, please cite bibtex entry ``pfister-2021-scico`` in ``docs/source/references.bib``.
+`Documentation is available online <https://scico.rtfd.io/>`_. If you use this software for published work, please cite bibtex entry ``pfister-2021-scico`` in ``docs/source/references.bib``.
 
 
 Installation
 ============
 
-See the ``INSTALL.rst`` file for installation instructions.
+See the ``INSTALL.rst`` file or the `online documentation <https://scico.rtfd.io/en/latest/install.html>`_ for installation instructions.
 
 
 Usage Examples
 ==============
 
-Usage examples are available as Python scripts and Jupyter Notebooks. Example scripts are located in ``examples/scripts``. The corresponding Jupyter Notebooks are provided in the ``scico-data`` submodule and symlinked to ``examples/notebooks``. They are also viewable on `GitHub <https://github.com/lanl/scico-data/tree/main/notebooks>`_.
+Usage examples are available as Python scripts and Jupyter Notebooks. Example scripts are located in ``examples/scripts``. The corresponding Jupyter Notebooks are provided in the `scico-data <https://github.com/lanl/scico-data>`_ submodule and symlinked to ``examples/notebooks``. They are also viewable on `GitHub <https://github.com/lanl/scico-data/tree/main/notebooks>`_.
 
 
 License
