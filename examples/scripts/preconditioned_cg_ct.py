@@ -44,11 +44,7 @@ y = A @ x_gt  # Sinogram
 """
 Forward and back project a single pixel (Kronecker delta) to compute an approximate impulse response for $\mathbf{A}^T \mathbf{A}$.
 """
-
-delta = np.zeros_like(x_gt)
-delta[0, 0] = 1.0
-delta = np.fft.fftshift(delta)
-impulse_response = A.T @ A @ delta
+H = CircularConvolve.from_operator(A.T @ A)
 
 """
 Invert in the Fourier domain to form a preconditioner $\mathbf{M} \approx (\mathbf{A}^T \mathbf{A})^{-1}$.
@@ -56,7 +52,6 @@ See :cite:`clinthorne-1993-preconditioning` Section V.A. for more details.
 """
 gamma = 1e-2  # limits the gain of the preconditioner, higher gives a weaker filter
 
-H = CircularConvolve(np.fft.ifftshift(impulse_response), x_gt.shape)
 frequency_response = np.abs(
     H.h_dft
 )  # the complex part comes from numerical errors in A.T and needs to be removed to ensure H is symmetric, possitive definite

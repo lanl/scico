@@ -18,8 +18,7 @@ from jax.dtypes import result_type
 
 import scico.numpy as snp
 from scico._generic_operators import Operator
-from scico.typing import Axes, DType, JaxArray, Shape
-from scico.util import parse_axes
+from scico.typing import DType, JaxArray, Shape
 
 from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
 
@@ -230,13 +229,18 @@ class CircularConvolve(LinearOperator):
             h_is_dft=True,
         )
 
-    def from_operator(H: Operator, ndims: Optional[int] = None, jit: bool = True):
+    def from_operator(
+        H: Operator, ndims: Optional[int] = None, center: Optional[Shape] = None, jit: bool = True
+    ):
         r"""Construct a CircularConvolve version of a given operator,
-        which is assumed to be linear and shift invariant.
+        which is assumed to be linear and shift invariant (LSI).
 
         Args:
-            H: Input operator
-            ndims: Number of trailing dims over which the H acts
+            H: Input operator.
+            ndims: Number of trailing dims over which the H acts.
+            center: Location at which to place the Kronecker delta. For LSI inputs,
+              this will not matter. Defaults to the center of H.input_shape, i.e.,
+              (n_1 // 2, n_2 // 2, ...).
             jit: If ``True``, jit the resulting `CircularConvolve`.
         """
 
@@ -245,13 +249,23 @@ class CircularConvolve(LinearOperator):
         else:
             ndims = ndims
 
+        if center is None:
+            center = tuple(d // 2 for d in H.input_shape[-ndims:])
+
         # compute impulse response
         d = snp.zeros(H.input_shape, H.input_dtype)
-        d = d.at[(Ellipsis,) + tuple(0 for _ in range(ndims))].set(1.0)
+        d = d.at[(Ellipsis,) + center].set(1.0)
         Hd = H @ d
 
         # build CircularConvolve
-        return CircularConvolve(Hd, H.input_shape, input_dtype=H.input_dtype, ndims=ndims, jit=jit)
+        return CircularConvolve(
+            Hd,
+            H.input_shape,
+            ndims=ndims,
+            input_dtype=H.input_dtype,
+            h_center=snp.array(center),
+            jit=jit,
+        )
 
 
 def _gradient_filters(ndim: int, axes: Shape, shape: Shape, dtype: DType = snp.float32) -> JaxArray:
