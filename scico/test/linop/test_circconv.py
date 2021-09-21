@@ -127,7 +127,7 @@ class TestCircularConvolve:
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
     @pytest.mark.parametrize("jit_old_op", [True, False])
     @pytest.mark.parametrize("jit_new_op", [True, False])
-    def test_from_Operator(self, axes_shape_spec, input_dtype, jit_old_op, jit_new_op):
+    def test_from_operator(self, axes_shape_spec, input_dtype, jit_old_op, jit_new_op):
         x_shape, ndims, h_shape = axes_shape_spec
 
         h, key = randn(tuple(h_shape), dtype=input_dtype, key=self.key)
@@ -135,7 +135,7 @@ class TestCircularConvolve:
 
         A = CircularConvolve(h, x_shape, ndims, input_dtype, jit=jit_old_op)
 
-        B = CircularConvolve.from_Operator(A, ndims, jit=jit_new_op)
+        B = CircularConvolve.from_operator(A, ndims, jit=jit_new_op)
 
         np.testing.assert_allclose(A @ x, B @ x, atol=1e-5)
 

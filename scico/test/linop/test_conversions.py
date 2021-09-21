@@ -29,11 +29,11 @@ def testCircularConvolve_from_FiniteDifference(shape_axes, input_dtype, jit_old,
         input_shape=input_shape, input_dtype=input_dtype, axes=axes, circular=True, jit=jit_old
     )
 
-    B = CircularConvolve.from_Operator(A, ndims=x.ndim, jit=jit_new)
+    B = CircularConvolve.from_operator(A, ndims=x.ndim, jit=jit_new)
     np.testing.assert_allclose(A @ x, B @ x, atol=1e-5)
 
     # try the same on the FiniteDifference Gram
     ATA = A.gram_op
 
-    B = CircularConvolve.from_Operator(ATA, ndims=x.ndim, jit=jit_new)
+    B = CircularConvolve.from_operator(ATA, ndims=x.ndim, jit=jit_new)
     np.testing.assert_allclose(ATA @ x, B @ x, atol=1e-5)

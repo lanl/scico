@@ -263,12 +263,12 @@ class CircularConvolveSolver(LinearSubproblemSolver):
         self.real_result = is_real_dtype(admm.C_list[0].input_dtype)
 
         lhs_op_list = [
-            rho * CircularConvolve.from_Operator(C.gram_op)
+            rho * CircularConvolve.from_operator(C.gram_op)
             for rho, C in zip(admm.rho_list, admm.C_list)
         ]
         A_lhs = reduce(lambda a, b: a + b, lhs_op_list)
         if self.admm.f is not None:
-            A_lhs += 2.0 * admm.f.scale * CircularConvolve.from_Operator(admm.f.A.gram_op)
+            A_lhs += 2.0 * admm.f.scale * CircularConvolve.from_operator(admm.f.A.gram_op)
 
         self.A_lhs = A_lhs
 

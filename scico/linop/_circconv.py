@@ -230,7 +230,7 @@ class CircularConvolve(LinearOperator):
             h_is_dft=True,
         )
 
-    def from_Operator(H: Operator, ndims: Optional[int] = None, jit: bool = True):
+    def from_operator(H: Operator, ndims: Optional[int] = None, jit: bool = True):
         r"""Construct a CircularConvolve version of a given operator,
         which is assumed to be linear and shift invariant.
 
