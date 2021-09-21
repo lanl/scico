@@ -1,0 +1,41 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.3.0
+    hooks:
+    -   id: end-of-file-fixer
+    -   id: trailing-whitespace
+-   repo: local
+    hooks:
+    - id: check-for-binary
+      name: check for binary/ipynb files
+      entry: .github/isbin.sh
+      language: script
+      pass_filenames: true
+    - id: autoflake
+      name: autoflake
+      entry: autoflake
+      language: python
+      language_version:  python3
+      types: [python]
+      args: ['-i', '--remove-all-unused-imports',  '--ignore-init-module-imports']
+    - id: isort
+      name: isort (python)
+      entry: isort
+      language: python
+      language_version:  python3
+      types: [python]
+    - id: isort
+      name: isort (cython)
+      entry: isort
+      language: python
+      language_version:  python3
+      types: [cython]
+    - id: black
+      name: black
+      entry: black
+      description: 'Black: The uncompromising Python code formatter'
+      language: python
+      language_version:  python3
+      types: [python]

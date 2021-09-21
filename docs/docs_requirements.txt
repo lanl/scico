@@ -1,0 +1,10 @@
+sphinx>=3.5.2
+sphinxcontrib-napoleon
+sphinxcontrib-bibtex
+sphinx-autodoc-typehints
+faculty-sphinx-theme
+nbsphinx
+py2jn
+pygraphviz>=1.7
+pandoc
+docutils=0.16

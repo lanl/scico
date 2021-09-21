@@ -1,0 +1,5 @@
+[flake8]
+max-line-length = 100
+ignore =
+#E731: do not assign a lambda expression, use a def
+  E731
