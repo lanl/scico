@@ -18,13 +18,6 @@ Overview
     </style>
 
 
-.. todo::
-
-     * Update these docs at release time.
-     * Uncomment PyPI instructions
-     * Double check the git repo location (lanl org?)
-     * Switch to ``python setup.py install``
-
 
 `SCICO <https://github.com/lanl/scico>`__ is a Python package for solving the inverse problems that arise in scientific imaging applications. Its primary focus is providing methods for solving ill-posed inverse problems by using an appropriate prior model of the reconstruction space. SCICO includes a growing suite of operators, cost functionals, regularizers, and optimization routines that may be combined to solve a wide range of problems, and it is designed so that it is easy to add new building blocks.
 
