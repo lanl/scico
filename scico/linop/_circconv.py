@@ -127,7 +127,8 @@ class CircularConvolve(LinearOperator):
                         for k, s in zip(offset, input_shape[-self.ndims :])
                     )
                 )
-
+                # prevent accidental promotion to double
+                shifts = tuple(s.astype(self.h_dft) for s in shifts)
                 shift = math.prod(shifts)  # np.prod warns
                 self.h_dft = self.h_dft * shift
 

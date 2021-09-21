@@ -162,12 +162,13 @@ class TestCircularConvolveSolve:
     def setup_method(self, method):
         np.random.seed(12345)
         Nx = 8
-        x = np.pad(np.ones((Nx, Nx)), Nx)
+        x = np.pad(np.ones((Nx, Nx), dtype=np.float32), Nx)
         Npsf = 3
-        psf = snp.ones((Npsf, Npsf)) / (Npsf ** 2)
+        psf = snp.ones((Npsf, Npsf), dtype=np.float32) / (Npsf ** 2)
         self.A = linop.CircularConvolve(
             h=psf,
             input_shape=x.shape,
+            input_dtype=np.float32,
         )
         self.y = self.A(x)
         λ = 1e-2
