@@ -33,7 +33,7 @@ def prox_solve(v, v0, f, alpha):
     fnc = lambda x: prox_func(x, v, f, alpha)
     fmn = minimize(
         fnc,
-        v0.ravel(),
+        v0,
         method="Nelder-Mead",
         options={"maxiter": 1000, "xatol": 1e-9, "fatol": 1e-9},
     )
@@ -59,7 +59,7 @@ def prox_test(v, nrm, prx, alpha):
 class ProxTestObj:
     def __init__(self, dtype):
         key = None
-        self.v, key = randn(shape=(32, 1), dtype=dtype, key=key)
+        self.v, key = randn(shape=(32, 1), dtype=dtype, key=key, seed=3)
         self.vb, key = randn(shape=((8, 8), (4,)), dtype=dtype, key=key)
         self.scalar = np.pi
 
@@ -223,7 +223,7 @@ class TestProj:
 
     @pytest.mark.parametrize("cnstr", cnstrlist)
     def test_prox(self, cnstr, test_proj_obj):
-        alpha = 0.1
+        alpha = 1
         cnsobj = cnstr()
         cns = cnsobj.__call__
         prx = cnsobj.prox
@@ -297,7 +297,8 @@ class TestLoss:
         dtype = np.float64
         A, key = randn((n, n), key=None, dtype=dtype, seed=1234)
         D, key = randn((n,), key=key, dtype=dtype)
-        W = 0.1 * np.random.rand(n) + 1.0
+        W, key = randn((n,), key=key, dtype=dtype)
+        W = 0.1 * W + 1.0
         self.Ao = linop.MatrixOperator(A)
         self.Do = linop.Diagonal(D)
         self.Wo = linop.Diagonal(W)
