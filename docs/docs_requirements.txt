@@ -1,3 +1,4 @@
+-r ../requirements.txt
 sphinx>=3.5.2
 sphinxcontrib-napoleon
 sphinxcontrib-bibtex
