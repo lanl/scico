@@ -7,7 +7,7 @@ import jax
 import pytest
 
 import scico.numpy as snp
-from scico.linop import CircularConvolve, ConvolutionalGradient, Convolve
+from scico.linop import CircularConvolve, Convolve
 from scico.random import randint, randn, uniform
 from scico.test.linop.test_linop import adjoint_AAt_test, adjoint_AtA_test
 
@@ -138,28 +138,3 @@ class TestCircularConvolve:
         B = CircularConvolve.from_operator(A, ndims, jit=jit_new_op)
 
         np.testing.assert_allclose(A @ x, B @ x, atol=1e-5)
-
-
-class TestConvolutionalGradient:
-    def setup_method(self, method):
-        self.key = jax.random.PRNGKey(12345)
-
-    @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
-    @pytest.mark.parametrize(
-        "axes_shape_spec",
-        [
-            ((12, 12), None),  # 2d
-            ((12, 12), 0),  # 2d specific axis
-            ((15, 12, 12), None),  # 3d
-            ((15, 12, 12), [0, 2]),  # 3d specific axes
-        ],
-    )
-    def test_eval(self, axes_shape_spec, input_dtype):
-
-        input_shape, axes = axes_shape_spec
-        x, key = randn(tuple(input_shape), dtype=input_dtype, key=self.key)
-        A = ConvolutionalGradient(input_shape, axes, input_dtype)
-        Ax = A @ x
-
-        for ax in A.grad_axes:
-            np.testing.assert_allclose(x - np.roll(x, 1, ax), Ax[ax], atol=1e-5, rtol=0)

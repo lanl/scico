@@ -55,7 +55,7 @@ maxiter = 50  # Number of ADMM iterations
 f = loss.SquaredL2Loss(y=y, A=A)
 # Penalty parameters must be accounted for in the gi functions, not as additional inputs
 g = λ * functional.L21Norm()  # Regularization functionals gi
-C = linop.ConvolutionalGradient(x_gt.shape)
+C = linop.FiniteDifference(x_gt.shape, circular=True)
 solver = ADMM(
     f=f,
     g_list=[g],

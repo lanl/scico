@@ -15,7 +15,7 @@ from ._linop import Diagonal, Identity, power_iteration, Sum
 from ._matrix import MatrixOperator
 from ._diff import FiniteDifference
 from ._convolve import Convolve, ConvolveByX
-from ._circconv import CircularConvolve, ConvolutionalGradient
+from ._circconv import CircularConvolve
 from ._dft import DFT
 from ._stack import LinearOperatorStack
 
@@ -28,7 +28,6 @@ __all__ = [
     "FiniteDifference",
     "Convolve",
     "CircularConvolve",
-    "ConvolutionalGradient",
     "DFT",
     "LinearOperatorStack",
     "Sum",

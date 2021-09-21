@@ -173,7 +173,7 @@ class TestCircularConvolveSolve:
         λ = 1e-2
         self.f = loss.SquaredL2Loss(y=self.y, A=self.A)
         self.g_list = [λ * functional.L1Norm()]
-        self.C_list = [linop.ConvolutionalGradient(input_shape=x.shape)]
+        self.C_list = [linop.FiniteDifference(input_shape=x.shape, circular=True)]
 
     def test_admm(self):
         maxiter = 50
@@ -201,5 +201,5 @@ class TestCircularConvolveSolve:
             subproblem_solver=CircularConvolveSolver(),
         )
         x_dft = admm_dft.solve()
-        np.testing.assert_allclose(x_dft, x_lin, atol=1e-5, rtol=0)
+        np.testing.assert_allclose(x_dft, x_lin, atol=1e-4, rtol=0)
         assert metric.mse(x_lin, x_dft) < 1e-9
