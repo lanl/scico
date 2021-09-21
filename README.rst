@@ -1,11 +1,22 @@
+.. image:: https://img.shields.io/github/license/lanl/scico.svg
+    :target: https://github.com/lanl/scico/blob/main/LICENSE
+    :alt: Package License
+
+.. image:: https://readthedocs.org/projects/scico/badge/?version=latest
+    :target: http://scico.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+
 .. image:: https://github.com/lanl/scico/actions/workflows/main.yml/badge.svg
    :target: https://github.com/lanl/scico/actions/workflows/main.yml
+   :alt: Lint status
 
 
 Scientific Computational Imaging COde (SCICO)
 =============================================
 
 SCICO is a Python package for solving imaging inverse problems, with an emphasis on problems arising in scientific imaging applications. One of the primary focuses of the package is providing methods for solving ill-posed inverse problems with the use of an appropriate prior model of the reconstruction space.
+
+`Documentation is available online <http://scico.rtfd.io/>`_. If you use this software for published work, please cite bibtex entry ``pfister-2021-scico`` in ``docs/source/references.bib``.
 
 
 Installation
