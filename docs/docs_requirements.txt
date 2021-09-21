@@ -7,4 +7,4 @@ nbsphinx
 py2jn
 pygraphviz>=1.7
 pandoc
-docutils=0.16
+docutils==0.16
