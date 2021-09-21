@@ -8,6 +8,6 @@ include requirements.txt
 
 recursive-include scico *.py
 recursive-include scico/data *.png *.npz
-recursive-include docs Makefile *.py *.rst *.bib *.css
+recursive-include docs Makefile *.py *.ipynb *.rst *.bib *.css *.svg *.ico
 recursive-include examples Makefile *.txt *.rst *.py
 include examples/pytojnb examples/scriptcheck
