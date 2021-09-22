@@ -24,7 +24,8 @@ except ImportError:
         "for instructions on how to install the SVMBIR."
     )
 
-
+import scico.numpy as snp
+from scico.loss import WeightedSquaredL2Loss
 from scico.typing import JaxArray, Shape
 
 from ._linop import LinearOperator
@@ -88,3 +89,36 @@ class ParallelBeamProjector(LinearOperator):
             y,
             result_shape=jax.ShapeDtypeStruct(self.input_shape, self.input_dtype),
         )
+
+
+class SvmbirWeightedSquaredL2Loss(WeightedSquaredL2Loss):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if not isinstance(self.A, ParallelBeamProjector):
+            raise ValueError(
+                "`LinearOperator` A must be a `radon_svmbir.ParallelBeamProjector`"
+                "to instantiate a `SvmbirWeightedSquaredL2Loss`."
+            )
+        self.has_prox = True
+
+    def prox(self, v: JaxArray, lam: float) -> JaxArray:
+        sigma_p = snp.sqrt(lam)
+        result = svmbir.recon(
+            np.array(self.y),
+            np.array(self.A.angles),
+            prox_image=np.array(v),
+            num_rows=self.A.input_shape[1],
+            num_cols=self.A.input_shape[2],
+        )
+        print(result.shape)
+        print(result.dtype)
+        return result
+        # return jax.experimental.host_callback.call(
+        #     lambda x: svmbir.recon(
+        #         self.y,
+        #         self.A.angles,
+        #         prox_image=x
+        #     ),
+        #     v, result_shape=jax.ShapeDtypeStruct(self.A.input_shape, self.A.input_dtype)
+        # )
