@@ -36,7 +36,7 @@ def test_grad(testobj):
     sgrad = scico.grad(f)(x)
     an_grad = A.conj().T @ (A @ x - y)
 
-    np.testing.assert_allclose(sgrad, an_grad)
+    np.testing.assert_allclose(sgrad, an_grad, rtol=1e-4)
 
 
 def test_grad_aux(testobj):
@@ -51,7 +51,7 @@ def test_grad_aux(testobj):
     an_grad = A.conj().T @ (A @ x - y)
 
     assert aux == True
-    np.testing.assert_allclose(sgrad, an_grad)
+    np.testing.assert_allclose(sgrad, an_grad, rtol=1e-4)
 
 
 def test_value_and_grad(testobj):
@@ -65,8 +65,8 @@ def test_value_and_grad(testobj):
     an_val = f(x)
     an_grad = A.conj().T @ (A @ x - y)
 
-    np.testing.assert_allclose(svalue, an_val)
-    np.testing.assert_allclose(sgrad, an_grad)
+    np.testing.assert_allclose(svalue, an_val, rtol=1e-4)
+    np.testing.assert_allclose(sgrad, an_grad, rtol=1e-4)
 
 
 def test_value_and_grad_aux(testobj):
@@ -83,8 +83,8 @@ def test_value_and_grad_aux(testobj):
     an_grad = A.conj().T @ (A @ x - y)
 
     assert aux == aux_
-    np.testing.assert_allclose(svalue, an_val)
-    np.testing.assert_allclose(sgrad, an_grad)
+    np.testing.assert_allclose(svalue, an_val, rtol=1e-4)
+    np.testing.assert_allclose(sgrad, an_grad, rtol=1e-4)
 
 
 def test_linear_adjoint(testobj):
