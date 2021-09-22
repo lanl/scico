@@ -20,13 +20,13 @@ import jax
 
 import scico.numpy as snp
 from scico.blockarray import BlockArray
-from scico.typing import BlockShape, JaxArray, Shape
+from scico.typing import BlockShape, DType, JaxArray, Shape
 from scipy import optimize as spopt
 
 __author__ = """Luke Pfister <pfister@lanl.gov>"""
 
 
-def _wrap_func_and_grad(func: Callable, shape: Union[Shape, BlockShape]):
+def _wrap_func_and_grad(func: Callable, shape: Union[Shape, BlockShape], dtype: DType):
     """Computes function evaluation and gradient for use in :mod:`scipy.optimize` functions.
 
     Reshapes the input to ``func`` to have ``shape``.  Evaluates ``func`` and computes gradient.
@@ -35,6 +35,7 @@ def _wrap_func_and_grad(func: Callable, shape: Union[Shape, BlockShape]):
     Args:
         func: The function to minimize.
         shape: Shape of input to ``func``.
+        dtype: Data type of input to ``funct``
     """
 
     # argnums=0 ensures only differentiate func wrt first argument,
@@ -44,7 +45,7 @@ def _wrap_func_and_grad(func: Callable, shape: Union[Shape, BlockShape]):
     @wraps(func)
     def wrapper(x, *args):
         # apply val_grad_func to un-vectorized input
-        val, grad = val_grad_func(snp.reshape(x, shape), *args)
+        val, grad = val_grad_func(snp.reshape(x, shape).astype(dtype), *args)
 
         # Convert val & grad into numpy arrays (.copy()), then cast to float
         # Convert 'val' into a scalar, rather than ndarray of shape (1,)
@@ -252,6 +253,7 @@ def minimize(
         func_ = func
 
     x0_shape = x0.shape
+    x0_dtype = x0.dtype
     x0 = x0.ravel()  # If x0 is a BlockArray it will become a DeviceArray here
     if isinstance(x0, jax.interpreters.xla.DeviceArray):
         dev = x0.device_buffer.device()  # device where x0 resides; used to put result back in place
@@ -261,7 +263,7 @@ def minimize(
 
     # Run the SciPy minimizer
     res = spopt.minimize(
-        _wrap_func_and_grad(func_, x0_shape),
+        _wrap_func_and_grad(func_, x0_shape, x0_dtype),
         x0=x0,
         args=args,
         jac=True,
@@ -274,11 +276,15 @@ def minimize(
     res.x = snp.reshape(
         res.x, x0_shape
     )  # If x0 was originally a BlockArray be converted back to one here
+
+    res.x = res.x.astype(x0_dtype)
+
     if dev:
         res.x = jax.device_put(res.x, dev)
 
     if iscomplex:
         res.x = join_real_imag(res.x)
+
     return res
 
 
