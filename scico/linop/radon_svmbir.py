@@ -28,7 +28,7 @@ import scico.numpy as snp
 from scico.loss import WeightedSquaredL2Loss
 from scico.typing import JaxArray, Shape
 
-from ._linop import LinearOperator
+from ._linop import Diagonal, LinearOperator
 
 
 class ParallelBeamProjector(LinearOperator):
@@ -100,6 +100,16 @@ class SvmbirWeightedSquaredL2Loss(WeightedSquaredL2Loss):
                 "`LinearOperator` A must be a `radon_svmbir.ParallelBeamProjector`"
                 "to instantiate a `SvmbirWeightedSquaredL2Loss`."
             )
+
+        if not isinstance(self.weight_op, Diagonal):
+            raise ValueError(
+                f"`weight_op` must be `Diagonal` but instead got {type(self.weight_op)}"
+            )
+
+        self.weights = (
+            snp.conj(self.weight_op.diagonal) * self.weight_op.diagonal
+        )  # because weight_op is W^{1/2}
+
         self.has_prox = True
 
     def prox(self, v: JaxArray, lam: float) -> JaxArray:
@@ -107,12 +117,15 @@ class SvmbirWeightedSquaredL2Loss(WeightedSquaredL2Loss):
         result = svmbir.recon(
             np.array(self.y),
             np.array(self.A.angles),
+            weights=np.array(self.weights),
             prox_image=np.array(v),
             num_rows=self.A.input_shape[1],
             num_cols=self.A.input_shape[2],
+            sigma_p=np.float(sigma_p),
+            sigma_y=1.0,
+            positivity=False,
+            verbose=0,
         )
-        print(result.shape)
-        print(result.dtype)
         return result
         # return jax.experimental.host_callback.call(
         #     lambda x: svmbir.recon(
