@@ -31,7 +31,7 @@ JAXURL=https://storage.googleapis.com/jax-releases/jax_releases.html
 AGREE=no
 GPU=no
 CUVER=""
-JLVER="0.1.70"
+JLVER="0.1.71"
 PYVER="3.8"
 ENVNM=py`echo $PYVER | sed -e 's/\.//g'`
 
@@ -170,8 +170,8 @@ if [ "$OS" == "Darwin" ]; then
 else
     FLTREQUIRE=$(mktemp -t condaenv_XXXXXX.txt)
 fi
-sort $ALLREQUIRE | uniq | $SED -E 's/(>|>=|==).*//' \
-    | $SED -E '/^jaxlib$|^jax$|^astra-toolbox$/d' > $FLTREQUIRE
+sort $ALLREQUIRE | uniq | $SED -E 's/(>|<)/\\\1/g' \
+    | $SED -E '/^-r.*|^jaxlib.*|^jax.*|^astra-toolbox.*/d' > $FLTREQUIRE
 # Remove requirements that cannot be installed via conda
 for nc in $NOCONDA; do
     $SED -i "/^$nc\$/d" $FLTREQUIRE
