@@ -16,6 +16,14 @@ import scico
 N = 128
 
 
+def get_tol():
+    if jax.devices()[0].device_kind == "cpu":
+        rtol = 5e-5
+    else:
+        rtol = 7e-2
+    return rtol
+
+
 class ParallelBeamProjectorTest:
     def __init__(self, volume_geometry):
         N_proj = 180  # number of projection angles
@@ -44,28 +52,28 @@ def test_ATA_call(testobj):
     # Test for the call-based interface
     Ax = testobj.A(testobj.x)
     ATAx = testobj.A.adj(Ax)
-    np.testing.assert_allclose(np.sum(testobj.x * ATAx), np.linalg.norm(Ax) ** 2, rtol=5e-5)
+    np.testing.assert_allclose(np.sum(testobj.x * ATAx), np.linalg.norm(Ax) ** 2, rtol=get_tol())
 
 
 def test_ATA_matmul(testobj):
     # Test for the matmul interface
     Ax = testobj.A @ testobj.x
     ATAx = testobj.A.T @ Ax
-    np.testing.assert_allclose(np.sum(testobj.x * ATAx), np.linalg.norm(Ax) ** 2, rtol=5e-5)
+    np.testing.assert_allclose(np.sum(testobj.x * ATAx), np.linalg.norm(Ax) ** 2, rtol=get_tol())
 
 
 def test_AAT_call(testobj):
     # Test for the call-based interface
     ATy = testobj.A.adj(testobj.y)
     AATy = testobj.A(ATy)
-    np.testing.assert_allclose(np.sum(testobj.y * AATy), np.linalg.norm(ATy) ** 2, rtol=5e-5)
+    np.testing.assert_allclose(np.sum(testobj.y * AATy), np.linalg.norm(ATy) ** 2, rtol=get_tol())
 
 
 def test_AAT_matmul(testobj):
     # Test for the matmul interface
     ATy = testobj.A.T @ testobj.y
     AATy = testobj.A @ ATy
-    np.testing.assert_allclose(np.sum(testobj.y * AATy), np.linalg.norm(ATy) ** 2, rtol=5e-5)
+    np.testing.assert_allclose(np.sum(testobj.y * AATy), np.linalg.norm(ATy) ** 2, rtol=get_tol())
 
 
 def test_grad(testobj):
@@ -74,7 +82,7 @@ def test_grad(testobj):
     A = testobj.A
     x = testobj.x
     g = lambda x: jax.numpy.linalg.norm(A(x)) ** 2
-    np.testing.assert_allclose(scico.grad(g)(x), 2 * A.adj(A(x)), rtol=5e-5)
+    np.testing.assert_allclose(scico.grad(g)(x), 2 * A.adj(A(x)), rtol=get_tol())
 
 
 def test_adjoint_grad(testobj):
@@ -82,10 +90,10 @@ def test_adjoint_grad(testobj):
     x = testobj.x
     Ax = A @ x
     f = lambda y: jax.numpy.linalg.norm(A.T(y)) ** 2
-    np.testing.assert_allclose(scico.grad(f)(Ax), 2 * A(A.adj(Ax)), rtol=5e-5)
+    np.testing.assert_allclose(scico.grad(f)(Ax), 2 * A(A.adj(Ax)), rtol=get_tol())
 
 
 def test_adjoint(testobj):
     A = testobj.A
-    adjoint_AAt_test(A)
-    adjoint_AtA_test(A)
+    adjoint_AAt_test(A, rtol=get_tol())
+    adjoint_AtA_test(A, rtol=get_tol())
