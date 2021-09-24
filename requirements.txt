@@ -6,3 +6,4 @@ jax>=0.2.19
 jaxlib>=0.1.70
 objax
 bm3d
+svmbir

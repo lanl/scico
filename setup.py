@@ -27,6 +27,7 @@ install_requires = [
     "numpy>=1.12",
     "scipy>=0.19.1",
     "imageio",
+    "matplotlib",
     "jax>=0.2.19",
     "jaxlib>=0.1.70",
     "objax",
