@@ -120,7 +120,7 @@ class SquaredL2Loss(Loss):
         scale: float = 0.5,
     ):
         y = ensure_on_device(y)
-        self.functional = scale * functional.SquaredL2Norm()
+        self.functional = functional.SquaredL2Norm()
         super().__init__(y=y, A=A, scale=scale)
 
         if isinstance(A, operator.Operator):
@@ -140,7 +140,7 @@ class SquaredL2Loss(Loss):
         Args:
             x : Point at which to evaluate loss.
         """
-        return self.functional(self.y - self.A(x))
+        return self.scale * self.functional(self.y - self.A(x))
 
     def prox(self, x: Union[JaxArray, BlockArray], lam: float) -> Union[JaxArray, BlockArray]:
         if isinstance(self.A, linop.Diagonal):
@@ -201,7 +201,7 @@ class WeightedSquaredL2Loss(Loss):
 
         self.weight_op: operator.Operator
 
-        self.functional = scale * functional.SquaredL2Norm()
+        self.functional = functional.SquaredL2Norm()
         if weight_op is None:
             self.weight_op = linop.Identity(y.shape)
         elif isinstance(weight_op, linop.LinearOperator):
@@ -222,16 +222,16 @@ class WeightedSquaredL2Loss(Loss):
             self.has_prox = True
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
-        return self.functional(self.weight_op(self.y - self.A(x)))
+        return self.scale * self.functional(self.weight_op(self.y - self.A(x)))
 
     def prox(self, x: Union[JaxArray, BlockArray], lam: float) -> Union[JaxArray, BlockArray]:
         if isinstance(self.A, linop.Diagonal):
-            c = 2.0 * self.scale
+            c = self.scale * lam
             A = self.A.diagonal
             W = self.weight_op.diagonal
-            lhs = c * lam * A.conj() * W * self.y + x
-            ATWA = W * snp.abs(A) ** 2
-            return lhs / (c * lam * ATWA + 1.0)
+            lhs = c * 2.0 * A.conj() * W * W.conj() * self.y + x
+            ATWTWA = c * 2.0 * A.conj() * W.conj() * W * A
+            return lhs / (ATWTWA + 1.0)
         else:
             raise NotImplementedError
 
