@@ -20,7 +20,7 @@ class TestSet:
 
         f = lambda x: 0.5 * snp.linalg.norm(A @ x) ** 2
 
-        func_and_grad = solver._wrap_func_and_grad(f, shape=(N,))
+        func_and_grad = solver._wrap_func_and_grad(f, shape=(N,), dtype=x.dtype)
         fx, grad = func_and_grad(x)
 
         np.testing.assert_allclose(fx, f(x), rtol=5e-5)
