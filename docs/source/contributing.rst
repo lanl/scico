@@ -80,7 +80,6 @@ Installing a Development Version
 Contributing Code
 -----------------
 
-- Since the team is small, there is no need to use separate forks. This saves time and substantially simplifies the process.
 - New features / bugs / documentation are *always* developed in separate branches.
 - Branches should be named in the form `<username>/<brief-description>`,
   where `<brief-description>` provides a highly condensed description of the purpose of the branch (e.g. `address_todo`), and may include an issue number if appropriate (e.g. `fix_223`).
