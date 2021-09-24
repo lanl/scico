@@ -22,7 +22,7 @@ from xdesign import Foam, discrete_phantom
 
 from scico import loss, plot
 from scico.linop import CircularConvolve
-from scico.linop.radon import ParallelBeamProjector
+from scico.linop.radon_astra import ParallelBeamProjector
 from scico.solver import cg
 
 """
