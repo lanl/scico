@@ -96,7 +96,9 @@ class Propagator(LinearOperator):
             dx = (dx,) * ndim
         else:
             if len(dx) != ndim:
-                raise Exception
+                raise ValueError(
+                    f"dx must be a scalar or have len(dx) == len(input_shape); got len(dx)={len(dx)}, len(input_shape)={ndim}"
+                )
 
         #: Illumination wavenumber; 2π/wavelength
         self.k0: float = k0
