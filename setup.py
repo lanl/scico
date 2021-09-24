@@ -23,7 +23,16 @@ packages = find_packages()
 longdesc = """SCICO is a Python package for solving imaging inverse problems, with an emphasis on problems arising in scientific imaging applications. One of the primary focuses of the package is providing methods for solving ill-posed inverse problems with the use of an appropriate prior model of the reconstruction space.
 """
 
-install_requires = ["numpy", "scipy", "imageio", "jax"]
+install_requires = [
+    "numpy>=1.12",
+    "scipy>=0.19.1",
+    "imageio",
+    "jax>=0.2.19",
+    "jaxlib>=0.1.70",
+    "objax",
+    "bm3d",
+    "svmbir",
+]
 tests_require = ["pytest", "pytest-runner"]
 python_requires = ">3.8"
 
@@ -46,10 +55,7 @@ setup(
     python_requires=python_requires,
     tests_require=tests_require,
     install_requires=install_requires,
-    extras_require={
-        "tests": tests_require,
-        "docs": ["sphinx >=3.5.2", "numpydoc", "sphinxcontrib-bibtex"],
-    },
+    extras_require={"tests": tests_require},
     classifiers=[
         "License :: OSI Approved :: BSD License",
         "Development Status :: 3 - Alpha",
