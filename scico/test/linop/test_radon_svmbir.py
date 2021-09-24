@@ -12,7 +12,7 @@ from scico.test.test_functional import prox_test
 try:
     from scico.linop.radon_svmbir import (
         ParallelBeamProjector,
-        SvmbirWeightedSquaredL2Loss,
+        SVMBIRWeightedSquaredL2Loss,
     )
 except ImportError as e:
     pytest.skip("svmbir not installed", allow_module_level=True)
@@ -87,7 +87,7 @@ def test_prox(im_small, A_small):
     sino = A @ im
 
     v, _ = scico.random.normal(im.shape, dtype=im.dtype)
-    f = SvmbirWeightedSquaredL2Loss(y=sino, A=A)
+    f = SVMBIRWeightedSquaredL2Loss(y=sino, A=A)
     prox_test(v, f, f.prox, alpha=0.25)
 
 
@@ -100,5 +100,5 @@ def test_prox_weights(im_small, A_small):
     # test with weights
     weights, _ = scico.random.uniform(sino.shape, dtype=im.dtype)
     D = scico.linop.Diagonal(weights)
-    f = SvmbirWeightedSquaredL2Loss(y=sino, A=A, weight_op=D)
+    f = SVMBIRWeightedSquaredL2Loss(y=sino, A=A, weight_op=D)
     prox_test(v, f, f.prox, alpha=0.25)
