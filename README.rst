@@ -9,11 +9,11 @@
 .. image:: https://github.com/lanl/scico/actions/workflows/main.yml/badge.svg
    :target: https://github.com/lanl/scico/actions/workflows/main.yml
    :alt: Lint status
-   
+
 .. image:: https://github.com/lanl/scico/actions/workflows/ci-build.yml/badge.svg
    :target: https://github.com/lanl/scico/actions/workflows/ci-build.yml
    :alt: CI status
-  
+
 
 
 Scientific Computational Imaging COde (SCICO)
