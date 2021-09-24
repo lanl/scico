@@ -91,14 +91,14 @@ class ParallelBeamProjector(LinearOperator):
         )
 
 
-class SvmbirWeightedSquaredL2Loss(WeightedSquaredL2Loss):
+class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         if not isinstance(self.A, ParallelBeamProjector):
             raise ValueError(
                 "`LinearOperator` A must be a `radon_svmbir.ParallelBeamProjector`"
-                "to instantiate a `SvmbirWeightedSquaredL2Loss`."
+                "to instantiate a `SVMBIRWeightedSquaredL2Loss`."
             )
 
         if not isinstance(self.weight_op, Diagonal):
@@ -127,11 +127,3 @@ class SvmbirWeightedSquaredL2Loss(WeightedSquaredL2Loss):
             verbose=0,
         )
         return result
-        # return jax.experimental.host_callback.call(
-        #     lambda x: svmbir.recon(
-        #         self.y,
-        #         self.A.angles,
-        #         prox_image=x
-        #     ),
-        #     v, result_shape=jax.ShapeDtypeStruct(self.A.input_shape, self.A.input_dtype)
-        # )
