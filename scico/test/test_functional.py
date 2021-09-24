@@ -18,12 +18,15 @@ from scico.solver import minimize
 NO_BLOCK_ARRAY = [
     functional.L21Norm,
 ]
+NO_COMPLEX = [
+    functional.NonNegativeIndicator,
+]
 
 
 def prox_func(x, v, f, alpha):
     """Evaluate functional of which the proximal operator is the argmin."""
     return 0.5 * snp.sum(snp.abs(x.reshape(v.shape) - v) ** 2) + alpha * snp.array(
-        f(x.reshape(v.shape)), dtype=np.float64
+        f(x.reshape(v.shape)), dtype=snp.float64
     )
 
 
@@ -50,10 +53,15 @@ def prox_test(v, nrm, prx, alpha):
     pf = prox_func(px, v, nrm, alpha)
     # Brute-force solve of the proximal operator at v
     mx, mf = prox_solve(v, px, nrm, alpha)
+    print(pf, mf, pf - mf)
+    print(px.min(), mx.min())
+    print(px)
+    print(mx)
     # Compare prox functional value with brute-force solution
-    assert mf >= pf or (pf - mf) / pf <= 1e-3
-    # Compare prox solution with brute-force solution
-    np.testing.assert_allclose(np.linalg.norm(mx), np.linalg.norm(px), rtol=5e-2)
+    if pf < mf:
+        return  # prox gave a lower cost than brute force, so it passes
+    else:
+        np.testing.assert_allclose(pf, mf, rtol=1e-6)
 
 
 class ProxTestObj:
@@ -206,6 +214,12 @@ class TestBlockArrayEval:
     @pytest.mark.parametrize("cls", to_check)
     def test_eval(self, cls, test_prox_obj):
         func = cls()  # instantiate the functional we are testing
+
+        if cls in NO_COMPLEX and snp.iscomplexobj(test_prox_obj.vb):
+            with pytest.raises(ValueError):
+                x = func(test_prox_obj.vb)
+            return
+
         x = func(test_prox_obj.vb)
         y = func(test_prox_obj.vb.ravel())
         np.testing.assert_allclose(x, y)
@@ -227,6 +241,12 @@ class TestProj:
         cnsobj = cnstr()
         cns = cnsobj.__call__
         prx = cnsobj.prox
+
+        if cnstr in NO_COMPLEX and snp.iscomplexobj(test_proj_obj.v):
+            with pytest.raises(ValueError):
+                prox_test(test_proj_obj.v, cns, prx, alpha)
+            return
+
         prox_test(test_proj_obj.v, cns, prx, alpha)
 
     @pytest.mark.parametrize("cnstr", cnstrlist)
@@ -313,12 +333,19 @@ class TestLoss:
         assert L.has_eval == True
         assert L.has_prox == False  # not diagonal
 
+        # test eval
+        np.testing.assert_allclose(L(self.v), 0.5 * ((self.Ao @ self.v - self.y) ** 2).sum())
+
         cL = self.scalar * L
         assert L.scale == 0.5  # hasn't changed
         assert cL.scale == self.scalar * L.scale
+        assert cL(self.v) == self.scalar * L(self.v)
 
         # SquaredL2 with Diagonal linop has a prox
         L_d = loss.SquaredL2Loss(y=self.y, A=self.Do)
+
+        # test eval
+        np.testing.assert_allclose(L_d(self.v), 0.5 * ((self.Do @ self.v - self.y) ** 2).sum())
 
         assert L_d.is_smooth == True
         assert L_d.has_eval == True
@@ -327,6 +354,7 @@ class TestLoss:
         cL = self.scalar * L_d
         assert L_d.scale == 0.5  # hasn't changed
         assert cL.scale == self.scalar * L_d.scale
+        assert cL(self.v) == self.scalar * L_d(self.v)
 
         pf = prox_test(self.v, L_d, L_d.prox, 0.75)
 
@@ -336,9 +364,15 @@ class TestLoss:
         assert L.has_eval == True
         assert L.has_prox == False  # not diagonal
 
+        # test eval
+        np.testing.assert_allclose(
+            L(self.v), 0.5 * ((self.Wo @ (self.Ao @ self.v - self.y)) ** 2).sum()
+        )
+
         cL = self.scalar * L
         assert L.scale == 0.5  # hasn't changed
         assert cL.scale == self.scalar * L.scale
+        assert cL(self.v) == self.scalar * L(self.v)
 
         # SquaredL2 with Diagonal linop has a prox
         Wo = self.Wo
@@ -348,9 +382,15 @@ class TestLoss:
         assert L_d.has_eval == True
         assert L_d.has_prox == True
 
+        # test eval
+        np.testing.assert_allclose(
+            L_d(self.v), 0.5 * ((self.Wo @ (self.Do @ self.v - self.y)) ** 2).sum()
+        )
+
         cL = self.scalar * L_d
         assert L_d.scale == 0.5  # hasn't changed
         assert cL.scale == self.scalar * L_d.scale
+        assert cL(self.v) == self.scalar * L_d(self.v)
 
         pf = prox_test(self.v, L_d, L_d.prox, 0.75)
 

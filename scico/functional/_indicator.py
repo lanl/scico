@@ -39,6 +39,9 @@ class NonNegativeIndicator(Functional):
     is_smooth = False
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+        if snp.iscomplexobj(x):
+            raise ValueError("Not defined for complex input.")
+
         # Equivalent to
         # snp.inf if snp.any(x < 0) else 0.0
         return jax.lax.cond(snp.any(x < 0), lambda x: snp.inf, lambda x: 0.0, None)

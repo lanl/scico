@@ -125,7 +125,7 @@ class SquaredL2Norm(Functional):
             x :  Input array :math:`\mb{x}`
             lam : Proximal parameter :math:`\lambda`
         """
-        return x / (1.0 + 2 * lam)
+        return x / (1.0 + 2.0 * lam)
 
 
 class L2Norm(Functional):
