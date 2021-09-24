@@ -5,7 +5,12 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Optical propagator classes."""
+"""Optical propagator classes.
+
+This module provides classes that model the propagation of a monochromatic waveform between two
+parallel planes in a homogeneous medium.
+
+"""
 
 
 # needed to annotate a class method that returns the encapsulating class
