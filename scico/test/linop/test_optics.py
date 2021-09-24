@@ -2,13 +2,18 @@ import numpy as np
 
 import jax
 
+import pytest
+
 from scico.linop.optics import (
     AngularSpectrumPropagator,
     FraunhoferPropagator,
     FresnelPropagator,
+    radial_transverse_frequency,
 )
 from scico.random import randn
 from scico.test.linop.test_linop import adjoint_AAt_test, adjoint_AtA_test
+
+prop_list = [AngularSpectrumPropagator, FresnelPropagator, FraunhoferPropagator]
 
 
 class TestPropagator:
@@ -18,30 +23,39 @@ class TestPropagator:
         self.dx = 1
         self.k0 = 1
         self.z = 1
-        self.x, key = randn((self.N, self.N), dtype=np.complex64, key=key)
         self.key = key
 
-    def test_AS_adjoint(self):
+    @pytest.mark.parametrize("ndim", [1, 2])
+    @pytest.mark.parametrize("prop", prop_list)
+    def test_prop_adjoint(self, prop, ndim):
+        A = prop(input_shape=(self.N,) * ndim, dx=self.dx, k0=self.k0, z=self.z)
+        adjoint_AtA_test(A, self.key)
+        adjoint_AAt_test(A, self.key)
+
+    @pytest.mark.parametrize("ndim", [1, 2])
+    def test_AS_inverse(self, ndim):
         A = AngularSpectrumPropagator(
-            input_shape=(self.N, self.N), dx=self.dx, k0=self.k0, z=self.z
+            input_shape=(self.N,) * ndim, dx=self.dx, k0=self.k0, z=self.z
         )
-        adjoint_AtA_test(A, self.key)
-        adjoint_AAt_test(A, self.key)
-
-    def test_Fresnel_adjoint(self):
-        A = FresnelPropagator(input_shape=(self.N, self.N), dx=self.dx, k0=self.k0, z=self.z)
-        adjoint_AtA_test(A, self.key)
-        adjoint_AAt_test(A, self.key)
-
-    def test_Fraunhofer_adjoint(self):
-        A = FraunhoferPropagator(input_shape=(self.N, self.N), dx=self.dx, k0=self.k0, z=self.z)
-        adjoint_AtA_test(A, self.key)
-        adjoint_AAt_test(A, self.key)
-
-    def test_AS_inverse(self):
-        A = AngularSpectrumPropagator(
-            input_shape=(self.N, self.N), dx=self.dx, k0=self.k0, z=self.z
-        )
-        Ax = A @ self.x
+        x, key = randn(A.input_shape, dtype=np.complex64, key=self.key)
+        Ax = A @ x
         AiAx = A.pinv(Ax)
-        np.testing.assert_allclose(self.x, AiAx, rtol=5e-4)
+        np.testing.assert_allclose(x, AiAx, rtol=5e-4)
+
+    @pytest.mark.parametrize("prop", prop_list)
+    def test_3d_invalid(self, prop):
+        with pytest.raises(ValueError):
+            prop(input_shape=(self.N, self.N, self.N), dx=self.dx, k0=self.k0, z=self.z)
+
+    @pytest.mark.parametrize("prop", prop_list)
+    def test_shape_dx_mismatch(self, prop):
+        with pytest.raises(ValueError):
+            prop(input_shape=(self.N,), dx=(self.dx, self.dx), k0=self.k0, z=self.z)
+
+    def test_3d_invalid_radial(self):
+        with pytest.raises(ValueError):
+            radial_transverse_frequency(input_shape=(self.N, self.N, self.N), dx=self.dx)
+
+    def test_shape_dx_mismatch(self):
+        with pytest.raises(ValueError):
+            radial_transverse_frequency(input_shape=(self.N,), dx=(self.dx, self.dx))
