@@ -7,7 +7,7 @@ import pytest
 from scico.test.linop.test_linop import adjoint_AAt_test, adjoint_AtA_test
 
 try:
-    from scico.linop.radon import ParallelBeamProjector
+    from scico.linop.radon_astra import ParallelBeamProjector
 except ImportError as e:
     pytest.skip("astra not installed", allow_module_level=True)
 

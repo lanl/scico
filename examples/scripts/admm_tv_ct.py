@@ -26,7 +26,7 @@ from xdesign import Foam, discrete_phantom
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot
 from scico.admm import ADMM, LinearSubproblemSolver
-from scico.linop.radon import ParallelBeamProjector
+from scico.linop.radon_astra import ParallelBeamProjector
 
 """
 Create a ground truth image.
