@@ -76,6 +76,12 @@ Installing a Development Version
 
   pre-commit install  # Sets up git pre-commit hooks
 
+7. If desired, tests can be run on the installed version:
+
+::
+
+   pytest --pyargs scico
+
 
 Contributing Code
 -----------------
