@@ -47,7 +47,7 @@ setup(
     keywords=["Computational Imaging", "Inverse Problems", "Optimization", "ADMM", "PGM"],
     platforms="Any",
     license="BSD",
-    url="https://github.com/bwohlberg/scico",
+    url="https://github.com/lanl/scico",
     author="SCICO Developers",
     author_email="brendt@ieee.org",  # Temporary
     packages=packages,
