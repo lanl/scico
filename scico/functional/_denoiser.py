@@ -23,7 +23,7 @@ from scico.typing import JaxArray
 from ._functional import Functional
 from ._objax import ObjaxMap
 
-__author__ = """Luke Pfister <pfister@lanl.gov>"""
+__author__ = """Luke Pfister <luke.pfister@gmail.com>"""
 
 
 class BM3D(Functional):

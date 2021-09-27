@@ -48,7 +48,7 @@ If the desired shape is a tuple containing tuples, a :class:`.BlockArray` is ret
 
 """
 
-__author__ = """Luke Pfister <pfister@lanl.gov>"""
+__author__ = """Luke Pfister <luke.pfister@gmail.com>"""
 
 import functools
 import inspect

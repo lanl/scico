@@ -25,7 +25,7 @@ from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
 __author__ = """\n""".join(
     [
         "Brendt Wohlberg <brendt@ieee.org>",
-        "Luke Pfister <pfister@lanl.gov>",
+        "Luke Pfister <luke.pfister@gmail.com>",
         "Michael McCann <mccann@lanl.gov>",
     ]
 )

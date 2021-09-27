@@ -23,7 +23,7 @@ from scico.blockarray import BlockArray
 from scico.typing import BlockShape, DType, JaxArray, Shape
 from scipy import optimize as spopt
 
-__author__ = """Luke Pfister <pfister@lanl.gov>"""
+__author__ = """Luke Pfister <luke.pfister@gmail.com>"""
 
 
 def _wrap_func_and_grad(func: Callable, shape: Union[Shape, BlockShape], dtype: DType):

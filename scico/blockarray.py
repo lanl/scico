@@ -429,7 +429,9 @@ from scico.util import is_nested
 
 _arraylikes = (Buffer, DeviceArray, np.ndarray)
 
-__author__ = """\n""".join(["Luke Pfister <pfister@lanl.gov>", "Brendt Wohlberg <brendt@ieee.org>"])
+__author__ = """\n""".join(
+    ["Luke Pfister <luke.pfister@gmail.com>", "Brendt Wohlberg <brendt@ieee.org>"]
+)
 
 
 def atleast_1d(*arys):

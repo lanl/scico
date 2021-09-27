@@ -21,7 +21,7 @@ from scico.typing import JaxArray
 from scico.util import ensure_on_device
 
 __author__ = """\n""".join(
-    ["Luke Pfister <pfister@lanl.gov>", "Thilo Balke <thilo.balke@gmail.com>"]
+    ["Luke Pfister <luke.pfister@gmail.com>", "Thilo Balke <thilo.balke@gmail.com>"]
 )
 
 

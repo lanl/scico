@@ -23,7 +23,7 @@ from scico.util import ensure_on_device
 
 __author__ = """\n""".join(
     [
-        "Luke Pfister <pfister@lanl.gov>",
+        "Luke Pfister <luke.pfister@gmail.com>",
         "Cristina Garcia-Cardona <cgarciac@lanl.gov>",
         "Thilo Balke <thilo.balke@gmail.com>",
     ]

@@ -23,7 +23,7 @@ from scico.util import parse_axes
 from ._linop import LinearOperator
 from ._stack import LinearOperatorStack
 
-__author__ = """Luke Pfister <pfister@lanl.gov>, Michael McCann <mccann@lanl.gov>"""
+__author__ = """Luke Pfister <luke.pfister@gmail.com>, Michael McCann <mccann@lanl.gov>"""
 
 
 class FiniteDifference(LinearOperatorStack):

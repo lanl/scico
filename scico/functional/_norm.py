@@ -20,7 +20,7 @@ from scico.typing import JaxArray
 
 from ._functional import Functional
 
-__author__ = """Luke Pfister <pfister@lanl.gov>, Michael McCann <mccann@lanl.gov>"""
+__author__ = """Luke Pfister <luke.pfister@gmail.com>, Michael McCann <mccann@lanl.gov>"""
 
 
 class L0Norm(Functional):

@@ -18,7 +18,7 @@ from scico.typing import JaxArray
 
 from ._functional import Functional
 
-__author__ = """Luke Pfister <pfister@lanl.gov>"""
+__author__ = """Luke Pfister <luke.pfister@gmail.com>"""
 
 
 class NonNegativeIndicator(Functional):

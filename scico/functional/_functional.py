@@ -18,7 +18,7 @@ from scico.blockarray import BlockArray
 from scico.typing import JaxArray
 
 __author__ = """\n""".join(
-    ["Luke Pfister <pfister@lanl.gov>", "Thilo Balke <thilo.balke@gmail.com>"]
+    ["Luke Pfister <luke.pfister@gmail.com>", "Thilo Balke <thilo.balke@gmail.com>"]
 )
 
 
