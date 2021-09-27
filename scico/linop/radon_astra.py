@@ -29,7 +29,7 @@ from scico.typing import JaxArray, Shape
 
 from ._linop import LinearOperator
 
-__author__ = """Luke Pfister <pfister@lanl.gov>"""
+__author__ = """Luke Pfister <luke.pfister@gmail.com>"""
 
 
 class ParallelBeamProjector(LinearOperator):

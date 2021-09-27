@@ -27,7 +27,7 @@ from scico.typing import JaxArray
 
 from ._linop import Identity
 
-__author__ = """Luke Pfister <pfister@lanl.gov>"""
+__author__ = """Luke Pfister <luke.pfister@gmail.com>"""
 
 
 def _wrap_add_sub_matrix(func, op):

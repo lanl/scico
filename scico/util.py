@@ -34,7 +34,7 @@ from scico.typing import Axes, JaxArray, Shape
 __author__ = """\n""".join(
     [
         "Brendt Wohlberg <brendt@ieee.org>",
-        "Luke Pfister <pfister@lanl.gov>",
+        "Luke Pfister <luke.pfister@gmail.com>",
         "Thilo Balke <thilo.balke@gmail.com>",
     ]
 )

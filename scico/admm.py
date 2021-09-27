@@ -26,7 +26,9 @@ from scico.solver import minimize
 from scico.typing import JaxArray
 from scico.util import ensure_on_device
 
-__author__ = """\n""".join(["Luke Pfister <pfister@lanl.gov>", "Brendt Wohlberg <brendt@ieee.org>"])
+__author__ = """\n""".join(
+    ["Luke Pfister <luke.pfister@gmail.com>", "Brendt Wohlberg <brendt@ieee.org>"]
+)
 
 
 class SubproblemSolver:

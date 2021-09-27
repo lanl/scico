@@ -22,7 +22,7 @@ from scico.blockarray import BlockArray
 from scico.random import randn
 from scico.typing import BlockShape, DType, JaxArray, PRNGKey, Shape
 
-__author__ = """Luke Pfister <pfister@lanl.gov>"""
+__author__ = """Luke Pfister <luke.pfister@gmail.com>"""
 
 
 def power_iteration(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey] = None):

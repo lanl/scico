@@ -14,7 +14,9 @@ import scico.numpy as snp
 from scico.blockarray import BlockArray
 from scico.typing import DType, JaxArray
 
-__author__ = """\n""".join(["Luke Pfister <pfister@lanl.gov>", "Brendt Wohlberg <brendt@ieee.org>"])
+__author__ = """\n""".join(
+    ["Luke Pfister <luke.pfister@gmail.com>", "Brendt Wohlberg <brendt@ieee.org>"]
+)
 
 
 def safe_divide(

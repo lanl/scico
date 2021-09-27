@@ -24,7 +24,7 @@ from scico.typing import Shape
 
 from ._dft import DFT
 
-__author__ = """Luke Pfister <pfister@lanl.gov>"""
+__author__ = """Luke Pfister <luke.pfister@gmail.com>"""
 
 
 def radial_transverse_frequency(
