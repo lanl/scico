@@ -14,6 +14,7 @@ from scico._generic_operators import LinearOperator
 from ._linop import Diagonal, Identity, power_iteration, Sum
 from ._matrix import MatrixOperator
 from ._diff import FiniteDifference
+from ._grad import ProjectedGradient, PolarGradient, CylindricalGradient, SphericalGradient
 from ._convolve import Convolve, ConvolveByX
 from ._circconv import CircularConvolve
 from ._dft import DFT
@@ -26,6 +27,10 @@ __all__ = [
     "Diagonal",
     "MatrixOperator",
     "FiniteDifference",
+    "ProjectedGradient",
+    "PolarGradient",
+    "CylindricalGradient",
+    "SphericalGradient",
     "Convolve",
     "CircularConvolve",
     "DFT",

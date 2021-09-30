@@ -79,6 +79,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinxcontrib.bibtex",
     "sphinx.ext.inheritance_diagram",
+    "matplotlib.sphinxext.plot_directive",
     "sphinx.ext.mathjax",
     "sphinx.ext.todo",
     "nbsphinx",
@@ -124,6 +125,7 @@ mathjax_config = {
             "mb": [r"\mathbf{#1}", 1],
             "mbs": [r"\boldsymbol{#1}", 1],
             "mbb": [r"\mathbb{#1}", 1],
+            "mrm": [r"\mathrm{#1}", 1],
             "norm": [r"\lVert #1 \rVert", 1],
             "abs": [r"\left| #1 \right|", 1],
             "argmin": [r"\mathop{\mathrm{argmin}}"],
@@ -275,6 +277,11 @@ inheritance_node_attrs = dict(
     style='"rounded,filled"',
     fillcolor='"#f4f4ffff"',
 )
+
+plot_include_source = False
+plot_html_show_source_link = False
+plot_formats = ["svg"]
+plot_html_show_formats = False
 
 
 # -- Options for manual page output ---------------------------------------

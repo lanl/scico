@@ -6,6 +6,6 @@ sphinx-autodoc-typehints
 faculty-sphinx-theme
 nbsphinx
 py2jn
-pygraphviz>=1.7
+pygraphviz>=2
 pandoc
 docutils==0.16
