@@ -379,6 +379,8 @@ for _, f in snp_func:
             f.__doc__,
             flags=re.M,
         )
+        # Remove cross-references to section NEP35
+        f.__doc__ = re.sub(":ref:`NEP 35 <NEP35>`", "NEP 35", f.__doc__, re.M)
         # Remove cross-reference to numpydoc style references section
         f.__doc__ = re.sub(r" \[(\d+)\]_", "", f.__doc__, flags=re.M)
         # Remove entire numpydoc references section
