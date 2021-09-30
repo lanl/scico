@@ -69,7 +69,7 @@ class TestPolarGradient:
         for n0, n1 in combinations(range(len(coord)), 2):
             c0 = coord[n0]
             c1 = coord[n1]
-            assert snp.abs(c0 @ c1) < 1e-5
+            assert snp.abs(snp.sum(c0 * c1)) < 1e-5
 
 
 class TestCylindricalGradient:
