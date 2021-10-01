@@ -120,8 +120,9 @@ class LinearSubproblemSolver(SubproblemSolver):
          \mb{x}^{(k+1)} = \argmin_{\mb{x}} \; \frac{1}{2} \norm{\mb{y} - A x}_W^2 +
          \sum_i \frac{\rho_i}{2} \norm{\mb{z}^{(k)}_i - \mb{u}^{(k)}_i - C_i \mb{x}}_2^2 \;,
 
-    where :math:`W` is the weighting :class:`.LinearOperator` from the :class:`.WeightedSquaredL2Loss`
-    instance. This update step reduces to the solution of the linear system
+    where :math:`W` is the weighting :class:`.LinearOperator` from the
+    :class:`.WeightedSquaredL2Loss` instance. This update step reduces to the solution
+    of the linear system
 
     .. math::
         \left(A^* W A + \sum_{i=1}^N \rho_i C_i^* C_i \right) \mb{x}^{(k+1)} = \;
@@ -173,8 +174,8 @@ class LinearSubproblemSolver(SubproblemSolver):
 
         super().internal_init(admm)
 
-        # set lhs_op =  \sum_i rho_i * Ci.H @ CircularConvolve
-        # use reduce as the initialization of this sum is messy otherwise
+        # Set lhs_op =  \sum_i rho_i * Ci.H @ CircularConvolve
+        # Use reduce as the initialization of this sum is messy otherwise
         lhs_op = reduce(
             lambda a, b: a + b, [rhoi * Ci.gram_op for rhoi, Ci in zip(admm.rho_list, admm.C_list)]
         )
@@ -295,8 +296,8 @@ class CircularConvolveSolver(LinearSubproblemSolver):
 
 
 class ADMM:
-    r"""Basic Alternating Direction Method of Multipliers (ADMM)
-    algorithm :cite:`boyd-2010-distributed`.
+    r"""Basic Alternating Direction Method of Multipliers (ADMM) algorithm
+    :cite:`boyd-2010-distributed`.
 
     |
 
@@ -308,8 +309,8 @@ class ADMM:
     where :math:`f` is an instance of :class:`.Loss`, the :math:`g_i` are :class:`.Functional`,
     and the :math:`C_i` are :class:`.LinearOperator`.
 
-    The optimization problem is solved by introducing the splitting :math:`\mb{z}_i = C_i \mb{x}`
-    and solving
+    The optimization problem is solved by introducing the splitting :math:`\mb{z}_i =
+    C_i \mb{x}` and solving
 
     .. math::
         \argmin_{\mb{x}, \mb{z}_i} \; f(\mb{x}) + \sum_{i=1}^N g_i(\mb{z}_i) \;
@@ -423,7 +424,7 @@ class ADMM:
                     )
 
             else:
-                # at least one 'g' can't be evaluated, so drop objective from the default itstat
+                # At least one 'g' can't be evaluated, so drop objective from the default itstat
                 itstat_dict = {"Iter": "%d", "Primal Rsdl": "%8.3e", "Dual Rsdl": "%8.3e"}
 
                 def itstat_func(i, admm):
@@ -502,7 +503,7 @@ class ADMM:
         r"""Compute the :math:`\ell_2` norm of the dual residual.
 
         .. math::
-            \left(\sum_{i=1}^N \norm{\mb{z}^{(k)} - \mb{z}^{(k-1)}}_2^2\right)^{1/2}
+            \left(\sum_{i=1}^N \norm{\mb{z}^{(k)}_i - \mb{z}^{(k-1)}_i}_2^2\right)^{1/2}
 
         Returns:
             Current value of dual residual
@@ -576,7 +577,7 @@ class ADMM:
         """
         z_list_old = z_list.copy()
 
-        # unpack the arrays that will be changing to prevent side-effects
+        # Unpack the arrays that will be changing to prevent side-effects
         z_list = self.z_list
         u_list = self.u_list
 
@@ -594,7 +595,6 @@ class ADMM:
         """Perform a single ADMM iteration.
 
         Equivalent to calling :meth:`.x_step` followed by :meth:`.z_and_u_step`.
-
         """
         self.x = self.x_step(self.x)
         self.u_list, self.z_list, self.z_list_old = self.z_and_u_step(self.u_list, self.z_list)
