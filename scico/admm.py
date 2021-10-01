@@ -581,11 +581,11 @@ class ADMM:
         z_list = self.z_list
         u_list = self.u_list
 
-        for i, (rhoi, fi, Ci, zi, ui) in enumerate(
+        for i, (rhoi, gi, Ci, zi, ui) in enumerate(
             zip(self.rho_list, self.g_list, self.C_list, z_list, u_list)
         ):
             Cix = Ci(self.x)
-            zi = fi.prox(Cix + ui, 1 / rhoi)
+            zi = gi.prox(Cix + ui, 1 / rhoi)
             ui = ui + Cix - zi
             z_list[i] = zi
             u_list[i] = ui
