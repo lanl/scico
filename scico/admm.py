@@ -515,7 +515,7 @@ class ADMM:
         return snp.sqrt(out)
 
     def z_init(self, x0: Union[JaxArray, BlockArray]):
-        r"""Initialize auxiliary variables :math:`\mb{z}`.
+        r"""Initialize auxiliary variables :math:`\mb{z}_i`.
 
         Initializes to
 
@@ -532,7 +532,7 @@ class ADMM:
         return z_list, z_list_old
 
     def u_init(self, x0: Union[JaxArray, BlockArray]):
-        r"""Initialize scaled Lagrange multipliers :math:`\mb{u}`.
+        r"""Initialize scaled Lagrange multipliers :math:`\mb{u}_i`.
 
         Initializes to
 
