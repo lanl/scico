@@ -557,8 +557,8 @@ class ADMM:
         return self.subproblem_solver.solve(x)
 
     def z_and_u_step(self, u_list, z_list):
-        r""" Update the auxiliary variables :math:`\mb{z}` and scaled Lagrange multipliers
-        :math:`\mb{u}`.
+        r""" Update the auxiliary variables :math:`\mb{z}_i` and scaled Lagrange multipliers
+        :math:`\mb{u}_i`.
 
         The auxiliary variables are updated according to
 
