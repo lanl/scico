@@ -304,7 +304,7 @@ class ADMM:
     Solve an optimization problem of the form
 
     .. math::
-        \argmin_{\mb{x}} \; f(\mb{x}) + \sum_{i=1}^N g_i(C_i \mb{x}),
+        \argmin_{\mb{x}} \; f(\mb{x}) + \sum_{i=1}^N g_i(C_i \mb{x}) \;,
 
     where :math:`f` is an instance of :class:`.Loss`, the :math:`g_i` are :class:`.Functional`,
     and the :math:`C_i` are :class:`.LinearOperator`.
