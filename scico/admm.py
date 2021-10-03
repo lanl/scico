@@ -520,7 +520,7 @@ class ADMM:
         Initializes to
 
         .. math::
-            \mb{z}_i = C_i \mb{x}_0
+            \mb{z}_i = C_i \mb{x}^{(0)}
 
         :code:`z_list` and :code:`z_list_old` are initialized to the same value.
 
@@ -537,7 +537,7 @@ class ADMM:
         Initializes to
 
         .. math::
-            \mb{u}_i = C_i \mb{x}_0
+            \mb{u}_i = C_i \mb{x}^{(0)}
 
 
         Args:
