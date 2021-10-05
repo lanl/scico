@@ -159,5 +159,5 @@ class DnCNN_Net(objax.Module):
             x = ly(x, training)
 
         x = self.post_conv(x)
-        # residual-like output
+        # Residual-like output
         return base - x

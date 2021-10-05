@@ -90,7 +90,7 @@ class BBStepSize(PGMStepSize):
 
         if self.xprev is None:
             # Solution and gradient of previous iterate are required.
-            # For first iteration these variables are stored and current estimation is returned.
+            # For first iteration these variables are stored and current estimate is returned.
             self.xprev = v
             self.gradprev = self.pgm.f.grad(self.xprev)
             L = self.pgm.L
@@ -197,7 +197,7 @@ class AdaptiveBBStepSize(PGMStepSize):
             # Store current state and gradient for next update.
             self.xprev = v
             self.gradprev = gradv
-            # Store current estimations of Barzilai-Borwein 1 (Lbb1) and Barzilai-Borwein 2 (Lbb2).
+            # Store current estimates of Barzilai-Borwein 1 (Lbb1) and Barzilai-Borwein 2 (Lbb2).
             self.Lbb1prev = Lbb1
             self.Lbb2prev = Lbb2
 
@@ -333,7 +333,7 @@ class PGM:
 
     The function :math:`f` must be smooth and :math:`g` must have a defined prox.
 
-    Uses helper :class:`StepSize` to provide an estimation of the Lipschitz constant :math:`L` of :math:`f`. The step size :math:`\alpha` is the reciprocal of :math:`L`, i.e.: :math:`\alpha = 1 / L`.
+    Uses helper :class:`StepSize` to provide an estimate of the Lipschitz constant :math:`L` of :math:`f`. The step size :math:`\alpha` is the reciprocal of :math:`L`, i.e.: :math:`\alpha = 1 / L`.
     """
 
     def __init__(
