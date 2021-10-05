@@ -31,6 +31,7 @@ phantom = SiemensStar(32)
 x_gt = snp.pad(discrete_phantom(phantom, 240), 8)
 x_gt = jax.device_put(x_gt)  # Convert to jax type, push to GPU
 
+
 """
 Set up the forward operator and create a test signal consisting of a blurred signal with additive Gaussian noise.
 """
@@ -43,6 +44,7 @@ A = linop.Convolve(h=psf, input_shape=x_gt.shape)
 Ax = A(x_gt)  # Blurred image
 noise, key = scico.random.randn(Ax.shape, seed=0)
 y = Ax + σ * noise
+
 
 """
 Set up an ADMM solver object.
@@ -73,6 +75,7 @@ Run the solver.
 x = solver.solve()
 hist = solver.itstat_object.history(transpose=True)
 
+
 """
 Show the recovered image.
 """
@@ -85,6 +88,7 @@ plot.imview(
     solver.x, title="Deconvolved image: %.2f (dB)" % metric.psnr(x_gt, solver.x), fig=fig, ax=ax[2]
 )
 fig.show()
+
 
 """
 Plot convergence statistics.
