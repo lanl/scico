@@ -6,7 +6,7 @@
 
 r"""
 Non-negative Poisson Loss Reconstruction (AcceleratedPGM w/ adaptive PGMStepSize)
-=============================================
+=================================================================================
 
 This example demonstrates the use of class [pgm.PGMStepSize](../_autosummary/scico.pgm.rst#scico.pgm.PGMStepSize) to solve the non-negative reconstruction problem with Poisson negative log likelihood loss
 
@@ -49,6 +49,7 @@ y, key = scico.random.poisson(lam, shape=lam.shape, key=key)  # synthetic signal
 x_gt = jax.device_put(x_gt)  # Convert to jax array, push to GPU
 y = jax.device_put(y)  # Convert to jax array, push to GPU
 
+
 """
 Set up the forward operator, the loss function and the regularization.
 """
@@ -57,13 +58,15 @@ f = loss.PoissonLoss(y=y, A=A)
 f.is_smooth = True
 g = functional.NonNegativeIndicator()
 
+
 """
 Define common setup: maximum of iterations and initial estimation of solution.
 """
 maxiter = 50
 
 x0, key = scico.random.uniform((n,), key=key)
-x0 = jax.device_put(x0)  # initial solution estimate
+x0 = jax.device_put(x0)  # Initial solution estimate
+
 
 """
 Define plotting functionality.
@@ -72,10 +75,7 @@ Define plotting functionality.
 
 def plot_results(hist, str_ss, L0, xsol, xgt, Amat):
     # Plot signal, coefficients and convergence statistics.
-    fig = plot.figure(
-        figsize=(12, 6),
-        tight_layout=True,
-    )
+    fig = plot.figure(figsize=(12, 6), tight_layout=True,)
     gs = gridspec.GridSpec(nrows=2, ncols=3)
 
     fig.suptitle(
@@ -85,32 +85,17 @@ def plot_results(hist, str_ss, L0, xsol, xgt, Amat):
 
     ax0 = fig.add_subplot(gs[0, 0])
     plot.plot(
-        hist.Objective,
-        ptyp="semilogy",
-        title="Objective",
-        xlbl="Iteration",
-        fig=fig,
-        ax=ax0,
+        hist.Objective, ptyp="semilogy", title="Objective", xlbl="Iteration", fig=fig, ax=ax0,
     )
 
     ax1 = fig.add_subplot(gs[0, 1])
     plot.plot(
-        hist.Residual,
-        ptyp="semilogy",
-        title="Residual",
-        xlbl="Iteration",
-        fig=fig,
-        ax=ax1,
+        hist.Residual, ptyp="semilogy", title="Residual", xlbl="Iteration", fig=fig, ax=ax1,
     )
 
     ax2 = fig.add_subplot(gs[0, 2])
     plot.plot(
-        hist.L,
-        ptyp="semilogy",
-        title="L",
-        xlbl="Iteration",
-        fig=fig,
-        ax=ax2,
+        hist.L, ptyp="semilogy", title="L", xlbl="Iteration", fig=fig, ax=ax2,
     )
 
     ax3 = fig.add_subplot(gs[1, 0])
@@ -135,17 +120,10 @@ def plot_results(hist, str_ss, L0, xsol, xgt, Amat):
 """
 Use default PGMStepSize object, set L0 based on norm of Forward operator and set up AcceleratedPGM solver object. Run the solver and plot the recontructed signal and convergence statistics.
 """
-L0 = snp.linalg.norm(D, 2) ** 2  # initial reciprocal of gradient descent step size
+L0 = snp.linalg.norm(D, 2) ** 2  # Initial reciprocal of gradient descent step size
 str_L0 = "(Estimation based on norm of Forward operator)"
 
-solver = AcceleratedPGM(
-    f=f,
-    g=g,
-    L0=L0,
-    x0=x0,
-    maxiter=maxiter,
-    verbose=True,
-)
+solver = AcceleratedPGM(f=f, g=g, L0=L0, x0=x0, maxiter=maxiter, verbose=True,)
 str_ss = type(solver.step_size).__name__
 
 print("============================================================")
@@ -156,20 +134,15 @@ x = solver.solve()  # Run the solver.
 hist = solver.itstat_object.history(transpose=True)
 plot_results(hist, str_ss, L0, x, x_gt, A)
 
+
 """
 Use BBStepSize object, set L0 with arbitary initial value and set up AcceleratedPGM solver object. Run the solver and plot the recontructed signal and convergence statistics.
 """
-L0 = 90.0  # initial reciprocal of gradient descent step size
+L0 = 90.0  # Initial reciprocal of gradient descent step size
 str_L0 = "(Arbitrary Initialization)"
 
 solver = AcceleratedPGM(
-    f=f,
-    g=g,
-    L0=L0,
-    x0=x0,
-    maxiter=maxiter,
-    verbose=True,
-    step_size=BBStepSize(),
+    f=f, g=g, L0=L0, x0=x0, maxiter=maxiter, verbose=True, step_size=BBStepSize(),
 )
 str_ss = type(solver.step_size).__name__
 
@@ -181,20 +154,15 @@ x = solver.solve()  # Run the solver.
 hist = solver.itstat_object.history(transpose=True)
 plot_results(hist, str_ss, L0, x, x_gt, A)
 
+
 """
 Use AdaptiveBBStepSize object, set L0 with arbitary initial value and set up AcceleratedPGM solver object. Run the solver and plot the recontructed signal and convergence statistics.
 """
-L0 = 90.0  # initial reciprocal of gradient descent step size
+L0 = 90.0  # Initial reciprocal of gradient descent step size
 str_L0 = "(Arbitrary Initialization)"
 
 solver = AcceleratedPGM(
-    f=f,
-    g=g,
-    L0=L0,
-    x0=x0,
-    maxiter=maxiter,
-    verbose=True,
-    step_size=AdaptiveBBStepSize(kappa=0.75),
+    f=f, g=g, L0=L0, x0=x0, maxiter=maxiter, verbose=True, step_size=AdaptiveBBStepSize(kappa=0.75),
 )
 str_ss = type(solver.step_size).__name__
 
@@ -206,10 +174,11 @@ x = solver.solve()  # Run the solver.
 hist = solver.itstat_object.history(transpose=True)
 plot_results(hist, str_ss, L0, x, x_gt, A)
 
+
 """
 Use LineSearchStepSize object, set L0 with arbitary initial value and set up AcceleratedPGM solver object. Run the solver and plot the recontructed signal and convergence statistics.
 """
-L0 = 90.0  # initial reciprocal of gradient descent step size
+L0 = 90.0  # Initial reciprocal of gradient descent step size
 str_L0 = "(Arbitrary Initialization)"
 
 solver = AcceleratedPGM(
@@ -231,20 +200,15 @@ x = solver.solve()  # Run the solver.
 hist = solver.itstat_object.history(transpose=True)
 plot_results(hist, str_ss, L0, x, x_gt, A)
 
+
 """
 Use RobustLineSearchStepSize object, set L0 with arbitary initial value and set up AcceleratedPGM solver object. Run the solver and plot the recontructed signal and convergence statistics.
 """
-L0 = 90.0  # initial reciprocal of gradient descent step size
+L0 = 90.0  # Initial reciprocal of gradient descent step size
 str_L0 = "(Arbitrary Initialization)"
 
 solver = AcceleratedPGM(
-    f=f,
-    g=g,
-    L0=L0,
-    x0=x0,
-    maxiter=maxiter,
-    verbose=True,
-    step_size=RobustLineSearchStepSize(),
+    f=f, g=g, L0=L0, x0=x0, maxiter=maxiter, verbose=True, step_size=RobustLineSearchStepSize(),
 )
 str_ss = type(solver.step_size).__name__
 
