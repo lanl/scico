@@ -42,6 +42,7 @@ y = D @ x_gt + σ * np.random.randn(m)  # synthetic signal
 x_gt = jax.device_put(x_gt)  # Convert to jax array, push to GPU
 y = jax.device_put(y)  # Convert to jax array, push to GPU
 
+
 """
 Set up the forward operator and AcceleratedPGM solver object.
 """
@@ -52,11 +53,13 @@ f = loss.SquaredL2Loss(y=y, A=A)
 g = λ * functional.L1Norm()
 solver = AcceleratedPGM(f=f, g=g, L0=L0, x0=A.adj(y), maxiter=maxiter, verbose=True)
 
+
 """
 Run the solver.
 """
 x = solver.solve()
 hist = solver.itstat_object.history(transpose=True)
+
 
 """
 Plot the recovered coefficients and convergence statistics.
