@@ -9,7 +9,6 @@ Image Deconvolution (PGM Plug-and-Play Priors w/ BM3D)
 ======================================================
 
 This example demonstrates the use of class [pgm.AcceleratedPGM](../_autosummary/scico.pgm.rst#scico.pgm.AcceleratedPGM) to solve an image deconvolution problem using the Plug-and-Play Priors framework :cite:`venkatakrishnan-2013-plugandplay2` :cite:`kamilov-2017-plugandplay`, using BM3D :cite:`dabov-2008-image` as a denoiser.
-
 """
 
 import numpy as np
@@ -30,6 +29,7 @@ np.random.seed(1234)
 x_gt = discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=512)
 x_gt = jax.device_put(x_gt)  # Convert to jax type, push to GPU
 
+
 """
 Set up forward operator and test signal consisting of blurred signal with additive Gaussian noise.
 """
@@ -42,6 +42,7 @@ A = linop.Convolve(h=psf, input_shape=x_gt.shape)
 Ax = A(x_gt)  # Blurred image
 noise, key = scico.random.randn(Ax.shape)
 y = Ax + σ * noise
+
 
 """
 Set up and run a PGM solver
@@ -60,6 +61,7 @@ x = solver.solve()
 x = snp.clip(x, 0, 1)
 hist = solver.itstat_object.history(transpose=True)
 
+
 """
 Show the recovered image.
 """
@@ -71,6 +73,7 @@ yc = y[nc:-nc, nc:-nc]
 plot.imview(y, title="Blurred, noisy image: %.2f (dB)" % metric.psnr(x_gt, yc), fig=fig, ax=ax[1])
 plot.imview(x, title="Deconvolved image: %.2f (dB)" % metric.psnr(x_gt, x), fig=fig, ax=ax[2])
 fig.show()
+
 
 """
 Plot convergence statistics.
