@@ -20,8 +20,8 @@ from jaxlib.xla_extension import CompiledFunction
 # stripped down version of jax._src.lax_numpy._not_implemented and jax.utils._wraps
 
 _NOT_IMPLEMENTED_DESC = """
-**WARNING**: This function is not yet implemented by :mod:`scico.numpy` and may raise an
-error when operating on :class:`scico.blockarray.BlockArray`.
+**WARNING**: This function is not yet implemented by :mod:`scico.numpy` and
+may raise an error when operating on :class:`scico.blockarray.BlockArray`.
 """
 
 
