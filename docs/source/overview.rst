@@ -11,9 +11,15 @@ Overview
     div.document li > p {
        margin-bottom: 4px !important;
     }
-    div.document li {
+    div.document ul > li {
       list-style: square outside !important;
       margin-left: 1em !important;
+    }
+    section {
+      padding-bottom: 1em;
+    }
+    ul {
+      margin-bottom: 1em;
     }
     </style>
 
@@ -41,14 +47,9 @@ SCICO is designed to solve problems of the form
 
    \argmin_{\mb{x}} \; f(\mb{x}) + \sum_{r=1}^R g_r(C_r (\mb{x})),
 
-with :math:`\mb{x} \in  \mathbb{R}^{n}` representing the reconstruction, e.g.,  a 1D, 2D, 3D, or 3D+time image,
-:math:`C_r:  \mathbb{R}^{n} \to \mathbb{R}^{m_r}` being regularization operators,
-and :math:`f: \mathbb{R}^{n} \to \mathbb{R}` and :math:`g_r: \mathbb{R}^{m_r} \to \mathbb{R}` being functionals associated with the data fidelity and regularization, respectively.
+with :math:`\mb{x} \in \mathbb{R}^{n}` representing the reconstruction, e.g., a 1D, 2D, 3D, or 3D+time image, :math:`C_r: \mathbb{R}^{n} \to \mathbb{R}^{m_r}` being regularization operators, and :math:`f: \mathbb{R}^{n} \to \mathbb{R}` and :math:`g_r: \mathbb{R}^{m_r} \to \mathbb{R}` being functionals associated with the data fidelity and regularization, respectively.
 
-
-In a typical computational imaging problem, we have a `forward model`
-that models the data acquisition process.  We denote this forward
-model by the (possibly nonlinear) operator :math:`A`.
+In a typical computational imaging problem, we have a `forward model` that models the data acquisition process.  We denote this forward model by the (possibly nonlinear) operator :math:`A`.
 
 We want to find :math:`\mb{x}` such that :math:`\mb{y} \approx A(\mb{x})`
 in some appropriate sense. This discrepency is measured in our data fidelity, or `loss`, function
@@ -56,45 +57,25 @@ in some appropriate sense. This discrepency is measured in our data fidelity, or
 .. math::
    f(\mb{x}) = L(A(\mb{x}), \mb{y}) \,,
 
-where :math:`L` is a `functional` that maps a vector (or array) into
-a scalar.  A common choice is :math:`f(\mb{x}) = \norm{\mb{y} - A(\mb{x})}_2^2`.
-The SCICO :class:`.Loss` object encapsulates the data
-:math:`\mb{y}`, the forward model :math:`A`, and the functional
-:math:`L` in a single object.  A library of functionals and losses
-are implemented in :mod:`.functional` and :mod:`.loss`,
-respectively.
+where :math:`L` is a `functional` that maps a vector (or array) into a scalar.  A common choice is :math:`f(\mb{x}) = \norm{\mb{y} - A(\mb{x})}_2^2`.  The SCICO :class:`.Loss` object encapsulates the data :math:`\mb{y}`, the forward model :math:`A`, and the functional :math:`L` in a single object.  A library of functionals and losses are implemented in :mod:`.functional` and :mod:`.loss`, respectively.
 
-Note that :math:`f(\mb{x})` can often be interpreted as the negative
-log likelihood of the candidate :math:`\mb{x}`, given the measurements
-:math:`\mb{y}` and an underlying noise model.
+Note that :math:`f(\mb{x})` can often be interpreted as the negative log likelihood of the candidate :math:`\mb{x}`, given the measurements :math:`\mb{y}` and an underlying noise model.
 
-The functionals :math:`g_r(C_r (\mb{x}))` are regularization functionals.  The :math:`C_r` are operators,
-usually linear operators.   Together, these terms encourage solutions that arex
-"simple" in some sense.  A popular choice is :math:`g = \norm{ \cdot }_1` and :math:`C` to be a :class:`.FiniteDifferece`
-linear operator; this combination promotes piecewise smooth solutions to the inverse problem.
+The functionals :math:`g_r(C_r (\mb{x}))` are regularization functionals.  The :math:`C_r` are operators, usually linear operators.  Together, these terms encourage solutions that arex "simple" in some sense.  A popular choice is :math:`g = \norm{ \cdot }_1` and :math:`C` to be a :class:`.FiniteDifferece` linear operator; this combination promotes piecewise smooth solutions to the inverse problem.
 
 
 Usage Examples
 --------------
 
-Usage examples are available as Python scripts and Jupyter Notebooks. Example
-scripts are located in ``examples/scripts``. The corresponding Jupyter Notebooks
-are provided in the ``scico-data`` submodule and symlinked to
-``examples/notebooks``. They are also viewable on `GitHub
-<https://github.com/lanl/scico-data/tree/main/notebooks>`_ and in the
-documentation :ref:`example_notebooks`.
+Usage examples are available as Python scripts and Jupyter Notebooks. Example scripts are located in ``examples/scripts``. The corresponding Jupyter Notebooks are provided in the ``scico-data`` submodule and symlinked to ``examples/notebooks``. They are also viewable on `GitHub <https://github.com/lanl/scico-data/tree/main/notebooks>`_ and in the documentation :ref:`example_notebooks`.
 
 
 Related Projects
 ----------------
 
-The SCICO library is inspired by the `GlobalBiolm <https://github.com/Biomedical-Imaging-Group/GlobalBioIm>`_ MATLAB package,
-which provides a similar object-oriented design for solving computational imaging problems. `Pycsou <https://github.com/matthieumeo/pycsou>`_ is a similar
-Python library for inverse problems that is also inspired by GlobalBioIm.
+The SCICO library is inspired by the `GlobalBiolm <https://github.com/Biomedical-Imaging-Group/GlobalBioIm>`_ MATLAB package, which provides a similar object-oriented design for solving computational imaging problems. `Pycsou <https://github.com/matthieumeo/pycsou>`_ is a similar Python library for inverse problems that is also inspired by GlobalBioIm.
 
-A key advantage of SCICO over these libraries is the usage of JAX, which provides automatic hardware acceleration, automatic differentiation,
-and automatic adjoint calculations.  Moreover, as JAX is a machine learning library, state of the art Plug-and-Play regularizers such as DnCNN
-can specified, trained, and implemented in the same software package.
+A key advantage of SCICO over these libraries is the usage of JAX, which provides automatic hardware acceleration, automatic differentiation, and automatic adjoint calculations.  Moreover, as JAX is a machine learning library, state of the art Plug-and-Play regularizers such as DnCNN can specified, trained, and implemented in the same software package.
 
 
 Other related projects that may be of interest include:

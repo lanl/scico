@@ -11,9 +11,15 @@ SCICO Contributors
     div.document li > p {
        margin-bottom: 4px !important;
     }
-    div.document li {
+    div.document ul > li {
       list-style: square outside !important;
       margin-left: 1em !important;
+    }
+    section {
+      padding-bottom: 1em;
+    }
+    ul {
+      margin-bottom: 1em;
     }
     </style>
 
@@ -28,11 +34,9 @@ Core Developers
 - `Michael McCann <https://github.com/Michael-T-McCann>`_
 - `Brendt Wohlberg <https://github.com/bwohlberg>`_
 
-|
 
 Contributors
 ============
 
 - `Oleg Korobkin <https://github.com/korobkin>`_ (BlockArray improvements)
 - `Yanpeng Yuan <https://github.com/yanpeng7>`_ (Improvements to ASTRA interface)
-
