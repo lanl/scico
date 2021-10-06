@@ -96,7 +96,11 @@ Reconstruct with both standard and preconditioned conjugate gradient.
 """
 start_time = time()
 x_cg, info_cg = cg(
-    A.T @ A, A.T @ y, jnp.zeros(A.input_shape, dtype=A.input_dtype), tol=1e-5, info=True,
+    A.T @ A,
+    A.T @ y,
+    jnp.zeros(A.input_shape, dtype=A.input_dtype),
+    tol=1e-5,
+    info=True,
 )
 time_cg = time() - start_time
 
