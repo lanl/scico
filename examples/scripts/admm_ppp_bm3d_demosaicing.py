@@ -31,6 +31,7 @@ Read a ground truth image.
 img = kodim23(asfloat=True)[160:416, 60:316]
 img = jax.device_put(img)  # Convert to jax type, push to GPU
 
+
 """
 Define demosaicing forward operator and its transpose.
 """
@@ -76,14 +77,16 @@ Create a test image by color filter array sampling and adding Gaussian white noi
 """
 s = Afn(img)
 rgbshp = s.shape + (3,)  # Shape of reconstructed RGB image
-nsigma = 2e-2  # Noise standard deviation
+σ = 2e-2  # Noise standard deviation
 noise, key = scico.random.randn(s.shape, seed=0)
-sn = s + nsigma * noise
+sn = s + σ * noise
+
 
 """
 Compute a baseline demosaicing solution.
 """
-imgb = bm3d_rgb(demosaic(sn), 3 * nsigma).astype(np.float32)
+imgb = bm3d_rgb(demosaic(sn), 3 * σ).astype(np.float32)
+
 
 """
 Set up an ADMM solver object. Note the use of the baseline solution as an initializer. We use BM3D :cite:`dabov-2008-image` as the denoiser, using the [code](https://pypi.org/project/bm3d) released with :cite:`makinen-2019-exact`.
@@ -92,19 +95,20 @@ A = linop.LinearOperator(input_shape=rgbshp, output_shape=s.shape, eval_fn=Afn, 
 f = loss.SquaredL2Loss(y=sn, A=A)
 C = linop.Identity(input_shape=rgbshp)
 g = 1.8e-1 * 6.1e-2 * functional.BM3D(is_rgb=True)
-rho = 1.8e-1  # ADMM penalty parameter
+ρ = 1.8e-1  # ADMM penalty parameter
 maxiter = 12  # Number of ADMM iterations
 
 solver = ADMM(
     f=f,
     g_list=[g],
     C_list=[C],
-    rho_list=[rho],
+    rho_list=[ρ],
     x0=imgb,
     maxiter=maxiter,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": 100}),
     verbose=True,
 )
+
 
 """
 Run the solver.
@@ -112,15 +116,16 @@ Run the solver.
 x = solver.solve()
 hist = solver.itstat_object.history(transpose=True)
 
+
 """
 Show reference and demosaiced images.
 """
-
 fig, ax = plot.subplots(nrows=1, ncols=3, sharex=True, sharey=True, figsize=(21, 7))
 plot.imview(img, title="Reference", fig=fig, ax=ax[0])
 plot.imview(imgb, title="Baseline demoisac: %.2f (dB)" % metric.psnr(img, imgb), fig=fig, ax=ax[1])
 plot.imview(x, title="PPP demoisac: %.2f (dB)" % metric.psnr(img, x), fig=fig, ax=ax[2])
 fig.show()
+
 
 """
 Plot convergence statistics.
