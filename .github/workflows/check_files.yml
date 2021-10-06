@@ -2,7 +2,7 @@
 
 name: Check File Types/Sizes
 
-# Controls when the action will run. 
+# Controls when the action will run.
 on: [push, pull_request]
 
 #
@@ -20,8 +20,7 @@ jobs:
     - id: files
       uses: Ana06/get-changed-files@v1.2
       continue-on-error: true
-    - run: | 
+    - run: |
        for f in ${{ steps.files.outputs.added }}; do
            ${GITHUB_WORKSPACE}/.github/./isbin.sh $f
        done
-
