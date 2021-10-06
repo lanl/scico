@@ -6,7 +6,7 @@
 
 r"""
 Image Deconvolution (ADMM w/ Total Variation and Circulant Blur)
-=============================================
+================================================================
 
 This example demonstrates the use of class [admm.ADMM](../_autosummary/scico.admm.rst#scico.admm.ADMM) to solve an image deconvolution problem with isotropic total variation (TV) regularization.
 
@@ -32,6 +32,7 @@ phantom = SiemensStar(32)
 x_gt = snp.pad(discrete_phantom(phantom, 240), 8)
 x_gt = jax.device_put(x_gt)  # Convert to jax type, push to GPU
 
+
 """
 Set up the forward operator and create a test signal consisting of a blurred signal with additive Gaussian noise.
 """
@@ -44,6 +45,7 @@ A = linop.CircularConvolve(h=psf, input_shape=x_gt.shape)
 Ax = A(x_gt)  # Blurred image
 noise, key = scico.random.randn(Ax.shape, seed=0)
 y = Ax + σ * noise
+
 
 """
 Set up an ADMM solver object.
@@ -74,6 +76,7 @@ Run the solver.
 x = solver.solve()
 hist = solver.itstat_object.history(transpose=True)
 
+
 """
 Show the recovered image.
 """
@@ -82,6 +85,7 @@ plot.imview(x_gt, title="Ground truth", fig=fig, ax=ax[0])
 plot.imview(y, title="Blurred, noisy image: %.2f (dB)" % metric.psnr(x_gt, y), fig=fig, ax=ax[1])
 plot.imview(x, title="Deconvolved image: %.2f (dB)" % metric.psnr(x_gt, x), fig=fig, ax=ax[2])
 fig.show()
+
 
 """
 Plot convergence statistics.
