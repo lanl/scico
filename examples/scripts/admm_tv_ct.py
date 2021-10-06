@@ -15,7 +15,6 @@ This example demonstrates the use of class [admm.ADMM](../_autosummary/scico.adm
 where $A$ is the Radon transform, $\mathbf{y}$ is the sinogram, $C$ is a 2D finite difference operator, and $\mathbf{x}$ is the desired image.
 """
 
-
 import numpy as np
 
 import jax
@@ -48,7 +47,6 @@ y = A @ x_gt  # Sinogram
 """
 Set up ADMM solver object.
 """
-
 λ = 2e-0  # L1 norm regularization parameter
 ρ = 5e-0  # ADMM penalty parameter
 maxiter = 25  # Number of ADMM iterations
@@ -72,12 +70,14 @@ solver = ADMM(
     verbose=True,
 )
 
+
 """
 Run the solver.
 """
 solver.solve()
 hist = solver.itstat_object.history(transpose=True)
 x_reconstruction = snp.clip(solver.x, 0, 1.0)
+
 
 """
 Show the recovered image.
