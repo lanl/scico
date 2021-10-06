@@ -46,11 +46,9 @@ x_gt = x_gt / x_gt.max()
 """
 Add noise to create a noisy test image.
 """
-sigma = 1.0  # Noise standard deviation
+σ = 1.0  # Noise standard deviation
 key, subkey = jax.random.split(key)
-
-n = sigma * jax.random.normal(subkey, shape=x_gt.shape)
-
+n = σ * jax.random.normal(subkey, shape=x_gt.shape)
 y = x_gt + n
 
 
