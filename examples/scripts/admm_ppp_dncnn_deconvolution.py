@@ -9,7 +9,6 @@ Image Deconvolution (ADMM Plug-and-Play Priors w/ DnCNN)
 ========================================================
 
 This example demonstrates the use of class [admm.ADMM](../_autosummary/scico.admm.rst#scico.admm.ADMM) to solve an image deconvolution problem using the Plug-and-Play Priors framework :cite:`venkatakrishnan-2013-plugandplay2`, using DnCNN :cite:`zhang-2017-dncnn` as a denoiser.
-
 """
 
 import numpy as np
@@ -30,6 +29,7 @@ np.random.seed(1234)
 x_gt = discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=512)
 x_gt = jax.device_put(x_gt)  # Convert to jax array, push to GPU
 
+
 """
 Set up forward operator and test signal consisting of blurred signal with additive Gaussian noise.
 """
@@ -42,6 +42,7 @@ A = linop.Convolve(h=psf, input_shape=x_gt.shape)
 Ax = A(x_gt)  # Blurred image
 noise, key = scico.random.randn(Ax.shape, seed=0)
 y = Ax + σ * noise
+
 
 """
 Load DnCNN denoiser and create map object.
@@ -70,12 +71,14 @@ solver = ADMM(
     verbose=True,
 )
 
+
 """
 Run the solver.
 """
 x = solver.solve()
 x = snp.clip(x, 0, 1)
 hist = solver.itstat_object.history(transpose=True)
+
 
 """
 Show the recovered image.
@@ -88,6 +91,7 @@ yc = y[nc:-nc, nc:-nc]
 plot.imview(y, title="Blurred, noisy image: %.2f (dB)" % metric.psnr(x_gt, yc), fig=fig, ax=ax[1])
 plot.imview(x, title="Deconvolved image: %.2f (dB)" % metric.psnr(x_gt, x), fig=fig, ax=ax[2])
 fig.show()
+
 
 """
 Plot convergence statistics.
