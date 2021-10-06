@@ -30,15 +30,16 @@ s = 10  # Sparsity level
 
 np.random.seed(1)
 D = np.random.randn(m, n)
-D = D / np.linalg.norm(D, axis=0, keepdims=True)  # normalize dictionary
+D = D / np.linalg.norm(D, axis=0, keepdims=True)  # Normalize dictionary
 
 xt = np.zeros(n)  # true signal
-idx = np.random.randint(low=0, high=n, size=s)  # support of xt
+idx = np.random.randint(low=0, high=n, size=s)  # Support of xt
 xt[idx] = np.random.rand(s)
-y = D @ xt + 5e-2 * np.random.randn(m)  # synthetic signal
+y = D @ xt + 5e-2 * np.random.randn(m)  # Synthetic signal
 
 xt = jax.device_put(xt)  # Convert to jax array, push to GPU
 y = jax.device_put(y)  # Convert to jax array, push to GPU
+
 
 """
 Set up the forward operator and ADMM solver object.
@@ -67,6 +68,7 @@ solver = ADMM(
 Run the solver.
 """
 x = solver.solve()
+
 
 """
 Plot the recovered coefficients and signal.
