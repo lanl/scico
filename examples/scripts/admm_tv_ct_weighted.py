@@ -14,7 +14,7 @@ This example demonstrates the use of class [admm.ADMM](../_autosummary/scico.adm
 
 where $A$ is the Radon transform, $\mathbf{y}$ is the sinogram, $C$ is a 2D Finite Difference operator, and $\mathbf{x}$ is the desired image.
 
-The weighted norm is an approximation to the Poisson negative log likelihood; see :cite:`sauer-1993-local`.
+The weighted norm is an approximation to the Poisson negative log likelihood :cite:`sauer-1993-local`.
 """
 
 import numpy as np
@@ -39,18 +39,20 @@ x_gt = np.ascontiguousarray(np.pad(x_gt, (64, 64)))
 x_gt = np.clip(x_gt, 0, np.inf)  # Clip to positive values
 x_gt = jax.device_put(x_gt)  # Convert to jax type, push to GPU
 
+
 """
 Configure CT projection operator and generate synthetic measurements.
 """
 n_projection = 360  # Number of projections
 Io = 1e3  # Source flux
-alpha = 1e-2  # Attenuation coefficient
+𝛼 = 1e-2  # Attenuation coefficient
 
 angles = np.linspace(0, 2 * np.pi, n_projection)  # Evenly spaced projection angles
 A = ParallelBeamProjector(x_gt.shape, 1.0, N, angles)  # Radon transform operator
 y_c = A @ x_gt  # Sinogram
 
-"""
+
+r"""
 Add Poisson noise to projections according to
 
 $$\mathrm{counts} \sim \mathrm{Poi}\left(I_0 exp\left\{- \alpha A \mathbf{x} \right\}\right)$$
@@ -58,16 +60,15 @@ $$\mathrm{counts} \sim \mathrm{Poi}\left(I_0 exp\left\{- \alpha A \mathbf{x} \ri
 $$\mathbf{y} = - \frac{1}{\alpha} \log\left(\mathrm{counts} / I_0\right).$$
 
 We use the NumPy random functionality so we can generate using 64-bit numbers.
-
 """
-counts = np.random.poisson(Io * snp.exp(-alpha * A @ x_gt))
+counts = np.random.poisson(Io * snp.exp(-𝛼 * A @ x_gt))
 counts = np.clip(counts, a_min=1, a_max=np.inf)  # Replace any 0s count with 1
-y = -1 / alpha * np.log(counts / Io)
+y = -1 / 𝛼 * np.log(counts / Io)
 y = jax.device_put(y)  # Converts back to float32
 
+
 """
-Setup post processing.
-For this example, we clip all reconstructions to the range of the ground truth.
+Setup post processing. For this example, we clip all reconstructions to the range of the ground truth.
 """
 
 
@@ -80,13 +81,13 @@ Compute an FBP reconstruction as an initial guess.
 """
 x0 = postprocess(A.fbp(y))
 
-"""
+
+r"""
 Set up and solve the un-weighted reconstruction problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x} \|_2^2 + \lambda \| C \mathbf{x} \|_1.$$
-
 """
-rho = 2.5e3  # ADMM penalty parameter
+ρ = 2.5e3  # ADMM penalty parameter
 lambda_unweighted = 2.56e2  # regularization strength
 # rho and lambda were selected via a parameter sweep (not shown here)
 
@@ -99,7 +100,7 @@ admm_unweighted = ADMM(
     f=f,
     g_list=[lambda_unweighted * functional.L1Norm()],
     C_list=[linop.FiniteDifference(x_gt.shape)],
-    rho_list=[rho],
+    rho_list=[ρ],
     x0=x0,
     maxiter=maxiter,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": max_inner_iter}),
@@ -109,7 +110,7 @@ admm_unweighted.solve()
 x_unweighted = postprocess(admm_unweighted.x)
 
 
-"""
+r"""
 Set up and solve the weighted reconstruction problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x} \|_W^2 + \lambda \| C \mathbf{x} \|_1 \;,$$
@@ -117,7 +118,6 @@ Set up and solve the weighted reconstruction problem
 where
 
   $$W = \mathrm{diag}\left\{\exp( \sqrt{\mathbf{y}}) \right\}.$$
-
 """
 lambda_weighted = 1.14e2
 
@@ -129,7 +129,7 @@ admm_weighted = ADMM(
     f=f,
     g_list=[lambda_weighted * functional.L1Norm()],
     C_list=[linop.FiniteDifference(x_gt.shape)],
-    rho_list=[rho],
+    rho_list=[ρ],
     maxiter=maxiter,
     x0=x0,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": max_inner_iter}),
@@ -137,6 +137,7 @@ admm_weighted = ADMM(
 )
 admm_weighted.solve()
 x_weighted = postprocess(admm_weighted.x)
+
 
 """
 Show recovered images.
