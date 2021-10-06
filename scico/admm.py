@@ -174,8 +174,8 @@ class LinearSubproblemSolver(SubproblemSolver):
 
         super().internal_init(admm)
 
-        # set lhs_op =  \sum_i rho_i * Ci.H @ CircularConvolve
-        # use reduce as the initialization of this sum is messy otherwise
+        # Set lhs_op =  \sum_i rho_i * Ci.H @ CircularConvolve
+        # Use reduce as the initialization of this sum is messy otherwise
         lhs_op = reduce(
             lambda a, b: a + b, [rhoi * Ci.gram_op for rhoi, Ci in zip(admm.rho_list, admm.C_list)]
         )
@@ -296,15 +296,15 @@ class CircularConvolveSolver(LinearSubproblemSolver):
 
 
 class ADMM:
-    r"""Basic Alternating Direction Method of Multipliers (ADMM)
-    algorithm :cite:`boyd-2010-distributed`.
+    r"""Basic Alternating Direction Method of Multipliers (ADMM) algorithm
+    :cite:`boyd-2010-distributed`.
 
     |
 
     Solve an optimization problem of the form
 
     .. math::
-        \argmin_{\mb{x}} \; f(\mb{x}) + \sum_{i=1}^N g_i(C_i \mb{x}),
+        \argmin_{\mb{x}} \; f(\mb{x}) + \sum_{i=1}^N g_i(C_i \mb{x}) \;,
 
     where :math:`f` and the :math:`g_i` are instances of :class:`.Functional`,
     and the :math:`C_i` are :class:`.LinearOperator`.
@@ -509,7 +509,7 @@ class ADMM:
         r"""Compute the :math:`\ell_2` norm of the dual residual.
 
         .. math::
-            \left(\sum_{i=1}^N \norm{\mb{z}^{(k)} - \mb{z}^{(k-1)}}_2^2\right)^{1/2}
+            \left(\sum_{i=1}^N \norm{\mb{z}^{(k)}_i - \mb{z}^{(k-1)}_i}_2^2\right)^{1/2}
 
         Returns:
             Current value of dual residual
@@ -521,12 +521,12 @@ class ADMM:
         return snp.sqrt(out)
 
     def z_init(self, x0: Union[JaxArray, BlockArray]):
-        r"""Initialize auxiliary variables :math:`\mb{z}`.
+        r"""Initialize auxiliary variables :math:`\mb{z}_i`.
 
         Initializes to
 
         .. math::
-            \mb{z}_i = C_i \mb{x}_0
+            \mb{z}_i = C_i \mb{x}^{(0)}
 
         :code:`z_list` and :code:`z_list_old` are initialized to the same value.
 
@@ -538,12 +538,12 @@ class ADMM:
         return z_list, z_list_old
 
     def u_init(self, x0: Union[JaxArray, BlockArray]):
-        r"""Initialize scaled Lagrange multipliers :math:`\mb{u}`.
+        r"""Initialize scaled Lagrange multipliers :math:`\mb{u}_i`.
 
         Initializes to
 
         .. math::
-            \mb{u}_i = C_i \mb{x}_0
+            \mb{u}_i = C_i \mb{x}^{(0)}
 
 
         Args:
@@ -563,8 +563,8 @@ class ADMM:
         return self.subproblem_solver.solve(x)
 
     def z_and_u_step(self, u_list, z_list):
-        r""" Update the auxiliary variables :math:`\mb{z}` and scaled Lagrange multipliers
-        :math:`\mb{u}`.
+        r"""Update the auxiliary variables :math:`\mb{z}_i` and scaled Lagrange multipliers
+        :math:`\mb{u}_i`.
 
         The auxiliary variables are updated according to
 
@@ -587,11 +587,11 @@ class ADMM:
         z_list = self.z_list
         u_list = self.u_list
 
-        for i, (rhoi, fi, Ci, zi, ui) in enumerate(
+        for i, (rhoi, gi, Ci, zi, ui) in enumerate(
             zip(self.rho_list, self.g_list, self.C_list, z_list, u_list)
         ):
             Cix = Ci(self.x)
-            zi = fi.prox(Cix + ui, 1 / rhoi)
+            zi = gi.prox(Cix + ui, 1 / rhoi)
             ui = ui + Cix - zi
             z_list[i] = zi
             u_list[i] = ui
@@ -601,7 +601,6 @@ class ADMM:
         """Perform a single ADMM iteration.
 
         Equivalent to calling :meth:`.x_step` followed by :meth:`.z_and_u_step`.
-
         """
         self.x = self.x_step(self.x)
         self.u_list, self.z_list, self.z_list_old = self.z_and_u_step(self.u_list, self.z_list)

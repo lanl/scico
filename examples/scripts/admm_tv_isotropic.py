@@ -9,7 +9,7 @@ Isotropic Total Variation
 =========================
 
 This example demonstrates isotropic total variation (TV) regularization.
-It solves the denosing problem
+It solves the denoising problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - \mathbf{x} \|^2 + \lambda R(\mathbf{x}) \;,$$
 
