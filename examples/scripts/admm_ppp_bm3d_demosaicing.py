@@ -6,9 +6,11 @@
 
 """
 Image Demosaicing (ADMM Plug-and-Play Priors w/ BM3D)
-======================================================
+=====================================================
 
-This example demonstrates the use of the ADMM Plug and Play Priors (PPP) algorithm :cite:`venkatakrishnan-2013-plugandplay2` for solving a raw image demosaicing problem.
+This example demonstrates the use of the ADMM Plug and Play Priors
+(PPP) algorithm :cite:`venkatakrishnan-2013-plugandplay2` for solving
+a raw image demosaicing problem.
 """
 
 import numpy as np
@@ -29,7 +31,7 @@ from scico.data import kodim23
 Read a ground truth image.
 """
 img = kodim23(asfloat=True)[160:416, 60:316]
-img = jax.device_put(img)  # Convert to jax type, push to GPU
+img = jax.device_put(img)  # convert to jax type, push to GPU
 
 
 """
@@ -64,7 +66,9 @@ def ATfn(x):
 
 
 """
-Define a baseline demosaicing function based on the demosaicing algorithm of :cite:`menon-2007-demosaicing` from package [colour_demosaicing](https://github.com/colour-science/colour-demosaicing).
+Define a baseline demosaicing function based on the demosaicing
+algorithm of :cite:`menon-2007-demosaicing` from package
+[colour_demosaicing](https://github.com/colour-science/colour-demosaicing).
 """
 
 
@@ -73,11 +77,12 @@ def demosaic(cfaimg):
 
 
 """
-Create a test image by color filter array sampling and adding Gaussian white noise.
+Create a test image by color filter array sampling and adding Gaussian
+white noise.
 """
 s = Afn(img)
-rgbshp = s.shape + (3,)  # Shape of reconstructed RGB image
-σ = 2e-2  # Noise standard deviation
+rgbshp = s.shape + (3,)  # shape of reconstructed RGB image
+σ = 2e-2  # noise standard deviation
 noise, key = scico.random.randn(s.shape, seed=0)
 sn = s + σ * noise
 
@@ -89,14 +94,17 @@ imgb = bm3d_rgb(demosaic(sn), 3 * σ).astype(np.float32)
 
 
 """
-Set up an ADMM solver object. Note the use of the baseline solution as an initializer. We use BM3D :cite:`dabov-2008-image` as the denoiser, using the [code](https://pypi.org/project/bm3d) released with :cite:`makinen-2019-exact`.
+Set up an ADMM solver object.  Note the use of the baseline solution
+as an initializer. We use BM3D :cite:`dabov-2008-image` as the
+denoiser, using the [code](https://pypi.org/project/bm3d) released
+with :cite:`makinen-2019-exact`.
 """
 A = linop.LinearOperator(input_shape=rgbshp, output_shape=s.shape, eval_fn=Afn, adj_fn=ATfn)
 f = loss.SquaredL2Loss(y=sn, A=A)
 C = linop.Identity(input_shape=rgbshp)
 g = 1.8e-1 * 6.1e-2 * functional.BM3D(is_rgb=True)
 ρ = 1.8e-1  # ADMM penalty parameter
-maxiter = 12  # Number of ADMM iterations
+maxiter = 12  # number of ADMM iterations
 
 solver = ADMM(
     f=f,
@@ -137,5 +145,6 @@ plot.plot(
     xlbl="Iteration",
     lgnd=("Primal", "Dual"),
 )
+
 
 input("\nWaiting for input to close figures and exit")

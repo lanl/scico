@@ -8,13 +8,25 @@ r"""
 Isotropic Total Variation (Accelerated PGM)
 ===========================================
 
-This example demonstrates the use of class [pgm.AcceleratedPGM](../_autosummary/scico.pgm.rst#scico.pgm.AcceleratedPGM) to solve isotropic total variation (TV) regularization. It solves the denoising problem
+This example demonstrates the use of class
+[pgm.AcceleratedPGM](../_autosummary/scico.pgm.rst#scico.pgm.AcceleratedPGM)
+to solve isotropic total variation (TV) regularization. It solves the
+denoising problem
 
-  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - \mathbf{x} \|^2 + \lambda R(\mathbf{x}) \;,$$
+  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - \mathbf{x}
+  \|^2 + \lambda R(\mathbf{x}) \;,$$
 
-where $R$ is the isotropic TV: the sum of the norms of the gradient vectors at each point in the image $\mathbf{x}$. The same reconstruction is performed with anisotropic TV regularization for comparison; the isotropic version shows fewer block-like artifacts.
+where $R$ is the isotropic TV: the sum of the norms of the gradient
+vectors at each point in the image $\mathbf{x}$. The same
+reconstruction is performed with anisotropic TV regularization for
+comparison; the isotropic version shows fewer block-like artifacts.
 
-The solution via PGM is based on :cite:`beck-2009-tv`. This follows a dual approach that constructs a dual for the constrained denoising problem (the constraint given by restricting the solution to the [0,1] range). The PGM solution minimizes the resulting dual. In this case, switching between the two regularizers corresponds to switching between two different projectors.
+The solution via PGM is based on :cite:`beck-2009-tv`. This follows a
+dual approach that constructs a dual for the constrained denoising
+problem (the constraint given by restricting the solution to the [0,1]
+range). The PGM solution minimizes the resulting dual. In this case,
+switching between the two regularizers corresponds to switching
+between two different projectors.
 """
 
 from typing import Callable, Optional, Union
@@ -32,10 +44,10 @@ from scico.util import ensure_on_device
 """
 Create a ground truth image.
 """
-N = 256  # Image size
+N = 256  # image size
 
 
-# These steps create a ground truth image by spatially filtering noise
+# Create a ground truth image by spatially filtering noise.
 kernel_size = N // 5
 key = jax.random.PRNGKey(1)
 x_gt = jax.random.uniform(key, shape=(N + kernel_size - 1, N + kernel_size - 1))
@@ -52,16 +64,16 @@ x_gt = x_gt / x_gt.max()
 """
 Add noise to create a noisy test image.
 """
-σ = 1.0  # Noise standard deviation
+σ = 1.0  # noise standard deviation
 key, subkey = jax.random.split(key)
 n = σ * jax.random.normal(subkey, shape=x_gt.shape)
 y = x_gt + n
 
 
 """
-Define finite difference operator and adjoint
+Define finite difference operator and adjoint.
 """
-# the append=0 option appends 0 to the input along the axis
+# The append=0 option appends 0 to the input along the axis
 # prior to performing the difference to make the results of
 # horizontal and vertical finite differences the same shape
 C = linop.FiniteDifference(input_shape=x_gt.shape, append=0)
@@ -69,13 +81,13 @@ A = C.adj
 
 
 """
-Define initial estimate: a zero array
+Define a zero array as initial estimate.
 """
 x0 = jnp.zeros(C(y).shape)
 
 
 """
-Define the dual of the total variation denoising problem
+Define the dual of the total variation denoising problem.
 """
 
 
@@ -98,9 +110,10 @@ class DualTVLoss(loss.Loss):
 
 
 """
-Denoise with isotropic total variation. Define projector for isotropic total variation.
+Denoise with isotropic total variation. Define projector for isotropic
+total variation.
 """
-# Evaluation of functional set to zero
+# Evaluation of functional set to zero.
 class IsoProjector(functional.Functional):
 
     has_eval = True
@@ -123,7 +136,8 @@ class IsoProjector(functional.Functional):
 
 
 """
-Use RobustLineSearchStepSize object and set up AcceleratedPGM solver object. Run the solver.
+Use RobustLineSearchStepSize object and set up AcceleratedPGM solver
+object. Run the solver.
 """
 reg_weight_iso = 2e0
 f_iso = DualTVLoss(y=y, A=A, lmbda=reg_weight_iso)
@@ -143,14 +157,15 @@ solver_iso = AcceleratedPGM(
 # Run the solver.
 x = solver_iso.solve()
 hist_iso = solver_iso.itstat_object.history(transpose=True)
-# project to constraint set
+# Project to constraint set.
 x_iso = jnp.clip(y - f_iso.lmbda * f_iso.A(x), 0.0, 1.0)
 
 
 """
-Denoise with anisotropic total variation for comparison. Define projector for anisotropic total variation.
+Denoise with anisotropic total variation for comparison. Define
+projector for anisotropic total variation.
 """
-# Evaluation of functional set to zero
+# Evaluation of functional set to zero.
 class AnisoProjector(functional.Functional):
 
     has_eval = True
@@ -166,7 +181,9 @@ class AnisoProjector(functional.Functional):
 
 
 """
-Use RobustLineSearchStepSize object and set up AcceleratedPGM solver object. Weight was tuned to give the same data fidelty as the isotropic case. Run the solver.
+Use RobustLineSearchStepSize object and set up AcceleratedPGM solver
+object. Weight was tuned to give the same data fidelty as the
+isotropic case. Run the solver.
 """
 
 reg_weight_aniso = 1.74e0
@@ -186,7 +203,7 @@ solver = AcceleratedPGM(
 
 # Run the solver.
 x = solver.solve()
-# project to constraint set
+# Project to constraint set.
 x_aniso = jnp.clip(y - f.lmbda * f.A(x), 0.0, 1.0)
 
 
@@ -230,5 +247,6 @@ fig.colorbar(
 )
 fig.suptitle("Denoising comparison (zoomed)")
 fig.show()
+
 
 input("\nWaiting for input to close figures and exit")

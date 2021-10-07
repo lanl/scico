@@ -8,13 +8,24 @@ r"""
 Deconvolution Microscopy
 ========================
 
-This example partially replicates a [GlobalBioIm example](https://biomedical-imaging-group.github.io/GlobalBioIm/examples.html) using the [microscopy data](http://bigwww.epfl.ch/deconvolution/bio/) provided by the EPFL Biomedical Imaging Group.
+This example partially replicates a [GlobalBioIm
+example](https://biomedical-imaging-group.github.io/GlobalBioIm/examples.html)
+using the [microscopy data](http://bigwww.epfl.ch/deconvolution/bio/)
+provided by the EPFL Biomedical Imaging Group.
 
-The deconvolution problem is solved using class [admm.ADMM](../_autosummary/scico.admm.rst#scico.admm.ADMM) to solve an image deconvolution problem with isotropic total variation (TV) regularization.
+The deconvolution problem is solved using class
+[admm.ADMM](../_autosummary/scico.admm.rst#scico.admm.ADMM) to solve
+an image deconvolution problem with isotropic total variation (TV)
+regularization.
 
-  $$\mathrm{argmin}_{\mathbf{x}} \; \| M (\mathbf{y} - A \mathbf{x}) \|_2^2 + \lambda \| C \mathbf{x} \|_{2,1} + \iota_{\mathrm{NN}}(\mathbf{x}) \;,$$
+  $$\mathrm{argmin}_{\mathbf{x}} \; \| M (\mathbf{y} - A \mathbf{x})
+  \|_2^2 + \lambda \| C \mathbf{x} \|_{2,1} +
+  \iota_{\mathrm{NN}}(\mathbf{x}) \;,$$
 
-where $M$ is a mask operator, $A$ is circular convolution, $\mathbf{y}$ is the blurred image, $C$ is a convolutional gradient operator, $\iota_{mathrm{NN}}$ is the indicator function of the non-negativity constraint, and $\mathbf{x}$ is the desired image.
+where $M$ is a mask operator, $A$ is circular convolution,
+$\mathbf{y}$ is the blurred image, $C$ is a convolutional gradient
+operator, $\iota_{mathrm{NN}}$ is the indicator function of the
+non-negativity constraint, and $\mathbf{x}$ is the desired image.
 """
 
 
@@ -136,9 +147,9 @@ C2 = linop.Identity(mask.shape)
 """
 Create functionals.
 """
-g0 = loss.SquaredL2Loss(y=y_pad, A=M)  # Loss function (forward model)
+g0 = loss.SquaredL2Loss(y=y_pad, A=M)  # loss function (forward model)
 g1 = λ * functional.L21Norm()  # TV penalty (when applied to gradient)
-g2 = functional.NonNegativeIndicator()  # Non-negativity constraint
+g2 = functional.NonNegativeIndicator()  # non-negativity constraint
 
 
 """
@@ -230,5 +241,6 @@ plot.plot(
     ax=ax[1],
 )
 fig.show()
+
 
 input("\nWaiting for input to close figures and exit")

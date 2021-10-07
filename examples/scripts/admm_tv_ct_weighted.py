@@ -8,13 +8,20 @@ r"""
 Low-Dose CT (ADMM w/ Total Variation)
 =====================================
 
-This example demonstrates the use of class [admm.ADMM](../_autosummary/scico.admm.rst#scico.admm.ADMM) to solve a low-dose CT reconstruction problem with anisotropic total variation (TV) regularization.
+This example demonstrates the use of class
+[admm.ADMM](../_autosummary/scico.admm.rst#scico.admm.ADMM) to solve a
+low-dose CT reconstruction problem with anisotropic total variation
+(TV) regularization.
 
-  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x} \|_W^2 + \lambda \| C \mathbf{x} \|_1 \;,$$
+  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
+  \|_W^2 + \lambda \| C \mathbf{x} \|_1 \;,$$
 
-where $A$ is the Radon transform, $\mathbf{y}$ is the sinogram, $C$ is a 2D Finite Difference operator, and $\mathbf{x}$ is the desired image.
+where $A$ is the Radon transform, $\mathbf{y}$ is the sinogram, $C$ is
+a 2D Finite Difference operator, and $\mathbf{x}$ is the desired
+image.
 
-The weighted norm is an approximation to the Poisson negative log likelihood :cite:`sauer-1993-local`.
+The weighted norm is an approximation to the Poisson negative log
+likelihood :cite:`sauer-1993-local`.
 """
 
 import numpy as np
@@ -31,44 +38,48 @@ from scico.linop.radon_astra import ParallelBeamProjector
 """
 Create a ground truth image.
 """
-N = 512  # Phantom size
+N = 512  # phantom size
 
 np.random.seed(0)
 x_gt = discrete_phantom(Soil(porosity=0.80), size=384)
 x_gt = np.ascontiguousarray(np.pad(x_gt, (64, 64)))
-x_gt = np.clip(x_gt, 0, np.inf)  # Clip to positive values
-x_gt = jax.device_put(x_gt)  # Convert to jax type, push to GPU
+x_gt = np.clip(x_gt, 0, np.inf)  # clip to positive values
+x_gt = jax.device_put(x_gt)  # convert to jax type, push to GPU
 
 
 """
 Configure CT projection operator and generate synthetic measurements.
 """
-n_projection = 360  # Number of projections
-Io = 1e3  # Source flux
-𝛼 = 1e-2  # Attenuation coefficient
+n_projection = 360  # number of projections
+Io = 1e3  # source flux
+𝛼 = 1e-2  # attenuation coefficient
 
-angles = np.linspace(0, 2 * np.pi, n_projection)  # Evenly spaced projection angles
+angles = np.linspace(0, 2 * np.pi, n_projection)  # evenly spaced projection angles
 A = ParallelBeamProjector(x_gt.shape, 1.0, N, angles)  # Radon transform operator
-y_c = A @ x_gt  # Sinogram
+y_c = A @ x_gt  # sinogram
 
 
 r"""
 Add Poisson noise to projections according to
 
-$$\mathrm{counts} \sim \mathrm{Poi}\left(I_0 exp\left\{- \alpha A \mathbf{x} \right\}\right)$$
+$$\mathrm{counts} \sim \mathrm{Poi}\left(I_0 exp\left\{- \alpha A
+\mathbf{x} \right\}\right)$$
 
-$$\mathbf{y} = - \frac{1}{\alpha} \log\left(\mathrm{counts} / I_0\right).$$
+$$\mathbf{y} = - \frac{1}{\alpha} \log\left(\mathrm{counts} /
+I_0\right).$$
 
-We use the NumPy random functionality so we can generate using 64-bit numbers.
+We use the NumPy random functionality so we can generate using 64-bit
+numbers.
 """
 counts = np.random.poisson(Io * snp.exp(-𝛼 * A @ x_gt))
-counts = np.clip(counts, a_min=1, a_max=np.inf)  # Replace any 0s count with 1
+counts = np.clip(counts, a_min=1, a_max=np.inf)  # replace any 0s count with 1
 y = -1 / 𝛼 * np.log(counts / Io)
-y = jax.device_put(y)  # Converts back to float32
+y = jax.device_put(y)  # convert back to float32
 
 
 """
-Setup post processing. For this example, we clip all reconstructions to the range of the ground truth.
+Setup post processing.  For this example, we clip all reconstructions
+to the range of the ground truth.
 """
 
 
@@ -85,14 +96,16 @@ x0 = postprocess(A.fbp(y))
 r"""
 Set up and solve the un-weighted reconstruction problem
 
-  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x} \|_2^2 + \lambda \| C \mathbf{x} \|_1.$$
+  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
+  \|_2^2 + \lambda \| C \mathbf{x} \|_1.$$
 """
+# Note that rho and lambda were selected via a parameter sweep (not
+# shown here).
 ρ = 2.5e3  # ADMM penalty parameter
 lambda_unweighted = 2.56e2  # regularization strength
-# rho and lambda were selected via a parameter sweep (not shown here)
 
-maxiter = 50  # Number of ADMM iterations
-max_inner_iter = 10  # Number of CG iterations per ADMM iteration
+maxiter = 50  # number of ADMM iterations
+max_inner_iter = 10  # number of CG iterations per ADMM iteration
 
 f = loss.SquaredL2Loss(y=y, A=A)
 
@@ -113,7 +126,8 @@ x_unweighted = postprocess(admm_unweighted.x)
 r"""
 Set up and solve the weighted reconstruction problem
 
-  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x} \|_W^2 + \lambda \| C \mathbf{x} \|_1 \;,$$
+  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
+  \|_W^2 + \lambda \| C \mathbf{x} \|_1 \;,$$
 
 where
 
@@ -166,5 +180,6 @@ fig.colorbar(
     ax[0, 0].get_images()[0], ax=ax, location="right", shrink=0.9, pad=0.05, label="arbitrary units"
 )
 fig.show()
+
 
 input("\nWaiting for input to close figures and exit")

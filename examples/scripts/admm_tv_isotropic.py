@@ -8,13 +8,22 @@ r"""
 Isotropic Total Variation
 =========================
 
-This example demonstrates isotropic total variation (TV) regularization. It solves the denoising problem
+This example demonstrates isotropic total variation (TV)
+regularization. It solves the denoising problem
 
-  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - \mathbf{x} \|^2 + \lambda R(\mathbf{x}) \;,$$
+  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - \mathbf{x}
+  \|^2 + \lambda R(\mathbf{x}) \;,$$
 
-where $R$ is the isotropic TV: the sum of the norms of the gradient vectors at each point in the image $\mathbf{x}$. The same reconstruction is performed with anisotropic TV regularization for comparison; the isotropic version shows fewer block-like artifacts.
+where $R$ is the isotropic TV: the sum of the norms of the gradient
+vectors at each point in the image $\mathbf{x}$. The same
+reconstruction is performed with anisotropic TV regularization for
+comparison; the isotropic version shows fewer block-like artifacts.
 
-In SCICO, switching between these two regularizers is a one-line change: replacing an [L1Norm](../_autosummary/scico.functional.rst#scico.functional.L1Norm) with a [L21Norm](../_autosummary/scico.functional.rst#scico.functional.L21Norm).
+In SCICO, switching between these two regularizers is a one-line
+change: replacing an
+[L1Norm](../_autosummary/scico.functional.rst#scico.functional.L1Norm)
+with a
+[L21Norm](../_autosummary/scico.functional.rst#scico.functional.L21Norm).
 """
 
 import jax
@@ -27,9 +36,9 @@ from scico.admm import ADMM, LinearSubproblemSolver
 """
 Create a ground truth image.
 """
-N = 256  # Image size
+N = 256  # image size
 
-# These steps create a ground truth image by spatially filtering noise
+# Create a ground truth image by spatially filtering noise.
 kernel_size = N // 5
 key = jax.random.PRNGKey(1)
 x_gt = jax.random.uniform(key, shape=(N + kernel_size - 1, N + kernel_size - 1))
@@ -46,7 +55,7 @@ x_gt = x_gt / x_gt.max()
 """
 Add noise to create a noisy test image.
 """
-σ = 1.0  # Noise standard deviation
+σ = 1.0  # noise standard deviation
 key, subkey = jax.random.split(key)
 n = σ * jax.random.normal(subkey, shape=x_gt.shape)
 y = x_gt + n
@@ -59,8 +68,8 @@ reg_weight_iso = 2e0
 f = loss.SquaredL2Loss(y=y)
 g_iso = reg_weight_iso * functional.L21Norm()
 
-# The append=0 option makes the results of horizontal and vertical finite differences
-# the same shape, which is required for the L21Norm
+# The append=0 option makes the results of horizontal and vertical finite
+# differences the same shape, which is required for the L21Norm.
 C = linop.FiniteDifference(input_shape=x_gt.shape, append=0)
 solver = ADMM(
     f=f,
@@ -81,7 +90,7 @@ x_iso = solver.x
 """
 Denoise with anisotropic total variation for comparison.
 """
-# We tune the weight to give the same data fidelty as the isotropic case
+# Tune the weight to give the same data fidelty as the isotropic case.
 reg_weight_aniso = 1.74e0
 g_aniso = reg_weight_aniso * functional.L1Norm()
 
@@ -125,7 +134,7 @@ fig.colorbar(
 fig.suptitle("Denoising comparison")
 fig.show()
 
-# Zoomed version
+# zoomed version
 fig, ax = plot.subplots(nrows=2, ncols=2, sharex=True, sharey=True, figsize=(11, 10))
 plot.imview(x_gt, title="Ground truth", fig=fig, ax=ax[0, 0], **plt_args)
 plot.imview(y, title="Noisy version", fig=fig, ax=ax[0, 1], **plt_args)

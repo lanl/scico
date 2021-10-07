@@ -8,11 +8,17 @@ r"""
 Image Deconvolution (ADMM w/ Total Variation and Circulant Blur)
 ================================================================
 
-This example demonstrates the use of class [admm.ADMM](../_autosummary/scico.admm.rst#scico.admm.ADMM) to solve an image deconvolution problem with isotropic total variation (TV) regularization.
+This example demonstrates the use of class
+[admm.ADMM](../_autosummary/scico.admm.rst#scico.admm.ADMM) to solve
+an image deconvolution problem with isotropic total variation (TV)
+regularization.
 
-  $$\mathrm{argmin}_{\mathbf{x}} \; \| \mathbf{y} - A \mathbf{x} \|_2^2 + \lambda \| C \mathbf{x} \|_1 \;,$$
+  $$\mathrm{argmin}_{\mathbf{x}} \; \| \mathbf{y} - A \mathbf{x} \|_2^2
+  + \lambda \| C \mathbf{x} \|_1 \;,$$
 
-where $A$ is Toeplitz matrix, $\mathbf{y}$ is the blurred image, $C$ is a 2D Finite Difference operator, and $\mathbf{x}$ is the desired image.
+where $A$ is Toeplitz matrix, $\mathbf{y}$ is the blurred image, $C$
+is a 2D Finite Difference operator, and $\mathbf{x}$ is the desired
+image.
 """
 
 
@@ -30,19 +36,20 @@ Create a ground truth image.
 """
 phantom = SiemensStar(32)
 x_gt = snp.pad(discrete_phantom(phantom, 240), 8)
-x_gt = jax.device_put(x_gt)  # Convert to jax type, push to GPU
+x_gt = jax.device_put(x_gt)  # convert to jax type, push to GPU
 
 
 """
-Set up the forward operator and create a test signal consisting of a blurred signal with additive Gaussian noise.
+Set up the forward operator and create a test signal consisting of a
+blurred signal with additive Gaussian noise.
 """
-n = 5  # Convolution kernel size
-σ = 20.0 / 255  # Noise level
+n = 5  # convolution kernel size
+σ = 20.0 / 255  # noise level
 
 psf = snp.ones((n, n)) / (n * n)
 A = linop.CircularConvolve(h=psf, input_shape=x_gt.shape)
 
-Ax = A(x_gt)  # Blurred image
+Ax = A(x_gt)  # blurred image
 noise, key = scico.random.randn(Ax.shape, seed=0)
 y = Ax + σ * noise
 
@@ -52,11 +59,12 @@ Set up an ADMM solver object.
 """
 λ = 2e-2  # L1 norm regularization parameter
 ρ = 5e-1  # ADMM penalty parameter
-maxiter = 50  # Number of ADMM iterations
+maxiter = 50  # number of ADMM iterations
 
 f = loss.SquaredL2Loss(y=y, A=A)
-# Penalty parameters must be accounted for in the gi functions, not as additional inputs
-g = λ * functional.L21Norm()  # Regularization functionals gi
+# Penalty parameters must be accounted for in the gi functions, not as
+# additional inputs.
+g = λ * functional.L21Norm()  # regularization functionals gi
 C = linop.FiniteDifference(x_gt.shape, circular=True)
 solver = ADMM(
     f=f,
@@ -109,5 +117,6 @@ plot.plot(
     ax=ax[1],
 )
 fig.show()
+
 
 input("\nWaiting for input to close figures and exit")

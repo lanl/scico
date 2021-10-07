@@ -8,7 +8,8 @@ r"""
 CT with Preconditioned Conjugate Gradient
 =========================================
 
-This example demonstrates the use of preconditioner to efficiently solve a CT reconstruction problem.
+This example demonstrates the use of preconditioner to efficiently
+solve a CT reconstruction problem.
 """
 
 from time import time
@@ -28,36 +29,40 @@ from scico.solver import cg
 """
 Create a ground truth image.
 """
-N = 256  # Phantom size
+N = 256  # phantom size
 x_gt = discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=N)
-x_gt = jax.device_put(x_gt)  # Convert to jax type, push to GPU
+x_gt = jax.device_put(x_gt)  # convert to jax type, push to GPU
 
 
 """
 Configure a CT projection operator and generate synthetic measurements.
 """
-n_projection = N  # Matches the phantom size so this is not few-view CT
-angles = np.linspace(0, np.pi, n_projection)  # Evenly spaced projection angles
+n_projection = N  # matches the phantom size so this is not few-view CT
+angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
 A = 1 / N * ParallelBeamProjector(x_gt.shape, 1, N, angles)  # Radon transform operator
-y = A @ x_gt  # Sinogram
+y = A @ x_gt  # sinogram
 
 
 r"""
-Forward and back project a single pixel (Kronecker delta) to compute an approximate impulse response for $\mathbf{A}^T \mathbf{A}$.
+Forward and back project a single pixel (Kronecker delta) to compute
+an approximate impulse response for $\mathbf{A}^T \mathbf{A}$.
 """
 H = CircularConvolve.from_operator(A.T @ A)
 
 
 r"""
-Invert in the Fourier domain to form a preconditioner $\mathbf{M} \approx (\mathbf{A}^T \mathbf{A})^{-1}$. See :cite:`clinthorne-1993-preconditioning` Section V.A. for more details.
+Invert in the Fourier domain to form a preconditioner $\mathbf{M}
+\approx (\mathbf{A}^T \mathbf{A})^{-1}$. See
+:cite:`clinthorne-1993-preconditioning` Section V.A. for more details.
 """
-γ = 1e-2  # Limits the gain of the preconditioner, higher gives a weaker filter
+γ = 1e-2  # limits the gain of the preconditioner, higher gives a weaker filter
 
 # The complex part comes from numerical errors in A.T and needs to be removed to
-# ensure H is symmetric, positive definite
+# ensure H is symmetric, positive definite.
 frequency_response = np.abs(H.h_dft)
 inv_frequency_response = 1 / (np.abs(frequency_response) + γ)
-# Using circular convolution without padding is sufficient here because M is approximate anyway
+# Using circular convolution without padding is sufficient here because M
+# is approximate anyway.
 M = CircularConvolve(inv_frequency_response, x_gt.shape, h_is_dft=True)
 
 
@@ -109,7 +114,7 @@ x_pcg, info_pcg = cg(
     A.T @ A,
     A.T @ y,
     jnp.zeros(A.input_shape, dtype=A.input_dtype),
-    tol=2e-5,  # Preconditioning affects the problem scaling so tol differs between CG and PCG
+    tol=2e-5,  # preconditioning affects the problem scaling so tol differs between CG and PCG
     info=True,
     M=M,
 )
@@ -131,5 +136,6 @@ print(
     f"{'PCG':10s}{info_pcg['num_iter']:>15d}{time_pcg:>15.2f}{f_cg(x_pcg):>15.2e}"
     f"{f_data(x_pcg):>15.2e}"
 )
+
 
 input("\nWaiting for input to close figures and exit")

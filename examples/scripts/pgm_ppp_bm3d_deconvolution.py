@@ -8,7 +8,12 @@
 Image Deconvolution (PGM Plug-and-Play Priors w/ BM3D)
 ======================================================
 
-This example demonstrates the use of class [pgm.AcceleratedPGM](../_autosummary/scico.pgm.rst#scico.pgm.AcceleratedPGM) to solve an image deconvolution problem using the Plug-and-Play Priors framework :cite:`venkatakrishnan-2013-plugandplay2` :cite:`kamilov-2017-plugandplay`, using BM3D :cite:`dabov-2008-image` as a denoiser.
+This example demonstrates the use of class
+[pgm.AcceleratedPGM](../_autosummary/scico.pgm.rst#scico.pgm.AcceleratedPGM)
+to solve an image deconvolution problem using the Plug-and-Play Priors
+framework :cite:`venkatakrishnan-2013-plugandplay2`
+:cite:`kamilov-2017-plugandplay`, using BM3D :cite:`dabov-2008-image`
+as a denoiser.
 """
 
 import numpy as np
@@ -27,25 +32,26 @@ Create a ground truth image.
 """
 np.random.seed(1234)
 x_gt = discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=512)
-x_gt = jax.device_put(x_gt)  # Convert to jax type, push to GPU
+x_gt = jax.device_put(x_gt)  # convert to jax type, push to GPU
 
 
 """
-Set up forward operator and test signal consisting of blurred signal with additive Gaussian noise.
+Set up forward operator and test signal consisting of blurred signal
+with additive Gaussian noise.
 """
-n = 5  # Convolution kernel size
-σ = 20.0 / 255  # Noise level
+n = 5  # convolution kernel size
+σ = 20.0 / 255  # noise level
 
 psf = snp.ones((n, n)) / n ** 2
 A = linop.Convolve(h=psf, input_shape=x_gt.shape)
 
-Ax = A(x_gt)  # Blurred image
+Ax = A(x_gt)  # blurred image
 noise, key = scico.random.randn(Ax.shape)
 y = Ax + σ * noise
 
 
 """
-Set up and run a PGM solver
+Set up and run a PGM solver.
 """
 f = loss.SquaredL2Loss(y=y, A=A)
 
@@ -53,7 +59,7 @@ L0 = 15  # APGM inverse step size parameter
 λ = L0 * 2.0 / 255  # BM3D regularization strength
 g = λ * functional.BM3D()
 
-maxiter = 50  # Number of APGM iterations
+maxiter = 50  # number of APGM iterations
 
 solver = AcceleratedPGM(f=f, g=g, L0=L0, x0=A.T @ y, maxiter=maxiter, verbose=True)
 
@@ -79,5 +85,6 @@ fig.show()
 Plot convergence statistics.
 """
 plot.plot(hist.Residual, ptyp="semilogy", title="PGM Residual", xlbl="Iteration", ylbl="Residual")
+
 
 input("\nWaiting for input to close figures and exit")
