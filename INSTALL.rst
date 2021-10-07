@@ -95,13 +95,10 @@ The development version of ASTRA can be installed using conda:
 
 Alternatively, it can be `built from source <https://www.astra-toolbox.com/docs/install.html#for-python>`_.
 
-We also support the `Super-Voxel Model-Based Iterative Reconstruction <https://svmbir.readthedocs.io/en/latest/>`_ package as an alternative tomographic projector.
+We also support the `Super-Voxel Model-Based Iterative Reconstruction <https://svmbir.readthedocs.io/en/latest/>`_ package as an alternative tomographic projector. Since this package can be installed via pip, it is
+included in the list of package dependencies (`requirements.txt`), and need
+not be separately installed.
 
-This package can be installed using pip:
-
-::
-
-   pip install svmbir
 
 
 SCICO on Windows

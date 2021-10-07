@@ -12,9 +12,15 @@ Contributing
     div.document li > p {
        margin-bottom: 4px !important;
     }
-    div.document li {
+    div.document ul > li {
       list-style: square outside !important;
       margin-left: 1em !important;
+    }
+    section {
+      padding-bottom: 1em;
+    }
+    ul {
+      margin-bottom: 1em;
     }
     </style>
 
@@ -90,7 +96,6 @@ Contributing Code
 - Branches should be named in the form `<username>/<brief-description>`,
   where `<brief-description>` provides a highly condensed description of the purpose of the branch (e.g. `address_todo`), and may include an issue number if appropriate (e.g. `fix_223`).
 
-|
 
 A feature development workflow might look like this:
 
@@ -328,7 +333,6 @@ To run the type checker on the ``scico`` module:
 
 
 
-
 Building Documentation
 ======================
 
@@ -337,7 +341,6 @@ To build a local copy of the docs, from the repo root directory, do
 ::
 
   python setup.py build_sphinx
-
 
 
 
