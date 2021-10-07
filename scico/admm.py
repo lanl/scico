@@ -7,6 +7,8 @@
 
 """ADMM solver and auxiliary classes."""
 
+# Needed to annotate a class method that returns the encapsulating class;
+# see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
 from functools import reduce
@@ -387,7 +389,6 @@ class ADMM:
                 and an ADMM object, responsible for constructing a tuple ready for insertion into
                 the :class:`.diagnostics.IterationStats` object. If None, default values are
                 used for the tuple components.
-            callback: An optional callback function that
         """
         N = len(g_list)
         if len(C_list) != N:
@@ -402,7 +403,6 @@ class ADMM:
         self.itnum: int = 0
         self.maxiter: int = maxiter
         self.timer: Timer = Timer()
-        # ToDo: a None value should imply automatic selection of the solver
         if subproblem_solver is None:
             subproblem_solver = GenericSubproblemSolver()
         self.subproblem_solver: SubproblemSolver = subproblem_solver
