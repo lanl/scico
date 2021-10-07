@@ -340,16 +340,16 @@ class ADMM:
     Attributes:
         f (:class:`.Loss`): Loss function
         g_list (list of :class:`.Functional`): List of :math:`g_i`
-            functionals. Must be same length as :code:`C_list` and :code:`rho_list`
-        C_list (list of :class:`.LinearOperator`): List of :math:`C_i` operators
-        itnum (int): Iteration counter
+            functionals. Must be same length as :code:`C_list` and :code:`rho_list`.
+        C_list (list of :class:`.LinearOperator`): List of :math:`C_i` operators.
+        itnum (int): Iteration counter.
         maxiter (int): Number of ADMM outer-loop iterations.
-        timer (:class:`.Timer`): Iteration timer
+        timer (:class:`.Timer`): Iteration timer.
         rho_list (list of scalars): List of :math:`\rho_i` penalty parameters.
-            Must be same length as :code:`C_list` and :code:`g_list`
+            Must be same length as :code:`C_list` and :code:`g_list`.
         u_list (list of array-like): List of scaled Lagrange multipliers
             :math:`\mb{u}_i` at current iteration.
-        x (array-like): Solution
+        x (array-like): Solution.
         subproblem_solver (:class:`.SubproblemSolver`): Solver for :math:`\mb{x}`-update step.
         z_list (list of array-like): List of auxiliary variables :math:`\mb{z}_i`
             at current iteration.
@@ -616,7 +616,9 @@ class ADMM:
         self,
         callback: Optional[Callable[[ADMM], None]] = None,
     ) -> Union[JaxArray, BlockArray]:
-        r"""Initialize and run the ADMM algorithm for a total of ``self.maxiter`` iterations.
+        r"""Initialize and run the ADMM algorithm.
+
+        Initialize and run the ADMM algorithm for a total of ``self.maxiter`` iterations.
 
         Args:
             callback: An optional callback function, taking an a single argument of type
