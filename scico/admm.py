@@ -24,7 +24,7 @@ from scico.numpy.linalg import norm
 from scico.solver import cg as scico_cg
 from scico.solver import minimize
 from scico.typing import JaxArray
-from scico.util import ensure_on_device
+from scico.util import Timer, ensure_on_device
 
 __author__ = """\n""".join(
     ["Luke Pfister <luke.pfister@gmail.com>", "Brendt Wohlberg <brendt@ieee.org>"]
@@ -340,6 +340,7 @@ class ADMM:
         C_list (list of :class:`.LinearOperator`): List of :math:`C_i` operators
         itnum (int): Iteration counter
         maxiter (int): Number of ADMM outer-loop iterations.
+        timer (:class:`.Timer`): Iteration timer
         rho_list (list of scalars): List of :math:`\rho_i` penalty parameters.
             Must be same length as :code:`C_list` and :code:`g_list`
         u_list (list of array-like): List of scaled Lagrange multipliers
@@ -397,14 +398,13 @@ class ADMM:
         self.rho_list: List[float] = rho_list
         self.itnum: int = 0
         self.maxiter: int = maxiter
+        self.timer: Timer = Timer()
         # ToDo: a None value should imply automatic selection of the solver
         if subproblem_solver is None:
             subproblem_solver = GenericSubproblemSolver()
         self.subproblem_solver: SubproblemSolver = subproblem_solver
         self.subproblem_solver.internal_init(self)
-
         self.verbose: bool = verbose
-
         if itstat:
             itstat_dict = itstat[0]
             itstat_func = itstat[1]
@@ -412,6 +412,7 @@ class ADMM:
             if all([_.has_eval for _ in self.g_list]):
                 itstat_dict = {
                     "Iter": "%d",
+                    "Time": "%8.2e",
                     "Objective": "%8.3e",
                     "Primal Rsdl": "%8.3e",
                     "Dual Rsdl": "%8.3e",
@@ -420,6 +421,7 @@ class ADMM:
                 def itstat_func(obj):
                     return (
                         obj.itnum,
+                        obj.timer.elapsed(),
                         obj.objective(),
                         obj.norm_primal_residual(),
                         obj.norm_dual_residual(),
@@ -427,11 +429,17 @@ class ADMM:
 
             else:
                 # At least one 'g' can't be evaluated, so drop objective from the default itstat
-                itstat_dict = {"Iter": "%d", "Primal Rsdl": "%8.3e", "Dual Rsdl": "%8.3e"}
+                itstat_dict = {
+                    "Iter": "%d",
+                    "Time": "%8.1e",
+                    "Primal Rsdl": "%8.3e",
+                    "Dual Rsdl": "%8.3e",
+                }
 
                 def itstat_func(obj):
                     return (
                         obj.i,
+                        obj.timer.elapsed(),
                         obj.norm_primal_residual(),
                         obj.norm_dual_residual(),
                     )
@@ -607,9 +615,11 @@ class ADMM:
         Returns:
             Computed solution.
         """
+        self.timer.start()
         for self.itnum in range(self.itnum, self.itnum + self.maxiter):
             self.x = self.x_step(self.x)
             self.u_list, self.z_list, self.z_list_old = self.z_and_u_step(self.u_list, self.z_list)
             self.itstat_object.insert(self.itstat_insert_func(self))
+        self.timer.stop()
         self.itnum += 1
         return self.x
