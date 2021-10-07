@@ -46,9 +46,21 @@ class ParallelBeamProjector(LinearOperator):
             angles: Array of projeciton angles in radians, should be increasing.
             num_channels: Number of pixels in the sinogram
         """
-        self.input_shape = input_shape
         self.angles = angles
         self.num_channels = num_channels
+
+        if len(input_shape) == 2:  # 2D input
+            self.svmbir_input_shape = (1,) + input_shape
+            output_shape = (len(angles), num_channels)
+            self.svmbir_output_shape = output_shape[0:1] + (1,) + output_shape[1:2]
+        elif len(input_shape) == 3:  # 3D input
+            self.svmbir_input_shape = input_shape
+            output_shape = (len(angles), input_shape[0], num_channels)
+            self.svmbir_output_shape = output_shape
+        else:
+            raise ValueError(
+                f"Only 2D and 3D inputs are supported, but input_shape was {input_shape}"
+            )
 
         # set up custom_vjp for _eval and _adj so jax.grad works on them
         self._eval = jax.custom_vjp(lambda x: self._proj_hcb(x))
@@ -58,8 +70,8 @@ class ParallelBeamProjector(LinearOperator):
         self._adj.defvjp(lambda y: (self._bproj_hcb(y), None), lambda _, x: (self._proj_hcb(x),))
 
         super().__init__(
-            input_shape=self.input_shape,
-            output_shape=(len(angles), input_shape[0], num_channels),
+            input_shape=input_shape,
+            output_shape=output_shape,
             input_dtype=np.float32,
             output_dtype=np.float32,
             adj_fn=self._adj,
@@ -71,24 +83,30 @@ class ParallelBeamProjector(LinearOperator):
         return svmbir.project(np.array(x), np.array(angles), num_channels, verbose=0)
 
     def _proj_hcb(self, x):
+        x = x.reshape(self.svmbir_input_shape)
         # host callback wrapper for _proj
-        return jax.experimental.host_callback.call(
+        y = jax.experimental.host_callback.call(
             lambda x: self._proj(x, self.angles, self.num_channels),
             x,
-            result_shape=jax.ShapeDtypeStruct(self.output_shape, self.output_dtype),
+            result_shape=jax.ShapeDtypeStruct(self.svmbir_output_shape, self.output_dtype),
         )
+        return y.reshape(self.output_shape)
 
     @staticmethod
     def _bproj(y: JaxArray, angles: JaxArray, num_rows: int, num_cols: int):
         return svmbir.backproject(np.array(y), np.array(angles), num_rows, num_cols, verbose=0)
 
     def _bproj_hcb(self, y):
+        y = y.reshape(self.svmbir_output_shape)
         # host callback wrapper for _bproj
-        return jax.experimental.host_callback.call(
-            lambda y: self._bproj(y, self.angles, self.input_shape[1], self.input_shape[2]),
+        x = jax.experimental.host_callback.call(
+            lambda y: self._bproj(
+                y, self.angles, self.svmbir_input_shape[1], self.svmbir_input_shape[2]
+            ),
             y,
-            result_shape=jax.ShapeDtypeStruct(self.input_shape, self.input_dtype),
+            result_shape=jax.ShapeDtypeStruct(self.svmbir_input_shape, self.input_dtype),
         )
+        return x.reshape(self.input_shape)
 
 
 class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
@@ -113,17 +131,27 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
         self.has_prox = True
 
     def prox(self, v: JaxArray, lam: float) -> JaxArray:
+        v = v.reshape(self.A.svmbir_input_shape)
+        y = self.y.reshape(self.A.svmbir_output_shape)
+        weights = self.weights.reshape(self.A.svmbir_output_shape)
         sigma_p = snp.sqrt(lam)
         result = svmbir.recon(
-            np.array(self.y),
+            np.array(y),
             np.array(self.A.angles),
-            weights=np.array(self.weights),
+            weights=np.array(weights),
             prox_image=np.array(v),
-            num_rows=self.A.input_shape[1],
-            num_cols=self.A.input_shape[2],
+            num_rows=self.A.svmbir_input_shape[1],
+            num_cols=self.A.svmbir_input_shape[2],
             sigma_p=np.float(sigma_p),
             sigma_y=1.0,
             positivity=False,
             verbose=0,
         )
-        return result
+        return result.reshape(self.A.input_shape)
+
+
+def _unsqueeze(x: JaxArray, input_shape: Shape) -> JaxArray:
+    """If x is 2D, make it 3D according to SVMBIR's convention"""
+    if len(input_shape) == 2:
+        x = x[snp.newaxis, :, :]
+    return x

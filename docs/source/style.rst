@@ -13,9 +13,15 @@ Style Guide
     div.document li > p {
        margin-bottom: 4px !important;
     }
-    div.document li {
+    div.document ul > li {
       list-style: square outside !important;
       margin-left: 1em !important;
+    }
+    section {
+      padding-bottom: 1em;
+    }
+    ul {
+      margin-bottom: 1em;
     }
     </style>
 
@@ -100,7 +106,6 @@ Things to avoid:
    - Protected: Use a single underscore, ``_``, for protected access
    - Pseudo-private: Use double underscores, ``_``, for pseudo-private access via name mangling.
 
-|
 
 Displaying and Printing Strings
 -------------------------------
@@ -114,8 +119,6 @@ Prefer to use Python f-strings, rather than `.format` or `%` syntax.
     print(f"The state is {state}")  # Preferred
 
 
-
-
 Imports
 -------
 
@@ -126,7 +129,6 @@ Usage of ``import`` statements should be reserved for packages and modules only 
 -  Use ``from x import y as z`` if two modules named ``y`` are imported or if ``y`` is too long of a name.
 -  Use ``import y as z`` when ``z`` is a standard abbreviation like ``import numpy as np``.
 
-|
 
 Variables
 ---------
@@ -146,7 +148,6 @@ Apart from naming conventions there are a few extra documentation and coding pra
    - Avoid global variables.
    - A function can refer to variables defined in enclosing functions but cannot assign to them.
 
-|
 
 Parameters
 ----------
@@ -193,7 +194,6 @@ There are three important stlyle components for parameters:
 
    - For documentation purposes, ``NoneType`` or ``None`` should be written with double backticks
 
-|
 
 Docstrings
 ----------
@@ -406,8 +406,8 @@ The following are sections that can be added to functions, modules, classes, or 
       with a ``...``
 
       >>> np.add([[1, 2], [3, 4]],
-      ...         [[5, 6], [7, 8]]) 
-      array([[ 6,  8], 
+      ...         [[5, 6], [7, 8]])
+      array([[ 6,  8],
              [10, 12]])
 
       """

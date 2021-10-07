@@ -1,4 +1,20 @@
+import os
+
+import pytest
+
 from scico import data
+
+skipif_reason = (
+    "\nThe data submodule must be cloned and initialized. If the main repository"
+    " is already cloned, use the following in the root directory to get the data"
+    " submodule:\n\tgit submodule update --init --recursive\nOtherwise, make sure"
+    " to clone using:\n\tgit clone --recurse-submodules git@github.com:lanl/scico.git"
+    "\nAnd after cloning run:\n\tgit submodule init && git submodule update.\n"
+)
+
+pytestmark = pytest.mark.skipif(
+    len(os.listdir(os.path.abspath("./data"))) == 0, reason=skipif_reason
+)
 
 
 class TestSet:
