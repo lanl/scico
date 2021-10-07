@@ -338,6 +338,7 @@ class ADMM:
         g_list (list of :class:`.Functional`): List of :math:`g_i`
             functionals. Must be same length as :code:`C_list` and :code:`rho_list`
         C_list (list of :class:`.LinearOperator`): List of :math:`C_i` operators
+        itnum (int): Iteration counter
         maxiter (int): Number of ADMM outer-loop iterations.
         rho_list (list of scalars): List of :math:`\rho_i` penalty parameters.
             Must be same length as :code:`C_list` and :code:`g_list`
@@ -394,6 +395,7 @@ class ADMM:
         self.g_list: List[Functional] = g_list
         self.C_list: List[LinearOperator] = C_list
         self.rho_list: List[float] = rho_list
+        self.itnum: int = 0
         self.maxiter: int = maxiter
         # ToDo: a None value should imply automatic selection of the solver
         if subproblem_solver is None:
@@ -415,9 +417,9 @@ class ADMM:
                     "Dual Rsdl": "%8.3e",
                 }
 
-                def itstat_func(i, obj):
+                def itstat_func(obj):
                     return (
-                        i,
+                        obj.itnum,
                         obj.objective(),
                         obj.norm_primal_residual(),
                         obj.norm_dual_residual(),
@@ -427,11 +429,11 @@ class ADMM:
                 # At least one 'g' can't be evaluated, so drop objective from the default itstat
                 itstat_dict = {"Iter": "%d", "Primal Rsdl": "%8.3e", "Dual Rsdl": "%8.3e"}
 
-                def itstat_func(i, admm):
+                def itstat_func(obj):
                     return (
-                        i,
-                        admm.norm_primal_residual(),
-                        admm.norm_dual_residual(),
+                        obj.i,
+                        obj.norm_primal_residual(),
+                        obj.norm_dual_residual(),
                     )
 
         self.itstat_object = IterationStats(itstat_dict, display=verbose)
@@ -605,8 +607,9 @@ class ADMM:
         Returns:
             Computed solution.
         """
-        for itnum in range(self.maxiter):
+        for self.itnum in range(self.itnum, self.itnum + self.maxiter):
             self.x = self.x_step(self.x)
             self.u_list, self.z_list, self.z_list_old = self.z_and_u_step(self.u_list, self.z_list)
-            self.itstat_object.insert(self.itstat_insert_func(itnum, self))
+            self.itstat_object.insert(self.itstat_insert_func(self))
+        self.itnum += 1
         return self.x
