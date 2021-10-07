@@ -13,15 +13,9 @@ Style Guide
     div.document li > p {
        margin-bottom: 4px !important;
     }
-    div.document ul > li {
+    div.document li {
       list-style: square outside !important;
       margin-left: 1em !important;
-    }
-    section {
-      padding-bottom: 1em;
-    }
-    ul {
-      margin-bottom: 1em;
     }
     </style>
 
@@ -29,7 +23,7 @@ Style Guide
 Overview
 --------
 
-We adhere to `PEP8 <https://www.python.org/dev/peps/pep-0008/>`_ with the exception of allowing a line length limit of 99 characters (as opposed to 79 characters), with a stricter limit of 79 characters (as opposed to 72 characters) for docstrings or comments. We use `Black <https://github.com/psf/black>`_ as our PEP-8 Formatter and `isort <https://pypi.org/project/isort/>`_ to sort imports. (Please Set up a `pre-commit hook <https://pre-commit.com>`_ to ensure any modified code passes format check before it is committed to the development repo.)
+We adhere to `PEP8 <https://www.python.org/dev/peps/pep-0008/>`_ with the exception of allowing a line length limit of 99 characters (as opposed to 79 characters), with a stricter limit of 79 characters (as opposed to 72 characters) for docstrings or comments. We use `Black <https://github.com/psf/black>`_ as our PEP-8 Formatter and `isort <https://pypi.org/project/isort/>`_ to sort imports. (Please set up a `pre-commit hook <https://pre-commit.com>`_ to ensure any modified code passes format check before it is committed to the development repo.)
 
 We aim to incorporate `PEP 526 <https://www.python.org/dev/peps/pep-0484/>`_ type annotations throughout the library.  See the `Mypy <https://mypy.readthedocs.io/en/stable/>`_ type annotation `cheat sheet <https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html>`_ for usage examples. Custom types are defined in :mod:`.typing`.
 
@@ -106,6 +100,7 @@ Things to avoid:
    - Protected: Use a single underscore, ``_``, for protected access
    - Pseudo-private: Use double underscores, ``_``, for pseudo-private access via name mangling.
 
+|
 
 Displaying and Printing Strings
 -------------------------------
@@ -119,6 +114,8 @@ Prefer to use Python f-strings, rather than `.format` or `%` syntax.
     print(f"The state is {state}")  # Preferred
 
 
+
+
 Imports
 -------
 
@@ -129,6 +126,7 @@ Usage of ``import`` statements should be reserved for packages and modules only 
 -  Use ``from x import y as z`` if two modules named ``y`` are imported or if ``y`` is too long of a name.
 -  Use ``import y as z`` when ``z`` is a standard abbreviation like ``import numpy as np``.
 
+|
 
 Variables
 ---------
@@ -148,6 +146,7 @@ Apart from naming conventions there are a few extra documentation and coding pra
    - Avoid global variables.
    - A function can refer to variables defined in enclosing functions but cannot assign to them.
 
+|
 
 Parameters
 ----------
@@ -194,6 +193,7 @@ There are three important stlyle components for parameters:
 
    - For documentation purposes, ``NoneType`` or ``None`` should be written with double backticks
 
+|
 
 Docstrings
 ----------
@@ -416,7 +416,7 @@ The following are sections that can be added to functions, modules, classes, or 
 Comments
 ~~~~~~~~
 
-There are two types of comments: Block and Inline. A good rule of thumb to follow for when to include a comment in your code is: if you have to explain it or is too hard to figure out at first glance, then comment it. An example of this is complicated operations which most likely require a block of comments beforehand.
+There are two types of comments: *block* and *inline*. A good rule of thumb to follow for when to include a comment in your code is: if you have to explain it or is too hard to figure out at first glance, then comment it. An example of this is complicated operations which most likely require a block of comments beforehand.
 
 .. code-block:: Python
 
@@ -425,4 +425,6 @@ There are two types of comments: Block and Inline. A good rule of thumb to follo
     # what the concept of the operation does in an easier
     # to understand way.
 
-    i = i & (i-1) == 0:  # True if i is 0 or a power of 2, explains the concept not the code
+    i = i & (i-1) == 0:  # true if i is 0 or a power of 2 [explains the concept not the code]
+
+If a comment consists of one or more full sentences (as is typically the case for *block* comments), it should start with an upper case letter and end with a period. *Inline* comments often consist of a brief phrase which is not a full sentence, in which case they should have a lower case initial letter and not have a terminating period.
