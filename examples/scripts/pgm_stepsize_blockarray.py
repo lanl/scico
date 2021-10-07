@@ -5,9 +5,8 @@
 # with the package.
 
 r"""
-Non-negative Poisson Loss Reconstruction (AcceleratedPGM w/ adaptive
-PGMStepSize)
-============
+Non-negative Poisson Loss Reconstruction (APGM w/ adaptive PGMStepSize)
+=======================================================================
 
 This example demonstrates the use of class
 [pgm.PGMStepSize](../_autosummary/scico.pgm.rst#scico.pgm.PGMStepSize)
