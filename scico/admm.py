@@ -300,8 +300,7 @@ class CircularConvolveSolver(LinearSubproblemSolver):
 
 
 class ADMM:
-    r"""Basic Alternating Direction Method of Multipliers (ADMM) algorithm
-    :cite:`boyd-2010-distributed`.
+    r"""Basic Alternating Direction Method of Multipliers (ADMM) algorithm.
 
     |
 
@@ -320,7 +319,8 @@ class ADMM:
         \argmin_{\mb{x}, \mb{z}_i} \; f(\mb{x}) + \sum_{i=1}^N g_i(\mb{z}_i) \;
        \text{such that}\; C_i \mb{x} = \mb{z}_i \;,
 
-    via an ADMM algorithm consisting of the iterations
+    via an ADMM algorithm :cite:`glowinski-1975-approximation` :cite:`gabay-1976-dual`
+    :cite:`boyd-2010-distributed`. consisting of the iterations
 
     .. math::
        \begin{aligned}
