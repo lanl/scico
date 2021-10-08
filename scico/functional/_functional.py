@@ -133,7 +133,7 @@ is_smooth = {self.is_smooth}
 
 
 class ScaledFunctional(Functional):
-    """A functional multiplied by a scalar.
+    r"""A functional multiplied by a scalar.
 
     Note that, by definition, the scaled proximal operator of a
     functional is the proximal operator of the scaled functional. The
