@@ -23,7 +23,7 @@ Style Guide
 Overview
 --------
 
-We adhere to `PEP8 <https://www.python.org/dev/peps/pep-0008/>`_ with the exception of allowing a line length limit of 99 characters (as opposed to 79 characters), with a stricter limit of 79 characters (as opposed to 72 characters) for docstrings or comments. We use `Black <https://github.com/psf/black>`_ as our PEP-8 Formatter and `isort <https://pypi.org/project/isort/>`_ to sort imports. (Please Set up a `pre-commit hook <https://pre-commit.com>`_ to ensure any modified code passes format check before it is committed to the development repo.)
+We adhere to `PEP8 <https://www.python.org/dev/peps/pep-0008/>`_ with the exception of allowing a line length limit of 99 characters (as opposed to 79 characters), with a stricter limit of 79 characters (as opposed to 72 characters) for docstrings or comments. We use `Black <https://github.com/psf/black>`_ as our PEP-8 Formatter and `isort <https://pypi.org/project/isort/>`_ to sort imports. (Please set up a `pre-commit hook <https://pre-commit.com>`_ to ensure any modified code passes format check before it is committed to the development repo.)
 
 We aim to incorporate `PEP 526 <https://www.python.org/dev/peps/pep-0484/>`_ type annotations throughout the library.  See the `Mypy <https://mypy.readthedocs.io/en/stable/>`_ type annotation `cheat sheet <https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html>`_ for usage examples. Custom types are defined in :mod:`.typing`.
 
@@ -406,8 +406,8 @@ The following are sections that can be added to functions, modules, classes, or 
       with a ``...``
 
       >>> np.add([[1, 2], [3, 4]],
-      ...         [[5, 6], [7, 8]]) 
-      array([[ 6,  8], 
+      ...         [[5, 6], [7, 8]])
+      array([[ 6,  8],
              [10, 12]])
 
       """
@@ -416,7 +416,7 @@ The following are sections that can be added to functions, modules, classes, or 
 Comments
 ~~~~~~~~
 
-There are two types of comments: Block and Inline. A good rule of thumb to follow for when to include a comment in your code is: if you have to explain it or is too hard to figure out at first glance, then comment it. An example of this is complicated operations which most likely require a block of comments beforehand.
+There are two types of comments: *block* and *inline*. A good rule of thumb to follow for when to include a comment in your code is: if you have to explain it or is too hard to figure out at first glance, then comment it. An example of this is complicated operations which most likely require a block of comments beforehand.
 
 .. code-block:: Python
 
@@ -425,4 +425,6 @@ There are two types of comments: Block and Inline. A good rule of thumb to follo
     # what the concept of the operation does in an easier
     # to understand way.
 
-    i = i & (i-1) == 0:  # True if i is 0 or a power of 2, explains the concept not the code
+    i = i & (i-1) == 0:  # true if i is 0 or a power of 2 [explains the concept not the code]
+
+If a comment consists of one or more full sentences (as is typically the case for *block* comments), it should start with an upper case letter and end with a period. *Inline* comments often consist of a brief phrase which is not a full sentence, in which case they should have a lower case initial letter and not have a terminating period.

@@ -8,11 +8,17 @@ r"""
 Non-negative Basis Pursuit DeNoising (ADMM)
 ===========================================
 
-This example demonstrates the use of class [admm.ADMM](../_autosummary/scico.admm.rst#scico.admm.ADMM) to solve the non-negative sparse coding problem problem
+This example demonstrates the use of class
+[admm.ADMM](../_autosummary/scico.admm.rst#scico.admm.ADMM) to solve
+the non-negative sparse coding problem problem
 
-  $$\mathrm{argmin}_{\mathbf{x}} \; \| \mathbf{y} - D \mathbf{x} \|_2^2 + \lambda \| \mathbf{x} \|_1 + I(\mathbf{x} \geq 0)\;,$$
+  $$\mathrm{argmin}_{\mathbf{x}} \; \| \mathbf{y} - D \mathbf{x} \|_2^2
+  + \lambda \| \mathbf{x} \|_1 + I(\mathbf{x} \geq 0)\;,$$
 
-where $D$ the dictionary, $\mathbf{y}$ the signal to be represented, $\mathbf{x}$ is the sparse representation, and $I(\mathbf{x} \geq 0)$ is the non-negative indicator. """
+where $D$ the dictionary, $\mathbf{y}$ the signal to be represented,
+$\mathbf{x}$ is the sparse representation, and $I(\mathbf{x} \geq 0)$
+is the non-negative indicator.
+"""
 
 import numpy as np
 
@@ -22,11 +28,13 @@ from scico import functional, linop, loss, plot
 from scico.admm import ADMM, LinearSubproblemSolver
 
 """
-Create random dictionary, reference random sparse representation, and test signal consisting of the synthesis of the reference sparse representation.
+Create random dictionary, reference random sparse representation, and
+test signal consisting of the synthesis of the reference sparse
+representation.
 """
 m = 32  # signal size
-n = 128  # Dictionary size
-s = 10  # Sparsity level
+n = 128  # dictionary size
+s = 10  # sparsity level
 
 np.random.seed(1)
 D = np.random.randn(m, n)
@@ -37,8 +45,9 @@ idx = np.random.randint(low=0, high=n, size=s)  # support of xt
 xt[idx] = np.random.rand(s)
 y = D @ xt + 5e-2 * np.random.randn(m)  # synthetic signal
 
-xt = jax.device_put(xt)  # Convert to jax array, push to GPU
-y = jax.device_put(y)  # Convert to jax array, push to GPU
+xt = jax.device_put(xt)  # convert to jax array, push to GPU
+y = jax.device_put(y)  # convert to jax array, push to GPU
+
 
 """
 Set up the forward operator and ADMM solver object.
@@ -49,7 +58,7 @@ f = loss.SquaredL2Loss(y=y, A=A)
 g_list = [lmbda * functional.L1Norm(), functional.NonNegativeIndicator()]
 C_list = [linop.Identity((n)), linop.Identity((n))]
 rho_list = [1.0, 1.0]
-maxiter = 100  # Number of ADMM iterations
+maxiter = 100  # number of ADMM iterations
 
 solver = ADMM(
     f=f,
@@ -67,6 +76,7 @@ solver = ADMM(
 Run the solver.
 """
 x = solver.solve()
+
 
 """
 Plot the recovered coefficients and signal.
