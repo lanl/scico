@@ -1,6 +1,28 @@
 Functionals and Losses
 ======================
 
+.. raw:: html
+
+    <style type='text/css'>
+    div.document ul blockquote {
+       margin-bottom: 8px !important;
+    }
+    div.document li > p {
+       margin-bottom: 4px !important;
+    }
+    div.document ul > li {
+      list-style: square outside !important;
+      margin-left: 1em !important;
+    }
+    section {
+      padding-bottom: 1em;
+    }
+    ul {
+      margin-bottom: 1em;
+    }
+    </style>
+
+
 A functional maps an :code:`array-like` to a scalar; abstractly, a functional is
 a mapping from :math:`\mathbb{R}^n` or :math:`\mathbb{C}^n` to :math:`\mathbb{R}`.
 
@@ -14,9 +36,8 @@ A functional ``f`` can have three core operations.
 * Gradient
    - ``f.grad(x)`` returns the gradient of the functional evaluated at :math:`\mb{x}`.
    - Calculated using JAX reverse-mode automatic differentiation, exposed through :func:`scico.grad`.
-   - A functional that is smooth has the attribute ``f.is_smooth == True``
+   - A functional that is smooth has the attribute ``f.is_smooth == True``.
    - NOTE:  The gradient of a functional ``f`` can be evaluated even if ``f.is_smooth == False``.  All that is required is that the functional can be evaluated, ``f.has_eval == True``.  However, the result may not be a valid gradient (or subgradient) for all inputs :math:`\mb{x}`.
-
 
 * Proximal operator
    - The proximal operator of a functional :math:`f : \mathbb{R}^n \to \mathbb{R}` is the mapping
@@ -38,6 +59,7 @@ Proximal Calculus
 -----------------
 
 We support a limited subset of proximal calculus rules.
+
 
 Scaled Functionals
 ******************
@@ -106,3 +128,7 @@ Adding New Functionals
 
 Losses
 ------
+
+.. todo::
+
+   Content missing here

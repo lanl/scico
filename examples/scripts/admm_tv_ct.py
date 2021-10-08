@@ -8,13 +8,18 @@ r"""
 Few-View CT (ADMM w/ Total Variation)
 =====================================
 
-This example demonstrates the use of class [admm.ADMM](../_autosummary/scico.admm.rst#scico.admm.ADMM) to solve a few-view CT reconstruction problem with anisotropic total variation (TV) regularization.
+This example demonstrates the use of class
+[admm.ADMM](../_autosummary/scico.admm.rst#scico.admm.ADMM) to solve a
+few-view CT reconstruction problem with anisotropic total variation
+(TV) regularization.
 
-  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x} \|_2^2 + \lambda \| C \mathbf{x} \|_1 \;,$$
+  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
+  \|_2^2 + \lambda \| C \mathbf{x} \|_1 \;,$$
 
-where $A$ is the Radon transform, $\mathbf{y}$ is the sinogram, $C$ is a 2D finite difference operator, and $\mathbf{x}$ is the desired image.
+where $A$ is the Radon transform, $\mathbf{y}$ is the sinogram, $C$ is
+a 2D finite difference operator, and $\mathbf{x}$ is the desired
+image.
 """
-
 
 import numpy as np
 
@@ -31,31 +36,30 @@ from scico.linop.radon_astra import ParallelBeamProjector
 """
 Create a ground truth image.
 """
-N = 512  # Phantom size
+N = 512  # phantom size
 x_gt = discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=N)
-x_gt = jax.device_put(x_gt)  # Convert to jax type, push to GPU
+x_gt = jax.device_put(x_gt)  # convert to jax type, push to GPU
 
 
 """
 Configure CT projection operator and generate synthetic measurements.
 """
-n_projection = 45  # Number of projections
-angles = np.linspace(0, np.pi, n_projection)  # Evenly spaced projection angles
+n_projection = 45  # number of projections
+angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
 A = ParallelBeamProjector(x_gt.shape, 1, N, angles)  # Radon transform operator
-y = A @ x_gt  # Sinogram
+y = A @ x_gt  # sinogram
 
 
 """
 Set up ADMM solver object.
 """
-
 λ = 2e-0  # L1 norm regularization parameter
 ρ = 5e-0  # ADMM penalty parameter
-maxiter = 25  # Number of ADMM iterations
-num_inner_iter = 20  # Number of CG iterations per ADMM iteration
+maxiter = 25  # number of ADMM iterations
+num_inner_iter = 20  # number of CG iterations per ADMM iteration
 
-g = λ * functional.L1Norm()  # Regularization functionals gi
-C = linop.FiniteDifference(input_shape=x_gt.shape)  # Analysis operators Ci
+g = λ * functional.L1Norm()  # regularization functionals gi
+C = linop.FiniteDifference(input_shape=x_gt.shape)  # analysis operators Ci
 
 f = loss.SquaredL2Loss(y=y, A=A)
 
@@ -72,12 +76,14 @@ solver = ADMM(
     verbose=True,
 )
 
+
 """
 Run the solver.
 """
 solver.solve()
 hist = solver.itstat_object.history(transpose=True)
 x_reconstruction = snp.clip(solver.x, 0, 1.0)
+
 
 """
 Show the recovered image.
@@ -128,5 +134,6 @@ plot.plot(
     ax=ax[1],
 )
 fig.show()
+
 
 input("\nWaiting for input to close figures and exit")

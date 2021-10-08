@@ -40,10 +40,10 @@ class IterationStats:
 
         Args:
             fields: A dictionary associating field names with format strings for
-                displaying the corresponding values
-            ident: A dictionary associating field names
+                displaying the corresponding values.
+            ident: A dictionary associating field names.
                with corresponding valid identifiers for use within the namedtuple used to
-               record results.  Defaults to None
+               record results. Defaults to None.
             display : Flag indicating whether results should be printed to stdout.
                 Defaults to ``False``.
             colsep : Number of spaces seperating fields in displayed tables.

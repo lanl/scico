@@ -8,7 +8,7 @@
 """Fourier transform linear operator class."""
 
 
-# needed to annotate a class method that returns the encapsulating class
+# Needed to annotate a class method that returns the encapsulating class;
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
