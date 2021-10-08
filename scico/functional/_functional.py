@@ -76,11 +76,15 @@ is_smooth = {self.is_smooth}
             )
 
     def prox(self, x: Union[JaxArray, BlockArray], lam: float) -> Union[JaxArray, BlockArray]:
-        r"""Evaluate proximal mapping at point :math:`\mb{x}` with scaling lam
+        r"""Proximal operator of functional.
+
+        Evaluate scaled proximal operator of this functional, with
+        scaling `lam` = :math:`\lambda`, and evaluated at point
+        `x` = :math:`\mb{x}`
 
         .. math::
-           \mathrm{prox}(\mb{x}, \lambda) = \argmin_{\mb{v}} \frac{1}{2}
-           \norm{\mb{x} - \mb{v}}_2^2 + \lambda \ \mathrm{f}(\mb{v})
+           \mathrm{prox}_{\lambda f}(\mb{x}) = \argmin_{\mb{v}} \frac{1}{2}
+           \norm{\mb{x} - \mb{v}}_2^2 + \lambda \ \mathrm{f}(\mb{v}) \;,
 
         where :math:`f(\mb{v})` represents this functional evaluated at :math:`\mb{v}`.
 
@@ -92,6 +96,27 @@ is_smooth = {self.is_smooth}
             raise NotImplementedError(
                 f"Functional {type(self)} does not have a prox; has_prox={self.has_prox}"
             )
+
+    def conj_prox(self, x: Union[JaxArray, BlockArray], lam: float) -> Union[JaxArray, BlockArray]:
+        r"""Proximal operator of convex conjugate of functional.
+
+        Evaluate scaled proximal operator of convex conjugate (Fenchel
+        conjugate) of this functional, with scaling
+        `lam` = :math:`\lambda`, and evaluated at point `x` = :math:`\mb{x}`.
+        Denoting this functional by :math:`f` and its convex conjugate by
+        :math:`f^*`, the proximal operator of :math:`f^*` is computed as
+        follows by exploiting the extended Moreau decomposition (see
+        Sec. 6.6 of :cite:`beck-2017-first`)
+
+        .. math::
+           \mathrm{prox}_{\lambda f^*}(\mb{x}) = \mb{x} - \lambda
+           \mathrm{prox}_{\lambda^{-1} f}(\mb{x / \lambda}) \;.
+
+        Args:
+            x : Point at which to evaluate prox function.
+            lam : Proximal parameter :math:`\lambda`
+        """
+        return x - lam * self.prox(x / lam, 1.0 / lam)
 
     def grad(self, x: Union[JaxArray, BlockArray]):
         r"""Evaluates the gradient of this functional at point :math:`\mb{x}`.
