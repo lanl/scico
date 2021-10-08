@@ -55,14 +55,15 @@ Invert in the Fourier domain to form a preconditioner $\mathbf{M}
 \approx (\mathbf{A}^T \mathbf{A})^{-1}$. See
 :cite:`clinthorne-1993-preconditioning` Section V.A. for more details.
 """
-γ = 1e-2  # limits the gain of the preconditioner, higher gives a weaker filter
+# γ limits the gain of the preconditioner; higher gives a weaker filter.
+γ = 1e-2
 
-# The complex part comes from numerical errors in A.T and needs to be removed to
-# ensure H is symmetric, positive definite.
-frequency_response = np.abs(H.h_dft)
-inv_frequency_response = 1 / (np.abs(frequency_response) + γ)
-# Using circular convolution without padding is sufficient here because M
-# is approximate anyway.
+# The imaginary part comes from numerical errors in A.T and needs to be
+# removed to ensure H is symmetric, positive definite.
+frequency_response = np.real(H.h_dft)
+inv_frequency_response = 1 / (frequency_response + γ)
+# Using circular convolution without padding is sufficient here because
+# M is approximate anyway.
 M = CircularConvolve(inv_frequency_response, x_gt.shape, h_is_dft=True)
 
 
