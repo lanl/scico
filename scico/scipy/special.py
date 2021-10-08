@@ -5,7 +5,7 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Construct wrapped versions of :mod:`jax.scipy.special` functions.
+"""Wrapped versions of :mod:`jax.scipy.special` functions.
 
 This modules consists of functions from :mod:`jax.scipy.special`. Some of these functions are wrapped to support compatibility with :class:`scico.blockarray.BlockArray` and are documented here. The remaining functions are imported directly from :mod:`jax.numpy`. While they can be imported from the :mod:`scico.numpy` namespace, they are not documented here; please consult the documentation for the source module :mod:`jax.scipy.special`.
 """
