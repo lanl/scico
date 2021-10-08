@@ -135,14 +135,29 @@ is_smooth = {self.is_smooth}
 class ScaledFunctional(Functional):
     """A functional multiplied by a scalar.
 
-    For a scalar :math:`c` and :class:`Functional` :math:`f`, the scaled functional
-    :math:`g = cf` has proximal operator
+    Note that, by definition, the scaled proximal operator of a
+    functional is the proximal operator of the scaled functional. The
+    scaled proximal operator of a scaled functional is the scaled
+    proximal operator of the unscaled functional with the proximal
+    operator scaling consisting of the product of the two scaling
+    factors, i.e. for functional :math:`f` and scaling factors
+    :math:`\alpha` and :math:`\beta`, the proximal operator with scaling
+    parameter :math:`\alpha` of scaled functional :math:`\beta f` is
+    the proximal operator with scaling parameter :math:`\alpha \beta` of
+    functional :math:`f`
 
     .. math::
 
-       \mathrm{prox}_g(v, \lambda) = \mathrm{prox}_f(v, c \lambda)
+       \mathrm{prox}_{\alpha (\beta f)}(\mb{v}) =
+       \mathrm{prox}_{(\alpha \beta) f}(\mb{v}) \;,
 
+    or in non-standard notation with the proximal operator scaling factor
+    as an explicit parameter,
 
+    .. math::
+
+       \mathrm{prox}_{\beta f}(v, \alpha) = \mathrm{prox}_f(v, \alpha
+       \beta) \;.
     """
 
     def __repr__(self):
