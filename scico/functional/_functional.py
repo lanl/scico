@@ -75,8 +75,8 @@ is_smooth = {self.is_smooth}
                 f"Functional {type(self)} cannot be evaluated; has_eval={self.has_eval}"
             )
 
-    def prox(self, x: Union[JaxArray, BlockArray], lam: float) -> Union[JaxArray, BlockArray]:
-        r"""Proximal operator of functional.
+    def prox(self, x: Union[JaxArray, BlockArray], lam: float = 1) -> Union[JaxArray, BlockArray]:
+        r"""Scaled proximal operator of functional.
 
         Evaluate scaled proximal operator of this functional, with
         scaling `lam` = :math:`\lambda`, and evaluated at point
@@ -97,8 +97,10 @@ is_smooth = {self.is_smooth}
                 f"Functional {type(self)} does not have a prox; has_prox={self.has_prox}"
             )
 
-    def conj_prox(self, x: Union[JaxArray, BlockArray], lam: float) -> Union[JaxArray, BlockArray]:
-        r"""Proximal operator of convex conjugate of functional.
+    def conj_prox(
+        self, x: Union[JaxArray, BlockArray], lam: float = 1
+    ) -> Union[JaxArray, BlockArray]:
+        r"""Scaled proximal operator of convex conjugate of functional.
 
         Evaluate scaled proximal operator of convex conjugate (Fenchel
         conjugate) of this functional, with scaling
@@ -131,7 +133,7 @@ is_smooth = {self.is_smooth}
 
 
 class ScaledFunctional(Functional):
-    """A functional times a scalar.
+    """A functional multiplied by a scalar.
 
     For a scalar :math:`c` and :class:`Functional` :math:`f`, the scaled functional
     :math:`g = cf` has proximal operator
@@ -157,7 +159,7 @@ class ScaledFunctional(Functional):
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         return self.scale * self.functional(x)
 
-    def prox(self, x: Union[JaxArray, BlockArray], lam: float) -> Union[JaxArray, BlockArray]:
+    def prox(self, x: Union[JaxArray, BlockArray], lam: float = 1) -> Union[JaxArray, BlockArray]:
         return self.functional.prox(x, lam * self.scale)
 
 
@@ -199,8 +201,10 @@ class SeparableFunctional(Functional):
                 f"Number of blocks in x, {len(x.shape)}, and length of functional_list, {len(self.functional_list)}, do not match"
             )
 
-    def prox(self, x: BlockArray, lam: float) -> BlockArray:
-        r"""Evaluate proximal operator of the separable functional (see Theorem 6.6 of :cite:`beck-2017-first`).
+    def prox(self, x: BlockArray, lam: float = 1) -> BlockArray:
+        r"""Evaluate proximal operator of the separable functional.
+
+        Evaluate proximal operator of the separable functional (see Theorem 6.6 of :cite:`beck-2017-first`).
 
           .. math::
              \mathrm{prox}_f(\mb{x}, \lambda)
@@ -233,5 +237,5 @@ class ZeroFunctional(Functional):
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         return 0.0
 
-    def prox(self, x: Union[JaxArray, BlockArray], lam: float) -> Union[JaxArray, BlockArray]:
+    def prox(self, x: Union[JaxArray, BlockArray], lam: float = 1) -> Union[JaxArray, BlockArray]:
         return x
