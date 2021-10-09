@@ -8,8 +8,11 @@
 Image Deconvolution (ADMM Plug-and-Play Priors w/ BM3D)
 =======================================================
 
-This example demonstrates the use of class [admm.ADMM](../_autosummary/scico.admm.rst#scico.admm.ADMM) to solve an image deconvolution problem using the Plug-and-Play Priors framework :cite:`venkatakrishnan-2013-plugandplay2`, using BM3D :cite:`dabov-2008-image` as a denoiser.
-
+This example demonstrates the use of class
+[admm.ADMM](../_autosummary/scico.admm.rst#scico.admm.ADMM) to solve
+an image deconvolution problem using the Plug-and-Play Priors
+framework :cite:`venkatakrishnan-2013-plugandplay2`, using BM3D
+:cite:`dabov-2008-image` as a denoiser.
 """
 
 import numpy as np
@@ -27,20 +30,23 @@ Create a ground truth image.
 """
 np.random.seed(1234)
 x_gt = discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=512)
-x_gt = jax.device_put(x_gt)  # Convert to jax array, push to GPU
+x_gt = jax.device_put(x_gt)  # convert to jax array, push to GPU
+
 
 """
-Set up forward operator and test signal consisting of blurred signal with additive Gaussian noise.
+Set up forward operator and test signal consisting of blurred signal with
+additive Gaussian noise.
 """
-n = 5  # Convolution kernel size
-σ = 20.0 / 255  # Noise level
+n = 5  # convolution kernel size
+σ = 20.0 / 255  # noise level
 
 psf = snp.ones((n, n)) / (n * n)
 A = linop.Convolve(h=psf, input_shape=x_gt.shape)
 
-Ax = A(x_gt)  # Blurred image
+Ax = A(x_gt)  # blurred image
 noise, key = random.randn(Ax.shape)
 y = Ax + σ * noise
+
 
 """
 Set up ADMM solver.
@@ -52,7 +58,7 @@ C = linop.Identity(x_gt.shape)
 g = λ * functional.BM3D()
 
 ρ = 1.0  # ADMM penalty parameter
-maxiter = 10  # Number of ADMM iterations
+maxiter = 10  # number of ADMM iterations
 
 solver = ADMM(
     f=f,
@@ -64,6 +70,7 @@ solver = ADMM(
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": 100}),
     verbose=True,
 )
+
 
 """
 Run the solver.
@@ -89,7 +96,6 @@ fig.show()
 """
 Plot convergence statistics.
 """
-
 plot.plot(
     snp.vstack((hist.Primal_Rsdl, hist.Dual_Rsdl)).T,
     ptyp="semilogy",

@@ -8,13 +8,24 @@ r"""
 Deconvolution Microscopy
 ========================
 
-This example partially replicates a [GlobalBioIm example](https://biomedical-imaging-group.github.io/GlobalBioIm/examples.html) using the [microscopy data](http://bigwww.epfl.ch/deconvolution/bio/) provided by the EPFL Biomedical Imaging Group.
+This example partially replicates a [GlobalBioIm
+example](https://biomedical-imaging-group.github.io/GlobalBioIm/examples.html)
+using the [microscopy data](http://bigwww.epfl.ch/deconvolution/bio/)
+provided by the EPFL Biomedical Imaging Group.
 
-The deconvolution problem is solved using class [admm.ADMM](../_autosummary/scico.admm.rst#scico.admm.ADMM) to solve an image deconvolution problem with isotropic total variation (TV) regularization.
+The deconvolution problem is solved using class
+[admm.ADMM](../_autosummary/scico.admm.rst#scico.admm.ADMM) to solve
+an image deconvolution problem with isotropic total variation (TV)
+regularization.
 
-  $$\mathrm{argmin}_{\mathbf{x}} \; \| M (\mathbf{y} - A \mathbf{x}) \|_2^2 + \lambda \| C \mathbf{x} \|_{2,1} + \iota_{\mathrm{NN}}(\mathbf{x}) \;,$$
+  $$\mathrm{argmin}_{\mathbf{x}} \; \| M (\mathbf{y} - A \mathbf{x})
+  \|_2^2 + \lambda \| C \mathbf{x} \|_{2,1} +
+  \iota_{\mathrm{NN}}(\mathbf{x}) \;,$$
 
-where $M$ is a mask operator, $A$ is circular convolution, $\mathbf{y}$ is the blurred image, $C$ is a convolutional gradient operator, $\iota_{mathrm{NN}}$ is the indicator function of the non-negativity constraint, and $\mathbf{x}$ is the desired image.
+where $M$ is a mask operator, $A$ is circular convolution,
+$\mathbf{y}$ is the blurred image, $C$ is a convolutional gradient
+operator, $\iota_{mathrm{NN}}$ is the indicator function of the
+non-negativity constraint, and $\mathbf{x}$ is the desired image.
 """
 
 
@@ -37,7 +48,7 @@ Define helper functions.
 
 
 def volread(path, ext="tif"):
-    """Read a 3D volume from a set of files in the specified directory"""
+    """Read a 3D volume from a set of files in the specified directory."""
 
     slices = []
     for file in sorted(glob.glob(os.path.join(path, "*." + ext))):
@@ -47,9 +58,7 @@ def volread(path, ext="tif"):
 
 
 def block_avg(im, N):
-    """
-    Average distinct NxNxN blocks of im, return the resulting smaller image
-    """
+    """Average distinct NxNxN blocks of im, return the resulting smaller image."""
 
     im = snp.mean(snp.reshape(im, (-1, N, im.shape[1], im.shape[2])), axis=1)
     im = snp.mean(snp.reshape(im, (im.shape[0], -1, N, im.shape[2])), axis=2)
@@ -88,13 +97,13 @@ for zip_file in psf_zip_files:
 psf = snp.stack(psf_list)
 del psf_list
 
+
 """
 Preprocess data. We downsample by a factor of 4 for purposes of the example.
 Reducing the downsampling rate will be slower and more memory-intensive.
 If your GPU does not have enough memory, you can try setting the environment
 variable `JAX_PLATFORM_NAME=cpu` to run on CPU.
 """
-
 channel = 0
 downsampling_rate = 4
 
@@ -107,10 +116,10 @@ y /= y.max()
 
 psf /= psf.sum()
 
+
 """
 Pad data and create mask.
 """
-
 padding = [[0, p] for p in snp.array(psf.shape) - 1]
 y_pad = snp.pad(y, padding)
 mask = snp.pad(snp.ones_like(y), padding)
@@ -119,7 +128,6 @@ mask = snp.pad(snp.ones_like(y), padding)
 """
 Define problem and algorithm parameters.
 """
-
 λ = 2e-6  # L1 norm regularization parameter
 ρ0 = 1e-3  # ADMM penalty parameter for first auxiiary variable
 ρ1 = 1e-3  # ADMM penalty parameter for second auxiiary variable
@@ -130,7 +138,6 @@ maxiter = 100  # Number of ADMM iterations
 """
 Create operators.
 """
-
 M = linop.Diagonal(mask)
 C0 = linop.CircularConvolve(h=psf, input_shape=mask.shape, h_center=snp.array(psf.shape) / 2 - 0.5)
 C1 = linop.FiniteDifference(input_shape=mask.shape, circular=True)
@@ -140,16 +147,14 @@ C2 = linop.Identity(mask.shape)
 """
 Create functionals.
 """
-
-g0 = loss.SquaredL2Loss(y=y_pad, A=M)  # Loss function (forward model)
+g0 = loss.SquaredL2Loss(y=y_pad, A=M)  # loss function (forward model)
 g1 = λ * functional.L21Norm()  # TV penalty (when applied to gradient)
-g2 = functional.NonNegativeIndicator()  # Non-negativity constraint
+g2 = functional.NonNegativeIndicator()  # non-negativity constraint
 
 
 """
 Set up ADMM solver object and solve problem.
 """
-##
 solver = ADMM(
     f=None,
     g_list=[g0, g1, g2],
@@ -168,7 +173,6 @@ solve_stats = solver.itstat_object.history(transpose=True)
 x_pad = solver.x
 x = x_pad[: y.shape[0], : y.shape[1], : y.shape[2]]
 
-##
 
 """
 Show the recovered image.
@@ -214,10 +218,10 @@ plot.imview(make_slices(y), title="Blurred measurements", fig=fig, ax=ax[0])
 plot.imview(make_slices(x), title="Deconvolved image", fig=fig, ax=ax[1])
 fig.show()
 
+
 """
 Plot convergence statistics.
 """
-
 fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
 plot.plot(
     solve_stats.Objective,
@@ -237,5 +241,6 @@ plot.plot(
     ax=ax[1],
 )
 fig.show()
+
 
 input("\nWaiting for input to close figures and exit")
