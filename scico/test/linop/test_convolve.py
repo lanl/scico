@@ -27,7 +27,6 @@ class TestConvolve:
 
         x, key = randn(input_shape, dtype=input_dtype, key=self.key)
         psf, key = randn(filter_shape, dtype=input_dtype, key=key)
-
         A = Convolve(h=psf, input_shape=input_shape, input_dtype=input_dtype, mode=mode, jit=jit)
         Ax = A @ x
         y = signal.convolve(x, psf, mode=mode)
@@ -330,5 +329,6 @@ def test_dimension_mismatch(cbx_testobj):
 
 def test_ndarray_x():
     x = np.random.randn(3, 3).astype(np.float32)
+    x = jax.device_put(x)
     A = ConvolveByX(input_shape=(32, 32), x=x)
     assert isinstance(A.x, jax.interpreters.xla.DeviceArray)

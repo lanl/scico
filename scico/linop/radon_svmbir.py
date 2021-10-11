@@ -142,7 +142,7 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
             prox_image=np.array(v),
             num_rows=self.A.svmbir_input_shape[1],
             num_cols=self.A.svmbir_input_shape[2],
-            sigma_p=np.float(sigma_p),
+            sigma_p=float(sigma_p),
             sigma_y=1.0,
             positivity=False,
             verbose=0,
