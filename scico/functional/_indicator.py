@@ -46,7 +46,7 @@ class NonNegativeIndicator(Functional):
         # snp.inf if snp.any(x < 0) else 0.0
         return jax.lax.cond(snp.any(x < 0), lambda x: snp.inf, lambda x: 0.0, None)
 
-    def prox(self, x: Union[JaxArray, BlockArray], lam: float) -> Union[JaxArray, BlockArray]:
+    def prox(self, x: Union[JaxArray, BlockArray], lam: float = 1) -> Union[JaxArray, BlockArray]:
         r"""Evaluate proximal operator of indicator over non-negative orthant:
 
         .. math::
@@ -95,7 +95,7 @@ class L2BallIndicator(Functional):
         # snp.inf if norm(x) > self.radius else 0.0
         return jax.lax.cond(norm(x) > self.radius, lambda x: snp.inf, lambda x: 0.0, None)
 
-    def prox(self, x: Union[JaxArray, BlockArray], lam: float) -> Union[JaxArray, BlockArray]:
+    def prox(self, x: Union[JaxArray, BlockArray], lam: float = 1) -> Union[JaxArray, BlockArray]:
         r"""Evaluate proximal operator of indicator over :math:`\ell_2` ball:
 
         .. math::
