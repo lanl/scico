@@ -58,7 +58,7 @@ density = 0.025  # attenuation density of the image
 x_gt = gen_phantom(N, density)
 
 """
-Generate tomographic projector and sinogram
+Generate tomographic projector and sinogram.
 """
 num_angles = int(N / 2)
 num_channels = N
@@ -67,7 +67,7 @@ A = ParallelBeamProjector(x_gt.shape, angles, num_channels)
 sino = A @ x_gt
 
 """
-Add noise to sinogram
+Add noise to sinogram.
 """
 y = poisson_sino(sino, max_intensity=2000)
 
