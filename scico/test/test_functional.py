@@ -53,10 +53,7 @@ def prox_test(v, nrm, prx, alpha):
     pf = prox_func(px, v, nrm, alpha)
     # Brute-force solve of the proximal operator at v
     mx, mf = prox_solve(v, px, nrm, alpha)
-    print(pf, mf, pf - mf)
-    print(px.min(), mx.min())
-    print(px)
-    print(mx)
+
     # Compare prox functional value with brute-force solution
     if pf < mf:
         return  # prox gave a lower cost than brute force, so it passes
