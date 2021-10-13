@@ -117,14 +117,16 @@ hist = solver.itstat_object.history(transpose=True)
 """
 Show the recovered image.
 """
+norm = plot.matplotlib.colors.Normalize(vmin=-0.1 * density, vmax=1.2 * density)
 fig, ax = plt.subplots(1, 3, figsize=[15, 5])
-plot.imview(img=x_gt, title="Ground Truth Image", cbar=True, fig=fig, ax=ax[0])
+plot.imview(img=x_gt, title="Ground Truth Image", cbar=True, fig=fig, ax=ax[0], norm=norm)
 plot.imview(
     img=x_mrf,
     title=f"MRF (PSNR: {metric.psnr(x_gt, x_mrf):.2f} dB)",
     cbar=True,
     fig=fig,
     ax=ax[1],
+    norm=norm,
 )
 plot.imview(
     img=x_bm3d,
@@ -132,6 +134,7 @@ plot.imview(
     cbar=True,
     fig=fig,
     ax=ax[2],
+    norm=norm,
 )
 fig.show()
 
