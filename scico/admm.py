@@ -447,7 +447,7 @@ class ADMM:
 
                 def itstat_func(obj):
                     return (
-                        obj.i,
+                        obj.itnum,
                         obj.timer.elapsed(),
                         obj.norm_primal_residual(),
                         obj.norm_dual_residual(),
