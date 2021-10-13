@@ -75,12 +75,16 @@ is_smooth = {self.is_smooth}
                 f"Functional {type(self)} cannot be evaluated; has_eval={self.has_eval}"
             )
 
-    def prox(self, x: Union[JaxArray, BlockArray], lam: float) -> Union[JaxArray, BlockArray]:
-        r"""Evaluate proximal mapping at point :math:`\mb{x}` with scaling lam
+    def prox(self, x: Union[JaxArray, BlockArray], lam: float = 1) -> Union[JaxArray, BlockArray]:
+        r"""Scaled proximal operator of functional.
+
+        Evaluate scaled proximal operator of this functional, with
+        scaling `lam` = :math:`\lambda`, and evaluated at point
+        `x` = :math:`\mb{x}`
 
         .. math::
-           \mathrm{prox}(\mb{x}, \lambda) = \argmin_{\mb{v}} \frac{1}{2}
-           \norm{\mb{x} - \mb{v}}_2^2 + \lambda \ \mathrm{f}(\mb{v})
+           \mathrm{prox}_{\lambda f}(\mb{x}) = \argmin_{\mb{v}} \frac{1}{2}
+           \norm{\mb{x} - \mb{v}}_2^2 + \lambda \ \mathrm{f}(\mb{v}) \;,
 
         where :math:`f(\mb{v})` represents this functional evaluated at :math:`\mb{v}`.
 
@@ -92,6 +96,29 @@ is_smooth = {self.is_smooth}
             raise NotImplementedError(
                 f"Functional {type(self)} does not have a prox; has_prox={self.has_prox}"
             )
+
+    def conj_prox(
+        self, x: Union[JaxArray, BlockArray], lam: float = 1
+    ) -> Union[JaxArray, BlockArray]:
+        r"""Scaled proximal operator of convex conjugate of functional.
+
+        Evaluate scaled proximal operator of convex conjugate (Fenchel
+        conjugate) of this functional, with scaling
+        `lam` = :math:`\lambda`, and evaluated at point `x` = :math:`\mb{x}`.
+        Denoting this functional by :math:`f` and its convex conjugate by
+        :math:`f^*`, the proximal operator of :math:`f^*` is computed as
+        follows by exploiting the extended Moreau decomposition (see
+        Sec. 6.6 of :cite:`beck-2017-first`)
+
+        .. math::
+           \mathrm{prox}_{\lambda f^*}(\mb{x}) = \mb{x} - \lambda
+           \mathrm{prox}_{\lambda^{-1} f}(\mb{x / \lambda}) \;.
+
+        Args:
+            x : Point at which to evaluate prox function.
+            lam : Proximal parameter :math:`\lambda`
+        """
+        return x - lam * self.prox(x / lam, 1.0 / lam)
 
     def grad(self, x: Union[JaxArray, BlockArray]):
         r"""Evaluates the gradient of this functional at point :math:`\mb{x}`.
@@ -106,16 +133,31 @@ is_smooth = {self.is_smooth}
 
 
 class ScaledFunctional(Functional):
-    """A functional times a scalar.
+    r"""A functional multiplied by a scalar.
 
-    For a scalar :math:`c` and :class:`Functional` :math:`f`, the scaled functional
-    :math:`g = cf` has proximal operator
+    Note that, by definition, the scaled proximal operator of a
+    functional is the proximal operator of the scaled functional. The
+    scaled proximal operator of a scaled functional is the scaled
+    proximal operator of the unscaled functional with the proximal
+    operator scaling consisting of the product of the two scaling
+    factors, i.e. for functional :math:`f` and scaling factors
+    :math:`\alpha` and :math:`\beta`, the proximal operator with scaling
+    parameter :math:`\alpha` of scaled functional :math:`\beta f` is
+    the proximal operator with scaling parameter :math:`\alpha \beta` of
+    functional :math:`f`
 
     .. math::
 
-       \mathrm{prox}_g(v, \lambda) = \mathrm{prox}_f(v, c \lambda)
+       \mathrm{prox}_{\alpha (\beta f)}(\mb{v}) =
+       \mathrm{prox}_{(\alpha \beta) f}(\mb{v}) \;,
 
+    or in non-standard notation with the proximal operator scaling factor
+    as an explicit parameter,
 
+    .. math::
+
+       \mathrm{prox}_{\beta f}(v, \alpha) = \mathrm{prox}_f(v, \alpha
+       \beta) \;.
     """
 
     def __repr__(self):
@@ -132,7 +174,7 @@ class ScaledFunctional(Functional):
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         return self.scale * self.functional(x)
 
-    def prox(self, x: Union[JaxArray, BlockArray], lam: float) -> Union[JaxArray, BlockArray]:
+    def prox(self, x: Union[JaxArray, BlockArray], lam: float = 1) -> Union[JaxArray, BlockArray]:
         return self.functional.prox(x, lam * self.scale)
 
 
@@ -174,8 +216,10 @@ class SeparableFunctional(Functional):
                 f"Number of blocks in x, {len(x.shape)}, and length of functional_list, {len(self.functional_list)}, do not match"
             )
 
-    def prox(self, x: BlockArray, lam: float) -> BlockArray:
-        r"""Evaluate proximal operator of the separable functional (see Theorem 6.6 of :cite:`beck-2017-first`).
+    def prox(self, x: BlockArray, lam: float = 1) -> BlockArray:
+        r"""Evaluate proximal operator of the separable functional.
+
+        Evaluate proximal operator of the separable functional (see Theorem 6.6 of :cite:`beck-2017-first`).
 
           .. math::
              \mathrm{prox}_f(\mb{x}, \lambda)
@@ -208,5 +252,5 @@ class ZeroFunctional(Functional):
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         return 0.0
 
-    def prox(self, x: Union[JaxArray, BlockArray], lam: float) -> Union[JaxArray, BlockArray]:
+    def prox(self, x: Union[JaxArray, BlockArray], lam: float = 1) -> Union[JaxArray, BlockArray]:
         return x

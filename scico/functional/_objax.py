@@ -35,7 +35,7 @@ class ObjaxMap(Functional):
         self.model = model
         super().__init__()
 
-    def prox(self, x: JaxArray, lam: float) -> JaxArray:
+    def prox(self, x: JaxArray, lam: float = 1) -> JaxArray:
         r"""Apply trained objax model.
 
         Args:
