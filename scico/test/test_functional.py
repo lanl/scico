@@ -138,10 +138,6 @@ class TestNormProx:
 
     normlist_blockarray_ready = set(normlist.copy()) - set(NO_BLOCK_ARRAY)
 
-    def setup_method(self):
-        n = 17
-        self.x, key = randn((n,), key=None, dtype=np.float64, seed=1234)
-
     @pytest.mark.parametrize("norm", normlist)
     @pytest.mark.parametrize("alpha", alphalist)
     def test_prox(self, norm, alpha, test_prox_obj):
@@ -154,10 +150,11 @@ class TestNormProx:
     @pytest.mark.parametrize("alpha", alphalist)
     def test_conj_prox(self, norm, alpha, test_prox_obj):
         nrmobj = norm()
+        v = test_prox_obj.v
         # Test checks extended Moreau decomposition at a random vector
-        lhs = nrmobj.prox(self.x, alpha) + alpha * nrmobj.conj_prox(self.x / alpha, 1.0 / alpha)
-        rhs = self.x
-        np.testing.assert_allclose(lhs, rhs)
+        lhs = nrmobj.prox(v, alpha) + alpha * nrmobj.conj_prox(v / alpha, 1.0 / alpha)
+        rhs = v
+        np.testing.assert_allclose(lhs, rhs, rtol=5e-7, atol=0.0)
 
     @pytest.mark.parametrize("norm", normlist_blockarray_ready)
     @pytest.mark.parametrize("alpha", alphalist)
