@@ -12,7 +12,7 @@ This example demonstrates the use of class
 [admm.ADMM](../_autosummary/scico.admm.rst#scico.admm.ADMM) to solve a
 tomographic reconstruction problem using the Plug-and-Play Priors framework
 :cite:`venkatakrishnan-2013-plugandplay2`, using BM3D :cite:`dabov-2008-image`
-as a denoiser and SVMBIR for tomographic projection.
+as a denoiser and SVMBIR :cite:`svmbir-2020` for tomographic projection.
 
 """
 import numpy as np
@@ -40,8 +40,8 @@ def gen_phantom(N, density):
 
 
 def poisson_sino(sino, max_intensity=2000):
-    """Create noisy sinogram through poisson noise. Higher max_intensity
-    means less noise.
+    """Create sinogram with Poisson noise. Higher max_intensity means
+    less noise.
     """
     expected_counts = max_intensity * np.exp(-sino)
     noisy_counts = np.random.poisson(expected_counts).astype(np.float32)
@@ -53,8 +53,8 @@ def poisson_sino(sino, max_intensity=2000):
 """
 Generate a ground truth image.
 """
-N = 256  # Image size
-density = 0.025  # Attenuation density of the image
+N = 256  # image size
+density = 0.025  # attenuation density of the image
 x_gt = gen_phantom(N, density)
 
 """
@@ -145,5 +145,6 @@ plot.plot(
     xlbl="Iteration",
     lgnd=("Primal", "Dual"),
 )
+
 
 input("\nWaiting for input to close figures and exit")
