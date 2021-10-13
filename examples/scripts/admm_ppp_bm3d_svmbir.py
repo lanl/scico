@@ -5,14 +5,14 @@
 # with the package.
 
 """
-Image Deconvolution (ADMM Plug-and-Play Priors w/ DnCNN)
-========================================================
+CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D and SVMBIR)
+================================================================
 
 This example demonstrates the use of class
 [admm.ADMM](../_autosummary/scico.admm.rst#scico.admm.ADMM) to solve a
 tomographic reconstruction problem using the Plug-and-Play Priors framework
 :cite:`venkatakrishnan-2013-plugandplay2`, using BM3D :cite:`dabov-2008-image`
-as a denoiser.
+as a denoiser and SVMBIR for tomographic projection.
 
 """
 import numpy as np
@@ -32,7 +32,7 @@ from scico.linop.radon_svmbir import ParallelBeamProjector, SVMBIRWeightedSquare
 
 
 def gen_phantom(N, density):
-    phantom = discrete_phantom(Foam(size_range=[0.06, 0.03], gap=0.02, porosity=1), size=N - 10)
+    phantom = discrete_phantom(Foam(size_range=[0.05, 0.02], gap=0.02, porosity=0.3), size=N - 10)
     phantom = phantom / np.max(phantom) * density
     phantom = np.pad(phantom, 5)
     phantom[phantom < 0] = 0
@@ -53,8 +53,8 @@ def poisson_sino(sino, max_intensity=2000):
 """
 Generate a ground truth image.
 """
-N = 200  # Image size
-density = 0.04  # Attenuation density of the image
+N = 256  # Image size
+density = 0.025  # Attenuation density of the image
 x_gt = gen_phantom(N, density)
 
 """
@@ -106,7 +106,7 @@ solver = ADMM(
     C_list=[Identity(x_mrf.shape), Identity(x_mrf.shape)],
     rho_list=[ρ, 1],
     x0=x0,
-    maxiter=10,
+    maxiter=15,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": 100}),
     verbose=True,
 )
