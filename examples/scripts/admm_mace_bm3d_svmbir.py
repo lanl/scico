@@ -14,6 +14,10 @@ tomographic reconstruction problem using the Plug-and-Play Priors framework
 :cite:`venkatakrishnan-2013-plugandplay2`, using BM3D :cite:`dabov-2008-image`
 as a denoiser and SVMBIR :cite:`svmbir-2020` for tomographic projection.
 
+This version uses the data fidelity term as part of the g's and thus the
+optimization with respect to the data fidelity leverages the internal prox
+of the SVMBIRWeightedSquaredL2Loss.
+
 """
 import numpy as np
 
