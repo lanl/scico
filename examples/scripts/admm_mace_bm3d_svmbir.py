@@ -58,6 +58,7 @@ N = 256  # image size
 density = 0.025  # attenuation density of the image
 x_gt = gen_phantom(N, density)
 
+
 """
 Generate tomographic projector and sinogram.
 """
@@ -67,10 +68,12 @@ angles = snp.linspace(0, snp.pi, num_angles, dtype=snp.float32)
 A = ParallelBeamProjector(x_gt.shape, angles, num_channels)
 sino = A @ x_gt
 
+
 """
 Add noise to sinogram.
 """
 y = poisson_sino(sino, max_intensity=2000)
+
 
 """
 Reconstruct using default prior of SVMBIR :cite:`svmbir-2020`.
@@ -86,6 +89,7 @@ x_mrf = svmbir.recon(
     positivity=True,
     verbose=0,
 )[0]
+
 
 """
 Set up an ADMM solver.
@@ -112,9 +116,9 @@ solver = ADMM(
     verbose=True,
 )
 
-
 x_bm3d = solver.solve()
 hist = solver.itstat_object.history(transpose=True)
+
 
 """
 Show the recovered image.
@@ -139,6 +143,7 @@ plot.imview(
     norm=norm,
 )
 fig.show()
+
 
 """
 Plot convergence statistics.
