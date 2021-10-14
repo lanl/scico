@@ -102,10 +102,10 @@ g0 = σ * ρ * BM3D()
 g1 = NonNegativeIndicator()
 
 solver = ADMM(
-    f=f,
-    g_list=[g0, g1],
-    C_list=[Identity(x_mrf.shape), Identity(x_mrf.shape)],
-    rho_list=[ρ, ρ],
+    f=None,
+    g_list=[f, g0, g1],
+    C_list=[Identity(x_mrf.shape), Identity(x_mrf.shape), Identity(x_mrf.shape)],
+    rho_list=[ρ, ρ, ρ],
     x0=x0,
     maxiter=20,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": 100}),
