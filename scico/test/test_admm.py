@@ -119,7 +119,7 @@ class TestComplex:
 
     def test_admm_generic(self):
         maxiter = 100
-        ρ = 1e-1
+        ρ = 2e-1
         A = linop.MatrixOperator(self.Amx)
         f = loss.SquaredL2Loss(y=self.y, A=A, scale=self.𝛼 / 2.0)
         g_list = [(self.λ / 2) * functional.SquaredL2Norm()]
