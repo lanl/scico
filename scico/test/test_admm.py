@@ -20,7 +20,7 @@ class TestReal:
         Amx = np.random.randn(MA, N)
         Bmx = np.random.randn(MB, N)
         y = np.random.randn(MA)
-        𝛼 = 1.0 / 3.0
+        𝛼 = np.pi  # sort of random number chosen to make test non-default scale factor
         λ = 1e0
         self.Amx = Amx
         self.Bmx = Bmx
