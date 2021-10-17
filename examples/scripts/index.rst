@@ -31,4 +31,5 @@ admm_nonnegative_sparse_coding.py
 pgm_sparse_coding.py
     1D sparse coding using Accelerated PGM
 
-
+pcg_ct.py
+    Computed Tomography with Preconditioned Conjugate Gradient
