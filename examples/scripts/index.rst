@@ -36,3 +36,6 @@ admm_ppp_bm3d_svmbir_cg.py
 
 admm_ppp_bm3d_svmbir_prox.py
     CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+Prox)
+
+pcg_ct.py
+    Computed Tomography with Preconditioned Conjugate Gradient
