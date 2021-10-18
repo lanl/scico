@@ -87,7 +87,7 @@ Set up an ADMM solver.
 """
 y, x0, weights = jax.device_put([y, x_mrf, weights])
 
-ρ = 100  # denoiser weight (inverse data fidelity weight)
+ρ = 100  # ADMM penalty parameter
 σ = density * 0.2  # denoiser sigma
 
 weight_op = Diagonal(weights ** 0.5)
