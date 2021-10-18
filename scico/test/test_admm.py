@@ -1,5 +1,7 @@
 import numpy as np
 
+import jax
+
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, random
 from scico.admm import (
@@ -23,7 +25,7 @@ class TestReal:
         λ = 1e0
         self.Amx = Amx
         self.Bmx = Bmx
-        self.y = y
+        self.y = jax.device_put(y)
         self.λ = λ
         # Solution of problem is given by linear system (A^T A + λ B^T B) x = A^T y
         self.grdA = lambda x: (Amx.T @ Amx + λ * Bmx.T @ Bmx) @ x
@@ -107,7 +109,7 @@ class TestComplex:
         λ = 1e0
         self.Amx = Amx
         self.Bmx = Bmx
-        self.y = y
+        self.y = jax.device_put(y)
         self.λ = λ
         # Solution of problem is given by linear system (A^T A + λ B^T B) x = A^T y
         self.grdA = lambda x: (Amx.conj().T @ Amx + λ * Bmx.conj().T @ Bmx) @ x
