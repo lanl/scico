@@ -34,33 +34,16 @@ from scico.functional import BM3D, NonNegativeIndicator
 from scico.linop import Diagonal, Identity
 from scico.linop.radon_svmbir import ParallelBeamProjector, SVMBIRWeightedSquaredL2Loss
 
-
-def gen_phantom(N, density):
-    np.random.seed(1234)
-    phantom = discrete_phantom(Foam(size_range=[0.05, 0.02], gap=0.02, porosity=0.3), size=N - 10)
-    phantom = phantom / np.max(phantom) * density
-    phantom = np.pad(phantom, 5)
-    phantom[phantom < 0] = 0
-    return phantom
-
-
-def poisson_sino(sino, max_intensity=2000):
-    """Create sinogram with Poisson noise. Higher max_intensity means
-    less noise.
-    """
-    expected_counts = max_intensity * np.exp(-sino)
-    noisy_counts = np.random.poisson(expected_counts).astype(np.float32)
-    noisy_counts[noisy_counts == 0] = 1  # deal with 0s
-    noisy_sino = -np.log(noisy_counts / max_intensity)
-    return noisy_sino
-
-
 """
 Generate a ground truth image.
 """
 N = 256  # image size
 density = 0.025  # attenuation density of the image
-x_gt = gen_phantom(N, density)
+np.random.seed(1234)
+x_gt = discrete_phantom(Foam(size_range=[0.05, 0.02], gap=0.02, porosity=0.3), size=N - 10)
+x_gt = x_gt / np.max(x_gt) * density
+x_gt = np.pad(x_gt, 5)
+x_gt[x_gt < 0] = 0
 
 
 """
@@ -74,9 +57,13 @@ sino = A @ x_gt
 
 
 """
-Add noise to sinogram.
+Impose Poisson noise on sinogram. Higher max_intensity means less noise.
 """
-y = poisson_sino(sino, max_intensity=2000)
+max_intensity = 2000
+expected_counts = max_intensity * np.exp(-sino)
+noisy_counts = np.random.poisson(expected_counts).astype(np.float32)
+noisy_counts[noisy_counts == 0] = 1  # deal with 0s
+y = -np.log(noisy_counts / max_intensity)
 
 
 """
