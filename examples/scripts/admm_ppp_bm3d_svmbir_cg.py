@@ -14,11 +14,11 @@ tomographic reconstruction problem using the Plug-and-Play Priors framework
 :cite:`venkatakrishnan-2013-plugandplay2`, using BM3D :cite:`dabov-2008-image`
 as a denoiser and SVMBIR :cite:`svmbir-2020` for tomographic projection.
 
-This version uses the data fidelity term in place of the f and thus the
-optimization with respect to the data fidelity is using CG. (It is not using
-the prox of the SVMBIRWeightedSquaredL2Loss)
-
+This version uses the data fidelity term as the ADMM f, and thus the
+optimization with respect to the data fidelity uses CG rather than the
+prox of the SVMBIRWeightedSquaredL2Loss functional.
 """
+
 import numpy as np
 
 import jax
