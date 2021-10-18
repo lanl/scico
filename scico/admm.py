@@ -185,7 +185,7 @@ class LinearSubproblemSolver(SubproblemSolver):
         )
         if admm.f is not None:
             # hessian = A.T @ W @ A; W may be identity
-            lhs_op = lhs_op + 2.0 * admm.f.scale * admm.f.hessian
+            lhs_op = lhs_op + admm.f.hessian
 
         lhs_op.jit()
         self.lhs_op = lhs_op
@@ -447,7 +447,7 @@ class ADMM:
 
                 def itstat_func(obj):
                     return (
-                        obj.i,
+                        obj.itnum,
                         obj.timer.elapsed(),
                         obj.norm_primal_residual(),
                         obj.norm_dual_residual(),
