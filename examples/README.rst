@@ -21,5 +21,5 @@ A number of additional files in this directory assist in the mangement of the us
 `pytojnb.sh <pytojnb.sh>`_
    Low-level python to Jupyter notebook conversion script. Used by both the makefile and `makejnb.py <makejnb.py>`_.
 
-`scriptchec.sh <scriptcheck.sh>`_
+`scriptcheck.sh <scriptcheck.sh>`_
    Run all example scripts with a reduced number of iterations as a rapid check that they are functioning correctly.
