@@ -8,22 +8,20 @@ r"""
 Isotropic Total Variation (ADMM)
 ================================
 
-This example demonstrates isotropic total variation (TV)
-regularization. It solves the denoising problem
+This example compares denoising via isotropic and anisotropic total
+variation (TV) regularization. It solves the denoising problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - \mathbf{x}
   \|^2 + \lambda R(\mathbf{x}) \;,$$
 
-where $R$ is the isotropic TV: the sum of the norms of the gradient
-vectors at each point in the image $\mathbf{x}$. The same
-reconstruction is performed with anisotropic TV regularization for
-comparison; the isotropic version shows fewer block-like artifacts.
-
+where $R$ is either the isotropic or anisotropic TV regularizer.
 In SCICO, switching between these two regularizers is a one-line
 change: replacing an
 [L1Norm](../_autosummary/scico.functional.rst#scico.functional.L1Norm)
 with a
 [L21Norm](../_autosummary/scico.functional.rst#scico.functional.L21Norm).
+Note that the isotropic version exhibits fewer block-like artifacts on
+edges that are not vertical or horizontal.
 """
 
 import jax
