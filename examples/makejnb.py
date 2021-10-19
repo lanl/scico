@@ -36,7 +36,7 @@ else:
     ngpu = 0
     ar = ray.available_resources()
     if "GPU" in cr:
-        ngpu = ar["GPU"]
+        ngpu = int(ar["GPU"])
     if ngpu < 2:
         print("Warning: host has fewer than two GPUs available")
     print(f"Executing on {ngpu} GPUs")
