@@ -14,19 +14,19 @@ to solve isotropic total variation (TV) regularization. It solves the
 denoising problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - \mathbf{x}
-  \|^2 + \lambda R(\mathbf{x}) \;,$$
+  \|^2 + \lambda R(\mathbf{x}) + \iota_C(\mathbf{x}) \;,$$
 
-where $R$ is the isotropic TV: the sum of the norms of the gradient
-vectors at each point in the image $\mathbf{x}$. The same
-reconstruction is performed with anisotropic TV regularization for
-comparison; the isotropic version shows fewer block-like artifacts.
+where $R$ is a TV regularizer, $\iota_C(\cdot)$ is the indicator function
+of constraint set $C$, and $C = \{ \mathbf{x} \, | \, x_i \in [0, 1] \}$,
+i.e. the set of vectors with components constrained to be in the interval
+$[0, 1]$. The problem is solved seperately with $R$ taken as isotropic
+and anisotropic TV regularization
 
-The solution via PGM is based on :cite:`beck-2009-tv`. This follows a
-dual approach that constructs a dual for the constrained denoising
-problem (the constraint given by restricting the solution to the [0,1]
-range). The PGM solution minimizes the resulting dual. In this case,
-switching between the two regularizers corresponds to switching
-between two different projectors.
+The solution via PGM is based on the approach in :cite:`beck-2009-tv`,
+which involves constructing a dual for the constrained denoising problem.
+The PGM solution minimizes the resulting dual. In this case, switching
+between the two regularizers corresponds to switching between two
+different projectors.
 """
 
 from typing import Callable, Optional, Union
