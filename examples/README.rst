@@ -18,8 +18,8 @@ A number of additional files in this directory assist in the mangement of the us
 `makejnb.py <makejnb.py>`_
    An alternative to the makefile for updating the auto-generated Jupyter notebooks. Requires package ``ray`` to be installed. Notebooks are executed in parallel.
 
-`pytojnb <pytojnb>`_
+`pytojnb.sh <pytojnb.sh>`_
    Low-level python to Jupyter notebook conversion script. Used by both the makefile and `makejnb.py <makejnb.py>`_.
 
-`scriptcheck <scriptcheck>`_
+`scriptchec.sh <scriptcheck.sh>`_
    Run all example scripts with a reduced number of iterations as a rapid check that they are functioning correctly.

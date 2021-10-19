@@ -20,7 +20,7 @@ for s in scripts:
     nb = Path("notebooks") / (s.stem + ".ipynb")
     if not nb.is_file() or s.stat().st_mtime > nb.stat().st_mtime:
         # make notebook file
-        os.popen(f"./pytojnb {s} {nb}")
+        os.popen(f"./pytojnb.sh {s} {nb}")
         # add it to the list for execution
         notebooks.append(nb)
 
