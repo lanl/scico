@@ -167,22 +167,16 @@ def _wrap(fun):
     return fun_wrapped
 
 
-exceptions = [  # these do not take key and shape
-    "PRNGKey",
-    "double_sided_maxwell",
-    "fold_in",
-    "permutation",
-    "shuffle",
-    "split",
-    "weibull_min",
-    "threefry_2x32",
+def _is_wrappable(fun):
+    params = inspect.signature(getattr(jax.random, fun)).parameters
+    return list(params.keys())[0] == "key" and "shape" in params.keys()
+
+
+wrappable_func_names = [
+    t[0] for t in inspect.getmembers(jax.random, inspect.isfunction) if _is_wrappable(t[0])
 ]
 
-func_names = [
-    t[0] for t in inspect.getmembers(jax.random, inspect.isfunction) if t[0] not in exceptions
-]
-
-for name in func_names:
+for name in wrappable_func_names:
     setattr(sys.modules[__name__], name, _wrap(getattr(jax.random, name)))
 
 

@@ -31,4 +31,11 @@ admm_nonnegative_sparse_coding.py
 pgm_sparse_coding.py
     1D sparse coding using Accelerated PGM
 
+admm_ppp_bm3d_svmbir_cg.py
+    CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+CG)
 
+admm_ppp_bm3d_svmbir_prox.py
+    CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+Prox)
+
+pcg_ct.py
+    Computed Tomography with Preconditioned Conjugate Gradient
