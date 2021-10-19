@@ -111,7 +111,7 @@ class TestComplex:
         𝛼 = 1.0 / 3.0
         λ = 1e0
         self.Amx = Amx
-        self.Bmx
+        self.Bmx = Bmx
         self.y = jax.device_py(y)
         self.𝛼 = 𝛼
         self.λ = λ
