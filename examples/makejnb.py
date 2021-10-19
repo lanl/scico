@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import re
 from pathlib import Path
 
 import nbformat
@@ -11,18 +12,31 @@ except ImportError:
     raise RuntimeError("The ray package is required to run this script")
 import os
 
-# source scripts
-scripts = list(Path("scripts").glob("*py"))
+# Read script names from index file
+scriptnames = []
+srcidx = "scripts/README.rst"
+with open(srcidx, "r") as idxfile:
+    for line in idxfile:
+        m = re.match(r"(\s+)- ([^\s]+.py)", line)
+        if m:
+            scriptnames.append(m.group(2))
+# Ensure list entries are unique
+scriptnames = list(set(scriptnames))
+
+# Construct script paths
+scripts = [Path("scripts") / Path(s) for s in scriptnames]
+
 notebooks = []
-# construct list of scripts that are have no corresponding notebook or
+# Construct list of scripts that are have no corresponding notebook or
 # are more recent than corresponding notebook
 for s in scripts:
     nb = Path("notebooks") / (s.stem + ".ipynb")
     if not nb.is_file() or s.stat().st_mtime > nb.stat().st_mtime:
-        # make notebook file
+        # Make notebook file
         os.popen(f"./pytojnb.sh {s} {nb}")
-        # add it to the list for execution
+        # Add it to the list for execution
         notebooks.append(nb)
+
 
 ray.init()
 
@@ -41,7 +55,7 @@ else:
         print("Warning: host has fewer than two GPUs available")
     print(f"Executing on {ngpu} GPUs")
 
-# function to execute each notebook with one gpu each
+# Function to execute each notebook with one GPU
 @ray.remote(num_gpus=1)
 def run_nb(fname):
     with open(fname) as f:
