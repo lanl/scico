@@ -5,8 +5,8 @@
 # with the package.
 
 r"""
-Isotropic Total Variation
-=========================
+Isotropic Total Variation (ADMM)
+================================
 
 This example demonstrates isotropic total variation (TV)
 regularization. It solves the denoising problem
@@ -27,9 +27,11 @@ with a
 """
 
 import jax
-import jax.numpy as jnp
-import jax.scipy as jsp
 
+from xdesign import SiemensStar, discrete_phantom
+
+import scico.numpy as snp
+import scico.random
 from scico import functional, linop, loss, plot
 from scico.admm import ADMM, LinearSubproblemSolver
 
@@ -37,34 +39,24 @@ from scico.admm import ADMM, LinearSubproblemSolver
 Create a ground truth image.
 """
 N = 256  # image size
-
-# Create a ground truth image by spatially filtering noise.
-kernel_size = N // 5
-key = jax.random.PRNGKey(1)
-x_gt = jax.random.uniform(key, shape=(N + kernel_size - 1, N + kernel_size - 1))
-x = jnp.linspace(-3, 3, kernel_size)
-window = jsp.stats.norm.pdf(x) * jsp.stats.norm.pdf(x[:, None])
-window = window / window.sum()
-x_gt = jsp.signal.convolve(x_gt, window, mode="valid")
-x_gt = (x_gt > jnp.percentile(x_gt, 25)).astype(float) + (x_gt > jnp.percentile(x_gt, 75)).astype(
-    float
-)
+phantom = SiemensStar(16)
+x_gt = snp.pad(discrete_phantom(phantom, 240), 8)
+x_gt = jax.device_put(x_gt)  # convert to jax type, push to GPU
 x_gt = x_gt / x_gt.max()
 
 
 """
 Add noise to create a noisy test image.
 """
-σ = 1.0  # noise standard deviation
-key, subkey = jax.random.split(key)
-n = σ * jax.random.normal(subkey, shape=x_gt.shape)
-y = x_gt + n
+σ = 0.75  # noise standard deviation
+noise, key = scico.random.randn(x_gt.shape, seed=0)
+y = x_gt + σ * noise
 
 
 """
 Denoise with isotropic total variation
 """
-reg_weight_iso = 2e0
+reg_weight_iso = 1.4e0
 f = loss.SquaredL2Loss(y=y)
 g_iso = reg_weight_iso * functional.L21Norm()
 
@@ -91,7 +83,7 @@ x_iso = solver.x
 Denoise with anisotropic total variation for comparison.
 """
 # Tune the weight to give the same data fidelty as the isotropic case.
-reg_weight_aniso = 1.74e0
+reg_weight_aniso = 1.2e0
 g_aniso = reg_weight_aniso * functional.L1Norm()
 
 solver = ADMM(
@@ -148,5 +140,6 @@ fig.colorbar(
 )
 fig.suptitle("Denoising comparison (zoomed)")
 fig.show()
+
 
 input("\nWaiting for input to close figures and exit")
