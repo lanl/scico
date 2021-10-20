@@ -7,15 +7,18 @@ This directory contains usage examples for the SCICO package. The primary form o
 Building Notebooks
 ------------------
 
-The scripts for building Jupyter notebooks from the source example scripts are currently only supported under Linux. The procedure for adding a adding a new notebook to the documentation is:
+The scripts for building Jupyter notebooks from the source example scripts are currently only supported under Linux. All scripts described below should be run from this directory, i.e. ``[repo root]/examples``.
 
-1. Add an entry for the source file in ``README.rst``. Note that a script that is not listed in this index will not be converted into a notebook.
+
+The procedure for adding a adding a new notebook to the documentation is:
+
+1. Add an entry for the source file in ``scripts/README.rst``. Note that a script that is not listed in this index will not be converted into a notebook.
 
 2. Run ``makeindex.py`` to update the notebook index file in the docs.
 
 3. Run ``makejnb.py`` to build the new notebook, as well as any other notebooks that are out of date with respect to their source scripts, as determined by the respective file timestamps.
 
-4. Add and commit the new script, the ``README.rst`` script index file, the auto-generated ``docs/source/examples.rst`` index file, and the new or updated notebooks (following the submodule handling procedure as described in the developer docs).
+4. Add and commit the new script, the ``scripts/README.rst`` script index file, the auto-generated ``docs/source/examples.rst`` index file, and the new or updated notebooks (following the submodule handling procedure as described in the developer docs).
 
 
 The procedure for rebuilding notebook(s) after the source file(s) have been modified is:
@@ -28,16 +31,19 @@ The procedure for rebuilding notebook(s) after the source file(s) have been modi
 Management Utilities
 --------------------
 
-A number of additional files in this directory assist in the mangement of the usage examples:
+A number of files in this directory assist in the mangement of the usage examples:
 
 `examples_requirements.txt <examples_requirements.txt>`_
    Requirements file (as used by ``pip``) listing additional dependencies for the usage examples.
 
-`Makefile <Makefile>`_
-   A makefile allowing use of the command ``make`` to update auto-generated Jupyter notebooks. Run as ``make no-execute=true`` to update the notebooks without executing them. Use of `makejnb.py` rather than this makefile is recommended.
-
 `makejnb.py <makejnb.py>`_
    An alternative to the makefile for updating the auto-generated Jupyter notebooks. Requires package ``ray`` to be installed. Notebooks are executed in parallel.
+
+`makeindex.py <makeindex.py>`_
+   Auto-generate the docs example index ``docs/source/examples.rst`` from the example scripts index ``scripts/README.rst``.
+
+`Makefile <Makefile>`_
+   A makefile allowing use of the command ``make`` to update auto-generated Jupyter notebooks. Run as ``make no-execute=true`` to update the notebooks without executing them. Use of `makejnb.py` rather than this makefile is recommended.
 
 `pytojnb.sh <pytojnb.sh>`_
    Low-level python to Jupyter notebook conversion script. Used by both the makefile and `makejnb.py <makejnb.py>`_.
