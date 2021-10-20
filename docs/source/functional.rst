@@ -1,5 +1,5 @@
-Functionals and Losses
-======================
+Functionals
+===========
 
 .. raw:: html
 
@@ -150,6 +150,18 @@ For example,
 Losses
 ------
 
-.. todo::
+In SCICO, a loss is a special type of functional
 
-   Content missing here
+  .. math::
+     f(\mb{x}) = a l( \mb{y}, A(\mb{x}) )
+
+where :math:`a` is a scale parameter,
+:math:`l` is a functional,
+:math:`\mb{y}` is a set of measurements,
+and :math:`A` is an operator.
+SCICO uses the class :class:`.Loss` to represent losses.
+Loss functionals commonly arrise in the context of solving
+inverse problems in scientific imaging,
+where they are used to represent the mismatch
+between predicted measurements :math:`A(\mb{x})`
+and actual ones :math:`\mb{y}`.
