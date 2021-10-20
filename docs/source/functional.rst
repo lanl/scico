@@ -64,7 +64,6 @@ The denoiser is applied via the the proximal operator.
 For examples, see :ref:`example_notebooks`.
 
 
-
 Proximal Calculus
 -----------------
 
