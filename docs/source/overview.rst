@@ -50,7 +50,7 @@ SCICO's main advantages are:
      including projected gradients
      and the alternating direction method of multipliers (ADMM)
      with the flexibility of plug-and-play priors
-     including BM3D and DnCNN denoisers.
+     including BM3D :cite:`dabov-2008-image` and DnCNN :cite:`zhang-2017-dncnn` denoisers.
 
 
 If you use this library for published work,
@@ -147,7 +147,7 @@ automatic differentiation,
 and automatic adjoint calculations.
 Moreover, beause JAX is a machine learning library,
 it enables implementation and training
-of state of the art Plug-and-Play regularizers such as DnCNN.
+of state of the art plug-and-play regularizers such as DnCNN.
 
 
 Other related projects that may be of interest include:
