@@ -7,20 +7,20 @@ This directory contains usage examples for the SCICO package. The primary form o
 Building Notebooks
 ------------------
 
-The scripts for building Jupyter notebooks from the source scripts are currently only supported under Linux. The procedure for adding a adding a new notebook to the documentation is:
+The scripts for building Jupyter notebooks from the source example scripts are currently only supported under Linux. The procedure for adding a adding a new notebook to the documentation is:
 
-1. Add an entry for the source file in `README.rst`. Note that a script that is not listed in this index will not be converted into a notebook.
+1. Add an entry for the source file in ``README.rst``. Note that a script that is not listed in this index will not be converted into a notebook.
 
-2. Run `makeindex.py` to update the notebook index file in the docs.
+2. Run ``makeindex.py`` to update the notebook index file in the docs.
 
-3. Run `makejnb.py` to build the new notebook, as well as any other notebooks that are out of date with respect to their source scripts, as determined by the respective file timestamps.
+3. Run ``makejnb.py`` to build the new notebook, as well as any other notebooks that are out of date with respect to their source scripts, as determined by the respective file timestamps.
 
-4. Add and commit the new script, the `README.rst` script index file, the auto-generated `docs/source/examples.rst` index file, and the new or updated notebooks (following the submodule handling procedure as described in the developer docs).
+4. Add and commit the new script, the ``README.rst`` script index file, the auto-generated ``docs/source/examples.rst`` index file, and the new or updated notebooks (following the submodule handling procedure as described in the developer docs).
 
 
 The procedure for rebuilding notebook(s) after the source file(s) have been modified is:
 
-1. Run `makejnb.py` to build the new notebook, as well as any other notebooks that are out of date with respect to their source scripts, as determined by the respective file timestamps. Note that timestamps for files retrieved from version control may not be meaningful for this purpose. In such cases, `touch` the relevant source scripts to force updating on the next run of `makejnb.py`.
+1. Run ``makejnb.py`` to build the new notebook, as well as any other notebooks that are out of date with respect to their source scripts, as determined by the respective file timestamps. Note that timestamps for files retrieved from version control may not be meaningful for this purpose. In such cases, ``touch`` the relevant source scripts to force updating on the next run of ``makejnb.py``.
 
 2. Add and commit the modified script(s), and the updated notebooks (following the submodule handling procedure as described in the developer docs).
 
