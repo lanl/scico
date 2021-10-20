@@ -2,7 +2,7 @@
 
 import re
 
-src = "scripts/README.rst"
+src = "scripts/index.rst"
 dst = "../docs/source/examples.rst"
 prfx = "examples/"
 
