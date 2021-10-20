@@ -434,10 +434,22 @@ For additional grammar and usage guidance,
 refer to `The Chicago Manual of Style <https://www.chicagomanualofstyle.org/>`_.
 A few notable guidelines:
 
+    * Equations which conclude a sentence should end with a period,
+      e.g., "Poisson's equation is
+
+      .. math::
+
+       \Delta \varphi = f."
+
+
+
     * Do not capitalize acronyms or inititalisms when defining them,
       e.g., "computer-aided system engineering (CASE),"
       "fast Fourier transform (FFT)."
 
-The source code (`.rst` files) for these pages
-does not have a line-length guideline,
-but line breaks inside text are encouraged.
+    * Avoid capitalization in text except where absolutely necessary,
+      e.g., "Newton’s first law."
+
+
+The source code (`.rst` files) for these pages does not have a line-length guideline,
+but line breaks at or before 79 characters are encouraged.
