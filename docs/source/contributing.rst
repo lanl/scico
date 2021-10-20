@@ -158,7 +158,10 @@ NOTE:  If you have added or modified an example script, see `Adding Usage Exampl
 Adding Usage Examples
 ---------------------
 
-New usage examples should adhere to the same general structure as the existing examples to ensure that the mechanism for automatically generating corresponding Jupyter notebooks functions correctly. In particular:
+New usage examples should adhere to the same general structure as the
+existing examples to ensure that the mechanism for automatically
+generating corresponding Jupyter notebooks functions correctly. In
+particular:
 
 1. The initial lines of the script should consist of a comment block, followed by a blank line, followed by a multiline string with an RST heading on the first line, e.g.
 
@@ -193,39 +196,29 @@ New usage examples should adhere to the same general structure as the existing e
 Adding new examples
 ^^^^^^^^^^^^^^^^^^^
 
-The following steps show how to add a new example, ``new_example.py``, to the packaged usage
-examples. We assume the SCICO repository has been cloned to ``scico/``.
+The following steps show how to add a new example, ``new_example.py``,
+to the packaged usage examples. We assume the SCICO repository has
+been cloned to ``scico/``.
 
-Note that the ``.py`` scripts are included in ``scico/examples/scripts``, while the compiled
-Jupyter Notebooks are located in the scico-data submodule, which is symlinked to ``scico/data``.
-When adding a new usage example, both the scico and scico-data repositories must be updated and
-kept in sync.
+Note that the ``.py`` scripts are included in
+``scico/examples/scripts``, while the compiled Jupyter Notebooks are
+located in the scico-data submodule, which is symlinked to
+``scico/data``.  When adding a new usage example, both the ``scico``
+and ``scico-data`` repositories must be updated and kept in sync.
 
 .. warning::
-   Ensure that all binary data (including raw data, images, ``.ipynb`` files) are added to scico-data, not the base ``scico`` repo.
-
+   Ensure that all binary data (including raw data, images, ``.ipynb`` files) are added to ``scico-data``, not the main ``scico`` repo.
 
 
 1. Add the ``new_example.py`` script to the ``scico/examples/scripts`` directory.
 
-2. Add the basename of the script (i.e., without the pathname or ``.py`` extension; in this case,
-   ``new_example``) to ``examples/notebooks/examples.rst``.
+2. Add the basename of the script (i.e., without the pathname; in this case,
+``new_example.py``) to the appropriate section of
+``examples/scripts/index.rst``.
 
-3. Convert your new example to a Jupyter notebook by navigating the ``scico/examples`` directory and performing
+3. Convert your new example to a Jupyter notebook by changing directory to the ``scico/examples`` directory and following the instructions in ``scico/examples/README.rst``.
 
-::
-
-   make notebooks/new_example.ipynb
-
-Alternatively, all examples can be run by calling
-
-::
-
-   make
-
-from ``scico/examples``.
-
-4.  Navigate to the ``data`` directory and add/commit the new Jupyter Notebook
+4.  Change directory to the ``data`` directory and add/commit the new Jupyter Notebook
 
 ::
 
@@ -233,7 +226,7 @@ from ``scico/examples``.
    git add notebooks/new_example.ipynb
    git commit -m "Add new usage example"
 
-5.  Return to the base SCICO repository, ensure the ``main`` branch is checked out, add/commit the new script and updated submodule:
+5.  Return to the main SCICO repository, ensure the ``main`` branch is checked out, add/commit the new script and updated submodule:
 
 ::
 
@@ -254,9 +247,9 @@ Adding New Data
 
 The following steps show how to add new data, ``new_data.npz``, to the packaged data. We assume the SCICO repository has been cloned to ``scico/``.
 
-Note that the data is located in the scico-data submodule, which is symlinked to ``scico/data``.
-When adding new data, both the scico and scico-data repositories must be updated and
-kept in sync.
+Note that the data is located in the scico-data submodule, which is
+symlinked to ``scico/data``.  When adding new data, both the scico and
+scico-data repositories must be updated and kept in sync.
 
 
 1. Add the ``new_data.npz`` file to the ``scico/data`` directory.
