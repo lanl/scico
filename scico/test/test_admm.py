@@ -112,7 +112,7 @@ class TestComplex:
         λ = 1e0
         self.Amx = Amx
         self.Bmx = Bmx
-        self.y = jax.device_py(y)
+        self.y = jax.device_put(y)
         self.𝛼 = 𝛼
         self.λ = λ
         # Solution of problem is given by linear system (𝛼 A^T A + λ B^T B) x = A^T y
