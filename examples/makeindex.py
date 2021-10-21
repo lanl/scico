@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+# Construct an index README file and a docs example index file from
+# source index file "scripts/index.rst".
+# Run as
+#     python makeindex.py
+
+
 import re
 from pathlib import Path
 
