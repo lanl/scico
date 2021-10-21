@@ -1,5 +1,12 @@
 #!/usr/bin/env python
 
+# Extract a list of Python scripts from "scripts/index.rst" and
+# create/update and execute any Jupyter notebooks that are out
+# of date with respect to their source Python scripts.
+# Run as
+#     python makejnb.py
+
+
 import re
 from pathlib import Path
 
