@@ -622,9 +622,9 @@ class ADMM:
         self,
         callback: Optional[Callable[[ADMM], None]] = None,
     ) -> Union[JaxArray, BlockArray]:
-        r"""Initialize and run the ADMM algorithm.
+        """Run the ADMM algorithm.
 
-        Initialize and run the ADMM algorithm for a total of ``self.maxiter`` iterations.
+        Run the ADMM algorithm for a total of ``self.maxiter`` iterations.
 
         Args:
             callback: An optional callback function, taking an a single argument of type
