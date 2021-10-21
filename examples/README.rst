@@ -41,7 +41,7 @@ A number of files in this directory assist in the mangement of the usage example
    Requirements file (as used by ``pip``) listing additional dependencies for building the Jupyter notebooks from the usage example scripts.
 
 `makejnb.py <makejnb.py>`_
-   An alternative to the makefile for updating the auto-generated Jupyter notebooks. Requires package ``ray`` to be installed. Notebooks are executed in parallel.
+   An alternative to the makefile for updating the auto-generated Jupyter notebooks. Notebooks are executed in parallel using the ``ray`` package.
 
 `makeindex.py <makeindex.py>`_
    Auto-generate the docs example index ``docs/source/examples.rst`` from the example scripts index ``scripts/index.rst``.
