@@ -35,7 +35,10 @@ Management Utilities
 A number of files in this directory assist in the mangement of the usage examples:
 
 `examples_requirements.txt <examples_requirements.txt>`_
-   Requirements file (as used by ``pip``) listing additional dependencies for the usage examples.
+   Requirements file (as used by ``pip``) listing additional dependencies for running the usage example scripts.
+
+`notebooks_requirements.txt <examples_requirements.txt>`_
+   Requirements file (as used by ``pip``) listing additional dependencies for building the Jupyter notebooks from the usage example scripts.
 
 `makejnb.py <makejnb.py>`_
    An alternative to the makefile for updating the auto-generated Jupyter notebooks. Requires package ``ray`` to be installed. Notebooks are executed in parallel.
