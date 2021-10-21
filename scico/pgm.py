@@ -7,6 +7,8 @@
 
 """Proximal Gradient Method classes."""
 
+# Needed to annotate a class method that returns the encapsulating class;
+# see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
 from typing import Callable, Optional, Tuple, Union
@@ -19,7 +21,7 @@ from scico.diagnostics import IterationStats
 from scico.functional import Functional
 from scico.loss import Loss
 from scico.typing import JaxArray
-from scico.util import ensure_on_device
+from scico.util import Timer, ensure_on_device
 
 __author__ = """\n""".join(
     [
@@ -31,22 +33,34 @@ __author__ = """\n""".join(
 
 
 class PGMStepSize:
-    r"""Base class for computing the (reciprocal of the) step size for PGM solvers.
+    r"""Base class for computing the PGM step size.
 
-    The PGM solver implemented by :class:`.PGM` addresses a general proximal gradient form that requires the specification of a step size for the gradient descent step. This class is a base class for methods that estimate the reciprocal of the step size (:math:`L` in PGM equations).
+    Base class for computing the reciprocal of the step size for PGM solvers.
+
+    The PGM solver implemented by :class:`.PGM` addresses a general
+    proximal gradient form that requires the specification of a step size
+    for the gradient descent step. This class is a base class for methods
+    that estimate the reciprocal of the step size (:math:`L` in PGM
+    equations).
+
     Attributes:
         pgm (:class:`.PGM`): PGM solver object to which the solver is attached.
     """
 
     def internal_init(self, pgm: PGM):
         """Second stage initializer to be called by :meth:`.PGM.__init__`.
+
         Args:
-            pgm: Reference to :class:`.PGM` object to which the :class:`.StepSize` object is to be attached.
+            pgm: Reference to :class:`.PGM` object to which the
+              :class:`.StepSize` object is to be attached.
         """
         self.pgm = pgm
 
     def update(self, v: Union[JaxArray, BlockArray]) -> float:
-        """Hook for updating the reciprocal of the step size in the derived classes. The base class does not compute any update.
+        """Hook for updating the reciprocal of the step size in derived classes.
+
+        The base class does not compute any update.
+
         Args:
             v: Current solution or current extrapolation (if accelerated PGM).
         Returns:
@@ -58,19 +72,25 @@ class PGMStepSize:
 class BBStepSize(PGMStepSize):
     r"""A scheme for step size estimation based on Barzilai-Borwein method.
 
-    The Barzilai-Borwein method :cite:`barzilai-1988-stepsize` estimates the step size :math:`\alpha` as
+    The Barzilai-Borwein method :cite:`barzilai-1988-stepsize` estimates
+    the step size :math:`\alpha` as
 
     .. math::
        \mb{\Delta x} = \mb{x}_k - \mb{x}_{k-1} \; \\
        \mb{\Delta g} = \nabla f(\mb{x}_k) - \nabla f (\mb{x}_{k-1}) \; \\
-       \alpha = \frac{\mb{\Delta x}^T \mb{\Delta g}}{\mb{\Delta g}^T \mb{\Delta g}} \;\;.
+       \alpha = \frac{\mb{\Delta x}^T \mb{\Delta g}}{\mb{\Delta g}^T
+       \mb{\Delta g}} \;\;.
 
-    Since the PGM solver uses the reciprocal of the step size, the value :math:`L = 1 / \alpha` is returned.
+    Since the PGM solver uses the reciprocal of the step size, the value
+    :math:`L = 1 / \alpha` is returned.
 
-    When applied to complex-valued problems, only the real part of the inner product is used. When the inner product is negative, the previous iterate is used instead.
+    When applied to complex-valued problems, only the real part of the
+    inner product is used. When the inner product is negative, the
+    previous iterate is used instead.
 
     Attributes:
-        pgm (:class:`.PGM`): PGM solver object to which the solver is attached.
+        pgm (:class:`.PGM`): PGM solver object to which the solver is
+           attached.
     """
 
     def __init__(self):
@@ -123,28 +143,37 @@ class AdaptiveBBStepSize(PGMStepSize):
 
        \mb{\Delta x} = \mb{x}_k - \mb{x}_{k-1} \; \\
        \mb{\Delta g} = \nabla f(\mb{x}_k) - \nabla f (\mb{x}_{k-1}) \; \\
-       \alpha^{\mathrm{BB1}} = \frac{\mb{\Delta x}^T \mb{\Delta x}}{\mb{\Delta x}^T \mb{\Delta g}} \; \\
-       \alpha^{\mathrm{BB2}} = \frac{\mb{\Delta x}^T \mb{\Delta g}}{\mb{\Delta g}^T \mb{\Delta g}} \;\;.
+       \alpha^{\mathrm{BB1}} = \frac{\mb{\Delta x}^T \mb{\Delta x}}
+       {\mb{\Delta x}^T \mb{\Delta g}} \; \\
+       \alpha^{\mathrm{BB2}} = \frac{\mb{\Delta x}^T \mb{\Delta g}}
+       {\mb{\Delta g}^T \mb{\Delta g}} \;\;.
 
     The determination of the new steps size is made via the rule
 
     .. math::
 
-        \alpha = \left\{ \begin{matrix} \alpha^{\mathrm{BB2}} \;, & \mathrm{~if~} \alpha^{\mathrm{BB2}} / \alpha^{\mathrm{BB1}} < \kappa \; \\
-        \alpha^{\mathrm{BB1}} \;, & \mathrm{~otherwise} \end{matrix} \right . \;\;,
+        \alpha = \left\{ \begin{matrix} \alpha^{\mathrm{BB2}} \;, &
+        \mathrm{~if~} \alpha^{\mathrm{BB2}} / \alpha^{\mathrm{BB1}}
+        < \kappa \; \\
+        \alpha^{\mathrm{BB1}} \;, & \mathrm{~otherwise} \end{matrix}
+        \right . \;\;,
 
     with :math:`\kappa \in (0, 1)`.
 
-    Since the PGM solver uses the reciprocal of the step size, the value :math:`L = 1 / \alpha` is returned.
+    Since the PGM solver uses the reciprocal of the step size, the value
+    :math:`L = 1 / \alpha` is returned.
 
-    When applied to complex-valued problems, only the real part of the inner product is used. When the inner product is negative, the previous iterate is used instead.
+    When applied to complex-valued problems, only the real part of the
+    inner product is used. When the inner product is negative, the
+    previous iterate is used instead.
 
     Attributes:
         pgm (:class:`.PGM`): PGM solver object to which the solver is attached.
     """
 
     def __init__(self, kappa: float = 0.5):
-        """Initialize a :class:`AdaptiveBBStepSize` object.
+        r"""Initialize a :class:`AdaptiveBBStepSize` object.
+
         Args:
             kappa : Threshold for step size selection :math:`\kappa`.
         """
@@ -207,13 +236,18 @@ class AdaptiveBBStepSize(PGMStepSize):
 class LineSearchStepSize(PGMStepSize):
     r"""A line search for estimating the reciprocal of step size for PGM solvers.
 
-    The line search strategy included in :cite:`beck-2009-fast` estimates :math:`L` such that
-    :math:`f(\mb{x}) <= \hat{f}_{L}(\mb{x})` is satisfied with :math:`\hat{f}_{L}` a quadratic approximation to :math:`f` defined as
+    The line search strategy described in :cite:`beck-2009-fast` estimates
+    :math:`L` such that :math:`f(\mb{x}) <= \hat{f}_{L}(\mb{x})` is
+    satisfied with :math:`\hat{f}_{L}` a quadratic approximation to
+    :math:`f` defined as
 
     .. math::
-       \hat{f}_{L}(\mb{x}, \mb{y}) = f(\mb{y}) + \nabla f(\mb{y})^H (\mb{x} - \mb{y}) + \frac{L}{2} \left\| \mb{x} - \mb{y} \right\|_2^2 \;\;,
+       \hat{f}_{L}(\mb{x}, \mb{y}) = f(\mb{y}) + \nabla f(\mb{y})^H
+       (\mb{x} - \mb{y}) + \frac{L}{2} \left\| \mb{x} - \mb{y}
+       \right\|_2^2 \;\;,
 
-    with :math:`\mb{x}` the potential new update and :math:`\mb{y}` the current solution or current extrapolation (if accelerated PGM).
+    with :math:`\mb{x}` the potential new update and :math:`\mb{y}` the
+    current solution or current extrapolation (if accelerated PGM).
 
     Attributes:
         pgm (:class:`.PGM`): PGM solver object to which the solver is attached.
@@ -260,18 +294,26 @@ class LineSearchStepSize(PGMStepSize):
 
 
 class RobustLineSearchStepSize(LineSearchStepSize):
-    r"""A robust line search for estimating the reciprocal of step size for accelerated PGM solvers.
+    r"""Robust line search for estimating the accelerated PGM step size.
 
-    The robust line search strategy included in :cite:`florea-2017-robust` estimates :math:`L` such that
-    :math:`f(\mb{x}) <= \hat{f}_{L}(\mb{x})` is satisfied with :math:`\hat{f}_{L}` a quadratic approximation to :math:`f` defined as
+    A robust line search for estimating the reciprocal of step size for
+    accelerated PGM solvers.
+
+    The robust line search strategy described in :cite:`florea-2017-robust`
+    estimates :math:`L` such that :math:`f(\mb{x}) <= \hat{f}_{L}(\mb{x})`
+    is satisfied with :math:`\hat{f}_{L}` a quadratic approximation to
+    :math:`f` defined as
 
     .. math::
-       \hat{f}_{L}(\mb{x}, \mb{y}) = f(\mb{y}) + \nabla f(\mb{y})^H (\mb{x} - \mb{y}) + \frac{L}{2} \left\| \mb{x} - \mb{y} \right\|_2^2 \;\;,
+       \hat{f}_{L}(\mb{x}, \mb{y}) = f(\mb{y}) + \nabla f(\mb{y})^H
+       (\mb{x} - \mb{y}) + \frac{L}{2} \left\| \mb{x} - \mb{y} \right\|_2^2 \;\;,
 
-    with :math:`\mb{x}` the potential new update and :math:`\mb{y}` the auxiliary extrapolation state.
+    with :math:`\mb{x}` the potential new update and :math:`\mb{y}` the
+    auxiliary extrapolation state.
 
     Attributes:
-        pgm (:class:`.PGM`): PGM solver object to which the solver is attached.
+        pgm (:class:`.PGM`): PGM solver object to which the solver is
+           attached.
     """
 
     def __init__(self, gamma_d: float = 0.9, gamma_u: float = 2.0, maxiter: int = 50):
@@ -333,7 +375,9 @@ class PGM:
 
     The function :math:`f` must be smooth and :math:`g` must have a defined prox.
 
-    Uses helper :class:`StepSize` to provide an estimate of the Lipschitz constant :math:`L` of :math:`f`. The step size :math:`\alpha` is the reciprocal of :math:`L`, i.e.: :math:`\alpha = 1 / L`.
+    Uses helper :class:`StepSize` to provide an estimate of the Lipschitz
+    constant :math:`L` of :math:`f`. The step size :math:`\alpha` is the
+    reciprocal of :math:`L`, i.e.: :math:`\alpha = 1 / L`.
     """
 
     def __init__(
@@ -381,12 +425,10 @@ class PGM:
             step_size = PGMStepSize()
         self.step_size: PGMStepSize = step_size
         self.step_size.internal_init(self)
-        #: Reciprocal of step size (estimate of Lipschitz constant of f)
-        self.L: float = L0
-
-        #: Maximum number of iterations to perform
-        self.maxiter: int = maxiter
-
+        self.L: float = L0  # reciprocal of step size (estimate of Lipschitz constant of f)
+        self.itnum: int = 0
+        self.maxiter: int = maxiter  # maximum number of iterations to perform
+        self.timer: Timer = Timer()
         self.fixed_point_residual = snp.inf
 
         def x_step(v, L):
@@ -399,26 +441,39 @@ class PGM:
             itstat_dict = itstat[0]
             itstat_func = itstat[1]
         elif g.has_eval:
-            itstat_dict = {"Iter": "%d", "Objective": "%8.3e", "L": "%8.3e", "Residual": "%8.3e"}
-            itstat_func = lambda i, pgm: (i, pgm.objective(self.x), pgm.L, pgm.norm_residual())
+            itstat_dict = {
+                "Iter": "%d",
+                "Time": "%8.2e",
+                "Objective": "%8.3e",
+                "L": "%8.3e",
+                "Residual": "%8.3e",
+            }
+            itstat_func = lambda pgm: (
+                pgm.itnum,
+                pgm.timer.elapsed(),
+                pgm.objective(self.x),
+                pgm.L,
+                pgm.norm_residual(),
+            )
         else:
-            itstat_dict = {"Iter": "%d", "Residual": "%8.3e"}
-            itstat_func = lambda i, pgm: (i, pgm.norm_residual())
+            itstat_dict = {"Iter": "%d", "Time": "%8.2e", "Residual": "%8.3e"}
+            itstat_func = lambda pgm: (pgm.itnum, pgm.timer.elapsed(), pgm.norm_residual())
 
         self.itstat_object = IterationStats(itstat_dict, display=verbose)
         self.itstat_insert_func = itstat_func
-
-        #: Current estimate of solution
-        self.x: Union[JaxArray, BlockArray] = ensure_on_device(x0)
+        self.x: Union[JaxArray, BlockArray] = ensure_on_device(x0)  # current estimate of solution
 
     def objective(self, x) -> float:
         r"""Evaluate the objective function :math:`f(\mb{x}) + g(\mb{x})`"""
         return self.f(x) + self.g(x)
 
     def f_quad_approx(self, x, y, L) -> float:
-        r"""Evaluate the quadratic approximation to function :math:`f`, corresponding to
+        r"""Evaluate the quadratic approximation to function :math:`f`.
+
+        Evaluate the quadratic approximation to function :math:`f`, corresponding to
         :math:`\hat{f}_{L}(\mb{x}, \mb{y}) = f(\mb{y}) + \nabla f(\mb{y})^H (\mb{x} - \mb{y})
-        + \frac{L}{2} \left\|\mb{x} - \mb{y}\right\|_2^2`."""
+        + \frac{L}{2} \left\|\mb{x} - \mb{y}\right\|_2^2`.
+        """
         diff_xy = x - y
         return (
             self.f(y)
@@ -431,18 +486,38 @@ class PGM:
         return self.fixed_point_residual
 
     def step(self):
-        """Take a single PGM step"""
+        """Take a single PGM step."""
         # Update reciprocal of step size using current solution.
         self.L = self.step_size.update(self.x)
         x = self.x_step(self.x, self.L)
         self.fixed_point_residual = snp.linalg.norm(self.x - x)
         self.x = x
 
-    def solve(self):
-        """Take a sequence of `maxiter` PGM steps"""
-        for i in range(self.maxiter):
+    def solve(
+        self,
+        callback: Optional[Callable[[PGM], None]] = None,
+    ) -> Union[JaxArray, BlockArray]:
+        """Run the PGM algorithm.
+
+        Run the PGM algorithm for a total of ``self.maxiter`` iterations.
+
+        Args:
+            callback: An optional callback function, taking an a single argument of type
+               :class:`PGM`, that is called at the end of every iteration.
+
+        Returns:
+            Computed solution.
+        """
+        self.timer.start()
+        for self.itnum in range(self.itnum, self.itnum + self.maxiter):
             self.step()
-            self.itstat_object.insert(self.itstat_insert_func(i, self))
+            self.itstat_object.insert(self.itstat_insert_func(self))
+            if callback:
+                self.timer.stop()
+                callback(self)
+                self.timer.start()
+        self.timer.stop()
+        self.itnum += 1
         return self.x
 
 
@@ -502,7 +577,7 @@ class AcceleratedPGM(PGM):
         self.t = 1.0
 
     def step(self):
-        """Take a single AcceleratedPGM step"""
+        """Take a single AcceleratedPGM step."""
         x_old = self.x
         # Update reciprocal of step size using current extrapolation.
         if isinstance(self.step_size, BBStepSize) or isinstance(self.step_size, AdaptiveBBStepSize):
@@ -521,10 +596,3 @@ class AcceleratedPGM(PGM):
             t_old = self.t
             self.t = 0.5 * (1 + snp.sqrt(1 + 4 * t_old ** 2))
             self.v = self.x + ((t_old - 1) / self.t) * (self.x - x_old)
-
-    def solve(self):
-        """Take a sequence of `maxiter` PGM steps"""
-        for i in range(self.maxiter):
-            self.step()
-            self.itstat_object.insert(self.itstat_insert_func(i, self))
-        return self.x
