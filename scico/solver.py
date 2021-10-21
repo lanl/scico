@@ -287,11 +287,11 @@ def minimize(
         dev = None
 
     # Run the SciPy minimizer
-    if (
-        method
-        in "BFGS, Newton-CG, L-BFGS-B, TNC, SLSQP, dogleg, trust-ncg, trust-krylov, trust-exact, trust-constr".split(
-            ", "
-        )
+    if method in (
+        "CG, BFGS, Newton-CG, L-BFGS-B, TNC, SLSQP, dogleg, trust-ncg, trust-krylov, "
+        "trust-exact, trust-constr"
+    ).split(
+        ", "
     ):  # uses gradient info
         min_func = _wrap_func_and_grad(func_, x0_shape, x0_dtype)
         jac = True  # see scipy.minimize docs
