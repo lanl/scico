@@ -14,7 +14,7 @@ import os
 
 # Read script names from index file
 scriptnames = []
-srcidx = "scripts/README.rst"
+srcidx = "scripts/index.rst"
 with open(srcidx, "r") as idxfile:
     for line in idxfile:
         m = re.match(r"(\s+)- ([^\s]+.py)", line)
