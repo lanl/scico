@@ -7,6 +7,8 @@
 
 """Proximal Gradient Method classes."""
 
+# Needed to annotate a class method that returns the encapsulating class;
+# see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
 from typing import Callable, Optional, Tuple, Union
@@ -47,6 +49,7 @@ class PGMStepSize:
 
     def internal_init(self, pgm: PGM):
         """Second stage initializer to be called by :meth:`.PGM.__init__`.
+
         Args:
             pgm: Reference to :class:`.PGM` object to which the
               :class:`.StepSize` object is to be attached.
@@ -170,6 +173,7 @@ class AdaptiveBBStepSize(PGMStepSize):
 
     def __init__(self, kappa: float = 0.5):
         r"""Initialize a :class:`AdaptiveBBStepSize` object.
+
         Args:
             kappa : Threshold for step size selection :math:`\kappa`.
         """
@@ -464,7 +468,7 @@ class PGM:
         return self.f(x) + self.g(x)
 
     def f_quad_approx(self, x, y, L) -> float:
-        r"""Evaluate the quadratic approximation to function :math:`f`/
+        r"""Evaluate the quadratic approximation to function :math:`f`.
 
         Evaluate the quadratic approximation to function :math:`f`, corresponding to
         :math:`\hat{f}_{L}(\mb{x}, \mb{y}) = f(\mb{y}) + \nabla f(\mb{y})^H (\mb{x} - \mb{y})
