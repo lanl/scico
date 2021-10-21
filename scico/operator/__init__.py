@@ -17,3 +17,7 @@ __all__ = [
     "Operator",
     "BiConvolve",
 ]
+
+# Imported items in __all__ appear to originate in top-level linop module
+for name in __all__:
+    getattr(sys.modules[__name__], name).__module__ = __name__

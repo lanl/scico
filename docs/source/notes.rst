@@ -81,7 +81,7 @@ Double Precision
 By default, JAX enforces single-precision numbers. Double precision can be enabled in one of two ways:
 
 1. Setting the environment variable ``JAX_ENABLE_X64=TRUE`` before launching python.
-2. Manually set the ``jax_enable_x64`` flag **at program startup**; that is, **before** importing SCICO.
+2. Manually setting the ``jax_enable_x64`` flag **at program startup**; that is, **before** importing SCICO.
 
 ::
 
@@ -90,7 +90,7 @@ By default, JAX enforces single-precision numbers. Double precision can be enabl
    import scico # continue as usual
 
 
-For more information, `see the JAX notes on double precision <https://jax.readthedocs.io/en/latest/notebooks/Common_Gotchas_in_JAX.html#double-64bit-precision>`_
+For more information, see the `JAX notes on double precision <https://jax.readthedocs.io/en/latest/notebooks/Common_Gotchas_in_JAX.html#double-64bit-precision>`_.
 
 
 Random Number Generation
@@ -146,11 +146,11 @@ The function :func:`scico.grad` returns the expected gradient, that is, the conj
 JAX gradient. For further discussion, see this
 `JAX issue <https://github.com/google/jax/issues/4891>`_.
 
-As a concrete example, consider the function :math:`f(x) = \frac{1}{2}\norm{A
-x}_2^2` where :math:`A` is a complex matrix. The gradient of :math:`f` is
-usually given :math:`(\nabla f)(x) = A^H A x`, where :math:`A^H` is the
-conjugate transpose of :math:`A`. Applying ``jax.grad`` to :math:`f` will yield
-:math:`(A^H A x)^*`, where :math:`*` denotes complex conjugation.
+As a concrete example, consider the function :math:`f(x) = \frac{1}{2}\norm{\mb{A}
+\mb{x}}_2^2` where :math:`\mb{A}` is a complex matrix. The gradient of :math:`f` is
+usually given :math:`(\nabla f)(\mb{x}) = \mb{A}^H \mb{A} \mb{x}`, where :math:`\mb{A}^H` is the
+conjugate transpose of :math:`\mb{A}`. Applying ``jax.grad`` to :math:`f` will yield
+:math:`(\mb{A}^H \mb{A} \mb{x})^*`, where :math:`*` denotes complex conjugation.
 
 The following code demonstrates the use of ``jax.grad`` and :func:`scico.grad`:
 
@@ -173,11 +173,11 @@ The following code demonstrates the use of ``jax.grad`` and :func:`scico.grad`:
 Non-differentiable Functionals and scico.grad
 ---------------------------------------------
 
-* :func:`scico.grad` can be applied to any function, but has undefined behavior for
-  non-differentiable functions.
-* For non-differerentiable functions, :func:`scico.grad` may or may not return a valid subgradient.  As an example, ``scico.grad(snp.abs)(0.) = 0``, which is a valid subgradient.  However, ``scico.grad(snp.linalg.norm)([0., 0.]) = [nan, nan]``, which is not a valid subgradient of this function.
-* Differentiable functions that are written as the composition of a differentiable and non-differentiable function should be avoided.  As an example, :math:`f(x) = \norm{x}_2^2` can be implemented in as ``f = lambda x: snp.linalg.norm(x)**2``.  This involves first calculating the non-squared :math:`\ell_2` norm, then squaring it.  The un-squared :math:`\ell_2` norm is not differentiable at zero.
+:func:`scico.grad` can be applied to any function, but has undefined behavior for
+non-differentiable functions.
+For non-differerentiable functions, :func:`scico.grad` may or may not return a valid subgradient.  As an example, ``scico.grad(snp.abs)(0.) = 0``, which is a valid subgradient.  However, ``scico.grad(snp.linalg.norm)([0., 0.]) = [nan, nan]``.
 
+Differentiable functions that are written as the composition of a differentiable and non-differentiable function should be avoided.  As an example, :math:`f(x) = \norm{x}_2^2` can be implemented in as ``f = lambda x: snp.linalg.norm(x)**2``.  This involves first calculating the non-squared :math:`\ell_2` norm, then squaring it.  The un-squared :math:`\ell_2` norm is not differentiable at zero.
 When evaluating the gradient of ``f``  at 0, :func:`scico.grad` returns ``nan``:
 
 ::
