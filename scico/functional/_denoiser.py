@@ -17,7 +17,7 @@ from bm3d import bm3d, bm3d_rgb
 
 from scico.blockarray import BlockArray
 from scico.data import _flax_data_path
-from scico.flax import (DnCNNNet, load_weights)
+from scico.flax import DnCNNNet, load_weights
 from scico.typing import JaxArray
 
 from ._functional import Functional
@@ -113,12 +113,12 @@ class DnCNN(FlaxMap):
         """Initialize a :class:`DnCNN` object.
 
         Args:
-            variant: Identify the DnCNN model to be used. 
-            Options are '6L', '6M' (default), '6H', '17L', '17M', 
-            and '17H', where the integer indicates the number of layers 
-            in the network, and the postfix indicates the training noise 
-            standard deviation: L (low) = 0.06, M (mid) = 0.1, 
-            H (high) = 0.2, where the standard deviations are with respect 
+            variant: Identify the DnCNN model to be used.
+            Options are '6L', '6M' (default), '6H', '17L', '17M',
+            and '17H', where the integer indicates the number of layers
+            in the network, and the postfix indicates the training noise
+            standard deviation: L (low) = 0.06, M (mid) = 0.1,
+            H (high) = 0.2, where the standard deviations are with respect
             to data in the range [0, 1].
         """
         if variant not in ["6L", "6M", "6H", "17L", "17M", "17H"]:
@@ -127,9 +127,6 @@ class DnCNN(FlaxMap):
             nlayer = 6
         else:
             nlayer = 17
-        model = DnCNNNet(depth=nlayer,
-                         channels=1,
-                         num_filters=64,
-                         dtype=snp.float32)
+        model = DnCNNNet(depth=nlayer, channels=1, num_filters=64, dtype=np.float32)
         variables = load_weights(_flax_data_path("dncnn%s.npz" % variant))
         super().__init__(model, variables)

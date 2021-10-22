@@ -7,7 +7,7 @@
 
 """Evaluate NN models implemented in objax."""
 
-from typing import (Any, Callable)
+from typing import Any, Callable
 
 from flax import linen as nn
 import scico.numpy as snp
@@ -38,7 +38,6 @@ class FlaxMap(Functional):
         self.model = model
         self.variables = variables
         super().__init__()
-        
 
     def prox(self, x: JaxArray, lam: float = 1) -> JaxArray:
         r"""Apply trained flax model.
@@ -59,7 +58,5 @@ class FlaxMap(Functional):
                 x = x.reshape((1,) + x.shape + (1,))
             elif x.ndim == 3:
                 x = x.reshape((1,) + x.shape)
-            y, _ = self.model.apply(self.variables,
-                                    x, train=False,
-                                    mutable=['batch_stats'])
+            y, _ = self.model.apply(self.variables, x, train=False, mutable=["batch_stats"])
             return snp.squeeze(y)

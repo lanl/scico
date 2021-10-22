@@ -8,7 +8,7 @@
 """Convolutional neural network models implemented in Flax."""
 
 from functools import partial
-from typing import (Any, Callable, Tuple)
+from typing import Any, Callable, Tuple
 
 from flax import linen as nn
 from flax import serialization
@@ -19,7 +19,6 @@ ModuleDef = Any
 Array = Any
 
 
-
 __author__ = """Cristina Garcia-Cardona <cgarciac@lanl.gov>"""
 
 
@@ -27,7 +26,7 @@ class ConvBNBlock(nn.Module):
     r"""Define convolution and batch normalization Flax block.
 
     Attributes:
-        num_filters : number of filters in the convolutional layer 
+        num_filters : number of filters in the convolutional layer
           of the block.
         conv : class of convolution to apply.
         norm : class of batch normalization to apply.
@@ -46,10 +45,10 @@ class ConvBNBlock(nn.Module):
     @nn.compact
     def __call__(
         self,
-        inputs : Array,
+        inputs: Array,
     ) -> Array:
         """Apply convolution followed by normalization and activation.
-    
+
         Args:
             inputs: The nd-array to be transformed.
 
@@ -63,7 +62,6 @@ class ConvBNBlock(nn.Module):
         )(inputs)
         y = self.norm()(y)
         return self.act(y)
-
 
 
 class DnCNNNet(nn.Module):
@@ -93,11 +91,11 @@ class DnCNNNet(nn.Module):
     @nn.compact
     def __call__(
         self,
-        inputs : Array,
-        train : bool = True,
+        inputs: Array,
+        train: bool = True,
     ) -> Array:
         """Apply DnCNN denoiser.
-    
+
         Args:
             inputs: The nd-array to be transformed.
 
@@ -105,7 +103,11 @@ class DnCNNNet(nn.Module):
             The denoised input.
         """
         # Definitions
-        conv = partial(nn.Conv, use_bias=False, dtype=self.dtype,)
+        conv = partial(
+            nn.Conv,
+            use_bias=False,
+            dtype=self.dtype,
+        )
         norm = partial(
             nn.BatchNorm,
             use_running_average=not train,
@@ -138,15 +140,14 @@ class DnCNNNet(nn.Module):
             strides=self.strides,
             name="conv_end",
         )(y)
-        return base - y # Residual-like network
+        return base - y  # Residual-like network
 
-    
-    
+
 def load_weights(filename: str):
     """Load trained model weights.
 
     Args:
-        filename : name of file where parameters for trained model 
+        filename : name of file where parameters for trained model
             have been stored.
     """
     with open(filename, "rb") as data_file:
