@@ -40,6 +40,23 @@ __author__ = """\n""".join(
 )
 
 
+def device_info(id: int = 0) -> str:  # pragma: no cover
+    """Get a string describing the specified device.
+
+    Args:
+        id: ID number of device
+    """
+    numdev = jax.device_count()
+    if id >= numdev:
+        raise RuntimeError(f"Requested information for device {id} but only {numdev} present")
+    dev = jax.devices()[id]
+    if dev.platform == "cpu":
+        info = "CPU"
+    else:
+        info = f"{dev.platform.upper()} ({dev.device_kind})"
+    return info
+
+
 def ensure_on_device(
     *arrays: Union[np.ndarray, JaxArray, scico.blockarray.BlockArray]
 ) -> Union[JaxArray, scico.blockarray.BlockArray]:
