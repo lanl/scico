@@ -120,7 +120,7 @@ admm_unweighted = ADMM(
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": max_inner_iter}),
     verbose=True,
 )
-print(f"solving on {device_info()}\n")
+print(f"Solving on {device_info()}\n")
 admm_unweighted.solve()
 x_unweighted = postprocess(admm_unweighted.x)
 

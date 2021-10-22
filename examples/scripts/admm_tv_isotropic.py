@@ -73,7 +73,7 @@ solver = ADMM(
     verbose=True,
 )
 
-print(f"solving on {device_info()}\n")
+print(f"Solving on {device_info()}\n")
 solver.solve()
 x_iso = solver.x
 

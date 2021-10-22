@@ -122,7 +122,7 @@ solver = ADMM(
 """
 Run the solver.
 """
-print(f"solving on {device_info()}\n")
+print(f"Solving on {device_info()}\n")
 x = solver.solve()
 hist = solver.itstat_object.history(transpose=True)
 
