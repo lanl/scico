@@ -48,7 +48,7 @@ def test_url_get():
     url = "about:blank"
     np.testing.assert_raises(urlerror.URLError, url_get, url)
 
-    url = "https://webpages.tuni.fi/foi/GCF-BM3D/BM3D_TIP_2007.pdf"
+    url = "https://github.com/lanl/scico/blob/main/README.rst"
     np.testing.assert_raises(ValueError, url_get, url, -1)
 
 
