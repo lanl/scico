@@ -53,8 +53,8 @@ def kodim23(asfloat: bool = False) -> DeviceArray:
     return _imread("kodim23.png", asfloat=asfloat)
 
 
-def _objax_data_path(filename: str) -> str:
-    """Get the full filename of an objax data file.
+def _flax_data_path(filename: str) -> str:
+    """Get the full filename of a flax data file.
 
     Args:
         str: Base filename (i.e. without path) of data file
@@ -63,4 +63,4 @@ def _objax_data_path(filename: str) -> str:
        str: Full filename, with path, of data file
     """
 
-    return os.path.join(os.path.dirname(__file__), "objax", filename)
+    return os.path.join(os.path.dirname(__file__), "flax", filename)
