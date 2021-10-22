@@ -9,7 +9,7 @@
 
 from typing import (Any, Callable)
 
-import flax import linen as nn
+from flax import linen as nn
 import scico.numpy as snp
 from scico.blockarray import BlockArray
 from scico.typing import JaxArray

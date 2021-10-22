@@ -57,7 +57,7 @@ class ConvBNBlock(nn.Module):
             The transformed input.
         """
         y = self.conv(
-            self.filters,
+            self.num_filters,
             self.kernel_size,
             strides=self.strides,
         )(inputs)
