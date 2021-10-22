@@ -46,7 +46,7 @@ An instance of :class:`.Functional`, ``f``, may provide three core operations.
 * Proximal operator
    - ``f.prox(v, lam)`` returns the result of the scaled proximal operator
      at ``v`` with scale ``lam``.
-   -  The proximal operator of a functional :math:`f : \mathbb{R}^n \to \mathbb{R}` is the mapping
+   - The proximal operator of a functional :math:`f : \mathbb{R}^n \to \mathbb{R}` is the mapping
      :math:`\mathrm{prox}_f : \mathbb{R}^n \times \mathbb{R} \to \mathbb{R}^n` defined as
 
      .. math::
