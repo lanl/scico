@@ -328,7 +328,6 @@ def test_dimension_mismatch(cbx_testobj):
 
 
 def test_ndarray_x():
-    x = np.random.randn(3, 3).astype(np.float32)
-    x = jax.device_put(x)
+    x = jax.device_put(np.random.randn(3, 3).astype(np.float32))
     A = ConvolveByX(input_shape=(32, 32), x=x)
     assert isinstance(A.x, jax.interpreters.xla.DeviceArray)
