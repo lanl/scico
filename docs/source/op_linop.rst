@@ -189,7 +189,7 @@ we have
 
 
 Defining A New Linear Operator
------------------------------
+------------------------------
 
 To define a new linear operator,
 pass a callable to the :class:`.LinearOperator` constructor

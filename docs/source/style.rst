@@ -23,7 +23,7 @@ Style Guide
 Overview
 --------
 
-We adhere to `PEP8 <https://www.python.org/dev/peps/pep-0008/>`_ with the exception of allowing a line length limit of 99 characters (as opposed to 79 characters), with a stricter limit of 79 characters (as opposed to 72 characters) for docstrings or comments. We use `Black <https://github.com/psf/black>`_ as our PEP-8 Formatter and `isort <https://pypi.org/project/isort/>`_ to sort imports. (Please set up a `pre-commit hook <https://pre-commit.com>`_ to ensure any modified code passes format check before it is committed to the development repo.)
+We adhere to `PEP8 <https://www.python.org/dev/peps/pep-0008/>`_ with the exception of allowing a line length limit of 99 characters (as opposed to 79 characters). The standard limit of 72 characters for "flowing long blocks of text" in docstrings or comments is retained. We use `Black <https://github.com/psf/black>`_ as our PEP-8 Formatter and `isort <https://pypi.org/project/isort/>`_ to sort imports. (Please set up a `pre-commit hook <https://pre-commit.com>`_ to ensure any modified code passes format check before it is committed to the development repo.)
 
 We aim to incorporate `PEP 526 <https://www.python.org/dev/peps/pep-0484/>`_ type annotations throughout the library.  See the `Mypy <https://mypy.readthedocs.io/en/stable/>`_ type annotation `cheat sheet <https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html>`_ for usage examples. Custom types are defined in :mod:`.typing`.
 
@@ -423,3 +423,31 @@ An example of this is complicated operations which most likely require a block o
     i = i & (i-1) == 0:  # true if i is 0 or a power of 2 [explains the concept not the code]
 
 If a comment consists of one or more full sentences (as is typically the case for *block* comments), it should start with an upper case letter and end with a period. *Inline* comments often consist of a brief phrase which is not a full sentence, in which case they should have a lower case initial letter and not have a terminating period.
+
+Documentation Pages
+-------------------
+Documentation that is separate from code (like this page)
+should follow the
+`IEEE Style Manual
+<https://journals.ieeeauthorcenter.ieee.org/your-role-in-article-production/ieee-editorial-style-manual/>`_.
+For additional grammar and usage guidance,
+refer to `The Chicago Manual of Style <https://www.chicagomanualofstyle.org/>`_.
+A few notable guidelines:
+
+    * Equations which conclude a sentence should end with a period,
+      e.g., "Poisson's equation is
+
+      .. math::
+
+       \Delta \varphi = f \;."
+
+    * Do not capitalize acronyms or inititalisms when defining them,
+      e.g., "computer-aided system engineering (CASE),"
+      "fast Fourier transform (FFT)."
+
+    * Avoid capitalization in text except where absolutely necessary,
+      e.g., "Newton’s first law."
+
+
+The source code (`.rst` files) for these pages does not have a line-length guideline,
+but line breaks at or before 79 characters are encouraged.
