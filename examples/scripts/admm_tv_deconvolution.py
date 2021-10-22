@@ -29,6 +29,7 @@ import scico.numpy as snp
 import scico.random
 from scico import functional, linop, loss, metric, plot
 from scico.admm import ADMM, LinearSubproblemSolver
+from scico.util import device_info
 
 """
 Create a ground truth image.
@@ -80,6 +81,7 @@ solver = ADMM(
 """
 Run the solver.
 """
+print("Solving on %s\n" % device_info())
 x = solver.solve()
 hist = solver.itstat_object.history(transpose=True)
 

@@ -34,6 +34,7 @@ import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot
 from scico.admm import ADMM, LinearSubproblemSolver
 from scico.linop.radon_astra import ParallelBeamProjector
+from scico.util import device_info
 
 """
 Create a ground truth image.
@@ -119,6 +120,7 @@ admm_unweighted = ADMM(
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": max_inner_iter}),
     verbose=True,
 )
+print("Solving on %s\n" % device_info())
 admm_unweighted.solve()
 x_unweighted = postprocess(admm_unweighted.x)
 

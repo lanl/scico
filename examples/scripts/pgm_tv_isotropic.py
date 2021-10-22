@@ -42,7 +42,7 @@ from scico import functional, linop, loss, operator, plot
 from scico.blockarray import BlockArray
 from scico.pgm import AcceleratedPGM, RobustLineSearchStepSize
 from scico.typing import JaxArray
-from scico.util import ensure_on_device
+from scico.util import device_info, ensure_on_device
 
 """
 Create a ground truth image.
@@ -149,6 +149,7 @@ solver_iso = AcceleratedPGM(
 )
 
 # Run the solver.
+print("Solving on %s\n" % device_info())
 x = solver_iso.solve()
 hist_iso = solver_iso.itstat_object.history(transpose=True)
 # Project to constraint set.

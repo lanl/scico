@@ -37,6 +37,7 @@ from scico.pgm import (
     LineSearchStepSize,
     RobustLineSearchStepSize,
 )
+from scico.util import device_info
 from scipy.linalg import dft
 
 """
@@ -162,6 +163,7 @@ solver = AcceleratedPGM(
 )
 str_ss = type(solver.step_size).__name__
 
+print("Solving on %s\n" % device_info())
 print("============================================================")
 print("Running solver with step size of class: ", str_ss)
 print("L0 " + str_L0 + ": ", L0, "\n")

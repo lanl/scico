@@ -26,6 +26,7 @@ import scico.random
 from scico import functional, linop, loss, metric, plot
 from scico.admm import ADMM, LinearSubproblemSolver
 from scico.data import kodim23
+from scico.util import device_info
 
 """
 Read a ground truth image.
@@ -90,7 +91,7 @@ sn = s + σ * noise
 """
 Compute a baseline demosaicing solution.
 """
-imgb = bm3d_rgb(demosaic(sn), 3 * σ).astype(np.float32)
+imgb = jax.device_put(bm3d_rgb(demosaic(sn), 3 * σ).astype(np.float32))
 
 
 """
@@ -121,6 +122,7 @@ solver = ADMM(
 """
 Run the solver.
 """
+print("Solving on %s\n" % device_info())
 x = solver.solve()
 hist = solver.itstat_object.history(transpose=True)
 

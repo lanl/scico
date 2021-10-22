@@ -33,6 +33,7 @@ from scico.admm import ADMM, LinearSubproblemSolver
 from scico.functional import BM3D, NonNegativeIndicator
 from scico.linop import Diagonal, Identity
 from scico.linop.radon_svmbir import ParallelBeamProjector, SVMBIRWeightedSquaredL2Loss
+from scico.util import device_info
 
 """
 Generate a ground truth image.
@@ -107,6 +108,11 @@ solver = ADMM(
     verbose=True,
 )
 
+
+"""
+Run the solver.
+"""
+print("Solving on %s\n" % device_info())
 x_bm3d = solver.solve()
 hist = solver.itstat_object.history(transpose=True)
 

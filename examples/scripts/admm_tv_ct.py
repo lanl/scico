@@ -32,6 +32,7 @@ import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot
 from scico.admm import ADMM, LinearSubproblemSolver
 from scico.linop.radon_astra import ParallelBeamProjector
+from scico.util import device_info
 
 """
 Create a ground truth image.
@@ -80,6 +81,7 @@ solver = ADMM(
 """
 Run the solver.
 """
+print("Solving on %s\n" % device_info())
 solver.solve()
 hist = solver.itstat_object.history(transpose=True)
 x_reconstruction = snp.clip(solver.x, 0, 1.0)

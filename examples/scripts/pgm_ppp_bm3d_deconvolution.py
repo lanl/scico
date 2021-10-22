@@ -26,6 +26,7 @@ import scico.numpy as snp
 import scico.random
 from scico import functional, linop, loss, metric, plot
 from scico.pgm import AcceleratedPGM
+from scico.util import device_info
 
 """
 Create a ground truth image.
@@ -63,6 +64,7 @@ maxiter = 50  # number of APGM iterations
 
 solver = AcceleratedPGM(f=f, g=g, L0=L0, x0=A.T @ y, maxiter=maxiter, verbose=True)
 
+print("Solving on %s\n" % device_info())
 x = solver.solve()
 x = snp.clip(x, 0, 1)
 hist = solver.itstat_object.history(transpose=True)

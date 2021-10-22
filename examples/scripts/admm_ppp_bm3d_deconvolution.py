@@ -24,6 +24,7 @@ from xdesign import Foam, discrete_phantom
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot, random
 from scico.admm import ADMM, LinearSubproblemSolver
+from scico.util import device_info
 
 """
 Create a ground truth image.
@@ -75,6 +76,7 @@ solver = ADMM(
 """
 Run the solver.
 """
+print("Solving on %s\n" % device_info())
 x = solver.solve()
 x = snp.clip(x, 0, 1)
 hist = solver.itstat_object.history(transpose=True)
