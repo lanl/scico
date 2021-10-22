@@ -1,4 +1,5 @@
 import operator as op
+import warnings
 
 import numpy as np
 
@@ -167,9 +168,14 @@ def test_dimension_mismatch(testobj):
 
 
 def test_ndarray_h():
-    h = np.random.randn(3, 3).astype(np.float32)
-    A = Convolve(input_shape=(32, 32), h=h)
-    assert isinstance(A.h, jax.interpreters.xla.DeviceArray)
+    # Used to restore the warnings after the context is used
+    with warnings.catch_warnings():
+        # Ignores warning raised by ensure_on_device
+        warnings.filterwarnings(action="ignore", category=UserWarning)
+
+        h = np.random.randn(3, 3).astype(np.float32)
+        A = Convolve(input_shape=(32, 32), h=h)
+        assert isinstance(A.h, jax.interpreters.xla.DeviceArray)
 
 
 class TestConvolveByX:
@@ -328,6 +334,11 @@ def test_dimension_mismatch(cbx_testobj):
 
 
 def test_ndarray_x():
-    x = jax.device_put(np.random.randn(3, 3).astype(np.float32))
-    A = ConvolveByX(input_shape=(32, 32), x=x)
-    assert isinstance(A.x, jax.interpreters.xla.DeviceArray)
+    # Used to restore the warnings after the context is used
+    with warnings.catch_warnings():
+        # Ignores warning raised by ensure_on_device
+        warnings.filterwarnings(action="ignore", category=UserWarning)
+
+        x = np.random.randn(3, 3).astype(np.float32)
+        A = ConvolveByX(input_shape=(32, 32), x=x)
+        assert isinstance(A.x, jax.interpreters.xla.DeviceArray)
