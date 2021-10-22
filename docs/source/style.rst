@@ -439,9 +439,7 @@ A few notable guidelines:
 
       .. math::
 
-       \Delta \varphi = f."
-
-
+       \Delta \varphi = f \;."
 
     * Do not capitalize acronyms or inititalisms when defining them,
       e.g., "computer-aided system engineering (CASE),"
