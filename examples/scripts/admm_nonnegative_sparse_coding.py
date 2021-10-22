@@ -76,7 +76,7 @@ solver = ADMM(
 """
 Run the solver.
 """
-print("Solving on %s\n" % device_info())
+print(f"solving on {device_info()}\n")
 x = solver.solve()
 
 

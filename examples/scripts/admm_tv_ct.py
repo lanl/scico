@@ -81,7 +81,7 @@ solver = ADMM(
 """
 Run the solver.
 """
-print("Solving on %s\n" % device_info())
+print(f"solving on {device_info()}\n")
 solver.solve()
 hist = solver.itstat_object.history(transpose=True)
 x_reconstruction = snp.clip(solver.x, 0, 1.0)

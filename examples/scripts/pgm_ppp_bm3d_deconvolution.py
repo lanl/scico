@@ -64,7 +64,7 @@ maxiter = 50  # number of APGM iterations
 
 solver = AcceleratedPGM(f=f, g=g, L0=L0, x0=A.T @ y, maxiter=maxiter, verbose=True)
 
-print("Solving on %s\n" % device_info())
+print(f"solving on {device_info()}\n")
 x = solver.solve()
 x = snp.clip(x, 0, 1)
 hist = solver.itstat_object.history(transpose=True)

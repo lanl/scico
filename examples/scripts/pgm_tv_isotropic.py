@@ -149,7 +149,7 @@ solver_iso = AcceleratedPGM(
 )
 
 # Run the solver.
-print("Solving on %s\n" % device_info())
+print(f"solving on {device_info()}\n")
 x = solver_iso.solve()
 hist_iso = solver_iso.itstat_object.history(transpose=True)
 # Project to constraint set.
