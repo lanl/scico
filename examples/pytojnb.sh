@@ -1,8 +1,8 @@
 #! /bin/bash
 
 # Convert a Python script into a Jupyter notebook
-# Call as
-#    pytojnb <input_py_file> <output_jnb_file>
+# Run as
+#    pytojnb.sh <input_py_file> <output_jnb_file>
 
 src=$1
 dst=$2

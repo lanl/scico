@@ -14,12 +14,11 @@ The procedure for adding a adding a new notebook to the documentation is:
 
 1. Add an entry for the source file in ``scripts/index.rst``. Note that a script that is not listed in this index will not be converted into a notebook.
 
-2. Run ``makeindex.py`` to update the example scripts README file and the notebook index file in the docs.
+2. Run ``makeindex.py`` to update the example scripts README file, the notebook index file, and the examples index in the docs.
 
 3. Run ``makejnb.py`` to build the new notebook, as well as any other notebooks that are out of date with respect to their source scripts, as determined by the respective file timestamps.
 
-4. Add and commit the new script, the ``scripts/index.rst`` script index file, the auto-generated
-``scripts/README.rst`` file and ``docs/source/examples.rst`` index file, and the new or updated notebooks (following the submodule handling procedure as described in the developer docs).
+4. Add and commit the new script, the ``scripts/index.rst`` script index file, the auto-generated ``scripts/README.rst`` file and ``docs/source/examples.rst`` index file, and the new or updated notebooks and the auto-generated ``notebooks/index.ipynb`` file in the notebooks directory (following the submodule handling procedure as described in the developer docs).
 
 
 The procedure for rebuilding notebook(s) after the source file(s) have been modified is:
@@ -29,16 +28,20 @@ The procedure for rebuilding notebook(s) after the source file(s) have been modi
 2. Add and commit the modified script(s), and the updated notebooks (following the submodule handling procedure as described in the developer docs).
 
 
+
 Management Utilities
 --------------------
 
 A number of files in this directory assist in the mangement of the usage examples:
 
 `examples_requirements.txt <examples_requirements.txt>`_
-   Requirements file (as used by ``pip``) listing additional dependencies for the usage examples.
+   Requirements file (as used by ``pip``) listing additional dependencies for running the usage example scripts.
+
+`notebooks_requirements.txt <examples_requirements.txt>`_
+   Requirements file (as used by ``pip``) listing additional dependencies for building the Jupyter notebooks from the usage example scripts.
 
 `makejnb.py <makejnb.py>`_
-   An alternative to the makefile for updating the auto-generated Jupyter notebooks. Requires package ``ray`` to be installed. Notebooks are executed in parallel.
+   An alternative to the makefile for updating the auto-generated Jupyter notebooks. Notebooks are executed in parallel using the ``ray`` package.
 
 `makeindex.py <makeindex.py>`_
    Auto-generate the docs example index ``docs/source/examples.rst`` from the example scripts index ``scripts/index.rst``.
