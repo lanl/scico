@@ -423,3 +423,31 @@ An example of this is complicated operations which most likely require a block o
     i = i & (i-1) == 0:  # true if i is 0 or a power of 2 [explains the concept not the code]
 
 If a comment consists of one or more full sentences (as is typically the case for *block* comments), it should start with an upper case letter and end with a period. *Inline* comments often consist of a brief phrase which is not a full sentence, in which case they should have a lower case initial letter and not have a terminating period.
+
+Documentation Pages
+-------------------
+Documentation that is separate from code (like this page)
+should follow the
+`IEEE Style Manual
+<https://journals.ieeeauthorcenter.ieee.org/your-role-in-article-production/ieee-editorial-style-manual/>`_.
+For additional grammar and usage guidance,
+refer to `The Chicago Manual of Style <https://www.chicagomanualofstyle.org/>`_.
+A few notable guidelines:
+
+    * Equations which conclude a sentence should end with a period,
+      e.g., "Poisson's equation is
+
+      .. math::
+
+       \Delta \varphi = f \;."
+
+    * Do not capitalize acronyms or inititalisms when defining them,
+      e.g., "computer-aided system engineering (CASE),"
+      "fast Fourier transform (FFT)."
+
+    * Avoid capitalization in text except where absolutely necessary,
+      e.g., "Newton’s first law."
+
+
+The source code (`.rst` files) for these pages does not have a line-length guideline,
+but line breaks at or before 79 characters are encouraged.
