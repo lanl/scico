@@ -65,7 +65,7 @@ def testobj():
 
 def test_DnCNN_call(testobj):
     # Test for the construction / forward pass
-    dnx, _ = testobj.dncnn.apply(testobj.variables, testobj.x, train=False, mutable=["batch_stats"])
+    dnx = testobj.dncnn.apply(testobj.variables, testobj.x, train=False, mutable=False)
     assert testobj.x.dtype == dnx.dtype
 
 

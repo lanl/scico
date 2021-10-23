@@ -58,5 +58,5 @@ class FlaxMap(Functional):
                 x = x.reshape((1,) + x.shape + (1,))
             elif x.ndim == 3:
                 x = x.reshape((1,) + x.shape)
-            y, _ = self.model.apply(self.variables, x, train=False, mutable=["batch_stats"])
+            y = self.model.apply(self.variables, x, train=False, mutable=False)
             return snp.squeeze(y)
