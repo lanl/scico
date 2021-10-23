@@ -21,7 +21,6 @@ from scico.util import (
 
 
 def test_ensure_on_device():
-
     NP = np.ones(2)
     SNP = snp.ones(2)
     BA = BlockArray.array([NP, SNP])
@@ -43,13 +42,13 @@ def test_ensure_on_device():
 
 
 def test_url_get():
-    url = "https://webpages.tuni.fi/foi/GCF-BM3D/BM3D_TIP_2007.pdf"
-    assert not url_get(url).getvalue().find(b"bm3d") == -1
+    url = "https://github.com/lanl/scico/blob/main/README.rst"
+    assert not url_get(url).getvalue().find(b"SCICO") == -1
 
     url = "about:blank"
     np.testing.assert_raises(urlerror.URLError, url_get, url)
 
-    url = "https://webpages.tuni.fi/foi/GCF-BM3D/BM3D_TIP_2007.pdf"
+    url = "https://github.com/lanl/scico/blob/main/README.rst"
     np.testing.assert_raises(ValueError, url_get, url, -1)
 
 
@@ -101,7 +100,6 @@ def test_check_for_tracer():
 
 
 def test_is_nested():
-
     # list
     assert is_nested([1, 2, 3]) == False
 

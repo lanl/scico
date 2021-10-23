@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 
+# Extract a list of Python scripts from "scripts/index.rst" and
+# create/update and execute any Jupyter notebooks that are out
+# of date with respect to their source Python scripts.
+# Run as
+#     python makejnb.py
+
+
+import re
 from pathlib import Path
 
 import nbformat
@@ -11,18 +19,31 @@ except ImportError:
     raise RuntimeError("The ray package is required to run this script")
 import os
 
-# source scripts
-scripts = list(Path("scripts").glob("*py"))
+# Read script names from index file
+scriptnames = []
+srcidx = "scripts/index.rst"
+with open(srcidx, "r") as idxfile:
+    for line in idxfile:
+        m = re.match(r"(\s+)- ([^\s]+.py)", line)
+        if m:
+            scriptnames.append(m.group(2))
+# Ensure list entries are unique
+scriptnames = list(set(scriptnames))
+
+# Construct script paths
+scripts = [Path("scripts") / Path(s) for s in scriptnames]
+
 notebooks = []
-# construct list of scripts that are have no corresponding notebook or
+# Construct list of scripts that are have no corresponding notebook or
 # are more recent than corresponding notebook
 for s in scripts:
     nb = Path("notebooks") / (s.stem + ".ipynb")
     if not nb.is_file() or s.stat().st_mtime > nb.stat().st_mtime:
-        # make notebook file
-        os.popen(f"./pytojnb {s} {nb}")
-        # add it to the list for execution
+        # Make notebook file
+        os.popen(f"./pytojnb.sh {s} {nb}")
+        # Add it to the list for execution
         notebooks.append(nb)
+
 
 ray.init()
 
@@ -36,12 +57,12 @@ else:
     ngpu = 0
     ar = ray.available_resources()
     if "GPU" in cr:
-        ngpu = ar["GPU"]
+        ngpu = int(ar["GPU"])
     if ngpu < 2:
         print("Warning: host has fewer than two GPUs available")
     print(f"Executing on {ngpu} GPUs")
 
-# function to execute each notebook with one gpu each
+# Function to execute each notebook with one GPU
 @ray.remote(num_gpus=1)
 def run_nb(fname):
     with open(fname) as f:

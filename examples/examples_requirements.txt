@@ -1,5 +1,3 @@
 astra-toolbox
 colour_demosaicing
 xdesign
-py2jn
-nb_conda_kernels

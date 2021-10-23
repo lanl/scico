@@ -26,6 +26,7 @@ import jax
 
 from scico import functional, linop, loss, plot
 from scico.admm import ADMM, LinearSubproblemSolver
+from scico.util import device_info
 
 """
 Create random dictionary, reference random sparse representation, and
@@ -75,6 +76,7 @@ solver = ADMM(
 """
 Run the solver.
 """
+print(f"Solving on {device_info()}\n")
 x = solver.solve()
 
 

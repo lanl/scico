@@ -32,8 +32,10 @@ Automatic Installation
 
 The recommended way to install SCICO and its dependencies is via `conda <https://docs.conda.io/en/latest/>`_ using the scripts in ``misc/conda``:
 
-  - ``install_conda.sh``: install ``miniconda`` (needed if conda is not already installed on your system)
-  - ``conda_env.sh``: install a ``conda`` environment with all SCICO dependencies
+  - ``install_conda.sh``: install ``miniconda``
+    (needed if conda is not already installed on your system).
+  - ``conda_env.sh``: install a ``conda`` environment
+    with all SCICO dependencies. For GPU installation, see ``conda_env.sh -h``.
 
 
 Manual Installation

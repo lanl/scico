@@ -2,31 +2,29 @@ Operators
 =========
 
 .. todo::
-  * link to PyLops, scipy abstract linear operators
   * Document :func:`._wrap_mul_div_scalar`, :func:`._wrap_sum`
 
-Matrix-free representation of operators.
-
-* Operator:  generic operator
-* LinearOperator:  a linear map
-
-SCICO :class:`.LinearOperator` is a linear operator that is designed to work with :class:`.BlockArray`.
-
+An operator is a map from :math:`\mathbb{R}^n` or :math:`\mathbb{C}^n`
+to :math:`\mathbb{R}^m` or :math:`\mathbb{C}^m`.
+In SCICO, operators are primarily used to represent imaging systems
+and provide regularization.
+SCICO operators are represented by instances of the :class:`.Operator` class.
 
 
-Consider a two dimensional array :math:`\mb{x} \in \mathbb{R}^{n \times m}`.
+SCICO :class:`.Operator` objects extend the notion of "shape" and "size" from the usual NumPy ``ndarray`` class.
+Each :class:`.Operator` object has an ``input_shape`` and ``output_shape``; these shapes can be either tuples or a tuple of tuples
+(in the case of a :class:`.BlockArray`).
+The ``matrix_shape`` attribute describes the shape of the :class:`.LinearOperator` if it were to act on vectorized, or flattened, inputs.
+
+
+For example, consider a two dimensional array :math:`\mb{x} \in \mathbb{R}^{n \times m}`.
 We compute the discrete differences of :math:`\mb{x}` in the horizontal and vertical directions,
 generating two new arrays: :math:`\mb{x}_h \in \mathbb{R}^{n \times (m-1)}` and :math:`\mb{x}_v \in
 \mathbb{R}^{(n-1) \times m}`.  We represent this linear operator by
 :math:`\mb{A} : \mathbb{R}^{n \times m} \to \mathbb{R}^{n \times (m-1)} \otimes \mathbb{R}^{(n-1) \times m}`.
-
 In SCICO, this linear operator will return a :class:`.BlockArray` with the horizontal and vertical differences
-stored as blocks.  Letting :math:`y = \mb{A} x`, we have ``y.shape = ((n, m-1), (n-1, m))``.
-
-
-SCICO :class:`.LinearOperator` objects extend the notion of "shape" and "size" from the usual NumPy ``ndarray`` class.
-Each :class:`.LinearOperator` object has an ``input_shape`` and ``output_shape``; these shapes can be either tuples or a tuple of tuples
-(in the case of a :class:`.BlockArray`).   For the finite difference operator above,
+stored as blocks.  Letting :math:`y = \mb{A} x`, we have ``y.shape = ((n, m-1), (n-1, m))``
+and
 
    ::
 
@@ -38,16 +36,11 @@ Each :class:`.LinearOperator` object has an ``input_shape`` and ``output_shape``
       A.matrix_shape = (n*(n-1)*m*(m-1), n*m)    # (output_size, input_size)
 
 
-The ``matrix_shape`` attribute describes the shape of the :class:`.LinearOperator` if it were to act on vectorized, or flattened,
-inputs.
-
-
-
-
-Using An Operator
+Operator Calculus
 -----------------
-Call: ``A(x)``
-
+SCICO supports a variety of operator calculus rules,
+allowing new operators to be defined in terms of old ones.
+The following table summarizes the available operations.
 
 +----------------+-----------------+
 | Operation      |  Result         |
@@ -70,8 +63,8 @@ Call: ``A(x)``
 
 Defining A New Operator
 -----------------------
-
-Pass a callable to the Operator constructor:
+To define a new operator,
+pass a callable to the :class:`.Operator` constructor:
 
   ::
 
@@ -79,9 +72,7 @@ Pass a callable to the Operator constructor:
                    eval_fn = lambda x: 2 * x)
 
 
-Or via subclassing:
-
-At a minimum, the ``_eval`` function must be overridden:
+Or use subclassing:
 
   ::
 
@@ -93,74 +84,45 @@ At a minimum, the ``_eval`` function must be overridden:
 
      >>> A = MyOp(input_shape=(32,))
 
-
-
-* If either ``output_shape`` or ``output_dtype`` are unspecified, they are determined by evaluating
-  the Operator on an input of appropriate shape and dtype.
-
+At a minimum, the ``_eval`` function must be overridden.
+If either ``output_shape`` or ``output_dtype`` are unspecified, they are determined by evaluating
+the operator on an input of appropriate shape and dtype.
 
 
 Linear Operators
 ================
 
-Specialization of :class:`.Operator` to linear operators.
+Linear operators are those for which
 
+  .. math::
 
+    H(a \mb{x} + b \mb{y}) = a H(\mb{x}) + b H(\mb{y}).
 
-
-
-Operations using LinearOperator
--------------------------------
-
-``A`` and ``B`` are :class:`.LinearOperator` of the same shape,
-``x`` is an array of appropriate shape,
-``c`` is a scalar, and
-``O`` is :class:`.Operator`
-
-+----------------+----------------------------+
-| Operation      |  Result                    |
-+----------------+----------------------------+
-| ``(A+B)(x)``   | ``A(x) + B(x)``            |
-+----------------+----------------------------+
-| ``(A-B)(x)``   | ``A(x) - B(x)``            |
-+----------------+----------------------------+
-| ``(c * A)(x)`` | ``c * A(x)``               |
-+----------------+----------------------------+
-| ``(A/c)(x)``   | ``A(x)/c``                 |
-+----------------+----------------------------+
-| ``(-A)(x)``    | ``-A(x)``                  |
-+----------------+----------------------------+
-| ``(A@B)(x)``   | ``A@B@x``                  |
-+----------------+----------------------------+
-| ``A @ B``      | ``ComposedLinearOperator`` |
-+----------------+----------------------------+
-| ``A @ O``      | ``Operator``               |
-+----------------+----------------------------+
-| ``O(A)``       | ``Operator``               |
-+----------------+----------------------------+
+SCICO represents linear operators as instances of the class :class:`.LinearOperator`.
+While finite-dimensional linear operators
+can always be associated with a matrix,
+it is often useful to represent them in a matrix-free manner.
+Most of SCICO's linear operators are implemented matrix-free.
 
 
 
 Using A LinearOperator
 ----------------------
 
-Evaluating a LinearOperator
-
-
-We implement two ways to evaluate the LinearOperator. The first is using standard
+We implement two ways to evaluate a :class:`.LinearOperator`. The first is using standard
 callable syntax: ``A(x)``. The second mimics the NumPy matrix multiplication
 syntax: ``A @ x``. Both methods perform shape and type checks to validate the
-input before ultimately either calling `A._eval` or generating a new LinearOperator.
+input before ultimately either calling `A._eval` or generating a new :class:`.LinearOperator`.
 
-For LinearOperators that map real-valued inputs to real-valued outputs, there are two ways to apply the adjoint:
+For linear operators that map real-valued inputs to real-valued outputs, there are two ways to apply the adjoint:
 ``A.adj(y)`` and ``A.T @ y``.
 
-For complex-valued LinearOperators, there are three ways to apply the adjoint ``A.adj(y)``, ``A.H @ y``, and ``A.conj().T @ y``.
+For complex-valued linear operators, there are three ways to apply the adjoint ``A.adj(y)``, ``A.H @ y``, and ``A.conj().T @ y``.
 Note that in this case, ``A.T`` returns the non-conjugated transpose of the LinearOperator.
 
-While the cost of evaluating the LinearOperator is virtually identical for ``A(x)`` and ``A @ x``,
+While the cost of evaluating the linear operator is virtually identical for ``A(x)`` and ``A @ x``,
 the ``A.H`` and ``A.conj().T`` methods are somewhat slower; especially the latter. This is because two
-intermediate LinearOperators must be created before the function is evaluated.   Evaluating ``A.conj().T @ y``
+intermediate linear operators must be created before the function is evaluated.   Evaluating ``A.conj().T @ y``
 is equivalent to:
 
 ::
@@ -191,18 +153,46 @@ For instance:
 The public methods perform shape and type checking to validate the input before either calling the corresponding
 private method or returning a composite LinearOperator.
 
-Jit Options
------------
 
-.. todo::
+Linear Operator Calculus
+------------------------
+SCICO supports several linear operator calculus rules.
+Given
+``A`` and ``B`` of class :class:`.LinearOperator` and of appropriate shape,
+``x`` an array of appropriate shape,
+``c`` a scalar, and
+``O`` an :class:`.Operator`,
+we have
 
-   details
++----------------+----------------------------+
+| Operation      |  Result                    |
++----------------+----------------------------+
+| ``(A+B)(x)``   | ``A(x) + B(x)``            |
++----------------+----------------------------+
+| ``(A-B)(x)``   | ``A(x) - B(x)``            |
++----------------+----------------------------+
+| ``(c * A)(x)`` | ``c * A(x)``               |
++----------------+----------------------------+
+| ``(A/c)(x)``   | ``A(x)/c``                 |
++----------------+----------------------------+
+| ``(-A)(x)``    | ``-A(x)``                  |
++----------------+----------------------------+
+| ``(A@B)(x)``   | ``A@B@x``                  |
++----------------+----------------------------+
+| ``A @ B``      | ``ComposedLinearOperator`` |
++----------------+----------------------------+
+| ``A @ O``      | ``Operator``               |
++----------------+----------------------------+
+| ``O(A)``       | ``Operator``               |
++----------------+----------------------------+
 
 
-Defining A New LinearOperator
------------------------------
 
-Pass a callable to the LinearOperator constructor
+Defining A New Linear Operator
+------------------------------
+
+To define a new linear operator,
+pass a callable to the :class:`.LinearOperator` constructor
 
   ::
 
@@ -211,9 +201,7 @@ Pass a callable to the LinearOperator constructor
      ...       eval_fn = lambda x: 2 * x)
 
 
-Subclassing:
-
-At a minimum, the ``_eval`` method must be overridden:
+Or, use subclassing:
 
   ::
 
@@ -223,54 +211,31 @@ At a minimum, the ``_eval`` method must be overridden:
 
      >>> A = MyLinearOperator(input_shape=(32,))
 
-
-* If the ``_adj`` method is not overriden, the adjoint is determined using :func:`scico.linear_adjoint`.
-* If either ``output_shape`` or ``output_dtype`` are unspecified, they are determined by evaluating
-  the Operator on an input of appropriate shape and dtype.
-
+At a minimum, the ``_eval`` method must be overridden.
+If the ``_adj`` method is not overriden, the adjoint is determined using :func:`scico.linear_adjoint`.
+If either ``output_shape`` or ``output_dtype`` are unspecified, they are determined by evaluating
+the Operator on an input of appropriate shape and dtype.
 
 
 🔪 Sharp Edges 🔪
 ------------------
 
-Strict types in adjoint
+Strict Types in Adjoint
 ***********************
 
-.. todo::
+SCICO silently promotes real types to complex types in forward application,
+but enforces strict type checking in the adjoint.
+This is due to the strict type-safe nature of jax adjoints.
 
-   We silently promote real->complex types in forward application, but have strict type checking in the adjoint.
-   This is due to the strict type-safe nature of jax adjoints
 
-
-LinearOperators from External Code
+LinearOperators From External Code
 **********************************
 
-.. todo::
-
-  Fill this out!
-
-* Pain point:  adjoint and defining VJP for gradient computations
-  For example, might want to compute :math:`\nabla_x \norm{y - A x}_2^2` where :math:`A` is not a pure  jax function
-* Discuss VJP framework
-* Can't use ``jax.linear_transpose``; must use VJP framework to determine adjoint
-* Complexities for complex functions
-
-`Vector-Jacobian Product <https://jax.readthedocs.io/en/latest/notebooks/autodiff_cookbook.html#vector-jacobian-products-vjps-aka-reverse-mode-autodiff>`_
-  .. math::
-    \begin{aligned}
-    &f : \mathbb{R}^n \to \mathbb{R}^m \\
-    &\partial f(x) : \mathbb{R}^n \times \mathbb{R}^m \\
-    &v \in \mathbb{R}^m \\
-    &\mathrm{vjp}_f (x, v) \to v \partial f(x)
-    \end{aligned}
-
-  .. math::
-    \begin{aligned}
-    &A \in \mathbb{R}^{m \times n} \\
-    &f(x) = A x \\
-    & \partial f(x) = A \\
-    &\mathrm{vjp}_f (x, v) \to v \partial f = v A = A^T v
-    \end{aligned}
-
-
-`Custom VJP rules <https://jax.readthedocs.io/en/latest/notebooks/Custom_derivative_rules_for_Python_code.html>`_
+External code may be wrapped as a subclass of :class:`.Operator` or :class:`.LinearOperator`
+and used in SCICO optimization routines;
+however this process can be complicated and error-prone.
+As a starting point,
+look at the source for :class:`.radon_svmbir.ParallelBeamProjector` or :class:`.radon_astra.ParallelBeamProjector`
+and the JAX documentation for the
+`vector-jacobian product <https://jax.readthedocs.io/en/latest/notebooks/autodiff_cookbook.html#vector-jacobian-products-vjps-aka-reverse-mode-autodiff>`_
+and `ustom VJP rules <https://jax.readthedocs.io/en/latest/notebooks/Custom_derivative_rules_for_Python_code.html>`_.

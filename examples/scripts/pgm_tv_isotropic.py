@@ -14,60 +14,52 @@ to solve isotropic total variation (TV) regularization. It solves the
 denoising problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - \mathbf{x}
-  \|^2 + \lambda R(\mathbf{x}) \;,$$
+  \|^2 + \lambda R(\mathbf{x}) + \iota_C(\mathbf{x}) \;,$$
 
-where $R$ is the isotropic TV: the sum of the norms of the gradient
-vectors at each point in the image $\mathbf{x}$. The same
-reconstruction is performed with anisotropic TV regularization for
-comparison; the isotropic version shows fewer block-like artifacts.
+where $R$ is a TV regularizer, $\iota_C(\cdot)$ is the indicator function
+of constraint set $C$, and $C = \{ \mathbf{x} \, | \, x_i \in [0, 1] \}$,
+i.e. the set of vectors with components constrained to be in the interval
+$[0, 1]$. The problem is solved seperately with $R$ taken as isotropic
+and anisotropic TV regularization
 
-The solution via PGM is based on :cite:`beck-2009-tv`. This follows a
-dual approach that constructs a dual for the constrained denoising
-problem (the constraint given by restricting the solution to the [0,1]
-range). The PGM solution minimizes the resulting dual. In this case,
-switching between the two regularizers corresponds to switching
-between two different projectors.
+The solution via PGM is based on the approach in :cite:`beck-2009-tv`,
+which involves constructing a dual for the constrained denoising problem.
+The PGM solution minimizes the resulting dual. In this case, switching
+between the two regularizers corresponds to switching between two
+different projectors.
 """
 
 from typing import Callable, Optional, Union
 
 import jax
 import jax.numpy as jnp
-import jax.scipy as jsp
 
+from xdesign import SiemensStar, discrete_phantom
+
+import scico.numpy as snp
+import scico.random
 from scico import functional, linop, loss, operator, plot
 from scico.blockarray import BlockArray
 from scico.pgm import AcceleratedPGM, RobustLineSearchStepSize
 from scico.typing import JaxArray
-from scico.util import ensure_on_device
+from scico.util import device_info, ensure_on_device
 
 """
 Create a ground truth image.
 """
 N = 256  # image size
-
-
-# Create a ground truth image by spatially filtering noise.
-kernel_size = N // 5
-key = jax.random.PRNGKey(1)
-x_gt = jax.random.uniform(key, shape=(N + kernel_size - 1, N + kernel_size - 1))
-x = jnp.linspace(-3, 3, kernel_size)
-window = jsp.stats.norm.pdf(x) * jsp.stats.norm.pdf(x[:, None])
-window = window / window.sum()
-x_gt = jsp.signal.convolve(x_gt, window, mode="valid")
-x_gt = (x_gt > jnp.percentile(x_gt, 25)).astype(float) + (x_gt > jnp.percentile(x_gt, 75)).astype(
-    float
-)
+phantom = SiemensStar(16)
+x_gt = snp.pad(discrete_phantom(phantom, 240), 8)
+x_gt = jax.device_put(x_gt)  # convert to jax type, push to GPU
 x_gt = x_gt / x_gt.max()
 
 
 """
 Add noise to create a noisy test image.
 """
-σ = 1.0  # noise standard deviation
-key, subkey = jax.random.split(key)
-n = σ * jax.random.normal(subkey, shape=x_gt.shape)
-y = x_gt + n
+σ = 0.75  # noise standard deviation
+noise, key = scico.random.randn(x_gt.shape, seed=0)
+y = x_gt + σ * noise
 
 
 """
@@ -113,6 +105,8 @@ class DualTVLoss(loss.Loss):
 Denoise with isotropic total variation. Define projector for isotropic
 total variation.
 """
+
+
 # Evaluation of functional set to zero.
 class IsoProjector(functional.Functional):
 
@@ -139,7 +133,7 @@ class IsoProjector(functional.Functional):
 Use RobustLineSearchStepSize object and set up AcceleratedPGM solver
 object. Run the solver.
 """
-reg_weight_iso = 2e0
+reg_weight_iso = 1.4e0
 f_iso = DualTVLoss(y=y, A=A, lmbda=reg_weight_iso)
 f_iso.is_smooth = True
 g_iso = IsoProjector()
@@ -155,6 +149,7 @@ solver_iso = AcceleratedPGM(
 )
 
 # Run the solver.
+print(f"Solving on {device_info()}\n")
 x = solver_iso.solve()
 hist_iso = solver_iso.itstat_object.history(transpose=True)
 # Project to constraint set.
@@ -165,6 +160,8 @@ x_iso = jnp.clip(y - f_iso.lmbda * f_iso.A(x), 0.0, 1.0)
 Denoise with anisotropic total variation for comparison. Define
 projector for anisotropic total variation.
 """
+
+
 # Evaluation of functional set to zero.
 class AnisoProjector(functional.Functional):
 
@@ -186,7 +183,7 @@ object. Weight was tuned to give the same data fidelty as the
 isotropic case. Run the solver.
 """
 
-reg_weight_aniso = 1.74e0
+reg_weight_aniso = 1.2e0
 f = DualTVLoss(y=y, A=A, lmbda=reg_weight_aniso)
 f.is_smooth = True
 g = AnisoProjector()
@@ -233,7 +230,7 @@ fig.colorbar(
 fig.suptitle("Denoising comparison")
 fig.show()
 
-# Zoomed version
+# zoomed version
 fig, ax = plot.subplots(nrows=2, ncols=2, sharex=True, sharey=True, figsize=(11, 10))
 plot.imview(x_gt, title="Ground truth", fig=fig, ax=ax[0, 0], **plt_args)
 plot.imview(y, title="Noisy version", fig=fig, ax=ax[0, 1], **plt_args)

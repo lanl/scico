@@ -23,7 +23,7 @@ Style Guide
 Overview
 --------
 
-We adhere to `PEP8 <https://www.python.org/dev/peps/pep-0008/>`_ with the exception of allowing a line length limit of 99 characters (as opposed to 79 characters), with a stricter limit of 79 characters (as opposed to 72 characters) for docstrings or comments. We use `Black <https://github.com/psf/black>`_ as our PEP-8 Formatter and `isort <https://pypi.org/project/isort/>`_ to sort imports. (Please set up a `pre-commit hook <https://pre-commit.com>`_ to ensure any modified code passes format check before it is committed to the development repo.)
+We adhere to `PEP8 <https://www.python.org/dev/peps/pep-0008/>`_ with the exception of allowing a line length limit of 99 characters (as opposed to 79 characters). The standard limit of 72 characters for "flowing long blocks of text" in docstrings or comments is retained. We use `Black <https://github.com/psf/black>`_ as our PEP-8 Formatter and `isort <https://pypi.org/project/isort/>`_ to sort imports. (Please set up a `pre-commit hook <https://pre-commit.com>`_ to ensure any modified code passes format check before it is committed to the development repo.)
 
 We aim to incorporate `PEP 526 <https://www.python.org/dev/peps/pep-0484/>`_ type annotations throughout the library.  See the `Mypy <https://mypy.readthedocs.io/en/stable/>`_ type annotation `cheat sheet <https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html>`_ for usage examples. Custom types are defined in :mod:`.typing`.
 
@@ -90,15 +90,15 @@ Things to avoid:
 
 - Single character names except for the following special cases:
 
-   - Counters or iterators (``i``, ``j``)
-   - `e` as an exception identifier (``Exception e``)
-   - `f` as a file in ``with`` statements
-   - Mathematical notation in which a reference to the paper or algorithm with said notation is preferred if not clear from the intended purpose.
+   - counters or iterators (``i``, ``j``);
+   - `e` as an exception identifier (``Exception e``);
+   - `f` as a file in ``with`` statements;
+   - mathematical notation in which a reference to the paper or algorithm with said notation is preferred if not clear from the intended purpose.
 
 - Trailing underscores unless the component is meant to be protected or private:
 
-   - Protected: Use a single underscore, ``_``, for protected access
-   - Pseudo-private: Use double underscores, ``_``, for pseudo-private access via name mangling.
+   - protected: Use a single underscore, ``_``, for protected access; and
+   - pseudo-private: Use double underscores, ``_``, for pseudo-private access via name mangling.
 
 |
 
@@ -133,18 +133,14 @@ Variables
 
 Apart from naming conventions there are a few extra documentation and coding practices that can be applied to variables such as:
 
-- Typing Variables:
-
-   - Use a ``: type`` before the function value is assigned
-
-   | Example:
+- One may type a variables by using a ``: type`` before the function value is assigned, e.g.,
 
    .. code-block:: python
 
       a : Foo = SomeDecoratedFunction()
 
-   - Avoid global variables.
-   - A function can refer to variables defined in enclosing functions but cannot assign to them.
+- Avoid global variables.
+- A function can refer to variables defined in enclosing functions but cannot assign to them.
 
 |
 
@@ -153,10 +149,11 @@ Parameters
 
 There are three important stlyle components for parameters:
 
-- We use type annotations meaning we specify the types of the inputs and outputs of any method.
-   - From the ``typing`` module we can use more types such as ``Optional``, ``Union``, and ``Any``.
+1. Typing
 
-   | Example:
+   We use type annotations meaning we specify the types of the inputs and outputs of any method.
+   From the ``typing`` module we can use more types such as ``Optional``, ``Union``, and ``Any``.
+   For example,
 
       .. code-block:: python
 
@@ -164,13 +161,13 @@ There are three important stlyle components for parameters:
 	    """Takes an input of type string and returns a value of type string"""
 	    ...
 
-- Default Values:
+2. Default Values
 
-   - Parameter should include ``parameter_name = value`` where value is the default for that particular parameter.
-   - If the parameter has a type then the format is ``parameter_name: Type = value``
-   - Additionally when documenting parameters, a parameter can only assume one of a fixed set of values, those values can be listed in braces, with the default appearing first.
-
-   | Example:
+   Parameters should include ``parameter_name = value`` where value is the default for that particular parameter.
+   If the parameter has a type then the format is ``parameter_name: Type = value``.
+   When documenting parameters, if a parameter can only assume one of a fixed set of values,
+   those values can be listed in braces, with the default appearing first.
+   For example,
 
       .. code-block:: python
 
@@ -179,19 +176,21 @@ There are three important stlyle components for parameters:
 	     Description of `letters`.
 	 """
 
-- NoneType:
+3. NoneType
 
-   - In Python a ``NoneType`` is a "first-class" type.
-   - ``None`` is the most commonly used alias. \* If any of the parameters/arguments can be ``None`` then it has to be declared. ``Optional[T]`` is preferred over ``Union[T, None]``.
-
-   | Example:
+   In Python, ``NoneType`` is a first-class type, meaning the type itself
+   can be passed into and returned from functions.
+   ``None`` is the most commonly used alias for ``NoneType``.
+   If any of a function's parameters can be ``None`` then it has to be declared.
+   ``Optional[T]`` is preferred over ``Union[T, None]``.
+   For example,
 
       .. code-block:: python
 
 	 def foo(a: Optional[str], b: Optional[Union[str, int]]) -> str:
 	    ...
 
-   - For documentation purposes, ``NoneType`` or ``None`` should be written with double backticks
+   For documentation purposes, ``NoneType`` or ``None`` should be written with double backticks.
 
 |
 
@@ -207,15 +206,14 @@ Typing
 The following are docstring-specific usages that must be explained before going into the creation of said docstrings:
 
 - Always enclose variables in single backticks.
-- For the parameter types, be as precise as possible, no need for backticks.
+- For the parameter types, be as precise as possible, do not use backticks.
 
 
 Modules
 ~~~~~~~
 
 Files must start with a docstring that describes the functionality of the module.
-
-Example:
+For example,
 
 .. code-block:: python
 
@@ -233,14 +231,12 @@ Example:
 Functions
 ~~~~~~~~~
 
-| The word *function* encompasses functions, methods, or generators in this section.
-
+The word *function* encompasses functions, methods, or generators in this section.
 The docstring should give enough information to make calls  to the function without needing to read the functions code.
 
 Functions should contain docstrings unless:
-
-- not externally visible (the function name is prefaced with an underscore)
-- very short
+- not externally visible (the function name is prefaced with an underscore) or
+- very short.
 
 The docstring should be imperative-style ``"""Fetch rows from a Table"""`` instead of the descriptive-style ``"""Fetches rows from a Table"""``. If the method overrides a method from a base class then it may use a simple docstring referencing that base class such as ``"""See base class"""``, unless the behavior is different from the overridden method or there are extra details that need to be documented.
 
@@ -353,9 +349,8 @@ The following are sections that can be added to functions, modules, classes, or 
 
 -  Notes
 
-   -  Provides additional information about the code. May include mathematical equations in LaTeX format:
-
-    | Example:
+   -  Provides additional information about the code. May include mathematical equations in LaTeX format.
+      For example,
 
     .. code-block:: python
 
@@ -381,8 +376,7 @@ The following are sections that can be added to functions, modules, classes, or 
 
    -  Uses the doctest format and is meant to showcase usage.
    -  If there are multiple examples include blank lines before and after each example.
-
-    | Example:
+      For example,
 
     .. code-block:: python
 
@@ -416,7 +410,8 @@ The following are sections that can be added to functions, modules, classes, or 
 Comments
 ~~~~~~~~
 
-There are two types of comments: *block* and *inline*. A good rule of thumb to follow for when to include a comment in your code is: if you have to explain it or is too hard to figure out at first glance, then comment it. An example of this is complicated operations which most likely require a block of comments beforehand.
+There are two types of comments: *block* and *inline*. A good rule of thumb to follow for when to include a comment in your code is *if you have to explain it or is too hard to figure out at first glance, then comment it*.
+An example of this is complicated operations which most likely require a block of comments beforehand.
 
 .. code-block:: Python
 
@@ -428,3 +423,31 @@ There are two types of comments: *block* and *inline*. A good rule of thumb to f
     i = i & (i-1) == 0:  # true if i is 0 or a power of 2 [explains the concept not the code]
 
 If a comment consists of one or more full sentences (as is typically the case for *block* comments), it should start with an upper case letter and end with a period. *Inline* comments often consist of a brief phrase which is not a full sentence, in which case they should have a lower case initial letter and not have a terminating period.
+
+Documentation Pages
+-------------------
+Documentation that is separate from code (like this page)
+should follow the
+`IEEE Style Manual
+<https://journals.ieeeauthorcenter.ieee.org/your-role-in-article-production/ieee-editorial-style-manual/>`_.
+For additional grammar and usage guidance,
+refer to `The Chicago Manual of Style <https://www.chicagomanualofstyle.org/>`_.
+A few notable guidelines:
+
+    * Equations which conclude a sentence should end with a period,
+      e.g., "Poisson's equation is
+
+      .. math::
+
+       \Delta \varphi = f \;."
+
+    * Do not capitalize acronyms or inititalisms when defining them,
+      e.g., "computer-aided system engineering (CASE),"
+      "fast Fourier transform (FFT)."
+
+    * Avoid capitalization in text except where absolutely necessary,
+      e.g., "Newton’s first law."
+
+
+The source code (`.rst` files) for these pages does not have a line-length guideline,
+but line breaks at or before 79 characters are encouraged.

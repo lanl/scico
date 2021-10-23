@@ -41,7 +41,7 @@ Installing a Development Version
    `the jax example <https://jax.readthedocs.io/en/latest/contributing.html#contributing-code-using-pull-requests>`_)
 
 
-1. Create a conda environment using Python >= 3.8.
+1. Create a conda environment using Python >= 3.8:
 
 ::
 
@@ -76,7 +76,7 @@ Installing a Development Version
   pip install -r examples/examples_requirements.txt # Installs example requirements
   pip install -e .  # Installs SCICO from the current directory in editable mode.
 
-6. Set up ``black`` and ``isort`` pre-commit hooks
+6. Set up ``black`` and ``isort`` pre-commit hooks:
 
 ::
 
@@ -150,7 +150,7 @@ NOTE:  If you have added or modified an example script, see `Adding Usage Exampl
 
    git push --set-upstream origin name-of-change
 
-9.  Create a new pull request to the ``main`` branch; see `the GitHub instructions <https://docs.github.com/en/github/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request>`_
+9.  Create a new pull request to the ``main`` branch; see `the GitHub instructions <https://docs.github.com/en/github/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request>`_.
 
 10. Delete the branch after it has been merged.
 
@@ -158,9 +158,12 @@ NOTE:  If you have added or modified an example script, see `Adding Usage Exampl
 Adding Usage Examples
 ---------------------
 
-New usage examples should adhere to the same general structure as the existing examples to ensure that the mechanism for automatically generating corresponding Jupyter notebooks functions correctly. In particular:
+New usage examples should adhere to the same general structure as the
+existing examples to ensure that the mechanism for automatically
+generating corresponding Jupyter notebooks functions correctly. In
+particular:
 
-1. The initial lines of the script should consist of a comment block, followed by a blank line, followed by a multiline string with an RST heading on the first line, e.g.
+1. The initial lines of the script should consist of a comment block, followed by a blank line, followed by a multiline string with an RST heading on the first line, e.g.,
 
 ::
 
@@ -193,39 +196,29 @@ New usage examples should adhere to the same general structure as the existing e
 Adding new examples
 ^^^^^^^^^^^^^^^^^^^
 
-The following steps show how to add a new example, ``new_example.py``, to the packaged usage
-examples. We assume the SCICO repository has been cloned to ``scico/``.
+The following steps show how to add a new example, ``new_example.py``,
+to the packaged usage examples. We assume the SCICO repository has
+been cloned to ``scico/``.
 
-Note that the ``.py`` scripts are included in ``scico/examples/scripts``, while the compiled
-Jupyter Notebooks are located in the scico-data submodule, which is symlinked to ``scico/data``.
-When adding a new usage example, both the scico and scico-data repositories must be updated and
-kept in sync.
+Note that the ``.py`` scripts are included in
+``scico/examples/scripts``, while the compiled Jupyter Notebooks are
+located in the scico-data submodule, which is symlinked to
+``scico/data``.  When adding a new usage example, both the ``scico``
+and ``scico-data`` repositories must be updated and kept in sync.
 
 .. warning::
-   Ensure that all binary data (including raw data, images, ``.ipynb`` files) are added to scico-data, not the base ``scico`` repo.
-
+   Ensure that all binary data (including raw data, images, ``.ipynb`` files) are added to ``scico-data``, not the main ``scico`` repo.
 
 
 1. Add the ``new_example.py`` script to the ``scico/examples/scripts`` directory.
 
-2. Add the basename of the script (i.e., without the pathname or ``.py`` extension; in this case,
-   ``new_example``) to ``examples/notebooks/examples.rst``.
+2. Add the basename of the script (i.e., without the pathname; in this case,
+``new_example.py``) to the appropriate section of
+``examples/scripts/index.rst``.
 
-3. Convert your new example to a Jupyter notebook by navigating the ``scico/examples`` directory and performing
+3. Convert your new example to a Jupyter notebook by changing directory to the ``scico/examples`` directory and following the instructions in ``scico/examples/README.rst``.
 
-::
-
-   make notebooks/new_example.ipynb
-
-Alternatively, all examples can be run by calling
-
-::
-
-   make
-
-from ``scico/examples``.
-
-4.  Navigate to the ``data`` directory and add/commit the new Jupyter Notebook
+4.  Change directory to the ``data`` directory and add/commit the new Jupyter Notebook:
 
 ::
 
@@ -233,7 +226,7 @@ from ``scico/examples``.
    git add notebooks/new_example.ipynb
    git commit -m "Add new usage example"
 
-5.  Return to the base SCICO repository, ensure the ``main`` branch is checked out, add/commit the new script and updated submodule:
+5.  Return to the main SCICO repository, ensure the ``main`` branch is checked out, add/commit the new script and updated submodule:
 
 ::
 
@@ -254,14 +247,14 @@ Adding New Data
 
 The following steps show how to add new data, ``new_data.npz``, to the packaged data. We assume the SCICO repository has been cloned to ``scico/``.
 
-Note that the data is located in the scico-data submodule, which is symlinked to ``scico/data``.
-When adding new data, both the scico and scico-data repositories must be updated and
-kept in sync.
+Note that the data is located in the scico-data submodule, which is
+symlinked to ``scico/data``.  When adding new data, both the scico and
+scico-data repositories must be updated and kept in sync.
 
 
 1. Add the ``new_data.npz`` file to the ``scico/data`` directory.
 
-2.  Navigate to the ``data`` directory and add/commit the new data file
+2.  Navigate to the ``data`` directory and add/commit the new data file:
 
 ::
 
@@ -295,7 +288,7 @@ Running Tests
 -------------
 
 
-To be able to run the tests, install `pytest` and, optionally, `pytest-runner`
+To be able to run the tests, install `pytest` and, optionally, `pytest-runner`:
 
 ::
 
@@ -349,7 +342,7 @@ Test Coverage
 
 Test coverage is a measure of the fraction of the package code that is exercised by the tests. While this should not be the primary criterion in designing tests, it is a useful tool for finding obvious areas of omission.
 
-To be able to check test coverage, install `coverage`
+To be able to check test coverage, install `coverage`:
 
 ::
 

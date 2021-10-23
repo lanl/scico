@@ -10,7 +10,7 @@ SCICO Documentation
    install
    important_classes
    notes
-   examples/examples
+   examples
    API Reference <_autosummary/scico.rst>
    zreferences
 
