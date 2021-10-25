@@ -25,6 +25,7 @@ import jax
 
 from scico import functional, linop, loss, plot
 from scico.pgm import AcceleratedPGM
+from scico.util import device_info
 
 """
 Construct a random dictionary, a reference random sparse
@@ -63,6 +64,7 @@ solver = AcceleratedPGM(f=f, g=g, L0=L0, x0=A.adj(y), maxiter=maxiter, verbose=T
 """
 Run the solver.
 """
+print(f"Solving on {device_info()}\n")
 x = solver.solve()
 hist = solver.itstat_object.history(transpose=True)
 

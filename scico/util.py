@@ -40,25 +40,44 @@ __author__ = """\n""".join(
 )
 
 
+def device_info(id: int = 0) -> str:  # pragma: no cover
+    """Get a string describing the specified device.
+
+    Args:
+        id: ID number of device
+    """
+    numdev = jax.device_count()
+    if id >= numdev:
+        raise RuntimeError(f"Requested information for device {id} but only {numdev} present")
+    dev = jax.devices()[id]
+    if dev.platform == "cpu":
+        info = "CPU"
+    else:
+        info = f"{dev.platform.upper()} ({dev.device_kind})"
+    return info
+
+
 def ensure_on_device(
     *arrays: Union[np.ndarray, JaxArray, scico.blockarray.BlockArray]
 ) -> Union[JaxArray, scico.blockarray.BlockArray]:
-    """Casts ndarrays to DeviceArrays and leaves DeviceArrays, BlockArrays, and ShardedDeviceArray
-       as is.
+    """Cast ndarrays to DeviceArrays.
 
-    This is intended to be used when initializing optimizers and functionals so that all arrays are
-    either DeviceArrays, BlockArrays, or ShardedDeviceArray.
+    Cast ndarrays to DeviceArrays and leaves DeviceArrays, BlockArrays,
+    and ShardedDeviceArray as is. This is intended to be used when
+    initializing optimizers and functionals so that all arrays are either
+    DeviceArrays, BlockArrays, or ShardedDeviceArray.
 
     Args:
-        *arrays: One or more input arrays (ndarray, DeviceArray, BlockArray, or ShardedDeviceArray).
+        *arrays: One or more input arrays (ndarray, DeviceArray,
+           BlockArray, or ShardedDeviceArray).
 
     Returns:
-        arrays : Modified array or arrays. Modified are only those that were necessary.
+        arrays : Modified array or arrays. Modified are only those that
+           were necessary.
 
     Raises:
-        TypeError: If the arrays contain something that is neither ndarray, DeviceArray, BlockArray,
-        nor ShardedDeviceArray.
-
+        TypeError: If the arrays contain something that is neither
+           ndarray, DeviceArray, BlockArray, nor ShardedDeviceArray.
     """
     arrays = list(arrays)
 
@@ -78,8 +97,8 @@ def ensure_on_device(
             (DeviceArray, scico.blockarray.BlockArray, ShardedDeviceArray),
         ):
             raise TypeError(
-                f"Each item of `arrays` must be ndarray, DeviceArray, BlockArray, or ShardedDeviceArray; "
-                f"Argument {i+1} of {len(arrays)} is {type(arrays[i])}."
+                "Each item of `arrays` must be ndarray, DeviceArray, BlockArray, or "
+                f"ShardedDeviceArray; Argument {i+1} of {len(arrays)} is {type(arrays[i])}."
             )
 
     if len(arrays) == 1:
@@ -121,19 +140,19 @@ def url_get(url: str, maxtry: int = 3, timeout: int = 10) -> io.BytesIO:  # prag
 def parse_axes(
     axes: Axes, shape: Optional[Shape] = None, default: Optional[List[int]] = None
 ) -> List[int]:
-    """
-    Normalize `axes` to a list and optionally ensure correctness.
+    """Normalize `axes` to a list and optionally ensure correctness.
 
-    Normalize `axes` to a list and (optionally) ensure that entries refer to axes that exist
-    in `shape`.
+    Normalize `axes` to a list and (optionally) ensure that entries refer
+    to axes that exist in `shape`.
 
     Args:
-        axes: user specification of one or more axes: int, list, tuple, or ``None``
+        axes: user specification of one or more axes: int, list, tuple,
+           or ``None``
         shape: the shape of the array of which axes are being specified.
-           If not ``None``, `axes` is checked to make sure its entries refer to axes that
-           exist in `shape`.
-        default: default value to return if `axes` is ``None``. By default,
-           `list(range(len(shape)))`.
+           If not ``None``, `axes` is checked to make sure its entries
+           refer to axes that exist in `shape`.
+        default: default value to return if `axes` is ``None``. By
+           default, `list(range(len(shape)))`.
 
     Returns:
         List of axes (never an int, never ``None``)
@@ -142,7 +161,7 @@ def parse_axes(
     if axes is None:
         if default is None:
             if shape is None:
-                raise ValueError(f"`axes` cannot be `None` without a default or shape specified")
+                raise ValueError("`axes` cannot be `None` without a default or shape specified")
             else:
                 axes = list(range(len(shape)))
         else:
@@ -231,9 +250,10 @@ class Timer:
         """
         Args:
             labels: Label(s) of the timer(s) to be initialised to zero.
-            default_label : Default timer label to be used when methods are called without
-                specifying a label
-            all_label : Label string that will be used to denote all timer labels
+            default_label : Default timer label to be used when methods
+                are called without specifying a label
+            all_label : Label string that will be used to denote all
+                timer labels
         """
 
         # Initialise current and accumulated time dictionaries
@@ -257,9 +277,9 @@ class Timer:
         """Start specified timer(s).
 
         Args:
-            labels : Label(s) of the timer(s) to be started. If it is ``None``, start the
-               default timer with label specified by the `default_label` parameter of
-               :meth:`__init__`.
+            labels : Label(s) of the timer(s) to be started. If it is
+               ``None``, start the default timer with label specified by
+               the `default_label` parameter of :meth:`__init__`.
         """
 
         # Default label is self.default_label
@@ -287,10 +307,11 @@ class Timer:
         """Stop specified timer(s).
 
         Args:
-            labels: Label(s) of the timer(s) to be stopped. If it is ``None``, stop the
-               default timer with label specified by the `default_label` parameter of
-               :meth:`__init__`. If it is equal to the string specified by the
-               `all_label` parameter of :meth:`__init__`, stop all timers.
+            labels: Label(s) of the timer(s) to be stopped. If it is
+               ``None``, stop the default timer with label specified by
+               the `default_label` parameter of :meth:`__init__`. If it
+               is equal to the string specified by the `all_label`
+               parameter of :meth:`__init__`, stop all timers.
         """
 
         # Get current time
@@ -323,10 +344,11 @@ class Timer:
         """Reset specified timer(s).
 
         Args:
-            labels: Label(s) of the timer(s) to be stopped. If it is ``None``, stop the
-                default timer with label specified by the `default_label` parameter of
-                :meth:`__init__`. If it is equal to the string specified by the
-                `all_label` parameter of :meth:`__init__`, stop all timers.
+            labels: Label(s) of the timer(s) to be stopped. If it is
+                ``None``, stop the default timer with label specified by
+                the `default_label` parameter of :meth:`__init__`. If it
+                is equal to the string specified by the `all_label`
+                parameter of :meth:`__init__`, stop all timers.
         """
 
         # Default label is self.default_label
@@ -353,13 +375,15 @@ class Timer:
         """Get elapsed time since timer start.
 
         Args:
-           label: Label of the timer for which the elapsed time is required.  If it is
-               ``None``, the default timer with label specified by the `default_label`
-               parameter of :meth:`__init__` is selected.
-           total:  If ``True`` return the total elapsed time since the first call of
-               :meth:`start` for the selected timer, otherwise return the elapsed time
-               since the most recent call of :meth:`start` for which there has not been
-               a corresponding call to :meth:`stop`.
+           label: Label of the timer for which the elapsed time is
+               required.  If it is ``None``, the default timer with label
+               specified by the `default_label` parameter of
+               :meth:`__init__` is selected.
+           total:  If ``True`` return the total elapsed time since the
+               first call of :meth:`start` for the selected timer,
+               otherwise return the elapsed time since the most recent
+               call of :meth:`start` for which there has not been a
+               corresponding call to :meth:`stop`.
 
         Returns:
            Elapsed time
@@ -459,10 +483,12 @@ class ContextTimer:
         Args:
            timer: Timer object to be used as a context manager. If ``None``, a
               new class:`Timer` object is constructed.
-           label: Label of the timer to be used. If it is ``None``, start the default timer.
-           action: Actions to be taken on context entry and exit. If the value is 'StartStop',
-              start the timer on entry and stop on exit; if it is 'StopStart', stop the timer
-              on entry and start it on exit.
+           label: Label of the timer to be used. If it is ``None``, start
+              the default timer.
+           action: Actions to be taken on context entry and exit. If the
+              value is 'StartStop', start the timer on entry and stop on
+              exit; if it is 'StopStart', stop the timer on entry and
+              start it on exit.
         """
 
         if action not in ["StartStop", "StopStart"]:
@@ -501,10 +527,11 @@ class ContextTimer:
         """Return the elapsed time for the timer.
 
         Args:
-          total: If ``True`` return the total elapsed time since the first call of
-             :meth:`start` for the selected timer, otherwise return the elapsed time
-             since the most recent call of :meth:`start` for which there has not been
-             a corresponding call to :meth:`stop`.
+          total: If ``True`` return the total elapsed time since the
+             first call of :meth:`start` for the selected timer,
+             otherwise return the elapsed time since the most recent call
+             of :meth:`start` for which there has not been a
+             corresponding call to :meth:`stop`.
 
         Returns:
           Elapsed time

@@ -166,9 +166,8 @@ solver = ADMM(
     subproblem_solver=CircularConvolveSolver(),
 )
 
-t = util.Timer()
-with util.ContextTimer(t):
-    solver.solve()
+print("Solving on %s\n" % util.device_info())
+solver.solve()
 solve_stats = solver.itstat_object.history(transpose=True)
 x_pad = solver.x
 x = x_pad[: y.shape[0], : y.shape[1], : y.shape[2]]
