@@ -41,14 +41,14 @@ Installing a Development Version
 2. Make sure that you have Python >= 3.8 installed in order to create a conda virtual environment.
 
 
-3. To create a conda virtual environment, clone your fork from source. To do a clone on SCICO that includes the SCICO Data submodule you need to do:
+3. To create a conda virtual environment, clone your fork from source. To do a clone on SCICO that includes the SCICO Data submodule:
 
 ::
 
    git clone --recurse-submodules git@github.com:<username>/scico.git
 
 
-4. Add the SCICO repo as an upstream remote to sync your changes.
+4. Add the SCICO repo as an upstream remote to sync your changes:
 
 ::
 
