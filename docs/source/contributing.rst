@@ -35,7 +35,7 @@ Installing a Development Version
 --------------------------------
 
 
-1. Fork both the SCICO repository and the SCICO Data submodule by clicking the Fork button on the [repository page](https://github.com/lanl/scico). This will create a copy of both SCICO and SCICO Data repositories in your Git account.
+1. Fork both the SCICO repository and the SCICO Data submodule by clicking the Fork button on the `repository page <https://github.com/lanl/scico>`_. This will create a copy of both SCICO and SCICO Data repositories in your Git account.
 
 
 2. Make sure that you have Python >= 3.8 installed in order to create a conda virtual environment.
