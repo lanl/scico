@@ -35,58 +35,62 @@ Installing a Development Version
 --------------------------------
 
 
-.. todo::
-
-   At time of public release, this should be updated to a forking tutorial (see
-   `the jax example <https://jax.readthedocs.io/en/latest/contributing.html#contributing-code-using-pull-requests>`_)
+1. Fork both the SCICO repository and the SCICO Data submodule by clicking the Fork button on the [repository page](https://github.com/lanl/scico). This will create a copy of both SCICO and SCICO Data repositories in your Git account.
 
 
-1. Create a conda environment using Python >= 3.8:
-
-::
-
-   conda create -n scico python=3.8
+2. Make sure that you have Python >= 3.8 installed in order to create a conda virtual environment.
 
 
-2. Activate the conda virtual environment:
+3. To create a conda virtual environment, clone your fork from source. To do a clone on SCICO that includes the SCICO Data submodule you need to do:
 
 ::
 
-   conda activate scico
+   git clone --recurse-submodules git@github.com:<username>/scico.git
 
-3. Clone the SCICO repository:
+
+4. Add the SCICO repo as an upstream remote to sync your changes.
 
 ::
 
-   git clone https://github.com/lanl/scico.git --recurse-submodules
+   git remote add upstream https://www.github.com/lanl/scico
 
 
-4. Navigate to the cloned repository:
+5. After adding the upstream, the recommended way to install SCICO and its dependencies is via `conda <https://docs.conda.io/en/latest/>`_ using the scripts in ``misc/conda``:
+
+  - ``install_conda.sh``: install ``miniconda``
+    (needed if conda is not already installed on your system).
+  - ``conda_env.sh``: install a ``conda`` environment
+    with all SCICO dependencies. For GPU installation, see ``conda_env.sh -h``.
+
+
+5. Activate the created conda virtual environment:
+
+::
+
+   conda activate py38
+
+
+6. Navigate to the root of the cloned repository:
 
 ::
 
     cd scico
 
-5. Install dependencies:
+7. Once dependencies have been installed, install SCICO in editable form:
 
 ::
 
-  pip install -r requirements.txt  # Installs basic requirements
-  pip install -r docs/docs_requirements.txt # Installs documentation requirements
-  pip install -r examples/examples_requirements.txt # Installs example requirements
-  pip install -e .  # Installs SCICO from the current directory in editable mode.
+  pip install -e .
 
-6. Set up ``black`` and ``isort`` pre-commit hooks:
+
+8. Set up ``black`` and ``isort`` pre-commit hooks:
 
 ::
 
   pre-commit install  # Sets up git pre-commit hooks
 
-7. If desired, tests can be run on the installed version:
 
-::
-
-   pytest --pyargs scico
+9. For testing see `Tests`_.
 
 
 Contributing Code
@@ -99,7 +103,9 @@ Contributing Code
 
 A feature development workflow might look like this:
 
+
 1. Follow the instructions in `Installing a Development Version`_.
+
 
 2. Sync with the upstream repository:
 
@@ -107,13 +113,16 @@ A feature development workflow might look like this:
 
    git pull --rebase origin main --recurse-submodules
 
+
 3. Create a branch to develop from:
 
 ::
 
    git checkout -b name-of-change
 
+
 4. Make your desired changes.
+
 
 5. Run the test suite:
 
@@ -126,6 +135,7 @@ You can limit the test suite to a specific file:
 ::
 
    pytest scico/test/test_blockarray.py
+
 
 6. When you are finished making changes, create a new commit:
 
@@ -141,7 +151,8 @@ NOTE:  If you have added or modified an example script, see `Adding Usage Exampl
 
 ::
 
-   git pull --rebase origin main --recurse-submodules
+   git fetch upstream
+   git rebase upstream/main
 
 
 8. Push your development upstream:
@@ -150,7 +161,9 @@ NOTE:  If you have added or modified an example script, see `Adding Usage Exampl
 
    git push --set-upstream origin name-of-change
 
+
 9.  Create a new pull request to the ``main`` branch; see `the GitHub instructions <https://docs.github.com/en/github/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request>`_.
+
 
 10. Delete the branch after it has been merged.
 
@@ -180,15 +193,19 @@ particular:
   Script description.
   """
 
+
 2. The final line of the script is an ``input`` statement intended to avoid the script terminating immediately, thereby closing all figures:
 
 ::
 
   input("\nWaiting for input to close figures and exit")
 
+
 3. Citations are included using the standard `Sphinx <https://www.sphinx-doc.org/en/master/>`__ ``:cite:`cite-key``` syntax, where ``cite-key`` is the key of an entry in ``docs/source/references.bib``.
 
+
 4. Cross-references to other components of the documentation are included using the syntax described in the `nbsphinx documentation <https://nbsphinx.readthedocs.io/en/0.3.5/markdown-cells.html#Links-to-*.rst-Files-(and-Other-Sphinx-Source-Files)>`__.
+
 
 5. External links are included using Markdown syntax ``[link text](url)``.
 
@@ -212,13 +229,16 @@ and ``scico-data`` repositories must be updated and kept in sync.
 
 1. Add the ``new_example.py`` script to the ``scico/examples/scripts`` directory.
 
+
 2. Add the basename of the script (i.e., without the pathname; in this case,
 ``new_example.py``) to the appropriate section of
 ``examples/scripts/index.rst``.
 
+
 3. Convert your new example to a Jupyter notebook by changing directory to the ``scico/examples`` directory and following the instructions in ``scico/examples/README.rst``.
 
-4.  Change directory to the ``data`` directory and add/commit the new Jupyter Notebook:
+
+4. Change directory to the ``data`` directory and add/commit the new Jupyter Notebook:
 
 ::
 
@@ -226,7 +246,8 @@ and ``scico-data`` repositories must be updated and kept in sync.
    git add notebooks/new_example.ipynb
    git commit -m "Add new usage example"
 
-5.  Return to the main SCICO repository, ensure the ``main`` branch is checked out, add/commit the new script and updated submodule:
+
+5. Return to the main SCICO repository, ensure the ``main`` branch is checked out, add/commit the new script and updated submodule:
 
 ::
 
@@ -234,6 +255,7 @@ and ``scico-data`` repositories must be updated and kept in sync.
    git add data
    git add examples/scripts/new_filename.py
    git commit -m "Add usage example and update data module"
+
 
 6.  Push both repositories:
 
