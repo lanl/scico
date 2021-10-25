@@ -1,7 +1,8 @@
 #! /bin/bash
 
 # This script installs a conda environment with all required and
-# optional scico dependencies. It should function correctly
+# optional scico dependencies. The user is assumed to have write
+# permission for the conda installation, It should function correctly
 # under both Linux and OSX, but note that there are some additional
 # complications in using a conda installed matplotlib under OSX
 #   https://matplotlib.org/faq/osx_framework.html
