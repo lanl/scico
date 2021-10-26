@@ -8,7 +8,7 @@ SCICO Documentation
    overview
    team
    install
-   important_classes
+   classes
    notes
    examples
    API Reference <_autosummary/scico.rst>
