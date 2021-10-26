@@ -26,7 +26,33 @@ from scipy import optimize as spopt
 __author__ = """Luke Pfister <luke.pfister@gmail.com>"""
 
 
-def _wrap_func_and_grad(func: Callable, shape: Union[Shape, BlockShape], dtype: DType):
+def _wrap_func(func: Callable, shape: Union[Shape, BlockShape], dtype: DType) -> Callable:
+    """Computes function evaluation (without gradient) for use in :mod:`scipy.optimize` functions.
+
+    Reshapes the input to ``func`` to have ``shape``.  Evaluates ``func``.
+
+    Args:
+        func: The function to minimize.
+        shape: Shape of input to ``func``.
+        dtype: Data type of input to ``func``
+    """
+
+    val_func = jax.jit(func)
+
+    @wraps(func)
+    def wrapper(x, *args):
+        # apply val_grad_func to un-vectorized input
+        val = val_func(snp.reshape(x, shape).astype(dtype), *args)
+
+        # Convert val into numpy array (.copy()), then cast to float
+        # Convert 'val' into a scalar, rather than ndarray of shape (1,)
+        val = val.copy().astype(float).item()
+        return val
+
+    return wrapper
+
+
+def _wrap_func_and_grad(func: Callable, shape: Union[Shape, BlockShape], dtype: DType) -> Callable:
     """Computes function evaluation and gradient for use in :mod:`scipy.optimize` functions.
 
     Reshapes the input to ``func`` to have ``shape``.  Evaluates ``func`` and computes gradient.
@@ -35,7 +61,7 @@ def _wrap_func_and_grad(func: Callable, shape: Union[Shape, BlockShape], dtype: 
     Args:
         func: The function to minimize.
         shape: Shape of input to ``func``.
-        dtype: Data type of input to ``funct``
+        dtype: Data type of input to ``func``
     """
 
     # argnums=0 ensures only differentiate func wrt first argument,
@@ -49,7 +75,6 @@ def _wrap_func_and_grad(func: Callable, shape: Union[Shape, BlockShape], dtype: 
 
         # Convert val & grad into numpy arrays (.copy()), then cast to float
         # Convert 'val' into a scalar, rather than ndarray of shape (1,)
-        # TODO can this be relaxed to float32?
         val = val.copy().astype(float).item()
         grad = grad.copy().astype(float).ravel()
         return val, grad
@@ -262,11 +287,23 @@ def minimize(
         dev = None
 
     # Run the SciPy minimizer
+    if method in (
+        "CG, BFGS, Newton-CG, L-BFGS-B, TNC, SLSQP, dogleg, trust-ncg, trust-krylov, "
+        "trust-exact, trust-constr"
+    ).split(
+        ", "
+    ):  # uses gradient info
+        min_func = _wrap_func_and_grad(func_, x0_shape, x0_dtype)
+        jac = True  # see scipy.minimize docs
+    else:  # does not use gradient info
+        min_func = _wrap_func(func_, x0_shape, x0_dtype)
+        jac = False
+
     res = spopt.minimize(
-        _wrap_func_and_grad(func_, x0_shape, x0_dtype),
+        min_func,
         x0=x0,
         args=args,
-        jac=True,
+        jac=jac,
         method=method,
         options=options,
     )

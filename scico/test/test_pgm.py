@@ -21,7 +21,7 @@ class TestSet:
         # Set up arrays for problem argmin (1/2) ||A x - y||_2^2 + (λ/2) ||B x||_2^2
         Amx = np.random.randn(M, N)
         Bmx = np.identity(N)
-        y = np.random.randn(M)
+        y = jax.device_put(np.random.randn(M))
         λ = 1e0
         self.Amx = Amx
         self.y = y
@@ -179,7 +179,7 @@ class TestComplex:
         # Set up arrays for problem argmin (1/2) ||A x - y||_2^2 + (λ/2) ||x||_2^2
         Amx, key = random.randn((M, N), dtype=np.complex64, key=None)
         Bmx = np.identity(N)
-        y = np.random.randn(M)
+        y = jax.device_put(np.random.randn(M))
         λ = 1e0
         self.Amx = Amx
         self.Bmx = Bmx
