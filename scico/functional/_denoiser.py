@@ -20,8 +20,8 @@ from scico.data import _flax_data_path
 from scico.flax import DnCNNNet, load_weights
 from scico.typing import JaxArray
 
-from ._functional import Functional
 from ._flax import FlaxMap
+from ._functional import Functional
 
 __author__ = """Luke Pfister <luke.pfister@gmail.com>"""
 

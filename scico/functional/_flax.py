@@ -9,8 +9,8 @@
 
 from typing import Any, Callable
 
-from flax import linen as nn
 import scico.numpy as snp
+from flax import linen as nn
 from scico.blockarray import BlockArray
 from scico.typing import JaxArray
 

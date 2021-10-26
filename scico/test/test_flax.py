@@ -1,13 +1,13 @@
+from functools import partial
+
 import numpy as np
 
 import pytest
 
-from functools import partial
-
 from flax import linen as nn
 from scico import flax as sflax
-from scico.functional._flax import FlaxMap
 from scico import random
+from scico.functional._flax import FlaxMap
 
 
 class TestSet:

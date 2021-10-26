@@ -10,10 +10,10 @@
 from functools import partial
 from typing import Any, Callable, Tuple
 
+import jax.numpy as jnp
+
 from flax import linen as nn
 from flax import serialization
-
-import jax.numpy as jnp
 
 ModuleDef = Any
 Array = Any
