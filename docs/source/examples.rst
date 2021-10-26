@@ -17,39 +17,51 @@ Organized by Application
 Computed Tomography
 ^^^^^^^^^^^^^^^^^^^
 
-    examples/ct_astra_pcg
-    examples/ct_astra_tv_admm
-    examples/ct_astra_weighted_tv_admm
-    examples/ct_svmbir_ppp_bm3d_admm_cg
-    examples/ct_svmbir_ppp_bm3d_admm_prox
+.. toctree::
+   :maxdepth: 1
+
+   examples/ct_astra_pcg
+   examples/ct_astra_tv_admm
+   examples/ct_astra_weighted_tv_admm
+   examples/ct_svmbir_ppp_bm3d_admm_cg
+   examples/ct_svmbir_ppp_bm3d_admm_prox
 
 
 Deconvolution
 ^^^^^^^^^^^^^
 
-    examples/deconv_circ_tv_admm
-    examples/deconv_microscopy
-    examples/deconv_ppp_bm3d_admm
-    examples/deconv_ppp_bm3d_pgm
-    examples/deconv_ppp_dncnn_admm
-    examples/deconv_tv_admm
+.. toctree::
+   :maxdepth: 1
+
+   examples/deconv_circ_tv_admm
+   examples/deconv_microscopy
+   examples/deconv_ppp_bm3d_admm
+   examples/deconv_ppp_bm3d_pgm
+   examples/deconv_ppp_dncnn_admm
+   examples/deconv_tv_admm
 
 
 Sparse Coding
 ^^^^^^^^^^^^^
 
-    examples/sparsecode_admm
-    examples/sparsecode_pgm
-    examples/sparsecode_poisson_blkarr_pgm
-    examples/sparsecode_poisson_pgm
+.. toctree::
+   :maxdepth: 1
+
+   examples/sparsecode_admm
+   examples/sparsecode_pgm
+   examples/sparsecode_poisson_blkarr_pgm
+   examples/sparsecode_poisson_pgm
 
 
 Miscellaneous
 ^^^^^^^^^^^^^
 
-    examples/demosaic_ppp_bm3d_admm
-    examples/denoise_tv_iso_admm
-    examples/denoise_tv_iso_pgm
+.. toctree::
+   :maxdepth: 1
+
+   examples/demosaic_ppp_bm3d_admm
+   examples/denoise_tv_iso_admm
+   examples/denoise_tv_iso_pgm
 
 
 
@@ -62,27 +74,36 @@ Organized by Regularization
 Plug and Play Priors
 ^^^^^^^^^^^^^^^^^^^^
 
-    examples/ct_svmbir_ppp_bm3d_admm_cg
-    examples/ct_svmbir_ppp_bm3d_admm_prox
-    examples/deconv_ppp_bm3d_admm
-    examples/deconv_ppp_bm3d_pgm
-    examples/deconv_ppp_dncnn_admm
-    examples/demosaic_ppp_bm3d_admm
+.. toctree::
+   :maxdepth: 1
+
+   examples/ct_svmbir_ppp_bm3d_admm_cg
+   examples/ct_svmbir_ppp_bm3d_admm_prox
+   examples/deconv_ppp_bm3d_admm
+   examples/deconv_ppp_bm3d_pgm
+   examples/deconv_ppp_dncnn_admm
+   examples/demosaic_ppp_bm3d_admm
 
 
 Total Variation
 ^^^^^^^^^^^^^^^
 
-    examples/ct_astra_tv_admm
-    examples/ct_astra_weighted_tv_admm
-    examples/deconv_circ_tv_admm
-    examples/deconv_tv_admm
-    examples/denoise_tv_iso_admm
-    examples/denoise_tv_iso_pgm
+.. toctree::
+   :maxdepth: 1
+
+   examples/ct_astra_tv_admm
+   examples/ct_astra_weighted_tv_admm
+   examples/deconv_circ_tv_admm
+   examples/deconv_tv_admm
+   examples/denoise_tv_iso_admm
+   examples/denoise_tv_iso_pgm
 
 
 Sparsity
 ^^^^^^^^
+
+.. toctree::
+   :maxdepth: 1
 
    examples/sparsecode_admm
    examples/sparsecode_pgm
@@ -99,6 +120,9 @@ Organized by Optimization Algorithm
 
 ADMM
 ^^^^
+
+.. toctree::
+   :maxdepth: 1
 
    examples/ct_astra_tv_admm
    examples/ct_astra_weighted_tv_admm
@@ -117,6 +141,9 @@ ADMM
 PGM
 ^^^
 
+.. toctree::
+   :maxdepth: 1
+
    examples/deconv_ppp_bm3d_pgm
    examples/denoise_tv_iso_pgm
    examples/sparsecode_pgm
@@ -126,5 +153,8 @@ PGM
 
 PCG
 ^^^
+
+.. toctree::
+   :maxdepth: 1
 
    examples/ct_astra_pcg
