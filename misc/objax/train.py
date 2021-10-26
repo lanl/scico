@@ -11,11 +11,10 @@ import numpy as np
 import jax
 import jax.numpy as jnp
 
+import objax
 import objax_model as objxm
 import utils as dtu
 from absl import app, flags, logging
-
-import objax
 
 flags.DEFINE_integer("depth", 6, "Number of layers in model")
 flags.DEFINE_integer("num_filters", 64, "Number of filters in model")
