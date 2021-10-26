@@ -1,0 +1,6 @@
+nbformat
+nbconvert
+nb_conda_kernels
+py2jn
+pypandoc
+ray

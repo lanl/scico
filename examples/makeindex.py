@@ -1,7 +1,16 @@
 #!/usr/bin/env python
 
+# Construct an index README file and a docs example index file from
+# source index file "scripts/index.rst".
+# Run as
+#     python makeindex.py
+
+
 import re
 from pathlib import Path
+
+import py2jn
+import pypandoc
 
 src = "scripts/index.rst"
 
@@ -35,6 +44,29 @@ with open(dst, "w") as dstfile:
                 )
             else:
                 print(line, end="", file=dstfile)
+
+
+# Build notebooks index file in notebooks directory
+dst = "notebooks/index.ipynb"
+rst_text = ""
+with open(src, "r") as srcfile:
+    for line in srcfile:
+        # Detect lines containing script filenames
+        m = re.match(r"(\s+)- ([^\s]+).py", line)
+        if m:
+            prespace = m.group(1)
+            name = m.group(2)
+            title = titles[name + ".py"]
+            rst_text += "%s- `%s <%s.ipynb>`_\n" % (prespace, title, name)
+        else:
+            rst_text += line
+# Convert text from rst to markdown
+md_format = "markdown_github+tex_math_dollars+fenced_code_attributes"
+md_text = pypandoc.convert_text(rst_text, md_format, format="rst", extra_args=["--atx-headers"])
+md_text = '"""' + md_text + '"""'
+# Convert from python to notebook format and write notebook
+nb = py2jn.py_string_to_notebook(md_text)
+py2jn.tools.write_notebook(nb, dst, nbver=4)
 
 
 # Build examples index for docs

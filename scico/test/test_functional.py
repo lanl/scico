@@ -5,6 +5,8 @@ from jax.config import config
 # enable 64-bit mode for output dtype checks
 config.update("jax_enable_x64", True)
 
+import warnings
+
 import jax
 
 import pytest
@@ -53,10 +55,7 @@ def prox_test(v, nrm, prx, alpha):
     pf = prox_func(px, v, nrm, alpha)
     # Brute-force solve of the proximal operator at v
     mx, mf = prox_solve(v, px, nrm, alpha)
-    print(pf, mf, pf - mf)
-    print(px.min(), mx.min())
-    print(px)
-    print(mx)
+
     # Compare prox functional value with brute-force solution
     if pf < mf:
         return  # prox gave a lower cost than brute force, so it passes
@@ -116,12 +115,21 @@ def test_separable_prox(test_separable_obj):
 
 
 def test_separable_grad(test_separable_obj):
-    # TODO: should tweak test to verify that there is a warning on f.grad and fg.grad
-    fv1 = test_separable_obj.f.grad(test_separable_obj.v1)
-    gv2 = test_separable_obj.g.grad(test_separable_obj.v2)
-    fgv = test_separable_obj.fg.grad(test_separable_obj.vb)
-    out = BlockArray.array((fv1, gv2)).ravel()
-    np.testing.assert_allclose(out, fgv.ravel(), rtol=5e-2)
+    # Used to restore the warnings after the context is used
+    with warnings.catch_warnings():
+        # Ignores warning raised by ensure_on_device
+        warnings.filterwarnings(action="ignore", category=UserWarning)
+
+        # Verifies that there is a warning on f.grad and fg.grad
+        np.testing.assert_warns(test_separable_obj.f.grad(test_separable_obj.v1))
+        np.testing.assert_warns(test_separable_obj.fg.grad(test_separable_obj.vb))
+
+        # Tests the separable grad with warnings being supressed
+        fv1 = test_separable_obj.f.grad(test_separable_obj.v1)
+        gv2 = test_separable_obj.g.grad(test_separable_obj.v2)
+        fgv = test_separable_obj.fg.grad(test_separable_obj.vb)
+        out = BlockArray.array((fv1, gv2)).ravel()
+        np.testing.assert_allclose(out, fgv.ravel(), rtol=5e-2)
 
 
 class TestNormProx:
