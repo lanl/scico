@@ -83,5 +83,5 @@ with open(dst, "w") as dstfile:
             else:
                 print(line, end="", file=dstfile)
                 # Add toctree statements after section headings
-                if line[0:3] == line[0] * 3 and line[0] in ["-", "="]:
+                if line[0:3] == line[0] * 3 and line[0] in ["=", "-", "^"]:
                     print("\n.. toctree::\n   :maxdepth: 1", file=dstfile)
