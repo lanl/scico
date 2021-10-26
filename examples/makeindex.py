@@ -79,7 +79,7 @@ with open(dst, "w") as dstfile:
             # Detect lines containing script filenames
             m = re.match(r"(\s+)- ([^\s]+).py", line)
             if m:
-                print(m.group(1) + prfx + m.group(2), file=dstfile)
+                print("   " + prfx + m.group(2), file=dstfile)
             else:
                 print(line, end="", file=dstfile)
                 # Add toctree statements after section headings
