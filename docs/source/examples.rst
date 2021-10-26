@@ -34,7 +34,7 @@ Deconvolution
    :maxdepth: 1
 
    examples/deconv_circ_tv_admm
-   examples/deconv_microscopy
+   examples/deconv_microscopy_tv_admm
    examples/deconv_ppp_bm3d_admm
    examples/deconv_ppp_bm3d_pgm
    examples/deconv_ppp_dncnn_admm
@@ -94,6 +94,7 @@ Total Variation
    examples/ct_astra_tv_admm
    examples/ct_astra_weighted_tv_admm
    examples/deconv_circ_tv_admm
+   examples/deconv_microscopy_tv_admm
    examples/deconv_tv_admm
    examples/denoise_tv_iso_admm
    examples/denoise_tv_iso_pgm
@@ -129,6 +130,7 @@ ADMM
    examples/ct_svmbir_ppp_bm3d_admm_cg
    examples/ct_svmbir_ppp_bm3d_admm_prox
    examples/deconv_circ_tv_admm
+   examples/deconv_microscopy_tv_admm
    examples/deconv_ppp_bm3d_admm
    examples/deconv_ppp_dncnn_admm
    examples/deconv_tv_admm
