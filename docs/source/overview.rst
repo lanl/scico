@@ -68,14 +68,14 @@ SCICO is designed to solve problems of the form
 
 .. math::
 
-   \argmin_{\mb{x}} \; f(\mb{x}) + \sum_{r=1}^R g_r(C_r (\mb{x})),
+   \argmin_{\mb{x}} \; f(\mb{x}) + \sum_{k=1}^K g_k(C_k (\mb{x})),
 
 with :math:`\mb{x} \in \mathbb{R}^{n}` representing the reconstruction,
 e.g., a 1D, 2D, 3D, or 3D+time image,
-:math:`C_r: \mathbb{R}^{n} \to \mathbb{R}^{m_r}`
+:math:`C_k: \mathbb{R}^{n} \to \mathbb{R}^{m_k}`
 being regularization operators,
 and :math:`f: \mathbb{R}^{n} \to \mathbb{R}`
-and :math:`g_r: \mathbb{R}^{m_r} \to \mathbb{R}`
+and :math:`g_k: \mathbb{R}^{m_k} \to \mathbb{R}`
 being functionals associated with the data fidelity
 and regularization, respectively.
 
