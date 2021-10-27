@@ -16,7 +16,7 @@ provided by the EPFL Biomedical Imaging Group.
 The deconvolution problem is solved using class
 [admm.ADMM](../_autosummary/scico.admm.rst#scico.admm.ADMM) to solve
 an image deconvolution problem with isotropic total variation (TV)
-regularization.
+regularization
 
   $$\mathrm{argmin}_{\mathbf{x}} \; \| M (\mathbf{y} - A \mathbf{x})
   \|_2^2 + \lambda \| C \mathbf{x} \|_{2,1} +
@@ -128,11 +128,11 @@ mask = snp.pad(snp.ones_like(y), padding)
 """
 Define problem and algorithm parameters.
 """
-λ = 2e-6  # L1 norm regularization parameter
-ρ0 = 1e-3  # ADMM penalty parameter for first auxiiary variable
-ρ1 = 1e-3  # ADMM penalty parameter for second auxiiary variable
-ρ2 = 1e-3  # ADMM penalty parameter for third auxiiary variable
-maxiter = 100  # Number of ADMM iterations
+λ = 2e-6  # ℓ1 norm regularization parameter
+ρ0 = 1e-3  # ADMM penalty parameter for first auxiliary variable
+ρ1 = 1e-3  # ADMM penalty parameter for second auxiliary variable
+ρ2 = 1e-3  # ADMM penalty parameter for third auxiliary variable
+maxiter = 100  # number of ADMM iterations
 
 
 """
