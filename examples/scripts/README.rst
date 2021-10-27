@@ -1,58 +1,171 @@
 Usage Examples
---------------
+==============
+
+
+Organized by Application
+------------------------
 
 
 Computed Tomography
-===================
+^^^^^^^^^^^^^^^^^^^
 
-   `admm_tv_ct.py <admm_tv_ct.py>`_
-      Few-View CT (ADMM w/ Total Variation)
-   `admm_tv_ct_weighted.py <admm_tv_ct_weighted.py>`_
-      Low-Dose CT (ADMM w/ Total Variation)
-   `pcg_ct.py <pcg_ct.py>`_
+   `ct_astra_pcg.py <ct_astra_pcg.py>`_
       CT with Preconditioned Conjugate Gradient
-   `admm_ppp_bm3d_svmbir_cg.py <admm_ppp_bm3d_svmbir_cg.py>`_
+   `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
+      Few-View CT (ADMM w/ Total Variation)
+   `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
+      Low-Dose CT (ADMM w/ Total Variation)
+   `ct_svmbir_ppp_bm3d_admm_cg.py <ct_svmbir_ppp_bm3d_admm_cg.py>`_
       CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+CG)
-   `admm_ppp_bm3d_svmbir_prox.py <admm_ppp_bm3d_svmbir_prox.py>`_
+   `ct_svmbir_ppp_bm3d_admm_prox.py <ct_svmbir_ppp_bm3d_admm_prox.py>`_
       CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+Prox)
 
 
 Deconvolution
-=============
+^^^^^^^^^^^^^
 
-   `admm_ppp_bm3d_deconvolution.py <admm_ppp_bm3d_deconvolution.py>`_
-      Image Deconvolution (ADMM Plug-and-Play Priors w/ BM3D)
-   `admm_ppp_dncnn_deconvolution.py <admm_ppp_dncnn_deconvolution.py>`_
-      Image Deconvolution (ADMM Plug-and-Play Priors w/ DnCNN)
-   `admm_tv_deconvolution.py <admm_tv_deconvolution.py>`_
-      Image Deconvolution (ADMM w/ Total Variation)
-   `admm_tv_circ_deconvolution.py <admm_tv_circ_deconvolution.py>`_
+   `deconv_circ_tv_admm.py <deconv_circ_tv_admm.py>`_
       Image Deconvolution (ADMM w/ Total Variation and Circulant Blur)
-   `pgm_ppp_bm3d_deconvolution.py <pgm_ppp_bm3d_deconvolution.py>`_
-      Image Deconvolution (PGM Plug-and-Play Priors w/ BM3D)
-   `deconv_microscopy.py <deconv_microscopy.py>`_
+   `deconv_microscopy_tv_admm.py <deconv_microscopy_tv_admm.py>`_
       Deconvolution Microscopy
+   `deconv_ppp_bm3d_admm.py <deconv_ppp_bm3d_admm.py>`_
+      Image Deconvolution (ADMM Plug-and-Play Priors w/ BM3D)
+   `deconv_ppp_bm3d_pgm.py <deconv_ppp_bm3d_pgm.py>`_
+      Image Deconvolution (PGM Plug-and-Play Priors w/ BM3D)
+   `deconv_ppp_dncnn_admm.py <deconv_ppp_dncnn_admm.py>`_
+      Image Deconvolution (ADMM Plug-and-Play Priors w/ DnCNN)
+   `deconv_tv_admm.py <deconv_tv_admm.py>`_
+      Image Deconvolution (ADMM w/ Total Variation)
 
 
 Sparse Coding
-=============
+^^^^^^^^^^^^^
 
-   `admm_nonnegative_sparse_coding.py <admm_nonnegative_sparse_coding.py>`_
+   `sparsecode_admm.py <sparsecode_admm.py>`_
       Non-negative Basis Pursuit DeNoising (ADMM)
-   `pgm_sparse_coding.py <pgm_sparse_coding.py>`_
+   `sparsecode_pgm.py <sparsecode_pgm.py>`_
       Basis Pursuit DeNoising (Accelerated PGM)
+   `sparsecode_poisson_blkarr_pgm.py <sparsecode_poisson_blkarr_pgm.py>`_
+      Non-negative Poisson Loss Reconstruction (APGM w/ adaptive PGMStepSize)
+   `sparsecode_poisson_pgm.py <sparsecode_poisson_pgm.py>`_
+      Non-negative Poisson Loss Reconstruction (APGM w/ adaptive PGMStepSize)
 
 
 Miscellaneous
-=============
+^^^^^^^^^^^^^
 
-   `admm_ppp_bm3d_demosaicing.py <admm_ppp_bm3d_demosaicing.py>`_
+   `demosaic_ppp_bm3d_admm.py <demosaic_ppp_bm3d_admm.py>`_
       Image Demosaicing (ADMM Plug-and-Play Priors w/ BM3D)
-   `admm_tv_isotropic.py <admm_tv_isotropic.py>`_
-      Isotropic Total Variation
-   `pgm_stepsize_blockarray.py <pgm_stepsize_blockarray.py>`_
-      Non-negative Poisson Loss Reconstruction (APGM w/ adaptive PGMStepSize)
-   `pgm_stepsize_poisson.py <pgm_stepsize_poisson.py>`_
-      Non-negative Poisson Loss Reconstruction (APGM w/ adaptive PGMStepSize)
-   `pgm_tv_isotropic.py <pgm_tv_isotropic.py>`_
+   `denoise_tv_iso_admm.py <denoise_tv_iso_admm.py>`_
+      Isotropic Total Variation (ADMM)
+   `denoise_tv_iso_pgm.py <denoise_tv_iso_pgm.py>`_
       Isotropic Total Variation (Accelerated PGM)
+
+
+
+Organized by Regularization
+---------------------------
+
+Plug and Play Priors
+^^^^^^^^^^^^^^^^^^^^
+
+   `ct_svmbir_ppp_bm3d_admm_cg.py <ct_svmbir_ppp_bm3d_admm_cg.py>`_
+      CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+CG)
+   `ct_svmbir_ppp_bm3d_admm_prox.py <ct_svmbir_ppp_bm3d_admm_prox.py>`_
+      CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+Prox)
+   `deconv_ppp_bm3d_admm.py <deconv_ppp_bm3d_admm.py>`_
+      Image Deconvolution (ADMM Plug-and-Play Priors w/ BM3D)
+   `deconv_ppp_bm3d_pgm.py <deconv_ppp_bm3d_pgm.py>`_
+      Image Deconvolution (PGM Plug-and-Play Priors w/ BM3D)
+   `deconv_ppp_dncnn_admm.py <deconv_ppp_dncnn_admm.py>`_
+      Image Deconvolution (ADMM Plug-and-Play Priors w/ DnCNN)
+   `demosaic_ppp_bm3d_admm.py <demosaic_ppp_bm3d_admm.py>`_
+      Image Demosaicing (ADMM Plug-and-Play Priors w/ BM3D)
+
+
+Total Variation
+^^^^^^^^^^^^^^^
+
+   `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
+      Few-View CT (ADMM w/ Total Variation)
+   `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
+      Low-Dose CT (ADMM w/ Total Variation)
+   `deconv_circ_tv_admm.py <deconv_circ_tv_admm.py>`_
+      Image Deconvolution (ADMM w/ Total Variation and Circulant Blur)
+   `deconv_microscopy_tv_admm.py <deconv_microscopy_tv_admm.py>`_
+      Deconvolution Microscopy
+   `deconv_tv_admm.py <deconv_tv_admm.py>`_
+      Image Deconvolution (ADMM w/ Total Variation)
+   `denoise_tv_iso_admm.py <denoise_tv_iso_admm.py>`_
+      Isotropic Total Variation (ADMM)
+   `denoise_tv_iso_pgm.py <denoise_tv_iso_pgm.py>`_
+      Isotropic Total Variation (Accelerated PGM)
+
+
+Sparsity
+^^^^^^^^
+
+   `sparsecode_admm.py <sparsecode_admm.py>`_
+      Non-negative Basis Pursuit DeNoising (ADMM)
+   `sparsecode_pgm.py <sparsecode_pgm.py>`_
+      Basis Pursuit DeNoising (Accelerated PGM)
+   `sparsecode_poisson_blkarr_pgm.py <sparsecode_poisson_blkarr_pgm.py>`_
+      Non-negative Poisson Loss Reconstruction (APGM w/ adaptive PGMStepSize)
+   `sparsecode_poisson_pgm.py <sparsecode_poisson_pgm.py>`_
+      Non-negative Poisson Loss Reconstruction (APGM w/ adaptive PGMStepSize)
+
+
+
+Organized by Optimization Algorithm
+-----------------------------------
+
+ADMM
+^^^^
+
+   `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
+      Few-View CT (ADMM w/ Total Variation)
+   `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
+      Low-Dose CT (ADMM w/ Total Variation)
+   `ct_svmbir_ppp_bm3d_admm_cg.py <ct_svmbir_ppp_bm3d_admm_cg.py>`_
+      CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+CG)
+   `ct_svmbir_ppp_bm3d_admm_prox.py <ct_svmbir_ppp_bm3d_admm_prox.py>`_
+      CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+Prox)
+   `deconv_circ_tv_admm.py <deconv_circ_tv_admm.py>`_
+      Image Deconvolution (ADMM w/ Total Variation and Circulant Blur)
+   `deconv_microscopy_tv_admm.py <deconv_microscopy_tv_admm.py>`_
+      Deconvolution Microscopy
+   `deconv_ppp_bm3d_admm.py <deconv_ppp_bm3d_admm.py>`_
+      Image Deconvolution (ADMM Plug-and-Play Priors w/ BM3D)
+   `deconv_ppp_dncnn_admm.py <deconv_ppp_dncnn_admm.py>`_
+      Image Deconvolution (ADMM Plug-and-Play Priors w/ DnCNN)
+   `deconv_tv_admm.py <deconv_tv_admm.py>`_
+      Image Deconvolution (ADMM w/ Total Variation)
+   `demosaic_ppp_bm3d_admm.py <demosaic_ppp_bm3d_admm.py>`_
+      Image Demosaicing (ADMM Plug-and-Play Priors w/ BM3D)
+   `denoise_tv_iso_admm.py <denoise_tv_iso_admm.py>`_
+      Isotropic Total Variation (ADMM)
+   `sparsecode_admm.py <sparsecode_admm.py>`_
+      Non-negative Basis Pursuit DeNoising (ADMM)
+
+
+
+PGM
+^^^
+
+   `deconv_ppp_bm3d_pgm.py <deconv_ppp_bm3d_pgm.py>`_
+      Image Deconvolution (PGM Plug-and-Play Priors w/ BM3D)
+   `denoise_tv_iso_pgm.py <denoise_tv_iso_pgm.py>`_
+      Isotropic Total Variation (Accelerated PGM)
+   `sparsecode_pgm.py <sparsecode_pgm.py>`_
+      Basis Pursuit DeNoising (Accelerated PGM)
+   `sparsecode_poisson_blkarr_pgm.py <sparsecode_poisson_blkarr_pgm.py>`_
+      Non-negative Poisson Loss Reconstruction (APGM w/ adaptive PGMStepSize)
+   `sparsecode_poisson_pgm.py <sparsecode_poisson_pgm.py>`_
+      Non-negative Poisson Loss Reconstruction (APGM w/ adaptive PGMStepSize)
+
+
+PCG
+^^^
+
+   `ct_astra_pcg.py <ct_astra_pcg.py>`_
+      CT with Preconditioned Conjugate Gradient
