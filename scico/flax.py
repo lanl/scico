@@ -102,12 +102,13 @@ class DnCNNNet(nn.Module):
         Returns:
             The denoised input.
         """
-        # Definitions
+        # Definition using arguments common to all convolutions.
         conv = partial(
             nn.Conv,
             use_bias=False,
             dtype=self.dtype,
         )
+        # Defninition using arguments common to all batch normalizations.
         norm = partial(
             nn.BatchNorm,
             use_running_average=not train,
@@ -116,7 +117,7 @@ class DnCNNNet(nn.Module):
             dtype=self.dtype,
         )
 
-        # Processing
+        # Definition and application of DnCNN model.
         base = inputs
         y = conv(
             self.num_filters,
@@ -140,7 +141,7 @@ class DnCNNNet(nn.Module):
             strides=self.strides,
             name="conv_end",
         )(y)
-        return base - y  # Residual-like network
+        return base - y  # residual-like network
 
 
 def load_weights(filename: str):
