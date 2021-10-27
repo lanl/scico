@@ -5,7 +5,7 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Evaluate NN models implemented in objax."""
+"""Evaluate NN models implemented in flax."""
 
 from typing import Any, Callable
 
