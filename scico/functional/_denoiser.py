@@ -113,13 +113,13 @@ class DnCNN(FlaxMap):
         """Initialize a :class:`DnCNN` object.
 
         Args:
-            variant: Identify the DnCNN model to be used.
-            Options are '6L', '6M' (default), '6H', '17L', '17M',
-            and '17H', where the integer indicates the number of layers
-            in the network, and the postfix indicates the training noise
-            standard deviation: L (low) = 0.06, M (mid) = 0.1,
-            H (high) = 0.2, where the standard deviations are with respect
-            to data in the range [0, 1].
+            variant : Identify the DnCNN model to be used. Options are
+                '6L', '6M' (default), '6H', '17L', '17M', and '17H',
+                where the integer indicates the number of layers in the
+                network, and the postfix indicates the training noise
+                standard deviation: L (low) = 0.06, M (mid) = 0.1,
+                H (high) = 0.2, where the standard deviations are
+                with respect to data in the range [0, 1].
         """
         if variant not in ["6L", "6M", "6H", "17L", "17M", "17H"]:
             raise RuntimeError(f"Invalid value of parameter variant: {variant}")
