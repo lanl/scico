@@ -1,40 +1,118 @@
 Usage Examples
---------------
+==============
+
+
+Organized by Application
+------------------------
 
 
 Computed Tomography
-===================
+^^^^^^^^^^^^^^^^^^^
 
-   - admm_tv_ct.py
-   - admm_tv_ct_weighted.py
-   - pcg_ct.py
-   - admm_ppp_bm3d_svmbir_cg.py
-   - admm_ppp_bm3d_svmbir_prox.py
+   - ct_astra_pcg.py
+   - ct_astra_tv_admm.py
+   - ct_astra_weighted_tv_admm.py
+   - ct_svmbir_ppp_bm3d_admm_cg.py
+   - ct_svmbir_ppp_bm3d_admm_prox.py
 
 
 Deconvolution
-=============
+^^^^^^^^^^^^^
 
-   - admm_ppp_bm3d_deconvolution.py
-   - admm_ppp_dncnn_deconvolution.py
-   - admm_tv_deconvolution.py
-   - admm_tv_circ_deconvolution.py
-   - pgm_ppp_bm3d_deconvolution.py
-   - deconv_microscopy.py
+   - deconv_circ_tv_admm.py
+   - deconv_microscopy_tv_admm.py
+   - deconv_ppp_bm3d_admm.py
+   - deconv_ppp_bm3d_pgm.py
+   - deconv_ppp_dncnn_admm.py
+   - deconv_tv_admm.py
 
 
 Sparse Coding
-=============
+^^^^^^^^^^^^^
 
-   - admm_nonnegative_sparse_coding.py
-   - pgm_sparse_coding.py
+   - sparsecode_admm.py
+   - sparsecode_pgm.py
+   - sparsecode_poisson_blkarr_pgm.py
+   - sparsecode_poisson_pgm.py
 
 
 Miscellaneous
-=============
+^^^^^^^^^^^^^
 
-   - admm_ppp_bm3d_demosaicing.py
-   - admm_tv_isotropic.py
-   - pgm_stepsize_blockarray.py
-   - pgm_stepsize_poisson.py
-   - pgm_tv_isotropic.py
+   - demosaic_ppp_bm3d_admm.py
+   - denoise_tv_iso_admm.py
+   - denoise_tv_iso_pgm.py
+
+
+
+Organized by Regularization
+---------------------------
+
+Plug and Play Priors
+^^^^^^^^^^^^^^^^^^^^
+
+   - ct_svmbir_ppp_bm3d_admm_cg.py
+   - ct_svmbir_ppp_bm3d_admm_prox.py
+   - deconv_ppp_bm3d_admm.py
+   - deconv_ppp_bm3d_pgm.py
+   - deconv_ppp_dncnn_admm.py
+   - demosaic_ppp_bm3d_admm.py
+
+
+Total Variation
+^^^^^^^^^^^^^^^
+
+   - ct_astra_tv_admm.py
+   - ct_astra_weighted_tv_admm.py
+   - deconv_circ_tv_admm.py
+   - deconv_microscopy_tv_admm.py
+   - deconv_tv_admm.py
+   - denoise_tv_iso_admm.py
+   - denoise_tv_iso_pgm.py
+
+
+Sparsity
+^^^^^^^^
+
+   - sparsecode_admm.py
+   - sparsecode_pgm.py
+   - sparsecode_poisson_blkarr_pgm.py
+   - sparsecode_poisson_pgm.py
+
+
+
+Organized by Optimization Algorithm
+-----------------------------------
+
+ADMM
+^^^^
+
+   - ct_astra_tv_admm.py
+   - ct_astra_weighted_tv_admm.py
+   - ct_svmbir_ppp_bm3d_admm_cg.py
+   - ct_svmbir_ppp_bm3d_admm_prox.py
+   - deconv_circ_tv_admm.py
+   - deconv_microscopy_tv_admm.py
+   - deconv_ppp_bm3d_admm.py
+   - deconv_ppp_dncnn_admm.py
+   - deconv_tv_admm.py
+   - demosaic_ppp_bm3d_admm.py
+   - denoise_tv_iso_admm.py
+   - sparsecode_admm.py
+
+
+
+PGM
+^^^
+
+   - deconv_ppp_bm3d_pgm.py
+   - denoise_tv_iso_pgm.py
+   - sparsecode_pgm.py
+   - sparsecode_poisson_blkarr_pgm.py
+   - sparsecode_poisson_pgm.py
+
+
+PCG
+^^^
+
+   - ct_astra_pcg.py
