@@ -64,13 +64,13 @@ def testobj():
 
 
 def test_DnCNN_call(testobj):
-    # Test for the construction / forward pass
+    # Test for the construction / forward pass.
     dnx = testobj.dncnn.apply(testobj.variables, testobj.x, train=False, mutable=False)
     assert testobj.x.dtype == dnx.dtype
 
 
 def test_DnCNN_train(testobj):
-    # Test training flag for training
+    # Test effect of training flag.
     bn0bias_before = testobj.variables["params"]["ConvBNBlock_0"]["BatchNorm_0"]["bias"]
     bn0mean_before = testobj.variables["batch_stats"]["ConvBNBlock_0"]["BatchNorm_0"]["mean"]
     dnx, new_state = testobj.dncnn.apply(
@@ -90,7 +90,7 @@ def test_DnCNN_train(testobj):
 
 
 def test_DnCNN_test(testobj):
-    # Test training flag for testing
+    # Test effect of training flag.
     bn0var_before = testobj.variables["batch_stats"]["ConvBNBlock_0"]["BatchNorm_0"]["var"]
     dnx, new_state = testobj.dncnn.apply(
         testobj.variables, testobj.x, train=False, mutable=["batch_stats"]
@@ -100,7 +100,7 @@ def test_DnCNN_test(testobj):
 
 
 def test_FlaxMap_call(testobj):
-    # Test for the usage of flax model as a map
+    # Test for the usage of flax model as a map.
     fmap = FlaxMap(testobj.dncnn, testobj.variables)
     N = 128  # image size
     x, key = random.randn((N, N))
