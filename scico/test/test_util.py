@@ -1,4 +1,5 @@
 import urllib.error as urlerror
+import warnings
 
 import numpy as np
 
@@ -21,24 +22,28 @@ from scico.util import (
 
 
 def test_ensure_on_device():
-    NP = np.ones(2)
-    SNP = snp.ones(2)
-    BA = BlockArray.array([NP, SNP])
+    # Used to restore the warnings after the context is used
+    with warnings.catch_warnings():
+        # Ignores warning raised by ensure_on_device
+        warnings.filterwarnings(action="ignore", category=UserWarning)
 
-    NP_, SNP_, BA_ = ensure_on_device(NP, SNP, BA)
+        NP = np.ones(2)
+        SNP = snp.ones(2)
+        BA = BlockArray.array([NP, SNP])
+        NP_, SNP_, BA_ = ensure_on_device(NP, SNP, BA)
 
-    assert isinstance(NP_, DeviceArray)
+        assert isinstance(NP_, DeviceArray)
 
-    assert isinstance(SNP_, DeviceArray)
-    assert SNP.unsafe_buffer_pointer() == SNP_.unsafe_buffer_pointer()
+        assert isinstance(SNP_, DeviceArray)
+        assert SNP.unsafe_buffer_pointer() == SNP_.unsafe_buffer_pointer()
 
-    assert isinstance(BA_, BlockArray)
-    assert BA._data.unsafe_buffer_pointer() == BA_._data.unsafe_buffer_pointer()
+        assert isinstance(BA_, BlockArray)
+        assert BA._data.unsafe_buffer_pointer() == BA_._data.unsafe_buffer_pointer()
 
-    np.testing.assert_raises(TypeError, ensure_on_device, [1, 1, 1])
+        np.testing.assert_raises(TypeError, ensure_on_device, [1, 1, 1])
 
-    NP_ = ensure_on_device(NP)
-    assert isinstance(NP_, DeviceArray)
+        NP_ = ensure_on_device(NP)
+        assert isinstance(NP_, DeviceArray)
 
 
 def test_url_get():

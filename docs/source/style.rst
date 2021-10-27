@@ -29,10 +29,6 @@ We aim to incorporate `PEP 526 <https://www.python.org/dev/peps/pep-0484/>`_ typ
 
 Our coding conventions are based on both the `numpy conventions <https://numpydoc.readthedocs.io/en/latest/format.html#overview>`_ and the `google docstring conventions <https://google.github.io/styleguide/pyguide.html>`_.
 
-.. todo::
-
-   Briefly explain which components are taken from each convention (see above) to avoid ambiguity in cases in which they differ.
-
 Unicode variable names are allowed for internal usage (e.g. for Greek characters for mathematical symbols), but not as part of the public interface for functions or methods.
 
 
