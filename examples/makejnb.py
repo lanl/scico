@@ -6,7 +6,7 @@
 # Run as
 #     python makejnb.py
 
-
+import os
 import re
 from pathlib import Path
 
@@ -17,7 +17,7 @@ try:
     import ray
 except ImportError:
     raise RuntimeError("The ray package is required to run this script")
-import os
+
 
 # Read script names from index file
 scriptnames = []
