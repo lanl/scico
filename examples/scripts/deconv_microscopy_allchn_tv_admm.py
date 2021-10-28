@@ -206,9 +206,8 @@ Show the recovered image.
 
 
 def make_slices(x, sep_width=10):
-    """
-    Make an image with xy, xz, and yz slices from an input volume.
-    """
+    """Make an image with xy, xz, and yz slices from an input volume."""
+
     fill_val = -1.0
     out = snp.concatenate(
         (
