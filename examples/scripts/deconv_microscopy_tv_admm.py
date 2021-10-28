@@ -47,7 +47,7 @@ Define helper functions.
 """
 
 
-def volread(path, ext="tif"):
+def volume_read(path, ext="tif"):
     """Read a 3D volume from a set of files in the specified directory."""
 
     slices = []
@@ -55,6 +55,41 @@ def volread(path, ext="tif"):
         image = imageio.imread(file)
         slices.append(image)
     return np.dstack(slices)
+
+
+def get_deconv_data(channel, cache_path=None):
+    """Get deconvolution problem data from EPFL Biomedical Imaging Group."""
+
+    # data source URL and filenames
+    data_base_url = "http://bigwww.epfl.ch/deconvolution/bio/"
+    data_zip_files = ["CElegans-CY3.zip", "CElegans-DAPI.zip", "CElegans-FITC.zip"]
+    psf_zip_files = ["PSF-" + data for data in data_zip_files]
+    # set default cache path if not specified
+    if cache_path is None:
+        cache_path = os.path.join(os.path.expanduser("~"), ".cache", "scico", "epfl_big")
+
+    # if cache path exists, data is assumed to aleady be downloaded
+    if not os.path.isdir(cache_path):
+        os.makedirs(cache_path)
+        # temporary directory for downloads
+        temp_dir = tempfile.TemporaryDirectory()
+        # download data and psf files for selected channel into temporary directory
+        for zip_file in (data_zip_files[channel], psf_zip_files[channel]):
+            data = util.url_get(data_base_url + zip_file)
+            f = open(os.path.join(temp_dir.name, zip_file), "wb")
+            f.write(data.read())
+            f.close()
+        # unzip downloaded data into cache path
+        for zip_file in (data_zip_files[channel], psf_zip_files[channel]):
+            with zipfile.ZipFile(os.path.join(temp_dir.name, zip_file), "r") as zip_ref:
+                zip_ref.extractall(cache_path)
+
+    # read unzipped data files into 3D arrays
+    zip_file = data_zip_files[channel]
+    y = volume_read(os.path.join(cache_path, zip_file[:-4])).astype(np.float32)
+    zip_file = psf_zip_files[channel]
+    psf = volume_read(os.path.join(cache_path, zip_file[:-4])).astype(np.float32)
+    return y, psf
 
 
 def block_avg(im, N):
@@ -68,48 +103,17 @@ def block_avg(im, N):
 
 
 """
-Download data or access it from cache directory.
-"""
-data_base_url = "http://bigwww.epfl.ch/deconvolution/bio/"
-data_zip_files = ["CElegans-CY3.zip", "CElegans-DAPI.zip", "CElegans-FITC.zip"]
-psf_zip_files = ["PSF-CElegans-CY3.zip", "PSF-CElegans-DAPI.zip", "PSF-CElegans-FITC.zip"]
-cache_path = os.path.join(os.path.expanduser("~"), ".cache", "scico", "epfl_big")
-if not os.path.isdir(cache_path):
-    os.makedirs(cache_path)
-    temp_dir = tempfile.TemporaryDirectory()
-    for zip_file in data_zip_files + psf_zip_files:
-        data = util.url_get(data_base_url + zip_file)
-        f = open(os.path.join(temp_dir.name, zip_file), "wb")
-        f.write(data.read())
-        f.close()
-    for zip_file in data_zip_files + psf_zip_files:
-        with zipfile.ZipFile(os.path.join(temp_dir.name, zip_file), "r") as zip_ref:
-            zip_ref.extractall(cache_path)
-
-image_list = []
-for zip_file in data_zip_files:
-    image_list.append(volread(os.path.join(cache_path, zip_file[:-4])).astype(np.float32))
-y = snp.stack(image_list)
-del image_list
-psf_list = []
-for zip_file in psf_zip_files:
-    psf_list.append(volread(os.path.join(cache_path, zip_file[:-4])).astype(np.float32))
-psf = snp.stack(psf_list)
-del psf_list
-
-
-"""
-Preprocess data. We downsample by a factor of 4 for purposes of the example.
-Reducing the downsampling rate will be slower and more memory-intensive.
-If your GPU does not have enough memory, you can try setting the environment
-variable `JAX_PLATFORM_NAME=cpu` to run on CPU.
+Get and preprocess data. We downsample by a factor of 4 for purposes of
+the example. Reducing the downsampling rate will be slower and more
+memory-intensive. If your GPU does not have enough memory, you can try
+setting the environment variable `JAX_PLATFORM_NAME=cpu` to run on CPU.
 """
 channel = 0
 downsampling_rate = 4
 
-y = block_avg(y[channel], downsampling_rate)
-psf = block_avg(psf[channel], downsampling_rate)
-
+y, psf = get_deconv_data(channel)
+y = block_avg(y, downsampling_rate)
+psf = block_avg(psf, downsampling_rate)
 
 y -= y.min()
 y /= y.max()
