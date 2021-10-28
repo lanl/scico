@@ -115,7 +115,7 @@ the example. Reducing the downsampling rate will be slower and more
 memory-intensive. If your GPU does not have enough memory, you can try
 setting the environment variable `JAX_PLATFORM_NAME=cpu` to run on CPU.
 """
-downsampling_rate = 8
+downsampling_rate = 4
 
 y_list = []
 y_pad_list = []
@@ -149,13 +149,6 @@ maxiter = 100  # number of ADMM iterations
 
 
 """
-Create operator for projection functional.
-"""
-M = linop.Diagonal(mask)
-C2 = linop.Identity(mask.shape)
-
-
-"""
 Create regularization and projection functionals.
 """
 g1 = λ * functional.L21Norm()  # TV penalty (when applied to gradient)
@@ -167,26 +160,42 @@ Define ray remote function for parallel solves.
 """
 ray.init()
 
-y_pad_list = ray.put(y_pad_list)
-psf_list = ray.put(psf_list)
+ngpu = 0
+ar = ray.available_resources()
+ncpu = int(ar["CPU"]) // 3
+if "GPU" in ar:
+    ngpu = int(ar["GPU"]) // 3
+print(f"Running on {ncpu} CPUs and {ngpu} GPUs per process")
 
-# @ray.remote(num_gpus=1)
-@ray.remote(num_cpus=1)
+y_pad_list = ray.put(y_pad_list)  # put large arrays in ray object store
+psf_list = ray.put(psf_list)
+mask_store = ray.put(mask)
+
+
+@ray.remote(num_cpus=ncpu, num_gpus=ngpu)
 def deconvolve_channel(channel):
     y_pad = jax.device_put(ray.get(y_pad_list)[channel])
     psf = jax.device_put(ray.get(psf_list)[channel])
+    mask = jax.device_put(ray.get(mask_store))
+    M = linop.Diagonal(mask)
     C0 = linop.CircularConvolve(
         h=psf, input_shape=mask.shape, h_center=snp.array(psf.shape) / 2 - 0.5  # forward operator
     )
-    C1 = linop.FiniteDifference(input_shape=mask.shape, circular=True)
+    C1 = linop.FiniteDifference(input_shape=mask.shape, circular=True)  # gradient operator
+    C2 = linop.Identity(mask.shape)  # identity operator
     g0 = loss.SquaredL2Loss(y=y_pad, A=M)  # loss function (forward model)
+    if channel == 0:
+        print("Displaying solver status for channel 0")
+        verbose = True
+    else:
+        verbose = False
     solver = ADMM(
         f=None,
         g_list=[g0, g1, g2],
         C_list=[C0, C1, C2],
         rho_list=[ρ0, ρ1, ρ2],
         maxiter=maxiter,
-        verbose=False,
+        verbose=verbose,
         x0=y_pad,
         subproblem_solver=CircularConvolveSolver(),
     )
