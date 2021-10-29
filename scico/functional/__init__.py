@@ -13,7 +13,7 @@ import sys
 from ._functional import Functional, ScaledFunctional, SeparableFunctional, ZeroFunctional
 from ._norm import L0Norm, L1Norm, SquaredL2Norm, L2Norm, L21Norm
 from ._indicator import NonNegativeIndicator, L2BallIndicator
-from ._objax import ObjaxMap
+from ._flax import FlaxMap
 from ._denoiser import BM3D, DnCNN
 
 
@@ -29,7 +29,7 @@ __all__ = [
     "L21Norm",
     "NonNegativeIndicator",
     "L2BallIndicator",
-    "ObjaxMap",
+    "FlaxMap",
     "BM3D",
     "DnCNN",
 ]
