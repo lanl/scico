@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2021 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Radon tranform LinearOperator wrapping the Super-Voxel Model-Based
-Iterative Reconstruction (svmbir) package.
+"""Radon transform LinearOperator wrapping the svmbir package.
 
-For more information about svmbir, see https://svmbir.readthedocs.io/.
+Radon transform LinearOperator wrapping the
+`svmbir <https://github.com/cabouman/svmbir>`_ package.
 """
 
 import numpy as np
@@ -32,7 +32,7 @@ from ._linop import Diagonal, LinearOperator
 
 
 class ParallelBeamProjector(LinearOperator):
-    r"""Parallel beam x-ray projector."""
+    r"""Parallel beam projector based on svmbir."""
 
     def __init__(
         self,
@@ -43,7 +43,8 @@ class ParallelBeamProjector(LinearOperator):
         """
         Args:
             input_shape: Shape of the input array.
-            angles: Array of projeciton angles in radians, should be increasing.
+            angles: Array of projection angles in radians, should be
+              increasing.
             num_channels: Number of pixels in the sinogram
         """
         self.angles = angles
@@ -62,7 +63,7 @@ class ParallelBeamProjector(LinearOperator):
                 f"Only 2D and 3D inputs are supported, but input_shape was {input_shape}"
             )
 
-        # set up custom_vjp for _eval and _adj so jax.grad works on them
+        # Set up custom_vjp for _eval and _adj so jax.grad works on them.
         self._eval = jax.custom_vjp(lambda x: self._proj_hcb(x))
         self._eval.defvjp(lambda x: (self._proj_hcb(x), None), lambda _, y: (self._bproj_hcb(y),))
 
@@ -151,7 +152,7 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
 
 
 def _unsqueeze(x: JaxArray, input_shape: Shape) -> JaxArray:
-    """If x is 2D, make it 3D according to SVMBIR's convention"""
+    """If x is 2D, make it 3D according to SVMBIR's convention."""
     if len(input_shape) == 2:
         x = x[snp.newaxis, :, :]
     return x
