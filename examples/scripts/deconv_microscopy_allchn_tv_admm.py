@@ -5,8 +5,8 @@
 # with the package.
 
 r"""
-Deconvolution Microscopy
-========================
+Deconvolution Microscopy (All Channels)
+=======================================
 
 This example partially replicates a [GlobalBioIm
 example](https://biomedical-imaging-group.github.io/GlobalBioIm/examples.html)
