@@ -344,20 +344,26 @@ output_dtype : {self.output_dtype}
 
 
 def _wrap_add_sub(func: Callable, op: Callable) -> Callable:
-    r"""Wrapper function for defining __add__, __sub__ between LinearOperator and other objects.
+    r"""Wrapper function for defining __add__, __sub__ between
+    LinearOperator and other objects.
 
     Handles shape checking and dispatching based on operand types:
-    - If one of the two operands is an Operator, an Operator is returned.
-    - If both operands are LinearOperators of different types, a generic LinearOperator is returned.
-    - If both operands are LinearOperators of the same type, a special constructor can be called
+    - If one of the two operands is an Operator, an Operator is
+    returned.
+    - If both operands are LinearOperators of different types,
+    a generic LinearOperator is returned.
+    - If both operands are LinearOperators of the same type,
+    a special constructor can be called
 
     Args:
         func: should be either .__add__() or .__sub__().
-        op: functional equivalent of func, ex. op.add for func = __add__.
+        op: functional equivalent of func, ex. op.add for func =
+        __add__.
 
     Raises:
         ValueError: The shape of both operators does not match.
-        TypeError: One of the two operands is not an Operator or LinearOperator.
+        TypeError: One of the two operands is not an Operator
+        or LinearOperator.
 
     """
 
