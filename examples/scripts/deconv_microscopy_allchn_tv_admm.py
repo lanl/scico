@@ -156,7 +156,8 @@ g2 = functional.NonNegativeIndicator()  # non-negativity constraint
 
 
 """
-Define ray remote function for parallel solves.
+Initialize ray, determine available computing resources, and put large arrays
+in object store.
 """
 ray.init()
 
@@ -167,9 +168,14 @@ if "GPU" in ar:
     ngpu = int(ar["GPU"]) // 3
 print(f"Running on {ncpu} CPUs and {ngpu} GPUs per process")
 
-y_pad_list = ray.put(y_pad_list)  # put large arrays in ray object store
+y_pad_list = ray.put(y_pad_list)
 psf_list = ray.put(psf_list)
 mask_store = ray.put(mask)
+
+
+"""
+Define ray remote function for parallel solves.
+"""
 
 
 @ray.remote(num_cpus=ncpu, num_gpus=ngpu)
@@ -204,6 +210,9 @@ def deconvolve_channel(channel):
     return (x, solver.itstat_object.history(transpose=True))
 
 
+"""
+Solve problems for all three channels in parallel and extract results.
+"""
 ray_return = ray.get([deconvolve_channel.remote(channel) for channel in range(3)])
 x = snp.stack([t[0] for t in ray_return], axis=-1)
 solve_stats = [t[1] for t in ray_return]
