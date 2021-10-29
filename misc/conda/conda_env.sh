@@ -47,8 +47,7 @@ EOF
 )
 # Requirements that cannot be installed via conda (i.e. have to use pip)
 NOCONDA=$(cat <<-EOF
-bm3d faculty-sphinx-theme py2jn
-colour_demosaicing objax
+bm3d faculty-sphinx-theme py2jn colour_demosaicing
 EOF
 )
 

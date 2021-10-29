@@ -5,38 +5,42 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Evaluate NN models implemented in objax."""
+"""Evaluate NN models implemented in flax."""
 
-from typing import Callable
+from typing import Any, Callable
 
-import objax
 import scico.numpy as snp
+from flax import linen as nn
 from scico.blockarray import BlockArray
 from scico.typing import JaxArray
 
 from ._functional import Functional
 
+PyTree = Any
+
 __author__ = """Cristina Garcia-Cardona <cgarciac@lanl.gov>"""
 
 
-class ObjaxMap(Functional):
-    r"""Functional whose prox applies a trained Objax model."""
+class FlaxMap(Functional):
+    r"""Functional whose prox applies a trained Flax model."""
 
     has_eval = False
     has_prox = True
     is_smooth = False
 
-    def __init__(self, model: Callable[..., objax.Module]):
-        r"""Initialize a :class:`ObjaxMap` object.
+    def __init__(self, model: Callable[..., nn.Module], variables: PyTree):
+        r"""Initialize a :class:`FlaxMap` object.
 
         Args:
-            model : Objax model to apply.
+            model : Flax model to apply.
+            variables : parameters and batch stats of trained model.
         """
         self.model = model
+        self.variables = variables
         super().__init__()
 
     def prox(self, x: JaxArray, lam: float = 1) -> JaxArray:
-        r"""Apply trained objax model.
+        r"""Apply trained flax model.
 
         Args:
             x : input.
@@ -47,14 +51,12 @@ class ObjaxMap(Functional):
         else:
             # add input singleton
             # scico works on (NxN) or (NxNxC) arrays
-            # objax works on (KxCxNxN) arrays
-            # (generally KxCxHxW arrays)
+            # flax works on (KxNxNxC) arrays
+            # (generally KxHxWxC arrays)
             # K: input dim
             if x.ndim == 2:
-                x = x.reshape((1, 1) + x.shape)
+                x = x.reshape((1,) + x.shape + (1,))
             elif x.ndim == 3:
-                # channel first
-                x = snp.transpose(x, (2, 0, 1))
                 x = x.reshape((1,) + x.shape)
-            y = self.model(x, training=False)
+            y = self.model.apply(self.variables, x, train=False, mutable=False)
             return snp.squeeze(y)

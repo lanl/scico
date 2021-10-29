@@ -31,7 +31,7 @@ install_requires = [
     "matplotlib",
     "jax>=0.2.19",
     "jaxlib>=0.1.70",
-    "objax",
+    "flax",
     "bm3d",
     "svmbir",
 ]
