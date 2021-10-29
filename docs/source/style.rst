@@ -115,7 +115,7 @@ Prefer to use Python f-strings, rather than `.format` or `%` syntax as `google's
 Imports
 -------
 
-We adhere to `google's import conventions <https://google.github.io/styleguide/pyguide.html#22-imports>`_ which states that the usage of ``import`` statements should be reserved for packages and modules only and not individual classes or functions. The only exception to this is the typing module.
+`Google's import conventions <https://google.github.io/styleguide/pyguide.html#22-imports>`_ states that the usage of ``import`` statements should be reserved for packages and modules only and not individual classes or functions. The only exception to this is the typing module.
 
 -  Use ``import x`` for importing packages and modules, where x is the package or module name.
 -  Use ``from x import y`` where x is the package name and y is the module name.
@@ -127,7 +127,7 @@ We adhere to `google's import conventions <https://google.github.io/styleguide/p
 Variables
 ---------
 
-Apart from naming conventions `google's variable typing conventions <https://google.github.io/styleguide/pyguide.html#22-imports>`_ suggests that there are a few extra documentation and coding practices that can be applied to variables such as:
+Apart from naming conventions, `google's variable typing conventions <https://google.github.io/styleguide/pyguide.html#22-imports>`_ suggests that there are a few extra documentation and coding practices that can be applied to variables such as:
 
 - One may type a variables by using a ``: type`` before the function value is assigned, e.g.,
 
@@ -143,7 +143,7 @@ Apart from naming conventions `google's variable typing conventions <https://goo
 Parameters
 ----------
 
-There are three important stlyle components for parameters inspired by `numpy's parameter conventions <https://numpydoc.readthedocs.io/en/latest/format.html#parameters>`_:
+There are three important style components for parameters inspired by `numpy's parameter conventions <https://numpydoc.readthedocs.io/en/latest/format.html#parameters>`_:
 
 1. Typing
 
