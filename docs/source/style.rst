@@ -127,7 +127,7 @@ Imports
 Variables
 ---------
 
-Apart from naming conventions, `google's variable typing conventions <https://google.github.io/styleguide/pyguide.html#22-imports>`_ suggests that there are a few extra documentation and coding practices that can be applied to variables such as:
+Apart from naming conventions, `google's variable typing conventions <https://google.github.io/styleguide/pyguide.html#3198-typing-variables>`_ suggests that there are a few extra documentation and coding practices that can be applied to variables such as:
 
 - One may type a variables by using a ``: type`` before the function value is assigned, e.g.,
 
@@ -407,7 +407,7 @@ Comments
 ~~~~~~~~
 
 There are two types of comments: *block* and *inline*. A good rule of thumb to follow for when to include a comment in your code is *if you have to explain it or is too hard to figure out at first glance, then comment it*.
-An example of this taken from `google's comment conventions <https://google.github.io/styleguide/pyguide.html#385-block-and-inline-comments>`_ is complicated operations which most likely require a block of comments beforehand.
+An example of this, taken from `google's comment conventions <https://google.github.io/styleguide/pyguide.html#385-block-and-inline-comments>`_, is complicated operations which most likely require a block of comments beforehand.
 
 .. code-block:: Python
 
