@@ -29,11 +29,24 @@ from scico.typing import BlockShape, DType, JaxArray, Shape
 from scico.util import is_nested
 
 
-# Wrapper function for defining mul, rmul, truediv between a scalar and a Operator
-# If one of these binary operations are called in the form binop(Operator, other)
-# and 'b' is a scalar, specialized Operator constructors can be called.
-# Otherwise, if other is not a scalar, an exception is raised
 def _wrap_mul_div_scalar(func):
+    r"""Wrapper function for defining mul, rmul, and truediv
+    between a scalar and an Operator.
+
+    If one of these binary operations are called in the form
+    binop(Operator, other) and 'b' is a scalar, specialized
+    Operator constructors can be called.
+
+    Args:
+        func: should be either .__mul__(), .__rmul__(),
+        or .__truediv__().
+
+    Raises:
+        TypeError: A binop with the form binop(Operator, other) is
+        called and other is not a scalar.
+
+    """
+
     @wraps(func)
     def wrapper(a, b):
         if np.isscalar(b) or isinstance(b, jax.core.Tracer):
@@ -330,15 +343,24 @@ output_dtype : {self.output_dtype}
         )
 
 
-# Wrapper function for defining __add__, __sub__ between LinearOperator and other objects
-# Handles shape checking and dispatching based on operand types.
-# If one of the two operands is an Operator, an Operator is returned.
-# If both operands are LinearOperators of different types, a generic LinearOperator is returned.
-# If both operands are LinearOperators of the same type, a special constructor can be called
-#    see, eg, Convolve.__add__
 def _wrap_add_sub(func: Callable, op: Callable) -> Callable:
-    # func should be either .__add__() or .__sub__()
-    # op should be the functional equivalent of the same (op.add for func = __add__)
+    r"""Wrapper function for defining __add__, __sub__ between LinearOperator and other objects.
+
+    Handles shape checking and dispatching based on operand types:
+    - If one of the two operands is an Operator, an Operator is returned.
+    - If both operands are LinearOperators of different types, a generic LinearOperator is returned.
+    - If both operands are LinearOperators of the same type, a special constructor can be called
+
+    Args:
+        func: should be either .__add__() or .__sub__().
+        op: functional equivalent of func, ex. op.add for func = __add__.
+
+    Raises:
+        ValueError: The shape of both operators does not match.
+        TypeError: One of the two operands is not an Operator or LinearOperator.
+
+    """
+
     @wraps(func)
     def wrapper(
         a: LinearOperator, b: Union[Operator, LinearOperator]
