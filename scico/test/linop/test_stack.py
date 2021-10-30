@@ -5,7 +5,7 @@ import jax
 import pytest
 
 from scico.linop import Convolve, Identity, LinearOperatorStack
-from scico.test.linop.test_linop import adjoint_AAt_test, adjoint_AtA_test
+from scico.test.linop.test_linop import adjoint_test
 
 
 class TestLinearOperatorStack:
@@ -64,15 +64,13 @@ class TestLinearOperatorStack:
         A = Convolve(jax.device_put(np.ones((3, 3))), (9, 15))
         B = Convolve(jax.device_put(np.ones((2, 2))), (9, 15))
         H = LinearOperatorStack([A, B], collapse=collapse, jit=jit)
-        adjoint_AtA_test(H, self.key)
-        adjoint_AAt_test(H, self.key)
+        adjoint_test(H, self.key)
 
         # collapsable case
         A = Convolve(jax.device_put(np.ones((2, 2))), (9, 15))
         B = Convolve(jax.device_put(np.ones((2, 2))), (9, 15))
         H = LinearOperatorStack([A, B], collapse=collapse, jit=jit)
-        adjoint_AtA_test(H, self.key)
-        adjoint_AAt_test(H, self.key)
+        adjoint_test(H, self.key)
 
     @pytest.mark.parametrize("collapse", [False, True])
     @pytest.mark.parametrize("jit", [False, True])

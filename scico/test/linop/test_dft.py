@@ -6,7 +6,7 @@ import pytest
 
 from scico.linop import DFT
 from scico.random import randn
-from scico.test.linop.test_linop import adjoint_AAt_test, adjoint_AtA_test
+from scico.test.linop.test_linop import adjoint_test
 
 
 class TestDFT:
@@ -47,8 +47,7 @@ class TestDFT:
             output_shape = None
 
         F = DFT(input_shape=input_shape, output_shape=output_shape, jit=jit)
-        adjoint_AtA_test(F, self.key)
-        adjoint_AAt_test(F, self.key)
+        adjoint_test(F, self.key)
 
     @pytest.mark.parametrize("input_shape", [(32,), (32, 48)])
     @pytest.mark.parametrize("pad_output", [True, False])

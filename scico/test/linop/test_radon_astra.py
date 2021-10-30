@@ -4,7 +4,7 @@ import jax
 
 import pytest
 
-from scico.test.linop.test_linop import adjoint_AAt_test, adjoint_AtA_test
+from scico.test.linop.test_linop import adjoint_test
 
 try:
     from scico.linop.radon_astra import ParallelBeamProjector
@@ -95,5 +95,4 @@ def test_adjoint_grad(testobj):
 
 def test_adjoint(testobj):
     A = testobj.A
-    adjoint_AAt_test(A, rtol=get_tol())
-    adjoint_AtA_test(A, rtol=get_tol())
+    adjoint_test(A, rtol=get_tol())
