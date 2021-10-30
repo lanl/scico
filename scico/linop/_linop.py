@@ -81,11 +81,14 @@ def valid_adjoint(
       \mathbf{y}^T \mathbf{u} = \mathbf{y}^T (A \mathbf{x}) =
       (A^T \mathbf{y})^T \mathbf{x} = \mathbf{v}^T \mathbf{x}
 
-    when :math:`A^T` is a valid adjoint of :math:`A`.
+    when :math:`A^T` is a valid adjoint of :math:`A`. If :math:`A` is a
+    complex operator (with a complex `input_dtype`) then the test checks
+    whether `AT` is the Hermitian conjugate of `A`, with a test as above,
+    but with all the :math:`\cdot^T` replaced with :math:`\cdot^H`.
 
     Args:
-        A: Primary :class:`.LinearOperator`
-        AT: Adjoint :class:`.LinearOperator`
+        A: Primary :class:`.LinearOperator`.
+        AT: Adjoint :class:`.LinearOperator`.
         eps: Error threshold for validation of `AT` as adjoint of `A`. If
            None, the relative error is returned instead of a boolean value.
         key: Jax PRNG key. Defaults to None, in which case a new key is
