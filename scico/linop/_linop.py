@@ -100,8 +100,8 @@ def valid_adjoint(
     x1, key = randn(shape=AT.input_shape, key=key, dtype=AT.input_dtype)
     y0 = A(x0)
     y1 = AT(x1)
-    x1y0 = snp.dot(x1.ravel(), y0.ravel())
-    y1x0 = snp.dot(y1.ravel(), x0.ravel())
+    x1y0 = snp.dot(x1.ravel().conj(), y0.ravel())
+    y1x0 = snp.dot(y1.ravel().conj(), x0.ravel())
     err = snp.linalg.norm(x1y0 - y1x0) / max(snp.linalg.norm(x1y0), snp.linalg.norm(y1x0))
     if eps is None:
         return err
