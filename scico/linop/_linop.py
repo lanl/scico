@@ -22,17 +22,24 @@ from scico.blockarray import BlockArray
 from scico.random import randn
 from scico.typing import BlockShape, DType, JaxArray, PRNGKey, Shape
 
-__author__ = """Luke Pfister <luke.pfister@gmail.com>"""
+__author__ = """\n""".join(
+    ["Luke Pfister <luke.pfister@gmail.com>", "Brendt Wohlberg <brendt@ieee.org>"]
+)
 
 
 def power_iteration(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey] = None):
-    """Compute largest eigenvalue of a diagonalizable :class:`.LinearOperator` using power iteration.
+    """Compute largest eigenvalue of a diagonalizable :class:`.LinearOperator`.
+
+    Compute largest eigenvalue of a diagonalizable
+    :class:`.LinearOperator` using power iteration.
 
     Args:
-        A: :class:`.LinearOperator` used for computation.  Must be diagonalizable.
-            For arbitrary :class:`.LinearOperator`, call this function on ``A.conj().T @ A``.
+        A: :class:`.LinearOperator` used for computation. Must be
+            diagonalizable. For arbitrary :class:`.LinearOperator`, call
+            this function on ``A.conj().T @ A``.
         maxiter: Maximum number of power iterations to use. Default: 100
-        key: Jax PRNG key.  Defaults to None, in which case a new key is created.
+        key: Jax PRNG key. Defaults to None, in which case a new key is
+            created.
 
     Returns:
         tuple: A tuple (mu, v) containing:
@@ -52,7 +59,7 @@ def power_iteration(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey
 
 
 class Diagonal(LinearOperator):
-    """Diagonal linear operator"""
+    """Diagonal linear operator."""
 
     def __init__(self, diagonal: JaxArray, input_dtype: Optional[DType] = None, **kwargs):
         r"""
@@ -124,7 +131,7 @@ class Identity(Diagonal):
 
 
 class Sum(LinearOperator):
-    """A linear operator for summing along an axis or set of axes"""
+    """A linear operator for summing along an axis or set of axes."""
 
     def __init__(
         self,
@@ -138,12 +145,15 @@ class Sum(LinearOperator):
         Wraps :func:`jax.numpy.sum` as a :class:`.LinearOperator`.
 
         Args:
-            sum_axis:  The axis or set of axes to sum over. If `None`, sum is taken over all axes.
+            sum_axis:  The axis or set of axes to sum over. If `None`,
+                sum is taken over all axes.
             input_shape: Shape of input array.
             input_dtype: `dtype` for input argument.
-                Defaults to `float32`. If this LinearOperator implements complex-valued operations,
-                this must be `complex64` for proper adjoint and gradient calculation.
-            jit:  If ``True``, jit the evaluation, adjoint, and gram functions of the LinearOperator.
+                Defaults to `float32`. If this LinearOperator implements
+                complex-valued operations, this must be `complex64` for
+                proper adjoint and gradient calculation.
+            jit:  If ``True``, jit the evaluation, adjoint, and gram
+               functions of the LinearOperator.
         """
 
         input_ndim = len(input_shape)
