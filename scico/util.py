@@ -44,7 +44,10 @@ def device_info(id: int = 0) -> str:  # pragma: no cover
     """Get a string describing the specified device.
 
     Args:
-        id: ID number of device
+        id: ID number of device.
+
+    Returns:
+        Device description string.
     """
     numdev = jax.device_count()
     if id >= numdev:
