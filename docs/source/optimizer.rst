@@ -53,6 +53,10 @@ regularization term or constraint. Each of the :math:`g_i` must have a
 proximal operator defined. It is also possible to set ``f = None``, which corresponds to defining :math:`f = 0`, i.e. the zero function.
 
 
+.. todo::
+   Add brief desciption of different subproblem solves.
+
+
 
 PGM
 ---
@@ -74,3 +78,7 @@ and :math:`g` must have a proximal operator defined.
 While ADMM provides significantly more flexibility than PGM, and often
 converges faster, the latter is preferred when solving the ADMM
 :math:`\mb{x}`-step is computationally expensive.
+
+
+.. todo::
+   Add brief description of different step size options.
