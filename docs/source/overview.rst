@@ -61,23 +61,29 @@ please cite :cite:`pfister-2021-scico`
 in the source distribution).
 
 
-Anatomy of an Inverse Problem
------------------------------
+Inverse Problems
+----------------
 
-SCICO is designed to solve problems of the form
+SCICO is designed to solve inverse problems such as
 
 .. math::
 
-   \argmin_{\mb{x}} \; f(\mb{x}) + \sum_{k=1}^K g_k(C_k (\mb{x})),
+   \argmin_{\mb{x}} \; f(\mb{x}) + g(\mb{x})
 
-with :math:`\mb{x} \in \mathbb{R}^{n}` representing the reconstruction,
-e.g., a 1D, 2D, 3D, or 3D+time image,
-:math:`C_k: \mathbb{R}^{n} \to \mathbb{R}^{m_k}`
-being regularization operators,
+or
+
+.. math::
+
+   \argmin_{\mb{x}} \; f(\mb{x}) + g(C \mb{x}) \;,
+
+where :math:`\mb{x} \in \mathbb{R}^{n}` represents the reconstruction,
+e.g., a 1D signal, 2D image, 3D volume, or 3D+time volume sequence,
+:math:`C: \mathbb{R}^{n} \to \mathbb{R}^{m_k}`
+is a regularization operator,
 and :math:`f: \mathbb{R}^{n} \to \mathbb{R}`
 and :math:`g_k: \mathbb{R}^{m_k} \to \mathbb{R}`
-being functionals associated with the data fidelity
-and regularization, respectively.
+are functionals associated with the data fidelity
+and regularization term, respectively.
 
 In a typical computational imaging problem,
 we have a `forward model` that models the data acquisition process.
@@ -89,7 +95,7 @@ in some appropriate sense.
 This discrepency is measured in our data fidelity, or `loss`, function
 
 .. Math::
-   f(\mb{x}) = L(A(\mb{x}), \mb{y}) \,,
+   f(\mb{x}) = L(A(\mb{x}), \mb{y}) \;,
 
 where :math:`L` is a `functional` that maps a vector (or array)
 into a scalar.
@@ -104,14 +110,16 @@ and the functional :math:`L` in a single object.
 A library of functionals and losses are implemented
 in :mod:`.functional` and :mod:`.loss`, respectively.
 
-The functionals :math:`g_r(C_r (\cdot))` are regularization functionals.
-The :math:`C_r` are operators, usually linear operators.
-Together,
-these terms encourage solutions that are "simple" in some sense.
+The functional :math:`g_(\cdot)` or :math:`g_(C (\cdot))`
+are regularization functionals, and the :math:`C` are operators,
+usually linear operators.
+Together, these terms encourage solutions that are "simple" in some sense.
 A popular choice is to let :math:`g = \norm{ \cdot }_1`
-and :math:`C` be a :class:`.FiniteDifferece` linear operator;
-this combination promotes piecewise smooth solutions
+and :math:`C` be a :class:`.FiniteDifferece` linear operator,
+which promotes piecewise smooth solutions
 to the inverse problem.
+
+For more detail in these classes, see :ref:`classes`.
 
 
 Usage Examples
