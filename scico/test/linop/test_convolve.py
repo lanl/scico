@@ -10,7 +10,7 @@ import pytest
 
 from scico.linop import Convolve, ConvolveByX, LinearOperator
 from scico.random import randn
-from scico.test.linop.test_linop import AbsMatOp, adjoint_AAt_test, adjoint_AtA_test
+from scico.test.linop.test_linop import AbsMatOp, adjoint_test
 
 
 class TestConvolve:
@@ -46,8 +46,7 @@ class TestConvolve:
 
         A = Convolve(h=psf, input_shape=input_shape, input_dtype=input_dtype, mode=mode, jit=jit)
 
-        adjoint_AtA_test(A, self.key)
-        adjoint_AAt_test(A, self.key)
+        adjoint_test(A, self.key)
 
 
 class ConvolveTestObj:
@@ -212,8 +211,7 @@ class TestConvolveByX:
 
         A = ConvolveByX(x=x, input_shape=input_shape, input_dtype=input_dtype, mode=mode, jit=jit)
 
-        adjoint_AtA_test(A, self.key)
-        adjoint_AAt_test(A, self.key)
+        adjoint_test(A, self.key)
 
 
 class ConvolveByXTestObj:
