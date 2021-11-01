@@ -52,9 +52,27 @@ and the :math:`g_i` are :class:`.Functional`, typically corresponding to a
 regularization term or constraint. Each of the :math:`g_i` must have a
 proximal operator defined. It is also possible to set ``f = None``, which corresponds to defining :math:`f = 0`, i.e. the zero function.
 
+The :math:`\mb{x}`-update in SCICO's ADMM formulation may admit
+a specialized solver, depending on the problem structure;
+SCICO has several such solvers built in and allows easy specification of new ones.
+The :math:`\mb{x}`-update is
 
-.. todo::
-   Add brief desciption of different subproblem solves.
+    .. math::
+
+        \argmin_{\mb{x}} \; f(\mb{x}) + \sum_i \frac{\rho_i}{2}
+        \norm{\mb{z}^{(k)}_i - \mb{u}^{(k)}_i - C_i \mb{x}}_2^2 \;.
+
+By default, this problem is solved using :func:`.solver.minimize`, which wraps
+SciPy's `minimize` function.
+When :math:`f` takes the form :math:`\norm{\mb{A} \mb{x} - \mb{y}}^2_W`,
+the user may specify that the :class:`.admm.LinearSubproblemSolver` be used,
+which solves the problem using the conjugate gradient method.
+As a further specialization, if :math:`\mb{A}` and all the :math:`C_i` s are circulant
+(i.e., diagonalizable in a Fourier basis),
+the :class:`.admm.CircularConvolveSolver` may be used to
+efficiently solve the problem in the Fourier domain.
+For more details of these solvers and how to specify them,
+see the API reference page for :class:`scico.admm`.
 
 
 
