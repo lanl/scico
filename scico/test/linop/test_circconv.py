@@ -9,7 +9,7 @@ import pytest
 import scico.numpy as snp
 from scico.linop import CircularConvolve, Convolve
 from scico.random import randint, randn, uniform
-from scico.test.linop.test_linop import adjoint_AAt_test, adjoint_AtA_test
+from scico.test.linop.test_linop import adjoint_test
 
 SHAPE_SPECS = [
     ((16,), None, (3,)),  # 1D
@@ -43,7 +43,8 @@ class TestCircularConvolve:
 
         Ax = A @ x
 
-        # check that a specific pixel of Ax computes an inner product between x and (flipped, padded, shifted) h
+        # check that a specific pixel of Ax computes an inner product between x and
+        # (flipped, padded, shifted) h
         h_flipped = np.flip(h, range(-A.ndims, 0))  # flip only in the spatial dims (not batches)
 
         x_inds = (...,) + tuple(
@@ -68,8 +69,7 @@ class TestCircularConvolve:
 
         A = CircularConvolve(h, x_shape, ndims, input_dtype, jit=jit)
 
-        adjoint_AtA_test(A, self.key)
-        adjoint_AAt_test(A, self.key)
+        adjoint_test(A, self.key)
 
     @pytest.mark.parametrize("jit", [True, False])
     @pytest.mark.parametrize("axes_shape_spec", SHAPE_SPECS)
