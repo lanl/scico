@@ -72,7 +72,7 @@ By default, ``pip install -r requirements.txt`` will install a CPU-only version 
 
 1. Follow the CPU Only instructions, above
 
-2. Identify which version of `jaxlib` was installed
+2. Identify which version of jaxlib was installed
 
    ::
 
@@ -83,10 +83,10 @@ By default, ``pip install -r requirements.txt`` will install a CPU-only version 
    The command will be something like
 
    ::
-      
+
       pip install --upgrade "jaxlib==0.1.70+cuda110" -f https://storage.googleapis.com/jax-releases/jax_releases.html
 
-      
+
 
 Additional Dependencies for Tomography
 ######################################
