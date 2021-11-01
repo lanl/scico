@@ -27,6 +27,9 @@ Once the dependencies have been installed, as described below, install SCICO its
 Installing Dependencies
 =======================
 
+Note that SCICO requires Python version 3.8 or later.
+
+
 Automatic Installation
 ----------------------
 

@@ -36,7 +36,7 @@ install_requires = [
     "svmbir",
 ]
 tests_require = ["pytest", "pytest-runner"]
-python_requires = ">3.8"
+python_requires = ">=3.8"
 
 
 setup(
