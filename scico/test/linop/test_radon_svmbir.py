@@ -6,7 +6,7 @@ import pytest
 
 import scico
 import scico.numpy as snp
-from scico.test.linop.test_linop import adjoint_AAt_test, adjoint_AtA_test
+from scico.test.linop.test_linop import adjoint_test
 from scico.test.test_functional import prox_test
 
 try:
@@ -61,8 +61,7 @@ def test_adjoint(Nx, Ny, num_angles, num_channels, is_3d):
     im = make_im(Nx, Ny, is_3d)
     A = make_A(im, num_angles, num_channels)
 
-    adjoint_AtA_test(A)
-    adjoint_AAt_test(A)
+    adjoint_test(A)
 
 
 @pytest.mark.parametrize("Nx, Ny, num_angles, num_channels", (SMALL_INPUT,))

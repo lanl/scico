@@ -18,11 +18,8 @@ from scico.random import randn
 from scico.typing import PRNGKey
 
 
-def adjoint_AtA_test(A: linop.LinearOperator, key: Optional[PRNGKey] = None, rtol: float = 1e-4):
-    """Check the validity of A.conj().T as the adjoint for a LinearOperator A
-
-    Compares the quantity sum(x.conj() * A.conj().T @ A @ x) against
-    norm(A @ x)**2.  If the adjoint is correct, these quantities should be equal.
+def adjoint_test(A: linop.LinearOperator, key: Optional[PRNGKey] = None, rtol: float = 1e-4):
+    """Check the validity of A.conj().T as the adjoint for a LinearOperator A.
 
     Args:
         A : LinearOperator to test
@@ -30,65 +27,15 @@ def adjoint_AtA_test(A: linop.LinearOperator, key: Optional[PRNGKey] = None, rto
         rtol:  Relative tolerance
     """
 
-    # Generate a signal in the domain of A
-    x, key = randn(A.input_shape, dtype=A.input_dtype, key=key)
-
-    Ax = A @ x
-
-    AtAx = A.conj().T @ Ax
-    num = snp.sum(x.conj() * AtAx)
-    den = snp.linalg.norm(Ax) ** 2
-    np.testing.assert_allclose(num / den, 1, rtol=rtol)
-
-    AtAx = A.H @ Ax
-    num = snp.sum(x.conj() * AtAx)
-    den = snp.linalg.norm(Ax) ** 2
-    np.testing.assert_allclose(num / den, 1, rtol=rtol)
-
-    AtAx = A.adj(Ax)
-    num = snp.sum(x.conj() * AtAx)
-    den = snp.linalg.norm(Ax) ** 2
-    np.testing.assert_allclose(num / den, 1, rtol=rtol)
-
-
-def adjoint_AAt_test(A: linop.LinearOperator, key: Optional[PRNGKey] = None, rtol: float = 1e-4):
-    """Check the validity of A as the adjoint for a LinearOperator A.conj().T
-
-    Compares the quantity sum(y.conj() * A @ A.conj().T @ y) against
-    norm(A.conj().T @ y)**2.  If the adjoint is correct, these quantities should be equal.
-
-    Args:
-        A : LinearOperator to test
-        key:  PRNGKey for generating `x`.
-        rtol:  Relative tolerance
-    """
-    # Generate a signal in the domain of A^T
-    y, key = randn(A.output_shape, dtype=A.output_dtype, key=key)
-
-    Aty = A.conj().T @ y
-    AAty = A @ Aty
-    num = snp.sum(y.conj() * AAty)
-    den = snp.linalg.norm(Aty) ** 2
-    np.testing.assert_allclose(num / den, 1, rtol=rtol)
-
-    Aty = A.H @ y
-    AAty = A @ Aty
-    num = snp.sum(y.conj() * AAty)
-    den = snp.linalg.norm(Aty) ** 2
-    np.testing.assert_allclose(num / den, 1, rtol=rtol)
-
-    Aty = A.adj(y)
-    AAty = A @ Aty
-    num = snp.sum(y.conj() * AAty)
-    den = snp.linalg.norm(Aty) ** 2
-    np.testing.assert_allclose(num / den, 1, rtol=rtol)
+    assert linop.valid_adjoint(A, A.H, rtol, key)
 
 
 class AbsMatOp(linop.LinearOperator):
     """Simple LinearOperator subclass for testing purposes.
 
-    Similar to linop.MatrixOperator, but does not use the specialized MatrixOperator methods (.T, adj, etc).
-    Used to verify the LinearOperator interface.
+    Similar to linop.MatrixOperator, but does not use the specialized
+    MatrixOperator methods (.T, adj, etc). Used to verify the
+    LinearOperator interface.
     """
 
     def __init__(self, A, adj_fn=None):
@@ -369,8 +316,7 @@ class TestDiagonal:
         diagonal, key = randn(input_shape, dtype=diagonal_dtype, key=self.key)
         D = linop.Diagonal(diagonal=diagonal)
 
-        adjoint_AtA_test(D)
-        adjoint_AAt_test(D)
+        adjoint_test(D)
 
     @pytest.mark.parametrize("operator", [op.add, op.sub])
     @pytest.mark.parametrize("diagonal_dtype", [np.float32, np.complex64])
@@ -544,8 +490,7 @@ def test_sum_eval(sumtestobj, axis):
 def test_sum_adj(sumtestobj, axis):
     x = sumtestobj.x
     A = linop.Sum(input_shape=x.shape, input_dtype=x.dtype, sum_axis=axis)
-    adjoint_AtA_test(A)
-    adjoint_AAt_test(A)
+    adjoint_test(A)
 
 
 @pytest.mark.parametrize("axis", (5, (1, 1), (0, 1, 2, 3, 4)))
