@@ -2,7 +2,7 @@
 
 # This script installs a conda environment with all required and
 # optional scico dependencies. The user is assumed to have write
-# permission for the conda installation, It should function correctly
+# permission for the conda installation. It should function correctly
 # under both Linux and OSX, but note that there are some additional
 # complications in using a conda installed matplotlib under OSX
 #   https://matplotlib.org/faq/osx_framework.html
@@ -47,7 +47,7 @@ EOF
 )
 # Requirements that cannot be installed via conda (i.e. have to use pip)
 NOCONDA=$(cat <<-EOF
-bm3d faculty-sphinx-theme py2jn colour_demosaicing
+bm3d faculty-sphinx-theme py2jn colour_demosaicing ray svmbir
 EOF
 )
 
@@ -171,7 +171,11 @@ if [ "$OS" == "Darwin" ]; then
 else
     FLTREQUIRE=$(mktemp -t condaenv_XXXXXX.txt)
 fi
-sort $ALLREQUIRE | uniq | $SED -E 's/(>|<)/\\\1/g' \
+# Filter the list of requirements; sed patterns are for
+#  1st: escape >,<,| characters with a backslash
+#  2nd: remove recursive include (-r) lines and packages that require
+#       special handling, e.g. jaxlib
+sort $ALLREQUIRE | uniq | $SED -E 's/(>|<|\|)/\\\1/g' \
     | $SED -E '/^-r.*|^jaxlib.*|^jax.*|^astra-toolbox.*/d' > $FLTREQUIRE
 # Remove requirements that cannot be installed via conda
 for nc in $NOCONDA; do

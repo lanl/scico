@@ -1,6 +1,6 @@
 pytest
 pytest-runner
 pre-commit
-black >= 21.6b0, == 21.*
+black>=21.6b0,<22
 isort
 autoflake
