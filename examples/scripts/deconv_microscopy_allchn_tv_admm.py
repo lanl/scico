@@ -135,6 +135,7 @@ for channel in range(3):
     y_pad_list.append(y_pad)
     psf_list.append(psf)
 y = snp.stack(y_list, axis=-1)
+yshape = y.shape
 del y_list
 
 
@@ -146,13 +147,6 @@ Define problem and algorithm parameters.
 ρ1 = 1e-3  # ADMM penalty parameter for second auxiliary variable
 ρ2 = 1e-3  # ADMM penalty parameter for third auxiliary variable
 maxiter = 100  # number of ADMM iterations
-
-
-"""
-Create regularization and projection functionals.
-"""
-g1 = λ * functional.L21Norm()  # TV penalty (when applied to gradient)
-g2 = functional.NonNegativeIndicator()  # non-negativity constraint
 
 
 """
@@ -190,6 +184,8 @@ def deconvolve_channel(channel):
     C1 = linop.FiniteDifference(input_shape=mask.shape, circular=True)  # gradient operator
     C2 = linop.Identity(mask.shape)  # identity operator
     g0 = loss.SquaredL2Loss(y=y_pad, A=M)  # loss function (forward model)
+    g1 = λ * functional.L21Norm()  # TV penalty (when applied to gradient)
+    g2 = functional.NonNegativeIndicator()  # non-negativity constraint
     if channel == 0:
         print("Displaying solver status for channel 0")
         verbose = True
@@ -206,7 +202,7 @@ def deconvolve_channel(channel):
         subproblem_solver=CircularConvolveSolver(),
     )
     x_pad = solver.solve()
-    x = x_pad[: y.shape[0], : y.shape[1], : y.shape[2]]
+    x = x_pad[: yshape[0], : yshape[1], : yshape[2]]
     return (x, solver.itstat_object.history(transpose=True))
 
 
