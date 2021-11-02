@@ -35,11 +35,10 @@ Installing a Development Version
 --------------------------------
 
 
-1. Fork both the SCICO repository and the SCICO Data submodule by clicking the Fork button on the `repository page <https://github.com/lanl/scico>`_. This will create a copy of both SCICO and SCICO Data repositories in your Git account.
-
+1. Fork both the scico and scico-data repositories, creating copies of these
+respositories in your own git account.
 
 2. Make sure that you have Python >= 3.8 installed in order to create a conda virtual environment.
-
 
 3. To create a conda virtual environment, clone your fork from source. To do a clone on SCICO that includes the SCICO Data submodule:
 
@@ -47,13 +46,11 @@ Installing a Development Version
 
    git clone --recurse-submodules git@github.com:<username>/scico.git
 
-
 4. Add the SCICO repo as an upstream remote to sync your changes:
 
 ::
 
    git remote add upstream https://www.github.com/lanl/scico
-
 
 5. After adding the upstream, the recommended way to install SCICO and its dependencies is via `conda <https://docs.conda.io/en/latest/>`_ using the scripts in ``misc/conda``:
 
@@ -63,34 +60,34 @@ Installing a Development Version
     with all SCICO dependencies. For GPU installation, see ``conda_env.sh -h``.
 
 
-5. Activate the created conda virtual environment:
+6. Activate the created conda virtual environment:
 
 ::
 
    conda activate py38
 
 
-6. Navigate to the root of the cloned repository:
+7. Navigate to the root of the cloned repository:
 
 ::
 
     cd scico
 
-7. Once dependencies have been installed, install SCICO in editable form:
+8. Once dependencies have been installed, install SCICO in editable form:
 
 ::
 
   pip install -e .
 
 
-8. Set up ``black`` and ``isort`` pre-commit hooks:
+9. Set up ``black`` and ``isort`` pre-commit hooks:
 
 ::
 
   pre-commit install  # Sets up git pre-commit hooks
 
 
-9. For testing see `Tests`_.
+10. For testing see `Tests`_.
 
 
 Contributing Code
