@@ -16,12 +16,12 @@ from jax.experimental import host_callback as hcb
 from bm3d import bm3d, bm3d_rgb
 
 from scico.blockarray import BlockArray
-from scico.data import _objax_data_path
-from scico.objax import DnCNN_Net
+from scico.data import _flax_data_path
+from scico.flax import DnCNNNet, load_weights
 from scico.typing import JaxArray
 
+from ._flax import FlaxMap
 from ._functional import Functional
-from ._objax import ObjaxMap
 
 __author__ = """Luke Pfister <luke.pfister@gmail.com>"""
 
@@ -101,10 +101,10 @@ class BM3D(Functional):
         return y
 
 
-class DnCNN(ObjaxMap):
-    """Objax implementation of the DnCNN denoiser :cite:`zhang-2017-dncnn`.
+class DnCNN(FlaxMap):
+    """Flax implementation of the DnCNN denoiser :cite:`zhang-2017-dncnn`.
 
-    Note that :class:`.objax.DnCNN_Net` represents an untrained form of the
+    Note that :class:`.flax.DnCNNNet` represents an untrained form of the
     generic DnCNN CNN structure, while this class represents a trained
     form with six or seventeen layers.
     """
@@ -113,11 +113,13 @@ class DnCNN(ObjaxMap):
         """Initialize a :class:`DnCNN` object.
 
         Args:
-           variant: Identify the DnCNN model to be used. Options are '6L', '6M' (default),
-             '6H', '17L', '17M', and '17H', where the integer indicates the number of
-             layers in the network, and the postfix indicates the training noise standard
-             deviation: L (low) = 0.06, M (mid) = 0.1, H (high) = 0.2, where the standard
-             deviations are with respect to data in the range [0, 1].
+            variant : Identify the DnCNN model to be used. Options are
+                '6L', '6M' (default), '6H', '17L', '17M', and '17H',
+                where the integer indicates the number of layers in the
+                network, and the postfix indicates the training noise
+                standard deviation: L (low) = 0.06, M (mid) = 0.1,
+                H (high) = 0.2, where the standard deviations are
+                with respect to data in the range [0, 1].
         """
         if variant not in ["6L", "6M", "6H", "17L", "17M", "17H"]:
             raise RuntimeError(f"Invalid value of parameter variant: {variant}")
@@ -125,6 +127,6 @@ class DnCNN(ObjaxMap):
             nlayer = 6
         else:
             nlayer = 17
-        model = DnCNN_Net(nlayer, 1, 64)
-        model.load_weights(_objax_data_path("dncnn%s.npz" % variant))
-        super().__init__(model)
+        model = DnCNNNet(depth=nlayer, channels=1, num_filters=64, dtype=np.float32)
+        variables = load_weights(_flax_data_path("dncnn%s.npz" % variant))
+        super().__init__(model, variables)

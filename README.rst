@@ -1,3 +1,7 @@
+.. image:: https://img.shields.io/badge/python-3.8+-green.svg
+    :target: https://www.python.org/
+    :alt: Python >= 3.8
+
 .. image:: https://img.shields.io/github/license/lanl/scico.svg
     :target: https://github.com/lanl/scico/blob/main/LICENSE
     :alt: Package License
@@ -33,7 +37,7 @@ See the ``INSTALL.rst`` file or the `online documentation <https://scico.rtfd.io
 Usage Examples
 ==============
 
-Usage examples are available as Python scripts and Jupyter Notebooks. Example scripts are located in ``examples/scripts``. The corresponding Jupyter Notebooks are provided in the `scico-data <https://github.com/lanl/scico-data>`_ submodule and symlinked to ``examples/notebooks``. They are also viewable on `GitHub <https://github.com/lanl/scico-data/tree/main/notebooks>`_ or `nbviewer <https://nbviewer.jupyter.org/github/lanl/scico-data/tree/main/notebooks/>`_.
+Usage examples are available as Python scripts and Jupyter Notebooks. Example scripts are located in ``examples/scripts``. The corresponding Jupyter Notebooks are provided in the `scico-data <https://github.com/lanl/scico-data>`_ submodule and symlinked to ``examples/notebooks``. They are also viewable on `GitHub <https://github.com/lanl/scico-data/tree/main/notebooks>`_ or `nbviewer <https://nbviewer.jupyter.org/github/lanl/scico-data/tree/main/notebooks/index.ipynb>`_.
 
 
 License

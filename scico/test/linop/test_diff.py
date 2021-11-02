@@ -6,7 +6,7 @@ import scico.numpy as snp
 from scico.blockarray import BlockArray
 from scico.linop import FiniteDifference
 from scico.random import randn
-from scico.test.linop.test_linop import adjoint_AAt_test, adjoint_AtA_test
+from scico.test.linop.test_linop import adjoint_test
 
 
 @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
@@ -58,8 +58,7 @@ def test_eval(input_shape, input_dtype, axes, jit, append):
             A = FiniteDifference(
                 input_shape=input_shape, input_dtype=input_dtype, axes=axes, jit=jit
             )
-            adjoint_AtA_test(A)
-            adjoint_AAt_test(A)
+            adjoint_test(A)
 
 
 @pytest.mark.parametrize(

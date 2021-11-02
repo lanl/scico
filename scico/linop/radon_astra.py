@@ -5,7 +5,12 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Proof-of-concept Radon transform LinearOperator"""
+"""Radon transform LinearOperator wrapping the ASTRA toolbox.
+
+Radon transform LinearOperator wrapping the parallel beam projections in
+the `ASTRA toolbox <https://github.com/astra-toolbox/astra-toolbox>`_.
+"""
+
 
 from typing import List, Optional
 
@@ -33,7 +38,7 @@ __author__ = """Luke Pfister <luke.pfister@gmail.com>"""
 
 
 class ParallelBeamProjector(LinearOperator):
-    r"""Parallel beam projector."""
+    r"""Parallel beam projector based on ASTRA."""
 
     def __init__(
         self,
@@ -47,23 +52,26 @@ class ParallelBeamProjector(LinearOperator):
         """
         Args:
             input_shape: Shape of the input array.
-            volume_geometry: Defines the shape and size of the discretized reconstruction volume.
-                Must either `None`, or of the form (min_x, max_x, min_y, max_y).
-                If `None`,, volume pixels are squares with sides of unit length,
-                and the volume is centered around the origin.
-                If not None, the extents of the volume can be specified arbitrarily.
+            volume_geometry: Defines the shape and size of the
+                discretized reconstruction volume. Must either `None`, or
+                of the form (min_x, max_x, min_y, max_y). If `None`,
+                volume pixels are squares with sides of unit length, and
+                the volume is centered around the origin. If not None,
+                the extents of the volume can be specified arbitrarily.
                 The default, None, corresponds to
                 ``volume_geometry = [cols, -cols/2, cols/2, -rows/2, rows/2]``.
-                Note: For usage with GPU code, the volume must be centered around the origin and pixels must be square.
-                This is not always explicitly checked in all functions, so not following these requirements may have
-                unpredictable results.
-                Original ASTRA documentation: https://www.astra-toolbox.com/docs/geom2d.html#volume-geometries
+                Note: For usage with GPU code, the volume must be
+                centered around the origin and pixels must be square.
+                This is not always explicitly checked in all functions,
+                so not following these requirements may have
+                unpredictable results. See `original ASTRA documentation
+                <https://www.astra-toolbox.com/docs/geom2d.html#volume-geometries>`_.
             detector_spacing:  Spacing between detector elements
             det_count:  Number of detector elements
             angles:  Array of projection angles.
             device: Specifies device for projection operation.
-                One of ["auto", "gpu", "cpu"].  If "auto",  a GPU is used if available.
-                Otherwise, the CPU is used.
+                One of ["auto", "gpu", "cpu"].  If "auto",  a GPU is used
+                if available. Otherwise, the CPU is used.
         """
 
         # Set up all the ASTRA config
@@ -82,8 +90,9 @@ class ParallelBeamProjector(LinearOperator):
                 self.vol_geom: dict = astra.create_vol_geom(*input_shape, *volume_geometry)
             else:
                 raise AssertionError(
-                    "volume_geometry must be the shape of the volume as a tuple of len 4"
-                    "containing the volume geometry dimensions. Please see documentation for specifics."
+                    "Volume_geometry must be the shape of the volume as a tuple of len 4 "
+                    "containing the volume geometry dimensions. Please see documentation "
+                    "for specifics."
                 )
         else:
             self.vol_geom: dict = astra.create_vol_geom(*input_shape)
@@ -138,7 +147,7 @@ class ParallelBeamProjector(LinearOperator):
 
     def fbp(self, sino: JaxArray, filter_type: str = "Ram-Lak") -> JaxArray:
 
-        # Just use the CPU FBP alg for now;  hitting memory issues with GPU one
+        # Just use the CPU FBP alg for now; hitting memory issues with GPU one.
         def f(sino):
             if sino.flags.writeable == False:
                 sino.flags.writeable = True

@@ -11,7 +11,7 @@ import sys
 
 # isort: off
 from scico._generic_operators import LinearOperator
-from ._linop import Diagonal, Identity, power_iteration, Sum
+from ._linop import Diagonal, Identity, power_iteration, Sum, valid_adjoint
 from ._matrix import MatrixOperator
 from ._diff import FiniteDifference
 from ._convolve import Convolve, ConvolveByX
@@ -32,6 +32,7 @@ __all__ = [
     "LinearOperatorStack",
     "Sum",
     "power_iteration",
+    "valid_adjoint",
 ]
 
 # Imported items in __all__ appear to originate in top-level linop module
