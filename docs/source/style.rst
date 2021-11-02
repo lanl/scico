@@ -17,6 +17,12 @@ Style Guide
       list-style: square outside !important;
       margin-left: 1em !important;
     }
+    section {
+      padding-bottom: 1em;
+    }
+    ul {
+      margin-bottom: 1em;
+    }
     </style>
 
 
@@ -96,7 +102,6 @@ Things to avoid:
    - protected: Use a single underscore, ``_``, for protected access; and
    - pseudo-private: Use double underscores, ``_``, for pseudo-private access via name mangling.
 
-|
 
 Displaying and Printing Strings
 -------------------------------
@@ -110,8 +115,6 @@ Prefer to use Python f-strings, rather than `.format` or `%` syntax as the `Goog
     print(f"The state is {state}")  # Preferred
 
 
-
-
 Imports
 -------
 
@@ -122,7 +125,6 @@ The `Google import conventions <https://google.github.io/styleguide/pyguide.html
 -  Use ``from x import y as z`` if two modules named ``y`` are imported or if ``y`` is too long of a name.
 -  Use ``import y as z`` when ``z`` is a standard abbreviation like ``import numpy as np``.
 
-|
 
 Variables
 ---------
@@ -138,7 +140,6 @@ Apart from naming conventions, the `Google variable typing conventions <https://
 - Avoid global variables.
 - A function can refer to variables defined in enclosing functions but cannot assign to them.
 
-|
 
 Parameters
 ----------
@@ -188,7 +189,6 @@ There are three important style components for parameters inspired by the `NumPy
 
    For documentation purposes, ``NoneType`` or ``None`` should be written with double backticks.
 
-|
 
 Docstrings
 ----------
@@ -420,8 +420,10 @@ An example of this, taken from the `Google comment conventions <https://google.g
 
 If a comment consists of one or more full sentences (as is typically the case for *block* comments), it should start with an upper case letter and end with a period. *Inline* comments often consist of a brief phrase which is not a full sentence, in which case they should have a lower case initial letter and not have a terminating period.
 
+
 Documentation Pages
 -------------------
+
 Documentation that is separate from code (like this page)
 should follow the
 `IEEE Style Manual
