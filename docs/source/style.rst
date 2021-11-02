@@ -152,10 +152,10 @@ There are three important style components for parameters inspired by the `NumPy
    From the ``typing`` module we can use more types such as ``Optional``, ``Union``, and ``Any``.
    For example,
 
-      .. code-block:: python
+   .. code-block:: python
 
-	 def foo(a: str) -> str:
-	    """Takes an input of type string and returns a value of type string"""
+      def foo(a: str) -> str:
+         """Takes an input of type string and returns a value of type string"""
 	    ...
 
 2. Default Values
@@ -166,12 +166,12 @@ There are three important style components for parameters inspired by the `NumPy
    those values can be listed in braces, with the default appearing first.
    For example,
 
-      .. code-block:: python
+   .. code-block:: python
 
-	 """
-	 letters: {'A', 'B, 'C'}
-	     Description of `letters`.
-	 """
+      """
+      letters: {'A', 'B, 'C'}
+         Description of `letters`.
+      """
 
 3. NoneType
 
@@ -182,10 +182,10 @@ There are three important style components for parameters inspired by the `NumPy
    ``Optional[T]`` is preferred over ``Union[T, None]``.
    For example,
 
-      .. code-block:: python
+   .. code-block:: python
 
-	 def foo(a: Optional[str], b: Optional[Union[str, int]]) -> str:
-	    ...
+      def foo(a: Optional[str], b: Optional[Union[str, int]]) -> str:
+	 ...
 
    For documentation purposes, ``NoneType`` or ``None`` should be written with double backticks.
 
@@ -325,23 +325,23 @@ The following are sections that can be added to functions, modules, classes, or 
    - Refers to related code. Used to direct users to other modules, functions, or classes that they may not be aware of.
    - When referring to functions in the same sub-module, no prefix is needed. Example: For ``numpy.mean`` inside the same sub-module:
 
-	.. code-block:: python
+     .. code-block:: python
 
-	    """
-	    See Also
-	    --------
-	    average: Weighted average.
-	    """
+	"""
+	See Also
+	--------
+	average: Weighted average.
+	"""
 
    - For a reference to ``fft`` in another module:
 
-	.. code-block:: python
+     .. code-block:: python
 
-	   """
-	   See Also
-	   --------
-	   fft.fft2: 2-D fast discrete Fourier transform.
-	   """
+	"""
+        See Also
+        --------
+        fft.fft2: 2-D fast discrete Fourier transform.
+        """
 
 -  Notes
 
