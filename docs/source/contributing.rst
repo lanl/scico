@@ -28,29 +28,28 @@ Contributing
 Contributions to SCICO are welcome. Before starting work, please contact the maintainers, either via email or the GitHub issue system, to discuss the relevance of your contribution and the most appropriate location within the existing package structure.
 
 
-
 .. _installing_dev:
 
 Installing a Development Version
 --------------------------------
 
-
 1. Fork both the scico and scico-data repositories, creating copies of these
 respositories in your own git account.
 
-2. Make sure that you have Python >= 3.8 installed in order to create a conda virtual environment.
+2. Make sure that you have python >= 3.8 installed in order to create a conda virtual environment.
 
-3. To create a conda virtual environment, clone your fork from source. To do a clone on SCICO that includes the SCICO Data submodule:
+3. To create a conda virtual environment, clone your fork from the source repo.
+To create a clone of scico that includes the scico-data submodule:
 
-::
+   ::
 
-   git clone --recurse-submodules git@github.com:<username>/scico.git
+      git clone --recurse-submodules git@github.com:<username>/scico.git
 
 4. Add the SCICO repo as an upstream remote to sync your changes:
 
-::
+   ::
 
-   git remote add upstream https://www.github.com/lanl/scico
+      git remote add upstream https://www.github.com/lanl/scico
 
 5. After adding the upstream, the recommended way to install SCICO and its dependencies is via `conda <https://docs.conda.io/en/latest/>`_ using the scripts in ``misc/conda``:
 
@@ -62,29 +61,29 @@ respositories in your own git account.
 
 6. Activate the created conda virtual environment:
 
-::
+   ::
 
-   conda activate py38
+      conda activate py38
 
 
 7. Navigate to the root of the cloned repository:
 
-::
+   ::
 
-    cd scico
+      cd scico
 
 8. Once dependencies have been installed, install SCICO in editable form:
 
-::
+   ::
 
-  pip install -e .
+      pip install -e .
 
 
 9. Set up ``black`` and ``isort`` pre-commit hooks:
 
-::
+   ::
 
-  pre-commit install  # Sets up git pre-commit hooks
+      pre-commit install  # Sets up git pre-commit hooks
 
 
 10. For testing see `Tests`_.
@@ -106,16 +105,16 @@ A feature development workflow might look like this:
 
 2. Sync with the upstream repository:
 
-::
+   ::
 
-   git pull --rebase origin main --recurse-submodules
+      git pull --rebase origin main --recurse-submodules
 
 
 3. Create a branch to develop from:
 
-::
+   ::
 
-   git checkout -b name-of-change
+      git checkout -b name-of-change
 
 
 4. Make your desired changes.
@@ -123,40 +122,39 @@ A feature development workflow might look like this:
 
 5. Run the test suite:
 
-::
+   ::
 
-   pytest
+      pytest
 
-You can limit the test suite to a specific file:
+   You can limit the test suite to a specific file:
 
-::
+   ::
 
-   pytest scico/test/test_blockarray.py
+      pytest scico/test/test_blockarray.py
 
 
 6. When you are finished making changes, create a new commit:
 
-::
+   ::
 
-   git add file1.py git add file2.py
-   git commit -m "A good commit message"
+      git add file1.py git add file2.py
+      git commit -m "A good commit message"
 
-
-NOTE:  If you have added or modified an example script, see `Adding Usage Examples`_
+   NOTE:  If you have added or modified an example script, see `Adding Usage Examples`_
 
 7. Sync with the upstream repository:
 
-::
+   ::
 
-   git fetch upstream
-   git rebase upstream/main
+      git fetch upstream
+      git rebase upstream/main
 
 
 8. Push your development upstream:
 
-::
+   ::
 
-   git push --set-upstream origin name-of-change
+      git push --set-upstream origin name-of-change
 
 
 9.  Create a new pull request to the ``main`` branch; see `the GitHub instructions <https://docs.github.com/en/github/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request>`_.
@@ -175,27 +173,27 @@ particular:
 
 1. The initial lines of the script should consist of a comment block, followed by a blank line, followed by a multiline string with an RST heading on the first line, e.g.,
 
-::
+   ::
 
-  #!/usr/bin/env python
-  # -*- coding: utf-8 -*-
-  # This file is part of the SCICO package. Details of the copyright
-  # and user license can be found in the 'LICENSE.txt' file distributed
-  # with the package.
+     #!/usr/bin/env python
+     # -*- coding: utf-8 -*-
+     # This file is part of the SCICO package. Details of the copyright
+     # and user license can be found in the 'LICENSE.txt' file distributed
+     # with the package.
 
-  """
-  Script Title
-  ============
+     """
+     Script Title
+     ============
 
-  Script description.
-  """
+     Script description.
+     """
 
 
 2. The final line of the script is an ``input`` statement intended to avoid the script terminating immediately, thereby closing all figures:
 
-::
+   ::
 
-  input("\nWaiting for input to close figures and exit")
+     input("\nWaiting for input to close figures and exit")
 
 
 3. Citations are included using the standard `Sphinx <https://www.sphinx-doc.org/en/master/>`__ ``:cite:`cite-key``` syntax, where ``cite-key`` is the key of an entry in ``docs/source/references.bib``.
@@ -237,28 +235,28 @@ and ``scico-data`` repositories must be updated and kept in sync.
 
 4. Change directory to the ``data`` directory and add/commit the new Jupyter Notebook:
 
-::
+   ::
 
-   cd scico/data
-   git add notebooks/new_example.ipynb
-   git commit -m "Add new usage example"
+      cd scico/data
+      git add notebooks/new_example.ipynb
+      git commit -m "Add new usage example"
 
 
 5. Return to the main SCICO repository, ensure the ``main`` branch is checked out, add/commit the new script and updated submodule:
 
-::
+   ::
 
-   cd ..  # pwd now `scico` repo root
-   git add data
-   git add examples/scripts/new_filename.py
-   git commit -m "Add usage example and update data module"
+      cd ..  # pwd now `scico` repo root
+      git add data
+      git add examples/scripts/new_filename.py
+      git commit -m "Add usage example and update data module"
 
 
 6.  Push both repositories:
 
-::
+   ::
 
-  git submodule foreach --recursive 'git push' && git push
+      git submodule foreach --recursive 'git push' && git push
 
 
 Adding New Data
@@ -273,28 +271,28 @@ scico-data repositories must be updated and kept in sync.
 
 1. Add the ``new_data.npz`` file to the ``scico/data`` directory.
 
-2.  Navigate to the ``data`` directory and add/commit the new data file:
+2. Navigate to the ``data`` directory and add/commit the new data file:
 
-::
+   ::
 
-   cd scico/data
-   git add new_data.npz
-   git commit -m "Add new data file"
+      cd scico/data
+      git add new_data.npz
+      git commit -m "Add new data file"
 
 3.  Return to the base SCICO repository, ensure the ``main`` branch is checked out, add/commit the new data and update submodule:
 
-::
+   ::
 
-   cd ..  # pwd now `scico` repo root
-   git checkout main
-   git add data
-   git commit -m "Add data and update data module"
+      cd ..  # pwd now `scico` repo root
+      git checkout main
+      git add data
+      git commit -m "Add data and update data module"
 
 4.  Push both repositories:
 
-::
+   ::
 
-  git submodule foreach --recursive 'git push' && git push
+      git submodule foreach --recursive 'git push' && git push
 
 
 Tests
