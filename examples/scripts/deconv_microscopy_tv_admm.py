@@ -24,7 +24,7 @@ regularization
 
 where $M$ is a mask operator, $A$ is circular convolution,
 $\mathbf{y}$ is the blurred image, $C$ is a convolutional gradient
-operator, $\iota_{mathrm{NN}}$ is the indicator function of the
+operator, $\iota_{\mathrm{NN}}$ is the indicator function of the
 non-negativity constraint, and $\mathbf{x}$ is the desired image.
 """
 
@@ -215,7 +215,7 @@ def make_slices(x, sep_width=10):
     return out
 
 
-fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(10, 5))
+fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(14, 7))
 plot.imview(make_slices(y), title="Blurred measurements", fig=fig, ax=ax[0])
 plot.imview(make_slices(x), title="Deconvolved image", fig=fig, ax=ax[1])
 fig.show()

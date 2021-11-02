@@ -24,7 +24,7 @@ regularization
 
 where $M$ is a mask operator, $A$ is circular convolution,
 $\mathbf{y}$ is the blurred image, $C$ is a convolutional gradient
-operator, $\iota_{mathrm{NN}}$ is the indicator function of the
+operator, $\iota_{\mathrm{NN}}$ is the indicator function of the
 non-negativity constraint, and $\mathbf{x}$ is the desired image.
 """
 
@@ -114,6 +114,9 @@ Get and preprocess data. We downsample the data for the purposes of
 the example. Reducing the downsampling rate will be slower and more
 memory-intensive. If your GPU does not have enough memory, you can try
 setting the environment variable `JAX_PLATFORM_NAME=cpu` to run on CPU.
+To run this example on a GPU it
+[may also be necessary](https://github.com/google/jax/issues/5380) to
+set environment variable `XLA_PYTHON_CLIENT_PREALLOCATE=false`.
 """
 downsampling_rate = 4
 
@@ -252,7 +255,7 @@ def make_slices(x, sep_width=10):
     return out
 
 
-fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(10, 5))
+fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(14, 7))
 plot.imview(make_slices(y), title="Blurred measurements", fig=fig, ax=ax[0])
 plot.imview(make_slices(x), title="Deconvolved image", fig=fig, ax=ax[1])
 fig.show()
