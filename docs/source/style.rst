@@ -27,7 +27,7 @@ We adhere to `PEP8 <https://www.python.org/dev/peps/pep-0008/>`_ with the except
 
 We aim to incorporate `PEP 526 <https://www.python.org/dev/peps/pep-0484/>`_ type annotations throughout the library.  See the `Mypy <https://mypy.readthedocs.io/en/stable/>`_ type annotation `cheat sheet <https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html>`_ for usage examples. Custom types are defined in :mod:`.typing`.
 
-Our coding conventions are based on both the `numpy conventions <https://numpydoc.readthedocs.io/en/latest/format.html#overview>`_ and the `google docstring conventions <https://google.github.io/styleguide/pyguide.html>`_.
+Our coding conventions are based on both the `NumPy conventions <https://numpydoc.readthedocs.io/en/latest/format.html#overview>`_ and the `Google docstring conventions <https://google.github.io/styleguide/pyguide.html>`_.
 
 Unicode variable names are allowed for internal usage (e.g. for Greek characters for mathematical symbols), but not as part of the public interface for functions or methods.
 
@@ -35,7 +35,7 @@ Unicode variable names are allowed for internal usage (e.g. for Greek characters
 Naming
 ------
 
-Naming conventions adhering to `google's naming conventions <https://google.github.io/styleguide/pyguide.html#3164-guidelines-derived-from-guidos-recommendations>`_ for the different programming components are as follows:
+Naming conventions adhering to the `Google naming conventions <https://google.github.io/styleguide/pyguide.html#3164-guidelines-derived-from-guidos-recommendations>`_ for the different programming components are as follows:
 
 .. list-table:: Naming Conventions
    :widths: 20 20
@@ -101,7 +101,7 @@ Things to avoid:
 Displaying and Printing Strings
 -------------------------------
 
-Prefer to use Python f-strings, rather than `.format` or `%` syntax as `google's string conventions <https://google.github.io/styleguide/pyguide.html#310-strings>`_ suggests.
+Prefer to use Python f-strings, rather than `.format` or `%` syntax as the `Google string conventions <https://google.github.io/styleguide/pyguide.html#310-strings>`_ suggests.
 
 .. code:: Python
 
@@ -115,7 +115,7 @@ Prefer to use Python f-strings, rather than `.format` or `%` syntax as `google's
 Imports
 -------
 
-`Google's import conventions <https://google.github.io/styleguide/pyguide.html#22-imports>`_ states that the usage of ``import`` statements should be reserved for packages and modules only and not individual classes or functions. The only exception to this is the typing module.
+The `Google import conventions <https://google.github.io/styleguide/pyguide.html#22-imports>`_ states that the usage of ``import`` statements should be reserved for packages and modules only and not individual classes or functions. The only exception to this is the typing module.
 
 -  Use ``import x`` for importing packages and modules, where x is the package or module name.
 -  Use ``from x import y`` where x is the package name and y is the module name.
@@ -127,7 +127,7 @@ Imports
 Variables
 ---------
 
-Apart from naming conventions, `google's variable typing conventions <https://google.github.io/styleguide/pyguide.html#3198-typing-variables>`_ suggests that there are a few extra documentation and coding practices that can be applied to variables such as:
+Apart from naming conventions, the `Google variable typing conventions <https://google.github.io/styleguide/pyguide.html#3198-typing-variables>`_ suggests that there are a few extra documentation and coding practices that can be applied to variables such as:
 
 - One may type a variables by using a ``: type`` before the function value is assigned, e.g.,
 
@@ -143,7 +143,7 @@ Apart from naming conventions, `google's variable typing conventions <https://go
 Parameters
 ----------
 
-There are three important style components for parameters inspired by `numpy's parameter conventions <https://numpydoc.readthedocs.io/en/latest/format.html#parameters>`_:
+There are three important style components for parameters inspired by the `NumPy parameter conventions <https://numpydoc.readthedocs.io/en/latest/format.html#parameters>`_:
 
 1. Typing
 
@@ -177,7 +177,7 @@ There are three important style components for parameters inspired by `numpy's p
    In Python, ``NoneType`` is a first-class type, meaning the type itself
    can be passed into and returned from functions.
    ``None`` is the most commonly used alias for ``NoneType``.
-   If any of a function's parameters can be ``None`` then it has to be declared.
+   If any of the parameters of a function can be ``None`` then it has to be declared.
    ``Optional[T]`` is preferred over ``Union[T, None]``.
    For example,
 
@@ -199,7 +199,7 @@ Docstrings are a way to document code within Python and it is the first statemen
 Typing
 ~~~~~~
 
-The following are docstring-specific usages that `numpy's parameter conventions <https://numpydoc.readthedocs.io/en/latest/format.html#parameters>`_ suggests before going into the creation of said docstrings:
+The following are docstring-specific usages that the `NumPy parameter conventions <https://numpydoc.readthedocs.io/en/latest/format.html#parameters>`_ suggests before going into the creation of said docstrings:
 
 - Always enclose variables in single backticks.
 - For the parameter types, be as precise as possible, do not use backticks.
@@ -208,7 +208,7 @@ The following are docstring-specific usages that `numpy's parameter conventions 
 Modules
 ~~~~~~~
 
-According to `google's module conventions <https://google.github.io/styleguide/pyguide.html#382-modules>`_ files must start with a docstring that describes the functionality of the module.
+According to the `Google module conventions <https://google.github.io/styleguide/pyguide.html#382-modules>`_ files must start with a docstring that describes the functionality of the module.
 For example,
 
 .. code-block:: python
@@ -230,7 +230,7 @@ Functions
 The word *function* encompasses functions, methods, or generators in this section.
 The docstring should give enough information to make calls to the function without needing to read the functions code.
 
-`Google's function conventions <https://google.github.io/styleguide/pyguide.html#383-functions-and-methods>`_ suggests that functions should contain docstrings unless:
+The `Google function conventions <https://google.github.io/styleguide/pyguide.html#383-functions-and-methods>`_ suggests that functions should contain docstrings unless:
 - not externally visible (the function name is prefaced with an underscore) or
 - very short.
 
@@ -289,7 +289,7 @@ Example:
 Classes
 ~~~~~~~
 
-Classes, like functions, should have a docstring below the definition describing the class and the class functionality adhering to `google's class conventions <https://google.github.io/styleguide/pyguide.html#384-classes>`_. If the class contains public attributes the class should have an attributes section where each attribute is listed by name and followed by a description divided by a colon much like a function's args.
+Classes, like functions, should have a docstring below the definition describing the class and the class functionality adhering to the `Google class conventions <https://google.github.io/styleguide/pyguide.html#384-classes>`_. If the class contains public attributes, the class should have an attributes section where each attribute is listed by name and followed by a description, separated by a colon, like for function parameters.
 
 | Example:
 
@@ -318,7 +318,7 @@ Classes, like functions, should have a docstring below the definition describing
 Extra Sections
 ~~~~~~~~~~~~~~
 
-The following are sections that can be added to functions, modules, classes, or method definitions taken from the `numpy style guide <https://numpydoc.readthedocs.io/en/latest/format.html#sections>`_.
+The following are sections that can be added to functions, modules, classes, or method definitions taken from the `NumPy style guide <https://numpydoc.readthedocs.io/en/latest/format.html#sections>`_.
 
 -  See Also:
 
@@ -407,7 +407,7 @@ Comments
 ~~~~~~~~
 
 There are two types of comments: *block* and *inline*. A good rule of thumb to follow for when to include a comment in your code is *if you have to explain it or is too hard to figure out at first glance, then comment it*.
-An example of this, taken from `google's comment conventions <https://google.github.io/styleguide/pyguide.html#385-block-and-inline-comments>`_, is complicated operations which most likely require a block of comments beforehand.
+An example of this, taken from the `Google comment conventions <https://google.github.io/styleguide/pyguide.html#385-block-and-inline-comments>`_, is complicated operations which most likely require a block of comments beforehand.
 
 .. code-block:: Python
 
