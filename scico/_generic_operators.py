@@ -30,8 +30,10 @@ from scico.util import is_nested
 
 
 def _wrap_mul_div_scalar(func):
-    r"""Wrapper function for defining mul, rmul, and truediv
-    between a scalar and an Operator.
+    r"""Wrapper function for defining mul, rmul, and truediv.
+
+    Wrapper function for defining mul, rmul, and truediv between a scalar
+    and an Operator.
 
     If one of these binary operations are called in the form
     binop(Operator, other) and 'b' is a scalar, specialized
@@ -39,12 +41,11 @@ def _wrap_mul_div_scalar(func):
 
     Args:
         func: should be either .__mul__(), .__rmul__(),
-        or .__truediv__().
+           or .__truediv__().
 
     Raises:
         TypeError: A binop with the form binop(Operator, other) is
         called and other is not a scalar.
-
     """
 
     @wraps(func)
@@ -344,21 +345,22 @@ output_dtype : {self.output_dtype}
 
 
 def _wrap_add_sub(func: Callable, op: Callable) -> Callable:
-    r"""Wrapper function for defining __add__, __sub__ between
-    LinearOperator and other objects.
+    r"""Wrapper function for defining __add__, __sub__.
+
+    Wrapper function for defining __add__, __sub__ between LinearOperator
+    and other objects.
 
     Handles shape checking and dispatching based on operand types:
-    - If one of the two operands is an Operator, an Operator is
-    returned.
-    - If both operands are LinearOperators of different types,
-    a generic LinearOperator is returned.
-    - If both operands are LinearOperators of the same type,
-    a special constructor can be called
+    - If one of the two operands is an Operator, an Operator is returned.
+    - If both operands are LinearOperators of different types, a generic
+      LinearOperator is returned.
+    - If both operands are LinearOperators of the same type, a special
+      constructor can be called
 
     Args:
         func: should be either .__add__() or .__sub__().
         op: functional equivalent of func, ex. op.add for func =
-        __add__.
+           __add__.
 
     Raises:
         ValueError: The shape of both operators does not match.
