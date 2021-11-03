@@ -604,7 +604,10 @@ class ADMM:
             zip(self.rho_list, self.g_list, self.C_list, z_list, u_list)
         ):
             Cix = Ci(self.x)
-            zi = gi.prox(Cix + ui, 1 / rhoi)
+            if self.use_approximate_prox:
+                zi = gi.approximate_prox(Cix + ui, 1 / rhoi, v0=zi)
+            else:
+                zi = gi.prox(Cix + ui, 1 / rhoi)
             ui = ui + Cix - zi
             z_list[i] = zi
             u_list[i] = ui

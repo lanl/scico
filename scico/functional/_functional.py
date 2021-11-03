@@ -90,12 +90,40 @@ is_smooth = {self.is_smooth}
 
         Args:
             x : Point at which to evaluate prox function.
-            lam : Proximal parameter :math:`\lambda`
+            lam : Proximal parameter :math:`\lambda`.
+
         """
         if not self.has_prox:
             raise NotImplementedError(
                 f"Functional {type(self)} does not have a prox; has_prox={self.has_prox}"
             )
+
+    def approximate_prox(
+        self,
+        x: Union[JaxArray, BlockArray],
+        lam: float = 1,
+        v0: Optional[Union[JaxArray, BlockArray]] = None,
+    ) -> Union[JaxArray, BlockArray]:
+        r"""Aproximate scaled proximal operator of functional.
+
+        When overridden, provides a fast approximation of the scaled
+        proximal operator of this function. When not overridden,
+        returns the exact scaled proximal operator provided by
+        ``self.prox``.
+
+        Approximate proxes are useful in situations where an exact
+        prox cannot be efficently computed but is also not required,
+        such as in the z-update step of ADMM for certain operators.
+
+        Args:
+            x : Point at which to evaluate prox function.
+            lam : Proximal parameter :math:`\lambda`.
+            v0 : Initial value for :math:`\mb{v}`. Ignored in the base
+                class but may used by some implementations.
+
+        """
+
+        return self.prox(x, lam)
 
     def conj_prox(
         self, x: Union[JaxArray, BlockArray], lam: float = 1

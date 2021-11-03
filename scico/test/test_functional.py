@@ -46,11 +46,11 @@ def prox_solve(v, v0, f, alpha):
     return fmn.x.reshape(v.shape), fmn.fun
 
 
-def prox_test(v, nrm, prx, alpha):
+def prox_test(v, nrm, prx, alpha, x0=None):
     """Test the alpha-scaled proximal operator function prx of norm functional nrm
     at point v."""
     # Evaluate the proximal operator at v
-    px = snp.array(prx(v, alpha))
+    px = snp.array(prx(v, alpha, v0=x0))
     # Proximal operator functional value (i.e. Moreau envelope) at v
     pf = prox_func(px, v, nrm, alpha)
     # Brute-force solve of the proximal operator at v
