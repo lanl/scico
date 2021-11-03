@@ -18,6 +18,10 @@
    :target: https://github.com/lanl/scico/actions/workflows/ci-build.yml
    :alt: CI status
 
+.. image:: https://codecov.io/gh/lanl/scico/branch/main/graph/badge.svg?token=wQimmjnzFf
+   :target: https://codecov.io/gh/lanl/scico
+   :alt: Test coverage
+
 
 
 Scientific Computational Imaging COde (SCICO)
