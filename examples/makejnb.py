@@ -3,7 +3,7 @@
 # Extract a list of Python scripts from "scripts/index.rst" and
 # create/update and execute any Jupyter notebooks that are out
 # of date with respect to their source Python scripts. If script
-# names specified on command line, process the instead.
+# names specified on command line, process them instead.
 # Run as
 #     python makejnb.py [script_name_1 [script_name_2 [...]]]
 
