@@ -142,7 +142,9 @@ class SquaredL2Loss(Loss):
         """
         return self.scale * self.functional(self.y - self.A(x))
 
-    def prox(self, x: Union[JaxArray, BlockArray], lam: float) -> Union[JaxArray, BlockArray]:
+    def prox(
+        self, x: Union[JaxArray, BlockArray], lam: float, **kwargs
+    ) -> Union[JaxArray, BlockArray]:
         if isinstance(self.A, linop.Diagonal):
             c = 2.0 * self.scale
             A = self.A
@@ -224,7 +226,9 @@ class WeightedSquaredL2Loss(Loss):
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         return self.scale * self.functional(self.weight_op(self.y - self.A(x)))
 
-    def prox(self, x: Union[JaxArray, BlockArray], lam: float) -> Union[JaxArray, BlockArray]:
+    def prox(
+        self, x: Union[JaxArray, BlockArray], lam: float, **kwargs
+    ) -> Union[JaxArray, BlockArray]:
         if isinstance(self.A, linop.Diagonal):
             c = self.scale * lam
             A = self.A.diagonal

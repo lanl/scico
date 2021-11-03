@@ -117,7 +117,7 @@ class IsoProjector(functional.Functional):
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         return 0.0
 
-    def prox(self, x: JaxArray, lam: float) -> JaxArray:
+    def prox(self, x: JaxArray, lam: float, **kwargs) -> JaxArray:
         norm_x_ptp = jnp.sqrt(jnp.sum(jnp.abs(x) ** 2, axis=0))
 
         x_out = x / jnp.maximum(jnp.ones(x.shape), norm_x_ptp)
@@ -172,7 +172,7 @@ class AnisoProjector(functional.Functional):
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         return 0.0
 
-    def prox(self, x: JaxArray, lam: float) -> JaxArray:
+    def prox(self, x: JaxArray, lam: float, **kwargs) -> JaxArray:
 
         return x / jnp.maximum(jnp.ones(x.shape), jnp.abs(x))
 

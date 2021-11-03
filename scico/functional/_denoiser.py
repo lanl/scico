@@ -53,7 +53,7 @@ class BM3D(Functional):
 
         super().__init__()
 
-    def prox(self, x: JaxArray, lam: float = 1) -> JaxArray:
+    def prox(self, x: JaxArray, lam: float = 1.0, **kwargs) -> JaxArray:
         r"""Apply BM3D denoiser with noise level ``lam``"""
 
         # BM3D only works on (NxN) or (NxNxC) arrays

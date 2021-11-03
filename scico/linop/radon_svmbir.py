@@ -131,7 +131,7 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
 
         self.has_prox = True
 
-    def prox(self, v: JaxArray, lam: float) -> JaxArray:
+    def prox(self, v: JaxArray, lam: float, **kwargs) -> JaxArray:
         v = v.reshape(self.A.svmbir_input_shape)
         y = self.y.reshape(self.A.svmbir_output_shape)
         weights = self.weights.reshape(self.A.svmbir_output_shape)
