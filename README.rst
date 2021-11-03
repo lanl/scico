@@ -22,6 +22,9 @@
    :target: https://codecov.io/gh/lanl/scico
    :alt: Test coverage
 
+.. image:: https://badge.fury.io/py/scico.svg
+   :target: https://badge.fury.io/py/scico
+   :alt: Current PyPI package version
 
 
 Scientific Computational Imaging COde (SCICO)
