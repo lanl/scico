@@ -5,8 +5,8 @@
 # with the package.
 
 r"""
-Deconvolution Microscopy (Single Channel)
-=========================================
+Deconvolution Microscopy (All Channels)
+=======================================
 
 This example partially replicates a [GlobalBioIm
 example](https://biomedical-imaging-group.github.io/GlobalBioIm/examples.html)
@@ -36,7 +36,14 @@ import zipfile
 
 import numpy as np
 
+import jax
+
 import imageio
+
+try:
+    import ray
+except ImportError:
+    raise RuntimeError("The ray package is required to run this script")
 
 import scico.numpy as snp
 from scico import functional, linop, loss, plot, util
@@ -103,30 +110,36 @@ def block_avg(im, N):
 
 
 """
-Get and preprocess data. We downsample by a factor of 4 for purposes of
+Get and preprocess data. We downsample the data for the purposes of
 the example. Reducing the downsampling rate will be slower and more
 memory-intensive. If your GPU does not have enough memory, you can try
 setting the environment variable `JAX_PLATFORM_NAME=cpu` to run on CPU.
+To run this example on a GPU it
+[may also be necessary](https://github.com/google/jax/issues/5380) to
+set environment variable `XLA_PYTHON_CLIENT_PREALLOCATE=false`.
 """
-channel = 0
 downsampling_rate = 4
 
-y, psf = get_deconv_data(channel)
-y = block_avg(y, downsampling_rate)
-psf = block_avg(psf, downsampling_rate)
-
-y -= y.min()
-y /= y.max()
-
-psf /= psf.sum()
-
-
-"""
-Pad data and create mask.
-"""
-padding = [[0, p] for p in snp.array(psf.shape) - 1]
-y_pad = snp.pad(y, padding)
-mask = snp.pad(snp.ones_like(y), padding)
+y_list = []
+y_pad_list = []
+psf_list = []
+for channel in range(3):
+    y, psf = get_deconv_data(channel)  # get data
+    y = block_avg(y, downsampling_rate)  # downsample
+    psf = block_avg(psf, downsampling_rate)
+    y -= y.min()  # normalize y
+    y /= y.max()
+    psf /= psf.sum()  # normalize psf
+    if channel == 0:
+        padding = [[0, p] for p in snp.array(psf.shape) - 1]
+        mask = snp.pad(snp.ones_like(y), padding)
+    y_pad = snp.pad(y, padding)  # zero-padded version of y
+    y_list.append(y)
+    y_pad_list.append(y_pad)
+    psf_list.append(psf)
+y = snp.stack(y_list, axis=-1)
+yshape = y.shape
+del y_list
 
 
 """
@@ -140,41 +153,68 @@ maxiter = 100  # number of ADMM iterations
 
 
 """
-Create operators.
+Initialize ray, determine available computing resources, and put large arrays
+in object store.
 """
-M = linop.Diagonal(mask)
-C0 = linop.CircularConvolve(h=psf, input_shape=mask.shape, h_center=snp.array(psf.shape) / 2 - 0.5)
-C1 = linop.FiniteDifference(input_shape=mask.shape, circular=True)
-C2 = linop.Identity(mask.shape)
+ray.init()
+
+ngpu = 0
+ar = ray.available_resources()
+ncpu = int(ar["CPU"]) // 3
+if "GPU" in ar:
+    ngpu = int(ar["GPU"]) // 3
+print(f"Running on {ncpu} CPUs and {ngpu} GPUs per process")
+
+y_pad_list = ray.put(y_pad_list)
+psf_list = ray.put(psf_list)
+mask_store = ray.put(mask)
 
 
 """
-Create functionals.
+Define ray remote function for parallel solves.
 """
-g0 = loss.SquaredL2Loss(y=y_pad, A=M)  # loss function (forward model)
-g1 = λ * functional.L21Norm()  # TV penalty (when applied to gradient)
-g2 = functional.NonNegativeIndicator()  # non-negativity constraint
+
+
+@ray.remote(num_cpus=ncpu, num_gpus=ngpu)
+def deconvolve_channel(channel):
+    y_pad = jax.device_put(ray.get(y_pad_list)[channel])
+    psf = jax.device_put(ray.get(psf_list)[channel])
+    mask = jax.device_put(ray.get(mask_store))
+    M = linop.Diagonal(mask)
+    C0 = linop.CircularConvolve(
+        h=psf, input_shape=mask.shape, h_center=snp.array(psf.shape) / 2 - 0.5  # forward operator
+    )
+    C1 = linop.FiniteDifference(input_shape=mask.shape, circular=True)  # gradient operator
+    C2 = linop.Identity(mask.shape)  # identity operator
+    g0 = loss.SquaredL2Loss(y=y_pad, A=M)  # loss function (forward model)
+    g1 = λ * functional.L21Norm()  # TV penalty (when applied to gradient)
+    g2 = functional.NonNegativeIndicator()  # non-negativity constraint
+    if channel == 0:
+        print("Displaying solver status for channel 0")
+        verbose = True
+    else:
+        verbose = False
+    solver = ADMM(
+        f=None,
+        g_list=[g0, g1, g2],
+        C_list=[C0, C1, C2],
+        rho_list=[ρ0, ρ1, ρ2],
+        maxiter=maxiter,
+        verbose=verbose,
+        x0=y_pad,
+        subproblem_solver=CircularConvolveSolver(),
+    )
+    x_pad = solver.solve()
+    x = x_pad[: yshape[0], : yshape[1], : yshape[2]]
+    return (x, solver.itstat_object.history(transpose=True))
 
 
 """
-Set up ADMM solver object and solve problem.
+Solve problems for all three channels in parallel and extract results.
 """
-solver = ADMM(
-    f=None,
-    g_list=[g0, g1, g2],
-    C_list=[C0, C1, C2],
-    rho_list=[ρ0, ρ1, ρ2],
-    maxiter=maxiter,
-    verbose=True,
-    x0=y_pad,
-    subproblem_solver=CircularConvolveSolver(),
-)
-
-print("Solving on %s\n" % util.device_info())
-solver.solve()
-solve_stats = solver.itstat_object.history(transpose=True)
-x_pad = solver.x
-x = x_pad[: y.shape[0], : y.shape[1], : y.shape[2]]
+ray_return = ray.get([deconvolve_channel.remote(channel) for channel in range(3)])
+x = snp.stack([t[0] for t in ray_return], axis=-1)
+solve_stats = [t[1] for t in ray_return]
 
 
 """
@@ -189,7 +229,7 @@ def make_slices(x, sep_width=10):
     out = snp.concatenate(
         (
             x[:, :, x.shape[2] // 2],
-            snp.full((x.shape[0], sep_width), fill_val),
+            snp.full((x.shape[0], sep_width, 3), fill_val),
             x[:, x.shape[1] // 2, :],
         ),
         axis=1,
@@ -198,11 +238,11 @@ def make_slices(x, sep_width=10):
     out = snp.concatenate(
         (
             out,
-            snp.full((sep_width, out.shape[1]), fill_val),
+            snp.full((sep_width, out.shape[1], 3), fill_val),
             snp.concatenate(
                 (
-                    x[x.shape[0] // 2, :, :].T,
-                    snp.full((x.shape[2], x.shape[2] + sep_width), fill_val),
+                    x[x.shape[0] // 2, :, :].transpose((1, 0, 2)),
+                    snp.full((x.shape[2], x.shape[2] + sep_width, 3), fill_val),
                 ),
                 axis=1,
             ),
@@ -224,23 +264,33 @@ fig.show()
 """
 Plot convergence statistics.
 """
-fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
+fig, ax = plot.subplots(nrows=1, ncols=3, figsize=(18, 5))
 plot.plot(
-    solve_stats.Objective,
+    np.stack([s.Objective for s in solve_stats]).T,
     title="Objective function",
     xlbl="Iteration",
     ylbl="Functional value",
+    lgnd=("CY3", "DAPI", "FITC"),
     fig=fig,
     ax=ax[0],
 )
 plot.plot(
-    snp.vstack((solve_stats.Primal_Rsdl, solve_stats.Dual_Rsdl)).T,
+    np.stack([s.Primal_Rsdl for s in solve_stats]).T,
     ptyp="semilogy",
-    title="Residuals",
+    title="Primal Residual",
     xlbl="Iteration",
-    lgnd=("Primal", "Dual"),
+    lgnd=("CY3", "DAPI", "FITC"),
     fig=fig,
     ax=ax[1],
+)
+plot.plot(
+    np.stack([s.Dual_Rsdl for s in solve_stats]).T,
+    ptyp="semilogy",
+    title="Dual Residual",
+    xlbl="Iteration",
+    lgnd=("CY3", "DAPI", "FITC"),
+    fig=fig,
+    ax=ax[2],
 )
 fig.show()
 
