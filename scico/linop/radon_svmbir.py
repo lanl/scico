@@ -81,7 +81,7 @@ class ParallelBeamProjector(LinearOperator):
 
     @staticmethod
     def _proj(x: JaxArray, angles: JaxArray, num_channels: int) -> JaxArray:
-        return svmbir.project(np.array(x), np.array(angles), num_channels, verbose=0)
+        return svmbir.project(np.array(x), np.array(angles), num_channels, verbose=0, roi_radius=max(x.shape[1], x.shape[2]))
 
     def _proj_hcb(self, x):
         x = x.reshape(self.svmbir_input_shape)
@@ -95,7 +95,7 @@ class ParallelBeamProjector(LinearOperator):
 
     @staticmethod
     def _bproj(y: JaxArray, angles: JaxArray, num_rows: int, num_cols: int):
-        return svmbir.backproject(np.array(y), np.array(angles), num_rows, num_cols, verbose=0)
+        return svmbir.backproject(np.array(y), np.array(angles), num_rows, num_cols, verbose=0, roi_radius=max(num_rows, num_cols))
 
     def _bproj_hcb(self, y):
         y = y.reshape(self.svmbir_output_shape)
@@ -131,11 +131,13 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
 
         self.has_prox = True
 
+
     def prox(self, v: JaxArray, lam: float, **kwargs) -> JaxArray:
         v = v.reshape(self.A.svmbir_input_shape)
         y = self.y.reshape(self.A.svmbir_output_shape)
         weights = self.weights.reshape(self.A.svmbir_output_shape)
         sigma_p = snp.sqrt(lam)
+        # change: stop, mask-rad, init
         result = svmbir.recon(
             np.array(y),
             np.array(self.A.angles),
@@ -143,10 +145,33 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
             prox_image=np.array(v),
             num_rows=self.A.svmbir_input_shape[1],
             num_cols=self.A.svmbir_input_shape[2],
+            roi_radius=max(self.A.svmbir_input_shape[1], self.A.svmbir_input_shape[2]),
             sigma_p=float(sigma_p),
             sigma_y=1.0,
             positivity=False,
             verbose=0,
+            max_iterations=1000, stop_threshold=0
+        )
+        return result.reshape(self.A.input_shape)
+
+    def approximate_prox(self, v: JaxArray, lam: float, v0: JaxArray = None) -> JaxArray:
+        v = v.reshape(self.A.svmbir_input_shape)
+        y = self.y.reshape(self.A.svmbir_output_shape)
+        weights = self.weights.reshape(self.A.svmbir_output_shape)
+        sigma_p = snp.sqrt(lam)
+        # change: stop, mask-rad, init
+        result = svmbir.recon(
+            np.array(y),
+            np.array(self.A.angles),
+            weights=np.array(weights),
+            prox_image=np.array(v),
+            num_rows=self.A.svmbir_input_shape[1],
+            num_cols=self.A.svmbir_input_shape[2],
+            roi_radius=max(self.A.svmbir_input_shape[1], self.A.svmbir_input_shape[2]),
+            sigma_p=float(sigma_p),
+            sigma_y=1.0,
+            positivity=False,
+            verbose=0
         )
         return result.reshape(self.A.input_shape)
 
