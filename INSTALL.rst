@@ -1,3 +1,8 @@
+************
+Installation
+************
+
+
 Installing SCICO
 ================
 
