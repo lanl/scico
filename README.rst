@@ -10,8 +10,8 @@
     :target: http://scico.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
-.. image:: https://github.com/lanl/scico/actions/workflows/main.yml/badge.svg
-   :target: https://github.com/lanl/scico/actions/workflows/main.yml
+.. image:: https://github.com/lanl/scico/actions/workflows/lint.yml/badge.svg
+   :target: https://github.com/lanl/scico/actions/workflows/lint.yml
    :alt: Lint status
 
 .. image:: https://github.com/lanl/scico/actions/workflows/ci-build.yml/badge.svg
