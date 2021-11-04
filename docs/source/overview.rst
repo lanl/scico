@@ -110,7 +110,7 @@ and the functional :math:`L` in a single object.
 A library of functionals and losses are implemented
 in :mod:`.functional` and :mod:`.loss`, respectively.
 
-The functional :math:`g_(\cdot)` or :math:`g_(C (\cdot))`
+The functionals :math:`g(\cdot)` or :math:`g(C (\cdot))`
 are regularization functionals, and the :math:`C` are operators,
 usually linear operators.
 Together, these terms encourage solutions that are "simple" in some sense.
