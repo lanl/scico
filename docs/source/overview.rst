@@ -68,12 +68,6 @@ SCICO is designed to solve inverse problems such as
 
 .. math::
 
-   \argmin_{\mb{x}} \; f(\mb{x}) + g(\mb{x})
-
-or
-
-.. math::
-
    \argmin_{\mb{x}} \; f(\mb{x}) + g(C \mb{x}) \;,
 
 where :math:`\mb{x} \in \mathbb{R}^{n}` represents the reconstruction,
