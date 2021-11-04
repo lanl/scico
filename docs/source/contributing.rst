@@ -38,55 +38,66 @@ respositories in your own git account.
 
 2. Make sure that you have python >= 3.8 installed in order to create a conda virtual environment.
 
-3. To create a conda virtual environment, clone your fork from the source repo.
-To create a clone of scico that includes the scico-data submodule:
+3. Clone your fork from the source repo.
 
    ::
 
       git clone --recurse-submodules git@github.com:<username>/scico.git
 
-4. Add the SCICO repo as an upstream remote to sync your changes:
+
+4. Create a conda environment using Python >= 3.8:
 
    ::
 
-      git remote add upstream https://www.github.com/lanl/scico
-
-5. After adding the upstream, the recommended way to install SCICO and its dependencies is via `conda <https://docs.conda.io/en/latest/>`_ using the scripts in ``misc/conda``:
-
-  - ``install_conda.sh``: install ``miniconda``
-    (needed if conda is not already installed on your system).
-  - ``conda_env.sh``: install a ``conda`` environment
-    with all SCICO dependencies. For GPU installation, see ``conda_env.sh -h``.
+      conda create -n scico python=3.8
 
 
-6. Activate the created conda virtual environment:
+5. Activate the created conda virtual environment:
 
    ::
 
-      conda activate py38
+      conda activate scico 
 
 
-7. Navigate to the root of the cloned repository:
+6. Navigate to the root of the cloned repository:
 
    ::
 
       cd scico
 
-8. Once dependencies have been installed, install SCICO in editable form:
+
+7. Add the SCICO repo as an upstream remote to sync your changes:
+
+   ::
+
+      git remote add upstream https://www.github.com/lanl/scico
+
+
+8. After adding the upstream, the recommended way to install SCICO and its dependencies is via pip:
+
+   ::
+
+      pip install -r requirements.txt  # Installs basic requirements
+      pip install -r docs/docs_requirements.txt # Installs documentation requirements
+      pip install -r examples/examples_requirements.txt # Installs example requirements
+      pip install -e .  # Installs SCICO from the current directory in editable mode
+
+
+9. Once dependencies have been installed, install SCICO in editable form:
 
    ::
 
       pip install -e .
 
 
-9. Set up ``black`` and ``isort`` pre-commit hooks:
+10. Set up ``black`` and ``isort`` pre-commit hooks:
 
    ::
 
       pre-commit install  # Sets up git pre-commit hooks
 
 
-10. For testing see `Tests`_.
+11. For testing see `Tests`_.
 
 
 Contributing Code
@@ -114,7 +125,7 @@ A feature development workflow might look like this:
 
    ::
 
-      git checkout -b name-of-change
+      git checkout -b <username>/<brief-description>
 
 
 4. Make your desired changes.
@@ -126,7 +137,7 @@ A feature development workflow might look like this:
 
       pytest
 
-   You can limit the test suite to a specific file:
+   You can limit the test suite to a specific file for example:
 
    ::
 
@@ -154,7 +165,7 @@ A feature development workflow might look like this:
 
    ::
 
-      git push --set-upstream origin name-of-change
+      git push --set-upstream origin <username>/<brief-description>
 
 
 9.  Create a new pull request to the ``main`` branch; see `the GitHub instructions <https://docs.github.com/en/github/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request>`_.

@@ -41,7 +41,7 @@ Unicode variable names are allowed for internal usage (e.g. for Greek characters
 Naming
 ------
 
-Naming conventions adhering to the `Google naming conventions <https://google.github.io/styleguide/pyguide.html#3164-guidelines-derived-from-guidos-recommendations>`_ for the different programming components are as follows:
+We follow the `Google naming conventions <https://google.github.io/styleguide/pyguide.html#3164-guidelines-derived-from-guidos-recommendations>`_ listed here:
 
 .. list-table:: Naming Conventions
    :widths: 20 20
@@ -106,7 +106,7 @@ Things to avoid:
 Displaying and Printing Strings
 -------------------------------
 
-Prefer to use Python f-strings, rather than `.format` or `%` syntax as the `Google string conventions <https://google.github.io/styleguide/pyguide.html#310-strings>`_ suggests.
+We follow the `Google string conventions <https://google.github.io/styleguide/pyguide.html#310-strings>`_. Notably, prefer to use Python f-strings, rather than `.format` or `%` syntax. For example:
 
 .. code:: Python
 
@@ -118,7 +118,7 @@ Prefer to use Python f-strings, rather than `.format` or `%` syntax as the `Goog
 Imports
 -------
 
-The `Google import conventions <https://google.github.io/styleguide/pyguide.html#22-imports>`_ states that the usage of ``import`` statements should be reserved for packages and modules only and not individual classes or functions. The only exception to this is the typing module.
+We follow the `Google import conventions <https://google.github.io/styleguide/pyguide.html#22-imports>`_. The usage of ``import`` statements should be reserved for packages and modules only excluding individual classes and functions. The only exception to this is the typing module.
 
 -  Use ``import x`` for importing packages and modules, where x is the package or module name.
 -  Use ``from x import y`` where x is the package name and y is the module name.
@@ -129,7 +129,7 @@ The `Google import conventions <https://google.github.io/styleguide/pyguide.html
 Variables
 ---------
 
-Apart from naming conventions, the `Google variable typing conventions <https://google.github.io/styleguide/pyguide.html#3198-typing-variables>`_ suggests that there are a few extra documentation and coding practices that can be applied to variables such as:
+We follow the `Google variable typing conventions <https://google.github.io/styleguide/pyguide.html#3198-typing-variables>`_ which states that there are a few extra documentation and coding practices that can be applied to variables such as:
 
 - One may type a variables by using a ``: type`` before the function value is assigned, e.g.,
 
@@ -199,7 +199,7 @@ Docstrings are a way to document code within Python and it is the first statemen
 Typing
 ~~~~~~
 
-The following are docstring-specific usages that the `NumPy parameter conventions <https://numpydoc.readthedocs.io/en/latest/format.html#parameters>`_ suggests before going into the creation of said docstrings:
+We follow the `NumPy parameter conventions <https://numpydoc.readthedocs.io/en/latest/format.html#parameters>`_. The following are docstring-specific usages:
 
 - Always enclose variables in single backticks.
 - For the parameter types, be as precise as possible, do not use backticks.
@@ -208,8 +208,7 @@ The following are docstring-specific usages that the `NumPy parameter convention
 Modules
 ~~~~~~~
 
-According to the `Google module conventions <https://google.github.io/styleguide/pyguide.html#382-modules>`_ files must start with a docstring that describes the functionality of the module.
-For example,
+We follow the `Google module conventions <https://google.github.io/styleguide/pyguide.html#382-modules>`_. Notably, files must start with a docstring that describes the functionality of the module. For example,
 
 .. code-block:: python
 
@@ -224,13 +223,14 @@ For example,
     bar = foo.FunctionBar()
     """"
 
+
 Functions
 ~~~~~~~~~
 
 The word *function* encompasses functions, methods, or generators in this section.
 The docstring should give enough information to make calls to the function without needing to read the functions code.
 
-The `Google function conventions <https://google.github.io/styleguide/pyguide.html#383-functions-and-methods>`_ suggests that functions should contain docstrings unless:
+We follow the `Google function conventions <https://google.github.io/styleguide/pyguide.html#383-functions-and-methods>`_. Notably, functions should contain docstrings unless:
 - not externally visible (the function name is prefaced with an underscore) or
 - very short.
 
@@ -289,7 +289,7 @@ Example:
 Classes
 ~~~~~~~
 
-Classes, like functions, should have a docstring below the definition describing the class and the class functionality adhering to the `Google class conventions <https://google.github.io/styleguide/pyguide.html#384-classes>`_. If the class contains public attributes, the class should have an attributes section where each attribute is listed by name and followed by a description, separated by a colon, like for function parameters.
+We follow the `Google class conventions <https://google.github.io/styleguide/pyguide.html#384-classes>`_. Classes, like functions, should have a docstring below the definition describing the class and the class functionality. If the class contains public attributes, the class should have an attributes section where each attribute is listed by name and followed by a description, separated by a colon, like for function parameters. For example,
 
 | Example:
 
@@ -318,7 +318,7 @@ Classes, like functions, should have a docstring below the definition describing
 Extra Sections
 ~~~~~~~~~~~~~~
 
-The following are sections that can be added to functions, modules, classes, or method definitions taken from the `NumPy style guide <https://numpydoc.readthedocs.io/en/latest/format.html#sections>`_.
+We follow the `NumPy style guide <https://numpydoc.readthedocs.io/en/latest/format.html#sections>`_. Notably, the following are sections that can be added to functions, modules, classes, or method definitions.
 
 -  See Also:
 
