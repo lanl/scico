@@ -14,8 +14,8 @@
    :target: https://github.com/lanl/scico/actions/workflows/lint.yml
    :alt: Lint status
 
-.. image:: https://github.com/lanl/scico/actions/workflows/ci-build.yml/badge.svg
-   :target: https://github.com/lanl/scico/actions/workflows/ci-build.yml
+.. image:: https://github.com/lanl/scico/actions/workflows/pytest.yml/badge.svg
+   :target: https://github.com/lanl/scico/actions/workflows/pytest.yml
    :alt: CI status
 
 .. image:: https://codecov.io/gh/lanl/scico/branch/main/graph/badge.svg?token=wQimmjnzFf
