@@ -33,7 +33,7 @@ Contributions to SCICO are welcome. Before starting work, please contact the mai
 Installing a Development Version
 --------------------------------
 
-1. Fork both the scico and scico-data repositories, creating copies of these repositories in your own git account.
+1. Fork both the ``scico`` and ``scico-data`` repositories, creating copies of these repositories in your own git account.
 
 2. Make sure that you have python >= 3.8 installed in order to create a conda virtual environment.
 
@@ -44,7 +44,7 @@ Installing a Development Version
       git clone --recurse-submodules git@github.com:<username>/scico.git
 
 
-4. Create a conda environment using Python >= 3.8:
+4. Create a conda environment using python >= 3.8:
 
    ::
 
@@ -143,7 +143,7 @@ A feature development workflow might look like this:
       git add file1.py git add file2.py
       git commit -m "A good commit message"
 
-   NOTE:  If you have added or modified an example script, see `Adding Usage Examples`_
+   NOTE:  If you have added or modified an example script, see `Usage Examples`_
 
 7. Sync with the upstream repository:
 
@@ -166,8 +166,83 @@ A feature development workflow might look like this:
 10. Delete the branch after it has been merged.
 
 
-Adding Usage Examples
----------------------
+Tests
+-----
+
+All functions and classes should have corresponding ``pytest`` unit tests.
+
+
+Running Tests
+^^^^^^^^^^^^^
+
+
+To be able to run the tests, install ``pytest`` and, optionally,
+``pytest-runner``:
+
+::
+
+    conda install pytest pytest-runner
+
+The tests can be run by
+
+::
+
+    pytest
+
+or (if ``pytest-runner`` is installed)
+
+::
+
+    python setup.py test
+
+from the SCICO repository root directory. Tests can be run in an installed
+version of SCICO by
+
+::
+
+   pytest --pyargs scico
+
+
+Test Coverage
+^^^^^^^^^^^^^
+
+Test coverage is a measure of the fraction of the package code that is exercised by the tests. While this should not be the primary criterion in designing tests, it is a useful tool for finding obvious areas of omission.
+
+To be able to check test coverage, install ``coverage``:
+
+::
+
+    conda install coverage
+
+A coverage report can be obtained by
+
+::
+
+    coverage run
+    coverage report
+
+
+
+Type Checking
+-------------
+
+In the future, we will require all code to pass ``mypy`` type checking. This is not currently enforced.
+
+Install ``mypy``:
+
+::
+
+   conda install mypy
+
+To run the type checker on the ``scico`` module:
+
+::
+
+   mypy -p scico
+
+
+Usage Examples
+--------------
 
 New usage examples should adhere to the same general structure as the
 existing examples to ensure that the mechanism for automatically
@@ -262,8 +337,8 @@ and ``scico-data`` repositories must be updated and kept in sync.
       git submodule foreach --recursive 'git push' && git push
 
 
-Adding New Data
----------------
+Data
+----
 
 The following steps show how to add new data, ``new_data.npz``, to the packaged data. We assume the SCICO repository has been cloned to ``scico/``.
 
@@ -298,79 +373,12 @@ scico-data repositories must be updated and kept in sync.
       git submodule foreach --recursive 'git push' && git push
 
 
-Tests
-=====
-
-All functions and classes should have corresponding `pytest` unit tests.
-
-
-Running Tests
--------------
-
-
-To be able to run the tests, install `pytest` and, optionally, `pytest-runner`:
-
-::
-
-    conda install pytest pytest-runner
-
-The tests can be run by
-
-::
-
-    pytest
-
-or
-
-::
-
-    python setup.py test
-
-
-Type Checking
--------------
-
-In the future, we will require all code to pass `mypy` type checking.  This is not currently enforced.
-
-Install ``mypy``:
-
-::
-
-   conda install mypy
-
-To run the type checker on the ``scico`` module:
-
-::
-
-   mypy -p scico
-
-
 
 Building Documentation
-======================
+----------------------
 
 To build a local copy of the docs, from the repo root directory, do
 
 ::
 
   python setup.py build_sphinx
-
-
-
-Test Coverage
--------------
-
-Test coverage is a measure of the fraction of the package code that is exercised by the tests. While this should not be the primary criterion in designing tests, it is a useful tool for finding obvious areas of omission.
-
-To be able to check test coverage, install `coverage`:
-
-::
-
-    conda install coverage
-
-A coverage report can be obtained by
-
-::
-
-    coverage run
-    coverage report
