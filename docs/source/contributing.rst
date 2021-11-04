@@ -82,21 +82,14 @@ Installing a Development Version
       pip install -e .  # Installs SCICO from the current directory in editable mode
 
 
-9. Once dependencies have been installed, install SCICO in editable form:
-
-   ::
-
-      pip install -e .
-
-
-10. Set up ``black`` and ``isort`` pre-commit hooks:
+9. Set up ``black`` and ``isort`` pre-commit hooks:
 
    ::
 
       pre-commit install  # Sets up git pre-commit hooks
 
 
-11. For testing see `Tests`_.
+10. For testing see `Tests`_.
 
 
 Contributing Code
