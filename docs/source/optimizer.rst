@@ -101,7 +101,7 @@ converges faster, the latter is preferred when solving the ADMM
 
 
 Step Size Options for PGM
--------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The step size for the gradient descent in :class:`PGM` can be adapted via
 Barzilai-Borwein methods (also called spectral methods) and iterative
