@@ -52,27 +52,45 @@ and the :math:`g_i` are :class:`.Functional`, typically corresponding to a
 regularization term or constraint. Each of the :math:`g_i` must have a
 proximal operator defined. It is also possible to set ``f = None``, which corresponds to defining :math:`f = 0`, i.e. the zero function.
 
-The :math:`\mb{x}`-update in SCICO's ADMM formulation may admit
-a specialized solver, depending on the problem structure;
-SCICO has several such solvers built in and allows easy specification of new ones.
-The :math:`\mb{x}`-update is
+
+Subproblem Solvers
+^^^^^^^^^^^^^^^^^^
+
+The most computational expensive component of the ADMM iterations is typically
+the :math:`\mb{x}`-update,
 
     .. math::
+       :label: eq:admm_x_step
 
         \argmin_{\mb{x}} \; f(\mb{x}) + \sum_i \frac{\rho_i}{2}
         \norm{\mb{z}^{(k)}_i - \mb{u}^{(k)}_i - C_i \mb{x}}_2^2 \;.
 
-By default, this problem is solved using :func:`.solver.minimize`, which wraps
-SciPy's `minimize` function.
-When :math:`f` takes the form :math:`\norm{\mb{A} \mb{x} - \mb{y}}^2_W`,
-the user may specify that the :class:`.admm.LinearSubproblemSolver` be used,
-which solves the problem using the conjugate gradient method.
-As a further specialization, if :math:`\mb{A}` and all the :math:`C_i` s are circulant
-(i.e., diagonalizable in a Fourier basis),
-the :class:`.admm.CircularConvolveSolver` may be used to
-efficiently solve the problem in the Fourier domain.
-For more details of these solvers and how to specify them,
-see the API reference page for :class:`scico.admm`.
+
+The available solvers for this problem are:
+
+* :class:`.admm.GenericSubproblemSolver`
+
+  This is the default subproblem solver as it is applicable in all cases. It
+  it is only suitable for relatively small-scale problems as it makes use of
+  :func:`.solver.minimize`, which wraps :func:`scipy.optimize.minimize`.
+
+
+* :class:`.admm.LinearSubproblemSolver`
+
+  This subproblem solver can be used when :math:`f` takes the form
+  :math:`\norm{\mb{A} \mb{x} - \mb{y}}^2_W`. It makes use of the conjugate
+  gradient method, and is significantly more efficient than
+  :class:`.admm.GenericSubproblemSolver` when it can be used.
+
+* :class:`.admm.CircularConvolveSolver`
+
+  This subproblem solver can be used when :math:`f` takes the form
+  :math:`\norm{\mb{A} \mb{x} - \mb{y}}^2_W` and :math:`\mb{A}` and all
+  the :math:`C_i` s are circulant (i.e., diagonalizable in a Fourier basis).
+
+
+For more details of these solvers and how to specify them, see the API
+reference page for :mod:`scico.admm`.
 
 
 
@@ -95,23 +113,21 @@ and :math:`g` must have a proximal operator defined.
 
 While ADMM provides significantly more flexibility than PGM, and often
 converges faster, the latter is preferred when solving the ADMM
-:math:`\mb{x}`-step is computationally expensive.
+:math:`\mb{x}`-step is very computationally expensive, such as in the case of
+:math:`f(\mb{x}) = \norm{\mb{A} \mb{x} - \mb{y}}^2_W` where :math:`A` is
+large and does not have any special structure that would allow an efficient
+solution of :eq:`eq:admm_x_step`.
 
-.. _sec-stepsize-classes:
 
 
-Step Size Options for PGM
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Step Size Options
+^^^^^^^^^^^^^^^^^
 
-The step size for the gradient descent in :class:`PGM` can be adapted via
+The step size (usually referred to in terms of its reciprocal, :math:`L`) for the gradient descent in :class:`PGM` can be adapted via
 Barzilai-Borwein methods (also called spectral methods) and iterative
 line search methods.
 
-The base class from which all algorithms for adapting the step size are
-derived is :class:`PGMStepSize`. The derived classes should override the
-method :meth:`update`. Note that the estimation is done in terms
-of the reciprocal of the step size (:math:`L` in equations).
-
+The available step size policy classes are:
 
 * :class:`BBStepSize`
 
@@ -187,3 +203,7 @@ of the reciprocal of the step size (:math:`L` in equations).
   with :math:`\mb{x}` the potential new update and :math:`\mb{y}` the
   auxiliary extrapolation state. Note that this should only be used
   with :class:`AcceleratedPGM`.
+
+
+For more details of these step size managers and how to specify them, see
+the API reference page for :mod:`scico.pgm`.
