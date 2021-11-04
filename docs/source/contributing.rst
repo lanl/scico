@@ -33,8 +33,7 @@ Contributions to SCICO are welcome. Before starting work, please contact the mai
 Installing a Development Version
 --------------------------------
 
-1. Fork both the scico and scico-data repositories, creating copies of these
-respositories in your own git account.
+1. Fork both the scico and scico-data repositories, creating copies of these repositories in your own git account.
 
 2. Make sure that you have python >= 3.8 installed in order to create a conda virtual environment.
 
@@ -56,7 +55,7 @@ respositories in your own git account.
 
    ::
 
-      conda activate scico 
+      conda activate scico
 
 
 6. Navigate to the root of the cloned repository:
