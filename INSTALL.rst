@@ -1,10 +1,17 @@
-************
-Installation
-************
-
-
 Installing SCICO
 ================
+
+SCICO requires Python version 3.8 or later. It has been tested on Linux and macOS, but is not currently supported on Windows due to the limited support for ``jaxlib`` on Windows. However, Windows users can use SCICO via the `Windows Subsystem for Linux <https://docs.microsoft.com/en-us/windows/wsl/about>`_. Guides exist for using WSL with `CPU only <https://docs.microsoft.com/en-us/windows/wsl/install-win10>`_ and with
+`GPU support <https://docs.microsoft.com/en-us/windows/win32/direct3d12/gpu-cuda-in-wsl>`_.
+
+
+From PyPI
+---------
+
+.. warning::
+   Installation from PyPI is not currently recommended since the current
+   package available from PyPI is a pre-release testing version. The
+   instructions directly below are intended for post-release documentation.
 
 The simplest way to install the most recent release of SCICO from
 `PyPI <https://pypi.python.org/pypi/scico/>`_ is
@@ -14,20 +21,31 @@ The simplest way to install the most recent release of SCICO from
       pip install scico
 
 
+From GitHub
+-----------
 
-Installing Dependencies
------------------------
+SCICO can be downloaded from the `GitHub repo <https://github.com/lanl/scico>`_. Note that, since the SCICO repo has a submodule, it should be cloned via the command
 
-For detailed instructions on how to install a CPU-only version see `Installing a Development Version`_.
+::
+
+   git clone --recurse-submodules git@github.com:lanl/scico.git
+
+Install using the commands
+
+::
+
+   cd scico
+   pip install -r requirements.txt
+   pip install -e .
 
 
 
-GPU Enabled
-###########
+GPU Support
+-----------
 
-By default, ``pip install -r requirements.txt`` will install a CPU-only version of SCICO. To install a version with GPU support:
+The instructions above install a CPU-only version of SCICO. To install a version with GPU support:
 
-1. Follow the CPU Only instructions, above
+1. Follow the CPU only instructions, above
 
 2. Identify which version of jaxlib was installed
 
@@ -45,8 +63,8 @@ By default, ``pip install -r requirements.txt`` will install a CPU-only version 
 
 
 
-Additional Dependencies for Tomography
-######################################
+Additional Dependencies
+-----------------------
 
 We use the `ASTRA Toolbox <https://www.astra-toolbox.com/>`_ for tomographic projectors. We currently require the development version of ASTRA, as suggested by the package maintainers.
 
@@ -58,17 +76,9 @@ The development version of ASTRA can be installed using conda:
 
 Alternatively, it can be `built from source <https://www.astra-toolbox.com/docs/install.html#for-python>`_.
 
-We also support the `Super-Voxel Model-Based Iterative Reconstruction <https://svmbir.readthedocs.io/en/latest/>`_ package as an alternative tomographic projector. Since this package can be installed via pip, it is
-included in the list of package dependencies (`requirements.txt`), and need
+We also support the `Super-Voxel Model-Based Iterative Reconstruction <https://svmbir.readthedocs.io/en/latest/>`_ package as an alternative tomographic projector. Since this package can be installed via ``pip``, it is
+included in the list of package dependencies (``requirements.txt``), and need
 not be separately installed.
-
-
-
-SCICO on Windows
-----------------
-
-We do not support using SCICO on Windows. Our advice for users on Windows is to use Linux inside a virtual machine. Microsoft's `WSL <https://docs.microsoft.com/en-us/windows/wsl/about>`_ is one such solution. Guides exist for using WSL with the `CPU only <https://docs.microsoft.com/en-us/windows/wsl/install-win10>`_ and with `GPU support <https://docs.microsoft.com/en-us/windows/win32/direct3d12/gpu-cuda-in-wsl>`_.
-
 
 
 For Developers
@@ -83,7 +93,6 @@ In the cloned repository root directory, set up the pre-commit hook:
 ::
 
    pre-commit install
-
 
 
 Building Documentation
