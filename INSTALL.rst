@@ -15,58 +15,11 @@ Installing SCICO
        pip install scico
 
 
-Once it has been released, installation of SCICO via ``pip`` and ``conda`` will be supported. At the moment, SCICO should be downloaded from the `GitHub repo <https://github.com/lanl/scico>`_. Note that, since the SCICO repo has a submodule, it should be cloned via the command
-
-::
-
-   git clone --recurse-submodules git@github.com:lanl/scico.git
-
-Once the dependencies have been installed, as described below, install SCICO itself in editable form
-
-::
-
-   cd scico
-   pip install -e .
-
 
 Installing Dependencies
-=======================
+-----------------------
 
-Note that SCICO requires Python version 3.8 or later.
-
-
-Automatic Installation
-----------------------
-
-The recommended way to install SCICO and its dependencies is via `conda <https://docs.conda.io/en/latest/>`_ using the scripts in ``misc/conda``:
-
-  - ``install_conda.sh``: install ``miniconda``
-    (needed if conda is not already installed on your system).
-  - ``conda_env.sh``: install a ``conda`` environment
-    with all SCICO dependencies. For GPU installation, see ``conda_env.sh -h``.
-
-
-Manual Installation
--------------------
-
-SCICO and its dependencies may also be installed manually.  Installation depends on whether SCICO is intended to run on CPUs only, or whether GPU support is also required.
-
-CPU Only
-########
-
-1. Clone the repository
-
-2. Navigate to the repository root directory
-
-   ::
-
-      cd scico
-
-3. Install dependencies
-
-   ::
-
-      pip install -r requirements.txt
+For detailed instructions on how to install a CPU-only version see `Installing a Development Version`_.
 
 
 
@@ -118,8 +71,9 @@ SCICO on Windows
 We do not support using SCICO on Windows. Our advice for users on Windows is to use Linux inside a virtual machine. Microsoft's `WSL <https://docs.microsoft.com/en-us/windows/wsl/about>`_ is one such solution. Guides exist for using WSL with the `CPU only <https://docs.microsoft.com/en-us/windows/wsl/install-win10>`_ and with `GPU support <https://docs.microsoft.com/en-us/windows/win32/direct3d12/gpu-cuda-in-wsl>`_.
 
 
+
 For Developers
-==============
+--------------
 
 The SCICO project uses the `Black <https://black.readthedocs.io/en/stable/>`_
 and `isort <https://pypi.org/project/isort/>`_ code formatting utilities.
