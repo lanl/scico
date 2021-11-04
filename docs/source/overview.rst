@@ -78,10 +78,10 @@ or
 
 where :math:`\mb{x} \in \mathbb{R}^{n}` represents the reconstruction,
 e.g., a 1D signal, 2D image, 3D volume, or 3D+time volume sequence,
-:math:`C: \mathbb{R}^{n} \to \mathbb{R}^{m_k}`
+:math:`C: \mathbb{R}^{n} \to \mathbb{R}^{m}`
 is a regularization operator,
 and :math:`f: \mathbb{R}^{n} \to \mathbb{R}`
-and :math:`g_k: \mathbb{R}^{m_k} \to \mathbb{R}`
+and :math:`g: \mathbb{R}^{m} \to \mathbb{R}`
 are functionals associated with the data fidelity
 and regularization term, respectively.
 
