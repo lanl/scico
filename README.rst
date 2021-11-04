@@ -18,6 +18,13 @@
    :target: https://github.com/lanl/scico/actions/workflows/ci-build.yml
    :alt: CI status
 
+.. image:: https://codecov.io/gh/lanl/scico/branch/main/graph/badge.svg?token=wQimmjnzFf
+   :target: https://codecov.io/gh/lanl/scico
+   :alt: Test coverage
+
+.. image:: https://badge.fury.io/py/scico.svg
+   :target: https://badge.fury.io/py/scico
+   :alt: Current PyPI package version
 
 
 Scientific Computational Imaging COde (SCICO)
