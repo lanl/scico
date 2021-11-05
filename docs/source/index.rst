@@ -26,6 +26,7 @@ SCICO Documentation
    :hidden:
 
    api
+   examples/index.ipynb
 
 
 Indices

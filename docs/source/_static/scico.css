@@ -75,6 +75,17 @@ dl.citation > dd {
 }
 
 
+/* Fix equation number location */
+
+.math {
+  text-align: left;
+}
+
+.eqno {
+  float: right;
+}
+
+
 /* Style for autosummary API docs */
 
 dl.field-list.simple {

@@ -1,3 +1,5 @@
+.. _classes:
+
 Important Classes
 =================
 
@@ -6,3 +8,4 @@ Important Classes
 
    operator
    functional
+   optimizer
