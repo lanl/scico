@@ -38,7 +38,7 @@ SCICO is a Python package for solving the inverse problems that arise in scienti
 Installation
 ============
 
-See the ``INSTALL.rst`` file or the `online documentation <https://scico.rtfd.io/en/latest/install.html>`_ for installation instructions.
+See the `online documentation <https://scico.rtfd.io/en/latest/install.html>`_ for installation instructions.
 
 
 Usage Examples
