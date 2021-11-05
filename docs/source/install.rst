@@ -84,9 +84,8 @@ not be separately installed.
 For Developers
 --------------
 
-The SCICO project uses the `Black <https://black.readthedocs.io/en/stable/>`_
-and `isort <https://pypi.org/project/isort/>`_ code formatting utilities.
-You can set up a `pre-commit hook <https://pre-commit.com>`_ to ensure any modified code passes format check before it is committed to the development repo.
+For installing a version of SCICO suitable for development,
+see the instructions in :ref:`scico_dev_contributing`.
 
 In the cloned repository root directory, set up the pre-commit hook:
 
