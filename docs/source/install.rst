@@ -87,12 +87,6 @@ For Developers
 For installing a version of SCICO suitable for development,
 see the instructions in :ref:`scico_dev_contributing`.
 
-In the cloned repository root directory, set up the pre-commit hook:
-
-::
-
-   pre-commit install
-
 
 Building Documentation
 ----------------------
