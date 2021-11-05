@@ -21,6 +21,7 @@ Deconvolution
 
    - deconv_circ_tv_admm.py
    - deconv_microscopy_tv_admm.py
+   - deconv_microscopy_allchn_tv_admm.py
    - deconv_ppp_bm3d_admm.py
    - deconv_ppp_bm3d_pgm.py
    - deconv_ppp_dncnn_admm.py
@@ -66,6 +67,7 @@ Total Variation
    - ct_astra_weighted_tv_admm.py
    - deconv_circ_tv_admm.py
    - deconv_microscopy_tv_admm.py
+   - deconv_microscopy_allchn_tv_admm.py
    - deconv_tv_admm.py
    - denoise_tv_iso_admm.py
    - denoise_tv_iso_pgm.py
@@ -93,6 +95,7 @@ ADMM
    - ct_svmbir_ppp_bm3d_admm_prox.py
    - deconv_circ_tv_admm.py
    - deconv_microscopy_tv_admm.py
+   - deconv_microscopy_allchn_tv_admm.py
    - deconv_ppp_bm3d_admm.py
    - deconv_ppp_dncnn_admm.py
    - deconv_tv_admm.py

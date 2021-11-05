@@ -1,3 +1,8 @@
+************
+Installation
+************
+
+
 Installing SCICO
 ================
 
@@ -26,6 +31,9 @@ Once the dependencies have been installed, as described below, install SCICO its
 
 Installing Dependencies
 =======================
+
+Note that SCICO requires Python version 3.8 or later.
+
 
 Automatic Installation
 ----------------------
@@ -67,21 +75,22 @@ GPU Enabled
 
 By default, ``pip install -r requirements.txt`` will install a CPU-only version of SCICO. To install a version with GPU support:
 
-1. Clone the repository
+1. Follow the CPU Only instructions, above
 
-2. Navigate to the repository root directory
-
-   ::
-
-      cd scico
-
-3. Install `JAX with GPU support <https://github.com/google/jax#installation>`_.
-
-4. Install remaining dependencies
+2. Identify which version of jaxlib was installed
 
    ::
 
-      pip install -r requirements.txt
+      pip list | grep jaxlib
+
+3. Install the same version of jaxlib, but with GPU support.
+   For help with this, see `JAX with GPU support <https://github.com/google/jax#installation>`_.
+   The command will be something like
+
+   ::
+
+      pip install --upgrade "jaxlib==0.1.70+cuda110" -f https://storage.googleapis.com/jax-releases/jax_releases.html
+
 
 
 Additional Dependencies for Tomography

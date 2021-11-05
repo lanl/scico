@@ -1,3 +1,7 @@
+.. image:: https://img.shields.io/badge/python-3.8+-green.svg
+    :target: https://www.python.org/
+    :alt: Python >= 3.8
+
 .. image:: https://img.shields.io/github/license/lanl/scico.svg
     :target: https://github.com/lanl/scico/blob/main/LICENSE
     :alt: Package License
@@ -6,14 +10,21 @@
     :target: http://scico.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
-.. image:: https://github.com/lanl/scico/actions/workflows/main.yml/badge.svg
-   :target: https://github.com/lanl/scico/actions/workflows/main.yml
+.. image:: https://github.com/lanl/scico/actions/workflows/lint.yml/badge.svg
+   :target: https://github.com/lanl/scico/actions/workflows/lint.yml
    :alt: Lint status
 
-.. image:: https://github.com/lanl/scico/actions/workflows/ci-build.yml/badge.svg
-   :target: https://github.com/lanl/scico/actions/workflows/ci-build.yml
+.. image:: https://github.com/lanl/scico/actions/workflows/pytest.yml/badge.svg
+   :target: https://github.com/lanl/scico/actions/workflows/pytest.yml
    :alt: CI status
 
+.. image:: https://codecov.io/gh/lanl/scico/branch/main/graph/badge.svg?token=wQimmjnzFf
+   :target: https://codecov.io/gh/lanl/scico
+   :alt: Test coverage
+
+.. image:: https://badge.fury.io/py/scico.svg
+   :target: https://badge.fury.io/py/scico
+   :alt: Current PyPI package version
 
 
 Scientific Computational Imaging COde (SCICO)
@@ -33,7 +44,7 @@ See the ``INSTALL.rst`` file or the `online documentation <https://scico.rtfd.io
 Usage Examples
 ==============
 
-Usage examples are available as Python scripts and Jupyter Notebooks. Example scripts are located in ``examples/scripts``. The corresponding Jupyter Notebooks are provided in the `scico-data <https://github.com/lanl/scico-data>`_ submodule and symlinked to ``examples/notebooks``. They are also viewable on `GitHub <https://github.com/lanl/scico-data/tree/main/notebooks>`_ or `nbviewer <https://nbviewer.jupyter.org/github/lanl/scico-data/tree/main/notebooks/>`_.
+Usage examples are available as Python scripts and Jupyter Notebooks. Example scripts are located in ``examples/scripts``. The corresponding Jupyter Notebooks are provided in the `scico-data <https://github.com/lanl/scico-data>`_ submodule and symlinked to ``examples/notebooks``. They are also viewable on `GitHub <https://github.com/lanl/scico-data/tree/main/notebooks>`_ or `nbviewer <https://nbviewer.jupyter.org/github/lanl/scico-data/tree/main/notebooks/index.ipynb>`_.
 
 
 License

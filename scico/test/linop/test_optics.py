@@ -11,7 +11,7 @@ from scico.linop.optics import (
     radial_transverse_frequency,
 )
 from scico.random import randn
-from scico.test.linop.test_linop import adjoint_AAt_test, adjoint_AtA_test
+from scico.test.linop.test_linop import adjoint_test
 
 prop_list = [AngularSpectrumPropagator, FresnelPropagator, FraunhoferPropagator]
 
@@ -29,8 +29,7 @@ class TestPropagator:
     @pytest.mark.parametrize("prop", prop_list)
     def test_prop_adjoint(self, prop, ndim):
         A = prop(input_shape=(self.N,) * ndim, dx=self.dx, k0=self.k0, z=self.z)
-        adjoint_AtA_test(A, self.key)
-        adjoint_AAt_test(A, self.key)
+        adjoint_test(A, self.key)
 
     @pytest.mark.parametrize("ndim", [1, 2])
     def test_AS_inverse(self, ndim):

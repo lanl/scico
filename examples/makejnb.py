@@ -2,12 +2,14 @@
 
 # Extract a list of Python scripts from "scripts/index.rst" and
 # create/update and execute any Jupyter notebooks that are out
-# of date with respect to their source Python scripts.
+# of date with respect to their source Python scripts. If script
+# names specified on command line, process them instead.
 # Run as
-#     python makejnb.py
+#     python makejnb.py [script_name_1 [script_name_2 [...]]]
 
-
+import os
 import re
+import sys
 from pathlib import Path
 
 import nbformat
@@ -17,25 +19,32 @@ try:
     import ray
 except ImportError:
     raise RuntimeError("The ray package is required to run this script")
-import os
 
-# Read script names from index file
-scriptnames = []
-srcidx = "scripts/index.rst"
-with open(srcidx, "r") as idxfile:
-    for line in idxfile:
-        m = re.match(r"(\s+)- ([^\s]+.py)", line)
-        if m:
-            scriptnames.append(m.group(2))
+
+if sys.argv[1:]:
+    # Script names specified on command line
+    scriptnames = [os.path.basename(s) for s in sys.argv[1:]]
+else:
+    # Read script names from index file
+    scriptnames = []
+    srcidx = "scripts/index.rst"
+    with open(srcidx, "r") as idxfile:
+        for line in idxfile:
+            m = re.match(r"(\s+)- ([^\s]+.py)", line)
+            if m:
+                scriptnames.append(m.group(2))
+
 # Ensure list entries are unique
 scriptnames = list(set(scriptnames))
 
 # Construct script paths
 scripts = [Path("scripts") / Path(s) for s in scriptnames]
 
+
+# Construct list of notebooks that are out of date with respect to the corresponding
+# script, or that have not yet been constructed from the corresponding script, and
+# construct/update each of them
 notebooks = []
-# Construct list of scripts that are have no corresponding notebook or
-# are more recent than corresponding notebook
 for s in scripts:
     nb = Path("notebooks") / (s.stem + ".ipynb")
     if not nb.is_file() or s.stat().st_mtime > nb.stat().st_mtime:
@@ -43,27 +52,23 @@ for s in scripts:
         os.popen(f"./pytojnb.sh {s} {nb}")
         # Add it to the list for execution
         notebooks.append(nb)
-
+if sys.argv[1:]:
+    # If scripts specified on command line, add all corresonding notebooks to the
+    # list for execution
+    notebooks = [Path("notebooks") / (s.stem + ".ipynb") for s in scripts]
 
 ray.init()
 
+nproc = len(notebooks)
 ngpu = 0
-cr = ray.cluster_resources()
-if "GPU" in cr:
-    ngpu = cr["GPU"]
-if ngpu == 0:
-    print("Warning: host has no GPUs")
-else:
-    ngpu = 0
-    ar = ray.available_resources()
-    if "GPU" in cr:
-        ngpu = int(ar["GPU"])
-    if ngpu < 2:
-        print("Warning: host has fewer than two GPUs available")
-    print(f"Executing on {ngpu} GPUs")
+ar = ray.available_resources()
+ncpu = max(int(ar["CPU"]) // nproc, 1)
+if "GPU" in ar:
+    ngpu = max(int(ar["GPU"]) // nproc, 1)
+print(f"Running on {ncpu} CPUs and {ngpu} GPUs per process")
 
 # Function to execute each notebook with one GPU
-@ray.remote(num_gpus=1)
+@ray.remote(num_cpus=ncpu, num_gpus=ngpu)
 def run_nb(fname):
     with open(fname) as f:
         nb = nbformat.read(f, as_version=4)
