@@ -29,6 +29,7 @@ from scico.loss import WeightedSquaredL2Loss
 from scico.typing import JaxArray, Shape
 
 from ._linop import Diagonal, LinearOperator
+from typing import Optional
 
 
 class ParallelBeamProjector(LinearOperator):
@@ -39,6 +40,7 @@ class ParallelBeamProjector(LinearOperator):
         input_shape: Shape,
         angles: np.ndarray,
         num_channels: int,
+        is_masked=False,
     ):
         """
         Args:
@@ -63,6 +65,11 @@ class ParallelBeamProjector(LinearOperator):
                 f"Only 2D and 3D inputs are supported, but input_shape was {input_shape}"
             )
 
+        if is_masked:
+            self.roi_radius = None
+        else:
+            self.roi_radius = max(self.svmbir_input_shape[1], self.svmbir_input_shape[2])
+
         # Set up custom_vjp for _eval and _adj so jax.grad works on them.
         self._eval = jax.custom_vjp(lambda x: self._proj_hcb(x))
         self._eval.defvjp(lambda x: (self._proj_hcb(x), None), lambda _, y: (self._bproj_hcb(y),))
@@ -80,32 +87,29 @@ class ParallelBeamProjector(LinearOperator):
         )
 
     @staticmethod
-    def _proj(x: JaxArray, angles: JaxArray, num_channels: int) -> JaxArray:
-        return svmbir.project(np.array(x), np.array(angles), num_channels, verbose=0, roi_radius=max(x.shape[1], x.shape[2]))
-        # return svmbir.project(np.array(x), np.array(angles), num_channels, verbose=0)
+    def _proj(x: JaxArray, angles: JaxArray, num_channels: int, roi_radius: Optional[float] = None) -> JaxArray:
+        return svmbir.project(np.array(x), np.array(angles), num_channels, verbose=0, roi_radius=roi_radius)
 
     def _proj_hcb(self, x):
         x = x.reshape(self.svmbir_input_shape)
         # host callback wrapper for _proj
         y = jax.experimental.host_callback.call(
-            lambda x: self._proj(x, self.angles, self.num_channels),
+            lambda x: self._proj(x, self.angles, self.num_channels, self.roi_radius),
             x,
             result_shape=jax.ShapeDtypeStruct(self.svmbir_output_shape, self.output_dtype),
         )
         return y.reshape(self.output_shape)
 
     @staticmethod
-    def _bproj(y: JaxArray, angles: JaxArray, num_rows: int, num_cols: int):
-        return svmbir.backproject(np.array(y), np.array(angles), num_rows, num_cols, verbose=0, roi_radius=max(num_rows, num_cols))
-        # return svmbir.backproject(np.array(y), np.array(angles), num_rows, num_cols, verbose=0)
+    def _bproj(y: JaxArray, angles: JaxArray, num_rows: int, num_cols: int, roi_radius: Optional[float] = None):
+        return svmbir.backproject(np.array(y), np.array(angles), num_rows, num_cols, verbose=0, roi_radius=roi_radius)
 
     def _bproj_hcb(self, y):
         y = y.reshape(self.svmbir_output_shape)
         # host callback wrapper for _bproj
         x = jax.experimental.host_callback.call(
             lambda y: self._bproj(
-                y, self.angles, self.svmbir_input_shape[1], self.svmbir_input_shape[2]
-            ),
+                y, self.angles, self.svmbir_input_shape[1], self.svmbir_input_shape[2], self.roi_radius),
             y,
             result_shape=jax.ShapeDtypeStruct(self.svmbir_input_shape, self.input_dtype),
         )
@@ -152,7 +156,7 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
             prox_image=np.array(v),
             num_rows=self.A.svmbir_input_shape[1],
             num_cols=self.A.svmbir_input_shape[2],
-            roi_radius=max(self.A.svmbir_input_shape[1], self.A.svmbir_input_shape[2]),
+            roi_radius=self.A.roi_radius,
             sigma_p=float(sigma_p),
             sigma_y=1.0,
             positivity=False,

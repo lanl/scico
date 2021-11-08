@@ -53,7 +53,7 @@ Generate tomographic projector and sinogram.
 num_angles = int(N / 2)
 num_channels = N
 angles = snp.linspace(0, snp.pi, num_angles, dtype=snp.float32)
-A = ParallelBeamProjector(x_gt.shape, angles, num_channels)
+A = ParallelBeamProjector(x_gt.shape, angles, num_channels, is_masked=True)
 sino = A @ x_gt
 
 
@@ -71,6 +71,9 @@ y = -np.log(noisy_counts / max_intensity)
 Reconstruct using default prior of SVMBIR :cite:`svmbir-2020`.
 """
 weights = svmbir.calc_weights(y, weight_type="transmission")
+# weights = svmbir.calc_weights(y, weight_type="unweighted")
+print(np.min(weights))
+print(np.max(weights))
 
 x_mrf = svmbir.recon(
     np.array(y[:, np.newaxis]),
