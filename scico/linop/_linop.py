@@ -35,17 +35,16 @@ def power_iteration(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey
 
     Args:
         A: :class:`.LinearOperator` used for computation. Must be
-            diagonalizable. For arbitrary :class:`.LinearOperator`, call
-            this function on ``A.conj().T @ A``.
-        maxiter: Maximum number of power iterations to use. Default: 100
+            diagonalizable.
+        maxiter: Maximum number of power iterations to use.
         key: Jax PRNG key. Defaults to None, in which case a new key is
             created.
 
     Returns:
-        tuple: A tuple (mu, v) containing:
+        tuple: A tuple (`mu`, `v`) containing:
 
-            - **mu**: Estimate of largest eigenvalue of A.
-            - **v**: Eigenvector with eigenvalue mu
+            - **mu**: Estimate of largest eigenvalue of `A`.
+            - **v**: Eigenvector of `A` with eigenvalue `mu`.
 
     """
     v, key = randn(shape=A.input_shape, key=key, dtype=A.input_dtype)
