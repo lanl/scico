@@ -125,7 +125,7 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
                 f"`weight_op` must be `Diagonal` but instead got {type(self.weight_op)}"
             )
 
-            self.weights = self.weight_op.diagonal
+        self.weights = self.weight_op.diagonal
 
         self.has_prox = True
 
