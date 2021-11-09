@@ -91,7 +91,7 @@ y, x0, weights = jax.device_put([y, x_mrf, weights])
 ρ = 100  # ADMM penalty parameter
 σ = density * 0.2  # denoiser sigma
 
-weight_op = Diagonal(weights ** 0.5)
+weight_op = Diagonal(weights)
 
 f = SVMBIRWeightedSquaredL2Loss(y=y, A=A, weight_op=weight_op, scale=0.5)
 g0 = σ * ρ * BM3D()

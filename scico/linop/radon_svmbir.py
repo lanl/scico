@@ -125,9 +125,10 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
                 f"`weight_op` must be `Diagonal` but instead got {type(self.weight_op)}"
             )
 
-        self.weights = (
-            snp.conj(self.weight_op.diagonal) * self.weight_op.diagonal
-        )  # because weight_op is W^{1/2}
+        # self.weights = (
+        #     snp.conj(self.weight_op.diagonal) * self.weight_op.diagonal
+        # )  # because weight_op is W^{1/2}
+        self.weights = self.weight_op.diagonal
 
         self.has_prox = True
 
