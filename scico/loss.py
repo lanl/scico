@@ -211,7 +211,7 @@ class WeightedSquaredL2Loss(Loss):
         if W is None:
             self.W = linop.Identity(y.shape)
         elif isinstance(W, linop.Diagonal):
-            if np.all(W.diagonal >= 0):
+            if snp.all(W.diagonal >= 0):
                 self.W = W
             else:
                 raise Exception(f"The weights, W.diagonal, must be non-negative.")

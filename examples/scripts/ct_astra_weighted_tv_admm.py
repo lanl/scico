@@ -139,7 +139,7 @@ lambda_weighted = 1.14e2
 
 weights = counts / Io  # scale by Io to balance the data vs regularization term
 W = linop.Diagonal(snp.sqrt(weights))
-f = loss.WeightedSquaredL2Loss(y=y, A=A, weight_op=W)
+f = loss.WeightedSquaredL2Loss(y=y, A=A, W=W)
 
 admm_weighted = ADMM(
     f=f,
