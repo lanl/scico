@@ -124,7 +124,7 @@ class LinearSubproblemSolver(SubproblemSolver):
          \mb{x}^{(k+1)} = \argmin_{\mb{x}} \; \frac{1}{2} \norm{\mb{y} - A x}_W^2 +
          \sum_i \frac{\rho_i}{2} \norm{\mb{z}^{(k)}_i - \mb{u}^{(k)}_i - C_i \mb{x}}_2^2 \;,
 
-    where :math:`W` is the weighting :class:`.LinearOperator` from the
+    where :math:`W` is the weighting :class:`.Diagonal` from the
     :class:`.WeightedSquaredL2Loss` instance. This update step reduces to the
     solution of the linear system
 
