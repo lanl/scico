@@ -119,6 +119,13 @@ class SquaredL2Loss(Loss):
         A: Optional[Union[Callable, operator.Operator]] = None,
         scale: float = 0.5,
     ):
+        r"""Initialize a :class:`SquaredL2Loss` object.
+
+        Args:
+            y : Measurements.
+            A : Forward operator.  If None, defaults to :class:`.Identity`.
+            scale : Scaling parameter.
+        """
         y = ensure_on_device(y)
         self.functional = functional.SquaredL2Norm()
         super().__init__(y=y, A=A, scale=scale)
@@ -140,7 +147,7 @@ class SquaredL2Loss(Loss):
         Args:
             x : Point at which to evaluate loss.
         """
-        return self.scale * self.functional(self.y - self.A(x))
+        return self.scale * (snp.abs(self.y - self.A(x)) ** 2).sum()
 
     def prox(self, x: Union[JaxArray, BlockArray], lam: float) -> Union[JaxArray, BlockArray]:
         if isinstance(self.A, linop.Diagonal):
@@ -154,7 +161,7 @@ class SquaredL2Loss(Loss):
     @property
     def hessian(self) -> linop.LinearOperator:
         r"""If ``self.A`` is a :class:`.LinearOperator`, returns a new :class:`.LinearOperator` corresponding
-        to Hessian :math:`\mathrm{A^*A}`.
+        to Hessian :math:`2 \mathrm{scale} \cdot \mathrm{A^* A}`.
 
         Otherwise not implemented.
         """
@@ -171,11 +178,11 @@ class WeightedSquaredL2Loss(Loss):
     Weighted squared :math:`\ell_2` loss.
 
     .. math::
-        \mathrm{scale} \cdot \norm{\mb{y} - A(\mb{x})}_{\mathrm{W}}^2 =
-        \mathrm{scale} \cdot \norm{\mathrm{W}^{1/2} \left( \mb{y} - A(\mb{x})\right)}_2^2\;
+        \mathrm{scale} \cdot \norm{\mb{y} - A(\mb{x})}_W^2 =
+        \mathrm{scale} \cdot \left(\mb{y} - A(\mb{x})\right)^T W \left(\mb{y} - A(\mb{x})\right)\;
 
-    Where :math:`\mathrm{W}` is an instance of :class:`scico.linop.LinearOperator`.  If
-    :math:`\mathrm{W}` is None, reverts to the behavior of :class:`.SquaredL2Loss`.
+    Where :math:`W` is an instance of :class:`scico.linop.Diagonal`.  If
+    :math:`W` is None, reverts to the behavior of :class:`.SquaredL2Loss`.
 
     """
 
@@ -184,30 +191,33 @@ class WeightedSquaredL2Loss(Loss):
         y: Union[JaxArray, BlockArray],
         A: Optional[Union[Callable, operator.Operator]] = None,
         scale: float = 0.5,
-        weight_op: Optional[operator.Operator] = None,
+        W: Optional[linop.Diagonal] = None,
     ):
 
         r"""Initialize a :class:`WeightedSquaredL2Loss` object.
 
         Args:
-            y : Measurements
+            y : Measurements.
             A : Forward operator.  If None, defaults to :class:`.Identity`.
-            scale : Scaling parameter
-            weight_op:  Weighting linear operator. Corresponds to :math:`W^{1/2}`
-                in the standard definition of the weighted squared :math:`\ell_2` loss.
+            scale : Scaling parameter.
+            W:  Weighting diagonal operator. Must be non-negative.
                 If None, defaults to :class:`.Identity`.
         """
         y = ensure_on_device(y)
 
-        self.weight_op: operator.Operator
+        self.W: linop.Diagonal
 
         self.functional = functional.SquaredL2Norm()
-        if weight_op is None:
-            self.weight_op = linop.Identity(y.shape)
-        elif isinstance(weight_op, linop.LinearOperator):
-            self.weight_op = weight_op
+        if W is None:
+            self.W = linop.Identity(y.shape)
+        elif isinstance(W, linop.Diagonal):
+            if np.all(W.diagonal >= 0):
+                self.W = W
+            else:
+                raise Exception(f"The weights, W.diagonal, must be non-negative.")
         else:
-            raise TypeError(f"weight_op must be None or a LinearOperator, got {type(weight_op)}")
+            raise TypeError(f"W must be None or a linop.Diagonal, got {type(W)}")
+
         super().__init__(y=y, A=A, scale=scale)
 
         if isinstance(A, operator.Operator):
@@ -218,40 +228,43 @@ class WeightedSquaredL2Loss(Loss):
         if isinstance(self.A, linop.LinearOperator):
             self.is_quadratic = True
 
-        if isinstance(self.A, linop.Diagonal) and isinstance(self.weight_op, linop.Diagonal):
+        if isinstance(self.A, linop.Diagonal) and isinstance(self.W, linop.Diagonal):
             self.has_prox = True
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
-        return self.scale * self.functional(self.weight_op(self.y - self.A(x)))
+        return self.scale * (self.W.diagonal * snp.abs(self.y - self.A(x)) ** 2).sum()
 
     def prox(self, x: Union[JaxArray, BlockArray], lam: float) -> Union[JaxArray, BlockArray]:
         if isinstance(self.A, linop.Diagonal):
-            c = self.scale * lam
+            c = 2.0 * self.scale * lam
             A = self.A.diagonal
-            W = self.weight_op.diagonal
-            lhs = c * 2.0 * A.conj() * W * W.conj() * self.y + x
-            ATWTWA = c * 2.0 * A.conj() * W.conj() * W * A
-            return lhs / (ATWTWA + 1.0)
+            W = self.W.diagonal
+            lhs = c * A.conj() * W * self.y + x
+            ATWA = c * A.conj() * W * A
+            return lhs / (ATWA + 1.0)
         else:
             raise NotImplementedError
 
     @property
     def hessian(self) -> linop.LinearOperator:
         r"""If ``self.A`` is a :class:`scico.linop.LinearOperator`, returns a
-        :class:`scico.linop.LinearOperator` corresponding to Hessian :math:`\mathrm{A^* W A}`.
+        :class:`scico.linop.LinearOperator` corresponding to  the Hessian
+        :math:`2 \mathrm{scale} \cdot \mathrm{A^* W A}`.
 
         Otherwise not implemented.
         """
-        if isinstance(self.A, linop.LinearOperator):
+        A = self.A
+        W = self.W
+        if isinstance(A, linop.LinearOperator):
             return linop.LinearOperator(
-                input_shape=self.A.input_shape,
-                output_shape=self.A.input_shape,
-                eval_fn=lambda x: 2 * self.scale * self.A.adj(self.weight_op(self.A(x))),
-                adj_fn=lambda x: 2 * self.scale * self.A.adj(self.weight_op(self.A(x))),
+                input_shape=A.input_shape,
+                output_shape=A.input_shape,
+                eval_fn=lambda x: 2 * self.scale * A.adj(W(A(x))),
+                adj_fn=lambda x: 2 * self.scale * A.adj(W(A(x))),
             )
         else:
             raise NotImplementedError(
-                f"Hessian is not implemented for {type(self)} when `A` is {type(self.A)}; must be LinearOperator"
+                f"Hessian is not implemented for {type(self)} when `A` is {type(A)}; must be LinearOperator"
             )
 
 
