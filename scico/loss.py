@@ -42,7 +42,9 @@ class Loss(functional.Functional):
     r"""Generic Loss function.
 
     .. math::
-        \mathrm{scale} l(\mb{y}, A(\mb{x})) \;
+        \alpha l(\mb{y}, A(\mb{x})) \;
+
+    where :math:`\alpha` is the scaling parameter and :math:`l(\cdot)` is the loss functional.
 
     """
 
@@ -109,7 +111,9 @@ class SquaredL2Loss(Loss):
     Squared :math:`\ell_2` loss.
 
     .. math::
-        \mathrm{scale} \norm{\mb{y} - A(\mb{x})}_2^2 \;
+        \alpha \norm{\mb{y} - A(\mb{x})}_2^2 \;
+
+    where :math:`\alpha` is the scaling parameter.
 
     """
 
@@ -160,7 +164,7 @@ class SquaredL2Loss(Loss):
     @property
     def hessian(self) -> linop.LinearOperator:
         r"""If ``self.A`` is a :class:`.LinearOperator`, returns a new :class:`.LinearOperator` corresponding
-        to Hessian :math:`2 \mathrm{scale} \mathrm{A^* A}`.
+        to Hessian :math:`2 \alpha \mathrm{A^* A}`.
 
         Otherwise not implemented.
         """
@@ -177,11 +181,12 @@ class WeightedSquaredL2Loss(Loss):
     Weighted squared :math:`\ell_2` loss.
 
     .. math::
-        \mathrm{scale} \norm{\mb{y} - A(\mb{x})}_W^2 =
-        \mathrm{scale} \left(\mb{y} - A(\mb{x})\right)^T W \left(\mb{y} - A(\mb{x})\right)\;
+        \alpha \norm{\mb{y} - A(\mb{x})}_W^2 =
+        \alpha \left(\mb{y} - A(\mb{x})\right)^T W \left(\mb{y} - A(\mb{x})\right)\;
 
-    Where :math:`W` is an instance of :class:`scico.linop.Diagonal`.  If
-    :math:`W` is None, reverts to the behavior of :class:`.SquaredL2Loss`.
+    where :math:`\alpha` is the scaling parameter and :math:`W` is an
+    instance of :class:`scico.linop.Diagonal`.  If :math:`W` is None,
+    reverts to the behavior of :class:`.SquaredL2Loss`.
 
     """
 
@@ -247,7 +252,7 @@ class WeightedSquaredL2Loss(Loss):
     def hessian(self) -> linop.LinearOperator:
         r"""If ``self.A`` is a :class:`scico.linop.LinearOperator`, returns a
         :class:`scico.linop.LinearOperator` corresponding to  the Hessian
-        :math:`2 \mathrm{scale} \mathrm{A^* W A}`.
+        :math:`2 \alpha \mathrm{A^* W A}`.
 
         Otherwise not implemented.
         """
@@ -271,7 +276,9 @@ class PoissonLoss(Loss):
     Poisson negative log likelihood loss
 
     .. math::
-        \mathrm{scale} \sum_i [A(x)]_i - y_i \log\left( [A(x)]_i \right) + \log(y_i!)
+        \alpha \left( \sum_i [A(x)]_i - y_i \log\left( [A(x)]_i \right) + \log(y_i!) \right)
+
+    where :math:`\alpha` is the scaling parameter.
     """
 
     def __init__(
