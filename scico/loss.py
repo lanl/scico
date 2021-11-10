@@ -42,7 +42,7 @@ class Loss(functional.Functional):
     r"""Generic Loss function.
 
     .. math::
-        \mathrm{scale} \cdot l(\mb{y}, A(\mb{x})) \;
+        \mathrm{scale} l(\mb{y}, A(\mb{x})) \;
 
     """
 
@@ -109,7 +109,7 @@ class SquaredL2Loss(Loss):
     Squared :math:`\ell_2` loss.
 
     .. math::
-        \mathrm{scale} \cdot \norm{\mb{y} - A(\mb{x})}_2^2 \;
+        \mathrm{scale} \norm{\mb{y} - A(\mb{x})}_2^2 \;
 
     """
 
@@ -161,7 +161,7 @@ class SquaredL2Loss(Loss):
     @property
     def hessian(self) -> linop.LinearOperator:
         r"""If ``self.A`` is a :class:`.LinearOperator`, returns a new :class:`.LinearOperator` corresponding
-        to Hessian :math:`2 \mathrm{scale} \cdot \mathrm{A^* A}`.
+        to Hessian :math:`2 \mathrm{scale} \mathrm{A^* A}`.
 
         Otherwise not implemented.
         """
@@ -178,8 +178,8 @@ class WeightedSquaredL2Loss(Loss):
     Weighted squared :math:`\ell_2` loss.
 
     .. math::
-        \mathrm{scale} \cdot \norm{\mb{y} - A(\mb{x})}_W^2 =
-        \mathrm{scale} \cdot \left(\mb{y} - A(\mb{x})\right)^T W \left(\mb{y} - A(\mb{x})\right)\;
+        \mathrm{scale} \norm{\mb{y} - A(\mb{x})}_W^2 =
+        \mathrm{scale} \left(\mb{y} - A(\mb{x})\right)^T W \left(\mb{y} - A(\mb{x})\right)\;
 
     Where :math:`W` is an instance of :class:`scico.linop.Diagonal`.  If
     :math:`W` is None, reverts to the behavior of :class:`.SquaredL2Loss`.
@@ -249,7 +249,7 @@ class WeightedSquaredL2Loss(Loss):
     def hessian(self) -> linop.LinearOperator:
         r"""If ``self.A`` is a :class:`scico.linop.LinearOperator`, returns a
         :class:`scico.linop.LinearOperator` corresponding to  the Hessian
-        :math:`2 \mathrm{scale} \cdot \mathrm{A^* W A}`.
+        :math:`2 \mathrm{scale} \mathrm{A^* W A}`.
 
         Otherwise not implemented.
         """
@@ -273,7 +273,7 @@ class PoissonLoss(Loss):
     Poisson negative log likelihood loss
 
     .. math::
-        \mathrm{scale} \cdot \sum_i [A(x)]_i - y_i \log\left( [A(x)]_i \right) + \log(y_i!)
+        \mathrm{scale} \sum_i [A(x)]_i - y_i \log\left( [A(x)]_i \right) + \log(y_i!)
 
     """
 
