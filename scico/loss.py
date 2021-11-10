@@ -272,7 +272,6 @@ class PoissonLoss(Loss):
 
     .. math::
         \mathrm{scale} \sum_i [A(x)]_i - y_i \log\left( [A(x)]_i \right) + \log(y_i!)
-
     """
 
     def __init__(
@@ -285,15 +284,22 @@ class PoissonLoss(Loss):
 
         Args:
             y : Measurement.
-            A : Forward operator.  Defaults to None.  If None, ``self.A`` is a :class:`.Identity`.
-            scale : Scaling parameter.  Default: 0.5.
-
+            A : Forward operator. Defaults to None.  If None, ``self.A`` is a :class:`.Identity`.
+            scale : Scaling parameter. Default: 0.5.
         """
         y = ensure_on_device(y)
         super().__init__(y=y, A=A, scale=scale)
 
         #: Constant term in Poisson log likehood; equal to ln(y!)
         self.const: float = gammaln(self.y + 1)  # ln(y!)
+
+        # The "true" Poisson loss is not differentiable at zero, but the
+        # ε that we add to allow evaluation at zero has the side-effect
+        # of making it differentiable there.
+        if isinstance(A, operator.Operator):
+            self.is_smooth = A.is_smooth
+        else:
+            self.is_smooth = None
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         ε = 1e-9  # So that loss < infinity
