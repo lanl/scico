@@ -127,7 +127,6 @@ class SquaredL2Loss(Loss):
             scale : Scaling parameter.
         """
         y = ensure_on_device(y)
-        self.functional = functional.SquaredL2Norm()
         super().__init__(y=y, A=A, scale=scale)
 
         if isinstance(A, operator.Operator):
@@ -207,7 +206,6 @@ class WeightedSquaredL2Loss(Loss):
 
         self.W: linop.Diagonal
 
-        self.functional = functional.SquaredL2Norm()
         if W is None:
             self.W = linop.Identity(y.shape)
         elif isinstance(W, linop.Diagonal):
