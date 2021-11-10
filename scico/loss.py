@@ -55,7 +55,7 @@ class Loss(functional.Functional):
         r"""Initialize a :class:`Loss` object.
 
         Args:
-            y : Measurements
+            y : Measurement.
             A : Forward operator.  Defaults to None.  If None, ``self.A`` is a :class:`.Identity`.
             scale : Scaling parameter.  Default: 0.5.
 
@@ -122,7 +122,7 @@ class SquaredL2Loss(Loss):
         r"""Initialize a :class:`SquaredL2Loss` object.
 
         Args:
-            y : Measurements.
+            y : Measurement.
             A : Forward operator.  If None, defaults to :class:`.Identity`.
             scale : Scaling parameter.
         """
@@ -197,7 +197,7 @@ class WeightedSquaredL2Loss(Loss):
         r"""Initialize a :class:`WeightedSquaredL2Loss` object.
 
         Args:
-            y : Measurements.
+            y : Measurement.
             A : Forward operator.  If None, defaults to :class:`.Identity`.
             scale : Scaling parameter.
             W:  Weighting diagonal operator. Must be non-negative.
@@ -286,7 +286,7 @@ class PoissonLoss(Loss):
         r"""Initialize a :class:`Loss` object.
 
         Args:
-            y : Measurements
+            y : Measurement.
             A : Forward operator.  Defaults to None.  If None, ``self.A`` is a :class:`.Identity`.
             scale : Scaling parameter.  Default: 0.5.
 
