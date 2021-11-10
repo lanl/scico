@@ -37,10 +37,7 @@ def prox_solve(v, v0, f, alpha):
     initial point for the optimization."""
     fnc = lambda x: prox_func(x, v, f, alpha)
     fmn = minimize(
-        fnc,
-        v0,
-        method="Nelder-Mead",
-        options={"maxiter": 1000, "xatol": 1e-9, "fatol": 1e-9},
+        fnc, v0, method="Nelder-Mead", options={"maxiter": 1000, "xatol": 1e-9, "fatol": 1e-9},
     )
 
     return fmn.x.reshape(v.shape), fmn.fun
@@ -338,6 +335,7 @@ class TestLoss:
         W, key = randn((n,), key=key, dtype=dtype)
         W = 0.1 * W + 1.0
         self.Ao = linop.MatrixOperator(A)
+        self.Ao_abs = linop.MatrixOperator(snp.abs(A))
         self.Do = linop.Diagonal(D)
         self.W = linop.Diagonal(W)
         self.y, key = randn((n,), key=key, dtype=dtype)
@@ -410,6 +408,22 @@ class TestLoss:
         assert cL(self.v) == self.scalar * L_d(self.v)
 
         pf = prox_test(self.v, L_d, L_d.prox, 0.75)
+
+    def test_poisson(self):
+        L = loss.PoissonLoss(y=self.y, A=self.Ao_abs)
+        assert L.is_smooth == True
+        assert L.has_eval == True
+        assert L.has_prox == False
+
+        # test eval
+        v = snp.abs(self.v)
+        Av = self.Ao_abs @ v
+        np.testing.assert_allclose(L(v), 0.5 * snp.sum(Av - self.y * snp.log(Av) + L.const))
+
+        cL = self.scalar * L
+        assert L.scale == 0.5  # hasn't changed
+        assert cL.scale == self.scalar * L.scale
+        assert cL(v) == self.scalar * L(v)
 
 
 class TestBM3D:
