@@ -454,14 +454,11 @@ def test_operator_norm():
     Inorm = linop.operator_norm(I)
     assert np.abs(Inorm - 1.0) < 1e-5
     key = jax.random.PRNGKey(12345)
-    d, key = randn((16,), dtype=np.float32, key=key)
-    D = linop.Diagonal(d)
-    Dnorm = linop.operator_norm(D)
-    assert np.abs(Dnorm - snp.abs(d).max()) < 1e-5
-    d, key = randn((16,), dtype=np.complex64, key=key)
-    D = linop.Diagonal(d)
-    Dnorm = linop.operator_norm(D)
-    assert np.abs(Dnorm - snp.abs(d.max())) < 1e-5
+    for dtype in [np.float32, np.complex64]:
+        d, key = randn((16,), dtype=dtype, key=key)
+        D = linop.Diagonal(d)
+        Dnorm = linop.operator_norm(D)
+        assert np.abs(Dnorm - snp.abs(d).max()) < 1e-5
 
 
 class SumTestObj:
