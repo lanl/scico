@@ -35,17 +35,16 @@ def power_iteration(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey
 
     Args:
         A: :class:`.LinearOperator` used for computation. Must be
-            diagonalizable. For arbitrary :class:`.LinearOperator`, call
-            this function on ``A.conj().T @ A``.
-        maxiter: Maximum number of power iterations to use. Default: 100
+            diagonalizable.
+        maxiter: Maximum number of power iterations to use.
         key: Jax PRNG key. Defaults to None, in which case a new key is
             created.
 
     Returns:
-        tuple: A tuple (mu, v) containing:
+        tuple: A tuple (`mu`, `v`) containing:
 
-            - **mu**: Estimate of largest eigenvalue of A.
-            - **v**: Eigenvector with eigenvalue mu
+            - **mu**: Estimate of largest eigenvalue of `A`.
+            - **v**: Eigenvector of `A` with eigenvalue `mu`.
 
     """
     v, key = randn(shape=A.input_shape, key=key, dtype=A.input_dtype)
@@ -56,6 +55,40 @@ def power_iteration(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey
         mu = snp.vdot(v, Av.ravel()) / snp.linalg.norm(v) ** 2
         v = Av / snp.linalg.norm(Av)
     return mu, v
+
+
+def operator_norm(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey] = None):
+    r"""Estimate the norm of a :class:`.LinearOperator`.
+
+    Estimate the operator norm
+    `induced <https://en.wikipedia.org/wiki/Matrix_norm#Matrix_norms_induced_by_vector_norms>`_
+    by the :math:`\ell_2` vector norm, i.e. for :class:`.LinearOperator`
+    :math:`A`,
+
+    .. math::
+
+       \| A \|_2 &= \max \{ \| A \mb{x} \|_2 \, : \, \| \mb{x} \|_2 \leq 1 \} \\
+                 &= \sqrt{ \lambda_{ \mathrm{max} }( A^H A ) }
+                 = \sigma_{\mathrm{max}}(A) \;,
+
+    where :math:`\lambda_{\mathrm{max}}(B)` and
+    :math:`\sigma_{\mathrm{max}}(B)` respectively denote the
+    largest eigenvalue of :math:`B` and the largest singular value of
+    :math:`B`. The value is estimated via power iteration, using
+    :func:`power_iteration`, to estimate
+    :math:`\lambda_{\mathrm{max}}(A^H A)`.
+
+    Args:
+        A: :class:`.LinearOperator` for which operator norm is desired.
+        maxiter: Maximum number of power iterations to use. Default: 100
+        key: Jax PRNG key. Defaults to None, in which case a new key is
+            created.
+
+    Returns:
+        float : Norm of operator :math:`A`.
+
+    """
+    return snp.sqrt(power_iteration(A.H @ A, maxiter, key)[0])
 
 
 def valid_adjoint(
