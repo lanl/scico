@@ -154,7 +154,7 @@ class SquaredL2Loss(Loss):
     @property
     def hessian(self) -> linop.LinearOperator:
         r"""If ``self.A`` is a :class:`.LinearOperator`, returns a new :class:`.LinearOperator` corresponding
-        to Hessian :math:`\mathrm{A^*A}`.
+        to Hessian :math:`\mathrm{A^H A}`.
 
         Otherwise not implemented.
         """
@@ -238,7 +238,7 @@ class WeightedSquaredL2Loss(Loss):
     @property
     def hessian(self) -> linop.LinearOperator:
         r"""If ``self.A`` is a :class:`scico.linop.LinearOperator`, returns a
-        :class:`scico.linop.LinearOperator` corresponding to Hessian :math:`\mathrm{A^* W A}`.
+        :class:`scico.linop.LinearOperator` corresponding to Hessian :math:`\mathrm{A^H W A}`.
 
         Otherwise not implemented.
         """
