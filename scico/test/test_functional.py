@@ -37,10 +37,7 @@ def prox_solve(v, v0, f, alpha):
     initial point for the optimization."""
     fnc = lambda x: prox_func(x, v, f, alpha)
     fmn = minimize(
-        fnc,
-        v0,
-        method="Nelder-Mead",
-        options={"maxiter": 1000, "xatol": 1e-9, "fatol": 1e-9},
+        fnc, v0, method="Nelder-Mead", options={"maxiter": 1000, "xatol": 1e-9, "fatol": 1e-9},
     )
 
     return fmn.x.reshape(v.shape), fmn.fun
@@ -433,6 +430,49 @@ class TestBM3D:
     def test_prox_rgb(self):
         no_jit = self.f_rgb.prox(self.x_rgb, 1.0)
         jitted = jax.jit(self.f_rgb.prox)(self.x_rgb, 1.0)
+        np.testing.assert_allclose(no_jit, jitted, rtol=1e-3)
+        assert no_jit.dtype == np.float32
+        assert jitted.dtype == np.float32
+
+    def test_prox_bad_inputs(self):
+
+        x, key = randn((32,), key=None, dtype=np.float32)
+        with pytest.raises(ValueError):
+            self.f.prox(x, 1.0)
+
+        x, key = randn((12, 12, 4, 3), key=None, dtype=np.float32)
+        with pytest.raises(ValueError):
+            self.f.prox(x, 1.0)
+
+        x_b, key = randn(((2, 3), (3, 4, 5)), key=None, dtype=np.float32)
+        with pytest.raises(ValueError):
+            self.f.prox(x, 1.0)
+
+        z, key = randn((32, 32), key=None, dtype=np.complex64)
+        with pytest.raises(TypeError):
+            self.f.prox(z, 1.0)
+
+
+class TestDnCNN:
+    def setup(self):
+        key = None
+        N = 32
+        self.x, key = randn((N, N), key=key, dtype=np.float32)
+        self.x_rgb, key = randn((N, N, 3), key=key, dtype=np.float32)
+
+        self.f = functional.DnCNN()
+
+    def test_prox(self):
+        no_jit = self.f.prox(self.x, 1.0)
+        jitted = jax.jit(self.f.prox)(self.x, 1.0)
+        np.testing.assert_allclose(no_jit, jitted, rtol=1e-3)
+        assert no_jit.dtype == np.float32
+        assert jitted.dtype == np.float32
+
+    @pytest.mark.skip(reason="rgb support currently broken")
+    def test_prox_rgb(self):
+        no_jit = self.f.prox(self.x_rgb, 1.0)
+        jitted = jax.jit(self.f.prox)(self.x_rgb, 1.0)
         np.testing.assert_allclose(no_jit, jitted, rtol=1e-3)
         assert no_jit.dtype == np.float32
         assert jitted.dtype == np.float32

@@ -54,7 +54,15 @@ class BM3D(Functional):
         super().__init__()
 
     def prox(self, x: JaxArray, lam: float = 1) -> JaxArray:
-        r"""Apply BM3D denoiser with noise level ``lam``"""
+        r"""Apply BM3D denoiser with noise level ``lam``.
+
+        Args:
+            x : input image.
+            lam : noise level.
+
+        Returns:
+            BM3D denoised output.
+        """
 
         # BM3D only works on (NxN) or (NxNxC) arrays
         # In future, may want to apply prox along an "axis"
@@ -130,3 +138,40 @@ class DnCNN(FlaxMap):
         model = DnCNNNet(depth=nlayer, channels=1, num_filters=64, dtype=np.float32)
         variables = load_weights(_flax_data_path("dncnn%s.npz" % variant))
         super().__init__(model, variables)
+
+    def prox(self, x: JaxArray, lam: float = 1) -> JaxArray:
+        r"""Apply DnCNN denoiser.
+
+        *Warning*: The ``lam`` parameter is ignored, and has no effect on
+        the output.
+
+        Args:
+            x : input.
+            lam : noise estimate (ignored).
+
+        Returns:
+            DnCNN denoised output.
+        """
+        if np.iscomplexobj(x):
+            raise TypeError(f"DnCNN requries real-valued inputs, got {x.dtype}")
+
+        if x.ndim < 2:
+            raise ValueError(
+                f"DnCNN requires two dimensional (M, N) or three dimensional (M, N, C)"
+                " inputs; got ndim = {x.ndim}"
+            )
+
+        x_in_shape = x.shape
+        if x.ndim > 3:
+            if all(k == 1 for k in x.shape[3:]):
+                x = x.squeeze()
+            else:
+                raise ValueError(
+                    "Arrays with more than three axes are only supported when "
+                    " the additional axes are singletons"
+                )
+
+        y = super().prox(x, lam)
+        y = y.reshape(x_in_shape)
+
+        return y

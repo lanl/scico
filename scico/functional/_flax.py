@@ -33,7 +33,7 @@ class FlaxMap(Functional):
 
         Args:
             model : Flax model to apply.
-            variables : parameters and batch stats of trained model.
+            variables : Parameters and batch stats of trained model.
         """
         self.model = model
         self.variables = variables
@@ -42,9 +42,15 @@ class FlaxMap(Functional):
     def prox(self, x: JaxArray, lam: float = 1) -> JaxArray:
         r"""Apply trained flax model.
 
+        *Warning*: The ``lam`` parameter is ignored, and has no effect on
+        the output.
+
         Args:
             x : input.
-            lam : noise estimate (not used).
+            lam : noise estimate (ignored).
+
+        Returns:
+            Output of flax model.
         """
         if isinstance(x, BlockArray):
             raise NotImplementedError
