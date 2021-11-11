@@ -37,7 +37,10 @@ def prox_solve(v, v0, f, alpha):
     initial point for the optimization."""
     fnc = lambda x: prox_func(x, v, f, alpha)
     fmn = minimize(
-        fnc, v0, method="Nelder-Mead", options={"maxiter": 1000, "xatol": 1e-9, "fatol": 1e-9},
+        fnc,
+        v0,
+        method="Nelder-Mead",
+        options={"maxiter": 1000, "xatol": 1e-9, "fatol": 1e-9},
     )
 
     return fmn.x.reshape(v.shape), fmn.fun
