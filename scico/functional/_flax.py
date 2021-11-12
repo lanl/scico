@@ -9,7 +9,6 @@
 
 from typing import Any, Callable
 
-import scico.numpy as snp
 from flax import linen as nn
 from scico.blockarray import BlockArray
 from scico.typing import JaxArray
@@ -33,7 +32,7 @@ class FlaxMap(Functional):
 
         Args:
             model : Flax model to apply.
-            variables : parameters and batch stats of trained model.
+            variables : Parameters and batch stats of trained model.
         """
         self.model = model
         self.variables = variables
@@ -42,21 +41,28 @@ class FlaxMap(Functional):
     def prox(self, x: JaxArray, lam: float = 1.0, **kwargs) -> JaxArray:
         r"""Apply trained flax model.
 
+        *Warning*: The ``lam`` parameter is ignored, and has no effect on
+        the output.
+
         Args:
             x : input.
-            lam : noise estimate (not used).
+            lam : noise estimate (ignored).
+
+        Returns:
+            Output of flax model.
         """
         if isinstance(x, BlockArray):
             raise NotImplementedError
         else:
-            # add input singleton
-            # scico works on (NxN) or (NxNxC) arrays
-            # flax works on (KxNxNxC) arrays
-            # (generally KxHxWxC arrays)
-            # K: input dim
+            # Add singleton to input as necessary:
+            #   scico typically works with (HxW) or (HxWxC) arrays
+            #   flax expects (KxHxWxC) arrays
+            #   H: spatial height  W: spatial width
+            #   K: batch size  C: channel size
+            x_shape = x.shape
             if x.ndim == 2:
                 x = x.reshape((1,) + x.shape + (1,))
             elif x.ndim == 3:
                 x = x.reshape((1,) + x.shape)
             y = self.model.apply(self.variables, x, train=False, mutable=False)
-            return snp.squeeze(y)
+            return y.reshape(x_shape)
