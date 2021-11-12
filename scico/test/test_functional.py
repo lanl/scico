@@ -454,3 +454,45 @@ class TestBM3D:
         z, key = randn((32, 32), key=None, dtype=np.complex64)
         with pytest.raises(TypeError):
             self.f.prox(z, 1.0)
+
+
+class TestDnCNN:
+    def setup(self):
+        key = None
+        N = 32
+        self.x, key = randn((N, N), key=key, dtype=np.float32)
+        self.x_mltchn, key = randn((N, N, 5), key=key, dtype=np.float32)
+
+        self.f = functional.DnCNN()
+
+    def test_prox(self):
+        no_jit = self.f.prox(self.x, 1.0)
+        jitted = jax.jit(self.f.prox)(self.x, 1.0)
+        np.testing.assert_allclose(no_jit, jitted, rtol=1e-3)
+        assert no_jit.dtype == np.float32
+        assert jitted.dtype == np.float32
+
+    def test_prox_mltchn(self):
+        no_jit = self.f.prox(self.x_mltchn, 1.0)
+        jitted = jax.jit(self.f.prox)(self.x_mltchn, 1.0)
+        np.testing.assert_allclose(no_jit, jitted, rtol=1e-3)
+        assert no_jit.dtype == np.float32
+        assert jitted.dtype == np.float32
+
+    def test_prox_bad_inputs(self):
+
+        x, key = randn((32,), key=None, dtype=np.float32)
+        with pytest.raises(ValueError):
+            self.f.prox(x, 1.0)
+
+        x, key = randn((12, 12, 4, 3), key=None, dtype=np.float32)
+        with pytest.raises(ValueError):
+            self.f.prox(x, 1.0)
+
+        x_b, key = randn(((2, 3), (3, 4, 5)), key=None, dtype=np.float32)
+        with pytest.raises(ValueError):
+            self.f.prox(x, 1.0)
+
+        z, key = randn((32, 32), key=None, dtype=np.complex64)
+        with pytest.raises(TypeError):
+            self.f.prox(z, 1.0)
