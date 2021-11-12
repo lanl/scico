@@ -54,11 +54,11 @@ class FlaxMap(Functional):
         if isinstance(x, BlockArray):
             raise NotImplementedError
         else:
-            # add input singleton
-            # scico works on (NxN) or (NxNxC) arrays
-            # flax works on (KxNxNxC) arrays
-            # (generally KxHxWxC arrays)
-            # K: input dim
+            # Add singleton to input as necessary:
+            #   scico typically works with (HxW) or (HxWxC) arrays
+            #   flax expects (KxHxWxC) arrays
+            #   H: spatial height  W: spatial width
+            #   K: batch size  C: channel size
             x_shape = x.shape
             if x.ndim == 2:
                 x = x.reshape((1,) + x.shape + (1,))
