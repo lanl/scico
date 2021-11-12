@@ -24,12 +24,13 @@ except ImportError:
         "for instructions on how to install the SVMBIR."
     )
 
+from typing import Optional
+
 import scico.numpy as snp
 from scico.loss import WeightedSquaredL2Loss
 from scico.typing import JaxArray, Shape
 
 from ._linop import LinearOperator
-from typing import Optional
 
 
 class ParallelBeamProjector(LinearOperator):
@@ -87,8 +88,12 @@ class ParallelBeamProjector(LinearOperator):
         )
 
     @staticmethod
-    def _proj(x: JaxArray, angles: JaxArray, num_channels: int, roi_radius: Optional[float] = None) -> JaxArray:
-        return svmbir.project(np.array(x), np.array(angles), num_channels, verbose=0, roi_radius=roi_radius)
+    def _proj(
+        x: JaxArray, angles: JaxArray, num_channels: int, roi_radius: Optional[float] = None
+    ) -> JaxArray:
+        return svmbir.project(
+            np.array(x), np.array(angles), num_channels, verbose=0, roi_radius=roi_radius
+        )
 
     def _proj_hcb(self, x):
         x = x.reshape(self.svmbir_input_shape)
@@ -101,15 +106,28 @@ class ParallelBeamProjector(LinearOperator):
         return y.reshape(self.output_shape)
 
     @staticmethod
-    def _bproj(y: JaxArray, angles: JaxArray, num_rows: int, num_cols: int, roi_radius: Optional[float] = None):
-        return svmbir.backproject(np.array(y), np.array(angles), num_rows, num_cols, verbose=0, roi_radius=roi_radius)
+    def _bproj(
+        y: JaxArray,
+        angles: JaxArray,
+        num_rows: int,
+        num_cols: int,
+        roi_radius: Optional[float] = None,
+    ):
+        return svmbir.backproject(
+            np.array(y), np.array(angles), num_rows, num_cols, verbose=0, roi_radius=roi_radius
+        )
 
     def _bproj_hcb(self, y):
         y = y.reshape(self.svmbir_output_shape)
         # host callback wrapper for _bproj
         x = jax.experimental.host_callback.call(
             lambda y: self._bproj(
-                y, self.angles, self.svmbir_input_shape[1], self.svmbir_input_shape[2], self.roi_radius),
+                y,
+                self.angles,
+                self.svmbir_input_shape[1],
+                self.svmbir_input_shape[2],
+                self.roi_radius,
+            ),
             y,
             result_shape=jax.ShapeDtypeStruct(self.svmbir_input_shape, self.input_dtype),
         )
@@ -131,13 +149,14 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
         self.max_iterations = max_iterations
         self.stop_threshold = stop_threshold
 
-
     def prox(self, v: JaxArray, lam: float, **kwargs) -> JaxArray:
         v = v.reshape(self.A.svmbir_input_shape)
         y = self.y.reshape(self.A.svmbir_output_shape)
         weights = self.W.diagonal.reshape(self.A.svmbir_output_shape)
         sigma_p = snp.sqrt(lam)
-        v0 = np.reshape(np.array(kwargs['v0']), self.A.svmbir_input_shape) if 'v0' in kwargs else 0.0
+        v0 = (
+            np.reshape(np.array(kwargs["v0"]), self.A.svmbir_input_shape) if "v0" in kwargs else 0.0
+        )
 
         # change: stop, mask-rad, init
         result = svmbir.recon(
@@ -153,10 +172,11 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
             positivity=False,
             verbose=0,
             init_image=v0,
-            max_iterations=self.max_iterations, stop_threshold=self.stop_threshold
+            max_iterations=self.max_iterations,
+            stop_threshold=self.stop_threshold,
         )
         if np.sum(np.isnan(result)):
-            raise ValueError('result contains NANs')
+            raise ValueError("result contains NANs")
 
         return result.reshape(self.A.input_shape)
 
