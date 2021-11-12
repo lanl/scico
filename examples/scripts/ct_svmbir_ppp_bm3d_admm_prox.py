@@ -93,7 +93,7 @@ y, x0, weights = jax.device_put([y, x_mrf, weights])
 
 weight_op = Diagonal(weights ** 0.5)
 
-f = SVMBIRWeightedSquaredL2Loss(y=y, A=A, weight_op=weight_op, scale=0.5)
+f = SVMBIRWeightedSquaredL2Loss(y=y, A=A, weight_op=weight_op, scale=0.5, max_iterations=5)
 g0 = σ * ρ * BM3D()
 g1 = NonNegativeIndicator()
 
