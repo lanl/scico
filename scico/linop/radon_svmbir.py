@@ -31,7 +31,6 @@ from scico.loss import WeightedSquaredL2Loss
 from scico.typing import JaxArray, Shape
 
 from ._linop import LinearOperator
-from typing import Optional
 
 
 class ParallelBeamProjector(LinearOperator):
