@@ -28,65 +28,71 @@ Contributing
 Contributions to SCICO are welcome. Before starting work, please contact the maintainers, either via email or the GitHub issue system, to discuss the relevance of your contribution and the most appropriate location within the existing package structure.
 
 
-
 .. _installing_dev:
 
 Installing a Development Version
 --------------------------------
 
+1. Fork both the ``scico`` and ``scico-data`` repositories, creating copies of these repositories in your own git account.
 
-.. todo::
+2. Make sure that you have python >= 3.8 installed in order to create a conda virtual environment.
 
-   At time of public release, this should be updated to a forking tutorial (see
-   `the jax example <https://jax.readthedocs.io/en/latest/contributing.html#contributing-code-using-pull-requests>`_)
+3. Clone your fork from the source repo.
 
+   ::
 
-1. Create a conda environment using Python >= 3.8:
-
-::
-
-   conda create -n scico python=3.8
+      git clone --recurse-submodules git@github.com:<username>/scico.git
 
 
-2. Activate the conda virtual environment:
+4. Create a conda environment using python >= 3.8:
 
-::
+   ::
 
-   conda activate scico
-
-3. Clone the SCICO repository:
-
-::
-
-   git clone https://github.com/lanl/scico.git --recurse-submodules
+      conda create -n scico python=3.8
 
 
-4. Navigate to the cloned repository:
+5. Activate the created conda virtual environment:
 
-::
+   ::
 
-    cd scico
+      conda activate scico
 
-5. Install dependencies:
 
-::
+6. Navigate to the root of the cloned repository:
 
-  pip install -r requirements.txt  # Installs basic requirements
-  pip install -r docs/docs_requirements.txt # Installs documentation requirements
-  pip install -r examples/examples_requirements.txt # Installs example requirements
-  pip install -e .  # Installs SCICO from the current directory in editable mode.
+   ::
 
-6. Set up ``black`` and ``isort`` pre-commit hooks:
+      cd scico
 
-::
 
-  pre-commit install  # Sets up git pre-commit hooks
+7. Add the SCICO repo as an upstream remote to sync your changes:
 
-7. If desired, tests can be run on the installed version:
+   ::
 
-::
+      git remote add upstream https://www.github.com/lanl/scico
 
-   pytest --pyargs scico
+
+8. After adding the upstream, the recommended way to install SCICO and its dependencies is via pip:
+
+   ::
+
+      pip install -r requirements.txt  # Installs basic requirements
+      pip install -r docs/docs_requirements.txt # Installs documentation requirements
+      pip install -r examples/examples_requirements.txt # Installs example requirements
+      pip install -e .  # Installs SCICO from the current directory in editable mode
+
+
+9. The SCICO project uses the `Black <https://black.readthedocs.io/en/stable/>`_
+   and `isort <https://pypi.org/project/isort/>`_ code formatting utilities.
+   You should set up a `pre-commit hook <https://pre-commit.com>`_ to ensure
+   any modified code passes format check before it is committed to the development repo:
+
+   ::
+
+      pre-commit install  # Sets up git pre-commit hooks
+
+
+10. For testing see `Tests`_.
 
 
 Contributing Code
@@ -99,64 +105,147 @@ Contributing Code
 
 A feature development workflow might look like this:
 
+
 1. Follow the instructions in `Installing a Development Version`_.
+
 
 2. Sync with the upstream repository:
 
-::
+   ::
 
-   git pull --rebase origin main --recurse-submodules
+      git pull --rebase origin main --recurse-submodules
+
 
 3. Create a branch to develop from:
 
-::
+   ::
 
-   git checkout -b name-of-change
+      git checkout -b <username>/<brief-description>
+
 
 4. Make your desired changes.
 
+
 5. Run the test suite:
 
-::
+   ::
 
-   pytest
+      pytest
 
-You can limit the test suite to a specific file:
+   You can limit the test suite to a specific file for example:
 
-::
+   ::
 
-   pytest scico/test/test_blockarray.py
+      pytest scico/test/test_blockarray.py
+
 
 6. When you are finished making changes, create a new commit:
 
-::
+   ::
 
-   git add file1.py git add file2.py
-   git commit -m "A good commit message"
+      git add file1.py git add file2.py
+      git commit -m "A good commit message"
 
-
-NOTE:  If you have added or modified an example script, see `Adding Usage Examples`_
+   NOTE:  If you have added or modified an example script, see `Usage Examples`_
 
 7. Sync with the upstream repository:
 
-::
+   ::
 
-   git pull --rebase origin main --recurse-submodules
+      git fetch upstream
+      git rebase upstream/main
 
 
 8. Push your development upstream:
 
-::
+   ::
 
-   git push --set-upstream origin name-of-change
+      git push --set-upstream origin <username>/<brief-description>
+
 
 9.  Create a new pull request to the ``main`` branch; see `the GitHub instructions <https://docs.github.com/en/github/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request>`_.
+
 
 10. Delete the branch after it has been merged.
 
 
-Adding Usage Examples
----------------------
+Tests
+-----
+
+All functions and classes should have corresponding ``pytest`` unit tests.
+
+
+Running Tests
+^^^^^^^^^^^^^
+
+
+To be able to run the tests, install ``pytest`` and, optionally,
+``pytest-runner``:
+
+::
+
+    conda install pytest pytest-runner
+
+The tests can be run by
+
+::
+
+    pytest
+
+or (if ``pytest-runner`` is installed)
+
+::
+
+    python setup.py test
+
+from the SCICO repository root directory. Tests can be run in an installed
+version of SCICO by
+
+::
+
+   pytest --pyargs scico
+
+
+Test Coverage
+^^^^^^^^^^^^^
+
+Test coverage is a measure of the fraction of the package code that is exercised by the tests. While this should not be the primary criterion in designing tests, it is a useful tool for finding obvious areas of omission.
+
+To be able to check test coverage, install ``coverage``:
+
+::
+
+    conda install coverage
+
+A coverage report can be obtained by
+
+::
+
+    coverage run
+    coverage report
+
+
+
+Type Checking
+-------------
+
+In the future, we will require all code to pass ``mypy`` type checking. This is not currently enforced.
+
+Install ``mypy``:
+
+::
+
+   conda install mypy
+
+To run the type checker on the ``scico`` module:
+
+::
+
+   mypy -p scico
+
+
+Usage Examples
+--------------
 
 New usage examples should adhere to the same general structure as the
 existing examples to ensure that the mechanism for automatically
@@ -165,30 +254,34 @@ particular:
 
 1. The initial lines of the script should consist of a comment block, followed by a blank line, followed by a multiline string with an RST heading on the first line, e.g.,
 
-::
+   ::
 
-  #!/usr/bin/env python
-  # -*- coding: utf-8 -*-
-  # This file is part of the SCICO package. Details of the copyright
-  # and user license can be found in the 'LICENSE.txt' file distributed
-  # with the package.
+     #!/usr/bin/env python
+     # -*- coding: utf-8 -*-
+     # This file is part of the SCICO package. Details of the copyright
+     # and user license can be found in the 'LICENSE.txt' file distributed
+     # with the package.
 
-  """
-  Script Title
-  ============
+     """
+     Script Title
+     ============
 
-  Script description.
-  """
+     Script description.
+     """
+
 
 2. The final line of the script is an ``input`` statement intended to avoid the script terminating immediately, thereby closing all figures:
 
-::
+   ::
 
-  input("\nWaiting for input to close figures and exit")
+     input("\nWaiting for input to close figures and exit")
+
 
 3. Citations are included using the standard `Sphinx <https://www.sphinx-doc.org/en/master/>`__ ``:cite:`cite-key``` syntax, where ``cite-key`` is the key of an entry in ``docs/source/references.bib``.
 
+
 4. Cross-references to other components of the documentation are included using the syntax described in the `nbsphinx documentation <https://nbsphinx.readthedocs.io/en/0.3.5/markdown-cells.html#Links-to-*.rst-Files-(and-Other-Sphinx-Source-Files)>`__.
+
 
 5. External links are included using Markdown syntax ``[link text](url)``.
 
@@ -212,38 +305,43 @@ and ``scico-data`` repositories must be updated and kept in sync.
 
 1. Add the ``new_example.py`` script to the ``scico/examples/scripts`` directory.
 
+
 2. Add the basename of the script (i.e., without the pathname; in this case,
 ``new_example.py``) to the appropriate section of
 ``examples/scripts/index.rst``.
 
+
 3. Convert your new example to a Jupyter notebook by changing directory to the ``scico/examples`` directory and following the instructions in ``scico/examples/README.rst``.
 
-4.  Change directory to the ``data`` directory and add/commit the new Jupyter Notebook:
 
-::
+4. Change directory to the ``data`` directory and add/commit the new Jupyter Notebook:
 
-   cd scico/data
-   git add notebooks/new_example.ipynb
-   git commit -m "Add new usage example"
+   ::
 
-5.  Return to the main SCICO repository, ensure the ``main`` branch is checked out, add/commit the new script and updated submodule:
+      cd scico/data
+      git add notebooks/new_example.ipynb
+      git commit -m "Add new usage example"
 
-::
 
-   cd ..  # pwd now `scico` repo root
-   git add data
-   git add examples/scripts/new_filename.py
-   git commit -m "Add usage example and update data module"
+5. Return to the main SCICO repository, ensure the ``main`` branch is checked out, add/commit the new script and updated submodule:
+
+   ::
+
+      cd ..  # pwd now `scico` repo root
+      git add data
+      git add examples/scripts/new_filename.py
+      git commit -m "Add usage example and update data module"
+
 
 6.  Push both repositories:
 
-::
+   ::
 
-  git submodule foreach --recursive 'git push' && git push
+      git submodule foreach --recursive 'git push' && git push
 
 
-Adding New Data
----------------
+Data
+----
 
 The following steps show how to add new data, ``new_data.npz``, to the packaged data. We assume the SCICO repository has been cloned to ``scico/``.
 
@@ -254,103 +352,36 @@ scico-data repositories must be updated and kept in sync.
 
 1. Add the ``new_data.npz`` file to the ``scico/data`` directory.
 
-2.  Navigate to the ``data`` directory and add/commit the new data file:
+2. Navigate to the ``data`` directory and add/commit the new data file:
 
-::
+   ::
 
-   cd scico/data
-   git add new_data.npz
-   git commit -m "Add new data file"
+      cd scico/data
+      git add new_data.npz
+      git commit -m "Add new data file"
 
 3.  Return to the base SCICO repository, ensure the ``main`` branch is checked out, add/commit the new data and update submodule:
 
-::
+   ::
 
-   cd ..  # pwd now `scico` repo root
-   git checkout main
-   git add data
-   git commit -m "Add data and update data module"
+      cd ..  # pwd now `scico` repo root
+      git checkout main
+      git add data
+      git commit -m "Add data and update data module"
 
 4.  Push both repositories:
 
-::
+   ::
 
-  git submodule foreach --recursive 'git push' && git push
-
-
-Tests
-=====
-
-All functions and classes should have corresponding `pytest` unit tests.
-
-
-Running Tests
--------------
-
-
-To be able to run the tests, install `pytest` and, optionally, `pytest-runner`:
-
-::
-
-    conda install pytest pytest-runner
-
-The tests can be run by
-
-::
-
-    pytest
-
-or
-
-::
-
-    python setup.py test
-
-
-Type Checking
--------------
-
-In the future, we will require all code to pass `mypy` type checking.  This is not currently enforced.
-
-Install ``mypy``:
-
-::
-
-   conda install mypy
-
-To run the type checker on the ``scico`` module:
-
-::
-
-   mypy -p scico
+      git submodule foreach --recursive 'git push' && git push
 
 
 
 Building Documentation
-======================
+----------------------
 
 To build a local copy of the docs, from the repo root directory, do
 
 ::
 
   python setup.py build_sphinx
-
-
-
-Test Coverage
--------------
-
-Test coverage is a measure of the fraction of the package code that is exercised by the tests. While this should not be the primary criterion in designing tests, it is a useful tool for finding obvious areas of omission.
-
-To be able to check test coverage, install `coverage`:
-
-::
-
-    conda install coverage
-
-A coverage report can be obtained by
-
-::
-
-    coverage run
-    coverage report

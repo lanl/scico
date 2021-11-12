@@ -448,6 +448,19 @@ def test_power_iteration(pitestobj):
     assert np.abs(mu - pitestobj.ev) < 1e-4
 
 
+def test_operator_norm():
+
+    I = linop.Identity(16)
+    Inorm = linop.operator_norm(I)
+    assert np.abs(Inorm - 1.0) < 1e-5
+    key = jax.random.PRNGKey(12345)
+    for dtype in [np.float32, np.complex64]:
+        d, key = randn((16,), dtype=dtype, key=key)
+        D = linop.Diagonal(d)
+        Dnorm = linop.operator_norm(D)
+        assert np.abs(Dnorm - snp.abs(d).max()) < 1e-5
+
+
 class SumTestObj:
     def __init__(self, dtype):
         self.x, key = randn((4, 5, 6, 7), dtype=dtype)
