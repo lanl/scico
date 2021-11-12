@@ -150,7 +150,7 @@ As a concrete example, consider the function :math:`f(x) = \frac{1}{2}\norm{\mb{
 \mb{x}}_2^2` where :math:`\mb{A}` is a complex matrix. The gradient of :math:`f` is
 usually given :math:`(\nabla f)(\mb{x}) = \mb{A}^H \mb{A} \mb{x}`, where :math:`\mb{A}^H` is the
 conjugate transpose of :math:`\mb{A}`. Applying ``jax.grad`` to :math:`f` will yield
-:math:`(\mb{A}^H \mb{A} \mb{x})^*`, where :math:`*` denotes complex conjugation.
+:math:`(\mb{A}^H \mb{A} \mb{x})^*`, where :math:`\cdot^*` denotes complex conjugation.
 
 The following code demonstrates the use of ``jax.grad`` and :func:`scico.grad`:
 
