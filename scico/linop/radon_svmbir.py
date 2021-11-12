@@ -28,7 +28,7 @@ import scico.numpy as snp
 from scico.loss import WeightedSquaredL2Loss
 from scico.typing import JaxArray, Shape
 
-from ._linop import Diagonal, LinearOperator
+from ._linop import LinearOperator
 from typing import Optional
 
 
@@ -126,15 +126,6 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
                 "to instantiate a `SVMBIRWeightedSquaredL2Loss`."
             )
 
-        if not isinstance(self.weight_op, Diagonal):
-            raise ValueError(
-                f"`weight_op` must be `Diagonal` but instead got {type(self.weight_op)}"
-            )
-
-        self.weights = (
-            snp.conj(self.weight_op.diagonal) * self.weight_op.diagonal
-        )  # because weight_op is W^{1/2}
-
         self.has_prox = True
 
         self.max_iterations = max_iterations
@@ -144,7 +135,7 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
     def prox(self, v: JaxArray, lam: float, **kwargs) -> JaxArray:
         v = v.reshape(self.A.svmbir_input_shape)
         y = self.y.reshape(self.A.svmbir_output_shape)
-        weights = self.weights.reshape(self.A.svmbir_output_shape)
+        weights = self.W.diagonal.reshape(self.A.svmbir_output_shape)
         sigma_p = snp.sqrt(lam)
         v0 = np.reshape(np.array(kwargs['v0']), self.A.svmbir_input_shape) if 'v0' in kwargs else 0.0
 

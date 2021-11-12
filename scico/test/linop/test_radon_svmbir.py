@@ -89,6 +89,6 @@ def test_prox_weights(Nx, Ny, num_angles, num_channels, is_3d):
 
     # test with weights
     weights, _ = scico.random.uniform(sino.shape, dtype=im.dtype)
-    D = scico.linop.Diagonal(weights)
-    f = SVMBIRWeightedSquaredL2Loss(y=sino, A=A, weight_op=D)
+    W = scico.linop.Diagonal(weights)
+    f = SVMBIRWeightedSquaredL2Loss(y=sino, A=A, W=W)
     prox_test(v, f, f.prox, alpha=0.25)
