@@ -6,6 +6,10 @@
     :target: https://github.com/lanl/scico/blob/main/LICENSE
     :alt: Package License
 
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :target: https://github.com/psf/black
+    :alt: Code style
+
 .. image:: https://readthedocs.org/projects/scico/badge/?version=latest
     :target: http://scico.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
