@@ -9,7 +9,6 @@
 
 from typing import Any, Callable
 
-import scico.numpy as snp
 from flax import linen as nn
 from scico.blockarray import BlockArray
 from scico.typing import JaxArray
@@ -60,9 +59,10 @@ class FlaxMap(Functional):
             # flax works on (KxNxNxC) arrays
             # (generally KxHxWxC arrays)
             # K: input dim
+            x_shape = x.shape
             if x.ndim == 2:
                 x = x.reshape((1,) + x.shape + (1,))
             elif x.ndim == 3:
                 x = x.reshape((1,) + x.shape)
             y = self.model.apply(self.variables, x, train=False, mutable=False)
-            return snp.squeeze(y)
+            return y.reshape(x_shape)
