@@ -154,9 +154,10 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
         y = self.y.reshape(self.A.svmbir_output_shape)
         weights = self.W.diagonal.reshape(self.A.svmbir_output_shape)
         sigma_p = snp.sqrt(lam)
-        v0 = (
-            np.reshape(np.array(kwargs["v0"]), self.A.svmbir_input_shape) if "v0" in kwargs else 0.0
-        )
+        if "v0" in kwargs and kwargs["v0"] is not None:
+            v0 = np.reshape(np.array(kwargs["v0"]), self.A.svmbir_input_shape)
+        else:
+            v0 = 0.0
 
         # change: stop, mask-rad, init
         result = svmbir.recon(
