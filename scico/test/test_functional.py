@@ -414,7 +414,7 @@ class TestLoss:
 
     def test_poisson(self):
         L = loss.PoissonLoss(y=self.y, A=self.Ao_abs)
-        assert L.is_smooth == True
+        assert L.is_smooth == None
         assert L.has_eval == True
         assert L.has_prox == False
 
