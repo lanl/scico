@@ -461,7 +461,7 @@ class TestDnCNN:
         key = None
         N = 32
         self.x, key = randn((N, N), key=key, dtype=np.float32)
-        self.x_rgb, key = randn((N, N, 3), key=key, dtype=np.float32)
+        self.x_mltchn, key = randn((N, N, 5), key=key, dtype=np.float32)
 
         self.f = functional.DnCNN()
 
@@ -472,10 +472,9 @@ class TestDnCNN:
         assert no_jit.dtype == np.float32
         assert jitted.dtype == np.float32
 
-    @pytest.mark.skip(reason="rgb support currently broken")
-    def test_prox_rgb(self):
-        no_jit = self.f.prox(self.x_rgb, 1.0)
-        jitted = jax.jit(self.f.prox)(self.x_rgb, 1.0)
+    def test_prox_mltchn(self):
+        no_jit = self.f.prox(self.x_mltchn, 1.0)
+        jitted = jax.jit(self.f.prox)(self.x_mltchn, 1.0)
         np.testing.assert_allclose(no_jit, jitted, rtol=1e-3)
         assert no_jit.dtype == np.float32
         assert jitted.dtype == np.float32
