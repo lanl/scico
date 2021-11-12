@@ -300,15 +300,9 @@ class PoissonLoss(Loss):
         #: Constant term in Poisson log likehood; equal to ln(y!)
         self.const: float = gammaln(self.y + 1)  # ln(y!)
 
-        # The "true" Poisson loss is not differentiable at zero, but the
-        # ε that we add to allow evaluation at zero has the side-effect
-        # of making it differentiable there.
-        if isinstance(A, operator.Operator):
-            self.is_smooth = A.is_smooth
-        else:
-            self.is_smooth = None
+        # The Poisson Loss is only smooth in the positive quadrant.
+        self.is_smooth = None
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
-        ε = 1e-9  # So that loss < infinity
         Ax = self.A(x)
-        return self.scale * snp.sum(Ax - self.y * snp.log(Ax + ε) + self.const)
+        return self.scale * snp.sum(Ax - self.y * snp.log(Ax) + self.const)
