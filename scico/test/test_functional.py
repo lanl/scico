@@ -338,8 +338,9 @@ class TestLoss:
         W, key = randn((n,), key=key, dtype=dtype)
         W = 0.1 * W + 1.0
         self.Ao = linop.MatrixOperator(A)
+        self.Ao_abs = linop.MatrixOperator(snp.abs(A))
         self.Do = linop.Diagonal(D)
-        self.Wo = linop.Diagonal(W)
+        self.W = linop.Diagonal(W)
         self.y, key = randn((n,), key=key, dtype=dtype)
         self.v, key = randn((n,), key=key, dtype=dtype)  # point for prox eval
         scalar, key = randn((1,), key=key, dtype=dtype)
@@ -377,14 +378,14 @@ class TestLoss:
         pf = prox_test(self.v, L_d, L_d.prox, 0.75)
 
     def test_weighted_squared_l2(self):
-        L = loss.WeightedSquaredL2Loss(y=self.y, A=self.Ao, weight_op=self.Wo)
+        L = loss.WeightedSquaredL2Loss(y=self.y, A=self.Ao, W=self.W)
         assert L.is_smooth == True
         assert L.has_eval == True
         assert L.has_prox == False  # not diagonal
 
         # test eval
         np.testing.assert_allclose(
-            L(self.v), 0.5 * ((self.Wo @ (self.Ao @ self.v - self.y)) ** 2).sum()
+            L(self.v), 0.5 * (self.W @ (self.Ao @ self.v - self.y) ** 2).sum()
         )
 
         cL = self.scalar * L
@@ -393,8 +394,7 @@ class TestLoss:
         assert cL(self.v) == self.scalar * L(self.v)
 
         # SquaredL2 with Diagonal linop has a prox
-        Wo = self.Wo
-        L_d = loss.WeightedSquaredL2Loss(y=self.y, A=self.Do, weight_op=Wo)
+        L_d = loss.WeightedSquaredL2Loss(y=self.y, A=self.Do, W=self.W)
 
         assert L_d.is_smooth == True
         assert L_d.has_eval == True
@@ -402,7 +402,7 @@ class TestLoss:
 
         # test eval
         np.testing.assert_allclose(
-            L_d(self.v), 0.5 * ((self.Wo @ (self.Do @ self.v - self.y)) ** 2).sum()
+            L_d(self.v), 0.5 * (self.W @ (self.Do @ self.v - self.y) ** 2).sum()
         )
 
         cL = self.scalar * L_d
@@ -411,6 +411,22 @@ class TestLoss:
         assert cL(self.v) == self.scalar * L_d(self.v)
 
         pf = prox_test(self.v, L_d, L_d.prox, 0.75)
+
+    def test_poisson(self):
+        L = loss.PoissonLoss(y=self.y, A=self.Ao_abs)
+        assert L.is_smooth == None
+        assert L.has_eval == True
+        assert L.has_prox == False
+
+        # test eval
+        v = snp.abs(self.v)
+        Av = self.Ao_abs @ v
+        np.testing.assert_allclose(L(v), 0.5 * snp.sum(Av - self.y * snp.log(Av) + L.const))
+
+        cL = self.scalar * L
+        assert L.scale == 0.5  # hasn't changed
+        assert cL.scale == self.scalar * L.scale
+        assert cL(v) == self.scalar * L(v)
 
 
 class TestBM3D:
