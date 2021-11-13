@@ -42,7 +42,7 @@ def make_A(im, num_angles, num_channels):
     return A
 
 
-def cg_prox(f, v, λ):  # Question: Should this be part of some other module?
+def cg_prox(f, v, λ):
     # prox:
     #   arg min  1/2 || x - v ||^2 + λ α || A x - y ||^2_W
     #      x
