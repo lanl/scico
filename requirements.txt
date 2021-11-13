@@ -7,4 +7,4 @@ jaxlib==0.1.70
 flax
 bm3d
 # svmbir
-git+https://github.com/cabouman/svmbir.git@nanfix
+git+https://github.com/cabouman/svmbir.git@master
