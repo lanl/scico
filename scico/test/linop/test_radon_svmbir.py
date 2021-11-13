@@ -51,11 +51,11 @@ def cg_prox(f, v, λ):
     #   (I + λ 2α A^T W A) x = v + λ 2α A^T W y
     W = f.W
     A = f.A
-    scale = f.scale
+    α = f.scale
     y = f.y
     hessian = f.hessian  # = (2α A^T W A)
     lhs = Identity(v.shape) + λ * hessian
-    rhs = v + 2 * λ * scale * A.adj(W(y))
+    rhs = v + 2 * λ * α * A.adj(W(y))
     x, _ = cg(lhs, rhs, x0=v)
     return x
 
