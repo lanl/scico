@@ -261,6 +261,6 @@ class ZeroFunctional(Functional):
         return 0.0
 
     def prox(
-        self, x: Union[JaxArray, BlockArray], lam: float = 1, **kwargs
+        self, x: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
         return x

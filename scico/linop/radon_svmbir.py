@@ -41,7 +41,7 @@ class ParallelBeamProjector(LinearOperator):
         input_shape: Shape,
         angles: np.ndarray,
         num_channels: int,
-        is_masked=False,
+        is_masked: Optional[bool] = False
     ):
         """
         Args:
@@ -49,6 +49,10 @@ class ParallelBeamProjector(LinearOperator):
             angles: Array of projection angles in radians, should be
               increasing.
             num_channels: Number of pixels in the sinogram
+            is_masked: If True, valid region of the 
+                image is set to a circular region prescribed in the 
+                image array. Otherwise, the whole image array is valid 
+                for projection and reconstruction.
         """
         self.angles = angles
         self.num_channels = num_channels
