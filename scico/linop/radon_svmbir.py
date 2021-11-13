@@ -29,7 +29,7 @@ try:
 except ImportError:
     raise ImportError(
         "Could not import svmbir, please refer to INSTALL.rst "
-        "for instructions on how to install the SVMBIR."
+        "for instructions on how to install it."
     )
 
 
