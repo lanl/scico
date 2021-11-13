@@ -28,7 +28,7 @@ import scico.numpy as snp
 from scico.loss import WeightedSquaredL2Loss
 from scico.typing import JaxArray, Shape
 
-from ._linop import Diagonal, LinearOperator
+from ._linop import LinearOperator
 
 
 class ParallelBeamProjector(LinearOperator):
@@ -120,21 +120,12 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
                 "to instantiate a `SVMBIRWeightedSquaredL2Loss`."
             )
 
-        if not isinstance(self.weight_op, Diagonal):
-            raise ValueError(
-                f"`weight_op` must be `Diagonal` but instead got {type(self.weight_op)}"
-            )
-
-        self.weights = (
-            snp.conj(self.weight_op.diagonal) * self.weight_op.diagonal
-        )  # because weight_op is W^{1/2}
-
         self.has_prox = True
 
     def prox(self, v: JaxArray, lam: float) -> JaxArray:
         v = v.reshape(self.A.svmbir_input_shape)
         y = self.y.reshape(self.A.svmbir_output_shape)
-        weights = self.weights.reshape(self.A.svmbir_output_shape)
+        weights = self.W.diagonal.reshape(self.A.svmbir_output_shape)
         sigma_p = snp.sqrt(lam)
         result = svmbir.recon(
             np.array(y),

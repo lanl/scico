@@ -6,6 +6,10 @@
     :target: https://github.com/lanl/scico/blob/main/LICENSE
     :alt: Package License
 
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :target: https://github.com/psf/black
+    :alt: Code style
+
 .. image:: https://readthedocs.org/projects/scico/badge/?version=latest
     :target: http://scico.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
@@ -38,7 +42,7 @@ SCICO is a Python package for solving the inverse problems that arise in scienti
 Installation
 ============
 
-See the ``INSTALL.rst`` file or the `online documentation <https://scico.rtfd.io/en/latest/install.html>`_ for installation instructions.
+See the `online documentation <https://scico.rtfd.io/en/latest/install.html>`_ for installation instructions.
 
 
 Usage Examples

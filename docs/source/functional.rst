@@ -153,9 +153,9 @@ Losses
 In SCICO, a loss is a special type of functional
 
   .. math::
-     f(\mb{x}) = a l( \mb{y}, A(\mb{x}) )
+     f(\mb{x}) = \alpha l( \mb{y}, A(\mb{x}) )
 
-where :math:`a` is a scale parameter,
+where :math:`\alpha` is a scaling parameter,
 :math:`l` is a functional,
 :math:`\mb{y}` is a set of measurements,
 and :math:`A` is an operator.

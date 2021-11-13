@@ -124,13 +124,13 @@ class LinearSubproblemSolver(SubproblemSolver):
          \mb{x}^{(k+1)} = \argmin_{\mb{x}} \; \frac{1}{2} \norm{\mb{y} - A x}_W^2 +
          \sum_i \frac{\rho_i}{2} \norm{\mb{z}^{(k)}_i - \mb{u}^{(k)}_i - C_i \mb{x}}_2^2 \;,
 
-    where :math:`W` is the weighting :class:`.LinearOperator` from the
+    where :math:`W` is the weighting :class:`.Diagonal` from the
     :class:`.WeightedSquaredL2Loss` instance. This update step reduces to the
     solution of the linear system
 
     .. math::
-        \left(A^* W A + \sum_{i=1}^N \rho_i C_i^* C_i \right) \mb{x}^{(k+1)} = \;
-        A^* W \mb{y} + \sum_{i=1}^N \rho_i C_i^* ( \mb{z}^{(k)}_i - \mb{u}^{(k)}_i) \;.
+        \left(A^H W A + \sum_{i=1}^N \rho_i C_i^H C_i \right) \mb{x}^{(k+1)} = \;
+        A^H W \mb{y} + \sum_{i=1}^N \rho_i C_i^H ( \mb{z}^{(k)}_i - \mb{u}^{(k)}_i) \;.
 
     Attributes:
         admm (:class:`.ADMM`): ADMM solver object to which the solver is attached.
@@ -197,7 +197,7 @@ class LinearSubproblemSolver(SubproblemSolver):
 
         .. math::
 
-            A^* W \mb{y} + \sum_{i=1}^N \rho_i C_i^* ( \mb{z}^{(k)}_i - \mb{u}^{(k)}_i) \;.
+            A^H W \mb{y} + \sum_{i=1}^N \rho_i C_i^H ( \mb{z}^{(k)}_i - \mb{u}^{(k)}_i) \;.
 
         Returns:
             Computed solution.
@@ -208,7 +208,7 @@ class LinearSubproblemSolver(SubproblemSolver):
 
         if self.admm.f is not None:
             if isinstance(self.admm.f, WeightedSquaredL2Loss):
-                ATWy = self.admm.f.A.adj(self.admm.f.weight_op @ self.admm.f.y)
+                ATWy = self.admm.f.A.adj(self.admm.f.W.diagonal @ self.admm.f.y)
                 rhs += 2.0 * self.admm.f.scale * ATWy
             else:
                 ATy = self.admm.f.A.adj(self.admm.f.y)
