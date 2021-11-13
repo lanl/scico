@@ -119,9 +119,9 @@ class TestRealWeighted:
         self.𝛼 = 𝛼
         self.λ = λ
         # Solution of problem is given by linear system
-        #   (𝛼 A^T W A + λ B^T B) x = 𝛼 A^T W^(1/2) y
+        #   (𝛼 A^T W A + λ B^T B) x = 𝛼 A^T W y
         self.grdA = lambda x: (𝛼 * Amx.T @ (W * Amx) + λ * Bmx.T @ Bmx) @ x
-        self.grdb = 𝛼 * Amx.T @ (W[:, 0] ** (1.0 / 2.0) * y)
+        self.grdb = 𝛼 * Amx.T @ (W[:, 0] * y)
 
     def test_admm_quadratic(self):
         maxiter = 100
