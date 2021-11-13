@@ -34,7 +34,9 @@ except ImportError:
 
 
 class ParallelBeamProjector(LinearOperator):
-    r"""Parallel beam projector based on svmbir."""
+    r"""Parallel beam projector based on svmbir.
+    Performs tomographic projections of an image at specified angles.
+    """
 
     def __init__(
         self,
@@ -47,11 +49,11 @@ class ParallelBeamProjector(LinearOperator):
         Args:
             input_shape: Shape of the input array.
             angles: Array of projection angles in radians, should be
-              increasing.
+                increasing.
             num_channels: Number of pixels in the sinogram
-            is_masked: If True, valid region of the
-                image is set to the largest circle that is prescribed
-                within the image array.
+            is_masked:  If True, the valid region of the image is
+                determined by a mask defined as the circle inscribed
+                within the image boundary.
                 Otherwise, the whole image array is valid
                 for projection and reconstruction.
         """
