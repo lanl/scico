@@ -130,7 +130,7 @@ class LinearSubproblemSolver(SubproblemSolver):
 
     .. math::
         \left(A^H W A + \sum_{i=1}^N \rho_i C_i^H C_i \right) \mb{x}^{(k+1)} = \;
-        A^H W \mb{y} + \sum_{i=1}^N \rho_i C_i^H ( \mb{z}^{(k)}_i - \mb{u}^{(k)}_i) \;.
+        A^H W^{(1/2)} \mb{y} + \sum_{i=1}^N \rho_i C_i^H ( \mb{z}^{(k)}_i - \mb{u}^{(k)}_i) \;.
 
     Attributes:
         admm (:class:`.ADMM`): ADMM solver object to which the solver is attached.
@@ -197,7 +197,7 @@ class LinearSubproblemSolver(SubproblemSolver):
 
         .. math::
 
-            A^H W \mb{y} + \sum_{i=1}^N \rho_i C_i^H ( \mb{z}^{(k)}_i - \mb{u}^{(k)}_i) \;.
+            A^H W^{(1/2)} \mb{y} + \sum_{i=1}^N \rho_i C_i^H ( \mb{z}^{(k)}_i - \mb{u}^{(k)}_i) \;.
 
         Returns:
             Computed solution.
@@ -208,7 +208,7 @@ class LinearSubproblemSolver(SubproblemSolver):
 
         if self.admm.f is not None:
             if isinstance(self.admm.f, WeightedSquaredL2Loss):
-                ATWy = self.admm.f.A.adj(self.admm.f.W.diagonal @ self.admm.f.y)
+                ATWy = self.admm.f.A.adj(snp.sqrt(self.admm.f.W.diagonal) * self.admm.f.y)
                 rhs += 2.0 * self.admm.f.scale * ATWy
             else:
                 ATy = self.admm.f.A.adj(self.admm.f.y)
