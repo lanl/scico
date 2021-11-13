@@ -45,21 +45,27 @@ def cg_prox(f, v, λ):  # Question: Should this be part of some other module?
     return x
 
 
-num_angles = 32
+# Nx = 128
+# Ny = 129
+# num_angles = 200
+# num_channels = 201
+
+
 Nx = 64
-Ny = Nx
-num_channels = Nx
+Ny = 65
+num_angles = 100
+num_channels = 101
 
 
-im = make_im(Nx, Ny, is_3d=False) / Nx * 10
+im = make_im(Nx, Ny, is_3d=True) / Nx * 10
 A = make_A(im, num_angles, num_channels)
 y = A @ im
 
 
 W = snp.exp(-y) * 20
 # W = snp.ones_like(y)
-λ = 0.01  # needs to be choses small enough so that solution is not unstable
-
+λ = 0.01  # needs to be chosen small enough so that solution is not unstable
+λ = 1
 
 f = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W))
 v, _ = scico.random.normal(im.shape, dtype=im.dtype)
@@ -76,16 +82,17 @@ print(snp.linalg.norm(xprox_svmbir - xprox_cg) / snp.linalg.norm(xprox_svmbir))
 
 fig, ax = plt.subplots(2, 2, figsize=[8, 8])
 
-hand = ax[0, 0].imshow(im, vmin=-0.5, vmax=0.5)
+r = 0.2
+hand = ax[0, 0].imshow(im.squeeze(), vmin=-r, vmax=r)
 ax[0, 0].set_title("im")
 plt.colorbar(hand, ax=ax[0, 0])
-hand = ax[0, 1].imshow(v, vmin=-0.5, vmax=0.5)
+hand = ax[0, 1].imshow(v.squeeze(), vmin=-r, vmax=r)
 ax[0, 1].set_title("v")
 plt.colorbar(hand, ax=ax[0, 1])
-hand = ax[1, 0].imshow(xprox_svmbir, vmin=-0.5, vmax=0.5)
+hand = ax[1, 0].imshow(xprox_svmbir.squeeze(), vmin=-r, vmax=r)
 ax[1, 0].set_title("xprox_svmbir")
 plt.colorbar(hand, ax=ax[1, 0])
-hand = ax[1, 1].imshow(xprox_cg, vmin=-0.5, vmax=0.5)
+hand = ax[1, 1].imshow(xprox_cg.squeeze(), vmin=-r, vmax=r)
 ax[1, 1].set_title("xprox_cg")
 plt.colorbar(hand, ax=ax[1, 1])
 
