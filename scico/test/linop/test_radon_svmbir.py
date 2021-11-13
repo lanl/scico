@@ -166,6 +166,6 @@ def test_approx_prox(Nx, Ny, num_angles, num_channels, is_3d, is_weighted, is_ma
     xprox = snp.array(f.prox(v, lam=λ))
 
     f_approx = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W), max_iterations=2)
-    xprox_approx = snp.array(f.prox(v, lam=λ, v0=xprox))
+    xprox_approx = snp.array(f_approx.prox(v, lam=λ, v0=xprox))
 
     assert snp.linalg.norm(xprox - xprox_approx) / snp.linalg.norm(xprox) < 0.01
