@@ -11,10 +11,18 @@ Radon transform LinearOperator wrapping the
 `svmbir <https://github.com/cabouman/svmbir>`_ package.
 """
 
+from typing import Optional
+
 import numpy as np
 
 import jax
 import jax.experimental.host_callback
+
+import scico.numpy as snp
+from scico.loss import WeightedSquaredL2Loss
+from scico.typing import JaxArray, Shape
+
+from ._linop import LinearOperator
 
 try:
     import svmbir
@@ -23,14 +31,6 @@ except ImportError:
         "Could not import svmbir, please refer to INSTALL.rst "
         "for instructions on how to install the SVMBIR."
     )
-
-from typing import Optional
-
-import scico.numpy as snp
-from scico.loss import WeightedSquaredL2Loss
-from scico.typing import JaxArray, Shape
-
-from ._linop import LinearOperator
 
 
 class ParallelBeamProjector(LinearOperator):
@@ -41,7 +41,7 @@ class ParallelBeamProjector(LinearOperator):
         input_shape: Shape,
         angles: np.ndarray,
         num_channels: int,
-        is_masked: Optional[bool] = False
+        is_masked: Optional[bool] = False,
     ):
         """
         Args:
@@ -49,9 +49,9 @@ class ParallelBeamProjector(LinearOperator):
             angles: Array of projection angles in radians, should be
               increasing.
             num_channels: Number of pixels in the sinogram
-            is_masked: If True, valid region of the 
-                image is set to a circular region prescribed in the 
-                image array. Otherwise, the whole image array is valid 
+            is_masked: If True, valid region of the
+                image is set to a circular region prescribed in the
+                image array. Otherwise, the whole image array is valid
                 for projection and reconstruction.
         """
         self.angles = angles
