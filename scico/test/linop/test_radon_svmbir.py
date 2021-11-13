@@ -35,9 +35,9 @@ def make_im(Nx, Ny, is_3d=True):
     return im
 
 
-def make_A(im, num_angles, num_channels):
+def make_A(im, num_angles, num_channels, is_masked):
     angles = snp.linspace(0, snp.pi, num_angles, dtype=snp.float32)
-    A = ParallelBeamProjector(im.shape, angles, num_channels)
+    A = ParallelBeamProjector(im.shape, angles, num_channels, is_masked)
 
     return A
 
@@ -62,9 +62,10 @@ def cg_prox(f, v, λ):
 
 @pytest.mark.parametrize("Nx, Ny, num_angles, num_channels", (BIG_INPUT,))
 @pytest.mark.parametrize("is_3d", (True, False))
-def test_grad(Nx, Ny, num_angles, num_channels, is_3d):
+@pytest.mark.parametrize("is_masked", (True, False))
+def test_grad(Nx, Ny, num_angles, num_channels, is_3d, is_masked):
     im = make_im(Nx, Ny, is_3d)
-    A = make_A(im, num_angles, num_channels)
+    A = make_A(im, num_angles, num_channels, is_masked)
 
     def f(im):
         return snp.sum(A._eval(im) ** 2)
@@ -77,18 +78,20 @@ def test_grad(Nx, Ny, num_angles, num_channels, is_3d):
 
 @pytest.mark.parametrize("Nx, Ny, num_angles, num_channels", (BIG_INPUT,))
 @pytest.mark.parametrize("is_3d", (True, False))
-def test_adjoint(Nx, Ny, num_angles, num_channels, is_3d):
+@pytest.mark.parametrize("is_masked", (True, False))
+def test_adjoint(Nx, Ny, num_angles, num_channels, is_3d, is_masked):
     im = make_im(Nx, Ny, is_3d)
-    A = make_A(im, num_angles, num_channels)
+    A = make_A(im, num_angles, num_channels, is_masked)
 
     adjoint_test(A)
 
 
 @pytest.mark.parametrize("Nx, Ny, num_angles, num_channels", (SMALL_INPUT,))
 @pytest.mark.parametrize("is_3d", (True, False))
-def test_prox(Nx, Ny, num_angles, num_channels, is_3d):
+@pytest.mark.parametrize("is_masked", (True, False))
+def test_prox(Nx, Ny, num_angles, num_channels, is_3d, is_masked):
     im = make_im(Nx, Ny, is_3d)
-    A = make_A(im, num_angles, num_channels)
+    A = make_A(im, num_angles, num_channels, is_masked)
 
     sino = A @ im
 
@@ -99,9 +102,10 @@ def test_prox(Nx, Ny, num_angles, num_channels, is_3d):
 
 @pytest.mark.parametrize("Nx, Ny, num_angles, num_channels", (SMALL_INPUT,))
 @pytest.mark.parametrize("is_3d", (True, False))
-def test_prox_weights(Nx, Ny, num_angles, num_channels, is_3d):
+@pytest.mark.parametrize("is_masked", (True, False))
+def test_prox_weights(Nx, Ny, num_angles, num_channels, is_3d, is_masked):
     im = make_im(Nx, Ny, is_3d)
-    A = make_A(im, num_angles, num_channels)
+    A = make_A(im, num_angles, num_channels, is_masked)
 
     sino = A @ im
 
@@ -119,7 +123,7 @@ def test_prox_weights(Nx, Ny, num_angles, num_channels, is_3d):
 @pytest.mark.parametrize("is_weighted", (True, False))
 def test_prox_cg(Nx, Ny, num_angles, num_channels, is_3d, is_weighted):
     im = make_im(Nx, Ny, is_3d=is_3d) / Nx * 10
-    A = make_A(im, num_angles, num_channels)
+    A = make_A(im, num_angles, num_channels, is_masked=False)
     y = A @ im
 
     if is_weighted:
