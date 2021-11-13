@@ -137,4 +137,4 @@ def test_prox_cg(Nx, Ny, num_angles, num_channels, is_3d, is_weighted):
     xprox_svmbir = f.prox(v, λ)
     xprox_cg = cg_prox(f, v, λ)
 
-    print(snp.linalg.norm(xprox_svmbir - xprox_cg) / snp.linalg.norm(xprox_svmbir))
+    assert snp.linalg.norm(xprox_svmbir - xprox_cg) / snp.linalg.norm(xprox_svmbir) < 0.01
