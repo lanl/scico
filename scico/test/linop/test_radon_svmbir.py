@@ -142,3 +142,30 @@ def test_prox_cg(Nx, Ny, num_angles, num_channels, is_3d, is_weighted):
     xprox_cg = cg_prox(f, v, λ)
 
     assert snp.linalg.norm(xprox_svmbir - xprox_cg) / snp.linalg.norm(xprox_svmbir) < 0.01
+
+
+@pytest.mark.parametrize("Nx, Ny, num_angles, num_channels", (SMALL_INPUT,))
+@pytest.mark.parametrize("is_3d", (True, False))
+@pytest.mark.parametrize("is_weighted", (True, False))
+@pytest.mark.parametrize("is_masked", (True, False))
+def test_approx_prox(Nx, Ny, num_angles, num_channels, is_3d, is_weighted, is_masked):
+    im = make_im(Nx, Ny, is_3d)
+    A = make_A(im, num_angles, num_channels, is_masked)
+
+    y = A @ im
+
+    if is_weighted:
+        W = snp.exp(-y) * 20
+    else:
+        W = snp.ones_like(y)
+
+    λ = 0.01
+
+    v, _ = scico.random.normal(im.shape, dtype=im.dtype)
+    f = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W))
+    xprox = snp.array(f.prox(v, lam=λ))
+
+    f_approx = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W), max_iterations=2)
+    xprox_approx = snp.array(f.prox(v, lam=λ, v0=xprox))
+
+    assert snp.linalg.norm(xprox - xprox_approx) / snp.linalg.norm(xprox) < 0.01
