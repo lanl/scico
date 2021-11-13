@@ -50,8 +50,9 @@ class ParallelBeamProjector(LinearOperator):
               increasing.
             num_channels: Number of pixels in the sinogram
             is_masked: If True, valid region of the
-                image is set to a circular region prescribed in the
-                image array. Otherwise, the whole image array is valid
+                image is set to the largest circle that is prescribed
+                within the image array.
+                Otherwise, the whole image array is valid
                 for projection and reconstruction.
         """
         self.angles = angles
