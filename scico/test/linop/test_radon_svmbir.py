@@ -12,6 +12,8 @@ from scico.test.linop.test_linop import adjoint_test
 from scico.test.test_functional import prox_test
 
 try:
+    import svmbir
+
     from scico.linop.radon_svmbir import (
         ParallelBeamProjector,
         SVMBIRWeightedSquaredL2Loss,
@@ -120,19 +122,15 @@ def test_prox_weights(Nx, Ny, num_angles, num_channels, is_3d, is_masked):
 
 @pytest.mark.parametrize("Nx, Ny, num_angles, num_channels", (SMALL_INPUT,))
 @pytest.mark.parametrize("is_3d", (True, False))
-@pytest.mark.parametrize("is_weighted", (True, False))
-def test_prox_cg(Nx, Ny, num_angles, num_channels, is_3d, is_weighted):
+@pytest.mark.parametrize("weight_type", ("transmission", "unweighted"))
+def test_prox_cg(Nx, Ny, num_angles, num_channels, is_3d, weight_type):
     im = make_im(Nx, Ny, is_3d=is_3d) / Nx * 10
     A = make_A(im, num_angles, num_channels, is_masked=False)
     y = A @ im
 
-    if is_weighted:
-        W = snp.exp(-y) * 20
-    else:
-        W = snp.ones_like(y)
-
-    λ = 0.01  # needs to be chosen small
-    # enough so that solution is not unstable.
+    W = svmbir.calc_weights(y, weight_type=weight_type).astype("float32")
+    W = jax.device_put(W)
+    λ = 1
 
     f = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W))
     v, _ = scico.random.normal(im.shape, dtype=im.dtype)
@@ -146,20 +144,17 @@ def test_prox_cg(Nx, Ny, num_angles, num_channels, is_3d, is_weighted):
 
 @pytest.mark.parametrize("Nx, Ny, num_angles, num_channels", (SMALL_INPUT,))
 @pytest.mark.parametrize("is_3d", (True, False))
-@pytest.mark.parametrize("is_weighted", (True, False))
+@pytest.mark.parametrize("weight_type", ("transmission", "unweighted"))
 @pytest.mark.parametrize("is_masked", (True, False))
-def test_approx_prox(Nx, Ny, num_angles, num_channels, is_3d, is_weighted, is_masked):
+def test_approx_prox(Nx, Ny, num_angles, num_channels, is_3d, weight_type, is_masked):
     im = make_im(Nx, Ny, is_3d)
     A = make_A(im, num_angles, num_channels, is_masked)
 
     y = A @ im
 
-    if is_weighted:
-        W = snp.exp(-y) * 20
-    else:
-        W = snp.ones_like(y)
-
-    λ = 0.01
+    W = svmbir.calc_weights(y, weight_type=weight_type).astype("float32")
+    W = jax.device_put(W)
+    λ = 1
 
     v, _ = scico.random.normal(im.shape, dtype=im.dtype)
     f = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W))
