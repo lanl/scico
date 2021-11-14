@@ -37,8 +37,12 @@ def make_im(Nx, Ny, is_3d=True):
     return im
 
 
+def make_angles(num_angles):
+    return snp.linspace(0, snp.pi, num_angles, dtype=snp.float32)
+
+
 def make_A(im, num_angles, num_channels, is_masked):
-    angles = snp.linspace(0, snp.pi, num_angles, dtype=snp.float32)
+    angles = make_angles(num_angles)
     A = ParallelBeamProjector(im.shape, angles, num_channels, is_masked)
 
     return A
@@ -122,11 +126,18 @@ def test_prox_weights(Nx, Ny, num_angles, num_channels, is_3d, is_masked):
 
 @pytest.mark.parametrize("Nx, Ny, num_angles, num_channels", (SMALL_INPUT,))
 @pytest.mark.parametrize("is_3d", (True, False))
+@pytest.mark.parametrize("is_masked", (True, False))
 @pytest.mark.parametrize("weight_type", ("transmission", "unweighted"))
-def test_prox_cg(Nx, Ny, num_angles, num_channels, is_3d, weight_type):
+def test_prox_cg(Nx, Ny, num_angles, num_channels, is_3d, weight_type, is_masked):
     im = make_im(Nx, Ny, is_3d=is_3d) / Nx * 10
-    A = make_A(im, num_angles, num_channels, is_masked=False)
+    A = make_A(im, num_angles, num_channels, is_masked=True)
     y = A @ im
+
+    A_colsum = A.H @ snp.ones(y.shape)  # backproject ones to get sum over cols of A
+    if is_masked:
+        mask = np.asarray(A_colsum) > 0  # cols of A which are not all zeros
+    else:
+        mask = np.ones(im.shape) > 0
 
     W = svmbir.calc_weights(y, weight_type=weight_type).astype("float32")
     W = jax.device_put(W)
@@ -139,7 +150,10 @@ def test_prox_cg(Nx, Ny, num_angles, num_channels, is_3d, weight_type):
     xprox_svmbir = f.prox(v, λ)
     xprox_cg = cg_prox(f, v, λ)
 
-    assert snp.linalg.norm(xprox_svmbir - xprox_cg) / snp.linalg.norm(xprox_svmbir) < 0.01
+    assert (
+        snp.linalg.norm(xprox_svmbir[mask] - xprox_cg[mask]) / snp.linalg.norm(xprox_svmbir[mask])
+        < 0.01
+    )
 
 
 @pytest.mark.parametrize("Nx, Ny, num_angles, num_channels", (SMALL_INPUT,))
