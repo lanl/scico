@@ -35,7 +35,8 @@ except ImportError:
 
 class ParallelBeamProjector(LinearOperator):
     r"""Parallel beam projector based on svmbir.
-    Performs tomographic projections of an image at specified angles.
+
+    Perform tomographic projections of an image at specified angles.
     """
 
     def __init__(
