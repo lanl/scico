@@ -123,7 +123,7 @@ def test_prox_cg(Nx, Ny, num_angles, num_channels, is_3d, weight_type, is_masked
 
     W = svmbir.calc_weights(y, weight_type=weight_type).astype("float32")
     W = jax.device_put(W)
-    λ = 1
+    λ = 0.01
 
     f_sv = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W))
     f_wg = WeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W))
@@ -134,7 +134,7 @@ def test_prox_cg(Nx, Ny, num_angles, num_channels, is_3d, weight_type, is_masked
     xprox_sv = f_sv.prox(v, λ)
     xprox_cg = f_wg.prox(v, λ)  # this uses cg
 
-    assert snp.linalg.norm(xprox_sv[mask] - xprox_cg[mask]) / snp.linalg.norm(xprox_sv[mask]) < 0.01
+    assert snp.linalg.norm(xprox_sv[mask] - xprox_cg[mask]) / snp.linalg.norm(xprox_sv[mask]) < 5e-5
 
 
 @pytest.mark.parametrize("Nx, Ny, num_angles, num_channels", (SMALL_INPUT,))
@@ -149,7 +149,7 @@ def test_approx_prox(Nx, Ny, num_angles, num_channels, is_3d, weight_type, is_ma
 
     W = svmbir.calc_weights(y, weight_type=weight_type).astype("float32")
     W = jax.device_put(W)
-    λ = 1
+    λ = 0.01
 
     v, _ = scico.random.normal(im.shape, dtype=im.dtype)
     f = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W))
@@ -158,4 +158,4 @@ def test_approx_prox(Nx, Ny, num_angles, num_channels, is_3d, weight_type, is_ma
     f_approx = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W), maxiter=2)
     xprox_approx = snp.array(f_approx.prox(v, lam=λ, v0=xprox))
 
-    assert snp.linalg.norm(xprox - xprox_approx) / snp.linalg.norm(xprox) < 0.01
+    assert snp.linalg.norm(xprox - xprox_approx) / snp.linalg.norm(xprox) < 4e-6
