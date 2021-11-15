@@ -22,10 +22,7 @@ import jax.experimental.host_callback as hcb
 try:
     import astra
 except ImportError:
-    raise ImportError(
-        "Could not import astra, please refer to INSTALL.rst "
-        "for instructions on how to install the ASTRA toolbox."
-    )
+    raise ImportError("Could not import astra; please install the ASTRA toolbox.")
 
 
 from jaxlib.xla_extension import GpuDevice

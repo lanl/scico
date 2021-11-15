@@ -27,10 +27,7 @@ from ._linop import LinearOperator
 try:
     import svmbir
 except ImportError:
-    raise ImportError(
-        "Could not import svmbir, please refer to INSTALL.rst "
-        "for instructions on how to install it."
-    )
+    raise ImportError("Could not import svmbir; please install it.")
 
 
 class ParallelBeamProjector(LinearOperator):
