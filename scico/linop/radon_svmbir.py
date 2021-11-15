@@ -37,6 +37,8 @@ class ParallelBeamProjector(LinearOperator):
     r"""Parallel beam projector based on svmbir.
 
     Perform tomographic projections of an image at specified angles.
+    The optional mode is_masked defines a valid region for projection and updates.
+    Pixels outside the valid region is not projected or updated during the reconstruction.
     """
 
     def __init__(
