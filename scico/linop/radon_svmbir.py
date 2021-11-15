@@ -159,6 +159,8 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
 
         self.has_prox = True
 
+        if prox_kwargs is None:
+            prox_kwargs = dict
         self.prox_kwargs = prox_kwargs
 
         self.positivity = positivity

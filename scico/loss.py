@@ -146,6 +146,8 @@ class SquaredL2Loss(Loss):
         if isinstance(self.A, linop.Diagonal):
             self.has_prox = True
 
+        if prox_kwargs is None:
+            prox_kwargs = dict
         self.prox_kwargs = prox_kwargs
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
@@ -250,6 +252,8 @@ class WeightedSquaredL2Loss(Loss):
 
         super().__init__(y=y, A=A, scale=scale)
 
+        if prox_kwargs is None:
+            prox_kwargs = dict
         self.prox_kwargs = prox_kwargs
 
         if isinstance(A, operator.Operator):
