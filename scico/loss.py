@@ -17,6 +17,7 @@ import scico.numpy as snp
 from scico import functional, linop, operator
 from scico.blockarray import BlockArray
 from scico.scipy.special import gammaln
+from scico.solver import cg
 from scico.typing import JaxArray
 from scico.util import ensure_on_device
 
@@ -250,7 +251,28 @@ class WeightedSquaredL2Loss(Loss):
             ATWA = c * A.conj() * W * A
             return lhs / (ATWA + 1.0)
         else:
-            raise NotImplementedError
+            #      prox_{f}(x) =
+            #
+            #      arg min  1/2 || v - x ||^2 + λ α || A v - y ||^2_W
+            #         v
+            #
+            # solution at:
+            #
+            #      (I + λ 2α A^T W A) v = x + λ 2α A^T W y
+            #
+            W = self.W
+            A = self.A
+            α = self.scale
+            y = self.y
+            if "v0" in kwargs and kwargs["v0"] is not None:
+                v0 = kwargs["v0"]
+            else:
+                v0 = snp.zeros_like(x)
+            hessian = self.hessian  # = (2α A^T W A)
+            lhs = linop.Identity(x.shape) + lam * hessian
+            rhs = x + 2 * lam * α * A.adj(W(y))
+            x, _ = cg(lhs, rhs, x0=v0)
+            return x
 
     @property
     def hessian(self) -> linop.LinearOperator:

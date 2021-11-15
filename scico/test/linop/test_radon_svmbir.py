@@ -6,8 +6,8 @@ import pytest
 
 import scico
 import scico.numpy as snp
-from scico.linop import Diagonal, Identity
-from scico.solver import cg
+from scico.linop import Diagonal
+from scico.loss import WeightedSquaredL2Loss
 from scico.test.linop.test_linop import adjoint_test
 from scico.test.test_functional import prox_test
 
@@ -46,24 +46,6 @@ def make_A(im, num_angles, num_channels, is_masked):
     A = ParallelBeamProjector(im.shape, angles, num_channels, is_masked)
 
     return A
-
-
-def cg_prox(f, v, λ):
-    # prox:
-    #   arg min  1/2 || x - v ||^2 + λ α || A x - y ||^2_W
-    #      x
-    #
-    # solution at:
-    #   (I + λ 2α A^T W A) x = v + λ 2α A^T W y
-    W = f.W
-    A = f.A
-    α = f.scale
-    y = f.y
-    hessian = f.hessian  # = (2α A^T W A)
-    lhs = Identity(v.shape) + λ * hessian
-    rhs = v + 2 * λ * α * A.adj(W(y))
-    x, _ = cg(lhs, rhs, x0=v)
-    return x
 
 
 @pytest.mark.parametrize("Nx, Ny, num_angles, num_channels", (BIG_INPUT,))
@@ -143,17 +125,16 @@ def test_prox_cg(Nx, Ny, num_angles, num_channels, is_3d, weight_type, is_masked
     W = jax.device_put(W)
     λ = 1
 
-    f = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W))
+    f_sv = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W))
+    f_wg = WeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W))
+
     v, _ = scico.random.normal(im.shape, dtype=im.dtype)
     v *= im.max() * 0.5
 
-    xprox_svmbir = f.prox(v, λ)
-    xprox_cg = cg_prox(f, v, λ)
+    xprox_sv = f_sv.prox(v, λ)
+    xprox_cg = f_wg.prox(v, λ)  # this uses cg
 
-    assert (
-        snp.linalg.norm(xprox_svmbir[mask] - xprox_cg[mask]) / snp.linalg.norm(xprox_svmbir[mask])
-        < 0.01
-    )
+    assert snp.linalg.norm(xprox_sv[mask] - xprox_cg[mask]) / snp.linalg.norm(xprox_sv[mask]) < 0.01
 
 
 @pytest.mark.parametrize("Nx, Ny, num_angles, num_channels", (SMALL_INPUT,))

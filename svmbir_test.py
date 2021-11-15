@@ -4,6 +4,7 @@ import scico
 import scico.numpy as snp
 from scico.linop import Diagonal, Identity
 from scico.linop.radon_svmbir import ParallelBeamProjector, SVMBIRWeightedSquaredL2Loss
+from scico.loss import WeightedSquaredL2Loss
 from scico.solver import cg
 
 # from scico.test.linop.test_linop import adjoint_AAt_test, adjoint_AtA_test
@@ -62,19 +63,20 @@ A = make_A(im, num_angles, num_channels)
 y = A @ im
 
 
-W = snp.exp(-y) * 20
-# W = snp.ones_like(y)
+# W = snp.exp(-y) * 20
+W = snp.ones_like(y)
 λ = 0.01  # needs to be chosen small enough so that solution is not unstable
-λ = 1
+
 
 f = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W))
+f2 = WeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W))
 v, _ = scico.random.normal(im.shape, dtype=im.dtype)
 v *= im.max() * 0.5
 
-xprox_svmbir = f.prox(v, λ)
+xprox_svmbir = f.prox(v, λ, v0=v)
+xprox_cg = f2.prox(v, λ, v0=v)
 
-
-xprox_cg = cg_prox(f, v, λ)
+# xprox_cg = cg_prox(f, v, λ)
 
 
 print(snp.linalg.norm(xprox_svmbir - xprox_cg) / snp.linalg.norm(xprox_svmbir))
