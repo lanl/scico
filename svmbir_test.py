@@ -68,8 +68,15 @@ W = snp.ones_like(y)
 λ = 0.01  # needs to be chosen small enough so that solution is not unstable
 
 
-f = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W))
-f2 = WeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W))
+# f = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W))
+# f2 = WeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W))
+
+f = SVMBIRWeightedSquaredL2Loss(
+    y=y, A=A, W=Diagonal(W), prox_kwargs={"maxiter": 1000, "ctol": 0.001}
+)
+f2 = WeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W), prox_kwargs={"maxiter": 1000, "tol": 1e-12})
+
+
 v, _ = scico.random.normal(im.shape, dtype=im.dtype)
 v *= im.max() * 0.5
 

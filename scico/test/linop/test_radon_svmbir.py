@@ -155,7 +155,7 @@ def test_approx_prox(Nx, Ny, num_angles, num_channels, is_3d, weight_type, is_ma
     f = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W))
     xprox = snp.array(f.prox(v, lam=λ))
 
-    f_approx = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W), maxiter=2)
+    f_approx = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W), prox_kwargs={"maxiter": 2})
     xprox_approx = snp.array(f_approx.prox(v, lam=λ, v0=xprox))
 
     assert snp.linalg.norm(xprox - xprox_approx) / snp.linalg.norm(xprox) < 4e-6

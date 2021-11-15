@@ -199,6 +199,7 @@ class WeightedSquaredL2Loss(Loss):
         A: Optional[Union[Callable, operator.Operator]] = None,
         scale: float = 0.5,
         W: Optional[linop.Diagonal] = None,
+        prox_kwargs: dict = {"maxiter": 1000, "tol": 1e-12},
     ):
 
         r"""Initialize a :class:`WeightedSquaredL2Loss` object.
@@ -225,6 +226,8 @@ class WeightedSquaredL2Loss(Loss):
             raise TypeError(f"W must be None or a linop.Diagonal, got {type(W)}")
 
         super().__init__(y=y, A=A, scale=scale)
+
+        self.prox_kwargs = prox_kwargs
 
         if isinstance(A, operator.Operator):
             self.is_smooth = A.is_smooth
@@ -271,7 +274,7 @@ class WeightedSquaredL2Loss(Loss):
             hessian = self.hessian  # = (2α A^T W A)
             lhs = linop.Identity(x.shape) + lam * hessian
             rhs = x + 2 * lam * α * A.adj(W(y))
-            x, _ = cg(lhs, rhs, x0=v0)
+            x, _ = cg(lhs, rhs, v0, **self.prox_kwargs)
             return x
 
     @property

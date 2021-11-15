@@ -231,7 +231,7 @@ class LinearSubproblemSolver(SubproblemSolver):
         """
         x0 = ensure_on_device(x0)
         rhs = self.compute_rhs()
-        x, self.info = self.cg(self.lhs_op, rhs, x0=x0, **self.cg_kwargs)
+        x, self.info = self.cg(self.lhs_op, rhs, x0, **self.cg_kwargs)
         return x
 
 
