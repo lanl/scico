@@ -143,9 +143,7 @@ class ParallelBeamProjector(LinearOperator):
 
 
 class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
-    def __init__(
-        self, *args, max_iterations=1000, stop_threshold=0.001, positivity=False, **kwargs
-    ):
+    def __init__(self, *args, maxiter=1000, ctol=0.001, positivity=False, **kwargs):
         super().__init__(*args, **kwargs)
 
         if not isinstance(self.A, ParallelBeamProjector):
@@ -156,8 +154,8 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
 
         self.has_prox = True
 
-        self.max_iterations = max_iterations
-        self.stop_threshold = stop_threshold
+        self.maxiter = maxiter
+        self.ctol = ctol
         self.positivity = positivity
 
     def prox(self, v: JaxArray, lam: float, **kwargs) -> JaxArray:
@@ -184,8 +182,8 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
             positivity=self.positivity,
             verbose=0,
             init_image=v0,
-            max_iterations=self.max_iterations,
-            stop_threshold=self.stop_threshold,
+            max_iterations=self.maxiter,
+            stop_threshold=self.ctol,
         )
         if np.sum(np.isnan(result)):
             raise ValueError("result contains NANs")
