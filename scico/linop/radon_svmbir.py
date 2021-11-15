@@ -148,8 +148,8 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
 
         if not isinstance(self.A, ParallelBeamProjector):
             raise ValueError(
-                "`LinearOperator` A must be a `radon_svmbir.ParallelBeamProjector`"
-                "to instantiate a `SVMBIRWeightedSquaredL2Loss`."
+                "LinearOperator A must be a radon_svmbir.ParallelBeamProjector"
+                "to instantiate a SVMBIRWeightedSquaredL2Loss."
             )
 
         self.has_prox = True
@@ -186,9 +186,9 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
             stop_threshold=self.ctol,
         )
         if np.sum(np.isnan(result)):
-            raise ValueError("result contains NANs")
+            raise ValueError("Result contains NaNs")
 
-        return result.reshape(self.A.input_shape)
+        return jax.device_put(result.reshape(self.A.input_shape))
 
 
 def _unsqueeze(x: JaxArray, input_shape: Shape) -> JaxArray:
