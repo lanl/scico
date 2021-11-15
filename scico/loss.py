@@ -123,6 +123,7 @@ class SquaredL2Loss(Loss):
         y: Union[JaxArray, BlockArray],
         A: Optional[Union[Callable, operator.Operator]] = None,
         scale: float = 0.5,
+        prox_kwargs: dict = {"maxiter": 1000, "tol": 1e-12},
     ):
         r"""Initialize a :class:`SquaredL2Loss` object.
 
@@ -145,6 +146,8 @@ class SquaredL2Loss(Loss):
         if isinstance(self.A, linop.Diagonal):
             self.has_prox = True
 
+        self.prox_kwargs = prox_kwargs
+
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         r"""Evaluate this loss at point :math:`\mb{x}`.
 
@@ -162,7 +165,27 @@ class SquaredL2Loss(Loss):
             lhs = c * lam * A.adj(self.y) + x
             return lhs / (c * lam * snp.abs(A.diagonal) ** 2 + 1.0)
         else:
-            raise NotImplementedError
+            #      prox_{f}(x) =
+            #
+            #      arg min  1/2 || v - x ||^2 + λ α || A v - y ||^2
+            #         v
+            #
+            # solution at:
+            #
+            #      (I + λ 2α A^T A) v = x + λ 2α A^T y
+            #
+            A = self.A
+            α = self.scale
+            y = self.y
+            if "v0" in kwargs and kwargs["v0"] is not None:
+                v0 = kwargs["v0"]
+            else:
+                v0 = snp.zeros_like(x)
+            hessian = self.hessian  # = (2α A^T A)
+            lhs = linop.Identity(x.shape) + lam * hessian
+            rhs = x + 2 * lam * α * A.adj(y)
+            x, _ = cg(lhs, rhs, v0, **self.prox_kwargs)
+            return x
 
     @property
     def hessian(self) -> linop.LinearOperator:

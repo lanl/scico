@@ -4,7 +4,7 @@ import scico
 import scico.numpy as snp
 from scico.linop import Diagonal, Identity
 from scico.linop.radon_svmbir import ParallelBeamProjector, SVMBIRWeightedSquaredL2Loss
-from scico.loss import WeightedSquaredL2Loss
+from scico.loss import SquaredL2Loss, WeightedSquaredL2Loss
 from scico.solver import cg
 
 # from scico.test.linop.test_linop import adjoint_AAt_test, adjoint_AtA_test
@@ -103,6 +103,41 @@ ax[1, 0].set_title("xprox_svmbir")
 plt.colorbar(hand, ax=ax[1, 0])
 hand = ax[1, 1].imshow(xprox_cg.squeeze(), vmin=-r, vmax=r)
 ax[1, 1].set_title("xprox_cg")
+plt.colorbar(hand, ax=ax[1, 1])
+
+plt.show()
+
+
+f = WeightedSquaredL2Loss(y=y, A=A, W=None)
+f2 = SquaredL2Loss(y=y, A=A)
+
+
+v, _ = scico.random.normal(im.shape, dtype=im.dtype)
+v *= im.max() * 0.5
+
+xprox_wg = f.prox(v, λ, v0=v)
+xprox_uw = f2.prox(v, λ, v0=v)
+
+# xprox_uw = cg_prox(f, v, λ)
+
+
+print(snp.linalg.norm(xprox_wg - xprox_uw) / snp.linalg.norm(xprox_wg))
+
+
+fig, ax = plt.subplots(2, 2, figsize=[8, 8])
+
+r = 0.2
+hand = ax[0, 0].imshow(im.squeeze(), vmin=-r, vmax=r)
+ax[0, 0].set_title("im")
+plt.colorbar(hand, ax=ax[0, 0])
+hand = ax[0, 1].imshow(v.squeeze(), vmin=-r, vmax=r)
+ax[0, 1].set_title("v")
+plt.colorbar(hand, ax=ax[0, 1])
+hand = ax[1, 0].imshow(xprox_wg.squeeze(), vmin=-r, vmax=r)
+ax[1, 0].set_title("xprox_wg")
+plt.colorbar(hand, ax=ax[1, 0])
+hand = ax[1, 1].imshow(xprox_uw.squeeze(), vmin=-r, vmax=r)
+ax[1, 1].set_title("xprox_uw")
 plt.colorbar(hand, ax=ax[1, 1])
 
 plt.show()
