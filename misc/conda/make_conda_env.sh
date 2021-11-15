@@ -179,7 +179,7 @@ sort $ALLREQUIRE | uniq | $SED -E 's/(>|<|\|)/\\\1/g' \
     | $SED -E '/^-r.*|^jaxlib.*|^jax.*|^astra-toolbox.*/d' > $FLTREQUIRE
 # Remove requirements that cannot be installed via conda
 for nc in $NOCONDA; do
-    $SED -i "/^$nc\$/d" $FLTREQUIRE
+    $SED -i "/^$nc.*\$/d" $FLTREQUIRE
 done
 # Get list of requirements to be installed via conda
 CONDAREQ=$(cat $FLTREQUIRE | xargs)
