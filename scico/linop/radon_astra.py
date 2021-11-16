@@ -35,7 +35,11 @@ __author__ = """Luke Pfister <luke.pfister@gmail.com>"""
 
 
 class ParallelBeamProjector(LinearOperator):
-    r"""Parallel beam projector based on ASTRA."""
+    r"""Parallel beam Radon transform based on the ASTRA toolbox.
+
+    Perform tomographic projection of an image at specified angles,
+    using the `ASTRA toolbox <https://github.com/astra-toolbox/astra-toolbox>`_.
+    """
 
     def __init__(
         self,

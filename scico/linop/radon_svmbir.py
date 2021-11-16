@@ -31,11 +31,13 @@ except ImportError:
 
 
 class ParallelBeamProjector(LinearOperator):
-    r"""Parallel beam projector based on svmbir.
+    r"""Parallel beam Radon transform based on svmbir.
 
-    Perform tomographic projections of an image at specified angles.
-    The optional mode is_masked defines a valid region for projection and updates.
-    Pixels outside the valid region is not projected or updated during the reconstruction.
+    Perform tomographic projection of an image at specified angles,
+    using the `svmbir <https://github.com/cabouman/svmbir>`_ package. The
+    ``is_masked`` option defines a valid region for projection and updates.
+    Pixels outside the valid region are not projected or updated during
+    a reconstruction.
     """
 
     def __init__(
@@ -53,9 +55,8 @@ class ParallelBeamProjector(LinearOperator):
             num_channels: Number of pixels in the sinogram
             is_masked:  If True, the valid region of the image is
                 determined by a mask defined as the circle inscribed
-                within the image boundary.
-                Otherwise, the whole image array is valid
-                for projection and reconstruction.
+                within the image boundary. Otherwise, the whole image
+                array is valid for projection and reconstruction.
         """
         self.angles = angles
         self.num_channels = num_channels
@@ -152,10 +153,7 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
         super().__init__(*args, **kwargs)
 
         if not isinstance(self.A, ParallelBeamProjector):
-            raise ValueError(
-                "LinearOperator A must be a radon_svmbir.ParallelBeamProjector"
-                "to instantiate a SVMBIRWeightedSquaredL2Loss."
-            )
+            raise ValueError("LinearOperator A must be a radon_svmbir.ParallelBeamProjector.")
 
         self.has_prox = True
 
