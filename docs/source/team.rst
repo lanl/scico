@@ -39,4 +39,5 @@ Contributors
 ============
 
 - `Oleg Korobkin <https://github.com/korobkin>`_ (BlockArray improvements)
-- `Yanpeng Yuan <https://github.com/yanpeng7>`_ (Improvements to ASTRA interface)
+- `Yanpeng Yuan <https://github.com/yanpeng7>`_ (ASTRA interface improvements)
+- `Soumendu Majee <https://github.com/smajee>`_ (SVMBIR interface improvements)

@@ -6,4 +6,4 @@ jaxlib==0.1.70
 jax==0.2.19
 flax
 bm3d
-svmbir
+svmbir>=0.2.6

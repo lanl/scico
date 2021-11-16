@@ -208,7 +208,7 @@ class LinearSubproblemSolver(SubproblemSolver):
 
         if self.admm.f is not None:
             if isinstance(self.admm.f, WeightedSquaredL2Loss):
-                ATWy = self.admm.f.A.adj(self.admm.f.W.diagonal @ self.admm.f.y)
+                ATWy = self.admm.f.A.adj(self.admm.f.W.diagonal * self.admm.f.y)
                 rhs += 2.0 * self.admm.f.scale * ATWy
             else:
                 ATy = self.admm.f.A.adj(self.admm.f.y)
@@ -231,7 +231,7 @@ class LinearSubproblemSolver(SubproblemSolver):
         """
         x0 = ensure_on_device(x0)
         rhs = self.compute_rhs()
-        x, self.info = self.cg(self.lhs_op, rhs, x0=x0, **self.cg_kwargs)
+        x, self.info = self.cg(self.lhs_op, rhs, x0, **self.cg_kwargs)
         return x
 
 
@@ -604,7 +604,7 @@ class ADMM:
             zip(self.rho_list, self.g_list, self.C_list, z_list, u_list)
         ):
             Cix = Ci(self.x)
-            zi = gi.prox(Cix + ui, 1 / rhoi)
+            zi = gi.prox(Cix + ui, 1 / rhoi, v0=zi)
             ui = ui + Cix - zi
             z_list[i] = zi
             u_list[i] = ui

@@ -38,7 +38,7 @@ class FlaxMap(Functional):
         self.variables = variables
         super().__init__()
 
-    def prox(self, x: JaxArray, lam: float = 1) -> JaxArray:
+    def prox(self, x: JaxArray, lam: float = 1.0, **kwargs) -> JaxArray:
         r"""Apply trained flax model.
 
         *Warning*: The ``lam`` parameter is ignored, and has no effect on

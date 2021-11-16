@@ -36,7 +36,9 @@ class L0Norm(Functional):
 
     @staticmethod
     @jit
-    def prox(x: Union[JaxArray, BlockArray], lam: float = 1) -> Union[JaxArray, BlockArray]:
+    def prox(
+        x: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[JaxArray, BlockArray]:
         r"""Evaluate proximal operator of :math:`\ell_0` norm
 
 
@@ -71,7 +73,7 @@ class L1Norm(Functional):
         return snp.abs(x).sum()
 
     @staticmethod
-    def prox(x: Union[JaxArray, BlockArray], lam: float = 1) -> JaxArray:
+    def prox(x: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs) -> JaxArray:
         r"""Evaluate proximal operator of :math:`\ell_1` norm
 
         .. math::
@@ -115,7 +117,9 @@ class SquaredL2Norm(Functional):
         # behavior of snp.norm(x) at 0.
         return (snp.abs(x) ** 2).sum()
 
-    def prox(self, x: Union[JaxArray, BlockArray], lam: float = 1) -> Union[JaxArray, BlockArray]:
+    def prox(
+        self, x: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[JaxArray, BlockArray]:
         r"""Evaluate proximal operator of squared :math:`\ell_2` norm:
 
         .. math::
@@ -143,7 +147,9 @@ class L2Norm(Functional):
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         return norm(x)
 
-    def prox(self, x: Union[JaxArray, BlockArray], lam: float = 1) -> Union[JaxArray, BlockArray]:
+    def prox(
+        self, x: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[JaxArray, BlockArray]:
         r"""Evaluate proximal operator of :math:`\ell_2` norm:
 
         .. math::
@@ -199,7 +205,9 @@ class L21Norm(Functional):
         l2 = norm(x, axis=self.l2_axis)
         return snp.abs(l2).sum()
 
-    def prox(self, x: Union[JaxArray, BlockArray], lam: float = 1) -> Union[JaxArray, BlockArray]:
+    def prox(
+        self, x: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[JaxArray, BlockArray]:
         r"""Evaluate proximal operator of the :math:`\ell_{2,1}` norm.
 
         In two dimensions,
