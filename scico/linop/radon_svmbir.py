@@ -33,11 +33,14 @@ except ImportError:
 class ParallelBeamProjector(LinearOperator):
     r"""Parallel beam Radon transform based on svmbir.
 
-    Perform tomographic projection of an image at specified angles,
-    using the `svmbir <https://github.com/cabouman/svmbir>`_ package. The
-    ``is_masked`` option defines a valid region for projection and updates.
-    Pixels outside the valid region are not projected (using ``ParallelBeamProjector``) or updated during
-    a reconstruction (using ``ParallelBeamProjector`` with ``SVMBIRWeightedSquaredL2Loss``).
+    Perform tomographic projection of an image at specified angles, using
+    the `svmbir <https://github.com/cabouman/svmbir>`_ package. The
+    ``is_masked`` option selects whether a valid region for projections
+    (pixels outside this region are ignored when performing the
+    projection) is active. This region of validity is also respected by
+    :meth:`.SVMBIRWeightedSquaredL2Loss.prox` when
+    :class:`.SVMBIRWeightedSquaredL2Loss` is initialized with a
+    :class:`ParallelBeamProjector` with this option enabled.
     """
 
     def __init__(
@@ -56,8 +59,7 @@ class ParallelBeamProjector(LinearOperator):
             is_masked:  If True, the valid region of the image is
                 determined by a mask defined as the circle inscribed
                 within the image boundary. Otherwise, the whole image
-                array is valid for projection (using ``ParallelBeamProjector``)
-                and reconstruction (using ``ParallelBeamProjector`` with ``SVMBIRWeightedSquaredL2Loss``).
+                array is taken into account by projections.
         """
         self.angles = angles
         self.num_channels = num_channels
@@ -144,22 +146,24 @@ class ParallelBeamProjector(LinearOperator):
 
 
 class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
-    r"""
+    r"""Weighted squared :math:`\ell_2` loss with svmbir CT projector.
+
     Weighted squared :math:`\ell_2` loss of a CT reconstruction problem,
 
     .. math::
         \alpha \norm{\mb{y} - A(\mb{x})}_W^2 =
-        \alpha \left(\mb{y} - A(\mb{x})\right)^T W \left(\mb{y} - A(\mb{x})\right)\;
+        \alpha \left(\mb{y} - A(\mb{x})\right)^T W \left(\mb{y} -
+        A(\mb{x})\right) \;,
 
-    where :math:`A` is a :class:`.ParallelBeamProjector`, :math:`\alpha`
-    is the scaling parameter and :math:`W` is an instance of
-    :class:`scico.linop.Diagonal`.  If :math:`W` is None, it is set to
+    where :math:`A` is a :class:`.ParallelBeamProjector`,
+    :math:`\alpha` is the scaling parameter and :math:`W` is an instance
+    of :class:`scico.linop.Diagonal`. If :math:`W` is None, it is set to
     :class:`scico.linop.Identity`.
 
-    When `positivity=True`, the prox projects onto the non-negative
-    quadrant, however the the loss, :math:`\alpha l(\mb{y}, A(\mb{x}))`,
-    is unaffected by this and still evaluates to finite values when
-    :math:`\mb{x}` is not in the non-negative quadrant.
+    When ``positivity=True``, the prox projects onto the non-negative
+    quadrant, but the the loss, :math:`\alpha l(\mb{y}, A(\mb{x}))`,
+    is unaffected by this setting and still evaluates to finite values
+    when :math:`\mb{x}` is not in the non-negative quadrant.
 
     """
 
