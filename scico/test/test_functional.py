@@ -377,6 +377,8 @@ class TestLoss:
 
         pf = prox_test(self.v, L_d, L_d.prox, 0.75)
 
+        pf = prox_test(self.v, L, L.prox, 0.75)
+
     def test_weighted_squared_l2(self):
         L = loss.WeightedSquaredL2Loss(y=self.y, A=self.Ao, W=self.W)
         assert L.is_smooth == True
@@ -411,6 +413,8 @@ class TestLoss:
         assert cL(self.v) == self.scalar * L_d(self.v)
 
         pf = prox_test(self.v, L_d, L_d.prox, 0.75)
+
+        pf = prox_test(self.v, L, L.prox, 0.75)
 
     def test_poisson(self):
         L = loss.PoissonLoss(y=self.y, A=self.Ao_abs)
