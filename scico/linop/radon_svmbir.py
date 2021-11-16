@@ -143,13 +143,49 @@ class ParallelBeamProjector(LinearOperator):
 
 
 class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
+    r"""
+    Weighted squared :math:`\ell_2` loss of a CT reconstruction problem,
+
+    .. math::
+        \alpha \norm{\mb{y} - A(\mb{x})}_W^2 =
+        \alpha \left(\mb{y} - A(\mb{x})\right)^T W \left(\mb{y} - A(\mb{x})\right)\;
+
+    where :math:`A` is a :class:`.ParallelBeamProjector`, :math:`\alpha`
+    is the scaling parameter and :math:`W` is an instance of
+    :class:`scico.linop.Diagonal`.  If :math:`W` is None, it is set to
+    :class:`scico.linop.Identity`.
+
+    When `positivity=True`, the prox projects onto the non-negative
+    quadrant, however the the loss, :math:`\alpha l(\mb{y}, A(\mb{x}))`,
+    is unaffected by this and still evaluates to finite values when
+    :math:`\mb{x}` is not in the non-negative quadrant.
+
+    """
+
     def __init__(
         self,
         *args,
         prox_kwargs: dict = {"maxiter": 1000, "ctol": 0.001},
-        positivity=False,
+        positivity: bool = False,
         **kwargs,
     ):
+        r"""Initialize a :class:`SVMBIRWeightedSquaredL2Loss` object.
+
+        Args:
+            y : Sinogram measurement.
+            A : Forward operator.
+            scale : Scaling parameter.
+            W:  Weighting diagonal operator. Must be non-negative.
+                If None, defaults to :class:`.Identity`.
+            prox_kwargs: Dictionary of arguments passed to the
+                :meth:`svmbir.recon` prox routine. Note that omitting
+                this dictionary will cause the default dictionary to be
+                used, however omitting entries in the passed dictionary
+                causes the defaults of the underlying :meth:`svmbir.recon`
+                prox routine to be used.
+            positivity: Enforce positivity in the prox operation. The
+                loss is not affected.
+        """
         super().__init__(*args, **kwargs)
 
         if not isinstance(self.A, ParallelBeamProjector):
