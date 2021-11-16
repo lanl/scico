@@ -88,8 +88,8 @@ Set up an ADMM solver.
 """
 y, x0, weights = jax.device_put([y, x_mrf, weights])
 
-ρ = 20  # ADMM penalty parameter
-σ = density * 0.2  # denoiser sigma
+ρ = 16  # ADMM penalty parameter
+σ = density * 0.16  # denoiser sigma
 
 f = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(weights), scale=0.5)
 g0 = σ * ρ * BM3D()
