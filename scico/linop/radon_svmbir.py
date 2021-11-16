@@ -36,8 +36,8 @@ class ParallelBeamProjector(LinearOperator):
     Perform tomographic projection of an image at specified angles,
     using the `svmbir <https://github.com/cabouman/svmbir>`_ package. The
     ``is_masked`` option defines a valid region for projection and updates.
-    Pixels outside the valid region are not projected or updated during
-    a reconstruction.
+    Pixels outside the valid region are not projected (using ``ParallelBeamProjector``) or updated during
+    a reconstruction (using ``ParallelBeamProjector`` with ``SVMBIRWeightedSquaredL2Loss``).
     """
 
     def __init__(
@@ -56,7 +56,8 @@ class ParallelBeamProjector(LinearOperator):
             is_masked:  If True, the valid region of the image is
                 determined by a mask defined as the circle inscribed
                 within the image boundary. Otherwise, the whole image
-                array is valid for projection and reconstruction.
+                array is valid for projection (using ``ParallelBeamProjector``)
+                and reconstruction (using ``ParallelBeamProjector`` with ``SVMBIRWeightedSquaredL2Loss``).
         """
         self.angles = angles
         self.num_channels = num_channels
