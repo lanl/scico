@@ -13,7 +13,7 @@ skipif_reason = (
 )
 
 examples = os.path.join(os.path.dirname(data.__file__), "examples")
-pytestmark = pytest.mark.skipif(len(os.listdir(examples)) == 0, reason=skipif_reason)
+pytestmark = pytest.mark.skipif(not os.path.isdir(examples), reason=skipif_reason)
 
 
 class TestSet:
