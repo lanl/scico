@@ -12,9 +12,8 @@ skipif_reason = (
     "\nAnd after cloning run:\n\tgit submodule init && git submodule update.\n"
 )
 
-pytestmark = pytest.mark.skipif(
-    len(os.listdir(os.path.abspath("./data"))) == 0, reason=skipif_reason
-)
+examples = os.path.join(os.path.dirname(data.__file__), "examples")
+pytestmark = pytest.mark.skipif(len(os.listdir(examples)) == 0, reason=skipif_reason)
 
 
 class TestSet:
