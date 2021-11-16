@@ -92,7 +92,7 @@ y, x0, weights = jax.device_put([y, x_mrf, weights])
 σ = density * 0.26  # denoiser sigma
 
 f = SVMBIRWeightedSquaredL2Loss(
-    y=y, A=A, W=Diagonal(weights), scale=0.5, prox_kwargs={"maxiter": 5}
+    y=y, A=A, W=Diagonal(weights), scale=0.5, prox_kwargs={"maxiter": 5, "ctol": 0.0}
 )
 g0 = σ * ρ * BM3D()
 g1 = NonNegativeIndicator()
