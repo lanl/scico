@@ -160,8 +160,14 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
         self.has_prox = True
 
         if prox_kwargs is None:
-            prox_kwargs = dict
-        self.prox_kwargs = prox_kwargs
+            prox_kwargs = dict()
+
+        svmbir_prox_args = dict()
+        if "maxiter" in prox_kwargs:
+            svmbir_prox_args["max_iterations"] = prox_kwargs["maxiter"]
+        if "ctol" in prox_kwargs:
+            svmbir_prox_args["stop_threshold"] = prox_kwargs["ctol"]
+        self.svmbir_prox_args = svmbir_prox_args
 
         self.positivity = positivity
 
@@ -189,8 +195,7 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
             positivity=self.positivity,
             verbose=0,
             init_image=v0,
-            max_iterations=self.prox_kwargs.get("maxiter"),
-            stop_threshold=self.prox_kwargs.get("ctol"),
+            **self.svmbir_prox_args,
         )
         if np.sum(np.isnan(result)):
             raise ValueError("Result contains NaNs")
