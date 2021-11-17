@@ -17,6 +17,7 @@ import scico.numpy as snp
 from scico import functional, linop, operator
 from scico.blockarray import BlockArray
 from scico.scipy.special import gammaln
+from scico.solver import cg
 from scico.typing import JaxArray
 from scico.util import ensure_on_device
 
@@ -122,6 +123,7 @@ class SquaredL2Loss(Loss):
         y: Union[JaxArray, BlockArray],
         A: Optional[Union[Callable, operator.Operator]] = None,
         scale: float = 0.5,
+        prox_kwargs: dict = {"maxiter": 1000, "tol": 1e-12},
     ):
         r"""Initialize a :class:`SquaredL2Loss` object.
 
@@ -144,6 +146,10 @@ class SquaredL2Loss(Loss):
         if isinstance(self.A, linop.Diagonal):
             self.has_prox = True
 
+        if prox_kwargs is None:
+            prox_kwargs = dict
+        self.prox_kwargs = prox_kwargs
+
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         r"""Evaluate this loss at point :math:`\mb{x}`.
 
@@ -152,14 +158,36 @@ class SquaredL2Loss(Loss):
         """
         return self.scale * (snp.abs(self.y - self.A(x)) ** 2).sum()
 
-    def prox(self, x: Union[JaxArray, BlockArray], lam: float) -> Union[JaxArray, BlockArray]:
+    def prox(
+        self, x: Union[JaxArray, BlockArray], lam: float, **kwargs
+    ) -> Union[JaxArray, BlockArray]:
         if isinstance(self.A, linop.Diagonal):
             c = 2.0 * self.scale
             A = self.A
             lhs = c * lam * A.adj(self.y) + x
             return lhs / (c * lam * snp.abs(A.diagonal) ** 2 + 1.0)
         else:
-            raise NotImplementedError
+            #      prox_{f}(x) =
+            #
+            #      arg min  1/2 || v - x ||^2 + λ α || A v - y ||^2
+            #         v
+            #
+            # solution at:
+            #
+            #      (I + λ 2α A^T A) v = x + λ 2α A^T y
+            #
+            A = self.A
+            α = self.scale
+            y = self.y
+            if "v0" in kwargs and kwargs["v0"] is not None:
+                v0 = kwargs["v0"]
+            else:
+                v0 = snp.zeros_like(x)
+            hessian = self.hessian  # = (2α A^T A)
+            lhs = linop.Identity(x.shape) + lam * hessian
+            rhs = x + 2 * lam * α * A.adj(y)
+            x, _ = cg(lhs, rhs, v0, **self.prox_kwargs)
+            return x
 
     @property
     def hessian(self) -> linop.LinearOperator:
@@ -196,6 +224,7 @@ class WeightedSquaredL2Loss(Loss):
         A: Optional[Union[Callable, operator.Operator]] = None,
         scale: float = 0.5,
         W: Optional[linop.Diagonal] = None,
+        prox_kwargs: dict = {"maxiter": 1000, "tol": 1e-12},
     ):
 
         r"""Initialize a :class:`WeightedSquaredL2Loss` object.
@@ -223,6 +252,10 @@ class WeightedSquaredL2Loss(Loss):
 
         super().__init__(y=y, A=A, scale=scale)
 
+        if prox_kwargs is None:
+            prox_kwargs = dict
+        self.prox_kwargs = prox_kwargs
+
         if isinstance(A, operator.Operator):
             self.is_smooth = A.is_smooth
         else:
@@ -237,7 +270,9 @@ class WeightedSquaredL2Loss(Loss):
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         return self.scale * (self.W.diagonal * snp.abs(self.y - self.A(x)) ** 2).sum()
 
-    def prox(self, x: Union[JaxArray, BlockArray], lam: float) -> Union[JaxArray, BlockArray]:
+    def prox(
+        self, x: Union[JaxArray, BlockArray], lam: float, **kwargs
+    ) -> Union[JaxArray, BlockArray]:
         if isinstance(self.A, linop.Diagonal):
             c = 2.0 * self.scale * lam
             A = self.A.diagonal
@@ -246,7 +281,28 @@ class WeightedSquaredL2Loss(Loss):
             ATWA = c * A.conj() * W * A
             return lhs / (ATWA + 1.0)
         else:
-            raise NotImplementedError
+            #      prox_{f}(x) =
+            #
+            #      arg min  1/2 || v - x ||^2 + λ α || A v - y ||^2_W
+            #         v
+            #
+            # solution at:
+            #
+            #      (I + λ 2α A^T W A) v = x + λ 2α A^T W y
+            #
+            W = self.W
+            A = self.A
+            α = self.scale
+            y = self.y
+            if "v0" in kwargs and kwargs["v0"] is not None:
+                v0 = kwargs["v0"]
+            else:
+                v0 = snp.zeros_like(x)
+            hessian = self.hessian  # = (2α A^T W A)
+            lhs = linop.Identity(x.shape) + lam * hessian
+            rhs = x + 2 * lam * α * A.adj(W(y))
+            x, _ = cg(lhs, rhs, v0, **self.prox_kwargs)
+            return x
 
     @property
     def hessian(self) -> linop.LinearOperator:

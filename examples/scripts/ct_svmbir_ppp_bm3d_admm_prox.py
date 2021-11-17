@@ -52,7 +52,7 @@ Generate tomographic projector and sinogram.
 """
 num_angles = int(N / 2)
 num_channels = N
-angles = snp.linspace(0, snp.pi, num_angles, dtype=snp.float32)
+angles = snp.linspace(0, snp.pi, num_angles, endpoint=False, dtype=snp.float32)
 A = ParallelBeamProjector(x_gt.shape, angles, num_channels)
 sino = A @ x_gt
 
@@ -91,7 +91,9 @@ y, x0, weights = jax.device_put([y, x_mrf, weights])
 ρ = 10  # ADMM penalty parameter
 σ = density * 0.26  # denoiser sigma
 
-f = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(weights), scale=0.5)
+f = SVMBIRWeightedSquaredL2Loss(
+    y=y, A=A, W=Diagonal(weights), scale=0.5, prox_kwargs={"maxiter": 5, "ctol": 0.0}
+)
 g0 = σ * ρ * BM3D()
 g1 = NonNegativeIndicator()
 
