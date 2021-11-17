@@ -477,6 +477,10 @@ class TestBM3D:
 
 
 class TestDnCNN:
+    import os
+
+    os.environ["XLA_FLAGS"] = "--xla_gpu_deterministic_reductions --xla_gpu_autotune_level=0"
+
     def setup(self):
         key = None
         N = 32
