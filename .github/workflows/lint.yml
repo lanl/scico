@@ -30,3 +30,8 @@ jobs:
 
       - name: isort Import Sorter
         uses: isort/isort-action@v0.1.0
+
+      - name: Pylint code analysis
+        run: |
+          pip install pylint
+          pylint --disable=all --enable=missing-docstring scico
