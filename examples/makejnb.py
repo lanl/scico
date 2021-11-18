@@ -4,24 +4,25 @@
 # create/update and execute any Jupyter notebooks that are out
 # of date with respect to their source Python scripts. If script
 # names specified on command line, process them instead.
-# Run as
-#     python makejnb.py [script_name_1 [script_name_2 [...]]]
+# Run
+#     python makejnb.py -h
+# for usage details.
 
+import argparse
 import os
 import re
 import sys
 from pathlib import Path
+from timeit import default_timer as timer
 
 import nbformat
 from nbconvert.preprocessors import ExecutePreprocessor
-
 from py2jn.tools import py_string_to_notebook, write_notebook
 
 try:
     import ray
 except ImportError:
     raise RuntimeError("The ray package is required to run this script")
-
 
 
 def py_file_to_string(src):
@@ -88,11 +89,38 @@ def script_to_notebook(src, dst):
     write_notebook(nb, dst)
 
 
+def execute_notebook(fname):
+    """Execute the specified notebook file."""
+
+    with open(fname) as f:
+        nb = nbformat.read(f, as_version=4)
+    ep = ExecutePreprocessor()
+    try:
+        t0 = timer()
+        out = ep.preprocess(nb)
+        t1 = timer()
+        with open(fname, "w", encoding="utf-8") as f:
+            nbformat.write(nb, f)
+    except CellExecutionError:
+        raise Exception(f"Error executing the notebook {fname}")
+    print(f"{fname} done in {t1 - t0} s")
 
 
-if sys.argv[1:]:
+
+argparser = argparse.ArgumentParser(
+    description="Convert Python example scripts to Jupyter notebooks."
+)
+argparser.add_argument("--no-exec", action="store_true",
+                       help="Create/update notebooks but don't execute them")
+argparser.add_argument("--no-ray", action="store_true",
+                       help="Execute notebooks serially, without the use of ray parallelization")
+argparser.add_argument("filename", nargs="*", help="Optional Python example script filenames")
+args = argparser.parse_args()
+
+
+if args.filename:
     # Script names specified on command line
-    scriptnames = [os.path.basename(s) for s in sys.argv[1:]]
+    scriptnames = [os.path.basename(s) for s in args.filename]
 else:
     # Read script names from index file
     scriptnames = []
@@ -109,6 +137,8 @@ scriptnames = list(set(scriptnames))
 # Construct script paths
 scripts = [Path("scripts") / Path(s) for s in scriptnames]
 
+# Display status information
+print(f"Processing scripts {','.join(scriptnames)}")
 
 # Construct list of notebooks that are out of date with respect to the corresponding
 # script, or that have not yet been constructed from the corresponding script, and
@@ -121,36 +151,37 @@ for s in scripts:
         script_to_notebook(s, nb)
         # Add it to the list for execution
         notebooks.append(nb)
-if sys.argv[1:]:
+if args.filename:
     # If scripts specified on command line, add all corresonding notebooks to the
     # list for execution
     notebooks = [Path("notebooks") / (s.stem + ".ipynb") for s in scripts]
 
-ray.init()
 
-nproc = len(notebooks)
-ngpu = 0
-ar = ray.available_resources()
-ncpu = max(int(ar["CPU"]) // nproc, 1)
-if "GPU" in ar:
-    ngpu = max(int(ar["GPU"]) // nproc, 1)
-print(f"Running on {ncpu} CPUs and {ngpu} GPUs per process")
+# Run relevant notebooks if no excecution flag not specified
+if not args.no_exec:
 
-# Function to execute each notebook with one GPU
-@ray.remote(num_cpus=ncpu, num_gpus=ngpu)
-def run_nb(fname):
-    with open(fname) as f:
-        nb = nbformat.read(f, as_version=4)
+    # Execute notebooks serially if not requested to avoid use of ray
+    if args.no_ray:
 
-    ep = ExecutePreprocessor()
-    try:
-        out = ep.preprocess(nb)
-        with open(fname, "w", encoding="utf-8") as f:
-            nbformat.write(nb, f)
-    except CellExecutionError:
-        raise Exception(f"Error executing the notebook {fname}")
-    print(f"{fname} done")
+        for nbfile in notebooks:
+            execute_notebook(nbfile)
 
+    # Execute notebooks in parallel using ray
+    else:
+        ray.init()
 
-# run all; blocking
-ray.get([run_nb.remote(_) for _ in notebooks])
+        nproc = len(notebooks)
+        ngpu = 0
+        ar = ray.available_resources()
+        ncpu = max(int(ar["CPU"]) // nproc, 1)
+        if "GPU" in ar:
+            ngpu = max(int(ar["GPU"]) // nproc, 1)
+        print(f"Running on {ncpu} CPUs and {ngpu} GPUs per process")
+
+        # Function to execute each notebook with available resources suitably divided
+        @ray.remote(num_cpus=ncpu, num_gpus=ngpu)
+        def ray_run_nb(fname):
+            execute_notebook(fname)
+
+        # Execute relevant notebooks in parallel
+        ray.get([ray_run_nb.remote(nbfile) for nbfile in notebooks])
