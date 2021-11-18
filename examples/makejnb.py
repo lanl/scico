@@ -141,23 +141,21 @@ scriptnames = list(set(scriptnames))
 scripts = [Path("scripts") / Path(s) for s in scriptnames]
 
 # Display status information
-print(f"Processing scripts {','.join(scriptnames)}")
+print(f"Processing scripts {', '.join(scriptnames)}")
 
-# Construct list of notebooks that are out of date with respect to the corresponding
-# script, or that have not yet been constructed from the corresponding script, and
-# construct/update each of them
+# Convert scripts to corresponding notebooks and create list of new/modified notebooks.
 notebooks = []
 for s in scripts:
     nb = Path("notebooks") / (s.stem + ".ipynb")
-    if not nb.is_file() or s.stat().st_mtime > nb.stat().st_mtime:
+    # If scripts specified on command line, convert all of them. Otherwise, only
+    # convert scripts that have a newer timestamp than their corresponding notebooks,
+    # or that have not previously been converted (i.e. corresponding notebook file
+    # does not exist).
+    if args.filename or not nb.is_file() or s.stat().st_mtime > nb.stat().st_mtime:
         # Make notebook file
         script_to_notebook(s, nb)
         # Add it to the list for execution
         notebooks.append(nb)
-if args.filename:
-    # If scripts specified on command line, add all corresonding notebooks to the
-    # list for execution
-    notebooks = [Path("notebooks") / (s.stem + ".ipynb") for s in scripts]
 
 
 # Run relevant notebooks if no excecution flag not specified
