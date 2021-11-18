@@ -38,11 +38,14 @@ def py_file_to_string(src):
         import_seen = False
         for line in srcfile:
             line = re.sub('^r"""', '"""', line)  # remove r from r"""
-            line = re.sub(":cite:`([^`]+)`", r'<cite data-cite="\1"\/>', line)  # fix cite format
+            line = re.sub(":cite:`([^`]+)`", r'<cite data-cite="\1"/>', line)  # fix cite format
             if import_seen:
                 # Once an import statement has been seen, break on encountering a line that
-                # is neither an import statement not a newline
-                if not re.match(r"(^import|^from|^\n$)", line):
+                # is neither an import statement nor a newline, nor a component of an import
+                # statement extended over multiple lines, nor components of a try/except
+                # construction (note that handling of these final two cases is probably not
+                # very robust).
+                if not re.match(r"(^import|^from|^\n$|^\W+[^\W]|^\)$|^try:$|^except)", line):
                     lines.append(line)
                     break
             else:
