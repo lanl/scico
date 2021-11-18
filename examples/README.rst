@@ -46,11 +46,5 @@ A number of files in this directory assist in the mangement of the usage example
 `makeindex.py <makeindex.py>`_
    Auto-generate the docs example index ``docs/source/examples.rst`` from the example scripts index ``scripts/index.rst``.
 
-`Makefile <Makefile>`_
-   A makefile allowing use of the command ``make`` to update auto-generated Jupyter notebooks. Run as ``make no-execute=true`` to update the notebooks without executing them. Use of `makejnb.py` rather than this makefile is recommended.
-
-`pytojnb.sh <pytojnb.sh>`_
-   Low-level python to Jupyter notebook conversion script. Used by both the makefile and `makejnb.py <makejnb.py>`_.
-
 `scriptcheck.sh <scriptcheck.sh>`_
    Run all example scripts with a reduced number of iterations as a rapid check that they are functioning correctly.
