@@ -5,7 +5,7 @@
 # of date with respect to their source Python scripts. If script
 # names specified on command line, process them instead.
 # Run
-#     python makejnb.py -h
+#     python makenotebooks.py -h
 # for usage details.
 
 import argparse

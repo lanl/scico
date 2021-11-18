@@ -16,14 +16,14 @@ The procedure for adding a adding a new notebook to the documentation is:
 
 2. Run ``makeindex.py`` to update the example scripts README file, the notebook index file, and the examples index in the docs.
 
-3. Run ``makejnb.py`` to build the new notebook, as well as any other notebooks that are out of date with respect to their source scripts, as determined by the respective file timestamps.
+3. Run ``makenotebooks.py`` to build the new notebook, as well as any other notebooks that are out of date with respect to their source scripts, as determined by the respective file timestamps.
 
 4. Add and commit the new script, the ``scripts/index.rst`` script index file, the auto-generated ``scripts/README.rst`` file and ``docs/source/examples.rst`` index file, and the new or updated notebooks and the auto-generated ``notebooks/index.ipynb`` file in the notebooks directory (following the submodule handling procedure as described in the developer docs).
 
 
 The procedure for rebuilding notebook(s) after the source file(s) have been modified is:
 
-1. Run ``makejnb.py`` to build the new notebook, as well as any other notebooks that are out of date with respect to their source scripts, as determined by the respective file timestamps. Note that timestamps for files retrieved from version control may not be meaningful for this purpose. In such cases, ``touch`` the relevant source scripts to force updating on the next run of ``makejnb.py``.
+1. Run ``makenotebooks.py`` to build the new notebook, as well as any other notebooks that are out of date with respect to their source scripts, as determined by the respective file timestamps. Note that timestamps for files retrieved from version control may not be meaningful for this purpose. In such cases, ``touch`` the relevant source scripts to force updating on the next run of ``makenotebooks.py``.
 
 2. Add and commit the modified script(s), and the updated notebooks (following the submodule handling procedure as described in the developer docs).
 
@@ -40,8 +40,8 @@ A number of files in this directory assist in the mangement of the usage example
 `notebooks_requirements.txt <examples_requirements.txt>`_
    Requirements file (as used by ``pip``) listing additional dependencies for building the Jupyter notebooks from the usage example scripts.
 
-`makejnb.py <makejnb.py>`_
-   An alternative to the makefile for updating the auto-generated Jupyter notebooks. Notebooks are executed in parallel using the ``ray`` package.
+`makenotebooks.py <makenotebooks.py>`_
+   Auto-generate Jupyter notebooks from the example scripts.
 
 `makeindex.py <makeindex.py>`_
    Auto-generate the docs example index ``docs/source/examples.rst`` from the example scripts index ``scripts/index.rst``.
