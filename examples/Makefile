@@ -1,4 +1,4 @@
-# Makefile for Jypyter notebooks
+# Makefile for Jupyter notebooks
 # To rebuild the notebooks without executing them, do
 #    make [target] fast
 
