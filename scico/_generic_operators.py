@@ -166,6 +166,7 @@ output_dtype : {self.output_dtype}
             self.jit()
 
     def jit(self):
+        """Activate just-in-time compilation for the `_eval` method."""
         self._eval = jax.jit(self._eval)
 
     def __call__(
@@ -276,9 +277,23 @@ output_dtype : {self.output_dtype}
         )
 
     def jvp(self, primals, tangents):
+        """Computes a Jacobian-vector product.
+
+        Args:
+            primals:  Values at which the Jacobian is evaluated.
+            tangents:  Vector in the Jacobian-vector product.
+        """
+
         return jax.jvp(self, primals, tangents)
 
-    def vjp(self, *primals, has_aux: bool = False):
+    def vjp(self, *primals):
+        """Computes a vector-Jacobian product.
+
+        Args:
+            primals:  Sequence of values at which the Jacobian is evaluated,
+               with length equal to the number of position arguments of `_eval`.
+        """
+
         primals, self_vjp = jax.vjp(self, *primals)
         return primals, self_vjp
 

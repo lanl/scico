@@ -147,6 +147,13 @@ class ParallelBeamProjector(LinearOperator):
         return hcb.call(f, y, result_shape=jax.ShapeDtypeStruct(self.input_shape, self.input_dtype))
 
     def fbp(self, sino: JaxArray, filter_type: str = "Ram-Lak") -> JaxArray:
+        """Perform tomographic reconstruction using the filtered back
+        projection (FBP) algorithm.
+
+        Args:
+            sino: Sinogram to reconstruct.
+            filter_type: Which filter to use, see `cfg.FilterType` in `<https://www.astra-toolbox.com/docs/algs/FBP_CUDA.html>`_.
+        """
 
         # Just use the CPU FBP alg for now; hitting memory issues with GPU one.
         def f(sino):
