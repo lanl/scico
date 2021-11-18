@@ -87,8 +87,8 @@ the :math:`\mb{x}`-update,
     .. math::
        :label: eq:admm_x_step
 
-        \argmin_{\mb{x}} \; f(\mb{x}) + \sum_i \frac{\rho_i}{2}
-        \norm{\mb{z}^{(k)}_i - \mb{u}^{(k)}_i - C_i \mb{x}}_2^2 \;.
+	\argmin_{\mb{x}} \; f(\mb{x}) + \sum_i \frac{\rho_i}{2}
+	\norm{\mb{z}^{(k)}_i - \mb{u}^{(k)}_i - C_i \mb{x}}_2^2 \;.
 
 
 The available solvers for this problem are:
@@ -116,6 +116,56 @@ The available solvers for this problem are:
 
 For more details of these solvers and how to specify them, see the API
 reference page for :mod:`scico.admm`.
+
+
+
+Linearized ADMM
+---------------
+
+Linearized ADMM algorithm :cite:`yang-2012-linearized`
+:cite:`parikh-2014-proximal` (Sec. 4.4.2) is an algorithm for solving
+problems of the form
+
+    .. math::
+	\argmin_{\mb{x}} \; f(\mb{x}) + g(C \mb{x}) \;,
+
+where :math:`f` and :math:`g` are are convex (but not necessarily smooth)
+functions. Although convergence per iteration is typically significantly
+worse than that of ADMM, the :math:`\mb{x}`-update,
+
+    .. math::
+
+       \mathrm{prox}_{\mu f} \left( \mb{x}^{(k)} - (\mu / \nu) C^T
+       \left(C \mb{x}^{(k)} - \mb{z}^{(k)} + \mb{u}^{(k)} \right) \right)
+
+is can be much cheaper than that of ADMM, giving Linearized ADMM competitive
+time convergence performance.
+
+The SCICO Linearized ADMM solver, :class:`.LinearizedADMM`,
+requires :math:`f` and :math:`g` to be instances of :class:`.Functional`,
+and to have a proximal operator defined (:meth:`.Functional.prox`), and
+:math:`C` is required to be an instance of :class:`.LinearOperator`.
+
+
+
+PDHG
+----
+
+The Primal–Dual Hybrid Gradient (PDHG) algorithm
+:cite:`esser-2010-general` :cite:`chambolle-2010-firstorder`
+:cite:`pock-2011-diagonal` solves problems of the form
+
+    .. math::
+	\argmin_{\mb{x}} \; f(\mb{x}) + g(C \mb{x}) \;,
+
+where :math:`f` and :math:`g` are are convex (but not necessarily smooth)
+functions. The algorithm has similar advantages over ADMM to those of Linearized ADMM, but typically exhibits better convergence properties.
+
+The SCICO PDHG solver, :class:`.PDHG`,
+requires :math:`f` and :math:`g` to be instances of :class:`.Functional`,
+and to have a proximal operator defined (:meth:`.Functional.prox`), and
+:math:`C` is required to be an instance of :class:`.LinearOperator`.
+
 
 
 
