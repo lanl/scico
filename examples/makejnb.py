@@ -106,14 +106,17 @@ def execute_notebook(fname):
     print(f"{fname} done in {t1 - t0} s")
 
 
-
 argparser = argparse.ArgumentParser(
     description="Convert Python example scripts to Jupyter notebooks."
 )
-argparser.add_argument("--no-exec", action="store_true",
-                       help="Create/update notebooks but don't execute them")
-argparser.add_argument("--no-ray", action="store_true",
-                       help="Execute notebooks serially, without the use of ray parallelization")
+argparser.add_argument(
+    "--no-exec", action="store_true", help="Create/update notebooks but don't execute them"
+)
+argparser.add_argument(
+    "--no-ray",
+    action="store_true",
+    help="Execute notebooks serially, without the use of ray parallelization",
+)
 argparser.add_argument("filename", nargs="*", help="Optional Python example script filenames")
 args = argparser.parse_args()
 
