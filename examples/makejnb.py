@@ -103,7 +103,7 @@ def execute_notebook(fname):
             nbformat.write(nb, f)
     except CellExecutionError:
         raise Exception(f"Error executing the notebook {fname}")
-    print(f"{fname} done in {t1 - t0} s")
+    print(f"{fname} done in {(t1 - t0):.1e} s")
 
 
 argparser = argparse.ArgumentParser(
