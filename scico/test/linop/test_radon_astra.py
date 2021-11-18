@@ -4,6 +4,7 @@ import jax
 
 import pytest
 
+import scico
 from scico.test.linop.test_linop import adjoint_test
 
 try:
@@ -11,7 +12,6 @@ try:
 except ImportError as e:
     pytest.skip("astra not installed", allow_module_level=True)
 
-import scico
 
 N = 128
 
@@ -95,4 +95,4 @@ def test_adjoint_grad(testobj):
 
 def test_adjoint(testobj):
     A = testobj.A
-    adjoint_test(A, rtol=get_tol())
+    adjoint_test(A, rtol=15 * get_tol())
