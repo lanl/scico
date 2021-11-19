@@ -132,13 +132,13 @@ def valid_adjoint(
       of test, depending on type of parameter `eps`.
     """
 
-    x0, key = randn(shape=A.input_shape, key=key, dtype=A.input_dtype)
-    x1, key = randn(shape=AT.input_shape, key=key, dtype=AT.input_dtype)
-    y0 = A(x0)
-    y1 = AT(x1)
-    x1y0 = snp.dot(x1.ravel().conj(), y0.ravel())
-    y1x0 = snp.dot(y1.ravel().conj(), x0.ravel())
-    err = snp.linalg.norm(x1y0 - y1x0) / max(snp.linalg.norm(x1y0), snp.linalg.norm(y1x0))
+    x, key = randn(shape=A.input_shape, key=key, dtype=A.input_dtype)
+    y, key = randn(shape=AT.input_shape, key=key, dtype=AT.input_dtype)
+    u = A(x)
+    v = AT(y)
+    yTu = snp.dot(y.ravel().conj(), u.ravel())
+    vTx = snp.dot(v.ravel().conj(), x.ravel())
+    err = snp.linalg.norm(yTu - vTx) / max(snp.linalg.norm(yTu), snp.linalg.norm(vTx))
     if eps is None:
         return err
     else:
