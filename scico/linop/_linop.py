@@ -107,8 +107,10 @@ def valid_adjoint(
 
     by computing :math:`\mathbf{u} = A \mathbf{x}` and
     :math:`\mathbf{v} = A^T \mathbf{y}` for random :math:`\mathbf{x}`
-    and :math:`\mathbf{y}` and confirming that :math:`\| \mathbf{y}^T
-    \mathbf{u} - \mathbf{v}^T \mathbf{x} \|_2 < \epsilon` since
+    and :math:`\mathbf{y}` and confirming that :math:`\frac{\| \mathbf{y}^T
+    \mathbf{u} - \mathbf{v}^T \mathbf{x} \|_2}{\max \left\{
+    \| \mathbf{y}^T \mathbf{u} \|_2, \| \mathbf{v}^T \mathbf{x} \|_2
+    \right\}} < \epsilon` since
 
     .. math::
       \mathbf{y}^T \mathbf{u} = \mathbf{y}^T (A \mathbf{x}) =
