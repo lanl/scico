@@ -113,6 +113,12 @@ argparser = argparse.ArgumentParser(
     description="Convert Python example scripts to Jupyter notebooks."
 )
 argparser.add_argument(
+    "--all",
+    action="store_true",
+    help="Process all notebooks, without  checking timestamps. "
+    "Has no effect when files to process are explicitly specified.",
+)
+argparser.add_argument(
     "--no-exec", action="store_true", help="Create/update notebooks but don't execute them"
 )
 argparser.add_argument(
@@ -150,11 +156,11 @@ print(f"Processing scripts {', '.join(scriptnames)}")
 notebooks = []
 for s in scripts:
     nb = Path("notebooks") / (s.stem + ".ipynb")
-    # If scripts specified on command line, convert all of them. Otherwise, only
-    # convert scripts that have a newer timestamp than their corresponding notebooks,
-    # or that have not previously been converted (i.e. corresponding notebook file
-    # does not exist).
-    if args.filename or not nb.is_file() or s.stat().st_mtime > nb.stat().st_mtime:
+    # If scripts specified on command line or --all flag specified, convert all scripts.
+    # Otherwise, only convert scripts that have a newer timestamp than their corresponding
+    # notebooks, or that have not previously been converted (i.e. corresponding notebook
+    # file does not exist).
+    if args.all or args.filename or not nb.is_file() or s.stat().st_mtime > nb.stat().st_mtime:
         # Make notebook file
         script_to_notebook(s, nb)
         # Add it to the list for execution
