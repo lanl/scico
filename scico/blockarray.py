@@ -765,19 +765,6 @@ class _AbstractBlockArray(core.ShapedArray):
         #: Array specifying boundaries of components as indices in base array
         self.bndpos: np.ndarray = np.r_[0, np.cumsum(sizes)]
 
-    @core.aval_property
-    def data(self):
-        return bk_data_p.bind(self)
-
-
-# Register BlockArray._data as a primitive
-bk_data_p = core.Primitive("bk_data")
-
-
-@bk_data_p.def_impl
-def _bk_data_impl(mat):
-    return mat._data
-
 
 # The Jax class is heavily inspired by SparseArray/AbstractSparseArray here:
 # https://github.com/google/jax/blob/7724322d1c08c13008815bfb52759a29c2a6823b/tests/custom_object_test.py
