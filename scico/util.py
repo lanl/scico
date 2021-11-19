@@ -114,20 +114,20 @@ def url_get(url: str, maxtry: int = 3, timeout: int = 10) -> io.BytesIO:  # prag
     """Get content of a file via a URL.
 
     Args:
-        url: URL of the file to be downloaded
-        maxtry: Maximum number of download retries. Default: 3.
-        timeout: Timeout in seconds for blocking operations. Default: 10
+        url: URL of the file to be downloaded.
+        maxtry: Maximum number of download retries.
+        timeout: Timeout in seconds for blocking operations.
 
     Returns:
-        Buffered I/O stream
+        Buffered I/O stream.
 
     Raises:
-        ValueError: If the maxtry parameter is not greater than zero
-        urllib.error.URLError: If the file cannot be downloaded
+        ValueError: If the maxtry parameter is not greater than zero.
+        urllib.error.URLError: If the file cannot be downloaded.
     """
 
     if maxtry <= 0:
-        raise ValueError("Parameter maxtry should be greater than zero")
+        raise ValueError("Parameter maxtry should be greater than zero.")
     for ntry in range(maxtry):
         try:
             rspns = urlrequest.urlopen(url, timeout=timeout)
@@ -150,7 +150,7 @@ def parse_axes(
 
     Args:
         axes: user specification of one or more axes: int, list, tuple,
-           or ``None``
+           or ``None``.
         shape: the shape of the array of which axes are being specified.
            If not ``None``, `axes` is checked to make sure its entries
            refer to axes that exist in `shape`.
@@ -158,13 +158,13 @@ def parse_axes(
            default, `list(range(len(shape)))`.
 
     Returns:
-        List of axes (never an int, never ``None``)
+        List of axes (never an int, never ``None``).
     """
 
     if axes is None:
         if default is None:
             if shape is None:
-                raise ValueError("`axes` cannot be `None` without a default or shape specified")
+                raise ValueError("`axes` cannot be `None` without a default or shape specified.")
             else:
                 axes = list(range(len(shape)))
         else:
@@ -177,10 +177,10 @@ def parse_axes(
         raise ValueError(f"Could not understand axes {axes} as a list of axes")
     if shape is not None and max(axes) >= len(shape):
         raise ValueError(
-            f"Invalid axes {axes} specified; each axis must be less than `len(shape)`={len(shape)}"
+            f"Invalid axes {axes} specified; each axis must be less than `len(shape)`={len(shape).}"
         )
     elif len(set(axes)) != len(axes):
-        raise ValueError("Duplicate vaue in axes {axes}; each axis must be unique")
+        raise ValueError("Duplicate vaue in axes {axes}; each axis must be unique.")
     return axes
 
 
@@ -216,9 +216,9 @@ def check_for_tracer(func: Callable) -> Callable:
     """Check if positional arguments to ``func`` are jax tracers.
 
     This is intended to be used as a decorator for functions that call
-    external code from within SCICO.  At present, external functions cannot
-    be jit-ed or vmap/pmaped.  This decorator checks for signs of jit/vmap/pmap
-    and raises an appropriate exception.
+    external code from within SCICO. At present, external functions
+    cannot be jit-ed or vmap/pmaped. This decorator checks for signs of
+    jit/vmap/pmap and raises an appropriate exception.
     """
 
     @wraps(func)
@@ -254,9 +254,9 @@ class Timer:
         Args:
             labels: Label(s) of the timer(s) to be initialised to zero.
             default_label : Default timer label to be used when methods
-                are called without specifying a label
+                are called without specifying a label.
             all_label : Label string that will be used to denote all
-                timer labels
+                timer labels.
         """
 
         # Initialise current and accumulated time dictionaries
@@ -389,7 +389,7 @@ class Timer:
                corresponding call to :meth:`stop`.
 
         Returns:
-           Elapsed time
+           Elapsed time.
         """
 
         # Get current time
@@ -418,7 +418,7 @@ class Timer:
         """Get a list of timer labels.
 
         Returns:
-          List of timer labels
+          List of timer labels.
         """
 
         return self.t0.keys()
@@ -428,10 +428,10 @@ class Timer:
 
         The representation consists of a table with the following columns:
 
-          * Timer label
-          * Accumulated time from past start/stop calls
+          * Timer label.
+          * Accumulated time from past start/stop calls.
           * Time since current start call, or 'Stopped' if timer is not
-            currently running
+            currently running.
         """
 
         # Get current time
@@ -513,8 +513,8 @@ class ContextTimer:
         return self
 
     def __exit__(self, type, value, traceback):
-        """Stop the timer and return True if no exception was raised within
-        the 'with' block, otherwise return False.
+        """Stop the timer and return True if no exception was raised
+        within the 'with' block, otherwise return False.
         """
 
         if self.action == "StartStop":
@@ -537,7 +537,7 @@ class ContextTimer:
              corresponding call to :meth:`stop`.
 
         Returns:
-          Elapsed time
+          Elapsed time.
         """
 
         return self.timer.elapsed(self.label, total=total)

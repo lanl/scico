@@ -18,21 +18,21 @@ __author__ = """Luke Pfister <luke.pfister@gmail.com>"""
 
 
 JaxArray = Union[jax.interpreters.xla.DeviceArray, jax.interpreters.pxla.ShardedDeviceArray]
-"""A jax array"""
+"""A jax array."""
 
 Array = Union[np.ndarray, JaxArray]
-"""Either a numpy or jax array"""
+"""Either a numpy or jax array."""
 
 PRNGKey = jnp.ndarray
-"""A key for jax random number generators (see :mod:`jax.random`)"""
+"""A key for jax random number generators (see :mod:`jax.random`)."""
 
 DType = Any  # TODO: can we do better than this?  Maybe with the new numpy typing?
-"""A numpy or jax dtype"""
+"""A numpy or jax dtype."""
 
 Shape = Tuple[int, ...]  # Shape of an array
-"""A shape of a numpy or jax array"""
+"""A shape of a numpy or jax array."""
 
 BlockShape = Tuple[Tuple[int, ...], ...]  # Shape of a BlockArray
-"""A shape of a :class:`.BlockArray`"""
+"""A shape of a :class:`.BlockArray`."""
 
 Axes = Union[int, Tuple[int, ...]]  # one or more axes

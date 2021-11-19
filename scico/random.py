@@ -8,9 +8,9 @@
 """Random number generation.
 
 This module provides convenient wrappers around several `jax.random
-<https://jax.readthedocs.io/en/stable/jax.random.html>`_ routines to handle
-the generation and splitting of PRNG keys, as well as the generation of random
-:class:`.BlockArray`.
+<https://jax.readthedocs.io/en/stable/jax.random.html>`_ routines to
+handle the generation and splitting of PRNG keys, as well as the
+generation of random :class:`.BlockArray`:
 
 ::
 
@@ -24,9 +24,9 @@ the generation and splitting of PRNG keys, as well as the generation of random
    y, key = scico.random.randn((2,), key=key)
    print(y) # [ 0.00870693 -0.04888531]
 
-The user is responsible for passing the PRNG key to :mod:`scico.random` functions.
-If no key is passed, repeated calls to :mod:`scico.random` functions will return the same
-random numbers:
+The user is responsible for passing the PRNG key to :mod:`scico.random`
+functions. If no key is passed, repeated calls to :mod:`scico.random`
+functions will return the same random numbers:
 
 ::
 
@@ -38,7 +38,8 @@ random numbers:
    print(y)   # [ 0.19307713 -0.52678305]
 
 
-If the desired shape is a tuple containing tuples, a :class:`.BlockArray` is returned:
+If the desired shape is a tuple containing tuples, a :class:`.BlockArray`
+is returned:
 
 ::
 
@@ -66,17 +67,19 @@ from scico.util import is_nested
 
 def _add_seed(fun):
     """
-    Modifies a jax.random function to add a `seed` argument.
+    Modify a jax.random function to add a `seed` argument.
 
     Args:
-        fun: function to be modified, e.g., jax.random.normal. Expects `key`
-        to be the first argument.
+        fun: function to be modified, e.g., :func:`jax.random.normal`.
+        Expects `key` to be the first argument.
 
     Returns:
-        fun_alt: a version of `fun` supporting an optional `seed` argument that
-        is used to create a `jax.random.PRNGKey` that is passed along as the `key`.
-        The `key` argument may still be used, but is moved to be second-to-last.
-        By default, `seed=0`. The `seed` argument is added last. Other arguments are unchanged.
+        fun_alt: a version of `fun` supporting an optional `seed`
+           argument that is used to create a `jax.random.PRNGKey` that is
+           passed along as the `key`. The `key` argument may still be
+           used, but is moved to be second-to-last. By default, `seed=0`.
+           The `seed` argument is added last. Other arguments are
+           unchanged.
     """
 
     # find number of arguments to fun
@@ -122,7 +125,7 @@ def _add_seed(fun):
 
 def _allow_block_shape(fun):
     """
-    Decorates a jax.random function so that the `shape` argument may be a BlockShape.
+    Decorate a jax.random function so that the `shape` argument may be a BlockShape.
     """
 
     # use inspect to find which argument number is `shape`
@@ -186,16 +189,19 @@ def randn(
     key: Optional[PRNGKey] = None,
     seed: Optional[int] = None,
 ) -> Tuple[Union[JaxArray, BlockArray], PRNGKey]:
-    """Return an array drawn from the standard normal distribution. Alias for :func:`scico.random.normal`.
+    """Return an array drawn from the standard normal distribution.
+
+    Alias for :func:`scico.random.normal`.
 
     Args:
-        shape:  Shape of output array.  If shape is a tuple, a DeviceArray is returned.
-            If shape is a tuple of tuples, a :class:`.BlockArray` is returned.
-        key:  JAX PRNGKey.  Defaults to None, in which case a new key
-              is created using the seed arg.
+        shape: Shape of output array.  If shape is a tuple, a
+            DeviceArray is returned. If shape is a tuple of tuples, a
+            :class:`.BlockArray` is returned.
+        key: JAX PRNGKey. Defaults to None, in which case a new key
+            is created using the seed arg.
         seed: Seed for new PRNGKey. Default: 0
         dtype: dtype for returned value.  Default to float32.  If np.complex64,
-               generates an array sampled from complex normal distribution.
+            generates an array sampled from complex normal distribution.
 
     Returns:
         tuple: A tuple (x, key) containing:
