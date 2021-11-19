@@ -95,4 +95,4 @@ def test_adjoint_grad(testobj):
 
 def test_adjoint(testobj):
     A = testobj.A
-    adjoint_test(A, rtol=15 * get_tol())
+    adjoint_test(A, rtol=get_tol())
