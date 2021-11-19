@@ -21,8 +21,9 @@ from py2jn.tools import py_string_to_notebook, write_notebook
 
 try:
     import ray
+    have_ray = True
 except ImportError:
-    raise RuntimeError("The ray package is required to run this script")
+    have_ray = False
 
 
 def py_file_to_string(src):
@@ -128,6 +129,10 @@ argparser.add_argument(
 )
 argparser.add_argument("filename", nargs="*", help="Optional Python example script filenames")
 args = argparser.parse_args()
+
+# Raise error if ray needed but not present
+if not have_ray and not args.no_ray:
+    raise RuntimeError("The ray package is required to run this script")
 
 
 if args.filename:
