@@ -200,13 +200,14 @@ def randn(
         key: JAX PRNGKey. Defaults to None, in which case a new key
             is created using the seed arg.
         seed: Seed for new PRNGKey. Default: 0
-        dtype: dtype for returned value.  Default to float32.  If np.complex64,
-            generates an array sampled from complex normal distribution.
+        dtype: dtype for returned value. Default to ``np.float32``.
+            If ``np.complex64``, generates an array sampled from complex
+            normal distribution.
 
     Returns:
         tuple: A tuple (x, key) containing:
 
-           - **x** : (DeviceArray):  Generated random array
+           - **x** : (DeviceArray):  Generated random array.
            - **key** : Updated random PRNGKey.
     """
     return normal(shape, dtype, key, seed)
