@@ -1,3 +1,12 @@
+# Copyright (C) 2021 by SCICO Developers
+# All rights reserved. BSD 3-clause License.
+# This file is part of the SCICO package. Details of the copyright and
+# user license can be found in the 'LICENSE' file distributed with the
+# package.
+
+"""SCICO -- a Python package for solving the inverse problems that arise in scientific imaging applications."""
+
+
 __version__ = "0.0.1b1"
 
 import sys
