@@ -19,9 +19,9 @@ import nbformat
 from nbconvert.preprocessors import ExecutePreprocessor
 from py2jn.tools import py_string_to_notebook, write_notebook
 
+have_ray = True
 try:
     import ray
-    have_ray = True
 except ImportError:
     have_ray = False
 
