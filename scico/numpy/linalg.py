@@ -70,8 +70,10 @@ slogdet = _matrixop_linalg_wrapper(jla.slogdet)
 solve = _matrixop_linalg_wrapper(jla.solve)
 
 
-# multidot is somewhat uniq
+# multidot is somewhat unique
 def multi_dot(arrays, *, precision=None):
+    """Computes the dot product of two or more arrays.
+    Wrapped to work with `MatrixOperator`s."""
     arrays_ = [_extract_if_matrix(_) for _ in arrays]
     return jla.multi_dot(arrays_, precision=precision)
 
