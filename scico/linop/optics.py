@@ -78,6 +78,8 @@ def radial_transverse_frequency(
 
 
 class Propagator(LinearOperator):
+    """Base class for AngularSpectrum and Fresnel propagator."""
+
     def __init__(
         self,
         input_shape: Shape,
@@ -87,8 +89,7 @@ class Propagator(LinearOperator):
         pad_factor: int = 1,
         **kwargs,
     ):
-        r"""Base class for AngularSpectrum and Fresnel propagator
-
+        r"""
         Args:
             input_shape: Shape of input array.  Can be a tuple of length
                1 or 2.

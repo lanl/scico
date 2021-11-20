@@ -118,6 +118,8 @@ matmul = _block_array_matmul_wrapper(jnp.matmul)
 
 @wraps(jnp.vdot)
 def vdot(a, b):
+    """Dot product of `a` and `b` (with first argument complex conjugated).
+    Wrapped to work on `BlockArray`s."""
     if isinstance(a, BlockArray):
         a = a.ravel()
     if isinstance(b, BlockArray):
