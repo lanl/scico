@@ -97,7 +97,7 @@ def valid_adjoint(
     eps: Optional[float] = 1e-7,
     key: Optional[PRNGKey] = None,
 ) -> Union[bool, float]:
-    r"""Check whether :class:`.LinearOperator` `AT` is the adjoint of `A`.
+    r"""Check whether :class:`.LinearOperator` :math:`\mathsf{AT}` is the adjoint of :math:`\mathsf{A}`.
 
     The test exploits the identity
 
@@ -105,27 +105,27 @@ def valid_adjoint(
       \mathbf{y}^T (A \mathbf{x}) = (\mathbf{y}^T A) \mathbf{x} =
       (A^T \mathbf{y})^T \mathbf{x}
 
-    by computing :math:`\mathbf{u} = A \mathbf{x}` and
-    :math:`\mathbf{v} = A^T \mathbf{y}` for random :math:`\mathbf{x}`
-    and :math:`\mathbf{y}` and confirming that :math:`\frac{\| \mathbf{y}^T
-    \mathbf{u} - \mathbf{v}^T \mathbf{x} \|_2}{\max \left\{
-    \| \mathbf{y}^T \mathbf{u} \|_2, \| \mathbf{v}^T \mathbf{x} \|_2
-    \right\}} < \epsilon` since
+    by computing :math:`\mathbf{u} = \mathsf{A}(\mathbf{x})` and
+    :math:`\mathbf{v} = \mathsf{AT}(\mathbf{y})` for random :math:`\mathbf{x}`
+    and :math:`\mathbf{y}` and confirming that
 
     .. math::
-      \mathbf{y}^T \mathbf{u} = \mathbf{y}^T (A \mathbf{x}) =
-      (A^T \mathbf{y})^T \mathbf{x} = \mathbf{v}^T \mathbf{x}
+      \frac{\| \mathbf{y}^T \mathbf{u} - \mathbf{v}^T \mathbf{x} \|_2}
+      {\max \left\{ \| \mathbf{y}^T \mathbf{u} \|_2,
+       \| \mathbf{v}^T \mathbf{x} \|_2 \right\}}
+      < \epsilon .
 
-    when :math:`A^T` is a valid adjoint of :math:`A`. If :math:`A` is a
-    complex operator (with a complex `input_dtype`) then the test checks
-    whether `AT` is the Hermitian conjugate of `A`, with a test as above,
-    but with all the :math:`\cdot^T` replaced with :math:`\cdot^H`.
+    If :math:`\mathsf{A}` is a complex operator (with a complex `input_dtype`) then the
+    test checks whether :math:`\mathsf{AT}` is the Hermitian conjugate of :math:`\mathsf{A}`, with a
+    test as above, but with all the :math:`(\cdot)^T` replaced with
+    :math:`(\cdot)^H`.
 
     Args:
         A: Primary :class:`.LinearOperator`.
         AT: Adjoint :class:`.LinearOperator`.
-        eps: Error threshold for validation of `AT` as adjoint of `A`. If
-           None, the relative error is returned instead of a boolean value.
+        eps: Error threshold for validation of :math:`\mathsf{AT}` as
+           adjoint of :math:`\mathsf{AT}`. If None, the relative error
+           is returned instead of a boolean value.
         key: Jax PRNG key. Defaults to None, in which case a new key is
            created.
 
