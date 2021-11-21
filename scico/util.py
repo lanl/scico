@@ -177,7 +177,7 @@ def parse_axes(
         raise ValueError(f"Could not understand axes {axes} as a list of axes")
     if shape is not None and max(axes) >= len(shape):
         raise ValueError(
-            f"Invalid axes {axes} specified; each axis must be less than `len(shape)`={len(shape).}"
+            f"Invalid axes {axes} specified; each axis must be less than `len(shape)`={len(shape)}."
         )
     elif len(set(axes)) != len(axes):
         raise ValueError("Duplicate vaue in axes {axes}; each axis must be unique.")
