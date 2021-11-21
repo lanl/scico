@@ -67,7 +67,7 @@ from scico.util import is_nested
 
 def _add_seed(fun):
     """
-    Modify a jax.random function to add a `seed` argument.
+    Modify a :mod:`jax.random` function to add a `seed` argument.
 
     Args:
         fun: function to be modified, e.g., :func:`jax.random.normal`.
@@ -75,11 +75,11 @@ def _add_seed(fun):
 
     Returns:
         fun_alt: a version of `fun` supporting an optional `seed`
-           argument that is used to create a `jax.random.PRNGKey` that is
-           passed along as the `key`. The `key` argument may still be
-           used, but is moved to be second-to-last. By default, `seed=0`.
-           The `seed` argument is added last. Other arguments are
-           unchanged.
+           argument that is used to create a :func:`jax.random.PRNGKey`
+           that is passed along as the `key`. The `key` argument may
+           still be used, but is moved to be second-to-last. By default,
+           `seed=0`. The `seed` argument is added last. Other arguments
+           are unchanged.
     """
 
     # find number of arguments to fun
