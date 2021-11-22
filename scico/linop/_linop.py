@@ -95,30 +95,33 @@ def valid_adjoint(
     A: LinearOperator,
     AT: LinearOperator,
     eps: Optional[float] = 1e-7,
+    x : Optional[JaxArray] = None,
+    y : Optional[JaxArray] = None,
     key: Optional[PRNGKey] = None,
 ) -> Union[bool, float]:
-    r"""Check whether :class:`.LinearOperator` :math:`\mathsf{AT}` is the adjoint of :math:`\mathsf{A}`.
+    r"""Check whether :class:`.LinearOperator` `AT` is the adjoint of `A`.
 
-    The test exploits the identity
+    Check whether :class:`.LinearOperator` :math:`\mathsf{AT}` is the
+    adjoint of :math:`\mathsf{A}`. The test exploits the identity
 
     .. math::
       \mathbf{y}^T (A \mathbf{x}) = (\mathbf{y}^T A) \mathbf{x} =
       (A^T \mathbf{y})^T \mathbf{x}
 
     by computing :math:`\mathbf{u} = \mathsf{A}(\mathbf{x})` and
-    :math:`\mathbf{v} = \mathsf{AT}(\mathbf{y})` for random :math:`\mathbf{x}`
-    and :math:`\mathbf{y}` and confirming that
+    :math:`\mathbf{v} = \mathsf{AT}(\mathbf{y})` for random
+    :math:`\mathbf{x}` and :math:`\mathbf{y}` and confirming that
 
     .. math::
       \frac{\| \mathbf{y}^T \mathbf{u} - \mathbf{v}^T \mathbf{x} \|_2}
       {\max \left\{ \| \mathbf{y}^T \mathbf{u} \|_2,
        \| \mathbf{v}^T \mathbf{x} \|_2 \right\}}
-      < \epsilon .
+      < \epsilon \;.
 
-    If :math:`\mathsf{A}` is a complex operator (with a complex `input_dtype`) then the
-    test checks whether :math:`\mathsf{AT}` is the Hermitian conjugate of :math:`\mathsf{A}`, with a
-    test as above, but with all the :math:`(\cdot)^T` replaced with
-    :math:`(\cdot)^H`.
+    If :math:`\mathsf{A}` is a complex operator (with a complex
+    `input_dtype`) then the test checks whether :math:`\mathsf{AT}` is
+    the Hermitian conjugate of :math:`\mathsf{A}`, with a test as above,
+    but with all the :math:`(\cdot)^T` replaced with :math:`(\cdot)^H`.
 
     Args:
         A: Primary :class:`.LinearOperator`.
@@ -126,16 +129,31 @@ def valid_adjoint(
         eps: Error threshold for validation of :math:`\mathsf{AT}` as
            adjoint of :math:`\mathsf{AT}`. If None, the relative error
            is returned instead of a boolean value.
+        x : If not the default None, use the specified array instead of a
+           random array as test vector :math:`\mb{x}`. If specified, the
+           array must have shape ``A.input_shape``.
+        y : If not the default None, use the specified array instead of a
+           random array as test vector :math:`\mb{y}`. If specified, the
+           array must have shape ``AT.input_shape``.
         key: Jax PRNG key. Defaults to None, in which case a new key is
            created.
 
     Returns:
-      Boolean value indicating that validation passed, or relative error
-      of test, depending on type of parameter `eps`.
+      Boolean value indicating whether validation passed, or relative
+      error of test, depending on type of parameter `eps`.
     """
 
-    x, key = randn(shape=A.input_shape, key=key, dtype=A.input_dtype)
-    y, key = randn(shape=AT.input_shape, key=key, dtype=AT.input_dtype)
+    if x is None:
+        x, key = randn(shape=A.input_shape, key=key, dtype=A.input_dtype)
+    else:
+        if x.shape != A.input_shape:
+            raise ValueError("Shape of x array not appropriate as an input for operator A")
+    if y is None:
+        y, key = randn(shape=AT.input_shape, key=key, dtype=AT.input_dtype)
+    else:
+        if y.shape != AT.input_shape:
+            raise ValueError("Shape of y array not appropriate as an input for operator AT")
+
     u = A(x)
     v = AT(y)
     yTu = snp.dot(y.ravel().conj(), u.ravel())
