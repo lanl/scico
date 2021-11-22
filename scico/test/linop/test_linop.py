@@ -27,7 +27,7 @@ def adjoint_test(A: linop.LinearOperator, key: Optional[PRNGKey] = None, rtol: f
         rtol:  Relative tolerance
     """
 
-    assert linop.valid_adjoint(A, A.H, rtol, key)
+    assert linop.valid_adjoint(A, A.H, key=key, eps=rtol)
 
 
 class AbsMatOp(linop.LinearOperator):
