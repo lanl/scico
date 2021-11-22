@@ -37,9 +37,9 @@ class ParallelBeamProjectorTest:
         self.A = ParallelBeamProjector(
             input_shape=(N, N),
             volume_geometry=volume_geometry,
-            detector_spacing=1,
-            det_count=384,
-            angles=np.linspace(0, np.pi, 180, False),
+            detector_spacing=detector_spacing,
+            det_count=N_det,
+            angles=angles,
         )
 
 
