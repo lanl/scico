@@ -210,9 +210,6 @@ class LinearSubproblemSolver(SubproblemSolver):
             if isinstance(self.admm.f, WeightedSquaredL2Loss):
                 ATWy = self.admm.f.A.adj(self.admm.f.W.diagonal * self.admm.f.y)
                 rhs += 2.0 * self.admm.f.scale * ATWy
-            else:
-                ATy = self.admm.f.A.adj(self.admm.f.y)
-                rhs += 2.0 * self.admm.f.scale * ATy
 
         for rhoi, Ci, zi, ui in zip(
             self.admm.rho_list, self.admm.C_list, self.admm.z_list, self.admm.u_list
