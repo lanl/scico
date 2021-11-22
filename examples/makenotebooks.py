@@ -151,26 +151,36 @@ else:
 # Ensure list entries are unique
 scriptnames = list(set(scriptnames))
 
-# Construct script paths
-scripts = [Path("scripts") / Path(s) for s in scriptnames]
-
-# Display status information
-print(f"Processing scripts {', '.join(scriptnames)}")
-
-# Convert scripts to corresponding notebooks and create list of new/modified notebooks.
+# Creat list of selected scripts and corresponding notebooks.
+scripts = []
 notebooks = []
-for s in scripts:
-    nb = Path("notebooks") / (s.stem + ".ipynb")
+for s in scriptnames:
+    sb = Path(s).stem
+    spath = Path("scripts") / Path(sb + ".py")
+    npath = Path("notebooks") / Path(sb + ".ipynb")
     # If scripts specified on command line or --all flag specified, convert all scripts.
     # Otherwise, only convert scripts that have a newer timestamp than their corresponding
     # notebooks, or that have not previously been converted (i.e. corresponding notebook
     # file does not exist).
-    if args.all or args.filename or not nb.is_file() or s.stat().st_mtime > nb.stat().st_mtime:
-        # Make notebook file
-        script_to_notebook(s, nb)
-        # Add it to the list for execution
-        notebooks.append(nb)
+    if (
+        args.all
+        or args.filename
+        or not npath.is_file()
+        or spath.stat().st_mtime > npath.stat().st_mtime
+    ):
+        # Add to the list of selected scripts
+        scripts.append(spath)
+        # Add to the list of selected notebooks
+        notebooks.append(npath)
 
+# Display status information
+print(f"Processing scripts {', '.join([os.path.basename(s) for s in scriptnames])}")
+
+# Convert selected scripts to corresponding notebooks and create list of new/modified notebooks.
+for spath in scripts:
+    npath = Path("notebooks") / Path(spath.stem + ".ipynb")
+    # Make notebook file
+    script_to_notebook(spath, npath)
 
 # Run relevant notebooks if no excecution flag not specified
 if not args.no_exec:
