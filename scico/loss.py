@@ -74,9 +74,6 @@ class Loss(functional.Functional):
         self.has_prox = False  # TODO: implement a generic prox solver?
         self.has_eval = True
 
-        #: True if :math:`l(\mb{y}, A(\mb{x})` is quadratic in :math:`\mb{x}`.
-        self.is_quadratic: bool = False
-
         super().__init__()
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
@@ -163,9 +160,6 @@ class WeightedSquaredL2Loss(Loss):
             self.is_smooth = A.is_smooth
         else:
             self.is_smooth = None
-
-        if isinstance(self.A, linop.LinearOperator):
-            self.is_quadratic = True
 
         if isinstance(self.A, linop.Diagonal) and isinstance(self.W, linop.Diagonal):
             self.has_prox = True
