@@ -6,6 +6,7 @@ import pytest
 
 import scico
 from scico.test.linop.test_linop import adjoint_test
+from scico.test.linop.test_radon_svmbir import make_im
 
 try:
     from scico.linop.radon_astra import ParallelBeamProjector
@@ -14,13 +15,24 @@ except ImportError as e:
 
 
 N = 128
+rtol_cpu = 5e-5
+rtol_gpu = 7e-2
+rtol_gpu_random_input = 1.0
 
 
 def get_tol():
     if jax.devices()[0].device_kind == "cpu":
-        rtol = 5e-5
+        rtol = rtol_cpu
     else:
-        rtol = 7e-2
+        rtol = rtol_gpu  # astra inaccurate in GPU
+    return rtol
+
+
+def get_tol_random_input():
+    if jax.devices()[0].device_kind == "cpu":
+        rtol = rtol_cpu
+    else:
+        rtol = rtol_gpu_random_input  # astra more inaccurate in GPU for random inputs
     return rtol
 
 
@@ -93,6 +105,13 @@ def test_adjoint_grad(testobj):
     np.testing.assert_allclose(scico.grad(f)(Ax), 2 * A(A.adj(Ax)), rtol=get_tol())
 
 
-def test_adjoint(testobj):
+def test_adjoint_random(testobj):
     A = testobj.A
-    adjoint_test(A, rtol=get_tol())
+    adjoint_test(A, rtol=get_tol_random_input())
+
+
+def test_adjoint_typical_input(testobj):
+    A = testobj.A
+    x = make_im(A.input_shape[0], A.input_shape[1], is_3d=False)
+
+    adjoint_test(A, x=x, rtol=get_tol())

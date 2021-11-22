@@ -15,10 +15,16 @@ import jax
 import scico.numpy as snp
 from scico import linop
 from scico.random import randn
-from scico.typing import PRNGKey
+from scico.typing import JaxArray, PRNGKey
 
 
-def adjoint_test(A: linop.LinearOperator, key: Optional[PRNGKey] = None, rtol: float = 1e-4):
+def adjoint_test(
+    A: linop.LinearOperator,
+    key: Optional[PRNGKey] = None,
+    rtol: float = 1e-4,
+    x: Optional[JaxArray] = None,
+    y: Optional[JaxArray] = None,
+):
     """Check the validity of A.conj().T as the adjoint for a LinearOperator A.
 
     Args:
@@ -27,7 +33,7 @@ def adjoint_test(A: linop.LinearOperator, key: Optional[PRNGKey] = None, rtol: f
         rtol:  Relative tolerance
     """
 
-    assert linop.valid_adjoint(A, A.H, key=key, eps=rtol)
+    assert linop.valid_adjoint(A, A.H, key=key, eps=rtol, x=x, y=y)
 
 
 class AbsMatOp(linop.LinearOperator):

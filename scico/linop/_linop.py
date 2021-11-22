@@ -158,7 +158,7 @@ def valid_adjoint(
     v = AT(y)
     yTu = snp.dot(y.ravel().conj(), u.ravel())
     vTx = snp.dot(v.ravel().conj(), x.ravel())
-    err = snp.abs(yTu - vTx) / (snp.linalg.norm(y) * snp.linalg.norm(u))
+    err = snp.abs(yTu - vTx) / max(snp.linalg.norm(yTu), snp.linalg.norm(vTx))
     if eps is None:
         return err
     else:
