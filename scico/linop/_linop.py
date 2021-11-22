@@ -95,8 +95,8 @@ def valid_adjoint(
     A: LinearOperator,
     AT: LinearOperator,
     eps: Optional[float] = 1e-7,
-    x : Optional[JaxArray] = None,
-    y : Optional[JaxArray] = None,
+    x: Optional[JaxArray] = None,
+    y: Optional[JaxArray] = None,
     key: Optional[PRNGKey] = None,
 ) -> Union[bool, float]:
     r"""Check whether :class:`.LinearOperator` `AT` is the adjoint of `A`.
