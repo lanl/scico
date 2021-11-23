@@ -132,6 +132,8 @@ class LinearSubproblemSolver(SubproblemSolver):
         \left(A^H W A + \sum_{i=1}^N \rho_i C_i^H C_i \right) \mb{x}^{(k+1)} = \;
         A^H W \mb{y} + \sum_{i=1}^N \rho_i C_i^H ( \mb{z}^{(k)}_i - \mb{u}^{(k)}_i) \;.
 
+    In the case :class:`.SquaredL2Loss` :math:`W` is replaced with the :class:`Identity` operator.
+
     Attributes:
         admm (:class:`.ADMM`): ADMM solver object to which the solver is attached.
         cg_kwargs (dict): Dictionary of arguments for CG solver.
@@ -173,10 +175,10 @@ class LinearSubproblemSolver(SubproblemSolver):
                     f"LinearSubproblemSolver requires f.A to be a scico.linop.LinearOperator; "
                     f"got {type(admm.f.A)}"
                 )
-            if not isinstance(admm.f, WeightedSquaredL2Loss):
+            if not isinstance(admm.f, WeightedSquaredL2Loss):  # SquaredL2Loss is subclass
                 raise ValueError(
-                    f"LinearSubproblemSolver requires f to be a scico.loss.WeightedSquaredL2Loss; "
-                    f"got {type(admm.f)}"
+                    f"LinearSubproblemSolver requires f to be a scico.loss.WeightedSquaredL2Loss"
+                    f"or scico.loss.SquaredL2Loss; got {type(admm.f)}"
                 )
 
         super().internal_init(admm)
