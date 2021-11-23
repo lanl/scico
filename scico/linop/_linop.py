@@ -113,9 +113,9 @@ def valid_adjoint(
     :math:`\mathbf{x}` and :math:`\mathbf{y}` and confirming that
 
     .. math::
-      \frac{\| \mathbf{y}^T \mathbf{u} - \mathbf{v}^T \mathbf{x} \|}
-      {\max \left\{ \| \mathbf{y}^T \mathbf{u} \|,
-       \| \mathbf{v}^T \mathbf{x} \| \right\}}
+      \frac{| \mathbf{y}^T \mathbf{u} - \mathbf{v}^T \mathbf{x} |}
+      {\max \left\{ | \mathbf{y}^T \mathbf{u} |,
+       | \mathbf{v}^T \mathbf{x} | \right\}}
       < \epsilon \;.
 
     If :math:`\mathsf{A}` is a complex operator (with a complex
