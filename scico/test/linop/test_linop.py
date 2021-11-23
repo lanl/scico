@@ -36,7 +36,6 @@ def adjoint_test(
     assert linop.valid_adjoint(A, A.H, key=key, eps=rtol, x=x, y=y)
 
 
-
 def test_valid_adjoint():
 
     diagonal, key = randn((16,), dtype=np.float32)
