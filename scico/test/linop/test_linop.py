@@ -36,6 +36,20 @@ def adjoint_test(
     assert linop.valid_adjoint(A, A.H, key=key, eps=rtol, x=x, y=y)
 
 
+
+def test_valid_adjoint():
+
+    diagonal, key = randn((16,), dtype=np.float32)
+    D = linop.Diagonal(diagonal=diagonal)
+    assert linop.valid_adjoint(D, D.T, key=key, eps=None) < 1e-4
+    x, key = randn((8,), dtype=np.float32)
+    y, key = randn((8,), dtype=np.float32)
+    with pytest.raises(ValueError):
+        linop.valid_adjoint(D, D.T, key=key, x=x)
+    with pytest.raises(ValueError):
+        linop.valid_adjoint(D, D.T, key=key, y=y)
+
+
 class AbsMatOp(linop.LinearOperator):
     """Simple LinearOperator subclass for testing purposes.
 
