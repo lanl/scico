@@ -165,11 +165,6 @@ class WeightedSquaredL2Loss(Loss):
             self.has_prox = True
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
-        r"""Evaluate this loss at point :math:`\mb{x}`.
-
-        Args:
-            x : Point at which to evaluate loss.
-        """
         return self.scale * (self.W.diagonal * snp.abs(self.y - self.A(x)) ** 2).sum()
 
     def prox(
