@@ -6,7 +6,7 @@
 
 """SCICO -- a Python package for solving the inverse problems that arise in scientific imaging applications."""
 
-__version__ = "0.0.1"
+__version__ = "0.0.2a1"
 
 import sys
 
