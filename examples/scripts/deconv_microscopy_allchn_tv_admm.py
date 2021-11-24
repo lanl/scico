@@ -39,11 +39,7 @@ import numpy as np
 import jax
 
 import imageio
-
-try:
-    import ray
-except ImportError:
-    raise RuntimeError("The ray package is required to run this script")
+import ray
 
 import scico.numpy as snp
 from scico import functional, linop, loss, plot, util
