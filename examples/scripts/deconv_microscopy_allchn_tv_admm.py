@@ -72,8 +72,9 @@ def get_deconv_data(channel, cache_path=None):
         cache_path = os.path.join(os.path.expanduser("~"), ".cache", "scico", "epfl_big")
 
     # if cache path exists, data is assumed to aleady be downloaded
-    if not os.path.isdir(cache_path):
-        os.makedirs(cache_path)
+    if not os.path.isdir(os.path.join(cache_path, data_zip_files[channel][:-4])):
+        if not os.path.isdir(cache_path):
+            os.makedirs(cache_path)
         # temporary directory for downloads
         temp_dir = tempfile.TemporaryDirectory()
         # download data and psf files for selected channel into temporary directory
@@ -156,7 +157,7 @@ ray.init()
 
 ngpu = 0
 ar = ray.available_resources()
-ncpu = int(ar["CPU"]) // 3
+ncpu = max(int(ar["CPU"]) // 3, 1)
 if "GPU" in ar:
     ngpu = int(ar["GPU"]) // 3
 print(f"Running on {ncpu} CPUs and {ngpu} GPUs per process")
