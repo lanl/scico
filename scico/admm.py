@@ -145,6 +145,8 @@ class LinearSubproblemSolver(SubproblemSolver):
         A^H W \mb{y} + \sum_{i=1}^N \rho_i C_i^H ( \mb{z}^{(k)}_i -
         \mb{u}^{(k)}_i) \;.
 
+    In the case :class:`.SquaredL2Loss` :math:`W` is replaced with the :class:`Identity` operator.
+
     Attributes:
         admm (:class:`.ADMM`): ADMM solver object to which the solver is
             attached.
@@ -187,11 +189,14 @@ class LinearSubproblemSolver(SubproblemSolver):
         if admm.f is not None:
             if not isinstance(admm.f.A, LinearOperator):
                 raise ValueError(
-                    "LinearSubproblemSolver requires f.A to be a scico.linop.LinearOperator; "
+                    f"LinearSubproblemSolver requires f.A to be a scico.linop.LinearOperator; "
                     f"got {type(admm.f.A)}"
                 )
-            if not admm.f.is_quadratic:
-                raise ValueError("LinearSubproblemSolver requires f.is_quadratic == True")
+            if not isinstance(admm.f, WeightedSquaredL2Loss):  # SquaredL2Loss is subclass
+                raise ValueError(
+                    f"LinearSubproblemSolver requires f to be a scico.loss.WeightedSquaredL2Loss"
+                    f"or scico.loss.SquaredL2Loss; got {type(admm.f)}"
+                )
 
         super().internal_init(admm)
 
@@ -225,12 +230,8 @@ class LinearSubproblemSolver(SubproblemSolver):
         rhs = snp.zeros(C0.input_shape, C0.input_dtype)
 
         if self.admm.f is not None:
-            if isinstance(self.admm.f, WeightedSquaredL2Loss):
-                ATWy = self.admm.f.A.adj(self.admm.f.W.diagonal * self.admm.f.y)
-                rhs += 2.0 * self.admm.f.scale * ATWy
-            else:
-                ATy = self.admm.f.A.adj(self.admm.f.y)
-                rhs += 2.0 * self.admm.f.scale * ATy
+            ATWy = self.admm.f.A.adj(self.admm.f.W.diagonal * self.admm.f.y)
+            rhs += 2.0 * self.admm.f.scale * ATWy
 
         for rhoi, Ci, zi, ui in zip(
             self.admm.rho_list, self.admm.C_list, self.admm.z_list, self.admm.u_list
