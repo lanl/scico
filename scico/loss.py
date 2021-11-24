@@ -74,9 +74,6 @@ class Loss(functional.Functional):
         self.has_prox = False  # TODO: implement a generic prox solver?
         self.has_eval = True
 
-        #: True if :math:`l(\mb{y}, A(\mb{x})` is quadratic in :math:`\mb{x}`.
-        self.is_quadratic: bool = False
-
         super().__init__()
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
@@ -105,103 +102,6 @@ class Loss(functional.Functional):
     def set_scale(self, new_scale: float):
         r"""Update the scale attribute."""
         self.scale = new_scale
-
-
-class SquaredL2Loss(Loss):
-    r"""
-    Squared :math:`\ell_2` loss.
-
-    .. math::
-        \alpha \norm{\mb{y} - A(\mb{x})}_2^2 \;
-
-    where :math:`\alpha` is the scaling parameter.
-
-    """
-
-    def __init__(
-        self,
-        y: Union[JaxArray, BlockArray],
-        A: Optional[Union[Callable, operator.Operator]] = None,
-        scale: float = 0.5,
-        prox_kwargs: dict = {"maxiter": 1000, "tol": 1e-12},
-    ):
-        r"""Initialize a :class:`SquaredL2Loss` object.
-
-        Args:
-            y : Measurement.
-            A : Forward operator.  If None, defaults to :class:`.Identity`.
-            scale : Scaling parameter.
-        """
-        y = ensure_on_device(y)
-        super().__init__(y=y, A=A, scale=scale)
-
-        if isinstance(A, operator.Operator):
-            self.is_smooth = A.is_smooth
-        else:
-            self.is_smooth = None
-
-        if isinstance(self.A, linop.LinearOperator):
-            self.is_quadratic = True
-
-        if isinstance(self.A, linop.Diagonal):
-            self.has_prox = True
-
-        if prox_kwargs is None:
-            prox_kwargs = dict
-        self.prox_kwargs = prox_kwargs
-
-    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
-        r"""Evaluate this loss at point :math:`\mb{x}`.
-
-        Args:
-            x : Point at which to evaluate loss.
-        """
-        return self.scale * (snp.abs(self.y - self.A(x)) ** 2).sum()
-
-    def prox(
-        self, x: Union[JaxArray, BlockArray], lam: float, **kwargs
-    ) -> Union[JaxArray, BlockArray]:
-        if isinstance(self.A, linop.Diagonal):
-            c = 2.0 * self.scale
-            A = self.A
-            lhs = c * lam * A.adj(self.y) + x
-            return lhs / (c * lam * snp.abs(A.diagonal) ** 2 + 1.0)
-        else:
-            #      prox_{f}(x) =
-            #
-            #      arg min  1/2 || v - x ||^2 + λ α || A v - y ||^2
-            #         v
-            #
-            # solution at:
-            #
-            #      (I + λ 2α A^T A) v = x + λ 2α A^T y
-            #
-            A = self.A
-            α = self.scale
-            y = self.y
-            if "v0" in kwargs and kwargs["v0"] is not None:
-                v0 = kwargs["v0"]
-            else:
-                v0 = snp.zeros_like(x)
-            hessian = self.hessian  # = (2α A^T A)
-            lhs = linop.Identity(x.shape) + lam * hessian
-            rhs = x + 2 * lam * α * A.adj(y)
-            x, _ = cg(lhs, rhs, v0, **self.prox_kwargs)
-            return x
-
-    @property
-    def hessian(self) -> linop.LinearOperator:
-        r"""If ``self.A`` is a :class:`.LinearOperator`, returns a new :class:`.LinearOperator` corresponding
-        to Hessian :math:`2 \alpha \mathrm{A^H A}`.
-
-        Otherwise not implemented.
-        """
-        if isinstance(self.A, linop.LinearOperator):
-            return 2 * self.scale * self.A.gram_op
-        else:
-            raise NotImplementedError(
-                f"Hessian is not implemented for {type(self)} when `A` is {type(self.A)}; must be LinearOperator"
-            )
 
 
 class WeightedSquaredL2Loss(Loss):
@@ -260,9 +160,6 @@ class WeightedSquaredL2Loss(Loss):
             self.is_smooth = A.is_smooth
         else:
             self.is_smooth = None
-
-        if isinstance(self.A, linop.LinearOperator):
-            self.is_quadratic = True
 
         if isinstance(self.A, linop.Diagonal) and isinstance(self.W, linop.Diagonal):
             self.has_prox = True
@@ -325,6 +222,34 @@ class WeightedSquaredL2Loss(Loss):
             raise NotImplementedError(
                 f"Hessian is not implemented for {type(self)} when `A` is {type(A)}; must be LinearOperator"
             )
+
+
+class SquaredL2Loss(WeightedSquaredL2Loss):
+    r"""
+    Squared :math:`\ell_2` loss.
+
+    .. math::
+        \alpha \norm{\mb{y} - A(\mb{x})}_2^2 \;
+
+    where :math:`\alpha` is the scaling parameter.
+
+    """
+
+    def __init__(
+        self,
+        y: Union[JaxArray, BlockArray],
+        A: Optional[Union[Callable, operator.Operator]] = None,
+        scale: float = 0.5,
+        prox_kwargs: dict = {"maxiter": 1000, "tol": 1e-12},
+    ):
+        r"""Initialize a :class:`SquaredL2Loss` object.
+
+        Args:
+            y : Measurement.
+            A : Forward operator.  If None, defaults to :class:`.Identity`.
+            scale : Scaling parameter.
+        """
+        super().__init__(y=y, A=A, scale=scale, W=None, prox_kwargs=prox_kwargs)
 
 
 class PoissonLoss(Loss):
