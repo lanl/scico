@@ -161,7 +161,7 @@ ray.init()
 
 ngpu = 0
 ar = ray.available_resources()
-ncpu = int(ar["CPU"]) // 3
+ncpu = max(int(ar["CPU"]) // 3, 1)
 if "GPU" in ar:
     ngpu = int(ar["GPU"]) // 3
 print(f"Running on {ncpu} CPUs and {ngpu} GPUs per process")
