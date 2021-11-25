@@ -100,7 +100,7 @@ solve_admm = ADMM(
     f=f,
     g_list=[g],
     C_list=[C],
-    rho_list=[5e2],
+    rho_list=[1e1],
     x0=x0,
     maxiter=50,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": 10}),
