@@ -281,7 +281,7 @@ class LinearizedADMM:
             \left(A \mb{x}^{(k)} - \mb{z}^{(k)} + \mb{u}^{(k)} \right) \right)
         """
         proxarg = self.x - (self.mu / self.nu) * self.C.conj().T(self.C(self.x) - self.z + self.u)
-        return self.f.prox(proxarg, self.mu)
+        return self.f.prox(proxarg, self.mu, v0=self.x)
 
     def z_and_u_step(self, u, z):
         r"""Update the auxiliary variable :math:`\mb{z}` and scaled Lagrange multiplier
@@ -301,7 +301,7 @@ class LinearizedADMM:
         """
         z_old = z.copy()
         Cx = self.C(self.x)
-        z = self.g.prox(Cx + self.u, self.nu)
+        z = self.g.prox(Cx + self.u, self.nu, v0=self.z)
         u = self.u + Cx - self.z
         return u, z, z_old
 

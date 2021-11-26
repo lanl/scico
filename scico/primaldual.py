@@ -242,11 +242,11 @@ class PDHG:
         self.x_old = self.x.copy()
         self.z_old = self.z.copy()
         proxarg = self.x - self.tau * self.C.conj().T(self.z)
-        self.x = self.f.prox(proxarg, self.tau)
+        self.x = self.f.prox(proxarg, self.tau, v0=self.x)
         proxarg = self.z + self.sigma * self.C(
             (1.0 + self.alpha) * self.x - self.alpha * self.x_old
         )
-        self.z = self.g.conj_prox(proxarg, self.sigma)
+        self.z = self.g.conj_prox(proxarg, self.sigma, v0=self.z)
 
     def solve(
         self,
