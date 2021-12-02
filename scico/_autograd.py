@@ -4,7 +4,7 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Automatric differentiation tools."""
+"""Automatic differentiation tools."""
 
 
 from typing import Any, Callable, Sequence, Tuple, Union
@@ -20,9 +20,10 @@ def grad(
     holomorphic: bool = False,
     allow_int: bool = False,
 ) -> Callable:
-    """Creates a function which evaluates the gradient of ``fun``.
+    """Create a function that evaluates the gradient of ``fun``.
 
-    :func:`scico.grad` differs from :func:`jax.grad` in that the output is conjugated.
+    :func:`scico.grad` differs from :func:`jax.grad` in that the output
+    is conjugated.
 
     Docstring for :func:`jax.grad`:
 
@@ -76,9 +77,10 @@ def value_and_grad(
     holomorphic: bool = False,
     allow_int: bool = False,
 ) -> Callable[..., Tuple[Any, Any]]:
-    """Create a function which evaluates both ``fun`` and the gradient of ``fun``.
+    """Create a function that evaluates both ``fun`` and its gradient.
 
-    :func:`scico.value_and_grad` differs from :func:`jax.value_and_grad` in that the gradient is conjugated.
+    :func:`scico.value_and_grad` differs from :func:`jax.value_and_grad`
+    in that the gradient is conjugated.
 
     Docstring for :func:`jax.value_and_grad`:
 
@@ -125,12 +127,12 @@ def value_and_grad(
 
 
 def linear_adjoint(fun: Callable, *primals) -> Callable:
-    """Conjugate transpose a function that is promised to be linear.
+    """Conjugate transpose a function that is guaranteed to be linear.
 
     :func:`scico.linear_adjoint` differs from :func:`jax.linear_transpose`
-    for complex inputs in that the conjugate transpose (adjoint) of `fun` is returned.
-    :func:`scico.linear_adjoint` is identical to :func:`jax.linear_transpose`
-    for real-valued primals.
+    for complex inputs in that the conjugate transpose (adjoint) of `fun`
+    is returned. :func:`scico.linear_adjoint` is identical to
+    :func:`jax.linear_transpose` for real-valued primals.
 
     Docstring for :func:`jax.linear_transpose`:
 
@@ -197,7 +199,8 @@ def jacrev(
 ) -> Callable:
     """Jacobian of ``fun`` evaluated row-by-row using reverse-mode AD.
 
-    :func:`scico.jacrev` differs from :func:`jax.jacrev` in that the output is conjugated.
+    :func:`scico.jacrev` differs from :func:`jax.jacrev` in that the
+    output is conjugated.
 
     Docstring for :func:`jax.jacrev`:
 
