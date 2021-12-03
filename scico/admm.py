@@ -566,51 +566,6 @@ class ADMM:
         u_list = [snp.zeros(Ci.output_shape, dtype=Ci.output_dtype) for Ci in self.C_list]
         return u_list
 
-    def x_step(self, x):
-        r"""Update :math:`\mb{x}` by solving the optimization problem.
-
-        .. math::
-            \mb{x}^{(k+1)} = \argmin_{\mb{x}} \; f(\mb{x}) + \sum_i \frac{\rho_i}{2}
-            \norm{\mb{z}^{(k)}_i - \mb{u}^{(k)}_i - C_i \mb{x}}_2^2
-
-        """
-        return self.subproblem_solver.solve(x)
-
-    def z_and_u_step(self, u_list, z_list):
-        r"""Update the auxiliary variables :math:`\mb{z}_i` and scaled Lagrange multipliers
-        :math:`\mb{u}_i`.
-
-        The auxiliary variables are updated according to
-
-        .. math::
-            \begin{aligned}
-            \mb{z}_i^{(k+1)} &= \argmin_{\mb{z}_i} \; g_i(\mb{z}_i) + \frac{\rho_i}{2}
-            \norm{\mb{z}_i - \mb{u}^{(k)}_i - C_i \mb{x}^{(k+1)}}_2^2  \\
-            &= \mathrm{prox}_{g_i}(C_i \mb{x} + \mb{u}_i, 1 / \rho_i)
-            \end{aligned}
-
-        while the scaled Lagrange multipliers are updated according to
-
-        .. math::
-            \mb{u}_i^{(k+1)} =  \mb{u}_i^{(k)} + C_i \mb{x}^{(k+1)} - \mb{z}^{(k+1)}_i
-
-        """
-        z_list_old = z_list.copy()
-
-        # Unpack the arrays that will be changing to prevent side-effects
-        z_list = self.z_list
-        u_list = self.u_list
-
-        for i, (rhoi, gi, Ci, zi, ui) in enumerate(
-            zip(self.rho_list, self.g_list, self.C_list, z_list, u_list)
-        ):
-            Cix = Ci(self.x)
-            zi = gi.prox(Cix + ui, 1 / rhoi, v0=zi)
-            ui = ui + Cix - zi
-            z_list[i] = zi
-            u_list[i] = ui
-        return u_list, z_list, z_list_old
-
     def step(self):
         """Perform a single ADMM iteration.
 
