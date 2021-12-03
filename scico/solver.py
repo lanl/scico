@@ -439,7 +439,7 @@ def cg(
            when ``norm(residual) <= max(tol * norm(b), atol)``.
         atol : Absolute residual stopping tolerance. Convergence occurs
            when ``norm(residual) <= max(tol * norm(b), atol)``.
-        maxiter: Maximum iterations. Default: 1000
+        maxiter: Maximum iterations. Default: 1000.
         M: Preconditioner for A. The preconditioner should approximate
            the inverse of ``A``. The default, ``None``, does not use a
            preconditioner.
