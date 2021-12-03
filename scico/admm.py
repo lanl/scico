@@ -343,6 +343,7 @@ class ADMM:
         timer (:class:`.Timer`): Iteration timer.
         rho_list (list of scalars): List of :math:`\rho_i` penalty parameters.
             Must be same length as :code:`C_list` and :code:`g_list`.
+        alpha (float): Relaxation parameter.
         u_list (list of array-like): List of scaled Lagrange multipliers
             :math:`\mb{u}_i` at current iteration.
         x (array-like): Solution
@@ -360,6 +361,7 @@ class ADMM:
         g_list: List[Functional],
         C_list: List[LinearOperator],
         rho_list: List[float],
+        alpha: float = 1.0,
         x0: Optional[Union[JaxArray, BlockArray]] = None,
         maxiter: int = 100,
         subproblem_solver: Optional[SubproblemSolver] = None,
@@ -374,7 +376,8 @@ class ADMM:
                  as :code:`C_list` and :code:`rho_list`
             C_list : List of :math:`C_i` operators
             rho_list : List of :math:`\rho_i` penalty parameters.
-                Must be same length as :code:`C_list` and :code:`g_list`
+                Must be same length as :code:`C_list` and :code:`g_list`.
+            alpha: Relaxation parameter. No relaxation for default 1.0.
             x0 : Starting point for :math:`\mb{x}`.  If None, defaults to
                 an array of zeros.
             maxiter : Number of ADMM outer-loop iterations. Default: 100.
@@ -402,6 +405,7 @@ class ADMM:
         self.g_list: List[Functional] = g_list
         self.C_list: List[LinearOperator] = C_list
         self.rho_list: List[float] = rho_list
+        self.alpha: float = alpha
         self.itnum: int = 0
         self.maxiter: int = maxiter
         self.timer: Timer = Timer()
@@ -596,7 +600,10 @@ class ADMM:
         for i, (rhoi, gi, Ci, zi, ui) in enumerate(
             zip(self.rho_list, self.g_list, self.C_list, self.z_list, self.u_list)
         ):
-            Cix = Ci(self.x)
+            if self.alpha == 1.0:
+                Cix = Ci(self.x)
+            else:
+                Cix = self.alpha * Ci(self.x) + (1.0 - self.alpha) * zi
             zi = gi.prox(Cix + ui, 1 / rhoi, v0=zi)
             ui = ui + Cix - zi
             self.z_list[i] = zi
