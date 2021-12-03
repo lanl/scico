@@ -113,7 +113,7 @@ class TestRealWeighted:
         𝛼 = np.pi  # sort of random number chosen to test non-default scale factor
         λ = np.e
         self.Amx = Amx
-        self.W = W
+        self.W = jax.device_put(W)
         self.Bmx = Bmx
         self.y = jax.device_put(y)
         self.𝛼 = 𝛼
@@ -188,7 +188,7 @@ class TestComplex:
             ),
         )
         x = admm_.solve()
-        assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-4
+        assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 5e-4
 
     def test_admm_quadratic(self):
         maxiter = 50
