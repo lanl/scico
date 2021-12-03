@@ -26,11 +26,11 @@ __author__ = "Brendt Wohlberg <brendt@ieee.org>"
 
 
 class PDHG:
-    r"""Primal–Dual Hybrid Gradient algorithm.
+    r"""Primal–dual hybrid gradient (PDHG) algorithm.
 
     |
 
-    Primal–Dual Hybrid Gradient (PDHG) is a family of algorithms
+    Primal–dual hybrid gradient (PDHG) is a family of algorithms
     :cite:`esser-2010-general` that includes the Chambolle-Pock
     primal-dual algorithm :cite:`chambolle-2010-firstorder`. The form
     implemented here is a minor variant :cite:`pock-2011-diagonal` of the
@@ -68,8 +68,8 @@ class PDHG:
 
     Attributes:
         f (:class:`.Functional`): Functional :math:`f` (usually a
-          :class:`.Loss`)
-        g (:class:`.Functional`): Functional :math:`g`
+          :class:`.Loss`).
+        g (:class:`.Functional`): Functional :math:`g`.
         C (:class:`.LinearOperator`): :math:`C` operator.
         itnum (int): Iteration counter.
         maxiter (int): Number of ADMM outer-loop iterations.

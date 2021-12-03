@@ -28,7 +28,7 @@ __author__ = """\n""".join(
 
 
 class LinearizedADMM:
-    r"""Linearized Alternating Direction Method of Multipliers algorithm.
+    r"""Linearized alternating direction method of multipliers algorithm.
 
     |
 
@@ -78,7 +78,7 @@ class LinearizedADMM:
 
     Attributes:
         f (:class:`.Functional`): Functional :math:`f` (usually a
-           :class:`.Loss`)
+           :class:`.Loss`).
         g (:class:`.Functional`): Functional :math:`g`.
         C (:class:`.LinearOperator`): :math:`C` operator.
         itnum (int): Iteration counter.
@@ -117,7 +117,7 @@ class LinearizedADMM:
             nu: Second algorithm parameter.
             x0: Starting point for :math:`\mb{x}`. If None, defaults to
                 an array of zeros.
-            maxiter : Number of ADMM outer-loop iterations. Default: 100.
+            maxiter: Number of ADMM outer-loop iterations. Default: 100.
             verbose: Flag indicating whether iteration statistics should
                 be displayed.
             itstat: A tuple (`fieldspec`, `insertfunc`), where `fieldspec`
@@ -205,11 +205,11 @@ class LinearizedADMM:
 
         Args:
             x: Point at which to evaluate objective function. If `None`,
-                the objective is evaluated at the current iterate
-                :code:`self.x`.
+               the objective is evaluated at the current iterate
+               :code:`self.x`.
             z: Point at which to evaluate objective function. If `None`,
-                the objective is evaluated at the current iterate
-                :code:`self.z`.
+               the objective is evaluated at the current iterate
+               :code:`self.z`.
 
         Returns:
             scalar: Current value of the objective function.
@@ -236,8 +236,8 @@ class LinearizedADMM:
 
         Args:
             x: Point at which to evaluate primal residual. If `None`, the
-                 primal residual is evaluated at the currentiterate
-                 :code:`self.x`.
+               primal residual is evaluated at the currentiterate
+               :code:`self.x`.
 
         Returns:
             Current value of primal residual.
@@ -346,8 +346,8 @@ class LinearizedADMM:
 
         Args:
             callback: An optional callback function, taking an a single
-               argument of type :class:`LinearizedADMM`, that is called
-               at the end of every iteration.
+              argument of type :class:`LinearizedADMM`, that is called
+              at the end of every iteration.
 
         Returns:
             Computed solution.
