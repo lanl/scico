@@ -566,7 +566,7 @@ class ADMM:
         return u_list
 
     def step(self):
-        """Perform a single ADMM iteration.
+        r"""Perform a single ADMM iteration.
 
         The primary variable :math:`\mb{x}` is updated by solving the the
         optimization problem
