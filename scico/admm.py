@@ -614,10 +614,43 @@ class ADMM:
     def step(self):
         """Perform a single ADMM iteration.
 
-        Equivalent to calling :meth:`.x_step` followed by :meth:`.z_and_u_step`.
+        The primary variable :math:`\mb{x}` is updated by solving the the
+        optimization problem
+
+        .. math::
+            \mb{x}^{(k+1)} = \argmin_{\mb{x}} \; f(\mb{x}) + \sum_i
+            \frac{\rho_i}{2} \norm{\mb{z}^{(k)}_i - \mb{u}^{(k)}_i -
+            C_i \mb{x}}_2^2 \;.
+
+        The auxiliary variables are updated according to
+
+        .. math::
+            \begin{aligned}
+            \mb{z}_i^{(k+1)} &= \argmin_{\mb{z}_i} \; g_i(\mb{z}_i) +
+            \frac{\rho_i}{2} \norm{\mb{z}_i - \mb{u}^{(k)}_i - C_i
+            \mb{x}^{(k+1)}}_2^2  \\
+            &= \mathrm{prox}_{g_i}(C_i \mb{x} + \mb{u}_i, 1 / \rho_i) \;,
+            \end{aligned}
+
+        and the scaled Lagrange multipliers are updated according to
+
+        .. math::
+            \mb{u}_i^{(k+1)} =  \mb{u}_i^{(k)} + C_i \mb{x}^{(k+1)} -
+            \mb{z}^{(k+1)}_i \;.
         """
-        self.x = self.x_step(self.x)
-        self.u_list, self.z_list, self.z_list_old = self.z_and_u_step(self.u_list, self.z_list)
+
+        self.x = self.subproblem_solver.solve(self.x)
+
+        self.z_list_old = self.z_list.copy()
+
+        for i, (rhoi, gi, Ci, zi, ui) in enumerate(
+            zip(self.rho_list, self.g_list, self.C_list, self.z_list, self.u_list)
+        ):
+            Cix = Ci(self.x)
+            zi = gi.prox(Cix + ui, 1 / rhoi, v0=zi)
+            ui = ui + Cix - zi
+            self.z_list[i] = zi
+            self.u_list[i] = ui
 
     def solve(
         self,
