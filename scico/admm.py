@@ -80,7 +80,7 @@ class GenericSubproblemSolver(SubproblemSolver):
         """Initialize a :class:`GenericSubproblemSolver` object.
 
         Args:
-            minimize_kwargs : Dictionary of arguments for
+            minimize_kwargs: Dictionary of arguments for
                 :func:`scico.solver.minimize`.
         """
         self.minimize_kwargs = minimize_kwargs
@@ -89,7 +89,7 @@ class GenericSubproblemSolver(SubproblemSolver):
         """Solve the ADMM step.
 
         Args:
-           x0: Starting point.
+           x0: Initial value.
 
         Returns:
             Computed solution.
@@ -114,13 +114,13 @@ class GenericSubproblemSolver(SubproblemSolver):
 
 
 class LinearSubproblemSolver(SubproblemSolver):
-    r"""Solver for the case where :code:`f` is a quadratic function of
-    :math:`\mb{x}`.
+    r"""Solver for quadratic functionals.
 
-    Specialization of :class:`.SubproblemSolver` for the case where
-    :code:`f` is an :math:`\ell_2` or weighted :math:`\ell_2` norm,
-    and :code:`f.A` is a linear operator, so that the subproblem
-    involves solving a linear equation.  This requires that
+    Solver for the case in which :code:`f` is a quadratic function of
+    :math:`\mb{x}`. It is a specialization of :class:`.SubproblemSolver`
+    for the case where :code:`f` is an :math:`\ell_2` or weighted
+    :math:`\ell_2` norm, and :code:`f.A` is a linear operator, so that
+    the subproblem involves solving a linear equation. This requires that
     ``f.functional`` be an instance of either :class:`.SquaredL2Loss`
     or :class:`.WeightedSquaredL2Loss` and for the forward operator
     :code:`f.A` to be an instance of :class:`.LinearOperator`.
@@ -135,7 +135,7 @@ class LinearSubproblemSolver(SubproblemSolver):
         \norm{\mb{z}^{(k)}_i - \mb{u}^{(k)}_i - C_i \mb{x}}_2^2 \;,
 
     where :math:`W` is the weighting :class:`.Diagonal` from the
-    :class:`.WeightedSquaredL2Loss` instance.  This update step
+    :class:`.WeightedSquaredL2Loss` instance. This update step
     reduces to the solution of the linear system
 
     ..  math::
@@ -145,7 +145,8 @@ class LinearSubproblemSolver(SubproblemSolver):
         A^H W \mb{y} + \sum_{i=1}^N \rho_i C_i^H ( \mb{z}^{(k)}_i -
         \mb{u}^{(k)}_i) \;.
 
-    In the case :class:`.SquaredL2Loss` :math:`W` is replaced with the :class:`Identity` operator.
+    In the case of :class:`.SquaredL2Loss`, :math:`W` is set to
+    the :class:`Identity` operator.
 
     Attributes:
         admm (:class:`.ADMM`): ADMM solver object to which the solver is
@@ -154,14 +155,14 @@ class LinearSubproblemSolver(SubproblemSolver):
         cg (func): CG solver function (:func:`scico.solver.cg` or
             :func:`jax.scipy.sparse.linalg.cg`) lhs (type): Function
             implementing the linear operator needed for the
-            :math:`\mb{x}` update step
+            :math:`\mb{x}` update step.
     """
 
     def __init__(self, cg_kwargs: dict = {"maxiter": 100}, cg_function: str = "scico"):
         """Initialize a :class:`LinearSubproblemSolver` object.
 
         Args:
-            cg_kwargs : Dictionary of arguments for CG solver. See
+            cg_kwargs: Dictionary of arguments for CG solver. See
                 :func:`scico.solver.cg` or
                 :func:`jax.scipy.sparse.linalg.cg`, documentation,
                 including how to specify a preconditioner.
@@ -243,7 +244,7 @@ class LinearSubproblemSolver(SubproblemSolver):
         """Solve the ADMM step.
 
         Args:
-            x0: Starting point.
+            x0: Initial value.
 
         Returns:
             Computed solution.
@@ -262,7 +263,7 @@ class CircularConvolveSolver(LinearSubproblemSolver):
     forward operator :code:`f.A` is either an instance of
     :class:`.Identity` or :class:`.CircularConvolve`, and the
     :code:`C_i` are all instances of :class:`.Identity` or
-    :class:`.CircularConvolve`.  None of the instances of
+    :class:`.CircularConvolve`. None of the instances of
     :class:`.CircularConvolve` may sum over any of their axes.
 
     Attributes:
@@ -306,7 +307,7 @@ class CircularConvolveSolver(LinearSubproblemSolver):
         """Solve the ADMM step.
 
         Args:
-            x0: Starting point.
+            x0: Initial value.
 
         Returns:
             Computed solution.
@@ -382,7 +383,7 @@ class ADMM:
             :code:`g_list`.
         u_list (list of array-like): List of scaled Lagrange multipliers
             :math:`\mb{u}_i` at current iteration.
-        x (array-like): Solution
+        x (array-like): Solution.
         subproblem_solver (:class:`.SubproblemSolver`): Solver for
             :math:`\mb{x}`-update step.
         z_list (list of array-like): List of auxiliary variables
@@ -406,16 +407,16 @@ class ADMM:
         r"""Initialize an :class:`ADMM` object.
 
         Args:
-            f : Functional :math:`f` (usually a loss function)
-            g_list : List of :math:`g_i` functionals. Must be same length
-                 as :code:`C_list` and :code:`rho_list`
-            C_list : List of :math:`C_i` operators
-            rho_list : List of :math:`\rho_i` penalty parameters.
+            f: Functional :math:`f` (usually a loss function).
+            g_list: List of :math:`g_i` functionals. Must be same length
+                 as :code:`C_list` and :code:`rho_list`.
+            C_list: List of :math:`C_i` operators.
+            rho_list: List of :math:`\rho_i` penalty parameters.
                 Must be same length as :code:`C_list` and :code:`g_list`
-            x0 : Starting point for :math:`\mb{x}`.  If None, defaults to
+            x0: Starting point for :math:`\mb{x}`. If None, defaults to
                 an array of zeros.
-            maxiter : Number of ADMM outer-loop iterations. Default: 100.
-            subproblem_solver : Solver for :math:`\mb{x}`-update step.
+            maxiter: Number of ADMM outer-loop iterations. Default: 100.
+            subproblem_solver: Solver for :math:`\mb{x}`-update step.
                 Defaults to ``None``, which implies use of an instance of
                 :class:`GenericSubproblemSolver`.
             verbose: Flag indicating whether iteration statistics should
@@ -504,13 +505,15 @@ class ADMM:
     ) -> float:
         r"""Evaluate the objective function.
 
+        Evaluate the objective function
+
         .. math::
-            f(\mb{x}) + \sum_{i=1}^N g_i(\mb{z}_i)
+            f(\mb{x}) + \sum_{i=1}^N g_i(\mb{z}_i) \;.
 
         Args:
             x: Point at which to evaluate objective function. If `None`,
                 the objective is  evaluated at the current iterate
-                :code:`self.x`
+                :code:`self.x`.
             z_list: Point at which to evaluate objective function. If
                 `None`, the objective is evaluated at the current iterate
                 :code:`self.z_list`.
@@ -533,9 +536,11 @@ class ADMM:
     def norm_primal_residual(self, x: Optional[Union[JaxArray, BlockArray]] = None) -> float:
         r"""Compute the :math:`\ell_2` norm of the primal residual.
 
+        Compute the :math:`\ell_2` norm of the primal residual
+
         .. math::
             \left(\sum_{i=1}^N \norm{C_i \mb{x} -
-            \mb{z}_i}_2^2\right)^{1/2}
+            \mb{z}_i}_2^2\right)^{1/2} \;.
 
         Args:
             x: Point at which to evaluate primal residual.
@@ -556,9 +561,11 @@ class ADMM:
     def norm_dual_residual(self) -> float:
         r"""Compute the :math:`\ell_2` norm of the dual residual.
 
+        Compute the :math:`\ell_2` norm of the dual residual
+
         .. math::
             \left(\sum_{i=1}^N \norm{\mb{z}^{(k)}_i -
-            \mb{z}^{(k-1)}_i}_2^2\right)^{1/2}
+            \mb{z}^{(k-1)}_i}_2^2\right)^{1/2} \;.
 
         Returns:
             Current value of dual residual.
@@ -572,16 +579,16 @@ class ADMM:
     def z_init(self, x0: Union[JaxArray, BlockArray]):
         r"""Initialize auxiliary variables :math:`\mb{z}_i`.
 
-        Initializes to
+        Initialized to
 
         .. math::
-            \mb{z}_i = C_i \mb{x}^{(0)}
+            \mb{z}_i = C_i \mb{x}^{(0)} \;.
 
         :code:`z_list` and :code:`z_list_old` are initialized to the same
         value.
 
         Args:
-            x0: Starting point for :math:`\mb{x}`
+            x0: Initial value of :math:`\mb{x}`.
         """
         z_list = [Ci(x0) for Ci in self.C_list]
         z_list_old = z_list.copy()
@@ -590,24 +597,26 @@ class ADMM:
     def u_init(self, x0: Union[JaxArray, BlockArray]):
         r"""Initialize scaled Lagrange multipliers :math:`\mb{u}_i`.
 
-        Initializes to
+        Initialized to
 
         .. math::
-            \mb{u}_i = C_i \mb{x}^{(0)}
+            \mb{u}_i = C_i \mb{x}^{(0)} \;.
 
         Args:
-            x0: Starting point for :math:`\mb{x}`.
+            x0: Initial value of :math:`\mb{x}`.
         """
         u_list = [snp.zeros(Ci.output_shape, dtype=Ci.output_dtype) for Ci in self.C_list]
         return u_list
 
     def x_step(self, x):
-        r"""Update :math:`\mb{x}` by solving the optimization problem.
+        r"""Update variable :math:`\mb{x}`.
+
+        Update :math:`\mb{x}` by solving the optimization problem
 
         .. math::
             \mb{x}^{(k+1)} = \argmin_{\mb{x}} \; f(\mb{x}) + \sum_i
             \frac{\rho_i}{2} \norm{\mb{z}^{(k)}_i - \mb{u}^{(k)}_i -
-            C_i \mb{x}}_2^2
+            C_i \mb{x}}_2^2 \;.
         """
         return self.subproblem_solver.solve(x)
 
@@ -626,7 +635,7 @@ class ADMM:
             &= \mathrm{prox}_{g_i}(C_i \mb{x} + \mb{u}_i, 1 / \rho_i) \;,
             \end{aligned}
 
-        while the scaled Lagrange multipliers are updated according to
+        and the scaled Lagrange multipliers are updated according to
 
         .. math::
             \mb{u}_i^{(k+1)} =  \mb{u}_i^{(k)} + C_i \mb{x}^{(k+1)} -
