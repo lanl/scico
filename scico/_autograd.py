@@ -23,9 +23,9 @@ def _append_jax_docs(fn, jaxfn=None):
     name = fn.__name__
     if jaxfn is None:
         jaxfn = getattr(jax, name)
-    doc = fn.__doc__.replace("\n    ", "\n")  # deal with indentation differences
+    doc = "  " + fn.__doc__.replace("\n    ", "\n  ")  # deal with indentation differences
     jaxdoc = "\n".join(jaxfn.__doc__.split("\n")[2:])  # strip initial lines
-    return doc + f"\nDocstring for :func:`jax.{name}`:\n\n" + jaxdoc
+    return doc + f"\n  Docstring for :func:`jax.{name}`:\n\n" + jaxdoc
 
 
 def grad(
