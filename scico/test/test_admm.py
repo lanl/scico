@@ -98,6 +98,28 @@ class TestReal:
         x = admm_.solve()
         assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-5
 
+    def test_admm_quadratic_relax(self):
+        maxiter = 50
+        ρ = 1e0
+        A = linop.MatrixOperator(self.Amx)
+        f = loss.SquaredL2Loss(y=self.y, A=A, scale=self.𝛼 / 2.0)
+        g_list = [(self.λ / 2) * functional.SquaredL2Norm()]
+        C_list = [linop.MatrixOperator(self.Bmx)]
+        rho_list = [ρ]
+        admm_ = ADMM(
+            f=f,
+            g_list=g_list,
+            C_list=C_list,
+            rho_list=rho_list,
+            alpha=1.6,
+            maxiter=maxiter,
+            verbose=False,
+            x0=A.adj(self.y),
+            subproblem_solver=LinearSubproblemSolver(cg_function="jax"),
+        )
+        x = admm_.solve()
+        assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-5
+
 
 class TestRealWeighted:
     def setup_method(self, method):
