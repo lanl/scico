@@ -13,6 +13,21 @@ import jax
 import jax.numpy as jnp
 
 
+def _append_jax_docs(fn, jaxfn=None):
+    """Append the jax function docs.
+
+    Given wrapper function ``fn``, concatenate its docstring with the
+    docstring of the wrapped jax function.
+    """
+
+    name = fn.__name__
+    if jaxfn is None:
+        jaxfn = getattr(jax, name)
+    doc = fn.__doc__.replace("\n    ", "\n")  # deal with indentation differences
+    jaxdoc = "\n".join(jaxfn.__doc__.split("\n")[2:])  # strip initial lines
+    return doc + f"\nDocstring for :func:`jax.{name}`:\n\n" + jaxdoc
+
+
 def grad(
     fun: Callable,
     argnums: Union[int, Sequence[int]] = 0,
@@ -42,9 +57,7 @@ def grad(
 
 
 # Append docstring from original jax function
-grad.__doc__ += "\nDocstring for :func:`jax.grad`:\n\n" + "\n".join(
-    jax.grad.__doc__.split("\n")[2:]
-)
+grad.__doc__ = _append_jax_docs(grad)
 
 
 def value_and_grad(
@@ -77,9 +90,7 @@ def value_and_grad(
 
 
 # Append docstring from original jax function
-value_and_grad.__doc__ += "\nDocstring for :func:`jax.value_and_grad`:\n\n" + "\n".join(
-    jax.value_and_grad.__doc__.split("\n")[2:]
-)
+value_and_grad.__doc__ = _append_jax_docs(value_and_grad)
 
 
 def linear_adjoint(fun: Callable, *primals) -> Callable:
@@ -111,9 +122,7 @@ def linear_adjoint(fun: Callable, *primals) -> Callable:
 
 
 # Append docstring from original jax function
-linear_adjoint.__doc__ += "\nDocstring for :func:`jax.linear_transpose`:\n\n" + "\n".join(
-    jax.linear_transpose.__doc__.split("\n")[2:]
-)
+linear_adjoint.__doc__ = _append_jax_docs(linear_adjoint, jaxfn=jax.linear_transpose)
 
 
 def jacrev(
@@ -138,6 +147,4 @@ def jacrev(
 
 
 # Append docstring from original jax function
-jacrev.__doc__ += "\nDocstring for :func:`jax.jacrev`:\n\n" + "\n".join(
-    jax.jacrev.__doc__.split("\n")[2:]
-)
+jacrev.__doc__ = _append_jax_docs(jacrev)
