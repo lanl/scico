@@ -27,7 +27,7 @@ __author__ = """Luke Pfister <luke.pfister@gmail.com>"""
 
 
 def _wrap_func(func: Callable, shape: Union[Shape, BlockShape], dtype: DType) -> Callable:
-    """Compute function evaluation for use in :mod:`scipy.optimize` functions.
+    """Function evaluation for use in :mod:`scipy.optimize`.
 
     Compute function evaluation (without gradient) for use in
     :mod:`scipy.optimize` functions. Reshapes the input to ``func`` to
@@ -55,7 +55,7 @@ def _wrap_func(func: Callable, shape: Union[Shape, BlockShape], dtype: DType) ->
 
 
 def _wrap_func_and_grad(func: Callable, shape: Union[Shape, BlockShape], dtype: DType) -> Callable:
-    """Compute function evaluation and gradient for use in :mod:`scipy.optimize` functions.
+    """Function evaluation and gradient for use in :mod:`scipy.optimize`.
 
     Compute function evaluation and gradient for use in
     :mod:`scipy.optimize` functions. Reshapes the input to ``func`` to
@@ -109,7 +109,8 @@ def split_real_imag(x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArra
 def join_real_imag(x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
     """Join a real array of shape (2,N,M,...) into a complex array.
 
-    Join a real array of shape (2,N,M,...) into a complex array of length (N,M, ...).
+    Join a real array of shape (2,N,M,...) into a complex array of length
+    (N,M, ...).
 
     Args:
         x: Array to join.
@@ -438,7 +439,7 @@ def cg(
            when ``norm(residual) <= max(tol * norm(b), atol)``.
         atol : Absolute residual stopping tolerance. Convergence occurs
            when ``norm(residual) <= max(tol * norm(b), atol)``.
-        maxiter: Maximum iterations.  Default: 1000
+        maxiter: Maximum iterations. Default: 1000
         M: Preconditioner for A. The preconditioner should approximate
            the inverse of ``A``. The default, ``None``, does not use a
            preconditioner.
