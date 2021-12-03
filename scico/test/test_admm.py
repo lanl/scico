@@ -12,6 +12,54 @@ from scico.admm import (
 )
 
 
+class TestMisc:
+    def setup_method(self, method):
+        np.random.seed(12345)
+        self.y = jax.device_put(np.random.randn(32, 33).astype(np.float32))
+        self.λ = 1e0
+
+    def test_admm(self):
+        maxiter = 2
+        ρ = 1e-1
+        A = linop.Identity(self.y.shape)
+        f = loss.SquaredL2Loss(y=self.y, A=A)
+        g = (self.λ / 2) * functional.BM3D()
+        C = linop.Identity(self.y.shape)
+
+        itstat_dict = {"Iter": "%d", "Time": "%8.2e"}
+
+        def itstat_func(obj):
+            return (obj.itnum, obj.timer.elapsed())
+
+        admm_ = ADMM(
+            f=f,
+            g_list=[g],
+            C_list=[C],
+            rho_list=[ρ],
+            maxiter=maxiter,
+            verbose=False,
+        )
+        assert len(admm_.itstat_object.fieldname) == 4
+        assert snp.sum(admm_.x) == 0.0
+        admm_ = ADMM(
+            f=f,
+            g_list=[g],
+            C_list=[C],
+            rho_list=[ρ],
+            maxiter=maxiter,
+            verbose=False,
+            itstat=(itstat_dict, itstat_func),
+        )
+        assert len(admm_.itstat_object.fieldname) == 2
+
+        def callback(obj):
+            global flag
+            flag = True
+
+        x = admm_.solve(callback=callback)
+        assert flag
+
+
 class TestReal:
     def setup_method(self, method):
         np.random.seed(12345)
