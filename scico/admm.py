@@ -413,7 +413,7 @@ class ADMM:
             C_list: List of :math:`C_i` operators.
             rho_list: List of :math:`\rho_i` penalty parameters.
                 Must be same length as :code:`C_list` and :code:`g_list`
-            x0: Starting point for :math:`\mb{x}`. If None, defaults to
+            x0: Initial value for :math:`\mb{x}`. If None, defaults to
                 an array of zeros.
             maxiter: Number of ADMM outer-loop iterations. Default: 100.
             subproblem_solver: Solver for :math:`\mb{x}`-update step.
