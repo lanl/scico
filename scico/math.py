@@ -25,8 +25,8 @@ def safe_divide(
     """Return `x/y`, with 0 instead of NaN where `y` is 0.
 
     Args:
-        x:  Numerator
-        y:  Denominator
+        x:  Numerator.
+        y:  Denominator.
 
     Returns:
         `x / y` with 0 wherever `y == 0`.
@@ -38,10 +38,12 @@ def safe_divide(
 def rel_res(ax: Union[BlockArray, JaxArray], b: Union[BlockArray, JaxArray]) -> float:
     r"""Relative residual of the solution to a linear equation.
 
-    The standard relative residual for the linear system :math:`A \mathbf{x} = \mathbf{b}`
-    is :math:`\|\mathbf{b} - A \mathbf{x}\|_2 / \|\mathbf{b}\|_2`. This function computes
-    a variant :math:`\|\mathbf{b} - A \mathbf{x}\|_2 / \max(\|A\mathbf{x}\|_2,
-    \|\mathbf{b}\|_2)` that is robust to the case :math:`\mathbf{b} = 0`.
+    The standard relative residual for the linear system
+    :math:`A \mathbf{x} = \mathbf{b}` is :math:`\|\mathbf{b} -
+    A \mathbf{x}\|_2 / \|\mathbf{b}\|_2`. This function computes a
+    variant :math:`\|\mathbf{b} - A \mathbf{x}\|_2 /
+    \max(\|A\mathbf{x}\|_2, \|\mathbf{b}\|_2)` that is robust to the case
+    :math:`\mathbf{b} = 0`.
 
     Args:
         ax: Linear component :math:`A \mathbf{x}` of equation.
@@ -62,10 +64,11 @@ def is_real_dtype(dtype: DType) -> bool:
     """Determine whether a dtype is real.
 
     Args:
-        dtype: A numpy or scico.numpy dtype (e.g. np.float32, snp.complex64)
+        dtype: A numpy or scico.numpy dtype (e.g. np.float32,
+               snp.complex64).
 
     Returns:
-        False if the dtype is complex, otherwise True
+        False if the dtype is complex, otherwise True.
     """
     return snp.dtype(dtype).kind != "c"
 
@@ -74,10 +77,11 @@ def is_complex_dtype(dtype: DType) -> bool:
     """Determine whether a dtype is complex.
 
     Args:
-        dtype: A numpy or scico.numpy dtype (e.g. np.float32, snp.complex64)
+        dtype: A numpy or scico.numpy dtype (e.g. np.float32,
+               snp.complex64).
 
     Returns:
-        True if the dtype is complex, otherwise False
+        True if the dtype is complex, otherwise False.
     """
     return snp.dtype(dtype).kind == "c"
 
@@ -90,7 +94,8 @@ def real_dtype(dtype: DType) -> DType:
     `np.float32`.
 
     Args:
-        dtype: A complex numpy or scico.numpy  dtype, e.g. np.complex64, np.complex128
+        dtype: A complex numpy or scico.numpy dtype (e.g. np.complex64,
+               np.complex128).
 
     Returns:
         The real dtype corresponding to the input dtype
@@ -107,10 +112,11 @@ def complex_dtype(dtype: DType) -> DType:
     `np.complex64`.
 
     Args:
-        dtype: A real numpy or scico.numpy dtype, e.g. np.float32, np.float64
+        dtype: A real numpy or scico.numpy dtype (e.g. np.float32,
+               np.float64).
 
     Returns:
-        The complex dtype corresponding to the input dtype
+        The complex dtype corresponding to the input dtype.
     """
 
     return (snp.zeros(1, dtype) + 1j).dtype
