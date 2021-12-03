@@ -35,7 +35,7 @@ class TestReal:
 
     def test_admm_generic(self):
         maxiter = 100
-        ρ = 1e-1
+        ρ = 2e-1
         A = linop.MatrixOperator(self.Amx)
         f = loss.SquaredL2Loss(y=self.y, A=A, scale=self.𝛼 / 2.0)
         g_list = [(self.λ / 2) * functional.SquaredL2Norm()]
@@ -58,7 +58,7 @@ class TestReal:
 
     def test_admm_quadratic_scico(self):
         maxiter = 50
-        ρ = 1e0
+        ρ = 4e-1
         A = linop.MatrixOperator(self.Amx)
         f = loss.SquaredL2Loss(y=self.y, A=A, scale=self.𝛼 / 2.0)
         g_list = [(self.λ / 2) * functional.SquaredL2Norm()]
@@ -169,7 +169,7 @@ class TestComplex:
 
     def test_admm_generic(self):
         maxiter = 100
-        ρ = 2e-1
+        ρ = 1e0
         A = linop.MatrixOperator(self.Amx)
         f = loss.SquaredL2Loss(y=self.y, A=A, scale=self.𝛼 / 2.0)
         g_list = [(self.λ / 2) * functional.SquaredL2Norm()]
@@ -188,7 +188,7 @@ class TestComplex:
             ),
         )
         x = admm_.solve()
-        assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 5e-4
+        assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-4
 
     def test_admm_quadratic(self):
         maxiter = 50
