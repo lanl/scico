@@ -42,23 +42,26 @@ class LinearizedADMM:
     of :class:`.Loss`), and :math:`C` is an instance of
     :class:`.LinearOperator`.
 
-    The optimization problem is solved by introducing the splitting :math:`\mb{z} = C \mb{x}`
-    and solving
+    The optimization problem is solved by introducing the splitting
+    :math:`\mb{z} = C \mb{x}` and solving
 
     .. math::
         \argmin_{\mb{x}, \mb{z}} \; f(\mb{x}) + g(\mb{z}) \;
        \text{such that}\; C \mb{x} = \mb{z} \;,
 
     via a Linearized ADMM algorithm :cite:`yang-2012-linearized`
-    :cite:`parikh-2014-proximal` (Sec. 4.4.2) consisting of the iterations
+    :cite:`parikh-2014-proximal` (Sec. 4.4.2) consisting of the
+    iterations
 
     .. math::
        \begin{aligned}
-       \mb{x}^{(k+1)} &= \mathrm{prox}_{\mu f} \left( \mb{x}^{(k)} - (\mu / \nu) C^T
-       \left(C \mb{x}^{(k)} - \mb{z}^{(k)} + \mb{u}^{(k)} \right) \right) \\
-       \mb{z}^{(k+1)} &= \mathrm{prox}_{\nu g} \left(C \mb{x}^{(k+1)} + \mb{u}^{(k)}
-       \right) \\
-       \mb{u}^{(k+1)} &=  \mb{u}^{(k)} + C \mb{x}^{(k+1)} - \mb{z}^{(k+1)}  \; .
+       \mb{x}^{(k+1)} &= \mathrm{prox}_{\mu f} \left( \mb{x}^{(k)} -
+       (\mu / \nu) C^T \left(C \mb{x}^{(k)} - \mb{z}^{(k)} + \mb{u}^{(k)}
+       \right) \right) \\
+       \mb{z}^{(k+1)} &= \mathrm{prox}_{\nu g} \left(C \mb{x}^{(k+1)} +
+       \mb{u}^{(k)} \right) \\
+       \mb{u}^{(k+1)} &=  \mb{u}^{(k)} + C \mb{x}^{(k+1)} -
+       \mb{z}^{(k+1)}  \;.
        \end{aligned}
 
     Parameters :math:`\mu` and :math:`\nu` are required to satisfy
@@ -66,25 +69,30 @@ class LinearizedADMM:
     .. math::
        0 < \mu < \nu \| C \|_2^{-2} \;.
 
-    For documentation on minimization with respect to :math:`\mb{x}`, see :meth:`x_step`.
+    For documentation on minimization with respect to :math:`\mb{x}`, see
+    :meth:`x_step`.
 
     For documentation on minimization with respect to :math:`\mb{z}` and
     :math:`\mb{u}`, see :meth:`z_and_u_step`.
 
 
     Attributes:
-        f (:class:`.Functional`): Functional :math:`f` (usually a :class:`.Loss`)
-        g (:class:`.Functional`): Functional :math:`g`
+        f (:class:`.Functional`): Functional :math:`f` (usually a
+           :class:`.Loss`)
+        g (:class:`.Functional`): Functional :math:`g`.
         C (:class:`.LinearOperator`): :math:`C` operator.
         itnum (int): Iteration counter.
         maxiter (int): Number of ADMM outer-loop iterations.
         timer (:class:`.Timer`): Iteration timer.
         mu (scalar): First algorithm parameter.
         nu (scalar): Second algorithm parameter.
-        u (array-like): Scaled Lagrange multipliers :math:`\mb{u}` at current iteration.
-        x (array-like): Solution
-        z (array-like): Auxiliary variables :math:`\mb{z}` at current iteration.
-        z_old (array-like): Auxiliary variables :math:`\mb{z}` at previous iteration.
+        u (array-like): Scaled Lagrange multipliers :math:`\mb{u}` at
+           current iteration.
+        x (array-like): Solution variable.
+        z (array-like): Auxiliary variables :math:`\mb{z}` at current
+          iteration.
+        z_old (array-like): Auxiliary variables :math:`\mb{z}` at
+          previous iteration.
     """
 
     def __init__(
@@ -102,19 +110,23 @@ class LinearizedADMM:
         r"""Initialize a :class:`LinearizedADMM` object.
 
         Args:
-            f : Functional :math:`f` (usually a loss function).
-            g : Functional :math:`g`.
-            C : Operator :math:`C`.
-            mu : First algorithm parameter.
-            nu : Second algorithm parameter.
-            x0 : Starting point for :math:`\mb{x}`.  If None, defaults to an array of zeros.
+            f: Functional :math:`f` (usually a loss function).
+            g: Functional :math:`g`.
+            C: Operator :math:`C`.
+            mu: First algorithm parameter.
+            nu: Second algorithm parameter.
+            x0: Starting point for :math:`\mb{x}`. If None, defaults to
+                an array of zeros.
             maxiter : Number of ADMM outer-loop iterations. Default: 100.
-            verbose: Flag indicating whether iteration statistics should be displayed.
-            itstat: A tuple (`fieldspec`, `insertfunc`), where `fieldspec` is a dict suitable
-                for passing to the `fields` argument of the :class:`.diagnostics.IterationStats`
-                initializer, and `insertfunc` is a function with two parameters, an integer
-                and a LinearizedADMM object, responsible for constructing a tuple ready for
-                insertion into the :class:`.diagnostics.IterationStats` object. If None,
+            verbose: Flag indicating whether iteration statistics should
+                be displayed.
+            itstat: A tuple (`fieldspec`, `insertfunc`), where `fieldspec`
+                is a dict suitable for passing to the `fields` argument
+                of the :class:`.diagnostics.IterationStats` initializer,
+                and `insertfunc` is a function with two parameters, an
+                integer and a LinearizedADMM object, responsible for
+                constructing a tuple ready for insertion into the
+                :class:`.diagnostics.IterationStats` object. If None,
                 default values are used for the tuple components.
         """
         self.f: Functional = f
@@ -184,19 +196,23 @@ class LinearizedADMM:
     ) -> float:
         r"""Evaluate the objective function.
 
+
+        Evaluate the objective function
+
         .. math::
-            f(\mb{x}) + g(\mb{z})
+            f(\mb{x}) + g(\mb{z}) \;.
 
 
         Args:
-            x: Point at which to evaluate objective function. If `None`, the objective is
-                evaluated at the current iterate :code:`self.x`
-            z: Point at which to evaluate objective function. If `None`, the objective is
-                evaluated at the current iterate :code:`self.z`
-
+            x: Point at which to evaluate objective function. If `None`,
+                the objective is evaluated at the current iterate
+                :code:`self.x`.
+            z: Point at which to evaluate objective function. If `None`,
+                the objective is evaluated at the current iterate
+                :code:`self.z`.
 
         Returns:
-            scalar: Current value of the objective function
+            scalar: Current value of the objective function.
         """
         if (x is None) != (z is None):
             raise ValueError("Both or neither of x and z must be supplied")
@@ -212,15 +228,19 @@ class LinearizedADMM:
     def norm_primal_residual(self, x: Optional[Union[JaxArray, BlockArray]] = None) -> float:
         r"""Compute the :math:`\ell_2` norm of the primal residual.
 
+
+        Compute the :math:`\ell_2` norm of the primal residual
+
         .. math::
-            \norm{C \mb{x} - \mb{z}}_2
+            \norm{C \mb{x} - \mb{z}}_2 \;.
 
         Args:
-            x: Point at which to evaluate primal residual.
-               If `None`, the primal residual is evaluated at the current iterate :code:`self.x`
+            x: Point at which to evaluate primal residual. If `None`, the
+                 primal residual is evaluated at the currentiterate
+                 :code:`self.x`.
 
         Returns:
-            Current value of primal residual
+            Current value of primal residual.
         """
         if x is None:
             x = self.x
@@ -230,27 +250,28 @@ class LinearizedADMM:
     def norm_dual_residual(self) -> float:
         r"""Compute the :math:`\ell_2` norm of the dual residual.
 
+        Compute the :math:`\ell_2` norm of the dual residual
+
         .. math::
-            \norm{\mb{z}^{(k)} - \mb{z}^{(k-1)}}_2
+            \norm{\mb{z}^{(k)} - \mb{z}^{(k-1)}}_2 \;.
 
         Returns:
-            Current value of dual residual
-
+            Current value of dual residual.
         """
         return norm(self.C.adj(self.z - self.z_old))
 
     def z_init(self, x0: Union[JaxArray, BlockArray]):
         r"""Initialize auxiliary variable :math:`\mb{z}`.
 
-        Initializes to
+        Initialized to
 
         .. math::
-            \mb{z} = C \mb{x}^{(0)}
+            \mb{z} = C \mb{x}^{(0)} \;.
 
         :code:`z` and :code:`z_old` are initialized to the same value.
 
         Args:
-            x0: Starting point for :math:`\mb{x}`
+            x0: Starting point for :math:`\mb{x}`.
         """
         z = self.C(x0)
         z_old = z.copy()
@@ -259,14 +280,14 @@ class LinearizedADMM:
     def u_init(self, x0: Union[JaxArray, BlockArray]):
         r"""Initialize scaled Lagrange multiplier :math:`\mb{u}`.
 
-        Initializes to
+        Initialized to
 
         .. math::
-            \mb{u} = C \mb{x}^{(0)}
+            \mb{u} = C \mb{x}^{(0)} \;.
 
 
         Args:
-            x0: Starting point for :math:`\mb{x}`
+            x0: Starting point for :math:`\mb{x}`.
         """
         u = snp.zeros(self.C.output_shape, dtype=self.C.output_dtype)
         return u
@@ -277,8 +298,9 @@ class LinearizedADMM:
         Update :math:`\mb{x}` by computing
 
         .. math::
-            \mb{x}^{(k+1)} = \mathrm{prox}_{\mu f} \left( \mb{x}^{(k)} - (\mu / \nu) A^T
-            \left(A \mb{x}^{(k)} - \mb{z}^{(k)} + \mb{u}^{(k)} \right) \right)
+            \mb{x}^{(k+1)} = \mathrm{prox}_{\mu f} \left( \mb{x}^{(k)} -
+            (\mu / \nu) A^T \left(A \mb{x}^{(k)} - \mb{z}^{(k)} +
+            \mb{u}^{(k)} \right) \right) \;.
         """
         proxarg = self.x - (self.mu / self.nu) * self.C.conj().T(self.C(self.x) - self.z + self.u)
         return self.f.prox(proxarg, self.mu, v0=self.x)
@@ -290,14 +312,14 @@ class LinearizedADMM:
         The auxiliary variable is updated according to
 
         .. math::
-            \mb{z}^{(k+1)} = \mathrm{prox}_{\nu g} \left(A \mb{x}^{(k+1)} + \mb{u}^{(k)}
-            \right)
+            \mb{z}^{(k+1)} = \mathrm{prox}_{\nu g} \left(A \mb{x}^{(k+1)}
+            + \mb{u}^{(k)} \right) \;,
 
-        while the scaled Lagrange multiplier is updated according to
+        and the scaled Lagrange multiplier is updated according to
 
         .. math::
-            \mb{u}^{(k+1)} =  \mb{u}^{(k)} + C \mb{x}^{(k+1)} - \mb{z}^{(k+1)}
-
+            \mb{u}^{(k+1)} =  \mb{u}^{(k)} + C \mb{x}^{(k+1)} -
+            \mb{z}^{(k+1)} \;.
         """
         z_old = z.copy()
         Cx = self.C(self.x)
@@ -323,8 +345,9 @@ class LinearizedADMM:
         ``self.maxiter`` iterations.
 
         Args:
-            callback: An optional callback function, taking an a single argument of type
-               :class:`LinearizedADMM`, that is called at the end of every iteration.
+            callback: An optional callback function, taking an a single
+               argument of type :class:`LinearizedADMM`, that is called
+               at the end of every iteration.
 
         Returns:
             Computed solution.

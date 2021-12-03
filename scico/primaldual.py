@@ -104,19 +104,19 @@ class PDHG:
         r"""Initialize a :class:`PDHG` object.
 
         Args:
-            f : Functional :math:`f` (usually a loss function).
-            g : Functional :math:`g`.
-            C : Operator :math:`C`.
-            tau : First algorithm parameter.
-            sigma : Second algorithm parameter.
-            alpha : Relaxation parameter.
-            x0 : Starting point for :math:`\mb{x}`. If None, defaults to
+            f: Functional :math:`f` (usually a loss function).
+            g: Functional :math:`g`.
+            C: Operator :math:`C`.
+            tau: First algorithm parameter.
+            sigma: Second algorithm parameter.
+            alpha: Relaxation parameter.
+            x0: Starting point for :math:`\mb{x}`. If None, defaults to
                an array of zeros.
-            z0 : Starting point for :math:`\mb{z}`. If None, defaults to
+            z0: Starting point for :math:`\mb{z}`. If None, defaults to
                an array of zeros.
-            maxiter : Number of ADMM outer-loop iterations. Default: 100.
-            verbose: Flag indicating whether iteration statistics should be
-               displayed.
+            maxiter: Number of ADMM outer-loop iterations. Default: 100.
+            verbose: Flag indicating whether iteration statistics should
+               be displayed.
             itstat: A tuple (`fieldspec`, `insertfunc`), where `fieldspec`
                is a dict suitable for passing to the `fields` argument
                of the :class:`.diagnostics.IterationStats` initializer,
@@ -197,8 +197,10 @@ class PDHG:
     ) -> float:
         r"""Evaluate the objective function.
 
+        Evaluate the objective function
+
         .. math::
-            f(\mb{x}) + g(C \mb{x})
+            f(\mb{x}) + g(C \mb{x}) \;.
 
         Args:
             x: Point at which to evaluate objective function. If `None`,
@@ -206,7 +208,7 @@ class PDHG:
                 :code:`self.x`
 
         Returns:
-            scalar: Current value of the objective function
+            scalar: Current value of the objective function.
         """
         if x is None:
             x = self.x
@@ -216,11 +218,13 @@ class PDHG:
     def norm_primal_residual(self) -> float:
         r"""Compute the :math:`\ell_2` norm of the primal residual.
 
+        Compute the :math:`\ell_2` norm of the primal residual
+
         .. math::
-            \tau^{-1} \norm{\mb{x}^{(k)} - \mb{x}^{(k-1)}}_2
+            \tau^{-1} \norm{\mb{x}^{(k)} - \mb{x}^{(k-1)}}_2 \;.
 
         Returns:
-            Current value of primal residual
+            Current value of primal residual.
         """
 
         return norm(self.x - self.x_old) / self.tau
@@ -228,11 +232,13 @@ class PDHG:
     def norm_dual_residual(self) -> float:
         r"""Compute the :math:`\ell_2` norm of the dual residual.
 
+        Compute the :math:`\ell_2` norm of the dual residual
+
         .. math::
-            \sigma^{-1} \norm{\mb{z}^{(k)} - \mb{z}^{(k-1)}}_2
+            \sigma^{-1} \norm{\mb{z}^{(k)} - \mb{z}^{(k-1)}}_2 \;.
 
         Returns:
-            Current value of dual residual
+            Current value of dual residual.
 
         """
         return norm(self.z - self.z_old) / self.sigma
@@ -258,8 +264,9 @@ class PDHG:
         ``self.maxiter`` iterations.
 
         Args:
-            callback: An optional callback function, taking an a single argument of type
-               :class:`PDHG`, that is called at the end of every iteration.
+            callback: An optional callback function, taking an a single
+               argument of type :class:`PDHG`, that is called at the end
+               of every iteration.
 
         Returns:
             Computed solution.
