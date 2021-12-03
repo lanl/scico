@@ -321,7 +321,7 @@ class ADMM:
        \text{such that}\; C_i \mb{x} = \mb{z}_i \;,
 
     via an ADMM algorithm :cite:`glowinski-1975-approximation` :cite:`gabay-1976-dual`
-    :cite:`boyd-2010-distributed`. consisting of the iterations
+    :cite:`boyd-2010-distributed`. consisting of the iterations (see :meth:`step`)
 
     .. math::
        \begin{aligned}
@@ -331,11 +331,6 @@ class ADMM:
         \norm{\mb{z}_i - \mb{u}^{(k)}_i - C_i \mb{x}^{(k+1)}}_2^2  \\
        \mb{u}_i^{(k+1)} &=  \mb{u}_i^{(k)} + C_i \mb{x}^{(k+1)} - \mb{z}^{(k+1)}_i  \; .
        \end{aligned}
-
-    For documentation on minimization with respect to :math:`\mb{x}`, see :meth:`x_step`.
-
-    For documentation on minimization with respect to :math:`\mb{z}_i` and
-    :math:`\mb{u}_i`, see :meth:`z_and_u_step`.
 
 
     Attributes:
