@@ -484,8 +484,8 @@ class ContextTimer:
     ):
         """
         Args:
-           timer: Timer object to be used as a context manager. If ``None``, a
-              new class:`Timer` object is constructed.
+           timer: Timer object to be used as a context manager. If
+              ``None``, a new class:`Timer` object is constructed.
            label: Label of the timer to be used. If it is ``None``, start
               the default timer.
            action: Actions to be taken on context entry and exit. If the
