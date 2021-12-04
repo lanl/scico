@@ -313,9 +313,8 @@ class LinearizedADMM:
 
         self.z_old = self.z.copy()
         Cx = self.C(self.x)
-        z = self.g.prox(Cx + self.u, self.nu, v0=self.z)
+        self.z = self.g.prox(Cx + self.u, self.nu, v0=self.z)
         self.u = self.u + Cx - self.z
-        self.z = z
 
     def solve(
         self,
