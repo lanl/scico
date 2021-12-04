@@ -359,7 +359,7 @@ class ADMM:
        \mb{u}_i^{(k+1)} &=  \mb{u}_i^{(k)} + C_i \mb{x}^{(k+1)} -
        \mb{z}^{(k+1)}_i  \; .
        \end{aligned}
-       
+
 
     Attributes:
         f (:class:`.Functional`): Functional :math:`f` (usually a
@@ -605,7 +605,7 @@ class ADMM:
         """
         u_list = [snp.zeros(Ci.output_shape, dtype=Ci.output_dtype) for Ci in self.C_list]
         return u_list
-    
+
     def step(self):
         r"""Perform a single ADMM iteration.
 
