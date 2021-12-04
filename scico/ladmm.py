@@ -51,7 +51,7 @@ class LinearizedADMM:
 
     via a linearized ADMM algorithm :cite:`yang-2012-linearized`
     :cite:`parikh-2014-proximal` (Sec. 4.4.2) consisting of the
-    iterations
+    iterations (see :meth:`step`)
 
     .. math::
        \begin{aligned}
@@ -68,12 +68,6 @@ class LinearizedADMM:
 
     .. math::
        0 < \mu < \nu \| C \|_2^{-2} \;.
-
-    For documentation on minimization with respect to :math:`\mb{x}`, see
-    :meth:`x_step`.
-
-    For documentation on minimization with respect to :math:`\mb{z}` and
-    :math:`\mb{u}`, see :meth:`z_and_u_step`.
 
 
     Attributes:
@@ -292,22 +286,15 @@ class LinearizedADMM:
         u = snp.zeros(self.C.output_shape, dtype=self.C.output_dtype)
         return u
 
-    def x_step(self, x):
-        r"""Update :math:`\mb{x}`.
+    def step(self):
+        r"""Perform a single linearized ADMM iteration.
 
-        Update :math:`\mb{x}` by computing
+        The primary variable :math:`\mb{x}` is updated by computing
 
         .. math::
             \mb{x}^{(k+1)} = \mathrm{prox}_{\mu f} \left( \mb{x}^{(k)} -
             (\mu / \nu) A^T \left(A \mb{x}^{(k)} - \mb{z}^{(k)} +
             \mb{u}^{(k)} \right) \right) \;.
-        """
-        proxarg = self.x - (self.mu / self.nu) * self.C.conj().T(self.C(self.x) - self.z + self.u)
-        return self.f.prox(proxarg, self.mu, v0=self.x)
-
-    def z_and_u_step(self, u, z):
-        r"""Update the auxiliary variable :math:`\mb{z}` and scaled Lagrange multiplier
-        :math:`\mb{u}`.
 
         The auxiliary variable is updated according to
 
@@ -321,19 +308,14 @@ class LinearizedADMM:
             \mb{u}^{(k+1)} =  \mb{u}^{(k)} + C \mb{x}^{(k+1)} -
             \mb{z}^{(k+1)} \;.
         """
-        z_old = z.copy()
+        proxarg = self.x - (self.mu / self.nu) * self.C.conj().T(self.C(self.x) - self.z + self.u)
+        self.x = self.f.prox(proxarg, self.mu, v0=self.x)
+
+        self.z_old = self.z.copy()
         Cx = self.C(self.x)
         z = self.g.prox(Cx + self.u, self.nu, v0=self.z)
-        u = self.u + Cx - self.z
-        return u, z, z_old
-
-    def step(self):
-        """Perform a single ADMM iteration.
-
-        Equivalent to calling :meth:`.x_step` followed by :meth:`.z_and_u_step`.
-        """
-        self.x = self.x_step(self.x)
-        self.u, self.z, self.z_old = self.z_and_u_step(self.u, self.z)
+        self.u = self.u + Cx - self.z
+        self.z = z
 
     def solve(
         self,
