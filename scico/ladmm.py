@@ -49,7 +49,7 @@ class LinearizedADMM:
         \argmin_{\mb{x}, \mb{z}} \; f(\mb{x}) + g(\mb{z}) \;
        \text{such that}\; C \mb{x} = \mb{z} \;,
 
-    via a Linearized ADMM algorithm :cite:`yang-2012-linearized`
+    via a linearized ADMM algorithm :cite:`yang-2012-linearized`
     :cite:`parikh-2014-proximal` (Sec. 4.4.2) consisting of the
     iterations
 
