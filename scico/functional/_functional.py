@@ -5,7 +5,7 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"Functional base class." ""
+"""Functional base class."""
 
 import warnings
 from typing import List, Optional, Union
@@ -25,8 +25,9 @@ __author__ = """\n""".join(
 class Functional:
     r"""Base class for functionals.
 
-    A functional maps an :code:`array-like` to a scalar; abstractly, a functional is
-    a mapping from :math:`\mathbb{R}^n` or :math:`\mathbb{C}^n` to :math:`\mathbb{R}`.
+    A functional maps an :code:`array-like` to a scalar; abstractly, a
+    functional is a mapping from :math:`\mathbb{R}^n` or
+    :math:`\mathbb{C}^n` to :math:`\mathbb{R}`.
     """
 
     #: True if this functional can be evaluated, False otherwise.
@@ -67,7 +68,7 @@ is_smooth = {self.is_smooth}
         r"""Evaluate this functional at point :math:`\mb{x}`.
 
         Args:
-           x : Point at which to evaluate this functional.
+           x: Point at which to evaluate this functional.
 
         """
         if not self.has_eval:
@@ -85,16 +86,19 @@ is_smooth = {self.is_smooth}
         `x` = :math:`\mb{x}`
 
         .. math::
-           \mathrm{prox}_{\lambda f}(\mb{x}) = \argmin_{\mb{v}} \frac{1}{2}
-           \norm{\mb{x} - \mb{v}}_2^2 + \lambda \ \mathrm{f}(\mb{v}) \;,
+           \mathrm{prox}_{\lambda f}(\mb{x}) = \argmin_{\mb{v}}
+           \frac{1}{2} \norm{\mb{x} - \mb{v}}_2^2 + \lambda
+           \ \mathrm{f}(\mb{v}) \;,
 
-        where :math:`f(\mb{v})` represents this functional evaluated at :math:`\mb{v}`.
+        where :math:`f(\mb{v})` represents this functional evaluated at
+        :math:`\mb{v}`.
 
         Args:
-            x : Point at which to evaluate prox function.
-            lam : Proximal parameter :math:`\lambda`.
-            kwargs : Additional arguments that may be used by derived
-                classes. These include ``v0``, an initial guess for the minimizer.
+            x: Point at which to evaluate prox function.
+            lam: Proximal parameter :math:`\lambda`.
+            kwargs: Additional arguments that may be used by derived
+                classes. These include ``v0``, an initial guess for the
+                minimizer.
 
         """
         if not self.has_prox:
@@ -109,28 +113,29 @@ is_smooth = {self.is_smooth}
 
         Evaluate scaled proximal operator of convex conjugate (Fenchel
         conjugate) of this functional, with scaling
-        `lam` = :math:`\lambda`, and evaluated at point `x` = :math:`\mb{x}`.
-        Denoting this functional by :math:`f` and its convex conjugate by
-        :math:`f^*`, the proximal operator of :math:`f^*` is computed as
-        follows by exploiting the extended Moreau decomposition (see
-        Sec. 6.6 of :cite:`beck-2017-first`)
+        `lam` = :math:`\lambda`, and evaluated at point
+        `x` = :math:`\mb{x}`. Denoting this functional by :math:`f` and
+        its convex conjugate by :math:`f^*`, the proximal operator of
+        :math:`f^*` is computed as follows by exploiting the extended
+        Moreau decomposition (see Sec. 6.6 of :cite:`beck-2017-first`)
 
         .. math::
            \mathrm{prox}_{\lambda f^*}(\mb{x}) = \mb{x} - \lambda
            \mathrm{prox}_{\lambda^{-1} f}(\mb{x / \lambda}) \;.
 
         Args:
-            x : Point at which to evaluate prox function.
-            lam : Proximal parameter :math:`\lambda`.
-            kwargs : additional keyword args, passed directly to ``self.prox``.
+            x: Point at which to evaluate prox function.
+            lam: Proximal parameter :math:`\lambda`.
+            kwargs: Additional keyword args, passed directly to
+               ``self.prox``.
         """
         return x - lam * self.prox(x / lam, 1.0 / lam, **kwargs)
 
     def grad(self, x: Union[JaxArray, BlockArray]):
-        r"""Evaluates the gradient of this functional at point :math:`\mb{x}`.
+        r"""Evaluates the gradient of this functional at :math:`\mb{x}`.
 
         Args:
-            x : Point at which to evaluate gradient.
+            x: Point at which to evaluate gradient.
         """
         if not self.is_smooth:  # could be True, False, or None
             warnings.warn("This functional isn't smooth!", stacklevel=2)
@@ -189,16 +194,16 @@ class ScaledFunctional(Functional):
 class SeparableFunctional(Functional):
     r"""A functional that is separable in its arguments.
 
-    A separable functional :math:`f : \mathbb{C}^N \to \mathbb{R}` can be written as the sum
-    of functionals :math:`f_i : \mathbb{C}^{N_i} \to \mathbb{R}` with :math:`\sum_i N_i = N`.
-    In particular,
+    A separable functional :math:`f : \mathbb{C}^N \to \mathbb{R}` can
+    be written as the sum of functionals :math:`f_i : \mathbb{C}^{N_i}
+    \to \mathbb{R}` with :math:`\sum_i N_i = N`. In particular,
 
     .. math::
-       f(\mb{x}) = f(\mb{x}_1, \dots, \mb{x}_N) = f_1(\mb{x}_1) + \dots + f_N(\mb{x}_N)
+       f(\mb{x}) = f(\mb{x}_1, \dots, \mb{x}_N) = f_1(\mb{x}_1) + \dots
+       + f_N(\mb{x}_N)
 
-    A :class:`SeparableFunctional` accepts a :class:`.BlockArray` and is separable
-    in the block components.
-
+    A :class:`SeparableFunctional` accepts a :class:`.BlockArray` and is
+    separable in the block components.
     """
 
     def __init__(self, functional_list: List[Functional]):
@@ -221,13 +226,15 @@ class SeparableFunctional(Functional):
             return snp.sum(snp.array([fi(xi) for fi, xi in zip(self.functional_list, x)]))
         else:
             raise ValueError(
-                f"Number of blocks in x, {len(x.shape)}, and length of functional_list, {len(self.functional_list)}, do not match"
+                f"Number of blocks in x, {len(x.shape)}, and length of functional_list, "
+                f"{len(self.functional_list)}, do not match"
             )
 
     def prox(self, x: BlockArray, lam: float = 1.0, **kwargs) -> BlockArray:
         r"""Evaluate proximal operator of the separable functional.
 
-        Evaluate proximal operator of the separable functional (see Theorem 6.6 of :cite:`beck-2017-first`).
+        Evaluate proximal operator of the separable functional (see
+        Theorem 6.6 of :cite:`beck-2017-first`).
 
           .. math::
              \mathrm{prox}_f(\mb{x}, \lambda)
@@ -239,14 +246,15 @@ class SeparableFunctional(Functional):
              \end{bmatrix}
 
         Args:
-            x :  Input array :math:`\mb{x}`
-            lam : Proximal parameter :math:`\lambda`
+            x:  Input array :math:`\mb{x}`
+            lam: Proximal parameter :math:`\lambda`
         """
         if len(x.shape) == len(self.functional_list):
             return BlockArray.array([fi.prox(xi, lam) for fi, xi in zip(self.functional_list, x)])
         else:
             raise ValueError(
-                f"Number of blocks in x, {len(x.shape)}, and length of functional_list, {len(self.functional_list)}, do not match"
+                f"Number of blocks in x, {len(x.shape)}, and length of functional_list, "
+                f"{len(self.functional_list)}, do not match"
             )
 
 
