@@ -321,7 +321,7 @@ class ADMM:
        \text{such that}\; C_i \mb{x} = \mb{z}_i \;,
 
     via an ADMM algorithm :cite:`glowinski-1975-approximation` :cite:`gabay-1976-dual`
-    :cite:`boyd-2010-distributed`. consisting of the iterations
+    :cite:`boyd-2010-distributed`. consisting of the iterations (see :meth:`step`)
 
     .. math::
        \begin{aligned}
@@ -331,11 +331,6 @@ class ADMM:
         \norm{\mb{z}_i - \mb{u}^{(k)}_i - C_i \mb{x}^{(k+1)}}_2^2  \\
        \mb{u}_i^{(k+1)} &=  \mb{u}_i^{(k)} + C_i \mb{x}^{(k+1)} - \mb{z}^{(k+1)}_i  \; .
        \end{aligned}
-
-    For documentation on minimization with respect to :math:`\mb{x}`, see :meth:`x_step`.
-
-    For documentation on minimization with respect to :math:`\mb{z}_i` and
-    :math:`\mb{u}_i`, see :meth:`z_and_u_step`.
 
 
     Attributes:
@@ -348,6 +343,7 @@ class ADMM:
         timer (:class:`.Timer`): Iteration timer.
         rho_list (list of scalars): List of :math:`\rho_i` penalty parameters.
             Must be same length as :code:`C_list` and :code:`g_list`.
+        alpha (float): Relaxation parameter.
         u_list (list of array-like): List of scaled Lagrange multipliers
             :math:`\mb{u}_i` at current iteration.
         x (array-like): Solution
@@ -365,6 +361,7 @@ class ADMM:
         g_list: List[Functional],
         C_list: List[LinearOperator],
         rho_list: List[float],
+        alpha: float = 1.0,
         x0: Optional[Union[JaxArray, BlockArray]] = None,
         maxiter: int = 100,
         subproblem_solver: Optional[SubproblemSolver] = None,
@@ -379,7 +376,8 @@ class ADMM:
                  as :code:`C_list` and :code:`rho_list`
             C_list : List of :math:`C_i` operators
             rho_list : List of :math:`\rho_i` penalty parameters.
-                Must be same length as :code:`C_list` and :code:`g_list`
+                Must be same length as :code:`C_list` and :code:`g_list`.
+            alpha: Relaxation parameter. No relaxation for default 1.0.
             x0 : Starting point for :math:`\mb{x}`.  If None, defaults to
                 an array of zeros.
             maxiter : Number of ADMM outer-loop iterations. Default: 100.
@@ -407,6 +405,7 @@ class ADMM:
         self.g_list: List[Functional] = g_list
         self.C_list: List[LinearOperator] = C_list
         self.rho_list: List[float] = rho_list
+        self.alpha: float = alpha
         self.itnum: int = 0
         self.maxiter: int = maxiter
         self.timer: Timer = Timer()
@@ -566,58 +565,49 @@ class ADMM:
         u_list = [snp.zeros(Ci.output_shape, dtype=Ci.output_dtype) for Ci in self.C_list]
         return u_list
 
-    def x_step(self, x):
-        r"""Update :math:`\mb{x}` by solving the optimization problem.
+    def step(self):
+        r"""Perform a single ADMM iteration.
+
+        The primary variable :math:`\mb{x}` is updated by solving the the
+        optimization problem
 
         .. math::
-            \mb{x}^{(k+1)} = \argmin_{\mb{x}} \; f(\mb{x}) + \sum_i \frac{\rho_i}{2}
-            \norm{\mb{z}^{(k)}_i - \mb{u}^{(k)}_i - C_i \mb{x}}_2^2
-
-        """
-        return self.subproblem_solver.solve(x)
-
-    def z_and_u_step(self, u_list, z_list):
-        r"""Update the auxiliary variables :math:`\mb{z}_i` and scaled Lagrange multipliers
-        :math:`\mb{u}_i`.
+            \mb{x}^{(k+1)} = \argmin_{\mb{x}} \; f(\mb{x}) + \sum_i
+            \frac{\rho_i}{2} \norm{\mb{z}^{(k)}_i - \mb{u}^{(k)}_i -
+            C_i \mb{x}}_2^2 \;.
 
         The auxiliary variables are updated according to
 
         .. math::
             \begin{aligned}
-            \mb{z}_i^{(k+1)} &= \argmin_{\mb{z}_i} \; g_i(\mb{z}_i) + \frac{\rho_i}{2}
-            \norm{\mb{z}_i - \mb{u}^{(k)}_i - C_i \mb{x}^{(k+1)}}_2^2  \\
-            &= \mathrm{prox}_{g_i}(C_i \mb{x} + \mb{u}_i, 1 / \rho_i)
+            \mb{z}_i^{(k+1)} &= \argmin_{\mb{z}_i} \; g_i(\mb{z}_i) +
+            \frac{\rho_i}{2} \norm{\mb{z}_i - \mb{u}^{(k)}_i - C_i
+            \mb{x}^{(k+1)}}_2^2  \\
+            &= \mathrm{prox}_{g_i}(C_i \mb{x} + \mb{u}_i, 1 / \rho_i) \;,
             \end{aligned}
 
-        while the scaled Lagrange multipliers are updated according to
+        and the scaled Lagrange multipliers are updated according to
 
         .. math::
-            \mb{u}_i^{(k+1)} =  \mb{u}_i^{(k)} + C_i \mb{x}^{(k+1)} - \mb{z}^{(k+1)}_i
-
+            \mb{u}_i^{(k+1)} =  \mb{u}_i^{(k)} + C_i \mb{x}^{(k+1)} -
+            \mb{z}^{(k+1)}_i \;.
         """
-        z_list_old = z_list.copy()
 
-        # Unpack the arrays that will be changing to prevent side-effects
-        z_list = self.z_list
-        u_list = self.u_list
+        self.x = self.subproblem_solver.solve(self.x)
+
+        self.z_list_old = self.z_list.copy()
 
         for i, (rhoi, gi, Ci, zi, ui) in enumerate(
-            zip(self.rho_list, self.g_list, self.C_list, z_list, u_list)
+            zip(self.rho_list, self.g_list, self.C_list, self.z_list, self.u_list)
         ):
-            Cix = Ci(self.x)
+            if self.alpha == 1.0:
+                Cix = Ci(self.x)
+            else:
+                Cix = self.alpha * Ci(self.x) + (1.0 - self.alpha) * zi
             zi = gi.prox(Cix + ui, 1 / rhoi, v0=zi)
             ui = ui + Cix - zi
-            z_list[i] = zi
-            u_list[i] = ui
-        return u_list, z_list, z_list_old
-
-    def step(self):
-        """Perform a single ADMM iteration.
-
-        Equivalent to calling :meth:`.x_step` followed by :meth:`.z_and_u_step`.
-        """
-        self.x = self.x_step(self.x)
-        self.u_list, self.z_list, self.z_list_old = self.z_and_u_step(self.u_list, self.z_list)
+            self.z_list[i] = zi
+            self.u_list[i] = ui
 
     def solve(
         self,
