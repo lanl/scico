@@ -7,7 +7,8 @@
 
 """Plotting/visualization functions.
 
-Optional alternative high-level interface to selected :mod:`matplotlib` plotting functions.
+Optional alternative high-level interface to selected :mod:`matplotlib`
+plotting functions.
 """
 
 # This module is copied from https://github.com/bwohlberg/sporco
@@ -47,23 +48,25 @@ __all__ = [
 
 
 def _attach_keypress(fig, scaling=1.1):
-    """
-    Attach a key press event handler that configures keys for closing a figure
-    and changing the figure size. Keys 'e' and 'c' respectively expand and
-    contract the figure, and key 'q' closes it.
+    """Attach a key press event handler.
 
-    **Note:** Resizing may not function correctly with all matplotlib backends
-    (a `bug <https://github.com/matplotlib/matplotlib/issues/10083>`__ has been
-    reported).
+    Attach a key press event handler that configures keys for closing a
+    figure and changing the figure size. Keys 'e' and 'c' respectively
+    expand and contract the figure, and key 'q' closes it.
+
+    **Note:** Resizing may not function correctly with all matplotlib
+    backends
+    (a `bug <https://github.com/matplotlib/matplotlib/issues/10083>`__
+    has been reported).
 
     Args:
-        fig (:class:`matplotlib.figure.Figure` object): Figure to which event
-            handling is to be attached
-        scaling (float, optional (default 1.1)): Scaling factor for figure
-            size changes
+        fig (:class:`matplotlib.figure.Figure` object): Figure to which
+            event handling is to be attached.
+        scaling (float, optional (default 1.1)): Scaling factor for
+            figure size changes.
 
     Returns:
-        function: Key press event handler function
+        function: Key press event handler function.
     """
 
     def press(event):
@@ -83,18 +86,19 @@ def _attach_keypress(fig, scaling=1.1):
 
 
 def _attach_zoom(ax, scaling=2.0):
-    """
-    Attach an event handler that supports zooming within a plot using the mouse
-    scroll wheel.
+    """Attach a scroll wheel event handler.
+
+    Attach an event handler that supports zooming within a plot using the
+    mouse scroll wheel.
 
     Args:
-        ax (:class:`matplotlib.axes.Axes` object): Axes to which event handling
-            is to be attached
-        scaling (float, optional (default 2.0)): Scaling factor for zooming in
-            and out
+        ax (:class:`matplotlib.axes.Axes` object): Axes to which event
+            handling is to be attached.
+        scaling (float, optional (default 2.0)): Scaling factor for
+            zooming in and out.
 
     Returns:
-        function: Mouse scroll wheel event handler function
+        function: Mouse scroll wheel event handler function.
     """
 
     # See https://stackoverflow.com/questions/11551049
@@ -176,58 +180,62 @@ def _attach_zoom(ax, scaling=2.0):
 
 
 def plot(y, x=None, ptyp="plot", xlbl=None, ylbl=None, title=None, lgnd=None, lglc=None, **kwargs):
-    """
-    Plot points or lines in 2D. If a figure object is specified then the plot
-    is drawn in that figure, and ``fig.show()`` is not called. The figure is
-    closed on key entry 'q'.
+    """Plot points or lines in 2D.
+
+    Plot points or lines in 2D. If a figure object is specified then the
+    plot is drawn in that figure, and ``fig.show()`` is not called. The
+    figure is closed on key entry 'q'.
 
     Args:
-        y (array_like): 1d or 2d array of data to plot. If a 2d array, each
-            column is plotted as a separate curve.
-        x (array_like, optional (default None)): Values for x-axis of the plot
+        y (array_like): 1d or 2d array of data to plot. If a 2d array,
+            each column is plotted as a separate curve.
+        x (array_like, optional (default None)): Values for x-axis of the
+            plot.
         ptyp (string, optional (default 'plot')): Plot type specification
-            (options are 'plot', 'semilogx', 'semilogy', and 'loglog')
-        xlbl (string, optional (default None)): Label for x-axis
-        ylbl (string, optional (default None)): Label for y-axis
-        title (string, optional (default None)): Figure title
-        lgnd (list of strings, optional (default None)): List of legend string
-        lglc (string, optional (default None)): Legend location string
+            (options are 'plot', 'semilogx', 'semilogy', and 'loglog').
+        xlbl (string, optional (default None)): Label for x-axis.
+        ylbl (string, optional (default None)): Label for y-axis.
+        title (string, optional (default None)): Figure title.
+        lgnd (list of strings, optional (default None)): List of legend
+            string.
+        lglc (string, optional (default None)): Legend location string.
         **kwargs: :class:`matplotlib.lines.Line2D` properties or figure
-            properties
+            properties.
 
             Keyword arguments specifying :class:`matplotlib.lines.Line2D`
-            properties, e.g. ``lw=2.0`` sets a line width of 2, or properties
-            of the figure and axes. If not specified, the defaults for line
-            width (``lw``) and marker size (``ms``) are 1.5 and 6.0
-            respectively. The valid figure and axes keyword arguments are
-            listed below:
+            properties, e.g. ``lw=2.0`` sets a line width of 2, or
+            properties of the figure and axes. If not specified, the
+            defaults for line width (``lw``) and marker size (``ms``) are
+            1.5 and 6.0 respectively. The valid figure and axes keyword
+            arguments are listed below:
 
             .. |mplfg| replace:: :class:`matplotlib.figure.Figure` object
             .. |mplax| replace:: :class:`matplotlib.axes.Axes` object
 
             .. rst-class:: kwargs
 
-            =====  ==================== ======================================
+            =====  ==================== ===================================
             kwarg  Accepts              Description
-            =====  ==================== ======================================
+            =====  ==================== ===================================
             fgsz   tuple (width,height) Specify figure dimensions in inches
             fgnm   integer              Figure number of figure
             fig    |mplfg|              Draw in specified figure instead of
                                         creating one
             ax     |mplax|              Plot in specified axes instead of
                                         current axes of figure
-            =====  ==================== ======================================
+            =====  ==================== ===================================
 
     Returns:
         tuple: a tuple (fig, ax) containing:
 
-            - **fig** (:class:`matplotlib.figure.Figure` object): Figure object
-              for this figure
-            - **ax** (:class:`matplotlib.axes.Axes` object): Axes object for
-              this plot
+            - **fig** (:class:`matplotlib.figure.Figure` object): Figure
+              object for this figure.
+            - **ax** (:class:`matplotlib.axes.Axes` object): Axes object
+              for this plot.
 
     Raises:
-        ValueError: If an invalid plot type is specified via parameter `ptyp`
+        ValueError: If an invalid plot type is specified via parameter
+           `ptyp`.
     """
 
     # Extract kwargs entries that are not related to line properties
@@ -301,44 +309,48 @@ def surf(
     fig=None,
     ax=None,
 ):
-    """
-    Plot a 2D surface in 3D. If a figure object is specified then the surface
-    is drawn in that figure, and ``fig.show()`` is not called. The figure is
-    closed on key entry 'q'.
+    """Plot a 2D surface in 3D.
+
+    Plot a 2D surface in 3D. If a figure object is specified then the
+    surface is drawn in that figure, and ``fig.show()`` is not called.
+    The figure is closed on key entry 'q'.
 
     Args:
-        z (array_like): 2d array of data to plot
-        x (array_like, optional (default None)): Values for x-axis of the plot
-        y (array_like, optional (default None)): Values for y-axis of the plot
-        elev (float): Elevation angle (in degrees) in the z plane
-        azim (foat): Azimuth angle  (in degrees) in the x,y plane
-        xlbl (string, optional (default None)): Label for x-axis
-        ylbl (string, optional (default None)): Label for y-axis
-        zlbl (string, optional (default None)): Label for z-axis
-        title (string, optional (default None)): Figure title
-        lblpad (float, optional (default 8.0)): Label padding
-        alpha (float between 0.0 and 1.0, optional (default 1.0)): Transparency
-        cntr (int or sequence of ints, optional (default None)): If not None,
-            plot contours of the surface on the lower end of the z-axis. An int
-            specifies the number of contours to plot, and a sequence specifies
-            the specific contour levels to plot.
+        z (array_like): 2d array of data to plot.
+        x (array_like, optional (default None)): Values for x-axis of the
+            plot.
+        y (array_like, optional (default None)): Values for y-axis of the
+            plot.
+        elev (float): Elevation angle (in degrees) in the z plane.
+        azim (foat): Azimuth angle  (in degrees) in the x,y plane.
+        xlbl (string, optional (default None)): Label for x-axis.
+        ylbl (string, optional (default None)): Label for y-axis.
+        zlbl (string, optional (default None)): Label for z-axis.
+        title (string, optional (default None)): Figure title.
+        lblpad (float, optional (default 8.0)): Label padding.
+        alpha (float between 0.0 and 1.0, optional (default 1.0)):
+            Transparency.
+        cntr (int or sequence of ints, optional (default None)): If not
+            None, plot contours of the surface on the lower end of the
+            z-axis. An int specifies the number of contours to plot, and
+            a sequence specifies the specific contour levels to plot.
         cmap (:class:`matplotlib.colors.Colormap` object, optional (default None)):
-            Colour map for surface. If none specifed, defaults to cm.YlOrRd
-        fgsz (tuple (width,height), optional (default None)): Specify figure
-            dimensions in inches
-        fgnm (integer, optional (default None)): Figure number of figure
+            Colour map for surface. If none specifed, defaults to ``cm.YlOrRd``.
+        fgsz (tuple (width,height), optional (default None)): Specify
+            figure dimensions in inches.
+        fgnm (integer, optional (default None)): Figure number of figure.
         fig (:class:`matplotlib.figure.Figure` object, optional (default None)):
-            Draw in specified figure instead of creating one
+            Draw in specified figure instead of creating one.
         ax (:class:`matplotlib.axes.Axes` object, optional (default None)):
-            Plot in specified axes instead of creating one
+            Plot in specified axes instead of creating one.
 
     Returns:
         tuple: a tuple (fig, ax) containing:
 
-            - **fig** (:class:`matplotlib.figure.Figure` object): Figure object
-              for this figure
-            - **ax** (:class:`matplotlib.axes.Axes` object): Axes object for
-              this plot
+            - **fig** (:class:`matplotlib.figure.Figure` object): Figure
+              object for this figure.
+            - **ax** (:class:`matplotlib.axes.Axes` object): Axes object
+              for this plot.
     """
 
     figp = fig
@@ -418,50 +430,56 @@ def contour(
     fig=None,
     ax=None,
 ):
-    """
-    Contour plot of a 2D surface. If a figure object is specified then the
-    plot is drawn in that figure, and ``fig.show()`` is not called. The
-    figure is closed on key entry 'q'.
+    """Contour plot of a 2D surface.
+
+    Contour plot of a 2D surface. If a figure object is specified then
+    the plot is drawn in that figure, and ``fig.show()`` is not called.
+    The figure is closed on key entry 'q'.
 
     Args:
-        z (array_like): 2d array of data to plot
-        x (array_like, optional (default None)): Values for x-axis of the plot
-        y (array_like, optional (default None)): Values for y-axis of the plot
-        v (int or sequence of floats, optional (default 5)): An int specifies
-            the number of contours to plot, and a sequence specifies the
-            specific contour levels to plot.
-        xlog (boolean, optional (default False)): Set x-axis to log scale
-        ylog (boolean, optional (default False)): Set y-axis to log scale
-        xlbl (string, optional (default None)): Label for x-axis
-        ylbl (string, optional (default None)): Label for y-axis
-        title (string, optional (default None)): Figure title
-        cfmt (string, optional (default None)): Format string for contour labels.
-        cfntsz (int or None, optional (default 10)): Contour label font size.
-            No contour labels are displayed if set to 0 or None.
-        lfntsz (int, optional (default None)): Axis label font size. The default
-            font size is used if set to None.
-        alpha (float, optional (default 1.0)): Underlying image display alpha
-            value
+        z (array_like): 2d array of data to plot.
+        x (array_like, optional (default None)): Values for x-axis of the
+            plot.
+        y (array_like, optional (default None)): Values for y-axis of the
+            plot.
+        v (int or sequence of floats, optional (default 5)): An int
+            specifies the number of contours to plot, and a sequence
+            specifies the specific contour levels to plot.
+        xlog (boolean, optional (default False)): Set x-axis to log
+            scale.
+        ylog (boolean, optional (default False)): Set y-axis to log
+            scale.
+        xlbl (string, optional (default None)): Label for x-axis.
+        ylbl (string, optional (default None)): Label for y-axis.
+        title (string, optional (default None)): Figure title.
+        cfmt (string, optional (default None)): Format string for contour
+            labels.
+        cfntsz (int or None, optional (default 10)): Contour label font
+            size. No contour labels are displayed if set to 0 or None.
+        lfntsz (int, optional (default None)): Axis label font size. The
+            default font size is used if set to None.
+        alpha (float, optional (default 1.0)): Underlying image display
+            alpha value.
         cmap (:class:`matplotlib.colors.Colormap`, optional (default None)):
-            Colour map for surface. If none specifed, defaults to cm.YlOrRd
-        vmin, vmax (float, optional (default None)): Set upper and lower bounds
-            for the colour map (see the corresponding parameters of
-            :meth:`matplotlib.axes.Axes.imshow`)
-        fgsz (tuple (width,height), optional (default None)): Specify figure
-            dimensions in inches
-        fgnm (integer, optional (default None)): Figure number of figure
+            Colour map for surface. If none specifed, defaults to ``cm.YlOrRd``.
+        vmin, vmax (float, optional (default None)): Set upper and lower
+            bounds for the colour map (see the corresponding parameters
+            of :meth:`matplotlib.axes.Axes.imshow`).
+        fgsz (tuple (width,height), optional (default None)): Specify
+            figure dimensions in inches.
+        fgnm (integer, optional (default None)): Figure number of figure.
         fig (:class:`matplotlib.figure.Figure` object, optional (default None)):
-             Draw in specified figure instead of creating one
+             Draw in specified figure instead of creating one.
         ax (:class:`matplotlib.axes.Axes` object, optional (default None)):
-             Plot in specified axes instead of current axes of figure
+            Plot in specified axes instead of current axes of figure.
 
     Returns:
         tuple: a tuple (fig, ax) containing:
 
-            - **fig** (:class:`matplotlib.figure.Figure` object): Figure object
-              for this figure
-            - **ax** (:class:`matplotlib.axes.Axes` object): Axes object for
-              this plot
+            - **fig** (:class:`matplotlib.figure.Figure` object): Figure
+              object for this figure.
+            - **ax** (:class:`matplotlib.axes.Axes` object): Axes object
+              for this plot.
     """
 
     figp = fig
@@ -556,52 +574,54 @@ def imview(
     fig=None,
     ax=None,
 ):
-    """
-    Display an image. Pixel values are displayed when the pointer is over valid
-    image data. If a figure object is specified then the image is drawn in that
-    figure, and ``fig.show()`` is not called. The figure is closed on key
-    entry 'q'.
+    """Display an image.
+
+    Display an image. Pixel values are displayed when the pointer is over
+    valid image data. If a figure object is specified then the image is
+    drawn in that figure, and ``fig.show()`` is not called. The figure is
+    closed on key entry 'q'.
 
     Args:
-        img (array_like, shape (Nr, Nc) or (Nr, Nc, 3) or (Nr, Nc, 4)): Image
-            to display
-        title (string, optional (default None)): Figure title
-        copy (boolean, optional (default True)): If True, create a copy of
-            input `img` as a reference for displayed pixel values, ensuring
-            that displayed values do not change when the array changes in the
-            calling scope. Set this flag to False if the overhead of an
-            additional copy of the input image is not acceptable.
-        fltscl (boolean, optional (default False)): If True, rescale and shift
-            floating point arrays to [0,1]
+        img (array_like, shape (Nr, Nc) or (Nr, Nc, 3) or (Nr, Nc, 4)):
+            Image to display.
+        title (string, optional (default None)): Figure title.
+        copy (boolean, optional (default True)): If True, create a copy
+            of input `img` as a reference for displayed pixel values,
+            ensuring that displayed values do not change when the array
+            changes in the calling scope. Set this flag to False if the
+            overhead of an additional copy of the input image is not
+            acceptable.
+        fltscl (boolean, optional (default False)): If True, rescale and
+            shift floating point arrays to [0,1].
         intrp (string, optional (default 'nearest')): Specify type of
             interpolation used to display image (see ``interpolation``
-            parameter of :meth:`matplotlib.axes.Axes.imshow`)
+            parameter of :meth:`matplotlib.axes.Axes.imshow`).
         norm (:class:`matplotlib.colors.Normalize` object, optional (default None)):
-            Specify the :class:`matplotlib.colors.Normalize` instance used to
-            scale pixel values for input to the colour map
-        cbar (boolean, optional (default False)): Flag indicating whether to
-            display colorbar
+            Specify the :class:`matplotlib.colors.Normalize` instance
+            used to scale pixel values for input to the colour map.
+        cbar (boolean, optional (default False)): Flag indicating whether
+            to display colorbar.
         cmap (:class:`matplotlib.colors.Colormap`, optional (default None)):
-            Colour map for image. If none specifed, defaults to cm.Greys_r
-            for monochrome image
-        fgsz (tuple (width,height), optional (default None)): Specify figure
-            dimensions in inches
-        fgnm (integer, optional (default None)): Figure number of figure
+            Colour map for image. If none specifed, defaults to
+            ``cm.Greys_r`` for monochrome image.
+        fgsz (tuple (width,height), optional (default None)): Specify
+            figure dimensions in inches.
+        fgnm (integer, optional (default None)): Figure number of figure.
         fig (:class:`matplotlib.figure.Figure` object, optional (default None)):
-            Draw in specified figure instead of creating one
+            Draw in specified figure instead of creating one.
         ax (:class:`matplotlib.axes.Axes` object, optional (default None)):
-            Plot in specified axes instead of current axes of figure
+            Plot in specified axes instead of current axes of figure.
 
     Returns:
         tuple: a tuple (fig, ax) containing:
 
-            - **fig** (:class:`matplotlib.figure.Figure` object): Figure object
-              for this figure
-            - **ax** (:class:`matplotlib.axes.Axes` object): Axes object for
-              this plot
+            - **fig** (:class:`matplotlib.figure.Figure` object): Figure
+              object for this figure.
+            - **ax** (:class:`matplotlib.axes.Axes` object): Axes object
+              for this plot.
 
     Raises:
-        ValueError: Description
+        ValueError: If the input array is not of the required shape.
     """
 
     if img.ndim > 2 and img.shape[2] != 3:
@@ -716,13 +736,14 @@ def imview(
 
 
 def close(fig=None):
-    """
-    Close figure(s). If a figure object reference or figure number is provided,
-    close the specified figure, otherwise close all figures.
+    """Close figure(s).
+
+    Close figure(s). If a figure object reference or figure number is
+    provided, close the specified figure, otherwise close all figures.
 
     Args:
         fig (:class:`matplotlib.figure.Figure` object or integer (optional (default None)):
-          Figure object or number of figure to close
+          Figure object or number of figure to close.
     """
 
     if fig is None:
@@ -735,7 +756,7 @@ def _in_ipython():
     """Determine whether code is running in an ipython shell.
 
     Returns:
-        bool: True if running in an ipython shell, False otherwise
+        bool: True if running in an ipython shell, False otherwise.
     """
 
     try:
@@ -750,7 +771,7 @@ def _in_notebook():
     """Determine whether code is running in a Jupyter Notebook shell.
 
     Returns:
-        bool: True if running in a notebook shell, False otherwise
+        bool: True if running in a notebook shell, False otherwise.
     """
 
     try:
@@ -762,15 +783,18 @@ def _in_notebook():
 
 
 def set_ipython_plot_backend(backend="qt"):
-    """Set matplotlib backend within an ipython shell. Ths function has the
-    same effect as the line magic ``%matplotlib [backend]`` but is called as a
-    function and includes a check to determine whether the code is running in
-    an ipython shell, so that it can safely be used within a normal python
-    script since it has no effect when not running in an ipython shell.
+    """Set matplotlib backend within an ipython shell.
+
+    Set matplotlib backend within an ipython shell. This function has the
+    same effect as the line magic ``%matplotlib [backend]`` but is called
+    as a function and includes a check to determine whether the code is
+    running in an ipython shell, so that it can safely be used within a
+    normal python script since it has no effect when not running in an
+    ipython shell.
 
     Args:
-        backend (string, optional (default 'qt')): Name of backend to be passed
-            to the ``%matplotlib`` line magic command
+        backend (string, optional (default 'qt')): Name of backend to be
+            passed to the ``%matplotlib`` line magic command.
     """
 
     if _in_ipython():
@@ -779,16 +803,18 @@ def set_ipython_plot_backend(backend="qt"):
 
 
 def set_notebook_plot_backend(backend="inline"):
-    """Set matplotlib backend within a Jupyter Notebook shell. Ths function has
-    the same effect as the line magic ``%matplotlib [backend]`` but is called
-    as a function and includes a check to determine whether the code is running
-    in a notebook shell, so that it can safely be used within a normal python
-    script since it has no effect when not running in a notebook shell.
+    """Set matplotlib backend within a Jupyter Notebook shell.
+
+    Set matplotlib backend within a Jupyter Notebook shell. This function
+    has the same effect as the line magic ``%matplotlib [backend]`` but
+    is called as a function and includes a check to determine whether the
+    code is running in a notebook shell, so that it can safely be used
+    within a normal python script since it has no effect when not running
+    in a notebook shell.
 
     Args:
-        backend (string, optional (default 'inline')): Name of backend to be
-            passed to the ``%matplotlib`` line magic command
-
+        backend (string, optional (default 'inline')): Name of backend to
+            be passed to the ``%matplotlib`` line magic command.
     """
 
     if _in_notebook():
@@ -797,10 +823,12 @@ def set_notebook_plot_backend(backend="inline"):
 
 
 def config_notebook_plotting():
-    """Configure plotting functions for inline plotting within a Jupyter
-    Notebook shell. This function has no effect when not within a notebook
-    shell, and may therefore be used within a normal python script.
+    """Configure plotting functions for inline plotting.
 
+    Configure plotting functions for inline plotting within a Jupyter
+    Notebook shell. This function has no effect when not within a
+    notebook shell, and may therefore be used within a normal python
+    script.
     """
 
     # Check whether running within a notebook shell and have
