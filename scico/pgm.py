@@ -532,6 +532,7 @@ class PGM:
                 self.timer.start()
         self.timer.stop()
         self.itnum += 1
+        self.itstat_object.end()
         return self.x
 
 

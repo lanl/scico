@@ -27,6 +27,7 @@ class IterationStats:
         ident: Optional[dict] = None,
         display: bool = False,
         period: int = 10,
+        overwrite: bool = True,
         colsep: int = 2,
     ):
         """
@@ -54,6 +55,8 @@ class IterationStats:
                 to stdout. Defaults to ``False``.
             period: Only display one result in every cycle of length
                 `period`.
+            overwrite: If ``True``, display all results, but each one
+                 overwrites the next, except for one result per cycle.
             colsep: Number of spaces seperating fields in displayed
                 tables. Defaults to 2.
 
@@ -67,6 +70,8 @@ class IterationStats:
             raise TypeError("Parameter fields must be an instance of dict")
         # Subsampling rate of results that are to be displayed
         self.period = period
+        # Flag indicating whether to display and overwrite, or not display at all
+        self.overwrite = overwrite
         # Number of spaces seperating fields in displayed tables
         self.colsep = colsep
         # Main list of inserted values
@@ -152,8 +157,27 @@ class IterationStats:
             if self.disphdr is not None:
                 print(self.disphdr)
                 self.disphdr = None
-            if (len(self.iterations) - 1) % self.period == 0:
-                print((" " * self.colsep).join(self.fieldformat) % values)
+            if self.overwrite:
+                if (len(self.iterations) - 1) % self.period == 0:
+                    end = "\n"
+                else:
+                    end = "\r"
+                print((" " * self.colsep).join(self.fieldformat) % values, end=end)
+            else:
+                if (len(self.iterations) - 1) % self.period == 0:
+                    print((" " * self.colsep).join(self.fieldformat) % values)
+
+    def end(self):
+        """
+        Indicate end iterations.
+
+        This method should be called at the end of a set of iterations.
+        Its only function is to ensure that the displayed output is left
+        in an appropriate state when overwriting is active with a display
+        period other than unity.
+        """
+        if self.overwrite and self.period > 1 and (len(self.iterations) - 1) % self.period:
+            print()
 
     def history(self, transpose: bool = False):
         """
