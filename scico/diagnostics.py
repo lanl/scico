@@ -26,6 +26,7 @@ class IterationStats:
         fields: OrderedDict,
         ident: Optional[dict] = None,
         display: bool = False,
+        period: int = 10,
         colsep: int = 2,
     ):
         """
@@ -49,9 +50,11 @@ class IterationStats:
             ident: A dictionary associating field names.
                with corresponding valid identifiers for use within the
                namedtuple used to record results. Defaults to ``None``.
-            display : Flag indicating whether results should be printed
+            display: Flag indicating whether results should be printed
                 to stdout. Defaults to ``False``.
-            colsep : Number of spaces seperating fields in displayed
+            period: Only display one result in every cycle of length
+                `period`.
+            colsep: Number of spaces seperating fields in displayed
                 tables. Defaults to 2.
 
         Raises:
@@ -62,6 +65,8 @@ class IterationStats:
         # that field order is retained
         if not isinstance(fields, dict):
             raise TypeError("Parameter fields must be an instance of dict")
+        # Subsampling rate of results that are to be displayed
+        self.period = period
         # Number of spaces seperating fields in displayed tables
         self.colsep = colsep
         # Main list of inserted values
@@ -147,7 +152,8 @@ class IterationStats:
             if self.disphdr is not None:
                 print(self.disphdr)
                 self.disphdr = None
-            print((" " * self.colsep).join(self.fieldformat) % values)
+            if (len(self.iterations) - 1) % self.period == 0:
+                print((" " * self.colsep).join(self.fieldformat) % values)
 
     def history(self, transpose: bool = False):
         """
