@@ -68,7 +68,7 @@ class CircularConvolve(LinearOperator):
 
     .. math::
        H \mb{x} = \left( \begin{array}{c}  H_0\\ H_1\\ \vdots \end{array}
-       \right) \mb{x}
+       \right) \mb{x} \;.
 
     if the input is singleton, and as
 

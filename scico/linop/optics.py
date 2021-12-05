@@ -195,8 +195,8 @@ class AngularSpectrumPropagator(Propagator):
 
         .. math ::
             D = \mathrm{diag}\left(\exp  \left\{ j
-            \sqrt{k_0^2 - k_x^2 - k_y^2} \abs{z} \;.
-            \right\} \right)
+            \sqrt{k_0^2 - k_x^2 - k_y^2} \abs{z}
+            \right\} \right) \;.
 
 
         The propagator is adequately sampled when :cite:`voelz-2009-digital`
@@ -254,7 +254,7 @@ class AngularSpectrumPropagator(Propagator):
 
         .. math ::
             (\Delta x)^2 \geq \frac{\pi}{k_0 N} \sqrt{ (\Delta x)^2 N^2
-            + 4 z^2}
+            + 4 z^2} \;.
 
         Returns:
              True if the angular spectrum kernel is adequately sampled,

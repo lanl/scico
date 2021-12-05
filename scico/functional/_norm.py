@@ -50,8 +50,8 @@ class L0Norm(Functional):
 
             \mathrm{prox}(\mb{x}, \lambda) =
             \begin{cases}
-            \mb{x},  & \text{if } \abs{\mb{x}} \geq \lambda \\
-            0,  & \text{else} \;.
+            \mb{x}  & \text{if } \abs{\mb{x}} \geq \lambda \\
+            0  & \text{else} \;.
             \end{cases}
 
         Args:
@@ -91,8 +91,8 @@ class L1Norm(Functional):
 
         .. math::
             (x)_+ = \begin{cases}
-            x,  & \text{if } x \geq 0 \\
-            0,  & \text{else} \;.
+            x  & \text{if } x \geq 0 \\
+            0  & \text{else} \;.
             \end{cases}
 
         Args:
@@ -148,8 +148,7 @@ class L2Norm(Functional):
     r""":math:`\ell_2` norm.
 
     .. math::
-       \norm{\mb{x}}_2 = \sqrt{\sum_i \abs{x_i}^2}
-
+       \norm{\mb{x}}_2 = \sqrt{\sum_i \abs{x_i}^2} \;.
     """
 
     has_eval = True
@@ -167,15 +166,15 @@ class L2Norm(Functional):
         Evaluate proximal operator of :math:`\ell_2` norm
 
         .. math::
-            \mathrm{prox}(\mb{x}, \lambda) = \mb{x} \right(1 -
-            \frac{\lambda}{\norm{x}_2}\left)_+ \;,
+            \mathrm{prox}(\mb{x}, \lambda) = \mb{x} \left(1 -
+            \frac{\lambda}{\norm{x}_2} \right)_+ \;,
 
         where
 
         .. math::
             (x)_+ = \begin{cases}
-            x,  & \text{if } x \geq 0 \\
-            0,  & \text{else} \;.
+            x  & \text{if } x \geq 0 \\
+            0  & \text{else} \;.
             \end{cases}
 
         Args:
@@ -239,8 +238,8 @@ class L21Norm(Functional):
 
         .. math::
             (x)_+ = \begin{cases}
-            x,  & \text{if } x \geq 0 \\
-            0,  & \text{else} \;.
+            x  & \text{if } x \geq 0 \\
+            0  & \text{else} \;.
             \end{cases}
 
         Args:

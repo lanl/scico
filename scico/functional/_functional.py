@@ -200,7 +200,7 @@ class SeparableFunctional(Functional):
 
     .. math::
        f(\mb{x}) = f(\mb{x}_1, \dots, \mb{x}_N) = f_1(\mb{x}_1) + \dots
-       + f_N(\mb{x}_N)
+       + f_N(\mb{x}_N) \;.
 
     A :class:`SeparableFunctional` accepts a :class:`.BlockArray` and is
     separable in the block components.
@@ -243,11 +243,11 @@ class SeparableFunctional(Functional):
                \mathrm{prox}_{f_1}(\mb{x}_1, \lambda) \\
                \vdots \\
                \mathrm{prox}_{f_N}(\mb{x}_N, \lambda) \\
-             \end{bmatrix}
+             \end{bmatrix} \;.
 
         Args:
-            x:  Input array :math:`\mb{x}`
-            lam: Proximal parameter :math:`\lambda`
+            x: Input array :math:`\mb{x}`.
+            lam: Proximal parameter :math:`\lambda`.
         """
         if len(x.shape) == len(self.functional_list):
             return BlockArray.array([fi.prox(xi, lam) for fi, xi in zip(self.functional_list, x)])

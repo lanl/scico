@@ -50,7 +50,7 @@ def rel_res(ax: Union[BlockArray, JaxArray], b: Union[BlockArray, JaxArray]) -> 
         b: Constant component :math:`\mathbf{b}` of equation.
 
     Returns:
-        x: Relative residual value.
+        Relative residual value.
     """
 
     nrm = max(snp.linalg.norm(ax.ravel()), snp.linalg.norm(b.ravel()))

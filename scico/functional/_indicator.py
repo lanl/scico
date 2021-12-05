@@ -25,13 +25,13 @@ class NonNegativeIndicator(Functional):
     r"""Indicator function for non-negative orthant.
 
     Returns 0 if all elements of input array-like are non-negative, and
-    inf otherwise.
+    inf otherwise
 
     .. math::
         I(\mb{x}) = \begin{cases}
-        0,  & \text{if } x_i \geq 0 \text{ for each } i \\
-        \infty,  & \text{else}
-        \end{cases} \;
+        0  & \text{if } x_i \geq 0 \text{ for each } i \\
+        \infty  & \text{else} \;.
+        \end{cases}
 
     """
 
@@ -57,12 +57,12 @@ class NonNegativeIndicator(Functional):
         .. math::
             [\mathrm{prox}(\mb{x}, \lambda)]_i =
             \begin{cases}
-            x_i, & \text{if } x_i \geq 0 \\
-            0, & \text{else} \;.
+            x_i & \text{if } x_i \geq 0 \\
+            0 & \text{else} \;.
             \end{cases}
 
         Args:
-            x:  Input array :math:`\mb{x}`.
+            x: Input array :math:`\mb{x}`.
             lam: Proximal parameter :math:`\lambda`.
         """
         return snp.maximum(x, 0)
@@ -75,8 +75,8 @@ class L2BallIndicator(Functional):
 
     .. math::
         I(\mb{x}) = \begin{cases}
-        0,  & \text{if } \norm{\mb{x}}_2 \leq \mathrm{radius} \\
-        \infty,  & \text{else} \;.
+        0  & \text{if } \norm{\mb{x}}_2 \leq \mathrm{radius} \\
+        \infty  & \text{else} \;.
         \end{cases}
 
     Attributes:
