@@ -100,7 +100,7 @@ Things to avoid:
 - Trailing underscores unless the component is meant to be protected or private:
 
    - protected: Use a single underscore, ``_``, for protected access; and
-   - pseudo-private: Use double underscores, ``_``, for pseudo-private access via name mangling.
+   - pseudo-private: Use double underscores, ``__``, for pseudo-private access via name mangling.
 
 
 Displaying and Printing Strings
@@ -241,7 +241,7 @@ The docstring should be imperative-style ``"""Fetch rows from a Table"""`` inste
 - Args:
     - List each parameter by name, and include a description for each parameter.
 - Returns: (or Yield in the case of generators)
-    - Describe the type of the return value. If a function only returns None then this section is not required.
+    - Describe the type of the return value. If a function only returns ``None`` then this section is not required.
 - Raises:
    - List all exceptions followed by a description. The name and description should be separated by a colon followed by a space.
 
@@ -419,6 +419,23 @@ An example of this, taken from the `Google comment conventions <https://google.g
     i = i & (i-1) == 0:  # true if i is 0 or a power of 2 [explains the concept not the code]
 
 If a comment consists of one or more full sentences (as is typically the case for *block* comments), it should start with an upper case letter and end with a period. *Inline* comments often consist of a brief phrase which is not a full sentence, in which case they should have a lower case initial letter and not have a terminating period.
+
+
+Markup
+~~~~~~
+
+The following components require the recommended markup taken from `NumPy's Conventions <https://numpydoc.readthedocs.io/en/latest/format.html#common-rest-concepts>`_.:
+
+- Paragraphs:
+  Indentation is significant and indicates the indentation of the output. New paragraphs are marked with a blank line.
+- Variable, module, function, and class names:
+  Should be written in between single back-ticks (`x`).
+- None and NoneType:
+  Should be written in between double back-ticks (``None``).
+- Types:
+  Should be written in between double back-ticks (``int``).
+
+Other components can use *italics*, **bold**, and ``monospace`` if needed, but not for variable names, doctest code, or multi-line code.
 
 
 Documentation Pages
