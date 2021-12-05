@@ -42,19 +42,23 @@ class Convolve(LinearOperator):
         jit: bool = True,
         **kwargs,
     ):
-        r"""
-        Wraps :func:`jax.scipy.signal.convolve` as a :class:`.LinearOperator`.
+        r"""Wrap :func:`jax.scipy.signal.convolve` as a LinearOperator.
+
+        Wrap :func:`jax.scipy.signal.convolve` as a
+        :class:`.LinearOperator`.
 
         Args:
-            h:  Convolutional filter.  Must have same number of dimensions as
-                `len(input_shape)`.
+            h: Convolutional filter. Must have same number of dimensions
+                as `len(input_shape)`.
             input_shape: Shape of input array.
-            input_dtype: `dtype` for input argument.
-                Defaults to `float32`. If ``LinearOperator`` implements complex-valued operations,
-                this must be `complex64` for proper adjoint and gradient calculation.
-            mode:  A string indicating the size of the output.  One of "full", "valid", "same".
-                Defaults to "full".
-            jit:  If ``True``, jit the evaluation, adjoint, and gram functions of the LinearOperator.
+            input_dtype: `dtype` for input argument. Defaults to
+                `float32`. If ``LinearOperator`` implements
+                complex-valued operations, this must be `complex64` for
+                proper adjoint and gradient calculation.
+            mode: A string indicating the size of the output. One of
+                "full", "valid", "same". Defaults to "full".
+            jit:  If ``True``, jit the evaluation, adjoint, and gram
+                functions of the LinearOperator.
 
         For more details on `mode`, see :func:`jax.scipy.signal.convolve`.
         """
@@ -171,18 +175,19 @@ class ConvolveByX(LinearOperator):
         r"""
 
         Args:
-            x:  Convolutional filter.  Must have same number of dimensions as
-                `len(input_shape)`.
+            x: Convolutional filter. Must have same number of dimensions
+                as `len(input_shape)`.
             input_shape: Shape of input array.
-            input_dtype: `dtype` for input argument.
-                Defaults to `float32`. If :class:`.LinearOperator` implements complex-valued operations,
-                this must be `complex64` for proper adjoint and gradient calculation.
-            mode:  A string indicating the size of the output.  One of "full", "valid", "same".
-                Defaults to "full".
-            jit:  If ``True``, jit the evaluation, adjoint, and gram functions of the LinearOperator.
+            input_dtype: `dtype` for input argument. Defaults to
+                `float32`. If :class:`.LinearOperator` implements
+                complex-valued operations, this must be `complex64` for
+                proper adjoint and gradient calculation.
+            mode: A string indicating the size of the output. One of
+                "full", "valid", "same". Defaults to "full".
+            jit: If ``True``, jit the evaluation, adjoint, and gram
+                functions of the LinearOperator.
 
         For more details on `mode`, see :func:`jax.scipy.signal.convolve`.
-
         """
 
         self.x: JaxArray  # : Fixed signal to convolve with

@@ -24,8 +24,8 @@ __author__ = """Luke Pfister <luke.pfister@gmail.com>"""
 class BiConvolve(Operator):
     """BiConvolution operator.
 
-    A BiConvolve operator accepts a :class:`.BlockArray` input with two blocks
-    of equal ndims, and convolves the first block with the second.
+    A BiConvolve operator accepts a :class:`.BlockArray` input with two
+    blocks of equal ndims, and convolves the first block with the second.
 
     If `A` is a BiConvolve operator, then
     A(BlockArray.array([x, h])) = jax.scipy.signal.convolve(x, h)
@@ -41,12 +41,13 @@ class BiConvolve(Operator):
     ):
         r"""
         Args:
-            input_shape: Shape of input BlockArray. Must correspond to a BlockArray
-                with two blocks of equal ndims.
-            input_dtype: `dtype` for input argument. Defaults to `float32`.
-            mode:  A string indicating the size of the output.  One of "full", "valid", "same".
-                Defaults to "full".
-            jit:  If ``True``, jit the evaluation of this Operator.
+            input_shape: Shape of input BlockArray. Must correspond to a
+                BlockArray with two blocks of equal ndims.
+            input_dtype: `dtype` for input argument. Defaults to
+                `float32`.
+            mode:  A string indicating the size of the output. One of
+                "full", "valid", "same". Defaults to "full".
+            jit: If ``True``, jit the evaluation of this Operator.
 
         For more details on `mode`, see :func:`jax.scipy.signal.convolve`.
         """
@@ -72,14 +73,17 @@ class BiConvolve(Operator):
         return convolve(x[0], x[1], mode=self.mode)
 
     def freeze(self, argnum: int, val: JaxArray) -> LinearOperator:
-        """Returns a new :class:`.LinearOperator` with block argument `argnum` fixed to value `val`.
+        """Freeze the `argnum` parameter.
+
+        Return a new :class:`.LinearOperator` with block argument
+        `argnum` fixed to value `val`.
 
         If ``argnum == 0``, a :class:`.ConvolveByX` object is returned.
         If ``argnum == 1``, a :class:`.Convolve` object is returned.
 
         Args:
-            argnum:  Index of block to freeze. Must be 0 or 1.
-            val:  Value to fix the `argnum`-th input to.
+            argnum: Index of block to freeze. Must be 0 or 1.
+            val: Value to fix the `argnum`-th input to.
         """
 
         if argnum == 0:

@@ -7,7 +7,13 @@
 
 """Construct wrapped versions of :mod:`jax.numpy.fft` functions.
 
-This modules consists of functions from :mod:`jax.numpy.fft`. Some of these functions are wrapped to support compatibility with :class:`scico.blockarray.BlockArray` and are documented here. The remaining functions are imported directly from :mod:`jax.numpy.fft`. While they can be imported from the :mod:`scico.numpy.fft` namespace, they are not documented here; please consult the documentation for the source module :mod:`jax.numpy.fft`.
+This modules consists of functions from :mod:`jax.numpy.fft`. Some of
+these functions are wrapped to support compatibility with
+:class:`scico.blockarray.BlockArray` and are documented here.
+The remaining functions are imported directly from :mod:`jax.numpy.fft`.
+While they can be imported from the :mod:`scico.numpy.fft` namespace,
+they are not documented here; please consult the documentation for the
+source module :mod:`jax.numpy.fft`.
 """
 import sys
 

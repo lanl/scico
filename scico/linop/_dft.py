@@ -25,7 +25,7 @@ __author__ = """Luke Pfister <luke.pfister@gmail.com>"""
 
 
 class DFT(LinearOperator):
-    r"""N-dimensional Discrete Fourier Transform"""
+    r"""N-dimensional Discrete Fourier Transform."""
 
     def __init__(
         self, input_shape: Shape, output_shape: Optional[Shape] = None, jit: bool = True, **kwargs
@@ -33,10 +33,12 @@ class DFT(LinearOperator):
         r"""
         Args:
             input_shape: Shape of input array.
-            output_shape: Shape of transformed output. Along any axis, if the given
-                output_shape is larger than the input, the input is padded with zeros.
-                If None, the shape of the input is used.
-            jit:  If ``True``, jit the evaluation, adjoint, and gram functions of the LinearOperator.
+            output_shape: Shape of transformed output. Along any axis,
+                if the given output_shape is larger than the input, the
+                input is padded with zeros. If None, the shape of the
+                input is used.
+            jit: If ``True``, jit the evaluation, adjoint, and gram
+                functions of the LinearOperator.
         """
 
         if output_shape is None:
@@ -67,13 +69,16 @@ class DFT(LinearOperator):
         return snp.fft.fftn(x, s=self.output_shape)
 
     def inv(self, z: JaxArray, truncate: bool = True) -> JaxArray:
-        """Compute the inverse of this LinearOperator applied to the point `z`.
+        """Compute the inverse of this LinearOperator.
+
+        Compute the inverse of this LinearOperator applied to `z`.
 
         Args:
-            z: Array to take inverse DFT
-            truncate:  If `True`, the inverse DFT is truncated to be `input_shape`.
-               This may be used when this DFT LinearOperator applies zero padding before
-               computing the DFT.
+            z: Array to take inverse DFT.
+            truncate: If `True`, the inverse DFT is truncated to be
+               `input_shape`. This may be used when this DFT
+               LinearOperator applies zero padding before computing the
+               DFT.
         """
         y = snp.fft.ifftn(z)
         if truncate:
