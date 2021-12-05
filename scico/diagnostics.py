@@ -58,7 +58,7 @@ class IterationStats:
                 tables. Defaults to 2.
 
         Raises:
-            TypeError: If the ``fields`` paramater is not a dict.
+            TypeError: If the ``fields`` parameter is not a dict.
         """
 
         # Parameter fields must be specified as an OrderedDict to ensure
