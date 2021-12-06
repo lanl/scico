@@ -226,9 +226,9 @@ def plot(y, x=None, ptyp="plot", xlbl=None, ylbl=None, title=None, lgnd=None, lg
             =====  ==================== ===================================
 
     Returns:
-        - fig (:class:`matplotlib.figure.Figure` object):
+        - **fig** (:class:`matplotlib.figure.Figure` object):
           Figure object for this figure.
-        - ax (:class:`matplotlib.axes.Axes` object):
+        - **ax** (:class:`matplotlib.axes.Axes` object):
           Axes object for this plot.
 
     Raises:
@@ -343,9 +343,9 @@ def surf(
             Plot in specified axes instead of creating one.
 
     Returns:
-        - fig (:class:`matplotlib.figure.Figure` object):
+        - **fig** (:class:`matplotlib.figure.Figure` object):
           Figure object for this figure.
-        - ax (:class:`matplotlib.axes.Axes` object):
+        - **ax** (:class:`matplotlib.axes.Axes` object):
           Axes object for this plot.
     """
 
@@ -470,9 +470,9 @@ def contour(
             Plot in specified axes instead of current axes of figure.
 
     Returns:
-        - fig (:class:`matplotlib.figure.Figure` object):
+        - **fig** (:class:`matplotlib.figure.Figure` object):
           Figure object for this figure.
-        - ax (:class:`matplotlib.axes.Axes` object):
+        - **ax** (:class:`matplotlib.axes.Axes` object):
           Axes object for this plot.
     """
 
@@ -607,9 +607,9 @@ def imview(
             Plot in specified axes instead of current axes of figure.
 
     Returns:
-        - fig (:class:`matplotlib.figure.Figure` object):
+        - **fig** (:class:`matplotlib.figure.Figure` object):
           Figure object for this figure.
-        - ax (:class:`matplotlib.axes.Axes` object):
+        - **ax** (:class:`matplotlib.axes.Axes` object):
           Axes object for this plot.
 
     Raises:
