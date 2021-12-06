@@ -224,7 +224,8 @@ class WeightedSquaredL2Loss(Loss):
             )
         else:
             raise NotImplementedError(
-                f"Hessian is not implemented for {type(self)} when `A` is {type(A)}; must be LinearOperator"
+                f"Hessian is not implemented for {type(self)} when `A` is {type(A)}; "
+                "must be LinearOperator"
             )
 
 
