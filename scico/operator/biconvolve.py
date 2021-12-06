@@ -28,7 +28,7 @@ class BiConvolve(Operator):
     blocks of equal ndims, and convolves the first block with the second.
 
     If `A` is a BiConvolve operator, then
-    A(BlockArray.array([x, h])) = jax.scipy.signal.convolve(x, h) .
+    `A(BlockArray.array([x, h]))` equals `jax.scipy.signal.convolve(x, h)`.
 
     """
 
