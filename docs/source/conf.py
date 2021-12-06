@@ -266,7 +266,7 @@ napoleon_use_ivar = True
 napoleon_use_rtype = False
 
 # See https://github.com/sphinx-doc/sphinx/issues/9119
-napoleon_custom_sections = [("Returns", "params_style")]
+# napoleon_custom_sections = [("Returns", "params_style")]
 
 
 graphviz_output_format = "svg"
