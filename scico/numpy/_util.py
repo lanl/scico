@@ -5,8 +5,7 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Tools to construct wrapped versions of :mod:`jax.numpy` functions.
-"""
+"""Tools to construct wrapped versions of :mod:`jax.numpy` functions."""
 
 import re
 import types
@@ -67,14 +66,17 @@ def _attach_wrapped_func(funclist, wrapper, module_name, fix_mod_name=False):
 def _get_module_functions(module):
     """Finds functions in module.
 
-    This function is a slightly modified version of :func:`jax._src.util.get_module_functions`.
-    Unlike the JAX version, this version will also return any
-    :class:`jaxlib.xla_extension.CompiledFunction`s that exist in the module.
+    This function is a slightly modified version of
+    :func:`jax._src.util.get_module_functions`. Unlike the JAX version,
+    this version will also return any
+    :class:`jaxlib.xla_extension.CompiledFunction`s that exist in the
+    module.
 
     Args:
         module: A Python module.
     Returns:
-        module_fns: A dict of names mapped to functions, builtins or ufuncs in `module`.
+        module_fns: A dict of names mapped to functions, builtins or
+        ufuncs in `module`.
     """
     module_fns = {}
     for key in dir(module):

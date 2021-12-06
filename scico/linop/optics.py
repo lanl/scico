@@ -91,15 +91,15 @@ class Propagator(LinearOperator):
     ):
         r"""
         Args:
-            input_shape: Shape of input array.  Can be a tuple of length
+            input_shape: Shape of input array. Can be a tuple of length
                1 or 2.
             dx: Sampling interval at source plane. If a float and
                `len(input_shape)==2` the same sampling interval is
                applied to both dimensions.  If `dx` is a tuple, must
                have same length as `input_shape`.
-            k0 : Illumination wavenumber;  2π/wavelength
-            z : Propagation distance
-            pad_factor:  Amount of padding to apply in DFT step
+            k0: Illumination wavenumber; 2π/wavelength.
+            z: Propagation distance.
+            pad_factor: Amount of padding to apply in DFT step.
         """
 
         ndim = len(input_shape)  # 1 or 2 dimensions
@@ -176,19 +176,19 @@ class AngularSpectrumPropagator(Propagator):
         .. math ::
             (A \mb{u})(x, y) = \iint_{-\infty}^{\infty}
             \mb{\hat{u}}(k_x, k_y) e^{j \sqrt{k_0^2 - k_x^2 - k_y^2}
-            \abs{z}} e^{j (x k_x + y k_y) } d k_x \ d k_y
+            \abs{z}} e^{j (x k_x + y k_y) } d k_x \ d k_y \;,
 
         where the :math:`\mb{\hat{u}}` is the Fourier transform of the
         field in the plane :math:`z=0`, given by
 
         .. math ::
             \mb{\hat{u}}(k_x, k_y) = \iint_{-\infty}^{\infty}
-            \mb{u}(x, y) e^{- j (x k_x + y k_y)} d k_x \ d k_y.
+            \mb{u}(x, y) e^{- j (x k_x + y k_y)} d k_x \ d k_y \;.
 
         The angular spectrum propagator can be written
 
         .. math ::
-            A\mb{u} = F^{-1} D F \mb{u}
+            A\mb{u} = F^{-1} D F \mb{u} \;,
 
         where :math:`F` is the Fourier transform with respect to
         :math:`(x, y)` and
@@ -196,16 +196,14 @@ class AngularSpectrumPropagator(Propagator):
         .. math ::
             D = \mathrm{diag}\left(\exp  \left\{ j
             \sqrt{k_0^2 - k_x^2 - k_y^2} \abs{z}
-            \right\} \right)
-
+            \right\} \right) \;.
 
 
         The propagator is adequately sampled when :cite:`voelz-2009-digital`
 
         .. math ::
             (\Delta x)^2 \geq \frac{\pi}{k_0 N} \sqrt{ (\Delta x)^2 N^2
-            + 4 z^2}
-
+            + 4 z^2} \;.
     """
 
     def __init__(
@@ -223,9 +221,9 @@ class AngularSpectrumPropagator(Propagator):
         Args:
             input_shape: Shape of input array. Can be a tuple of length
                2 or 3.
-            dx : Spatial sampling rate.
-            k0 : Illumination wavenumber.
-            z : Propagation distance.
+            dx: Spatial sampling rate.
+            k0: Illumination wavenumber.
+            z: Propagation distance.
             pad_factor:  Amount of padding to apply in DFT step.
             jit: If ``True``, call :meth:`.jit()` on this LinearOperator
                to jit the forward, adjoint, and gram functions.  Same as
@@ -251,11 +249,12 @@ class AngularSpectrumPropagator(Propagator):
     def check_sampling(self):
         r"""Verify the angular spectrum kernel is not aliased.
 
-        Checks the condition for adequate sampling, :cite:`voelz-2009-digital`
+        Checks the condition for adequate sampling,
+        :cite:`voelz-2009-digital`
 
         .. math ::
-            (\Delta x)^2 \geq \frac{\pi}{k_0 N} \sqrt{ (\Delta x)^2 N^2 + 4 z^2}
-
+            (\Delta x)^2 \geq \frac{\pi}{k_0 N} \sqrt{ (\Delta x)^2 N^2
+            + 4 z^2} \;.
 
         Returns:
              True if the angular spectrum kernel is adequately sampled,
@@ -270,13 +269,13 @@ class AngularSpectrumPropagator(Propagator):
             return False
 
     def pinv(self, y):
-        """Applies pseudoinverse of Angular Spectrum propagator."""
+        """Apply pseudoinverse of Angular Spectrum propagator."""
         diag_inv = safe_divide(1, self.D.diagonal)
         return self.F.inv(diag_inv * self.F(y))
 
 
 class FresnelPropagator(Propagator):
-    r"""Fresnel Propagator
+    r"""Fresnel Propagator.
 
     Propagates a source field with coordinates :math:`(x, y, z_0)` to a
     destination plane at a distance :math:`z` with coordinates
@@ -286,19 +285,19 @@ class FresnelPropagator(Propagator):
     .. math ::
         (A \mb{u})(x, y) = e^{j k_0 z} \iint_{-\infty}^{\infty}
         \mb{\hat{u}}(k_x, k_y) e^{-j \frac{z}{2 k_0} (k_x^2 + k_y^2) }
-        e^{j (x k_x + y k_y) } d k_x \ d k_y,
+        e^{j (x k_x + y k_y) } d k_x \ d k_y \;,
 
     where the :math:`\mb{\hat{u}}` is the Fourier transform of the field
     in the source plane, given by
 
     .. math ::
         \mb{\hat{u}}(k_x, k_y) = \iint_{-\infty}^{\infty} \mb{u}(x, y)
-        e^{- j (x k_x + y k_y)} d k_x \ d k_y.
+        e^{- j (x k_x + y k_y)} d k_x \ d k_y \;.
 
     The Fresnel propagator can be written
 
     .. math ::
-        A\mb{u} = F^{-1} D F \mb{u}
+        A\mb{u} = F^{-1} D F \mb{u} \;,
 
     where :math:`F` is the Fourier transform with respect to
     :math:`(x, y)` and
@@ -337,10 +336,11 @@ class FresnelPropagator(Propagator):
     def check_sampling(self):
         r"""Verify the Fraunhofer propagation kernel is not aliased.
 
-        Checks the condition for adequate sampling, :cite:`voelz-2011-computational`
+        Checks the condition for adequate sampling,
+        :cite:`voelz-2011-computational`
 
         .. math ::
-            (\Delta x)^2 \geq \frac{2 \pi z }{k_0 N}
+            (\Delta x)^2 \geq \frac{2 \pi z }{k_0 N} \;.
 
 
         Returns:
@@ -373,22 +373,24 @@ class FraunhoferPropagator(LinearOperator):
             \frac{e^{j k_0 z}}{j z} \mathrm{exp} \left\{ j \frac{k_0}{2 z}
             (x_D^2 + y_D^2) \right\}}_{\triangleq P(x_D, y_D)}
             \int \mb{u}(x_S, y_S) e^{-j \frac{k_0}{z} (x_D x_S + y_D y_S)
-            } dx_S \ dy_S.
+            } dx_S \ dy_S \;.
 
         Writing the Fourier transform of the field :math:`\mb{u}` as
 
         .. math ::
-            \hat{\mb{u}}(k_x, k_y) = \int e^{-j (k_x x + k_y y)} \mb{u}(x, y) dx \ dy,
+            \hat{\mb{u}}(k_x, k_y) = \int e^{-j (k_x x + k_y y)}
+            \mb{u}(x, y) dx \ dy \;,
 
         the action of this linear operator can be written
 
         .. math ::
             (A \mb{u})(x_D, y_D) = P(x_D, y_D) \ \hat{\mb{u}}
-            \left({\frac{k_0}{z} x_D, \frac{k_0}{z} y_D}\right).
+            \left({\frac{k_0}{z} x_D, \frac{k_0}{z} y_D}\right) \;.
 
         Ignoring multiplicative prefactors, the Fraunhofer propagated
         field is the Fourier transform of the source field, evaluated at
-        coordinates :math:`(k_x, k_y) = (\frac{k_0}{z} x_D, \frac{k_0}{z} y_D)`.
+        coordinates :math:`(k_x, k_y) = (\frac{k_0}{z} x_D,
+        \frac{k_0}{z} y_D)`.
 
         In general, the sampling intervals (and thus plane lengths)
         differ between source and destination planes. In particular,
@@ -397,19 +399,20 @@ class FraunhoferPropagator(LinearOperator):
         .. math ::
            \begin{aligned}
            \Delta x_D &=  \frac{2 \pi z}{k_0 L_S } \\
-            L_D &=  \frac{2 \pi z}{k_0 \Delta x_S }
+            L_D &=  \frac{2 \pi z}{k_0 \Delta x_S } \;.
            \end{aligned}
 
         The sampling intervals and plane lengths coincide in the case of
         critical sampling:
 
         .. math ::
-                \Delta x_S = \sqrt{\frac{2 \pi z}{N k_0}}
+                \Delta x_S = \sqrt{\frac{2 \pi z}{N k_0}} \;.
 
-        The Fraunhofer phase :math:`P(x_D, y_D)` is adequately sampled when
+        The Fraunhofer phase :math:`P(x_D, y_D)` is adequately sampled
+        when
 
         .. math ::
-                \Delta x_S \geq \sqrt{\frac{2 \pi z}{N k_0}}
+                \Delta x_S \geq \sqrt{\frac{2 \pi z}{N k_0}} \;.
     """
 
     def __init__(
@@ -429,9 +432,9 @@ class FraunhoferPropagator(LinearOperator):
                `len(input_shape)==2` the same sampling interval is
                applied to both dimensions.  If `dx` is a tuple, must have
                same length as `input_shape`.
-            k0 : Illumination wavenumber;  2π/wavelength
-            z : Propagation distance
-            jit:  If ``True``, jit the evaluation, adjoint, and gram
+            k0: Illumination wavenumber;  2π/wavelength.
+            z: Propagation distance
+            jit: If ``True``, jit the evaluation, adjoint, and gram
                 functions of this LinearOperator. Default: True.
         """
 
@@ -514,7 +517,7 @@ L_D         : {self.L_D}
         :cite:`voelz-2011-computational`
 
         .. math ::
-            \Delta x^2 \geq \frac{2 \pi z }{k_0 N}
+            \Delta x^2 \geq \frac{2 \pi z }{k_0 N} \;.
 
         Returns:
              True if the Fresnel propagation kernel is adequately sampled,

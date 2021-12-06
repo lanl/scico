@@ -5,7 +5,7 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Functionals and functionals classes"""
+"""Functionals and functionals classes."""
 
 import sys
 

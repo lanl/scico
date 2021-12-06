@@ -35,10 +35,10 @@ class LinearOperatorStack(LinearOperator):
         r"""
         Args:
             ops: Operators to stack.
-            collapse: If `True` and the output would be a `BlockArray` with shape
-                ((m, n, ...), (m, n, ...), ...), the output is instead a `DeviceArray`
-                with shape (S, m, n, ...) where S is the length of `ops`.
-                Defaults to True.
+            collapse: If `True` and the output would be a `BlockArray`
+                with shape ((m, n, ...), (m, n, ...), ...), the output is
+                instead a `DeviceArray` with shape (S, m, n, ...) where S
+                is the length of `ops`. Defaults to True.
             jit: see `jit` in :class:`LinearOperator`.
 
         """
@@ -50,13 +50,15 @@ class LinearOperatorStack(LinearOperator):
         input_shapes = [op.shape[1] for op in ops]
         if not all(input_shapes[0] == s for s in input_shapes):
             raise ValueError(
-                f"expected all `LinearOperator`s to have the same input shapes, but got {input_shapes}"
+                "expected all `LinearOperator`s to have the same input shapes, "
+                f"but got {input_shapes}"
             )
 
         input_dtypes = [op.input_dtype for op in ops]
         if not all(input_dtypes[0] == s for s in input_dtypes):
             raise ValueError(
-                f"expected all `LinearOperator`s to have the same input dtype, but got {input_dtypes}."
+                "expected all `LinearOperator`s to have the same input dtype, "
+                f"but got {input_dtypes}."
             )
 
         self.collapse = collapse
@@ -100,12 +102,13 @@ class LinearOperatorStack(LinearOperator):
         return sum([op.adj(y_block) for y_block, op in zip(y, self.ops)])
 
     def scale_ops(self, scalars: JaxArray):
-        """Return a copy of `self` with each operator scaled by the corresponding
-        entry in `scalars`
+        """Scale component linear operators.
+
+        Return a copy of `self` with each operator scaled by the
+        corresponding entry in `scalars`.
 
         Args:
-            scalars: List or array of scalars to use
-
+            scalars: List or array of scalars to use.
         """
         if len(scalars) != len(self.ops):
             raise ValueError("expected `scalars` to be the same length as `self.ops`")

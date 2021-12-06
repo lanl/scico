@@ -55,8 +55,8 @@ class ParallelBeamProjector(LinearOperator):
             input_shape: Shape of the input array.
             angles: Array of projection angles in radians, should be
                 increasing.
-            num_channels: Number of pixels in the sinogram
-            is_masked:  If True, the valid region of the image is
+            num_channels: Number of pixels in the sinogram.
+            is_masked: If True, the valid region of the image is
                 determined by a mask defined as the circle inscribed
                 within the image boundary. Otherwise, the whole image
                 array is taken into account by projections.
@@ -164,7 +164,6 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
     quadrant, but the the loss, :math:`\alpha l(\mb{y}, A(\mb{x}))`,
     is unaffected by this setting and still evaluates to finite values
     when :math:`\mb{x}` is not in the non-negative quadrant.
-
     """
 
     def __init__(
@@ -177,9 +176,9 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
         r"""Initialize a :class:`SVMBIRWeightedSquaredL2Loss` object.
 
         Args:
-            y : Sinogram measurement.
-            A : Forward operator.
-            scale : Scaling parameter.
+            y: Sinogram measurement.
+            A: Forward operator.
+            scale: Scaling parameter.
             W:  Weighting diagonal operator. Must be non-negative.
                 If None, defaults to :class:`.Identity`.
             prox_kwargs: Dictionary of arguments passed to the
