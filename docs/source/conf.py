@@ -265,6 +265,10 @@ intersphinx_mapping = {
 napoleon_use_ivar = True
 napoleon_use_rtype = False
 
+# See https://github.com/sphinx-doc/sphinx/issues/9119
+napoleon_custom_sections = [("Returns", "params_style")]
+
+
 graphviz_output_format = "svg"
 inheritance_graph_attrs = dict(rankdir="LR", fontsize=9, ratio="compress", bgcolor="transparent")
 inheritance_node_attrs = dict(

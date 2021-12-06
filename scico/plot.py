@@ -226,12 +226,10 @@ def plot(y, x=None, ptyp="plot", xlbl=None, ylbl=None, title=None, lgnd=None, lg
             =====  ==================== ===================================
 
     Returns:
-        tuple: a tuple (fig, ax) containing:
-
-            - **fig** (:class:`matplotlib.figure.Figure` object): Figure
-              object for this figure.
-            - **ax** (:class:`matplotlib.axes.Axes` object): Axes object
-              for this plot.
+        fig (:class:`matplotlib.figure.Figure` object): Figure object for
+            this figure.
+        ax (:class:`matplotlib.axes.Axes` object): Axes object for this
+            plot.
 
     Raises:
         ValueError: If an invalid plot type is specified via parameter
@@ -345,12 +343,10 @@ def surf(
             Plot in specified axes instead of creating one.
 
     Returns:
-        tuple: a tuple (fig, ax) containing:
-
-            - **fig** (:class:`matplotlib.figure.Figure` object): Figure
-              object for this figure.
-            - **ax** (:class:`matplotlib.axes.Axes` object): Axes object
-              for this plot.
+        fig (:class:`matplotlib.figure.Figure` object): Figure object for
+            this figure.
+        ax (:class:`matplotlib.axes.Axes` object): Axes object for this
+            plot.
     """
 
     figp = fig
@@ -474,12 +470,10 @@ def contour(
             Plot in specified axes instead of current axes of figure.
 
     Returns:
-        tuple: a tuple (fig, ax) containing:
-
-            - **fig** (:class:`matplotlib.figure.Figure` object): Figure
-              object for this figure.
-            - **ax** (:class:`matplotlib.axes.Axes` object): Axes object
-              for this plot.
+        fig (:class:`matplotlib.figure.Figure` object): Figure object for
+            this figure.
+        ax (:class:`matplotlib.axes.Axes` object): Axes object for this
+            plot.
     """
 
     figp = fig
@@ -613,12 +607,10 @@ def imview(
             Plot in specified axes instead of current axes of figure.
 
     Returns:
-        tuple: a tuple (fig, ax) containing:
-
-            - **fig** (:class:`matplotlib.figure.Figure` object): Figure
-              object for this figure.
-            - **ax** (:class:`matplotlib.axes.Axes` object): Axes object
-              for this plot.
+        fig (:class:`matplotlib.figure.Figure` object): Figure object for
+            this figure.
+        ax (:class:`matplotlib.axes.Axes` object): Axes object for this
+            plot.
 
     Raises:
         ValueError: If the input array is not of the required shape.
