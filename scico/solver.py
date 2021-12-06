@@ -86,7 +86,7 @@ def _wrap_func_and_grad(func: Callable, shape: Union[Shape, BlockShape], dtype: 
     return wrapper
 
 
-def split_real_imag(x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
+def _split_real_imag(x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
     """Split an array of shape (N,M,...) into real and imaginary parts.
 
     Args:
@@ -101,12 +101,12 @@ def split_real_imag(x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArra
         BlockArray.
     """
     if isinstance(x, BlockArray):
-        return BlockArray.array([split_real_imag(_) for _ in x])
+        return BlockArray.array([_split_real_imag(_) for _ in x])
     else:
         return snp.stack((snp.real(x), snp.imag(x)))
 
 
-def join_real_imag(x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
+def _join_real_imag(x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
     """Join a real array of shape (2,N,M,...) into a complex array.
 
     Join a real array of shape (2,N,M,...) into a complex array of length
@@ -120,7 +120,7 @@ def join_real_imag(x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray
         and ``x[1]`` respectively.
     """
     if isinstance(x, BlockArray):
-        return BlockArray.array([join_real_imag(_) for _ in x])
+        return BlockArray.array([_join_real_imag(_) for _ in x])
     else:
         return x[0] + 1j * x[1]
 
@@ -162,10 +162,10 @@ def minimize(
     if snp.iscomplexobj(x0):
         # scipy minimize function requires real-valued arrays, so
         # we split x0 into a vector with real/imaginary parts stacked
-        # and compose `func` with a `join_real_imag`
+        # and compose `func` with a `_join_real_imag`
         iscomplex = True
-        func_ = lambda x: func(join_real_imag(x))
-        x0 = split_real_imag(x0)
+        func_ = lambda x: func(_join_real_imag(x))
+        x0 = _split_real_imag(x0)
     else:
         iscomplex = False
         func_ = func
@@ -213,7 +213,7 @@ def minimize(
         res.x = jax.device_put(res.x, dev)
 
     if iscomplex:
-        res.x = join_real_imag(res.x)
+        res.x = _join_real_imag(res.x)
 
     return res
 
