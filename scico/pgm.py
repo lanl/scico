@@ -152,11 +152,11 @@ class AdaptiveBBStepSize(PGMStepSize):
 
     .. math::
 
-        \alpha = \left\{ \begin{matrix} \alpha^{\mathrm{BB2}} \;, &
+        \alpha = \left\{ \begin{matrix} \alpha^{\mathrm{BB2}}  &
         \mathrm{~if~} \alpha^{\mathrm{BB2}} / \alpha^{\mathrm{BB1}}
         < \kappa \; \\
-        \alpha^{\mathrm{BB1}} \;, & \mathrm{~otherwise} \end{matrix}
-        \right . \;\;,
+        \alpha^{\mathrm{BB1}} & \mathrm{~otherwise} \end{matrix}
+        \right . \;,
 
     with :math:`\kappa \in (0, 1)`.
 
@@ -244,7 +244,7 @@ class LineSearchStepSize(PGMStepSize):
     .. math::
        \hat{f}_{L}(\mb{x}, \mb{y}) = f(\mb{y}) + \nabla f(\mb{y})^H
        (\mb{x} - \mb{y}) + \frac{L}{2} \left\| \mb{x} - \mb{y}
-       \right\|_2^2 \;\;,
+       \right\|_2^2 \;,
 
     with :math:`\mb{x}` the potential new update and :math:`\mb{y}` the
     current solution or current extrapolation (if accelerated PGM).
@@ -306,7 +306,8 @@ class RobustLineSearchStepSize(LineSearchStepSize):
 
     .. math::
        \hat{f}_{L}(\mb{x}, \mb{y}) = f(\mb{y}) + \nabla f(\mb{y})^H
-       (\mb{x} - \mb{y}) + \frac{L}{2} \left\| \mb{x} - \mb{y} \right\|_2^2 \;\;,
+       (\mb{x} - \mb{y}) + \frac{L}{2} \left\| \mb{x} - \mb{y}
+       \right\|_2^2 \;,
 
     with :math:`\mb{x}` the potential new update and :math:`\mb{y}` the
     auxiliary extrapolation state.
@@ -373,7 +374,8 @@ class PGM:
 
     Minimize a function of the form :math:`f(\mb{x}) + g(\mb{x})`.
 
-    The function :math:`f` must be smooth and :math:`g` must have a defined prox.
+    The function :math:`f` must be smooth and :math:`g` must have a
+    defined prox.
 
     Uses helper :class:`StepSize` to provide an estimate of the Lipschitz
     constant :math:`L` of :math:`f`. The step size :math:`\alpha` is the
@@ -398,15 +400,21 @@ class PGM:
             g: Instance of Functional with defined prox method
             L0: Initial estimate of Lipschitz constant of f
             x0: Starting point for :math:`\mb{x}`
-            step_size: helper :class:`StepSize` to estimate the Lipschitz constant of f
-            maxiter: Maximum number of PGM iterations to perform. Default: 100.
-            verbose: Flag indicating whether iteration statistics should be displayed.
-            itstat: A tuple (`fieldspec`, `insertfunc`), where `fieldspec` is a dict suitable
-                for passing to the `fields` argument of the :class:`.diagnostics.IterationStats`
-                initializer, and `insertfunc` is a function with two parameters, an integer
-                and a PGM object, responsible for constructing a tuple ready for insertion into
-                the :class:`.diagnostics.IterationStats` object. If None, default values are
-                used for the tuple components.
+            step_size: helper :class:`StepSize` to estimate the Lipschitz
+                 constant of f
+            maxiter: Maximum number of PGM iterations to perform.
+                 Default: 100.
+            verbose: Flag indicating whether iteration statistics should
+                be displayed.
+            itstat: A tuple (`fieldspec`, `insertfunc`), where `fieldspec`
+                is a dict suitable
+                for passing to the `fields` argument of the
+                :class:`.diagnostics.IterationStats` initializer, and
+                `insertfunc` is a function with two parameters, an
+                integer and a PGM object, responsible for constructing a
+                tuple ready for insertion into the
+                :class:`.diagnostics.IterationStats` object. If None,
+                default values are used for the tuple components.
         """
 
         if f.is_smooth is not True:
@@ -470,9 +478,10 @@ class PGM:
     def f_quad_approx(self, x, y, L) -> float:
         r"""Evaluate the quadratic approximation to function :math:`f`.
 
-        Evaluate the quadratic approximation to function :math:`f`, corresponding to
-        :math:`\hat{f}_{L}(\mb{x}, \mb{y}) = f(\mb{y}) + \nabla f(\mb{y})^H (\mb{x} - \mb{y})
-        + \frac{L}{2} \left\|\mb{x} - \mb{y}\right\|_2^2`.
+        Evaluate the quadratic approximation to function :math:`f`,
+        corresponding to :math:`\hat{f}_{L}(\mb{x}, \mb{y}) = f(\mb{y}) +
+        \nabla f(\mb{y})^H (\mb{x} - \mb{y}) + \frac{L}{2} \left\|\mb{x}
+        - \mb{y}\right\|_2^2`.
         """
         diff_xy = x - y
         return (
@@ -482,7 +491,11 @@ class PGM:
         )
 
     def norm_residual(self) -> float:
-        r"""Return the fixed point residual (see Sec. 4.3 of :cite:`liu-2018-first`)."""
+        r"""Return the fixed point residual.
+
+        Return the fixed point residual (see Sec. 4.3 of
+        :cite:`liu-2018-first`)
+        """
         return self.fixed_point_residual
 
     def step(self):
@@ -502,8 +515,9 @@ class PGM:
         Run the PGM algorithm for a total of ``self.maxiter`` iterations.
 
         Args:
-            callback: An optional callback function, taking an a single argument of type
-               :class:`PGM`, that is called at the end of every iteration.
+            callback: An optional callback function, taking an a single
+               argument of type :class:`PGM`, that is called at the end
+               of every iteration.
 
         Returns:
             Computed solution.
@@ -526,9 +540,9 @@ class AcceleratedPGM(PGM):
 
     Minimize a function of the form :math:`f(\mb{x}) + g(\mb{x})`.
 
-    The function :math:`f` must be smooth and :math:`g` must have a defined prox.
-
-    The accelerated form of PGM is also known as FISTA :cite:`beck-2009-fast`.
+    The function :math:`f` must be smooth and :math:`g` must have a
+    defined prox. The accelerated form of PGM is also known as FISTA
+    :cite:`beck-2009-fast`.
 
     For documentation on inherited attributes, see :class:`.PGM`.
     """
@@ -551,15 +565,20 @@ class AcceleratedPGM(PGM):
             g: Instance of Functional with defined prox method
             L0: Initial estimate of Lipschitz constant of f
             x0: Starting point for :math:`\mb{x}`
-            step_size: helper :class:`StepSize` to estimate the Lipschitz constant of f
-            maxiter: Maximum number of PGM iterations to perform. Default: 100.
-            verbose: Flag indicating whether iteration statistics should be displayed.
-            itstat: A tuple (`fieldspec`, `insertfunc`), where `fieldspec` is a dict suitable
-                for passing to the `fields` argument of the :class:`.diagnostics.IterationStats`
-                initializer, and `insertfunc` is a function with two parameters, an integer
-                and a PGM object, responsible for constructing a tuple ready for insertion into
-                the :class:`.diagnostics.IterationStats` object. If None, default values are
-                used for the tuple components.
+            step_size: helper :class:`StepSize` to estimate the Lipschitz
+                constant of f
+            maxiter: Maximum number of PGM iterations to perform.
+                Default: 100.
+            verbose: Flag indicating whether iteration statistics should
+                be displayed.
+            itstat: A tuple (`fieldspec`, `insertfunc`), where `fieldspec`
+                is a dict suitable for passing to the `fields` argument
+                of the :class:`.diagnostics.IterationStats` initializer,
+                and `insertfunc` is a function with two parameters, an
+                integer and a PGM object, responsible for constructing a
+                tuple ready for insertion into the
+                :class:`.diagnostics.IterationStats` object. If None,
+                default values are used for the tuple components.
         """
         x0 = ensure_on_device(x0)
         super().__init__(

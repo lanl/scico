@@ -15,7 +15,11 @@ __author__ = """Brendt Wohlberg <brendt@ieee.org>"""
 
 
 class IterationStats:
-    """Display and record statistics related to convergence of iterative algorithms"""
+    """Display and record iterative algorithms statistics.
+
+    Display and record statistics related to convergence of iterative
+    algorithms.
+    """
 
     def __init__(
         self,
@@ -29,28 +33,29 @@ class IterationStats:
         field order is retained) specifying field names for each value to
         be inserted and a corresponding format string for when it is
         displayed. When inserted values are printed in tabular form, the
-        field lengths are taken as the maxima of the header string lengths
-        and the field lengths embedded in the format strings (if specified).
-        For best results, the field lengths should be manually specified based
-        on knowledge of the ranges of values that may be encountered. For
-        example, for a '%e' format string, the specified field length should
-        be at least the precision (e.g. '%.2e' specifies a precision of 2
-        places) plus 6 when only positive values may encountered, and plus 7
-        when negative values may be encountered.
+        field lengths are taken as the maxima of the header string
+        lengths and the field lengths embedded in the format strings (if
+        specified). For best results, the field lengths should be
+        manually specified based on knowledge of the ranges of values
+        that may be encountered. For example, for a '%e' format string,
+        the specified field length should be at least the precision (e.g.
+        '%.2e' specifies a precision of 2 places) plus 6 when only
+        positive values may encountered, and plus 7 when negative values
+        may be encountered.
 
         Args:
-            fields: A dictionary associating field names with format strings for
-                displaying the corresponding values.
+            fields: A dictionary associating field names with format
+                strings for displaying the corresponding values.
             ident: A dictionary associating field names.
-               with corresponding valid identifiers for use within the namedtuple used to
-               record results. Defaults to None.
-            display : Flag indicating whether results should be printed to stdout.
-                Defaults to ``False``.
-            colsep : Number of spaces seperating fields in displayed tables.
-                Defaults to 2.
+               with corresponding valid identifiers for use within the
+               namedtuple used to record results. Defaults to ``None``.
+            display: Flag indicating whether results should be printed
+                to stdout. Defaults to ``False``.
+            colsep: Number of spaces seperating fields in displayed
+                tables. Defaults to 2.
 
         Raises:
-            TypeError: Description
+            TypeError: If the ``fields`` parameter is not a dict.
         """
 
         # Parameter fields must be specified as an OrderedDict to ensure
@@ -130,10 +135,10 @@ class IterationStats:
 
     def insert(self, values: Union[List, Tuple]):
         """
-        Insert a list of values for a single iteration
+        Insert a list of values for a single iteration.
 
         Args:
-            values : Statistics for a single iteration
+            values: Statistics for a single iteration.
         """
 
         self.iterations.append(self.IterTuple(*values))
@@ -146,15 +151,16 @@ class IterationStats:
 
     def history(self, transpose: bool = False):
         """
-        Retrieve record of all inserted iterations
+        Retrieve record of all inserted iterations.
 
         Args:
-            transpose: Flag indicating whether results
-                should be returned in "transposed" form, i.e. as a namedtuple of lists
-                rather than a list of namedtuples.  Default: False
+            transpose: Flag indicating whether results should be returned
+                in "transposed" form, i.e. as a namedtuple of lists
+                rather than a list of namedtuples. Default: False.
 
         Returns:
-            list of namedtuple or namedtuple of lists: Record of all inserted iterations
+            list of namedtuple or namedtuple of lists: Record of all
+            inserted iterations.
         """
 
         if transpose:

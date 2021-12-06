@@ -40,13 +40,15 @@ def _loss_mul_div_wrapper(func):
 
 
 class Loss(functional.Functional):
-    r"""Generic Loss function.
+    r"""Generic loss function.
+
+    Generic loss function
 
     .. math::
-        \alpha l(\mb{y}, A(\mb{x})) \;
+        \alpha l(\mb{y}, A(\mb{x})) \;,
 
-    where :math:`\alpha` is the scaling parameter and :math:`l(\cdot)` is the loss functional.
-
+    where :math:`\alpha` is the scaling parameter and :math:`l(\cdot)` is
+    the loss functional.
     """
 
     def __init__(
@@ -58,9 +60,10 @@ class Loss(functional.Functional):
         r"""Initialize a :class:`Loss` object.
 
         Args:
-            y : Measurement.
-            A : Forward operator.  Defaults to None.  If None, ``self.A`` is a :class:`.Identity`.
-            scale : Scaling parameter.  Default: 0.5.
+            y: Measurement.
+            A: Forward operator. Defaults to None. If None, ``self.A`` is
+               a :class:`.Identity`.
+            scale: Scaling parameter. Default: 0.5.
 
         """
         self.y = ensure_on_device(y)
@@ -105,17 +108,18 @@ class Loss(functional.Functional):
 
 
 class WeightedSquaredL2Loss(Loss):
-    r"""
-    Weighted squared :math:`\ell_2` loss.
+    r"""Weighted squared :math:`\ell_2` loss.
+
+    Weighted squared :math:`\ell_2` loss
 
     .. math::
         \alpha \norm{\mb{y} - A(\mb{x})}_W^2 =
-        \alpha \left(\mb{y} - A(\mb{x})\right)^T W \left(\mb{y} - A(\mb{x})\right)\;
+        \alpha \left(\mb{y} - A(\mb{x})\right)^T W \left(\mb{y} -
+        A(\mb{x})\right) \;,
 
     where :math:`\alpha` is the scaling parameter and :math:`W` is an
     instance of :class:`scico.linop.Diagonal`.  If :math:`W` is None,
     reverts to the behavior of :class:`.SquaredL2Loss`.
-
     """
 
     def __init__(
@@ -130,9 +134,9 @@ class WeightedSquaredL2Loss(Loss):
         r"""Initialize a :class:`WeightedSquaredL2Loss` object.
 
         Args:
-            y : Measurement.
-            A : Forward operator.  If None, defaults to :class:`.Identity`.
-            scale : Scaling parameter.
+            y: Measurement.
+            A: Forward operator. If None, defaults to :class:`.Identity`.
+            scale: Scaling parameter.
             W:  Weighting diagonal operator. Must be non-negative.
                 If None, defaults to :class:`.Identity`.
         """
@@ -203,11 +207,11 @@ class WeightedSquaredL2Loss(Loss):
 
     @property
     def hessian(self) -> linop.LinearOperator:
-        r"""If ``self.A`` is a :class:`scico.linop.LinearOperator`, returns a
-        :class:`scico.linop.LinearOperator` corresponding to  the Hessian
-        :math:`2 \alpha \mathrm{A^H W A}`.
+        r"""Compute the hessian of a linear operator.
 
-        Otherwise not implemented.
+        If ``self.A`` is a :class:`scico.linop.LinearOperator`, returns a
+        :class:`scico.linop.LinearOperator` corresponding to  the Hessian
+        :math:`2 \alpha \mathrm{A^H W A}`. Otherwise not implemented.
         """
         A = self.A
         W = self.W
@@ -220,19 +224,20 @@ class WeightedSquaredL2Loss(Loss):
             )
         else:
             raise NotImplementedError(
-                f"Hessian is not implemented for {type(self)} when `A` is {type(A)}; must be LinearOperator"
+                f"Hessian is not implemented for {type(self)} when `A` is {type(A)}; "
+                "must be LinearOperator"
             )
 
 
 class SquaredL2Loss(WeightedSquaredL2Loss):
-    r"""
-    Squared :math:`\ell_2` loss.
+    r"""Squared :math:`\ell_2` loss.
+
+    Squared :math:`\ell_2` loss
 
     .. math::
-        \alpha \norm{\mb{y} - A(\mb{x})}_2^2 \;
+        \alpha \norm{\mb{y} - A(\mb{x})}_2^2 \;,
 
     where :math:`\alpha` is the scaling parameter.
-
     """
 
     def __init__(
@@ -245,19 +250,21 @@ class SquaredL2Loss(WeightedSquaredL2Loss):
         r"""Initialize a :class:`SquaredL2Loss` object.
 
         Args:
-            y : Measurement.
-            A : Forward operator.  If None, defaults to :class:`.Identity`.
-            scale : Scaling parameter.
+            y: Measurement.
+            A: Forward operator. If None, defaults to :class:`.Identity`.
+            scale: Scaling parameter.
         """
         super().__init__(y=y, A=A, scale=scale, W=None, prox_kwargs=prox_kwargs)
 
 
 class PoissonLoss(Loss):
-    r"""
+    r"""Poisson negative log likelihood loss.
+
     Poisson negative log likelihood loss
 
     .. math::
-        \alpha \left( \sum_i [A(x)]_i - y_i \log\left( [A(x)]_i \right) + \log(y_i!) \right)
+        \alpha \left( \sum_i [A(x)]_i - y_i \log\left( [A(x)]_i \right) +
+        \log(y_i!) \right) \;,
 
     where :math:`\alpha` is the scaling parameter.
     """
@@ -268,12 +275,13 @@ class PoissonLoss(Loss):
         A: Optional[Union[Callable, operator.Operator]] = None,
         scale: float = 0.5,
     ):
-        r"""Initialize a :class:`Loss` object.
+        r"""Initialize a :class:`PoissonLoss` object.
 
         Args:
-            y : Measurement.
-            A : Forward operator. Defaults to None.  If None, ``self.A`` is a :class:`.Identity`.
-            scale : Scaling parameter. Default: 0.5.
+            y: Measurement.
+            A: Forward operator. Defaults to None. If None, ``self.A``
+                is a :class:`.Identity`.
+            scale: Scaling parameter. Default: 0.5.
         """
         y = ensure_on_device(y)
         super().__init__(y=y, A=A, scale=scale)

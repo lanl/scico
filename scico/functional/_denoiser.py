@@ -28,10 +28,12 @@ __author__ = """Luke Pfister <luke.pfister@gmail.com>"""
 
 
 class BM3D(Functional):
-    r"""Functional whose prox applies the BM3D denoising algorithm :cite:`dabov-2008-image`.
+    r"""Functional whose prox applies the BM3D denoising algorithm.
 
-    The BM3D algorithm is computed using the `code <https://pypi.org/project/bm3d>`__ released
-    with :cite:`makinen-2019-exact`.
+    A pseudo-function that has the BM3D algorithm :cite:`dabov-2008-image`
+    as its proximal operator. BM3D denoising is performed using the
+    `code <https://pypi.org/project/bm3d>`__ released with
+    :cite:`makinen-2019-exact`.
     """
 
     has_eval = False
@@ -42,7 +44,8 @@ class BM3D(Functional):
         r"""Initialize a :class:`BM3D` object.
 
         Args:
-            is_rgb : Flag indicating use of BM3D with a color transform.  Default: False.
+            is_rgb: Flag indicating use of BM3D with a color transform.
+                    Default: False.
         """
 
         if is_rgb is True:
@@ -58,8 +61,8 @@ class BM3D(Functional):
         r"""Apply BM3D denoiser with noise level ``lam``.
 
         Args:
-            x : input image.
-            lam : noise level.
+            x: input image.
+            lam: noise level.
 
         Returns:
             BM3D denoised output.
@@ -111,8 +114,9 @@ class BM3D(Functional):
 
 
 class DnCNN(FlaxMap):
-    """Flax implementation of the DnCNN denoiser :cite:`zhang-2017-dncnn`.
+    """Flax implementation of the DnCNN denoiser.
 
+    A flax implementation of the DnCNN denoiser :cite:`zhang-2017-dncnn`.
     Note that :class:`.flax.DnCNNNet` represents an untrained form of the
     generic DnCNN CNN structure, while this class represents a trained
     form with six or seventeen layers.
@@ -126,7 +130,7 @@ class DnCNN(FlaxMap):
         of each channel.
 
         Args:
-            variant : Identify the DnCNN model to be used. Options are
+            variant: Identify the DnCNN model to be used. Options are
                 '6L', '6M' (default), '6H', '17L', '17M', and '17H',
                 where the integer indicates the number of layers in the
                 network, and the postfix indicates the training noise
@@ -151,8 +155,8 @@ class DnCNN(FlaxMap):
         the output.
 
         Args:
-            x : input.
-            lam : noise estimate (ignored).
+            x: input.
+            lam: noise estimate (ignored).
 
         Returns:
             DnCNN denoised output.

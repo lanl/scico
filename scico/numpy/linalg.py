@@ -7,7 +7,13 @@
 
 """Construct wrapped versions of :mod:`jax.numpy.linalg` functions.
 
-This modules consists of functions from :mod:`jax.numpy.linalg`. Some of these functions are wrapped to support compatibility with :class:`scico.blockarray.BlockArray` and are documented here. The remaining functions are imported directly from :mod:`jax.numpy.linalg`. While they can be imported from the :mod:`scico.numpy.linalg` namespace, they are not documented here; please consult the documentation for the source module :mod:`jax.numpy.linalg`.
+This modules consists of functions from :mod:`jax.numpy.linalg`. Some of
+these functions are wrapped to support compatibility with
+:class:`scico.blockarray.BlockArray` and are documented here. The
+remaining functions are imported directly from :mod:`jax.numpy.linalg`.
+While they can be imported from the :mod:`scico.numpy.linalg` namespace,
+they are not documented here; please consult the documentation for the
+source module :mod:`jax.numpy.linalg`.
 """
 
 
@@ -31,7 +37,10 @@ def _extract_if_matrix(x):
 
 
 def _matrixop_linalg_wrapper(func):
-    """Wraps :mod:`jax.numpy.linalg` functions for joint operation on `MatrixOperator` and `DeviceArray`"""
+    """Wrap :mod:`jax.numpy.linalg` functions.
+
+    Wrap :mod:`jax.numpy.linalg` functions for joint operation on
+    `MatrixOperator` and `DeviceArray`."""
 
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -72,8 +81,11 @@ solve = _matrixop_linalg_wrapper(jla.solve)
 
 # multidot is somewhat unique
 def multi_dot(arrays, *, precision=None):
-    """Computes the dot product of two or more arrays.
-    Wrapped to work with `MatrixOperator`s."""
+    """Compute the dot product of two or more arrays.
+
+    Compute the dot product of two or more arrays.
+    Wrapped to work with `MatrixOperator`s.
+    """
     arrays_ = [_extract_if_matrix(_) for _ in arrays]
     return jla.multi_dot(arrays_, precision=precision)
 
