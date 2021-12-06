@@ -7,11 +7,18 @@
 
 """Wrapped versions of :mod:`jax.numpy` functions.
 
-This modules consists of functions from :mod:`jax.numpy`. Some of these functions are wrapped to support compatibility with :class:`scico.blockarray.BlockArray` and are documented here. The remaining functions are imported directly from :mod:`jax.numpy`. While they can be imported from the :mod:`scico.numpy` namespace, they are not documented here; please consult the documentation for the source module :mod:`jax.numpy`.
+This modules consists of functions from :mod:`jax.numpy`. Some of these
+functions are wrapped to support compatibility with
+:class:`scico.blockarray.BlockArray` and are documented here. The
+remaining functions are imported directly from :mod:`jax.numpy`. While
+they can be imported from the :mod:`scico.numpy` namespace, they are not
+documented here; please consult the documentation for the source module
+:mod:`jax.numpy`.
 
 .. todo::
 
-   Provide detailed discussion of purpose of wrapping functions, and how to determine which functions are wrapped and which are not.
+   Provide detailed discussion of purpose of wrapping functions, and how
+   to determine which functions are wrapped and which are not.
 """
 
 import sys
