@@ -95,50 +95,70 @@ def valid_adjoint(
     A: LinearOperator,
     AT: LinearOperator,
     eps: Optional[float] = 1e-7,
+    x: Optional[JaxArray] = None,
+    y: Optional[JaxArray] = None,
     key: Optional[PRNGKey] = None,
 ) -> Union[bool, float]:
     r"""Check whether :class:`.LinearOperator` `AT` is the adjoint of `A`.
 
-    The test exploits the identity
+    Check whether :class:`.LinearOperator` :math:`\mathsf{AT}` is the
+    adjoint of :math:`\mathsf{A}`. The test exploits the identity
 
     .. math::
       \mathbf{y}^T (A \mathbf{x}) = (\mathbf{y}^T A) \mathbf{x} =
       (A^T \mathbf{y})^T \mathbf{x}
 
-    by computing :math:`\mathbf{u} = A \mathbf{x}` and
-    :math:`\mathbf{v} = A^T \mathbf{y}` for random :math:`\mathbf{x}`
-    and :math:`\mathbf{y}` and confirming that :math:`\| \mathbf{y}^T
-    \mathbf{u} - \mathbf{v}^T \mathbf{x} \|_2 < \epsilon` since
+    by computing :math:`\mathbf{u} = \mathsf{A}(\mathbf{x})` and
+    :math:`\mathbf{v} = \mathsf{AT}(\mathbf{y})` for random
+    :math:`\mathbf{x}` and :math:`\mathbf{y}` and confirming that
 
     .. math::
-      \mathbf{y}^T \mathbf{u} = \mathbf{y}^T (A \mathbf{x}) =
-      (A^T \mathbf{y})^T \mathbf{x} = \mathbf{v}^T \mathbf{x}
+      \frac{| \mathbf{y}^T \mathbf{u} - \mathbf{v}^T \mathbf{x} |}
+      {\max \left\{ | \mathbf{y}^T \mathbf{u} |,
+       | \mathbf{v}^T \mathbf{x} | \right\}}
+      < \epsilon \;.
 
-    when :math:`A^T` is a valid adjoint of :math:`A`. If :math:`A` is a
-    complex operator (with a complex `input_dtype`) then the test checks
-    whether `AT` is the Hermitian conjugate of `A`, with a test as above,
-    but with all the :math:`\cdot^T` replaced with :math:`\cdot^H`.
+    If :math:`\mathsf{A}` is a complex operator (with a complex
+    `input_dtype`) then the test checks whether :math:`\mathsf{AT}` is
+    the Hermitian conjugate of :math:`\mathsf{A}`, with a test as above,
+    but with all the :math:`(\cdot)^T` replaced with :math:`(\cdot)^H`.
 
     Args:
         A: Primary :class:`.LinearOperator`.
         AT: Adjoint :class:`.LinearOperator`.
-        eps: Error threshold for validation of `AT` as adjoint of `A`. If
-           None, the relative error is returned instead of a boolean value.
+        eps: Error threshold for validation of :math:`\mathsf{AT}` as
+           adjoint of :math:`\mathsf{AT}`. If None, the relative error
+           is returned instead of a boolean value.
+        x : If not the default None, use the specified array instead of a
+           random array as test vector :math:`\mb{x}`. If specified, the
+           array must have shape ``A.input_shape``.
+        y : If not the default None, use the specified array instead of a
+           random array as test vector :math:`\mb{y}`. If specified, the
+           array must have shape ``AT.input_shape``.
         key: Jax PRNG key. Defaults to None, in which case a new key is
            created.
 
     Returns:
-      Boolean value indicating that validation passed, or relative error
-      of test, depending on type of parameter `eps`.
+      Boolean value indicating whether validation passed, or relative
+      error of test, depending on type of parameter `eps`.
     """
 
-    x0, key = randn(shape=A.input_shape, key=key, dtype=A.input_dtype)
-    x1, key = randn(shape=AT.input_shape, key=key, dtype=AT.input_dtype)
-    y0 = A(x0)
-    y1 = AT(x1)
-    x1y0 = snp.dot(x1.ravel().conj(), y0.ravel())
-    y1x0 = snp.dot(y1.ravel().conj(), x0.ravel())
-    err = snp.linalg.norm(x1y0 - y1x0) / max(snp.linalg.norm(x1y0), snp.linalg.norm(y1x0))
+    if x is None:
+        x, key = randn(shape=A.input_shape, key=key, dtype=A.input_dtype)
+    else:
+        if x.shape != A.input_shape:
+            raise ValueError("Shape of x array not appropriate as an input for operator A")
+    if y is None:
+        y, key = randn(shape=AT.input_shape, key=key, dtype=AT.input_dtype)
+    else:
+        if y.shape != AT.input_shape:
+            raise ValueError("Shape of y array not appropriate as an input for operator AT")
+
+    u = A(x)
+    v = AT(y)
+    yTu = snp.dot(y.ravel().conj(), u.ravel())
+    vTx = snp.dot(v.ravel().conj(), x.ravel())
+    err = snp.abs(yTu - vTx) / max(snp.abs(yTu), snp.abs(vTx))
     if eps is None:
         return err
     else:
