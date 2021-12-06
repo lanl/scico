@@ -194,12 +194,12 @@ def randn(
     Alias for :func:`scico.random.normal`.
 
     Args:
-        shape: Shape of output array.  If shape is a tuple, a
+        shape: Shape of output array. If shape is a tuple, a
             DeviceArray is returned. If shape is a tuple of tuples, a
             :class:`.BlockArray` is returned.
         key: JAX PRNGKey. Defaults to None, in which case a new key
             is created using the seed arg.
-        seed: Seed for new PRNGKey. Default: 0
+        seed: Seed for new PRNGKey. Default: 0.
         dtype: dtype for returned value. Default to ``np.float32``.
             If ``np.complex64``, generates an array sampled from complex
             normal distribution.
