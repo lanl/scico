@@ -182,18 +182,18 @@ def test_minimize(dtype, method):
 
 def test_split_join_array():
     x, key = random.randn((4, 4), dtype=np.complex64)
-    x_s = solver.split_real_imag(x)
+    x_s = solver._split_real_imag(x)
     assert x_s.shape == (2, 4, 4)
     np.testing.assert_allclose(x_s[0], snp.real(x))
     np.testing.assert_allclose(x_s[1], snp.imag(x))
 
-    x_j = solver.join_real_imag(x_s)
+    x_j = solver._join_real_imag(x_s)
     np.testing.assert_allclose(x_j, x, rtol=1e-4)
 
 
 def test_split_join_blockarray():
     x, key = random.randn(((4, 4), (3,)), dtype=np.complex64)
-    x_s = solver.split_real_imag(x)
+    x_s = solver._split_real_imag(x)
     assert x_s.shape == ((2, 4, 4), (2, 3))
 
     real_block = BlockArray.array((x_s[0][0], x_s[1][0]))
@@ -201,6 +201,6 @@ def test_split_join_blockarray():
     np.testing.assert_allclose(real_block.ravel(), snp.real(x).ravel(), rtol=1e-4)
     np.testing.assert_allclose(imag_block.ravel(), snp.imag(x).ravel(), rtol=1e-4)
 
-    x_j = solver.join_real_imag(x_s)
+    x_j = solver._join_real_imag(x_s)
     assert x_j.shape == x.shape
     np.testing.assert_allclose(x_j.ravel(), x.ravel(), rtol=1e-4)
