@@ -21,7 +21,7 @@ __author__ = """Cristina Garcia-Cardona <cgarciac@lanl.gov>"""
 
 
 class FlaxMap(Functional):
-    r"""Functional whose prox applies a trained Flax model."""
+    r"""Functional whose prox applies a trained flax model."""
 
     has_eval = False
     has_prox = True
@@ -31,8 +31,8 @@ class FlaxMap(Functional):
         r"""Initialize a :class:`FlaxMap` object.
 
         Args:
-            model : Flax model to apply.
-            variables : Parameters and batch stats of trained model.
+            model: Flax model to apply.
+            variables: Parameters and batch stats of trained model.
         """
         self.model = model
         self.variables = variables
@@ -45,8 +45,8 @@ class FlaxMap(Functional):
         the output.
 
         Args:
-            x : input.
-            lam : noise estimate (ignored).
+            x: input.
+            lam: noise estimate (ignored).
 
         Returns:
             Output of flax model.

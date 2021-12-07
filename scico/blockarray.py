@@ -15,17 +15,19 @@ r"""Extensions of numpy ndarray class.
    >>> import jax.numpy
 
 The class :class:`.BlockArray` is a `jagged array
-<https://en.wikipedia.org/wiki/Jagged_array>`_ that aims to mimic the :class:`numpy.ndarray`
-interface where appropriate.
+<https://en.wikipedia.org/wiki/Jagged_array>`_ that aims to mimic the
+:class:`numpy.ndarray` interface where appropriate.
 
-A :class:`.BlockArray` object consists of a tuple of `DeviceArray` objects that share their memory
-buffers with non-overlapping, contiguous regions of a common one-dimensional `DeviceArray`.
-A :class:`.BlockArray` contains the following size attributes:
+A :class:`.BlockArray` object consists of a tuple of `DeviceArray`
+objects that share their memory buffers with non-overlapping, contiguous
+regions of a common one-dimensional `DeviceArray`. A :class:`.BlockArray`
+contains the following size attributes:
 
 * `shape`:  A tuple of tuples containing component dimensions.
-* `size`: The sum of the size of each component block; this is the length of the underlying
-  one-dimensional `DeviceArray`.
-* `num_blocks`: The number of components (blocks) that comprise the :class:`.BlockArray`.
+* `size`: The sum of the size of each component block; this is the length
+  of the underlying one-dimensional `DeviceArray`.
+* `num_blocks`: The number of components (blocks) that comprise the
+  :class:`.BlockArray`.
 
 
 Motivating Example
@@ -33,17 +35,20 @@ Motivating Example
 
 Consider a two dimensional array :math:`\mb{x} \in \mathbb{R}^{n \times m}`.
 
-We compute the discrete differences of :math:`\mb{x}` in the horizontal and vertical directions,
-generating two new arrays: :math:`\mb{x}_h \in \mathbb{R}^{n \times (m-1)}` and :math:`\mb{x}_v \in
-\mathbb{R}^{(n-1) \times m}`.
+We compute the discrete differences of :math:`\mb{x}` in the horizontal
+and vertical directions, generating two new arrays: :math:`\mb{x}_h \in
+\mathbb{R}^{n \times (m-1)}` and :math:`\mb{x}_v \in \mathbb{R}^{(n-1)
+\times m}`.
 
-As these arrays are of different sizes, we cannot combine them into a single `ndarray`. Instead,
-we might vectorize each array and concatenate the resulting vectors, leading to :math:`\mb{\bar{x}}
-\in \mathbb{R}^{n(m-1) + m(n-1)}`, which can be stored as a one-dimensional `ndarray`.
-Unfortunately, this makes it hard to access the individual components :math:`\mb{x}_h` and
-:math:`\mb{x}_v`.
+As these arrays are of different shapes, we cannot combine them into a
+single `ndarray`. Instead, we might vectorize each array and concatenate
+the resulting vectors, leading to :math:`\mb{\bar{x}} \in
+\mathbb{R}^{n(m-1) + m(n-1)}`, which can be stored as a one-dimensional
+`ndarray`. Unfortunately, this makes it hard to access the individual
+components :math:`\mb{x}_h` and :math:`\mb{x}_v`.
 
-Instead, we can form a :class:`.BlockArray`: :math:`\mb{x}_B = [\mb{x}_h, \mb{x}_v]`
+Instead, we can form a :class:`.BlockArray`: :math:`\mb{x}_B =
+[\mb{x}_h, \mb{x}_v]`
 
 
   ::
@@ -70,7 +75,6 @@ Instead, we can form a :class:`.BlockArray`: :math:`\mb{x}_B = [\mb{x}_h, \mb{x}
 Constructing a BlockArray
 -------------------------
 
-
 Construct from a tuple of arrays (either `ndarray` or `DeviceArray`)
 ####################################################################
   .. doctest::
@@ -87,13 +91,16 @@ Construct from a tuple of arrays (either `ndarray` or `DeviceArray`)
      >>> X.num_blocks
      2
 
-| While :func:`.BlockArray.array` will accept either `ndarray` or `DeviceArray` as input, the
-  resulting :class:`.BlockArray` will be backed by a `DeviceArray` memory buffer.
+While :func:`.BlockArray.array` will accept either `ndarray` or
+`DeviceArray` as input, the resulting :class:`.BlockArray` will be backed
+by a `DeviceArray` memory buffer.
 
-| **Note**: constructing a :class:`.BlockArray` always involves a copy to a new `DeviceArray` memory buffer.
+**Note**: constructing a :class:`.BlockArray` always involves a copy to
+a new `DeviceArray` memory buffer.
 
-| **Note**: by default, the resulting :class:`.BlockArray` cast to single precision and will have
-  dtype `float32` or `complex64`.
+**Note**: by default, the resulting :class:`.BlockArray` is cast to
+single precision and will have dtype `float32` or `complex64`.
+
 
 Construct from a single vector and tuple of shapes
 ##################################################
@@ -117,11 +124,12 @@ BlockArrays support the JAX DeviceArray `indexed update syntax
 <https://jax.readthedocs.io/en/latest/jax.ops.html#indexed-update-operators>`_
 
 
-The index must be of the form [ibk] or [ibk,idx],
-where `ibk` is the index of the block to be updated, and `idx` is a
-general index of the elements to be updated in that block.  In particular, `ibk`
-cannot be a `slice`.  The general index `idx` can be omitted, in which case
-an entire block is updated.
+The index must be of the form [ibk] or [ibk,idx], where `ibk` is the
+index of the block to be updated, and `idx` is a general index of the
+elements to be updated in that block.  In particular, `ibk` cannot be a
+`slice`. The general index `idx` can be omitted, in which case an entire
+block is updated.
+
 
 ==============================   ==============================================
 Alternate syntax                 Equivalent in-place expression
@@ -160,7 +168,8 @@ Illustrated for the operation ``+``, but equally valid for operators
 Operations with BlockArrays with same number of blocks
 ******************************************************
 
-Let :math:`\mb{y}` be a BlockArray with the same number of blocks as :math:`\mb{x}`.
+Let :math:`\mb{y}` be a BlockArray with the same number of blocks as
+:math:`\mb{x}`.
 
   .. math::
      \mb{x} + \mb{y}
@@ -170,8 +179,8 @@ Let :math:`\mb{y}` be a BlockArray with the same number of blocks as :math:`\mb{
        \mb{x}[1] + \mb{y}[1] \\
      \end{bmatrix}
 
-This operation depends on pair of blocks from :math:`\mb{x}` and :math:`\mb{y}`
-being broadcastable against each other.
+This operation depends on pair of blocks from :math:`\mb{x}` and
+:math:`\mb{y}` being broadcastable against each other.
 
 
 
@@ -202,7 +211,8 @@ The scalar is added to each element of the :class:`.BlockArray`:
 Operations with a 1D `ndarray` of size equal to `num_blocks`
 ************************************************************
 
-The *i*\th scalar is added to the *i*\th  block of the :class:`.BlockArray`:
+The *i*\th scalar is added to the *i*\th  block of the
+:class:`.BlockArray`:
 
   .. math::
    \mb{x}
@@ -228,8 +238,9 @@ The *i*\th scalar is added to the *i*\th  block of the :class:`.BlockArray`:
 Operations with an ndarray of `size` equal to :class:`.BlockArray` size
 ***********************************************************************
 
-We first cast the `ndarray` to a BlockArray with same shape as :math:`\mb{x}`, then apply the
-operation on the resulting BlockArrays.  With ``y.size = x.size``, we have:
+We first cast the `ndarray` to a BlockArray with same shape as
+:math:`\mb{x}`, then apply the operation on the resulting BlockArrays.
+With ``y.size = x.size``, we have:
 
   .. math::
    \mb{x}
@@ -241,8 +252,9 @@ operation on the resulting BlockArrays.  With ``y.size = x.size``, we have:
      \mb{x}[1] + \mb{y}[1]\\
    \end{bmatrix}
 
-Equivalently, the BlockArray is first flattened, then added to the flattened `ndarray`, and the
-result is reformed into a BlockArray with the same shape as :math:`\mb{x}`
+Equivalently, the BlockArray is first flattened, then added to the
+flattened `ndarray`, and the result is reformed into a BlockArray with
+the same shape as :math:`\mb{x}`
 
 
 
@@ -255,8 +267,8 @@ Between two BlockArrays
 
 The matmul is computed between each block of the two BlockArrays.
 
-The BlockArrays must have the same number of blocks, and each pair of blocks
-must be broadcastable.
+The BlockArrays must have the same number of blocks, and each pair of
+blocks must be broadcastable.
 
   .. math::
    \mb{x} @ \mb{y}
@@ -280,7 +292,8 @@ Between BlockArray and :class:`.LinearOperator`
 .. todo::
    Improve this
 
-The :class:`.Operator` and :class:`.LinearOperator` classes are designed to work on :class:`.BlockArray`.  The shapes must conform:
+The :class:`.Operator` and :class:`.LinearOperator` classes are designed
+to work on :class:`.BlockArray`. The shapes must conform:
 
    ::
 
@@ -292,26 +305,28 @@ The :class:`.Operator` and :class:`.LinearOperator` classes are designed to work
 NumPy ufuncs
 ############
 
-`NumPy universal functions (ufuncs) <https://numpy.org/doc/stable/reference/ufuncs.html>`_ are
-functions that operate on an `ndarray` on an element-by-element fashion and support array
-broadcasting. Examples of ufuncs are ``abs``, ``sign``, ``conj``, and ``exp``.
+`NumPy universal functions (ufuncs) <https://numpy.org/doc/stable/reference/ufuncs.html>`_
+are functions that operate on an `ndarray` on an element-by-element
+fashion and support array broadcasting. Examples of ufuncs are ``abs``,
+``sign``, ``conj``, and ``exp``.
 
-The JAX library implements most NumPy ufuncs in the :mod:`jax.numpy` module.
-However, as JAX does not support subclassing of `DeviceArray`, the JAX ufuncs
-cannot be used on :class:`.BlockArray`. As a workaround, we have wrapped several
-JAX ufuncs for use on :class:`.BlockArray`; these are located in the
-:mod:`scico.numpy` module.
+The JAX library implements most NumPy ufuncs in the :mod:`jax.numpy`
+module. However, as JAX does not support subclassing of `DeviceArray`,
+the JAX ufuncs cannot be used on :class:`.BlockArray`. As a workaround,
+we have wrapped several JAX ufuncs for use on :class:`.BlockArray`; these
+are defined in the :mod:`scico.numpy` module.
 
 
 Reductions
 ##########
 
-Reductions are functions that take an array-like as an input and return an array of lower
-dimension. Examples include ``mean``, ``sum``, ``norm``. BlockArray reductions are located in the
-:mod:`scico.numpy` module
+Reductions are functions that take an array-like as an input and return
+an array of lower dimension. Examples include ``mean``, ``sum``, ``norm``.
+BlockArray reductions are located in the :mod:`scico.numpy` module
 
-:class:`.BlockArray` tries to mirror `ndarray` reduction semantics where possible, but
-cannot provide a one-to-one match as the block components may be of different size.
+:class:`.BlockArray` tries to mirror `ndarray` reduction semantics where
+possible, but cannot provide a one-to-one match as the block components
+may be of different size.
 
 Consider the example BlockArray
 
@@ -342,15 +357,17 @@ We have
 
 
 
-  If no axis is specified, the reduction is applied to the flattened array:
+  If no axis is specified, the reduction is applied to the flattened
+  array:
 
   .. doctest::
 
     >>> snp.sum(x, axis=None).item()
     8.0
 
-  Reducing along the 0-th axis crushes the `BlockArray` down into a single `DeviceArray`
-  and requires all blocks to have the same shape otherwise, an error is raised.
+  Reducing along the 0-th axis crushes the `BlockArray` down into a
+  single `DeviceArray` and requires all blocks to have the same shape
+  otherwise, an error is raised.
 
   .. doctest::
 
@@ -363,7 +380,8 @@ We have
     DeviceArray([[3., 3.],
                  [3., 3.]], dtype=float32)
 
-  Reducing along axis :math:`n` is equivalent to reducing each component along axis :math:`n-1`:
+  Reducing along axis :math:`n` is equivalent to reducing each component
+  along axis :math:`n-1`:
 
   .. math::
    \text{sum}(x, axis=1) = \begin{bmatrix}
@@ -377,8 +395,9 @@ We have
    \end{bmatrix}
 
 
-  If a component does not have axis :math:`n-1`, the reduction is not applied to that component. In this example,
-  ``x[1].ndim == 1``, so no reduction is applied to block ``x[1]``.
+  If a component does not have axis :math:`n-1`, the reduction is not
+  applied to that component. In this example, ``x[1].ndim == 1``, so no
+  reduction is applied to block ``x[1]``.
 
   .. math::
    \text{sum}(x, axis=2) = \begin{bmatrix}
@@ -437,23 +456,8 @@ __author__ = """\n""".join(
 def atleast_1d(*arys):
     """Convert inputs to arrays with at least one dimension.
 
-    BlockArrays are returned unmodified.
-
-    LAX-backend implementation of :func:`atleast_1d`.
-
-    The JAX version of this function will return a copy rather than a view of the input.
-
-    *Original docstring below.*
-
-    Scalar inputs are converted to 1-dimensional arrays, whilst
-        higher-dimensional inputs are preserved.
-
-    Args:
-        arys1, arys2, ... : One or more input arrays (array_like).
-
-    Returns:
-        An array, or list of arrays, each with ``a.ndim >= 1``. Copies are made only if
-        necessary.
+    A wrapper for :func:`jax.numpy.atleast_1d` that acts as usual on
+    ndarrays and DeviceArrays, and returns BlockArrays unmodified.
     """
 
     if len(arys) == 1:
@@ -469,20 +473,31 @@ def atleast_1d(*arys):
         return out
 
 
+# Append docstring from original jax.numpy function
+atleast_1d.__doc__ = (
+    atleast_1d.__doc__.replace("\n    ", "\n")  # deal with indentation differences
+    + "\nDocstring for :func:`jax.numpy.atleast_1d`:\n\n"
+    + "\n".join(jax.numpy.atleast_1d.__doc__.split("\n")[2:])
+)
+
+
 def reshape(
     a: Union[JaxArray, BlockArray], newshape: Union[Shape, BlockShape]
 ) -> Union[JaxArray, BlockArray]:
-    """Gives a new shape to an array without changing its data.
+    """Change the shape of an array without changing its data.
 
     Args:
-        a : Array to be reshaped.
-        newshape:  The new shape should be compatible with the original shape. If an integer,
-            then the result will be a 1-D array of that length.  One shape dimension can be -1.
-            In this case, the value is inferred from the length of the array and remaining
-            dimensions.  If a tuple of tuple of ints, a :class:`.BlockArray` is returned.
+        a: Array to be reshaped.
+        newshape: The new shape should be compatible with the original
+            shape. If an integer, then the result will be a 1-D array of
+            that length. One shape dimension can be -1. In this case,
+            the value is inferred from the length of the array and
+            remaining dimensions. If a tuple of tuple of ints, a
+            :class:`.BlockArray` is returned.
 
     Returns:
-        The reshaped array.  Unlike :func:`numpy.reshape`, a copy is always returned.
+        The reshaped array. Unlike :func:`numpy.reshape`, a copy is
+        always returned.
     """
 
     if is_nested(newshape):
@@ -493,13 +508,13 @@ def reshape(
 
 
 def block_sizes(shape: Union[Shape, BlockShape]) -> Axes:
-    r"""Computes the 'sizes' of (possibly nested) block shapes.
+    r"""Compute the 'sizes' of (possibly nested) block shapes.
 
     This function computes ``block_sizes(z.shape) == (_.size for _ in z)``
 
 
     Args:
-       shape:  A shape tuple; possibly containing nested tuples.
+       shape: A shape tuple; possibly containing nested tuples.
 
 
     Examples:
@@ -549,7 +564,7 @@ def block_sizes(shape: Union[Shape, BlockShape]) -> Axes:
 
 
 def _flatten_blockarrays(inp, *args, **kwargs):
-    """Flattens any blockarrays present in inp, args, or kwargs"""
+    """Flatten any blockarrays present in inp, args, or kwargs."""
 
     def _flatten_if_blockarray(inp):
         if isinstance(inp, BlockArray):
@@ -564,7 +579,7 @@ def _flatten_blockarrays(inp, *args, **kwargs):
 
 
 def _block_array_ufunc_wrapper(func):
-    """Wraps a "ufunc" to allow for joint operation on `DeviceArray` and `BlockArray`"""
+    """Wrap a "ufunc" to allow for joint operation on `DeviceArray` and `BlockArray`."""
 
     @wraps(func)
     def wrapper(inp, *args, **kwargs):
@@ -592,8 +607,8 @@ def _block_array_ufunc_wrapper(func):
 
 
 def _block_array_reduction_wrapper(func):
-    """Wraps a reduction (eg sum, norm) to allow for joint operation on `DeviceArray` and
-    `BlockArray`"""
+    """Wrap a reduction (eg. sum, norm) to allow for joint operation on
+    `DeviceArray` and `BlockArray`."""
 
     @wraps(func)
     def wrapper(inp, *args, axis=None, **kwargs):
@@ -686,8 +701,8 @@ def _block_array_matmul_wrapper(func):
 
 
 def _block_array_binary_op_wrapper(func):
-    """Returns a decorator that performs type and shape checking for :class:`.BlockArray`
-    arithmetic
+    """Return a decorator that performs type and shape checking for
+    :class:`.BlockArray` arithmetic.
     """
 
     @wraps(func)
@@ -738,7 +753,6 @@ class _AbstractBlockArray(core.ShapedArray):
     """Abstract BlockArray class for JAX tracing.
 
     See https://jax.readthedocs.io/en/latest/notebooks/How_JAX_primitives_work.html
-
     """
 
     array_abstraction_level = 0  # Same as jax.core.ConcreteArray
@@ -765,29 +779,17 @@ class _AbstractBlockArray(core.ShapedArray):
         #: Array specifying boundaries of components as indices in base array
         self.bndpos: np.ndarray = np.r_[0, np.cumsum(sizes)]
 
-    @core.aval_property
-    def data(self):
-        return bk_data_p.bind(self)
-
-
-# Register BlockArray._data as a primitive
-bk_data_p = core.Primitive("bk_data")
-
-
-@bk_data_p.def_impl
-def _bk_data_impl(mat):
-    return mat._data
-
 
 # The Jax class is heavily inspired by SparseArray/AbstractSparseArray here:
 # https://github.com/google/jax/blob/7724322d1c08c13008815bfb52759a29c2a6823b/tests/custom_object_test.py
 class BlockArray:
     """A tuple of :class:`jax.interpreters.xla.DeviceArray` objects.
 
-    A tuple of `DeviceArray` objects that all share their memory buffers with
-    non-overlapping, contiguous regions of a common one-dimensional `DeviceArray`.
-    It can be used as the common one-dimensional array via the :func:`BlockArray.ravel`
-    method, or individual component arrays can be accessed individually.
+    A tuple of `DeviceArray` objects that all share their memory buffers
+    with non-overlapping, contiguous regions of a common one-dimensional
+    `DeviceArray`. It can be used as the common one-dimensional array via
+    the :func:`BlockArray.ravel` method, or individual component arrays
+    can be accessed individually.
     """
 
     # Ensure we use BlockArray.__radd__,__rmul__, etc for binary operations of the form
@@ -799,7 +801,7 @@ class BlockArray:
         """BlockArray init method.
 
         Args:
-            aval: `Abstract value`_  associated to this array (shape+dtype+weak_type)
+            aval: `Abstract value`_  associated with this array (shape+dtype+weak_type)
             data: The underlying contiguous, flattened `DeviceArray`.
 
         .. _Abstract value:  https://jax.readthedocs.io/en/latest/notebooks/How_JAX_primitives_work.html
@@ -906,7 +908,7 @@ class BlockArray:
 
     @property
     def blocks(self) -> Iterator[int]:
-        """Returns an iterator yielding component blocks."""
+        """Return an iterator yielding component blocks."""
         return self.__iter__()
 
     @property
@@ -916,12 +918,13 @@ class BlockArray:
 
     @property
     def dtype(self) -> DType:
-        """Array dtype"""
+        """Array dtype."""
         return self._data.dtype
 
     @property
     def device_buffer(self) -> Buffer:
-        """The :class:`jaxlib.xla_extension.Buffer` that backs the underlying data array"""
+        """The :class:`jaxlib.xla_extension.Buffer` that backs the
+        underlying data array."""
         return self._data.device_buffer
 
     @property
@@ -944,6 +947,7 @@ class BlockArray:
     @property
     def shape(self) -> BlockShape:
         """Tuple of component shapes."""
+
         return self._aval.shapes
 
     @property
@@ -953,19 +957,19 @@ class BlockArray:
         return tuple(self[k] for k in range(self.num_blocks))
 
     def conj(self) -> BlockArray:
-        """Returns a :class:`.BlockArray` with complex-conjugated elements."""
+        """Return a :class:`.BlockArray` with complex-conjugated elements."""
 
         # Much faster than BlockArray.array([_.conj() for _ in self.blocks])
         return BlockArray.array_from_flattened(self.ravel().conj(), self.shape)
 
     @property
     def real(self) -> BlockArray:
-        """Returns a :class:`.BlockArray` with the real part of this array."""
+        """Return a :class:`.BlockArray` with the real part of this array."""
         return BlockArray.array_from_flattened(self.ravel().real, self.shape)
 
     @property
     def imag(self) -> BlockArray:
-        """Returns a :class:`.BlockArray` with the imaginary part of this array."""
+        """Return a :class:`.BlockArray` with the imaginary part of this array."""
         return BlockArray.array_from_flattened(self.ravel().imag, self.shape)
 
     @classmethod
@@ -975,9 +979,11 @@ class BlockArray:
         """Construct a :class:`.BlockArray` from a list or tuple of existing array-like.
 
         Args:
-            alst : Initializers for array components.
-                Can be :class:`numpy.ndarray` or :class:`jax.interpreters.xla.DeviceArray`
-            dtype : Data type of array. If none, dtype is derived from dtype of initializers
+            alst: Initializers for array components.
+                Can be :class:`numpy.ndarray` or
+                :class:`jax.interpreters.xla.DeviceArray`
+            dtype: Data type of array. If none, dtype is derived from
+                dtype of initializers
 
         Returns:
             :class:`.BlockArray` initialized from `alst` tuple
@@ -1045,10 +1051,12 @@ class BlockArray:
 
         Args:
             shape_tuple: Tuple of shapes for component blocks
-            dtype: Desired data-type for the :class:`.BlockArray`. Default is `numpy.float32`.
+            dtype: Desired data-type for the :class:`.BlockArray`.
+                Default is `numpy.float32`.
 
         Returns:
-            :class:`.BlockArray` of ones with the given component shapes and dtype
+            :class:`.BlockArray` of ones with the given component shapes
+            and dtype.
         """
         _aval = _AbstractBlockArray(shape_tuple, dtype=dtype)
         data_ravel = jnp.ones(_aval.size, dtype=dtype)
@@ -1060,11 +1068,13 @@ class BlockArray:
         Return a new :class:`.BlockArray` with given block shapes and type, filled with zeros.
 
         Args:
-            shape_tuple: Tuple of shapes for component blocks
-            dtype: Desired data-type for the :class:`.BlockArray`. Default is `numpy.float32`.
+            shape_tuple: Tuple of shapes for component blocks.
+            dtype: Desired data-type for the :class:`.BlockArray`.
+               Default is `numpy.float32`.
 
         Returns:
-            :class:`.BlockArray` of zeros with the given component shapes and dtype
+            :class:`.BlockArray` of zeros with the given component shapes
+            and dtype.
         """
         _aval = _AbstractBlockArray(shape_tuple, dtype=dtype)
         data_ravel = jnp.zeros(_aval.size, dtype=dtype)
@@ -1075,14 +1085,17 @@ class BlockArray:
         """
         Return a new :class:`.BlockArray` with given block shapes and type, filled with zeros.
 
-        Note: like :func:`jax.numpy.empty`, this does not return an uninitalized array.
+        Note: like :func:`jax.numpy.empty`, this does not return an
+        uninitalized array.
 
         Args:
             shape_tuple: Tuple of shapes for component blocks
-            dtype: Desired data-type for the :class:`.BlockArray`. Default is `numpy.float32`.
+            dtype: Desired data-type for the :class:`.BlockArray`.
+               Default is `numpy.float32`.
 
         Returns:
-            :class:`.BlockArray` of zeros with the given component shapes and dtype.
+            :class:`.BlockArray` of zeros with the given component shapes
+               and dtype.
         """
         _aval = _AbstractBlockArray(shape_tuple, dtype=dtype)
         data_ravel = jnp.empty(_aval.size, dtype=dtype)
@@ -1101,13 +1114,13 @@ class BlockArray:
 
         Args:
             shape_tuple: Tuple of shapes for component blocks.
-            fill_value:  Fill value
+            fill_value: Fill value
             dtype: Desired data-type for the BlockArray. The default,
-              None, means `np.array(fill_value).dtype`.
+               None, means `np.array(fill_value).dtype`.
 
         Returns:
-            :class:`.BlockArray` with the given component shapes and dtype and all entries
-            equal to `fill_value`.
+            :class:`.BlockArray` with the given component shapes and
+            dtype and all entries equal to `fill_value`.
         """
         if dtype is None:
             dtype = np.asarray(fill_value).dtype
@@ -1117,15 +1130,16 @@ class BlockArray:
         return cls(_aval, data_ravel)
 
     def copy(self) -> BlockArray:
-        """Returns a copy of this :class:`.BlockArray`.
+        """Return a copy of this :class:`.BlockArray`.
 
         This method is not implemented for BlockArray.
 
         See Also:
-            :meth:`.to_numpy`: Converts a :class:`.BlockArray` into a flattened NumPy array.
+            :meth:`.to_numpy`: Convert a :class:`.BlockArray` into a
+            flattened NumPy array.
         """
-        # jax DeviceArray copies return a NumPy ndarray.  This blockarray class must be backed
-        # by a DeviceArray, so cannot be converted to a NumPy-backed BlockArray.  The BlockArray
+        # jax DeviceArray copies return a NumPy ndarray. This blockarray class must be backed
+        # by a DeviceArray, so cannot be converted to a NumPy-backed BlockArray. The BlockArray
         # .to_numpy() method returns a flattened ndarray.
         #
         # This method may be implemented in the future if jax DeviceArray .copy() is modified to
@@ -1133,7 +1147,7 @@ class BlockArray:
         raise NotImplementedError
 
     def to_numpy(self) -> np.ndarray:
-        """Returns a :class:`numpy.ndarray` containing the flattened form of this
+        """Return a :class:`numpy.ndarray` containing the flattened form of this
         :class:`.BlockArray`."""
 
         if isinstance(self._data, DeviceArray):
@@ -1143,24 +1157,24 @@ class BlockArray:
         return host_arr
 
     def blockidx(self, idx: int) -> jax._src.ops.scatter._Indexable:
-        """Returns :class:`jax.ops.index` for a given component block.
+        """Return :class:`jax.ops.index` for a given component block.
 
         Args:
-            idx: Desired block index
+            idx: Desired block index.
 
         Returns:
-            :class:`jax.ops.index` pointing to desired block
+            :class:`jax.ops.index` pointing to desired block.
         """
         return jax.ops.index[self.bndpos[idx] : self.bndpos[idx + 1]]
 
     def ravel(self) -> JaxArray:
         """Return a copy of ``self._data`` as a contiguous, flattened `DeviceArray`.
 
-        Note that a copy, rather than a view, of the underlying array is returned.
-        This is consistent with :func:`jax.numpy.ravel`.
+        Note that a copy, rather than a view, of the underlying array is
+        returned. This is consistent with :func:`jax.numpy.ravel`.
 
         Returns:
-            Copy of underlying flattened array
+            Copy of underlying flattened array.
 
         """
         return self._data[:]
@@ -1168,11 +1182,11 @@ class BlockArray:
     def flatten(self) -> JaxArray:
         """Return a copy of ``self._data`` as a contiguous, flattened `DeviceArray`.
 
-        Note that a copy, rather than a view, of the underlying array is returned.
-        This is consistent with :func:`jax.numpy.ravel`.
+        Note that a copy, rather than a view, of the underlying array is
+        returned. This is consistent with :func:`jax.numpy.ravel`.
 
         Returns:
-            Copy of underlying flattened array
+            Copy of underlying flattened array.
 
         """
         return self._data[:]
@@ -1219,7 +1233,7 @@ xla.xla_shape_handlers[_AbstractBlockArray] = _block_array_shape_handler
 
 ## Handlers to use jax.device_put on BlockArray
 def _block_array_tree_flatten(block_arr):
-    """Flattens a :class:`.BlockArray` pytree.
+    """Flatten a :class:`.BlockArray` pytree.
 
     See :func:`jax.tree_util.tree_flatten`.
 
@@ -1227,7 +1241,7 @@ def _block_array_tree_flatten(block_arr):
         block_arr (:class:`.BlockArray`): :class:`.BlockArray` to flatten
 
     Returns:
-        children (tuple): :class:`.BlockArray` leaves
+        children (tuple): :class:`.BlockArray` leaves.
         aux_data (tuple): Extra metadata used to reconstruct BlockArray.
     """
 
@@ -1236,16 +1250,16 @@ def _block_array_tree_flatten(block_arr):
 
 
 def _block_array_tree_unflatten(aux_data, children):
-    """Constructs a :class:`.BlockArray` from a flattened pytree.
+    """Construct a :class:`.BlockArray` from a flattened pytree.
 
     See jax.tree_utils.tree_unflatten
 
     Args:
-        aux_data (tuple): Metadata needed to construct block array
-        children (tuple): Contains block array elements
+        aux_data (tuple): Metadata needed to construct block array.
+        children (tuple): Contains block array elements.
 
     Returns:
-        block_arr: Constructed :class:`.BlockArray`
+        block_arr: Constructed :class:`.BlockArray`.
     """
     return BlockArray(aux_data, children[0])
 
@@ -1258,16 +1272,16 @@ class _BlockArrayIndexUpdateHelper:
     """The helper class for the `at` property to call indexed update functions.
 
     The `at` property is syntactic sugar for calling the indexed update
-    functions as is done in jax. The index must be of the form [ibk] or [ibk,idx],
-    where `ibk` is the index of the block to be updated, and `idx` is a
-    general index of the elements to be updated in that block.
+    functions as is done in jax. The index must be of the form [ibk] or
+    [ibk,idx], where `ibk` is the index of the block to be updated, and
+    `idx` is a general index of the elements to be updated in that block.
 
     In particular:
     - ``x = x.at[ibk].set(y)`` is an equivalent of ``x[ibk] = y``.
     - ``x = x.at[ibk,idx].set(y)`` is an equivalent of ``x[ibk,idx] = y``.
 
-    The methods ``set, add, multiply, divide, power, maximum, minimum`` are supported.
-
+    The methods ``set, add, multiply, divide, power, maximum, minimum``
+    are supported.
     """
 
     __slots__ = ("_block_array",)
@@ -1288,13 +1302,11 @@ class _BlockArrayIndexUpdateHelper:
 class _BlockArrayIndexUpdateRef:
     """Helper object to call indexed update functions for an (advanced) index.
 
-    This object references a source block array and a specific indexer, with the
-    first integer specifying the block being updated, and rest being the indexer
-    into the array of that block.
-    Methods on this object return copies of the source block array that have
-    been modified at the positions specified by the indexer in the given block.
-
-
+    This object references a source block array and a specific indexer,
+    with the first integer specifying the block being updated, and rest
+    being the indexer into the array of that block. Methods on this
+    object return copies of the source block array that have been
+    modified at the positions specified by the indexer in the given block.
     """
 
     __slots__ = ("_block_array", "bk_index", "index")
@@ -1333,7 +1345,7 @@ class _BlockArrayIndexUpdateRef:
     def set(self, values):
         """Pure equivalent of ``x[idx] = y``.
 
-        Returns the value of ``x`` that would result from the NumPy-style
+        Return the value of ``x`` that would result from the NumPy-style
         :mod:indexed assignment <numpy.doc.indexing>` ``x[idx] = y``.
 
         See :mod:`jax.ops` for details.
@@ -1343,7 +1355,7 @@ class _BlockArrayIndexUpdateRef:
     def add(self, values):
         """Pure equivalent of ``x[idx] += y``.
 
-        Returns the value of ``x`` that would result from the NumPy-style
+        Return the value of ``x`` that would result from the NumPy-style
         :mod:indexed assignment <numpy.doc.indexing>` ``x[idx] += y``.
 
         See :mod:`jax.ops` for details.
@@ -1353,7 +1365,7 @@ class _BlockArrayIndexUpdateRef:
     def multiply(self, values):
         """Pure equivalent of ``x[idx] *= y``.
 
-        Returns the value of ``x`` that would result from the NumPy-style
+        Return the value of ``x`` that would result from the NumPy-style
         :mod:indexed assignment <numpy.doc.indexing>` ``x[idx] *= y``.
 
         See :mod:`jax.ops` for details.
@@ -1363,7 +1375,7 @@ class _BlockArrayIndexUpdateRef:
     def divide(self, values):
         """Pure equivalent of ``x[idx] /= y``.
 
-        Returns the value of ``x`` that would result from the NumPy-style
+        Return the value of ``x`` that would result from the NumPy-style
         :mod:indexed assignment <numpy.doc.indexing>` ``x[idx] /= y``.
 
         See :mod:`jax.ops` for details.
@@ -1373,7 +1385,7 @@ class _BlockArrayIndexUpdateRef:
     def power(self, values):
         """Pure equivalent of ``x[idx] **= y``.
 
-        Returns the value of ``x`` that would result from the NumPy-style
+        Return the value of ``x`` that would result from the NumPy-style
         :mod:indexed assignment <numpy.doc.indexing>` ``x[idx] **= y``.
 
         See :mod:`jax.ops` for details.
@@ -1383,7 +1395,7 @@ class _BlockArrayIndexUpdateRef:
     def min(self, values):
         """Pure equivalent of ``x[idx] = minimum(x[idx], y)``.
 
-        Returns the value of ``x`` that would result from the NumPy-style
+        Return the value of ``x`` that would result from the NumPy-style
         :mod:indexed assignment <numpy.doc.indexing>` ``x[idx] = minimum(x[idx], y)``.
 
         See :mod:`jax.ops` for details.
@@ -1393,7 +1405,7 @@ class _BlockArrayIndexUpdateRef:
     def max(self, values):
         """Pure equivalent of ``x[idx] = maximum(x[idx], y)``.
 
-        Returns the value of ``x`` that would result from the NumPy-style
+        Return the value of ``x`` that would result from the NumPy-style
         :mod:indexed assignment <numpy.doc.indexing>` ``x[idx] = maximum(x[idx], y)``.
 
         See :mod:`jax.ops` for details.

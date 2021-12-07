@@ -146,7 +146,10 @@ A feature development workflow might look like this:
       git add file1.py git add file2.py
       git commit -m "A good commit message"
 
-   NOTE:  If you have added or modified an example script, see `Usage Examples`_
+   If you have added or modified an example script, see `Usage Examples`_.
+   If your contribution involves any significant new features or changes,
+   add a corresponding entry to the change summary for the next release
+   in the ``CHANGES.rst`` file.
 
 7. Sync with the upstream repository:
 

@@ -21,46 +21,42 @@ __author__ = """Brendt Wohlberg <brendt@ieee.org>"""
 
 
 def mae(reference: Union[JaxArray, BlockArray], comparison: Union[JaxArray, BlockArray]) -> float:
-    """
-    Compute Mean Absolute Error (MAE) between two images.
+    """Compute Mean Absolute Error (MAE) between two images.
 
     Args:
-        reference: Reference image
-        comparison: Comparison image
+        reference: Reference image.
+        comparison: Comparison image.
 
     Returns:
-        MAE between `reference` and `comparison`
+        MAE between `reference` and `comparison`.
     """
 
     return snp.mean(snp.abs(reference - comparison).ravel())
 
 
 def mse(reference: Union[JaxArray, BlockArray], comparison: Union[JaxArray, BlockArray]) -> float:
-    """
-    Compute Mean Squared Error (MSE) between two images.
+    """Compute Mean Squared Error (MSE) between two images.
 
     Args:
-        reference : Reference image
-        comparison : Comparison image
+        reference : Reference image.
+        comparison : Comparison image.
 
     Returns:
-        MSE between `reference` and `comparison`
+        MSE between `reference` and `comparison`.
     """
 
     return snp.mean(snp.abs(reference - comparison).ravel() ** 2)
 
 
 def snr(reference: Union[JaxArray, BlockArray], comparison: Union[JaxArray, BlockArray]) -> float:
-
-    """
-    Compute Signal to Noise Ratio (SNR) of two images.
+    """Compute Signal to Noise Ratio (SNR) of two images.
 
     Args:
-        reference: Reference image
-        comparison: Comparison image
+        reference: Reference image.
+        comparison: Comparison image.
 
     Returns:
-        SNR of `comparison` with respect to `reference`
+        SNR of `comparison` with respect to `reference`.
     """
 
     dv = snp.var(reference)
@@ -82,14 +78,14 @@ def psnr(
     (i.e. :math:`2^b-1` for a :math:`b` bit representation).
 
     Args:
-        reference: Reference image
-        comparison: Comparison image
-        signal_range: Signal range, either the
-            value to use (e.g. 255 for 8 bit samples) or None, in which case
-            the actual range of the reference signal is used
+        reference: Reference image.
+        comparison: Comparison image.
+        signal_range: Signal range, either the value to use (e.g. 255
+            for 8 bit samples) or None, in which case the actual range
+            of the reference signal is used.
 
     Returns:
-        PSNR of `comparison` with respect to `reference`
+        PSNR of `comparison` with respect to `reference`.
     """
 
     if signal_range is None:
@@ -104,17 +100,18 @@ def isnr(
     degraded: Union[JaxArray, BlockArray],
     restored: Union[JaxArray, BlockArray],
 ) -> float:
-    """
+    """Compute Improvement Signal to Noise Ratio (ISNR).
+
     Compute Improvement Signal to Noise Ratio (ISNR) for reference,
     degraded, and restored images.
 
     Args:
-        reference: Reference image
-        degraded: Degraded image
-        restored: Restored image
+        reference: Reference image.
+        degraded: Degraded image.
+        restored: Restored image.
 
     Returns:
-        ISNR of `restored` with respect to `reference` and `degraded`
+        ISNR of `restored` with respect to `reference` and `degraded`.
     """
 
     msedeg = mse(reference, degraded)
@@ -125,16 +122,17 @@ def isnr(
 
 
 def bsnr(blurry: Union[JaxArray, BlockArray], noisy: Union[JaxArray, BlockArray]) -> float:
-    """
+    """Compute Blurred Signal to Noise Ratio (BSNR).
+
     Compute Blurred Signal to Noise Ratio (BSNR) for a blurred and noisy
     image.
 
     Args:
-        blurry: Blurred noise free image
-        noisy: Blurred image with additive noise
+        blurry: Blurred noise free image.
+        noisy: Blurred image with additive noise.
 
     Returns:
-        BSNR of `noisy` with respect to `blurry` and `degraded`
+        BSNR of `noisy` with respect to `blurry` and `degraded`.
     """
 
     blrvar = snp.var(blurry)

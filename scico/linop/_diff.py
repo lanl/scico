@@ -29,9 +29,9 @@ __author__ = """Luke Pfister <luke.pfister@gmail.com>, Michael McCann <mccann@la
 class FiniteDifference(LinearOperatorStack):
     """Finite Difference operator.
 
-    Computes finite differences along the specified axes, returning the results in
-    a `DeviceArray` (whenever possible) or `BlockArray`. See :class:`LinearOperatorStack` for details
-    on how this choice is made.
+    Computes finite differences along the specified axes, returning the
+    results in a `DeviceArray` (whenever possible) or `BlockArray`. See
+    :class:`LinearOperatorStack` for details on how this choice is made.
 
     Example
     -------
@@ -58,16 +58,21 @@ class FiniteDifference(LinearOperatorStack):
         r"""
         Args:
             input_shape: Shape of input array.
-            input_dtype: `dtype` for input argument.
-                Defaults to `float32`. If `LinearOperator` implements complex-valued operations,
-                this must be `complex64` for proper adjoint and gradient calculation.
-            axes: Axis or axes over which to apply finite difference operator. If not specified,
-                or `None`, differences are evaluated along all axes.
-            append: Value to append to the input along each axis before taking differences.
-                Zero is a typical choice. If not `None`, `circular` must be ``False``.
-            circular: If ``True``, perform circular differences, i.e., include x[-1] - x[0].
-                If ``True``, `append` must be `None`.
-            jit:  If ``True``, jit the evaluation, adjoint, and gram functions of the LinearOperator.
+            input_dtype: `dtype` for input argument. Defaults to
+                `float32`. If `LinearOperator` implements complex-valued
+                operations, this must be `complex64` for proper adjoint
+                and gradient calculation.
+            axes: Axis or axes over which to apply finite difference
+                operator. If not specified, or `None`, differences are
+                evaluated along all axes.
+            append: Value to append to the input along each axis before
+                taking differences. Zero is a typical choice. If not
+                `None`, `circular` must be ``False``.
+            circular: If ``True``, perform circular differences, i.e.,
+                include x[-1] - x[0]. If ``True``, `append` must be
+                `None`.
+            jit: If ``True``, jit the evaluation, adjoint, and gram
+                functions of the LinearOperator.
         """
 
         self.axes = parse_axes(axes, input_shape)
@@ -105,14 +110,17 @@ class FiniteDifferenceSingleAxis(LinearOperator):
         Args:
             axis: Axis over which to apply finite difference operator.
             input_shape: Shape of input array.
-            input_dtype: `dtype` for input argument.
-                Defaults to `float32`. If `LinearOperator` implements complex-valued operations,
-                this must be `complex64` for proper adjoint and gradient calculation.
-            append: Value to append to the input along `axis` before taking differences.
-                Defaults to 0.
-            circular: If ``True``, perform circular differences, i.e., include x[-1] - x[0].
-                If ``True``, `append` must be `None`.
-            jit:  If ``True``, jit the evaluation, adjoint, and gram functions of the LinearOperator.
+            input_dtype: `dtype` for input argument. Defaults to
+                `float32`. If `LinearOperator` implements complex-valued
+                operations, this must be `complex64` for proper adjoint
+                and gradient calculation.
+            append: Value to append to the input along `axis` before
+                taking differences. Defaults to 0.
+            circular: If ``True``, perform circular differences, i.e.,
+                include x[-1] - x[0]. If ``True``, `append` must be
+                `None`.
+            jit: If ``True``, jit the evaluation, adjoint, and gram
+                functions of the LinearOperator.
         """
 
         if not isinstance(axis, int):
@@ -120,7 +128,8 @@ class FiniteDifferenceSingleAxis(LinearOperator):
 
         if axis >= len(input_shape):
             raise ValueError(
-                f"Invalid axis {axis} specified; `axis` must be less than `len(input_shape)`={len(input_shape)}"
+                f"Invalid axis {axis} specified; `axis` must be less than "
+                f"`len(input_shape)`={len(input_shape)}"
             )
 
         self.axis = axis
