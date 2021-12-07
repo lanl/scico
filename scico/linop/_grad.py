@@ -28,25 +28,28 @@ __author__ = """Brendt Wohlberg <brendt@ieee.org>"""
 class ProjectedGradient(LinearOperator):
     """Gradient projected onto local coordinate system.
 
-    This class represents a linear operator that computes gradients of arrays projected
-    onto a local coordinate system that may differ at every position in the array. In the
-    2D illustration below :math:`x` and :math:`y` represent the standard coordinate system
-    defined by the array axes, :math:`(g_x, g_y)` is the gradient vector within that
-    coordinate system, :math:`x'` and :math:`y'` are the local coordinate axes, and
-    :math:`(g_x', g_y')` is the gradient vector within the local coordinate system.
+    This class represents a linear operator that computes gradients of
+    arrays projected onto a local coordinate system that may differ at
+    every position in the array. In the 2D illustration below :math:`x`
+    and :math:`y` represent the standard coordinate system defined by the
+    array axes, :math:`(g_x, g_y)` is the gradient vector within that
+    coordinate system, :math:`x'` and :math:`y'` are the local coordinate
+    axes, and :math:`(g_x', g_y')` is the gradient vector within the
+    local coordinate system.
 
     .. image:: /figures/projgrad.svg
          :align: center
-         :alt: Figure illustrating projection of gradient onto local coordinate system
+         :alt: Figure illustrating projection of gradient onto local coordinate system.
 
-    Each of the local coordinate axes (e.g. :math:`x'` and :math:`y'` in the illustration
-    above) is represented by a separate array in the `coord` tuple of arrays parameter of
-    the class initializer.
+    Each of the local coordinate axes (e.g. :math:`x'` and :math:`y'` in
+    the illustration above) is represented by a separate array in the
+    `coord` tuple of arrays parameter of the class initializer.
 
     .. note::
 
-       This operator should not be confused with the Projected Gradient optimization algorithm
-       (a special case of Proximal Gradient), with which it is unrelated.
+       This operator should not be confused with the Projected Gradient
+       optimization algorithm (a special case of Proximal Gradient), with
+       which it is unrelated.
     """
 
     def __init__(
@@ -60,28 +63,36 @@ class ProjectedGradient(LinearOperator):
         r"""
         Args:
             input_shape: Shape of input array.
-            axes: Axes over which to compute the gradient. Defaults to `None`, in which
-                case the gradient is computed along all axes.
-            coord: A tuple of arrays, each of which specifies a local coordinate axis direction.
-                Each member of the tuple should either be a `DeviceArray` or a
-                :class:`.BlockArray`. If it is the former, it should have shape :math:`N \times
-                M_0 \times M_1 \times \ldots`, where :math:`N` is the number of axes specified
-                by parameter `axes`, and :math:`M_i` is the size of the :math:`i^{\mrm{th}}`
-                axis. If it is the latter, it should consist of :math:`N` blocks, each of which
-                has a shape that is suitable for multiplication with an array of shape
-                :math:`M_0 \times M_1 \times \ldots`. If `coord` is a singleton tuple, the
-                result of applying the operator is a `DeviceArray`; otherwise it consists of
-                the gradients for each of the local coordinate axes in `coord` stacked into a
-                :class:`.BlockArray`. If `coord` is `None`, which is the default, gradients
-                are computed in the standard axis-aligned coordinate system, and the return
-                type depends on the number of axes on which the gradient is calculated, as
-                specified explicitly or implicitly via the `axes` parameter.
-            input_dtype: `dtype` for input argument. Default is `float32`.
-            jit:  If `True`, jit the evaluation, adjoint, and gram functions of the
-                LinearOperator.
+            axes: Axes over which to compute the gradient. Defaults to
+                `None`, in which case the gradient is computed along all
+                axes.
+            coord: A tuple of arrays, each of which specifies a local
+                coordinate axis direction.
+                Each member of the tuple should either be a `DeviceArray`
+                or a :class:`.BlockArray`. If it is the former, it should
+                have shape :math:`N \times M_0 \times M_1 \times \ldots`,
+                where :math:`N` is the number of axes specified by
+                parameter `axes`, and :math:`M_i` is the size of the
+                :math:`i^{\mrm{th}}` axis. If it is the latter, it should
+                consist of :math:`N` blocks, each of which has a shape
+                that is suitable for multiplication with an array of
+                shape :math:`M_0 \times M_1 \times \ldots`. If `coord` is
+                a singleton tuple, the result of applying the operator is
+                a `DeviceArray`; otherwise it consists of the gradients
+                for each of the local coordinate axes in `coord` stacked
+                into a :class:`.BlockArray`. If `coord` is `None`, which
+                is the default, gradients are computed in the standard
+                axis-aligned coordinate system, and the return type
+                depends on the number of axes on which the gradient is
+                calculated, as specified explicitly or implicitly via the
+                `axes` parameter.
+            input_dtype: `dtype` for input argument. Default is
+                `float32`.
+            jit: If `True`, jit the evaluation, adjoint, and gram
+                functions of the LinearOperator.
         """
 
-        # Ensure no invalid axis indices specified
+        # Ensure no invalid axis indices specified.
         if axes is not None:
             if np.any(np.array(axes) >= len(input_shape)):
                 raise ValueError(
@@ -89,18 +100,18 @@ class ProjectedGradient(LinearOperator):
                     f"len(input_shape)={len(input_shape)}"
                 )
         if axes is None:
-            # If axes is None, set it to all axes in input shape
+            # If axes is None, set it to all axes in input shape.
             self.axes = tuple(range(len(input_shape)))
         else:
             self.axes = axes
         if coord is None:
-            # If coord is None, output shape is determined by number of axes
+            # If coord is None, output shape is determined by number of axes.
             if len(self.axes) == 1:
                 output_shape = input_shape
             else:
                 output_shape = (input_shape,) * len(self.axes)
         else:
-            # If coord is not None, output shape is determined by number of coord arrays
+            # If coord is not None, output shape is determined by number of coord arrays.
             if len(coord) == 1:
                 output_shape = input_shape
             else:
@@ -118,10 +129,10 @@ class ProjectedGradient(LinearOperator):
 
         grad = snp.gradient(x, axis=self.axes)
         if self.coord is None:
-            # If coord attribute is None, just return gradients on specified axes
+            # If coord attribute is None, just return gradients on specified axes.
             return BlockArray.array(grad)
         else:
-            # If coord attribute is not None, return gradients projected onto specified local
+            # If coord attribute is not None, return gradients projected onto specified local.
             # coordinate systems
             projgrad = [sum([c[m] * grad[m] for m in range(len(grad))]) for c in self.coord]
             if len(self.coord) == 1:
@@ -133,8 +144,9 @@ class ProjectedGradient(LinearOperator):
 class PolarGradient(ProjectedGradient):
     """Gradient projected into polar coordinates.
 
-    Compute gradients projected onto angular and/or radial axis directions. Local coordinate
-    axes are illustrated in the figure below.
+    Compute gradients projected onto angular and/or radial axis
+    directions. Local coordinate axes are illustrated in the figure
+    below.
 
     .. plot:: figures/polargrad.py
        :align: center
@@ -142,8 +154,8 @@ class PolarGradient(ProjectedGradient):
 
     |
 
-    If only one of `angular` and `radial` is `True`, the operator output is a `DeviceArray`,
-    otherwise it is a :class:`.BlockArray`.
+    If only one of `angular` and `radial` is `True`, the operator output
+    is a `DeviceArray`, otherwise it is a :class:`.BlockArray`.
     """
 
     def __init__(
@@ -159,17 +171,19 @@ class PolarGradient(ProjectedGradient):
         r"""
         Args:
             input_shape: Shape of input array.
-            axes: Axes over which to compute the gradient. Defaults to `None`, in which case
-                the axes are taken to be ``(0, 1)``.
-            center: Center of the polar coordinate system in array indexing coordinates.
-                Default is `None`, which places the center at the center of the input array.
-            angular: Flag indicating whether to compute gradients in the angular (i.e.
-                tangent to circles) direction
-            radial: Flag indicating whether to compute gradients in the radial (i.e.
-                directed outwards from the origin) direction
+            axes: Axes over which to compute the gradient. Defaults to
+                `None`, in which case the axes are taken to be ``(0, 1)``.
+            center: Center of the polar coordinate system in array
+                indexing coordinates.
+                Default is `None`, which places the center at the center
+                of the input array.
+            angular: Flag indicating whether to compute gradients in the
+                angular (i.e. tangent to circles) direction.
+            radial: Flag indicating whether to compute gradients in the
+                radial (i.e. directed outwards from the origin) direction.
             input_dtype: `dtype` for input argument. Default is `float32`.
-            jit:  If `True`, jit the evaluation, adjoint, and gram functions of the
-                LinearOperator.
+            jit: If `True`, jit the evaluation, adjoint, and gram
+                functions of the LinearOperator.
         """
 
         if len(input_shape) < 2:
@@ -188,9 +202,9 @@ class PolarGradient(ProjectedGradient):
         g0, g1 = np.mgrid[-center[0] : end[0], -center[1] : end[1]]
         theta = snp.arctan2(g0, g1)
         if len(input_shape) > 2:
-            # Construct list of input axes that are not included in the gradient axes
+            # Construct list of input axes that are not included in the gradient axes.
             single = tuple(set(range(len(input_shape))) - set(axes))
-            # Insert singleton axes to align theta for multiplication with gradients
+            # Insert singleton axes to align theta for multiplication with gradients.
             theta = snp.expand_dims(theta, single)
         coord = []
         if angular:
@@ -209,8 +223,8 @@ class PolarGradient(ProjectedGradient):
 class CylindricalGradient(ProjectedGradient):
     """Gradient projected into cylindrical coordinates.
 
-    Compute gradients projected onto cylindrical coordinate axes. The local coordinate
-    axes are illustrated in the figure below.
+    Compute gradients projected onto cylindrical coordinate axes. The
+    local coordinate axes are illustrated in the figure below.
 
     .. plot:: figures/cylindgrad.py
        :align: center
@@ -218,8 +232,9 @@ class CylindricalGradient(ProjectedGradient):
 
     |
 
-    If only one of `angular`, `radial`, and `axial` is `True`, the operator output is a
-    `DeviceArray`, otherwise it is a :class:`.BlockArray`.
+    If only one of `angular`, `radial`, and `axial` is `True`, the
+    operator output is a `DeviceArray`, otherwise it is a
+    :class:`.BlockArray`.
     """
 
     def __init__(
@@ -236,22 +251,24 @@ class CylindricalGradient(ProjectedGradient):
         r"""
         Args:
             input_shape: Shape of input array.
-            axes: Axes over which to compute the gradient.  Defaults to `None`, in which case
-                the axes are taken to be ``(0, 1, 2)``. If an integer, this operator returns a
-                `DeviceArray`. If a tuple or `None`, the resulting arrays are stacked into a
-                :class:`.BlockArray`.
-            center: Center of the cylindrical coordinate system in array indexing coordinates.
-                Default is `None`, which places the center at the center of the two polar axes
-                of the input array and at the zero index of the axial axis.
-            angular: Flag indicating whether to compute gradients in the angular (i.e.
-                tangent to circles) direction
-            radial: Flag indicating whether to compute gradients in the radial (i.e.
-                directed outwards from the origin) direction
-            axial: Flag indicating whether to compute gradients in the direction of the axis of
-                the cylinder
+            axes: Axes over which to compute the gradient.  Defaults to
+                `None`, in which case the axes are taken to be
+                ``(0, 1, 2)``. If an integer, this operator returns a
+                `DeviceArray`. If a tuple or `None`, the resulting arrays
+                are stacked into a :class:`.BlockArray`.
+            center: Center of the cylindrical coordinate system in array
+                indexing coordinates. Default is `None`, which places the
+                center at the center of the two polar axes of the input
+                array and at the zero index of the axial axis.
+            angular: Flag indicating whether to compute gradients in the
+                angular (i.e. tangent to circles) direction.
+            radial: Flag indicating whether to compute gradients in the
+                radial (i.e. directed outwards from the origin) direction.
+            axial: Flag indicating whether to compute gradients in the
+                direction of the axis of the cylinder.
             input_dtype: `dtype` for input argument. Default is `float32`.
-            jit:  If `True`, jit the evaluation, adjoint, and gram functions of the
-                LinearOperator.
+            jit: If `True`, jit the evaluation, adjoint, and gram
+                functions of the LinearOperator.
         """
 
         if len(input_shape) < 3:
@@ -273,9 +290,9 @@ class CylindricalGradient(ProjectedGradient):
         g1 = g1[..., np.newaxis]
         theta = snp.arctan2(g0, g1)
         if len(input_shape) > 3:
-            # Construct list of input axes that are not included in the gradient axes
+            # Construct list of input axes that are not included in the gradient axes.
             single = tuple(set(range(len(input_shape))) - set(axes))
-            # Insert singleton axes to align theta for multiplication with gradients
+            # Insert singleton axes to align theta for multiplication with gradients.
             theta = snp.expand_dims(theta, single)
         coord = []
         if angular:
@@ -296,8 +313,8 @@ class CylindricalGradient(ProjectedGradient):
 class SphericalGradient(ProjectedGradient):
     """Gradient projected into spherical coordinates.
 
-    Compute gradients projected onto spherical coordinate axes. The local coordinate
-    axes are illustrated in the figure below.
+    Compute gradients projected onto spherical coordinate axes. The local
+    coordinate axes are illustrated in the figure below.
 
     .. plot:: figures/spheregrad.py
        :align: center
@@ -305,8 +322,9 @@ class SphericalGradient(ProjectedGradient):
 
     |
 
-    If only one of `azimuthal`, `polar`, and `radial` is `True`, the operator output is a
-    `DeviceArray`, otherwise it is a :class:`.BlockArray`.
+    If only one of `azimuthal`, `polar`, and `radial` is `True`, the
+    operator output is a `DeviceArray`, otherwise it is a
+    :class:`.BlockArray`.
     """
 
     def __init__(
@@ -323,18 +341,23 @@ class SphericalGradient(ProjectedGradient):
         r"""
         Args:
             input_shape: Shape of input array.
-            axes: Axes over which to compute the gradient.  Defaults to `None`, in which case
-                the axes are taken to be ``(0, 1, 2)``. If an integer, this operator returns a
-                `DeviceArray`. If a tuple or `None`, the resulting arrays are stacked into a
-                :class:`.BlockArray`.
-            center: Center of the spherical coordinate system in array indexing coordinates.
-                Default is `None`, which places the center at the center of the input array.
-            azimuthal: Flag indicating whether to compute gradients in the azimuthal direction
-            polar: Flag indicating whether to compute gradients in the polar direction
-            radial: Flag indicating whether to compute gradients in the radial direction
+            axes: Axes over which to compute the gradient.  Defaults to
+                `None`, in which case the axes are taken to be
+                ``(0, 1, 2)``. If an integer, this operator returns a
+                `DeviceArray`. If a tuple or `None`, the resulting arrays
+                are stacked into a :class:`.BlockArray`.
+            center: Center of the spherical coordinate system in array
+                indexing coordinates. Default is `None`, which places the
+                center at the center of the input array.
+            azimuthal: Flag indicating whether to compute gradients in
+                the azimuthal direction.
+            polar: Flag indicating whether to compute gradients in the
+                polar direction.
+            radial: Flag indicating whether to compute gradients in the
+                radial direction.
             input_dtype: `dtype` for input argument. Default is `float32`.
-            jit:  If `True`, jit the evaluation, adjoint, and gram functions of the
-                LinearOperator.
+            jit: If `True`, jit the evaluation, adjoint, and gram
+                functions of the LinearOperator.
         """
 
         if len(input_shape) < 3:
@@ -354,9 +377,9 @@ class SphericalGradient(ProjectedGradient):
         theta = snp.arctan2(g1, g0)
         phi = snp.arctan2(np.sqrt(g0 ** 2 + g1 ** 2), g2)
         if len(input_shape) > 3:
-            # Construct list of input axes that are not included in the gradient axes
+            # Construct list of input axes that are not included in the gradient axes.
             single = tuple(set(range(len(input_shape))) - set(axes))
-            # Insert singleton axes to align theta for multiplication with gradients
+            # Insert singleton axes to align theta for multiplication with gradients.
             theta = snp.expand_dims(theta, single)
             phi = snp.expand_dims(phi, single)
         coord = []
