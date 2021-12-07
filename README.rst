@@ -6,6 +6,10 @@
     :target: https://github.com/lanl/scico/blob/main/LICENSE
     :alt: Package License
 
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :target: https://github.com/psf/black
+    :alt: Code style
+
 .. image:: https://readthedocs.org/projects/scico/badge/?version=latest
     :target: http://scico.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
@@ -21,6 +25,10 @@
 .. image:: https://codecov.io/gh/lanl/scico/branch/main/graph/badge.svg?token=wQimmjnzFf
    :target: https://codecov.io/gh/lanl/scico
    :alt: Test coverage
+
+.. image:: https://www.codefactor.io/repository/github/lanl/scico/badge/main
+   :target: https://www.codefactor.io/repository/github/lanl/scico/overview/main
+   :alt: CodeFactor
 
 .. image:: https://badge.fury.io/py/scico.svg
    :target: https://badge.fury.io/py/scico

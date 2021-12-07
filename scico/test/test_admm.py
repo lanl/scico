@@ -12,6 +12,54 @@ from scico.admm import (
 )
 
 
+class TestMisc:
+    def setup_method(self, method):
+        np.random.seed(12345)
+        self.y = jax.device_put(np.random.randn(32, 33).astype(np.float32))
+        self.λ = 1e0
+
+    def test_admm(self):
+        maxiter = 2
+        ρ = 1e-1
+        A = linop.Identity(self.y.shape)
+        f = loss.SquaredL2Loss(y=self.y, A=A)
+        g = (self.λ / 2) * functional.BM3D()
+        C = linop.Identity(self.y.shape)
+
+        itstat_dict = {"Iter": "%d", "Time": "%8.2e"}
+
+        def itstat_func(obj):
+            return (obj.itnum, obj.timer.elapsed())
+
+        admm_ = ADMM(
+            f=f,
+            g_list=[g],
+            C_list=[C],
+            rho_list=[ρ],
+            maxiter=maxiter,
+            verbose=False,
+        )
+        assert len(admm_.itstat_object.fieldname) == 4
+        assert snp.sum(admm_.x) == 0.0
+        admm_ = ADMM(
+            f=f,
+            g_list=[g],
+            C_list=[C],
+            rho_list=[ρ],
+            maxiter=maxiter,
+            verbose=False,
+            itstat=(itstat_dict, itstat_func),
+        )
+        assert len(admm_.itstat_object.fieldname) == 2
+
+        def callback(obj):
+            global flag
+            flag = True
+
+        x = admm_.solve(callback=callback)
+        assert flag
+
+
 class TestReal:
     def setup_method(self, method):
         np.random.seed(12345)
@@ -35,7 +83,7 @@ class TestReal:
 
     def test_admm_generic(self):
         maxiter = 100
-        ρ = 1e-1
+        ρ = 2e-1
         A = linop.MatrixOperator(self.Amx)
         f = loss.SquaredL2Loss(y=self.y, A=A, scale=self.𝛼 / 2.0)
         g_list = [(self.λ / 2) * functional.SquaredL2Norm()]
@@ -58,7 +106,7 @@ class TestReal:
 
     def test_admm_quadratic_scico(self):
         maxiter = 50
-        ρ = 1e0
+        ρ = 4e-1
         A = linop.MatrixOperator(self.Amx)
         f = loss.SquaredL2Loss(y=self.y, A=A, scale=self.𝛼 / 2.0)
         g_list = [(self.λ / 2) * functional.SquaredL2Norm()]
@@ -98,6 +146,76 @@ class TestReal:
         x = admm_.solve()
         assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-5
 
+    def test_admm_quadratic_relax(self):
+        maxiter = 50
+        ρ = 1e0
+        A = linop.MatrixOperator(self.Amx)
+        f = loss.SquaredL2Loss(y=self.y, A=A, scale=self.𝛼 / 2.0)
+        g_list = [(self.λ / 2) * functional.SquaredL2Norm()]
+        C_list = [linop.MatrixOperator(self.Bmx)]
+        rho_list = [ρ]
+        admm_ = ADMM(
+            f=f,
+            g_list=g_list,
+            C_list=C_list,
+            rho_list=rho_list,
+            alpha=1.6,
+            maxiter=maxiter,
+            verbose=False,
+            x0=A.adj(self.y),
+            subproblem_solver=LinearSubproblemSolver(cg_function="jax"),
+        )
+        x = admm_.solve()
+        assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-5
+
+
+class TestRealWeighted:
+    def setup_method(self, method):
+        np.random.seed(12345)
+        MA = 9
+        MB = 10
+        N = 8
+        # Set up arrays for problem argmin (𝛼/2) ||A x - y||_W^2 + (λ/2) ||B x||_2^2
+        Amx = np.random.randn(MA, N)
+        W = np.abs(np.random.randn(MA, 1))
+        Bmx = np.random.randn(MB, N)
+        y = np.random.randn(MA)
+        𝛼 = np.pi  # sort of random number chosen to test non-default scale factor
+        λ = np.e
+        self.Amx = Amx
+        self.W = jax.device_put(W)
+        self.Bmx = Bmx
+        self.y = jax.device_put(y)
+        self.𝛼 = 𝛼
+        self.λ = λ
+        # Solution of problem is given by linear system
+        #   (𝛼 A^T W A + λ B^T B) x = 𝛼 A^T W y
+        self.grdA = lambda x: (𝛼 * Amx.T @ (W * Amx) + λ * Bmx.T @ Bmx) @ x
+        self.grdb = 𝛼 * Amx.T @ (W[:, 0] * y)
+
+    def test_admm_quadratic(self):
+        maxiter = 100
+        ρ = 1e0
+        A = linop.MatrixOperator(self.Amx)
+        f = loss.WeightedSquaredL2Loss(
+            y=self.y, A=A, W=linop.Diagonal(self.W[:, 0]), scale=self.𝛼 / 2.0
+        )
+        g_list = [(self.λ / 2) * functional.SquaredL2Norm()]
+        C_list = [linop.MatrixOperator(self.Bmx)]
+        rho_list = [ρ]
+        admm_ = ADMM(
+            f=f,
+            g_list=g_list,
+            C_list=C_list,
+            rho_list=rho_list,
+            maxiter=maxiter,
+            verbose=False,
+            x0=A.adj(self.y),
+            subproblem_solver=LinearSubproblemSolver(cg_function="scico"),
+        )
+        x = admm_.solve()
+        assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-5
+
 
 class TestComplex:
     def setup_method(self, method):
@@ -121,7 +239,7 @@ class TestComplex:
 
     def test_admm_generic(self):
         maxiter = 100
-        ρ = 2e-1
+        ρ = 1e0
         A = linop.MatrixOperator(self.Amx)
         f = loss.SquaredL2Loss(y=self.y, A=A, scale=self.𝛼 / 2.0)
         g_list = [(self.λ / 2) * functional.SquaredL2Norm()]

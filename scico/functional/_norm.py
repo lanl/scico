@@ -24,8 +24,10 @@ __author__ = """Luke Pfister <luke.pfister@gmail.com>, Michael McCann <mccann@la
 
 
 class L0Norm(Functional):
-    r"""The :math:`\ell_0` 'norm'. Calculates the number of non-zero elements in an
-    array-like."""
+    r"""The :math:`\ell_0` 'norm'.
+
+    Counts the number of non-zero elements in an array-like.
+    """
 
     has_eval = True
     has_prox = True
@@ -36,31 +38,36 @@ class L0Norm(Functional):
 
     @staticmethod
     @jit
-    def prox(x: Union[JaxArray, BlockArray], lam: float = 1) -> Union[JaxArray, BlockArray]:
-        r"""Evaluate proximal operator of :math:`\ell_0` norm
+    def prox(
+        x: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[JaxArray, BlockArray]:
+        r"""Evaluate proximal operator of :math:`\ell_0` norm.
 
+
+        Evaluate proximal operator of :math:`\ell_0` norm
 
         .. math::
 
             \mathrm{prox}(\mb{x}, \lambda) =
             \begin{cases}
-            \mb{x},  & \text{if } \abs{\mb{x}} \geq \lambda \\
-            0,  & \text{else}
+            \mb{x}  & \text{if } \abs{\mb{x}} \geq \lambda \\
+            0  & \text{else} \;.
             \end{cases}
 
         Args:
-            x : Input array :math:`\mb{x}`
-            lam : Thresholding parameter :math:`\lambda`
-
+            x: Input array :math:`\mb{x}`.
+            lam: Thresholding parameter :math:`\lambda`.
         """
         return snp.where(snp.abs(x) >= lam, x, 0)
 
 
 class L1Norm(Functional):
-    r"""The :math:`\ell_1` norm.  Computes
+    r"""The :math:`\ell_1` norm.
+
+    Computes
 
     .. math::
-       \norm{\mb{x}}_1 = \sum_i \abs{x_i}^2
+       \norm{\mb{x}}_1 = \sum_i \abs{x_i}^2 \;.
     """
 
     has_eval = True
@@ -71,22 +78,26 @@ class L1Norm(Functional):
         return snp.abs(x).sum()
 
     @staticmethod
-    def prox(x: Union[JaxArray, BlockArray], lam: float = 1) -> JaxArray:
-        r"""Evaluate proximal operator of :math:`\ell_1` norm
+    def prox(x: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs) -> JaxArray:
+        r"""Evaluate proximal operator of :math:`\ell_1` norm.
+
+        Evaluate proximal operator of :math:`\ell_1` norm
 
         .. math::
             \mathrm{prox}(\mb{x}, \lambda)_i = \mathrm{sign}(\mb{x}_i)
-            (\abs{\mb{x}_i} - \lambda)_+ \;
+            (\abs{\mb{x}_i} - \lambda)_+ \;,
 
         where
 
         .. math::
             (x)_+ = \begin{cases}
-            x,  & \text{if } x \geq 0 \\
-            0,  & \text{else}
-            \end{cases} \;
+            x  & \text{if } x \geq 0 \\
+            0  & \text{else} \;.
+            \end{cases}
 
-
+        Args:
+            x: Input array :math:`\mb{x}`.
+            lam: Thresholding parameter :math:`\lambda`.
         """
         tmp = snp.abs(x) - lam
         tmp = 0.5 * (tmp + snp.abs(tmp))
@@ -100,10 +111,10 @@ class L1Norm(Functional):
 class SquaredL2Norm(Functional):
     r"""Squared :math:`\ell_2` norm.
 
+    Squared :math:`\ell_2` norm
+
     .. math::
-       \norm{\mb{x}}^2_2 = \sum_i \abs{x_i}^2
-
-
+       \norm{\mb{x}}^2_2 = \sum_i \abs{x_i}^2 \;.
     """
 
     has_eval = True
@@ -115,15 +126,20 @@ class SquaredL2Norm(Functional):
         # behavior of snp.norm(x) at 0.
         return (snp.abs(x) ** 2).sum()
 
-    def prox(self, x: Union[JaxArray, BlockArray], lam: float = 1) -> Union[JaxArray, BlockArray]:
-        r"""Evaluate proximal operator of squared :math:`\ell_2` norm:
+    def prox(
+        self, x: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[JaxArray, BlockArray]:
+        r"""Evaluate proximal operator of squared :math:`\ell_2` norm.
+
+        Evaluate proximal operator of squared :math:`\ell_2` norm
 
         .. math::
-            \mathrm{prox}(\mb{x}, \lambda) = \frac{\mb{x}}{1 + 2 \lambda}
+            \mathrm{prox}(\mb{x}, \lambda) = \frac{\mb{x}}{1 +
+            2 \lambda} \;.
 
         Args:
-            x :  Input array :math:`\mb{x}`
-            lam : Proximal parameter :math:`\lambda`
+            x:  Input array :math:`\mb{x}`.
+            lam: Proximal parameter :math:`\lambda`.
         """
         return x / (1.0 + 2.0 * lam)
 
@@ -132,8 +148,7 @@ class L2Norm(Functional):
     r""":math:`\ell_2` norm.
 
     .. math::
-       \norm{\mb{x}}_2 = \sqrt{\sum_i \abs{x_i}^2}
-
+       \norm{\mb{x}}_2 = \sqrt{\sum_i \abs{x_i}^2} \;.
     """
 
     has_eval = True
@@ -143,23 +158,28 @@ class L2Norm(Functional):
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         return norm(x)
 
-    def prox(self, x: Union[JaxArray, BlockArray], lam: float = 1) -> Union[JaxArray, BlockArray]:
-        r"""Evaluate proximal operator of :math:`\ell_2` norm:
+    def prox(
+        self, x: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[JaxArray, BlockArray]:
+        r"""Evaluate proximal operator of :math:`\ell_2` norm.
+
+        Evaluate proximal operator of :math:`\ell_2` norm
 
         .. math::
-            \mathrm{prox}(\mb{x}, \lambda) = \mb{x} \right(1 - \frac{\lambda}{\norm{x}_2}\left)_+,
+            \mathrm{prox}(\mb{x}, \lambda) = \mb{x} \left(1 -
+            \frac{\lambda}{\norm{x}_2} \right)_+ \;,
 
         where
 
         .. math::
             (x)_+ = \begin{cases}
-            x,  & \text{if } x \geq 0 \\
-            0,  & \text{else}
-            \end{cases} \;
+            x  & \text{if } x \geq 0 \\
+            0  & \text{else} \;.
+            \end{cases}
 
         Args:
-            x :  Input array :math:`\mb{x}`
-            lam : Proximal parameter :math:`\lambda`
+            x:  Input array :math:`\mb{x}`.
+            lam: Proximal parameter :math:`\lambda`.
         """
         norm_x = norm(x)
         if norm_x == 0:
@@ -174,12 +194,15 @@ class L21Norm(Functional):
     For a :math:`M \times N` matrix, :math:`\mb{A}`, by default,
 
     .. math::
-           \norm{\mb{A}}_{2,1} = \sum_{n=1}^N \sqrt{\sum_{m=1}^M \abs{A_{m,n}}^2}.
+           \norm{\mb{A}}_{2,1} = \sum_{n=1}^N \sqrt{\sum_{m=1}^M
+           \abs{A_{m,n}}^2} \;.
 
-    The norm generalizes to more dimensions by first computing the :math:`\ell_2` norm along
-    a single (user-specified) dimension, followed by a sum over all remaining dimensions.
+    The norm generalizes to more dimensions by first computing the
+    :math:`\ell_2` norm along a single (user-specified) dimension,
+    followed by a sum over all remaining dimensions.
 
-    For `BlockArray` inputs, the :math:`\ell_2` norm follows the reduction rules described in :class:`BlockArray`.
+    For `BlockArray` inputs, the :math:`\ell_2` norm follows the
+    reduction rules described in :class:`BlockArray`.
 
     A typical use case is computing the isotropic total variation norm.
     """
@@ -199,22 +222,29 @@ class L21Norm(Functional):
         l2 = norm(x, axis=self.l2_axis)
         return snp.abs(l2).sum()
 
-    def prox(self, x: Union[JaxArray, BlockArray], lam: float = 1) -> Union[JaxArray, BlockArray]:
+    def prox(
+        self, x: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[JaxArray, BlockArray]:
         r"""Evaluate proximal operator of the :math:`\ell_{2,1}` norm.
 
         In two dimensions,
 
         .. math::
-            \mathrm{prox}(\mb{A}, \lambda)_{:, n} = \frac{\mb{A}_{:, n}}{\|\mb{A}_{:, n}\|_2}
-             (\|\mb{A}_{:, n}\|_2 - \lambda)_+ \;
+            \mathrm{prox}(\mb{A}, \lambda)_{:, n} =
+             \frac{\mb{A}_{:, n}}{\|\mb{A}_{:, n}\|_2}
+             (\|\mb{A}_{:, n}\|_2 - \lambda)_+ \;,
 
         where
 
         .. math::
             (x)_+ = \begin{cases}
-            x,  & \text{if } x \geq 0 \\
-            0,  & \text{else}.
-            \end{cases} \;
+            x  & \text{if } x \geq 0 \\
+            0  & \text{else} \;.
+            \end{cases}
+
+        Args:
+            x:  Input array :math:`\mb{x}`.
+            lam: Proximal parameter :math:`\lambda`.
         """
 
         length = norm(x, axis=self.l2_axis, keepdims=True)

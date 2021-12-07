@@ -26,13 +26,13 @@ class ConvBNBlock(nn.Module):
     r"""Define convolution and batch normalization Flax block.
 
     Attributes:
-        num_filters : number of filters in the convolutional layer
+        num_filters: Number of filters in the convolutional layer
           of the block.
-        conv : class of convolution to apply.
-        norm : class of batch normalization to apply.
-        act : class of activation function to apply.
-        kernel_size : size of the convolution filters. Default: (3, 3).
-        stride : convolution strides. Default: (1, 1)
+        conv: Class of convolution to apply.
+        norm: Class of batch normalization to apply.
+        act: Class of activation function to apply.
+        kernel_size: Size of the convolution filters. Default: (3, 3).
+        stride: Convolution strides. Default: (1, 1).
     """
 
     num_filters: int
@@ -71,13 +71,13 @@ class DnCNNNet(nn.Module):
     architecture for denoising described in :cite:`zhang-2017-dncnn`.
 
     Attributes:
-        depth : number of layers in the neural network.
-        channels : number of channels of input tensor.
-        num_filters : number of filters in the convolutional layers.
-        kernel_size : size of the convolution filters. Default: (3, 3).
-        strides : convolution strides. Default: (1, 1).
-        dtype : . Default: `jnp.float32`.
-        act : class of activation function to apply. Default: `nn.relu`.
+        depth: Number of layers in the neural network.
+        channels: Number of channels of input tensor.
+        num_filters: Number of filters in the convolutional layers.
+        kernel_size: Size of the convolution filters. Default: (3, 3).
+        strides: Convolution strides. Default: (1, 1).
+        dtype: Output dtype. Default: `jnp.float32`.
+        act: Class of activation function to apply. Default: `nn.relu`.
     """
 
     depth: int
@@ -148,8 +148,7 @@ def load_weights(filename: str):
     """Load trained model weights.
 
     Args:
-        filename : name of file where parameters for trained model
-            have been stored.
+        filename: Name of file containing parameters for trained model.
     """
     with open(filename, "rb") as data_file:
         bytes_input = data_file.read()

@@ -14,6 +14,7 @@ Computed Tomography
    - ct_astra_weighted_tv_admm.py
    - ct_svmbir_ppp_bm3d_admm_cg.py
    - ct_svmbir_ppp_bm3d_admm_prox.py
+   - ct_svmbir_tv_multi.py
 
 
 Deconvolution
@@ -43,6 +44,7 @@ Miscellaneous
    - demosaic_ppp_bm3d_admm.py
    - denoise_tv_iso_admm.py
    - denoise_tv_iso_pgm.py
+   - denoise_tv_iso_multi.py
 
 
 
@@ -65,12 +67,14 @@ Total Variation
 
    - ct_astra_tv_admm.py
    - ct_astra_weighted_tv_admm.py
+   - ct_svmbir_tv_multi.py
    - deconv_circ_tv_admm.py
    - deconv_microscopy_tv_admm.py
    - deconv_microscopy_allchn_tv_admm.py
    - deconv_tv_admm.py
    - denoise_tv_iso_admm.py
    - denoise_tv_iso_pgm.py
+   - denoise_tv_iso_multi.py
 
 
 Sparsity
@@ -93,6 +97,7 @@ ADMM
    - ct_astra_weighted_tv_admm.py
    - ct_svmbir_ppp_bm3d_admm_cg.py
    - ct_svmbir_ppp_bm3d_admm_prox.py
+   - ct_svmbir_tv_multi.py
    - deconv_circ_tv_admm.py
    - deconv_microscopy_tv_admm.py
    - deconv_microscopy_allchn_tv_admm.py
@@ -101,8 +106,22 @@ ADMM
    - deconv_tv_admm.py
    - demosaic_ppp_bm3d_admm.py
    - denoise_tv_iso_admm.py
+   - denoise_tv_iso_multi.py
    - sparsecode_admm.py
 
+
+Linearized ADMM
+^^^^^^^^^^^^^^^
+
+    - ct_svmbir_tv_multi.py
+    - denoise_tv_iso_multi.py
+
+
+PDHG
+^^^^
+
+    - ct_svmbir_tv_multi.py
+    - denoise_tv_iso_multi.py
 
 
 PGM

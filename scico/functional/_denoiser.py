@@ -15,6 +15,7 @@ from jax.experimental import host_callback as hcb
 
 from bm3d import bm3d, bm3d_rgb
 
+import scico.numpy as snp
 from scico.blockarray import BlockArray
 from scico.data import _flax_data_path
 from scico.flax import DnCNNNet, load_weights
@@ -27,10 +28,12 @@ __author__ = """Luke Pfister <luke.pfister@gmail.com>"""
 
 
 class BM3D(Functional):
-    r"""Functional whose prox applies the BM3D denoising algorithm :cite:`dabov-2008-image`.
+    r"""Functional whose prox applies the BM3D denoising algorithm.
 
-    The BM3D algorithm is computed using the `code <https://pypi.org/project/bm3d>`__ released
-    with :cite:`makinen-2019-exact`.
+    A pseudo-function that has the BM3D algorithm :cite:`dabov-2008-image`
+    as its proximal operator. BM3D denoising is performed using the
+    `code <https://pypi.org/project/bm3d>`__ released with
+    :cite:`makinen-2019-exact`.
     """
 
     has_eval = False
@@ -41,7 +44,8 @@ class BM3D(Functional):
         r"""Initialize a :class:`BM3D` object.
 
         Args:
-            is_rgb : Flag indicating use of BM3D with a color transform.  Default: False.
+            is_rgb: Flag indicating use of BM3D with a color transform.
+                    Default: False.
         """
 
         if is_rgb is True:
@@ -53,8 +57,16 @@ class BM3D(Functional):
 
         super().__init__()
 
-    def prox(self, x: JaxArray, lam: float = 1) -> JaxArray:
-        r"""Apply BM3D denoiser with noise level ``lam``"""
+    def prox(self, x: JaxArray, lam: float = 1.0, **kwargs) -> JaxArray:
+        r"""Apply BM3D denoiser with noise level ``lam``.
+
+        Args:
+            x: input image.
+            lam: noise level.
+
+        Returns:
+            BM3D denoised output.
+        """
 
         # BM3D only works on (NxN) or (NxNxC) arrays
         # In future, may want to apply prox along an "axis"
@@ -102,8 +114,9 @@ class BM3D(Functional):
 
 
 class DnCNN(FlaxMap):
-    """Flax implementation of the DnCNN denoiser :cite:`zhang-2017-dncnn`.
+    """Flax implementation of the DnCNN denoiser.
 
+    A flax implementation of the DnCNN denoiser :cite:`zhang-2017-dncnn`.
     Note that :class:`.flax.DnCNNNet` represents an untrained form of the
     generic DnCNN CNN structure, while this class represents a trained
     form with six or seventeen layers.
@@ -112,8 +125,12 @@ class DnCNN(FlaxMap):
     def __init__(self, variant: Optional[str] = "6M"):
         """Initialize a :class:`DnCNN` object.
 
+        Note that all DnCNN models are trained for single-channel image
+        input. Multi-channel input is supported via independent denoising
+        of each channel.
+
         Args:
-            variant : Identify the DnCNN model to be used. Options are
+            variant: Identify the DnCNN model to be used. Options are
                 '6L', '6M' (default), '6H', '17L', '17M', and '17H',
                 where the integer indicates the number of layers in the
                 network, and the postfix indicates the training noise
@@ -130,3 +147,47 @@ class DnCNN(FlaxMap):
         model = DnCNNNet(depth=nlayer, channels=1, num_filters=64, dtype=np.float32)
         variables = load_weights(_flax_data_path("dncnn%s.npz" % variant))
         super().__init__(model, variables)
+
+    def prox(self, x: JaxArray, lam: float = 1) -> JaxArray:
+        r"""Apply DnCNN denoiser.
+
+        *Warning*: The ``lam`` parameter is ignored, and has no effect on
+        the output.
+
+        Args:
+            x: input.
+            lam: noise estimate (ignored).
+
+        Returns:
+            DnCNN denoised output.
+        """
+        if np.iscomplexobj(x):
+            raise TypeError(f"DnCNN requries real-valued inputs, got {x.dtype}")
+
+        if x.ndim < 2:
+            raise ValueError(
+                f"DnCNN requires two dimensional (M, N) or three dimensional (M, N, C)"
+                " inputs; got ndim = {x.ndim}"
+            )
+
+        x_in_shape = x.shape
+        if x.ndim > 3:
+            if all(k == 1 for k in x.shape[3:]):
+                x = x.squeeze()
+            else:
+                raise ValueError(
+                    "Arrays with more than three axes are only supported when "
+                    " the additional axes are singletons"
+                )
+
+        if x.ndim == 3:
+            # swap channel axis to batch axis and add singleton axis at end
+            y = super().prox(snp.swapaxes(x, 0, -1)[..., np.newaxis], lam)
+            # drop singleton axis and swap axes back to original positions
+            y = snp.swapaxes(y[..., 0], 0, -1)
+        else:
+            y = super().prox(x, lam)
+
+        y = y.reshape(x_in_shape)
+
+        return y

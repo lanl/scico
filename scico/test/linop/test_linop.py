@@ -15,10 +15,16 @@ import jax
 import scico.numpy as snp
 from scico import linop
 from scico.random import randn
-from scico.typing import PRNGKey
+from scico.typing import JaxArray, PRNGKey
 
 
-def adjoint_test(A: linop.LinearOperator, key: Optional[PRNGKey] = None, rtol: float = 1e-4):
+def adjoint_test(
+    A: linop.LinearOperator,
+    key: Optional[PRNGKey] = None,
+    rtol: float = 1e-4,
+    x: Optional[JaxArray] = None,
+    y: Optional[JaxArray] = None,
+):
     """Check the validity of A.conj().T as the adjoint for a LinearOperator A.
 
     Args:
@@ -27,7 +33,20 @@ def adjoint_test(A: linop.LinearOperator, key: Optional[PRNGKey] = None, rtol: f
         rtol:  Relative tolerance
     """
 
-    assert linop.valid_adjoint(A, A.H, rtol, key)
+    assert linop.valid_adjoint(A, A.H, key=key, eps=rtol, x=x, y=y)
+
+
+def test_valid_adjoint():
+
+    diagonal, key = randn((16,), dtype=np.float32)
+    D = linop.Diagonal(diagonal=diagonal)
+    assert linop.valid_adjoint(D, D.T, key=key, eps=None) < 1e-4
+    x, key = randn((8,), dtype=np.float32)
+    y, key = randn((8,), dtype=np.float32)
+    with pytest.raises(ValueError):
+        linop.valid_adjoint(D, D.T, key=key, x=x)
+    with pytest.raises(ValueError):
+        linop.valid_adjoint(D, D.T, key=key, y=y)
 
 
 class AbsMatOp(linop.LinearOperator):
@@ -454,14 +473,11 @@ def test_operator_norm():
     Inorm = linop.operator_norm(I)
     assert np.abs(Inorm - 1.0) < 1e-5
     key = jax.random.PRNGKey(12345)
-    d, key = randn((16,), dtype=np.float32, key=key)
-    D = linop.Diagonal(d)
-    Dnorm = linop.operator_norm(D)
-    assert np.abs(Dnorm - snp.abs(d).max()) < 1e-5
-    d, key = randn((16,), dtype=np.complex64, key=key)
-    D = linop.Diagonal(d)
-    Dnorm = linop.operator_norm(D)
-    assert np.abs(Dnorm - snp.abs(d.max())) < 1e-5
+    for dtype in [np.float32, np.complex64]:
+        d, key = randn((16,), dtype=dtype, key=key)
+        D = linop.Diagonal(d)
+        Dnorm = linop.operator_norm(D)
+        assert np.abs(Dnorm - snp.abs(d).max()) < 1e-5
 
 
 class SumTestObj:

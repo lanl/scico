@@ -24,13 +24,14 @@ __author__ = """Luke Pfister <luke.pfister@gmail.com>"""
 class NonNegativeIndicator(Functional):
     r"""Indicator function for non-negative orthant.
 
-    Returns 0 if all elements of input array-like are non-negative, and inf otherwise.
+    Returns 0 if all elements of input array-like are non-negative, and
+    inf otherwise
 
     .. math::
         I(\mb{x}) = \begin{cases}
-        0,  & \text{if } x_i \geq 0 \text{ for each } i \\
-        \infty,  & \text{else}
-        \end{cases} \;
+        0  & \text{if } x_i \geq 0 \text{ for each } i \\
+        \infty  & \text{else} \;.
+        \end{cases}
 
     """
 
@@ -46,19 +47,23 @@ class NonNegativeIndicator(Functional):
         # snp.inf if snp.any(x < 0) else 0.0
         return jax.lax.cond(snp.any(x < 0), lambda x: snp.inf, lambda x: 0.0, None)
 
-    def prox(self, x: Union[JaxArray, BlockArray], lam: float = 1) -> Union[JaxArray, BlockArray]:
-        r"""Evaluate proximal operator of indicator over non-negative orthant:
+    def prox(
+        self, x: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[JaxArray, BlockArray]:
+        r"""Proximal operator of indicator over non-negative orthant.
+
+        Proximal operator of indicator over non-negative orthant
 
         .. math::
             [\mathrm{prox}(\mb{x}, \lambda)]_i =
             \begin{cases}
-            x_i, & \text{if } x_i \geq 0 \\
-            0, & \text{else}.
+            x_i & \text{if } x_i \geq 0 \\
+            0 & \text{else} \;.
             \end{cases}
 
         Args:
-            x :  Input array :math:`\mb{x}`
-            lam : Proximal parameter :math:`\lambda`
+            x: Input array :math:`\mb{x}`.
+            lam: Proximal parameter :math:`\lambda`.
         """
         return snp.maximum(x, 0)
 
@@ -66,15 +71,16 @@ class NonNegativeIndicator(Functional):
 class L2BallIndicator(Functional):
     r"""Indicator function for :math:`\ell_2` ball of given radius.
 
+    Indicator function for :math:`\ell_2` ball of given radius
+
     .. math::
         I(\mb{x}) = \begin{cases}
-        0,  & \text{if } \norm{\mb{x}}_2 \leq \mathrm{radius} \\
-        \infty,  & \text{else}
-        \end{cases} \;
+        0  & \text{if } \norm{\mb{x}}_2 \leq \mathrm{radius} \\
+        \infty  & \text{else} \;.
+        \end{cases}
 
     Attributes:
-        radius : Radius of :math:`\ell_2` ball
-
+        radius: Radius of :math:`\ell_2` ball.
     """
 
     has_eval = True
@@ -85,7 +91,7 @@ class L2BallIndicator(Functional):
         r"""Initialize a :class:`L2BallIndicator` object.
 
         Args:
-            radius : Radius of :math:`\ell_2` ball.  Default: 1.
+            radius: Radius of :math:`\ell_2` ball. Default: 1.
         """
         self.radius = radius
         super().__init__()
@@ -95,11 +101,15 @@ class L2BallIndicator(Functional):
         # snp.inf if norm(x) > self.radius else 0.0
         return jax.lax.cond(norm(x) > self.radius, lambda x: snp.inf, lambda x: 0.0, None)
 
-    def prox(self, x: Union[JaxArray, BlockArray], lam: float = 1) -> Union[JaxArray, BlockArray]:
-        r"""Evaluate proximal operator of indicator over :math:`\ell_2` ball:
+    def prox(
+        self, x: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[JaxArray, BlockArray]:
+        r"""Proximal operator of indicator over :math:`\ell_2` ball.
+
+        Proximal operator of indicator over :math:`\ell_2` ball
 
         .. math::
-            \mathrm{prox}(\mb{x}, \lambda) = \mathrm{radius} \frac{\mb{x}}{\norm{\mb{x}}_2}
-
+            \mathrm{prox}(\mb{x}, \lambda) = \mathrm{radius}
+            \frac{\mb{x}}{\norm{\mb{x}}_2} \;.
         """
         return self.radius * x / norm(x)

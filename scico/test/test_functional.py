@@ -46,11 +46,11 @@ def prox_solve(v, v0, f, alpha):
     return fmn.x.reshape(v.shape), fmn.fun
 
 
-def prox_test(v, nrm, prx, alpha):
+def prox_test(v, nrm, prx, alpha, x0=None):
     """Test the alpha-scaled proximal operator function prx of norm functional nrm
     at point v."""
     # Evaluate the proximal operator at v
-    px = snp.array(prx(v, alpha))
+    px = snp.array(prx(v, alpha, v0=x0))
     # Proximal operator functional value (i.e. Moreau envelope) at v
     pf = prox_func(px, v, nrm, alpha)
     # Brute-force solve of the proximal operator at v
@@ -338,8 +338,9 @@ class TestLoss:
         W, key = randn((n,), key=key, dtype=dtype)
         W = 0.1 * W + 1.0
         self.Ao = linop.MatrixOperator(A)
+        self.Ao_abs = linop.MatrixOperator(snp.abs(A))
         self.Do = linop.Diagonal(D)
-        self.Wo = linop.Diagonal(W)
+        self.W = linop.Diagonal(W)
         self.y, key = randn((n,), key=key, dtype=dtype)
         self.v, key = randn((n,), key=key, dtype=dtype)  # point for prox eval
         scalar, key = randn((1,), key=key, dtype=dtype)
@@ -376,15 +377,17 @@ class TestLoss:
 
         pf = prox_test(self.v, L_d, L_d.prox, 0.75)
 
+        pf = prox_test(self.v, L, L.prox, 0.75)
+
     def test_weighted_squared_l2(self):
-        L = loss.WeightedSquaredL2Loss(y=self.y, A=self.Ao, weight_op=self.Wo)
+        L = loss.WeightedSquaredL2Loss(y=self.y, A=self.Ao, W=self.W)
         assert L.is_smooth == True
         assert L.has_eval == True
         assert L.has_prox == False  # not diagonal
 
         # test eval
         np.testing.assert_allclose(
-            L(self.v), 0.5 * ((self.Wo @ (self.Ao @ self.v - self.y)) ** 2).sum()
+            L(self.v), 0.5 * (self.W @ (self.Ao @ self.v - self.y) ** 2).sum()
         )
 
         cL = self.scalar * L
@@ -393,8 +396,7 @@ class TestLoss:
         assert cL(self.v) == self.scalar * L(self.v)
 
         # SquaredL2 with Diagonal linop has a prox
-        Wo = self.Wo
-        L_d = loss.WeightedSquaredL2Loss(y=self.y, A=self.Do, weight_op=Wo)
+        L_d = loss.WeightedSquaredL2Loss(y=self.y, A=self.Do, W=self.W)
 
         assert L_d.is_smooth == True
         assert L_d.has_eval == True
@@ -402,7 +404,7 @@ class TestLoss:
 
         # test eval
         np.testing.assert_allclose(
-            L_d(self.v), 0.5 * ((self.Wo @ (self.Do @ self.v - self.y)) ** 2).sum()
+            L_d(self.v), 0.5 * (self.W @ (self.Do @ self.v - self.y) ** 2).sum()
         )
 
         cL = self.scalar * L_d
@@ -411,6 +413,24 @@ class TestLoss:
         assert cL(self.v) == self.scalar * L_d(self.v)
 
         pf = prox_test(self.v, L_d, L_d.prox, 0.75)
+
+        pf = prox_test(self.v, L, L.prox, 0.75)
+
+    def test_poisson(self):
+        L = loss.PoissonLoss(y=self.y, A=self.Ao_abs)
+        assert L.is_smooth == None
+        assert L.has_eval == True
+        assert L.has_prox == False
+
+        # test eval
+        v = snp.abs(self.v)
+        Av = self.Ao_abs @ v
+        np.testing.assert_allclose(L(v), 0.5 * snp.sum(Av - self.y * snp.log(Av) + L.const))
+
+        cL = self.scalar * L
+        assert L.scale == 0.5  # hasn't changed
+        assert cL.scale == self.scalar * L.scale
+        assert cL(v) == self.scalar * L(v)
 
 
 class TestBM3D:
@@ -433,6 +453,52 @@ class TestBM3D:
     def test_prox_rgb(self):
         no_jit = self.f_rgb.prox(self.x_rgb, 1.0)
         jitted = jax.jit(self.f_rgb.prox)(self.x_rgb, 1.0)
+        np.testing.assert_allclose(no_jit, jitted, rtol=1e-3)
+        assert no_jit.dtype == np.float32
+        assert jitted.dtype == np.float32
+
+    def test_prox_bad_inputs(self):
+
+        x, key = randn((32,), key=None, dtype=np.float32)
+        with pytest.raises(ValueError):
+            self.f.prox(x, 1.0)
+
+        x, key = randn((12, 12, 4, 3), key=None, dtype=np.float32)
+        with pytest.raises(ValueError):
+            self.f.prox(x, 1.0)
+
+        x_b, key = randn(((2, 3), (3, 4, 5)), key=None, dtype=np.float32)
+        with pytest.raises(ValueError):
+            self.f.prox(x, 1.0)
+
+        z, key = randn((32, 32), key=None, dtype=np.complex64)
+        with pytest.raises(TypeError):
+            self.f.prox(z, 1.0)
+
+
+class TestDnCNN:
+    import os
+
+    os.environ["XLA_FLAGS"] = "--xla_gpu_deterministic_reductions --xla_gpu_autotune_level=0"
+
+    def setup(self):
+        key = None
+        N = 32
+        self.x, key = randn((N, N), key=key, dtype=np.float32)
+        self.x_mltchn, key = randn((N, N, 5), key=key, dtype=np.float32)
+
+        self.f = functional.DnCNN()
+
+    def test_prox(self):
+        no_jit = self.f.prox(self.x, 1.0)
+        jitted = jax.jit(self.f.prox)(self.x, 1.0)
+        np.testing.assert_allclose(no_jit, jitted, rtol=1e-3)
+        assert no_jit.dtype == np.float32
+        assert jitted.dtype == np.float32
+
+    def test_prox_mltchn(self):
+        no_jit = self.f.prox(self.x_mltchn, 1.0)
+        jitted = jax.jit(self.f.prox)(self.x_mltchn, 1.0)
         np.testing.assert_allclose(no_jit, jitted, rtol=1e-3)
         assert no_jit.dtype == np.float32
         assert jitted.dtype == np.float32

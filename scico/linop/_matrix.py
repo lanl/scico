@@ -71,8 +71,8 @@ class MatrixOperator(LinearOperator):
     def __init__(self, A: JaxArray):
         """
         Args:
-            A:  Dense array.  The action of the created LinearOperator will implement matrix
-                multiplication with `A`.
+            A: Dense array. The action of the created LinearOperator will
+                implement matrix multiplication with `A`.
         """
         self.A: JaxArray  #: Dense array implementing this matrix
 
@@ -106,8 +106,8 @@ class MatrixOperator(LinearOperator):
                     )
             else:
                 raise ValueError(
-                    """Cannot compute MatrixOperator-LinearOperator product, {other.output_shape} does not
-                    match {self.input_shape}"""
+                    "Cannot compute MatrixOperator-LinearOperator product, "
+                    f"{other.output_shape} does not match {self.input_shape}"
                 )
         else:
             return self._eval(other)
@@ -136,8 +136,8 @@ class MatrixOperator(LinearOperator):
     def __neg__(self):
         return MatrixOperator(-self.A)
 
-    # Could write another wrapper for mul, truediv, and rtuediv, but
-    # there is no operator.__rtruediv__;  have to write that case out manually anyway.
+    # Could write another wrapper for mul, truediv, and rtuediv, bu there is
+    # no operator.__rtruediv__;  have to write that case out manually anyway.
     def __mul__(self, other):
         if np.isscalar(other):
             return MatrixOperator(other * self.A)
@@ -191,33 +191,48 @@ class MatrixOperator(LinearOperator):
 
     @property
     def T(self):
-        """Return a :class:`.MatrixOperator` corresponding to the transpose of this matrix"""
+        """Transpose of this :class:`.MatrixOperator`.
+
+        Return a :class:`.MatrixOperator` corresponding to the transpose
+        of this matrix.
+        """
         return MatrixOperator(self.A.T)
 
     @property
     def H(self):
-        """Return a :class:`.MatrixOperator` corresponding to the Hermitian (conjugate) transpose of this matrix"""
+        """Hermitian (conjugate) transpose of this :class:`.MatrixOperator`.
+
+        Return a :class:`.MatrixOperator` corresponding to the Hermitian
+        (conjugate) transpose of this matrix.
+        """
         return MatrixOperator(self.A.conj().T)
 
     def conj(self):
-        """Return a :class:`.MatrixOperator` with complex conjugated elements"""
+        """Complex conjugate of this :class:`.MatrixOperator`.
+
+        Return a :class:`.MatrixOperator` with complex conjugated
+        elements.
+        """
         return MatrixOperator(A=self.A.conj())
 
     def adj(self, y):
         return self.A.conj().T @ y
 
     def to_array(self):
-        """Returns a :class:`numpy.ndarray` containing ``self.A``"""
+        """Return a :class:`numpy.ndarray` containing ``self.A``."""
         return self.A.copy()
 
     @property
     def gram_op(self):
-        """Returns a new :class:`.LinearOperator` ``G`` such that ``G(x) = A.adj(A(x)))``"""
+        """Gram operator of this :class:`.MatrixOperator`.
+
+        Return a new :class:`.LinearOperator` ``G`` such that
+        ``G(x) = A.adj(A(x)))``."""
         return MatrixOperator(A=self.A.conj().T @ self.A)
 
     def norm(self, ord=None, axis=None, keepdims=False):
         """Compute the norm of the dense matrix `self.A`.
 
-        Calls :func:`scico.numpy.norm` on the dense matrix `self.A`.
+        Call :func:`scico.numpy.norm` on the dense matrix `self.A`.
         """
         return snp.linalg.norm(self.A, ord=ord, axis=axis, keepdims=keepdims)

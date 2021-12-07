@@ -22,10 +22,7 @@ import jax.experimental.host_callback as hcb
 try:
     import astra
 except ImportError:
-    raise ImportError(
-        "Could not import astra, please refer to INSTALL.rst "
-        "for instructions on how to install the ASTRA toolbox."
-    )
+    raise ImportError("Could not import astra; please install the ASTRA toolbox.")
 
 
 from jaxlib.xla_extension import GpuDevice
@@ -38,7 +35,12 @@ __author__ = """Luke Pfister <luke.pfister@gmail.com>"""
 
 
 class ParallelBeamProjector(LinearOperator):
-    r"""Parallel beam projector based on ASTRA."""
+    r"""Parallel beam Radon transform based on the ASTRA toolbox.
+
+    Perform tomographic projection of an image at specified angles,
+    using the
+    `ASTRA toolbox <https://github.com/astra-toolbox/astra-toolbox>`_.
+    """
 
     def __init__(
         self,
@@ -66,9 +68,9 @@ class ParallelBeamProjector(LinearOperator):
                 so not following these requirements may have
                 unpredictable results. See `original ASTRA documentation
                 <https://www.astra-toolbox.com/docs/geom2d.html#volume-geometries>`_.
-            detector_spacing:  Spacing between detector elements
-            det_count:  Number of detector elements
-            angles:  Array of projection angles.
+            detector_spacing: Spacing between detector elements.
+            det_count: Number of detector elements.
+            angles: Array of projection angles.
             device: Specifies device for projection operation.
                 One of ["auto", "gpu", "cpu"].  If "auto",  a GPU is used
                 if available. Otherwise, the CPU is used.
@@ -146,6 +148,14 @@ class ParallelBeamProjector(LinearOperator):
         return hcb.call(f, y, result_shape=jax.ShapeDtypeStruct(self.input_shape, self.input_dtype))
 
     def fbp(self, sino: JaxArray, filter_type: str = "Ram-Lak") -> JaxArray:
+        """Perform tomographic reconstruction using the filtered back
+        projection (FBP) algorithm.
+
+        Args:
+            sino: Sinogram to reconstruct.
+            filter_type: Which filter to use, see `cfg.FilterType` in
+               `<https://www.astra-toolbox.com/docs/algs/FBP_CUDA.html>`_.
+        """
 
         # Just use the CPU FBP alg for now; hitting memory issues with GPU one.
         def f(sino):

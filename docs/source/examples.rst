@@ -25,6 +25,7 @@ Computed Tomography
    examples/ct_astra_weighted_tv_admm
    examples/ct_svmbir_ppp_bm3d_admm_cg
    examples/ct_svmbir_ppp_bm3d_admm_prox
+   examples/ct_svmbir_tv_multi
 
 
 Deconvolution
@@ -63,6 +64,7 @@ Miscellaneous
    examples/demosaic_ppp_bm3d_admm
    examples/denoise_tv_iso_admm
    examples/denoise_tv_iso_pgm
+   examples/denoise_tv_iso_multi
 
 
 
@@ -94,12 +96,14 @@ Total Variation
 
    examples/ct_astra_tv_admm
    examples/ct_astra_weighted_tv_admm
+   examples/ct_svmbir_tv_multi
    examples/deconv_circ_tv_admm
    examples/deconv_microscopy_tv_admm
    examples/deconv_microscopy_allchn_tv_admm
    examples/deconv_tv_admm
    examples/denoise_tv_iso_admm
    examples/denoise_tv_iso_pgm
+   examples/denoise_tv_iso_multi
 
 
 Sparsity
@@ -131,6 +135,7 @@ ADMM
    examples/ct_astra_weighted_tv_admm
    examples/ct_svmbir_ppp_bm3d_admm_cg
    examples/ct_svmbir_ppp_bm3d_admm_prox
+   examples/ct_svmbir_tv_multi
    examples/deconv_circ_tv_admm
    examples/deconv_microscopy_tv_admm
    examples/deconv_microscopy_allchn_tv_admm
@@ -139,8 +144,28 @@ ADMM
    examples/deconv_tv_admm
    examples/demosaic_ppp_bm3d_admm
    examples/denoise_tv_iso_admm
+   examples/denoise_tv_iso_multi
    examples/sparsecode_admm
 
+
+Linearized ADMM
+^^^^^^^^^^^^^^^
+
+.. toctree::
+   :maxdepth: 1
+
+   examples/ct_svmbir_tv_multi
+   examples/denoise_tv_iso_multi
+
+
+PDHG
+^^^^
+
+.. toctree::
+   :maxdepth: 1
+
+   examples/ct_svmbir_tv_multi
+   examples/denoise_tv_iso_multi
 
 
 PGM

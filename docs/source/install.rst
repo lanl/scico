@@ -8,11 +8,6 @@ SCICO requires Python version 3.8 or later. It has been tested on Linux and macO
 From PyPI
 ---------
 
-.. warning::
-   Installation from PyPI is not currently recommended since the current
-   package available from PyPI is a pre-release testing version. The
-   instructions directly below are intended for post-release documentation.
-
 The simplest way to install the most recent release of SCICO from
 `PyPI <https://pypi.python.org/pypi/scico/>`_ is
 

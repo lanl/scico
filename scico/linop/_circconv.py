@@ -34,20 +34,20 @@ __author__ = """\n""".join(
 class CircularConvolve(LinearOperator):
     r"""A circular convolution linear operator.
 
-    This linear operator implements circular, n-dimensional convolution via
-    pointwise multiplication in the DFT domain. In its simplest form, it
-    implements a single convolution and can be represented by linear operator
-    :math:`H` such that
+    This linear operator implements circular, n-dimensional convolution
+    via pointwise multiplication in the DFT domain. In its simplest form,
+    it implements a single convolution and can be represented by linear
+    operator :math:`H` such that
 
     .. math::
        H \mb{x} = \mb{h} \ast \mb{x} \;,
 
     where :math:`\mb{h}` is a user-defined filter.
 
-    More complex forms, corresponding to the case where either the input (as
-    represented by parameter `input_shape`) or filter (parameter `h`) have
-    additional axes that are not involved in the convolution are also
-    supported. These follow numpy broadcasting rules. For example:
+    More complex forms, corresponding to the case where either the input
+    (as represented by parameter `input_shape`) or filter (parameter `h`)
+    have additional axes that are not involved in the convolution are
+    also supported. These follow numpy broadcasting rules. For example:
 
     Additional axes in the input :math:`\mb{x}` and not in :math:`\mb{h}`
     corresponds to the operation
@@ -57,15 +57,18 @@ class CircularConvolve(LinearOperator):
                                             0 & H' & \ldots\\
                                             \vdots & \vdots & \ddots
                         \end{array} \right)
-       \left( \begin{array}{c}  \mb{x}_0\\ \mb{x}_1\\ \vdots \end{array} \right) \;.
+       \left( \begin{array}{c}  \mb{x}_0\\ \mb{x}_1\\ \vdots \end{array}
+       \right) \;.
 
-    Additional axes in :math:`\mb{h}` corresponds to multiple filters, which
-    will be denoted by :math:`\{\mb{h}_m\}`, with corresponding individual
-    linear operations being denoted by :math:`h_m \mb{x}_m = \mb{h}_m \ast
-    \mb{x}_m`. The full linear operator can then be represented as
+    Additional axes in :math:`\mb{h}` corresponds to multiple filters,
+    which will be denoted by :math:`\{\mb{h}_m\}`, with corresponding
+    individual linear operations being denoted by :math:`h_m \mb{x}_m =
+    \mb{h}_m \ast \mb{x}_m`. The full linear operator can then be
+    represented as
 
     .. math::
-       H \mb{x} = \left( \begin{array}{c}  H_0\\ H_1\\ \vdots \end{array} \right) \mb{x}
+       H \mb{x} = \left( \begin{array}{c}  H_0\\ H_1\\ \vdots \end{array}
+       \right) \mb{x} \;.
 
     if the input is singleton, and as
 
@@ -74,7 +77,8 @@ class CircularConvolve(LinearOperator):
                                             0 & H_1 & \ldots\\
                                             \vdots & \vdots & \ddots
                         \end{array} \right)
-       \left( \begin{array}{c}  \mb{x}_0\\ \mb{x}_1\\ \vdots \end{array} \right) \;
+       \left( \begin{array}{c}  \mb{x}_0\\ \mb{x}_1\\ \vdots \end{array}
+       \right)
 
     otherwise.
     """
@@ -94,10 +98,14 @@ class CircularConvolve(LinearOperator):
         Args:
             h: Array of filters.
             input_shape: Shape of input array.
-            ndims: Number of (trailing) dimensions of the input and `h` involved in the convolution. Defaults to the number of dimensions in the input.
-            input_dtype: `dtype` for input argument. Defaults to `float32`.
-            h_is_dft: Flag indicating whether ``h`` is in the DFT domain
-            jit:  If `True`, jit the evaluation, adjoint, and gram functions of the LinearOperator
+            ndims: Number of (trailing) dimensions of the input and `h`
+               involved in the convolution. Defaults to the number of
+               dimensions in the input.
+            input_dtype: `dtype` for input argument. Defaults to
+               `float32`.
+            h_is_dft: Flag indicating whether ``h`` is in the DFT domain.
+            jit:  If `True`, jit the evaluation, adjoint, and gram
+               functions of the LinearOperator.
         """
 
         if ndims is None:
@@ -138,7 +146,8 @@ class CircularConvolve(LinearOperator):
             output_shape = np.broadcast_shapes(self.h_dft.shape, input_shape)
         except ValueError:
             raise ValueError(
-                f"h shape after padding was {self.h_dft.shape}, needs to be compatible for broadcasting with {input_shape}."
+                f"h shape after padding was {self.h_dft.shape}, needs to be compatible "
+                f"for broadcasting with {input_shape}."
             )
 
         self.batch_axes = tuple(
@@ -233,15 +242,17 @@ class CircularConvolve(LinearOperator):
     def from_operator(
         H: Operator, ndims: Optional[int] = None, center: Optional[Shape] = None, jit: bool = True
     ):
-        r"""Construct a CircularConvolve version of a given operator,
+        r"""Construct a CircularConvolve version of a given operator.
+
+        Construct a CircularConvolve version of a given operator,
         which is assumed to be linear and shift invariant (LSI).
 
         Args:
             H: Input operator.
             ndims: Number of trailing dims over which the H acts.
-            center: Location at which to place the Kronecker delta. For LSI inputs,
-              this will not matter. Defaults to the center of H.input_shape, i.e.,
-              (n_1 // 2, n_2 // 2, ...).
+            center: Location at which to place the Kronecker delta. For
+              LSI inputs, this will not matter. Defaults to the center
+              of H.input_shape, i.e., (n_1 // 2, n_2 // 2, ...).
             jit: If ``True``, jit the resulting `CircularConvolve`.
         """
 
@@ -270,16 +281,20 @@ class CircularConvolve(LinearOperator):
 
 
 def _gradient_filters(ndim: int, axes: Shape, shape: Shape, dtype: DType = snp.float32) -> JaxArray:
-    r"""Construct a set of filters for computing gradients in the frequency domain.
+    r"""Construct filters for computing gradients in the frequency domain.
+
+    Construct a set of filters for computing gradients in the frequency domain.
 
     Args:
-        ndim: Total number of dimensions in array in which gradients are to be computed
-        axes: Axes on which gradients are to be computed
-        shape: Shape of axes on which gradients are to be computed
-        dtype: Data type of output arrays
+        ndim: Total number of dimensions in array in which gradients are
+           to be computed.
+        axes: Axes on which gradients are to be computed.
+        shape: Shape of axes on which gradients are to be computed.
+        dtype: Data type of output arrays.
 
     Returns:
-        An array of frequency domain gradient operators :math:`\hat{G}_i`
+        An array of frequency domain gradient operators
+        :math:`\hat{G}_i`.
     """
     g = snp.zeros(
         [
