@@ -430,8 +430,8 @@ The following components require the recommended markup taken from `NumPy's Conv
   Indentation is significant and indicates the indentation of the output. New paragraphs are marked with a blank line.
 - Variable, module, function, and class names:
   Should be written in between single back-ticks (`x`).
-- None and NoneType:
-  Should be written in between double back-ticks (``None``).
+- None, NoneType, True, and False:
+  Should be written in between double back-ticks (``None``, ``True``).
 - Types:
   Should be written in between double back-ticks (``int``).
 
