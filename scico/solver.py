@@ -5,12 +5,7 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Optimization algorithms.
-
-.. todo::
-    Add motivation for this module; when to choose over jax optimizers
-
-"""
+"""Optimization algorithms."""
 
 
 from functools import wraps
@@ -123,11 +118,6 @@ def _join_real_imag(x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArra
         return BlockArray.array([_join_real_imag(_) for _ in x])
     else:
         return x[0] + 1j * x[1]
-
-
-# TODO:  Use jax to compute Hessian-vector products for use in Newton methods
-# see https://jax.readthedocs.io/en/latest/notebooks/autodiff_cookbook.html#Hessian-vector-products-using-both-forward--and-reverse-mode
-# for examples of constructing Hessians in jax
 
 
 def minimize(
