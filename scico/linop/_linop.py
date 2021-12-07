@@ -171,6 +171,9 @@ class Diagonal(LinearOperator):
     def _eval(self, x):
         return x * self.diagonal
 
+    def _norm(self):
+        return snp.abs(self.diagonal).max()
+
     @partial(_wrap_add_sub, op=operator.add)
     def __add__(self, other):
         if self.diagonal.shape == other.diagonal.shape:
