@@ -5,7 +5,7 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Wrapped versions of :mod:`ray` functions."""
+"""Wrapped versions of `ray <https://docs.ray.io/en/latest/>`_ functions."""
 
 
 from ray import get, put

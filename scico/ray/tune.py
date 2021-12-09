@@ -5,7 +5,7 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Parameter tuning using :mod:`ray.tune`."""
+"""Parameter tuning using `ray.tune <https://docs.ray.io/en/latest/tune/>`_."""
 
 import datetime
 from typing import Any, Callable, Dict, List, Mapping, Optional, Type, Union
@@ -22,7 +22,7 @@ __author__ = """Brendt Wohlberg <brendt@ieee.org>"""
 
 
 class _CustomReporter(TuneReporterBase):
-    """Custom status reporter for :func:`ray.tune`."""
+    """Custom status reporter for :mod:`ray.tune`."""
 
     def should_report(self, trials: List[Trial], done: bool = False):
         # Don't report on final call when done to avoid duplicate final output.
@@ -65,7 +65,31 @@ def run(
     config: Optional[Dict[str, Any]] = None,
     hyperopt: bool = True,
     verbose: bool = True,
-):
+) -> ray.tune.ExperimentAnalysis:
+    """Simplified wrapper for :func:`ray.tune.run`.
+
+    Args:
+        run_or_experiment: Function that reports performance values.
+        metric: Name of the metric reported in the performance evaluation
+            function.
+        mode: Either "min" or "max", indicating which represents better
+            performance.
+        time_budget_s: Maximum time allowed in seconds for the parameter
+            search.
+        resources_per_trial: A dict mapping keys "cpu" and "gpu" to
+            integers specifying the corresponding resources to allocate
+            for each performance evaluation trial.
+        max_concurrent_trials: Maximum number of trials to run
+            concurrently.
+        config: Specification of the parameter search space.
+        hyperopt: If ``True``, use :class:`.HyperOptSearch` search,
+            otherwise use simple random search (see
+            :class:`.BasicVariantGenerator`).
+        verbose: Flag indicating whether verbose operation is desired.
+
+    Returns:
+        Result of parameter search.
+    """
     kwargs = {}
     if hyperopt:
         kwargs.update(
