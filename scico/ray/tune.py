@@ -12,6 +12,7 @@ from typing import Any, Callable, Dict, List, Mapping, Optional, Type, Union
 
 import ray
 import ray.tune
+from ray.tune import loguniform, report  # noqa
 from ray.tune.progress_reporter import TuneReporterBase, _get_trials_by_state
 from ray.tune.trial import Trial
 
