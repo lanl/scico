@@ -82,9 +82,10 @@ def run(
         max_concurrent_trials: Maximum number of trials to run
             concurrently.
         config: Specification of the parameter search space.
-        hyperopt: If ``True``, use :class:`.HyperOptSearch` search,
+        hyperopt: If ``True``, use
+            :class:`~ray.tune.suggest.hyperopt.HyperOptSearch` search,
             otherwise use simple random search (see
-            :class:`.BasicVariantGenerator`).
+            :class:`~ray.tune.suggest.basic_variant.BasicVariantGenerator`).
         verbose: Flag indicating whether verbose operation is desired.
 
     Returns:
