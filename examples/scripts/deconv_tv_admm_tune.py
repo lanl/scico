@@ -65,12 +65,12 @@ analysis = tune.run(
     eval_params,
     metric="psnr",
     mode="max",
-    num_samples=100,
+    num_samples=30,
     config=config,
     resources_per_trial=resources,
     verbose=True,
 )
 
 best_config = analysis.get_best_config(metric="psnr", mode="max")
+print(f"Best PSNR: {analysis.get_best_trial().last_result['psnr']:.2f} dB")
 print("Best config: " + ", ".join([f"{k}: {v:.2e}" for k, v in best_config.items()]))
-print(f"Best psnr: {analysis.get_best_trial().last_result['psnr']:.2f} dB")
