@@ -78,12 +78,13 @@ print("Best config: " + ", ".join([f"{k}: {v:.2e}" for k, v in best_config.items
 
 fig = plot.figure(figsize=(8, 8))
 for t in analysis.trials:
+    n = t.metric_analysis["training_iteration"]["max"]
     plot.plot(
         t.config["lambda"],
         t.config["rho"],
         ptyp="loglog",
         lw=0,
-        ms=6.0,
+        ms=(0.5 + 1.5 * n),
         marker="o",
         mfc="blue",
         mec="blue",
@@ -96,7 +97,7 @@ _, ax = plot.plot(
     xlbl=r"$\rho$",
     ylbl=r"$\lambda$",
     lw=0,
-    ms=8.0,
+    ms=5.0,
     marker="o",
     mfc="red",
     mec="red",
@@ -105,3 +106,6 @@ _, ax = plot.plot(
 ax.set_xlim([config["rho"].lower, config["rho"].upper])
 ax.set_ylim([config["lambda"].lower, config["lambda"].upper])
 fig.show()
+
+
+input("\nWaiting for input to close figures and exit")

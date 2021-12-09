@@ -12,8 +12,10 @@ from typing import Any, Callable, Dict, List, Mapping, Optional, Type, Union
 
 import ray
 import ray.tune
-from ray.tune import loguniform, report  # noqa
+from ray.tune import loguniform, report, uniform  # noqa
 from ray.tune.progress_reporter import TuneReporterBase, _get_trials_by_state
+from ray.tune.schedulers import AsyncHyperBandScheduler
+from ray.tune.suggest.hyperopt import HyperOptSearch
 from ray.tune.trial import Trial
 
 __author__ = """Brendt Wohlberg <brendt@ieee.org>"""
@@ -61,12 +63,21 @@ def run(
     resources_per_trial: Union[None, Mapping[str, Union[float, int, Mapping]]] = None,
     max_concurrent_trials: Optional[int] = None,
     config: Optional[Dict[str, Any]] = None,
+    hyperopt: bool = True,
     verbose: bool = True,
 ):
+    kwargs = {}
+    if hyperopt:
+        kwargs.update(
+            {
+                "search_alg": HyperOptSearch(metric=metric, mode=mode),
+                "scheduler": AsyncHyperBandScheduler(),
+            }
+        )
     if verbose:
-        kwargs = {"verbose": 1, "progress_reporter": _CustomReporter()}
+        kwargs.update({"verbose": 1, "progress_reporter": _CustomReporter()})
     else:
-        kwargs = {"verbose": 0}
+        kwargs.update({"verbose": 0})
 
     def _run(config, checkpoint_dir=None):
         run_or_experiment(config)
