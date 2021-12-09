@@ -60,16 +60,17 @@ def eval_params(config):
 
 
 config = {"lambda": tune.loguniform(1e-2, 1), "rho": tune.loguniform(1e-1, 1e1)}
-resources = {"gpu": 0, "cpu": 1}  # gpus per trial  # cpus per trial
+resources = {"gpu": 0, "cpu": 1}  # gpus per trial, cpus per trial
 analysis = tune.run(
     eval_params,
     metric="psnr",
     mode="max",
-    num_samples=30,
+    num_samples=100,
     config=config,
     resources_per_trial=resources,
     verbose=True,
 )
 
-print("Best config: ", analysis.get_best_config(metric="psnr", mode="max"))
-print("Best psnr: ", analysis.get_best_trial().last_result["psnr"])
+best_config = analysis.get_best_config(metric="psnr", mode="max")
+print("Best config: " + ", ".join([f"{k}: {v:.2e}" for k, v in best_config.items()]))
+print(f"Best psnr: {analysis.get_best_trial().last_result['psnr']:.2f} dB")
