@@ -66,8 +66,12 @@ def run(
         kwargs = {"verbose": 1, "progress_reporter": _CustomReporter()}
     else:
         kwargs = {"verbose": 0}
+
+    def _run(config, checkpoint_dir=None):
+        run_or_experiment(config)
+
     return ray.tune.run(
-        run_or_experiment,
+        _run,
         metric=metric,
         mode=mode,
         time_budget_s=time_budget_s,
