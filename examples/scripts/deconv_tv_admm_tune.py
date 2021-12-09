@@ -7,7 +7,7 @@ from xdesign import SiemensStar, discrete_phantom
 import scico.numpy as snp
 import scico.random
 import scico.ray as ray
-from scico import functional, linop, loss, metric
+from scico import functional, linop, loss, metric, plot
 from scico.admm import ADMM, LinearSubproblemSolver
 from scico.ray import tune
 
@@ -74,3 +74,34 @@ analysis = tune.run(
 best_config = analysis.get_best_config(metric="psnr", mode="max")
 print(f"Best PSNR: {analysis.get_best_trial().last_result['psnr']:.2f} dB")
 print("Best config: " + ", ".join([f"{k}: {v:.2e}" for k, v in best_config.items()]))
+
+
+fig = plot.figure(figsize=(8, 8))
+for t in analysis.trials:
+    plot.plot(
+        t.config["lambda"],
+        t.config["rho"],
+        ptyp="loglog",
+        lw=0,
+        ms=6.0,
+        marker="o",
+        mfc="blue",
+        mec="blue",
+        fig=fig,
+    )
+_, ax = plot.plot(
+    best_config["lambda"],
+    best_config["rho"],
+    ptyp="loglog",
+    xlbl=r"$\rho$",
+    ylbl=r"$\lambda$",
+    lw=0,
+    ms=8.0,
+    marker="o",
+    mfc="red",
+    mec="red",
+    fig=fig,
+)
+ax.set_xlim([config["rho"].lower, config["rho"].upper])
+ax.set_ylim([config["lambda"].lower, config["lambda"].upper])
+fig.show()
