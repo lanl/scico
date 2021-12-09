@@ -115,6 +115,7 @@ def run(
         num_samples=num_samples,
         resources_per_trial=resources_per_trial,
         max_concurrent_trials=max_concurrent_trials,
+        reuse_actors=True,
         config=config,
         checkpoint_freq=0,
         **kwargs,
