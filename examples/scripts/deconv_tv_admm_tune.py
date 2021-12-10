@@ -32,18 +32,30 @@ Ax = A(x_gt)  # blurred image
 noise, key = scico.random.randn(Ax.shape, seed=0)
 y = Ax + σ * noise
 
-
+"""
+Put main arrays into ray object store.
+"""
 ray_x_gt, ray_psf, ray_y = ray.put(np.array(x_gt)), ray.put(np.array(psf)), ray.put(np.array(y))
 
 
+"""
+Define performance evaluation function.
+"""
+
+
 def eval_params(config):
+    # Extract solver parameters from config dict.
     λ, ρ = config["lambda"], config["rho"]
+    # Get main arrays from ray object store.
     x_gt, psf, y = ray.get([ray_x_gt, ray_psf, ray_y])
+    # Put main arrays on jax device.
     x_gt, psf, y = jax.device_put([x_gt, psf, y])
+    # Set up problem to be solved.
     A = linop.Convolve(h=psf, input_shape=x_gt.shape)
     f = loss.SquaredL2Loss(y=y, A=A)
     g = λ * functional.L1Norm()
     C = linop.FiniteDifference(input_shape=x_gt.shape)
+    # Define solver.
     solver = ADMM(
         f=f,
         g_list=[g],
@@ -54,13 +66,22 @@ def eval_params(config):
         subproblem_solver=LinearSubproblemSolver(),
         verbose=False,
     )
+    # Perform 50 iterations, reporting performance to ray.tune every 5 iterations.
     for step in range(10):
         x_admm = solver.solve()
         tune.report(psnr=float(metric.psnr(x_gt, x_admm)))
 
 
+"""
+Define parameter search space and resources per trial.
+"""
 config = {"lambda": tune.loguniform(1e-2, 1), "rho": tune.loguniform(1e-1, 1e1)}
 resources = {"gpu": 0, "cpu": 1}  # gpus per trial, cpus per trial
+
+
+"""
+Run parameter search.
+"""
 analysis = tune.run(
     eval_params,
     metric="psnr",
@@ -71,11 +92,19 @@ analysis = tune.run(
     verbose=True,
 )
 
+"""
+Display best parameters and corresponding performance.
+"""
 best_config = analysis.get_best_config(metric="psnr", mode="max")
 print(f"Best PSNR: {analysis.get_best_trial().last_result['psnr']:.2f} dB")
 print("Best config: " + ", ".join([f"{k}: {v:.2e}" for k, v in best_config.items()]))
 
 
+"""
+Plot parameter values visited during parameter search. Marker sizes are
+proportional to number of iterations run at each parameter pair. The best
+point in the parameter space is indicated in red.
+"""
 fig = plot.figure(figsize=(8, 8))
 for t in analysis.trials:
     n = t.metric_analysis["training_iteration"]["max"]
@@ -94,6 +123,7 @@ _, ax = plot.plot(
     best_config["lambda"],
     best_config["rho"],
     ptyp="loglog",
+    title="Parameter search sampling locations\n(marker size proportional to number of iterations)",
     xlbl=r"$\rho$",
     ylbl=r"$\lambda$",
     lw=0,
