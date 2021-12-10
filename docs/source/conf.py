@@ -353,7 +353,14 @@ module = types.ModuleType(module_name)
 sys.modules[module_name] = module
 sys.modules["ray"].tune = module
 
-ExperimentAnalysis = type("ExperimentAnalysis", (object,), {})
+
+class ExperimentAnalysis:
+    pass
+
+
+# The intersphinx link does not work without this modification
+ExperimentAnalysis.__qualname__ = "~ray.tune.ExperimentAnalysis"
+
 module.ExperimentAnalysis = ExperimentAnalysis
 for func_name in ["loguniform", "report", "uniform"]:
     setattr(module, func_name, null_func)
