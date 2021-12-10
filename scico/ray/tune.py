@@ -25,10 +25,12 @@ class _CustomReporter(TuneReporterBase):
     """Custom status reporter for :mod:`ray.tune`."""
 
     def should_report(self, trials: List[Trial], done: bool = False):
+        """Return boolean indicating whether progress should be reported."""
         # Don't report on final call when done to avoid duplicate final output.
         return not done
 
     def report(self, trials: List[Trial], done: bool, *sys_info: Dict):
+        """Report progress across trials."""
         # Get dict of trials in each state.
         trials_by_state = _get_trials_by_state(trials)
         # Construct list of number of trials in each of three possible states.
