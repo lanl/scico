@@ -15,7 +15,7 @@ from scico.ray import tune
 Create a ground truth image.
 """
 phantom = SiemensStar(32)
-x_gt = snp.pad(discrete_phantom(phantom, 120), 8)
+x_gt = snp.pad(discrete_phantom(phantom, 240), 8)
 
 
 """
@@ -75,7 +75,7 @@ def eval_params(config):
 """
 Define parameter search space and resources per trial.
 """
-config = {"lambda": tune.loguniform(1e-2, 1), "rho": tune.loguniform(1e-1, 1e1)}
+config = {"lambda": tune.loguniform(1e-2, 1e0), "rho": tune.loguniform(1e-1, 1e1)}
 resources = {"gpu": 0, "cpu": 1}  # gpus per trial, cpus per trial
 
 
@@ -86,9 +86,10 @@ analysis = tune.run(
     eval_params,
     metric="psnr",
     mode="max",
-    num_samples=30,
+    num_samples=100,
     config=config,
     resources_per_trial=resources,
+    hyperopt=True,
     verbose=True,
 )
 
