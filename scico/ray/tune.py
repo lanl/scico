@@ -11,7 +11,11 @@ import datetime
 from typing import Any, Callable, Dict, List, Mapping, Optional, Type, Union
 
 import ray
-import ray.tune
+
+try:
+    import ray.tune
+except ImportError:
+    raise ImportError("Could not import ray.tune; please install it.")
 from ray.tune import loguniform, report, uniform  # noqa
 from ray.tune.progress_reporter import TuneReporterBase, _get_trials_by_state
 from ray.tune.schedulers import AsyncHyperBandScheduler

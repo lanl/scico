@@ -2,10 +2,13 @@ import numpy as np
 
 import pytest
 
-import ray
-from scico.ray import tune
+try:
+    import ray
+    from scico.ray import tune
 
-ray.init(local_mode=True)
+    ray.init(local_mode=True)
+except ImportError as e:
+    pytest.skip("ray.tune not installed", allow_module_level=True)
 
 
 def eval_params(config):

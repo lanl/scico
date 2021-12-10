@@ -8,4 +8,7 @@
 """Simplified interfaces to `ray <https://docs.ray.io/en/latest/>`_ functions."""
 
 
-from ray import get, put
+try:
+    from ray import get, put
+except ImportError:
+    raise ImportError("Could not import ray; please install it.")

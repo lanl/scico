@@ -322,7 +322,7 @@ if on_rtd:
     matplotlib.use("agg")
 
 
-MOCK_MODULES = ["astra", "svmbir"]
+MOCK_MODULES = ["ray", "astra", "svmbir"]
 
 
 class Mock(MagicMock):
