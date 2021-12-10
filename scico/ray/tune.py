@@ -87,6 +87,10 @@ def run(
             otherwise use simple random search (see
             :class:`~ray.tune.suggest.basic_variant.BasicVariantGenerator`).
         verbose: Flag indicating whether verbose operation is desired.
+            When verbose operation is enabled, the number of pending,
+            running, and terminated trials are indicated by "P:", "R:",
+            and "T:" respectively, followed by the current best metric
+            value and the parameters at which it was reported.
 
     Returns:
         Result of parameter search.
