@@ -5,7 +5,7 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Parameter tuning using `ray.tune <https://docs.ray.io/en/latest/tune/>`_."""
+"""Parameter tuning using :doc:`ray.tune <ray:tune/index>`."""
 
 import datetime
 from typing import Any, Callable, Dict, List, Mapping, Optional, Type, Union

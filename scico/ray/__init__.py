@@ -5,7 +5,7 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Simplified interfaces to `ray <https://docs.ray.io/en/latest/>`_ functions."""
+"""Simplified interfaces to :doc:`ray <ray:package-ref>`."""
 
 
 try:
