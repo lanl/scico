@@ -610,7 +610,7 @@ class AcceleratedPGM(PGM):
         """Take a single AcceleratedPGM step."""
         x_old = self.x
         # Update reciprocal of step size using current extrapolation.
-        if isinstance(self.step_size, BBStepSize) or isinstance(self.step_size, AdaptiveBBStepSize):
+        if isinstance(self.step_size, (AdaptiveBBStepSize, BBStepSize)):
             self.L = self.step_size.update(self.x)
         else:
             self.L = self.step_size.update(self.v)
