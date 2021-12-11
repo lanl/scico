@@ -310,8 +310,7 @@ texinfo_documents = [
 
 
 if on_rtd:
-    print("Building on ReadTheDocs")
-    print
+    print("Building on ReadTheDocs\n")
     print("Current working directory: {}".format(os.path.abspath(os.curdir)))
     import numpy as np
 

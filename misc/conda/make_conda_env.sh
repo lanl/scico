@@ -88,18 +88,18 @@ if [ ! $# -eq 0 ] ; then
     exit 1
 fi
 
-if [ ! "`which conda 2>/dev/null`" ]; then
+if [ ! "$(which conda 2>/dev/null)" ]; then
     echo "Error: conda command required but not found" >&2
     exit 2
 fi
 
 # Not available on BSD systems such as OSX: install via MacPorts etc.
-if [ ! "`which realpath 2>/dev/null`" ]; then
+if [ ! "$(which realpath 2>/dev/null)" ]; then
     echo "Error: realpath command required but not found" >&2
     exit 3
 fi
 
-OS=`uname -a | cut -d ' ' -f 1`
+OS=$(uname -a | cut -d ' ' -f 1)
 case "$OS" in
     Linux)    SOURCEURL=$URLROOT$INSTLINUX; SED=sed;;
     Darwin)   SOURCEURL=$URLROOT$INSTMACOSX; SED=gsed;;
@@ -110,14 +110,14 @@ if [ "$OS" == "Darwin" -a "$GPU" == yes ]; then
     exit 5
 fi
 if [ "$OS" == "Darwin" ]; then
-    if [ ! "`which gsed 2>/dev/null`" ]; then
+    if [ ! "$(which gsed 2>/dev/null)" ]; then
 	echo "Error: gsed command required but not found" >&2
 	exit 6
     fi
 fi
 
 if [ "$GPU" == "yes" -a "$CUVER" == "" ]; then
-    if [ "`which nvcc`" == "" ]; then
+    if [ "$(which nvcc)" == "" ]; then
 	echo "Error: GPU-enabled jaxlib requested but CUDA version not"\
 	     "specified and could not be automatically determined" >&2
 	exit 7
@@ -127,7 +127,7 @@ if [ "$GPU" == "yes" -a "$CUVER" == "" ]; then
     fi
 fi
 
-CONDAHOME=`conda info --base`
+CONDAHOME=$(conda info --base)
 ENVDIR=$CONDAHOME/envs/$ENVNM
 if [ -d "$ENVDIR" ]; then
     echo "Error: environment $ENVNM already exists"
@@ -201,7 +201,7 @@ conda install $CONDA_FLAGS $CONDAREQ ipython
 # Utility ffmpeg is required by imageio for reading mp4 video files
 # it can also be installed via the system package manager, .e.g.
 #    sudo apt install ffmpeg
-if [ "`which ffmpeg`" = '' ]; then
+if [ "$(which ffmpeg)" = '' ]; then
     conda install $CONDA_FLAGS ffmpeg
 fi
 
