@@ -8,7 +8,7 @@ URLROOT=https://repo.continuum.io/miniconda/
 INSTLINUX=Miniconda3-latest-Linux-x86_64.sh
 INSTMACOSX=Miniconda3-latest-MacOSX-x86_64.sh
 
-SCRIPT=`basename $0`
+SCRIPT=$(basename $0)
 USAGE=$(cat <<-EOF
 Usage: $SCRIPT [-h] [-y] install_path
           [-h] Display usage information
@@ -36,20 +36,20 @@ if [ ! $# -eq 1 ] ; then
     exit 1
 fi
 
-OS=`uname -a | cut -d ' ' -f 1`
+OS=$(uname -a | cut -d ' ' -f 1)
 case "$OS" in
     Linux)    SOURCEURL=$URLROOT$INSTLINUX;;
     Darwin)   SOURCEURL=$URLROOT$INSTMACOSX;;
     *)        echo "Error: unsupported operating system $OS" >&2; exit 2;;
 esac
 
-if [ ! "`which wget 2>/dev/null`" ]; then
+if [ ! "$(which wget 2>/dev/null)" ]; then
     has_wget=0
 else
     has_wget=1
 fi
 
-if [ ! "`which curl 2>/dev/null`" ]; then
+if [ ! "$(which curl 2>/dev/null)" ]; then
     has_curl=0
 else
     has_curl=1

@@ -14,7 +14,7 @@
 # Run with -h flag for usage information
 set -e  # exit when any command fails
 
-SCRIPT=`basename $0`
+SCRIPT=$(basename $0)
 USAGE=$(cat <<-EOF
 Usage: $SCRIPT [-h] [-y] [-g] [-p python_version] [-c cuda_version]
        [-e env_name] [-j jaxlib_url]
@@ -34,7 +34,7 @@ GPU=no
 CUVER=""
 JLVER="0.1.71"
 PYVER="3.8"
-ENVNM=py`echo $PYVER | sed -e 's/\.//g'`
+ENVNM=py$(echo $PYVER | sed -e 's/\.//g')
 
 # Project requirements files
 REQUIRE=$(cat <<-EOF
@@ -122,8 +122,8 @@ if [ "$GPU" == "yes" -a "$CUVER" == "" ]; then
 	     "specified and could not be automatically determined" >&2
 	exit 7
     else
-	CUVER=`nvcc --version | grep -o 'release [0-9][0-9]*\.[[0-9][0-9]*' \
-                              | sed -e 's/release //' -e 's/\.//'`
+	CUVER=$(nvcc --version | grep -o 'release [0-9][0-9]*\.[[0-9][0-9]*' \
+                              | sed -e 's/release //' -e 's/\.//')
     fi
 fi
 

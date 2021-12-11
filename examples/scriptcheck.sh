@@ -5,7 +5,7 @@
 # Currently only supported under Linux.
 
 # Check for presence of Xvfb tool which is used to avoid plots being displayed.
-if [ ! "`which Xvfb 2>/dev/null`" ]; then
+if [ ! "$(which Xvfb 2>/dev/null)" ]; then
     msg="Warning: required tool Xvfb not found: functionality will be degraded"
     echo $msg >&2
     pid=0
@@ -17,7 +17,7 @@ fi
 
 # Set environment variables and paths. This script is assumed to be run
 # from its root directory.
-export PYTHONPATH=`(cd .. && pwd)`
+export PYTHONPATH=$((cd .. && pwd))
 export PYTHONIOENCODING=utf-8
 d='/tmp/scriptcheck_'$$
 mkdir -p $d
@@ -41,7 +41,7 @@ for f in scripts/*.py; do
 
     # Create temporary copy of script with all algorithm maxiter values set
     # to small number and final input statements commented out.
-    g=$d/`basename $f`
+    g=$d/$(basename $f)
     sed -E -e "$re1$re2$re3" $f > $g
 
     # Run temporary script.

@@ -283,7 +283,7 @@ class CircularConvolveSolver(LinearSubproblemSolver):
                     "CircularConvolveSolver requires f to be a scico.loss.SquaredL2Loss; "
                     f"got {type(admm.f)}"
                 )
-            if not (isinstance(admm.f.A, CircularConvolve) or isinstance(admm.f.A, Identity)):
+            if not isinstance(admm.f.A, (CircularConvolve, Identity)):
                 raise ValueError(
                     "CircularConvolveSolver requires f.A to be a scico.linop.CircularConvolve "
                     f"or scico.linop.Identity; got {type(admm.f.A)}"

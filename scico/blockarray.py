@@ -569,8 +569,7 @@ def _flatten_blockarrays(inp, *args, **kwargs):
     def _flatten_if_blockarray(inp):
         if isinstance(inp, BlockArray):
             return inp._data
-        else:
-            return inp
+        return inp
 
     inp_ = _flatten_if_blockarray(inp)
     args_ = (_flatten_if_blockarray(_) for _ in args)
@@ -632,11 +631,11 @@ def _block_array_reduction_wrapper(func):
                 if all([bk_shape == inp.shape[0] for bk_shape in inp.shape]):
                     view_shape = (inp.num_blocks,) + inp.shape[0]
                     return func(inp._data.reshape(view_shape), *args, axis=0, **kwargs)
-                else:
-                    raise ValueError(
-                        f"Evaluating {func.__name__} of BlockArray along axis=0 requires "
-                        f"all blocks to be same shape; got {inp.shape}"
-                    )
+
+                raise ValueError(
+                    f"Evaluating {func.__name__} of BlockArray along axis=0 requires "
+                    f"all blocks to be same shape; got {inp.shape}"
+                )
             else:
                 # Reduce each block individually along axis-1
                 out = []
@@ -805,7 +804,7 @@ class BlockArray:
             raise TypeError(f"Slicing not supported on block index")
         if idx == Ellipsis:
             return reshape(self._data, self.shape)
-        elif idx < 0:
+        if idx < 0:
             idx = self.num_blocks + idx
         return reshape(self._data[self.bndpos[idx] : self.bndpos[idx + 1]], self.shape[idx])
 
