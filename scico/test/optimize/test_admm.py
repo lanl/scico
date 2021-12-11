@@ -258,7 +258,7 @@ class TestComplex:
             ),
         )
         x = admm_.solve()
-        assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-4
+        assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 2e-4
 
     def test_admm_quadratic(self):
         maxiter = 50
