@@ -7,6 +7,8 @@
 
 """Optimization algorithms."""
 
+import sys
+
 # isort: off
 from ._admm import ADMM
 from ._ladmm import LinearizedADMM

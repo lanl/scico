@@ -20,7 +20,7 @@ from scico.blockarray import BlockArray
 from scico.diagnostics import IterationStats
 from scico.functional import Functional
 from scico.loss import Loss
-from scico.solver.pgm import (
+from scico.optimize.pgm import (
     AdaptiveBBStepSize,
     BBStepSize,
     PGMStepSize,

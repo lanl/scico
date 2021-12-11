@@ -16,8 +16,8 @@ from typing import Callable, Optional, Union
 import scico.numpy as snp
 from scico import functional, linop, operator
 from scico.blockarray import BlockArray
+from scico.optimize._solver import cg
 from scico.scipy.special import gammaln
-from scico.solver import cg
 from scico.typing import JaxArray
 from scico.util import ensure_on_device
 

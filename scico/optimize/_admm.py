@@ -19,7 +19,7 @@ from scico.diagnostics import IterationStats
 from scico.functional import Functional
 from scico.linop import LinearOperator
 from scico.numpy.linalg import norm
-from scico.solver.admm import GenericSubproblemSolver, SubproblemSolver
+from scico.optimize.admm import GenericSubproblemSolver, SubproblemSolver
 from scico.typing import JaxArray
 from scico.util import Timer, ensure_on_device
 
