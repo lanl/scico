@@ -8,11 +8,11 @@
 """Optimization algorithms."""
 
 # isort: off
-from _admm import ADMM
-from _ladmm import LinearizedADMM
-from _pgm import PGM, AcceleratedPGM
-from _primaldual import PDHG
-from _solver import minimize, minimize_scalar, cg
+from ._admm import ADMM
+from ._ladmm import LinearizedADMM
+from ._pgm import PGM, AcceleratedPGM
+from ._primaldual import PDHG
+from ._solver import minimize, minimize_scalar, cg
 
 __all__ = [
     "ADMM",
