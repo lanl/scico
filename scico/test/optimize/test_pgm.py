@@ -3,9 +3,8 @@ import numpy as np
 import jax
 
 from scico import functional, linop, loss, random
-from scico.pgm import (
-    PGM,
-    AcceleratedPGM,
+from scico.optimize import PGM, AcceleratedPGM
+from scico.optimize.pgm import (
     AdaptiveBBStepSize,
     BBStepSize,
     LineSearchStepSize,
