@@ -52,10 +52,8 @@ def _wrap_mul_div_scalar(func):
     def wrapper(a, b):
         if np.isscalar(b) or isinstance(b, jax.core.Tracer):
             return func(a, b)
-        else:
-            raise TypeError(
-                f"Operation {func.__name__} not defined between {type(a)} and {type(b)}"
-            )
+
+        raise TypeError(f"Operation {func.__name__} not defined between {type(a)} and {type(b)}")
 
     return wrapper
 
@@ -565,15 +563,16 @@ class LinearOperator(Operator):
         # other @ self
         if isinstance(other, LinearOperator):
             return other(self)
-        elif isinstance(other, (np.ndarray, DeviceArray)):
+
+        if isinstance(other, (np.ndarray, DeviceArray)):
             # for real valued inputs: y @ self == (self.T @ y.T).T
             # for complex:  y @ self == (self.conj().T @ y.conj().T).conj().T
             # self.conj().T == self.adj
             return self.adj(other.conj().T).conj().T
-        else:
-            raise NotImplementedError(
-                f"Operation __rmatmul__ not defined between {type(self)} and {type(other)}"
-            )
+
+        raise NotImplementedError(
+            f"Operation __rmatmul__ not defined between {type(self)} and {type(other)}"
+        )
 
     def __call__(
         self, x: Union[LinearOperator, JaxArray, BlockArray]
