@@ -43,7 +43,7 @@ def package_classes(package):
                 # Get internal module name of class for comparison with working module name
                 try:
                     objmodname = getattr(sys.modules[modname], obj.__name__).__module__
-                except:
+                except Exception:
                     objmodname = None
                 if objmodname == modname:
                     classes.append(modname + "." + obj.__name__)

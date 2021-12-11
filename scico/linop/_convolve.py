@@ -72,8 +72,8 @@ class Convolve(LinearOperator):
 
         if mode not in ["full", "valid", "same"]:
             raise ValueError(f"Invalid mode={mode}; must be one of 'full', 'valid', 'same'")
-        else:
-            self.mode = mode
+
+        self.mode = mode
 
         if input_dtype is None:
             input_dtype = self.h.dtype
@@ -111,7 +111,8 @@ class Convolve(LinearOperator):
     def __sub__(self, other):
         if self.mode != other.mode:
             raise ValueError(f"Incompatible modes:  {self.mode} != {other.mode}")
-        elif self.h.shape == other.h.shape:
+
+        if self.h.shape == other.h.shape:
             return Convolve(
                 h=self.h - other.h,
                 input_shape=self.input_shape,
@@ -195,7 +196,8 @@ class ConvolveByX(LinearOperator):
 
         if x.ndim != len(input_shape):
             raise ValueError(f"x.ndim = {x.ndim} must equal len(input_shape) = {len(input_shape)}")
-        elif isinstance(x, DeviceArray):
+
+        if isinstance(x, DeviceArray):
             self.x = x
         elif isinstance(x, np.ndarray):
             self.x = jax.device_put(x)
@@ -227,7 +229,7 @@ class ConvolveByX(LinearOperator):
     def __add__(self, other):
         if self.mode != other.mode:
             raise ValueError(f"Incompatible modes:  {self.mode} != {other.mode}")
-        elif self.x.shape == other.x.shape:
+        if self.x.shape == other.x.shape:
             return ConvolveByX(
                 x=self.x + other.x,
                 input_shape=self.input_shape,
@@ -236,8 +238,7 @@ class ConvolveByX(LinearOperator):
                 output_shape=self.output_shape,
                 adj_fn=lambda x: self.adj(x) + other.adj(x),
             )
-        else:
-            raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}")
+        raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}")
 
     @partial(_wrap_add_sub, op=operator.sub)
     def __sub__(self, other):
