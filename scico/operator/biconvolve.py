@@ -64,8 +64,8 @@ class BiConvolve(Operator):
 
         if mode not in ["full", "valid", "same"]:
             raise ValueError(f"Invalid mode={mode}; must be one of 'full', 'valid', 'same'")
-        else:
-            self.mode = mode
+
+        self.mode = mode
 
         super().__init__(input_shape=input_shape, input_dtype=input_dtype, jit=jit)
 

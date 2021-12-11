@@ -636,26 +636,24 @@ def _block_array_reduction_wrapper(func):
                     f"Evaluating {func.__name__} of BlockArray along axis=0 requires "
                     f"all blocks to be same shape; got {inp.shape}"
                 )
-            else:
-                # Reduce each block individually along axis-1
-                out = []
-                for bk in inp:
-                    if isinstance(bk, BlockArray):
-                        # This block is itself a blockarray, so call this wrapped reduction
-                        # on axis-1
-                        tmp = _block_array_reduction_wrapper(func)(
-                            bk, *args, axis=axis - 1, **kwargs
-                        )
+
+            # Reduce each block individually along axis-1
+            out = []
+            for bk in inp:
+                if isinstance(bk, BlockArray):
+                    # This block is itself a blockarray, so call this wrapped reduction
+                    # on axis-1
+                    tmp = _block_array_reduction_wrapper(func)(bk, *args, axis=axis - 1, **kwargs)
+                else:
+                    if axis - 1 >= bk.ndim:
+                        # Trying to reduce along a dim that doesn't exist for this block,
+                        # so just return the block.
+                        # ie broadcast to shape (..., 1) and reduce along axis=-1
+                        tmp = bk
                     else:
-                        if axis - 1 >= bk.ndim:
-                            # Trying to reduce along a dim that doesn't exist for this block,
-                            # so just return the block.
-                            # ie broadcast to shape (..., 1) and reduce along axis=-1
-                            tmp = bk
-                        else:
-                            tmp = func(bk, *args, axis=axis - 1, **kwargs)
-                    out.append(atleast_1d(tmp))
-                return BlockArray.array(out)
+                        tmp = func(bk, *args, axis=axis - 1, **kwargs)
+                out.append(atleast_1d(tmp))
+            return BlockArray.array(out)
 
         elif axis is None:
             # 'axis' might not be a valid kwarg (eg dot, vdot), so don't pass it

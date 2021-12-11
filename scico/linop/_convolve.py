@@ -205,8 +205,8 @@ class ConvolveByX(LinearOperator):
 
         if mode not in ["full", "valid", "same"]:
             raise ValueError(f"Invalid mode={mode}; must be one of 'full', 'valid', 'same'")
-        else:
-            self.mode = mode
+
+        self.mode = mode
 
         if input_dtype is None:
             input_dtype = x.dtype
@@ -243,7 +243,8 @@ class ConvolveByX(LinearOperator):
     def __sub__(self, other):
         if self.mode != other.mode:
             raise ValueError(f"Incompatible modes:  {self.mode} != {other.mode}")
-        elif self.x.shape == other.x.shape:
+
+        if self.x.shape == other.x.shape:
             return ConvolveByX(
                 x=self.x - other.x,
                 input_shape=self.input_shape,
@@ -252,8 +253,8 @@ class ConvolveByX(LinearOperator):
                 output_shape=self.output_shape,
                 adj_fn=lambda x: self.adj(x) - other.adj(x),
             )
-        else:
-            raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}")
+
+        raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}")
 
     @_wrap_mul_div_scalar
     def __mul__(self, scalar):
