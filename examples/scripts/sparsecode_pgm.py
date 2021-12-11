@@ -9,7 +9,7 @@ Basis Pursuit DeNoising (Accelerated PGM)
 =========================================
 
 This example demonstrates the use of class
-[pgm.AcceleratedPGM](../_autosummary/scico.pgm.rst#scico.pgm.AcceleratedPGM)
+[pgm.AcceleratedPGM](../_autosummary/scico.optimize.pgm.rst#scico.optimize.pgm.AcceleratedPGM)
 to solve the sparse coding problem problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; \| \mathbf{y} - D \mathbf{x} \|_2^2
@@ -24,7 +24,7 @@ import numpy as np
 import jax
 
 from scico import functional, linop, loss, plot
-from scico.pgm import AcceleratedPGM
+from scico.optimize.pgm import AcceleratedPGM
 from scico.util import device_info
 
 """

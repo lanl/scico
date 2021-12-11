@@ -25,9 +25,8 @@ from xdesign import SiemensStar, discrete_phantom
 import scico.numpy as snp
 import scico.random
 from scico import functional, linop, loss, plot
-from scico.admm import ADMM, LinearSubproblemSolver
-from scico.ladmm import LinearizedADMM
-from scico.primaldual import PDHG
+from scico.optimize import PDHG, LinearizedADMM
+from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
 """

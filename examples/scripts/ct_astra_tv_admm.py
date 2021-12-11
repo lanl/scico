@@ -9,7 +9,7 @@ Few-View CT (ADMM w/ Total Variation)
 =====================================
 
 This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.admm.rst#scico.admm.ADMM) to solve a
+[admm.ADMM](../_autosummary/scico.optimize.admm.rst#scico.optimize.admm.ADMM) to solve a
 few-view CT reconstruction problem with anisotropic total variation
 (TV) regularization.
 
@@ -30,8 +30,8 @@ from xdesign import Foam, discrete_phantom
 
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot
-from scico.admm import ADMM, LinearSubproblemSolver
 from scico.linop.radon_astra import ParallelBeamProjector
+from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
 """

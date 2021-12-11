@@ -9,7 +9,7 @@ Non-negative Poisson Loss Reconstruction (APGM w/ adaptive PGMStepSize)
 =======================================================================
 
 This example demonstrates the use of class
-[pgm.PGMStepSize](../_autosummary/scico.pgm.rst#scico.pgm.PGMStepSize)
+[pgm.PGMStepSize](../_autosummary/scico.optimize.pgm.rst#scico.optimize.pgm.PGMStepSize)
 to solve the non-negative reconstruction problem with Poisson negative
 log likelihood loss
 
@@ -30,7 +30,7 @@ import matplotlib.pyplot as plt
 import scico.numpy as snp
 import scico.random
 from scico import functional, linop, loss, plot
-from scico.pgm import (
+from scico.optimize.pgm import (
     AcceleratedPGM,
     AdaptiveBBStepSize,
     BBStepSize,

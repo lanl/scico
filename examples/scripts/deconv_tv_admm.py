@@ -9,7 +9,7 @@ Image Deconvolution (ADMM w/ Total Variation)
 =============================================
 
 This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.admm.rst#scico.admm.ADMM) to solve
+[admm.ADMM](../_autosummary/scico.optimize.admm.rst#scico.optimize.admm.ADMM) to solve
 an image deconvolution problem with anisotropic total variation (TV)
 regularization.
 
@@ -28,7 +28,7 @@ from xdesign import SiemensStar, discrete_phantom
 import scico.numpy as snp
 import scico.random
 from scico import functional, linop, loss, metric, plot
-from scico.admm import ADMM, LinearSubproblemSolver
+from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
 """
