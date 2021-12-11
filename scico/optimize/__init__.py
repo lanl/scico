@@ -10,9 +10,9 @@
 import sys
 
 # isort: off
-from ._admm import ADMM
+from .admm import ADMM
 from ._ladmm import LinearizedADMM
-from ._pgm import PGM, AcceleratedPGM
+from .pgm import PGM, AcceleratedPGM
 from ._primaldual import PDHG
 
 __all__ = ["ADMM", "LinearizedADMM", "PGM", "AcceleratedPGM", "PDHG"]
