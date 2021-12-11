@@ -197,21 +197,18 @@ output_dtype : {self.output_dtype}
                     output_dtype=x.output_dtype,
                     is_smooth=(self.is_smooth and x.is_smooth),
                 )
-            else:
-                raise ValueError(f"""Incompatible shapes {self.shape}, {x.shape} """)
+            raise ValueError(f"""Incompatible shapes {self.shape}, {x.shape} """)
 
-        elif isinstance(x, (np.ndarray, DeviceArray, BlockArray)):
+        if isinstance(x, (np.ndarray, DeviceArray, BlockArray)):
             if self.input_shape == x.shape:
                 return self._eval(x)
-            else:
-                raise ValueError(
-                    f"Cannot evaluate {type(self)} with input_shape={self.input_shape} "
-                    f"on array with shape={x.shape}"
-                )
-        else:
-            # What is the context under which this gets called?
-            # Currently:  in jit and grad tracers
-            return self._eval(x)
+            raise ValueError(
+                f"Cannot evaluate {type(self)} with input_shape={self.input_shape} "
+                f"on array with shape={x.shape}"
+            )
+        # What is the context under which this gets called?
+        # Currently:  in jit and grad tracers
+        return self._eval(x)
 
     def __add__(self, other):
         if isinstance(other, Operator):
@@ -224,10 +221,8 @@ output_dtype : {self.output_dtype}
                     output_dtype=result_type(self.output_dtype, other.output_dtype),
                     is_smooth=(self.is_smooth and other.is_smooth),
                 )
-            else:
-                raise ValueError(f"shapes {self.shape} and {other.shape} do not match")
-        else:
-            raise TypeError(f"Operation __add__ not defined between {type(self)} and {type(other)}")
+            raise ValueError(f"shapes {self.shape} and {other.shape} do not match")
+        raise TypeError(f"Operation __add__ not defined between {type(self)} and {type(other)}")
 
     def __sub__(self, other):
         if isinstance(other, Operator):
@@ -240,10 +235,8 @@ output_dtype : {self.output_dtype}
                     output_dtype=result_type(self.output_dtype, other.output_dtype),
                     is_smooth=(self.is_smooth and other.is_smooth),
                 )
-            else:
-                raise ValueError(f"shapes {self.shape} and {other.shape} do not match")
-        else:
-            raise TypeError(f"Operation __sub__ not defined between {type(self)} and {type(other)}")
+            raise ValueError(f"shapes {self.shape} and {other.shape} do not match")
+        raise TypeError(f"Operation __sub__ not defined between {type(self)} and {type(other)}")
 
     @_wrap_mul_div_scalar
     def __mul__(self, other):
@@ -345,7 +338,7 @@ output_dtype : {self.output_dtype}
             # concat_args(args) = BlockArray.array([val, args]) if argnum = 0
             # concat_args(args) = BlockArray.array([args, val]) if argnum = 1
 
-            if isinstance(args, DeviceArray) or isinstance(args, np.ndarray):
+            if isinstance(args, (DeviceArray, np.ndarray)):
                 # In the case that the original operator takes a blcokarray with two
                 # blocks, wrap in a list so we can use the same indexing as >2 block case
                 args = [args]
@@ -403,7 +396,7 @@ def _wrap_add_sub(func: Callable, op: Callable) -> Callable:
                     # same type of linop, eg convolution can have special
                     # behavior (see Conv2d.__add__)
                     return func(a, b)
-                elif isinstance(
+                if isinstance(
                     b, LinearOperator
                 ):  # LinearOperator + LinearOperator -> LinearOperator
                     return LinearOperator(
@@ -414,20 +407,16 @@ def _wrap_add_sub(func: Callable, op: Callable) -> Callable:
                         input_dtype=a.input_dtype,
                         output_dtype=result_type(a.output_dtype, b.output_dtype),
                     )
-                else:  # LinearOperator + Operator -> Operator
-                    return Operator(
-                        input_shape=a.input_shape,
-                        output_shape=a.output_shape,
-                        eval_fn=lambda x: op(a(x), b(x)),
-                        input_dtype=a.input_dtype,
-                        output_dtype=result_type(a.output_dtype, b.output_dtype),
-                    )
-            else:
-                raise ValueError(f"shapes {a.shape} and {b.shape} do not match")
-        else:
-            raise TypeError(
-                f"Operation {func.__name__} not defined between {type(a)} and {type(b)}"
-            )
+                # LinearOperator + Operator -> Operator
+                return Operator(
+                    input_shape=a.input_shape,
+                    output_shape=a.output_shape,
+                    eval_fn=lambda x: op(a(x), b(x)),
+                    input_dtype=a.input_dtype,
+                    output_dtype=result_type(a.output_dtype, b.output_dtype),
+                )
+            raise ValueError(f"shapes {a.shape} and {b.shape} do not match")
+        raise TypeError(f"Operation {func.__name__} not defined between {type(a)} and {type(b)}")
 
     return wrapper
 
@@ -600,9 +589,8 @@ class LinearOperator(Operator):
         """
         if isinstance(x, LinearOperator):
             return ComposedLinearOperator(self, x)
-        else:
-            # Use Operator __call__ for LinearOperator @ array or LinearOperator @ Operator
-            return super().__call__(x)
+        # Use Operator __call__ for LinearOperator @ array or LinearOperator @ Operator
+        return super().__call__(x)
 
     def adj(
         self, y: Union[LinearOperator, JaxArray, BlockArray]
@@ -628,15 +616,14 @@ class LinearOperator(Operator):
 
         if isinstance(y, LinearOperator):
             return ComposedLinearOperator(self.H, y)
-        elif self.output_dtype != y.dtype:
+        if self.output_dtype != y.dtype:
             raise ValueError(f"dtype error: expected {self.output_dtype}, got {y.dtype}")
-        elif self.output_shape != y.shape:
+        if self.output_shape != y.shape:
             raise ValueError(
                 f"""Shapes do not conform: input array with shape {y.shape} does not match
                 LinearOperator output_shape {self.output_shape}"""
             )
-        else:
-            return self._adj(y)
+        return self._adj(y)
 
     @property
     def T(self) -> LinearOperator:
@@ -661,15 +648,14 @@ class LinearOperator(Operator):
                 input_dtype=self.input_dtype,
                 output_dtype=self.output_dtype,
             )
-        else:
-            return LinearOperator(
-                input_shape=self.output_shape,
-                output_shape=self.input_shape,
-                eval_fn=lambda x: self.adj(x),
-                adj_fn=lambda x: self(x),
-                input_dtype=self.output_dtype,
-                output_dtype=self.input_dtype,
-            )
+        return LinearOperator(
+            input_shape=self.output_shape,
+            output_shape=self.input_shape,
+            eval_fn=lambda x: self.adj(x),
+            adj_fn=lambda x: self(x),
+            input_dtype=self.output_dtype,
+            output_dtype=self.input_dtype,
+        )
 
     @property
     def H(self) -> LinearOperator:

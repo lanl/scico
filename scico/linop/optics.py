@@ -263,10 +263,7 @@ class AngularSpectrumPropagator(Propagator):
         tmp = []
         for d, N in zip(self.dx, self.padded_shape):
             tmp.append(d ** 2 > np.pi / (self.k0 * N) * np.sqrt(d ** 2 * N ** 2 + 4 * self.z ** 2))
-        if np.all(d):
-            return True
-        else:
-            return False
+        return np.all(d)
 
     def pinv(self, y):
         """Apply pseudoinverse of Angular Spectrum propagator."""
@@ -350,10 +347,7 @@ class FresnelPropagator(Propagator):
         tmp = []
         for d, N in zip(self.dx, self.padded_shape):
             tmp.append(d ** 2 > 2 * np.pi * z / (self.k0 * s))
-        if np.all(d):
-            return True
-        else:
-            return False
+        return np.all(d)
 
 
 class FraunhoferPropagator(LinearOperator):
@@ -526,7 +520,4 @@ L_D         : {self.L_D}
         tmp = []
         for d, N in zip(self.dx, self.padded_shape):
             tmp.append(d ** 2 > 2 * np.pi * z / (self.k0 * s))
-        if np.all(d):
-            return True
-        else:
-            return False
+        return np.all(d)

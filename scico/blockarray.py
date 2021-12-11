@@ -682,21 +682,16 @@ def _block_array_matmul_wrapper(func):
             if isinstance(other, BlockArray):
                 # Both blockarrays, work block by block
                 return BlockArray.array([func(x, y) for x, y in zip(self, other)])
-            else:
-                raise TypeError(
-                    f"Operation {func.__name__} not implemented between {type(self)} and {type(other)}"
-                )
-        else:
-            return func(self, other)
+            raise TypeError(
+                f"Operation {func.__name__} not implemented between {type(self)} and {type(other)}"
+            )
+        return func(self, other)
 
     if not hasattr(func, "__doc__") or func.__doc__ is None:
         return wrapper
-    else:
-        wrapper.__doc__ = (
-            f":func:`{func.__name__}` wrapped to operate on :class:`BlockArray`"
-            + "\n\n"
-            + func.__doc__
-        )
+    wrapper.__doc__ = (
+        f":func:`{func.__name__}` wrapped to operate on :class:`BlockArray`" + "\n\n" + func.__doc__
+    )
     return wrapper
 
 
@@ -711,41 +706,35 @@ def _block_array_binary_op_wrapper(func):
             if other.shape == self.shape:
                 # Same shape blocks, can operate on flattened arrays
                 return BlockArray.array_from_flattened(func(self._data, other._data), self.shape)
-            elif other.num_blocks == self.num_blocks:
+            if other.num_blocks == self.num_blocks:
                 # Will work as long as the shapes are broadcastable
                 return BlockArray.array([func(x, y) for x, y in zip(self, other)])
-            else:
-                raise ValueError(
-                    f"operation not valid on operands with shapes {self.shape}  {other.shape}"
-                )
-        elif any([isinstance(other, _) for _ in _arraylikes]):
+            raise ValueError(
+                f"operation not valid on operands with shapes {self.shape}  {other.shape}"
+            )
+        if any([isinstance(other, _) for _ in _arraylikes]):
             if other.size == 1:
                 # Same as operating on a scalar
                 return BlockArray.array_from_flattened(func(self._data, other), self.shape)
-            elif other.size == self.size:
+            if other.size == self.size:
                 # A little fast and loose, treat the block array as a length self.size vector
                 return BlockArray.array_from_flattened(func(self._data, other), self.shape)
-            elif other.size == self.num_blocks:
+            if other.size == self.num_blocks:
                 return BlockArray.array([func(blk, other_) for blk, other_ in zip(self, other)])
-            else:
-                raise ValueError(
-                    f"operation not valid on operands with shapes {self.shape}  {other.shape}"
-                )
-        elif jnp.isscalar(other) or isinstance(other, core.Tracer):
-            return BlockArray.array_from_flattened(func(self._data, other), self.shape)
-        else:
-            raise TypeError(
-                f"Operation {func.__name__} not implemented between {type(self)} and {type(other)}"
+            raise ValueError(
+                f"operation not valid on operands with shapes {self.shape}  {other.shape}"
             )
+        if jnp.isscalar(other) or isinstance(other, core.Tracer):
+            return BlockArray.array_from_flattened(func(self._data, other), self.shape)
+        raise TypeError(
+            f"Operation {func.__name__} not implemented between {type(self)} and {type(other)}"
+        )
 
     if not hasattr(func, "__doc__") or func.__doc__ is None:
         return wrapper
-    else:
-        wrapper.__doc__ = (
-            f":func:`{func.__name__}` wrapped to operate on :class:`BlockArray`"
-            + "\n\n"
-            + func.__doc__
-        )
+    wrapper.__doc__ = (
+        f":func:`{func.__name__}` wrapped to operate on :class:`BlockArray`" + "\n\n" + func.__doc__
+    )
     return wrapper
 
 
@@ -816,7 +805,7 @@ class BlockArray:
     def __getitem__(self, idx: Union[int, Ellipsis]) -> JaxArray:
         if isinstance(idx, slice):
             raise TypeError(f"Slicing not supported on block index")
-        elif idx == Ellipsis:
+        if idx == Ellipsis:
             return reshape(self._data, self.shape)
         elif idx < 0:
             idx = self.num_blocks + idx

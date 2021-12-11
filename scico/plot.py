@@ -696,10 +696,8 @@ def imview(
             z = img[row, col]
             if imgd.ndim == 2:
                 return "x=%6.2f, y=%6.2f, z=%.2f" % (x, y, z)
-            else:
-                return "x=%6.2f, y=%6.2f, z=(%.2f,%.2f,%.2f)" % sum(((x,), (y,), tuple(z)), ())
-        else:
-            return "x=%.2f, y=%.2f" % (x, y)
+            return "x=%6.2f, y=%6.2f, z=(%.2f,%.2f,%.2f)" % sum(((x,), (y,), tuple(z)), ())
+        return "x=%.2f, y=%.2f" % (x, y)
 
     ax.format_coord = format_coord
 
