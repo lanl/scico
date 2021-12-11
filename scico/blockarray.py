@@ -591,9 +591,9 @@ def _block_array_ufunc_wrapper(func):
             inp_, args_, kwargs_ = _flatten_blockarrays(inp, *args, **kwargs)
             flat_out = func(inp_, *args_, **kwargs_)
             return BlockArray.array_from_flattened(flat_out, inp.shape)
-        else:
-            # Otherwise call the function normally
-            return func(inp, *args, **kwargs)
+
+        # Otherwise call the function normally
+        return func(inp, *args, **kwargs)
 
     if not hasattr(func, "__doc__") or func.__doc__ is None:
         return wrapper
@@ -619,44 +619,44 @@ def _block_array_reduction_wrapper(func):
                 # Treat as a single long vector
                 inp_, args_, kwargs_ = _flatten_blockarrays(inp, *args, **kwargs)
                 return func(inp_, *args_, **kwargs_)
-            elif type(axis) == tuple:
+            if type(axis) == tuple:
                 raise Exception(
                     f"""Evaluating {func.__name__} on a BlockArray with a tuple argument to
                     axis is not currently supported"""
                 )
-            else:
-                if axis == 0:  # reduction along block axis
-                    # reduction along axis=0 only makes sense if all blocks are the same shape
-                    # so we can convert to a standard DeviceArray of shape (inp.num_blocks, ...)
-                    # and reduce along axis = 0
-                    if all([bk_shape == inp.shape[0] for bk_shape in inp.shape]):
-                        view_shape = (inp.num_blocks,) + inp.shape[0]
-                        return func(inp._data.reshape(view_shape), *args, axis=0, **kwargs)
-                    else:
-                        raise ValueError(
-                            f"Evaluating {func.__name__} of BlockArray along axis=0 requires "
-                            f"all blocks to be same shape; got {inp.shape}"
-                        )
+
+            if axis == 0:  # reduction along block axis
+                # reduction along axis=0 only makes sense if all blocks are the same shape
+                # so we can convert to a standard DeviceArray of shape (inp.num_blocks, ...)
+                # and reduce along axis = 0
+                if all([bk_shape == inp.shape[0] for bk_shape in inp.shape]):
+                    view_shape = (inp.num_blocks,) + inp.shape[0]
+                    return func(inp._data.reshape(view_shape), *args, axis=0, **kwargs)
                 else:
-                    # Reduce each block individually along axis-1
-                    out = []
-                    for bk in inp:
-                        if isinstance(bk, BlockArray):
-                            # This block is itself a blockarray, so call this wrapped reduction
-                            # on axis-1
-                            tmp = _block_array_reduction_wrapper(func)(
-                                bk, *args, axis=axis - 1, **kwargs
-                            )
+                    raise ValueError(
+                        f"Evaluating {func.__name__} of BlockArray along axis=0 requires "
+                        f"all blocks to be same shape; got {inp.shape}"
+                    )
+            else:
+                # Reduce each block individually along axis-1
+                out = []
+                for bk in inp:
+                    if isinstance(bk, BlockArray):
+                        # This block is itself a blockarray, so call this wrapped reduction
+                        # on axis-1
+                        tmp = _block_array_reduction_wrapper(func)(
+                            bk, *args, axis=axis - 1, **kwargs
+                        )
+                    else:
+                        if axis - 1 >= bk.ndim:
+                            # Trying to reduce along a dim that doesn't exist for this block,
+                            # so just return the block.
+                            # ie broadcast to shape (..., 1) and reduce along axis=-1
+                            tmp = bk
                         else:
-                            if axis - 1 >= bk.ndim:
-                                # Trying to reduce along a dim that doesn't exist for this block,
-                                # so just return the block.
-                                # ie broadcast to shape (..., 1) and reduce along axis=-1
-                                tmp = bk
-                            else:
-                                tmp = func(bk, *args, axis=axis - 1, **kwargs)
-                        out.append(atleast_1d(tmp))
-                    return BlockArray.array(out)
+                            tmp = func(bk, *args, axis=axis - 1, **kwargs)
+                    out.append(atleast_1d(tmp))
+                return BlockArray.array(out)
 
         elif axis is None:
             # 'axis' might not be a valid kwarg (eg dot, vdot), so don't pass it
@@ -666,12 +666,10 @@ def _block_array_reduction_wrapper(func):
 
     if not hasattr(func, "__doc__") or func.__doc__ is None:
         return wrapper
-    else:
-        wrapper.__doc__ = (
-            f":func:`{func.__name__}` wrapped to operate on :class:`BlockArray`"
-            + "\n\n"
-            + func.__doc__
-        )
+
+    wrapper.__doc__ = (
+        f":func:`{func.__name__}` wrapped to operate on :class:`BlockArray`" + "\n\n" + func.__doc__
+    )
     return wrapper
 
 
