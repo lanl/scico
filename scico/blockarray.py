@@ -463,14 +463,14 @@ def atleast_1d(*arys):
     if len(arys) == 1:
         arr = arys[0]
         return arr if isinstance(arr, BlockArray) else jnp.atleast_1d(arr)
-    else:
-        out = []
-        for arr in arys:
-            if isinstance(arr, BlockArray):
-                out.append(arr)
-            else:
-                out.append(jnp.atleast_1d(arr))
-        return out
+
+    out = []
+    for arr in arys:
+        if isinstance(arr, BlockArray):
+            out.append(arr)
+        else:
+            out.append(jnp.atleast_1d(arr))
+    return out
 
 
 # Append docstring from original jax.numpy function
@@ -503,8 +503,8 @@ def reshape(
     if is_nested(newshape):
         # x is a blockarray
         return BlockArray.array_from_flattened(a, newshape)
-    else:
-        return jnp.reshape(a, newshape)
+
+    return jnp.reshape(a, newshape)
 
 
 def block_sizes(shape: Union[Shape, BlockShape]) -> Axes:
@@ -596,12 +596,10 @@ def _block_array_ufunc_wrapper(func):
 
     if not hasattr(func, "__doc__") or func.__doc__ is None:
         return wrapper
-    else:
-        wrapper.__doc__ = (
-            f":func:`{func.__name__}` wrapped to operate on :class:`BlockArray`"
-            + "\n\n"
-            + func.__doc__
-        )
+
+    wrapper.__doc__ = (
+        f":func:`{func.__name__}` wrapped to operate on :class:`BlockArray`" + "\n\n" + func.__doc__
+    )
     return wrapper
 
 
@@ -618,6 +616,7 @@ def _block_array_reduction_wrapper(func):
                 # Treat as a single long vector
                 inp_, args_, kwargs_ = _flatten_blockarrays(inp, *args, **kwargs)
                 return func(inp_, *args_, **kwargs_)
+
             if type(axis) == tuple:
                 raise Exception(
                     f"""Evaluating {func.__name__} on a BlockArray with a tuple argument to
