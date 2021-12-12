@@ -37,7 +37,7 @@ class TestSet:
         L0 = 1.05 * linop.power_iteration(A.T @ A)[0]
         loss_ = loss.SquaredL2Loss(y=self.y, A=A)
         g = (self.λ / 2.0) * functional.SquaredL2Norm()
-        pgm_ = PGM(f=loss_, g=g, L0=L0, maxiter=maxiter, verbose=False, x0=A.adj(self.y))
+        pgm_ = PGM(f=loss_, g=g, L0=L0, maxiter=maxiter, x0=A.adj(self.y))
         x = pgm_.solve()
         np.testing.assert_allclose(self.grdA(x), self.grdb, rtol=5e-3)
 
@@ -48,9 +48,7 @@ class TestSet:
         L0 = 1.05 * linop.power_iteration(A.T @ A)[0]
         loss_ = loss.SquaredL2Loss(y=self.y, A=A)
         g = (self.λ / 2.0) * functional.SquaredL2Norm()
-        apgm_ = AcceleratedPGM(
-            f=loss_, g=g, L0=L0, maxiter=maxiter, verbose=False, x0=A.adj(self.y)
-        )
+        apgm_ = AcceleratedPGM(f=loss_, g=g, L0=L0, maxiter=maxiter, x0=A.adj(self.y))
         x = apgm_.solve()
         np.testing.assert_allclose(self.grdA(x), self.grdb, rtol=5e-3)
 
@@ -67,7 +65,6 @@ class TestSet:
             x0=A.adj(self.y),
             step_size=BBStepSize(),
             maxiter=maxiter,
-            verbose=False,
         )
         x = pgm_.solve()
         np.testing.assert_allclose(self.grdA(x), self.grdb, rtol=5e-3)
@@ -85,7 +82,6 @@ class TestSet:
             x0=A.adj(self.y),
             step_size=AdaptiveBBStepSize(),
             maxiter=maxiter,
-            verbose=False,
         )
         x = pgm_.solve()
 
@@ -102,7 +98,6 @@ class TestSet:
             x0=A.adj(self.y),
             step_size=LineSearchStepSize(gamma_u=1.03, maxiter=55),
             maxiter=maxiter,
-            verbose=False,
         )
         x = apgm_.solve()
         np.testing.assert_allclose(self.grdA(x), self.grdb, rtol=5e-3)
@@ -120,7 +115,6 @@ class TestSet:
             x0=A.adj(self.y),
             step_size=RobustLineSearchStepSize(gamma_d=0.95, gamma_u=1.05, maxiter=80),
             maxiter=maxiter,
-            verbose=False,
         )
         x = apgm_.solve()
         np.testing.assert_allclose(self.grdA(x), self.grdb, rtol=5e-3)
@@ -138,7 +132,6 @@ class TestSet:
             x0=A.adj(self.y),
             step_size=BBStepSize(),
             maxiter=maxiter,
-            verbose=False,
         )
         x = pgm_.x
         try:
@@ -161,7 +154,6 @@ class TestSet:
             x0=A.adj(self.y),
             step_size=AdaptiveBBStepSize(),
             maxiter=maxiter,
-            verbose=False,
         )
         x = apgm_.x
         try:
@@ -201,7 +193,6 @@ class TestComplex:
             L0=L0,
             x0=A.adj(self.y),
             maxiter=maxiter,
-            verbose=False,
         )
         x = pgm_.solve()
         np.testing.assert_allclose(self.grdA(x), self.grdb, rtol=5e-3)
@@ -212,9 +203,7 @@ class TestComplex:
         L0 = 50.0
         loss_ = loss.SquaredL2Loss(y=self.y, A=A)
         g = (self.λ / 2.0) * functional.SquaredL2Norm()
-        apgm_ = AcceleratedPGM(
-            f=loss_, g=g, L0=L0, x0=A.adj(self.y), maxiter=maxiter, verbose=False
-        )
+        apgm_ = AcceleratedPGM(f=loss_, g=g, L0=L0, x0=A.adj(self.y), maxiter=maxiter)
         x = apgm_.solve()
         np.testing.assert_allclose(self.grdA(x), self.grdb, rtol=5e-3)
 
@@ -231,7 +220,6 @@ class TestComplex:
             x0=A.adj(self.y),
             step_size=BBStepSize(),
             maxiter=maxiter,
-            verbose=False,
         )
         x = pgm_.solve()
         np.testing.assert_allclose(self.grdA(x), self.grdb, rtol=5e-3)
@@ -249,7 +237,6 @@ class TestComplex:
             x0=A.adj(self.y),
             step_size=AdaptiveBBStepSize(),
             maxiter=maxiter,
-            verbose=False,
         )
         x = pgm_.solve()
         np.testing.assert_allclose(self.grdA(x), self.grdb, rtol=5e-3)
@@ -267,7 +254,6 @@ class TestComplex:
             x0=A.adj(self.y),
             step_size=LineSearchStepSize(gamma_u=1.03, maxiter=55),
             maxiter=maxiter,
-            verbose=False,
         )
         x = apgm_.solve()
         np.testing.assert_allclose(self.grdA(x), self.grdb, rtol=5e-3)
@@ -285,7 +271,6 @@ class TestComplex:
             x0=A.adj(self.y),
             step_size=RobustLineSearchStepSize(gamma_d=0.95, gamma_u=1.05, maxiter=80),
             maxiter=maxiter,
-            verbose=False,
         )
         x = apgm_.solve()
         np.testing.assert_allclose(self.grdA(x), self.grdb, rtol=5e-3)

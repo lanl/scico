@@ -70,13 +70,13 @@ solver = ADMM(
     x0=y,
     maxiter=100,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": 20}),
-    verbose=True,
+    itstat_options={"display": True},
 )
 
 print(f"Solving on {device_info()}\n")
 solver.solve()
 x_iso = solver.x
-
+print()
 
 """
 Denoise with anisotropic total variation for comparison.
@@ -93,11 +93,12 @@ solver = ADMM(
     x0=y,
     maxiter=100,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": 20}),
-    verbose=True,
+    itstat_options={"display": True},
 )
 
 solver.solve()
 x_aniso = solver.x
+print()
 
 
 """

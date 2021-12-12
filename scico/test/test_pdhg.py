@@ -24,7 +24,7 @@ class TestMisc:
         g = (self.λ / 2) * functional.BM3D()
         C = linop.Identity(self.y.shape)
 
-        itstat_dict = {"Iter": "%d", "Time": "%8.2e"}
+        itstat_fields = {"Iter": "%d", "Time": "%8.2e"}
 
         def itstat_func(obj):
             return (obj.itnum, obj.timer.elapsed())
@@ -36,7 +36,6 @@ class TestMisc:
             tau=τ,
             sigma=σ,
             maxiter=maxiter,
-            verbose=False,
         )
         assert len(pdhg_.itstat_object.fieldname) == 4
         assert snp.sum(pdhg_.x) == 0.0
@@ -47,8 +46,7 @@ class TestMisc:
             tau=τ,
             sigma=σ,
             maxiter=maxiter,
-            verbose=False,
-            itstat=(itstat_dict, itstat_func),
+            itstat_options={"fields": itstat_fields, "itstat_func": itstat_func, "display": False},
         )
         assert len(pdhg_.itstat_object.fieldname) == 2
 
@@ -93,7 +91,6 @@ class TestReal:
             tau=τ,
             sigma=σ,
             maxiter=maxiter,
-            verbose=False,
             x0=A.adj(self.y),
         )
         x = pdhg_.solve()
@@ -133,7 +130,6 @@ class TestComplex:
             tau=τ,
             sigma=σ,
             maxiter=maxiter,
-            verbose=False,
             x0=A.adj(self.y),
         )
         x = pdhg_.solve()
