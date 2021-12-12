@@ -108,7 +108,7 @@ class DnCNNNet(nn.Module):
             use_bias=False,
             dtype=self.dtype,
         )
-        # Defninition using arguments common to all batch normalizations.
+        # Definition using arguments common to all batch normalizations.
         norm = partial(
             nn.BatchNorm,
             use_running_average=not train,
