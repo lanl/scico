@@ -245,7 +245,7 @@ class AngularSpectrumPropagator(Propagator):
         if jit:
             self.jit()
 
-    def check_sampling(self):
+    def adequate_sampling(self):
         r"""Verify the angular spectrum kernel is not aliased.
 
         Checks the condition for adequate sampling
@@ -328,7 +328,7 @@ class FresnelPropagator(Propagator):
         if jit:
             self.jit()
 
-    def check_sampling(self):
+    def adequate_sampling(self):
         r"""Verify the Fraunhofer propagation kernel is not aliased.
 
         Checks the condition for adequate sampling
@@ -502,7 +502,7 @@ L_D         : {self.L_D}
         y = snp.fft.ifftshift(y)
         return y
 
-    def check_sampling(self):
+    def adequate_sampling(self):
         r"""Verify the Fraunhofer propagation kernel is not aliased.
 
         Checks the condition for adequate sampling
