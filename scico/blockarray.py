@@ -558,9 +558,9 @@ def block_sizes(shape: Union[Shape, BlockShape]) -> Axes:
                 # this is a tuple; size given by product of elements
                 out.append(np.prod(y))
         return tuple(out)
-    else:
-        # shape is a non-nested tuple; return the product
-        return np.prod(shape)
+
+    # shape is a non-nested tuple; return the product
+    return np.prod(shape)
 
 
 def _flatten_blockarrays(inp, *args, **kwargs):

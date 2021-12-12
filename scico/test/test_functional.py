@@ -59,8 +59,8 @@ def prox_test(v, nrm, prx, alpha, x0=None):
     # Compare prox functional value with brute-force solution
     if pf < mf:
         return  # prox gave a lower cost than brute force, so it passes
-    else:
-        np.testing.assert_allclose(pf, mf, rtol=1e-6)
+
+    np.testing.assert_allclose(pf, mf, rtol=1e-6)
 
 
 class ProxTestObj:
