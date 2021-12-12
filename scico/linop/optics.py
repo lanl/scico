@@ -50,8 +50,8 @@ def radial_transverse_frequency(
     Returns:
         If `len(input_shape)==1`, returns an ndarray containing
         corresponding Fourier coordinates.  If `len(input_shape) == 2`,
-        returns an ndarray containing the radial Fourier coordinates;
-        sqrt(kx^2 + ky^2).
+        returns an ndarray containing the radial Fourier coordinates
+        :math:`\sqrt{k_x^2 + k_y^2}\,`.
     """
 
     ndim = len(input_shape)  # 1 or 2 dimensions
