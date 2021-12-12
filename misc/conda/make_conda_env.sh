@@ -54,31 +54,29 @@ EOF
 
 OPTIND=1
 while getopts ":hygc:p:e:j:" opt; do
-  case $opt in
-      c|p|e|j) if [ -z "$OPTARG" -o "${OPTARG:0:1}" = "-" ] ; then
-           echo "Error: option -$opt requires an argument" >&2
+    case $opt in
+	c|p|e|j) if [ -z "$OPTARG" ] || [ "${OPTARG:0:1}" = "-" ] ; then
+		     echo "Error: option -$opt requires an argument" >&2
+		     echo "$USAGE" >&2
+		     exit 1
+		 fi
+		 ;;&
+	h) echo "$USAGE"; exit 0;;
+	y) AGREE=yes;;
+	g) GPU=yes;;
+	c) CUVER=$OPTARG;;
+	p) PYVER=$OPTARG;;
+	e) ENVNM=$OPTARG;;
+	j) JAXURL=$OPTARG;;
+	:) echo "Error: option -$OPTARG requires an argument" >&2
 	   echo "$USAGE" >&2
-           exit 1
-       fi
+	   exit 1
+	   ;;
+	\?) echo "Error: invalid option -$OPTARG" >&2
+	    echo "$USAGE" >&2
+	    exit 1
+	    ;;
   esac
-  case $opt in
-    h) echo "$USAGE"; exit 0;;
-    y) AGREE=yes;;
-    g) GPU=yes;;
-    c) CUVER=$OPTARG;;
-    p) PYVER=$OPTARG;;
-    e) ENVNM=$OPTARG;;
-    j) JAXURL=$OPTARG;;
-    :) echo "Error: option -$OPTARG requires an argument" >&2
-       echo "$USAGE" >&2
-       exit 1
-       ;;
-   \?) echo "Error: invalid option -$OPTARG" >&2
-       echo "$USAGE" >&2
-       exit 1
-       ;;
-  esac
-
 done
 
 shift $((OPTIND-1))
@@ -116,7 +114,7 @@ if [ "$OS" == "Darwin" ]; then
     fi
 fi
 
-if [ "$GPU" == "yes" -a "$CUVER" == "" ]; then
+if [ "$GPU" == "yes" ] && [ "$CUVER" == "" ]; then
     if [ "$(which nvcc)" == "" ]; then
 	echo "Error: GPU-enabled jaxlib requested but CUDA version not"\
 	     "specified and could not be automatically determined" >&2
@@ -138,7 +136,7 @@ if [ "$AGREE" == "no" ]; then
     RSTR="Confirm creation of conda environment $ENVNM with Python $PYVER"
     RSTR="$RSTR [y/N] "
     read -r -p "$RSTR" CNFRM
-    if [ "$CNFRM" != 'y' -a "$CNFRM" != 'Y' ]; then
+    if [ "$CNFRM" != 'y' ] && [ "$CNFRM" != 'Y' ]; then
 	echo "Cancelling environment creation"
 	exit 9
     fi
