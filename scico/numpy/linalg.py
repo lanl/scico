@@ -32,8 +32,7 @@ from ._util import _attach_wrapped_func, _not_implemented
 def _extract_if_matrix(x):
     if isinstance(x, MatrixOperator):
         return x.A
-    else:
-        return x
+    return x
 
 
 def _matrixop_linalg_wrapper(func):

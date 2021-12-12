@@ -55,13 +55,13 @@ else
     has_curl=1
 fi
 
-if [ $has_curl -eq 0 -a $has_wget -eq 0 ]; then
+if [ $has_curl -eq 0 ] && [ $has_wget -eq 0 ]; then
     echo "Error: neither curl nor wget found; at least one required" >&2
     exit 3
 fi
 
 INSTALLROOT=$1
-if [ ! -d "$INSTALLROOT" -o ! -w "$INSTALLROOT" ]; then
+if [ ! -d "$INSTALLROOT" ] || [ ! -w "$INSTALLROOT" ]; then
     echo "Error: installation root path \"$INSTALLROOT\" is not a directory "\
 	 "or is not writable"  >&2
     exit 4
@@ -77,7 +77,7 @@ fi
 if [ "$AGREE" == "no" ]; then
     read -r -p "Confirm conda installation in root path $INSTALLROOT [y/N] "\
 	 CNFRM
-    if [ "$CNFRM" != 'y' -a "$CNFRM" != 'Y' ]; then
+    if [ "$CNFRM" != 'y' ] && [ "$CNFRM" != 'Y' ]; then
 	echo "Cancelling installation"
 	exit 6
     fi

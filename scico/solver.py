@@ -97,8 +97,7 @@ def _split_real_imag(x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArr
     """
     if isinstance(x, BlockArray):
         return BlockArray.array([_split_real_imag(_) for _ in x])
-    else:
-        return snp.stack((snp.real(x), snp.imag(x)))
+    return snp.stack((snp.real(x), snp.imag(x)))
 
 
 def _join_real_imag(x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
@@ -116,8 +115,7 @@ def _join_real_imag(x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArra
     """
     if isinstance(x, BlockArray):
         return BlockArray.array([_join_real_imag(_) for _ in x])
-    else:
-        return x[0] + 1j * x[1]
+    return x[0] + 1j * x[1]
 
 
 def minimize(

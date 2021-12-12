@@ -56,10 +56,9 @@ is_smooth = {self.is_smooth}
     def __mul__(self, other):
         if snp.isscalar(other) or isinstance(other, jax.core.Tracer):
             return ScaledFunctional(self, other)
-        else:
-            raise NotImplementedError(
-                f"Operation __mul__ not defined between {type(self)} and {type(other)}"
-            )
+        raise NotImplementedError(
+            f"Operation __mul__ not defined between {type(self)} and {type(other)}"
+        )
 
     def __rmul__(self, other):
         return self.__mul__(other)
@@ -224,11 +223,10 @@ class SeparableFunctional(Functional):
     def __call__(self, x: BlockArray) -> float:
         if len(x.shape) == len(self.functional_list):
             return snp.sum(snp.array([fi(xi) for fi, xi in zip(self.functional_list, x)]))
-        else:
-            raise ValueError(
-                f"Number of blocks in x, {len(x.shape)}, and length of functional_list, "
-                f"{len(self.functional_list)}, do not match"
-            )
+        raise ValueError(
+            f"Number of blocks in x, {len(x.shape)}, and length of functional_list, "
+            f"{len(self.functional_list)}, do not match"
+        )
 
     def prox(self, x: BlockArray, lam: float = 1.0, **kwargs) -> BlockArray:
         r"""Evaluate proximal operator of the separable functional.
@@ -251,11 +249,10 @@ class SeparableFunctional(Functional):
         """
         if len(x.shape) == len(self.functional_list):
             return BlockArray.array([fi.prox(xi, lam) for fi, xi in zip(self.functional_list, x)])
-        else:
-            raise ValueError(
-                f"Number of blocks in x, {len(x.shape)}, and length of functional_list, "
-                f"{len(self.functional_list)}, do not match"
-            )
+        raise ValueError(
+            f"Number of blocks in x, {len(x.shape)}, and length of functional_list, "
+            f"{len(self.functional_list)}, do not match"
+        )
 
 
 class ZeroFunctional(Functional):

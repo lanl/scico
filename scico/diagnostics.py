@@ -170,5 +170,4 @@ class IterationStats:
                     for n in range(len(self.iterations[0]))
                 ]
             )
-        else:
-            return self.iterations
+        return self.iterations

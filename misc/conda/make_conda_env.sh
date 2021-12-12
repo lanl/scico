@@ -103,7 +103,7 @@ case "$OS" in
     Darwin)   SOURCEURL=$URLROOT$INSTMACOSX; SED=gsed;;
     *)        echo "Error: unsupported operating system $OS" >&2; exit 4;;
 esac
-if [ "$OS" == "Darwin" -a "$GPU" == yes ]; then
+if [ "$OS" == "Darwin" ] && [ "$GPU" == yes ]; then
     echo "Error: GPU-enabled jaxlib installation not supported under OSX" >&2
     exit 5
 fi

@@ -94,7 +94,7 @@ class BiConvolve(Operator):
                 output_shape=self.output_shape,
                 mode=self.mode,
             )
-        elif argnum == 1:
+        if argnum == 1:
             return Convolve(
                 h=val,
                 input_shape=self.input_shape[0],
@@ -102,5 +102,4 @@ class BiConvolve(Operator):
                 output_shape=self.output_shape,
                 mode=self.mode,
             )
-        else:
-            raise ValueError(f"argnum must be 0 or 1; got {argnum}")
+        raise ValueError(f"argnum must be 0 or 1; got {argnum}")
