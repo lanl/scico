@@ -12,3 +12,15 @@ class TestSet:
         assert its.history()[1].Iter == 1
         assert its.history()[1].Objective == 1e2
         assert its.history(transpose=True).Objective == [1.5, 100.0]
+
+    def test_display(self, capsys):
+        its = diagnostics.IterationStats({"Iter": "%d"}, display=True, period=2, overwrite=False)
+        its.insert((0,))
+        cap = capsys.readouterr()
+        assert cap.out == "Iter\n----\n   0\n"
+        its.insert((1,))
+        cap = capsys.readouterr()
+        assert cap.out == ""
+        its.insert((2,))
+        cap = capsys.readouterr()
+        assert cap.out == "   2\n"
