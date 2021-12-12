@@ -19,6 +19,8 @@ Computed Tomography
       CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+CG)
    `ct_svmbir_ppp_bm3d_admm_prox.py <ct_svmbir_ppp_bm3d_admm_prox.py>`_
       CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+Prox)
+   `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
+      CT Reconstruction with TV Regularization
 
 
 Deconvolution
@@ -62,6 +64,8 @@ Miscellaneous
       Isotropic Total Variation (ADMM)
    `denoise_tv_iso_pgm.py <denoise_tv_iso_pgm.py>`_
       Isotropic Total Variation (Accelerated PGM)
+   `denoise_tv_iso_multi.py <denoise_tv_iso_multi.py>`_
+      Comparison of Optimization Algorithms for Total Variation Denoising
 
 
 
@@ -92,6 +96,8 @@ Total Variation
       Few-View CT (ADMM w/ Total Variation)
    `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
       Low-Dose CT (ADMM w/ Total Variation)
+   `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
+      CT Reconstruction with TV Regularization
    `deconv_circ_tv_admm.py <deconv_circ_tv_admm.py>`_
       Image Deconvolution (ADMM w/ Total Variation and Circulant Blur)
    `deconv_microscopy_tv_admm.py <deconv_microscopy_tv_admm.py>`_
@@ -104,6 +110,8 @@ Total Variation
       Isotropic Total Variation (ADMM)
    `denoise_tv_iso_pgm.py <denoise_tv_iso_pgm.py>`_
       Isotropic Total Variation (Accelerated PGM)
+   `denoise_tv_iso_multi.py <denoise_tv_iso_multi.py>`_
+      Comparison of Optimization Algorithms for Total Variation Denoising
 
 
 Sparsity
@@ -134,6 +142,8 @@ ADMM
       CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+CG)
    `ct_svmbir_ppp_bm3d_admm_prox.py <ct_svmbir_ppp_bm3d_admm_prox.py>`_
       CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+Prox)
+   `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
+      CT Reconstruction with TV Regularization
    `deconv_circ_tv_admm.py <deconv_circ_tv_admm.py>`_
       Image Deconvolution (ADMM w/ Total Variation and Circulant Blur)
    `deconv_microscopy_tv_admm.py <deconv_microscopy_tv_admm.py>`_
@@ -150,9 +160,28 @@ ADMM
       Image Demosaicing (ADMM Plug-and-Play Priors w/ BM3D)
    `denoise_tv_iso_admm.py <denoise_tv_iso_admm.py>`_
       Isotropic Total Variation (ADMM)
+   `denoise_tv_iso_multi.py <denoise_tv_iso_multi.py>`_
+      Comparison of Optimization Algorithms for Total Variation Denoising
    `sparsecode_admm.py <sparsecode_admm.py>`_
       Non-negative Basis Pursuit DeNoising (ADMM)
 
+
+Linearized ADMM
+^^^^^^^^^^^^^^^
+
+    `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
+       CT Reconstruction with TV Regularization
+    `denoise_tv_iso_multi.py <denoise_tv_iso_multi.py>`_
+       Comparison of Optimization Algorithms for Total Variation Denoising
+
+
+PDHG
+^^^^
+
+    `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
+       CT Reconstruction with TV Regularization
+    `denoise_tv_iso_multi.py <denoise_tv_iso_multi.py>`_
+       Comparison of Optimization Algorithms for Total Variation Denoising
 
 
 PGM
