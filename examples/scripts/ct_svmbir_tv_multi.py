@@ -109,7 +109,7 @@ solve_admm = ADMM(
 print(f"Solving on {device_info()}\n")
 x_admm = solve_admm.solve()
 hist_admm = solve_admm.itstat_object.history(transpose=True)
-print(metric.psnr(x_gt, x_admm))
+print(f"PSNR: {metric.psnr(x_gt, x_admm):.2f} dB\n")
 
 
 """
@@ -127,7 +127,7 @@ solver_ladmm = LinearizedADMM(
 )
 x_ladmm = solver_ladmm.solve()
 hist_ladmm = solver_ladmm.itstat_object.history(transpose=True)
-print(metric.psnr(x_gt, x_ladmm))
+print(f"PSNR: {metric.psnr(x_gt, x_ladmm):.2f} dB\n")
 
 
 """
@@ -145,7 +145,7 @@ solver_pdhg = PDHG(
 )
 x_pdhg = solver_pdhg.solve()
 hist_pdhg = solver_pdhg.itstat_object.history(transpose=True)
-print(metric.psnr(x_gt, x_pdhg))
+print(f"PSNR: {metric.psnr(x_gt, x_pdhg):.2f} dB\n")
 
 
 """
