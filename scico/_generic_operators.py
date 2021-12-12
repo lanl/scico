@@ -643,15 +643,15 @@ class LinearOperator(Operator):
                 input_shape=self.output_shape,
                 output_shape=self.input_shape,
                 eval_fn=lambda x: self.adj(x.conj()).conj(),
-                adj_fn=lambda x: self(x),
+                adj_fn=self.__call__,
                 input_dtype=self.input_dtype,
                 output_dtype=self.output_dtype,
             )
         return LinearOperator(
             input_shape=self.output_shape,
             output_shape=self.input_shape,
-            eval_fn=lambda x: self.adj(x),
-            adj_fn=lambda x: self(x),
+            eval_fn=self.adj,
+            adj_fn=self.__call__,
             input_dtype=self.output_dtype,
             output_dtype=self.input_dtype,
         )
@@ -674,8 +674,8 @@ class LinearOperator(Operator):
         return LinearOperator(
             input_shape=self.output_shape,
             output_shape=self.input_shape,
-            eval_fn=lambda x: self.adj(x),
-            adj_fn=lambda x: self(x),
+            eval_fn=self.adj,
+            adj_fn=self.__call__,
             input_dtype=self.output_dtype,
             output_dtype=self.input_dtype,
         )
@@ -709,8 +709,8 @@ class LinearOperator(Operator):
         return LinearOperator(
             input_shape=self.input_shape,
             output_shape=self.input_shape,
-            eval_fn=lambda x: self.gram(x),
-            adj_fn=lambda x: self.gram(x),
+            eval_fn=self.gram,
+            adj_fn=self.gram,
             input_dtype=self.input_dtype,
             output_dtype=self.output_dtype,
         )
