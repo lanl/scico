@@ -144,8 +144,7 @@ class IterationStats:
             )
 
     def insert(self, values: Union[List, Tuple]):
-        """
-        Insert a list of values for a single iteration.
+        """Insert a list of values for a single iteration.
 
         Args:
             values: Statistics for a single iteration.
@@ -168,8 +167,7 @@ class IterationStats:
                     print((" " * self.colsep).join(self.fieldformat) % values)
 
     def end(self):
-        """
-        Indicate end iterations.
+        """Mark end of iterations.
 
         This method should be called at the end of a set of iterations.
         Its only function is to ensure that the displayed output is left
@@ -180,8 +178,7 @@ class IterationStats:
             print()
 
     def history(self, transpose: bool = False):
-        """
-        Retrieve record of all inserted iterations.
+        """Retrieve record of all inserted iterations.
 
         Args:
             transpose: Flag indicating whether results should be returned
