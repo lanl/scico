@@ -248,8 +248,8 @@ class AngularSpectrumPropagator(Propagator):
     def check_sampling(self):
         r"""Verify the angular spectrum kernel is not aliased.
 
-        Checks the condition for adequate sampling,
-        :cite:`voelz-2009-digital`
+        Checks the condition for adequate sampling
+        :cite:`voelz-2009-digital`,
 
         .. math ::
             (\Delta x)^2 \geq \frac{\pi}{k_0 N} \sqrt{ (\Delta x)^2 N^2
@@ -331,8 +331,8 @@ class FresnelPropagator(Propagator):
     def check_sampling(self):
         r"""Verify the Fraunhofer propagation kernel is not aliased.
 
-        Checks the condition for adequate sampling,
-        :cite:`voelz-2011-computational`
+        Checks the condition for adequate sampling
+        :cite:`voelz-2011-computational`,
 
         .. math ::
             (\Delta x)^2 \geq \frac{2 \pi z }{k_0 N} \;.
@@ -505,8 +505,8 @@ L_D         : {self.L_D}
     def check_sampling(self):
         r"""Verify the Fraunhofer propagation kernel is not aliased.
 
-        Checks the condition for adequate sampling,
-        :cite:`voelz-2011-computational`
+        Checks the condition for adequate sampling
+        :cite:`voelz-2011-computational`,
 
         .. math ::
             \Delta x^2 \geq \frac{2 \pi z }{k_0 N} \;.
