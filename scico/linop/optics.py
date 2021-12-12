@@ -37,7 +37,7 @@ __author__ = """Luke Pfister <luke.pfister@gmail.com>"""
 def radial_transverse_frequency(
     input_shape: Shape, dx: Union[float, Tuple[float, ...]]
 ) -> np.ndarray:
-    """Construct radial Fourier coordinate system.
+    r"""Construct radial Fourier coordinate system.
 
     Args:
         input_shape: Tuple of length 1 or 2 containing the number of
@@ -344,7 +344,7 @@ class FresnelPropagator(Propagator):
         """
         tmp = []
         for d, N in zip(self.dx, self.padded_shape):
-            tmp.append(d ** 2 > 2 * np.pi * z / (self.k0 * s))
+            tmp.append(d ** 2 > 2 * np.pi * self.z / (self.k0 * N))
         return np.all(tmp)
 
 
@@ -422,7 +422,7 @@ class FraunhoferPropagator(LinearOperator):
                The output plane will have the same number of samples.
             dx: Sampling interval at source plane. If a float and
                `len(input_shape)==2` the same sampling interval is
-               applied to both dimensions.  If `dx` is a tuple, must have
+               applied to both dimensions. If `dx` is a tuple, must have
                same length as `input_shape`.
             k0: Illumination wavenumber;  2π/wavelength.
             z: Propagation distance.
@@ -516,6 +516,6 @@ L_D         : {self.L_D}
              False otherwise.
         """
         tmp = []
-        for d, N in zip(self.dx, self.padded_shape):
-            tmp.append(d ** 2 > 2 * np.pi * z / (self.k0 * s))
+        for d, N in zip(self.dx, self.input_shape):
+            tmp.append(d ** 2 > 2 * np.pi * self.z / (self.k0 * N))
         return np.all(tmp)
