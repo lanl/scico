@@ -9,7 +9,7 @@ Image Deconvolution (PGM Plug-and-Play Priors w/ BM3D)
 ======================================================
 
 This example demonstrates the use of class
-[pgm.AcceleratedPGM](../_autosummary/scico.optimize.pgm.rst#scico.optimize.pgm.AcceleratedPGM)
+[pgm.AcceleratedPGM](../_autosummary/scico.optimize.rst#scico.optimize.AcceleratedPGM)
 to solve an image deconvolution problem using the Plug-and-Play Priors
 framework :cite:`venkatakrishnan-2013-plugandplay2`
 :cite:`kamilov-2017-plugandplay`, using BM3D :cite:`dabov-2008-image`

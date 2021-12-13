@@ -9,7 +9,7 @@ Isotropic Total Variation (Accelerated PGM)
 ===========================================
 
 This example demonstrates the use of class
-[pgm.AcceleratedPGM](../_autosummary/scico.optimize.pgm.rst#scico.optimize.pgm.AcceleratedPGM)
+[pgm.AcceleratedPGM](../_autosummary/scico.optimize.rst#scico.optimize.AcceleratedPGM)
 to solve isotropic total variation (TV) regularization. It solves the
 denoising problem
 

@@ -9,7 +9,7 @@ Non-negative Basis Pursuit DeNoising (ADMM)
 ===========================================
 
 This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.optimize.admm.rst#scico.optimize.admm.ADMM) to solve
+[admm.ADMM](../_autosummary/scico.optimize.html#scico.optimize.ADMM) to solve
 the non-negative sparse coding problem problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; \| \mathbf{y} - D \mathbf{x} \|_2^2

@@ -14,7 +14,7 @@ using the [microscopy data](http://bigwww.epfl.ch/deconvolution/bio/)
 provided by the EPFL Biomedical Imaging Group.
 
 The deconvolution problem is solved using class
-[admm.ADMM](../_autosummary/scico.optimize.admm.rst#scico.optimize.admm.ADMM) to solve
+[admm.ADMM](../_autosummary/scico.optimize.html#scico.optimize.ADMM) to solve
 an image deconvolution problem with isotropic total variation (TV)
 regularization
 

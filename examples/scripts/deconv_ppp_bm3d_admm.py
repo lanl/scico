@@ -9,7 +9,7 @@ Image Deconvolution (ADMM Plug-and-Play Priors w/ BM3D)
 =======================================================
 
 This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.optimize.admm.rst#scico.optimize.admm.ADMM) to solve
+[admm.ADMM](../_autosummary/scico.optimize.html#scico.optimize.ADMM) to solve
 an image deconvolution problem using the Plug-and-Play Priors
 framework :cite:`venkatakrishnan-2013-plugandplay2`, using BM3D
 :cite:`dabov-2008-image` as a denoiser.

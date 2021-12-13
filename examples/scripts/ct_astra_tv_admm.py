@@ -9,7 +9,7 @@ Few-View CT (ADMM w/ Total Variation)
 =====================================
 
 This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.optimize.admm.rst#scico.optimize.admm.ADMM) to solve a
+[admm.ADMM](../_autosummary/scico.optimize.html#scico.optimize.ADMM) to solve a
 few-view CT reconstruction problem with anisotropic total variation
 (TV) regularization.
 
