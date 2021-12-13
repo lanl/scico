@@ -1,4 +1,4 @@
-# This is a basic workflow to help you get started with Actions
+# Install scico requirements and run pytest
 
 name: test
 
@@ -13,9 +13,7 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "pytest"
   pytest:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
@@ -52,3 +50,29 @@ jobs:
           flags: unittests
           name: codecov-umbrella
           verbose: true
+
+  pytest-latest-jax:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Install Python 3
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          sudo apt-get install -y libopenblas-dev
+          pip install pytest-cov
+          pip install -r requirements.txt
+          pip install --upgrade "jax[cpu]"
+          pip install -r dev_requirements.txt
+          pip install -e .
+      - name: Run tests with pytest
+        run: pytest
