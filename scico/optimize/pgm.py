@@ -409,8 +409,8 @@ class PGM:
 
         Args:
             f: Loss or Functional object with `grad` defined.
-            g: Instance of Functional with defined prox method..
-            L0: Initial estimate of Lipschitz constant of f
+            g: Instance of Functional with defined prox method.
+            L0: Initial estimate of Lipschitz constant of f.
             x0: Starting point for :math:`\mb{x}`.
             step_size: helper :class:`StepSize` to estimate the Lipschitz
                 constant of f.
