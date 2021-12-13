@@ -1,4 +1,5 @@
 astra-toolbox
 colour_demosaicing
 xdesign
-ray
+ray[tune]
+hyperopt
