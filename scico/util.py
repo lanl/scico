@@ -84,9 +84,9 @@ def ensure_on_device(
     """
     arrays = list(arrays)
 
-    for i in range(len(arrays)):
+    for i, array in enumerate(arrays):
 
-        if isinstance(arrays[i], np.ndarray):
+        if isinstance(array, np.ndarray):
             warnings.warn(
                 f"Argument {i+1} of {len(arrays)} is an np.ndarray. "
                 f"Will cast it to DeviceArray. "
@@ -96,7 +96,7 @@ def ensure_on_device(
 
             arrays[i] = jax.device_put(arrays[i])
         elif not isinstance(
-            arrays[i],
+            array,
             (DeviceArray, scico.blockarray.BlockArray, ShardedDeviceArray),
         ):
             raise TypeError(

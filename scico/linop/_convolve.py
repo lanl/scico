@@ -105,8 +105,8 @@ class Convolve(LinearOperator):
                 output_shape=self.output_shape,
                 adj_fn=lambda x: self.adj(x) + other.adj(x),
             )
-        else:
-            raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}")
+
+        raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}")
 
     @partial(_wrap_add_sub, op=operator.sub)
     def __sub__(self, other):

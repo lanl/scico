@@ -654,11 +654,11 @@ def _block_array_reduction_wrapper(func):
                 out.append(atleast_1d(tmp))
             return BlockArray.array(out)
 
-        elif axis is None:
+        if axis is None:
             # 'axis' might not be a valid kwarg (eg dot, vdot), so don't pass it
             return func(inp, *args, **kwargs)
-        else:
-            return func(inp, *args, axis=axis, **kwargs)
+
+        return func(inp, *args, axis=axis, **kwargs)
 
     if not hasattr(func, "__doc__") or func.__doc__ is None:
         return wrapper

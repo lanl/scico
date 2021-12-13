@@ -6,8 +6,6 @@ import scico.numpy as snp
 from scico import functional, linop, loss, random
 from scico.primaldual import PDHG
 
-flag = False  # global variable used for callback test
-
 
 class TestMisc:
     def setup_method(self, method):
@@ -52,12 +50,13 @@ class TestMisc:
         )
         assert len(pdhg_.itstat_object.fieldname) == 2
 
+        pdhg_.test_flag = False
+
         def callback(obj):
-            global flag
-            flag = True
+            obj.test_flag = True
 
         x = pdhg_.solve(callback=callback)
-        assert flag
+        assert pdhg_.test_flag
 
 
 class TestReal:

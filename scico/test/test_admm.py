@@ -11,8 +11,6 @@ from scico.admm import (
     LinearSubproblemSolver,
 )
 
-flag = False  # global variable used for callback test
-
 
 class TestMisc:
     def setup_method(self, method):
@@ -54,12 +52,13 @@ class TestMisc:
         )
         assert len(admm_.itstat_object.fieldname) == 2
 
+        admm_.test_flag = False
+
         def callback(obj):
-            global flag
-            flag = True
+            obj.test_flag = True
 
         x = admm_.solve(callback=callback)
-        assert flag
+        assert admm_.test_flag
 
 
 class TestReal:
