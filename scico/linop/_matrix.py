@@ -38,13 +38,13 @@ def _wrap_add_sub_matrix(func, op):
         elif isinstance(b, MatrixOperator):
             if a.shape == b.shape:
                 return MatrixOperator(op(a.A, b.A))
-            else:
-                raise ValueError(f"MatrixOperator shapes {a.shape} and {b.shape} do not match")
+
+            raise ValueError(f"MatrixOperator shapes {a.shape} and {b.shape} do not match")
         elif isinstance(b, (DeviceArray, np.ndarray)):
             if a.matrix_shape == b.shape:
                 return MatrixOperator(op(a.A, b))
-            else:
-                raise ValueError(f"Shapes {a.matrix_shape} and {b.shape} do not match")
+
+            raise ValueError(f"Shapes {a.matrix_shape} and {b.shape} do not match")
         elif isinstance(b, LinearOperator):
             if a.shape == b.shape:
                 return LinearOperator(
@@ -55,8 +55,7 @@ def _wrap_add_sub_matrix(func, op):
                     output_dtype=result_type(a.output_dtype, b.output_dtype),
                 )
 
-            else:
-                raise ValueError(f"Shapes {a.shape} and {b.shape} do not match")
+            raise ValueError(f"Shapes {a.shape} and {b.shape} do not match")
         else:
             raise TypeError(
                 f"Operation {func.__name__} not defined between {type(a)} and {type(b)}"
@@ -147,14 +146,14 @@ class MatrixOperator(LinearOperator):
         if isinstance(other, MatrixOperator):
             if self.shape == other.shape:
                 return MatrixOperator(self.A * other.A)
-            else:
-                raise ValueError(f"Shapes {self.shape} and {other.shape} do not match")
+
+            raise ValueError(f"Shapes {self.shape} and {other.shape} do not match")
 
         if isinstance(other, (DeviceArray, np.ndarray)):
             if self.matrix_shape == other.shape:
                 return MatrixOperator(self.A * other)
-            else:
-                raise ValueError(f"Shapes {self.matrix_shape} and {other.shape} do not match")
+
+            raise ValueError(f"Shapes {self.matrix_shape} and {other.shape} do not match")
 
         # includes generic LinearOperator
         raise TypeError(f"Operation __mul__ not defined between {type(self)} and {type(other)}")
@@ -175,8 +174,8 @@ class MatrixOperator(LinearOperator):
         if isinstance(other, (DeviceArray, np.ndarray)):
             if self.matrix_shape == other.shape:
                 return MatrixOperator(self.A / other)
-            else:
-                raise ValueError(f"Shapes {self.matrix_shape} and {other.shape} do not match")
+
+            raise ValueError(f"Shapes {self.matrix_shape} and {other.shape} do not match")
 
         raise TypeError(f"Operation __truediv__ not defined between {type(self)} and {type(other)}")
 
@@ -187,8 +186,9 @@ class MatrixOperator(LinearOperator):
         if isinstance(other, (DeviceArray, np.ndarray)):
             if self.matrix_shape == other.shape:
                 return MatrixOperator(other / self.A)
-            else:
-                raise ValueError(f"Shapes {other.shape} and {self.matrix_shape} do not match")
+
+            raise ValueError(f"Shapes {other.shape} and {self.matrix_shape} do not match")
+
         raise TypeError(f"Operation __truediv__ not defined between {type(other)} and {type(self)}")
 
     def __getitem__(self, key):

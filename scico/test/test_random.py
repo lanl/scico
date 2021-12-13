@@ -72,7 +72,7 @@ def test_add_seed_adapter():
 
     # error when key and seed are specified
     with pytest.raises(Exception):
-        fun_alt(key=jax.random.PRNGKey(0), seed=42)[0]
+        _ = fun_alt(key=jax.random.PRNGKey(0), seed=42)[0]
 
 
 def test_block_shape_adapter():

@@ -108,9 +108,9 @@ class ParallelBeamProjector(LinearOperator):
             raise ValueError(f"Invalid device specified; got {device}")
 
         # Wrap our non-jax function to indicate we will supply fwd/rev mode functions
-        self._eval = jax.custom_vjp(lambda x: self._proj(x))
+        self._eval = jax.custom_vjp(self._proj)
         self._eval.defvjp(lambda x: (self._proj(x), None), lambda _, y: (self._bproj(y),))
-        self._adj = jax.custom_vjp(lambda y: self._bproj(y))
+        self._adj = jax.custom_vjp(self._bproj)
         self._adj.defvjp(lambda y: (self._bproj(y), None), lambda _, x: (self._proj(x),))
 
         super().__init__(

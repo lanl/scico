@@ -31,7 +31,7 @@ class TestMatrix:
         # Invalid shapes
         with pytest.raises(TypeError):
             y, key = randn((64,), dtype=Ao.input_dtype, key=key)
-            Ao @ y
+            _ = Ao @ y
 
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
     @pytest.mark.parametrize("input_shape", [(3, 3), (3, 4)])
@@ -217,7 +217,7 @@ class TestMatrix:
         Ao = MatrixOperator(A)
         Bo = AbsMatOp(B)
         with pytest.raises(ValueError):
-            Ao @ Bo
+            _ = Ao @ Bo
 
     def test_matmul_identity(self):
         A, key = randn((4, 6), key=self.key)
