@@ -39,8 +39,8 @@ import numpy as np
 import jax
 
 import imageio
-import ray
 
+import ray
 import scico.numpy as snp
 from scico import functional, linop, loss, plot, util
 from scico.optimize.admm import ADMM, CircularConvolveSolver
