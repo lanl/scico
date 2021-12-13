@@ -80,6 +80,7 @@ def insert_inheritance_diagram(clsqname):
     if not lines:
         return
     # Cut leading whitespace lines
+    n = 0
     for n, line in enumerate(lines):
         if line != "":
             break

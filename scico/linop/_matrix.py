@@ -35,7 +35,8 @@ def _wrap_add_sub_matrix(func, op):
     def wrapper(a, b):
         if np.isscalar(b):
             return MatrixOperator(op(a.A, b))
-        elif isinstance(b, MatrixOperator):
+
+        if isinstance(b, MatrixOperator):
             if a.shape == b.shape:
                 return MatrixOperator(op(a.A, b.A))
 
