@@ -41,12 +41,14 @@ def _wrap_add_sub_matrix(func, op):
                 return MatrixOperator(op(a.A, b.A))
 
             raise ValueError(f"MatrixOperator shapes {a.shape} and {b.shape} do not match")
-        elif isinstance(b, (DeviceArray, np.ndarray)):
+
+        if isinstance(b, (DeviceArray, np.ndarray)):
             if a.matrix_shape == b.shape:
                 return MatrixOperator(op(a.A, b))
 
             raise ValueError(f"Shapes {a.matrix_shape} and {b.shape} do not match")
-        elif isinstance(b, LinearOperator):
+
+        if isinstance(b, LinearOperator):
             if a.shape == b.shape:
                 return LinearOperator(
                     input_shape=a.input_shape,
@@ -57,10 +59,8 @@ def _wrap_add_sub_matrix(func, op):
                 )
 
             raise ValueError(f"Shapes {a.shape} and {b.shape} do not match")
-        else:
-            raise TypeError(
-                f"Operation {func.__name__} not defined between {type(a)} and {type(b)}"
-            )
+
+        raise TypeError(f"Operation {func.__name__} not defined between {type(a)} and {type(b)}")
 
     return wrapper
 
