@@ -95,7 +95,8 @@ class Convolve(LinearOperator):
     def __add__(self, other):
         if self.mode != other.mode:
             raise ValueError(f"Incompatible modes:  {self.mode} != {other.mode}")
-        elif self.h.shape == other.h.shape:
+
+        if self.h.shape == other.h.shape:
             return Convolve(
                 h=self.h + other.h,
                 input_shape=self.input_shape,

@@ -31,15 +31,15 @@ def _not_implemented(fun):
 
     if not hasattr(fun, "__doc__") or fun.__doc__ is None:
         return wrapped
-    else:
-        # wrapped.__doc__ = fun.__doc__ + "\n\n" + _NOT_IMPLEMENTED_DESC
-        wrapped.__doc__ = re.sub(
-            r"^\*Original docstring below\.\*",
-            _NOT_IMPLEMENTED_DESC + r"\n\n" + "*Original docstring below.*",
-            wrapped.__doc__,
-            flags=re.M,
-        )
-        return wrapped
+
+    # wrapped.__doc__ = fun.__doc__ + "\n\n" + _NOT_IMPLEMENTED_DESC
+    wrapped.__doc__ = re.sub(
+        r"^\*Original docstring below\.\*",
+        _NOT_IMPLEMENTED_DESC + r"\n\n" + "*Original docstring below.*",
+        wrapped.__doc__,
+        flags=re.M,
+    )
+    return wrapped
 
 
 def _attach_wrapped_func(funclist, wrapper, module_name, fix_mod_name=False):

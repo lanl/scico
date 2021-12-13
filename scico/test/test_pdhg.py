@@ -6,7 +6,7 @@ import scico.numpy as snp
 from scico import functional, linop, loss, random
 from scico.primaldual import PDHG
 
-flag = False
+flag = False  # global variable used for callback test
 
 
 class TestMisc:

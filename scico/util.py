@@ -40,19 +40,19 @@ __author__ = """\n""".join(
 )
 
 
-def device_info(id: int = 0) -> str:  # pragma: no cover
+def device_info(devid: int = 0) -> str:  # pragma: no cover
     """Get a string describing the specified device.
 
     Args:
-        id: ID number of device.
+        devid: ID number of device.
 
     Returns:
         Device description string.
     """
     numdev = jax.device_count()
-    if id >= numdev:
-        raise RuntimeError(f"Requested information for device {id} but only {numdev} present")
-    dev = jax.devices()[id]
+    if devid >= numdev:
+        raise RuntimeError(f"Requested information for device {devid} but only {numdev} present")
+    dev = jax.devices()[devid]
     if dev.platform == "cpu":
         info = "CPU"
     else:
@@ -505,7 +505,7 @@ class ContextTimer:
             self.timer.stop(self.label)
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exc_type, exc_value, traceback):
         """Stop the timer and return True if no exception was raised
         within the 'with' block, otherwise return False.
         """
@@ -514,7 +514,7 @@ class ContextTimer:
             self.timer.stop(self.label)
         else:
             self.timer.start(self.label)
-        return not type
+        return not exc_type
 
     def elapsed(self, total: bool = True) -> float:
         """Return the elapsed time for the timer.

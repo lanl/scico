@@ -95,22 +95,24 @@ class MatrixOperator(LinearOperator):
             if self.input_shape == other.output_shape:
                 if isinstance(other, Identity):
                     return self
-                elif isinstance(other, MatrixOperator):
+
+                if isinstance(other, MatrixOperator):
                     return MatrixOperator(A=self.A @ other.A)
-                else:  # must be a generic linop so return composition of the two
-                    return LinearOperator(
-                        input_shape=other.input_shape,
-                        output_shape=self.output_shape,
-                        eval_fn=lambda x: self(other(x)),
-                        input_dtype=self.input_dtype,
-                    )
-            else:
-                raise ValueError(
-                    "Cannot compute MatrixOperator-LinearOperator product, "
-                    f"{other.output_shape} does not match {self.input_shape}"
+
+                # must be a generic linop so return composition of the two
+                return LinearOperator(
+                    input_shape=other.input_shape,
+                    output_shape=self.output_shape,
+                    eval_fn=lambda x: self(other(x)),
+                    input_dtype=self.input_dtype,
                 )
-        else:
-            return self._eval(other)
+
+            raise ValueError(
+                "Cannot compute MatrixOperator-LinearOperator product, "
+                f"{other.output_shape} does not match {self.input_shape}"
+            )
+
+        return self._eval(other)
 
     def _eval(self, other):
         return self.A @ other
@@ -141,19 +143,21 @@ class MatrixOperator(LinearOperator):
     def __mul__(self, other):
         if np.isscalar(other):
             return MatrixOperator(other * self.A)
-        elif isinstance(other, MatrixOperator):
+
+        if isinstance(other, MatrixOperator):
             if self.shape == other.shape:
                 return MatrixOperator(self.A * other.A)
             else:
                 raise ValueError(f"Shapes {self.shape} and {other.shape} do not match")
-        elif isinstance(other, (DeviceArray, np.ndarray)):
+
+        if isinstance(other, (DeviceArray, np.ndarray)):
             if self.matrix_shape == other.shape:
                 return MatrixOperator(self.A * other)
             else:
                 raise ValueError(f"Shapes {self.matrix_shape} and {other.shape} do not match")
-        else:
-            # Includes generic LinearOperator
-            raise TypeError(f"Operation __mul__ not defined between {type(self)} and {type(other)}")
+
+        # includes generic LinearOperator
+        raise TypeError(f"Operation __mul__ not defined between {type(self)} and {type(other)}")
 
     def __rmul__(self, other):
         # Multiplication is commutative
@@ -162,29 +166,30 @@ class MatrixOperator(LinearOperator):
     def __truediv__(self, other):
         if np.isscalar(other):
             return MatrixOperator(self.A / other)
-        elif isinstance(other, MatrixOperator):
+
+        if isinstance(other, MatrixOperator):
             if self.shape == other.shape:
                 return MatrixOperator(self.A / other.A)
             raise ValueError(f"Shapes {self.shape} and {other.shape} do not match")
-        elif isinstance(other, (DeviceArray, np.ndarray)):
+
+        if isinstance(other, (DeviceArray, np.ndarray)):
             if self.matrix_shape == other.shape:
                 return MatrixOperator(self.A / other)
             else:
                 raise ValueError(f"Shapes {self.matrix_shape} and {other.shape} do not match")
+
         raise TypeError(f"Operation __truediv__ not defined between {type(self)} and {type(other)}")
 
     def __rtruediv__(self, other):
         if np.isscalar(other):
             return MatrixOperator(other / self.A)
-        elif isinstance(other, (DeviceArray, np.ndarray)):
+
+        if isinstance(other, (DeviceArray, np.ndarray)):
             if self.matrix_shape == other.shape:
                 return MatrixOperator(other / self.A)
             else:
                 raise ValueError(f"Shapes {other.shape} and {self.matrix_shape} do not match")
-        else:
-            raise TypeError(
-                f"Operation __truediv__ not defined between {type(other)} and {type(self)}"
-            )
+        raise TypeError(f"Operation __truediv__ not defined between {type(other)} and {type(self)}")
 
     def __getitem__(self, key):
         return self.A[key]

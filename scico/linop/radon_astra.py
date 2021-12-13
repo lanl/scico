@@ -128,8 +128,8 @@ class ParallelBeamProjector(LinearOperator):
         def f(x):
             if x.flags.writeable == False:
                 x.flags.writeable = True
-            id, result = astra.create_sino(x, self.proj_id)
-            astra.data2d.delete(id)
+            proj_id, result = astra.create_sino(x, self.proj_id)
+            astra.data2d.delete(proj_id)
             return result
 
         return hcb.call(
@@ -141,8 +141,8 @@ class ParallelBeamProjector(LinearOperator):
         def f(y):
             if y.flags.writeable == False:
                 y.flags.writeable = True
-            id, result = astra.create_backprojection(y, self.proj_id)
-            astra.data2d.delete(id)
+            proj_id, result = astra.create_backprojection(y, self.proj_id)
+            astra.data2d.delete(proj_id)
             return result
 
         return hcb.call(f, y, result_shape=jax.ShapeDtypeStruct(self.input_shape, self.input_dtype))

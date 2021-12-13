@@ -95,8 +95,7 @@ class LinearOperatorStack(LinearOperator):
     def _eval(self, x: JaxArray) -> Union[JaxArray, BlockArray]:
         if self.collapsable and self.collapse:
             return snp.stack([op @ x for op in self.ops])
-        else:
-            return BlockArray.array([op @ x for op in self.ops])
+        return BlockArray.array([op @ x for op in self.ops])
 
     def _adj(self, y: Union[JaxArray, BlockArray]) -> JaxArray:
         return sum([op.adj(y_block) for y_block, op in zip(y, self.ops)])

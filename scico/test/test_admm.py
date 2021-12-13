@@ -11,6 +11,8 @@ from scico.admm import (
     LinearSubproblemSolver,
 )
 
+flag = False  # global variable used for callback test
+
 
 class TestMisc:
     def setup_method(self, method):
