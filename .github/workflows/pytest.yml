@@ -35,6 +35,9 @@ jobs:
           pip install pytest-cov
           pip install -r requirements.txt
           pip install -r dev_requirements.txt
+          conda install -c astra-toolbox astra-toolbox
+          pip install ray[tune]
+          pip install hyperopt
           pip install -e .
       - name: Run tests with pytest
         run: pytest --cov=scico --cov-report=xml
