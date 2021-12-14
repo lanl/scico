@@ -236,7 +236,7 @@ class MatrixOperator(LinearOperator):
         ``G(x) = A.adj(A(x)))``."""
         return MatrixOperator(A=self.A.conj().T @ self.A)
 
-    def norm(self, ord=None, axis=None, keepdims=False):
+    def norm(self, ord=None, axis=None, keepdims=False):  # pylint: disable=W0622
         """Compute the norm of the dense matrix `self.A`.
 
         Call :func:`scico.numpy.norm` on the dense matrix `self.A`.

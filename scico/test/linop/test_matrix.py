@@ -250,7 +250,7 @@ class TestMatrix:
     @pytest.mark.parametrize("axis", [None, 0, 1])
     @pytest.mark.parametrize("keepdims", [True, False])
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
-    def test_norm(self, ord, axis, keepdims, input_dtype):
+    def test_norm(self, ord, axis, keepdims, input_dtype):  # pylint: disable=W0622
         A, key = randn((4, 6), dtype=input_dtype, key=self.key)
         Ao = MatrixOperator(A)
 
