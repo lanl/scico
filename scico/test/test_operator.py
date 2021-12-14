@@ -151,9 +151,9 @@ def test_scale_vmap(testobj):
     def foo(c):
         return (c * A)(x)
 
-    c_list = snp.array([1.0, 2.0, 3.0])
+    c_list = [1.0, 2.0, 3.0]
     non_vmap = np.array([foo(c) for c in c_list])
-    vmapped = jax.vmap(foo)(c_list)
+    vmapped = jax.vmap(foo)(snp.array(c_list))
     np.testing.assert_allclose(non_vmap, vmapped)
 
 
@@ -167,7 +167,7 @@ def test_scale_pmap(testobj):
     c_list = np.random.randn(jax.device_count())
     non_pmap = np.array([foo(c) for c in c_list])
     pmapped = jax.pmap(foo)(c_list)
-    np.testing.assert_allclose(non_pmap, pmapped)
+    np.testing.assert_allclose(non_pmap, pmapped, rtol=1e-6)
 
 
 def test_freeze_3arg():
