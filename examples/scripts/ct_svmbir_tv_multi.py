@@ -23,11 +23,10 @@ from xdesign import Foam, discrete_phantom
 
 import scico.numpy as snp
 from scico import functional, linop, metric, plot
-from scico.admm import ADMM, LinearSubproblemSolver
-from scico.ladmm import LinearizedADMM
 from scico.linop import Diagonal
 from scico.linop.radon_svmbir import ParallelBeamProjector, SVMBIRWeightedSquaredL2Loss
-from scico.primaldual import PDHG
+from scico.optimize import PDHG, LinearizedADMM
+from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
 """

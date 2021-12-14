@@ -4,7 +4,7 @@ import jax
 
 import scico.numpy as snp
 from scico import functional, linop, loss, random
-from scico.primaldual import PDHG
+from scico.optimize import PDHG
 
 flag = False
 

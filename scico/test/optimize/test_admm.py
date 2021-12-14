@@ -4,8 +4,8 @@ import jax
 
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, random
-from scico.admm import (
-    ADMM,
+from scico.optimize import ADMM
+from scico.optimize.admm import (
     CircularConvolveSolver,
     GenericSubproblemSolver,
     LinearSubproblemSolver,
@@ -257,7 +257,7 @@ class TestComplex:
             ),
         )
         x = admm_.solve()
-        assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-4
+        assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 2e-4
 
     def test_admm_quadratic(self):
         maxiter = 50

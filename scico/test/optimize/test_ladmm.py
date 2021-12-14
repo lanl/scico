@@ -4,7 +4,7 @@ import jax
 
 import scico.numpy as snp
 from scico import functional, linop, loss, random
-from scico.ladmm import LinearizedADMM
+from scico.optimize import LinearizedADMM
 
 flag = False
 
