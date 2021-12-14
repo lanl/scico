@@ -35,7 +35,8 @@ __author__ = """\n""".join(
 class PGMStepSize:
     r"""Base class for computing the PGM step size.
 
-    Base class for computing the reciprocal of the step size for PGM solvers.
+    Base class for computing the reciprocal of the step size for PGM
+    solvers.
 
     The PGM solver implemented by :class:`.PGM` addresses a general
     proximal gradient form that requires the specification of a step size
@@ -44,7 +45,8 @@ class PGMStepSize:
     equations).
 
     Attributes:
-        pgm (:class:`.PGM`): PGM solver object to which the solver is attached.
+        pgm (:class:`.PGM`): PGM solver object to which the solver is
+           attached.
     """
 
     def internal_init(self, pgm: PGM):
@@ -57,12 +59,15 @@ class PGMStepSize:
         self.pgm = pgm
 
     def update(self, v: Union[JaxArray, BlockArray]) -> float:
-        """Hook for updating the reciprocal of the step size in derived classes.
+        """Hook for updating the step size in derived classes.
 
-        The base class does not compute any update.
+        Hook for updating the reciprocal of the step size in derived
+        classes. The base class does not compute any update.
 
         Args:
-            v: Current solution or current extrapolation (if accelerated PGM).
+            v: Current solution or current extrapolation (if accelerated
+               PGM).
+
         Returns:
             Current reciprocal of the step size.
         """
@@ -70,7 +75,7 @@ class PGMStepSize:
 
 
 class BBStepSize(PGMStepSize):
-    r"""A scheme for step size estimation based on Barzilai-Borwein method.
+    r"""Scheme for step size estimation based on Barzilai-Borwein method.
 
     The Barzilai-Borwein method :cite:`barzilai-1988-stepsize` estimates
     the step size :math:`\alpha` as
@@ -102,7 +107,8 @@ class BBStepSize(PGMStepSize):
         """Update the reciprocal of the step size.
 
         Args:
-            v: Current solution or current extrapolation (if accelerated PGM).
+            v: Current solution or current extrapolation (if accelerated
+               PGM).
 
         Returns:
             Updated reciprocal of the step size.
@@ -134,8 +140,8 @@ class BBStepSize(PGMStepSize):
 class AdaptiveBBStepSize(PGMStepSize):
     r"""Adaptive Barzilai-Borwein method to determine step size.
 
-    Adaptive Barzilai-Borwein method to determine step size in PGM, as introduced
-    in :cite:`zhou-2006-adaptive`.
+    Adaptive Barzilai-Borwein method to determine step size in PGM, as
+    introduced in :cite:`zhou-2006-adaptive`.
 
     The adaptive step size rule computes
 
@@ -168,7 +174,8 @@ class AdaptiveBBStepSize(PGMStepSize):
     previous iterate is used instead.
 
     Attributes:
-        pgm (:class:`.PGM`): PGM solver object to which the solver is attached.
+        pgm (:class:`.PGM`): PGM solver object to which the solver is
+           attached.
     """
 
     def __init__(self, kappa: float = 0.5):
@@ -187,7 +194,8 @@ class AdaptiveBBStepSize(PGMStepSize):
         """Update the reciprocal of the step size.
 
         Args:
-            v: Current solution or current extrapolation (if accelerated PGM).
+            v: Current solution or current extrapolation (if accelerated
+               PGM).
 
         Returns:
             Updated reciprocal of the step size.
@@ -234,11 +242,12 @@ class AdaptiveBBStepSize(PGMStepSize):
 
 
 class LineSearchStepSize(PGMStepSize):
-    r"""A line search for estimating the reciprocal of step size for PGM solvers.
+    r"""Line search for estimating the step size for PGM solvers.
 
-    The line search strategy described in :cite:`beck-2009-fast` estimates
-    :math:`L` such that :math:`f(\mb{x}) <= \hat{f}_{L}(\mb{x})` is
-    satisfied with :math:`\hat{f}_{L}` a quadratic approximation to
+    Line search for estimating the reciprocal of step size for PGM
+    solvers. The line search strategy described in :cite:`beck-2009-fast`
+    estimates :math:`L` such that :math:`f(\mb{x}) <= \hat{f}_{L}(\mb{x})`
+    is satisfied with :math:`\hat{f}_{L}` a quadratic approximation to
     :math:`f` defined as
 
     .. math::
@@ -250,15 +259,16 @@ class LineSearchStepSize(PGMStepSize):
     current solution or current extrapolation (if accelerated PGM).
 
     Attributes:
-        pgm (:class:`.PGM`): PGM solver object to which the solver is attached.
+        pgm (:class:`.PGM`): PGM solver object to which the solver is
+           attached.
     """
 
     def __init__(self, gamma_u: float = 1.2, maxiter: int = 50):
         r"""Initialize a :class:`LineSearchStepSize` object.
 
         Args:
-            gamma_u : Rate of increment in :math:`L`.
-            maxiter : maximum iterations in line search.
+            gamma_u: Rate of increment in :math:`L`.
+            maxiter: maximum iterations in line search.
         """
         self.gamma_u: float = gamma_u
         self.maxiter: int = maxiter
@@ -272,7 +282,8 @@ class LineSearchStepSize(PGMStepSize):
         """Update the reciprocal of the step size.
 
         Args:
-            v: Current solution or current extrapolation (if accelerated PGM).
+            v: Current solution or current extrapolation (if accelerated
+               PGM).
 
         Returns:
             Updated reciprocal of the step size.
@@ -321,9 +332,9 @@ class RobustLineSearchStepSize(LineSearchStepSize):
         r"""Initialize a :class:`RobustLineSearchStepSize` object.
 
         Args:
-            gamma_d : Rate of decrement in :math:`L`.
-            gamma_u : Rate of increment in :math:`L`.
-            maxiter : maximum iterations in line search.
+            gamma_d: Rate of decrement in :math:`L`.
+            gamma_u: Rate of increment in :math:`L`.
+            maxiter: maximum iterations in line search.
         """
         super(RobustLineSearchStepSize, self).__init__(gamma_u, maxiter)
         self.gamma_d: float = gamma_d
@@ -337,7 +348,8 @@ class RobustLineSearchStepSize(LineSearchStepSize):
         """Update the reciprocal of the step size.
 
         Args:
-            v: Current solution or current extrapolation (if accelerated PGM).
+            v: Current solution or current extrapolation (if accelerated
+               PGM).
 
         Returns:
             Updated reciprocal of the step size.
@@ -395,16 +407,14 @@ class PGM:
         r"""
 
         Args:
-            f: Loss or Functional object with `grad` defined
-            g: Instance of Functional with defined prox method
-            L0: Initial estimate of Lipschitz constant of f
-            x0: Starting point for :math:`\mb{x}`
+            f: Loss or Functional object with `grad` defined.
+            g: Instance of Functional with defined prox method.
+            L0: Initial estimate of Lipschitz constant of f.
+            x0: Starting point for :math:`\mb{x}`.
             step_size: helper :class:`StepSize` to estimate the Lipschitz
-                 constant of f
+                constant of f.
             maxiter: Maximum number of PGM iterations to perform.
-                 Default: 100.
-            verbose: Flag indicating whether iteration statistics should
-                be displayed.
+                Default: 100.
             itstat_options: A dict of named parameters to be passed to
                 the :class:`.diagnostics.IterationStats` initializer. The
                 dict may also include an additional key "itstat_func"
@@ -476,7 +486,7 @@ class PGM:
         self.x: Union[JaxArray, BlockArray] = ensure_on_device(x0)  # current estimate of solution
 
     def objective(self, x) -> float:
-        r"""Evaluate the objective function :math:`f(\mb{x}) + g(\mb{x})`"""
+        r"""Evaluate the objective function :math:`f(\mb{x}) + g(\mb{x})`."""
         return self.f(x) + self.g(x)
 
     def f_quad_approx(self, x, y, L) -> float:
@@ -498,7 +508,7 @@ class PGM:
         r"""Return the fixed point residual.
 
         Return the fixed point residual (see Sec. 4.3 of
-        :cite:`liu-2018-first`)
+        :cite:`liu-2018-first`).
         """
         return self.fixed_point_residual
 
@@ -565,16 +575,14 @@ class AcceleratedPGM(PGM):
         r"""
 
         Args:
-            f: Loss or Functional object with `grad` defined
-            g: Instance of Functional with defined prox method
-            L0: Initial estimate of Lipschitz constant of f
-            x0: Starting point for :math:`\mb{x}`
+            f: Loss or Functional object with `grad` defined.
+            g: Instance of Functional with defined prox method.
+            L0: Initial estimate of Lipschitz constant of f.
+            x0: Starting point for :math:`\mb{x}`.
             step_size: helper :class:`StepSize` to estimate the Lipschitz
-                constant of f
+                constant of f.
             maxiter: Maximum number of PGM iterations to perform.
                 Default: 100.
-            verbose: Flag indicating whether iteration statistics should
-                be displayed.
             itstat_options: A dict of named parameters to be passed to
                 the :class:`.diagnostics.IterationStats` initializer. The
                 dict may also include an additional key "itstat_func"
@@ -604,7 +612,7 @@ class AcceleratedPGM(PGM):
         """Take a single AcceleratedPGM step."""
         x_old = self.x
         # Update reciprocal of step size using current extrapolation.
-        if isinstance(self.step_size, BBStepSize) or isinstance(self.step_size, AdaptiveBBStepSize):
+        if isinstance(self.step_size, (AdaptiveBBStepSize, BBStepSize)):
             self.L = self.step_size.update(self.x)
         else:
             self.L = self.step_size.update(self.v)
