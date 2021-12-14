@@ -11,7 +11,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import Callable, Optional, Tuple, Union
+from typing import Callable, Optional, Union
 
 import jax
 
@@ -402,8 +402,7 @@ class PGM:
         x0: Union[JaxArray, BlockArray],
         step_size: Optional[PGMStepSize] = None,
         maxiter: int = 100,
-        verbose: bool = False,
-        itstat: Optional[Tuple[dict, Callable]] = None,
+        itstat_options: Optional[dict] = None,
     ):
         r"""
 
@@ -416,16 +415,16 @@ class PGM:
                 constant of f.
             maxiter: Maximum number of PGM iterations to perform.
                 Default: 100.
-            verbose: Flag indicating whether iteration statistics should
-                be displayed.
-            itstat: A tuple (`fieldspec`, `insertfunc`), where `fieldspec`
-                is a dict suitable for passing to the `fields` argument
-                of the :class:`.diagnostics.IterationStats` initializer,
-                and `insertfunc` is a function with two parameters, an
-                integer and a PGM object, responsible for constructing a
-                tuple ready for insertion into the
-                :class:`.diagnostics.IterationStats` object. If None,
-                default values are used for the tuple components.
+            itstat_options: A dict of named parameters to be passed to
+                the :class:`.diagnostics.IterationStats` initializer. The
+                dict may also include an additional key "itstat_func"
+                with the corresponding value being a function with two
+                parameters, an integer and a PGM object, responsible
+                for constructing a tuple ready for insertion into the
+                :class:`.diagnostics.IterationStats` object. If ``None``,
+                default values are used for the dict entries, otherwise
+                the default dict is updated with the dict specified by
+                this parameter.
         """
 
         if f.is_smooth is not True:
@@ -455,12 +454,8 @@ class PGM:
 
         self.x_step = jax.jit(x_step)
 
-        self.verbose = verbose
-        if itstat:
-            itstat_dict = itstat[0]
-            itstat_func = itstat[1]
-        elif g.has_eval:
-            itstat_dict = {
+        if g.has_eval:
+            itstat_fields = {
                 "Iter": "%d",
                 "Time": "%8.2e",
                 "Objective": "%8.3e",
@@ -475,11 +470,19 @@ class PGM:
                 pgm.norm_residual(),
             )
         else:
-            itstat_dict = {"Iter": "%d", "Time": "%8.2e", "Residual": "%8.3e"}
+            itstat_fields = {"Iter": "%d", "Time": "%8.2e", "Residual": "%8.3e"}
             itstat_func = lambda pgm: (pgm.itnum, pgm.timer.elapsed(), pgm.norm_residual())
 
-        self.itstat_object = IterationStats(itstat_dict, display=verbose)
-        self.itstat_insert_func = itstat_func
+        default_itstat_options = {
+            "fields": itstat_fields,
+            "itstat_func": itstat_func,
+            "display": False,
+        }
+        if itstat_options:
+            default_itstat_options.update(itstat_options)
+        self.itstat_insert_func = default_itstat_options.pop("itstat_func", None)
+        self.itstat_object = IterationStats(**default_itstat_options)
+
         self.x: Union[JaxArray, BlockArray] = ensure_on_device(x0)  # current estimate of solution
 
     def objective(self, x) -> float:
@@ -543,6 +546,7 @@ class PGM:
                 self.timer.start()
         self.timer.stop()
         self.itnum += 1
+        self.itstat_object.end()
         return self.x
 
 
@@ -566,8 +570,7 @@ class AcceleratedPGM(PGM):
         x0: Union[JaxArray, BlockArray],
         step_size: Optional[PGMStepSize] = None,
         maxiter: int = 100,
-        verbose: bool = False,
-        itstat: Optional[Union[tuple, list]] = None,
+        itstat_options: Optional[dict] = None,
     ):
         r"""
 
@@ -580,16 +583,16 @@ class AcceleratedPGM(PGM):
                 constant of f.
             maxiter: Maximum number of PGM iterations to perform.
                 Default: 100.
-            verbose: Flag indicating whether iteration statistics should
-                be displayed.
-            itstat: A tuple (`fieldspec`, `insertfunc`), where `fieldspec`
-                is a dict suitable for passing to the `fields` argument
-                of the :class:`.diagnostics.IterationStats` initializer,
-                and `insertfunc` is a function with two parameters, an
-                integer and a PGM object, responsible for constructing a
-                tuple ready for insertion into the
-                :class:`.diagnostics.IterationStats` object. If None,
-                default values are used for the tuple components.
+            itstat_options: A dict of named parameters to be passed to
+                the :class:`.diagnostics.IterationStats` initializer. The
+                dict may also include an additional key "itstat_func"
+                with the corresponding value being a function with two
+                parameters, an integer and a PGM object, responsible
+                for constructing a tuple ready for insertion into the
+                :class:`.diagnostics.IterationStats` object. If ``None``,
+                default values are used for the dict entries, otherwise
+                the default dict is updated with the dict specified by
+                this parameter.
         """
         x0 = ensure_on_device(x0)
         super().__init__(
@@ -599,8 +602,7 @@ class AcceleratedPGM(PGM):
             x0=x0,
             step_size=step_size,
             maxiter=maxiter,
-            verbose=verbose,
-            itstat=itstat,
+            itstat_options=itstat_options,
         )
 
         self.v = x0

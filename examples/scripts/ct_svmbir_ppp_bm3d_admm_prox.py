@@ -105,7 +105,7 @@ solver = ADMM(
     x0=x0,
     maxiter=20,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": 100}),
-    verbose=True,
+    itstat_options={"display": True},
 )
 
 
