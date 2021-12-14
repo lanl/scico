@@ -58,3 +58,36 @@ class TestPropagator:
     def test_shape_dx_mismatch(self):
         with pytest.raises(ValueError):
             radial_transverse_frequency(input_shape=(self.N,), dx=(self.dx, self.dx))
+
+
+@pytest.mark.parametrize("ndim", [1, 2])
+def test_asp_sampling(ndim):
+    N = 128
+    dx = 1
+    z = 1
+    A = AngularSpectrumPropagator(input_shape=(N,) * ndim, dx=dx, k0=1, z=z)
+    assert not A.adequate_sampling()
+    A = AngularSpectrumPropagator(input_shape=(N,) * ndim, dx=dx, k0=100, z=z)
+    assert A.adequate_sampling()
+
+
+@pytest.mark.parametrize("ndim", [1, 2])
+def test_fresnel_sampling(ndim):
+    N = 128
+    dx = 1
+    k0 = 1
+    A = FresnelPropagator(input_shape=(N,) * ndim, dx=dx, k0=k0, z=N ** 2)
+    assert not A.adequate_sampling()
+    A = FresnelPropagator(input_shape=(N,) * ndim, dx=dx, k0=k0, z=1)
+    assert A.adequate_sampling()
+
+
+@pytest.mark.parametrize("ndim", [1, 2])
+def test_fraunhofer_sampling(ndim):
+    N = 128
+    dx = 1
+    k0 = 1
+    A = FraunhoferPropagator(input_shape=(N,) * ndim, dx=dx, k0=k0, z=N ** 2)
+    assert not A.adequate_sampling()
+    A = FraunhoferPropagator(input_shape=(N,) * ndim, dx=dx, k0=k0, z=1)
+    assert A.adequate_sampling()
