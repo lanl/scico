@@ -14,7 +14,7 @@ using the [microscopy data](http://bigwww.epfl.ch/deconvolution/bio/)
 provided by the EPFL Biomedical Imaging Group.
 
 The deconvolution problem is solved using class
-[admm.ADMM](../_autosummary/scico.admm.rst#scico.admm.ADMM) to solve
+[admm.ADMM](../_autosummary/scico.optimize.html#scico.optimize.ADMM) to solve
 an image deconvolution problem with isotropic total variation (TV)
 regularization
 
@@ -40,7 +40,7 @@ import imageio
 
 import scico.numpy as snp
 from scico import functional, linop, loss, plot, util
-from scico.admm import ADMM, CircularConvolveSolver
+from scico.optimize.admm import ADMM, CircularConvolveSolver
 
 """
 Define helper functions.
@@ -166,7 +166,7 @@ solver = ADMM(
     C_list=[C0, C1, C2],
     rho_list=[ρ0, ρ1, ρ2],
     maxiter=maxiter,
-    verbose=True,
+    itstat_options={"display": True, period: 10},
     x0=y_pad,
     subproblem_solver=CircularConvolveSolver(),
 )

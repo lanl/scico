@@ -4,7 +4,7 @@ import jax
 
 import scico.numpy as snp
 from scico import functional, linop, loss, random
-from scico.ladmm import LinearizedADMM
+from scico.optimize import PDHG
 
 
 class TestMisc:
@@ -13,50 +13,48 @@ class TestMisc:
         self.y = jax.device_put(np.random.randn(32, 33).astype(np.float32))
         self.λ = 1e0
 
-    def test_ladmm(self):
+    def test_pdhg(self):
         maxiter = 2
-        μ = 1e-1
-        ν = 1e-1
+        τ = 1e-1
+        σ = 1e-1
         A = linop.Identity(self.y.shape)
         f = loss.SquaredL2Loss(y=self.y, A=A)
         g = (self.λ / 2) * functional.BM3D()
         C = linop.Identity(self.y.shape)
 
-        itstat_dict = {"Iter": "%d", "Time": "%8.2e"}
+        itstat_fields = {"Iter": "%d", "Time": "%8.2e"}
 
         def itstat_func(obj):
             return (obj.itnum, obj.timer.elapsed())
 
-        ladmm_ = LinearizedADMM(
+        pdhg_ = PDHG(
             f=f,
             g=g,
             C=C,
-            mu=μ,
-            nu=ν,
+            tau=τ,
+            sigma=σ,
             maxiter=maxiter,
-            verbose=False,
         )
-        assert len(ladmm_.itstat_object.fieldname) == 4
-        assert snp.sum(ladmm_.x) == 0.0
-        ladmm_ = LinearizedADMM(
+        assert len(pdhg_.itstat_object.fieldname) == 4
+        assert snp.sum(pdhg_.x) == 0.0
+        pdhg_ = PDHG(
             f=f,
             g=g,
             C=C,
-            mu=μ,
-            nu=ν,
+            tau=τ,
+            sigma=σ,
             maxiter=maxiter,
-            verbose=False,
-            itstat=(itstat_dict, itstat_func),
+            itstat_options={"fields": itstat_fields, "itstat_func": itstat_func, "display": False},
         )
-        assert len(ladmm_.itstat_object.fieldname) == 2
+        assert len(pdhg_.itstat_object.fieldname) == 2
 
-        ladmm_.test_flag = False
+        pdhg_.test_flag = False
 
         def callback(obj):
             obj.test_flag = True
 
-        x = ladmm_.solve(callback=callback)
-        assert ladmm_.test_flag
+        x = pdhg_.solve(callback=callback)
+        assert pdhg_.test_flag
 
 
 class TestReal:
@@ -77,25 +75,24 @@ class TestReal:
         self.grdA = lambda x: (Amx.T @ Amx + λ * Bmx.T @ Bmx) @ x
         self.grdb = Amx.T @ y
 
-    def test_ladmm(self):
-        maxiter = 400
-        μ = 1e-2
-        ν = 2e-1
+    def test_pdhg(self):
+        maxiter = 300
+        τ = 2e-1
+        σ = 2e-1
         A = linop.Diagonal(snp.diag(self.Amx))
         f = loss.SquaredL2Loss(y=self.y, A=A)
         g = (self.λ / 2) * functional.SquaredL2Norm()
         C = linop.MatrixOperator(self.Bmx)
-        ladmm_ = LinearizedADMM(
+        pdhg_ = PDHG(
             f=f,
             g=g,
             C=C,
-            mu=μ,
-            nu=ν,
+            tau=τ,
+            sigma=σ,
             maxiter=maxiter,
-            verbose=False,
             x0=A.adj(self.y),
         )
-        x = ladmm_.solve()
+        x = pdhg_.solve()
         assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-4
 
 
@@ -117,23 +114,22 @@ class TestComplex:
         self.grdA = lambda x: (Amx.conj().T @ Amx + λ * Bmx.conj().T @ Bmx) @ x
         self.grdb = Amx.conj().T @ y
 
-    def test_ladmm(self):
-        maxiter = 500
-        μ = 1e-2
-        ν = 2e-1
+    def test_pdhg(self):
+        maxiter = 300
+        τ = 2e-1
+        σ = 2e-1
         A = linop.Diagonal(snp.diag(self.Amx))
         f = loss.SquaredL2Loss(y=self.y, A=A)
         g = (self.λ / 2) * functional.SquaredL2Norm()
         C = linop.MatrixOperator(self.Bmx)
-        ladmm_ = LinearizedADMM(
+        pdhg_ = PDHG(
             f=f,
             g=g,
             C=C,
-            mu=μ,
-            nu=ν,
+            tau=τ,
+            sigma=σ,
             maxiter=maxiter,
-            verbose=False,
             x0=A.adj(self.y),
         )
-        x = ladmm_.solve()
+        x = pdhg_.solve()
         assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 5e-4
