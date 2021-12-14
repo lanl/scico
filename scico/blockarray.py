@@ -1226,8 +1226,8 @@ core.pytype_aval_mappings[BlockArray] = lambda x: x._aval
 core.raise_to_shaped_mappings[_AbstractBlockArray] = lambda _aval, _: _aval
 xla.pytype_aval_mappings[BlockArray] = lambda x: x._aval
 xla.canonicalize_dtype_handlers[BlockArray] = lambda x: x
-xla.device_put_handlers[BlockArray] = _block_array_device_put_handler
-xla.xla_result_handlers[_AbstractBlockArray] = _block_array_result_handler
+jax._src.dispatch.device_put_handlers[BlockArray] = _block_array_device_put_handler
+jax._src.dispatch.result_handlers[_AbstractBlockArray] = _block_array_result_handler
 xla.xla_shape_handlers[_AbstractBlockArray] = _block_array_shape_handler
 
 

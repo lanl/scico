@@ -88,8 +88,6 @@ def test_eval_circular(shape_axes, input_dtype, jit):
     B = FiniteDifference(input_shape=input_shape, input_dtype=input_dtype, axes=axes, jit=jit)
     Bx = B @ x
 
-    print(Ax.shape)
-    print(Bx.shape)
     for ax_ind, ax in enumerate(A.axes):
         np.testing.assert_allclose(
             Ax[
