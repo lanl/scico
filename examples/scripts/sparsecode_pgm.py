@@ -59,7 +59,7 @@ A = linop.MatrixOperator(D)
 f = loss.SquaredL2Loss(y=y, A=A)
 g = λ * functional.L1Norm()
 solver = AcceleratedPGM(
-    f=f, g=g, L0=L0, x0=A.adj(y), maxiter=maxiter, itstat_options={"display": True}
+    f=f, g=g, L0=L0, x0=A.adj(y), maxiter=maxiter, itstat_options={"display": True, "period": 10}
 )
 
 

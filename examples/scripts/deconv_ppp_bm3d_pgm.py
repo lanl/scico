@@ -63,7 +63,7 @@ g = λ * functional.BM3D()
 maxiter = 50  # number of APGM iterations
 
 solver = AcceleratedPGM(
-    f=f, g=g, L0=L0, x0=A.T @ y, maxiter=maxiter, itstat_options={"display": True}
+    f=f, g=g, L0=L0, x0=A.T @ y, maxiter=maxiter, itstat_options={"display": True, "period": 10}
 )
 
 print(f"Solving on {device_info()}\n")

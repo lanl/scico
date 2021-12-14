@@ -64,7 +64,6 @@ def eval_params(config):
         x0=A.adj(y),
         maxiter=5,
         subproblem_solver=LinearSubproblemSolver(),
-        verbose=False,
     )
     # Perform 50 iterations, reporting performance to ray.tune every 5 iterations.
     for step in range(10):

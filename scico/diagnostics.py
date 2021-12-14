@@ -26,7 +26,7 @@ class IterationStats:
         fields: OrderedDict,
         ident: Optional[dict] = None,
         display: bool = False,
-        period: int = 10,
+        period: int = 1,
         overwrite: bool = True,
         colsep: int = 2,
     ):

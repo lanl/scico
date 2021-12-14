@@ -188,16 +188,16 @@ def deconvolve_channel(channel):
     g2 = functional.NonNegativeIndicator()  # non-negativity constraint
     if channel == 0:
         print("Displaying solver status for channel 0")
-        verbose = True
+        display = True
     else:
-        verbose = False
+        display = False
     solver = ADMM(
         f=None,
         g_list=[g0, g1, g2],
         C_list=[C0, C1, C2],
         rho_list=[ρ0, ρ1, ρ2],
         maxiter=maxiter,
-        verbose=verbose,
+        itstat_options={"display": display, period: 10},
         x0=y_pad,
         subproblem_solver=CircularConvolveSolver(),
     )

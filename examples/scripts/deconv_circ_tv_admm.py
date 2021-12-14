@@ -75,7 +75,7 @@ solver = ADMM(
     x0=A.adj(y),
     maxiter=maxiter,
     subproblem_solver=CircularConvolveSolver(),
-    itstat_options={"display": True},
+    itstat_options={"display": True, period: 10},
 )
 
 

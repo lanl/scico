@@ -188,7 +188,7 @@ solver = AcceleratedPGM(
     L0=L0,
     x0=x0,
     maxiter=maxiter,
-    itstat_options={"display": True},
+    itstat_options={"display": True, period: 10},
 )
 str_ss = type(solver.step_size).__name__
 
@@ -216,7 +216,7 @@ solver = AcceleratedPGM(
     L0=L0,
     x0=x0,
     maxiter=maxiter,
-    itstat_options={"display": True},
+    itstat_options={"display": True, period: 10},
     step_size=BBStepSize(),
 )
 str_ss = type(solver.step_size).__name__
@@ -244,7 +244,7 @@ solver = AcceleratedPGM(
     L0=L0,
     x0=x0,
     maxiter=maxiter,
-    itstat_options={"display": True},
+    itstat_options={"display": True, period: 10},
     step_size=AdaptiveBBStepSize(kappa=0.75),
 )
 str_ss = type(solver.step_size).__name__
@@ -272,7 +272,7 @@ solver = AcceleratedPGM(
     L0=L0,
     x0=x0,
     maxiter=maxiter,
-    itstat_options={"display": True},
+    itstat_options={"display": True, period: 10},
     step_size=LineSearchStepSize(),
 )
 str_ss = type(solver.step_size).__name__
@@ -300,7 +300,7 @@ solver = AcceleratedPGM(
     L0=L0,
     x0=x0,
     maxiter=maxiter,
-    itstat_options={"display": True},
+    itstat_options={"display": True, period: 10},
     step_size=RobustLineSearchStepSize(),
 )
 str_ss = type(solver.step_size).__name__

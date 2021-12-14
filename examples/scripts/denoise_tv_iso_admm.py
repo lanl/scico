@@ -70,7 +70,7 @@ solver = ADMM(
     x0=y,
     maxiter=100,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": 20}),
-    itstat_options={"display": True},
+    itstat_options={"display": True, period: 10},
 )
 
 print(f"Solving on {device_info()}\n")
@@ -93,7 +93,7 @@ solver = ADMM(
     x0=y,
     maxiter=100,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": 20}),
-    itstat_options={"display": True},
+    itstat_options={"display": True, period: 10},
 )
 
 solver.solve()
