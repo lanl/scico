@@ -64,16 +64,6 @@ class LinearOperatorStack(LinearOperator):
         self.collapse = collapse
         output_shape = tuple(op.shape[0] for op in ops)  # assumes BlockArray output
 
-        from scico.util import is_nested
-
-        shapes2 = []
-        for shape in output_shape:
-            if is_nested(shape):
-                [shapes2.append(s) for s in shape]
-            else:
-                shapes2.append(shape)
-        shapes = output_shape
-
         # check if collapsable and adjust output_shape if needed
         self.collapsable = all(output_shape[0] == s for s in output_shape)
         if self.collapsable and self.collapse:
