@@ -99,8 +99,8 @@ fi
 
 OS=$(uname -a | cut -d ' ' -f 1)
 case "$OS" in
-    Linux)    SOURCEURL=$URLROOT$INSTLINUX; SED=sed;;
-    Darwin)   SOURCEURL=$URLROOT$INSTMACOSX; SED=gsed;;
+    Linux)    SOURCEURL=$URLROOT$INSTLINUX; SED="sed";;
+    Darwin)   SOURCEURL=$URLROOT$INSTMACOSX; SED="gsed";;
     *)        echo "Error: unsupported operating system $OS" >&2; exit 4;;
 esac
 if [ "$OS" == "Darwin" ] && [ "$GPU" == yes ]; then
