@@ -62,7 +62,7 @@ dl.citation {
 dl.citation > dt {
   background-color: #ffffff !important;
   border-top: 0 !important;
-  margin: 0 0 0 0 !important;
+  margin: 0 !important;
   grid-column-start: 1;
   width: 2em;
 }
