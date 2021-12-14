@@ -69,7 +69,7 @@ solver = ADMM(
     x0=A.T @ y,
     maxiter=maxiter,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": 100}),
-    verbose=True,
+    itstat_options={"display": True},
 )
 
 

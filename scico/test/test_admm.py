@@ -26,7 +26,7 @@ class TestMisc:
         g = (self.λ / 2) * functional.BM3D()
         C = linop.Identity(self.y.shape)
 
-        itstat_dict = {"Iter": "%d", "Time": "%8.2e"}
+        itstat_fields = {"Iter": "%d", "Time": "%8.2e"}
 
         def itstat_func(obj):
             return (obj.itnum, obj.timer.elapsed())
@@ -37,7 +37,7 @@ class TestMisc:
             C_list=[C],
             rho_list=[ρ],
             maxiter=maxiter,
-            verbose=False,
+            itstat_options={"display": False},
         )
         assert len(admm_.itstat_object.fieldname) == 4
         assert snp.sum(admm_.x) == 0.0
@@ -47,8 +47,7 @@ class TestMisc:
             C_list=[C],
             rho_list=[ρ],
             maxiter=maxiter,
-            verbose=False,
-            itstat=(itstat_dict, itstat_func),
+            itstat_options={"fields": itstat_fields, "itstat_func": itstat_func, "display": False},
         )
         assert len(admm_.itstat_object.fieldname) == 2
 
@@ -95,7 +94,7 @@ class TestReal:
             C_list=C_list,
             rho_list=rho_list,
             maxiter=maxiter,
-            verbose=False,
+            itstat_options={"display": False},
             x0=A.adj(self.y),
             subproblem_solver=GenericSubproblemSolver(
                 minimize_kwargs={"options": {"maxiter": 100}}
@@ -118,7 +117,7 @@ class TestReal:
             C_list=C_list,
             rho_list=rho_list,
             maxiter=maxiter,
-            verbose=False,
+            itstat_options={"display": False},
             x0=A.adj(self.y),
             subproblem_solver=LinearSubproblemSolver(cg_function="scico"),
         )
@@ -139,7 +138,7 @@ class TestReal:
             C_list=C_list,
             rho_list=rho_list,
             maxiter=maxiter,
-            verbose=False,
+            itstat_options={"display": False},
             x0=A.adj(self.y),
             subproblem_solver=LinearSubproblemSolver(cg_function="jax"),
         )
@@ -161,7 +160,7 @@ class TestReal:
             rho_list=rho_list,
             alpha=1.6,
             maxiter=maxiter,
-            verbose=False,
+            itstat_options={"display": False},
             x0=A.adj(self.y),
             subproblem_solver=LinearSubproblemSolver(cg_function="jax"),
         )
@@ -209,7 +208,7 @@ class TestRealWeighted:
             C_list=C_list,
             rho_list=rho_list,
             maxiter=maxiter,
-            verbose=False,
+            itstat_options={"display": False},
             x0=A.adj(self.y),
             subproblem_solver=LinearSubproblemSolver(cg_function="scico"),
         )
@@ -251,7 +250,7 @@ class TestComplex:
             C_list=C_list,
             rho_list=rho_list,
             maxiter=maxiter,
-            verbose=False,
+            itstat_options={"display": False},
             x0=A.adj(self.y),
             subproblem_solver=GenericSubproblemSolver(
                 minimize_kwargs={"options": {"maxiter": 100}}
@@ -274,7 +273,7 @@ class TestComplex:
             C_list=C_list,
             rho_list=rho_list,
             maxiter=maxiter,
-            verbose=False,
+            itstat_options={"display": False},
             x0=A.adj(self.y),
             subproblem_solver=LinearSubproblemSolver(),
         )
@@ -310,7 +309,7 @@ class TestCircularConvolveSolve:
             C_list=self.C_list,
             rho_list=rho_list,
             maxiter=maxiter,
-            verbose=False,
+            itstat_options={"display": False},
             x0=self.A.adj(self.y),
             subproblem_solver=LinearSubproblemSolver(),
         )
@@ -321,7 +320,7 @@ class TestCircularConvolveSolve:
             C_list=self.C_list,
             rho_list=rho_list,
             maxiter=maxiter,
-            verbose=False,
+            itstat_options={"display": False},
             x0=self.A.adj(self.y),
             subproblem_solver=CircularConvolveSolver(),
         )
