@@ -429,15 +429,15 @@ class PGM:
 
         if f.is_smooth is not True:
             raise Exception(f"The functional f ({type(f)}) must be smooth.")
-        else:
-            #: Functional or Loss to minimize; must have grad method defined.
-            self.f: Union[Loss, Functional] = f
+
+        #: Functional or Loss to minimize; must have grad method defined.
+        self.f: Union[Loss, Functional] = f
 
         if g.has_prox is not True:
             raise Exception(f"The functional g ({type(g)}) must have a proximal method.")
-        else:
-            #: Functional to minimize; must have prox defined
-            self.g: Functional = g
+
+        #: Functional to minimize; must have prox defined
+        self.g: Functional = g
 
         if step_size is None:
             step_size = PGMStepSize()

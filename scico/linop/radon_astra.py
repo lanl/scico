@@ -108,9 +108,9 @@ class ParallelBeamProjector(LinearOperator):
             raise ValueError(f"Invalid device specified; got {device}")
 
         # Wrap our non-jax function to indicate we will supply fwd/rev mode functions
-        self._eval = jax.custom_vjp(lambda x: self._proj(x))
+        self._eval = jax.custom_vjp(self._proj)
         self._eval.defvjp(lambda x: (self._proj(x), None), lambda _, y: (self._bproj(y),))
-        self._adj = jax.custom_vjp(lambda y: self._bproj(y))
+        self._adj = jax.custom_vjp(self._bproj)
         self._adj.defvjp(lambda y: (self._bproj(y), None), lambda _, x: (self._proj(x),))
 
         super().__init__(
@@ -128,8 +128,8 @@ class ParallelBeamProjector(LinearOperator):
         def f(x):
             if x.flags.writeable == False:
                 x.flags.writeable = True
-            id, result = astra.create_sino(x, self.proj_id)
-            astra.data2d.delete(id)
+            proj_id, result = astra.create_sino(x, self.proj_id)
+            astra.data2d.delete(proj_id)
             return result
 
         return hcb.call(
@@ -141,8 +141,8 @@ class ParallelBeamProjector(LinearOperator):
         def f(y):
             if y.flags.writeable == False:
                 y.flags.writeable = True
-            id, result = astra.create_backprojection(y, self.proj_id)
-            astra.data2d.delete(id)
+            proj_id, result = astra.create_backprojection(y, self.proj_id)
+            astra.data2d.delete(proj_id)
             return result
 
         return hcb.call(f, y, result_shape=jax.ShapeDtypeStruct(self.input_shape, self.input_dtype))

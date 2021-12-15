@@ -51,12 +51,13 @@ class TestMisc:
         )
         assert len(admm_.itstat_object.fieldname) == 2
 
+        admm_.test_flag = False
+
         def callback(obj):
-            global flag
-            flag = True
+            obj.test_flag = True
 
         x = admm_.solve(callback=callback)
-        assert flag
+        assert admm_.test_flag
 
 
 class TestReal:

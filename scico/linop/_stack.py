@@ -64,16 +64,6 @@ class LinearOperatorStack(LinearOperator):
         self.collapse = collapse
         output_shape = tuple(op.shape[0] for op in ops)  # assumes BlockArray output
 
-        from scico.util import is_nested
-
-        shapes2 = []
-        for shape in output_shape:
-            if is_nested(shape):
-                [shapes2.append(s) for s in shape]
-            else:
-                shapes2.append(shape)
-        shapes = output_shape
-
         # check if collapsable and adjust output_shape if needed
         self.collapsable = all(output_shape[0] == s for s in output_shape)
         if self.collapsable and self.collapse:
@@ -95,8 +85,7 @@ class LinearOperatorStack(LinearOperator):
     def _eval(self, x: JaxArray) -> Union[JaxArray, BlockArray]:
         if self.collapsable and self.collapse:
             return snp.stack([op @ x for op in self.ops])
-        else:
-            return BlockArray.array([op @ x for op in self.ops])
+        return BlockArray.array([op @ x for op in self.ops])
 
     def _adj(self, y: Union[JaxArray, BlockArray]) -> JaxArray:
         return sum([op.adj(y_block) for y_block, op in zip(y, self.ops)])

@@ -161,8 +161,7 @@ def valid_adjoint(
     err = snp.abs(yTu - vTx) / max(snp.abs(yTu), snp.abs(vTx))
     if eps is None:
         return err
-    else:
-        return err < eps
+    return err < eps
 
 
 class Diagonal(LinearOperator):
@@ -195,15 +194,13 @@ class Diagonal(LinearOperator):
     def __add__(self, other):
         if self.diagonal.shape == other.diagonal.shape:
             return Diagonal(diagonal=self.diagonal + other.diagonal)
-        else:
-            raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}")
+        raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}")
 
     @partial(_wrap_add_sub, op=operator.sub)
     def __sub__(self, other):
         if self.diagonal.shape == other.diagonal.shape:
             return Diagonal(diagonal=self.diagonal - other.diagonal)
-        else:
-            raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}")
+        raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}")
 
     @_wrap_mul_div_scalar
     def __mul__(self, scalar):

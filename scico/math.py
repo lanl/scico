@@ -56,8 +56,7 @@ def rel_res(ax: Union[BlockArray, JaxArray], b: Union[BlockArray, JaxArray]) -> 
     nrm = max(snp.linalg.norm(ax.ravel()), snp.linalg.norm(b.ravel()))
     if nrm == 0.0:
         return 0.0
-    else:
-        return snp.linalg.norm((b - ax).ravel()) / nrm
+    return snp.linalg.norm((b - ax).ravel()) / nrm
 
 
 def is_real_dtype(dtype: DType) -> bool:

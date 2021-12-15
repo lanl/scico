@@ -11,7 +11,6 @@
 import argparse
 import os
 import re
-import sys
 from pathlib import Path
 from timeit import default_timer as timer
 
@@ -88,8 +87,8 @@ def py_file_to_string(src):
 def script_to_notebook(src, dst):
     """Convert a Python example script into a Jupyter notebook."""
 
-    str = py_file_to_string(src)
-    nb = py_string_to_notebook(str)
+    s = py_file_to_string(src)
+    nb = py_string_to_notebook(s)
     write_notebook(nb, dst)
 
 

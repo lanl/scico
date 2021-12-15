@@ -6,8 +6,6 @@ import scico.numpy as snp
 from scico import functional, linop, loss, random
 from scico.optimize import LinearizedADMM
 
-flag = False
-
 
 class TestMisc:
     def setup_method(self, method):
@@ -50,12 +48,13 @@ class TestMisc:
         )
         assert len(ladmm_.itstat_object.fieldname) == 2
 
+        ladmm_.test_flag = False
+
         def callback(obj):
-            global flag
-            flag = True
+            obj.test_flag = True
 
         x = ladmm_.solve(callback=callback)
-        assert flag
+        assert ladmm_.test_flag
 
 
 class TestReal:

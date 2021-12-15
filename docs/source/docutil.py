@@ -43,7 +43,7 @@ def package_classes(package):
                 # Get internal module name of class for comparison with working module name
                 try:
                     objmodname = getattr(sys.modules[modname], obj.__name__).__module__
-                except:
+                except Exception:
                     objmodname = None
                 if objmodname == modname:
                     classes.append(modname + "." + obj.__name__)
@@ -80,8 +80,9 @@ def insert_inheritance_diagram(clsqname):
     if not lines:
         return
     # Cut leading whitespace lines
-    for n in range(len(lines)):
-        if lines[n] != "":
+    n = 0
+    for n, line in enumerate(lines):
+        if line != "":
             break
     lines = lines[n:]
     # Define inheritance diagram insertion text

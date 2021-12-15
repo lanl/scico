@@ -184,8 +184,7 @@ class L2Norm(Functional):
         norm_x = norm(x)
         if norm_x == 0:
             return 0 * x
-        else:
-            return snp.maximum(1 - lam / norm_x, 0) * x
+        return snp.maximum(1 - lam / norm_x, 0) * x
 
 
 class L21Norm(Functional):

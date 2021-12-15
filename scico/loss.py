@@ -31,10 +31,10 @@ def _loss_mul_div_wrapper(func):
     def wrapper(self, other):
         if snp.isscalar(other) or isinstance(other, jax.core.Tracer):
             return func(self, other)
-        else:
-            raise NotImplementedError(
-                f"Operation {func} not defined between {type(self)} and {type(other)}"
-            )
+
+        raise NotImplementedError(
+            f"Operation {func} not defined between {type(self)} and {type(other)}"
+        )
 
     return wrapper
 
@@ -181,29 +181,29 @@ class WeightedSquaredL2Loss(Loss):
             lhs = c * A.conj() * W * self.y + x
             ATWA = c * A.conj() * W * A
             return lhs / (ATWA + 1.0)
+
+        #      prox_{f}(x) =
+        #
+        #      arg min  1/2 || v - x ||^2 + λ α || A v - y ||^2_W
+        #         v
+        #
+        # solution at:
+        #
+        #      (I + λ 2α A^T W A) v = x + λ 2α A^T W y
+        #
+        W = self.W
+        A = self.A
+        α = self.scale
+        y = self.y
+        if "v0" in kwargs and kwargs["v0"] is not None:
+            v0 = kwargs["v0"]
         else:
-            #      prox_{f}(x) =
-            #
-            #      arg min  1/2 || v - x ||^2 + λ α || A v - y ||^2_W
-            #         v
-            #
-            # solution at:
-            #
-            #      (I + λ 2α A^T W A) v = x + λ 2α A^T W y
-            #
-            W = self.W
-            A = self.A
-            α = self.scale
-            y = self.y
-            if "v0" in kwargs and kwargs["v0"] is not None:
-                v0 = kwargs["v0"]
-            else:
-                v0 = snp.zeros_like(x)
-            hessian = self.hessian  # = (2α A^T W A)
-            lhs = linop.Identity(x.shape) + lam * hessian
-            rhs = x + 2 * lam * α * A.adj(W(y))
-            x, _ = cg(lhs, rhs, v0, **self.prox_kwargs)
-            return x
+            v0 = snp.zeros_like(x)
+        hessian = self.hessian  # = (2α A^T W A)
+        lhs = linop.Identity(x.shape) + lam * hessian
+        rhs = x + 2 * lam * α * A.adj(W(y))
+        x, _ = cg(lhs, rhs, v0, **self.prox_kwargs)
+        return x
 
     @property
     def hessian(self) -> linop.LinearOperator:
@@ -222,11 +222,11 @@ class WeightedSquaredL2Loss(Loss):
                 eval_fn=lambda x: 2 * self.scale * A.adj(W(A(x))),
                 adj_fn=lambda x: 2 * self.scale * A.adj(W(A(x))),
             )
-        else:
-            raise NotImplementedError(
-                f"Hessian is not implemented for {type(self)} when `A` is {type(A)}; "
-                "must be LinearOperator"
-            )
+
+        raise NotImplementedError(
+            f"Hessian is not implemented for {type(self)} when `A` is {type(A)}; "
+            "must be LinearOperator"
+        )
 
 
 class SquaredL2Loss(WeightedSquaredL2Loss):

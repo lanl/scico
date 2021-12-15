@@ -83,10 +83,10 @@ class ParallelBeamProjector(LinearOperator):
             self.roi_radius = max(self.svmbir_input_shape[1], self.svmbir_input_shape[2])
 
         # Set up custom_vjp for _eval and _adj so jax.grad works on them.
-        self._eval = jax.custom_vjp(lambda x: self._proj_hcb(x))
+        self._eval = jax.custom_vjp(self._proj_hcb)
         self._eval.defvjp(lambda x: (self._proj_hcb(x), None), lambda _, y: (self._bproj_hcb(y),))
 
-        self._adj = jax.custom_vjp(lambda y: self._bproj_hcb(y))
+        self._adj = jax.custom_vjp(self._bproj_hcb)
         self._adj.defvjp(lambda y: (self._bproj_hcb(y), None), lambda _, x: (self._proj_hcb(x),))
 
         super().__init__(

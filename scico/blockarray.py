@@ -463,14 +463,14 @@ def atleast_1d(*arys):
     if len(arys) == 1:
         arr = arys[0]
         return arr if isinstance(arr, BlockArray) else jnp.atleast_1d(arr)
-    else:
-        out = []
-        for arr in arys:
-            if isinstance(arr, BlockArray):
-                out.append(arr)
-            else:
-                out.append(jnp.atleast_1d(arr))
-        return out
+
+    out = []
+    for arr in arys:
+        if isinstance(arr, BlockArray):
+            out.append(arr)
+        else:
+            out.append(jnp.atleast_1d(arr))
+    return out
 
 
 # Append docstring from original jax.numpy function
@@ -503,8 +503,8 @@ def reshape(
     if is_nested(newshape):
         # x is a blockarray
         return BlockArray.array_from_flattened(a, newshape)
-    else:
-        return jnp.reshape(a, newshape)
+
+    return jnp.reshape(a, newshape)
 
 
 def block_sizes(shape: Union[Shape, BlockShape]) -> Axes:
@@ -558,9 +558,9 @@ def block_sizes(shape: Union[Shape, BlockShape]) -> Axes:
                 # this is a tuple; size given by product of elements
                 out.append(np.prod(y))
         return tuple(out)
-    else:
-        # shape is a non-nested tuple; return the product
-        return np.prod(shape)
+
+    # shape is a non-nested tuple; return the product
+    return np.prod(shape)
 
 
 def _flatten_blockarrays(inp, *args, **kwargs):
@@ -569,8 +569,7 @@ def _flatten_blockarrays(inp, *args, **kwargs):
     def _flatten_if_blockarray(inp):
         if isinstance(inp, BlockArray):
             return inp._data
-        else:
-            return inp
+        return inp
 
     inp_ = _flatten_if_blockarray(inp)
     args_ = (_flatten_if_blockarray(_) for _ in args)
@@ -591,18 +590,16 @@ def _block_array_ufunc_wrapper(func):
             inp_, args_, kwargs_ = _flatten_blockarrays(inp, *args, **kwargs)
             flat_out = func(inp_, *args_, **kwargs_)
             return BlockArray.array_from_flattened(flat_out, inp.shape)
-        else:
-            # Otherwise call the function normally
-            return func(inp, *args, **kwargs)
+
+        # Otherwise call the function normally
+        return func(inp, *args, **kwargs)
 
     if not hasattr(func, "__doc__") or func.__doc__ is None:
         return wrapper
-    else:
-        wrapper.__doc__ = (
-            f":func:`{func.__name__}` wrapped to operate on :class:`BlockArray`"
-            + "\n\n"
-            + func.__doc__
-        )
+
+    wrapper.__doc__ = (
+        f":func:`{func.__name__}` wrapped to operate on :class:`BlockArray`" + "\n\n" + func.__doc__
+    )
     return wrapper
 
 
@@ -619,59 +616,56 @@ def _block_array_reduction_wrapper(func):
                 # Treat as a single long vector
                 inp_, args_, kwargs_ = _flatten_blockarrays(inp, *args, **kwargs)
                 return func(inp_, *args_, **kwargs_)
-            elif type(axis) == tuple:
+
+            if type(axis) == tuple:
                 raise Exception(
                     f"""Evaluating {func.__name__} on a BlockArray with a tuple argument to
                     axis is not currently supported"""
                 )
-            else:
-                if axis == 0:  # reduction along block axis
-                    # reduction along axis=0 only makes sense if all blocks are the same shape
-                    # so we can convert to a standard DeviceArray of shape (inp.num_blocks, ...)
-                    # and reduce along axis = 0
-                    if all([bk_shape == inp.shape[0] for bk_shape in inp.shape]):
-                        view_shape = (inp.num_blocks,) + inp.shape[0]
-                        return func(inp._data.reshape(view_shape), *args, axis=0, **kwargs)
-                    else:
-                        raise ValueError(
-                            f"Evaluating {func.__name__} of BlockArray along axis=0 requires "
-                            f"all blocks to be same shape; got {inp.shape}"
-                        )
-                else:
-                    # Reduce each block individually along axis-1
-                    out = []
-                    for bk in inp:
-                        if isinstance(bk, BlockArray):
-                            # This block is itself a blockarray, so call this wrapped reduction
-                            # on axis-1
-                            tmp = _block_array_reduction_wrapper(func)(
-                                bk, *args, axis=axis - 1, **kwargs
-                            )
-                        else:
-                            if axis - 1 >= bk.ndim:
-                                # Trying to reduce along a dim that doesn't exist for this block,
-                                # so just return the block.
-                                # ie broadcast to shape (..., 1) and reduce along axis=-1
-                                tmp = bk
-                            else:
-                                tmp = func(bk, *args, axis=axis - 1, **kwargs)
-                        out.append(atleast_1d(tmp))
-                    return BlockArray.array(out)
 
-        elif axis is None:
+            if axis == 0:  # reduction along block axis
+                # reduction along axis=0 only makes sense if all blocks are the same shape
+                # so we can convert to a standard DeviceArray of shape (inp.num_blocks, ...)
+                # and reduce along axis = 0
+                if all([bk_shape == inp.shape[0] for bk_shape in inp.shape]):
+                    view_shape = (inp.num_blocks,) + inp.shape[0]
+                    return func(inp._data.reshape(view_shape), *args, axis=0, **kwargs)
+
+                raise ValueError(
+                    f"Evaluating {func.__name__} of BlockArray along axis=0 requires "
+                    f"all blocks to be same shape; got {inp.shape}"
+                )
+
+            # Reduce each block individually along axis-1
+            out = []
+            for bk in inp:
+                if isinstance(bk, BlockArray):
+                    # This block is itself a blockarray, so call this wrapped reduction
+                    # on axis-1
+                    tmp = _block_array_reduction_wrapper(func)(bk, *args, axis=axis - 1, **kwargs)
+                else:
+                    if axis - 1 >= bk.ndim:
+                        # Trying to reduce along a dim that doesn't exist for this block,
+                        # so just return the block.
+                        # ie broadcast to shape (..., 1) and reduce along axis=-1
+                        tmp = bk
+                    else:
+                        tmp = func(bk, *args, axis=axis - 1, **kwargs)
+                out.append(atleast_1d(tmp))
+            return BlockArray.array(out)
+
+        if axis is None:
             # 'axis' might not be a valid kwarg (eg dot, vdot), so don't pass it
             return func(inp, *args, **kwargs)
-        else:
-            return func(inp, *args, axis=axis, **kwargs)
+
+        return func(inp, *args, axis=axis, **kwargs)
 
     if not hasattr(func, "__doc__") or func.__doc__ is None:
         return wrapper
-    else:
-        wrapper.__doc__ = (
-            f":func:`{func.__name__}` wrapped to operate on :class:`BlockArray`"
-            + "\n\n"
-            + func.__doc__
-        )
+
+    wrapper.__doc__ = (
+        f":func:`{func.__name__}` wrapped to operate on :class:`BlockArray`" + "\n\n" + func.__doc__
+    )
     return wrapper
 
 
@@ -682,21 +676,16 @@ def _block_array_matmul_wrapper(func):
             if isinstance(other, BlockArray):
                 # Both blockarrays, work block by block
                 return BlockArray.array([func(x, y) for x, y in zip(self, other)])
-            else:
-                raise TypeError(
-                    f"Operation {func.__name__} not implemented between {type(self)} and {type(other)}"
-                )
-        else:
-            return func(self, other)
+            raise TypeError(
+                f"Operation {func.__name__} not implemented between {type(self)} and {type(other)}"
+            )
+        return func(self, other)
 
     if not hasattr(func, "__doc__") or func.__doc__ is None:
         return wrapper
-    else:
-        wrapper.__doc__ = (
-            f":func:`{func.__name__}` wrapped to operate on :class:`BlockArray`"
-            + "\n\n"
-            + func.__doc__
-        )
+    wrapper.__doc__ = (
+        f":func:`{func.__name__}` wrapped to operate on :class:`BlockArray`" + "\n\n" + func.__doc__
+    )
     return wrapper
 
 
@@ -711,41 +700,35 @@ def _block_array_binary_op_wrapper(func):
             if other.shape == self.shape:
                 # Same shape blocks, can operate on flattened arrays
                 return BlockArray.array_from_flattened(func(self._data, other._data), self.shape)
-            elif other.num_blocks == self.num_blocks:
+            if other.num_blocks == self.num_blocks:
                 # Will work as long as the shapes are broadcastable
                 return BlockArray.array([func(x, y) for x, y in zip(self, other)])
-            else:
-                raise ValueError(
-                    f"operation not valid on operands with shapes {self.shape}  {other.shape}"
-                )
-        elif any([isinstance(other, _) for _ in _arraylikes]):
+            raise ValueError(
+                f"operation not valid on operands with shapes {self.shape}  {other.shape}"
+            )
+        if any([isinstance(other, _) for _ in _arraylikes]):
             if other.size == 1:
                 # Same as operating on a scalar
                 return BlockArray.array_from_flattened(func(self._data, other), self.shape)
-            elif other.size == self.size:
+            if other.size == self.size:
                 # A little fast and loose, treat the block array as a length self.size vector
                 return BlockArray.array_from_flattened(func(self._data, other), self.shape)
-            elif other.size == self.num_blocks:
+            if other.size == self.num_blocks:
                 return BlockArray.array([func(blk, other_) for blk, other_ in zip(self, other)])
-            else:
-                raise ValueError(
-                    f"operation not valid on operands with shapes {self.shape}  {other.shape}"
-                )
-        elif jnp.isscalar(other) or isinstance(other, core.Tracer):
-            return BlockArray.array_from_flattened(func(self._data, other), self.shape)
-        else:
-            raise TypeError(
-                f"Operation {func.__name__} not implemented between {type(self)} and {type(other)}"
+            raise ValueError(
+                f"operation not valid on operands with shapes {self.shape}  {other.shape}"
             )
+        if jnp.isscalar(other) or isinstance(other, core.Tracer):
+            return BlockArray.array_from_flattened(func(self._data, other), self.shape)
+        raise TypeError(
+            f"Operation {func.__name__} not implemented between {type(self)} and {type(other)}"
+        )
 
     if not hasattr(func, "__doc__") or func.__doc__ is None:
         return wrapper
-    else:
-        wrapper.__doc__ = (
-            f":func:`{func.__name__}` wrapped to operate on :class:`BlockArray`"
-            + "\n\n"
-            + func.__doc__
-        )
+    wrapper.__doc__ = (
+        f":func:`{func.__name__}` wrapped to operate on :class:`BlockArray`" + "\n\n" + func.__doc__
+    )
     return wrapper
 
 
@@ -816,9 +799,9 @@ class BlockArray:
     def __getitem__(self, idx: Union[int, Ellipsis]) -> JaxArray:
         if isinstance(idx, slice):
             raise TypeError(f"Slicing not supported on block index")
-        elif idx == Ellipsis:
+        if idx == Ellipsis:
             return reshape(self._data, self.shape)
-        elif idx < 0:
+        if idx < 0:
             idx = self.num_blocks + idx
         return reshape(self._data[self.bndpos[idx] : self.bndpos[idx + 1]], self.shape[idx])
 
