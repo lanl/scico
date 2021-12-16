@@ -118,7 +118,7 @@ admm_unweighted = ADMM(
     x0=x0,
     maxiter=maxiter,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": max_inner_iter}),
-    itstat_options={"display": True, period: 10},
+    itstat_options={"display": True, "period": 10},
 )
 print(f"Solving on {device_info()}\n")
 admm_unweighted.solve()
@@ -148,7 +148,7 @@ admm_weighted = ADMM(
     maxiter=maxiter,
     x0=x0,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": max_inner_iter}),
-    itstat_options={"display": True, period: 10},
+    itstat_options={"display": True, "period": 10},
 )
 admm_weighted.solve()
 x_weighted = postprocess(admm_weighted.x)

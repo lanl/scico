@@ -166,7 +166,7 @@ solver = ADMM(
     C_list=[C0, C1, C2],
     rho_list=[ρ0, ρ1, ρ2],
     maxiter=maxiter,
-    itstat_options={"display": True, period: 10},
+    itstat_options={"display": True, "period": 10},
     x0=y_pad,
     subproblem_solver=CircularConvolveSolver(),
 )

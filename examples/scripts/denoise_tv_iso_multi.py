@@ -86,7 +86,7 @@ solver_admm = ADMM(
     x0=y,
     maxiter=200,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": 2}),
-    itstat_options={"display": True, period: 10},
+    itstat_options={"display": True, "period": 10},
 )
 print(f"Solving on {device_info()}\n")
 solver_admm.solve()
@@ -104,7 +104,7 @@ solver_ladmm = LinearizedADMM(
     nu=1e-1,
     x0=y,
     maxiter=200,
-    itstat_options={"display": True, period: 10},
+    itstat_options={"display": True, "period": 10},
 )
 solver_ladmm.solve()
 hist_ladmm = solver_ladmm.itstat_object.history(transpose=True)
@@ -120,7 +120,7 @@ solver_pdhg = PDHG(
     tau=4e-1,
     sigma=4e-1,
     maxiter=200,
-    itstat_options={"display": True, period: 10},
+    itstat_options={"display": True, "period": 10},
 )
 solver_pdhg.solve()
 hist_pdhg = solver_pdhg.itstat_object.history(transpose=True)
