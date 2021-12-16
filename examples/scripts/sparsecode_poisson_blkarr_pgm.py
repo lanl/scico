@@ -114,7 +114,10 @@ Define plotting functionality.
 
 def plot_results(hist, str_ss, L0, xsol, xgt, Aop):
     # Plot signal, coefficients and convergence statistics.
-    fig = plot.figure(figsize=(12, 6), tight_layout=True,)
+    fig = plot.figure(
+        figsize=(12, 6),
+        tight_layout=True,
+    )
     gs = gridspec.GridSpec(nrows=2, ncols=3)
 
     fig.suptitle(
@@ -124,17 +127,32 @@ def plot_results(hist, str_ss, L0, xsol, xgt, Aop):
 
     ax0 = fig.add_subplot(gs[0, 0])
     plot.plot(
-        hist.Objective, ptyp="semilogy", title="Objective", xlbl="Iteration", fig=fig, ax=ax0,
+        hist.Objective,
+        ptyp="semilogy",
+        title="Objective",
+        xlbl="Iteration",
+        fig=fig,
+        ax=ax0,
     )
 
     ax1 = fig.add_subplot(gs[0, 1])
     plot.plot(
-        hist.Residual, ptyp="semilogy", title="Residual", xlbl="Iteration", fig=fig, ax=ax1,
+        hist.Residual,
+        ptyp="semilogy",
+        title="Residual",
+        xlbl="Iteration",
+        fig=fig,
+        ax=ax1,
     )
 
     ax2 = fig.add_subplot(gs[0, 2])
     plot.plot(
-        hist.L, ptyp="semilogy", title="L", xlbl="Iteration", fig=fig, ax=ax2,
+        hist.L,
+        ptyp="semilogy",
+        title="L",
+        xlbl="Iteration",
+        fig=fig,
+        ax=ax2,
     )
 
     ax3 = fig.add_subplot(gs[1, 0])
@@ -165,7 +183,12 @@ L0 = (snp.linalg.norm(D0, 2) + snp.linalg.norm(D1, 2)) ** 2
 str_L0 = "(Estimation based on norm of Forward operator)"
 
 solver = AcceleratedPGM(
-    f=f, g=g, L0=L0, x0=x0, maxiter=maxiter, itstat_options={"display": True, "period": 10},
+    f=f,
+    g=g,
+    L0=L0,
+    x0=x0,
+    maxiter=maxiter,
+    itstat_options={"display": True, "period": 10},
 )
 str_ss = type(solver.step_size).__name__
 
