@@ -3,6 +3,7 @@
 import os
 import re
 import sys
+import types
 from ast import parse
 from inspect import getmembers, isfunction
 from unittest.mock import MagicMock
@@ -259,6 +260,7 @@ intersphinx_mapping = {
     "matplotlib": ("https://matplotlib.org/stable/", None),
     "jax": ("https://jax.readthedocs.io/en/latest/", None),
     "flax": ("https://flax.readthedocs.io/en/latest/", None),
+    "ray": ("https://docs.ray.io/en/latest/", None),
 }
 # Added timeout due to periodic scipy.org down time
 # intersphinx_timeout = 30
@@ -317,8 +319,7 @@ texinfo_documents = [
 
 
 if on_rtd:
-    print("Building on ReadTheDocs")
-    print
+    print("Building on ReadTheDocs\n")
     print("Current working directory: {}".format(os.path.abspath(os.curdir)))
     import numpy as np
 
@@ -328,6 +329,7 @@ if on_rtd:
     matplotlib.use("agg")
 
 
+# Mock modules to avoid installing them prior to building docs
 MOCK_MODULES = ["astra", "svmbir"]
 
 
@@ -338,6 +340,39 @@ class Mock(MagicMock):
 
 
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+
+# Avoid need to install ray; more complexity involved than modules above because
+# we need ray.tune.ExperimentAnalysis to have a __qualname__ attribute.
+def null_func():
+    pass
+
+
+module_name = "ray"
+module = types.ModuleType(module_name)
+sys.modules[module_name] = module
+
+module.put = null_func
+module.get = null_func
+
+module_name = "ray.tune"
+module = types.ModuleType(module_name)
+sys.modules[module_name] = module
+sys.modules["ray"].tune = module
+
+
+class ExperimentAnalysis:
+    pass
+
+
+# The intersphinx link does not work without this modification
+ExperimentAnalysis.__qualname__ = "~ray.tune.ExperimentAnalysis"
+
+module.ExperimentAnalysis = ExperimentAnalysis
+for func_name in ["loguniform", "report", "uniform"]:
+    setattr(module, func_name, null_func)
+
+for module_name in ["progress_reporter", "schedulers", "suggest", "suggest.hyperopt", "trial"]:
+    sys.modules["ray.tune." + module_name] = Mock()
 
 
 print("rootpath: %s" % rootpath)

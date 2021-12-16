@@ -40,19 +40,19 @@ __author__ = """\n""".join(
 )
 
 
-def device_info(id: int = 0) -> str:  # pragma: no cover
+def device_info(devid: int = 0) -> str:  # pragma: no cover
     """Get a string describing the specified device.
 
     Args:
-        id: ID number of device.
+        devid: ID number of device.
 
     Returns:
         Device description string.
     """
     numdev = jax.device_count()
-    if id >= numdev:
-        raise RuntimeError(f"Requested information for device {id} but only {numdev} present")
-    dev = jax.devices()[id]
+    if devid >= numdev:
+        raise RuntimeError(f"Requested information for device {devid} but only {numdev} present")
+    dev = jax.devices()[devid]
     if dev.platform == "cpu":
         info = "CPU"
     else:
@@ -84,9 +84,9 @@ def ensure_on_device(
     """
     arrays = list(arrays)
 
-    for i in range(len(arrays)):
+    for i, array in enumerate(arrays):
 
-        if isinstance(arrays[i], np.ndarray):
+        if isinstance(array, np.ndarray):
             warnings.warn(
                 f"Argument {i+1} of {len(arrays)} is an np.ndarray. "
                 f"Will cast it to DeviceArray. "
@@ -96,7 +96,7 @@ def ensure_on_device(
 
             arrays[i] = jax.device_put(arrays[i])
         elif not isinstance(
-            arrays[i],
+            array,
             (DeviceArray, scico.blockarray.BlockArray, ShardedDeviceArray),
         ):
             raise TypeError(
@@ -106,8 +106,7 @@ def ensure_on_device(
 
     if len(arrays) == 1:
         return arrays[0]
-    else:
-        return arrays
+    return arrays
 
 
 def url_get(url: str, maxtry: int = 3, timeout: int = 10) -> io.BytesIO:  # pragma: no cover
@@ -165,8 +164,7 @@ def parse_axes(
         if default is None:
             if shape is None:
                 raise ValueError("`axes` cannot be `None` without a default or shape specified.")
-            else:
-                axes = list(range(len(shape)))
+            axes = list(range(len(shape)))
         else:
             axes = default
     elif isinstance(axes, (list, tuple)):
@@ -179,7 +177,7 @@ def parse_axes(
         raise ValueError(
             f"Invalid axes {axes} specified; each axis must be less than `len(shape)`={len(shape)}."
         )
-    elif len(set(axes)) != len(axes):
+    if len(set(axes)) != len(axes):
         raise ValueError("Duplicate vaue in axes {axes}; each axis must be unique.")
     return axes
 
@@ -204,12 +202,8 @@ def is_nested(x: Any) -> bool:
 
     """
     if isinstance(x, (list, tuple)):
-        if any([isinstance(_, (list, tuple)) for _ in x]):
-            return True
-        else:
-            return False
-    else:
-        return False
+        return any([isinstance(_, (list, tuple)) for _ in x])
+    return False
 
 
 def check_for_tracer(func: Callable) -> Callable:
@@ -231,8 +225,7 @@ def check_for_tracer(func: Callable) -> Callable:
             raise TypeError(
                 f"BatchTracer found in {func.__name__};  did you vmap/pmap this function?"
             )
-        else:
-            return func(*args, **kwargs)
+        return func(*args, **kwargs)
 
     return wrapper
 
@@ -512,7 +505,7 @@ class ContextTimer:
             self.timer.stop(self.label)
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exc_type, exc_value, traceback):
         """Stop the timer and return True if no exception was raised
         within the 'with' block, otherwise return False.
         """
@@ -521,10 +514,7 @@ class ContextTimer:
             self.timer.stop(self.label)
         else:
             self.timer.start(self.label)
-        if type:
-            return False
-        else:
-            return True
+        return not exc_type
 
     def elapsed(self, total: bool = True) -> float:
         """Return the elapsed time for the timer.

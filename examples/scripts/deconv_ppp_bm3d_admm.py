@@ -9,7 +9,7 @@ Image Deconvolution (ADMM Plug-and-Play Priors w/ BM3D)
 =======================================================
 
 This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.admm.rst#scico.admm.ADMM) to solve
+[admm.ADMM](../_autosummary/scico.optimize.html#scico.optimize.ADMM) to solve
 an image deconvolution problem using the Plug-and-Play Priors
 framework :cite:`venkatakrishnan-2013-plugandplay2`, using BM3D
 :cite:`dabov-2008-image` as a denoiser.
@@ -23,7 +23,7 @@ from xdesign import Foam, discrete_phantom
 
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot, random
-from scico.admm import ADMM, LinearSubproblemSolver
+from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
 """
@@ -69,7 +69,7 @@ solver = ADMM(
     x0=A.T @ y,
     maxiter=maxiter,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": 100}),
-    verbose=True,
+    itstat_options={"display": True},
 )
 
 

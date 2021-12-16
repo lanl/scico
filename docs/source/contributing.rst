@@ -168,8 +168,10 @@ A feature development workflow might look like this:
 
 9.  Create a new pull request to the ``main`` branch; see `the GitHub instructions <https://docs.github.com/en/github/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request>`_.
 
+10. The SCICO maintainers will review and merge your PR.
+    The SCICO project favors the ``squash and merge`` option for merging PRs.
 
-10. Delete the branch after it has been merged.
+11. Delete the branch after it has been merged.
 
 
 Tests

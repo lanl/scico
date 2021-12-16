@@ -59,8 +59,8 @@ def prox_test(v, nrm, prx, alpha, x0=None):
     # Compare prox functional value with brute-force solution
     if pf < mf:
         return  # prox gave a lower cost than brute force, so it passes
-    else:
-        np.testing.assert_allclose(pf, mf, rtol=1e-6)
+
+    np.testing.assert_allclose(pf, mf, rtol=1e-6)
 
 
 class ProxTestObj:
@@ -310,9 +310,10 @@ def test_scalar_vmap():
     def foo(c):
         return (c * f)(x)
 
-    c_list = snp.array([1.0, 2.0, 3.0])
+    c_list = [1.0, 2.0, 3.0]
     non_vmap = np.array([foo(c) for c in c_list])
-    vmapped = jax.vmap(foo)(c_list)
+
+    vmapped = jax.vmap(foo)(snp.array(c_list))
     np.testing.assert_allclose(non_vmap, vmapped)
 
 
@@ -477,10 +478,6 @@ class TestBM3D:
 
 
 class TestDnCNN:
-    import os
-
-    os.environ["XLA_FLAGS"] = "--xla_gpu_deterministic_reductions --xla_gpu_autotune_level=0"
-
     def setup(self):
         key = None
         N = 32

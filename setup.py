@@ -6,7 +6,6 @@
 import os
 import os.path
 from ast import parse
-from builtins import filter, next
 
 from setuptools import find_packages, setup
 

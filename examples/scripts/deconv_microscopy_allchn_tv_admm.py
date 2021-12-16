@@ -14,7 +14,7 @@ using the [microscopy data](http://bigwww.epfl.ch/deconvolution/bio/)
 provided by the EPFL Biomedical Imaging Group.
 
 The deconvolution problem is solved using class
-[admm.ADMM](../_autosummary/scico.admm.rst#scico.admm.ADMM) to solve
+[admm.ADMM](../_autosummary/scico.optimize.html#scico.optimize.ADMM) to solve
 an image deconvolution problem with isotropic total variation (TV)
 regularization
 
@@ -39,11 +39,11 @@ import numpy as np
 import jax
 
 import imageio
-import ray
 
+import ray
 import scico.numpy as snp
 from scico import functional, linop, loss, plot, util
-from scico.admm import ADMM, CircularConvolveSolver
+from scico.optimize.admm import ADMM, CircularConvolveSolver
 
 """
 Define helper functions.
@@ -188,16 +188,16 @@ def deconvolve_channel(channel):
     g2 = functional.NonNegativeIndicator()  # non-negativity constraint
     if channel == 0:
         print("Displaying solver status for channel 0")
-        verbose = True
+        display = True
     else:
-        verbose = False
+        display = False
     solver = ADMM(
         f=None,
         g_list=[g0, g1, g2],
         C_list=[C0, C1, C2],
         rho_list=[ρ0, ρ1, ρ2],
         maxiter=maxiter,
-        verbose=verbose,
+        itstat_options={"display": display, "period": 10},
         x0=y_pad,
         subproblem_solver=CircularConvolveSolver(),
     )

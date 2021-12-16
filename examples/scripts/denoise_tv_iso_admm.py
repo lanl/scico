@@ -31,7 +31,7 @@ from xdesign import SiemensStar, discrete_phantom
 import scico.numpy as snp
 import scico.random
 from scico import functional, linop, loss, plot
-from scico.admm import ADMM, LinearSubproblemSolver
+from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
 """
@@ -70,13 +70,13 @@ solver = ADMM(
     x0=y,
     maxiter=100,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": 20}),
-    verbose=True,
+    itstat_options={"display": True, "period": 10},
 )
 
 print(f"Solving on {device_info()}\n")
 solver.solve()
 x_iso = solver.x
-
+print()
 
 """
 Denoise with anisotropic total variation for comparison.
@@ -93,11 +93,12 @@ solver = ADMM(
     x0=y,
     maxiter=100,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": 20}),
-    verbose=True,
+    itstat_options={"display": True, "period": 10},
 )
 
 solver.solve()
 x_aniso = solver.x
+print()
 
 
 """

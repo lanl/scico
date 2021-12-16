@@ -264,8 +264,8 @@ def plot(y, x=None, ptyp="plot", xlbl=None, ylbl=None, title=None, lgnd=None, lg
     else:
         pltln = pltmth(x, y, **kwargs)
 
-    ax.fmt_xdata = lambda x: "{: .2f}".format(x)
-    ax.fmt_ydata = lambda x: "{: .2f}".format(x)
+    ax.fmt_xdata = "{: .2f}".format
+    ax.fmt_ydata = "{: .2f}".format
 
     if title is not None:
         ax.set_title(title)
@@ -383,9 +383,9 @@ def surf(
         ax.contour(xg, yg, z, cntr, cmap=cmap, linewidths=2, linestyles="solid", offset=offset)
         ax.set_zlim(offset, ax.get_zlim()[1])
 
-    ax.fmt_xdata = lambda x: "{: .2f}".format(x)
-    ax.fmt_ydata = lambda x: "{: .2f}".format(x)
-    ax.fmt_zdata = lambda x: "{: .2f}".format(x)
+    ax.fmt_xdata = "{: .2f}".format
+    ax.fmt_ydata = "{: .2f}".format
+    ax.fmt_zdata = "{: .2f}".format
 
     if title is not None:
         ax.set_title(title)
@@ -523,13 +523,13 @@ def contour(
     )
 
     if xlog:
-        ax.fmt_xdata = lambda x: "{: .2e}".format(x)
+        ax.fmt_xdata = "{: .2e}".format
     else:
-        ax.fmt_xdata = lambda x: "{: .2f}".format(x)
+        ax.fmt_xdata = "{: .2f}".format
     if ylog:
-        ax.fmt_ydata = lambda x: "{: .2e}".format(x)
+        ax.fmt_ydata = "{: .2e}".format
     else:
-        ax.fmt_ydata = lambda x: "{: .2f}".format(x)
+        ax.fmt_ydata = "{: .2f}".format
 
     if title is not None:
         ax.set_title(title)
@@ -696,10 +696,8 @@ def imview(
             z = img[row, col]
             if imgd.ndim == 2:
                 return "x=%6.2f, y=%6.2f, z=%.2f" % (x, y, z)
-            else:
-                return "x=%6.2f, y=%6.2f, z=(%.2f,%.2f,%.2f)" % sum(((x,), (y,), tuple(z)), ())
-        else:
-            return "x=%.2f, y=%.2f" % (x, y)
+            return "x=%6.2f, y=%6.2f, z=(%.2f,%.2f,%.2f)" % sum(((x,), (y,), tuple(z)), ())
+        return "x=%.2f, y=%.2f" % (x, y)
 
     ax.format_coord = format_coord
 

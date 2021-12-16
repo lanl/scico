@@ -37,21 +37,21 @@ __author__ = """Luke Pfister <luke.pfister@gmail.com>"""
 def radial_transverse_frequency(
     input_shape: Shape, dx: Union[float, Tuple[float, ...]]
 ) -> np.ndarray:
-    """Construct radial Fourier coordinate system.
+    r"""Construct radial Fourier coordinate system.
 
     Args:
-        input_shape:  Tuple of length 1 or 2 containing the number of
-            samples per dimension
+        input_shape: Tuple of length 1 or 2 containing the number of
+            samples per dimension.
         dx: Sampling interval at source plane. If a float and
             `len(input_shape)==2` the same sampling interval is applied
-            to both dimensions.  If `dx` is a tuple, must have same
+            to both dimensions. If `dx` is a tuple, must have same
             length as `input_shape`.
 
     Returns:
-        If `len(input_shape)==1` returns an ndarray containing
+        If `len(input_shape)==1`, returns an ndarray containing
         corresponding Fourier coordinates.  If `len(input_shape) == 2`,
-        returns an ndarray containing the radial Fourier coordinates;
-        sqrt(kx^2 + ky^2).
+        returns an ndarray containing the radial Fourier coordinates
+        :math:`\sqrt{k_x^2 + k_y^2}\,`.
     """
 
     ndim = len(input_shape)  # 1 or 2 dimensions
@@ -95,7 +95,7 @@ class Propagator(LinearOperator):
                1 or 2.
             dx: Sampling interval at source plane. If a float and
                `len(input_shape)==2` the same sampling interval is
-               applied to both dimensions.  If `dx` is a tuple, must
+               applied to both dimensions. If `dx` is a tuple, must
                have same length as `input_shape`.
             k0: Illumination wavenumber; 2π/wavelength.
             z: Propagation distance.
@@ -171,7 +171,7 @@ class AngularSpectrumPropagator(Propagator):
         :math:`(x, y, z_0 + z)`.
 
         The action of this linear operator is given by
-        (Eq 3.74, :cite:`goodman-2005-fourier`):
+        (Eq 3.74, :cite:`goodman-2005-fourier`)
 
         .. math ::
             (A \mb{u})(x, y) = \iint_{-\infty}^{\infty}
@@ -228,7 +228,6 @@ class AngularSpectrumPropagator(Propagator):
             jit: If ``True``, call :meth:`.jit()` on this LinearOperator
                to jit the forward, adjoint, and gram functions.  Same as
                calling :meth:`.jit` after the LinearOperator is created.
-
         """
 
         # Diagonal operator; phase shifting
@@ -246,11 +245,11 @@ class AngularSpectrumPropagator(Propagator):
         if jit:
             self.jit()
 
-    def check_sampling(self):
+    def adequate_sampling(self):
         r"""Verify the angular spectrum kernel is not aliased.
 
-        Checks the condition for adequate sampling,
-        :cite:`voelz-2009-digital`
+        Checks the condition for adequate sampling
+        :cite:`voelz-2009-digital`,
 
         .. math ::
             (\Delta x)^2 \geq \frac{\pi}{k_0 N} \sqrt{ (\Delta x)^2 N^2
@@ -263,10 +262,7 @@ class AngularSpectrumPropagator(Propagator):
         tmp = []
         for d, N in zip(self.dx, self.padded_shape):
             tmp.append(d ** 2 > np.pi / (self.k0 * N) * np.sqrt(d ** 2 * N ** 2 + 4 * self.z ** 2))
-        if np.all(d):
-            return True
-        else:
-            return False
+        return np.all(tmp)
 
     def pinv(self, y):
         """Apply pseudoinverse of Angular Spectrum propagator."""
@@ -280,7 +276,7 @@ class FresnelPropagator(Propagator):
     Propagates a source field with coordinates :math:`(x, y, z_0)` to a
     destination plane at a distance :math:`z` with coordinates
     :math:`(x, y, z_0 + z)`. The action of this linear operator is given
-    by (Eq 4.20, :cite:`goodman-2005-fourier`):
+    by (Eq 4.20, :cite:`goodman-2005-fourier`)
 
     .. math ::
         (A \mb{u})(x, y) = e^{j k_0 z} \iint_{-\infty}^{\infty}
@@ -306,7 +302,6 @@ class FresnelPropagator(Propagator):
         D = \mathrm{diag}\left(\exp  \left\{ j
         \sqrt{k_0^2 - k_x^2 - k_y^2} \abs{z}
         \right\} \right) \;.
-
     """
 
     def __init__(
@@ -333,11 +328,11 @@ class FresnelPropagator(Propagator):
         if jit:
             self.jit()
 
-    def check_sampling(self):
+    def adequate_sampling(self):
         r"""Verify the Fraunhofer propagation kernel is not aliased.
 
-        Checks the condition for adequate sampling,
-        :cite:`voelz-2011-computational`
+        Checks the condition for adequate sampling
+        :cite:`voelz-2011-computational`,
 
         .. math ::
             (\Delta x)^2 \geq \frac{2 \pi z }{k_0 N} \;.
@@ -349,11 +344,8 @@ class FresnelPropagator(Propagator):
         """
         tmp = []
         for d, N in zip(self.dx, self.padded_shape):
-            tmp.append(d ** 2 > 2 * np.pi * z / (self.k0 * s))
-        if np.all(d):
-            return True
-        else:
-            return False
+            tmp.append(d ** 2 > 2 * np.pi * self.z / (self.k0 * N))
+        return np.all(tmp)
 
 
 class FraunhoferPropagator(LinearOperator):
@@ -366,7 +358,7 @@ class FraunhoferPropagator(LinearOperator):
         :math:`(x_D, y_D)`.
 
         The action of this linear operator is given by
-        (Eq 4.25, :cite:`goodman-2005-fourier`):
+        (Eq 4.25, :cite:`goodman-2005-fourier`)
 
         .. math ::
             (A \mb{u})(x_D, y_D) = \underbrace{\frac{k_0}{2 \pi}
@@ -428,12 +420,12 @@ class FraunhoferPropagator(LinearOperator):
         Args:
             input_shape: Shape of input plane. Must be length 1 or 2.
                The output plane will have the same number of samples.
-            dx:  Sampling interval at source plane. If a float and
+            dx: Sampling interval at source plane. If a float and
                `len(input_shape)==2` the same sampling interval is
-               applied to both dimensions.  If `dx` is a tuple, must have
+               applied to both dimensions. If `dx` is a tuple, must have
                same length as `input_shape`.
             k0: Illumination wavenumber;  2π/wavelength.
-            z: Propagation distance
+            z: Propagation distance.
             jit: If ``True``, jit the evaluation, adjoint, and gram
                 functions of this LinearOperator. Default: True.
         """
@@ -510,11 +502,11 @@ L_D         : {self.L_D}
         y = snp.fft.ifftshift(y)
         return y
 
-    def check_sampling(self):
+    def adequate_sampling(self):
         r"""Verify the Fraunhofer propagation kernel is not aliased.
 
-        Checks the condition for adequate sampling,
-        :cite:`voelz-2011-computational`
+        Checks the condition for adequate sampling
+        :cite:`voelz-2011-computational`,
 
         .. math ::
             \Delta x^2 \geq \frac{2 \pi z }{k_0 N} \;.
@@ -524,9 +516,6 @@ L_D         : {self.L_D}
              False otherwise.
         """
         tmp = []
-        for d, N in zip(self.dx, self.padded_shape):
-            tmp.append(d ** 2 > 2 * np.pi * z / (self.k0 * s))
-        if np.all(d):
-            return True
-        else:
-            return False
+        for d, N in zip(self.dx, self.input_shape):
+            tmp.append(d ** 2 > 2 * np.pi * self.z / (self.k0 * N))
+        return np.all(tmp)

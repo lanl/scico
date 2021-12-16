@@ -301,16 +301,16 @@ def test_shape(testobj):
     y = testobj.y
 
     with pytest.raises(ValueError):
-        Ao @ y
+        _ = Ao @ y
 
     with pytest.raises(ValueError):
-        Ao(y)
+        _ = Ao(y)
 
     with pytest.raises(ValueError):
-        Ao.T @ x
+        _ = Ao.T @ x
 
     with pytest.raises(ValueError):
-        Ao.adj(x)
+        _ = Ao.adj(x)
 
 
 class TestDiagonal:

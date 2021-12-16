@@ -61,14 +61,14 @@ def test_svd(compute_uv, full_matrices, shape):
 def test_cond():
     A = jax.device_put(np.random.randn(8, 8))
     Ao = MatrixOperator(A)
-    f = lambda x: sla.cond(x)
+    f = sla.cond
     check_results(f(A), f(Ao))
 
 
 def test_det():
     A = jax.device_put(np.random.randn(8, 8))
     Ao = MatrixOperator(A)
-    f = lambda x: sla.det(x)
+    f = sla.det
     check_results(f(A), f(Ao))
 
 
@@ -78,7 +78,7 @@ def test_det():
 def test_eig():
     A = jax.device_put(np.random.randn(8, 8))
     Ao = MatrixOperator(A)
-    f = lambda x: sla.eig(x)
+    f = sla.eig
     check_results(f(A), f(Ao))
 
 
@@ -98,7 +98,7 @@ def test_eigh(UPLO, symmetrize):
 def test_eigvals():
     A = jax.device_put(np.random.randn(8, 8))
     Ao = MatrixOperator(A)
-    f = lambda x: sla.eigvals(x)
+    f = sla.eigvals
     check_results(f(A), f(Ao))
 
 
@@ -114,7 +114,7 @@ def test_eigvalsh(UPLO):
 def test_inv():
     A = jax.device_put(np.random.randn(8, 8))
     Ao = MatrixOperator(A)
-    f = lambda x: sla.inv(x)
+    f = sla.inv
     check_results(f(A), f(Ao))
 
 
@@ -144,7 +144,7 @@ def test_matrixrank():
 def test_pinv(rcond):
     A = jax.device_put(np.random.randn(8, 8))
     Ao = MatrixOperator(A)
-    f = lambda A: sla.pinv(A)
+    f = sla.pinv
     check_results(f(A), f(Ao))
 
 
@@ -152,7 +152,7 @@ def test_pinv(rcond):
 def test_pinv(rcond):
     A = jax.device_put(np.random.randn(8, 8))
     Ao = MatrixOperator(A)
-    f = lambda A: sla.pinv(A)
+    f = sla.pinv
     check_results(f(A), f(Ao))
 
 
@@ -168,7 +168,7 @@ def test_qr(shape, mode):
 def test_slogdet():
     A = jax.device_put(np.random.randn(8, 8))
     Ao = MatrixOperator(A)
-    f = lambda A: sla.slogdet(A)
+    f = sla.slogdet
     check_results(f(A), f(Ao))
 
 
@@ -185,7 +185,7 @@ def test_multi_dot():
     B = jax.device_put(np.random.randn(8, 4))
     Ao = MatrixOperator(A)
     Bo = MatrixOperator(B)
-    f = lambda x: sla.multi_dot(x)
+    f = sla.multi_dot
     check_results(f([A, B]), f([Ao, Bo]))
 
 

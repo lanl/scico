@@ -9,7 +9,7 @@ Low-Dose CT (ADMM w/ Total Variation)
 =====================================
 
 This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.admm.rst#scico.admm.ADMM) to solve a
+[admm.ADMM](../_autosummary/scico.optimize.html#scico.optimize.ADMM) to solve a
 low-dose CT reconstruction problem with anisotropic total variation
 (TV) regularization.
 
@@ -32,8 +32,8 @@ from xdesign import Soil, discrete_phantom
 
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot
-from scico.admm import ADMM, LinearSubproblemSolver
 from scico.linop.radon_astra import ParallelBeamProjector
+from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
 """
@@ -118,7 +118,7 @@ admm_unweighted = ADMM(
     x0=x0,
     maxiter=maxiter,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": max_inner_iter}),
-    verbose=True,
+    itstat_options={"display": True, "period": 10},
 )
 print(f"Solving on {device_info()}\n")
 admm_unweighted.solve()
@@ -148,7 +148,7 @@ admm_weighted = ADMM(
     maxiter=maxiter,
     x0=x0,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": max_inner_iter}),
-    verbose=True,
+    itstat_options={"display": True, "period": 10},
 )
 admm_weighted.solve()
 x_weighted = postprocess(admm_weighted.x)

@@ -24,8 +24,8 @@ import scico
 import scico.numpy as snp
 import scico.random
 from scico import functional, linop, loss, metric, plot
-from scico.admm import ADMM, LinearSubproblemSolver
 from scico.data import kodim23
+from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
 """
@@ -115,7 +115,7 @@ solver = ADMM(
     x0=imgb,
     maxiter=maxiter,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": 100}),
-    verbose=True,
+    itstat_options={"display": True},
 )
 
 

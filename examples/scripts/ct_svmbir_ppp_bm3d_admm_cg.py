@@ -9,7 +9,7 @@ CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+CG)
 ================================================================
 
 This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.admm.rst#scico.admm.ADMM) to solve a
+[admm.ADMM](../_autosummary/scico.optimize.html#scico.optimize.ADMM) to solve a
 tomographic reconstruction problem using the Plug-and-Play Priors framework
 :cite:`venkatakrishnan-2013-plugandplay2`, using BM3D :cite:`dabov-2008-image`
 as a denoiser and SVMBIR :cite:`svmbir-2020` for tomographic projection.
@@ -29,10 +29,10 @@ from xdesign import Foam, discrete_phantom
 
 import scico.numpy as snp
 from scico import metric, plot
-from scico.admm import ADMM, LinearSubproblemSolver
 from scico.functional import BM3D, NonNegativeIndicator
 from scico.linop import Diagonal, Identity
 from scico.linop.radon_svmbir import ParallelBeamProjector, SVMBIRWeightedSquaredL2Loss
+from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
 """
@@ -103,7 +103,7 @@ solver = ADMM(
     x0=x0,
     maxiter=20,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": 100}),
-    verbose=True,
+    itstat_options={"display": True, "period": 1},
 )
 
 

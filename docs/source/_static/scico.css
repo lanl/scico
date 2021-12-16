@@ -61,15 +61,15 @@ dl.citation {
 
 dl.citation > dt {
   background-color: #ffffff !important;
-  border-top: 0px !important;
-  margin: 0 0 0 0 !important;
+  border-top: 0 !important;
+  margin: 0 !important;
   grid-column-start: 1;
   width: 2em;
 }
 
 dl.citation > dd {
-  padding-bottom: 0px !important;
-  margin-bottom: 0px !important;
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
   margin-left: 5px !important;
   grid-column-start: 2;
 }

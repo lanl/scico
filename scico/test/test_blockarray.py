@@ -1,3 +1,4 @@
+import itertools
 import operator as op
 
 import numpy as np
@@ -289,7 +290,6 @@ reduction_funcs = [
     snp.sum,
     snp.linalg.norm,
     snp.mean,
-    snp.median,
     snp.var,
     snp.max,
     snp.min,
@@ -297,6 +297,10 @@ reduction_funcs = [
     snp.amax,
     snp.all,
     snp.any,
+]
+
+real_reduction_funcs = [
+    snp.median,
 ]
 
 
@@ -316,94 +320,107 @@ class BlockArrayReductionObj:
         self.c = ba.BlockArray.array((c0, c1), dtype=dtype)
 
 
-@pytest.fixture(scope="module", params=[np.float32, np.complex64])
-def test_reduction_obj(request):
+@pytest.fixture(scope="module")  # so that random objects are cached
+def reduction_obj(request):
     yield BlockArrayReductionObj(request.param)
 
 
-@pytest.mark.parametrize("func", reduction_funcs)
-def test_reduce(test_reduction_obj, func):
-    x = func(test_reduction_obj.a)
-    x_jit = jax.jit(func)(test_reduction_obj.a)
-    y = func(test_reduction_obj.a.ravel())
+REDUCTION_PARAMS = dict(
+    argnames="reduction_obj, func",
+    argvalues=(
+        list(zip(itertools.repeat(np.float32), reduction_funcs))
+        + list(zip(itertools.repeat(np.complex64), reduction_funcs))
+        + list(zip(itertools.repeat(np.float32), real_reduction_funcs))
+    ),
+    indirect=["reduction_obj"],
+)
+
+
+@pytest.mark.parametrize(**REDUCTION_PARAMS)
+def test_reduce(reduction_obj, func):
+    x = func(reduction_obj.a)
+    x_jit = jax.jit(func)(reduction_obj.a)
+    y = func(reduction_obj.a.ravel())
     np.testing.assert_allclose(x, x_jit, rtol=1e-4)  # test jitted function
     np.testing.assert_allclose(x, y)  # test for correctness
 
 
-@pytest.mark.parametrize("func", reduction_funcs)
-def test_reduce_axis0(test_reduction_obj, func):
-
+@pytest.mark.parametrize(**REDUCTION_PARAMS)
+def test_reduce_axis0(reduction_obj, func):
     f = lambda x: func(x, axis=0)
-    x = f(test_reduction_obj.b)
-    x_jit = jax.jit(f)(test_reduction_obj.b)
+    x = f(reduction_obj.b)
+    x_jit = jax.jit(f)(reduction_obj.b)
 
     np.testing.assert_allclose(x, x_jit, rtol=1e-4)  # test jitted function
 
     # test for correctness
     # stack into a (2, 3, 4) array, call func
-    y = func(np.stack(list(test_reduction_obj.b)), axis=0)
+    y = func(np.stack(list(reduction_obj.b)), axis=0)
     np.testing.assert_allclose(x, y)
 
     with pytest.raises(ValueError):
         # Reduction along axis=0 only works if all blocks are same shape
-        func(test_reduction_obj.a, axis=0)
+        func(reduction_obj.a, axis=0)
 
 
-@pytest.mark.parametrize("func", reduction_funcs)
-def test_reduce_axis1(test_reduction_obj, func):
+@pytest.mark.parametrize(**REDUCTION_PARAMS)
+def test_reduce_axis1(reduction_obj, func):
+    """this is _not_ duplicated from test_reduce_axis0"""
     f = lambda x: func(x, axis=1).ravel()
-    x = f(test_reduction_obj.a)
-    x_jit = jax.jit(f)(test_reduction_obj.a)
+    x = f(reduction_obj.a)
+    x_jit = jax.jit(f)(reduction_obj.a)
 
     np.testing.assert_allclose(x, x_jit, rtol=1e-4)  # test jitted function
 
     # test for correctness
-    y0 = func(test_reduction_obj.a[0], axis=0)
-    y1 = func(test_reduction_obj.a[1], axis=0)
-    y = ba.BlockArray.array((y0, y1), dtype=test_reduction_obj.a[0].dtype).ravel()
+    y0 = func(reduction_obj.a[0], axis=0)
+    y1 = func(reduction_obj.a[1], axis=0)
+    y = ba.BlockArray.array((y0, y1), dtype=reduction_obj.a[0].dtype).ravel()
     np.testing.assert_allclose(x, y)
 
 
-@pytest.mark.parametrize("func", reduction_funcs)
-def test_reduce_axis2(test_reduction_obj, func):
+@pytest.mark.parametrize(**REDUCTION_PARAMS)
+def test_reduce_axis2(reduction_obj, func):
+    """this is _not_ duplicated from test_reduce_axis0"""
     f = lambda x: func(x, axis=2).ravel()
-    x = f(test_reduction_obj.a)
-    x_jit = jax.jit(f)(test_reduction_obj.a)
+    x = f(reduction_obj.a)
+    x_jit = jax.jit(f)(reduction_obj.a)
 
     np.testing.assert_allclose(x, x_jit, rtol=1e-4)  # test jitted function
 
-    y0 = func(test_reduction_obj.a[0], axis=1)
-    y1 = func(test_reduction_obj.a[1], axis=1)
-    y = ba.BlockArray.array((y0, y1), dtype=test_reduction_obj.a[0].dtype).ravel()
+    y0 = func(reduction_obj.a[0], axis=1)
+    y1 = func(reduction_obj.a[1], axis=1)
+    y = ba.BlockArray.array((y0, y1), dtype=reduction_obj.a[0].dtype).ravel()
     np.testing.assert_allclose(x, y)
 
 
-@pytest.mark.parametrize("func", reduction_funcs)
-def test_reduce_axis3(test_reduction_obj, func):
+@pytest.mark.parametrize(**REDUCTION_PARAMS)
+def test_reduce_axis3(reduction_obj, func):
+    """this is _not_ duplicated from test_reduce_axis0"""
     f = lambda x: func(x, axis=3).ravel()
-    x = f(test_reduction_obj.a)
-    x_jit = jax.jit(f)(test_reduction_obj.a)
+    x = f(reduction_obj.a)
+    x_jit = jax.jit(f)(reduction_obj.a)
 
     np.testing.assert_allclose(x, x_jit, rtol=1e-4)  # test jitted function
 
-    y0 = test_reduction_obj.a[0]
-    y1 = func(test_reduction_obj.a[1], axis=2)
-    y = ba.BlockArray.array((y0, y1), dtype=test_reduction_obj.a[0].dtype).ravel()
+    y0 = reduction_obj.a[0]
+    y1 = func(reduction_obj.a[1], axis=2)
+    y = ba.BlockArray.array((y0, y1), dtype=reduction_obj.a[0].dtype).ravel()
     np.testing.assert_allclose(x.ravel(), y)
 
 
-@pytest.mark.parametrize("func", reduction_funcs)
-def test_reduce_singleton(test_reduction_obj, func):
+@pytest.mark.parametrize(**REDUCTION_PARAMS)
+def test_reduce_singleton(reduction_obj, func):
     # Case where a block is reduced to a singleton
     f = lambda x: func(x, axis=1).ravel()
-    x = f(test_reduction_obj.c)
-    x_jit = jax.jit(f)(test_reduction_obj.c)
+    x = f(reduction_obj.c)
+    x_jit = jax.jit(f)(reduction_obj.c)
 
     np.testing.assert_allclose(x, x_jit, rtol=1e-4)  # test jitted function
 
-    y0 = func(test_reduction_obj.c[0], axis=0)
-    y1 = func(test_reduction_obj.c[1], axis=0)[None]  # Ensure size (1,)
-    y = ba.BlockArray.array((y0, y1), dtype=test_reduction_obj.a[0].dtype).ravel()
+    y0 = func(reduction_obj.c[0], axis=0)
+    y1 = func(reduction_obj.c[1], axis=0)[None]  # Ensure size (1,)
+    y = ba.BlockArray.array((y0, y1), dtype=reduction_obj.a[0].dtype).ravel()
     np.testing.assert_allclose(x, y)
 
 
@@ -470,17 +487,18 @@ class NestedTestObj:
         self.a = ba.BlockArray.array(((self.a00, self.a01), self.a1))
 
 
-@pytest.fixture(scope="module", params=[np.float32, np.complex64])
-def test_nested_obj(request):
+@pytest.fixture(scope="module")
+def nested_obj(request):
     yield NestedTestObj(request.param)
 
 
-def test_nested_shape(test_nested_obj):
-    a = test_nested_obj.a
+@pytest.mark.parametrize("nested_obj", [np.float32, np.complex64], indirect=True)
+def test_nested_shape(nested_obj):
+    a = nested_obj.a
 
-    a00 = test_nested_obj.a00
-    a01 = test_nested_obj.a01
-    a1 = test_nested_obj.a1
+    a00 = nested_obj.a00
+    a01 = nested_obj.a01
+    a1 = nested_obj.a1
 
     assert a.shape == (((2, 2, 2), (3, 2, 4)), (2, 4))
     assert a.size == 2 * 2 * 2 + 3 * 2 * 4 + 2 * 4
@@ -496,26 +514,37 @@ def test_nested_shape(test_nested_obj):
     assert ba.block_sizes(a.shape) == (a[0].size, a[1].size)
 
 
-@pytest.mark.parametrize("func", reduction_funcs)
-def test_nested_reduce_singleton(test_nested_obj, func):
-    a = test_nested_obj.a
+NESTED_REDUCTION_PARAMS = dict(
+    argnames="nested_obj, func",
+    argvalues=(
+        list(zip(itertools.repeat(np.float32), reduction_funcs))
+        + list(zip(itertools.repeat(np.complex64), reduction_funcs))
+        + list(zip(itertools.repeat(np.float32), real_reduction_funcs))
+    ),
+    indirect=["nested_obj"],
+)
+
+
+@pytest.mark.parametrize(**NESTED_REDUCTION_PARAMS)
+def test_nested_reduce_singleton(nested_obj, func):
+    a = nested_obj.a
     x = func(a)
     y = func(a.ravel())
     np.testing.assert_allclose(x, y, rtol=5e-5)
 
 
-@pytest.mark.parametrize("func", reduction_funcs)
-def test_nested_reduce_axis1(test_nested_obj, func):
-    a = test_nested_obj.a
+@pytest.mark.parametrize(**NESTED_REDUCTION_PARAMS)
+def test_nested_reduce_axis1(nested_obj, func):
+    a = nested_obj.a
 
     with pytest.raises(ValueError):
         # Blocks don't conform!
         x = func(a, axis=1)
 
 
-@pytest.mark.parametrize("func", reduction_funcs)
-def test_nested_reduce_axis2(test_nested_obj, func):
-    a = test_nested_obj.a
+@pytest.mark.parametrize(**NESTED_REDUCTION_PARAMS)
+def test_nested_reduce_axis2(nested_obj, func):
+    a = nested_obj.a
 
     x = func(a, axis=2)
     assert x.shape == (((2, 2), (2, 4)), (2,))
@@ -526,9 +555,9 @@ def test_nested_reduce_axis2(test_nested_obj, func):
     np.testing.assert_allclose(x.ravel(), y.ravel(), rtol=5e-5)
 
 
-@pytest.mark.parametrize("func", reduction_funcs)
-def test_nested_reduce_axis3(test_nested_obj, func):
-    a = test_nested_obj.a
+@pytest.mark.parametrize(**NESTED_REDUCTION_PARAMS)
+def test_nested_reduce_axis3(nested_obj, func):
+    a = nested_obj.a
 
     x = func(a, axis=3)
     assert x.shape == (((2, 2), (3, 4)), (2, 4))

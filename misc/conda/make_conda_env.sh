@@ -14,7 +14,7 @@
 # Run with -h flag for usage information
 set -e  # exit when any command fails
 
-SCRIPT=`basename $0`
+SCRIPT=$(basename $0)
 USAGE=$(cat <<-EOF
 Usage: $SCRIPT [-h] [-y] [-g] [-p python_version] [-c cuda_version]
        [-e env_name] [-j jaxlib_url]
@@ -34,7 +34,7 @@ GPU=no
 CUVER=""
 JLVER="0.1.71"
 PYVER="3.8"
-ENVNM=py`echo $PYVER | sed -e 's/\.//g'`
+ENVNM=py$(echo $PYVER | sed -e 's/\.//g')
 
 # Project requirements files
 REQUIRE=$(cat <<-EOF
@@ -54,31 +54,29 @@ EOF
 
 OPTIND=1
 while getopts ":hygc:p:e:j:" opt; do
-  case $opt in
-      c|p|e|j) if [ -z "$OPTARG" -o "${OPTARG:0:1}" = "-" ] ; then
-           echo "Error: option -$opt requires an argument" >&2
+    case $opt in
+	c|p|e|j) if [ -z "$OPTARG" ] || [ "${OPTARG:0:1}" = "-" ] ; then
+		     echo "Error: option -$opt requires an argument" >&2
+		     echo "$USAGE" >&2
+		     exit 1
+		 fi
+		 ;;&
+	h) echo "$USAGE"; exit 0;;
+	y) AGREE=yes;;
+	g) GPU=yes;;
+	c) CUVER=$OPTARG;;
+	p) PYVER=$OPTARG;;
+	e) ENVNM=$OPTARG;;
+	j) JAXURL=$OPTARG;;
+	:) echo "Error: option -$OPTARG requires an argument" >&2
 	   echo "$USAGE" >&2
-           exit 1
-       fi
+	   exit 1
+	   ;;
+	\?) echo "Error: invalid option -$OPTARG" >&2
+	    echo "$USAGE" >&2
+	    exit 1
+	    ;;
   esac
-  case $opt in
-    h) echo "$USAGE"; exit 0;;
-    y) AGREE=yes;;
-    g) GPU=yes;;
-    c) CUVER=$OPTARG;;
-    p) PYVER=$OPTARG;;
-    e) ENVNM=$OPTARG;;
-    j) JAXURL=$OPTARG;;
-    :) echo "Error: option -$OPTARG requires an argument" >&2
-       echo "$USAGE" >&2
-       exit 1
-       ;;
-   \?) echo "Error: invalid option -$OPTARG" >&2
-       echo "$USAGE" >&2
-       exit 1
-       ;;
-  esac
-
 done
 
 shift $((OPTIND-1))
@@ -88,46 +86,46 @@ if [ ! $# -eq 0 ] ; then
     exit 1
 fi
 
-if [ ! "`which conda 2>/dev/null`" ]; then
+if [ ! "$(which conda 2>/dev/null)" ]; then
     echo "Error: conda command required but not found" >&2
     exit 2
 fi
 
 # Not available on BSD systems such as OSX: install via MacPorts etc.
-if [ ! "`which realpath 2>/dev/null`" ]; then
+if [ ! "$(which realpath 2>/dev/null)" ]; then
     echo "Error: realpath command required but not found" >&2
     exit 3
 fi
 
-OS=`uname -a | cut -d ' ' -f 1`
+OS=$(uname -a | cut -d ' ' -f 1)
 case "$OS" in
-    Linux)    SOURCEURL=$URLROOT$INSTLINUX; SED=sed;;
-    Darwin)   SOURCEURL=$URLROOT$INSTMACOSX; SED=gsed;;
+    Linux)    SOURCEURL=$URLROOT$INSTLINUX; SED="sed";;
+    Darwin)   SOURCEURL=$URLROOT$INSTMACOSX; SED="gsed";;
     *)        echo "Error: unsupported operating system $OS" >&2; exit 4;;
 esac
-if [ "$OS" == "Darwin" -a "$GPU" == yes ]; then
+if [ "$OS" == "Darwin" ] && [ "$GPU" == yes ]; then
     echo "Error: GPU-enabled jaxlib installation not supported under OSX" >&2
     exit 5
 fi
 if [ "$OS" == "Darwin" ]; then
-    if [ ! "`which gsed 2>/dev/null`" ]; then
+    if [ ! "$(which gsed 2>/dev/null)" ]; then
 	echo "Error: gsed command required but not found" >&2
 	exit 6
     fi
 fi
 
-if [ "$GPU" == "yes" -a "$CUVER" == "" ]; then
-    if [ "`which nvcc`" == "" ]; then
+if [ "$GPU" == "yes" ] && [ "$CUVER" == "" ]; then
+    if [ "$(which nvcc)" == "" ]; then
 	echo "Error: GPU-enabled jaxlib requested but CUDA version not"\
 	     "specified and could not be automatically determined" >&2
 	exit 7
     else
-	CUVER=`nvcc --version | grep -o 'release [0-9][0-9]*\.[[0-9][0-9]*' \
-                              | sed -e 's/release //' -e 's/\.//'`
+	CUVER=$(nvcc --version | grep -o 'release [0-9][0-9]*\.[[0-9][0-9]*' \
+                              | sed -e 's/release //' -e 's/\.//')
     fi
 fi
 
-CONDAHOME=`conda info --base`
+CONDAHOME=$(conda info --base)
 ENVDIR=$CONDAHOME/envs/$ENVNM
 if [ -d "$ENVDIR" ]; then
     echo "Error: environment $ENVNM already exists"
@@ -138,7 +136,7 @@ if [ "$AGREE" == "no" ]; then
     RSTR="Confirm creation of conda environment $ENVNM with Python $PYVER"
     RSTR="$RSTR [y/N] "
     read -r -p "$RSTR" CNFRM
-    if [ "$CNFRM" != 'y' -a "$CNFRM" != 'Y' ]; then
+    if [ "$CNFRM" != 'y' ] && [ "$CNFRM" != 'Y' ]; then
 	echo "Cancelling environment creation"
 	exit 9
     fi
@@ -201,7 +199,7 @@ conda install $CONDA_FLAGS $CONDAREQ ipython
 # Utility ffmpeg is required by imageio for reading mp4 video files
 # it can also be installed via the system package manager, .e.g.
 #    sudo apt install ffmpeg
-if [ "`which ffmpeg`" = '' ]; then
+if [ "$(which ffmpeg)" = '' ]; then
     conda install $CONDA_FLAGS ffmpeg
 fi
 

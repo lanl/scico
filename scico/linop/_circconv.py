@@ -193,27 +193,27 @@ class CircularConvolve(LinearOperator):
     def __add__(self, other):
         if self.ndims != other.ndims:
             raise ValueError(f"Incompatible ndims:  {self.ndims} != {other.ndims}")
-        else:
-            return CircularConvolve(
-                h=self.h_dft + other.h_dft,
-                input_shape=self.input_shape,
-                input_dtype=result_type(self.input_dtype, other.input_dtype),
-                ndims=self.ndims,
-                h_is_dft=True,
-            )
+
+        return CircularConvolve(
+            h=self.h_dft + other.h_dft,
+            input_shape=self.input_shape,
+            input_dtype=result_type(self.input_dtype, other.input_dtype),
+            ndims=self.ndims,
+            h_is_dft=True,
+        )
 
     @partial(_wrap_add_sub, op=operator.sub)
     def __sub__(self, other):
         if self.ndims != other.ndims:
             raise ValueError(f"Incompatible ndims:  {self.ndims} != {other.ndims}")
-        else:
-            return CircularConvolve(
-                h=self.h_dft - other.h_dft,
-                input_shape=self.input_shape,
-                input_dtype=result_type(self.input_dtype, other.input_dtype),
-                ndims=self.ndims,
-                h_is_dft=True,
-            )
+
+        return CircularConvolve(
+            h=self.h_dft - other.h_dft,
+            input_shape=self.input_shape,
+            input_dtype=result_type(self.input_dtype, other.input_dtype),
+            ndims=self.ndims,
+            h_is_dft=True,
+        )
 
     @_wrap_mul_div_scalar
     def __mul__(self, scalar):
