@@ -187,9 +187,10 @@ for spath in scripts:
 
 # Run relevant notebooks if no excecution flag not specified and notebooks list is not empty
 if not args.no_exec and notebooks:
+    nproc = len(notebooks)
 
-    # Execute notebooks serially if not requested to avoid use of ray
-    if args.no_ray:
+    # Execute notebooks serially if requested to avoid use of ray, or if only one notebook
+    if args.no_ray or nproc < 2:
 
         for nbfile in notebooks:
             execute_notebook(nbfile)
@@ -198,7 +199,6 @@ if not args.no_exec and notebooks:
     else:
         ray.init()
 
-        nproc = len(notebooks)
         ngpu = 0
         ar = ray.available_resources()
         ncpu = max(int(ar["CPU"]) // nproc, 1)
