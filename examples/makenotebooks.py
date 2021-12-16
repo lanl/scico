@@ -11,10 +11,12 @@
 import argparse
 import os
 import re
+import signal
 from pathlib import Path
 from timeit import default_timer as timer
 
 import nbformat
+import psutil
 from nbconvert.preprocessors import CellExecutionError, ExecutePreprocessor
 from py2jn.tools import py_string_to_notebook, write_notebook
 
@@ -218,3 +220,8 @@ if not args.no_exec and notebooks:
             for ref in objrefs:
                 ray.cancel(ref, force=True)
             ray.shutdown()
+            # Clean up sub-processes not ended by ray.cancel
+            process = psutil.Process()
+            children = process.children(recursive=True)
+            for child in children:
+                os.kill(child.pid, signal.SIGTERM)
