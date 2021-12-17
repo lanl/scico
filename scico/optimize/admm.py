@@ -323,6 +323,14 @@ class CircularConvolveSolver(LinearSubproblemSolver):
         return x
 
 
+class AdaptivePenaltyParameter:
+    """Base class for adaptive penalty parameter methods."""
+
+    def new_rho(self, admm_obj):
+        """Estimate a new penalty parameter value based on current state."""
+        return admm_obj.rho_list
+
+
 class ADMM:
     r"""Basic Alternating Direction Method of Multipliers (ADMM) algorithm.
 
@@ -397,6 +405,7 @@ class ADMM:
         x0: Optional[Union[JaxArray, BlockArray]] = None,
         maxiter: int = 100,
         subproblem_solver: Optional[SubproblemSolver] = None,
+        rho_updater: Optional[AdaptivePenaltyParameter] = None,
         itstat_options: Optional[dict] = None,
     ):
         r"""Initialize an :class:`ADMM` object.
