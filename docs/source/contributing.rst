@@ -82,14 +82,20 @@ Installing a Development Version
       pip install -e .  # Installs SCICO from the current directory in editable mode
 
 
-9. The SCICO project uses the `Black <https://black.readthedocs.io/en/stable/>`_
+9. The SCICO project uses the `black <https://black.readthedocs.io/en/stable/>`_
    and `isort <https://pypi.org/project/isort/>`_ code formatting utilities.
-   You should set up a `pre-commit hook <https://pre-commit.com>`_ to ensure
-   any modified code passes format check before it is committed to the development repo:
+   It is important to set up a `pre-commit hook <https://pre-commit.com>`_ to
+   ensure that any modified code passes format check before it is committed to
+   the development repo:
 
    ::
 
       pre-commit install  # Sets up git pre-commit hooks
+
+   It is also recommended to `pin the conda package version
+   <https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-pkgs.html#preventing-packages-from-updating-pinning>`__
+   of `black <https://black.readthedocs.io/en/stable/>`_ to the version
+   number specified in ``dev_requirements.txt``.
 
 
 10. For testing see `Tests`_.
