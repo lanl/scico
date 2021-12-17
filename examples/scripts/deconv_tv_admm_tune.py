@@ -8,7 +8,7 @@ import scico.numpy as snp
 import scico.random
 import scico.ray as ray
 from scico import functional, linop, loss, metric, plot
-from scico.admm import ADMM, LinearSubproblemSolver
+from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.ray import tune
 
 """

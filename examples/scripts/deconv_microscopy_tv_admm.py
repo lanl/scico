@@ -14,8 +14,8 @@ using the [microscopy data](http://bigwww.epfl.ch/deconvolution/bio/)
 provided by the EPFL Biomedical Imaging Group.
 
 The deconvolution problem is solved using class
-[admm.ADMM](../_autosummary/scico.optimize.html#scico.optimize.ADMM) to solve
-an image deconvolution problem with isotropic total variation (TV)
+[admm.ADMM](../_autosummary/scico.optimize.html#scico.optimize.ADMM) to
+solve an image deconvolution problem with isotropic total variation (TV)
 regularization
 
   $$\mathrm{argmin}_{\mathbf{x}} \; \| M (\mathbf{y} - A \mathbf{x})
@@ -166,7 +166,7 @@ solver = ADMM(
     C_list=[C0, C1, C2],
     rho_list=[ρ0, ρ1, ρ2],
     maxiter=maxiter,
-    itstat_options={"display": True, period: 10},
+    itstat_options={"display": True, "period": 10},
     x0=y_pad,
     subproblem_solver=CircularConvolveSolver(),
 )

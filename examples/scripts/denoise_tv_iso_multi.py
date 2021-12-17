@@ -71,7 +71,7 @@ solver_admm = ADMM(
     maxiter=1,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": 1}),
 )
-solver_admm.solve()
+solver_admm.solve();  # fmt: skip
 # trailing semi-colon suppresses output in notebook
 
 
@@ -86,7 +86,7 @@ solver_admm = ADMM(
     x0=y,
     maxiter=200,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": 2}),
-    itstat_options={"display": True, period: 10},
+    itstat_options={"display": True, "period": 10},
 )
 print(f"Solving on {device_info()}\n")
 solver_admm.solve()
@@ -104,7 +104,7 @@ solver_ladmm = LinearizedADMM(
     nu=1e-1,
     x0=y,
     maxiter=200,
-    itstat_options={"display": True, period: 10},
+    itstat_options={"display": True, "period": 10},
 )
 solver_ladmm.solve()
 hist_ladmm = solver_ladmm.itstat_object.history(transpose=True)
@@ -120,7 +120,7 @@ solver_pdhg = PDHG(
     tau=4e-1,
     sigma=4e-1,
     maxiter=200,
-    itstat_options={"display": True, period: 10},
+    itstat_options={"display": True, "period": 10},
 )
 solver_pdhg.solve()
 hist_pdhg = solver_pdhg.itstat_object.history(transpose=True)
@@ -128,12 +128,13 @@ hist_pdhg = solver_pdhg.itstat_object.history(transpose=True)
 
 """
 Plot results. It is worth noting that:
-- PDHG outperforms ADMM both with respect to iterations and time.
-- ADMM greatly outperforms Linearized ADMM with respect to iterations.
-- ADMM slightly outperforms Linearized ADMM with respect to time. This is
-  possible because the ADMM $\mathbf{x}$-update can be solved relatively
-  cheaply, with only 2 CG iterations. If more CG iterations were required,
-  the time comparison would be favorable to Linearized ADMM.
+
+1. PDHG outperforms ADMM both with respect to iterations and time.
+2. ADMM greatly outperforms Linearized ADMM with respect to iterations.
+3. ADMM slightly outperforms Linearized ADMM with respect to time. This is
+   possible because the ADMM $\mathbf{x}$-update can be solved relatively
+   cheaply, with only 2 CG iterations. If more CG iterations were required,
+   the time comparison would be favorable to Linearized ADMM.
 """
 fig, ax = plot.subplots(nrows=1, ncols=3, sharex=True, sharey=False, figsize=(27, 6))
 plot.plot(

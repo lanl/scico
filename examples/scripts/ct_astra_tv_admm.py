@@ -9,9 +9,9 @@ Few-View CT (ADMM w/ Total Variation)
 =====================================
 
 This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.optimize.html#scico.optimize.ADMM) to solve a
-few-view CT reconstruction problem with anisotropic total variation
-(TV) regularization.
+[admm.ADMM](../_autosummary/scico.optimize.html#scico.optimize.ADMM) to
+solve a few-view CT reconstruction problem with anisotropic total
+variation (TV) regularization
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
   \|_2^2 + \lambda \| C \mathbf{x} \|_1 \;,$$
@@ -74,7 +74,7 @@ solver = ADMM(
     x0=x0,
     maxiter=maxiter,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": num_inner_iter}),
-    itstat_options={"display": True, period: 5},
+    itstat_options={"display": True, "period": 5},
 )
 
 
