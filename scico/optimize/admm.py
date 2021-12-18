@@ -462,7 +462,7 @@ class ADMM:
         if all([_.has_eval for _ in self.g_list]):
             itstat_fields.update({"Objective": "%8.3e"})
             itstat_attrib.append("objective()")
-        # ADMM primal and dual residual fields
+        # primal and dual residual fields
         itstat_fields.update({"Primal Rsdl": "%8.3e", "Dual Rsdl": "%8.3e"})
         itstat_attrib.extend(["norm_primal_residual()", "norm_dual_residual()"])
 
