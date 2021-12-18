@@ -84,6 +84,7 @@ class GenericSubproblemSolver(SubproblemSolver):
                 :func:`scico.solver.minimize`.
         """
         self.minimize_kwargs = minimize_kwargs
+        self.info = {}
 
     def solve(self, x0: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
         """Solve the ADMM step.
@@ -109,6 +110,8 @@ class GenericSubproblemSolver(SubproblemSolver):
             return out
 
         res = minimize(obj, x0, **self.minimize_kwargs)
+        for attrib in ("success", "status", "message", "nfev", "njev", "nhev", "nit", "maxcv"):
+            self.info[attrib] = getattr(res, attrib, None)
 
         return res.x
 
@@ -184,6 +187,7 @@ class LinearSubproblemSolver(SubproblemSolver):
         if cg_kwargs:
             default_cg_kwargs.update(cg_kwargs)
         self.cg_kwargs = default_cg_kwargs
+        self.cg_function = cg_function
         if cg_function == "scico":
             self.cg = scico_cg
         elif cg_function == "jax":
@@ -192,6 +196,7 @@ class LinearSubproblemSolver(SubproblemSolver):
             raise ValueError(
                 f"Parameter cg_function must be one of 'jax', 'scico'; got {cg_function}"
             )
+        self.info = None
 
     def internal_init(self, admm):
         if admm.f is not None:
@@ -465,6 +470,21 @@ class ADMM:
         # primal and dual residual fields
         itstat_fields.update({"Primal Rsdl": "%8.3e", "Dual Rsdl": "%8.3e"})
         itstat_attrib.extend(["norm_primal_residual()", "norm_dual_residual()"])
+
+        # subproblem solver info when available
+        if isinstance(self.subproblem_solver, GenericSubproblemSolver):
+            itstat_fields.update({"Num FEv": "%6d", "Num It": "%6d"})
+            itstat_attrib.extend(
+                ["subproblem_solver.info['nfev']", "subproblem_solver.info['nit']"]
+            )
+        elif (
+            isinstance(self.subproblem_solver, LinearSubproblemSolver)
+            and self.subproblem_solver.cg_function == "scico"
+        ):
+            itstat_fields.update({"CG It": "%5d", "CG Res": "%8.3e"})
+            itstat_attrib.extend(
+                ["subproblem_solver.info['num_iter']", "subproblem_solver.info['rel_res']"]
+            )
 
         # dynamically create itstat_func; see https://stackoverflow.com/questions/24733831
         itstat_return = "return(" + ", ".join(["obj." + attr for attr in itstat_attrib]) + ")"
