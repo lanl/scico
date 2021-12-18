@@ -120,10 +120,10 @@ class TestReal:
             maxiter=maxiter,
             itstat_options={"display": False},
             x0=A.adj(self.y),
-            subproblem_solver=LinearSubproblemSolver(cg_function="scico"),
+            subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-4}, cg_function="scico"),
         )
         x = admm_.solve()
-        assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-5
+        assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-4
 
     def test_admm_quadratic_jax(self):
         maxiter = 50
@@ -141,10 +141,10 @@ class TestReal:
             maxiter=maxiter,
             itstat_options={"display": False},
             x0=A.adj(self.y),
-            subproblem_solver=LinearSubproblemSolver(cg_function="jax"),
+            subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-4}, cg_function="jax"),
         )
         x = admm_.solve()
-        assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-5
+        assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-4
 
     def test_admm_quadratic_relax(self):
         maxiter = 50
@@ -163,10 +163,10 @@ class TestReal:
             maxiter=maxiter,
             itstat_options={"display": False},
             x0=A.adj(self.y),
-            subproblem_solver=LinearSubproblemSolver(cg_function="jax"),
+            subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-4}, cg_function="jax"),
         )
         x = admm_.solve()
-        assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-5
+        assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-4
 
 
 class TestRealWeighted:
@@ -211,10 +211,10 @@ class TestRealWeighted:
             maxiter=maxiter,
             itstat_options={"display": False},
             x0=A.adj(self.y),
-            subproblem_solver=LinearSubproblemSolver(cg_function="scico"),
+            subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-4}, cg_function="scico"),
         )
         x = admm_.solve()
-        assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-5
+        assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-4
 
 
 class TestComplex:
@@ -258,7 +258,7 @@ class TestComplex:
             ),
         )
         x = admm_.solve()
-        assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 2e-4
+        assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-3
 
     def test_admm_quadratic(self):
         maxiter = 50
@@ -276,10 +276,12 @@ class TestComplex:
             maxiter=maxiter,
             itstat_options={"display": False},
             x0=A.adj(self.y),
-            subproblem_solver=LinearSubproblemSolver(),
+            subproblem_solver=LinearSubproblemSolver(
+                cg_kwargs={"tol": 1e-4},
+            ),
         )
         x = admm_.solve()
-        assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-5
+        assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-4
 
 
 class TestCircularConvolveSolve:
