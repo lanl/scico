@@ -177,7 +177,7 @@ class LinearSubproblemSolver(SubproblemSolver):
                 operator is written entirely in jax.
         """
 
-        default_cg_kwargs = {"tol": 1e-3, "maxiter": 100}
+        default_cg_kwargs = {"tol": 1e-4, "maxiter": 100}
         if cg_kwargs:
             default_cg_kwargs.update(cg_kwargs)
         self.cg_kwargs = default_cg_kwargs
