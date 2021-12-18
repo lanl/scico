@@ -106,7 +106,8 @@ Set up and solve the un-weighted reconstruction problem
 lambda_unweighted = 2.56e2  # regularization strength
 
 maxiter = 50  # number of ADMM iterations
-max_inner_iter = 10  # number of CG iterations per ADMM iteration
+cg_tol = 1e-5  # CG relative tolerance
+cg_maxiter = 10  # maximum CG iterations per ADMM iteration
 
 f = loss.SquaredL2Loss(y=y, A=A)
 
@@ -117,7 +118,7 @@ admm_unweighted = ADMM(
     rho_list=[ρ],
     x0=x0,
     maxiter=maxiter,
-    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": max_inner_iter}),
+    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": cg_tol, "maxiter": cg_maxiter}),
     itstat_options={"display": True, "period": 10},
 )
 print(f"Solving on {device_info()}\n")
@@ -147,7 +148,7 @@ admm_weighted = ADMM(
     rho_list=[ρ],
     maxiter=maxiter,
     x0=x0,
-    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": max_inner_iter}),
+    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": cg_tol, "maxiter": cg_maxiter}),
     itstat_options={"display": True, "period": 10},
 )
 admm_weighted.solve()

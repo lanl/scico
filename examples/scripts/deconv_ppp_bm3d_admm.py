@@ -68,7 +68,7 @@ solver = ADMM(
     rho_list=[ρ],
     x0=A.T @ y,
     maxiter=maxiter,
-    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": 100}),
+    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-3, "maxiter": 100}),
     itstat_options={"display": True},
 )
 
