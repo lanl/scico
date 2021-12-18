@@ -166,6 +166,9 @@ class LinearSubproblemSolver(SubproblemSolver):
                 documentation for :func:`scico.solver.cg` or
                 :func:`jax.scipy.sparse.linalg.cg`,
                 including how to specify a preconditioner.
+                Default values are the same as those of
+                :func:`scico.solver.cg`, except for
+                ``"tol": 1e-4`` and ``"maxiter": 100``.
             cg_function: String indicating which CG implementation to
                 use. One of "jax" or "scico"; default "scico".  If
                 "scico", uses :func:`scico.solver.cg`. If "jax", uses
