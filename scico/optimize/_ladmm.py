@@ -136,9 +136,9 @@ class LinearizedADMM:
             itstat_fields = {
                 "Iter": "%d",
                 "Time": "%8.2e",
-                "Objective": "%8.3e",
-                "Primal Rsdl": "%8.3e",
-                "Dual Rsdl": "%8.3e",
+                "Objective": "%9.3e",
+                "Primal Rsdl": "%9.3e",
+                "Dual Rsdl": "%9.3e",
             }
 
             def itstat_func(obj):
@@ -154,9 +154,9 @@ class LinearizedADMM:
             # The 'g' function can't be evaluated, so drop objective from the default itstat
             itstat_fields = {
                 "Iter": "%d",
-                "Time": "%8.1e",
-                "Primal Rsdl": "%8.3e",
-                "Dual Rsdl": "%8.3e",
+                "Time": "%8.2e",
+                "Primal Rsdl": "%9.3e",
+                "Dual Rsdl": "%9.3e",
             }
 
             def itstat_func(obj):
