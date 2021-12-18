@@ -478,7 +478,7 @@ class ADMM:
                 ["subproblem_solver.info['nfev']", "subproblem_solver.info['nit']"]
             )
         elif (
-            isinstance(self.subproblem_solver, LinearSubproblemSolver)
+            type(self.subproblem_solver) == LinearSubproblemSolver
             and self.subproblem_solver.cg_function == "scico"
         ):
             itstat_fields.update({"CG It": "%5d", "CG Res": "%8.3e"})
