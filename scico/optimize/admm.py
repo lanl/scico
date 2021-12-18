@@ -158,25 +158,32 @@ class LinearSubproblemSolver(SubproblemSolver):
             :math:`\mb{x}` update step.
     """
 
-    def __init__(self, cg_kwargs: dict = {"maxiter": 100}, cg_function: str = "scico"):
+    def __init__(self, cg_kwargs: Optional[dict] = None, cg_function: str = "scico"):
         """Initialize a :class:`LinearSubproblemSolver` object.
 
         Args:
             cg_kwargs: Dictionary of arguments for CG solver. See
-                :func:`scico.solver.cg` or
-                :func:`jax.scipy.sparse.linalg.cg`, documentation,
+                documentation for :func:`scico.solver.cg` or
+                :func:`jax.scipy.sparse.linalg.cg`,
                 including how to specify a preconditioner.
+                Default values are the same as those of
+                :func:`scico.solver.cg`, except for
+                ``"tol": 1e-4`` and ``"maxiter": 100``.
             cg_function: String indicating which CG implementation to
                 use. One of "jax" or "scico"; default "scico".  If
                 "scico", uses :func:`scico.solver.cg`. If "jax", uses
-                :func:`jax.scipy.sparse.linalg.cg`.  The "jax" option is
+                :func:`jax.scipy.sparse.linalg.cg`. The "jax" option is
                 slower on small-scale problems or problems involving
                 external functions, but can be differentiated through.
                 The "scico" option is faster on small-scale problems, but
                 slower on large-scale problems where the forward
                 operator is written entirely in jax.
         """
-        self.cg_kwargs = cg_kwargs
+
+        default_cg_kwargs = {"tol": 1e-4, "maxiter": 100}
+        if cg_kwargs:
+            default_cg_kwargs.update(cg_kwargs)
+        self.cg_kwargs = default_cg_kwargs
         if cg_function == "scico":
             self.cg = scico_cg
         elif cg_function == "jax":

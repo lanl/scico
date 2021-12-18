@@ -102,7 +102,7 @@ solve_admm = ADMM(
     rho_list=[2e1],
     x0=x0,
     maxiter=50,
-    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": 10}),
+    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-4, "maxiter": 10}),
     itstat_options={"display": True, "period": 10},
 )
 print(f"Solving on {device_info()}\n")
