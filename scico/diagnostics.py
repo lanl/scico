@@ -8,6 +8,7 @@
 """Diagnostic information for iterative solvers."""
 
 import re
+import warnings
 from collections import OrderedDict, namedtuple
 from typing import List, Optional, Tuple, Union
 
@@ -87,7 +88,7 @@ class IterationStats:
         # Names of fields in namedtuple used to record iteration values
         self.tuplefields = []
         # Compile regex for decomposing format strings
-        flre = re.compile(r"%(-)?(\d+)(.*)")
+        flre = re.compile(r"%(\+)?(\d+)(.*)")
         # Iterate over field names
         for name in fields:
             # Get format string and decompose it using compiled regex
@@ -97,13 +98,21 @@ class IterationStats:
                 # If format string does not contain a field length specifier,
                 # the field length is determined by the length of the header
                 # string
-                fln = len(name)
+                fln = max(len(name), len(fmt % 0))
                 fmt = "%%%d" % fln + fmt[1:]
             else:
                 # If the format string does contain a field length specifier,
                 # the field length is the maximum of specified field length
                 # and the length of the header string
-                fln = max(len(name), int(rem.group(2)))
+                fmtlen = len(fmt % 0)
+                fln = int(rem.group(2))
+                if fmtlen > fln:
+                    warnings.warn(
+                        f'Actual length {fmtlen} of format "{fmt}" for field '
+                        f"{name} is longer than specified value {fln}",
+                        stacklevel=2,
+                    )
+                fln = max(len(name), fln)
                 sgn = rem.group(1)
                 if sgn is None:
                     sgn = ""

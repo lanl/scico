@@ -465,10 +465,10 @@ class ADMM:
         itstat_attrib = ["itnum", "timer.elapsed()"]
         # objective function can be evaluated if all 'g' functions can be evaluated
         if all([_.has_eval for _ in self.g_list]):
-            itstat_fields.update({"Objective": "%8.3e"})
+            itstat_fields.update({"Objective": "%9.3e"})
             itstat_attrib.append("objective()")
         # primal and dual residual fields
-        itstat_fields.update({"Primal Rsdl": "%8.3e", "Dual Rsdl": "%8.3e"})
+        itstat_fields.update({"Primal Rsdl": "%9.3e", "Dual Rsdl": "%9.3e"})
         itstat_attrib.extend(["norm_primal_residual()", "norm_dual_residual()"])
 
         # subproblem solver info when available
@@ -481,7 +481,7 @@ class ADMM:
             type(self.subproblem_solver) == LinearSubproblemSolver
             and self.subproblem_solver.cg_function == "scico"
         ):
-            itstat_fields.update({"CG It": "%5d", "CG Res": "%8.3e"})
+            itstat_fields.update({"CG It": "%5d", "CG Res": "%9.3e"})
             itstat_attrib.extend(
                 ["subproblem_solver.info['num_iter']", "subproblem_solver.info['rel_res']"]
             )
