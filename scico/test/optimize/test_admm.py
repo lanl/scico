@@ -39,7 +39,7 @@ class TestMisc:
             maxiter=maxiter,
             itstat_options={"display": False},
         )
-        assert len(admm_.itstat_object.fieldname) == 4
+        assert len(admm_.itstat_object.fieldname) == 6
         assert snp.sum(admm_.x) == 0.0
         admm_ = ADMM(
             f=f,
