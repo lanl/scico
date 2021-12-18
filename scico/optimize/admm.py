@@ -452,45 +452,29 @@ class ADMM:
         self.subproblem_solver: SubproblemSolver = subproblem_solver
         self.subproblem_solver.internal_init(self)
 
+        # iteration number and time fields
+        itstat_fields = {
+            "Iter": "%d",
+            "Time": "%8.2e",
+        }
+        itstat_attrib = ["itnum", "timer.elapsed()"]
+        # objective function can be evaluated if all 'g' functions can be evaluated
         if all([_.has_eval for _ in self.g_list]):
-            # All 'g' functions can be evaluated, so objective function can be evaluated
-            itstat_fields = {
-                "Iter": "%d",
-                "Time": "%8.2e",
-                "Objective": "%8.3e",
-                "Primal Rsdl": "%8.3e",
-                "Dual Rsdl": "%8.3e",
-            }
+            itstat_fields.update({"Objective": "%8.3e"})
+            itstat_attrib.append("objective()")
+        # ADMM primal and dual residual fields
+        itstat_fields.update({"Primal Rsdl": "%8.3e", "Dual Rsdl": "%8.3e"})
+        itstat_attrib.extend(["norm_primal_residual()", "norm_dual_residual()"])
 
-            def itstat_func(obj):
-                return (
-                    obj.itnum,
-                    obj.timer.elapsed(),
-                    obj.objective(),
-                    obj.norm_primal_residual(),
-                    obj.norm_dual_residual(),
-                )
+        # dynamically create itstat_func; see https://stackoverflow.com/questions/24733831
+        itstat_return = "return(" + ", ".join(["obj." + attr for attr in itstat_attrib]) + ")"
+        scope = {}
+        exec("def itstat_func(obj): " + itstat_return, scope)
 
-        else:
-            # At least one 'g' can't be evaluated, so drop objective from the default itstat
-            itstat_fields = {
-                "Iter": "%d",
-                "Time": "%8.1e",
-                "Primal Rsdl": "%8.3e",
-                "Dual Rsdl": "%8.3e",
-            }
-
-            def itstat_func(obj):
-                return (
-                    obj.itnum,
-                    obj.timer.elapsed(),
-                    obj.norm_primal_residual(),
-                    obj.norm_dual_residual(),
-                )
-
+        # determine itstat options and initialize IterationStats object
         default_itstat_options = {
             "fields": itstat_fields,
-            "itstat_func": itstat_func,
+            "itstat_func": scope["itstat_func"],
             "display": False,
         }
         if itstat_options:
