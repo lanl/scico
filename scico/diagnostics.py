@@ -88,39 +88,34 @@ class IterationStats:
         # Names of fields in namedtuple used to record iteration values
         self.tuplefields = []
         # Compile regex for decomposing format strings
-        flre = re.compile(r"%(\+)?(\d+)(.*)")
+        fmre = re.compile(r"%(\+?-?)((?:\d+)?)(\.?)((?:\d+)?)([a-z])")
         # Iterate over field names
         for name in fields:
             # Get format string and decompose it using compiled regex
             fmt = fields[name]
-            rem = flre.match(fmt)
-            if rem is None:
-                # If format string does not contain a field length specifier,
-                # the field length is determined by the length of the header
-                # string
-                fln = max(len(name), len(fmt % 0))
-                fmt = "%%%d" % fln + fmt[1:]
-            else:
-                # If the format string does contain a field length specifier,
-                # the field length is the maximum of specified field length
-                # and the length of the header string
-                fmtlen = len(fmt % 0)
-                fln = int(rem.group(2))
-                if fmtlen > fln:
-                    warnings.warn(
-                        f'Actual length {fmtlen} of format "{fmt}" for field '
-                        f"{name} is longer than specified value {fln}",
-                        stacklevel=2,
-                    )
-                fln = max(len(name), fln)
-                sgn = rem.group(1)
-                if sgn is None:
-                    sgn = ""
-                fmt = "%" + sgn + ("%d" % fln) + rem.group(3)
+            fmtmatch = fmre.match(fmt)
+            if not fmtmatch:
+                raise ValueError(f'Format string "{fmt}" could not be parsed')
+            fmflg, fmlen, fmdot, fmprc, fmtyp = fmtmatch.groups()
+            flen = len(fmt % 0)
+            # Warn if actual formatted length longer than specified field
+            # length, e.g. as in "%4e"
+            if fmlen != "" and flen > int(fmlen):
+                warnings.warn(
+                    f'Actual length {flen} of format "{fmt}" for field '
+                    f'"{name}" is longer than specified value {fmlen}',
+                    stacklevel=2,
+                )
+            # If the actual formatted length is less than that of the header
+            # string, insert a field length specifier to increase the
+            # length to that of the header string
+            if flen < len(name):
+                fmt = f"%{fmflg}{len(name)}{fmdot}{fmprc}{fmtyp}"
+                flen = len(name)
             self.fieldname.append(name)
             self.fieldformat.append(fmt)
-            self.fieldlength.append(fln)
-            self.headlength += fln + colsep
+            self.fieldlength.append(flen)
+            self.headlength += flen + colsep
 
             # If a distinct identifier is specified for this field, use it
             # as the namedtuple identifier, otherwise compute it from the
