@@ -113,7 +113,7 @@ plot.plot(
     ax=ax[0],
 )
 plot.plot(
-    snp.vstack((hist.Primal_Rsdl, hist.Dual_Rsdl)).T,
+    snp.vstack((hist.Prim_Rsdl, hist.Dual_Rsdl)).T,
     ptyp="semilogy",
     title="Residuals",
     xlbl="Iteration",
