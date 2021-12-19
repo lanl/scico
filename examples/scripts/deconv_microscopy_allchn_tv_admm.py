@@ -272,7 +272,7 @@ plot.plot(
     ax=ax[0],
 )
 plot.plot(
-    np.stack([s.Primal_Rsdl for s in solve_stats]).T,
+    np.stack([s.Prim_Rsdl for s in solve_stats]).T,
     ptyp="semilogy",
     title="Primal Residual",
     xlbl="Iteration",
