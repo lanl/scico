@@ -174,6 +174,7 @@ Define ray remote function for parallel solves.
 
 @ray.remote(num_cpus=ncpu, num_gpus=ngpu)
 def deconvolve_channel(channel):
+    """Deconvolve a single channel."""
     y_pad = jax.device_put(ray.get(y_pad_list)[channel])
     psf = jax.device_put(ray.get(psf_list)[channel])
     mask = jax.device_put(ray.get(mask_store))
@@ -272,7 +273,7 @@ plot.plot(
     ax=ax[0],
 )
 plot.plot(
-    np.stack([s.Prim_Rsdl for s in solve_stats]).T,
+    np.stack([s.Prml_Rsdl for s in solve_stats]).T,
     ptyp="semilogy",
     title="Primal Residual",
     xlbl="Iteration",

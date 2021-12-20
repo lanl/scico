@@ -74,6 +74,7 @@ algorithm of :cite:`menon-2007-demosaicing` from package
 
 
 def demosaic(cfaimg):
+    """Apply baseline demosaicing."""
     return demosaicing_CFA_Bayer_Menon2007(cfaimg, pattern="BGGR").astype(np.float32)
 
 
@@ -141,7 +142,7 @@ fig.show()
 Plot convergence statistics.
 """
 plot.plot(
-    snp.vstack((hist.Prim_Rsdl, hist.Dual_Rsdl)).T,
+    snp.vstack((hist.Prml_Rsdl, hist.Dual_Rsdl)).T,
     ptyp="semilogy",
     title="Residuals",
     xlbl="Iteration",
