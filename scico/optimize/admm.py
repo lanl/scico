@@ -468,7 +468,7 @@ class ADMM:
             itstat_fields.update({"Objective": "%9.3e"})
             itstat_attrib.append("objective()")
         # primal and dual residual fields
-        itstat_fields.update({"Prim Rsdl": "%9.3e", "Dual Rsdl": "%9.3e"})
+        itstat_fields.update({"Prml Rsdl": "%9.3e", "Dual Rsdl": "%9.3e"})
         itstat_attrib.extend(["norm_primal_residual()", "norm_dual_residual()"])
 
         # subproblem solver info when available
