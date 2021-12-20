@@ -82,8 +82,7 @@ Installing a Development Version
       pip install -e .  # Installs SCICO from the current directory in editable mode
 
 
-9. The SCICO project uses the `black <https://black.readthedocs.io/en/stable/>`_
-   and `isort <https://pypi.org/project/isort/>`_ code formatting utilities.
+9. The SCICO project uses the `Black <https://black.readthedocs.io/en/stable/>`_, `isort <https://pypi.org/project/isort/>`_ and `pylint <https://pylint.pycqa.org/en/latest/>`_ code formatting utilities.
    It is important to set up a `pre-commit hook <https://pre-commit.com>`_ to
    ensure that any modified code passes format check before it is committed to
    the development repo:
