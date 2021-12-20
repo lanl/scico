@@ -145,7 +145,7 @@ fig.show()
 Plot convergence statistics.
 """
 plot.plot(
-    snp.vstack((hist.Primal_Rsdl, hist.Dual_Rsdl)).T,
+    snp.vstack((hist.Prml_Rsdl, hist.Dual_Rsdl)).T,
     ptyp="semilogy",
     title="Residuals",
     xlbl="Iteration",

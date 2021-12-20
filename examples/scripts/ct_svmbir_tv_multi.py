@@ -205,7 +205,7 @@ plot.plot(
     ax=ax[0],
 )
 plot.plot(
-    snp.vstack((hist_admm.Primal_Rsdl, hist_ladmm.Primal_Rsdl, hist_pdhg.Primal_Rsdl)).T,
+    snp.vstack((hist_admm.Prml_Rsdl, hist_ladmm.Prml_Rsdl, hist_pdhg.Prml_Rsdl)).T,
     ptyp="semilogy",
     title="Primal residual",
     xlbl="Iteration",
@@ -236,7 +236,7 @@ plot.plot(
     ax=ax[0],
 )
 plot.plot(
-    snp.vstack((hist_admm.Primal_Rsdl, hist_ladmm.Primal_Rsdl, hist_pdhg.Primal_Rsdl)).T,
+    snp.vstack((hist_admm.Prml_Rsdl, hist_ladmm.Prml_Rsdl, hist_pdhg.Prml_Rsdl)).T,
     snp.vstack((hist_admm.Time, hist_ladmm.Time, hist_pdhg.Time)).T,
     ptyp="semilogy",
     title="Primal residual",

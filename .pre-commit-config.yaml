@@ -45,4 +45,4 @@ repos:
       language: python
       language_version: python3
       types: [python]
-      args: ['--disable=all', '--enable=missing-docstring']
+      args: ['--score=n', '--disable=all', '--enable=missing-docstring']
