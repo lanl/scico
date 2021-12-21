@@ -9,9 +9,9 @@ Few-View CT (ADMM w/ Total Variation)
 =====================================
 
 This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.optimize.html#scico.optimize.ADMM) to solve a
-few-view CT reconstruction problem with anisotropic total variation
-(TV) regularization.
+[admm.ADMM](../_autosummary/scico.optimize.html#scico.optimize.ADMM) to
+solve a few-view CT reconstruction problem with anisotropic total
+variation (TV) regularization
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
   \|_2^2 + \lambda \| C \mathbf{x} \|_1 \;,$$
@@ -57,7 +57,8 @@ Set up ADMM solver object.
 λ = 2e-0  # L1 norm regularization parameter
 ρ = 5e-0  # ADMM penalty parameter
 maxiter = 25  # number of ADMM iterations
-num_inner_iter = 20  # number of CG iterations per ADMM iteration
+cg_tol = 1e-4  # CG relative tolerance
+cg_maxiter = 25  # maximum CG iterations per ADMM iteration
 
 g = λ * functional.L1Norm()  # regularization functionals gi
 C = linop.FiniteDifference(input_shape=x_gt.shape)  # analysis operators Ci
@@ -73,7 +74,7 @@ solver = ADMM(
     rho_list=[ρ],
     x0=x0,
     maxiter=maxiter,
-    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": num_inner_iter}),
+    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": cg_tol, "maxiter": cg_maxiter}),
     itstat_options={"display": True, "period": 5},
 )
 
@@ -127,7 +128,7 @@ plot.plot(
     ax=ax[0],
 )
 plot.plot(
-    snp.vstack((hist.Primal_Rsdl, hist.Dual_Rsdl)).T,
+    snp.vstack((hist.Prml_Rsdl, hist.Dual_Rsdl)).T,
     ptyp="semilogy",
     title="Residuals",
     xlbl="Iteration",

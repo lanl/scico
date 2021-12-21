@@ -9,10 +9,11 @@ CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+CG)
 ================================================================
 
 This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.optimize.html#scico.optimize.ADMM) to solve a
-tomographic reconstruction problem using the Plug-and-Play Priors framework
-:cite:`venkatakrishnan-2013-plugandplay2`, using BM3D :cite:`dabov-2008-image`
-as a denoiser and SVMBIR :cite:`svmbir-2020` for tomographic projection.
+[admm.ADMM](../_autosummary/scico.optimize.html#scico.optimize.ADMM) to
+solve a tomographic reconstruction problem using the Plug-and-Play Priors
+framework :cite:`venkatakrishnan-2013-plugandplay2`, using BM3D
+:cite:`dabov-2008-image` as a denoiser and SVMBIR :cite:`svmbir-2020` for
+tomographic projection.
 
 This version uses the data fidelity term as the ADMM f, and thus the
 optimization with respect to the data fidelity uses CG rather than the
@@ -102,7 +103,7 @@ solver = ADMM(
     rho_list=[ρ, ρ],
     x0=x0,
     maxiter=20,
-    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": 100}),
+    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-4, "maxiter": 100}),
     itstat_options={"display": True, "period": 1},
 )
 
@@ -144,7 +145,7 @@ fig.show()
 Plot convergence statistics.
 """
 plot.plot(
-    snp.vstack((hist.Primal_Rsdl, hist.Dual_Rsdl)).T,
+    snp.vstack((hist.Prml_Rsdl, hist.Dual_Rsdl)).T,
     ptyp="semilogy",
     title="Residuals",
     xlbl="Iteration",

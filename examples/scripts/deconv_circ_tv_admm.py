@@ -9,9 +9,9 @@ Image Deconvolution (ADMM w/ Total Variation and Circulant Blur)
 ================================================================
 
 This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.optimize.html#scico.optimize.ADMM) to solve
-an image deconvolution problem with isotropic total variation (TV)
-regularization.
+[admm.ADMM](../_autosummary/scico.optimize.html#scico.optimize.ADMM) to
+solve an image deconvolution problem with isotropic total variation (TV)
+regularization
 
   $$\mathrm{argmin}_{\mathbf{x}} \; \| \mathbf{y} - A \mathbf{x} \|_2^2
   + \lambda \| C \mathbf{x} \|_1 \;,$$
@@ -110,7 +110,7 @@ plot.plot(
     ax=ax[0],
 )
 plot.plot(
-    snp.vstack((hist.Primal_Rsdl, hist.Dual_Rsdl)).T,
+    snp.vstack((hist.Prml_Rsdl, hist.Dual_Rsdl)).T,
     ptyp="semilogy",
     title="Residuals",
     xlbl="Iteration",

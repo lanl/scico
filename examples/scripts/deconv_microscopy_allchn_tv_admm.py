@@ -14,8 +14,8 @@ using the [microscopy data](http://bigwww.epfl.ch/deconvolution/bio/)
 provided by the EPFL Biomedical Imaging Group.
 
 The deconvolution problem is solved using class
-[admm.ADMM](../_autosummary/scico.optimize.html#scico.optimize.ADMM) to solve
-an image deconvolution problem with isotropic total variation (TV)
+[admm.ADMM](../_autosummary/scico.optimize.html#scico.optimize.ADMM) to
+solve an image deconvolution problem with isotropic total variation (TV)
 regularization
 
   $$\mathrm{argmin}_{\mathbf{x}} \; \| M (\mathbf{y} - A \mathbf{x})
@@ -174,6 +174,7 @@ Define ray remote function for parallel solves.
 
 @ray.remote(num_cpus=ncpu, num_gpus=ngpu)
 def deconvolve_channel(channel):
+    """Deconvolve a single channel."""
     y_pad = jax.device_put(ray.get(y_pad_list)[channel])
     psf = jax.device_put(ray.get(psf_list)[channel])
     mask = jax.device_put(ray.get(mask_store))
@@ -197,7 +198,7 @@ def deconvolve_channel(channel):
         C_list=[C0, C1, C2],
         rho_list=[ρ0, ρ1, ρ2],
         maxiter=maxiter,
-        itstat_options={"display": display, "period": 10},
+        itstat_options={"display": display, "period": 10, "overwrite": False},
         x0=y_pad,
         subproblem_solver=CircularConvolveSolver(),
     )
@@ -272,7 +273,7 @@ plot.plot(
     ax=ax[0],
 )
 plot.plot(
-    np.stack([s.Primal_Rsdl for s in solve_stats]).T,
+    np.stack([s.Prml_Rsdl for s in solve_stats]).T,
     ptyp="semilogy",
     title="Primal Residual",
     xlbl="Iteration",

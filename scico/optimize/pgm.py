@@ -458,9 +458,9 @@ class PGM:
             itstat_fields = {
                 "Iter": "%d",
                 "Time": "%8.2e",
-                "Objective": "%8.3e",
-                "L": "%8.3e",
-                "Residual": "%8.3e",
+                "Objective": "%9.3e",
+                "L": "%9.3e",
+                "Residual": "%9.3e",
             }
             itstat_func = lambda pgm: (
                 pgm.itnum,
@@ -470,7 +470,7 @@ class PGM:
                 pgm.norm_residual(),
             )
         else:
-            itstat_fields = {"Iter": "%d", "Time": "%8.2e", "Residual": "%8.3e"}
+            itstat_fields = {"Iter": "%d", "Time": "%8.2e", "Residual": "%9.3e"}
             itstat_func = lambda pgm: (pgm.itnum, pgm.timer.elapsed(), pgm.norm_residual())
 
         default_itstat_options = {
