@@ -11,9 +11,13 @@ from setuptools import find_packages, setup
 
 name = "scico"
 
-# Get version number from scico/__init__.py
-# See http://stackoverflow.com/questions/2058802
+
 def get_init_variable_value(var):
+    """
+    Get version number from scico/__init__.py
+         See http://stackoverflow.com/questions/2058802
+    """
+
     with open(os.path.join(name, "__init__.py")) as f:
         try:
             value = parse(next(filter(lambda line: line.startswith(var), f))).body[0].value.s
