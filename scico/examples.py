@@ -13,9 +13,12 @@ import os
 import tempfile
 import zipfile
 
+import numpy as np
+
 import imageio
 
 import scico.numpy as snp
+from scico import util
 from scico.typing import JaxArray
 
 __author__ = """\n""".join(
