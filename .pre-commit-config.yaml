@@ -45,4 +45,5 @@ repos:
       language: python
       language_version: python3
       types: [python]
+      exclude: ^(scico/test/|examples|docs)
       args: ['--score=n', '--disable=all', '--enable=missing-docstring']

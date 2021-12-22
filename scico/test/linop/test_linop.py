@@ -330,6 +330,34 @@ class TestDiagonal:
         np.testing.assert_allclose((diagonal * x).ravel(), (D @ x).ravel(), rtol=1e-5)
 
     @pytest.mark.parametrize("diagonal_dtype", [np.float32, np.complex64])
+    def test_eval_broadcasting(self, diagonal_dtype):
+        # array broadcast
+        diagonal, key = randn((3, 1, 4), dtype=diagonal_dtype, key=self.key)
+        x, key = randn((5, 1), dtype=diagonal_dtype, key=key)
+        D = linop.Diagonal(diagonal, x.shape)
+        assert (D @ x).shape == (3, 5, 4)
+        np.testing.assert_allclose((diagonal * x).ravel(), (D @ x).ravel(), rtol=1e-5)
+
+        # blockarray broadcast
+        diagonal, key = randn(((3, 1, 4), (5, 5)), dtype=diagonal_dtype, key=self.key)
+        x, key = randn(((5, 1), 1), dtype=diagonal_dtype, key=key)
+        D = linop.Diagonal(diagonal, x.shape)
+        assert (D @ x).shape == ((3, 5, 4), (5, 5))
+        np.testing.assert_allclose((diagonal * x).ravel(), (D @ x).ravel(), rtol=1e-5)
+
+        # blockarray x array -> error
+        diagonal, key = randn(((3, 1, 4), (5, 5)), dtype=diagonal_dtype, key=self.key)
+        x, key = randn((5, 1), dtype=diagonal_dtype, key=key)
+        with pytest.raises(ValueError):
+            D = linop.Diagonal(diagonal, x.shape)
+
+        # array x blockarray -> error
+        diagonal, key = randn((3, 1, 4), dtype=diagonal_dtype, key=self.key)
+        x, key = randn(((5, 1), 1), dtype=diagonal_dtype, key=key)
+        with pytest.raises(ValueError):
+            D = linop.Diagonal(diagonal, x.shape)
+
+    @pytest.mark.parametrize("diagonal_dtype", [np.float32, np.complex64])
     @pytest.mark.parametrize("input_shape", input_shapes)
     def test_adjoint(self, input_shape, diagonal_dtype):
         diagonal, key = randn(input_shape, dtype=diagonal_dtype, key=self.key)
