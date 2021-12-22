@@ -101,7 +101,7 @@ def epfl_deconv_data(channel: int, cache_path: str = None) -> JaxArray:
     return y, psf
 
 
-def block_avg(im: JaxArray, N: int) -> JaxArray:
+def block_average(im: JaxArray, N: int) -> JaxArray:
     """Average distinct NxNxN blocks of an image.
 
     Average distinct NxNxN blocks of input `im`, return the resulting
@@ -122,8 +122,11 @@ def block_avg(im: JaxArray, N: int) -> JaxArray:
     return im
 
 
-def make_slices(x: JaxArray, sep_width: int = 10, fill_val: float = -1.0):
-    """Make an image with x-y, x-z, and y-z slices from an input volume.
+def tile_volume_slices(x: JaxArray, sep_width: int = 10, fill_val: float = -1.0):
+    """Make an image with tiled slices from an input volume.
+
+    Make an image with tiled `xy`, `xz`, and `yz` slices from an input
+    volume.
 
     Args:
         x: Input volume consisting of a 3D or 4D array. If the input is
