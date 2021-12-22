@@ -122,7 +122,7 @@ def block_average(im: JaxArray, N: int) -> JaxArray:
     return im
 
 
-def tile_volume_slices(x: JaxArray, sep_width: int = 10, fill_val: float = -1.0):
+def tile_volume_slices(x: JaxArray, sep_width: int = 10) -> JaxArray:
     """Make an image with tiled slices from an input volume.
 
     Make an image with tiled `xy`, `xz`, and `yz` slices from an input
@@ -133,9 +133,9 @@ def tile_volume_slices(x: JaxArray, sep_width: int = 10, fill_val: float = -1.0)
            4D, the final axis represents a channel index.
         sep_width: Number of pixels separating the slices in the output
            image.
-        fill_val: A pixel value used to during construction of the output
-           image from slices of the input volume. Should be chosen as a
-           value that does not occur in input `x`.
+
+    Returns:
+        Image containing tiled slices.
     """
 
     if x.ndim == 3:
@@ -145,7 +145,7 @@ def tile_volume_slices(x: JaxArray, sep_width: int = 10, fill_val: float = -1.0)
     out = snp.concatenate(
         (
             x[:, :, x.shape[2] // 2],
-            snp.full(fshape, fill_val),
+            snp.full(fshape, snp.nan),
             x[:, x.shape[1] // 2, :],
         ),
         axis=1,
@@ -163,11 +163,11 @@ def tile_volume_slices(x: JaxArray, sep_width: int = 10, fill_val: float = -1.0)
     out = snp.concatenate(
         (
             out,
-            snp.full(fshape0, fill_val),
+            snp.full(fshape0, snp.nan),
             snp.concatenate(
                 (
                     x[x.shape[0] // 2, :, :].transpose(trans),
-                    snp.full(fshape1, fill_val),
+                    snp.full(fshape1, snp.nan),
                 ),
                 axis=1,
             ),
@@ -175,6 +175,6 @@ def tile_volume_slices(x: JaxArray, sep_width: int = 10, fill_val: float = -1.0)
         axis=0,
     )
 
-    out = snp.where(out == fill_val, out.max(), out)
+    out = snp.where(snp.isnan(out), snp.nanmax(out), out)
 
     return out
