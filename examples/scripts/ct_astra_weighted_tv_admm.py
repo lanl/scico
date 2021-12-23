@@ -85,7 +85,6 @@ to the range of the ground truth.
 
 
 def postprocess(x):
-    """Clip input array to range of values in the ground truth."""
     return snp.clip(x, 0, snp.max(x_gt))
 
 
