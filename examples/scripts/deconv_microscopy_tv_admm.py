@@ -42,7 +42,7 @@ setting the environment variable `JAX_PLATFORM_NAME=cpu` to run on CPU.
 channel = 0
 downsampling_rate = 4
 
-y, psf = epfl_deconv_data(channel)
+y, psf = epfl_deconv_data(channel, verbose=True)
 y = downsample_volume(y, downsampling_rate)
 psf = downsample_volume(psf, downsampling_rate)
 

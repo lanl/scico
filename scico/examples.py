@@ -50,7 +50,63 @@ def volume_read(path: str, ext: str = "tif") -> JaxArray:
     return np.dstack(slices)
 
 
-def epfl_deconv_data(channel: int, cache_path: str = None) -> JaxArray:
+def get_epfl_deconv_data(channel: int, path: str, verbose: bool = False):
+    """Download example data from EPFL Biomedical Imaging Group.
+
+    Download deconvolution problem data from EPFL Biomedical Imaging
+    Group. The downloaded data is converted to `.npz` format for
+    convenient access via :func:`numpy.load`. The converted data is saved
+    in a file `epfl_big_deconv_<channel>.npz` in the directory specified
+    by `path`.
+
+    Args:
+        channel: Channel number between 0 and 2.
+        path: Directory in which converted data is saved.
+        verbose: Flag indicating whether to print status messages.
+    """
+
+    # data source URL and filenames
+    data_base_url = "http://bigwww.epfl.ch/deconvolution/bio/"
+    data_zip_files = ["CElegans-CY3.zip", "CElegans-DAPI.zip", "CElegans-FITC.zip"]
+    psf_zip_files = ["PSF-" + data for data in data_zip_files]
+
+    # ensure path directory exists
+    if not os.path.isdir(path):
+        raise ValueError(f"Path {path} does not exist or is not a directory")
+
+    # create temporary directory
+    temp_dir = tempfile.TemporaryDirectory()
+    # download data and psf files for selected channel into temporary directory
+    for zip_file in (data_zip_files[channel], psf_zip_files[channel]):
+        if verbose:
+            print(f"Downloading {zip_file} from {data_base_url}")
+        data = util.url_get(data_base_url + zip_file)
+        f = open(os.path.join(temp_dir.name, zip_file), "wb")
+        f.write(data.read())
+        f.close()
+        if verbose:
+            print("Download complete")
+
+    # unzip downloaded data into temporary directory
+    for zip_file in (data_zip_files[channel], psf_zip_files[channel]):
+        if verbose:
+            print(f"Extracting content from zip file {zip_file}")
+        with zipfile.ZipFile(os.path.join(temp_dir.name, zip_file), "r") as zip_ref:
+            zip_ref.extractall(temp_dir.name)
+
+    # read unzipped data files into 3D arrays and save as .npz
+    zip_file = data_zip_files[channel]
+    y = volume_read(os.path.join(temp_dir.name, zip_file[:-4]))
+    zip_file = psf_zip_files[channel]
+    psf = volume_read(os.path.join(temp_dir.name, zip_file[:-4]))
+
+    npz_file = os.path.join(path, f"epfl_big_deconv_{channel}.npz")
+    if verbose:
+        print(f"Saving as {npz_file}")
+    np.savez(npz_file, y=y, psf=psf)
+
+
+def epfl_deconv_data(channel: int, verbose: bool = False, cache_path: str = None) -> JaxArray:
     """Get deconvolution problem data from EPFL Biomedical Imaging Group.
 
     If the data has previously been downloaded, it will be retrieved from
@@ -58,8 +114,9 @@ def epfl_deconv_data(channel: int, cache_path: str = None) -> JaxArray:
 
     Args:
         channel: Channel number between 0 and 2.
+        verbose: Flag indicating whether to print status messages.
         cache_path: Directory in which downloaded data is cached. The
-           default is `~/.cache/scico/epfl_big`, where `~` represents
+           default is `~/.cache/scico/examples`, where `~` represents
            the user home directory.
 
     Returns:
@@ -69,36 +126,19 @@ def epfl_deconv_data(channel: int, cache_path: str = None) -> JaxArray:
            - **psf** : (DeviceArray): Channel psf.
     """
 
-    # data source URL and filenames
-    data_base_url = "http://bigwww.epfl.ch/deconvolution/bio/"
-    data_zip_files = ["CElegans-CY3.zip", "CElegans-DAPI.zip", "CElegans-FITC.zip"]
-    psf_zip_files = ["PSF-" + data for data in data_zip_files]
     # set default cache path if not specified
     if cache_path is None:
-        cache_path = os.path.join(os.path.expanduser("~"), ".cache", "scico", "epfl_big")
+        cache_path = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples")
 
-    # if cache path exists, data is assumed to aleady be downloaded
-    if not os.path.isdir(os.path.join(cache_path, data_zip_files[channel][:-4])):
+    npz_file = os.path.join(cache_path, f"epfl_big_deconv_{channel}.npz")
+    if not os.path.isfile(npz_file):
         if not os.path.isdir(cache_path):
             os.makedirs(cache_path)
-        # temporary directory for downloads
-        temp_dir = tempfile.TemporaryDirectory()
-        # download data and psf files for selected channel into temporary directory
-        for zip_file in (data_zip_files[channel], psf_zip_files[channel]):
-            data = util.url_get(data_base_url + zip_file)
-            f = open(os.path.join(temp_dir.name, zip_file), "wb")
-            f.write(data.read())
-            f.close()
-        # unzip downloaded data into cache path
-        for zip_file in (data_zip_files[channel], psf_zip_files[channel]):
-            with zipfile.ZipFile(os.path.join(temp_dir.name, zip_file), "r") as zip_ref:
-                zip_ref.extractall(cache_path)
+        get_epfl_deconv_data(channel, path=cache_path, verbose=verbose)
 
-    # read unzipped data files into 3D arrays
-    zip_file = data_zip_files[channel]
-    y = volume_read(os.path.join(cache_path, zip_file[:-4])).astype(np.float32)
-    zip_file = psf_zip_files[channel]
-    psf = volume_read(os.path.join(cache_path, zip_file[:-4])).astype(np.float32)
+    npz = np.load(npz_file)
+    y = npz["y"].astype(np.float32)
+    psf = npz["psf"].astype(np.float32)
     return y, psf
 
 

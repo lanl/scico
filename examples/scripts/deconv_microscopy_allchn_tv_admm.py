@@ -47,13 +47,13 @@ To run this example on a GPU it
 [may also be necessary](https://github.com/google/jax/issues/5380) to
 set environment variable `XLA_PYTHON_CLIENT_PREALLOCATE=false`.
 """
-downsampling_rate = 4
+downsampling_rate = 6
 
 y_list = []
 y_pad_list = []
 psf_list = []
 for channel in range(3):
-    y, psf = epfl_deconv_data(channel)  # get data
+    y, psf = epfl_deconv_data(channel, verbose=True)  # get data
     y = downsample_volume(y, downsampling_rate)  # downsample
     psf = downsample_volume(psf, downsampling_rate)
     y -= y.min()  # normalize y
