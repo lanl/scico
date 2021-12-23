@@ -34,10 +34,14 @@ from scico.examples import downsample_volume, epfl_deconv_data, tile_volume_slic
 from scico.optimize.admm import ADMM, CircularConvolveSolver
 
 """
-Get and preprocess data. We downsample by a factor of 4 for purposes of
-the example. Reducing the downsampling rate will be slower and more
-memory-intensive. If your GPU does not have enough memory, you can try
-setting the environment variable `JAX_PLATFORM_NAME=cpu` to run on CPU.
+Get and preprocess data. We downsample the data for the for purposes of
+the example. Reducing the downsampling rate will make the example slower
+and more memory-intensive. To run this example on a GPU it may be
+necessary to set environment variables
+`XLA_PYTHON_CLIENT_ALLOCATOR=platform` and
+`XLA_PYTHON_CLIENT_PREALLOCATE=false`. If your GPU does not have enough
+memory, you can try setting the environment variable
+`JAX_PLATFORM_NAME=cpu` to run on CPU.
 """
 channel = 0
 downsampling_rate = 2
