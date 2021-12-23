@@ -40,7 +40,7 @@ memory-intensive. If your GPU does not have enough memory, you can try
 setting the environment variable `JAX_PLATFORM_NAME=cpu` to run on CPU.
 """
 channel = 0
-downsampling_rate = 4
+downsampling_rate = 2
 
 y, psf = epfl_deconv_data(channel, verbose=True)
 y = downsample_volume(y, downsampling_rate)
