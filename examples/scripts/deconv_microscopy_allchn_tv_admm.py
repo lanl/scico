@@ -47,7 +47,7 @@ To run this example on a GPU it
 [may also be necessary](https://github.com/google/jax/issues/5380) to
 set environment variable `XLA_PYTHON_CLIENT_PREALLOCATE=false`.
 """
-downsampling_rate = 6
+downsampling_rate = 2
 
 y_list = []
 y_pad_list = []
