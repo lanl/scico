@@ -130,12 +130,14 @@ def epfl_deconv_data(channel: int, verbose: bool = False, cache_path: str = None
     if cache_path is None:
         cache_path = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples")
 
+    # create cache directory and download data if not already present
     npz_file = os.path.join(cache_path, f"epfl_big_deconv_{channel}.npz")
     if not os.path.isfile(npz_file):
         if not os.path.isdir(cache_path):
             os.makedirs(cache_path)
         get_epfl_deconv_data(channel, path=cache_path, verbose=verbose)
 
+    # load data and return y and psf arrays converted to float32
     npz = np.load(npz_file)
     y = npz["y"].astype(np.float32)
     psf = npz["psf"].astype(np.float32)
