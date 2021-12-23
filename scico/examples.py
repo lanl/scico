@@ -20,6 +20,7 @@ import imageio
 import scico.numpy as snp
 from scico import util
 from scico.typing import JaxArray
+from scipy.ndimage import zoom
 
 __author__ = """\n""".join(
     ["Brendt Wohlberg <brendt@ieee.org>", "Michael McCann <mccann@lanl.gov>"]
@@ -101,25 +102,33 @@ def epfl_deconv_data(channel: int, cache_path: str = None) -> JaxArray:
     return y, psf
 
 
-def block_average(im: JaxArray, N: int) -> JaxArray:
-    """Average distinct NxNxN blocks of an image.
+def downsample_volume(vol: JaxArray, rate: int) -> JaxArray:
+    """Downsample a 3D array.
 
-    Average distinct NxNxN blocks of input `im`, return the resulting
-    smaller image.
+    Downsample a 3D array. If the volume dimensions can be divided by
+    `rate`, this is achieved via averaging distinct `rate` x `rate` x
+    `rate` block in `vol`. Otherwise it is achieved via a call to
+    :func:`scipy.ndimage.zoom`.
 
     Args:
-        im: Input image.
-        N: Size of cube over which to average.
+        vol: Input volume.
+        rate: Downsampling rate.
 
     Returns:
-        Averaged and downsampled image.
+        Downsampled volume.
     """
 
-    im = snp.mean(snp.reshape(im, (-1, N, im.shape[1], im.shape[2])), axis=1)
-    im = snp.mean(snp.reshape(im, (im.shape[0], -1, N, im.shape[2])), axis=2)
-    im = snp.mean(snp.reshape(im, (im.shape[0], im.shape[1], -1, N)), axis=3)
+    if rate == 1:
+        return vol
 
-    return im
+    if np.all([n % rate == 0 for n in vol.shape]):
+        vol = snp.mean(snp.reshape(vol, (-1, rate, vol.shape[1], vol.shape[2])), axis=1)
+        vol = snp.mean(snp.reshape(vol, (vol.shape[0], -1, rate, vol.shape[2])), axis=2)
+        vol = snp.mean(snp.reshape(vol, (vol.shape[0], vol.shape[1], -1, rate)), axis=3)
+    else:
+        vol = zoom(vol, 1.0 / rate)
+
+    return vol
 
 
 def tile_volume_slices(x: JaxArray, sep_width: int = 10) -> JaxArray:

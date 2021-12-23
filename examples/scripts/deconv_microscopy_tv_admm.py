@@ -30,7 +30,7 @@ non-negativity constraint, and $\mathbf{x}$ is the desired image.
 
 import scico.numpy as snp
 from scico import functional, linop, loss, plot, util
-from scico.examples import block_average, epfl_deconv_data, tile_volume_slices
+from scico.examples import downsample_volume, epfl_deconv_data, tile_volume_slices
 from scico.optimize.admm import ADMM, CircularConvolveSolver
 
 """
@@ -43,8 +43,8 @@ channel = 0
 downsampling_rate = 4
 
 y, psf = epfl_deconv_data(channel)
-y = block_average(y, downsampling_rate)
-psf = block_average(psf, downsampling_rate)
+y = downsample_volume(y, downsampling_rate)
+psf = downsample_volume(psf, downsampling_rate)
 
 y -= y.min()
 y /= y.max()

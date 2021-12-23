@@ -35,7 +35,7 @@ import jax
 import ray
 import scico.numpy as snp
 from scico import functional, linop, loss, plot
-from scico.examples import block_average, epfl_deconv_data, tile_volume_slices
+from scico.examples import downsample_volume, epfl_deconv_data, tile_volume_slices
 from scico.optimize.admm import ADMM, CircularConvolveSolver
 
 """
@@ -54,8 +54,8 @@ y_pad_list = []
 psf_list = []
 for channel in range(3):
     y, psf = epfl_deconv_data(channel)  # get data
-    y = block_average(y, downsampling_rate)  # downsample
-    psf = block_average(psf, downsampling_rate)
+    y = downsample_volume(y, downsampling_rate)  # downsample
+    psf = downsample_volume(psf, downsampling_rate)
     y -= y.min()  # normalize y
     y /= y.max()
     psf /= psf.sum()  # normalize psf
