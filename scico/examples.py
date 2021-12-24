@@ -50,7 +50,7 @@ def volume_read(path: str, ext: str = "tif") -> JaxArray:
     return np.dstack(slices)
 
 
-def get_epfl_deconv_data(channel: int, path: str, verbose: bool = False):
+def get_epfl_deconv_data(channel: int, path: str, verbose: bool = False):  # pragma: no cover
     """Download example data from EPFL Biomedical Imaging Group.
 
     Download deconvolution problem data from EPFL Biomedical Imaging
