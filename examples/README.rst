@@ -74,7 +74,7 @@ The recommended procedure for rebuilding notebooks for inclusion in the ``data``
 
 1. Add and commit the modified script(s).
 
-2. Rebuild the notebook(s) as described above.
+2. Rebuild the notebooks as described above.
 
 2. Add and commit the updated notebooks following the submodule handling procedure described in the developer docs.
 
