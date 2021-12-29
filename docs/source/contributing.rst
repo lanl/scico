@@ -77,6 +77,7 @@ Installing a Development Version
    ::
 
       pip install -r requirements.txt  # Installs basic requirements
+      pip install -r dev_requirements.txt  # Installs developer requirements
       pip install -r docs/docs_requirements.txt # Installs documentation requirements
       pip install -r examples/examples_requirements.txt # Installs example requirements
       pip install -e .  # Installs SCICO from the current directory in editable mode
