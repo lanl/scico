@@ -84,6 +84,7 @@ Installing a Development Version
    Pip should be used to install the extra requirements for running examples except astra which should be installed via conda:
 
    ::
+
       conda install -c astra-toolbox/label/dev astra-toolbox
       pip install -r examples/examples_requirements.txt # Installs other example requirements
 
