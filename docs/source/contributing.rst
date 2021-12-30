@@ -79,8 +79,13 @@ Installing a Development Version
       pip install -r requirements.txt  # Installs basic requirements
       pip install -r dev_requirements.txt  # Installs developer requirements
       pip install -r docs/docs_requirements.txt # Installs documentation requirements
-      pip install -r examples/examples_requirements.txt # Installs example requirements
       pip install -e .  # Installs SCICO from the current directory in editable mode
+
+   Pip should be used to install the extra requirements for running examples except astra which should be installed via conda:
+
+   ::
+      conda install -c astra-toolbox/label/dev astra-toolbox
+      pip install -r examples/examples_requirements.txt # Installs other example requirements
 
 
 9. The SCICO project uses the `black <https://black.readthedocs.io/en/stable/>`_,
