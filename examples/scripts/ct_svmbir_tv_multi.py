@@ -102,7 +102,7 @@ solve_admm = ADMM(
     rho_list=[2e1],
     x0=x0,
     maxiter=50,
-    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": 10}),
+    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-4, "maxiter": 10}),
     itstat_options={"display": True, "period": 10},
 )
 print(f"Solving on {device_info()}\n")
@@ -205,7 +205,7 @@ plot.plot(
     ax=ax[0],
 )
 plot.plot(
-    snp.vstack((hist_admm.Primal_Rsdl, hist_ladmm.Primal_Rsdl, hist_pdhg.Primal_Rsdl)).T,
+    snp.vstack((hist_admm.Prml_Rsdl, hist_ladmm.Prml_Rsdl, hist_pdhg.Prml_Rsdl)).T,
     ptyp="semilogy",
     title="Primal residual",
     xlbl="Iteration",
@@ -236,7 +236,7 @@ plot.plot(
     ax=ax[0],
 )
 plot.plot(
-    snp.vstack((hist_admm.Primal_Rsdl, hist_ladmm.Primal_Rsdl, hist_pdhg.Primal_Rsdl)).T,
+    snp.vstack((hist_admm.Prml_Rsdl, hist_ladmm.Prml_Rsdl, hist_pdhg.Prml_Rsdl)).T,
     snp.vstack((hist_admm.Time, hist_ladmm.Time, hist_pdhg.Time)).T,
     ptyp="semilogy",
     title="Primal residual",

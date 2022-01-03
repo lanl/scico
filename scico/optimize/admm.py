@@ -84,6 +84,7 @@ class GenericSubproblemSolver(SubproblemSolver):
                 :func:`scico.solver.minimize`.
         """
         self.minimize_kwargs = minimize_kwargs
+        self.info = {}
 
     def solve(self, x0: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
         """Solve the ADMM step.
@@ -109,6 +110,8 @@ class GenericSubproblemSolver(SubproblemSolver):
             return out
 
         res = minimize(obj, x0, **self.minimize_kwargs)
+        for attrib in ("success", "status", "message", "nfev", "njev", "nhev", "nit", "maxcv"):
+            self.info[attrib] = getattr(res, attrib, None)
 
         return res.x
 
@@ -158,25 +161,33 @@ class LinearSubproblemSolver(SubproblemSolver):
             :math:`\mb{x}` update step.
     """
 
-    def __init__(self, cg_kwargs: dict = {"maxiter": 100}, cg_function: str = "scico"):
+    def __init__(self, cg_kwargs: Optional[dict] = None, cg_function: str = "scico"):
         """Initialize a :class:`LinearSubproblemSolver` object.
 
         Args:
             cg_kwargs: Dictionary of arguments for CG solver. See
-                :func:`scico.solver.cg` or
-                :func:`jax.scipy.sparse.linalg.cg`, documentation,
+                documentation for :func:`scico.solver.cg` or
+                :func:`jax.scipy.sparse.linalg.cg`,
                 including how to specify a preconditioner.
+                Default values are the same as those of
+                :func:`scico.solver.cg`, except for
+                ``"tol": 1e-4`` and ``"maxiter": 100``.
             cg_function: String indicating which CG implementation to
                 use. One of "jax" or "scico"; default "scico".  If
                 "scico", uses :func:`scico.solver.cg`. If "jax", uses
-                :func:`jax.scipy.sparse.linalg.cg`.  The "jax" option is
+                :func:`jax.scipy.sparse.linalg.cg`. The "jax" option is
                 slower on small-scale problems or problems involving
                 external functions, but can be differentiated through.
                 The "scico" option is faster on small-scale problems, but
                 slower on large-scale problems where the forward
                 operator is written entirely in jax.
         """
-        self.cg_kwargs = cg_kwargs
+
+        default_cg_kwargs = {"tol": 1e-4, "maxiter": 100}
+        if cg_kwargs:
+            default_cg_kwargs.update(cg_kwargs)
+        self.cg_kwargs = default_cg_kwargs
+        self.cg_function = cg_function
         if cg_function == "scico":
             self.cg = scico_cg
         elif cg_function == "jax":
@@ -185,6 +196,7 @@ class LinearSubproblemSolver(SubproblemSolver):
             raise ValueError(
                 f"Parameter cg_function must be one of 'jax', 'scico'; got {cg_function}"
             )
+        self.info = None
 
     def internal_init(self, admm):
         if admm.f is not None:
@@ -454,45 +466,44 @@ class ADMM:
         self.subproblem_solver: SubproblemSolver = subproblem_solver
         self.subproblem_solver.internal_init(self)
 
+        # iteration number and time fields
+        itstat_fields = {
+            "Iter": "%d",
+            "Time": "%8.2e",
+        }
+        itstat_attrib = ["itnum", "timer.elapsed()"]
+        # objective function can be evaluated if all 'g' functions can be evaluated
         if all([_.has_eval for _ in self.g_list]):
-            # All 'g' functions can be evaluated, so objective function can be evaluated
-            itstat_fields = {
-                "Iter": "%d",
-                "Time": "%8.2e",
-                "Objective": "%8.3e",
-                "Primal Rsdl": "%8.3e",
-                "Dual Rsdl": "%8.3e",
-            }
+            itstat_fields.update({"Objective": "%9.3e"})
+            itstat_attrib.append("objective()")
+        # primal and dual residual fields
+        itstat_fields.update({"Prml Rsdl": "%9.3e", "Dual Rsdl": "%9.3e"})
+        itstat_attrib.extend(["norm_primal_residual()", "norm_dual_residual()"])
 
-            def itstat_func(obj):
-                return (
-                    obj.itnum,
-                    obj.timer.elapsed(),
-                    obj.objective(),
-                    obj.norm_primal_residual(),
-                    obj.norm_dual_residual(),
-                )
+        # subproblem solver info when available
+        if isinstance(self.subproblem_solver, GenericSubproblemSolver):
+            itstat_fields.update({"Num FEv": "%6d", "Num It": "%6d"})
+            itstat_attrib.extend(
+                ["subproblem_solver.info['nfev']", "subproblem_solver.info['nit']"]
+            )
+        elif (
+            type(self.subproblem_solver) == LinearSubproblemSolver
+            and self.subproblem_solver.cg_function == "scico"
+        ):
+            itstat_fields.update({"CG It": "%5d", "CG Res": "%9.3e"})
+            itstat_attrib.extend(
+                ["subproblem_solver.info['num_iter']", "subproblem_solver.info['rel_res']"]
+            )
 
-        else:
-            # At least one 'g' can't be evaluated, so drop objective from the default itstat
-            itstat_fields = {
-                "Iter": "%d",
-                "Time": "%8.1e",
-                "Primal Rsdl": "%8.3e",
-                "Dual Rsdl": "%8.3e",
-            }
+        # dynamically create itstat_func; see https://stackoverflow.com/questions/24733831
+        itstat_return = "return(" + ", ".join(["obj." + attr for attr in itstat_attrib]) + ")"
+        scope = {}
+        exec("def itstat_func(obj): " + itstat_return, scope)
 
-            def itstat_func(obj):
-                return (
-                    obj.itnum,
-                    obj.timer.elapsed(),
-                    obj.norm_primal_residual(),
-                    obj.norm_dual_residual(),
-                )
-
+        # determine itstat options and initialize IterationStats object
         default_itstat_options = {
             "fields": itstat_fields,
-            "itstat_func": itstat_func,
+            "itstat_func": scope["itstat_func"],
             "display": False,
         }
         if itstat_options:

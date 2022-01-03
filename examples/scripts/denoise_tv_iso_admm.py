@@ -69,7 +69,7 @@ solver = ADMM(
     rho_list=[1e1],
     x0=y,
     maxiter=100,
-    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": 20}),
+    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-3, "maxiter": 20}),
     itstat_options={"display": True, "period": 10},
 )
 
@@ -92,7 +92,7 @@ solver = ADMM(
     rho_list=[1e1],
     x0=y,
     maxiter=100,
-    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": 20}),
+    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-3, "maxiter": 20}),
     itstat_options={"display": True, "period": 10},
 )
 

@@ -73,7 +73,7 @@ solver = ADMM(
     rho_list=[ρ],
     x0=A.T @ y,
     maxiter=maxiter,
-    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": 30}),
+    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-3, "maxiter": 30}),
     itstat_options={"display": True},
 )
 
@@ -104,7 +104,7 @@ fig.show()
 Plot convergence statistics.
 """
 plot.plot(
-    snp.vstack((hist.Primal_Rsdl, hist.Dual_Rsdl)).T,
+    snp.vstack((hist.Prml_Rsdl, hist.Dual_Rsdl)).T,
     ptyp="semilogy",
     title="Residuals",
     xlbl="Iteration",
