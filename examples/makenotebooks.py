@@ -11,12 +11,13 @@
 import argparse
 import os
 import re
-import sys
+import signal
 from pathlib import Path
 from timeit import default_timer as timer
 
 import nbformat
-from nbconvert.preprocessors import ExecutePreprocessor
+import psutil
+from nbconvert.preprocessors import CellExecutionError, ExecutePreprocessor
 from py2jn.tools import py_string_to_notebook, write_notebook
 
 have_ray = True
@@ -88,8 +89,8 @@ def py_file_to_string(src):
 def script_to_notebook(src, dst):
     """Convert a Python example script into a Jupyter notebook."""
 
-    str = py_file_to_string(src)
-    nb = py_string_to_notebook(str)
+    s = py_file_to_string(src)
+    nb = py_string_to_notebook(s)
     write_notebook(nb, dst)
 
 
@@ -106,8 +107,10 @@ def execute_notebook(fname):
         with open(fname, "w", encoding="utf-8") as f:
             nbformat.write(nb, f)
     except CellExecutionError:
-        raise Exception(f"Error executing the notebook {fname}")
+        print(f"ERROR executing {fname}")
+        return False
     print(f"{fname} done in {(t1 - t0):.1e} s")
+    return True
 
 
 argparser = argparse.ArgumentParser(
@@ -149,7 +152,7 @@ else:
                 scriptnames.append(m.group(2))
 
 # Ensure list entries are unique
-scriptnames = list(set(scriptnames))
+scriptnames = sorted(list(set(scriptnames)))
 
 # Creat list of selected scripts and corresponding notebooks.
 scripts = []
@@ -182,11 +185,12 @@ for spath in scripts:
     # Make notebook file
     script_to_notebook(spath, npath)
 
-# Run relevant notebooks if no excecution flag not specified
-if not args.no_exec:
+# Run relevant notebooks if no excecution flag not specified and notebooks list is not empty
+if not args.no_exec and notebooks:
+    nproc = len(notebooks)
 
-    # Execute notebooks serially if not requested to avoid use of ray
-    if args.no_ray:
+    # Execute notebooks serially if requested to avoid use of ray, or if only one notebook
+    if args.no_ray or nproc < 2:
 
         for nbfile in notebooks:
             execute_notebook(nbfile)
@@ -195,7 +199,6 @@ if not args.no_exec:
     else:
         ray.init()
 
-        nproc = len(notebooks)
         ngpu = 0
         ar = ray.available_resources()
         ncpu = max(int(ar["CPU"]) // nproc, 1)
@@ -209,4 +212,16 @@ if not args.no_exec:
             execute_notebook(fname)
 
         # Execute relevant notebooks in parallel
-        ray.get([ray_run_nb.remote(nbfile) for nbfile in notebooks])
+        try:
+            objrefs = [ray_run_nb.remote(nbfile) for nbfile in notebooks]
+            ray.wait(objrefs, num_returns=len(objrefs))
+        except KeyboardInterrupt:
+            print("\nTerminating on keyboard interrupt")
+            for ref in objrefs:
+                ray.cancel(ref, force=True)
+            ray.shutdown()
+            # Clean up sub-processes not ended by ray.cancel
+            process = psutil.Process()
+            children = process.children(recursive=True)
+            for child in children:
+                os.kill(child.pid, signal.SIGTERM)

@@ -23,11 +23,10 @@ from xdesign import Foam, discrete_phantom
 
 import scico.numpy as snp
 from scico import functional, linop, metric, plot
-from scico.admm import ADMM, LinearSubproblemSolver
-from scico.ladmm import LinearizedADMM
 from scico.linop import Diagonal
 from scico.linop.radon_svmbir import ParallelBeamProjector, SVMBIRWeightedSquaredL2Loss
-from scico.primaldual import PDHG
+from scico.optimize import PDHG, LinearizedADMM
+from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
 """
@@ -103,13 +102,13 @@ solve_admm = ADMM(
     rho_list=[2e1],
     x0=x0,
     maxiter=50,
-    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": 10}),
-    verbose=True,
+    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-4, "maxiter": 10}),
+    itstat_options={"display": True, "period": 10},
 )
 print(f"Solving on {device_info()}\n")
 x_admm = solve_admm.solve()
 hist_admm = solve_admm.itstat_object.history(transpose=True)
-print(metric.psnr(x_gt, x_admm))
+print(f"PSNR: {metric.psnr(x_gt, x_admm):.2f} dB\n")
 
 
 """
@@ -123,11 +122,11 @@ solver_ladmm = LinearizedADMM(
     nu=2e-1,
     x0=x0,
     maxiter=50,
-    verbose=True,
+    itstat_options={"display": True, "period": 10},
 )
 x_ladmm = solver_ladmm.solve()
 hist_ladmm = solver_ladmm.itstat_object.history(transpose=True)
-print(metric.psnr(x_gt, x_ladmm))
+print(f"PSNR: {metric.psnr(x_gt, x_ladmm):.2f} dB\n")
 
 
 """
@@ -141,11 +140,11 @@ solver_pdhg = PDHG(
     sigma=8e0,
     x0=x0,
     maxiter=50,
-    verbose=True,
+    itstat_options={"display": True, "period": 10},
 )
 x_pdhg = solver_pdhg.solve()
 hist_pdhg = solver_pdhg.itstat_object.history(transpose=True)
-print(metric.psnr(x_gt, x_pdhg))
+print(f"PSNR: {metric.psnr(x_gt, x_pdhg):.2f} dB\n")
 
 
 """
@@ -206,7 +205,7 @@ plot.plot(
     ax=ax[0],
 )
 plot.plot(
-    snp.vstack((hist_admm.Primal_Rsdl, hist_ladmm.Primal_Rsdl, hist_pdhg.Primal_Rsdl)).T,
+    snp.vstack((hist_admm.Prml_Rsdl, hist_ladmm.Prml_Rsdl, hist_pdhg.Prml_Rsdl)).T,
     ptyp="semilogy",
     title="Primal residual",
     xlbl="Iteration",
@@ -237,7 +236,7 @@ plot.plot(
     ax=ax[0],
 )
 plot.plot(
-    snp.vstack((hist_admm.Primal_Rsdl, hist_ladmm.Primal_Rsdl, hist_pdhg.Primal_Rsdl)).T,
+    snp.vstack((hist_admm.Prml_Rsdl, hist_ladmm.Prml_Rsdl, hist_pdhg.Prml_Rsdl)).T,
     snp.vstack((hist_admm.Time, hist_ladmm.Time, hist_pdhg.Time)).T,
     ptyp="semilogy",
     title="Primal residual",

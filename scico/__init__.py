@@ -15,11 +15,10 @@ import sys
 # isort: off
 from ._autograd import grad, jacrev, linear_adjoint, value_and_grad
 
-# TODO remove this check as we get closer to release?
 import jax, jaxlib
 
-jax_ver_req = "0.2.19"
-jaxlib_ver_req = "0.1.70"
+jax_ver_req = "0.2.26"
+jaxlib_ver_req = "0.1.75"
 if jax.__version__ < jax_ver_req:
     raise Exception(
         f"SCICO {__version__} requires jax>={jax_ver_req}; got {jax.__version__}; "

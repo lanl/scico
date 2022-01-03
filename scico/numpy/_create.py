@@ -32,8 +32,7 @@ def zeros(
     """
     if is_nested(shape):
         return BlockArray.zeros(shape, dtype=dtype)
-    else:
-        return jnp.zeros(shape, dtype=dtype)
+    return jnp.zeros(shape, dtype=dtype)
 
 
 def ones(shape: Union[Shape, BlockShape], dtype: DType = np.float32) -> Union[JaxArray, BlockArray]:
@@ -47,8 +46,7 @@ def ones(shape: Union[Shape, BlockShape], dtype: DType = np.float32) -> Union[Ja
     """
     if is_nested(shape):
         return BlockArray.ones(shape, dtype=dtype)
-    else:
-        return jnp.ones(shape, dtype=dtype)
+    return jnp.ones(shape, dtype=dtype)
 
 
 def empty(
@@ -64,8 +62,7 @@ def empty(
     """
     if is_nested(shape):
         return BlockArray.empty(shape, dtype=dtype)
-    else:
-        return jnp.empty(shape, dtype=dtype)
+    return jnp.empty(shape, dtype=dtype)
 
 
 def full(
@@ -88,8 +85,7 @@ def full(
         dtype = jax.dtypes.canonicalize_dtype(type(fill_value))
     if is_nested(shape):
         return BlockArray.full(shape, fill_value=fill_value, dtype=dtype)
-    else:
-        return jnp.full(shape, fill_value=fill_value, dtype=dtype)
+    return jnp.full(shape, fill_value=fill_value, dtype=dtype)
 
 
 def zeros_like(x: Union[JaxArray, BlockArray], dtype=None):
@@ -109,8 +105,7 @@ def zeros_like(x: Union[JaxArray, BlockArray], dtype=None):
 
     if isinstance(x, BlockArray):
         return BlockArray.zeros(x.shape, dtype=dtype)
-    else:
-        return jnp.zeros_like(x, dtype=dtype)
+    return jnp.zeros_like(x, dtype=dtype)
 
 
 def empty_like(x: Union[JaxArray, BlockArray], dtype: DType = None):
@@ -133,8 +128,7 @@ def empty_like(x: Union[JaxArray, BlockArray], dtype: DType = None):
 
     if isinstance(x, BlockArray):
         return BlockArray.zeros(x.shape, dtype=dtype)
-    else:
-        return jnp.zeros_like(x, dtype=dtype)
+    return jnp.zeros_like(x, dtype=dtype)
 
 
 def ones_like(x: Union[JaxArray, BlockArray], dtype: DType = None):
@@ -154,8 +148,7 @@ def ones_like(x: Union[JaxArray, BlockArray], dtype: DType = None):
 
     if isinstance(x, BlockArray):
         return BlockArray.ones(x.shape, dtype=dtype)
-    else:
-        return jnp.ones_like(x, dtype=dtype)
+    return jnp.ones_like(x, dtype=dtype)
 
 
 def full_like(
@@ -179,5 +172,4 @@ def full_like(
 
     if isinstance(x, BlockArray):
         return BlockArray.full(x.shape, fill_value=fill_value, dtype=dtype)
-    else:
-        return jnp.full_like(x, fill_value=fill_value, dtype=dtype)
+    return jnp.full_like(x, fill_value=fill_value, dtype=dtype)

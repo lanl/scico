@@ -161,29 +161,50 @@ def valid_adjoint(
     err = snp.abs(yTu - vTx) / max(snp.abs(yTu), snp.abs(vTx))
     if eps is None:
         return err
-    else:
-        return err < eps
+    return err < eps
 
 
 class Diagonal(LinearOperator):
     """Diagonal linear operator."""
 
-    def __init__(self, diagonal: JaxArray, input_dtype: Optional[DType] = None, **kwargs):
+    def __init__(
+        self,
+        diagonal: Union[Array, BlockArray],
+        input_shape: Optional[Shape] = None,
+        input_dtype: Optional[DType] = None,
+        **kwargs,
+    ):
         r"""
         Args:
             diagonal:  Diagonal elements of this linear operator
+            input_shape:  Shape of input array. By default, equal to `diagonal.shape`,
+               but may also be set to a shape that is broadcast-compatiable with `diagonal.shape`.
             input_dtype:  `dtype` of input argument.  The default, ``None``,
                means `diagonal.dtype`.
+
         """
 
         self.diagonal = util.ensure_on_device(diagonal)
 
+        if input_shape is None:
+            input_shape = self.diagonal.shape
+
         if input_dtype is None:
             input_dtype = self.diagonal.dtype
+
+        if isinstance(diagonal, BlockArray) and util.is_nested(input_shape):
+            output_shape = (snp.empty(input_shape) * diagonal).shape
+        elif not isinstance(diagonal, BlockArray) and not util.is_nested(input_shape):
+            output_shape = snp.broadcast_shapes(input_shape, self.diagonal.shape)
+        elif isinstance(diagonal, BlockArray):
+            raise ValueError(f"`diagonal` was a BlockArray but `input_shape` was not nested.")
+        else:
+            raise ValueError(f"`diagonal` was a not BlockArray but `input_shape` was nested.")
+
         super().__init__(
-            input_shape=self.diagonal.shape,
+            input_shape=input_shape,
             input_dtype=input_dtype,
-            output_shape=self.diagonal.shape,
+            output_shape=output_shape,
             output_dtype=input_dtype,
             **kwargs,
         )
@@ -198,15 +219,13 @@ class Diagonal(LinearOperator):
     def __add__(self, other):
         if self.diagonal.shape == other.diagonal.shape:
             return Diagonal(diagonal=self.diagonal + other.diagonal)
-        else:
-            raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}")
+        raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}")
 
     @partial(_wrap_add_sub, op=operator.sub)
     def __sub__(self, other):
         if self.diagonal.shape == other.diagonal.shape:
             return Diagonal(diagonal=self.diagonal - other.diagonal)
-        else:
-            raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}")
+        raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}")
 
     @_wrap_mul_div_scalar
     def __mul__(self, scalar):

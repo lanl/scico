@@ -68,11 +68,11 @@ def test_add_seed_adapter():
     # get back the split key
     _, key_a = fun_alt(seed=42)
     key_b, _ = jax.random.split(jax.random.PRNGKey(42), 2)
-    np.testing.assert_equal(key_a, key_b)
+    np.testing.assert_array_equal(key_a, key_b)
 
     # error when key and seed are specified
     with pytest.raises(Exception):
-        fun_alt(key=jax.random.PRNGKey(0), seed=42)[0]
+        _ = fun_alt(key=jax.random.PRNGKey(0), seed=42)[0]
 
 
 def test_block_shape_adapter():

@@ -30,7 +30,7 @@ class TestSet:
         N = 64
         Ac = np.random.randn(N, N)
         Am = Ac.dot(Ac.T)
-        A = lambda x: Am.dot(x)
+        A = Am.dot
         x = np.random.randn(N)
         b = Am.dot(x)
         x0 = np.zeros((N,))
@@ -46,7 +46,7 @@ class TestSet:
         N = 64
         Ac = np.random.randn(N, N)
         Am = Ac.dot(Ac.T)
-        A = lambda x: Am.dot(x)
+        A = Am.dot
         x = np.random.randn(N)
         b = Am.dot(x)
         x0 = np.zeros((N,))
@@ -63,7 +63,7 @@ class TestSet:
         N = 64
         Ac = np.random.randn(N, N) + 1j * np.random.randn(N, N)
         Am = Ac.dot(Ac.conj().T)
-        A = lambda x: Am.dot(x)
+        A = Am.dot
         x = np.random.randn(N) + 1j * np.random.randn(N)
         b = Am.dot(x)
         x0 = np.zeros_like(x)
@@ -83,10 +83,10 @@ class TestSet:
         )  # Poorly scaled matrix; good fit for diagonal preconditioning
         Am = Ac.dot(Ac.conj().T)
 
-        A = lambda x: Am.dot(x)
+        A = Am.dot
 
         Mm = np.diag(1 / np.diag(Am))  # inverse of diagonal of Am
-        M = lambda x: Mm.dot(x)
+        M = Mm.dot
 
         x = np.random.randn(N) + 1j * np.random.randn(N)
         b = Am.dot(x)

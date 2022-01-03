@@ -4,9 +4,7 @@ import jax
 
 import scico.numpy as snp
 from scico import functional, linop, loss, random
-from scico.primaldual import PDHG
-
-flag = False
+from scico.optimize import PDHG
 
 
 class TestMisc:
@@ -24,7 +22,7 @@ class TestMisc:
         g = (self.λ / 2) * functional.BM3D()
         C = linop.Identity(self.y.shape)
 
-        itstat_dict = {"Iter": "%d", "Time": "%8.2e"}
+        itstat_fields = {"Iter": "%d", "Time": "%8.2e"}
 
         def itstat_func(obj):
             return (obj.itnum, obj.timer.elapsed())
@@ -36,7 +34,6 @@ class TestMisc:
             tau=τ,
             sigma=σ,
             maxiter=maxiter,
-            verbose=False,
         )
         assert len(pdhg_.itstat_object.fieldname) == 4
         assert snp.sum(pdhg_.x) == 0.0
@@ -47,17 +44,17 @@ class TestMisc:
             tau=τ,
             sigma=σ,
             maxiter=maxiter,
-            verbose=False,
-            itstat=(itstat_dict, itstat_func),
+            itstat_options={"fields": itstat_fields, "itstat_func": itstat_func, "display": False},
         )
         assert len(pdhg_.itstat_object.fieldname) == 2
 
+        pdhg_.test_flag = False
+
         def callback(obj):
-            global flag
-            flag = True
+            obj.test_flag = True
 
         x = pdhg_.solve(callback=callback)
-        assert flag
+        assert pdhg_.test_flag
 
 
 class TestReal:
@@ -93,7 +90,6 @@ class TestReal:
             tau=τ,
             sigma=σ,
             maxiter=maxiter,
-            verbose=False,
             x0=A.adj(self.y),
         )
         x = pdhg_.solve()
@@ -133,7 +129,6 @@ class TestComplex:
             tau=τ,
             sigma=σ,
             maxiter=maxiter,
-            verbose=False,
             x0=A.adj(self.y),
         )
         x = pdhg_.solve()

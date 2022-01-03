@@ -9,7 +9,7 @@ Non-negative Poisson Loss Reconstruction (APGM w/ adaptive PGMStepSize)
 =======================================================================
 
 This example demonstrates the use of class
-[pgm.PGMStepSize](../_autosummary/scico.pgm.rst#scico.pgm.PGMStepSize)
+[pgm.PGMStepSize](../_autosummary/scico.optimize.pgm.rst#scico.optimize.pgm.PGMStepSize)
 to solve the non-negative reconstruction problem with Poisson negative
 log likelihood loss
 
@@ -33,7 +33,7 @@ import scico.random
 from scico import functional, loss, plot
 from scico.blockarray import BlockArray
 from scico.operator import Operator
-from scico.pgm import (
+from scico.optimize.pgm import (
     AcceleratedPGM,
     AdaptiveBBStepSize,
     BBStepSize,
@@ -188,7 +188,7 @@ solver = AcceleratedPGM(
     L0=L0,
     x0=x0,
     maxiter=maxiter,
-    verbose=True,
+    itstat_options={"display": True, "period": 10},
 )
 str_ss = type(solver.step_size).__name__
 
@@ -216,7 +216,7 @@ solver = AcceleratedPGM(
     L0=L0,
     x0=x0,
     maxiter=maxiter,
-    verbose=True,
+    itstat_options={"display": True, "period": 10},
     step_size=BBStepSize(),
 )
 str_ss = type(solver.step_size).__name__
@@ -244,7 +244,7 @@ solver = AcceleratedPGM(
     L0=L0,
     x0=x0,
     maxiter=maxiter,
-    verbose=True,
+    itstat_options={"display": True, "period": 10},
     step_size=AdaptiveBBStepSize(kappa=0.75),
 )
 str_ss = type(solver.step_size).__name__
@@ -272,7 +272,7 @@ solver = AcceleratedPGM(
     L0=L0,
     x0=x0,
     maxiter=maxiter,
-    verbose=True,
+    itstat_options={"display": True, "period": 10},
     step_size=LineSearchStepSize(),
 )
 str_ss = type(solver.step_size).__name__
@@ -300,7 +300,7 @@ solver = AcceleratedPGM(
     L0=L0,
     x0=x0,
     maxiter=maxiter,
-    verbose=True,
+    itstat_options={"display": True, "period": 10},
     step_size=RobustLineSearchStepSize(),
 )
 str_ss = type(solver.step_size).__name__

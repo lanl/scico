@@ -11,7 +11,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import Callable, Optional, Tuple, Union
+from typing import Callable, Optional, Union
 
 import scico.numpy as snp
 from scico.blockarray import BlockArray
@@ -98,8 +98,7 @@ class PDHG:
         x0: Optional[Union[JaxArray, BlockArray]] = None,
         z0: Optional[Union[JaxArray, BlockArray]] = None,
         maxiter: int = 100,
-        verbose: bool = False,
-        itstat: Optional[Tuple[dict, Callable]] = None,
+        itstat_options: Optional[dict] = None,
     ):
         r"""Initialize a :class:`PDHG` object.
 
@@ -115,16 +114,16 @@ class PDHG:
             z0: Starting point for :math:`\mb{z}`. If None, defaults to
                an array of zeros.
             maxiter: Number of ADMM outer-loop iterations. Default: 100.
-            verbose: Flag indicating whether iteration statistics should
-               be displayed.
-            itstat: A tuple (`fieldspec`, `insertfunc`), where `fieldspec`
-               is a dict suitable for passing to the `fields` argument
-               of the :class:`.diagnostics.IterationStats` initializer,
-               and `insertfunc` is a function with two parameters, an
-               integer and a PDHG object, responsible for constructing
-               a tuple ready for insertion into the
-               :class:`.diagnostics.IterationStats` object. If None,
-               default values are used for the tuple components.
+            itstat_options: A dict of named parameters to be passed to
+                the :class:`.diagnostics.IterationStats` initializer. The
+                dict may also include an additional key "itstat_func"
+                with the corresponding value being a function with two
+                parameters, an integer and an ADMM object, responsible
+                for constructing a tuple ready for insertion into the
+                :class:`.diagnostics.IterationStats` object. If ``None``,
+                default values are used for the dict entries, otherwise
+                the default dict is updated with the dict specified by
+                this parameter.
         """
         self.f: Functional = f
         self.g: Functional = g
@@ -135,48 +134,36 @@ class PDHG:
         self.itnum: int = 0
         self.maxiter: int = maxiter
         self.timer: Timer = Timer()
-        self.verbose: bool = verbose
 
-        if itstat:
-            itstat_dict = itstat[0]
-            itstat_func = itstat[1]
-        elif itstat is None:
-            if g.has_eval:
-                itstat_dict = {
-                    "Iter": "%d",
-                    "Time": "%8.2e",
-                    "Objective": "%8.3e",
-                    "Primal Rsdl": "%8.3e",
-                    "Dual Rsdl": "%8.3e",
-                }
+        # iteration number and time fields
+        itstat_fields = {
+            "Iter": "%d",
+            "Time": "%8.2e",
+        }
+        itstat_attrib = ["itnum", "timer.elapsed()"]
+        # objective function can be evaluated if all 'g' functions can be evaluated
+        if g.has_eval:
+            itstat_fields.update({"Objective": "%9.3e"})
+            itstat_attrib.append("objective()")
+        # primal and dual residual fields
+        itstat_fields.update({"Prml Rsdl": "%9.3e", "Dual Rsdl": "%9.3e"})
+        itstat_attrib.extend(["norm_primal_residual()", "norm_dual_residual()"])
 
-                def itstat_func(obj):
-                    return (
-                        obj.itnum,
-                        obj.timer.elapsed(),
-                        obj.objective(),
-                        obj.norm_primal_residual(),
-                        obj.norm_dual_residual(),
-                    )
+        # dynamically create itstat_func; see https://stackoverflow.com/questions/24733831
+        itstat_return = "return(" + ", ".join(["obj." + attr for attr in itstat_attrib]) + ")"
+        scope = {}
+        exec("def itstat_func(obj): " + itstat_return, scope)
 
-            else:
-                itstat_dict = {
-                    "Iter": "%d",
-                    "Time": "%8.1e",
-                    "Primal Rsdl": "%8.3e",
-                    "Dual Rsdl": "%8.3e",
-                }
-
-                def itstat_func(obj):
-                    return (
-                        obj.i,
-                        obj.timer.elapsed(),
-                        obj.norm_primal_residual(),
-                        obj.norm_dual_residual(),
-                    )
-
-        self.itstat_object = IterationStats(itstat_dict, display=verbose)
-        self.itstat_insert_func = itstat_func
+        # determine itstat options and initialize IterationStats object
+        default_itstat_options = {
+            "fields": itstat_fields,
+            "itstat_func": scope["itstat_func"],
+            "display": False,
+        }
+        if itstat_options:
+            default_itstat_options.update(itstat_options)
+        self.itstat_insert_func = default_itstat_options.pop("itstat_func", None)
+        self.itstat_object = IterationStats(**default_itstat_options)
 
         if x0 is None:
             input_shape = C.input_shape
@@ -281,4 +268,5 @@ class PDHG:
                 self.timer.start()
         self.timer.stop()
         self.itnum += 1
+        self.itstat_object.end()
         return self.x

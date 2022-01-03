@@ -9,8 +9,8 @@ Image Deconvolution (ADMM Plug-and-Play Priors w/ DnCNN)
 ========================================================
 
 This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.admm.rst#scico.admm.ADMM) to solve
-an image deconvolution problem using the Plug-and-Play Priors
+[admm.ADMM](../_autosummary/scico.optimize.html#scico.optimize.ADMM) to
+solve an image deconvolution problem using the Plug-and-Play Priors
 framework :cite:`venkatakrishnan-2013-plugandplay2`, using DnCNN
 :cite:`zhang-2017-dncnn` as a denoiser.
 """
@@ -24,7 +24,7 @@ from xdesign import Foam, discrete_phantom
 import scico.numpy as snp
 import scico.random
 from scico import functional, linop, loss, metric, plot
-from scico.admm import ADMM, LinearSubproblemSolver
+from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
 """
@@ -73,8 +73,8 @@ solver = ADMM(
     rho_list=[ρ],
     x0=A.T @ y,
     maxiter=maxiter,
-    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": 30}),
-    verbose=True,
+    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-3, "maxiter": 30}),
+    itstat_options={"display": True},
 )
 
 
@@ -104,7 +104,7 @@ fig.show()
 Plot convergence statistics.
 """
 plot.plot(
-    snp.vstack((hist.Primal_Rsdl, hist.Dual_Rsdl)).T,
+    snp.vstack((hist.Prml_Rsdl, hist.Dual_Rsdl)).T,
     ptyp="semilogy",
     title="Residuals",
     xlbl="Iteration",

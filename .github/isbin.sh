@@ -16,7 +16,7 @@ for f in $@; do
 	exit 1
     fi
     charset=$(file -b --mime $f | sed -e 's/.*charset=//')
-    if [ ! -L "$f" -a "$charset" = "binary" ]; then
+    if [ ! -L "$f" ] && [ "$charset" = "binary" ]; then
     echo "binary files cannot be commited to the repository"
     echo "raw data and ipynb files should go in scico-data"
 	exit 2

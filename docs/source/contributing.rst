@@ -82,17 +82,34 @@ Installing a Development Version
       pip install -e .  # Installs SCICO from the current directory in editable mode
 
 
-9. The SCICO project uses the `Black <https://black.readthedocs.io/en/stable/>`_
-   and `isort <https://pypi.org/project/isort/>`_ code formatting utilities.
-   You should set up a `pre-commit hook <https://pre-commit.com>`_ to ensure
-   any modified code passes format check before it is committed to the development repo:
+9. The SCICO project uses the `black <https://black.readthedocs.io/en/stable/>`_,
+   `isort <https://pypi.org/project/isort/>`_ and `pylint <https://pylint.pycqa.org/en/latest/>`_
+   code formatting utilities. It is important to set up a `pre-commit hook <https://pre-commit.com>`_ to
+   ensure that any modified code passes format check before it is committed to the development repo:
 
    ::
 
       pre-commit install  # Sets up git pre-commit hooks
 
+   It is also recommended to `pin the conda package version
+   <https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-pkgs.html#preventing-packages-from-updating-pinning>`__
+   of `black <https://black.readthedocs.io/en/stable/>`_ to the version
+   number specified in ``dev_requirements.txt``.
+
 
 10. For testing see `Tests`_.
+
+
+
+Building Documentation
+----------------------
+
+To build a local copy of the docs, from the repo root directory, do
+
+::
+
+  python setup.py build_sphinx
+
 
 
 Contributing Code
@@ -168,8 +185,65 @@ A feature development workflow might look like this:
 
 9.  Create a new pull request to the ``main`` branch; see `the GitHub instructions <https://docs.github.com/en/github/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request>`_.
 
+10. The SCICO maintainers will review and merge your PR.
+    The SCICO project favors the ``squash and merge`` option for merging PRs.
 
-10. Delete the branch after it has been merged.
+11. Delete the branch after it has been merged.
+
+
+Adding Data
+-----------
+
+The following steps show how to add new data, ``new_data.npz``, to the packaged data. We assume the SCICO repository has been cloned to ``scico/``.
+
+Note that the data is located in the scico-data submodule, which is
+symlinked to ``scico/data``.  When adding new data, both the scico and
+scico-data repositories must be updated and kept in sync.
+
+
+1. Add the ``new_data.npz`` file to the ``scico/data`` directory.
+
+2. Navigate to the ``data`` directory and add/commit the new data file:
+
+   ::
+
+      cd scico/data
+      git add new_data.npz
+      git commit -m "Add new data file"
+
+3.  Return to the base SCICO repository, ensure the ``main`` branch is checked out, add/commit the new data and update submodule:
+
+   ::
+
+      cd ..  # pwd now `scico` repo root
+      git checkout main
+      git add data
+      git commit -m "Add data and update data module"
+
+4.  Push both repositories:
+
+   ::
+
+      git submodule foreach --recursive 'git push' && git push
+
+
+Type Checking
+-------------
+
+In the future, we will require all code to pass ``mypy`` type checking. This is not currently enforced.
+
+Install ``mypy``:
+
+::
+
+   conda install mypy
+
+To run the type checker on the ``scico`` module:
+
+::
+
+   mypy -p scico
+
 
 
 Tests
@@ -229,22 +303,6 @@ A coverage report can be obtained by
 
 
 
-Type Checking
--------------
-
-In the future, we will require all code to pass ``mypy`` type checking. This is not currently enforced.
-
-Install ``mypy``:
-
-::
-
-   conda install mypy
-
-To run the type checker on the ``scico`` module:
-
-::
-
-   mypy -p scico
 
 
 Usage Examples
@@ -341,50 +399,3 @@ and ``scico-data`` repositories must be updated and kept in sync.
    ::
 
       git submodule foreach --recursive 'git push' && git push
-
-
-Data
-----
-
-The following steps show how to add new data, ``new_data.npz``, to the packaged data. We assume the SCICO repository has been cloned to ``scico/``.
-
-Note that the data is located in the scico-data submodule, which is
-symlinked to ``scico/data``.  When adding new data, both the scico and
-scico-data repositories must be updated and kept in sync.
-
-
-1. Add the ``new_data.npz`` file to the ``scico/data`` directory.
-
-2. Navigate to the ``data`` directory and add/commit the new data file:
-
-   ::
-
-      cd scico/data
-      git add new_data.npz
-      git commit -m "Add new data file"
-
-3.  Return to the base SCICO repository, ensure the ``main`` branch is checked out, add/commit the new data and update submodule:
-
-   ::
-
-      cd ..  # pwd now `scico` repo root
-      git checkout main
-      git add data
-      git commit -m "Add data and update data module"
-
-4.  Push both repositories:
-
-   ::
-
-      git submodule foreach --recursive 'git push' && git push
-
-
-
-Building Documentation
-----------------------
-
-To build a local copy of the docs, from the repo root directory, do
-
-::
-
-  python setup.py build_sphinx

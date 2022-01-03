@@ -97,8 +97,7 @@ def _split_real_imag(x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArr
     """
     if isinstance(x, BlockArray):
         return BlockArray.array([_split_real_imag(_) for _ in x])
-    else:
-        return snp.stack((snp.real(x), snp.imag(x)))
+    return snp.stack((snp.real(x), snp.imag(x)))
 
 
 def _join_real_imag(x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
@@ -116,8 +115,7 @@ def _join_real_imag(x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArra
     """
     if isinstance(x, BlockArray):
         return BlockArray.array([_join_real_imag(_) for _ in x])
-    else:
-        return x[0] + 1j * x[1]
+    return x[0] + 1j * x[1]
 
 
 def minimize(
@@ -257,12 +255,12 @@ def cg(
 ) -> Union[JaxArray, dict]:
     r"""Conjugate Gradient solver.
 
-    Solve the linear system :math:`A\mb{x} = \mb{b}` via the conjugate
-    gradient method.
+    Solve the linear system :math:`A\mb{x} = \mb{b}`, where :math:`A` is
+    positive definite, via the conjugate gradient method.
 
     Args:
         A: Function implementing linear operator :math:`A`.
-        b: Input array :math:`\mb{b}`.
+        b: Input array :math:`\mb{b}`, should be positive definite.
         x0: Initial solution.
         tol: Relative residual stopping tolerance. Convergence occurs
            when ``norm(residual) <= max(tol * norm(b), atol)``.
@@ -270,7 +268,7 @@ def cg(
            when ``norm(residual) <= max(tol * norm(b), atol)``.
         maxiter: Maximum iterations. Default: 1000.
         M: Preconditioner for A. The preconditioner should approximate
-           the inverse of ``A``. The default, ``None``, does not use a
+           the inverse of ``A``. The default, ``None``, uses no
            preconditioner.
 
     Returns:

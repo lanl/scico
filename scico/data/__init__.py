@@ -22,13 +22,13 @@ def _imread(filename: str, path: str = None, asfloat: bool = False) -> DeviceArr
     """Read an image from disk.
 
     Args:
-        str: Base filename (i.e. without path) of image file.
+        filename: Base filename (i.e. without path) of image file.
         path: Path to directory containing the image file.
         asfloat: Flag indicating whether the returned image should be
           converted to float32 dtype with a range [0, 1].
 
     Returns:
-       DeviceArray: image data array.
+       Image data array.
     """
 
     if path is None:
@@ -47,7 +47,7 @@ def kodim23(asfloat: bool = False) -> DeviceArray:
           converted to float32 dtype with a range [0, 1].
 
     Returns:
-       DeviceArray: image data array.
+       Image data array.
     """
 
     return _imread("kodim23.png", asfloat=asfloat)
@@ -57,10 +57,10 @@ def _flax_data_path(filename: str) -> str:
     """Get the full filename of a flax data file.
 
     Args:
-        str: Base filename (i.e. without path) of data file.
+        filename: Base filename (i.e. without path) of data file.
 
     Returns:
-       str: Full filename, with path, of data file.
+       Full filename, with path, of data file.
     """
 
     return os.path.join(os.path.dirname(__file__), "flax", filename)

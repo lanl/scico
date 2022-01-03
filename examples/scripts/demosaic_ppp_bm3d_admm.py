@@ -24,8 +24,8 @@ import scico
 import scico.numpy as snp
 import scico.random
 from scico import functional, linop, loss, metric, plot
-from scico.admm import ADMM, LinearSubproblemSolver
 from scico.data import kodim23
+from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
 """
@@ -74,6 +74,7 @@ algorithm of :cite:`menon-2007-demosaicing` from package
 
 
 def demosaic(cfaimg):
+    """Apply baseline demosaicing."""
     return demosaicing_CFA_Bayer_Menon2007(cfaimg, pattern="BGGR").astype(np.float32)
 
 
@@ -114,8 +115,8 @@ solver = ADMM(
     rho_list=[ρ],
     x0=imgb,
     maxiter=maxiter,
-    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"maxiter": 100}),
-    verbose=True,
+    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-3, "maxiter": 100}),
+    itstat_options={"display": True},
 )
 
 
@@ -141,7 +142,7 @@ fig.show()
 Plot convergence statistics.
 """
 plot.plot(
-    snp.vstack((hist.Primal_Rsdl, hist.Dual_Rsdl)).T,
+    snp.vstack((hist.Prml_Rsdl, hist.Dual_Rsdl)).T,
     ptyp="semilogy",
     title="Residuals",
     xlbl="Iteration",

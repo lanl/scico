@@ -8,6 +8,7 @@
 """Diagnostic information for iterative solvers."""
 
 import re
+import warnings
 from collections import OrderedDict, namedtuple
 from typing import List, Optional, Tuple, Union
 
@@ -26,6 +27,8 @@ class IterationStats:
         fields: OrderedDict,
         ident: Optional[dict] = None,
         display: bool = False,
+        period: int = 1,
+        overwrite: bool = True,
         colsep: int = 2,
     ):
         """
@@ -51,6 +54,10 @@ class IterationStats:
                namedtuple used to record results. Defaults to ``None``.
             display: Flag indicating whether results should be printed
                 to stdout. Defaults to ``False``.
+            period: Only display one result in every cycle of length
+                `period`.
+            overwrite: If ``True``, display all results, but each one
+                 overwrites the next, except for one result per cycle.
             colsep: Number of spaces seperating fields in displayed
                 tables. Defaults to 2.
 
@@ -62,6 +69,10 @@ class IterationStats:
         # that field order is retained
         if not isinstance(fields, dict):
             raise TypeError("Parameter fields must be an instance of dict")
+        # Subsampling rate of results that are to be displayed
+        self.period = period
+        # Flag indicating whether to display and overwrite, or not display at all
+        self.overwrite = overwrite
         # Number of spaces seperating fields in displayed tables
         self.colsep = colsep
         # Main list of inserted values
@@ -77,31 +88,34 @@ class IterationStats:
         # Names of fields in namedtuple used to record iteration values
         self.tuplefields = []
         # Compile regex for decomposing format strings
-        flre = re.compile(r"%(-)?(\d+)(.*)")
+        fmre = re.compile(r"%(\+?-?)((?:\d+)?)(\.?)((?:\d+)?)([a-z])")
         # Iterate over field names
         for name in fields:
             # Get format string and decompose it using compiled regex
             fmt = fields[name]
-            rem = flre.match(fmt)
-            if rem is None:
-                # If format string does not contain a field length specifier,
-                # the field length is determined by the length of the header
-                # string
-                fln = len(name)
-                fmt = "%%%d" % fln + fmt[1:]
-            else:
-                # If the format string does contain a field length specifier,
-                # the field length is the maximum of specified field length
-                # and the length of the header string
-                fln = max(len(name), int(rem.group(2)))
-                sgn = rem.group(1)
-                if sgn is None:
-                    sgn = ""
-                fmt = "%" + sgn + ("%d" % fln) + rem.group(3)
+            fmtmatch = fmre.match(fmt)
+            if not fmtmatch:
+                raise ValueError(f'Format string "{fmt}" could not be parsed')
+            fmflg, fmlen, fmdot, fmprc, fmtyp = fmtmatch.groups()
+            flen = len(fmt % 0)
+            # Warn if actual formatted length longer than specified field
+            # length, e.g. as in "%4e"
+            if fmlen != "" and flen > int(fmlen):
+                warnings.warn(
+                    f'Actual length {flen} of format "{fmt}" for field '
+                    f'"{name}" is longer than specified value {fmlen}',
+                    stacklevel=2,
+                )
+            # If the actual formatted length is less than that of the header
+            # string, insert a field length specifier to increase the
+            # length to that of the header string
+            if flen < len(name):
+                fmt = f"%{fmflg}{len(name)}{fmdot}{fmprc}{fmtyp}"
+                flen = len(name)
             self.fieldname.append(name)
             self.fieldformat.append(fmt)
-            self.fieldlength.append(fln)
-            self.headlength += fln + colsep
+            self.fieldlength.append(flen)
+            self.headlength += flen + colsep
 
             # If a distinct identifier is specified for this field, use it
             # as the namedtuple identifier, otherwise compute it from the
@@ -134,8 +148,7 @@ class IterationStats:
             )
 
     def insert(self, values: Union[List, Tuple]):
-        """
-        Insert a list of values for a single iteration.
+        """Insert a list of values for a single iteration.
 
         Args:
             values: Statistics for a single iteration.
@@ -147,11 +160,29 @@ class IterationStats:
             if self.disphdr is not None:
                 print(self.disphdr)
                 self.disphdr = None
-            print((" " * self.colsep).join(self.fieldformat) % values)
+            if self.overwrite:
+                if (len(self.iterations) - 1) % self.period == 0:
+                    end = "\n"
+                else:
+                    end = "\r"
+                print((" " * self.colsep).join(self.fieldformat) % values, end=end)
+            else:
+                if (len(self.iterations) - 1) % self.period == 0:
+                    print((" " * self.colsep).join(self.fieldformat) % values)
+
+    def end(self):
+        """Mark end of iterations.
+
+        This method should be called at the end of a set of iterations.
+        Its only function is to ensure that the displayed output is left
+        in an appropriate state when overwriting is active with a display
+        period other than unity.
+        """
+        if self.overwrite and self.period > 1 and (len(self.iterations) - 1) % self.period:
+            print()
 
     def history(self, transpose: bool = False):
-        """
-        Retrieve record of all inserted iterations.
+        """Retrieve record of all inserted iterations.
 
         Args:
             transpose: Flag indicating whether results should be returned
@@ -170,5 +201,4 @@ class IterationStats:
                     for n in range(len(self.iterations[0]))
                 ]
             )
-        else:
-            return self.iterations
+        return self.iterations

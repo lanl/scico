@@ -12,7 +12,7 @@
 from __future__ import annotations
 
 from functools import reduce
-from typing import Callable, List, Optional, Tuple, Union
+from typing import Callable, List, Optional, Union
 
 import jax
 from jax.scipy.sparse.linalg import cg as jax_cg
@@ -84,6 +84,7 @@ class GenericSubproblemSolver(SubproblemSolver):
                 :func:`scico.solver.minimize`.
         """
         self.minimize_kwargs = minimize_kwargs
+        self.info = {}
 
     def solve(self, x0: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
         """Solve the ADMM step.
@@ -109,6 +110,8 @@ class GenericSubproblemSolver(SubproblemSolver):
             return out
 
         res = minimize(obj, x0, **self.minimize_kwargs)
+        for attrib in ("success", "status", "message", "nfev", "njev", "nhev", "nit", "maxcv"):
+            self.info[attrib] = getattr(res, attrib, None)
 
         return res.x
 
@@ -158,25 +161,33 @@ class LinearSubproblemSolver(SubproblemSolver):
             :math:`\mb{x}` update step.
     """
 
-    def __init__(self, cg_kwargs: dict = {"maxiter": 100}, cg_function: str = "scico"):
+    def __init__(self, cg_kwargs: Optional[dict] = None, cg_function: str = "scico"):
         """Initialize a :class:`LinearSubproblemSolver` object.
 
         Args:
             cg_kwargs: Dictionary of arguments for CG solver. See
-                :func:`scico.solver.cg` or
-                :func:`jax.scipy.sparse.linalg.cg`, documentation,
+                documentation for :func:`scico.solver.cg` or
+                :func:`jax.scipy.sparse.linalg.cg`,
                 including how to specify a preconditioner.
+                Default values are the same as those of
+                :func:`scico.solver.cg`, except for
+                ``"tol": 1e-4`` and ``"maxiter": 100``.
             cg_function: String indicating which CG implementation to
                 use. One of "jax" or "scico"; default "scico".  If
                 "scico", uses :func:`scico.solver.cg`. If "jax", uses
-                :func:`jax.scipy.sparse.linalg.cg`.  The "jax" option is
+                :func:`jax.scipy.sparse.linalg.cg`. The "jax" option is
                 slower on small-scale problems or problems involving
                 external functions, but can be differentiated through.
                 The "scico" option is faster on small-scale problems, but
                 slower on large-scale problems where the forward
                 operator is written entirely in jax.
         """
-        self.cg_kwargs = cg_kwargs
+
+        default_cg_kwargs = {"tol": 1e-4, "maxiter": 100}
+        if cg_kwargs:
+            default_cg_kwargs.update(cg_kwargs)
+        self.cg_kwargs = default_cg_kwargs
+        self.cg_function = cg_function
         if cg_function == "scico":
             self.cg = scico_cg
         elif cg_function == "jax":
@@ -185,6 +196,7 @@ class LinearSubproblemSolver(SubproblemSolver):
             raise ValueError(
                 f"Parameter cg_function must be one of 'jax', 'scico'; got {cg_function}"
             )
+        self.info = None
 
     def internal_init(self, admm):
         if admm.f is not None:
@@ -283,7 +295,7 @@ class CircularConvolveSolver(LinearSubproblemSolver):
                     "CircularConvolveSolver requires f to be a scico.loss.SquaredL2Loss; "
                     f"got {type(admm.f)}"
                 )
-            if not (isinstance(admm.f.A, CircularConvolve) or isinstance(admm.f.A, Identity)):
+            if not isinstance(admm.f.A, (CircularConvolve, Identity)):
                 raise ValueError(
                     "CircularConvolveSolver requires f.A to be a scico.linop.CircularConvolve "
                     f"or scico.linop.Identity; got {type(admm.f.A)}"
@@ -397,8 +409,7 @@ class ADMM:
         x0: Optional[Union[JaxArray, BlockArray]] = None,
         maxiter: int = 100,
         subproblem_solver: Optional[SubproblemSolver] = None,
-        verbose: bool = False,
-        itstat: Optional[Tuple[dict, Callable]] = None,
+        itstat_options: Optional[dict] = None,
     ):
         r"""Initialize an :class:`ADMM` object.
 
@@ -416,16 +427,16 @@ class ADMM:
             subproblem_solver: Solver for :math:`\mb{x}`-update step.
                 Defaults to ``None``, which implies use of an instance of
                 :class:`GenericSubproblemSolver`.
-            verbose: Flag indicating whether iteration statistics should
-                be displayed.
-            itstat: A tuple (`fieldspec`, `insertfunc`), where `fieldspec`
-                is a dict suitable for passing to the `fields` argument
-                of the :class:`.diagnostics.IterationStats` initializer,
-                and `insertfunc` is a function with two parameters, an
-                integer and an ADMM object, responsible for constructing
-                a tuple ready for insertion into the
-                :class:`.diagnostics.IterationStats` object. If None,
-                default values are used for the tuple components.
+            itstat_options: A dict of named parameters to be passed to
+                the :class:`.diagnostics.IterationStats` initializer. The
+                dict may also include an additional key "itstat_func"
+                with the corresponding value being a function with two
+                parameters, an integer and an ADMM object, responsible
+                for constructing a tuple ready for insertion into the
+                :class:`.diagnostics.IterationStats` object. If ``None``,
+                default values are used for the dict entries, otherwise
+                the default dict is updated with the dict specified by
+                this parameter.
         """
         N = len(g_list)
         if len(C_list) != N:
@@ -445,48 +456,51 @@ class ADMM:
             subproblem_solver = GenericSubproblemSolver()
         self.subproblem_solver: SubproblemSolver = subproblem_solver
         self.subproblem_solver.internal_init(self)
-        self.verbose: bool = verbose
-        if itstat:
-            itstat_dict = itstat[0]
-            itstat_func = itstat[1]
-        elif itstat is None:
-            if all([_.has_eval for _ in self.g_list]):
-                itstat_dict = {
-                    "Iter": "%d",
-                    "Time": "%8.2e",
-                    "Objective": "%8.3e",
-                    "Primal Rsdl": "%8.3e",
-                    "Dual Rsdl": "%8.3e",
-                }
 
-                def itstat_func(obj):
-                    return (
-                        obj.itnum,
-                        obj.timer.elapsed(),
-                        obj.objective(),
-                        obj.norm_primal_residual(),
-                        obj.norm_dual_residual(),
-                    )
+        # iteration number and time fields
+        itstat_fields = {
+            "Iter": "%d",
+            "Time": "%8.2e",
+        }
+        itstat_attrib = ["itnum", "timer.elapsed()"]
+        # objective function can be evaluated if all 'g' functions can be evaluated
+        if all([_.has_eval for _ in self.g_list]):
+            itstat_fields.update({"Objective": "%9.3e"})
+            itstat_attrib.append("objective()")
+        # primal and dual residual fields
+        itstat_fields.update({"Prml Rsdl": "%9.3e", "Dual Rsdl": "%9.3e"})
+        itstat_attrib.extend(["norm_primal_residual()", "norm_dual_residual()"])
 
-            else:
-                # At least one 'g' can't be evaluated, so drop objective from the default itstat
-                itstat_dict = {
-                    "Iter": "%d",
-                    "Time": "%8.1e",
-                    "Primal Rsdl": "%8.3e",
-                    "Dual Rsdl": "%8.3e",
-                }
+        # subproblem solver info when available
+        if isinstance(self.subproblem_solver, GenericSubproblemSolver):
+            itstat_fields.update({"Num FEv": "%6d", "Num It": "%6d"})
+            itstat_attrib.extend(
+                ["subproblem_solver.info['nfev']", "subproblem_solver.info['nit']"]
+            )
+        elif (
+            type(self.subproblem_solver) == LinearSubproblemSolver
+            and self.subproblem_solver.cg_function == "scico"
+        ):
+            itstat_fields.update({"CG It": "%5d", "CG Res": "%9.3e"})
+            itstat_attrib.extend(
+                ["subproblem_solver.info['num_iter']", "subproblem_solver.info['rel_res']"]
+            )
 
-                def itstat_func(obj):
-                    return (
-                        obj.itnum,
-                        obj.timer.elapsed(),
-                        obj.norm_primal_residual(),
-                        obj.norm_dual_residual(),
-                    )
+        # dynamically create itstat_func; see https://stackoverflow.com/questions/24733831
+        itstat_return = "return(" + ", ".join(["obj." + attr for attr in itstat_attrib]) + ")"
+        scope = {}
+        exec("def itstat_func(obj): " + itstat_return, scope)
 
-        self.itstat_object = IterationStats(itstat_dict, display=verbose)
-        self.itstat_insert_func = itstat_func
+        # determine itstat options and initialize IterationStats object
+        default_itstat_options = {
+            "fields": itstat_fields,
+            "itstat_func": scope["itstat_func"],
+            "display": False,
+        }
+        if itstat_options:
+            default_itstat_options.update(itstat_options)
+        self.itstat_insert_func = default_itstat_options.pop("itstat_func", None)
+        self.itstat_object = IterationStats(**default_itstat_options)
 
         if x0 is None:
             input_shape = C_list[0].input_shape
@@ -678,4 +692,5 @@ class ADMM:
                 self.timer.start()
         self.timer.stop()
         self.itnum += 1
+        self.itstat_object.end()
         return self.x

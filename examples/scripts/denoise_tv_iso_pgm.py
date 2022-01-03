@@ -9,7 +9,7 @@ Isotropic Total Variation (Accelerated PGM)
 ===========================================
 
 This example demonstrates the use of class
-[pgm.AcceleratedPGM](../_autosummary/scico.pgm.rst#scico.pgm.AcceleratedPGM)
+[pgm.AcceleratedPGM](../_autosummary/scico.optimize.rst#scico.optimize.AcceleratedPGM)
 to solve isotropic total variation (TV) regularization. It solves the
 denoising problem
 
@@ -40,7 +40,7 @@ import scico.numpy as snp
 import scico.random
 from scico import functional, linop, loss, operator, plot
 from scico.blockarray import BlockArray
-from scico.pgm import AcceleratedPGM, RobustLineSearchStepSize
+from scico.optimize.pgm import AcceleratedPGM, RobustLineSearchStepSize
 from scico.typing import JaxArray
 from scico.util import device_info, ensure_on_device
 
@@ -144,7 +144,7 @@ solver_iso = AcceleratedPGM(
     L0=16.0 * f_iso.lmbda ** 2,
     x0=x0,
     maxiter=100,
-    verbose=True,
+    itstat_options={"display": True, "period": 10},
     step_size=RobustLineSearchStepSize(),
 )
 
@@ -194,7 +194,7 @@ solver = AcceleratedPGM(
     L0=16.0 * f.lmbda ** 2,
     x0=x0,
     maxiter=100,
-    verbose=True,
+    itstat_options={"display": True, "period": 10},
     step_size=RobustLineSearchStepSize(),
 )
 

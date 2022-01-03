@@ -9,7 +9,7 @@ Image Deconvolution (PGM Plug-and-Play Priors w/ BM3D)
 ======================================================
 
 This example demonstrates the use of class
-[pgm.AcceleratedPGM](../_autosummary/scico.pgm.rst#scico.pgm.AcceleratedPGM)
+[pgm.AcceleratedPGM](../_autosummary/scico.optimize.rst#scico.optimize.AcceleratedPGM)
 to solve an image deconvolution problem using the Plug-and-Play Priors
 framework :cite:`venkatakrishnan-2013-plugandplay2`
 :cite:`kamilov-2017-plugandplay`, using BM3D :cite:`dabov-2008-image`
@@ -25,7 +25,7 @@ from xdesign import Foam, discrete_phantom
 import scico.numpy as snp
 import scico.random
 from scico import functional, linop, loss, metric, plot
-from scico.pgm import AcceleratedPGM
+from scico.optimize.pgm import AcceleratedPGM
 from scico.util import device_info
 
 """
@@ -62,7 +62,9 @@ g = λ * functional.BM3D()
 
 maxiter = 50  # number of APGM iterations
 
-solver = AcceleratedPGM(f=f, g=g, L0=L0, x0=A.T @ y, maxiter=maxiter, verbose=True)
+solver = AcceleratedPGM(
+    f=f, g=g, L0=L0, x0=A.T @ y, maxiter=maxiter, itstat_options={"display": True, "period": 10}
+)
 
 print(f"Solving on {device_info()}\n")
 x = solver.solve()
