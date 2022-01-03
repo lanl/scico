@@ -28,102 +28,35 @@ operator, $\iota_{\mathrm{NN}}$ is the indicator function of the
 non-negativity constraint, and $\mathbf{x}$ is the desired image.
 """
 
-
-import glob
-import os
-import tempfile
-import zipfile
-
 import numpy as np
 
 import jax
 
-import imageio
-
 import ray
 import scico.numpy as snp
-from scico import functional, linop, loss, plot, util
+from scico import functional, linop, loss, plot
+from scico.examples import downsample_volume, epfl_deconv_data, tile_volume_slices
 from scico.optimize.admm import ADMM, CircularConvolveSolver
 
 """
-Define helper functions.
+Get and preprocess data. We downsample the data for the for purposes of
+the example. Reducing the downsampling rate will make the example slower
+and more memory-intensive. To run this example on a GPU it may be
+necessary to set environment variables
+`XLA_PYTHON_CLIENT_ALLOCATOR=platform` and
+`XLA_PYTHON_CLIENT_PREALLOCATE=false`. If your GPU does not have enough
+memory, you can try setting the environment variable
+`JAX_PLATFORM_NAME=cpu` to run on CPU.
 """
-
-
-def volume_read(path, ext="tif"):
-    """Read a 3D volume from a set of files in the specified directory."""
-
-    slices = []
-    for file in sorted(glob.glob(os.path.join(path, "*." + ext))):
-        image = imageio.imread(file)
-        slices.append(image)
-    return np.dstack(slices)
-
-
-def get_deconv_data(channel, cache_path=None):
-    """Get deconvolution problem data from EPFL Biomedical Imaging Group."""
-
-    # data source URL and filenames
-    data_base_url = "http://bigwww.epfl.ch/deconvolution/bio/"
-    data_zip_files = ["CElegans-CY3.zip", "CElegans-DAPI.zip", "CElegans-FITC.zip"]
-    psf_zip_files = ["PSF-" + data for data in data_zip_files]
-    # set default cache path if not specified
-    if cache_path is None:
-        cache_path = os.path.join(os.path.expanduser("~"), ".cache", "scico", "epfl_big")
-
-    # if cache path exists, data is assumed to aleady be downloaded
-    if not os.path.isdir(os.path.join(cache_path, data_zip_files[channel][:-4])):
-        if not os.path.isdir(cache_path):
-            os.makedirs(cache_path)
-        # temporary directory for downloads
-        temp_dir = tempfile.TemporaryDirectory()
-        # download data and psf files for selected channel into temporary directory
-        for zip_file in (data_zip_files[channel], psf_zip_files[channel]):
-            data = util.url_get(data_base_url + zip_file)
-            f = open(os.path.join(temp_dir.name, zip_file), "wb")
-            f.write(data.read())
-            f.close()
-        # unzip downloaded data into cache path
-        for zip_file in (data_zip_files[channel], psf_zip_files[channel]):
-            with zipfile.ZipFile(os.path.join(temp_dir.name, zip_file), "r") as zip_ref:
-                zip_ref.extractall(cache_path)
-
-    # read unzipped data files into 3D arrays
-    zip_file = data_zip_files[channel]
-    y = volume_read(os.path.join(cache_path, zip_file[:-4])).astype(np.float32)
-    zip_file = psf_zip_files[channel]
-    psf = volume_read(os.path.join(cache_path, zip_file[:-4])).astype(np.float32)
-    return y, psf
-
-
-def block_avg(im, N):
-    """Average distinct NxNxN blocks of im, return the resulting smaller image."""
-
-    im = snp.mean(snp.reshape(im, (-1, N, im.shape[1], im.shape[2])), axis=1)
-    im = snp.mean(snp.reshape(im, (im.shape[0], -1, N, im.shape[2])), axis=2)
-    im = snp.mean(snp.reshape(im, (im.shape[0], im.shape[1], -1, N)), axis=3)
-
-    return im
-
-
-"""
-Get and preprocess data. We downsample the data for the purposes of
-the example. Reducing the downsampling rate will be slower and more
-memory-intensive. If your GPU does not have enough memory, you can try
-setting the environment variable `JAX_PLATFORM_NAME=cpu` to run on CPU.
-To run this example on a GPU it
-[may also be necessary](https://github.com/google/jax/issues/5380) to
-set environment variable `XLA_PYTHON_CLIENT_PREALLOCATE=false`.
-"""
-downsampling_rate = 4
+downsampling_rate = 2
 
 y_list = []
 y_pad_list = []
 psf_list = []
 for channel in range(3):
-    y, psf = get_deconv_data(channel)  # get data
-    y = block_avg(y, downsampling_rate)  # downsample
-    psf = block_avg(psf, downsampling_rate)
+    y, psf = epfl_deconv_data(channel, verbose=True)  # get data
+    y = downsample_volume(y, downsampling_rate)  # downsample
+    psf = downsample_volume(psf, downsampling_rate)
     y -= y.min()  # normalize y
     y /= y.max()
     psf /= psf.sum()  # normalize psf
@@ -218,44 +151,9 @@ solve_stats = [t[1] for t in ray_return]
 """
 Show the recovered image.
 """
-
-
-def make_slices(x, sep_width=10):
-    """Make an image with xy, xz, and yz slices from an input volume."""
-
-    fill_val = -1.0
-    out = snp.concatenate(
-        (
-            x[:, :, x.shape[2] // 2],
-            snp.full((x.shape[0], sep_width, 3), fill_val),
-            x[:, x.shape[1] // 2, :],
-        ),
-        axis=1,
-    )
-
-    out = snp.concatenate(
-        (
-            out,
-            snp.full((sep_width, out.shape[1], 3), fill_val),
-            snp.concatenate(
-                (
-                    x[x.shape[0] // 2, :, :].transpose((1, 0, 2)),
-                    snp.full((x.shape[2], x.shape[2] + sep_width, 3), fill_val),
-                ),
-                axis=1,
-            ),
-        ),
-        axis=0,
-    )
-
-    out = snp.where(out == fill_val, out.max(), out)
-
-    return out
-
-
 fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(14, 7))
-plot.imview(make_slices(y), title="Blurred measurements", fig=fig, ax=ax[0])
-plot.imview(make_slices(x), title="Deconvolved image", fig=fig, ax=ax[1])
+plot.imview(tile_volume_slices(y), title="Blurred measurements", fig=fig, ax=ax[0])
+plot.imview(tile_volume_slices(x), title="Deconvolved image", fig=fig, ax=ax[1])
 fig.show()
 
 
