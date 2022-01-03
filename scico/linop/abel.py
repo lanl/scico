@@ -68,3 +68,6 @@ class AbelProjector(LinearOperator):
             result_shape=jax.ShapeDtypeStruct(self.input_shape, self.input_dtype),
         )
         return x
+
+    def inverse(self, y):
+        return abel.Transform(np.array(y), direction="inverse", method="daun").transform
