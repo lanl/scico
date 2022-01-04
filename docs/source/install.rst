@@ -78,4 +78,4 @@ For Developers
 --------------
 
 For installing a version of SCICO suitable for development,
-see the instructions in :ref:`scico_dev_contributing`. Also see :ref:`example_dependencies`.
+see the instructions in :ref:`scico_dev_contributing`.
