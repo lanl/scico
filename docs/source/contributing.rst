@@ -85,7 +85,7 @@ Installing a Development Version
 
    ::
 
-      conda install -c astra-toolbox/label/dev astra-toolbox
+      conda install -c astra-toolbox astra-toolbox
       pip install -r examples/examples_requirements.txt # Installs other example requirements
 
 

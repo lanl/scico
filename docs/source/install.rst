@@ -61,13 +61,11 @@ The instructions above install a CPU-only version of SCICO. To install a version
 Additional Dependencies
 -----------------------
 
-We use the `ASTRA Toolbox <https://www.astra-toolbox.com/>`_ for tomographic projectors. We currently require the development version of ASTRA, as suggested by the package maintainers.
-
-The development version of ASTRA can be installed using conda:
+We use the `ASTRA Toolbox <https://www.astra-toolbox.com/>`_ for tomographic projectors. `ASTRA Toolbox` can be installed using conda by running:
 
 ::
 
-   conda install -c astra-toolbox/label/dev astra-toolbox
+   conda install -c astra-toolbox astra-toolbox
 
 Alternatively, it can be `built from source <https://www.astra-toolbox.com/docs/install.html#for-python>`_.
 
