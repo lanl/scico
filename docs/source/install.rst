@@ -61,17 +61,7 @@ The instructions above install a CPU-only version of SCICO. To install a version
 Additional Dependencies
 -----------------------
 
-We use the `ASTRA Toolbox <https://www.astra-toolbox.com/>`_ for tomographic projectors. `ASTRA Toolbox` can be installed using conda by running:
-
-::
-
-   conda install -c astra-toolbox astra-toolbox
-
-Alternatively, it can be `built from source <https://www.astra-toolbox.com/docs/install.html#for-python>`_.
-
-We also support the `Super-Voxel Model-Based Iterative Reconstruction <https://svmbir.readthedocs.io/en/latest/>`_ package as an alternative tomographic projector. Since this package can be installed via ``pip``, it is
-included in the list of package dependencies (``requirements.txt``), and need
-not be separately installed.
+For installing dependencies related to the examples please see :ref:`example_notebooks`.
 
 
 For Developers
