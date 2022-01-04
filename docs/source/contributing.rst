@@ -88,6 +88,8 @@ Installing a Development Version
       conda install -c astra-toolbox astra-toolbox
       pip install -r examples/examples_requirements.txt # Installs other example requirements
 
+   See :ref:`_example_dependencies`.
+
 
 9. The SCICO project uses the `black <https://black.readthedocs.io/en/stable/>`_,
    `isort <https://pypi.org/project/isort/>`_ and `pylint <https://pylint.pycqa.org/en/latest/>`_
