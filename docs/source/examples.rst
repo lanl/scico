@@ -6,6 +6,9 @@ Usage Examples
 .. toctree::
    :maxdepth: 1
 
+Example Dependencies
+------------------------
+
 Some examples may use additional dependecies. These dependencies are listed in `examples_requirements.txt <https://github.com/lanl/scico/blob/main/examples/examples_requirements.txt>`_.
 Pip should be used to install these extra requirements except astra which should be installed via conda:
 
