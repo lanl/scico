@@ -79,7 +79,7 @@ y = jax.device_put(y)  # convert back to float32
 
 
 """
-Setup post processing.  For this example, we clip all reconstructions
+Set up post processing. For this example, we clip all reconstructions
 to the range of the ground truth.
 """
 
@@ -134,7 +134,7 @@ Set up and solve the weighted reconstruction problem
 
 where
 
-  $$W = \mathrm{diag}\left\{\exp( \sqrt{\mathbf{y}}) \right\}.$$
+  $$W = \mathrm{diag}\left\{\exp( \sqrt{\mathbf{y}}) \right\} \;.$$
 """
 lambda_weighted = 1.14e2
 
@@ -161,6 +161,7 @@ Show recovered images.
 
 
 def plot_recon(x, title, ax):
+    """Plot an image with title indicating error metrics."""
     plot.imview(
         x,
         title=f"{title}\nSNR: {metric.snr(x_gt, x):.2f} (dB), MAE: {metric.mae(x_gt, x):.3f}",

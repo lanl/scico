@@ -1126,7 +1126,7 @@ class BlockArray:
         # .to_numpy() method returns a flattened ndarray.
         #
         # This method may be implemented in the future if jax DeviceArray .copy() is modified to
-        # returns another DeviceArray.
+        # return another DeviceArray.
         raise NotImplementedError
 
     def to_numpy(self) -> np.ndarray:
