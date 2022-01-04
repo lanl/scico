@@ -89,6 +89,7 @@ Installing a Development Version
       pip install -r examples/examples_requirements.txt # Installs other example requirements
 
    See :ref:`_example_dependencies`.
+   See :ref:`_example_notebooks`.
 
 
 9. The SCICO project uses the `black <https://black.readthedocs.io/en/stable/>`_,
