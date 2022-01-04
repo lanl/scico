@@ -88,8 +88,8 @@ Installing a Development Version
       conda install -c astra-toolbox astra-toolbox
       pip install -r examples/examples_requirements.txt # Installs other example requirements
 
-   See :ref:`_example_dependencies`.
-   See :ref:`_example_notebooks`.
+   See :ref:`example_dependencies`.
+   See :ref:`example_notebooks`.
 
 
 9. The SCICO project uses the `black <https://black.readthedocs.io/en/stable/>`_,
