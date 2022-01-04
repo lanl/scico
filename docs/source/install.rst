@@ -81,29 +81,3 @@ For Developers
 
 For installing a version of SCICO suitable for development,
 see the instructions in :ref:`scico_dev_contributing`.
-
-
-Building Documentation
-----------------------
-
-The documentation can be built from the respository root directory by doing
-
-::
-
-   python setup.py build_sphinx
-
-Alternatively:
-
-1. Navigate to the docs directory ``docs/``
-
-2. Install dependencies
-
-   ::
-
-      pip install -r docs_requirements.txt
-
-3. Build documentation
-
-   ::
-
-      make html

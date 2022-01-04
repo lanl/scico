@@ -397,8 +397,25 @@ scico-data repositories must be updated and kept in sync.
 Building Documentation
 ----------------------
 
-To build a local copy of the docs, from the repo root directory, do
+A local copy of the documentation can be built from the respository root directory by doing
 
 ::
 
   python setup.py build_sphinx
+
+
+Alternatively:
+
+1. Navigate to the docs directory ``docs/``
+
+2. Install dependencies
+
+   ::
+
+      pip install -r docs_requirements.txt
+
+3. Build documentation
+
+   ::
+
+      make html
