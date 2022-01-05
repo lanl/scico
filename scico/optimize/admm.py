@@ -65,6 +65,9 @@ class SubproblemSolver:
         """
         self.admm = admm
 
+    def rho_changed(self):
+        """Action to be taken when penalty parameter list has changed."""
+
 
 class GenericSubproblemSolver(SubproblemSolver):
     """Solver for generic problem without special structure.
@@ -212,15 +215,20 @@ class LinearSubproblemSolver(SubproblemSolver):
                 )
 
         super().internal_init(admm)
+        self.rho_changed()
+
+    def rho_changed(self):
+        """Action to be taken when penalty parameter list has changed."""
 
         # Set lhs_op =  \sum_i rho_i * Ci.H @ CircularConvolve
         # Use reduce as the initialization of this sum is messy otherwise
         lhs_op = reduce(
-            lambda a, b: a + b, [rhoi * Ci.gram_op for rhoi, Ci in zip(admm.rho_list, admm.C_list)]
+            lambda a, b: a + b,
+            [rhoi * Ci.gram_op for rhoi, Ci in zip(self.admm.rho_list, self.admm.C_list)],
         )
-        if admm.f is not None:
+        if self.admm.f is not None:
             # hessian = A.T @ W @ A; W may be identity
-            lhs_op = lhs_op + admm.f.hessian
+            lhs_op = lhs_op + self.admm.f.hessian
 
         lhs_op.jit()
         self.lhs_op = lhs_op
@@ -305,13 +313,18 @@ class CircularConvolveSolver(LinearSubproblemSolver):
 
         self.real_result = is_real_dtype(admm.C_list[0].input_dtype)
 
+        self.rho_changed()
+
+    def rho_changed(self):
+        """Action to be taken when penalty parameter list has changed."""
+
         lhs_op_list = [
             rho * CircularConvolve.from_operator(C.gram_op)
-            for rho, C in zip(admm.rho_list, admm.C_list)
+            for rho, C in zip(self.admm.rho_list, self.admm.C_list)
         ]
         A_lhs = reduce(lambda a, b: a + b, lhs_op_list)
         if self.admm.f is not None:
-            A_lhs += 2.0 * admm.f.scale * CircularConvolve.from_operator(admm.f.A.gram_op)
+            A_lhs += 2.0 * self.admm.f.scale * CircularConvolve.from_operator(self.admm.f.A.gram_op)
 
         self.A_lhs = A_lhs
 
@@ -338,9 +351,65 @@ class CircularConvolveSolver(LinearSubproblemSolver):
 class AdaptivePenaltyParameter:
     """Base class for adaptive penalty parameter methods."""
 
-    def new_rho(self, admm_obj):
+    def register_solver(self, admm):
+        """Attach the solver object."""
+        self.admm = admm
+
+    def update_rho(self):
         """Estimate a new penalty parameter value based on current state."""
-        return admm_obj.rho_list
+
+    def nominal_rho(self):
+        r"""Compute a nominal single rho value for rho list.
+
+        Standard ADMM has a single penalty parameter :math:`\rho`. For
+        the  multi-block problems supported here, we introduce a
+        weighting :math:`\alpha_j` for each block :math:`j`. These
+        weightings are introduced into the standard ADMM formulation by
+        scaling the constraint for each block by :math:`\sqrt{\alpha_j}`.
+        These per-block weighting enter into the ADMM steps in a way
+        that allows definition of a notional per-block penalty parameter
+        :math:`\rho_j = \rho \alpha_j`.
+
+        Due to the scaling ambiguity between :math:`\rho` and
+        :math:`\alpha_j`, one could simply select :math:`\rho = 1` (i.e.
+        taking :math:`\rho_j = \alpha_j`) as a nominal value for the
+        "true" penalty parameter value, in this function it is taken
+        as the geometric mean of the :math:`\rho_j`.
+        """
+        return snp.exp(snp.mean(snp.log(self.admm_obj.rho_list)))
+
+
+class ResidualBalancing(AdaptivePenaltyParameter):
+    """Update the penalty parameter via the residual balancing method."""
+
+    def __init__(self, mu: float = 1e1, tau: float = 2.0, period: int = 10):
+        """
+        Args:
+            mu: Residual ratio threshold above which balancing is
+              attempted.
+            tau: Residual balancing multiplier.
+            period: Number of iterations between between balancing
+              attempts.
+        """
+        self.mu = mu
+        self.tau = tau
+        self.period = period
+
+    def update_rho(self):
+        """Estimate a new penalty parameter value based on current state."""
+        if self.admm.itnum % self.period:
+            return
+        r = self.admm.norm_primal_residual()
+        s = self.admm.norm_dual_residual()
+        rho_ratio = 1.0
+        if r > self.mu * s:
+            rho_ratio = self.tau
+        elif s > self.mu * r:
+            rho_ratio = 1.0 / self.tau
+        if rho_ratio != 1.0:
+            self.admm.rho_list = [rho_ratio * rho for rho in self.admm.rho_list]
+            self.admm.u_list = [u / rho_ratio for u in self.admm.u_list]
+            self.admm.subproblem_solver.rho_changed()
 
 
 class ADMM:
@@ -436,6 +505,9 @@ class ADMM:
             subproblem_solver: Solver for :math:`\mb{x}`-update step.
                 Defaults to ``None``, which implies use of an instance of
                 :class:`GenericSubproblemSolver`.
+            rho_updater: A class responsible for updating the ADMM
+                penalty parameter. Defaults to ``None``, which implies a
+                constant penalty parameter.
             itstat_options: A dict of named parameters to be passed to
                 the :class:`.diagnostics.IterationStats` initializer. The
                 dict may also include an additional key "itstat_func"
@@ -465,6 +537,9 @@ class ADMM:
             subproblem_solver = GenericSubproblemSolver()
         self.subproblem_solver: SubproblemSolver = subproblem_solver
         self.subproblem_solver.internal_init(self)
+        self.rho_updater = rho_updater
+        if rho_updater is not None:
+            self.rho_updater.register_solver(self)
 
         # iteration number and time fields
         itstat_fields = {
@@ -674,6 +749,9 @@ class ADMM:
             ui = ui + Cix - zi
             self.z_list[i] = zi
             self.u_list[i] = ui
+
+        if self.rho_updater:
+            self.rho_updater.update_rho()
 
     def solve(
         self,
