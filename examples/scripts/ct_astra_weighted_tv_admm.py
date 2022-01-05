@@ -134,11 +134,17 @@ Set up and solve the weighted reconstruction problem
 
 where
 
-  $$W = \mathrm{diag}\left\{\exp( \sqrt{\mathbf{y}}) \right\} \;.$$
+  $$W = \mathrm{diag}\left\{ \mathrm{counts} / I_0 \right\} \;.$$
+
+The data fidelity term in this formulation follows
+:cite:`sauer-1993-local` (9)
+except for the scaling by $I_0$,
+which we use to maintain balance between
+the data and regularization terms if $I_0$ changes.
 """
 lambda_weighted = 1.14e2
 
-weights = jax.device_put(counts / Io)  # scaled by Io to balance the data vs regularization term
+weights = jax.device_put(counts / Io)
 f = loss.WeightedSquaredL2Loss(y=y, A=A, W=linop.Diagonal(weights))
 
 admm_weighted = ADMM(
