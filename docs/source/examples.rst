@@ -19,7 +19,7 @@ The additional requirements should be installed via pip, with the exception of a
       conda install -c astra-toolbox astra-toolbox
       pip install -r examples/examples_requirements.txt # Installs other example requirements
 
-The dependencies can also be installed one by one as required.
+The dependencies can also be installed individually as required.
 
 Organized by Application
 ------------------------
