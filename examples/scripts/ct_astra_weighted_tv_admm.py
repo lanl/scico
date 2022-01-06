@@ -9,7 +9,7 @@ Low-Dose CT (ADMM w/ Total Variation)
 =====================================
 
 This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.optimize.html#scico.optimize.ADMM) to
+[admm.ADMM](../_autosummary/scico.optimize.rst#scico.optimize.ADMM) to
 solve a low-dose CT reconstruction problem with anisotropic total
 variation (TV) regularization
 
@@ -79,7 +79,7 @@ y = jax.device_put(y)  # convert back to float32
 
 
 """
-Setup post processing.  For this example, we clip all reconstructions
+Set up post processing. For this example, we clip all reconstructions
 to the range of the ground truth.
 """
 
@@ -134,11 +134,16 @@ Set up and solve the weighted reconstruction problem
 
 where
 
-  $$W = \mathrm{diag}\left\{\exp( \sqrt{\mathbf{y}}) \right\}.$$
+  $$W = \mathrm{diag}\left\{ \mathrm{counts} / I_0 \right\} \;.$$
+
+The data fidelity term in this formulation follows
+:cite:`sauer-1993-local` (9) except for the scaling by $I_0$, which we
+use to maintain balance between the data and regularization terms if
+$I_0$ changes.
 """
 lambda_weighted = 1.14e2
 
-weights = jax.device_put(counts / Io)  # scaled by Io to balance the data vs regularization term
+weights = jax.device_put(counts / Io)
 f = loss.WeightedSquaredL2Loss(y=y, A=A, W=linop.Diagonal(weights))
 
 admm_weighted = ADMM(
@@ -161,6 +166,7 @@ Show recovered images.
 
 
 def plot_recon(x, title, ax):
+    """Plot an image with title indicating error metrics."""
     plot.imview(
         x,
         title=f"{title}\nSNR: {metric.snr(x_gt, x):.2f} (dB), MAE: {metric.mae(x_gt, x):.3f}",

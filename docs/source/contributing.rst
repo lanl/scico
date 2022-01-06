@@ -100,6 +100,18 @@ Installing a Development Version
 10. For testing see `Tests`_.
 
 
+
+Building Documentation
+----------------------
+
+To build a local copy of the docs, from the repo root directory, do
+
+::
+
+  python setup.py build_sphinx
+
+
+
 Contributing Code
 -----------------
 
@@ -179,6 +191,61 @@ A feature development workflow might look like this:
 11. Delete the branch after it has been merged.
 
 
+Adding Data
+-----------
+
+The following steps show how to add new data, ``new_data.npz``, to the packaged data. We assume the SCICO repository has been cloned to ``scico/``.
+
+Note that the data is located in the scico-data submodule, which is
+symlinked to ``scico/data``.  When adding new data, both the scico and
+scico-data repositories must be updated and kept in sync.
+
+
+1. Add the ``new_data.npz`` file to the ``scico/data`` directory.
+
+2. Navigate to the ``data`` directory and add/commit the new data file:
+
+   ::
+
+      cd scico/data
+      git add new_data.npz
+      git commit -m "Add new data file"
+
+3.  Return to the base SCICO repository, ensure the ``main`` branch is checked out, add/commit the new data and update submodule:
+
+   ::
+
+      cd ..  # pwd now `scico` repo root
+      git checkout main
+      git add data
+      git commit -m "Add data and update data module"
+
+4.  Push both repositories:
+
+   ::
+
+      git submodule foreach --recursive 'git push' && git push
+
+
+Type Checking
+-------------
+
+In the future, we will require all code to pass ``mypy`` type checking. This is not currently enforced.
+
+Install ``mypy``:
+
+::
+
+   conda install mypy
+
+To run the type checker on the ``scico`` module:
+
+::
+
+   mypy -p scico
+
+
+
 Tests
 -----
 
@@ -236,22 +303,6 @@ A coverage report can be obtained by
 
 
 
-Type Checking
--------------
-
-In the future, we will require all code to pass ``mypy`` type checking. This is not currently enforced.
-
-Install ``mypy``:
-
-::
-
-   conda install mypy
-
-To run the type checker on the ``scico`` module:
-
-::
-
-   mypy -p scico
 
 
 Usage Examples
@@ -348,50 +399,3 @@ and ``scico-data`` repositories must be updated and kept in sync.
    ::
 
       git submodule foreach --recursive 'git push' && git push
-
-
-Data
-----
-
-The following steps show how to add new data, ``new_data.npz``, to the packaged data. We assume the SCICO repository has been cloned to ``scico/``.
-
-Note that the data is located in the scico-data submodule, which is
-symlinked to ``scico/data``.  When adding new data, both the scico and
-scico-data repositories must be updated and kept in sync.
-
-
-1. Add the ``new_data.npz`` file to the ``scico/data`` directory.
-
-2. Navigate to the ``data`` directory and add/commit the new data file:
-
-   ::
-
-      cd scico/data
-      git add new_data.npz
-      git commit -m "Add new data file"
-
-3.  Return to the base SCICO repository, ensure the ``main`` branch is checked out, add/commit the new data and update submodule:
-
-   ::
-
-      cd ..  # pwd now `scico` repo root
-      git checkout main
-      git add data
-      git commit -m "Add data and update data module"
-
-4.  Push both repositories:
-
-   ::
-
-      git submodule foreach --recursive 'git push' && git push
-
-
-
-Building Documentation
-----------------------
-
-To build a local copy of the docs, from the repo root directory, do
-
-::
-
-  python setup.py build_sphinx

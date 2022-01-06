@@ -4,6 +4,7 @@ import jax
 
 import scico.numpy as snp
 from scico import functional, linop, loss, random
+from scico.blockarray import BlockArray
 from scico.optimize import LinearizedADMM
 
 
@@ -12,42 +13,51 @@ class TestMisc:
         np.random.seed(12345)
         self.y = jax.device_put(np.random.randn(32, 33).astype(np.float32))
         self.λ = 1e0
+        self.maxiter = 2
+        self.μ = 1e-1
+        self.ν = 1e-1
+        self.A = linop.Identity(self.y.shape)
+        self.f = loss.SquaredL2Loss(y=self.y, A=self.A)
+        self.g = (self.λ / 2) * functional.BM3D()
+        self.C = linop.Identity(self.y.shape)
 
-    def test_ladmm(self):
-        maxiter = 2
-        μ = 1e-1
-        ν = 1e-1
-        A = linop.Identity(self.y.shape)
-        f = loss.SquaredL2Loss(y=self.y, A=A)
-        g = (self.λ / 2) * functional.BM3D()
-        C = linop.Identity(self.y.shape)
-
+    def test_itstat(self):
         itstat_fields = {"Iter": "%d", "Time": "%8.2e"}
 
         def itstat_func(obj):
             return (obj.itnum, obj.timer.elapsed())
 
         ladmm_ = LinearizedADMM(
-            f=f,
-            g=g,
-            C=C,
-            mu=μ,
-            nu=ν,
-            maxiter=maxiter,
+            f=self.f,
+            g=self.g,
+            C=self.C,
+            mu=self.μ,
+            nu=self.ν,
+            maxiter=self.maxiter,
         )
         assert len(ladmm_.itstat_object.fieldname) == 4
         assert snp.sum(ladmm_.x) == 0.0
+
         ladmm_ = LinearizedADMM(
-            f=f,
-            g=g,
-            C=C,
-            mu=μ,
-            nu=ν,
-            maxiter=maxiter,
+            f=self.f,
+            g=self.g,
+            C=self.C,
+            mu=self.μ,
+            nu=self.ν,
+            maxiter=self.maxiter,
             itstat_options={"fields": itstat_fields, "itstat_func": itstat_func, "display": False},
         )
         assert len(ladmm_.itstat_object.fieldname) == 2
 
+    def test_callback(self):
+        ladmm_ = LinearizedADMM(
+            f=self.f,
+            g=self.g,
+            C=self.C,
+            mu=self.μ,
+            nu=self.ν,
+            maxiter=self.maxiter,
+        )
         ladmm_.test_flag = False
 
         def callback(obj):
@@ -55,6 +65,39 @@ class TestMisc:
 
         x = ladmm_.solve(callback=callback)
         assert ladmm_.test_flag
+
+
+class TestBlockArray:
+    def setup_method(self, method):
+        np.random.seed(12345)
+        self.y = BlockArray.array(
+            (
+                np.random.randn(32, 33).astype(np.float32),
+                np.random.randn(
+                    17,
+                ).astype(np.float32),
+            )
+        )
+        self.λ = 1e0
+        self.maxiter = 1
+        self.μ = 1e-1
+        self.ν = 1e-1
+        self.A = linop.Identity(self.y.shape)
+        self.f = loss.SquaredL2Loss(y=self.y, A=self.A)
+        self.g = (self.λ / 2) * functional.L2Norm()
+        self.C = linop.Identity(self.y.shape)
+
+    def test_blockarray(self):
+        ladmm_ = LinearizedADMM(
+            f=self.f,
+            g=self.g,
+            C=self.C,
+            mu=self.μ,
+            nu=self.ν,
+            maxiter=self.maxiter,
+        )
+        x = ladmm_.solve()
+        assert isinstance(x, BlockArray)
 
 
 class TestReal:

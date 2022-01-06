@@ -438,8 +438,8 @@ The following components require the recommended markup taken from `NumPy's Conv
 Other components can use *italics*, **bold**, and ``monospace`` if needed, but not for variable names, doctest code, or multi-line code.
 
 
-Documentation Pages
--------------------
+Documentation
+-------------
 
 Documentation that is separate from code (like this page)
 should follow the
