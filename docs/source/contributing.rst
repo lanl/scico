@@ -207,9 +207,9 @@ Before building the documentation, one must install the documentation specific d
 
 Then, a local copy of the documentation can be built from the respository root directory by running
 
-::
+   ::
 
-  python setup.py build_sphinx
+   python setup.py build_sphinx
 
 
 Alternatively, one can also build the documentation by running the following from the `docs/`` directory
