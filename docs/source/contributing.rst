@@ -107,28 +107,24 @@ Installing a Development Version
 Building Documentation
 ----------------------
 
-A local copy of the documentation can be built from the respository root directory by doing
+Before building the documentation, one must install the documentation specific dependencies by running
+
+::
+
+   pip install -r docs_requirements.txt
+
+Then, a local copy of the documentation can be built from the respository root directory by running
 
 ::
 
   python setup.py build_sphinx
 
 
-Alternatively:
+Alternatively, one can also build the documentation by running the following from the `docs/`` directory
 
-1. Navigate to the docs directory ``docs/``
+::
 
-2. Install dependencies
-
-   ::
-
-      pip install -r docs_requirements.txt
-
-3. Build documentation
-
-   ::
-
-      make html
+   make html
 
 
 
