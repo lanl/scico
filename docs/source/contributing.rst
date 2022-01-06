@@ -58,7 +58,7 @@ Installing a Development Version
       conda activate scico
 
 
-6. Navigate to the root of the cloned repository:
+6. Change directory to the root of the cloned repository:
 
    ::
 
@@ -219,7 +219,7 @@ scico-data repositories must be updated and kept in sync.
 
 1. Add the ``new_data.npz`` file to the ``scico/data`` directory.
 
-2. Navigate to the ``data`` directory and add/commit the new data file:
+2. Change directory to the ``data`` directory and add/commit the new data file:
 
    ::
 
