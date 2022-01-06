@@ -194,6 +194,31 @@ A feature development workflow might look like this:
 11. Delete the branch after it has been merged.
 
 
+
+Building Documentation
+----------------------
+
+Before building the documentation, one must install the documentation specific dependencies by running
+
+   ::
+
+      pip install -r docs_requirements.txt
+
+
+Then, a local copy of the documentation can be built from the respository root directory by running
+
+::
+
+  python setup.py build_sphinx
+
+
+Alternatively, one can also build the documentation by running the following from the `docs/`` directory
+
+   ::
+
+      make html
+
+
 Adding Data
 -----------
 
@@ -402,30 +427,3 @@ and ``scico-data`` repositories must be updated and kept in sync.
    ::
 
       git submodule foreach --recursive 'git push' && git push
-
-
-Building Documentation
-----------------------
-
-A local copy of the documentation can be built from the respository root directory by doing
-
-::
-
-  python setup.py build_sphinx
-
-
-Alternatively:
-
-1. Navigate to the docs directory ``docs/``
-
-2. Install dependencies
-
-   ::
-
-      pip install -r docs_requirements.txt
-
-3. Build documentation
-
-   ::
-
-      make html
