@@ -170,13 +170,13 @@ class PDHG:
             dtype = C.input_dtype
             x0 = snp.zeros(input_shape, dtype=dtype)
         self.x = ensure_on_device(x0)
-        self.x_old = self.x.copy()
+        self.x_old = self.x
         if z0 is None:
             input_shape = C.output_shape
             dtype = C.output_dtype
             z0 = snp.zeros(input_shape, dtype=dtype)
         self.z = ensure_on_device(z0)
-        self.z_old = self.z.copy()
+        self.z_old = self.z
 
     def objective(
         self,
@@ -232,8 +232,8 @@ class PDHG:
 
     def step(self):
         """Perform a single iteration."""
-        self.x_old = self.x.copy()
-        self.z_old = self.z.copy()
+        self.x_old = self.x
+        self.z_old = self.z
         proxarg = self.x - self.tau * self.C.conj().T(self.z)
         self.x = self.f.prox(proxarg, self.tau, v0=self.x)
         proxarg = self.z + self.sigma * self.C(
