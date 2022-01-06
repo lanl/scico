@@ -254,7 +254,7 @@ class LinearizedADMM:
             x0: Starting point for :math:`\mb{x}`.
         """
         z = self.C(x0)
-        z_old = z.copy()
+        z_old = z
         return z, z_old
 
     def u_init(self, x0: Union[JaxArray, BlockArray]):
@@ -297,7 +297,7 @@ class LinearizedADMM:
         proxarg = self.x - (self.mu / self.nu) * self.C.conj().T(self.C(self.x) - self.z + self.u)
         self.x = self.f.prox(proxarg, self.mu, v0=self.x)
 
-        self.z_old = self.z.copy()
+        self.z_old = self.z
         Cx = self.C(self.x)
         self.z = self.g.prox(Cx + self.u, self.nu, v0=self.z)
         self.u = self.u + Cx - self.z
