@@ -137,10 +137,9 @@ where
   $$W = \mathrm{diag}\left\{ \mathrm{counts} / I_0 \right\} \;.$$
 
 The data fidelity term in this formulation follows
-:cite:`sauer-1993-local` (9)
-except for the scaling by $I_0$,
-which we use to maintain balance between
-the data and regularization terms if $I_0$ changes.
+:cite:`sauer-1993-local` (9) except for the scaling by $I_0$, which we
+use to maintain balance between the data and regularization terms if
+$I_0$ changes.
 """
 lambda_weighted = 1.14e2
 
