@@ -9,7 +9,7 @@ Low-Dose CT (ADMM w/ Total Variation)
 =====================================
 
 This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.optimize.html#scico.optimize.ADMM) to
+[admm.ADMM](../_autosummary/scico.optimize.rst#scico.optimize.ADMM) to
 solve a low-dose CT reconstruction problem with anisotropic total
 variation (TV) regularization
 
