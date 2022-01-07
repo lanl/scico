@@ -120,7 +120,7 @@ Then, a local copy of the documentation can be built from the respository root d
   python setup.py build_sphinx
 
 
-Alternatively, one can also build the documentation by running the following from the `docs/`` directory
+Alternatively, one can also build the documentation by running the following from the `docs/` directory
 
 ::
 
