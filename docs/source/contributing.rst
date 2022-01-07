@@ -83,6 +83,7 @@ Installing a Development Version
 
 
    For installing dependencies related to the examples please see :ref:`example_notebooks`.
+   Installing these are neccessary for the successfull running of the tests.
 
 
 9. The SCICO project uses the `black <https://black.readthedocs.io/en/stable/>`_,
