@@ -9,7 +9,7 @@ Image Deconvolution (ADMM w/ Total Variation and Circulant Blur)
 ================================================================
 
 This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.optimize.html#scico.optimize.ADMM) to
+[admm.ADMM](../_autosummary/scico.optimize.rst#scico.optimize.ADMM) to
 solve an image deconvolution problem with isotropic total variation (TV)
 regularization
 

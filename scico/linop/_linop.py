@@ -169,7 +169,7 @@ class Diagonal(LinearOperator):
 
     def __init__(
         self,
-        diagonal: Union[Array, BlockArray],
+        diagonal: Union[JaxArray, BlockArray],
         input_shape: Optional[Shape] = None,
         input_dtype: Optional[DType] = None,
         **kwargs,
