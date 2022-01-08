@@ -18,6 +18,7 @@ from scico.util import (
     ensure_on_device,
     is_nested,
     parse_axes,
+    slice_length,
     url_get,
 )
 
@@ -99,6 +100,16 @@ def test_parse_axes():
 
     axes = (1, 2, 2)
     np.testing.assert_raises(ValueError, parse_axes, axes)
+
+
+@pytest.mark.parametrize("length", (4, 5, 8, 16, 17))
+@pytest.mark.parametrize("start", (None, 0, 1, 2, 3))
+@pytest.mark.parametrize("stop", (None, 0, 1, 2, -2, -1))
+@pytest.mark.parametrize("stride", (None, 1, 2, 3))
+def test_slice_length(length, start, stop, stride):
+    x = np.zeros(length)
+    slc = slice(start, stop, stride)
+    assert x[slc].size == slice_length(length, slc)
 
 
 def test_check_for_tracer():

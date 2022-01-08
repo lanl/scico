@@ -182,6 +182,22 @@ def parse_axes(
     return axes
 
 
+def slice_length(length: int, slc: slice):
+    """Determine the length of a 1D array after slicing.
+
+    Args:
+        length: Length of axis being sliced.
+        slc: Slice to be applied to axis.
+
+    Returns:
+        Length of sliced axis.
+    """
+    start, stop, stride = slc.indices(length)
+    if start > stop:
+        start = stop
+    return (stop - start + stride - 1) // stride
+
+
 def is_nested(x: Any) -> bool:
     """Check if input is a list/tuple containing at least one list/tuple.
 
