@@ -29,7 +29,7 @@ from jax.interpreters.pxla import ShardedDeviceArray
 from jax.interpreters.xla import DeviceArray
 
 import scico.blockarray
-from scico.typing import Axes, JaxArray, Shape
+from scico.typing import Axes, JaxArray, MultiSlice, Shape, Slice
 
 __author__ = """\n""".join(
     [
@@ -178,24 +178,62 @@ def parse_axes(
             f"Invalid axes {axes} specified; each axis must be less than `len(shape)`={len(shape)}."
         )
     if len(set(axes)) != len(axes):
-        raise ValueError("Duplicate vaue in axes {axes}; each axis must be unique.")
+        raise ValueError(f"Duplicate value in axes {axes}; each axis must be unique.")
     return axes
 
 
-def slice_length(length: int, slc: slice):
-    """Determine the length of a 1D array after slicing.
+def slice_length(length: int, slc: Slice) -> int:
+    """Determine the length of an array axis after slicing.
 
     Args:
         length: Length of axis being sliced.
-        slc: Slice to be applied to axis.
+        slc: Slice/indexing to be applied to axis.
 
     Returns:
         Length of sliced axis.
+
+    Raises:
+        ValueError: If `slc` is an integer index that is out bounds for
+            the axis length.
     """
+    if slc is Ellipsis:
+        return length
+    if isinstance(slc, int):
+        if slc < -length or slc > length - 1:
+            raise ValueError(f"Index {slc} out of bounds for axis of length {length}.")
+        return 1
     start, stop, stride = slc.indices(length)
     if start > stop:
         start = stop
     return (stop - start + stride - 1) // stride
+
+
+def sliced_shape(shape: Shape, slc: MultiSlice) -> Tuple:
+    """Determine the shape of an array after slicing.
+
+    Args:
+        shape: Length of axis being sliced.
+        slc: Slice to be applied to axis.
+
+    Returns:
+        Shape of sliced array.
+
+    Raises:
+        ValueError: If `slc` is longer than `shape`.
+    """
+    if not isinstance(slc, tuple):
+        slc = (slc,)
+    if len(slc) > len(shape):
+        raise ValueError(f"Slice {slc} has more dimensions than shape {shape}.")
+    slc_shape = list(shape)
+    offset = 0
+    for axis, ax_slc in enumerate(slc):
+        print(axis, offset)
+        if ax_slc is Ellipsis:
+            offset = len(shape) - len(slc)
+            continue
+        slc_shape[axis + offset] = slice_length(shape[axis + offset], ax_slc)
+    return tuple(slc_shape)
 
 
 def is_nested(x: Any) -> bool:

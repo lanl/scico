@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021 by SCICO Developers
+# Copyright (C) 2021-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SPORCO package. Details of the copyright
 # and user license can be found in the 'LICENSE.txt' file distributed
@@ -36,3 +36,10 @@ BlockShape = Tuple[Tuple[int, ...], ...]  # shape of a BlockArray
 """A shape of a :class:`.BlockArray`."""
 
 Axes = Union[int, Tuple[int, ...]]  # one or more axes
+"""Specification of one or more array axes."""
+
+Slice = Union[slice, type(Ellipsis), int]
+"""An entity suitable for slicing; either a slice object, Ellipsis, or int."""
+
+MultiSlice = Union[Slice, Tuple[Slice]]
+"""An entity suitable for slicing of multi-dimentional arrays."""

@@ -19,6 +19,7 @@ from scico.util import (
     is_nested,
     parse_axes,
     slice_length,
+    sliced_shape,
     url_get,
 )
 
@@ -110,6 +111,30 @@ def test_slice_length(length, start, stop, stride):
     x = np.zeros(length)
     slc = slice(start, stop, stride)
     assert x[slc].size == slice_length(length, slc)
+
+
+@pytest.mark.parametrize("length", (4, 5))
+@pytest.mark.parametrize("slc", (0, 1, -4, Ellipsis))
+def test_slice_length_other(length, slc):
+    x = np.zeros(length)
+    assert x[slc].size == slice_length(length, slc)
+
+
+@pytest.mark.parametrize("shape", ((8, 8, 1), (7, 1, 6, 5)))
+@pytest.mark.parametrize(
+    "slc",
+    (
+        np.s_[0:5],
+        np.s_[:, 0:4],
+        np.s_[2:, :, :-2],
+        np.s_[..., 2:],
+        np.s_[..., 2:, :],
+        np.s_[1:, ..., 2:],
+    ),
+)
+def test_sliced_shape(shape, slc):
+    x = np.zeros(shape)
+    assert x[slc].shape == sliced_shape(shape, slc)
 
 
 def test_check_for_tracer():
