@@ -38,8 +38,9 @@ BlockShape = Tuple[Tuple[int, ...], ...]  # shape of a BlockArray
 Axes = Union[int, Tuple[int, ...]]  # one or more axes
 """Specification of one or more array axes."""
 
-Slice = Union[slice, type(Ellipsis), int]
-"""An entity suitable for slicing; either a slice object, Ellipsis, or int."""
+AxisIndex = Union[slice, type(Ellipsis), int]
+"""An entity suitable for indexing/slicing of a single array axis; either
+a slice object, Ellipsis, or int."""
 
-MultiSlice = Union[Slice, Tuple[Slice]]
-"""An entity suitable for slicing of multi-dimentional arrays."""
+ArrayIndex = Union[AxisIndex, Tuple[AxisIndex]]
+"""An entity suitable for indexing/slicing of multi-dimentional arrays."""

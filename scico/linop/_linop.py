@@ -20,7 +20,7 @@ from scico import util
 from scico._generic_operators import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
 from scico.blockarray import BlockArray
 from scico.random import randn
-from scico.typing import BlockShape, DType, JaxArray, MultiSlice, PRNGKey, Shape
+from scico.typing import ArrayIndex, BlockShape, DType, JaxArray, PRNGKey, Shape
 
 __author__ = """\n""".join(
     ["Luke Pfister <luke.pfister@gmail.com>", "Brendt Wohlberg <brendt@ieee.org>"]
@@ -298,7 +298,7 @@ class Slice(LinearOperator):
 
     def __init__(
         self,
-        slc: MultiSlice,
+        slc: ArrayIndex,
         input_shape: Shape,
         input_dtype: DType = snp.float32,
         jit: bool = True,
@@ -317,7 +317,7 @@ class Slice(LinearOperator):
                functions of the LinearOperator.
         """
 
-        self.slc: MultiSlice = slc
+        self.slc: ArrayIndex = slc
         super().__init__(
             input_shape=input_shape,
             output_shape=util.sliced_shape(input_shape, slc),

@@ -29,7 +29,7 @@ from jax.interpreters.pxla import ShardedDeviceArray
 from jax.interpreters.xla import DeviceArray
 
 import scico.blockarray
-from scico.typing import Axes, JaxArray, MultiSlice, Shape, Slice
+from scico.typing import ArrayIndex, Axes, AxisIndex, JaxArray, Shape
 
 __author__ = """\n""".join(
     [
@@ -182,7 +182,7 @@ def parse_axes(
     return axes
 
 
-def slice_length(length: int, slc: Slice) -> int:
+def slice_length(length: int, slc: AxisIndex) -> int:
     """Determine the length of an array axis after slicing.
 
     Args:
@@ -208,7 +208,7 @@ def slice_length(length: int, slc: Slice) -> int:
     return (stop - start + stride - 1) // stride
 
 
-def sliced_shape(shape: Shape, slc: MultiSlice) -> Tuple:
+def sliced_shape(shape: Shape, slc: ArrayIndex) -> Tuple:
     """Determine the shape of an array after slicing.
 
     Args:
