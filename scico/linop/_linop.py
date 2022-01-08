@@ -322,6 +322,7 @@ class Slice(LinearOperator):
             input_shape=input_shape,
             output_shape=util.sliced_shape(input_shape, slc),
             input_dtype=input_dtype,
+            output_dtype=input_dtype,
             jit=jit,
             **kwargs,
         )
