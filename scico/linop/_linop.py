@@ -176,11 +176,12 @@ class Diagonal(LinearOperator):
     ):
         r"""
         Args:
-            diagonal:  Diagonal elements of this linear operator
-            input_shape:  Shape of input array. By default, equal to `diagonal.shape`,
-               but may also be set to a shape that is broadcast-compatiable with `diagonal.shape`.
-            input_dtype:  `dtype` of input argument.  The default, ``None``,
-               means `diagonal.dtype`.
+            diagonal: Diagonal elements of this linear operator.
+            input_shape:  Shape of input array. By default, equal to
+               `diagonal.shape`, but may also be set to a shape that is
+               broadcast-compatiable with `diagonal.shape`.
+            input_dtype: `dtype` of input argument. The default,
+               ``None``, means `diagonal.dtype`.
 
         """
 
@@ -245,7 +246,7 @@ class Identity(Diagonal):
     ):
         """
         Args:
-            input_shape: Shape of input array
+            input_shape: Shape of input array.
         """
         super().__init__(diagonal=snp.ones(input_shape, dtype=input_dtype), **kwargs)
 
@@ -263,7 +264,7 @@ class Sum(LinearOperator):
         self,
         sum_axis: Optional[Union[int, Tuple[int, ...]]],
         input_shape: Shape,
-        input_dtype: DType,
+        input_dtype: DType = snp.float32,
         jit: bool = True,
         **kwargs,
     ):
@@ -271,14 +272,14 @@ class Sum(LinearOperator):
         Wraps :func:`jax.numpy.sum` as a :class:`.LinearOperator`.
 
         Args:
-            sum_axis:  The axis or set of axes to sum over. If `None`,
+            sum_axis: The axis or set of axes to sum over. If ``None``,
                 sum is taken over all axes.
             input_shape: Shape of input array.
             input_dtype: `dtype` for input argument.
-                Defaults to `float32`. If this LinearOperator implements
-                complex-valued operations, this must be `complex64` for
+                Defaults to ``float32``. If this LinearOperator implements
+                complex-valued operations, this must be ``complex64`` for
                 proper adjoint and gradient calculation.
-            jit:  If ``True``, jit the evaluation, adjoint, and gram
+            jit: If ``True``, jit the evaluation, adjoint, and gram
                functions of the LinearOperator.
         """
 
