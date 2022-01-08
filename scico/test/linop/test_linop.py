@@ -559,3 +559,39 @@ def test_sum_bad_shapes(sumtestobj, axis):
     x = sumtestobj.x
     with pytest.raises(ValueError):
         A = linop.Sum(input_shape=x.shape, input_dtype=x.dtype, sum_axis=axis)
+
+
+class SliceTestObj:
+    def __init__(self, dtype):
+        self.x = snp.zeros((4, 5, 6, 7), dtype=dtype)
+
+
+@pytest.fixture(scope="module", params=[np.float32, np.complex64])
+def slicetestobj(request):
+    yield SliceTestObj(request.param)
+
+
+slice_examples = [
+    np.s_[1:],
+    np.s_[:, 2:],
+    np.s_[..., 3:],
+    np.s_[1:, :-3],
+    np.s_[1:, :, :3],
+    np.s_[1:, ..., 2:],
+]
+
+
+@pytest.mark.parametrize("slc", slice_examples)
+def test_slice_eval(slicetestobj, slc):
+    x = slicetestobj.x
+
+    A = linop.Slice(slc=slc, input_shape=x.shape, input_dtype=x.dtype)
+
+    assert (A @ x).shape == x[slc].shape
+
+
+@pytest.mark.parametrize("slc", slice_examples)
+def test_slice_adj(slicetestobj, slc):
+    x = slicetestobj.x
+    A = linop.Slice(slc=slc, input_shape=x.shape, input_dtype=x.dtype)
+    adjoint_test(A)
