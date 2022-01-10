@@ -31,7 +31,25 @@ def create_french_test_phantom(img_shape, radius_list, val_list, center=None):
     return img
 
 
-x_gt = create_french_test_phantom((256, 256), [100, 50, 25], [1, 0, 0.5])
+x_gt = create_french_test_phantom((256, 254), [100, 50, 25], [1, 0, 0.5])
+
+# %%
+
+import abel
+
+# x_gt = create_french_test_phantom((256, 256), [100, 50, 25], [1, 0, 0.5], center=(150,150))
+
+y = abel.Transform(np.array(x_gt), direction="forward", method="daun").transform
+x_inv = abel.Transform(np.array(y), direction="inverse", method="daun").transform
+
+plt.imshow(y)
+plt.show()
+
+plt.imshow(x_inv)
+plt.show()
+
+plt.imshow(x_gt)
+plt.show()
 
 # %%
 
