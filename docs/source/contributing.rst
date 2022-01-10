@@ -58,7 +58,7 @@ Installing a Development Version
       conda activate scico
 
 
-6. Navigate to the root of the cloned repository:
+6. Change directory to the root of the cloned repository:
 
    ::
 
@@ -77,9 +77,13 @@ Installing a Development Version
    ::
 
       pip install -r requirements.txt  # Installs basic requirements
+      pip install -r dev_requirements.txt  # Installs developer requirements
       pip install -r docs/docs_requirements.txt # Installs documentation requirements
-      pip install -r examples/examples_requirements.txt # Installs example requirements
       pip install -e .  # Installs SCICO from the current directory in editable mode
+
+
+   For installing dependencies related to the examples please see :ref:`example_notebooks`.
+   Installing these are neccessary for the successfull running of the tests.
 
 
 9. The SCICO project uses the `black <https://black.readthedocs.io/en/stable/>`_,
@@ -104,11 +108,24 @@ Installing a Development Version
 Building Documentation
 ----------------------
 
-To build a local copy of the docs, from the repo root directory, do
+Before building the documentation, one must install the documentation specific dependencies by running
+
+::
+
+   pip install -r docs_requirements.txt
+
+Then, a local copy of the documentation can be built from the respository root directory by running
 
 ::
 
   python setup.py build_sphinx
+
+
+Alternatively, one can also build the documentation by running the following from the `docs/` directory
+
+::
+
+   make html
 
 
 
@@ -203,7 +220,7 @@ scico-data repositories must be updated and kept in sync.
 
 1. Add the ``new_data.npz`` file to the ``scico/data`` directory.
 
-2. Navigate to the ``data`` directory and add/commit the new data file:
+2. Change directory to the ``data`` directory and add/commit the new data file:
 
    ::
 
