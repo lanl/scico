@@ -54,26 +54,14 @@ The instructions above install a CPU-only version of SCICO. To install a version
 
    ::
 
-      pip install --upgrade "jaxlib==0.1.70+cuda110" -f https://storage.googleapis.com/jax-releases/jax_releases.html
+      pip install --upgrade "jaxlib==0.1.75+cuda110" -f https://storage.googleapis.com/jax-releases/jax_releases.html
 
 
 
 Additional Dependencies
 -----------------------
 
-We use the `ASTRA Toolbox <https://www.astra-toolbox.com/>`_ for tomographic projectors. We currently require the development version of ASTRA, as suggested by the package maintainers.
-
-The development version of ASTRA can be installed using conda:
-
-::
-
-   conda install -c astra-toolbox/label/dev astra-toolbox
-
-Alternatively, it can be `built from source <https://www.astra-toolbox.com/docs/install.html#for-python>`_.
-
-We also support the `Super-Voxel Model-Based Iterative Reconstruction <https://svmbir.readthedocs.io/en/latest/>`_ package as an alternative tomographic projector. Since this package can be installed via ``pip``, it is
-included in the list of package dependencies (``requirements.txt``), and need
-not be separately installed.
+For instructions on installing dependencies related to the examples please see :ref:`example_notebooks`.
 
 
 For Developers
@@ -81,29 +69,3 @@ For Developers
 
 For installing a version of SCICO suitable for development,
 see the instructions in :ref:`scico_dev_contributing`.
-
-
-Building Documentation
-----------------------
-
-The documentation can be built from the respository root directory by doing
-
-::
-
-   python setup.py build_sphinx
-
-Alternatively:
-
-1. Navigate to the docs directory ``docs/``
-
-2. Install dependencies
-
-   ::
-
-      pip install -r docs_requirements.txt
-
-3. Build documentation
-
-   ::
-
-      make html
