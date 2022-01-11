@@ -291,9 +291,12 @@ Between BlockArray and :class:`.LinearOperator`
 
 
 The :class:`.Operator` and :class:`.LinearOperator` classes are designed
-to work on :class:`.BlockArray`s. For example
+to work on :class:`.BlockArray`\ s in addition to `DeviceArray`\ s.
+For example
+
 
    ::
+
       >>> x, key = scico.random.randn((3, 4))
       >>> A_1 = scico.linop.Identity(x.shape)
       >>> A_1.shape  # array -> array
