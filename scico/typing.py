@@ -26,13 +26,14 @@ Array = Union[np.ndarray, JaxArray]
 PRNGKey = jnp.ndarray
 """A key for jax random number generators (see :mod:`jax.random`)."""
 
-DType = Any  # TODO: can we do better than this? Maybe with the new numpy typing?
+DType = Any
 """A numpy or jax dtype."""
 
-Shape = Tuple[int, ...]  # shape of an array
+Shape = Tuple[int, ...]
 """A shape of a numpy or jax array."""
 
-BlockShape = Tuple[Tuple[int, ...], ...]  # shape of a BlockArray
+BlockShape = Tuple[Tuple[int, ...], ...]
 """A shape of a :class:`.BlockArray`."""
 
-Axes = Union[int, Tuple[int, ...]]  # one or more axes
+Axes = Union[int, Tuple[int, ...]]
+"""Index corresponding to one or more axes."""
