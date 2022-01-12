@@ -31,7 +31,7 @@ contains the following size attributes:
 
 
 Motivating Example
-------------------
+==================
 
 Consider a two dimensional array :math:`\mb{x} \in \mathbb{R}^{n \times m}`.
 
@@ -73,10 +73,11 @@ Instead, we can form a :class:`.BlockArray`: :math:`\mb{x}_B =
 
 
 Constructing a BlockArray
--------------------------
+=========================
 
 Construct from a tuple of arrays (either `ndarray` or `DeviceArray`)
-####################################################################
+--------------------------------------------------------------------
+
   .. doctest::
 
      >>> from scico.blockarray import BlockArray
@@ -103,7 +104,8 @@ single precision and will have dtype `float32` or `complex64`.
 
 
 Construct from a single vector and tuple of shapes
-##################################################
+--------------------------------------------------
+
   ::
 
      >>> x_flat = np.random.randn(1040)
@@ -115,7 +117,7 @@ Construct from a single vector and tuple of shapes
 
 
 Operating on a BlockArray
--------------------------
+=========================
 
 Indexed Updating
 ----------------
@@ -145,7 +147,7 @@ Alternate syntax                 Equivalent in-place expression
 
 
 Arithmetic and Broadcasting
-###########################
+---------------------------
 
 Suppose :math:`\mb{x}` is a BlockArray with shape :math:`((n, n), (m,))`.
 
@@ -166,7 +168,7 @@ Illustrated for the operation ``+``, but equally valid for operators
 
 
 Operations with BlockArrays with same number of blocks
-******************************************************
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Let :math:`\mb{y}` be a BlockArray with the same number of blocks as
 :math:`\mb{x}`.
@@ -185,7 +187,7 @@ This operation depends on pair of blocks from :math:`\mb{x}` and
 
 
 Operations with a scalar
-************************
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 The scalar is added to each element of the :class:`.BlockArray`:
 
@@ -206,10 +208,8 @@ The scalar is added to each element of the :class:`.BlockArray`:
 
 
 
-
-
 Operations with a 1D `ndarray` of size equal to `num_blocks`
-************************************************************
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The *i*\th scalar is added to the *i*\th  block of the
 :class:`.BlockArray`:
@@ -236,7 +236,7 @@ The *i*\th scalar is added to the *i*\th  block of the
 
 
 Operations with an ndarray of `size` equal to :class:`.BlockArray` size
-***********************************************************************
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 We first cast the `ndarray` to a BlockArray with same shape as
 :math:`\mb{x}`, then apply the operation on the resulting BlockArrays.
@@ -259,11 +259,10 @@ the same shape as :math:`\mb{x}`
 
 
 MatMul
-######
+------
 
 Between two BlockArrays
-***********************
-
+^^^^^^^^^^^^^^^^^^^^^^^
 
 The matmul is computed between each block of the two BlockArrays.
 
@@ -281,14 +280,13 @@ blocks must be broadcastable.
 
 
 Between BlockArray and Ndarray/DeviceArray
-******************************************
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This operation is not defined.
 
 
 Between BlockArray and :class:`.LinearOperator`
-***********************************************
-
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The :class:`.Operator` and :class:`.LinearOperator` classes are designed
 to work on :class:`.BlockArray`\ s in addition to `DeviceArray`\ s.
@@ -313,7 +311,7 @@ For example
 
 
 NumPy ufuncs
-############
+------------
 
 `NumPy universal functions (ufuncs) <https://numpy.org/doc/stable/reference/ufuncs.html>`_
 are functions that operate on an `ndarray` on an element-by-element
@@ -328,7 +326,7 @@ are defined in the :mod:`scico.numpy` module.
 
 
 Reductions
-##########
+^^^^^^^^^^
 
 Reductions are functions that take an array-like as an input and return
 an array of lower dimension. Examples include ``mean``, ``sum``, ``norm``.
