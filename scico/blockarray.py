@@ -124,12 +124,10 @@ Operating on a BlockArray
 Indexing
 --------
 
-The block index is required to either be an integer or ``...``, the former
-selecting a single block and returning it as an array (*not* a singleton
-BlockArray), and the latter returning the entire BlockArray content flattened
-into a single one-dimensional array. If the index expression has more than
-one component, then the initial index (which indexes the block) must be an
-integer, and the remainder of the indexing expression indexes within the
+The block index is required to be an integer, selecting a single block and
+returning it as an array (*not* a singleton BlockArray). If the index
+expression has more than one component, then the initial index indexes the
+block, and the remainder of the indexing expression indexes within the
 selected block, e.g. ``x[2, 3:4]`` is equivalent to ``y[3:4]`` after
 setting ``y = x[2]``.
 
@@ -466,8 +464,8 @@ from jax.tree_util import register_pytree_node, tree_flatten
 
 from jaxlib.xla_extension import Buffer
 
+from scico import util
 from scico.typing import Axes, AxisIndex, BlockShape, DType, JaxArray, Shape
-from scico.util import is_nested
 
 _arraylikes = (Buffer, DeviceArray, np.ndarray)
 
@@ -523,7 +521,7 @@ def reshape(
         always returned.
     """
 
-    if is_nested(newshape):
+    if util.is_nested(newshape):
         # x is a blockarray
         return BlockArray.array_from_flattened(a, newshape)
 
@@ -568,13 +566,13 @@ def block_sizes(shape: Union[Shape, BlockShape]) -> Axes:
         )
 
     out = []
-    if is_nested(shape):
+    if util.is_nested(shape):
         # shape is nested -> at least one element came from a blockarray
         for y in shape:
-            if is_nested(y):
+            if util.is_nested(y):
                 # recursively calculate the block size until we arrive at
                 # a tuple (shape of a non-block array)
-                while is_nested(y):
+                while util.is_nested(y):
                     y = block_sizes(y)
                 out.append(np.sum(y))  # adjacent block sizes are added together
             else:
@@ -798,8 +796,8 @@ class BlockArray:
     can be accessed individually.
     """
 
-    # Ensure we use BlockArray.__radd__,__rmul__, etc for binary operations of the form
-    # op(np.ndarray, BlockArray)
+    # Ensure we use BlockArray.__radd__, __rmul__, etc for binary operations of the form
+    #    op(np.ndarray, BlockArray)
     # See https://docs.scipy.org/doc/numpy-1.10.1/user/c-info.beyond-basics.html#ndarray.__array_priority__
     __array_priority__ = 1
 
@@ -819,21 +817,31 @@ class BlockArray:
     def __repr__(self):
         return "scico.blockarray.BlockArray: \n" + self._data.__repr__()
 
-    def __getitem__(self, idx: Union[int, Ellipsis, Tuple(AxisIndex)]) -> JaxArray:
+    @staticmethod
+    def _decompose_index(idx: Union[int, Ellipsis, Tuple(AxisIndex)]) -> Tuple:
+        """Decompose a BlockArray indexing expression into block and array components."""
         if isinstance(idx, tuple):
             idxblk = idx[0]
-            if not isinstance(idxblk, int):
-                raise TypeError(
-                    "Indexing within selected block only allowed for integer block index"
-                )
             idxarr = idx[1:]
         else:
             idxblk = idx
             idxarr = None
-        if isinstance(idxblk, slice):
-            raise TypeError("Slicing not supported on block index")
-        if idxblk == Ellipsis:
-            return reshape(self._data, self.shape)
+        if not isinstance(idxblk, int):
+            raise TypeError("Block index must be an integer")
+        return idxblk, idxarr
+
+    @staticmethod
+    def indexed_shape(shape: Shape, idx: Union[int, Ellipsis, Tuple(AxisIndex)]) -> Tuple[int]:
+        """Determine the shape of the result of indexing a BlockArray."""
+        idxblk, idxarr = BlockArray._decompose_index(idx)
+        if idxblk < 0:
+            idxblk = len(shape) + idxblk
+        if idxarr is None:
+            return shape[idxblk]
+        return util.indexed_shape(shape[idxblk], idxarr)
+
+    def __getitem__(self, idx: Union[int, Ellipsis, Tuple(AxisIndex)]) -> JaxArray:
+        idxblk, idxarr = BlockArray._decompose_index(idx)
         if idxblk < 0:
             idxblk = self.num_blocks + idxblk
         blk = reshape(self._data[self.bndpos[idxblk] : self.bndpos[idxblk + 1]], self.shape[idxblk])
