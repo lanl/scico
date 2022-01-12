@@ -2,7 +2,7 @@
 sphinx>=3.5.2
 sphinxcontrib-napoleon
 sphinxcontrib-bibtex
-sphinx-autodoc-typehints>=1.15.2
+sphinx-autodoc-typehints
 faculty-sphinx-theme
 nbsphinx
 py2jn
