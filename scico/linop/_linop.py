@@ -16,7 +16,7 @@ from functools import partial
 from typing import Optional, Tuple, Union
 
 import scico.numpy as snp
-from scico import util
+from scico import blockarray, util
 from scico._generic_operators import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
 from scico.blockarray import BlockArray
 from scico.random import randn
@@ -323,7 +323,7 @@ class Slice(LinearOperator):
         """
 
         if util.is_nested(input_shape):
-            output_shape = BlockArray.indexed_shape(input_shape, idx)
+            output_shape = blockarray.indexed_shape(input_shape, idx)
         else:
             output_shape = util.indexed_shape(input_shape, idx)
 

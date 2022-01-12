@@ -584,6 +584,55 @@ def block_sizes(shape: Union[Shape, BlockShape]) -> Axes:
     return np.prod(shape)
 
 
+def _decompose_index(idx: Union[int, Ellipsis, Tuple(AxisIndex)]) -> Tuple:
+    """Decompose a BlockArray indexing expression into components.
+
+    Decompose a BlockArray indexing expression into block and array
+    components.
+
+    Args:
+        idx: BlockArray indexing expression.
+
+    Returns:
+        A tuple (idxblk, idxarr) with entries corresponding to the
+        integer block index and the indexing to be applied to the
+        selected block, respectively. The latter is ``None`` if the
+        indexing expression simply selects one of the blocks (i.e.
+        it consists of a single integer).
+
+    Raises:
+        TypeError: If the block index is not an integer.
+    """
+    if isinstance(idx, tuple):
+        idxblk = idx[0]
+        idxarr = idx[1:]
+    else:
+        idxblk = idx
+        idxarr = None
+    if not isinstance(idxblk, int):
+        raise TypeError("Block index must be an integer")
+    return idxblk, idxarr
+
+
+def indexed_shape(shape: Shape, idx: Union[int, Ellipsis, Tuple(AxisIndex)]) -> Tuple[int]:
+    """Determine the shape of the result of indexing a BlockArray.
+
+    Args:
+        shape: Shape of BlockArray.
+        idx: BlockArray indexing expression.
+
+    Returns:
+        Shape of the selected block, or slice of that block if ``idx`` is a tuple
+        rather than an integer.
+    """
+    idxblk, idxarr = _decompose_index(idx)
+    if idxblk < 0:
+        idxblk = len(shape) + idxblk
+    if idxarr is None:
+        return shape[idxblk]
+    return util.indexed_shape(shape[idxblk], idxarr)
+
+
 def _flatten_blockarrays(inp, *args, **kwargs):
     """Flatten any blockarrays present in inp, args, or kwargs."""
 
@@ -817,31 +866,8 @@ class BlockArray:
     def __repr__(self):
         return "scico.blockarray.BlockArray: \n" + self._data.__repr__()
 
-    @staticmethod
-    def _decompose_index(idx: Union[int, Ellipsis, Tuple(AxisIndex)]) -> Tuple:
-        """Decompose a BlockArray indexing expression into block and array components."""
-        if isinstance(idx, tuple):
-            idxblk = idx[0]
-            idxarr = idx[1:]
-        else:
-            idxblk = idx
-            idxarr = None
-        if not isinstance(idxblk, int):
-            raise TypeError("Block index must be an integer")
-        return idxblk, idxarr
-
-    @staticmethod
-    def indexed_shape(shape: Shape, idx: Union[int, Ellipsis, Tuple(AxisIndex)]) -> Tuple[int]:
-        """Determine the shape of the result of indexing a BlockArray."""
-        idxblk, idxarr = BlockArray._decompose_index(idx)
-        if idxblk < 0:
-            idxblk = len(shape) + idxblk
-        if idxarr is None:
-            return shape[idxblk]
-        return util.indexed_shape(shape[idxblk], idxarr)
-
     def __getitem__(self, idx: Union[int, Ellipsis, Tuple(AxisIndex)]) -> JaxArray:
-        idxblk, idxarr = BlockArray._decompose_index(idx)
+        idxblk, idxarr = _decompose_index(idx)
         if idxblk < 0:
             idxblk = self.num_blocks + idxblk
         blk = reshape(self._data[self.bndpos[idxblk] : self.bndpos[idxblk + 1]], self.shape[idxblk])
