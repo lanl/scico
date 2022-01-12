@@ -16,8 +16,10 @@ from scico.util import (
     Timer,
     check_for_tracer,
     ensure_on_device,
+    indexed_shape,
     is_nested,
     parse_axes,
+    slice_length,
     url_get,
 )
 
@@ -99,6 +101,40 @@ def test_parse_axes():
 
     axes = (1, 2, 2)
     np.testing.assert_raises(ValueError, parse_axes, axes)
+
+
+@pytest.mark.parametrize("length", (4, 5, 8, 16, 17))
+@pytest.mark.parametrize("start", (None, 0, 1, 2, 3))
+@pytest.mark.parametrize("stop", (None, 0, 1, 2, -2, -1))
+@pytest.mark.parametrize("stride", (None, 1, 2, 3))
+def test_slice_length(length, start, stop, stride):
+    x = np.zeros(length)
+    slc = slice(start, stop, stride)
+    assert x[slc].size == slice_length(length, slc)
+
+
+@pytest.mark.parametrize("length", (4, 5))
+@pytest.mark.parametrize("slc", (0, 1, -4, Ellipsis))
+def test_slice_length_other(length, slc):
+    x = np.zeros(length)
+    assert x[slc].size == slice_length(length, slc)
+
+
+@pytest.mark.parametrize("shape", ((8, 8, 1), (7, 1, 6, 5)))
+@pytest.mark.parametrize(
+    "slc",
+    (
+        np.s_[0:5],
+        np.s_[:, 0:4],
+        np.s_[2:, :, :-2],
+        np.s_[..., 2:],
+        np.s_[..., 2:, :],
+        np.s_[1:, ..., 2:],
+    ),
+)
+def test_indexed_shape(shape, slc):
+    x = np.zeros(shape)
+    assert x[slc].shape == indexed_shape(shape, slc)
 
 
 def test_check_for_tracer():

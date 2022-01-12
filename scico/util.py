@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -18,7 +18,7 @@ import urllib.request as urlrequest
 import warnings
 from functools import wraps
 from timeit import default_timer as timer
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -29,7 +29,7 @@ from jax.interpreters.pxla import ShardedDeviceArray
 from jax.interpreters.xla import DeviceArray
 
 import scico.blockarray
-from scico.typing import Axes, JaxArray, Shape
+from scico.typing import ArrayIndex, Axes, AxisIndex, JaxArray, Shape
 
 __author__ = """\n""".join(
     [
@@ -178,8 +178,62 @@ def parse_axes(
             f"Invalid axes {axes} specified; each axis must be less than `len(shape)`={len(shape)}."
         )
     if len(set(axes)) != len(axes):
-        raise ValueError("Duplicate vaue in axes {axes}; each axis must be unique.")
+        raise ValueError(f"Duplicate value in axes {axes}; each axis must be unique.")
     return axes
+
+
+def slice_length(length: int, slc: AxisIndex) -> int:
+    """Determine the length of an array axis after slicing.
+
+    Args:
+        length: Length of axis being sliced.
+        slc: Slice/indexing to be applied to axis.
+
+    Returns:
+        Length of sliced axis.
+
+    Raises:
+        ValueError: If `slc` is an integer index that is out bounds for
+            the axis length.
+    """
+    if slc is Ellipsis:
+        return length
+    if isinstance(slc, int):
+        if slc < -length or slc > length - 1:
+            raise ValueError(f"Index {slc} out of bounds for axis of length {length}.")
+        return 1
+    start, stop, stride = slc.indices(length)
+    if start > stop:
+        start = stop
+    return (stop - start + stride - 1) // stride
+
+
+def indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int]:
+    """Determine the shape of an array after indexing/slicing.
+
+    Args:
+        shape: Shape of array.
+        idx: Indexing expression.
+
+    Returns:
+        Shape of indexed/sliced array.
+
+    Raises:
+        ValueError: If `idx` is longer than `shape`.
+    """
+    if not isinstance(idx, tuple):
+        idx = (idx,)
+    if len(idx) > len(shape):
+        raise ValueError(f"Slice {idx} has more dimensions than shape {shape}.")
+    idx_shape = list(shape)
+    offset = 0
+    for axis, ax_idx in enumerate(idx):
+        print(axis, offset)
+        if ax_idx is Ellipsis:
+            offset = len(shape) - len(idx)
+            continue
+        idx_shape[axis + offset] = slice_length(shape[axis + offset], ax_idx)
+    return tuple(idx_shape)
 
 
 def is_nested(x: Any) -> bool:

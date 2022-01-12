@@ -31,7 +31,7 @@ contains the following size attributes:
 
 
 Motivating Example
-------------------
+==================
 
 Consider a two dimensional array :math:`\mb{x} \in \mathbb{R}^{n \times m}`.
 
@@ -73,10 +73,11 @@ Instead, we can form a :class:`.BlockArray`: :math:`\mb{x}_B =
 
 
 Constructing a BlockArray
--------------------------
+=========================
 
 Construct from a tuple of arrays (either `ndarray` or `DeviceArray`)
-####################################################################
+--------------------------------------------------------------------
+
   .. doctest::
 
      >>> from scico.blockarray import BlockArray
@@ -103,7 +104,8 @@ single precision and will have dtype `float32` or `complex64`.
 
 
 Construct from a single vector and tuple of shapes
-##################################################
+--------------------------------------------------
+
   ::
 
      >>> x_flat = np.random.randn(1040)
@@ -115,7 +117,20 @@ Construct from a single vector and tuple of shapes
 
 
 Operating on a BlockArray
--------------------------
+=========================
+
+.. _blockarray_indexing:
+
+Indexing
+--------
+
+The block index is required to be an integer, selecting a single block and
+returning it as an array (*not* a singleton BlockArray). If the index
+expression has more than one component, then the initial index indexes the
+block, and the remainder of the indexing expression indexes within the
+selected block, e.g. ``x[2, 3:4]`` is equivalent to ``y[3:4]`` after
+setting ``y = x[2]``.
+
 
 Indexed Updating
 ----------------
@@ -124,7 +139,7 @@ BlockArrays support the JAX DeviceArray `indexed update syntax
 <https://jax.readthedocs.io/en/latest/jax.ops.html#indexed-update-operators>`_
 
 
-The index must be of the form [ibk] or [ibk,idx], where `ibk` is the
+The index must be of the form [ibk] or [ibk, idx], where `ibk` is the
 index of the block to be updated, and `idx` is a general index of the
 elements to be updated in that block.  In particular, `ibk` cannot be a
 `slice`. The general index `idx` can be omitted, in which case an entire
@@ -145,7 +160,7 @@ Alternate syntax                 Equivalent in-place expression
 
 
 Arithmetic and Broadcasting
-###########################
+---------------------------
 
 Suppose :math:`\mb{x}` is a BlockArray with shape :math:`((n, n), (m,))`.
 
@@ -166,7 +181,7 @@ Illustrated for the operation ``+``, but equally valid for operators
 
 
 Operations with BlockArrays with same number of blocks
-******************************************************
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Let :math:`\mb{y}` be a BlockArray with the same number of blocks as
 :math:`\mb{x}`.
@@ -185,7 +200,7 @@ This operation depends on pair of blocks from :math:`\mb{x}` and
 
 
 Operations with a scalar
-************************
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 The scalar is added to each element of the :class:`.BlockArray`:
 
@@ -206,10 +221,8 @@ The scalar is added to each element of the :class:`.BlockArray`:
 
 
 
-
-
 Operations with a 1D `ndarray` of size equal to `num_blocks`
-************************************************************
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The *i*\th scalar is added to the *i*\th  block of the
 :class:`.BlockArray`:
@@ -236,7 +249,7 @@ The *i*\th scalar is added to the *i*\th  block of the
 
 
 Operations with an ndarray of `size` equal to :class:`.BlockArray` size
-***********************************************************************
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 We first cast the `ndarray` to a BlockArray with same shape as
 :math:`\mb{x}`, then apply the operation on the resulting BlockArrays.
@@ -259,11 +272,10 @@ the same shape as :math:`\mb{x}`
 
 
 MatMul
-######
+------
 
 Between two BlockArrays
-***********************
-
+^^^^^^^^^^^^^^^^^^^^^^^
 
 The matmul is computed between each block of the two BlockArrays.
 
@@ -281,14 +293,13 @@ blocks must be broadcastable.
 
 
 Between BlockArray and Ndarray/DeviceArray
-******************************************
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This operation is not defined.
 
 
 Between BlockArray and :class:`.LinearOperator`
-***********************************************
-
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The :class:`.Operator` and :class:`.LinearOperator` classes are designed
 to work on :class:`.BlockArray`\ s in addition to `DeviceArray`\ s.
@@ -313,7 +324,7 @@ For example
 
 
 NumPy ufuncs
-############
+------------
 
 `NumPy universal functions (ufuncs) <https://numpy.org/doc/stable/reference/ufuncs.html>`_
 are functions that operate on an `ndarray` on an element-by-element
@@ -328,7 +339,7 @@ are defined in the :mod:`scico.numpy` module.
 
 
 Reductions
-##########
+^^^^^^^^^^
 
 Reductions are functions that take an array-like as an input and return
 an array of lower dimension. Examples include ``mean``, ``sum``, ``norm``.
@@ -453,8 +464,8 @@ from jax.tree_util import register_pytree_node, tree_flatten
 
 from jaxlib.xla_extension import Buffer
 
-from scico.typing import Axes, BlockShape, DType, JaxArray, Shape
-from scico.util import is_nested
+from scico import util
+from scico.typing import Axes, AxisIndex, BlockShape, DType, JaxArray, Shape
 
 _arraylikes = (Buffer, DeviceArray, np.ndarray)
 
@@ -510,7 +521,7 @@ def reshape(
         always returned.
     """
 
-    if is_nested(newshape):
+    if util.is_nested(newshape):
         # x is a blockarray
         return BlockArray.array_from_flattened(a, newshape)
 
@@ -555,13 +566,13 @@ def block_sizes(shape: Union[Shape, BlockShape]) -> Axes:
         )
 
     out = []
-    if is_nested(shape):
+    if util.is_nested(shape):
         # shape is nested -> at least one element came from a blockarray
         for y in shape:
-            if is_nested(y):
+            if util.is_nested(y):
                 # recursively calculate the block size until we arrive at
                 # a tuple (shape of a non-block array)
-                while is_nested(y):
+                while util.is_nested(y):
                     y = block_sizes(y)
                 out.append(np.sum(y))  # adjacent block sizes are added together
             else:
@@ -571,6 +582,55 @@ def block_sizes(shape: Union[Shape, BlockShape]) -> Axes:
 
     # shape is a non-nested tuple; return the product
     return np.prod(shape)
+
+
+def _decompose_index(idx: Union[int, Tuple(AxisIndex)]) -> Tuple:
+    """Decompose a BlockArray indexing expression into components.
+
+    Decompose a BlockArray indexing expression into block and array
+    components.
+
+    Args:
+        idx: BlockArray indexing expression.
+
+    Returns:
+        A tuple (idxblk, idxarr) with entries corresponding to the
+        integer block index and the indexing to be applied to the
+        selected block, respectively. The latter is ``None`` if the
+        indexing expression simply selects one of the blocks (i.e.
+        it consists of a single integer).
+
+    Raises:
+        TypeError: If the block index is not an integer.
+    """
+    if isinstance(idx, tuple):
+        idxblk = idx[0]
+        idxarr = idx[1:]
+    else:
+        idxblk = idx
+        idxarr = None
+    if not isinstance(idxblk, int):
+        raise TypeError("Block index must be an integer")
+    return idxblk, idxarr
+
+
+def indexed_shape(shape: Shape, idx: Union[int, Tuple(AxisIndex)]) -> Tuple[int]:
+    """Determine the shape of the result of indexing a BlockArray.
+
+    Args:
+        shape: Shape of BlockArray.
+        idx: BlockArray indexing expression.
+
+    Returns:
+        Shape of the selected block, or slice of that block if ``idx`` is a tuple
+        rather than an integer.
+    """
+    idxblk, idxarr = _decompose_index(idx)
+    if idxblk < 0:
+        idxblk = len(shape) + idxblk
+    if idxarr is None:
+        return shape[idxblk]
+    return util.indexed_shape(shape[idxblk], idxarr)
 
 
 def _flatten_blockarrays(inp, *args, **kwargs):
@@ -785,8 +845,8 @@ class BlockArray:
     can be accessed individually.
     """
 
-    # Ensure we use BlockArray.__radd__,__rmul__, etc for binary operations of the form
-    # op(np.ndarray, BlockArray)
+    # Ensure we use BlockArray.__radd__, __rmul__, etc for binary operations of the form
+    #    op(np.ndarray, BlockArray)
     # See https://docs.scipy.org/doc/numpy-1.10.1/user/c-info.beyond-basics.html#ndarray.__array_priority__
     __array_priority__ = 1
 
@@ -806,14 +866,14 @@ class BlockArray:
     def __repr__(self):
         return "scico.blockarray.BlockArray: \n" + self._data.__repr__()
 
-    def __getitem__(self, idx: Union[int, Ellipsis]) -> JaxArray:
-        if isinstance(idx, slice):
-            raise TypeError(f"Slicing not supported on block index")
-        if idx == Ellipsis:
-            return reshape(self._data, self.shape)
-        if idx < 0:
-            idx = self.num_blocks + idx
-        return reshape(self._data[self.bndpos[idx] : self.bndpos[idx + 1]], self.shape[idx])
+    def __getitem__(self, idx: Union[int, Tuple(AxisIndex)]) -> JaxArray:
+        idxblk, idxarr = _decompose_index(idx)
+        if idxblk < 0:
+            idxblk = self.num_blocks + idxblk
+        blk = reshape(self._data[self.bndpos[idxblk] : self.bndpos[idxblk + 1]], self.shape[idxblk])
+        if idxarr is not None:
+            blk = blk[idxarr]
+        return blk
 
     @_block_array_matmul_wrapper
     def __matmul__(self, other: Union[np.ndarray, BlockArray, JaxArray]) -> JaxArray:
