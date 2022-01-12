@@ -119,6 +119,8 @@ Construct from a single vector and tuple of shapes
 Operating on a BlockArray
 =========================
 
+.. _blockarray_indexing:
+
 Indexing
 --------
 
