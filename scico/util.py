@@ -208,32 +208,32 @@ def slice_length(length: int, slc: AxisIndex) -> int:
     return (stop - start + stride - 1) // stride
 
 
-def sliced_shape(shape: Shape, slc: ArrayIndex) -> Tuple:
-    """Determine the shape of an array after slicing.
+def indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int]:
+    """Determine the shape of an array after indexing/slicing.
 
     Args:
-        shape: Length of axis being sliced.
-        slc: Slice to be applied to axis.
+        shape: Shape of array.
+        idx: Indexing expression.
 
     Returns:
-        Shape of sliced array.
+        Shape of indexed/sliced array.
 
     Raises:
-        ValueError: If `slc` is longer than `shape`.
+        ValueError: If `idx` is longer than `shape`.
     """
-    if not isinstance(slc, tuple):
-        slc = (slc,)
-    if len(slc) > len(shape):
-        raise ValueError(f"Slice {slc} has more dimensions than shape {shape}.")
-    slc_shape = list(shape)
+    if not isinstance(idx, tuple):
+        idx = (idx,)
+    if len(idx) > len(shape):
+        raise ValueError(f"Slice {idx} has more dimensions than shape {shape}.")
+    idx_shape = list(shape)
     offset = 0
-    for axis, ax_slc in enumerate(slc):
+    for axis, ax_idx in enumerate(idx):
         print(axis, offset)
-        if ax_slc is Ellipsis:
-            offset = len(shape) - len(slc)
+        if ax_idx is Ellipsis:
+            offset = len(shape) - len(idx)
             continue
-        slc_shape[axis + offset] = slice_length(shape[axis + offset], ax_slc)
-    return tuple(slc_shape)
+        idx_shape[axis + offset] = slice_length(shape[axis + offset], ax_idx)
+    return tuple(idx_shape)
 
 
 def is_nested(x: Any) -> bool:

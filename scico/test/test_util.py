@@ -16,10 +16,10 @@ from scico.util import (
     Timer,
     check_for_tracer,
     ensure_on_device,
+    indexed_shape,
     is_nested,
     parse_axes,
     slice_length,
-    sliced_shape,
     url_get,
 )
 
@@ -132,9 +132,9 @@ def test_slice_length_other(length, slc):
         np.s_[1:, ..., 2:],
     ),
 )
-def test_sliced_shape(shape, slc):
+def test_indexed_shape(shape, slc):
     x = np.zeros(shape)
-    assert x[slc].shape == sliced_shape(shape, slc)
+    assert x[slc].shape == indexed_shape(shape, slc)
 
 
 def test_check_for_tracer():
