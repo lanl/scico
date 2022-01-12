@@ -124,7 +124,7 @@ BlockArrays support the JAX DeviceArray `indexed update syntax
 <https://jax.readthedocs.io/en/latest/jax.ops.html#indexed-update-operators>`_
 
 
-The index must be of the form [ibk] or [ibk,idx], where `ibk` is the
+The index must be of the form [ibk] or [ibk, idx], where `ibk` is the
 index of the block to be updated, and `idx` is a general index of the
 elements to be updated in that block.  In particular, `ibk` cannot be a
 `slice`. The general index `idx` can be omitted, in which case an entire
@@ -453,7 +453,7 @@ from jax.tree_util import register_pytree_node, tree_flatten
 
 from jaxlib.xla_extension import Buffer
 
-from scico.typing import Axes, BlockShape, DType, JaxArray, Shape
+from scico.typing import Axes, AxisIndex, BlockShape, DType, JaxArray, Shape
 from scico.util import is_nested
 
 _arraylikes = (Buffer, DeviceArray, np.ndarray)
@@ -806,14 +806,27 @@ class BlockArray:
     def __repr__(self):
         return "scico.blockarray.BlockArray: \n" + self._data.__repr__()
 
-    def __getitem__(self, idx: Union[int, Ellipsis]) -> JaxArray:
-        if isinstance(idx, slice):
-            raise TypeError(f"Slicing not supported on block index")
-        if idx == Ellipsis:
+    def __getitem__(self, idx: Union[int, Ellipsis, Tuple(AxisIndex)]) -> JaxArray:
+        if isinstance(idx, tuple):
+            idxblk = idx[0]
+            if not isinstance(idxblk, int):
+                raise TypeError(
+                    "Indexing within selected block only allowed for integer block index"
+                )
+            idxarr = idx[1:]
+        else:
+            idxblk = idx
+            idxarr = None
+        if isinstance(idxblk, slice):
+            raise TypeError("Slicing not supported on block index")
+        if idxblk == Ellipsis:
             return reshape(self._data, self.shape)
-        if idx < 0:
-            idx = self.num_blocks + idx
-        return reshape(self._data[self.bndpos[idx] : self.bndpos[idx + 1]], self.shape[idx])
+        if idxblk < 0:
+            idxblk = self.num_blocks + idxblk
+        blk = reshape(self._data[self.bndpos[idxblk] : self.bndpos[idxblk + 1]], self.shape[idxblk])
+        if idxarr is not None:
+            blk = blk[idxarr]
+        return blk
 
     @_block_array_matmul_wrapper
     def __matmul__(self, other: Union[np.ndarray, BlockArray, JaxArray]) -> JaxArray:
