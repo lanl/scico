@@ -322,10 +322,15 @@ class Slice(LinearOperator):
                functions of the LinearOperator.
         """
 
+        if util.is_nested(input_shape):
+            output_shape = BlockArray.indexed_shape(input_shape, idx)
+        else:
+            output_shape = util.indexed_shape(input_shape, idx)
+
         self.idx: ArrayIndex = idx
         super().__init__(
             input_shape=input_shape,
-            output_shape=util.sliced_shape(input_shape, idx),
+            output_shape=output_shape,
             input_dtype=input_dtype,
             output_dtype=input_dtype,
             jit=jit,
