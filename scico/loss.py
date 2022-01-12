@@ -74,7 +74,7 @@ class Loss(functional.Functional):
         self.scale = scale
 
         # Set functional-specific flags
-        self.has_prox = False  # TODO: implement a generic prox solver?
+        self.has_prox = False
         self.has_eval = True
 
         super().__init__()
