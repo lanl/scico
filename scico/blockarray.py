@@ -119,6 +119,19 @@ Construct from a single vector and tuple of shapes
 Operating on a BlockArray
 =========================
 
+Indexing
+--------
+
+The block index is required to either be an integer or ``...``, the former
+selecting a single block and returning it as an array (*not* a singleton
+BlockArray), and the latter returning the entire BlockArray content flattened
+into a single one-dimensional array. If the index expression has more than
+one component, then the initial index (which indexes the block) must be an
+integer, and the remainder of the indexing expression indexes within the
+selected block, e.g. ``x[2, 3:4]`` is equivalent to ``y[3:4]`` after
+setting ``y = x[2]``.
+
+
 Indexed Updating
 ----------------
 
