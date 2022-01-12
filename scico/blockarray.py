@@ -289,17 +289,27 @@ This operation is not defined.
 Between BlockArray and :class:`.LinearOperator`
 ***********************************************
 
-.. todo::
-   Improve this
 
 The :class:`.Operator` and :class:`.LinearOperator` classes are designed
-to work on :class:`.BlockArray`. The shapes must conform:
+to work on :class:`.BlockArray`\ s in addition to `DeviceArray`\ s.
+For example
+
 
    ::
 
-      x = BlockArray.array((np.random.randn(32, 32), np.random.randn(16)))
-      A # LinearOperator with A.shape[1] == x.shape
-      A @ x
+      >>> x, key = scico.random.randn((3, 4))
+      >>> A_1 = scico.linop.Identity(x.shape)
+      >>> A_1.shape  # array -> array
+      ((3, 4), (3, 4))
+
+      >>> A_2 = scico.linop.FiniteDifference(x.shape)
+      >>> A_2.shape  # array -> BlockArray
+      (((2, 4), (3, 3)), (3, 4))
+
+      >>> diag = BlockArray.array([np.array(1.0), np.array(2.0)])
+      >>> A_3 = scico.linop.Diagonal(diag, input_shape=(A_2.output_shape))
+      >>> A_3.shape  # BlockArray -> BlockArray
+     (((2, 4), (3, 3)), ((2, 4), (3, 3)))
 
 
 NumPy ufuncs
@@ -1314,8 +1324,8 @@ class _BlockArrayIndexUpdateRef:
         index = self.index
         arr_tuple = self._block_array.split
         if bk_index == Ellipsis:
-            # TODO does this result in multiple copies? One per sub-blockarray,
-            # then one to combine into a nested BA?
+            # This may result in multiple copies: one per sub-blockarray,
+            # then one to combine into a nested BA.
             retval = BlockArray.array([getattr(_.at[index], func_str)(values) for _ in arr_tuple])
         else:
             retval = BlockArray.array(

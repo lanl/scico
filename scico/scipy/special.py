@@ -53,11 +53,6 @@ _ufunc_functions = [
     js.zeta,
 ]
 
-# TODO: wrap lpmn, lpmn_values
-# They take integers as first argument and ndarray as last argument, and this
-# does not work with the current _block_array_ufunc_wrapper.
-
-
 _attach_wrapped_func(
     _ufunc_functions,
     _block_array_ufunc_wrapper,
