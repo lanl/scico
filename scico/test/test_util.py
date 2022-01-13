@@ -1,52 +1,14 @@
 import socket
 import urllib.error as urlerror
-import warnings
 
 import numpy as np
 
 import jax
-from jax.interpreters.xla import DeviceArray
 
 import pytest
 
 import scico.numpy as snp
-from scico.blockarray import BlockArray
-from scico.util import (
-    ContextTimer,
-    Timer,
-    check_for_tracer,
-    ensure_on_device,
-    indexed_shape,
-    is_nested,
-    parse_axes,
-    slice_length,
-    url_get,
-)
-
-
-def test_ensure_on_device():
-    # Used to restore the warnings after the context is used
-    with warnings.catch_warnings():
-        # Ignores warning raised by ensure_on_device
-        warnings.filterwarnings(action="ignore", category=UserWarning)
-
-        NP = np.ones(2)
-        SNP = snp.ones(2)
-        BA = BlockArray.array([NP, SNP])
-        NP_, SNP_, BA_ = ensure_on_device(NP, SNP, BA)
-
-        assert isinstance(NP_, DeviceArray)
-
-        assert isinstance(SNP_, DeviceArray)
-        assert SNP.unsafe_buffer_pointer() == SNP_.unsafe_buffer_pointer()
-
-        assert isinstance(BA_, BlockArray)
-        assert BA._data.unsafe_buffer_pointer() == BA_._data.unsafe_buffer_pointer()
-
-        np.testing.assert_raises(TypeError, ensure_on_device, [1, 1, 1])
-
-        NP_ = ensure_on_device(NP)
-        assert isinstance(NP_, DeviceArray)
+from scico.util import ContextTimer, Timer, check_for_tracer, url_get
 
 
 # See https://stackoverflow.com/a/33117579
@@ -77,66 +39,6 @@ def test_url_get():
     np.testing.assert_raises(ValueError, url_get, url, -1)
 
 
-def test_parse_axes():
-    axes = None
-    np.testing.assert_raises(ValueError, parse_axes, axes)
-
-    axes = None
-    assert parse_axes(axes, np.shape([[1, 1], [1, 1]])) == [0, 1]
-
-    axes = None
-    assert parse_axes(axes, np.shape([[1, 1], [1, 1]]), default=[0]) == [0]
-
-    axes = [1, 2]
-    assert parse_axes(axes) == axes
-
-    axes = 1
-    assert parse_axes(axes) == (1,)
-
-    axes = "axes"
-    np.testing.assert_raises(ValueError, parse_axes, axes)
-
-    axes = 2
-    np.testing.assert_raises(ValueError, parse_axes, axes, np.shape([1]))
-
-    axes = (1, 2, 2)
-    np.testing.assert_raises(ValueError, parse_axes, axes)
-
-
-@pytest.mark.parametrize("length", (4, 5, 8, 16, 17))
-@pytest.mark.parametrize("start", (None, 0, 1, 2, 3))
-@pytest.mark.parametrize("stop", (None, 0, 1, 2, -2, -1))
-@pytest.mark.parametrize("stride", (None, 1, 2, 3))
-def test_slice_length(length, start, stop, stride):
-    x = np.zeros(length)
-    slc = slice(start, stop, stride)
-    assert x[slc].size == slice_length(length, slc)
-
-
-@pytest.mark.parametrize("length", (4, 5))
-@pytest.mark.parametrize("slc", (0, 1, -4, Ellipsis))
-def test_slice_length_other(length, slc):
-    x = np.zeros(length)
-    assert x[slc].size == slice_length(length, slc)
-
-
-@pytest.mark.parametrize("shape", ((8, 8, 1), (7, 1, 6, 5)))
-@pytest.mark.parametrize(
-    "slc",
-    (
-        np.s_[0:5],
-        np.s_[:, 0:4],
-        np.s_[2:, :, :-2],
-        np.s_[..., 2:],
-        np.s_[..., 2:, :],
-        np.s_[1:, ..., 2:],
-    ),
-)
-def test_indexed_shape(shape, slc):
-    x = np.zeros(shape)
-    assert x[slc].shape == indexed_shape(shape, slc)
-
-
 def test_check_for_tracer():
     # Using examples from Jax documentation
 
@@ -156,29 +58,6 @@ def test_check_for_tracer():
     with pytest.raises(TypeError):
         mv = jax.vmap(vv)
         mv(x)
-
-
-def test_is_nested():
-    # list
-    assert is_nested([1, 2, 3]) == False
-
-    # tuple
-    assert is_nested((1, 2, 3)) == False
-
-    # list of lists
-    assert is_nested([[1, 2], [4, 5], [3]]) == True
-
-    # list of lists + scalar
-    assert is_nested([[1, 2], 3]) == True
-
-    # list of tuple + scalar
-    assert is_nested([(1, 2), 3]) == True
-
-    # tuple of tuple + scalar
-    assert is_nested(((1, 2), 3)) == True
-
-    # tuple of lists + scalar
-    assert is_nested(([1, 2], 3)) == True
 
 
 def test_timer_basic():

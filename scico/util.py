@@ -5,9 +5,8 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Utility functions."""
+"""General utility functions."""
 
-# The timer classes in this module are copied from https://github.com/bwohlberg/sporco
 
 from __future__ import annotations
 
@@ -15,27 +14,18 @@ import io
 import socket
 import urllib.error as urlerror
 import urllib.request as urlrequest
-import warnings
 from functools import wraps
 from timeit import default_timer as timer
-from typing import Any, Callable, List, Optional, Tuple, Union
-
-import numpy as np
+from typing import Callable, List, Optional, Union
 
 import jax
 from jax.interpreters.batching import BatchTracer
 from jax.interpreters.partial_eval import DynamicJaxprTracer
-from jax.interpreters.pxla import ShardedDeviceArray
-from jax.interpreters.xla import DeviceArray
-
-import scico.blockarray
-from scico.typing import ArrayIndex, Axes, AxisIndex, JaxArray, Shape
 
 __author__ = """\n""".join(
     [
         "Brendt Wohlberg <brendt@ieee.org>",
         "Luke Pfister <luke.pfister@gmail.com>",
-        "Thilo Balke <thilo.balke@gmail.com>",
     ]
 )
 
@@ -60,53 +50,28 @@ def device_info(devid: int = 0) -> str:  # pragma: no cover
     return info
 
 
-def ensure_on_device(
-    *arrays: Union[np.ndarray, JaxArray, scico.blockarray.BlockArray]
-) -> Union[JaxArray, scico.blockarray.BlockArray]:
-    """Cast ndarrays to DeviceArrays.
+def check_for_tracer(func: Callable) -> Callable:
+    """Check if positional arguments to ``func`` are jax tracers.
 
-    Cast ndarrays to DeviceArrays and leaves DeviceArrays, BlockArrays,
-    and ShardedDeviceArray as is. This is intended to be used when
-    initializing optimizers and functionals so that all arrays are either
-    DeviceArrays, BlockArrays, or ShardedDeviceArray.
-
-    Args:
-        *arrays: One or more input arrays (ndarray, DeviceArray,
-           BlockArray, or ShardedDeviceArray).
-
-    Returns:
-        arrays : Modified array or arrays. Modified are only those that
-           were necessary.
-
-    Raises:
-        TypeError: If the arrays contain something that is neither
-           ndarray, DeviceArray, BlockArray, nor ShardedDeviceArray.
+    This is intended to be used as a decorator for functions that call
+    external code from within SCICO. At present, external functions
+    cannot be jit-ed or vmap/pmaped. This decorator checks for signs of
+    jit/vmap/pmap and raises an appropriate exception.
     """
-    arrays = list(arrays)
 
-    for i, array in enumerate(arrays):
-
-        if isinstance(array, np.ndarray):
-            warnings.warn(
-                f"Argument {i+1} of {len(arrays)} is an np.ndarray. "
-                f"Will cast it to DeviceArray. "
-                f"To suppress this warning cast all np.ndarrays to DeviceArray first.",
-                stacklevel=2,
-            )
-
-            arrays[i] = jax.device_put(arrays[i])
-        elif not isinstance(
-            array,
-            (DeviceArray, scico.blockarray.BlockArray, ShardedDeviceArray),
-        ):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if any([isinstance(x, DynamicJaxprTracer) for x in args]):
             raise TypeError(
-                "Each item of `arrays` must be ndarray, DeviceArray, BlockArray, or "
-                f"ShardedDeviceArray; Argument {i+1} of {len(arrays)} is {type(arrays[i])}."
+                f"DynamicJaxprTracer found in {func.__name__};  did you jit this function?"
             )
+        if any([isinstance(x, BatchTracer) for x in args]):
+            raise TypeError(
+                f"BatchTracer found in {func.__name__};  did you vmap/pmap this function?"
+            )
+        return func(*args, **kwargs)
 
-    if len(arrays) == 1:
-        return arrays[0]
-    return arrays
+    return wrapper
 
 
 def url_get(url: str, maxtry: int = 3, timeout: int = 10) -> io.BytesIO:  # pragma: no cover
@@ -139,149 +104,7 @@ def url_get(url: str, maxtry: int = 3, timeout: int = 10) -> io.BytesIO:  # prag
     return io.BytesIO(cntnt)
 
 
-def parse_axes(
-    axes: Axes, shape: Optional[Shape] = None, default: Optional[List[int]] = None
-) -> List[int]:
-    """Normalize `axes` to a list and optionally ensure correctness.
-
-    Normalize `axes` to a list and (optionally) ensure that entries refer
-    to axes that exist in `shape`.
-
-    Args:
-        axes: user specification of one or more axes: int, list, tuple,
-           or ``None``.
-        shape: the shape of the array of which axes are being specified.
-           If not ``None``, `axes` is checked to make sure its entries
-           refer to axes that exist in `shape`.
-        default: default value to return if `axes` is ``None``. By
-           default, `list(range(len(shape)))`.
-
-    Returns:
-        List of axes (never an int, never ``None``).
-    """
-
-    if axes is None:
-        if default is None:
-            if shape is None:
-                raise ValueError("`axes` cannot be `None` without a default or shape specified.")
-            axes = list(range(len(shape)))
-        else:
-            axes = default
-    elif isinstance(axes, (list, tuple)):
-        axes = axes
-    elif isinstance(axes, int):
-        axes = (axes,)
-    else:
-        raise ValueError(f"Could not understand axes {axes} as a list of axes")
-    if shape is not None and max(axes) >= len(shape):
-        raise ValueError(
-            f"Invalid axes {axes} specified; each axis must be less than `len(shape)`={len(shape)}."
-        )
-    if len(set(axes)) != len(axes):
-        raise ValueError(f"Duplicate value in axes {axes}; each axis must be unique.")
-    return axes
-
-
-def slice_length(length: int, slc: AxisIndex) -> int:
-    """Determine the length of an array axis after slicing.
-
-    Args:
-        length: Length of axis being sliced.
-        slc: Slice/indexing to be applied to axis.
-
-    Returns:
-        Length of sliced axis.
-
-    Raises:
-        ValueError: If `slc` is an integer index that is out bounds for
-            the axis length.
-    """
-    if slc is Ellipsis:
-        return length
-    if isinstance(slc, int):
-        if slc < -length or slc > length - 1:
-            raise ValueError(f"Index {slc} out of bounds for axis of length {length}.")
-        return 1
-    start, stop, stride = slc.indices(length)
-    if start > stop:
-        start = stop
-    return (stop - start + stride - 1) // stride
-
-
-def indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int]:
-    """Determine the shape of an array after indexing/slicing.
-
-    Args:
-        shape: Shape of array.
-        idx: Indexing expression.
-
-    Returns:
-        Shape of indexed/sliced array.
-
-    Raises:
-        ValueError: If `idx` is longer than `shape`.
-    """
-    if not isinstance(idx, tuple):
-        idx = (idx,)
-    if len(idx) > len(shape):
-        raise ValueError(f"Slice {idx} has more dimensions than shape {shape}.")
-    idx_shape = list(shape)
-    offset = 0
-    for axis, ax_idx in enumerate(idx):
-        print(axis, offset)
-        if ax_idx is Ellipsis:
-            offset = len(shape) - len(idx)
-            continue
-        idx_shape[axis + offset] = slice_length(shape[axis + offset], ax_idx)
-    return tuple(idx_shape)
-
-
-def is_nested(x: Any) -> bool:
-    """Check if input is a list/tuple containing at least one list/tuple.
-
-    Args:
-        x: Object to be tested.
-
-    Returns:
-        True if ``x`` is a list/tuple of list/tuples, False otherwise.
-
-
-    Example:
-        >>> is_nested([1, 2, 3])
-        False
-        >>> is_nested([(1,2), (3,)])
-        True
-        >>> is_nested([ [1, 2], 3])
-        True
-
-    """
-    if isinstance(x, (list, tuple)):
-        return any([isinstance(_, (list, tuple)) for _ in x])
-    return False
-
-
-def check_for_tracer(func: Callable) -> Callable:
-    """Check if positional arguments to ``func`` are jax tracers.
-
-    This is intended to be used as a decorator for functions that call
-    external code from within SCICO. At present, external functions
-    cannot be jit-ed or vmap/pmaped. This decorator checks for signs of
-    jit/vmap/pmap and raises an appropriate exception.
-    """
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if any([isinstance(x, DynamicJaxprTracer) for x in args]):
-            raise TypeError(
-                f"DynamicJaxprTracer found in {func.__name__};  did you jit this function?"
-            )
-        if any([isinstance(x, BatchTracer) for x in args]):
-            raise TypeError(
-                f"BatchTracer found in {func.__name__};  did you vmap/pmap this function?"
-            )
-        return func(*args, **kwargs)
-
-    return wrapper
+# Timer classes are copied from https://github.com/bwohlberg/sporco
 
 
 class Timer:

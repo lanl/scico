@@ -1,14 +1,7 @@
 import numpy as np
 
 import scico.numpy as snp
-from scico.math import (
-    complex_dtype,
-    is_complex_dtype,
-    is_real_dtype,
-    real_dtype,
-    rel_res,
-    safe_divide,
-)
+from scico.math import rel_res, safe_divide
 from scico.random import randn
 
 
@@ -48,21 +41,3 @@ def test_rel_res():
     Ax = snp.matmul(A, x)
     b = snp.array([[0], [0], [0]], dtype=snp.float32)
     assert 0.0 == rel_res(Ax, b)
-
-
-def test_is_real_dtype():
-    assert not is_real_dtype(snp.complex64)
-    assert is_real_dtype(snp.float32)
-
-
-def test_is_complex_dtype():
-    assert is_complex_dtype(snp.complex64)
-    assert not is_complex_dtype(snp.float32)
-
-
-def test_real_dtype():
-    assert real_dtype(snp.complex64) == snp.float32
-
-
-def test_complex_dtype():
-    assert complex_dtype(snp.float32) == snp.complex64
