@@ -12,7 +12,7 @@ from typing import Union
 
 import scico.numpy as snp
 from scico.blockarray import BlockArray
-from scico.typing import DType, JaxArray
+from scico.typing import JaxArray
 
 __author__ = """\n""".join(
     ["Luke Pfister <luke.pfister@gmail.com>", "Brendt Wohlberg <brendt@ieee.org>"]
@@ -57,65 +57,3 @@ def rel_res(ax: Union[BlockArray, JaxArray], b: Union[BlockArray, JaxArray]) -> 
     if nrm == 0.0:
         return 0.0
     return snp.linalg.norm((b - ax).ravel()) / nrm
-
-
-def is_real_dtype(dtype: DType) -> bool:
-    """Determine whether a dtype is real.
-
-    Args:
-        dtype: A numpy or scico.numpy dtype (e.g. np.float32,
-               snp.complex64).
-
-    Returns:
-        False if the dtype is complex, otherwise True.
-    """
-    return snp.dtype(dtype).kind != "c"
-
-
-def is_complex_dtype(dtype: DType) -> bool:
-    """Determine whether a dtype is complex.
-
-    Args:
-        dtype: A numpy or scico.numpy dtype (e.g. np.float32,
-               snp.complex64).
-
-    Returns:
-        True if the dtype is complex, otherwise False.
-    """
-    return snp.dtype(dtype).kind == "c"
-
-
-def real_dtype(dtype: DType) -> DType:
-    """Construct the corresponding real dtype for a given complex dtype.
-
-    Construct the corresponding real dtype for a given complex dtype,
-    e.g. the real dtype corresponding to `np.complex64` is
-    `np.float32`.
-
-    Args:
-        dtype: A complex numpy or scico.numpy dtype (e.g. np.complex64,
-               np.complex128).
-
-    Returns:
-        The real dtype corresponding to the input dtype
-    """
-
-    return snp.zeros(1, dtype).real.dtype
-
-
-def complex_dtype(dtype: DType) -> DType:
-    """Construct the corresponding complex dtype for a given real dtype.
-
-    Construct the corresponding complex dtype for a given real dtype,
-    e.g. the complex dtype corresponding to `np.float32` is
-    `np.complex64`.
-
-    Args:
-        dtype: A real numpy or scico.numpy dtype (e.g. np.float32,
-               np.float64).
-
-    Returns:
-        The complex dtype corresponding to the input dtype.
-    """
-
-    return (snp.zeros(1, dtype) + 1j).dtype
