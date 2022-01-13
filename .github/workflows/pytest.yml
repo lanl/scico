@@ -1,6 +1,6 @@
 # Install scico requirements and run pytest
 
-name: test
+name: pytest
 
 # Controls when the workflow will run
 on:
