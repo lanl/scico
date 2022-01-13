@@ -28,6 +28,7 @@ __author__ = """\n""".join(
         "Brendt Wohlberg <brendt@ieee.org>",
         "Luke Pfister <luke.pfister@gmail.com>",
         "Thilo Balke <thilo.balke@gmail.com>",
+        "Michael McCann <mccann@lanl.gov>",
     ]
 )
 
