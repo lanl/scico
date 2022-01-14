@@ -53,8 +53,11 @@ plt.show()
 
 # %%
 
-import scico
+import jax
+
 from scico.linop.abel import AbelProjector
+
+x_gt = jax.device_put(x_gt)
 
 A = AbelProjector(x_gt.shape)
 y = A @ x_gt
@@ -66,7 +69,7 @@ ATy = A.T @ y
 # plt.imshow(ATy)
 # plt.show()
 
-scico.linop.valid_adjoint(A, A.H, eps=None, x=x_gt, y=y)
+# scico.linop.valid_adjoint(A, A.H, eps=None, x=x_gt, y=y)
 
 # %%
 
