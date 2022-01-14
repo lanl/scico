@@ -9,6 +9,12 @@
 
 from typing import Any, Tuple, Union
 
+try:
+    # available in python 3.10
+    from typing import EllipsisType  # type: ignore
+except ImportError:
+    EllipsisType = Any
+
 import numpy as np
 
 import jax
@@ -38,7 +44,7 @@ BlockShape = Tuple[Tuple[int, ...], ...]
 Axes = Union[int, Tuple[int, ...]]
 """Specification of one or more array axes."""
 
-AxisIndex = Union[slice, type(Ellipsis), int]
+AxisIndex = Union[slice, EllipsisType, int]
 """An entity suitable for indexing/slicing of a single array axis; either
 a slice object, Ellipsis, or int."""
 
