@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021 by SCICO Developers
+# Copyright (C) 2021-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -11,7 +11,7 @@ Radon transform LinearOperator wrapping the
 `svmbir <https://github.com/cabouman/svmbir>`_ package.
 """
 
-from typing import Optional
+from typing import Optional, Tuple, Union
 
 import numpy as np
 
@@ -20,7 +20,7 @@ import jax.experimental.host_callback
 
 import scico.numpy as snp
 from scico.loss import WeightedSquaredL2Loss
-from scico.typing import JaxArray, Shape
+from scico.typing import Array, Shape
 
 from ._linop import LinearOperator
 
@@ -46,9 +46,9 @@ class ParallelBeamProjector(LinearOperator):
     def __init__(
         self,
         input_shape: Shape,
-        angles: np.ndarray,
+        angles: Array,
         num_channels: int,
-        is_masked: Optional[bool] = False,
+        is_masked: bool = False,
     ):
         """
         Args:
@@ -56,7 +56,7 @@ class ParallelBeamProjector(LinearOperator):
             angles: Array of projection angles in radians, should be
                 increasing.
             num_channels: Number of pixels in the sinogram.
-            is_masked: If True, the valid region of the image is
+            is_masked: If ``True``, the valid region of the image is
                 determined by a mask defined as the circle inscribed
                 within the image boundary. Otherwise, the whole image
                 array is taken into account by projections.
@@ -66,7 +66,7 @@ class ParallelBeamProjector(LinearOperator):
 
         if len(input_shape) == 2:  # 2D input
             self.svmbir_input_shape = (1,) + input_shape
-            output_shape = (len(angles), num_channels)
+            output_shape: Tuple[int, ...] = (len(angles), num_channels)
             self.svmbir_output_shape = output_shape[0:1] + (1,) + output_shape[1:2]
         elif len(input_shape) == 3:  # 3D input
             self.svmbir_input_shape = input_shape
@@ -100,8 +100,8 @@ class ParallelBeamProjector(LinearOperator):
 
     @staticmethod
     def _proj(
-        x: JaxArray, angles: JaxArray, num_channels: int, roi_radius: Optional[float] = None
-    ) -> JaxArray:
+        x: Array, angles: Array, num_channels: int, roi_radius: Optional[float] = None
+    ) -> Array:
         return svmbir.project(
             np.array(x), np.array(angles), num_channels, verbose=0, roi_radius=roi_radius
         )
@@ -118,8 +118,8 @@ class ParallelBeamProjector(LinearOperator):
 
     @staticmethod
     def _bproj(
-        y: JaxArray,
-        angles: JaxArray,
+        y: Array,
+        angles: Array,
         num_rows: int,
         num_cols: int,
         roi_radius: Optional[float] = None,
@@ -180,7 +180,7 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
             A: Forward operator.
             scale: Scaling parameter.
             W:  Weighting diagonal operator. Must be non-negative.
-                If None, defaults to :class:`.Identity`.
+                If ``None``, defaults to :class:`.Identity`.
             prox_kwargs: Dictionary of arguments passed to the
                 :meth:`svmbir.recon` prox routine. Note that omitting
                 this dictionary will cause the default dictionary to be
@@ -209,13 +209,13 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
 
         self.positivity = positivity
 
-    def prox(self, v: JaxArray, lam: float, **kwargs) -> JaxArray:
+    def prox(self, v: Array, lam: float, **kwargs) -> Array:
         v = v.reshape(self.A.svmbir_input_shape)
         y = self.y.reshape(self.A.svmbir_output_shape)
         weights = self.W.diagonal.reshape(self.A.svmbir_output_shape)
         sigma_p = snp.sqrt(lam)
         if "v0" in kwargs and kwargs["v0"] is not None:
-            v0 = np.reshape(np.array(kwargs["v0"]), self.A.svmbir_input_shape)
+            v0: Union[float, Array] = np.reshape(np.array(kwargs["v0"]), self.A.svmbir_input_shape)
         else:
             v0 = 0.0
 
@@ -241,8 +241,8 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
         return jax.device_put(result.reshape(self.A.input_shape))
 
 
-def _unsqueeze(x: JaxArray, input_shape: Shape) -> JaxArray:
-    """If x is 2D, make it 3D according to SVMBIR's convention."""
+def _unsqueeze(x: Array, input_shape: Shape) -> Array:
+    """If x is 2D, make it 3D according to the SVMBIR convention."""
     if len(input_shape) == 2:
         x = x[snp.newaxis, :, :]
     return x

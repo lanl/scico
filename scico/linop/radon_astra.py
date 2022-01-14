@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -97,7 +97,7 @@ class ParallelBeamProjector(LinearOperator):
                     "for specifics."
                 )
         else:
-            self.vol_geom: dict = astra.create_vol_geom(*input_shape)
+            self.vol_geom = astra.create_vol_geom(*input_shape)
 
         dev0 = jax.devices()[0]
         if dev0.device_kind == "cpu" or device == "cpu":

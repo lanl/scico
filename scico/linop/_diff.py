@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -17,7 +17,7 @@ from typing import Optional
 import numpy as np
 
 import scico.numpy as snp
-from scico.typing import Axes, DType, JaxArray, Shape
+from scico.typing import Axes, DType, JaxArray, Shape, Union
 from scico.util import parse_axes
 
 from ._linop import LinearOperator
@@ -63,7 +63,7 @@ class FiniteDifference(LinearOperatorStack):
                 operations, this must be `complex64` for proper adjoint
                 and gradient calculation.
             axes: Axis or axes over which to apply finite difference
-                operator. If not specified, or `None`, differences are
+                operator. If not specified, or ``None``, differences are
                 evaluated along all axes.
             append: Value to append to the input along each axis before
                 taking differences. Zero is a typical choice. If not
@@ -78,12 +78,12 @@ class FiniteDifference(LinearOperatorStack):
         self.axes = parse_axes(axes, input_shape)
 
         if axes is None:
-            axes_list = range(len(input_shape))
+            axes_list: Union[range, list, tuple] = range(len(input_shape))
         elif isinstance(axes, (list, tuple)):
             axes_list = axes
         else:
             axes_list = (axes,)
-        single_kwargs = dict(append=append, circular=circular, jit=False, input_dtype=input_dtype)
+        single_kwargs = dict(input_dtype=input_dtype, append=append, circular=circular, jit=False)
         ops = [FiniteDifferenceSingleAxis(axis, input_shape, **single_kwargs) for axis in axes_list]
 
         super().__init__(
@@ -118,7 +118,7 @@ class FiniteDifferenceSingleAxis(LinearOperator):
                 taking differences. Defaults to 0.
             circular: If ``True``, perform circular differences, i.e.,
                 include x[-1] - x[0]. If ``True``, `append` must be
-                `None`.
+                ``None``.
             jit: If ``True``, jit the evaluation, adjoint, and gram
                 functions of the LinearOperator.
         """
