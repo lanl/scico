@@ -286,7 +286,7 @@ class Sum(LinearOperator):
         input_ndim = len(input_shape)
         sum_axis = util.parse_axes(sum_axis, shape=input_shape)
 
-        self.sum_axis: Tuple[int, ...] = sum_axis
+        self.sum_axis: Union[None, int, Tuple[int, ...]] = sum_axis
         super().__init__(input_shape=input_shape, input_dtype=input_dtype, jit=jit, **kwargs)
 
     def _eval(self, x: JaxArray) -> JaxArray:

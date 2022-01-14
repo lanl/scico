@@ -10,7 +10,7 @@
 import math
 import operator
 from functools import partial
-from typing import Optional
+from typing import Optional, Tuple
 
 import numpy as np
 
@@ -18,7 +18,7 @@ from jax.dtypes import result_type
 
 import scico.numpy as snp
 from scico._generic_operators import Operator
-from scico.typing import DType, JaxArray, Shape
+from scico.typing import Array, DType, JaxArray, Shape
 
 from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
 
@@ -129,7 +129,7 @@ class CircularConvolve(LinearOperator):
 
             if h_center is not None:
                 offset = -self.h_center
-                shifts = np.ix_(
+                shifts: Tuple[Array, ...] = np.ix_(
                     *tuple(
                         np.exp(-1j * k * 2 * np.pi * np.fft.fftfreq(s))
                         for k, s in zip(offset, input_shape[-self.ndims :])

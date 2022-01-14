@@ -496,7 +496,8 @@ def atleast_1d(*arys):
 
 # Append docstring from original jax.numpy function
 atleast_1d.__doc__ = (
-    atleast_1d.__doc__.replace("\n    ", "\n")  # deal with indentation differences
+    # deal with indentation differences
+    atleast_1d.__doc__.replace("\n    ", "\n")  # type: ignore
     + "\nDocstring for :func:`jax.numpy.atleast_1d`:\n\n"
     + "\n".join(jax.numpy.atleast_1d.__doc__.split("\n")[2:])
 )
@@ -584,7 +585,9 @@ def block_sizes(shape: Union[Shape, BlockShape]) -> Axes:
     return np.prod(shape)
 
 
-def _decompose_index(idx: Union[int, Tuple(AxisIndex)]) -> Tuple:
+def _decompose_index(
+    idx: Union[int, Tuple[AxisIndex, ...]]
+) -> Tuple[int, Union[None, Tuple[AxisIndex, ...]]]:
     """Decompose a BlockArray indexing expression into components.
 
     Decompose a BlockArray indexing expression into block and array
@@ -604,8 +607,8 @@ def _decompose_index(idx: Union[int, Tuple(AxisIndex)]) -> Tuple:
         TypeError: If the block index is not an integer.
     """
     if isinstance(idx, tuple):
-        idxblk = idx[0]
-        idxarr = idx[1:]
+        idxblk: int = idx[0]
+        idxarr: Union[None, Tuple[AxisIndex, ...]] = idx[1:]
     else:
         idxblk = idx
         idxarr = None
@@ -614,7 +617,7 @@ def _decompose_index(idx: Union[int, Tuple(AxisIndex)]) -> Tuple:
     return idxblk, idxarr
 
 
-def indexed_shape(shape: Shape, idx: Union[int, Tuple(AxisIndex)]) -> Tuple[int]:
+def indexed_shape(shape: Shape, idx: Union[int, Tuple[AxisIndex, ...]]) -> Tuple[int, ...]:
     """Determine the shape of the result of indexing a BlockArray.
 
     Args:
@@ -866,7 +869,7 @@ class BlockArray:
     def __repr__(self):
         return "scico.blockarray.BlockArray: \n" + self._data.__repr__()
 
-    def __getitem__(self, idx: Union[int, Tuple(AxisIndex)]) -> JaxArray:
+    def __getitem__(self, idx: Union[int, Tuple[AxisIndex, ...]]) -> JaxArray:
         idxblk, idxarr = _decompose_index(idx)
         if idxblk < 0:
             idxblk = self.num_blocks + idxblk

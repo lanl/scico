@@ -48,5 +48,5 @@ AxisIndex = Union[slice, EllipsisType, int]
 """An entity suitable for indexing/slicing of a single array axis; either
 a slice object, Ellipsis, or int."""
 
-ArrayIndex = Union[AxisIndex, Tuple[AxisIndex]]
+ArrayIndex = Union[AxisIndex, Tuple[AxisIndex, ...]]
 """An entity suitable for indexing/slicing of multi-dimentional arrays."""
