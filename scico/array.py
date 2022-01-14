@@ -82,6 +82,22 @@ def ensure_on_device(
     return arrays
 
 
+def no_nan_divide(
+    x: Union[BlockArray, JaxArray], y: Union[BlockArray, JaxArray]
+) -> Union[BlockArray, JaxArray]:
+    """Return `x/y`, with 0 instead of NaN where `y` is 0.
+
+    Args:
+        x:  Numerator.
+        y:  Denominator.
+
+    Returns:
+        `x / y` with 0 wherever `y == 0`.
+    """
+
+    return snp.where(y != 0, snp.divide(x, snp.where(y != 0, y, 1)), 0)
+
+
 def parse_axes(
     axes: Axes, shape: Optional[Shape] = None, default: Optional[List[int]] = None
 ) -> List[int]:

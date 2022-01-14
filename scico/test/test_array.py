@@ -14,11 +14,13 @@ from scico.array import (
     is_complex_dtype,
     is_nested,
     is_real_dtype,
+    no_nan_divide,
     parse_axes,
     real_dtype,
     slice_length,
 )
 from scico.blockarray import BlockArray
+from scico.random import randn
 
 
 def test_ensure_on_device():
@@ -44,6 +46,30 @@ def test_ensure_on_device():
 
         NP_ = ensure_on_device(NP)
         assert isinstance(NP_, DeviceArray)
+
+
+def test_no_nan_divide_array():
+    x, key = randn((4,), dtype=np.float32)
+    y, key = randn(x.shape, dtype=np.float32, key=key)
+    y = y.at[0].set(0)
+
+    res = no_nan_divide(x, y)
+
+    assert res[0] == 0
+    idx = y != 0
+    np.testing.assert_allclose(res[idx], x[idx] / y[idx])
+
+
+def test_no_nan_divide_blockarray():
+    x, key = randn(((3, 3), (4,)), dtype=np.float32)
+
+    y, key = randn(x.shape, dtype=np.float32, key=key)
+    y = y.at[1].set(0 * y[1])
+
+    res = no_nan_divide(x, y)
+
+    assert snp.all(res[1] == 0.0)
+    np.testing.assert_allclose(res[0], x[0] / y[0])
 
 
 def test_parse_axes():
