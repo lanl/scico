@@ -464,7 +464,7 @@ from jax.tree_util import register_pytree_node, tree_flatten
 
 from jaxlib.xla_extension import Buffer
 
-from scico import util
+from scico import array
 from scico.typing import Axes, AxisIndex, BlockShape, DType, JaxArray, Shape
 
 _arraylikes = (Buffer, DeviceArray, np.ndarray)
@@ -521,7 +521,7 @@ def reshape(
         always returned.
     """
 
-    if util.is_nested(newshape):
+    if array.is_nested(newshape):
         # x is a blockarray
         return BlockArray.array_from_flattened(a, newshape)
 
@@ -566,13 +566,13 @@ def block_sizes(shape: Union[Shape, BlockShape]) -> Axes:
         )
 
     out = []
-    if util.is_nested(shape):
+    if array.is_nested(shape):
         # shape is nested -> at least one element came from a blockarray
         for y in shape:
-            if util.is_nested(y):
+            if array.is_nested(y):
                 # recursively calculate the block size until we arrive at
                 # a tuple (shape of a non-block array)
-                while util.is_nested(y):
+                while array.is_nested(y):
                     y = block_sizes(y)
                 out.append(np.sum(y))  # adjacent block sizes are added together
             else:
@@ -630,7 +630,7 @@ def indexed_shape(shape: Shape, idx: Union[int, Tuple(AxisIndex)]) -> Tuple[int]
         idxblk = len(shape) + idxblk
     if idxarr is None:
         return shape[idxblk]
-    return util.indexed_shape(shape[idxblk], idxarr)
+    return array.indexed_shape(shape[idxblk], idxarr)
 
 
 def _flatten_blockarrays(inp, *args, **kwargs):

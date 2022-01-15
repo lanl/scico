@@ -25,8 +25,8 @@ from numpy.lib.scimath import sqrt  # complex sqrt
 import jax
 
 import scico.numpy as snp
+from scico.array import no_nan_divide
 from scico.linop import Diagonal, Identity, LinearOperator
-from scico.math import safe_divide
 from scico.typing import Shape
 
 from ._dft import DFT
@@ -266,7 +266,7 @@ class AngularSpectrumPropagator(Propagator):
 
     def pinv(self, y):
         """Apply pseudoinverse of Angular Spectrum propagator."""
-        diag_inv = safe_divide(1, self.D.diagonal)
+        diag_inv = no_nan_divide(1, self.D.diagonal)
         return self.F.inv(diag_inv * self.F(y))
 
 

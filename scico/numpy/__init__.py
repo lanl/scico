@@ -24,6 +24,8 @@ import numpy as np
 import jax
 from jax import numpy as jnp
 
+from scico.array import is_nested
+
 # These functions rely on the definition of a BlockArray and must be in
 # scico.blockarray to avoid a circular import
 from scico.blockarray import (
@@ -36,7 +38,6 @@ from scico.blockarray import (
     reshape,
 )
 from scico.typing import BlockShape, JaxArray, Shape
-from scico.util import is_nested
 
 from ._create import (
     empty,

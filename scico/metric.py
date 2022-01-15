@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021 by SCICO Developers
+# Copyright (C) 2021-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -140,3 +140,27 @@ def bsnr(blurry: Union[JaxArray, BlockArray], noisy: Union[JaxArray, BlockArray]
     with np.errstate(divide="ignore"):
         rt = blrvar / nsevar
     return 10.0 * snp.log10(rt)
+
+
+def rel_res(ax: Union[BlockArray, JaxArray], b: Union[BlockArray, JaxArray]) -> float:
+    r"""Relative residual of the solution to a linear equation.
+
+    The standard relative residual for the linear system
+    :math:`A \mathbf{x} = \mathbf{b}` is :math:`\|\mathbf{b} -
+    A \mathbf{x}\|_2 / \|\mathbf{b}\|_2`. This function computes a
+    variant :math:`\|\mathbf{b} - A \mathbf{x}\|_2 /
+    \max(\|A\mathbf{x}\|_2, \|\mathbf{b}\|_2)` that is robust to the case
+    :math:`\mathbf{b} = 0`.
+
+    Args:
+        ax: Linear component :math:`A \mathbf{x}` of equation.
+        b: Constant component :math:`\mathbf{b}` of equation.
+
+    Returns:
+        Relative residual value.
+    """
+
+    nrm = max(snp.linalg.norm(ax.ravel()), snp.linalg.norm(b.ravel()))
+    if nrm == 0.0:
+        return 0.0
+    return snp.linalg.norm((b - ax).ravel()) / nrm
