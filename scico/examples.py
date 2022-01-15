@@ -12,6 +12,7 @@ import glob
 import os
 import tempfile
 import zipfile
+from typing import Tuple
 
 import numpy as np
 
@@ -19,7 +20,7 @@ import imageio
 
 import scico.numpy as snp
 from scico import util
-from scico.typing import JaxArray
+from scico.typing import Array
 from scipy.ndimage import zoom
 
 __author__ = """\n""".join(
@@ -27,7 +28,7 @@ __author__ = """\n""".join(
 )
 
 
-def volume_read(path: str, ext: str = "tif") -> JaxArray:
+def volume_read(path: str, ext: str = "tif") -> Array:
     """Read a 3D volume from a set of files in the specified directory.
 
     All files with extension `ext` (i.e. matching glob `*.ext`)
@@ -106,7 +107,7 @@ def get_epfl_deconv_data(channel: int, path: str, verbose: bool = False):  # pra
     np.savez(npz_file, y=y, psf=psf)
 
 
-def epfl_deconv_data(channel: int, verbose: bool = False, cache_path: str = None) -> JaxArray:
+def epfl_deconv_data(channel: int, verbose: bool = False, cache_path: str = None) -> Array:
     """Get deconvolution problem data from EPFL Biomedical Imaging Group.
 
     If the data has previously been downloaded, it will be retrieved from
@@ -144,7 +145,7 @@ def epfl_deconv_data(channel: int, verbose: bool = False, cache_path: str = None
     return y, psf
 
 
-def downsample_volume(vol: JaxArray, rate: int) -> JaxArray:
+def downsample_volume(vol: Array, rate: int) -> Array:
     """Downsample a 3D array.
 
     Downsample a 3D array. If the volume dimensions can be divided by
@@ -173,7 +174,7 @@ def downsample_volume(vol: JaxArray, rate: int) -> JaxArray:
     return vol
 
 
-def tile_volume_slices(x: JaxArray, sep_width: int = 10) -> JaxArray:
+def tile_volume_slices(x: Array, sep_width: int = 10) -> Array:
     """Make an image with tiled slices from an input volume.
 
     Make an image with tiled `xy`, `xz`, and `yz` slices from an input
@@ -190,7 +191,7 @@ def tile_volume_slices(x: JaxArray, sep_width: int = 10) -> JaxArray:
     """
 
     if x.ndim == 3:
-        fshape = (x.shape[0], sep_width)
+        fshape: Tuple[int, ...] = (x.shape[0], sep_width)
     else:
         fshape = (x.shape[0], sep_width, 3)
     out = snp.concatenate(
@@ -203,9 +204,9 @@ def tile_volume_slices(x: JaxArray, sep_width: int = 10) -> JaxArray:
     )
 
     if x.ndim == 3:
-        fshape0 = (sep_width, out.shape[1])
-        fshape1 = (x.shape[2], x.shape[2] + sep_width)
-        trans = (1, 0)
+        fshape0: Tuple[int, ...] = (sep_width, out.shape[1])
+        fshape1: Tuple[int, ...] = (x.shape[2], x.shape[2] + sep_width)
+        trans: Tuple[int, ...] = (1, 0)
 
     else:
         fshape0 = (sep_width, out.shape[1], 3)

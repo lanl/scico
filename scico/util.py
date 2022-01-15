@@ -16,7 +16,7 @@ import urllib.error as urlerror
 import urllib.request as urlrequest
 from functools import wraps
 from timeit import default_timer as timer
-from typing import Callable, List, Optional, Union
+from typing import Callable, Dict, List, Optional, Union
 
 import jax
 from jax.interpreters.batching import BatchTracer
@@ -130,8 +130,8 @@ class Timer:
         """
 
         # Initialise current and accumulated time dictionaries
-        self.t0 = {}
-        self.td = {}
+        self.t0: Dict[str, Optional[float]] = {}
+        self.td: Dict[str, float] = {}
         # Record default label and string indicating all labels
         self.default_label = default_label
         self.all_label = all_label
@@ -195,7 +195,7 @@ class Timer:
         # All timers are affected if label is equal to self.all_label,
         # otherwise only the timer(s) specified by label
         if labels == self.all_label:
-            labels = self.t0.keys()
+            labels = list(self.t0.keys())
         elif not isinstance(labels, (list, tuple)):
             labels = [
                 labels,
@@ -230,7 +230,7 @@ class Timer:
         # All timers are affected if label is equal to self.all_label,
         # otherwise only the timer(s) specified by label
         if labels == self.all_label:
-            labels = self.t0.keys()
+            labels = list(self.t0.keys())
         elif not isinstance(labels, (list, tuple)):
             labels = [
                 labels,
@@ -291,7 +291,7 @@ class Timer:
           List of timer labels.
         """
 
-        return self.t0.keys()
+        return list(self.t0.keys())
 
     def __str__(self) -> str:
         """Return string representation of object.

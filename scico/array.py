@@ -19,9 +19,9 @@ import jax
 from jax.interpreters.pxla import ShardedDeviceArray
 from jax.interpreters.xla import DeviceArray
 
-import scico.blockarray
 import scico.numpy as snp
-from scico.typing import ArrayIndex, Axes, AxisIndex, JaxArray, Shape
+from scico.blockarray import BlockArray
+from scico.typing import Array, ArrayIndex, Axes, AxisIndex, DType, JaxArray, Shape
 
 __author__ = """\n""".join(
     [
@@ -33,9 +33,7 @@ __author__ = """\n""".join(
 )
 
 
-def ensure_on_device(
-    *arrays: Union[np.ndarray, JaxArray, scico.blockarray.BlockArray]
-) -> Union[JaxArray, scico.blockarray.BlockArray]:
+def ensure_on_device(*arrays: Union[Array, BlockArray]) -> Union[JaxArray, BlockArray]:
     """Cast ndarrays to DeviceArrays.
 
     Cast ndarrays to DeviceArrays and leaves DeviceArrays, BlockArrays,
@@ -70,7 +68,7 @@ def ensure_on_device(
             arrays[i] = jax.device_put(arrays[i])
         elif not isinstance(
             array,
-            (DeviceArray, scico.blockarray.BlockArray, ShardedDeviceArray),
+            (DeviceArray, BlockArray, ShardedDeviceArray),
         ):
             raise TypeError(
                 "Each item of `arrays` must be ndarray, DeviceArray, BlockArray, or "
@@ -167,7 +165,7 @@ def slice_length(length: int, slc: AxisIndex) -> int:
     return (stop - start + stride - 1) // stride
 
 
-def indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int]:
+def indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int, ...]:
     """Determine the shape of an array after indexing/slicing.
 
     Args:
