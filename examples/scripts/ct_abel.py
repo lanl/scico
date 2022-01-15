@@ -1,9 +1,27 @@
-# %%
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# This file is part of the SCICO package. Details of the copyright
+# and user license can be found in the 'LICENSE.txt' file distributed
+# with the package.
+
+r"""
+Abel Transform Demo
+===================
+
+This is a placeholder for more detailed docs."
+"""
+
 import numpy as np
 
-import matplotlib.pyplot as plt
+import jax
 
-# %%
+import abel
+
+import scico.numpy as snp
+from scico import functional, linop, loss, plot
+from scico.linop.abel import AbelProjector
+from scico.optimize.admm import ADMM, LinearSubproblemSolver
+from scico.util import device_info
 
 
 def dist_map_2D(img_shape, center=None):
@@ -33,50 +51,17 @@ def create_french_test_phantom(img_shape, radius_list, val_list, center=None):
 
 x_gt = create_french_test_phantom((256, 254), [100, 50, 25], [1, 0, 0.5])
 
-# %%
-
-import abel
-
-# x_gt = create_french_test_phantom((256, 256), [100, 50, 25], [1, 0, 0.5], center=(150,150))
-
 y = abel.Transform(np.array(x_gt), direction="forward", method="daun").transform
 x_inv = abel.Transform(np.array(y), direction="inverse", method="daun").transform
 
-plt.imshow(y)
-plt.show()
-
-plt.imshow(x_inv)
-plt.show()
-
-plt.imshow(x_gt)
-plt.show()
-
-# %%
-
-import jax
-
-from scico.linop.abel import AbelProjector
 
 x_gt = jax.device_put(x_gt)
 
 A = AbelProjector(x_gt.shape)
 y = A @ x_gt
-y = y + 1 * np.random.normal(size=y.shape)
+y = y + 1 * np.random.normal(size=y.shape).astype(np.float32)
 ATy = A.T @ y
 
-# plt.imshow(y)
-# plt.show()
-# plt.imshow(ATy)
-# plt.show()
-
-# scico.linop.valid_adjoint(A, A.H, eps=None, x=x_gt, y=y)
-
-# %%
-
-import scico.numpy as snp
-from scico import functional, linop, loss
-from scico.optimize.admm import ADMM, LinearSubproblemSolver
-from scico.util import device_info
 
 """
 Set up ADMM solver object.
@@ -114,23 +99,15 @@ Run the solver.
 print(f"Solving on {device_info()}\n")
 solver.solve()
 hist = solver.itstat_object.history(transpose=True)
-x_reconstruction = snp.clip(solver.x, 0, 1.0)
+x_tv = snp.clip(solver.x, 0, 1.0)
 
-# %%
-plt.imshow(x_reconstruction)
-plt.title("TV regularized inverse abel")
-plt.show()
 
-plt.imshow(x0)
-plt.title("Starting Point")
-plt.show()
+fig, ax = plot.subplots(nrows=2, ncols=2, figsize=(12, 12))
+plot.imview(x_gt, title="Ground Truth", cmap=plot.cm.Blues, fig=fig, ax=ax[0, 0])
+plot.imview(y, title="Measurements", cmap=plot.cm.Blues, fig=fig, ax=ax[0, 1])
+plot.imview(x_inv, title="Inverse Abel", cmap=plot.cm.Blues, fig=fig, ax=ax[1, 0])
+plot.imview(x_tv, title="TV Regularized Inversion", cmap=plot.cm.Blues, fig=fig, ax=ax[1, 1])
+fig.show()
 
-plt.imshow(x_gt)
-plt.title("Ground Truth")
-plt.show()
 
-plt.imshow(y)
-plt.title("Measurements")
-plt.show()
-
-# %%
+input("\nWaiting for input to close figures and exit")
