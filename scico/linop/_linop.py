@@ -16,7 +16,7 @@ from functools import partial
 from typing import Optional, Tuple, Union
 
 import scico.numpy as snp
-from scico import blockarray, util
+from scico import array, blockarray
 from scico._generic_operators import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
 from scico.blockarray import BlockArray
 from scico.random import randn
@@ -185,7 +185,7 @@ class Diagonal(LinearOperator):
 
         """
 
-        self.diagonal = util.ensure_on_device(diagonal)
+        self.diagonal = array.ensure_on_device(diagonal)
 
         if input_shape is None:
             input_shape = self.diagonal.shape
@@ -193,9 +193,9 @@ class Diagonal(LinearOperator):
         if input_dtype is None:
             input_dtype = self.diagonal.dtype
 
-        if isinstance(diagonal, BlockArray) and util.is_nested(input_shape):
+        if isinstance(diagonal, BlockArray) and array.is_nested(input_shape):
             output_shape = (snp.empty(input_shape) * diagonal).shape
-        elif not isinstance(diagonal, BlockArray) and not util.is_nested(input_shape):
+        elif not isinstance(diagonal, BlockArray) and not array.is_nested(input_shape):
             output_shape = snp.broadcast_shapes(input_shape, self.diagonal.shape)
         elif isinstance(diagonal, BlockArray):
             raise ValueError(f"`diagonal` was a BlockArray but `input_shape` was not nested.")
@@ -284,7 +284,7 @@ class Sum(LinearOperator):
         """
 
         input_ndim = len(input_shape)
-        sum_axis = util.parse_axes(sum_axis, shape=input_shape)
+        sum_axis = array.parse_axes(sum_axis, shape=input_shape)
 
         self.sum_axis: Union[None, int, Tuple[int, ...]] = sum_axis
         super().__init__(input_shape=input_shape, input_dtype=input_dtype, jit=jit, **kwargs)
@@ -322,10 +322,10 @@ class Slice(LinearOperator):
                functions of the LinearOperator.
         """
 
-        if util.is_nested(input_shape):
+        if array.is_nested(input_shape):
             output_shape = blockarray.indexed_shape(input_shape, idx)
         else:
-            output_shape = util.indexed_shape(input_shape, idx)
+            output_shape = array.indexed_shape(input_shape, idx)
 
         self.idx: ArrayIndex = idx
         super().__init__(

@@ -29,9 +29,9 @@ def adjoint_test(
     """Check the validity of A.conj().T as the adjoint for a LinearOperator A.
 
     Args:
-        A : LinearOperator to test
-        key:  PRNGKey for generating `x`.
-        rtol:  Relative tolerance
+        A: LinearOperator to test.
+        key: PRNGKey for generating `x`.
+        rtol: Relative tolerance.
     """
 
     assert linop.valid_adjoint(A, A.H, key=key, eps=rtol, x=x, y=y)
