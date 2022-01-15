@@ -12,8 +12,8 @@ from typing import Union
 from jax import jit
 
 from scico import numpy as snp
+from scico.array import no_nan_divide
 from scico.blockarray import BlockArray
-from scico.math import safe_divide
 from scico.numpy import count_nonzero
 from scico.numpy.linalg import norm
 from scico.typing import JaxArray
@@ -247,7 +247,7 @@ class L21Norm(Functional):
         """
 
         length = norm(x, axis=self.l2_axis, keepdims=True)
-        direction = safe_divide(x, length)
+        direction = no_nan_divide(x, length)
 
         new_length = length - lam
         # set negative values to zero without `if`

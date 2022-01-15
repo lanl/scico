@@ -60,9 +60,9 @@ import numpy as np
 
 import jax
 
+from scico.array import is_nested
 from scico.blockarray import BlockArray, block_sizes
 from scico.typing import BlockShape, DType, JaxArray, PRNGKey, Shape
-from scico.util import is_nested
 
 
 def _add_seed(fun):

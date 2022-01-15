@@ -58,7 +58,7 @@ Installing a Development Version
       conda activate scico
 
 
-6. Navigate to the root of the cloned repository:
+6. Change directory to the root of the cloned repository:
 
    ::
 
@@ -77,22 +77,56 @@ Installing a Development Version
    ::
 
       pip install -r requirements.txt  # Installs basic requirements
+      pip install -r dev_requirements.txt  # Installs developer requirements
       pip install -r docs/docs_requirements.txt # Installs documentation requirements
-      pip install -r examples/examples_requirements.txt # Installs example requirements
       pip install -e .  # Installs SCICO from the current directory in editable mode
 
 
-9. The SCICO project uses the `Black <https://black.readthedocs.io/en/stable/>`_
-   and `isort <https://pypi.org/project/isort/>`_ code formatting utilities.
-   You should set up a `pre-commit hook <https://pre-commit.com>`_ to ensure
-   any modified code passes format check before it is committed to the development repo:
+   For installing dependencies related to the examples please see :ref:`example_notebooks`.
+   Installing these are neccessary for the successfull running of the tests.
+
+
+9. The SCICO project uses the `black <https://black.readthedocs.io/en/stable/>`_,
+   `isort <https://pypi.org/project/isort/>`_ and `pylint <https://pylint.pycqa.org/en/latest/>`_
+   code formatting utilities. It is important to set up a `pre-commit hook <https://pre-commit.com>`_ to
+   ensure that any modified code passes format check before it is committed to the development repo:
 
    ::
 
       pre-commit install  # Sets up git pre-commit hooks
 
+   It is also recommended to `pin the conda package version
+   <https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-pkgs.html#preventing-packages-from-updating-pinning>`__
+   of `black <https://black.readthedocs.io/en/stable/>`_ to the version
+   number specified in ``dev_requirements.txt``.
+
 
 10. For testing see `Tests`_.
+
+
+
+Building Documentation
+----------------------
+
+Before building the documentation, one must install the documentation specific dependencies by running
+
+::
+
+   pip install -r docs_requirements.txt
+
+Then, a local copy of the documentation can be built from the respository root directory by running
+
+::
+
+  python setup.py build_sphinx
+
+
+Alternatively, one can also build the documentation by running the following from the `docs/` directory
+
+::
+
+   make html
+
 
 
 Contributing Code
@@ -174,6 +208,61 @@ A feature development workflow might look like this:
 11. Delete the branch after it has been merged.
 
 
+Adding Data
+-----------
+
+The following steps show how to add new data, ``new_data.npz``, to the packaged data. We assume the SCICO repository has been cloned to ``scico/``.
+
+Note that the data is located in the scico-data submodule, which is
+symlinked to ``scico/data``.  When adding new data, both the scico and
+scico-data repositories must be updated and kept in sync.
+
+
+1. Add the ``new_data.npz`` file to the ``scico/data`` directory.
+
+2. Change directory to the ``data`` directory and add/commit the new data file:
+
+   ::
+
+      cd scico/data
+      git add new_data.npz
+      git commit -m "Add new data file"
+
+3.  Return to the base SCICO repository, ensure the ``main`` branch is checked out, add/commit the new data and update submodule:
+
+   ::
+
+      cd ..  # pwd now `scico` repo root
+      git checkout main
+      git add data
+      git commit -m "Add data and update data module"
+
+4.  Push both repositories:
+
+   ::
+
+      git submodule foreach --recursive 'git push' && git push
+
+
+Type Checking
+-------------
+
+In the future, we will require all code to pass ``mypy`` type checking. This is not currently enforced.
+
+Install ``mypy``:
+
+::
+
+   conda install mypy
+
+To run the type checker on the ``scico`` module:
+
+::
+
+   mypy -p scico
+
+
+
 Tests
 -----
 
@@ -231,22 +320,6 @@ A coverage report can be obtained by
 
 
 
-Type Checking
--------------
-
-In the future, we will require all code to pass ``mypy`` type checking. This is not currently enforced.
-
-Install ``mypy``:
-
-::
-
-   conda install mypy
-
-To run the type checker on the ``scico`` module:
-
-::
-
-   mypy -p scico
 
 
 Usage Examples
@@ -343,50 +416,3 @@ and ``scico-data`` repositories must be updated and kept in sync.
    ::
 
       git submodule foreach --recursive 'git push' && git push
-
-
-Data
-----
-
-The following steps show how to add new data, ``new_data.npz``, to the packaged data. We assume the SCICO repository has been cloned to ``scico/``.
-
-Note that the data is located in the scico-data submodule, which is
-symlinked to ``scico/data``.  When adding new data, both the scico and
-scico-data repositories must be updated and kept in sync.
-
-
-1. Add the ``new_data.npz`` file to the ``scico/data`` directory.
-
-2. Navigate to the ``data`` directory and add/commit the new data file:
-
-   ::
-
-      cd scico/data
-      git add new_data.npz
-      git commit -m "Add new data file"
-
-3.  Return to the base SCICO repository, ensure the ``main`` branch is checked out, add/commit the new data and update submodule:
-
-   ::
-
-      cd ..  # pwd now `scico` repo root
-      git checkout main
-      git add data
-      git commit -m "Add data and update data module"
-
-4.  Push both repositories:
-
-   ::
-
-      git submodule foreach --recursive 'git push' && git push
-
-
-
-Building Documentation
-----------------------
-
-To build a local copy of the docs, from the repo root directory, do
-
-::
-
-  python setup.py build_sphinx

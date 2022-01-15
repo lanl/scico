@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -16,12 +16,13 @@ from typing import Callable, Optional, Union
 import jax
 
 import scico.numpy as snp
+from scico.array import ensure_on_device
 from scico.blockarray import BlockArray
 from scico.diagnostics import IterationStats
 from scico.functional import Functional
 from scico.loss import Loss
 from scico.typing import JaxArray
-from scico.util import Timer, ensure_on_device
+from scico.util import Timer
 
 __author__ = """\n""".join(
     [
@@ -458,9 +459,9 @@ class PGM:
             itstat_fields = {
                 "Iter": "%d",
                 "Time": "%8.2e",
-                "Objective": "%8.3e",
-                "L": "%8.3e",
-                "Residual": "%8.3e",
+                "Objective": "%9.3e",
+                "L": "%9.3e",
+                "Residual": "%9.3e",
             }
             itstat_func = lambda pgm: (
                 pgm.itnum,
@@ -470,7 +471,7 @@ class PGM:
                 pgm.norm_residual(),
             )
         else:
-            itstat_fields = {"Iter": "%d", "Time": "%8.2e", "Residual": "%8.3e"}
+            itstat_fields = {"Iter": "%d", "Time": "%8.2e", "Residual": "%9.3e"}
             itstat_func = lambda pgm: (pgm.itnum, pgm.timer.elapsed(), pgm.norm_residual())
 
         default_itstat_options = {

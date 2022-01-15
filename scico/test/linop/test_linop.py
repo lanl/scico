@@ -14,6 +14,7 @@ import jax
 
 import scico.numpy as snp
 from scico import linop
+from scico.blockarray import BlockArray
 from scico.random import randn
 from scico.typing import JaxArray, PRNGKey
 
@@ -28,9 +29,9 @@ def adjoint_test(
     """Check the validity of A.conj().T as the adjoint for a LinearOperator A.
 
     Args:
-        A : LinearOperator to test
-        key:  PRNGKey for generating `x`.
-        rtol:  Relative tolerance
+        A: LinearOperator to test.
+        key: PRNGKey for generating `x`.
+        rtol: Relative tolerance.
     """
 
     assert linop.valid_adjoint(A, A.H, key=key, eps=rtol, x=x, y=y)
@@ -330,6 +331,34 @@ class TestDiagonal:
         np.testing.assert_allclose((diagonal * x).ravel(), (D @ x).ravel(), rtol=1e-5)
 
     @pytest.mark.parametrize("diagonal_dtype", [np.float32, np.complex64])
+    def test_eval_broadcasting(self, diagonal_dtype):
+        # array broadcast
+        diagonal, key = randn((3, 1, 4), dtype=diagonal_dtype, key=self.key)
+        x, key = randn((5, 1), dtype=diagonal_dtype, key=key)
+        D = linop.Diagonal(diagonal, x.shape)
+        assert (D @ x).shape == (3, 5, 4)
+        np.testing.assert_allclose((diagonal * x).ravel(), (D @ x).ravel(), rtol=1e-5)
+
+        # blockarray broadcast
+        diagonal, key = randn(((3, 1, 4), (5, 5)), dtype=diagonal_dtype, key=self.key)
+        x, key = randn(((5, 1), 1), dtype=diagonal_dtype, key=key)
+        D = linop.Diagonal(diagonal, x.shape)
+        assert (D @ x).shape == ((3, 5, 4), (5, 5))
+        np.testing.assert_allclose((diagonal * x).ravel(), (D @ x).ravel(), rtol=1e-5)
+
+        # blockarray x array -> error
+        diagonal, key = randn(((3, 1, 4), (5, 5)), dtype=diagonal_dtype, key=self.key)
+        x, key = randn((5, 1), dtype=diagonal_dtype, key=key)
+        with pytest.raises(ValueError):
+            D = linop.Diagonal(diagonal, x.shape)
+
+        # array x blockarray -> error
+        diagonal, key = randn((3, 1, 4), dtype=diagonal_dtype, key=self.key)
+        x, key = randn(((5, 1), 1), dtype=diagonal_dtype, key=key)
+        with pytest.raises(ValueError):
+            D = linop.Diagonal(diagonal, x.shape)
+
+    @pytest.mark.parametrize("diagonal_dtype", [np.float32, np.complex64])
     @pytest.mark.parametrize("input_shape", input_shapes)
     def test_adjoint(self, input_shape, diagonal_dtype):
         diagonal, key = randn(input_shape, dtype=diagonal_dtype, key=self.key)
@@ -531,3 +560,52 @@ def test_sum_bad_shapes(sumtestobj, axis):
     x = sumtestobj.x
     with pytest.raises(ValueError):
         A = linop.Sum(input_shape=x.shape, input_dtype=x.dtype, sum_axis=axis)
+
+
+class SliceTestObj:
+    def __init__(self, dtype):
+        self.x = snp.zeros((4, 5, 6, 7), dtype=dtype)
+
+
+@pytest.fixture(scope="module", params=[np.float32, np.complex64])
+def slicetestobj(request):
+    yield SliceTestObj(request.param)
+
+
+slice_examples = [
+    np.s_[1:],
+    np.s_[:, 2:],
+    np.s_[..., 3:],
+    np.s_[1:, :-3],
+    np.s_[1:, :, :3],
+    np.s_[1:, ..., 2:],
+]
+
+
+@pytest.mark.parametrize("idx", slice_examples)
+def test_slice_eval(slicetestobj, idx):
+    x = slicetestobj.x
+    A = linop.Slice(idx=idx, input_shape=x.shape, input_dtype=x.dtype)
+    assert (A @ x).shape == x[idx].shape
+
+
+@pytest.mark.parametrize("idx", slice_examples)
+def test_slice_adj(slicetestobj, idx):
+    x = slicetestobj.x
+    A = linop.Slice(idx=idx, input_shape=x.shape, input_dtype=x.dtype)
+    adjoint_test(A)
+
+
+block_slice_examples = [
+    1,
+    np.s_[1, :-3],
+    np.s_[1, :, :3],
+    np.s_[1, ..., 2:],
+]
+
+
+@pytest.mark.parametrize("idx", block_slice_examples)
+def test_slice_blockarray(idx):
+    x = BlockArray.array((snp.zeros((3, 4)), snp.ones((3, 4, 5, 6))))
+    A = linop.Slice(idx=idx, input_shape=x.shape, input_dtype=x.dtype)
+    assert (A @ x).shape == x[idx].shape

@@ -17,8 +17,8 @@ from typing import Optional
 import numpy as np
 
 import scico.numpy as snp
+from scico.array import parse_axes
 from scico.typing import Axes, DType, JaxArray, Shape
-from scico.util import parse_axes
 
 from ._linop import LinearOperator
 from ._stack import LinearOperatorStack

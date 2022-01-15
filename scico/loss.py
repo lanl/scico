@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -15,11 +15,11 @@ from typing import Callable, Optional, Union
 
 import scico.numpy as snp
 from scico import functional, linop, operator
+from scico.array import ensure_on_device
 from scico.blockarray import BlockArray
 from scico.scipy.special import gammaln
 from scico.solver import cg
 from scico.typing import JaxArray
-from scico.util import ensure_on_device
 
 __author__ = """\n""".join(
     ["Luke Pfister <luke.pfister@gmail.com>", "Thilo Balke <thilo.balke@gmail.com>"]
@@ -74,7 +74,7 @@ class Loss(functional.Functional):
         self.scale = scale
 
         # Set functional-specific flags
-        self.has_prox = False  # TODO: implement a generic prox solver?
+        self.has_prox = False
         self.has_eval = True
 
         super().__init__()

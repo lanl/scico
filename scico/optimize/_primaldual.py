@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021 by SCICO Developers
+# Copyright (C) 2021-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -14,13 +14,14 @@ from __future__ import annotations
 from typing import Callable, Optional, Union
 
 import scico.numpy as snp
+from scico.array import ensure_on_device
 from scico.blockarray import BlockArray
 from scico.diagnostics import IterationStats
 from scico.functional import Functional
 from scico.linop import LinearOperator
 from scico.numpy.linalg import norm
 from scico.typing import JaxArray
-from scico.util import Timer, ensure_on_device
+from scico.util import Timer
 
 __author__ = "Brendt Wohlberg <brendt@ieee.org>"
 
@@ -135,45 +136,29 @@ class PDHG:
         self.maxiter: int = maxiter
         self.timer: Timer = Timer()
 
+        # iteration number and time fields
+        itstat_fields = {
+            "Iter": "%d",
+            "Time": "%8.2e",
+        }
+        itstat_attrib = ["itnum", "timer.elapsed()"]
+        # objective function can be evaluated if all 'g' functions can be evaluated
         if g.has_eval:
-            # The 'g' functions can be evaluated, so objective function can be evaluated
-            itstat_fields = {
-                "Iter": "%d",
-                "Time": "%8.2e",
-                "Objective": "%8.3e",
-                "Primal Rsdl": "%8.3e",
-                "Dual Rsdl": "%8.3e",
-            }
+            itstat_fields.update({"Objective": "%9.3e"})
+            itstat_attrib.append("objective()")
+        # primal and dual residual fields
+        itstat_fields.update({"Prml Rsdl": "%9.3e", "Dual Rsdl": "%9.3e"})
+        itstat_attrib.extend(["norm_primal_residual()", "norm_dual_residual()"])
 
-            def itstat_func(obj):
-                return (
-                    obj.itnum,
-                    obj.timer.elapsed(),
-                    obj.objective(),
-                    obj.norm_primal_residual(),
-                    obj.norm_dual_residual(),
-                )
+        # dynamically create itstat_func; see https://stackoverflow.com/questions/24733831
+        itstat_return = "return(" + ", ".join(["obj." + attr for attr in itstat_attrib]) + ")"
+        scope = {}
+        exec("def itstat_func(obj): " + itstat_return, scope)
 
-        else:
-            # The 'g' function can't be evaluated, so drop objective from the default itstat
-            itstat_fields = {
-                "Iter": "%d",
-                "Time": "%8.1e",
-                "Primal Rsdl": "%8.3e",
-                "Dual Rsdl": "%8.3e",
-            }
-
-            def itstat_func(obj):
-                return (
-                    obj.itnum,
-                    obj.timer.elapsed(),
-                    obj.norm_primal_residual(),
-                    obj.norm_dual_residual(),
-                )
-
+        # determine itstat options and initialize IterationStats object
         default_itstat_options = {
             "fields": itstat_fields,
-            "itstat_func": itstat_func,
+            "itstat_func": scope["itstat_func"],
             "display": False,
         }
         if itstat_options:
@@ -186,13 +171,13 @@ class PDHG:
             dtype = C.input_dtype
             x0 = snp.zeros(input_shape, dtype=dtype)
         self.x = ensure_on_device(x0)
-        self.x_old = self.x.copy()
+        self.x_old = self.x
         if z0 is None:
             input_shape = C.output_shape
             dtype = C.output_dtype
             z0 = snp.zeros(input_shape, dtype=dtype)
         self.z = ensure_on_device(z0)
-        self.z_old = self.z.copy()
+        self.z_old = self.z
 
     def objective(
         self,
@@ -248,8 +233,8 @@ class PDHG:
 
     def step(self):
         """Perform a single iteration."""
-        self.x_old = self.x.copy()
-        self.z_old = self.z.copy()
+        self.x_old = self.x
+        self.z_old = self.z
         proxarg = self.x - self.tau * self.C.conj().T(self.z)
         self.x = self.f.prox(proxarg, self.tau, v0=self.x)
         proxarg = self.z + self.sigma * self.C(

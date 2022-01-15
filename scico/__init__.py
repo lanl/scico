@@ -15,7 +15,6 @@ import sys
 # isort: off
 from ._autograd import grad, jacrev, linear_adjoint, value_and_grad
 
-# TODO remove this check as we get closer to release?
 import jax, jaxlib
 
 jax_ver_req = "0.2.26"

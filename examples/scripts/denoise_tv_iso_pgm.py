@@ -39,10 +39,11 @@ from xdesign import SiemensStar, discrete_phantom
 import scico.numpy as snp
 import scico.random
 from scico import functional, linop, loss, operator, plot
+from scico.array import ensure_on_device
 from scico.blockarray import BlockArray
 from scico.optimize.pgm import AcceleratedPGM, RobustLineSearchStepSize
 from scico.typing import JaxArray
-from scico.util import device_info, ensure_on_device
+from scico.util import device_info
 
 """
 Create a ground truth image.

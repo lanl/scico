@@ -219,6 +219,13 @@ def test_getitem(test_operator_obj):
     np.testing.assert_allclose(x[-1], b1)
 
 
+@pytest.mark.parametrize("index", (np.s_[0, 0], np.s_[0, 1:3], np.s_[0, :, 0:2], np.s_[0, ..., 2:]))
+def test_getitem_tuple(test_operator_obj, index):
+    a = test_operator_obj.a
+    a0 = test_operator_obj.a0
+    np.testing.assert_allclose(a[index], a0[index[1:]])
+
+
 def test_blockidx(test_operator_obj):
     a = test_operator_obj.a
     a0 = test_operator_obj.a0
