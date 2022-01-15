@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021 by SCICO Developers
+# Copyright (C) 2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -8,13 +8,10 @@
 """Abel transform LinearOperator wrapping the pyabel package.
 
 Abel transform LinearOperator wrapping the
-forked `pyabel <https://github.com/smajee/PyAbel>`_ package.
+`pyabel <https://github.com/PyAbel/PyAbel>`_ package.
 """
 
-import importlib.util
 import math
-import sys
-from types import ModuleType
 from typing import Optional
 
 import numpy as np
@@ -34,12 +31,6 @@ from scipy.linalg import solve_triangular
 class AbelProjector(LinearOperator):
     def __init__(self, img_shape, center=None):
 
-        # self._eval = jax.custom_vjp(self._proj_hcb)
-        # self._eval.defvjp(lambda x: (self._proj_hcb(x), None), lambda _, y: (self._bproj_hcb(y),))
-
-        # self._adj = jax.custom_vjp(self._bproj_hcb)
-        # self._adj.defvjp(lambda y: (self._bproj_hcb(y), None), lambda _, x: (self._proj_hcb(x),))
-
         if center is None:
             self.center = center
         else:
@@ -53,7 +44,6 @@ class AbelProjector(LinearOperator):
             input_dtype=np.float32,
             output_dtype=np.float32,
             adj_fn=self._adj,
-            # adj_fn=None,
             jit=True,
         )
 
@@ -65,31 +55,11 @@ class AbelProjector(LinearOperator):
 
     @staticmethod
     def _proj(x: JaxArray, proj_mat_quad: Array, center: Optional[int] = None) -> JaxArray:
-        # return pyabel_transform(np.array(x), direction="forward", proj_mat_quad=proj_mat_quad)
         return pyabel_transform(x, direction="forward", proj_mat_quad=proj_mat_quad)
-
-    def _proj_hcb(self, x):
-        # host callback wrapper for _proj
-        y = jax.experimental.host_callback.call(
-            lambda x: self._proj(x, self.proj_mat_quad),
-            x,
-            result_shape=jax.ShapeDtypeStruct(self.output_shape, self.output_dtype),
-        )
-        return y
 
     @staticmethod
     def _bproj(y: JaxArray, proj_mat_quad: Array, center: Optional[int] = None) -> JaxArray:
-        # return pyabel_transform(np.array(y), direction="transpose", proj_mat_quad=proj_mat_quad)
         return pyabel_transform(y, direction="transpose", proj_mat_quad=proj_mat_quad)
-
-    def _bproj_hcb(self, y):
-        # host callback wrapper for _bproj
-        x = jax.experimental.host_callback.call(
-            lambda y: self._bproj(y, self.proj_mat_quad),
-            y,
-            result_shape=jax.ShapeDtypeStruct(self.input_shape, self.input_dtype),
-        )
-        return x
 
     def inverse(self, y):
         return pyabel_transform(np.array(y), direction="inverse", proj_mat_quad=self.proj_mat_quad)
@@ -97,13 +67,9 @@ class AbelProjector(LinearOperator):
 
 def pyabel_transform(x, direction, proj_mat_quad, symmetry_axis=[None]):
 
-    # Q0, Q1, Q2, Q3 = abel.tools.symmetry.get_image_quadrants(x, symmetry_axis=symmetry_axis)
-
-    Q0, Q1, Q2, Q3 = symmetry.get_image_quadrants(
-        x, symmetry_axis=symmetry_axis, use_quadrants=jnp.array((True, True, True, True))
+    Q0, Q1, Q2, Q3 = get_image_quadrants(
+        x, symmetry_axis=symmetry_axis, use_quadrants=(True, True, True, True)
     )
-
-    # Q0, Q1, Q2, Q3 = symmetry.get_image_quadrants(x, symmetry_axis=symmetry_axis)
 
     def transform_quad(data):
         if direction == "forward":
@@ -127,11 +93,9 @@ def pyabel_transform(x, direction, proj_mat_quad, symmetry_axis=[None]):
     if None in symmetry_axis:
         AQ3 = transform_quad(Q3)
 
-    return abel.tools.symmetry.put_image_quadrants(
+    return put_image_quadrants(
         (AQ0, AQ1, AQ2, AQ3), original_image_shape=x.shape, symmetry_axis=symmetry_axis
     )
-
-    # return x
 
 
 def pyabel_daun_get_proj_matrix(img_shape):
@@ -146,48 +110,21 @@ def pyabel_daun_get_proj_matrix(img_shape):
     )
 
     return jax.device_put(proj_matrix)
-    # return proj_matrix
 
 
-def patch_module(
-    name: str, pname: str, pfile: Optional[str] = None, attrib: Optional[dict] = None
-) -> ModuleType:
-    """Create a patched copy of the named module.
+# Read abel.tools.symmetry module into a string.
+mod_file = abel.tools.symmetry.__file__
+with open(mod_file, "r") as f:
+    mod_str = f.read()
 
-    Create a patched copy of the named module and register it in
-    ``sys.modules``.
+# Replace numpy functions that touch the main arrays with corresponding jax.numpy functions
+mod_str = mod_str.replace("fftpack.", "jnfft.")
+mod_str = mod_str.replace("np.atleast_2d", "jnp.atleast_2d")
+mod_str = mod_str.replace("np.flip", "jnp.flip")
+mod_str = mod_str.replace("np.concat", "jnp.concat")
 
-    Args:
-        name: Name of source module.
-        pname: Name of patched copy of module.
-        pfile: Source file name of patched module.
-        attrib: Dict of attribute names and values to assign to patched
-           module.
-
-    Returns:
-        Patched module
-    """
-
-    if attrib is None:
-        attrib = {}
-    spec = importlib.util.find_spec(name)
-    spec.name = pname
-    if pfile is not None:
-        spec.origin = pfile
-    spec.loader.name = pname
-    mod = importlib.util.module_from_spec(spec)
-    mod.__spec__ = spec
-    mod.__loader__ = spec.loader
-    sys.modules[pname] = mod
-    spec.loader.exec_module(mod)
-    for k, v in attrib.items():
-        setattr(mod, k, v)
-    return mod
-
-
-symmetry = patch_module(
-    "abel.tools.symmetry",
-    "scico.abel.symmetry",
-    pfile="patched",
-    attrib={"np": jnp, "fftpack": jnfft},
-)
+# Exec the module extract defined functions from the exec scope
+scope = {"jnp": jnp, "jnfft": jnfft}
+exec(mod_str, scope)
+get_image_quadrants = scope["get_image_quadrants"]
+put_image_quadrants = scope["put_image_quadrants"]
