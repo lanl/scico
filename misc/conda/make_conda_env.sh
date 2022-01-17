@@ -234,6 +234,14 @@ fi
 # Install other packages that require installation via pip
 pip install $NOCONDA
 
+# Warn if libopenblas-dev not installed on debian/ubuntu
+if [ "$(which dpkg 2>/dev/null)" ]; then
+    if [ ! "$(dpkg -s libopenblas-dev 2>/dev/null)" ]; then
+	echo "Warning: package libopenblas-dev, which is required by"
+	echo "         bm3d, does not appear to be installed;"
+	echo "         install using the apt install command"
+    fi
+fi
 
 echo "Activate the conda environment with the command"
 echo "  conda activate $ENVNM"
