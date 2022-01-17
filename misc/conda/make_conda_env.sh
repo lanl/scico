@@ -32,8 +32,8 @@ JAXURL=https://storage.googleapis.com/jax-releases/jax_releases.html
 AGREE=no
 GPU=no
 CUVER=""
-JLVER="0.1.71"
-PYVER="3.8"
+JLVER="0.1.75"
+PYVER="3.9"
 ENVNM=py$(echo $PYVER | sed -e 's/\.//g')
 
 # Project requirements files
@@ -47,7 +47,7 @@ EOF
 )
 # Requirements that cannot be installed via conda (i.e. have to use pip)
 NOCONDA=$(cat <<-EOF
-bm3d faculty-sphinx-theme py2jn colour_demosaicing ray svmbir
+bm3d faculty-sphinx-theme py2jn colour_demosaicing ray[tune] svmbir
 EOF
 )
 
@@ -97,20 +97,28 @@ if [ ! "$(which realpath 2>/dev/null)" ]; then
     exit 3
 fi
 
+# Ensure that a C compiler is available; required for installing svmbir
+# On debian/ubuntu linux systems, install package build-essential
+if [ -z "$CC" ] && [ ! "$(which gcc 2>/dev/null)" ]; then
+    echo "Error: gcc command not found and CC environment variable not set"
+    echo "       set CC to the path of your C compiler, or install gcc"
+    exit 4
+fi
+
 OS=$(uname -a | cut -d ' ' -f 1)
 case "$OS" in
     Linux)    SOURCEURL=$URLROOT$INSTLINUX; SED="sed";;
     Darwin)   SOURCEURL=$URLROOT$INSTMACOSX; SED="gsed";;
-    *)        echo "Error: unsupported operating system $OS" >&2; exit 4;;
+    *)        echo "Error: unsupported operating system $OS" >&2; exit 5;;
 esac
 if [ "$OS" == "Darwin" ] && [ "$GPU" == yes ]; then
     echo "Error: GPU-enabled jaxlib installation not supported under OSX" >&2
-    exit 5
+    exit 6
 fi
 if [ "$OS" == "Darwin" ]; then
     if [ ! "$(which gsed 2>/dev/null)" ]; then
 	echo "Error: gsed command required but not found" >&2
-	exit 6
+	exit 7
     fi
 fi
 
@@ -118,7 +126,7 @@ if [ "$GPU" == "yes" ] && [ "$CUVER" == "" ]; then
     if [ "$(which nvcc)" == "" ]; then
 	echo "Error: GPU-enabled jaxlib requested but CUDA version not"\
 	     "specified and could not be automatically determined" >&2
-	exit 7
+	exit 8
     else
 	CUVER=$(nvcc --version | grep -o 'release [0-9][0-9]*\.[[0-9][0-9]*' \
                               | sed -e 's/release //' -e 's/\.//')
@@ -129,7 +137,7 @@ CONDAHOME=$(conda info --base)
 ENVDIR=$CONDAHOME/envs/$ENVNM
 if [ -d "$ENVDIR" ]; then
     echo "Error: environment $ENVNM already exists"
-    exit 8
+    exit 9
 fi
 
 if [ "$AGREE" == "no" ]; then
@@ -138,7 +146,7 @@ if [ "$AGREE" == "no" ]; then
     read -r -p "$RSTR" CNFRM
     if [ "$CNFRM" != 'y' ] && [ "$CNFRM" != 'Y' ]; then
 	echo "Cancelling environment creation"
-	exit 9
+	exit 10
     fi
 else
     echo "Creating conda environment $ENVNM with Python $PYVER"
@@ -174,9 +182,12 @@ fi
 #  2nd: remove recursive include (-r) lines and packages that require
 #       special handling, e.g. jaxlib
 sort $ALLREQUIRE | uniq | $SED -E 's/(>|<|\|)/\\\1/g' \
-    | $SED -E '/^-r.*|^jaxlib.*|^jax.*|^astra-toolbox.*/d' > $FLTREQUIRE
+    | $SED -E '/^-r.*|^jaxlib.*|^jax.*/d' > $FLTREQUIRE
 # Remove requirements that cannot be installed via conda
 for nc in $NOCONDA; do
+    # Escape [ and ] for use in regex
+    nc=$(echo $nc | sed -E 's/(\[|\])/\\\1/g')
+    # Remove package $nc from conda package list
     $SED -i "/^$nc.*\$/d" $FLTREQUIRE
 done
 # Get list of requirements to be installed via conda
@@ -192,6 +203,7 @@ conda activate $ENVNM  # Q: why not `source activate`? A: not always in the path
 
 # Add conda-forge as a backup channel
 conda config --env --append channels conda-forge
+conda config --env --append channels astra-toolbox
 
 # Install required conda packages (and extra useful packages)
 conda install $CONDA_FLAGS $CONDAREQ ipython
@@ -203,9 +215,6 @@ if [ "$(which ffmpeg)" = '' ]; then
     conda install $CONDA_FLAGS ffmpeg
 fi
 
-# Install astra-toolbox
-conda install $CONDA_FLAGS -c astra-toolbox/label/dev astra-toolbox
-
 # Install jaxlib and jax, with jaxlib version depending on requested
 # GPU support
 if [ "$GPU" == "yes" ]; then
@@ -213,7 +222,7 @@ if [ "$GPU" == "yes" ]; then
     retval=$?
     if [ $retval -ne 0 ]; then
         echo "Error: jaxlib installation failed"
-	exit 10
+	exit 11
     fi
 else
     pip install --upgrade jax jaxlib
