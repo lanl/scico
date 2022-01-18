@@ -376,7 +376,7 @@ class AdaptivePenaltyParameter:
         "true" penalty parameter value, in this function it is taken
         as the geometric mean of the :math:`\rho_j`.
         """
-        return snp.exp(snp.mean(snp.log(self.admm_obj.rho_list)))
+        return snp.exp(snp.mean(snp.log(snp.array(self.admm.rho_list))))
 
 
 class ResidualBalancing(AdaptivePenaltyParameter):
@@ -569,6 +569,9 @@ class ADMM:
             itstat_attrib.extend(
                 ["subproblem_solver.info['num_iter']", "subproblem_solver.info['rel_res']"]
             )
+
+        itstat_fields.update({"Rho": "%9.3e"})
+        itstat_attrib.extend(["rho_updater.nominal_rho()"])
 
         # dynamically create itstat_func; see https://stackoverflow.com/questions/24733831
         itstat_return = "return(" + ", ".join(["obj." + attr for attr in itstat_attrib]) + ")"
