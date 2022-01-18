@@ -76,27 +76,27 @@ is_smooth = {self.is_smooth}
             )
 
     def prox(
-        self, x: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
         r"""Scaled proximal operator of functional.
 
         Evaluate scaled proximal operator of this functional, with
-        scaling `lam` = :math:`\lambda`, and evaluated at point
-        `x` = :math:`\mb{x}`
+        scaling :math:`\lambda` = `lam` and evaluated at point
+        :math:`\mb{v}` = `v`. The scaled proximal operator is defined as
 
         .. math::
-           \mathrm{prox}_{\lambda f}(\mb{x}) = \argmin_{\mb{v}}
-           \frac{1}{2} \norm{\mb{x} - \mb{v}}_2^2 + \lambda
-           \ \mathrm{f}(\mb{v}) \;,
+           \mathrm{prox}_{\lambda f}(\mb{v}) = \argmin_{\mb{x}}
+           \lambda f(\mb{x}) +
+           \frac{1}{2} \norm{\mb{v} - \mb{x}}_2^2\;,
 
-        where :math:`f(\mb{v})` represents this functional evaluated at
-        :math:`\mb{v}`.
+        where :math:`\lambda f(\mb{x})` represents this functional evaluated at
+        :math:`\mb{x}` multiplied by :math:`\lambda`.
 
         Args:
-            x: Point at which to evaluate prox function.
+            v: Point at which to evaluate prox function.
             lam: Proximal parameter :math:`\lambda`.
             kwargs: Additional arguments that may be used by derived
-                classes. These include ``v0``, an initial guess for the
+                classes. These include ``x0``, an initial guess for the
                 minimizer.
 
         """
@@ -106,29 +106,29 @@ is_smooth = {self.is_smooth}
             )
 
     def conj_prox(
-        self, x: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
         r"""Scaled proximal operator of convex conjugate of functional.
 
         Evaluate scaled proximal operator of convex conjugate (Fenchel
         conjugate) of this functional, with scaling
-        `lam` = :math:`\lambda`, and evaluated at point
-        `x` = :math:`\mb{x}`. Denoting this functional by :math:`f` and
+        :math:`\lambda` = `lam`, and evaluated at point
+        :math:`\mb{v}` = `v`. Denoting this functional by :math:`f` and
         its convex conjugate by :math:`f^*`, the proximal operator of
         :math:`f^*` is computed as follows by exploiting the extended
         Moreau decomposition (see Sec. 6.6 of :cite:`beck-2017-first`)
 
         .. math::
-           \mathrm{prox}_{\lambda f^*}(\mb{x}) = \mb{x} - \lambda
-           \mathrm{prox}_{\lambda^{-1} f}(\mb{x / \lambda}) \;.
+           \mathrm{prox}_{\lambda f^*}(\mb{v}) = \mb{v} - \lambda
+           \mathrm{prox}_{\lambda^{-1} f}(\mb{v / \lambda}) \;.
 
         Args:
-            x: Point at which to evaluate prox function.
+            v: Point at which to evaluate prox function.
             lam: Proximal parameter :math:`\lambda`.
             kwargs: Additional keyword args, passed directly to
                ``self.prox``.
         """
-        return x - lam * self.prox(x / lam, 1.0 / lam, **kwargs)
+        return v - lam * self.prox(v / lam, 1.0 / lam, **kwargs)
 
     def grad(self, x: Union[JaxArray, BlockArray]):
         r"""Evaluates the gradient of this functional at :math:`\mb{x}`.
