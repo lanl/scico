@@ -185,9 +185,9 @@ class ScaledFunctional(Functional):
         return self.scale * self.functional(x)
 
     def prox(
-        self, x: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
-        return self.functional.prox(x, lam * self.scale)
+        return self.functional.prox(v, lam * self.scale)
 
 
 class SeparableFunctional(Functional):
@@ -228,27 +228,27 @@ class SeparableFunctional(Functional):
             f"{len(self.functional_list)}, do not match"
         )
 
-    def prox(self, x: BlockArray, lam: float = 1.0, **kwargs) -> BlockArray:
+    def prox(self, v: BlockArray, lam: float = 1.0, **kwargs) -> BlockArray:
         r"""Evaluate proximal operator of the separable functional.
 
         Evaluate proximal operator of the separable functional (see
         Theorem 6.6 of :cite:`beck-2017-first`).
 
           .. math::
-             \mathrm{prox}_f(\mb{x}, \lambda)
+             \mathrm{prox}_{\lambda f}(\mb{v})
              =
              \begin{bmatrix}
-               \mathrm{prox}_{f_1}(\mb{x}_1, \lambda) \\
+               \mathrm{prox}_{\lambda f_1}(\mb{v}_1) \\
                \vdots \\
-               \mathrm{prox}_{f_N}(\mb{x}_N, \lambda) \\
+               \mathrm{prox}_{\lambda f_N}(\mb{v}_N) \\
              \end{bmatrix} \;.
 
         Args:
-            x: Input array :math:`\mb{x}`.
+            v: Input array :math:`\mb{v}`.
             lam: Proximal parameter :math:`\lambda`.
         """
-        if len(x.shape) == len(self.functional_list):
-            return BlockArray.array([fi.prox(xi, lam) for fi, xi in zip(self.functional_list, x)])
+        if len(v.shape) == len(self.functional_list):
+            return BlockArray.array([fi.prox(vi, lam) for fi, vi in zip(self.functional_list, v)])
         raise ValueError(
             f"Number of blocks in x, {len(x.shape)}, and length of functional_list, "
             f"{len(self.functional_list)}, do not match"
@@ -266,6 +266,6 @@ class ZeroFunctional(Functional):
         return 0.0
 
     def prox(
-        self, x: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
-        return x
+        return v
