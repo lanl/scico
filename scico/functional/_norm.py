@@ -43,6 +43,8 @@ class L0Norm(Functional):
     ) -> Union[JaxArray, BlockArray]:
         r"""Evaluate scaled proximal operator of :math:`\ell_0` norm.
 
+        Evaluate scaled proximal operator of :math:`\ell_0` norm using
+
         .. math::
 
             \mathrm{prox}_{\lambda\| \cdot \|_0}(\mb{v}) =
@@ -77,6 +79,8 @@ class L1Norm(Functional):
     @staticmethod
     def prox(v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs) -> JaxArray:
         r"""Evaluate scaled proximal operator of :math:`\ell_1` norm.
+
+        Evaluate scaled proximal operator of :math:`\ell_1` norm using
 
         .. math::
             \mathrm{prox}_{\lambda \|\cdot\|_1}(\mb{v})_i =
@@ -126,6 +130,8 @@ class SquaredL2Norm(Functional):
     ) -> Union[JaxArray, BlockArray]:
         r"""Evaluate proximal operator of squared :math:`\ell_2` norm.
 
+        Evaluate proximal operator of squared :math:`\ell_2` norm using
+
         .. math::
             \mathrm{prox}_{\lambda \| \cdot \|_2^2}(\mb{v})
             = \frac{\mb{v}}{1 + 2 \lambda} \;.
@@ -156,6 +162,8 @@ class L2Norm(Functional):
     ) -> Union[JaxArray, BlockArray]:
         r"""Evaluate proximal operator of :math:`\ell_2` norm.
 
+        Evaluate proximal operator of :math:`\ell_2` norm using
+
         .. math::
             \mathrm{prox}_{\lambda \| \cdot \|_2}(\mb{v})
         = \mb{v} \left(1 - \frac{\lambda}{\norm{v}_2} \right)_+ \;,
@@ -171,6 +179,10 @@ class L2Norm(Functional):
         Args:
             v:  Input array :math:`\mb{v}`.
             lam: Proximal parameter :math:`\lambda`.
+            kwargs: Additional arguments that may be used by derived
+                classes. These include ``x0``, an initial guess for the
+                minimizer.
+
         """
         norm_v = norm(v)
         if norm_v == 0:

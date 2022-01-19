@@ -121,10 +121,10 @@ class IsoProjector(functional.Functional):
     def prox(self, v: JaxArray, lam: float, **kwargs) -> JaxArray:
         norm_v_ptp = jnp.sqrt(jnp.sum(jnp.abs(v) ** 2, axis=0))
 
-        x_out = v / jnp.maximum(jnp.ones(x.shape), norm_v_ptp)
-        out1 = x[0, :, -1] / jnp.maximum(jnp.ones(x[0, :, -1].shape), jnp.abs(x[0, :, -1]))
+        x_out = v / jnp.maximum(jnp.ones(v.shape), norm_v_ptp)
+        out1 = v[0, :, -1] / jnp.maximum(jnp.ones(v[0, :, -1].shape), jnp.abs(v[0, :, -1]))
         x_out_1 = jax.ops.index_update(x_out, jax.ops.index[0, :, -1], out1)
-        out2 = x[1, -1, :] / jnp.maximum(jnp.ones(x[1, -1, :].shape), jnp.abs(x[1, -1, :]))
+        out2 = v[1, -1, :] / jnp.maximum(jnp.ones(v[1, -1, :].shape), jnp.abs(v[1, -1, :]))
         x_out = jax.ops.index_update(x_out_1, jax.ops.index[1, -1, :], out2)
 
         return x_out
@@ -175,7 +175,7 @@ class AnisoProjector(functional.Functional):
 
     def prox(self, v: JaxArray, lam: float, **kwargs) -> JaxArray:
 
-        return v / jnp.maximum(jnp.ones(x.shape), jnp.abs(v))
+        return v / jnp.maximum(jnp.ones(v.shape), jnp.abs(v))
 
 
 """

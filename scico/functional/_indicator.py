@@ -48,7 +48,7 @@ class NonNegativeIndicator(Functional):
         return jax.lax.cond(snp.any(x < 0), lambda x: snp.inf, lambda x: 0.0, None)
 
     def prox(
-        self, v: Union[JaxArray, BlockArray], lam: float = 1, **kwargs
+        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
         r"""Evaluate the scaled proximal operator of the indicator over
             the non-negative orthant:
@@ -107,7 +107,7 @@ class L2BallIndicator(Functional):
         self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
         r"""Evalulate the scaled proximal operator of the indicator over
-            :math:`\ell_2` ball: with radius :math:`r = ` `self.radius`.
+        a :math:`\ell_2` ball with radius :math:`r` = `self.radius`.
 
         .. math::
             \mathrm{prox}_{\lambda I}(\mb{v}) = r \frac{\mb{v}}{\norm{\mb{v}}_2}
