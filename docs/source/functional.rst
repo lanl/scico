@@ -44,14 +44,16 @@ An instance of :class:`.Functional`, ``f``, may provide three core operations.
      All that is required is that the functional can be evaluated, ``f.has_eval == True``.
      However, the result may not be a valid gradient (or subgradient) for all inputs.
 * Proximal operator
-   - ``f.prox(v, lam)`` returns the result of the scaled proximal operator
-     at ``v`` with scale ``lam``.
-   - The proximal operator of a functional :math:`f : \mathbb{R}^n \to \mathbb{R}` is the mapping
-     :math:`\mathrm{prox}_f : \mathbb{R}^n \times \mathbb{R} \to \mathbb{R}^n` defined as
+   - ``f.prox(v, lam)`` returns the result of the scaled proximal
+     operator of ``f``, i.e., the proximal operator of ``lambda x:
+     lam * f(x)``, evaluated at the point ``v``.
+   - The proximal operator of a functional :math:`f : \mathbb{R}^n \to
+     \mathbb{R}` is the mapping :math:`\mathrm{prox}_f : \mathbb{R}^n
+     \to \mathbb{R}^n` defined as
 
      .. math::
-
-      \mathrm{prox}_f (v, \lambda) =  \argmin_x \lambda f(x) + \frac{1}{2} \norm{v - x}_2^2.
+      \mathrm{prox}_f (\mb{v}) =  \argmin_{\mb{x}} f(\mb{x}) +
+      \frac{1}{2} \norm{\mb{v} - \mb{x}}_2^2\;.
 
 
 Plug-and-Play
