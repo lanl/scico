@@ -48,24 +48,26 @@ class NonNegativeIndicator(Functional):
         return jax.lax.cond(snp.any(x < 0), lambda x: snp.inf, lambda x: 0.0, None)
 
     def prox(
-        self, x: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
-        r"""Proximal operator of indicator over non-negative orthant.
-
-        Proximal operator of indicator over non-negative orthant
+        r"""Evaluate the scaled proximal operator of the indicator over
+            the non-negative orthant, :math:`I_{>= 0} `,:
 
         .. math::
-            [\mathrm{prox}(\mb{x}, \lambda)]_i =
+            [\mathrm{prox}_{\lambda I_{>=0}}(\mb{v})]_i =
             \begin{cases}
-            x_i & \text{if } x_i \geq 0 \\
-            0 & \text{else} \;.
+            v_i, & \text{if } v_i \geq 0 \\
+            0, & \text{else}.
             \end{cases}
 
         Args:
-            x: Input array :math:`\mb{x}`.
-            lam: Proximal parameter :math:`\lambda`.
+            v :  Input array :math:`\mb{v}`.
+            lam : Proximal parameter :math:`\lambda` (has no effect).
+            kwargs: Additional arguments that may be used by derived
+                classes.
+
         """
-        return snp.maximum(x, 0)
+        return snp.maximum(v, 0)
 
 
 class L2BallIndicator(Functional):
@@ -102,14 +104,14 @@ class L2BallIndicator(Functional):
         return jax.lax.cond(norm(x) > self.radius, lambda x: snp.inf, lambda x: 0.0, None)
 
     def prox(
-        self, x: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
-        r"""Proximal operator of indicator over :math:`\ell_2` ball.
-
-        Proximal operator of indicator over :math:`\ell_2` ball
+        r"""Evalulate the scaled proximal operator of the indicator over
+        a :math:`\ell_2` ball with radius :math:`r` = `self.radius`,
+        :math:`I_r`:
 
         .. math::
-            \mathrm{prox}(\mb{x}, \lambda) = \mathrm{radius}
-            \frac{\mb{x}}{\norm{\mb{x}}_2} \;.
+            \mathrm{prox}_{\lambda I_r}(\mb{v}) = r \frac{\mb{v}}{\norm{\mb{v}}_2}\;.
+
         """
-        return self.radius * x / norm(x)
+        return self.radius * v / norm(v)
