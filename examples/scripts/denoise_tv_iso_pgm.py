@@ -113,7 +113,6 @@ class IsoProjector(functional.Functional):
 
     has_eval = True
     has_prox = True
-    is_smooth = False
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         return 0.0
@@ -136,7 +135,6 @@ object. Run the solver.
 """
 reg_weight_iso = 1.4e0
 f_iso = DualTVLoss(y=y, A=A, lmbda=reg_weight_iso)
-f_iso.is_smooth = True
 g_iso = IsoProjector()
 
 solver_iso = AcceleratedPGM(
@@ -168,7 +166,6 @@ class AnisoProjector(functional.Functional):
 
     has_eval = True
     has_prox = True
-    is_smooth = False
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         return 0.0
@@ -186,7 +183,6 @@ isotropic case. Run the solver.
 
 reg_weight_aniso = 1.2e0
 f = DualTVLoss(y=y, A=A, lmbda=reg_weight_aniso)
-f.is_smooth = True
 g = AnisoProjector()
 
 solver = AcceleratedPGM(

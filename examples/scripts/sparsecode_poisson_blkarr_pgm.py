@@ -95,7 +95,6 @@ y = jax.device_put(y)  # convert to jax array, push to GPU
 Set up the loss function and the regularization.
 """
 f = loss.PoissonLoss(y=y, A=A)
-f.is_smooth = True
 g = functional.NonNegativeIndicator()
 
 
