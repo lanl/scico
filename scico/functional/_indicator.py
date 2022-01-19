@@ -51,10 +51,10 @@ class NonNegativeIndicator(Functional):
         self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
         r"""Evaluate the scaled proximal operator of the indicator over
-            the non-negative orthant, :math:`I`,:
+            the non-negative orthant, :math:`I_{>= 0} `,:
 
         .. math::
-            [\mathrm{prox}_{\lambda I}(\mb{v})]_i =
+            [\mathrm{prox}_{\lambda I_{>=0}}(\mb{v})]_i =
             \begin{cases}
             v_i, & \text{if } v_i \geq 0 \\
             0, & \text{else}.
@@ -108,10 +108,10 @@ class L2BallIndicator(Functional):
     ) -> Union[JaxArray, BlockArray]:
         r"""Evalulate the scaled proximal operator of the indicator over
         a :math:`\ell_2` ball with radius :math:`r` = `self.radius`,
-        :math:`I`:
+        :math:`I_r`:
 
         .. math::
-            \mathrm{prox}_{\lambda I}(\mb{v}) = r \frac{\mb{v}}{\norm{\mb{v}}_2}\;.
+            \mathrm{prox}_{\lambda I_r}(\mb{v}) = r \frac{\mb{v}}{\norm{\mb{v}}_2}\;.
 
         """
         return self.radius * v / norm(v)
