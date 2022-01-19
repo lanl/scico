@@ -57,7 +57,7 @@ class ParallelBeamProjector(LinearOperator):
             angles: Array of projection angles in radians, should be
                 increasing.
             num_channels: Number of pixels in the sinogram.
-            center_offset: Position of the image center relative to the center-of-rotation, in units of pixels
+            center_offset: Position of the detector center relative to the center-of-rotation, in units of pixels
             is_masked: If True, the valid region of the image is
                 determined by a mask defined as the circle inscribed
                 within the image boundary. Otherwise, the whole image
