@@ -49,7 +49,7 @@ def radial_transverse_frequency(
 
     Returns:
         If `len(input_shape)==1`, returns an ndarray containing
-        corresponding Fourier coordinates.  If `len(input_shape) == 2`,
+        corresponding Fourier coordinates. If `len(input_shape) == 2`,
         returns an ndarray containing the radial Fourier coordinates
         :math:`\sqrt{k_x^2 + k_y^2}\,`.
     """
@@ -59,7 +59,7 @@ def radial_transverse_frequency(
         raise ValueError("Invalid input dimensions; must be 1 or 2")
 
     if np.isscalar(dx):
-        dx = (dx,) * ndim
+        dx = (dx,) * ndim  # type: ignore
     else:
         if len(dx) != ndim:
             raise ValueError(
