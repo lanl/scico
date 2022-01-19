@@ -58,7 +58,7 @@ def _wrap_mul_div_scalar(func):
 
 
 class Operator:
-    """Generic Operator class"""
+    """Generic Operator class."""
 
     def __repr__(self):
         return f"""{type(self)}
@@ -81,8 +81,7 @@ output_dtype : {self.output_dtype}
         jit: bool = False,
         is_smooth: bool = None,
     ):
-        r"""Operator init method.
-
+        r"""
         Args:
             input_shape: Shape of input array.
             output_shape: Shape of output array.
@@ -122,11 +121,14 @@ output_dtype : {self.output_dtype}
         #: Consists of (output_size, input_size)
         self.matrix_shape: Tuple[int, int]
 
-        #: Shape of Operator.  Consists of (output_shape, input_shape).
+        #: Shape of Operator. Consists of (output_shape, input_shape).
         self.shape: Tuple[Union[Shape, BlockShape], Union[Shape, BlockShape]]
 
         #: Dtype of input
         self.input_dtype: DType
+
+        #: Dtype of operator
+        self.dtype: DType
 
         if isinstance(input_shape, int):
             self.input_shape = (input_shape,)
@@ -134,7 +136,7 @@ output_dtype : {self.output_dtype}
             self.input_shape = input_shape
         self.input_dtype = input_dtype
 
-        # Allows for dynamic creation of new Operator/LinearOperator, eg for adjoints
+        # Allows for dynamic creation of new Operator/LinearOperator, eg. for adjoints
         if eval_fn:
             self._eval = eval_fn  # type: ignore
 
@@ -471,9 +473,9 @@ class LinearOperator(Operator):
         )
 
         if not hasattr(self, "_adj"):
-            self._adj = None
+            self._adj: Optional[Callable] = None
         if not hasattr(self, "_gram"):
-            self._gram = None
+            self._gram: Optional[Callable] = None
         if callable(adj_fn):
             self._adj = adj_fn
             self._gram = lambda x: self.adj(self(x))
@@ -621,6 +623,7 @@ class LinearOperator(Operator):
                 f"""Shapes do not conform: input array with shape {y.shape} does not match
                 LinearOperator output_shape {self.output_shape}"""
             )
+        assert self._adj is not None
         return self._adj(y)
 
     @property
@@ -731,6 +734,7 @@ class LinearOperator(Operator):
         """
         if self._gram is None:
             self._set_adjoint()
+        assert self._gram is not None
         return self._gram(x)
 
 

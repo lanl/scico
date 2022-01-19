@@ -33,7 +33,13 @@ __author__ = """\n""".join(
 )
 
 
-def ensure_on_device(*arrays: Union[Array, BlockArray]) -> Union[JaxArray, BlockArray]:
+JaxOrBlockArray = Union[JaxArray, BlockArray]
+"""A jax array or a BlockArray."""
+
+
+def ensure_on_device(
+    *arrays: Union[Array, BlockArray]
+) -> Union[JaxOrBlockArray, List[JaxOrBlockArray]]:
     """Cast ndarrays to DeviceArrays.
 
     Cast ndarrays to DeviceArrays and leaves DeviceArrays, BlockArrays,
@@ -53,36 +59,34 @@ def ensure_on_device(*arrays: Union[Array, BlockArray]) -> Union[JaxArray, Block
         TypeError: If the arrays contain something that is neither
            ndarray, DeviceArray, BlockArray, nor ShardedDeviceArray.
     """
-    arrays = list(arrays)
+    array_list = list(arrays)
 
-    for i, array in enumerate(arrays):
+    for i, array in enumerate(array_list):
 
         if isinstance(array, np.ndarray):
             warnings.warn(
-                f"Argument {i+1} of {len(arrays)} is an np.ndarray. "
+                f"Argument {i+1} of {len(array_list)} is an np.ndarray. "
                 f"Will cast it to DeviceArray. "
-                f"To suppress this warning cast all np.ndarrays to DeviceArray first.",
+                f"To suppress this warning cast all np.ndarray_list to DeviceArray first.",
                 stacklevel=2,
             )
 
-            arrays[i] = jax.device_put(arrays[i])
+            array_list[i] = jax.device_put(array_list[i])
         elif not isinstance(
             array,
             (DeviceArray, BlockArray, ShardedDeviceArray),
         ):
             raise TypeError(
-                "Each item of `arrays` must be ndarray, DeviceArray, BlockArray, or "
-                f"ShardedDeviceArray; Argument {i+1} of {len(arrays)} is {type(arrays[i])}."
+                "Each item of `array_list` must be ndarray, DeviceArray, BlockArray, or "
+                f"ShardedDeviceArray; Argument {i+1} of {len(array_list)} is {type(array_list[i])}."
             )
 
-    if len(arrays) == 1:
-        return arrays[0]
-    return arrays
+    if len(array_list) == 1:
+        return array_list[0]
+    return array_list
 
 
-def no_nan_divide(
-    x: Union[BlockArray, JaxArray], y: Union[BlockArray, JaxArray]
-) -> Union[BlockArray, JaxArray]:
+def no_nan_divide(x: JaxOrBlockArray, y: JaxOrBlockArray) -> JaxOrBlockArray:
     """Return `x/y`, with 0 instead of NaN where `y` is 0.
 
     Args:

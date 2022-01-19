@@ -210,4 +210,4 @@ def randn(
            - **x** : (DeviceArray):  Generated random array.
            - **key** : Updated random PRNGKey.
     """
-    return normal(shape, dtype, key, seed)
+    return normal(shape, dtype, key, seed)  # type: ignore

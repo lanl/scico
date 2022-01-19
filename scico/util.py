@@ -209,7 +209,7 @@ class Timer:
             if self.t0[lbl] is not None:
                 # Increment time accumulator from the elapsed time
                 # since most recent start call
-                self.td[lbl] += t - self.t0[lbl]
+                self.td[lbl] += t - self.t0[lbl]  # type: ignore
                 # Set start time to None to indicate timer is not running
                 self.t0[lbl] = None
 
@@ -278,7 +278,7 @@ class Timer:
         # return just the time since the current start call
         te = 0.0
         if self.t0[label] is not None:
-            te = t - self.t0[label]
+            te = t - self.t0[label]  # type: ignore
         if total:
             te += self.td[label]
 
@@ -320,7 +320,7 @@ class Timer:
             if self.t0[lbl] is None:
                 ts = " Stopped"
             else:
-                ts = f" {(t - self.t0[lbl]):.2e} s" % (t - self.t0[lbl])
+                ts = f" {(t - self.t0[lbl]):.2e} s" % (t - self.t0[lbl])  # type: ignore
             s += f"{lbl:{lfldln}s}  {td:.2e} s  {ts}\n"
 
         return s
