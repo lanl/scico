@@ -143,32 +143,7 @@ is_smooth = {self.is_smooth}
 
 
 class ScaledFunctional(Functional):
-    r"""A functional multiplied by a scalar.
-
-    Note that, by definition, the scaled proximal operator of a
-    functional is the proximal operator of the scaled functional. The
-    scaled proximal operator of a scaled functional is the scaled
-    proximal operator of the unscaled functional with the proximal
-    operator scaling consisting of the product of the two scaling
-    factors, i.e. for functional :math:`f` and scaling factors
-    :math:`\alpha` and :math:`\beta`, the proximal operator with scaling
-    parameter :math:`\alpha` of scaled functional :math:`\beta f` is
-    the proximal operator with scaling parameter :math:`\alpha \beta` of
-    functional :math:`f`
-
-    .. math::
-
-       \mathrm{prox}_{\alpha (\beta f)}(\mb{v}) =
-       \mathrm{prox}_{(\alpha \beta) f}(\mb{v}) \;,
-
-    or in non-standard notation with the proximal operator scaling factor
-    as an explicit parameter,
-
-    .. math::
-
-       \mathrm{prox}_{\beta f}(v, \alpha) = \mathrm{prox}_f(v, \alpha
-       \beta) \;.
-    """
+    r"""A functional multiplied by a scalar."""
 
     def __repr__(self):
         return "Scaled functional of type " + str(type(self.functional))
@@ -187,6 +162,24 @@ class ScaledFunctional(Functional):
     def prox(
         self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
+        r"""Evaulate the scaled proximal operator of the scaled functional.
+
+        Note that, by definition, the scaled proximal operator of a
+        functional is the proximal operator of the scaled functional. The
+        scaled proximal operator of a scaled functional is the scaled
+        proximal operator of the unscaled functional with the proximal
+        operator scaling consisting of the product of the two scaling
+        factors, i.e., for functional :math:`f` and scaling factors
+        :math:`\alpha` and :math:`\beta`, the proximal operator with scaling
+        parameter :math:`\alpha` of scaled functional :math:`\beta f` is
+        the proximal operator with scaling parameter :math:`\alpha \beta` of
+        functional :math:`f`,
+
+        .. math::
+           \mathrm{prox}_{\alpha (\beta f)}(\mb{v}) =
+           \mathrm{prox}_{(\alpha \beta) f}(\mb{v}) \;.
+
+        """
         return self.functional.prox(v, lam * self.scale)
 
 
@@ -246,6 +239,9 @@ class SeparableFunctional(Functional):
         Args:
             v: Input array :math:`\mb{v}`.
             lam: Proximal parameter :math:`\lambda`.
+            kwargs: Additional arguments that may be used by derived
+                classes. These include ``x0``, an initial guess for the
+                minimizer.
         """
         if len(v.shape) == len(self.functional_list):
             return BlockArray.array([fi.prox(vi, lam) for fi, vi in zip(self.functional_list, v)])

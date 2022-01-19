@@ -63,6 +63,9 @@ class NonNegativeIndicator(Functional):
         Args:
             v :  Input array :math:`\mb{v}`.
             lam : Proximal parameter :math:`\lambda` (has no effect).
+            kwargs: Additional arguments that may be used by derived
+                classes. These include ``x0``, an initial guess for the
+                minimizer.
         """
         return snp.maximum(v, 0)
 
