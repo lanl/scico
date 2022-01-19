@@ -15,24 +15,24 @@ except ImportError as e:
 
 
 N = 128
-rtol_cpu = 5e-5
-rtol_gpu = 7e-2
-rtol_gpu_random_input = 1.0
+RTOL_CPU = 5e-5
+RTOL_GPU = 7e-2
+RTOL_GPU_RANDOM_INPUT = 1.0
 
 
 def get_tol():
     if jax.devices()[0].device_kind == "cpu":
-        rtol = rtol_cpu
+        rtol = RTOL_CPU
     else:
-        rtol = rtol_gpu  # astra inaccurate in GPU
+        rtol = RTOL_GPU  # astra inaccurate in GPU
     return rtol
 
 
 def get_tol_random_input():
     if jax.devices()[0].device_kind == "cpu":
-        rtol = rtol_cpu
+        rtol = RTOL_CPU
     else:
-        rtol = rtol_gpu_random_input  # astra more inaccurate in GPU for random inputs
+        rtol = RTOL_GPU_RANDOM_INPUT  # astra more inaccurate in GPU for random inputs
     return rtol
 
 
