@@ -180,8 +180,7 @@ class L2Norm(Functional):
             v:  Input array :math:`\mb{v}`.
             lam: Proximal parameter :math:`\lambda`.
             kwargs: Additional arguments that may be used by derived
-                classes. These include ``x0``, an initial guess for the
-                minimizer.
+                classes.
 
         """
         norm_v = norm(v)
@@ -248,8 +247,8 @@ class L21Norm(Functional):
             v:  Input array :math:`\mb{v}`.
             lam: Proximal parameter :math:`\lambda`.
             kwargs: Additional arguments that may be used by derived
-                classes. These include ``x0``, an initial guess for the
-                minimizer.
+                classes.
+
         """
 
         length = norm(v, axis=self.l2_axis, keepdims=True)

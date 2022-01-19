@@ -97,7 +97,7 @@ is_smooth = {self.is_smooth}
             lam: Proximal parameter :math:`\lambda`.
             kwargs: Additional arguments that may be used by derived
                 classes. These include ``x0``, an initial guess for the
-                minimizer.
+                minimizer in the defintion of :math:`\mathrm{prox}`.
 
         """
         if not self.has_prox:
@@ -240,8 +240,8 @@ class SeparableFunctional(Functional):
             v: Input array :math:`\mb{v}`.
             lam: Proximal parameter :math:`\lambda`.
             kwargs: Additional arguments that may be used by derived
-                classes. These include ``x0``, an initial guess for the
-                minimizer.
+                classes.
+
         """
         if len(v.shape) == len(self.functional_list):
             return BlockArray.array([fi.prox(vi, lam) for fi, vi in zip(self.functional_list, v)])
