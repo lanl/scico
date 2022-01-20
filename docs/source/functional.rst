@@ -39,7 +39,7 @@ An instance of :class:`.Functional`, ``f``, may provide three core operations.
    - ``f.grad(x)`` returns the gradient of the functional evaluated at ``x``.
    - Gradients are calculated using JAX reverse-mode automatic differentiation,
      exposed through :func:`scico.grad`.
-   - NOTE:  The gradient of a functional ``f`` can be evaluated even if that functional is not smooth.
+   - *Note:*  The gradient of a functional ``f`` can be evaluated even if that functional is not smooth.
      All that is required is that the functional can be evaluated, ``f.has_eval == True``.
      However, the result may not be a valid gradient (or subgradient) for all inputs.
 * Proximal operator
