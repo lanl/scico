@@ -59,7 +59,7 @@ g = functional.DnCNN("17M")
 """
 Set up an ADMM solver.
 """
-ρ = 1.0  # ADMM penalty parameter
+ρ = 0.2  # ADMM penalty parameter
 maxiter = 10  # number of ADMM iterations
 
 f = loss.SquaredL2Loss(y=y, A=A)
