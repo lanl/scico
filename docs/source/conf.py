@@ -155,7 +155,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "SCICO"
-copyright = "2020-2021, SCICO Developers"
+copyright = "2020-2022, SCICO Developers"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
