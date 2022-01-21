@@ -53,8 +53,7 @@ y = Ax + σ * noise
 """
 Load DnCNN denoiser and create map object.
 """
-λ = 15.0 / 255  # regularization strength
-g = λ * functional.DnCNN("17M")
+g = functional.DnCNN("17M")
 
 
 """
