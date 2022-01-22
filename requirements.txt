@@ -7,4 +7,4 @@ jax==0.2.26
 flax
 bm3d
 svmbir>=0.2.6
-git+https://github.com/smajee/PyAbel.git
+pyabel>=0.8.5
