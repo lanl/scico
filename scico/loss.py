@@ -172,37 +172,37 @@ class WeightedSquaredL2Loss(Loss):
         return self.scale * (self.W.diagonal * snp.abs(self.y - self.A(x)) ** 2).sum()
 
     def prox(
-        self, x: Union[JaxArray, BlockArray], lam: float, **kwargs
+        self, v: Union[JaxArray, BlockArray], lam: float, **kwargs
     ) -> Union[JaxArray, BlockArray]:
         if isinstance(self.A, linop.Diagonal):
             c = 2.0 * self.scale * lam
             A = self.A.diagonal
             W = self.W.diagonal
-            lhs = c * A.conj() * W * self.y + x
+            lhs = c * A.conj() * W * self.y + v
             ATWA = c * A.conj() * W * A
             return lhs / (ATWA + 1.0)
 
-        #      prox_{f}(x) =
+        #      prox_{f}(v) =
         #
-        #      arg min  1/2 || v - x ||^2 + λ α || A v - y ||^2_W
-        #         v
+        #      arg min  1/2 || v - x ||^2 + λ α || A x - y ||^2_W
+        #         x
         #
         # solution at:
         #
-        #      (I + λ 2α A^T W A) v = x + λ 2α A^T W y
+        #      (I + λ 2α A^T W A) x = v + λ 2α A^T W y
         #
         W = self.W
         A = self.A
         α = self.scale
         y = self.y
-        if "v0" in kwargs and kwargs["v0"] is not None:
-            v0 = kwargs["v0"]
+        if "x0" in kwargs and kwargs["x0"] is not None:
+            x0 = kwargs["x0"]
         else:
-            v0 = snp.zeros_like(x)
+            x0 = snp.zeros_like(v)
         hessian = self.hessian  # = (2α A^T W A)
-        lhs = linop.Identity(x.shape) + lam * hessian
-        rhs = x + 2 * lam * α * A.adj(W(y))
-        x, _ = cg(lhs, rhs, v0, **self.prox_kwargs)
+        lhs = linop.Identity(v.shape) + lam * hessian
+        rhs = v + 2 * lam * α * A.adj(W(y))
+        x, _ = cg(lhs, rhs, x0, **self.prox_kwargs)
         return x
 
     @property
