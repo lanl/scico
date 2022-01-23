@@ -12,7 +12,6 @@ Abel transform LinearOperator wrapping the
 """
 
 import math
-from typing import Optional
 
 import numpy as np
 
@@ -29,14 +28,16 @@ from scipy.linalg import solve_triangular
 
 
 class AbelProjector(LinearOperator):
-    def __init__(self, img_shape, center=None):
+    r"""Abel transform projector based on `PyAbel <https://github.com/PyAbel/PyAbel>`_.
 
-        if center is None:
-            self.center = center
-        else:
-            raise ValueError("Not implemented yet")
+    Perform Abel transform (parallel beam tomographic projection of
+    cylindrically symmetric objects) for a 2D image. The input 2D image
+    is assumed to be centered and left-right symmetric.
+    """
 
-        self.proj_mat_quad = pyabel_daun_get_proj_matrix(img_shape)
+    def __init__(self, img_shape):
+
+        self.proj_mat_quad = _pyabel_daun_get_proj_matrix(img_shape)
 
         super().__init__(
             input_shape=img_shape,
@@ -54,18 +55,26 @@ class AbelProjector(LinearOperator):
         return self._bproj(x, self.proj_mat_quad)
 
     @staticmethod
-    def _proj(x: JaxArray, proj_mat_quad: Array, center: Optional[int] = None) -> JaxArray:
-        return pyabel_transform(x, direction="forward", proj_mat_quad=proj_mat_quad)
+    def _proj(x: JaxArray, proj_mat_quad: Array) -> JaxArray:
+        return _pyabel_transform(x, direction="forward", proj_mat_quad=proj_mat_quad)
 
     @staticmethod
-    def _bproj(y: JaxArray, proj_mat_quad: Array, center: Optional[int] = None) -> JaxArray:
-        return pyabel_transform(y, direction="transpose", proj_mat_quad=proj_mat_quad)
+    def _bproj(y: JaxArray, proj_mat_quad: Array) -> JaxArray:
+        return _pyabel_transform(y, direction="transpose", proj_mat_quad=proj_mat_quad)
 
     def inverse(self, y):
-        return pyabel_transform(np.array(y), direction="inverse", proj_mat_quad=self.proj_mat_quad)
+        """Performs inverse abel transform
+
+        Args:
+            y ([JaxArray]): Input image (assumed to be a result of an Abel transform)
+
+        Returns:
+            [JaxArray]: Output of inverse Abel transform
+        """
+        return _pyabel_transform(np.array(y), direction="inverse", proj_mat_quad=self.proj_mat_quad)
 
 
-def pyabel_transform(x, direction, proj_mat_quad, symmetry_axis=[None]):
+def _pyabel_transform(x, direction, proj_mat_quad, symmetry_axis=[None]):
 
     Q0, Q1, Q2, Q3 = get_image_quadrants(
         x, symmetry_axis=symmetry_axis, use_quadrants=(True, True, True, True)
@@ -98,7 +107,7 @@ def pyabel_transform(x, direction, proj_mat_quad, symmetry_axis=[None]):
     )
 
 
-def pyabel_daun_get_proj_matrix(img_shape):
+def _pyabel_daun_get_proj_matrix(img_shape):
 
     proj_matrix = abel.daun.get_bs_cached(
         math.ceil(img_shape[1] / 2),
