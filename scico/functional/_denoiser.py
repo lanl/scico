@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -40,12 +40,12 @@ class BM3D(Functional):
     has_prox = True
     is_smooth = False
 
-    def __init__(self, is_rgb: Optional[bool] = False):
+    def __init__(self, is_rgb: bool = False):
         r"""Initialize a :class:`BM3D` object.
 
         Args:
             is_rgb: Flag indicating use of BM3D with a color transform.
-                    Default: False.
+                    Default: ``False``.
         """
 
         if is_rgb is True:
@@ -58,11 +58,11 @@ class BM3D(Functional):
         super().__init__()
 
     def prox(self, x: JaxArray, lam: float = 1.0, **kwargs) -> JaxArray:
-        r"""Apply BM3D denoiser with noise level ``lam``.
+        r"""Apply BM3D denoiser.
 
         Args:
             x: input image.
-            lam: noise level.
+            lam: noise parameter.
 
         Returns:
             BM3D denoised output.
@@ -88,12 +88,12 @@ class BM3D(Functional):
 
         # this check is also performed inside the BM3D call, but due to the host_callback,
         # no exception is raised and the program will crash with no traceback.
-        # NOTE:  if BM3D is extended to allow for different profiles, the block size must be
-        #        updated; this presumes 'np' profile (bs=8)
+        # NOTE: if BM3D is extended to allow for different profiles, the block size must be
+        #       updated; this presumes 'np' profile (bs=8)
         if np.min(x.shape[:2]) < 8:
             raise ValueError(
                 f"Two leading dimensions of input cannot be smaller than block size "
-                f"(8);  got image size = {x.shape}"
+                f"(8); got image size = {x.shape}"
             )
 
         if x.ndim > 3:
@@ -148,15 +148,15 @@ class DnCNN(FlaxMap):
         variables = load_weights(_flax_data_path("dncnn%s.npz" % variant))
         super().__init__(model, variables)
 
-    def prox(self, x: JaxArray, lam: float = 1) -> JaxArray:
+    def prox(self, x: JaxArray, lam: float = 1, **kwargs) -> JaxArray:
         r"""Apply DnCNN denoiser.
 
-        *Warning*: The ``lam`` parameter is ignored, and has no effect on
+        *Warning*: The `lam` parameter is ignored, and has no effect on
         the output.
 
         Args:
             x: input.
-            lam: noise estimate (ignored).
+            lam: noise parameter (ignored).
 
         Returns:
             DnCNN denoised output.
