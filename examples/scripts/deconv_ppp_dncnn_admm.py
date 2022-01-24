@@ -53,14 +53,13 @@ y = Ax + σ * noise
 """
 Load DnCNN denoiser and create map object.
 """
-λ = 15.0 / 255  # regularization strength
-g = λ * functional.DnCNN("17M")
+g = functional.DnCNN("17M")
 
 
 """
 Set up an ADMM solver.
 """
-ρ = 1.0  # ADMM penalty parameter
+ρ = 0.2  # ADMM penalty parameter
 maxiter = 10  # number of ADMM iterations
 
 f = loss.SquaredL2Loss(y=y, A=A)
