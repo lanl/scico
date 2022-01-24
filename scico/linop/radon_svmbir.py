@@ -109,13 +109,15 @@ class ParallelBeamProjector(LinearOperator):
         center_offset: Optional[float] = 0.0,
         roi_radius: Optional[float] = None,
     ) -> JaxArray:
-        return svmbir.project(
-            np.array(x),
-            np.array(angles),
-            num_channels,
-            verbose=0,
-            center_offset=center_offset,
-            roi_radius=roi_radius,
+        return jax.device_put(
+            svmbir.project(
+                np.array(x),
+                np.array(angles),
+                num_channels,
+                verbose=0,
+                center_offset=center_offset,
+                roi_radius=roi_radius,
+            )
         )
 
     def _proj_hcb(self, x):
@@ -143,14 +145,16 @@ class ParallelBeamProjector(LinearOperator):
         center_offset: Optional[float] = 0.0,
         roi_radius: Optional[float] = None,
     ):
-        return svmbir.backproject(
-            np.array(y),
-            np.array(angles),
-            num_rows,
-            num_cols,
-            verbose=0,
-            center_offset=center_offset,
-            roi_radius=roi_radius,
+        return jax.device_put(
+            svmbir.backproject(
+                np.array(y),
+                np.array(angles),
+                num_rows,
+                num_cols,
+                verbose=0,
+                center_offset=center_offset,
+                roi_radius=roi_radius,
+            )
         )
 
     def _bproj_hcb(self, y):
