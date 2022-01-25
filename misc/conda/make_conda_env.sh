@@ -14,6 +14,12 @@
 # Run with -h flag for usage information
 set -e  # exit when any command fails
 
+if [ "$(cut -d '.' -f 1 <<< "$BASH_VERSION")" -lt "4" ]; then
+    echo "Error: this script requires bash version 4 or later" >&2
+    exit 1
+fi
+
+
 SCRIPT=$(basename $0)
 USAGE=$(cat <<-EOF
 Usage: $SCRIPT [-h] [-y] [-g] [-p python_version] [-c cuda_version]
@@ -58,7 +64,7 @@ while getopts ":hygc:p:e:j:" opt; do
 	c|p|e|j) if [ -z "$OPTARG" ] || [ "${OPTARG:0:1}" = "-" ] ; then
 		     echo "Error: option -$opt requires an argument" >&2
 		     echo "$USAGE" >&2
-		     exit 1
+		     exit 2
 		 fi
 		 ;;&
 	h) echo "$USAGE"; exit 0;;
@@ -70,11 +76,11 @@ while getopts ":hygc:p:e:j:" opt; do
 	j) JAXURL=$OPTARG;;
 	:) echo "Error: option -$OPTARG requires an argument" >&2
 	   echo "$USAGE" >&2
-	   exit 1
+	   exit 2
 	   ;;
 	\?) echo "Error: invalid option -$OPTARG" >&2
 	    echo "$USAGE" >&2
-	    exit 1
+	    exit 2
 	    ;;
   esac
 done
@@ -83,18 +89,18 @@ shift $((OPTIND-1))
 if [ ! $# -eq 0 ] ; then
     echo "Error: no positional arguments" >&2
     echo "$USAGE" >&2
-    exit 1
+    exit 2
 fi
 
 if [ ! "$(which conda 2>/dev/null)" ]; then
     echo "Error: conda command required but not found" >&2
-    exit 2
+    exit 3
 fi
 
 # Not available on BSD systems such as OSX: install via MacPorts etc.
 if [ ! "$(which realpath 2>/dev/null)" ]; then
     echo "Error: realpath command required but not found" >&2
-    exit 3
+    exit 4
 fi
 
 # Ensure that a C compiler is available; required for installing svmbir
@@ -102,23 +108,23 @@ fi
 if [ -z "$CC" ] && [ ! "$(which gcc 2>/dev/null)" ]; then
     echo "Error: gcc command not found and CC environment variable not set"
     echo "       set CC to the path of your C compiler, or install gcc"
-    exit 4
+    exit 5
 fi
 
 OS=$(uname -a | cut -d ' ' -f 1)
 case "$OS" in
     Linux)    SOURCEURL=$URLROOT$INSTLINUX; SED="sed";;
     Darwin)   SOURCEURL=$URLROOT$INSTMACOSX; SED="gsed";;
-    *)        echo "Error: unsupported operating system $OS" >&2; exit 5;;
+    *)        echo "Error: unsupported operating system $OS" >&2; exit 6;;
 esac
 if [ "$OS" == "Darwin" ] && [ "$GPU" == yes ]; then
     echo "Error: GPU-enabled jaxlib installation not supported under OSX" >&2
-    exit 6
+    exit 7
 fi
 if [ "$OS" == "Darwin" ]; then
     if [ ! "$(which gsed 2>/dev/null)" ]; then
 	echo "Error: gsed command required but not found" >&2
-	exit 7
+	exit 8
     fi
 fi
 
@@ -126,7 +132,7 @@ if [ "$GPU" == "yes" ] && [ "$CUVER" == "" ]; then
     if [ "$(which nvcc)" == "" ]; then
 	echo "Error: GPU-enabled jaxlib requested but CUDA version not"\
 	     "specified and could not be automatically determined" >&2
-	exit 8
+	exit 9
     else
 	CUVER=$(nvcc --version | grep -o 'release [0-9][0-9]*\.[[0-9][0-9]*' \
                               | sed -e 's/release //' -e 's/\.//')
@@ -137,7 +143,7 @@ CONDAHOME=$(conda info --base)
 ENVDIR=$CONDAHOME/envs/$ENVNM
 if [ -d "$ENVDIR" ]; then
     echo "Error: environment $ENVNM already exists"
-    exit 9
+    exit 10
 fi
 
 if [ "$AGREE" == "no" ]; then
@@ -146,7 +152,7 @@ if [ "$AGREE" == "no" ]; then
     read -r -p "$RSTR" CNFRM
     if [ "$CNFRM" != 'y' ] && [ "$CNFRM" != 'Y' ]; then
 	echo "Cancelling environment creation"
-	exit 10
+	exit 11
     fi
 else
     echo "Creating conda environment $ENVNM with Python $PYVER"
@@ -222,7 +228,7 @@ if [ "$GPU" == "yes" ]; then
     retval=$?
     if [ $retval -ne 0 ]; then
         echo "Error: jaxlib installation failed"
-	exit 11
+	exit 12
     fi
 else
     pip install --upgrade jax jaxlib
