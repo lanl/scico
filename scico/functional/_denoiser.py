@@ -11,7 +11,6 @@ from typing import Optional
 
 import numpy as np
 
-import jax
 from jax.experimental import host_callback as hcb
 
 from bm3d import bm3d, bm3d_rgb
@@ -111,7 +110,7 @@ class BM3D(Functional):
         # undo squeezing, if neccessary
         y = y.reshape(x_in_shape)
 
-        return jax.device_put(y)
+        return y
 
 
 class DnCNN(FlaxMap):
