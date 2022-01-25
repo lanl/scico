@@ -138,8 +138,8 @@ if [ "$GPU" == "yes" ] && [ "$CUVER" == "" ]; then
     fi
 fi
 
-JLVER=$($SED -n 's/^jax==\([0-9\.]\)/\1/p' requirements.txt)
-JXVER=$($SED -n 's/^jaxlib==\([0-9\.]\)/\1/p' requirements.txt)
+JLVER=$($SED -n 's/^jaxlib==\([0-9\.]\)/\1/p' requirements.txt)
+JXVER=$($SED -n 's/^jax==\([0-9\.]\)/\1/p' requirements.txt)
 
 CONDAHOME=$(conda info --base)
 ENVDIR=$CONDAHOME/envs/$ENVNM
