@@ -387,7 +387,8 @@ class PGM:
 
     Minimize a function of the form :math:`f(\mb{x}) + g(\mb{x})`.
 
-    The function :math:`g` must have a defined prox.
+    The function :math:`g` must have a defined prox and convergence is
+    guaranteed if :math:`f` is smooth.
 
     Uses helper :class:`StepSize` to provide an estimate of the Lipschitz
     constant :math:`L` of :math:`f`. The step size :math:`\alpha` is the
@@ -552,7 +553,8 @@ class AcceleratedPGM(PGM):
 
     Minimize a function of the form :math:`f(\mb{x}) + g(\mb{x})`.
 
-    The function :math:`g` must have a defined prox. The accelerated
+    The function :math:`g` must have a defined prox and convergence is
+    guaranteed if :math:`f` is smooth. The accelerated
     form of PGM is also known as FISTA :cite:`beck-2009-fast`.
 
     For documentation on inherited attributes, see :class:`.PGM`.
