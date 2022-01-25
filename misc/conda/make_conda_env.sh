@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/usr/bin/env bash
 
 # This script installs a conda environment with all required and
 # optional scico dependencies. The user is assumed to have write
@@ -38,7 +38,6 @@ JAXURL=https://storage.googleapis.com/jax-releases/jax_releases.html
 AGREE=no
 GPU=no
 CUVER=""
-JLVER="0.1.75"
 PYVER="3.9"
 ENVNM=py$(echo $PYVER | sed -e 's/\.//g')
 
@@ -139,6 +138,9 @@ if [ "$GPU" == "yes" ] && [ "$CUVER" == "" ]; then
     fi
 fi
 
+JLVER=$($SED -n 's/^jax==\([0-9\.]\)/\1/p' requirements.txt)
+JXVER=$($SED -n 's/^jaxlib==\([0-9\.]\)/\1/p' requirements.txt)
+
 CONDAHOME=$(conda info --base)
 ENVDIR=$CONDAHOME/envs/$ENVNM
 if [ -d "$ENVDIR" ]; then
@@ -224,14 +226,14 @@ fi
 # Install jaxlib and jax, with jaxlib version depending on requested
 # GPU support
 if [ "$GPU" == "yes" ]; then
-    pip install --upgrade jax jaxlib==$JLVER+cuda$CUVER -f $JAXURL
+    pip install --upgrade jax==$JXVER jaxlib==$JLVER+cuda$CUVER -f $JAXURL
     retval=$?
     if [ $retval -ne 0 ]; then
         echo "Error: jaxlib installation failed"
 	exit 12
     fi
 else
-    pip install --upgrade jax jaxlib
+    pip install --upgrade jaxlib==$JLVER jax==$JXVER
     echo "Jax installed without GPU support. To avoid warning messages,"
     echo "add the following to your .bashrc or .bash_aliases file"
     echo "  export JAX_PLATFORM_NAME=cpu"
