@@ -208,7 +208,7 @@ class SVMBIRExtendedLoss(Loss):
     def __init__(
         self,
         *args,
-        prox_kwargs: dict = {"maxiter": 1000, "ctol": 0.001},
+        prox_kwargs: Optional[dict] = None,
         positivity: bool = False,
         W: Optional[Diagonal] = None,
         **kwargs,
@@ -222,11 +222,8 @@ class SVMBIRExtendedLoss(Loss):
             W:  Weighting diagonal operator. Must be non-negative.
                 If None, defaults to :class:`.Identity`.
             prox_kwargs: Dictionary of arguments passed to the
-                :meth:`svmbir.recon` prox routine. Note that omitting
-                this dictionary will cause the default dictionary to be
-                used, however omitting entries in the passed dictionary
-                causes the defaults of the underlying :meth:`svmbir.recon`
-                prox routine to be used.
+                :meth:`svmbir.recon` prox routine. Defaults to
+                {"maxiter": 1000, "ctol": 0.001}.
             positivity: Enforce positivity in the prox operation. The
                 loss is infinity if any element of the input is negative.
         """
@@ -240,11 +237,14 @@ class SVMBIRExtendedLoss(Loss):
         if prox_kwargs is None:
             prox_kwargs = dict()
 
+        default_prox_args = {"maxiter": 1000, "ctol": 0.001}
+        default_prox_args.update(prox_kwargs)
+
         svmbir_prox_args = dict()
-        if "maxiter" in prox_kwargs:
-            svmbir_prox_args["max_iterations"] = prox_kwargs["maxiter"]
-        if "ctol" in prox_kwargs:
-            svmbir_prox_args["stop_threshold"] = prox_kwargs["ctol"]
+        if "maxiter" in default_prox_args:
+            svmbir_prox_args["max_iterations"] = default_prox_args["maxiter"]
+        if "ctol" in default_prox_args:
+            svmbir_prox_args["stop_threshold"] = default_prox_args["ctol"]
         self.svmbir_prox_args = svmbir_prox_args
 
         self.positivity = positivity
@@ -330,11 +330,8 @@ class SVMBIRWeightedSquaredL2Loss(SVMBIRExtendedLoss, WeightedSquaredL2Loss):
             W:  Weighting diagonal operator. Must be non-negative.
                 If None, defaults to :class:`.Identity`.
             prox_kwargs: Dictionary of arguments passed to the
-                :meth:`svmbir.recon` prox routine. Note that omitting
-                this dictionary will cause the default dictionary to be
-                used, however omitting entries in the passed dictionary
-                causes the defaults of the underlying :meth:`svmbir.recon`
-                prox routine to be used.
+                :meth:`svmbir.recon` prox routine. Defaults to
+                {"maxiter": 1000, "ctol": 0.001}.
         """
         super().__init__(*args, **kwargs, prox_kwargs=prox_kwargs, positivity=False)
 
