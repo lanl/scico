@@ -103,19 +103,21 @@ class ParallelBeamProjector(LinearOperator):
 
     @staticmethod
     def _proj(
-        x: Array,
-        angles: Array,
+        x: JaxArray,
+        angles: JaxArray,
         num_channels: int,
         center_offset: float = 0.0,
         roi_radius: Optional[float] = None,
-    ) -> Array:
-        return svmbir.project(
-            np.array(x),
-            np.array(angles),
-            num_channels,
-            verbose=0,
-            center_offset=center_offset,
-            roi_radius=roi_radius,
+    ) -> JaxArray:
+        return jax.device_put(
+            svmbir.project(
+                np.array(x),
+                np.array(angles),
+                num_channels,
+                verbose=0,
+                center_offset=center_offset,
+                roi_radius=roi_radius,
+            )
         )
 
     def _proj_hcb(self, x):
@@ -136,21 +138,23 @@ class ParallelBeamProjector(LinearOperator):
 
     @staticmethod
     def _bproj(
-        y: Array,
-        angles: Array,
+        y: JaxArray,
+        angles: JaxArray,
         num_rows: int,
         num_cols: int,
         center_offset: Optional[float] = 0.0,
         roi_radius: Optional[float] = None,
     ):
-        return svmbir.backproject(
-            np.array(y),
-            np.array(angles),
-            num_rows,
-            num_cols,
-            verbose=0,
-            center_offset=center_offset,
-            roi_radius=roi_radius,
+        return jax.device_put(
+            svmbir.backproject(
+                np.array(y),
+                np.array(angles),
+                num_rows,
+                num_cols,
+                verbose=0,
+                center_offset=center_offset,
+                roi_radius=roi_radius,
+            )
         )
 
     def _bproj_hcb(self, y):
@@ -235,7 +239,7 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
 
         self.positivity = positivity
 
-    def prox(self, v: Array, lam: float, **kwargs) -> Array:
+    def prox(self, v: JaxArray, lam: float, **kwargs) -> JaxArray:
         v = v.reshape(self.A.svmbir_input_shape)
         y = self.y.reshape(self.A.svmbir_output_shape)
         weights = self.W.diagonal.reshape(self.A.svmbir_output_shape)
@@ -268,7 +272,7 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
         return jax.device_put(result.reshape(self.A.input_shape))
 
 
-def _unsqueeze(x: Array, input_shape: Shape) -> Array:
+def _unsqueeze(x: JaxArray, input_shape: Shape) -> JaxArray:
     """If x is 2D, make it 3D according to the SVMBIR convention."""
     if len(input_shape) == 2:
         x = x[snp.newaxis, :, :]

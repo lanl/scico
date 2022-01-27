@@ -1,6 +1,6 @@
-# Install scico requirements and run pytest
+# Install scico requirements and run pytest with latest jax version
 
-name: pytest
+name: test w/ latest jax
 
 # Controls when the workflow will run
 on:
@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  pytest:
+  pytest-latest-jax:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
@@ -35,18 +35,7 @@ jobs:
           pip install pytest-cov
           pip install -r requirements.txt
           pip install -r dev_requirements.txt
-          conda install -c astra-toolbox astra-toolbox
-          pip install ray[tune]
-          pip install hyperopt
           pip install -e .
+          pip install --upgrade "jax[cpu]"
       - name: Run tests with pytest
-        run: pytest --cov=scico --cov-report=xml
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v2
-        with:
-          env_vars: OS,PYTHON
-          fail_ci_if_error: false
-          files: coverage.xml
-          flags: unittests
-          name: codecov-umbrella
-          verbose: true
+        run: pytest
