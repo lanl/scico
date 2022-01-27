@@ -1,4 +1,4 @@
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -100,7 +100,7 @@ output_dtype : {self.output_dtype}
                 Defaults to ``None``. If ``None``, `output_shape` is
                 determined by evaluating `self.__call__` on an input
                 array of zeros.
-            jit:  If ``True``, call :meth:`Operator.jit()` on this
+            jit: If ``True``, call :meth:`Operator.jit()` on this
                 Operator to jit the forward, adjoint, and gram functions.
                 Same as calling :meth:`Operator.jit` after the Operator
                 is created.
@@ -109,11 +109,11 @@ output_dtype : {self.output_dtype}
         #: Shape of input array or :class:`.BlockArray`.
         self.input_shape: Union[Shape, BlockShape]
 
-        #: Size of flattened input.  Sum of product of `input_shape` tuples.
+        #: Size of flattened input. Sum of product of `input_shape` tuples.
         self.input_size: int
 
         #: Shape of output array or :class:`.BlockArray`
-        self.output_shape: Union[Shape, BlockShape]  # Something
+        self.output_shape: Union[Shape, BlockShape]
 
         #: Size of flattened output. Sum of product of `output_shape` tuples.
         self.output_size: int
@@ -122,7 +122,7 @@ output_dtype : {self.output_dtype}
         #: Consists of (output_size, input_size)
         self.matrix_shape: Tuple[int, int]
 
-        #: Shape of Operator.  Consists of (output_shape, input_shape).
+        #: Shape of Operator. Consists of (output_shape, input_shape).
         self.shape: Tuple[Union[Shape, BlockShape], Union[Shape, BlockShape]]
 
         #: Dtype of input
@@ -134,7 +134,7 @@ output_dtype : {self.output_dtype}
             self.input_shape = input_shape
         self.input_dtype = input_dtype
 
-        # Allows for dynamic creation of new Operator/LinearOperator, eg for adjoints
+        # Allows for dynamic creation of new Operator/LinearOperator, e.g. for adjoints
         if eval_fn:
             self._eval = eval_fn  # type: ignore
 
@@ -436,15 +436,15 @@ class LinearOperator(Operator):
         Args:
             input_shape: Shape of input array.
             output_shape: Shape of output array.
-                Defaults to None. If None, ``output_shape`` is determined
-                by evaluating ``self.__call__`` on an input array of
-                zeros.
+                Defaults to ``None``. If ``None``, ``output_shape`` is
+                determined by evaluating ``self.__call__`` on an input
+                array of zeros.
             eval_fn: Function used in evaluating this LinearOperator.
-                Defaults to None. If None, then ``self.__call__`` must
-                be defined in any derived classes.
-            adj_fn:  Function used to evaluate the adjoint of this
-                LinearOperator. Defaults to None.  If None, the adjoint
-                is not set, and the :meth:`._set_adjoint`
+                Defaults to ``None``. If ``None``, then ``self.__call__``
+                must be defined in any derived classes.
+            adj_fn: Function used to evaluate the adjoint of this
+                LinearOperator. Defaults to ``None``. If ``None``, the
+                adjoint is not set, and the :meth:`._set_adjoint`
                 will be called silently at the first :meth:`.adj` call or
                 can be called manually.
             input_dtype: `dtype` for input argument.
@@ -452,10 +452,10 @@ class LinearOperator(Operator):
                 complex-valued operations, this must be `complex64` for
                 proper adjoint and gradient calculation.
             output_dtype: `dtype` for output argument.
-                Defaults to None. If None, ``output_shape`` is determined
-                by evaluating ``self.__call__`` on an input array of
-                zeros.
-            jit:  If ``True``, call :meth:`.jit()` on this LinearOperator
+                Defaults to ``None``. If ``None``, ``output_shape`` is
+                determined by evaluating ``self.__call__`` on an input
+                array of zeros.
+            jit: If ``True``, call :meth:`.jit()` on this LinearOperator
                 to jit the forward, adjoint, and gram functions.  Same as
                 calling :meth:`.jit` after the LinearOperator is created.
         """
@@ -607,7 +607,6 @@ class LinearOperator(Operator):
 
         Returns:
             Result of adjoint evaluated at ``y``.
-
         """
         if self._adj is None:
             self._set_adjoint()
