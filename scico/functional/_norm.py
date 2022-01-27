@@ -271,7 +271,6 @@ class NuclearNorm(Functional):
 
     has_eval = True
     has_prox = True
-    is_smooth = False
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         return snp.sum(snp.linalg.svd(x, compute_uv=False))
