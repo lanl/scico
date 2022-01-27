@@ -21,10 +21,6 @@ from scico.scipy.special import gammaln
 from scico.solver import cg
 from scico.typing import JaxArray
 
-__author__ = """\n""".join(
-    ["Luke Pfister <luke.pfister@gmail.com>", "Thilo Balke <thilo.balke@gmail.com>"]
-)
-
 
 def _loss_mul_div_wrapper(func):
     @wraps(func)
