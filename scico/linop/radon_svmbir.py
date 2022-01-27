@@ -193,14 +193,10 @@ class SVMBIRExtendedLoss(Loss):
     :class:`scico.linop.Identity`.
 
     The extended loss differs from a typical weighted squared :math:`\ell_2` loss
-    is the following ways.
-
+    is the following aspects.
     When ``positivity=True``, the prox projects onto the non-negative
-    orthant, but the the loss, :math:`\alpha l(\mb{y}, A(\mb{x}))`,
-    is unaffected by this setting and still evaluates to finite values
-    when :math:`\mb{x}` is not in the non-negative orthant.
-
-    When the ``is_masked`` option of the associated :class:`.ParallelBeamProjector` is True,
+    orthant and the loss is infinite if any element of the input is negative.
+    When the ``is_masked`` option of the associated :class:`.ParallelBeamProjector` is `True`,
     the reconstruction is computed over a masked region of the image as described
     in class :class:`.ParallelBeamProjector`.
     """
