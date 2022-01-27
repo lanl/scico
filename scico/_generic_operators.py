@@ -79,7 +79,6 @@ output_dtype : {self.output_dtype}
         input_dtype: DType = np.float32,
         output_dtype: Optional[DType] = None,
         jit: bool = False,
-        is_smooth: bool = None,
     ):
         r"""
         Args:
@@ -162,9 +161,6 @@ output_dtype : {self.output_dtype}
         self.shape = (self.output_shape, self.input_shape)
         self.matrix_shape = (self.output_size, self.input_size)
 
-        #: True if this is a smooth mapping; false otherwise
-        self.is_smooth = is_smooth
-
         if jit:
             self.jit()
 
@@ -194,7 +190,6 @@ output_dtype : {self.output_dtype}
                     eval_fn=lambda z: self(x(z)),
                     input_dtype=self.input_dtype,
                     output_dtype=x.output_dtype,
-                    is_smooth=(self.is_smooth and x.is_smooth),
                 )
             raise ValueError(f"""Incompatible shapes {self.shape}, {x.shape} """)
 
@@ -218,7 +213,6 @@ output_dtype : {self.output_dtype}
                     eval_fn=lambda x: self(x) + other(x),
                     input_dtype=self.input_dtype,
                     output_dtype=result_type(self.output_dtype, other.output_dtype),
-                    is_smooth=(self.is_smooth and other.is_smooth),
                 )
             raise ValueError(f"shapes {self.shape} and {other.shape} do not match")
         raise TypeError(f"Operation __add__ not defined between {type(self)} and {type(other)}")
@@ -232,7 +226,6 @@ output_dtype : {self.output_dtype}
                     eval_fn=lambda x: self(x) - other(x),
                     input_dtype=self.input_dtype,
                     output_dtype=result_type(self.output_dtype, other.output_dtype),
-                    is_smooth=(self.is_smooth and other.is_smooth),
                 )
             raise ValueError(f"shapes {self.shape} and {other.shape} do not match")
         raise TypeError(f"Operation __sub__ not defined between {type(self)} and {type(other)}")
@@ -245,7 +238,6 @@ output_dtype : {self.output_dtype}
             eval_fn=lambda x: other * self(x),
             input_dtype=self.input_dtype,
             output_dtype=result_type(self.output_dtype, other),
-            is_smooth=self.is_smooth,
         )
 
     def __neg__(self):
@@ -260,7 +252,6 @@ output_dtype : {self.output_dtype}
             eval_fn=lambda x: other * self(x),
             input_dtype=self.input_dtype,
             output_dtype=result_type(self.output_dtype, other),
-            is_smooth=self.is_smooth,
         )
 
     @_wrap_mul_div_scalar
@@ -271,7 +262,6 @@ output_dtype : {self.output_dtype}
             eval_fn=lambda x: self(x) / other,
             input_dtype=self.input_dtype,
             output_dtype=result_type(self.output_dtype, other),
-            is_smooth=self.is_smooth,
         )
 
     def jvp(self, primals, tangents):
@@ -356,7 +346,6 @@ output_dtype : {self.output_dtype}
             input_shape=input_shape,
             output_shape=self.output_shape,
             eval_fn=lambda x: self(concat_args(x)),
-            is_smooth=self.is_smooth,
         )
 
 
@@ -469,7 +458,6 @@ class LinearOperator(Operator):
             input_dtype=input_dtype,
             output_dtype=output_dtype,
             jit=False,
-            is_smooth=True,
         )
 
         if not hasattr(self, "_adj"):
