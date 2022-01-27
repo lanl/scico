@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -20,13 +20,11 @@ from scico.typing import JaxArray
 
 from ._functional import Functional
 
-__author__ = """Luke Pfister <luke.pfister@gmail.com>, Michael McCann <mccann@lanl.gov>"""
-
 
 class L0Norm(Functional):
     r"""The :math:`\ell_0` 'norm'.
 
-    Counts the number of non-zero elements in an array-like.
+    Counts the number of non-zero elements in an array.
     """
 
     has_eval = True
@@ -54,8 +52,8 @@ class L0Norm(Functional):
             \end{cases}
 
         Args:
-            v : Input array :math:`\mb{v}`
-            lam : Thresholding parameter :math:`\lambda`
+            v : Input array :math:`\mb{v}`.
+            lam : Thresholding parameter :math:`\lambda`.
         """
         return snp.where(snp.abs(v) >= lam, v, 0)
 
