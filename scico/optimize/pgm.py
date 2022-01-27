@@ -385,10 +385,9 @@ class RobustLineSearchStepSize(LineSearchStepSize):
 class PGM:
     r"""Proximal Gradient Method (PGM) base class.
 
-    Minimize a function of the form :math:`f(\mb{x}) + g(\mb{x})`.
-
-    The function :math:`g` must have a defined prox and convergence is
-    guaranteed if :math:`f` is smooth.
+    Minimize a function of the form :math:`f(\mb{x}) + g(\mb{x})`, where
+    :math:`f` and the :math:`g` are instances of
+    :class:`.Functional`.
 
     Uses helper :class:`StepSize` to provide an estimate of the Lipschitz
     constant :math:`L` of :math:`f`. The step size :math:`\alpha` is the
@@ -553,9 +552,10 @@ class AcceleratedPGM(PGM):
 
     Minimize a function of the form :math:`f(\mb{x}) + g(\mb{x})`.
 
-    The function :math:`g` must have a defined prox and convergence is
-    guaranteed if :math:`f` is smooth. The accelerated
-    form of PGM is also known as FISTA :cite:`beck-2009-fast`.
+    Minimize a function of the form :math:`f(\mb{x}) + g(\mb{x})`, where
+    :math:`f` and the :math:`g` are instances of
+    :class:`.Functional`. The accelerated form of PGM is also known as
+    FISTA :cite:`beck-2009-fast`.
 
     For documentation on inherited attributes, see :class:`.PGM`.
     """
