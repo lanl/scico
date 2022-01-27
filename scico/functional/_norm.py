@@ -54,6 +54,8 @@ class L0Norm(Functional):
         Args:
             v : Input array :math:`\mb{v}`.
             lam : Thresholding parameter :math:`\lambda`.
+            kwargs: Additional arguments that may be used by derived
+                classes.
         """
         return snp.where(snp.abs(v) >= lam, v, 0)
 
@@ -95,6 +97,8 @@ class L1Norm(Functional):
         Args:
             v: Input array :math:`\mb{v}`.
             lam: Thresholding parameter :math:`\lambda`.
+            kwargs: Additional arguments that may be used by derived
+                classes.
         """
         tmp = snp.abs(v) - lam
         tmp = 0.5 * (tmp + snp.abs(tmp))
@@ -137,6 +141,8 @@ class SquaredL2Norm(Functional):
         Args:
             v:  Input array :math:`\mb{v}`.
             lam: Proximal parameter :math:`\lambda`.
+            kwargs: Additional arguments that may be used by derived
+                classes.
         """
         return v / (1.0 + 2.0 * lam)
 
@@ -179,7 +185,6 @@ class L2Norm(Functional):
             lam: Proximal parameter :math:`\lambda`.
             kwargs: Additional arguments that may be used by derived
                 classes.
-
         """
         norm_v = norm(v)
         if norm_v == 0:
@@ -246,7 +251,6 @@ class L21Norm(Functional):
             lam: Proximal parameter :math:`\lambda`.
             kwargs: Additional arguments that may be used by derived
                 classes.
-
         """
 
         length = norm(v, axis=self.l2_axis, keepdims=True)
