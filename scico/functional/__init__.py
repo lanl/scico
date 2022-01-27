@@ -11,7 +11,7 @@ import sys
 
 # isort: off
 from ._functional import Functional, ScaledFunctional, SeparableFunctional, ZeroFunctional
-from ._norm import L0Norm, L1Norm, SquaredL2Norm, L2Norm, L21Norm
+from ._norm import L0Norm, L1Norm, SquaredL2Norm, L2Norm, L21Norm, NuclearNorm
 from ._indicator import NonNegativeIndicator, L2BallIndicator
 from ._flax import FlaxMap
 from ._denoiser import BM3D, DnCNN
@@ -28,6 +28,7 @@ __all__ = [
     "L2Norm",
     "L21Norm",
     "NonNegativeIndicator",
+    "NuclearNorm",
     "L2BallIndicator",
     "FlaxMap",
     "BM3D",

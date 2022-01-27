@@ -17,9 +17,7 @@ from scico.blockarray import BlockArray
 from scico.random import randn
 from scico.solver import minimize
 
-NO_BLOCK_ARRAY = [
-    functional.L21Norm,
-]
+NO_BLOCK_ARRAY = [functional.L21Norm, functional.NuclearNorm]
 NO_COMPLEX = [
     functional.NonNegativeIndicator,
 ]

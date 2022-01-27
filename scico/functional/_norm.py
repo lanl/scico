@@ -52,8 +52,8 @@ class L0Norm(Functional):
             \end{cases}
 
         Args:
-            v : Input array :math:`\mb{v}`.
-            lam : Thresholding parameter :math:`\lambda`.
+            v: Input array :math:`\mb{v}`.
+            lam: Thresholding parameter :math:`\lambda`.
             kwargs: Additional arguments that may be used by derived
                 classes.
         """
@@ -139,7 +139,7 @@ class SquaredL2Norm(Functional):
             = \frac{\mb{v}}{1 + 2 \lambda} \;.
 
         Args:
-            v:  Input array :math:`\mb{v}`.
+            v: Input array :math:`\mb{v}`.
             lam: Proximal parameter :math:`\lambda`.
             kwargs: Additional arguments that may be used by derived
                 classes.
@@ -181,7 +181,7 @@ class L2Norm(Functional):
             \end{cases}
 
         Args:
-            v:  Input array :math:`\mb{v}`.
+            v: Input array :math:`\mb{v}`.
             lam: Proximal parameter :math:`\lambda`.
             kwargs: Additional arguments that may be used by derived
                 classes.
@@ -247,7 +247,7 @@ class L21Norm(Functional):
             \end{cases}
 
         Args:
-            v:  Input array :math:`\mb{v}`.
+            v: Input array :math:`\mb{v}`.
             lam: Proximal parameter :math:`\lambda`.
             kwargs: Additional arguments that may be used by derived
                 classes.
@@ -261,3 +261,41 @@ class L21Norm(Functional):
         new_length = 0.5 * (new_length + snp.abs(new_length))
 
         return new_length * direction
+
+
+class NuclearNorm(Functional):
+    r"""Nuclear norm.
+
+    Compute the nuclear norm
+
+    .. math::
+      \| X \|_* = \sum_i \sigma_i
+
+    where :math:`\sigma_i` are the singular values of matrix :math:`X`.
+    """
+
+    has_eval = True
+    has_prox = True
+    is_smooth = False
+
+    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+        return snp.sum(snp.linalg.svd(x, compute_uv=False))
+
+    def prox(
+        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[JaxArray, BlockArray]:
+        r"""Evaluate proximal operator of the nuclear norm.
+
+        Evaluate proximal operator of the nuclear norm
+        :cite:`cai-2010-singular`.
+
+        Args:
+            v: Input array :math:`\mb{v}`.
+            lam: Proximal parameter :math:`\lambda`.
+            kwargs: Additional arguments that may be used by derived
+                classes.
+        """
+
+        svdU, svdS, svdV = snp.linalg.svd(v, full_matrices=False)
+        svdS = snp.maximum(0, svdS - lam)
+        return snp.dot(svdU, np.dot(snp.diag(svdS), svdV)), svdS
