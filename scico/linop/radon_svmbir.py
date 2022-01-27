@@ -19,10 +19,10 @@ import jax
 import jax.experimental.host_callback
 
 import scico.numpy as snp
-from scico.loss import WeightedSquaredL2Loss
+from scico.loss import Loss, WeightedSquaredL2Loss
 from scico.typing import JaxArray, Shape
 
-from ._linop import LinearOperator
+from ._linop import Diagonal, Identity, LinearOperator
 
 try:
     import svmbir
@@ -57,7 +57,8 @@ class ParallelBeamProjector(LinearOperator):
             angles: Array of projection angles in radians, should be
                 increasing.
             num_channels: Number of pixels in the sinogram.
-            center_offset: Position of the detector center relative to the center-of-rotation, in units of pixels
+            center_offset: Position of the detector center relative to the center-of-rotation,
+                in units of pixels
             is_masked: If True, the valid region of the image is
                 determined by a mask defined as the circle inscribed
                 within the image boundary. Otherwise, the whole image
@@ -80,7 +81,8 @@ class ParallelBeamProjector(LinearOperator):
                 f"Only 2D and 3D inputs are supported, but input_shape was {input_shape}"
             )
 
-        if is_masked:
+        self.is_masked = is_masked
+        if self.is_masked:
             self.roi_radius = None
         else:
             self.roi_radius = max(self.svmbir_input_shape[1], self.svmbir_input_shape[2])
@@ -175,10 +177,10 @@ class ParallelBeamProjector(LinearOperator):
         return x.reshape(self.input_shape)
 
 
-class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
-    r"""Weighted squared :math:`\ell_2` loss with svmbir CT projector.
+class SVMBIRExtendedLoss(Loss):
+    r"""Extended Weighted squared :math:`\ell_2` loss with svmbir CT projector.
 
-    Weighted squared :math:`\ell_2` loss of a CT reconstruction problem,
+    Generalization of the weighted squared :math:`\ell_2` loss of a CT reconstruction problem,
 
     .. math::
         \alpha \norm{\mb{y} - A(\mb{x})}_W^2 =
@@ -190,10 +192,17 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
     of :class:`scico.linop.Diagonal`. If :math:`W` is None, it is set to
     :class:`scico.linop.Identity`.
 
+    The extended loss differs from a typical weighted squared :math:`\ell_2` loss
+    is the following ways.
+
     When ``positivity=True``, the prox projects onto the non-negative
     quadrant, but the the loss, :math:`\alpha l(\mb{y}, A(\mb{x}))`,
     is unaffected by this setting and still evaluates to finite values
     when :math:`\mb{x}` is not in the non-negative quadrant.
+
+    When the ``is_masked`` option of the associated ParallelBeamProjector is True,
+    the reconstruction is computed over a masked region of the image as described
+    in the ParallelBeamProjector class.
     """
 
     def __init__(
@@ -201,9 +210,10 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
         *args,
         prox_kwargs: dict = {"maxiter": 1000, "ctol": 0.001},
         positivity: bool = False,
+        W: Optional[Diagonal] = None,
         **kwargs,
     ):
-        r"""Initialize a :class:`SVMBIRWeightedSquaredL2Loss` object.
+        r"""Initialize a :class:`SVMBIRExtendedLoss` object.
 
         Args:
             y: Sinogram measurement.
@@ -239,6 +249,16 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
 
         self.positivity = positivity
 
+        if W is None:
+            self.W = Identity(self.y.shape)
+        elif isinstance(W, Diagonal):
+            if snp.all(W.diagonal >= 0):
+                self.W = W
+            else:
+                raise Exception(f"The weights, W.diagonal, must be non-negative.")
+        else:
+            raise TypeError(f"W must be None or a linop.Diagonal, got {type(W)}")
+
     def prox(self, v: JaxArray, lam: float, **kwargs) -> JaxArray:
         v = v.reshape(self.A.svmbir_input_shape)
         y = self.y.reshape(self.A.svmbir_output_shape)
@@ -270,6 +290,51 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
             raise ValueError("Result contains NaNs")
 
         return jax.device_put(result.reshape(self.A.input_shape))
+
+
+class SVMBIRWeightedSquaredL2Loss(SVMBIRExtendedLoss, WeightedSquaredL2Loss):
+    r"""Weighted squared :math:`\ell_2` loss with svmbir CT projector.
+
+    Weighted squared :math:`\ell_2` loss of a CT reconstruction problem,
+
+    .. math::
+        \alpha \norm{\mb{y} - A(\mb{x})}_W^2 =
+        \alpha \left(\mb{y} - A(\mb{x})\right)^T W \left(\mb{y} -
+        A(\mb{x})\right) \;,
+
+    where :math:`A` is a :class:`.ParallelBeamProjector`,
+    :math:`\alpha` is the scaling parameter and :math:`W` is an instance
+    of :class:`scico.linop.Diagonal`. If :math:`W` is None, it is set to
+    :class:`scico.linop.Identity`.
+    """
+
+    def __init__(
+        self,
+        *args,
+        prox_kwargs: dict = {"maxiter": 1000, "ctol": 0.001},
+        **kwargs,
+    ):
+        r"""Initialize a :class:`SVMBIRWeightedSquaredL2Loss` object.
+
+        Args:
+            y: Sinogram measurement.
+            A: Forward operator.
+            scale: Scaling parameter.
+            W:  Weighting diagonal operator. Must be non-negative.
+                If None, defaults to :class:`.Identity`.
+            prox_kwargs: Dictionary of arguments passed to the
+                :meth:`svmbir.recon` prox routine. Note that omitting
+                this dictionary will cause the default dictionary to be
+                used, however omitting entries in the passed dictionary
+                causes the defaults of the underlying :meth:`svmbir.recon`
+                prox routine to be used.
+        """
+        super().__init__(*args, **kwargs, prox_kwargs=prox_kwargs, positivity=False)
+
+        if self.A.is_masked:
+            raise ValueError(
+                "is_masked must be false for the ParallelBeamProjector in SVMBIRWeightedSquaredL2Loss."
+            )
 
 
 def _unsqueeze(x: JaxArray, input_shape: Shape) -> JaxArray:
