@@ -156,11 +156,6 @@ class WeightedSquaredL2Loss(Loss):
             prox_kwargs = dict
         self.prox_kwargs = prox_kwargs
 
-        if isinstance(A, operator.Operator):
-            self.is_smooth = A.is_smooth
-        else:
-            self.is_smooth = None
-
         if isinstance(self.A, linop.Diagonal) and isinstance(self.W, linop.Diagonal):
             self.has_prox = True
 
@@ -284,9 +279,6 @@ class PoissonLoss(Loss):
 
         #: Constant term in Poisson log likehood; equal to ln(y!)
         self.const: float = gammaln(self.y + 1)  # ln(y!)
-
-        # The Poisson Loss is only smooth in the positive quadrant.
-        self.is_smooth = None
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         Ax = self.A(x)

@@ -25,7 +25,6 @@ class FlaxMap(Functional):
 
     has_eval = False
     has_prox = True
-    is_smooth = False
 
     def __init__(self, model: Callable[..., nn.Module], variables: PyTree):
         r"""Initialize a :class:`FlaxMap` object.
