@@ -386,8 +386,7 @@ class PGM:
     r"""Proximal Gradient Method (PGM) base class.
 
     Minimize a function of the form :math:`f(\mb{x}) + g(\mb{x})`, where
-    :math:`f` and the :math:`g` are instances of
-    :class:`.Functional`.
+    :math:`f` and the :math:`g` are instances of :class:`.Functional`.
 
     Uses helper :class:`StepSize` to provide an estimate of the Lipschitz
     constant :math:`L` of :math:`f`. The step size :math:`\alpha` is the
@@ -553,9 +552,9 @@ class AcceleratedPGM(PGM):
     Minimize a function of the form :math:`f(\mb{x}) + g(\mb{x})`.
 
     Minimize a function of the form :math:`f(\mb{x}) + g(\mb{x})`, where
-    :math:`f` and the :math:`g` are instances of
-    :class:`.Functional`. The accelerated form of PGM is also known as
-    FISTA :cite:`beck-2009-fast`.
+    :math:`f` and the :math:`g` are instances of :class:`.Functional`.
+    The accelerated form of PGM is also known as FISTA
+    :cite:`beck-2009-fast`.
 
     For documentation on inherited attributes, see :class:`.PGM`.
     """
