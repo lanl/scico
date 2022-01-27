@@ -204,7 +204,7 @@ class SVMBIRExtendedLoss(Loss):
     def __init__(
         self,
         *args,
-        prox_kwargs: dict = {},
+        prox_kwargs: Optional[dict] = None,
         positivity: bool = False,
         W: Optional[Diagonal] = None,
         **kwargs,
@@ -230,10 +230,13 @@ class SVMBIRExtendedLoss(Loss):
 
         self.has_prox = True
 
+        if prox_kwargs is None:
+            prox_kwargs = {}
+
         default_prox_args = {"maxiter": 1000, "ctol": 0.001}
         default_prox_args.update(prox_kwargs)
 
-        svmbir_prox_args = dict()
+        svmbir_prox_args = {}
         if "maxiter" in default_prox_args:
             svmbir_prox_args["max_iterations"] = default_prox_args["maxiter"]
         if "ctol" in default_prox_args:
@@ -311,7 +314,7 @@ class SVMBIRWeightedSquaredL2Loss(SVMBIRExtendedLoss, WeightedSquaredL2Loss):
     def __init__(
         self,
         *args,
-        prox_kwargs: dict = {},
+        prox_kwargs: Optional[dict] = None,
         **kwargs,
     ):
         r"""Initialize a :class:`SVMBIRWeightedSquaredL2Loss` object.
