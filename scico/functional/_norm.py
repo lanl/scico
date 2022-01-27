@@ -298,4 +298,4 @@ class NuclearNorm(Functional):
 
         svdU, svdS, svdV = snp.linalg.svd(v, full_matrices=False)
         svdS = snp.maximum(0, svdS - lam)
-        return snp.dot(svdU, np.dot(snp.diag(svdS), svdV)), svdS
+        return svdU @ snp.diag(svdS) @ svdV
