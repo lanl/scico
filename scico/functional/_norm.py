@@ -29,7 +29,6 @@ class L0Norm(Functional):
 
     has_eval = True
     has_prox = True
-    is_smooth = False
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         return count_nonzero(x)
@@ -71,7 +70,6 @@ class L1Norm(Functional):
 
     has_eval = True
     has_prox = True
-    is_smooth = False
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         return snp.abs(x).sum()
@@ -120,7 +118,6 @@ class SquaredL2Norm(Functional):
 
     has_eval = True
     has_prox = True
-    is_smooth = True
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         # Directly implement the squared l2 norm to avoid nondifferentiable
@@ -156,7 +153,6 @@ class L2Norm(Functional):
 
     has_eval = True
     has_prox = True
-    is_smooth = False
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         return norm(x)
@@ -213,7 +209,6 @@ class L21Norm(Functional):
 
     has_eval = True
     has_prox = True
-    is_smooth = False
 
     def __init__(self, l2_axis: int = 0):
         r"""
