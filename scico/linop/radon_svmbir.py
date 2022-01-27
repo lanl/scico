@@ -20,7 +20,7 @@ import jax.experimental.host_callback
 
 import scico.numpy as snp
 from scico.loss import Loss, WeightedSquaredL2Loss
-from scico.typing import Array, Shape
+from scico.typing import Array, JaxArray, Shape
 
 from ._linop import Diagonal, Identity, LinearOperator
 
