@@ -208,7 +208,7 @@ class SVMBIRExtendedLoss(Loss):
     def __init__(
         self,
         *args,
-        prox_kwargs: Optional[dict] = None,
+        prox_kwargs: dict = {},
         positivity: bool = False,
         W: Optional[Diagonal] = None,
         **kwargs,
@@ -225,7 +225,7 @@ class SVMBIRExtendedLoss(Loss):
                 :meth:`svmbir.recon` prox routine. Defaults to
                 {"maxiter": 1000, "ctol": 0.001}.
             positivity: Enforce positivity in the prox operation. The
-                loss is infinity if any element of the input is negative.
+                loss is infinite if any element of the input is negative.
         """
         super().__init__(*args, **kwargs)
 
@@ -233,9 +233,6 @@ class SVMBIRExtendedLoss(Loss):
             raise ValueError("LinearOperator A must be a radon_svmbir.ParallelBeamProjector.")
 
         self.has_prox = True
-
-        if prox_kwargs is None:
-            prox_kwargs = dict()
 
         default_prox_args = {"maxiter": 1000, "ctol": 0.001}
         default_prox_args.update(prox_kwargs)
@@ -255,7 +252,7 @@ class SVMBIRExtendedLoss(Loss):
             if snp.all(W.diagonal >= 0):
                 self.W = W
             else:
-                raise Exception(f"The weights, W.diagonal, must be non-negative.")
+                raise Exception(f"The weights, W, must be non-negative.")
         else:
             raise TypeError(f"W must be None or a linop.Diagonal, got {type(W)}")
 
@@ -318,7 +315,7 @@ class SVMBIRWeightedSquaredL2Loss(SVMBIRExtendedLoss, WeightedSquaredL2Loss):
     def __init__(
         self,
         *args,
-        prox_kwargs: dict = {"maxiter": 1000, "ctol": 0.001},
+        prox_kwargs: dict = {},
         **kwargs,
     ):
         r"""Initialize a :class:`SVMBIRWeightedSquaredL2Loss` object.
