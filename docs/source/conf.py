@@ -155,7 +155,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "SCICO"
-copyright = "2020-2021, SCICO Developers"
+copyright = "2020-2022, SCICO Developers"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -438,6 +438,19 @@ def class_inherit_diagrams(_):
         insert_inheritance_diagram(cls)
 
 
+def process_docstring(app, what, name, obj, options, lines):
+    # Don't show docs for inherited members in classes in scico.flax.
+    # This is primarily useful for silencing warnings due to problems in
+    # the current release of flax, but is arguably also useful in avoiding
+    # extensive documentation of methods that are likely to be of limited
+    # interest to users of the scico.flax classes.
+    #
+    # See https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html
+    # for documentation of the autodoc-process-docstring event used here.
+    if what == "class" and "scico.flax." in name:
+        options["inherited-members"] = False
+
+
 def setup(app):
 
     app.add_css_file("scico.css")
@@ -445,3 +458,4 @@ def setup(app):
         "http://netdna.bootstrapcdn.com/font-awesome/4.7.0/" "css/font-awesome.min.css"
     )
     app.connect("builder-inited", class_inherit_diagrams)
+    app.connect("autodoc-process-docstring", process_docstring)

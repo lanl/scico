@@ -1,5 +1,6 @@
 import numpy as np
 
+import scico.numpy as snp
 from scico import metric
 
 
@@ -53,3 +54,17 @@ class TestSet:
         n /= np.sqrt(np.var(n))
         y = x + n
         assert np.abs(metric.bsnr(x, y)) < 1e-6
+
+
+def test_rel_res():
+    A = snp.array([[2, -1], [1, 0], [-1, 1]], dtype=snp.float32)
+    x = snp.array([[3], [-2]], dtype=snp.float32)
+    Ax = snp.matmul(A, x)
+    b = snp.array([[8], [3], [-5]], dtype=snp.float32)
+    assert 0.0 == metric.rel_res(Ax, b)
+
+    A = snp.array([[2, -1], [1, 0], [-1, 1]], dtype=snp.float32)
+    x = snp.array([[0], [0]], dtype=snp.float32)
+    Ax = snp.matmul(A, x)
+    b = snp.array([[0], [0], [0]], dtype=snp.float32)
+    assert 0.0 == metric.rel_res(Ax, b)

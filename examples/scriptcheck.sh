@@ -17,7 +17,7 @@ fi
 
 # Set environment variables and paths. This script is assumed to be run
 # from its root directory.
-export PYTHONPATH=$((cd .. && pwd))
+export PYTHONPATH=$(cd .. && pwd)
 export PYTHONIOENCODING=utf-8
 d='/tmp/scriptcheck_'$$
 mkdir -p $d

@@ -4,4 +4,4 @@ nb_conda_kernels
 psutil
 py2jn
 pypandoc
-ray
+ray[tune]
