@@ -228,7 +228,7 @@ class SVMBIRExtendedLoss(Loss):
                 causes the defaults of the underlying :meth:`svmbir.recon`
                 prox routine to be used.
             positivity: Enforce positivity in the prox operation. The
-                loss is not affected.
+                loss is infinity if any element of the input is negative.
         """
         super().__init__(*args, **kwargs)
 
@@ -258,6 +258,13 @@ class SVMBIRExtendedLoss(Loss):
                 raise Exception(f"The weights, W.diagonal, must be non-negative.")
         else:
             raise TypeError(f"W must be None or a linop.Diagonal, got {type(W)}")
+
+    def __call__(self, x: JaxArray) -> float:
+
+        if self.positivity and snp.sum(x < 0) > 0:
+            return snp.inf
+        else:
+            return self.scale * (self.W.diagonal * snp.abs(self.y - self.A(x)) ** 2).sum()
 
     def prox(self, v: JaxArray, lam: float, **kwargs) -> JaxArray:
         v = v.reshape(self.A.svmbir_input_shape)
