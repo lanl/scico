@@ -23,15 +23,6 @@ import scico.blockarray
 import scico.numpy as snp
 from scico.typing import ArrayIndex, Axes, AxisIndex, JaxArray, Shape
 
-__author__ = """\n""".join(
-    [
-        "Brendt Wohlberg <brendt@ieee.org>",
-        "Luke Pfister <luke.pfister@gmail.com>",
-        "Thilo Balke <thilo.balke@gmail.com>",
-        "Michael McCann <mccann@lanl.gov>",
-    ]
-)
-
 
 def ensure_on_device(
     *arrays: Union[np.ndarray, JaxArray, scico.blockarray.BlockArray]
@@ -141,27 +132,34 @@ def parse_axes(
     return axes
 
 
-def slice_length(length: int, slc: AxisIndex) -> int:
-    """Determine the length of an array axis after slicing.
+def slice_length(length: int, idx: AxisIndex) -> Optional[int]:
+    """Determine the length of an array axis after indexing.
+
+    Determine the length of an array axis after slicing. An exception is
+    raised if the indexing expression is an integer that is out of bounds
+    for the specified axis length. A value of ``None`` is returned for
+    valid integer indexing expressions as an indication that the
+    corresponding axis shape is an empty tuple; this value should be
+    converted to a unit integer if the axis size is required.
 
     Args:
         length: Length of axis being sliced.
-        slc: Slice/indexing to be applied to axis.
+        idx: Indexing/slice to be applied to axis.
 
     Returns:
-        Length of sliced axis.
+        Length of indexed/sliced axis.
 
     Raises:
-        ValueError: If `slc` is an integer index that is out bounds for
+        ValueError: If `idx` is an integer index that is out bounds for
             the axis length.
     """
-    if slc is Ellipsis:
+    if idx is Ellipsis:
         return length
-    if isinstance(slc, int):
-        if slc < -length or slc > length - 1:
-            raise ValueError(f"Index {slc} out of bounds for axis of length {length}.")
-        return 1
-    start, stop, stride = slc.indices(length)
+    if isinstance(idx, int):
+        if idx < -length or idx > length - 1:
+            raise ValueError(f"Index {idx} out of bounds for axis of length {length}.")
+        return None
+    start, stop, stride = idx.indices(length)
     if start > stop:
         start = stop
     return (stop - start + stride - 1) // stride
@@ -187,12 +185,11 @@ def indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int]:
     idx_shape = list(shape)
     offset = 0
     for axis, ax_idx in enumerate(idx):
-        print(axis, offset)
         if ax_idx is Ellipsis:
             offset = len(shape) - len(idx)
             continue
         idx_shape[axis + offset] = slice_length(shape[axis + offset], ax_idx)
-    return tuple(idx_shape)
+    return tuple(filter(lambda x: x is not None, idx_shape))
 
 
 def is_nested(x: Any) -> bool:

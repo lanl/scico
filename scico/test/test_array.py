@@ -112,13 +112,17 @@ def test_slice_length(length, start, stop, stride):
 @pytest.mark.parametrize("slc", (0, 1, -4, Ellipsis))
 def test_slice_length_other(length, slc):
     x = np.zeros(length)
-    assert x[slc].size == slice_length(length, slc)
+    if isinstance(slc, int):
+        assert slice_length(length, slc) is None
+    else:
+        assert x[slc].size == slice_length(length, slc)
 
 
 @pytest.mark.parametrize("shape", ((8, 8, 1), (7, 1, 6, 5)))
 @pytest.mark.parametrize(
     "slc",
     (
+        np.s_[0],
         np.s_[0:5],
         np.s_[:, 0:4],
         np.s_[2:, :, :-2],
