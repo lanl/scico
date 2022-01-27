@@ -14,9 +14,9 @@ import numpy as np
 import jax
 from jax import numpy as jnp
 
+from scico.array import is_nested
 from scico.blockarray import BlockArray
 from scico.typing import BlockShape, DType, JaxArray, Shape
-from scico.util import is_nested
 
 
 def zeros(

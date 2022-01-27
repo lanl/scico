@@ -48,6 +48,7 @@ class ParallelBeamProjector(LinearOperator):
         input_shape: Shape,
         angles: np.ndarray,
         num_channels: int,
+        center_offset: Optional[float] = 0.0,
         is_masked: Optional[bool] = False,
     ):
         """
@@ -56,6 +57,7 @@ class ParallelBeamProjector(LinearOperator):
             angles: Array of projection angles in radians, should be
                 increasing.
             num_channels: Number of pixels in the sinogram.
+            center_offset: Position of the detector center relative to the center-of-rotation, in units of pixels
             is_masked: If True, the valid region of the image is
                 determined by a mask defined as the circle inscribed
                 within the image boundary. Otherwise, the whole image
@@ -63,6 +65,7 @@ class ParallelBeamProjector(LinearOperator):
         """
         self.angles = angles
         self.num_channels = num_channels
+        self.center_offset = center_offset
 
         if len(input_shape) == 2:  # 2D input
             self.svmbir_input_shape = (1,) + input_shape
@@ -100,17 +103,34 @@ class ParallelBeamProjector(LinearOperator):
 
     @staticmethod
     def _proj(
-        x: JaxArray, angles: JaxArray, num_channels: int, roi_radius: Optional[float] = None
+        x: JaxArray,
+        angles: JaxArray,
+        num_channels: int,
+        center_offset: Optional[float] = 0.0,
+        roi_radius: Optional[float] = None,
     ) -> JaxArray:
-        return svmbir.project(
-            np.array(x), np.array(angles), num_channels, verbose=0, roi_radius=roi_radius
+        return jax.device_put(
+            svmbir.project(
+                np.array(x),
+                np.array(angles),
+                num_channels,
+                verbose=0,
+                center_offset=center_offset,
+                roi_radius=roi_radius,
+            )
         )
 
     def _proj_hcb(self, x):
         x = x.reshape(self.svmbir_input_shape)
         # host callback wrapper for _proj
         y = jax.experimental.host_callback.call(
-            lambda x: self._proj(x, self.angles, self.num_channels, self.roi_radius),
+            lambda x: self._proj(
+                x,
+                self.angles,
+                self.num_channels,
+                center_offset=self.center_offset,
+                roi_radius=self.roi_radius,
+            ),
             x,
             result_shape=jax.ShapeDtypeStruct(self.svmbir_output_shape, self.output_dtype),
         )
@@ -122,10 +142,19 @@ class ParallelBeamProjector(LinearOperator):
         angles: JaxArray,
         num_rows: int,
         num_cols: int,
+        center_offset: Optional[float] = 0.0,
         roi_radius: Optional[float] = None,
     ):
-        return svmbir.backproject(
-            np.array(y), np.array(angles), num_rows, num_cols, verbose=0, roi_radius=roi_radius
+        return jax.device_put(
+            svmbir.backproject(
+                np.array(y),
+                np.array(angles),
+                num_rows,
+                num_cols,
+                verbose=0,
+                center_offset=center_offset,
+                roi_radius=roi_radius,
+            )
         )
 
     def _bproj_hcb(self, y):
@@ -137,7 +166,8 @@ class ParallelBeamProjector(LinearOperator):
                 self.angles,
                 self.svmbir_input_shape[1],
                 self.svmbir_input_shape[2],
-                self.roi_radius,
+                center_offset=self.center_offset,
+                roi_radius=self.roi_radius,
             ),
             y,
             result_shape=jax.ShapeDtypeStruct(self.svmbir_input_shape, self.input_dtype),
@@ -227,6 +257,7 @@ class SVMBIRWeightedSquaredL2Loss(WeightedSquaredL2Loss):
             prox_image=np.array(v),
             num_rows=self.A.svmbir_input_shape[1],
             num_cols=self.A.svmbir_input_shape[2],
+            center_offset=self.A.center_offset,
             roi_radius=self.A.roi_radius,
             sigma_p=float(sigma_p),
             sigma_y=1.0,

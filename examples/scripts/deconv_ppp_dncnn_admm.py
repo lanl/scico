@@ -9,7 +9,7 @@ Image Deconvolution (ADMM Plug-and-Play Priors w/ DnCNN)
 ========================================================
 
 This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.optimize.html#scico.optimize.ADMM) to
+[admm.ADMM](../_autosummary/scico.optimize.rst#scico.optimize.ADMM) to
 solve an image deconvolution problem using the Plug-and-Play Priors
 framework :cite:`venkatakrishnan-2013-plugandplay2`, using DnCNN
 :cite:`zhang-2017-dncnn` as a denoiser.
@@ -53,14 +53,13 @@ y = Ax + σ * noise
 """
 Load DnCNN denoiser and create map object.
 """
-λ = 15.0 / 255  # regularization strength
-g = λ * functional.DnCNN("17M")
+g = functional.DnCNN("17M")
 
 
 """
 Set up an ADMM solver.
 """
-ρ = 1.0  # ADMM penalty parameter
+ρ = 0.2  # ADMM penalty parameter
 maxiter = 10  # number of ADMM iterations
 
 f = loss.SquaredL2Loss(y=y, A=A)
