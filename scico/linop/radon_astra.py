@@ -31,8 +31,6 @@ from scico.typing import JaxArray, Shape
 
 from ._linop import LinearOperator
 
-__author__ = """Luke Pfister <luke.pfister@gmail.com>"""
-
 
 class ParallelBeamProjector(LinearOperator):
     r"""Parallel beam Radon transform based on the ASTRA toolbox.
