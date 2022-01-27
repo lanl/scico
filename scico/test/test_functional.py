@@ -161,7 +161,7 @@ class TestNormProx:
         # Test checks extended Moreau decomposition at a random vector
         lhs = nrmobj.prox(v, alpha) + alpha * nrmobj.conj_prox(v / alpha, 1.0 / alpha)
         rhs = v
-        np.testing.assert_allclose(lhs, rhs, rtol=5e-7, atol=0.0)
+        np.testing.assert_allclose(lhs, rhs, rtol=1e-6, atol=0.0)
 
     @pytest.mark.parametrize("norm", normlist_blockarray_ready)
     @pytest.mark.parametrize("alpha", alphalist)
