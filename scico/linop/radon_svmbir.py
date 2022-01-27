@@ -196,13 +196,13 @@ class SVMBIRExtendedLoss(Loss):
     is the following ways.
 
     When ``positivity=True``, the prox projects onto the non-negative
-    quadrant, but the the loss, :math:`\alpha l(\mb{y}, A(\mb{x}))`,
+    orthant, but the the loss, :math:`\alpha l(\mb{y}, A(\mb{x}))`,
     is unaffected by this setting and still evaluates to finite values
-    when :math:`\mb{x}` is not in the non-negative quadrant.
+    when :math:`\mb{x}` is not in the non-negative orthant.
 
-    When the ``is_masked`` option of the associated ParallelBeamProjector is True,
+    When the ``is_masked`` option of the associated :class:`.ParallelBeamProjector` is True,
     the reconstruction is computed over a masked region of the image as described
-    in the ParallelBeamProjector class.
+    in class :class:`.ParallelBeamProjector`.
     """
 
     def __init__(
