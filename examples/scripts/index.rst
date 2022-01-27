@@ -45,6 +45,7 @@ Miscellaneous
    - denoise_tv_iso_admm.py
    - denoise_tv_iso_pgm.py
    - denoise_tv_iso_multi.py
+   - video_rpca_admm.py
 
 
 
@@ -84,6 +85,7 @@ Sparsity
    - sparsecode_pgm.py
    - sparsecode_poisson_blkarr_pgm.py
    - sparsecode_poisson_pgm.py
+   - video_rpca_admm.py
 
 
 
@@ -108,6 +110,7 @@ ADMM
    - denoise_tv_iso_admm.py
    - denoise_tv_iso_multi.py
    - sparsecode_admm.py
+   - video_rpca_admm.py
 
 
 Linearized ADMM
