@@ -18,6 +18,11 @@ variant of the Robust PCA problem
 where $\mathbf{x}_0$ and $\mathbf{x}_1$ are respectively low-rank and
 sparse components, $\| \cdot \|_*$ denotes the nuclear norm, and
 $\| \cdot \|_1$ denotes the $\ell_1$ norm.
+
+Note: while video foreground/background separation is not an example of
+the scientific and computational imaging problems that are the focus of
+SCICO, it provides a convenient demonstration of Robust PCA, which does
+have potential application in scientific imaging problems.
 """
 
 import imageio
