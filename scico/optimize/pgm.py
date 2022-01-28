@@ -24,14 +24,6 @@ from scico.loss import Loss
 from scico.typing import JaxArray
 from scico.util import Timer
 
-__author__ = """\n""".join(
-    [
-        "Luke Pfister <luke.pfister@gmail.com>",
-        "Cristina Garcia-Cardona <cgarciac@lanl.gov>",
-        "Thilo Balke <thilo.balke@gmail.com>",
-    ]
-)
-
 
 class PGMStepSize:
     r"""Base class for computing the PGM step size.

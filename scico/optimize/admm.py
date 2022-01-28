@@ -30,10 +30,6 @@ from scico.solver import minimize
 from scico.typing import JaxArray
 from scico.util import Timer
 
-__author__ = """\n""".join(
-    ["Luke Pfister <luke.pfister@gmail.com>", "Brendt Wohlberg <brendt@ieee.org>"]
-)
-
 
 class SubproblemSolver:
     r"""Base class for solvers for the non-separable ADMM step.

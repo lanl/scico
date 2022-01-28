@@ -8,11 +8,18 @@ import imageio
 from scico.examples import (
     downsample_volume,
     epfl_deconv_data,
+    rgb2gray,
     tile_volume_slices,
     volume_read,
 )
 
 # These tests are for the scico.examples module, NOT the example scripts
+
+
+def test_rgb2gray():
+    rgb = np.ones((31, 32, 3), dtype=np.float32)
+    gry = rgb2gray(rgb)
+    assert np.abs(gry.mean() - 1.0) < 1e-6
 
 
 def test_volume_read():
