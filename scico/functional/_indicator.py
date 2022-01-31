@@ -37,7 +37,6 @@ class NonNegativeIndicator(Functional):
 
     has_eval = True
     has_prox = True
-    is_smooth = False
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         if snp.iscomplexobj(x):
@@ -87,7 +86,6 @@ class L2BallIndicator(Functional):
 
     has_eval = True
     has_prox = True
-    is_smooth = False
 
     def __init__(self, radius: float = 1):
         r"""Initialize a :class:`L2BallIndicator` object.

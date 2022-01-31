@@ -17,9 +17,7 @@ from scico.blockarray import BlockArray
 from scico.random import randn
 from scico.solver import minimize
 
-NO_BLOCK_ARRAY = [
-    functional.L21Norm,
-]
+NO_BLOCK_ARRAY = [functional.L21Norm, functional.NuclearNorm]
 NO_COMPLEX = [
     functional.NonNegativeIndicator,
 ]
@@ -141,6 +139,7 @@ class TestNormProx:
         functional.SquaredL2Norm,
         functional.L2Norm,
         functional.L21Norm,
+        functional.NuclearNorm,
         functional.ZeroFunctional,
     ]
 
@@ -162,7 +161,7 @@ class TestNormProx:
         # Test checks extended Moreau decomposition at a random vector
         lhs = nrmobj.prox(v, alpha) + alpha * nrmobj.conj_prox(v / alpha, 1.0 / alpha)
         rhs = v
-        np.testing.assert_allclose(lhs, rhs, rtol=5e-7, atol=0.0)
+        np.testing.assert_allclose(lhs, rhs, rtol=1e-6, atol=0.0)
 
     @pytest.mark.parametrize("norm", normlist_blockarray_ready)
     @pytest.mark.parametrize("alpha", alphalist)
@@ -187,7 +186,6 @@ class TestNormProx:
         unscaled = norm()
         scaled = test_prox_obj.scalar * norm()
 
-        assert scaled.is_smooth == unscaled.is_smooth
         assert scaled.has_eval == unscaled.has_eval
         assert scaled.has_prox == unscaled.has_prox
         assert scaled.scale == test_prox_obj.scalar
@@ -278,7 +276,7 @@ class TestProj:
 
 
 class TestCheckAttrs:
-    # Ensure that the has_eval, has_prox, is_smooth attrs are overridden
+    # Ensure that the has_eval, has_prox attrs are overridden
     # and set to True/False in the Functional subclasses.
 
     # Generate a list of all functionals in scico.functionals that we will check
@@ -297,10 +295,6 @@ class TestCheckAttrs:
     @pytest.mark.parametrize("cls", to_check)
     def test_has_prox(self, cls):
         assert isinstance(cls.has_prox, bool)
-
-    @pytest.mark.parametrize("cls", to_check)
-    def test_is_smooth(self, cls):
-        assert isinstance(cls.is_smooth, bool)
 
 
 def test_scalar_vmap():
@@ -349,7 +343,6 @@ class TestLoss:
 
     def test_squared_l2(self):
         L = loss.SquaredL2Loss(y=self.y, A=self.Ao)
-        assert L.is_smooth == True
         assert L.has_eval == True
         assert L.has_prox == False  # not diagonal
 
@@ -367,7 +360,6 @@ class TestLoss:
         # test eval
         np.testing.assert_allclose(L_d(self.v), 0.5 * ((self.Do @ self.v - self.y) ** 2).sum())
 
-        assert L_d.is_smooth == True
         assert L_d.has_eval == True
         assert L_d.has_prox == True
 
@@ -382,7 +374,6 @@ class TestLoss:
 
     def test_weighted_squared_l2(self):
         L = loss.WeightedSquaredL2Loss(y=self.y, A=self.Ao, W=self.W)
-        assert L.is_smooth == True
         assert L.has_eval == True
         assert L.has_prox == False  # not diagonal
 
@@ -399,7 +390,6 @@ class TestLoss:
         # SquaredL2 with Diagonal linop has a prox
         L_d = loss.WeightedSquaredL2Loss(y=self.y, A=self.Do, W=self.W)
 
-        assert L_d.is_smooth == True
         assert L_d.has_eval == True
         assert L_d.has_prox == True
 
@@ -419,7 +409,6 @@ class TestLoss:
 
     def test_poisson(self):
         L = loss.PoissonLoss(y=self.y, A=self.Ao_abs)
-        assert L.is_smooth == None
         assert L.has_eval == True
         assert L.has_prox == False
 

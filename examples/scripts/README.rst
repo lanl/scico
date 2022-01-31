@@ -66,6 +66,8 @@ Miscellaneous
       Isotropic Total Variation (Accelerated PGM)
    `denoise_tv_iso_multi.py <denoise_tv_iso_multi.py>`_
       Comparison of Optimization Algorithms for Total Variation Denoising
+   `video_rpca_admm.py <video_rpca_admm.py>`_
+      Video Decomposition via Robust PCA
 
 
 
@@ -125,6 +127,8 @@ Sparsity
       Non-negative Poisson Loss Reconstruction (APGM w/ adaptive PGMStepSize)
    `sparsecode_poisson_pgm.py <sparsecode_poisson_pgm.py>`_
       Non-negative Poisson Loss Reconstruction (APGM w/ adaptive PGMStepSize)
+   `video_rpca_admm.py <video_rpca_admm.py>`_
+      Video Decomposition via Robust PCA
 
 
 
@@ -164,6 +168,8 @@ ADMM
       Comparison of Optimization Algorithms for Total Variation Denoising
    `sparsecode_admm.py <sparsecode_admm.py>`_
       Non-negative Basis Pursuit DeNoising (ADMM)
+   `video_rpca_admm.py <video_rpca_admm.py>`_
+      Video Decomposition via Robust PCA
 
 
 Linearized ADMM

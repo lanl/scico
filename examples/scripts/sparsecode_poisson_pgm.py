@@ -65,7 +65,6 @@ Set up the forward operator, the loss function and the regularization.
 """
 A = linop.MatrixOperator(D)
 f = loss.PoissonLoss(y=y, A=A)
-f.is_smooth = True
 g = functional.NonNegativeIndicator()
 
 
