@@ -68,7 +68,6 @@ Sparse Coding
    examples/sparsecode_admm
    examples/sparsecode_pgm
    examples/sparsecode_poisson_blkarr_pgm
-   examples/sparsecode_poisson_pgm
 
 
 Miscellaneous
@@ -132,7 +131,6 @@ Sparsity
    examples/sparsecode_admm
    examples/sparsecode_pgm
    examples/sparsecode_poisson_blkarr_pgm
-   examples/sparsecode_poisson_pgm
    examples/video_rpca_admm
 
 
@@ -197,7 +195,6 @@ PGM
    examples/denoise_tv_iso_pgm
    examples/sparsecode_pgm
    examples/sparsecode_poisson_blkarr_pgm
-   examples/sparsecode_poisson_pgm
 
 
 PCG

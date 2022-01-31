@@ -13,14 +13,23 @@ This example demonstrates the use of class
 to solve the non-negative reconstruction problem with Poisson negative
 log likelihood loss
 
-  $$\mathrm{argmin}_{\mathbf{x}} \; \frac{1}{2} \left ( A \mathbf{x} -
-  \mathbf{y} \log\left( A \mathbf{x} \right) + \log(\mathbf{y}!) \right
-  ) + I(\mathbf{x} \geq 0)\;,$$
+  $$\mathrm{argmin}_{\mathbf{x}^{(0)} \geq 0, \mathbf{x}^{(1)}} \; \frac{1}{2} \left ( A(\mathbf{x}) -
+  \mathbf{y} \log\left( A(\mathbf{x}) \right) + \log(\mathbf{y}!) \right
+  ) + I(\mathbf{x}^{(0)} \geq 0)\;,$$
 
-where $A$ is the forward operator (composed as a sum of the
-application of individual dictionaries), $\mathbf{y}$ is the
+where $A$ is the forward operator, $\mathbf{y}$ is the
 measurement, $\mathbf{x}$ is the signal reconstruction, and
-$I(\mathbf{x} \geq 0)$ is the non-negative indicator.
+$I(\mathbf{x}^{(0)} \geq 0)$ is the non-negative indicator.
+
+This example also demonstrates the application of
+[blockarray.BlockArray](../_autosummary/docs/source/_autosummary/scico.blockarray.rst#scico.blockarray),
+[functional.SeparableFunctional](../_autosummary/docs/source/_autosummary/scico.functional.rst#scico.functional),
+and
+[functional.ZeroFunctional](../_autosummary/docs/source/_autosummary/scico.functional.rst#scico.functional)
+to implement the forward operator
+$A(\mathbf{x}) = A_0(\mathbf{x}^{(0)}) + A_1(\mathbf{x}^{(1)})$
+and the selective non-negativity constraint that only applies to
+$\mathbf{x}^{(0)}$.
 """
 
 import jax
@@ -60,7 +69,7 @@ D0 = D[:, :n0]
 D1 = D[:, n0:]
 
 # Define composed operator.
-class MatrixAdd(Operator):
+class ForwardOperator(Operator):
     def __init__(self, input_shape: Shape, D0, D1, jit: bool = True):
 
         self.D0 = D0
@@ -77,12 +86,12 @@ class MatrixAdd(Operator):
         )
 
     def _eval(self, x: BlockArray) -> BlockArray:
-        return D0 @ x[0] + D1 @ x[1]
+        return 10 * snp.exp(-D0 @ x[0]) + 5 * snp.exp(-D1 @ x[1])
 
 
 x_gt, key = scico.random.uniform(((n0,), (n1,)), seed=12345)  # true coefficients
 
-A = MatrixAdd(x_gt.shape, D0, D1)
+A = ForwardOperator(x_gt.shape, D0, D1)
 
 lam = A(x_gt)
 y, key = scico.random.poisson(lam, shape=lam.shape, key=key)  # synthetic signal
@@ -95,7 +104,10 @@ y = jax.device_put(y)  # convert to jax array, push to GPU
 Set up the loss function and the regularization.
 """
 f = loss.PoissonLoss(y=y, A=A)
-g = functional.NonNegativeIndicator()
+
+g0 = functional.NonNegativeIndicator()
+g1 = functional.ZeroFunctional()
+g = functional.SeparableFunctional([g0, g1])
 
 
 """

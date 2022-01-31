@@ -51,8 +51,6 @@ Sparse Coding
       Basis Pursuit DeNoising (Accelerated PGM)
    `sparsecode_poisson_blkarr_pgm.py <sparsecode_poisson_blkarr_pgm.py>`_
       Non-negative Poisson Loss Reconstruction (APGM w/ adaptive PGMStepSize)
-   `sparsecode_poisson_pgm.py <sparsecode_poisson_pgm.py>`_
-      Non-negative Poisson Loss Reconstruction (APGM w/ adaptive PGMStepSize)
 
 
 Miscellaneous
@@ -124,8 +122,6 @@ Sparsity
    `sparsecode_pgm.py <sparsecode_pgm.py>`_
       Basis Pursuit DeNoising (Accelerated PGM)
    `sparsecode_poisson_blkarr_pgm.py <sparsecode_poisson_blkarr_pgm.py>`_
-      Non-negative Poisson Loss Reconstruction (APGM w/ adaptive PGMStepSize)
-   `sparsecode_poisson_pgm.py <sparsecode_poisson_pgm.py>`_
       Non-negative Poisson Loss Reconstruction (APGM w/ adaptive PGMStepSize)
    `video_rpca_admm.py <video_rpca_admm.py>`_
       Video Decomposition via Robust PCA
@@ -200,8 +196,6 @@ PGM
    `sparsecode_pgm.py <sparsecode_pgm.py>`_
       Basis Pursuit DeNoising (Accelerated PGM)
    `sparsecode_poisson_blkarr_pgm.py <sparsecode_poisson_blkarr_pgm.py>`_
-      Non-negative Poisson Loss Reconstruction (APGM w/ adaptive PGMStepSize)
-   `sparsecode_poisson_pgm.py <sparsecode_poisson_pgm.py>`_
       Non-negative Poisson Loss Reconstruction (APGM w/ adaptive PGMStepSize)
 
 
