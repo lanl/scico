@@ -19,8 +19,7 @@ fi
 # from its root directory.
 export PYTHONPATH=$(cd .. && pwd)
 export PYTHONIOENCODING=utf-8
-# d='/tmp/scriptcheck_'$$
-d='/tmp/scriptcheck_'
+d='/tmp/scriptcheck_'$$
 mkdir -p $d
 retval=0
 
@@ -41,15 +40,9 @@ re3="s/input\(+/#input\(/g"
 for f in scripts/*.py; do
 
     # Create temporary copy of script with all algorithm maxiter values set
-<<<<<<< Updated upstream
     # to small number and final input statements commented out.
     g=$d/$(basename $f)
     sed -E -e "$re1$re2$re3" $f > $g
-=======
-    # to 5
-    g=$d/`basename $f`
-    gsed -E -e "s/'maxiter' ?: ?[0-9]+/'maxiter': 5/g; s/maxiter ?= ?[0-9]+/maxiter= 5/g; s/input\(+/#input\(/g" $f > $g
->>>>>>> Stashed changes
 
     # Run temporary script.
     python $g > /dev/null 2>&1
@@ -57,13 +50,12 @@ for f in scripts/*.py; do
     # Run temporary script and print status message.
     if python $g > /dev/null 2>&1
     then
-	printf "%-50s %s\n" $f succeeded
+    printf "%-50s %s\n" $f succeeded
     else
-	printf "%-50s %s\n" $f FAILED
-	retval=1
+    printf "%-50s %s\n" $f FAILED
+    retval=1
     fi
 
-<<<<<<< Updated upstream
     # Remove temporary script.
     rm -f $g
 
@@ -71,15 +63,6 @@ done
 
 # Remove temporary script directory.
 rmdir $d
-=======
-    # Remove temporary script
-   # rm -f $g
-
-done
-
-# Remove temporary script directory
-# rm -rf $d
->>>>>>> Stashed changes
 
 # Kill Xvfb process if it was started.
 if [ $pid != 0 ]; then
