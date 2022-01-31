@@ -26,7 +26,7 @@ jobs:
           python-version: "3.8"
 
       - name: Black Code Formatter
-        uses: psf/black@stable
+        uses: psf/black@21.6b0
 
       - name: isort Import Sorter
         uses: isort/isort-action@v0.1.0
