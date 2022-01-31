@@ -50,10 +50,10 @@ for f in scripts/*.py; do
     # Run temporary script and print status message.
     if python $g > /dev/null 2>&1
     then
-    printf "%-50s %s\n" $f succeeded
+	printf "%-50s %s\n" $f succeeded
     else
-    printf "%-50s %s\n" $f FAILED
-    retval=1
+	printf "%-50s %s\n" $f FAILED
+	retval=1
     fi
 
     # Remove temporary script.
