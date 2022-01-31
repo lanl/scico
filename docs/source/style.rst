@@ -399,6 +399,7 @@ We follow the `NumPy style guide <https://numpydoc.readthedocs.io/en/latest/form
        ...         [[5, 6], [7, 8]])
        array([[ 6,  8],
               [10, 12]])
+
        """
 
 
