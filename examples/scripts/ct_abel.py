@@ -77,7 +77,6 @@ C = linop.FiniteDifference(input_shape=x_gt.shape)  # analysis operators Ci
 
 f = loss.SquaredL2Loss(y=y, A=A)
 
-# x0 = snp.clip(y, 0, 1.0)
 x_inv = A.inverse(y)
 x0 = snp.clip(x_inv, 0, 1.0)
 
@@ -101,12 +100,14 @@ solver.solve()
 hist = solver.itstat_object.history(transpose=True)
 x_tv = snp.clip(solver.x, 0, 1.0)
 
-
+norm = plot.matplotlib.colors.Normalize(vmin=-0.1, vmax=1.2)
 fig, ax = plot.subplots(nrows=2, ncols=2, figsize=(12, 12))
-plot.imview(x_gt, title="Ground Truth", cmap=plot.cm.Blues, fig=fig, ax=ax[0, 0])
+plot.imview(x_gt, title="Ground Truth", cmap=plot.cm.Blues, fig=fig, ax=ax[0, 0], norm=norm)
 plot.imview(y, title="Measurements", cmap=plot.cm.Blues, fig=fig, ax=ax[0, 1])
-plot.imview(x_inv, title="Inverse Abel", cmap=plot.cm.Blues, fig=fig, ax=ax[1, 0])
-plot.imview(x_tv, title="TV Regularized Inversion", cmap=plot.cm.Blues, fig=fig, ax=ax[1, 1])
+plot.imview(x_inv, title="Inverse Abel", cmap=plot.cm.Blues, fig=fig, ax=ax[1, 0], norm=norm)
+plot.imview(
+    x_tv, title="TV Regularized Inversion", cmap=plot.cm.Blues, fig=fig, ax=ax[1, 1], norm=norm
+)
 fig.show()
 
 
