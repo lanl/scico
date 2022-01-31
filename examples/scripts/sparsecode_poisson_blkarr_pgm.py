@@ -13,7 +13,7 @@ This example demonstrates the use of class
 to solve the non-negative reconstruction problem with Poisson negative
 log likelihood loss
 
-  $$\mathrm{argmin}_{\mathbf{x}^{(0)} \geq 0, \mathbf{x}^{(1)}} \; \frac{1}{2} \left ( A(\mathbf{x}) -
+  $$\mathrm{argmin}_{\mathbf{x}} \; \frac{1}{2} \left ( A(\mathbf{x}) -
   \mathbf{y} \log\left( A(\mathbf{x}) \right) + \log(\mathbf{y}!) \right
   ) + I(\mathbf{x}^{(0)} \geq 0)\;,$$
 
@@ -22,10 +22,10 @@ measurement, $\mathbf{x}$ is the signal reconstruction, and
 $I(\mathbf{x}^{(0)} \geq 0)$ is the non-negative indicator.
 
 This example also demonstrates the application of
-[blockarray.BlockArray](../_autosummary/docs/source/_autosummary/scico.blockarray.rst#scico.blockarray),
-[functional.SeparableFunctional](../_autosummary/docs/source/_autosummary/scico.functional.rst#scico.functional),
+[blockarray.BlockArray](../_autosummary/scico.blockarray.rst#scico.blockarray.BlockArray),
+[functional.SeparableFunctional](../_autosummary/scico.functional.rst#scico.functional.SeparableFunctional),
 and
-[functional.ZeroFunctional](../_autosummary/docs/source/_autosummary/scico.functional.rst#scico.functional)
+[functional.ZeroFunctional](../_autosummary/scico.functional.rst#scico.functional.ZeroFunctional)
 to implement the forward operator
 $A(\mathbf{x}) = A_0(\mathbf{x}^{(0)}) + A_1(\mathbf{x}^{(1)})$
 and the selective non-negativity constraint that only applies to
