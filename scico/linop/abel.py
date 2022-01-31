@@ -71,7 +71,7 @@ class AbelProjector(LinearOperator):
         Returns:
             [JaxArray]: Output of inverse Abel transform
         """
-        return _pyabel_transform(np.array(y), direction="inverse", proj_mat_quad=self.proj_mat_quad)
+        return _pyabel_transform(y, direction="inverse", proj_mat_quad=self.proj_mat_quad)
 
 
 def _pyabel_transform(x, direction, proj_mat_quad, symmetry_axis=[None]):
