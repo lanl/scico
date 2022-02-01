@@ -25,7 +25,7 @@
 This module provides scico interface wrappers for functions
 from :mod:`scipy.optimize` since jax directly implements only a very
 limited subset of these functions (there is limited, experimental support
-for `L-BFGS-B <https://github.com/google/jax/pull/6053>`_, but only CG
+for `L-BFGS-B <https://github.com/google/jax/pull/6053>`_), but only CG
 and BFGS are fully supported. These wrappers are required because the
 functions in :mod:`scipy.optimize` only support on 1D, real valued, numpy
 arrays. These limitations are addressed by:
