@@ -5,7 +5,56 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Optimization algorithms."""
+"""Optimization algorithms.
+
+.. raw:: html
+
+    <style type='text/css'>
+    div.document li {
+      list-style: square outside !important;
+      margin-left: 1em !important;
+    }
+    div.document li > p {
+       margin-bottom: 4px !important;
+    }
+    ul {
+      margin-bottom: 1em;
+    }
+    </style>
+
+This module provides scico interface wrappers for functions
+from :mod:`scipy.optimize` since jax directly implements only a very
+limited subset of these functions (there is limited, experimental support
+for `L-BFGS-B <https://github.com/google/jax/pull/6053>`_, but only CG
+and BFGS are fully supported. These wrappers are required because the
+functions in :mod:`scipy.optimize` only support on 1D, real valued, numpy
+arrays. These limitations are addressed by:
+
+- Enabling the use of multi-dimensional arrays by flattening and reshaping
+  within the wrapper.
+- Enabling the use of jax arrays by automatically converting to and from
+  numpy arrays.
+- Enabling the use of complex arrays by splitting them into real and
+  imaginary parts.
+
+The wrapper also JIT compiles the function and gradient evaluations.
+
+The functions provided in this module have a number of advantages and
+disadvantages with respect to those in :mod:`jax.scipy.optimize`:
+
+- This module provides many more algorithms than
+  :mod:`jax.scipy.optimize`.
+- The functions in this module tend to be faster for small-scale problems
+  (presumably due to some overhead in the jax functions).
+- The functions in this module are slower for large problems due to the
+  frequent host-device copies corresponding to conversion between numpy
+  arrays and jax arrays.
+- The solvers in this module can't be JIT compiled, and gradients cannot
+  be taken through them.
+
+In the future, this module may be replaced with a dependency on
+`JAXopt <https://github.com/google/jaxopt>`__.
+"""
 
 
 from functools import wraps
