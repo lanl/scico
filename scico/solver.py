@@ -239,7 +239,7 @@ def minimize(
     # un-vectorize the output array, put on device
     res.x = snp.reshape(
         res.x, x0_shape
-    )  # if x0 was originally a BlockArray be converted back to one here
+    )  # if x0 was originally a BlockArray then res.x is converted back to one here
 
     res.x = res.x.astype(x0_dtype)
 
