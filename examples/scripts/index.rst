@@ -34,7 +34,7 @@ Sparse Coding
 
    - sparsecode_admm.py
    - sparsecode_pgm.py
-   - sparsecode_poisson_pgm.py
+   - sparsecode_poisson_blkarr_pgm.py
 
 
 Miscellaneous
@@ -82,7 +82,7 @@ Sparsity
 
    - sparsecode_admm.py
    - sparsecode_pgm.py
-   - sparsecode_poisson_pgm.py
+   - sparsecode_poisson_blkarr_pgm.py
    - video_rpca_admm.py
 
 
@@ -131,7 +131,7 @@ PGM
    - deconv_ppp_bm3d_pgm.py
    - denoise_tv_iso_pgm.py
    - sparsecode_pgm.py
-   - sparsecode_poisson_pgm.py
+   - sparsecode_poisson_blkarr_pgm.py
 
 
 PCG
