@@ -20,7 +20,7 @@ import imageio
 
 import scico.numpy as snp
 from scico import util
-from scico.typing import Array
+from scico.typing import Array, JaxArray
 from scipy.ndimage import zoom
 
 
