@@ -39,7 +39,7 @@ SCICO and JAX functions can be applied directly to NumPy arrays without explicit
    x = np.random.randn(8)    # Array on host
    A = np.random.randn(8, 8) # Array on host
    y = snp.dot(A, x)         # A, x transfered to GPU
-			     # y resides on GPU
+                             # y resides on GPU
    z = y + x                 # x must be transfered to GPU again
 
 
@@ -162,7 +162,7 @@ The following code demonstrates the use of ``jax.grad`` and :func:`scico.grad`:
     x, key = randn((n,), dtype=np.complex64, key=key)
 
     def f(x):
-	return 0.5 * snp.linalg.norm(A @ x)**2
+        return 0.5 * snp.linalg.norm(A @ x)**2
 
     an_grad = A.conj().T @ A @ x  # The expected gradient
 
