@@ -70,6 +70,15 @@ D1 = D[:, n0:]
 
 # Define composed operator.
 class ForwardOperator(Operator):
+
+    """Toy problem non-linear forward operator with different treatment
+       of x[0] and x[1].
+
+    Attributes:
+        D0: Matrix multiplying x[0].
+        D1: Matrix multiplying x[1].
+    """
+
     def __init__(self, input_shape: Shape, D0, D1, jit: bool = True):
 
         self.D0 = D0
