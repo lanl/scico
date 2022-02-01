@@ -22,6 +22,7 @@ which should be installed via conda:
 
 The dependencies can also be installed individually as required.
 
+
 Organized by Application
 ------------------------
 
@@ -66,7 +67,6 @@ Sparse Coding
 
    examples/sparsecode_admm
    examples/sparsecode_pgm
-   examples/sparsecode_poisson_blkarr_pgm
    examples/sparsecode_poisson_pgm
 
 
@@ -80,6 +80,7 @@ Miscellaneous
    examples/denoise_tv_iso_admm
    examples/denoise_tv_iso_pgm
    examples/denoise_tv_iso_multi
+   examples/video_rpca_admm
 
 
 
@@ -129,8 +130,8 @@ Sparsity
 
    examples/sparsecode_admm
    examples/sparsecode_pgm
-   examples/sparsecode_poisson_blkarr_pgm
    examples/sparsecode_poisson_pgm
+   examples/video_rpca_admm
 
 
 
@@ -161,6 +162,7 @@ ADMM
    examples/denoise_tv_iso_admm
    examples/denoise_tv_iso_multi
    examples/sparsecode_admm
+   examples/video_rpca_admm
 
 
 Linearized ADMM
@@ -192,7 +194,6 @@ PGM
    examples/deconv_ppp_bm3d_pgm
    examples/denoise_tv_iso_pgm
    examples/sparsecode_pgm
-   examples/sparsecode_poisson_blkarr_pgm
    examples/sparsecode_poisson_pgm
 
 

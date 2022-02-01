@@ -16,6 +16,7 @@ try:
 
     from scico.linop.radon_svmbir import (
         ParallelBeamProjector,
+        SVMBIRExtendedLoss,
         SVMBIRWeightedSquaredL2Loss,
     )
 except ImportError as e:
@@ -86,13 +87,19 @@ def test_adjoint(Nx, Ny, num_angles, num_channels, is_3d, center_offset, is_mask
 @pytest.mark.parametrize("center_offset", SMALL_INPUT_OFFSET_RANGE)
 @pytest.mark.parametrize("is_masked", (True, False))
 def test_prox(Nx, Ny, num_angles, num_channels, is_3d, center_offset, is_masked):
+
     im = make_im(Nx, Ny, is_3d)
     A = make_A(im, num_angles, num_channels, center_offset, is_masked)
 
     sino = A @ im
 
     v, _ = scico.random.normal(im.shape, dtype=im.dtype)
-    f = SVMBIRWeightedSquaredL2Loss(y=sino, A=A)
+
+    if is_masked:
+        f = SVMBIRExtendedLoss(y=sino, A=A, positivity=False)
+    else:
+        f = SVMBIRWeightedSquaredL2Loss(y=sino, A=A)
+
     prox_test(v, f, f.prox, alpha=0.25)
 
 
@@ -101,6 +108,7 @@ def test_prox(Nx, Ny, num_angles, num_channels, is_3d, center_offset, is_masked)
 @pytest.mark.parametrize("center_offset", SMALL_INPUT_OFFSET_RANGE)
 @pytest.mark.parametrize("is_masked", (True, False))
 def test_prox_weights(Nx, Ny, num_angles, num_channels, is_3d, center_offset, is_masked):
+
     im = make_im(Nx, Ny, is_3d)
     A = make_A(im, num_angles, num_channels, center_offset, is_masked)
 
@@ -111,7 +119,12 @@ def test_prox_weights(Nx, Ny, num_angles, num_channels, is_3d, center_offset, is
     # test with weights
     weights, _ = scico.random.uniform(sino.shape, dtype=im.dtype)
     W = scico.linop.Diagonal(weights)
-    f = SVMBIRWeightedSquaredL2Loss(y=sino, A=A, W=W)
+
+    if is_masked:
+        f = SVMBIRExtendedLoss(y=sino, A=A, W=W, positivity=False)
+    else:
+        f = SVMBIRWeightedSquaredL2Loss(y=sino, A=A, W=W)
+
     prox_test(v, f, f.prox, alpha=0.25)
 
 
@@ -121,8 +134,9 @@ def test_prox_weights(Nx, Ny, num_angles, num_channels, is_3d, center_offset, is
 @pytest.mark.parametrize("center_offset", SMALL_INPUT_OFFSET_RANGE)
 @pytest.mark.parametrize("is_masked", (True, False))
 def test_prox_cg(Nx, Ny, num_angles, num_channels, is_3d, weight_type, center_offset, is_masked):
+
     im = make_im(Nx, Ny, is_3d=is_3d) / Nx * 10
-    A = make_A(im, num_angles, num_channels, center_offset, is_masked=True)
+    A = make_A(im, num_angles, num_channels, center_offset, is_masked=is_masked)
     y = A @ im
 
     A_colsum = A.H @ snp.ones(y.shape)  # backproject ones to get sum over cols of A
@@ -135,7 +149,11 @@ def test_prox_cg(Nx, Ny, num_angles, num_channels, is_3d, weight_type, center_of
     W = jax.device_put(W)
     λ = 0.01
 
-    f_sv = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W))
+    if is_masked:
+        f_sv = SVMBIRExtendedLoss(y=y, A=A, W=Diagonal(W), positivity=False)
+    else:
+        f_sv = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W))
+
     f_wg = WeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W))
 
     v, _ = scico.random.normal(im.shape, dtype=im.dtype)
@@ -152,8 +170,9 @@ def test_prox_cg(Nx, Ny, num_angles, num_channels, is_3d, weight_type, center_of
 @pytest.mark.parametrize("weight_type", ("transmission", "unweighted"))
 @pytest.mark.parametrize("center_offset", SMALL_INPUT_OFFSET_RANGE)
 @pytest.mark.parametrize("is_masked", (True, False))
+@pytest.mark.parametrize("positivity", (True, False))
 def test_approx_prox(
-    Nx, Ny, num_angles, num_channels, is_3d, weight_type, center_offset, is_masked
+    Nx, Ny, num_angles, num_channels, is_3d, weight_type, center_offset, is_masked, positivity
 ):
     im = make_im(Nx, Ny, is_3d)
     A = make_A(im, num_angles, num_channels, center_offset, is_masked)
@@ -165,10 +184,20 @@ def test_approx_prox(
     λ = 0.01
 
     v, _ = scico.random.normal(im.shape, dtype=im.dtype)
-    f = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W))
+    if is_masked or positivity:
+        f = SVMBIRExtendedLoss(y=y, A=A, W=Diagonal(W), positivity=positivity)
+    else:
+        f = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W))
+
     xprox = snp.array(f.prox(v, lam=λ))
 
-    f_approx = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W), prox_kwargs={"maxiter": 2})
+    if is_masked or positivity:
+        f_approx = SVMBIRExtendedLoss(
+            y=y, A=A, W=Diagonal(W), prox_kwargs={"maxiter": 2}, positivity=positivity
+        )
+    else:
+        f_approx = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W), prox_kwargs={"maxiter": 2})
+
     xprox_approx = snp.array(f_approx.prox(v, lam=λ, v0=xprox))
 
     assert snp.linalg.norm(xprox - xprox_approx) / snp.linalg.norm(xprox) < 4e-6

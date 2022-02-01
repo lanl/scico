@@ -76,7 +76,7 @@ Example:
 
     d = 6  # Day of the week == Saturday
     if d < 5:
-	print("Weekday")
+        print("Weekday")
 
 Here the code could be hard to follow since the name ``d`` is not descriptive and requires extra comments to explain the code, which would have been solved otherwise by good naming conventions.
 
@@ -118,7 +118,7 @@ We follow the `Google string conventions <https://google.github.io/styleguide/py
 Imports
 -------
 
-We follow the `Google import conventions <https://google.github.io/styleguide/pyguide.html#22-imports>`_. The usage of ``import`` statements should be reserved for packages and modules only excluding individual classes and functions. The only exception to this is the typing module.
+We follow the `Google import conventions <https://google.github.io/styleguide/pyguide.html#22-imports>`_. The use of ``import`` statements should be reserved for packages and modules only, i.e. individual classes and functions should not be imported. The only exception to this is the typing module.
 
 -  Use ``import x`` for importing packages and modules, where x is the package or module name.
 -  Use ``from x import y`` where x is the package name and y is the module name.
@@ -135,7 +135,7 @@ We follow the `Google variable typing conventions <https://google.github.io/styl
 
    .. code-block:: python
 
-      a : Foo = SomeDecoratedFunction()
+      a: Foo = SomeDecoratedFunction()
 
 - Avoid global variables.
 - A function can refer to variables defined in enclosing functions but cannot assign to them.
@@ -155,8 +155,8 @@ There are three important style components for parameters inspired by the `NumPy
    .. code-block:: python
 
       def foo(a: str) -> str:
-         """Takes an input of type string and returns a value of type string"""
-	    ...
+          """Takes an input of type string and returns a value of type string"""
+          ...
 
 2. Default Values
 
@@ -185,7 +185,7 @@ There are three important style components for parameters inspired by the `NumPy
    .. code-block:: python
 
       def foo(a: Optional[str], b: Optional[Union[str, int]]) -> str:
-	 ...
+      ...
 
    For documentation purposes, ``NoneType`` or ``None`` should be written with double backticks.
 
@@ -250,40 +250,40 @@ Example:
 .. code-block:: python
 
     def fetch_smalltable_rows(table_handle: smalltable.Table,
-			      keys: Sequence[Union[bytes, str]],
-			      require_all_keys: bool = False,
+                              keys: Sequence[Union[bytes, str]],
+                              require_all_keys: bool = False,
     ) -> Mapping[bytes, Tuple[str]]:
-	"""Fetch rows from a Smalltable.
+        """Fetch rows from a Smalltable.
 
-	Retrieve rows pertaining to the given keys from the Table instance
-	represented by table_handle.  String keys will be UTF-8 encoded.
+        Retrieve rows pertaining to the given keys from the Table instance
+        represented by table_handle.  String keys will be UTF-8 encoded.
 
-	Args:
-	    table_handle:
-		An open smalltable.Table instance.
-	    keys:
-		A sequence of strings representing the key of each table
-		row to fetch.  String `keys` will be UTF-8 encoded.
-	    require_all_keys: Optional
-		If `require_all_keys` is ``True`` only
-		rows with values set for all keys will be returned.
+        Args:
+            table_handle:
+               An open smalltable.Table instance.
+            keys:
+               A sequence of strings representing the key of each table
+               row to fetch.  String `keys` will be UTF-8 encoded.
+            require_all_keys: Optional
+               If `require_all_keys` is ``True`` only
+               rows with values set for all keys will be returned.
 
-	Returns:
-	    A dict mapping keys to the corresponding table row data
-	    fetched. Each row is represented as a tuple of strings. For
-	    example:
+        Returns:
+            A dict mapping keys to the corresponding table row data
+            fetched. Each row is represented as a tuple of strings. For
+            example:
 
-	    {b'Serak': ('Rigel VII', 'Preparer'),
-	     b'Zim': ('Irk', 'Invader'),
-	     b'Lrrr': ('Omicron Persei 8', 'Emperor')}
+            {b'Serak': ('Rigel VII', 'Preparer'),
+             b'Zim': ('Irk', 'Invader'),
+             b'Lrrr': ('Omicron Persei 8', 'Emperor')}
 
-	    Returned keys are always bytes.  If a key from the keys argument is
-	    missing from the dictionary, then that row was not found in the
-	    table (and require_all_keys must have been False).
+            Returned keys are always bytes.  If a key from the keys argument is
+            missing from the dictionary, then that row was not found in the
+            table (and require_all_keys must have been False).
 
-	Raises:
-	    IOError: An error occurred accessing the smalltable.
-	"""
+        Raises:
+            IOError: An error occurred accessing the smalltable.
+        """
 
 
 Classes
@@ -296,23 +296,23 @@ We follow the `Google class conventions <https://google.github.io/styleguide/pyg
 .. code:: Python
 
     class foo:
-	"""One liner describing the class.
+	"""One-liner describing the class.
 
-	Additional information or description for the class.
-	Can be multi-line
+        Additional information or description for the class.
+        Can be multi-line
 
-	Attributes:
-	    attr1: First attribute of the class.
-	    attr2: Second attribute of the class.
-	"""
+        Attributes:
+            attr1: First attribute of the class.
+            attr2: Second attribute of the class.
+        """
 
-	def __init__(self):
-	    """Should have a docstring of type function."""
-	    pass
+    def __init__(self):
+        """Should have a docstring of type function."""
+        pass
 
-	def method(self):
-	    """Should have a docstring of type: function."""
-	    pass
+    def method(self):
+        """Should have a docstring of type: function."""
+        pass
 
 
 Extra Sections
@@ -327,46 +327,46 @@ We follow the `NumPy style guide <https://numpydoc.readthedocs.io/en/latest/form
 
      .. code-block:: python
 
-	"""
-	See Also
-	--------
-	average: Weighted average.
-	"""
+       """
+       See Also
+       --------
+       average: Weighted average.
+       """
 
    - For a reference to ``fft`` in another module:
 
      .. code-block:: python
 
-	"""
-        See Also
-        --------
-        fft.fft2: 2-D fast discrete Fourier transform.
-        """
+       """
+       See Also
+       --------
+       fft.fft2: 2-D fast discrete Fourier transform.
+       """
 
 -  Notes
 
    -  Provides additional information about the code. May include mathematical equations in LaTeX format.
       For example,
 
-    .. code-block:: python
+     .. code-block:: python
 
-	   """
-	   Notes
-	   -----
-	   The FFT is a fast implementation of the discrete Fourier transform:
-	       .. math::
-		    X(e^{j\omega } ) = x(n)e^{ - j\omega n}
-	   """
+       """
+       Notes
+       -----
+       The FFT is a fast implementation of the discrete Fourier transform:
+       .. math::
+            X(e^{j\omega } ) = x(n)e^{ - j\omega n}
+       """
 
     | Additionally, math can be used inline:
 
-    .. code-block:: python
+     .. code-block:: python
 
-	  """
-	  Notes
-	  -----
-	  The value of :math:`\omega` is larger than 5.
-	  """
+       """
+       Notes
+       -----
+       The value of :math:`\omega` is larger than 5.
+       """
 
 -  Examples:
 
@@ -374,33 +374,33 @@ We follow the `NumPy style guide <https://numpydoc.readthedocs.io/en/latest/form
    -  If there are multiple examples include blank lines before and after each example.
       For example,
 
-    .. code-block:: python
+     .. code-block:: python
 
-      """
-      Examples
-      --------
-      Necessary imports
-      >>> import numpy as np
+       """
+       Examples
+       --------
+       Necessary imports
+       >>> import numpy as np
 
-      Comment explaining example 1.
+       Comment explaining example 1.
 
-      >>> np.add(1, 2)
-      3
+       >>> np.add(1, 2)
+       3
 
-      Comment explaining a new example.
+       Comment explaining a new example.
 
-      >>> np.add([1, 2], [3, 4])
-      array([4, 6])
+       >>> np.add([1, 2], [3, 4])
+       array([4, 6])
 
-      If the example is too long then each line after the first start it
-      with a ``...``
+       If the example is too long then each line after the first start it
+       with a ``...``
 
-      >>> np.add([[1, 2], [3, 4]],
-      ...         [[5, 6], [7, 8]])
-      array([[ 6,  8],
-             [10, 12]])
+       >>> np.add([[1, 2], [3, 4]],
+       ...         [[5, 6], [7, 8]])
+       array([[ 6,  8],
+              [10, 12]])
 
-      """
+       """
 
 
 Comments
@@ -424,18 +424,18 @@ If a comment consists of one or more full sentences (as is typically the case fo
 Markup
 ~~~~~~
 
-The following components require the recommended markup taken from `NumPy's Conventions <https://numpydoc.readthedocs.io/en/latest/format.html#common-rest-concepts>`_.:
+The following components require the recommended markup taken from the `NumPy Conventions <https://numpydoc.readthedocs.io/en/latest/format.html#common-rest-concepts>`__.:
 
 - Paragraphs:
   Indentation is significant and indicates the indentation of the output. New paragraphs are marked with a blank line.
-- Variable, module, function, and class names:
-  Should be written in between single back-ticks (`x`).
+- Variable, parameter, module, function, method, and class names:
+  Should be written between single back-ticks (e.g. \`x\`, rendered as `x`), but note that use of `Sphinx cross-reference syntax <https://www.sphinx-doc.org/en/master/usage/restructuredtext/domains.html#cross-referencing-python-objects>`_ is preferred for modules (`:mod:\`module-name\`` ), functions (`:func:\`function-name\`` ), methods (`:meth:\`method-name\`` ) and classes (`:class:\`class-name\`` ).
 - None, NoneType, True, and False:
-  Should be written in between double back-ticks (``None``, ``True``).
+  Should be written between double back-ticks (e.g. \`\`None\`\`, \`\`True\`\`, rendered as ``None``, ``True``).
 - Types:
-  Should be written in between double back-ticks (``int``).
+  Should be written between double back-ticks (e.g. \`\`int\`\`, rendered as ``int``).
 
-Other components can use *italics*, **bold**, and ``monospace`` if needed, but not for variable names, doctest code, or multi-line code.
+Other components can use \*italics\*, \*\*bold\*\*, and \`\`monospace\`\` (respectively rendered as *italics*, **bold**, and ``monospace``) if needed, but not for variable names, doctest code, or multi-line code.
 
 
 Documentation
@@ -462,6 +462,8 @@ A few notable guidelines:
 
     * Avoid capitalization in text except where absolutely necessary,
       e.g., "Newton’s first law."
+
+    * Use a single space after the period at the end of a sentence.
 
 
 The source code (`.rst` files) for these pages does not have a line-length guideline,

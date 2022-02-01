@@ -23,10 +23,6 @@ from scico.numpy.linalg import norm
 from scico.typing import JaxArray
 from scico.util import Timer
 
-__author__ = """\n""".join(
-    ["Luke Pfister <luke.pfister@gmail.com>", "Brendt Wohlberg <brendt@ieee.org>"]
-)
-
 
 class LinearizedADMM:
     r"""Linearized alternating direction method of multipliers algorithm.

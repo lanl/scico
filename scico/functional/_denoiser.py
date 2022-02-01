@@ -38,7 +38,6 @@ class BM3D(Functional):
 
     has_eval = False
     has_prox = True
-    is_smooth = False
 
     def __init__(self, is_rgb: bool = False):
         r"""Initialize a :class:`BM3D` object.

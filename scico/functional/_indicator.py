@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -18,8 +18,6 @@ from scico.typing import JaxArray
 
 from ._functional import Functional
 
-__author__ = """Luke Pfister <luke.pfister@gmail.com>"""
-
 
 class NonNegativeIndicator(Functional):
     r"""Indicator function for non-negative orthant.
@@ -37,7 +35,6 @@ class NonNegativeIndicator(Functional):
 
     has_eval = True
     has_prox = True
-    is_smooth = False
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         if snp.iscomplexobj(x):
@@ -51,17 +48,17 @@ class NonNegativeIndicator(Functional):
         self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
         r"""Evaluate the scaled proximal operator of the indicator over
-            the non-negative orthant, :math:`I_{>= 0} `,:
+        the non-negative orthant, :math:`I_{>= 0}`,
 
         .. math::
             [\mathrm{prox}_{\lambda I_{>=0}}(\mb{v})]_i =
             \begin{cases}
-            v_i, & \text{if } v_i \geq 0 \\
-            0, & \text{else}.
+            v_i\,, & \text{if } v_i \geq 0 \\
+            0\,, & \text{otherwise} \;.
             \end{cases}
 
         Args:
-            v :  Input array :math:`\mb{v}`.
+            v : Input array :math:`\mb{v}`.
             lam : Proximal parameter :math:`\lambda` (has no effect).
             kwargs: Additional arguments that may be used by derived
                 classes.
@@ -87,7 +84,6 @@ class L2BallIndicator(Functional):
 
     has_eval = True
     has_prox = True
-    is_smooth = False
 
     def __init__(self, radius: float = 1):
         r"""Initialize a :class:`L2BallIndicator` object.

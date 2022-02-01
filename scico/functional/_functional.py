@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -7,7 +7,6 @@
 
 """Functional base class."""
 
-import warnings
 from typing import List, Optional, Union
 
 import jax
@@ -16,10 +15,6 @@ import scico
 from scico import numpy as snp
 from scico.blockarray import BlockArray
 from scico.typing import JaxArray
-
-__author__ = """\n""".join(
-    ["Luke Pfister <luke.pfister@gmail.com>", "Thilo Balke <thilo.balke@gmail.com>"]
-)
 
 
 class Functional:
@@ -38,11 +33,6 @@ class Functional:
     #: This attribute must be overridden and set to True or False in any derived classes.
     has_prox: Optional[bool] = None
 
-    #: True if this functional is differentiable, False otherwise.
-    #: Note that ``is_smooth = False`` does not preclude the use of the :func:`.grad` method.
-    #: This attribute must be overridden and set to True or False in any derived classes.
-    is_smooth: Optional[bool] = None
-
     def __init__(self):
         self._grad = scico.grad(self.__call__)
 
@@ -50,7 +40,6 @@ class Functional:
         return f"""{type(self)}
 has_eval = {self.has_eval}
 has_prox = {self.has_prox}
-is_smooth = {self.is_smooth}
         """
 
     def __mul__(self, other):
@@ -136,9 +125,6 @@ is_smooth = {self.is_smooth}
         Args:
             x: Point at which to evaluate gradient.
         """
-        if not self.is_smooth:  # could be True, False, or None
-            warnings.warn("This functional isn't smooth!", stacklevel=2)
-
         return self._grad(x)
 
 
@@ -151,7 +137,6 @@ class ScaledFunctional(Functional):
     def __init__(self, functional: Functional, scale: float):
         self.functional = functional
         self.scale = scale
-        self.is_smooth = functional.is_smooth
         self.has_eval = functional.has_eval
         self.has_prox = functional.has_prox
         super().__init__()
@@ -209,7 +194,6 @@ class SeparableFunctional(Functional):
 
         self.has_eval: bool = all(fi.has_eval for fi in functional_list)
         self.has_prox: bool = all(fi.has_prox for fi in functional_list)
-        self.is_smooth: bool = all(fi.is_smooth for fi in functional_list)
 
         super().__init__()
 
@@ -256,7 +240,6 @@ class ZeroFunctional(Functional):
 
     has_eval = True
     has_prox = True
-    is_smooth = True
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         return 0.0

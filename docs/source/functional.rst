@@ -39,8 +39,7 @@ An instance of :class:`.Functional`, ``f``, may provide three core operations.
    - ``f.grad(x)`` returns the gradient of the functional evaluated at ``x``.
    - Gradients are calculated using JAX reverse-mode automatic differentiation,
      exposed through :func:`scico.grad`.
-   - A functional that is smooth has the attribute ``f.is_smooth == True``.
-   - NOTE:  The gradient of a functional ``f`` can be evaluated even if ``f.is_smooth == False``.
+   - *Note:*  The gradient of a functional ``f`` can be evaluated even if that functional is not smooth.
      All that is required is that the functional can be evaluated, ``f.has_eval == True``.
      However, the result may not be a valid gradient (or subgradient) for all inputs.
 * Proximal operator
@@ -92,7 +91,7 @@ in the parameterized form :math:`\mathrm{prox}_{c f}`.
 
 In SCICO, multiplying a :class:`.Functional` by a scalar
 will return a :class:`.ScaledFunctional`.
-This :class:`.ScaledFunctional` retains the ``has_eval``, ``is_smooth``, and ``has_prox`` attributes
+This :class:`.ScaledFunctional` retains the ``has_eval`` and ``has_prox`` attributes
 from the original :class:`.Functional`,
 but the proximal method is modified to accomodate the additional scalar.
 
@@ -129,7 +128,7 @@ To add a new functional,
 create a class which
 
 1. inherits from base :class:`.Functional`;
-2. has ``has_eval``, ``is_smooth``, and ``has_prox`` flags;
+2. has ``has_eval`` and ``has_prox`` flags;
 3. has ``_eval`` and ``prox`` methods, as necessary.
 
 For example,
@@ -139,7 +138,6 @@ For example,
       class MyFunctional(scico.functional.Functional):
 
           has_eval = True
-          is_smooth = False
           has_prox = True
 
           def _eval(self, x: JaxArray) -> float:

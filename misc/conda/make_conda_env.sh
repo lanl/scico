@@ -74,14 +74,14 @@ while getopts ":hygc:p:e:j:" opt; do
 	e) ENVNM=$OPTARG;;
 	j) JAXURL=$OPTARG;;
 	:) echo "Error: option -$OPTARG requires an argument" >&2
-	   echo "$USAGE" >&2
-	   exit 2
-	   ;;
+           echo "$USAGE" >&2
+           exit 2
+           ;;
 	\?) echo "Error: invalid option -$OPTARG" >&2
-	    echo "$USAGE" >&2
-	    exit 2
-	    ;;
-  esac
+            echo "$USAGE" >&2
+            exit 2
+            ;;
+    esac
 done
 
 shift $((OPTIND-1))
@@ -130,11 +130,11 @@ fi
 if [ "$GPU" == "yes" ] && [ "$CUVER" == "" ]; then
     if [ "$(which nvcc)" == "" ]; then
 	echo "Error: GPU-enabled jaxlib requested but CUDA version not"\
-	     "specified and could not be automatically determined" >&2
+             "specified and could not be automatically determined" >&2
 	exit 9
     else
 	CUVER=$(nvcc --version | grep -o 'release [0-9][0-9]*\.[[0-9][0-9]*' \
-                              | sed -e 's/release //' -e 's/\.//')
+                    | sed -e 's/release //' -e 's/\.//')
     fi
 fi
 
