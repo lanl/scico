@@ -236,7 +236,6 @@ def minimize(
         options=options,
     )
 
-    # TODO: need tests for multi-gpu machines
     # un-vectorize the output array, put on device
     res.x = snp.reshape(
         res.x, x0_shape
