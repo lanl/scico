@@ -21,7 +21,7 @@ from jax.interpreters.xla import DeviceArray
 
 import scico.blockarray
 import scico.numpy as snp
-from scico.typing import ArrayIndex, Axes, AxisIndex, JaxArray, Shape
+from scico.typing import ArrayIndex, Axes, AxisIndex, DType, JaxArray, Shape
 
 
 def ensure_on_device(
@@ -74,8 +74,8 @@ def ensure_on_device(
 
 
 def no_nan_divide(
-    x: Union[BlockArray, JaxArray], y: Union[BlockArray, JaxArray]
-) -> Union[BlockArray, JaxArray]:
+    x: Union[scico.blockarray.BlockArray, JaxArray], y: Union[scico.blockarray.BlockArray, JaxArray]
+) -> Union[scico.blockarray.BlockArray, JaxArray]:
     """Return `x/y`, with 0 instead of NaN where `y` is 0.
 
     Args:
