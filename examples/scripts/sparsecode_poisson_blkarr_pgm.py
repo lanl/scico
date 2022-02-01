@@ -196,11 +196,11 @@ def plot_results(hist, str_ss, L0, xsol, xgt, Aop):
 
 """
 Use default PGMStepSize object, set L0 based on norm of Forward
-operator and set up AcceleratedPGM solver object.  Run the solver and
+operator and set up AcceleratedPGM solver object. Run the solver and
 plot the recontructed signal and convergence statistics.
 """
-L0 = (snp.linalg.norm(D0, 2) + snp.linalg.norm(D1, 2)) ** 2
-str_L0 = "(Estimation based on norm of Forward operator)"
+L0 = 1e3
+str_L0 = "(Specifically chosen so that convergence occurs)"
 
 solver = AcceleratedPGM(
     f=f,
@@ -224,7 +224,7 @@ plot_results(hist, str_ss, L0, x, x_gt, A)
 
 """
 Use BBStepSize object, set L0 with arbitary initial value and set up
-AcceleratedPGM solver object.  Run the solver and plot the
+AcceleratedPGM solver object. Run the solver and plot the
 recontructed signal and convergence statistics.
 """
 L0 = 90.0  # initial reciprocal of gradient descent step size
@@ -252,7 +252,7 @@ plot_results(hist, str_ss, L0, x, x_gt, A)
 
 """
 Use AdaptiveBBStepSize object, set L0 with arbitary initial value and
-set up AcceleratedPGM solver object.  Run the solver and plot the
+set up AcceleratedPGM solver object. Run the solver and plot the
 recontructed signal and convergence statistics.
 """
 L0 = 90.0  # initial reciprocal of gradient descent step size
@@ -280,7 +280,7 @@ plot_results(hist, str_ss, L0, x, x_gt, A)
 
 """
 Use LineSearchStepSize object, set L0 with arbitary initial value and
-set up AcceleratedPGM solver object.  Run the solver and plot the
+set up AcceleratedPGM solver object. Run the solver and plot the
 recontructed signal and convergence statistics.
 """
 L0 = 90.0  # initial reciprocal of gradient descent step size
@@ -308,7 +308,7 @@ plot_results(hist, str_ss, L0, x, x_gt, A)
 
 """
 Use RobustLineSearchStepSize object, set L0 with arbitary initial
-value and set up AcceleratedPGM solver object.  Run the solver and
+value and set up AcceleratedPGM solver object. Run the solver and
 plot the recontructed signal and convergence statistics.
 """
 L0 = 90.0  # initial reciprocal of gradient descent step size
