@@ -48,8 +48,7 @@ for f in scripts/*.py; do
     python $g > /dev/null 2>&1
 
     # Run temporary script and print status message.
-    if python $g > /dev/null 2>&1
-    then
+    if python $g > /dev/null 2>&1; then
 	printf "%-50s %s\n" $f succeeded
     else
 	printf "%-50s %s\n" $f FAILED
