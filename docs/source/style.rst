@@ -118,7 +118,7 @@ We follow the `Google string conventions <https://google.github.io/styleguide/py
 Imports
 -------
 
-We follow the `Google import conventions <https://google.github.io/styleguide/pyguide.html#22-imports>`_. The usage of ``import`` statements should be reserved for packages and modules only excluding individual classes and functions. The only exception to this is the typing module.
+We follow the `Google import conventions <https://google.github.io/styleguide/pyguide.html#22-imports>`_. The use of ``import`` statements should be reserved for packages and modules only, i.e. individual classes and functions should not be imported. The only exception to this is the typing module.
 
 -  Use ``import x`` for importing packages and modules, where x is the package or module name.
 -  Use ``from x import y`` where x is the package name and y is the module name.
@@ -135,7 +135,7 @@ We follow the `Google variable typing conventions <https://google.github.io/styl
 
    .. code-block:: python
 
-      a : Foo = SomeDecoratedFunction()
+      a: Foo = SomeDecoratedFunction()
 
 - Avoid global variables.
 - A function can refer to variables defined in enclosing functions but cannot assign to them.
@@ -296,7 +296,7 @@ We follow the `Google class conventions <https://google.github.io/styleguide/pyg
 .. code:: Python
 
     class foo:
-	"""One liner describing the class.
+	"""One-liner describing the class.
 
 	Additional information or description for the class.
 	Can be multi-line
@@ -424,18 +424,18 @@ If a comment consists of one or more full sentences (as is typically the case fo
 Markup
 ~~~~~~
 
-The following components require the recommended markup taken from `NumPy's Conventions <https://numpydoc.readthedocs.io/en/latest/format.html#common-rest-concepts>`_.:
+The following components require the recommended markup taken from the `NumPy Conventions <https://numpydoc.readthedocs.io/en/latest/format.html#common-rest-concepts>`_.:
 
 - Paragraphs:
   Indentation is significant and indicates the indentation of the output. New paragraphs are marked with a blank line.
-- Variable, module, function, and class names:
-  Should be written in between single back-ticks (`x`).
+- Variable, parameter, module, function, method, and class names:
+  Should be written between single back-ticks (e.g. \`x\`, rendered as `x`), but note that use of `Sphinx cross-reference syntax <https://www.sphinx-doc.org/en/master/usage/restructuredtext/domains.html#cross-referencing-python-objects>`_ is preferred for modules (`:mod:\`module-name\`` ), functions (`:func:\`function-name\`` ), methods (`:meth:\`method-name\`` ) and classes (`:class:\`class-name\`` ).
 - None, NoneType, True, and False:
-  Should be written in between double back-ticks (``None``, ``True``).
+  Should be written between double back-ticks (e.g. \`\`None\`\`, \`\`True\`\`, rendered as ``None``, ``True``).
 - Types:
-  Should be written in between double back-ticks (``int``).
+  Should be written between double back-ticks (e.g. \`\`int\`\`, rendered as ``int``).
 
-Other components can use *italics*, **bold**, and ``monospace`` if needed, but not for variable names, doctest code, or multi-line code.
+Other components can use \*italics\*, \*\*bold\*\*, and \`\`monospace\`\` (respectively rendered as *italics*, **bold**, and ``monospace``) if needed, but not for variable names, doctest code, or multi-line code.
 
 
 Documentation
