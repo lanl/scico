@@ -166,7 +166,7 @@ class L2Norm(Functional):
 
         .. math::
             \mathrm{prox}_{\lambda \| \cdot \|_2}(\mb{v})
-        = \mb{v} \left(1 - \frac{\lambda}{\norm{v}_2} \right)_+ \;,
+            = \mb{v} \left(1 - \frac{\lambda}{\norm{v}_2} \right)_+ \;,
 
         where
 
