@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -13,7 +13,6 @@ support compatibility with :class:`scico.blockarray.BlockArray`. This
 module is a work in progress and therefore not all functions are
 wrapped. Functions that have not been wrapped yet have WARNING text in
 their documentation, below.
-
 """
 
 import sys
