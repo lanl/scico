@@ -48,13 +48,13 @@ class NonNegativeIndicator(Functional):
         self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
         r"""Evaluate the scaled proximal operator of the indicator over
-        the non-negative orthant, :math:`I_{>= 0}`
+        the non-negative orthant, :math:`I_{>= 0}`,
 
         .. math::
             [\mathrm{prox}_{\lambda I_{>=0}}(\mb{v})]_i =
             \begin{cases}
             v_i\,, & \text{if } v_i \geq 0 \\
-            0\,, & \text{otherwise}.
+            0\,, & \text{otherwise} \;.
             \end{cases}
 
         Args:

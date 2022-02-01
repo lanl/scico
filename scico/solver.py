@@ -5,7 +5,7 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Optimization algorithms.
+"""SciPy optimization algorithms.
 
 .. raw:: html
 
