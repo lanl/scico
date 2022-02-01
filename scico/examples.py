@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021 by SCICO Developers
+# Copyright (C) 2021-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -23,9 +23,19 @@ from scico import util
 from scico.typing import Array
 from scipy.ndimage import zoom
 
-__author__ = """\n""".join(
-    ["Brendt Wohlberg <brendt@ieee.org>", "Michael McCann <mccann@lanl.gov>"]
-)
+
+def rgb2gray(rgb: JaxArray) -> JaxArray:
+    """Convert an RGB image (or images) to grayscale.
+
+    Args:
+        rgb: RGB image as Nr x Nc x 3 or Nr x Nc x 3 x K array.
+
+    Returns:
+        Grayscale image as Nr x Nc or Nr x Nc x K array.
+    """
+
+    w = snp.array([0.299, 0.587, 0.114], dtype=rgb.dtype)[np.newaxis, np.newaxis]
+    return snp.sum(w * rgb, axis=2)
 
 
 def volume_read(path: str, ext: str = "tif") -> Array:

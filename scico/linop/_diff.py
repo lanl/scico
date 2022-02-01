@@ -23,8 +23,6 @@ from scico.typing import Axes, DType, JaxArray, Shape, Union
 from ._linop import LinearOperator
 from ._stack import LinearOperatorStack
 
-__author__ = """Luke Pfister <luke.pfister@gmail.com>, Michael McCann <mccann@lanl.gov>"""
-
 
 class FiniteDifference(LinearOperatorStack):
     """Finite Difference operator.

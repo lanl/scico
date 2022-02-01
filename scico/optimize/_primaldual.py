@@ -23,8 +23,6 @@ from scico.numpy.linalg import norm
 from scico.typing import JaxArray
 from scico.util import Timer
 
-__author__ = "Brendt Wohlberg <brendt@ieee.org>"
-
 
 class PDHG:
     r"""Primal–dual hybrid gradient (PDHG) algorithm.

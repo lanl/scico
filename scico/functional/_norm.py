@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -20,13 +20,11 @@ from scico.typing import JaxArray
 
 from ._functional import Functional
 
-__author__ = """Luke Pfister <luke.pfister@gmail.com>, Michael McCann <mccann@lanl.gov>"""
-
 
 class L0Norm(Functional):
     r"""The :math:`\ell_0` 'norm'.
 
-    Counts the number of non-zero elements in an array-like.
+    Counts the number of non-zero elements in an array.
     """
 
     has_eval = True
@@ -53,8 +51,10 @@ class L0Norm(Functional):
             \end{cases}
 
         Args:
-            v : Input array :math:`\mb{v}`
-            lam : Thresholding parameter :math:`\lambda`
+            v: Input array :math:`\mb{v}`.
+            lam: Thresholding parameter :math:`\lambda`.
+            kwargs: Additional arguments that may be used by derived
+                classes.
         """
         return snp.where(snp.abs(v) >= lam, v, 0)
 
@@ -95,6 +95,8 @@ class L1Norm(Functional):
         Args:
             v: Input array :math:`\mb{v}`.
             lam: Thresholding parameter :math:`\lambda`.
+            kwargs: Additional arguments that may be used by derived
+                classes.
         """
         tmp = snp.abs(v) - lam
         tmp = 0.5 * (tmp + snp.abs(tmp))
@@ -134,8 +136,10 @@ class SquaredL2Norm(Functional):
             = \frac{\mb{v}}{1 + 2 \lambda} \;.
 
         Args:
-            v:  Input array :math:`\mb{v}`.
+            v: Input array :math:`\mb{v}`.
             lam: Proximal parameter :math:`\lambda`.
+            kwargs: Additional arguments that may be used by derived
+                classes.
         """
         return v / (1.0 + 2.0 * lam)
 
@@ -162,7 +166,7 @@ class L2Norm(Functional):
 
         .. math::
             \mathrm{prox}_{\lambda \| \cdot \|_2}(\mb{v})
-        = \mb{v} \left(1 - \frac{\lambda}{\norm{v}_2} \right)_+ \;,
+            = \mb{v} \left(1 - \frac{\lambda}{\norm{v}_2} \right)_+ \;,
 
         where
 
@@ -173,11 +177,10 @@ class L2Norm(Functional):
             \end{cases}
 
         Args:
-            v:  Input array :math:`\mb{v}`.
+            v: Input array :math:`\mb{v}`.
             lam: Proximal parameter :math:`\lambda`.
             kwargs: Additional arguments that may be used by derived
                 classes.
-
         """
         norm_v = norm(v)
         if norm_v == 0:
@@ -239,11 +242,10 @@ class L21Norm(Functional):
             \end{cases}
 
         Args:
-            v:  Input array :math:`\mb{v}`.
+            v: Input array :math:`\mb{v}`.
             lam: Proximal parameter :math:`\lambda`.
             kwargs: Additional arguments that may be used by derived
                 classes.
-
         """
 
         length = norm(v, axis=self.l2_axis, keepdims=True)
@@ -254,3 +256,40 @@ class L21Norm(Functional):
         new_length = 0.5 * (new_length + snp.abs(new_length))
 
         return new_length * direction
+
+
+class NuclearNorm(Functional):
+    r"""Nuclear norm.
+
+    Compute the nuclear norm
+
+    .. math::
+      \| X \|_* = \sum_i \sigma_i
+
+    where :math:`\sigma_i` are the singular values of matrix :math:`X`.
+    """
+
+    has_eval = True
+    has_prox = True
+
+    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+        return snp.sum(snp.linalg.svd(x, compute_uv=False))
+
+    def prox(
+        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[JaxArray, BlockArray]:
+        r"""Evaluate proximal operator of the nuclear norm.
+
+        Evaluate proximal operator of the nuclear norm
+        :cite:`cai-2010-singular`.
+
+        Args:
+            v: Input array :math:`\mb{v}`.
+            lam: Proximal parameter :math:`\lambda`.
+            kwargs: Additional arguments that may be used by derived
+                classes.
+        """
+
+        svdU, svdS, svdV = snp.linalg.svd(v, full_matrices=False)
+        svdS = snp.maximum(0, svdS - lam)
+        return svdU @ snp.diag(svdS) @ svdV

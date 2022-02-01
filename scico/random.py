@@ -172,7 +172,7 @@ def _wrap(fun):
 def _is_wrappable(fun):
     params = inspect.signature(getattr(jax.random, fun)).parameters
     prmkey = list(params.keys())
-    return prmkey and prmkey[0] == "key" and "shape" in params.keys()
+    return prmkey and (prmkey[0] == "key") and ("shape" in params.keys())
 
 
 wrappable_func_names = [
