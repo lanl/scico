@@ -424,7 +424,7 @@ If a comment consists of one or more full sentences (as is typically the case fo
 Markup
 ~~~~~~
 
-The following components require the recommended markup taken from the `NumPy Conventions <https://numpydoc.readthedocs.io/en/latest/format.html#common-rest-concepts>`_.:
+The following components require the recommended markup taken from the `NumPy Conventions <https://numpydoc.readthedocs.io/en/latest/format.html#common-rest-concepts>`__.:
 
 - Paragraphs:
   Indentation is significant and indicates the indentation of the output. New paragraphs are marked with a blank line.
