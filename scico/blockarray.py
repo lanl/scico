@@ -141,7 +141,7 @@ BlockArrays support the JAX DeviceArray `indexed update syntax
 
 The index must be of the form [ibk] or [ibk, idx], where `ibk` is the
 index of the block to be updated, and `idx` is a general index of the
-elements to be updated in that block.  In particular, `ibk` cannot be a
+elements to be updated in that block. In particular, `ibk` cannot be a
 `slice`. The general index `idx` can be omitted, in which case an entire
 block is updated.
 
