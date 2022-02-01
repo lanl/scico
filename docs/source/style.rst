@@ -463,6 +463,8 @@ A few notable guidelines:
     * Avoid capitalization in text except where absolutely necessary,
       e.g., "Newton’s first law."
 
+    * Use a single space after the period at the end of a sentence.
+
 
 The source code (`.rst` files) for these pages does not have a line-length guideline,
 but line breaks at or before 79 characters are encouraged.
