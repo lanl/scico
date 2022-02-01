@@ -30,9 +30,11 @@ def test_grad(Nx, Ny):
         return snp.sum(A._eval(im) ** 2)
 
     val_1 = jax.grad(f)(im)
-    val_2 = 2 * A.adj(A(im))
+    # val_2 = 2 * A.adj(A(im))
+    val_2 = 2 * A._adj(A(im))
+    # val_2 = 2 * A.T @ A @ im
 
-    np.testing.assert_allclose(val_1, val_2, rtol=1)
+    np.testing.assert_allclose(val_1, val_2, rtol=5e-5)
 
 
 @pytest.mark.parametrize("Nx, Ny", (BIG_INPUT,))
@@ -50,6 +52,6 @@ def test_adjoint(Nx, Ny):
 #     Ax = A @ x
 
 #     f = lambda y: jax.numpy.linalg.norm(A.T(y)) ** 2
-#     print(scico.grad(f)(Ax))
-#     print(2 * A(A.adj(Ax)))
-#     np.testing.assert_allclose(scico.grad(f)(Ax), 2 * A(A.adj(Ax)), rtol=5e-5)
+#     # print(scico.grad(f)(Ax))
+#     # print(2 * A(A.adj(Ax)))
+#     np.testing.assert_allclose(scico.grad(f)(Ax), 2 * A(A._adj(Ax)), rtol=5e-5)
