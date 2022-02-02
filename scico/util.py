@@ -249,7 +249,7 @@ class Timer:
 
         Args:
            label: Label of the timer for which the elapsed time is
-               required.  If it is ``None``, the default timer with label
+               required. If it is ``None``, the default timer with label
                specified by the `default_label` parameter of
                :meth:`__init__` is selected.
            total:  If ``True`` return the total elapsed time since the

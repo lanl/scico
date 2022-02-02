@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -22,8 +22,6 @@ from scico.typing import Axes, DType, JaxArray, Shape
 
 from ._linop import LinearOperator
 from ._stack import LinearOperatorStack
-
-__author__ = """Luke Pfister <luke.pfister@gmail.com>, Michael McCann <mccann@lanl.gov>"""
 
 
 class FiniteDifference(LinearOperatorStack):

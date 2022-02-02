@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021 by SCICO Developers
+# Copyright (C) 2021-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -49,7 +49,7 @@ def radial_transverse_frequency(
 
     Returns:
         If `len(input_shape)==1`, returns an ndarray containing
-        corresponding Fourier coordinates.  If `len(input_shape) == 2`,
+        corresponding Fourier coordinates. If `len(input_shape) == 2`,
         returns an ndarray containing the radial Fourier coordinates
         :math:`\sqrt{k_x^2 + k_y^2}\,`.
     """
@@ -226,7 +226,7 @@ class AngularSpectrumPropagator(Propagator):
             z: Propagation distance.
             pad_factor:  Amount of padding to apply in DFT step.
             jit: If ``True``, call :meth:`.jit()` on this LinearOperator
-               to jit the forward, adjoint, and gram functions.  Same as
+               to jit the forward, adjoint, and gram functions. Same as
                calling :meth:`.jit` after the LinearOperator is created.
         """
 

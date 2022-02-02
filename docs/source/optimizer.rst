@@ -60,17 +60,17 @@ in :eq:`eq:admm_prob`, corresponding to defining
 
 .. math::
   \acute{A} = \left( \begin{array}{c} C_0 \\ C_1 \\ C_2 \\
-	   \vdots \end{array} \right)  \quad
+              \vdots \end{array} \right)  \quad
   \acute{B} = \left( \begin{array}{cccc}
-	      -I & 0 & 0 & \ldots \\
-	      0 & -I & 0 & \ldots \\
-	      0 &  0  & -I & \ldots \\
-	      \vdots & \vdots & \vdots & \ddots
-	      \end{array} \right) \quad
+              -I & 0 & 0 & \ldots \\
+              0 & -I & 0 & \ldots \\
+              0 &  0  & -I & \ldots \\
+              \vdots & \vdots & \vdots & \ddots
+              \end{array} \right) \quad
   \mb{z} = \left( \begin{array}{c} \mb{z}_0 \\ \mb{z}_1 \\ \mb{z}_2 \\
-	   \vdots \end{array} \right)  \quad
+              \vdots \end{array} \right)  \quad
   \mb{c} = \left( \begin{array}{c} 0 \\ 0 \\ 0 \\
-	   \vdots \end{array} \right) \;.
+              \vdots \end{array} \right) \;.
 
 In :class:`.ADMM`, :math:`f` is a :class:`.Functional`, typically a :class:`.Loss`, corresponding to the forward model of an imaging problem,
 and the :math:`g_i` are :class:`.Functional`, typically corresponding to a
@@ -87,8 +87,8 @@ the :math:`\mb{x}`-update,
     .. math::
        :label: eq:admm_x_step
 
-	\argmin_{\mb{x}} \; f(\mb{x}) + \sum_i \frac{\rho_i}{2}
-	\norm{\mb{z}^{(k)}_i - \mb{u}^{(k)}_i - C_i \mb{x}}_2^2 \;.
+       \argmin_{\mb{x}} \; f(\mb{x}) + \sum_i \frac{\rho_i}{2}
+       \norm{\mb{z}^{(k)}_i - \mb{u}^{(k)}_i - C_i \mb{x}}_2^2 \;.
 
 
 The available solvers for this problem are:
@@ -127,7 +127,7 @@ Linearized ADMM algorithm :cite:`yang-2012-linearized`
 problems of the form
 
     .. math::
-	\argmin_{\mb{x}} \; f(\mb{x}) + g(C \mb{x}) \;,
+       \argmin_{\mb{x}} \; f(\mb{x}) + g(C \mb{x}) \;,
 
 where :math:`f` and :math:`g` are are convex (but not necessarily smooth)
 functions. Although convergence per iteration is typically significantly
@@ -156,7 +156,7 @@ The Primal–Dual Hybrid Gradient (PDHG) algorithm
 :cite:`pock-2011-diagonal` solves problems of the form
 
     .. math::
-	\argmin_{\mb{x}} \; f(\mb{x}) + g(C \mb{x}) \;,
+       \argmin_{\mb{x}} \; f(\mb{x}) + g(C \mb{x}) \;,
 
 where :math:`f` and :math:`g` are are convex (but not necessarily smooth)
 functions. The algorithm has similar advantages over ADMM to those of Linearized ADMM, but typically exhibits better convergence properties.

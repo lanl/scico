@@ -39,7 +39,7 @@ class SubproblemSolver:
     subproblems is separable into distinct subproblems for each of the
     :math:`g_i`, and another that is non-separable, involving function
     :math:`f` and a sum over :math:`\ell_2` norm terms involving all
-    operators :math:`C_i`.  This class is a base class for solvers of
+    operators :math:`C_i`. This class is a base class for solvers of
     the latter subproblem
 
     ..  math::
@@ -169,7 +169,7 @@ class LinearSubproblemSolver(SubproblemSolver):
                 :func:`scico.solver.cg`, except for
                 ``"tol": 1e-4`` and ``"maxiter": 100``.
             cg_function: String indicating which CG implementation to
-                use. One of "jax" or "scico"; default "scico".  If
+                use. One of "jax" or "scico"; default "scico". If
                 "scico", uses :func:`scico.solver.cg`. If "jax", uses
                 :func:`jax.scipy.sparse.linalg.cg`. The "jax" option is
                 slower on small-scale problems or problems involving

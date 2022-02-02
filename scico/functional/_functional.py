@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -15,10 +15,6 @@ import scico
 from scico import numpy as snp
 from scico.blockarray import BlockArray
 from scico.typing import JaxArray
-
-__author__ = """\n""".join(
-    ["Luke Pfister <luke.pfister@gmail.com>", "Thilo Balke <thilo.balke@gmail.com>"]
-)
 
 
 class Functional:
@@ -190,7 +186,7 @@ class SeparableFunctional(Functional):
     def __init__(self, functional_list: List[Functional]):
         r"""
         Args:
-            functional_list:  List of component functionals f_i.  This functional
+            functional_list:  List of component functionals f_i. This functional
                 takes as an input a :class:`.BlockArray` with
                 ``num_blocks == len(functional_list)``.
         """

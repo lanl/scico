@@ -114,7 +114,7 @@ class WeightedSquaredL2Loss(Loss):
         A(\mb{x})\right) \;,
 
     where :math:`\alpha` is the scaling parameter and :math:`W` is an
-    instance of :class:`scico.linop.Diagonal`.  If :math:`W` is None,
+    instance of :class:`scico.linop.Diagonal`. If :math:`W` is None,
     reverts to the behavior of :class:`.SquaredL2Loss`.
     """
 
