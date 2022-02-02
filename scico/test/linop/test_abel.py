@@ -20,24 +20,7 @@ def make_im(Nx, Ny):
     return im
 
 
-@pytest.mark.parametrize("Nx, Ny", (BIG_INPUT,))
-def test_grad(Nx, Ny):
-    im = make_im(Nx, Ny)
-
-    A = AbelProjector(im.shape)
-
-    def f(im):
-        return snp.sum(A._eval(im) ** 2)
-
-    val_1 = jax.grad(f)(im)
-    # val_2 = 2 * A.adj(A(im))
-    val_2 = 2 * A._adj(A(im))
-    # val_2 = 2 * A.T @ A @ im
-
-    np.testing.assert_allclose(val_1, val_2, rtol=5e-5)
-
-
-@pytest.mark.parametrize("Nx, Ny", (BIG_INPUT,))
+@pytest.mark.parametrize("Nx, Ny", (BIG_INPUT, SMALL_INPUT))
 def test_adjoint(Nx, Ny):
     im = make_im(Nx, Ny)
     A = AbelProjector(im.shape)
@@ -45,13 +28,40 @@ def test_adjoint(Nx, Ny):
     adjoint_test(A)
 
 
-# @pytest.mark.parametrize("Nx, Ny", (BIG_INPUT,))
-# def test_adjoint_grad(Nx, Ny):
-#     x = make_im(Nx, Ny)
-#     A = AbelProjector(x.shape)
-#     Ax = A @ x
+@pytest.mark.parametrize("Nx, Ny", (BIG_INPUT, SMALL_INPUT))
+def test_ATA_call(Nx, Ny):
+    # Test for the call-based interface
+    x = make_im(Nx, Ny)
+    A = AbelProjector(x.shape)
+    Ax = A(x)
+    ATAx = A.adj(Ax)
+    np.testing.assert_allclose(np.sum(x * ATAx), np.linalg.norm(Ax) ** 2, rtol=5e-5)
 
-#     f = lambda y: jax.numpy.linalg.norm(A.T(y)) ** 2
-#     # print(scico.grad(f)(Ax))
-#     # print(2 * A(A.adj(Ax)))
-#     np.testing.assert_allclose(scico.grad(f)(Ax), 2 * A(A._adj(Ax)), rtol=5e-5)
+
+@pytest.mark.parametrize("Nx, Ny", (BIG_INPUT, SMALL_INPUT))
+def test_ATA_matmul(Nx, Ny):
+    # Test for the matmul interface
+    x = make_im(Nx, Ny)
+    A = AbelProjector(x.shape)
+    Ax = A @ x
+    ATAx = A.T @ Ax
+    np.testing.assert_allclose(np.sum(x * ATAx), np.linalg.norm(Ax) ** 2, rtol=5e-5)
+
+
+@pytest.mark.parametrize("Nx, Ny", (BIG_INPUT, SMALL_INPUT))
+def test_grad(Nx, Ny):
+    # ensure that we can take grad on a function using our projector
+    # grad || A(x) ||_2^2 == 2 A.T @ A x
+    x = make_im(Nx, Ny)
+    A = AbelProjector(x.shape)
+    g = lambda x: jax.numpy.linalg.norm(A(x)) ** 2
+    np.testing.assert_allclose(jax.grad(g)(x), 2 * A.adj(A(x)), rtol=5e-5)
+
+
+@pytest.mark.parametrize("Nx, Ny", (BIG_INPUT, SMALL_INPUT))
+def test_adjoint_grad(Nx, Ny):
+    x = make_im(Nx, Ny)
+    A = AbelProjector(x.shape)
+    Ax = A @ x
+    f = lambda y: jax.numpy.linalg.norm(A.T(y)) ** 2
+    np.testing.assert_allclose(jax.grad(f)(Ax), 2 * A(A.adj(Ax)), rtol=5e-5)

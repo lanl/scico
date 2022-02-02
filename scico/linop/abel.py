@@ -49,10 +49,10 @@ class AbelProjector(LinearOperator):
         )
 
     def _eval(self, x):
-        return self._proj(x, self.proj_mat_quad)
+        return self._proj(x, self.proj_mat_quad).astype(self.output_dtype)
 
     def _adj(self, x):
-        return self._bproj(x, self.proj_mat_quad)
+        return self._bproj(x, self.proj_mat_quad).astype(self.output_dtype)
 
     @staticmethod
     def _proj(x: JaxArray, proj_mat_quad: Array) -> JaxArray:
