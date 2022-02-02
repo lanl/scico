@@ -39,7 +39,7 @@ class SubproblemSolver:
     subproblems is separable into distinct subproblems for each of the
     :math:`g_i`, and another that is non-separable, involving function
     :math:`f` and a sum over :math:`\ell_2` norm terms involving all
-    operators :math:`C_i`.  This class is a base class for solvers of
+    operators :math:`C_i`. This class is a base class for solvers of
     the latter subproblem
 
     ..  math::
