@@ -180,7 +180,7 @@ pygments_style = "sphinx"
 
 # -- Options for HTML output ----------------------------------------------
 
-# The theme to use for HTML and HTML Help pages.  See the documentation for
+# The theme to use for HTML and HTML Help pages. See the documentation for
 # a list of builtin themes.
 # html_theme = "sphinx_rtd_theme"
 html_theme = "faculty-sphinx-theme"
@@ -197,7 +197,7 @@ html_theme_options = {
 html_logo = "_static/logo.svg"
 
 # The name of an image file (within the static path) to use as favicon of the
-# docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
+# docs. This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
 # html_favicon = None
 html_favicon = "_static/scico.ico"
