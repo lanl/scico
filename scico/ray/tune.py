@@ -121,9 +121,6 @@ def run(
     else:
         kwargs.update({"verbose": 0})
 
-    def _run(config, checkpoint_dir=None):
-        run_or_experiment(config)
-
     if isinstance(run_or_experiment, str):
         name = run_or_experiment
     else:
@@ -134,7 +131,7 @@ def run(
         local_dir = os.path.join(tempfile.gettempdir(), "ray_results")
 
     return ray.tune.run(
-        _run,
+        run_or_experiment,
         metric=metric,
         mode=mode,
         name=name,

@@ -59,7 +59,7 @@ Define performance evaluation function.
 """
 
 
-def eval_params(config):
+def eval_params(config, reporter):
     # Extract solver parameters from config dict.
     λ, ρ = config["lambda"], config["rho"]
     # Get main arrays from ray object store.
@@ -84,7 +84,7 @@ def eval_params(config):
     # Perform 50 iterations, reporting performance to ray.tune every 5 iterations.
     for step in range(10):
         x_admm = solver.solve()
-        tune.report(psnr=float(metric.psnr(x_gt, x_admm)))
+        reporter(psnr=float(metric.psnr(x_gt, x_admm)))
 
 
 """
