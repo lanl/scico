@@ -24,7 +24,6 @@ def make_im(Nx, Ny):
 def test_adjoint(Nx, Ny):
     im = make_im(Nx, Ny)
     A = AbelProjector(im.shape)
-
     adjoint_test(A)
 
 
