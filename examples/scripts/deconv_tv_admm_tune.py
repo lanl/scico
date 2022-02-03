@@ -78,11 +78,11 @@ def eval_params(config, reporter):
         C_list=[C],
         rho_list=[ρ],
         x0=A.adj(y),
-        maxiter=5,
+        maxiter=10,
         subproblem_solver=LinearSubproblemSolver(),
     )
     # Perform 50 iterations, reporting performance to ray.tune every 5 iterations.
-    for step in range(10):
+    for step in range(5):
         x_admm = solver.solve()
         reporter(psnr=float(metric.psnr(x_gt, x_admm)))
 
@@ -91,7 +91,7 @@ def eval_params(config, reporter):
 Define parameter search space and resources per trial.
 """
 config = {"lambda": tune.loguniform(1e-2, 1e0), "rho": tune.loguniform(1e-1, 1e1)}
-resources = {"gpu": 0, "cpu": 1}  # gpus per trial, cpus per trial
+resources = {"cpu": 4, "gpu": 0}  # cpus per trial, gpus per trial
 
 
 """
