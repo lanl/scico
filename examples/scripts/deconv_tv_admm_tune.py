@@ -10,7 +10,7 @@ Image Deconvolution Parameter Tuning
 
 This example demonstrates the use of
 [scico.ray.tune](../_autosummary/scico.ray.tune.rst) to tune parameters
-for the companion example script `deconv_tv_admm`.
+for the companion [example script](deconv_tv_admm.rst).
 """
 
 
