@@ -8,6 +8,7 @@
 """Parameter tuning using :doc:`ray.tune <ray:tune/index>`."""
 
 import datetime
+import os
 from typing import Any, Callable, Dict, List, Mapping, Optional, Type, Union
 
 import ray
@@ -71,6 +72,7 @@ def run(
     config: Optional[Dict[str, Any]] = None,
     hyperopt: bool = True,
     verbose: bool = True,
+    local_dir: Optional[str] = None,
 ) -> ray.tune.ExperimentAnalysis:
     """Simplified wrapper for :func:`ray.tune.run`.
 
@@ -97,6 +99,8 @@ def run(
             running, and terminated trials are indicated by "P:", "R:",
             and "T:" respectively, followed by the current best metric
             value and the parameters at which it was reported.
+        local_dir: Directory in which to save tuning results. Defaults to
+            "./ray_results".
 
     Returns:
         Result of parameter search.
@@ -123,6 +127,9 @@ def run(
         name = run_or_experiment.__name__
     name += "_" + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
+    if local_dir is None:
+        local_dir = os.path.join(".", "ray_results")
+
     return ray.tune.run(
         _run,
         metric=metric,
@@ -130,6 +137,7 @@ def run(
         name=name,
         time_budget_s=time_budget_s,
         num_samples=num_samples,
+        local_dir=local_dir,
         resources_per_trial=resources_per_trial,
         max_concurrent_trials=max_concurrent_trials,
         reuse_actors=True,
