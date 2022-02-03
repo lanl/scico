@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021 by SCICO Developers
+# Copyright (C) 2021-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -117,10 +117,17 @@ def run(
     def _run(config, checkpoint_dir=None):
         run_or_experiment(config)
 
+    if isinstance(run_or_experiment, str):
+        name = run_or_experiment
+    else:
+        name = run_or_experiment.__name__
+    name += "_" + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
     return ray.tune.run(
         _run,
         metric=metric,
         mode=mode,
+        name=name,
         time_budget_s=time_budget_s,
         num_samples=num_samples,
         resources_per_trial=resources_per_trial,
