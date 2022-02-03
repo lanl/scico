@@ -135,7 +135,7 @@ for t in analysis.trials:
         mec="blue",
         fig=fig,
     )
-_, ax = plot.plot(
+plot.plot(
     best_config["lambda"],
     best_config["rho"],
     ptyp="loglog",
@@ -149,6 +149,7 @@ _, ax = plot.plot(
     mec="red",
     fig=fig,
 )
+ax = fig.axes[0]
 ax.set_xlim([config["rho"].lower, config["rho"].upper])
 ax.set_ylim([config["lambda"].lower, config["lambda"].upper])
 fig.show()
