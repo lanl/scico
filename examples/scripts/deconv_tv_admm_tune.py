@@ -1,3 +1,19 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# This file is part of the SCICO package. Details of the copyright
+# and user license can be found in the 'LICENSE.txt' file distributed
+# with the package.
+
+r"""
+Image Deconvolution Parameter Tuning
+====================================
+
+This example demonstrates the use of
+[scico.ray.tune](../_autosummary/scico.ray.tune.rst) to tune parameters
+for the companion example script `deconv_tv_admm`.
+"""
+
+
 import numpy as np
 
 import jax
