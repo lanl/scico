@@ -28,6 +28,7 @@ Deconvolution
    - deconv_ppp_bm3d_pgm.py
    - deconv_ppp_dncnn_admm.py
    - deconv_tv_admm.py
+   - deconv_tv_admm_tune.py
 
 
 Sparse Coding
@@ -74,6 +75,7 @@ Total Variation
    - deconv_microscopy_tv_admm.py
    - deconv_microscopy_allchn_tv_admm.py
    - deconv_tv_admm.py
+   - deconv_tv_admm_tune.py
    - denoise_tv_iso_admm.py
    - denoise_tv_iso_pgm.py
    - denoise_tv_iso_multi.py
@@ -106,6 +108,7 @@ ADMM
    - deconv_ppp_bm3d_admm.py
    - deconv_ppp_dncnn_admm.py
    - deconv_tv_admm.py
+   - deconv_tv_admm_tune.py
    - demosaic_ppp_bm3d_admm.py
    - denoise_tv_iso_admm.py
    - denoise_tv_iso_multi.py
