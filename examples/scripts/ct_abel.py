@@ -8,7 +8,8 @@ r"""
 Abel Transform Demo
 ===================
 
-This is a placeholder for more detailed docs."
+This example demonstrates a TV-regularized Abel inversion using
+an Abel projector based on PyAbel.
 """
 
 import numpy as np
@@ -25,6 +26,7 @@ from scico.util import device_info
 
 
 def dist_map_2D(img_shape, center=None):
+    """Computes a 2D map of the distance from a center pixel."""
 
     if center == None:
         center = [img_dim // 2 for img_dim in img_shape]
@@ -39,6 +41,7 @@ def dist_map_2D(img_shape, center=None):
 
 
 def create_french_test_phantom(img_shape, radius_list, val_list, center=None):
+    """Computes a french test object with given radii, and intensities."""
 
     dist_map = dist_map_2D(img_shape, center)
 
@@ -72,8 +75,8 @@ maxiter = 100  # number of ADMM iterations
 cg_tol = 1e-4  # CG relative tolerance
 cg_maxiter = 25  # maximum CG iterations per ADMM iteration
 
-g = λ * functional.L1Norm()  # regularization functionals gi
-C = linop.FiniteDifference(input_shape=x_gt.shape)  # analysis operators Ci
+g = λ * functional.L1Norm()
+C = linop.FiniteDifference(input_shape=x_gt.shape)
 
 f = loss.SquaredL2Loss(y=y, A=A)
 

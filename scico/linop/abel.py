@@ -63,7 +63,7 @@ class AbelProjector(LinearOperator):
         return _pyabel_transform(y, direction="transpose", proj_mat_quad=proj_mat_quad)
 
     def inverse(self, y):
-        """Performs inverse abel transform
+        """Performs inverse Abel transform
 
         Args:
             y ([JaxArray]): Input image (assumed to be a result of an Abel transform)
@@ -75,6 +75,9 @@ class AbelProjector(LinearOperator):
 
 
 def _pyabel_transform(x, direction, proj_mat_quad, symmetry_axis=[None]):
+    """Performs Abel transformations (forward, inverse and transposed)
+    This function contains code taken from `PyAbel <https://github.com/PyAbel/PyAbel>`_.
+    """
 
     Q0, Q1, Q2, Q3 = get_image_quadrants(
         x, symmetry_axis=symmetry_axis, use_quadrants=(True, True, True, True)

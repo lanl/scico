@@ -1,3 +1,18 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# This file is part of the SCICO package. Details of the copyright
+# and user license can be found in the 'LICENSE.txt' file distributed
+# with the package.
+
+r"""
+Abel Transform Tuning Demo
+===================
+
+This example demonstrates the use of
+[scico.ray.tune](../_autosummary/scico.ray.tune.rst) to tune
+parameters for the companion [example script](ct_abel.rst).
+"""
+
 import numpy as np
 
 import jax
@@ -14,6 +29,7 @@ Create a ground truth image.
 
 
 def dist_map_2D(img_shape, center=None):
+    """Computes a 2D map of the distance from a center pixel."""
 
     if center == None:
         center = [img_dim // 2 for img_dim in img_shape]
@@ -28,6 +44,7 @@ def dist_map_2D(img_shape, center=None):
 
 
 def create_french_test_phantom(img_shape, radius_list, val_list, center=None):
+    """Computes a french test object with given radii, and intensities."""
 
     dist_map = dist_map_2D(img_shape, center)
 
