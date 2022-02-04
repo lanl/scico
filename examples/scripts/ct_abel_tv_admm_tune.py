@@ -6,7 +6,7 @@
 
 r"""
 Abel Transform Tuning Demo
-===================
+==========================
 
 This example demonstrates the use of
 [scico.ray.tune](../_autosummary/scico.ray.tune.rst) to tune
@@ -29,7 +29,7 @@ Create a ground truth image.
 
 
 def dist_map_2D(img_shape, center=None):
-    """Computes a 2D map of the distance from a center pixel."""
+    """Compute a 2D map of the distance from a center pixel."""
 
     if center == None:
         center = [img_dim // 2 for img_dim in img_shape]
@@ -44,7 +44,7 @@ def dist_map_2D(img_shape, center=None):
 
 
 def create_french_test_phantom(img_shape, radius_list, val_list, center=None):
-    """Computes a french test object with given radii, and intensities."""
+    """Compute a french test object with given radii, and intensities."""
 
     dist_map = dist_map_2D(img_shape, center)
 
@@ -96,10 +96,10 @@ def eval_params(config):
         C_list=[C],
         rho_list=[ρ],
         x0=A.inverse(y),
-        maxiter=5,
+        maxiter=10,
         subproblem_solver=LinearSubproblemSolver(),
     )
-    # Perform 50 iterations, reporting performance to ray.tune every 5 iterations.
+    # Perform 50 iterations, reporting performance to ray.tune every 10 iterations.
     for step in range(10):
         x_admm = solver.solve()
         tune.report(psnr=float(metric.psnr(x_gt, x_admm)))
@@ -153,7 +153,7 @@ for t in analysis.trials:
         mec="blue",
         fig=fig,
     )
-_, ax = plot.plot(
+plot.plot(
     best_config["lambda"],
     best_config["rho"],
     ptyp="loglog",
@@ -167,6 +167,7 @@ _, ax = plot.plot(
     mec="red",
     fig=fig,
 )
+ax = fig.axes[0]
 ax.set_xlim([config["rho"].lower, config["rho"].upper])
 ax.set_ylim([config["lambda"].lower, config["lambda"].upper])
 fig.show()
