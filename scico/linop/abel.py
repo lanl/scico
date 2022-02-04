@@ -16,7 +16,6 @@ import math
 import numpy as np
 
 import jax
-import jax.experimental.host_callback
 import jax.numpy as jnp
 import jax.numpy.fft as jnfft
 
