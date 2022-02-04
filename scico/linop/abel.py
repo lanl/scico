@@ -12,6 +12,7 @@ Abel transform LinearOperator wrapping the
 """
 
 import math
+from typing import Optional
 
 import numpy as np
 
@@ -23,7 +24,7 @@ import jax.numpy.fft as jnfft
 import abel
 
 from scico.linop import LinearOperator
-from scico.typing import Array, JaxArray
+from scico.typing import Array, JaxArray, Shape
 from scipy.linalg import solve_triangular
 
 
@@ -35,7 +36,7 @@ class AbelProjector(LinearOperator):
     is assumed to be centered and left-right symmetric.
     """
 
-    def __init__(self, img_shape):
+    def __init__(self, img_shape: Shape):
 
         self.proj_mat_quad = _pyabel_daun_get_proj_matrix(img_shape)
 
@@ -62,7 +63,7 @@ class AbelProjector(LinearOperator):
     def _bproj(y: JaxArray, proj_mat_quad: Array) -> JaxArray:
         return _pyabel_transform(y, direction="transpose", proj_mat_quad=proj_mat_quad)
 
-    def inverse(self, y):
+    def inverse(self, y: JaxArray):
         """Performs inverse Abel transform
 
         Args:
@@ -74,10 +75,15 @@ class AbelProjector(LinearOperator):
         return _pyabel_transform(y, direction="inverse", proj_mat_quad=self.proj_mat_quad)
 
 
-def _pyabel_transform(x, direction, proj_mat_quad, symmetry_axis=[None]):
+def _pyabel_transform(
+    x: JaxArray, direction: str, proj_mat_quad: JaxArray, symmetry_axis: Optional[list] = None
+):
     """Performs Abel transformations (forward, inverse and transposed)
     This function contains code taken from `PyAbel <https://github.com/PyAbel/PyAbel>`_.
     """
+
+    if symmetry_axis is None:
+        symmetry_axis = [None]
 
     Q0, Q1, Q2, Q3 = get_image_quadrants(
         x, symmetry_axis=symmetry_axis, use_quadrants=(True, True, True, True)
@@ -110,7 +116,7 @@ def _pyabel_transform(x, direction, proj_mat_quad, symmetry_axis=[None]):
     )
 
 
-def _pyabel_daun_get_proj_matrix(img_shape):
+def _pyabel_daun_get_proj_matrix(img_shape: Shape):
 
     proj_matrix = abel.daun.get_bs_cached(
         math.ceil(img_shape[1] / 2),
