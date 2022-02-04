@@ -36,7 +36,7 @@ Computed Tomography
 .. toctree::
    :maxdepth: 1
 
-   examples/ct_abel
+   examples/ct_abel_tv_admm
    examples/ct_astra_pcg
    examples/ct_astra_tv_admm
    examples/ct_astra_weighted_tv_admm
@@ -111,7 +111,7 @@ Total Variation
 .. toctree::
    :maxdepth: 1
 
-   examples/ct_abel
+   examples/ct_abel_tv_admm
    examples/ct_astra_tv_admm
    examples/ct_astra_weighted_tv_admm
    examples/ct_svmbir_tv_multi
@@ -149,7 +149,7 @@ ADMM
 .. toctree::
    :maxdepth: 1
 
-   examples/ct_abel
+   examples/ct_abel_tv_admm
    examples/ct_astra_tv_admm
    examples/ct_astra_weighted_tv_admm
    examples/ct_svmbir_ppp_bm3d_admm_cg

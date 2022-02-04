@@ -9,6 +9,7 @@ Organized by Application
 Computed Tomography
 ^^^^^^^^^^^^^^^^^^^
 
+   - ct_abel_tv_admm.py
    - ct_astra_pcg.py
    - ct_astra_tv_admm.py
    - ct_astra_weighted_tv_admm.py
@@ -65,6 +66,7 @@ Plug and Play Priors
 Total Variation
 ^^^^^^^^^^^^^^^
 
+   - ct_abel_tv_admm.py
    - ct_astra_tv_admm.py
    - ct_astra_weighted_tv_admm.py
    - ct_svmbir_tv_multi.py

@@ -10,7 +10,7 @@ Abel Transform Tuning Demo
 
 This example demonstrates the use of
 [scico.ray.tune](../_autosummary/scico.ray.tune.rst) to tune
-parameters for the companion [example script](ct_abel.rst).
+parameters for the companion [example script](ct_abel_tv_admm.rst).
 """
 
 import numpy as np
