@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021 by SCICO Developers
+# Copyright (C) 2021-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -8,6 +8,8 @@
 """Parameter tuning using :doc:`ray.tune <ray:tune/index>`."""
 
 import datetime
+import os
+import tempfile
 from typing import Any, Callable, Dict, List, Mapping, Optional, Type, Union
 
 import ray
@@ -71,6 +73,7 @@ def run(
     config: Optional[Dict[str, Any]] = None,
     hyperopt: bool = True,
     verbose: bool = True,
+    local_dir: Optional[str] = None,
 ) -> ray.tune.ExperimentAnalysis:
     """Simplified wrapper for :func:`ray.tune.run`.
 
@@ -97,6 +100,10 @@ def run(
             running, and terminated trials are indicated by "P:", "R:",
             and "T:" respectively, followed by the current best metric
             value and the parameters at which it was reported.
+        local_dir: Directory in which to save tuning results. Defaults to
+            a subdirectory "ray_results" within the path returned by
+            `tempfile.gettempdir()`, corresponding e.g. to
+            "/tmp/ray_results" under Linux.
 
     Returns:
         Result of parameter search.
@@ -114,15 +121,23 @@ def run(
     else:
         kwargs.update({"verbose": 0})
 
-    def _run(config, checkpoint_dir=None):
-        run_or_experiment(config)
+    if isinstance(run_or_experiment, str):
+        name = run_or_experiment
+    else:
+        name = run_or_experiment.__name__
+    name += "_" + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+    if local_dir is None:
+        local_dir = os.path.join(tempfile.gettempdir(), "ray_results")
 
     return ray.tune.run(
-        _run,
+        run_or_experiment,
         metric=metric,
         mode=mode,
+        name=name,
         time_budget_s=time_budget_s,
         num_samples=num_samples,
+        local_dir=local_dir,
         resources_per_trial=resources_per_trial,
         max_concurrent_trials=max_concurrent_trials,
         reuse_actors=True,
