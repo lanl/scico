@@ -5,7 +5,7 @@
 # with the package.
 
 r"""
-Abel Transform Tuning Demo
+Regularized Abel Inversion Tuning Demo
 ==========================
 
 This example demonstrates the use of

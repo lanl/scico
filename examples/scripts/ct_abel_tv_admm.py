@@ -5,7 +5,7 @@
 # with the package.
 
 r"""
-Abel Transform Demo
+Regularized Abel Inversion
 ===================
 
 This example demonstrates a TV-regularized Abel inversion using
