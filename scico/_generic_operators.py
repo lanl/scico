@@ -447,7 +447,7 @@ class LinearOperator(Operator):
                 determined by evaluating ``self.__call__`` on an input
                 array of zeros.
             jit: If ``True``, call :meth:`.jit()` on this LinearOperator
-                to jit the forward, adjoint, and gram functions.  Same as
+                to jit the forward, adjoint, and gram functions. Same as
                 calling :meth:`.jit` after the LinearOperator is created.
         """
 
@@ -624,7 +624,7 @@ class LinearOperator(Operator):
         adjoint:  ``A.T(y) == A.adj(y)``. For a complex-valued
         LinearOperator ``A`` (``A.input_dtype``=`np.complex64` or
         ``np.complex128``), the LinearOperator ``A.T`` is not the
-        adjoint.  For the conjugate transpose, use ``.conj().T`` or
+        adjoint. For the conjugate transpose, use ``.conj().T`` or
         :meth:`.H`.
         """
         if is_complex_dtype(self.input_dtype):

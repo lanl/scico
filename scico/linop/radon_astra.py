@@ -70,7 +70,7 @@ class ParallelBeamProjector(LinearOperator):
             det_count: Number of detector elements.
             angles: Array of projection angles.
             device: Specifies device for projection operation.
-                One of ["auto", "gpu", "cpu"].  If "auto",  a GPU is used
+                One of ["auto", "gpu", "cpu"]. If "auto", a GPU is used
                 if available. Otherwise, the CPU is used.
         """
 

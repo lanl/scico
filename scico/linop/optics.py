@@ -226,7 +226,7 @@ class AngularSpectrumPropagator(Propagator):
             z: Propagation distance.
             pad_factor:  Amount of padding to apply in DFT step.
             jit: If ``True``, call :meth:`.jit()` on this LinearOperator
-               to jit the forward, adjoint, and gram functions.  Same as
+               to jit the forward, adjoint, and gram functions. Same as
                calling :meth:`.jit` after the LinearOperator is created.
         """
 

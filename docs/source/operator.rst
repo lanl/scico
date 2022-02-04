@@ -16,10 +16,10 @@ The ``matrix_shape`` attribute describes the shape of the :class:`.LinearOperato
 For example, consider a two dimensional array :math:`\mb{x} \in \mathbb{R}^{n \times m}`.
 We compute the discrete differences of :math:`\mb{x}` in the horizontal and vertical directions,
 generating two new arrays: :math:`\mb{x}_h \in \mathbb{R}^{n \times (m-1)}` and :math:`\mb{x}_v \in
-\mathbb{R}^{(n-1) \times m}`.  We represent this linear operator by
+\mathbb{R}^{(n-1) \times m}`. We represent this linear operator by
 :math:`\mb{A} : \mathbb{R}^{n \times m} \to \mathbb{R}^{n \times (m-1)} \otimes \mathbb{R}^{(n-1) \times m}`.
 In SCICO, this linear operator will return a :class:`.BlockArray` with the horizontal and vertical differences
-stored as blocks.  Letting :math:`y = \mb{A} x`, we have ``y.shape = ((n, m-1), (n-1, m))``
+stored as blocks. Letting :math:`y = \mb{A} x`, we have ``y.shape = ((n, m-1), (n-1, m))``
 and
 
    ::
@@ -118,7 +118,7 @@ Note that in this case, ``A.T`` returns the non-conjugated transpose of the Line
 
 While the cost of evaluating the linear operator is virtually identical for ``A(x)`` and ``A @ x``,
 the ``A.H`` and ``A.conj().T`` methods are somewhat slower; especially the latter. This is because two
-intermediate linear operators must be created before the function is evaluated.   Evaluating ``A.conj().T @ y``
+intermediate linear operators must be created before the function is evaluated.  Evaluating ``A.conj().T @ y``
 is equivalent to:
 
 ::

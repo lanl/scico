@@ -96,7 +96,7 @@ imgb = jax.device_put(bm3d_rgb(demosaic(sn), 3 * σ).astype(np.float32))
 
 
 """
-Set up an ADMM solver object.  Note the use of the baseline solution
+Set up an ADMM solver object. Note the use of the baseline solution
 as an initializer. We use BM3D :cite:`dabov-2008-image` as the
 denoiser, using the [code](https://pypi.org/project/bm3d) released
 with :cite:`makinen-2019-exact`.
