@@ -40,6 +40,8 @@ Deconvolution
       Image Deconvolution (ADMM Plug-and-Play Priors w/ DnCNN)
    `deconv_tv_admm.py <deconv_tv_admm.py>`_
       Image Deconvolution (ADMM w/ Total Variation)
+   `deconv_tv_admm_tune.py <deconv_tv_admm_tune.py>`_
+      Image Deconvolution Parameter Tuning
 
 
 Sparse Coding
@@ -106,6 +108,8 @@ Total Variation
       Deconvolution Microscopy (All Channels)
    `deconv_tv_admm.py <deconv_tv_admm.py>`_
       Image Deconvolution (ADMM w/ Total Variation)
+   `deconv_tv_admm_tune.py <deconv_tv_admm_tune.py>`_
+      Image Deconvolution Parameter Tuning
    `denoise_tv_iso_admm.py <denoise_tv_iso_admm.py>`_
       Isotropic Total Variation (ADMM)
    `denoise_tv_iso_pgm.py <denoise_tv_iso_pgm.py>`_
@@ -156,6 +160,8 @@ ADMM
       Image Deconvolution (ADMM Plug-and-Play Priors w/ DnCNN)
    `deconv_tv_admm.py <deconv_tv_admm.py>`_
       Image Deconvolution (ADMM w/ Total Variation)
+   `deconv_tv_admm_tune.py <deconv_tv_admm_tune.py>`_
+      Image Deconvolution Parameter Tuning
    `demosaic_ppp_bm3d_admm.py <demosaic_ppp_bm3d_admm.py>`_
       Image Demosaicing (ADMM Plug-and-Play Priors w/ BM3D)
    `denoise_tv_iso_admm.py <denoise_tv_iso_admm.py>`_
