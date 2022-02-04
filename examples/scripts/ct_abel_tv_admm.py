@@ -16,8 +16,6 @@ import numpy as np
 
 import jax
 
-import abel
-
 import scico.numpy as snp
 from scico import functional, linop, loss, plot
 from scico.linop.abel import AbelProjector
@@ -53,11 +51,6 @@ def create_french_test_phantom(img_shape, radius_list, val_list, center=None):
 
 
 x_gt = create_french_test_phantom((256, 254), [100, 50, 25], [1, 0, 0.5])
-
-y = abel.Transform(np.array(x_gt), direction="forward", method="daun").transform
-x_inv = abel.Transform(np.array(y), direction="inverse", method="daun").transform
-
-
 x_gt = jax.device_put(x_gt)
 
 A = AbelProjector(x_gt.shape)
