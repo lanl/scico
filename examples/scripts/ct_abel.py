@@ -9,7 +9,7 @@ Abel Transform Demo
 ===================
 
 This example demonstrates a TV-regularized Abel inversion using
-an Abel projector based on PyAbel.
+an Abel projector based on PyAbel :cite:`pyabel-2022`
 """
 
 import numpy as np
