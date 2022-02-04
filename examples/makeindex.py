@@ -76,12 +76,18 @@ with open(dst, "w") as dstfile:
     print(".. _example_notebooks:\n", file=dstfile)
     with open(src, "r") as srcfile:
         for line in srcfile:
+            # Add toctree and include statements after main heading
+            if line[0:3] == "===":
+                print(line, end="", file=dstfile)
+                print("\n.. toctree::\n   :maxdepth: 1", file=dstfile)
+                print("\n.. include:: exampledepend.rst", file=dstfile)
+                continue
             # Detect lines containing script filenames
             m = re.match(r"(\s+)- ([^\s]+).py", line)
             if m:
                 print("   " + prfx + m.group(2), file=dstfile)
             else:
                 print(line, end="", file=dstfile)
-                # Add toctree statements after section headings
+                # Add toctree statement after section headings
                 if line[0:3] == line[0] * 3 and line[0] in ["=", "-", "^"]:
                     print("\n.. toctree::\n   :maxdepth: 1", file=dstfile)
