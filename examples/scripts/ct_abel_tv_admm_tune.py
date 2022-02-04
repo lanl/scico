@@ -6,7 +6,7 @@
 
 r"""
 Abel Transform Tuning Demo
-===================
+==========================
 
 This example demonstrates the use of
 [scico.ray.tune](../_autosummary/scico.ray.tune.rst) to tune
@@ -28,8 +28,8 @@ Create a ground truth image.
 """
 
 
-def dist_map_2D(img_shape, center=None):
-    """Computes a 2D map of the distance from a center pixel."""
+def create_cone(img_shape, center=None):
+    """Compute a 2D map of the distance from a center pixel."""
 
     if center == None:
         center = [img_dim // 2 for img_dim in img_shape]
@@ -43,10 +43,10 @@ def dist_map_2D(img_shape, center=None):
     return dist_map
 
 
-def create_french_test_phantom(img_shape, radius_list, val_list, center=None):
-    """Computes a french test object with given radii, and intensities."""
+def create_circular_phantom(img_shape, radius_list, val_list, center=None):
+    """Construct a circular test object with given radii and intensities."""
 
-    dist_map = dist_map_2D(img_shape, center)
+    dist_map = create_cone(img_shape, center)
 
     img = np.zeros(img_shape)
     for r, val in zip(radius_list, val_list):
@@ -55,7 +55,7 @@ def create_french_test_phantom(img_shape, radius_list, val_list, center=None):
     return img
 
 
-x_gt = create_french_test_phantom((256, 256), [100, 50, 25], [1, 0, 0.5])
+x_gt = create_circular_phantom((256, 256), [100, 50, 25], [1, 0, 0.5])
 
 
 """
@@ -96,10 +96,10 @@ def eval_params(config):
         C_list=[C],
         rho_list=[ρ],
         x0=A.inverse(y),
-        maxiter=5,
+        maxiter=10,
         subproblem_solver=LinearSubproblemSolver(),
     )
-    # Perform 50 iterations, reporting performance to ray.tune every 5 iterations.
+    # Perform 50 iterations, reporting performance to ray.tune every 10 iterations.
     for step in range(10):
         x_admm = solver.solve()
         tune.report(psnr=float(metric.psnr(x_gt, x_admm)))
@@ -153,7 +153,7 @@ for t in analysis.trials:
         mec="blue",
         fig=fig,
     )
-_, ax = plot.plot(
+plot.plot(
     best_config["lambda"],
     best_config["rho"],
     ptyp="loglog",
@@ -167,6 +167,7 @@ _, ax = plot.plot(
     mec="red",
     fig=fig,
 )
+ax = fig.axes[0]
 ax.set_xlim([config["rho"].lower, config["rho"].upper])
 ax.set_ylim([config["lambda"].lower, config["lambda"].upper])
 fig.show()

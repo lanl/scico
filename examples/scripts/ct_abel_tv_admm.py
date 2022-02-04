@@ -23,8 +23,8 @@ from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
 
-def dist_map_2D(img_shape, center=None):
-    """Computes a 2D map of the distance from a center pixel."""
+def create_cone(img_shape, center=None):
+    """Compute a 2D map of the distance from a center pixel."""
 
     if center == None:
         center = [img_dim // 2 for img_dim in img_shape]
@@ -38,10 +38,10 @@ def dist_map_2D(img_shape, center=None):
     return dist_map
 
 
-def create_french_test_phantom(img_shape, radius_list, val_list, center=None):
-    """Computes a french test object with given radii, and intensities."""
+def create_circular_phantom(img_shape, radius_list, val_list, center=None):
+    """Construct a circular test object with given radii and intensities."""
 
-    dist_map = dist_map_2D(img_shape, center)
+    dist_map = create_cone(img_shape, center)
 
     img = np.zeros(img_shape)
     for r, val in zip(radius_list, val_list):
@@ -50,7 +50,7 @@ def create_french_test_phantom(img_shape, radius_list, val_list, center=None):
     return img
 
 
-x_gt = create_french_test_phantom((256, 254), [100, 50, 25], [1, 0, 0.5])
+x_gt = create_circular_phantom((256, 254), [100, 50, 25], [1, 0, 0.5])
 x_gt = jax.device_put(x_gt)
 
 A = AbelProjector(x_gt.shape)
