@@ -81,7 +81,7 @@ def eval_params(config, reporter):
         maxiter=10,
         subproblem_solver=LinearSubproblemSolver(),
     )
-    # Perform 50 iterations, reporting performance to ray.tune every 5 iterations.
+    # Perform 50 iterations, reporting performance to ray.tune every 10 iterations.
     for step in range(5):
         x_admm = solver.solve()
         reporter(psnr=float(metric.psnr(x_gt, x_admm)))
