@@ -19,6 +19,7 @@ import jax
 
 import scico.ray as ray
 from scico import functional, linop, loss, metric, plot
+from scico.examples import create_circular_phantom
 from scico.linop.abel import AbelProjector
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.ray import tune
@@ -26,35 +27,6 @@ from scico.ray import tune
 """
 Create a ground truth image.
 """
-
-
-def create_cone(img_shape, center=None):
-    """Compute a 2D map of the distance from a center pixel."""
-
-    if center == None:
-        center = [img_dim // 2 for img_dim in img_shape]
-
-    coords = [np.arange(0, img_dim) for img_dim in img_shape]
-    coord_mesh = np.meshgrid(*coords, sparse=True, indexing="ij")
-
-    dist_map = sum([(coord_mesh[i] - center[i]) ** 2 for i in range(len(coord_mesh))])
-    dist_map = np.sqrt(dist_map)
-
-    return dist_map
-
-
-def create_circular_phantom(img_shape, radius_list, val_list, center=None):
-    """Construct a circular test object with given radii and intensities."""
-
-    dist_map = create_cone(img_shape, center)
-
-    img = np.zeros(img_shape)
-    for r, val in zip(radius_list, val_list):
-        img[dist_map < r] = val
-
-    return img
-
-
 x_gt = create_circular_phantom((256, 256), [100, 50, 25], [1, 0, 0.5])
 
 

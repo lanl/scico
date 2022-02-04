@@ -239,3 +239,48 @@ def tile_volume_slices(x: JaxArray, sep_width: int = 10) -> JaxArray:
     out = snp.where(snp.isnan(out), snp.nanmax(out), out)
 
     return out
+
+
+def create_cone(img_shape, center=None):
+    """Compute a 2D map of the distance from a center pixel.
+
+    Args:
+        img_shape : Shape of the image for which the distance map is being computed.
+        center : Tuple of center pixel ids. If None, this is set to the center of the image
+
+    Returns:
+        An image containing a 2D map of the distances
+    """
+
+    if center == None:
+        center = [img_dim // 2 for img_dim in img_shape]
+
+    coords = [np.arange(0, img_dim) for img_dim in img_shape]
+    coord_mesh = np.meshgrid(*coords, sparse=True, indexing="ij")
+
+    dist_map = sum([(coord_mesh[i] - center[i]) ** 2 for i in range(len(coord_mesh))])
+    dist_map = np.sqrt(dist_map)
+
+    return dist_map
+
+
+def create_circular_phantom(img_shape, radius_list, val_list, center=None):
+    """Construct a circular phantom with given radii and intensities
+
+    Args:
+        img_shape : Shape of the phontom to be created
+        radius_list : List of radii of the rings in the phantom
+        val_list : List of intensity values of the rings in the phantom
+        center : Tuple of center pixel ids. If None, this is set to the center of the image
+
+    Returns:
+        The computed circular phantom
+    """
+
+    dist_map = create_cone(img_shape, center)
+
+    img = np.zeros(img_shape)
+    for r, val in zip(radius_list, val_list):
+        img[dist_map < r] = val
+
+    return img
