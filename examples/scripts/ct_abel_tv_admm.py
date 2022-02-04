@@ -14,8 +14,6 @@ an Abel projector based on PyAbel :cite:`pyabel-2022`
 
 import numpy as np
 
-import jax
-
 import scico.numpy as snp
 from scico import functional, linop, loss, plot
 from scico.examples import create_circular_phantom
@@ -27,7 +25,6 @@ from scico.util import device_info
 Create a ground truth image.
 """
 x_gt = create_circular_phantom((256, 254), [100, 50, 25], [1, 0, 0.5])
-x_gt = jax.device_put(x_gt)
 
 """
 Set up the forward operator and create a test measurement
