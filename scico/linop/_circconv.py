@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021 by SCICO Developers
+# Copyright (C) 2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -21,14 +21,6 @@ from scico._generic_operators import Operator
 from scico.typing import Array, DType, JaxArray, Shape
 
 from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
-
-__author__ = """\n""".join(
-    [
-        "Brendt Wohlberg <brendt@ieee.org>",
-        "Luke Pfister <luke.pfister@gmail.com>",
-        "Michael McCann <mccann@lanl.gov>",
-    ]
-)
 
 
 class CircularConvolve(LinearOperator):
@@ -127,7 +119,7 @@ class CircularConvolve(LinearOperator):
             self.h_dft = snp.fft.fftn(h, s=fft_shape, axes=fft_axes)
             output_dtype = result_type(h.dtype, input_dtype)
 
-            if h_center is not None:
+            if self.h_center is not None:
                 offset = -self.h_center
                 shifts: Tuple[Array, ...] = np.ix_(
                     *tuple(
