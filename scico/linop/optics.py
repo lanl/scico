@@ -61,11 +61,13 @@ def radial_transverse_frequency(
     if np.isscalar(dx):
         dx = (dx,) * ndim  # type: ignore
     else:
+        assert isinstance(dx, tuple)
         if len(dx) != ndim:
             raise ValueError(
                 "dx must be a scalar or have len(dx) == len(input_shape); "
                 f"got len(dx)={len(dx)}, len(input_shape)={ndim}"
             )
+    assert isinstance(dx, tuple)
 
     if ndim == 1:
         kx = 2 * np.pi * np.fft.fftfreq(input_shape[0], dx[0])
@@ -107,13 +109,15 @@ class Propagator(LinearOperator):
             raise ValueError("Invalid input dimensions; must be 1 or 2")
 
         if np.isscalar(dx):
-            dx = (dx,) * ndim
+            dx = (dx,) * ndim  # type: ignore
         else:
+            assert isinstance(dx, tuple)
             if len(dx) != ndim:
                 raise ValueError(
                     "dx must be a scalar or have len(dx) == len(input_shape); "
                     f"got len(dx)={len(dx)}, len(input_shape)={ndim}"
                 )
+        assert isinstance(dx, tuple)
 
         #: Illumination wavenumber; 2π/wavelength
         self.k0: float = k0
@@ -435,13 +439,15 @@ class FraunhoferPropagator(LinearOperator):
             raise ValueError("Invalid input dimensions; must be 1 or 2")
 
         if np.isscalar(dx):
-            dx = (dx,) * ndim
+            dx = (dx,) * ndim  # type: ignore
         else:
+            assert isinstance(dx, tuple)
             if len(dx) != ndim:
                 raise ValueError(
                     "dx must be a scalar or have len(dx) == len(input_shape); "
                     f"got len(dx)={len(dx)}, len(input_shape)={ndim}"
                 )
+        assert isinstance(dx, tuple)
 
         L: Tuple[float, ...] = tuple(s * d for s, d in zip(input_shape, dx))
 
@@ -458,7 +464,7 @@ class FraunhoferPropagator(LinearOperator):
         self.dx_D: Tuple[float, ...] = tuple(np.abs(2 * np.pi * z / (k0 * l)) for l in L)
         #: Destination plane side length
         self.L_D: Tuple[float, ...] = tuple(np.abs(2 * np.pi * z / (k0 * d)) for d in dx)
-        x_D = tuple(np.r_[-l / 2 : l / 2 : d] for l, d in zip(self.L_D, self.dx_D))
+        x_D = tuple(np.r_[int(-l / 2) : int(l / 2) : int(d)] for l, d in zip(self.L_D, self.dx_D))
 
         # set up radial coordinate system; either x^2 or (x^2 + y^2)
         if ndim == 1:
