@@ -56,7 +56,7 @@ class BM3D(Functional):
 
         super().__init__()
 
-    def prox(self, x: JaxArray, lam: float = 1.0, **kwargs) -> JaxArray:
+    def prox(self, x: JaxArray, lam: float = 1.0, **kwargs) -> JaxArray:  # type: ignore
         r"""Apply BM3D denoiser.
 
         Args:
@@ -147,7 +147,7 @@ class DnCNN(FlaxMap):
         variables = load_weights(_flax_data_path("dncnn%s.npz" % variant))
         super().__init__(model, variables)
 
-    def prox(self, x: JaxArray, lam: float = 1, **kwargs) -> JaxArray:
+    def prox(self, x: JaxArray, lam: float = 1, **kwargs) -> JaxArray:  # type: ignore
         r"""Apply DnCNN denoiser.
 
         *Warning*: The `lam` parameter is ignored, and has no effect on

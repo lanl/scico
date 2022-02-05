@@ -7,7 +7,7 @@
 
 """Evaluate NN models implemented in flax."""
 
-from typing import Any, Callable
+from typing import Any
 
 from flax import linen as nn
 from scico.blockarray import BlockArray
@@ -24,7 +24,7 @@ class FlaxMap(Functional):
     has_eval = False
     has_prox = True
 
-    def __init__(self, model: Callable[..., nn.Module], variables: PyTree):
+    def __init__(self, model: nn.Module, variables: PyTree):
         r"""Initialize a :class:`FlaxMap` object.
 
         Args:
@@ -35,7 +35,7 @@ class FlaxMap(Functional):
         self.variables = variables
         super().__init__()
 
-    def prox(self, x: JaxArray, lam: float = 1.0, **kwargs) -> JaxArray:
+    def prox(self, x: JaxArray, lam: float = 1.0, **kwargs) -> JaxArray:  # type: ignore
         r"""Apply trained flax model.
 
         *Warning*: The ``lam`` parameter is ignored, and has no effect on
