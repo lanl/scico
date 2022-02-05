@@ -180,8 +180,8 @@ class AdaptiveBBStepSize(PGMStepSize):
         self.kappa: float = kappa
         self.xprev: Union[JaxArray, BlockArray] = None
         self.gradprev: Union[JaxArray, BlockArray] = None
-        self.Lbb1prev: float = None
-        self.Lbb2prev: float = None
+        self.Lbb1prev: Optional[float] = None
+        self.Lbb2prev: Optional[float] = None
 
     def update(self, v: Union[JaxArray, BlockArray]) -> float:
         """Update the reciprocal of the step size.
@@ -442,39 +442,41 @@ class PGM:
 
         self.x_step = jax.jit(x_step)
 
+        # iteration number and time fields
+        itstat_fields = {
+            "Iter": "%d",
+            "Time": "%8.2e",
+        }
+        itstat_attrib = ["itnum", "timer.elapsed()"]
+        # objective function can be evaluated if 'g' function can be evaluated
         if g.has_eval:
-            itstat_fields = {
-                "Iter": "%d",
-                "Time": "%8.2e",
-                "Objective": "%9.3e",
-                "L": "%9.3e",
-                "Residual": "%9.3e",
-            }
-            itstat_func = lambda pgm: (
-                pgm.itnum,
-                pgm.timer.elapsed(),
-                pgm.objective(self.x),
-                pgm.L,
-                pgm.norm_residual(),
-            )
-        else:
-            itstat_fields = {"Iter": "%d", "Time": "%8.2e", "Residual": "%9.3e"}
-            itstat_func = lambda pgm: (pgm.itnum, pgm.timer.elapsed(), pgm.norm_residual())
+            itstat_fields.update({"Objective": "%9.3e"})
+            itstat_attrib.append("objective()")
+        # step size and residual fields
+        itstat_fields.update({"L": "%9.3e", "Residual": "%9.3e"})
+        itstat_attrib.extend(["L", "norm_residual()"])
 
-        default_itstat_options = {
+        # dynamically create itstat_func; see https://stackoverflow.com/questions/24733831
+        itstat_return = "return(" + ", ".join(["obj." + attr for attr in itstat_attrib]) + ")"
+        scope: dict[str, Callable] = {}
+        exec("def itstat_func(obj): " + itstat_return, scope)
+
+        default_itstat_options: dict[str, Union[dict, Callable, bool]] = {
             "fields": itstat_fields,
-            "itstat_func": itstat_func,
+            "itstat_func": scope["itstat_func"],
             "display": False,
         }
         if itstat_options:
             default_itstat_options.update(itstat_options)
-        self.itstat_insert_func = default_itstat_options.pop("itstat_func", None)
+        self.itstat_insert_func: Callable = default_itstat_options.pop("itstat_func")  # type: ignore
         self.itstat_object = IterationStats(**default_itstat_options)
 
         self.x: Union[JaxArray, BlockArray] = ensure_on_device(x0)  # current estimate of solution
 
-    def objective(self, x) -> float:
+    def objective(self, x=None) -> float:
         r"""Evaluate the objective function :math:`f(\mb{x}) + g(\mb{x})`."""
+        if x is None:
+            x = self.x
         return self.f(x) + self.g(x)
 
     def f_quad_approx(self, x, y, L) -> float:
