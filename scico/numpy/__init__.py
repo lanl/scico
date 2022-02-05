@@ -144,8 +144,8 @@ _attach_wrapped_func(
 )
 
 # divide is just an alias to true_divide
-divide = true_divide
-conj = conjugate
+divide = true_divide  # type: ignore
+conj = conjugate  # type: ignore
 
 # Find functions that exist in jax.numpy but not scico.numpy
 # see jax.numpy.__init__.py
