@@ -134,7 +134,7 @@ class LinearizedADMM:
             "Time": "%8.2e",
         }
         itstat_attrib = ["itnum", "timer.elapsed()"]
-        # objective function can be evaluated if all 'g' functions can be evaluated
+        # objective function can be evaluated if 'g' function can be evaluated
         if g.has_eval:
             itstat_fields.update({"Objective": "%9.3e"})
             itstat_attrib.append("objective()")
@@ -144,7 +144,7 @@ class LinearizedADMM:
 
         # dynamically create itstat_func; see https://stackoverflow.com/questions/24733831
         itstat_return = "return(" + ", ".join(["obj." + attr for attr in itstat_attrib]) + ")"
-        scope = {}
+        scope: dict[str, Callable] = {}
         exec("def itstat_func(obj): " + itstat_return, scope)
 
         # determine itstat options and initialize IterationStats object
@@ -155,7 +155,7 @@ class LinearizedADMM:
         }
         if itstat_options:
             default_itstat_options.update(itstat_options)
-        self.itstat_insert_func = default_itstat_options.pop("itstat_func", None)
+        self.itstat_insert_func: Callable = default_itstat_options.pop("itstat_func", None)  # type: ignore
         self.itstat_object = IterationStats(**default_itstat_options)
 
         if x0 is None:

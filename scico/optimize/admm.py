@@ -80,7 +80,7 @@ class GenericSubproblemSolver(SubproblemSolver):
                 :func:`scico.solver.minimize`.
         """
         self.minimize_kwargs = minimize_kwargs
-        self.info = {}
+        self.info: dict = {}
 
     def solve(self, x0: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
         """Solve the ADMM step.
@@ -484,7 +484,7 @@ class ADMM:
 
         # dynamically create itstat_func; see https://stackoverflow.com/questions/24733831
         itstat_return = "return(" + ", ".join(["obj." + attr for attr in itstat_attrib]) + ")"
-        scope = {}
+        scope: dict[str, Callable] = {}
         exec("def itstat_func(obj): " + itstat_return, scope)
 
         # determine itstat options and initialize IterationStats object
@@ -495,7 +495,7 @@ class ADMM:
         }
         if itstat_options:
             default_itstat_options.update(itstat_options)
-        self.itstat_insert_func = default_itstat_options.pop("itstat_func", None)
+        self.itstat_insert_func: Callable = default_itstat_options.pop("itstat_func", None)  # type: ignore
         self.itstat_object = IterationStats(**default_itstat_options)
 
         if x0 is None:
@@ -534,6 +534,7 @@ class ADMM:
         if x is None:
             x = self.x
             z_list = self.z_list
+        assert z_list is not None
         out = 0.0
         if self.f:
             out += self.f(x)
@@ -598,7 +599,7 @@ class ADMM:
         Args:
             x0: Initial value of :math:`\mb{x}`.
         """
-        z_list = [Ci(x0) for Ci in self.C_list]
+        z_list: List[Union[JaxArray, BlockArray]] = [Ci(x0) for Ci in self.C_list]
         z_list_old = z_list.copy()
         return z_list, z_list_old
 
