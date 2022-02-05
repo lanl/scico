@@ -65,7 +65,7 @@ def _attach_wrapped_func(funclist, wrapper, module_name, fix_mod_name=False):
 
 
 def _get_module_functions(module):
-    """Finds functions in module.
+    """Find functions in module.
 
     This function is a slightly modified version of
     :func:`jax._src.util.get_module_functions`. Unlike the JAX version,
