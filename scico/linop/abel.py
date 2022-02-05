@@ -36,7 +36,10 @@ class AbelProjector(LinearOperator):
     """
 
     def __init__(self, img_shape: Shape):
-
+        """
+        Args:
+            img_shape: Shape of the input image.
+        """
         self.proj_mat_quad = _pyabel_daun_get_proj_matrix(img_shape)
 
         super().__init__(
@@ -48,10 +51,10 @@ class AbelProjector(LinearOperator):
             jit=True,
         )
 
-    def _eval(self, x: JaxArray):
+    def _eval(self, x: JaxArray) -> JaxArray:
         return self._proj(x, self.proj_mat_quad).astype(self.output_dtype)
 
-    def _adj(self, x: JaxArray):
+    def _adj(self, x: JaxArray) -> JaxArray:
         return self._bproj(x, self.proj_mat_quad).astype(self.output_dtype)
 
     @staticmethod
@@ -62,23 +65,24 @@ class AbelProjector(LinearOperator):
     def _bproj(y: JaxArray, proj_mat_quad: Array) -> JaxArray:
         return _pyabel_transform(y, direction="transpose", proj_mat_quad=proj_mat_quad)
 
-    def inverse(self, y: JaxArray):
-        """Performs inverse Abel transform
+    def inverse(self, y: JaxArray) -> JaxArray:
+        """Perform inverse Abel transform.
 
         Args:
-            y ([JaxArray]): Input image (assumed to be a result of an Abel transform)
+            y: Input image (assumed to be a result of an Abel transform)
 
         Returns:
-            [JaxArray]: Output of inverse Abel transform
+            Output of inverse Abel transform
         """
         return _pyabel_transform(y, direction="inverse", proj_mat_quad=self.proj_mat_quad)
 
 
 def _pyabel_transform(
     x: JaxArray, direction: str, proj_mat_quad: JaxArray, symmetry_axis: Optional[list] = None
-):
-    """Performs Abel transformations (forward, inverse and transposed)
-    This function contains code taken from `PyAbel <https://github.com/PyAbel/PyAbel>`_.
+) -> JaxArray:
+    """Perform Abel transformations (forward, inverse and transposed).
+
+    This function contains code copied from `PyAbel <https://github.com/PyAbel/PyAbel>`_.
     """
 
     if symmetry_axis is None:
@@ -115,8 +119,8 @@ def _pyabel_transform(
     )
 
 
-def _pyabel_daun_get_proj_matrix(img_shape: Shape):
-
+def _pyabel_daun_get_proj_matrix(img_shape: Shape) -> JaxArray:
+    """Get single-quadrant projection matrix."""
     proj_matrix = abel.daun.get_bs_cached(
         math.ceil(img_shape[1] / 2),
         degree=0,
@@ -125,7 +129,6 @@ def _pyabel_daun_get_proj_matrix(img_shape: Shape):
         direction="forward",
         verbose=False,
     )
-
     return jax.device_put(proj_matrix)
 
 
