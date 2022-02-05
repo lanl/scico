@@ -59,7 +59,7 @@ class ParallelBeamProjector(LinearOperator):
             num_channels: Number of pixels in the sinogram.
             center_offset: Position of the detector center relative to the center-of-rotation,
                 in units of pixels
-            is_masked: If True, the valid region of the image is
+            is_masked: If ``True``, the valid region of the image is
                 determined by a mask defined as the circle inscribed
                 within the image boundary. Otherwise, the whole image
                 array is taken into account by projections.
@@ -216,7 +216,7 @@ class SVMBIRExtendedLoss(Loss):
             A: Forward operator.
             scale: Scaling parameter.
             W:  Weighting diagonal operator. Must be non-negative.
-                If None, defaults to :class:`.Identity`.
+                If ``None``, defaults to :class:`.Identity`.
             prox_kwargs: Dictionary of arguments passed to the
                 :meth:`svmbir.recon` prox routine. Defaults to
                 {"maxiter": 1000, "ctol": 0.001}.
@@ -338,7 +338,7 @@ class SVMBIRWeightedSquaredL2Loss(SVMBIRExtendedLoss, WeightedSquaredL2Loss):
 
 
 def _unsqueeze(x: JaxArray, input_shape: Shape) -> JaxArray:
-    """If x is 2D, make it 3D according to SVMBIR's convention."""
+    """If x is 2D, make it 3D according to the SVMBIR convention."""
     if len(input_shape) == 2:
         x = x[snp.newaxis, :, :]
     return x
