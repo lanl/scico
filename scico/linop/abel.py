@@ -70,7 +70,9 @@ class AbelProjector(LinearOperator):
         Returns:
             Output of inverse Abel transform
         """
-        return _pyabel_transform(y, direction="inverse", proj_mat_quad=self.proj_mat_quad)
+        return _pyabel_transform(y, direction="inverse", proj_mat_quad=self.proj_mat_quad).astype(
+            self.input_dtype
+        )
 
 
 def _pyabel_transform(
