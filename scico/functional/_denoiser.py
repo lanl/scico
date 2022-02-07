@@ -18,7 +18,7 @@ class BM3D(Functional):
 
     A pseudo-functional that has the BM3D algorithm
     :cite:`dabov-2008-image` as its proximal operator, which calls
-    :func:`.denoisers.bm3d`.
+    :func:`.denoiser.bm3d`.
     """
 
     has_eval = False
@@ -53,18 +53,18 @@ class DnCNN(Functional):
 
     A pseudo-functional that has the DnCNN algorithm
     :cite:`zhang-2017-dncnn` as its proximal operator, implemented via
-    :class:`.denoisers.DnCNN`.
+    :class:`.denoiser.DnCNN`.
     """
 
     has_eval = False
     has_prox = True
 
     def __init__(self, variant: str = "6M"):
-        """Initialize a :class:`DnCNN` object.
+        """
 
         Args:
             variant: Identify the DnCNN model to be used. See
-               :class:`.denoisers.DnCNN` for valid values.
+               :class:`.denoiser.DnCNN` for valid values.
         """
         self.dncnn = denoiser.DnCNN(variant)
 
@@ -79,6 +79,6 @@ class DnCNN(Functional):
             lam: Noise parameter (ignored).
 
         Returns:
-            DnCNN dDenoised output.
+            Denoised output.
         """
         return self.dncnn(x)

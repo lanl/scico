@@ -87,13 +87,13 @@ class DnCNN(FlaxMap):
     """Flax implementation of the DnCNN denoiser.
 
     A flax implementation of the DnCNN denoiser :cite:`zhang-2017-dncnn`.
-    Note that :class:`.flax.DnCNNNet` represents an untrained form of the
+    Note that :class:`.DnCNNNet` represents an untrained form of the
     generic DnCNN CNN structure, while this class represents a trained
     form with six or seventeen layers.
     """
 
     def __init__(self, variant: str = "6M"):
-        """Initialize a :class:`DnCNN` object.
+        """
 
         Note that all DnCNN models are trained for single-channel image
         input. Multi-channel input is supported via independent denoising
