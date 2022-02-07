@@ -21,6 +21,16 @@ def make_im(Nx, Ny):
 
 
 @pytest.mark.parametrize("Nx, Ny", (BIG_INPUT, SMALL_INPUT))
+def test_inverse(Nx, Ny):
+    im = make_im(Nx, Ny)
+    A = AbelProjector(im.shape)
+
+    Ax = A @ im
+    im_hat = A.inverse(Ax)
+    np.testing.assert_allclose(im_hat, im, rtol=5e-5)
+
+
+@pytest.mark.parametrize("Nx, Ny", (BIG_INPUT, SMALL_INPUT))
 def test_adjoint(Nx, Ny):
     im = make_im(Nx, Ny)
     A = AbelProjector(im.shape)
