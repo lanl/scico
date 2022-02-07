@@ -23,7 +23,7 @@ import jax.numpy.fft as jnfft
 import abel
 
 from scico.linop import LinearOperator
-from scico.typing import Array, JaxArray, Shape
+from scico.typing import JaxArray, Shape
 from scipy.linalg import solve_triangular
 
 
@@ -52,18 +52,14 @@ class AbelProjector(LinearOperator):
         )
 
     def _eval(self, x: JaxArray) -> JaxArray:
-        return self._proj(x, self.proj_mat_quad).astype(self.output_dtype)
+        return _pyabel_transform(x, direction="forward", proj_mat_quad=self.proj_mat_quad).astype(
+            self.output_dtype
+        )
 
     def _adj(self, x: JaxArray) -> JaxArray:
-        return self._bproj(x, self.proj_mat_quad).astype(self.output_dtype)
-
-    @staticmethod
-    def _proj(x: JaxArray, proj_mat_quad: Array) -> JaxArray:
-        return _pyabel_transform(x, direction="forward", proj_mat_quad=proj_mat_quad)
-
-    @staticmethod
-    def _bproj(y: JaxArray, proj_mat_quad: Array) -> JaxArray:
-        return _pyabel_transform(y, direction="transpose", proj_mat_quad=proj_mat_quad)
+        return _pyabel_transform(x, direction="transpose", proj_mat_quad=self.proj_mat_quad).astype(
+            self.input_dtype
+        )
 
     def inverse(self, y: JaxArray) -> JaxArray:
         """Perform inverse Abel transform.

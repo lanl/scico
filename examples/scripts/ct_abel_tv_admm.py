@@ -31,7 +31,7 @@ Set up the forward operator and create a test measurement
 """
 A = AbelProjector(x_gt.shape)
 y = A @ x_gt
-y = y + 1 * np.random.normal(size=y.shape).astype(np.float32)
+y = y + np.random.normal(size=y.shape).astype(np.float32)
 ATy = A.T @ y
 
 

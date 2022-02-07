@@ -28,22 +28,11 @@ def test_adjoint(Nx, Ny):
 
 
 @pytest.mark.parametrize("Nx, Ny", (BIG_INPUT, SMALL_INPUT))
-def test_ATA_call(Nx, Ny):
-    # Test for the call-based interface
+def test_ATA(Nx, Ny):
     x = make_im(Nx, Ny)
     A = AbelProjector(x.shape)
     Ax = A(x)
     ATAx = A.adj(Ax)
-    np.testing.assert_allclose(np.sum(x * ATAx), np.linalg.norm(Ax) ** 2, rtol=5e-5)
-
-
-@pytest.mark.parametrize("Nx, Ny", (BIG_INPUT, SMALL_INPUT))
-def test_ATA_matmul(Nx, Ny):
-    # Test for the matmul interface
-    x = make_im(Nx, Ny)
-    A = AbelProjector(x.shape)
-    Ax = A @ x
-    ATAx = A.T @ Ax
     np.testing.assert_allclose(np.sum(x * ATAx), np.linalg.norm(Ax) ** 2, rtol=5e-5)
 
 
