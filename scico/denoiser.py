@@ -7,7 +7,6 @@
 
 """Denoisers."""
 
-from typing import Optional
 
 import numpy as np
 
@@ -93,7 +92,7 @@ class DnCNN(FlaxMap):
     form with six or seventeen layers.
     """
 
-    def __init__(self, variant: Optional[str] = "6M"):
+    def __init__(self, variant: str = "6M"):
         """Initialize a :class:`DnCNN` object.
 
         Note that all DnCNN models are trained for single-channel image
