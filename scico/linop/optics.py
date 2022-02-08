@@ -464,7 +464,7 @@ class FraunhoferPropagator(LinearOperator):
         self.dx_D: Tuple[float, ...] = tuple(np.abs(2 * np.pi * z / (k0 * l)) for l in L)
         #: Destination plane side length
         self.L_D: Tuple[float, ...] = tuple(np.abs(2 * np.pi * z / (k0 * d)) for d in dx)
-        x_D = tuple(np.r_[int(-l / 2) : int(l / 2) : int(d)] for l, d in zip(self.L_D, self.dx_D))
+        x_D = tuple(np.r_[-l / 2 : l / 2 : d] for l, d in zip(self.L_D, self.dx_D))  # type: ignore
 
         # set up radial coordinate system; either x^2 or (x^2 + y^2)
         if ndim == 1:
