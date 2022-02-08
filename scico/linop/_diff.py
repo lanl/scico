@@ -61,7 +61,7 @@ class FiniteDifference(LinearOperatorStack):
                 operations, this must be `complex64` for proper adjoint
                 and gradient calculation.
             axes: Axis or axes over which to apply finite difference
-                operator. If not specified, or `None`, differences are
+                operator. If not specified, or ``None``, differences are
                 evaluated along all axes.
             append: Value to append to the input along each axis before
                 taking differences. Zero is a typical choice. If not
@@ -116,7 +116,7 @@ class FiniteDifferenceSingleAxis(LinearOperator):
                 taking differences. Defaults to 0.
             circular: If ``True``, perform circular differences, i.e.,
                 include x[-1] - x[0]. If ``True``, `append` must be
-                `None`.
+                ``None``.
             jit: If ``True``, jit the evaluation, adjoint, and gram
                 functions of the LinearOperator.
         """

@@ -230,7 +230,7 @@ class SeparableFunctional(Functional):
         if len(v.shape) == len(self.functional_list):
             return BlockArray.array([fi.prox(vi, lam) for fi, vi in zip(self.functional_list, v)])
         raise ValueError(
-            f"Number of blocks in x, {len(x.shape)}, and length of functional_list, "
+            f"Number of blocks in v, {len(v.shape)}, and length of functional_list, "
             f"{len(self.functional_list)}, do not match"
         )
 
