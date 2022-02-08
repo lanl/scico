@@ -142,7 +142,7 @@ class DnCNN(FlaxMap):
                 x = x.squeeze()
             else:
                 raise ValueError(
-                    "Arrays with more than three axes are only supported when "
+                    "Arrays with more than three axes are only supported when"
                     " the additional axes are singletons"
                 )
 
