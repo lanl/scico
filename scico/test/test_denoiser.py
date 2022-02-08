@@ -57,14 +57,14 @@ class TestDnCNN:
         self.x_mltchn, key = randn((33, 34, 5), key=key, dtype=np.float32)
         self.dncnn = DnCNN()
 
-    def test_sngchn(self):
+    def test_single_channel(self):
         no_jit = self.dncnn(self.x_sngchn)
         jitted = jax.jit(self.dncnn)(self.x_sngchn)
         np.testing.assert_allclose(no_jit, jitted, rtol=1e-3)
         assert no_jit.dtype == np.float32
         assert jitted.dtype == np.float32
 
-    def test_mltchn(self):
+    def test_multi_channel(self):
         no_jit = self.dncnn(self.x_mltchn)
         jitted = jax.jit(self.dncnn)(self.x_mltchn)
         np.testing.assert_allclose(no_jit, jitted, rtol=1e-3)
