@@ -469,7 +469,7 @@ class PGM:
         if itstat_options:
             default_itstat_options.update(itstat_options)
         self.itstat_insert_func: Callable = default_itstat_options.pop("itstat_func")  # type: ignore
-        self.itstat_object = IterationStats(**default_itstat_options)
+        self.itstat_object = IterationStats(**default_itstat_options)  # type: ignore
 
         self.x: Union[JaxArray, BlockArray] = ensure_on_device(x0)  # current estimate of solution
 

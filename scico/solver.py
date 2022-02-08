@@ -298,7 +298,7 @@ def cg(
     maxiter: int = 1000,
     info: bool = False,
     M: Optional[Callable] = None,
-) -> Union[JaxArray, dict]:
+) -> Tuple[JaxArray, dict]:
     r"""Conjugate Gradient solver.
 
     Solve the linear system :math:`A\mb{x} = \mb{b}`, where :math:`A` is

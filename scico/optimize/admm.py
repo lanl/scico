@@ -12,7 +12,7 @@
 from __future__ import annotations
 
 from functools import reduce
-from typing import Callable, List, Optional, Union
+from typing import Any, Callable, List, Optional, Union
 
 import jax
 from jax.scipy.sparse.linalg import cg as jax_cg
@@ -157,7 +157,7 @@ class LinearSubproblemSolver(SubproblemSolver):
             :math:`\mb{x}` update step.
     """
 
-    def __init__(self, cg_kwargs: Optional[dict] = None, cg_function: str = "scico"):
+    def __init__(self, cg_kwargs: Optional[dict[str, Any]] = None, cg_function: str = "scico"):
         """Initialize a :class:`LinearSubproblemSolver` object.
 
         Args:
@@ -196,15 +196,15 @@ class LinearSubproblemSolver(SubproblemSolver):
 
     def internal_init(self, admm):
         if admm.f is not None:
-            if not isinstance(admm.f.A, LinearOperator):
-                raise ValueError(
-                    f"LinearSubproblemSolver requires f.A to be a scico.linop.LinearOperator; "
-                    f"got {type(admm.f.A)}"
-                )
             if not isinstance(admm.f, WeightedSquaredL2Loss):  # SquaredL2Loss is subclass
                 raise ValueError(
                     f"LinearSubproblemSolver requires f to be a scico.loss.WeightedSquaredL2Loss"
                     f"or scico.loss.SquaredL2Loss; got {type(admm.f)}"
+                )
+            if not isinstance(admm.f.A, LinearOperator):
+                raise ValueError(
+                    f"LinearSubproblemSolver requires f.A to be a scico.linop.LinearOperator; "
+                    f"got {type(admm.f.A)}"
                 )
 
         super().internal_init(admm)
@@ -239,8 +239,8 @@ class LinearSubproblemSolver(SubproblemSolver):
         rhs = snp.zeros(C0.input_shape, C0.input_dtype)
 
         if self.admm.f is not None:
-            ATWy = self.admm.f.A.adj(self.admm.f.W.diagonal * self.admm.f.y)
-            rhs += 2.0 * self.admm.f.scale * ATWy
+            ATWy = self.admm.f.A.adj(self.admm.f.W.diagonal * self.admm.f.y)  # type: ignore
+            rhs += 2.0 * self.admm.f.scale * ATWy  # type: ignore
 
         for rhoi, Ci, zi, ui in zip(
             self.admm.rho_list, self.admm.C_list, self.admm.z_list, self.admm.u_list
@@ -259,7 +259,7 @@ class LinearSubproblemSolver(SubproblemSolver):
         """
         x0 = ensure_on_device(x0)
         rhs = self.compute_rhs()
-        x, self.info = self.cg(self.lhs_op, rhs, x0, **self.cg_kwargs)
+        x, self.info = self.cg(self.lhs_op, rhs, x0, **self.cg_kwargs)  # type: ignore
         return x
 
 
@@ -496,7 +496,7 @@ class ADMM:
         if itstat_options:
             default_itstat_options.update(itstat_options)
         self.itstat_insert_func: Callable = default_itstat_options.pop("itstat_func", None)  # type: ignore
-        self.itstat_object = IterationStats(**default_itstat_options)
+        self.itstat_object = IterationStats(**default_itstat_options)  # type: ignore
 
         if x0 is None:
             input_shape = C_list[0].input_shape

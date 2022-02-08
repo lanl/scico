@@ -131,10 +131,10 @@ class WeightedSquaredL2Loss(Loss):
 
         Args:
             y: Measurement.
-            A: Forward operator. If None, defaults to :class:`.Identity`.
+            A: Forward operator. If ``None``, defaults to :class:`.Identity`.
             scale: Scaling parameter.
-            W:  Weighting diagonal operator. Must be non-negative.
-                If None, defaults to :class:`.Identity`.
+            W: Weighting diagonal operator. Must be non-negative.
+                If ``None``, defaults to :class:`.Identity`.
         """
         y = ensure_on_device(y)
 
@@ -210,8 +210,8 @@ class WeightedSquaredL2Loss(Loss):
             return linop.LinearOperator(
                 input_shape=A.input_shape,
                 output_shape=A.input_shape,
-                eval_fn=lambda x: 2 * self.scale * A.adj(W(A(x))),
-                adj_fn=lambda x: 2 * self.scale * A.adj(W(A(x))),
+                eval_fn=lambda x: 2 * self.scale * A.adj(W(A(x))),  # type: ignore
+                adj_fn=lambda x: 2 * self.scale * A.adj(W(A(x))),  # type: ignore
             )
 
         raise NotImplementedError(
@@ -278,7 +278,7 @@ class PoissonLoss(Loss):
         super().__init__(y=y, A=A, scale=scale)
 
         #: Constant term in Poisson log likehood; equal to ln(y!)
-        self.const: float = gammaln(self.y + 1)  # ln(y!)
+        self.const = gammaln(self.y + 1.0)  # type: ignore
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         Ax = self.A(x)
