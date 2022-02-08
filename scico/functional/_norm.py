@@ -273,7 +273,10 @@ class NuclearNorm(Functional):
     has_prox = True
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
-        return snp.sum(snp.linalg.svd(x, compute_uv=False))
+        # Set computute_uv=True to work around
+        # https://github.com/google/jax/issues/9483
+        _, s, _ = snp.linalg.svd(x, compute_uv=True)
+        return snp.sum(s)
 
     def prox(
         self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
