@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -18,21 +18,17 @@ import jax
 from jax.scipy.sparse.linalg import cg as jax_cg
 
 import scico.numpy as snp
+from scico.array import ensure_on_device, is_real_dtype
 from scico.blockarray import BlockArray
 from scico.diagnostics import IterationStats
 from scico.functional import Functional
 from scico.linop import CircularConvolve, Identity, LinearOperator
 from scico.loss import SquaredL2Loss, WeightedSquaredL2Loss
-from scico.math import is_real_dtype
 from scico.numpy.linalg import norm
 from scico.solver import cg as scico_cg
 from scico.solver import minimize
 from scico.typing import JaxArray
-from scico.util import Timer, ensure_on_device
-
-__author__ = """\n""".join(
-    ["Luke Pfister <luke.pfister@gmail.com>", "Brendt Wohlberg <brendt@ieee.org>"]
-)
+from scico.util import Timer
 
 
 class SubproblemSolver:
@@ -43,7 +39,7 @@ class SubproblemSolver:
     subproblems is separable into distinct subproblems for each of the
     :math:`g_i`, and another that is non-separable, involving function
     :math:`f` and a sum over :math:`\ell_2` norm terms involving all
-    operators :math:`C_i`.  This class is a base class for solvers of
+    operators :math:`C_i`. This class is a base class for solvers of
     the latter subproblem
 
     ..  math::
@@ -173,7 +169,7 @@ class LinearSubproblemSolver(SubproblemSolver):
                 :func:`scico.solver.cg`, except for
                 ``"tol": 1e-4`` and ``"maxiter": 100``.
             cg_function: String indicating which CG implementation to
-                use. One of "jax" or "scico"; default "scico".  If
+                use. One of "jax" or "scico"; default "scico". If
                 "scico", uses :func:`scico.solver.cg`. If "jax", uses
                 :func:`jax.scipy.sparse.linalg.cg`. The "jax" option is
                 slower on small-scale problems or problems involving

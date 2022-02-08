@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -15,15 +15,11 @@ from typing import Callable, Optional, Union
 
 import scico.numpy as snp
 from scico import functional, linop, operator
+from scico.array import ensure_on_device
 from scico.blockarray import BlockArray
 from scico.scipy.special import gammaln
 from scico.solver import cg
 from scico.typing import JaxArray
-from scico.util import ensure_on_device
-
-__author__ = """\n""".join(
-    ["Luke Pfister <luke.pfister@gmail.com>", "Thilo Balke <thilo.balke@gmail.com>"]
-)
 
 
 def _loss_mul_div_wrapper(func):
@@ -74,7 +70,7 @@ class Loss(functional.Functional):
         self.scale = scale
 
         # Set functional-specific flags
-        self.has_prox = False  # TODO: implement a generic prox solver?
+        self.has_prox = False
         self.has_eval = True
 
         super().__init__()
@@ -118,7 +114,7 @@ class WeightedSquaredL2Loss(Loss):
         A(\mb{x})\right) \;,
 
     where :math:`\alpha` is the scaling parameter and :math:`W` is an
-    instance of :class:`scico.linop.Diagonal`.  If :math:`W` is None,
+    instance of :class:`scico.linop.Diagonal`. If :math:`W` is None,
     reverts to the behavior of :class:`.SquaredL2Loss`.
     """
 
@@ -160,11 +156,6 @@ class WeightedSquaredL2Loss(Loss):
             prox_kwargs = dict
         self.prox_kwargs = prox_kwargs
 
-        if isinstance(A, operator.Operator):
-            self.is_smooth = A.is_smooth
-        else:
-            self.is_smooth = None
-
         if isinstance(self.A, linop.Diagonal) and isinstance(self.W, linop.Diagonal):
             self.has_prox = True
 
@@ -172,37 +163,37 @@ class WeightedSquaredL2Loss(Loss):
         return self.scale * (self.W.diagonal * snp.abs(self.y - self.A(x)) ** 2).sum()
 
     def prox(
-        self, x: Union[JaxArray, BlockArray], lam: float, **kwargs
+        self, v: Union[JaxArray, BlockArray], lam: float, **kwargs
     ) -> Union[JaxArray, BlockArray]:
         if isinstance(self.A, linop.Diagonal):
             c = 2.0 * self.scale * lam
             A = self.A.diagonal
             W = self.W.diagonal
-            lhs = c * A.conj() * W * self.y + x
+            lhs = c * A.conj() * W * self.y + v
             ATWA = c * A.conj() * W * A
             return lhs / (ATWA + 1.0)
 
-        #      prox_{f}(x) =
+        #      prox_{f}(v) =
         #
-        #      arg min  1/2 || v - x ||^2 + λ α || A v - y ||^2_W
-        #         v
+        #      arg min  1/2 || v - x ||^2 + λ α || A x - y ||^2_W
+        #         x
         #
         # solution at:
         #
-        #      (I + λ 2α A^T W A) v = x + λ 2α A^T W y
+        #      (I + λ 2α A^T W A) x = v + λ 2α A^T W y
         #
         W = self.W
         A = self.A
         α = self.scale
         y = self.y
-        if "v0" in kwargs and kwargs["v0"] is not None:
-            v0 = kwargs["v0"]
+        if "x0" in kwargs and kwargs["x0"] is not None:
+            x0 = kwargs["x0"]
         else:
-            v0 = snp.zeros_like(x)
+            x0 = snp.zeros_like(v)
         hessian = self.hessian  # = (2α A^T W A)
-        lhs = linop.Identity(x.shape) + lam * hessian
-        rhs = x + 2 * lam * α * A.adj(W(y))
-        x, _ = cg(lhs, rhs, v0, **self.prox_kwargs)
+        lhs = linop.Identity(v.shape) + lam * hessian
+        rhs = v + 2 * lam * α * A.adj(W(y))
+        x, _ = cg(lhs, rhs, x0, **self.prox_kwargs)
         return x
 
     @property
@@ -288,9 +279,6 @@ class PoissonLoss(Loss):
 
         #: Constant term in Poisson log likehood; equal to ln(y!)
         self.const: float = gammaln(self.y + 1)  # ln(y!)
-
-        # The Poisson Loss is only smooth in the positive quadrant.
-        self.is_smooth = None
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         Ax = self.A(x)

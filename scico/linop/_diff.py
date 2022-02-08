@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -17,13 +17,11 @@ from typing import Optional
 import numpy as np
 
 import scico.numpy as snp
+from scico.array import parse_axes
 from scico.typing import Axes, DType, JaxArray, Shape
-from scico.util import parse_axes
 
 from ._linop import LinearOperator
 from ._stack import LinearOperatorStack
-
-__author__ = """Luke Pfister <luke.pfister@gmail.com>, Michael McCann <mccann@lanl.gov>"""
 
 
 class FiniteDifference(LinearOperatorStack):
@@ -63,7 +61,7 @@ class FiniteDifference(LinearOperatorStack):
                 operations, this must be `complex64` for proper adjoint
                 and gradient calculation.
             axes: Axis or axes over which to apply finite difference
-                operator. If not specified, or `None`, differences are
+                operator. If not specified, or ``None``, differences are
                 evaluated along all axes.
             append: Value to append to the input along each axis before
                 taking differences. Zero is a typical choice. If not
@@ -118,7 +116,7 @@ class FiniteDifferenceSingleAxis(LinearOperator):
                 taking differences. Defaults to 0.
             circular: If ``True``, perform circular differences, i.e.,
                 include x[-1] - x[0]. If ``True``, `append` must be
-                `None`.
+                ``None``.
             jit: If ``True``, jit the evaluation, adjoint, and gram
                 functions of the LinearOperator.
         """

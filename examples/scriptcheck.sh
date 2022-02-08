@@ -17,7 +17,7 @@ fi
 
 # Set environment variables and paths. This script is assumed to be run
 # from its root directory.
-export PYTHONPATH=$((cd .. && pwd))
+export PYTHONPATH=$(cd .. && pwd)
 export PYTHONIOENCODING=utf-8
 d='/tmp/scriptcheck_'$$
 mkdir -p $d
@@ -48,12 +48,11 @@ for f in scripts/*.py; do
     python $g > /dev/null 2>&1
 
     # Run temporary script and print status message.
-    if python $g > /dev/null 2>&1
-    then
-	printf "%-50s %s\n" $f succeeded
+    if python $g > /dev/null 2>&1; then
+        printf "%-50s %s\n" $f succeeded
     else
-	printf "%-50s %s\n" $f FAILED
-	retval=1
+        printf "%-50s %s\n" $f FAILED
+        retval=1
     fi
 
     # Remove temporary script.

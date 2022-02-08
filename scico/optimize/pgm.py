@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -16,20 +16,13 @@ from typing import Callable, Optional, Union
 import jax
 
 import scico.numpy as snp
+from scico.array import ensure_on_device
 from scico.blockarray import BlockArray
 from scico.diagnostics import IterationStats
 from scico.functional import Functional
 from scico.loss import Loss
 from scico.typing import JaxArray
-from scico.util import Timer, ensure_on_device
-
-__author__ = """\n""".join(
-    [
-        "Luke Pfister <luke.pfister@gmail.com>",
-        "Cristina Garcia-Cardona <cgarciac@lanl.gov>",
-        "Thilo Balke <thilo.balke@gmail.com>",
-    ]
-)
+from scico.util import Timer
 
 
 class PGMStepSize:
@@ -384,10 +377,8 @@ class RobustLineSearchStepSize(LineSearchStepSize):
 class PGM:
     r"""Proximal Gradient Method (PGM) base class.
 
-    Minimize a function of the form :math:`f(\mb{x}) + g(\mb{x})`.
-
-    The function :math:`f` must be smooth and :math:`g` must have a
-    defined prox.
+    Minimize a function of the form :math:`f(\mb{x}) + g(\mb{x})`, where
+    :math:`f` and the :math:`g` are instances of :class:`.Functional`.
 
     Uses helper :class:`StepSize` to provide an estimate of the Lipschitz
     constant :math:`L` of :math:`f`. The step size :math:`\alpha` is the
@@ -427,9 +418,6 @@ class PGM:
                 this parameter.
         """
 
-        if f.is_smooth is not True:
-            raise Exception(f"The functional f ({type(f)}) must be smooth.")
-
         #: Functional or Loss to minimize; must have grad method defined.
         self.f: Union[Loss, Functional] = f
 
@@ -454,39 +442,41 @@ class PGM:
 
         self.x_step = jax.jit(x_step)
 
+        # iteration number and time fields
+        itstat_fields = {
+            "Iter": "%d",
+            "Time": "%8.2e",
+        }
+        itstat_attrib = ["itnum", "timer.elapsed()"]
+        # objective function can be evaluated if 'g' function can be evaluated
         if g.has_eval:
-            itstat_fields = {
-                "Iter": "%d",
-                "Time": "%8.2e",
-                "Objective": "%9.3e",
-                "L": "%9.3e",
-                "Residual": "%9.3e",
-            }
-            itstat_func = lambda pgm: (
-                pgm.itnum,
-                pgm.timer.elapsed(),
-                pgm.objective(self.x),
-                pgm.L,
-                pgm.norm_residual(),
-            )
-        else:
-            itstat_fields = {"Iter": "%d", "Time": "%8.2e", "Residual": "%9.3e"}
-            itstat_func = lambda pgm: (pgm.itnum, pgm.timer.elapsed(), pgm.norm_residual())
+            itstat_fields.update({"Objective": "%9.3e"})
+            itstat_attrib.append("objective()")
+        # step size and residual fields
+        itstat_fields.update({"L": "%9.3e", "Residual": "%9.3e"})
+        itstat_attrib.extend(["L", "norm_residual()"])
 
-        default_itstat_options = {
+        # dynamically create itstat_func; see https://stackoverflow.com/questions/24733831
+        itstat_return = "return(" + ", ".join(["obj." + attr for attr in itstat_attrib]) + ")"
+        scope: dict[str, Callable] = {}
+        exec("def itstat_func(obj): " + itstat_return, scope)
+
+        default_itstat_options: dict[str, Union[dict, Callable, bool]] = {
             "fields": itstat_fields,
-            "itstat_func": itstat_func,
+            "itstat_func": scope["itstat_func"],
             "display": False,
         }
         if itstat_options:
             default_itstat_options.update(itstat_options)
-        self.itstat_insert_func = default_itstat_options.pop("itstat_func", None)
+        self.itstat_insert_func: Callable = default_itstat_options.pop("itstat_func")  # type: ignore
         self.itstat_object = IterationStats(**default_itstat_options)
 
         self.x: Union[JaxArray, BlockArray] = ensure_on_device(x0)  # current estimate of solution
 
-    def objective(self, x) -> float:
+    def objective(self, x=None) -> float:
         r"""Evaluate the objective function :math:`f(\mb{x}) + g(\mb{x})`."""
+        if x is None:
+            x = self.x
         return self.f(x) + self.g(x)
 
     def f_quad_approx(self, x, y, L) -> float:
@@ -555,8 +545,9 @@ class AcceleratedPGM(PGM):
 
     Minimize a function of the form :math:`f(\mb{x}) + g(\mb{x})`.
 
-    The function :math:`f` must be smooth and :math:`g` must have a
-    defined prox. The accelerated form of PGM is also known as FISTA
+    Minimize a function of the form :math:`f(\mb{x}) + g(\mb{x})`, where
+    :math:`f` and the :math:`g` are instances of :class:`.Functional`.
+    The accelerated form of PGM is also known as FISTA
     :cite:`beck-2009-fast`.
 
     For documentation on inherited attributes, see :class:`.PGM`.

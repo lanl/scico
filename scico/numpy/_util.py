@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -55,12 +55,13 @@ def _attach_wrapped_func(funclist, wrapper, module_name, fix_mod_name=False):
         else:
             fname = func.__name__
             fref = func
-        # Set wrapped function as an attribute in current module
+        # Set wrapped function as an attribute in module_name
         setattr(module_name, fname, wrapper(fref))
-        # Set __module__ attribute of wrapped function to current module
-        # so that it does not appear to autodoc be an imported function
+        # Set __module__ attribute of wrapped function to
+        # module_name.__name__ (i.e., scico.numpy) so that it does not
+        # appear to autodoc be an imported function
         if fix_mod_name:
-            getattr(module_name, fname).__module__ = __name__
+            getattr(module_name, fname).__module__ = module_name.__name__
 
 
 def _get_module_functions(module):

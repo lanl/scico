@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -12,26 +12,23 @@ from typing import Union
 from jax import jit
 
 from scico import numpy as snp
+from scico.array import no_nan_divide
 from scico.blockarray import BlockArray
-from scico.math import safe_divide
 from scico.numpy import count_nonzero
 from scico.numpy.linalg import norm
 from scico.typing import JaxArray
 
 from ._functional import Functional
 
-__author__ = """Luke Pfister <luke.pfister@gmail.com>, Michael McCann <mccann@lanl.gov>"""
-
 
 class L0Norm(Functional):
     r"""The :math:`\ell_0` 'norm'.
 
-    Counts the number of non-zero elements in an array-like.
+    Counts the number of non-zero elements in an array.
     """
 
     has_eval = True
     has_prox = True
-    is_smooth = False
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         return count_nonzero(x)
@@ -39,26 +36,27 @@ class L0Norm(Functional):
     @staticmethod
     @jit
     def prox(
-        x: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
+        v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
-        r"""Evaluate proximal operator of :math:`\ell_0` norm.
+        r"""Evaluate scaled proximal operator of :math:`\ell_0` norm.
 
-
-        Evaluate proximal operator of :math:`\ell_0` norm
+        Evaluate scaled proximal operator of :math:`\ell_0` norm using
 
         .. math::
 
-            \mathrm{prox}(\mb{x}, \lambda) =
+            \mathrm{prox}_{\lambda\| \cdot \|_0}(\mb{v}) =
             \begin{cases}
-            \mb{x}  & \text{if } \abs{\mb{x}} \geq \lambda \\
-            0  & \text{else} \;.
+            \mb{v},  & \text{if } \abs{\mb{v}} \geq \lambda \\
+            0,  & \text{else}
             \end{cases}
 
         Args:
-            x: Input array :math:`\mb{x}`.
+            v: Input array :math:`\mb{v}`.
             lam: Thresholding parameter :math:`\lambda`.
+            kwargs: Additional arguments that may be used by derived
+                classes.
         """
-        return snp.where(snp.abs(x) >= lam, x, 0)
+        return snp.where(snp.abs(v) >= lam, v, 0)
 
 
 class L1Norm(Functional):
@@ -72,20 +70,19 @@ class L1Norm(Functional):
 
     has_eval = True
     has_prox = True
-    is_smooth = False
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         return snp.abs(x).sum()
 
     @staticmethod
-    def prox(x: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs) -> JaxArray:
-        r"""Evaluate proximal operator of :math:`\ell_1` norm.
+    def prox(v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs) -> JaxArray:
+        r"""Evaluate scaled proximal operator of :math:`\ell_1` norm.
 
-        Evaluate proximal operator of :math:`\ell_1` norm
+        Evaluate scaled proximal operator of :math:`\ell_1` norm using
 
         .. math::
-            \mathrm{prox}(\mb{x}, \lambda)_i = \mathrm{sign}(\mb{x}_i)
-            (\abs{\mb{x}_i} - \lambda)_+ \;,
+            \mathrm{prox}_{\lambda \|\cdot\|_1}(\mb{v})_i =
+            \mathrm{sign}(\mb{v}_i) (\abs{\mb{v}_i} - \lambda)_+ \;,
 
         where
 
@@ -96,15 +93,17 @@ class L1Norm(Functional):
             \end{cases}
 
         Args:
-            x: Input array :math:`\mb{x}`.
+            v: Input array :math:`\mb{v}`.
             lam: Thresholding parameter :math:`\lambda`.
+            kwargs: Additional arguments that may be used by derived
+                classes.
         """
-        tmp = snp.abs(x) - lam
+        tmp = snp.abs(v) - lam
         tmp = 0.5 * (tmp + snp.abs(tmp))
-        if snp.iscomplexobj(x):
-            out = snp.exp(1j * snp.angle(x)) * tmp
+        if snp.iscomplexobj(v):
+            out = snp.exp(1j * snp.angle(v)) * tmp
         else:
-            out = snp.sign(x) * tmp
+            out = snp.sign(v) * tmp
         return out
 
 
@@ -119,7 +118,6 @@ class SquaredL2Norm(Functional):
 
     has_eval = True
     has_prox = True
-    is_smooth = True
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         # Directly implement the squared l2 norm to avoid nondifferentiable
@@ -127,21 +125,23 @@ class SquaredL2Norm(Functional):
         return (snp.abs(x) ** 2).sum()
 
     def prox(
-        self, x: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
         r"""Evaluate proximal operator of squared :math:`\ell_2` norm.
 
-        Evaluate proximal operator of squared :math:`\ell_2` norm
+        Evaluate proximal operator of squared :math:`\ell_2` norm using
 
         .. math::
-            \mathrm{prox}(\mb{x}, \lambda) = \frac{\mb{x}}{1 +
-            2 \lambda} \;.
+            \mathrm{prox}_{\lambda \| \cdot \|_2^2}(\mb{v})
+            = \frac{\mb{v}}{1 + 2 \lambda} \;.
 
         Args:
-            x:  Input array :math:`\mb{x}`.
+            v: Input array :math:`\mb{v}`.
             lam: Proximal parameter :math:`\lambda`.
+            kwargs: Additional arguments that may be used by derived
+                classes.
         """
-        return x / (1.0 + 2.0 * lam)
+        return v / (1.0 + 2.0 * lam)
 
 
 class L2Norm(Functional):
@@ -153,21 +153,20 @@ class L2Norm(Functional):
 
     has_eval = True
     has_prox = True
-    is_smooth = False
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         return norm(x)
 
     def prox(
-        self, x: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
         r"""Evaluate proximal operator of :math:`\ell_2` norm.
 
-        Evaluate proximal operator of :math:`\ell_2` norm
+        Evaluate proximal operator of :math:`\ell_2` norm using
 
         .. math::
-            \mathrm{prox}(\mb{x}, \lambda) = \mb{x} \left(1 -
-            \frac{\lambda}{\norm{x}_2} \right)_+ \;,
+            \mathrm{prox}_{\lambda \| \cdot \|_2}(\mb{v})
+            = \mb{v} \left(1 - \frac{\lambda}{\norm{v}_2} \right)_+ \;,
 
         where
 
@@ -178,13 +177,15 @@ class L2Norm(Functional):
             \end{cases}
 
         Args:
-            x:  Input array :math:`\mb{x}`.
+            v: Input array :math:`\mb{v}`.
             lam: Proximal parameter :math:`\lambda`.
+            kwargs: Additional arguments that may be used by derived
+                classes.
         """
-        norm_x = norm(x)
-        if norm_x == 0:
-            return 0 * x
-        return snp.maximum(1 - lam / norm_x, 0) * x
+        norm_v = norm(v)
+        if norm_v == 0:
+            return 0 * v
+        return snp.maximum(1 - lam / norm_v, 0) * v
 
 
 class L21Norm(Functional):
@@ -208,7 +209,6 @@ class L21Norm(Functional):
 
     has_eval = True
     has_prox = True
-    is_smooth = False
 
     def __init__(self, l2_axis: int = 0):
         r"""
@@ -222,16 +222,16 @@ class L21Norm(Functional):
         return snp.abs(l2).sum()
 
     def prox(
-        self, x: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
         r"""Evaluate proximal operator of the :math:`\ell_{2,1}` norm.
 
         In two dimensions,
 
         .. math::
-            \mathrm{prox}(\mb{A}, \lambda)_{:, n} =
-             \frac{\mb{A}_{:, n}}{\|\mb{A}_{:, n}\|_2}
-             (\|\mb{A}_{:, n}\|_2 - \lambda)_+ \;,
+            \mathrm{prox}_{\lambda \|\cdot\|_{2,1}}(\mb{v}, \lambda)_{:, n} =
+             \frac{\mb{v}_{:, n}}{\|\mb{v}_{:, n}\|_2}
+             (\|\mb{v}_{:, n}\|_2 - \lambda)_+ \;,
 
         where
 
@@ -242,15 +242,57 @@ class L21Norm(Functional):
             \end{cases}
 
         Args:
-            x:  Input array :math:`\mb{x}`.
+            v: Input array :math:`\mb{v}`.
             lam: Proximal parameter :math:`\lambda`.
+            kwargs: Additional arguments that may be used by derived
+                classes.
         """
 
-        length = norm(x, axis=self.l2_axis, keepdims=True)
-        direction = safe_divide(x, length)
+        length = norm(v, axis=self.l2_axis, keepdims=True)
+        direction = no_nan_divide(v, length)
 
         new_length = length - lam
         # set negative values to zero without `if`
         new_length = 0.5 * (new_length + snp.abs(new_length))
 
         return new_length * direction
+
+
+class NuclearNorm(Functional):
+    r"""Nuclear norm.
+
+    Compute the nuclear norm
+
+    .. math::
+      \| X \|_* = \sum_i \sigma_i
+
+    where :math:`\sigma_i` are the singular values of matrix :math:`X`.
+    """
+
+    has_eval = True
+    has_prox = True
+
+    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+        # Set computute_uv=True to work around
+        # https://github.com/google/jax/issues/9483
+        _, s, _ = snp.linalg.svd(x, compute_uv=True)
+        return snp.sum(s)
+
+    def prox(
+        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[JaxArray, BlockArray]:
+        r"""Evaluate proximal operator of the nuclear norm.
+
+        Evaluate proximal operator of the nuclear norm
+        :cite:`cai-2010-singular`.
+
+        Args:
+            v: Input array :math:`\mb{v}`.
+            lam: Proximal parameter :math:`\lambda`.
+            kwargs: Additional arguments that may be used by derived
+                classes.
+        """
+
+        svdU, svdS, svdV = snp.linalg.svd(v, full_matrices=False)
+        svdS = snp.maximum(0, svdS - lam)
+        return svdU @ snp.diag(svdS) @ svdV

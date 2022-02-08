@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -16,7 +16,6 @@ documented here; please consult the documentation for the source module
 :mod:`jax.scipy.special`.
 """
 
-__author__ = "Luke Pfister <luke.pfister@gmail.com>"
 
 import sys
 
@@ -52,11 +51,6 @@ _ufunc_functions = [
     js.xlogy,
     js.zeta,
 ]
-
-# TODO: wrap lpmn, lpmn_values
-# They take integers as first argument and ndarray as last argument, and this
-# does not work with the current _block_array_ufunc_wrapper.
-
 
 _attach_wrapped_func(
     _ufunc_functions,

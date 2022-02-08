@@ -1,24 +1,18 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Wrapped versions of :mod:`jax.numpy` functions.
+""":class:`scico.blockarray.BlockArray`-compatible
+versions of :mod:`jax.numpy` functions.
 
-This modules consists of functions from :mod:`jax.numpy`. Some of these
-functions are wrapped to support compatibility with
-:class:`scico.blockarray.BlockArray` and are documented here. The
-remaining functions are imported directly from :mod:`jax.numpy`. While
-they can be imported from the :mod:`scico.numpy` namespace, they are not
-documented here; please consult the documentation for the source module
-:mod:`jax.numpy`.
-
-.. todo::
-
-   Provide detailed discussion of purpose of wrapping functions, and how
-   to determine which functions are wrapped and which are not.
+This modules consists of functions from :mod:`jax.numpy` wrapped to
+support compatibility with :class:`scico.blockarray.BlockArray`. This
+module is a work in progress and therefore not all functions are
+wrapped. Functions that have not been wrapped yet have WARNING text in
+their documentation, below.
 """
 
 import sys
@@ -28,6 +22,8 @@ import numpy as np
 
 import jax
 from jax import numpy as jnp
+
+from scico.array import is_nested
 
 # These functions rely on the definition of a BlockArray and must be in
 # scico.blockarray to avoid a circular import
@@ -41,7 +37,6 @@ from scico.blockarray import (
     reshape,
 )
 from scico.typing import BlockShape, JaxArray, Shape
-from scico.util import is_nested
 
 from ._create import (
     empty,
@@ -84,8 +79,6 @@ complex128 = cdouble = jnp.complex128
 dtype = jnp.dtype
 newaxis = None
 
-
-# TODO need to extend this list!
 # Functions to which _block_array_ufunc_wrapper is to be applied
 _ufunc_functions = [
     ("abs", jnp.abs),

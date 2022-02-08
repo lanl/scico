@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -13,10 +13,10 @@ import numpy as np
 from jax.scipy.signal import convolve
 
 from scico._generic_operators import LinearOperator, Operator
+from scico.array import is_nested
 from scico.blockarray import BlockArray
 from scico.linop import Convolve, ConvolveByX
 from scico.typing import BlockShape, DType, JaxArray
-from scico.util import is_nested
 
 __author__ = """Luke Pfister <luke.pfister@gmail.com>"""
 

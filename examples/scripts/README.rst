@@ -40,6 +40,8 @@ Deconvolution
       Image Deconvolution (ADMM Plug-and-Play Priors w/ DnCNN)
    `deconv_tv_admm.py <deconv_tv_admm.py>`_
       Image Deconvolution (ADMM w/ Total Variation)
+   `deconv_tv_admm_tune.py <deconv_tv_admm_tune.py>`_
+      Image Deconvolution Parameter Tuning
 
 
 Sparse Coding
@@ -49,8 +51,6 @@ Sparse Coding
       Non-negative Basis Pursuit DeNoising (ADMM)
    `sparsecode_pgm.py <sparsecode_pgm.py>`_
       Basis Pursuit DeNoising (Accelerated PGM)
-   `sparsecode_poisson_blkarr_pgm.py <sparsecode_poisson_blkarr_pgm.py>`_
-      Non-negative Poisson Loss Reconstruction (APGM w/ adaptive PGMStepSize)
    `sparsecode_poisson_pgm.py <sparsecode_poisson_pgm.py>`_
       Non-negative Poisson Loss Reconstruction (APGM w/ adaptive PGMStepSize)
 
@@ -66,6 +66,8 @@ Miscellaneous
       Isotropic Total Variation (Accelerated PGM)
    `denoise_tv_iso_multi.py <denoise_tv_iso_multi.py>`_
       Comparison of Optimization Algorithms for Total Variation Denoising
+   `video_rpca_admm.py <video_rpca_admm.py>`_
+      Video Decomposition via Robust PCA
 
 
 
@@ -106,6 +108,8 @@ Total Variation
       Deconvolution Microscopy (All Channels)
    `deconv_tv_admm.py <deconv_tv_admm.py>`_
       Image Deconvolution (ADMM w/ Total Variation)
+   `deconv_tv_admm_tune.py <deconv_tv_admm_tune.py>`_
+      Image Deconvolution Parameter Tuning
    `denoise_tv_iso_admm.py <denoise_tv_iso_admm.py>`_
       Isotropic Total Variation (ADMM)
    `denoise_tv_iso_pgm.py <denoise_tv_iso_pgm.py>`_
@@ -121,10 +125,10 @@ Sparsity
       Non-negative Basis Pursuit DeNoising (ADMM)
    `sparsecode_pgm.py <sparsecode_pgm.py>`_
       Basis Pursuit DeNoising (Accelerated PGM)
-   `sparsecode_poisson_blkarr_pgm.py <sparsecode_poisson_blkarr_pgm.py>`_
-      Non-negative Poisson Loss Reconstruction (APGM w/ adaptive PGMStepSize)
    `sparsecode_poisson_pgm.py <sparsecode_poisson_pgm.py>`_
       Non-negative Poisson Loss Reconstruction (APGM w/ adaptive PGMStepSize)
+   `video_rpca_admm.py <video_rpca_admm.py>`_
+      Video Decomposition via Robust PCA
 
 
 
@@ -156,6 +160,8 @@ ADMM
       Image Deconvolution (ADMM Plug-and-Play Priors w/ DnCNN)
    `deconv_tv_admm.py <deconv_tv_admm.py>`_
       Image Deconvolution (ADMM w/ Total Variation)
+   `deconv_tv_admm_tune.py <deconv_tv_admm_tune.py>`_
+      Image Deconvolution Parameter Tuning
    `demosaic_ppp_bm3d_admm.py <demosaic_ppp_bm3d_admm.py>`_
       Image Demosaicing (ADMM Plug-and-Play Priors w/ BM3D)
    `denoise_tv_iso_admm.py <denoise_tv_iso_admm.py>`_
@@ -164,6 +170,8 @@ ADMM
       Comparison of Optimization Algorithms for Total Variation Denoising
    `sparsecode_admm.py <sparsecode_admm.py>`_
       Non-negative Basis Pursuit DeNoising (ADMM)
+   `video_rpca_admm.py <video_rpca_admm.py>`_
+      Video Decomposition via Robust PCA
 
 
 Linearized ADMM
@@ -193,8 +201,6 @@ PGM
       Isotropic Total Variation (Accelerated PGM)
    `sparsecode_pgm.py <sparsecode_pgm.py>`_
       Basis Pursuit DeNoising (Accelerated PGM)
-   `sparsecode_poisson_blkarr_pgm.py <sparsecode_poisson_blkarr_pgm.py>`_
-      Non-negative Poisson Loss Reconstruction (APGM w/ adaptive PGMStepSize)
    `sparsecode_poisson_pgm.py <sparsecode_poisson_pgm.py>`_
       Non-negative Poisson Loss Reconstruction (APGM w/ adaptive PGMStepSize)
 

@@ -1,4 +1,4 @@
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -16,11 +16,11 @@ from functools import partial
 from typing import Optional, Tuple, Union
 
 import scico.numpy as snp
-from scico import util
+from scico import array, blockarray
 from scico._generic_operators import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
 from scico.blockarray import BlockArray
 from scico.random import randn
-from scico.typing import BlockShape, DType, JaxArray, PRNGKey, Shape
+from scico.typing import ArrayIndex, BlockShape, DType, JaxArray, PRNGKey, Shape
 
 __author__ = """\n""".join(
     ["Luke Pfister <luke.pfister@gmail.com>", "Brendt Wohlberg <brendt@ieee.org>"]
@@ -176,15 +176,16 @@ class Diagonal(LinearOperator):
     ):
         r"""
         Args:
-            diagonal:  Diagonal elements of this linear operator
-            input_shape:  Shape of input array. By default, equal to `diagonal.shape`,
-               but may also be set to a shape that is broadcast-compatiable with `diagonal.shape`.
-            input_dtype:  `dtype` of input argument.  The default, ``None``,
-               means `diagonal.dtype`.
+            diagonal: Diagonal elements of this linear operator.
+            input_shape:  Shape of input array. By default, equal to
+               `diagonal.shape`, but may also be set to a shape that is
+               broadcast-compatiable with `diagonal.shape`.
+            input_dtype: `dtype` of input argument. The default,
+               ``None``, means `diagonal.dtype`.
 
         """
 
-        self.diagonal = util.ensure_on_device(diagonal)
+        self.diagonal = array.ensure_on_device(diagonal)
 
         if input_shape is None:
             input_shape = self.diagonal.shape
@@ -192,9 +193,9 @@ class Diagonal(LinearOperator):
         if input_dtype is None:
             input_dtype = self.diagonal.dtype
 
-        if isinstance(diagonal, BlockArray) and util.is_nested(input_shape):
+        if isinstance(diagonal, BlockArray) and array.is_nested(input_shape):
             output_shape = (snp.empty(input_shape) * diagonal).shape
-        elif not isinstance(diagonal, BlockArray) and not util.is_nested(input_shape):
+        elif not isinstance(diagonal, BlockArray) and not array.is_nested(input_shape):
             output_shape = snp.broadcast_shapes(input_shape, self.diagonal.shape)
         elif isinstance(diagonal, BlockArray):
             raise ValueError(f"`diagonal` was a BlockArray but `input_shape` was not nested.")
@@ -245,7 +246,7 @@ class Identity(Diagonal):
     ):
         """
         Args:
-            input_shape: Shape of input array
+            input_shape: Shape of input array.
         """
         super().__init__(diagonal=snp.ones(input_shape, dtype=input_dtype), **kwargs)
 
@@ -263,7 +264,7 @@ class Sum(LinearOperator):
         self,
         sum_axis: Optional[Union[int, Tuple[int, ...]]],
         input_shape: Shape,
-        input_dtype: DType,
+        input_dtype: DType = snp.float32,
         jit: bool = True,
         **kwargs,
     ):
@@ -271,22 +272,70 @@ class Sum(LinearOperator):
         Wraps :func:`jax.numpy.sum` as a :class:`.LinearOperator`.
 
         Args:
-            sum_axis:  The axis or set of axes to sum over. If `None`,
+            sum_axis: The axis or set of axes to sum over. If ``None``,
                 sum is taken over all axes.
             input_shape: Shape of input array.
             input_dtype: `dtype` for input argument.
-                Defaults to `float32`. If this LinearOperator implements
-                complex-valued operations, this must be `complex64` for
+                Defaults to ``float32``. If this LinearOperator implements
+                complex-valued operations, this must be ``complex64`` for
                 proper adjoint and gradient calculation.
-            jit:  If ``True``, jit the evaluation, adjoint, and gram
+            jit: If ``True``, jit the evaluation, adjoint, and gram
                functions of the LinearOperator.
         """
 
         input_ndim = len(input_shape)
-        sum_axis = util.parse_axes(sum_axis, shape=input_shape)
+        sum_axis = array.parse_axes(sum_axis, shape=input_shape)
 
         self.sum_axis: Tuple[int, ...] = sum_axis
         super().__init__(input_shape=input_shape, input_dtype=input_dtype, jit=jit, **kwargs)
 
     def _eval(self, x: JaxArray) -> JaxArray:
         return snp.sum(x, axis=self.sum_axis)
+
+
+class Slice(LinearOperator):
+    """A linear operator for slicing an array."""
+
+    def __init__(
+        self,
+        idx: ArrayIndex,
+        input_shape: Shape,
+        input_dtype: DType = snp.float32,
+        jit: bool = True,
+        **kwargs,
+    ):
+        r"""
+        This operator may be applied to either a :any:`JaxArray` or a
+        :class:`.BlockArray`. In the latter case, parameter ``idx`` must
+        conform to the
+        :ref:`BlockArray indexing requirements <blockarray_indexing>`.
+
+        Args:
+            idx: An array indexing expression, as generated by
+                :data:`numpy.s_`, for example.
+            input_shape: Shape of input :any:`JaxArray` or :class:`.BlockArray`.
+            input_dtype: `dtype` for input argument.
+                Defaults to ``float32``. If this LinearOperator implements
+                complex-valued operations, this must be ``complex64`` for
+                proper adjoint and gradient calculation.
+            jit: If ``True``, jit the evaluation, adjoint, and gram
+               functions of the LinearOperator.
+        """
+
+        if array.is_nested(input_shape):
+            output_shape = blockarray.indexed_shape(input_shape, idx)
+        else:
+            output_shape = array.indexed_shape(input_shape, idx)
+
+        self.idx: ArrayIndex = idx
+        super().__init__(
+            input_shape=input_shape,
+            output_shape=output_shape,
+            input_dtype=input_dtype,
+            output_dtype=input_dtype,
+            jit=jit,
+            **kwargs,
+        )
+
+    def _eval(self, x: JaxArray) -> JaxArray:
+        return x[self.idx]

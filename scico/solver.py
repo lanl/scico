@@ -1,11 +1,60 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Optimization algorithms."""
+"""SciPy optimization algorithms.
+
+.. raw:: html
+
+    <style type='text/css'>
+    div.document li {
+      list-style: square outside !important;
+      margin-left: 1em !important;
+    }
+    div.document li > p {
+       margin-bottom: 4px !important;
+    }
+    ul {
+      margin-bottom: 1em;
+    }
+    </style>
+
+This module provides scico interface wrappers for functions
+from :mod:`scipy.optimize` since jax directly implements only a very
+limited subset of these functions (there is limited, experimental support
+for `L-BFGS-B <https://github.com/google/jax/pull/6053>`_), but only CG
+and BFGS are fully supported. These wrappers are required because the
+functions in :mod:`scipy.optimize` only support on 1D, real valued, numpy
+arrays. These limitations are addressed by:
+
+- Enabling the use of multi-dimensional arrays by flattening and reshaping
+  within the wrapper.
+- Enabling the use of jax arrays by automatically converting to and from
+  numpy arrays.
+- Enabling the use of complex arrays by splitting them into real and
+  imaginary parts.
+
+The wrapper also JIT compiles the function and gradient evaluations.
+
+The functions provided in this module have a number of advantages and
+disadvantages with respect to those in :mod:`jax.scipy.optimize`:
+
+- This module provides many more algorithms than
+  :mod:`jax.scipy.optimize`.
+- The functions in this module tend to be faster for small-scale problems
+  (presumably due to some overhead in the jax functions).
+- The functions in this module are slower for large problems due to the
+  frequent host-device copies corresponding to conversion between numpy
+  arrays and jax arrays.
+- The solvers in this module can't be JIT compiled, and gradients cannot
+  be taken through them.
+
+In the future, this module may be replaced with a dependency on
+`JAXopt <https://github.com/google/jaxopt>`__.
+"""
 
 
 from functools import wraps
@@ -18,20 +67,18 @@ from scico.blockarray import BlockArray
 from scico.typing import BlockShape, DType, JaxArray, Shape
 from scipy import optimize as spopt
 
-__author__ = """Luke Pfister <luke.pfister@gmail.com>"""
-
 
 def _wrap_func(func: Callable, shape: Union[Shape, BlockShape], dtype: DType) -> Callable:
     """Function evaluation for use in :mod:`scipy.optimize`.
 
     Compute function evaluation (without gradient) for use in
-    :mod:`scipy.optimize` functions. Reshapes the input to ``func`` to
-    have ``shape``. Evaluates ``func``.
+    :mod:`scipy.optimize` functions. Reshapes the input to `func` to
+    have `shape`. Evaluates `func`.
 
     Args:
         func: The function to minimize.
-        shape: Shape of input to ``func``.
-        dtype: Data type of input to ``func``.
+        shape: Shape of input to `func`.
+        dtype: Data type of input to `func`.
     """
 
     val_func = jax.jit(func)
@@ -53,14 +100,14 @@ def _wrap_func_and_grad(func: Callable, shape: Union[Shape, BlockShape], dtype: 
     """Function evaluation and gradient for use in :mod:`scipy.optimize`.
 
     Compute function evaluation and gradient for use in
-    :mod:`scipy.optimize` functions. Reshapes the input to ``func`` to
-    have ``shape``.  Evaluates ``func`` and computes gradient. Ensures
-    the returned ``grad`` is an ndarray.
+    :mod:`scipy.optimize` functions. Reshapes the input to `func` to
+    have `shape`.  Evaluates `func` and computes gradient. Ensures
+    the returned `grad` is an ndarray.
 
     Args:
         func: The function to minimize.
-        shape: Shape of input to ``func``.
-        dtype: Data type of input to ``func``.
+        shape: Shape of input to `func`.
+        dtype: Data type of input to `func`.
     """
 
     # argnums=0 ensures only differentiate func wrt first argument,
@@ -82,13 +129,13 @@ def _wrap_func_and_grad(func: Callable, shape: Union[Shape, BlockShape], dtype: 
 
 
 def _split_real_imag(x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
-    """Split an array of shape (N,M,...) into real and imaginary parts.
+    """Split an array of shape (N, M, ...) into real and imaginary parts.
 
     Args:
         x: Array to split.
 
     Returns:
-        A real ndarray with stacked real/imaginary parts. If ``x`` has
+        A real ndarray with stacked real/imaginary parts. If `x` has
         shape (M, N, ...), the returned array will have shape
         (2, M, N, ...) where the first slice contains the ``x.real`` and
         the second contains ``x.imag``. If `x` is a BlockArray, this
@@ -136,8 +183,8 @@ def minimize(
     Wrapper around :func:`scipy.optimize.minimize`. This function differs
     from :func:`scipy.optimize.minimize` in three ways:
 
-        - The ``jac`` options of  :func:`scipy.optimize.minimize` are not
-          supported. The gradient is calculated using ``jax.grad``.
+        - The `jac` options of  :func:`scipy.optimize.minimize` are not
+          supported. The gradient is calculated using `jax.grad`.
         - Functions mapping from N-dimensional arrays -> float are
           supported.
         - Functions mapping from complex arrays -> float are supported.
@@ -189,11 +236,10 @@ def minimize(
         options=options,
     )
 
-    # TODO: need tests for multi-gpu machines
     # un-vectorize the output array, put on device
     res.x = snp.reshape(
         res.x, x0_shape
-    )  # if x0 was originally a BlockArray be converted back to one here
+    )  # if x0 was originally a BlockArray then res.x is converted back to one here
 
     res.x = res.x.astype(x0_dtype)
 
@@ -226,7 +272,7 @@ def minimize_scalar(
     """
 
     def f(x, *args):
-        # Wrap jax-based function ``func`` to return a numpy float
+        # Wrap jax-based function `func` to return a numpy float
         # rather than a DeviceArray of size (1,)
         return func(x, *args).item()
 
@@ -267,8 +313,8 @@ def cg(
         atol: Absolute residual stopping tolerance. Convergence occurs
            when ``norm(residual) <= max(tol * norm(b), atol)``.
         maxiter: Maximum iterations. Default: 1000.
-        M: Preconditioner for A. The preconditioner should approximate
-           the inverse of ``A``. The default, ``None``, uses no
+        M: Preconditioner for `A`. The preconditioner should approximate
+           the inverse of `A`. The default, ``None``, uses no
            preconditioner.
 
     Returns:

@@ -27,6 +27,7 @@ Deconvolution
    - deconv_ppp_bm3d_pgm.py
    - deconv_ppp_dncnn_admm.py
    - deconv_tv_admm.py
+   - deconv_tv_admm_tune.py
 
 
 Sparse Coding
@@ -34,7 +35,6 @@ Sparse Coding
 
    - sparsecode_admm.py
    - sparsecode_pgm.py
-   - sparsecode_poisson_blkarr_pgm.py
    - sparsecode_poisson_pgm.py
 
 
@@ -45,6 +45,7 @@ Miscellaneous
    - denoise_tv_iso_admm.py
    - denoise_tv_iso_pgm.py
    - denoise_tv_iso_multi.py
+   - video_rpca_admm.py
 
 
 
@@ -72,6 +73,7 @@ Total Variation
    - deconv_microscopy_tv_admm.py
    - deconv_microscopy_allchn_tv_admm.py
    - deconv_tv_admm.py
+   - deconv_tv_admm_tune.py
    - denoise_tv_iso_admm.py
    - denoise_tv_iso_pgm.py
    - denoise_tv_iso_multi.py
@@ -82,8 +84,8 @@ Sparsity
 
    - sparsecode_admm.py
    - sparsecode_pgm.py
-   - sparsecode_poisson_blkarr_pgm.py
    - sparsecode_poisson_pgm.py
+   - video_rpca_admm.py
 
 
 
@@ -104,10 +106,12 @@ ADMM
    - deconv_ppp_bm3d_admm.py
    - deconv_ppp_dncnn_admm.py
    - deconv_tv_admm.py
+   - deconv_tv_admm_tune.py
    - demosaic_ppp_bm3d_admm.py
    - denoise_tv_iso_admm.py
    - denoise_tv_iso_multi.py
    - sparsecode_admm.py
+   - video_rpca_admm.py
 
 
 Linearized ADMM
@@ -130,7 +134,6 @@ PGM
    - deconv_ppp_bm3d_pgm.py
    - denoise_tv_iso_pgm.py
    - sparsecode_pgm.py
-   - sparsecode_poisson_blkarr_pgm.py
    - sparsecode_poisson_pgm.py
 
 

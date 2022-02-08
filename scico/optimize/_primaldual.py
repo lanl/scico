@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021 by SCICO Developers
+# Copyright (C) 2021-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -14,15 +14,14 @@ from __future__ import annotations
 from typing import Callable, Optional, Union
 
 import scico.numpy as snp
+from scico.array import ensure_on_device
 from scico.blockarray import BlockArray
 from scico.diagnostics import IterationStats
 from scico.functional import Functional
 from scico.linop import LinearOperator
 from scico.numpy.linalg import norm
 from scico.typing import JaxArray
-from scico.util import Timer, ensure_on_device
-
-__author__ = "Brendt Wohlberg <brendt@ieee.org>"
+from scico.util import Timer
 
 
 class PDHG:
@@ -141,7 +140,7 @@ class PDHG:
             "Time": "%8.2e",
         }
         itstat_attrib = ["itnum", "timer.elapsed()"]
-        # objective function can be evaluated if all 'g' functions can be evaluated
+        # objective function can be evaluated if 'g' function can be evaluated
         if g.has_eval:
             itstat_fields.update({"Objective": "%9.3e"})
             itstat_attrib.append("objective()")

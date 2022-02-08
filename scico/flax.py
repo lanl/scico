@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -14,7 +14,14 @@ import jax.numpy as jnp
 
 from flax import linen as nn
 from flax import serialization
+from flax.core import Scope  # noqa
+from flax.linen.module import _Sentinel  # noqa
 
+# The imports of Scope and _Sentinel (above) and the definition of Module
+# (below) are required to silence "cannot resolve forward reference"
+# warnings when building sphinx api docs.
+
+Module = nn.module.Module
 ModuleDef = Any
 Array = Any
 

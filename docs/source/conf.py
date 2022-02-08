@@ -157,7 +157,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "SCICO"
-copyright = "2020-2021, SCICO Developers"
+copyright = "2020-2022, SCICO Developers"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -182,7 +182,7 @@ pygments_style = "sphinx"
 
 # -- Options for HTML output ----------------------------------------------
 
-# The theme to use for HTML and HTML Help pages.  See the documentation for
+# The theme to use for HTML and HTML Help pages. See the documentation for
 # a list of builtin themes.
 # html_theme = "sphinx_rtd_theme"
 html_theme = "faculty-sphinx-theme"
@@ -199,7 +199,7 @@ html_theme_options = {
 html_logo = "_static/logo.svg"
 
 # The name of an image file (within the static path) to use as favicon of the
-# docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
+# docs. This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
 # html_favicon = None
 html_favicon = "_static/scico.ico"
@@ -402,7 +402,11 @@ import scico.numpy
 
 snp_func = getmembers(scico.numpy, isfunction)
 for _, f in snp_func:
-    if f.__module__[0:14] == "jax._src.numpy" or f.__module__ == "scico.numpy._create":
+    if (
+        f.__module__ == "scico.numpy"
+        or f.__module__[0:14] == "jax._src.numpy"
+        or f.__module__ == "scico.numpy._create"
+    ):
         # Rewrite module name so that function is included in docs
         f.__module__ = "scico.numpy"
         # Attempt to fix incorrect cross-reference
@@ -410,6 +414,12 @@ for _, f in snp_func:
             modname = "numpy.char"
         else:
             modname = "numpy"
+        f.__doc__ = re.sub(
+            r"^:func:`([\w_]+)` wrapped to operate",
+            r":obj:`jax.numpy.\1` wrapped to operate",
+            str(f.__doc__),
+            flags=re.M,
+        )
         f.__doc__ = re.sub(
             r"^LAX-backend implementation of :func:`([\w_]+)`.",
             r"LAX-backend implementation of :obj:`%s.\1`." % modname,
@@ -436,6 +446,40 @@ for _, f in snp_func:
 scico.numpy.vectorize.__doc__ = re.sub("^  ", "", scico.numpy.vectorize.__doc__, flags=re.M)
 
 
+# Similar processing for scico.scipy
+import scico.scipy
+
+ssp_func = getmembers(scico.scipy.special, isfunction)
+for _, f in ssp_func:
+    if f.__module__[0:11] == "scico.scipy" or f.__module__[0:14] == "jax._src.scipy":
+        # Attempt to fix incorrect cross-reference
+        f.__doc__ = re.sub(
+            r"^:func:`([\w_]+)` wrapped to operate",
+            r":obj:`jax.scipy.special.\1` wrapped to operate",
+            str(f.__doc__),
+            flags=re.M,
+        )
+        modname = "scipy.special"
+        f.__doc__ = re.sub(
+            r"^LAX-backend implementation of :func:`([\w_]+)`.",
+            r"LAX-backend implementation of :obj:`%s.\1`." % modname,
+            str(f.__doc__),
+            flags=re.M,
+        )
+        # Remove cross-reference to numpydoc style references section
+        f.__doc__ = re.sub(r" \[(\d+)\]_", "", f.__doc__, flags=re.M)
+        # Remove entire numpydoc references section
+        f.__doc__ = re.sub(r"References\n----------\n.*\n", "", f.__doc__, flags=re.DOTALL)
+        # Remove problematic citation
+        f.__doc__ = re.sub("See \[dlmf\]_ for details.", "", f.__doc__, re.M)
+        f.__doc__ = re.sub("\[dlmf\]_", "NIST DLMF", f.__doc__, re.M)
+
+# Fix indentation problems
+scico.scipy.special.sph_harm.__doc__ = re.sub(
+    "^Computes the", "  Computes the", scico.scipy.special.sph_harm.__doc__, flags=re.M
+)
+
+
 def class_inherit_diagrams(_):
     # Insert inheritance diagrams for classes that have base classes
     import scico
@@ -445,6 +489,19 @@ def class_inherit_diagrams(_):
         insert_inheritance_diagram(cls)
 
 
+def process_docstring(app, what, name, obj, options, lines):
+    # Don't show docs for inherited members in classes in scico.flax.
+    # This is primarily useful for silencing warnings due to problems in
+    # the current release of flax, but is arguably also useful in avoiding
+    # extensive documentation of methods that are likely to be of limited
+    # interest to users of the scico.flax classes.
+    #
+    # See https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html
+    # for documentation of the autodoc-process-docstring event used here.
+    if what == "class" and "scico.flax." in name:
+        options["inherited-members"] = False
+
+
 def setup(app):
 
     app.add_css_file("scico.css")
@@ -452,3 +509,4 @@ def setup(app):
         "http://netdna.bootstrapcdn.com/font-awesome/4.7.0/" "css/font-awesome.min.css"
     )
     app.connect("builder-inited", class_inherit_diagrams)
+    app.connect("autodoc-process-docstring", process_docstring)

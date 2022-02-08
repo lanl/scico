@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021 by SCICO Developers
+# Copyright (C) 2021-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -14,9 +14,9 @@ import numpy as np
 import jax
 from jax import numpy as jnp
 
+from scico.array import is_nested
 from scico.blockarray import BlockArray
 from scico.typing import BlockShape, DType, JaxArray, Shape
-from scico.util import is_nested
 
 
 def zeros(

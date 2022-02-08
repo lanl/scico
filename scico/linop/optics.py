@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021 by SCICO Developers
+# Copyright (C) 2021-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -25,8 +25,8 @@ from numpy.lib.scimath import sqrt  # complex sqrt
 import jax
 
 import scico.numpy as snp
+from scico.array import no_nan_divide
 from scico.linop import Diagonal, Identity, LinearOperator
-from scico.math import safe_divide
 from scico.typing import Shape
 
 from ._dft import DFT
@@ -49,7 +49,7 @@ def radial_transverse_frequency(
 
     Returns:
         If `len(input_shape)==1`, returns an ndarray containing
-        corresponding Fourier coordinates.  If `len(input_shape) == 2`,
+        corresponding Fourier coordinates. If `len(input_shape) == 2`,
         returns an ndarray containing the radial Fourier coordinates
         :math:`\sqrt{k_x^2 + k_y^2}\,`.
     """
@@ -226,7 +226,7 @@ class AngularSpectrumPropagator(Propagator):
             z: Propagation distance.
             pad_factor:  Amount of padding to apply in DFT step.
             jit: If ``True``, call :meth:`.jit()` on this LinearOperator
-               to jit the forward, adjoint, and gram functions.  Same as
+               to jit the forward, adjoint, and gram functions. Same as
                calling :meth:`.jit` after the LinearOperator is created.
         """
 
@@ -266,7 +266,7 @@ class AngularSpectrumPropagator(Propagator):
 
     def pinv(self, y):
         """Apply pseudoinverse of Angular Spectrum propagator."""
-        diag_inv = safe_divide(1, self.D.diagonal)
+        diag_inv = no_nan_divide(1, self.D.diagonal)
         return self.F.inv(diag_inv * self.F(y))
 
 

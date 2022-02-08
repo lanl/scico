@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -18,8 +18,6 @@ from scico.typing import JaxArray
 
 from ._functional import Functional
 
-__author__ = """Luke Pfister <luke.pfister@gmail.com>"""
-
 
 class NonNegativeIndicator(Functional):
     r"""Indicator function for non-negative orthant.
@@ -37,7 +35,6 @@ class NonNegativeIndicator(Functional):
 
     has_eval = True
     has_prox = True
-    is_smooth = False
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         if snp.iscomplexobj(x):
@@ -48,24 +45,26 @@ class NonNegativeIndicator(Functional):
         return jax.lax.cond(snp.any(x < 0), lambda x: snp.inf, lambda x: 0.0, None)
 
     def prox(
-        self, x: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
-        r"""Proximal operator of indicator over non-negative orthant.
-
-        Proximal operator of indicator over non-negative orthant
+        r"""Evaluate the scaled proximal operator of the indicator over
+        the non-negative orthant, :math:`I_{>= 0}`,
 
         .. math::
-            [\mathrm{prox}(\mb{x}, \lambda)]_i =
+            [\mathrm{prox}_{\lambda I_{>=0}}(\mb{v})]_i =
             \begin{cases}
-            x_i & \text{if } x_i \geq 0 \\
-            0 & \text{else} \;.
+            v_i\,, & \text{if } v_i \geq 0 \\
+            0\,, & \text{otherwise} \;.
             \end{cases}
 
         Args:
-            x: Input array :math:`\mb{x}`.
-            lam: Proximal parameter :math:`\lambda`.
+            v : Input array :math:`\mb{v}`.
+            lam : Proximal parameter :math:`\lambda` (has no effect).
+            kwargs: Additional arguments that may be used by derived
+                classes.
+
         """
-        return snp.maximum(x, 0)
+        return snp.maximum(v, 0)
 
 
 class L2BallIndicator(Functional):
@@ -85,7 +84,6 @@ class L2BallIndicator(Functional):
 
     has_eval = True
     has_prox = True
-    is_smooth = False
 
     def __init__(self, radius: float = 1):
         r"""Initialize a :class:`L2BallIndicator` object.
@@ -102,14 +100,14 @@ class L2BallIndicator(Functional):
         return jax.lax.cond(norm(x) > self.radius, lambda x: snp.inf, lambda x: 0.0, None)
 
     def prox(
-        self, x: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
-        r"""Proximal operator of indicator over :math:`\ell_2` ball.
-
-        Proximal operator of indicator over :math:`\ell_2` ball
+        r"""Evalulate the scaled proximal operator of the indicator over
+        a :math:`\ell_2` ball with radius :math:`r` = `self.radius`,
+        :math:`I_r`:
 
         .. math::
-            \mathrm{prox}(\mb{x}, \lambda) = \mathrm{radius}
-            \frac{\mb{x}}{\norm{\mb{x}}_2} \;.
+            \mathrm{prox}_{\lambda I_r}(\mb{v}) = r \frac{\mb{v}}{\norm{\mb{v}}_2}\;.
+
         """
-        return self.radius * x / norm(x)
+        return self.radius * v / norm(v)

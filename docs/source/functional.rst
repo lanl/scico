@@ -39,19 +39,20 @@ An instance of :class:`.Functional`, ``f``, may provide three core operations.
    - ``f.grad(x)`` returns the gradient of the functional evaluated at ``x``.
    - Gradients are calculated using JAX reverse-mode automatic differentiation,
      exposed through :func:`scico.grad`.
-   - A functional that is smooth has the attribute ``f.is_smooth == True``.
-   - NOTE:  The gradient of a functional ``f`` can be evaluated even if ``f.is_smooth == False``.
+   - *Note:*  The gradient of a functional ``f`` can be evaluated even if that functional is not smooth.
      All that is required is that the functional can be evaluated, ``f.has_eval == True``.
      However, the result may not be a valid gradient (or subgradient) for all inputs.
 * Proximal operator
-   - ``f.prox(v, lam)`` returns the result of the scaled proximal operator
-     at ``v`` with scale ``lam``.
-   - The proximal operator of a functional :math:`f : \mathbb{R}^n \to \mathbb{R}` is the mapping
-     :math:`\mathrm{prox}_f : \mathbb{R}^n \times \mathbb{R} \to \mathbb{R}^n` defined as
+   - ``f.prox(v, lam)`` returns the result of the scaled proximal
+     operator of ``f``, i.e., the proximal operator of ``lambda x:
+     lam * f(x)``, evaluated at the point ``v``.
+   - The proximal operator of a functional :math:`f : \mathbb{R}^n \to
+     \mathbb{R}` is the mapping :math:`\mathrm{prox}_f : \mathbb{R}^n
+     \to \mathbb{R}^n` defined as
 
      .. math::
-
-      \mathrm{prox}_f (v, \lambda) =  \argmin_x \lambda f(x) + \frac{1}{2} \norm{v - x}_2^2.
+      \mathrm{prox}_f (\mb{v}) =  \argmin_{\mb{x}} f(\mb{x}) +
+      \frac{1}{2} \norm{\mb{v} - \mb{x}}_2^2\;.
 
 
 Plug-and-Play
@@ -90,7 +91,7 @@ in the parameterized form :math:`\mathrm{prox}_{c f}`.
 
 In SCICO, multiplying a :class:`.Functional` by a scalar
 will return a :class:`.ScaledFunctional`.
-This :class:`.ScaledFunctional` retains the ``has_eval``, ``is_smooth``, and ``has_prox`` attributes
+This :class:`.ScaledFunctional` retains the ``has_eval`` and ``has_prox`` attributes
 from the original :class:`.Functional`,
 but the proximal method is modified to accomodate the additional scalar.
 
@@ -99,7 +100,7 @@ Separable Functionals
 *********************
 
 A separable functional :math:`f : \mathbb{C}^N \to \mathbb{R}` can be written as the sum
-of functionals :math:`f_i : \mathbb{C}^{N_i} \to \mathbb{R}` with :math:`\sum_i N_i = N`.  In particular,
+of functionals :math:`f_i : \mathbb{C}^{N_i} \to \mathbb{R}` with :math:`\sum_i N_i = N`. In particular,
 
     .. math::
        f(\mb{x}) = f(\mb{x}_1, \dots, \mb{x}_N) = f_1(\mb{x}_1) + \dots + f_N(\mb{x}_N)
@@ -117,7 +118,7 @@ in terms of the proximal operators of the :math:`f_i`
           \mathrm{prox}_{f_N}(\mb{x}_N, \lambda) \\
         \end{bmatrix}
 
-Separable Functionals are implemented in the :class:`.SeparableFunctional` class.  Separable functionals naturally accept :class:`.BlockArray` inputs and return the prox as a :class:`.BlockArray`.
+Separable Functionals are implemented in the :class:`.SeparableFunctional` class. Separable functionals naturally accept :class:`.BlockArray` inputs and return the prox as a :class:`.BlockArray`.
 
 
 
@@ -127,7 +128,7 @@ To add a new functional,
 create a class which
 
 1. inherits from base :class:`.Functional`;
-2. has ``has_eval``, ``is_smooth``, and ``has_prox`` flags;
+2. has ``has_eval`` and ``has_prox`` flags;
 3. has ``_eval`` and ``prox`` methods, as necessary.
 
 For example,
@@ -137,7 +138,6 @@ For example,
       class MyFunctional(scico.functional.Functional):
 
           has_eval = True
-          is_smooth = False
           has_prox = True
 
           def _eval(self, x: JaxArray) -> float:
