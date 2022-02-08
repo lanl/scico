@@ -7,3 +7,4 @@ jax==0.2.26
 flax
 bm3d
 svmbir>=0.2.7
+pyabel>=0.8.5

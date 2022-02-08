@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022 by SCICO Developers
+# Copyright (C) 2021-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -94,9 +94,9 @@ class CircularConvolve(LinearOperator):
                involved in the convolution. Defaults to the number of
                dimensions in the input.
             input_dtype: `dtype` for input argument. Defaults to
-               `float32`.
-            h_is_dft: Flag indicating whether ``h`` is in the DFT domain.
-            jit:  If `True`, jit the evaluation, adjoint, and gram
+               ``float32``.
+            h_is_dft: Flag indicating whether `h` is in the DFT domain.
+            jit:  If ``True``, jit the evaluation, adjoint, and gram
                functions of the LinearOperator.
         """
 

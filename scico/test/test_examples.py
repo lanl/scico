@@ -4,8 +4,11 @@ import tempfile
 import numpy as np
 
 import imageio
+import pytest
 
 from scico.examples import (
+    create_circular_phantom,
+    create_cone,
     downsample_volume,
     epfl_deconv_data,
     rgb2gray,
@@ -60,3 +63,28 @@ def test_tile_volume_slices():
     v = np.ones((16, 16, 16, 3))
     tvs = tile_volume_slices(v)
     assert tvs.ndim == 3 and tvs.shape[-1] == 3
+
+
+def test_create_circular_phantom():
+    img_shape = (32, 32)
+    radius_list = [2, 4, 8]
+    val_list = [2, 4, 8]
+    x_gt = create_circular_phantom(img_shape, radius_list, val_list)
+
+    assert x_gt.shape == img_shape
+    assert np.max(x_gt) == max(val_list)
+    assert np.min(x_gt) == 0
+
+
+@pytest.mark.parametrize(
+    "img_shape",
+    (
+        (3, 3),
+        (40, 40),
+        (100, 100),
+        (3, 3, 3),
+    ),
+)
+def test_create_cone(img_shape):
+    x_gt = create_cone(img_shape)
+    assert x_gt.shape == img_shape
