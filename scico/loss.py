@@ -53,18 +53,17 @@ class Loss(functional.Functional):
         A: Optional[Union[Callable, operator.Operator]] = None,
         scale: float = 0.5,
     ):
-        r"""Initialize a :class:`Loss` object.
-
+        r"""
         Args:
             y: Measurement.
-            A: Forward operator. Defaults to None. If None, ``self.A`` is
-               a :class:`.Identity`.
+            A: Forward operator. Defaults to ``None``, in which case
+               ``self.A`` is a :class:`.Identity`.
             scale: Scaling parameter. Default: 0.5.
 
         """
         self.y = ensure_on_device(y)
         if A is None:
-            # y & x must have same shape
+            # y and x must have same shape
             A = linop.Identity(self.y.shape)
         self.A = A
         self.scale = scale
@@ -79,7 +78,7 @@ class Loss(functional.Functional):
         r"""Evaluate this loss at point :math:`\mb{x}`.
 
         Args:
-            x : Point at which to evaluate loss.
+            x: Point at which to evaluate loss.
         """
         raise NotImplementedError
 
@@ -127,14 +126,13 @@ class WeightedSquaredL2Loss(Loss):
         prox_kwargs: dict = {"maxiter": 1000, "tol": 1e-12},
     ):
 
-        r"""Initialize a :class:`WeightedSquaredL2Loss` object.
-
+        r"""
         Args:
             y: Measurement.
-            A: Forward operator. If None, defaults to :class:`.Identity`.
+            A: Forward operator. If ``None``, defaults to :class:`.Identity`.
             scale: Scaling parameter.
-            W:  Weighting diagonal operator. Must be non-negative.
-                If None, defaults to :class:`.Identity`.
+            W: Weighting diagonal operator. Must be non-negative.
+                If ``None``, defaults to :class:`.Identity`.
         """
         y = ensure_on_device(y)
 
@@ -146,7 +144,7 @@ class WeightedSquaredL2Loss(Loss):
             if snp.all(W.diagonal >= 0):
                 self.W = W
             else:
-                raise Exception(f"The weights, W.diagonal, must be non-negative.")
+                raise ValueError(f"The weights, W.diagonal, must be non-negative.")
         else:
             raise TypeError(f"W must be None or a linop.Diagonal, got {type(W)}")
 
@@ -173,14 +171,11 @@ class WeightedSquaredL2Loss(Loss):
             ATWA = c * A.conj() * W * A
             return lhs / (ATWA + 1.0)
 
-        #      prox_{f}(v) =
-        #
-        #      arg min  1/2 || v - x ||^2 + λ α || A x - y ||^2_W
-        #         x
-        #
+        #   prox_{f}(v) = arg min  1/2 || v - x ||^2 + λ α || A x - y ||^2_W
+        #                    x
         # solution at:
         #
-        #      (I + λ 2α A^T W A) x = v + λ 2α A^T W y
+        #   (I + λ 2α A^T W A) x = v + λ 2α A^T W y
         #
         W = self.W
         A = self.A
@@ -238,11 +233,10 @@ class SquaredL2Loss(WeightedSquaredL2Loss):
         scale: float = 0.5,
         prox_kwargs: dict = {"maxiter": 1000, "tol": 1e-12},
     ):
-        r"""Initialize a :class:`SquaredL2Loss` object.
-
+        r"""
         Args:
             y: Measurement.
-            A: Forward operator. If None, defaults to :class:`.Identity`.
+            A: Forward operator. If ``None``, defaults to :class:`.Identity`.
             scale: Scaling parameter.
         """
         super().__init__(y=y, A=A, scale=scale, W=None, prox_kwargs=prox_kwargs)
@@ -266,19 +260,18 @@ class PoissonLoss(Loss):
         A: Optional[Union[Callable, operator.Operator]] = None,
         scale: float = 0.5,
     ):
-        r"""Initialize a :class:`PoissonLoss` object.
-
+        r"""
         Args:
             y: Measurement.
-            A: Forward operator. Defaults to None. If None, ``self.A``
-                is a :class:`.Identity`.
+            A: Forward operator. Defaults to ``None``, in which case
+                ``self.A`` is a :class:`.Identity`.
             scale: Scaling parameter. Default: 0.5.
         """
         y = ensure_on_device(y)
         super().__init__(y=y, A=A, scale=scale)
 
         #: Constant term in Poisson log likehood; equal to ln(y!)
-        self.const: float = gammaln(self.y + 1)  # ln(y!)
+        self.const = gammaln(self.y + 1.0)  # ln(y!)
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         Ax = self.A(x)
