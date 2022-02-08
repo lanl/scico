@@ -614,7 +614,7 @@ def _decompose_index(idx: Union[int, Tuple(AxisIndex)]) -> Tuple:
     return idxblk, idxarr
 
 
-def indexed_shape(shape: Shape, idx: Union[int, Tuple(AxisIndex)]) -> Tuple[int]:
+def indexed_shape(shape: Shape, idx: Union[int, Tuple[AxisIndex, ...]]) -> Tuple[int, ...]:
     """Determine the shape of the result of indexing a BlockArray.
 
     Args:
@@ -866,7 +866,7 @@ class BlockArray:
     def __repr__(self):
         return "scico.blockarray.BlockArray: \n" + self._data.__repr__()
 
-    def __getitem__(self, idx: Union[int, Tuple(AxisIndex)]) -> JaxArray:
+    def __getitem__(self, idx: Union[int, Tuple[AxisIndex, ...]]) -> JaxArray:
         idxblk, idxarr = _decompose_index(idx)
         if idxblk < 0:
             idxblk = self.num_blocks + idxblk

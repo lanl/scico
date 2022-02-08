@@ -188,7 +188,7 @@ under a BSD 3-Clause License
 for details).
 LANL open source approval reference C20091.
 
-© 2020-2021. Triad National Security, LLC. All rights reserved.
+© 2020-2022. Triad National Security, LLC. All rights reserved.
 This program was produced under
 U.S. Government contract 89233218CNA000001
 for Los Alamos National Laboratory (LANL),

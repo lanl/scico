@@ -165,7 +165,7 @@ def slice_length(length: int, idx: AxisIndex) -> Optional[int]:
     return (stop - start + stride - 1) // stride
 
 
-def indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int]:
+def indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int, ...]:
     """Determine the shape of an array after indexing/slicing.
 
     Args:
