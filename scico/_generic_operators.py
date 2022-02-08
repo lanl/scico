@@ -58,7 +58,7 @@ def _wrap_mul_div_scalar(func):
 
 
 class Operator:
-    """Generic Operator class"""
+    """Generic Operator class."""
 
     def __repr__(self):
         return f"""{type(self)}
@@ -80,8 +80,7 @@ output_dtype : {self.output_dtype}
         output_dtype: Optional[DType] = None,
         jit: bool = False,
     ):
-        r"""Operator init method.
-
+        r"""
         Args:
             input_shape: Shape of input array.
             output_shape: Shape of output array.
