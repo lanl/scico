@@ -140,7 +140,7 @@ class PDHG:
             "Time": "%8.2e",
         }
         itstat_attrib = ["itnum", "timer.elapsed()"]
-        # objective function can be evaluated if all 'g' functions can be evaluated
+        # objective function can be evaluated if 'g' function can be evaluated
         if g.has_eval:
             itstat_fields.update({"Objective": "%9.3e"})
             itstat_attrib.append("objective()")
