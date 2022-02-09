@@ -279,7 +279,7 @@ class NuclearNorm(Functional):
         # to the bug reported at https://github.com/google/jax/issues/9483
         s = snp.linalg.svd(x, full_matrices=False, compute_uv=False)
         if isinstance(s, tuple):
-            _, s, _ = snp.linalg.svd(x, full_matrices=False, compute_uv=True)
+            s = s[1]
         return snp.sum(s)
 
     def prox(
