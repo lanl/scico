@@ -226,7 +226,7 @@ class SVMBIRExtendedLoss(Loss):
         super().__init__(*args, **kwargs)
 
         if not isinstance(self.A, ParallelBeamProjector):
-            raise ValueError("LinearOperator A must be a radon_svmbir.ParallelBeamProjector.")
+            raise ValueError("A must be a ParallelBeamProjector.")
 
         self.has_prox = True
 
@@ -331,10 +331,8 @@ class SVMBIRWeightedSquaredL2Loss(SVMBIRExtendedLoss, WeightedSquaredL2Loss):
         """
         super().__init__(*args, **kwargs, prox_kwargs=prox_kwargs, positivity=False)
 
-        if self.A.is_masked:
-            raise ValueError(
-                "is_masked must be false for the ParallelBeamProjector in SVMBIRWeightedSquaredL2Loss."
-            )
+        if not isinstance(self.A, ParallelBeamProjector) or self.A.is_masked:
+            raise ValueError("A must be a ParallelBeamProjector with is_masked set to False.")
 
 
 def _unsqueeze(x: JaxArray, input_shape: Shape) -> JaxArray:
