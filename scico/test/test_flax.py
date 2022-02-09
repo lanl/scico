@@ -3,11 +3,11 @@ from functools import partial
 import numpy as np
 
 import pytest
-
 from flax import linen as nn
-from scico import flax as sflax
+
+from scico import _flax as sflax
 from scico import random
-from scico.functional._flax import FlaxMap
+from scico._flax import FlaxMap
 
 
 class TestSet:
@@ -104,6 +104,6 @@ def test_FlaxMap_call(testobj):
     fmap = FlaxMap(testobj.dncnn, testobj.variables)
     N = 128  # image size
     x, key = random.randn((N, N))
-    out = fmap.prox(x, 0.1)
+    out = fmap(x)
     assert x.dtype == out.dtype
     assert x.ndim == out.ndim

@@ -305,8 +305,9 @@ def cg(
     positive definite, via the conjugate gradient method.
 
     Args:
-        A: Function implementing linear operator :math:`A`.
-        b: Input array :math:`\mb{b}`, should be positive definite.
+        A: Function implementing linear operator :math:`A`, should be
+            positive definite.
+        b: Input array :math:`\mb{b}`.
         x0: Initial solution.
         tol: Relative residual stopping tolerance. Convergence occurs
            when ``norm(residual) <= max(tol * norm(b), atol)``.
