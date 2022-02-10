@@ -437,7 +437,7 @@ class PGM:
         self.timer: Timer = Timer()
         self.fixed_point_residual = snp.inf
 
-        def x_step(v, L):
+        def x_step(v: Union[JaxArray, BlockArray], L: float) -> Union[JaxArray, BlockArray]:
             return self.g.prox(v - 1.0 / L * self.f.grad(v), 1.0 / L)
 
         self.x_step = jax.jit(x_step)
@@ -473,13 +473,15 @@ class PGM:
 
         self.x: Union[JaxArray, BlockArray] = ensure_on_device(x0)  # current estimate of solution
 
-    def objective(self, x=None) -> float:
+    def objective(self, x: Optional[Union[JaxArray, BlockArray]] = None) -> float:
         r"""Evaluate the objective function :math:`f(\mb{x}) + g(\mb{x})`."""
         if x is None:
             x = self.x
         return self.f(x) + self.g(x)
 
-    def f_quad_approx(self, x, y, L) -> float:
+    def f_quad_approx(
+        self, x: Union[JaxArray, BlockArray], y: Union[JaxArray, BlockArray], L: float
+    ) -> float:
         r"""Evaluate the quadratic approximation to function :math:`f`.
 
         Evaluate the quadratic approximation to function :math:`f`,

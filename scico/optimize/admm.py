@@ -52,7 +52,7 @@ class SubproblemSolver:
             solver is attached.
     """
 
-    def internal_init(self, admm: "ADMM"):
+    def internal_init(self, admm: ADMM):
         """Second stage initializer to be called by :meth:`.ADMM.__init__`.
 
         Args:
