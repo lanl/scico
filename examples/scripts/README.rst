@@ -9,6 +9,8 @@ Organized by Application
 Computed Tomography
 ^^^^^^^^^^^^^^^^^^^
 
+   `ct_abel_tv_admm.py <ct_abel_tv_admm.py>`_
+      Regularized Abel Inversion
    `ct_astra_pcg.py <ct_astra_pcg.py>`_
       CT with Preconditioned Conjugate Gradient
    `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
@@ -66,6 +68,8 @@ Miscellaneous
       Isotropic Total Variation (Accelerated PGM)
    `denoise_tv_iso_multi.py <denoise_tv_iso_multi.py>`_
       Comparison of Optimization Algorithms for Total Variation Denoising
+   `superres_ppp_dncnn_admm.py <superres_ppp_dncnn_admm.py>`_
+      Image Superresolution (ADMM Plug-and-Play Priors w/ DnCNN)
    `video_rpca_admm.py <video_rpca_admm.py>`_
       Video Decomposition via Robust PCA
 
@@ -89,11 +93,15 @@ Plug and Play Priors
       Image Deconvolution (ADMM Plug-and-Play Priors w/ DnCNN)
    `demosaic_ppp_bm3d_admm.py <demosaic_ppp_bm3d_admm.py>`_
       Image Demosaicing (ADMM Plug-and-Play Priors w/ BM3D)
+   `superres_ppp_dncnn_admm.py <superres_ppp_dncnn_admm.py>`_
+      Image Superresolution (ADMM Plug-and-Play Priors w/ DnCNN)
 
 
 Total Variation
 ^^^^^^^^^^^^^^^
 
+   `ct_abel_tv_admm.py <ct_abel_tv_admm.py>`_
+      Regularized Abel Inversion
    `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
       Few-View CT (ADMM w/ Total Variation)
    `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
@@ -138,6 +146,8 @@ Organized by Optimization Algorithm
 ADMM
 ^^^^
 
+   `ct_abel_tv_admm.py <ct_abel_tv_admm.py>`_
+      Regularized Abel Inversion
    `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
       Few-View CT (ADMM w/ Total Variation)
    `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
@@ -170,6 +180,8 @@ ADMM
       Comparison of Optimization Algorithms for Total Variation Denoising
    `sparsecode_admm.py <sparsecode_admm.py>`_
       Non-negative Basis Pursuit DeNoising (ADMM)
+   `superres_ppp_dncnn_admm.py <superres_ppp_dncnn_admm.py>`_
+      Image Superresolution (ADMM Plug-and-Play Priors w/ DnCNN)
    `video_rpca_admm.py <video_rpca_admm.py>`_
       Video Decomposition via Robust PCA
 
