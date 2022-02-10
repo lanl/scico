@@ -437,7 +437,7 @@ class PGM:
         self.timer: Timer = Timer()
         self.fixed_point_residual = snp.inf
 
-        def x_step(v: Union[JaxArray, BlockArray], L: float):
+        def x_step(v: Union[JaxArray, BlockArray], L: float) -> Union[JaxArray, BlockArray]:
             return self.g.prox(v - 1.0 / L * self.f.grad(v), 1.0 / L)
 
         self.x_step = jax.jit(x_step)
