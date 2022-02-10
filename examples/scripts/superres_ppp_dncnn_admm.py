@@ -112,7 +112,7 @@ plot.plot(
 """
 Show reference and test images.
 """
-fig = plot.figure(figsize=(9, 7))
+fig = plot.figure(figsize=(8, 6))
 ax0 = plot.plt.subplot2grid((1, rate + 1), (0, 0), colspan=rate)
 plot.imview(img, title="Reference", fig=fig, ax=ax0)
 ax1 = plot.plt.subplot2grid((1, rate + 1), (0, rate))
