@@ -111,8 +111,8 @@ We follow the `Google string conventions <https://google.github.io/styleguide/py
 .. code:: Python
 
     state = "active"
-    print("The state is %s")        # Not preferred
-    print(f"The state is {state}")  # Preferred
+    print("The state is %s" % state) # Not preferred
+    print(f"The state is {state}")   # Preferred
 
 
 Imports
