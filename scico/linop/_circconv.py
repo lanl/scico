@@ -96,6 +96,9 @@ class CircularConvolve(LinearOperator):
             input_dtype: `dtype` for input argument. Defaults to
                ``float32``.
             h_is_dft: Flag indicating whether `h` is in the DFT domain.
+            h_center: Array of length `ndims` specifying the center of
+               the filter. Defaults to the upper left corner, i.e.,
+               `h_center = [0, 0, ..., 0]`, may be noninteger.
             jit:  If ``True``, jit the evaluation, adjoint, and gram
                functions of the LinearOperator.
         """
