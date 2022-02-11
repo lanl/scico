@@ -50,8 +50,8 @@ rate = 4  # downsampling rate
 
 Afn = lambda x: downsample_image(x, rate=rate)
 s = Afn(img)
-inshape = img.shape
-outshape = s.shape
+input_shape = img.shape
+output_shape = s.shape
 noise, key = scico.random.randn(s.shape, seed=0)
 sn = s + σ * noise
 
@@ -60,9 +60,9 @@ sn = s + σ * noise
 Set up the PPP problem pseudo-functional. The DnCNN denoiser
 :cite:`zhang-2017-dncnn` is used as a regularizer.
 """
-A = linop.LinearOperator(input_shape=inshape, output_shape=outshape, eval_fn=Afn)
+A = linop.LinearOperator(input_shape=input_shape, output_shape=output_shape, eval_fn=Afn)
 f = loss.SquaredL2Loss(y=sn, A=A)
-C = linop.Identity(input_shape=inshape)
+C = linop.Identity(input_shape=input_shape)
 g = functional.DnCNN("17M")
 
 
@@ -71,7 +71,7 @@ Compute a baseline solution via denoising of the pseudo-inverse of the
 forward operator. This baseline solution is also used to initialize the
 PPP solver.
 """
-xpinv, info = cg(A.T @ A, A.T @ sn, snp.zeros(inshape))
+xpinv, info = cg(A.T @ A, A.T @ sn, snp.zeros(input_shape))
 dncnn = denoiser.DnCNN("17M")
 xden = dncnn(xpinv)
 
