@@ -68,6 +68,7 @@ Miscellaneous
    examples/denoise_tv_iso_admm
    examples/denoise_tv_iso_pgm
    examples/denoise_tv_iso_multi
+   examples/superres_ppp_dncnn_admm
    examples/video_rpca_admm
 
 
@@ -90,6 +91,7 @@ Plug and Play Priors
    examples/deconv_ppp_bm3d_pgm
    examples/deconv_ppp_dncnn_admm
    examples/demosaic_ppp_bm3d_admm
+   examples/superres_ppp_dncnn_admm
 
 
 Total Variation
@@ -154,6 +156,7 @@ ADMM
    examples/denoise_tv_iso_admm
    examples/denoise_tv_iso_multi
    examples/sparsecode_admm
+   examples/superres_ppp_dncnn_admm
    examples/video_rpca_admm
 
 

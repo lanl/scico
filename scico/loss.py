@@ -165,7 +165,7 @@ class WeightedSquaredL2Loss(Loss):
     ) -> Union[JaxArray, BlockArray]:
         if not isinstance(self.A, linop.LinearOperator):
             raise NotImplementedError(
-                f"prox is not implemented for {type(self)} when `A` is {type(A)}; "
+                f"prox is not implemented for {type(self)} when `A` is {type(self.A)}; "
                 "must be LinearOperator"
             )
 
