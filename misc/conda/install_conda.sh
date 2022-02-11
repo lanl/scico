@@ -97,10 +97,9 @@ rm -f /tmp/miniconda.sh
 export PATH="$CONDAHOME/bin:$PATH"
 hash -r
 conda config --set always_yes yes
-conda install -n root _license
+conda install mamba -n base -c conda-forge
 conda update -q conda
 conda info -a
-#conda config --add channels conda-forge
 
 echo "Add the following to your .bashrc or .bash_aliases file"
 echo "  export CONDAHOME=$CONDAHOME"
