@@ -154,7 +154,7 @@ class WeightedSquaredL2Loss(Loss):
             prox_kwargs = dict
         self.prox_kwargs = prox_kwargs
 
-        if isinstance(self.A, linop.Diagonal) and isinstance(self.W, linop.Diagonal):
+        if isinstance(self.A, linop.LinearOperator):
             self.has_prox = True
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
@@ -163,6 +163,12 @@ class WeightedSquaredL2Loss(Loss):
     def prox(
         self, v: Union[JaxArray, BlockArray], lam: float, **kwargs
     ) -> Union[JaxArray, BlockArray]:
+        if not isinstance(self.A, linop.LinearOperator):
+            raise NotImplementedError(
+                f"prox is not implemented for {type(self)} when `A` is {type(A)}; "
+                "must be LinearOperator"
+            )
+
         if isinstance(self.A, linop.Diagonal):
             c = 2.0 * self.scale * lam
             A = self.A.diagonal
