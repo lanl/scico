@@ -344,7 +344,7 @@ class TestLoss:
     def test_squared_l2(self):
         L = loss.SquaredL2Loss(y=self.y, A=self.Ao)
         assert L.has_eval == True
-        assert L.has_prox == False  # not diagonal
+        assert L.has_prox == True
 
         # test eval
         np.testing.assert_allclose(L(self.v), 0.5 * ((self.Ao @ self.v - self.y) ** 2).sum())
@@ -375,7 +375,7 @@ class TestLoss:
     def test_weighted_squared_l2(self):
         L = loss.WeightedSquaredL2Loss(y=self.y, A=self.Ao, W=self.W)
         assert L.has_eval == True
-        assert L.has_prox == False  # not diagonal
+        assert L.has_prox == True
 
         # test eval
         np.testing.assert_allclose(
