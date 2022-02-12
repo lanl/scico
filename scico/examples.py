@@ -12,7 +12,7 @@ import glob
 import os
 import tempfile
 import zipfile
-from typing import Optional
+from typing import List, Optional
 
 import numpy as np
 
@@ -242,7 +242,7 @@ def tile_volume_slices(x: Array, sep_width: int = 10) -> Array:
     return out
 
 
-def create_cone(img_shape: Shape, center: Optional[list[float]] = None) -> Array:
+def create_cone(img_shape: Shape, center: Optional[List[float]] = None) -> Array:
     """Compute a 2D map of the distance from a center pixel.
 
     Args:
