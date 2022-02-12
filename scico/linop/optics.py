@@ -138,7 +138,7 @@ class Propagator(LinearOperator):
         self.F = DFT(input_shape=input_shape, output_shape=self.padded_shape, jit=False)
 
         # Diagonal operator; phase shifting
-        self.D = Identity(self.kp.shape)
+        self.D: LinearOperator = Identity(self.kp.shape)
 
         super().__init__(
             input_shape=input_shape,
