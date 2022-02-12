@@ -6,7 +6,7 @@
 
 r"""
 Regularized Abel Inversion Tuning Demo
-==========================
+======================================
 
 This example demonstrates the use of
 [scico.ray.tune](../_autosummary/scico.ray.tune.rst) to tune
@@ -31,11 +31,12 @@ x_gt = create_circular_phantom((256, 256), [100, 50, 25], [1, 0, 0.5])
 
 
 """
-Set up the forward operator and create a test measurement
+Set up the forward operator and create a test measurement.
 """
 A = AbelProjector(x_gt.shape)
 y = A @ x_gt
-y = y + 1 * np.random.normal(size=y.shape)
+np.random.seed(12345)
+y = y + np.random.normal(size=y.shape)
 ATy = A.T @ y
 
 """
@@ -49,7 +50,7 @@ Define performance evaluation function.
 """
 
 
-def eval_params(config):
+def eval_params(config, reporter):
     # Extract solver parameters from config dict.
     λ, ρ = config["lambda"], config["rho"]
     # Get main arrays from ray object store.
@@ -71,10 +72,10 @@ def eval_params(config):
         maxiter=10,
         subproblem_solver=LinearSubproblemSolver(),
     )
-    # Perform 50 iterations, reporting performance to ray.tune every 10 iterations.
+    # Perform 100 iterations, reporting performance to ray.tune every 10 iterations.
     for step in range(10):
         x_admm = solver.solve()
-        tune.report(psnr=float(metric.psnr(x_gt, x_admm)))
+        reporter(psnr=float(metric.psnr(x_gt, x_admm)))
 
 
 """
