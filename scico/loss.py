@@ -64,7 +64,7 @@ class Loss(functional.Functional):
         self.y = ensure_on_device(y)
         if A is None:
             # y and x must have same shape
-            A = linop.Identity(self.y.shape)
+            A = linop.Identity(self.y.shape)  # type: ignore
         self.A = A
         self.scale = scale
 
@@ -139,9 +139,9 @@ class WeightedSquaredL2Loss(Loss):
         self.W: linop.Diagonal
 
         if W is None:
-            self.W = linop.Identity(y.shape)
+            self.W = linop.Identity(y.shape)  # type: ignore
         elif isinstance(W, linop.Diagonal):
-            if snp.all(W.diagonal >= 0):
+            if snp.all(W.diagonal >= 0):  # type: ignore
                 self.W = W
             else:
                 raise ValueError(f"The weights, W.diagonal, must be non-negative.")
@@ -158,7 +158,7 @@ class WeightedSquaredL2Loss(Loss):
             self.has_prox = True
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
-        return self.scale * (self.W.diagonal * snp.abs(self.y - self.A(x)) ** 2).sum()
+        return self.scale * (self.W.diagonal * snp.abs(self.y - self.A(x)) ** 2).sum()  # type: ignore
 
     def prox(
         self, v: Union[JaxArray, BlockArray], lam: float, **kwargs
@@ -173,8 +173,8 @@ class WeightedSquaredL2Loss(Loss):
             c = 2.0 * self.scale * lam
             A = self.A.diagonal
             W = self.W.diagonal
-            lhs = c * A.conj() * W * self.y + v
-            ATWA = c * A.conj() * W * A
+            lhs = c * A.conj() * W * self.y + v  # type: ignore
+            ATWA = c * A.conj() * W * A  # type: ignore
             return lhs / (ATWA + 1.0)
 
         #   prox_{f}(v) = arg min  1/2 || v - x ||^2 + λ α || A x - y ||^2_W
