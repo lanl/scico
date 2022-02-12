@@ -92,7 +92,7 @@ def no_nan_divide(x: JaxOrBlockArray, y: JaxOrBlockArray) -> JaxOrBlockArray:
 
 def parse_axes(
     axes: Axes, shape: Optional[Shape] = None, default: Optional[List[int]] = None
-) -> List[int]:
+) -> Tuple[int, ...]:
     """Normalize `axes` to a list and optionally ensure correctness.
 
     Normalize `axes` to a list and (optionally) ensure that entries refer
@@ -183,14 +183,14 @@ def indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int, ...]:
         idx = (idx,)
     if len(idx) > len(shape):
         raise ValueError(f"Slice {idx} has more dimensions than shape {shape}.")
-    idx_shape = list(shape)
+    idx_shape: List[Optional[int]] = list(shape)
     offset = 0
     for axis, ax_idx in enumerate(idx):
         if ax_idx is Ellipsis:
             offset = len(shape) - len(idx)
             continue
         idx_shape[axis + offset] = slice_length(shape[axis + offset], ax_idx)
-    return tuple(filter(lambda x: x is not None, idx_shape))
+    return tuple(filter(lambda x: x is not None, idx_shape))  # type: ignore
 
 
 def is_nested(x: Any) -> bool:
