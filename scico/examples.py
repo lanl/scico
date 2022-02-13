@@ -248,15 +248,15 @@ def create_cone(img_shape: Shape, center: Optional[List[float]] = None) -> Array
     Args:
         img_shape: Shape of the image for which the distance map is being
             computed.
-        center: Tuple of center pixel ids. If ``None``, this is set to
-            the center of the image.
+        center: Tuple of center pixel coordinates. If ``None``, this is
+            set to the center of the image.
 
     Returns:
         An image containing a 2D map of the distances.
     """
 
     if center is None:
-        center = [img_dim // 2 for img_dim in img_shape]
+        center = [(img_dim - 1) / 2 for img_dim in img_shape]
 
     coords = [snp.arange(0, img_dim) for img_dim in img_shape]
     coord_mesh = snp.meshgrid(*coords, sparse=True, indexing="ij")
@@ -276,8 +276,8 @@ def create_circular_phantom(
         img_shape: Shape of the phantom to be created.
         radius_list: List of radii of the rings in the phantom.
         val_list: List of intensity values of the rings in the phantom.
-        center: Tuple of center pixel ids. If ``None``, this is set to
-           the center of the image.
+        center: Tuple of center pixel coordinates. If ``None``, this is
+           set to the center of the image.
 
     Returns:
         The computed circular phantom.
