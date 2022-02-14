@@ -3,7 +3,7 @@ SCICO Release Notes
 ===================
 
 
-Version 0.0.2   (unreleased)
+Version 0.0.2   (2022-02-14)
 ----------------------------
 
 • Additional optimization algorithms: Linearized ADMM and PDHG.
