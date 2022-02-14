@@ -40,11 +40,9 @@ jobs:
           echo jax     required: $rjax  latest: $ljax
           if [ "$rjaxlib" = "$ljaxlib" ] && [ "$rjax" = "$ljax" ]; then
             echo Test is redundant: required and latest jaxlib/jax versions match
-            export TEST="cancel"
-            echo "::set-env name=TEST::$TEST"
+            echo "{TEST}={cancel}" >> $GITHUB_ENV
           else
-            export TEST="run"
-            echo "::set-env name=TEST::$TEST"
+            echo "{TEST}={run}" >> $GITHUB_ENV
             sudo apt-get install -y libopenblas-dev
             pip install -r requirements.txt
             pip install -r dev_requirements.txt
@@ -53,6 +51,7 @@ jobs:
           fi
       - name: Run tests with pytest
         run: |
+          TEST="${{ env.TEST }}"
           if [ "$TEST" = "run" ]; then
             pytest
           else
