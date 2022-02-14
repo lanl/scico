@@ -54,7 +54,7 @@ The instructions above install a CPU-only version of SCICO. To install a version
 
    ::
 
-      pip install --upgrade "jaxlib==0.1.75+cuda110" -f https://storage.googleapis.com/jax-releases/jax_releases.html
+      pip install --upgrade "jaxlib==0.3.0+cuda11.cudnn805" -f https://storage.googleapis.com/jax-releases/jax_releases.html
 
 
 

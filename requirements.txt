@@ -2,9 +2,9 @@ numpy>=1.12
 scipy>=0.19.1
 imageio
 matplotlib
-jaxlib==0.1.75
-jax==0.2.26
-flax
+jaxlib==0.3.0
+jax==0.3.0
+flax>=0.4.0
 bm3d
 svmbir>=0.2.7
 pyabel>=0.8.5
