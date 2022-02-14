@@ -15,7 +15,7 @@ Version 0.0.2   (unreleased)
 • Renamed "Primal Rsdl" to "Prml Rsdl" in displayed iteration stats.
 • Move some functions from ``util`` and ``math`` modules to new ``array``
   module.
-• Bump pinned `jaxlib` and `jax` versions to 0.1.75 and 0.2.26 respectively.
+• Bump pinned `jaxlib` and `jax` versions to 0.3.0.
 
 
 Version 0.0.1   (2021-11-24)

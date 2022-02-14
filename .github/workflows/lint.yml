@@ -1,6 +1,6 @@
-# Runs isort and black on pushes to main and any pull requests
+# Run isort and black on pushes to main and any pull requests
 
-name: lint
+name: Run isort and black
 
 # Controls when the action will run.
 on:

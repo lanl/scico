@@ -1,6 +1,6 @@
 # Runs optional, "nice to have" formatting checks
 
-name: lint-optional
+name: Optional formatting checks
 
 # Controls when the action will run.
 on:
