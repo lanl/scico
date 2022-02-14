@@ -1,6 +1,6 @@
-# This is a basic workflow to help you get started with Actions
+# Check file types and sizes
 
-name: Check File Types/Sizes
+name: Check file types/sizes
 
 # Controls when the action will run.
 on: [push, pull_request]
