@@ -34,13 +34,22 @@
    :target: https://badge.fury.io/py/scico
    :alt: Current PyPI package version
 
+.. image:: https://raw.githubusercontent.com/jupyter/design/master/logos/Badges/nbviewer_badge.svg
+   :target: https://nbviewer.jupyter.org/github/lanl/scico-data/tree/main/notebooks/index.ipynb
+   :alt: View notebooks at nbviewer
+
+.. image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/lanl/scico-data/binder?labpath=notebooks%2Findex.ipynb
+   :alt: Run notebooks on binder
+
+
 
 Scientific Computational Imaging COde (SCICO)
 =============================================
 
 SCICO is a Python package for solving the inverse problems that arise in scientific imaging applications. Its primary focus is providing methods for solving ill-posed inverse problems by using an appropriate prior model of the reconstruction space. SCICO includes a growing suite of operators, cost functionals, regularizers, and optimization routines that may be combined to solve a wide range of problems, and is designed so that it is easy to add new building blocks. SCICO is built on top of `JAX <https://github.com/google/jax>`_, which provides features such as automatic gradient calculation and GPU acceleration.
 
-`Documentation is available online <https://scico.rtfd.io/>`_. If you use this software for published work, please cite bibtex entry ``pfister-2021-scico`` in ``docs/source/references.bib``.
+`Documentation <https://scico.rtfd.io/>`_ is available online. If you use this software for published work, please cite bibtex entry ``pfister-2021-scico`` in ``docs/source/references.bib``.
 
 
 Installation
@@ -52,7 +61,7 @@ See the `online documentation <https://scico.rtfd.io/en/latest/install.html>`_ f
 Usage Examples
 ==============
 
-Usage examples are available as Python scripts and Jupyter Notebooks. Example scripts are located in ``examples/scripts``. The corresponding Jupyter Notebooks are provided in the `scico-data <https://github.com/lanl/scico-data>`_ submodule and symlinked to ``examples/notebooks``. They are also viewable on `GitHub <https://github.com/lanl/scico-data/tree/main/notebooks>`_ or `nbviewer <https://nbviewer.jupyter.org/github/lanl/scico-data/tree/main/notebooks/index.ipynb>`_.
+Usage examples are available as Python scripts and Jupyter Notebooks. Example scripts are located in ``examples/scripts``. The corresponding Jupyter Notebooks are provided in the `scico-data <https://github.com/lanl/scico-data>`_ submodule and symlinked to ``examples/notebooks``. They are also viewable on `GitHub <https://github.com/lanl/scico-data/tree/main/notebooks>`_ or `nbviewer <https://nbviewer.jupyter.org/github/lanl/scico-data/tree/main/notebooks/index.ipynb>`_, or can be run online by `binder <https://mybinder.org/v2/gh/lanl/scico-data/binder?labpath=notebooks%2Findex.ipynb>`_.
 
 
 License
