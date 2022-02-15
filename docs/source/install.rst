@@ -61,7 +61,7 @@ The instructions above install a CPU-only version of SCICO. To install a version
 Additional Dependencies
 -----------------------
 
-For instructions on installing dependencies related to the examples please see :ref:`example_notebooks`.
+For instructions on installing dependencies related to the examples please see :ref:`example_dependencies`.
 
 
 For Developers
