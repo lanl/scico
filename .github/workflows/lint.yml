@@ -1,4 +1,4 @@
-# Runs isort and black on pushes to main and any pull requests
+# Run isort and black on pushes to main and any pull requests
 
 name: lint
 
