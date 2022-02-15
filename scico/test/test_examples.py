@@ -80,11 +80,12 @@ def test_create_circular_phantom():
     "img_shape",
     (
         (3, 3),
-        (40, 40),
-        (100, 100),
+        (50, 51),
         (3, 3, 3),
     ),
 )
 def test_create_cone(img_shape):
     x_gt = create_cone(img_shape)
     assert x_gt.shape == img_shape
+    # check symmetry
+    assert np.abs(x_gt[(0,) * len(img_shape)] - x_gt[(-1,) * len(img_shape)]) < 1e-6
