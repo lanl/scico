@@ -1,6 +1,6 @@
 # Runs optional, "nice to have" formatting checks
 
-name: Optional formatting checks
+name: optional lint
 
 # Controls when the action will run.
 on:
@@ -25,7 +25,7 @@ jobs:
         with:
           python-version: "3.8"
 
-      - name: Install Pylint
+      - name: Install pylint
         run: |
           pip install pylint
 

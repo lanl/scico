@@ -1,6 +1,6 @@
 # Install scico requirements and run pytest with latest jax version
 
-name: Unit tests with latest jax
+name: unit tests: latest jax
 
 # Controls when the workflow will run
 on:

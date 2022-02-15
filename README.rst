@@ -20,7 +20,7 @@
 
 .. image:: https://github.com/lanl/scico/actions/workflows/pytest.yml/badge.svg
    :target: https://github.com/lanl/scico/actions/workflows/pytest.yml
-   :alt: CI status
+   :alt: Test status
 
 .. image:: https://codecov.io/gh/lanl/scico/branch/main/graph/badge.svg?token=wQimmjnzFf
    :target: https://codecov.io/gh/lanl/scico
