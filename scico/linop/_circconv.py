@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021 by SCICO Developers
+# Copyright (C) 2021-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -21,14 +21,6 @@ from scico._generic_operators import Operator
 from scico.typing import DType, JaxArray, Shape
 
 from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
-
-__author__ = """\n""".join(
-    [
-        "Brendt Wohlberg <brendt@ieee.org>",
-        "Luke Pfister <luke.pfister@gmail.com>",
-        "Michael McCann <mccann@lanl.gov>",
-    ]
-)
 
 
 class CircularConvolve(LinearOperator):
@@ -102,9 +94,12 @@ class CircularConvolve(LinearOperator):
                involved in the convolution. Defaults to the number of
                dimensions in the input.
             input_dtype: `dtype` for input argument. Defaults to
-               `float32`.
-            h_is_dft: Flag indicating whether ``h`` is in the DFT domain.
-            jit:  If `True`, jit the evaluation, adjoint, and gram
+               ``float32``.
+            h_is_dft: Flag indicating whether `h` is in the DFT domain.
+            h_center: Array of length `ndims` specifying the center of
+               the filter. Defaults to the upper left corner, i.e.,
+               `h_center = [0, 0, ..., 0]`, may be noninteger.
+            jit:  If ``True``, jit the evaluation, adjoint, and gram
                functions of the LinearOperator.
         """
 

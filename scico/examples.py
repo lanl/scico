@@ -12,6 +12,7 @@ import glob
 import os
 import tempfile
 import zipfile
+from typing import List, Optional
 
 import numpy as np
 
@@ -19,7 +20,7 @@ import imageio
 
 import scico.numpy as snp
 from scico import util
-from scico.typing import JaxArray
+from scico.typing import Array, JaxArray, Shape
 from scipy.ndimage import zoom
 
 
@@ -37,7 +38,7 @@ def rgb2gray(rgb: JaxArray) -> JaxArray:
     return snp.sum(w * rgb, axis=2)
 
 
-def volume_read(path: str, ext: str = "tif") -> JaxArray:
+def volume_read(path: str, ext: str = "tif") -> Array:
     """Read a 3D volume from a set of files in the specified directory.
 
     All files with extension `ext` (i.e. matching glob `*.ext`)
@@ -116,7 +117,7 @@ def get_epfl_deconv_data(channel: int, path: str, verbose: bool = False):  # pra
     np.savez(npz_file, y=y, psf=psf)
 
 
-def epfl_deconv_data(channel: int, verbose: bool = False, cache_path: str = None) -> JaxArray:
+def epfl_deconv_data(channel: int, verbose: bool = False, cache_path: str = None) -> Array:
     """Get deconvolution problem data from EPFL Biomedical Imaging Group.
 
     If the data has previously been downloaded, it will be retrieved from
@@ -154,7 +155,7 @@ def epfl_deconv_data(channel: int, verbose: bool = False, cache_path: str = None
     return y, psf
 
 
-def downsample_volume(vol: JaxArray, rate: int) -> JaxArray:
+def downsample_volume(vol: Array, rate: int) -> Array:
     """Downsample a 3D array.
 
     Downsample a 3D array. If the volume dimensions can be divided by
@@ -183,7 +184,7 @@ def downsample_volume(vol: JaxArray, rate: int) -> JaxArray:
     return vol
 
 
-def tile_volume_slices(x: JaxArray, sep_width: int = 10) -> JaxArray:
+def tile_volume_slices(x: Array, sep_width: int = 10) -> Array:
     """Make an image with tiled slices from an input volume.
 
     Make an image with tiled `xy`, `xz`, and `yz` slices from an input
@@ -239,3 +240,54 @@ def tile_volume_slices(x: JaxArray, sep_width: int = 10) -> JaxArray:
     out = snp.where(snp.isnan(out), snp.nanmax(out), out)
 
     return out
+
+
+def create_cone(img_shape: Shape, center: Optional[List[float]] = None) -> Array:
+    """Compute a 2D map of the distance from a center pixel.
+
+    Args:
+        img_shape: Shape of the image for which the distance map is being
+            computed.
+        center: Tuple of center pixel coordinates. If ``None``, this is
+            set to the center of the image.
+
+    Returns:
+        An image containing a 2D map of the distances.
+    """
+
+    if center is None:
+        center = [(img_dim - 1) / 2 for img_dim in img_shape]
+
+    coords = [snp.arange(0, img_dim) for img_dim in img_shape]
+    coord_mesh = snp.meshgrid(*coords, sparse=True, indexing="ij")
+
+    dist_map = sum([(coord_mesh[i] - center[i]) ** 2 for i in range(len(coord_mesh))])
+    dist_map = snp.sqrt(dist_map)
+
+    return dist_map
+
+
+def create_circular_phantom(
+    img_shape: Shape, radius_list: list, val_list: list, center: Optional[list] = None
+) -> Array:
+    """Construct a circular phantom with given radii and intensities.
+
+    Args:
+        img_shape: Shape of the phantom to be created.
+        radius_list: List of radii of the rings in the phantom.
+        val_list: List of intensity values of the rings in the phantom.
+        center: Tuple of center pixel coordinates. If ``None``, this is
+           set to the center of the image.
+
+    Returns:
+        The computed circular phantom.
+    """
+
+    dist_map = create_cone(img_shape, center)
+
+    img = snp.zeros(img_shape)
+    for r, val in zip(radius_list, val_list):
+        # img[dist_map < r] = val
+        img = img.at[dist_map < r].set(val)
+
+    return img

@@ -9,6 +9,7 @@ Organized by Application
 Computed Tomography
 ^^^^^^^^^^^^^^^^^^^
 
+   - ct_abel_tv_admm.py
    - ct_astra_pcg.py
    - ct_astra_tv_admm.py
    - ct_astra_weighted_tv_admm.py
@@ -45,6 +46,7 @@ Miscellaneous
    - denoise_tv_iso_admm.py
    - denoise_tv_iso_pgm.py
    - denoise_tv_iso_multi.py
+   - superres_ppp_dncnn_admm.py
    - video_rpca_admm.py
 
 
@@ -61,11 +63,13 @@ Plug and Play Priors
    - deconv_ppp_bm3d_pgm.py
    - deconv_ppp_dncnn_admm.py
    - demosaic_ppp_bm3d_admm.py
+   - superres_ppp_dncnn_admm.py
 
 
 Total Variation
 ^^^^^^^^^^^^^^^
 
+   - ct_abel_tv_admm.py
    - ct_astra_tv_admm.py
    - ct_astra_weighted_tv_admm.py
    - ct_svmbir_tv_multi.py
@@ -95,6 +99,7 @@ Organized by Optimization Algorithm
 ADMM
 ^^^^
 
+   - ct_abel_tv_admm.py
    - ct_astra_tv_admm.py
    - ct_astra_weighted_tv_admm.py
    - ct_svmbir_ppp_bm3d_admm_cg.py
@@ -111,6 +116,7 @@ ADMM
    - denoise_tv_iso_admm.py
    - denoise_tv_iso_multi.py
    - sparsecode_admm.py
+   - superres_ppp_dncnn_admm.py
    - video_rpca_admm.py
 
 

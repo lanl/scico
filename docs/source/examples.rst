@@ -22,6 +22,7 @@ Computed Tomography
 .. toctree::
    :maxdepth: 1
 
+   examples/ct_abel_tv_admm
    examples/ct_astra_pcg
    examples/ct_astra_tv_admm
    examples/ct_astra_weighted_tv_admm
@@ -67,6 +68,7 @@ Miscellaneous
    examples/denoise_tv_iso_admm
    examples/denoise_tv_iso_pgm
    examples/denoise_tv_iso_multi
+   examples/superres_ppp_dncnn_admm
    examples/video_rpca_admm
 
 
@@ -89,6 +91,7 @@ Plug and Play Priors
    examples/deconv_ppp_bm3d_pgm
    examples/deconv_ppp_dncnn_admm
    examples/demosaic_ppp_bm3d_admm
+   examples/superres_ppp_dncnn_admm
 
 
 Total Variation
@@ -97,6 +100,7 @@ Total Variation
 .. toctree::
    :maxdepth: 1
 
+   examples/ct_abel_tv_admm
    examples/ct_astra_tv_admm
    examples/ct_astra_weighted_tv_admm
    examples/ct_svmbir_tv_multi
@@ -135,6 +139,7 @@ ADMM
 .. toctree::
    :maxdepth: 1
 
+   examples/ct_abel_tv_admm
    examples/ct_astra_tv_admm
    examples/ct_astra_weighted_tv_admm
    examples/ct_svmbir_ppp_bm3d_admm_cg
@@ -151,6 +156,7 @@ ADMM
    examples/denoise_tv_iso_admm
    examples/denoise_tv_iso_multi
    examples/sparsecode_admm
+   examples/superres_ppp_dncnn_admm
    examples/video_rpca_admm
 
 

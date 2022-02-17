@@ -12,7 +12,7 @@ import jax
 import pytest
 
 import scico.numpy as snp
-from scico import functional, linop, loss
+from scico import denoiser, functional, linop, loss
 from scico.blockarray import BlockArray
 from scico.random import randn
 from scico.solver import minimize
@@ -344,7 +344,7 @@ class TestLoss:
     def test_squared_l2(self):
         L = loss.SquaredL2Loss(y=self.y, A=self.Ao)
         assert L.has_eval == True
-        assert L.has_prox == False  # not diagonal
+        assert L.has_prox == True
 
         # test eval
         np.testing.assert_allclose(L(self.v), 0.5 * ((self.Ao @ self.v - self.y) ** 2).sum())
@@ -375,7 +375,7 @@ class TestLoss:
     def test_weighted_squared_l2(self):
         L = loss.WeightedSquaredL2Loss(y=self.y, A=self.Ao, W=self.W)
         assert L.has_eval == True
-        assert L.has_prox == False  # not diagonal
+        assert L.has_prox == True
 
         # test eval
         np.testing.assert_allclose(
@@ -426,83 +426,36 @@ class TestLoss:
 class TestBM3D:
     def setup(self):
         key = None
-        N = 32
-        self.x, key = randn((N, N), key=key, dtype=np.float32)
-        self.x_rgb, key = randn((N, N, 3), key=key, dtype=np.float32)
-
-        self.f = functional.BM3D()
+        self.x_gry, key = randn((32, 33), key=key, dtype=np.float32)
+        self.x_rgb, key = randn((33, 34, 3), key=key, dtype=np.float32)
+        self.f_gry = functional.BM3D()
         self.f_rgb = functional.BM3D(is_rgb=True)
 
-    def test_prox(self):
-        no_jit = self.f.prox(self.x, 1.0)
-        jitted = jax.jit(self.f.prox)(self.x, 1.0)
-        np.testing.assert_allclose(no_jit, jitted, rtol=1e-3)
-        assert no_jit.dtype == np.float32
-        assert jitted.dtype == np.float32
+    def test_gry(self):
+        y0 = self.f_gry.prox(self.x_gry, 1.0)
+        y1 = denoiser.bm3d(self.x_gry, 1.0)
+        np.testing.assert_allclose(y0, y1, rtol=1e-5)
 
-    def test_prox_rgb(self):
-        no_jit = self.f_rgb.prox(self.x_rgb, 1.0)
-        jitted = jax.jit(self.f_rgb.prox)(self.x_rgb, 1.0)
-        np.testing.assert_allclose(no_jit, jitted, rtol=1e-3)
-        assert no_jit.dtype == np.float32
-        assert jitted.dtype == np.float32
-
-    def test_prox_bad_inputs(self):
-
-        x, key = randn((32,), key=None, dtype=np.float32)
-        with pytest.raises(ValueError):
-            self.f.prox(x, 1.0)
-
-        x, key = randn((12, 12, 4, 3), key=None, dtype=np.float32)
-        with pytest.raises(ValueError):
-            self.f.prox(x, 1.0)
-
-        x_b, key = randn(((2, 3), (3, 4, 5)), key=None, dtype=np.float32)
-        with pytest.raises(ValueError):
-            self.f.prox(x, 1.0)
-
-        z, key = randn((32, 32), key=None, dtype=np.complex64)
-        with pytest.raises(TypeError):
-            self.f.prox(z, 1.0)
+    def test_rgb(self):
+        y0 = self.f_rgb.prox(self.x_rgb, 1.0)
+        y1 = denoiser.bm3d(self.x_rgb, 1.0, is_rgb=True)
+        np.testing.assert_allclose(y0, y1, rtol=1e-5)
 
 
 class TestDnCNN:
     def setup(self):
         key = None
-        N = 32
-        self.x, key = randn((N, N), key=key, dtype=np.float32)
-        self.x_mltchn, key = randn((N, N, 5), key=key, dtype=np.float32)
-
+        self.x_sngchn, key = randn((32, 33), key=key, dtype=np.float32)
+        self.x_mltchn, key = randn((33, 34, 5), key=key, dtype=np.float32)
+        self.dncnn = denoiser.DnCNN()
         self.f = functional.DnCNN()
 
-    def test_prox(self):
-        no_jit = self.f.prox(self.x, 1.0)
-        jitted = jax.jit(self.f.prox)(self.x, 1.0)
-        np.testing.assert_allclose(no_jit, jitted, rtol=1e-3)
-        assert no_jit.dtype == np.float32
-        assert jitted.dtype == np.float32
+    def test_sngchn(self):
+        y0 = self.f.prox(self.x_sngchn, 1.0)
+        y1 = self.dncnn(self.x_sngchn)
+        np.testing.assert_allclose(y0, y1, rtol=1e-5)
 
-    def test_prox_mltchn(self):
-        no_jit = self.f.prox(self.x_mltchn, 1.0)
-        jitted = jax.jit(self.f.prox)(self.x_mltchn, 1.0)
-        np.testing.assert_allclose(no_jit, jitted, rtol=1e-3)
-        assert no_jit.dtype == np.float32
-        assert jitted.dtype == np.float32
-
-    def test_prox_bad_inputs(self):
-
-        x, key = randn((32,), key=None, dtype=np.float32)
-        with pytest.raises(ValueError):
-            self.f.prox(x, 1.0)
-
-        x, key = randn((12, 12, 4, 3), key=None, dtype=np.float32)
-        with pytest.raises(ValueError):
-            self.f.prox(x, 1.0)
-
-        x_b, key = randn(((2, 3), (3, 4, 5)), key=None, dtype=np.float32)
-        with pytest.raises(ValueError):
-            self.f.prox(x, 1.0)
-
-        z, key = randn((32, 32), key=None, dtype=np.complex64)
-        with pytest.raises(TypeError):
-            self.f.prox(z, 1.0)
+    def test_mltchn(self):
+        y0 = self.f.prox(self.x_mltchn, 1.0)
+        y1 = self.dncnn(self.x_mltchn)
+        np.testing.assert_allclose(y0, y1, rtol=1e-5)
