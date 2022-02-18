@@ -35,7 +35,7 @@ class LinearOperatorStack(LinearOperator):
         r"""
         Args:
             ops: Operators to stack.
-            collapse: If `True` and the output would be a `BlockArray`
+            collapse: If ``True`` and the output would be a `BlockArray`
                 with shape ((m, n, ...), (m, n, ...), ...), the output is
                 instead a `DeviceArray` with shape (S, m, n, ...) where S
                 is the length of `ops`. Defaults to True.
@@ -87,7 +87,7 @@ class LinearOperatorStack(LinearOperator):
             return snp.stack([op @ x for op in self.ops])
         return BlockArray.array([op @ x for op in self.ops])
 
-    def _adj(self, y: Union[JaxArray, BlockArray]) -> JaxArray:
+    def _adj(self, y: Union[JaxArray, BlockArray]) -> JaxArray:  # type: ignore
         return sum([op.adj(y_block) for y_block, op in zip(y, self.ops)])
 
     def scale_ops(self, scalars: JaxArray):

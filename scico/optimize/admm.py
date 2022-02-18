@@ -12,7 +12,7 @@
 from __future__ import annotations
 
 from functools import reduce
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, List, Optional, Tuple, Union
 
 import jax
 from jax.scipy.sparse.linalg import cg as jax_cg
@@ -585,7 +585,9 @@ class ADMM:
             out += norm(Ci.adj(zi - ziold)) ** 2
         return snp.sqrt(out)
 
-    def z_init(self, x0: Union[JaxArray, BlockArray]):
+    def z_init(
+        self, x0: Union[JaxArray, BlockArray]
+    ) -> Tuple[List[Union[JaxArray, BlockArray]], List[Union[JaxArray, BlockArray]]]:
         r"""Initialize auxiliary variables :math:`\mb{z}_i`.
 
         Initialized to
@@ -603,7 +605,7 @@ class ADMM:
         z_list_old = z_list.copy()
         return z_list, z_list_old
 
-    def u_init(self, x0: Union[JaxArray, BlockArray]):
+    def u_init(self, x0: Union[JaxArray, BlockArray]) -> List[Union[JaxArray, BlockArray]]:
         r"""Initialize scaled Lagrange multipliers :math:`\mb{u}_i`.
 
         Initialized to

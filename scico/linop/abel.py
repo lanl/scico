@@ -56,7 +56,7 @@ class AbelProjector(LinearOperator):
             self.output_dtype
         )
 
-    def _adj(self, x: JaxArray) -> JaxArray:
+    def _adj(self, x: JaxArray) -> JaxArray:  # type: ignore
         return _pyabel_transform(x, direction="transpose", proj_mat_quad=self.proj_mat_quad).astype(
             self.input_dtype
         )

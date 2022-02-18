@@ -18,6 +18,7 @@ from jax.dtypes import result_type
 
 import scico.numpy as snp
 from scico._generic_operators import Operator
+from scico.array import is_nested
 from scico.typing import Array, DType, JaxArray, Shape
 
 from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
@@ -172,7 +173,7 @@ class CircularConvolve(LinearOperator):
             hx = hx.real
         return hx
 
-    def _adj(self, x: JaxArray) -> JaxArray:
+    def _adj(self, x: JaxArray) -> JaxArray:  # type: ignore
         x_dft = snp.fft.fftn(x, axes=self.ifft_axes)
         H_adj_x = snp.fft.ifftn(
             snp.conj(self.h_dft) * x_dft,
@@ -251,13 +252,16 @@ class CircularConvolve(LinearOperator):
             jit: If ``True``, jit the resulting `CircularConvolve`.
         """
 
+        if is_nested(H.input_shape):
+            raise ValueError("Operator H may not take BlockArray input.")
+
         if ndims is None:
             ndims = len(H.input_shape)
         else:
             ndims = ndims
 
         if center is None:
-            center = tuple(d // 2 for d in H.input_shape[-ndims:])
+            center = tuple(d // 2 for d in H.input_shape[-ndims:])  # type: ignore
 
         # compute impulse response
         d = snp.zeros(H.input_shape, H.input_dtype)
@@ -267,7 +271,7 @@ class CircularConvolve(LinearOperator):
         # build CircularConvolve
         return CircularConvolve(
             Hd,
-            H.input_shape,
+            H.input_shape,  # type: ignore
             ndims=ndims,
             input_dtype=H.input_dtype,
             h_center=snp.array(center),

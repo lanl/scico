@@ -156,7 +156,7 @@ class LinearizedADMM:
         if itstat_options:
             default_itstat_options.update(itstat_options)
         self.itstat_insert_func: Callable = default_itstat_options.pop("itstat_func", None)  # type: ignore
-        self.itstat_object = IterationStats(**default_itstat_options)
+        self.itstat_object = IterationStats(**default_itstat_options)  # type: ignore
 
         if x0 is None:
             input_shape = C.input_shape
@@ -237,7 +237,9 @@ class LinearizedADMM:
         """
         return norm(self.C.adj(self.z - self.z_old))
 
-    def z_init(self, x0: Union[JaxArray, BlockArray]):
+    def z_init(
+        self, x0: Union[JaxArray, BlockArray]
+    ) -> Tuple[Union[JaxArray, BlockArray], Union[JaxArray, BlockArray]]:
         r"""Initialize auxiliary variable :math:`\mb{z}`.
 
         Initialized to
@@ -254,7 +256,7 @@ class LinearizedADMM:
         z_old = z
         return z, z_old
 
-    def u_init(self, x0: Union[JaxArray, BlockArray]):
+    def u_init(self, x0: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
         r"""Initialize scaled Lagrange multiplier :math:`\mb{u}`.
 
         Initialized to

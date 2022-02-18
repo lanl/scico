@@ -162,7 +162,7 @@ class PDHG:
         if itstat_options:
             default_itstat_options.update(itstat_options)
         self.itstat_insert_func: Callable = default_itstat_options.pop("itstat_func", None)  # type: ignore
-        self.itstat_object = IterationStats(**default_itstat_options)
+        self.itstat_object = IterationStats(**default_itstat_options)  # type: ignore
 
         if x0 is None:
             input_shape = C.input_shape
@@ -213,7 +213,7 @@ class PDHG:
             Current value of primal residual.
         """
 
-        return norm(self.x - self.x_old) / self.tau
+        return norm(self.x - self.x_old) / self.tau  # type: ignore
 
     def norm_dual_residual(self) -> float:
         r"""Compute the :math:`\ell_2` norm of the dual residual.
