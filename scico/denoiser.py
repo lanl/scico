@@ -15,11 +15,12 @@ from jax.experimental import host_callback as hcb
 import bm3d as tunibm3d
 
 import scico.numpy as snp
-from scico._flax import DnCNNNet, load_weights
+#from scico._flax import DnCNNNet, load_weights
+from scico.flax import DnCNNNet, load_weights, FlaxMap
 from scico.data import _flax_data_path
 from scico.typing import JaxArray
 
-from ._flax import FlaxMap
+#from ._flax import FlaxMap
 
 
 def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):

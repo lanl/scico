@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-# Copyright (C) 2020-2022 by SCICO Developers
-# All rights reserved. BSD 3-clause License.
-# This file is part of the SCICO package. Details of the copyright and
-# user license can be found in the 'LICENSE' file distributed with the
-# package.
-
 """Convolutional neural network models implemented in Flax."""
 
 from functools import partial
@@ -14,13 +7,13 @@ import jax.numpy as jnp
 
 from flax import serialization
 from flax.core import Scope  # noqa
-from flax.linen.module import Module, _Sentinel  # noqa
+from flax.linen.module import Module, compact, _Sentinel
 
 from scico.blockarray import BlockArray
 from scico.typing import Array
 
-# The imports of Scope and _Sentinel (above) and the definition of Module
-# (below) are required to silence "cannot resolve forward reference"
+# The imports of Scope and _Sentinel (above)
+# are required to silence "cannot resolve forward reference"
 # warnings when building sphinx api docs.
 
 

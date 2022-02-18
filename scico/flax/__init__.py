@@ -5,16 +5,25 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Neural network models implemented in Flax and functionality for using inside scico."""
+"""Neural network models implemented in Flax and utility functions."""
 
 import sys
 
 # isort: off
 from ._flax import FlaxMap, load_weights
+from .blocks_base import ConvBNBlock, ConvBlock, ConvBNPoolBlock, ConvBNUpsampleBlock, upscale_nn
+from .models import DnCNNNet, ResNet
 
 __all__ = [
     "FlaxMap",
     "load_weights",
+    "ConvBNBlock",
+    "ConvBlock",
+    "ConvBNPoolBlock",
+    "ConvBNUpsampleBlock",
+    "upscale_nn",
+    "DnCNNNet",
+    "ResNet",
 ]
 
 # Imported items in __all__ appear to originate in top-level flax module
