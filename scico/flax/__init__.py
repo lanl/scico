@@ -11,7 +11,14 @@ import sys
 
 # isort: off
 from ._flax import FlaxMap, load_weights
-from .blocks_base import ConvBNBlock, ConvBlock, ConvBNPoolBlock, ConvBNUpsampleBlock, ConvBNMultiBlock, upscale_nn
+from .blocks import (
+    ConvBNBlock,
+    ConvBlock,
+    ConvBNPoolBlock,
+    ConvBNUpsampleBlock,
+    ConvBNMultiBlock,
+    upscale_nn,
+)
 from .models import DnCNNNet, ResNet, UNet
 
 __all__ = [

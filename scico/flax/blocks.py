@@ -234,7 +234,6 @@ class ConvBNMultiBlock(Module):
         return x
 
 
-
 def upscale_nn(x: Array, scale: int = 2) -> Array:
     """Nearest neighbor upscale for image batches of shape (N, H, W, C).
 
