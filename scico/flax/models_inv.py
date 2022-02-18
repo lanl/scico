@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Flax implementation of different convolutional nets.
+"""Flax implementation of different imaging inversion models.
 """
 
 from functools import partial
@@ -13,9 +13,8 @@ from jax import lax
 import jax.numpy as jnp
 
 from scico.typing import Array
-
-from scico.linop.radon_astra import ParallelBeamProjector
 from scico.flax import ResNet
+from scico.linop.radon_astra import ParallelBeamProjector
 
 # The imports of Scope and _Sentinel (above)
 # are required to silence "cannot resolve forward reference"
@@ -39,20 +38,21 @@ def construct_projector(N, n_projection):
 
 class MoDLNet(Module):
 
-    r"""Net implementing a Model-Based Deep Learning Model and used for CT reconstruction.
+    r"""Net implementing a Model-Based Deep Learning Model for inversion.
 
     Flax implementation of the model-based deep learning (MoDL)
-    architecture described in and applied to CT.
+    architecture described in cite.
 
     Args:
+        operator : object for computing forward and adjoint mappings.
         depth : depth of MoDL net. Default = 1.
         channels : number of channels of input tensor.
         num_filters : number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
         block_depth : depth of blocks.
         lmbda : initial value of lmbda in initial layer. Default: 0.5.
         dtype : type of signal to process. Default: jnp.float32.
-        operator : object for computing forward and adjoint mappings. Default :class:`ParallelBeamProjector`.
     """
+    operator: Callable[[Array], Array]
     depth: int
     channels: int
     num_filters: int
@@ -61,18 +61,17 @@ class MoDLNet(Module):
     strides: Tuple[int, int] = (1, 1)
     alpha_ini: float = 0.5
     dtype: Any = jnp.float32
-    operator: Callable = ParallelBeamProjector
 
     @compact
     def __call__(self, y: Array, train: bool = True) -> Array:
-        """Apply MoDL net for CT reconstriction.
+        """Apply MoDL net for inversion.
 
         Args:
-            y: The nd-array with CT measurements.
+            y: The nd-array with signal to invert.
             train: flag to differentiate between training and testing stages.
 
         Returns:
-            The reconstructed signal.
+            The inverted signal.
         """
 
         def alpha_init_wrap(rng, shape, dtype=self.dtype):

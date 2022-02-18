@@ -2,7 +2,7 @@ import pytest
 
 from scico import flax as sflax
 from scico import random
-from scico.flax.models_ct import MoDLNet, construct_projector
+from scico.flax.models_inv import MoDLNet, construct_projector
 
 
 class TestSet:
