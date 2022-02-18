@@ -11,8 +11,8 @@ import sys
 
 # isort: off
 from ._flax import FlaxMap, load_weights
-from .blocks_base import ConvBNBlock, ConvBlock, ConvBNPoolBlock, ConvBNUpsampleBlock, upscale_nn
-from .models import DnCNNNet, ResNet
+from .blocks_base import ConvBNBlock, ConvBlock, ConvBNPoolBlock, ConvBNUpsampleBlock, ConvBNMultiBlock, upscale_nn
+from .models import DnCNNNet, ResNet, UNet
 
 __all__ = [
     "FlaxMap",
@@ -21,9 +21,11 @@ __all__ = [
     "ConvBlock",
     "ConvBNPoolBlock",
     "ConvBNUpsampleBlock",
+    "ConvBNMultiBlock",
     "upscale_nn",
     "DnCNNNet",
     "ResNet",
+    "UNet",
 ]
 
 # Imported items in __all__ appear to originate in top-level flax module

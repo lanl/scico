@@ -7,7 +7,7 @@ from functools import partial
 from typing import Any, Callable, Tuple
 
 from flax.linen.module import Module, compact, _Sentinel
-from flax.linen import Conv, BatchNorm, relu
+from flax.linen import Conv, BatchNorm, relu, max_pool
 from flax.linen.initializers import kaiming_normal, xavier_normal
 from flax.core import Scope  # noqa
 
@@ -15,7 +15,7 @@ import jax.numpy as jnp
 
 from scico.typing import Array
 
-from scico.flax import ConvBNBlock
+from scico.flax import ConvBNBlock, ConvBNMultiBlock, ConvBNPoolBlock, ConvBNUpsampleBlock, upscale_nn
 
 # The imports of Scope and _Sentinel (above)
 # are required to silence "cannot resolve forward reference"
@@ -173,3 +173,128 @@ class ResNet(Module):
         x = norm()(x)
 
         return x + residual
+
+
+class UNet(Module):
+    """Flax implementation of UNet model.
+
+    Args:
+        depth : depth of U-net.
+        channels : number of channels of input tensor.
+        num_filters : number of filters in the convolutional layer of the block. Corresponds to the number of channels in the network processing.
+        kernel_size : size of the convolution filters. Default: 3x3.
+        strides : convolution strides. Default: 1x1.
+        block_depth : number of processing layers per block. Default: 2.
+        window_shape : window for reduction for pooling and downsampling. Default: 2x2.
+        upsampling : factor for expanding. Default: 2.
+        dtype : class of data to handle. Default: `jnp.float32`.
+    """
+
+    depth: int
+    channels: int
+    num_filters: int = 64
+    kernel_size: Tuple[int, int] = (3, 3)
+    strides: Tuple[int, int] = (1, 1)
+    block_depth: int = 2
+    window_shape: Tuple[int, int] = (2, 2)
+    upsampling: int = 2
+    dtype: Any = jnp.float32
+
+    @compact
+    def __call__(self, x: Array, train: bool = True) -> Array:
+        """Apply UNet.
+
+        Args:
+            x: The nd-array to be transformed.
+            train: flag to differentiate between training and testing stages.
+
+        Returns:
+            The UNet result.
+        """
+        # Definition using arguments common to all convolutions.
+        conv = partial(
+            Conv, use_bias=False, padding="CIRCULAR", dtype=self.dtype, kernel_init=kaiming_normal()
+        )
+
+        # Definition using arguments common to all batch normalizations.
+        norm = partial(
+            BatchNorm,
+            use_running_average=not train,
+            momentum=0.999,
+            epsilon=1e-6,
+            dtype=self.dtype,
+        )
+
+        act = relu
+
+        # Definition of upscaling function.
+        upfn = partial(upscale_nn, scale=self.upsampling)
+
+        # Definition and application of UNet.
+        x = ConvBNMultiBlock(
+                self.block_depth,
+                self.num_filters,
+                conv=conv,
+                norm=norm,
+                act=act,
+                kernel_size=self.kernel_size,
+                strides=self.strides,
+        )(x)
+        residual = []
+        # going down
+        j: int = 1
+        for _ in range(self.depth - 1):
+            residual.append(x)  # for skip connections
+            x = ConvBNPoolBlock(
+                2 * j * self.num_filters,
+                conv=conv,
+                norm=norm,
+                act=act,
+                pool=max_pool,
+                kernel_size=self.kernel_size,
+                strides=self.strides,
+                window_shape=self.window_shape,
+            )(x)
+            x = ConvBNMultiBlock(
+                self.block_depth,
+                2 * j * self.num_filters,
+                conv=conv,
+                norm=norm,
+                act=act,
+                kernel_size=self.kernel_size,
+                strides=self.strides,
+            )(x)
+            j = 2 * j
+
+        # going up
+        j = j // 2  # undo last
+        res_ind = -1
+        for _ in range(self.depth - 1):
+            x = ConvBNUpsampleBlock(
+                j * self.num_filters,
+                conv=conv,
+                norm=norm,
+                act=act,
+                upfn=upfn,
+                kernel_size=self.kernel_size,
+                strides=self.strides,
+            )(x)
+            # skip connection
+            x = jnp.concatenate((residual[res_ind], x), axis=3)
+            x = ConvBNMultiBlock(
+                self.block_depth,
+                j * self.num_filters,
+                conv=conv,
+                norm=norm,
+                act=act,
+                kernel_size=self.kernel_size,
+                strides=self.strides,
+            )(x)
+            res_ind -= 1
+            j = j // 2
+
+        # final conv1x1
+        ksz_out = (1, 1)
+        x = conv(self.channels, ksz_out, strides=self.strides)(x)
+
+        return x

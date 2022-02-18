@@ -188,6 +188,53 @@ class ConvBNUpsampleBlock(Module):
         return self.upfn(y)
 
 
+class ConvBNMultiBlock(Module):
+    """Block constructed from sucessive applications of :class:`ConvBNBlock`.
+    Args:
+        num_blocks : number of convolutional batch normalization blocks to apply. Each block has its own parameters for convolution and batch normalization.
+        num_filters : number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
+        conv : Flax module implementing the convolution layer to apply.
+        norm : Flax module implementing the batch normalization layer to apply.
+        act : Flax function defining the activation operation to apply.
+        kernel_size : a shape tuple defining the size of the convolution filters. Default: (3, 3).
+        strides : a shape tuple defining the size of strides in convolution. Default: (1, 1).
+    """
+
+    num_blocks: int
+    num_filters: int
+    conv: ModuleDef
+    norm: ModuleDef
+    act: Callable[[Array], Array]
+    kernel_size: Tuple[int, int] = (3, 3)
+    strides: Tuple[int, int] = (1, 1)
+
+    @compact
+    def __call__(
+        self,
+        x: Array,
+    ) -> Array:
+        """Apply sucessive blocks, each one composed of convolution normalization and activation.
+
+        Args:
+            x: The nd-array to be transformed.
+
+        Returns:
+            The transformed input.
+        """
+        for _ in range(self.num_blocks):
+            x = ConvBNBlock(
+                self.num_filters,
+                conv=self.conv,
+                norm=self.norm,
+                act=self.act,
+                kernel_size=self.kernel_size,
+                strides=self.strides,
+            )(x)
+
+        return x
+
+
+
 def upscale_nn(x: Array, scale: int = 2) -> Array:
     """Nearest neighbor upscale for image batches of shape (N, H, W, C).
 

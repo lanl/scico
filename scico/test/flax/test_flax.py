@@ -110,6 +110,22 @@ class TestSet:
         assert flxm.kernel_size == ksz  # size of kernel
         assert flxm.strides == strd  # stride of convolution
 
+    def test_convmnblock_default(self):
+        nblck = 2 # number of blocks
+        nflt = 16  # number of filters
+        conv = partial(Conv, dtype=np.float32)
+        norm = partial(BatchNorm, dtype=np.float32)
+        flxm = sflax.ConvBNMultiBlock(
+            num_blocks=nblck,
+            num_filters=nflt,
+            conv=conv,
+            norm=norm,
+            act=relu,
+        )
+        assert flxm.kernel_size == (3, 3)  # size of kernel
+        assert flxm.strides == (1, 1)  # stride of convolution
+    
+
     def test_resnet_default(self):
         depth = 3  # depth of model
         chn = 1  # number of channels
@@ -125,6 +141,22 @@ class TestSet:
         # Test for the construction / forward pass.
         rnx = resnet.apply(variables, x, train=False, mutable=False)
         assert x.dtype == rnx.dtype
+
+    def test_unet_default(self):
+        depth = 2  # depth of model
+        chn = 1  # number of channels
+        num_filters = 16  # number of filters per layer
+        N = 128  # image size
+        x, key = random.randn((10, N, N, chn), seed=1234)
+        unet = sflax.UNet(
+            depth=depth,
+            channels=chn,
+            num_filters=num_filters,
+        )
+        variables = unet.init(key, x)
+        # Test for the construction / forward pass.
+        unx = unet.apply(variables, x, train=False, mutable=False)
+        assert x.dtype == unx.dtype
 
 
 class DnCNNNetTest:
