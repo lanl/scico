@@ -190,6 +190,7 @@ class ConvBNUpsampleBlock(Module):
 
 class ConvBNMultiBlock(Module):
     """Block constructed from sucessive applications of :class:`ConvBNBlock`.
+
     Args:
         num_blocks : number of convolutional batch normalization blocks to apply. Each block has its own parameters for convolution and batch normalization.
         num_filters : number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
