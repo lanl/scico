@@ -1,4 +1,4 @@
-.. _example_dependencies:
+.. _example_depend:
 
 Example Dependencies
 --------------------
