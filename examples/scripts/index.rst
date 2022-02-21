@@ -43,6 +43,7 @@ Miscellaneous
 ^^^^^^^^^^^^^
 
    - demosaic_ppp_bm3d_admm.py
+   - denoise_l1tv_iso_admm.py
    - denoise_tv_iso_admm.py
    - denoise_tv_iso_pgm.py
    - denoise_tv_iso_multi.py
@@ -78,6 +79,7 @@ Total Variation
    - deconv_microscopy_allchn_tv_admm.py
    - deconv_tv_admm.py
    - deconv_tv_admm_tune.py
+   - denoise_l1tv_iso_admm.py
    - denoise_tv_iso_admm.py
    - denoise_tv_iso_pgm.py
    - denoise_tv_iso_multi.py
@@ -113,6 +115,7 @@ ADMM
    - deconv_tv_admm.py
    - deconv_tv_admm_tune.py
    - demosaic_ppp_bm3d_admm.py
+   - denoise_l1tv_iso_admm.py
    - denoise_tv_iso_admm.py
    - denoise_tv_iso_multi.py
    - sparsecode_admm.py
