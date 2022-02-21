@@ -19,7 +19,7 @@ import numpy as np
 import imageio
 
 import scico.numpy as snp
-from scico import util
+from scico import random, util
 from scico.typing import Array, JaxArray, Shape
 from scipy.ndimage import zoom
 
@@ -291,3 +291,29 @@ def create_circular_phantom(
         img = img.at[dist_map < r].set(val)
 
     return img
+
+
+def spnoise(img: Array, frc: float, smn: float = 0.0, smx: float = 1.0) -> Array:
+    """Return image with salt & pepper noise imposed on it.
+
+    Args:
+        img: Input image.
+        frc: Desired fraction of pixels corrupted by noise.
+        smn: Lower value for noise (pepper). Default 0.0.
+        smx: Upper value for noise (salt). Default 1.0.
+
+    Returns:
+        Noisy image
+    """
+
+    if isinstance(img, np.ndarray):
+        spm = np.random.uniform(-1.0, 1.0, img.shape)
+        imgn = img.copy()
+        imgn[spm < frc - 1.0] = smn
+        imgn[spm > 1.0 - frc] = smx
+    else:
+        spm, key = random.uniform(shape=img.shape, minval=-1.0, maxval=1.0, seed=0)
+        imgn = img
+        imgn = imgn.at[spm < frc - 1.0].set(smn)
+        imgn = imgn.at[spm > 1.0 - frc].set(smx)
+    return imgn
