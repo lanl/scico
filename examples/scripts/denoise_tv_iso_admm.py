@@ -9,7 +9,8 @@ Isotropic Total Variation (ADMM)
 ================================
 
 This example compares denoising via isotropic and anisotropic total
-variation (TV) regularization. It solves the denoising problem
+variation (TV) regularization :cite:`rudin-1992-nonlinear`
+:cite:`goldstein-2009-split`. It solves the denoising problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - \mathbf{x}
   \|_2^2 + \lambda R(\mathbf{x}) \;,$$

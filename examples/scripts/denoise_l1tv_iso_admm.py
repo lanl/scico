@@ -9,7 +9,8 @@ r"""
 =========================
 
 This example demonstrates impulse noise removal via ℓ1 total variation
-(i.e. total variation regularization with an ℓ1 data fidelity term,
+:cite:`alliney-1992-digital` :cite:`esser-2010-primal` (Sec. 2.4.4)
+(i.e. total variation regularization with an ℓ1 data fidelity term),
 minimizing the functional
 
   $$\mathrm{argmin}_{\mathbf{x}} \;  \| \mathbf{y} - \mathbf{x}
