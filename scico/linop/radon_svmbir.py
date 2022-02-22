@@ -207,6 +207,7 @@ class SVMBIRExtendedLoss(Loss):
     def __init__(
         self,
         *args,
+        scale: float = 0.5,
         prox_kwargs: Optional[dict] = None,
         positivity: bool = False,
         W: Optional[Diagonal] = None,
@@ -218,15 +219,15 @@ class SVMBIRExtendedLoss(Loss):
             y: Sinogram measurement.
             A: Forward operator.
             scale: Scaling parameter.
-            W: Weighting diagonal operator. Must be non-negative.
-                If ``None``, defaults to :class:`.Identity`.
             prox_kwargs: Dictionary of arguments passed to the
-                :meth:`svmbir.recon` prox routine. Defaults to
-                {"maxiter": 1000, "ctol": 0.001}.
+               :meth:`svmbir.recon` prox routine. Defaults to
+               {"maxiter": 1000, "ctol": 0.001}.
             positivity: Enforce positivity in the prox operation. The
-                loss is infinite if any element of the input is negative.
+               loss is infinite if any element of the input is negative.
+            W: Weighting diagonal operator. Must be non-negative.
+               If ``None``, defaults to :class:`.Identity`.
         """
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, scale=scale, **kwargs)
 
         if not isinstance(self.A, ParallelBeamProjector):
             raise ValueError("LinearOperator A must be a radon_svmbir.ParallelBeamProjector.")
@@ -327,10 +328,10 @@ class SVMBIRWeightedSquaredL2Loss(SVMBIRExtendedLoss, WeightedSquaredL2Loss):
             A: Forward operator.
             scale: Scaling parameter.
             W: Weighting diagonal operator. Must be non-negative.
-                If ``None``, defaults to :class:`.Identity`.
+               If ``None``, defaults to :class:`.Identity`.
             prox_kwargs: Dictionary of arguments passed to the
-                :meth:`svmbir.recon` prox routine. Defaults to
-                {"maxiter": 1000, "ctol": 0.001}.
+               :meth:`svmbir.recon` prox routine. Defaults to
+               {"maxiter": 1000, "ctol": 0.001}.
         """
         super().__init__(*args, **kwargs, prox_kwargs=prox_kwargs, positivity=False)
 
