@@ -191,11 +191,11 @@ class SVMBIRExtendedLoss(Loss):
 
     where :math:`A` is a :class:`.ParallelBeamProjector`,
     :math:`\alpha` is the scaling parameter and :math:`W` is an instance
-    of :class:`scico.linop.Diagonal`. If :math:`W` is None, it is set to
-    :class:`scico.linop.Identity`.
+    of :class:`scico.linop.Diagonal`. If :math:`W` is ``None``, it is set
+    to :class:`scico.linop.Identity`.
 
     The extended loss differs from a typical weighted squared
-    :math:`\ell_2` loss is the following aspects.
+    :math:`\ell_2` loss as follows.
     When ``positivity=True``, the prox projects onto the non-negative
     orthant and the loss is infinite if any element of the input is
     negative. When the ``is_masked`` option of the associated
