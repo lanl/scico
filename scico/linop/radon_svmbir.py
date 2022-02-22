@@ -57,8 +57,8 @@ class ParallelBeamProjector(LinearOperator):
             angles: Array of projection angles in radians, should be
                 increasing.
             num_channels: Number of pixels in the sinogram.
-            center_offset: Position of the detector center relative to the center-of-rotation,
-                in units of pixels
+            center_offset: Position of the detector center relative to
+                the center-of-rotation, in units of pixels
             is_masked: If ``True``, the valid region of the image is
                 determined by a mask defined as the circle inscribed
                 within the image boundary. Otherwise, the whole image
@@ -178,9 +178,11 @@ class ParallelBeamProjector(LinearOperator):
 
 
 class SVMBIRExtendedLoss(Loss):
-    r"""Extended Weighted squared :math:`\ell_2` loss with svmbir CT projector.
+    r"""Extended Weighted squared :math:`\ell_2` loss with svmbir CT
+    projector.
 
-    Generalization of the weighted squared :math:`\ell_2` loss of a CT reconstruction problem,
+    Generalization of the weighted squared :math:`\ell_2` loss of a CT
+    reconstruction problem,
 
     .. math::
         \alpha \norm{\mb{y} - A(\mb{x})}_W^2 =
@@ -192,12 +194,13 @@ class SVMBIRExtendedLoss(Loss):
     of :class:`scico.linop.Diagonal`. If :math:`W` is None, it is set to
     :class:`scico.linop.Identity`.
 
-    The extended loss differs from a typical weighted squared :math:`\ell_2` loss
-    is the following aspects.
+    The extended loss differs from a typical weighted squared
+    :math:`\ell_2` loss is the following aspects.
     When ``positivity=True``, the prox projects onto the non-negative
-    orthant and the loss is infinite if any element of the input is negative.
-    When the ``is_masked`` option of the associated :class:`.ParallelBeamProjector` is `True`,
-    the reconstruction is computed over a masked region of the image as described
+    orthant and the loss is infinite if any element of the input is
+    negative. When the ``is_masked`` option of the associated
+    :class:`.ParallelBeamProjector` is ``True``, the reconstruction is
+    computed over a masked region of the image as described
     in class :class:`.ParallelBeamProjector`.
     """
 
@@ -333,7 +336,8 @@ class SVMBIRWeightedSquaredL2Loss(SVMBIRExtendedLoss, WeightedSquaredL2Loss):
 
         if self.A.is_masked:
             raise ValueError(
-                "is_masked must be false for the ParallelBeamProjector in SVMBIRWeightedSquaredL2Loss."
+                "is_masked must be false for the ParallelBeamProjector in "
+                "SVMBIRWeightedSquaredL2Loss."
             )
 
 
