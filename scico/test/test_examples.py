@@ -95,10 +95,10 @@ def test_create_cone(img_shape):
 
 def test_spnoise():
     x = 0.5 * np.ones((10, 11))
-    y = spnoise(x, 0.5, smn=0.01, smx=0.99)
+    y = spnoise(x, 0.5, nmin=0.01, nmax=0.99)
     assert np.all(y >= 0.01)
     assert np.all(y <= 0.99)
     x = 0.5 * snp.ones((10, 11))
-    y = spnoise(x, 0.5, smn=0.01, smx=0.99)
+    y = spnoise(x, 0.5, nmin=0.01, nmax=0.99)
     assert np.all(y >= 0.01)
     assert np.all(y <= 0.99)
