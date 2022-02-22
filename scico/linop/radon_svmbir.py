@@ -218,7 +218,7 @@ class SVMBIRExtendedLoss(Loss):
             y: Sinogram measurement.
             A: Forward operator.
             scale: Scaling parameter.
-            W:  Weighting diagonal operator. Must be non-negative.
+            W: Weighting diagonal operator. Must be non-negative.
                 If ``None``, defaults to :class:`.Identity`.
             prox_kwargs: Dictionary of arguments passed to the
                 :meth:`svmbir.recon` prox routine. Defaults to
@@ -310,8 +310,8 @@ class SVMBIRWeightedSquaredL2Loss(SVMBIRExtendedLoss, WeightedSquaredL2Loss):
 
     where :math:`A` is a :class:`.ParallelBeamProjector`,
     :math:`\alpha` is the scaling parameter and :math:`W` is an instance
-    of :class:`scico.linop.Diagonal`. If :math:`W` is None, it is set to
-    :class:`scico.linop.Identity`.
+    of :class:`scico.linop.Diagonal`. If :math:`W` is ``None``, it is set
+    to :class:`scico.linop.Identity`.
     """
 
     def __init__(
@@ -326,8 +326,8 @@ class SVMBIRWeightedSquaredL2Loss(SVMBIRExtendedLoss, WeightedSquaredL2Loss):
             y: Sinogram measurement.
             A: Forward operator.
             scale: Scaling parameter.
-            W:  Weighting diagonal operator. Must be non-negative.
-                If None, defaults to :class:`.Identity`.
+            W: Weighting diagonal operator. Must be non-negative.
+                If ``None``, defaults to :class:`.Identity`.
             prox_kwargs: Dictionary of arguments passed to the
                 :meth:`svmbir.recon` prox routine. Defaults to
                 {"maxiter": 1000, "ctol": 0.001}.
