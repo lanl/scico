@@ -101,8 +101,8 @@ class Loss(functional.Functional):
         Evaluate scaled proximal operator of this loss function, with
         scaling :math:`\lambda` = `lam` and evaluated at point
         :math:`\mb{v}` = `v`. If :meth:`prox` is not defined in a derived
-        class, and if operator :math:`A` is the identity operator, the
-        proximal operator is computed using the proximal operator of
+        class, and if operator :math:`A` is the identity operator, then
+        the proximal operator is computed using the proximal operator of
         functional :math:`l`, via Theorem 6.11 in :cite:`beck-2017-first`.
 
         Args:
