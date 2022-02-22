@@ -62,7 +62,7 @@ class Loss(functional.Functional):
             l: Functional :math:`l`. If ``None``, then :meth:`__call__`
                and :meth:`prox` (if appropriate) must be defined in a
                derived class.
-            scale: Scaling parameter. Default: 0.5.
+            scale: Scaling parameter. Default: 1.0.
 
         """
         self.y = ensure_on_device(y)
