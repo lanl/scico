@@ -78,7 +78,7 @@ def radial_transverse_frequency(
 
 
 class Propagator(LinearOperator):
-    """Base class for AngularSpectrum and Fresnel propagator."""
+    """Base class for AngularSpectrum and Fresnel propagators."""
 
     def __init__(
         self,
@@ -162,48 +162,41 @@ L           : {self.L}
 class AngularSpectrumPropagator(Propagator):
     r"""Angular Spectrum propagator.
 
-    |
+    Propagates a source field with coordinates :math:`(x, y, z_0)`
+    to a destination plane at a distance :math:`z` with coordinates
+    :math:`(x, y, z_0 + z)`. The action of this linear operator is
+    given by (Eq. 3.74, :cite:`goodman-2005-fourier`)
 
-    Notes:
+    .. math ::
+         (A \mb{u})(x, y) = \iint_{-\infty}^{\infty}
+         \mb{\hat{u}}(k_x, k_y) e^{j \sqrt{k_0^2 - k_x^2 - k_y^2}
+         \abs{z}} e^{j (x k_x + y k_y) } d k_x \ d k_y \;,
 
-        Propagates a source field with coordinates :math:`(x, y, z_0)`
-        to a destination plane at a distance :math:`z` with coordinates
-        :math:`(x, y, z_0 + z)`.
+    where the :math:`\mb{\hat{u}}` is the Fourier transform of the
+    field in the plane :math:`z=0`, given by
 
-        The action of this linear operator is given by
-        (Eq 3.74, :cite:`goodman-2005-fourier`)
+    .. math ::
+         \mb{\hat{u}}(k_x, k_y) = \iint_{-\infty}^{\infty}
+         \mb{u}(x, y) e^{- j (x k_x + y k_y)} d k_x \ d k_y \;.
 
-        .. math ::
-            (A \mb{u})(x, y) = \iint_{-\infty}^{\infty}
-            \mb{\hat{u}}(k_x, k_y) e^{j \sqrt{k_0^2 - k_x^2 - k_y^2}
-            \abs{z}} e^{j (x k_x + y k_y) } d k_x \ d k_y \;,
+    The angular spectrum propagator can be written
 
-        where the :math:`\mb{\hat{u}}` is the Fourier transform of the
-        field in the plane :math:`z=0`, given by
+    .. math ::
+         A\mb{u} = F^{-1} D F \mb{u} \;,
 
-        .. math ::
-            \mb{\hat{u}}(k_x, k_y) = \iint_{-\infty}^{\infty}
-            \mb{u}(x, y) e^{- j (x k_x + y k_y)} d k_x \ d k_y \;.
+    where :math:`F` is the Fourier transform with respect to
+    :math:`(x, y)` and
 
-        The angular spectrum propagator can be written
-
-        .. math ::
-            A\mb{u} = F^{-1} D F \mb{u} \;,
-
-        where :math:`F` is the Fourier transform with respect to
-        :math:`(x, y)` and
-
-        .. math ::
-            D = \mathrm{diag}\left(\exp  \left\{ j
-            \sqrt{k_0^2 - k_x^2 - k_y^2} \abs{z}
-            \right\} \right) \;.
+    .. math ::
+         D = \mathrm{diag}\left(\exp  \left\{ j \sqrt{k_0^2 - k_x^2 -
+         k_y^2} \abs{z} \right\} \right) \;.
 
 
-        The propagator is adequately sampled when :cite:`voelz-2009-digital`
+    The propagator is adequately sampled when :cite:`voelz-2009-digital`
 
-        .. math ::
-            (\Delta x)^2 \geq \frac{\pi}{k_0 N} \sqrt{ (\Delta x)^2 N^2
-            + 4 z^2} \;.
+    .. math ::
+         (\Delta x)^2 \geq \frac{\pi}{k_0 N} \sqrt{ (\Delta x)^2 N^2 +
+         4 z^2} \;.
     """
 
     def __init__(
@@ -216,8 +209,7 @@ class AngularSpectrumPropagator(Propagator):
         jit: bool = True,
         **kwargs,
     ):
-        r"""Angular Spectrum init method.
-
+        r"""
         Args:
             input_shape: Shape of input array. Can be a tuple of length
                2 or 3.
@@ -256,8 +248,8 @@ class AngularSpectrumPropagator(Propagator):
             + 4 z^2} \;.
 
         Returns:
-             True if the angular spectrum kernel is adequately sampled,
-             False otherwise.
+             ``True`` if the angular spectrum kernel is adequately sampled,
+             ``False`` otherwise.
         """
         tmp = []
         for d, N in zip(self.dx, self.padded_shape):
@@ -276,7 +268,7 @@ class FresnelPropagator(Propagator):
     Propagates a source field with coordinates :math:`(x, y, z_0)` to a
     destination plane at a distance :math:`z` with coordinates
     :math:`(x, y, z_0 + z)`. The action of this linear operator is given
-    by (Eq 4.20, :cite:`goodman-2005-fourier`)
+    by (Eq. 4.20, :cite:`goodman-2005-fourier`)
 
     .. math ::
         (A \mb{u})(x, y) = e^{j k_0 z} \iint_{-\infty}^{\infty}
@@ -339,8 +331,8 @@ class FresnelPropagator(Propagator):
 
 
         Returns:
-            True if the Fresnel propagation kernel is adequately sampled,
-            False otherwise.
+            ``True`` if the Fresnel propagation kernel is adequately sampled,
+            ``False`` otherwise.
         """
         tmp = []
         for d, N in zip(self.dx, self.padded_shape):
@@ -351,60 +343,58 @@ class FresnelPropagator(Propagator):
 class FraunhoferPropagator(LinearOperator):
     r"""Fraunhofer (far-field) Propagator.
 
-    Notes:
+    Propagates a source field with coordinates :math:`(x_S, y_S)` to
+    a destination plane at a distance :math:`z` with coordinates
+    :math:`(x_D, y_D)`.
 
-        Propagates a source field with coordinates :math:`(x_S, y_S)` to
-        a destination plane at a distance :math:`z` with coordinates
-        :math:`(x_D, y_D)`.
+    The action of this linear operator is given by (Eq. 4.25,
+    :cite:`goodman-2005-fourier`)
 
-        The action of this linear operator is given by
-        (Eq 4.25, :cite:`goodman-2005-fourier`)
+    .. math ::
+        (A \mb{u})(x_D, y_D) = \underbrace{\frac{k_0}{2 \pi}
+        \frac{e^{j k_0 z}}{j z} \mathrm{exp} \left\{ j \frac{k_0}{2 z}
+        (x_D^2 + y_D^2) \right\}}_{\triangleq P(x_D, y_D)}
+        \int \mb{u}(x_S, y_S) e^{-j \frac{k_0}{z} (x_D x_S + y_D y_S)
+        } dx_S \ dy_S \;.
 
-        .. math ::
-            (A \mb{u})(x_D, y_D) = \underbrace{\frac{k_0}{2 \pi}
-            \frac{e^{j k_0 z}}{j z} \mathrm{exp} \left\{ j \frac{k_0}{2 z}
-            (x_D^2 + y_D^2) \right\}}_{\triangleq P(x_D, y_D)}
-            \int \mb{u}(x_S, y_S) e^{-j \frac{k_0}{z} (x_D x_S + y_D y_S)
-            } dx_S \ dy_S \;.
+    Writing the Fourier transform of the field :math:`\mb{u}` as
 
-        Writing the Fourier transform of the field :math:`\mb{u}` as
+    .. math ::
+        \hat{\mb{u}}(k_x, k_y) = \int e^{-j (k_x x + k_y y)}
+        \mb{u}(x, y) dx \ dy \;,
 
-        .. math ::
-            \hat{\mb{u}}(k_x, k_y) = \int e^{-j (k_x x + k_y y)}
-            \mb{u}(x, y) dx \ dy \;,
+    the action of this linear operator can be written
 
-        the action of this linear operator can be written
+    .. math ::
+        (A \mb{u})(x_D, y_D) = P(x_D, y_D) \ \hat{\mb{u}}
+        \left({\frac{k_0}{z} x_D, \frac{k_0}{z} y_D}\right) \;.
 
-        .. math ::
-            (A \mb{u})(x_D, y_D) = P(x_D, y_D) \ \hat{\mb{u}}
-            \left({\frac{k_0}{z} x_D, \frac{k_0}{z} y_D}\right) \;.
+    Ignoring multiplicative prefactors, the Fraunhofer propagated
+    field is the Fourier transform of the source field, evaluated at
+    coordinates :math:`(k_x, k_y) = (\frac{k_0}{z} x_D,
+    \frac{k_0}{z} y_D)`.
 
-        Ignoring multiplicative prefactors, the Fraunhofer propagated
-        field is the Fourier transform of the source field, evaluated at
-        coordinates :math:`(k_x, k_y) = (\frac{k_0}{z} x_D,
-        \frac{k_0}{z} y_D)`.
+    In general, the sampling intervals (and thus plane lengths)
+    differ between source and destination planes. In particular,
+    :cite:`voelz-2011-computational`
 
-        In general, the sampling intervals (and thus plane lengths)
-        differ between source and destination planes. In particular,
-        :cite:`voelz-2011-computational`
+    .. math ::
+        \begin{aligned}
+        \Delta x_D &=  \frac{2 \pi z}{k_0 L_S } \\
+        L_D &=  \frac{2 \pi z}{k_0 \Delta x_S } \;.
+        \end{aligned}
 
-        .. math ::
-           \begin{aligned}
-           \Delta x_D &=  \frac{2 \pi z}{k_0 L_S } \\
-            L_D &=  \frac{2 \pi z}{k_0 \Delta x_S } \;.
-           \end{aligned}
+    The sampling intervals and plane lengths coincide in the case of
+    critical sampling:
 
-        The sampling intervals and plane lengths coincide in the case of
-        critical sampling:
+    .. math ::
+         \Delta x_S = \sqrt{\frac{2 \pi z}{N k_0}} \;.
 
-        .. math ::
-                \Delta x_S = \sqrt{\frac{2 \pi z}{N k_0}} \;.
+    The Fraunhofer phase :math:`P(x_D, y_D)` is adequately sampled
+    when
 
-        The Fraunhofer phase :math:`P(x_D, y_D)` is adequately sampled
-        when
-
-        .. math ::
-                \Delta x_S \geq \sqrt{\frac{2 \pi z}{N k_0}} \;.
+    .. math ::
+         \Delta x_S \geq \sqrt{\frac{2 \pi z}{N k_0}} \;.
     """
 
     def __init__(
@@ -427,7 +417,7 @@ class FraunhoferPropagator(LinearOperator):
             k0: Illumination wavenumber;  2π/wavelength.
             z: Propagation distance.
             jit: If ``True``, jit the evaluation, adjoint, and gram
-                functions of this LinearOperator. Default: True.
+                functions of this LinearOperator. Default: ``True``.
         """
 
         ndim = len(input_shape)  # 1 or 2 dimensions
@@ -512,8 +502,8 @@ L_D         : {self.L_D}
             \Delta x^2 \geq \frac{2 \pi z }{k_0 N} \;.
 
         Returns:
-             True if the Fresnel propagation kernel is adequately sampled,
-             False otherwise.
+             ``True`` if the Fresnel propagation kernel is adequately sampled,
+             ``False`` otherwise.
         """
         tmp = []
         for d, N in zip(self.dx, self.input_shape):
