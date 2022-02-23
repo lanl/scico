@@ -93,13 +93,15 @@ class Propagator(LinearOperator):
         Args:
             input_shape: Shape of input array. Can be a tuple of length
                1 or 2.
-            dx: Sampling interval at source plane. If a float and
-               `len(input_shape)==2` the same sampling interval is
-               applied to both dimensions. If `dx` is a tuple, must
-               have same length as `input_shape`.
-            k0: Illumination wavenumber; 2π/wavelength.
-            z: Propagation distance.
-            pad_factor: Amount of padding to apply in DFT step.
+            dx: Sampling interval, :math:`\Delta x`, at source plane. If
+               a float and `len(input_shape)==2` the same sampling
+               interval is applied to both dimensions. If `dx` is a tuple,
+               must have same length as `input_shape`.
+            k0: Illumination wavenumber, :math:`k_0`, corresponding to
+               :math:`2 \pi` / wavelength.
+            z: Propagation distance, :math:`z`.
+            pad_factor: The padded input shape is the input shape
+               multiplied by this integer factor.
         """
 
         ndim = len(input_shape)  # 1 or 2 dimensions
@@ -115,7 +117,7 @@ class Propagator(LinearOperator):
                     f"got len(dx)={len(dx)}, len(input_shape)={ndim}"
                 )
 
-        #: Illumination wavenumber; 2π/wavelength
+        #: Illumination wavenumber; 2𝜋/wavelength
         self.k0: float = k0
         #: Shape of input after padding
         self.padded_shape: Shape = tuple(pad_factor * s for s in input_shape)
@@ -202,7 +204,7 @@ class AngularSpectrumPropagator(Propagator):
     def __init__(
         self,
         input_shape: Shape,
-        dx: float,
+        dx: Union[float, Tuple[float, ...]],
         k0: float,
         z: float,
         pad_factor: int = 1,
@@ -213,17 +215,21 @@ class AngularSpectrumPropagator(Propagator):
         Args:
             input_shape: Shape of input array. Can be a tuple of length
                2 or 3.
-            dx: Spatial sampling rate.
-            k0: Illumination wavenumber.
-            z: Propagation distance.
-            pad_factor:  Amount of padding to apply in DFT step.
+            dx: Sampling interval, :math:`\Delta x`, at source plane. If
+               a float and `len(input_shape)==2` the same sampling
+               interval is applied to both dimensions. If `dx` is a tuple,
+               must have same length as `input_shape`.
+            k0: Illumination wavenumber, :math:`k_0`, corresponding to
+               :math:`2 \pi` / wavelength.
+            z: Propagation distance, :math:`z`.
+            pad_factor: The padded input shape is the input shape
+               multiplied by this integer factor.
             jit: If ``True``, call :meth:`.jit()` on this LinearOperator
                to jit the forward, adjoint, and gram functions. Same as
                calling :meth:`.jit` after the LinearOperator is created.
         """
 
         # Diagonal operator; phase shifting
-
         super().__init__(
             input_shape=input_shape, dx=dx, k0=k0, z=z, pad_factor=pad_factor, **kwargs
         )
@@ -408,12 +414,13 @@ class FraunhoferPropagator(LinearOperator):
         Args:
             input_shape: Shape of input plane. Must be length 1 or 2.
                The output plane will have the same number of samples.
-            dx: Sampling interval at source plane. If a float and
-               `len(input_shape)==2` the same sampling interval is
-               applied to both dimensions. If `dx` is a tuple, must have
-               same length as `input_shape`.
-            k0: Illumination wavenumber;  2π/wavelength.
-            z: Propagation distance.
+            dx: Sampling interval, :math:`\Delta x`, at source plane. If
+               a float and `len(input_shape)==2` the same sampling
+               interval is applied to both dimensions. If `dx` is a tuple,
+               must have same length as `input_shape`.
+            k0: Illumination wavenumber, :math:`k_0`, corresponding to
+               :math:`2 \pi` / wavelength.
+            z: Propagation distance, :math:`z`.
             jit: If ``True``, jit the evaluation, adjoint, and gram
                 functions of this LinearOperator. Default: ``True``.
         """
