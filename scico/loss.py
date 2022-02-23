@@ -41,9 +41,9 @@ class Loss(functional.Functional):
     Generic loss function
 
     .. math::
-        \alpha l(\mb{y}, A(\mb{x})) \;,
+        \alpha f(\mb{y}, A(\mb{x})) \;,
 
-    where :math:`\alpha` is the scaling parameter and :math:`l(\cdot)` is
+    where :math:`\alpha` is the scaling parameter and :math:`f(\cdot)` is
     the loss functional.
     """
 
@@ -51,14 +51,19 @@ class Loss(functional.Functional):
         self,
         y: Union[JaxArray, BlockArray],
         A: Optional[Union[Callable, operator.Operator]] = None,
-        scale: float = 0.5,
+        f: Optional[functional.Functional] = None,
+        scale: float = 1.0,
     ):
         r"""
         Args:
             y: Measurement.
             A: Forward operator. Defaults to ``None``, in which case
                ``self.A`` is a :class:`.Identity`.
-            scale: Scaling parameter. Default: 0.5.
+            f: Functional :math:`f`. If defined, the loss function is
+               :math:`\alpha f(\mb{y} - A(\mb{x}))`. If ``None``, then
+               :meth:`__call__` and :meth:`prox` (where appropriate) must
+               be defined in a derived class.
+            scale: Scaling parameter. Default: 1.0.
 
         """
         self.y = ensure_on_device(y)
@@ -66,12 +71,15 @@ class Loss(functional.Functional):
             # y and x must have same shape
             A = linop.Identity(self.y.shape)  # type: ignore
         self.A = A
+        self.f = f
         self.scale = scale
 
         # Set functional-specific flags
-        self.has_prox = False
         self.has_eval = True
-
+        if self.f is not None and isinstance(self.A, linop.Identity):
+            self.has_prox = True
+        else:
+            self.has_prox = False
         super().__init__()
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
@@ -80,7 +88,37 @@ class Loss(functional.Functional):
         Args:
             x: Point at which to evaluate loss.
         """
-        raise NotImplementedError
+        if self.f is None:
+            raise NotImplementedError(
+                "Functional l is not defined and __call__ has" " not been overridden"
+            )
+        return self.scale * self.f(self.A(x) - self.y)
+
+    def prox(
+        self, v: Union[JaxArray, BlockArray], lam: float, **kwargs
+    ) -> Union[JaxArray, BlockArray]:
+        r"""Scaled proximal operator of loss function.
+
+        Evaluate scaled proximal operator of this loss function, with
+        scaling :math:`\lambda` = `lam` and evaluated at point
+        :math:`\mb{v}` = `v`. If :meth:`prox` is not defined in a derived
+        class, and if operator :math:`A` is the identity operator, then
+        the proximal operator is computed using the proximal operator of
+        functional :math:`l`, via Theorem 6.11 in :cite:`beck-2017-first`.
+
+        Args:
+            v: Point at which to evaluate prox function.
+            lam: Proximal parameter :math:`\lambda`.
+            kwargs: Additional arguments that may be used by derived
+                classes. These include ``x0``, an initial guess for the
+                minimizer in the defintion of :math:`\mathrm{prox}`.
+        """
+        if not self.has_prox:
+            raise NotImplementedError(
+                f"prox is not implemented for {type(self)} when A is {type(self.A)}; "
+                "must be Identity"
+            )
+        return self.f.prox(v - self.y, self.scale * lam, **kwargs) + self.y
 
     @_loss_mul_div_wrapper
     def __mul__(self, other):

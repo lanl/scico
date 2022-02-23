@@ -9,7 +9,7 @@ import scico.numpy as snp
 from scico.linop import Diagonal
 from scico.loss import WeightedSquaredL2Loss
 from scico.test.linop.test_linop import adjoint_test
-from scico.test.test_functional import prox_test
+from scico.test.prox import prox_test
 
 try:
     import svmbir

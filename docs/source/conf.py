@@ -169,7 +169,7 @@ release = version
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ["tmp", "*.tmp.*", "*.tmp", "index.ipynb"]
+exclude_patterns = ["tmp", "*.tmp.*", "*.tmp", "index.ipynb", "exampledepend.rst"]
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 add_function_parentheses = False
