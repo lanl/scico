@@ -9,10 +9,11 @@ Isotropic Total Variation (ADMM)
 ================================
 
 This example compares denoising via isotropic and anisotropic total
-variation (TV) regularization. It solves the denoising problem
+variation (TV) regularization :cite:`rudin-1992-nonlinear`
+:cite:`goldstein-2009-split`. It solves the denoising problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - \mathbf{x}
-  \|^2 + \lambda R(\mathbf{x}) \;,$$
+  \|_2^2 + \lambda R(\mathbf{x}) \;,$$
 
 where $R$ is either the isotropic or anisotropic TV regularizer.
 In SCICO, switching between these two regularizers is a one-line
@@ -53,11 +54,11 @@ y = x_gt + σ * noise
 
 
 """
-Denoise with isotropic total variation
+Denoise with isotropic total variation.
 """
-reg_weight_iso = 1.4e0
+λ_iso = 1.4e0
 f = loss.SquaredL2Loss(y=y)
-g_iso = reg_weight_iso * functional.L21Norm()
+g_iso = λ_iso * functional.L21Norm()
 
 # The append=0 option makes the results of horizontal and vertical finite
 # differences the same shape, which is required for the L21Norm.
@@ -82,8 +83,8 @@ print()
 Denoise with anisotropic total variation for comparison.
 """
 # Tune the weight to give the same data fidelty as the isotropic case.
-reg_weight_aniso = 1.2e0
-g_aniso = reg_weight_aniso * functional.L1Norm()
+λ_aniso = 1.2e0
+g_aniso = λ_aniso * functional.L1Norm()
 
 solver = ADMM(
     f=f,
@@ -102,7 +103,7 @@ print()
 
 
 """
-Compute the data fidelity.
+Compute and print the data fidelity.
 """
 for x, name in zip((x_iso, x_aniso), ("Isotropic", "Anisotropic")):
     df = f(x)

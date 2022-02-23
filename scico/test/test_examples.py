@@ -6,12 +6,14 @@ import numpy as np
 import imageio
 import pytest
 
+import scico.numpy as snp
 from scico.examples import (
     create_circular_phantom,
     create_cone,
     downsample_volume,
     epfl_deconv_data,
     rgb2gray,
+    spnoise,
     tile_volume_slices,
     volume_read,
 )
@@ -89,3 +91,14 @@ def test_create_cone(img_shape):
     assert x_gt.shape == img_shape
     # check symmetry
     assert np.abs(x_gt[(0,) * len(img_shape)] - x_gt[(-1,) * len(img_shape)]) < 1e-6
+
+
+def test_spnoise():
+    x = 0.5 * np.ones((10, 11))
+    y = spnoise(x, 0.5, nmin=0.01, nmax=0.99)
+    assert np.all(y >= 0.01)
+    assert np.all(y <= 0.99)
+    x = 0.5 * snp.ones((10, 11))
+    y = spnoise(x, 0.5, nmin=0.01, nmax=0.99)
+    assert np.all(y >= 0.01)
+    assert np.all(y <= 0.99)

@@ -32,7 +32,11 @@
 
 .. image:: https://badge.fury.io/py/scico.svg
    :target: https://badge.fury.io/py/scico
-   :alt: Current PyPI package version
+   :alt: PyPI package version
+
+.. image:: https://static.pepy.tech/personalized-badge/scico?period=month&left_color=grey&right_color=brightgreen
+   :target: https://pepy.tech/project/scico
+   :alt: PyPI download statistics
 
 .. image:: https://raw.githubusercontent.com/jupyter/design/master/logos/Badges/nbviewer_badge.svg
    :target: https://nbviewer.jupyter.org/github/lanl/scico-data/tree/main/notebooks/index.ipynb
