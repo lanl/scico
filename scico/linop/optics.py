@@ -379,10 +379,8 @@ class FraunhoferPropagator(LinearOperator):
     :cite:`voelz-2011-computational`
 
     .. math ::
-        \begin{aligned}
-        \Delta x_D &=  \frac{2 \pi z}{k_0 L_S } \\
-        L_D &=  \frac{2 \pi z}{k_0 \Delta x_S } \;.
-        \end{aligned}
+        \Delta x_D =  \frac{2 \pi z}{k_0 L_S } \quad \text{and}
+        \quad L_D =  \frac{2 \pi z}{k_0 \Delta x_S } \;.
 
     The sampling intervals and plane lengths coincide in the case of
     critical sampling:
