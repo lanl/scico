@@ -321,7 +321,7 @@ class FresnelPropagator(Propagator):
             self.jit()
 
     def adequate_sampling(self):
-        r"""Verify the Fraunhofer propagation kernel is not aliased.
+        r"""Verify the Fresnel propagation kernel is not aliased.
 
         Checks the condition for adequate sampling
         :cite:`voelz-2011-computational`,
@@ -500,8 +500,8 @@ L_D         : {self.L_D}
             \Delta x^2 \geq \frac{2 \pi z }{k_0 N} \;.
 
         Returns:
-             ``True`` if the Fresnel propagation kernel is adequately sampled,
-             ``False`` otherwise.
+             ``True`` if the Fraunhofer propagation kernel is adequately
+             sampled, ``False`` otherwise.
         """
         tmp = []
         for d, N in zip(self.dx, self.input_shape):
