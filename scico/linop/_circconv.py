@@ -255,9 +255,9 @@ class CircularConvolve(LinearOperator):
 
         if is_nested(H.input_shape):
             raise ValueError(
-                f"`H.input_shape` ({H.input_shape}) suggests that it "
-                "works on `BlockArray`s, but this function assumes "
-                "array inputs."
+                f"H.input_shape ({H.input_shape}) suggests that H "
+                "takes a BlockArray as input, which is not supported "
+                "by this function."
             )
 
         if ndims is None:
