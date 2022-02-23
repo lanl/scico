@@ -86,8 +86,7 @@ has_prox = {self.has_prox}
             lam: Proximal parameter :math:`\lambda`.
             kwargs: Additional arguments that may be used by derived
                 classes. These include ``x0``, an initial guess for the
-                minimizer in the defintion of :math:`\mathrm{prox}`.
-
+                minimizer in the definition of :math:`\mathrm{prox}`.
         """
         if not self.has_prox:
             raise NotImplementedError(
