@@ -34,8 +34,8 @@ class TestLoss:
 
     def test_generic_squared_l2(self):
         A = linop.Identity(input_shape=self.y.shape)
-        l = functional.SquaredL2Norm()
-        L0 = loss.Loss(self.y, A=A, l=l, scale=0.5)
+        f = functional.SquaredL2Norm()
+        L0 = loss.Loss(self.y, A=A, f=f, scale=0.5)
         L1 = loss.SquaredL2Loss(y=self.y, A=A)
         np.testing.assert_allclose(L0(self.v), L1(self.v))
         np.testing.assert_allclose(L0.prox(self.v, self.scalar), L1.prox(self.v, self.scalar))
@@ -45,8 +45,8 @@ class TestLoss:
         L = loss.Loss(self.y, A=A, scale=0.5)
         with pytest.raises(NotImplementedError):
             L(self.v)
-        l = functional.L1Norm()
-        L = loss.Loss(self.y, A=A, l=l, scale=0.5)
+        f = functional.L1Norm()
+        L = loss.Loss(self.y, A=A, f=f, scale=0.5)
         assert not L.has_prox
         with pytest.raises(NotImplementedError):
             L.prox(self.v, self.scalar)

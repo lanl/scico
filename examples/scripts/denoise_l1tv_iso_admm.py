@@ -53,7 +53,7 @@ x_med = median_filter(y, size=(5, 5))
 Denoise with ℓ1 total variation.
 """
 λ = 1.5e0
-g_loss = loss.Loss(y=y, l=functional.L1Norm())
+g_loss = loss.Loss(y=y, f=functional.L1Norm())
 g_tv = λ * functional.L21Norm()
 # The append=0 option makes the results of horizontal and vertical finite
 # differences the same shape, which is required for the L21Norm.

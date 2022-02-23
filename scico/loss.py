@@ -41,9 +41,9 @@ class Loss(functional.Functional):
     Generic loss function
 
     .. math::
-        \alpha l(\mb{y}, A(\mb{x})) \;,
+        \alpha f(\mb{y}, A(\mb{x})) \;,
 
-    where :math:`\alpha` is the scaling parameter and :math:`l(\cdot)` is
+    where :math:`\alpha` is the scaling parameter and :math:`f(\cdot)` is
     the loss functional.
     """
 
@@ -51,7 +51,7 @@ class Loss(functional.Functional):
         self,
         y: Union[JaxArray, BlockArray],
         A: Optional[Union[Callable, operator.Operator]] = None,
-        l: Optional[functional.Functional] = None,
+        f: Optional[functional.Functional] = None,
         scale: float = 1.0,
     ):
         r"""
@@ -59,9 +59,10 @@ class Loss(functional.Functional):
             y: Measurement.
             A: Forward operator. Defaults to ``None``, in which case
                ``self.A`` is a :class:`.Identity`.
-            l: Functional :math:`l`. If ``None``, then :meth:`__call__`
-               and :meth:`prox` (if appropriate) must be defined in a
-               derived class.
+            f: Functional :math:`f`. If defined, the loss function is
+               :math:`\alpha f(\mb{y} - A(\mb{x}))`. If ``None``, then
+               :meth:`__call__` and :meth:`prox` (where appropriate) must
+               be defined in a derived class.
             scale: Scaling parameter. Default: 1.0.
 
         """
@@ -70,12 +71,12 @@ class Loss(functional.Functional):
             # y and x must have same shape
             A = linop.Identity(self.y.shape)
         self.A = A
-        self.lfunc = l
+        self.f = f
         self.scale = scale
 
         # Set functional-specific flags
         self.has_eval = True
-        if self.lfunc is not None and isinstance(self.A, linop.Identity):
+        if self.f is not None and isinstance(self.A, linop.Identity):
             self.has_prox = True
         else:
             self.has_prox = False
@@ -87,11 +88,11 @@ class Loss(functional.Functional):
         Args:
             x: Point at which to evaluate loss.
         """
-        if self.lfunc is None:
+        if self.f is None:
             raise NotImplementedError(
                 "Functional l is not defined and __call__ has" " not been overridden"
             )
-        return self.scale * self.lfunc(self.A(x) - self.y)
+        return self.scale * self.f(self.A(x) - self.y)
 
     def prox(
         self, v: Union[JaxArray, BlockArray], lam: float, **kwargs
@@ -117,7 +118,7 @@ class Loss(functional.Functional):
                 f"prox is not implemented for {type(self)} when A is {type(self.A)}; "
                 "must be Identity"
             )
-        return self.lfunc.prox(v - self.y, self.scale * lam, **kwargs) + self.y
+        return self.f.prox(v - self.y, self.scale * lam, **kwargs) + self.y
 
     @_loss_mul_div_wrapper
     def __mul__(self, other):
