@@ -13,11 +13,20 @@ medium. The following notation is used throughout the module:
 
 .. math ::
      \begin{align}
-     \Delta x, \Delta y  & \quad \text{Sampling intervals at source plane}\\
+     \Delta x, \Delta y  & \quad \text{Sampling intervals}\\
      z  & \quad \text{Propagation distance}\\
-     N_x, N_y  & \quad \text{Number of samples in } x \text{ and } y \text{ axes}\\
-     k_0 & \quad \text{Illumination wavenumber corresponding to } 2\pi / \text{wavelength} \;.
+     N_x, N_y  & \quad \text{Number of samples in } x \text{ and } y
+     \text{ axes}\\
+     k_0 & \quad \text{Illumination wavenumber corresponding to } 2\pi /
+     \text{wavelength} \;.
      \end{align}
+
+Subscripts :math:`S` and :math:`D` are used to refer to the source and
+destination planes respectively when it is necessary to distinguish
+between them. In the absence of subscripts, the variables refer to the
+source plane (e.g. both :math:`\Delta x` and :math:`\Delta x_S` refer to
+the :math:`x`-axis sampling interval in the source plane, while
+:math:`\Delta x_D` refers to it in the destination plane).
 
 Note the non-standard labeling of axis 0 as :math:`x` and axis 1 as :math:`y`.
 """
@@ -49,11 +58,13 @@ def radial_transverse_frequency(
 
     Args:
         input_shape: Tuple of length 1 or 2 containing the number of
-            samples per dimension.
+            samples per dimension, i.e. :math:`(N_x,)` or
+            :math:`(N_x, N_y)`
         dx: Sampling interval at source plane. If a float and
             `len(input_shape)==2` the same sampling interval is applied
-            to both dimensions. If `dx` is a tuple, must have same
-            length as `input_shape`.
+            to both dimensions. If `dx` is a tuple, it must have same
+            length as `input_shape`, and corresponds to either
+            :math:`(\Delta x,)` or :math:`(\Delta x, \Delta y)`.
 
     Returns:
         If `len(input_shape)==1`, returns an ndarray containing
@@ -99,12 +110,14 @@ class Propagator(LinearOperator):
     ):
         r"""
         Args:
-            input_shape: Shape of input array. Can be a tuple of length
-               1 or 2.
-            dx: Sampling interval, :math:`\Delta x`, at source plane. If
-               a float and `len(input_shape)==2` the same sampling
-               interval is applied to both dimensions. If `dx` is a tuple,
-               must have same length as `input_shape`.
+            input_shape: Shape of input array as a tuple of length
+               1 or 2, corresponding to :math:`(N_x,)` or
+               :math:`(N_x, N_y)`.
+            dx: Sampling interval at source plane. If a float and
+               `len(input_shape)==2` the same sampling interval is applied
+               to both dimensions. If `dx` is a tuple, it must have same
+               length as `input_shape`, and corresponds to either
+               :math:`(\Delta x,)` or :math:`(\Delta x, \Delta y)`.
             k0: Illumination wavenumber, :math:`k_0`, corresponding to
                :math:`2 \pi` / wavelength.
             z: Propagation distance, :math:`z`.
@@ -205,7 +218,9 @@ class AngularSpectrumPropagator(Propagator):
     The propagator is adequately sampled when :cite:`voelz-2009-digital`
 
     .. math ::
-         (\Delta x)^2 \geq \frac{\pi}{k_0 N} \sqrt{ (\Delta x)^2 N^2 +
+         (\Delta x)^2 \geq \frac{\pi}{k_0 N_x} \sqrt{ (\Delta x)^2 N_x^2 +
+         4 z^2} \quad \text{and} \quad
+         (\Delta y)^2 \geq \frac{\pi}{k_0 N_y} \sqrt{ (\Delta y)^2 N_y^2 +
          4 z^2} \;.
     """
 
@@ -257,9 +272,11 @@ class AngularSpectrumPropagator(Propagator):
         Checks the condition for adequate sampling
         :cite:`voelz-2009-digital`,
 
-        .. math ::
-            (\Delta x)^2 \geq \frac{\pi}{k_0 N} \sqrt{ (\Delta x)^2 N^2
-            + 4 z^2} \;.
+         .. math ::
+             (\Delta x)^2 \geq \frac{\pi}{k_0 N_x} \sqrt{ (\Delta x)^2 N_x^2 +
+             4 z^2} \quad \text{and} \quad
+             (\Delta y)^2 \geq \frac{\pi}{k_0 N_y} \sqrt{ (\Delta y)^2 N_y^2 +
+             4 z^2} \;.
 
         Returns:
              ``True`` if the angular spectrum kernel is adequately sampled,
@@ -305,9 +322,14 @@ class FresnelPropagator(Propagator):
     :math:`(x, y)` and
 
     .. math ::
-        D = \mathrm{diag}\left(\exp  \left\{ j
-        \sqrt{k_0^2 - k_x^2 - k_y^2} \abs{z}
+        D = \mathrm{diag}\left(\exp  \left\{ j \sqrt{k_0^2 - k_x^2 - k_y^2} \abs{z}
         \right\} \right) \;.
+
+    The propagator is adequately sampled when :cite:`voelz-2011-computational`
+
+    .. math ::
+         (\Delta x)^2 \geq \frac{2 \pi z }{k_0 N_x} \quad \text{and}
+         \quad (\Delta y)^2 \geq \frac{2 \pi z }{k_0 N_y} \;.
     """
 
     def __init__(
@@ -341,7 +363,8 @@ class FresnelPropagator(Propagator):
         :cite:`voelz-2011-computational`,
 
         .. math ::
-            (\Delta x)^2 \geq \frac{2 \pi z }{k_0 N} \;.
+            (\Delta x)^2 \geq \frac{2 \pi z }{k_0 N_x} \quad \text{and}
+            \quad (\Delta y)^2 \geq \frac{2 \pi z }{k_0 N_y} \;.
 
 
         Returns:
@@ -393,20 +416,24 @@ class FraunhoferPropagator(LinearOperator):
     :cite:`voelz-2011-computational`
 
     .. math ::
-        \Delta x_D =  \frac{2 \pi z}{k_0 L_S } \quad \text{and}
-        \quad L_D =  \frac{2 \pi z}{k_0 \Delta x_S } \;.
+        \Delta x_D =  \frac{2 \pi z}{k_0 L_{Sx} } \quad \text{and}
+        \quad L_{Dx} =  \frac{2 \pi z}{k_0 \Delta x_S } \;,
+
+    and similary for the :math:`y` axis.
 
     The sampling intervals and plane lengths coincide in the case of
     critical sampling:
 
     .. math ::
-         \Delta x_S = \sqrt{\frac{2 \pi z}{N k_0}} \;.
+         \Delta x_S = \sqrt{\frac{2 \pi z}{N_x k_0}} \quad \text{and}
+         \quad \Delta y_S = \sqrt{\frac{2 \pi z}{N_y k_0}} \;.
 
     The Fraunhofer phase :math:`P(x_D, y_D)` is adequately sampled
     when
 
     .. math ::
-         \Delta x_S \geq \sqrt{\frac{2 \pi z}{N k_0}} \;.
+         \Delta x_S \geq \sqrt{\frac{2 \pi z}{N_x k_0}} \quad \text{and}
+         \quad \Delta y_S \geq \sqrt{\frac{2 \pi z}{N_y k_0}} \;.
     """
 
     def __init__(
@@ -420,12 +447,14 @@ class FraunhoferPropagator(LinearOperator):
     ):
         """
         Args:
-            input_shape: Shape of input plane. Must be length 1 or 2.
-               The output plane will have the same number of samples.
-            dx: Sampling interval, :math:`\Delta x`, at source plane. If
-               a float and `len(input_shape)==2` the same sampling
-               interval is applied to both dimensions. If `dx` is a tuple,
-               must have same length as `input_shape`.
+            input_shape: Shape of input array as a tuple of length
+               1 or 2, corresponding to :math:`(N_x,)` or
+               :math:`(N_x, N_y)`.
+            dx: Sampling interval at source plane. If a float and
+               `len(input_shape)==2` the same sampling interval is applied
+               to both dimensions. If `dx` is a tuple, it must have same
+               length as `input_shape`, and corresponds to either
+               :math:`(\Delta x,)` or :math:`(\Delta x, \Delta y)`.
             k0: Illumination wavenumber, :math:`k_0`, corresponding to
                :math:`2 \pi` / wavelength.
             z: Propagation distance, :math:`z`.
@@ -512,7 +541,8 @@ L_D         : {self.L_D}
         :cite:`voelz-2011-computational`,
 
         .. math ::
-            \Delta x^2 \geq \frac{2 \pi z }{k_0 N} \;.
+            \Delta x_S \geq \sqrt{\frac{2 \pi z}{N_x k_0}} \quad \text{and}
+            \quad \Delta y_S \geq \sqrt{\frac{2 \pi z}{N_y k_0}} \;.
 
         Returns:
              ``True`` if the Fraunhofer propagation kernel is adequately
