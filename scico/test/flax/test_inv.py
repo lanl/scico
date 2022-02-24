@@ -2,7 +2,20 @@ import pytest
 
 from scico import flax as sflax
 from scico import random
-from scico.flax.models_inv import MoDLNet, construct_projector
+from scico.flax.inverse import MoDLNet
+from scico.linop.radon_astra import ParallelBeamProjector
+
+
+def construct_projector(N, n_projection):
+    import numpy as np
+
+    angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
+    return ParallelBeamProjector(
+        input_shape=(N, N),
+        detector_spacing=1,
+        det_count=N,
+        angles=angles,
+    )  # Radon transform operator
 
 
 class TestSet:

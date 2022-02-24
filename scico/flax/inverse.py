@@ -14,7 +14,7 @@ import jax.numpy as jnp
 
 from scico.typing import Array
 from scico.flax import ResNet
-from scico.linop.radon_astra import ParallelBeamProjector
+
 
 # The imports of Scope and _Sentinel (above)
 # are required to silence "cannot resolve forward reference"
@@ -22,18 +22,6 @@ from scico.linop.radon_astra import ParallelBeamProjector
 
 
 ModuleDef = Any
-
-
-def construct_projector(N, n_projection):
-    import numpy as np
-
-    angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
-    return ParallelBeamProjector(
-        input_shape=(N, N),
-        detector_spacing=1,
-        det_count=N,
-        angles=angles,
-    )  # Radon transform operator
 
 
 class MoDLNet(Module):
