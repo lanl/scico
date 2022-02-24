@@ -55,7 +55,7 @@ class TestPropagator:
         with pytest.raises(ValueError):
             radial_transverse_frequency(input_shape=(self.N, self.N, self.N), dx=self.dx)
 
-    def test_shape_dx_mismatch(self):
+    def test_shape_dx_mismatch_radial(self):
         with pytest.raises(ValueError):
             radial_transverse_frequency(input_shape=(self.N,), dx=(self.dx, self.dx))
 
