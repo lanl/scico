@@ -13,7 +13,8 @@ medium. The following notation is used throughout the module:
 
 .. math ::
      \begin{align}
-     \Delta x, \Delta y  & \quad \text{Sampling intervals}\\
+     \Delta x, \Delta y  & \quad \text{Sampling intervals in } x
+     \text{ and } y \text{ axes}\\
      z  & \quad \text{Propagation distance}\\
      N_x, N_y  & \quad \text{Number of samples in } x \text{ and } y
      \text{ axes}\\
