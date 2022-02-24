@@ -5,11 +5,21 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Optical propagator classes.
+r"""Optical propagator classes.
 
 This module provides classes that model the propagation of a
 monochromatic waveform between two parallel planes in a homogeneous
-medium.
+medium. The following notation is used throughout the module:
+
+.. math ::
+     \begin{align}
+     \Delta x, \Delta y  & \quad \text{Sampling intervals at source plane}\\
+     z  & \quad \text{Propagation distance}\\
+     N_x, N_y  & \quad \text{Number of samples in } x \text{ and } y \text{ axes}\\
+     k_0 & \quad \text{Illumination wavenumber corresponding to } 2\pi / \text{wavelength} \;.
+     \end{align}
+
+Note the non-standard labeling of axis 0 as :math:`x` and axis 1 as :math:`y`.
 """
 
 
@@ -30,8 +40,6 @@ from scico.linop import Diagonal, Identity, LinearOperator
 from scico.typing import Shape
 
 from ._dft import DFT
-
-__author__ = """Luke Pfister <luke.pfister@gmail.com>"""
 
 
 def radial_transverse_frequency(
