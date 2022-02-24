@@ -184,7 +184,7 @@ L           : {self.L}
 
 
 class AngularSpectrumPropagator(Propagator):
-    r"""Angular Spectrum propagator.
+    r"""Angular spectrum propagator.
 
     Propagates a source field with coordinates :math:`(x, y, z_0)`
     to a destination plane at a distance :math:`z` with coordinates
@@ -295,7 +295,7 @@ class AngularSpectrumPropagator(Propagator):
 
 
 class FresnelPropagator(Propagator):
-    r"""Fresnel Propagator.
+    r"""Fresnel (near-field) propagator.
 
     Propagates a source field with coordinates :math:`(x, y, z_0)` to a
     destination plane at a distance :math:`z` with coordinates
@@ -379,7 +379,7 @@ class FresnelPropagator(Propagator):
 
 
 class FraunhoferPropagator(LinearOperator):
-    r"""Fraunhofer (far-field) Propagator.
+    r"""Fraunhofer (far-field) propagator.
 
     Propagates a source field with coordinates :math:`(x_S, y_S)` to
     a destination plane at a distance :math:`z` with coordinates
