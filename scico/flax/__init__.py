@@ -22,6 +22,7 @@ from .blocks import (
 from .models import DnCNNNet, ResNet, UNet
 
 from .train.input_pipeline import create_input_iter
+from .train.train import train_and_evaluate
 
 __all__ = [
     "FlaxMap",
@@ -36,6 +37,7 @@ __all__ = [
     "ResNet",
     "UNet",
     "create_input_iter",
+    "train_and_evaluate",
 ]
 
 # Imported items in __all__ appear to originate in top-level flax module
