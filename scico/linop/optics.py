@@ -414,7 +414,7 @@ class FraunhoferPropagator(LinearOperator):
 
     In general, the sampling intervals (and thus plane lengths)
     differ between source and destination planes. In particular,
-    :cite:`voelz-2011-computational`
+    (Eq. 5.18, :cite:`voelz-2011-computational`)
 
     .. math ::
         \Delta x_D =  \frac{2 \pi z}{k_0 L_{Sx} } \quad \text{and}
