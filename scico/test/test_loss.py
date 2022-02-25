@@ -30,6 +30,7 @@ class TestLoss:
         self.y, key = randn((n,), key=key, dtype=dtype)
         self.v, key = randn((n,), key=key, dtype=dtype)  # point for prox eval
         scalar, key = randn((1,), key=key, dtype=dtype)
+        self.key = key
         self.scalar = scalar.copy().ravel()[0]
 
     def test_generic_squared_l2(self):
@@ -160,6 +161,8 @@ class TestLoss:
         assert cL.scale == self.scalar * L_d.scale
         assert cL(self.v) == self.scalar * L_d(self.v)
 
+        v, key = randn(y.shape, key=self.key, dtype=np.complex128)
         pf = prox_test(self.v, L_d, L_d.prox, 0.75)
+        pf = prox_test(v, L_d, L_d.prox, 0.75)
         with pytest.raises(NotImplementedError):
             pf = prox_test(self.v, L, L.prox, 0.75)
