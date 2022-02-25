@@ -25,11 +25,10 @@ ModuleDef = Any
 
 
 class MoDLNet(Module):
-
-    r"""Net implementing a Model-Based Deep Learning Model for inversion.
+    r"""Flax implementation of MoDL :cite:`aggarwal-2019-modl`.
 
     Flax implementation of the model-based deep learning (MoDL)
-    architecture described in cite.
+    architecture for inverse problems described in :cite:`aggarwal-2019-modl`.
 
     Args:
         operator : object for computing forward and adjoint mappings.
@@ -94,8 +93,25 @@ class MoDLNet(Module):
         return x
 
 
-def cg_solver(A, b, x0=None, maxiter=50):
+def cg_solver(A: Callable, b: Array, x0: Array = None, maxiter: int = 50):
+    r"""Conjugate Gradient solver.
+
+    Solve the linear system :math:`A\mb{x} = \mb{b}`, where :math:`A` is
+    positive definite, via the conjugate gradient method. This is a light version constructed to be differentiable with the autograd functionality from jax. Therefore, (i) it uses `jax.lax.scan` to execute a fixed number of iterations and (ii) it assumes that the linear operator may use `jax.experimental.host_callback`. Due to while cycles, `scico.cg` is not differentiable by jax and `jax.scipy.sparse.linalg.cg` is not compatible with `jax.experimental.host_callback`.
+
+    Args:
+        A: Function implementing linear operator :math:`A`, should be
+            positive definite.
+        b: Input array :math:`\mb{b}`.
+        x0: Initial solution. Default: ``None``.
+        maxiter: Maximum iterations. Default: 50.
+
+    Returns:
+        x: Solution array.
+    """
+
     def fun(carry, _):
+        """Function implementing one iteration of the conjugate gradient solver."""
         x, r, p, num = carry
         Ap = A(p)
         alpha = num / (p.ravel().conj().T @ Ap.ravel())
