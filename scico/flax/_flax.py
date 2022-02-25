@@ -38,7 +38,7 @@ def load_weights(filename: str):
 class FlaxMap:
     r"""A trained flax model."""
 
-    def __init__(self, model: Callable[..., Module], variables: PyTree):
+    def __init__(self, model: Module, variables: PyTree):
         r"""Initialize a :class:`FlaxMap` object.
 
         Args:

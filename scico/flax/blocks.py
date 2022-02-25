@@ -33,7 +33,7 @@ class ConvBNBlock(Module):
     num_filters: int
     conv: ModuleDef
     norm: ModuleDef
-    act: Callable[[Array], Array]
+    act: Callable[..., Array]
     kernel_size: Tuple[int, int] = (3, 3)
     strides: Tuple[int, int] = (1, 1)
 
@@ -72,7 +72,7 @@ class ConvBlock(Module):
 
     num_filters: int
     conv: ModuleDef
-    act: Callable[[Array], Array]
+    act: Callable[..., Array]
     kernel_size: Tuple[int, int] = (3, 3)
     strides: Tuple[int, int] = (1, 1)
 
@@ -114,8 +114,8 @@ class ConvBNPoolBlock(Module):
     num_filters: int
     conv: ModuleDef
     norm: ModuleDef
-    act: Callable[[Array], Array]
-    pool: Callable[[Array], Array]
+    act: Callable[..., Array]
+    pool: Callable[..., Array]
     kernel_size: Tuple[int, int]
     strides: Tuple[int, int]
     window_shape: Tuple[int, int]
@@ -160,8 +160,8 @@ class ConvBNUpsampleBlock(Module):
     num_filters: int
     conv: ModuleDef
     norm: ModuleDef
-    act: Callable[[Array], Array]
-    upfn: Callable[[Array], Array]
+    act: Callable[..., Array]
+    upfn: Callable[..., Array]
     kernel_size: Tuple[int, int]
     strides: Tuple[int, int]
 
@@ -205,7 +205,7 @@ class ConvBNMultiBlock(Module):
     num_filters: int
     conv: ModuleDef
     norm: ModuleDef
-    act: Callable[[Array], Array]
+    act: Callable[..., Array]
     kernel_size: Tuple[int, int] = (3, 3)
     strides: Tuple[int, int] = (1, 1)
 

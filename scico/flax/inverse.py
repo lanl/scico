@@ -40,7 +40,7 @@ class MoDLNet(Module):
         lmbda : initial value of lmbda in initial layer. Default: 0.5.
         dtype : type of signal to process. Default: jnp.float32.
     """
-    operator: Callable[[Array], Array]
+    operator: ModuleDef
     depth: int
     channels: int
     num_filters: int

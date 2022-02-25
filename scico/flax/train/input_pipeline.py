@@ -96,7 +96,7 @@ def create_input_iter(
     dtype: DType = jnp.float32,
     train: bool = True,
 ) -> Any:
-    """Create split for training data.
+    """Create data iterator for training.
 
     Args:
         key : a PRNGKey used for random data permutations.
@@ -104,7 +104,7 @@ def create_input_iter(
         batch_size : size of batch for iterating through the data.
         size_device_prefetch : size of prefetch buffer. Default: 2.
         dtype : class of data to handle. Default: `jnp.float32`.
-        train : Flag indicating use of iterator for training.  Iterator for training is infinite, iterator for testing passes once through the data.  Default: True.
+        train : Flag indicating the type of iterator to construct and use.  The iterator for training permutes data on each epoch while the iterator for testing passes through the data without permuting it. Default: True.
     """
     ds = IterateData(dataset, batch_size, train, key)
     it = map(prepare_data, ds)
