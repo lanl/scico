@@ -97,7 +97,7 @@ def cg_solver(A: Callable, b: Array, x0: Array = None, maxiter: int = 50):
     r"""Conjugate Gradient solver.
 
     Solve the linear system :math:`A\mb{x} = \mb{b}`, where :math:`A` is
-    positive definite, via the conjugate gradient method. This is a light version constructed to be differentiable with the autograd functionality from jax. Therefore, (i) it uses `jax.lax.scan` to execute a fixed number of iterations and (ii) it assumes that the linear operator may use `jax.experimental.host_callback`. Due to while cycles, `scico.cg` is not differentiable by jax and `jax.scipy.sparse.linalg.cg` is not compatible with `jax.experimental.host_callback`.
+    positive definite, via the conjugate gradient method. This is a light version constructed to be differentiable with the autograd functionality from jax. Therefore, (i) it uses :meth:`jax.lax.scan` to execute a fixed number of iterations and (ii) it assumes that the linear operator may use :meth:`jax.experimental.host_callback`. Due to a while cycle, :meth:`scico.cg` is not differentiable by jax and :meth:`jax.scipy.sparse.linalg.cg` does not support functions using :meth:`jax.experimental.host_callback` explaining why an additional conjugate gradient function is implemented.
 
     Args:
         A: Function implementing linear operator :math:`A`, should be
