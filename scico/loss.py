@@ -328,12 +328,15 @@ class WeightedSquaredL2AbsLoss(Loss):
     Weighted squared :math:`\ell_2` with absolute value loss
 
     .. math::
-        \alpha \norm{\mb{y} - | A(\mb{x}) |}_W^2 =
-        \alpha \left(\mb{y} - | A(\mb{x} |)\right)^T W \left(\mb{y} -
+        \alpha \norm{\mb{y} - | A(\mb{x}) |\,}_W^2 =
+        \alpha \left(\mb{y} - | A(\mb{x}) |\right)^T W \left(\mb{y} -
         | A(\mb{x}) |\right) \;,
 
     where :math:`\alpha` is the scaling parameter and :math:`W` is an
     instance of :class:`scico.linop.Diagonal`.
+
+    Proximal operator :meth:`prox` is implemented when :math:`A` is an
+    instance of :class:`scico.linop.Identity`.
     """
 
     def __init__(
