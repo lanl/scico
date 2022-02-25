@@ -18,6 +18,7 @@ from jax.dtypes import result_type
 
 import scico.numpy as snp
 from scico._generic_operators import Operator
+from scico.array import is_nested
 from scico.typing import DType, JaxArray, Shape
 
 from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
@@ -234,6 +235,7 @@ class CircularConvolve(LinearOperator):
             h_is_dft=True,
         )
 
+    @staticmethod
     def from_operator(
         H: Operator, ndims: Optional[int] = None, center: Optional[Shape] = None, jit: bool = True
     ):
@@ -250,6 +252,13 @@ class CircularConvolve(LinearOperator):
               of H.input_shape, i.e., (n_1 // 2, n_2 // 2, ...).
             jit: If ``True``, jit the resulting `CircularConvolve`.
         """
+
+        if is_nested(H.input_shape):
+            raise ValueError(
+                f"H.input_shape ({H.input_shape}) suggests that H "
+                "takes a BlockArray as input, which is not supported "
+                "by this function."
+            )
 
         if ndims is None:
             ndims = len(H.input_shape)
