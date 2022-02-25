@@ -22,12 +22,12 @@ class ConvBNBlock(Module):
     """Define convolution and batch normalization Flax block.
 
     Args:
-        num_filters : number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
+        num_filters : Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
         conv : Flax module implementing the convolution layer to apply.
         norm : Flax module implementing the batch normalization layer to apply.
         act : Flax function defining the activation operation to apply.
-        kernel_size : a shape tuple defining the size of the convolution filters. Default: (3, 3).
-        strides : a shape tuple defining the size of strides in convolution. Default: (1, 1).
+        kernel_size : A shape tuple defining the size of the convolution filters. Default: (3, 3).
+        strides : A shape tuple defining the size of strides in convolution. Default: (1, 1).
     """
 
     num_filters: int
@@ -63,11 +63,11 @@ class ConvBlock(Module):
     """Define convolution Flax block.
 
     Args:
-        num_filters : number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
+        num_filters : Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
         conv : Flax module implementing the convolution layer to apply.
         act : Flax function defining the activation operation to apply.
-        kernel_size : a shape tuple defining the size of the convolution filters. Default: (3, 3).
-        strides : a shape tuple defining the size of strides in convolution. Default: (1, 1).
+        kernel_size : A shape tuple defining the size of the convolution filters. Default: (3, 3).
+        strides : A shape tuple defining the size of strides in convolution. Default: (1, 1).
     """
 
     num_filters: int
@@ -101,14 +101,14 @@ class ConvBNPoolBlock(Module):
     """Define convolution, batch normalization and pooling Flax block.
 
     Args:
-        num_filters : number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
+        num_filters : Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
         conv : Flax module implementing the convolution layer to apply.
         norm : Flax module implementing the batch normalization layer to apply.
         act : Flax function defining the activation operation to apply.
         pool : Flax function defining the pooling operation to apply.
-        kernel_size : a shape tuple defining the size of the convolution filters.
-        strides : a shape tuple defining the size of strides in convolution.
-        window_shape : a shape tuple defining the window to reduce over in the pooling operation.
+        kernel_size : A shape tuple defining the size of the convolution filters.
+        strides : A shape tuple defining the size of strides in convolution.
+        window_shape : A shape tuple defining the window to reduce over in the pooling operation.
     """
 
     num_filters: int
@@ -148,13 +148,13 @@ class ConvBNUpsampleBlock(Module):
     """Define convolution, batch normalization and upsample Flax block.
 
     Args:
-        num_filters : number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
+        num_filters : Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
         conv : Flax module implementing the convolution layer to apply.
         norm : Flax module implementing the batch normalization layer to apply.
         act : Flax function defining the activation operation to apply.
         upfn : Flax function defining the upsampling operation to apply.
-        kernel_size : a shape tuple defining the size of the convolution filters.
-        strides : a shape tuple defining the size of strides in convolution.
+        kernel_size : A shape tuple defining the size of the convolution filters.
+        strides : A shape tuple defining the size of strides in convolution.
     """
 
     num_filters: int
@@ -192,13 +192,13 @@ class ConvBNMultiBlock(Module):
     """Block constructed from sucessive applications of :class:`ConvBNBlock`.
 
     Args:
-        num_blocks : number of convolutional batch normalization blocks to apply. Each block has its own parameters for convolution and batch normalization.
-        num_filters : number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
+        num_blocks : Number of convolutional batch normalization blocks to apply. Each block has its own parameters for convolution and batch normalization.
+        num_filters : Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
         conv : Flax module implementing the convolution layer to apply.
         norm : Flax module implementing the batch normalization layer to apply.
         act : Flax function defining the activation operation to apply.
-        kernel_size : a shape tuple defining the size of the convolution filters. Default: (3, 3).
-        strides : a shape tuple defining the size of strides in convolution. Default: (1, 1).
+        kernel_size : A shape tuple defining the size of the convolution filters. Default: (3, 3).
+        strides : A shape tuple defining the size of strides in convolution. Default: (1, 1).
     """
 
     num_blocks: int
@@ -239,8 +239,9 @@ def upscale_nn(x: Array, scale: int = 2) -> Array:
     """Nearest neighbor upscale for image batches of shape (N, H, W, C).
 
     Args:
-        x: input tensor of shape (N, H, W, C).
-        scale: integer scaling factor.
+        x: Input tensor of shape (N, H, W, C).
+        scale: Integer scaling factor.
+        
     Returns:
         Output tensor of shape (N, H * scale, W * scale, C).
     """

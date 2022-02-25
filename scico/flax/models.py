@@ -37,7 +37,7 @@ class DnCNNNet(Module):
         num_filters: Number of filters in the convolutional layers.
         kernel_size: Size of the convolution filters. Default: (3, 3).
         strides: Convolution strides. Default: (1, 1).
-        dtype: Output dtype. Default: `jnp.float32`.
+        dtype: Output type. Default: `jnp.float32`.
         act: Class of activation function to apply. Default: `nn.relu`.
     """
 
@@ -59,7 +59,7 @@ class DnCNNNet(Module):
 
         Args:
             inputs: The nd-array to be transformed.
-            train: flag to differentiate between training and testing stages.
+            train: Flag to differentiate between training and testing stages.
 
         Returns:
             The denoised input.
@@ -108,13 +108,13 @@ class ResNet(Module):
     """Net constructed from sucessive applications of provided block and ending with residual connection (i.e. adding the input to the output of the block).
 
     Args:
-        depth : depth of residual net.
-        channels : number of channels of input tensor.
-        num_filters : number of filters in the layers of the block. Corresponds to the number of channels in the network processing.
-        kernel_size : size of the convolution filters. Default: 3x3.
-        strides : convolution strides. Default: 1x1.
-        block_cls : processing block to apply. Default: :class:`ConvBNBlock`.
-        dtype : class of data to handle. Default: `jnp.float32`.
+        depth : Depth of residual net.
+        channels : Number of channels of input tensor.
+        num_filters : Number of filters in the layers of the block. Corresponds to the number of channels in the network processing.
+        kernel_size : Size of the convolution filters. Default: 3x3.
+        strides : Convolution strides. Default: 1x1.
+        block_cls : Processing block to apply. Default: :class:`ConvBNBlock`.
+        dtype : Output type. Default: `jnp.float32`.
     """
 
     depth: int
@@ -131,7 +131,7 @@ class ResNet(Module):
 
         Args:
             x: The nd-array to be transformed.
-            train: flag to differentiate between training and testing stages.
+            train: Flag to differentiate between training and testing stages.
 
         Returns:
             The ResNet result.
@@ -179,15 +179,15 @@ class UNet(Module):
     """Flax implementation of UNet model.
 
     Args:
-        depth : depth of U-net.
-        channels : number of channels of input tensor.
-        num_filters : number of filters in the convolutional layer of the block. Corresponds to the number of channels in the network processing.
-        kernel_size : size of the convolution filters. Default: 3x3.
-        strides : convolution strides. Default: 1x1.
-        block_depth : number of processing layers per block. Default: 2.
-        window_shape : window for reduction for pooling and downsampling. Default: 2x2.
-        upsampling : factor for expanding. Default: 2.
-        dtype : class of data to handle. Default: `jnp.float32`.
+        depth : Depth of U-net.
+        channels : Number of channels of input tensor.
+        num_filters : Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the network processing.
+        kernel_size : Size of the convolution filters. Default: 3x3.
+        strides : Convolution strides. Default: 1x1.
+        block_depth : Number of processing layers per block. Default: 2.
+        window_shape : Window for reduction for pooling and downsampling. Default: 2x2.
+        upsampling : Factor for expanding. Default: 2.
+        dtype : Output type. Default: `jnp.float32`.
     """
 
     depth: int
@@ -206,7 +206,7 @@ class UNet(Module):
 
         Args:
             x: The nd-array to be transformed.
-            train: flag to differentiate between training and testing stages.
+            train: Flag to differentiate between training and testing stages.
 
         Returns:
             The UNet result.

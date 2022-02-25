@@ -31,13 +31,13 @@ class MoDLNet(Module):
     architecture for inverse problems described in :cite:`aggarwal-2019-modl`.
 
     Args:
-        operator : object for computing forward and adjoint mappings.
-        depth : depth of MoDL net. Default = 1.
-        channels : number of channels of input tensor.
-        num_filters : number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
-        block_depth : depth of blocks.
-        lmbda : initial value of lmbda in initial layer. Default: 0.5.
-        dtype : type of signal to process. Default: jnp.float32.
+        operator : Operator for computing forward and adjoint mappings.
+        depth : Depth of MoDL net. Default = 1.
+        channels : Number of channels of input tensor.
+        num_filters : Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
+        block_depth : Depth of blocks.
+        lmbda : Initial value of lmbda in initial layer. Default: 0.5.
+        dtype : Output type. Default: jnp.float32.
     """
     operator: ModuleDef
     depth: int
@@ -55,10 +55,10 @@ class MoDLNet(Module):
 
         Args:
             y: The nd-array with signal to invert.
-            train: flag to differentiate between training and testing stages.
+            train: Flag to differentiate between training and testing stages.
 
         Returns:
-            The inverted signal.
+            The reconstructed signal.
         """
 
         def alpha_init_wrap(rng, shape, dtype=self.dtype):

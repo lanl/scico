@@ -22,7 +22,7 @@ from .blocks import (
 from .models import DnCNNNet, ResNet, UNet
 
 from .train.input_pipeline import create_input_iter
-from .train.train import train_and_evaluate
+from .train.train import train_and_evaluate, compute_metrics
 
 __all__ = [
     "FlaxMap",
@@ -37,6 +37,7 @@ __all__ = [
     "ResNet",
     "UNet",
     "create_input_iter",
+    "compute_metrics",
     "train_and_evaluate",
 ]
 
