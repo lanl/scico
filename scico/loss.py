@@ -215,23 +215,23 @@ class WeightedSquaredL2Loss(Loss):
             ATWA = c * A.conj() * W * A
             return lhs / (ATWA + 1.0)
 
-        #   prox_{f}(v) = arg min  1/2 || v - x ||^2 + λ α || A x - y ||^2_W
+        #   prox_{f}(v) = arg min  1/2 || v - x ||_2^2 + λ 𝛼 || A x - y ||^2_W
         #                    x
         # solution at:
         #
-        #   (I + λ 2α A^T W A) x = v + λ 2α A^T W y
+        #   (I + λ 2𝛼 A^T W A) x = v + λ 2𝛼 A^T W y
         #
         W = self.W
         A = self.A
-        α = self.scale
+        𝛼 = self.scale
         y = self.y
         if "x0" in kwargs and kwargs["x0"] is not None:
             x0 = kwargs["x0"]
         else:
             x0 = snp.zeros_like(v)
-        hessian = self.hessian  # = (2α A^T W A)
+        hessian = self.hessian  # = (2𝛼 A^T W A)
         lhs = linop.Identity(v.shape) + lam * hessian
-        rhs = v + 2 * lam * α * A.adj(W(y))
+        rhs = v + 2 * lam * 𝛼 * A.adj(W(y))
         x, _ = cg(lhs, rhs, x0, **self.prox_kwargs)
         return x
 
