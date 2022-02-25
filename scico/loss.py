@@ -237,9 +237,9 @@ class WeightedSquaredL2Loss(Loss):
 
     @property
     def hessian(self) -> linop.LinearOperator:
-        r"""Compute the hessian of a linear operator.
+        r"""Compute the Hessian of linear operator `A`.
 
-        If ``self.A`` is a :class:`scico.linop.LinearOperator`, returns a
+        If `self.A` is a :class:`scico.linop.LinearOperator`, returns a
         :class:`scico.linop.LinearOperator` corresponding to  the Hessian
         :math:`2 \alpha \mathrm{A^H W A}`. Otherwise not implemented.
         """
@@ -254,8 +254,8 @@ class WeightedSquaredL2Loss(Loss):
             )
 
         raise NotImplementedError(
-            f"Hessian is not implemented for {type(self)} when `A` is {type(A)}; "
-            "must be LinearOperator"
+            f"Hessian is not implemented for {type(self)} when A is {type(A)}; "
+            "must be LinearOperator."
         )
 
 
@@ -275,7 +275,7 @@ class SquaredL2Loss(WeightedSquaredL2Loss):
         y: Union[JaxArray, BlockArray],
         A: Optional[Union[Callable, operator.Operator]] = None,
         scale: float = 0.5,
-        prox_kwargs: dict = {"maxiter": 1000, "tol": 1e-12},
+        prox_kwargs: dict = {"maxiter": 100, "tol": 1e-5},
     ):
         r"""
         Args:
@@ -308,7 +308,7 @@ class PoissonLoss(Loss):
         Args:
             y: Measurement.
             A: Forward operator. Defaults to ``None``, in which case
-                ``self.A`` is a :class:`.Identity`.
+                `self.A` is a :class:`.Identity`.
             scale: Scaling parameter. Default: 0.5.
         """
         y = ensure_on_device(y)
@@ -320,3 +320,72 @@ class PoissonLoss(Loss):
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         Ax = self.A(x)
         return self.scale * snp.sum(Ax - self.y * snp.log(Ax) + self.const)
+
+
+class WeightedSquaredL2AbsLoss(Loss):
+    r"""Weighted squared :math:`\ell_2` with absolute value loss.
+
+    Weighted squared :math:`\ell_2` with absolute value loss
+
+    .. math::
+        \alpha \norm{\mb{y} - | A(\mb{x}) |}_W^2 =
+        \alpha \left(\mb{y} - | A(\mb{x} |)\right)^T W \left(\mb{y} -
+        | A(\mb{x}) |\right) \;,
+
+    where :math:`\alpha` is the scaling parameter and :math:`W` is an
+    instance of :class:`scico.linop.Diagonal`.
+    """
+
+    def __init__(
+        self,
+        y: Union[JaxArray, BlockArray],
+        A: Optional[Union[Callable, operator.Operator]] = None,
+        scale: float = 0.5,
+        W: Optional[linop.Diagonal] = None,
+        prox_kwargs: dict = {"maxiter": 100, "tol": 1e-5},
+    ):
+
+        r"""
+        Args:
+            y: Measurement.
+            A: Forward operator. If ``None``, defaults to :class:`.Identity`.
+            scale: Scaling parameter.
+            W: Weighting diagonal operator. Must be non-negative.
+                If ``None``, defaults to :class:`.Identity`.
+        """
+        y = ensure_on_device(y)
+
+        if W is None:
+            self.W: Union[linop.Diagonal, linop.Identity] = linop.Identity(y.shape)
+        elif isinstance(W, linop.Diagonal):
+            if snp.all(W.diagonal >= 0):
+                self.W = W
+            else:
+                raise ValueError(f"The weights, W.diagonal, must be non-negative.")
+        else:
+            raise TypeError(f"W must be None or a linop.Diagonal, got {type(W)}.")
+
+        super().__init__(y=y, A=A, scale=scale)
+
+        if prox_kwargs is None:
+            prox_kwargs = dict
+        self.prox_kwargs = prox_kwargs
+
+        if isinstance(self.A, linop.Identity) and snp.all(y >= 0):
+            self.has_prox = True
+
+    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+        return self.scale * (self.W.diagonal * snp.abs(self.y - snp.abs(self.A(x))) ** 2).sum()
+
+    def prox(
+        self, v: Union[JaxArray, BlockArray], lam: float, **kwargs
+    ) -> Union[JaxArray, BlockArray]:
+        if not self.has_prox:
+            raise NotImplementedError(f"prox is not implemented.")
+
+        𝛼 = lam * 2.0 * self.scale * self.W.diagonal
+        y = self.y
+        r = snp.abs(v)
+        𝛽 = (𝛼 * y + r) / ((𝛼 + 1.0) * r)
+        x = 𝛽 * v
+        return x

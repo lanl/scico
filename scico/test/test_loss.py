@@ -129,3 +129,37 @@ class TestLoss:
         assert L.scale == 0.5  # hasn't changed
         assert cL.scale == self.scalar * L.scale
         assert cL(v) == self.scalar * L(v)
+
+    def test_weighted_squared_l2_abs(self):
+        L = loss.WeightedSquaredL2AbsLoss(y=self.y, A=self.Ao, W=self.W)
+        assert L.has_eval
+        assert not L.has_prox
+
+        # test eval
+        np.testing.assert_allclose(
+            L(self.v), 0.5 * (self.W @ (snp.abs(self.Ao @ self.v) - self.y) ** 2).sum()
+        )
+
+        cL = self.scalar * L
+        assert L.scale == 0.5  # hasn't changed
+        assert cL.scale == self.scalar * L.scale
+        assert cL(self.v) == self.scalar * L(self.v)
+
+        # Loss has a prox with Identity linop
+        y = snp.abs(self.y)
+        L_d = loss.WeightedSquaredL2AbsLoss(y=y, A=None, W=self.W)
+
+        assert L_d.has_eval
+        assert L_d.has_prox
+
+        # test eval
+        np.testing.assert_allclose(L_d(self.v), 0.5 * (self.W @ (snp.abs(self.v) - y) ** 2).sum())
+
+        cL = self.scalar * L_d
+        assert L_d.scale == 0.5  # hasn't changed
+        assert cL.scale == self.scalar * L_d.scale
+        assert cL(self.v) == self.scalar * L_d(self.v)
+
+        pf = prox_test(self.v, L_d, L_d.prox, 0.75)
+        with pytest.raises(NotImplementedError):
+            pf = prox_test(self.v, L, L.prox, 0.75)
