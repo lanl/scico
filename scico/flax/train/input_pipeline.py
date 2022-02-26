@@ -1,5 +1,10 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# Copyright (C) 2021-2022 by SCICO Developers
+# All rights reserved. BSD 3-clause License.
+# This file is part of the SCICO package. Details of the copyright and
+# user license can be found in the 'LICENSE' file distributed with the
+# package.
+
 """Generalized data handling for training script. Includes construction of data iterator and instantiation for parallel processing.
 """
 
@@ -39,9 +44,9 @@ class IterateData:
             key : A PRNGKey used as the random key.  Default: None.
         """
         self.dt = dt
+        self.batch_size = batch_size
         self.train = train
         self.n = dt["image"].shape[0]
-        self.batch_size = batch_size
         self.key = key
         if key is None:
             self.key = jax.random.PRNGKey(0)
@@ -49,7 +54,7 @@ class IterateData:
         self.reset()
 
     def reset(self):
-        """Re-shuffles data in training"""
+        """Re-shuffles data in training."""
         if self.train:
             self.key, subkey = jax.random.split(self.key)
             self.perms = jax.random.permutation(subkey, self.n)
@@ -66,8 +71,7 @@ class IterateData:
     def __next__(self):
         """Gets next batch. During training it
         reshuffles the batches when the data is
-        exhausted.
-        """
+        exhausted."""
         if self.ns >= self.steps_per_epoch:
             if self.train:
                 self.reset()
@@ -105,7 +109,7 @@ def create_input_iter(
         size_device_prefetch : Size of prefetch buffer. Default: 2.
         dtype : Type of data to handle. Default: `jnp.float32`.
         train : Flag indicating the type of iterator to construct and use.  The iterator for training permutes data on each epoch while the iterator for testing passes through the data without permuting it. Default: True.
-        
+
     Returns:
         array-like data sharded to specific devices coming from an iterator built from the provided dataset.
     """

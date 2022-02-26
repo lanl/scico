@@ -15,7 +15,13 @@ import jax.numpy as jnp
 
 from scico.typing import Array
 
-from scico.flax import ConvBNBlock, ConvBNMultiBlock, ConvBNPoolBlock, ConvBNUpsampleBlock, upscale_nn
+from scico.flax import (
+    ConvBNBlock,
+    ConvBNMultiBlock,
+    ConvBNPoolBlock,
+    ConvBNUpsampleBlock,
+    upscale_nn,
+)
 
 # The imports of Scope and _Sentinel (above)
 # are required to silence "cannot resolve forward reference"
@@ -232,13 +238,13 @@ class UNet(Module):
 
         # Definition and application of UNet.
         x = ConvBNMultiBlock(
-                self.block_depth,
-                self.num_filters,
-                conv=conv,
-                norm=norm,
-                act=act,
-                kernel_size=self.kernel_size,
-                strides=self.strides,
+            self.block_depth,
+            self.num_filters,
+            conv=conv,
+            norm=norm,
+            act=act,
+            kernel_size=self.kernel_size,
+            strides=self.strides,
         )(x)
         residual = []
         # going down

@@ -4,11 +4,12 @@ import numpy as np
 
 import jax
 from scico import random
-from scico.flax import create_input_iter, compute_metrics
+from scico import flax as sflax
 from scico.flax.train.input_pipeline import prepare_data
+from scico.flax.train.train import create_cnst_lr_schedule, create_cosine_lr_schedule, TrainState, compute_metrics
 
 
-class DatasetTest:
+class SetupTest:
     def __init__(self):
         datain = np.arange(80)
         datain_test = np.arange(80, 120)
@@ -17,23 +18,48 @@ class DatasetTest:
         dataout_test = np.zeros(40)
         dataout_test[:20] = 1
 
-        self.train_ds = {"image": datain, "label": dataout}
-        self.test_ds = {"image": datain_test, "label": dataout_test}
+        self.train_ds_simple = {"image": datain, "label": dataout}
+        self.test_ds_simple = {"image": datain_test, "label": dataout_test}
 
+        # More complex data structure
+        self.N = 128 # Signal size
+        self.chn = 1 # Number of channels
+        self.bsize = 16 # Batch size
+        self.x, key = random.randn((self.bsize, self.N, self.N, self.chn), seed=4321)
+
+        xt, key = random.randn((8, self.N, self.N, self.chn), key=key)
+
+        self.train_ds = {"image": self.x, "label": self.x}
+        self.test_ds = {"image": xt, "label": xt}
+
+        self.dconf: sflax.ConfigDict = {'seed': 0,
+             'depth': 2,
+             'num_filters': 16,
+             'block_depth': 2,
+             'opt_type': 'ADAM',
+             'momentum': 0.9,
+             'batch_size': 2,
+             'num_epochs': 2,
+             'base_learning_rate': 1e-3,
+             'warmup_epochs': 0,
+             'num_train_steps': -1,
+             'steps_per_eval': -1,
+             'steps_per_epoch': 1,
+             'log_every_steps': 1000
+            }
 
 @pytest.fixture(scope="module")
 def testobj():
-    yield DatasetTest()
-
+    yield SetupTest()
 
 @pytest.mark.parametrize("local_batch", [2, 4, 8])
-def test_dataset_train_iter(testobj, local_batch):
+def test_dstrain(testobj, local_batch):
 
     key = jax.random.PRNGKey(seed=1234)
 
-    train_iter = create_input_iter(
+    train_iter = sflax.create_input_iter(
         key,
-        testobj.train_ds,
+        testobj.train_ds_simple,
         local_batch,
     )
 
@@ -51,12 +77,12 @@ def test_dataset_train_iter(testobj, local_batch):
 
 
 @pytest.mark.parametrize("local_batch", [2, 4, 8])
-def test_dataset_test_iter(testobj, local_batch):
+def test_dstest(testobj, local_batch):
 
     key = jax.random.PRNGKey(seed=1234)
 
-    train_iter = create_input_iter(key,
-        testobj.test_ds,
+    train_iter = sflax.create_input_iter(key,
+        testobj.test_ds_simple,
         local_batch,
         train=False)
 
@@ -73,13 +99,16 @@ def test_dataset_test_iter(testobj, local_batch):
     np.testing.assert_allclose(ll_ar, np.arange(80, 120))
 
 
-def test_train_metrics():
-    N = 128 # Signal size
-    chn = 1 # Number of channels
-    bsize = 10 # Batch size
-    x, key = random.randn((bsize, N, N, chn), seed=1234)
+def test_prepare_data(testobj):
 
-    xbtch = prepare_data(x)
+    xbtch = prepare_data(testobj.x)
+    local_device_count = jax.local_device_count()
+    shrdsz = testobj.bsize // local_device_count
+    assert xbtch.shape == (local_device_count, shrdsz, testobj.N, testobj.N, testobj.chn)
+
+
+def test_train_metrics(testobj):
+    xbtch = prepare_data(testobj.x)
 
     xbtch = xbtch / jax.numpy.sqrt(jax.numpy.var(xbtch, axis=(1,2,3,4)))
     ybtch = xbtch + 1
@@ -87,5 +116,44 @@ def test_train_metrics():
     p_eval = jax.pmap(compute_metrics, axis_name='batch')
     mtrcs = p_eval(ybtch, xbtch)
     assert np.abs(mtrcs['loss']) < 0.51
-    assert mtrcs['snr'] < 1e-6
+    assert mtrcs['snr'] < 5e-6
+
+
+def test_cnst_learning_rate(testobj):
+    step = 1
+    cnst_sch = create_cnst_lr_schedule(testobj.dconf)
+    lr = cnst_sch(step)
+    assert lr == testobj.dconf['base_learning_rate']
+
+def test_cos_learning_rate(testobj):
+    step = 1
+    sch = create_cosine_lr_schedule(testobj.dconf)
+    lr = sch(step)
+    decay_steps = testobj.dconf['num_epochs'] - testobj.dconf['warmup_epochs']
+    cosine_decay = 0.5 * (1 + np.cos(np.pi * step / decay_steps))
+    np.testing.assert_allclose(lr, testobj.dconf['base_learning_rate'] * cosine_decay, rtol=1e-06)
+
+
+@pytest.mark.parametrize("model_cls", [sflax.DnCNNNet, sflax.ResNet, sflax.UNet])
+def test_dataset_test_iter(testobj, model_cls):
+    depth = testobj.dconf['depth']
+    model = model_cls(depth, testobj.chn,
+        testobj.dconf['num_filters']
+    )
+    if isinstance(model, sflax.DnCNNNet):
+        depth = 3
+        model = sflax.DnCNNNet(depth, testobj.chn,
+            testobj.dconf['num_filters']
+        )
+    try:
+        state = sflax.train_and_evaluate(
+            testobj.dconf,
+            './',
+            model,
+            testobj.train_ds,
+            testobj.test_ds,
+        )
+    except Exception as e:
+        print(e)
+        assert 0
 

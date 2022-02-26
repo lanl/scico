@@ -5,38 +5,60 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Utilities for training Flax models."""
+"""Utilities for training Flax models.
 
+Assummes sharded batched data and parallel training.
+"""
 
-from typing import Any, TypedDict
+import os
+import functools
+import logging
+import time
+from typing import Any, Callable, List, TypedDict, Union
+import jax
 import jax.numpy as jnp
 from jax import lax
 import optax
 
+from flax.training import train_state
+from flax.training import checkpoints
+from flax.training import common_utils
+from flax import jax_utils
+
 from scico.typing import Array
 from scico.metric import snr
+from scico.flax import create_input_iter
+from scico.flax.train.input_pipeline import DataSetDict
+
+ModuleDef = Any
+KeyArray = Union[Array, jax._src.prng.PRNGKeyArray]
+
 
 class ConfigDict(TypedDict):
     """Definition of the dictionary structure
     expected for the data sets for training."""
 
     seed: float
-    model: str
     depth: int
     num_filters: int
     block_depth: int
-    spectraln: bool
     opt_type: str
-    lr: float
     momentum: float
     batch_size: int
     num_epochs: int
+    base_learning_rate: float
+    warmup_epochs: int
+    num_train_steps: int
+    steps_per_eval: int
+    log_every_steps: int
+    steps_per_epoch: int
+
 
 # Loss Function
 def mse_loss(output: Array, labels: Array) -> float:
     """
     Compute Mean Squared Error (MSE) loss for training
-    via optax.
+    via Optax.
 
     Args:
         output : Comparison signal.
@@ -50,7 +72,7 @@ def mse_loss(output: Array, labels: Array) -> float:
 
 
 def compute_metrics(output: Array, labels: Array):
-    """Compute diagnostic metrics.
+    """Compute diagnostic metrics. Assummes sharded batched data (i.e. it only works inside pmap because it needs an axis name).
 
     Args:
         output : Comparison signal.
@@ -58,19 +80,394 @@ def compute_metrics(output: Array, labels: Array):
 
     Returns:
         MSE and SNR between `output` and `labels`.
-        Assummes batched data.
     """
     loss = mse_loss(output, labels)
     snr_ = snr(labels, output)
     metrics = {
-        'loss': loss,
-        'snr': snr_,
+        "loss": loss,
+        "snr": snr_,
     }
-    metrics = lax.pmean(metrics, axis_name='batch')
+    metrics = lax.pmean(metrics, axis_name="batch")
     return metrics
 
 
+# Learning rate
+def create_cnst_lr_schedule(config: ConfigDict) -> optax._src.base.Schedule:
+    """Create learning rate to be a constant specified
+    value.
 
-def train_and_evaluate(config: ConfigDict):
-    """Execute model training and evaluation loop."""
-    return 0
+    Args:
+        config : Dictionary of configuration. The value
+           to use corresponds to the `base_learning_rate`
+           keyword.
+
+    Returns:
+        schedule: A function that maps step counts to values.
+    """
+    schedule = optax.constant_schedule(config["base_learning_rate"])
+    return schedule
+
+
+def create_cosine_lr_schedule(config: ConfigDict) -> optax._src.base.Schedule:
+    """Create learning rate to follow a pre-specified
+    schedule with warmup and cosine stages.
+
+    Args:
+        config : Dictionary of configuration. The parameters
+           to use correspond to keywords: `base_learning_rate`,
+           `num_epochs`, `warmup_epochs` and `steps_per_epoch`.
+
+    Returns:
+        schedule: A function that maps step counts to values.
+    """
+    # Warmup stage
+    warmup_fn = optax.linear_schedule(
+        init_value=0.0,
+        end_value=config["base_learning_rate"],
+        transition_steps=config["warmup_epochs"] * config["steps_per_epoch"],
+    )
+    # Cosine stage
+    cosine_epochs = max(config["num_epochs"] - config["warmup_epochs"], 1)
+    cosine_fn = optax.cosine_decay_schedule(
+        init_value=config["base_learning_rate"],
+        decay_steps=cosine_epochs * config["steps_per_epoch"],
+    )
+
+    schedule = optax.join_schedules(
+        schedules=[warmup_fn, cosine_fn],
+        boundaries=[config["warmup_epochs"] * config["steps_per_epoch"]],
+    )
+
+    return schedule
+
+
+def initialized(key: KeyArray, model: ModuleDef, image_size: int, size_device_prefetch: int):
+    """Initialize Flax model.
+
+    Args:
+        key : A PRNGKey used as the random key.
+        model : Flax model to train.
+        image_size : Size of signal (image) to process by `model`.
+        size_device_prefetch : Size of prefetch buffer.
+
+    Returns:
+        Initial model parameters (including `batch_stats`).
+    """
+    input_shape = (size_device_prefetch, image_size, image_size, model.channels)
+
+    @jax.jit
+    def init(*args):
+        return model.init(*args)
+
+    variables = init({"params": key}, jnp.ones(input_shape, model.dtype))
+    return variables["params"], variables["batch_stats"]
+
+
+# Flax Train State
+class TrainState(train_state.TrainState):
+    """Definition of Flax train state including
+    `batch_stats` for batch normalization."""
+
+    batch_stats: Any
+
+
+def create_train_state(
+    key: KeyArray,
+    config: ConfigDict,
+    model: ModuleDef,
+    image_size: int,
+    size_device_prefetch: int,
+    learning_rate_fn: optax._src.base.Schedule,
+) -> TrainState:
+    """Create initial training state.
+
+    Args:
+        key : A PRNGKey used as the random key.
+        config : Dictionary of configuration. The values
+           to use correspond to keywords: `opt_type`
+           and `momentum`.
+        model : Flax model to train.
+        image_size : Size of signal (image) to process by `model`.
+        size_device_prefetch : Size of prefetch buffer.
+        learning_rate_fn: A function that maps step
+           counts to values.
+
+    Returns:
+        state : Flax train state which includes the
+           model apply function, the model parameters
+           and an Optax optimizer.
+    """
+    params, batch_stats = initialized(key, model, image_size, size_device_prefetch)
+
+    if config["opt_type"] == "SGD":
+        # Stochastic Gradient Descent optimiser
+        tx = optax.sgd(learning_rate=learning_rate_fn, momentum=config["momentum"], nesterov=True)
+    elif config["opt_type"] == "ADAM":
+        # Adam optimiser
+        tx = optax.adam(
+            learning_rate=learning_rate_fn,
+        )
+    elif config["opt_type"] == "ADAMW":
+        # Adam with weight decay regularization
+        tx = optax.adamw(
+            learning_rate=learning_rate_fn,
+        )
+
+    state = TrainState.create(
+        apply_fn=model.apply,
+        params=params,
+        tx=tx,
+        batch_stats=batch_stats,
+    )
+
+    return state
+
+
+# Flax checkpoints
+def restore_checkpoint(state: TrainState, workdir: Union[str, os.PathLike]) -> TrainState:
+    """Load model and optimiser state.
+
+    Args:
+        state : Flax train state which includes model and optimiser parameters.
+        workdir : checkpoint file or directory of checkpoints to restore from.
+
+    Returns:
+        Restored `state` updated from checkpoint file,
+        or if no checkpoint files present, returns the
+        passed-in `state` unchanged.
+    """
+    return checkpoints.restore_checkpoint(workdir, state)
+
+
+def save_checkpoint(state: TrainState, workdir: Union[str, os.PathLike]):
+    """Store model and optimiser state.
+
+    Args:
+        state : Flax train state which includes model and optimiser parameters.
+        workdir : str or pathlib-like path to store checkpoint files in.
+    """
+    if jax.process_index() == 0:
+        # get train state from first replica
+        state = jax.device_get(jax.tree_map(lambda x: x[0], state))
+        step = int(state.step)
+        checkpoints.save_checkpoint(workdir, state, step, keep=3)
+
+
+def train_step(state: TrainState, batch: DataSetDict, learning_rate_fn: optax._src.base.Schedule):
+    """Perform a single training step. Assummes sharded batched data.
+
+    Args:
+        state : Flax train state which includes the
+           model apply function, the model parameters
+           and an Optax optimizer.
+        batch : Sharded and batched training data.
+        learning_rate_fn: A function that maps step
+           counts to values.
+
+    Returns:
+        Updated parameters and diagnostic statistics.
+    """
+
+    def loss_fn(params):
+        """Loss function used for training."""
+        output, new_model_state = state.apply_fn(
+            {
+                "params": params,
+                "batch_stats": state.batch_stats,
+            },
+            batch["image"],
+            mutable=["batch_stats"],
+        )
+        loss = mse_loss(output, batch["label"])
+        return loss, (new_model_state, output)
+
+    step = state.step
+    lr = learning_rate_fn(step)
+
+    grad_fn = jax.value_and_grad(loss_fn, has_aux=True)
+    aux, grads = grad_fn(state.params)
+    # Re-use same axis_name as in call to pmap
+    grads = lax.pmean(grads, axis_name="batch")
+    new_model_state, output = aux[1]
+    metrics = compute_metrics(output, batch["label"])
+    metrics["learning_rate"] = lr
+
+    # Update params and stats
+    new_state = state.apply_gradients(
+        grads=grads,
+        batch_stats=new_model_state["batch_stats"],
+    )
+
+    return new_state, metrics
+
+
+def eval_step(state: TrainState, batch: DataSetDict):
+    """Evaluate current model state. Assummes sharded
+    batched data.
+
+    Args:
+        state : Flax train state which includes the
+           model apply function and the model parameters.
+        batch : Sharded and batched training data.
+
+    Returns:
+        Current diagnostic statistics.
+    """
+    variables = {
+        "params": state.params,
+        "batch_stats": state.batch_stats,
+    }
+    output = state.apply_fn(variables, batch["image"], train=False, mutable=False)
+    return compute_metrics(output, batch["label"])
+
+
+# sync across replicas
+def sync_batch_stats(state):
+    """Sync the batch statistics across replicas."""
+    # Each devide has its own version of the running average batch
+    # statistics and those are synced before evaluation
+    return state.replace(batch_stats=cross_replica_mean(state.batch_stats))
+
+
+# pmean only works inside pmap because it needs an axis name.
+# This function will average the inputs across all devices.
+cross_replica_mean = jax.pmap(lambda x: lax.pmean(x, "x"), "x")
+
+
+def train_and_evaluate(
+    config: ConfigDict,
+    workdir: str,
+    model: ModuleDef,
+    train_ds: DataSetDict,
+    test_ds: DataSetDict,
+    create_lr_schedule: Callable = create_cnst_lr_schedule,
+    training_step_fn: Callable = train_step,
+    checkpointing: bool = False,
+    log: bool = False,
+) -> TrainState:
+    """Execute model training and evaluation loop.
+
+    Args:
+        config: Hyperparameter configuration.
+        workdir: Directory to write tensorboard summaries.
+        model : Flax model to train.
+        train_ds : Dictionary of training data (includes images and labels).
+        test_ds : Dictionary of testing data (includes images and labels).
+        create_lr_schedule: A function that creates an Optax learning rate schedule. Default: :meth:`create_cnst_schedule`.
+        training_step_fn: A function that executes a training step. Default: :meth:`training_step`.
+        checkpointing: A flag for checkpointing model state. Default: False.
+        log: A flag for logging. Default: False.
+
+    Returns:
+        Final TrainState.
+    """
+
+    # Configure seed.
+    key = jax.random.PRNGKey(config["seed"])
+    # Split seed for data iterators and model initialization
+    key1, key2 = jax.random.split(key)
+
+    # Determine sharded vs. batch partition
+    if config["batch_size"] % jax.device_count() > 0:
+        raise ValueError("Batch size must be divisible by the number of devices")
+    local_batch_size = config["batch_size"] // jax.process_count()
+    size_device_prefetch = 2  # Set for GPU
+
+    # Determine monitoring steps
+    steps_per_epoch = train_ds["image"].shape[0] // config["batch_size"]
+    config["steps_per_epoch"] = steps_per_epoch  # needed for creating lr schedule
+    if config["num_train_steps"] == -1:
+        num_steps = int(steps_per_epoch * config["num_epochs"])
+    else:
+        num_steps = config["num_train_steps"]
+    num_validation_examples = test_ds["image"].shape[0]
+    if config["steps_per_eval"] == -1:
+        steps_per_eval = num_validation_examples // config["batch_size"]
+    else:
+        steps_per_eval = config["steps_per_eval"]
+    steps_per_checkpoint = steps_per_epoch * 10
+
+    # Construct data iterators
+    train_dt_iter = create_input_iter(
+        key1,
+        train_ds,
+        local_batch_size,
+        size_device_prefetch,
+        model.dtype,
+        train=True,
+    )
+    eval_dt_iter = create_input_iter(
+        key1,  # eval: no permutation
+        test_ds,
+        local_batch_size,
+        size_device_prefetch,
+        model.dtype,
+        train=False,
+    )
+
+    # Create Flax training state
+    image_size = train_ds["label"].shape[1]
+    lr_schedule = create_lr_schedule(config)
+    state = create_train_state(key2, config, model, image_size, size_device_prefetch, lr_schedule)
+    if checkpointing:
+        state = restore_checkpoint(state, workdir)
+    step_offset = int(state.step)  # > 0 if restarting from checkpoint
+
+    # For parallel training
+    state = jax_utils.replicate(state)
+    p_train_step = jax.pmap(
+        functools.partial(training_step_fn, learning_rate_fn=lr_schedule), axis_name="batch"
+    )
+    p_eval_step = jax.pmap(eval_step, axis_name="batch")
+
+    # Execute training loop and register stats
+    train_metrics: List[Any] = []
+    train_metrics_last_t = time.time()
+    if log:
+        logging.info("Initial compilation, this might take some minutes...")
+
+    for step, batch in zip(range(step_offset, num_steps), train_dt_iter):
+        state, metrics = p_train_step(state, batch)
+        if step == step_offset and log:
+            logging.info("Initial compilation completed.")
+
+        if config["log_every_steps"]:
+            train_metrics.append(metrics)
+            if (step + 1) % config["log_every_steps"] == 0:
+                train_metrics = common_utils.get_metrics(train_metrics)
+                summary = {
+                    f"train_{k}": v
+                    for k, v in jax.tree_map(lambda x: x.mean(), train_metrics).items()
+                }
+                # summary['steps_per_second'] = config['log_every_steps'] / (
+                # time.time() - train_metrics_last_t)
+                # writer.write_scalars(step + 1, summary)
+                train_metrics = []
+                train_metrics_last_t = time.time()
+
+        if (step + 1) % steps_per_epoch == 0:
+            epoch = step // steps_per_epoch
+            eval_metrics = []
+
+            # sync batch statistics across replicas
+            state = sync_batch_stats(state)
+            for _ in range(steps_per_eval):
+                eval_batch = next(eval_dt_iter)
+                metrics = p_eval_step(state, eval_batch)
+                eval_metrics.append(metrics)
+            eval_metrics = common_utils.get_metrics(eval_metrics)
+            if log:
+                summary = jax.tree_map(lambda x: x.mean(), eval_metrics)
+                logging.info(
+                    "eval epoch: %d, loss: %.4f, snr: %.2f", epoch, summary["loss"], summary["snr"]
+                )
+            # writer.write_scalars(
+            #    step + 1, {f'eval_{key}': val for key, val in summary.items()})
+            # writer.flush()
+        if checkpointing and ((step + 1) % steps_per_checkpoint == 0 or step + 1 == num_steps):
+            state = sync_batch_stats(state)
+            save_checkpoint(state, workdir)
+
+    jax.random.normal(jax.random.PRNGKey(0), ()).block_until_ready()
+
+    return state

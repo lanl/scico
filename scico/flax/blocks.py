@@ -241,7 +241,7 @@ def upscale_nn(x: Array, scale: int = 2) -> Array:
     Args:
         x: Input tensor of shape (N, H, W, C).
         scale: Integer scaling factor.
-        
+
     Returns:
         Output tensor of shape (N, H * scale, W * scale, C).
     """
