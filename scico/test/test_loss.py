@@ -161,8 +161,12 @@ class TestLoss:
         assert cL.scale == self.scalar * L_d.scale
         assert cL(self.v) == self.scalar * L_d(self.v)
 
+        pf = prox_test(self.v, L_d, L_d.prox, 0.5)  # real v
         v, key = randn(y.shape, key=self.key, dtype=np.complex128)
-        pf = prox_test(self.v, L_d, L_d.prox, 0.75)
-        pf = prox_test(v, L_d, L_d.prox, 0.75)
+        pf = prox_test(v, L_d, L_d.prox, 2.0)  # complex v
+        pf = prox_test((1 + 1j) * snp.zeros(self.v.shape), L_d, L_d.prox, 0.0)  # complex zero v
+        pf = prox_test((1 + 1j) * snp.zeros(self.v.shape), L_d, L_d.prox, 1.0)  # complex zero v
+        pf = prox_test((1 + 1j) * snp.zeros(self.v.shape), L_d, L_d.prox, 2.0)  # complex zero v
+
         with pytest.raises(NotImplementedError):
             pf = prox_test(self.v, L, L.prox, 0.75)

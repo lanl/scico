@@ -389,6 +389,6 @@ class WeightedSquaredL2AbsLoss(Loss):
         𝛼 = lam * 2.0 * self.scale * self.W.diagonal
         y = self.y
         r = snp.abs(v)
-        𝛽 = (𝛼 * y + r) / ((𝛼 + 1.0) * r)
-        x = 𝛽 * v
+        𝛽 = (𝛼 * y + r) / (𝛼 + 1.0)
+        x = snp.where(r > 0, (𝛽 / r) * v, 𝛽)
         return x
