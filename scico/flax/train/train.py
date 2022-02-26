@@ -439,9 +439,6 @@ def train_and_evaluate(
                     f"train_{k}": v
                     for k, v in jax.tree_map(lambda x: x.mean(), train_metrics).items()
                 }
-                # summary['steps_per_second'] = config['log_every_steps'] / (
-                # time.time() - train_metrics_last_t)
-                # writer.write_scalars(step + 1, summary)
                 train_metrics = []
                 train_metrics_last_t = time.time()
 
@@ -461,12 +458,10 @@ def train_and_evaluate(
                 logging.info(
                     "eval epoch: %d, loss: %.4f, snr: %.2f", epoch, summary["loss"], summary["snr"]
                 )
-            # writer.write_scalars(
-            #    step + 1, {f'eval_{key}': val for key, val in summary.items()})
-            # writer.flush()
-        if checkpointing and ((step + 1) % steps_per_checkpoint == 0 or step + 1 == num_steps):
+        if (step + 1) % steps_per_checkpoint == 0 or step + 1 == num_steps:
             state = sync_batch_stats(state)
-            save_checkpoint(state, workdir)
+            if checkpointing:
+                save_checkpoint(state, workdir)
 
     jax.random.normal(jax.random.PRNGKey(0), ()).block_until_ready()
 
