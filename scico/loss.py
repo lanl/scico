@@ -15,7 +15,7 @@ from typing import Callable, Optional, Union
 
 import scico.numpy as snp
 from scico import functional, linop, operator
-from scico.array import ensure_on_device
+from scico.array import ensure_on_device, no_nan_divide
 from scico.blockarray import BlockArray
 from scico.scipy.special import gammaln
 from scico.solver import cg
@@ -336,7 +336,9 @@ class WeightedSquaredL2AbsLoss(Loss):
     instance of :class:`scico.linop.Diagonal`.
 
     Proximal operator :meth:`prox` is implemented when :math:`A` is an
-    instance of :class:`scico.linop.Identity`.
+    instance of :class:`scico.linop.Identity`. This is not proximal
+    operator according to the strict definition since the loss function
+    is non-convex (Sec. 3) :cite:`soulez-2016-proximity`.
     """
 
     def __init__(
@@ -391,4 +393,126 @@ class WeightedSquaredL2AbsLoss(Loss):
         r = snp.abs(v)
         𝛽 = (𝛼 * y + r) / (𝛼 + 1.0)
         x = snp.where(r > 0, (𝛽 / r) * v, 𝛽)
+        return x
+
+
+def cbrt(x):
+    """Compute the cube root of the argument.
+
+    The two standard options for computing the cube root of an array are
+    :func:`numpy.cbrt`, or raising to the power of (1/3), i.e. `x ** (1/3)`.
+    The former cannot be used for complex values, and the latter returns
+    a complex root of a negative real value. This functions can be used
+    for both real and complex values, and returns the real root of
+    negative real values.
+
+    Args:
+        x: Input array
+
+    Returns:
+        Array of cube roots of input `x`.
+    """
+    s = snp.where(snp.abs(snp.angle(x)) <= 3 * snp.pi / 4, 1, -1)
+    return s * (s * x) ** (1 / 3)
+
+
+def dep_cubic_root(p, q):
+    r"""Compute the positive real root of a depressed cubic equation.
+
+    A depressed cubic equation is one that can be written in the form
+
+    .. math::
+       x^3 + px + q \;.
+
+    This function finds the positive real root of such an equation via
+    `Cardano's method <https://en.wikipedia.org/wiki/Cubic_equation#Cardano's_formula>`__,
+    for `p` and `q` such that there is a single positive real root
+    (see Sec. 3.C of :cite:`soulez-2016-proximity`).
+    """
+    q2 = q / 2
+    Δ = q2 ** 2 + (p / 3) ** 3
+    Δrt = snp.sqrt(Δ + 0j)
+    u3, v3 = -q2 + Δrt, -q2 - Δrt
+    u, v = cbrt(u3), cbrt(v3)
+    r = (u + v).real
+    assert snp.allclose(snp.abs(r ** 3 + p * r + q), 0)
+    return r
+
+
+class WeightedSquaredL2AbsSquaredLoss(Loss):
+    r"""Weighted squared :math:`\ell_2` with squared absolute value loss.
+
+    Weighted squared :math:`\ell_2` with squared absolute value loss
+
+    .. math::
+        \alpha \norm{\mb{y} - | A(\mb{x}) |^2 \,}_W^2 =
+        \alpha \left(\mb{y} - | A(\mb{x}) |^2 \right)^T W \left(\mb{y} -
+        | A(\mb{x}) |^2 \right) \;,
+
+    where :math:`\alpha` is the scaling parameter and :math:`W` is an
+    instance of :class:`scico.linop.Diagonal`.
+
+    Proximal operator :meth:`prox` is implemented when :math:`A` is an
+    instance of :class:`scico.linop.Identity`. This is not proximal
+    operator according to the strict definition since the loss function
+    is non-convex (Sec. 3) :cite:`soulez-2016-proximity`.
+    """
+
+    def __init__(
+        self,
+        y: Union[JaxArray, BlockArray],
+        A: Optional[Union[Callable, operator.Operator]] = None,
+        scale: float = 0.5,
+        W: Optional[linop.Diagonal] = None,
+        prox_kwargs: dict = {"maxiter": 100, "tol": 1e-5},
+    ):
+
+        r"""
+        Args:
+            y: Measurement.
+            A: Forward operator. If ``None``, defaults to :class:`.Identity`.
+            scale: Scaling parameter.
+            W: Weighting diagonal operator. Must be non-negative.
+                If ``None``, defaults to :class:`.Identity`.
+        """
+        y = ensure_on_device(y)
+
+        if W is None:
+            self.W: Union[linop.Diagonal, linop.Identity] = linop.Identity(y.shape)
+        elif isinstance(W, linop.Diagonal):
+            if snp.all(W.diagonal >= 0):
+                self.W = W
+            else:
+                raise ValueError(f"The weights, W.diagonal, must be non-negative.")
+        else:
+            raise TypeError(f"W must be None or a linop.Diagonal, got {type(W)}.")
+
+        super().__init__(y=y, A=A, scale=scale)
+
+        if prox_kwargs is None:
+            prox_kwargs = dict
+        self.prox_kwargs = prox_kwargs
+
+        if isinstance(self.A, linop.Identity) and snp.all(y >= 0):
+            self.has_prox = True
+
+    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+        return self.scale * (self.W.diagonal * snp.abs(self.y - snp.abs(self.A(x)) ** 2) ** 2).sum()
+
+    def prox(
+        self, v: Union[JaxArray, BlockArray], lam: float, **kwargs
+    ) -> Union[JaxArray, BlockArray]:
+        if not self.has_prox:
+            raise NotImplementedError(f"prox is not implemented.")
+
+        𝛼 = lam * 4.0 * self.scale * self.W.diagonal
+        𝛽 = snp.abs(v)
+        p = no_nan_divide(1.0 - 𝛼 * self.y, 𝛼)
+        q = no_nan_divide(-𝛽, 𝛼)
+        # r = snp.where(𝛼 > 0, dep_cubic_root(p, q), 𝛽)
+        r = dep_cubic_root(p, q)
+        φ = snp.where(𝛽 > 0, v / snp.abs(v), 1.0)
+        # x = r * φ
+        x = snp.where(𝛼 > 0, r * φ, v)
+        print("v", v, "y", self.y, "𝛼", 𝛼, "𝛽", 𝛽, "p", p, "q", q, "r", r, "φ", φ, "x", x)
         return x
