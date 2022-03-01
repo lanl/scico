@@ -28,9 +28,12 @@ from scico.metric import snr
 """
 Prepare parallel processing. If GPU not available set an arbitrary processor count.
 """
-# TODO: Check for GPU first
-import os
-os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=4"
+from jax.lib import xla_bridge
+platform = xla_bridge.get_backend().platform
+print('Platform: ', platform)
+if platform == 'cpu':
+    import os
+    os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=4"
 
 """
 Generate training and testing data.
@@ -185,12 +188,11 @@ time_eval = time() - start_time
 """
 Compare trained model in terms of reconstruction time and data fidelity.
 """
+snr_eval = snr(test_ds['label'], output)
 print(
-    f"{'UNet':5s}{epochs:>5d}{time_train:>15.2f}"
+        f"{'UNet':8s}{'epochs:':2s}{epochs:>5d}{'':3s}{'time[s]:':2s}{time_train:>5.2f}{'':3s}{'SNR:':2s}{snr_eval:>5.2f}{' dB'}"
 )
 
-snr_eval = snr(test_ds['label'], output)
-print(f"{'SNR': 5s}{snr_eval:5.2f}")
 
 # Plot comparison
 plot_args = dict(norm=plot.matplotlib.colors.Normalize(vmin=0, vmax=1.))
