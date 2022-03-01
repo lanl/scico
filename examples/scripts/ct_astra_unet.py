@@ -8,7 +8,7 @@ r"""
 CT with UNet for Denoising of FBP
 =================================
 
-This example demonstrates the use of a UNet to denoise previously filtered back projections for CT reconstruction.
+This example demonstrates the training and application of a UNet to denoise previously filtered back projections for CT reconstruction.
 """
 
 from time import time
