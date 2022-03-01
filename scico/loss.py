@@ -396,7 +396,7 @@ class WeightedSquaredL2AbsLoss(Loss):
         return x
 
 
-def cbrt(x):
+def _cbrt(x):
     """Compute the cube root of the argument.
 
     The two standard options for computing the cube root of an array are
@@ -416,7 +416,7 @@ def cbrt(x):
     return s * (s * x) ** (1 / 3)
 
 
-def dep_cubic_root(p, q):
+def _dep_cubic_root(p, q):
     r"""Compute the positive real root of a depressed cubic equation.
 
     A depressed cubic equation is one that can be written in the form
@@ -509,10 +509,7 @@ class WeightedSquaredL2AbsSquaredLoss(Loss):
         𝛽 = snp.abs(v)
         p = no_nan_divide(1.0 - 𝛼 * self.y, 𝛼)
         q = no_nan_divide(-𝛽, 𝛼)
-        # r = snp.where(𝛼 > 0, dep_cubic_root(p, q), 𝛽)
-        r = dep_cubic_root(p, q)
+        r = _dep_cubic_root(p, q)
         φ = snp.where(𝛽 > 0, v / snp.abs(v), 1.0)
-        # x = r * φ
         x = snp.where(𝛼 > 0, r * φ, v)
-        print("v", v, "y", self.y, "𝛼", 𝛼, "𝛽", 𝛽, "p", p, "q", q, "r", r, "φ", φ, "x", x)
         return x
