@@ -455,9 +455,9 @@ def train_and_evaluate(
                     % (
                         step,
                         steps_per_second,
-                        summary["learning_rate"],
-                        summary["loss"],
-                        summary["snr"],
+                        summary["train_learning_rate"],
+                        summary["train_loss"],
+                        summary["train_snr"],
                     )
                 )
                 train_metrics = []
