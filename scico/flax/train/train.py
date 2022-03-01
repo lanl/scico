@@ -10,9 +10,8 @@
 Assummes sharded batched data and parallel training.
 """
 
-import os
+import os, sys
 import functools
-import logging
 import time
 from typing import Any, Callable, List, TypedDict, Union
 import jax
@@ -20,6 +19,7 @@ import jax.numpy as jnp
 from jax import lax
 import optax
 
+#from absl import logging
 from flax.training import train_state
 from flax.training import checkpoints
 from flax.training import common_utils
@@ -32,6 +32,7 @@ from scico.flax.train.input_pipeline import DataSetDict
 
 ModuleDef = Any
 KeyArray = Union[Array, jax._src.prng.PRNGKeyArray]
+PyTree = Any
 
 
 class ConfigDict(TypedDict):
@@ -361,6 +362,12 @@ def train_and_evaluate(
     Returns:
         Final TrainState.
     """
+    if log:
+        #logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+        #logging.addHandler(logging.StreamHandler(sys.stdout))
+        #logging.StreamHandler(sys.stdout)
+        #logging.info("Channels: %d, training signals: %d, testing signals: %d, signal size: %d", train_ds['label'].shape[-1], train_ds['label'].shape[0], test_ds['label'].shape[0], train_ds['label'].shape[1])
+        print("Channels: %d, training signals: %d, testing signals: %d, signal size: %d" % ( train_ds['label'].shape[-1], train_ds['label'].shape[0], test_ds['label'].shape[0], train_ds['label'].shape[1]))
 
     # Configure seed.
     key = jax.random.PRNGKey(config["seed"])
@@ -424,12 +431,14 @@ def train_and_evaluate(
     train_metrics: List[Any] = []
     train_metrics_last_t = time.time()
     if log:
-        logging.info("Initial compilation, this might take some minutes...")
+        #logging.info("Initial compilation, this might take some minutes...")
+        print("Initial compilation, this might take some minutes...")
 
     for step, batch in zip(range(step_offset, num_steps), train_dt_iter):
         state, metrics = p_train_step(state, batch)
         if step == step_offset and log:
-            logging.info("Initial compilation completed.")
+            #logging.info("Initial compilation completed.")
+            print("Initial compilation completed.")
 
         if config["log_every_steps"]:
             train_metrics.append(metrics)
@@ -455,8 +464,11 @@ def train_and_evaluate(
             eval_metrics = common_utils.get_metrics(eval_metrics)
             if log:
                 summary = jax.tree_map(lambda x: x.mean(), eval_metrics)
-                logging.info(
-                    "eval epoch: %d, loss: %.4f, snr: %.2f", epoch, summary["loss"], summary["snr"]
+                #logging.info(
+                #    "eval epoch: %d, loss: %.4f, snr: %.2f", epoch, summary["loss"], summary["snr"]
+                #)
+                print(
+                    "eval epoch: %d, loss: %.4f, snr: %.2f" % (epoch, summary["loss"], summary["snr"])
                 )
         if (step + 1) % steps_per_checkpoint == 0 or step + 1 == num_steps:
             state = sync_batch_stats(state)
@@ -466,3 +478,43 @@ def train_and_evaluate(
     jax.random.normal(jax.random.PRNGKey(0), ()).block_until_ready()
 
     return state
+
+
+def only_evaluate(
+    config: ConfigDict,
+    workdir: str,
+    model: ModuleDef,
+    test_ds: DataSetDict,
+    state: PyTree = None,
+    checkpointing: bool = False,
+) -> Array:
+    """Execute model evaluation loop.
+
+    Args:
+        config: Hyperparameter configuration.
+        workdir: Directory to read checkpoint (if enabled).
+        model : Flax model to apply.
+        test_ds : Dictionary of testing data (includes images and labels).
+        state : Model parameters to use for evaluation. Default: None (i.e. read from checkpoint).
+        checkpointing: A flag for checkpointing model state. Default: False.
+
+    Returns:
+        Output of model evaluated at the input provided in `test_ds`.
+
+    Raises:
+        Error if no state and no checkpoint are specified.
+    """
+    if state is None:
+        if checkpointing:
+            state = checkpoints.restore_checkpoint(workdir, model)
+        else:
+            raise Exception("No trained state or checkpoint provided")
+
+    variables = {'params': state['params'], 'batch_stats': state['batch_stats'],}
+    output = model.apply(
+        variables, test_ds['image'], train=False, mutable=False)
+
+    # Allow for completing the async run
+    jax.random.normal(jax.random.PRNGKey(0), ()).block_until_ready()
+
+    return output, state
