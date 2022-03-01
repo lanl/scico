@@ -19,7 +19,6 @@ import jax.numpy as jnp
 from jax import lax
 import optax
 
-#from absl import logging
 from flax.training import train_state
 from flax.training import checkpoints
 from flax.training import common_utils
@@ -363,11 +362,15 @@ def train_and_evaluate(
         Final TrainState.
     """
     if log:
-        #logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
-        #logging.addHandler(logging.StreamHandler(sys.stdout))
-        #logging.StreamHandler(sys.stdout)
-        #logging.info("Channels: %d, training signals: %d, testing signals: %d, signal size: %d", train_ds['label'].shape[-1], train_ds['label'].shape[0], test_ds['label'].shape[0], train_ds['label'].shape[1])
-        print("Channels: %d, training signals: %d, testing signals: %d, signal size: %d" % ( train_ds['label'].shape[-1], train_ds['label'].shape[0], test_ds['label'].shape[0], train_ds['label'].shape[1]))
+        print(
+            "Channels: %d, training signals: %d, testing signals: %d, signal size: %d"
+            % (
+                train_ds["label"].shape[-1],
+                train_ds["label"].shape[0],
+                test_ds["label"].shape[0],
+                train_ds["label"].shape[1],
+            )
+        )
 
     # Configure seed.
     key = jax.random.PRNGKey(config["seed"])
@@ -431,13 +434,11 @@ def train_and_evaluate(
     train_metrics: List[Any] = []
     train_metrics_last_t = time.time()
     if log:
-        #logging.info("Initial compilation, this might take some minutes...")
         print("Initial compilation, this might take some minutes...")
 
     for step, batch in zip(range(step_offset, num_steps), train_dt_iter):
         state, metrics = p_train_step(state, batch)
         if step == step_offset and log:
-            #logging.info("Initial compilation completed.")
             print("Initial compilation completed.")
 
         if config["log_every_steps"]:
@@ -448,6 +449,17 @@ def train_and_evaluate(
                     f"train_{k}": v
                     for k, v in jax.tree_map(lambda x: x.mean(), train_metrics).items()
                 }
+                steps_per_second = config["log_every_steps"] / (time.time() - train_metrics_last_t)
+                print(
+                    "step: %d, steps_per_second: %.6f, train_learning_rate: %.6f, train_loss: %.6f, train_snr: %.2f"
+                    % (
+                        step,
+                        steps_per_second,
+                        summary["learning_rate"],
+                        summary["loss"],
+                        summary["snr"],
+                    )
+                )
                 train_metrics = []
                 train_metrics_last_t = time.time()
 
@@ -464,11 +476,9 @@ def train_and_evaluate(
             eval_metrics = common_utils.get_metrics(eval_metrics)
             if log:
                 summary = jax.tree_map(lambda x: x.mean(), eval_metrics)
-                #logging.info(
-                #    "eval epoch: %d, loss: %.4f, snr: %.2f", epoch, summary["loss"], summary["snr"]
-                #)
                 print(
-                    "eval epoch: %d, loss: %.4f, snr: %.2f" % (epoch, summary["loss"], summary["snr"])
+                    "eval epoch: %d, loss: %.4f, snr: %.2f"
+                    % (epoch, summary["loss"], summary["snr"])
                 )
         if (step + 1) % steps_per_checkpoint == 0 or step + 1 == num_steps:
             state = sync_batch_stats(state)
@@ -510,9 +520,11 @@ def only_evaluate(
         else:
             raise Exception("No trained state or checkpoint provided")
 
-    variables = {'params': state['params'], 'batch_stats': state['batch_stats'],}
-    output = model.apply(
-        variables, test_ds['image'], train=False, mutable=False)
+    variables = {
+        "params": state["params"],
+        "batch_stats": state["batch_stats"],
+    }
+    output = model.apply(variables, test_ds["image"], train=False, mutable=False)
 
     # Allow for completing the async run
     jax.random.normal(jax.random.PRNGKey(0), ()).block_until_ready()
