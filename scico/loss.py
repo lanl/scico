@@ -316,8 +316,8 @@ class PoissonLoss(Loss):
         y = ensure_on_device(y)
         super().__init__(y=y, A=A, scale=scale)
 
-        #: Constant term in Poisson log likehood; equal to ln(y!)
-        self.const = gammaln(self.y + 1.0)  # ln(y!)
+        #: Constant term, :math:`\ln(y!)`, in Poisson log likehood.
+        self.const = gammaln(self.y + 1.0)
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         Ax = self.A(x)
