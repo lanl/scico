@@ -347,7 +347,6 @@ class WeightedSquaredL2AbsLoss(Loss):
         A: Optional[Union[Callable, operator.Operator]] = None,
         scale: float = 0.5,
         W: Optional[linop.Diagonal] = None,
-        prox_kwargs: dict = {"maxiter": 100, "tol": 1e-5},
     ):
 
         r"""
@@ -371,10 +370,6 @@ class WeightedSquaredL2AbsLoss(Loss):
             raise TypeError(f"W must be None or a linop.Diagonal, got {type(W)}.")
 
         super().__init__(y=y, A=A, scale=scale)
-
-        if prox_kwargs is None:
-            prox_kwargs = dict
-        self.prox_kwargs = prox_kwargs
 
         if isinstance(self.A, linop.Identity) and snp.all(y >= 0):
             self.has_prox = True
@@ -464,7 +459,6 @@ class WeightedSquaredL2AbsSquaredLoss(Loss):
         A: Optional[Union[Callable, operator.Operator]] = None,
         scale: float = 0.5,
         W: Optional[linop.Diagonal] = None,
-        prox_kwargs: dict = {"maxiter": 100, "tol": 1e-5},
     ):
 
         r"""
@@ -488,10 +482,6 @@ class WeightedSquaredL2AbsSquaredLoss(Loss):
             raise TypeError(f"W must be None or a linop.Diagonal, got {type(W)}.")
 
         super().__init__(y=y, A=A, scale=scale)
-
-        if prox_kwargs is None:
-            prox_kwargs = dict
-        self.prox_kwargs = prox_kwargs
 
         if isinstance(self.A, linop.Identity) and snp.all(y >= 0):
             self.has_prox = True

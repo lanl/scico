@@ -175,7 +175,7 @@ class TestComplexLoss:
         np.testing.assert_allclose(L(self.x), 0)
 
         y = loss_func(self.x)
-        L = loss_class(y=y, A=None, W=None, prox_kwargs=None)
+        L = loss_class(y=y, A=None, W=None)
         assert L.has_eval
         assert L.has_prox
 
