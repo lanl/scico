@@ -136,7 +136,7 @@ class TestLoss:
 class TestComplexLoss:
 
     cplx_loss = (
-        (loss.WeightedSquaredL2AbsLoss, lambda x: snp.abs(x)),
+        (loss.WeightedSquaredL2AbsLoss, snp.abs),
         (loss.WeightedSquaredL2AbsSquaredLoss, lambda x: snp.abs(x) ** 2),
     )
 
