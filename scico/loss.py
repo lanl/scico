@@ -161,7 +161,7 @@ class WeightedSquaredL2Loss(Loss):
         A: Optional[Union[Callable, operator.Operator]] = None,
         scale: float = 0.5,
         W: Optional[linop.Diagonal] = None,
-        prox_kwargs: dict = {"maxiter": 1000, "tol": 1e-12},
+        prox_kwargs: Optional[dict] = None,
     ):
 
         r"""
@@ -188,9 +188,11 @@ class WeightedSquaredL2Loss(Loss):
 
         super().__init__(y=y, A=A, scale=scale)
 
-        if prox_kwargs is None:
-            prox_kwargs = dict
-        self.prox_kwargs = prox_kwargs
+        default_prox_kwargs = {"maxiter": 100, "tol": 1e-5}
+        if prox_kwargs:
+            default_prox_kwargs.update(prox_kwargs)
+        self.prox_kwargs = default_prox_kwargs
+        prox_kwargs: dict = ({"maxiter": 100, "tol": 1e-5},)
 
         if isinstance(self.A, linop.LinearOperator):
             self.has_prox = True
