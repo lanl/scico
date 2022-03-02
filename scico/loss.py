@@ -435,7 +435,7 @@ def _dep_cubic_root(p, q):
     u3, v3 = -q2 + Δrt, -q2 - Δrt
     u, v = _cbrt(u3), _cbrt(v3)
     r = (u + v).real
-    assert snp.allclose(snp.abs(r ** 3 + p * r + q), 0)
+    assert snp.allclose(snp.abs(r ** 3 + p * r + q), 0, atol=1e-4)
     return r
 
 
