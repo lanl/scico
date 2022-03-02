@@ -17,6 +17,9 @@ from scico.random import randn
 
 
 class TestLoss:
+
+    l2loss = (loss.SquaredL2Loss, loss.WeightedSquaredL2Loss)
+
     def setup_method(self):
         n = 4
         dtype = np.float64
@@ -53,8 +56,9 @@ class TestLoss:
         with pytest.raises(NotImplementedError):
             L.prox(self.v, self.scalar)
 
-    def test_squared_l2(self):
-        L = loss.SquaredL2Loss(y=self.y, A=self.Ao)
+    @pytest.mark.parametrize("loss_class", l2loss)
+    def test_l2_loss(self, loss_class):
+        L = loss_class(y=self.y, A=self.Ao)
         assert L.has_eval
         assert L.has_prox
 
@@ -66,8 +70,8 @@ class TestLoss:
         assert cL.scale == self.scalar * L.scale
         assert cL(self.v) == self.scalar * L(self.v)
 
-        # SquaredL2 with Diagonal linop has a prox
-        L_d = loss.SquaredL2Loss(y=self.y, A=self.Do)
+        # squared l2 loss with diagonal linop has a prox
+        L_d = loss_class(y=self.y, A=self.Do)
 
         # test eval
         np.testing.assert_allclose(L_d(self.v), 0.5 * ((self.Do @ self.v - self.y) ** 2).sum())
@@ -87,35 +91,19 @@ class TestLoss:
         L = loss.WeightedSquaredL2Loss(y=self.y, A=self.Ao, W=self.W)
         assert L.has_eval
         assert L.has_prox
-
-        # test eval
         np.testing.assert_allclose(
             L(self.v), 0.5 * (self.W @ (self.Ao @ self.v - self.y) ** 2).sum()
         )
+        pf = prox_test(self.v, L, L.prox, 0.75)
 
-        cL = self.scalar * L
-        assert L.scale == 0.5  # hasn't changed
-        assert cL.scale == self.scalar * L.scale
-        assert cL(self.v) == self.scalar * L(self.v)
-
-        # SquaredL2 with Diagonal linop has a prox
+        # weighted l2 loss with diagonal linop has a prox
         L_d = loss.WeightedSquaredL2Loss(y=self.y, A=self.Do, W=self.W)
-
         assert L_d.has_eval
         assert L_d.has_prox
-
-        # test eval
         np.testing.assert_allclose(
             L_d(self.v), 0.5 * (self.W @ (self.Do @ self.v - self.y) ** 2).sum()
         )
-
-        cL = self.scalar * L_d
-        assert L_d.scale == 0.5  # hasn't changed
-        assert cL.scale == self.scalar * L_d.scale
-        assert cL(self.v) == self.scalar * L_d(self.v)
-
         pf = prox_test(self.v, L_d, L_d.prox, 0.75)
-        pf = prox_test(self.v, L, L.prox, 0.75)
 
     def test_poisson(self):
         L = loss.PoissonLoss(y=self.y, A=self.Ao_abs)
@@ -133,9 +121,9 @@ class TestLoss:
         assert cL(v) == self.scalar * L(v)
 
 
-class TestComplexLoss:
+class TestAbsLoss:
 
-    cplx_loss = (
+    abs_loss = (
         (loss.WeightedSquaredL2AbsLoss, snp.abs),
         (loss.WeightedSquaredL2AbsSquaredLoss, lambda x: snp.abs(x) ** 2),
     )
@@ -154,7 +142,7 @@ class TestComplexLoss:
         scalar, key = randn((1,), key=key, dtype=dtype)
         self.scalar = scalar.copy().ravel()[0]
 
-    @pytest.mark.parametrize("loss_tuple", cplx_loss)
+    @pytest.mark.parametrize("loss_tuple", abs_loss)
     def test_properties(self, loss_tuple):
         loss_class = loss_tuple[0]
         loss_func = loss_tuple[1]
@@ -193,7 +181,7 @@ class TestComplexLoss:
         with pytest.raises(TypeError):
             L = loss_class(y=y, W=linop.Sum(input_shape=W.input_shape))
 
-    @pytest.mark.parametrize("loss_tuple", cplx_loss)
+    @pytest.mark.parametrize("loss_tuple", abs_loss)
     def test_prox(self, loss_tuple):
         loss_class = loss_tuple[0]
         loss_func = loss_tuple[1]
