@@ -175,7 +175,7 @@ class TestComplexLoss:
         np.testing.assert_allclose(L(self.x), 0)
 
         y = loss_func(self.x)
-        L = loss_class(y=y, A=None, W=self.W)
+        L = loss_class(y=y, A=None, W=None, prox_kwargs=None)
         assert L.has_eval
         assert L.has_prox
 
@@ -185,6 +185,13 @@ class TestComplexLoss:
         assert cL(self.v) == self.scalar * L(self.v)
 
         np.testing.assert_allclose(L(self.x), 0)
+
+        W = -1 * self.W
+        with pytest.raises(ValueError):
+            L = loss_class(y=y, W=W)
+
+        with pytest.raises(TypeError):
+            L = loss_class(y=y, W=linop.Sum(input_shape=W.input_shape))
 
     @pytest.mark.parametrize("loss_tuple", cplx_loss)
     def test_prox(self, loss_tuple):
