@@ -193,11 +193,6 @@ class LinearSubproblemSolver(SubproblemSolver):
 
     def internal_init(self, admm):
         if admm.f is not None:
-            if not isinstance(admm.f, WeightedSquaredL2Loss):  # SquaredL2Loss is subclass
-                raise ValueError(
-                    f"LinearSubproblemSolver requires f to be a scico.loss.WeightedSquaredL2Loss"
-                    f"or scico.loss.SquaredL2Loss; got {type(admm.f)}"
-                )
             if not isinstance(admm.f.A, LinearOperator):
                 raise ValueError(
                     f"LinearSubproblemSolver requires f.A to be a scico.linop.LinearOperator; "
