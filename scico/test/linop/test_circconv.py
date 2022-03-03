@@ -7,7 +7,7 @@ import jax
 import pytest
 
 import scico.numpy as snp
-from scico.linop import CircularConvolve, Convolve
+from scico.linop import CircularConvolve, Convolve, Diagonal
 from scico.random import randint, randn, uniform
 from scico.test.linop.test_linop import adjoint_test
 
@@ -138,3 +138,12 @@ class TestCircularConvolve:
         B = CircularConvolve.from_operator(A, ndims, jit=jit_new_op)
 
         np.testing.assert_allclose(A @ x, B @ x, atol=1e-5)
+
+    def test_from_operator_block_array(self):
+        """`from_operator` should throw an exception if asked to work
+        on an operator with blockarray inputs."""
+
+        H = Diagonal(snp.zeros(((1, 2), (3,))))
+
+        with pytest.raises(ValueError):
+            CircularConvolve.from_operator(H)

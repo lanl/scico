@@ -197,7 +197,7 @@ def randn(
         shape: Shape of output array. If shape is a tuple, a
             DeviceArray is returned. If shape is a tuple of tuples, a
             :class:`.BlockArray` is returned.
-        key: JAX PRNGKey. Defaults to None, in which case a new key
+        key: JAX PRNGKey. Defaults to ``None``, in which case a new key
             is created using the seed arg.
         seed: Seed for new PRNGKey. Default: 0.
         dtype: dtype for returned value. Default to ``np.float32``.

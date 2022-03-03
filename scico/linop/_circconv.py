@@ -235,6 +235,7 @@ class CircularConvolve(LinearOperator):
             h_is_dft=True,
         )
 
+    @staticmethod
     def from_operator(
         H: Operator, ndims: Optional[int] = None, center: Optional[Shape] = None, jit: bool = True
     ):
@@ -253,7 +254,11 @@ class CircularConvolve(LinearOperator):
         """
 
         if is_nested(H.input_shape):
-            raise ValueError("Operator H may not take BlockArray input.")
+            raise ValueError(
+                f"H.input_shape ({H.input_shape}) suggests that H "
+                "takes a BlockArray as input, which is not supported "
+                "by this function."
+            )
 
         if ndims is None:
             ndims = len(H.input_shape)

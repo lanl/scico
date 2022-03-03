@@ -137,8 +137,8 @@ def _split_real_imag(x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArr
     Returns:
         A real ndarray with stacked real/imaginary parts. If `x` has
         shape (M, N, ...), the returned array will have shape
-        (2, M, N, ...) where the first slice contains the ``x.real`` and
-        the second contains ``x.imag``. If `x` is a BlockArray, this
+        (2, M, N, ...) where the first slice contains the `x.real` and
+        the second contains `x.imag`. If `x` is a BlockArray, this
         function is called on each block and the output is joined into a
         BlockArray.
     """
@@ -157,8 +157,8 @@ def _join_real_imag(x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArra
         x: Array to join.
 
     Returns:
-        A complex array with real and imaginary parts taken from ``x[0]``
-        and ``x[1]`` respectively.
+        A complex array with real and imaginary parts taken from `x[0]`
+        and `x[1]` respectively.
     """
     if isinstance(x, BlockArray):
         return BlockArray.array([_join_real_imag(_) for _ in x])
@@ -310,9 +310,9 @@ def cg(
         b: Input array :math:`\mb{b}`.
         x0: Initial solution.
         tol: Relative residual stopping tolerance. Convergence occurs
-           when ``norm(residual) <= max(tol * norm(b), atol)``.
+           when `norm(residual) <= max(tol * norm(b), atol)`.
         atol: Absolute residual stopping tolerance. Convergence occurs
-           when ``norm(residual) <= max(tol * norm(b), atol)``.
+           when `norm(residual) <= max(tol * norm(b), atol)`.
         maxiter: Maximum iterations. Default: 1000.
         M: Preconditioner for `A`. The preconditioner should approximate
            the inverse of `A`. The default, ``None``, uses no
@@ -353,4 +353,4 @@ def cg(
         p = z + beta * p
         ii += 1
 
-    return (x, {"num_iter": ii, "rel_res": snp.sqrt(num) / bn})
+    return (x, {"num_iter": ii, "rel_res": snp.sqrt(num).real / bn})
