@@ -410,7 +410,7 @@ def _dep_cubic_root(p, q):
     return r
 
 
-class SquaredL2AbsSquaredLoss(Loss):
+class SquaredL2SquaredAbsLoss(Loss):
     r"""Weighted squared :math:`\ell_2` with squared absolute value loss.
 
     Weighted squared :math:`\ell_2` with squared absolute value loss

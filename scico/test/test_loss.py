@@ -121,7 +121,7 @@ class TestAbsLoss:
 
     abs_loss = (
         (loss.SquaredL2AbsLoss, snp.abs),
-        (loss.SquaredL2AbsSquaredLoss, lambda x: snp.abs(x) ** 2),
+        (loss.SquaredL2SquaredAbsLoss, lambda x: snp.abs(x) ** 2),
     )
 
     def setup_method(self):
