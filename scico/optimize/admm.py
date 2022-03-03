@@ -23,7 +23,7 @@ from scico.blockarray import BlockArray
 from scico.diagnostics import IterationStats
 from scico.functional import Functional
 from scico.linop import CircularConvolve, Identity, LinearOperator
-from scico.loss import SquaredL2Loss, WeightedSquaredL2Loss
+from scico.loss import SquaredL2Loss
 from scico.numpy.linalg import norm
 from scico.solver import cg as scico_cg
 from scico.solver import minimize
@@ -120,12 +120,11 @@ class LinearSubproblemSolver(SubproblemSolver):
     for the case where :code:`f` is an :math:`\ell_2` or weighted
     :math:`\ell_2` norm, and :code:`f.A` is a linear operator, so that
     the subproblem involves solving a linear equation. This requires that
-    ``f.functional`` be an instance of either :class:`.SquaredL2Loss`
-    or :class:`.WeightedSquaredL2Loss` and for the forward operator
-    :code:`f.A` to be an instance of :class:`.LinearOperator`.
+    ``f.functional`` be an instance of :class:`.SquaredL2Loss` and for
+    the forward operator :code:`f.A` to be an instance of
+    :class:`.LinearOperator`.
 
-    In the case :class:`.WeightedSquaredL2Loss`, the
-    :math:`\mb{x}`-update step is
+    The :math:`\mb{x}`-update step is
 
     ..  math::
 
@@ -133,9 +132,9 @@ class LinearSubproblemSolver(SubproblemSolver):
         \norm{\mb{y} - A x}_W^2 + \sum_i \frac{\rho_i}{2}
         \norm{\mb{z}^{(k)}_i - \mb{u}^{(k)}_i - C_i \mb{x}}_2^2 \;,
 
-    where :math:`W` is the weighting :class:`.Diagonal` from the
-    :class:`.WeightedSquaredL2Loss` instance. This update step
-    reduces to the solution of the linear system
+    where :math:`W` a weighting :class:`.Diagonal` operator
+    or an :class:`.Identity` operator (i.e. no weighting).
+    This update step reduces to the solution of the linear system
 
     ..  math::
 
@@ -144,8 +143,6 @@ class LinearSubproblemSolver(SubproblemSolver):
         A^H W \mb{y} + \sum_{i=1}^N \rho_i C_i^H ( \mb{z}^{(k)}_i -
         \mb{u}^{(k)}_i) \;.
 
-    In the case of :class:`.SquaredL2Loss`, :math:`W` is set to
-    the :class:`Identity` operator.
 
     Attributes:
         admm (:class:`.ADMM`): ADMM solver object to which the solver is
@@ -201,10 +198,10 @@ class LinearSubproblemSolver(SubproblemSolver):
                     f"LinearSubproblemSolver requires f.A to be a scico.linop.LinearOperator; "
                     f"got {type(admm.f.A)}"
                 )
-            if not isinstance(admm.f, WeightedSquaredL2Loss):  # SquaredL2Loss is subclass
+            if not isinstance(admm.f, SquaredL2Loss):
                 raise ValueError(
-                    f"LinearSubproblemSolver requires f to be a scico.loss.WeightedSquaredL2Loss"
-                    f"or scico.loss.SquaredL2Loss; got {type(admm.f)}"
+                    "LinearSubproblemSolver requires f to be a scico.loss.SquaredL2Loss; "
+                    f"got {type(admm.f)}"
                 )
 
         super().internal_init(admm)
