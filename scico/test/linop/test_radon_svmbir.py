@@ -17,7 +17,7 @@ try:
     from scico.linop.radon_svmbir import (
         ParallelBeamProjector,
         SVMBIRExtendedLoss,
-        SVMBIRWeightedSquaredL2Loss,
+        SVMBIRSquaredL2Loss,
     )
 except ImportError as e:
     pytest.skip("svmbir not installed", allow_module_level=True)
@@ -98,7 +98,7 @@ def test_prox(Nx, Ny, num_angles, num_channels, is_3d, center_offset, is_masked)
     if is_masked:
         f = SVMBIRExtendedLoss(y=sino, A=A, positivity=False)
     else:
-        f = SVMBIRWeightedSquaredL2Loss(y=sino, A=A)
+        f = SVMBIRSquaredL2Loss(y=sino, A=A)
 
     prox_test(v, f, f.prox, alpha=0.25)
 
@@ -123,7 +123,7 @@ def test_prox_weights(Nx, Ny, num_angles, num_channels, is_3d, center_offset, is
     if is_masked:
         f = SVMBIRExtendedLoss(y=sino, A=A, W=W, positivity=False)
     else:
-        f = SVMBIRWeightedSquaredL2Loss(y=sino, A=A, W=W)
+        f = SVMBIRSquaredL2Loss(y=sino, A=A, W=W)
 
     prox_test(v, f, f.prox, alpha=0.25)
 
@@ -152,7 +152,7 @@ def test_prox_cg(Nx, Ny, num_angles, num_channels, is_3d, weight_type, center_of
     if is_masked:
         f_sv = SVMBIRExtendedLoss(y=y, A=A, W=Diagonal(W), positivity=False)
     else:
-        f_sv = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W))
+        f_sv = SVMBIRSquaredL2Loss(y=y, A=A, W=Diagonal(W))
 
     f_wg = SquaredL2Loss(y=y, A=A, W=Diagonal(W))
 
@@ -187,7 +187,7 @@ def test_approx_prox(
     if is_masked or positivity:
         f = SVMBIRExtendedLoss(y=y, A=A, W=Diagonal(W), positivity=positivity)
     else:
-        f = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W))
+        f = SVMBIRSquaredL2Loss(y=y, A=A, W=Diagonal(W))
 
     xprox = snp.array(f.prox(v, lam=λ))
 
@@ -196,7 +196,7 @@ def test_approx_prox(
             y=y, A=A, W=Diagonal(W), prox_kwargs={"maxiter": 2}, positivity=positivity
         )
     else:
-        f_approx = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W), prox_kwargs={"maxiter": 2})
+        f_approx = SVMBIRSquaredL2Loss(y=y, A=A, W=Diagonal(W), prox_kwargs={"maxiter": 2})
 
     xprox_approx = snp.array(f_approx.prox(v, lam=λ, v0=xprox))
 

@@ -38,9 +38,9 @@ class ParallelBeamProjector(LinearOperator):
     ``is_masked`` option selects whether a valid region for projections
     (pixels outside this region are ignored when performing the
     projection) is active. This region of validity is also respected by
-    :meth:`.SVMBIRWeightedSquaredL2Loss.prox` when
-    :class:`.SVMBIRWeightedSquaredL2Loss` is initialized with a
-    :class:`ParallelBeamProjector` with this option enabled.
+    :meth:`.SVMBIRSquaredL2Loss.prox` when :class:`.SVMBIRSquaredL2Loss`
+    is initialized with a :class:`ParallelBeamProjector` with this option
+    enabled.
     """
 
     def __init__(
@@ -297,7 +297,7 @@ class SVMBIRExtendedLoss(Loss):
         return jax.device_put(result.reshape(self.A.input_shape))
 
 
-class SVMBIRWeightedSquaredL2Loss(SVMBIRExtendedLoss, SquaredL2Loss):
+class SVMBIRSquaredL2Loss(SVMBIRExtendedLoss, SquaredL2Loss):
     r"""Weighted squared :math:`\ell_2` loss with svmbir CT projector.
 
     Weighted squared :math:`\ell_2` loss of a CT reconstruction problem,
@@ -307,8 +307,8 @@ class SVMBIRWeightedSquaredL2Loss(SVMBIRExtendedLoss, SquaredL2Loss):
         \alpha \left(\mb{y} - A(\mb{x})\right)^T W \left(\mb{y} -
         A(\mb{x})\right) \;,
 
-    where :math:`A` is a :class:`.ParallelBeamProjector`,
-    :math:`\alpha` is the scaling parameter and :math:`W` is an instance
+    where :math:`A` is a :class:`.ParallelBeamProjector`, :math:`\alpha`
+    is the scaling parameter and :math:`W` is an instance
     of :class:`scico.linop.Diagonal`. If :math:`W` is ``None``, it is set
     to :class:`scico.linop.Identity`.
     """
@@ -319,7 +319,7 @@ class SVMBIRWeightedSquaredL2Loss(SVMBIRExtendedLoss, SquaredL2Loss):
         prox_kwargs: Optional[dict] = None,
         **kwargs,
     ):
-        r"""Initialize a :class:`SVMBIRWeightedSquaredL2Loss` object.
+        r"""Initialize a :class:`SVMBIRSquaredL2Loss` object.
 
         Args:
             y: Sinogram measurement.
@@ -335,8 +335,7 @@ class SVMBIRWeightedSquaredL2Loss(SVMBIRExtendedLoss, SquaredL2Loss):
 
         if self.A.is_masked:
             raise ValueError(
-                "is_masked must be false for the ParallelBeamProjector in "
-                "SVMBIRWeightedSquaredL2Loss."
+                "is_masked must be false for the ParallelBeamProjector in " "SVMBIRSquaredL2Loss."
             )
 
 
