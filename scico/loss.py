@@ -90,7 +90,7 @@ class Loss(functional.Functional):
         """
         if self.f is None:
             raise NotImplementedError(
-                "Functional l is not defined and __call__ has" " not been overridden"
+                "Functional f is not defined and __call__ has not been overridden"
             )
         return self.scale * self.f(self.A(x) - self.y)
 
@@ -140,7 +140,7 @@ class Loss(functional.Functional):
         self.scale = new_scale
 
 
-class WeightedSquaredL2Loss(Loss):
+class SquaredL2Loss(Loss):
     r"""Weighted squared :math:`\ell_2` loss.
 
     Weighted squared :math:`\ell_2` loss
@@ -151,8 +151,9 @@ class WeightedSquaredL2Loss(Loss):
         A(\mb{x})\right) \;,
 
     where :math:`\alpha` is the scaling parameter and :math:`W` is an
-    instance of :class:`scico.linop.Diagonal`. If :math:`W` is None,
-    reverts to the behavior of :class:`.SquaredL2Loss`.
+    instance of :class:`scico.linop.Diagonal`. If :math:`W` is ``None``,
+    the weighting is an identity operator, giving an unweighted squared
+    :math:`\ell_2` loss.
     """
 
     def __init__(
@@ -261,33 +262,6 @@ class WeightedSquaredL2Loss(Loss):
         )
 
 
-class SquaredL2Loss(WeightedSquaredL2Loss):
-    r"""Squared :math:`\ell_2` loss.
-
-    Squared :math:`\ell_2` loss
-
-    .. math::
-        \alpha \norm{\mb{y} - A(\mb{x})}_2^2 \;,
-
-    where :math:`\alpha` is the scaling parameter.
-    """
-
-    def __init__(
-        self,
-        y: Union[JaxArray, BlockArray],
-        A: Optional[Union[Callable, operator.Operator]] = None,
-        scale: float = 0.5,
-        prox_kwargs: dict = {"maxiter": 100, "tol": 1e-5},
-    ):
-        r"""
-        Args:
-            y: Measurement.
-            A: Forward operator. If ``None``, defaults to :class:`.Identity`.
-            scale: Scaling parameter.
-        """
-        super().__init__(y=y, A=A, scale=scale, W=None, prox_kwargs=prox_kwargs)
-
-
 class PoissonLoss(Loss):
     r"""Poisson negative log likelihood loss.
 
@@ -324,7 +298,7 @@ class PoissonLoss(Loss):
         return self.scale * snp.sum(Ax - self.y * snp.log(Ax) + self.const)
 
 
-class WeightedSquaredL2AbsLoss(Loss):
+class SquaredL2AbsLoss(Loss):
     r"""Weighted squared :math:`\ell_2` with absolute value loss.
 
     Weighted squared :math:`\ell_2` with absolute value loss
@@ -367,7 +341,7 @@ class WeightedSquaredL2AbsLoss(Loss):
             if snp.all(W.diagonal >= 0):
                 self.W = W
             else:
-                raise ValueError(f"The weights, W.diagonal, must be non-negative.")
+                raise ValueError("The weights, W.diagonal, must be non-negative.")
         else:
             raise TypeError(f"W must be None or a linop.Diagonal, got {type(W)}.")
 
@@ -436,7 +410,7 @@ def _dep_cubic_root(p, q):
     return r
 
 
-class WeightedSquaredL2AbsSquaredLoss(Loss):
+class SquaredL2AbsSquaredLoss(Loss):
     r"""Weighted squared :math:`\ell_2` with squared absolute value loss.
 
     Weighted squared :math:`\ell_2` with squared absolute value loss
@@ -479,7 +453,7 @@ class WeightedSquaredL2AbsSquaredLoss(Loss):
             if snp.all(W.diagonal >= 0):
                 self.W = W
             else:
-                raise ValueError(f"The weights, W.diagonal, must be non-negative.")
+                raise ValueError("The weights, W.diagonal, must be non-negative.")
         else:
             raise TypeError(f"W must be None or a linop.Diagonal, got {type(W)}.")
 

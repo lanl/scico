@@ -17,9 +17,6 @@ from scico.random import randn
 
 
 class TestLoss:
-
-    l2loss = (loss.SquaredL2Loss, loss.WeightedSquaredL2Loss)
-
     def setup_method(self):
         n = 4
         dtype = np.float64
@@ -56,9 +53,8 @@ class TestLoss:
         with pytest.raises(NotImplementedError):
             L.prox(self.v, self.scalar)
 
-    @pytest.mark.parametrize("loss_class", l2loss)
-    def test_l2_loss(self, loss_class):
-        L = loss_class(y=self.y, A=self.Ao)
+    def test_squared_l2(self):
+        L = loss.SquaredL2Loss(y=self.y, A=self.Ao)
         assert L.has_eval
         assert L.has_prox
 
@@ -71,7 +67,7 @@ class TestLoss:
         assert cL(self.v) == self.scalar * L(self.v)
 
         # squared l2 loss with diagonal linop has a prox
-        L_d = loss_class(y=self.y, A=self.Do)
+        L_d = loss.SquaredL2Loss(y=self.y, A=self.Do)
 
         # test eval
         np.testing.assert_allclose(L_d(self.v), 0.5 * ((self.Do @ self.v - self.y) ** 2).sum())
@@ -88,7 +84,7 @@ class TestLoss:
         pf = prox_test(self.v, L, L.prox, 0.75)
 
     def test_weighted_squared_l2(self):
-        L = loss.WeightedSquaredL2Loss(y=self.y, A=self.Ao, W=self.W)
+        L = loss.SquaredL2Loss(y=self.y, A=self.Ao, W=self.W)
         assert L.has_eval
         assert L.has_prox
         np.testing.assert_allclose(
@@ -97,7 +93,7 @@ class TestLoss:
         pf = prox_test(self.v, L, L.prox, 0.75)
 
         # weighted l2 loss with diagonal linop has a prox
-        L_d = loss.WeightedSquaredL2Loss(y=self.y, A=self.Do, W=self.W)
+        L_d = loss.SquaredL2Loss(y=self.y, A=self.Do, W=self.W)
         assert L_d.has_eval
         assert L_d.has_prox
         np.testing.assert_allclose(
@@ -124,8 +120,8 @@ class TestLoss:
 class TestAbsLoss:
 
     abs_loss = (
-        (loss.WeightedSquaredL2AbsLoss, snp.abs),
-        (loss.WeightedSquaredL2AbsSquaredLoss, lambda x: snp.abs(x) ** 2),
+        (loss.SquaredL2AbsLoss, snp.abs),
+        (loss.SquaredL2AbsSquaredLoss, lambda x: snp.abs(x) ** 2),
     )
 
     def setup_method(self):

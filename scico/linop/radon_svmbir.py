@@ -19,7 +19,7 @@ import jax
 import jax.experimental.host_callback
 
 import scico.numpy as snp
-from scico.loss import Loss, WeightedSquaredL2Loss
+from scico.loss import Loss, SquaredL2Loss
 from scico.typing import JaxArray, Shape
 
 from ._linop import Diagonal, Identity, LinearOperator
@@ -178,8 +178,7 @@ class ParallelBeamProjector(LinearOperator):
 
 
 class SVMBIRExtendedLoss(Loss):
-    r"""Extended Weighted squared :math:`\ell_2` loss with svmbir CT
-    projector.
+    r"""Extended squared :math:`\ell_2` loss with svmbir CT projector.
 
     Generalization of the weighted squared :math:`\ell_2` loss of a CT
     reconstruction problem,
@@ -195,13 +194,12 @@ class SVMBIRExtendedLoss(Loss):
     to :class:`scico.linop.Identity`.
 
     The extended loss differs from a typical weighted squared
-    :math:`\ell_2` loss as follows.
-    When ``positivity=True``, the prox projects onto the non-negative
-    orthant and the loss is infinite if any element of the input is
-    negative. When the ``is_masked`` option of the associated
-    :class:`.ParallelBeamProjector` is ``True``, the reconstruction is
-    computed over a masked region of the image as described
-    in class :class:`.ParallelBeamProjector`.
+    :math:`\ell_2` loss as follows. When `positivity=True`, the prox
+    projects onto the non-negative orthant and the loss is infinite if
+    any element of the input is negative. When the `is_masked` option
+    of the associated :class:`.ParallelBeamProjector` is ``True``, the
+    reconstruction is computed over a masked region of the image as
+    described in class :class:`.ParallelBeamProjector`.
     """
 
     def __init__(
@@ -299,7 +297,7 @@ class SVMBIRExtendedLoss(Loss):
         return jax.device_put(result.reshape(self.A.input_shape))
 
 
-class SVMBIRWeightedSquaredL2Loss(SVMBIRExtendedLoss, WeightedSquaredL2Loss):
+class SVMBIRWeightedSquaredL2Loss(SVMBIRExtendedLoss, SquaredL2Loss):
     r"""Weighted squared :math:`\ell_2` loss with svmbir CT projector.
 
     Weighted squared :math:`\ell_2` loss of a CT reconstruction problem,

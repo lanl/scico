@@ -7,7 +7,7 @@ import pytest
 import scico
 import scico.numpy as snp
 from scico.linop import Diagonal
-from scico.loss import WeightedSquaredL2Loss
+from scico.loss import SquaredL2Loss
 from scico.test.linop.test_linop import adjoint_test
 from scico.test.prox import prox_test
 
@@ -154,7 +154,7 @@ def test_prox_cg(Nx, Ny, num_angles, num_channels, is_3d, weight_type, center_of
     else:
         f_sv = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W))
 
-    f_wg = WeightedSquaredL2Loss(y=y, A=A, W=Diagonal(W))
+    f_wg = SquaredL2Loss(y=y, A=A, W=Diagonal(W))
 
     v, _ = scico.random.normal(im.shape, dtype=im.dtype)
     v *= im.max() * 0.5

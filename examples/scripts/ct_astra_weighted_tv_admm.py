@@ -144,7 +144,7 @@ $I_0$ changes.
 lambda_weighted = 1.14e2
 
 weights = jax.device_put(counts / Io)
-f = loss.WeightedSquaredL2Loss(y=y, A=A, W=linop.Diagonal(weights))
+f = loss.SquaredL2Loss(y=y, A=A, W=linop.Diagonal(weights))
 
 admm_weighted = ADMM(
     f=f,
