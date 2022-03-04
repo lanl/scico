@@ -197,9 +197,7 @@ class TestRealWeighted:
         maxiter = 100
         ρ = 1e0
         A = linop.MatrixOperator(self.Amx)
-        f = loss.WeightedSquaredL2Loss(
-            y=self.y, A=A, W=linop.Diagonal(self.W[:, 0]), scale=self.𝛼 / 2.0
-        )
+        f = loss.SquaredL2Loss(y=self.y, A=A, W=linop.Diagonal(self.W[:, 0]), scale=self.𝛼 / 2.0)
         g_list = [(self.λ / 2) * functional.SquaredL2Norm()]
         C_list = [linop.MatrixOperator(self.Bmx)]
         rho_list = [ρ]
