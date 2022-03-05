@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021 by SCICO Developers
+# Copyright (C) 2021-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -21,8 +21,6 @@ from scico.blockarray import BlockArray
 from scico.typing import DType, JaxArray, Shape
 
 from ._linop import LinearOperator
-
-__author__ = """Brendt Wohlberg <brendt@ieee.org>"""
 
 
 class ProjectedGradient(LinearOperator):
@@ -64,8 +62,8 @@ class ProjectedGradient(LinearOperator):
         Args:
             input_shape: Shape of input array.
             axes: Axes over which to compute the gradient. Defaults to
-                `None`, in which case the gradient is computed along all
-                axes.
+                ``None``, in which case the gradient is computed along
+                all axes.
             coord: A tuple of arrays, each of which specifies a local
                 coordinate axis direction.
                 Each member of the tuple should either be a `DeviceArray`
@@ -80,15 +78,15 @@ class ProjectedGradient(LinearOperator):
                 a singleton tuple, the result of applying the operator is
                 a `DeviceArray`; otherwise it consists of the gradients
                 for each of the local coordinate axes in `coord` stacked
-                into a :class:`.BlockArray`. If `coord` is `None`, which
+                into a :class:`.BlockArray`. If `coord` is ``None``, which
                 is the default, gradients are computed in the standard
                 axis-aligned coordinate system, and the return type
                 depends on the number of axes on which the gradient is
                 calculated, as specified explicitly or implicitly via the
                 `axes` parameter.
             input_dtype: `dtype` for input argument. Default is
-                `float32`.
-            jit: If `True`, jit the evaluation, adjoint, and gram
+                ``float32``.
+            jit: If ``True``, jit the evaluation, adjoint, and gram
                 functions of the LinearOperator.
         """
 
@@ -154,7 +152,7 @@ class PolarGradient(ProjectedGradient):
 
     |
 
-    If only one of `angular` and `radial` is `True`, the operator output
+    If only one of `angular` and `radial` is ``True``, the operator output
     is a `DeviceArray`, otherwise it is a :class:`.BlockArray`.
     """
 
@@ -172,17 +170,17 @@ class PolarGradient(ProjectedGradient):
         Args:
             input_shape: Shape of input array.
             axes: Axes over which to compute the gradient. Defaults to
-                `None`, in which case the axes are taken to be ``(0, 1)``.
+                ``None``, in which case the axes are taken to be `(0, 1)`.
             center: Center of the polar coordinate system in array
                 indexing coordinates.
-                Default is `None`, which places the center at the center
-                of the input array.
+                Default is ``None``, which places the center at the
+                center of the input array.
             angular: Flag indicating whether to compute gradients in the
                 angular (i.e. tangent to circles) direction.
             radial: Flag indicating whether to compute gradients in the
                 radial (i.e. directed outwards from the origin) direction.
-            input_dtype: `dtype` for input argument. Default is `float32`.
-            jit: If `True`, jit the evaluation, adjoint, and gram
+            input_dtype: `dtype` for input argument. Default is ``float32``.
+            jit: If ``True``, jit the evaluation, adjoint, and gram
                 functions of the LinearOperator.
         """
 
@@ -232,7 +230,7 @@ class CylindricalGradient(ProjectedGradient):
 
     |
 
-    If only one of `angular`, `radial`, and `axial` is `True`, the
+    If only one of `angular`, `radial`, and `axial` is ``True``, the
     operator output is a `DeviceArray`, otherwise it is a
     :class:`.BlockArray`.
     """
@@ -252,22 +250,23 @@ class CylindricalGradient(ProjectedGradient):
         Args:
             input_shape: Shape of input array.
             axes: Axes over which to compute the gradient.  Defaults to
-                `None`, in which case the axes are taken to be
-                ``(0, 1, 2)``. If an integer, this operator returns a
-                `DeviceArray`. If a tuple or `None`, the resulting arrays
-                are stacked into a :class:`.BlockArray`.
+                ``None``, in which case the axes are taken to be
+                `(0, 1, 2)`. If an integer, this operator returns a
+                `DeviceArray`. If a tuple or ``None``, the resulting
+                arrays are stacked into a :class:`.BlockArray`.
             center: Center of the cylindrical coordinate system in array
-                indexing coordinates. Default is `None`, which places the
-                center at the center of the two polar axes of the input
-                array and at the zero index of the axial axis.
+                indexing coordinates. Default is ``None``, which places
+                the center at the center of the two polar axes of the
+                input array and at the zero index of the axial axis.
             angular: Flag indicating whether to compute gradients in the
                 angular (i.e. tangent to circles) direction.
             radial: Flag indicating whether to compute gradients in the
                 radial (i.e. directed outwards from the origin) direction.
             axial: Flag indicating whether to compute gradients in the
                 direction of the axis of the cylinder.
-            input_dtype: `dtype` for input argument. Default is `float32`.
-            jit: If `True`, jit the evaluation, adjoint, and gram
+            input_dtype: `dtype` for input argument. Default is
+                ``float32``.
+            jit: If ``True``, jit the evaluation, adjoint, and gram
                 functions of the LinearOperator.
         """
 
@@ -322,7 +321,7 @@ class SphericalGradient(ProjectedGradient):
 
     |
 
-    If only one of `azimuthal`, `polar`, and `radial` is `True`, the
+    If only one of `azimuthal`, `polar`, and `radial` is ``True``, the
     operator output is a `DeviceArray`, otherwise it is a
     :class:`.BlockArray`.
     """
@@ -342,21 +341,22 @@ class SphericalGradient(ProjectedGradient):
         Args:
             input_shape: Shape of input array.
             axes: Axes over which to compute the gradient.  Defaults to
-                `None`, in which case the axes are taken to be
-                ``(0, 1, 2)``. If an integer, this operator returns a
-                `DeviceArray`. If a tuple or `None`, the resulting arrays
-                are stacked into a :class:`.BlockArray`.
+                ``None``, in which case the axes are taken to be
+                `(0, 1, 2)`. If an integer, this operator returns a
+                `DeviceArray`. If a tuple or ``None``, the resulting
+                arrays are stacked into a :class:`.BlockArray`.
             center: Center of the spherical coordinate system in array
-                indexing coordinates. Default is `None`, which places the
-                center at the center of the input array.
+                indexing coordinates. Default is ``None``, which places
+                the center at the center of the input array.
             azimuthal: Flag indicating whether to compute gradients in
                 the azimuthal direction.
             polar: Flag indicating whether to compute gradients in the
                 polar direction.
             radial: Flag indicating whether to compute gradients in the
                 radial direction.
-            input_dtype: `dtype` for input argument. Default is `float32`.
-            jit: If `True`, jit the evaluation, adjoint, and gram
+            input_dtype: `dtype` for input argument. Default is
+                ``float32``.
+            jit: If ``True``, jit the evaluation, adjoint, and gram
                 functions of the LinearOperator.
         """
 
