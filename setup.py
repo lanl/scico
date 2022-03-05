@@ -84,7 +84,10 @@ setup(
     long_description=longdesc,
     keywords=[
         "Computational Imaging",
+        "Scientific Imaging",
         "Inverse Problems",
+        "Plug-and-Play Priors",
+        "Total Variation",
         "Optimization",
         "ADMM",
         "Linearized ADMM",
