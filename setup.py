@@ -102,7 +102,7 @@ setup(
     python_requires=python_requires,
     tests_require=tests_require,
     install_requires=install_requires,
-    extras_require={"tests": tests_require},
+    extras_require=extras_require,
     classifiers=[
         "License :: OSI Approved :: BSD License",
         "Development Status :: 3 - Alpha",
