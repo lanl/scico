@@ -35,7 +35,7 @@ SCICO is a Python package for solving the inverse problems that arise in scienti
 """
 
 # Set install_requires from requirements.txt file
-with open(os.path.join("requirements.txt")) as f:
+with open("requirements.txt") as f:
     lines = f.readlines()
 install_requires = [line.strip() for line in lines]
 
@@ -59,8 +59,21 @@ if jax_ver != req_jax_ver:
         f"requirements.txt ({req_jax_ver}) do not match"
     )
 
-tests_require = ["pytest", "pytest-runner"]
 python_requires = ">=3.8"
+tests_require = ["pytest", "pytest-runner"]
+
+extra_require_files = [
+    "dev_requirements.txt",
+    os.path.join("docs", "docs_requirements.txt"),
+    os.path.join("examples", "examples_requirements.txt"),
+    os.path.join("examples", "notebooks_requirements.txt"),
+]
+extras_require = {"tests": tests_require}
+for require_file in extra_require_files:
+    extras_label = os.path.basename(require_file).partition("_")[0]
+    with open(require_file) as f:
+        lines = f.readlines()
+    extras_require[extras_label] = [line.strip() for line in lines if line[0:2] != "-r"]
 
 
 setup(
@@ -69,7 +82,15 @@ setup(
     description="Scientific Computational Imaging COde: A Python "
     "package for scientific imaging problems",
     long_description=longdesc,
-    keywords=["Computational Imaging", "Inverse Problems", "Optimization", "ADMM", "PGM"],
+    keywords=[
+        "Computational Imaging",
+        "Inverse Problems",
+        "Optimization",
+        "ADMM",
+        "Linearized ADMM",
+        "PDHG",
+        "PGM",
+    ],
     platforms="Any",
     license="BSD",
     url="https://github.com/lanl/scico",
