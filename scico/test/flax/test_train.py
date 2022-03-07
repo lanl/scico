@@ -1,6 +1,7 @@
 import pytest
 
 import numpy as np
+import os
 
 import jax
 from scico import random
@@ -8,11 +9,12 @@ from scico import flax as sflax
 from scico.flax.train.input_pipeline import prepare_data
 from scico.flax.train.train import create_cnst_lr_schedule, create_cosine_lr_schedule, TrainState, compute_metrics
 
+os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 
 class SetupTest:
     def __init__(self):
         datain = np.arange(80)
-        datain_test = np.arange(80, 120)
+        datain_test = np.arange(80, 112)
         dataout = np.zeros(80)
         dataout[:40] = 1
         dataout_test = np.zeros(40)
@@ -25,9 +27,9 @@ class SetupTest:
         self.N = 128 # Signal size
         self.chn = 1 # Number of channels
         self.bsize = 16 # Batch size
-        self.x, key = random.randn((self.bsize, self.N, self.N, self.chn), seed=4321)
+        self.x, key = random.randn((4*self.bsize, self.N, self.N, self.chn), seed=4321)
 
-        xt, key = random.randn((8, self.N, self.N, self.chn), key=key)
+        xt, key = random.randn((32, self.N, self.N, self.chn), key=key)
 
         self.train_ds = {"image": self.x, "label": self.x}
         self.test_ds = {"image": xt, "label": xt}
@@ -38,7 +40,7 @@ class SetupTest:
              'block_depth': 2,
              'opt_type': 'ADAM',
              'momentum': 0.9,
-             'batch_size': 2,
+             'batch_size': 16,
              'num_epochs': 2,
              'base_learning_rate': 1e-3,
              'warmup_epochs': 0,
@@ -52,7 +54,7 @@ class SetupTest:
 def testobj():
     yield SetupTest()
 
-@pytest.mark.parametrize("local_batch", [2, 4, 8])
+@pytest.mark.parametrize("local_batch", [8, 16, 24])
 def test_dstrain(testobj, local_batch):
 
     key = jax.random.PRNGKey(seed=1234)
@@ -76,7 +78,7 @@ def test_dstrain(testobj, local_batch):
     np.testing.assert_allclose(ll_ar, np.arange(80))
 
 
-@pytest.mark.parametrize("local_batch", [2, 4, 8])
+@pytest.mark.parametrize("local_batch", [8, 16, 32])
 def test_dstest(testobj, local_batch):
 
     key = jax.random.PRNGKey(seed=1234)
@@ -96,14 +98,14 @@ def test_dstest(testobj, local_batch):
     ll_ = np.array(jax.device_get(ll)).flatten()
     ll_ar = np.array(list(set(np.sort(ll_))))
 
-    np.testing.assert_allclose(ll_ar, np.arange(80, 120))
+    np.testing.assert_allclose(ll_ar, np.arange(80, 112))
 
 
 def test_prepare_data(testobj):
 
     xbtch = prepare_data(testobj.x)
     local_device_count = jax.local_device_count()
-    shrdsz = testobj.bsize // local_device_count
+    shrdsz = testobj.x.shape[0] // local_device_count
     assert xbtch.shape == (local_device_count, shrdsz, testobj.N, testobj.N, testobj.chn)
 
 
@@ -114,9 +116,11 @@ def test_train_metrics(testobj):
     ybtch = xbtch + 1
 
     p_eval = jax.pmap(compute_metrics, axis_name='batch')
-    mtrcs = p_eval(ybtch, xbtch)
+    eval_metrics = p_eval(ybtch, xbtch)
+    #mtrcs = p_eval(ybtch, xbtch)
+    mtrcs = jax.tree_map(lambda x: x.mean(), eval_metrics)
     assert np.abs(mtrcs['loss']) < 0.51
-    assert mtrcs['snr'] < 5e-6
+    assert mtrcs['snr'] < 5e-4
 
 
 def test_cnst_learning_rate(testobj):
