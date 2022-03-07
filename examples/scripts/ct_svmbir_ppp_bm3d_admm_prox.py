@@ -103,24 +103,24 @@ y, x0, weights = jax.device_put([y, x_mrf, weights])
 
 
 """
-Set problem parameters.
+Set problem parameters and BM3D pseudo-functional.
 """
 ρ = 10  # ADMM penalty parameter
 σ = density * 0.26  # denoiser sigma
+g0 = σ * ρ * BM3D()
 
 
 """
 Set up problem using `SVMBIRSquaredL2Loss` and `NonNegativeIndicator`.
 """
-f = SVMBIRSquaredL2Loss(
+f_l2loss = SVMBIRSquaredL2Loss(
     y=y, A=A, W=Diagonal(weights), scale=0.5, prox_kwargs={"maxiter": 5, "ctol": 0.0}
 )
-g0 = σ * ρ * BM3D()
 g1 = NonNegativeIndicator()
 
-solver = ADMM(
+solver_l2loss = ADMM(
     f=None,
-    g_list=[f, g0, g1],
+    g_list=[f_l2loss, g0, g1],
     C_list=[Identity(x_mrf.shape), Identity(x_mrf.shape), Identity(x_mrf.shape)],
     rho_list=[ρ, ρ, ρ],
     x0=x0,
@@ -134,14 +134,14 @@ solver = ADMM(
 Run the ADMM solver.
 """
 print(f"Solving on {device_info()}\n")
-x_bm3d = solver.solve()
-hist = solver.itstat_object.history(transpose=True)
+x_l2loss = solver_l2loss.solve()
+hist_l2loss = solver_l2loss.itstat_object.history(transpose=True)
 
 
 """
 Set up problem using `SVMBIRExtendedLoss`, without need for `NonNegativeIndicator`.
 """
-f_extended = SVMBIRExtendedLoss(
+f_extloss = SVMBIRExtendedLoss(
     y=y,
     A=A,
     W=Diagonal(weights),
@@ -149,11 +149,10 @@ f_extended = SVMBIRExtendedLoss(
     positivity=True,
     prox_kwargs={"maxiter": 5, "ctol": 0.0},
 )
-g0 = σ * ρ * BM3D()
 
-solver_extended = ADMM(
+solver_extloss = ADMM(
     f=None,
-    g_list=[f_extended, g0],
+    g_list=[f_extloss, g0],
     C_list=[Identity(x_mrf.shape), Identity(x_mrf.shape)],
     rho_list=[ρ, ρ],
     x0=x0,
@@ -167,12 +166,12 @@ solver_extended = ADMM(
 Run the ADMM solver.
 """
 print()
-x_bm3d_extended = solver_extended.solve()
-hist_extended = solver_extended.itstat_object.history(transpose=True)
+x_extloss = solver_extloss.solve()
+hist_extloss = solver_extloss.itstat_object.history(transpose=True)
 
 
 """
-Show the recovered image.
+Show the recovered images.
 """
 norm = plot.matplotlib.colors.Normalize(vmin=-0.1 * density, vmax=1.2 * density)
 fig, ax = plt.subplots(2, 2, figsize=(15, 15))
@@ -186,16 +185,16 @@ plot.imview(
     norm=norm,
 )
 plot.imview(
-    img=x_bm3d,
-    title=f"BM3D + SquaredL2Loss + non-negativity (PSNR: {metric.psnr(x_gt, x_bm3d):.2f} dB)",
+    img=x_l2loss,
+    title=f"SquaredL2Loss + non-negativity (PSNR: {metric.psnr(x_gt, x_l2loss):.2f} dB)",
     cbar=True,
     fig=fig,
     ax=ax[1, 0],
     norm=norm,
 )
 plot.imview(
-    img=x_bm3d_extended,
-    title=f"BM3D + ExtendedLoss (PSNR: {metric.psnr(x_gt, x_bm3d_extended):.2f} dB)",
+    img=x_extloss,
+    title=f"ExtendedLoss (PSNR: {metric.psnr(x_gt, x_extloss):.2f} dB)",
     cbar=True,
     fig=fig,
     ax=ax[1, 1],
@@ -209,7 +208,7 @@ Plot convergence statistics.
 """
 fig, ax = plt.subplots(1, 2, figsize=(15, 5))
 plot.plot(
-    snp.vstack((hist.Prml_Rsdl, hist.Dual_Rsdl)).T,
+    snp.vstack((hist_l2loss.Prml_Rsdl, hist_l2loss.Dual_Rsdl)).T,
     ptyp="semilogy",
     title="Residuals (SquaredL2Loss + non-negativity)",
     xlbl="Iteration",
@@ -220,7 +219,7 @@ plot.plot(
 ax[0].set_ylim([5e-3, 1e0])
 ax[0].xaxis.set_major_locator(MaxNLocator(integer=True))
 plot.plot(
-    snp.vstack((hist_extended.Prml_Rsdl, hist_extended.Dual_Rsdl)).T,
+    snp.vstack((hist_extloss.Prml_Rsdl, hist_extloss.Dual_Rsdl)).T,
     ptyp="semilogy",
     title="Residuals (ExtendedLoss)",
     xlbl="Iteration",
