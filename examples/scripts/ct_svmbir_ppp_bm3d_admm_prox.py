@@ -17,7 +17,14 @@ tomographic projection.
 
 This version uses the data fidelity term as one of the ADMM g functionals,
 and thus the optimization with respect to the data fidelity is able to
-exploit the internal prox of the SVMBIRSquaredL2Loss functional.
+exploit the internal prox of the SVMBIRExtendedLoss and SVMBIRSquaredL2Loss
+functionals.
+
+We solve the problem in two different ways:
+1) Using a separate non-negative indicator loss along with SVMBIRSquaredL2Loss
+    and the BM3D functional to enforse non-negativity,
+2) Using the BM3D functional with SVMBIRExtendedLoss which includes a non-negativity
+    constraint.
 """
 
 import numpy as np
@@ -32,7 +39,11 @@ import scico.numpy as snp
 from scico import metric, plot
 from scico.functional import BM3D, NonNegativeIndicator
 from scico.linop import Diagonal, Identity
-from scico.linop.radon_svmbir import ParallelBeamProjector, SVMBIRSquaredL2Loss
+from scico.linop.radon_svmbir import (
+    ParallelBeamProjector,
+    SVMBIRExtendedLoss,
+    SVMBIRSquaredL2Loss,
+)
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
@@ -85,7 +96,7 @@ x_mrf = svmbir.recon(
 
 
 """
-Set up an ADMM solver.
+Set up an ADMM solver with explicit NonNegativeIndicator
 """
 y, x0, weights = jax.device_put([y, x_mrf, weights])
 
@@ -119,25 +130,66 @@ hist = solver.itstat_object.history(transpose=True)
 
 
 """
+Set up an ADMM solver with SVMBIRExtendedLoss that includes non-negativity
+"""
+f_extended = SVMBIRExtendedLoss(
+    y=y,
+    A=A,
+    W=Diagonal(weights),
+    scale=0.5,
+    positivity=True,
+    prox_kwargs={"maxiter": 5, "ctol": 0.0},
+)
+g0 = σ * ρ * BM3D()
+
+solver_extended = ADMM(
+    f=None,
+    g_list=[f_extended, g0],
+    C_list=[Identity(x_mrf.shape), Identity(x_mrf.shape)],
+    rho_list=[ρ, ρ],
+    x0=x0,
+    maxiter=20,
+    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-3, "maxiter": 100}),
+    itstat_options={"display": True},
+)
+
+
+"""
+Run the solver.
+"""
+print(f"Solving on {device_info()}\n")
+x_bm3d_extended = solver_extended.solve()
+hist_extended = solver_extended.itstat_object.history(transpose=True)
+
+
+"""
 Show the recovered image.
 """
 norm = plot.matplotlib.colors.Normalize(vmin=-0.1 * density, vmax=1.2 * density)
-fig, ax = plt.subplots(1, 3, figsize=[15, 5])
-plot.imview(img=x_gt, title="Ground Truth Image", cbar=True, fig=fig, ax=ax[0], norm=norm)
+fig, ax = plt.subplots(2, 2, figsize=[15, 15])
+plot.imview(img=x_gt, title="Ground Truth Image", cbar=True, fig=fig, ax=ax[0, 0], norm=norm)
 plot.imview(
     img=x_mrf,
     title=f"MRF (PSNR: {metric.psnr(x_gt, x_mrf):.2f} dB)",
     cbar=True,
     fig=fig,
-    ax=ax[1],
+    ax=ax[0, 1],
     norm=norm,
 )
 plot.imview(
     img=x_bm3d,
-    title=f"BM3D (PSNR: {metric.psnr(x_gt, x_bm3d):.2f} dB)",
+    title=f"BM3D + SquaredL2Loss + non-negativity (PSNR: {metric.psnr(x_gt, x_bm3d):.2f} dB)",
     cbar=True,
     fig=fig,
-    ax=ax[2],
+    ax=ax[1, 0],
+    norm=norm,
+)
+plot.imview(
+    img=x_bm3d_extended,
+    title=f"BM3D + ExtendedLoss (PSNR: {metric.psnr(x_gt, x_bm3d_extended):.2f} dB)",
+    cbar=True,
+    fig=fig,
+    ax=ax[1, 1],
     norm=norm,
 )
 fig.show()
@@ -146,13 +198,24 @@ fig.show()
 """
 Plot convergence statistics.
 """
+fig, ax = plt.subplots(1, 2, figsize=[15, 5])
 plot.plot(
     snp.vstack((hist.Prml_Rsdl, hist.Dual_Rsdl)).T,
     ptyp="semilogy",
-    title="Residuals",
+    title="Residuals (SquaredL2Loss + non-negativity)",
     xlbl="Iteration",
     lgnd=("Primal", "Dual"),
+    fig=fig,
+    ax=ax[0],
 )
-
+plot.plot(
+    snp.vstack((hist_extended.Prml_Rsdl, hist_extended.Dual_Rsdl)).T,
+    ptyp="semilogy",
+    title="Residuals (ExtendedLoss)",
+    xlbl="Iteration",
+    lgnd=("Primal", "Dual"),
+    fig=fig,
+    ax=ax[1],
+)
 
 input("\nWaiting for input to close figures and exit")
