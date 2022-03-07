@@ -18,8 +18,6 @@ from scico.blockarray import BlockArray
 from scico.linop import Convolve, ConvolveByX
 from scico.typing import BlockShape, DType, JaxArray
 
-__author__ = """Luke Pfister <luke.pfister@gmail.com>"""
-
 
 class BiConvolve(Operator):
     """BiConvolution operator.
@@ -44,7 +42,7 @@ class BiConvolve(Operator):
             input_shape: Shape of input BlockArray. Must correspond to a
                 BlockArray with two blocks of equal ndims.
             input_dtype: `dtype` for input argument. Defaults to
-                `float32`.
+                ``float32``.
             mode:  A string indicating the size of the output. One of
                 "full", "valid", "same". Defaults to "full".
             jit: If ``True``, jit the evaluation of this Operator.

@@ -12,7 +12,7 @@ This example compares the performance of ADMM, Linearized ADMM, and PDHG
 in solving the isotropic total variation (TV) denoising problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - \mathbf{x}
-  \|^2 + \lambda R(\mathbf{x}) \;,$$
+  \|_2^2 + \lambda R(\mathbf{x}) \;,$$
 
 where $R$ is the isotropic TV: the sum of the norms of the gradient
 vectors at each point in the image $\mathbf{x}$.

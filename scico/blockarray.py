@@ -9,6 +9,7 @@ r"""Extensions of numpy ndarray class.
 
  .. testsetup::
 
+   >>> import scico
    >>> import scico.numpy as snp
    >>> from scico.blockarray import BlockArray
    >>> import numpy as np
@@ -55,8 +56,8 @@ Instead, we can form a :class:`.BlockArray`: :math:`\mb{x}_B =
 
     >>> n = 32
     >>> m = 16
-    >>> x_h = np.random.randn(n, m-1)
-    >>> x_v = np.random.randn(n-1, m)
+    >>> x_h, key = scico.random.randn((n, m-1))
+    >>> x_v, _ = scico.random.randn((n-1, m), key=key)
 
     # Form the blockarray
     >>> x_B = BlockArray.array([x_h, x_v])
@@ -82,8 +83,8 @@ Construct from a tuple of arrays (either `ndarray` or `DeviceArray`)
 
      >>> from scico.blockarray import BlockArray
      >>> import numpy as np
-     >>> x0 = np.random.randn(32, 32)
-     >>> x1 = np.random.randn(16)
+     >>> x0, key = scico.random.randn((32, 32))
+     >>> x1, _ = scico.random.randn((16,), key=key)
      >>> X = BlockArray.array((x0, x1))
      >>> X.shape
      ((32, 32), (16,))
@@ -108,7 +109,7 @@ Construct from a single vector and tuple of shapes
 
   ::
 
-     >>> x_flat = np.random.randn(1040)
+     >>> x_flat, _ = scico.random.randn((1040,))
      >>> shape_tuple = ((32, 32), (16,))
      >>> X = BlockArray.array_from_flattened(x_flat, shape_tuple=shape_tuple)
      >>> X.shape
@@ -166,8 +167,8 @@ Suppose :math:`\mb{x}` is a BlockArray with shape :math:`((n, n), (m,))`.
 
   ::
 
-    >>> x1 = np.random.randn(4, 4)
-    >>> x2 = np.random.randn(5)
+    >>> x1, key = scico.random.randn((4, 4))
+    >>> x2, _ = scico.random.randn((5,), key=key)
     >>> x = BlockArray.array( (x1, x2) )
     >>> x.shape
     ((4, 4), (5,))
@@ -320,7 +321,7 @@ For example
       >>> diag = BlockArray.array([np.array(1.0), np.array(2.0)])
       >>> A_3 = scico.linop.Diagonal(diag, input_shape=(A_2.output_shape))
       >>> A_3.shape  # BlockArray -> BlockArray
-     (((2, 4), (3, 3)), ((2, 4), (3, 3)))
+      (((2, 4), (3, 3)), ((2, 4), (3, 3)))
 
 
 NumPy ufuncs

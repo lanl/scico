@@ -65,6 +65,7 @@ Miscellaneous
    :maxdepth: 1
 
    examples/demosaic_ppp_bm3d_admm
+   examples/denoise_l1tv_iso_admm
    examples/denoise_tv_iso_admm
    examples/denoise_tv_iso_pgm
    examples/denoise_tv_iso_multi
@@ -109,6 +110,7 @@ Total Variation
    examples/deconv_microscopy_allchn_tv_admm
    examples/deconv_tv_admm
    examples/deconv_tv_admm_tune
+   examples/denoise_l1tv_iso_admm
    examples/denoise_tv_iso_admm
    examples/denoise_tv_iso_pgm
    examples/denoise_tv_iso_multi
@@ -153,6 +155,7 @@ ADMM
    examples/deconv_tv_admm
    examples/deconv_tv_admm_tune
    examples/demosaic_ppp_bm3d_admm
+   examples/denoise_l1tv_iso_admm
    examples/denoise_tv_iso_admm
    examples/denoise_tv_iso_multi
    examples/sparsecode_admm

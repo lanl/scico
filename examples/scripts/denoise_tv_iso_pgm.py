@@ -14,7 +14,7 @@ to solve isotropic total variation (TV) regularization. It solves the
 denoising problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - \mathbf{x}
-  \|^2 + \lambda R(\mathbf{x}) + \iota_C(\mathbf{x}) \;,$$
+  \|_2^2 + \lambda R(\mathbf{x}) + \iota_C(\mathbf{x}) \;,$$
 
 where $R$ is a TV regularizer, $\iota_C(\cdot)$ is the indicator function
 of constraint set $C$, and $C = \{ \mathbf{x} \, | \, x_i \in [0, 1] \}$,

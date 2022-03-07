@@ -17,7 +17,7 @@ tomographic projection.
 
 This version uses the data fidelity term as the ADMM f, and thus the
 optimization with respect to the data fidelity uses CG rather than the
-prox of the SVMBIRWeightedSquaredL2Loss functional.
+prox of the SVMBIRSquaredL2Loss functional.
 """
 
 import numpy as np
@@ -32,7 +32,7 @@ import scico.numpy as snp
 from scico import metric, plot
 from scico.functional import BM3D, NonNegativeIndicator
 from scico.linop import Diagonal, Identity
-from scico.linop.radon_svmbir import ParallelBeamProjector, SVMBIRWeightedSquaredL2Loss
+from scico.linop.radon_svmbir import ParallelBeamProjector, SVMBIRSquaredL2Loss
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
@@ -92,7 +92,7 @@ y, x0, weights = jax.device_put([y, x_mrf, weights])
 ρ = 15  # ADMM penalty parameter
 σ = density * 0.18  # denoiser sigma
 
-f = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(weights), scale=0.5)
+f = SVMBIRSquaredL2Loss(y=y, A=A, W=Diagonal(weights), scale=0.5)
 g0 = σ * ρ * BM3D()
 g1 = NonNegativeIndicator()
 

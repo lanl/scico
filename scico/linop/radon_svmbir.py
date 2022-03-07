@@ -19,7 +19,7 @@ import jax
 import jax.experimental.host_callback
 
 import scico.numpy as snp
-from scico.loss import Loss, WeightedSquaredL2Loss
+from scico.loss import Loss, SquaredL2Loss
 from scico.typing import JaxArray, Shape
 
 from ._linop import Diagonal, Identity, LinearOperator
@@ -38,9 +38,9 @@ class ParallelBeamProjector(LinearOperator):
     ``is_masked`` option selects whether a valid region for projections
     (pixels outside this region are ignored when performing the
     projection) is active. This region of validity is also respected by
-    :meth:`.SVMBIRWeightedSquaredL2Loss.prox` when
-    :class:`.SVMBIRWeightedSquaredL2Loss` is initialized with a
-    :class:`ParallelBeamProjector` with this option enabled.
+    :meth:`.SVMBIRSquaredL2Loss.prox` when :class:`.SVMBIRSquaredL2Loss`
+    is initialized with a :class:`ParallelBeamProjector` with this option
+    enabled.
     """
 
     def __init__(
@@ -57,8 +57,8 @@ class ParallelBeamProjector(LinearOperator):
             angles: Array of projection angles in radians, should be
                 increasing.
             num_channels: Number of pixels in the sinogram.
-            center_offset: Position of the detector center relative to the center-of-rotation,
-                in units of pixels
+            center_offset: Position of the detector center relative to
+                the center of rotation, in units of pixels.
             is_masked: If ``True``, the valid region of the image is
                 determined by a mask defined as the circle inscribed
                 within the image boundary. Otherwise, the whole image
@@ -178,9 +178,10 @@ class ParallelBeamProjector(LinearOperator):
 
 
 class SVMBIRExtendedLoss(Loss):
-    r"""Extended Weighted squared :math:`\ell_2` loss with svmbir CT projector.
+    r"""Extended squared :math:`\ell_2` loss with svmbir CT projector.
 
-    Generalization of the weighted squared :math:`\ell_2` loss of a CT reconstruction problem,
+    Generalization of the weighted squared :math:`\ell_2` loss of a CT
+    reconstruction problem,
 
     .. math::
         \alpha \norm{\mb{y} - A(\mb{x})}_W^2 =
@@ -189,21 +190,22 @@ class SVMBIRExtendedLoss(Loss):
 
     where :math:`A` is a :class:`.ParallelBeamProjector`,
     :math:`\alpha` is the scaling parameter and :math:`W` is an instance
-    of :class:`scico.linop.Diagonal`. If :math:`W` is None, it is set to
-    :class:`scico.linop.Identity`.
+    of :class:`scico.linop.Diagonal`. If :math:`W` is ``None``, it is set
+    to :class:`scico.linop.Identity`.
 
-    The extended loss differs from a typical weighted squared :math:`\ell_2` loss
-    is the following aspects.
-    When ``positivity=True``, the prox projects onto the non-negative
-    orthant and the loss is infinite if any element of the input is negative.
-    When the ``is_masked`` option of the associated :class:`.ParallelBeamProjector` is `True`,
-    the reconstruction is computed over a masked region of the image as described
-    in class :class:`.ParallelBeamProjector`.
+    The extended loss differs from a typical weighted squared
+    :math:`\ell_2` loss as follows. When `positivity=True`, the prox
+    projects onto the non-negative orthant and the loss is infinite if
+    any element of the input is negative. When the `is_masked` option
+    of the associated :class:`.ParallelBeamProjector` is ``True``, the
+    reconstruction is computed over a masked region of the image as
+    described in class :class:`.ParallelBeamProjector`.
     """
 
     def __init__(
         self,
         *args,
+        scale: float = 0.5,
         prox_kwargs: Optional[dict] = None,
         positivity: bool = False,
         W: Optional[Diagonal] = None,
@@ -215,15 +217,15 @@ class SVMBIRExtendedLoss(Loss):
             y: Sinogram measurement.
             A: Forward operator.
             scale: Scaling parameter.
-            W:  Weighting diagonal operator. Must be non-negative.
-                If ``None``, defaults to :class:`.Identity`.
             prox_kwargs: Dictionary of arguments passed to the
-                :meth:`svmbir.recon` prox routine. Defaults to
-                {"maxiter": 1000, "ctol": 0.001}.
+               :meth:`svmbir.recon` prox routine. Defaults to
+               {"maxiter": 1000, "ctol": 0.001}.
             positivity: Enforce positivity in the prox operation. The
-                loss is infinite if any element of the input is negative.
+               loss is infinite if any element of the input is negative.
+            W: Weighting diagonal operator. Must be non-negative.
+               If ``None``, defaults to :class:`.Identity`.
         """
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, scale=scale, **kwargs)
 
         if not isinstance(self.A, ParallelBeamProjector):
             raise ValueError("LinearOperator A must be a radon_svmbir.ParallelBeamProjector.")
@@ -295,7 +297,7 @@ class SVMBIRExtendedLoss(Loss):
         return jax.device_put(result.reshape(self.A.input_shape))
 
 
-class SVMBIRWeightedSquaredL2Loss(SVMBIRExtendedLoss, WeightedSquaredL2Loss):
+class SVMBIRSquaredL2Loss(SVMBIRExtendedLoss, SquaredL2Loss):
     r"""Weighted squared :math:`\ell_2` loss with svmbir CT projector.
 
     Weighted squared :math:`\ell_2` loss of a CT reconstruction problem,
@@ -305,10 +307,10 @@ class SVMBIRWeightedSquaredL2Loss(SVMBIRExtendedLoss, WeightedSquaredL2Loss):
         \alpha \left(\mb{y} - A(\mb{x})\right)^T W \left(\mb{y} -
         A(\mb{x})\right) \;,
 
-    where :math:`A` is a :class:`.ParallelBeamProjector`,
-    :math:`\alpha` is the scaling parameter and :math:`W` is an instance
-    of :class:`scico.linop.Diagonal`. If :math:`W` is None, it is set to
-    :class:`scico.linop.Identity`.
+    where :math:`A` is a :class:`.ParallelBeamProjector`, :math:`\alpha`
+    is the scaling parameter and :math:`W` is an instance
+    of :class:`scico.linop.Diagonal`. If :math:`W` is ``None``, it is set
+    to :class:`scico.linop.Identity`.
     """
 
     def __init__(
@@ -317,23 +319,23 @@ class SVMBIRWeightedSquaredL2Loss(SVMBIRExtendedLoss, WeightedSquaredL2Loss):
         prox_kwargs: Optional[dict] = None,
         **kwargs,
     ):
-        r"""Initialize a :class:`SVMBIRWeightedSquaredL2Loss` object.
+        r"""Initialize a :class:`SVMBIRSquaredL2Loss` object.
 
         Args:
             y: Sinogram measurement.
             A: Forward operator.
             scale: Scaling parameter.
-            W:  Weighting diagonal operator. Must be non-negative.
-                If None, defaults to :class:`.Identity`.
+            W: Weighting diagonal operator. Must be non-negative.
+               If ``None``, defaults to :class:`.Identity`.
             prox_kwargs: Dictionary of arguments passed to the
-                :meth:`svmbir.recon` prox routine. Defaults to
-                {"maxiter": 1000, "ctol": 0.001}.
+               :meth:`svmbir.recon` prox routine. Defaults to
+               {"maxiter": 1000, "ctol": 0.001}.
         """
         super().__init__(*args, **kwargs, prox_kwargs=prox_kwargs, positivity=False)
 
         if self.A.is_masked:
             raise ValueError(
-                "is_masked must be false for the ParallelBeamProjector in SVMBIRWeightedSquaredL2Loss."
+                "is_masked must be false for the ParallelBeamProjector in " "SVMBIRSquaredL2Loss."
             )
 
 

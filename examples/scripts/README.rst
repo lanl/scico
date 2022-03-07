@@ -62,6 +62,8 @@ Miscellaneous
 
    `demosaic_ppp_bm3d_admm.py <demosaic_ppp_bm3d_admm.py>`_
       Image Demosaicing (ADMM Plug-and-Play Priors w/ BM3D)
+   `denoise_l1tv_iso_admm.py <denoise_l1tv_iso_admm.py>`_
+      ℓ1 Total Variation (ADMM)
    `denoise_tv_iso_admm.py <denoise_tv_iso_admm.py>`_
       Isotropic Total Variation (ADMM)
    `denoise_tv_iso_pgm.py <denoise_tv_iso_pgm.py>`_
@@ -118,6 +120,8 @@ Total Variation
       Image Deconvolution (ADMM w/ Total Variation)
    `deconv_tv_admm_tune.py <deconv_tv_admm_tune.py>`_
       Image Deconvolution Parameter Tuning
+   `denoise_l1tv_iso_admm.py <denoise_l1tv_iso_admm.py>`_
+      ℓ1 Total Variation (ADMM)
    `denoise_tv_iso_admm.py <denoise_tv_iso_admm.py>`_
       Isotropic Total Variation (ADMM)
    `denoise_tv_iso_pgm.py <denoise_tv_iso_pgm.py>`_
@@ -174,6 +178,8 @@ ADMM
       Image Deconvolution Parameter Tuning
    `demosaic_ppp_bm3d_admm.py <demosaic_ppp_bm3d_admm.py>`_
       Image Demosaicing (ADMM Plug-and-Play Priors w/ BM3D)
+   `denoise_l1tv_iso_admm.py <denoise_l1tv_iso_admm.py>`_
+      ℓ1 Total Variation (ADMM)
    `denoise_tv_iso_admm.py <denoise_tv_iso_admm.py>`_
       Isotropic Total Variation (ADMM)
    `denoise_tv_iso_multi.py <denoise_tv_iso_multi.py>`_
