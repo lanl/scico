@@ -96,7 +96,7 @@ x_mrf = svmbir.recon(
 
 
 """
-Set up an ADMM solver with explicit NonNegativeIndicator
+Set up an ADMM solver with explicit NonNegativeIndicator.
 """
 y, x0, weights = jax.device_put([y, x_mrf, weights])
 
@@ -130,7 +130,7 @@ hist = solver.itstat_object.history(transpose=True)
 
 
 """
-Set up an ADMM solver with SVMBIRExtendedLoss that includes non-negativity
+Set up an ADMM solver with SVMBIRExtendedLoss that includes non-negativity.
 """
 f_extended = SVMBIRExtendedLoss(
     y=y,
