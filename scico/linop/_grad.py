@@ -65,7 +65,7 @@ class ProjectedGradient(LinearOperator):
                 ``None``, in which case the gradient is computed along
                 all axes.
             coord: A tuple of arrays, each of which specifies a local
-                coordinate axis direction.  Each member of the tuple
+                coordinate axis direction. Each member of the tuple
                 should either be a `DeviceArray` or a
                 :class:`.BlockArray`. If it is the former, it should
                 have shape :math:`N \times M_0 \times M_1 \times
@@ -127,7 +127,10 @@ class ProjectedGradient(LinearOperator):
         grad = snp.gradient(x, axis=self.axes)
         if self.coord is None:
             # If coord attribute is None, just return gradients on specified axes.
-            return BlockArray.array(grad)
+            if len(self.axes) == 1:
+                return grad
+            else:
+                return BlockArray.array(grad)
         else:
             # If coord attribute is not None, return gradients projected onto specified local
             # coordinate systems.
@@ -195,8 +198,11 @@ class PolarGradient(ProjectedGradient):
         if center is None:
             center = (snp.array(axes_shape) - 1) / 2
         end = snp.array(axes_shape) - center
-        g0, g1 = np.mgrid[-center[0] : end[0], -center[1] : end[1]]
+        g0, g1 = np.ogrid[-center[0] : end[0], -center[1] : end[1]]
         theta = snp.arctan2(g0, g1)
+        # Re-order theta axes in case indices in axes parameter are not in increasing order.
+        axis_order = np.argsort(axes)
+        theta = np.transpose(theta, axis_order)
         if len(input_shape) > 2:
             # Construct list of input axes that are not included in the gradient axes.
             single = tuple(set(range(len(input_shape))) - set(axes))
@@ -282,10 +288,13 @@ class CylindricalGradient(ProjectedGradient):
             center = (snp.array(axes_shape) - 1) / 2
             center = center.at[-1].set(0)
         end = snp.array(axes_shape) - center
-        g0, g1 = np.mgrid[-center[0] : end[0], -center[1] : end[1]]
+        g0, g1 = np.ogrid[-center[0] : end[0], -center[1] : end[1]]
         g0 = g0[..., np.newaxis]
         g1 = g1[..., np.newaxis]
         theta = snp.arctan2(g0, g1)
+        # Re-order theta axes in case indices in axes parameter are not in increasing order.
+        axis_order = np.argsort(axes)
+        theta = np.transpose(theta, axis_order)
         if len(input_shape) > 3:
             # Construct list of input axes that are not included in the gradient axes.
             single = tuple(set(range(len(input_shape))) - set(axes))
@@ -371,9 +380,14 @@ class SphericalGradient(ProjectedGradient):
         if center is None:
             center = (snp.array(axes_shape) - 1) / 2
         end = snp.array(axes_shape) - center
-        g0, g1, g2 = np.mgrid[-center[0] : end[0], -center[1] : end[1], -center[2] : end[2]]
+        g0, g1, g2 = np.ogrid[-center[0] : end[0], -center[1] : end[1], -center[2] : end[2]]
         theta = snp.arctan2(g1, g0)
         phi = snp.arctan2(np.sqrt(g0**2 + g1**2), g2)
+        # Re-order theta and phi axes in case indices in axes parameter are not in
+        # increasing order.
+        axis_order = np.argsort(axes)
+        theta = np.transpose(theta, axis_order)
+        phi = np.transpose(phi, axis_order)
         if len(input_shape) > 3:
             # Construct list of input axes that are not included in the gradient axes.
             single = tuple(set(range(len(input_shape))) - set(axes))

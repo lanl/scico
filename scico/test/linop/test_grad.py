@@ -25,11 +25,10 @@ class TestPolarGradient:
         "shape_axes",
         [
             ((20, 20), None),
-            ((20, 20), (0, 1)),
-            ((17, 18), None),
-            ((17, 17), None),
+            ((20, 21), (0, 1)),
             ((16, 17, 3), (0, 1)),
             ((2, 17, 16), (1, 2)),
+            ((2, 17, 16, 3), (2, 1)),
         ],
     )
     def test_eval(self, shape_axes, center, outflags, input_dtype, jit):
@@ -95,12 +94,11 @@ class TestCylindricalGradient:
         "shape_axes",
         [
             ((20, 20, 20), None),
-            ((20, 20, 21), (0, 1, 2)),
-            ((17, 18, 19), None),
-            ((17, 17, 18), None),
+            ((17, 18, 19), (0, 1, 2)),
             ((16, 17, 18, 3), (0, 1, 2)),
             ((2, 17, 16, 15), (1, 2, 3)),
             ((17, 2, 16, 15), (0, 2, 3)),
+            ((17, 2, 16, 15), (3, 2, 0)),
         ],
     )
     def test_eval(self, shape_axes, center, outflags, input_dtype, jit):
@@ -169,12 +167,11 @@ class TestSphericalGradient:
         "shape_axes",
         [
             ((20, 20, 20), None),
-            ((20, 20, 21), (0, 1, 2)),
-            ((17, 18, 19), None),
-            ((17, 17, 18), None),
+            ((17, 18, 19), (0, 1, 2)),
             ((16, 17, 18, 3), (0, 1, 2)),
             ((2, 17, 16, 15), (1, 2, 3)),
             ((17, 2, 16, 15), (0, 2, 3)),
+            ((17, 2, 16, 15), (3, 2, 0)),
         ],
     )
     def test_eval(self, shape_axes, center, outflags, input_dtype, jit):
