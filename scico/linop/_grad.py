@@ -90,18 +90,16 @@ class ProjectedGradient(LinearOperator):
             jit: If ``True``, jit the evaluation, adjoint, and gram
                 functions of the LinearOperator.
         """
-
-        # Ensure no invalid axis indices specified.
-        if axes is not None:
-            if np.any(np.array(axes) >= len(input_shape)):
-                raise ValueError(
-                    "Invalid axes specified;  all elements of `axes` must be less than "
-                    f"len(input_shape)={len(input_shape)}"
-                )
         if axes is None:
             # If axes is None, set it to all axes in input shape.
             self.axes = tuple(range(len(input_shape)))
         else:
+            # Ensure no invalid axis indices specified.
+            if np.any(np.array(axes) >= len(input_shape)):
+                raise ValueError(
+                    "Invalid axes specified; all elements of `axes` must be less than "
+                    f"len(input_shape)={len(input_shape)}"
+                )
             self.axes = axes
         if coord is None:
             # If coord is None, output shape is determined by number of axes.
