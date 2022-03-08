@@ -111,7 +111,7 @@ class TestSet:
         assert flxm.strides == strd  # stride of convolution
 
     def test_convmnblock_default(self):
-        nblck = 2 # number of blocks
+        nblck = 2  # number of blocks
         nflt = 16  # number of filters
         conv = partial(Conv, dtype=np.float32)
         norm = partial(BatchNorm, dtype=np.float32)
@@ -124,7 +124,6 @@ class TestSet:
         )
         assert flxm.kernel_size == (3, 3)  # size of kernel
         assert flxm.strides == (1, 1)  # stride of convolution
-    
 
     def test_resnet_default(self):
         depth = 3  # depth of model
