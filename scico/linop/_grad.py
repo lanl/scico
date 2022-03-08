@@ -129,8 +129,8 @@ class ProjectedGradient(LinearOperator):
             # If coord attribute is None, just return gradients on specified axes.
             return BlockArray.array(grad)
         else:
-            # If coord attribute is not None, return gradients projected onto specified local.
-            # coordinate systems
+            # If coord attribute is not None, return gradients projected onto specified local
+            # coordinate systems.
             projgrad = [sum([c[m] * grad[m] for m in range(len(grad))]) for c in self.coord]
             if len(self.coord) == 1:
                 return projgrad[0]
