@@ -15,6 +15,7 @@ from prox import prox_test
 import scico.numpy as snp
 from scico import denoiser, functional
 from scico.blockarray import BlockArray
+from scico.denoiser import have_bm3d
 from scico.random import randn
 
 NO_BLOCK_ARRAY = [functional.L21Norm, functional.NuclearNorm]
@@ -286,6 +287,7 @@ def test_scalar_pmap():
     np.testing.assert_allclose(non_pmap, pmapped)
 
 
+@pytest.mark.skipif(not have_bm3d, reason="bm3d package not installed")
 class TestBM3D:
     def setup(self):
         key = None
