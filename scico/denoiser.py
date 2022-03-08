@@ -69,7 +69,7 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
     #       updated; this presumes 'np' profile (bs=8)
     if np.min(x.shape[:2]) < 8:
         raise ValueError(
-            f"Two leading dimensions of input cannot be smaller than block size "
+            "Two leading dimensions of input cannot be smaller than block size "
             f"(8); got image size = {x.shape}"
         )
 
