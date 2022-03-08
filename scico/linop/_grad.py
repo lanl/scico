@@ -68,23 +68,22 @@ class ProjectedGradient(LinearOperator):
             coord: A tuple of arrays, each of which specifies a local
                 coordinate axis direction. Each member of the tuple
                 should either be a `DeviceArray` or a
-                :class:`.BlockArray`. If it is the former, it should
-                have shape :math:`N \times M_0 \times M_1 \times
-                \ldots`, where :math:`N` is the number of axes
-                specified by parameter `axes`, and :math:`M_i` is the
-                size of the :math:`i^{\mrm{th}}` axis. If it is the
-                latter, it should consist of :math:`N` blocks, each of
-                which has a shape that is suitable for multiplication
-                with an array of shape :math:`M_0 \times M_1 \times
-                \ldots`. If `coord` is a singleton tuple, the result
-                of applying the operator is a `DeviceArray`; otherwise
-                it consists of the gradients for each of the local
-                coordinate axes in `coord` stacked into a
-                :class:`.BlockArray`. If `coord` is ``None``, which is
-                the default, gradients are computed in the standard
-                axis-aligned coordinate system, and the return type
-                depends on the number of axes on which the gradient is
-                calculated, as specified explicitly or implicitly via
+                :class:`.BlockArray`. If it is the former, it should have
+                shape :math:`N \times M_0 \times M_1 \times \ldots`,
+                where :math:`N` is the number of axes specified by
+                parameter `axes`, and :math:`M_i` is the size of the
+                :math:`i^{\mrm{th}}` axis. If it is the latter, it should
+                consist of :math:`N` blocks, each of which has a shape
+                that is suitable for multiplication with an array of
+                shape :math:`M_0 \times M_1 \times \ldots`. If `coord` is
+                a singleton tuple, the result of applying the operator is
+                a `DeviceArray`; otherwise it consists of the gradients
+                for each of the local coordinate axes in `coord` stacked
+                into a :class:`.BlockArray`. If `coord` is ``None``,
+                which is the default, gradients are computed in the
+                standard axis-aligned coordinate system, and the return
+                type depends on the number of axes on which the gradient
+                is calculated, as specified explicitly or implicitly via
                 the `axes` parameter.
             input_dtype: `dtype` for input argument. Default is
                 ``float32``.
