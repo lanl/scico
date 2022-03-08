@@ -4,10 +4,11 @@ import jax
 
 import pytest
 
-from scico.denoiser import DnCNN, bm3d
+from scico.denoiser import DnCNN, bm3d, have_bm3d
 from scico.random import randn
 
 
+@pytest.mark.skipif(not have_bm3d, reason="bm3d package not installed")
 class TestBM3D:
     def setup(self):
         key = None
