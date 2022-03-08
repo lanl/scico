@@ -37,7 +37,8 @@ class ProjectedGradient(LinearOperator):
 
     .. image:: /figures/projgrad.svg
          :align: center
-         :alt: Figure illustrating projection of gradient onto local coordinate system.
+         :alt: Figure illustrating projection of gradient onto local
+               coordinate system.
 
     Each of the local coordinate axes (e.g. :math:`x'` and :math:`y'` in
     the illustration above) is represented by a separate array in the
