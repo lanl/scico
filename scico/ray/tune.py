@@ -24,8 +24,6 @@ from ray.tune.schedulers import AsyncHyperBandScheduler
 from ray.tune.suggest.hyperopt import HyperOptSearch
 from ray.tune.trial import Trial
 
-__author__ = """Brendt Wohlberg <brendt@ieee.org>"""
-
 
 class _CustomReporter(TuneReporterBase):
     """Custom status reporter for :mod:`ray.tune`."""
