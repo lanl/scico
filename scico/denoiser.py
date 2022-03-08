@@ -57,7 +57,9 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
     # Support arrays with more than three axes when the additional axes are singletons.
     x_in_shape = x.shape
 
-    if x.ndim < 2:
+    print("ndim: ", x.ndim)
+    print("shape: ", x.shape)
+    if isinstance(x.ndim, tuple) or x.ndim < 2:
         raise ValueError(
             "BM3D requires two dimensional (M, N) or three dimensional (M, N, C)"
             f" inputs; got ndim = {x.ndim}"
@@ -136,7 +138,7 @@ class DnCNN(FlaxMap):
         if np.iscomplexobj(x):
             raise TypeError(f"DnCNN requries real-valued inputs, got {x.dtype}")
 
-        if x.ndim < 2:
+        if isinstance(x.ndim, tuple) or x.ndim < 2:
             raise ValueError(
                 "DnCNN requires two dimensional (M, N) or three dimensional (M, N, C)"
                 f" inputs; got ndim = {x.ndim}"
