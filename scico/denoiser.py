@@ -44,7 +44,7 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
         Denoised output.
     """
     if not have_bm3d:
-        raise RuntimeError("Package bm3d is required for use of this function." "")
+        raise RuntimeError("Package bm3d is required for use of this function.")
 
     if is_rgb is True:
         bm3d_eval = tunibm3d.bm3d_rgb
