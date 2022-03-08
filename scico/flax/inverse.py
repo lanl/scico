@@ -13,6 +13,7 @@ from jax import lax
 import jax.numpy as jnp
 
 from scico.typing import Array
+from scico.linop import operator_norm
 from scico.flax import ResNet
 
 
@@ -216,7 +217,7 @@ class ODPDblrBlock(Module):
     dtype: Any = jnp.float32
 
     def setup(self):
-        self.operator_norm = 1.0  # ToDo
+        self.operator_norm = operator_norm(self.operator)
 
     @compact
     def __call__(self, x: Array, y: Array, train: bool = True) -> Array:
