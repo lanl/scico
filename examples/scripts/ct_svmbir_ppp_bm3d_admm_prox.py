@@ -21,9 +21,9 @@ able to exploit the internal prox of the `SVMBIRExtendedLoss` and
 `SVMBIRSquaredL2Loss` functionals.
 
 We solve the problem in two different ways:
-1) Using the `SVMBIRSquaredL2Loss` together with the BM3D pseudo-functional
+1. Using the `SVMBIRSquaredL2Loss` together with the BM3D pseudo-functional
    and a non-negative indicator function, and
-2) Using the `SVMBIRExtendedLoss`, which includes a non-negativity
+2. Using the `SVMBIRExtendedLoss`, which includes a non-negativity
    constraint, together with the BM3D pseudo-functional.
 """
 
