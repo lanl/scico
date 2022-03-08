@@ -12,7 +12,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import Tuple, Union
+from typing import Optional, Tuple, Union
 
 import numpy as np
 
@@ -53,8 +53,8 @@ class ProjectedGradient(LinearOperator):
     def __init__(
         self,
         input_shape: Shape,
-        axes: Union[None, Tuple[int]] = None,
-        coord: Union[None, Tuple[Union[JaxArray, BlockArray]]] = None,
+        axes: Optional[Tuple[int]] = None,
+        coord: Optional[Tuple[Union[JaxArray, BlockArray]]] = None,
         input_dtype: DType = np.float32,
         jit: bool = True,
     ):
@@ -160,8 +160,8 @@ class PolarGradient(ProjectedGradient):
     def __init__(
         self,
         input_shape: Shape,
-        axes: Union[None, Tuple[int]] = None,
-        center: Union[None, Tuple[int], JaxArray] = None,
+        axes: Optional[Tuple[int]] = None,
+        center: Optional[Union[Tuple[int], JaxArray]] = None,
         angular: bool = True,
         radial: bool = True,
         input_dtype: DType = np.float32,
@@ -238,8 +238,8 @@ class CylindricalGradient(ProjectedGradient):
     def __init__(
         self,
         input_shape: Shape,
-        axes: Union[None, Tuple[int]] = None,
-        center: Union[None, Tuple[int], JaxArray] = None,
+        axes: Optional[Tuple[int]] = None,
+        center: Optional[Union[Tuple[int], JaxArray]] = None,
         angular: bool = True,
         radial: bool = True,
         axial: bool = True,
@@ -329,8 +329,8 @@ class SphericalGradient(ProjectedGradient):
     def __init__(
         self,
         input_shape: Shape,
-        axes: Union[None, Tuple[int]] = None,
-        center: Union[None, Tuple[int], JaxArray] = None,
+        axes: Optional[Tuple[int]] = None,
+        center: Optional[Union[Tuple[int], JaxArray]] = None,
         azimuthal: bool = True,
         polar: bool = True,
         radial: bool = True,
