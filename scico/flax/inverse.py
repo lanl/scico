@@ -136,12 +136,12 @@ def cg_solver(A: Callable, b: Array, x0: Array = None, maxiter: int = 50):
 
 
 class ODPDnBlock(Module):
-    r"""Flax implementation of ODP :cite:`diamond-2018-odp`.
+    r"""Flax implementation of ODP denoise block :cite:`diamond-2018-odp`.
 
     Flax implementation of the unrolled optimization with deep priors (ODP) block for denoising described in :cite:`diamond-2018-odp`.
 
     Args:
-        operator : Operator for computing forward and adjoint mappings. In this case (denoising) it corresponds to the identity operator, so it is not used.
+        operator : Operator for computing forward and adjoint mappings. In this case it corresponds to the identity operator and is used at the network level.
         depth : Number of layers in block.
         channels : Number of channels of input tensor.
         num_filters : Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
@@ -192,12 +192,12 @@ class ODPDnBlock(Module):
 
 
 class ODPDblrBlock(Module):
-    r"""Flax implementation of ODP :cite:`diamond-2018-odp`.
+    r"""Flax implementation of ODP deblurring block :cite:`diamond-2018-odp`.
 
-    Flax implementation of the unrolled optimization with deep priors (ODP) block for debluring following examples in :cite:`diamond-2018-odp`.
+    Flax implementation of the unrolled optimization with deep priors (ODP) block for debluring under Gaussian noise described in :cite:`diamond-2018-odp`.
 
     Args:
-        operator : Operator for computing forward and adjoint mappings.
+        operator : Operator for computing forward and adjoint mappings. In this case it correponds to a circular convolution operator.
         depth : Number of layers in block.
         channels : Number of channels of input tensor.
         num_filters : Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
@@ -264,7 +264,7 @@ class ODPDblrBlock(Module):
 
 
 class ODPProxNet(Module):
-    r"""Flax implementation of ODP :cite:`diamond-2018-odp`.
+    r"""Flax implementation of ODP proximal gradient network :cite:`diamond-2018-odp`.
 
     Flax implementation of the unrolled optimization with deep priors (ODP) with a proximal gradient network architecture for inverse problems  described in :cite:`diamond-2018-odp`.
 
