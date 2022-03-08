@@ -38,15 +38,19 @@ class TestBM3D:
         with pytest.raises(ValueError):
             bm3d(x, 1.0)
 
-        x, key = randn((12, 12, 4, 3), key=None, dtype=np.float32)
+        x, key = randn((12, 12, 4, 3), key=key, dtype=np.float32)
         with pytest.raises(ValueError):
             bm3d(x, 1.0)
 
-        x_b, key = randn(((2, 3), (3, 4, 5)), key=None, dtype=np.float32)
+        x, key = randn(((2, 3), (3, 4, 5)), key=key, dtype=np.float32)
         with pytest.raises(ValueError):
             bm3d(x, 1.0)
 
-        z, key = randn((32, 32), key=None, dtype=np.complex64)
+        x, key = randn((5, 9), key=key, dtype=np.float32)
+        with pytest.raises(ValueError):
+            bm3d(x, 1.0)
+
+        z, key = randn((32, 32), key=key, dtype=np.complex64)
         with pytest.raises(TypeError):
             bm3d(z, 1.0)
 
@@ -81,7 +85,7 @@ class TestDnCNN:
         with pytest.raises(ValueError):
             self.dncnn(x)
 
-        x_b, key = randn(((2, 3), (3, 4, 5)), key=None, dtype=np.float32)
+        x, key = randn(((2, 3), (3, 4, 5)), key=None, dtype=np.float32)
         with pytest.raises(ValueError):
             self.dncnn(x)
 
