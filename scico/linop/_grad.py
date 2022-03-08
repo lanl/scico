@@ -249,7 +249,7 @@ class CylindricalGradient(ProjectedGradient):
         r"""
         Args:
             input_shape: Shape of input array.
-            axes: Axes over which to compute the gradient.  Defaults to
+            axes: Axes over which to compute the gradient. Defaults to
                 ``None``, in which case the axes are taken to be
                 `(0, 1, 2)`. If an integer, this operator returns a
                 `DeviceArray`. If a tuple or ``None``, the resulting
@@ -375,7 +375,7 @@ class SphericalGradient(ProjectedGradient):
         end = snp.array(axes_shape) - center
         g0, g1, g2 = np.mgrid[-center[0] : end[0], -center[1] : end[1], -center[2] : end[2]]
         theta = snp.arctan2(g1, g0)
-        phi = snp.arctan2(np.sqrt(g0 ** 2 + g1 ** 2), g2)
+        phi = snp.arctan2(np.sqrt(g0**2 + g1**2), g2)
         if len(input_shape) > 3:
             # Construct list of input axes that are not included in the gradient axes.
             single = tuple(set(range(len(input_shape))) - set(axes))
