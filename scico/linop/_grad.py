@@ -171,7 +171,10 @@ class PolarGradient(ProjectedGradient):
         r"""
         Args:
             input_shape: Shape of input array.
-            axes: Axes over which to compute the gradient. Defaults to
+            axes: Axes over which to compute the gradient. Should be a
+                tuple :math:`(i_x, i_y)`, where :math:`i_x` and
+                :math:`i_y` are input array axes assigned to :math:`x`
+                and :math:`y` coordinates respectively. Defaults to
                 ``None``, in which case the axes are taken to be `(0, 1)`.
             center: Center of the polar coordinate system in array
                 indexing coordinates. Default is ``None``, which places
@@ -253,11 +256,15 @@ class CylindricalGradient(ProjectedGradient):
         r"""
         Args:
             input_shape: Shape of input array.
-            axes: Axes over which to compute the gradient. Defaults to
-                ``None``, in which case the axes are taken to be
-                `(0, 1, 2)`. If an integer, this operator returns a
-                `DeviceArray`. If a tuple or ``None``, the resulting
-                arrays are stacked into a :class:`.BlockArray`.
+            axes: Axes over which to compute the gradient. Should be a
+                tuple :math:`(i_x, i_y, i_z)`, where :math:`i_x`,
+                :math:`i_y` and :math:`i_z` are input array axes assigned
+                to :math:`x`, :math:`y`, and :math:`z` coordinates
+                respectively. Defaults to ``None``, in which case the
+                axes are taken to be `(0, 1, 2)`. If an integer, this
+                operator returns a `DeviceArray`. If a tuple or ``None``,
+                the resulting arrays are stacked into a
+                :class:`.BlockArray`.
             center: Center of the cylindrical coordinate system in array
                 indexing coordinates. Default is ``None``, which places
                 the center at the center of the two polar axes of the
@@ -347,11 +354,15 @@ class SphericalGradient(ProjectedGradient):
         r"""
         Args:
             input_shape: Shape of input array.
-            axes: Axes over which to compute the gradient.  Defaults to
-                ``None``, in which case the axes are taken to be
-                `(0, 1, 2)`. If an integer, this operator returns a
-                `DeviceArray`. If a tuple or ``None``, the resulting
-                arrays are stacked into a :class:`.BlockArray`.
+            axes: Axes over which to compute the gradient. Should be a
+                tuple :math:`(i_x, i_y, i_z)`, where :math:`i_x`,
+                :math:`i_y` and :math:`i_z` are input array axes assigned
+                to :math:`x`, :math:`y`, and :math:`z` coordinates
+                respectively. Defaults to ``None``, in which case the
+                axes are taken to be `(0, 1, 2)`. If an integer, this
+                operator returns a `DeviceArray`. If a tuple or ``None``,
+                the resulting arrays are stacked into a
+                :class:`.BlockArray`.
             center: Center of the spherical coordinate system in array
                 indexing coordinates. Default is ``None``, which places
                 the center at the center of the input array.
