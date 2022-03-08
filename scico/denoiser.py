@@ -57,8 +57,6 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
     # Support arrays with more than three axes when the additional axes are singletons.
     x_in_shape = x.shape
 
-    print("ndim: ", x.ndim)
-    print("shape: ", x.shape)
     if isinstance(x.ndim, tuple) or x.ndim < 2:
         raise ValueError(
             "BM3D requires two dimensional (M, N) or three dimensional (M, N, C)"
