@@ -12,7 +12,7 @@ from flax.core import Scope  # noqa
 from jax import lax
 import jax.numpy as jnp
 
-from scico.typing import Array
+from scico.typing import Array, Shape
 from scico.linop import operator_norm
 from scico.flax import ResNet
 
