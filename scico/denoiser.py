@@ -115,7 +115,7 @@ class DnCNN(FlaxMap):
                 with respect to data in the range [0, 1].
         """
         if variant not in ["6L", "6M", "6H", "17L", "17M", "17H"]:
-            raise RuntimeError(f"Invalid value of parameter variant: {variant}")
+            raise ValueError(f"Invalid value of parameter variant: {variant}")
         if variant[0] == "6":
             nlayer = 6
         else:
