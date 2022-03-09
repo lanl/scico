@@ -430,6 +430,9 @@ def train_and_evaluate(
     image_size = train_ds["label"].shape[1]
     lr_schedule = create_lr_schedule(config)
     state = create_train_state(key2, config, model, image_size, size_device_prefetch, lr_schedule)
+    if log and have_clu:
+        print(clu.parameter_overview.get_parameter_overview(state.params))
+        print(clu.parameter_overview.get_parameter_overview(state.batch_stats))
     if checkpointing:
         state = restore_checkpoint(state, workdir)
     step_offset = int(state.step)  # > 0 if restarting from checkpoint
