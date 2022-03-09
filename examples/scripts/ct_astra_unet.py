@@ -153,7 +153,7 @@ print(f"{'JAX process: '}{jax.process_index()}{' / '}{jax.process_count()}")
 print(f"{'JAX local devices: '}{jax.local_devices()}")
 
 start_time = time()
-state = sflax.train_and_evaluate(
+modvar = sflax.train_and_evaluate(
     dconf, workdir, model, train_ds, test_ds, checkpointing=True, log=True
 )
 time_train = time() - start_time
@@ -162,14 +162,8 @@ time_train = time() - start_time
 Evaluate on testing data.
 """
 start_time = time()
-output, state_ = sflax.only_evaluate(
-    dconf,
-    workdir,
-    model,
-    test_ds,
-    None,
-    checkpointing=True,
-)
+fmap = sflax.FlaxMap(model, modvar)
+output = fmap(test_ds["image"])
 time_eval = time() - start_time
 
 """
