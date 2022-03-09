@@ -364,14 +364,14 @@ def train_and_evaluate(
 
     Args:
         config: Hyperparameter configuration.
-        workdir: Directory to write tensorboard summaries.
+        workdir: Directory to write checkpoints and tensorboard summaries (the latter only if `clu` is available).
         model : Flax model to train.
         train_ds : Dictionary of training data (includes images and labels).
         test_ds : Dictionary of testing data (includes images and labels).
         create_lr_schedule: A function that creates an Optax learning rate schedule. Default: :meth:`create_cnst_schedule`.
         training_step_fn: A function that executes a training step. Default: :meth:`training_step`.
         checkpointing: A flag for checkpointing model state. Default: False.
-        log: A flag for logging. Default: False.
+        log: A flag for logging. If `clu` is available a tensorboard summary is also generated during logging. Default: False.
 
     Returns:
         Model variables extracted from TrainState.
