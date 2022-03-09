@@ -64,6 +64,7 @@ class ConfigDict(TypedDict):
 class ModelVarDict(TypedDict):
     """Definition of the dictionary structure
     for including all Flax model variables."""
+
     params: PyTree
     batch_stats: PyTree
 
@@ -387,9 +388,10 @@ def train_and_evaluate(
         )
         if have_clu:
             from clu import metric_writers
+
             writer = metric_writers.create_default_writer(
-                    logdir=workdir,
-                    just_logging=jax.process_index() != 0)
+                logdir=workdir, just_logging=jax.process_index() != 0
+            )
 
     # Configure seed.
     key = jax.random.PRNGKey(config["seed"])
@@ -440,6 +442,7 @@ def train_and_evaluate(
     state = create_train_state(key2, config, model, image_size, size_device_prefetch, lr_schedule)
     if log and have_clu:
         from clu import parameter_overview
+
         print(parameter_overview.get_parameter_overview(state.params))
         print(parameter_overview.get_parameter_overview(state.batch_stats))
     if checkpointing:
@@ -472,7 +475,9 @@ def train_and_evaluate(
                     f"train_{k}": v
                     for k, v in jax.tree_map(lambda x: x.mean(), train_metrics).items()
                 }
-                summary["steps_per_second"] = config["log_every_steps"] / (time.time() - train_metrics_last_t)
+                summary["steps_per_second"] = config["log_every_steps"] / (
+                    time.time() - train_metrics_last_t
+                )
                 print(
                     "step: %d, steps_per_second: %.6f, train_learning_rate: %.6f, train_loss: %.6f, train_snr: %.2f"
                     % (
@@ -507,8 +512,8 @@ def train_and_evaluate(
                 )
                 if have_clu:
                     writer.write_scalars(
-                        step + 1,
-                        {f'eval_{key}': val for key, val in summary.items()})
+                        step + 1, {f"eval_{key}": val for key, val in summary.items()}
+                    )
                     writer.flush()
         if (step + 1) % steps_per_checkpoint == 0 or step + 1 == num_steps:
             state = sync_batch_stats(state)
@@ -556,11 +561,12 @@ def only_evaluate(
         if checkpointing:
             state = checkpoints.restore_checkpoint(workdir, model)
             variables = {
-               "params": state["params"],
-               "batch_stats": state["batch_stats"],
+                "params": state["params"],
+                "batch_stats": state["batch_stats"],
             }
             if log and have_clu:
                 from clu import parameter_overview
+
                 print(parameter_overview.get_parameter_overview(variables["params"]))
                 print(parameter_overview.get_parameter_overview(variables["batch_stats"]))
         else:
