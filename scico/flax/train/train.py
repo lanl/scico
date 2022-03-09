@@ -61,6 +61,13 @@ class ConfigDict(TypedDict):
     steps_per_epoch: int
 
 
+class ModelVarDict(TypedDict):
+    """Definition of the dictionary structure
+    for including all Flax model variables."""
+    params: PyTree
+    batch_stats: PyTree
+
+
 # Loss Function
 def mse_loss(output: Array, labels: Array) -> float:
     """
@@ -351,7 +358,7 @@ def train_and_evaluate(
     training_step_fn: Callable = train_step,
     checkpointing: bool = False,
     log: bool = False,
-) -> TrainState:
+) -> ModelVarDict:
     """Execute model training and evaluation loop.
 
     Args:
@@ -366,7 +373,7 @@ def train_and_evaluate(
         log: A flag for logging. Default: False.
 
     Returns:
-        Final TrainState.
+        Model variables extracted from TrainState.
     """
     if log:
         print(
@@ -510,7 +517,12 @@ def train_and_evaluate(
 
     jax.random.normal(jax.random.PRNGKey(0), ()).block_until_ready()
 
-    return state
+    variables = {
+        "params": state.params,
+        "batch_stats": state.batch_stats,
+    }
+
+    return variables
 
 
 def only_evaluate(
@@ -518,7 +530,7 @@ def only_evaluate(
     workdir: str,
     model: ModuleDef,
     test_ds: DataSetDict,
-    state: PyTree = None,
+    variables: ModelVarDict = None,
     checkpointing: bool = False,
 ) -> Array:
     """Execute model evaluation loop.
@@ -528,7 +540,7 @@ def only_evaluate(
         workdir: Directory to read checkpoint (if enabled).
         model : Flax model to apply.
         test_ds : Dictionary of testing data (includes images and labels).
-        state : Model parameters to use for evaluation. Default: None (i.e. read from checkpoint).
+        variables : Model parameters to use for evaluation. Default: None (i.e. read from checkpoint).
         checkpointing: A flag for checkpointing model state. Default: False.
 
     Returns:
@@ -537,19 +549,24 @@ def only_evaluate(
     Raises:
         Error if no state and no checkpoint are specified.
     """
-    if state is None:
+    if variables is None:
         if checkpointing:
             state = checkpoints.restore_checkpoint(workdir, model)
+            variables = {
+               "params": state["params"],
+               "batch_stats": state["batch_stats"],
+            }
+            if log and have_clu:
+                from clu import parameter_overview
+                print(parameter_overview.get_parameter_overview(variables["params"]))
+                print(parameter_overview.get_parameter_overview(variables["batch_stats"]))
         else:
-            raise Exception("No trained state or checkpoint provided")
+            raise Exception("No variables or checkpoint provided")
 
-    variables = {
-        "params": state["params"],
-        "batch_stats": state["batch_stats"],
-    }
+    # Evaluate model with provided variables
     output = model.apply(variables, test_ds["image"], train=False, mutable=False)
 
     # Allow for completing the async run
     jax.random.normal(jax.random.PRNGKey(0), ()).block_until_ready()
 
-    return output, state
+    return output, variables
