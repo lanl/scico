@@ -379,7 +379,8 @@ def train_and_evaluate(
             )
         )
         if have_clu:
-            writer = clu.metric_writers.create_default_writer(
+            from clu import metric_writers
+            writer = metric_writers.create_default_writer(
                     logdir=workdir,
                     just_logging=jax.process_index() != 0)
 
@@ -431,8 +432,9 @@ def train_and_evaluate(
     lr_schedule = create_lr_schedule(config)
     state = create_train_state(key2, config, model, image_size, size_device_prefetch, lr_schedule)
     if log and have_clu:
-        print(clu.parameter_overview.get_parameter_overview(state.params))
-        print(clu.parameter_overview.get_parameter_overview(state.batch_stats))
+        from clu import parameter_overview
+        print(parameter_overview.get_parameter_overview(state.params))
+        print(parameter_overview.get_parameter_overview(state.batch_stats))
     if checkpointing:
         state = restore_checkpoint(state, workdir)
     step_offset = int(state.step)  # > 0 if restarting from checkpoint
