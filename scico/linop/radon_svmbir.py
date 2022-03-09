@@ -5,9 +5,9 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Radon transform LinearOperator wrapping the svmbir package.
+"""Tomographic projector LinearOperator wrapping the svmbir package.
 
-Radon transform LinearOperator wrapping the
+Tomographic projector LinearOperator wrapping the
 `svmbir <https://github.com/cabouman/svmbir>`_ package.
 """
 
@@ -30,8 +30,8 @@ except ImportError:
     raise ImportError("Could not import svmbir; please install it.")
 
 
-class ParallelBeamProjector(LinearOperator):
-    r"""Parallel beam Radon transform based on svmbir.
+class TomographicProjector(LinearOperator):
+    r"""Tomographic projector based on svmbir.
 
     Perform tomographic projection of an image at specified angles, using
     the `svmbir <https://github.com/cabouman/svmbir>`_ package. The
@@ -39,7 +39,7 @@ class ParallelBeamProjector(LinearOperator):
     (pixels outside this region are ignored when performing the
     projection) is active. This region of validity is also respected by
     :meth:`.SVMBIRSquaredL2Loss.prox` when :class:`.SVMBIRSquaredL2Loss`
-    is initialized with a :class:`ParallelBeamProjector` with this option
+    is initialized with a :class:`TomographicProjector` with this option
     enabled.
     """
 
@@ -48,8 +48,11 @@ class ParallelBeamProjector(LinearOperator):
         input_shape: Shape,
         angles: np.ndarray,
         num_channels: int,
-        center_offset: Optional[float] = 0.0,
-        is_masked: Optional[bool] = False,
+        center_offset: float = 0.0,
+        is_masked: bool = False,
+        geometry: str = "parallel",
+        dist_source_detector: Optional[float] = None,
+        magnification: Optional[float] = None,
     ):
         """
         Args:
@@ -63,6 +66,12 @@ class ParallelBeamProjector(LinearOperator):
                 determined by a mask defined as the circle inscribed
                 within the image boundary. Otherwise, the whole image
                 array is taken into account by projections.
+            geometry:  Scanner geometry, either "parallel" or "fan".
+                Note for fan geometry the  `dist_source_detector` and
+                `magnification` arguments must be specified.
+
+            dist_source_detector:
+            magnification:
         """
         self.angles = angles
         self.num_channels = num_channels
@@ -87,6 +96,16 @@ class ParallelBeamProjector(LinearOperator):
         else:
             self.roi_radius = max(self.svmbir_input_shape[1], self.svmbir_input_shape[2])
 
+        self.geometry = geometry
+        self.dist_source_detector = dist_source_detector
+        self.magnification = magnification
+
+        if self.geometry == "fan":
+            if self.dist_source_detector is None:
+                raise AssertionError("dist_source_detector must be specified if geometry is fan")
+            if self.magnification is None:
+                raise AssertionError("magnification must be specified if geometry is fan")
+
         # Set up custom_vjp for _eval and _adj so jax.grad works on them.
         self._eval = jax.custom_vjp(self._proj_hcb)
         self._eval.defvjp(lambda x: (self._proj_hcb(x), None), lambda _, y: (self._bproj_hcb(y),))
@@ -108,8 +127,11 @@ class ParallelBeamProjector(LinearOperator):
         x: JaxArray,
         angles: JaxArray,
         num_channels: int,
-        center_offset: Optional[float] = 0.0,
+        center_offset: float = 0.0,
         roi_radius: Optional[float] = None,
+        geometry: str = "parallel",
+        dist_source_detector: Optional[float] = None,
+        magnification: Optional[float] = None,
     ) -> JaxArray:
         return jax.device_put(
             svmbir.project(
@@ -119,6 +141,9 @@ class ParallelBeamProjector(LinearOperator):
                 verbose=0,
                 center_offset=center_offset,
                 roi_radius=roi_radius,
+                geometry=geometry,
+                dist_source_detector=dist_source_detector,
+                magnification=magnification,
             )
         )
 
@@ -132,6 +157,9 @@ class ParallelBeamProjector(LinearOperator):
                 self.num_channels,
                 center_offset=self.center_offset,
                 roi_radius=self.roi_radius,
+                geometry=self.geometry,
+                dist_source_detector=self.dist_source_detector,
+                magnification=self.magnification,
             ),
             x,
             result_shape=jax.ShapeDtypeStruct(self.svmbir_output_shape, self.output_dtype),
@@ -146,6 +174,9 @@ class ParallelBeamProjector(LinearOperator):
         num_cols: int,
         center_offset: Optional[float] = 0.0,
         roi_radius: Optional[float] = None,
+        geometry: str = "parallel",
+        dist_source_detector: Optional[float] = None,
+        magnification: Optional[float] = None,
     ):
         return jax.device_put(
             svmbir.backproject(
@@ -156,6 +187,9 @@ class ParallelBeamProjector(LinearOperator):
                 verbose=0,
                 center_offset=center_offset,
                 roi_radius=roi_radius,
+                geometry=geometry,
+                dist_source_detector=dist_source_detector,
+                magnification=magnification,
             )
         )
 
@@ -170,6 +204,9 @@ class ParallelBeamProjector(LinearOperator):
                 self.svmbir_input_shape[2],
                 center_offset=self.center_offset,
                 roi_radius=self.roi_radius,
+                geometry=self.geometry,
+                dist_source_detector=self.dist_source_detector,
+                magnification=self.magnification,
             ),
             y,
             result_shape=jax.ShapeDtypeStruct(self.svmbir_input_shape, self.input_dtype),
@@ -178,9 +215,9 @@ class ParallelBeamProjector(LinearOperator):
 
 
 class SVMBIRExtendedLoss(Loss):
-    r"""Extended squared :math:`\ell_2` loss with svmbir CT projector.
+    r"""Extended squared :math:`\ell_2` loss with svmbir tomographic projector.
 
-    Generalization of the weighted squared :math:`\ell_2` loss of a CT
+    Generalization of the weighted squared :math:`\ell_2` loss for a CT
     reconstruction problem,
 
     .. math::
@@ -188,7 +225,7 @@ class SVMBIRExtendedLoss(Loss):
         \alpha \left(\mb{y} - A(\mb{x})\right)^T W \left(\mb{y} -
         A(\mb{x})\right) \;,
 
-    where :math:`A` is a :class:`.ParallelBeamProjector`,
+    where :math:`A` is a :class:`.TomographicProjector`,
     :math:`\alpha` is the scaling parameter and :math:`W` is an instance
     of :class:`scico.linop.Diagonal`. If :math:`W` is ``None``, it is set
     to :class:`scico.linop.Identity`.
@@ -197,9 +234,9 @@ class SVMBIRExtendedLoss(Loss):
     :math:`\ell_2` loss as follows. When `positivity=True`, the prox
     projects onto the non-negative orthant and the loss is infinite if
     any element of the input is negative. When the `is_masked` option
-    of the associated :class:`.ParallelBeamProjector` is ``True``, the
+    of the associated :class:`.TomographicProjector` is ``True``, the
     reconstruction is computed over a masked region of the image as
-    described in class :class:`.ParallelBeamProjector`.
+    described in class :class:`.TomographicProjector`.
     """
 
     def __init__(
@@ -227,8 +264,8 @@ class SVMBIRExtendedLoss(Loss):
         """
         super().__init__(*args, scale=scale, **kwargs)
 
-        if not isinstance(self.A, ParallelBeamProjector):
-            raise ValueError("LinearOperator A must be a radon_svmbir.ParallelBeamProjector.")
+        if not isinstance(self.A, TomographicProjector):
+            raise ValueError("LinearOperator A must be a radon_svmbir.TomographicProjector.")
 
         self.has_prox = True
 
@@ -284,6 +321,9 @@ class SVMBIRExtendedLoss(Loss):
             num_cols=self.A.svmbir_input_shape[2],
             center_offset=self.A.center_offset,
             roi_radius=self.A.roi_radius,
+            geometry=self.A.geometry,
+            dist_source_detector=self.A.dist_source_detector,
+            magnification=self.A.magnification,
             sigma_p=float(sigma_p),
             sigma_y=1.0,
             positivity=self.positivity,
@@ -298,7 +338,7 @@ class SVMBIRExtendedLoss(Loss):
 
 
 class SVMBIRSquaredL2Loss(SVMBIRExtendedLoss, SquaredL2Loss):
-    r"""Weighted squared :math:`\ell_2` loss with svmbir CT projector.
+    r"""Weighted squared :math:`\ell_2` loss with svmbir tomographic projector.
 
     Weighted squared :math:`\ell_2` loss of a CT reconstruction problem,
 
@@ -307,7 +347,7 @@ class SVMBIRSquaredL2Loss(SVMBIRExtendedLoss, SquaredL2Loss):
         \alpha \left(\mb{y} - A(\mb{x})\right)^T W \left(\mb{y} -
         A(\mb{x})\right) \;,
 
-    where :math:`A` is a :class:`.ParallelBeamProjector`, :math:`\alpha`
+    where :math:`A` is a :class:`.TomographicProjector`, :math:`\alpha`
     is the scaling parameter and :math:`W` is an instance
     of :class:`scico.linop.Diagonal`. If :math:`W` is ``None``, it is set
     to :class:`scico.linop.Identity`.
@@ -335,7 +375,7 @@ class SVMBIRSquaredL2Loss(SVMBIRExtendedLoss, SquaredL2Loss):
 
         if self.A.is_masked:
             raise ValueError(
-                "is_masked must be false for the ParallelBeamProjector in " "SVMBIRSquaredL2Loss."
+                "is_masked must be false for the TomographicProjector in " "SVMBIRSquaredL2Loss."
             )
 
 

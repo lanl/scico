@@ -15,9 +15,9 @@ try:
     import svmbir
 
     from scico.linop.radon_svmbir import (
-        ParallelBeamProjector,
         SVMBIRExtendedLoss,
         SVMBIRSquaredL2Loss,
+        TomographicProjector,
     )
 except ImportError as e:
     pytest.skip("svmbir not installed", allow_module_level=True)
@@ -47,7 +47,7 @@ def make_angles(num_angles):
 
 def make_A(im, num_angles, num_channels, center_offset, is_masked):
     angles = make_angles(num_angles)
-    A = ParallelBeamProjector(
+    A = TomographicProjector(
         im.shape, angles, num_channels, center_offset=center_offset, is_masked=is_masked
     )
 

@@ -9,7 +9,7 @@ from scico.test.linop.test_linop import adjoint_test
 from scico.test.linop.test_radon_svmbir import make_im
 
 try:
-    from scico.linop.radon_astra import ParallelBeamProjector
+    from scico.linop.radon_astra import TomographicProjector
 except ImportError as e:
     pytest.skip("astra not installed", allow_module_level=True)
 
@@ -36,7 +36,7 @@ def get_tol_random_input():
     return rtol
 
 
-class ParallelBeamProjectorTest:
+class TomographicProjectorTest:
     def __init__(self, volume_geometry):
         N_proj = 180  # number of projection angles
         N_det = 384
@@ -46,7 +46,7 @@ class ParallelBeamProjectorTest:
         np.random.seed(1234)
         self.x = np.random.randn(N, N).astype(np.float32)
         self.y = np.random.randn(N_proj, N_det).astype(np.float32)
-        self.A = ParallelBeamProjector(
+        self.A = TomographicProjector(
             input_shape=(N, N),
             volume_geometry=volume_geometry,
             detector_spacing=detector_spacing,
@@ -57,7 +57,7 @@ class ParallelBeamProjectorTest:
 
 @pytest.fixture(params=[None, [-N / 2, N / 2, -N / 2, N / 2]])
 def testobj(request):
-    yield ParallelBeamProjectorTest(request.param)
+    yield TomographicProjectorTest(request.param)
 
 
 def test_ATA_call(testobj):
