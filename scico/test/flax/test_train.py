@@ -145,14 +145,14 @@ def test_cos_learning_rate(testobj):
 
 
 @pytest.mark.parametrize("model_cls", [sflax.DnCNNNet, sflax.ResNet, sflax.UNet])
-def test_dataset_test_iter(testobj, model_cls):
+def test_train_iter(testobj, model_cls):
     depth = testobj.dconf["depth"]
     model = model_cls(depth, testobj.chn, testobj.dconf["num_filters"])
     if isinstance(model, sflax.DnCNNNet):
         depth = 3
         model = sflax.DnCNNNet(depth, testobj.chn, testobj.dconf["num_filters"])
     try:
-        state = sflax.train_and_evaluate(
+        modvar = sflax.train_and_evaluate(
             testobj.dconf,
             "./",
             model,
@@ -162,3 +162,45 @@ def test_dataset_test_iter(testobj, model_cls):
     except Exception as e:
         print(e)
         assert 0
+
+
+def test_except_only_eval(testobj):
+    model = sflax.ResNet(testobj.dconf["depth"], testobj.chn, testobj.dconf["num_filters"])
+
+    try:
+        out_eval = sflax.only_evaluate(
+            testobj.dconf,
+            "./",
+            model,
+            testobj.test_ds,
+        )
+    except Exception:
+        pass
+    else:
+        assert 0  # should not get here
+
+
+@pytest.mark.parametrize("model_cls", [sflax.DnCNNNet, sflax.ResNet, sflax.UNet])
+def test_eval(testobj, model_cls):
+    depth = testobj.dconf["depth"]
+    model = model_cls(depth, testobj.chn, testobj.dconf["num_filters"])
+    if isinstance(model, sflax.DnCNNNet):
+        depth = 3
+        model = sflax.DnCNNNet(depth, testobj.chn, testobj.dconf["num_filters"])
+
+    key = jax.random.PRNGKey(123)
+    variables = model.init(key, testobj.train_ds["image"])
+
+    # From train script
+    out_eval, _ = sflax.only_evaluate(
+        testobj.dconf,
+        "./",
+        model,
+        testobj.test_ds,
+        variables,
+    )
+    # From scico FlaxMap util
+    fmap = sflax.FlaxMap(model, variables)
+    out_fmap = fmap(testobj.test_ds["image"])
+
+    np.testing.assert_allclose(out_eval, out_fmap)
