@@ -65,10 +65,10 @@ class AbelProjector(LinearOperator):
         """Perform inverse Abel transform.
 
         Args:
-            y: Input image (assumed to be a result of an Abel transform)
+            y: Input image (assumed to be a result of an Abel transform).
 
         Returns:
-            Output of inverse Abel transform
+            Output of inverse Abel transform.
         """
         return _pyabel_transform(y, direction="inverse", proj_mat_quad=self.proj_mat_quad).astype(
             self.input_dtype
