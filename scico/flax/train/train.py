@@ -24,6 +24,13 @@ from flax.training import checkpoints
 from flax.training import common_utils
 from flax import jax_utils
 
+try:
+    import clu
+except ImportError:
+    have_clu = False
+else:
+    have_clu = True
+
 from scico.typing import Array
 from scico.metric import snr
 from scico.flax import create_input_iter
@@ -371,6 +378,10 @@ def train_and_evaluate(
                 train_ds["label"].shape[1],
             )
         )
+        if have_clu:
+            writer = clu.metric_writers.create_default_writer(
+                    logdir=workdir,
+                    just_logging=jax.process_index() != 0)
 
     # Configure seed.
     key = jax.random.PRNGKey(config["seed"])
@@ -438,10 +449,10 @@ def train_and_evaluate(
 
     for step, batch in zip(range(step_offset, num_steps), train_dt_iter):
         state, metrics = p_train_step(state, batch)
-        if step == step_offset and log:
+        if log and step == step_offset:
             print("Initial compilation completed.")
 
-        if config["log_every_steps"]:
+        if log:
             train_metrics.append(metrics)
             if (step + 1) % config["log_every_steps"] == 0:
                 train_metrics = common_utils.get_metrics(train_metrics)
@@ -449,17 +460,19 @@ def train_and_evaluate(
                     f"train_{k}": v
                     for k, v in jax.tree_map(lambda x: x.mean(), train_metrics).items()
                 }
-                steps_per_second = config["log_every_steps"] / (time.time() - train_metrics_last_t)
+                summary["steps_per_second"] = config["log_every_steps"] / (time.time() - train_metrics_last_t)
                 print(
                     "step: %d, steps_per_second: %.6f, train_learning_rate: %.6f, train_loss: %.6f, train_snr: %.2f"
                     % (
                         step,
-                        steps_per_second,
+                        summary["steps_per_second"],
                         summary["train_learning_rate"],
                         summary["train_loss"],
                         summary["train_snr"],
                     )
                 )
+                if have_clu:
+                    writer.write_scalars(step + 1, summary)
                 train_metrics = []
                 train_metrics_last_t = time.time()
 
@@ -480,6 +493,11 @@ def train_and_evaluate(
                     "eval epoch: %d, loss: %.4f, snr: %.2f"
                     % (epoch, summary["loss"], summary["snr"])
                 )
+                if have_clu:
+                    writer.write_scalars(
+                        step + 1,
+                        {f'eval_{key}': val for key, val in summary.items()})
+                    writer.flush()
         if (step + 1) % steps_per_checkpoint == 0 or step + 1 == num_steps:
             state = sync_batch_stats(state)
             if checkpointing:
