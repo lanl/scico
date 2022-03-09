@@ -338,7 +338,7 @@ def eval_step(state: TrainState, batch: DataSetDict):
 # sync across replicas
 def sync_batch_stats(state):
     """Sync the batch statistics across replicas."""
-    # Each devide has its own version of the running average batch
+    # Each device has its own version of the running average batch
     # statistics and those are synced before evaluation
     return state.replace(batch_stats=cross_replica_mean(state.batch_stats))
 
@@ -517,6 +517,9 @@ def train_and_evaluate(
 
     jax.random.normal(jax.random.PRNGKey(0), ()).block_until_ready()
 
+    state = sync_batch_stats(state)
+    # Extract one copy of state
+    state = jax_utils.unreplicate(state)
     variables = {
         "params": state.params,
         "batch_stats": state.batch_stats,
