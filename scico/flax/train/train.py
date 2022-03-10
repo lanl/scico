@@ -7,7 +7,7 @@
 
 """Utilities for training Flax models.
 
-Assummes sharded batched data and parallel training.
+Assummes sharded batched data and data parallel training.
 """
 
 import os, sys
@@ -527,12 +527,12 @@ def train_and_evaluate(
     state = sync_batch_stats(state)
     # Extract one copy of state
     state = jax_utils.unreplicate(state)
-    variables = {
+    dvar: ModelVarDict = {
         "params": state.params,
         "batch_stats": state.batch_stats,
     }
 
-    return variables
+    return dvar
 
 
 def only_evaluate(
@@ -566,7 +566,7 @@ def only_evaluate(
                 "params": state["params"],
                 "batch_stats": state["batch_stats"],
             }
-            if log and have_clu:
+            if have_clu:
                 from clu import parameter_overview
 
                 print(parameter_overview.get_parameter_overview(variables["params"]))
