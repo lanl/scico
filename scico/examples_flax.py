@@ -97,7 +97,7 @@ def distributed_data_generation(
     if nimg % nproc > 0:
         raise ValueError("Number of images to generate must be divisible by the number of devices")
 
-    ndata_per_proc = nimg // nproc
+    ndata_per_proc = int(nimg // nproc)
 
     imgs = jax.pmap(imgenf, static_broadcasted_argnums=(1, 2))(seeds, size, ndata_per_proc)
 
