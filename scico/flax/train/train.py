@@ -227,6 +227,8 @@ def create_train_state(
         tx = optax.adamw(
             learning_rate=learning_rate_fn,
         )
+    else:
+        raise NotImplementedError
 
     state = TrainState.create(
         apply_fn=model.apply,

@@ -6,15 +6,26 @@ import os
 import jax
 from scico import random
 from scico import flax as sflax
-from scico.flax.train.input_pipeline import prepare_data
+from scico.flax.train.input_pipeline import prepare_data, IterateData
 from scico.flax.train.train import (
     create_cnst_lr_schedule,
     create_cosine_lr_schedule,
     TrainState,
     compute_metrics,
+    mse_loss,
 )
 
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
+
+
+def test_mse_loss():
+    N = 256
+    x, key = random.randn((N, N), seed=4321)
+    y, key = random.randn((N, N), key=key)
+    # Optax uses a 0.5 factor
+    mse_jnp = 0.5 * jax.numpy.mean((x - y) ** 2)
+    mse_optx = mse_loss(y, x)
+    np.testing.assert_allclose(mse_jnp, mse_optx)
 
 
 class SetupTest:
@@ -63,6 +74,14 @@ def testobj():
     yield SetupTest()
 
 
+@pytest.mark.parametrize("batch_size", [4, 8, 16])
+def test_data_iterator(testobj, batch_size):
+    ds = IterateData(testobj.test_ds_simple, batch_size, train=False)
+    N = testobj.test_ds_simple["image"].shape[0]
+    assert ds.steps_per_epoch == N // batch_size
+    assert ds.key is not None
+
+
 @pytest.mark.parametrize("local_batch", [8, 16, 24])
 def test_dstrain(testobj, local_batch):
 
@@ -108,14 +127,13 @@ def test_dstest(testobj, local_batch):
 
 
 def test_prepare_data(testobj):
-
     xbtch = prepare_data(testobj.x)
     local_device_count = jax.local_device_count()
     shrdsz = testobj.x.shape[0] // local_device_count
     assert xbtch.shape == (local_device_count, shrdsz, testobj.N, testobj.N, testobj.chn)
 
 
-def test_train_metrics(testobj):
+def test_compute_metrics(testobj):
     xbtch = prepare_data(testobj.x)
 
     xbtch = xbtch / jax.numpy.sqrt(jax.numpy.var(xbtch, axis=(1, 2, 3, 4)))
@@ -164,20 +182,50 @@ def test_train_iter(testobj, model_cls):
         assert 0
 
 
+@pytest.mark.parametrize("opt_type", ["SGD", "ADAM", "ADAMW"])
+def test_optimizers(testobj, opt_type):
+    model = sflax.ResNet(testobj.dconf["depth"], testobj.chn, testobj.dconf["num_filters"])
+
+    dconf = testobj.dconf.copy()
+    dconf["opt_type"] = opt_type
+    try:
+        modvar = sflax.train_and_evaluate(
+            dconf,
+            "./",
+            model,
+            testobj.train_ds,
+            testobj.test_ds,
+        )
+    except Exception as e:
+        print(e)
+        assert 0
+
+
+def test_optimizers_exception(testobj):
+    model = sflax.ResNet(testobj.dconf["depth"], testobj.chn, testobj.dconf["num_filters"])
+
+    dconf = testobj.dconf.copy()
+    dconf["opt_type"] = ""
+    with pytest.raises(NotImplementedError):
+        sflax.train_and_evaluate(
+            dconf,
+            "./",
+            model,
+            testobj.train_ds,
+            testobj.test_ds,
+        )
+
+
 def test_except_only_eval(testobj):
     model = sflax.ResNet(testobj.dconf["depth"], testobj.chn, testobj.dconf["num_filters"])
 
-    try:
+    with pytest.raises(Exception):
         out_eval = sflax.only_evaluate(
             testobj.dconf,
             "./",
             model,
             testobj.test_ds,
         )
-    except Exception:
-        pass
-    else:
-        assert 0  # should not get here
 
 
 @pytest.mark.parametrize("model_cls", [sflax.DnCNNNet, sflax.ResNet, sflax.UNet])

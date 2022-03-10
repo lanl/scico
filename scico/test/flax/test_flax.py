@@ -4,9 +4,11 @@ import numpy as np
 
 import pytest
 from flax.linen import Conv, BatchNorm, relu, leaky_relu, elu, max_pool
+from flax.errors import ScopeParamShapeError
 
 from scico import flax as sflax
-from scico import random
+from scico.random import randn
+from scico.data import _flax_data_path
 
 
 class TestSet:
@@ -68,6 +70,26 @@ class TestSet:
         assert flxm.kernel_size == ksz  # size of kernel
         assert flxm.strides == strd  # stride of convolution
 
+    def test_convblock_call(self):
+        nflt = 16  # number of filters
+        ksz = (5, 5)  # size of kernel
+        strd = (2, 2)  # stride of convolution
+        conv = partial(Conv, dtype=np.float32)
+        flxb = sflax.ConvBlock(
+            num_filters=nflt,
+            conv=conv,
+            act=elu,
+            kernel_size=ksz,
+            strides=strd,
+        )
+        chn = 1  # number of channels
+        N = 128  # image size
+        x, key = randn((10, N, N, chn), seed=1234)
+        variables = flxb.init(key, x)
+        # Test for the construction / forward pass.
+        cbx = flxb.apply(variables, x)
+        assert x.dtype == cbx.dtype
+
     def test_convnpblock_args(self):
         nflt = 16  # number of filters
         ksz = (5, 5)  # size of kernel
@@ -125,12 +147,20 @@ class TestSet:
         assert flxm.kernel_size == (3, 3)  # size of kernel
         assert flxm.strides == (1, 1)  # stride of convolution
 
+    def test_upscale(self):
+        N = 128  # image size
+        chn = 3  # channels
+        x, key = randn((10, N, N, chn), seed=1234)
+
+        xups = sflax.upscale_nn(x)
+        assert xups.shape == (10, 2 * N, 2 * N, chn)
+
     def test_resnet_default(self):
         depth = 3  # depth of model
         chn = 1  # number of channels
         num_filters = 16  # number of filters per layer
         N = 128  # image size
-        x, key = random.randn((10, N, N, chn), seed=1234)
+        x, key = randn((10, N, N, chn), seed=1234)
         resnet = sflax.ResNet(
             depth=depth,
             channels=chn,
@@ -146,7 +176,7 @@ class TestSet:
         chn = 1  # number of channels
         num_filters = 16  # number of filters per layer
         N = 128  # image size
-        x, key = random.randn((10, N, N, chn), seed=1234)
+        x, key = randn((10, N, N, chn), seed=1234)
         unet = sflax.UNet(
             depth=depth,
             channels=chn,
@@ -164,7 +194,7 @@ class DnCNNNetTest:
         chn = 1  # number of channels
         num_filters = 16  # number of filters per layer
         N = 128  # image size
-        self.x, key = random.randn((10, N, N, chn), seed=1234)
+        self.x, key = randn((10, N, N, chn), seed=1234)
         self.dncnn = sflax.DnCNNNet(
             depth=depth,
             channels=chn,
@@ -216,9 +246,88 @@ def test_DnCNN_test(testobj):
 
 def test_FlaxMap_call(testobj):
     # Test for the usage of flax model as a map.
+    # 2D evaluation signal.
     fmap = sflax.FlaxMap(testobj.dncnn, testobj.variables)
     N = 128  # image size
-    x, key = random.randn((N, N))
+    x, key = randn((N, N))
     out = fmap(x)
     assert x.dtype == out.dtype
     assert x.ndim == out.ndim
+
+
+def test_FlaxMap_3D_call(testobj):
+    # Test for the usage of flax model as a map.
+    # 3D evaluation signal.
+    fmap = sflax.FlaxMap(testobj.dncnn, testobj.variables)
+    N = 128  # image size
+    chn = 1  # channels
+    x, key = randn((N, N, chn))
+    out = fmap(x)
+    assert x.dtype == out.dtype
+    assert x.ndim == out.ndim
+
+
+def test_FlaxMap_batch_call(testobj):
+    # Test for the usage of flax model as a map.
+    # 4D evaluation signal.
+    fmap = sflax.FlaxMap(testobj.dncnn, testobj.variables)
+    N = 128  # image size
+    chn = 1  # channels
+    batch = 8  # Batch size
+    x, key = randn((batch, N, N, chn))
+    out = fmap(x)
+    assert x.dtype == out.dtype
+    assert x.ndim == out.ndim
+
+
+def test_FlaxMap_blockarray_exception(testobj):
+
+    import scico.blockarray as ba
+
+    fmap = sflax.FlaxMap(testobj.dncnn, testobj.variables)
+
+    x0, key = randn(shape=(3, 4), seed=4321)
+    x1, key = randn(shape=(4, 5, 6), key=key)
+    x = ba.BlockArray.array((x0, x1))
+
+    with pytest.raises(NotImplementedError):
+        fmap(x)
+
+
+@pytest.mark.parametrize("variant", ["6L", "6M", "6H", "17L", "17M", "17H"])
+def test_variable_load(variant):
+    N = 128  # image size
+    chn = 1  # channels
+    x, key = randn((10, N, N, chn), seed=1234)
+
+    if variant[0] == "6":
+        nlayer = 6
+    else:
+        nlayer = 17
+
+    model = sflax.DnCNNNet(depth=nlayer, channels=chn, num_filters=64, dtype=np.float32)
+    # Loads weights for DnCNN
+    variables = sflax.load_weights(_flax_data_path("dncnn%s.npz" % variant))
+
+    try:
+        fmap = sflax.FlaxMap(model, variables)
+        out = fmap(x)
+    except Exception as e:
+        print(e)
+        assert 0
+
+
+def test_variable_load_mismatch():
+    N = 128  # image size
+    chn = 1  # channels
+    x, key = randn((10, N, N, chn), seed=1234)
+
+    nlayer = 6
+    model = sflax.ResNet(depth=nlayer, channels=chn, num_filters=64, dtype=np.float32)
+    # Loads weights for DnCNN
+    variables = sflax.load_weights(_flax_data_path("dncnn6L.npz"))
+
+    # created with mismatched parameters
+    fmap = sflax.FlaxMap(model, variables)
+    with pytest.raises(ScopeParamShapeError):
+        fmap(x)

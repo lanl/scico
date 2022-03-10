@@ -119,7 +119,6 @@ class ResNet(Module):
         num_filters : Number of filters in the layers of the block. Corresponds to the number of channels in the network processing.
         kernel_size : Size of the convolution filters. Default: 3x3.
         strides : Convolution strides. Default: 1x1.
-        block_cls : Processing block to apply. Default: :class:`ConvBNBlock`.
         dtype : Output type. Default: `jnp.float32`.
     """
 
@@ -128,7 +127,6 @@ class ResNet(Module):
     num_filters: int = 64
     kernel_size: Tuple[int, int] = (3, 3)
     strides: Tuple[int, int] = (1, 1)
-    block_cls: ModuleDef = ConvBNBlock
     dtype: Any = jnp.float32
 
     @compact
@@ -162,7 +160,7 @@ class ResNet(Module):
 
         # Definition and application of ResNet.
         for _ in range(self.depth - 1):
-            x = self.block_cls(
+            x = ConvBNBlock(
                 self.num_filters,
                 conv=conv,
                 norm=norm,
