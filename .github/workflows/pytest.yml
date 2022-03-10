@@ -41,6 +41,8 @@ jobs:
           pip install -e .
       - name: Run tests with pytest
         run: pytest --cov=scico --cov-report=xml
+      - name: Run doctests
+        run: pytest --doctest-modules scico
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
         with:
