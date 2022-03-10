@@ -29,7 +29,8 @@ source plane (e.g. both :math:`\Delta x` and :math:`\Delta x_S` refer to
 the :math:`x`-axis sampling interval in the source plane, while
 :math:`\Delta x_D` refers to it in the destination plane).
 
-Note the non-standard labeling of axis 0 as :math:`x` and axis 1 as :math:`y`.
+Note that :math:`x` corresponds to axis 0 (rows, increasing downwards)
+and :math:`y` to axis 1 (columns, increasing to the right).
 """
 
 
@@ -98,7 +99,7 @@ def radial_transverse_frequency(
 
 
 class Propagator(LinearOperator):
-    """Base class for AngularSpectrum and Fresnel propagators."""
+    """Base class for angular spectrum and Fresnel propagators."""
 
     def __init__(
         self,
