@@ -8,7 +8,7 @@ r"""
 CT with UNet for Denoising of FBP
 =================================
 
-This example demonstrates the training and application of a UNet to denoise previously filtered back projections for CT reconstruction.
+This example demonstrates the training and application of a UNet to denoise previously filtered back projections for CT reconstruction inspired by :cite:`jin-2017-unet`.
 """
 
 from time import time
@@ -64,7 +64,6 @@ dconf: sflax.ConfigDict = {
     "seed": 0,
     "depth": 2,
     "num_filters": 64,
-    "block_depth": 3,
     "opt_type": "ADAM",
     "momentum": 0.9,
     "batch_size": batch_size,
