@@ -368,5 +368,5 @@ def linear_operator_from_function(f, classname):
 
 
 Transpose = linear_operator_from_function(snp.transpose, "Transpose")
-Sum = linear_operator_from_function(snp.sum, "Sum")
+SumAlt = linear_operator_from_function(snp.sum, "Sum")
 Pad = linear_operator_from_function(snp.pad, "Pad")
