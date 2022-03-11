@@ -86,7 +86,7 @@ model = sflax.UNet(dconf["depth"], channels, dconf["num_filters"])
 """
 Run training loop.
 """
-workdir = "./temp/"
+workdir = "./unet_out/"
 print(f"{'JAX process: '}{jax.process_index()}{' / '}{jax.process_count()}")
 print(f"{'JAX local devices: '}{jax.local_devices()}")
 
