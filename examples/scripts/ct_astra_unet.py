@@ -16,7 +16,6 @@ from time import time
 import numpy as np
 
 import jax
-import jax.numpy as jnp
 
 from xdesign import UnitCircle, SimpleMaterial, discrete_phantom
 
@@ -36,86 +35,27 @@ print("Platform: ", platform)
 
 
 """
-Generate training and testing data.
+Get and load training and testing data.
 """
+# ToDo: Replace by download from repo ??
+path_in = "./dtout/"
+trdt = np.load(path_in + "foam2ct_train.npz")
+ttdt = np.load(path_in + "foam2ct_test.npz")
 N = 128  # 256  # phantom size
 
-"""Define functionality to generate phantom with structure similar to foam with 2 different attenuation properties."""
-
-
-class Foam2(UnitCircle):
-    def __init__(self, size_range=[0.05, 0.01], gap=0, porosity=1):
-        super(Foam2, self).__init__(radius=0.5, material=SimpleMaterial(1.0))
-        if porosity < 0 or porosity > 1:
-            raise ValueError("Porosity must be in the range [0,1).")
-        self.sprinkle(
-            300, size_range, gap, material=SimpleMaterial(10), max_density=porosity / 2.0
-        ) + self.sprinkle(300, size_range, gap, material=SimpleMaterial(20), max_density=porosity)
-
-
 """
-Split data generation to enable parallel processing.
-"""
-
-
-def generate_images(seed, size, ndata):
-    # key = jax.random.PRNGKey(seed)
-    saux = np.zeros((ndata, size, size, 1))
-    for i in range(ndata):
-        saux[i, ..., 0] = discrete_phantom(
-            Foam2(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=size
-        )
-    return saux
-
-
-"""
-Configure a CT projection operator to generate synthetic measurements.
+Rebuild CT projection operator used to generate synthetic measurements.
 """
 n_projection = 180  # relatively few-view CT
 angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
 gt_sh = (N, N)
-# A = 1 / N * ParallelBeamProjector(gt_sh, 1, N, angles)  # Radon transform operator
 A = ParallelBeamProjector(gt_sh, 1, N, angles)  # Radon transform operator
-
-"""
-Configure training and testing data generation and set number of processes for parallel execution.
-"""
-train_n_img = 200  # 40
-test_n_img = 24
-num_ims = train_n_img + test_n_img
-nproc = jax.device_count()
-ndata_per_proc = int(num_ims / nproc)
-seeds = np.arange(nproc)
-
-"""
-Generate data.
-First: generate foam images in parallel.
-"""
-ims = jax.pmap(generate_images, static_broadcasted_argnums=(1, 2))(seeds, N, ndata_per_proc)
-ims_sharded = ims
-ims = ims.reshape((-1, N, N, 1))
-
-"""
-Second: compute sinograms in parallel.
-"""
-a_map = lambda v: jnp.atleast_3d(A @ v.squeeze())
-sinoaux = jax.pmap(lambda i: jax.lax.map(a_map, ims_sharded[i]))(np.arange(nproc))
-sinoaux_sharded = sinoaux
-sinoaux = sinoaux.reshape((-1, n_projection, N, 1))
-
-"""
-Third: compute filter back-project in parallel.
-"""
-afbp_map = lambda v: jnp.atleast_3d(A.fbp(v.squeeze()))
-sfbpaux = jax.pmap(lambda i: jax.lax.map(afbp_map, sinoaux_sharded[i]))(np.arange(nproc))
-sfbpaux = sfbpaux.reshape((-1, N, N, 1))
 
 """
 Build training and testing structures. Inputs are the filter back-projected sinograms and outpus are the original generated foams. Keep training and testing partitions.
 """
-train_ds = {"image": sfbpaux[:train_n_img], "label": ims[:train_n_img]}
-test_ds = {"image": sfbpaux[train_n_img:], "label": ims[train_n_img:]}
-
+train_ds = {"image": trdt["fbp"], "label": trdt["img"]}
+test_ds = {"image": ttdt["fbp"], "label": ttdt["img"]}
 
 """
 Define configuration dictionary for model and training loop.
