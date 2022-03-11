@@ -1,4 +1,4 @@
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -16,7 +16,7 @@ import jax.numpy as jnp
 def _append_jax_docs(fn, jaxfn=None):
     """Append the jax function docs.
 
-    Given wrapper function ``fn``, concatenate its docstring with the
+    Given wrapper function `fn`, concatenate its docstring with the
     docstring of the wrapped jax function.
     """
 
@@ -35,7 +35,7 @@ def grad(
     holomorphic: bool = False,
     allow_int: bool = False,
 ) -> Callable:
-    """Create a function that evaluates the gradient of ``fun``.
+    """Create a function that evaluates the gradient of `fun`.
 
     :func:`scico.grad` differs from :func:`jax.grad` in that the output
     is conjugated.
@@ -67,7 +67,7 @@ def value_and_grad(
     holomorphic: bool = False,
     allow_int: bool = False,
 ) -> Callable[..., Tuple[Any, Any]]:
-    """Create a function that evaluates both ``fun`` and its gradient.
+    """Create a function that evaluates both `fun` and its gradient.
 
     :func:`scico.value_and_grad` differs from :func:`jax.value_and_grad`
     in that the gradient is conjugated.
@@ -131,7 +131,7 @@ def jacrev(
     holomorphic: bool = False,
     allow_int: bool = False,
 ) -> Callable:
-    """Jacobian of ``fun`` evaluated row-by-row using reverse-mode AD.
+    """Jacobian of `fun` evaluated row-by-row using reverse-mode AD.
 
     :func:`scico.jacrev` differs from :func:`jax.jacrev` in that the
     output is conjugated.
