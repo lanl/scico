@@ -64,6 +64,7 @@ dconf: sflax.ConfigDict = {
     "seed": 0,
     "depth": 2,
     "num_filters": 64,
+    "block_depth": 3,
     "opt_type": "ADAM",
     "momentum": 0.9,
     "batch_size": batch_size,
@@ -80,7 +81,10 @@ dconf: sflax.ConfigDict = {
 Construct UNet model.
 """
 channels = train_ds["image"].shape[-1]
-model = sflax.UNet(dconf["depth"], channels, dconf["num_filters"])
+model = sflax.UNet(depth=dconf["depth"],
+            channels=channels,
+            num_filters=dconf["num_filters"],
+            block_depth=dconf["block_depth"])
 
 """
 Run training loop.
