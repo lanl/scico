@@ -1,6 +1,6 @@
 # Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
-# This file is part of the SCICO package. Details of the copyright and
+# This file is patr of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
@@ -335,3 +335,38 @@ class Slice(LinearOperator):
 
     def _eval(self, x: JaxArray) -> JaxArray:
         return x[self.idx]
+
+
+def linear_operator_from_function(f, classname):
+    """Make a linear operator object from a function.
+
+    Example
+    -------
+    >>> Sum = linear_operator_from_function(snp.sum)
+    >>> H = Sum((2, 10), axis=1)
+    >>> H @ snp.ones((2, 10))
+    DeviceArray([10., 10.], dtype=float32)
+    """
+
+    def __init__(
+        self,
+        input_shape: Union[Shape, BlockShape],
+        *args: Any,
+        input_dtype: Dtype = snp.float32,
+        jit: bool = True,
+        **kwargs: Any,
+    ):
+        self._eval = lambda x: f(x, *args, **kwargs)
+        super().__init__(input_shape, input_dtype=input_dtype, jit=jit)
+
+    OpClass = type(classname, (LinearOperator,), {"__init__": __init__})
+    __class__ = OpClass  # needed for super() to work
+
+    OpClass.__doc__ = f"Linear operator built from {f.__module__}.{f.__name__}."
+
+    return OpClass
+
+
+Transpose = linear_operator_from_function(snp.transpose, "Transpose")
+Sum = linear_operator_from_function(snp.sum, "Sum")
+Pad = linear_operator_from_function(snp.pad, "Pad")
