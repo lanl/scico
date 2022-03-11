@@ -17,8 +17,6 @@ import numpy as np
 
 import jax
 
-from xdesign import UnitCircle, SimpleMaterial, discrete_phantom
-
 from scico import plot
 from scico.linop.radon_astra import ParallelBeamProjector
 from scico import flax as sflax
@@ -41,12 +39,12 @@ Get and load training and testing data.
 path_in = "./dtout/"
 trdt = np.load(path_in + "foam2ct_train.npz")
 ttdt = np.load(path_in + "foam2ct_test.npz")
-N = 128  # 256  # phantom size
+N = trdt["img"].shape[1]   # image size
+n_projection = trdt["sino"].shape[1]  # CT views
 
 """
 Rebuild CT projection operator used to generate synthetic measurements.
 """
-n_projection = 180  # relatively few-view CT
 angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
 gt_sh = (N, N)
 A = ParallelBeamProjector(gt_sh, 1, N, angles)  # Radon transform operator
