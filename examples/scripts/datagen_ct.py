@@ -66,7 +66,8 @@ to generate synthetic measurements.
 n_projection = 180  # CT views
 angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
 gt_sh = (N, N)
-A = ParallelBeamProjector(gt_sh, 1, N, angles)  # Radon transform operator
+detector_spacing = 1
+A = ParallelBeamProjector(gt_sh, detector_spacing, N, angles)  # Radon transform operator
 
 """
 Compute sinograms in parallel.

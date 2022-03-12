@@ -162,26 +162,6 @@ def test_cos_learning_rate(testobj):
     np.testing.assert_allclose(lr, testobj.dconf["base_learning_rate"] * cosine_decay, rtol=1e-06)
 
 
-@pytest.mark.parametrize("model_cls", [sflax.DnCNNNet, sflax.ResNet, sflax.UNet])
-def test_train_iter(testobj, model_cls):
-    depth = testobj.dconf["depth"]
-    model = model_cls(depth, testobj.chn, testobj.dconf["num_filters"])
-    if isinstance(model, sflax.DnCNNNet):
-        depth = 3
-        model = sflax.DnCNNNet(depth, testobj.chn, testobj.dconf["num_filters"])
-    try:
-        modvar = sflax.train_and_evaluate(
-            testobj.dconf,
-            "./",
-            model,
-            testobj.train_ds,
-            testobj.test_ds,
-        )
-    except Exception as e:
-        print(e)
-        assert 0
-
-
 @pytest.mark.parametrize("opt_type", ["SGD", "ADAM", "ADAMW"])
 def test_optimizers(testobj, opt_type):
     model = sflax.ResNet(testobj.dconf["depth"], testobj.chn, testobj.dconf["num_filters"])
@@ -214,6 +194,49 @@ def test_optimizers_exception(testobj):
             testobj.train_ds,
             testobj.test_ds,
         )
+
+
+@pytest.mark.parametrize("model_cls", [sflax.DnCNNNet, sflax.ResNet, sflax.UNet])
+def test_train_iter(testobj, model_cls):
+    depth = testobj.dconf["depth"]
+    model = model_cls(depth, testobj.chn, testobj.dconf["num_filters"])
+    if isinstance(model, sflax.DnCNNNet):
+        depth = 3
+        model = sflax.DnCNNNet(depth, testobj.chn, testobj.dconf["num_filters"])
+    try:
+        modvar = sflax.train_and_evaluate(
+            testobj.dconf,
+            "./",
+            model,
+            testobj.train_ds,
+            testobj.test_ds,
+        )
+    except Exception as e:
+        print(e)
+        assert 0
+
+
+@pytest.mark.parametrize("chkflag", [False, True])
+def test_train_ext_init(testobj, chkflag):
+    model = sflax.ResNet(testobj.dconf["depth"], testobj.chn, testobj.dconf["num_filters"])
+
+    key = jax.random.PRNGKey(seed=1234)
+    input_shape = (1, testobj.N, testobj.N, testobj.chn)
+    variables = model.init({"params": key}, np.ones(input_shape, model.dtype))
+    dconf = testobj.dconf
+    dconf["num_epochs"] = 0
+    bn0var_before = variables["batch_stats"]["ConvBNBlock_0"]["BatchNorm_0"]["var"]
+    modvar = sflax.train_and_evaluate(
+        testobj.dconf,
+        "./",
+        model,
+        testobj.train_ds,
+        testobj.test_ds,
+        variables0=variables,
+        checkpointing=chkflag,
+    )
+    bn0var_after = modvar["batch_stats"]["ConvBNBlock_0"]["BatchNorm_0"]["var"]
+    np.testing.assert_allclose(bn0var_before, bn0var_after, rtol=1e-5)
 
 
 def test_except_only_eval(testobj):
