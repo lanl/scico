@@ -8,7 +8,12 @@ r"""
 CT Data Generation for NN Training
 ==================================
 
-This example demonstrates how to generate CT synthetic data for  using in training neural network models. If desired, a basic reconstruction can be generated using filtered back projection (FBP).
+This example demonstrates how to
+generate CT synthetic data for
+using in training neural network
+models. If desired, a basic
+reconstruction can be generated
+using filtered back projection (FBP).
 """
 
 from time import time
@@ -22,7 +27,9 @@ from scico.linop.radon_astra import ParallelBeamProjector
 from scico.examples_flax import generate_foam2_images, distributed_data_generation
 
 """
-Prepare parallel processing. Set an arbitrary processor count (only applies if GPU is not available).
+Prepare parallel processing. Set an
+arbitrary processor count (only
+applies if GPU is not available).
 """
 import os
 
@@ -34,16 +41,16 @@ print("Platform: ", platform)
 """
 Prepare output path.
 """
-prefix = "./dtout/"
+prefix = "./dtct/"
 os.mkdir(prefix)
 
 
 """
 Generate data.
 """
-N = 128  # 256  # phantom size
-train_nimg = 8  # 32  # number of training images
-test_nimg = 8  # number of testing images
+N = 256  # phantom size
+train_nimg = 512  # number of training images
+test_nimg = 64  # number of testing images
 nimg = train_nimg + test_nimg
 start_time = time()
 imgsshd = distributed_data_generation(generate_foam2_images, N, nimg)
@@ -53,7 +60,8 @@ imgs = imgsshd.reshape((-1, N, N, 1))
 print(f"{'Data Generation':8s}{'time[s]:':2s}{time_dtgen:>5.2f}")
 
 """
-Configure a CT projection operator to generate synthetic measurements.
+Configure a CT projection operator
+to generate synthetic measurements.
 """
 n_projection = 180  # CT views
 angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
@@ -70,7 +78,8 @@ sino = sinoshd.reshape((-1, n_projection, N, 1))
 print(f"{'Sinogram Generation':8s}{'time[s]:':2s}{time_sino:>5.2f}")
 
 """
-Compute filter back-project in parallel.
+Compute filter back-project in
+parallel.
 """
 afbp_map = lambda v: jnp.atleast_3d(A.fbp(v.squeeze()))
 start_time = time()
@@ -80,7 +89,9 @@ fbp = fbpshd.reshape((-1, N, N, 1))
 print(f"{'FBP Generation':8s}{'time[s]:':2s}{time_fbp:>5.2f}")
 
 """
-Separate training and testing partitions. Store images, sinograms and filter back-projections.
+Separate training and testing
+partitions. Store images, sinograms
+and filter back-projections.
 """
 np.savez(
     prefix + "foam2ct_train.npz",
