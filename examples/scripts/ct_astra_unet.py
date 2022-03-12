@@ -8,7 +8,9 @@ r"""
 CT with UNet for Denoising of FBP
 =================================
 
-This example demonstrates the training and application of a UNet to denoise previously filtered back projections for CT reconstruction inspired by :cite:`jin-2017-unet`.
+This example demonstrates the training and application of UNet
+to denoise previously filtered back projections for CT
+reconstruction inspired by :cite:`jin-2017-unet`.
 """
 
 from time import time
@@ -23,7 +25,8 @@ from scico import flax as sflax
 from scico.metric import snr
 
 """
-Prepare parallel processing. Set an arbitrary processor count (only applies if GPU is not available).
+Prepare parallel processing. Set an arbitrary processor
+count (only applies if GPU is not available).
 """
 import os
 
@@ -35,22 +38,15 @@ print("Platform: ", platform)
 """
 Get and load training and testing data.
 """
-# ToDo: Replace by download from repo ??
-path_in = "./dtout/"
+# ToDo: Replace by download from repo?
+path_in = "./dtct/"
 trdt = np.load(path_in + "foam2ct_train.npz")
 ttdt = np.load(path_in + "foam2ct_test.npz")
-N = trdt["img"].shape[1]   # image size
-n_projection = trdt["sino"].shape[1]  # CT views
 
 """
-Rebuild CT projection operator used to generate synthetic measurements.
-"""
-angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
-gt_sh = (N, N)
-A = ParallelBeamProjector(gt_sh, 1, N, angles)  # Radon transform operator
-
-"""
-Build training and testing structures. Inputs are the filter back-projected sinograms and outpus are the original generated foams. Keep training and testing partitions.
+Build training and testing structures. Inputs are the filter
+back-projected sinograms and outpus are the original generated foams.
+Keep training and testing partitions.
 """
 train_ds = {"image": trdt["fbp"], "label": trdt["img"]}
 test_ds = {"image": ttdt["fbp"], "label": ttdt["img"]}
@@ -63,28 +59,30 @@ epochs = 200
 dconf: sflax.ConfigDict = {
     "seed": 0,
     "depth": 2,
-    "num_filters": 64,
-    "block_depth": 3,
-    "opt_type": "ADAM",
+    "num_filters": 32,
+    "block_depth": 2,
+    "opt_type": "SGD",
     "momentum": 0.9,
     "batch_size": batch_size,
     "num_epochs": epochs,
-    "base_learning_rate": 1e-3,
+    "base_learning_rate": 1e-2,
     "warmup_epochs": 0,
     "num_train_steps": -1,
     "steps_per_eval": -1,
     "steps_per_epoch": 1,
-    "log_every_steps": 1000,
+    "log_every_steps": 400,
 }
 
 """
 Construct UNet model.
 """
 channels = train_ds["image"].shape[-1]
-model = sflax.UNet(depth=dconf["depth"],
-            channels=channels,
-            num_filters=dconf["num_filters"],
-            block_depth=dconf["block_depth"])
+model = sflax.UNet(
+    depth=dconf["depth"],
+    channels=channels,
+    num_filters=dconf["num_filters"],
+    block_depth=dconf["block_depth"],
+)
 
 """
 Run training loop.
@@ -108,7 +106,8 @@ output = fmap(test_ds["image"])
 time_eval = time() - start_time
 
 """
-Compare trained model in terms of reconstruction time and data fidelity.
+Compare trained model in terms of reconstruction time
+and data fidelity.
 """
 snr_eval = snr(test_ds["label"], output)
 print(
