@@ -62,14 +62,18 @@ class FlaxMap:
             raise NotImplementedError
 
         # Add singleton to input as necessary:
-        #   scico typically works with (H x W) or (H x Wx C) arrays
+        #   scico typically works with (H x W) or (H x W x C) arrays
         #   flax expects (K x H x W x C) arrays
         #   H: spatial height  W: spatial width
         #   K: batch size  C: channel size
-        x_shape = x.shape
-        if x.ndim == 2:
+        xndim = x.ndim
+        if xndim == 2:
             x = x.reshape((1,) + x.shape + (1,))
-        elif x.ndim == 3:
+            axsqz = (0, 3)
+        elif xndim == 3:
             x = x.reshape((1,) + x.shape)
+            axsqz = (0,)
         y = self.model.apply(self.variables, x, train=False, mutable=False)
-        return y.reshape(x_shape)
+        if y.ndim != xndim:
+            return y.squeeze(axis=axsqz)
+        return y
