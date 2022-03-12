@@ -111,7 +111,7 @@ class DnCNNNet(Module):
 
 
 class ResNet(Module):
-    """Net constructed from sucessive applications of provided block and ending with residual connection (i.e. adding the input to the output of the block).
+    """Net constructed from sucessive applications of convolution plus batch normalization blocks and ending with residual connection (i.e. adding the input to the output of the block).
 
     Args:
         depth : Depth of residual net.
@@ -177,6 +177,72 @@ class ResNet(Module):
         x = norm()(x)
 
         return x + residual
+
+
+class ConvBNNet(Module):
+    """Net constructed from sucessive applications of convolution plus batch normalization blocks.
+
+    Args:
+        depth : Depth of net.
+        channels : Number of channels of input tensor.
+        num_filters : Number of filters in the layers of the block. Corresponds to the number of channels in the network processing.
+        kernel_size : Size of the convolution filters. Default: 3x3.
+        strides : Convolution strides. Default: 1x1.
+        dtype : Output type. Default: `jnp.float32`.
+    """
+
+    depth: int
+    channels: int
+    num_filters: int = 64
+    kernel_size: Tuple[int, int] = (3, 3)
+    strides: Tuple[int, int] = (1, 1)
+    dtype: Any = jnp.float32
+
+    @compact
+    def __call__(self, x: Array, train: bool = True) -> Array:
+        """Apply ConvBNNet.
+
+        Args:
+            x: The nd-array to be transformed.
+            train: Flag to differentiate between training and testing stages.
+
+        Returns:
+            The ConvBNNet result.
+        """
+        # Definition using arguments common to all convolutions.
+        conv = partial(
+            Conv, use_bias=False, padding="CIRCULAR", dtype=self.dtype, kernel_init=xavier_normal()
+        )
+
+        # Definition using arguments common to all batch normalizations.
+        norm = partial(
+            BatchNorm,
+            use_running_average=not train,
+            momentum=0.999,
+            epsilon=1e-6,
+            dtype=self.dtype,
+        )
+        act = relu
+
+        # Definition and application of ConvBNNet.
+        for _ in range(self.depth - 1):
+            x = ConvBNBlock(
+                self.num_filters,
+                conv=conv,
+                norm=norm,
+                act=act,
+                kernel_size=self.kernel_size,
+                strides=self.strides,
+            )(x)
+
+        x = conv(
+            self.channels,
+            self.kernel_size,
+            strides=self.strides,
+        )(x)
+        x = norm()(x)
+
+        return x
 
 
 class UNet(Module):

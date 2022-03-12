@@ -196,7 +196,7 @@ def test_optimizers_exception(testobj):
         )
 
 
-@pytest.mark.parametrize("model_cls", [sflax.DnCNNNet, sflax.ResNet, sflax.UNet])
+@pytest.mark.parametrize("model_cls", [sflax.DnCNNNet, sflax.ResNet, sflax.ConvBNNet, sflax.UNet])
 def test_train_iter(testobj, model_cls):
     depth = testobj.dconf["depth"]
     model = model_cls(depth, testobj.chn, testobj.dconf["num_filters"])
@@ -251,7 +251,7 @@ def test_except_only_eval(testobj):
         )
 
 
-@pytest.mark.parametrize("model_cls", [sflax.DnCNNNet, sflax.ResNet, sflax.UNet])
+@pytest.mark.parametrize("model_cls", [sflax.DnCNNNet, sflax.ResNet, sflax.ConvBNNet, sflax.UNet])
 def test_eval(testobj, model_cls):
     depth = testobj.dconf["depth"]
     model = model_cls(depth, testobj.chn, testobj.dconf["num_filters"])

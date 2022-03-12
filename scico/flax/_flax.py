@@ -10,7 +10,7 @@ from flax.core import Scope  # noqa
 from flax.linen.module import Module, compact, _Sentinel
 
 from scico.blockarray import BlockArray
-from scico.typing import Array
+from scico.typing import Array, Shape
 
 # The imports of Scope and _Sentinel (above)
 # are required to silence "cannot resolve forward reference"
@@ -67,6 +67,7 @@ class FlaxMap:
         #   H: spatial height  W: spatial width
         #   K: batch size  C: channel size
         xndim = x.ndim
+        axsqz: Shape = None  # for mypy
         if xndim == 2:
             x = x.reshape((1,) + x.shape + (1,))
             axsqz = (0, 3)

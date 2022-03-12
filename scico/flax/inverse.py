@@ -14,7 +14,7 @@ import jax.numpy as jnp
 
 from scico.typing import Array, Shape
 from scico.linop import operator_norm
-from scico.flax import ResNet
+from scico.flax import ResNet, ConvBNNet
 
 
 # The imports of Scope and _Sentinel (above)
@@ -336,7 +336,7 @@ class ODPGrDescBlock(Module):
 
         alpha = self.param("alpha", alpha_init_wrap, (1,))
 
-        resnet = ResNet(
+        cbnnet = ConvBNNet(
             self.depth,
             self.channels,
             self.num_filters,
@@ -345,7 +345,7 @@ class ODPGrDescBlock(Module):
             dtype=self.dtype,
         )
 
-        x = 2.0 * x - alpha * self.batch_op_adj(lax.map(self.a_f, x) - y) - resnet(x, train)
+        x = x - alpha * self.batch_op_adj(lax.map(self.a_f, x) - y) - cbnnet(x, train)
 
         return x
 

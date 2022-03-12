@@ -19,7 +19,7 @@ from .blocks import (
     ConvBNMultiBlock,
     upscale_nn,
 )
-from .models import DnCNNNet, ResNet, UNet
+from .models import DnCNNNet, ResNet, ConvBNNet, UNet
 
 from .train.input_pipeline import create_input_iter
 from .train.train import ConfigDict, train_and_evaluate, only_evaluate
@@ -35,6 +35,7 @@ __all__ = [
     "upscale_nn",
     "DnCNNNet",
     "ResNet",
+    "ConvBNNet",
     "UNet",
     "create_input_iter",
     "ConfigDict",
