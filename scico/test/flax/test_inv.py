@@ -4,7 +4,7 @@ import jax.numpy as jnp
 
 from scico import flax as sflax
 from scico import random
-from scico.flax.inverse import MoDLNet, ODPProxDnBlock, ODPProxDblrBlock, ODPNet
+from scico.flax.inverse import MoDLNet, ODPProxDnBlock, ODPProxDblrBlock, ODPGrDescBlock, ODPNet
 from scico.linop.radon_astra import ParallelBeamProjector
 from scico.linop import Identity, CircularConvolve
 
@@ -105,3 +105,23 @@ class TestSet:
         mny = odpdb.apply(variables, y, train=False, mutable=False)
         assert y.dtype == mny.dtype
         assert y.shape == mny.shape
+
+    def test_odpct_default(self):
+        nproj = 60  # number of projections
+        y, key = random.randn((10, nproj, self.N, self.chn), seed=1234)
+
+        opCT = construct_projector(self.N, nproj)
+
+        odpct = ODPNet(
+            operator=opCT,
+            depth=self.depth,
+            channels=self.chn,
+            num_filters=self.num_filters,
+            block_depth=self.block_depth,
+            odp_block=ODPGrDescBlock,
+        )
+
+        variables = odpct.init(key, y)
+        # Test for the construction / forward pass.
+        oy = odpct.apply(variables, y, train=False, mutable=False)
+        assert y.dtype == oy.dtype

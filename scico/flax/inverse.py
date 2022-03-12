@@ -163,6 +163,10 @@ class ODPProxDnBlock(Module):
     alpha_ini: float = 0.2
     dtype: Any = jnp.float32
 
+    def batch_op_adj(self, y: Array) -> Array:
+        """Batch application of adjoint operator."""
+        return self.operator.adj(y)
+
     @compact
     def __call__(self, x: Array, y: Array, train: bool = True) -> Array:
         """Apply denoising block.
@@ -224,7 +228,12 @@ class ODPProxDblrBlock(Module):
     dtype: Any = jnp.float32
 
     def setup(self):
+        """Computing operator norm."""
         self.operator_norm = operator_norm(self.operator)
+
+    def batch_op_adj(self, y: Array) -> Array:
+        """Batch application of adjoint operator."""
+        return self.operator.adj(y)
 
     @compact
     def __call__(self, x: Array, y: Array, train: bool = True) -> Array:
@@ -271,8 +280,79 @@ class ODPProxDblrBlock(Module):
         return x
 
 
+class ODPGrDescBlock(Module):
+    r"""Flax implementation of ODP gradient
+    descent with L2 loss block
+    :cite:`diamond-2018-odp`.
+
+    Flax implementation of the unrolled optimization
+    with deep priors (ODP) gradient descent block for
+    inversion using L2 loss described in
+    :cite:`diamond-2018-odp`.
+
+    Args:
+        operator : Operator for computing forward and adjoint mappings. In this case it corresponds to the identity operator and is used at the network level.
+        depth : Number of layers in block.
+        channels : Number of channels of input tensor.
+        num_filters : Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
+        kernel_size: Size of the convolution filters. Default: (3, 3).
+        strides: Convolution strides. Default: (1, 1).
+        alpha_ini : Initial value of the fidelity weight `alpha`. Default: 0.2.
+        dtype : Output type. Default: jnp.float32.
+    """
+    operator: ModuleDef
+    depth: int
+    channels: int
+    num_filters: int
+    kernel_size: Tuple[int, int] = (3, 3)
+    strides: Tuple[int, int] = (1, 1)
+    alpha_ini: float = 0.2
+    dtype: Any = jnp.float32
+
+    def setup(self):
+        """Setting operator for batch evaluation."""
+        self.ah_f = lambda v: jnp.atleast_3d(self.operator.adj(v.squeeze()))
+        self.a_f = lambda v: jnp.atleast_3d(self.operator(v.squeeze()))
+
+    def batch_op_adj(self, y: Array) -> Array:
+        """Batch application of adjoint operator."""
+        return lax.map(self.ah_f, y)
+
+    @compact
+    def __call__(self, x: Array, y: Array, train: bool = True) -> Array:
+        """Apply gradient descent block.
+
+        Args:
+            x: The nd-array with current stage of reconstructed signal.
+            y: The nd-array with signal to invert.
+            train: Flag to differentiate between training and testing stages.
+
+        Returns:
+            The block output (i.e. next stage of inverted signal).
+        """
+
+        def alpha_init_wrap(rng, shape, dtype=self.dtype):
+            return jnp.ones(shape, dtype) * self.alpha_ini
+
+        alpha = self.param("alpha", alpha_init_wrap, (1,))
+
+        resnet = ResNet(
+            self.depth,
+            self.channels,
+            self.num_filters,
+            self.kernel_size,
+            self.strides,
+            dtype=self.dtype,
+        )
+
+        x = 2.0 * x - alpha * self.batch_op_adj(lax.map(self.a_f, x) - y) - resnet(x, train)
+
+        return x
+
+
 class ODPNet(Module):
-    r"""Flax implementation of network :cite:`diamond-2018-odp`.
+    r"""Flax implementation of network
+    :cite:`diamond-2018-odp`.
 
     Flax implementation of the unrolled optimization
     with deep priors (ODP) network for inverse problems
@@ -290,7 +370,7 @@ class ODPNet(Module):
         strides: Convolution strides. Default: (1, 1).
         alpha_ini : Initial value of the fidelity weight `alpha`. Default: 0.5.
         dtype : Output type. Default: jnp.float32.
-        odp_block : processing block to apply. Default :class:`ODPDnBlock`.
+        odp_block : processing block to apply. Default :class:`ODPProxDnBlock`.
     """
     operator: ModuleDef
     depth: int
@@ -324,9 +404,16 @@ class ODPNet(Module):
             strides=self.strides,
             dtype=self.dtype,
         )
+
+        # Initial block handles initial inversion.
+        # Not all operators are batch-ready.
         alpha0_i = self.alpha_ini
-        x = self.operator.adj(y)
-        for i in range(self.depth):
+        block0 = block(alpha_ini=alpha0_i)
+        x = block0.batch_op_adj(y)
+        x = block0(x, y, train)
+        alpha0_i /= 2.0
+
+        for i in range(self.depth - 1):
             x = block(alpha_ini=alpha0_i)(x, y, train)
             alpha0_i /= 2.0
         return x
