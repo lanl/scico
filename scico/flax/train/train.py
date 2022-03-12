@@ -13,7 +13,7 @@ Assummes sharded batched data and data parallel training.
 import os, sys
 import functools
 import time
-from typing import Any, Callable, List, TypedDict, Union
+from typing import Any, Callable, List, Optional, TypedDict, Union
 import jax
 import jax.numpy as jnp
 from jax import lax
@@ -156,19 +156,18 @@ def create_cosine_lr_schedule(config: ConfigDict) -> optax._src.base.Schedule:
     return schedule
 
 
-def initialized(key: KeyArray, model: ModuleDef, ishape: Shape, size_device_prefetch: int):
+def initialize(key: KeyArray, model: ModuleDef, ishape: Shape):
     """Initialize Flax model.
 
     Args:
         key : A PRNGKey used as the random key.
         model : Flax model to train.
         ishape : Shape of signal (image) to process by `model`.
-        size_device_prefetch : Size of prefetch buffer.
 
     Returns:
         Initial model parameters (including `batch_stats`).
     """
-    input_shape = (size_device_prefetch, ishape[0], ishape[1], model.channels)
+    input_shape = (1, ishape[0], ishape[1], model.channels)
 
     @jax.jit
     def init(*args):
@@ -191,8 +190,8 @@ def create_train_state(
     config: ConfigDict,
     model: ModuleDef,
     ishape: Shape,
-    size_device_prefetch: int,
     learning_rate_fn: optax._src.base.Schedule,
+    variables0: Optional[ModelVarDict] = None,
 ) -> TrainState:
     """Create initial training state.
 
@@ -203,7 +202,7 @@ def create_train_state(
            and `momentum`.
         model : Flax model to train.
         ishape : Shape of signal (image) to process by `model`.
-        size_device_prefetch : Size of prefetch buffer.
+        variables0: Optional initial state of model parameters. If not provided a random initialization is performed. Default: None.
         learning_rate_fn: A function that maps step
            counts to values.
 
@@ -212,7 +211,11 @@ def create_train_state(
            model apply function, the model parameters
            and an Optax optimizer.
     """
-    params, batch_stats = initialized(key, model, ishape, size_device_prefetch)
+    if variables0 is None:
+        params, batch_stats = initialize(key, model, ishape)
+    else:
+        params = variables0["params"]
+        batch_stats = variables0["batch_stats"]
 
     if config["opt_type"] == "SGD":
         # Stochastic Gradient Descent optimiser
@@ -359,6 +362,7 @@ def train_and_evaluate(
     test_ds: DataSetDict,
     create_lr_schedule: Callable = create_cnst_lr_schedule,
     training_step_fn: Callable = train_step,
+    variables0: Optional[ModelVarDict] = None,
     checkpointing: bool = False,
     log: bool = False,
 ) -> ModelVarDict:
@@ -372,6 +376,7 @@ def train_and_evaluate(
         test_ds : Dictionary of testing data (includes images and labels).
         create_lr_schedule: A function that creates an Optax learning rate schedule. Default: :meth:`create_cnst_schedule`.
         training_step_fn: A function that executes a training step. Default: :meth:`training_step`.
+        variables0: Optional initial state of model parameters. Default: None.
         checkpointing: A flag for checkpointing model state. Default: False.
         log: A flag for logging. If `clu` is available a tensorboard summary is also generated during logging. Default: False.
 
@@ -441,14 +446,15 @@ def train_and_evaluate(
     # Create Flax training state
     ishape = train_ds["image"].shape[1:3]
     lr_schedule = create_lr_schedule(config)
-    state = create_train_state(key2, config, model, ishape, size_device_prefetch, lr_schedule)
+    state = create_train_state(key2, config, model, ishape, lr_schedule, variables0)
+    if checkpointing and variables0 is None:
+        # Only restore if no initialization is provided
+        state = restore_checkpoint(state, workdir)
     if log and have_clu:
         from clu import parameter_overview
 
         print(parameter_overview.get_parameter_overview(state.params))
         print(parameter_overview.get_parameter_overview(state.batch_stats))
-    if checkpointing:
-        state = restore_checkpoint(state, workdir)
     step_offset = int(state.step)  # > 0 if restarting from checkpoint
 
     # For parallel training
@@ -540,7 +546,7 @@ def only_evaluate(
     workdir: str,
     model: ModuleDef,
     test_ds: DataSetDict,
-    variables: ModelVarDict = None,
+    variables: Optional[ModelVarDict] = None,
     checkpointing: bool = False,
 ) -> Array:
     """Execute model evaluation loop.
