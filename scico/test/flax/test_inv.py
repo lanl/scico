@@ -4,7 +4,7 @@ import jax.numpy as jnp
 
 from scico import flax as sflax
 from scico import random
-from scico.flax.inverse import MoDLNet, ODPDnBlock, ODPDblrBlock, ODPProxNet
+from scico.flax.inverse import MoDLNet, ODPProxDnBlock, ODPProxDblrBlock, ODPNet
 from scico.linop.radon_astra import ParallelBeamProjector
 from scico.linop import Identity, CircularConvolve
 
@@ -70,7 +70,7 @@ class TestSet:
 
         opI = Identity(y.shape)
 
-        odpdn = ODPProxNet(
+        odpdn = ODPNet(
             operator=opI,
             depth=self.depth,
             channels=self.chn,
@@ -91,13 +91,13 @@ class TestSet:
 
         opBlur = CircularConvolve(h, y.shape, ndims=3)
 
-        odpdb = ODPProxNet(
+        odpdb = ODPNet(
             operator=opBlur,
             depth=self.depth,
             channels=self.chn,
             num_filters=self.num_filters,
             block_depth=self.block_depth,
-            odp_block=ODPDblrBlock,
+            odp_block=ODPProxDblrBlock,
         )
 
         variables = odpdb.init(key, y)

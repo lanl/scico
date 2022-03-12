@@ -30,7 +30,7 @@ count (only applies if GPU is not available).
 """
 import os
 
-os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=4"
+os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 platform = jax.lib.xla_bridge.get_backend().platform
 print("Platform: ", platform)
 
