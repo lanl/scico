@@ -31,7 +31,7 @@ except ImportError:
 else:
     have_clu = True
 
-from scico.typing import Array
+from scico.typing import Array, Shape
 from scico.metric import snr
 from scico.flax import create_input_iter
 from scico.flax.train.input_pipeline import DataSetDict
@@ -156,19 +156,19 @@ def create_cosine_lr_schedule(config: ConfigDict) -> optax._src.base.Schedule:
     return schedule
 
 
-def initialized(key: KeyArray, model: ModuleDef, image_size: int, size_device_prefetch: int):
+def initialized(key: KeyArray, model: ModuleDef, ishape: Shape, size_device_prefetch: int):
     """Initialize Flax model.
 
     Args:
         key : A PRNGKey used as the random key.
         model : Flax model to train.
-        image_size : Size of signal (image) to process by `model`.
+        ishape : Shape of signal (image) to process by `model`.
         size_device_prefetch : Size of prefetch buffer.
 
     Returns:
         Initial model parameters (including `batch_stats`).
     """
-    input_shape = (size_device_prefetch, image_size, image_size, model.channels)
+    input_shape = (size_device_prefetch, ishape[0], ishape[1], model.channels)
 
     @jax.jit
     def init(*args):
@@ -190,7 +190,7 @@ def create_train_state(
     key: KeyArray,
     config: ConfigDict,
     model: ModuleDef,
-    image_size: int,
+    ishape: Shape,
     size_device_prefetch: int,
     learning_rate_fn: optax._src.base.Schedule,
 ) -> TrainState:
@@ -202,7 +202,7 @@ def create_train_state(
            to use correspond to keywords: `opt_type`
            and `momentum`.
         model : Flax model to train.
-        image_size : Size of signal (image) to process by `model`.
+        ishape : Shape of signal (image) to process by `model`.
         size_device_prefetch : Size of prefetch buffer.
         learning_rate_fn: A function that maps step
            counts to values.
@@ -212,7 +212,7 @@ def create_train_state(
            model apply function, the model parameters
            and an Optax optimizer.
     """
-    params, batch_stats = initialized(key, model, image_size, size_device_prefetch)
+    params, batch_stats = initialized(key, model, ishape, size_device_prefetch)
 
     if config["opt_type"] == "SGD":
         # Stochastic Gradient Descent optimiser
@@ -439,9 +439,9 @@ def train_and_evaluate(
     )
 
     # Create Flax training state
-    image_size = train_ds["label"].shape[1]
+    ishape = train_ds["image"].shape[1:3]
     lr_schedule = create_lr_schedule(config)
-    state = create_train_state(key2, config, model, image_size, size_device_prefetch, lr_schedule)
+    state = create_train_state(key2, config, model, ishape, size_device_prefetch, lr_schedule)
     if log and have_clu:
         from clu import parameter_overview
 
