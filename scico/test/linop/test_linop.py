@@ -615,7 +615,7 @@ def test_transpose():
     shape = (1, 2, 3, 4)
     perm = (1, 0, 3, 2)
     x, _ = randn(shape)
-    H = scico.linop.Transpose(shape, perm)
+    H = linop.Transpose(shape, perm)
     np.testing.assert_array_equal(H @ x, x.transpose(perm))
 
     # transpose transpose is transpose inverse
@@ -626,7 +626,7 @@ def test_pad():
     shape = (2, 3, 4)
     pad = 1
     x, _ = randn(shape)
-    H = scico.linop.Pad(shape, pad)
+    H = linop.Pad(shape, pad)
 
     pad_shape = tuple(n + 2 * pad for n in shape)
     y = snp.zeros(pad_shape)
