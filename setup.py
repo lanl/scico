@@ -5,6 +5,7 @@
 
 import os
 import os.path
+import site
 from ast import parse
 
 from setuptools import find_packages, setup
@@ -75,6 +76,8 @@ for require_file in extra_require_files:
         lines = f.readlines()
     extras_require[extras_label] = [line.strip() for line in lines if line[0:2] != "-r"]
 
+# PEP517 workaround, see https://www.scivision.dev/python-pip-devel-user-install/
+site.ENABLE_USER_SITE = True
 
 setup(
     name=name,
