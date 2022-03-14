@@ -67,7 +67,7 @@ Generate tomographic projector and sinogram.
 num_angles = N
 num_channels = N
 dist_source_detector = 1500.0
-magnification = 1.2
+magnification = 1.5
 # Use angles in the range [0, 2*pi] for fanbeam
 angles = snp.linspace(0, 2 * snp.pi, num_angles, endpoint=False, dtype=snp.float32)
 A = TomographicProjector(

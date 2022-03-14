@@ -53,8 +53,6 @@ class TomographicProjector(LinearOperator):
         geometry: str = "parallel",
         dist_source_detector: Optional[float] = None,
         magnification: Optional[float] = None,
-        delta_channel: Optional[float] = None,
-        delta_pixel: Optional[float] = None,
     ):
         """
         Args:
@@ -74,8 +72,6 @@ class TomographicProjector(LinearOperator):
 
             dist_source_detector:
             magnification:
-            delta_channel
-            delta_pixel
         """
         self.angles = angles
         self.num_channels = num_channels
@@ -103,8 +99,6 @@ class TomographicProjector(LinearOperator):
         self.geometry = geometry
         self.dist_source_detector = dist_source_detector
         self.magnification = magnification
-        self.delta_channel = delta_channel
-        self.delta_pixel = delta_pixel
 
         if self.geometry == "fan":
             if self.dist_source_detector is None:
@@ -112,20 +106,14 @@ class TomographicProjector(LinearOperator):
             if self.magnification is None:
                 raise AssertionError("magnification must be specified if geometry is fan")
 
-            if self.delta_channel is None:
-                self.delta_channel = 1.0
-
-            if self.delta_pixel is None:
-                self.delta_pixel = self.delta_channel / self.magnification
+            self.delta_channel = 1.0
+            self.delta_pixel = self.delta_channel / self.magnification
 
         elif self.geometry == "parallel":
-            self.magnification = 1
 
-            if self.delta_channel is None:
-                self.delta_channel = 1.0
-
-            if self.delta_pixel is None:
-                self.delta_pixel = 1.0
+            self.magnification = 1.0
+            self.delta_channel = 1.0
+            self.delta_pixel = 1.0
 
         else:
             raise AssertionError("unspecified geometry {}".format(self.geometry))
