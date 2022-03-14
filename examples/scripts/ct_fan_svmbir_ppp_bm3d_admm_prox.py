@@ -108,6 +108,8 @@ x_mrf = svmbir.recon(
     geometry="fan",
     dist_source_detector=dist_source_detector,
     magnification=magnification,
+    delta_channel=1.0,
+    delta_pixel=1.0 / magnification,
 )[0]
 
 

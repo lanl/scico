@@ -53,6 +53,8 @@ class TomographicProjector(LinearOperator):
         geometry: str = "parallel",
         dist_source_detector: Optional[float] = None,
         magnification: Optional[float] = None,
+        delta_channel: Optional[float] = None,
+        delta_pixel: Optional[float] = None,
     ):
         """
         Args:
@@ -72,6 +74,8 @@ class TomographicProjector(LinearOperator):
 
             dist_source_detector:
             magnification:
+            delta_channel
+            delta_pixel
         """
         self.angles = angles
         self.num_channels = num_channels
@@ -99,12 +103,32 @@ class TomographicProjector(LinearOperator):
         self.geometry = geometry
         self.dist_source_detector = dist_source_detector
         self.magnification = magnification
+        self.delta_channel = delta_channel
+        self.delta_pixel = delta_pixel
 
         if self.geometry == "fan":
             if self.dist_source_detector is None:
                 raise AssertionError("dist_source_detector must be specified if geometry is fan")
             if self.magnification is None:
                 raise AssertionError("magnification must be specified if geometry is fan")
+
+            if self.delta_channel is None:
+                self.delta_channel = 1.0
+
+            if self.delta_pixel is None:
+                self.delta_pixel = self.delta_channel / self.magnification
+
+        elif self.geometry == "parallel":
+            self.magnification = 1
+
+            if self.delta_channel is None:
+                self.delta_channel = 1.0
+
+            if self.delta_pixel is None:
+                self.delta_pixel = 1.0
+
+        else:
+            raise AssertionError("unspecified geometry {}".format(self.geometry))
 
         # Set up custom_vjp for _eval and _adj so jax.grad works on them.
         self._eval = jax.custom_vjp(self._proj_hcb)
@@ -132,6 +156,8 @@ class TomographicProjector(LinearOperator):
         geometry: str = "parallel",
         dist_source_detector: Optional[float] = None,
         magnification: Optional[float] = None,
+        delta_channel: Optional[float] = None,
+        delta_pixel: Optional[float] = None,
     ) -> JaxArray:
         return jax.device_put(
             svmbir.project(
@@ -144,6 +170,8 @@ class TomographicProjector(LinearOperator):
                 geometry=geometry,
                 dist_source_detector=dist_source_detector,
                 magnification=magnification,
+                delta_channel=delta_channel,
+                delta_pixel=delta_pixel,
             )
         )
 
@@ -160,6 +188,8 @@ class TomographicProjector(LinearOperator):
                 geometry=self.geometry,
                 dist_source_detector=self.dist_source_detector,
                 magnification=self.magnification,
+                delta_channel=self.delta_channel,
+                delta_pixel=self.delta_pixel,
             ),
             x,
             result_shape=jax.ShapeDtypeStruct(self.svmbir_output_shape, self.output_dtype),
@@ -177,6 +207,8 @@ class TomographicProjector(LinearOperator):
         geometry: str = "parallel",
         dist_source_detector: Optional[float] = None,
         magnification: Optional[float] = None,
+        delta_channel: Optional[float] = None,
+        delta_pixel: Optional[float] = None,
     ):
         return jax.device_put(
             svmbir.backproject(
@@ -190,6 +222,8 @@ class TomographicProjector(LinearOperator):
                 geometry=geometry,
                 dist_source_detector=dist_source_detector,
                 magnification=magnification,
+                delta_channel=delta_channel,
+                delta_pixel=delta_pixel,
             )
         )
 
@@ -207,6 +241,8 @@ class TomographicProjector(LinearOperator):
                 geometry=self.geometry,
                 dist_source_detector=self.dist_source_detector,
                 magnification=self.magnification,
+                delta_channel=self.delta_channel,
+                delta_pixel=self.delta_pixel,
             ),
             y,
             result_shape=jax.ShapeDtypeStruct(self.svmbir_input_shape, self.input_dtype),
@@ -324,6 +360,8 @@ class SVMBIRExtendedLoss(Loss):
             geometry=self.A.geometry,
             dist_source_detector=self.A.dist_source_detector,
             magnification=self.A.magnification,
+            delta_channel=self.A.delta_channel,
+            delta_pixel=self.A.delta_pixel,
             sigma_p=float(sigma_p),
             sigma_y=1.0,
             positivity=self.positivity,
