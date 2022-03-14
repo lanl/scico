@@ -519,49 +519,6 @@ def sumtestobj(request):
     yield SumTestObj(request.param)
 
 
-sum_axis = [
-    None,
-    0,
-    1,
-    2,
-    3,
-    (0, 1),
-    (0, 2),
-    (0, 3),
-    (1, 2),
-    (1, 3),
-    (2, 3),
-    (0, 1, 2),
-    (0, 1, 3),
-    (1, 2, 3),
-    (0, 1, 2, 3),
-]
-
-
-@pytest.mark.parametrize("axis", sum_axis)
-def test_sum_eval(sumtestobj, axis):
-    x = sumtestobj.x
-
-    A = linop.Sum(input_shape=x.shape, input_dtype=x.dtype, sum_axis=axis)
-
-    np.testing.assert_allclose(A @ x, snp.sum(x, axis=axis), rtol=1e-3)
-
-
-@pytest.mark.parametrize("axis", sum_axis)
-def test_sum_adj(sumtestobj, axis):
-    x = sumtestobj.x
-    A = linop.Sum(input_shape=x.shape, input_dtype=x.dtype, sum_axis=axis)
-    adjoint_test(A)
-
-
-@pytest.mark.parametrize("axis", (5, (1, 1), (0, 1, 2, 3, 4)))
-def test_sum_bad_shapes(sumtestobj, axis):
-    # integer too high, repeated values, list too long
-    x = sumtestobj.x
-    with pytest.raises(ValueError):
-        A = linop.Sum(input_shape=x.shape, input_dtype=x.dtype, sum_axis=axis)
-
-
 class SliceTestObj:
     def __init__(self, dtype):
         self.x = snp.zeros((4, 5, 6, 7), dtype=dtype)
