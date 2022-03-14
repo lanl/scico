@@ -334,7 +334,7 @@ class ContextTimer:
 
     >>> t = Timer()
     >>> t.start()
-    >>> do_something()
+    >>> x = sum(range(1000))
     >>> t.stop()
     >>> elapsed = t.elapsed()
 
@@ -342,7 +342,7 @@ class ContextTimer:
 
     >>> t = Timer()
     >>> with ContextTimer(t):
-    ...   do_something()
+    ...   x = sum(range(1000))
     >>> elapsed = t.elapsed()
     """
 
