@@ -158,7 +158,7 @@ _attach_wrapped_func(
     _not_implemented_functions,
     _not_implemented,
     module_name=sys.modules[__name__],
-    fix_mod_name=True,
+    fix_mod_name=False,
 )
 
 

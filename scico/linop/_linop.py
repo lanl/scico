@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import operator
 from functools import partial
-from typing import Optional, Tuple, Union
+from typing import Callable, Optional, Tuple, Union
 
 import scico.numpy as snp
 from scico import array, blockarray
@@ -337,16 +337,26 @@ class Slice(LinearOperator):
         return x[self.idx]
 
 
-def linear_operator_from_function(f, classname):
-    """Make a linear operator object from a function.
+def linear_operator_from_function(f: Callable, classname: str, f_name: Optional[str] = None):
+    """Make a linear operator class from a function.
 
     Example
     -------
-    >>> Sum = linear_operator_from_function(snp.sum)
+    >>> Sum = linear_operator_from_function(snp.sum, 'Sum')
     >>> H = Sum((2, 10), axis=1)
     >>> H @ snp.ones((2, 10))
     DeviceArray([10., 10.], dtype=float32)
+
+    Args:
+        f: Function from which to create a linear operator class
+        classname: Name of the resulting class.
+        f_name: Name of `f` for use in docstrings. Useful for getting
+        the correct version of wrapped functions. Defaults to
+        `f"{f.__module__}.{f.__name__}"`.
     """
+
+    if f_name is None:
+        f_name = f"{f.__module__}.{f.__name__}"
 
     def __init__(
         self,
@@ -358,8 +368,6 @@ def linear_operator_from_function(f, classname):
     ):
         self._eval = lambda x: f(x, *args, **kwargs)
         super().__init__(input_shape, input_dtype=input_dtype, jit=jit)
-
-    f_name = f"{f.__module__}.{f.__name__}"
 
     OpClass = type(classname, (LinearOperator,), {"__init__": __init__})
     __class__ = OpClass  # needed for super() to work
@@ -383,6 +391,6 @@ def linear_operator_from_function(f, classname):
     return OpClass
 
 
-Transpose = linear_operator_from_function(snp.transpose, "Transpose")
+Transpose = linear_operator_from_function(snp.transpose, "Transpose", "scico.numpy.transpose")
 Sum = linear_operator_from_function(snp.sum, "Sum")
-Pad = linear_operator_from_function(snp.pad, "Pad")
+Pad = linear_operator_from_function(snp.pad, "Pad", "scico.numpy.pad")
