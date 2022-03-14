@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import operator
 from functools import partial
-from typing import Callable, Optional, Tuple, Union
+from typing import Callable, Optional, Union
 
 import scico.numpy as snp
 from scico import array, blockarray
@@ -251,42 +251,6 @@ class Identity(Diagonal):
 
     def __rmatmul__(self, x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
         return x
-
-
-class SumOld(LinearOperator):
-    """A linear operator for summing along an axis or set of axes."""
-
-    def __init__(
-        self,
-        sum_axis: Optional[Union[int, Tuple[int, ...]]],
-        input_shape: Shape,
-        input_dtype: DType = snp.float32,
-        jit: bool = True,
-        **kwargs,
-    ):
-        r"""
-        Wraps :func:`jax.numpy.sum` as a :class:`.LinearOperator`.
-
-        Args:
-            sum_axis: The axis or set of axes to sum over. If ``None``,
-                sum is taken over all axes.
-            input_shape: Shape of input array.
-            input_dtype: `dtype` for input argument.
-                Defaults to ``float32``. If this LinearOperator implements
-                complex-valued operations, this must be ``complex64`` for
-                proper adjoint and gradient calculation.
-            jit: If ``True``, jit the evaluation, adjoint, and gram
-               functions of the LinearOperator.
-        """
-
-        input_ndim = len(input_shape)
-        sum_axis = array.parse_axes(sum_axis, shape=input_shape)
-
-        self.sum_axis: Tuple[int, ...] = sum_axis
-        super().__init__(input_shape=input_shape, input_dtype=input_dtype, jit=jit, **kwargs)
-
-    def _eval(self, x: JaxArray) -> JaxArray:
-        return snp.sum(x, axis=self.sum_axis)
 
 
 class Slice(LinearOperator):
