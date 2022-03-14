@@ -45,6 +45,8 @@ __all__ = [
     "power_iteration",
     "operator_norm",
     "valid_adjoint",
+    "Transpose",
+    "Pad",
 ]
 
 # Imported items in __all__ appear to originate in top-level linop module

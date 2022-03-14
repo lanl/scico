@@ -253,7 +253,7 @@ class Identity(Diagonal):
         return x
 
 
-class Sum(LinearOperator):
+class SumOld(LinearOperator):
     """A linear operator for summing along an axis or set of axes."""
 
     def __init__(
@@ -359,14 +359,30 @@ def linear_operator_from_function(f, classname):
         self._eval = lambda x: f(x, *args, **kwargs)
         super().__init__(input_shape, input_dtype=input_dtype, jit=jit)
 
+    f_name = f"{f.__module__}.{f.__name__}"
+
     OpClass = type(classname, (LinearOperator,), {"__init__": __init__})
     __class__ = OpClass  # needed for super() to work
 
-    OpClass.__doc__ = f"Linear operator built from {f.__module__}.{f.__name__}."
+    OpClass.__doc__ = f"Linear operator version of :func:`{f_name}`."
+    OpClass.__init__.__doc__ = fr"""
+
+        Args:
+            input_shape: Shape of input array.
+            args: Positional arguments passed to :func:`{f_name}`.
+            input_dtype: `dtype` for input argument.
+                Defaults to `float32`. If ``LinearOperator`` implements
+                complex-valued operations, this must be `complex64` for
+                proper adjoint and gradient calculation.
+            jit: If ``True``, call :meth:`.jit()` on this LinearOperator
+                to jit the forward, adjoint, and gram functions. Same as
+                calling :meth:`.jit` after the LinearOperator is created.
+            kwargs: Keyword arguments passed to :func:`{f_name}`.
+        """
 
     return OpClass
 
 
 Transpose = linear_operator_from_function(snp.transpose, "Transpose")
-SumAlt = linear_operator_from_function(snp.sum, "Sum")
+Sum = linear_operator_from_function(snp.sum, "Sum")
 Pad = linear_operator_from_function(snp.pad, "Pad")

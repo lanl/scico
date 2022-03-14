@@ -155,7 +155,10 @@ for name, func in _get_module_functions(jnp).items():
         _not_implemented_functions.append((name, func))
 
 _attach_wrapped_func(
-    _not_implemented_functions, _not_implemented, module_name=sys.modules[__name__]
+    _not_implemented_functions,
+    _not_implemented,
+    module_name=sys.modules[__name__],
+    fix_mod_name=True,
 )
 
 
