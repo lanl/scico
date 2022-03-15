@@ -1,8 +1,11 @@
 include MANIFEST.in
-include setup.py
 include README.rst
-include LICENSE
 include CHANGES.rst
+include LICENSE
+include setup.py
+include conftest.py
+include pyproject.toml
+include pytest.ini
 include requirements.txt
 include dev_requirements.txt
 include examples/scriptcheck.sh
