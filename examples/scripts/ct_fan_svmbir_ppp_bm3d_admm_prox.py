@@ -5,7 +5,7 @@
 # with the package.
 
 """
-CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+Prox)
+Fan-beam CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+Prox)
 ==================================================================
 
 This example demonstrates the use of class
