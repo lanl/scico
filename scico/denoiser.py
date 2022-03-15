@@ -12,7 +12,12 @@ import numpy as np
 
 from jax.experimental import host_callback as hcb
 
-import bm3d as tunibm3d
+try:
+    import bm3d as tunibm3d
+except ImportError:
+    have_bm3d = False
+else:
+    have_bm3d = True
 
 import scico.numpy as snp
 from scico._flax import DnCNNNet, load_weights
@@ -38,6 +43,8 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
     Returns:
         Denoised output.
     """
+    if not have_bm3d:
+        raise RuntimeError("Package bm3d is required for use of this function.")
 
     if is_rgb is True:
         bm3d_eval = tunibm3d.bm3d_rgb
@@ -45,12 +52,12 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
         bm3d_eval = tunibm3d.bm3d
 
     if np.iscomplexobj(x):
-        raise TypeError(f"BM3D requries real-valued inputs, got {x.dtype}")
+        raise TypeError(f"BM3D requires real-valued inputs, got {x.dtype}")
 
     # Support arrays with more than three axes when the additional axes are singletons.
     x_in_shape = x.shape
 
-    if x.ndim < 2:
+    if isinstance(x.ndim, tuple) or x.ndim < 2:
         raise ValueError(
             "BM3D requires two dimensional (M, N) or three dimensional (M, N, C)"
             f" inputs; got ndim = {x.ndim}"
@@ -62,7 +69,7 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
     #       updated; this presumes 'np' profile (bs=8)
     if np.min(x.shape[:2]) < 8:
         raise ValueError(
-            f"Two leading dimensions of input cannot be smaller than block size "
+            "Two leading dimensions of input cannot be smaller than block size "
             f"(8); got image size = {x.shape}"
         )
 
@@ -94,7 +101,6 @@ class DnCNN(FlaxMap):
 
     def __init__(self, variant: str = "6M"):
         """
-
         Note that all DnCNN models are trained for single-channel image
         input. Multi-channel input is supported via independent denoising
         of each channel.
@@ -109,7 +115,7 @@ class DnCNN(FlaxMap):
                 with respect to data in the range [0, 1].
         """
         if variant not in ["6L", "6M", "6H", "17L", "17M", "17H"]:
-            raise RuntimeError(f"Invalid value of parameter variant: {variant}")
+            raise ValueError(f"Invalid value of parameter variant: {variant}")
         if variant[0] == "6":
             nlayer = 6
         else:
@@ -130,7 +136,7 @@ class DnCNN(FlaxMap):
         if np.iscomplexobj(x):
             raise TypeError(f"DnCNN requries real-valued inputs, got {x.dtype}")
 
-        if x.ndim < 2:
+        if isinstance(x.ndim, tuple) or x.ndim < 2:
             raise ValueError(
                 "DnCNN requires two dimensional (M, N) or three dimensional (M, N, C)"
                 f" inputs; got ndim = {x.ndim}"
