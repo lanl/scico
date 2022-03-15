@@ -22,10 +22,6 @@ from scico.blockarray import BlockArray
 from scico.random import randn
 from scico.typing import ArrayIndex, BlockShape, DType, JaxArray, PRNGKey, Shape
 
-__author__ = """\n""".join(
-    ["Luke Pfister <luke.pfister@gmail.com>", "Brendt Wohlberg <brendt@ieee.org>"]
-)
-
 
 def power_iteration(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey] = None):
     """Compute largest eigenvalue of a diagonalizable :class:`.LinearOperator`.

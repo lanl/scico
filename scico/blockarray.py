@@ -470,10 +470,6 @@ from scico.typing import Axes, AxisIndex, BlockShape, DType, JaxArray, Shape
 
 _arraylikes = (Buffer, DeviceArray, np.ndarray)
 
-__author__ = """\n""".join(
-    ["Luke Pfister <luke.pfister@gmail.com>", "Brendt Wohlberg <brendt@ieee.org>"]
-)
-
 
 def atleast_1d(*arys):
     """Convert inputs to arrays with at least one dimension.
@@ -926,11 +922,11 @@ class BlockArray:
 
     @_block_array_binary_op_wrapper
     def __pow__(a, b):
-        return a ** b
+        return a**b
 
     @_block_array_binary_op_wrapper
     def __rpow__(a, b):
-        return b ** a
+        return b**a
 
     @_block_array_binary_op_wrapper
     def __gt__(a, b):
