@@ -60,7 +60,7 @@ class TomographicProjector(LinearOperator):
         Args:
             input_shape: Shape of the input array. Can be of length
                 either 2 (2D array) or 3 (3D array). When specifying
-                a 2D array the format for the input_shape is
+                a 2D array, the format for the input_shape is
                 (num_rows,num_cols). For a 3D array, the format for
                 the input_shape is (num_slices,num_rows,num_cols).
                 Note that (num_rows,num_cols) and (1,num_rows,num_cols)
@@ -76,7 +76,7 @@ class TomographicProjector(LinearOperator):
                 within the image boundary. Otherwise, the whole image
                 array is taken into account by projections.
             geometry:  Scanner geometry, either "parallel" or "fan".
-                Note for fan geometry the  `dist_source_detector` and
+                Note for fan geometry, the  `dist_source_detector` and
                 `magnification` arguments must be specified.
             dist_source_detector:  Distance from X-ray focal spot to
                 detectors in units of pixel pitch. Only used when geometry
