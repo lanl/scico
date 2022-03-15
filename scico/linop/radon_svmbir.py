@@ -63,6 +63,7 @@ class TomographicProjector(LinearOperator):
                 a 2D array, the format for the input_shape is
                 (num_rows,num_cols). For a 3D array, the format for
                 the input_shape is (num_slices,num_rows,num_cols).
+                Here num_slices denotes
                 Note that (num_rows,num_cols) and (1,num_rows,num_cols)
                 result in the same underlying projector.
             angles: Array of projection angles in radians, should be
