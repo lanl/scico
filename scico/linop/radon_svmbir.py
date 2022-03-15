@@ -66,6 +66,8 @@ class TomographicProjector(LinearOperator):
                 Here ``num_slices`` denotes the number of slices in the
                 input, ``num_rows`` and ``num_cols`` denote the number
                 of rows and columns in a single slice of the input.
+                A slice is defined as the plane perpendicular to the
+                axis of rotation of the tomographic system.
                 Note that ``input_shape=(num_rows,num_cols)`` and
                 ``input_shape=(1,num_rows,num_cols)`` result in the
                 same underlying projector.
