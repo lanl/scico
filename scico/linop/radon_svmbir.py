@@ -42,7 +42,7 @@ class TomographicProjector(LinearOperator):
     is initialized with a :class:`TomographicProjector` with this option
     enabled.
     Details about the underlying scanner geometries can be found
-    `here <https://svmbir.readthedocs.io/en/latest/overview.html>`.
+    `here <https://svmbir.readthedocs.io/en/latest/overview.html>`_.
     """
 
     def __init__(
@@ -61,11 +61,14 @@ class TomographicProjector(LinearOperator):
             input_shape: Shape of the input array. Can be of length
                 either 2 (2D array) or 3 (3D array). When specifying
                 a 2D array, the format for the input_shape is
-                (num_rows,num_cols). For a 3D array, the format for
-                the input_shape is (num_slices,num_rows,num_cols).
-                Here num_slices denotes
-                Note that (num_rows,num_cols) and (1,num_rows,num_cols)
-                result in the same underlying projector.
+                ``(num_rows,num_cols)``. For a 3D array, the format for
+                the input_shape is ``(num_slices,num_rows,num_cols)``.
+                Here ``num_slices`` denotes the number of slices in the
+                input, ``num_rows`` and ``num_cols`` denote the number
+                of rows and columns in a single slice of the input.
+                Note that ``input_shape=(num_rows,num_cols)`` and
+                ``input_shape=(1,num_rows,num_cols)`` result in the
+                same underlying projector.
             angles: Array of projection angles in radians, should be
                 increasing.
             num_channels: Number of detector channels in the sinogram
@@ -77,8 +80,8 @@ class TomographicProjector(LinearOperator):
                 within the image boundary. Otherwise, the whole image
                 array is taken into account by projections.
             geometry:  Scanner geometry, either "parallel" or "fan".
-                Note for fan geometry, the  `dist_source_detector` and
-                `magnification` arguments must be specified.
+                Note for fan geometry, the  ``dist_source_detector`` and
+                ``magnification`` arguments must be specified.
             dist_source_detector:  Distance from X-ray focal spot to
                 detectors in units of pixel pitch. Only used when geometry
                 is "fan".
