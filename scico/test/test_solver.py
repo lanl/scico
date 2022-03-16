@@ -176,8 +176,13 @@ def test_minimize(dtype, method):
 
     out = solver.minimize(f, x0=snp.zeros_like(x), method=method)
 
-    assert out.x.shape == x.shape
-    np.testing.assert_allclose(out.x.ravel(), expected, rtol=5e-4)
+    assert out.shape == x.shape
+    np.testing.assert_allclose(out.ravel(), expected, rtol=5e-4)
+
+    out = solver.minimize(f, x0=jax.device_put(snp.zeros_like(x)), method=method)
+
+    assert out.shape == x.shape
+    np.testing.assert_allclose(out.ravel(), expected, rtol=5e-4)
 
 
 def test_split_join_array():

@@ -61,6 +61,7 @@ from functools import wraps
 from typing import Any, Callable, Optional, Sequence, Tuple, Union
 
 import jax
+import jax.experimental.host_callback as hcb
 
 import scico.numpy as snp
 from scico.blockarray import BlockArray
@@ -208,11 +209,6 @@ def minimize(
     x0_shape = x0.shape
     x0_dtype = x0.dtype
     x0 = x0.ravel()  # if x0 is a BlockArray it will become a DeviceArray here
-    if isinstance(x0, jax.interpreters.xla.DeviceArray):
-        dev = x0.device_buffer.device()  # device for x0; used to put result back in place
-        x0 = x0.copy().astype(float)
-    else:
-        dev = None
 
     # Run the SciPy minimizer
     if method in (
@@ -227,27 +223,31 @@ def minimize(
         min_func = _wrap_func(func_, x0_shape, x0_dtype)
         jac = False
 
-    res = spopt.minimize(
+    fun = lambda _, device: spopt.minimize(
         min_func,
         x0=x0,
         args=args,
         jac=jac,
         method=method,
         options=options,
+    ).x  # returns array
+
+    res = hcb.call(
+        fun,
+        arg=None,
+        result_shape=x0,
+        call_with_device=isinstance(x0, jax.interpreters.xla.DeviceArray),
     )
 
     # un-vectorize the output array, put on device
-    res.x = snp.reshape(
-        res.x, x0_shape
+    res = snp.reshape(
+        res, x0_shape
     )  # if x0 was originally a BlockArray then res.x is converted back to one here
 
-    res.x = res.x.astype(x0_dtype)
-
-    if dev:
-        res.x = jax.device_put(res.x, dev)
+    res = res.astype(x0_dtype)
 
     if iscomplex:
-        res.x = _join_real_imag(res.x)
+        res = _join_real_imag(res)
 
     return res
 
