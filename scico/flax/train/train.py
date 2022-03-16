@@ -22,7 +22,9 @@ import optax
 from flax.training import train_state
 from flax.training import checkpoints
 from flax.training import common_utils
+from flax.core import freeze, unfreeze
 from flax import jax_utils
+from flax import traverse_util
 
 try:
     import clu
@@ -317,6 +319,68 @@ def train_step(state: TrainState, batch: DataSetDict, learning_rate_fn: optax._s
         grads=grads,
         batch_stats=new_model_state["batch_stats"],
     )
+
+    return new_state, metrics
+
+
+def construct_traversal(prmname):
+    return traverse_util.ModelParamTraversal(lambda path, _: prmname in path)
+
+
+def clip_positive(params, traversal, epsilon: float=1e-4):
+    params_out = traversal.update(lambda x: jnp.clip(x, a_min=epsilon), unfreeze(params))
+
+    return freeze(params_out)
+
+def train_step_post(state: TrainState, batch: DataSetDict, learning_rate_fn: optax._src.base.Schedule, post_fn: Callable):
+    """Perform a single training step. A postprocessing function (i.e. for spectral normalization or positivity condition, etc.) is applied after the gradient update. Assummes sharded batched data.
+
+    Args:
+        state : Flax train state which includes the
+           model apply function, the model parameters
+           and an Optax optimizer.
+        batch : Sharded and batched training data.
+        learning_rate_fn: A function that maps step
+           counts to values.
+        post_fn: A postprocessing function for clipping parameter range or normalizing parameter.
+
+    Returns:
+        Updated parameters and diagnostic statistics.
+    """
+
+    def loss_fn(params):
+        """Loss function used for training."""
+        output, new_model_state = state.apply_fn(
+            {
+                "params": params,
+                "batch_stats": state.batch_stats,
+            },
+            batch["image"],
+            mutable=["batch_stats"],
+        )
+        loss = mse_loss(output, batch["label"])
+        return loss, (new_model_state, output)
+
+    step = state.step
+    lr = learning_rate_fn(step)
+
+    grad_fn = jax.value_and_grad(loss_fn, has_aux=True)
+    aux, grads = grad_fn(state.params)
+    # Re-use same axis_name as in call to pmap
+    grads = lax.pmean(grads, axis_name="batch")
+    new_model_state, output = aux[1]
+    metrics = compute_metrics(output, batch["label"])
+    metrics["learning_rate"] = lr
+
+    # Update params and stats
+    new_state = state.apply_gradients(
+        grads=grads,
+        batch_stats=new_model_state["batch_stats"],
+    )
+
+    # Post-process parameters
+    new_params = post_fn(new_state.params)
+    new_state = new_state.replace(params=new_params)
 
     return new_state, metrics
 
