@@ -327,8 +327,8 @@ def construct_traversal(prmname):
     return traverse_util.ModelParamTraversal(lambda path, _: prmname in path)
 
 
-def clip_positive(params, traversal, epsilon: float=1e-4):
-    params_out = traversal.update(lambda x: jnp.clip(x, a_min=epsilon), unfreeze(params))
+def clip_positive(params, traversal, minval: float=1e-4):
+    params_out = traversal.update(lambda x: jnp.clip(x, a_min=minval), unfreeze(params))
 
     return freeze(params_out)
 
