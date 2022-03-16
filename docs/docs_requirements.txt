@@ -5,6 +5,7 @@ sphinxcontrib-bibtex
 sphinx-autodoc-typehints
 faculty-sphinx-theme
 nbsphinx
+ipython_genutils
 py2jn
 pygraphviz>=1.7
 pandoc

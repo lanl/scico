@@ -1,13 +1,14 @@
 include MANIFEST.in
 include setup.py
-include setup.cfg
 include README.rst
 include LICENSE
 include CHANGES.rst
 include requirements.txt
+include dev_requirements.txt
+include examples/scriptcheck.sh
+include docs/docs_requirements.txt
 
 recursive-include scico *.py
 recursive-include scico/data *.png *.npz
 recursive-include docs Makefile *.py *.ipynb *.rst *.bib *.css *.svg *.ico
-recursive-include examples Makefile *.txt *.rst *.py
-include examples/pytojnb examples/scriptcheck
+recursive-include examples *_requirements.txt *.txt *.rst *.py
