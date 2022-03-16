@@ -301,12 +301,12 @@ class Slice(LinearOperator):
         return x[self.idx]
 
 
-def linear_operator_from_function(f: Callable, classname: str, f_name: Optional[str] = None):
+def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = None):
     """Make a linear operator class from a function.
 
     Example
     -------
-    >>> Sum = linear_operator_from_function(snp.sum, 'Sum')
+    >>> Sum = linop_from_function(snp.sum, 'Sum')
     >>> H = Sum((2, 10), axis=1)
     >>> H @ snp.ones((2, 10))
     DeviceArray([10., 10.], dtype=float32)
@@ -355,6 +355,6 @@ def linear_operator_from_function(f: Callable, classname: str, f_name: Optional[
     return OpClass
 
 
-Transpose = linear_operator_from_function(snp.transpose, "Transpose", "scico.numpy.transpose")
-Sum = linear_operator_from_function(snp.sum, "Sum")
-Pad = linear_operator_from_function(snp.pad, "Pad", "scico.numpy.pad")
+Transpose = linop_from_function(snp.transpose, "Transpose", "scico.numpy.transpose")
+Sum = linop_from_function(snp.sum, "Sum")
+Pad = linop_from_function(snp.pad, "Pad", "scico.numpy.pad")

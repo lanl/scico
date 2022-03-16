@@ -14,13 +14,14 @@ from scico._generic_operators import LinearOperator
 from ._linop import (
     Diagonal,
     Identity,
-    power_iteration,
-    operator_norm,
-    Sum,
-    Slice,
-    valid_adjoint,
-    Transpose,
     Pad,
+    Slice,
+    Sum,
+    Transpose,
+    linop_from_function,
+    operator_norm,
+    power_iteration,
+    valid_adjoint,
 )
 from ._matrix import MatrixOperator
 from ._diff import FiniteDifference
@@ -31,22 +32,23 @@ from ._stack import LinearOperatorStack
 
 
 __all__ = [
-    "LinearOperator",
-    "Identity",
-    "Diagonal",
-    "MatrixOperator",
-    "FiniteDifference",
-    "Convolve",
     "CircularConvolve",
+    "Convolve",
     "DFT",
+    "Diagonal",
+    "FiniteDifference",
+    "Identity",
     "LinearOperatorStack",
-    "Sum",
-    "Slice",
-    "power_iteration",
-    "operator_norm",
-    "valid_adjoint",
-    "Transpose",
+    "MatrixOperator",
     "Pad",
+    "Slice",
+    "Sum",
+    "Transpose",
+    "LinearOperator",
+    "linop_from_function",
+    "operator_norm",
+    "power_iteration",
+    "valid_adjoint",
 ]
 
 # Imported items in __all__ appear to originate in top-level linop module
