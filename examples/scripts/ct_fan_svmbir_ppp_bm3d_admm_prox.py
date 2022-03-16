@@ -5,12 +5,12 @@
 # with the package.
 
 """
-Fan-beam and parallel-beam CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+Prox)
+Fan-beam CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+Prox)
 ==================================================================
 
 This example demonstrates the use of class
 [admm.ADMM](../_autosummary/scico.optimize.rst#scico.optimize.ADMM) to
-solve a fan-beam and parallel-beam tomographic reconstruction problem using
+solve a fan-beam tomographic reconstruction problem using
 the Plug-and-Play Priors framework :cite:`venkatakrishnan-2013-plugandplay2`,
 using BM3D :cite:`dabov-2008-image` as a denoiser and SVMBIR :cite:`svmbir-2020` for
 tomographic projection.
@@ -19,7 +19,10 @@ This version uses the data fidelity term as one of the ADMM $g$
 functionals so that the optimization with respect to the data fidelity is
 able to exploit the internal prox of the `SVMBIRExtendedLoss` functional.
 
-
+We solve the problem in two different ways:
+1. Approximating the fan-beam geometry using parallel-beam and using the parallel
+    beam projector to compute the reconstruction.
+2. Using the correct fan-beam geometry to perform a reconstruction.
 """
 
 import numpy as np
@@ -60,14 +63,13 @@ num_angles = int(N / 2)
 num_channels = N
 
 # Use angles in the range [0, 2*pi] for fanbeam
-angles_fan = snp.linspace(0, 2 * snp.pi, num_angles, endpoint=False, dtype=snp.float32)
-angles_parallel = snp.linspace(0, snp.pi, num_angles, endpoint=False, dtype=snp.float32)
+angles = snp.linspace(0, 2 * snp.pi, num_angles, endpoint=False, dtype=snp.float32)
 
 dist_source_detector = 500.0
-magnification = 2.0
+magnification = 1.2
 A_fan = TomographicProjector(
     x_gt.shape,
-    angles_fan,
+    angles,
     num_channels,
     geometry="fan",
     dist_source_detector=dist_source_detector,
@@ -75,15 +77,12 @@ A_fan = TomographicProjector(
 )
 A_parallel = TomographicProjector(
     x_gt.shape,
-    angles_parallel,
+    angles,
     num_channels,
     geometry="parallel",
-    dist_source_detector=dist_source_detector,
-    magnification=magnification,
 )
 
 sino_fan = A_fan @ x_gt
-sino_parallel = A_parallel @ x_gt
 
 
 """
@@ -101,18 +100,16 @@ def add_poisson_noise(sino, max_intensity):
 
 
 y_fan = add_poisson_noise(sino_fan, max_intensity=500)
-y_parallel = add_poisson_noise(sino_parallel, max_intensity=500)
 
 
 """
 Reconstruct using default prior of SVMBIR :cite:`svmbir-2020`.
 """
 weights_fan = svmbir.calc_weights(y_fan, weight_type="transmission")
-weights_parallel = svmbir.calc_weights(y_parallel, weight_type="transmission")
 
 x_mrf_fan = svmbir.recon(
     np.array(y_fan[:, np.newaxis]),
-    np.array(angles_fan),
+    np.array(angles),
     weights=weights_fan[:, np.newaxis],
     num_rows=N,
     num_cols=N,
@@ -127,9 +124,9 @@ x_mrf_fan = svmbir.recon(
 )[0]
 
 x_mrf_parallel = svmbir.recon(
-    np.array(y_parallel[:, np.newaxis]),
-    np.array(angles_parallel),
-    weights=weights_parallel[:, np.newaxis],
+    np.array(y_fan[:, np.newaxis]),
+    np.array(angles),
+    weights=weights_fan[:, np.newaxis],
     num_rows=N,
     num_cols=N,
     positivity=True,
@@ -143,9 +140,7 @@ x_mrf_parallel = svmbir.recon(
 Push arrays to device.
 """
 y_fan, x0_fan, weights_fan = jax.device_put([y_fan, x_mrf_fan, weights_fan])
-y_parallel, x0_parallel, weights_parallel = jax.device_put(
-    [y_parallel, x_mrf_parallel, weights_parallel]
-)
+x0_parallel = jax.device_put(x_mrf_parallel)
 
 
 """
@@ -168,9 +163,9 @@ f_extloss_fan = SVMBIRExtendedLoss(
     prox_kwargs={"maxiter": 5, "ctol": 0.0},
 )
 f_extloss_parallel = SVMBIRExtendedLoss(
-    y=y_parallel,
+    y=y_fan,
     A=A_parallel,
-    W=Diagonal(weights_parallel),
+    W=Diagonal(weights_fan),
     scale=0.5,
     positivity=True,
     prox_kwargs={"maxiter": 5, "ctol": 0.0},
@@ -214,26 +209,6 @@ norm = plot.matplotlib.colors.Normalize(vmin=-0.1 * density, vmax=1.2 * density)
 fig, ax = plt.subplots(1, 3, figsize=(20, 15))
 plot.imview(img=x_gt, title="Ground Truth Image", cbar=True, fig=fig, ax=ax[0], norm=norm)
 plot.imview(
-    img=x_mrf_fan,
-    title=f"Fan-beam MRF (PSNR: {metric.psnr(x_gt, x_mrf_fan):.2f} dB)",
-    cbar=True,
-    fig=fig,
-    ax=ax[1],
-    norm=norm,
-)
-plot.imview(
-    img=x_extloss_fan,
-    title=f"Fan-beam Extended Loss (PSNR: {metric.psnr(x_gt, x_extloss_fan):.2f} dB)",
-    cbar=True,
-    fig=fig,
-    ax=ax[2],
-    norm=norm,
-)
-fig.show()
-
-fig, ax = plt.subplots(1, 3, figsize=(20, 15))
-plot.imview(img=x_gt, title="Ground Truth Image", cbar=True, fig=fig, ax=ax[0], norm=norm)
-plot.imview(
     img=x_mrf_parallel,
     title=f"Parallel-beam MRF (PSNR: {metric.psnr(x_gt, x_mrf_parallel):.2f} dB)",
     cbar=True,
@@ -252,14 +227,35 @@ plot.imview(
 fig.show()
 
 
+fig, ax = plt.subplots(1, 3, figsize=(20, 15))
+plot.imview(img=x_gt, title="Ground Truth Image", cbar=True, fig=fig, ax=ax[0], norm=norm)
+plot.imview(
+    img=x_mrf_fan,
+    title=f"Fan-beam MRF (PSNR: {metric.psnr(x_gt, x_mrf_fan):.2f} dB)",
+    cbar=True,
+    fig=fig,
+    ax=ax[1],
+    norm=norm,
+)
+plot.imview(
+    img=x_extloss_fan,
+    title=f"Fan-beam Extended Loss (PSNR: {metric.psnr(x_gt, x_extloss_fan):.2f} dB)",
+    cbar=True,
+    fig=fig,
+    ax=ax[2],
+    norm=norm,
+)
+fig.show()
+
+
 """
 Plot convergence statistics.
 """
 fig, ax = plt.subplots(1, 2, figsize=(15, 5))
 plot.plot(
-    snp.vstack((hist_extloss_fan.Prml_Rsdl, hist_extloss_fan.Dual_Rsdl)).T,
+    snp.vstack((hist_extloss_parallel.Prml_Rsdl, hist_extloss_parallel.Dual_Rsdl)).T,
     ptyp="semilogy",
-    title="Residuals for fan-beam reconstruction",
+    title="Residuals for parallel-beam reconstruction",
     xlbl="Iteration",
     lgnd=("Primal", "Dual"),
     fig=fig,
@@ -268,9 +264,9 @@ plot.plot(
 ax[0].set_ylim([5e-3, 1e0])
 ax[0].xaxis.set_major_locator(MaxNLocator(integer=True))
 plot.plot(
-    snp.vstack((hist_extloss_parallel.Prml_Rsdl, hist_extloss_parallel.Dual_Rsdl)).T,
+    snp.vstack((hist_extloss_fan.Prml_Rsdl, hist_extloss_fan.Dual_Rsdl)).T,
     ptyp="semilogy",
-    title="Residuals for parallel-beam reconstruction",
+    title="Residuals for fan-beam reconstruction",
     xlbl="Iteration",
     lgnd=("Primal", "Dual"),
     fig=fig,
