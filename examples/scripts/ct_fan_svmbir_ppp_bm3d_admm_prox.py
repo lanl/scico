@@ -55,7 +55,7 @@ x_gt[x_gt < 0] = 0
 
 
 """
-Generate tomographic projector and sinogram for fan-beam and parallel beam
+Generate tomographic projector and sinogram for fan-beam and parallel beam.
 For fan-beam, use view-angles spanning 2π since unlike parallel-beam, views
 at 0 and π are not equivalent.
 """
@@ -203,6 +203,8 @@ hist_extloss_parallel = solver_extloss_parallel.itstat_object.history(transpose=
 
 """
 Show the recovered images.
+For the given fan-beam geometry, parallel beam is a poor approximation.
+This results in a poor quality parallel-beam reconstruction
 """
 norm = plot.matplotlib.colors.Normalize(vmin=-0.1 * density, vmax=1.2 * density)
 

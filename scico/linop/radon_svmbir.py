@@ -35,7 +35,7 @@ class TomographicProjector(LinearOperator):
 
     Perform tomographic projection of an image at specified angles, using
     the `svmbir <https://github.com/cabouman/svmbir>`_ package. The
-    ``is_masked`` option selects whether a valid region for projections
+    `is_masked` option selects whether a valid region for projections
     (pixels outside this region are ignored when performing the
     projection) is active. This region of validity is also respected by
     :meth:`.SVMBIRSquaredL2Loss.prox` when :class:`.SVMBIRSquaredL2Loss`
@@ -61,15 +61,15 @@ class TomographicProjector(LinearOperator):
             input_shape: Shape of the input array. Can be of length
                 either 2 (2D array) or 3 (3D array). When specifying
                 a 2D array, the format for the input_shape is
-                ``(num_rows,num_cols)``. For a 3D array, the format for
-                the input_shape is ``(num_slices,num_rows,num_cols)``.
-                Here ``num_slices`` denotes the number of slices in the
-                input, ``num_rows`` and ``num_cols`` denote the number
+                `(num_rows,num_cols)`. For a 3D array, the format for
+                the input_shape is `(num_slices,num_rows,num_cols)`.
+                Here `num_slices` denotes the number of slices in the
+                input, `num_rows` and `num_cols` denote the number
                 of rows and columns in a single slice of the input.
                 A slice is defined as the plane perpendicular to the
                 axis of rotation of the tomographic system.
-                Note that ``input_shape=(num_rows,num_cols)`` and
-                ``input_shape=(1,num_rows,num_cols)`` result in the
+                Note that `input_shape=(num_rows,num_cols)` and
+                `input_shape=(1,num_rows,num_cols)` result in the
                 same underlying projector.
             angles: Array of projection angles in radians, should be
                 increasing.
@@ -82,8 +82,8 @@ class TomographicProjector(LinearOperator):
                 within the image boundary. Otherwise, the whole image
                 array is taken into account by projections.
             geometry:  Scanner geometry, either "parallel" or "fan".
-                Note for fan geometry, the  ``dist_source_detector`` and
-                ``magnification`` arguments must be specified.
+                Note for fan geometry, the  `dist_source_detector` and
+                `magnification` arguments must be specified.
             dist_source_detector:  Distance from X-ray focal spot to
                 detectors in units of pixel pitch. Only used when geometry
                 is "fan".
@@ -119,9 +119,9 @@ class TomographicProjector(LinearOperator):
 
         if self.geometry == "fan":
             if self.dist_source_detector is None:
-                raise AssertionError("dist_source_detector must be specified if geometry is fan")
+                raise ValueError("dist_source_detector must be specified if geometry is fan")
             if self.magnification is None:
-                raise AssertionError("magnification must be specified if geometry is fan")
+                raise ValueError("magnification must be specified if geometry is fan")
 
             self.delta_channel = 1.0
             self.delta_pixel = self.delta_channel / self.magnification
@@ -133,7 +133,7 @@ class TomographicProjector(LinearOperator):
             self.delta_pixel = 1.0
 
         else:
-            raise AssertionError("unspecified geometry {}".format(self.geometry))
+            raise ValueError("unspecified geometry {}".format(self.geometry))
 
         # Set up custom_vjp for _eval and _adj so jax.grad works on them.
         self._eval = jax.custom_vjp(self._proj_hcb)
