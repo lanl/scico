@@ -207,9 +207,9 @@ hist_extloss_parallel = solver_extloss_parallel.itstat_object.history(transpose=
 
 
 """
-Show the recovered images.
-For the given fan-beam geometry, parallel beam is a poor approximation.
-This results in a poor quality parallel-beam reconstruction
+Show the recovered images. The parallel beam reconstruction is poor because
+the parallel beam is a poor approximation of the specific fan beam geometry
+used here.
 """
 norm = plot.matplotlib.colors.Normalize(vmin=-0.1 * density, vmax=1.2 * density)
 
