@@ -6,22 +6,22 @@
 
 """
 Fan-beam CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+Prox)
-==================================================================
+===========================================================================
 
 This example demonstrates the use of class
 [admm.ADMM](../_autosummary/scico.optimize.rst#scico.optimize.ADMM) to
 solve a fan-beam tomographic reconstruction problem using
 the Plug-and-Play Priors framework :cite:`venkatakrishnan-2013-plugandplay2`,
-using BM3D :cite:`dabov-2008-image` as a denoiser and SVMBIR :cite:`svmbir-2020` for
-tomographic projection.
+using BM3D :cite:`dabov-2008-image` as a denoiser and SVMBIR
+:cite:`svmbir-2020` for tomographic projection.
 
 This version uses the data fidelity term as one of the ADMM $g$
 functionals so that the optimization with respect to the data fidelity is
 able to exploit the internal prox of the `SVMBIRExtendedLoss` functional.
 
 We solve the problem in two different ways:
-1. Approximating the fan-beam geometry using parallel-beam and using the parallel
-    beam projector to compute the reconstruction.
+1. Approximating the fan-beam geometry using parallel-beam and using the
+   parallel beam projector to compute the reconstruction.
 2. Using the correct fan-beam geometry to perform a reconstruction.
 """
 
@@ -40,6 +40,7 @@ from scico.functional import BM3D
 from scico.linop import Diagonal, Identity
 from scico.linop.radon_svmbir import SVMBIRExtendedLoss, TomographicProjector
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
+from scico.util import device_info
 
 """
 Generate a ground truth image.
@@ -114,7 +115,7 @@ x_mrf_fan = svmbir.recon(
     num_rows=N,
     num_cols=N,
     positivity=True,
-    verbose=1,
+    verbose=0,
     stop_threshold=0.0,
     geometry="fan",
     dist_source_detector=dist_source_detector,
@@ -130,7 +131,7 @@ x_mrf_parallel = svmbir.recon(
     num_rows=N,
     num_cols=N,
     positivity=True,
-    verbose=1,
+    verbose=0,
     stop_threshold=0.0,
     geometry="parallel",
 )[0]
@@ -150,9 +151,9 @@ Set problem parameters and BM3D pseudo-functional.
 σ = density * 0.6  # denoiser sigma
 g0 = σ * ρ * BM3D()
 
-"""
 
-Set up problem using `SVMBIRExtendedLoss`
+"""
+Set up problem using `SVMBIRExtendedLoss`.
 """
 f_extloss_fan = SVMBIRExtendedLoss(
     y=y_fan,
@@ -192,14 +193,18 @@ solver_extloss_parallel = ADMM(
     itstat_options={"display": True},
 )
 
+
 """
-Run the ADMM solver.
+Run the ADMM solvers.
 """
+print(f"Solving on {device_info()}\n")
 x_extloss_fan = solver_extloss_fan.solve()
 hist_extloss_fan = solver_extloss_fan.itstat_object.history(transpose=True)
 
+print()
 x_extloss_parallel = solver_extloss_parallel.solve()
 hist_extloss_parallel = solver_extloss_parallel.itstat_object.history(transpose=True)
+
 
 """
 Show the recovered images.
@@ -208,7 +213,7 @@ This results in a poor quality parallel-beam reconstruction
 """
 norm = plot.matplotlib.colors.Normalize(vmin=-0.1 * density, vmax=1.2 * density)
 
-fig, ax = plt.subplots(1, 3, figsize=(20, 15))
+fig, ax = plt.subplots(1, 3, figsize=(20, 7))
 plot.imview(img=x_gt, title="Ground Truth Image", cbar=True, fig=fig, ax=ax[0], norm=norm)
 plot.imview(
     img=x_mrf_parallel,
@@ -229,7 +234,7 @@ plot.imview(
 fig.show()
 
 
-fig, ax = plt.subplots(1, 3, figsize=(20, 15))
+fig, ax = plt.subplots(1, 3, figsize=(20, 7))
 plot.imview(img=x_gt, title="Ground Truth Image", cbar=True, fig=fig, ax=ax[0], norm=norm)
 plot.imview(
     img=x_mrf_fan,
@@ -253,7 +258,7 @@ fig.show()
 """
 Plot convergence statistics.
 """
-fig, ax = plt.subplots(1, 2, figsize=(15, 5))
+fig, ax = plt.subplots(1, 2, figsize=(15, 6))
 plot.plot(
     snp.vstack((hist_extloss_parallel.Prml_Rsdl, hist_extloss_parallel.Dual_Rsdl)).T,
     ptyp="semilogy",
