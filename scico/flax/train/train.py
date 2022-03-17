@@ -24,7 +24,7 @@ from flax.training import checkpoints
 from flax.training import common_utils
 from flax.core import freeze, unfreeze
 from flax import jax_utils
-from flax import traverse_util
+from flax.traverse_util import ModelParamTraversal
 
 try:
     import clu
@@ -323,16 +323,37 @@ def train_step(state: TrainState, batch: DataSetDict, learning_rate_fn: optax._s
     return new_state, metrics
 
 
-def construct_traversal(prmname):
-    return traverse_util.ModelParamTraversal(lambda path, _: prmname in path)
+def construct_traversal(prmname: str) -> ModelParamTraversal:
+    """Construct utility to select model parameters using a name filter.
+
+    Args:
+        prmname : Name of parameter to select.
+
+    Returns:
+        Flax utility to traverse and select model parameters.
+    """
+    return ModelParamTraversal(lambda path, _: prmname in path)
 
 
-def clip_positive(params, traversal, minval: float=1e-4):
+def clip_positive(params: PyTree, traversal: ModelParamTraversal, minval: float = 1e-4):
+    """Clip parameters to positive range.
+
+    Args:
+        params : Current model parameters.
+        traversal : Utility to select model parameters.
+        minval : Minimum value to clip parameters and keep them in a positive range. Default: 1e-4.
+    """
     params_out = traversal.update(lambda x: jnp.clip(x, a_min=minval), unfreeze(params))
 
     return freeze(params_out)
 
-def train_step_post(state: TrainState, batch: DataSetDict, learning_rate_fn: optax._src.base.Schedule, post_fn: Callable):
+
+def train_step_post(
+    state: TrainState,
+    batch: DataSetDict,
+    learning_rate_fn: optax._src.base.Schedule,
+    post_fn: Callable,
+):
     """Perform a single training step. A postprocessing function (i.e. for spectral normalization or positivity condition, etc.) is applied after the gradient update. Assummes sharded batched data.
 
     Args:
@@ -348,35 +369,7 @@ def train_step_post(state: TrainState, batch: DataSetDict, learning_rate_fn: opt
         Updated parameters and diagnostic statistics.
     """
 
-    def loss_fn(params):
-        """Loss function used for training."""
-        output, new_model_state = state.apply_fn(
-            {
-                "params": params,
-                "batch_stats": state.batch_stats,
-            },
-            batch["image"],
-            mutable=["batch_stats"],
-        )
-        loss = mse_loss(output, batch["label"])
-        return loss, (new_model_state, output)
-
-    step = state.step
-    lr = learning_rate_fn(step)
-
-    grad_fn = jax.value_and_grad(loss_fn, has_aux=True)
-    aux, grads = grad_fn(state.params)
-    # Re-use same axis_name as in call to pmap
-    grads = lax.pmean(grads, axis_name="batch")
-    new_model_state, output = aux[1]
-    metrics = compute_metrics(output, batch["label"])
-    metrics["learning_rate"] = lr
-
-    # Update params and stats
-    new_state = state.apply_gradients(
-        grads=grads,
-        batch_stats=new_model_state["batch_stats"],
-    )
+    new_state, metrics = train_step(state, batch, learning_rate_fn)
 
     # Post-process parameters
     new_params = post_fn(new_state.params)
