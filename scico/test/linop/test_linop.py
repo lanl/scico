@@ -509,16 +509,6 @@ def test_operator_norm():
         assert np.abs(Dnorm - snp.abs(d).max()) < 1e-5
 
 
-class SumTestObj:
-    def __init__(self, dtype):
-        self.x, key = randn((4, 5, 6, 7), dtype=dtype)
-
-
-@pytest.fixture(scope="module", params=[np.float32, np.complex64])
-def sumtestobj(request):
-    yield SumTestObj(request.param)
-
-
 class SliceTestObj:
     def __init__(self, dtype):
         self.x = snp.zeros((4, 5, 6, 7), dtype=dtype)
