@@ -35,15 +35,17 @@ import os
 
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 platform = jax.lib.xla_bridge.get_backend().platform
-print("Platform: ", platform)
+print(f"{'Platform':29s}{':':2s}{platform}")
 
 
 """
-Prepare output path.
+Prepare output path. Re-direct to desired location, otherwise it will be put in the default path.
 """
-prefix = "./dtct/"
-os.mkdir(prefix)
-
+cache_path = None
+if cache_path is None:
+    cache_path = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "ct")
+print(f"{'Storing data in path':29s}{':':2s}{cache_path}")
+os.makedirs(cache_path)
 
 """
 Generate data.
@@ -57,7 +59,7 @@ imgsshd = distributed_data_generation(generate_foam2_images, N, nimg)
 nproc = jax.device_count()
 time_dtgen = time() - start_time
 imgs = imgsshd.reshape((-1, N, N, 1))
-print(f"{'Data Generation':8s}{'time[s]:':2s}{time_dtgen:>5.2f}")
+print(f"{'Data Generation':22s}{'time[s]:':2s}{time_dtgen:>5.2f}")
 
 """
 Configure a CT projection operator
@@ -76,7 +78,7 @@ a_map = lambda v: jnp.atleast_3d(A @ v.squeeze())
 sinoshd = jax.pmap(lambda i: jax.lax.map(a_map, imgsshd[i]))(jnp.arange(nproc))
 time_sino = time() - start_time
 sino = sinoshd.reshape((-1, n_projection, N, 1))
-print(f"{'Sinogram Generation':8s}{'time[s]:':2s}{time_sino:>5.2f}")
+print(f"{'Sinogram Generation':22s}{'time[s]:':2s}{time_sino:>5.2f}")
 
 """
 Compute filter back-project in
@@ -87,29 +89,34 @@ start_time = time()
 fbpshd = jax.pmap(lambda i: jax.lax.map(afbp_map, sinoshd[i]))(jnp.arange(nproc))
 time_fbp = time() - start_time
 fbp = fbpshd.reshape((-1, N, N, 1))
-print(f"{'FBP Generation':8s}{'time[s]:':2s}{time_fbp:>5.2f}")
+print(f"{'FBP Generation':22s}{'time[s]:':2s}{time_fbp:>5.2f}")
+
+print(f"{'Data range images':26s}{'Min:':6s}{imgs.min():>5.2f}{', Max:':6s}{imgs.max():>8.2f}")
+print(f"{'Data range sinograms':26s}{'Min:':6s}{sino.min():>5.2f}{', Max:':6s}{sino.max():>8.2f}")
+print(f"{'Data range FBP':26s}{'Min:':6s}{fbp.min():>5.2f}{', Max:':6s}{fbp.max():>8.2f}")
 
 """
 Separate training and testing
 partitions. Store images, sinograms
 and filter back-projections.
 """
+npz_train_file = os.path.join(cache_path, "foam2ct_train.npz")
 np.savez(
-    prefix + "foam2ct_train.npz",
+    npz_train_file,
     img=imgs[:train_nimg],
     sino=sino[:train_nimg],
     fbp=fbp[:train_nimg],
 )
-np.savez(
-    prefix + "foam2ct_test.npz", img=imgs[train_nimg:], sino=sino[train_nimg:], fbp=fbp[train_nimg:]
-)
+
+npz_test_file = os.path.join(cache_path, "foam2ct_test.npz")
+np.savez(npz_test_file, img=imgs[train_nimg:], sino=sino[train_nimg:], fbp=fbp[train_nimg:])
 
 """
 Plot randomly selected sample.
 """
 indx_tr = np.random.randint(0, train_nimg)
 indx_te = np.random.randint(0, test_nimg)
-fig, axes = plot.subplots(nrows=2, ncols=3, figsize=(11, 9))
+fig, axes = plot.subplots(nrows=2, ncols=3, figsize=(9, 9))
 plot.imview(imgs[indx_tr, ..., 0], title="Ground truth - Training Sample", fig=fig, ax=axes[0, 0])
 plot.imview(sino[indx_tr, ..., 0], title="Sinogram - Training Sample", fig=fig, ax=axes[0, 1])
 plot.imview(

@@ -246,7 +246,9 @@ def create_train_state(
 
 
 # Flax checkpoints
-def restore_checkpoint(state: TrainState, workdir: Union[str, os.PathLike]) -> TrainState:
+def restore_checkpoint(
+    state: TrainState, workdir: Union[str, os.PathLike]
+) -> TrainState:  # pragma: no cover
     """Load model and optimiser state.
 
     Args:
@@ -261,7 +263,7 @@ def restore_checkpoint(state: TrainState, workdir: Union[str, os.PathLike]) -> T
     return checkpoints.restore_checkpoint(workdir, state)
 
 
-def save_checkpoint(state: TrainState, workdir: Union[str, os.PathLike]):
+def save_checkpoint(state: TrainState, workdir: Union[str, os.PathLike]):  # pragma: no cover
     """Store model and optimiser state.
 
     Args:
@@ -366,7 +368,7 @@ def train_step_post(
         post_fn: A postprocessing function for clipping parameter range or normalizing parameter.
 
     Returns:
-        Updated parameters and diagnostic statistics.
+        Updated parameters, fulfilling additional constraints, and diagnostic statistics.
     """
 
     new_state, metrics = train_step(state, batch, learning_rate_fn)
@@ -407,7 +409,7 @@ def sync_batch_stats(state):
 
 
 # pmean only works inside pmap because it needs an axis name.
-# This function will average the inputs across all devices.
+#: This function will average the inputs across all devices.
 cross_replica_mean = jax.pmap(lambda x: lax.pmean(x, "x"), "x")
 
 
@@ -440,7 +442,7 @@ def train_and_evaluate(
     Returns:
         Model variables extracted from TrainState.
     """
-    if log:
+    if log:  # pragma: no cover
         print(
             "Channels: %d, training signals: %d, testing signals: %d, signal size: %d"
             % (
@@ -507,7 +509,7 @@ def train_and_evaluate(
     if checkpointing and variables0 is None:
         # Only restore if no initialization is provided
         state = restore_checkpoint(state, workdir)
-    if log and have_clu:
+    if log and have_clu:  # pragma: no cover
         from clu import parameter_overview
 
         print(parameter_overview.get_parameter_overview(state.params))
@@ -532,7 +534,7 @@ def train_and_evaluate(
         if log and step == step_offset:
             print("Initial compilation completed.")
 
-        if log:
+        if log:  # pragma: no cover
             train_metrics.append(metrics)
             if (step + 1) % config["log_every_steps"] == 0:
                 train_metrics = common_utils.get_metrics(train_metrics)
@@ -569,7 +571,7 @@ def train_and_evaluate(
                 metrics = p_eval_step(state, eval_batch)
                 eval_metrics.append(metrics)
             eval_metrics = common_utils.get_metrics(eval_metrics)
-            if log:
+            if log:  # pragma: no cover
                 summary = jax.tree_map(lambda x: x.mean(), eval_metrics)
                 print(
                     "eval epoch: %d, loss: %.4f, snr: %.2f"
@@ -582,7 +584,7 @@ def train_and_evaluate(
                     writer.flush()
         if (step + 1) % steps_per_checkpoint == 0 or step + 1 == num_steps:
             state = sync_batch_stats(state)
-            if checkpointing:
+            if checkpointing:  # pragma: no cover
                 save_checkpoint(state, workdir)
 
     jax.random.normal(jax.random.PRNGKey(0), ()).block_until_ready()

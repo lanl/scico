@@ -282,8 +282,7 @@ class ODPProxDblrBlock(Module):
 
 class ODPGrDescBlock(Module):
     r"""Flax implementation of ODP gradient
-    descent with L2 loss block
-    :cite:`diamond-2018-odp`.
+    descent with L2 loss block :cite:`diamond-2018-odp`.
 
     Flax implementation of the unrolled optimization
     with deep priors (ODP) gradient descent block for
