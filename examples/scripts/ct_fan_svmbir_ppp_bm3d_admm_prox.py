@@ -66,7 +66,7 @@ num_channels = N
 # Use angles in the range [0, 2*pi] for fanbeam
 angles = snp.linspace(0, 2 * snp.pi, num_angles, endpoint=False, dtype=snp.float32)
 
-dist_source_detector = 500.0
+dist_source_detector = 1500.0
 magnification = 1.2
 A_fan = TomographicProjector(
     x_gt.shape,
