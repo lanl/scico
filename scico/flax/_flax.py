@@ -1,7 +1,7 @@
 """Convolutional neural network models implemented in Flax."""
 
 from functools import partial
-from typing import Any, Callable, Tuple
+from typing import Any, Callable, Optional, Tuple
 
 import jax.numpy as jnp
 
@@ -67,14 +67,14 @@ class FlaxMap:
         #   H: spatial height  W: spatial width
         #   K: batch size  C: channel size
         xndim = x.ndim
-        axsqz: Shape = None  # for mypy
+        axsqueeze: Optional[Shape] = None
         if xndim == 2:
             x = x.reshape((1,) + x.shape + (1,))
-            axsqz = (0, 3)
+            axsqueeze = (0, 3)
         elif xndim == 3:
             x = x.reshape((1,) + x.shape)
-            axsqz = (0,)
+            axsqueeze = (0,)
         y = self.model.apply(self.variables, x, train=False, mutable=False)
         if y.ndim != xndim:
-            return y.squeeze(axis=axsqz)
+            return y.squeeze(axis=axsqueeze)
         return y
