@@ -1,13 +1,25 @@
 import pytest
 
+import os
+import numpy as np
+
+from functools import partial
 import jax.numpy as jnp
+from jax import lax
 
 from scico import flax as sflax
 from scico import random
-from scico.flax.inverse import MoDLNet, ODPProxDnBlock, ODPProxDblrBlock, ODPGrDescBlock, ODPNet
 from scico.linop.radon_astra import ParallelBeamProjector
 from scico.linop import Identity, CircularConvolve
+from scico.flax.train.train import (
+    TrainState,
+    train_step,
+    train_step_post,
+    construct_traversal,
+    clip_positive,
+)
 
+os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 
 def construct_projector(N, n_projection):
     import numpy as np
@@ -53,7 +65,7 @@ class TestSet:
 
         opCT = construct_projector(self.N, nproj)
 
-        modln = MoDLNet(
+        modln = sflax.MoDLNet(
             operator=opCT,
             depth=self.depth,
             channels=self.chn,
@@ -70,7 +82,7 @@ class TestSet:
 
         opI = Identity(y.shape)
 
-        odpdn = ODPNet(
+        odpdn = sflax.ODPNet(
             operator=opI,
             depth=self.depth,
             channels=self.chn,
@@ -91,13 +103,13 @@ class TestSet:
 
         opBlur = CircularConvolve(h, y.shape, ndims=3)
 
-        odpdb = ODPNet(
+        odpdb = sflax.ODPNet(
             operator=opBlur,
             depth=self.depth,
             channels=self.chn,
             num_filters=self.num_filters,
             block_depth=self.block_depth,
-            odp_block=ODPProxDblrBlock,
+            odp_block=sflax.ODPProxDblrBlock,
         )
 
         variables = odpdb.init(key, y)
@@ -112,16 +124,121 @@ class TestSet:
 
         opCT = construct_projector(self.N, nproj)
 
-        odpct = ODPNet(
+        odpct = sflax.ODPNet(
             operator=opCT,
             depth=self.depth,
             channels=self.chn,
             num_filters=self.num_filters,
             block_depth=self.block_depth,
-            odp_block=ODPGrDescBlock,
+            odp_block=sflax.ODPGrDescBlock,
         )
 
         variables = odpct.init(key, y)
         # Test for the construction / forward pass.
         oy = odpct.apply(variables, y, train=False, mutable=False)
         assert y.dtype == oy.dtype
+
+
+class SetupTest02:
+    def __init__(self):
+        self.N = 32  # Signal size
+        self.chn = 1  # Number of channels
+        self.bsize = 16  # Batch size
+        xt, key = random.randn((2*self.bsize, self.N, self.N, self.chn), seed=4321)
+
+        self.nproj = 60  # number of projections
+        self.opCT = construct_projector(self.N, self.nproj)
+        a_f = lambda v: jnp.atleast_3d(self.opCT(v.squeeze()))
+        y = lax.map(a_f, xt)
+
+        self.train_ds = {"image": y, "label": xt}
+        self.test_ds = {"image": y, "label": xt}
+
+        self.dconf: sflax.ConfigDict = {
+            "seed": 0,
+            "depth": 1,
+            "num_filters": 16,
+            "block_depth": 2,
+            "opt_type": "ADAM",
+            "batch_size": self.bsize,
+            "num_epochs": 2,
+            "base_learning_rate": 1e-3,
+            "warmup_epochs": 0,
+            "num_train_steps": -1,
+            "steps_per_eval": -1,
+            "steps_per_epoch": 1,
+            "log_every_steps": 1000,
+        }
+
+
+@pytest.fixture(scope="module")
+def testobj():
+    yield SetupTest02()
+
+
+def test_train_modl(testobj):
+    model = sflax.MoDLNet(
+            operator=testobj.opCT,
+            depth=testobj.dconf["depth"],
+            channels=testobj.chn,
+            num_filters=testobj.dconf["num_filters"],
+            block_depth=testobj.dconf["block_depth"],
+    )
+    try:
+        minval = 1.1e-2
+        lmbdatrav = construct_traversal("lmbda")
+        lmbdapos = partial(clip_positive,              traversal=lmbdatrav,
+                    minval=minval,
+        )
+        train_step = partial(train_step_post, post_fn=lmbdapos)
+        modvar = sflax.train_and_evaluate(
+            testobj.dconf,
+            "./",
+            model,
+            testobj.train_ds,
+            testobj.test_ds,
+            training_step_fn=train_step,
+        )
+    except Exception as e:
+        print(e)
+        assert 0
+    else:
+        lmbdaval = np.array([lmb for lmb in lmbdatrav.iterate(modvar["params"])])
+        np.testing.assert_array_less(1e-2 * np.ones(lmbdaval.shape), lmbdaval)
+
+
+def test_train_odpct(testobj):
+    model = sflax.ODPNet(
+            operator=testobj.opCT,
+            depth=testobj.dconf["depth"],
+            channels=testobj.chn,
+            num_filters=testobj.dconf["num_filters"],
+            block_depth=testobj.dconf["block_depth"],
+            odp_block=sflax.ODPGrDescBlock,
+    )
+
+    try:
+        minval = 1.1e-2
+        alphatrav = construct_traversal("alpha")
+        alphapos = partial(clip_positive,              traversal=alphatrav,
+                    minval=minval,
+        )
+        train_step = partial(train_step_post, post_fn=alphapos)
+        modvar = sflax.train_and_evaluate(
+            testobj.dconf,
+            "./",
+            model,
+            testobj.train_ds,
+            testobj.test_ds,
+            training_step_fn=train_step,
+        )
+    except Exception as e:
+        print(e)
+        assert 0
+    else:
+        alphaval = np.array([alpha for alpha in alphatrav.iterate(modvar["params"])])
+        np.testing.assert_array_less(1e-2 * np.ones(alphaval.shape), alphaval)
+
+
+
+
