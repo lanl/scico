@@ -40,8 +40,21 @@ class TomographicProjector(LinearOperator):
     projection) is active. This region of validity is also respected by
     :meth:`.SVMBIRSquaredL2Loss.prox` when :class:`.SVMBIRSquaredL2Loss`
     is initialized with a :class:`TomographicProjector` with this option
-    enabled. Details of the underlying scanner geometries can be found
-    `here <https://svmbir.readthedocs.io/en/latest/overview.html>`_.
+    enabled.
+
+    A brief description of the supported scanner geometries can be found
+    in the `svmbir documentation <https://svmbir.readthedocs.io/en/latest/overview.html>`_.
+    Both parallel and fan beam geometries are supported.
+
+    .. list-table::
+
+       * - .. figure:: https://svmbir.readthedocs.io/en/latest/_images/geom-parallel.jpg
+
+              Fig 1. Parallel beam geometry.
+
+         - .. figure:: https://svmbir.readthedocs.io/en/latest/_images/geom-fan.jpg
+
+              Fig 2. Fan beam geometry.
     """
 
     def __init__(
