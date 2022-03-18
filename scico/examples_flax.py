@@ -152,6 +152,8 @@ def ct_data_generation(nimg: int, N: int, nproj: int, verbose: bool = False):  #
     sinoshd = jax.pmap(lambda i: jax.lax.map(a_map, imgshd[i]))(jnp.arange(nproc))
     time_sino = time() - start_time
     sino = sinoshd.reshape((-1, nproj, N, 1))
+    # Normalize sinogram
+    sino = sino / N
 
     # Compute filter back-project in parallel.
     afbp_map = lambda v: jnp.atleast_3d(A.fbp(v.squeeze()))
