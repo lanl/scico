@@ -922,11 +922,11 @@ class BlockArray:
 
     @_block_array_binary_op_wrapper
     def __pow__(a, b):
-        return a**b
+        return a ** b
 
     @_block_array_binary_op_wrapper
     def __rpow__(a, b):
-        return b**a
+        return b ** a
 
     @_block_array_binary_op_wrapper
     def __gt__(a, b):
