@@ -19,6 +19,8 @@ import numpy as np
 
 import jax
 
+import os
+
 from scico import plot
 from scico import flax as sflax
 from scico.metric import snr
@@ -28,8 +30,6 @@ from scico.examples_flax import get_ct_data
 Prepare parallel processing. Set an arbitrary processor
 count (only applies if GPU is not available).
 """
-import os
-
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 platform = jax.lib.xla_bridge.get_backend().platform
 print("Platform: ", platform)
@@ -90,7 +90,7 @@ model = sflax.UNet(
 """
 Run training loop.
 """
-workdir = "./unet_out/"
+workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "ct", "unet_out")
 print(f"{'JAX process: '}{jax.process_index()}{' / '}{jax.process_count()}")
 print(f"{'JAX local devices: '}{jax.local_devices()}")
 

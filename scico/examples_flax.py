@@ -225,7 +225,9 @@ def get_ct_data(
     """
     # Set default cache path if not specified.
     if cache_path is None:
-        cache_path = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "ct")
+        cache_path = os.path.join(
+            os.path.expanduser("~"), ".cache", "scico", "examples", "ct", "data"
+        )
 
     # Create cache directory and generate data if not already present.
     npz_train_file = os.path.join(cache_path, "foam2ct_train.npz")
