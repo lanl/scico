@@ -129,7 +129,7 @@ class LinearSubproblemSolver(SubproblemSolver):
     ..  math::
 
         \mb{x}^{(k+1)} = \argmin_{\mb{x}} \; \frac{1}{2}
-        \norm{\mb{y} - A x}_W^2 + \sum_i \frac{\rho_i}{2}
+        \norm{\mb{y} - A \mb{x}}_W^2 + \sum_i \frac{\rho_i}{2}
         \norm{\mb{z}^{(k)}_i - \mb{u}^{(k)}_i - C_i \mb{x}}_2^2 \;,
 
     where :math:`W` a weighting :class:`.Diagonal` operator
