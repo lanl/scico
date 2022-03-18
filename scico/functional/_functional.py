@@ -146,7 +146,7 @@ class ScaledFunctional(Functional):
     def prox(
         self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
-        r"""Evaulate the scaled proximal operator of the scaled functional.
+        r"""Evaluate the scaled proximal operator of the scaled functional.
 
         Note that, by definition, the scaled proximal operator of a
         functional is the proximal operator of the scaled functional. The
