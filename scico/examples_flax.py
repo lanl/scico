@@ -134,7 +134,6 @@ def ct_data_generation(nimg: int, N: int, nproj: int, verbose: bool = False):  #
     # Generate foam data.
     start_time = time()
     imgshd = distributed_data_generation(generate_foam2_images, N, nimg)
-    nproc = jax.device_count()
     time_dtgen = time() - start_time
     # Normalize and clip to [0,1] range.
     imgshd = jnp.clip(imgshd / jnp.max(imgshd, axis=(2, 3), keepdims=True), a_min=0, a_max=1)
@@ -147,7 +146,9 @@ def ct_data_generation(nimg: int, N: int, nproj: int, verbose: bool = False):  #
     A = ParallelBeamProjector(gt_sh, detector_spacing, N, angles)  # Radon transform operator
 
     # Compute sinograms in parallel.
+    nproc = jax.device_count()
     a_map = lambda v: jnp.atleast_3d(A @ v.squeeze())
+    start_time = time()
     sinoshd = jax.pmap(lambda i: jax.lax.map(a_map, imgshd[i]))(jnp.arange(nproc))
     time_sino = time() - start_time
     sino = sinoshd.reshape((-1, nproj, N, 1))
