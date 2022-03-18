@@ -10,13 +10,17 @@
 from xdesign import UnitCircle, SimpleMaterial, discrete_phantom
 
 from typing import Any, Callable, List, Union
+from time import time
 
 import jax
 import jax.numpy as jnp
 
 import os
 
+from numpy import linspace, load, savez
+
 from scico.typing import Array
+from scico.linop.radon_astra import ParallelBeamProjector
 
 # Arbitray process count: only applies if GPU is not available.
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
@@ -105,3 +109,184 @@ def distributed_data_generation(
         imgs = imgs.reshape((-1, size, size, 1))
 
     return imgs
+
+
+def ct_data_generation(nimg: int,
+        N: int,
+        nproj: int,
+        verbose: bool = False): # pragma: no cover
+    """
+    Generate CT data.
+
+    Generate CT data for training of machine
+    learning network models.
+
+    Args:
+        nimg: Number of images to generate.
+        N: Size of reconstruction images.
+        nproj: Number of CT views.
+        verbose: Flag indicating whether to print status messages.
+
+    Returns:
+       tuple: A tuple (img, sino, fbp) containing:
+
+           - **img** : (DeviceArray): Generated foam images.
+           - **sino** : (DeviceArray): Corresponding sinograms.
+           - **fbp** : (DeviceArray) Corresponding filtered back projections.
+    """
+    # Generate foam data.
+    start_time = time()
+    imgshd = distributed_data_generation(generate_foam2_images, N, nimg)
+    nproc = jax.device_count()
+    time_dtgen = time() - start_time
+    # Normalize and clip to [0,1] range.
+    imgshd = jnp.clip(imgshd / jnp.max(imgshd, axis=(2,3), keepdims=True), a_min=0, a_max=1)
+    img = imgshd.reshape((-1, N, N, 1))
+
+    # Configure a CT projection operator to generate synthetic measurements.
+    angles = linspace(0, jnp.pi, nproj)  # evenly spaced projection angles
+    gt_sh = (N, N)
+    detector_spacing = 1
+    A = ParallelBeamProjector(gt_sh, detector_spacing, N, angles)  # Radon transform operator
+
+    # Compute sinograms in parallel.
+    a_map = lambda v: jnp.atleast_3d(A @ v.squeeze())
+    sinoshd = jax.pmap(lambda i: jax.lax.map(a_map, imgshd[i]))(jnp.arange(nproc))
+    time_sino = time() - start_time
+    sino = sinoshd.reshape((-1, nproj, N, 1))
+
+    # Compute filter back-project in parallel.
+    afbp_map = lambda v: jnp.atleast_3d(A.fbp(v.squeeze()))
+    start_time = time()
+    fbpshd = jax.pmap(lambda i: jax.lax.map(afbp_map, sinoshd[i]))(jnp.arange(nproc))
+    time_fbp = time() - start_time
+    # Clip to [0,1] range.
+    fbpshd = jnp.clip(fbpshd, a_min=0, a_max=1)
+    fbp = fbpshd.reshape((-1, N, N, 1))
+
+    if verbose:
+        platform = jax.lib.xla_bridge.get_backend().platform
+        print(f"{'Platform':29s}{':':2s}{platform}")
+        print(f"{'Data Generation':22s}{'time[s]:':2s}{time_dtgen:>5.2f}")
+        print(f"{'Sinogram Generation':22s}{'time[s]:':2s}{time_sino:>5.2f}")
+        print(f"{'FBP Generation':22s}{'time[s]:':2s}{time_fbp:>5.2f}")
+        print(f"{'Data range images':26s}{'Min:':6s}{img.min():>5.2f}{', Max:':6s}{img.max():>8.2f}")
+        print(f"{'Data range sinograms':26s}{'Min:':6s}{sino.min():>5.2f}{', Max:':6s}{sino.max():>8.2f}")
+        print(f"{'Data range FBP':26s}{'Min:':6s}{fbp.min():>5.2f}{', Max:':6s}{fbp.max():>8.2f}")
+
+    return img, sino, fbp
+
+
+def get_ct_data(train_nimg: int,
+        test_nimg: int,
+        size: int,
+        nproj: int,
+        cache_path: str = None,
+        verbose: bool = False): # pragma: no cover
+    """
+    Get or generate CT data.
+
+    Get or generate CT data for training of
+    machine learning network models. If
+    cached file exists and enough data of
+    the requested size is available, data is
+    load and returned.
+
+    If either `size` or `nproj` requested does
+    not match the data read from the cached
+    file, a `RunTimeError` is generated.
+
+    If no cached file is found or not enough data
+    is contained in the file a new data set
+    is generated and stored in `cache_path`. The
+    data is stored in `.npz` format for
+    convenient access via :func:`numpy.load`.
+    The data is saved in two distinct files:
+    `foam2ct_train.npz` and `foam2ct_test.npz`
+    to keep separated training and testing
+    partitions.
+
+    Args:
+        train_nimg: Number of images required for training.
+        test_nimg: Number of images required for testing.
+        size: Size of reconstruction images.
+        nproj: Number of CT views.
+        cache_path: Directory in which generated data is saved.
+        verbose: Flag indicating whether to print status messages.
+
+    Returns:
+       tuple: A tuple (trdt, ttdt) containing:
+
+           - **trdt** : (Dictionary): Collection of images (key `img`), sinograms (key `sino`) and filtered back projections (key `fbp`) for training.
+           - **ttdt** : (Dictionary): Collection of images (key `img`), sinograms (key `sino`) and filtered back projections (key `fbp`) for testing.
+    """
+    # Set default cache path if not specified.
+    if cache_path is None:
+        cache_path = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "ct")
+
+    # Create cache directory and generate data if not already present.
+    npz_train_file = os.path.join(cache_path, "foam2ct_train.npz")
+    npz_test_file = os.path.join(cache_path, "foam2ct_test.npz")
+
+    if os.path.isfile(npz_train_file) and os.path.isfile(npz_test_file):
+        # Load data.
+        trdt_in = load(npz_train_file)
+        ttdt_in = load(npz_test_file)
+        # Check image size.
+        if (trdt_in["img"].shape[1] != size) or (ttdt_in["img"].shape[1] != size):
+            raise RuntimeError(f"{'Provided size: '}{size}{' does not match read train size: '}{trdt_in['img'].shape[1]}{' or test size: '}{ttdt_in['img'].shape[1]}")
+        # Check number of projections.
+        if (trdt_in["sino"].shape[1] != nproj) or (ttdt_in["sino"].shape[1] != nproj):
+            raise RuntimeError(f"{'Provided views: '}{nproj}{' does not match read train views: '}{trdt_in['sino'].shape[1]}{' or test views: '}{ttdt_in['sino'].shape[1]}")
+        # Check that enough data is available.
+        if (trdt_in["img"].shape[0] >= train_nimg):
+            if (ttdt_in["img"].shape[0] >= test_nimg):
+                trdt = {"img": trdt_in["img"][:train_nimg],
+                    "sino": trdt_in["sino"][:train_nimg],
+                    "fbp": trdt_in["fbp"][:train_nimg]
+                }
+                ttdt = {"img": ttdt_in["img"][:test_nimg],
+                    "sino": ttdt_in["sino"][:test_nimg],
+                    "fbp": ttdt_in["fbp"][:test_nimg]
+                }
+                if verbose:
+                    print(f"{'Data read from path:':22s}{cache_path}")
+
+                return trdt, ttdt
+            elif verbose:
+                print(f"{'Not enough data in testing file':34s}{'Requested:':12s}{test_nimg}{' Available:':12s}{ttdt_in['img'].shape[0]}")
+        elif verbose:
+            print(f"{'Not enough data in training file':34s}{'Requested:':12s}{train_nimg}{' Available:':12s}{trdt_in['img'].shape[0]}")
+
+    # Generate new data.
+    nimg = train_nimg + test_nimg
+    img, sino, fbp = ct_data_generation(
+            nimg,
+            size,
+            nproj,
+            verbose,
+    )
+    # Separate training and testing partitions.
+    trdt = {"img": img[:train_nimg],
+            "sino": sino[:train_nimg],
+            "fbp": fbp[:train_nimg]
+    }
+    ttdt = {"img": img[train_nimg:],
+            "sino": sino[train_nimg:],
+            "fbp": fbp[train_nimg:]
+    }
+
+    # Store images, sinograms and filtered back-projections.
+    os.makedirs(cache_path, exist_ok=True)
+    savez(npz_train_file,
+        img=img[:train_nimg],
+        sino=sino[:train_nimg],
+        fbp=fbp[:train_nimg],
+    )
+    savez(npz_test_file, img=img[train_nimg:], sino=sino[train_nimg:], fbp=fbp[train_nimg:],
+    )
+
+    if verbose:
+        print(f"{'Storing data in path':29s}{':':2s}{cache_path}")
+
+    return trdt, ttdt
