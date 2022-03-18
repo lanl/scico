@@ -167,13 +167,6 @@ def ct_data_generation(nimg: int, N: int, nproj: int, verbose: bool = False):  #
         print(f"{'Data Generation':22s}{'time[s]:':2s}{time_dtgen:>5.2f}")
         print(f"{'Sinogram Generation':22s}{'time[s]:':2s}{time_sino:>5.2f}")
         print(f"{'FBP Generation':22s}{'time[s]:':2s}{time_fbp:>5.2f}")
-        print(
-            f"{'Data range images':26s}{'Min:':6s}{img.min():>5.2f}{', Max:':6s}{img.max():>8.2f}"
-        )
-        print(
-            f"{'Data range sinograms':26s}{'Min:':6s}{sino.min():>5.2f}{', Max:':6s}{sino.max():>8.2f}"
-        )
-        print(f"{'Data range FBP':26s}{'Min:':6s}{fbp.min():>5.2f}{', Max:':6s}{fbp.max():>8.2f}")
 
     return img, sino, fbp
 
@@ -262,8 +255,18 @@ def get_ct_data(
                 }
                 if verbose:
                     print(f"{'Data read from path:':22s}{cache_path}")
+                    print(
+                        f"{'Data range images':26s}{'Min:':6s}{img.min():>5.2f}{', Max:':6s}{img.max():>8.2f}"
+                    )
+                    print(
+                        f"{'Data range sinograms':26s}{'Min:':6s}{sino.min():>5.2f}{', Max:':6s}{sino.max():>8.2f}"
+                    )
+                    print(
+                        f"{'Data range FBP':26s}{'Min:':6s}{fbp.min():>5.2f}{', Max:':6s}{fbp.max():>8.2f}"
+                    )
 
                 return trdt, ttdt
+
             elif verbose:
                 print(
                     f"{'Not enough data in testing file':34s}{'Requested:':12s}{test_nimg}{' Available:':12s}{ttdt_in['img'].shape[0]}"
@@ -302,5 +305,12 @@ def get_ct_data(
 
     if verbose:
         print(f"{'Storing data in path':29s}{':':2s}{cache_path}")
+        print(
+            f"{'Data range images':26s}{'Min:':6s}{img.min():>5.2f}{', Max:':6s}{img.max():>8.2f}"
+        )
+        print(
+            f"{'Data range sinograms':26s}{'Min:':6s}{sino.min():>5.2f}{', Max:':6s}{sino.max():>8.2f}"
+        )
+        print(f"{'Data range FBP':26s}{'Min:':6s}{fbp.min():>5.2f}{', Max:':6s}{fbp.max():>8.2f}")
 
     return trdt, ttdt
