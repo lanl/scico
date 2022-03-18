@@ -40,8 +40,7 @@ class TomographicProjector(LinearOperator):
     projection) is active. This region of validity is also respected by
     :meth:`.SVMBIRSquaredL2Loss.prox` when :class:`.SVMBIRSquaredL2Loss`
     is initialized with a :class:`TomographicProjector` with this option
-    enabled.
-    Details about the underlying scanner geometries can be found
+    enabled. Details of the underlying scanner geometries can be found
     `here <https://svmbir.readthedocs.io/en/latest/overview.html>`_.
     """
 
@@ -58,18 +57,17 @@ class TomographicProjector(LinearOperator):
     ):
         """
         Args:
-            input_shape: Shape of the input array. Can be of length
-                either 2 (2D array) or 3 (3D array). When specifying
-                a 2D array, the format for the input_shape is
-                `(num_rows,num_cols)`. For a 3D array, the format for
-                the input_shape is `(num_slices,num_rows,num_cols)`.
-                Here `num_slices` denotes the number of slices in the
-                input, `num_rows` and `num_cols` denote the number
-                of rows and columns in a single slice of the input.
-                A slice is defined as the plane perpendicular to the
-                axis of rotation of the tomographic system.
-                Note that `input_shape=(num_rows,num_cols)` and
-                `input_shape=(1,num_rows,num_cols)` result in the
+            input_shape: Shape of the input array. May be of length 2 (a
+                2D array) or 3 (a 3D array). When specifying a 2D array,
+                the format for the input_shape is `(num_rows, num_cols)`.
+                For a 3D array, the format for the input_shape is
+                `(num_slices, num_rows, num_cols)`, where `num_slices`
+                denotes the number of slices in the input, and `num_rows`
+                and `num_cols` denote the number of rows and columns in a
+                single slice of the input. (A slice is a plane
+                perpendicular to the axis of rotation of the tomographic
+                system. Note that `input_shape=(num_rows, num_cols)` and
+                `input_shape=(1, num_rows, num_cols)` result in the
                 same underlying projector.
             angles: Array of projection angles in radians, should be
                 increasing.
@@ -81,10 +79,10 @@ class TomographicProjector(LinearOperator):
                 determined by a mask defined as the circle inscribed
                 within the image boundary. Otherwise, the whole image
                 array is taken into account by projections.
-            geometry:  Scanner geometry, either "parallel" or "fan".
-                Note for fan geometry, the  `dist_source_detector` and
-                `magnification` arguments must be specified.
-            dist_source_detector:  Distance from X-ray focal spot to
+            geometry: Scanner geometry, either "parallel" or "fan".
+                Note that the `dist_source_detector` and `magnification`
+                arguments must be provided for fan geometry.
+            dist_source_detector: Distance from X-ray focal spot to
                 detectors in units of pixel pitch. Only used when geometry
                 is "fan".
             magnification: Magnification factor of the scanner geometry.
