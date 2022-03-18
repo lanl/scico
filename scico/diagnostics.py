@@ -178,7 +178,12 @@ class IterationStats:
         in an appropriate state when overwriting is active with a display
         period other than unity.
         """
-        if self.overwrite and self.period > 1 and (len(self.iterations) - 1) % self.period:
+        if (
+            self.display
+            and self.overwrite
+            and self.period > 1
+            and (len(self.iterations) - 1) % self.period
+        ):
             print()
 
     def history(self, transpose: bool = False):
