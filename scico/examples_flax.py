@@ -111,10 +111,7 @@ def distributed_data_generation(
     return imgs
 
 
-def ct_data_generation(nimg: int,
-        N: int,
-        nproj: int,
-        verbose: bool = False): # pragma: no cover
+def ct_data_generation(nimg: int, N: int, nproj: int, verbose: bool = False):  # pragma: no cover
     """
     Generate CT data.
 
@@ -140,7 +137,7 @@ def ct_data_generation(nimg: int,
     nproc = jax.device_count()
     time_dtgen = time() - start_time
     # Normalize and clip to [0,1] range.
-    imgshd = jnp.clip(imgshd / jnp.max(imgshd, axis=(2,3), keepdims=True), a_min=0, a_max=1)
+    imgshd = jnp.clip(imgshd / jnp.max(imgshd, axis=(2, 3), keepdims=True), a_min=0, a_max=1)
     img = imgshd.reshape((-1, N, N, 1))
 
     # Configure a CT projection operator to generate synthetic measurements.
@@ -170,19 +167,25 @@ def ct_data_generation(nimg: int,
         print(f"{'Data Generation':22s}{'time[s]:':2s}{time_dtgen:>5.2f}")
         print(f"{'Sinogram Generation':22s}{'time[s]:':2s}{time_sino:>5.2f}")
         print(f"{'FBP Generation':22s}{'time[s]:':2s}{time_fbp:>5.2f}")
-        print(f"{'Data range images':26s}{'Min:':6s}{img.min():>5.2f}{', Max:':6s}{img.max():>8.2f}")
-        print(f"{'Data range sinograms':26s}{'Min:':6s}{sino.min():>5.2f}{', Max:':6s}{sino.max():>8.2f}")
+        print(
+            f"{'Data range images':26s}{'Min:':6s}{img.min():>5.2f}{', Max:':6s}{img.max():>8.2f}"
+        )
+        print(
+            f"{'Data range sinograms':26s}{'Min:':6s}{sino.min():>5.2f}{', Max:':6s}{sino.max():>8.2f}"
+        )
         print(f"{'Data range FBP':26s}{'Min:':6s}{fbp.min():>5.2f}{', Max:':6s}{fbp.max():>8.2f}")
 
     return img, sino, fbp
 
 
-def get_ct_data(train_nimg: int,
-        test_nimg: int,
-        size: int,
-        nproj: int,
-        cache_path: str = None,
-        verbose: bool = False): # pragma: no cover
+def get_ct_data(
+    train_nimg: int,
+    test_nimg: int,
+    size: int,
+    nproj: int,
+    cache_path: str = None,
+    verbose: bool = False,
+):  # pragma: no cover
     """
     Get or generate CT data.
 
@@ -234,56 +237,65 @@ def get_ct_data(train_nimg: int,
         ttdt_in = load(npz_test_file)
         # Check image size.
         if (trdt_in["img"].shape[1] != size) or (ttdt_in["img"].shape[1] != size):
-            raise RuntimeError(f"{'Provided size: '}{size}{' does not match read train size: '}{trdt_in['img'].shape[1]}{' or test size: '}{ttdt_in['img'].shape[1]}")
+            raise RuntimeError(
+                f"{'Provided size: '}{size}{' does not match read train size: '}{trdt_in['img'].shape[1]}{' or test size: '}{ttdt_in['img'].shape[1]}"
+            )
         # Check number of projections.
         if (trdt_in["sino"].shape[1] != nproj) or (ttdt_in["sino"].shape[1] != nproj):
-            raise RuntimeError(f"{'Provided views: '}{nproj}{' does not match read train views: '}{trdt_in['sino'].shape[1]}{' or test views: '}{ttdt_in['sino'].shape[1]}")
+            raise RuntimeError(
+                f"{'Provided views: '}{nproj}{' does not match read train views: '}{trdt_in['sino'].shape[1]}{' or test views: '}{ttdt_in['sino'].shape[1]}"
+            )
         # Check that enough data is available.
-        if (trdt_in["img"].shape[0] >= train_nimg):
-            if (ttdt_in["img"].shape[0] >= test_nimg):
-                trdt = {"img": trdt_in["img"][:train_nimg],
+        if trdt_in["img"].shape[0] >= train_nimg:
+            if ttdt_in["img"].shape[0] >= test_nimg:
+                trdt = {
+                    "img": trdt_in["img"][:train_nimg],
                     "sino": trdt_in["sino"][:train_nimg],
-                    "fbp": trdt_in["fbp"][:train_nimg]
+                    "fbp": trdt_in["fbp"][:train_nimg],
                 }
-                ttdt = {"img": ttdt_in["img"][:test_nimg],
+                ttdt = {
+                    "img": ttdt_in["img"][:test_nimg],
                     "sino": ttdt_in["sino"][:test_nimg],
-                    "fbp": ttdt_in["fbp"][:test_nimg]
+                    "fbp": ttdt_in["fbp"][:test_nimg],
                 }
                 if verbose:
                     print(f"{'Data read from path:':22s}{cache_path}")
 
                 return trdt, ttdt
             elif verbose:
-                print(f"{'Not enough data in testing file':34s}{'Requested:':12s}{test_nimg}{' Available:':12s}{ttdt_in['img'].shape[0]}")
+                print(
+                    f"{'Not enough data in testing file':34s}{'Requested:':12s}{test_nimg}{' Available:':12s}{ttdt_in['img'].shape[0]}"
+                )
         elif verbose:
-            print(f"{'Not enough data in training file':34s}{'Requested:':12s}{train_nimg}{' Available:':12s}{trdt_in['img'].shape[0]}")
+            print(
+                f"{'Not enough data in training file':34s}{'Requested:':12s}{train_nimg}{' Available:':12s}{trdt_in['img'].shape[0]}"
+            )
 
     # Generate new data.
     nimg = train_nimg + test_nimg
     img, sino, fbp = ct_data_generation(
-            nimg,
-            size,
-            nproj,
-            verbose,
+        nimg,
+        size,
+        nproj,
+        verbose,
     )
     # Separate training and testing partitions.
-    trdt = {"img": img[:train_nimg],
-            "sino": sino[:train_nimg],
-            "fbp": fbp[:train_nimg]
-    }
-    ttdt = {"img": img[train_nimg:],
-            "sino": sino[train_nimg:],
-            "fbp": fbp[train_nimg:]
-    }
+    trdt = {"img": img[:train_nimg], "sino": sino[:train_nimg], "fbp": fbp[:train_nimg]}
+    ttdt = {"img": img[train_nimg:], "sino": sino[train_nimg:], "fbp": fbp[train_nimg:]}
 
     # Store images, sinograms and filtered back-projections.
     os.makedirs(cache_path, exist_ok=True)
-    savez(npz_train_file,
+    savez(
+        npz_train_file,
         img=img[:train_nimg],
         sino=sino[:train_nimg],
         fbp=fbp[:train_nimg],
     )
-    savez(npz_test_file, img=img[train_nimg:], sino=sino[train_nimg:], fbp=fbp[train_nimg:],
+    savez(
+        npz_test_file,
+        img=img[train_nimg:],
+        sino=sino[train_nimg:],
+        fbp=fbp[train_nimg:],
     )
 
     if verbose:

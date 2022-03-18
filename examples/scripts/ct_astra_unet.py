@@ -20,9 +20,9 @@ import numpy as np
 import jax
 
 from scico import plot
-from scico.linop.radon_astra import ParallelBeamProjector
 from scico import flax as sflax
 from scico.metric import snr
+from scico.examples_flax import get_ct_data
 
 """
 Prepare parallel processing. Set an arbitrary processor
@@ -36,12 +36,15 @@ print("Platform: ", platform)
 
 
 """
-Get and load training and testing data.
+Read data from cache or generate if not available.
 """
-# ToDo: Replace by download from repo?
-path_in = "./dtct/"
-trdt = np.load(path_in + "foam2ct_train.npz")
-ttdt = np.load(path_in + "foam2ct_test.npz")
+N = 256  # phantom size
+train_nimg = 512  # number of training images
+test_nimg = 64  # number of testing images
+nimg = train_nimg + test_nimg
+n_projection = 180  # CT views
+
+trdt, ttdt = get_ct_data(train_nimg, test_nimg, N, n_projection, verbose=True)
 
 """
 Build training and testing structures. Inputs are the filter
