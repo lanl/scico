@@ -256,13 +256,13 @@ def get_ct_data(
                 if verbose:
                     print(f"{'Data read from path:':22s}{cache_path}")
                     print(
-                        f"{'Data range images':26s}{'Min:':6s}{img.min():>5.2f}{', Max:':6s}{img.max():>8.2f}"
+                        f"{'Data range images':26s}{'Min:':6s}{trdt['img'].min():>5.2f}{', Max:':6s}{trdt['img'].max():>8.2f}"
                     )
                     print(
-                        f"{'Data range sinograms':26s}{'Min:':6s}{sino.min():>5.2f}{', Max:':6s}{sino.max():>8.2f}"
+                        f"{'Data range sinograms':26s}{'Min:':6s}{trdt['sino'].min():>5.2f}{', Max:':6s}{trdt['sino'].max():>8.2f}"
                     )
                     print(
-                        f"{'Data range FBP':26s}{'Min:':6s}{fbp.min():>5.2f}{', Max:':6s}{fbp.max():>8.2f}"
+                        f"{'Data range FBP':26s}{'Min:':6s}{trdt['fbp'].min():>5.2f}{', Max:':6s}{trdt['fbp'].max():>8.2f}"
                     )
 
                 return trdt, ttdt
