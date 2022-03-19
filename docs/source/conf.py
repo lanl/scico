@@ -384,7 +384,7 @@ autoclass_content = "both"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ["_build", "**tests**", "**spi**"]
+exclude_patterns = ["_build", "**tests**", "**spi**", "**README.rst", "**exampledepend.rst"]
 
 
 # Rewrite module names for certain functions imported into scico.numpy so that they are
