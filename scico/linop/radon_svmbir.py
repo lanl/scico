@@ -47,12 +47,19 @@ class TomographicProjector(LinearOperator):
     Both parallel and fan beam geometries are supported.
 
     .. list-table::
+       :widths: 48 1 48
 
-       * - .. figure:: https://svmbir.readthedocs.io/en/latest/_images/geom-parallel.jpg
+       * - .. figure:: /figures/geom-parallel.png
+              :align: center
+              :scale: 50 %
 
               Fig 1. Parallel beam geometry.
 
-         - .. figure:: https://svmbir.readthedocs.io/en/latest/_images/geom-fan.jpg
+         -
+
+         - .. figure:: /figures/geom-fan.png
+              :align: center
+              :scale: 50 %
 
               Fig 2. Fan beam geometry.
     """
