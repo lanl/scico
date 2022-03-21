@@ -52,6 +52,13 @@ has_prox = {self.has_prox}
     def __rmul__(self, other):
         return self.__mul__(other)
 
+    def __add__(self, other):
+        if isinstance(other, Functional):
+            return FunctionalSum(self, other)
+        raise NotImplementedError(
+            f"Operation __add__ not defined between {type(self)} and {type(other)}"
+        )
+
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         r"""Evaluate this functional at point :math:`\mb{x}`.
 
@@ -125,6 +132,28 @@ has_prox = {self.has_prox}
             x: Point at which to evaluate gradient.
         """
         return self._grad(x)
+
+
+class FunctionalSum(Functional):
+    r"""The sum of two functionals."""
+
+    def __repr__(self):
+        return (
+            "Sum of functionals of types "
+            + str(type(self.functional1))
+            + " and "
+            + str(type(self.functional2))
+        )
+
+    def __init__(self, functional1: Functional, functional2: Functional):
+        self.functional1 = functional1
+        self.functional2 = functional2
+        self.has_eval = functional1.has_eval and functional2.has_eval
+        self.has_prox = False
+        super().__init__()
+
+    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+        return self.functional1(x) + self.functional2(x)
 
 
 class ScaledFunctional(Functional):
