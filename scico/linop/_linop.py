@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import operator
 from functools import partial
-from typing import Callable, Optional, Union
+from typing import Any, Callable, Optional, Union
 
 import scico.numpy as snp
 from scico import array, blockarray
@@ -326,7 +326,7 @@ def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = Non
         self,
         input_shape: Union[Shape, BlockShape],
         *args: Any,
-        input_dtype: Dtype = snp.float32,
+        input_dtype: DType = snp.float32,
         jit: bool = True,
         **kwargs: Any,
     ):
