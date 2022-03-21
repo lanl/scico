@@ -58,7 +58,7 @@ class Loss(functional.Functional):
         Args:
             y: Measurement.
             A: Forward operator. Defaults to ``None``, in which case
-               ``self.A`` is a :class:`.Identity`.
+               `self.A` is a :class:`.Identity`.
             f: Functional :math:`f`. If defined, the loss function is
                :math:`\alpha f(\mb{y} - A(\mb{x}))`. If ``None``, then
                :meth:`__call__` and :meth:`prox` (where appropriate) must
@@ -110,8 +110,8 @@ class Loss(functional.Functional):
             v: Point at which to evaluate prox function.
             lam: Proximal parameter :math:`\lambda`.
             kwargs: Additional arguments that may be used by derived
-                classes. These include ``x0``, an initial guess for the
-                minimizer in the defintion of :math:`\mathrm{prox}`.
+               classes. These include `x0`, an initial guess for the
+               minimizer in the defintion of :math:`\mathrm{prox}`.
         """
         if not self.has_prox:
             raise NotImplementedError(

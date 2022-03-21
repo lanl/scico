@@ -470,10 +470,6 @@ from scico.typing import Axes, AxisIndex, BlockShape, DType, JaxArray, Shape
 
 _arraylikes = (Buffer, DeviceArray, np.ndarray)
 
-__author__ = """\n""".join(
-    ["Luke Pfister <luke.pfister@gmail.com>", "Brendt Wohlberg <brendt@ieee.org>"]
-)
-
 
 def atleast_1d(*arys):
     """Convert inputs to arrays with at least one dimension.

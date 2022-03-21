@@ -22,13 +22,6 @@ import jax
 from jax.interpreters.batching import BatchTracer
 from jax.interpreters.partial_eval import DynamicJaxprTracer
 
-__author__ = """\n""".join(
-    [
-        "Brendt Wohlberg <brendt@ieee.org>",
-        "Luke Pfister <luke.pfister@gmail.com>",
-    ]
-)
-
 
 def device_info(devid: int = 0) -> str:  # pragma: no cover
     """Get a string describing the specified device.
