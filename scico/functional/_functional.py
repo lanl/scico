@@ -185,7 +185,7 @@ class SeparableFunctional(Functional):
     def __init__(self, functional_list: List[Functional]):
         r"""
         Args:
-            functional_list:  List of component functionals f_i. This
+            functional_list: List of component functionals f_i. This
                functional takes as an input a :class:`.BlockArray` with
                `num_blocks == len(functional_list)`.
         """
