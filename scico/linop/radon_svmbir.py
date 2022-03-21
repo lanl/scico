@@ -98,7 +98,9 @@ class TomographicProjector(LinearOperator):
                 data.
             center_offset: Position of the detector center relative to
                 the projection of the center of rotation onto the
-                detector, in units of pixels.
+                detector, in units of pixels. The projection of the
+                center of rotation is typically close to the detector
+                center but different from it.
             is_masked: If ``True``, the valid region of the image is
                 determined by a mask defined as the circle inscribed
                 within the image boundary. Otherwise, the whole image
