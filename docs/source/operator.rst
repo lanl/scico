@@ -231,7 +231,7 @@ External code may be wrapped as a subclass of :class:`.Operator` or :class:`.Lin
 and used in SCICO optimization routines;
 however this process can be complicated and error-prone.
 As a starting point,
-look at the source for :class:`.radon_svmbir.ParallelBeamProjector` or :class:`.radon_astra.ParallelBeamProjector`
+look at the source for :class:`.radon_svmbir.TomographicProjector` or :class:`.radon_astra.TomographicProjector`
 and the JAX documentation for the
 `vector-jacobian product <https://jax.readthedocs.io/en/latest/notebooks/autodiff_cookbook.html#vector-jacobian-products-vjps-aka-reverse-mode-autodiff>`_
 and `ustom VJP rules <https://jax.readthedocs.io/en/latest/notebooks/Custom_derivative_rules_for_Python_code.html>`_.

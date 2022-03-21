@@ -15,16 +15,16 @@ try:
     import svmbir
 
     from scico.linop.radon_svmbir import (
-        ParallelBeamProjector,
         SVMBIRExtendedLoss,
         SVMBIRSquaredL2Loss,
+        TomographicProjector,
     )
 except ImportError as e:
     pytest.skip("svmbir not installed", allow_module_level=True)
 
 
-BIG_INPUT = (128, 129, 200, 201)
-SMALL_INPUT = (4, 5, 7, 8)
+BIG_INPUT = (128, 129, 200, 201, 500, 1.5)
+SMALL_INPUT = (4, 5, 7, 8, 16, 1.5)
 
 BIG_INPUT_OFFSET_RANGE = (0, 0.3, 3)
 SMALL_INPUT_OFFSET_RANGE = (0, 0.01, 0.1)
@@ -45,20 +45,53 @@ def make_angles(num_angles):
     return snp.linspace(0, snp.pi, num_angles, dtype=snp.float32)
 
 
-def make_A(im, num_angles, num_channels, center_offset, is_masked):
+def make_A(
+    im,
+    num_angles,
+    num_channels,
+    center_offset,
+    is_masked,
+    geometry="parallel",
+    dist_source_detector=None,
+    magnification=None,
+    delta_channel=None,
+    delta_pixel=None,
+):
+
     angles = make_angles(num_angles)
-    A = ParallelBeamProjector(
-        im.shape, angles, num_channels, center_offset=center_offset, is_masked=is_masked
+    A = TomographicProjector(
+        im.shape,
+        angles,
+        num_channels,
+        center_offset=center_offset,
+        is_masked=is_masked,
+        geometry=geometry,
+        dist_source_detector=dist_source_detector,
+        magnification=magnification,
     )
 
     return A
 
 
-@pytest.mark.parametrize("Nx, Ny, num_angles, num_channels", (BIG_INPUT,))
+@pytest.mark.parametrize(
+    "Nx, Ny, num_angles, num_channels, dist_source_detector, magnification", (BIG_INPUT,)
+)
 @pytest.mark.parametrize("is_3d", (True, False))
 @pytest.mark.parametrize("center_offset", BIG_INPUT_OFFSET_RANGE)
 @pytest.mark.parametrize("is_masked", (True, False))
-def test_grad(Nx, Ny, num_angles, num_channels, is_3d, center_offset, is_masked):
+@pytest.mark.parametrize("geometry", ("parallel", "fan"))
+def test_grad(
+    Nx,
+    Ny,
+    num_angles,
+    num_channels,
+    is_3d,
+    center_offset,
+    is_masked,
+    geometry,
+    dist_source_detector,
+    magnification,
+):
     im = make_im(Nx, Ny, is_3d)
     A = make_A(im, num_angles, num_channels, center_offset, is_masked)
 
@@ -71,22 +104,50 @@ def test_grad(Nx, Ny, num_angles, num_channels, is_3d, center_offset, is_masked)
     np.testing.assert_allclose(val_1, val_2)
 
 
-@pytest.mark.parametrize("Nx, Ny, num_angles, num_channels", (BIG_INPUT,))
+@pytest.mark.parametrize(
+    "Nx, Ny, num_angles, num_channels, dist_source_detector, magnification", (BIG_INPUT,)
+)
 @pytest.mark.parametrize("is_3d", (True, False))
 @pytest.mark.parametrize("center_offset", BIG_INPUT_OFFSET_RANGE)
 @pytest.mark.parametrize("is_masked", (True, False))
-def test_adjoint(Nx, Ny, num_angles, num_channels, is_3d, center_offset, is_masked):
+@pytest.mark.parametrize("geometry", ("parallel", "fan"))
+def test_adjoint(
+    Nx,
+    Ny,
+    num_angles,
+    num_channels,
+    is_3d,
+    center_offset,
+    is_masked,
+    geometry,
+    dist_source_detector,
+    magnification,
+):
     im = make_im(Nx, Ny, is_3d)
     A = make_A(im, num_angles, num_channels, center_offset, is_masked)
 
     adjoint_test(A)
 
 
-@pytest.mark.parametrize("Nx, Ny, num_angles, num_channels", (SMALL_INPUT,))
+@pytest.mark.parametrize(
+    "Nx, Ny, num_angles, num_channels, dist_source_detector, magnification", (SMALL_INPUT,)
+)
 @pytest.mark.parametrize("is_3d", (True, False))
 @pytest.mark.parametrize("center_offset", SMALL_INPUT_OFFSET_RANGE)
 @pytest.mark.parametrize("is_masked", (True, False))
-def test_prox(Nx, Ny, num_angles, num_channels, is_3d, center_offset, is_masked):
+@pytest.mark.parametrize("geometry", ("parallel", "fan"))
+def test_prox(
+    Nx,
+    Ny,
+    num_angles,
+    num_channels,
+    is_3d,
+    center_offset,
+    is_masked,
+    geometry,
+    dist_source_detector,
+    magnification,
+):
 
     im = make_im(Nx, Ny, is_3d)
     A = make_A(im, num_angles, num_channels, center_offset, is_masked)
@@ -103,11 +164,25 @@ def test_prox(Nx, Ny, num_angles, num_channels, is_3d, center_offset, is_masked)
     prox_test(v, f, f.prox, alpha=0.25)
 
 
-@pytest.mark.parametrize("Nx, Ny, num_angles, num_channels", (SMALL_INPUT,))
+@pytest.mark.parametrize(
+    "Nx, Ny, num_angles, num_channels, dist_source_detector, magnification", (SMALL_INPUT,)
+)
 @pytest.mark.parametrize("is_3d", (True, False))
 @pytest.mark.parametrize("center_offset", SMALL_INPUT_OFFSET_RANGE)
 @pytest.mark.parametrize("is_masked", (True, False))
-def test_prox_weights(Nx, Ny, num_angles, num_channels, is_3d, center_offset, is_masked):
+@pytest.mark.parametrize("geometry", ("parallel", "fan"))
+def test_prox_weights(
+    Nx,
+    Ny,
+    num_angles,
+    num_channels,
+    is_3d,
+    center_offset,
+    is_masked,
+    geometry,
+    dist_source_detector,
+    magnification,
+):
 
     im = make_im(Nx, Ny, is_3d)
     A = make_A(im, num_angles, num_channels, center_offset, is_masked)
@@ -128,12 +203,27 @@ def test_prox_weights(Nx, Ny, num_angles, num_channels, is_3d, center_offset, is
     prox_test(v, f, f.prox, alpha=0.25)
 
 
-@pytest.mark.parametrize("Nx, Ny, num_angles, num_channels", (SMALL_INPUT,))
+@pytest.mark.parametrize(
+    "Nx, Ny, num_angles, num_channels, dist_source_detector, magnification", (SMALL_INPUT,)
+)
 @pytest.mark.parametrize("is_3d", (True, False))
 @pytest.mark.parametrize("weight_type", ("transmission", "unweighted"))
 @pytest.mark.parametrize("center_offset", SMALL_INPUT_OFFSET_RANGE)
 @pytest.mark.parametrize("is_masked", (True, False))
-def test_prox_cg(Nx, Ny, num_angles, num_channels, is_3d, weight_type, center_offset, is_masked):
+@pytest.mark.parametrize("geometry", ("parallel", "fan"))
+def test_prox_cg(
+    Nx,
+    Ny,
+    num_angles,
+    num_channels,
+    is_3d,
+    weight_type,
+    center_offset,
+    is_masked,
+    geometry,
+    dist_source_detector,
+    magnification,
+):
 
     im = make_im(Nx, Ny, is_3d=is_3d) / Nx * 10
     A = make_A(im, num_angles, num_channels, center_offset, is_masked=is_masked)
@@ -165,14 +255,28 @@ def test_prox_cg(Nx, Ny, num_angles, num_channels, is_3d, weight_type, center_of
     assert snp.linalg.norm(xprox_sv[mask] - xprox_cg[mask]) / snp.linalg.norm(xprox_sv[mask]) < 5e-5
 
 
-@pytest.mark.parametrize("Nx, Ny, num_angles, num_channels", (SMALL_INPUT,))
+@pytest.mark.parametrize(
+    "Nx, Ny, num_angles, num_channels, dist_source_detector, magnification", (SMALL_INPUT,)
+)
 @pytest.mark.parametrize("is_3d", (True, False))
 @pytest.mark.parametrize("weight_type", ("transmission", "unweighted"))
 @pytest.mark.parametrize("center_offset", SMALL_INPUT_OFFSET_RANGE)
 @pytest.mark.parametrize("is_masked", (True, False))
 @pytest.mark.parametrize("positivity", (True, False))
+@pytest.mark.parametrize("geometry", ("parallel", "fan"))
 def test_approx_prox(
-    Nx, Ny, num_angles, num_channels, is_3d, weight_type, center_offset, is_masked, positivity
+    Nx,
+    Ny,
+    num_angles,
+    num_channels,
+    is_3d,
+    weight_type,
+    center_offset,
+    is_masked,
+    positivity,
+    geometry,
+    dist_source_detector,
+    magnification,
 ):
     im = make_im(Nx, Ny, is_3d)
     A = make_A(im, num_angles, num_channels, center_offset, is_masked)

@@ -1215,7 +1215,7 @@ class BlockArray:
         Returns:
             :class:`jax.ops.index` pointing to desired block.
         """
-        return jax.ops.index[self.bndpos[idx] : self.bndpos[idx + 1]]
+        return slice(self.bndpos[idx], self.bndpos[idx + 1])
 
     def ravel(self) -> JaxArray:
         """Return a copy of ``self._data`` as a contiguous, flattened `DeviceArray`.
