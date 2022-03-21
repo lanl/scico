@@ -84,10 +84,11 @@ class TomographicProjector(LinearOperator):
                 `(num_slices, num_rows, num_cols)`, where `num_slices`
                 denotes the number of slices in the input, and `num_rows`
                 and `num_cols` denote the number of rows and columns in a
-                single slice of the input. (A slice is a plane
+                single slice of the input. A slice is a plane
                 perpendicular to the axis of rotation of the tomographic
-                system. Each row is oriented along the X-ray beam and each
-                column is oriented perpendicular to it.
+                system. At angle zero, each row is oriented along the
+                X-rays (parallel-beam) or the X-ray beam directed toward
+                the detector center (fan-beam).
                 Note that `input_shape=(num_rows, num_cols)` and
                 `input_shape=(1, num_rows, num_cols)` result in the
                 same underlying projector.
@@ -96,7 +97,8 @@ class TomographicProjector(LinearOperator):
             num_channels: Number of detector channels in the sinogram
                 data.
             center_offset: Position of the detector center relative to
-                the center of rotation, in units of pixels.
+                the projection of the center of rotation onto the
+                detector, in units of pixels.
             is_masked: If ``True``, the valid region of the image is
                 determined by a mask defined as the circle inscribed
                 within the image boundary. Otherwise, the whole image
