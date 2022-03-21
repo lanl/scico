@@ -86,7 +86,9 @@ class TomographicProjector(LinearOperator):
                 and `num_cols` denote the number of rows and columns in a
                 single slice of the input. (A slice is a plane
                 perpendicular to the axis of rotation of the tomographic
-                system. Note that `input_shape=(num_rows, num_cols)` and
+                system. Each row is oriented along the X-ray beam and each
+                column is oriented perpendicular to it.
+                Note that `input_shape=(num_rows, num_cols)` and
                 `input_shape=(1, num_rows, num_cols)` result in the
                 same underlying projector.
             angles: Array of projection angles in radians, should be
@@ -107,6 +109,12 @@ class TomographicProjector(LinearOperator):
                 is "fan".
             magnification: Magnification factor of the scanner geometry.
                 Only used when geometry is "fan".
+
+        The TomographicProjector projects onto an array of shape
+        `(num_angles, num_channels)` when input_shape is 2D and of shape
+        `(num_angles, num_slices, num_channels)` when input_shape is 3D.
+        Here `num_angles` refers to the length of the input `angles`.
+        `num_slices` is inferred from the `input_shape` argument.
         """
         self.angles = angles
         self.num_channels = num_channels
