@@ -180,7 +180,7 @@ def plot(y, x=None, ptyp="plot", xlbl=None, ylbl=None, title=None, lgnd=None, lg
     """Plot points or lines in 2D.
 
     Plot points or lines in 2D. If a figure object is specified then the
-    plot is drawn in that figure, and ``fig.show()`` is not called. The
+    plot is drawn in that figure, and `fig.show()` is not called. The
     figure is closed on key entry 'q'.
 
     Args:
@@ -200,9 +200,9 @@ def plot(y, x=None, ptyp="plot", xlbl=None, ylbl=None, title=None, lgnd=None, lg
             properties.
 
             Keyword arguments specifying :class:`matplotlib.lines.Line2D`
-            properties, e.g. ``lw=2.0`` sets a line width of 2, or
+            properties, e.g. `lw=2.0` sets a line width of 2, or
             properties of the figure and axes. If not specified, the
-            defaults for line width (``lw``) and marker size (``ms``) are
+            defaults for line width (`lw`) and marker size (`ms`) are
             1.5 and 6.0 respectively. The valid figure and axes keyword
             arguments are listed below:
 
@@ -307,7 +307,7 @@ def surf(
     """Plot a 2D surface in 3D.
 
     Plot a 2D surface in 3D. If a figure object is specified then the
-    surface is drawn in that figure, and ``fig.show()`` is not called.
+    surface is drawn in that figure, and `fig.show()` is not called.
     The figure is closed on key entry 'q'.
 
     Args:
@@ -330,7 +330,7 @@ def surf(
             z-axis. An int specifies the number of contours to plot, and
             a sequence specifies the specific contour levels to plot.
         cmap (:class:`matplotlib.colors.Colormap` object, optional (default None)):
-            Colour map for surface. If none specifed, defaults to ``cm.YlOrRd``.
+            Colour map for surface. If none specifed, defaults to `cm.YlOrRd`.
         fgsz (tuple (width,height), optional (default None)): Specify
             figure dimensions in inches.
         fgnm (integer, optional (default None)): Figure number of figure.
@@ -426,7 +426,7 @@ def contour(
     """Contour plot of a 2D surface.
 
     Contour plot of a 2D surface. If a figure object is specified then
-    the plot is drawn in that figure, and ``fig.show()`` is not called.
+    the plot is drawn in that figure, and `fig.show()` is not called.
     The figure is closed on key entry 'q'.
 
     Args:
@@ -454,7 +454,7 @@ def contour(
         alpha (float, optional (default 1.0)): Underlying image display
             alpha value.
         cmap (:class:`matplotlib.colors.Colormap`, optional (default None)):
-            Colour map for surface. If none specifed, defaults to ``cm.YlOrRd``.
+            Colour map for surface. If none specifed, defaults to `cm.YlOrRd`.
         vmin, vmax (float, optional (default None)): Set upper and lower
             bounds for the colour map (see the corresponding parameters
             of :meth:`matplotlib.axes.Axes.imshow`).
@@ -569,7 +569,7 @@ def imview(
 
     Display an image. Pixel values are displayed when the pointer is over
     valid image data. If a figure object is specified then the image is
-    drawn in that figure, and ``fig.show()`` is not called. The figure is
+    drawn in that figure, and `fig.show()` is not called. The figure is
     closed on key entry 'q'.
 
     Args:
@@ -585,7 +585,7 @@ def imview(
         fltscl (boolean, optional (default False)): If True, rescale and
             shift floating point arrays to [0,1].
         intrp (string, optional (default 'nearest')): Specify type of
-            interpolation used to display image (see ``interpolation``
+            interpolation used to display image (see `interpolation`
             parameter of :meth:`matplotlib.axes.Axes.imshow`).
         norm (:class:`matplotlib.colors.Normalize` object, optional (default None)):
             Specify the :class:`matplotlib.colors.Normalize` instance
@@ -594,7 +594,7 @@ def imview(
             to display colorbar.
         cmap (:class:`matplotlib.colors.Colormap`, optional (default None)):
             Colour map for image. If none specifed, defaults to
-            ``cm.Greys_r`` for monochrome image.
+            `cm.Greys_r` for monochrome image.
         fgsz (tuple (width,height), optional (default None)): Specify
             figure dimensions in inches.
         fgnm (integer, optional (default None)): Figure number of figure.
@@ -773,7 +773,7 @@ def set_ipython_plot_backend(backend="qt"):
     """Set matplotlib backend within an ipython shell.
 
     Set matplotlib backend within an ipython shell. This function has the
-    same effect as the line magic ``%matplotlib [backend]`` but is called
+    same effect as the line magic `%matplotlib [backend]` but is called
     as a function and includes a check to determine whether the code is
     running in an ipython shell, so that it can safely be used within a
     normal python script since it has no effect when not running in an
@@ -781,7 +781,7 @@ def set_ipython_plot_backend(backend="qt"):
 
     Args:
         backend (string, optional (default 'qt')): Name of backend to be
-            passed to the ``%matplotlib`` line magic command.
+            passed to the `%matplotlib` line magic command.
     """
 
     if _in_ipython():
@@ -793,7 +793,7 @@ def set_notebook_plot_backend(backend="inline"):
     """Set matplotlib backend within a Jupyter Notebook shell.
 
     Set matplotlib backend within a Jupyter Notebook shell. This function
-    has the same effect as the line magic ``%matplotlib [backend]`` but
+    has the same effect as the line magic `%matplotlib [backend]` but
     is called as a function and includes a check to determine whether the
     code is running in a notebook shell, so that it can safely be used
     within a normal python script since it has no effect when not running
@@ -801,7 +801,7 @@ def set_notebook_plot_backend(backend="inline"):
 
     Args:
         backend (string, optional (default 'inline')): Name of backend to
-            be passed to the ``%matplotlib`` line magic command.
+            be passed to the `%matplotlib` line magic command.
     """
 
     if _in_notebook():

@@ -127,10 +127,10 @@ def valid_adjoint(
            is returned instead of a boolean value.
         x : If not the default None, use the specified array instead of a
            random array as test vector :math:`\mb{x}`. If specified, the
-           array must have shape ``A.input_shape``.
+           array must have shape `A.input_shape`.
         y : If not the default None, use the specified array instead of a
            random array as test vector :math:`\mb{y}`. If specified, the
-           array must have shape ``AT.input_shape``.
+           array must have shape `AT.input_shape`.
         key: Jax PRNG key. Defaults to None, in which case a new key is
            created.
 
@@ -266,7 +266,7 @@ class Slice(LinearOperator):
     ):
         r"""
         This operator may be applied to either a :any:`JaxArray` or a
-        :class:`.BlockArray`. In the latter case, parameter ``idx`` must
+        :class:`.BlockArray`. In the latter case, parameter `idx` must
         conform to the
         :ref:`BlockArray indexing requirements <blockarray_indexing>`.
 
@@ -343,8 +343,8 @@ def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = Non
             input_shape: Shape of input array.
             args: Positional arguments passed to :func:`{f_name}`.
             input_dtype: `dtype` for input argument.
-                Defaults to `float32`. If ``LinearOperator`` implements
-                complex-valued operations, this must be `complex64` for
+                Defaults to ``float32``. If `LinearOperator` implements
+                complex-valued operations, this must be ``complex64`` for
                 proper adjoint and gradient calculation.
             jit: If ``True``, call :meth:`.jit()` on this LinearOperator
                 to jit the forward, adjoint, and gram functions. Same as
