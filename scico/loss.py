@@ -58,7 +58,7 @@ class Loss(functional.Functional):
         Args:
             y: Measurement.
             A: Forward operator. Defaults to ``None``, in which case
-               ``self.A`` is a :class:`.Identity` with input shape
+               `self.A` is a :class:`.Identity` with input shape
                and dtype determined by the shape and dtype of `y`.
             f: Functional :math:`f`. If defined, the loss function is
                :math:`\alpha f(\mb{y} - A(\mb{x}))`. If ``None``, then
