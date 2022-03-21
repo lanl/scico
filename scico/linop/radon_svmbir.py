@@ -76,6 +76,12 @@ class TomographicProjector(LinearOperator):
         magnification: Optional[float] = None,
     ):
         """
+        The output of this linear operator is an array of shape
+        `(num_angles, num_channels)` when input_shape is 2D, or of shape
+        `(num_angles, num_slices, num_channels)` when input_shape is 3D,
+        where `num_angles` is the length of the `angles` argument, and
+        `num_slices` is inferred from the `input_shape` argument.
+
         Args:
             input_shape: Shape of the input array. May be of length 2 (a
                 2D array) or 3 (a 3D array). When specifying a 2D array,
@@ -88,8 +94,8 @@ class TomographicProjector(LinearOperator):
                 perpendicular to the axis of rotation of the tomographic
                 system. At angle zero, each row is oriented along the
                 X-rays (parallel-beam) or the X-ray beam directed toward
-                the detector center (fan-beam).
-                Note that `input_shape=(num_rows, num_cols)` and
+                the detector center (fan-beam).  Note that
+                `input_shape=(num_rows, num_cols)` and
                 `input_shape=(1, num_rows, num_cols)` result in the
                 same underlying projector.
             angles: Array of projection angles in radians, should be
@@ -98,9 +104,7 @@ class TomographicProjector(LinearOperator):
                 data.
             center_offset: Position of the detector center relative to
                 the projection of the center of rotation onto the
-                detector, in units of pixels. The projection of the
-                center of rotation is typically close to the detector
-                center but different from it.
+                detector, in units of pixels.
             is_masked: If ``True``, the valid region of the image is
                 determined by a mask defined as the circle inscribed
                 within the image boundary. Otherwise, the whole image
@@ -113,12 +117,6 @@ class TomographicProjector(LinearOperator):
                 is "fan".
             magnification: Magnification factor of the scanner geometry.
                 Only used when geometry is "fan".
-
-        The TomographicProjector projects onto an array of shape
-        `(num_angles, num_channels)` when input_shape is 2D and of shape
-        `(num_angles, num_slices, num_channels)` when input_shape is 3D.
-        Here `num_angles` refers to the length of the input `angles`.
-        `num_slices` is inferred from the `input_shape` argument.
         """
         self.angles = angles
         self.num_channels = num_channels
