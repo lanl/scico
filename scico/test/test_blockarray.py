@@ -135,7 +135,7 @@ def test_devicearray_right(test_operator_obj, operator):
 
     x = operator(block_da, a).ravel()
     y = ba.BlockArray.array([operator(block_da[i], a[i]) for i in range(a.num_blocks)]).ravel()
-    np.testing.assert_allclose(x, y)
+    np.testing.assert_allclose(x, y, atol=1e-7, rtol=0)
 
 
 # Operations between two blockarrays of same size
