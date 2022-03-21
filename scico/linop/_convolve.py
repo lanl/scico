@@ -27,8 +27,6 @@ from scico import array
 from scico._generic_operators import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
 from scico.typing import DType, JaxArray, Shape
 
-__author__ = """Luke Pfister <luke.pfister@gmail.com>"""
-
 
 class Convolve(LinearOperator):
     """A convolution linear operator."""
