@@ -32,7 +32,7 @@ from scico.typing import JaxArray, Shape
 from ._linop import LinearOperator
 
 
-class ParallelBeamProjector(LinearOperator):
+class TomographicProjector(LinearOperator):
     r"""Parallel beam Radon transform based on the ASTRA toolbox.
 
     Perform tomographic projection of an image at specified angles,
