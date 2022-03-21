@@ -51,7 +51,7 @@ class TomographicProjector(LinearOperator):
 
        * - .. figure:: /figures/geom-parallel.png
               :align: center
-              :scale: 50 %
+              :width: 75%
 
               Fig 1. Parallel beam geometry.
 
@@ -59,7 +59,7 @@ class TomographicProjector(LinearOperator):
 
          - .. figure:: /figures/geom-fan.png
               :align: center
-              :scale: 50 %
+              :width: 75%
 
               Fig 2. Fan beam geometry.
     """
