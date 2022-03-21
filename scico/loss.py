@@ -58,7 +58,8 @@ class Loss(functional.Functional):
         Args:
             y: Measurement.
             A: Forward operator. Defaults to ``None``, in which case
-               `self.A` is a :class:`.Identity`.
+               `self.A` is a :class:`.Identity` with input shape
+               and dtype determined by the shape and dtype of `y`.
             f: Functional :math:`f`. If defined, the loss function is
                :math:`\alpha f(\mb{y} - A(\mb{x}))`. If ``None``, then
                :meth:`__call__` and :meth:`prox` (where appropriate) must
@@ -69,7 +70,7 @@ class Loss(functional.Functional):
         self.y = ensure_on_device(y)
         if A is None:
             # y and x must have same shape
-            A = linop.Identity(self.y.shape)
+            A = linop.Identity(input_shape=self.y.shape, input_dtype=self.y.dtype)
         self.A = A
         self.f = f
         self.scale = scale
@@ -254,6 +255,7 @@ class SquaredL2Loss(Loss):
                 output_shape=A.input_shape,
                 eval_fn=lambda x: 2 * self.scale * A.adj(W(A(x))),
                 adj_fn=lambda x: 2 * self.scale * A.adj(W(A(x))),
+                input_dtype=A.input_dtype,
             )
 
         raise NotImplementedError(
