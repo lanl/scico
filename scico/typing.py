@@ -20,9 +20,6 @@ import numpy as np
 import jax
 import jax.numpy as jnp
 
-__author__ = """Luke Pfister <luke.pfister@gmail.com>"""
-
-
 JaxArray = Union[jax.interpreters.xla.DeviceArray, jax.interpreters.pxla.ShardedDeviceArray]
 """A jax array."""
 

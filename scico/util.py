@@ -22,13 +22,6 @@ import jax
 from jax.interpreters.batching import BatchTracer
 from jax.interpreters.partial_eval import DynamicJaxprTracer
 
-__author__ = """\n""".join(
-    [
-        "Brendt Wohlberg <brendt@ieee.org>",
-        "Luke Pfister <luke.pfister@gmail.com>",
-    ]
-)
-
 
 def device_info(devid: int = 0) -> str:  # pragma: no cover
     """Get a string describing the specified device.
@@ -334,7 +327,7 @@ class ContextTimer:
 
     >>> t = Timer()
     >>> t.start()
-    >>> do_something()
+    >>> x = sum(range(1000))
     >>> t.stop()
     >>> elapsed = t.elapsed()
 
@@ -342,7 +335,7 @@ class ContextTimer:
 
     >>> t = Timer()
     >>> with ContextTimer(t):
-    ...   do_something()
+    ...   x = sum(range(1000))
     >>> elapsed = t.elapsed()
     """
 

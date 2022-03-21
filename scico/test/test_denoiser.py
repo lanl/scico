@@ -4,10 +4,11 @@ import jax
 
 import pytest
 
-from scico.denoiser import DnCNN, bm3d
+from scico.denoiser import DnCNN, bm3d, have_bm3d
 from scico.random import randn
 
 
+@pytest.mark.skipif(not have_bm3d, reason="bm3d package not installed")
 class TestBM3D:
     def setup(self):
         key = None
@@ -36,16 +37,16 @@ class TestBM3D:
         x, key = randn((32,), key=None, dtype=np.float32)
         with pytest.raises(ValueError):
             bm3d(x, 1.0)
-
-        x, key = randn((12, 12, 4, 3), key=None, dtype=np.float32)
+        x, key = randn((12, 12, 4, 3), key=key, dtype=np.float32)
         with pytest.raises(ValueError):
             bm3d(x, 1.0)
-
-        x_b, key = randn(((2, 3), (3, 4, 5)), key=None, dtype=np.float32)
+        x, key = randn(((2, 3), (3, 4, 5)), key=key, dtype=np.float32)
         with pytest.raises(ValueError):
             bm3d(x, 1.0)
-
-        z, key = randn((32, 32), key=None, dtype=np.complex64)
+        x, key = randn((5, 9), key=key, dtype=np.float32)
+        with pytest.raises(ValueError):
+            bm3d(x, 1.0)
+        z, key = randn((32, 32), key=key, dtype=np.complex64)
         with pytest.raises(TypeError):
             bm3d(z, 1.0)
 
@@ -71,19 +72,24 @@ class TestDnCNN:
         assert no_jit.dtype == np.float32
         assert jitted.dtype == np.float32
 
+    def test_init(self):
+        dncnn = DnCNN(variant="6L")
+        x = dncnn(self.x_sngchn)
+        dncnn = DnCNN(variant="17H")
+        x = dncnn(self.x_mltchn)
+        with pytest.raises(ValueError):
+            dncnn = DnCNN(variant="3A")
+
     def test_bad_inputs(self):
         x, key = randn((32,), key=None, dtype=np.float32)
         with pytest.raises(ValueError):
             self.dncnn(x)
-
         x, key = randn((12, 12, 4, 3), key=None, dtype=np.float32)
         with pytest.raises(ValueError):
             self.dncnn(x)
-
-        x_b, key = randn(((2, 3), (3, 4, 5)), key=None, dtype=np.float32)
+        x, key = randn(((2, 3), (3, 4, 5)), key=None, dtype=np.float32)
         with pytest.raises(ValueError):
             self.dncnn(x)
-
         z, key = randn((32, 32), key=None, dtype=np.complex64)
         with pytest.raises(TypeError):
             self.dncnn(z)

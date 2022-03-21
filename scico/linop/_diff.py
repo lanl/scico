@@ -35,7 +35,7 @@ class FiniteDifference(LinearOperatorStack):
     -------
     >>> A = FiniteDifference((2, 3))
     >>> x = snp.array([[1, 2, 4],
-                       [0, 4, 1]])
+    ...                [0, 4, 1]])
     >>> (A @ x)[0]
     DeviceArray([[-1,  2, -3]], dtype=int32)
     >>> (A @ x)[1]

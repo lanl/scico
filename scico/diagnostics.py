@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -11,8 +11,6 @@ import re
 import warnings
 from collections import OrderedDict, namedtuple
 from typing import List, Optional, Tuple, Union
-
-__author__ = """Brendt Wohlberg <brendt@ieee.org>"""
 
 
 class IterationStats:
@@ -178,7 +176,12 @@ class IterationStats:
         in an appropriate state when overwriting is active with a display
         period other than unity.
         """
-        if self.overwrite and self.period > 1 and (len(self.iterations) - 1) % self.period:
+        if (
+            self.display
+            and self.overwrite
+            and self.period > 1
+            and (len(self.iterations) - 1) % self.period
+        ):
             print()
 
     def history(self, transpose: bool = False):

@@ -151,8 +151,8 @@ class ParallelBeamProjector(LinearOperator):
             svmbir.backproject(
                 np.array(y),
                 np.array(angles),
-                num_rows,
-                num_cols,
+                num_rows=num_rows,
+                num_cols=num_cols,
                 verbose=0,
                 center_offset=center_offset,
                 roi_radius=roi_radius,

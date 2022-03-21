@@ -11,7 +11,18 @@ import sys
 
 # isort: off
 from scico._generic_operators import LinearOperator
-from ._linop import Diagonal, Identity, power_iteration, operator_norm, Sum, Slice, valid_adjoint
+from ._linop import (
+    Diagonal,
+    Identity,
+    Pad,
+    Slice,
+    Sum,
+    Transpose,
+    linop_from_function,
+    operator_norm,
+    power_iteration,
+    valid_adjoint,
+)
 from ._matrix import MatrixOperator
 from ._diff import FiniteDifference
 from ._convolve import Convolve, ConvolveByX
@@ -21,19 +32,22 @@ from ._stack import LinearOperatorStack
 
 
 __all__ = [
-    "LinearOperator",
-    "Identity",
-    "Diagonal",
-    "MatrixOperator",
-    "FiniteDifference",
-    "Convolve",
     "CircularConvolve",
+    "Convolve",
     "DFT",
+    "Diagonal",
+    "FiniteDifference",
+    "Identity",
     "LinearOperatorStack",
-    "Sum",
+    "MatrixOperator",
+    "Pad",
     "Slice",
-    "power_iteration",
+    "Sum",
+    "Transpose",
+    "LinearOperator",
+    "linop_from_function",
     "operator_norm",
+    "power_iteration",
     "valid_adjoint",
 ]
 

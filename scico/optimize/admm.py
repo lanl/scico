@@ -129,7 +129,7 @@ class LinearSubproblemSolver(SubproblemSolver):
     ..  math::
 
         \mb{x}^{(k+1)} = \argmin_{\mb{x}} \; \frac{1}{2}
-        \norm{\mb{y} - A x}_W^2 + \sum_i \frac{\rho_i}{2}
+        \norm{\mb{y} - A \mb{x}}_W^2 + \sum_i \frac{\rho_i}{2}
         \norm{\mb{z}^{(k)}_i - \mb{u}^{(k)}_i - C_i \mb{x}}_2^2 \;,
 
     where :math:`W` a weighting :class:`.Diagonal` operator
@@ -164,7 +164,7 @@ class LinearSubproblemSolver(SubproblemSolver):
                 including how to specify a preconditioner.
                 Default values are the same as those of
                 :func:`scico.solver.cg`, except for
-                ``"tol": 1e-4`` and ``"maxiter": 100``.
+                `"tol": 1e-4` and `"maxiter": 100`.
             cg_function: String indicating which CG implementation to
                 use. One of "jax" or "scico"; default "scico". If
                 "scico", uses :func:`scico.solver.cg`. If "jax", uses
