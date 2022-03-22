@@ -135,7 +135,7 @@ has_prox = {self.has_prox}
 
 
 class FunctionalSum(Functional):
-    r"""The sum of two functionals."""
+    r"""A sum of two functionals."""
 
     def __repr__(self):
         return (
