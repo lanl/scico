@@ -102,6 +102,7 @@ class TestNormProx:
         functional.SquaredL2Norm,
         functional.L2Norm,
         functional.L21Norm,
+        functional.HuberNorm,
         functional.NuclearNorm,
         functional.ZeroFunctional,
     ]
