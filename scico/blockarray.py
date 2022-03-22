@@ -470,10 +470,6 @@ from scico.typing import Axes, AxisIndex, BlockShape, DType, JaxArray, Shape
 
 _arraylikes = (Buffer, DeviceArray, np.ndarray)
 
-__author__ = """\n""".join(
-    ["Luke Pfister <luke.pfister@gmail.com>", "Brendt Wohlberg <brendt@ieee.org>"]
-)
-
 
 def atleast_1d(*arys):
     """Convert inputs to arrays with at least one dimension.
@@ -1219,7 +1215,7 @@ class BlockArray:
         Returns:
             :class:`jax.ops.index` pointing to desired block.
         """
-        return jax.ops.index[self.bndpos[idx] : self.bndpos[idx + 1]]
+        return slice(self.bndpos[idx], self.bndpos[idx + 1])
 
     def ravel(self) -> JaxArray:
         """Return a copy of ``self._data`` as a contiguous, flattened `DeviceArray`.

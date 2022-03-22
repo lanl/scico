@@ -164,7 +164,7 @@ copyright = "2020-2022, SCICO Developers"
 # built documents.
 #
 # The short X.Y version.
-with open(os.path.join("../../scico", "__init__.py")) as f:
+with open(os.path.join(confpath, "..", "..", "scico", "__init__.py")) as f:
     version = parse(next(filter(lambda line: line.startswith("__version__"), f))).body[0].value.s
 # The full version, including alpha/beta/rc tags.
 release = version
@@ -255,8 +255,8 @@ latex_elements = {"preamble": "\n".join(latex_macros)}
 # Intersphinx mapping
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
-    "numpy": ("https://docs.scipy.org/doc/numpy/", None),
-    "scipy": ("https://docs.scipy.org/doc/scipy/reference/", None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/", None),
     "matplotlib": ("https://matplotlib.org/stable/", None),
     "jax": ("https://jax.readthedocs.io/en/latest/", None),
     "flax": ("https://flax.readthedocs.io/en/latest/", None),
@@ -391,7 +391,7 @@ autoclass_content = "both"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ["_build", "**tests**", "**spi**"]
+exclude_patterns = ["_build", "**tests**", "**spi**", "**README.rst", "**exampledepend.rst"]
 
 
 # Rewrite module names for certain functions imported into scico.numpy so that they are
