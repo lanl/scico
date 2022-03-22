@@ -247,7 +247,7 @@ class PDHG:
         r"""Initialize and run the PDHG algorithm.
 
         Initialize and run the PDHG algorithm for a total of
-        ``self.maxiter`` iterations.
+        `self.maxiter` iterations.
 
         Args:
             callback: An optional callback function, taking an a single
