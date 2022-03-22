@@ -60,7 +60,7 @@ import numpy as np
 import jax
 
 from scico.array import is_nested
-from scico.blockarray import BlockArray, block_sizes
+from scico.blockarray import BlockArray
 from scico.typing import BlockShape, DType, JaxArray, PRNGKey, Shape
 
 

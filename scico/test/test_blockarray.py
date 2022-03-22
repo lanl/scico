@@ -27,25 +27,25 @@ class OperatorsTestObj:
 
         self.a0, key = randn(shape=(2, 3), dtype=dtype, key=key)
         self.a1, key = randn(shape=(2, 3, 4), dtype=dtype, key=key)
-        self.a = ba.BlockArray.array((self.a0, self.a1), dtype=dtype)
+        self.a = ba.BlockArray.array((self.a0, self.a1))
 
         self.b0, key = randn(shape=(2, 3), dtype=dtype, key=key)
         self.b1, key = randn(shape=(2, 3, 4), dtype=dtype, key=key)
-        self.b = ba.BlockArray.array((self.b0, self.b1), dtype=dtype)
+        self.b = ba.BlockArray.array((self.b0, self.b1))
 
         self.d0, key = randn(shape=(3, 2), dtype=dtype, key=key)
         self.d1, key = randn(shape=(2, 4, 3), dtype=dtype, key=key)
-        self.d = ba.BlockArray.array((self.d0, self.d1), dtype=dtype)
+        self.d = ba.BlockArray.array((self.d0, self.d1))
 
         c0, key = randn(shape=(2, 3), dtype=dtype, key=key)
-        self.c = ba.BlockArray.array((c0,), dtype=dtype)
+        self.c = ba.BlockArray.array((c0,))
 
         # A flat device array with same size as self.a & self.b
         self.flat_da, key = randn(shape=(self.a.size,), dtype=dtype, key=key)
         self.flat_nd = np.array(self.flat_da)
 
         # A device array with length == self.a.num_blocks
-        self.block_da, key = randn(shape=(self.a.num_blocks,), dtype=dtype, key=key)
+        self.block_da, key = randn(shape=(len(self.a),), dtype=dtype, key=key)
 
         # block_da but as a numpy array
         self.block_nd = np.array(self.block_da)
@@ -78,6 +78,8 @@ def test_operator_right(test_operator_obj, operator):
 
 
 # Operations between a blockarray and a flat DeviceArray
+@pytest.mark.skip  # do we want to allow ((3,4), (4, 5, 6)) + (132,) ?
+# argument against: numpy doesn't allow (3, 4) + (12,)
 @pytest.mark.parametrize("operator", math_ops + comp_ops)
 def test_ba_da_left(test_operator_obj, operator):
     flat_da = test_operator_obj.flat_da
@@ -87,6 +89,7 @@ def test_ba_da_left(test_operator_obj, operator):
     np.testing.assert_allclose(x, y, rtol=5e-5)
 
 
+@pytest.mark.skip  # see previous
 @pytest.mark.parametrize("operator", math_ops + comp_ops)
 def test_ba_da_right(test_operator_obj, operator):
     flat_da = test_operator_obj.flat_da
@@ -97,44 +100,49 @@ def test_ba_da_right(test_operator_obj, operator):
 
 
 # Blockwise comparison between a BlockArray and Ndarray
+@pytest.mark.skip  # do we want to allow ((3,4), (4, 5, 6)) + (2,) ?
+# argument against numpy doesn't allow (3, 4) + (3,), though leading dims match
 @pytest.mark.parametrize("operator", math_ops + comp_ops)
 def test_ndarray_left(test_operator_obj, operator):
     a = test_operator_obj.a
     block_nd = test_operator_obj.block_nd
 
     x = operator(a, block_nd).ravel()
-    y = ba.BlockArray.array([operator(a[i], block_nd[i]) for i in range(a.num_blocks)]).ravel()
+    y = ba.BlockArray.array([operator(a[i], block_nd[i]) for i in range(len(a))]).ravel()
     np.testing.assert_allclose(x, y)
 
 
+@pytest.mark.skip  # see previous
 @pytest.mark.parametrize("operator", math_ops + comp_ops)
 def test_ndarray_right(test_operator_obj, operator):
     a = test_operator_obj.a
     block_nd = test_operator_obj.block_nd
 
     x = operator(block_nd, a).ravel()
-    y = ba.BlockArray.array([operator(block_nd[i], a[i]) for i in range(a.num_blocks)]).ravel()
-    np.testing.assert_allclose(x, y, rtol=1e-6)
+    y = ba.BlockArray.array([operator(block_nd[i], a[i]) for i in range(len(a))]).ravel()
+    np.testing.assert_allclose(x, y)
 
 
 # Blockwise comparison between a BlockArray and DeviceArray
+@pytest.mark.skip  # see previous
 @pytest.mark.parametrize("operator", math_ops + comp_ops)
 def test_devicearray_left(test_operator_obj, operator):
     a = test_operator_obj.a
     block_da = test_operator_obj.block_da
 
     x = operator(a, block_da).ravel()
-    y = ba.BlockArray.array([operator(a[i], block_da[i]) for i in range(a.num_blocks)]).ravel()
+    y = ba.BlockArray.array([operator(a[i], block_da[i]) for i in range(len(a))]).ravel()
     np.testing.assert_allclose(x, y)
 
 
+@pytest.mark.skip  # see previous
 @pytest.mark.parametrize("operator", math_ops + comp_ops)
 def test_devicearray_right(test_operator_obj, operator):
     a = test_operator_obj.a
     block_da = test_operator_obj.block_da
 
     x = operator(block_da, a).ravel()
-    y = ba.BlockArray.array([operator(block_da[i], a[i]) for i in range(a.num_blocks)]).ravel()
+    y = ba.BlockArray.array([operator(block_da[i], a[i]) for i in range(len(a))]).ravel()
     np.testing.assert_allclose(x, y, atol=1e-7, rtol=0)
 
 

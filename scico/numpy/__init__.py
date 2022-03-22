@@ -27,7 +27,7 @@ from scico.array import is_nested
 
 # These functions rely on the definition of a BlockArray and must be in
 # scico.blockarray to avoid a circular import
-from scico.blockarray import (
+from scico.blockarray_old import (
     BlockArray,
     _block_array_matmul_wrapper,
     _block_array_reduction_wrapper,

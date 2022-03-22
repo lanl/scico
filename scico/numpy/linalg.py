@@ -23,7 +23,7 @@ from functools import wraps
 import jax
 import jax.numpy.linalg as jla
 
-from scico.blockarray import _block_array_reduction_wrapper
+from scico.blockarray_old import _block_array_reduction_wrapper
 from scico.linop._matrix import MatrixOperator
 
 from ._util import _attach_wrapped_func, _not_implemented
