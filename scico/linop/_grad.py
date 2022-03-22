@@ -35,7 +35,7 @@ class ProjectedGradient(LinearOperator):
     axes, and :math:`(g_x', g_y')` is the gradient vector within the
     local coordinate system.
 
-    .. image:: /figures/projgrad.svg
+    .. image:: /figurestmp/projgrad.svg
          :align: center
          :alt: Figure illustrating projection of gradient onto local
                coordinate system.
@@ -148,7 +148,7 @@ class PolarGradient(ProjectedGradient):
     directions. Local coordinate axes are illustrated in the figure
     below.
 
-    .. plot:: figures/polargrad.py
+    .. plot:: figurestmp/polargrad.py
        :align: center
        :include-source: False
 
@@ -231,7 +231,7 @@ class CylindricalGradient(ProjectedGradient):
     Compute gradients projected onto cylindrical coordinate axes. The
     local coordinate axes are illustrated in the figure below.
 
-    .. plot:: figures/cylindgrad.py
+    .. plot:: figurestmp/cylindgrad.py
        :align: center
        :include-source: False
 
@@ -329,7 +329,7 @@ class SphericalGradient(ProjectedGradient):
     Compute gradients projected onto spherical coordinate axes. The local
     coordinate axes are illustrated in the figure below.
 
-    .. plot:: figures/spheregrad.py
+    .. plot:: figurestmp/spheregrad.py
        :align: center
        :include-source: False
 
@@ -393,7 +393,7 @@ class SphericalGradient(ProjectedGradient):
         end = snp.array(axes_shape) - center
         g0, g1, g2 = np.ogrid[-center[0] : end[0], -center[1] : end[1], -center[2] : end[2]]
         theta = snp.arctan2(g1, g0)
-        phi = snp.arctan2(np.sqrt(g0**2 + g1**2), g2)
+        phi = snp.arctan2(np.sqrt(g0 ** 2 + g1 ** 2), g2)
         # Re-order theta and phi axes in case indices in axes parameter are not in
         # increasing order.
         axis_order = np.argsort(axes)
