@@ -79,8 +79,8 @@ def no_nan_divide(
     """Return `x/y`, with 0 instead of NaN where `y` is 0.
 
     Args:
-        x:  Numerator.
-        y:  Denominator.
+        x: Numerator.
+        y: Denominator.
 
     Returns:
         `x / y` with 0 wherever `y == 0`.
@@ -199,7 +199,7 @@ def is_nested(x: Any) -> bool:
         x: Object to be tested.
 
     Returns:
-        True if ``x`` is a list/tuple of list/tuples, False otherwise.
+        True if `x` is a list/tuple of list/tuples, False otherwise.
 
 
     Example:
@@ -233,8 +233,8 @@ def is_complex_dtype(dtype: DType) -> bool:
     """Determine whether a dtype is complex.
 
     Args:
-        dtype: A numpy or scico.numpy dtype (e.g. np.float32,
-               snp.complex64).
+        dtype: A numpy or scico.numpy dtype (e.g. ``np.float32``,
+               ``np.complex64``).
 
     Returns:
         True if the dtype is complex, otherwise False.
@@ -250,8 +250,8 @@ def real_dtype(dtype: DType) -> DType:
     `np.float32`.
 
     Args:
-        dtype: A complex numpy or scico.numpy dtype (e.g. np.complex64,
-               np.complex128).
+        dtype: A complex numpy or scico.numpy dtype (e.g. ``np.complex64``,
+               ``np.complex128``).
 
     Returns:
         The real dtype corresponding to the input dtype
@@ -264,12 +264,12 @@ def complex_dtype(dtype: DType) -> DType:
     """Construct the corresponding complex dtype for a given real dtype.
 
     Construct the corresponding complex dtype for a given real dtype,
-    e.g. the complex dtype corresponding to `np.float32` is
-    `np.complex64`.
+    e.g. the complex dtype corresponding to ``np.float32`` is
+    ``np.complex64``.
 
     Args:
-        dtype: A real numpy or scico.numpy dtype (e.g. np.float32,
-               np.float64).
+        dtype: A real numpy or scico.numpy dtype (e.g. ``np.float32``,
+               ``np.float64``).
 
     Returns:
         The complex dtype corresponding to the input dtype.
