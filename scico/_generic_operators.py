@@ -91,8 +91,8 @@ output_dtype : {self.output_dtype}
                 Defaults to ``None``. If ``None``, then `self.__call__`
                 must be defined in any derived classes.
             input_dtype: `dtype` for input argument.
-                Defaults to `float32`. If Operator implements
-                complex-valued operations, this must be `complex64` for
+                Defaults to ``float32``. If `Operator` implements
+                complex-valued operations, this must be ``complex64`` for
                 proper adjoint and gradient calculation.
             output_dtype: `dtype` for output argument.
                 Defaults to ``None``. If ``None``, `output_shape` is
@@ -198,7 +198,7 @@ output_dtype : {self.output_dtype}
                 f"on array with shape={x.shape}"
             )
         # What is the context under which this gets called?
-        # Currently:  in jit and grad tracers
+        # Currently: in jit and grad tracers
         return self._eval(x)
 
     def __add__(self, other):
@@ -238,7 +238,6 @@ output_dtype : {self.output_dtype}
         )
 
     def __neg__(self):
-        # -self = -1. * self
         return -1.0 * self
 
     @_wrap_mul_div_scalar
@@ -262,11 +261,11 @@ output_dtype : {self.output_dtype}
         )
 
     def jvp(self, primals, tangents):
-        """Computes a Jacobian-vector product.
+        """Compute a Jacobian-vector product.
 
         Args:
-            primals:  Values at which the Jacobian is evaluated.
-            tangents:  Vector in the Jacobian-vector product.
+            primals: Values at which the Jacobian is evaluated.
+            tangents: Vector in the Jacobian-vector product.
         """
 
         return jax.jvp(self, primals, tangents)
@@ -419,16 +418,15 @@ class LinearOperator(Operator):
         output_dtype: Optional[DType] = None,
         jit: bool = False,
     ):
-        r"""LinearOperator init method.
-
+        r"""
         Args:
             input_shape: Shape of input array.
             output_shape: Shape of output array.
-                Defaults to ``None``. If ``None``, ``output_shape`` is
-                determined by evaluating ``self.__call__`` on an input
+                Defaults to ``None``. If ``None``, `output_shape` is
+                determined by evaluating `self.__call__` on an input
                 array of zeros.
             eval_fn: Function used in evaluating this LinearOperator.
-                Defaults to ``None``. If ``None``, then ``self.__call__``
+                Defaults to ``None``. If ``None``, then `self.__call__`
                 must be defined in any derived classes.
             adj_fn: Function used to evaluate the adjoint of this
                 LinearOperator. Defaults to ``None``. If ``None``, the
@@ -436,12 +434,12 @@ class LinearOperator(Operator):
                 will be called silently at the first :meth:`.adj` call or
                 can be called manually.
             input_dtype: `dtype` for input argument.
-                Defaults to `float32`. If ``LinearOperator`` implements
-                complex-valued operations, this must be `complex64` for
+                Defaults to ``float32``. If `LinearOperator` implements
+                complex-valued operations, this must be ``complex64`` for
                 proper adjoint and gradient calculation.
             output_dtype: `dtype` for output argument.
-                Defaults to ``None``. If ``None``, ``output_shape`` is
-                determined by evaluating ``self.__call__`` on an input
+                Defaults to ``None``. If ``None``, `output_shape` is
+                determined by evaluating `self.__call__` on an input
                 array of zeros.
             jit: If ``True``, call :meth:`.jit()` on this LinearOperator
                 to jit the forward, adjoint, and gram functions. Same as
@@ -566,11 +564,11 @@ class LinearOperator(Operator):
         r"""Evaluate this LinearOperator at the point :math:`\mb{x}`.
 
         Args:
-            x: Point at which to evaluate this ``LinearOperator``. If
-               ``x`` is a :class:`DeviceArray` or :class:`.BlockArray`,
-               must have ``shape == self.input_shape``. If ``x`` is a
+            x: Point at which to evaluate this `LinearOperator`. If
+               `x` is a :class:`DeviceArray` or :class:`.BlockArray`,
+               must have `shape == self.input_shape`. If `x` is a
                :class:`.LinearOperator`, must have
-               ``x.output_shape == self.input_shape``.
+               `x.output_shape == self.input_shape`.
         """
         if isinstance(x, LinearOperator):
             return ComposedLinearOperator(self, x)
@@ -583,17 +581,17 @@ class LinearOperator(Operator):
         """Adjoint of this :class:`.LinearOperator`.
 
         Compute the adjoint of this :class:`.LinearOperator` applied to
-        input ``y``.
+        input `y`.
 
         Args:
             y:  Point at which to compute adjoint. If `y` is
                 :class:`DeviceArray` or :class:`.BlockArray`, must have
-                ``shape == self.output_shape``. If `y` is a
+                `shape == self.output_shape`. If `y` is a
                 :class:`.LinearOperator`, must have
-                ``y.output_shape == self.output_shape``.
+                `y.output_shape == self.output_shape`.
 
         Returns:
-            Result of adjoint evaluated at ``y``.
+            Result of adjoint evaluated at `y`.
         """
         if self._adj is None:
             self._set_adjoint()
@@ -615,12 +613,12 @@ class LinearOperator(Operator):
 
         Return a new :class:`LinearOperator` that implements the
         transpose of this :class:`LinearOperator`. For a real-valued
-        LinearOperator ``A`` (``A.input_dtype=np.float32` or
-        ``np.float64``), the LinearOperator ``A.T`` implements the
-        adjoint:  ``A.T(y) == A.adj(y)``. For a complex-valued
-        LinearOperator ``A`` (``A.input_dtype``=`np.complex64` or
-        ``np.complex128``), the LinearOperator ``A.T`` is not the
-        adjoint. For the conjugate transpose, use ``.conj().T`` or
+        LinearOperator `A` (`A.input_dtype` is``np.float32`` or
+        ``np.float64``), the LinearOperator `A.T` implements the
+        adjoint: `A.T(y) == A.adj(y)`. For a complex-valued
+        LinearOperator `A` (`A.input_dtype` is ``np.complex64`` or
+        ``np.complex128``), the LinearOperator `A.T` is not the
+        adjoint. For the conjugate transpose, use `.conj().T` or
         :meth:`.H`.
         """
         if is_complex_dtype(self.input_dtype):
@@ -647,12 +645,12 @@ class LinearOperator(Operator):
 
         Return a new :class:`LinearOperator` that is the Hermitian
         transpose of this :class:`LinearOperator`. For a real-valued
-        LinearOperator ``A`` (``A.input_dtype=np.float32`` or
-        ``np.float64``), the LinearOperator ``A.H`` is equivalent to
-        ``A.T``. For a complex-valued LinearOperator ``A``
-        (``A.input_dtype = np.complex64`` or ``np.complex128``), the
-        LinearOperator ``A.H`` implements the adjoint of
-        ``A : A.H @ y == A.adj(y) == A.conj().T @ y)``.
+        LinearOperator `A` (`A.input_dtype` is ``np.float32`` or
+        ``np.float64``), the LinearOperator `A.H` is equivalent to
+        `A.T`. For a complex-valued LinearOperator `A`
+        (`A.input_dtype` is ``np.complex64`` or ``np.complex128``), the
+        LinearOperator `A.H` implements the adjoint of
+        `A : A.H @ y == A.adj(y) == A.conj().T @ y)`.
 
         For the non-conjugate transpose, see :meth:`.T`.
         """
@@ -668,8 +666,8 @@ class LinearOperator(Operator):
     def conj(self) -> LinearOperator:
         """Complex conjugate of this :class:`LinearOperator`.
 
-        Return a new :class:`.LinearOperator` ``Ac`` such that
-        ``Ac(x) = conj(A)(x)``.
+        Return a new :class:`.LinearOperator` `Ac` such that
+        `Ac(x) = conj(A)(x)`.
         """
         # A.conj() x == (A @ x.conj()).conj()
         return LinearOperator(
@@ -685,8 +683,8 @@ class LinearOperator(Operator):
     def gram_op(self) -> LinearOperator:
         """Gram operator of this :class:`LinearOperator`.
 
-        Return a new :class:`.LinearOperator` ``G`` such that
-        ``G(x) = A.adj(A(x)))``.
+        Return a new :class:`.LinearOperator` `G` such that
+        `G(x) = A.adj(A(x)))`.
         """
         if self._gram is None:
             self._set_adjoint()
@@ -703,17 +701,17 @@ class LinearOperator(Operator):
     def gram(
         self, x: Union[LinearOperator, JaxArray, BlockArray]
     ) -> Union[LinearOperator, JaxArray, BlockArray]:
-        """Compute ``A.adj(A(x)).``
+        """Compute `A.adj(A(x)).`
 
         Args:
-            x: Point at which to evaluate the gram operator. If ``x`` is
+            x: Point at which to evaluate the gram operator. If `x` is
                a :class:`DeviceArray` or :class:`.BlockArray`, must have
-               ``shape == self.input_shape``. If ``x`` is a
+               `shape == self.input_shape`. If `x` is a
                :class:`.LinearOperator`, must have
-               ``x.output_shape == self.input_shape``.
+               `x.output_shape == self.input_shape`.
 
         Returns:
-            Result of ``A.adj(A(x))``.
+            Result of `A.adj(A(x))`.
         """
         if self._gram is None:
             self._set_adjoint()
@@ -726,13 +724,13 @@ class ComposedLinearOperator(LinearOperator):
     def __init__(self, A: LinearOperator, B: LinearOperator, jit: bool = False):
         r"""ComposedLinearOperator init method.
 
-        A ComposedLinearOperator ``AB`` implements ``AB @ x == A @ B @ x``.
-        The LinearOperators ``A`` and ``B`` are stored as attributes of
+        A ComposedLinearOperator `AB` implements `AB @ x == A @ B @ x`.
+        The LinearOperators `A` and `B` are stored as attributes of
         the ComposedLinearOperator.
 
-        The LinearOperators ``A`` and ``B`` must have compatible shapes
-        and dtypes: ``A.input_shape == B.output_shape`` and
-        ``A.input_dtype == B.input_dtype``.
+        The LinearOperators `A` and `B` must have compatible shapes
+        and dtypes: `A.input_shape == B.output_shape` and
+        `A.input_dtype == B.input_dtype`.
 
         Args:
             A: First (left) LinearOperator.

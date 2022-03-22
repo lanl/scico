@@ -40,8 +40,7 @@ class NonNegativeIndicator(Functional):
         if snp.iscomplexobj(x):
             raise ValueError("Not defined for complex input.")
 
-        # Equivalent to
-        # snp.inf if snp.any(x < 0) else 0.0
+        # Equivalent to snp.inf if snp.any(x < 0) else 0.0
         return jax.lax.cond(snp.any(x < 0), lambda x: snp.inf, lambda x: 0.0, None)
 
     def prox(
@@ -102,7 +101,7 @@ class L2BallIndicator(Functional):
     def prox(
         self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
-        r"""Evalulate the scaled proximal operator of the indicator over
+        r"""Evaluate the scaled proximal operator of the indicator over
         a :math:`\ell_2` ball with radius :math:`r` = `self.radius`,
         :math:`I_r`:
 
