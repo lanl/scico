@@ -266,6 +266,8 @@ def test_functional_sum():
     f1 = 2.0 * functional.L2Norm()
     f = f0 + f1
     assert f(x) == f0(x) + f1(x)
+    with pytest.raises(NotImplementedError):
+        f = f0 + 2.0
 
 
 def test_scalar_vmap():
