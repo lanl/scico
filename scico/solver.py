@@ -373,9 +373,12 @@ def bisect(
     simultaneous finding of multiple roots on a function defined over a
     multi-dimensional array. When the function is array-valued, each of
     these values is treated as the independent application of a scalar
-    function. The interface is similar to that of
-    :func:`scipy.optimize.bisect`, which is much faster when `f` is a
-    scalar function and `a` and `b` are scalars.
+    function. The initial interval `[a, b]` must bracket the root for all
+    scalar functions.
+
+    The interface is similar to that of :func:`scipy.optimize.bisect`,
+    which is much faster when `f` is a scalar function and `a` and `b`
+    are scalars.
 
     Args:
         f: Function returning a float or an array of floats.
@@ -383,20 +386,20 @@ def bisect(
         b: Upper bound of interval on which to apply bisection.
         args: Additional arguments for function `f`.
         xtol: Stopping tolerance based on maximum bisection interval
-            length over entire array.
+            length over array.
         ftol: Stopping tolerance based on maximum absolute function value
-            over entire array.
+            over array.
         maxiter: Maximum number of algorithm iterations.
         full_output: If ``False``, return just the root, otherwise return a
-            tuple `(c, info)` where `c` is the root and `info` is a dict
+            tuple `(x, info)` where `x` is the root and `info` is a dict
             containing algorithm status information.
-        range_check: If ``True``, check to ensure that the initial `[a,b]`
-            range brackets the root of `f`.
+        range_check: If ``True``, check to ensure that the initial
+            `[a, b]` range brackets the root of `f`.
 
     Returns:
         tuple: A tuple `(c, info)` containing:
 
-            - **c** : Root array.
+            - **x** : Root array.
             - **info**: Dictionary containing diagnostic information.
     """
 
@@ -419,9 +422,79 @@ def bisect(
             break
 
     idx = snp.argmin(snp.stack((snp.abs(fa), snp.abs(fb))), axis=0)
-    c = snp.choose(idx, (a, b))
+    x = snp.choose(idx, (a, b))
     if full_output:
         info = {"iter": iter, "xerr": xerr, "ferr": ferr, "a": a, "b": b}
-        return c, info
+        return x, info
     else:
-        return c
+        return x
+
+
+def golden(
+    f: Callable,
+    a: JaxArray,
+    b: JaxArray,
+    c: Optional[JaxArray] = None,
+    args: Tuple = (),
+    xtol: float = 1e-7,
+    maxiter: int = 100,
+    full_output: bool = False,
+) -> Union[JaxArray, dict]:
+    """Vectorised scalar minimization via golden section method.
+
+    Vectorised scalar minimization via golden section method, supporting
+    simultaneous minimization of a function defined over a
+    multi-dimensional array. When the function is array-valued, each of
+    these values is treated as the independent application of a scalar
+    function. The minimizer must lie within the interval `(a, b)` for all
+    scalar functions, and, if specified `c` must be within that interval.
+
+
+    The interface is more similar to that of :func:`.bisect` than that of
+    :func:`scipy.optimize.golden` which is much faster when `f` is a
+    scalar function and `a`, `b`, and `c` are scalars.
+
+    Args:
+        f: Function returning a float or an array of floats.
+        a: Lower bound of interval on which to search.
+        b: Upper bound of interval on which to search.
+        c: Initial value for first search point interior to bounding
+            interval `(a, b)`
+        args: Additional arguments for function `f`.
+        xtol: Stopping tolerance based on maximum search interval length
+            over array.
+        maxiter: Maximum number of algorithm iterations.
+        full_output: If ``False``, return just the minizer, otherwise
+            return a tuple `(x, info)` where `x` is the minimizer and
+            `info` is a dict containing algorithm status information.
+
+    Returns:
+        tuple: A tuple `(x, info)` containing:
+
+            - **x** : Minimizer array.
+            - **info**: Dictionary containing diagnostic information.
+    """
+    gr = 2 / (snp.sqrt(5) + 1)
+    if c is None:
+        c = b - gr * (b - a)
+    d = a + gr * (b - a)
+    for iter in range(maxiter):
+        fc = f(*((c,) + args))
+        fd = f(*((d,) + args))
+        b = snp.where(fc < fd, d, b)
+        a = snp.where(fc >= fd, c, a)
+        xerr = snp.amax(snp.abs(b - a))
+        if xerr <= xtol:
+            break
+        c = b - gr * (b - a)
+        d = a + gr * (b - a)
+
+    fa = f(*((a,) + args))
+    fb = f(*((b,) + args))
+    idx = snp.argmin(snp.stack((fa, fb)), axis=0)
+    x = snp.choose(idx, (a, b))
+    if full_output:
+        r = {"iter": iter, "xerr": xerr}
+        return x, r
+    else:
+        return x

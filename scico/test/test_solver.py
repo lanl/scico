@@ -219,3 +219,15 @@ def test_bisect():
     x = solver.bisect(f, -snp.abs(c) - 1, snp.abs(c) + 1, args=(c,), xtol=1e-5, ftol=1e-5)
     assert snp.max(snp.abs(x - c)) <= 1e-5
     assert snp.max(snp.abs(f(x, c))) <= 1e-5
+
+
+def test_golden():
+    f = lambda x: x ** 2
+    x, info = solver.golden(f, -snp.ones((5, 1)), snp.ones((5, 1)), full_output=True)
+    assert snp.max(snp.abs(x)) <= 1e-7
+    x = solver.golden(f, -2.0 * snp.ones((5, 3)), snp.ones((5, 3)), xtol=1e-5)
+    assert snp.max(snp.abs(x)) <= 1e-5
+    c, key = random.randn((5, 1), dtype=np.float32)
+    f = lambda x, c: (x - c) ** 2
+    x = solver.golden(f, -snp.abs(c) - 1, snp.abs(c) + 1, args=(c,), xtol=1e-5)
+    assert snp.max(snp.abs(x - c)) <= 1e-5
