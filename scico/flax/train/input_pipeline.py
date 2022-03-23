@@ -38,10 +38,10 @@ class IterateData:
         r"""Initialize a :class:`IterateData` object.
 
         Args:
-            dt : Dictionary of data for supervised training including images and labels.
-            batch_size : Size of batch for iterating through the data.
-            train : Flag indicating use of iterator for training.  Iterator for training is infinite, iterator for testing passes once through the data.  Default: False.
-            key : A PRNGKey used as the random key.  Default: None.
+            dt: Dictionary of data for supervised training including images and labels.
+            batch_size: Size of batch for iterating through the data.
+            train: Flag indicating use of iterator for training.  Iterator for training is infinite, iterator for testing passes once through the data.  Default: ``True``.
+            key: A PRNGKey used as the random key.  Default: ``None``.
         """
         self.dt = dt
         self.batch_size = batch_size
@@ -103,12 +103,12 @@ def create_input_iter(
     """Create data iterator for training by sharding and prefetching batches on device.
 
     Args:
-        key : A PRNGKey used for random data permutations.
-        dataset : Dictionary of data for supervised training including images and labels.
-        batch_size : Size of batch for iterating through the data.
-        size_device_prefetch : Size of prefetch buffer. Default: 2.
-        dtype : Type of data to handle. Default: `jnp.float32`.
-        train : Flag indicating the type of iterator to construct and use.  The iterator for training permutes data on each epoch while the iterator for testing passes through the data without permuting it. Default: True.
+        key: A PRNGKey used for random data permutations.
+        dataset: Dictionary of data for supervised training including images and labels.
+        batch_size: Size of batch for iterating through the data.
+        size_device_prefetch: Size of prefetch buffer. Default: 2.
+        dtype: Type of data to handle. Default: `jnp.float32`.
+        train: Flag indicating the type of iterator to construct and use.  The iterator for training permutes data on each epoch while the iterator for testing passes through the data without permuting it. Default: ``True``.
 
     Returns:
         array-like data sharded to specific devices coming from an iterator built from the provided dataset.

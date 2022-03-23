@@ -120,12 +120,12 @@ class ResNet(Module):
     block).
 
     Args:
-        depth : Depth of residual net.
-        channels : Number of channels of input tensor.
-        num_filters : Number of filters in the layers of the block. Corresponds to the number of channels in the network processing.
-        kernel_size : Size of the convolution filters. Default: 3x3.
-        strides : Convolution strides. Default: 1x1.
-        dtype : Output type. Default: `jnp.float32`.
+        depth: Depth of residual net.
+        channels: Number of channels of input tensor.
+        num_filters: Number of filters in the layers of the block. Corresponds to the number of channels in the network processing.
+        kernel_size: Size of the convolution filters. Default: 3x3.
+        strides: Convolution strides. Default: 1x1.
+        dtype: Output type. Default: `jnp.float32`.
     """
 
     depth: int
@@ -189,12 +189,12 @@ class ConvBNNet(Module):
     """Net constructed from sucessive applications of convolution plus batch normalization blocks.
 
     Args:
-        depth : Depth of net.
-        channels : Number of channels of input tensor.
-        num_filters : Number of filters in the layers of the block. Corresponds to the number of channels in the network processing.
-        kernel_size : Size of the convolution filters. Default: 3x3.
-        strides : Convolution strides. Default: 1x1.
-        dtype : Output type. Default: `jnp.float32`.
+        depth: Depth of net.
+        channels: Number of channels of input tensor.
+        num_filters: Number of filters in the layers of the block. Corresponds to the number of channels in the network processing.
+        kernel_size: Size of the convolution filters. Default: 3x3.
+        strides: Convolution strides. Default: 1x1.
+        dtype: Output type. Default: `jnp.float32`.
     """
 
     depth: int
@@ -255,15 +255,15 @@ class UNet(Module):
     """Flax implementation of UNet model.
 
     Args:
-        depth : Depth of U-net.
-        channels : Number of channels of input tensor.
-        num_filters : Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the network processing.
-        kernel_size : Size of the convolution filters. Default: 3x3.
-        strides : Convolution strides. Default: 1x1.
-        block_depth : Number of processing layers per block. Default: 2.
-        window_shape : Window for reduction for pooling and downsampling. Default: 2x2.
-        upsampling : Factor for expanding. Default: 2.
-        dtype : Output type. Default: `jnp.float32`.
+        depth: Depth of U-net.
+        channels: Number of channels of input tensor.
+        num_filters: Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the network processing.
+        kernel_size: Size of the convolution filters. Default: 3x3.
+        strides: Convolution strides. Default: 1x1.
+        block_depth: Number of processing layers per block. Default: 2.
+        window_shape: Window for reduction for pooling and downsampling. Default: 2x2.
+        upsampling: Factor for expanding. Default: 2.
+        dtype: Output type. Default: `jnp.float32`.
     """
 
     depth: int

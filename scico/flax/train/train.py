@@ -78,8 +78,8 @@ def mse_loss(output: Array, labels: Array) -> float:
     via Optax.
 
     Args:
-        output : Comparison signal.
-        labels : Reference signal.
+        output: Comparison signal.
+        labels: Reference signal.
 
     Returns:
         MSE between `output` and `labels`.
@@ -92,8 +92,8 @@ def compute_metrics(output: Array, labels: Array):
     """Compute diagnostic metrics. Assummes sharded batched data (i.e. it only works inside pmap because it needs an axis name).
 
     Args:
-        output : Comparison signal.
-        labels : Reference signal.
+        output: Comparison signal.
+        labels: Reference signal.
 
     Returns:
         MSE and SNR between `output` and `labels`.
@@ -114,7 +114,7 @@ def create_cnst_lr_schedule(config: ConfigDict) -> optax._src.base.Schedule:
     value.
 
     Args:
-        config : Dictionary of configuration. The value
+        config: Dictionary of configuration. The value
            to use corresponds to the `base_learning_rate`
            keyword.
 
@@ -130,7 +130,7 @@ def create_cosine_lr_schedule(config: ConfigDict) -> optax._src.base.Schedule:
     schedule with warmup and cosine stages.
 
     Args:
-        config : Dictionary of configuration. The parameters
+        config: Dictionary of configuration. The parameters
            to use correspond to keywords: `base_learning_rate`,
            `num_epochs`, `warmup_epochs` and `steps_per_epoch`.
 
@@ -162,9 +162,9 @@ def initialize(key: KeyArray, model: ModuleDef, ishape: Shape):
     """Initialize Flax model.
 
     Args:
-        key : A PRNGKey used as the random key.
-        model : Flax model to train.
-        ishape : Shape of signal (image) to process by `model`.
+        key: A PRNGKey used as the random key.
+        model: Flax model to train.
+        ishape: Shape of signal (image) to process by `model`.
 
     Returns:
         Initial model parameters (including `batch_stats`).
@@ -198,18 +198,18 @@ def create_train_state(
     """Create initial training state.
 
     Args:
-        key : A PRNGKey used as the random key.
-        config : Dictionary of configuration. The values
+        key: A PRNGKey used as the random key.
+        config: Dictionary of configuration. The values
            to use correspond to keywords: `opt_type`
            and `momentum`.
-        model : Flax model to train.
-        ishape : Shape of signal (image) to process by `model`.
-        variables0: Optional initial state of model parameters. If not provided a random initialization is performed. Default: None.
+        model: Flax model to train.
+        ishape: Shape of signal (image) to process by `model`.
+        variables0: Optional initial state of model parameters. If not provided a random initialization is performed. Default: ``None``.
         learning_rate_fn: A function that maps step
            counts to values.
 
     Returns:
-        state : Flax train state which includes the
+        state: Flax train state which includes the
            model apply function, the model parameters
            and an Optax optimizer.
     """
@@ -252,8 +252,8 @@ def restore_checkpoint(
     """Load model and optimiser state.
 
     Args:
-        state : Flax train state which includes model and optimiser parameters.
-        workdir : checkpoint file or directory of checkpoints to restore from.
+        state: Flax train state which includes model and optimiser parameters.
+        workdir: checkpoint file or directory of checkpoints to restore from.
 
     Returns:
         Restored `state` updated from checkpoint file,
@@ -267,8 +267,8 @@ def save_checkpoint(state: TrainState, workdir: Union[str, os.PathLike]):  # pra
     """Store model and optimiser state.
 
     Args:
-        state : Flax train state which includes model and optimiser parameters.
-        workdir : str or pathlib-like path to store checkpoint files in.
+        state: Flax train state which includes model and optimiser parameters.
+        workdir: str or pathlib-like path to store checkpoint files in.
     """
     if jax.process_index() == 0:
         # get train state from first replica
@@ -281,10 +281,10 @@ def train_step(state: TrainState, batch: DataSetDict, learning_rate_fn: optax._s
     """Perform a single training step. Assummes sharded batched data.
 
     Args:
-        state : Flax train state which includes the
+        state: Flax train state which includes the
            model apply function, the model parameters
            and an Optax optimizer.
-        batch : Sharded and batched training data.
+        batch: Sharded and batched training data.
         learning_rate_fn: A function that maps step
            counts to values.
 
@@ -329,7 +329,7 @@ def construct_traversal(prmname: str) -> ModelParamTraversal:
     """Construct utility to select model parameters using a name filter.
 
     Args:
-        prmname : Name of parameter to select.
+        prmname: Name of parameter to select.
 
     Returns:
         Flax utility to traverse and select model parameters.
@@ -341,9 +341,9 @@ def clip_positive(params: PyTree, traversal: ModelParamTraversal, minval: float 
     """Clip parameters to positive range.
 
     Args:
-        params : Current model parameters.
-        traversal : Utility to select model parameters.
-        minval : Minimum value to clip parameters and keep them in a positive range. Default: 1e-4.
+        params: Current model parameters.
+        traversal: Utility to select model parameters.
+        minval: Minimum value to clip parameters and keep them in a positive range. Default: 1e-4.
     """
     params_out = traversal.update(lambda x: jnp.clip(x, a_min=minval), unfreeze(params))
 
@@ -359,10 +359,10 @@ def train_step_post(
     """Perform a single training step. A postprocessing function (i.e. for spectral normalization or positivity condition, etc.) is applied after the gradient update. Assummes sharded batched data.
 
     Args:
-        state : Flax train state which includes the
+        state: Flax train state which includes the
            model apply function, the model parameters
            and an Optax optimizer.
-        batch : Sharded and batched training data.
+        batch: Sharded and batched training data.
         learning_rate_fn: A function that maps step
            counts to values.
         post_fn: A postprocessing function for clipping parameter range or normalizing parameter.
@@ -385,9 +385,9 @@ def eval_step(state: TrainState, batch: DataSetDict):
     batched data.
 
     Args:
-        state : Flax train state which includes the
+        state: Flax train state which includes the
            model apply function and the model parameters.
-        batch : Sharded and batched training data.
+        batch: Sharded and batched training data.
 
     Returns:
         Current diagnostic statistics.
@@ -430,14 +430,14 @@ def train_and_evaluate(
     Args:
         config: Hyperparameter configuration.
         workdir: Directory to write checkpoints and tensorboard summaries (the latter only if `clu` is available).
-        model : Flax model to train.
-        train_ds : Dictionary of training data (includes images and labels).
-        test_ds : Dictionary of testing data (includes images and labels).
+        model: Flax model to train.
+        train_ds: Dictionary of training data (includes images and labels).
+        test_ds: Dictionary of testing data (includes images and labels).
         create_lr_schedule: A function that creates an Optax learning rate schedule. Default: :meth:`create_cnst_schedule`.
         training_step_fn: A function that executes a training step. Default: :meth:`training_step`.
-        variables0: Optional initial state of model parameters. Default: None.
-        checkpointing: A flag for checkpointing model state. Default: False.
-        log: A flag for logging. If `clu` is available a tensorboard summary is also generated during logging. Default: False.
+        variables0: Optional initial state of model parameters. Default: ``None``.
+        checkpointing: A flag for checkpointing model state. Default: ``False``.
+        log: A flag for logging. If `clu` is available a tensorboard summary is also generated during logging. Default: ``False``.
 
     Returns:
         Model variables extracted from TrainState.
@@ -613,10 +613,10 @@ def only_evaluate(
     Args:
         config: Hyperparameter configuration.
         workdir: Directory to read checkpoint (if enabled).
-        model : Flax model to apply.
-        test_ds : Dictionary of testing data (includes images and labels).
-        variables : Model parameters to use for evaluation. Default: None (i.e. read from checkpoint).
-        checkpointing: A flag for checkpointing model state. Default: False.
+        model: Flax model to apply.
+        test_ds: Dictionary of testing data (includes images and labels).
+        variables: Model parameters to use for evaluation. Default: ``None`` (i.e. read from checkpoint).
+        checkpointing: A flag for checkpointing model state. Default: ``False``.
 
     Returns:
         Output of model evaluated at the input provided in `test_ds`.

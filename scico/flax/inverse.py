@@ -32,15 +32,15 @@ class MoDLNet(Module):
     architecture for inverse problems described in :cite:`aggarwal-2019-modl`.
 
     Args:
-        operator : Operator for computing forward and adjoint mappings.
-        depth : Depth of MoDL net. Default = 1.
-        channels : Number of channels of input tensor.
-        num_filters : Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
-        block_depth : Number of layers in the computational block.
+        operator: Operator for computing forward and adjoint mappings.
+        depth: Depth of MoDL net. Default = 1.
+        channels: Number of channels of input tensor.
+        num_filters: Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
+        block_depth: Number of layers in the computational block.
         kernel_size: Size of the convolution filters. Default: (3, 3).
         strides: Convolution strides. Default: (1, 1).
-        lmbda_ini : Initial value of the regularization weight `lambda`. Default: 0.5.
-        dtype : Output type. Default: jnp.float32.
+        lmbda_ini: Initial value of the regularization weight `lambda`. Default: 0.5.
+        dtype: Output type. Default: jnp.float32.
     """
     operator: ModuleDef
     depth: int
@@ -145,14 +145,14 @@ class ODPProxDnBlock(Module):
     denoising described in :cite:`diamond-2018-odp`.
 
     Args:
-        operator : Operator for computing forward and adjoint mappings. In this case it corresponds to the identity operator and is used at the network level.
-        depth : Number of layers in block.
-        channels : Number of channels of input tensor.
-        num_filters : Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
+        operator: Operator for computing forward and adjoint mappings. In this case it corresponds to the identity operator and is used at the network level.
+        depth: Number of layers in block.
+        channels: Number of channels of input tensor.
+        num_filters: Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
         kernel_size: Size of the convolution filters. Default: (3, 3).
         strides: Convolution strides. Default: (1, 1).
-        alpha_ini : Initial value of the fidelity weight `alpha`. Default: 0.2.
-        dtype : Output type. Default: jnp.float32.
+        alpha_ini: Initial value of the fidelity weight `alpha`. Default: 0.2.
+        dtype: Output type. Default: jnp.float32.
     """
     operator: ModuleDef
     depth: int
@@ -209,14 +209,14 @@ class ODPProxDblrBlock(Module):
     :cite:`diamond-2018-odp`.
 
     Args:
-        operator : Operator for computing forward and adjoint mappings. In this case it correponds to a circular convolution operator.
-        depth : Number of layers in block.
-        channels : Number of channels of input tensor.
-        num_filters : Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
+        operator: Operator for computing forward and adjoint mappings. In this case it correponds to a circular convolution operator.
+        depth: Number of layers in block.
+        channels: Number of channels of input tensor.
+        num_filters: Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
         kernel_size: Size of the convolution filters. Default: (3, 3).
         strides: Convolution strides. Default: (1, 1).
-        alpha_ini : Initial value of the fidelity weight `alpha`. Default: 0.99.
-        dtype : Output type. Default: jnp.float32.
+        alpha_ini: Initial value of the fidelity weight `alpha`. Default: 0.99.
+        dtype: Output type. Default: jnp.float32.
     """
     operator: ModuleDef
     depth: int
@@ -290,14 +290,14 @@ class ODPGrDescBlock(Module):
     :cite:`diamond-2018-odp`.
 
     Args:
-        operator : Operator for computing forward and adjoint mappings. In this case it corresponds to the identity operator and is used at the network level.
-        depth : Number of layers in block.
-        channels : Number of channels of input tensor.
-        num_filters : Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
+        operator: Operator for computing forward and adjoint mappings. In this case it corresponds to the identity operator and is used at the network level.
+        depth: Number of layers in block.
+        channels: Number of channels of input tensor.
+        num_filters: Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
         kernel_size: Size of the convolution filters. Default: (3, 3).
         strides: Convolution strides. Default: (1, 1).
-        alpha_ini : Initial value of the fidelity weight `alpha`. Default: 0.2.
-        dtype : Output type. Default: jnp.float32.
+        alpha_ini: Initial value of the fidelity weight `alpha`. Default: 0.2.
+        dtype: Output type. Default: jnp.float32.
     """
     operator: ModuleDef
     depth: int
@@ -360,16 +360,16 @@ class ODPNet(Module):
     gradient descent blocks.
 
     Args:
-        operator : Operator for computing forward and adjoint mappings.
-        depth : Depth of MoDL net. Default = 1.
-        channels : Number of channels of input tensor.
-        num_filters : Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
-        block_depth : Number of layers in the computational block.
+        operator: Operator for computing forward and adjoint mappings.
+        depth: Depth of MoDL net. Default = 1.
+        channels: Number of channels of input tensor.
+        num_filters: Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
+        block_depth: Number of layers in the computational block.
         kernel_size: Size of the convolution filters. Default: (3, 3).
         strides: Convolution strides. Default: (1, 1).
-        alpha_ini : Initial value of the fidelity weight `alpha`. Default: 0.5.
-        dtype : Output type. Default: jnp.float32.
-        odp_block : processing block to apply. Default :class:`ODPProxDnBlock`.
+        alpha_ini: Initial value of the fidelity weight `alpha`. Default: 0.5.
+        dtype: Output type. Default: jnp.float32.
+        odp_block: processing block to apply. Default :class:`ODPProxDnBlock`.
     """
     operator: ModuleDef
     depth: int
