@@ -45,9 +45,7 @@ has_prox = {self.has_prox}
     def __mul__(self, other):
         if snp.isscalar(other) or isinstance(other, jax.core.Tracer):
             return ScaledFunctional(self, other)
-        raise NotImplementedError(
-            f"Operation __mul__ not defined between {type(self)} and {type(other)}"
-        )
+        return NotImplemented
 
     def __rmul__(self, other):
         return self.__mul__(other)
@@ -55,9 +53,7 @@ has_prox = {self.has_prox}
     def __add__(self, other):
         if isinstance(other, Functional):
             return FunctionalSum(self, other)
-        raise NotImplementedError(
-            f"Operation __add__ not defined between {type(self)} and {type(other)}"
-        )
+        return NotImplemented
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         r"""Evaluate this functional at point :math:`\mb{x}`.
@@ -185,8 +181,8 @@ class ScaledFunctional(Functional):
         factors, i.e., for functional :math:`f` and scaling factors
         :math:`\alpha` and :math:`\beta`, the proximal operator with scaling
         parameter :math:`\alpha` of scaled functional :math:`\beta f` is
-        the proximal operator with scaling parameter :math:`\alpha \beta` of
-        functional :math:`f`,
+        the proximal operator with scaling parameter :math:`\alpha \beta`
+        of functional :math:`f`,
 
         .. math::
            \mathrm{prox}_{\alpha (\beta f)}(\mb{v}) =
