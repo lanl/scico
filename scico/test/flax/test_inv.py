@@ -21,6 +21,7 @@ from scico.flax.train.train import (
 
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 
+
 def construct_projector(N, n_projection):
     import numpy as np
 
@@ -144,7 +145,7 @@ class SetupTest02:
         self.N = 32  # Signal size
         self.chn = 1  # Number of channels
         self.bsize = 16  # Batch size
-        xt, key = random.randn((2*self.bsize, self.N, self.N, self.chn), seed=4321)
+        xt, key = random.randn((2 * self.bsize, self.N, self.N, self.chn), seed=4321)
 
         self.nproj = 60  # number of projections
         self.opCT = construct_projector(self.N, self.nproj)
@@ -178,17 +179,19 @@ def testobj():
 
 def test_train_modl(testobj):
     model = sflax.MoDLNet(
-            operator=testobj.opCT,
-            depth=testobj.dconf["depth"],
-            channels=testobj.chn,
-            num_filters=testobj.dconf["num_filters"],
-            block_depth=testobj.dconf["block_depth"],
+        operator=testobj.opCT,
+        depth=testobj.dconf["depth"],
+        channels=testobj.chn,
+        num_filters=testobj.dconf["num_filters"],
+        block_depth=testobj.dconf["block_depth"],
     )
     try:
         minval = 1.1e-2
         lmbdatrav = construct_traversal("lmbda")
-        lmbdapos = partial(clip_positive,              traversal=lmbdatrav,
-                    minval=minval,
+        lmbdapos = partial(
+            clip_positive,
+            traversal=lmbdatrav,
+            minval=minval,
         )
         train_step = partial(train_step_post, post_fn=lmbdapos)
         modvar = sflax.train_and_evaluate(
@@ -209,19 +212,21 @@ def test_train_modl(testobj):
 
 def test_train_odpct(testobj):
     model = sflax.ODPNet(
-            operator=testobj.opCT,
-            depth=testobj.dconf["depth"],
-            channels=testobj.chn,
-            num_filters=testobj.dconf["num_filters"],
-            block_depth=testobj.dconf["block_depth"],
-            odp_block=sflax.ODPGrDescBlock,
+        operator=testobj.opCT,
+        depth=testobj.dconf["depth"],
+        channels=testobj.chn,
+        num_filters=testobj.dconf["num_filters"],
+        block_depth=testobj.dconf["block_depth"],
+        odp_block=sflax.ODPGrDescBlock,
     )
 
     try:
         minval = 1.1e-2
         alphatrav = construct_traversal("alpha")
-        alphapos = partial(clip_positive,              traversal=alphatrav,
-                    minval=minval,
+        alphapos = partial(
+            clip_positive,
+            traversal=alphatrav,
+            minval=minval,
         )
         train_step = partial(train_step_post, post_fn=alphapos)
         modvar = sflax.train_and_evaluate(
@@ -238,7 +243,3 @@ def test_train_odpct(testobj):
     else:
         alphaval = np.array([alpha for alpha in alphatrav.iterate(modvar["params"])])
         np.testing.assert_array_less(1e-2 * np.ones(alphaval.shape), alphaval)
-
-
-
-
