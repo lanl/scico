@@ -397,7 +397,7 @@ def bisect(
             `[a, b]` range brackets the root of `f`.
 
     Returns:
-        tuple: A tuple `(c, info)` containing:
+        tuple: A tuple `(x, info)` containing:
 
             - **x** : Root array.
             - **info**: Dictionary containing diagnostic information.
