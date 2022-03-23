@@ -51,7 +51,7 @@ class TestBM3D:
 
     def test_shape(self):
         assert bm3d(self.x_gry, 1.0).shape == self.x_gry.shape
-        assert bm3d(self.x_rgb, 1.0).shape == self.x_rgb.shape
+        assert bm3d(self.x_rgb, 1.0, is_rgb=True).shape == self.x_rgb.shape
 
     def test_gry(self):
         no_jit = bm3d(self.x_gry, 1.0)
@@ -62,7 +62,7 @@ class TestBM3D:
 
     def test_rgb(self):
         no_jit = bm3d(self.x_rgb, 1.0)
-        jitted = jax.jit(bm3d)(self.x_rgb, 1.0)
+        jitted = jax.jit(bm3d)(self.x_rgb, 1.0, is_rgb=True)
         np.testing.assert_allclose(no_jit, jitted, rtol=1e-3)
         assert no_jit.dtype == np.float32
         assert jitted.dtype == np.float32
