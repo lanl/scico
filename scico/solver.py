@@ -183,7 +183,7 @@ def minimize(
     Wrapper around :func:`scipy.optimize.minimize`. This function differs
     from :func:`scipy.optimize.minimize` in three ways:
 
-        - The `jac` options of  :func:`scipy.optimize.minimize` are not
+        - The `jac` options of :func:`scipy.optimize.minimize` are not
           supported. The gradient is calculated using `jax.grad`.
         - Functions mapping from N-dimensional arrays -> float are
           supported.
