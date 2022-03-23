@@ -204,3 +204,12 @@ def test_split_join_blockarray():
     x_j = solver._join_real_imag(x_s)
     assert x_j.shape == x.shape
     np.testing.assert_allclose(x_j.ravel(), x.ravel(), rtol=1e-4)
+
+
+def test_bisect():
+    # c, key = random.randn((6, 1), dtype=np.float32)
+    # f = lambda x: x**3 - c
+    f = lambda x: x ** 3
+    x, info = solver.bisect(f, -np.ones((5, 1)), np.ones((5, 1)), full_output=True)
+    assert snp.sum(snp.abs(x)) == 0.0
+    assert info["iter"] == 0

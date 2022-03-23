@@ -63,6 +63,7 @@ from typing import Any, Callable, Optional, Sequence, Tuple, Union
 import jax
 
 import scico.numpy as snp
+from scico.array import no_nan_divide
 from scico.blockarray import BlockArray
 from scico.typing import BlockShape, DType, JaxArray, Shape
 from scipy import optimize as spopt
@@ -354,3 +355,74 @@ def cg(
         ii += 1
 
     return (x, {"num_iter": ii, "rel_res": snp.sqrt(num).real / bn})
+
+
+def bisect(
+    f: Callable,
+    a: JaxArray,
+    b: JaxArray,
+    args: Tuple = (),
+    xtol: float = 1e-5,
+    rtol: float = 1e-7,
+    maxiter: int = 100,
+    full_output: bool = False,
+    range_check: bool = True,
+) -> Union[JaxArray, dict]:
+    """Vectorised root finding via bisection method.
+
+    Vectorised root finding via bisection method, supporting
+    simultaneous finding of multiple roots on a function defined over a
+    multi-dimensional array. When the function is array-valued, each of
+    these values is treated as the independent application of a scalar
+    function. The interface is similar to that of
+    :func:`scipy.optimize.bisect`, which is much faster when `f` is a
+    scalar function and `a` and `b` are scalars.
+
+    Args:
+        f: Function returning a float or an array of floats.
+        a: Lower bound of interval on which to apply bisection.
+        b: Upper bound of interval on which to apply bisection.
+        args: Additional arguments for function `f`.
+        xtol: Absolute stopping tolerance based on maximum bisection interval
+            length over entire array.
+        rtol: Relative stopping tolerance based on maximum normalized bisection
+            interval length over entire array.
+        maxiter: Maximum number of algorithm iterations.
+        full_output: If ``False``, return just the root, otherwise return a
+            tuple `(c, info)` where `c` is the root and `info` is a dict
+            containing algorithm status information.
+        range_check: If ``True``, check to ensure that the initial `[a,b]`
+            range brackets the root of `f`.
+
+    Returns:
+        tuple: A tuple `(c, info)` containing:
+
+            - **c** : Root array.
+            - **info**: Dictionary containing diagnostic information.
+    """
+
+    if range_check and snp.any(snp.sign(f(*((a,) + args))) == snp.sign(f(*((b,) + args)))):
+        raise ValueError("Initial bisection range does not bracket zero")
+
+    for iter in range(maxiter):
+        c = (a + b) / 2.0
+        fc = f(*((c,) + args))
+        fcs = snp.sign(fc)
+        signac = snp.sign(f(*((a,) + args))) * fcs
+        signcb = fcs * snp.sign(f(*((b,) + args)))
+        a = snp.where(snp.logical_or(signac == 1, fc == 0.0), c, a)
+        b = snp.where(snp.logical_or(signcb == 1, fc == 0.0), c, b)
+        err = snp.abs(b - a)
+        nrm = snp.maximum(snp.abs(a), snp.abs(b))
+        abserr = snp.max(err)
+        relerr = snp.max(no_nan_divide(err, nrm))
+        print("a", a, "b", b, "c", c, abserr, relerr, "\n")
+        if abserr <= xtol and relerr <= rtol:
+            break
+
+    c = (a + b) / 2.0
+    if full_output:
+        info = {"iter": iter, "abserr": abserr, "relerr": relerr, "a": a, "b": b}
+        return c, info
+    else:
+        return c
