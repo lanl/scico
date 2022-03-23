@@ -120,7 +120,7 @@ class LinearSubproblemSolver(SubproblemSolver):
     for the case where :code:`f` is an :math:`\ell_2` or weighted
     :math:`\ell_2` norm, and :code:`f.A` is a linear operator, so that
     the subproblem involves solving a linear equation. This requires that
-    ``f.functional`` be an instance of :class:`.SquaredL2Loss` and for
+    `f.functional` be an instance of :class:`.SquaredL2Loss` and for
     the forward operator :code:`f.A` to be an instance of
     :class:`.LinearOperator`.
 
@@ -129,7 +129,7 @@ class LinearSubproblemSolver(SubproblemSolver):
     ..  math::
 
         \mb{x}^{(k+1)} = \argmin_{\mb{x}} \; \frac{1}{2}
-        \norm{\mb{y} - A x}_W^2 + \sum_i \frac{\rho_i}{2}
+        \norm{\mb{y} - A \mb{x}}_W^2 + \sum_i \frac{\rho_i}{2}
         \norm{\mb{z}^{(k)}_i - \mb{u}^{(k)}_i - C_i \mb{x}}_2^2 \;,
 
     where :math:`W` a weighting :class:`.Diagonal` operator
@@ -164,7 +164,7 @@ class LinearSubproblemSolver(SubproblemSolver):
                 including how to specify a preconditioner.
                 Default values are the same as those of
                 :func:`scico.solver.cg`, except for
-                ``"tol": 1e-4`` and ``"maxiter": 100``.
+                `"tol": 1e-4` and `"maxiter": 100`.
             cg_function: String indicating which CG implementation to
                 use. One of "jax" or "scico"; default "scico". If
                 "scico", uses :func:`scico.solver.cg`. If "jax", uses
@@ -665,7 +665,7 @@ class ADMM:
     ) -> Union[JaxArray, BlockArray]:
         """Run the ADMM algorithm.
 
-        Run the ADMM algorithm for a total of ``self.maxiter`` iterations.
+        Run the ADMM algorithm for a total of `self.maxiter` iterations.
 
         Args:
             callback: An optional callback function, taking an a single

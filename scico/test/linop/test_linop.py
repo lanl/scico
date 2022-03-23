@@ -509,59 +509,6 @@ def test_operator_norm():
         assert np.abs(Dnorm - snp.abs(d).max()) < 1e-5
 
 
-class SumTestObj:
-    def __init__(self, dtype):
-        self.x, key = randn((4, 5, 6, 7), dtype=dtype)
-
-
-@pytest.fixture(scope="module", params=[np.float32, np.complex64])
-def sumtestobj(request):
-    yield SumTestObj(request.param)
-
-
-sum_axis = [
-    None,
-    0,
-    1,
-    2,
-    3,
-    (0, 1),
-    (0, 2),
-    (0, 3),
-    (1, 2),
-    (1, 3),
-    (2, 3),
-    (0, 1, 2),
-    (0, 1, 3),
-    (1, 2, 3),
-    (0, 1, 2, 3),
-]
-
-
-@pytest.mark.parametrize("axis", sum_axis)
-def test_sum_eval(sumtestobj, axis):
-    x = sumtestobj.x
-
-    A = linop.Sum(input_shape=x.shape, input_dtype=x.dtype, sum_axis=axis)
-
-    np.testing.assert_allclose(A @ x, snp.sum(x, axis=axis), rtol=1e-3)
-
-
-@pytest.mark.parametrize("axis", sum_axis)
-def test_sum_adj(sumtestobj, axis):
-    x = sumtestobj.x
-    A = linop.Sum(input_shape=x.shape, input_dtype=x.dtype, sum_axis=axis)
-    adjoint_test(A)
-
-
-@pytest.mark.parametrize("axis", (5, (1, 1), (0, 1, 2, 3, 4)))
-def test_sum_bad_shapes(sumtestobj, axis):
-    # integer too high, repeated values, list too long
-    x = sumtestobj.x
-    with pytest.raises(ValueError):
-        A = linop.Sum(input_shape=x.shape, input_dtype=x.dtype, sum_axis=axis)
-
-
 class SliceTestObj:
     def __init__(self, dtype):
         self.x = snp.zeros((4, 5, 6, 7), dtype=dtype)
@@ -609,3 +556,30 @@ def test_slice_blockarray(idx):
     x = BlockArray.array((snp.zeros((3, 4)), snp.ones((3, 4, 5, 6))))
     A = linop.Slice(idx=idx, input_shape=x.shape, input_dtype=x.dtype)
     assert (A @ x).shape == x[idx].shape
+
+
+def test_transpose():
+    shape = (1, 2, 3, 4)
+    perm = (1, 0, 3, 2)
+    x, _ = randn(shape)
+    H = linop.Transpose(shape, perm)
+    np.testing.assert_array_equal(H @ x, x.transpose(perm))
+
+    # transpose transpose is transpose inverse
+    np.testing.assert_array_equal(H.T @ H @ x, x)
+
+
+def test_pad():
+    shape = (2, 3, 4)
+    pad = 1
+    x, _ = randn(shape)
+    H = linop.Pad(shape, pad)
+
+    pad_shape = tuple(n + 2 * pad for n in shape)
+    y = snp.zeros(pad_shape)
+    y = y.at[pad:-pad, pad:-pad, pad:-pad].set(x)
+    np.testing.assert_array_equal(H @ x, y)
+
+    # pad transpose is crop
+    y, _ = randn(pad_shape)
+    np.testing.assert_array_equal(H.T @ y, y[pad:-pad, pad:-pad, pad:-pad])

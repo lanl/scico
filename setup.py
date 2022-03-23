@@ -5,6 +5,8 @@
 
 import os
 import os.path
+import re
+import site
 from ast import parse
 
 from setuptools import find_packages, setup
@@ -41,7 +43,11 @@ install_requires = [line.strip() for line in lines]
 
 # Check that jaxlib version requirements in __init__.py and requirements.txt match
 jaxlib_ver = get_init_variable_value("jaxlib_ver_req")
-req_jaxlib_ver = list(filter(lambda s: s.startswith("jaxlib"), install_requires))[0].split("==")[1]
+jaxlib_req_str = list(filter(lambda s: s.startswith("jaxlib"), install_requires))[0]
+m = re.match("jaxlib[=<>]+([\d\.]+)", jaxlib_req_str)
+if not m:
+    raise ValueError(f"Could not extract jaxlib version number from specification {jaxlib_req_str}")
+req_jaxlib_ver = m[1]
 if jaxlib_ver != req_jaxlib_ver:
     raise ValueError(
         f"Version requirements for jaxlib in __init__.py ({jaxlib_ver}) and "
@@ -50,9 +56,13 @@ if jaxlib_ver != req_jaxlib_ver:
 
 # Check that jax version requirements in __init__.py and requirements.txt match
 jax_ver = get_init_variable_value("jax_ver_req")
-req_jax_ver = list(
+jax_req_str = list(
     filter(lambda s: s.startswith("jax") and not s.startswith("jaxlib"), install_requires)
-)[0].split("==")[1]
+)[0]
+m = re.match("jax[=<>]+([\d\.]+)", jax_req_str)
+if not m:
+    raise ValueError(f"Could not extract jax version number from specification {jax_req_str}")
+req_jax_ver = m[1]
 if jax_ver != req_jax_ver:
     raise ValueError(
         f"Version requirements for jax in __init__.py ({jax_ver}) and "
@@ -75,6 +85,8 @@ for require_file in extra_require_files:
         lines = f.readlines()
     extras_require[extras_label] = [line.strip() for line in lines if line[0:2] != "-r"]
 
+# PEP517 workaround, see https://www.scivision.dev/python-pip-devel-user-install/
+site.ENABLE_USER_SITE = True
 
 setup(
     name=name,

@@ -17,8 +17,6 @@ import scico.numpy as snp
 from scico.blockarray import BlockArray
 from scico.typing import JaxArray
 
-__author__ = """Brendt Wohlberg <brendt@ieee.org>"""
-
 
 def mae(reference: Union[JaxArray, BlockArray], comparison: Union[JaxArray, BlockArray]) -> float:
     """Compute Mean Absolute Error (MAE) between two images.

@@ -85,7 +85,7 @@ has_prox = {self.has_prox}
             v: Point at which to evaluate prox function.
             lam: Proximal parameter :math:`\lambda`.
             kwargs: Additional arguments that may be used by derived
-                classes. These include ``x0``, an initial guess for the
+                classes. These include `x0`, an initial guess for the
                 minimizer in the definition of :math:`\mathrm{prox}`.
         """
         if not self.has_prox:
@@ -114,7 +114,7 @@ has_prox = {self.has_prox}
             v: Point at which to evaluate prox function.
             lam: Proximal parameter :math:`\lambda`.
             kwargs: Additional keyword args, passed directly to
-               ``self.prox``.
+               `self.prox`.
         """
         return v - lam * self.prox(v / lam, 1.0 / lam, **kwargs)
 
@@ -146,7 +146,7 @@ class ScaledFunctional(Functional):
     def prox(
         self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
-        r"""Evaulate the scaled proximal operator of the scaled functional.
+        r"""Evaluate the scaled proximal operator of the scaled functional.
 
         Note that, by definition, the scaled proximal operator of a
         functional is the proximal operator of the scaled functional. The
@@ -185,9 +185,9 @@ class SeparableFunctional(Functional):
     def __init__(self, functional_list: List[Functional]):
         r"""
         Args:
-            functional_list:  List of component functionals f_i. This functional
-                takes as an input a :class:`.BlockArray` with
-                ``num_blocks == len(functional_list)``.
+            functional_list: List of component functionals f_i. This
+               functional takes as an input a :class:`.BlockArray` with
+               `num_blocks == len(functional_list)`.
         """
         self.functional_list: List[Functional] = functional_list
 

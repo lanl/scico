@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import operator
 from functools import partial
-from typing import Optional, Tuple, Union
+from typing import Any, Callable, Optional, Union
 
 import scico.numpy as snp
 from scico import array, blockarray
@@ -21,10 +21,6 @@ from scico._generic_operators import LinearOperator, _wrap_add_sub, _wrap_mul_di
 from scico.blockarray import BlockArray
 from scico.random import randn
 from scico.typing import ArrayIndex, BlockShape, DType, JaxArray, PRNGKey, Shape
-
-__author__ = """\n""".join(
-    ["Luke Pfister <luke.pfister@gmail.com>", "Brendt Wohlberg <brendt@ieee.org>"]
-)
 
 
 def power_iteration(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey] = None):
@@ -131,10 +127,10 @@ def valid_adjoint(
            is returned instead of a boolean value.
         x : If not the default None, use the specified array instead of a
            random array as test vector :math:`\mb{x}`. If specified, the
-           array must have shape ``A.input_shape``.
+           array must have shape `A.input_shape`.
         y : If not the default None, use the specified array instead of a
            random array as test vector :math:`\mb{y}`. If specified, the
-           array must have shape ``AT.input_shape``.
+           array must have shape `AT.input_shape`.
         key: Jax PRNG key. Defaults to None, in which case a new key is
            created.
 
@@ -257,42 +253,6 @@ class Identity(Diagonal):
         return x
 
 
-class Sum(LinearOperator):
-    """A linear operator for summing along an axis or set of axes."""
-
-    def __init__(
-        self,
-        sum_axis: Optional[Union[int, Tuple[int, ...]]],
-        input_shape: Shape,
-        input_dtype: DType = snp.float32,
-        jit: bool = True,
-        **kwargs,
-    ):
-        r"""
-        Wraps :func:`jax.numpy.sum` as a :class:`.LinearOperator`.
-
-        Args:
-            sum_axis: The axis or set of axes to sum over. If ``None``,
-                sum is taken over all axes.
-            input_shape: Shape of input array.
-            input_dtype: `dtype` for input argument.
-                Defaults to ``float32``. If this LinearOperator implements
-                complex-valued operations, this must be ``complex64`` for
-                proper adjoint and gradient calculation.
-            jit: If ``True``, jit the evaluation, adjoint, and gram
-               functions of the LinearOperator.
-        """
-
-        input_ndim = len(input_shape)
-        sum_axis = array.parse_axes(sum_axis, shape=input_shape)
-
-        self.sum_axis: Tuple[int, ...] = sum_axis
-        super().__init__(input_shape=input_shape, input_dtype=input_dtype, jit=jit, **kwargs)
-
-    def _eval(self, x: JaxArray) -> JaxArray:
-        return snp.sum(x, axis=self.sum_axis)
-
-
 class Slice(LinearOperator):
     """A linear operator for slicing an array."""
 
@@ -306,7 +266,7 @@ class Slice(LinearOperator):
     ):
         r"""
         This operator may be applied to either a :any:`JaxArray` or a
-        :class:`.BlockArray`. In the latter case, parameter ``idx`` must
+        :class:`.BlockArray`. In the latter case, parameter `idx` must
         conform to the
         :ref:`BlockArray indexing requirements <blockarray_indexing>`.
 
@@ -339,3 +299,62 @@ class Slice(LinearOperator):
 
     def _eval(self, x: JaxArray) -> JaxArray:
         return x[self.idx]
+
+
+def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = None):
+    """Make a linear operator class from a function.
+
+    Example
+    -------
+    >>> Sum = linop_from_function(snp.sum, 'Sum')
+    >>> H = Sum((2, 10), axis=1)
+    >>> H @ snp.ones((2, 10))
+    DeviceArray([10., 10.], dtype=float32)
+
+    Args:
+        f: Function from which to create a linear operator class
+        classname: Name of the resulting class.
+        f_name: Name of `f` for use in docstrings. Useful for getting
+        the correct version of wrapped functions. Defaults to
+        `f"{f.__module__}.{f.__name__}"`.
+    """
+
+    if f_name is None:
+        f_name = f"{f.__module__}.{f.__name__}"
+
+    def __init__(
+        self,
+        input_shape: Union[Shape, BlockShape],
+        *args: Any,
+        input_dtype: DType = snp.float32,
+        jit: bool = True,
+        **kwargs: Any,
+    ):
+        self._eval = lambda x: f(x, *args, **kwargs)
+        super().__init__(input_shape, input_dtype=input_dtype, jit=jit)
+
+    OpClass = type(classname, (LinearOperator,), {"__init__": __init__})
+    __class__ = OpClass  # needed for super() to work
+
+    OpClass.__doc__ = f"Linear operator version of :func:`{f_name}`."
+    OpClass.__init__.__doc__ = fr"""
+
+        Args:
+            input_shape: Shape of input array.
+            args: Positional arguments passed to :func:`{f_name}`.
+            input_dtype: `dtype` for input argument.
+                Defaults to ``float32``. If `LinearOperator` implements
+                complex-valued operations, this must be ``complex64`` for
+                proper adjoint and gradient calculation.
+            jit: If ``True``, call :meth:`.jit()` on this LinearOperator
+                to jit the forward, adjoint, and gram functions. Same as
+                calling :meth:`.jit` after the LinearOperator is created.
+            kwargs: Keyword arguments passed to :func:`{f_name}`.
+        """
+
+    return OpClass
+
+
+Transpose = linop_from_function(snp.transpose, "Transpose", "scico.numpy.transpose")
+Sum = linop_from_function(snp.sum, "Sum")
+Pad = linop_from_function(snp.pad, "Pad", "scico.numpy.pad")
