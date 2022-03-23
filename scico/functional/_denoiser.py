@@ -13,6 +13,34 @@ from scico.typing import JaxArray
 from ._functional import Functional
 
 
+class BM4D(Functional):
+    r"""Pseudo-functional whose prox applies the BM4D denoising algorithm.
+
+    A pseudo-functional that has the BM4D algorithm
+    :cite:`maggioni2012nonlocal` as its proximal operator, which calls
+    :func:`.denoiser.bm4d`.
+    """
+
+    has_eval = False
+    has_prox = True
+
+    def __init__(self):
+        r"""Initialize a :class:`BM4D` object."""
+        super().__init__()
+
+    def prox(self, x: JaxArray, lam: float = 1.0, **kwargs) -> JaxArray:
+        r"""Apply BM4D denoiser.
+
+        Args:
+            x: Input image.
+            lam: Noise parameter.
+
+        Returns:
+            Denoised output.
+        """
+        return denoiser.bm4d(x, lam)
+
+
 class BM3D(Functional):
     r"""Pseudo-functional whose prox applies the BM3D denoising algorithm.
 

@@ -13,6 +13,13 @@ import numpy as np
 from jax.experimental import host_callback as hcb
 
 try:
+    import bm4d as tunibm4d
+except ImportError:
+    have_bm4d = False
+else:
+    have_bm4d = True
+
+try:
     import bm3d as tunibm3d
 except ImportError:
     have_bm3d = False
@@ -25,6 +32,60 @@ from scico.data import _flax_data_path
 from scico.typing import JaxArray
 
 from ._flax import FlaxMap
+
+
+def bm4d(x: JaxArray, sigma: float):
+    r"""An interface to the BM4D denoiser :cite:`maggioni2012nonlocal`.
+
+    BM4D denoising is performed using the
+    `code <https://pypi.org/project/bm4d/>`__.
+
+    Args:
+        x: Input image.
+        sigma: Noise parameter.
+
+    Returns:
+        Denoised output.
+    """
+    if not have_bm4d:
+        raise RuntimeError("Package bm4d is required for use of this function.")
+
+    bm4d_eval = tunibm4d.bm4d
+
+    if np.iscomplexobj(x):
+        raise TypeError(f"BM4D requires real-valued inputs, got {x.dtype}")
+
+    # Support arrays with more than three axes when the additional axes are singletons.
+    x_in_shape = x.shape
+
+    if isinstance(x.ndim, tuple) or x.ndim < 3:
+        raise ValueError(f"BM4D requires three dimensional (M, N, P) inputs; got ndim = {x.ndim}")
+
+    # This check is also performed inside the BM4D call, but due to the host_callback,
+    # no exception is raised and the program will crash with no traceback.
+    # NOTE: if BM4D is extended to allow for different profiles, the block size must be
+    #       updated; this presumes 'np' profile (bs=8)
+    if np.min(x.shape[:3]) < 8:
+        raise ValueError(
+            "Three leading dimensions of input cannot be smaller than block size "
+            f"(8); got image size = {x.shape}"
+        )
+
+    if x.ndim > 3:
+        if all(k == 1 for k in x.shape[3:]):
+            x = x.squeeze()
+        else:
+            raise ValueError(
+                "Arrays with more than three axes are only supported when "
+                " the additional axes are singletons"
+            )
+
+    y = hcb.call(lambda args: bm4d_eval(*args).astype(x.dtype), (x, sigma), result_shape=x)
+
+    # undo squeezing, if neccessary
+    y = y.reshape(x_in_shape)
+
+    return y
 
 
 def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
