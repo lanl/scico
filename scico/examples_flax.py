@@ -20,7 +20,7 @@ import os
 from numpy import linspace, load, savez
 
 from scico.typing import Array
-from scico.linop.radon_astra import ParallelBeamProjector
+from scico.linop.radon_astra import TomographicProjector
 
 # Arbitray process count: only applies if GPU is not available.
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
@@ -143,7 +143,7 @@ def ct_data_generation(nimg: int, N: int, nproj: int, verbose: bool = False):  #
     angles = linspace(0, jnp.pi, nproj)  # evenly spaced projection angles
     gt_sh = (N, N)
     detector_spacing = 1
-    A = ParallelBeamProjector(gt_sh, detector_spacing, N, angles)  # Radon transform operator
+    A = TomographicProjector(gt_sh, detector_spacing, N, angles)  # Radon transform operator
 
     # Compute sinograms in parallel.
     nproc = jax.device_count()
