@@ -400,23 +400,26 @@ def bisect(
             - **info**: Dictionary containing diagnostic information.
     """
 
-    if range_check and snp.any(snp.sign(f(*((a,) + args))) == snp.sign(f(*((b,) + args)))):
+    fa = f(*((a,) + args))
+    fb = f(*((b,) + args))
+    if range_check and snp.any(snp.sign(fa) == snp.sign(fb)):
         raise ValueError("Initial bisection range does not bracket zero")
 
     for iter in range(maxiter):
         c = (a + b) / 2.0
         fc = f(*((c,) + args))
         fcs = snp.sign(fc)
-        signac = snp.sign(f(*((a,) + args))) * fcs
-        signcb = fcs * snp.sign(f(*((b,) + args)))
-        a = snp.where(snp.logical_or(signac == 1, fc == 0.0), c, a)
-        b = snp.where(snp.logical_or(signcb == 1, fc == 0.0), c, b)
+        a = snp.where(snp.logical_or(snp.sign(fa) * fcs == 1, fc == 0.0), c, a)
+        b = snp.where(snp.logical_or(fcs * snp.sign(fb) == 1, fc == 0.0), c, b)
+        fa = f(*((a,) + args))
+        fb = f(*((b,) + args))
         xerr = snp.max(snp.abs(b - a))
         ferr = snp.max(snp.abs(fc))
         if xerr <= xtol and ferr <= ftol:
             break
 
-    c = (a + b) / 2.0
+    idx = snp.argmin(snp.stack((snp.abs(fa), snp.abs(fb))), axis=0)
+    c = snp.choose(idx, (a, b))
     if full_output:
         info = {"iter": iter, "xerr": xerr, "ferr": ferr, "a": a, "b": b}
         return c, info

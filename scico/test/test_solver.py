@@ -211,7 +211,7 @@ def test_bisect():
     x, info = solver.bisect(f, -snp.ones((5, 1)), snp.ones((5, 1)), full_output=True)
     assert snp.sum(snp.abs(x)) == 0.0
     assert info["iter"] == 0
-    x = solver.bisect(f, -2.0 * snp.ones((5, 1)), snp.ones((5, 1)), xtol=1e-5, ftol=1e-5)
+    x = solver.bisect(f, -2.0 * snp.ones((5, 3)), snp.ones((5, 3)), xtol=1e-5, ftol=1e-5)
     assert snp.max(snp.abs(x)) <= 1e-5
     assert snp.max(snp.abs(f(x))) <= 1e-5
     c, key = random.randn((5, 1), dtype=np.float32)
