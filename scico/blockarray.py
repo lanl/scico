@@ -101,7 +101,7 @@ by a `DeviceArray` memory buffer.
 a new `DeviceArray` memory buffer.
 
 **Note**: by default, the resulting :class:`.BlockArray` is cast to
-single precision and will have dtype `float32` or `complex64`.
+single precision and will have dtype ``float32`` or ``complex64``.
 
 
 Construct from a single vector and tuple of shapes
@@ -129,8 +129,8 @@ The block index is required to be an integer, selecting a single block and
 returning it as an array (*not* a singleton BlockArray). If the index
 expression has more than one component, then the initial index indexes the
 block, and the remainder of the indexing expression indexes within the
-selected block, e.g. ``x[2, 3:4]`` is equivalent to ``y[3:4]`` after
-setting ``y = x[2]``.
+selected block, e.g. `x[2, 3:4]` is equivalent to `y[3:4]` after
+setting `y = x[2]`.
 
 
 Indexed Updating
@@ -150,13 +150,13 @@ block is updated.
 ==============================   ==============================================
 Alternate syntax                 Equivalent in-place expression
 ==============================   ==============================================
-``x.at[ibk, idx].set(y)``        ``x[ibk, idx] = y``
-``x.at[ibk, idx].add(y)``        ``x[ibk, idx] += y``
-``x.at[ibk, idx].multiply(y)``   ``x[ibk, idx] *= y``
-``x.at[ibk, idx].divide(y)``     ``x[ibk, idx] /= y``
-``x.at[ibk, idx].power(y)``      ``x[ibk, idx] **= y``
-``x.at[ibk, idx].min(y)``        ``x[ibk, idx] = np.minimum(x[idx], y)``
-``x.at[ibk, idx].max(y)``        ``x[ibk, idx] = np.maximum(x[idx], y)``
+`x.at[ibk, idx].set(y)`          `x[ibk, idx] = y`
+`x.at[ibk, idx].add(y)`          `x[ibk, idx] += y`
+`x.at[ibk, idx].multiply(y)`     `x[ibk, idx] *= y`
+`x.at[ibk, idx].divide(y)`       `x[ibk, idx] /= y`
+`x.at[ibk, idx].power(y)`        `x[ibk, idx] **= y`
+`x.at[ibk, idx].min(y)`          `x[ibk, idx] = np.minimum(x[idx], y)`
+`x.at[ibk, idx].max(y)`          `x[ibk, idx] = np.maximum(x[idx], y)`
 ==============================   ==============================================
 
 
@@ -177,8 +177,8 @@ Suppose :math:`\mb{x}` is a BlockArray with shape :math:`((n, n), (m,))`.
     >>> x.size  # 4*4 + 5
     21
 
-Illustrated for the operation ``+``, but equally valid for operators
-``+, -, *, /, //, **, <, <=, >, >=, ==``
+Illustrated for the operation `+`, but equally valid for operators
+`+, -, *, /, //, **, <, <=, >, >=, ==`
 
 
 Operations with BlockArrays with same number of blocks
@@ -254,7 +254,7 @@ Operations with an ndarray of `size` equal to :class:`.BlockArray` size
 
 We first cast the `ndarray` to a BlockArray with same shape as
 :math:`\mb{x}`, then apply the operation on the resulting BlockArrays.
-With ``y.size = x.size``, we have:
+With `y.size = x.size`, we have:
 
   .. math::
    \mb{x}
@@ -329,8 +329,8 @@ NumPy ufuncs
 
 `NumPy universal functions (ufuncs) <https://numpy.org/doc/stable/reference/ufuncs.html>`_
 are functions that operate on an `ndarray` on an element-by-element
-fashion and support array broadcasting. Examples of ufuncs are ``abs``,
-``sign``, ``conj``, and ``exp``.
+fashion and support array broadcasting. Examples of ufuncs are `abs`,
+`sign`, `conj`, and `exp`.
 
 The JAX library implements most NumPy ufuncs in the :mod:`jax.numpy`
 module. However, as JAX does not support subclassing of `DeviceArray`,
@@ -343,7 +343,7 @@ Reductions
 ^^^^^^^^^^
 
 Reductions are functions that take an array-like as an input and return
-an array of lower dimension. Examples include ``mean``, ``sum``, ``norm``.
+an array of lower dimension. Examples include `mean`, `sum`, `norm`.
 BlockArray reductions are located in the :mod:`scico.numpy` module
 
 :class:`.BlockArray` tries to mirror `ndarray` reduction semantics where
@@ -418,8 +418,8 @@ We have
 
 
   If a component does not have axis :math:`n-1`, the reduction is not
-  applied to that component. In this example, ``x[1].ndim == 1``, so no
-  reduction is applied to block ``x[1]``.
+  applied to that component. In this example, `x[1].ndim == 1`, so no
+  reduction is applied to block `x[1]`.
 
   .. math::
    \text{sum}(x, axis=2) = \begin{bmatrix}
@@ -528,7 +528,7 @@ def reshape(
 def block_sizes(shape: Union[Shape, BlockShape]) -> Axes:
     r"""Compute the 'sizes' of (possibly nested) block shapes.
 
-    This function computes ``block_sizes(z.shape) == (_.size for _ in z)``
+    This function computes `block_sizes(z.shape) == (_.size for _ in z)`.
 
 
     Args:
@@ -619,7 +619,7 @@ def indexed_shape(shape: Shape, idx: Union[int, Tuple[AxisIndex, ...]]) -> Tuple
         idx: BlockArray indexing expression.
 
     Returns:
-        Shape of the selected block, or slice of that block if ``idx`` is a tuple
+        Shape of the selected block, or slice of that block if `idx` is a tuple
         rather than an integer.
     """
     idxblk, idxarr = _decompose_index(idx)
@@ -631,7 +631,7 @@ def indexed_shape(shape: Shape, idx: Union[int, Tuple[AxisIndex, ...]]) -> Tuple
 
 
 def _flatten_blockarrays(inp, *args, **kwargs):
-    """Flatten any blockarrays present in inp, args, or kwargs."""
+    """Flatten any blockarrays present in `inp`, `args`, or `kwargs`."""
 
     def _flatten_if_blockarray(inp):
         if isinstance(inp, BlockArray):
@@ -714,7 +714,7 @@ def _block_array_reduction_wrapper(func):
                     if axis - 1 >= bk.ndim:
                         # Trying to reduce along a dim that doesn't exist for this block,
                         # so just return the block.
-                        # ie broadcast to shape (..., 1) and reduce along axis=-1
+                        # i.e. broadcast to shape (..., 1) and reduce along axis=-1
                         tmp = bk
                     else:
                         tmp = func(bk, *args, axis=axis - 1, **kwargs)
@@ -1032,11 +1032,11 @@ class BlockArray:
             alst: Initializers for array components.
                 Can be :class:`numpy.ndarray` or
                 :class:`jax.interpreters.xla.DeviceArray`
-            dtype: Data type of array. If none, dtype is derived from
-                dtype of initializers
+            dtype: Data type of array. If ``None``, dtype is derived from
+                dtype of initializers.
 
         Returns:
-            :class:`.BlockArray` initialized from `alst` tuple
+            :class:`.BlockArray` initialized from `alst` tuple.
         """
 
         if isinstance(alst, (tuple, list)) is False:
@@ -1070,11 +1070,11 @@ class BlockArray:
         """Construct a :class:`.BlockArray` from a flattened array and tuple of shapes.
 
         Args:
-            data_ravel: Flattened data array
+            data_ravel: Flattened data array.
             shape_tuple: Tuple of tuples containing desired block shapes.
 
         Returns:
-            :class:`.BlockArray` initialized from `data_ravel` and `shape_tuple`
+            :class:`.BlockArray` initialized from `data_ravel` and `shape_tuple`.
         """
 
         if not isinstance(data_ravel, DeviceArray):
@@ -1100,9 +1100,9 @@ class BlockArray:
         Return a new :class:`.BlockArray` with given block shapes and type, filled with ones.
 
         Args:
-            shape_tuple: Tuple of shapes for component blocks
+            shape_tuple: Tuple of shapes for component blocks.
             dtype: Desired data-type for the :class:`.BlockArray`.
-                Default is `numpy.float32`.
+                Default is ``numpy.float32``.
 
         Returns:
             :class:`.BlockArray` of ones with the given component shapes
@@ -1120,7 +1120,7 @@ class BlockArray:
         Args:
             shape_tuple: Tuple of shapes for component blocks.
             dtype: Desired data-type for the :class:`.BlockArray`.
-               Default is `numpy.float32`.
+               Default is ``numpy.float32``.
 
         Returns:
             :class:`.BlockArray` of zeros with the given component shapes
@@ -1141,7 +1141,7 @@ class BlockArray:
         Args:
             shape_tuple: Tuple of shapes for component blocks
             dtype: Desired data-type for the :class:`.BlockArray`.
-               Default is `numpy.float32`.
+               Default is ``numpy.float32``.
 
         Returns:
             :class:`.BlockArray` of zeros with the given component shapes
@@ -1164,7 +1164,7 @@ class BlockArray:
 
         Args:
             shape_tuple: Tuple of shapes for component blocks.
-            fill_value: Fill value
+            fill_value: Fill value.
             dtype: Desired data-type for the BlockArray. The default,
                None, means `np.array(fill_value).dtype`.
 
@@ -1218,7 +1218,7 @@ class BlockArray:
         return slice(self.bndpos[idx], self.bndpos[idx + 1])
 
     def ravel(self) -> JaxArray:
-        """Return a copy of ``self._data`` as a contiguous, flattened `DeviceArray`.
+        """Return a copy of `self._data` as a contiguous, flattened `DeviceArray`.
 
         Note that a copy, rather than a view, of the underlying array is
         returned. This is consistent with :func:`jax.numpy.ravel`.
@@ -1230,7 +1230,7 @@ class BlockArray:
         return self._data[:]
 
     def flatten(self) -> JaxArray:
-        """Return a copy of ``self._data`` as a contiguous, flattened `DeviceArray`.
+        """Return a copy of `self._data` as a contiguous, flattened `DeviceArray`.
 
         Note that a copy, rather than a view, of the underlying array is
         returned. This is consistent with :func:`jax.numpy.ravel`.
@@ -1327,10 +1327,10 @@ class _BlockArrayIndexUpdateHelper:
     `idx` is a general index of the elements to be updated in that block.
 
     In particular:
-    - ``x = x.at[ibk].set(y)`` is an equivalent of ``x[ibk] = y``.
-    - ``x = x.at[ibk,idx].set(y)`` is an equivalent of ``x[ibk,idx] = y``.
+    - `x = x.at[ibk].set(y)` is an equivalent of `x[ibk] = y`.
+    - `x = x.at[ibk,idx].set(y)` is an equivalent of `x[ibk,idx] = y`.
 
-    The methods ``set, add, multiply, divide, power, maximum, minimum``
+    The methods `set, add, multiply, divide, power, maximum, minimum`
     are supported.
     """
 
@@ -1393,70 +1393,70 @@ class _BlockArrayIndexUpdateRef:
         return retval
 
     def set(self, values):
-        """Pure equivalent of ``x[idx] = y``.
+        """Pure equivalent of `x[idx] = y`.
 
-        Return the value of ``x`` that would result from the NumPy-style
-        :mod:indexed assignment <numpy.doc.indexing>` ``x[idx] = y``.
+        Return the value of `x` that would result from the NumPy-style
+        :mod:indexed assignment <numpy.doc.indexing>` `x[idx] = y`.
 
         See :mod:`jax.ops` for details.
         """
         return self._index_wrapper("set", values)
 
     def add(self, values):
-        """Pure equivalent of ``x[idx] += y``.
+        """Pure equivalent of `x[idx] += y`.
 
-        Return the value of ``x`` that would result from the NumPy-style
-        :mod:indexed assignment <numpy.doc.indexing>` ``x[idx] += y``.
+        Return the value of `x` that would result from the NumPy-style
+        :mod:indexed assignment <numpy.doc.indexing>` `x[idx] += y`.
 
         See :mod:`jax.ops` for details.
         """
         return self._index_wrapper("add", values)
 
     def multiply(self, values):
-        """Pure equivalent of ``x[idx] *= y``.
+        """Pure equivalent of `x[idx] *= y`.
 
-        Return the value of ``x`` that would result from the NumPy-style
-        :mod:indexed assignment <numpy.doc.indexing>` ``x[idx] *= y``.
+        Return the value of `x` that would result from the NumPy-style
+        :mod:indexed assignment <numpy.doc.indexing>` `x[idx] *= y`.
 
         See :mod:`jax.ops` for details.
         """
         return self._index_wrapper("multiply", values)
 
     def divide(self, values):
-        """Pure equivalent of ``x[idx] /= y``.
+        """Pure equivalent of `x[idx] /= y`.
 
-        Return the value of ``x`` that would result from the NumPy-style
-        :mod:indexed assignment <numpy.doc.indexing>` ``x[idx] /= y``.
+        Return the value of `x` that would result from the NumPy-style
+        :mod:indexed assignment <numpy.doc.indexing>` `x[idx] /= y`.
 
         See :mod:`jax.ops` for details.
         """
         return self._index_wrapper("divide", values)
 
     def power(self, values):
-        """Pure equivalent of ``x[idx] **= y``.
+        """Pure equivalent of `x[idx] **= y`.
 
-        Return the value of ``x`` that would result from the NumPy-style
-        :mod:indexed assignment <numpy.doc.indexing>` ``x[idx] **= y``.
+        Return the value of `x` that would result from the NumPy-style
+        :mod:indexed assignment <numpy.doc.indexing>` `x[idx] **= y`.
 
         See :mod:`jax.ops` for details.
         """
         return self._index_wrapper("power", values)
 
     def min(self, values):
-        """Pure equivalent of ``x[idx] = minimum(x[idx], y)``.
+        """Pure equivalent of `x[idx] = minimum(x[idx], y)`.
 
-        Return the value of ``x`` that would result from the NumPy-style
-        :mod:indexed assignment <numpy.doc.indexing>` ``x[idx] = minimum(x[idx], y)``.
+        Return the value of `x` that would result from the NumPy-style
+        :mod:indexed assignment <numpy.doc.indexing>` `x[idx] = minimum(x[idx], y)`.
 
         See :mod:`jax.ops` for details.
         """
         return self._index_wrapper("min", values)
 
     def max(self, values):
-        """Pure equivalent of ``x[idx] = maximum(x[idx], y)``.
+        """Pure equivalent of `x[idx] = maximum(x[idx], y)`.
 
-        Return the value of ``x`` that would result from the NumPy-style
-        :mod:indexed assignment <numpy.doc.indexing>` ``x[idx] = maximum(x[idx], y)``.
+        Return the value of `x` that would result from the NumPy-style
+        :mod:indexed assignment <numpy.doc.indexing>` `x[idx] = maximum(x[idx], y)`.
 
         See :mod:`jax.ops` for details.
         """

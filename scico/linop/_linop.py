@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import operator
 from functools import partial
-from typing import Callable, Optional, Union
+from typing import Any, Callable, Optional, Union
 
 import scico.numpy as snp
 from scico import array, blockarray
@@ -33,8 +33,8 @@ def power_iteration(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey
         A: :class:`.LinearOperator` used for computation. Must be
             diagonalizable.
         maxiter: Maximum number of power iterations to use.
-        key: Jax PRNG key. Defaults to None, in which case a new key is
-            created.
+        key: Jax PRNG key. Defaults to ``None``, in which case a new key
+            is created.
 
     Returns:
         tuple: A tuple (`mu`, `v`) containing:
@@ -77,11 +77,11 @@ def operator_norm(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey] 
     Args:
         A: :class:`.LinearOperator` for which operator norm is desired.
         maxiter: Maximum number of power iterations to use. Default: 100
-        key: Jax PRNG key. Defaults to None, in which case a new key is
-            created.
+        key: Jax PRNG key. Defaults to ``None``, in which case a new key
+            is created.
 
     Returns:
-        float : Norm of operator :math:`A`.
+        float: Norm of operator :math:`A`.
 
     """
     return snp.sqrt(power_iteration(A.H @ A, maxiter, key)[0])
@@ -123,16 +123,16 @@ def valid_adjoint(
         A: Primary :class:`.LinearOperator`.
         AT: Adjoint :class:`.LinearOperator`.
         eps: Error threshold for validation of :math:`\mathsf{AT}` as
-           adjoint of :math:`\mathsf{AT}`. If None, the relative error
-           is returned instead of a boolean value.
-        x : If not the default None, use the specified array instead of a
-           random array as test vector :math:`\mb{x}`. If specified, the
-           array must have shape ``A.input_shape``.
-        y : If not the default None, use the specified array instead of a
-           random array as test vector :math:`\mb{y}`. If specified, the
-           array must have shape ``AT.input_shape``.
-        key: Jax PRNG key. Defaults to None, in which case a new key is
-           created.
+           adjoint of :math:`\mathsf{AT}`. If ``None``, the relative
+           error is returned instead of a boolean value.
+        x: If not the default ``None``, use the specified array instead
+           of a random array as test vector :math:`\mb{x}`. If specified,
+           the array must have shape `A.input_shape`.
+        y: If not the default ``None``, use the specified array instead
+           of a random array as test vector :math:`\mb{y}`. If specified,
+           the array must have shape `AT.input_shape`.
+        key: Jax PRNG key. Defaults to ``None``, in which case a new key
+           is created.
 
     Returns:
       Boolean value indicating whether validation passed, or relative
@@ -266,7 +266,7 @@ class Slice(LinearOperator):
     ):
         r"""
         This operator may be applied to either a :any:`JaxArray` or a
-        :class:`.BlockArray`. In the latter case, parameter ``idx`` must
+        :class:`.BlockArray`. In the latter case, parameter `idx` must
         conform to the
         :ref:`BlockArray indexing requirements <blockarray_indexing>`.
 
@@ -315,8 +315,8 @@ def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = Non
         f: Function from which to create a linear operator class
         classname: Name of the resulting class.
         f_name: Name of `f` for use in docstrings. Useful for getting
-        the correct version of wrapped functions. Defaults to
-        `f"{f.__module__}.{f.__name__}"`.
+            the correct version of wrapped functions. Defaults to
+            `f"{f.__module__}.{f.__name__}"`.
     """
 
     if f_name is None:
@@ -326,7 +326,7 @@ def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = Non
         self,
         input_shape: Union[Shape, BlockShape],
         *args: Any,
-        input_dtype: Dtype = snp.float32,
+        input_dtype: DType = snp.float32,
         jit: bool = True,
         **kwargs: Any,
     ):
@@ -343,12 +343,13 @@ def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = Non
             input_shape: Shape of input array.
             args: Positional arguments passed to :func:`{f_name}`.
             input_dtype: `dtype` for input argument.
-                Defaults to `float32`. If ``LinearOperator`` implements
-                complex-valued operations, this must be `complex64` for
+                Defaults to ``float32``. If `LinearOperator` implements
+                complex-valued operations, this must be ``complex64`` for
                 proper adjoint and gradient calculation.
-            jit: If ``True``, call :meth:`.jit()` on this LinearOperator
-                to jit the forward, adjoint, and gram functions. Same as
-                calling :meth:`.jit` after the LinearOperator is created.
+            jit: If ``True``, call :meth:`.Operator.jit` on this
+                `LinearOperator` to jit the forward, adjoint, and gram
+                functions. Same as calling :meth:`.Operator.jit` after
+                the `LinearOperator` is created.
             kwargs: Keyword arguments passed to :func:`{f_name}`.
         """
 

@@ -144,7 +144,7 @@ class Propagator(LinearOperator):
         self.k0: float = k0
         #: Shape of input after padding
         self.padded_shape: Shape = tuple(pad_factor * s for s in input_shape)
-        #: Padded source plane side length `(dx[i] * padded_shape[i])`
+        #: Padded source plane side length (dx[i] * padded_shape[i])
         self.L: Tuple[float, ...] = tuple(
             s * d for s, d in zip(self.padded_shape, dx)
         )  # computational plane size
@@ -249,9 +249,10 @@ class AngularSpectrumPropagator(Propagator):
             z: Propagation distance, :math:`z`.
             pad_factor: The padded input shape is the input shape
                multiplied by this integer factor.
-            jit: If ``True``, call :meth:`.jit()` on this LinearOperator
-               to jit the forward, adjoint, and gram functions. Same as
-               calling :meth:`.jit` after the LinearOperator is created.
+            jit: If ``True``, call :meth:`.Operator.jit` on this
+               `LinearOperator` to jit the forward, adjoint, and gram
+               functions. Same as calling :meth:`.Operator.jit` after the
+               `LinearOperator` is created.
         """
 
         # Diagonal operator; phase shifting
@@ -461,7 +462,7 @@ class FraunhoferPropagator(LinearOperator):
                :math:`2 \pi` / wavelength.
             z: Propagation distance, :math:`z`.
             jit: If ``True``, jit the evaluation, adjoint, and gram
-                functions of this LinearOperator. Default: ``True``.
+               functions of this `LinearOperator`. Default: ``True``.
         """
 
         ndim = len(input_shape)  # 1 or 2 dimensions
@@ -483,7 +484,7 @@ class FraunhoferPropagator(LinearOperator):
         self.k0: float = k0
         #: Propagation distance
         self.z: float = z
-        #: Source plane side length `(dx[i] * input_shape[i])`
+        #: Source plane side length (dx[i] * input_shape[i])
         self.L: Tuple[float, ...] = L
         #: Source plane sampling interval
         self.dx: Tuple[float, ...] = dx

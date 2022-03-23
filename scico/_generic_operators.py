@@ -91,8 +91,8 @@ output_dtype : {self.output_dtype}
                 Defaults to ``None``. If ``None``, then `self.__call__`
                 must be defined in any derived classes.
             input_dtype: `dtype` for input argument.
-                Defaults to `float32`. If Operator implements
-                complex-valued operations, this must be `complex64` for
+                Defaults to ``float32``. If `Operator` implements
+                complex-valued operations, this must be ``complex64`` for
                 proper adjoint and gradient calculation.
             output_dtype: `dtype` for output argument.
                 Defaults to ``None``. If ``None``, `output_shape` is
@@ -198,7 +198,7 @@ output_dtype : {self.output_dtype}
                 f"on array with shape={x.shape}"
             )
         # What is the context under which this gets called?
-        # Currently:  in jit and grad tracers
+        # Currently: in jit and grad tracers
         return self._eval(x)
 
     def __add__(self, other):
@@ -238,7 +238,6 @@ output_dtype : {self.output_dtype}
         )
 
     def __neg__(self):
-        # -self = -1. * self
         return -1.0 * self
 
     @_wrap_mul_div_scalar
@@ -265,8 +264,8 @@ output_dtype : {self.output_dtype}
         """Compute a Jacobian-vector product.
 
         Args:
-            primals:  Values at which the Jacobian is evaluated.
-            tangents:  Vector in the Jacobian-vector product.
+            primals: Values at which the Jacobian is evaluated.
+            tangents: Vector in the Jacobian-vector product.
         """
 
         return jax.jvp(self, primals, tangents)
