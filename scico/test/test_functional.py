@@ -261,6 +261,16 @@ class TestCheckAttrs:
         assert isinstance(cls.has_prox, bool)
 
 
+def test_functional_sum():
+    x = np.random.randn(4, 4)
+    f0 = functional.L1Norm()
+    f1 = 2.0 * functional.L2Norm()
+    f = f0 + f1
+    assert f(x) == f0(x) + f1(x)
+    with pytest.raises(TypeError):
+        f = f0 + 2.0
+
+
 def test_scalar_vmap():
     x = np.random.randn(4, 4)
     f = functional.L1Norm()
