@@ -63,7 +63,6 @@ from typing import Any, Callable, Optional, Sequence, Tuple, Union
 import jax
 
 import scico.numpy as snp
-from scico.array import no_nan_divide
 from scico.blockarray import BlockArray
 from scico.typing import BlockShape, DType, JaxArray, Shape
 from scipy import optimize as spopt
@@ -362,8 +361,8 @@ def bisect(
     a: JaxArray,
     b: JaxArray,
     args: Tuple = (),
-    xtol: float = 1e-5,
-    rtol: float = 1e-7,
+    xtol: float = 1e-7,
+    ftol: float = 1e-7,
     maxiter: int = 100,
     full_output: bool = False,
     range_check: bool = True,
@@ -383,10 +382,10 @@ def bisect(
         a: Lower bound of interval on which to apply bisection.
         b: Upper bound of interval on which to apply bisection.
         args: Additional arguments for function `f`.
-        xtol: Absolute stopping tolerance based on maximum bisection interval
+        xtol: Stopping tolerance based on maximum bisection interval
             length over entire array.
-        rtol: Relative stopping tolerance based on maximum normalized bisection
-            interval length over entire array.
+        ftol: Stopping tolerance based on maximum absolute function value
+            over entire array.
         maxiter: Maximum number of algorithm iterations.
         full_output: If ``False``, return just the root, otherwise return a
             tuple `(c, info)` where `c` is the root and `info` is a dict
@@ -412,17 +411,14 @@ def bisect(
         signcb = fcs * snp.sign(f(*((b,) + args)))
         a = snp.where(snp.logical_or(signac == 1, fc == 0.0), c, a)
         b = snp.where(snp.logical_or(signcb == 1, fc == 0.0), c, b)
-        err = snp.abs(b - a)
-        nrm = snp.maximum(snp.abs(a), snp.abs(b))
-        abserr = snp.max(err)
-        relerr = snp.max(no_nan_divide(err, nrm))
-        print("a", a, "b", b, "c", c, abserr, relerr, "\n")
-        if abserr <= xtol and relerr <= rtol:
+        xerr = snp.max(snp.abs(b - a))
+        ferr = snp.max(snp.abs(fc))
+        if xerr <= xtol and ferr <= ftol:
             break
 
     c = (a + b) / 2.0
     if full_output:
-        info = {"iter": iter, "abserr": abserr, "relerr": relerr, "a": a, "b": b}
+        info = {"iter": iter, "xerr": xerr, "ferr": ferr, "a": a, "b": b}
         return c, info
     else:
         return c
