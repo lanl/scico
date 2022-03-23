@@ -15,7 +15,7 @@ from prox import prox_test
 import scico.numpy as snp
 from scico import denoiser, functional
 from scico.blockarray import BlockArray
-from scico.denoiser import have_bm3d
+from scico.denoiser import have_bm3d, have_bm4d
 from scico.random import randn
 
 NO_BLOCK_ARRAY = [functional.L21Norm, functional.NuclearNorm]
@@ -285,6 +285,19 @@ def test_scalar_pmap():
     non_pmap = np.array([foo(c) for c in c_list])
     pmapped = jax.pmap(foo)(c_list)
     np.testing.assert_allclose(non_pmap, pmapped)
+
+
+@pytest.mark.skipif(not have_bm4d, reason="bm4d package not installed")
+class TestBM4D:
+    def setup(self):
+        key = None
+        self.x_gry, key = randn((32, 33, 34), key=key, dtype=np.float32)
+        self.f_gry = functional.BM4D()
+
+    def test_gry(self):
+        y0 = self.f_gry.prox(self.x_gry, 1.0)
+        y1 = denoiser.bm4d(self.x_gry, 1.0)
+        np.testing.assert_allclose(y0, y1, rtol=1e-5)
 
 
 @pytest.mark.skipif(not have_bm3d, reason="bm3d package not installed")
