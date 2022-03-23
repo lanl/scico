@@ -9,7 +9,7 @@ from jax import lax
 
 from scico import flax as sflax
 from scico import random
-from scico.linop.radon_astra import ParallelBeamProjector
+from scico.linop.radon_astra import TomographicProjector
 from scico.linop import Identity, CircularConvolve
 from scico.flax.train.train import (
     TrainState,
@@ -25,7 +25,7 @@ def construct_projector(N, n_projection):
     import numpy as np
 
     angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
-    return ParallelBeamProjector(
+    return TomographicProjector(
         input_shape=(N, N),
         detector_spacing=1,
         det_count=N,
