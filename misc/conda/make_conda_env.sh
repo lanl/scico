@@ -52,7 +52,7 @@ EOF
 
 
 OPTIND=1
-while getopts ":hyp:e:j:" opt; do
+while getopts ":hyp:e:" opt; do
     case $opt in
 	p|e) if [ -z "$OPTARG" ] || [ "${OPTARG:0:1}" = "-" ] ; then
 		     echo "Error: option -$opt requires an argument" >&2
