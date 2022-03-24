@@ -9,7 +9,15 @@ r"""Optical propagator classes.
 
 This module provides classes that model the propagation of a
 monochromatic waveform between two parallel planes in a homogeneous
-medium. The following notation is used throughout the module:
+medium. The corresponding linear operators are referred to here as
+"propagators", which represents a departure from standard terminology,
+in which "propagator" refers specifically to the Fourier domain
+component of the linear operator, i.e. if the full linear operator
+can be written as :math:`F^{-1} D F` where :math:`F` is the Fourier
+transform, then :math:`D` is usually referred to as the propagator.
+
+
+The following notation is used throughout the module:
 
 .. math ::
      \begin{align}
@@ -21,6 +29,11 @@ medium. The following notation is used throughout the module:
      k_0 & \quad \text{Illumination wavenumber corresponding to } 2\pi /
      \text{wavelength} \;.
      \end{align}
+
+Variables :math:`\Delta x, \Delta y, z,` and :math:`k_0` represent
+physical quantities. Any units may be chosen, but they must be consistent
+across all of the variables, e.g. m (metres) for :math:`\Delta x,
+\Delta y, z,` and :math:`\mathrm{m}^{-1}` for :math:`k_0`.
 
 Subscripts :math:`S` and :math:`D` are used to refer to the source and
 destination planes respectively when it is necessary to distinguish
@@ -261,7 +274,7 @@ class AngularSpectrumPropagator(Propagator):
         )
 
         self.phase = jax.device_put(
-            np.exp(1j * z * sqrt(self.k0 ** 2 - self.kp ** 2)).astype(np.complex64)
+            np.exp(1j * z * sqrt(self.k0**2 - self.kp**2)).astype(np.complex64)
         )
         self.D = Diagonal(self.phase)
         self._set_adjoint()
@@ -287,7 +300,7 @@ class AngularSpectrumPropagator(Propagator):
         """
         tmp = []
         for d, N in zip(self.dx, self.padded_shape):
-            tmp.append(d ** 2 > np.pi / (self.k0 * N) * np.sqrt(d ** 2 * N ** 2 + 4 * self.z ** 2))
+            tmp.append(d**2 > np.pi / (self.k0 * N) * np.sqrt(d**2 * N**2 + 4 * self.z**2))
         return np.all(tmp)
 
     def pinv(self, y):
@@ -297,7 +310,7 @@ class AngularSpectrumPropagator(Propagator):
 
 
 class FresnelPropagator(Propagator):
-    r"""Fresnel (near-field) propagator.
+    r"""Fresnel (small-angle/paraxial) propagator.
 
     Propagates a source field with coordinates :math:`(x, y, z_0)` to a
     destination plane at a distance :math:`z` with coordinates
@@ -350,7 +363,7 @@ class FresnelPropagator(Propagator):
         )
 
         self.phase = jax.device_put(
-            np.exp(1j * z * (self.k0 - self.kp ** 2 / (2 * self.k0))).astype(np.complex64)
+            np.exp(1j * z * (self.k0 - self.kp**2 / (2 * self.k0))).astype(np.complex64)
         )
         self.D = Diagonal(self.phase)
 
@@ -376,7 +389,7 @@ class FresnelPropagator(Propagator):
         """
         tmp = []
         for d, N in zip(self.dx, self.padded_shape):
-            tmp.append(d ** 2 > 2 * np.pi * self.z / (self.k0 * N))
+            tmp.append(d**2 > 2 * np.pi * self.z / (self.k0 * N))
         return np.all(tmp)
 
 
@@ -501,7 +514,7 @@ class FraunhoferPropagator(LinearOperator):
         elif ndim == 2:
             self.r2 = np.sqrt(x_D[0][:, None] ** 2 + x_D[1][None, :] ** 2)
 
-        phase = -1j * snp.exp(1j * k0 * z) * snp.exp(1j * 0.5 * k0 / z * self.r2 ** 2)
+        phase = -1j * snp.exp(1j * k0 * z) * snp.exp(1j * 0.5 * k0 / z * self.r2**2)
         phase *= k0 / (2 * np.pi) * np.abs(1 / z)
         phase *= np.prod(dx)  # from approximating continouous FT with DFT
         phase = phase.astype(np.complex64)
@@ -553,5 +566,5 @@ L_D         : {self.L_D}
         """
         tmp = []
         for d, N in zip(self.dx, self.input_shape):
-            tmp.append(d ** 2 > 2 * np.pi * self.z / (self.k0 * N))
+            tmp.append(d**2 > 2 * np.pi * self.z / (self.k0 * N))
         return np.all(tmp)
