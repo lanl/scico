@@ -35,10 +35,11 @@ from ._flax import FlaxMap
 
 
 def bm4d(x: JaxArray, sigma: float):
-    r"""An interface to the BM4D denoiser :cite:`maggioni2012nonlocal`.
+    r"""An interface to the BM4D denoiser :cite:`maggioni-2012-nonlocal`.
 
     BM4D denoising is performed using the
-    `code <https://pypi.org/project/bm4d/>`__.
+    `code <https://pypi.org/project/bm4d/>`__ released by the authors of
+    :cite:`maggioni-2012-nonlocal`.
 
     Args:
         x: Input image.
