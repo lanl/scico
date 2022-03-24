@@ -214,6 +214,7 @@ def test_proj_obj(request):
 class TestProj:
 
     cnstrlist = [functional.NonNegativeIndicator, functional.L2BallIndicator]
+    sdistlist = [functional.SetDistance, functional.SquaredSetDistance]
     alphalist = [1e-2, 1e-1, 1e0, 1e1]
 
     @pytest.mark.parametrize("cnstr", cnstrlist)
@@ -239,28 +240,17 @@ class TestProj:
         u2 = cnsobj.prox(test_proj_obj.v, alpha2)
         assert np.linalg.norm(u1 - u2) / np.linalg.norm(u1) <= 1e-7
 
+    @pytest.mark.parametrize("sdist", sdistlist)
     @pytest.mark.parametrize("cnstr", cnstrlist)
     @pytest.mark.parametrize("alpha", alphalist)
-    def test_setdistance(self, cnstr, alpha, test_proj_obj):
+    def test_setdistance(self, sdist, cnstr, alpha, test_proj_obj):
         if cnstr in NO_COMPLEX and snp.iscomplexobj(test_proj_obj.v):
             return
         cnsobj = cnstr()
         proj = cnsobj.prox
-        sdist = functional.SetDistance(proj)
-        call = sdist.__call__
-        prox = sdist.prox
-        prox_test(test_proj_obj.v, call, prox, alpha)
-
-    @pytest.mark.parametrize("cnstr", cnstrlist)
-    @pytest.mark.parametrize("alpha", alphalist)
-    def test_sqrsetdistance(self, cnstr, alpha, test_proj_obj):
-        if cnstr in NO_COMPLEX and snp.iscomplexobj(test_proj_obj.v):
-            return
-        cnsobj = cnstr()
-        proj = cnsobj.prox
-        sdist = functional.SquaredSetDistance(proj)
-        call = sdist.__call__
-        prox = sdist.prox
+        sdobj = sdist(proj)
+        call = sdobj.__call__
+        prox = sdobj.prox
         prox_test(test_proj_obj.v, call, prox, alpha)
 
 
