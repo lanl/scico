@@ -10,9 +10,12 @@ Image Deconvolution (ADMM Plug-and-Play Priors w/ BM4D)
 
 This example demonstrates the use of class
 [admm.ADMM](../_autosummary/scico.optimize.rst#scico.optimize.ADMM) to
-solve an image deconvolution problem using the Plug-and-Play Priors
+solve a 3D image deconvolution problem using the Plug-and-Play Priors
 framework :cite:`venkatakrishnan-2013-plugandplay2`, using BM4D
 :cite:`maggioni-2012-nonlocal` as a denoiser.
+
+The 3D deconvolution problem is the task of recovering a 3D image
+that has been convolved with a 3D kernel and corrupted by noise.
 """
 
 import numpy as np
@@ -21,7 +24,7 @@ import jax
 
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot, random
-from scico.examples import create_3D_foam_phantom
+from scico.examples import create_3D_foam_phantom, tile_volume_slices
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
@@ -89,13 +92,21 @@ Show the recovered image.
 """
 show_id = Nz // 2
 fig, ax = plot.subplots(nrows=1, ncols=3, figsize=(15, 5))
-plot.imview(x_gt[show_id], title="Ground truth", fig=fig, ax=ax[0])
+plot.imview(tile_volume_slices(x_gt), title="Ground truth", fig=fig, ax=ax[0])
 nc = n // 2
-yc = y[show_id + nc, nc:-nc, nc:-nc]
+yc = y[nc:-nc, nc:-nc, nc:-nc]
 yc = snp.clip(yc, 0, 1)
-plot.imview(yc, title="Blurred, noisy image: %.2f (dB)" % metric.psnr(x_gt, yc), fig=fig, ax=ax[1])
 plot.imview(
-    x[show_id], title="Deconvolved image: %.2f (dB)" % metric.psnr(x_gt, x), fig=fig, ax=ax[2]
+    tile_volume_slices(yc),
+    title="Slices of blurred, noisy volume: %.2f (dB)" % metric.psnr(x_gt, yc),
+    fig=fig,
+    ax=ax[1],
+)
+plot.imview(
+    tile_volume_slices(x),
+    title="Slices of deconvolved volume: %.2f (dB)" % metric.psnr(x_gt, x),
+    fig=fig,
+    ax=ax[2],
 )
 fig.show()
 

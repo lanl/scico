@@ -287,7 +287,7 @@ def create_circular_phantom(
 
     img = snp.zeros(img_shape)
     for r, val in zip(radius_list, val_list):
-        # img[dist_map < r] = val
+        # img[dist_map < r] = val in numpy
         img = img.at[dist_map < r].set(val)
 
     return img
@@ -334,7 +334,7 @@ def create_3D_foam_phantom(
     for c, r in zip(centers, radii):
         dist = snp.sum((x - c) ** 2, axis=-1)
         if snp.mean(im[dist < r ** 2] - c_lo) < 0.01 * c_hi:
-            # im[dist < r**2] = c_hi
+            # im[dist < r**2] = c_hi in numpy
             im = im.at[dist < r ** 2].set(c_hi)
 
     return im
