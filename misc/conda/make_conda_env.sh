@@ -230,5 +230,7 @@ echo "add the following to your .bashrc or .bash_aliases file"
 echo "  export JAX_PLATFORM_NAME=cpu"
 echo "To include GPU support, see instructions at"
 echo "   https://github.com/google/jax#pip-installation-gpu-cuda"
+echo "for additional steps required after running this script and"
+echo "activating the environment created by it."
 
 exit 0
