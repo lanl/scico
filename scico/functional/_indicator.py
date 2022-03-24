@@ -30,7 +30,6 @@ class NonNegativeIndicator(Functional):
         0  & \text{if } x_i \geq 0 \text{ for each } i \\
         \infty  & \text{else} \;.
         \end{cases}
-
     """
 
     has_eval = True
