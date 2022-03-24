@@ -408,7 +408,7 @@ def bisect(
     if range_check and snp.any(snp.sign(fa) == snp.sign(fb)):
         raise ValueError("Initial bisection range does not bracket zero")
 
-    for iter in range(maxiter):
+    for numiter in range(maxiter):
         c = (a + b) / 2.0
         fc = f(*((c,) + args))
         fcs = snp.sign(fc)
@@ -424,10 +424,10 @@ def bisect(
     idx = snp.argmin(snp.stack((snp.abs(fa), snp.abs(fb))), axis=0)
     x = snp.choose(idx, (a, b))
     if full_output:
-        info = {"iter": iter, "xerr": xerr, "ferr": ferr, "a": a, "b": b}
-        return x, info
+        r = x, {"iter": numiter, "xerr": xerr, "ferr": ferr, "a": a, "b": b}
     else:
-        return x
+        r = x
+    return r
 
 
 def golden(
@@ -478,7 +478,7 @@ def golden(
     if c is None:
         c = b - gr * (b - a)
     d = a + gr * (b - a)
-    for iter in range(maxiter):
+    for numiter in range(maxiter):
         fc = f(*((c,) + args))
         fd = f(*((d,) + args))
         b = snp.where(fc < fd, d, b)
@@ -494,7 +494,7 @@ def golden(
     idx = snp.argmin(snp.stack((fa, fb)), axis=0)
     x = snp.choose(idx, (a, b))
     if full_output:
-        r = {"iter": iter, "xerr": xerr}
-        return x, r
+        r = (x, {"iter": numiter, "xerr": xerr})
     else:
-        return x
+        r = x
+    return r
