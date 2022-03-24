@@ -251,6 +251,18 @@ class TestProj:
         prox = sdist.prox
         prox_test(test_proj_obj.v, call, prox, alpha)
 
+    @pytest.mark.parametrize("cnstr", cnstrlist)
+    @pytest.mark.parametrize("alpha", alphalist)
+    def test_sqrsetdistance(self, cnstr, alpha, test_proj_obj):
+        if cnstr in NO_COMPLEX and snp.iscomplexobj(test_proj_obj.v):
+            return
+        cnsobj = cnstr()
+        proj = cnsobj.prox
+        sdist = functional.SquaredSetDistance(proj)
+        call = sdist.__call__
+        prox = sdist.prox
+        prox_test(test_proj_obj.v, call, prox, alpha)
+
 
 class TestCheckAttrs:
     # Ensure that the has_eval, has_prox attrs are overridden
