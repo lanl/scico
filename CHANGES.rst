@@ -14,6 +14,7 @@ Version 0.0.3   (unreleased)
 • Add function ``linop.linop_from_function`` for constructing linear
   operators from functions.
 • Add support for addition of functionals.
+• Add interface to BM4D denoiser.
 
 
 
