@@ -57,11 +57,10 @@ class NonNegativeIndicator(Functional):
             \end{cases}
 
         Args:
-            v : Input array :math:`\mb{v}`.
-            lam : Proximal parameter :math:`\lambda` (has no effect).
+            v: Input array :math:`\mb{v}`.
+            lam: Proximal parameter :math:`\lambda` (has no effect).
             kwargs: Additional arguments that may be used by derived
                 classes.
-
         """
         return snp.maximum(v, 0)
 
@@ -107,6 +106,5 @@ class L2BallIndicator(Functional):
 
         .. math::
             \mathrm{prox}_{\lambda I_r}(\mb{v}) = r \frac{\mb{v}}{\norm{\mb{v}}_2}\;.
-
         """
         return self.radius * v / norm(v)
