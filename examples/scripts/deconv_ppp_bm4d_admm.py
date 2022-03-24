@@ -12,7 +12,7 @@ This example demonstrates the use of class
 [admm.ADMM](../_autosummary/scico.optimize.rst#scico.optimize.ADMM) to
 solve an image deconvolution problem using the Plug-and-Play Priors
 framework :cite:`venkatakrishnan-2013-plugandplay2`, using BM4D
-:cite:`dabov-2008-image` as a denoiser.
+:cite:`maggioni-2012-nonlocal` as a denoiser.
 """
 
 import numpy as np
@@ -21,7 +21,7 @@ import jax
 
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot, random
-from scico.examples import create_3D_phantom_foam
+from scico.examples import create_3D_foam_phantom
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
@@ -32,7 +32,7 @@ np.random.seed(1234)
 Nx = 128
 Ny = 128
 Nz = 128
-x_gt = create_3D_phantom_foam((Nz, Ny, Nx), N_sphere=100)
+x_gt = create_3D_foam_phantom((Nz, Ny, Nx), N_sphere=100)
 x_gt = jax.device_put(x_gt)  # convert to jax array, push to GPU
 
 
