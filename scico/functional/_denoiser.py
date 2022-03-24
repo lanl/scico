@@ -17,7 +17,7 @@ class BM4D(Functional):
     r"""Pseudo-functional whose prox applies the BM4D denoising algorithm.
 
     A pseudo-functional that has the BM4D algorithm
-    :cite:`maggioni2012nonlocal` as its proximal operator, which calls
+    :cite:`maggioni-2012-nonlocal` as its proximal operator, which calls
     :func:`.denoiser.bm4d`.
     """
 
