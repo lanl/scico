@@ -21,23 +21,17 @@ fi
 
 
 SCRIPT=$(basename $0)
+REPOPATH=$(realpath $(dirname $0))
 USAGE=$(cat <<-EOF
-Usage: $SCRIPT [-h] [-y] [-g] [-p python_version] [-c cuda_version]
-       [-e env_name] [-j jaxlib_url]
+Usage: $SCRIPT [-h] [-y] [-g] [-p python_version] [-e env_name]
           [-h] Display usage information
           [-y] Do not ask for confirmation
-          [-g] Install jaxlib with GPU support
-          [-c] CUDA version without decimals (e.g. specify 11.0 as 110)
-          [-p python_version] Specify Python version (e.g. 3.8)
+          [-p python_version] Specify Python version (e.g. 3.9)
           [-e env_name] Specify conda environment name
-          [-j jaxlib_url] Specify URL for jaxlib pip install
 EOF
 )
 
-JAXURL=https://storage.googleapis.com/jax-releases/jax_releases.html
 AGREE=no
-GPU=no
-CUVER=""
 PYVER="3.9"
 ENVNM=py$(echo $PYVER | sed -e 's/\.//g')
 
@@ -58,9 +52,9 @@ EOF
 
 
 OPTIND=1
-while getopts ":hygc:p:e:j:" opt; do
+while getopts ":hyp:e:" opt; do
     case $opt in
-	c|p|e|j) if [ -z "$OPTARG" ] || [ "${OPTARG:0:1}" = "-" ] ; then
+	p|e) if [ -z "$OPTARG" ] || [ "${OPTARG:0:1}" = "-" ] ; then
 		     echo "Error: option -$opt requires an argument" >&2
 		     echo "$USAGE" >&2
 		     exit 2
@@ -68,11 +62,8 @@ while getopts ":hygc:p:e:j:" opt; do
 		 ;;&
 	h) echo "$USAGE"; exit 0;;
 	y) AGREE=yes;;
-	g) GPU=yes;;
-	c) CUVER=$OPTARG;;
 	p) PYVER=$OPTARG;;
 	e) ENVNM=$OPTARG;;
-	j) JAXURL=$OPTARG;;
 	:) echo "Error: option -$OPTARG requires an argument" >&2
            echo "$USAGE" >&2
            exit 2
@@ -127,25 +118,16 @@ if [ "$OS" == "Darwin" ]; then
     fi
 fi
 
-if [ "$GPU" == "yes" ] && [ "$CUVER" == "" ]; then
-    if [ "$(which nvcc)" == "" ]; then
-	echo "Error: GPU-enabled jaxlib requested but CUDA version not"\
-             "specified and could not be automatically determined" >&2
-	exit 9
-    else
-	CUVER=$(nvcc --version | grep -o 'release [0-9][0-9]*\.[[0-9][0-9]*' \
-                    | sed -e 's/release //' -e 's/\.//')
-    fi
-fi
-
-JLVER=$($SED -n 's/^jaxlib==\([0-9\.]\)/\1/p' requirements.txt)
-JXVER=$($SED -n 's/^jax==\([0-9\.]\)/\1/p' requirements.txt)
+JLVER=$($SED -n 's/^jaxlib>=\([0-9\.]*\).*/\1/p' \
+	     $REPOPATH/../../requirements.txt)
+JXVER=$($SED -n 's/^jax>=\([0-9\.]*\).*/\1/p' \
+	     $REPOPATH/../../requirements.txt)
 
 CONDAHOME=$(conda info --base)
 ENVDIR=$CONDAHOME/envs/$ENVNM
 if [ -d "$ENVDIR" ]; then
     echo "Error: environment $ENVNM already exists"
-    exit 10
+    exit 9
 fi
 
 if [ "$AGREE" == "no" ]; then
@@ -154,7 +136,7 @@ if [ "$AGREE" == "no" ]; then
     read -r -p "$RSTR" CNFRM
     if [ "$CNFRM" != 'y' ] && [ "$CNFRM" != 'Y' ]; then
 	echo "Cancelling environment creation"
-	exit 11
+	exit 10
     fi
 else
     echo "Creating conda environment $ENVNM with Python $PYVER"
@@ -172,7 +154,6 @@ if [ "$OS" == "Darwin" ]; then
 else
     ALLREQUIRE=$(mktemp -t condaenv_XXXXXX.txt)
 fi
-REPOPATH=$(realpath $(dirname $0))
 for req in $REQUIRE; do
     pthreq="$REPOPATH/../../$req"
     cat $pthreq >> $ALLREQUIRE
@@ -223,21 +204,8 @@ if [ "$(which ffmpeg)" = '' ]; then
     conda install $CONDA_FLAGS ffmpeg
 fi
 
-# Install jaxlib and jax, with jaxlib version depending on requested
-# GPU support
-if [ "$GPU" == "yes" ]; then
-    pip install --upgrade jax==$JXVER jaxlib==$JLVER+cuda$CUVER -f $JAXURL
-    retval=$?
-    if [ $retval -ne 0 ]; then
-        echo "Error: jaxlib installation failed"
-	exit 12
-    fi
-else
-    pip install --upgrade jaxlib==$JLVER jax==$JXVER
-    echo "Jax installed without GPU support. To avoid warning messages,"
-    echo "add the following to your .bashrc or .bash_aliases file"
-    echo "  export JAX_PLATFORM_NAME=cpu"
-fi
+# Install jaxlib and jax
+pip install --upgrade jaxlib==$JLVER jax==$JXVER
 
 # Install other packages that require installation via pip
 pip install $NOCONDA
@@ -251,9 +219,18 @@ if [ "$(which dpkg 2>/dev/null)" ]; then
     fi
 fi
 
+echo
 echo "Activate the conda environment with the command"
 echo "  conda activate $ENVNM"
 echo "The environment can be deactivated with the command"
 echo "  conda deactivate"
+echo
+echo "Jax installed without GPU support. To avoid warning messages,"
+echo "add the following to your .bashrc or .bash_aliases file"
+echo "  export JAX_PLATFORM_NAME=cpu"
+echo "To include GPU support, see instructions at"
+echo "   https://github.com/google/jax#pip-installation-gpu-cuda"
+echo "for additional steps required after running this script and"
+echo "activating the environment created by it."
 
 exit 0
