@@ -90,7 +90,7 @@ hist = solver.itstat_object.history(transpose=True)
 
 
 """
-Show the recovered image.
+Show slices of the recovered 3D volume.
 """
 show_id = Nz // 2
 fig, ax = plot.subplots(nrows=1, ncols=3, figsize=(15, 5))
