@@ -73,7 +73,10 @@ class IterateData:
         reshuffles the batches when the data is
         exhausted."""
         if self.ns >= self.steps_per_epoch:
-            self.reset()
+            if self.train:
+                self.reset()
+            else:
+                self.ns = 0
         batch = {k: v[self.perms[self.ns], ...] for k, v in self.dt.items()}
         self.ns += 1
         return batch
