@@ -6,5 +6,6 @@ jaxlib>=0.3.0,<=0.3.2
 jax>=0.3.0,<=0.3.4
 flax>=0.4.0
 bm3d
+bm4d
 svmbir>=0.2.7
 pyabel>=0.8.5

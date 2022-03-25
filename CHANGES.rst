@@ -16,6 +16,7 @@ Version 0.0.3   (unreleased)
 • Add support for addition of functionals.
 • Additional solvers in ``scico.solver``.
 • New Huber norm and set distance functionals.
+• Add interface to BM4D denoiser.
 
 
 

@@ -13,8 +13,8 @@ import sys
 from ._functional import Functional, ScaledFunctional, SeparableFunctional, ZeroFunctional
 from ._norm import HuberNorm, L0Norm, L1Norm, SquaredL2Norm, L2Norm, L21Norm, NuclearNorm
 from ._indicator import NonNegativeIndicator, L2BallIndicator
+from ._denoiser import BM3D, BM4D, DnCNN
 from ._dist import SetDistance, SquaredSetDistance
-from ._denoiser import BM3D, DnCNN
 
 
 __all__ = [
@@ -34,6 +34,7 @@ __all__ = [
     "SetDistance",
     "SquaredSetDistance",
     "BM3D",
+    "BM4D",
     "DnCNN",
 ]
 
