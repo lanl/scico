@@ -10,6 +10,7 @@ from scico.flax.train.input_pipeline import prepare_data, IterateData
 from scico.flax.train.train import (
     create_cnst_lr_schedule,
     create_cosine_lr_schedule,
+    create_exp_lr_schedule,
     TrainState,
     compute_metrics,
     mse_loss,
@@ -61,6 +62,7 @@ class SetupTest:
             "batch_size": 16,
             "num_epochs": 2,
             "base_learning_rate": 1e-3,
+            "lr_decay_rate": 0.95,
             "warmup_epochs": 0,
             "num_train_steps": -1,
             "steps_per_eval": -1,
@@ -160,6 +162,15 @@ def test_cos_learning_rate(testobj):
     decay_steps = testobj.dconf["num_epochs"] - testobj.dconf["warmup_epochs"]
     cosine_decay = 0.5 * (1 + np.cos(np.pi * step / decay_steps))
     np.testing.assert_allclose(lr, testobj.dconf["base_learning_rate"] * cosine_decay, rtol=1e-06)
+
+
+def test_exp_learning_rate(testobj):
+    step = 1
+    sch = create_exp_lr_schedule(testobj.dconf)
+    lr = sch(step)
+    exp_decay = testobj.dconf["lr_decay_rate"] ** float(step / testobj.dconf["num_epochs"])
+
+    np.testing.assert_allclose(lr, testobj.dconf["base_learning_rate"] * exp_decay, rtol=1e-06)
 
 
 @pytest.mark.parametrize("opt_type", ["SGD", "ADAM", "ADAMW"])

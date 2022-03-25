@@ -56,6 +56,7 @@ class ConfigDict(TypedDict):
     batch_size: int
     num_epochs: int
     base_learning_rate: float
+    lr_decay_rate: float
     warmup_epochs: int
     num_train_steps: int
     steps_per_eval: int
@@ -122,6 +123,24 @@ def create_cnst_lr_schedule(config: ConfigDict) -> optax._src.base.Schedule:
         schedule: A function that maps step counts to values.
     """
     schedule = optax.constant_schedule(config["base_learning_rate"])
+    return schedule
+
+
+def create_exp_lr_schedule(config: ConfigDict) -> optax._src.base.Schedule:
+    """Create learning rate schedule to have an exponential decay.
+
+    Args:
+        config: Dictionary of configuration. The values
+           to use corresponds to the `base_learning_rate`
+           , `num_epochs`, `steps_per_epochs` and `lr_decay_rate`.
+
+    Returns:
+        schedule: A function that maps step counts to values.
+    """
+    decay_steps = config["num_epochs"] * config["steps_per_epoch"]
+    schedule = optax.exponential_decay(
+        config["base_learning_rate"], decay_steps, config["lr_decay_rate"]
+    )
     return schedule
 
 
