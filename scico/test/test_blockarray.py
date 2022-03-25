@@ -41,7 +41,7 @@ class OperatorsTestObj:
         self.c = ba.BlockArray.array((c0,))
 
         # A flat device array with same size as self.a & self.b
-        self.flat_da, key = randn(shape=(self.a.size,), dtype=dtype, key=key)
+        self.flat_da, key = randn(shape=self.a.size, dtype=dtype, key=key)
         self.flat_nd = np.array(self.flat_da)
 
         # A device array with length == self.a.num_blocks
@@ -227,6 +227,9 @@ def test_getitem(test_operator_obj):
     np.testing.assert_allclose(x[-1], b1)
 
 
+@pytest.mark.skip()
+# this is indexing block dimension and internal dimensions simultaneously
+# supporting it adds complexity, are we okay with just x[0][1:3] instead of x[0, 1:3]?
 @pytest.mark.parametrize("index", (np.s_[0, 0], np.s_[0, 1:3], np.s_[0, :, 0:2], np.s_[0, ..., 2:]))
 def test_getitem_tuple(test_operator_obj, index):
     a = test_operator_obj.a
@@ -234,6 +237,8 @@ def test_getitem_tuple(test_operator_obj, index):
     np.testing.assert_allclose(a[index], a0[index[1:]])
 
 
+@pytest.mark.skip()
+# `.blockidx` was an index into the underlying 1D array that no longer exists
 def test_blockidx(test_operator_obj):
     a = test_operator_obj.a
     a0 = test_operator_obj.a0
@@ -248,9 +253,8 @@ def test_blockidx(test_operator_obj):
 
 def test_split(test_operator_obj):
     a = test_operator_obj.a
-    a_split = a.split
-    np.testing.assert_allclose(a_split[0], test_operator_obj.a0)
-    np.testing.assert_allclose(a_split[1], test_operator_obj.a1)
+    np.testing.assert_allclose(a[0], test_operator_obj.a0)
+    np.testing.assert_allclose(a[1], test_operator_obj.a1)
 
 
 def test_blockarray_from_one_array():
@@ -526,7 +530,7 @@ def test_nested_shape(nested_obj):
     np.testing.assert_allclose(a[1].ravel(), a1.ravel())
 
     # basic test for block_sizes
-    assert ba.block_sizes(a.shape) == (a[0].size, a[1].size)
+    assert a.shape == (a[0].size, a[1].size)
 
 
 NESTED_REDUCTION_PARAMS = dict(

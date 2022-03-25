@@ -15,20 +15,34 @@ r"""Extensions of numpy ndarray class.
    >>> import numpy as np
    >>> import jax.numpy
 
-The class :class:`.BlockArray` is a `jagged array
-<https://en.wikipedia.org/wiki/Jagged_array>`_ that aims to mimic the
-:class:`numpy.ndarray` interface where appropriate.
+The class :class:`.BlockArray` provides a way to combine several arrays
+of different shapes and/or data types into a single object.
+A :class:`.BlockArray` consists of a tuple of `DeviceArray`
+objects, which we refer to as blocks.
+:class:`.BlockArray`s differ from tuples in that mathematical operations
+on :class:`.BlockArray`s automatically map along the blocks, returning
+another :class:`.BlockArray` or tuple as appropriate. For example,
 
-A :class:`.BlockArray` object consists of a tuple of `DeviceArray`
-objects that share their memory buffers with non-overlapping, contiguous
-regions of a common one-dimensional `DeviceArray`. A :class:`.BlockArray`
-contains the following size attributes:
+  ::
 
-* `shape`:  A tuple of tuples containing component dimensions.
-* `size`: The sum of the size of each component block; this is the length
-  of the underlying one-dimensional `DeviceArray`.
-* `num_blocks`: The number of components (blocks) that comprise the
-  :class:`.BlockArray`.
+    >>> x = BlockArray((
+            snp.array(
+                [[1, 3, 7],
+                 [2, 2, 1],]
+            ),
+            snp.array(
+                [2, 4, 8]
+            ),
+    ))
+    >>> x.shape
+    ((2, 3), (3,))  # tuple
+
+    >>> x + 1
+    (DeviceArray([[2, 4, 8],
+                  [3, 3, 2]], dtype=int32),
+     DeviceArray([3, 5, 9], dtype=int32))  # BlockArray
+
+
 
 
 Motivating Example
@@ -455,6 +469,8 @@ import jax.numpy as jnp
 
 from jaxlib.xla_extension import DeviceArray
 
+import scico.numpy as snp
+
 
 class BlockArray(tuple):
     """BlockArray"""
@@ -463,11 +479,6 @@ class BlockArray(tuple):
     # operations of the form op(np.ndarray, BlockArray) See
     # https://docs.scipy.org/doc/numpy-1.10.1/user/c-info.beyond-basics.html#ndarray.__array_priority__
     __array_priority__ = 1
-
-    @property
-    def size(self) -> int:
-        """Total number of elements in the array."""
-        return sum(x_i.size for x_i in self)
 
     def ravel(self) -> DeviceArray:
         """Return a copy of ``self._data`` as a contiguous, flattened `DeviceArray`.
@@ -497,7 +508,7 @@ jax.tree_util.register_pytree_node(
     lambda _, xs: BlockArray(xs),  # from iter
 )
 
-""" wrap binary ops like +, @ """
+""" Wrap binary ops like +, @. """
 binary_ops = (
     "__add__",
     "__radd__",
@@ -522,23 +533,23 @@ binary_ops = (
 )
 
 
-def _binary_op_wrapper(func):
-    @wraps(func)
-    def func_ba(self, other):
+def _binary_op_wrapper(op):
+    @wraps(op)
+    def op_ba(self, other):
         if isinstance(other, BlockArray):
-            result = BlockArray(map(func, self, other))
+            result = BlockArray(getattr(x, op)(y) for x, y in zip(self, other))
         else:
-            result = BlockArray(map(lambda self_n: func(self_n, other), self))
+            result = BlockArray(getattr(x, op)(other) for x in self)
         if NotImplemented in result:
             return NotImplemented
         else:
             return result
 
-    return func_ba
+    return op_ba
 
 
 for op in binary_ops:
-    setattr(BlockArray, op, _binary_op_wrapper(getattr(DeviceArray, op)))
+    setattr(BlockArray, op, _binary_op_wrapper(op))
 
 
 """ wrap blockwise DeviceArray methods, like conj """
@@ -546,34 +557,41 @@ for op in binary_ops:
 da_methods = ("conj",)
 
 
-def _da_method_wrapper(func):
-    @wraps(func)
-    def func_ba(self):
-        return BlockArray(map(func, self))
+def _da_method_wrapper(method):
+    @wraps(method)
+    def method_ba(self):
+        return BlockArray(map(method, self))
 
-    return func_ba
+    return method_ba
 
 
-for meth in da_methods:
-    setattr(BlockArray, meth, _da_method_wrapper(getattr(DeviceArray, meth)))
+for method in da_methods:
+    setattr(BlockArray, method, _da_method_wrapper(getattr(DeviceArray, method)))
 
-""" wrap blockwise DeviceArray properties, like real """
+
+""" Wrap DeviceArray methods and properties that are implemented in jnp so that they call snp. """
+
+
+def _da_method_wrapper(method, is_property=False):
+    def method_ba(self, *args, **kwargs):
+        return getattr(snp, method)(self, *args, **kwargs)
+
+    if is_property:
+        return property(method_ba)
+    return method_ba
+
 
 da_props = (
     "real",
     "imag",
+    "size",
     "shape",
     "ndim",
 )
-
-
-def _da_prop_wrapper(prop):
-    @property
-    def prop_ba(self):
-        return BlockArray((getattr(x, prop) for x in self))
-
-    return prop_ba
-
-
 for prop in da_props:
-    setattr(BlockArray, prop, _da_prop_wrapper(prop))
+    setattr(BlockArray, prop, _da_method_wrapper(prop, is_property=True))
+
+
+da_methods = ("sum",)
+for method in da_methods:
+    setattr(BlockArray, method, _da_method_wrapper(method))

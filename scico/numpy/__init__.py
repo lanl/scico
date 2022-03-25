@@ -15,6 +15,7 @@ wrapped. Functions that have not been wrapped yet have WARNING text in
 their documentation, below.
 """
 
+
 import sys
 from functools import wraps
 
@@ -27,8 +28,8 @@ from scico.array import is_nested
 
 # These functions rely on the definition of a BlockArray and must be in
 # scico.blockarray to avoid a circular import
+from scico.blockarray import BlockArray, da_methods, da_props
 from scico.blockarray_old import (
-    BlockArray,
     _block_array_matmul_wrapper,
     _block_array_reduction_wrapper,
     _block_array_ufunc_wrapper,
@@ -165,3 +166,46 @@ _attach_wrapped_func(
 # these must be imported towards the end to avoid a circular import with
 # linalg and _matrixop
 from . import fft, linalg
+
+""" new code, everything above should eventually go. """
+import inspect
+
+""" Make functions that map over BlockArray arguments"""
+jnp_funcs_to_map = da_props + da_methods
+jnp_funcs_to_map += ("dot",)
+
+
+def _map_func_over_ba(func):
+    """Create a version of `func` that maps over all of its BlockArray
+    arguments."""
+
+    @wraps(func)
+    def mapped(*args, **kwargs):
+        bound_args = inspect.signature(func).bind(*args, **kwargs)
+
+        ba_args = {}
+        for k, v in list(bound_args.arguments.items()):
+            if isinstance(v, BlockArray):
+                ba_args[k] = bound_args.arguments.pop(k)
+
+        if len(ba_args):  # if any BlockArray arguments,
+            return BlockArray(
+                map(  # map over
+                    lambda *args: (  # lambda x_1, x_2, ..., x_N
+                        func(
+                            *bound_args.args,
+                            **bound_args.kwargs,  # ... nonBlockArray args
+                            **dict(zip(ba_args.keys(), args)),
+                        )  # plus dict of block args
+                    ),
+                    *ba_args.values(),  # map(f, ba_1, ba_2, ..., ba_N)
+                )
+            )
+        else:
+            return func(*args, **kwargs)
+
+    return mapped
+
+
+for func in jnp_funcs_to_map:
+    vars()[func] = _map_func_over_ba(getattr(jnp, func))
