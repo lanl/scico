@@ -287,7 +287,7 @@ def create_circular_phantom(
 
     img = snp.zeros(img_shape)
     for r, val in zip(radius_list, val_list):
-        # img[dist_map < r] = val in numpy
+        # In numpy: img[dist_map < r] = val
         img = img.at[dist_map < r].set(val)
 
     return img
@@ -312,8 +312,8 @@ def create_3D_foam_phantom(
                 along each axis). Default 0.001.
         pad: Padding length (normalized to 1 along each axis). Default 0.01.
         is_random: Flag used to controll randomness of phantom generation.
-                If `False`, random seed is set to 1 in order to make the
-                process deterministic. Default `False`.
+                If ``False``, random seed is set to 1 in order to make the
+                process deterministic. Default ``False``.
 
     Returns:
         3D phantom of shape im_shape
@@ -334,7 +334,7 @@ def create_3D_foam_phantom(
     for c, r in zip(centers, radii):
         dist = snp.sum((x - c) ** 2, axis=-1)
         if snp.mean(im[dist < r ** 2] - c_lo) < 0.01 * c_hi:
-            # im[dist < r**2] = c_hi in numpy
+            # In numpy: im[dist < r**2] = c_hi
             im = im.at[dist < r ** 2].set(c_hi)
 
     return im
