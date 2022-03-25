@@ -19,6 +19,13 @@ except ImportError:
 else:
     have_bm3d = True
 
+try:
+    import bm4d as tunibm4d
+except ImportError:
+    have_bm4d = False
+else:
+    have_bm4d = True
+
 import scico.numpy as snp
 from scico._flax import DnCNNNet, load_weights
 from scico.data import _flax_data_path
@@ -35,7 +42,11 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
     :cite:`makinen-2019-exact`.
 
     Args:
-        x: Input image.
+        x: Input image. Expected to be a 2D array (gray-scale denoising)
+            or 3D array (color denoising). Higher dimensional arrays are
+            tolerated only if the additional dimensions are singletons.
+            For color denoising, the color channel is assumed to be in the
+            last non-singleton dimension.
         sigma: Noise parameter.
         is_rgb: Flag indicating use of BM3D with a color transform.
             Default: ``False``.
@@ -59,8 +70,7 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
 
     if isinstance(x.ndim, tuple) or x.ndim < 2:
         raise ValueError(
-            "BM3D requires two dimensional (M, N) or three dimensional (M, N, C)"
-            f" inputs; got ndim = {x.ndim}"
+            "BM3D requires two dimensional or three dimensional inputs;" f" got ndim = {x.ndim}"
         )
 
     # This check is also performed inside the BM3D call, but due to the host_callback,
@@ -83,6 +93,63 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
             )
 
     y = hcb.call(lambda args: bm3d_eval(*args).astype(x.dtype), (x, sigma), result_shape=x)
+
+    # undo squeezing, if neccessary
+    y = y.reshape(x_in_shape)
+
+    return y
+
+
+def bm4d(x: JaxArray, sigma: float):
+    r"""An interface to the BM4D denoiser :cite:`maggioni-2012-nonlocal`.
+
+    BM4D denoising is performed using the
+    `code <https://pypi.org/project/bm4d/>`__ released by the authors of
+    :cite:`maggioni-2012-nonlocal`.
+
+    Args:
+        x: Input image. Expected to be a 3D array. Higher dimensional
+            arrays are tolerated only if the additional dimensions are
+            singletons.
+        sigma: Noise parameter.
+
+    Returns:
+        Denoised output.
+    """
+    if not have_bm4d:
+        raise RuntimeError("Package bm4d is required for use of this function.")
+
+    bm4d_eval = tunibm4d.bm4d
+
+    if np.iscomplexobj(x):
+        raise TypeError(f"BM4D requires real-valued inputs, got {x.dtype}")
+
+    # Support arrays with more than three axes when the additional axes are singletons.
+    x_in_shape = x.shape
+
+    if isinstance(x.ndim, tuple) or x.ndim < 3:
+        raise ValueError(f"BM4D requires three dimensional inputs; got ndim = {x.ndim}")
+
+    # This check is also performed inside the BM4D call, but due to the host_callback,
+    # no exception is raised and the program will crash with no traceback.
+    # NOTE: if BM4D is extended to allow for different profiles, the block size must be
+    #       updated; this presumes 'np' profile (bs=8)
+    if np.min(x.shape[:3]) < 8:
+        raise ValueError(
+            "Three leading dimensions of input cannot be smaller than block size "
+            f"(8); got image size = {x.shape}"
+        )
+
+    if x.ndim > 3:
+        if all(k == 1 for k in x.shape[3:]):
+            x = x.squeeze()
+        else:
+            raise ValueError(
+                "Arrays with more than three axes are only supported when "
+                " the additional axes are singletons"
+            )
+
+    y = hcb.call(lambda args: bm4d_eval(*args).astype(x.dtype), (x, sigma), result_shape=x)
 
     # undo squeezing, if neccessary
     y = y.reshape(x_in_shape)

@@ -8,8 +8,8 @@ import scico
 import scico.numpy as snp
 from scico.linop import Diagonal
 from scico.loss import SquaredL2Loss
+from scico.test.functional.prox import prox_test
 from scico.test.linop.test_linop import adjoint_test
-from scico.test.prox import prox_test
 
 try:
     import svmbir
@@ -23,8 +23,8 @@ except ImportError as e:
     pytest.skip("svmbir not installed", allow_module_level=True)
 
 
-BIG_INPUT = (128, 129, 200, 201, 500, 1.5)
-SMALL_INPUT = (4, 5, 7, 8, 16, 1.5)
+BIG_INPUT = (128, 129, 200, 201, 500, 1.2)
+SMALL_INPUT = (4, 5, 7, 8, 16, 1.2)
 
 BIG_INPUT_OFFSET_RANGE = (0, 0.3, 3)
 SMALL_INPUT_OFFSET_RANGE = (0, 0.01, 0.1)
@@ -93,7 +93,16 @@ def test_grad(
     magnification,
 ):
     im = make_im(Nx, Ny, is_3d)
-    A = make_A(im, num_angles, num_channels, center_offset, is_masked)
+    A = make_A(
+        im,
+        num_angles,
+        num_channels,
+        center_offset,
+        is_masked,
+        geometry=geometry,
+        dist_source_detector=dist_source_detector,
+        magnification=magnification,
+    )
 
     def f(im):
         return snp.sum(A._eval(im) ** 2)
@@ -124,7 +133,16 @@ def test_adjoint(
     magnification,
 ):
     im = make_im(Nx, Ny, is_3d)
-    A = make_A(im, num_angles, num_channels, center_offset, is_masked)
+    A = make_A(
+        im,
+        num_angles,
+        num_channels,
+        center_offset,
+        is_masked,
+        geometry=geometry,
+        dist_source_detector=dist_source_detector,
+        magnification=magnification,
+    )
 
     adjoint_test(A)
 
@@ -150,7 +168,16 @@ def test_prox(
 ):
 
     im = make_im(Nx, Ny, is_3d)
-    A = make_A(im, num_angles, num_channels, center_offset, is_masked)
+    A = make_A(
+        im,
+        num_angles,
+        num_channels,
+        center_offset,
+        is_masked,
+        geometry=geometry,
+        dist_source_detector=dist_source_detector,
+        magnification=magnification,
+    )
 
     sino = A @ im
 
@@ -185,7 +212,16 @@ def test_prox_weights(
 ):
 
     im = make_im(Nx, Ny, is_3d)
-    A = make_A(im, num_angles, num_channels, center_offset, is_masked)
+    A = make_A(
+        im,
+        num_angles,
+        num_channels,
+        center_offset,
+        is_masked,
+        geometry=geometry,
+        dist_source_detector=dist_source_detector,
+        magnification=magnification,
+    )
 
     sino = A @ im
 
@@ -226,7 +262,16 @@ def test_prox_cg(
 ):
 
     im = make_im(Nx, Ny, is_3d=is_3d) / Nx * 10
-    A = make_A(im, num_angles, num_channels, center_offset, is_masked=is_masked)
+    A = make_A(
+        im,
+        num_angles,
+        num_channels,
+        center_offset,
+        is_masked=is_masked,
+        geometry=geometry,
+        dist_source_detector=dist_source_detector,
+        magnification=magnification,
+    )
     y = A @ im
 
     A_colsum = A.H @ snp.ones(y.shape)  # backproject ones to get sum over cols of A
@@ -279,7 +324,16 @@ def test_approx_prox(
     magnification,
 ):
     im = make_im(Nx, Ny, is_3d)
-    A = make_A(im, num_angles, num_channels, center_offset, is_masked)
+    A = make_A(
+        im,
+        num_angles,
+        num_channels,
+        center_offset,
+        is_masked,
+        geometry=geometry,
+        dist_source_detector=dist_source_detector,
+        magnification=magnification,
+    )
 
     y = A @ im
 
