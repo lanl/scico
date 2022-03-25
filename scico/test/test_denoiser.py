@@ -14,10 +14,12 @@ class TestBM4D:
         key = None
         self.x1, key = randn((32, 33, 34), key=key, dtype=np.float32)
         self.x2, key = randn((32, 33, 10), key=key, dtype=np.float32)
+        self.x3, key = randn((32, 33, 10, 1, 1), key=key, dtype=np.float32)
 
     def test_shape(self):
         assert bm4d(self.x1, 1.0).shape == self.x1.shape
         assert bm4d(self.x2, 1.0).shape == self.x2.shape
+        assert bm4d(self.x3, 1.0).shape == self.x3.shape
 
     def test_jit(self):
         no_jit = bm4d(self.x1, 1.0)
