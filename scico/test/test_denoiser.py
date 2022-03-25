@@ -12,14 +12,22 @@ from scico.random import randn
 class TestBM4D:
     def setup(self):
         key = None
-        self.x_gry, key = randn((32, 33, 34), key=key, dtype=np.float32)
+        self.x1, key = randn((32, 33, 34), key=key, dtype=np.float32)
+        self.x2, key = randn((32, 33, 10), key=key, dtype=np.float32)
 
     def test_shape(self):
-        assert bm4d(self.x_gry, 1.0).shape == self.x_gry.shape
+        assert bm4d(self.x1, 1.0).shape == self.x1.shape
+        assert bm4d(self.x2, 1.0).shape == self.x2.shape
 
-    def test_gry(self):
-        no_jit = bm4d(self.x_gry, 1.0)
-        jitted = jax.jit(bm4d)(self.x_gry, 1.0)
+    def test_jit(self):
+        no_jit = bm4d(self.x1, 1.0)
+        jitted = jax.jit(bm4d)(self.x1, 1.0)
+        np.testing.assert_allclose(no_jit, jitted, rtol=1e-3)
+        assert no_jit.dtype == np.float32
+        assert jitted.dtype == np.float32
+
+        no_jit = bm4d(self.x2, 1.0)
+        jitted = jax.jit(bm4d)(self.x2, 1.0)
         np.testing.assert_allclose(no_jit, jitted, rtol=1e-3)
         assert no_jit.dtype == np.float32
         assert jitted.dtype == np.float32
