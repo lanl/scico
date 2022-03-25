@@ -204,3 +204,30 @@ def test_split_join_blockarray():
     x_j = solver._join_real_imag(x_s)
     assert x_j.shape == x.shape
     np.testing.assert_allclose(x_j.ravel(), x.ravel(), rtol=1e-4)
+
+
+def test_bisect():
+    f = lambda x: x ** 3
+    x, info = solver.bisect(f, -snp.ones((5, 1)), snp.ones((5, 1)), full_output=True)
+    assert snp.sum(snp.abs(x)) == 0.0
+    assert info["iter"] == 0
+    x = solver.bisect(f, -2.0 * snp.ones((5, 3)), snp.ones((5, 3)), xtol=1e-5, ftol=1e-5)
+    assert snp.max(snp.abs(x)) <= 1e-5
+    assert snp.max(snp.abs(f(x))) <= 1e-5
+    c, key = random.randn((5, 1), dtype=np.float32)
+    f = lambda x, c: x ** 3 - c ** 3
+    x = solver.bisect(f, -snp.abs(c) - 1, snp.abs(c) + 1, args=(c,), xtol=1e-5, ftol=1e-5)
+    assert snp.max(snp.abs(x - c)) <= 1e-5
+    assert snp.max(snp.abs(f(x, c))) <= 1e-5
+
+
+def test_golden():
+    f = lambda x: x ** 2
+    x, info = solver.golden(f, -snp.ones((5, 1)), snp.ones((5, 1)), full_output=True)
+    assert snp.max(snp.abs(x)) <= 1e-7
+    x = solver.golden(f, -2.0 * snp.ones((5, 3)), snp.ones((5, 3)), xtol=1e-5)
+    assert snp.max(snp.abs(x)) <= 1e-5
+    c, key = random.randn((5, 1), dtype=np.float32)
+    f = lambda x, c: (x - c) ** 2
+    x = solver.golden(f, -snp.abs(c) - 1, snp.abs(c) + 1, args=(c,), xtol=1e-5)
+    assert snp.max(snp.abs(x - c)) <= 1e-5
