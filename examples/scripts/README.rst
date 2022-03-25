@@ -38,6 +38,8 @@ Deconvolution
       Image Deconvolution (ADMM Plug-and-Play Priors w/ BM3D)
    `deconv_ppp_bm3d_pgm.py <deconv_ppp_bm3d_pgm.py>`_
       Image Deconvolution (PGM Plug-and-Play Priors w/ BM3D)
+   `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
+      Image Deconvolution (ADMM Plug-and-Play Priors w/ BM4D)
    `deconv_ppp_dncnn_admm.py <deconv_ppp_dncnn_admm.py>`_
       Image Deconvolution (ADMM Plug-and-Play Priors w/ DnCNN)
    `deconv_tv_admm.py <deconv_tv_admm.py>`_
@@ -91,6 +93,8 @@ Plug and Play Priors
       Image Deconvolution (ADMM Plug-and-Play Priors w/ BM3D)
    `deconv_ppp_bm3d_pgm.py <deconv_ppp_bm3d_pgm.py>`_
       Image Deconvolution (PGM Plug-and-Play Priors w/ BM3D)
+   `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
+      Image Deconvolution (ADMM Plug-and-Play Priors w/ BM4D)
    `deconv_ppp_dncnn_admm.py <deconv_ppp_dncnn_admm.py>`_
       Image Deconvolution (ADMM Plug-and-Play Priors w/ DnCNN)
    `demosaic_ppp_bm3d_admm.py <demosaic_ppp_bm3d_admm.py>`_
@@ -170,6 +174,8 @@ ADMM
       Deconvolution Microscopy (All Channels)
    `deconv_ppp_bm3d_admm.py <deconv_ppp_bm3d_admm.py>`_
       Image Deconvolution (ADMM Plug-and-Play Priors w/ BM3D)
+   `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
+      Image Deconvolution (ADMM Plug-and-Play Priors w/ BM4D)
    `deconv_ppp_dncnn_admm.py <deconv_ppp_dncnn_admm.py>`_
       Image Deconvolution (ADMM Plug-and-Play Priors w/ DnCNN)
    `deconv_tv_admm.py <deconv_tv_admm.py>`_
