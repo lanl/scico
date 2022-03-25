@@ -8,8 +8,8 @@ import scico
 import scico.numpy as snp
 from scico.linop import Diagonal
 from scico.loss import SquaredL2Loss
+from scico.test.functional.prox import prox_test
 from scico.test.linop.test_linop import adjoint_test
-from scico.test.prox import prox_test
 
 try:
     import svmbir
