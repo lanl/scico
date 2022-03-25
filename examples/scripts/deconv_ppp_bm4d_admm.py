@@ -24,7 +24,7 @@ import jax
 
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot, random
-from scico.examples import create_3D_foam_phantom, tile_volume_slices
+from scico.examples import create_3D_foam_phantom, downsample_volume, tile_volume_slices
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
@@ -35,7 +35,9 @@ np.random.seed(1234)
 Nx = 128
 Ny = 128
 Nz = 128
-x_gt = create_3D_foam_phantom((Nz, Ny, Nx), N_sphere=100)
+upsamp = 2
+x_gt_hires = create_3D_foam_phantom((upsamp * Nz, upsamp * Ny, upsamp * Nx), N_sphere=100)
+x_gt = downsample_volume(x_gt_hires, upsamp)
 x_gt = jax.device_put(x_gt)  # convert to jax array, push to GPU
 
 
