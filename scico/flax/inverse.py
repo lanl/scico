@@ -41,6 +41,7 @@ class MoDLNet(Module):
         strides: Convolution strides. Default: (1, 1).
         lmbda_ini: Initial value of the regularization weight `lambda`. Default: 0.5.
         dtype: Output type. Default: jnp.float32.
+        cg_iter: Number of iterations for cg solver. Default: 10.
     """
     operator: ModuleDef
     depth: int
@@ -51,6 +52,7 @@ class MoDLNet(Module):
     strides: Tuple[int, int] = (1, 1)
     lmbda_ini: float = 0.5
     dtype: Any = jnp.float32
+    cg_iter: int = 10
 
     @compact
     def __call__(self, y: Array, train: bool = True) -> Array:
@@ -85,7 +87,7 @@ class MoDLNet(Module):
 
         ahaI_f = lambda v: self.operator.adj(self.operator(v)) + lmbda * v
 
-        cgsol = lambda b: jnp.atleast_3d(cg_solver(ahaI_f, b.squeeze(), maxiter=10))
+        cgsol = lambda b: jnp.atleast_3d(cg_solver(ahaI_f, b.squeeze(), maxiter=self.cg_iter))
 
         for i in range(self.depth):
             z = resnet(x, train)
