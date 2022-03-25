@@ -312,8 +312,8 @@ def create_3D_foam_phantom(
                 along each axis). Default 0.001.
         pad: Padding length (normalized to 1 along each axis). Default 0.01.
         is_random: Flag used to controll randomness of phantom generation.
-                If False, random seed is set to 1 in order to make the
-                process deterministic. Default False.
+                If `False`, random seed is set to 1 in order to make the
+                process deterministic. Default `False`.
 
     Returns:
         3D phantom of shape im_shape

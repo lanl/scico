@@ -42,7 +42,9 @@ def bm4d(x: JaxArray, sigma: float):
     :cite:`maggioni-2012-nonlocal`.
 
     Args:
-        x: Input image.
+        x: Input image. Expected to be a 3D array. Higher dimensional
+            arrays are tolerated only if the additional dimensions are
+            singletons.
         sigma: Noise parameter.
 
     Returns:
@@ -60,7 +62,7 @@ def bm4d(x: JaxArray, sigma: float):
     x_in_shape = x.shape
 
     if isinstance(x.ndim, tuple) or x.ndim < 3:
-        raise ValueError(f"BM4D requires three dimensional (M, N, P) inputs; got ndim = {x.ndim}")
+        raise ValueError(f"BM4D requires three dimensional inputs; got ndim = {x.ndim}")
 
     # This check is also performed inside the BM4D call, but due to the host_callback,
     # no exception is raised and the program will crash with no traceback.
@@ -97,7 +99,11 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
     :cite:`makinen-2019-exact`.
 
     Args:
-        x: Input image.
+        x: Input image. Expected to be a 2D array (gray-scale denoising)
+            or 3D array (color denoising). Higher dimensional arrays are
+            tolerated only if the additional dimensions are singletons.
+            For color denoising, the color channel is assumed to be in the
+            last non-singleton dimension.
         sigma: Noise parameter.
         is_rgb: Flag indicating use of BM3D with a color transform.
             Default: ``False``.
@@ -121,8 +127,7 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
 
     if isinstance(x.ndim, tuple) or x.ndim < 2:
         raise ValueError(
-            "BM3D requires two dimensional (M, N) or three dimensional (M, N, C)"
-            f" inputs; got ndim = {x.ndim}"
+            "BM3D requires two dimensional or three dimensional inputs;" f" got ndim = {x.ndim}"
         )
 
     # This check is also performed inside the BM3D call, but due to the host_callback,

@@ -34,6 +34,8 @@ class BM4D(Functional):
         Args:
             x: Input image.
             lam: Noise parameter.
+            kwargs: Additional arguments that may be used by derived
+                classes.
 
         Returns:
             Denoised output.
@@ -69,6 +71,8 @@ class BM3D(Functional):
         Args:
             x: Input image.
             lam: Noise parameter.
+            kwargs: Additional arguments that may be used by derived
+                classes.
 
         Returns:
             Denoised output.
@@ -105,6 +109,8 @@ class DnCNN(Functional):
         Args:
             x: Input array.
             lam: Noise parameter (ignored).
+            kwargs: Additional arguments that may be used by derived
+                classes.
 
         Returns:
             Denoised output.
