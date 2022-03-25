@@ -62,7 +62,7 @@ Set up ADMM solver.
 f = loss.SquaredL2Loss(y=y, A=A)
 C = linop.Identity(x_gt.shape)
 
-λ = 20.0 / 255  # BM4D regularization strength
+λ = 40.0 / 255  # BM4D regularization strength
 g = λ * functional.BM4D()
 
 ρ = 1.0  # ADMM penalty parameter
