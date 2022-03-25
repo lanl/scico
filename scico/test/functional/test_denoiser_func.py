@@ -3,8 +3,21 @@ import numpy as np
 import pytest
 
 from scico import denoiser, functional
-from scico.denoiser import have_bm3d
+from scico.denoiser import have_bm3d, have_bm4d
 from scico.random import randn
+
+
+@pytest.mark.skipif(not have_bm4d, reason="bm4d package not installed")
+class TestBM4D:
+    def setup(self):
+        key = None
+        self.x_gry, key = randn((32, 33, 34), key=key, dtype=np.float32)
+        self.f_gry = functional.BM4D()
+
+    def test_gry(self):
+        y0 = self.f_gry.prox(self.x_gry, 1.0)
+        y1 = denoiser.bm4d(self.x_gry, 1.0)
+        np.testing.assert_allclose(y0, y1, rtol=1e-5)
 
 
 @pytest.mark.skipif(not have_bm3d, reason="bm3d package not installed")
