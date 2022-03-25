@@ -14,6 +14,8 @@ Version 0.0.3   (unreleased)
 • Add function ``linop.linop_from_function`` for constructing linear
   operators from functions.
 • Add support for addition of functionals.
+• Additional solvers in ``scico.solver``.
+• New Huber norm and set distance functionals.
 • Add interface to BM4D denoiser.
 
 
