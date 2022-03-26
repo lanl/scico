@@ -174,7 +174,7 @@ def ct_data_generation(nimg: int, N: int, nproj: int, verbose: bool = False):  #
     return img, sino, fbp
 
 
-def get_ct_data(
+def load_ct_data(
     train_nimg: int,
     test_nimg: int,
     size: int,
@@ -183,13 +183,13 @@ def get_ct_data(
     verbose: bool = False,
 ):  # pragma: no cover
     """
-    Get or generate CT data.
+    Load or generate CT data.
 
-    Get or generate CT data for training of
+    Load or generate CT data for training of
     machine learning network models. If
     cached file exists and enough data of
     the requested size is available, data is
-    load and returned.
+    loaded and returned.
 
     If either `size` or `nproj` requested does
     not match the data read from the cached

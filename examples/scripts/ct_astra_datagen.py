@@ -20,7 +20,7 @@ import numpy as np
 import jax
 import jax.numpy as jnp
 
-from scico.examples_flax import get_ct_data
+from scico.examples_flax import load_ct_data
 from scico import plot
 
 """
@@ -32,7 +32,7 @@ test_nimg = 64  # number of testing images
 nimg = train_nimg + test_nimg
 n_projection = 180  # CT views
 
-trdt, ttdt = get_ct_data(train_nimg, test_nimg, N, n_projection, verbose=True)
+trdt, ttdt = load_ct_data(train_nimg, test_nimg, N, n_projection, verbose=True)
 
 """
 Plot randomly selected sample.

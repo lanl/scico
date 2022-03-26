@@ -24,7 +24,7 @@ import os
 from scico import plot
 from scico import flax as sflax
 from scico.metric import snr, psnr
-from scico.examples_flax import get_ct_data
+from scico.examples_flax import load_ct_data
 
 """
 Prepare parallel processing. Set an arbitrary processor
@@ -44,7 +44,7 @@ test_nimg = 64  # number of testing images
 nimg = train_nimg + test_nimg
 n_projection = 180  # CT views
 
-trdt, ttdt = get_ct_data(train_nimg, test_nimg, N, n_projection, verbose=True)
+trdt, ttdt = load_ct_data(train_nimg, test_nimg, N, n_projection, verbose=True)
 
 """
 Build training and testing structures. Inputs are the filter
