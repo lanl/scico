@@ -223,31 +223,38 @@ def minimize(
         min_func = _wrap_func(func_, x0_shape, x0_dtype)
         jac = False
 
-    fun = lambda _, device: spopt.minimize(
-        min_func,
-        x0=x0,
-        args=args,
-        jac=jac,
-        method=method,
-        options=options,
-    ).x  # returns array
+    res_dict = {}
 
-    res = hcb.call(
+    def fun(_, device):
+        min_res = spopt.minimize(
+            min_func,
+            x0=x0,
+            args=args,
+            jac=jac,
+            method=method,
+            options=options,
+        )  # Returns OptimizeResult
+        res_dict.update({"result": min_res})  # Updates res dict with side effect
+        return min_res.x.astype(x0.dtype)  # Return for host_callback
+
+    # hcb call with side effects to get the OptimizeResult on the same device it was called
+    hcb.call(
         fun,
         arg=None,
         result_shape=x0,
         call_with_device=isinstance(x0, jax.interpreters.xla.DeviceArray),
     )
 
+    res = res_dict["result"]
     # un-vectorize the output array, put on device
-    res = snp.reshape(
-        res, x0_shape
+    res.x = snp.reshape(
+        res.x, x0_shape
     )  # if x0 was originally a BlockArray then res.x is converted back to one here
 
-    res = res.astype(x0_dtype)
+    res.x = res.x.astype(x0_dtype)
 
     if iscomplex:
-        res = _join_real_imag(res)
+        res.x = _join_real_imag(res.x)
 
     return res
 
