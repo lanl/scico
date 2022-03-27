@@ -72,7 +72,6 @@ dconf: sflax.ConfigDict = {
     "warmup_epochs": 0,
     "num_train_steps": -1,
     "steps_per_eval": -1,
-    "steps_per_epoch": 1,
     "log_every_steps": 400,
 }
 
