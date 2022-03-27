@@ -518,7 +518,7 @@ class PGM:
     ) -> Union[JaxArray, BlockArray]:
         """Run the PGM algorithm.
 
-        Run the PGM algorithm for a total of ``self.maxiter`` iterations.
+        Run the PGM algorithm for a total of `self.maxiter` iterations.
 
         Args:
             callback: An optional callback function, taking an a single

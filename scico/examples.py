@@ -287,10 +287,57 @@ def create_circular_phantom(
 
     img = snp.zeros(img_shape)
     for r, val in zip(radius_list, val_list):
-        # img[dist_map < r] = val
+        # In numpy: img[dist_map < r] = val
         img = img.at[dist_map < r].set(val)
 
     return img
+
+
+def create_3D_foam_phantom(
+    im_shape: Shape,
+    N_sphere: int,
+    r_mean: float = 0.1,
+    r_std: float = 0.001,
+    pad: float = 0.01,
+    is_random: bool = False,
+):
+    """Construct a 3D phantom with random radii and centers.
+
+    Args:
+        im_shape: Shape of input image.
+        N_sphere: Number of spheres added.
+        r_mean: Mean radius of sphere (normalized to 1 along each axis).
+                Default 0.1.
+        r_std: Standard deviation of radius of sphere (normalized to 1
+                along each axis). Default 0.001.
+        pad: Padding length (normalized to 1 along each axis). Default 0.01.
+        is_random: Flag used to controll randomness of phantom generation.
+                If ``False``, random seed is set to 1 in order to make the
+                process deterministic. Default ``False``.
+
+    Returns:
+        3D phantom of shape im_shape
+    """
+    c_lo = 0.0
+    c_hi = 1.0
+
+    if not is_random:
+        np.random.seed(1)
+
+    coord_list = [snp.linspace(0, 1, N) for N in im_shape]
+    x = snp.stack(snp.meshgrid(*coord_list, indexing="ij"), axis=-1)
+
+    centers = np.random.uniform(low=r_mean + pad, high=1 - r_mean - pad, size=(N_sphere, 3))
+    radii = r_std * np.random.randn(N_sphere) + r_mean
+
+    im = snp.zeros(im_shape) + c_lo
+    for c, r in zip(centers, radii):
+        dist = snp.sum((x - c) ** 2, axis=-1)
+        if snp.mean(im[dist < r ** 2] - c_lo) < 0.01 * c_hi:
+            # In numpy: im[dist < r**2] = c_hi
+            im = im.at[dist < r ** 2].set(c_hi)
+
+    return im
 
 
 def spnoise(img: Array, nfrac: float, nmin: float = 0.0, nmax: float = 1.0) -> Array:

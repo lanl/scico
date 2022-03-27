@@ -31,8 +31,6 @@ from scico.typing import Shape
 
 from ._dft import DFT
 
-__author__ = """Luke Pfister <luke.pfister@gmail.com>"""
-
 
 def radial_transverse_frequency(
     input_shape: Shape, dx: Union[float, Tuple[float, ...]]
@@ -216,8 +214,7 @@ class AngularSpectrumPropagator(Propagator):
         jit: bool = True,
         **kwargs,
     ):
-        r"""Angular Spectrum init method.
-
+        r"""
         Args:
             input_shape: Shape of input array. Can be a tuple of length
                2 or 3.
@@ -225,9 +222,10 @@ class AngularSpectrumPropagator(Propagator):
             k0: Illumination wavenumber.
             z: Propagation distance.
             pad_factor:  Amount of padding to apply in DFT step.
-            jit: If ``True``, call :meth:`.jit()` on this LinearOperator
-               to jit the forward, adjoint, and gram functions. Same as
-               calling :meth:`.jit` after the LinearOperator is created.
+            jit: If ``True``, call :meth:`.Operator.jit` on this
+               `LinearOperator` to jit the forward, adjoint, and gram
+               functions. Same as calling :meth:`.Operator.jit` after the
+               `LinearOperator` is created.
         """
 
         # Diagonal operator; phase shifting
@@ -427,7 +425,7 @@ class FraunhoferPropagator(LinearOperator):
             k0: Illumination wavenumber;  2π/wavelength.
             z: Propagation distance.
             jit: If ``True``, jit the evaluation, adjoint, and gram
-                functions of this LinearOperator. Default: True.
+               functions of this LinearOperator. Default: ``True``.
         """
 
         ndim = len(input_shape)  # 1 or 2 dimensions

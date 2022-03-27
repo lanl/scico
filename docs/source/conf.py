@@ -253,8 +253,8 @@ latex_elements = {"preamble": "\n".join(latex_macros)}
 # Intersphinx mapping
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
-    "numpy": ("https://docs.scipy.org/doc/numpy/", None),
-    "scipy": ("https://docs.scipy.org/doc/scipy/reference/", None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/", None),
     "matplotlib": ("https://matplotlib.org/stable/", None),
     "jax": ("https://jax.readthedocs.io/en/latest/", None),
     "flax": ("https://flax.readthedocs.io/en/latest/", None),
@@ -374,9 +374,10 @@ print("confpath: %s" % confpath)
 # Sort members by type
 autodoc_default_options = {
     "member-order": "bysource",
-    "inherited-members": True,
+    "inherited-members": False,
     "ignore-module-all": False,
     "show-inheritance": True,
+    "members": True,
     "special-members": "__call__",
 }
 autodoc_docstring_signature = True
@@ -384,7 +385,7 @@ autoclass_content = "both"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ["_build", "**tests**", "**spi**"]
+exclude_patterns = ["_build", "**tests**", "**spi**", "**README.rst", "**exampledepend.rst"]
 
 
 # Rewrite module names for certain functions imported into scico.numpy so that they are
@@ -488,6 +489,11 @@ def process_docstring(app, what, name, obj, options, lines):
     # the current release of flax, but is arguably also useful in avoiding
     # extensive documentation of methods that are likely to be of limited
     # interest to users of the scico.flax classes.
+    #
+    # Note: this event handler currently has no effect since inclusion of
+    #   inherited members is currently globally disabled (see
+    #   "inherited-members" in autodoc_default_options), but is left in
+    #   place in case a decision is ever made to revert the global setting.
     #
     # See https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html
     # for documentation of the autodoc-process-docstring event used here.

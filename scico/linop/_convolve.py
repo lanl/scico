@@ -27,8 +27,6 @@ from scico import array
 from scico._generic_operators import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
 from scico.typing import DType, JaxArray, Shape
 
-__author__ = """Luke Pfister <luke.pfister@gmail.com>"""
-
 
 class Convolve(LinearOperator):
     """A convolution linear operator."""
@@ -52,7 +50,7 @@ class Convolve(LinearOperator):
                 as `len(input_shape)`.
             input_shape: Shape of input array.
             input_dtype: `dtype` for input argument. Defaults to
-                `float32`. If ``LinearOperator`` implements
+                `float32`. If `LinearOperator` implements
                 complex-valued operations, this must be `complex64` for
                 proper adjoint and gradient calculation.
             mode: A string indicating the size of the output. One of
@@ -180,8 +178,8 @@ class ConvolveByX(LinearOperator):
                 as `len(input_shape)`.
             input_shape: Shape of input array.
             input_dtype: `dtype` for input argument. Defaults to
-                `float32`. If :class:`.LinearOperator` implements
-                complex-valued operations, this must be `complex64` for
+                ``float32``. If :class:`.LinearOperator` implements
+                complex-valued operations, this must be ``complex64`` for
                 proper adjoint and gradient calculation.
             mode: A string indicating the size of the output. One of
                 "full", "valid", "same". Defaults to "full".

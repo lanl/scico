@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -26,8 +26,6 @@ from scico._generic_operators import LinearOperator
 from scico.typing import JaxArray
 
 from ._linop import Identity
-
-__author__ = """Luke Pfister <luke.pfister@gmail.com>"""
 
 
 def _wrap_add_sub_matrix(func, op):
@@ -225,15 +223,15 @@ class MatrixOperator(LinearOperator):
         return self.A.conj().T @ y
 
     def to_array(self):
-        """Return a :class:`numpy.ndarray` containing ``self.A``."""
+        """Return a :class:`numpy.ndarray` containing `self.A`."""
         return self.A.copy()
 
     @property
     def gram_op(self):
         """Gram operator of this :class:`.MatrixOperator`.
 
-        Return a new :class:`.LinearOperator` ``G`` such that
-        ``G(x) = A.adj(A(x)))``."""
+        Return a new :class:`.LinearOperator` `G` such that
+        `G(x) = A.adj(A(x)))`."""
         return MatrixOperator(A=self.A.conj().T @ self.A)
 
     def norm(self, ord=None, axis=None, keepdims=False):  # pylint: disable=W0622
