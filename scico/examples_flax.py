@@ -9,18 +9,27 @@
 
 from xdesign import UnitCircle, SimpleMaterial, discrete_phantom
 
-from typing import Any, Callable, List, Union
+from typing import Any, Callable, List, Optional, Tuple, TypedDict, Union
 from time import time
 
 import jax
 import jax.numpy as jnp
 
+import glob
 import os
+import tempfile
+import tarfile
+import math
 
-from numpy import linspace, load, savez
+import numpy as np
 
-from scico.typing import Array
+import imageio
+
+from scico import util
+from scico.typing import Array, Shape
 from scico.linop.radon_astra import TomographicProjector
+from scico.examples import rgb2gray
+from scico.flax.train.input_pipeline import DataSetDict
 
 # Arbitray process count: only applies if GPU is not available.
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
@@ -111,7 +120,7 @@ def distributed_data_generation(
     return imgs
 
 
-def ct_data_generation(nimg: int, N: int, nproj: int, verbose: bool = False):  # pragma: no cover
+def ct_data_generation(nimg: int, size: int, nproj: int, verbose: bool = False):  # pragma: no cover
     """
     Generate CT data.
 
@@ -120,7 +129,7 @@ def ct_data_generation(nimg: int, N: int, nproj: int, verbose: bool = False):  #
 
     Args:
         nimg: Number of images to generate.
-        N: Size of reconstruction images.
+        size: Size of reconstruction images.
         nproj: Number of CT views.
         verbose: Flag indicating whether to print status messages. Default: ``False``.
 
@@ -133,17 +142,17 @@ def ct_data_generation(nimg: int, N: int, nproj: int, verbose: bool = False):  #
     """
     # Generate foam data.
     start_time = time()
-    imgshd = distributed_data_generation(generate_foam2_images, N, nimg)
+    imgshd = distributed_data_generation(generate_foam2_images, size, nimg)
     time_dtgen = time() - start_time
     # Normalize and clip to [0,1] range.
     imgshd = jnp.clip(imgshd / jnp.max(imgshd, axis=(2, 3), keepdims=True), a_min=0, a_max=1)
-    img = imgshd.reshape((-1, N, N, 1))
+    img = imgshd.reshape((-1, size, size, 1))
 
     # Configure a CT projection operator to generate synthetic measurements.
-    angles = linspace(0, jnp.pi, nproj)  # evenly spaced projection angles
-    gt_sh = (N, N)
+    angles = np.linspace(0, jnp.pi, nproj)  # evenly spaced projection angles
+    gt_sh = (size, size)
     detector_spacing = 1
-    A = TomographicProjector(gt_sh, detector_spacing, N, angles)  # Radon transform operator
+    A = TomographicProjector(gt_sh, detector_spacing, size, angles)  # Radon transform operator
 
     # Compute sinograms in parallel.
     nproc = jax.device_count()
@@ -151,9 +160,9 @@ def ct_data_generation(nimg: int, N: int, nproj: int, verbose: bool = False):  #
     start_time = time()
     sinoshd = jax.pmap(lambda i: jax.lax.map(a_map, imgshd[i]))(jnp.arange(nproc))
     time_sino = time() - start_time
-    sino = sinoshd.reshape((-1, nproj, N, 1))
+    sino = sinoshd.reshape((-1, nproj, size, 1))
     # Normalize sinogram
-    sino = sino / N
+    sino = sino / size
 
     # Compute filter back-project in parallel.
     afbp_map = lambda v: jnp.atleast_3d(A.fbp(v.squeeze()))
@@ -162,7 +171,7 @@ def ct_data_generation(nimg: int, N: int, nproj: int, verbose: bool = False):  #
     time_fbp = time() - start_time
     # Clip to [0,1] range.
     fbpshd = jnp.clip(fbpshd, a_min=0, a_max=1)
-    fbp = fbpshd.reshape((-1, N, N, 1))
+    fbp = fbpshd.reshape((-1, size, size, 1))
 
     if verbose:
         platform = jax.lib.xla_bridge.get_backend().platform
@@ -231,8 +240,8 @@ def load_ct_data(
 
     if os.path.isfile(npz_train_file) and os.path.isfile(npz_test_file):
         # Load data.
-        trdt_in = load(npz_train_file)
-        ttdt_in = load(npz_test_file)
+        trdt_in = np.load(npz_train_file)
+        ttdt_in = np.load(npz_test_file)
         # Check image size.
         if (trdt_in["img"].shape[1] != size) or (ttdt_in["img"].shape[1] != size):
             raise RuntimeError(
@@ -293,13 +302,13 @@ def load_ct_data(
 
     # Store images, sinograms and filtered back-projections.
     os.makedirs(cache_path, exist_ok=True)
-    savez(
+    np.savez(
         npz_train_file,
         img=img[:train_nimg],
         sino=sino[:train_nimg],
         fbp=fbp[:train_nimg],
     )
-    savez(
+    np.savez(
         npz_test_file,
         img=img[train_nimg:],
         sino=sino[train_nimg:],
@@ -317,3 +326,614 @@ def load_ct_data(
         print(f"{'Data range FBP':26s}{'Min:':6s}{fbp.min():>5.2f}{', Max:':6s}{fbp.max():>8.2f}")
 
     return trdt, ttdt
+
+
+# Image manipulation utils
+def rotation90(img: Array) -> Array:
+    """Rotates an image, or a batch of images,
+    by 90 degrees.
+
+    Rotates an image or a batch of images by 90
+    degrees counterclockwise. An image is an
+    nd-array with size H x W x C with H and W
+    spatial dimensions and C number of channels.
+    A batch of images is an nd-array with size
+    N x H x W x C with N number of images.
+
+    Args:
+        img: The nd-array to be rotated.
+    """
+    if img.ndim < 4:
+        return np.swapaxes(img, 0, 1)
+    else:
+        return np.swapaxes(img, 1, 2)
+
+
+def flip(img: Array) -> Array:
+    """Horizontal flip of an image or a batch of
+    images.
+
+    Horizontally flips an image or a batch of
+    images. An image is an nd-array with size
+    H x W x C with H and W spatial dimensions
+    and C number of channels. A batch of images
+    is an nd-array with size N x H x W x C with
+    N number of images.
+
+    Args:
+        img: The nd-array to be flipped.
+    """
+    if img.ndim < 4:
+        return img[:, ::-1, ...]
+    else:
+        return img[..., ::-1, :]
+
+
+class CenterCrop:
+    """Crop central part of an image to a specified size.
+
+    Crops central part of an image. An image
+    is an nd-array with size H x W x C with H
+    and W spatial dimensions and C number of
+    channels.
+    """
+
+    def __init__(self, output_size: Union[Shape, int]):
+        """
+        Args:
+            output_size: Desired output size. If int, square crop is made.
+        """
+        assert isinstance(output_size, (int, tuple))
+        if isinstance(output_size, int):
+            self.output_size = (output_size, output_size)
+        else:
+            assert len(output_size) == 2
+            self.output_size = output_size
+
+    def __call__(self, image: Array) -> Array:
+        """Apply center crop.
+
+        Args:
+            image: The nd-array to be cropped.
+
+        Returns:
+            The cropped image.
+        """
+
+        h, w = image.shape[:2]
+        new_h, new_w = self.output_size
+        top = (h - new_h) // 2
+        left = (w - new_w) // 2
+
+        image = image[top : top + new_h, left : left + new_w]
+
+        return image
+
+
+class PositionalCrop:
+    """Crop an image from a given corner to a specified size.
+
+    Crops an image from a given corner. An image
+    is an nd-array with size H x W x C with H
+    and W spatial dimensions and C number of
+    channels.
+    """
+
+    def __init__(self, output_size: Union[Shape, int]):
+        """
+        Args:
+            output_size: Desired output size. If int, square crop is made.
+        """
+        assert isinstance(output_size, (int, tuple))
+        if isinstance(output_size, int):
+            self.output_size = (output_size, output_size)
+        else:
+            assert len(output_size) == 2
+            self.output_size = output_size
+
+    def __call__(self, image: Array, top: int, left: int) -> Array:
+        """Apply positional crop.
+
+        Args:
+            image: The nd-array to be cropped.
+            top: Vertical top coordinate of corner to start cropping.
+            left: Horizontal left coordinate of corner to start cropping.
+
+        Returns:
+            The cropped image.
+        """
+
+        h, w = image.shape[:2]
+        new_h, new_w = self.output_size
+
+        image = image[top : top + new_h, left : left + new_w]
+
+        return image
+
+
+class RandomNoise:
+    """Adds Gaussian noise to an image or a
+    batch of images.
+
+    Adds Gaussian noise to an image or a batch
+    of images. An image is an nd-array with size
+    H x W x C with H and W spatial dimensions
+    and C number of channels. A batch of images
+    is an nd-array with size N x H x W x C with
+    N number of images. The Gaussian noise is
+    a Gaussian random variable with mean zero and
+    given standard deviation. The standard
+    deviation can be a fix value corresponding
+    to the specified noise level or randomly
+    selected on a range between 50% and 100% of
+    the specified noise level.
+    """
+
+    def __init__(self, noise_level: float, range_flag: bool = False):
+        """
+        Args:
+            noise_level: Standard dev of the Gaussian noise.
+            range_flag: If true, the standard dev is randomly selected between 50% and 100% of `noise_level` set. Default: ``False``.
+        """
+        self.noise_level = noise_level
+        self.range_flag = range_flag
+
+    def __call__(self, image: Array) -> Array:
+        """Add Gaussian noise.
+
+        Args:
+            image: The nd-array to add noise to.
+
+        Returns:
+            The noisy image.
+        """
+
+        noise_level = self.noise_level
+
+        if self.range_flag:
+            if image.ndim > 3:
+                num_img = image.shape[0]
+            else:
+                num_img = 1
+            noise_level = np.random.uniform(0.5 * self.noise_level, self.noise_level, num_img)
+            noise_level = noise_level.reshape((noise_level.shape[0],) + (1,) * (image.ndim - 1))
+
+        imgnoised = image + np.random.normal(0.0, noise_level, image.shape)
+        imgnoised = np.clip(imgnoised, 0.0, 1.0)
+
+        return imgnoised
+
+
+def reconfigure_images(
+    images: Array,
+    output_size: Union[Shape, int],
+    gray_flag: bool = False,
+    num_img: Optional[int] = None,
+    multi_flag: bool = False,
+    stride: Optional[int] = None,
+    dtype: Any = np.float32,
+) -> Array:
+    """Reconfigure set of images, converting to
+    gray scale, or cropping or sampling multiple
+    patches from each one, or selecting a subset
+    of them, according to specified setup.
+
+    Args:
+        images: Array of color images.
+        output_size: Desired output size. If int, square crop is made.
+        gray_flag: If true, converts to gray scale.
+        num_img: If specified, reads that number of images, if not reads all the images in path.
+        multi_flag: If true, samples multiple patches of specified size in each image.
+        stride: Stride between patch origins (indexed from left-top corner). If int, the same stride is used in h and w.
+        dtype: type of array. Default: `np.float32`.
+
+    Returns:
+        Reconfigured nd-array.
+    """
+
+    # Get number of images to use.
+    if num_img is None:
+        num_img = images.shape[0]
+
+    # Get channels of ouput image.
+    C = 3
+    if gray_flag:
+        C = 1
+
+    # Define functionality to crop and create signal array.
+    if multi_flag:
+        tsfm = PositionalCrop(output_size)
+        assert stride is not None
+        if isinstance(stride, int):
+            stride = (stride, stride)
+        S = np.zeros((num_img, images.shape[1], images.shape[2], C), dtype=dtype)
+    else:
+        tsfm = CenterCrop(output_size)
+        S = np.zeros((num_img, tsfm.output_size[0], tsfm.output_size[1], C), dtype=dtype)
+
+    # Convert to gray scale and/or crop.
+    for i in range(S.shape[0]):
+        img = images[i] / 255.0
+        if gray_flag:
+            imgG = rgb2gray(img)
+            # Keep channel singleton.
+            img = imgG.reshape(imgG.shape + (1,))
+        if not multi_flag:
+            # Crop image
+            img = tsfm(img)
+        S[i] = img
+
+    if multi_flag:
+        # Sample multiple patches from image
+        h = S.shape[1]
+        w = S.shape[2]
+        nh = int(math.floor((h - tsfm.output_size[0]) / stride[0])) + 1
+        nw = int(math.floor((w - tsfm.output_size[1]) / stride[1])) + 1
+        saux = np.zeros(
+            (nh * nw * num_img, tsfm.output_size[0], tsfm.output_size[1], S.shape[-1]), dtype=dtype
+        )
+        count2 = 0
+        for i in range(S.shape[0]):
+            for top in range(0, h - tsfm.output_size[0], stride[0]):
+                for left in range(0, w - tsfm.output_size[1], stride[1]):
+                    saux[count2, ...] = tsfm(S[i], top, left)
+                    count2 += 1
+        S = saux
+    return S
+
+
+class ConfigImageSetDict(TypedDict):
+    """Definition of the dictionary structure
+    expected for building and image data set
+    for training."""
+
+    output_size: Union[int, Shape]
+    stride: Union[int, Shape]
+    multi: bool
+    augment: bool
+    run_gray: bool
+    num_img: int
+    test_num_img: int
+    data_mode: str
+    noise_level: float
+    noise_range: bool
+    test_split: float
+    seed: float
+
+
+def build_img_dataset(
+    imagesd, config: ConfigImageSetDict, transf: Optional[Callable] = None
+) -> Tuple[DataSetDict, DataSetDict]:
+    """Pre-process images according to the
+    specified configuration. Keep training and
+    testing partitions. Each dictionary returned
+    has images and labels, which are nd-arrays
+    of dimensions (N, H, W, C) with
+    N: number of images; H, W: spatial dimensions
+    and C: number of channels.
+
+    Args:
+        imagesd: Dictionary of training and testing images to be pre-processed.
+        config: Configuration of image data set to read.
+        transf: Operator for bluring or other non-trivial transformations. Default: ``None``.
+
+    Returns:
+       tuple: A tuple (train_ds, test_ds) containing:
+
+           - **train_ds** : (DataSetDict): Dictionary of training data (includes images and labels).
+           - **test_ds** : (DataSetDict): Dictionary of testing data (includes images and labels).
+    """
+    # Reconfigure images by converting to gray scale or sampling multiple patches according to specified configuration.
+    S_train = reconfigure_images(
+        imagesd["imgstr"],
+        config["output_size"],
+        gray_flag=config["run_gray"],
+        num_img=config["num_img"],
+        multi_flag=config["multi"],
+        stride=config["stride"],
+    )
+    S_test = reconfigure_images(
+        imagesd["imgstt"],
+        config["output_size"],
+        gray_flag=config["run_gray"],
+        num_img=config["test_num_img"],
+        multi_flag=config["multi"],
+        stride=config["stride"],
+    )
+
+    # Check for transformation
+    tsfm = None
+    # Processing: add noise or blur or etc.
+    if config["data_mode"] == "dn":  # Denoise problem
+        tsfm = RandomNoise(config["noise_level"], config["noise_range"])
+    elif config["data_mode"] == "dblur":  # Debluring problem
+        assert transf is not None
+        tsfm = transf
+
+    if config["augment"]:  # Augment training data set by flip and 90 degrees rotation
+
+        strain1 = rotation90(S_train.copy())
+        strain2 = flip(S_train.copy())
+
+        S_train = np.concatenate((S_train, strain1, strain2), axis=0)
+
+    # Processing: apply transformation
+    if tsfm is not None:
+        if config["data_mode"] == "dn":
+            Stsfm_train = tsfm(S_train.copy())
+            Stsfm_test = tsfm(S_test.copy())
+        elif config["data_mode"] == "dblr":
+            tsfm2 = RandomNoise(config["noise_level"], config["noise_range"])
+            Stsfm_train = tsfm2(tsfm(S_train.copy()))
+            Stsfm_test = tsfm2(tsfm(S_test.copy()))
+
+    train_ds = {"image": Stsfm_train, "label": S_train}
+    test_ds = {"image": Stsfm_test, "label": S_test}
+
+    return train_ds, test_ds
+
+
+def images_read(path: str, ext: str = "jpg") -> Array:
+    """Read a collection of color images from a set of files in the specified directory.
+
+    All files with extension `ext` (i.e. matching glob `*.ext`)
+    in directory `path` are assumed to be image files and are read. Images may have different aspect ratios, therefore, they are transposed to keep the aspect ratio of the first image read.
+
+    Args:
+        path: Path to directory containing the image files.
+        ext: Filename extension.
+
+    Returns:
+        Collection of color images as a 4D array.
+    """
+
+    slices = []
+    shape = None
+    for file in sorted(glob.glob(os.path.join(path, "*." + ext))):
+        image = imageio.imread(file)
+        if shape is None:
+            shape = image.shape[:2]
+        if shape != image.shape[:2]:
+            image = np.transpose(image, (1, 0, 2))
+        slices.append(image)
+    return np.stack(slices)
+
+
+def get_bsds_data(path: str, verbose: bool = False):  # pragma: no cover
+    """Download BSDS data from the Berkeley Segmentation Dataset and Benchmark project.
+
+    Download color images from the Berkeley Segmentation Dataset and Benchmark project.
+    The downloaded data is converted to `.npz` format for
+    convenient access via :func:`numpy.load`. The converted data is saved
+    in a file `bsds500.npz` in the directory specified by `path`. Note that train and test folders are merged to get a set of 400 images for training while the val folder is reserved as a set of 100 images for testing. This is done in multiple works such as :cite:`zhang-2017-dncnn`.
+
+    Args:
+        path: Directory in which converted data is saved.
+        verbose: Flag indicating whether to print status messages.
+    """
+    # data source URL and filenames
+    data_base_url = "http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/BSR/"
+    data_tar_file = "BSR_bsds500.tgz"
+    # ensure path directory exists
+    if not os.path.isdir(path):
+        raise ValueError(f"Path {path} does not exist or is not a directory")
+    # create temporary directory
+    temp_dir = tempfile.TemporaryDirectory()
+    if verbose:
+        print(f"Downloading {data_tar_file} from {data_base_url}")
+    data = util.url_get(data_base_url + data_tar_file)
+    f = open(os.path.join(temp_dir.name, data_tar_file), "wb")
+    f.write(data.read())
+    f.close()
+    if verbose:
+        print("Download complete")
+
+    # untar downloaded data into temporary directory
+    if verbose:
+        print(f"Extracting content from tar file {data_tar_file}")
+
+    with tarfile.open(os.path.join(temp_dir.name, data_tar_file), "r") as tar_ref:
+        tar_ref.extractall(temp_dir.name)
+
+    # read untared data files into 4D arrays and save as .npz
+    data_path = os.path.join("BSR", "BSDS500", "data", "images")
+    train_path = os.path.join(data_path, "train")
+    imgs_train = images_read(os.path.join(temp_dir.name, train_path))
+    val_path = os.path.join(data_path, "val")
+    imgs_val = images_read(os.path.join(temp_dir.name, val_path))
+    test_path = os.path.join(data_path, "test")
+    imgs_test = images_read(os.path.join(temp_dir.name, test_path))
+
+    # Train and test data merge into train.
+    # Leave val data for testing.
+    imgs400 = np.vstack([imgs_train, imgs_test])
+    if verbose:
+        print(f"Read {imgs400.shape[0]} images for training")
+        print(f"Read {imgs_val.shape[0]} images for testing")
+
+    npz_file = os.path.join(path, "bsds500.npz")
+    if verbose:
+        print(f"Saving as {npz_file}")
+    np.savez(npz_file, imgstr=imgs400, imgstt=imgs_val)
+
+
+def load_image_data(
+    train_nimg: int,
+    test_nimg: int,
+    size: int,
+    gray_flag: bool,
+    data_mode: str = "dn",
+    cache_path: str = None,
+    verbose: bool = False,
+    noise_level: float = 0.1,
+    noise_range: bool = False,
+    transf: Optional[Callable] = None,
+):  # pragma: no cover
+    """
+    Load or generate image data.
+
+    Load or generate image data for training
+    of machine learning network models. If
+    cached file exists and enough data of
+    the requested size is available, data is
+    loaded and returned.
+
+    If either `size` or type of data (gray
+    scale or color) requested does not match
+    the data read from the cached file, a
+    `RunTimeError` is generated. There is no
+    checking for the specific contamination
+    (i.e. noise level or bluring, etc.).
+
+    If no cached file is found or not enough data
+    is contained in the file a new data set
+    is generated and stored in `cache_path`. The
+    data is stored in `.npz` format for
+    convenient access via :func:`numpy.load`.
+    The data is saved in two distinct files:
+    `img_*_train.npz` and `img_*_test.npz`
+    to keep separated training and testing
+    partitions. The * stands for `dn` if
+    denoising problem or `dblr` if debluring
+    problem.
+
+    Args:
+        train_nimg: Number of images required for training.
+        test_nimg: Number of images required for testing.
+        size: Size of reconstruction images.
+        gray_flag: Flag to indicate if gray scale images or color images. When ``True`` gray scale images are generated.
+        data_mode: Type of image problem. Options are: `dn` for denosing, `dblr` for debluring.
+        cache_path: Directory in which generated data is saved. Default: ``None``.
+        verbose: Flag indicating whether to print status messages. Default: ``False``.
+        noise_level: Standard deviation of the Gaussian noise.
+        noise_range: Flag to indicate if a fixed or a random standard deviation must be used. Default: ``False`` i.e. fixed standard deviation given by `noise_level`.
+        transf : Operator for bluring or other non-trivial transformations. Default: ``None``.
+
+    Returns:
+       tuple: A tuple (train_ds, test_ds) containing:
+
+           - **train_ds** : (DataSetDict): Dictionary of training data (includes images and labels).
+           - **test_ds** : (DataSetDict): Dictionary of testing data (includes images and labels).
+    """
+    # Set default cache path if not specified.
+    if cache_path is None:
+        cache_path = os.path.join(
+            os.path.expanduser("~"), ".cache", "scico", "examples", "img", "data"
+        )
+
+    # Create cache directory and generate data if not already present.
+    npz_train_file = os.path.join(cache_path, "img_" + data_mode + "_train.npz")
+    npz_test_file = os.path.join(cache_path, "img_" + data_mode + "_test.npz")
+
+    if os.path.isfile(npz_train_file) and os.path.isfile(npz_test_file):
+        # Load data.
+        trdt_in = np.load(npz_train_file)
+        ttdt_in = np.load(npz_test_file)
+        # Check image size.
+        if (trdt_in["image"].shape[1] != size) or (ttdt_in["image"].shape[1] != size):
+            raise RuntimeError(
+                f"{'Provided size: '}{size}{' does not match read train size: '}{trdt_in['image'].shape[1]}{' or test size: '}{ttdt_in['image'].shape[1]}"
+            )
+        # Check gray scale or color images.
+        C_train = trdt_in["image"].shape[-1]
+        C_test = ttdt_in["image"].shape[-1]
+        if gray_flag:
+            C = 1
+        else:
+            C = 3
+        if (C_train != C) or (C_test != C):
+            raise RuntimeError(
+                f"{'Provided channels: '}{C}{' do not match read train channels: '}{C_train}{' or test channels: '}{C_test}"
+            )
+        # Check that enough data is available.
+        if trdt_in["image"].shape[0] >= train_nimg:
+            if ttdt_in["image"].shape[0] >= test_nimg:
+                train_ds = {
+                    "image": trdt_in["image"][:train_nimg],
+                    "label": trdt_in["label"][:train_nimg],
+                }
+                test_ds = {
+                    "image": ttdt_in["image"][:test_nimg],
+                    "label": ttdt_in["label"][:test_nimg],
+                }
+                if verbose:
+                    print(f"{'Data read from path:':22s}{cache_path}")
+                    print(f"{'Train images':26s}{train_ds['image'].shape[0]}")
+                    print(f"{'Test images':26s}{test_ds['image'].shape[0]}")
+                    print(
+                        f"{'Data range images':26s}{'Min:':6s}{train_ds['image'].min():>5.2f}{', Max:':6s}{train_ds['image'].max():>8.2f}"
+                    )
+                    print(
+                        f"{'Data range labels':26s}{'Min:':6s}{train_ds['label'].min():>5.2f}{', Max:':6s}{train_ds['label'].max():>8.2f}"
+                    )
+
+                return train_ds, test_ds
+
+            elif verbose:
+                print(
+                    f"{'Not enough data in testing file':34s}{'Requested:':12s}{test_nimg}{' Available:':12s}{ttdt_in['image'].shape[0]}"
+                )
+        elif verbose:
+            print(
+                f"{'Not enough data in training file':34s}{'Requested:':12s}{train_nimg}{' Available:':12s}{trdt_in['image'].shape[0]}"
+            )
+
+    # Check if BSDS folder exists if not create and download BSDS data.
+    bsds_cache_path = os.path.join(cache_path, "BSDS")
+    if not os.path.isdir(bsds_cache_path):
+        os.makedirs(bsds_cache_path)
+        get_bsds_data(path=bsds_cache_path, verbose=verbose)
+    # load data and return after pre-processing for specified data_mode.
+    npz_file = os.path.join(bsds_cache_path, "bsds500.npz")
+    npz = np.load(npz_file)
+
+    # Generate new data.
+    if size == 40:
+        stride = 23
+        multi = True
+        augment = False
+    elif size >= 128:
+        multi = False
+        stride = None
+        augment = True
+
+    config: ConfigImageSetDict = {
+        "output_size": size,
+        "stride": stride,
+        "multi": multi,
+        "augment": augment,
+        "run_gray": gray_flag,
+        "num_img": train_nimg,
+        "test_num_img": test_nimg,
+        "data_mode": data_mode,
+        "noise_level": noise_level,
+        "noise_range": noise_range,
+        "test_split": 0.2,
+        "seed": 1234,
+    }
+    train_ds, test_ds = build_img_dataset(npz, config, transf)
+    # Store generated images.
+    os.makedirs(cache_path, exist_ok=True)
+    np.savez(
+        npz_train_file,
+        image=train_ds["image"],
+        label=train_ds["label"],
+    )
+    np.savez(
+        npz_test_file,
+        image=test_ds["image"],
+        label=test_ds["label"],
+    )
+
+    if verbose:
+        print(f"{'Storing data in path':29s}{':':2s}{cache_path}")
+        print(f"{'Train images':26s}{train_ds['image'].shape[0]}")
+        print(f"{'Test images':26s}{test_ds['image'].shape[0]}")
+        print(
+            f"{'Data range images':26s}{'Min:':6s}{train_ds['image'].min():>5.2f}{', Max:':6s}{train_ds['image'].max():>8.2f}"
+        )
+        print(
+            f"{'Data range labels':26s}{'Min:':6s}{train_ds['label'].min():>5.2f}{', Max:':6s}{train_ds['label'].max():>8.2f}"
+        )
+
+    return train_ds, test_ds
