@@ -770,12 +770,12 @@ def load_image_data(
     transf: Optional[Callable] = None,
 ):  # pragma: no cover
     """
-    Load or generate image data.
+    Load and/or pre-process image data.
 
-    Load or generate image data for training
-    of machine learning network models. If
-    cached file exists and enough data of
-    the requested size is available, data is
+    Load and/or pre-process image data for
+    training of machine learning network models.
+    If cached file exists and enough images
+    were sampled with the requested, data is
     loaded and returned.
 
     If either `size` or type of data (gray
@@ -785,25 +785,25 @@ def load_image_data(
     checking for the specific contamination
     (i.e. noise level or bluring, etc.).
 
-    If no cached file is found or not enough data
-    is contained in the file a new data set
-    is generated and stored in `cache_path`. The
-    data is stored in `.npz` format for
-    convenient access via :func:`numpy.load`.
-    The data is saved in two distinct files:
-    `img_*_train.npz` and `img_*_test.npz`
-    to keep separated training and testing
-    partitions. The * stands for `dn` if
-    denoising problem or `dblr` if debluring
-    problem.
+    If no cached file is found or not enough
+    images were sampled and stored in the
+    file a new data set is generated and stored
+    in `cache_path`. The data is stored in
+    `.npz` format for convenient access via
+    :func:`numpy.load`. The data is saved in two
+    distinct files: `img_*_train.npz` and
+    `img_*_test.npz` to keep separated training
+    and testing partitions. The * stands for
+    `dn` if denoising problem or `dblr` if
+    debluring problem.
 
     Args:
-        train_nimg: Number of images required for training.
-        test_nimg: Number of images required for testing.
+        train_nimg: Number of images required for sampling training data.
+        test_nimg: Number of images required for sampling testing data.
         size: Size of reconstruction images.
-        gray_flag: Flag to indicate if gray scale images or color images. When ``True`` gray scale images are generated.
+        gray_flag: Flag to indicate if gray scale images or color images. When ``True`` gray scale images are used.
         data_mode: Type of image problem. Options are: `dn` for denosing, `dblr` for debluring.
-        cache_path: Directory in which generated data is saved. Default: ``None``.
+        cache_path: Directory in which processed data is saved. Default: ``None``.
         verbose: Flag indicating whether to print status messages. Default: ``False``.
         noise_level: Standard deviation of the Gaussian noise.
         noise_range: Flag to indicate if a fixed or a random standard deviation must be used. Default: ``False`` i.e. fixed standard deviation given by `noise_level`.
@@ -845,16 +845,16 @@ def load_image_data(
             raise RuntimeError(
                 f"{'Provided channels: '}{C}{' do not match read train channels: '}{C_train}{' or test channels: '}{C_test}"
             )
-        # Check that enough data is available.
-        if trdt_in["image"].shape[0] >= train_nimg:
-            if ttdt_in["image"].shape[0] >= test_nimg:
+        # Check that enough images were sampled.
+        if trdt_in["numimg"] >= train_nimg:
+            if ttdt_in["numimg"] >= test_nimg:
                 train_ds = {
-                    "image": trdt_in["image"][:train_nimg],
-                    "label": trdt_in["label"][:train_nimg],
+                    "image": trdt_in["image"],
+                    "label": trdt_in["label"],
                 }
                 test_ds = {
-                    "image": ttdt_in["image"][:test_nimg],
-                    "label": ttdt_in["label"][:test_nimg],
+                    "image": ttdt_in["image"],
+                    "label": ttdt_in["label"],
                 }
                 if verbose:
                     print(f"{'Data read from path:':22s}{cache_path}")
@@ -871,11 +871,11 @@ def load_image_data(
 
             elif verbose:
                 print(
-                    f"{'Not enough data in testing file':34s}{'Requested:':12s}{test_nimg}{' Available:':12s}{ttdt_in['image'].shape[0]}"
+                    f"{'Not enough images sampled in testing file':34s}{'Requested:':12s}{test_nimg}{' Sampled:':12s}{ttdt_in['numimg']}"
                 )
         elif verbose:
             print(
-                f"{'Not enough data in training file':34s}{'Requested:':12s}{train_nimg}{' Available:':12s}{trdt_in['image'].shape[0]}"
+                f"{'Not enough images sampled in training file':34s}{'Requested:':12s}{train_nimg}{' Available:':12s}{trdt_in['numimg']}"
             )
 
     # Check if BSDS folder exists if not create and download BSDS data.
@@ -918,11 +918,13 @@ def load_image_data(
         npz_train_file,
         image=train_ds["image"],
         label=train_ds["label"],
+        numimg=train_nimg,
     )
     np.savez(
         npz_test_file,
         image=test_ds["image"],
         label=test_ds["label"],
+        numimg=test_nimg
     )
 
     if verbose:
