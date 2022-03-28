@@ -114,7 +114,8 @@ def compute_metrics(output: Array, labels: Array):
         MSE and SNR between `output` and `labels`.
     """
     loss = mse_loss(output, labels)
-    snr_ = snr(labels, output)
+    #snr_ = snr(labels, output)
+    snr_ = 10.0 * jnp.log10(jnp.var(labels) / loss)
     metrics = {
         "loss": loss,
         "snr": snr_,
