@@ -54,7 +54,7 @@ def snr(reference: Array, comparison: Array) -> float:
     """
 
     dv = jnp.var(reference)
-    rt = dv / snp.mean(jnp.abs(reference - comparison).ravel() ** 2)
+    rt = dv / jnp.mean(jnp.abs(reference - comparison).ravel() ** 2)
     return 10.0 * snp.log10(rt)
 
 class ConfigDict(TypedDict):
