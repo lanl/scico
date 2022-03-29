@@ -230,7 +230,7 @@ class AngularSpectrumPropagator(Propagator):
 
     where :math:`F` is the Fourier transform with respect to
     :math:`(x, y)`, :math:`F^{-1}` is the inverse transform with respect
-    to :math:`(k_x, k_y)`, and the propagator term is given by and
+    to :math:`(k_x, k_y)`, and the propagator term is given by
 
     .. math ::
          D = \exp  \left\{ j \sqrt{k_0^2 - k_x^2 - k_y^2} \, z \right\}
