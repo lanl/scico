@@ -646,7 +646,7 @@ def build_img_dataset(
     # Processing: add noise or blur or etc.
     if config["data_mode"] == "dn":  # Denoise problem
         tsfm = RandomNoise(config["noise_level"], config["noise_range"])
-    elif config["data_mode"] == "dblur":  # Debluring problem
+    elif config["data_mode"] == "dblr":  # Debluring problem
         assert transf is not None
         tsfm = transf
 
