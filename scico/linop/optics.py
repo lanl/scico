@@ -454,7 +454,7 @@ class FraunhoferPropagator(LinearOperator):
         \Delta x_D =  \frac{2 \pi z}{k_0 L_{Sx} } \quad \text{and}
         \quad L_{Dx} =  \frac{2 \pi z}{k_0 \Delta x_S } \;,
 
-    and similary for the :math:`y` axis.
+    and similarly for the :math:`y` axis.
 
     The Fraunhofer propagator term :math:`P(x_D, y_D)` is adequately
     sampled when
