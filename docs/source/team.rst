@@ -42,3 +42,4 @@ Contributors
 - `Oleg Korobkin <https://github.com/korobkin>`_ (BlockArray improvements)
 - `Yanpeng Yuan <https://github.com/yanpeng7>`_ (ASTRA interface improvements)
 - `Saurav Maheshkar <https://github.com/SauravMaheshkar>`_ (Improvements to pre-commit configuration)
+- Andrew Leong (Improvements to optics module documentation)
