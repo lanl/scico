@@ -381,9 +381,10 @@ print("confpath: %s" % confpath)
 # Sort members by type
 autodoc_default_options = {
     "member-order": "bysource",
-    "inherited-members": True,
+    "inherited-members": False,
     "ignore-module-all": False,
     "show-inheritance": True,
+    "members": True,
     "special-members": "__call__",
 }
 autodoc_docstring_signature = True
@@ -495,6 +496,11 @@ def process_docstring(app, what, name, obj, options, lines):
     # the current release of flax, but is arguably also useful in avoiding
     # extensive documentation of methods that are likely to be of limited
     # interest to users of the scico.flax classes.
+    #
+    # Note: this event handler currently has no effect since inclusion of
+    #   inherited members is currently globally disabled (see
+    #   "inherited-members" in autodoc_default_options), but is left in
+    #   place in case a decision is ever made to revert the global setting.
     #
     # See https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html
     # for documentation of the autodoc-process-docstring event used here.
