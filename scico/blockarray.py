@@ -43,6 +43,10 @@ another :class:`.BlockArray` or tuple as appropriate. For example,
      DeviceArray([3, 5, 9], dtype=int32))  # BlockArray
 
 
+TODO: not specifying axis to get a full reduction
+TODO: using a BlockArray for axis or shape arguments
+
+
 
 
 Motivating Example
@@ -462,14 +466,14 @@ Code version
 
 
 """
+import inspect
 from functools import wraps
+from typing import Callable
 
 import jax
 import jax.numpy as jnp
 
 from jaxlib.xla_extension import DeviceArray
-
-import scico.numpy as snp
 
 
 class BlockArray(tuple):
@@ -552,50 +556,46 @@ for op in binary_ops:
     setattr(BlockArray, op, _binary_op_wrapper(op))
 
 
-""" wrap blockwise DeviceArray methods, like conj """
-
-da_methods = ("conj",)
+""" Wrap DeviceArray properties. """
 
 
-def _da_method_wrapper(method):
-    @wraps(method)
-    def method_ba(self):
-        return BlockArray(map(method, self))
+def _da_prop_wrapper(prop):
+    @property
+    def prop_ba(self):
+        result = tuple(getattr(x, prop) for x in self)
+        if isinstance(result[0], jnp.ndarray):
+            return BlockArray(result)
+        return result
 
-    return method_ba
-
-
-for method in da_methods:
-    setattr(BlockArray, method, _da_method_wrapper(getattr(DeviceArray, method)))
-
-
-""" Wrap DeviceArray methods and properties that are implemented in jnp so that they call snp. """
+    return prop_ba
 
 
-def _da_method_wrapper(method, is_property=False):
-    def method_ba(self, *args, **kwargs):
-        return getattr(snp, method)(self, *args, **kwargs)
-
-    if is_property:
-        return property(method_ba)
-    return method_ba
-
-
-# list and wrap properties
 da_props = [
-    x
-    for x in dir(DeviceArray)
-    if (isinstance(getattr(DeviceArray, x), property) and x[0] != "_" and x in dir(jnp))
+    k
+    for k, v in dict(inspect.getmembers(DeviceArray)).items()
+    if isinstance(v, property) and k[0] != "_"
 ]
 
 for prop in da_props:
-    setattr(BlockArray, prop, _da_method_wrapper(prop, is_property=True))
+    setattr(BlockArray, prop, _da_prop_wrapper(prop))
 
-# list and wrap methods
+""" Wrap DeviceArray methods. """
+
+
+def _da_method_wrapper(method):
+    def method_ba(self, *args, **kwargs):
+        result = tuple(getattr(x, method)(*args, **kwargs) for x in self)
+        if isinstance(result[0], jnp.ndarray):
+            return BlockArray(result)
+        return result
+
+    return method_ba
+
+
 da_methods = [
-    x
-    for x in dir(DeviceArray)
-    if (not isinstance(getattr(DeviceArray, x), property) and x[0] != "_" and x in dir(jnp))
+    k
+    for k, v in dict(inspect.getmembers(DeviceArray)).items()
+    if isinstance(v, Callable) and k[0] != "_"
 ]
 
 for method in da_methods:

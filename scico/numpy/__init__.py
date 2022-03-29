@@ -19,30 +19,30 @@ their documentation, below.
 from functools import wraps
 from inspect import Parameter, signature
 from types import FunctionType, ModuleType
+from typing import Iterable, Optional
 
 import jax.numpy as jnp
 
 from jaxlib.xla_extension import CompiledFunction
 
+from scico.array import is_nested
 from scico.blockarray import BlockArray
 
 
-def _copy_attributes(to_dict, from_dict, modules_to_recurse=None, reductions=None):
+def _copy_attributes(
+    to_dict: dict, from_dict: dict, modules_to_recurse: Optional[Iterable[str]] = None
+):
     """Add attributes in `from_dict` to `to_dict`.
 
     Underscore methods are ignored. Functions are wrapped to allow for
     `BlockArray` inputs. Modules are ignored, except those listed in
-    `modules_to_recurse`, which are added recursively. Functions with
-    names listed in `reductions` are given the `block_axis` argument,
-    allowing reduction down the block axis.
+    `modules_to_recurse`, which are added recursively. All others are
+    passed through unwrapped.
 
     """
 
     if modules_to_recurse is None:
         modules_to_recurse = ()
-
-    if reductions is None:
-        reductions = ()
 
     for name, obj in from_dict.items():
         if name[0] == "_":
@@ -62,6 +62,13 @@ def _copy_attributes(to_dict, from_dict, modules_to_recurse=None, reductions=Non
 def _map_func_over_ba(func):
     """Create a version of `func` that maps over all of its `BlockArray`
     arguments.
+
+    Functions with an `axis` parameter are handled in a special way in
+    order to allow full reductions of `BlockArray`s.  If the axis
+    parameter exists but is not specified, each `BlockArray` argument
+    is fully ravelled before the function is called and no mapping is
+    applied.
+
     """
 
     @wraps(func)
@@ -71,18 +78,17 @@ def _map_func_over_ba(func):
 
         ba_args = {}
         for k, v in list(bound_args.arguments.items()):
-            if isinstance(v, BlockArray):
+            if isinstance(v, BlockArray) or is_nested(v):
                 ba_args[k] = bound_args.arguments.pop(k)
 
         ravel_blocks = "axis" not in bound_args.arguments and "axis" in sig.parameters
 
         if len(ba_args) and ravel_blocks:
             ba_args = {k: v.full_ravel() for k, v in list(ba_args.items())}
-            print(ba_args)
             return func(*bound_args.args, **bound_args.kwargs, **ba_args)
 
         if len(ba_args):  # if any BlockArray arguments,
-            return BlockArray(
+            result = tuple(
                 map(  # map over
                     lambda *args: (  # lambda x_1, x_2, ..., x_N
                         func(
@@ -94,6 +100,9 @@ def _map_func_over_ba(func):
                     *ba_args.values(),  # map(f, ba_1, ba_2, ..., ba_N)
                 )
             )
+            if isinstance(result[0], jnp.ndarray):  # True for abstract arrays, too
+                return BlockArray(result)
+            return result
 
         return func(*args, **kwargs)
 
@@ -104,5 +113,4 @@ _copy_attributes(
     vars(),
     jnp.__dict__,
     modules_to_recurse=("linalg",),
-    reductions=("sum",),
 )

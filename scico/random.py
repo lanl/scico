@@ -50,7 +50,6 @@ is returned:
 """
 
 
-import functools
 import inspect
 import sys
 from typing import Optional, Tuple, Union
@@ -59,9 +58,8 @@ import numpy as np
 
 import jax
 
-from scico.array import is_nested
+import scico.numpy as snp
 from scico.blockarray import BlockArray
-from scico.blockarray_old import block_sizes
 from scico.typing import BlockShape, DType, JaxArray, PRNGKey, Shape
 
 
@@ -123,45 +121,7 @@ def _add_seed(fun):
     return fun_alt
 
 
-def _allow_block_shape(fun):
-    """
-    Decorate a jax.random function so that the `shape` argument may be a BlockShape.
-    """
-
-    # use inspect to find which argument number is `shape`
-    shape_ind = list(inspect.signature(fun).parameters.keys()).index("shape")
-
-    @functools.wraps(fun)
-    def fun_alt(*args, **kwargs):
-
-        # get the shape argument if it was passed
-        if len(args) > shape_ind:
-            shape = args[shape_ind]
-        elif "shape" in kwargs:
-            shape = kwargs["shape"]
-        else:  # shape was not passed, call fun as normal
-            return fun(*args, **kwargs)
-
-        # if shape is not nested, call fun as normal
-        if not is_nested(shape):
-            return fun(*args, **kwargs)
-        # shape is nested, so make a BlockArray!
-
-        # call the wrapped fun with an shape=(size,)
-        subargs = list(args)
-        subkwargs = kwargs.copy()
-        size = np.sum(block_sizes(shape))
-
-        if len(subargs) > shape_ind:
-            subargs[shape_ind] = (size,)
-        else:  # shape must be a kwarg if not a positional arg
-            subkwargs["shape"] = (size,)
-
-        result_flat = fun(*subargs, **subkwargs)
-
-        return BlockArray.array_from_flattened(result_flat, shape)
-
-    return fun_alt
+_allow_block_shape = snp._map_func_over_ba
 
 
 def _wrap(fun):
