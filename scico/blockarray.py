@@ -480,7 +480,7 @@ class BlockArray(tuple):
     # https://docs.scipy.org/doc/numpy-1.10.1/user/c-info.beyond-basics.html#ndarray.__array_priority__
     __array_priority__ = 1
 
-    def ravel(self) -> DeviceArray:
+    def full_ravel(self) -> DeviceArray:
         """Return a copy of ``self._data`` as a contiguous, flattened `DeviceArray`.
 
         Note that a copy, rather than a view, of the underlying array is
@@ -581,17 +581,22 @@ def _da_method_wrapper(method, is_property=False):
     return method_ba
 
 
-da_props = (
-    "real",
-    "imag",
-    "size",
-    "shape",
-    "ndim",
-)
+# list and wrap properties
+da_props = [
+    x
+    for x in dir(DeviceArray)
+    if (isinstance(getattr(DeviceArray, x), property) and x[0] != "_" and x in dir(jnp))
+]
+
 for prop in da_props:
     setattr(BlockArray, prop, _da_method_wrapper(prop, is_property=True))
 
+# list and wrap methods
+da_methods = [
+    x
+    for x in dir(DeviceArray)
+    if (not isinstance(getattr(DeviceArray, x), property) and x[0] != "_" and x in dir(jnp))
+]
 
-da_methods = ("sum",)
 for method in da_methods:
     setattr(BlockArray, method, _da_method_wrapper(method))
