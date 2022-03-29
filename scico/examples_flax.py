@@ -939,3 +939,21 @@ def load_image_data(
         )
 
     return train_ds, test_ds
+
+
+def create_gaussian_kernel(sigma, kernel_size, n_channels, dtype=jnp.float32):
+
+    kernel = 1
+    meshgrids = jnp.meshgrid(*[jnp.arange(size, dtype=dtype) for size in kernel_size])
+    for size, mgrid in zip(kernel_size, meshgrids):
+        mean = (size - 1) / 2
+        kernel *= jnp.exp(-(((mgrid - mean) / sigma) ** 2) / 2)
+
+    # Make sure norm of values in gaussian kernel equals 1.
+    kernel = kernel / jnp.sum(kernel)
+
+    # Reshape to depthwise convolutional weight (HWC)
+    kernel = jnp.reshape(kernel, kernel.shape + (1,))
+    # Repeat to match channels
+    kernel = jnp.repeat(kernel, n_channels, axis=2)
+    return kernel
