@@ -953,7 +953,11 @@ def create_gaussian_kernel(sigma, kernel_size, n_channels, dtype=jnp.float32):
     kernel = kernel / jnp.sum(kernel)
 
     # Reshape to depthwise convolutional weight (HWC)
-    kernel = jnp.reshape(kernel, kernel.shape + (1,))
+    #kernel = jnp.reshape(kernel, kernel.shape + (1,))
     # Repeat to match channels
-    kernel = jnp.repeat(kernel, n_channels, axis=2)
+    #kernel = jnp.repeat(kernel, n_channels, axis=2)
+    # Reshape to depthwise convolutional weight (BHWC)
+    kernel = jnp.reshape(kernel, (1,) + kernel.shape + (1,))
+    # Repeat to match channels
+    kernel = jnp.repeat(kernel, n_channels, axis=3)
     return kernel
