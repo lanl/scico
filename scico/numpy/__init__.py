@@ -14,8 +14,7 @@ module is a work in progress and therefore not all functions are
 wrapped. Functions that have not been wrapped yet have WARNING text in
 their documentation, below.
 """
-
-
+import sys
 from functools import wraps
 from inspect import Parameter, signature
 from types import FunctionType, ModuleType
@@ -112,5 +111,9 @@ def _map_func_over_ba(func):
 _copy_attributes(
     vars(),
     jnp.__dict__,
-    modules_to_recurse=("linalg",),
+    modules_to_recurse=("linalg", "fft"),
 )
+
+# enable `import scico.numpy.linalg` and `from scico.numpy.linalg import norm`
+sys.modules["scico.numpy.linalg"] = linalg
+sys.modules["scico.numpy.fft"] = fft

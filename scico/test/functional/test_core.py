@@ -33,6 +33,60 @@ def test_prox_obj(request):
     return ProxTestObj(request.param)
 
 
+class SeparableTestObject:
+    def __init__(self, dtype):
+        self.f = functional.L1Norm()
+        self.g = functional.SquaredL2Norm()
+        self.fg = functional.SeparableFunctional([self.f, self.g])
+
+        n = 4
+        m = 6
+        key = None
+
+        self.v1, key = randn((n,), key=key, dtype=dtype)  # point for prox eval
+        self.v2, key = randn((m,), key=key, dtype=dtype)  # point for prox eval
+        self.vb = BlockArray.array([self.v1, self.v2])
+
+
+@pytest.fixture(params=[np.float32, np.complex64, np.float64, np.complex128])
+def test_separable_obj(request):
+    return SeparableTestObject(request.param)
+
+
+def test_separable_eval(test_separable_obj):
+    fv1 = test_separable_obj.f(test_separable_obj.v1)
+    gv2 = test_separable_obj.g(test_separable_obj.v2)
+    fgv = test_separable_obj.fg(test_separable_obj.vb)
+    np.testing.assert_allclose(fv1 + gv2, fgv, rtol=5e-2)
+
+
+def test_separable_prox(test_separable_obj):
+    alpha = 0.1
+    fv1 = test_separable_obj.f.prox(test_separable_obj.v1, alpha)
+    gv2 = test_separable_obj.g.prox(test_separable_obj.v2, alpha)
+    fgv = test_separable_obj.fg.prox(test_separable_obj.vb, alpha)
+    out = BlockArray.array((fv1, gv2)).full_ravel()
+    np.testing.assert_allclose(out, fgv.full_ravel(), rtol=5e-2)
+
+
+def test_separable_grad(test_separable_obj):
+    # Used to restore the warnings after the context is used
+    with warnings.catch_warnings():
+        # Ignores warning raised by ensure_on_device
+        warnings.filterwarnings(action="ignore", category=UserWarning)
+
+        # Verifies that there is a warning on f.grad and fg.grad
+        np.testing.assert_warns(test_separable_obj.f.grad(test_separable_obj.v1))
+        np.testing.assert_warns(test_separable_obj.fg.grad(test_separable_obj.vb))
+
+        # Tests the separable grad with warnings being supressed
+        fv1 = test_separable_obj.f.grad(test_separable_obj.v1)
+        gv2 = test_separable_obj.g.grad(test_separable_obj.v2)
+        fgv = test_separable_obj.fg.grad(test_separable_obj.vb)
+        out = BlockArray.array((fv1, gv2)).full_ravel()
+        np.testing.assert_allclose(out, fgv.full_ravel(), rtol=5e-2)
+
+
 class TestNormProx:
 
     alphalist = [1e-2, 1e-1, 1e0, 1e1]
@@ -73,9 +127,9 @@ class TestNormProx:
         nrmobj = norm()
         nrm = nrmobj.__call__
         prx = nrmobj.prox
-        pf = nrmobj.prox(test_prox_obj.vb.ravel(), alpha)
+        pf = nrmobj.prox(test_prox_obj.vb.full_ravel(), alpha)
         pf_b = nrmobj.prox(test_prox_obj.vb, alpha)
-        np.testing.assert_allclose(pf, pf_b.ravel())
+        np.testing.assert_allclose(pf, pf_b.full_ravel())
 
     @pytest.mark.parametrize("norm", normlist)
     def test_prox_zeros(self, norm, test_prox_obj):

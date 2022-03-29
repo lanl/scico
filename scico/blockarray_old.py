@@ -466,7 +466,7 @@ from jax.tree_util import register_pytree_node, tree_flatten
 from jaxlib.xla_extension import Buffer
 
 from scico import array
-from scico.typing import Axes, AxisIndex, BlockShape, DType, JaxArray, Shape
+from scico.typing import AxisIndex, BlockShape, DType, JaxArray, Shape
 
 _arraylikes = (Buffer, DeviceArray, np.ndarray)
 
@@ -523,62 +523,6 @@ def reshape(
         return BlockArray.array_from_flattened(a, newshape)
 
     return jnp.reshape(a, newshape)
-
-
-def block_sizes(shape: Union[Shape, BlockShape]) -> Axes:
-    r"""Compute the 'sizes' of (possibly nested) block shapes.
-
-    This function computes ``block_sizes(z.shape) == (_.size for _ in z)``
-
-
-    Args:
-       shape: A shape tuple; possibly containing nested tuples.
-
-
-    Examples:
-
-    .. doctest::
-        >>> import scico.numpy as snp
-
-        >>> x = BlockArray.ones( ( (4, 4), (2,)))
-        >>> x.size
-        18
-
-        >>> y = snp.ones((3, 3))
-        >>> y.size
-        9
-
-        >>> z = BlockArray.array([x, y])
-        >>> block_sizes(z.shape)
-        (18, 9)
-
-        >>> zz = BlockArray.array([z, z])
-        >>> block_sizes(zz.shape)
-        (27, 27)
-    """
-
-    if isinstance(shape, BlockArray):
-        raise TypeError(
-            "Expected a `shape` (possibly nested tuple of ints); got :class:`.BlockArray`."
-        )
-
-    out = []
-    if array.is_nested(shape):
-        # shape is nested -> at least one element came from a blockarray
-        for y in shape:
-            if array.is_nested(y):
-                # recursively calculate the block size until we arrive at
-                # a tuple (shape of a non-block array)
-                while array.is_nested(y):
-                    y = block_sizes(y)
-                out.append(np.sum(y))  # adjacent block sizes are added together
-            else:
-                # this is a tuple; size given by product of elements
-                out.append(np.prod(y))
-        return tuple(out)
-
-    # shape is a non-nested tuple; return the product
-    return np.prod(shape)
 
 
 def _decompose_index(idx: Union[int, Tuple(AxisIndex)]) -> Tuple:

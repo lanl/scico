@@ -19,14 +19,14 @@ import jax
 from jax.interpreters.pxla import ShardedDeviceArray
 from jax.interpreters.xla import DeviceArray
 
-import scico.blockarray
 import scico.numpy as snp
+from scico.blockarray import BlockArray
 from scico.typing import ArrayIndex, Axes, AxisIndex, DType, JaxArray, Shape
 
 
 def ensure_on_device(
-    *arrays: Union[np.ndarray, JaxArray, scico.blockarray.BlockArray]
-) -> Union[JaxArray, scico.blockarray.BlockArray]:
+    *arrays: Union[np.ndarray, JaxArray, BlockArray]
+) -> Union[JaxArray, BlockArray]:
     """Cast ndarrays to DeviceArrays.
 
     Cast ndarrays to DeviceArrays and leaves DeviceArrays, BlockArrays,
@@ -58,15 +58,16 @@ def ensure_on_device(
                 stacklevel=2,
             )
 
-            arrays[i] = jax.device_put(arrays[i])
         elif not isinstance(
             array,
-            (DeviceArray, scico.blockarray.BlockArray, ShardedDeviceArray),
+            (DeviceArray, BlockArray, ShardedDeviceArray),
         ):
             raise TypeError(
                 "Each item of `arrays` must be ndarray, DeviceArray, BlockArray, or "
                 f"ShardedDeviceArray; Argument {i+1} of {len(arrays)} is {type(arrays[i])}."
             )
+
+        arrays[i] = jax.device_put(arrays[i])
 
     if len(arrays) == 1:
         return arrays[0]
@@ -74,8 +75,8 @@ def ensure_on_device(
 
 
 def no_nan_divide(
-    x: Union[scico.blockarray.BlockArray, JaxArray], y: Union[scico.blockarray.BlockArray, JaxArray]
-) -> Union[scico.blockarray.BlockArray, JaxArray]:
+    x: Union[BlockArray, JaxArray], y: Union[BlockArray, JaxArray]
+) -> Union[BlockArray, JaxArray]:
     """Return `x/y`, with 0 instead of NaN where `y` is 0.
 
     Args:
@@ -190,6 +191,62 @@ def indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int, ...]:
             continue
         idx_shape[axis + offset] = slice_length(shape[axis + offset], ax_idx)
     return tuple(filter(lambda x: x is not None, idx_shape))
+
+
+def block_sizes(shape: Union[Shape, BlockShape]) -> Axes:
+    r"""Compute the 'sizes' of block shapes.
+
+    This function computes ``block_sizes(z.shape) == (_.size for _ in z)``
+
+
+    Args:
+       shape: A shape tuple; possibly containing nested tuples.
+
+
+    Examples:
+
+    .. doctest::
+        >>> import scico.numpy as snp
+
+        >>> x = BlockArray.ones( ( (4, 4), (2,)))
+        >>> x.size
+        18
+
+        >>> y = snp.ones((3, 3))
+        >>> y.size
+        9
+
+        >>> z = BlockArray.array([x, y])
+        >>> block_sizes(z.shape)
+        (18, 9)
+
+        >>> zz = BlockArray.array([z, z])
+        >>> block_sizes(zz.shape)
+        (27, 27)
+    """
+
+    if isinstance(shape, BlockArray):
+        raise TypeError(
+            "Expected a `shape` (possibly nested tuple of ints); got :class:`.BlockArray`."
+        )
+
+    out = []
+    if is_nested(shape):
+        # shape is nested -> at least one element came from a blockarray
+        for y in shape:
+            if is_nested(y):
+                # recursively calculate the block size until we arrive at
+                # a tuple (shape of a non-block array)
+                while is_nested(y):
+                    y = block_sizes(y)
+                out.append(np.sum(y))  # adjacent block sizes are added together
+            else:
+                # this is a tuple; size given by product of elements
+                out.append(np.prod(y))
+        return tuple(out)
+
+    # shape is a non-nested tuple; return the product
+    return np.prod(shape)
 
 
 def is_nested(x: Any) -> bool:

@@ -40,7 +40,9 @@ def test_ensure_on_device():
         assert SNP.unsafe_buffer_pointer() == SNP_.unsafe_buffer_pointer()
 
         assert isinstance(BA_, BlockArray)
-        assert BA._data.unsafe_buffer_pointer() == BA_._data.unsafe_buffer_pointer()
+        assert isinstance(BA_[0], DeviceArray)
+        assert isinstance(BA_[1], DeviceArray)
+        assert BA[1].unsafe_buffer_pointer() == BA_[1].unsafe_buffer_pointer()
 
         np.testing.assert_raises(TypeError, ensure_on_device, [1, 1, 1])
 
@@ -64,7 +66,7 @@ def test_no_nan_divide_blockarray():
     x, key = randn(((3, 3), (4,)), dtype=np.float32)
 
     y, key = randn(x.shape, dtype=np.float32, key=key)
-    y = y.at[1].set(0 * y[1])
+    y[1] = y[1].at[:].set(0 * y[1])
 
     res = no_nan_divide(x, y)
 

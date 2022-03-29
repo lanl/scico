@@ -16,7 +16,7 @@ documented here; please consult the documentation for the source module
 :mod:`jax.scipy.special`.
 """
 
-
+"""
 import sys
 
 import jax
@@ -69,4 +69,14 @@ for name, func in jax._src.util.get_module_functions(js).items():
 
 _attach_wrapped_func(
     _not_implemented_functions, _not_implemented, module_name=sys.modules[__name__]
+)
+"""
+
+import jax.scipy.special as js
+
+import scico.numpy as snp
+
+snp._copy_attributes(
+    vars(),
+    js.__dict__,
 )
