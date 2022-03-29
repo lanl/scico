@@ -17,7 +17,7 @@ r"""Extensions of numpy ndarray class.
 
 The class :class:`.BlockArray` provides a way to combine several arrays
 of different shapes and/or data types into a single object.
-A :class:`.BlockArray` consists of a tuple of `DeviceArray`
+A :class:`.BlockArray` consists of a list of `DeviceArray`
 objects, which we refer to as blocks.
 :class:`.BlockArray`s differ from tuples in that mathematical operations
 on :class:`.BlockArray`s automatically map along the blocks, returning
@@ -476,7 +476,7 @@ import jax.numpy as jnp
 from jaxlib.xla_extension import DeviceArray
 
 
-class BlockArray(tuple):
+class BlockArray(list):
     """BlockArray"""
 
     # Ensure we use BlockArray.__radd__, __rmul__, etc for binary
@@ -570,10 +570,12 @@ def _da_prop_wrapper(prop):
     return prop_ba
 
 
+skip_props = ("at",)
+
 da_props = [
     k
     for k, v in dict(inspect.getmembers(DeviceArray)).items()
-    if isinstance(v, property) and k[0] != "_"
+    if isinstance(v, property) and k[0] != "_" and k not in dir(BlockArray) and k not in skip_props
 ]
 
 for prop in da_props:
@@ -592,10 +594,15 @@ def _da_method_wrapper(method):
     return method_ba
 
 
+skip_methods = ()
+
 da_methods = [
     k
     for k, v in dict(inspect.getmembers(DeviceArray)).items()
-    if isinstance(v, Callable) and k[0] != "_"
+    if isinstance(v, Callable)
+    and k[0] != "_"
+    and k not in dir(BlockArray)
+    and k not in skip_methods
 ]
 
 for method in da_methods:

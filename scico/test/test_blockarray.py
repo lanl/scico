@@ -585,6 +585,9 @@ def test_array_from_flattened():
     assert isinstance(x_b._data, DeviceArray)
 
 
+@pytest.mark.skip
+# indexing now works just like a list of DeviceArrays:
+# x[1] = x[1].at[:].set(0)
 class TestBlockArrayIndex:
     def setup_method(self):
         key = None
@@ -595,14 +598,14 @@ class TestBlockArrayIndex:
 
     def test_set_block(self):
         # Test assignment of an entire block
-        A2 = self.A.at[0][:].set(1)
+        A2 = self.A[0].at[:].set(1)
         np.testing.assert_allclose(A2[0], snp.ones_like(A2[0]), rtol=5e-5)
         np.testing.assert_allclose(A2[1], A2[1], rtol=5e-5)
 
     def test_set(self):
         # Test assignment using (bkidx, idx) format
         A2 = self.A[0].at[2:, :-2].set(1.45)
-        tmp = A2[0][2:, :-2]
+        tmp = A2[2:, :-2]
         np.testing.assert_allclose(A2[0][2:, :-2], 1.45 * snp.ones_like(tmp), rtol=5e-5)
         np.testing.assert_allclose(A2[1].full_ravel(), A2[1], rtol=5e-5)
 
