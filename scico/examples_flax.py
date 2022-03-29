@@ -768,6 +768,8 @@ def load_image_data(
     noise_level: float = 0.1,
     noise_range: bool = False,
     transf: Optional[Callable] = None,
+    stride: Optional[int] = None,
+    augment: bool = False
 ):  # pragma: no cover
     """
     Load and/or pre-process image data.
@@ -807,7 +809,9 @@ def load_image_data(
         verbose: Flag indicating whether to print status messages. Default: ``False``.
         noise_level: Standard deviation of the Gaussian noise.
         noise_range: Flag to indicate if a fixed or a random standard deviation must be used. Default: ``False`` i.e. fixed standard deviation given by `noise_level`.
-        transf : Operator for bluring or other non-trivial transformations. Default: ``None``.
+        transf: Operator for bluring or other non-trivial transformations. Default: ``None``.
+        stride: Stride between patch origins (indexed from left-top corner). Default: 0 (i.e. no stride, only one patch per image).
+        augment: Augment training data set by flip and 90 degrees rotation. Default: ``False`` (i.e. no augmentation).
 
     Returns:
        tuple: A tuple (train_ds, test_ds) containing:
@@ -888,14 +892,10 @@ def load_image_data(
     npz = np.load(npz_file)
 
     # Generate new data.
-    if size == 40:
-        stride = 23
-        multi = True
-        augment = False
-    elif size >= 128:
+    if stride is None:
         multi = False
-        stride = None
-        augment = True
+    else:
+        multi = True
 
     config: ConfigImageSetDict = {
         "output_size": size,

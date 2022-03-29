@@ -54,6 +54,7 @@ train_ds, test_ds = load_image_data(
     verbose=True,
     noise_level=noise_level,
     noise_range=noise_range,
+    stride=23,
 )
 
 """
