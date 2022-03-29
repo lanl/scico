@@ -23,7 +23,7 @@ The following notation is used throughout the module:
      \begin{align}
      \Delta x, \Delta y  & \quad \text{Sampling intervals in } x
      \text{ and } y \text{ axes}\\
-     z  & \quad \text{Propagation distance}\\
+     z  & \quad \text{Propagation distance} \;\; (z \geq 0) \\
      N_x, N_y  & \quad \text{Number of samples in } x \text{ and } y
      \text{ axes}\\
      k_0 & \quad \text{Illumination wavenumber corresponding to } 2\pi /
@@ -32,8 +32,9 @@ The following notation is used throughout the module:
 
 Variables :math:`\Delta x, \Delta y, z,` and :math:`k_0` represent
 physical quantities. Any units may be chosen, but they must be consistent
-across all of the variables, e.g. m (metres) for :math:`\Delta x,
-\Delta y, z,` and :math:`\mathrm{m}^{-1}` for :math:`k_0`.
+across all of these variables, e.g. m (metres) for :math:`\Delta x,
+\Delta y, z,` and :math:`\mathrm{m}^{-1}` for :math:`k_0`, as well as with
+the units for the physical dimensions of the source wavefield.
 
 Subscripts :math:`S` and :math:`D` are used to refer to the source and
 destination planes respectively when it is necessary to distinguish
@@ -200,22 +201,27 @@ L           : {self.L}
 class AngularSpectrumPropagator(Propagator):
     r"""Angular spectrum propagator.
 
-    Propagates a source field with coordinates :math:`(x, y, z_0)`
+    Propagates a planar source field with coordinates :math:`(x, y, z_0)`
     to a destination plane at a distance :math:`z` with coordinates
     :math:`(x, y, z_0 + z)`. The action of this linear operator is
     given by (Eq. 3.74, :cite:`goodman-2005-fourier`)
 
     .. math ::
-         (A \mb{u})(x, y) = \iint_{-\infty}^{\infty}
-         \mb{\hat{u}}(k_x, k_y) e^{j \sqrt{k_0^2 - k_x^2 - k_y^2}
-         \abs{z}} e^{j (x k_x + y k_y) } d k_x \ d k_y \;,
+         (A \mb{u})(x, y, z_0 + z) = \frac{1}{2 \pi} \iint_{-\infty}^{\infty}
+         \mb{\hat{u}}(k_x, k_y) e^{j \sqrt{k_0^2 - k_x^2 - k_y^2} \,
+         z} e^{j (x k_x + y k_y) } d k_x \ d k_y \;,
 
     where the :math:`\mb{\hat{u}}` is the Fourier transform of the
-    field in the plane :math:`z=0`, given by
+    field i:math:`\mb{u}(x, y)` in the plane :math:`z=z_0`, given by
 
     .. math ::
          \mb{\hat{u}}(k_x, k_y) = \iint_{-\infty}^{\infty}
-         \mb{u}(x, y) e^{- j (x k_x + y k_y)} d k_x \ d k_y \;.
+         \mb{u}(x, y) e^{- j (x k_x + y k_y)} d k_x \ d k_y \;,
+
+    where :math:`(k_x, k_y)` are the :math:`x` and :math:`y` components
+    respectively of the wave-vector of the plane wave,
+    :math:`k_0 = \sqrt{k_x^2 + k_y^2}`, and :math:`j` is the imaginary
+    unit.
 
     The angular spectrum propagator can be written
 
@@ -223,14 +229,16 @@ class AngularSpectrumPropagator(Propagator):
          A\mb{u} = F^{-1} D F \mb{u} \;,
 
     where :math:`F` is the Fourier transform with respect to
-    :math:`(x, y)` and
+    :math:`(x, y)`, :math:`F^{-1}` is the inverse transform with respect
+    to :math:`(k_x, k_y)`, and the propagator term is given by and
 
     .. math ::
-         D = \mathrm{diag}\left(\exp  \left\{ j \sqrt{k_0^2 - k_x^2 -
-         k_y^2} \abs{z} \right\} \right) \;.
+         D = \exp  \left\{ j \sqrt{k_0^2 - k_x^2 - k_y^2} \, z \right\}
+         \;.
 
-
-    The propagator is adequately sampled when :cite:`voelz-2009-digital`
+    Aliasing of the wavefield at the destination plane is avoided when
+    the propagator term is adequately sampled according to
+    :cite:`voelz-2009-digital`
 
     .. math ::
          (\Delta x)^2 \geq \frac{\pi}{k_0 N_x} \sqrt{ (\Delta x)^2 N_x^2 +
@@ -312,14 +320,15 @@ class AngularSpectrumPropagator(Propagator):
 class FresnelPropagator(Propagator):
     r"""Fresnel (small-angle/paraxial) propagator.
 
-    Propagates a source field with coordinates :math:`(x, y, z_0)` to a
-    destination plane at a distance :math:`z` with coordinates
+    Propagates a planar source field with coordinates :math:`(x, y, z_0)`
+    to a destination plane at a distance :math:`z` with coordinates
     :math:`(x, y, z_0 + z)`. The action of this linear operator is given
     by (Eq. 4.20, :cite:`goodman-2005-fourier`)
 
     .. math ::
-        (A \mb{u})(x, y) = e^{j k_0 z} \iint_{-\infty}^{\infty}
-        \mb{\hat{u}}(k_x, k_y) e^{-j \frac{z}{2 k_0} (k_x^2 + k_y^2) }
+        (A \mb{u})(x, y, z + z_0) = e^{j k_0 z} \frac{1}{2 \pi}
+        \iint_{-\infty}^{\infty} \mb{\hat{u}}(k_x, k_y)
+        e^{-j \frac{z}{2 k_0}\left(k_x^2 + k_y^2\right) }
         e^{j (x k_x + y k_y) } d k_x \ d k_y \;,
 
     where the :math:`\mb{\hat{u}}` is the Fourier transform of the field
@@ -329,19 +338,27 @@ class FresnelPropagator(Propagator):
         \mb{\hat{u}}(k_x, k_y) = \iint_{-\infty}^{\infty} \mb{u}(x, y)
         e^{- j (x k_x + y k_y)} d k_x \ d k_y \;.
 
+    This linear operator is valid when :math:`k_0^2 << k_x^2 + k_y^2`.
     The Fresnel propagator can be written
 
     .. math ::
         A\mb{u} = F^{-1} D F \mb{u} \;,
 
     where :math:`F` is the Fourier transform with respect to
-    :math:`(x, y)` and
+    :math:`(x, y)`, :math:`F^{-1}` is the inverse transform with respect
+    to :math:`(k_x, k_y)`, and the propagator term is given by
 
     .. math ::
-        D = \mathrm{diag}\left(\exp  \left\{ j \sqrt{k_0^2 - k_x^2 - k_y^2} \abs{z}
-        \right\} \right) \;.
+        D = \mathrm{diag}\left(\exp  \left\{ -j \frac{z}{2 k_0}\left(k_x^2 +
+        k_y^2\right) \right\} \right) \;,
 
-    The propagator is adequately sampled when :cite:`voelz-2011-computational`
+    where :math:`(k_x, k_y)` are the :math:`x` and :math:`y` components
+    respectively of the wave-vector of the plane wave,
+    :math:`k_0 = \sqrt{k_x^2 + k_y^2}`, and :math:`j` is the imaginary
+    unit.
+
+    The propagator term is adequately sampled when
+    :cite:`voelz-2011-computational`
 
     .. math ::
          (\Delta x)^2 \geq \frac{2 \pi z }{k_0 N_x} \quad \text{and}
@@ -410,6 +427,8 @@ class FraunhoferPropagator(LinearOperator):
         \int \mb{u}(x_S, y_S) e^{-j \frac{k_0}{z} (x_D x_S + y_D y_S)
         } dx_S \ dy_S \;.
 
+    This is valid when :math:`a^2 / (z * \text{wavelength}) << 1`, where
+    :math:`a` is the largest length scale of the object.
     Writing the Fourier transform of the field :math:`\mb{u}` as
 
     .. math ::
@@ -437,15 +456,8 @@ class FraunhoferPropagator(LinearOperator):
 
     and similary for the :math:`y` axis.
 
-    The sampling intervals and plane lengths coincide in the case of
-    critical sampling:
-
-    .. math ::
-         \Delta x_S = \sqrt{\frac{2 \pi z}{N_x k_0}} \quad \text{and}
-         \quad \Delta y_S = \sqrt{\frac{2 \pi z}{N_y k_0}} \;.
-
-    The Fraunhofer phase :math:`P(x_D, y_D)` is adequately sampled
-    when
+    The Fraunhofer propagator term :math:`P(x_D, y_D)` is adequately
+    sampled when
 
     .. math ::
          \Delta x_S \geq \sqrt{\frac{2 \pi z}{N_x k_0}} \quad \text{and}
