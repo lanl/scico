@@ -34,7 +34,7 @@ else:
     have_clu = True
 
 from scico.typing import Array, Shape
-#from scico.metric import snr
+from scico.metric import snr
 from scico.flax import create_input_iter
 from scico.flax.train.input_pipeline import DataSetDict
 
@@ -42,20 +42,6 @@ ModuleDef = Any
 KeyArray = Union[Array, jax._src.prng.PRNGKeyArray]
 PyTree = Any
 
-def snr(reference: Array, comparison: Array) -> float:
-    """Compute Signal to Noise Ratio (SNR) of two images. Uses only jax numpy functionality.
-
-    Args:
-        reference: Reference image.
-        comparison: Comparison image.
-
-    Returns:
-        SNR of `comparison` with respect to `reference`.
-    """
-
-    dv = jnp.var(reference)
-    rt = dv / jnp.mean(jnp.abs(reference - comparison).ravel() ** 2)
-    return 10.0 * jnp.log10(rt)
 
 class ConfigDict(TypedDict):
     """Definition of the dictionary structure
