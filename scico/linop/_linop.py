@@ -337,7 +337,7 @@ def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = Non
     __class__ = OpClass  # needed for super() to work
 
     OpClass.__doc__ = f"Linear operator version of :func:`{f_name}`."
-    OpClass.__init__.__doc__ = fr"""
+    OpClass.__init__.__doc__ = rf"""
 
         Args:
             input_shape: Shape of input array.
