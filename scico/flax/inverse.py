@@ -87,7 +87,7 @@ class MoDLNet(Module):
 
         ahaI_f = lambda v: self.operator.adj(self.operator(v)) + lmbda * v
 
-        cgsol = lambda b: jnp.atleast_3d(cg_solver(ahaI_f, b.squeeze(), maxiter=self.cg_iter))
+        cgsol = lambda b: jnp.atleast_3d(cg_solver(ahaI_f, b.reshape(self.operator.input_shape), maxiter=self.cg_iter))
 
         for i in range(self.depth):
             z = resnet(x, train)
