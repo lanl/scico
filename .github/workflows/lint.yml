@@ -28,7 +28,7 @@ jobs:
       - name: Black code formatter
         uses: psf/black@stable
         with:
-          version: "21.6b0"
+          version: "22.3"
 
       - name: Isort import sorter
         uses: isort/isort-action@v0.1.0

@@ -15,7 +15,7 @@ SMALL_INPUT = (4, 5)
 def make_im(Nx, Ny):
     x, y = snp.meshgrid(snp.linspace(-1, 1, Nx), snp.linspace(-1, 1, Ny))
 
-    im = snp.where(x ** 2 + y ** 2 < 0.3, 1.0, 0.0)
+    im = snp.where(x**2 + y**2 < 0.3, 1.0, 0.0)
 
     return im
 
