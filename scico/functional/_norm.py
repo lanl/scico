@@ -287,7 +287,7 @@ class HuberNorm(Functional):
         """
         self.delta = delta
         self._call_lt_branch = lambda xl2: 0.5 * xl2 ** 2
-        self._call_gt_branch = lambda xl2: self.delta * xl2 - 0.5
+        self._call_gt_branch = lambda xl2: self.delta * (xl2 - self.delta / 2.0)
         super().__init__()
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
