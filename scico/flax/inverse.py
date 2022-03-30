@@ -272,7 +272,7 @@ class ODPProxDblrBlock(Module):
 
         x = jnp.fft.irfftn(
             jnp.fft.rfftn(
-                alpha * self.operator.adj(y) + resnet(x, train), s=fft_shape, axes=fft_axes
+                alpha * self.batch_op_adj(y) + resnet(x, train), s=fft_shape, axes=fft_axes
             )
             / scale,
             s=fft_shape,
