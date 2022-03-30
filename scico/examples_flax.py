@@ -886,7 +886,7 @@ def load_image_data(
                         f"{'Data range labels':26s}{'Min:':6s}{train_ds['label'].min():>5.2f}{', Max:':6s}{train_ds['label'].max():>8.2f}"
                     )
                     print(
-                        "NOTE: No checking that additive noise, blurring or other preprocessing performed to the data read agrees with the requested preprocessing! Delete cache to guarantee requested preprocessing."
+                        "NOTE: No checking that additive noise, blurring or other preprocessing performed in the data loaded agrees with the requested preprocessing! Delete cache to guarantee requested preprocessing."
                     )
 
                 return train_ds, test_ds

@@ -5,39 +5,54 @@
 # with the package.
 
 r"""
-Noisy Data Generation for NN Training
-=====================================
+Generation of Blurred Data for NN Training
+==========================================
 
-This example demonstrates how to generate noisy image data for training neural network models for denoising.
+This example demonstrates how to generate blurred image data for training neural network models for deblurring.
 """
 import numpy as np
 
-from scico.examples_flax import load_image_data
+from jax import vmap
+
+from scico.examples_flax import load_image_data, construct_blurring_operator
 from scico import plot
+
+"""
+Define blurring operator.
+"""
+output_size = 256  # patch size
+channels = 1  # Gray scale problem
+blur_ksize = (5, 5)  # Size of blurring kernel
+blur_sigma = 5  # STD of Gaussian blurring
+
+opBlur = construct_blurring_operator(output_size, channels, blur_ksize, blur_sigma)
+
+opBlur_vmap = vmap(opBlur)  # For batch processing
 
 """
 Read data from cache or generate if not available.
 """
-size = 40  # patch size
 train_nimg = 400  # number of training images
 test_nimg = 64  # number of testing images
 nimg = train_nimg + test_nimg
 gray = True  # use gray scale images
-data_mode = "dn"  # Denoising problem
-noise_level = 0.1  # Standard deviation of noise
+data_mode = "dblr"  # Denoising problem
+noise_level = 0.01  # Standard deviation of noise
 noise_range = False  # Use fixed noise level
-stride = 23  # Stride to use multiple patches per image
+
 
 train_ds, test_ds = load_image_data(
     train_nimg,
     test_nimg,
-    size,
+    output_size,
     gray,
     data_mode,
     verbose=True,
     noise_level=noise_level,
     noise_range=noise_range,
-    stride=stride,
+    transf=opBlur_vmap,
+    stride=100,
+    augment=True,
 )
 
 """
@@ -54,7 +69,7 @@ plot.imview(
 )
 plot.imview(
     train_ds["image"][indx_tr, ..., 0],
-    title="Noisy Image - Training Sample",
+    title="Blured Image - Training Sample",
     fig=fig,
     ax=axes[0, 1],
 )
@@ -65,7 +80,7 @@ plot.imview(
     ax=axes[1, 0],
 )
 plot.imview(
-    test_ds["image"][indx_te, ..., 0], title="Noisy Image - Testing Sample", fig=fig, ax=axes[1, 1]
+    test_ds["image"][indx_te, ..., 0], title="Blured Image - Testing Sample", fig=fig, ax=axes[1, 1]
 )
 fig.suptitle(r"Training and Testing samples")
 fig.tight_layout()
