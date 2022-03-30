@@ -773,7 +773,7 @@ def load_image_data(
     noise_range: bool = False,
     transf: Optional[Callable] = None,
     stride: Optional[int] = None,
-    augment: bool = False
+    augment: bool = False,
 ):  # pragma: no cover
     """
     Load and/or pre-process image data.
@@ -924,12 +924,7 @@ def load_image_data(
         label=train_ds["label"],
         numimg=train_nimg,
     )
-    np.savez(
-        npz_test_file,
-        image=test_ds["image"],
-        label=test_ds["label"],
-        numimg=test_nimg
-    )
+    np.savez(npz_test_file, image=test_ds["image"], label=test_ds["label"], numimg=test_nimg)
 
     if verbose:
         print(f"{'Storing data in path':29s}{':':2s}{cache_path}")
@@ -943,4 +938,3 @@ def load_image_data(
         )
 
     return train_ds, test_ds
-
