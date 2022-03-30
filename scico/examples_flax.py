@@ -27,6 +27,7 @@ import imageio
 
 from scico import util
 from scico.typing import Array, Shape
+from scico.linop import CircularConvolve
 from scico.linop.radon_astra import TomographicProjector
 from scico.examples import rgb2gray
 from scico.flax.train.input_pipeline import DataSetDict
@@ -383,7 +384,7 @@ class CenterCrop:
         Args:
             output_size: Desired output size. If int, square crop is made.
         """
-        assert isinstance(output_size, (int, tuple))
+        assert isinstance(output_size, (int, Shape))
         if isinstance(output_size, int):
             self.output_size = (output_size, output_size)
         else:
@@ -424,7 +425,7 @@ class PositionalCrop:
         Args:
             output_size: Desired output size. If int, square crop is made.
         """
-        assert isinstance(output_size, (int, tuple))
+        assert isinstance(output_size, (int, Shape))
         if isinstance(output_size, int):
             self.output_size = (output_size, output_size)
         else:
@@ -475,8 +476,10 @@ class RandomNoise:
             noise_level: Standard dev of the Gaussian noise.
             range_flag: If true, the standard dev is randomly selected between 50% and 100% of `noise_level` set. Default: ``False``.
         """
-        self.noise_level = noise_level
         self.range_flag = range_flag
+        if range_flag:
+            self.noise_level_low = 0.5 * noise_level
+        self.noise_level = noise_level
 
     def __call__(self, image: Array) -> Array:
         """Add Gaussian noise.
@@ -495,8 +498,10 @@ class RandomNoise:
                 num_img = image.shape[0]
             else:
                 num_img = 1
-            noise_level = np.random.uniform(0.5 * self.noise_level, self.noise_level, num_img)
-            noise_level = noise_level.reshape((noise_level.shape[0],) + (1,) * (image.ndim - 1))
+            noise_level_range = np.random.uniform(self.noise_level_low, self.noise_level, num_img)
+            noise_level = noise_level_range.reshape(
+                (noise_level_range.shape[0],) + (1,) * (image.ndim - 1)
+            )
 
         imgnoised = image + np.random.normal(0.0, noise_level, image.shape)
         imgnoised = np.clip(imgnoised, 0.0, 1.0)
@@ -510,7 +515,7 @@ def reconfigure_images(
     gray_flag: bool = False,
     num_img: Optional[int] = None,
     multi_flag: bool = False,
-    stride: Optional[int] = None,
+    stride: Optional[Union[Shape, int]] = None,
     dtype: Any = np.float32,
 ) -> Array:
     """Reconfigure set of images, converting to
@@ -545,10 +550,10 @@ def reconfigure_images(
         tsfm = PositionalCrop(output_size)
         assert stride is not None
         if isinstance(stride, int):
-            stride = (stride, stride)
+            stride_multi = (stride, stride)
         S = np.zeros((num_img, images.shape[1], images.shape[2], C), dtype=dtype)
     else:
-        tsfm = CenterCrop(output_size)
+        tsfm_crop = CenterCrop(output_size)
         S = np.zeros((num_img, tsfm.output_size[0], tsfm.output_size[1], C), dtype=dtype)
 
     # Convert to gray scale and/or crop.
@@ -560,22 +565,22 @@ def reconfigure_images(
             img = imgG.reshape(imgG.shape + (1,))
         if not multi_flag:
             # Crop image
-            img = tsfm(img)
+            img = tsfm_crop(img)
         S[i] = img
 
     if multi_flag:
         # Sample multiple patches from image
         h = S.shape[1]
         w = S.shape[2]
-        nh = int(math.floor((h - tsfm.output_size[0]) / stride[0])) + 1
-        nw = int(math.floor((w - tsfm.output_size[1]) / stride[1])) + 1
+        nh = int(math.floor((h - tsfm.output_size[0]) / stride_multi[0])) + 1
+        nw = int(math.floor((w - tsfm.output_size[1]) / stride_multi[1])) + 1
         saux = np.zeros(
             (nh * nw * num_img, tsfm.output_size[0], tsfm.output_size[1], S.shape[-1]), dtype=dtype
         )
         count2 = 0
         for i in range(S.shape[0]):
-            for top in range(0, h - tsfm.output_size[0], stride[0]):
-                for left in range(0, w - tsfm.output_size[1], stride[1]):
+            for top in range(0, h - tsfm.output_size[0], stride_multi[0]):
+                for left in range(0, w - tsfm.output_size[1], stride_multi[1]):
                     saux[count2, ...] = tsfm(S[i], top, left)
                     count2 += 1
         S = saux
@@ -601,8 +606,8 @@ class ConfigImageSetDict(TypedDict):
     seed: float
 
 
-def build_img_dataset(
-    imagesd, config: ConfigImageSetDict, transf: Optional[Callable] = None
+def build_image_dataset(
+    imgs_train, imgs_test, config: ConfigImageSetDict, transf: Optional[Callable] = None
 ) -> Tuple[DataSetDict, DataSetDict]:
     """Pre-process images according to the
     specified configuration. Keep training and
@@ -613,9 +618,10 @@ def build_img_dataset(
     and C: number of channels.
 
     Args:
-        imagesd: Dictionary of training and testing images to be pre-processed.
+        imgs_train: 4D array (NHWC) with images for training.
+        imgs_test: 4D array (NHWC) with images for testing.
         config: Configuration of image data set to read.
-        transf: Operator for bluring or other non-trivial transformations. Default: ``None``.
+        transf: Operator for blurring or other non-trivial transformations. Default: ``None``.
 
     Returns:
        tuple: A tuple (train_ds, test_ds) containing:
@@ -625,7 +631,7 @@ def build_img_dataset(
     """
     # Reconfigure images by converting to gray scale or sampling multiple patches according to specified configuration.
     S_train = reconfigure_images(
-        imagesd["imgstr"],
+        imgs_train,
         config["output_size"],
         gray_flag=config["run_gray"],
         num_img=config["num_img"],
@@ -633,7 +639,7 @@ def build_img_dataset(
         stride=config["stride"],
     )
     S_test = reconfigure_images(
-        imagesd["imgstt"],
+        imgs_test,
         config["output_size"],
         gray_flag=config["run_gray"],
         num_img=config["test_num_img"],
@@ -642,11 +648,11 @@ def build_img_dataset(
     )
 
     # Check for transformation
-    tsfm = None
+    tsfm: Optional[Callable] = None
     # Processing: add noise or blur or etc.
     if config["data_mode"] == "dn":  # Denoise problem
         tsfm = RandomNoise(config["noise_level"], config["noise_range"])
-    elif config["data_mode"] == "dblr":  # Debluring problem
+    elif config["data_mode"] == "dblr":  # Deblurring problem
         assert transf is not None
         tsfm = transf
 
@@ -789,7 +795,7 @@ def load_image_data(
     the data read from the cached file, a
     `RunTimeError` is generated. There is no
     checking for the specific contamination
-    (i.e. noise level or bluring, etc.).
+    (i.e. noise level or blurring, etc.).
 
     If no cached file is found or not enough
     images were sampled and stored in the
@@ -801,19 +807,19 @@ def load_image_data(
     `img_*_test.npz` to keep separated training
     and testing partitions. The * stands for
     `dn` if denoising problem or `dblr` if
-    debluring problem.
+    deblurring problem.
 
     Args:
         train_nimg: Number of images required for sampling training data.
         test_nimg: Number of images required for sampling testing data.
         size: Size of reconstruction images.
         gray_flag: Flag to indicate if gray scale images or color images. When ``True`` gray scale images are used.
-        data_mode: Type of image problem. Options are: `dn` for denosing, `dblr` for debluring.
+        data_mode: Type of image problem. Options are: `dn` for denosing, `dblr` for deblurring.
         cache_path: Directory in which processed data is saved. Default: ``None``.
         verbose: Flag indicating whether to print status messages. Default: ``False``.
         noise_level: Standard deviation of the Gaussian noise.
         noise_range: Flag to indicate if a fixed or a random standard deviation must be used. Default: ``False`` i.e. fixed standard deviation given by `noise_level`.
-        transf: Operator for bluring or other non-trivial transformations. Default: ``None``.
+        transf: Operator for blurring or other non-trivial transformations. Should be able to handle batched (NHWC) data. Default: ``None``.
         stride: Stride between patch origins (indexed from left-top corner). Default: 0 (i.e. no stride, only one patch per image).
         augment: Augment training data set by flip and 90 degrees rotation. Default: ``False`` (i.e. no augmentation).
 
@@ -834,17 +840,22 @@ def load_image_data(
     npz_test_file = os.path.join(cache_path, "img_" + data_mode + "_test.npz")
 
     if os.path.isfile(npz_train_file) and os.path.isfile(npz_test_file):
-        # Load data.
-        trdt_in = np.load(npz_train_file)
-        ttdt_in = np.load(npz_test_file)
+        # Load data and convert arrays to float32.
+        trdt = np.load(npz_train_file)  # Training
+        ttdt = np.load(npz_test_file)  # Testing
+        train_in = trdt["image"].astype(np.float32)
+        train_out = trdt["label"].astype(np.float32)
+        test_in = ttdt["image"].astype(np.float32)
+        test_out = ttdt["label"].astype(np.float32)
+
         # Check image size.
-        if (trdt_in["image"].shape[1] != size) or (ttdt_in["image"].shape[1] != size):
+        if (train_in.shape[1] != size) or (test_in.shape[1] != size):
             raise RuntimeError(
-                f"{'Provided size: '}{size}{' does not match read train size: '}{trdt_in['image'].shape[1]}{' or test size: '}{ttdt_in['image'].shape[1]}"
+                f"{'Provided size: '}{size}{' does not match read train size: '}{train_in.shape[1]}{' or test size: '}{test_in.shape[1]}"
             )
         # Check gray scale or color images.
-        C_train = trdt_in["image"].shape[-1]
-        C_test = ttdt_in["image"].shape[-1]
+        C_train = train_in.shape[-1]
+        C_test = test_in.shape[-1]
         if gray_flag:
             C = 1
         else:
@@ -854,15 +865,15 @@ def load_image_data(
                 f"{'Provided channels: '}{C}{' do not match read train channels: '}{C_train}{' or test channels: '}{C_test}"
             )
         # Check that enough images were sampled.
-        if trdt_in["numimg"] >= train_nimg:
-            if ttdt_in["numimg"] >= test_nimg:
+        if trdt["numimg"] >= train_nimg:
+            if ttdt["numimg"] >= test_nimg:
                 train_ds = {
-                    "image": trdt_in["image"],
-                    "label": trdt_in["label"],
+                    "image": train_in,
+                    "label": train_out,
                 }
                 test_ds = {
-                    "image": ttdt_in["image"],
-                    "label": ttdt_in["label"],
+                    "image": test_in,
+                    "label": test_out,
                 }
                 if verbose:
                     print(f"{'Data read from path:':22s}{cache_path}")
@@ -874,16 +885,19 @@ def load_image_data(
                     print(
                         f"{'Data range labels':26s}{'Min:':6s}{train_ds['label'].min():>5.2f}{', Max:':6s}{train_ds['label'].max():>8.2f}"
                     )
+                    print(
+                        "NOTE: No checking that additive noise, blurring or other preprocessing performed to the data read agrees with the requested preprocessing! Delete cache to guarantee requested preprocessing."
+                    )
 
                 return train_ds, test_ds
 
             elif verbose:
                 print(
-                    f"{'Not enough images sampled in testing file':34s}{'Requested:':12s}{test_nimg}{' Sampled:':12s}{ttdt_in['numimg']}"
+                    f"{'Not enough images sampled in testing file':34s}{'Requested:':12s}{test_nimg}{' Sampled:':12s}{ttdt['numimg']}"
                 )
         elif verbose:
             print(
-                f"{'Not enough images sampled in training file':34s}{'Requested:':12s}{train_nimg}{' Available:':12s}{trdt_in['numimg']}"
+                f"{'Not enough images sampled in training file':34s}{'Requested:':12s}{train_nimg}{' Available:':12s}{trdt['numimg']}"
             )
 
     # Check if BSDS folder exists if not create and download BSDS data.
@@ -891,9 +905,11 @@ def load_image_data(
     if not os.path.isdir(bsds_cache_path):
         os.makedirs(bsds_cache_path)
         get_bsds_data(path=bsds_cache_path, verbose=verbose)
-    # load data and return after pre-processing for specified data_mode.
+    # Load data, convert arrays to float32 and return after pre-processing for specified data_mode.
     npz_file = os.path.join(bsds_cache_path, "bsds500.npz")
     npz = np.load(npz_file)
+    imgs_train = npz["imgstr"].astype(np.float32)
+    imgs_test = npz["imgstt"].astype(np.float32)
 
     # Generate new data.
     if stride is None:
@@ -915,7 +931,7 @@ def load_image_data(
         "test_split": 0.2,
         "seed": 1234,
     }
-    train_ds, test_ds = build_img_dataset(npz, config, transf)
+    train_ds, test_ds = build_image_dataset(imgs_train, imgs_test, config, transf)
     # Store generated images.
     os.makedirs(cache_path, exist_ok=True)
     np.savez(
@@ -924,7 +940,12 @@ def load_image_data(
         label=train_ds["label"],
         numimg=train_nimg,
     )
-    np.savez(npz_test_file, image=test_ds["image"], label=test_ds["label"], numimg=test_nimg)
+    np.savez(
+        npz_test_file,
+        image=test_ds["image"],
+        label=test_ds["label"],
+        numimg=test_nimg,
+    )
 
     if verbose:
         print(f"{'Storing data in path':29s}{':':2s}{cache_path}")
@@ -938,3 +959,43 @@ def load_image_data(
         )
 
     return train_ds, test_ds
+
+
+def construct_blurring_operator(
+    output_size: Union[Shape, int],
+    channels: int,
+    kernel_size: Shape,
+    blur_sigma: float,
+    dtype: Any = np.float32,
+):
+    """
+    Construct blurring operator.
+
+    Args:
+        output_size: Size of the image to blur.
+        channels: Number of channels in image to blur.
+        kernel_size: Size of the blurring kernel.
+        blur_sigma: Standard deviation of the blurring kernel.
+        dtype: Output data type. Default: np.float32.
+
+    Returns:
+       An operator that computes a circular convolution with the provided kernel. The input to the constructed operator should be HWC with H and W spatial dimensions given by `output_size` and C the given `channels`.
+    """
+    if isinstance(output_size, int):
+        output_size = (output_size, output_size)
+    else:
+        assert len(output_size) == 2
+
+    kernel = 1.0
+    meshgrids = np.meshgrid(*[np.arange(size, dtype=dtype) for size in kernel_size])
+    for size, mgrid in zip(kernel_size, meshgrids):
+        mean = (size - 1) / 2
+        kernel *= np.exp(-(((mgrid - mean) / blur_sigma) ** 2) / 2)
+
+    # Make sure norm of values in gaussian kernel equals 1.
+    kernel = kernel / np.sum(kernel)
+
+    # Reshape to depthwise convolutional weight (HWC)
+    xshape = (output_size[0], output_size[1], channels)
+
+    return CircularConvolve(kernel, input_shape=xshape, ndims=2, input_dtype=dtype)
