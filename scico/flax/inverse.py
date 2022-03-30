@@ -80,7 +80,7 @@ class MoDLNet(Module):
             dtype=self.dtype,
         )
 
-        ah_f = lambda v: jnp.atleast_3d(self.operator.adj(v.squeeze()))
+        ah_f = lambda v: jnp.atleast_3d(self.operator.adj(v.reshape(self.operator.output_shape)))
 
         Ahb = lax.map(ah_f, y)
         x = Ahb
@@ -235,7 +235,7 @@ class ODPProxDblrBlock(Module):
 
     def batch_op_adj(self, y: Array) -> Array:
         """Batch application of adjoint operator."""
-        return self.operator.adj(y)
+        return self.operator.adj(y.reshape(self.operator.output_shape))
 
     @compact
     def __call__(self, x: Array, y: Array, train: bool = True) -> Array:
@@ -312,8 +312,10 @@ class ODPGrDescBlock(Module):
 
     def setup(self):
         """Setting operator for batch evaluation."""
-        self.ah_f = lambda v: jnp.atleast_3d(self.operator.adj(v.squeeze()))
-        self.a_f = lambda v: jnp.atleast_3d(self.operator(v.squeeze()))
+        self.ah_f = lambda v: jnp.atleast_3d(
+            self.operator.adj(v.reshape(self.operator.output_shape))
+        )
+        self.a_f = lambda v: jnp.atleast_3d(self.operator(v.reshape(self.operator.input_shape)))
 
     def batch_op_adj(self, y: Array) -> Array:
         """Batch application of adjoint operator."""
