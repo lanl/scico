@@ -33,7 +33,7 @@ SMALL_INPUT_OFFSET_RANGE = (0, 0.01, 0.1)
 def make_im(Nx, Ny, is_3d=True):
     x, y = snp.meshgrid(snp.linspace(-1, 1, Nx), snp.linspace(-1, 1, Ny))
 
-    im = snp.where((x - 0.25) ** 2 / 3 + y ** 2 < 0.1, 1.0, 0.0)
+    im = snp.where((x - 0.25) ** 2 / 3 + y**2 < 0.1, 1.0, 0.0)
     if is_3d:
         im = im[snp.newaxis, :, :]
     im = im.astype(snp.float32)
