@@ -28,6 +28,7 @@ jobs:
       - name: Temporary fix for black
         run: |
           python -m pip install --upgrade pip
+          pip install black==21.6b0
           pip install click==8.0.4
 
       - name: Black code formatter
