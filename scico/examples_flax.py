@@ -667,8 +667,12 @@ def build_img_dataset(
             Stsfm_train = tsfm2(tsfm(S_train.copy()))
             Stsfm_test = tsfm2(tsfm(S_test.copy()))
 
-    train_ds = {"image": Stsfm_train, "label": S_train}
-    test_ds = {"image": Stsfm_test, "label": S_test}
+    # Shuffle data
+    rng = np.random.default_rng(config["seed"])
+    perm_tr = rng.permutation(Stsfm_train.shape[0])
+    perm_tt = rng.permutation(Stsfm_test.shape[0])
+    train_ds = {"image": Stsfm_train[perm_tr], "label": S_train[perm_tr]}
+    test_ds = {"image": Stsfm_test[perm_tt], "label": S_test[perm_tt]}
 
     return train_ds, test_ds
 
