@@ -212,16 +212,15 @@ class AngularSpectrumPropagator(Propagator):
          z} e^{j (x k_x + y k_y) } d k_x \ d k_y \;,
 
     where the :math:`\mb{\hat{u}}` is the Fourier transform of the
-    field i:math:`\mb{u}(x, y)` in the plane :math:`z=z_0`, given by
+    field :math:`\mb{u}(x, y)` in the plane :math:`z=z_0`, given by
 
     .. math ::
          \mb{\hat{u}}(k_x, k_y) = \iint_{-\infty}^{\infty}
          \mb{u}(x, y) e^{- j (x k_x + y k_y)} d k_x \ d k_y \;,
 
     where :math:`(k_x, k_y)` are the :math:`x` and :math:`y` components
-    respectively of the wave-vector of the plane wave,
-    :math:`k_0 = \sqrt{k_x^2 + k_y^2}`, and :math:`j` is the imaginary
-    unit.
+    respectively of the wave-vector of the plane wave, and :math:`j` is
+    the imaginary unit.
 
     The angular spectrum propagator can be written
 
@@ -353,9 +352,8 @@ class FresnelPropagator(Propagator):
         k_y^2\right) \right\} \right) \;,
 
     where :math:`(k_x, k_y)` are the :math:`x` and :math:`y` components
-    respectively of the wave-vector of the plane wave,
-    :math:`k_0 = \sqrt{k_x^2 + k_y^2}`, and :math:`j` is the imaginary
-    unit.
+    respectively of the wave-vector of the plane wave, and :math:`j` is
+    the imaginary unit.
 
     The propagator term is adequately sampled when
     :cite:`voelz-2011-computational`
@@ -427,8 +425,8 @@ class FraunhoferPropagator(LinearOperator):
         \int \mb{u}(x_S, y_S) e^{-j \frac{k_0}{z} (x_D x_S + y_D y_S)
         } dx_S \ dy_S \;.
 
-    This is valid when :math:`a^2 / (z * \text{wavelength}) << 1`, where
-    :math:`a` is the largest length scale of the object.
+    This is valid when :math:`N_F << 1`, where :math:`N_F` is the
+    Fresnel number (Sec. 1.5, Sec. 4.7.2.1) :cite:`paganin-2006-coherent`.
     Writing the Fourier transform of the field :math:`\mb{u}` as
 
     .. math ::
