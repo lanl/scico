@@ -232,8 +232,7 @@ class AngularSpectrumPropagator(Propagator):
     to :math:`(k_x, k_y)`, and the propagator term is given by
 
     .. math ::
-         D = \exp  \left\{ j \sqrt{k_0^2 - k_x^2 - k_y^2} \, z \right\}
-         \;.
+         D = \exp \left( j \sqrt{k_0^2 - k_x^2 - k_y^2} \, z \right) \;.
 
     Aliasing of the wavefield at the destination plane is avoided when
     the propagator term is adequately sampled according to
@@ -348,8 +347,8 @@ class FresnelPropagator(Propagator):
     to :math:`(k_x, k_y)`, and the propagator term is given by
 
     .. math ::
-        D = \mathrm{diag}\left(\exp  \left\{ -j \frac{z}{2 k_0}\left(k_x^2 +
-        k_y^2\right) \right\} \right) \;,
+        D = \exp \left( -j \frac{z}{2 k_0}\left(k_x^2 + k_y^2 \right)
+        \right) \;,
 
     where :math:`(k_x, k_y)` are the :math:`x` and :math:`y` components
     respectively of the wave-vector of the plane wave, and :math:`j` is
@@ -420,8 +419,8 @@ class FraunhoferPropagator(LinearOperator):
 
     .. math ::
         (A \mb{u})(x_D, y_D) = \underbrace{\frac{k_0}{2 \pi}
-        \frac{e^{j k_0 z}}{j z} \mathrm{exp} \left\{ j \frac{k_0}{2 z}
-        (x_D^2 + y_D^2) \right\}}_{\triangleq P(x_D, y_D)}
+        \frac{e^{j k_0 z}}{j z} \mathrm{exp} \left( j \frac{k_0}{2 z}
+        (x_D^2 + y_D^2) \right)}_{\triangleq P(x_D, y_D)}
         \int \mb{u}(x_S, y_S) e^{-j \frac{k_0}{z} (x_D x_S + y_D y_S)
         } dx_S \ dy_S \;.
 
