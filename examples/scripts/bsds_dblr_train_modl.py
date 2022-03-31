@@ -5,27 +5,22 @@
 # with the package.
 
 r"""
-Training of ODP for Deblurring
+Training of MoDL for Deblurring
 ===============================
 
-This example demonstrates the training and application of the unrolled optimization with deep priors (ODP) with proximal map architecture described in :cite:`diamond-2018-odp` for a deblurring problem.
+This example demonstrates the training and application of a model-based deep learning (MoDL) architecture described in :cite:`aggarwal-2019-modl` for a deblurring problem.
 
 The source images are part of the [BSDS500 dataset] (http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/BSR/) provided by the Berkeley Segmentation Dataset and Benchmark project.
 
-A class [ODPNet] implements the ODP proximal map architecture,
-which solves the optimization problem
+A class [MoDLNet] implements the MoDL architecture, which solves the optimization problem
 
-    $$\mathrm{argmin}_{\mathbf{x}} \; \| A \mathbf{x} - (\mathbf{y}) \|_2^2 + r(\mathbf{x}) \;,$$
+    $$\mathrm{argmin}_{\mathbf{x}} \; \| A \mathbf{x} - (\mathbf{y}) \|_2^2 + \lambda \| \mathbf{x} - \mathrm{D}_w(\mathbf{x})\|_2^2 \;,$$
 
-where $A$ is circular convolution, $\mathbf{y}$ is a set of blurred images, $r$ is a regularizer and $\mathbf{x}$ is the set of deblurred images. The ODP abstracts the iterative solution by an unrolled network where each iteration corresponds to a different stage in the ODP model and updates the prediction by solving
+where $A$ is circular convolution, $\mathbf{y}$ is a set of blurred images, $\mathrm{D}$ a denoiser regularizer and $\mathbf{x}$ is the set of deblurred images. The MoDL abstracts the iterative solution by an unrolled network where each iteration corresponds to a different stage in the MoDL model and updates the prediction by solving
 
-    $$\mathbf{x}^{k+1} = \mathrm{argmin}_{\mathbf{x}} \; \alpha_k \| A \mathbf{x} - (\mathbf{y}) \|_2^2 + \frac{1}{2} \| \mathbf{x} - \mathbf{x}^k - \mathbf{x}^{k+1/2} \|_2^2 \;,$$
+    $$ \mathbf{x}^{k+1} = (A^T A + \lambda \mathbf{I})^{-1} (A^T \mathbf{y} + \lambda \mathbf{z}^k) \;,$$
 
-    which corresponds to
-
-    $$\mathbf{x}^{k+1} = \mathcal{F}^{-1} \mathrm{diag} (\alpha_k \| \mathbf{K} \|^2 + 1 )^{-1} \mathcal{F} (\alpha_k \mathcal{k}^T * \mathbf{y} \frac{1}{2} \| \mathbf{x} + \mathbf{x}^k + \mathbf{x}^{k+1/2}) \;,$$
-
-where $k$ is the index of the iteration, $\mathbf{x}^k$ is the output of the previous stage, $\mathbf{x}^k + \mathbf{x}^{k+1/2} = \mathrm{ResNet}(\mathbf{x}^{k-1})$ is the regularization (implemented as a residual convolutional neural network), $\mathcal{F}$ is the DFT, $\mathcal{k}$ is the blur kernel, and $\mathcal{K}$ is the DFT of $\mathcal{k}$. The output of the final stage is the deblurred image.
+    via conjugate gradient, where $k$ is the index of the iteration, $\mathbf{x}^k$ is the output of the previous stage, $\mathbf{z}^k = \mathrm{ResNet}(\mathbf{x}^{k-1})$ is the regularization (denoiser implemented as a residual convolutional neural network) and $\mathbf{I}$ is the identity matrix. The output of the final stage is the set of deblurred images.
 """
 
 from time import time
@@ -40,7 +35,6 @@ import os
 
 from scico import plot
 from scico import flax as sflax
-from scico.linop import CircularConvolve
 from scico.metric import snr, psnr
 from scico.examples_flax import load_image_data, construct_blurring_operator
 from scico.flax.train.train import construct_traversal, clip_positive, train_step_post
@@ -95,12 +89,12 @@ train_ds, test_ds = load_image_data(
 Define configuration dictionary for model and training loop.
 """
 batch_size = 16
-epochs = 100
+epochs = 10
 dconf: sflax.ConfigDict = {
     "seed": 0,
     "depth": 1,
     "num_filters": 64,
-    "block_depth": 5,
+    "block_depth": 4,
     "opt_type": "ADAM",
     "batch_size": batch_size,
     "num_epochs": epochs,
@@ -112,38 +106,38 @@ dconf: sflax.ConfigDict = {
 }
 
 """
-Construct ODPNet model.
+Construct MoDLNet model. Use only one iteration for
+faster intialization.
 """
-model = sflax.ODPNet(
+model = sflax.MoDLNet(
     operator=opBlur,
-    depth=dconf["depth"],
+    depth=1,
     channels=channels,
     num_filters=dconf["num_filters"],
     block_depth=dconf["block_depth"],
-    odp_block=sflax.ODPProxDblrBlock,
-    alpha_ini=10,
+    cg_iter=3,
 )
 
 
 """
 Construct functionality for making sure that
-the learned fidelity weight parameter is always
+the learned regularization parameter is always
 positive.
 """
-alphatrav = construct_traversal("alpha")
-alphapos = partial(
+lmbdatrav = construct_traversal("lmbda")
+lmbdapos = partial(
     clip_positive,
-    traversal=alphatrav,
-    minval=1e-3,
+    traversal=lmbdatrav,
+    minval=5e-4,
 )
-train_step = partial(train_step_post, post_fn=alphapos)
+train_step = partial(train_step_post, post_fn=lmbdapos)
 
 
 """
-Run training loop.
+Run first stage (initialization) training loop.
 """
 workdir = os.path.join(
-    os.path.expanduser("~"), ".cache", "scico", "examples", "img", "odp_dblr_out"
+    os.path.expanduser("~"), ".cache", "scico", "examples", "img", "modl_dblr_out"
 )
 print(f"{'JAX process: '}{jax.process_index()}{' / '}{jax.process_count()}")
 print(f"{'JAX local devices: '}{jax.local_devices()}")
@@ -155,8 +149,39 @@ modvar = sflax.train_and_evaluate(
     model,
     train_ds,
     test_ds,
-    # create_lr_schedule=create_exp_lr_schedule,
     training_step_fn=train_step,
+    checkpointing=True,
+    log=True,
+)
+time_init = time() - start_time
+
+print(f"{'MoDLNet Init':8s}{'epochs:':2s}{epochs:>5d}{'':3s}{'time[s]:':2s}{time_init:>5.2f}")
+
+"""
+Run second stage (depth iterations) training loop.
+"""
+model = sflax.MoDLNet(
+    operator=opBlur,
+    depth=dconf["depth"],
+    channels=channels,
+    num_filters=dconf["num_filters"],
+    block_depth=dconf["block_depth"],
+)
+
+dconf["num_epochs"] = 70
+workdir2 = os.path.join(
+    os.path.expanduser("~"), ".cache", "scico", "examples", "img", "modl_dblr_out", "iterated"
+)
+
+start_time = time()
+modvar = sflax.train_and_evaluate(
+    dconf,
+    workdir2,
+    model,
+    train_ds,
+    test_ds,
+    training_step_fn=train_step,
+    variables0=modvar,
     checkpointing=True,
     log=True,
 )
@@ -180,7 +205,7 @@ and data fidelity.
 snr_eval = snr(test_ds["label"][:test_nimg], output)
 psnr_eval = psnr(test_ds["label"][:test_nimg], output)
 print(
-    f"{'ODPNet':14s}{'epochs:':2s}{epochs:>5d}{'':3s}{'time[s]:':10s}{time_train:>5.2f}{'':3s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}"
+    f"{'MoDLNet':14s}{'epochs:':2s}{dconf['num_epochs']:>5d}{'':3s}{'time[s]:':10s}{time_train:>5.2f}{'':3s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}"
 )
 
 
@@ -192,11 +217,11 @@ plot.imview(test_ds["label"][indx_te, ..., 0], title="Ground truth", fig=fig, ax
 plot.imview(test_ds["image"][indx_te, ..., 0], title=r"Blurred", fig=fig, ax=axes[1])
 plot.imview(
     output[indx_te, ..., 0],
-    title=r"ODPNet Prediction",
+    title=r"MoDLNet Prediction",
     fig=fig,
     ax=axes[2],
 )
-fig.suptitle(r"Compare ODPNet Deblurring")
+fig.suptitle(r"Compare MoDLNet Deblurring")
 fig.tight_layout()
 fig.colorbar(
     axes[2].get_images()[0],
