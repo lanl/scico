@@ -10,7 +10,8 @@ from jax import lax
 from scico import flax as sflax
 from scico import random
 from scico.linop.radon_astra import TomographicProjector
-from scico.linop import Identity, CircularConvolve
+from scico.linop import Identity
+from scico.examples_flax import construct_blurring_operator
 from scico.flax.train.train import (
     TrainState,
     train_step,
@@ -32,24 +33,6 @@ def construct_projector(N, n_projection):
         det_count=N,
         angles=angles,
     )  # Radon transform operator
-
-
-def create_gaussian_kernel(sigma, kernel_size, n_channels, dtype=jnp.float32):
-
-    kernel = 1
-    meshgrids = jnp.meshgrid(*[jnp.arange(size, dtype=dtype) for size in kernel_size])
-    for size, mgrid in zip(kernel_size, meshgrids):
-        mean = (size - 1) / 2
-        kernel *= jnp.exp(-(((mgrid - mean) / sigma) ** 2) / 2)
-
-    # Make sure norm of values in gaussian kernel equals 1.
-    kernel = kernel / jnp.sum(kernel)
-
-    # Reshape to depthwise convolutional weight (HWC)
-    kernel = jnp.reshape(kernel, kernel.shape + (1,))
-    # Repeat to match channels
-    kernel = jnp.repeat(kernel, n_channels, axis=2)
-    return kernel
 
 
 class TestSet:
@@ -100,9 +83,10 @@ class TestSet:
     def test_odpdblr_default(self):
         y, key = random.randn((10, self.N, self.N, self.chn), seed=1234)
 
-        h = create_gaussian_kernel(2.24, (9, 9), self.chn)
-
-        opBlur = CircularConvolve(h, y.shape, ndims=3)
+        blur_ksize = (9, 9)
+        blur_sigma = 2.24
+        output_size = (self.N, self.N)
+        opBlur = construct_blurring_operator(output_size, self.chn, blur_ksize, blur_sigma)
 
         odpdb = sflax.ODPNet(
             operator=opBlur,

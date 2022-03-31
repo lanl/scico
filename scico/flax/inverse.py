@@ -87,7 +87,9 @@ class MoDLNet(Module):
 
         ahaI_f = lambda v: self.operator.adj(self.operator(v)) + lmbda * v
 
-        cgsol = lambda b: jnp.atleast_3d(cg_solver(ahaI_f, b.reshape(self.operator.input_shape), maxiter=self.cg_iter))
+        cgsol = lambda b: jnp.atleast_3d(
+            cg_solver(ahaI_f, b.reshape(self.operator.input_shape), maxiter=self.cg_iter)
+        )
 
         for i in range(self.depth):
             z = resnet(x, train)
@@ -230,12 +232,15 @@ class ODPProxDblrBlock(Module):
     dtype: Any = jnp.float32
 
     def setup(self):
-        """Computing operator norm."""
+        """Computing operator norm and setting operator for batch evaluation."""
         self.operator_norm = operator_norm(self.operator)
+        self.ah_f = lambda v: jnp.atleast_3d(
+            self.operator.adj(v.reshape(self.operator.output_shape))
+        )
 
     def batch_op_adj(self, y: Array) -> Array:
         """Batch application of adjoint operator."""
-        return self.operator.adj(y.reshape(self.operator.output_shape))
+        return lax.map(self.ah_f, y)
 
     @compact
     def __call__(self, x: Array, y: Array, train: bool = True) -> Array:
