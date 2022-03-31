@@ -376,8 +376,8 @@ class ContextTimer:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        """Stop the timer and return True if no exception was raised
-        within the 'with' block, otherwise return False.
+        """Stop the timer and return ``True`` if no exception was raised
+        within the `with` block, otherwise return ``False``.
         """
 
         if self.action == "StartStop":
