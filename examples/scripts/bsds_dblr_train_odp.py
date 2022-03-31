@@ -197,7 +197,6 @@ fig.colorbar(
     pad=0.05,
     label="Arbitrary Units",
 )
-# fig.show()
-fig.savefig("res_dblr_odp.png")
+fig.show()
 
-# input("\nWaiting for input to close figures and exit")
+input("\nWaiting for input to close figures and exit")
