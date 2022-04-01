@@ -44,6 +44,8 @@ gray = True  # use gray scale images
 data_mode = "dn"  # Denoising problem
 noise_level = 0.1  # Standard deviation of noise
 noise_range = False  # Use fixed noise level
+stride = 23  # Stride to sample multiple patches from each image
+
 
 train_ds, test_ds = load_image_data(
     train_nimg,
@@ -54,7 +56,7 @@ train_ds, test_ds = load_image_data(
     verbose=True,
     noise_level=noise_level,
     noise_range=noise_range,
-    stride=23,
+    stride=stride,
 )
 
 """
@@ -106,7 +108,7 @@ start_time = time()
 fmap = sflax.FlaxMap(model, modvar)
 output = fmap(test_ds["image"][:660])
 time_eval = time() - start_time
-output = np.clip(output, a_min=0, a_max=1.)
+output = np.clip(output, a_min=0, a_max=1.0)
 
 """
 Compare trained model in terms of reconstruction time

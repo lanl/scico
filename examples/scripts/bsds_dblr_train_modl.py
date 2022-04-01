@@ -69,6 +69,9 @@ gray = True  # use gray scale images
 data_mode = "dblr"  # Denoising problem
 noise_level = 0.01  # Standard deviation of noise
 noise_range = False  # Use fixed noise level
+stride = 100  # Stride to sample multiple patches from each image
+augment = True  # Augment data via rotations and flips
+
 
 train_ds, test_ds = load_image_data(
     train_nimg,
@@ -80,8 +83,8 @@ train_ds, test_ds = load_image_data(
     noise_level=noise_level,
     noise_range=noise_range,
     transf=opBlur_vmap,
-    stride=100,
-    augment=True,
+    stride=stride,
+    augment=augment,
 )
 
 

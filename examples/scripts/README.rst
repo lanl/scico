@@ -24,7 +24,7 @@ Computed Tomography
    `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
       CT Reconstruction with TV Regularization
    `ct_astra_train_unet.py <ct_astra_train_unet.py>`_
-      CT with UNet for Denoising of FBP
+      Training of UNet for CT Reconstruction via Denoising of FBP
 
 Deconvolution
 ^^^^^^^^^^^^^
@@ -76,11 +76,11 @@ Miscellaneous
    `video_rpca_admm.py <video_rpca_admm.py>`_
       Video Decomposition via Robust PCA
    `bsds_dn_datagen.py <img_dn_datagen.py>`_
-      Noisy Data Generation for NN Training
+      Generation of Noisy Data for NN Training
    `bsds_dblr_datagen.py <img_dblr_datagen.py>`_
       Generation of Blurred Data for NN Training
    `ct_astra_datagen.py <ct_astra_datagen.py>`_
-      CT Data Generation for NN Training
+      Generation of CT Data for NN Training
 
 
 Organized by Regularization
@@ -159,7 +159,7 @@ Neural Networks
    `bsds_dblr_train_modl.py <bsds_dblr_train_modl.py>`_
       Training of MoDL for Deblurring
    `ct_astra_train_unet.py <ct_astra_train_unet.py>`_
-      CT with UNet for Denoising of FBP
+      Training of UNet for CT Reconstruction via Denoising of FBP
 
 
 Organized by Optimization Algorithm

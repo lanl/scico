@@ -106,7 +106,7 @@ start_time = time()
 fmap = sflax.FlaxMap(model, modvar)
 output = fmap(test_ds["image"])
 time_eval = time() - start_time
-output = np.clip(output, a_min=0, a_max=1.)
+output = np.clip(output, a_min=0, a_max=1.0)
 
 """
 Compare trained model in terms of reconstruction time
