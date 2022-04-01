@@ -23,7 +23,8 @@ Computed Tomography
       CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+Prox)
    `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
       CT Reconstruction with TV Regularization
-
+   `ct_astra_train_unet.py <ct_astra_train_unet.py>`_
+      CT with UNet for Denoising of FBP
 
 Deconvolution
 ^^^^^^^^^^^^^
@@ -38,8 +39,6 @@ Deconvolution
       Image Deconvolution (ADMM Plug-and-Play Priors w/ BM3D)
    `deconv_ppp_bm3d_pgm.py <deconv_ppp_bm3d_pgm.py>`_
       Image Deconvolution (PGM Plug-and-Play Priors w/ BM3D)
-   `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
-      Image Deconvolution (ADMM Plug-and-Play Priors w/ BM4D)
    `deconv_ppp_dncnn_admm.py <deconv_ppp_dncnn_admm.py>`_
       Image Deconvolution (ADMM Plug-and-Play Priors w/ DnCNN)
    `deconv_tv_admm.py <deconv_tv_admm.py>`_
@@ -76,7 +75,12 @@ Miscellaneous
       Image Superresolution (ADMM Plug-and-Play Priors w/ DnCNN)
    `video_rpca_admm.py <video_rpca_admm.py>`_
       Video Decomposition via Robust PCA
-
+   `bsds_dn_datagen.py <img_dn_datagen.py>`_
+      Noisy Data Generation for NN Training
+   `bsds_dblr_datagen.py <img_dblr_datagen.py>`_
+      Generation of Blurred Data for NN Training
+   `ct_astra_datagen.py <ct_astra_datagen.py>`_
+      CT Data Generation for NN Training
 
 
 Organized by Regularization
@@ -93,8 +97,6 @@ Plug and Play Priors
       Image Deconvolution (ADMM Plug-and-Play Priors w/ BM3D)
    `deconv_ppp_bm3d_pgm.py <deconv_ppp_bm3d_pgm.py>`_
       Image Deconvolution (PGM Plug-and-Play Priors w/ BM3D)
-   `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
-      Image Deconvolution (ADMM Plug-and-Play Priors w/ BM4D)
    `deconv_ppp_dncnn_admm.py <deconv_ppp_dncnn_admm.py>`_
       Image Deconvolution (ADMM Plug-and-Play Priors w/ DnCNN)
    `demosaic_ppp_bm3d_admm.py <demosaic_ppp_bm3d_admm.py>`_
@@ -147,6 +149,18 @@ Sparsity
       Video Decomposition via Robust PCA
 
 
+Neural Networks
+^^^^^^^^^^^^^^^
+
+   `bsds_train_dncnn.py <bsds_train_dncnn.py>`_
+      Training of DnCNN for Denoising
+   `bsds_dblr_train_odp.py <bsds_dblr_train_odp.py>`_
+      Training of ODP for Deblurring
+   `bsds_dblr_train_modl.py <bsds_dblr_train_modl.py>`_
+      Training of MoDL for Deblurring
+   `ct_astra_train_unet.py <ct_astra_train_unet.py>`_
+      CT with UNet for Denoising of FBP
+
 
 Organized by Optimization Algorithm
 -----------------------------------
@@ -174,8 +188,6 @@ ADMM
       Deconvolution Microscopy (All Channels)
    `deconv_ppp_bm3d_admm.py <deconv_ppp_bm3d_admm.py>`_
       Image Deconvolution (ADMM Plug-and-Play Priors w/ BM3D)
-   `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
-      Image Deconvolution (ADMM Plug-and-Play Priors w/ BM4D)
    `deconv_ppp_dncnn_admm.py <deconv_ppp_dncnn_admm.py>`_
       Image Deconvolution (ADMM Plug-and-Play Priors w/ DnCNN)
    `deconv_tv_admm.py <deconv_tv_admm.py>`_

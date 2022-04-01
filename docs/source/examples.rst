@@ -29,6 +29,7 @@ Computed Tomography
    examples/ct_svmbir_ppp_bm3d_admm_cg
    examples/ct_svmbir_ppp_bm3d_admm_prox
    examples/ct_svmbir_tv_multi
+   examples/ct_astra_train_unet
 
 
 Deconvolution
@@ -72,6 +73,9 @@ Miscellaneous
    examples/denoise_tv_iso_multi
    examples/superres_ppp_dncnn_admm
    examples/video_rpca_admm
+   examples/bsds_dn_datagen
+   examples/bsds_dblr_datagen
+   examples/ct_astra_datagen
 
 
 
@@ -128,6 +132,18 @@ Sparsity
    examples/sparsecode_pgm
    examples/sparsecode_poisson_pgm
    examples/video_rpca_admm
+
+
+Neural Networks
+^^^^^^^^^^^^^^^
+
+.. toctree::
+   :maxdepth: 1
+
+   examples/bsds_train_dncnn
+   examples/bsds_dblr_train_odp
+   examples/bsds_dblr_train_modl
+   examples/ct_astra_train_unet
 
 
 

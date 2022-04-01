@@ -14,13 +14,13 @@ The source images are part of the [BSDS500 dataset] (http://www.eecs.berkeley.ed
 
 A class [MoDLNet] implements the MoDL architecture, which solves the optimization problem
 
-    $$\mathrm{argmin}_{\mathbf{x}} \; \| A \mathbf{x} - (\mathbf{y}) \|_2^2 + \lambda \| \mathbf{x} - \mathrm{D}_w(\mathbf{x})\|_2^2 \;,$$
+  $$\mathrm{argmin}_{\mathbf{x}} \; \| A \mathbf{x} - \mathbf{y} \|_2^2 + \lambda \, \| \mathbf{x} - \mathrm{D}_w(\mathbf{x})\|_2^2 \;,$$
 
-where $A$ is circular convolution, $\mathbf{y}$ is a set of blurred images, $\mathrm{D}$ a denoiser regularizer and $\mathbf{x}$ is the set of deblurred images. The MoDL abstracts the iterative solution by an unrolled network where each iteration corresponds to a different stage in the MoDL model and updates the prediction by solving
+where $A$ is a circular convolution, $\mathbf{y}$ is a set of blurred images, $\mathrm{D}_w$ is the regularization (a denoiser), and $\mathbf{x}$ is the set of deblurred images. The MoDL abstracts the iterative solution by an unrolled network where each iteration corresponds to a different stage in the MoDL network and updates the prediction by solving
 
-    $$ \mathbf{x}^{k+1} = (A^T A + \lambda \mathbf{I})^{-1} (A^T \mathbf{y} + \lambda \mathbf{z}^k) \;,$$
+  $$\mathbf{x}^{k+1} = (A^T A + \lambda \, \mathbf{I})^{-1} (A^T \mathbf{y} + \lambda \, \mathbf{z}^k) \;,$$
 
-    via conjugate gradient, where $k$ is the index of the iteration, $\mathbf{x}^k$ is the output of the previous stage, $\mathbf{z}^k = \mathrm{ResNet}(\mathbf{x}^{k-1})$ is the regularization (denoiser implemented as a residual convolutional neural network) and $\mathbf{I}$ is the identity matrix. The output of the final stage is the set of deblurred images.
+via conjugate gradient. In the expression, $k$ is the index of the stage (iteration), $\mathbf{z}^k = \mathrm{ResNet}(\mathbf{x}^{k})$ is the regularization (a denoiser implemented as a residual convolutional neural network), $\mathbf{x}^k$ is the output of the previous stage, $\lambda > 0$ is a learned regularization parameter, and $\mathbf{I}$ is the identity operator. The output of the final stage is the set of deblurred images.
 """
 
 from time import time
@@ -106,8 +106,8 @@ dconf: sflax.ConfigDict = {
 }
 
 """
-Construct MoDLNet model. Use only one iteration for
-faster intialization.
+Construct MoDLNet model. Use only one iteration in the model for
+faster intialization and few CG iterations.
 """
 model = sflax.MoDLNet(
     operator=opBlur,

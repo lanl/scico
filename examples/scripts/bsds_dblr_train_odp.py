@@ -6,26 +6,26 @@
 
 r"""
 Training of ODP for Deblurring
-===============================
+==============================
 
 This example demonstrates the training and application of the unrolled optimization with deep priors (ODP) with proximal map architecture described in :cite:`diamond-2018-odp` for a deblurring problem.
 
 The source images are part of the [BSDS500 dataset] (http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/BSR/) provided by the Berkeley Segmentation Dataset and Benchmark project.
 
-A class [ODPNet] implements the ODP proximal map architecture,
+A class [ODPNet] implements the ODP architecture,
 which solves the optimization problem
 
-    $$\mathrm{argmin}_{\mathbf{x}} \; \| A \mathbf{x} - (\mathbf{y}) \|_2^2 + r(\mathbf{x}) \;,$$
+  $$\mathrm{argmin}_{\mathbf{x}} \; \| A \mathbf{x} - \mathbf{y} \|_2^2 + r(\mathbf{x}) \;,$$
 
-where $A$ is circular convolution, $\mathbf{y}$ is a set of blurred images, $r$ is a regularizer and $\mathbf{x}$ is the set of deblurred images. The ODP abstracts the iterative solution by an unrolled network where each iteration corresponds to a different stage in the ODP model and updates the prediction by solving
+where $A$ is a circular convolution, $\mathbf{y}$ is a set of blurred images, $r$ is a regularizer and $\mathbf{x}$ is the set of deblurred images. The ODP, proximal map architecture, abstracts the iterative solution by an unrolled network where each iteration corresponds to a different stage in the ODP network and updates the prediction by solving
 
-    $$\mathbf{x}^{k+1} = \mathrm{argmin}_{\mathbf{x}} \; \alpha_k \| A \mathbf{x} - (\mathbf{y}) \|_2^2 + \frac{1}{2} \| \mathbf{x} - \mathbf{x}^k - \mathbf{x}^{k+1/2} \|_2^2 \;,$$
+  $$\mathbf{x}^{k+1} = \mathrm{argmin}_{\mathbf{x}} \; \alpha_k \| A \mathbf{x} - \mathbf{y} \|_2^2 + \frac{1}{2} \| \mathbf{x} - \mathbf{x}^k - \mathbf{x}^{k+1/2} \|_2^2 \;,$$
 
-    which corresponds to
+which for the deblurring problem corresponds to
 
-    $$\mathbf{x}^{k+1} = \mathcal{F}^{-1} \mathrm{diag} (\alpha_k \| \mathbf{K} \|^2 + 1 )^{-1} \mathcal{F} (\alpha_k \mathcal{k}^T * \mathbf{y} \frac{1}{2} \| \mathbf{x} + \mathbf{x}^k + \mathbf{x}^{k+1/2}) \;,$$
+  $$\mathbf{x}^{k+1} = \mathcal{F}^{-1} \mathrm{diag} (\alpha_k | \mathcal{K}|^2 + 1 )^{-1} \mathcal{F} \, (\alpha_k \mathcal{k}^T * \mathbf{y} + \mathbf{x}^k + \mathbf{x}^{k+1/2}) \;,$$
 
-where $k$ is the index of the iteration, $\mathbf{x}^k$ is the output of the previous stage, $\mathbf{x}^k + \mathbf{x}^{k+1/2} = \mathrm{ResNet}(\mathbf{x}^{k-1})$ is the regularization (implemented as a residual convolutional neural network), $\mathcal{F}$ is the DFT, $\mathcal{k}$ is the blur kernel, and $\mathcal{K}$ is the DFT of $\mathcal{k}$. The output of the final stage is the deblurred image.
+where $k$ is the index of the stage (iteration), $\mathbf{x}^k + \mathbf{x}^{k+1/2} = \mathrm{ResNet}(\mathbf{x}^{k})$ is the regularization (implemented as a residual convolutional neural network), $\mathbf{x}^k$ is the output of the previous stage, $\alpha_k > 0$ is a learned  stage-wise parameter weighting the contribution of the fidelity term, $\mathcal{F}$ is the DFT, $K$ is the blur kernel, and $\mathcal{K}$ is the DFT of $K$. The output of the final stage is the set of deblurred images.
 """
 
 from time import time

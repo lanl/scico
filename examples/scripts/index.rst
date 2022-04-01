@@ -16,6 +16,7 @@ Computed Tomography
    - ct_svmbir_ppp_bm3d_admm_cg.py
    - ct_svmbir_ppp_bm3d_admm_prox.py
    - ct_svmbir_tv_multi.py
+   - ct_astra_train_unet.py
 
 
 Deconvolution
@@ -26,7 +27,6 @@ Deconvolution
    - deconv_microscopy_allchn_tv_admm.py
    - deconv_ppp_bm3d_admm.py
    - deconv_ppp_bm3d_pgm.py
-   - deconv_ppp_bm4d_admm.py
    - deconv_ppp_dncnn_admm.py
    - deconv_tv_admm.py
    - deconv_tv_admm_tune.py
@@ -50,6 +50,9 @@ Miscellaneous
    - denoise_tv_iso_multi.py
    - superres_ppp_dncnn_admm.py
    - video_rpca_admm.py
+   - bsds_dn_datagen.py
+   - bsds_dblr_datagen.py
+   - ct_astra_datagen.py
 
 
 
@@ -63,7 +66,6 @@ Plug and Play Priors
    - ct_svmbir_ppp_bm3d_admm_prox.py
    - deconv_ppp_bm3d_admm.py
    - deconv_ppp_bm3d_pgm.py
-   - deconv_ppp_bm4d_admm.py
    - deconv_ppp_dncnn_admm.py
    - demosaic_ppp_bm3d_admm.py
    - superres_ppp_dncnn_admm.py
@@ -96,6 +98,15 @@ Sparsity
    - video_rpca_admm.py
 
 
+Neural Networks
+^^^^^^^^^^^^^^^
+
+   - bsds_train_dncnn.py
+   - bsds_dblr_train_odp.py
+   - bsds_dblr_train_modl.py
+   - ct_astra_train_unet.py
+
+
 
 Organized by Optimization Algorithm
 -----------------------------------
@@ -113,7 +124,6 @@ ADMM
    - deconv_microscopy_tv_admm.py
    - deconv_microscopy_allchn_tv_admm.py
    - deconv_ppp_bm3d_admm.py
-   - deconv_ppp_bm4d_admm.py
    - deconv_ppp_dncnn_admm.py
    - deconv_tv_admm.py
    - deconv_tv_admm_tune.py
