@@ -384,7 +384,7 @@ class CenterCrop:
         Args:
             output_size: Desired output size. If int, square crop is made.
         """
-        assert isinstance(output_size, (int, Shape))
+        #assert isinstance(output_size, (int, tuple))
         if isinstance(output_size, int):
             self.output_size = (output_size, output_size)
         else:
@@ -425,7 +425,7 @@ class PositionalCrop:
         Args:
             output_size: Desired output size. If int, square crop is made.
         """
-        assert isinstance(output_size, (int, Shape))
+        #assert isinstance(output_size, (int, tuple))
         if isinstance(output_size, int):
             self.output_size = (output_size, output_size)
         else:
@@ -712,10 +712,17 @@ def images_read(path: str, ext: str = "jpg") -> Array:
 def get_bsds_data(path: str, verbose: bool = False):  # pragma: no cover
     """Download BSDS500 data from the Berkeley Segmentation Dataset and Benchmark project.
 
-    Download the BSDS500 dataset, a set of 500 color images of size 481x321 or 321x481, from the Berkeley Segmentation Dataset and Benchmark project.
+    Download the BSDS500 dataset, a set of 500 color images of size
+    481x321 or 321x481, from the Berkeley Segmentation Dataset and
+    Benchmark project.
+
     The downloaded data is converted to `.npz` format for
-    convenient access via :func:`numpy.load`. The converted data is saved
-    in a file `bsds500.npz` in the directory specified by `path`. Note that train and test folders are merged to get a set of 400 images for training while the val folder is reserved as a set of 100 images for testing. This is done in multiple works such as :cite:`zhang-2017-dncnn`.
+    convenient access via :func:`numpy.load`. The converted data
+    is saved in a file `bsds500.npz` in the directory specified by
+    `path`. Note that train and test folders are merged to get a
+    set of 400 images for training while the val folder is reserved
+    as a set of 100 images for testing. This is done in multiple
+    works such as :cite:`zhang-2017-dncnn`.
 
     Args:
         path: Directory in which converted data is saved.
