@@ -9,7 +9,7 @@ CT with UNet for Denoising of FBP
 =================================
 
 This example demonstrates the training and application of UNet
-to denoise previously filtered back projections for CT
+to denoise previously filtered back projections (FBP) for CT
 reconstruction inspired by :cite:`jin-2017-unet`.
 """
 
