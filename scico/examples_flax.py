@@ -710,9 +710,9 @@ def images_read(path: str, ext: str = "jpg") -> Array:
 
 
 def get_bsds_data(path: str, verbose: bool = False):  # pragma: no cover
-    """Download BSDS data from the Berkeley Segmentation Dataset and Benchmark project.
+    """Download BSDS500 data from the Berkeley Segmentation Dataset and Benchmark project.
 
-    Download color images from the Berkeley Segmentation Dataset and Benchmark project.
+    Download the BSDS500 dataset, a set of 500 color images of size 481x321 or 321x481, from the Berkeley Segmentation Dataset and Benchmark project.
     The downloaded data is converted to `.npz` format for
     convenient access via :func:`numpy.load`. The converted data is saved
     in a file `bsds500.npz` in the directory specified by `path`. Note that train and test folders are merged to get a set of 400 images for training while the val folder is reserved as a set of 100 images for testing. This is done in multiple works such as :cite:`zhang-2017-dncnn`.
@@ -786,20 +786,20 @@ def load_image_data(
 
     Load and/or pre-process image data for
     training of machine learning network models.
-    If cached file exists and enough images
-    were sampled with the requested, data is
-    loaded and returned.
+    If cached file exists, and enough images
+    were sampled, data is loaded and returned.
 
     If either `size` or type of data (gray
     scale or color) requested does not match
     the data read from the cached file, a
-    `RunTimeError` is generated. There is no
-    checking for the specific contamination
-    (i.e. noise level or blurring, etc.).
+    `RunTimeError` is generated. In contrast,
+    there is no checking for the specific
+    contamination (i.e. noise level, blurring
+    kernel, etc.).
 
     If no cached file is found or not enough
     images were sampled and stored in the
-    file a new data set is generated and stored
+    file, a new data set is generated and stored
     in `cache_path`. The data is stored in
     `.npz` format for convenient access via
     :func:`numpy.load`. The data is saved in two
@@ -807,7 +807,8 @@ def load_image_data(
     `img_*_test.npz` to keep separated training
     and testing partitions. The * stands for
     `dn` if denoising problem or `dblr` if
-    deblurring problem.
+    deblurring problem. Other types of pre-processings
+    may be specified via the `transf` operator.
 
     Args:
         train_nimg: Number of images required for sampling training data.
