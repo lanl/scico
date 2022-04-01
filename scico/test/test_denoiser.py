@@ -4,8 +4,52 @@ import jax
 
 import pytest
 
-from scico.denoiser import DnCNN, bm3d, have_bm3d
+from scico.denoiser import DnCNN, bm3d, bm4d, have_bm3d, have_bm4d
 from scico.random import randn
+
+
+@pytest.mark.skipif(not have_bm4d, reason="bm4d package not installed")
+class TestBM4D:
+    def setup(self):
+        key = None
+        self.x1, key = randn((32, 33, 34), key=key, dtype=np.float32)
+        self.x2, key = randn((32, 33, 10), key=key, dtype=np.float32)
+        self.x3, key = randn((32, 33, 10, 1, 1), key=key, dtype=np.float32)
+
+    def test_shape(self):
+        assert bm4d(self.x1, 1.0).shape == self.x1.shape
+        assert bm4d(self.x2, 1.0).shape == self.x2.shape
+        assert bm4d(self.x3, 1.0).shape == self.x3.shape
+
+    def test_jit(self):
+        no_jit = bm4d(self.x1, 1.0)
+        jitted = jax.jit(bm4d)(self.x1, 1.0)
+        np.testing.assert_allclose(no_jit, jitted, rtol=1e-3)
+        assert no_jit.dtype == np.float32
+        assert jitted.dtype == np.float32
+
+        no_jit = bm4d(self.x2, 1.0)
+        jitted = jax.jit(bm4d)(self.x2, 1.0)
+        np.testing.assert_allclose(no_jit, jitted, rtol=1e-3)
+        assert no_jit.dtype == np.float32
+        assert jitted.dtype == np.float32
+
+    def test_bad_inputs(self):
+        x, key = randn((32,), key=None, dtype=np.float32)
+        with pytest.raises(ValueError):
+            bm4d(x, 1.0)
+        x, key = randn((12, 12, 4, 3), key=key, dtype=np.float32)
+        with pytest.raises(ValueError):
+            bm4d(x, 1.0)
+        x, key = randn(((2, 3), (3, 4, 5)), key=key, dtype=np.float32)
+        with pytest.raises(ValueError):
+            bm4d(x, 1.0)
+        x, key = randn((5, 9), key=key, dtype=np.float32)
+        with pytest.raises(ValueError):
+            bm4d(x, 1.0)
+        z, key = randn((32, 32), key=key, dtype=np.complex64)
+        with pytest.raises(TypeError):
+            bm4d(z, 1.0)
 
 
 @pytest.mark.skipif(not have_bm3d, reason="bm3d package not installed")
@@ -17,7 +61,7 @@ class TestBM3D:
 
     def test_shape(self):
         assert bm3d(self.x_gry, 1.0).shape == self.x_gry.shape
-        assert bm3d(self.x_rgb, 1.0).shape == self.x_rgb.shape
+        assert bm3d(self.x_rgb, 1.0, is_rgb=True).shape == self.x_rgb.shape
 
     def test_gry(self):
         no_jit = bm3d(self.x_gry, 1.0)
@@ -28,7 +72,7 @@ class TestBM3D:
 
     def test_rgb(self):
         no_jit = bm3d(self.x_rgb, 1.0)
-        jitted = jax.jit(bm3d)(self.x_rgb, 1.0)
+        jitted = jax.jit(bm3d)(self.x_rgb, 1.0, is_rgb=True)
         np.testing.assert_allclose(no_jit, jitted, rtol=1e-3)
         assert no_jit.dtype == np.float32
         assert jitted.dtype == np.float32

@@ -19,19 +19,15 @@ To install miniconda in ``/opt/conda`` do
    ./install_conda.sh -y /opt/conda
 
 
-To create a conda environment called ``py38scico`` with default Python version (3.8) and without GPU support
+To create a conda environment called ``py39`` with default Python version (3.9) and without GPU support
 
 ::
 
-   ./make_conda_env.sh -y -e py38scico
+   ./make_conda_env.sh -y -e py39
 
 
-To include GPU support, add the ``-g`` flag
-
-::
-
-   ./make_conda_env.sh -y -g -e py38scico
-
+To include GPU support, follow the `jax installation instructions <https://github.com/google/jax#pip-installation-gpu-cuda>`__ after
+running this script and activating the environment created by it.
 
 
 Caveats

@@ -11,9 +11,10 @@ import sys
 
 # isort: off
 from ._functional import Functional, ScaledFunctional, SeparableFunctional, ZeroFunctional
-from ._norm import L0Norm, L1Norm, SquaredL2Norm, L2Norm, L21Norm, NuclearNorm
+from ._norm import HuberNorm, L0Norm, L1Norm, SquaredL2Norm, L2Norm, L21Norm, NuclearNorm
 from ._indicator import NonNegativeIndicator, L2BallIndicator
-from ._denoiser import BM3D, DnCNN
+from ._denoiser import BM3D, BM4D, DnCNN
+from ._dist import SetDistance, SquaredSetDistance
 
 
 __all__ = [
@@ -21,6 +22,7 @@ __all__ = [
     "ScaledFunctional",
     "SeparableFunctional",
     "ZeroFunctional",
+    "HuberNorm",
     "L0Norm",
     "L1Norm",
     "SquaredL2Norm",
@@ -29,7 +31,10 @@ __all__ = [
     "NonNegativeIndicator",
     "NuclearNorm",
     "L2BallIndicator",
+    "SetDistance",
+    "SquaredSetDistance",
     "BM3D",
+    "BM4D",
     "DnCNN",
 ]
 
