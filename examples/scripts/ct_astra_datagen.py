@@ -30,7 +30,7 @@ N = 256  # phantom size
 train_nimg = 512  # number of training images
 test_nimg = 64  # number of testing images
 nimg = train_nimg + test_nimg
-n_projection = 180  # CT views
+n_projection = 60  # CT views
 
 trdt, ttdt = load_ct_data(train_nimg, test_nimg, N, n_projection, verbose=True)
 
