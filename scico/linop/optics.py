@@ -470,7 +470,7 @@ class FraunhoferPropagator(LinearOperator):
         jit: bool = True,
         **kwargs,
     ):
-        """
+        r"""
         Args:
             input_shape: Shape of input array as a tuple of length
                1 or 2, corresponding to :math:`(N_x,)` or
