@@ -613,7 +613,7 @@ class LinearOperator(Operator):
 
         Return a new :class:`LinearOperator` that implements the
         transpose of this :class:`LinearOperator`. For a real-valued
-        LinearOperator `A` (`A.input_dtype` is``np.float32`` or
+        LinearOperator `A` (`A.input_dtype` is ``np.float32`` or
         ``np.float64``), the LinearOperator `A.T` implements the
         adjoint: `A.T(y) == A.adj(y)`. For a complex-valued
         LinearOperator `A` (`A.input_dtype` is ``np.complex64`` or
@@ -722,8 +722,7 @@ class ComposedLinearOperator(LinearOperator):
     """A LinearOperator formed by the composition of two LinearOperators."""
 
     def __init__(self, A: LinearOperator, B: LinearOperator, jit: bool = False):
-        r"""ComposedLinearOperator init method.
-
+        r"""
         A ComposedLinearOperator `AB` implements `AB @ x == A @ B @ x`.
         The LinearOperators `A` and `B` are stored as attributes of
         the ComposedLinearOperator.
@@ -741,12 +740,12 @@ class ComposedLinearOperator(LinearOperator):
         """
         if not isinstance(A, LinearOperator):
             raise TypeError(
-                "The first argument to ComposedLinearOpeator must be a LinearOperator; "
+                "The first argument to ComposedLinearOperator must be a LinearOperator; "
                 f"got {type(A)}"
             )
         if not isinstance(B, LinearOperator):
             raise TypeError(
-                "The second argument to ComposedLinearOpeator must be a LinearOperator; "
+                "The second argument to ComposedLinearOperator must be a LinearOperator; "
                 f"got {type(B)}"
             )
         if A.input_shape != B.output_shape:
