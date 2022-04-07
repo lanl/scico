@@ -20,17 +20,8 @@ import numpy as np
 import jax
 import jax.numpy as jnp
 
-try:
-    pass
-except ImportError:
-    have_xdesign = False
-else:
-    have_xdesign = True
-
-if have_xdesign:
-    from xdesign import SimpleMaterial, UnitCircle, discrete_phantom
-
 import imageio
+from xdesign import SimpleMaterial, UnitCircle, discrete_phantom
 
 from scico import util
 from scico.examples import rgb2gray

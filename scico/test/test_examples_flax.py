@@ -4,6 +4,14 @@ import numpy as np
 
 import pytest
 
+try:
+    pass
+except ImportError:
+    have_xdesign = False
+else:
+    have_xdesign = True
+
+
 from scico import random
 from scico.examples_flax import (
     CenterCrop,
@@ -12,7 +20,6 @@ from scico.examples_flax import (
     distributed_data_generation,
     flip,
     generate_foam2_images,
-    have_xdesign,
     rotation90,
 )
 from scico.typing import Shape
