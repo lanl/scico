@@ -12,6 +12,7 @@ from scico.examples_flax import (
     distributed_data_generation,
     flip,
     generate_foam2_images,
+    have_xdesign,
     rotation90,
 )
 from scico.typing import Shape
@@ -19,13 +20,6 @@ from scico.typing import Shape
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 
 # These tests are for the scico.examples_flax module, NOT the example scripts
-
-try:
-    pass
-except ImportError:
-    have_xdesign = False
-else:
-    have_xdesign = True
 
 
 @pytest.mark.skipif(not have_xdesign, reason="xdesign package not installed")
