@@ -27,12 +27,9 @@ else:
     have_bm4d = True
 
 import scico.numpy as snp
-#from scico._flax import DnCNNNet, load_weights
 from scico.flax import DnCNNNet, load_weights, FlaxMap
 from scico.data import _flax_data_path
 from scico.typing import JaxArray
-
-#from ._flax import FlaxMap
 
 
 def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
