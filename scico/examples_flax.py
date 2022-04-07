@@ -21,14 +21,33 @@ import jax
 import jax.numpy as jnp
 
 import imageio
-from xdesign import SimpleMaterial, UnitCircle, discrete_phantom
+
+try:
+    import xdesign
+except ImportError:
+    have_xdesign = False
+else:
+    have_xdesign = True
+
+if have_xdesign:
+    from xdesign import SimpleMaterial, UnitCircle, discrete_phantom
 
 from scico import util
 from scico.examples import rgb2gray
 from scico.flax.train.input_pipeline import DataSetDict
 from scico.linop import CircularConvolve
-from scico.linop.radon_astra import TomographicProjector
 from scico.typing import Array, Shape
+
+try:
+    import astra
+except ImportError:
+    have_astra = False
+else:
+    have_astra = True
+
+if have_astra:
+    from scico.linop.radon_astra import TomographicProjector
+
 
 # Arbitray process count: only applies if GPU is not available.
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
@@ -79,6 +98,9 @@ def generate_foam2_images(seed: float, size: int, ndata: int) -> Array:
     Returns:
         nd-array of generated data.
     """
+    if not have_xdesign:
+        raise RuntimeError("Package xdesign is required for use of this function.")
+
     key = jax.random.PRNGKey(seed)  # In XDesign?
     oneimg = lambda _: jnp.atleast_3d(
         discrete_phantom(Foam2(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=size)
@@ -139,6 +161,12 @@ def ct_data_generation(nimg: int, size: int, nproj: int, verbose: bool = False):
            - **sino** : (DeviceArray): Corresponding sinograms.
            - **fbp** : (DeviceArray) Corresponding filtered back projections.
     """
+    if not have_xdesign:
+        raise RuntimeError("Package xdesign is required for use of this function.")
+
+    if not have_astra:
+        raise RuntimeError("Package astra is required for use of this function.")
+
     # Generate foam data.
     start_time = time()
     imgshd = distributed_data_generation(generate_foam2_images, size, nimg)

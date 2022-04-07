@@ -13,13 +13,7 @@ from scico import random
 from scico.examples_flax import construct_blurring_operator
 from scico.flax.train.train import clip_positive, construct_traversal, train_step_post
 from scico.linop import Identity
-
-try:
-    import astra
-except ImportError:
-    have_astra = False
-else:
-    have_astra = True
+from scico.examples_flax import have_astra
 
 
 if have_astra:
