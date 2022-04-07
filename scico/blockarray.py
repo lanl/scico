@@ -561,6 +561,7 @@ for op in binary_ops:
 
 def _da_prop_wrapper(prop):
     @property
+    @wraps(prop)
     def prop_ba(self):
         result = tuple(getattr(x, prop) for x in self)
         if isinstance(result[0], jnp.ndarray):
@@ -571,7 +572,6 @@ def _da_prop_wrapper(prop):
 
 
 skip_props = ("at",)
-
 da_props = [
     k
     for k, v in dict(inspect.getmembers(DeviceArray)).items()
@@ -585,6 +585,7 @@ for prop in da_props:
 
 
 def _da_method_wrapper(method):
+    @wraps(method)
     def method_ba(self, *args, **kwargs):
         result = tuple(getattr(x, method)(*args, **kwargs) for x in self)
         if isinstance(result[0], jnp.ndarray):
@@ -595,7 +596,6 @@ def _da_method_wrapper(method):
 
 
 skip_methods = ()
-
 da_methods = [
     k
     for k, v in dict(inspect.getmembers(DeviceArray)).items()
