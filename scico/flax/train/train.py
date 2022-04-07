@@ -20,7 +20,6 @@ from jax import lax
 import optax
 
 from flax.training import train_state
-from flax.training import checkpoints
 from flax.training import common_utils
 from flax.core import freeze, unfreeze
 from flax import jax_utils
@@ -32,6 +31,16 @@ except ImportError:
     have_clu = False
 else:
     have_clu = True
+
+try:
+    from tensorflow.io import gfile
+except ImportError:
+    have_tf = False
+else:
+    have_tf = True
+
+if have_tf:
+    from flax.training import checkpoints
 
 from scico.typing import Array, Shape
 from scico.metric import snr
@@ -455,7 +464,7 @@ def train_and_evaluate(
         create_lr_schedule: A function that creates an Optax learning rate schedule. Default: :meth:`create_cnst_schedule`.
         training_step_fn: A function that executes a training step. Default: :meth:`training_step`.
         variables0: Optional initial state of model parameters. Default: ``None``.
-        checkpointing: A flag for checkpointing model state. Default: ``False``.
+        checkpointing: A flag for checkpointing model state. Default: ``False``. `RunTimeError` is generated if ``True`` and tensorflow is not available.
         log: A flag for logging. If `clu` is available a tensorboard summary is also generated during logging. Default: ``False``.
 
     Returns:
@@ -527,7 +536,12 @@ def train_and_evaluate(
     state = create_train_state(key2, config, model, ishape, lr_schedule, variables0)
     if checkpointing and variables0 is None:
         # Only restore if no initialization is provided
-        state = restore_checkpoint(state, workdir)
+        if have_tf:  # Flax checkpointing requires tensorflow
+            state = restore_checkpoint(state, workdir)
+        else:
+            raise RuntimeError(
+                "Tensorflow not available and it is required for Flax checkpointing."
+            )
     if log and have_clu:  # pragma: no cover
         from clu import parameter_overview
 
@@ -604,6 +618,10 @@ def train_and_evaluate(
         if (step + 1) % steps_per_checkpoint == 0 or step + 1 == num_steps:
             state = sync_batch_stats(state)
             if checkpointing:  # pragma: no cover
+                if not have_tf:  # Flax checkpointing requires tensorflow
+                    raise RuntimeError(
+                        "Tensorflow not available and it is required for Flax checkpointing."
+                    )
                 save_checkpoint(state, workdir)
 
     jax.random.normal(jax.random.PRNGKey(0), ()).block_until_ready()
@@ -635,7 +653,7 @@ def only_evaluate(
         model: Flax model to apply.
         test_ds: Dictionary of testing data (includes images and labels).
         variables: Model parameters to use for evaluation. Default: ``None`` (i.e. read from checkpoint).
-        checkpointing: A flag for checkpointing model state. Default: ``False``.
+        checkpointing: A flag for checkpointing model state. Default: ``False``. `RunTimeError` is generated if ``True`` and tensorflow is not available.
 
     Returns:
         Output of model evaluated at the input provided in `test_ds`.
@@ -645,6 +663,10 @@ def only_evaluate(
     """
     if variables is None:
         if checkpointing:
+            if not have_tf:
+                raise RuntimeError(
+                    "Tensorflow not available and it is required for Flax checkpointing."
+                )
             state = checkpoints.restore_checkpoint(workdir, model)
             variables = {
                 "params": state["params"],
