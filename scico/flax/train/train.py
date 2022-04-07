@@ -27,14 +27,14 @@ from flax.training import common_utils, train_state
 from flax.traverse_util import ModelParamTraversal
 
 try:
-    pass
+    import clu
 except ImportError:
     have_clu = False
 else:
     have_clu = True
 
 try:
-    pass
+    from tensorflow.io import gfile
 except ImportError:
     have_tf = False
 else:

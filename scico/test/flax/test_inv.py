@@ -15,7 +15,7 @@ from scico.flax.train.train import clip_positive, construct_traversal, train_ste
 from scico.linop import Identity
 
 try:
-    pass
+    import astra
 except ImportError:
     have_astra = False
 else:

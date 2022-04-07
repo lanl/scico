@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 try:
-    pass
+    import xdesign
 except ImportError:
     have_xdesign = False
 else:
