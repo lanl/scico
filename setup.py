@@ -8,6 +8,7 @@ import os.path
 import re
 import site
 from ast import parse
+from subprocess import PIPE, Popen
 
 from setuptools import find_packages, setup
 
@@ -15,11 +16,9 @@ name = "scico"
 
 
 def get_init_variable_value(var):
+    """Get version number from scico/__init__.py
+    See http://stackoverflow.com/questions/2058802
     """
-    Get version number from scico/__init__.py
-         See http://stackoverflow.com/questions/2058802
-    """
-
     with open(os.path.join(name, "__init__.py")) as f:
         try:
             value = parse(next(filter(lambda line: line.startswith(var), f))).body[0].value.s
@@ -28,7 +27,20 @@ def get_init_variable_value(var):
     return value
 
 
+def get_git_hash():
+    """Get current short git hash."""
+    process = Popen(["git", "rev-parse", "--short", "HEAD"], shell=False, stdout=PIPE, stderr=PIPE)
+    git_hash = process.communicate()[0].strip().decode("utf-8")
+    if git_hash == "":
+        git_hash = None
+    return git_hash
+
+
 version = get_init_variable_value("__version_")
+if not re.match(r"^[0-9\.]+$", version):  # don't extend purely numeric version numbers
+    git_hash = get_git_hash()
+    if git_hash:
+        version += "+" + git_hash
 
 packages = find_packages()
 
