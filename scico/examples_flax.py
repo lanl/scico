@@ -384,7 +384,7 @@ class CenterCrop:
         Args:
             output_size: Desired output size. If int, square crop is made.
         """
-        #assert isinstance(output_size, (int, tuple))
+        # assert isinstance(output_size, (int, tuple))
         if isinstance(output_size, int):
             self.output_size = (output_size, output_size)
         else:
@@ -425,7 +425,7 @@ class PositionalCrop:
         Args:
             output_size: Desired output size. If int, square crop is made.
         """
-        #assert isinstance(output_size, (int, tuple))
+        # assert isinstance(output_size, (int, tuple))
         if isinstance(output_size, int):
             self.output_size = (output_size, output_size)
         else:

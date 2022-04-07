@@ -5,7 +5,9 @@ import numpy as np
 
 from scico import random
 from scico.typing import Shape
-from scico.examples_flax import ( generate_foam2_images, distributed_data_generation,
+from scico.examples_flax import (
+    generate_foam2_images,
+    distributed_data_generation,
     rotation90,
     flip,
     CenterCrop,
@@ -95,8 +97,8 @@ def test_center_crop(output_size):
 def test_positional_crop(output_size):
     N = 256
     x, key = random.randn((N, N), seed=4321)
-    top, key = random.randint(shape=(1,), minval=0, maxval=N-128, key=key)
-    left, key = random.randint(shape=(1,), minval=0, maxval=N-128, key=key)
+    top, key = random.randint(shape=(1,), minval=0, maxval=N - 128, key=key)
+    left, key = random.randint(shape=(1,), minval=0, maxval=N - 128, key=key)
     pcrop = PositionalCrop(output_size)
 
     x_crop = pcrop(x, top[0], left[0])
