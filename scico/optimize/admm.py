@@ -516,11 +516,11 @@ class ADMM:
             f(\mb{x}) + \sum_{i=1}^N g_i(\mb{z}_i) \;.
 
         Args:
-            x: Point at which to evaluate objective function. If `None`,
+            x: Point at which to evaluate objective function. If ``None``,
                 the objective is  evaluated at the current iterate
                 :code:`self.x`.
             z_list: Point at which to evaluate objective function. If
-                `None`, the objective is evaluated at the current iterate
+                ``None``, the objective is evaluated at the current iterate
                 :code:`self.z_list`.
 
         Returns:
@@ -549,7 +549,7 @@ class ADMM:
 
         Args:
             x: Point at which to evaluate primal residual.
-                If `None`, the primal residual is evaluated at the
+                If ``None``, the primal residual is evaluated at the
                 current iterate :code:`self.x`.
 
         Returns:
