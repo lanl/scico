@@ -17,11 +17,9 @@ using filtered back projection (FBP).
 """
 
 import numpy as np
-import jax
-import jax.numpy as jnp
 
-from scico.examples_flax import load_ct_data
 from scico import plot
+from scico.examples_flax import load_ct_data
 
 """
 Read data from cache or generate if not available.

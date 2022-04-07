@@ -28,22 +28,18 @@ which for the deblurring problem corresponds to
 where $k$ is the index of the stage (iteration), $\mathbf{x}^k + \mathbf{x}^{k+1/2} = \mathrm{ResNet}(\mathbf{x}^{k})$ is the regularization (implemented as a residual convolutional neural network), $\mathbf{x}^k$ is the output of the previous stage, $\alpha_k > 0$ is a learned stage-wise parameter weighting the contribution of the fidelity term, $\mathcal{F}$ is the DFT, $K$ is the blurring kernel, and $\mathcal{K}$ is the DFT of $K$. The output of the final stage is the set of deblurred images.
 """
 
+import os
+from functools import partial
 from time import time
 
+import jax
 import jax.numpy as jnp
 
-import jax
-
-from functools import partial
-
-import os
-
-from scico import plot
 from scico import flax as sflax
-from scico.linop import CircularConvolve
-from scico.metric import snr, psnr
-from scico.examples_flax import load_image_data, construct_blurring_operator
-from scico.flax.train.train import construct_traversal, clip_positive, train_step_post
+from scico import plot
+from scico.examples_flax import construct_blurring_operator, load_image_data
+from scico.flax.train.train import clip_positive, construct_traversal, train_step_post
+from scico.metric import psnr, snr
 
 """
 Prepare parallel processing. Set an arbitrary processor

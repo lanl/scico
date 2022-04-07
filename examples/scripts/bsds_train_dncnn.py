@@ -11,18 +11,17 @@ Training of DnCNN for Denoising
 This example demonstrates the training and application of the DnCNN model from :cite:`zhang-2017-dncnn` to denoise images that have been corrupted with additive Gaussian noise.
 """
 
+import os
 from time import time
 
 import numpy as np
 
 import jax
 
-import os
-
-from scico import plot
 from scico import flax as sflax
-from scico.metric import snr, psnr
+from scico import plot
 from scico.examples_flax import load_image_data
+from scico.metric import psnr, snr
 
 """
 Prepare parallel processing. Set an arbitrary processor

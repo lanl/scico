@@ -3,12 +3,12 @@ from functools import partial
 import numpy as np
 
 import pytest
-from flax.linen import Conv, BatchNorm, relu, leaky_relu, elu, max_pool
-from flax.errors import ScopeParamShapeError
 
+from flax.errors import ScopeParamShapeError
+from flax.linen import BatchNorm, Conv, elu, leaky_relu, max_pool, relu
 from scico import flax as sflax
-from scico.random import randn
 from scico.data import _flax_data_path
+from scico.random import randn
 
 
 class TestSet:

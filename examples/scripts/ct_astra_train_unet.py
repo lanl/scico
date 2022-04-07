@@ -13,18 +13,17 @@ to denoise previously filtered back projections (FBP) for CT
 reconstruction inspired by :cite:`jin-2017-unet`.
 """
 
+import os
 from time import time
 
 import numpy as np
 
 import jax
 
-import os
-
-from scico import plot
 from scico import flax as sflax
-from scico.metric import snr, psnr
+from scico import plot
 from scico.examples_flax import load_ct_data
+from scico.metric import psnr, snr
 
 """
 Prepare parallel processing. Set an arbitrary processor

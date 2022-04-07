@@ -1,19 +1,20 @@
-import pytest
 import os
 
 import numpy as np
 
+import pytest
+
 from scico import random
-from scico.typing import Shape
 from scico.examples_flax import (
-    generate_foam2_images,
-    distributed_data_generation,
-    rotation90,
-    flip,
     CenterCrop,
     PositionalCrop,
     RandomNoise,
+    distributed_data_generation,
+    flip,
+    generate_foam2_images,
+    rotation90,
 )
+from scico.typing import Shape
 
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 

@@ -10,30 +10,31 @@
 Assummes sharded batched data and data parallel training.
 """
 
-import os, sys
 import functools
+import os
 import time
 from typing import Any, Callable, List, Optional, TypedDict, Union
+
 import jax
 import jax.numpy as jnp
 from jax import lax
+
 import optax
 
-from flax.training import train_state
-from flax.training import common_utils
-from flax.core import freeze, unfreeze
 from flax import jax_utils
+from flax.core import freeze, unfreeze
+from flax.training import common_utils, train_state
 from flax.traverse_util import ModelParamTraversal
 
 try:
-    import clu
+    pass
 except ImportError:
     have_clu = False
 else:
     have_clu = True
 
 try:
-    from tensorflow.io import gfile
+    pass
 except ImportError:
     have_tf = False
 else:
@@ -42,10 +43,10 @@ else:
 if have_tf:
     from flax.training import checkpoints
 
-from scico.typing import Array, Shape
-from scico.metric import snr
 from scico.flax import create_input_iter
 from scico.flax.train.input_pipeline import DataSetDict
+from scico.metric import snr
+from scico.typing import Array, Shape
 
 ModuleDef = Any
 KeyArray = Union[Array, jax._src.prng.PRNGKeyArray]

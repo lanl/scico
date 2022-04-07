@@ -1,24 +1,19 @@
-import pytest
-
 import os
+from functools import partial
+
 import numpy as np
 
-from functools import partial
 import jax.numpy as jnp
 from jax import lax
 
+import pytest
+
 from scico import flax as sflax
 from scico import random
-from scico.linop.radon_astra import TomographicProjector
-from scico.linop import Identity
 from scico.examples_flax import construct_blurring_operator
-from scico.flax.train.train import (
-    TrainState,
-    train_step,
-    train_step_post,
-    construct_traversal,
-    clip_positive,
-)
+from scico.flax.train.train import clip_positive, construct_traversal, train_step_post
+from scico.linop import Identity
+from scico.linop.radon_astra import TomographicProjector
 
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 

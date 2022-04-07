@@ -1,18 +1,19 @@
-import pytest
-
-import numpy as np
 import os
 
+import numpy as np
+
 import jax
-from scico import random
+
+import pytest
+
 from scico import flax as sflax
-from scico.flax.train.input_pipeline import prepare_data, IterateData
+from scico import random
+from scico.flax.train.input_pipeline import IterateData, prepare_data
 from scico.flax.train.train import (
+    compute_metrics,
     create_cnst_lr_schedule,
     create_cosine_lr_schedule,
     create_exp_lr_schedule,
-    TrainState,
-    compute_metrics,
     mse_loss,
 )
 

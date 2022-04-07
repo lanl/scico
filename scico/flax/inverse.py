@@ -6,16 +6,14 @@
 from functools import partial
 from typing import Any, Callable, Tuple
 
-from flax.linen.module import Module, compact, _Sentinel
-from flax.core import Scope  # noqa
-
-from jax import lax
 import jax.numpy as jnp
+from jax import lax
 
-from scico.typing import Array, Shape
-from scico.linop import operator_norm
+from flax.core import Scope  # noqa
+from flax.linen.module import Module, compact
 from scico.flax import ResNet
-
+from scico.linop import operator_norm
+from scico.typing import Array, Shape
 
 # The imports of Scope and _Sentinel (above)
 # are required to silence "cannot resolve forward reference"

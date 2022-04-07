@@ -6,15 +6,12 @@
 from functools import partial
 from typing import Any, Callable, Tuple
 
-from flax.linen.module import Module, compact, _Sentinel
-from flax.linen import Conv, BatchNorm, relu, max_pool
-from flax.linen.initializers import kaiming_normal, xavier_normal
-from flax.core import Scope  # noqa
-
 import jax.numpy as jnp
 
-from scico.typing import Array
-
+from flax.core import Scope  # noqa
+from flax.linen import BatchNorm, Conv, max_pool, relu
+from flax.linen.initializers import kaiming_normal, xavier_normal
+from flax.linen.module import Module, compact
 from scico.flax import (
     ConvBNBlock,
     ConvBNMultiBlock,
@@ -22,6 +19,7 @@ from scico.flax import (
     ConvBNUpsampleBlock,
     upscale_nn,
 )
+from scico.typing import Array
 
 # The imports of Scope and _Sentinel (above)
 # are required to silence "cannot resolve forward reference"

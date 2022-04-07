@@ -7,8 +7,8 @@ from typing import Any, Callable, Tuple
 
 import jax.numpy as jnp
 
-from flax.linen.module import Module, compact, _Sentinel
 from flax.core import Scope  # noqa
+from flax.linen.module import Module, compact
 from scico.typing import Array
 
 # The imports of Scope and _Sentinel (above)

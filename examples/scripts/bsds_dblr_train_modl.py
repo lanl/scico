@@ -23,21 +23,18 @@ where $A$ is a circular convolution, $\mathbf{y}$ is a set of blurred images, $\
 via conjugate gradient. In the expression, $k$ is the index of the stage (iteration), $\mathbf{z}^k = \mathrm{ResNet}(\mathbf{x}^{k})$ is the regularization (a denoiser implemented as a residual convolutional neural network), $\mathbf{x}^k$ is the output of the previous stage, $\lambda > 0$ is a learned regularization parameter, and $\mathbf{I}$ is the identity operator. The output of the final stage is the set of deblurred images.
 """
 
+import os
+from functools import partial
 from time import time
 
+import jax
 import jax.numpy as jnp
 
-import jax
-
-from functools import partial
-
-import os
-
-from scico import plot
 from scico import flax as sflax
-from scico.metric import snr, psnr
-from scico.examples_flax import load_image_data, construct_blurring_operator
-from scico.flax.train.train import construct_traversal, clip_positive, train_step_post
+from scico import plot
+from scico.examples_flax import construct_blurring_operator, load_image_data
+from scico.flax.train.train import clip_positive, construct_traversal, train_step_post
+from scico.metric import psnr, snr
 
 """
 Prepare parallel processing. Set an arbitrary processor

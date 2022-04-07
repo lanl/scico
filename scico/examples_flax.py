@@ -7,30 +7,28 @@
 
 """Utility functions used by Flax example scripts."""
 
-from xdesign import UnitCircle, SimpleMaterial, discrete_phantom
-
-from typing import Any, Callable, List, Optional, Tuple, TypedDict, Union
+import glob
+import math
+import os
+import tarfile
+import tempfile
 from time import time
+from typing import Any, Callable, List, Optional, Tuple, TypedDict, Union
+
+import numpy as np
 
 import jax
 import jax.numpy as jnp
 
-import glob
-import os
-import tempfile
-import tarfile
-import math
-
-import numpy as np
-
 import imageio
+from xdesign import SimpleMaterial, UnitCircle, discrete_phantom
 
 from scico import util
-from scico.typing import Array, Shape
-from scico.linop import CircularConvolve
-from scico.linop.radon_astra import TomographicProjector
 from scico.examples import rgb2gray
 from scico.flax.train.input_pipeline import DataSetDict
+from scico.linop import CircularConvolve
+from scico.linop.radon_astra import TomographicProjector
+from scico.typing import Array, Shape
 
 # Arbitray process count: only applies if GPU is not available.
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"

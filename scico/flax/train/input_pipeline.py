@@ -10,10 +10,10 @@
 
 from typing import Any, TypedDict, Union
 
-from flax import jax_utils
 import jax
 import jax.numpy as jnp
 
+from flax import jax_utils
 from scico.typing import Array
 
 DType = Any

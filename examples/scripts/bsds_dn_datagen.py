@@ -12,8 +12,8 @@ This example demonstrates how to generate noisy image data for training neural n
 """
 import numpy as np
 
-from scico.examples_flax import load_image_data
 from scico import plot
+from scico.examples_flax import load_image_data
 
 """
 Read data from cache or generate if not available.

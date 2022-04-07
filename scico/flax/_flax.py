@@ -1,14 +1,10 @@
 """Convolutional neural network models implemented in Flax."""
 
-from functools import partial
-from typing import Any, Callable, Optional, Tuple
-
-import jax.numpy as jnp
+from typing import Any, Optional
 
 from flax import serialization
 from flax.core import Scope  # noqa
-from flax.linen.module import Module, compact, _Sentinel
-
+from flax.linen.module import Module
 from scico.blockarray import BlockArray
 from scico.typing import Array, Shape
 
