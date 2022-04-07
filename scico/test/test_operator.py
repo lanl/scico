@@ -24,12 +24,12 @@ class AbsOperator(Operator):
 
 class SquareOperator(Operator):
     def _eval(self, x):
-        return x ** 2
+        return x**2
 
 
 class SumSquareOperator(Operator):
     def _eval(self, x):
-        return snp.sum(x ** 2)
+        return snp.sum(x**2)
 
 
 class OperatorTestObj:

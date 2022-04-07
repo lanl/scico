@@ -288,7 +288,7 @@ class TestCircularConvolveSolve:
         Nx = 8
         x = np.pad(np.ones((Nx, Nx), dtype=np.float32), Nx)
         Npsf = 3
-        psf = snp.ones((Npsf, Npsf), dtype=np.float32) / (Npsf ** 2)
+        psf = snp.ones((Npsf, Npsf), dtype=np.float32) / (Npsf**2)
         self.A = linop.CircularConvolve(
             h=psf,
             input_shape=x.shape,

@@ -16,7 +16,7 @@ except ImportError as e:
 
 def eval_params(config, reporter):
     x, y = config["x"], config["y"]
-    cost = x ** 2 + (y - 0.5) ** 2
+    cost = x**2 + (y - 0.5) ** 2
     reporter(cost=cost)
 
 

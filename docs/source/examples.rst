@@ -28,6 +28,7 @@ Computed Tomography
    examples/ct_astra_weighted_tv_admm
    examples/ct_svmbir_ppp_bm3d_admm_cg
    examples/ct_svmbir_ppp_bm3d_admm_prox
+   examples/ct_fan_svmbir_ppp_bm3d_admm_prox
    examples/ct_svmbir_tv_multi
    examples/ct_astra_train_unet
 
@@ -93,6 +94,7 @@ Plug and Play Priors
 
    examples/ct_svmbir_ppp_bm3d_admm_cg
    examples/ct_svmbir_ppp_bm3d_admm_prox
+   examples/ct_fan_svmbir_ppp_bm3d_admm_prox
    examples/deconv_ppp_bm3d_admm
    examples/deconv_ppp_bm3d_pgm
    examples/deconv_ppp_bm4d_admm
@@ -164,6 +166,7 @@ ADMM
    examples/ct_astra_weighted_tv_admm
    examples/ct_svmbir_ppp_bm3d_admm_cg
    examples/ct_svmbir_ppp_bm3d_admm_prox
+   examples/ct_fan_svmbir_ppp_bm3d_admm_prox
    examples/ct_svmbir_tv_multi
    examples/deconv_circ_tv_admm
    examples/deconv_microscopy_tv_admm
