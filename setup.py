@@ -7,41 +7,13 @@ import os
 import os.path
 import re
 import site
-from ast import parse
-from subprocess import PIPE, Popen
 
 from setuptools import find_packages, setup
 
+from scico._version import init_variable_assign_value, package_version
+
 name = "scico"
-
-
-def get_init_variable_value(var):
-    """Get version number from scico/__init__.py
-    See http://stackoverflow.com/questions/2058802
-    """
-    with open(os.path.join(name, "__init__.py")) as f:
-        try:
-            value = parse(next(filter(lambda line: line.startswith(var), f))).body[0].value.s
-        except StopIteration:
-            raise RuntimeError(f"Could not find initialization of variable {var}")
-    return value
-
-
-def get_git_hash():
-    """Get current short git hash."""
-    process = Popen(["git", "rev-parse", "--short", "HEAD"], shell=False, stdout=PIPE, stderr=PIPE)
-    git_hash = process.communicate()[0].strip().decode("utf-8")
-    if git_hash == "":
-        git_hash = None
-    return git_hash
-
-
-version = get_init_variable_value("__version_")
-if not re.match(r"^[0-9\.]+$", version):  # don't extend purely numeric version numbers
-    git_hash = get_git_hash()
-    if git_hash:
-        version += "+" + git_hash
-
+version = package_version()
 packages = find_packages()
 
 longdesc = """
@@ -54,7 +26,7 @@ with open("requirements.txt") as f:
 install_requires = [line.strip() for line in lines]
 
 # Check that jaxlib version requirements in __init__.py and requirements.txt match
-jaxlib_ver = get_init_variable_value("jaxlib_ver_req")
+jaxlib_ver = init_variable_assign_value("jaxlib_ver_req")
 jaxlib_req_str = list(filter(lambda s: s.startswith("jaxlib"), install_requires))[0]
 m = re.match("jaxlib[=<>]+([\d\.]+)", jaxlib_req_str)
 if not m:
@@ -67,7 +39,7 @@ if jaxlib_ver != req_jaxlib_ver:
     )
 
 # Check that jax version requirements in __init__.py and requirements.txt match
-jax_ver = get_init_variable_value("jax_ver_req")
+jax_ver = init_variable_assign_value("jax_ver_req")
 jax_req_str = list(
     filter(lambda s: s.startswith("jax") and not s.startswith("jaxlib"), install_requires)
 )[0]

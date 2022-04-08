@@ -4,11 +4,12 @@ import os
 import re
 import sys
 import types
-from ast import parse
 from inspect import getmembers, isfunction
 from unittest.mock import MagicMock
 
 from sphinx.ext.napoleon.docstring import GoogleDocstring
+
+from scico._version import package_version
 
 confpath = os.path.dirname(__file__)
 sys.path.append(confpath)
@@ -162,10 +163,10 @@ copyright = "2020-2022, SCICO Developers"
 # built documents.
 #
 # The short X.Y version.
-with open(os.path.join(confpath, "..", "..", "scico", "__init__.py")) as f:
-    version = parse(next(filter(lambda line: line.startswith("__version__"), f))).body[0].value.s
+version_tuple = package_version(split=True)
+version = version_tuple[0]
 # The full version, including alpha/beta/rc tags.
-release = version
+release = "".join(version_tuple)
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
