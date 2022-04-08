@@ -163,10 +163,9 @@ copyright = "2020-2022, SCICO Developers"
 # built documents.
 #
 # The short X.Y version.
-version_tuple = package_version(split=True)
-version = version_tuple[0]
+version = package_version()
 # The full version, including alpha/beta/rc tags.
-release = "".join(version_tuple)
+release = version
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
