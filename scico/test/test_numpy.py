@@ -8,8 +8,8 @@ import pytest
 import scico.numpy as snp
 import scico.numpy._create as snc
 import scico.numpy.linalg as sla
-from scico.blockarray import BlockArray
 from scico.linop import MatrixOperator
+from scico.numpy import BlockArray
 
 
 def on_cpu():

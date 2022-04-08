@@ -5,8 +5,8 @@ import jax.scipy.signal as signal
 
 import pytest
 
-from scico.blockarray import BlockArray
 from scico.linop import Convolve, ConvolveByX
+from scico.numpy import BlockArray
 from scico.operator.biconvolve import BiConvolve
 from scico.random import randn
 

@@ -16,7 +16,7 @@ from typing import List, Optional, Union
 import numpy as np
 
 import scico.numpy as snp
-from scico.blockarray import BlockArray
+from scico.numpy import BlockArray
 from scico.typing import JaxArray
 
 from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar

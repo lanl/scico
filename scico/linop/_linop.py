@@ -18,7 +18,7 @@ from typing import Any, Callable, Optional, Union
 import scico.numpy as snp
 from scico import array, blockarray
 from scico._generic_operators import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
-from scico.blockarray import BlockArray
+from scico.numpy import BlockArray
 from scico.random import randn
 from scico.typing import ArrayIndex, BlockShape, DType, JaxArray, PRNGKey, Shape
 

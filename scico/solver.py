@@ -65,7 +65,7 @@ import numpy as np
 import jax
 
 import scico.numpy as snp
-from scico.blockarray import BlockArray
+from scico.numpy import BlockArray
 from scico.typing import BlockShape, DType, JaxArray, Shape
 from scipy import optimize as spopt
 

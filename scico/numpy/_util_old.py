@@ -20,7 +20,7 @@ from jaxlib.xla_extension import CompiledFunction
 
 _NOT_IMPLEMENTED_DESC = """
 **WARNING**: This function is not yet implemented by :mod:`scico.numpy` and
-may raise an error when operating on :class:`scico.blockarray.BlockArray`.
+may raise an error when operating on :class:`scico.numpy.BlockArray`.
 """
 
 

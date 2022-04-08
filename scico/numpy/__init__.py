@@ -5,11 +5,11 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-""":class:`scico.blockarray.BlockArray`-compatible
+""":class:`scico.numpy.BlockArray`-compatible
 versions of :mod:`jax.numpy` functions.
 
 This modules consists of functions from :mod:`jax.numpy` wrapped to
-support compatibility with :class:`scico.blockarray.BlockArray`. This
+support compatibility with :class:`scico.numpy.BlockArray`. This
 module is a work in progress and therefore not all functions are
 wrapped. Functions that have not been wrapped yet have WARNING text in
 their documentation, below.
@@ -20,13 +20,15 @@ import jax.numpy as jnp
 
 from . import _util
 from .blockarray import BlockArray
+from .util import *
 
 # wrap jnp
 _util.wrap_attributes(
     to_dict=vars(),
     from_dict=jnp.__dict__,
     modules_to_recurse=("linalg", "fft"),
-    reductions=("sum",),
+    reductions=("sum", "norm"),
+    no_wrap=("dtype"),
 )
 
 # wrap np.testing

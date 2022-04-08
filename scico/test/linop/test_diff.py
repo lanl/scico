@@ -3,8 +3,8 @@ import numpy as np
 import pytest
 
 import scico.numpy as snp
-from scico.blockarray import BlockArray
 from scico.linop import FiniteDifference
+from scico.numpy import BlockArray
 from scico.random import randn
 from scico.test.linop.test_linop import adjoint_test
 

@@ -14,7 +14,7 @@ import jax
 
 import scico.numpy as snp
 from scico import linop
-from scico.blockarray import BlockArray
+from scico.numpy import BlockArray
 from scico.random import randn
 from scico.typing import JaxArray, PRNGKey
 

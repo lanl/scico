@@ -23,8 +23,7 @@ from jax.interpreters.xla import DeviceArray
 
 import scico.numpy as snp
 from scico._autograd import linear_adjoint
-from scico.array import block_sizes, is_complex_dtype, is_nested
-from scico.blockarray import BlockArray
+from scico.numpy import BlockArray, is_complex_dtype, is_nested, shape_to_size
 from scico.typing import BlockShape, DType, JaxArray, Shape
 
 
@@ -152,8 +151,8 @@ output_dtype : {self.output_dtype}
         # Determine the shape of the "vectorized" operator (as an element of ℝ^{n × m}
         # If the function returns a BlockArray we need to compute the size of each block,
         # then sum.
-        self.input_size = int(np.sum(block_sizes(self.input_shape)))
-        self.output_size = int(np.sum(block_sizes(self.output_shape)))
+        self.input_size = shape_to_size(self.input_shape)
+        self.output_size = shape_to_size(self.output_shape)
 
         self.shape = (self.output_shape, self.input_shape)
         self.matrix_shape = (self.output_size, self.input_size)

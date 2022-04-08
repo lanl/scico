@@ -6,7 +6,7 @@ import pytest
 
 import scico.numpy as snp
 from scico import random, solver
-from scico.blockarray import BlockArray
+from scico.numpy import BlockArray
 
 
 class TestSet:

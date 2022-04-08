@@ -85,12 +85,12 @@ def test_block_shape_adapter():
     key = jax.random.PRNGKey(seed)
 
     result = fun_alt(key, shape)
-    assert isinstance(result, scico.blockarray.BlockArray)
+    assert isinstance(result, scico.numpy.BlockArray)
 
     # should work for deeply nested as well
     shape = ((7,), (3, (2, 1)), (2, 4, 1))
     result = fun_alt(key, shape)
-    assert isinstance(result, scico.blockarray.BlockArray)
+    assert isinstance(result, scico.numpy.BlockArray)
 
     # when shape is not nested, behavior should be normal
     shape = (1,)

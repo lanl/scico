@@ -10,9 +10,8 @@ from typing import Callable, Iterable, Optional
 
 import jax.numpy as jnp
 
-from scico.array import is_nested
-
 from .blockarray import BlockArray
+from .util import is_nested
 
 
 def wrap_attributes(
@@ -20,6 +19,7 @@ def wrap_attributes(
     from_dict: dict,
     modules_to_recurse: Optional[Iterable[str]] = None,
     reductions: Optional[Iterable[str]] = None,
+    no_wrap: Optional[Iterable[str]] = None,
 ):
     """Add attributes in `from_dict` to `to_dict`.
 
@@ -28,6 +28,8 @@ def wrap_attributes(
     `modules_to_recurse`, which are added recursively. All others are
     passed through unwrapped.
 
+    no_warp: list of functions to attach unwrapped
+
     """
 
     if modules_to_recurse is None:
@@ -35,6 +37,9 @@ def wrap_attributes(
 
     if reductions is None:
         reductions = ()
+
+    if no_wrap is None:
+        no_wrap = ()
 
     for name, obj in from_dict.items():
         if name[0] == "_":
@@ -45,8 +50,10 @@ def wrap_attributes(
             to_dict[name].__doc__ = obj.__doc__
             # enable `import scico.numpy.linalg` and `from scico.numpy.linalg import norm`
             sys.modules[to_dict["__name__"] + "." + name] = to_dict[name]
-            wrap_attributes(to_dict[name].__dict__, obj.__dict__)
-        elif isinstance(obj, Callable):
+            wrap_attributes(
+                to_dict[name].__dict__, obj.__dict__, reductions=reductions, no_wrap=no_wrap
+            )
+        elif isinstance(obj, Callable) and name not in no_wrap:
             obj = map_func_over_ba(obj, is_reduction=name in reductions)
             to_dict[name] = obj
         else:
@@ -76,6 +83,14 @@ def map_func_over_ba(func, is_reduction=False):
         if not len(ba_args):  # no BlockArray arguments
             return func(*args, **kwargs)
 
+        if is_reduction and "axis" not in bound_args.arguments:
+            if len(ba_args) > 1:
+                raise ValueError(
+                    "Cannot perform a full reduction with multiple BlockArray arguments."
+                )
+            # fully ravel the ba argument
+            ba_args = {k: [jnp.concatenate(v.ravel())] for k, v in ba_args.items()}
+
         result = tuple(
             map(  # map over
                 lambda *args: (  # lambda x_1, x_2, ..., x_N
@@ -88,17 +103,6 @@ def map_func_over_ba(func, is_reduction=False):
                 *ba_args.values(),  # map(f, ba_1, ba_2, ..., ba_N)
             )
         )
-
-        if is_reduction and "axis" not in bound_args.arguments:
-            if len(ba_args) > 1:
-                raise ValueError(
-                    "Cannot perform a full reduction with multiple BlockArray arguments."
-                )
-            return func(
-                *bound_args.args,
-                **bound_args.kwargs,
-                **{list(ba_args.keys())[0]: jnp.stack(result)},
-            )
 
         if isinstance(result[0], jnp.ndarray):  # True for abstract arrays, too
             return BlockArray(result)

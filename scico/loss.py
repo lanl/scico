@@ -17,8 +17,8 @@ import jax
 
 import scico.numpy as snp
 from scico import functional, linop, operator
-from scico.array import ensure_on_device, no_nan_divide
-from scico.blockarray import BlockArray
+from scico.array import ensure_on_device
+from scico.numpy import BlockArray, no_nan_divide
 from scico.scipy.special import gammaln
 from scico.solver import cg
 from scico.typing import JaxArray

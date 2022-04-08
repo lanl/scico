@@ -13,7 +13,7 @@ import jax
 
 import scico
 from scico import numpy as snp
-from scico.blockarray import BlockArray
+from scico.numpy import BlockArray
 from scico.typing import JaxArray
 
 

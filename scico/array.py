@@ -11,7 +11,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import Any, List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -19,9 +19,8 @@ import jax
 from jax.interpreters.pxla import ShardedDeviceArray
 from jax.interpreters.xla import DeviceArray
 
-import scico.numpy as snp
-from scico.blockarray import BlockArray
-from scico.typing import ArrayIndex, Axes, AxisIndex, DType, JaxArray, Shape
+from scico.numpy import BlockArray
+from scico.typing import ArrayIndex, Axes, AxisIndex, JaxArray, Shape
 
 
 def ensure_on_device(
@@ -72,22 +71,6 @@ def ensure_on_device(
     if len(arrays) == 1:
         return arrays[0]
     return arrays
-
-
-def no_nan_divide(
-    x: Union[BlockArray, JaxArray], y: Union[BlockArray, JaxArray]
-) -> Union[BlockArray, JaxArray]:
-    """Return `x/y`, with 0 instead of NaN where `y` is 0.
-
-    Args:
-        x: Numerator.
-        y: Denominator.
-
-    Returns:
-        `x / y` with 0 wherever `y == 0`.
-    """
-
-    return snp.where(y != 0, snp.divide(x, snp.where(y != 0, y, 1)), 0)
 
 
 def parse_axes(
@@ -191,146 +174,3 @@ def indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int, ...]:
             continue
         idx_shape[axis + offset] = slice_length(shape[axis + offset], ax_idx)
     return tuple(filter(lambda x: x is not None, idx_shape))
-
-
-def block_sizes(shape: Union[Shape, BlockShape]) -> Axes:
-    r"""Compute the 'sizes' of block shapes.
-
-    This function computes ``block_sizes(z.shape) == (_.size for _ in z)``
-
-
-    Args:
-       shape: A shape tuple; possibly containing nested tuples.
-
-
-    Examples:
-
-    .. doctest::
-        >>> import scico.numpy as snp
-
-        >>> x = BlockArray.ones( ( (4, 4), (2,)))
-        >>> x.size
-        18
-
-        >>> y = snp.ones((3, 3))
-        >>> y.size
-        9
-
-        >>> z = BlockArray.array([x, y])
-        >>> block_sizes(z.shape)
-        (18, 9)
-
-        >>> zz = BlockArray.array([z, z])
-        >>> block_sizes(zz.shape)
-        (27, 27)
-    """
-
-    if isinstance(shape, BlockArray):
-        raise TypeError(
-            "Expected a `shape` (possibly nested tuple of ints); got :class:`.BlockArray`."
-        )
-
-    out = []
-    if is_nested(shape):
-        # shape is nested -> at least one element came from a blockarray
-        for y in shape:
-            if is_nested(y):
-                # recursively calculate the block size until we arrive at
-                # a tuple (shape of a non-block array)
-                while is_nested(y):
-                    y = block_sizes(y)
-                out.append(np.sum(y))  # adjacent block sizes are added together
-            else:
-                # this is a tuple; size given by product of elements
-                out.append(np.prod(y))
-        return tuple(out)
-
-    # shape is a non-nested tuple; return the product
-    return np.prod(shape)
-
-
-def is_nested(x: Any) -> bool:
-    """Check if input is a list/tuple containing at least one list/tuple.
-
-    Args:
-        x: Object to be tested.
-
-    Returns:
-        ``True`` if `x` is a list/tuple of list/tuples, otherwise
-        ``False``.
-
-
-    Example:
-        >>> is_nested([1, 2, 3])
-        False
-        >>> is_nested([(1,2), (3,)])
-        True
-        >>> is_nested([[1, 2], 3])
-        True
-
-    """
-    if isinstance(x, (list, tuple)):
-        return any([isinstance(_, (list, tuple)) for _ in x])
-    return False
-
-
-def is_real_dtype(dtype: DType) -> bool:
-    """Determine whether a dtype is real.
-
-    Args:
-        dtype: A numpy or scico.numpy dtype (e.g. ``np.float32``,
-               ``np.complex64``).
-
-    Returns:
-        ``False`` if the dtype is complex, otherwise ``True``.
-    """
-    return snp.dtype(dtype).kind != "c"
-
-
-def is_complex_dtype(dtype: DType) -> bool:
-    """Determine whether a dtype is complex.
-
-    Args:
-        dtype: A numpy or scico.numpy dtype (e.g. ``np.float32``,
-               ``np.complex64``).
-
-    Returns:
-        ``True`` if the dtype is complex, otherwise ``False``.
-    """
-    return snp.dtype(dtype).kind == "c"
-
-
-def real_dtype(dtype: DType) -> DType:
-    """Construct the corresponding real dtype for a given complex dtype.
-
-    Construct the corresponding real dtype for a given complex dtype,
-    e.g. the real dtype corresponding to ``np.complex64`` is
-    ``np.float32``.
-
-    Args:
-        dtype: A complex numpy or scico.numpy dtype (e.g. ``np.complex64``,
-               ``np.complex128``).
-
-    Returns:
-        The real dtype corresponding to the input dtype
-    """
-
-    return snp.zeros(1, dtype).real.dtype
-
-
-def complex_dtype(dtype: DType) -> DType:
-    """Construct the corresponding complex dtype for a given real dtype.
-
-    Construct the corresponding complex dtype for a given real dtype,
-    e.g. the complex dtype corresponding to ``np.float32`` is
-    ``np.complex64``.
-
-    Args:
-        dtype: A real numpy or scico.numpy dtype (e.g. ``np.float32``,
-               ``np.float64``).
-
-    Returns:
-        The complex dtype corresponding to the input dtype.
-    """
-
-    return (snp.zeros(1, dtype) + 1j).dtype

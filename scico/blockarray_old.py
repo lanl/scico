@@ -11,7 +11,7 @@ r"""Extensions of numpy ndarray class.
 
    >>> import scico
    >>> import scico.numpy as snp
-   >>> from scico.blockarray import BlockArray
+   >>> from scico.numpy import BlockArray
    >>> import numpy as np
    >>> import jax.numpy
 
@@ -81,7 +81,7 @@ Construct from a tuple of arrays (either `ndarray` or `DeviceArray`)
 
   .. doctest::
 
-     >>> from scico.blockarray import BlockArray
+     >>> from scico.numpy import BlockArray
      >>> import numpy as np
      >>> x0, key = scico.random.randn((32, 32))
      >>> x1, _ = scico.random.randn((16,), key=key)
@@ -805,7 +805,7 @@ class BlockArray:
         self._data = data
 
     def __repr__(self):
-        return "scico.blockarray.BlockArray: \n" + self._data.__repr__()
+        return "scico.numpy.BlockArray: \n" + self._data.__repr__()
 
     def __getitem__(self, idx: Union[int, Tuple[AxisIndex, ...]]) -> JaxArray:
         idxblk, idxarr = _decompose_index(idx)
@@ -866,11 +866,11 @@ class BlockArray:
 
     @_block_array_binary_op_wrapper
     def __pow__(a, b):
-        return a ** b
+        return a**b
 
     @_block_array_binary_op_wrapper
     def __rpow__(a, b):
-        return b ** a
+        return b**a
 
     @_block_array_binary_op_wrapper
     def __gt__(a, b):

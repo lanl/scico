@@ -12,7 +12,7 @@ from typing import Union
 import jax
 
 from scico import numpy as snp
-from scico.blockarray import BlockArray
+from scico.numpy import BlockArray
 from scico.numpy.linalg import norm
 from scico.typing import JaxArray
 

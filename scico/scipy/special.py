@@ -9,7 +9,7 @@
 
 This modules consists of functions from :mod:`jax.scipy.special`. Some of
 these functions are wrapped to support compatibility with
-:class:`scico.blockarray.BlockArray` and are documented here. The
+:class:`scico.numpy.BlockArray` and are documented here. The
 remaining functions are imported directly from :mod:`jax.numpy`. While
 they can be imported from the :mod:`scico.numpy` namespace, they are not
 documented here; please consult the documentation for the source module
@@ -22,7 +22,7 @@ import sys
 import jax
 import jax.scipy.special as js
 
-from scico.blockarray import _block_array_ufunc_wrapper
+from scico.numpy import _block_array_ufunc_wrapper
 from scico.numpy._util import _attach_wrapped_func, _not_implemented
 
 _ufunc_functions = [
@@ -74,9 +74,9 @@ _attach_wrapped_func(
 
 import jax.scipy.special as js
 
-import scico.numpy as snp
+from scico.numpy._util import wrap_attributes
 
-snp._copy_attributes(
+wrap_attributes(
     vars(),
     js.__dict__,
 )

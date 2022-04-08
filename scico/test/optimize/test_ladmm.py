@@ -4,7 +4,7 @@ import jax
 
 import scico.numpy as snp
 from scico import functional, linop, loss, random
-from scico.blockarray import BlockArray
+from scico.numpy import BlockArray
 from scico.optimize import LinearizedADMM
 
 

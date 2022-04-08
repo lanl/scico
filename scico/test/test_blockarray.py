@@ -10,7 +10,7 @@ from jax.interpreters.xla import DeviceArray
 import pytest
 
 import scico.numpy as snp
-from scico.blockarray import BlockArray
+from scico.numpy import BlockArray
 from scico.random import randn
 
 math_ops = [op.add, op.sub, op.mul, op.truediv, op.pow]  # op.floordiv doesn't work on complex

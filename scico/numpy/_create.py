@@ -14,8 +14,7 @@ import numpy as np
 import jax
 from jax import numpy as jnp
 
-from scico.array import is_nested
-from scico.blockarray import BlockArray
+from scico.numpy import BlockArray, is_nested
 from scico.typing import BlockShape, DType, JaxArray, Shape
 
 

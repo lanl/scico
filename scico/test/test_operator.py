@@ -12,7 +12,7 @@ config.update("jax_enable_x64", True)
 import jax
 
 import scico.numpy as snp
-from scico.blockarray import BlockArray
+from scico.numpy import BlockArray
 from scico.operator import Operator
 from scico.random import randn
 

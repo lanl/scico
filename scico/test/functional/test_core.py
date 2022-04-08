@@ -11,6 +11,7 @@ from prox import prox_test
 
 import scico.numpy as snp
 from scico import functional
+from scico.numpy import BlockArray
 from scico.random import randn
 
 NO_BLOCK_ARRAY = [functional.L21Norm, functional.NuclearNorm]
@@ -127,9 +128,13 @@ class TestNormProx:
         nrmobj = norm()
         nrm = nrmobj.__call__
         prx = nrmobj.prox
-        pf = nrmobj.prox(test_prox_obj.vb.full_ravel(), alpha)
+        pf = BlockArray(nrmobj.prox(x, alpha) for x in test_prox_obj.vb)
         pf_b = nrmobj.prox(test_prox_obj.vb, alpha)
-        np.testing.assert_allclose(pf, pf_b.full_ravel())
+
+        print(test_prox_obj.vb)
+        print(pf)
+        print(pf_b)
+        snp.testing.assert_allclose(pf, pf_b)
 
     @pytest.mark.parametrize("norm", normlist)
     def test_prox_zeros(self, norm, test_prox_obj):

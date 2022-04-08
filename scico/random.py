@@ -44,7 +44,7 @@ is returned:
 ::
 
    x, key = scico.random.randn( ((1, 1), (2,)), key=key)
-   print(x)  # scico.blockarray.BlockArray:
+   print(x)  # scico.numpy.BlockArray:
              # DeviceArray([ 1.1378784 , -1.220955  , -0.59153646], dtype=float32)
 
 """
@@ -58,8 +58,8 @@ import numpy as np
 
 import jax
 
-import scico.numpy as snp
-from scico.blockarray import BlockArray
+from scico.numpy import BlockArray
+from scico.numpy._util import map_func_over_ba
 from scico.typing import BlockShape, DType, JaxArray, PRNGKey, Shape
 
 
@@ -121,7 +121,7 @@ def _add_seed(fun):
     return fun_alt
 
 
-_allow_block_shape = snp._map_func_over_ba
+_allow_block_shape = map_func_over_ba
 
 
 def _wrap(fun):
