@@ -53,36 +53,40 @@ if have_astra:
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 
 
-class Foam2(UnitCircle):
-    """Define functionality to generate phantom
-    with structure similar to foam with two
-    different attenuation properties."""
+if have_xdesign:
 
-    def __init__(
-        self,
-        size_range: Union[float, List[float]] = [0.05, 0.01],
-        gap: float = 0,
-        porosity: float = 1,
-        attn1: float = 1.0,
-        attn2: float = 10.0,
-    ):
-        """Foam-like structure with two different
-        attenuations. Circles for material 1 are
-        more sparse than for material 2 by design.
+    class Foam2(UnitCircle):
+        """Define functionality to generate phantom
+        with structure similar to foam with two
+        different attenuation properties."""
 
-        Args:
-            size_range: The radius, or range of radius, of the circles to be added. Default: [0.05, 0.01].
-            gap: Minimum distance between circle boundaries. Default: 0.
-            porosity: Target porosity. Must be a value between [0, 1]. Default: 1.
-            attn1: Mass attenuation parameter for material 1. Default: 1.
-            attn2: Mass attenuation parameter for material 2. Default: 10.
-        """
-        super(Foam2, self).__init__(radius=0.5, material=SimpleMaterial(attn1))
-        if porosity < 0 or porosity > 1:
-            raise ValueError("Porosity must be in the range [0,1).")
-        self.sprinkle(
-            300, size_range, gap, material=SimpleMaterial(attn2), max_density=porosity / 2.0
-        ) + self.sprinkle(300, size_range, gap, material=SimpleMaterial(20), max_density=porosity)
+        def __init__(
+            self,
+            size_range: Union[float, List[float]] = [0.05, 0.01],
+            gap: float = 0,
+            porosity: float = 1,
+            attn1: float = 1.0,
+            attn2: float = 10.0,
+        ):
+            """Foam-like structure with two different
+            attenuations. Circles for material 1 are
+            more sparse than for material 2 by design.
+
+            Args:
+                size_range: The radius, or range of radius, of the circles to be added. Default: [0.05, 0.01].
+                gap: Minimum distance between circle boundaries. Default: 0.
+                porosity: Target porosity. Must be a value between [0, 1]. Default: 1.
+                attn1: Mass attenuation parameter for material 1. Default: 1.
+                attn2: Mass attenuation parameter for material 2. Default: 10.
+            """
+            super(Foam2, self).__init__(radius=0.5, material=SimpleMaterial(attn1))
+            if porosity < 0 or porosity > 1:
+                raise ValueError("Porosity must be in the range [0,1).")
+            self.sprinkle(
+                300, size_range, gap, material=SimpleMaterial(attn2), max_density=porosity / 2.0
+            ) + self.sprinkle(
+                300, size_range, gap, material=SimpleMaterial(20), max_density=porosity
+            )
 
 
 def generate_foam2_images(seed: float, size: int, ndata: int) -> Array:

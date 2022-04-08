@@ -27,8 +27,8 @@ else:
     have_bm4d = True
 
 import scico.numpy as snp
-from scico.flax import DnCNNNet, FlaxMap, load_weights
 from scico.data import _flax_data_path
+from scico.flax import DnCNNNet, FlaxMap, load_weights
 from scico.typing import JaxArray
 
 

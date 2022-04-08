@@ -11,7 +11,6 @@ from scico.examples_flax import (
     RandomNoise,
     distributed_data_generation,
     flip,
-    generate_foam2_images,
     have_xdesign,
     rotation90,
 )
@@ -27,6 +26,7 @@ def test_foam2_gen():
     seed = 4321
     N = 32
     ndata = 2
+    from scico.examples_flax import generate_foam2_images
 
     dt = generate_foam2_images(seed, N, ndata)
     assert dt.shape == (ndata, N, N, 1)
