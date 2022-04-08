@@ -15,7 +15,7 @@ from subprocess import PIPE, Popen
 from typing import Any, Optional, Tuple, Union
 
 
-def root_init_path() -> str:
+def root_init_path() -> str:  # pragma: no cover
     """Get the path to the package root `__init__.py` file.
 
     Returns:
@@ -47,7 +47,7 @@ def variable_assign_value(path: str, var: str) -> Any:
     return value
 
 
-def init_variable_assign_value(var: str) -> Any:
+def init_variable_assign_value(var: str) -> Any:  # pragma: no cover
     """Get variable initialization value from package `__init__.py` file.
 
     Args:
@@ -63,7 +63,7 @@ def init_variable_assign_value(var: str) -> Any:
     return variable_assign_value(root_init_path(), var)
 
 
-def current_git_hash() -> Optional[str]:  # nosec
+def current_git_hash() -> Optional[str]:  # nosec  pragma: no cover
     """Get current short git hash.
 
     Returns:
@@ -76,7 +76,7 @@ def current_git_hash() -> Optional[str]:  # nosec
     return git_hash
 
 
-def package_version(split: bool = False) -> Union[str, Tuple[str, str]]:
+def package_version(split: bool = False) -> Union[str, Tuple[str, str]]:  # pragma: no cover
     """Get current package version.
 
     Args:
