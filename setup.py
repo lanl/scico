@@ -3,14 +3,21 @@
 
 """SCICO package configuration."""
 
+import importlib.util
 import os
 import os.path
 import re
 import site
+import sys
 
 from setuptools import find_packages, setup
 
-from scico._version import init_variable_assign_value, package_version
+# Import module scico._version without executing __init__.py
+spec = importlib.util.spec_from_file_location("_version", os.path.join("scico", "_version.py"))
+module = importlib.util.module_from_spec(spec)
+sys.modules["_version"] = module
+spec.loader.exec_module(module)
+from _version import init_variable_assign_value, package_version
 
 name = "scico"
 version = package_version()
