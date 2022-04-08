@@ -9,11 +9,14 @@ from unittest.mock import MagicMock
 
 from sphinx.ext.napoleon.docstring import GoogleDocstring
 
-from scico._version import package_version
-
 confpath = os.path.dirname(__file__)
 sys.path.append(confpath)
+rootpath = os.path.join(confpath, "..", "..")
+sys.path.append(rootpath)
+
 from docutil import insert_inheritance_diagram, package_classes
+
+from scico._version import package_version
 
 
 ## See
