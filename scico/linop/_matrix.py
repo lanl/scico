@@ -223,15 +223,15 @@ class MatrixOperator(LinearOperator):
         return self.A.conj().T @ y
 
     def to_array(self):
-        """Return a :class:`numpy.ndarray` containing ``self.A``."""
-        return self.A.copy()
+        """Return a :class:`numpy.ndarray` containing `self.A`."""
+        return np.array(self.A)
 
     @property
     def gram_op(self):
         """Gram operator of this :class:`.MatrixOperator`.
 
-        Return a new :class:`.LinearOperator` ``G`` such that
-        ``G(x) = A.adj(A(x)))``."""
+        Return a new :class:`.LinearOperator` `G` such that
+        `G(x) = A.adj(A(x)))`."""
         return MatrixOperator(A=self.A.conj().T @ self.A)
 
     def norm(self, ord=None, axis=None, keepdims=False):  # pylint: disable=W0622

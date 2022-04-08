@@ -4,7 +4,6 @@ import os
 import re
 import sys
 import types
-from ast import parse
 from inspect import getmembers, isfunction
 from unittest.mock import MagicMock
 
@@ -12,7 +11,12 @@ from sphinx.ext.napoleon.docstring import GoogleDocstring
 
 confpath = os.path.dirname(__file__)
 sys.path.append(confpath)
+rootpath = os.path.join(confpath, "..", "..")
+sys.path.append(rootpath)
+
 from docutil import insert_inheritance_diagram, package_classes
+
+from scico._version import package_version
 
 
 ## See
@@ -162,8 +166,7 @@ copyright = "2020-2022, SCICO Developers"
 # built documents.
 #
 # The short X.Y version.
-with open(os.path.join(confpath, "..", "..", "scico", "__init__.py")) as f:
-    version = parse(next(filter(lambda line: line.startswith("__version__"), f))).body[0].value.s
+version = package_version()
 # The full version, including alpha/beta/rc tags.
 release = version
 
@@ -374,9 +377,10 @@ print("confpath: %s" % confpath)
 # Sort members by type
 autodoc_default_options = {
     "member-order": "bysource",
-    "inherited-members": True,
+    "inherited-members": False,
     "ignore-module-all": False,
     "show-inheritance": True,
+    "members": True,
     "special-members": "__call__",
 }
 autodoc_docstring_signature = True
@@ -384,7 +388,7 @@ autoclass_content = "both"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ["_build", "**tests**", "**spi**"]
+exclude_patterns = ["_build", "**tests**", "**spi**", "**README.rst", "**exampledepend.rst"]
 
 
 # Rewrite module names for certain functions imported into scico.numpy so that they are
@@ -488,6 +492,11 @@ def process_docstring(app, what, name, obj, options, lines):
     # the current release of flax, but is arguably also useful in avoiding
     # extensive documentation of methods that are likely to be of limited
     # interest to users of the scico.flax classes.
+    #
+    # Note: this event handler currently has no effect since inclusion of
+    #   inherited members is currently globally disabled (see
+    #   "inherited-members" in autodoc_default_options), but is left in
+    #   place in case a decision is ever made to revert the global setting.
     #
     # See https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html
     # for documentation of the autodoc-process-docstring event used here.

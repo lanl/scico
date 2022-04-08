@@ -55,7 +55,7 @@ class TestPropagator:
         with pytest.raises(ValueError):
             radial_transverse_frequency(input_shape=(self.N, self.N, self.N), dx=self.dx)
 
-    def test_shape_dx_mismatch(self):
+    def test_shape_dx_mismatch_radial(self):
         with pytest.raises(ValueError):
             radial_transverse_frequency(input_shape=(self.N,), dx=(self.dx, self.dx))
 
@@ -76,7 +76,7 @@ def test_fresnel_sampling(ndim):
     N = 128
     dx = 1
     k0 = 1
-    A = FresnelPropagator(input_shape=(N,) * ndim, dx=dx, k0=k0, z=N ** 2)
+    A = FresnelPropagator(input_shape=(N,) * ndim, dx=dx, k0=k0, z=N**2)
     assert not A.adequate_sampling()
     A = FresnelPropagator(input_shape=(N,) * ndim, dx=dx, k0=k0, z=1)
     assert A.adequate_sampling()
@@ -87,7 +87,7 @@ def test_fraunhofer_sampling(ndim):
     N = 128
     dx = 1
     k0 = 1
-    A = FraunhoferPropagator(input_shape=(N,) * ndim, dx=dx, k0=k0, z=N ** 2)
+    A = FraunhoferPropagator(input_shape=(N,) * ndim, dx=dx, k0=k0, z=N**2)
     assert not A.adequate_sampling()
     A = FraunhoferPropagator(input_shape=(N,) * ndim, dx=dx, k0=k0, z=1)
     assert A.adequate_sampling()

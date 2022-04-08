@@ -32,7 +32,7 @@ from scico.typing import JaxArray, Shape
 from ._linop import LinearOperator
 
 
-class ParallelBeamProjector(LinearOperator):
+class TomographicProjector(LinearOperator):
     r"""Parallel beam Radon transform based on the ASTRA toolbox.
 
     Perform tomographic projection of an image at specified angles,
@@ -59,7 +59,7 @@ class ParallelBeamProjector(LinearOperator):
                 the volume is centered around the origin. If not None,
                 the extents of the volume can be specified arbitrarily.
                 The default, None, corresponds to
-                ``volume_geometry = [cols, -cols/2, cols/2, -rows/2, rows/2]``.
+                `volume_geometry = [cols, -cols/2, cols/2, -rows/2, rows/2]`.
                 Note: For usage with GPU code, the volume must be
                 centered around the origin and pixels must be square.
                 This is not always explicitly checked in all functions,

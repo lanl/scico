@@ -21,6 +21,8 @@ Computed Tomography
       CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+CG)
    `ct_svmbir_ppp_bm3d_admm_prox.py <ct_svmbir_ppp_bm3d_admm_prox.py>`_
       CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+Prox)
+   `ct_fan_svmbir_ppp_bm3d_admm_prox.py <ct_fan_svmbir_ppp_bm3d_admm_prox.py>`_
+      Fan-beam CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+Prox)
    `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
       CT Reconstruction with TV Regularization
 
@@ -38,6 +40,8 @@ Deconvolution
       Image Deconvolution (ADMM Plug-and-Play Priors w/ BM3D)
    `deconv_ppp_bm3d_pgm.py <deconv_ppp_bm3d_pgm.py>`_
       Image Deconvolution (PGM Plug-and-Play Priors w/ BM3D)
+   `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
+      Image Deconvolution (ADMM Plug-and-Play Priors w/ BM4D)
    `deconv_ppp_dncnn_admm.py <deconv_ppp_dncnn_admm.py>`_
       Image Deconvolution (ADMM Plug-and-Play Priors w/ DnCNN)
    `deconv_tv_admm.py <deconv_tv_admm.py>`_
@@ -87,10 +91,14 @@ Plug and Play Priors
       CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+CG)
    `ct_svmbir_ppp_bm3d_admm_prox.py <ct_svmbir_ppp_bm3d_admm_prox.py>`_
       CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+Prox)
+   `ct_fan_svmbir_ppp_bm3d_admm_prox.py <ct_fan_svmbir_ppp_bm3d_admm_prox.py>`_
+      Fan-beam CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+Prox)
    `deconv_ppp_bm3d_admm.py <deconv_ppp_bm3d_admm.py>`_
       Image Deconvolution (ADMM Plug-and-Play Priors w/ BM3D)
    `deconv_ppp_bm3d_pgm.py <deconv_ppp_bm3d_pgm.py>`_
       Image Deconvolution (PGM Plug-and-Play Priors w/ BM3D)
+   `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
+      Image Deconvolution (ADMM Plug-and-Play Priors w/ BM4D)
    `deconv_ppp_dncnn_admm.py <deconv_ppp_dncnn_admm.py>`_
       Image Deconvolution (ADMM Plug-and-Play Priors w/ DnCNN)
    `demosaic_ppp_bm3d_admm.py <demosaic_ppp_bm3d_admm.py>`_
@@ -160,6 +168,8 @@ ADMM
       CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+CG)
    `ct_svmbir_ppp_bm3d_admm_prox.py <ct_svmbir_ppp_bm3d_admm_prox.py>`_
       CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+Prox)
+   `ct_fan_svmbir_ppp_bm3d_admm_prox.py <ct_fan_svmbir_ppp_bm3d_admm_prox.py>`_
+      Fan-beam CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+Prox)
    `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
       CT Reconstruction with TV Regularization
    `deconv_circ_tv_admm.py <deconv_circ_tv_admm.py>`_
@@ -170,6 +180,8 @@ ADMM
       Deconvolution Microscopy (All Channels)
    `deconv_ppp_bm3d_admm.py <deconv_ppp_bm3d_admm.py>`_
       Image Deconvolution (ADMM Plug-and-Play Priors w/ BM3D)
+   `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
+      Image Deconvolution (ADMM Plug-and-Play Priors w/ BM4D)
    `deconv_ppp_dncnn_admm.py <deconv_ppp_dncnn_admm.py>`_
       Image Deconvolution (ADMM Plug-and-Play Priors w/ DnCNN)
    `deconv_tv_admm.py <deconv_tv_admm.py>`_

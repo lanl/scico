@@ -44,7 +44,7 @@ def device_info(devid: int = 0) -> str:  # pragma: no cover
 
 
 def check_for_tracer(func: Callable) -> Callable:
-    """Check if positional arguments to ``func`` are jax tracers.
+    """Check if positional arguments to `func` are jax tracers.
 
     This is intended to be used as a decorator for functions that call
     external code from within SCICO. At present, external functions
@@ -116,9 +116,9 @@ class Timer:
         """
         Args:
             labels: Label(s) of the timer(s) to be initialised to zero.
-            default_label : Default timer label to be used when methods
+            default_label: Default timer label to be used when methods
                 are called without specifying a label.
-            all_label : Label string that will be used to denote all
+            all_label: Label string that will be used to denote all
                 timer labels.
         """
 
@@ -143,7 +143,7 @@ class Timer:
         """Start specified timer(s).
 
         Args:
-            labels : Label(s) of the timer(s) to be started. If it is
+            labels: Label(s) of the timer(s) to be started. If it is
                ``None``, start the default timer with label specified by
                the `default_label` parameter of :meth:`__init__`.
         """
@@ -245,7 +245,7 @@ class Timer:
                required. If it is ``None``, the default timer with label
                specified by the `default_label` parameter of
                :meth:`__init__` is selected.
-           total:  If ``True`` return the total elapsed time since the
+           total: If ``True`` return the total elapsed time since the
                first call of :meth:`start` for the selected timer,
                otherwise return the elapsed time since the most recent
                call of :meth:`start` for which there has not been a
@@ -376,8 +376,8 @@ class ContextTimer:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        """Stop the timer and return True if no exception was raised
-        within the 'with' block, otherwise return False.
+        """Stop the timer and return ``True`` if no exception was raised
+        within the `with` block, otherwise return ``False``.
         """
 
         if self.action == "StartStop":

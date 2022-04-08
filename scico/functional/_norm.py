@@ -9,7 +9,7 @@
 
 from typing import Union
 
-from jax import jit
+from jax import jit, lax
 
 from scico import numpy as snp
 from scico.array import no_nan_divide
@@ -256,6 +256,61 @@ class L21Norm(Functional):
         new_length = 0.5 * (new_length + snp.abs(new_length))
 
         return new_length * direction
+
+
+class HuberNorm(Functional):
+    r"""Huber norm.
+
+    Compute a norm based on the Huber function :cite:`huber-1964-robust`
+    :cite:`beck-2017-first` (Sec. 6.7.1)
+
+    .. math::
+         H_{\delta}(\mb{x}) = \begin{cases}
+         (1/2) \| \mb{x} \|_2^2  & \text{ when } \| \mb{x} \|_2 \leq
+         \delta \\
+         \delta \| \mb{x} \|_2  - (1/2) & \text{ when }  \| \mb{x} \|_2
+         > \delta \;,
+         \end{cases}
+
+    where :math:`\delta` is a parameter controlling the transitions
+    between :math:`\ell_1`-norm like and :math:`\ell_2`-norm like
+    behavior.
+    """
+
+    has_eval = True
+    has_prox = True
+
+    def __init__(self, delta: float = 1.0):
+        r"""
+        Args:
+            delta: Huber function parameter :math:`\delta`.
+        """
+        self.delta = delta
+        self._call_lt_branch = lambda xl2: 0.5 * xl2**2
+        self._call_gt_branch = lambda xl2: self.delta * (xl2 - self.delta / 2.0)
+        super().__init__()
+
+    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+        xl2 = snp.linalg.norm(x)
+        return lax.cond(xl2 <= self.delta, self._call_lt_branch, self._call_gt_branch, xl2)
+
+    def prox(
+        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[JaxArray, BlockArray]:
+        r"""Evaluate proximal operator of the Huber function.
+
+        Evaluate proximal operator of the Huber function
+        :cite:`beck-2017-first` (Sec. 6.7.3).
+
+        Args:
+            v: Input array :math:`\mb{v}`.
+            lam: Proximal parameter :math:`\lambda`.
+            kwargs: Additional arguments that may be used by derived
+                classes.
+        """
+        vl2 = snp.linalg.norm(v)
+        den = snp.maximum(vl2, self.delta * (1.0 + lam))
+        return (1 - ((self.delta * lam) / den)) * v
 
 
 class NuclearNorm(Functional):

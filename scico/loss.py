@@ -13,6 +13,8 @@ from copy import copy
 from functools import wraps
 from typing import Callable, Optional, Union
 
+import jax
+
 import scico.numpy as snp
 from scico import functional, linop, operator
 from scico.array import ensure_on_device, no_nan_divide
@@ -403,12 +405,12 @@ def _dep_cubic_root(p, q):
     (see Sec. 3.C of :cite:`soulez-2016-proximity`).
     """
     q2 = q / 2
-    Δ = q2 ** 2 + (p / 3) ** 3
+    Δ = q2**2 + (p / 3) ** 3
     Δrt = snp.sqrt(Δ + 0j)
     u3, v3 = -q2 + Δrt, -q2 - Δrt
     u, v = _cbrt(u3), _cbrt(v3)
     r = (u + v).real
-    assert snp.allclose(snp.abs(r ** 3 + p * r + q), 0, atol=1e-4)
+    assert snp.allclose(snp.abs(r**3 + p * r + q), 0, atol=1e-4)
     return r
 
 

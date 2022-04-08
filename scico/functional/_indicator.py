@@ -30,7 +30,6 @@ class NonNegativeIndicator(Functional):
         0  & \text{if } x_i \geq 0 \text{ for each } i \\
         \infty  & \text{else} \;.
         \end{cases}
-
     """
 
     has_eval = True
@@ -40,8 +39,7 @@ class NonNegativeIndicator(Functional):
         if snp.iscomplexobj(x):
             raise ValueError("Not defined for complex input.")
 
-        # Equivalent to
-        # snp.inf if snp.any(x < 0) else 0.0
+        # Equivalent to snp.inf if snp.any(x < 0) else 0.0
         return jax.lax.cond(snp.any(x < 0), lambda x: snp.inf, lambda x: 0.0, None)
 
     def prox(
@@ -58,11 +56,10 @@ class NonNegativeIndicator(Functional):
             \end{cases}
 
         Args:
-            v : Input array :math:`\mb{v}`.
-            lam : Proximal parameter :math:`\lambda` (has no effect).
+            v: Input array :math:`\mb{v}`.
+            lam: Proximal parameter :math:`\lambda` (has no effect).
             kwargs: Additional arguments that may be used by derived
                 classes.
-
         """
         return snp.maximum(v, 0)
 
@@ -102,12 +99,11 @@ class L2BallIndicator(Functional):
     def prox(
         self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
-        r"""Evalulate the scaled proximal operator of the indicator over
+        r"""Evaluate the scaled proximal operator of the indicator over
         a :math:`\ell_2` ball with radius :math:`r` = `self.radius`,
         :math:`I_r`:
 
         .. math::
             \mathrm{prox}_{\lambda I_r}(\mb{v}) = r \frac{\mb{v}}{\norm{\mb{v}}_2}\;.
-
         """
         return self.radius * v / norm(v)

@@ -120,7 +120,7 @@ class LinearSubproblemSolver(SubproblemSolver):
     for the case where :code:`f` is an :math:`\ell_2` or weighted
     :math:`\ell_2` norm, and :code:`f.A` is a linear operator, so that
     the subproblem involves solving a linear equation. This requires that
-    ``f.functional`` be an instance of :class:`.SquaredL2Loss` and for
+    `f.functional` be an instance of :class:`.SquaredL2Loss` and for
     the forward operator :code:`f.A` to be an instance of
     :class:`.LinearOperator`.
 
@@ -516,11 +516,11 @@ class ADMM:
             f(\mb{x}) + \sum_{i=1}^N g_i(\mb{z}_i) \;.
 
         Args:
-            x: Point at which to evaluate objective function. If `None`,
+            x: Point at which to evaluate objective function. If ``None``,
                 the objective is  evaluated at the current iterate
                 :code:`self.x`.
             z_list: Point at which to evaluate objective function. If
-                `None`, the objective is evaluated at the current iterate
+                ``None``, the objective is evaluated at the current iterate
                 :code:`self.z_list`.
 
         Returns:
@@ -550,7 +550,7 @@ class ADMM:
 
         Args:
             x: Point at which to evaluate primal residual.
-                If `None`, the primal residual is evaluated at the
+                If ``None``, the primal residual is evaluated at the
                 current iterate :code:`self.x`.
 
         Returns:
@@ -668,7 +668,7 @@ class ADMM:
     ) -> Union[JaxArray, BlockArray]:
         """Run the ADMM algorithm.
 
-        Run the ADMM algorithm for a total of ``self.maxiter`` iterations.
+        Run the ADMM algorithm for a total of `self.maxiter` iterations.
 
         Args:
             callback: An optional callback function, taking an a single

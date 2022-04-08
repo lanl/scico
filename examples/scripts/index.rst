@@ -15,6 +15,7 @@ Computed Tomography
    - ct_astra_weighted_tv_admm.py
    - ct_svmbir_ppp_bm3d_admm_cg.py
    - ct_svmbir_ppp_bm3d_admm_prox.py
+   - ct_fan_svmbir_ppp_bm3d_admm_prox.py
    - ct_svmbir_tv_multi.py
 
 
@@ -26,6 +27,7 @@ Deconvolution
    - deconv_microscopy_allchn_tv_admm.py
    - deconv_ppp_bm3d_admm.py
    - deconv_ppp_bm3d_pgm.py
+   - deconv_ppp_bm4d_admm.py
    - deconv_ppp_dncnn_admm.py
    - deconv_tv_admm.py
    - deconv_tv_admm_tune.py
@@ -60,8 +62,10 @@ Plug and Play Priors
 
    - ct_svmbir_ppp_bm3d_admm_cg.py
    - ct_svmbir_ppp_bm3d_admm_prox.py
+   - ct_fan_svmbir_ppp_bm3d_admm_prox.py
    - deconv_ppp_bm3d_admm.py
    - deconv_ppp_bm3d_pgm.py
+   - deconv_ppp_bm4d_admm.py
    - deconv_ppp_dncnn_admm.py
    - demosaic_ppp_bm3d_admm.py
    - superres_ppp_dncnn_admm.py
@@ -106,11 +110,13 @@ ADMM
    - ct_astra_weighted_tv_admm.py
    - ct_svmbir_ppp_bm3d_admm_cg.py
    - ct_svmbir_ppp_bm3d_admm_prox.py
+   - ct_fan_svmbir_ppp_bm3d_admm_prox.py
    - ct_svmbir_tv_multi.py
    - deconv_circ_tv_admm.py
    - deconv_microscopy_tv_admm.py
    - deconv_microscopy_allchn_tv_admm.py
    - deconv_ppp_bm3d_admm.py
+   - deconv_ppp_bm4d_admm.py
    - deconv_ppp_dncnn_admm.py
    - deconv_tv_admm.py
    - deconv_tv_admm_tune.py

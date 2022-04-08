@@ -518,7 +518,7 @@ class PGM:
     ) -> Union[JaxArray, BlockArray]:
         """Run the PGM algorithm.
 
-        Run the PGM algorithm for a total of ``self.maxiter`` iterations.
+        Run the PGM algorithm for a total of `self.maxiter` iterations.
 
         Args:
             callback: An optional callback function, taking an a single
@@ -619,5 +619,5 @@ class AcceleratedPGM(PGM):
 
             self.fixed_point_residual = snp.linalg.norm(self.x - self.v)
             t_old = self.t
-            self.t = 0.5 * (1 + snp.sqrt(1 + 4 * t_old ** 2))
+            self.t = 0.5 * (1 + snp.sqrt(1 + 4 * t_old**2))
             self.v = self.x + ((t_old - 1) / self.t) * (self.x - x_old)

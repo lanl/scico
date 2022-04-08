@@ -41,11 +41,43 @@ class BM3D(Functional):
         Args:
             x: Input image.
             lam: Noise parameter.
+            kwargs: Additional arguments that may be used by derived
+                classes.
 
         Returns:
             Denoised output.
         """
         return denoiser.bm3d(x, lam, self.is_rgb)
+
+
+class BM4D(Functional):
+    r"""Pseudo-functional whose prox applies the BM4D denoising algorithm.
+
+    A pseudo-functional that has the BM4D algorithm
+    :cite:`maggioni-2012-nonlocal` as its proximal operator, which calls
+    :func:`.denoiser.bm4d`.
+    """
+
+    has_eval = False
+    has_prox = True
+
+    def __init__(self):
+        r"""Initialize a :class:`BM4D` object."""
+        super().__init__()
+
+    def prox(self, x: JaxArray, lam: float = 1.0, **kwargs) -> JaxArray:
+        r"""Apply BM4D denoiser.
+
+        Args:
+            x: Input image.
+            lam: Noise parameter.
+            kwargs: Additional arguments that may be used by derived
+                classes.
+
+        Returns:
+            Denoised output.
+        """
+        return denoiser.bm4d(x, lam)
 
 
 class DnCNN(Functional):
@@ -61,7 +93,6 @@ class DnCNN(Functional):
 
     def __init__(self, variant: str = "6M"):
         """
-
         Args:
             variant: Identify the DnCNN model to be used. See
                :class:`.denoiser.DnCNN` for valid values.
@@ -77,6 +108,8 @@ class DnCNN(Functional):
         Args:
             x: Input array.
             lam: Noise parameter (ignored).
+            kwargs: Additional arguments that may be used by derived
+                classes.
 
         Returns:
             Denoised output.
