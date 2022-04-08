@@ -10,11 +10,9 @@ import pytest
 
 from scico import flax as sflax
 from scico import random
-from scico.examples_flax import construct_blurring_operator
+from scico.examples_flax import construct_blurring_operator, have_astra
 from scico.flax.train.train import clip_positive, construct_traversal, train_step_post
 from scico.linop import Identity
-from scico.examples_flax import have_astra
-
 
 if have_astra:
     from scico.linop.radon_astra import TomographicProjector
