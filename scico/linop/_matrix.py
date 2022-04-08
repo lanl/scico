@@ -224,7 +224,7 @@ class MatrixOperator(LinearOperator):
 
     def to_array(self):
         """Return a :class:`numpy.ndarray` containing `self.A`."""
-        return self.A.copy()
+        return np.array(self.A)
 
     @property
     def gram_op(self):

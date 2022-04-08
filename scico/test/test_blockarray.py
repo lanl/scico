@@ -13,7 +13,7 @@ import scico.blockarray as ba
 import scico.numpy as snp
 from scico.random import randn
 
-math_ops = [op.add, op.sub, op.mul, op.truediv, op.pow, op.floordiv]
+math_ops = [op.add, op.sub, op.mul, op.truediv, op.pow]  # op.floordiv doesn't work on complex
 comp_ops = [op.le, op.lt, op.ge, op.gt, op.eq]
 
 
@@ -23,7 +23,7 @@ class OperatorsTestObj:
     def __init__(self, dtype):
         key = None
         scalar, key = randn(shape=(1,), dtype=dtype, key=key)
-        self.scalar = scalar.copy().ravel()[0]  # convert to float
+        self.scalar = scalar.item()  # convert to float
 
         self.a0, key = randn(shape=(3, 4), dtype=dtype, key=key)
         self.a1, key = randn(shape=(4, 5, 6), dtype=dtype, key=key)
@@ -42,13 +42,13 @@ class OperatorsTestObj:
 
         # A flat device array with same size as self.a & self.b
         self.flat_da, key = randn(shape=(self.a.size,), dtype=dtype, key=key)
-        self.flat_nd = self.flat_da.copy()
+        self.flat_nd = np.array(self.flat_da)
 
         # A device array with length == self.a.num_blocks
         self.block_da, key = randn(shape=(self.a.num_blocks,), dtype=dtype, key=key)
 
         # block_da but as a numpy array
-        self.block_nd = self.block_da.copy()
+        self.block_nd = np.array(self.block_da)
 
         self.key = key
 
@@ -65,7 +65,7 @@ def test_operator_left(test_operator_obj, operator):
     a = test_operator_obj.a
     x = operator(scalar, a).ravel()
     y = operator(scalar, a.ravel())
-    np.testing.assert_allclose(x, y)
+    np.testing.assert_allclose(x, y, rtol=1e-6)
 
 
 @pytest.mark.parametrize("operator", math_ops + comp_ops)
@@ -114,7 +114,7 @@ def test_ndarray_right(test_operator_obj, operator):
 
     x = operator(block_nd, a).ravel()
     y = ba.BlockArray.array([operator(block_nd[i], a[i]) for i in range(a.num_blocks)]).ravel()
-    np.testing.assert_allclose(x, y)
+    np.testing.assert_allclose(x, y, rtol=1e-6)
 
 
 # Blockwise comparison between a BlockArray and DeviceArray
@@ -613,7 +613,7 @@ class TestBlockArrayIndex:
 
     def test_add(self):
         A2 = self.A.at[0, 2:, :-2].add(1.45)
-        tmp = self.A[0].copy().copy()
+        tmp = np.array(self.A[0])
         tmp[2:, :-2] += 1.45
         y = ba.BlockArray.array([tmp, self.A[1]])
         np.testing.assert_allclose(A2.ravel(), y.ravel(), rtol=5e-5)
@@ -624,7 +624,7 @@ class TestBlockArrayIndex:
 
     def test_multiply(self):
         A2 = self.A.at[0, 2:, :-2].multiply(1.45)
-        tmp = self.A[0].copy().copy()
+        tmp = np.array(self.A[0])
         tmp[2:, :-2] *= 1.45
         y = ba.BlockArray.array([tmp, self.A[1]])
         np.testing.assert_allclose(A2.ravel(), y.ravel(), rtol=5e-5)
@@ -635,7 +635,7 @@ class TestBlockArrayIndex:
 
     def test_divide(self):
         A2 = self.A.at[0, 2:, :-2].divide(1.45)
-        tmp = self.A[0].copy().copy()
+        tmp = np.array(self.A[0])
         tmp[2:, :-2] /= 1.45
         y = ba.BlockArray.array([tmp, self.A[1]])
         np.testing.assert_allclose(A2.ravel(), y.ravel(), rtol=5e-5)
@@ -646,7 +646,7 @@ class TestBlockArrayIndex:
 
     def test_power(self):
         A2 = self.A.at[0, 2:, :-2].power(2)
-        tmp = self.A[0].copy().copy()
+        tmp = np.array(self.A[0])
         tmp[2:, :-2] **= 2
         y = ba.BlockArray.array([tmp, self.A[1]])
         np.testing.assert_allclose(A2.ravel(), y.ravel(), rtol=5e-5)

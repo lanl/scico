@@ -32,7 +32,7 @@ class TestLoss:
         self.v, key = randn((n,), key=key, dtype=dtype)  # point for prox eval
         scalar, key = randn((1,), key=key, dtype=dtype)
         self.key = key
-        self.scalar = scalar.copy().ravel()[0]
+        self.scalar = scalar.item()
 
     def test_generic_squared_l2(self):
         A = linop.Identity(input_shape=self.y.shape)
@@ -40,7 +40,9 @@ class TestLoss:
         L0 = loss.Loss(self.y, A=A, f=f, scale=0.5)
         L1 = loss.SquaredL2Loss(y=self.y, A=A)
         np.testing.assert_allclose(L0(self.v), L1(self.v))
-        np.testing.assert_allclose(L0.prox(self.v, self.scalar), L1.prox(self.v, self.scalar))
+        np.testing.assert_allclose(
+            L0.prox(self.v, self.scalar), L1.prox(self.v, self.scalar), rtol=1e-6
+        )
 
     def test_generic_exception(self):
         A = linop.Diagonal(self.v)
@@ -136,7 +138,7 @@ class TestAbsLoss:
         self.x, key = randn((n,), key=key, dtype=complex_dtype(dtype))
         self.v, key = randn((n,), key=key, dtype=complex_dtype(dtype))  # point for prox eval
         scalar, key = randn((1,), key=key, dtype=dtype)
-        self.scalar = scalar.copy().ravel()[0]
+        self.scalar = scalar.item()
 
     @pytest.mark.parametrize("loss_tuple", abs_loss)
     def test_properties(self, loss_tuple):

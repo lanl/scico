@@ -13,6 +13,8 @@ from copy import copy
 from functools import wraps
 from typing import Callable, Optional, Union
 
+import jax
+
 import scico.numpy as snp
 from scico import functional, linop, operator
 from scico.array import ensure_on_device, no_nan_divide
