@@ -82,7 +82,7 @@ class LinearOperatorTestObj:
         self.x, key = randn((N,), dtype=dtype, key=key)
         self.y, key = randn((M,), dtype=dtype, key=key)
         scalar, key = randn((1,), dtype=dtype, key=key)
-        self.scalar = scalar.copy().ravel()[0]
+        self.scalar = scalar.item()
         self.Ao = AbsMatOp(self.A)
         self.Bo = AbsMatOp(self.B)
         self.Co = AbsMatOp(self.C)
