@@ -97,9 +97,7 @@ class TestReal:
             maxiter=maxiter,
             itstat_options={"display": False},
             x0=A.adj(self.y),
-            subproblem_solver=GenericSubproblemSolver(
-                minimize_kwargs={"options": {"tol": 1e-4, "maxiter": 50}}
-            ),
+            subproblem_solver=GenericSubproblemSolver(minimize_kwargs={"options": {"maxiter": 50}}),
         )
         x = admm_.solve()
         assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-3
@@ -251,9 +249,7 @@ class TestComplex:
             maxiter=maxiter,
             itstat_options={"display": False},
             x0=A.adj(self.y),
-            subproblem_solver=GenericSubproblemSolver(
-                minimize_kwargs={"options": {"tol": 1e-4, "maxiter": 50}}
-            ),
+            subproblem_solver=GenericSubproblemSolver(minimize_kwargs={"options": {"maxiter": 50}}),
         )
         x = admm_.solve()
         assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-3

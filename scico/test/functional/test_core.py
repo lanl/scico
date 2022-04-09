@@ -22,11 +22,10 @@ NO_COMPLEX = [
 class ProxTestObj:
     def __init__(self, dtype):
         key = None
-        self.v, key = randn(shape=(32, 1), dtype=dtype, key=key, seed=3)
-        self.vb, key = randn(shape=((8, 8), (4,)), dtype=dtype, key=key)
+        self.v, key = randn(shape=(11, 1), dtype=dtype, key=key, seed=3)
+        self.vb, key = randn(shape=((3, 4), (2,)), dtype=dtype, key=key)
         self.scalar = np.pi
-
-        self.vz = snp.zeros((8, 8), dtype=dtype)
+        self.vz = snp.zeros((3, 4), dtype=dtype)
 
 
 @pytest.fixture(params=[np.float32, np.complex64, np.float64, np.complex128])

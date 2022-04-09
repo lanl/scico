@@ -25,19 +25,19 @@ class OperatorsTestObj:
         scalar, key = randn(shape=(1,), dtype=dtype, key=key)
         self.scalar = scalar.item()  # convert to float
 
-        self.a0, key = randn(shape=(3, 4), dtype=dtype, key=key)
-        self.a1, key = randn(shape=(4, 5, 6), dtype=dtype, key=key)
+        self.a0, key = randn(shape=(2, 3), dtype=dtype, key=key)
+        self.a1, key = randn(shape=(2, 3, 4), dtype=dtype, key=key)
         self.a = ba.BlockArray.array((self.a0, self.a1), dtype=dtype)
 
-        self.b0, key = randn(shape=(3, 4), dtype=dtype, key=key)
-        self.b1, key = randn(shape=(4, 5, 6), dtype=dtype, key=key)
+        self.b0, key = randn(shape=(2, 3), dtype=dtype, key=key)
+        self.b1, key = randn(shape=(2, 3, 4), dtype=dtype, key=key)
         self.b = ba.BlockArray.array((self.b0, self.b1), dtype=dtype)
 
-        self.d0, key = randn(shape=(4, 3), dtype=dtype, key=key)
-        self.d1, key = randn(shape=(4, 6, 5), dtype=dtype, key=key)
+        self.d0, key = randn(shape=(3, 2), dtype=dtype, key=key)
+        self.d1, key = randn(shape=(2, 4, 3), dtype=dtype, key=key)
         self.d = ba.BlockArray.array((self.d0, self.d1), dtype=dtype)
 
-        c0, key = randn(shape=(3, 4), dtype=dtype, key=key)
+        c0, key = randn(shape=(2, 3), dtype=dtype, key=key)
         self.c = ba.BlockArray.array((c0,), dtype=dtype)
 
         # A flat device array with same size as self.a & self.b
@@ -315,11 +315,11 @@ class BlockArrayReductionObj:
     def __init__(self, dtype):
         key = None
 
-        a0, key = randn(shape=(3, 4), dtype=dtype, key=key)
-        a1, key = randn(shape=(3, 5, 6), dtype=dtype, key=key)
-        b0, key = randn(shape=(3, 4), dtype=dtype, key=key)
-        b1, key = randn(shape=(3, 4), dtype=dtype, key=key)
-        c0, key = randn(shape=(3, 4), dtype=dtype, key=key)
+        a0, key = randn(shape=(2, 3), dtype=dtype, key=key)
+        a1, key = randn(shape=(2, 3, 4), dtype=dtype, key=key)
+        b0, key = randn(shape=(2, 3), dtype=dtype, key=key)
+        b1, key = randn(shape=(2, 3), dtype=dtype, key=key)
+        c0, key = randn(shape=(2, 3), dtype=dtype, key=key)
         c1, key = randn(shape=(3,), dtype=dtype, key=key)
 
         self.a = ba.BlockArray.array((a0, a1), dtype=dtype)
@@ -434,8 +434,8 @@ def test_reduce_singleton(reduction_obj, func):
 class TestCreators:
     def setup_method(self, method):
         np.random.seed(12345)
-        self.a_shape = (3, 4)
-        self.b_shape = (4, 5, 3)
+        self.a_shape = (2, 3)
+        self.b_shape = (2, 4, 3)
         self.c_shape = (1,)
         self.shape = (self.a_shape, self.b_shape, self.c_shape)
         self.size = np.prod(self.a_shape) + np.prod(self.b_shape) + np.prod(self.c_shape)
