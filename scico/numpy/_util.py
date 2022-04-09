@@ -89,7 +89,8 @@ def map_func_over_ba(func, is_reduction=False):
                     "Cannot perform a full reduction with multiple BlockArray arguments."
                 )
             # fully ravel the ba argument
-            ba_args = {k: [jnp.concatenate(v.ravel())] for k, v in ba_args.items()}
+            ba_args = {k: jnp.concatenate(v.ravel()) for k, v in ba_args.items()}
+            return func(*bound_args.args, **bound_args.kwargs, **ba_args)
 
         result = tuple(
             map(  # map over
