@@ -31,7 +31,7 @@ class TestBM3D:
 class TestBM4D:
     def setup(self):
         key = None
-        self.x, key = randn((32, 33, 34), key=key, dtype=np.float32)
+        self.x, key = randn((16, 17, 14), key=key, dtype=np.float32)
         self.f = functional.BM4D()
 
     def test(self):

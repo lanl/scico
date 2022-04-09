@@ -23,7 +23,7 @@ except ImportError as e:
     pytest.skip("svmbir not installed", allow_module_level=True)
 
 
-BIG_INPUT = (128, 129, 200, 201, 500, 1.2)
+BIG_INPUT = (32, 33, 50, 51, 125, 1.2)
 SMALL_INPUT = (4, 5, 7, 8, 16, 1.2)
 
 BIG_INPUT_OFFSET_RANGE = (0, 0.3, 3)
