@@ -13,6 +13,9 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+env:
+  CACHE_NUMBER: 0  # increase to reset cache manually
+
 jobs:
   build:
     strategy:
@@ -40,7 +43,7 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: ${{ matrix.prefix }}
-          key: ${{ matrix.label }}-conda-${{ hashFiles('requirements.txt') }}-${{ hashFiles('dev-requirements.txt') }}
+          key: ${{ matrix.label }}-conda-${{ hashFiles('requirements.txt') }}-${{ hashFiles('dev_requirements.txt') }}-${{ env.CACHE_NUMBER }}
         id: cache
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
@@ -57,9 +60,8 @@ jobs:
           pip install -e .
       - name: Run tests with pytest
         run: |
-          which pytest
-          pytest --cov=scico --cov-report=xml
-          pytest --ignore-glob="*test_*.py" --doctest-modules scico
+          ${{ matrix.prefix }}/bin/pytest --cov=scico --cov-report=xml
+          ${{ matrix.prefix }}/bin/pytest --ignore-glob="*test_*.py" --doctest-modules scico
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
         with:
