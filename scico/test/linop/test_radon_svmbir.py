@@ -26,8 +26,8 @@ except ImportError as e:
 BIG_INPUT = (32, 33, 50, 51, 125, 1.2)
 SMALL_INPUT = (4, 5, 7, 8, 16, 1.2)
 
-BIG_INPUT_OFFSET_RANGE = (0, 0.3, 3)
-SMALL_INPUT_OFFSET_RANGE = (0, 0.01, 0.1)
+BIG_INPUT_OFFSET_RANGE = (0, 3)
+SMALL_INPUT_OFFSET_RANGE = (0, 0.1)
 
 
 def make_im(Nx, Ny, is_3d=True):
