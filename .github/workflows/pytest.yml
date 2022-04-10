@@ -45,10 +45,9 @@ jobs:
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
-          mamba install python=3.8
-          python -m pip install --upgrade pip
           sudo apt-get install -y libopenblas-dev
-          mamba install -c conda-forge pytest-cov
+          python -m pip install --upgrade pip
+          mamba install -c conda-forge pytest pytest-cov
           pip install -r requirements.txt
           pip install -r dev_requirements.txt
           mamba install -c astra-toolbox astra-toolbox
@@ -58,6 +57,7 @@ jobs:
           pip install -e .
       - name: Run tests with pytest
         run: |
+          which pytest
           pytest --cov=scico --cov-report=xml
           pytest --ignore-glob="*test_*.py" --doctest-modules scico
       - name: Upload coverage to Codecov
