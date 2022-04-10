@@ -26,8 +26,8 @@ jobs:
           submodules: recursive
       - uses: actions/cache@v2
         with:
-          path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('requirements.txt') }}
+          path: ${{ env.pythonLocation }}
       - name: Install dependencies
         run: |
           echo $CONDA/bin >> $GITHUB_PATH
