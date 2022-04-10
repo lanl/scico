@@ -60,8 +60,12 @@ jobs:
           pip install -e .
       - name: Run tests with pytest
         run: |
-          ls /home/runner/conda_pkgs_dir
           ls /usr/share/miniconda3
+          echo ls /usr/share/miniconda3/envs
+          ls /usr/share/miniconda3/envs
+          echo ls /usr/share/miniconda3/envs/test-env
+          ls /usr/share/miniconda3/envs/test-env
+          echo ls /usr/share/miniconda3/envs/test-env/bin
           ls /usr/share/miniconda3/envs/test-env/bin
           ${{ matrix.prefix }}/bin/pytest --cov=scico --cov-report=xml
           ${{ matrix.prefix }}/bin/pytest --ignore-glob="*test_*.py" --doctest-modules scico
