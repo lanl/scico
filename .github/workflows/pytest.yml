@@ -58,13 +58,14 @@ jobs:
           pip install "ray[tune]"
           pip install hyperopt
           pip install -e .
-          source activate test-env
+          mamba init
+          mamba activate test-env
           which python
           which pytest
       - name: Run tests with pytest
         shell: bash -l {0}
         run: |
-          source activate test-env
+          mamba activate test-env
           which python
           ${{ matrix.prefix }}/bin/pytest --cov=scico --cov-report=xml
           ${{ matrix.prefix }}/bin/pytest --ignore-glob="*test_*.py" --doctest-modules scico
