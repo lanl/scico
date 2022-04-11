@@ -78,13 +78,16 @@ jobs:
       # Install package to be tested
       - name: Install package to be tested
         run: pip install -e .
-      # Run tests
-      - name: Run tests with pytest
+      # Run unit tests
+      - name: Run main unit tests
         run: |
           pytest -x --cov=scico --cov-report=xml
+      # Run doc tests
+      - name: Run doc tests
+        run: |
           pytest --ignore-glob="*test_*.py" --doctest-modules scico
-      # Upload coverage to Codecov
-      - name: Upload coverage to Codecov
+      # Upload coverage to codecov
+      - name: Upload coverage to codecov
         if: matrix.os == 'ubuntu-latest'
         uses: codecov/codecov-action@v2
         with:
