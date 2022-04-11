@@ -16,6 +16,7 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
@@ -24,7 +25,6 @@ jobs:
           - os: macos-latest
             label: osx-64
             prefix: /Users/runner/miniconda3/envs/test-env
-
     name: ${{ matrix.label }}
     runs-on: ${{ matrix.os }}
     defaults:
