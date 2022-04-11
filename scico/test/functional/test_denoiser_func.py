@@ -5,8 +5,12 @@ import pytest
 from scico import denoiser, functional
 from scico.denoiser import have_bm3d, have_bm4d
 from scico.random import randn
+from scico.test.osver import osx_ver_geq_than
 
 
+# bm3d is known to be broken on OSX 11.6.5. It may be broken on earlier versions too,
+# but this has not been confirmed
+@pytest.mark.skipif(osx_ver_geq_than("11.6.5"), reason="bm3d broken on this platform")
 @pytest.mark.skipif(not have_bm3d, reason="bm3d package not installed")
 class TestBM3D:
     def setup(self):
