@@ -2,15 +2,15 @@
 
 name: unit tests
 
-# Controls when the workflow will run
+# Control when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
+  # Trigger the workflow on push or pull request events but only for the main branch
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
 
-  # Allows you to run this workflow manually from the Actions tab
+  # Allow this workflow to be run manually from the Actions tab
   workflow_dispatch:
 
 jobs:
@@ -29,10 +29,11 @@ jobs:
         shell: bash -l {0}
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      # Check-out the repository under $GITHUB_WORKSPACE
       - uses: actions/checkout@v2
         with:
           submodules: recursive
+      # Set up conda/mamba environment
       - name: Setup mambaforge
         uses: conda-incubator/setup-miniconda@v2
         with:
@@ -41,34 +42,40 @@ jobs:
             activate-environment: test-env
             use-mamba: true
             python-version: 3.9
+      # Configure conda environment cache
       - uses: actions/cache@v2
         with:
           path: ${{ env.CONDA }}/envs
-          key: conda-${{ runner.os }}--${{ runner.arch }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('dev_requirements.txt') }}-${{ env.CACHE_NUMBER }}
+          key: conda-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('dev_requirements.txt') }}-${{ env.CACHE_NUMBER }}
         env:
-          # Increase this value to reset cache if etc/example-environment.yml has not changed
-          CACHE_NUMBER: 0
+          CACHE_NUMBER: 0  # Increase this value to force cache reset
         id: cache
+      # Display environment details
+      - run: |
+          conda info
+          printenv | sort
+      # Install required system package
+      - run: sudo apt-get install -y libopenblas-dev
+      # Install dependencies in conda environment
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
-          sudo apt-get install -y libopenblas-dev
-          python -m pip install --upgrade pip
           mamba install -c conda-forge pytest pytest-cov
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -r dev_requirements.txt
           mamba install -c astra-toolbox astra-toolbox
           mamba install -c conda-forge pyyaml
           pip install "ray[tune]"
           pip install hyperopt
-          pip install -e .
-          which python
-          which pytest
+      # Install package to be tested
+      - run: pip install -e .
+      # Run tests
       - name: Run tests with pytest
         run: |
-          which python
-          ${{ matrix.prefix }}/bin/pytest --cov=scico --cov-report=xml
-          ${{ matrix.prefix }}/bin/pytest --ignore-glob="*test_*.py" --doctest-modules scico
+          pytest --cov=scico --cov-report=xml
+          pytest --ignore-glob="*test_*.py" --doctest-modules scico
+      # Upload coverage to Codecov
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
         with:
