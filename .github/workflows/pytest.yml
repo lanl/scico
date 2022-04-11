@@ -34,7 +34,7 @@ jobs:
         with:
           submodules: recursive
       # Set up conda/mamba environment
-      - name: Setup mambaforge
+      - name: Set up mambaforge
         uses: conda-incubator/setup-miniconda@v2
         with:
             miniforge-variant: Mambaforge
@@ -43,7 +43,8 @@ jobs:
             use-mamba: true
             python-version: 3.9
       # Configure conda environment cache
-      - uses: actions/cache@v2
+      - name: Set up conda environment cache
+        uses: actions/cache@v2
         with:
           path: ${{ env.CONDA }}/envs
           key: conda-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('dev_requirements.txt') }}-${{ env.CACHE_NUMBER }}
@@ -51,11 +52,13 @@ jobs:
           CACHE_NUMBER: 0  # Increase this value to force cache reset
         id: cache
       # Display environment details
-      - run: |
+      - name: Display environment details
+        run: |
           conda info
           printenv | sort
       # Install required system package
-      - run: sudo apt-get install -y libopenblas-dev
+      - name: Install required system package
+        run: sudo apt-get install -y libopenblas-dev
       # Install dependencies in conda environment
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
@@ -69,7 +72,8 @@ jobs:
           pip install "ray[tune]"
           pip install hyperopt
       # Install package to be tested
-      - run: pip install -e .
+      - name: Install package to be tested
+        run: pip install -e .
       # Run tests
       - name: Run tests with pytest
         run: |
