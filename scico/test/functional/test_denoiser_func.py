@@ -31,6 +31,9 @@ class TestBM3D:
         np.testing.assert_allclose(y0, y1, rtol=1e-5)
 
 
+# bm4d is known to be broken on OSX 11.6.5. It may be broken on earlier versions too,
+# but this has not been confirmed
+@pytest.mark.skipif(osx_ver_geq_than("11.6.5"), reason="bm4d broken on this platform")
 @pytest.mark.skipif(not have_bm4d, reason="bm4d package not installed")
 class TestBM4D:
     def setup(self):
