@@ -81,7 +81,7 @@ jobs:
       # Run tests
       - name: Run tests with pytest
         run: |
-          pytest --cov=scico --cov-report=xml
+          pytest -x --cov=scico --cov-report=xml
           pytest --ignore-glob="*test_*.py" --doctest-modules scico
       # Upload coverage to Codecov
       - name: Upload coverage to Codecov
