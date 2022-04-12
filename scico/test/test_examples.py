@@ -98,8 +98,8 @@ def test_create_cone(img_shape):
     "img_shape",
     (
         (3, 3, 3),
-        (50, 51, 52),
-        (30, 30, 10),
+        (20, 21, 22),
+        (15, 15, 5),
     ),
 )
 @pytest.mark.parametrize("N_sphere", (3, 10, 20))

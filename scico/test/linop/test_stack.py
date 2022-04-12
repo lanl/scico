@@ -26,49 +26,49 @@ class TestLinearOperatorStack:
             H = LinearOperatorStack([A, B], jit=jit)
 
         # in general, returns a BlockArray
-        A = Convolve(jax.device_put(np.ones((3, 3))), (9, 15))
-        B = Convolve(jax.device_put(np.ones((2, 2))), (9, 15))
+        A = Convolve(jax.device_put(np.ones((3, 3))), (7, 11))
+        B = Convolve(jax.device_put(np.ones((2, 2))), (7, 11))
         H = LinearOperatorStack([A, B], jit=jit)
-        x = np.ones((9, 15))
+        x = np.ones((7, 11))
         y = H @ x
-        assert y.shape == ((11, 17), (10, 16))
+        assert y.shape == ((9, 13), (8, 12))
 
         # ... result should be [A@x, B@x]
         assert np.allclose(y[0], A @ x)
         assert np.allclose(y[1], B @ x)
 
         # by default, collapse to DeviceArray when possible
-        A = Convolve(jax.device_put(np.ones((2, 2))), (9, 15))
-        B = Convolve(jax.device_put(np.ones((2, 2))), (9, 15))
+        A = Convolve(jax.device_put(np.ones((2, 2))), (7, 11))
+        B = Convolve(jax.device_put(np.ones((2, 2))), (7, 11))
         H = LinearOperatorStack([A, B], jit=jit)
-        x = np.ones((9, 15))
+        x = np.ones((7, 11))
         y = H @ x
-        assert y.shape == (2, 10, 16)
+        assert y.shape == (2, 8, 12)
 
         # ... result should be [A@x, B@x]
         assert np.allclose(y[0], A @ x)
         assert np.allclose(y[1], B @ x)
 
         # let user turn off collapsing
-        A = Convolve(jax.device_put(np.ones((2, 2))), (9, 15))
-        B = Convolve(jax.device_put(np.ones((2, 2))), (9, 15))
+        A = Convolve(jax.device_put(np.ones((2, 2))), (7, 11))
+        B = Convolve(jax.device_put(np.ones((2, 2))), (7, 11))
         H = LinearOperatorStack([A, B], collapse=False, jit=jit)
-        x = np.ones((9, 15))
+        x = np.ones((7, 11))
         y = H @ x
-        assert y.shape == ((10, 16), (10, 16))
+        assert y.shape == ((8, 12), (8, 12))
 
     @pytest.mark.parametrize("collapse", [False, True])
     @pytest.mark.parametrize("jit", [False, True])
     def test_adjoint(self, collapse, jit):
         # general case
-        A = Convolve(jax.device_put(np.ones((3, 3))), (9, 15))
-        B = Convolve(jax.device_put(np.ones((2, 2))), (9, 15))
+        A = Convolve(jax.device_put(np.ones((3, 3))), (7, 11))
+        B = Convolve(jax.device_put(np.ones((2, 2))), (7, 11))
         H = LinearOperatorStack([A, B], collapse=collapse, jit=jit)
         adjoint_test(H, self.key)
 
         # collapsable case
-        A = Convolve(jax.device_put(np.ones((2, 2))), (9, 15))
-        B = Convolve(jax.device_put(np.ones((2, 2))), (9, 15))
+        A = Convolve(jax.device_put(np.ones((2, 2))), (7, 11))
+        B = Convolve(jax.device_put(np.ones((2, 2))), (7, 11))
         H = LinearOperatorStack([A, B], collapse=collapse, jit=jit)
         adjoint_test(H, self.key)
 
@@ -76,15 +76,15 @@ class TestLinearOperatorStack:
     @pytest.mark.parametrize("jit", [False, True])
     def test_algebra(self, collapse, jit):
         # adding
-        A = Convolve(jax.device_put(np.ones((2, 2))), (9, 15))
-        B = Convolve(jax.device_put(np.ones((2, 2))), (9, 15))
+        A = Convolve(jax.device_put(np.ones((2, 2))), (7, 11))
+        B = Convolve(jax.device_put(np.ones((2, 2))), (7, 11))
         H = LinearOperatorStack([A, B], collapse=collapse, jit=jit)
 
-        A = Convolve(jax.device_put(np.random.rand(2, 2)), (9, 15))
-        B = Convolve(jax.device_put(np.random.rand(2, 2)), (9, 15))
+        A = Convolve(jax.device_put(np.random.rand(2, 2)), (7, 11))
+        B = Convolve(jax.device_put(np.random.rand(2, 2)), (7, 11))
         G = LinearOperatorStack([A, B], collapse=collapse, jit=jit)
 
-        x = np.ones((9, 15))
+        x = np.ones((7, 11))
         S = H + G
 
         # test correctness of adding
