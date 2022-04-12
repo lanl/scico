@@ -16,14 +16,13 @@ class TestMisc:
     def setup_method(self, method):
         np.random.seed(12345)
         self.y = jax.device_put(np.random.randn(16, 17).astype(np.float32))
-        self.λ = 1e0
 
     def test_admm(self):
         maxiter = 2
         ρ = 1e-1
         A = linop.Identity(self.y.shape)
         f = loss.SquaredL2Loss(y=self.y, A=A)
-        g = (self.λ / 2) * functional.BM3D()
+        g = functional.DnCNN()
         C = linop.Identity(self.y.shape)
 
         itstat_fields = {"Iter": "%d", "Time": "%8.2e"}
