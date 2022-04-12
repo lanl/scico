@@ -201,7 +201,7 @@ class SquaredL2Loss(Loss):
             self.has_prox = True
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
-        return self.scale * (self.W.diagonal * snp.abs(self.y - self.A(x)) ** 2).sum()
+        return self.scale * snp.sum(self.W.diagonal * snp.abs(self.y - self.A(x)) ** 2)
 
     def prox(
         self, v: Union[JaxArray, BlockArray], lam: float, **kwargs

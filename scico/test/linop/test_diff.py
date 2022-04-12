@@ -29,7 +29,7 @@ def test_eval():
 @pytest.mark.parametrize("input_shape", [(16,), (16, 24)])
 @pytest.mark.parametrize("axes", [0, 1, (0,), (1,), None])
 @pytest.mark.parametrize("jit", [False, True])
-def test_adjoint(self, input_shape, input_dtype, axes, jit):
+def test_adjoint(input_shape, input_dtype, axes, jit):
     ndim = len(input_shape)
     if axes in [1, (1,)] and ndim == 1:
         pass

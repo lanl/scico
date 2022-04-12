@@ -176,9 +176,9 @@ def test_freeze_3arg():
         input_shape=((1, 3, 4), (2, 1, 4), (2, 3, 1)), eval_fn=lambda x: x[0] * x[1] * x[2]
     )
 
-    a = np.random.randn(1, 3, 4)
-    b = np.random.randn(2, 1, 4)
-    c = np.random.randn(2, 3, 1)
+    a, _ = randn((1, 3, 4))
+    b, _ = randn((2, 1, 4))
+    c, _ = randn((2, 3, 1))
 
     x = BlockArray.array([a, b, c])
     Abc = A.freeze(0, a)  # A as a function of b, c
@@ -201,8 +201,8 @@ def test_freeze_2arg():
 
     A = Operator(input_shape=((1, 3, 4), (2, 1, 4)), eval_fn=lambda x: x[0] * x[1])
 
-    a = np.random.randn(1, 3, 4)
-    b = np.random.randn(2, 1, 4)
+    a, _ = randn((1, 3, 4))
+    b, _ = randn((2, 1, 4))
 
     x = BlockArray.array([a, b])
     Ab = A.freeze(0, a)  # A as a function of 'b' only

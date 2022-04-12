@@ -473,10 +473,14 @@ import inspect
 from functools import wraps
 from typing import Callable
 
+import numpy as np
+
 import jax
 import jax.numpy as jnp
 
 from jaxlib.xla_extension import DeviceArray
+
+# TODO: .sum(), etc. should call snp
 
 
 class BlockArray(list):
@@ -486,6 +490,13 @@ class BlockArray(list):
     # operations of the form op(np.ndarray, BlockArray) See
     # https://docs.scipy.org/doc/numpy-1.10.1/user/c-info.beyond-basics.html#ndarray.__array_priority__
     __array_priority__ = 1
+
+    def __init__(self, arrays):
+        arrays = list(arrays)  # in case it is a generator
+        if any(not isinstance(x, (jnp.ndarray, np.ndarray)) for x in arrays):
+            raise ValueError("BlockArrays must be constructed from DeviceArrays or ndarrays")
+
+        return super().__init__(x if isinstance(x, jnp.ndarray) else jnp.array(x) for x in arrays)
 
     def _full_ravel(self) -> DeviceArray:
         """Return a copy of ``self._data`` as a contiguous, flattened `DeviceArray`.

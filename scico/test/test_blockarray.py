@@ -438,14 +438,14 @@ class TestCreators:
         fill_value = np.float32(np.random.randn())
         x = snp.full(self.shape, fill_value=fill_value, dtype=np.float32)
         assert x.shape == self.shape
-        assert x.dtype == (np.float32, np.float32, np.float32)
+        assert x.dtype == np.float32
         assert snp.all(x == fill_value)
 
     def test_full_nodtype(self):
         fill_value = np.float32(np.random.randn())
         x = snp.full(self.shape, fill_value=fill_value, dtype=None)
         assert x.shape == self.shape
-        assert x.dtype == (fill_value.dtype, fill_value.dtype, fill_value.dtype)
+        assert x.dtype == fill_value.dtype
         assert snp.all(x == fill_value)
 
 
