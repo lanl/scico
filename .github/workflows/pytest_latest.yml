@@ -4,12 +4,6 @@ name: unit tests -- latest jax
 
 # Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
   # Run workflow every Sunday at midnight UTC
   schedule:
     - cron: "0 0 * * 0"
