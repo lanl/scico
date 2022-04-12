@@ -10,7 +10,7 @@ from scico.test.linop.test_linop import adjoint_test
 
 
 @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
-@pytest.mark.parametrize("input_shape", [(32,), (32, 48)])
+@pytest.mark.parametrize("input_shape", [(16,), (16, 24)])
 @pytest.mark.parametrize("axes", [0, 1, (0,), (1,), None])
 @pytest.mark.parametrize("jit", [False, True])
 @pytest.mark.parametrize("append", [None, 0.0])
@@ -47,7 +47,7 @@ def test_eval(input_shape, input_dtype, axes, jit, append):
         np.testing.assert_allclose(Ax.ravel(), y.ravel(), rtol=1e-4)
 
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
-    @pytest.mark.parametrize("input_shape", [(32,), (32, 48)])
+    @pytest.mark.parametrize("input_shape", [(16,), (16, 24)])
     @pytest.mark.parametrize("axes", [0, 1, (0,), (1,), None])
     @pytest.mark.parametrize("jit", [False, True])
     def test_adjoint(self, input_shape, input_dtype, axes, jit):

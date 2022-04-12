@@ -15,15 +15,14 @@ from scico.optimize.admm import (
 class TestMisc:
     def setup_method(self, method):
         np.random.seed(12345)
-        self.y = jax.device_put(np.random.randn(32, 33).astype(np.float32))
-        self.λ = 1e0
+        self.y = jax.device_put(np.random.randn(16, 17).astype(np.float32))
 
     def test_admm(self):
         maxiter = 2
         ρ = 1e-1
         A = linop.Identity(self.y.shape)
         f = loss.SquaredL2Loss(y=self.y, A=A)
-        g = (self.λ / 2) * functional.BM3D()
+        g = functional.DnCNN()
         C = linop.Identity(self.y.shape)
 
         itstat_fields = {"Iter": "%d", "Time": "%8.2e"}
@@ -63,9 +62,9 @@ class TestMisc:
 class TestReal:
     def setup_method(self, method):
         np.random.seed(12345)
-        MA = 9
-        MB = 10
-        N = 8
+        MA = 4
+        MB = 5
+        N = 6
         # Set up arrays for problem argmin (𝛼/2) ||A x - y||_2^2 + (λ/2) ||B x||_2^2
         Amx = np.random.randn(MA, N)
         Bmx = np.random.randn(MB, N)
@@ -82,7 +81,7 @@ class TestReal:
         self.grdb = 𝛼 * Amx.T @ y
 
     def test_admm_generic(self):
-        maxiter = 100
+        maxiter = 25
         ρ = 2e-1
         A = linop.MatrixOperator(self.Amx)
         f = loss.SquaredL2Loss(y=self.y, A=A, scale=self.𝛼 / 2.0)
@@ -97,15 +96,13 @@ class TestReal:
             maxiter=maxiter,
             itstat_options={"display": False},
             x0=A.adj(self.y),
-            subproblem_solver=GenericSubproblemSolver(
-                minimize_kwargs={"options": {"maxiter": 100}}
-            ),
+            subproblem_solver=GenericSubproblemSolver(minimize_kwargs={"options": {"maxiter": 50}}),
         )
         x = admm_.solve()
-        assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-4
+        assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-3
 
     def test_admm_quadratic_scico(self):
-        maxiter = 50
+        maxiter = 25
         ρ = 4e-1
         A = linop.MatrixOperator(self.Amx)
         f = loss.SquaredL2Loss(y=self.y, A=A, scale=self.𝛼 / 2.0)
@@ -126,7 +123,7 @@ class TestReal:
         assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-4
 
     def test_admm_quadratic_jax(self):
-        maxiter = 50
+        maxiter = 25
         ρ = 1e0
         A = linop.MatrixOperator(self.Amx)
         f = loss.SquaredL2Loss(y=self.y, A=A, scale=self.𝛼 / 2.0)
@@ -147,7 +144,7 @@ class TestReal:
         assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-4
 
     def test_admm_quadratic_relax(self):
-        maxiter = 50
+        maxiter = 25
         ρ = 1e0
         A = linop.MatrixOperator(self.Amx)
         f = loss.SquaredL2Loss(y=self.y, A=A, scale=self.𝛼 / 2.0)
@@ -172,9 +169,9 @@ class TestReal:
 class TestRealWeighted:
     def setup_method(self, method):
         np.random.seed(12345)
-        MA = 9
-        MB = 10
-        N = 8
+        MA = 4
+        MB = 5
+        N = 6
         # Set up arrays for problem argmin (𝛼/2) ||A x - y||_W^2 + (λ/2) ||B x||_2^2
         Amx = np.random.randn(MA, N)
         W = np.abs(np.random.randn(MA, 1))
@@ -217,9 +214,9 @@ class TestRealWeighted:
 
 class TestComplex:
     def setup_method(self, method):
-        MA = 9
-        MB = 10
-        N = 8
+        MA = 4
+        MB = 5
+        N = 6
         # Set up arrays for problem argmin (𝛼/2) ||A x - y||_2^2 + (λ/2) ||B x||_2^2
         Amx, key = random.randn((MA, N), dtype=np.complex64, key=None)
         Bmx, key = random.randn((MB, N), dtype=np.complex64, key=key)
@@ -236,7 +233,7 @@ class TestComplex:
         self.grdb = 𝛼 * Amx.conj().T @ y
 
     def test_admm_generic(self):
-        maxiter = 100
+        maxiter = 30
         ρ = 1e0
         A = linop.MatrixOperator(self.Amx)
         f = loss.SquaredL2Loss(y=self.y, A=A, scale=self.𝛼 / 2.0)
@@ -251,9 +248,7 @@ class TestComplex:
             maxiter=maxiter,
             itstat_options={"display": False},
             x0=A.adj(self.y),
-            subproblem_solver=GenericSubproblemSolver(
-                minimize_kwargs={"options": {"maxiter": 100}}
-            ),
+            subproblem_solver=GenericSubproblemSolver(minimize_kwargs={"options": {"maxiter": 50}}),
         )
         x = admm_.solve()
         assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-3

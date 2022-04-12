@@ -39,11 +39,11 @@ def adjoint_test(
 
 def test_valid_adjoint():
 
-    diagonal, key = randn((16,), dtype=np.float32)
+    diagonal, key = randn((10,), dtype=np.float32)
     D = linop.Diagonal(diagonal=diagonal)
     assert linop.valid_adjoint(D, D.T, key=key, eps=None) < 1e-4
-    x, key = randn((8,), dtype=np.float32)
-    y, key = randn((8,), dtype=np.float32)
+    x, key = randn((5,), dtype=np.float32)
+    y, key = randn((5,), dtype=np.float32)
     with pytest.raises(ValueError):
         linop.valid_adjoint(D, D.T, key=key, x=x)
     with pytest.raises(ValueError):
@@ -70,7 +70,7 @@ class AbsMatOp(linop.LinearOperator):
 
 class LinearOperatorTestObj:
     def __init__(self, dtype):
-        M, N = (32, 64)
+        M, N = (8, 16)
         key = jax.random.PRNGKey(12345)
         self.dtype = dtype
 
@@ -318,7 +318,7 @@ class TestDiagonal:
     def setup_method(self, method):
         self.key = jax.random.PRNGKey(12345)
 
-    input_shapes = [(32,), (32, 48), ((3,), (4, 5))]
+    input_shapes = [(8,), (8, 12), ((3,), (4, 5))]
 
     @pytest.mark.parametrize("diagonal_dtype", [np.float32, np.complex64])
     @pytest.mark.parametrize("input_shape", input_shapes)
@@ -391,8 +391,8 @@ class TestDiagonal:
     @pytest.mark.parametrize("operator", [op.add, op.sub])
     def test_binary_op_mismatch(self, operator):
         diagonal_dtype = np.float32
-        input_shape1 = (32,)
-        input_shape2 = (48,)
+        input_shape1 = (8,)
+        input_shape2 = (12,)
         diagonal1, key = randn(input_shape1, dtype=diagonal_dtype, key=self.key)
         diagonal2, key = randn(input_shape2, dtype=diagonal_dtype, key=key)
 
@@ -407,7 +407,7 @@ class TestDiagonal:
             pytest.xfail("scalar / LinearOperator is not supported")
 
         diagonal_dtype = np.float32
-        input_shape = (32,)
+        input_shape = (8,)
 
         diagonal1, key = randn(input_shape, dtype=diagonal_dtype, key=self.key)
         scalar = np.random.randn()
@@ -421,7 +421,7 @@ class TestDiagonal:
     @pytest.mark.parametrize("operator", [op.mul, op.truediv])
     def test_scalar_left(self, operator):
         diagonal_dtype = np.float32
-        input_shape = (32,)
+        input_shape = (8,)
 
         diagonal1, key = randn(input_shape, dtype=diagonal_dtype, key=self.key)
         scalar = np.random.randn()
@@ -435,7 +435,7 @@ class TestDiagonal:
 
 def test_adj_lazy():
     dtype = np.float32
-    M, N = (32, 64)
+    M, N = (8, 16)
     A, key = randn((M, N), dtype=np.float32, key=None)
     y, key = randn((M,), dtype=np.float32, key=key)
     Ao = AbsMatOp(A, adj_fn=None)  # defer setting the linop
@@ -448,7 +448,7 @@ def test_adj_lazy():
 
 def test_jit_adj_lazy():
     dtype = np.float32
-    M, N = (32, 64)
+    M, N = (8, 16)
     A, key = randn((M, N), dtype=np.float32, key=None)
     y, key = randn((M,), dtype=np.float32, key=key)
     Ao = AbsMatOp(A, adj_fn=None)  # defer setting the linop
@@ -462,7 +462,7 @@ def test_jit_adj_lazy():
 
 class PowerIterTestObj:
     def __init__(self, dtype):
-        M, N = (8, 8)
+        M, N = (4, 4)
         key = jax.random.PRNGKey(12345)
         self.dtype = dtype
 
@@ -498,7 +498,7 @@ def test_power_iteration(pitestobj):
 
 def test_operator_norm():
 
-    I = linop.Identity(16)
+    I = linop.Identity(8)
     Inorm = linop.operator_norm(I)
     assert np.abs(Inorm - 1.0) < 1e-5
     key = jax.random.PRNGKey(12345)

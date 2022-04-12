@@ -23,11 +23,11 @@ except ImportError as e:
     pytest.skip("svmbir not installed", allow_module_level=True)
 
 
-BIG_INPUT = (128, 129, 200, 201, 500, 1.2)
+BIG_INPUT = (32, 33, 50, 51, 125, 1.2)
 SMALL_INPUT = (4, 5, 7, 8, 16, 1.2)
 
-BIG_INPUT_OFFSET_RANGE = (0, 0.3, 3)
-SMALL_INPUT_OFFSET_RANGE = (0, 0.01, 0.1)
+BIG_INPUT_OFFSET_RANGE = (0, 3)
+SMALL_INPUT_OFFSET_RANGE = (0, 0.1)
 
 
 def make_im(Nx, Ny, is_3d=True):
@@ -184,11 +184,11 @@ def test_prox(
     v, _ = scico.random.normal(im.shape, dtype=im.dtype)
 
     if is_masked:
-        f = SVMBIRExtendedLoss(y=sino, A=A, positivity=False)
+        f = SVMBIRExtendedLoss(y=sino, A=A, positivity=False, prox_kwargs={"maxiter": 5})
     else:
-        f = SVMBIRSquaredL2Loss(y=sino, A=A)
+        f = SVMBIRSquaredL2Loss(y=sino, A=A, prox_kwargs={"maxiter": 5})
 
-    prox_test(v, f, f.prox, alpha=0.25)
+    prox_test(v, f, f.prox, alpha=0.25, rtol=5e-4)
 
 
 @pytest.mark.parametrize(
@@ -232,11 +232,11 @@ def test_prox_weights(
     W = scico.linop.Diagonal(weights)
 
     if is_masked:
-        f = SVMBIRExtendedLoss(y=sino, A=A, W=W, positivity=False)
+        f = SVMBIRExtendedLoss(y=sino, A=A, W=W, positivity=False, prox_kwargs={"maxiter": 5})
     else:
-        f = SVMBIRSquaredL2Loss(y=sino, A=A, W=W)
+        f = SVMBIRSquaredL2Loss(y=sino, A=A, W=W, prox_kwargs={"maxiter": 5})
 
-    prox_test(v, f, f.prox, alpha=0.25)
+    prox_test(v, f, f.prox, alpha=0.25, rtol=5e-5)
 
 
 @pytest.mark.parametrize(
@@ -285,11 +285,13 @@ def test_prox_cg(
     λ = 0.01
 
     if is_masked:
-        f_sv = SVMBIRExtendedLoss(y=y, A=A, W=Diagonal(W), positivity=False)
+        f_sv = SVMBIRExtendedLoss(
+            y=y, A=A, W=Diagonal(W), positivity=False, prox_kwargs={"maxiter": 5}
+        )
     else:
-        f_sv = SVMBIRSquaredL2Loss(y=y, A=A, W=Diagonal(W))
+        f_sv = SVMBIRSquaredL2Loss(y=y, A=A, W=Diagonal(W), prox_kwargs={"maxiter": 5})
 
-    f_wg = SquaredL2Loss(y=y, A=A, W=Diagonal(W))
+    f_wg = SquaredL2Loss(y=y, A=A, W=Diagonal(W), prox_kwargs={"tol": 5e-4})
 
     v, _ = scico.random.normal(im.shape, dtype=im.dtype)
     v *= im.max() * 0.5
@@ -297,7 +299,7 @@ def test_prox_cg(
     xprox_sv = f_sv.prox(v, λ)
     xprox_cg = f_wg.prox(v, λ)  # this uses cg
 
-    assert snp.linalg.norm(xprox_sv[mask] - xprox_cg[mask]) / snp.linalg.norm(xprox_sv[mask]) < 5e-5
+    assert snp.linalg.norm(xprox_sv[mask] - xprox_cg[mask]) / snp.linalg.norm(xprox_sv[mask]) < 5e-4
 
 
 @pytest.mark.parametrize(
@@ -343,9 +345,11 @@ def test_approx_prox(
 
     v, _ = scico.random.normal(im.shape, dtype=im.dtype)
     if is_masked or positivity:
-        f = SVMBIRExtendedLoss(y=y, A=A, W=Diagonal(W), positivity=positivity)
+        f = SVMBIRExtendedLoss(
+            y=y, A=A, W=Diagonal(W), positivity=positivity, prox_kwargs={"maxiter": 5}
+        )
     else:
-        f = SVMBIRSquaredL2Loss(y=y, A=A, W=Diagonal(W))
+        f = SVMBIRSquaredL2Loss(y=y, A=A, W=Diagonal(W), prox_kwargs={"maxiter": 5})
 
     xprox = snp.array(f.prox(v, lam=λ))
 
