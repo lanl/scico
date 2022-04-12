@@ -63,18 +63,18 @@ def test_operator_obj(request):
 def test_operator_left(test_operator_obj, operator):
     scalar = test_operator_obj.scalar
     a = test_operator_obj.a
-    x = operator(scalar, a).full_ravel()
-    y = operator(scalar, a.full_ravel())
-    np.testing.assert_allclose(x, y)
+    x = operator(scalar, a)
+    y = BlockArray(operator(scalar, a_i) for a_i in a)
+    snp.testing.assert_allclose(x, y)
 
 
 @pytest.mark.parametrize("operator", math_ops + comp_ops)
 def test_operator_right(test_operator_obj, operator):
     scalar = test_operator_obj.scalar
     a = test_operator_obj.a
-    x = operator(a, scalar).full_ravel()
-    y = operator(a.full_ravel(), scalar)
-    np.testing.assert_allclose(x, y)
+    x = operator(a, scalar)
+    y = BlockArray(operator(a_i, scalar) for a_i in a)
+    snp.testing.assert_allclose(x, y)
 
 
 # Operations between a blockarray and a flat DeviceArray
@@ -84,9 +84,9 @@ def test_operator_right(test_operator_obj, operator):
 def test_ba_da_left(test_operator_obj, operator):
     flat_da = test_operator_obj.flat_da
     a = test_operator_obj.a
-    x = operator(flat_da, a).full_ravel()
-    y = operator(flat_da, a.full_ravel())
-    np.testing.assert_allclose(x, y, rtol=5e-5)
+    x = operator(flat_da, a)
+    y = BlockArray(operator(flat_da, a_i) for a_i in a)
+    snp.testing.assert_allclose(x, y, rtol=5e-5)
 
 
 @pytest.mark.skip  # see previous
@@ -94,8 +94,8 @@ def test_ba_da_left(test_operator_obj, operator):
 def test_ba_da_right(test_operator_obj, operator):
     flat_da = test_operator_obj.flat_da
     a = test_operator_obj.a
-    x = operator(a, flat_da).full_ravel()
-    y = operator(a.full_ravel(), flat_da)
+    x = operator(a, flat_da)
+    y = BlockArray(operator(a_i, flat_da) for a_i in a)
     np.testing.assert_allclose(x, y)
 
 
@@ -107,9 +107,9 @@ def test_ndarray_left(test_operator_obj, operator):
     a = test_operator_obj.a
     block_nd = test_operator_obj.block_nd
 
-    x = operator(a, block_nd).full_ravel()
-    y = BlockArray([operator(a[i], block_nd[i]) for i in range(len(a))]).full_ravel()
-    np.testing.assert_allclose(x, y)
+    x = operator(a, block_nd)
+    y = BlockArray([operator(a[i], block_nd[i]) for i in range(len(a))])
+    snp.testing.assert_allclose(x, y)
 
 
 @pytest.mark.skip  # see previous
@@ -118,9 +118,9 @@ def test_ndarray_right(test_operator_obj, operator):
     a = test_operator_obj.a
     block_nd = test_operator_obj.block_nd
 
-    x = operator(block_nd, a).full_ravel()
-    y = BlockArray([operator(block_nd[i], a[i]) for i in range(len(a))]).full_ravel()
-    np.testing.assert_allclose(x, y)
+    x = operator(block_nd, a)
+    y = BlockArray([operator(block_nd[i], a[i]) for i in range(len(a))])
+    snp.testing.assert_allclose(x, y)
 
 
 # Blockwise comparison between a BlockArray and DeviceArray
@@ -130,9 +130,9 @@ def test_devicearray_left(test_operator_obj, operator):
     a = test_operator_obj.a
     block_da = test_operator_obj.block_da
 
-    x = operator(a, block_da).full_ravel()
-    y = BlockArray([operator(a[i], block_da[i]) for i in range(len(a))]).full_ravel()
-    np.testing.assert_allclose(x, y)
+    x = operator(a, block_da)
+    y = BlockArray([operator(a[i], block_da[i]) for i in range(len(a))])
+    snp.testing.assert_allclose(x, y)
 
 
 @pytest.mark.skip  # see previous
@@ -141,9 +141,9 @@ def test_devicearray_right(test_operator_obj, operator):
     a = test_operator_obj.a
     block_da = test_operator_obj.block_da
 
-    x = operator(block_da, a).full_ravel()
-    y = BlockArray([operator(block_da[i], a[i]) for i in range(len(a))]).full_ravel()
-    np.testing.assert_allclose(x, y, atol=1e-7, rtol=0)
+    x = operator(block_da, a)
+    y = BlockArray([operator(block_da[i], a[i]) for i in range(len(a))])
+    snp.testing.assert_allclose(x, y, atol=1e-7, rtol=0)
 
 
 # Operations between two blockarrays of same size
@@ -151,9 +151,9 @@ def test_devicearray_right(test_operator_obj, operator):
 def test_ba_ba_operator(test_operator_obj, operator):
     a = test_operator_obj.a
     b = test_operator_obj.b
-    x = operator(a, b).full_ravel()
-    y = operator(a.full_ravel(), b.full_ravel())
-    np.testing.assert_allclose(x, y)
+    x = operator(a, b)
+    y = BlockArray(operator(a_i, b_i) for a_i, b_i in zip(a, b))
+    snp.testing.assert_allclose(x, y)
 
 
 # Testing the @ interface for blockarrays of same size, and a blockarray and flattened ndarray/devicearray
@@ -171,7 +171,7 @@ def test_ba_ba_matmul(test_operator_obj):
 
     y = BlockArray([a0 @ d0, a1 @ d1])
     assert x.shape == y.shape
-    np.testing.assert_allclose(x.full_ravel(), y.full_ravel())
+    snp.testing.assert_allclose(x, y)
 
     with pytest.raises(TypeError):
         z = a @ c
@@ -182,23 +182,21 @@ def test_conj(test_operator_obj):
     ac = a.conj()
 
     assert a.shape == ac.shape
-    np.testing.assert_allclose(a.full_ravel().conj(), ac.full_ravel())
+    snp.testing.assert_allclose(BlockArray(a_i.conj() for a_i in a), ac)
 
 
 def test_real(test_operator_obj):
     a = test_operator_obj.a
     ac = a.real
 
-    assert a.shape == ac.shape
-    np.testing.assert_allclose(a.full_ravel().real, ac.full_ravel())
+    snp.testing.assert_allclose(BlockArray(a_i.real for a_i in a), ac)
 
 
 def test_imag(test_operator_obj):
     a = test_operator_obj.a
     ac = a.imag
 
-    assert a.shape == ac.shape
-    np.testing.assert_allclose(a.full_ravel().imag, ac.full_ravel())
+    snp.testing.assert_allclose(BlockArray(a_i.imag for a_i in a), ac)
 
 
 def test_ndim(test_operator_obj):
@@ -271,11 +269,10 @@ def test_blockarray_from_one_array():
 def test_sum_method(test_operator_obj, axis, keepdims):
     a = test_operator_obj.a
 
-    method_result = a.sum(axis=axis, keepdims=keepdims).full_ravel()
-    snp_result = snp.sum(a, axis=axis, keepdims=keepdims).full_ravel()
+    method_result = a.sum(axis=axis, keepdims=keepdims)
+    snp_result = snp.sum(a, axis=axis, keepdims=keepdims)
 
-    assert method_result.shape == snp_result.shape
-    np.testing.assert_allclose(method_result, snp_result)
+    snp.testing.assert_allclose(method_result, snp_result)
 
 
 @pytest.mark.skip()
@@ -305,29 +302,18 @@ def test_ba_ba_dot(test_operator_obj, operator):
 
     x = operator(a, d)
     y = BlockArray([operator(a0, d0), operator(a1, d1)])
-    np.testing.assert_allclose(x.full_ravel(), y.full_ravel())
+    snp.testing.assert_allclose(x, y)
 
 
 ###############################################################################
 # Reduction tests
 ###############################################################################
 reduction_funcs = [
-    snp.count_nonzero,
     snp.sum,
     snp.linalg.norm,
-    snp.mean,
-    snp.var,
-    snp.max,
-    snp.min,
-    snp.amin,
-    snp.amax,
-    snp.all,
-    snp.any,
 ]
 
-real_reduction_funcs = [
-    snp.median,
-]
+real_reduction_funcs = []
 
 
 class BlockArrayReductionObj:
@@ -366,7 +352,7 @@ REDUCTION_PARAMS = dict(
 def test_reduce(reduction_obj, func):
     x = func(reduction_obj.a)
     x_jit = jax.jit(func)(reduction_obj.a)
-    y = func(reduction_obj.a.full_ravel())
+    y = func(snp.concatenate(snp.ravel(reduction_obj.a)))
     np.testing.assert_allclose(x, x_jit, rtol=1e-6)  # test jitted function
     np.testing.assert_allclose(x, y, rtol=1e-6)  # test for correctness
 
@@ -400,30 +386,28 @@ def test_reduce_axis(reduction_obj, func, axis):
     x = f(reduction_obj.a)
     x_jit = jax.jit(f)(reduction_obj.a)
 
-    np.testing.assert_allclose(
-        x.full_ravel(), x_jit.full_ravel(), rtol=1e-4
-    )  # test jitted function
+    snp.testing.assert_allclose(x, x_jit, rtol=1e-4)  # test jitted function
 
     # test for correctness
     y0 = func(reduction_obj.a[0], axis=axis)
     y1 = func(reduction_obj.a[1], axis=axis)
     y = BlockArray((y0, y1))
-    np.testing.assert_allclose(x.full_ravel(), y.full_ravel())
+    snp.testing.assert_allclose(x, y)
 
 
 @pytest.mark.parametrize(**REDUCTION_PARAMS)
 def test_reduce_singleton(reduction_obj, func):
     # Case where one block is reduced to a singleton
-    f = lambda x: func(x, axis=0).full_ravel()
+    f = lambda x: func(x, axis=0)
     x = f(reduction_obj.c)
     x_jit = jax.jit(f)(reduction_obj.c)
 
-    np.testing.assert_allclose(x, x_jit, rtol=1e-4)  # test jitted function
+    snp.testing.assert_allclose(x, x_jit, rtol=1e-4)  # test jitted function
 
     y0 = func(reduction_obj.c[0], axis=0)
     y1 = func(reduction_obj.c[1], axis=0)[None]  # Ensure size (1,)
-    y = BlockArray((y0, y1), dtype=reduction_obj.a[0].dtype).full_ravel()
-    np.testing.assert_allclose(x, y)
+    y = BlockArray((y0, y1))
+    snp.testing.assert_allclose(x, y)
 
 
 class TestCreators:
@@ -482,7 +466,7 @@ class NestedTestObj:
     def __init__(self, dtype):
         key = None
         scalar, key = randn(shape=(1,), dtype=dtype, key=key)
-        self.scalar = scalar.copy().full_ravel()[0]  # convert to float
+        self.scalar = scalar.item()  # convert to float
 
         self.a00, key = randn(shape=(2, 2, 2), dtype=dtype, key=key)
         self.a01, key = randn(shape=(3, 2, 4), dtype=dtype, key=key)
@@ -511,9 +495,9 @@ def test_nested_shape(nested_obj):
     assert a[0].shape == ((2, 2, 2), (3, 2, 4))
     assert a[1].shape == (2, 4)
 
-    np.testing.assert_allclose(a[0][0].full_ravel(), a00.full_ravel())
-    np.testing.assert_allclose(a[0][1].full_ravel(), a01.full_ravel())
-    np.testing.assert_allclose(a[1].full_ravel(), a1.full_ravel())
+    snp.testing.assert_allclose(a[0][0], a00)
+    snp.testing.assert_allclose(a[0][1], a01)
+    snp.testing.assert_allclose(a[1], a1)
 
     # basic test for block_sizes
     assert a.shape == (a[0].size, a[1].size)

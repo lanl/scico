@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 
 from jax.config import config
@@ -66,8 +68,8 @@ def test_separable_prox(test_separable_obj):
     fv1 = test_separable_obj.f.prox(test_separable_obj.v1, alpha)
     gv2 = test_separable_obj.g.prox(test_separable_obj.v2, alpha)
     fgv = test_separable_obj.fg.prox(test_separable_obj.vb, alpha)
-    out = BlockArray.array((fv1, gv2)).full_ravel()
-    np.testing.assert_allclose(out, fgv.full_ravel(), rtol=5e-2)
+    out = BlockArray.array((fv1, gv2))
+    snp.testing.assert_allclose(out, fgv, rtol=5e-2)
 
 
 def test_separable_grad(test_separable_obj):
@@ -84,8 +86,8 @@ def test_separable_grad(test_separable_obj):
         fv1 = test_separable_obj.f.grad(test_separable_obj.v1)
         gv2 = test_separable_obj.g.grad(test_separable_obj.v2)
         fgv = test_separable_obj.fg.grad(test_separable_obj.vb)
-        out = BlockArray.array((fv1, gv2)).full_ravel()
-        np.testing.assert_allclose(out, fgv.full_ravel(), rtol=5e-2)
+        out = BlockArray.array((fv1, gv2))
+        snp.testing.assert_allclose(out, fgv, rtol=5e-2)
 
 
 class TestNormProx:
@@ -128,13 +130,10 @@ class TestNormProx:
         nrmobj = norm()
         nrm = nrmobj.__call__
         prx = nrmobj.prox
-        pf = BlockArray(nrmobj.prox(x, alpha) for x in test_prox_obj.vb)
+        pf = nrmobj.prox(snp.concatenate(snp.ravel(test_prox_obj.vb)), alpha)
         pf_b = nrmobj.prox(test_prox_obj.vb, alpha)
 
-        print(test_prox_obj.vb)
-        print(pf)
-        print(pf_b)
-        snp.testing.assert_allclose(pf, pf_b)
+        snp.testing.assert_allclose(pf, snp.concatenate(snp.ravel(pf_b)), rtol=1e-6)
 
     @pytest.mark.parametrize("norm", normlist)
     def test_prox_zeros(self, norm, test_prox_obj):
@@ -206,7 +205,7 @@ class TestBlockArrayEval:
 
         x = func(test_prox_obj.vb)
         y = func(test_prox_obj.vb.ravel())
-        np.testing.assert_allclose(x, y)
+        np.testing.assert_allclose(x, y, rtol=1e-6)
 
 
 # only check double precision on projections

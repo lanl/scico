@@ -25,11 +25,7 @@ def test_wrapped_funcs(seed):
     seed = 42
     key = jax.random.PRNGKey(seed)
 
-    result = fun_wrapped(shape, seed=seed)
-
-    # test nested blockarray
-    shape = ((7, (1, 3)), (3, 2), (2, 4, 1))
-    result = fun_wrapped(shape, seed=seed)
+    result, _ = fun_wrapped(shape, seed=seed)
 
 
 def test_add_seed_adapter():
@@ -84,11 +80,6 @@ def test_block_shape_adapter():
     seed = 42
     key = jax.random.PRNGKey(seed)
 
-    result = fun_alt(key, shape)
-    assert isinstance(result, scico.numpy.BlockArray)
-
-    # should work for deeply nested as well
-    shape = ((7,), (3, (2, 1)), (2, 4, 1))
     result = fun_alt(key, shape)
     assert isinstance(result, scico.numpy.BlockArray)
 

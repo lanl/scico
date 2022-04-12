@@ -16,9 +16,9 @@ from functools import partial
 from typing import Any, Callable, Optional, Union
 
 import scico.numpy as snp
-from scico import array, blockarray
+from scico import array
 from scico._generic_operators import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
-from scico.numpy import BlockArray
+from scico.numpy import BlockArray, is_nested
 from scico.random import randn
 from scico.typing import ArrayIndex, BlockShape, DType, JaxArray, PRNGKey, Shape
 
@@ -189,9 +189,9 @@ class Diagonal(LinearOperator):
         if input_dtype is None:
             input_dtype = self.diagonal.dtype
 
-        if isinstance(diagonal, BlockArray) and array.is_nested(input_shape):
+        if isinstance(diagonal, BlockArray) and is_nested(input_shape):
             output_shape = (snp.empty(input_shape) * diagonal).shape
-        elif not isinstance(diagonal, BlockArray) and not array.is_nested(input_shape):
+        elif not isinstance(diagonal, BlockArray) and not is_nested(input_shape):
             output_shape = snp.broadcast_shapes(input_shape, self.diagonal.shape)
         elif isinstance(diagonal, BlockArray):
             raise ValueError(f"`diagonal` was a BlockArray but `input_shape` was not nested.")
@@ -282,8 +282,8 @@ class Slice(LinearOperator):
                functions of the LinearOperator.
         """
 
-        if array.is_nested(input_shape):
-            output_shape = blockarray.indexed_shape(input_shape, idx)
+        if is_nested(input_shape):
+            output_shape = input_shape[idx]
         else:
             output_shape = array.indexed_shape(input_shape, idx)
 

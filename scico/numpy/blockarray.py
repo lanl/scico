@@ -45,6 +45,8 @@ another :class:`.BlockArray` or tuple as appropriate. For example,
 
 TODO: not specifying axis to get a full reduction
 TODO: using a BlockArray for axis or shape arguments
+TODO: indexing
+TODO: mention snp.testing here or in numpy
 
 
 

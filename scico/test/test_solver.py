@@ -198,12 +198,11 @@ def test_split_join_blockarray():
 
     real_block = BlockArray.array((x_s[0][0], x_s[1][0]))
     imag_block = BlockArray.array((x_s[0][1], x_s[1][1]))
-    np.testing.assert_allclose(real_block.ravel(), snp.real(x).ravel(), rtol=1e-4)
-    np.testing.assert_allclose(imag_block.ravel(), snp.imag(x).ravel(), rtol=1e-4)
+    snp.testing.assert_allclose(real_block, snp.real(x), rtol=1e-4)
+    snp.testing.assert_allclose(imag_block, snp.imag(x), rtol=1e-4)
 
     x_j = solver._join_real_imag(x_s)
-    assert x_j.shape == x.shape
-    np.testing.assert_allclose(x_j.ravel(), x.ravel(), rtol=1e-4)
+    snp.testing.assert_allclose(x_j, x, rtol=1e-4)
 
 
 def test_bisect():

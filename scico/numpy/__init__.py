@@ -28,7 +28,14 @@ _util.wrap_attributes(
     from_dict=jnp.__dict__,
     modules_to_recurse=("linalg", "fft"),
     reductions=("sum", "norm"),
-    no_wrap=("dtype"),
+    no_wrap=(
+        "dtype",
+        "broadcast_shapes",  # nested tuples as normal input (*shapes)
+        "array",  # no meaning mapped over blocks
+        "stack",  # no meaning mapped over blocks
+        "concatenate",  # no meaning mapped over blocks
+        "pad",
+    ),  # nested tuples as normal input
 )
 
 # wrap np.testing
