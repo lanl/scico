@@ -333,9 +333,9 @@ def create_3D_foam_phantom(
     im = snp.zeros(im_shape) + c_lo
     for c, r in zip(centers, radii):
         dist = snp.sum((x - c) ** 2, axis=-1)
-        if snp.mean(im[dist < r ** 2] - c_lo) < 0.01 * c_hi:
+        if snp.mean(im[dist < r**2] - c_lo) < 0.01 * c_hi:
             # In numpy: im[dist < r**2] = c_hi
-            im = im.at[dist < r ** 2].set(c_hi)
+            im = im.at[dist < r**2].set(c_hi)
 
     return im
 

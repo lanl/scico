@@ -12,12 +12,12 @@ from scico.random import randint, randn, uniform
 from scico.test.linop.test_linop import adjoint_test
 
 SHAPE_SPECS = [
-    ((16,), None, (3,)),  # 1D
-    ((16, 10), None, (3, 2)),  # 2D
-    ((16, 10, 8), None, (3, 2, 4)),  # 3D
-    ((2, 16, 10), 2, (3, 2)),  # batching x
-    ((16, 10), None, (2, 3, 2)),  # batching h
-    ((2, 16, 10), 2, (2, 3, 2)),  # batching both
+    ((12,), None, (3,)),  # 1D
+    ((12, 8), None, (3, 2)),  # 2D
+    ((6, 8, 12), None, (3, 2, 4)),  # 3D
+    ((2, 12, 8), 2, (3, 2)),  # batching x
+    ((12, 8), None, (2, 3, 2)),  # batching h
+    ((2, 12, 8), 2, (2, 3, 2)),  # batching both
     # (M, N, b) x (H, W, 1)  # this was the old way
     # (M, N, b) x (H, W)  # this won't work: Luke, firm-no
     # (M, b, N) x (H, W)  # do we even want this?

@@ -60,6 +60,8 @@ In the future, this module may be replaced with a dependency on
 from functools import wraps
 from typing import Any, Callable, Optional, Sequence, Tuple, Union
 
+import numpy as np
+
 import jax
 import jax.experimental.host_callback as hcb
 
@@ -89,9 +91,9 @@ def _wrap_func(func: Callable, shape: Union[Shape, BlockShape], dtype: DType) ->
         # apply val_grad_func to un-vectorized input
         val = val_func(snp.reshape(x, shape).astype(dtype), *args)
 
-        # Convert val into numpy array (.copy()), then cast to float
+        # Convert val into numpy array, then cast to float
         # Convert 'val' into a scalar, rather than ndarray of shape (1,)
-        val = val.copy().astype(float).item()
+        val = np.array(val).astype(float).item()
         return val
 
     return wrapper
@@ -120,10 +122,10 @@ def _wrap_func_and_grad(func: Callable, shape: Union[Shape, BlockShape], dtype: 
         # apply val_grad_func to un-vectorized input
         val, grad = val_grad_func(snp.reshape(x, shape).astype(dtype), *args)
 
-        # Convert val & grad into numpy arrays (.copy()), then cast to float
+        # Convert val & grad into numpy arrays, then cast to float
         # Convert 'val' into a scalar, rather than ndarray of shape (1,)
-        val = val.copy().astype(float).item()
-        grad = grad.copy().astype(float).ravel()
+        val = np.array(val).astype(float).item()
+        grad = np.array(grad).astype(float).ravel()
         return val, grad
 
     return wrapper
@@ -209,6 +211,11 @@ def minimize(
     x0_shape = x0.shape
     x0_dtype = x0.dtype
     x0 = x0.ravel()  # if x0 is a BlockArray it will become a DeviceArray here
+    if isinstance(x0, jax.interpreters.xla.DeviceArray):
+        dev = x0.device_buffer.device()  # device for x0; used to put result back in place
+        x0 = np.array(x0).astype(float)
+    else:
+        dev = None
 
     # Run the SciPy minimizer
     if method in (

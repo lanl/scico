@@ -16,7 +16,7 @@ except ImportError as e:
 
 def eval_params(config, reporter):
     x, y = config["x"], config["y"]
-    cost = x ** 2 + (y - 0.5) ** 2
+    cost = x**2 + (y - 0.5) ** 2
     reporter(cost=cost)
 
 
@@ -32,7 +32,7 @@ def test_random():
         "eval_func",
         metric="cost",
         mode="min",
-        num_samples=100,
+        num_samples=50,
         config=config,
         resources_per_trial=resources,
         hyperopt=False,
@@ -50,7 +50,7 @@ def test_hyperopt():
         eval_params,
         metric="cost",
         mode="min",
-        num_samples=100,
+        num_samples=50,
         config=config,
         resources_per_trial=resources,
         hyperopt=True,

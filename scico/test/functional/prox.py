@@ -25,7 +25,7 @@ def prox_solve(v, v0, f, alpha):
     return fmn.x.reshape(v.shape), fmn.fun
 
 
-def prox_test(v, nrm, prx, alpha, x0=None):
+def prox_test(v, nrm, prx, alpha, x0=None, rtol=1e-6):
     """Test the alpha-scaled proximal operator function prx of norm functional nrm
     at point v."""
     # Evaluate the proximal operator at v
@@ -39,4 +39,4 @@ def prox_test(v, nrm, prx, alpha, x0=None):
     if pf < mf:
         return  # prox gave a lower cost than brute force, so it passes
 
-    np.testing.assert_allclose(pf, mf, rtol=1e-6)
+    np.testing.assert_allclose(pf, mf, rtol=rtol)

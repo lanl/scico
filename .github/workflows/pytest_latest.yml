@@ -4,11 +4,9 @@ name: unit tests -- latest jax
 
 # Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  # Run workflow every Sunday at midnight UTC
+  schedule:
+    - cron: "0 0 * * 0"
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -32,8 +30,8 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install lastversion
-          rjaxlib=$(grep jaxlib== requirements.txt | sed 's/jaxlib==//')
-          rjax=$(grep jax== requirements.txt | sed 's/jax==//')
+          rjaxlib=$(grep jaxlib requirements.txt | sed -e 's/jaxlib.*<=\([0-9\.]*$\)/\1/')
+          rjax=$(grep -E "jax[^lib]" requirements.txt | sed -e 's/jax.*<=\([0-9\.]*$\)/\1/')
           ljaxlib=$(lastversion --at pip jaxlib)
           ljax=$(lastversion --at pip jax)
           echo jaxlib  required: $rjaxlib  latest: $ljaxlib

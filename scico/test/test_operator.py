@@ -24,12 +24,12 @@ class AbsOperator(Operator):
 
 class SquareOperator(Operator):
     def _eval(self, x):
-        return x ** 2
+        return x**2
 
 
 class SumSquareOperator(Operator):
     def _eval(self, x):
-        return snp.sum(x ** 2)
+        return snp.sum(x**2)
 
 
 class OperatorTestObj:
@@ -45,7 +45,7 @@ class OperatorTestObj:
         self.mat = randn(self.A.input_shape, dtype=dtype, key=key)
         self.x, key = randn((N,), dtype=dtype, key=key)
         scalar, key = randn((1,), dtype=dtype, key=key)
-        self.scalar = scalar.copy().ravel()[0]
+        self.scalar = scalar.item()  # DeviceArray -> actual scalar
 
         self.z, key = randn((2 * N,), dtype=dtype, key=key)
 
