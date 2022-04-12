@@ -499,6 +499,18 @@ class BlockArray(list):
         """
         return jnp.concatenate(tuple(x_i.ravel() for x_i in self))
 
+    @property
+    def dtype(self):
+        """Allow snp.zeros(x.shape, x.dtype) to work."""
+        return self[0].dtype  # TODO: a better solution is beyond current scope
+
+    def __getitem__(self, key):
+        """Make, e.g., x[:2] return a BlockArray, not a list."""
+        result = super().__getitem__(key)
+        if not isinstance(result, jnp.ndarray):
+            return BlockArray(result)
+        return result
+
     """ backwards compatibility methods, could be removed """
 
     @staticmethod

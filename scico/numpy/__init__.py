@@ -19,7 +19,7 @@ import numpy as np
 import jax.numpy as jnp
 
 from . import _util
-from .blockarray import BlockArray
+from .blockarray import BlockArray, BlockDType, BlockShape
 from .util import *
 
 # wrap jnp

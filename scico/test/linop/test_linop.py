@@ -328,7 +328,7 @@ class TestDiagonal:
 
         D = linop.Diagonal(diagonal=diagonal)
         assert (D @ x).shape == D.output_shape
-        np.testing.assert_allclose((diagonal * x).ravel(), (D @ x).ravel(), rtol=1e-5)
+        snp.testing.assert_allclose((diagonal * x), (D @ x), rtol=1e-5)
 
     @pytest.mark.parametrize("diagonal_dtype", [np.float32, np.complex64])
     def test_eval_broadcasting(self, diagonal_dtype):
@@ -341,10 +341,10 @@ class TestDiagonal:
 
         # blockarray broadcast
         diagonal, key = randn(((3, 1, 4), (5, 5)), dtype=diagonal_dtype, key=self.key)
-        x, key = randn(((5, 1), 1), dtype=diagonal_dtype, key=key)
+        x, key = randn(((5, 1), (1,)), dtype=diagonal_dtype, key=key)
         D = linop.Diagonal(diagonal, x.shape)
         assert (D @ x).shape == ((3, 5, 4), (5, 5))
-        np.testing.assert_allclose((diagonal * x).ravel(), (D @ x).ravel(), rtol=1e-5)
+        snp.testing.assert_allclose((diagonal * x), (D @ x), rtol=1e-5)
 
         # blockarray x array -> error
         diagonal, key = randn(((3, 1, 4), (5, 5)), dtype=diagonal_dtype, key=self.key)
@@ -354,7 +354,7 @@ class TestDiagonal:
 
         # array x blockarray -> error
         diagonal, key = randn((3, 1, 4), dtype=diagonal_dtype, key=self.key)
-        x, key = randn(((5, 1), 1), dtype=diagonal_dtype, key=key)
+        x, key = randn(((5, 1), (1,)), dtype=diagonal_dtype, key=key)
         with pytest.raises(ValueError):
             D = linop.Diagonal(diagonal, x.shape)
 
@@ -386,7 +386,7 @@ class TestDiagonal:
             a = operator(D1, D2) @ x
             Dnew = linop.Diagonal(operator(diagonal1, diagonal2))
             b = Dnew @ x
-            np.testing.assert_allclose(a.ravel(), b.ravel(), rtol=1e-5)
+            snp.testing.assert_allclose(a, b, rtol=1e-5)
 
     @pytest.mark.parametrize("operator", [op.add, op.sub])
     def test_binary_op_mismatch(self, operator):
@@ -545,15 +545,14 @@ def test_slice_adj(slicetestobj, idx):
 
 block_slice_examples = [
     1,
-    np.s_[1, :-3],
-    np.s_[1, :, :3],
-    np.s_[1, ..., 2:],
+    np.s_[0:1],
+    np.s_[:1],
 ]
 
 
 @pytest.mark.parametrize("idx", block_slice_examples)
 def test_slice_blockarray(idx):
-    x = BlockArray.array((snp.zeros((3, 4)), snp.ones((3, 4, 5, 6))))
+    x = BlockArray((snp.zeros((3, 4)), snp.ones((3, 4, 5, 6))))
     A = linop.Slice(idx=idx, input_shape=x.shape, input_dtype=x.dtype)
     assert (A @ x).shape == x[idx].shape
 
