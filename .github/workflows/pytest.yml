@@ -2,47 +2,98 @@
 
 name: unit tests
 
-# Controls when the workflow will run
+# Control when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
+  # Trigger the workflow on push or pull request events but only for the main branch
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
 
-  # Allows you to run this workflow manually from the Actions tab
+  # Allow this workflow to be run manually from the Actions tab
   workflow_dispatch:
 
 jobs:
-  pytest:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
-
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            label: linux-64
+            prefix: /usr/share/miniconda3/envs/test-env
+          - os: macos-latest
+            label: osx-64
+            prefix: /Users/runner/miniconda3/envs/test-env
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash -l {0}
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      # Check-out the repository under $GITHUB_WORKSPACE
       - uses: actions/checkout@v2
         with:
           submodules: recursive
-      - name: Install dependencies
+      # Set up conda/mamba environment
+      - name: Set up mambaforge
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+            miniforge-variant: Mambaforge
+            miniforge-version: latest
+            activate-environment: test-env
+            use-mamba: true
+            python-version: 3.9
+      # Configure conda environment cache
+      - name: Set up conda environment cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.CONDA }}/envs
+          key: conda-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('dev_requirements.txt') }}-${{ env.CACHE_NUMBER }}
+        env:
+          CACHE_NUMBER: 0  # Increase this value to force cache reset
+        id: cache
+      # Display environment details
+      - name: Display environment details
         run: |
-          echo $CONDA/bin >> $GITHUB_PATH
-          conda install python=3.8
+          conda info
+          printenv | sort
+      # Install required system package
+      - name: Install required system package
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get install -y libopenblas-dev
+      # Install dependencies in conda environment
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          mamba install -c conda-forge pytest pytest-cov
           python -m pip install --upgrade pip
-          sudo apt-get install -y libopenblas-dev
-          conda install -c conda-forge pytest-cov
           pip install -r requirements.txt
           pip install -r dev_requirements.txt
-          conda install -c astra-toolbox astra-toolbox
-          conda install -c conda-forge pyyaml
+          mamba install -c astra-toolbox astra-toolbox
+          mamba install -c conda-forge pyyaml
           pip install "ray[tune]"
           pip install hyperopt
-          pip install -e .
-      - name: Run tests with pytest
+      # Install package to be tested
+      - name: Install package to be tested
+        run: pip install -e .
+      # Run unit tests
+      - name: Run main unit tests with coverage report
+        if: matrix.os == 'ubuntu-latest'
         run: |
-          pytest --cov=scico --cov-report=xml
+          pytest -x --cov=scico --cov-report=xml
+      - name: Run main unit tests
+        if: matrix.os != 'ubuntu-latest'
+        run: |
+          pytest -x
+      # Run doc tests
+      - name: Run doc tests
+        run: |
           pytest --ignore-glob="*test_*.py" --doctest-modules scico
-      - name: Upload coverage to Codecov
+      # Upload coverage to codecov
+      - name: Upload coverage to codecov
+        if: matrix.os == 'ubuntu-latest'
         uses: codecov/codecov-action@v2
         with:
           env_vars: OS,PYTHON
