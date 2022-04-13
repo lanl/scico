@@ -99,9 +99,9 @@ def run(
             and "T:" respectively, followed by the current best metric
             value and the parameters at which it was reported.
         local_dir: Directory in which to save tuning results. Defaults to
-            a subdirectory "ray_results" within the path returned by
+            a subdirectory "<username>/ray_results" within the path returned by
             `tempfile.gettempdir()`, corresponding e.g. to
-            "/tmp/ray_results" under Linux.
+            "/tmp/<username>/ray_results" under Linux.
 
     Returns:
         Result of parameter search.
@@ -126,7 +126,7 @@ def run(
     name += "_" + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
     if local_dir is None:
-        local_dir = os.path.join(tempfile.gettempdir(), "ray_results")
+        local_dir = os.path.join(tempfile.gettempdir(), os.getlogin(), "ray_results")
 
     return ray.tune.run(
         run_or_experiment,
