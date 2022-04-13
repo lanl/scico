@@ -20,33 +20,35 @@ import jax.numpy as jnp
 
 from . import _util
 from .blockarray import BlockArray
+from .function_lists import (
+    creation_routines,
+    mathematical_functions,
+    reduction_fuctions,
+    testing_functions,
+)
 from .util import *
 
-# wrap jnp
-_util.wrap_attributes(
+# copy most of jnp without wrapping
+_util.add_attributes(
     to_dict=vars(),
     from_dict=jnp.__dict__,
     modules_to_recurse=("linalg", "fft"),
-    reductions=("sum", "norm"),
-    no_wrap=(
-        "dtype",
-        "broadcast_shapes",  # nested tuples as normal input (*shapes)
-        "array",  # no meaning mapped over blocks
-        "stack",  # no meaning mapped over blocks
-        "concatenate",  # no meaning mapped over blocks
-        "pad",
-    ),  # nested tuples as normal input
 )
 
-# wrap np.testing
-_util.wrap_attributes(
+# wrap jnp funcs
+_util.wrap_recursively(vars(), creation_routines, _util.map_func_over_tuple_of_tuples)
+_util.wrap_recursively(vars(), mathematical_functions, _util.map_func_over_blocks)
+_util.wrap_recursively(vars(), reduction_functions, _util.add_full_reduction)
+
+# copy np.testing
+_util.add_attributes(
     to_dict=vars(),
-    from_dict={k: v for k, v in np.__dict__.items() if k == "testing"},
-    modules_to_recurse=("testing"),
+    from_dict={"testing": np.testing},
+    modules_to_recurse=("testing",),
 )
 
-
-__all__ = ["BlockArray"]
+# wrap testing funcs
+_util.wrap_recursively(vars(), testing_functions, _util.map_func_over_blocks)
 
 # clean up
 del np, jnp, _util

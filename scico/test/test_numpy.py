@@ -377,8 +377,8 @@ def test_ufunc_real():
     res = BlockArray.array((snp.array([1]),))
     snp.testing.assert_allclose(snp.real(Ba), res)
 
-    Ba = BlockArray.array((snp.array([1 + 3j]), snp.array([1 + 3j, 4.0])))
-    res = BlockArray.array((snp.array([1]), snp.array([1, 4.0])))
+    Ba = BlockArray.array((snp.array([1.0 + 3j]), snp.array([1 + 3j, 4.0])))
+    res = BlockArray.array((snp.array([1.0]), snp.array([1, 4.0])))
     snp.testing.assert_allclose(snp.real(Ba), res)
 
 

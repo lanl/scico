@@ -11,35 +11,22 @@ from typing import Callable, Iterable, Optional
 import jax.numpy as jnp
 
 from .blockarray import BlockArray
-from .util import is_nested
 
 
-def wrap_attributes(
+def add_attributes(
     to_dict: dict,
     from_dict: dict,
     modules_to_recurse: Optional[Iterable[str]] = None,
-    reductions: Optional[Iterable[str]] = None,
-    no_wrap: Optional[Iterable[str]] = None,
 ):
     """Add attributes in `from_dict` to `to_dict`.
 
-    Underscore attributes are ignored. Functions are wrapped to allow for
-    `BlockArray` inputs. Modules are ignored, except those listed in
-    `modules_to_recurse`, which are added recursively. All others are
-    passed through unwrapped.
-
-    no_warp: list of functions to attach unwrapped
-
+    Underscore attributes are ignored. Modules are ignored, except those
+    listed in `modules_to_recurse`, which are added recursively. All
+    others are added.
     """
 
     if modules_to_recurse is None:
         modules_to_recurse = ()
-
-    if reductions is None:
-        reductions = ()
-
-    if no_wrap is None:
-        no_wrap = ()
 
     for name, obj in from_dict.items():
         if name[0] == "_":
@@ -50,64 +37,116 @@ def wrap_attributes(
             to_dict[name].__doc__ = obj.__doc__
             # enable `import scico.numpy.linalg` and `from scico.numpy.linalg import norm`
             sys.modules[to_dict["__name__"] + "." + name] = to_dict[name]
-            wrap_attributes(
-                to_dict[name].__dict__, obj.__dict__, reductions=reductions, no_wrap=no_wrap
-            )
-        elif isinstance(obj, Callable) and name not in no_wrap:
-            obj = map_func_over_ba(obj, is_reduction=name in reductions)
-            to_dict[name] = obj
+            add_attributes(to_dict[name].__dict__, obj.__dict__)
         else:
             to_dict[name] = obj
 
 
-def map_func_over_ba(func, is_reduction=False):
-    """Create a version of `func` that maps over all of its `BlockArray`
-    arguments.
+def wrap_recursively(
+    target_dict: dict,
+    names: Iterable[str],
+    wrap: Callable,
+):
+    """Call wrap functions in `target_dict`, correctly handling names like `"linalg.norm"`."""
 
-    is_reduction: function is handled in a special way in order to allow
-    full reductions of `BlockArray`s.  If the axis parameter exists but
-    is not specified, the function is mapped over the blocks, then
-    called again on the stacked result.
+    for name in names:
+        if "." in name:
+            module, rest = name.split(".", maxsplit=1)
+            wrap_recursively(target_dict[module].__dict__, [rest], wrap)
+        else:
+            target_dict[name] = wrap(target_dict[name])
+
+
+def map_func_over_tuple_of_tuples(func: Callable, map_arg_name: Optional[str] = "shape"):
+    """Wrap a function so that it automatically maps over a tuple of tuples
+    argument, returning a `BlockArray`.
+
     """
 
     @wraps(func)
     def mapped(*args, **kwargs):
-        sig = signature(func)
+        bound_args = signature(func).bind(*args, **kwargs)
+
+        if map_arg_name not in bound_args.arguments:  # no shape arg
+            return func(*args, **kwargs)  # no mapping
+
+        map_arg_val = bound_args.arguments.pop(map_arg_name)
+
+        if not all(isinstance(x, tuple) for x in map_arg_val):  # not nested tuple
+            return func(*args, **kwargs)  # no mapping
+
+        # map
+        return BlockArray(
+            func(*bound_args.args, **bound_args.kwargs, **{map_arg_name: x}) for x in map_arg_val
+        )
+
+    return mapped
+
+
+def map_func_over_blocks(func, is_reduction=False):
+    """Wrap a function so that it maps over all of its `BlockArray`
+    arguments.
+
+    is_reduction: function is handled in a special way in order to allow
+    full reductions of `BlockArray`s.  If the axis parameter exists but
+    is not specified, the function is called on a fully ravelled version
+    of all `BlockArray` inputs.
+    """
+    sig = signature(func)
+
+    @wraps(func)
+    def mapped(*args, **kwargs):
         bound_args = sig.bind(*args, **kwargs)
 
         ba_args = {}
         for k, v in list(bound_args.arguments.items()):
-            if isinstance(v, BlockArray) or is_nested(v):
+            if isinstance(v, BlockArray):
                 ba_args[k] = bound_args.arguments.pop(k)
 
         if not len(ba_args):  # no BlockArray arguments
-            return func(*args, **kwargs)
+            return func(*args, **kwargs)  # no mapping
 
-        if is_reduction and "axis" not in bound_args.arguments:
-            if len(ba_args) > 1:
-                raise ValueError(
-                    "Cannot perform a full reduction with multiple BlockArray arguments."
-                )
-            # fully ravel the ba argument
-            ba_args = {k: jnp.concatenate(v.ravel()) for k, v in ba_args.items()}
-            return func(*bound_args.args, **bound_args.kwargs, **ba_args)
+        num_blocks = len(ba_args[k])
 
-        result = tuple(
-            map(  # map over
-                lambda *args: (  # lambda x_1, x_2, ..., x_N
-                    func(
-                        *bound_args.args,
-                        **bound_args.kwargs,  # ... nonBlockArray args
-                        **dict(zip(ba_args.keys(), args)),
-                    )  # plus dict of block args
-                ),
-                *ba_args.values(),  # map(f, ba_1, ba_2, ..., ba_N)
-            )
+        return BlockArray(
+            func(*bound_args.args, **bound_args.kwargs, **{k: v[i] for k, v in ba_args.items()})
+            for i in range(num_blocks)
         )
 
-        if isinstance(result[0], jnp.ndarray):  # True for abstract arrays, too
-            return BlockArray(result)
-
-        return result
-
     return mapped
+
+
+def add_full_reduction(func: Callable, axis_arg_name: Optional[str] = "axis"):
+    """Wrap a function so that it can fully reduce a `BlockArray`. If
+    nothing is passed for the axis argument and the function is called
+    on a `BlockArray`, it is fully ravelled before the function is
+    called.
+
+    Should be outside `map_func_over_blocks`.
+    """
+    sig = signature(func)
+    if axis_arg_name not in sig.parameters:
+        raise ValueError(
+            f"Cannot wrap {func} as a reduction because it has no {axis_arg_name} argument"
+        )
+
+    @wraps(func)
+    def wrapped(*args, **kwargs):
+        bound_args = sig.bind(*args, **kwargs)
+
+        ba_args = {}
+        for k, v in list(bound_args.arguments.items()):
+            if isinstance(v, BlockArray):
+                ba_args[k] = bound_args.arguments.pop(k)
+
+        if "axis" in bound_args.arguments:
+            return func(*args, **kwargs, **ba_args)  # call func as normal
+
+        if len(ba_args) > 1:
+            raise ValueError("Cannot perform a full reduction with multiple BlockArray arguments.")
+
+        # fully ravel the ba argument
+        ba_args = {k: jnp.concatenate(v.ravel()) for k, v in ba_args.items()}
+        return func(*bound_args.args, **bound_args.kwargs, **ba_args)
+
+    return wrapped

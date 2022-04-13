@@ -18,10 +18,11 @@ r"""Block array class.
 The class :class:`.BlockArray` provides a way to combine arrays of
 different shapes into a single object for use with other SCICO classes.
 A :class:`.BlockArray` consists of a list of `DeviceArray` objects,
-which we refer to as blocks.  :class:`.BlockArray`s differ from lists in
-that, whenever possible, operations involving :class:`.BlockArray`s
-automatically map along the blocks, returning another
-:class:`.BlockArray` or tuple as appropriate. For example,
+which we refer to as blocks. :class:`.BlockArray`s differ from lists in
+that, whenever possible, :class:`.BlockArray` properties and methods
+(including unary and binary operators like +, -, *, ...) automatically
+map along the blocks, returning another :class:`.BlockArray` or tuple as
+appropriate. For example,
 
   ::
 
@@ -54,18 +55,36 @@ NumPy Functions
 
 :mod:`scico.numpy` provides a wrapper around :mod:`jax.numpy` where many
 of the functions have been extended to work with `BlockArray`s. In
-particular, array creation
+particular:
 
-  ::
-    >>> import scico.numpy as snp
-    >>> ...
+* When a tuple of tuples is passed as the `shape`
+argument to an array creation routine, a `BlockArray` is created.
+
+* When a `BlockArray` is passed to a reduction function, the blocks are
+ravelled (i.e., reshaped to be 1D) and concatenated before the reduction
+is applied. This behavior may be prevented by passing the `axis`
+argument, in which case the function is mapped over the blocks.
+
+* When one or more `BlockArray`s is passed to a mathematical
+function that is not a reduction, the function is mapped over
+(corresponding) blocks.
+
+For lists of array creation routines, reduction functions, and mathematical
+functions that have been wrapped in this manner,
+see `scico.numpy.creation_routines`, `scico.numpy.reduction_fuctions`,
+and
+`scico.numpy.mathematical_functions`.
+
+:mod:`scico.numpy.testing` provides a wrapper around :mod:`numpy.testing`
+where some functions have been extended to map over blocks,
+notably `scico.numpy.testing.allclose`.
+For a list of the extended functions, see `scico.numpy.testing_functions`.
+
+
 
 
 TODO: working with SCICO operators
-TODO: not specifying axis to get a full reduction
-TODO: using a BlockArray for axis or shape arguments
 TODO: indexing
-TODO: mention snp.testing here or in numpy
 TODO: -x doesn't work
 
 
