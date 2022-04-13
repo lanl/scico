@@ -15,39 +15,58 @@ r"""Block array class.
    >>> import numpy as np
    >>> import jax.numpy
 
-The class :class:`.BlockArray` provides a way to combine several arrays
-of different shapes and/or data types into a single object.
-A :class:`.BlockArray` consists of a list of `DeviceArray`
-objects, which we refer to as blocks.
-:class:`.BlockArray`s differ from tuples in that mathematical operations
-on :class:`.BlockArray`s automatically map along the blocks, returning
-another :class:`.BlockArray` or tuple as appropriate. For example,
+The class :class:`.BlockArray` provides a way to combine arrays of
+different shapes into a single object for use with other SCICO classes.
+A :class:`.BlockArray` consists of a list of `DeviceArray` objects,
+which we refer to as blocks.  :class:`.BlockArray`s differ from lists in
+that, whenever possible, operations involving :class:`.BlockArray`s
+automatically map along the blocks, returning another
+:class:`.BlockArray` or tuple as appropriate. For example,
 
   ::
 
     >>> x = BlockArray((
-            snp.array(
-                [[1, 3, 7],
-                 [2, 2, 1],]
-            ),
-            snp.array(
-                [2, 4, 8]
-            ),
+            [[1, 3, 7],
+             [2, 2, 1]],
+            [2, 4, 8]
     ))
     >>> x.shape
     ((2, 3), (3,))  # tuple
 
-    >>> x + 1
-    (DeviceArray([[2, 4, 8],
-                  [3, 3, 2]], dtype=int32),
-     DeviceArray([3, 5, 9], dtype=int32))  # BlockArray
+    >>> x * 2
+    (DeviceArray([[2, 6, 14],
+                  [4, 4, 2]], dtype=int32),
+     DeviceArray([4, 8, 16], dtype=int32))  # BlockArray
+
+    >>> y = BlockArray((
+            [[.2],
+             [.3]],
+            [.4]
+    ))
+    >>> x + y
+    [DeviceArray([[1.2, 3.2, 7.2],
+                  [2.3, 2.3, 1.3]], dtype=float32),
+     DeviceArray([2.4, 4.4, 8.4], dtype=float32)]  # BlockArray
 
 
+NumPy Functions
+===============
+
+:mod:`scico.numpy` provides a wrapper around :mod:`jax.numpy` where many
+of the functions have been extended to work with `BlockArray`s. In
+particular, array creation
+
+  ::
+    >>> import scico.numpy as snp
+    >>> ...
+
+
+TODO: working with SCICO operators
 TODO: not specifying axis to get a full reduction
 TODO: using a BlockArray for axis or shape arguments
 TODO: indexing
 TODO: mention snp.testing here or in numpy
-
+TODO: -x doesn't work
 
 
 
@@ -466,14 +485,11 @@ Code version
     BlockArray([ [2, 2],
                  [2,] ])
 
-
 """
 
 import inspect
 from functools import wraps
 from typing import Callable
-
-import numpy as np
 
 import jax
 import jax.numpy as jnp
@@ -491,12 +507,15 @@ class BlockArray(list):
     # https://docs.scipy.org/doc/numpy-1.10.1/user/c-info.beyond-basics.html#ndarray.__array_priority__
     __array_priority__ = 1
 
-    def __init__(self, arrays):
-        arrays = list(arrays)  # in case it is a generator
-        if any(not isinstance(x, (jnp.ndarray, np.ndarray)) for x in arrays):
-            raise ValueError("BlockArrays must be constructed from DeviceArrays or ndarrays")
+    def __init__(self, inputs):
+        # convert inputs to DeviceArrays
+        arrays = [x if isinstance(x, jnp.ndarray) else jnp.array(x) for x in inputs]
 
-        return super().__init__(x if isinstance(x, jnp.ndarray) else jnp.array(x) for x in arrays)
+        # check that dtypes match
+        if not all(a.dtype == arrays[0].dtype for a in arrays):
+            raise ValueError("Heterogeneous dtypes not supported")
+
+        return super().__init__(arrays)
 
     def _full_ravel(self) -> DeviceArray:
         """Return a copy of ``self._data`` as a contiguous, flattened `DeviceArray`.
