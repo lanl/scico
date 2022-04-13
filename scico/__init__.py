@@ -20,12 +20,12 @@ import jax, jaxlib
 jax_ver_req = "0.3.0"
 jaxlib_ver_req = "0.3.0"
 if jax.__version__ < jax_ver_req:
-    raise Exception(
+    raise RuntimeError(
         f"SCICO {__version__} requires jax>={jax_ver_req}; got {jax.__version__}; "
         "please upgrade jax."
     )
 if jaxlib.__version__ < jaxlib_ver_req:
-    raise Exception(
+    raise RuntimeError(
         f"SCICO {__version__} requires jaxlib>={jaxlib_ver_req}; got {jaxlib.__version__}; "
         "please upgrade jaxlib."
     )
