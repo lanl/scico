@@ -106,7 +106,7 @@ def map_func_over_blocks(func, is_reduction=False):
         if not len(ba_args):  # no BlockArray arguments
             return func(*args, **kwargs)  # no mapping
 
-        num_blocks = len(ba_args[k])
+        num_blocks = len(list(ba_args.values())[0])
 
         return BlockArray(
             func(*bound_args.args, **bound_args.kwargs, **{k: v[i] for k, v in ba_args.items()})
@@ -140,7 +140,7 @@ def add_full_reduction(func: Callable, axis_arg_name: Optional[str] = "axis"):
                 ba_args[k] = bound_args.arguments.pop(k)
 
         if "axis" in bound_args.arguments:
-            return func(*args, **kwargs, **ba_args)  # call func as normal
+            return func(*bound_args.args, **bound_args.kwargs, **ba_args)  # call func as normal
 
         if len(ba_args) > 1:
             raise ValueError("Cannot perform a full reduction with multiple BlockArray arguments.")

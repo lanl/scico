@@ -515,7 +515,9 @@ import jax.numpy as jnp
 
 from jaxlib.xla_extension import DeviceArray
 
-# TODO: .sum(), etc. should call snp
+from .function_lists import binary_ops, unary_ops
+
+# CANCELED: .sum(), etc. should call snp
 
 
 class BlockArray(list):
@@ -576,38 +578,34 @@ jax.tree_util.register_pytree_node(
     lambda _, xs: BlockArray(xs),  # from iter
 )
 
-""" Wrap binary ops like +, @. """
-binary_ops = (
-    "__add__",
-    "__radd__",
-    "__sub__",
-    "__rsub__",
-    "__mul__",
-    "__rmul__",
-    "__matmul__",
-    "__rmatmul__",
-    "__truediv__",
-    "__rtruediv__",
-    "__floordiv__",
-    "__rfloordiv__",
-    "__pow__",
-    "__rpow__",
-    "__gt__",
-    "__ge__",
-    "__lt__",
-    "__le__",
-    "__eq__",
-    "__ne__",
-)
+""" Wrap unary ops like -x. """
 
 
-def _binary_op_wrapper(op):
+def _unary_op_wrapper(op):
+    op = getattr(DeviceArray, op_name)
+
+    @wraps(op)
+    def op_ba(self):
+        return BlockArray(op(x) for x in self)
+
+    return op_ba
+
+
+for op_name in unary_ops:
+    setattr(BlockArray, op_name, _unary_op_wrapper(op_name))
+
+""" Wrap binary ops like x+y. """
+
+
+def _binary_op_wrapper(op_name):
+    op = getattr(DeviceArray, op_name)
+
     @wraps(op)
     def op_ba(self, other):
         if isinstance(other, BlockArray):
-            result = BlockArray(getattr(x, op)(y) for x, y in zip(self, other))
-        else:
-            result = BlockArray(getattr(x, op)(other) for x in self)
+            return BlockArray(op(x, y) for x, y in zip(self, other))
+
+        result = BlockArray(op(x, other) for x in self)
         if NotImplemented in result:
             return NotImplemented
         return result
@@ -615,18 +613,20 @@ def _binary_op_wrapper(op):
     return op_ba
 
 
-for op in binary_ops:
-    setattr(BlockArray, op, _binary_op_wrapper(op))
+for op_name in binary_ops:
+    setattr(BlockArray, op_name, _binary_op_wrapper(op_name))
 
 
 """ Wrap DeviceArray properties. """
 
 
-def _da_prop_wrapper(prop):
+def _da_prop_wrapper(prop_name):
+    prop = getattr(DeviceArray, prop_name)
+
     @property
     @wraps(prop)
     def prop_ba(self):
-        result = tuple(getattr(x, prop) for x in self)
+        result = tuple(getattr(x, prop_name) for x in self)
         if isinstance(result[0], jnp.ndarray):
             return BlockArray(result)
         return result
@@ -641,8 +641,8 @@ da_props = [
     if isinstance(v, property) and k[0] != "_" and k not in dir(BlockArray) and k not in skip_props
 ]
 
-for prop in da_props:
-    setattr(BlockArray, prop, _da_prop_wrapper(prop))
+for prop_name in da_props:
+    setattr(BlockArray, prop_name, _da_prop_wrapper(prop_name))
 
 """ Wrap DeviceArray methods. """
 
