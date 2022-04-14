@@ -9,4 +9,4 @@ Important Classes
    operator
    functional
    optimizer
-   network
+   learning
