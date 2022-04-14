@@ -105,7 +105,7 @@ def map_func_over_blocks(func, is_reduction=False):
             if isinstance(v, BlockArray):
                 ba_args[k] = bound_args.arguments.pop(k)
 
-        if not len(ba_args):  # no BlockArray arguments
+        if not ba_args:  # no BlockArray arguments
             return func(*args, **kwargs)  # no mapping
 
         num_blocks = len(list(ba_args.values())[0])

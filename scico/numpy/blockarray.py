@@ -82,13 +82,6 @@ For a list of the extended functions, see `scico.numpy.testing_functions`.
 
 
 
-
-TODO: working with SCICO operators
-TODO: indexing
-TODO: -x doesn't work
-
-
-
 Motivating Example
 ==================
 
@@ -517,8 +510,6 @@ from jaxlib.xla_extension import DeviceArray
 
 from .function_lists import binary_ops, unary_ops
 
-# CANCELED: .sum(), etc. should call snp
-
 
 class BlockArray(list):
     """BlockArray"""
@@ -553,7 +544,7 @@ class BlockArray(list):
     @property
     def dtype(self):
         """Allow snp.zeros(x.shape, x.dtype) to work."""
-        return self[0].dtype  # TODO: a better solution is beyond current scope
+        return self[0].dtype
 
     def __getitem__(self, key):
         """Make, e.g., x[:2] return a BlockArray, not a list."""

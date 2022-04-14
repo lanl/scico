@@ -18,7 +18,7 @@ try:
     import ray.tune
 except ImportError:
     raise ImportError("Could not import ray.tune; please install it.")
-from ray.tune import loguniform, report, uniform  # noqa
+from ray.tune import grid_search, loguniform, report, uniform  # noqa
 from ray.tune.progress_reporter import TuneReporterBase, _get_trials_by_state
 from ray.tune.schedulers import AsyncHyperBandScheduler
 from ray.tune.suggest.hyperopt import HyperOptSearch
