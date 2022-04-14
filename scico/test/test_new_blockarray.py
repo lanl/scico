@@ -12,13 +12,13 @@ for a in dir(op):
 @pytest.fixture
 def x():
     # any BlockArray, arbitrary shape, content, type
-    return BlockArray(([[1.0, 2.0, 3.0], [0.0, 0.0, 0.0]], [42.0]))
+    return BlockArray([[[1.0, 2.0, 3.0], [0.0, 0.0, 0.0]], [42.0]])
 
 
 @pytest.fixture
 def y():
     # another BlockArray, content, type, matching shape
-    return BlockArray(([[1.0, 4.0, 6.0], [1.0, 2.0, 3.0]], [-2.0]))
+    return BlockArray([[[1.0, 4.0, 6.0], [1.0, 2.0, 3.0]], [-2.0]])
 
 
 @pytest.mark.parametrize("op", [op.neg, op.pos, op.abs])
@@ -53,7 +53,14 @@ def test_elementwise_binary(op, x, y):
     assert actual.dtype == expected.dtype
 
 
-# TODO: op.matmul
+def test_matmul(x):
+    # x is ((2, 3), (1,))
+    # y will be ((3, 1), (1, 2))
+    y = BlockArray([[[1.0], [2.0], [3.0]], [[0.0, 1.0]]])
+    actual = x @ y
+    expected = BlockArray([[[14.0], [0.0]], [0.0, 42.0]])
+    assert_array_equal(actual, expected)
+    assert actual.dtype == expected.dtype
 
 
 def test_property():
