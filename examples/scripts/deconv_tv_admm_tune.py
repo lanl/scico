@@ -13,6 +13,10 @@ This example demonstrates the use of
 for the companion [example script](deconv_tv_admm.rst).
 """
 
+# isort: off
+import os
+
+os.environ["JAX_PLATFORM_NAME"] = "cpu"
 
 import numpy as np
 

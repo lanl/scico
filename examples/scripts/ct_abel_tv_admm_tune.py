@@ -13,6 +13,11 @@ This example demonstrates the use of
 parameters for the companion [example script](ct_abel_tv_admm.rst).
 """
 
+# isort: off
+import os
+
+os.environ["JAX_PLATFORM_NAME"] = "cpu"
+
 import numpy as np
 
 import jax
