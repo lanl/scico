@@ -27,27 +27,27 @@ appropriate. For example,
   ::
 
     >>> x = BlockArray((
-            [[1, 3, 7],
-             [2, 2, 1]],
-            [2, 4, 8]
-    ))
-    >>> x.shape
-    ((2, 3), (3,))  # tuple
+    ...     [[1, 3, 7],
+    ...      [2, 2, 1]],
+    ...     [2, 4, 8]
+    ... ))
 
-    >>> x * 2
-    (DeviceArray([[2, 6, 14],
-                  [4, 4, 2]], dtype=int32),
-     DeviceArray([4, 8, 16], dtype=int32))  # BlockArray
+    >>> x.shape  # returns tuple
+    ((2, 3), (3,))
+
+    >>> x * 2  # returns BlockArray
+    [DeviceArray([[ 2,  6, 14],
+                 [ 4,  4,  2]], dtype=int32), DeviceArray([ 4,  8, 16], dtype=int32)]
 
     >>> y = BlockArray((
-            [[.2],
-             [.3]],
-            [.4]
-    ))
-    >>> x + y
+    ...        [[.2],
+    ...         [.3]],
+    ...        [.4]
+    ... ))
+
+    >>> x + y  # returns BlockArray
     [DeviceArray([[1.2, 3.2, 7.2],
-                  [2.3, 2.3, 1.3]], dtype=float32),
-     DeviceArray([2.4, 4.4, 8.4], dtype=float32)]  # BlockArray
+                  [2.3, 2.3, 1.3]], dtype=float32), DeviceArray([2.4, 4.4, 8.4], dtype=float32)]
 
 
 NumPy Functions
@@ -79,7 +79,6 @@ and
 where some functions have been extended to map over blocks,
 notably `scico.numpy.testing.allclose`.
 For a list of the extended functions, see `scico.numpy.testing_functions`.
-
 
 
 Motivating Example
@@ -127,9 +126,6 @@ Instead, we can form a :class:`.BlockArray`: :math:`\mb{x}_B =
 Constructing a BlockArray
 =========================
 
-Construct from a tuple of arrays (either `ndarray` or `DeviceArray`)
---------------------------------------------------------------------
-
   .. doctest::
 
      >>> from scico.numpy import BlockArray
@@ -140,8 +136,8 @@ Construct from a tuple of arrays (either `ndarray` or `DeviceArray`)
      >>> X.shape
      ((32, 32), (16,))
      >>> X.size
-     1040
-     >>> X.num_blocks
+     (1024, 16)
+     >>> len(X)
      2
 
 While :func:`.BlockArray.array` will accept either `ndarray` or
@@ -155,18 +151,6 @@ a new `DeviceArray` memory buffer.
 single precision and will have dtype ``float32`` or ``complex64``.
 
 
-Construct from a single vector and tuple of shapes
---------------------------------------------------
-
-  ::
-
-     >>> x_flat, _ = scico.random.randn((1040,))
-     >>> shape_tuple = ((32, 32), (16,))
-     >>> X = BlockArray.array_from_flattened(x_flat, shape_tuple=shape_tuple)
-     >>> X.shape
-     ((32, 32), (16,))
-
-
 
 Operating on a BlockArray
 =========================
@@ -176,182 +160,10 @@ Operating on a BlockArray
 Indexing
 --------
 
-The block index is required to be an integer, selecting a single block and
-returning it as an array (*not* a singleton BlockArray). If the index
-expression has more than one component, then the initial index indexes the
-block, and the remainder of the indexing expression indexes within the
-selected block, e.g. `x[2, 3:4]` is equivalent to `y[3:4]` after
-setting `y = x[2]`.
+`BlockArray` indexing works just like indexing on a list.
 
-
-Indexed Updating
-----------------
-
-BlockArrays support the JAX DeviceArray `indexed update syntax
-<https://jax.readthedocs.io/en/latest/jax.ops.html#indexed-update-operators>`_
-
-
-The index must be of the form [ibk] or [ibk, idx], where `ibk` is the
-index of the block to be updated, and `idx` is a general index of the
-elements to be updated in that block. In particular, `ibk` cannot be a
-`slice`. The general index `idx` can be omitted, in which case an entire
-block is updated.
-
-
-==============================   ==============================================
-Alternate syntax                 Equivalent in-place expression
-==============================   ==============================================
-`x.at[ibk, idx].set(y)`          `x[ibk, idx] = y`
-`x.at[ibk, idx].add(y)`          `x[ibk, idx] += y`
-`x.at[ibk, idx].multiply(y)`     `x[ibk, idx] *= y`
-`x.at[ibk, idx].divide(y)`       `x[ibk, idx] /= y`
-`x.at[ibk, idx].power(y)`        `x[ibk, idx] **= y`
-`x.at[ibk, idx].min(y)`          `x[ibk, idx] = np.minimum(x[idx], y)`
-`x.at[ibk, idx].max(y)`          `x[ibk, idx] = np.maximum(x[idx], y)`
-==============================   ==============================================
-
-
-Arithmetic and Broadcasting
----------------------------
-
-Suppose :math:`\mb{x}` is a BlockArray with shape :math:`((n, n), (m,))`.
-
-  ::
-
-    >>> x1, key = scico.random.randn((4, 4))
-    >>> x2, _ = scico.random.randn((5,), key=key)
-    >>> x = BlockArray.array( (x1, x2) )
-    >>> x.shape
-    ((4, 4), (5,))
-    >>> x.num_blocks
-    2
-    >>> x.size  # 4*4 + 5
-    21
-
-Illustrated for the operation `+`, but equally valid for operators
-`+, -, *, /, //, **, <, <=, >, >=, ==`
-
-
-Operations with BlockArrays with same number of blocks
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Let :math:`\mb{y}` be a BlockArray with the same number of blocks as
-:math:`\mb{x}`.
-
-  .. math::
-     \mb{x} + \mb{y}
-     =
-     \begin{bmatrix}
-       \mb{x}[0] + \mb{y}[0] \\
-       \mb{x}[1] + \mb{y}[1] \\
-     \end{bmatrix}
-
-This operation depends on pair of blocks from :math:`\mb{x}` and
-:math:`\mb{y}` being broadcastable against each other.
-
-
-
-Operations with a scalar
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-The scalar is added to each element of the :class:`.BlockArray`:
-
-  .. math::
-     \mb{x} + 1
-     =
-     \begin{bmatrix}
-       \mb{x}[0] + 1 \\
-       \mb{x}[1] + 1\\
-     \end{bmatrix}
-
-
-  ::
-
-     >>> y = x + 1
-     >>> np.testing.assert_allclose(y[0], x[0] + 1)
-     >>> np.testing.assert_allclose(y[1], x[1] + 1)
-
-
-
-Operations with a 1D `ndarray` of size equal to `num_blocks`
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The *i*\th scalar is added to the *i*\th  block of the
-:class:`.BlockArray`:
-
-  .. math::
-   \mb{x}
-     +
-   \begin{bmatrix}
-     1 \\
-     2
-   \end{bmatrix}
-   =
-   \begin{bmatrix}
-     \mb{x}[0] + 1 \\
-     \mb{x}[1] + 2\\
-   \end{bmatrix}
-
-
-  ::
-
-     >>> y = x + np.array([1, 2])
-     >>> np.testing.assert_allclose(y[0], x[0] + 1)
-     >>> np.testing.assert_allclose(y[1], x[1] + 2)
-
-
-Operations with an ndarray of `size` equal to :class:`.BlockArray` size
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-We first cast the `ndarray` to a BlockArray with same shape as
-:math:`\mb{x}`, then apply the operation on the resulting BlockArrays.
-With `y.size = x.size`, we have:
-
-  .. math::
-   \mb{x}
-   +
-   \mb{y}
-   =
-   \begin{bmatrix}
-     \mb{x}[0] + \mb{y}[0] \\
-     \mb{x}[1] + \mb{y}[1]\\
-   \end{bmatrix}
-
-Equivalently, the BlockArray is first flattened, then added to the
-flattened `ndarray`, and the result is reformed into a BlockArray with
-the same shape as :math:`\mb{x}`
-
-
-
-MatMul
-------
-
-Between two BlockArrays
-^^^^^^^^^^^^^^^^^^^^^^^
-
-The matmul is computed between each block of the two BlockArrays.
-
-The BlockArrays must have the same number of blocks, and each pair of
-blocks must be broadcastable.
-
-  .. math::
-   \mb{x} @ \mb{y}
-   =
-   \begin{bmatrix}
-     \mb{x}[0] @ \mb{y}[0] \\
-     \mb{x}[1] @ \mb{y}[1]\\
-   \end{bmatrix}
-
-
-
-Between BlockArray and Ndarray/DeviceArray
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-This operation is not defined.
-
-
-Between BlockArray and :class:`.LinearOperator`
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Multiplication Between BlockArray and :class:`.LinearOperator`
+--------------------------------------------------------------
 
 The :class:`.Operator` and :class:`.LinearOperator` classes are designed
 to work on :class:`.BlockArray`\ s in addition to `DeviceArray`\ s.
@@ -373,129 +185,6 @@ For example
       >>> A_3 = scico.linop.Diagonal(diag, input_shape=(A_2.output_shape))
       >>> A_3.shape  # BlockArray -> BlockArray
       (((2, 4), (3, 3)), ((2, 4), (3, 3)))
-
-
-NumPy ufuncs
-------------
-
-`NumPy universal functions (ufuncs) <https://numpy.org/doc/stable/reference/ufuncs.html>`_
-are functions that operate on an `ndarray` on an element-by-element
-fashion and support array broadcasting. Examples of ufuncs are `abs`,
-`sign`, `conj`, and `exp`.
-
-The JAX library implements most NumPy ufuncs in the :mod:`jax.numpy`
-module. However, as JAX does not support subclassing of `DeviceArray`,
-the JAX ufuncs cannot be used on :class:`.BlockArray`. As a workaround,
-we have wrapped several JAX ufuncs for use on :class:`.BlockArray`; these
-are defined in the :mod:`scico.numpy` module.
-
-
-Reductions
-^^^^^^^^^^
-
-Reductions are functions that take an array-like as an input and return
-an array of lower dimension. Examples include `mean`, `sum`, `norm`.
-BlockArray reductions are located in the :mod:`scico.numpy` module
-
-:class:`.BlockArray` tries to mirror `ndarray` reduction semantics where
-possible, but cannot provide a one-to-one match as the block components
-may be of different size.
-
-Consider the example BlockArray
-
-  .. math::
-   \mb{x} = \begin{bmatrix}
-   \begin{bmatrix}
-    1 & 1 \\
-     1 & 1
-   \end{bmatrix} \\
-   \begin{bmatrix}
-    2 \\
-    2
-   \end{bmatrix}
-   \end{bmatrix}.
-
-We have
-
-  .. doctest::
-
-    >>> import scico.numpy as snp
-    >>> x = BlockArray.array((np.ones((2,2)), 2*np.ones((2))))
-    >>> x.shape
-    ((2, 2), (2,))
-    >>> x.size
-    6
-    >>> x.num_blocks
-    2
-
-
-
-  If no axis is specified, the reduction is applied to the flattened
-  array:
-
-  .. doctest::
-
-    >>> snp.sum(x, axis=None).item()
-    8.0
-
-  Reducing along the 0-th axis crushes the `BlockArray` down into a
-  single `DeviceArray` and requires all blocks to have the same shape
-  otherwise, an error is raised.
-
-  .. doctest::
-
-    >>> snp.sum(x, axis=0)
-    Traceback (most recent call last):
-    ValueError: Evaluating sum of BlockArray along axis=0 requires all blocks to be same shape; got ((2, 2), (2,))
-
-    >>> y = BlockArray.array((np.ones((2,2)), 2*np.ones((2, 2))))
-    >>> snp.sum(y, axis=0)
-    DeviceArray([[3., 3.],
-                 [3., 3.]], dtype=float32)
-
-  Reducing along axis :math:`n` is equivalent to reducing each component
-  along axis :math:`n-1`:
-
-  .. math::
-   \text{sum}(x, axis=1) = \begin{bmatrix}
-   \begin{bmatrix}
-    2 \\
-     2
-   \end{bmatrix} \\
-   \begin{bmatrix}
-    4 \\
-   \end{bmatrix}
-   \end{bmatrix}
-
-
-  If a component does not have axis :math:`n-1`, the reduction is not
-  applied to that component. In this example, `x[1].ndim == 1`, so no
-  reduction is applied to block `x[1]`.
-
-  .. math::
-   \text{sum}(x, axis=2) = \begin{bmatrix}
-   \begin{bmatrix}
-    2 \\
-     2
-   \end{bmatrix} \\
-   \begin{bmatrix}
-    2 \\
-    2
-   \end{bmatrix}
-   \end{bmatrix}
-
-
-Code version
-
-  .. doctest::
-
-    >>> snp.sum(x, axis=1)  # doctest: +SKIP
-    BlockArray([[2, 2],
-                [4,] ])
-
-    >>> snp.sum(x, axis=2)  # doctest: +SKIP
-    BlockArray([ [2, 2],
-                 [2,] ])
 
 """
 

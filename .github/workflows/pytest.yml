@@ -82,11 +82,11 @@ jobs:
       - name: Run main unit tests with coverage report
         if: matrix.os == 'ubuntu-latest'
         run: |
-          pytest --cov=scico --cov-report=xml
+          pytest -x --cov=scico --cov-report=xml
       - name: Run main unit tests
         if: matrix.os != 'ubuntu-latest'
         run: |
-          pytest
+          pytest -x
       # Run doc tests
       - name: Run doc tests
         run: |
