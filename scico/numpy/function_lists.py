@@ -2,6 +2,7 @@
 unary_ops = (  # found from dir(DeviceArray)
     "__abs__",
     "__neg__",
+    "__pos__",
 )
 
 binary_ops = (  # found from dir(DeviceArray)
@@ -10,6 +11,7 @@ binary_ops = (  # found from dir(DeviceArray)
     "__sub__",
     "__rsub__",
     "__mul__",
+    "__mod__",
     "__rmul__",
     "__matmul__",
     "__rmatmul__",
@@ -142,4 +144,4 @@ reduction_functions = ("sum", "linalg.norm")
 
 """ numpy.testing """
 
-testing_functions = ("testing.assert_allclose",)
+testing_functions = ("testing.assert_allclose", "testing.assert_array_equal")
