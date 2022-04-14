@@ -59,7 +59,7 @@ import numpy as np
 import jax
 
 from scico.numpy import BlockArray
-from scico.numpy._util import map_func_over_ba
+from scico.numpy._util import map_func_over_tuple_of_tuples
 from scico.typing import BlockShape, DType, JaxArray, PRNGKey, Shape
 
 
@@ -121,11 +121,8 @@ def _add_seed(fun):
     return fun_alt
 
 
-_allow_block_shape = map_func_over_ba
-
-
 def _wrap(fun):
-    fun_wrapped = _add_seed(_allow_block_shape(fun))
+    fun_wrapped = _add_seed(map_func_over_tuple_of_tuples(fun))
     fun_wrapped.__module__ = __name__  # so it appears in docs
     return fun_wrapped
 

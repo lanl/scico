@@ -422,7 +422,7 @@ def test_create_zeros():
     A = snp.zeros(2)
     assert np.all(A == 0)
 
-    A = snp.zeros([(2,), (2,)])
+    A = snp.zeros(((2,), (2,)))
     assert all(snp.all(A == 0))
 
 
@@ -430,7 +430,7 @@ def test_create_ones():
     A = snp.ones(2, dtype=np.float32)
     assert np.all(A == 1)
 
-    A = snp.ones([(2,), (2,)])
+    A = snp.ones(((2,), (2,)))
     assert all(snp.all(A == 1))
 
 
@@ -438,7 +438,7 @@ def test_create_zeros():
     A = snp.empty(2)
     assert np.all(A == 0)
 
-    A = snp.empty([(2,), (2,)])
+    A = snp.empty(((2,), (2,)))
     assert all(snp.all(A == 0))
 
 
@@ -449,7 +449,7 @@ def test_create_full():
     A = snp.full((2,), 1, dtype=np.float32)
     assert np.all(A == 1)
 
-    A = snp.full([(2,), (2,)], 1)
+    A = snp.full(((2,), (2,)), 1)
     assert all(snp.all(A == 1))
 
 
@@ -462,7 +462,7 @@ def test_create_zeros_like():
     B = snp.zeros_like(A)
     assert np.all(B == 0) and A.shape == B.shape and A.dtype == B.dtype
 
-    A = snp.ones([(2,), (2,)], dtype=np.float32)
+    A = snp.ones(((2,), (2,)), dtype=np.float32)
     B = snp.zeros_like(A)
     assert all(snp.all(B == 0))
     assert A.shape == B.shape
@@ -478,7 +478,7 @@ def test_create_empty_like():
     B = snp.empty_like(A)
     assert np.all(B == 0) and A.shape == B.shape and A.dtype == B.dtype
 
-    A = snp.ones([(2,), (2,)], dtype=np.float32)
+    A = snp.ones(((2,), (2,)), dtype=np.float32)
     B = snp.empty_like(A)
     assert all(snp.all(B == 0)) and A.shape == B.shape and A.dtype == B.dtype
 
@@ -492,7 +492,7 @@ def test_create_ones_like():
     B = snp.ones_like(A)
     assert np.all(B == 1) and A.shape == B.shape and A.dtype == B.dtype
 
-    A = snp.zeros([(2,), (2,)], dtype=np.float32)
+    A = snp.zeros(((2,), (2,)), dtype=np.float32)
     B = snp.ones_like(A)
     assert all(snp.all(B == 1)) and A.shape == B.shape and A.dtype == B.dtype
 
@@ -506,6 +506,6 @@ def test_create_full_like():
     B = snp.full_like(A, 1)
     assert np.all(B == 1) and (A.shape == B.shape) and (A.dtype == B.dtype)
 
-    A = snp.zeros([(2,), (2,)], dtype=np.float32)
+    A = snp.zeros(((2,), (2,)), dtype=np.float32)
     B = snp.full_like(A, 1)
     assert all(snp.all(B == 1)) and (A.shape == B.shape) and (A.dtype == B.dtype)

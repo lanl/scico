@@ -15,68 +15,42 @@ they can be imported from the :mod:`scico.numpy` namespace, they are not
 documented here; please consult the documentation for the source module
 :mod:`jax.scipy.special`.
 """
-
-"""
-import sys
-
-import jax
 import jax.scipy.special as js
 
-from scico.numpy import _block_array_ufunc_wrapper
-from scico.numpy._util import _attach_wrapped_func, _not_implemented
+from scico.numpy import _util
 
-_ufunc_functions = [
-    js.betainc,
-    js.entr,
-    js.erf,
-    js.erfc,
-    js.erfinv,
-    js.expit,
-    js.gammainc,
-    js.gammaincc,
-    js.gammaln,
-    js.i0,
-    js.i0e,
-    js.i1,
-    js.i1e,
-    js.log_ndtr,
-    js.logit,
-    js.logsumexp,
-    js.multigammaln,
-    js.ndtr,
-    js.ndtri,
-    js.polygamma,
-    js.sph_harm,
-    js.xlog1py,
-    js.xlogy,
-    js.zeta,
-]
-
-_attach_wrapped_func(
-    _ufunc_functions,
-    _block_array_ufunc_wrapper,
-    module_name=sys.modules[__name__],
-    fix_mod_name=True,
-)
-
-psi = _block_array_ufunc_wrapper(js.digamma)
-digamma = _block_array_ufunc_wrapper(js.digamma)
-
-_not_implemented_functions = []
-for name, func in jax._src.util.get_module_functions(js).items():
-    if name not in globals():
-        _not_implemented_functions.append((name, func))
-
-_attach_wrapped_func(
-    _not_implemented_functions, _not_implemented, module_name=sys.modules[__name__]
-)
-"""
-
-import jax.scipy.special as js
-
-from scico.numpy._util import wrap_attributes
-
-wrap_attributes(
+_util.add_attributes(
     vars(),
     js.__dict__,
 )
+
+functions = (
+    "betainc",
+    "entr",
+    "erf",
+    "erfc",
+    "erfinv",
+    "expit",
+    "gammainc",
+    "gammaincc",
+    "gammaln",
+    "i0",
+    "i0e",
+    "i1",
+    "i1e",
+    "log_ndtr",
+    "logit",
+    "logsumexp",
+    "multigammaln",
+    "ndtr",
+    "ndtri",
+    "polygamma",
+    "sph_harm",
+    "xlog1py",
+    "xlogy",
+    "zeta",
+    "digamma",
+)
+
+
+_util.wrap_recursively(vars(), functions, _util.map_func_over_blocks)

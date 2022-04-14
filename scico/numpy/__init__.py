@@ -32,9 +32,7 @@ _util.add_attributes(
 
 # wrap jnp funcs
 _util.wrap_recursively(vars(), creation_routines, _util.map_func_over_tuple_of_tuples)
-_util.wrap_recursively(
-    vars(), mathematical_functions + reduction_functions, _util.map_func_over_blocks
-)
+_util.wrap_recursively(vars(), mathematical_functions, _util.map_func_over_blocks)
 _util.wrap_recursively(vars(), reduction_functions, _util.add_full_reduction)
 
 # copy np.testing
