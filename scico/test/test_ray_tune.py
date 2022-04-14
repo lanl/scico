@@ -22,7 +22,7 @@ def eval_params(config, reporter):
 
 tune.ray.tune.register_trainable("eval_func", eval_params)
 
-config = {"x": tune.grid_search(-1, 1), "y": tune.grid_search(-1, 1)}
+config = {"x": tune.uniform(-1, 1), "y": tune.uniform(-1, 1)}
 resources = {"gpu": 0, "cpu": 1}
 
 
@@ -32,7 +32,7 @@ def test_random():
         "eval_func",
         metric="cost",
         mode="min",
-        num_samples=50,
+        num_samples=100,
         config=config,
         resources_per_trial=resources,
         hyperopt=False,
