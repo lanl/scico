@@ -67,7 +67,6 @@ class Loss(functional.Functional):
                :meth:`__call__` and :meth:`prox` (where appropriate) must
                be defined in a derived class.
             scale: Scaling parameter. Default: 1.0.
-
         """
         self.y = ensure_on_device(y)
         if A is None:
@@ -371,46 +370,47 @@ class SquaredL2AbsLoss(Loss):
         return x
 
 
-def _cbrt(x):
-    """Compute the cube root of the argument.
-
-    The two standard options for computing the cube root of an array are
-    :func:`numpy.cbrt`, or raising to the power of (1/3), i.e. `x ** (1/3)`.
-    The former cannot be used for complex values, and the latter returns
-    a complex root of a negative real value. This functions can be used
-    for both real and complex values, and returns the real root of
-    negative real values.
-
-    Args:
-        x: Input array
-
-    Returns:
-        Array of cube roots of input `x`.
-    """
-    s = snp.where(snp.abs(snp.angle(x)) <= 3 * snp.pi / 4, 1, -1)
-    return s * (s * x) ** (1 / 3)
-
-
-def _dep_cubic_root(p, q):
-    r"""Compute the positive real root of a depressed cubic equation.
+def _dep_cubic_root(p: Union[JaxArray, BlockArray], q: Union[JaxArray, BlockArray]):
+    r"""Compute a real root of a depressed cubic equation.
 
     A depressed cubic equation is one that can be written in the form
 
     .. math::
        x^3 + px + q \;.
 
-    This function finds the positive real root of such an equation via
-    `Cardano's method <https://en.wikipedia.org/wiki/Cubic_equation#Cardano's_formula>`__,
-    for `p` and `q` such that there is a single positive real root
-    (see Sec. 3.C of :cite:`soulez-2016-proximity`).
+    When :math:`\Delta = (q/2)^2 + (p/3)^3 > 0` this equation has one
+    real root and two complex (conjugate) roots. When :math:`\Delta = 0`,
+    all three roots are real, with at least two being equal, and when
+    :math:`\Delta < 0`, all roots are real and unequal. According to
+    Vieta's formulas, the roots :math:`x_0, x_1`, and :math:`x_2` of this
+    equation satisfy
+
+    .. math::
+       x_0 + x_1 + x_2 &= 0 \\
+       x_0 x_1 + x_0 x_2 + x_2 x_3 &= p \\
+       x_0 x_1 x_2 &= -q \;.
+
+    Therefore, when :math:`q` is negative, the equation has a single real
+    positive root since at least one must be negative for their sum to
+    be zero, and their product could not be positive if only one were
+    zero. This function always returns a real root; when :math:`q` is
+    negative, it returns the single positive root.
+
+    The solution is computed using
+    `Vieta's substitution <https://mathworld.wolfram.com/CubicFormula.html>`__.
+
+    Args:
+       p: Array of :math:`p` values.
+       q: Array of :math:`q` values.
+
+    Returns:
+       Array of real roots of the cubic equation.
     """
-    q2 = q / 2
-    Δ = q2**2 + (p / 3) ** 3
-    Δrt = snp.sqrt(Δ + 0j)
-    u3, v3 = -q2 + Δrt, -q2 - Δrt
-    u, v = _cbrt(u3), _cbrt(v3)
-    r = (u + v).real
-    assert snp.allclose(snp.abs(r**3 + p * r + q), 0, atol=1e-4)
+    Δ = (q**2) / 4.0 + (p**3) / 27.0
+    w3 = -q / 2.0 + snp.sqrt(Δ + 0j)
+    w = w3 ** (1 / 3)
+    r = (w - no_nan_divide(p, 3 * w)).real
+    assert snp.allclose(snp.abs(r**3 + p * r + q), 0, atol=1e-5)
     return r
 
 
