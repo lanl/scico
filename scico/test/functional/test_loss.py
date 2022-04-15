@@ -13,7 +13,7 @@ from prox import prox_test
 import scico.numpy as snp
 from scico import functional, linop, loss
 from scico.array import complex_dtype
-from scico.random import randn
+from scico.random import randn, uniform
 
 
 class TestLoss:
@@ -208,3 +208,12 @@ class TestAbsLoss:
 
         pf = prox_test((1 + 1j) * snp.zeros(self.v.shape), L, L.prox, 0.0)  # complex zero v
         pf = prox_test((1 + 1j) * snp.zeros(self.v.shape), L, L.prox, 1.0)  # complex zero v
+
+
+def test_cubic_root():
+    N = 10000
+    p, _ = uniform(shape=(N,), dtype=snp.float32, minval=-10.0, maxval=10.0)
+    q, _ = uniform(shape=(N,), dtype=snp.float32, minval=-10.0, maxval=10.0)
+    r = loss._dep_cubic_root(p, q)
+    err = snp.abs(r**3 + p * r + q)
+    assert err.max() < 1e-4

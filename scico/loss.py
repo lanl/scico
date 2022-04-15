@@ -8,7 +8,7 @@
 
 """Loss function classes."""
 
-
+import warnings
 from copy import copy
 from functools import wraps
 from typing import Callable, Optional, Union
@@ -370,7 +370,56 @@ class SquaredL2AbsLoss(Loss):
         return x
 
 
-def _dep_cubic_root(p: Union[JaxArray, BlockArray], q: Union[JaxArray, BlockArray]):
+def _cbrt(x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
+    """Compute the cube root of the argument.
+
+    The two standard options for computing the cube root of an array are
+    :func:`numpy.cbrt`, or raising to the power of (1/3), i.e. `x ** (1/3)`.
+    The former cannot be used for complex values, and the latter returns
+    a complex root of a negative real value. This functions can be used
+    for both real and complex values, and returns the real root of
+    negative real values.
+
+    Args:
+        x: Input array.
+
+    Returns:
+        Array of cube roots of input `x`.
+    """
+    s = snp.where(snp.abs(snp.angle(x)) <= 2 * snp.pi / 3, 1, -1)
+    return s * (s * x) ** (1 / 3)
+
+
+def _check_root(
+    x: Union[JaxArray, BlockArray],
+    p: Union[JaxArray, BlockArray],
+    q: Union[JaxArray, BlockArray],
+    tol: float = 1e-4,
+):
+    """Check the precision of a cubic equation solution.
+
+    Check the precision of an array of depressed cubic equation solutions,
+    issuing a warning if any of the errors exceed a specified tolerance.
+
+    Args:
+        x: Array of roots of a depressed cubic equation.
+        p: Array of linear parameters of a depressed cubic equation.
+        q: Array of constant parameters of a depressed cubic equation.
+        tol: Expected tolerance for solution precision.
+    """
+    err = snp.abs(x**3 + p * x + q)
+    if not snp.allclose(err, 0, atol=tol):
+        idx = snp.argmax(err)
+        msg = (
+            "Low precision in root calculation. Worst error is "
+            f"{err.ravel()[idx]:.3e} for p={p.ravel()[idx]} and q={q.ravel()[idx]}"
+        )
+        warnings.warn(msg)
+
+
+def _dep_cubic_root(
+    p: Union[JaxArray, BlockArray], q: Union[JaxArray, BlockArray]
+) -> Union[JaxArray, BlockArray]:
     r"""Compute a real root of a depressed cubic equation.
 
     A depressed cubic equation is one that can be written in the form
@@ -419,13 +468,30 @@ def _dep_cubic_root(p: Union[JaxArray, BlockArray], q: Union[JaxArray, BlockArra
     .. math::
        w^3 = -\frac{q}{2} \pm \sqrt{\frac{q^2}{4} + \frac{p^3}{27}} \;.
 
+    Note that the multiplication by :math:`w^3` introduces a spurious
+    solution at zero in the case :math:`p = 0`, which must be handled
+    separately as
+
+    .. math::
+       w^3 = -q \;.
+
+    Despite taking this into account, very poor numerical precision is
+    obtained when :math:`p` is small but non-zero since, in this case
+
+    .. math::
+       \sqrt{\Delta} = \sqrt{(q/2)^2 + (p/3)^3} \approx q/2 \;,
+
+    so that an incorrect solutions :math:`w^3 = 0` or :math:`w^3 = -q`
+    are obtained, depending on the choice of sign in the equation for
+    :math:`w^3`.
+
     An alternative derivation leads to the equation
 
     .. math::
        x = \sqrt[3]{-q/2 + \sqrt{\Delta}} + \sqrt[3]{-q/2 - \sqrt{\Delta}}
 
-    for the real root, but this is not suitable for use here due to severe
-    numerical errors in single precision arithmetic.
+    for the real root, but this is also prone to severe numerical errors
+    in single precision arithmetic.
 
     Args:
        p: Array of :math:`p` values.
@@ -435,10 +501,10 @@ def _dep_cubic_root(p: Union[JaxArray, BlockArray], q: Union[JaxArray, BlockArra
        Array of real roots of the cubic equation.
     """
     Δ = (q**2) / 4.0 + (p**3) / 27.0
-    w3 = -q / 2.0 + snp.sqrt(Δ + 0j)
-    w = w3 ** (1 / 3)
+    w3 = snp.where(snp.abs(p) <= 1e-7, -q, -q / 2.0 + snp.sqrt(Δ + 0j))
+    w = _cbrt(w3)
     r = (w - no_nan_divide(p, 3 * w)).real
-    assert snp.allclose(snp.abs(r**3 + p * r + q), 0, atol=1e-5)
+    _check_root(r, p, q)
     return r
 
 
