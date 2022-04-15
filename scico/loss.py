@@ -376,14 +376,20 @@ def _dep_cubic_root(p: Union[JaxArray, BlockArray], q: Union[JaxArray, BlockArra
     A depressed cubic equation is one that can be written in the form
 
     .. math::
-       x^3 + px + q \;.
+       x^3 + px + q = 0 \;.
 
-    When :math:`\Delta = (q/2)^2 + (p/3)^3 > 0` this equation has one
-    real root and two complex (conjugate) roots. When :math:`\Delta = 0`,
-    all three roots are real, with at least two being equal, and when
-    :math:`\Delta < 0`, all roots are real and unequal. According to
-    Vieta's formulas, the roots :math:`x_0, x_1`, and :math:`x_2` of this
-    equation satisfy
+    The determinant is
+
+    .. math::
+       \Delta = (q/2)^2 + (p/3)^3 \;.
+
+    When :math:`\Delta > 0` this equation has one real root and two
+    complex (conjugate) roots, when :math:`\Delta = 0`, all three roots
+    are real, with at least two being equal, and when :math:`\Delta < 0`,
+    all roots are real and unequal.
+
+    According to Vieta's formulas, the roots :math:`x_0, x_1`, and
+    :math:`x_2` of this equation satisfy
 
     .. math::
        x_0 + x_1 + x_2 &= 0 \\
@@ -391,13 +397,35 @@ def _dep_cubic_root(p: Union[JaxArray, BlockArray], q: Union[JaxArray, BlockArra
        x_0 x_1 x_2 &= -q \;.
 
     Therefore, when :math:`q` is negative, the equation has a single real
-    positive root since at least one must be negative for their sum to
-    be zero, and their product could not be positive if only one were
-    zero. This function always returns a real root; when :math:`q` is
-    negative, it returns the single positive root.
+    positive root since at least one root must be negative for their sum
+    to be zero, and their product could not be positive if only one root
+    were zero. This function always returns a real root; when :math:`q`
+    is negative, it returns the single positive root.
 
     The solution is computed using
-    `Vieta's substitution <https://mathworld.wolfram.com/CubicFormula.html>`__.
+    `Vieta's substitution <https://mathworld.wolfram.com/CubicFormula.html>`__,
+
+    .. math::
+       w = x - \frac{p}{3w} \;,
+
+    which reduces the depressed cubic equation to
+
+    .. math::
+       w^3 - \frac{p^3}{27w^3} + q = 0\;,
+
+    which can be expressed as a quadratic equation in :math:`w^3` by
+    multiplication by :math:`w^3`, leading to
+
+    .. math::
+       w^3 = -\frac{q}{2} \pm \sqrt{\frac{q^2}{4} + \frac{p^3}{27}} \;.
+
+    An alternative derivation leads to the equation
+
+    .. math::
+       x = \sqrt[3]{-q/2 + \sqrt{\Delta}} + \sqrt[3]{-q/2 - \sqrt{\Delta}}
+
+    for the real root, but this is not suitable for use here due to severe
+    numerical errors in single precision arithmetic.
 
     Args:
        p: Array of :math:`p` values.
