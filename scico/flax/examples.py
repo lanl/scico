@@ -23,7 +23,7 @@ import jax.numpy as jnp
 import imageio
 
 try:
-    pass
+    import xdesign
 except ImportError:
     have_xdesign = False
 else:
@@ -39,7 +39,7 @@ from scico.linop import CircularConvolve
 from scico.typing import Array, Shape
 
 try:
-    pass
+    import astra
 except ImportError:
     have_astra = False
 else:
