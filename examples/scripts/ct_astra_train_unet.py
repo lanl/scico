@@ -22,7 +22,7 @@ import jax
 
 from scico import flax as sflax
 from scico import plot
-from scico.examples_flax import load_ct_data
+from scico.flax.examples import load_ct_data
 from scico.metric import psnr, snr
 
 """

@@ -15,7 +15,7 @@ import numpy as np
 from jax import vmap
 
 from scico import plot
-from scico.examples_flax import construct_blurring_operator, load_image_data
+from scico.flax.examples import construct_blurring_operator, load_image_data
 
 """
 Define blurring operator.

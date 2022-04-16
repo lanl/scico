@@ -32,7 +32,7 @@ import jax.numpy as jnp
 
 from scico import flax as sflax
 from scico import plot
-from scico.examples_flax import construct_blurring_operator, load_image_data
+from scico.flax.examples import construct_blurring_operator, load_image_data
 from scico.flax.train.train import clip_positive, construct_traversal, train_step_post
 from scico.metric import psnr, snr
 

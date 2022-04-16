@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 from scico import random
-from scico.examples_flax import (
+from scico.flax.examples import (
     CenterCrop,
     PositionalCrop,
     RandomNoise,
@@ -18,7 +18,7 @@ from scico.typing import Shape
 
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 
-# These tests are for the scico.examples_flax module, NOT the example scripts
+# These tests are for the scico.flax.examples module, NOT the example scripts
 
 
 @pytest.mark.skipif(not have_xdesign, reason="xdesign package not installed")
@@ -26,7 +26,7 @@ def test_foam2_gen():
     seed = 4321
     N = 32
     ndata = 2
-    from scico.examples_flax import generate_foam2_images
+    from scico.flax.examples import generate_foam2_images
 
     dt = generate_foam2_images(seed, N, ndata)
     assert dt.shape == (ndata, N, N, 1)
