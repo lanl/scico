@@ -132,7 +132,7 @@ def distributed_data_generation(
     """
     nproc = jax.device_count()
     seeds = jnp.arange(nproc)
-    if nimg % nproc > 0:
+    if nproc > 1 and nimg % nproc > 0:
         raise ValueError("Number of images to generate must be divisible by the number of devices")
 
     ndata_per_proc = int(nimg // nproc)
