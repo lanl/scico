@@ -2,6 +2,8 @@ import os
 
 import numpy as np
 
+from jax import device_count
+
 import pytest
 
 from scico import random
@@ -54,6 +56,9 @@ def test_distdatagen_flag():
     assert dt.shape == (nimg, N, N, 1)
 
 
+@pytest.mark.skipif(
+    device_count() == 1, reason="no processes for checking failure of distributed computing"
+)
 def test_distdatagen_exception():
     N = 32
     nimg = 15
