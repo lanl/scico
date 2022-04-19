@@ -13,7 +13,7 @@ Assummes sharded batched data and data parallel training.
 import functools
 import os
 import time
-from typing import Any, Callable, List, Optional, TypedDict, Union
+from typing import Any, Callable, List, Optional, Tuple, TypedDict, Union
 
 import jax
 import jax.numpy as jnp
@@ -27,14 +27,14 @@ from flax.training import common_utils, train_state
 from flax.traverse_util import ModelParamTraversal
 
 try:
-    import clu
+    import clu  # noqa: F401
 except ImportError:
     have_clu = False
 else:
     have_clu = True
 
 try:
-    from tensorflow.io import gfile
+    from tensorflow.io import gfile  # noqa: F401
 except ImportError:
     have_tf = False
 else:
@@ -82,6 +82,16 @@ class ModelVarDict(TypedDict):
     batch_stats: PyTree
 
 
+class MetricsDict(TypedDict, total=False):
+    """Definition of the dictionary structure
+    for metrics computed or updates made during
+    training."""
+
+    loss: float
+    snr: float
+    learning_rate: float
+
+
 # Loss Function
 def mse_loss(output: Array, labels: Array) -> float:
     """
@@ -99,8 +109,10 @@ def mse_loss(output: Array, labels: Array) -> float:
     return jnp.mean(mse)
 
 
-def compute_metrics(output: Array, labels: Array):
-    """Compute diagnostic metrics. Assummes sharded batched data (i.e. it only works inside pmap because it needs an axis name).
+def compute_metrics(output: Array, labels: Array) -> MetricsDict:
+    """Compute diagnostic metrics. Assummes sharded batched
+    data (i.e. it only works inside pmap because it needs an
+    axis name).
 
     Args:
         output: Comparison signal.
@@ -111,7 +123,7 @@ def compute_metrics(output: Array, labels: Array):
     """
     loss = mse_loss(output, labels)
     snr_ = snr(labels, output)
-    metrics = {
+    metrics: MetricsDict = {
         "loss": loss,
         "snr": snr_,
     }
@@ -141,8 +153,8 @@ def create_exp_lr_schedule(config: ConfigDict) -> optax._src.base.Schedule:
 
     Args:
         config: Dictionary of configuration. The values
-           to use corresponds to the `base_learning_rate`
-           , `num_epochs`, `steps_per_epochs` and `lr_decay_rate`.
+        to use corresponds to the `base_learning_rate`,
+        `num_epochs`, `steps_per_epochs` and `lr_decay_rate`.
 
     Returns:
         schedule: A function that maps step counts to values.
@@ -160,8 +172,8 @@ def create_cosine_lr_schedule(config: ConfigDict) -> optax._src.base.Schedule:
 
     Args:
         config: Dictionary of configuration. The parameters
-           to use correspond to keywords: `base_learning_rate`,
-           `num_epochs`, `warmup_epochs` and `steps_per_epoch`.
+        to use correspond to keywords: `base_learning_rate`,
+        `num_epochs`, `warmup_epochs` and `steps_per_epoch`.
 
     Returns:
         schedule: A function that maps step counts to values.
@@ -187,7 +199,7 @@ def create_cosine_lr_schedule(config: ConfigDict) -> optax._src.base.Schedule:
     return schedule
 
 
-def initialize(key: KeyArray, model: ModuleDef, ishape: Shape):
+def initialize(key: KeyArray, model: ModuleDef, ishape: Shape) -> Tuple[PyTree, ...]:
     """Initialize Flax model.
 
     Args:
@@ -233,7 +245,9 @@ def create_train_state(
            and `momentum`.
         model: Flax model to train.
         ishape: Shape of signal (image) to process by `model`.
-        variables0: Optional initial state of model parameters. If not provided a random initialization is performed. Default: ``None``.
+        variables0: Optional initial state of model
+           parameters. If not provided a random initialization
+           is performed. Default: ``None``.
         learning_rate_fn: A function that maps step
            counts to values.
 
@@ -262,7 +276,9 @@ def create_train_state(
             learning_rate=learning_rate_fn,
         )
     else:
-        raise NotImplementedError
+        raise NotImplementedError(
+            f"Optimizer specified {config['opt_type']} has not been included in SCICO"
+        )
 
     state = TrainState.create(
         apply_fn=model.apply,
@@ -281,8 +297,10 @@ def restore_checkpoint(
     """Load model and optimiser state.
 
     Args:
-        state: Flax train state which includes model and optimiser parameters.
-        workdir: checkpoint file or directory of checkpoints to restore from.
+        state: Flax train state which includes model and
+            optimiser parameters.
+        workdir: checkpoint file or directory of checkpoints
+            to restore from.
 
     Returns:
         Restored `state` updated from checkpoint file,
@@ -296,8 +314,10 @@ def save_checkpoint(state: TrainState, workdir: Union[str, os.PathLike]):  # pra
     """Store model and optimiser state.
 
     Args:
-        state: Flax train state which includes model and optimiser parameters.
-        workdir: str or pathlib-like path to store checkpoint files in.
+        state: Flax train state which includes model and
+            optimiser parameters.
+        workdir: str or pathlib-like path to store checkpoint
+            files in.
     """
     if jax.process_index() == 0:
         # get train state from first replica
@@ -306,7 +326,9 @@ def save_checkpoint(state: TrainState, workdir: Union[str, os.PathLike]):  # pra
         checkpoints.save_checkpoint(workdir, state, step, keep=3)
 
 
-def train_step(state: TrainState, batch: DataSetDict, learning_rate_fn: optax._src.base.Schedule):
+def train_step(
+    state: TrainState, batch: DataSetDict, learning_rate_fn: optax._src.base.Schedule
+) -> Tuple[TrainState, MetricsDict]:
     """Perform a single training step. Assummes sharded batched data.
 
     Args:
@@ -321,7 +343,7 @@ def train_step(state: TrainState, batch: DataSetDict, learning_rate_fn: optax._s
         Updated parameters and diagnostic statistics.
     """
 
-    def loss_fn(params):
+    def loss_fn(params: PyTree):
         """Loss function used for training."""
         output, new_model_state = state.apply_fn(
             {
@@ -366,13 +388,14 @@ def construct_traversal(prmname: str) -> ModelParamTraversal:
     return ModelParamTraversal(lambda path, _: prmname in path)
 
 
-def clip_positive(params: PyTree, traversal: ModelParamTraversal, minval: float = 1e-4):
+def clip_positive(params: PyTree, traversal: ModelParamTraversal, minval: float = 1e-4) -> PyTree:
     """Clip parameters to positive range.
 
     Args:
         params: Current model parameters.
         traversal: Utility to select model parameters.
-        minval: Minimum value to clip parameters and keep them in a positive range. Default: 1e-4.
+        minval: Minimum value to clip parameters and keep them
+            in a positive range. Default: 1e-4.
     """
     params_out = traversal.update(lambda x: jnp.clip(x, a_min=minval), unfreeze(params))
 
@@ -384,8 +407,11 @@ def train_step_post(
     batch: DataSetDict,
     learning_rate_fn: optax._src.base.Schedule,
     post_fn: Callable,
-):
-    """Perform a single training step. A postprocessing function (i.e. for spectral normalization or positivity condition, etc.) is applied after the gradient update. Assummes sharded batched data.
+) -> Tuple[TrainState, MetricsDict]:
+    """Perform a single training step. A postprocessing
+    function (i.e. for spectral normalization or positivity
+    condition, etc.) is applied after the gradient update.
+    Assummes sharded batched data.
 
     Args:
         state: Flax train state which includes the
@@ -394,10 +420,12 @@ def train_step_post(
         batch: Sharded and batched training data.
         learning_rate_fn: A function that maps step
            counts to values.
-        post_fn: A postprocessing function for clipping parameter range or normalizing parameter.
+        post_fn: A postprocessing function for clipping
+           parameter range or normalizing parameter.
 
     Returns:
-        Updated parameters, fulfilling additional constraints, and diagnostic statistics.
+        Updated parameters, fulfilling additional constraints,
+        and diagnostic statistics.
     """
 
     new_state, metrics = train_step(state, batch, learning_rate_fn)
@@ -409,7 +437,7 @@ def train_step_post(
     return new_state, metrics
 
 
-def eval_step(state: TrainState, batch: DataSetDict):
+def eval_step(state: TrainState, batch: DataSetDict) -> MetricsDict:
     """Evaluate current model state. Assummes sharded
     batched data.
 
@@ -430,7 +458,7 @@ def eval_step(state: TrainState, batch: DataSetDict):
 
 
 # sync across replicas
-def sync_batch_stats(state):
+def sync_batch_stats(state: TrainState) -> TrainState:
     """Sync the batch statistics across replicas."""
     # Each device has its own version of the running average batch
     # statistics and those are synced before evaluation
@@ -458,22 +486,35 @@ def train_and_evaluate(
 
     Args:
         config: Hyperparameter configuration.
-        workdir: Directory to write checkpoints and tensorboard summaries (the latter only if `clu` is available).
+        workdir: Directory to write checkpoints and
+            tensorboard summaries (the latter only if `clu` is
+            available).
         model: Flax model to train.
-        train_ds: Dictionary of training data (includes images and labels).
-        test_ds: Dictionary of testing data (includes images and labels).
-        create_lr_schedule: A function that creates an Optax learning rate schedule. Default: :meth:`create_cnst_schedule`.
-        training_step_fn: A function that executes a training step. Default: :meth:`training_step`.
-        variables0: Optional initial state of model parameters. Default: ``None``.
-        checkpointing: A flag for checkpointing model state. Default: ``False``. `RunTimeError` is generated if ``True`` and tensorflow is not available.
-        log: A flag for logging. If `clu` is available a tensorboard summary is also generated during logging. Default: ``False``.
+        train_ds: Dictionary of training data (includes images
+            and labels).
+        test_ds: Dictionary of testing data (includes images
+            and labels).
+        create_lr_schedule: A function that creates an Optax
+            learning rate schedule. Default:
+            :meth:`create_cnst_schedule`.
+        training_step_fn: A function that executes a training
+            step. Default: :meth:`training_step`.
+        variables0: Optional initial state of model
+            parameters. Default: ``None``.
+        checkpointing: A flag for checkpointing model state.
+            Default: ``False``. `RunTimeError` is generated if
+            ``True`` and tensorflow is not available.
+        log: A flag for logging. If `clu` is available a
+            tensorboard summary is also generated during
+            logging. Default: ``False``.
 
     Returns:
         Model variables extracted from TrainState.
     """
     if log:  # pragma: no cover
         print(
-            "Channels: %d, training signals: %d, testing signals: %d, signal size: %d"
+            "Channels: %d, training signals: %d, testing"
+            " signals: %d, signal size: %d"
             % (
                 train_ds["label"].shape[-1],
                 train_ds["label"].shape[0],
@@ -580,7 +621,9 @@ def train_and_evaluate(
                     time.time() - train_metrics_last_t
                 )
                 print(
-                    "step: %d, steps_per_second: %.6f, train_learning_rate: %.6f, train_loss: %.6f, train_snr: %.2f"
+                    "step: %d, steps_per_second: %.6f, "
+                    "train_learning_rate: %.6f, "
+                    "train_loss: %.6f, train_snr: %.2f"
                     % (
                         step,
                         summary["steps_per_second"],
@@ -621,7 +664,7 @@ def train_and_evaluate(
             if checkpointing:  # pragma: no cover
                 if not have_tf:  # Flax checkpointing requires tensorflow
                     raise RuntimeError(
-                        "Tensorflow not available and it is required for Flax checkpointing."
+                        "Tensorflow not available and it is" " required for Flax checkpointing."
                     )
                 save_checkpoint(state, workdir)
 
@@ -645,16 +688,20 @@ def only_evaluate(
     test_ds: DataSetDict,
     variables: Optional[ModelVarDict] = None,
     checkpointing: bool = False,
-) -> Array:
+) -> Tuple[Array, ModelVarDict]:
     """Execute model evaluation loop.
 
     Args:
         config: Hyperparameter configuration.
         workdir: Directory to read checkpoint (if enabled).
         model: Flax model to apply.
-        test_ds: Dictionary of testing data (includes images and labels).
-        variables: Model parameters to use for evaluation. Default: ``None`` (i.e. read from checkpoint).
-        checkpointing: A flag for checkpointing model state. Default: ``False``. `RunTimeError` is generated if ``True`` and tensorflow is not available.
+        test_ds: Dictionary of testing data (includes images
+            and labels).
+        variables: Model parameters to use for evaluation.
+            Default: ``None`` (i.e. read from checkpoint).
+        checkpointing: A flag for checkpointing model state.
+            Default: ``False``. `RunTimeError` is generated if
+            ``True`` and tensorflow is not available.
 
     Returns:
         Output of model evaluated at the input provided in `test_ds`.
@@ -666,7 +713,7 @@ def only_evaluate(
         if checkpointing:
             if not have_tf:
                 raise RuntimeError(
-                    "Tensorflow not available and it is required for Flax checkpointing."
+                    "Tensorflow not available and it is " "required for Flax checkpointing."
                 )
             state = checkpoints.restore_checkpoint(workdir, model)
             variables = {
