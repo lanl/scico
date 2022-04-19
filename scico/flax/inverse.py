@@ -13,7 +13,7 @@ from flax.core import Scope  # noqa
 from flax.linen.module import Module, compact
 from scico.flax import ResNet
 from scico.linop import operator_norm
-from scico.typing import Array, Shape
+from scico.typing import Array, DType, PRNGKey, Shape
 
 # The imports of Scope and _Sentinel (above)
 # are required to silence "cannot resolve forward reference"
@@ -64,7 +64,7 @@ class MoDLNet(Module):
             The reconstructed signal.
         """
 
-        def lmbda_init_wrap(rng, shape, dtype=self.dtype):
+        def lmbda_init_wrap(rng: PRNGKey, shape: Shape, dtype: DType = self.dtype) -> Array:
             return jnp.ones(shape, dtype) * self.lmbda_ini
 
         lmbda = self.param("lmbda", lmbda_init_wrap, (1,))
@@ -98,7 +98,7 @@ class MoDLNet(Module):
         return x
 
 
-def cg_solver(A: Callable, b: Array, x0: Array = None, maxiter: int = 50):
+def cg_solver(A: Callable, b: Array, x0: Array = None, maxiter: int = 50) -> Array:
     r"""Conjugate Gradient solver.
 
     Solve the linear system :math:`A\mb{x} = \mb{b}`, where :math:`A` is
@@ -182,7 +182,7 @@ class ODPProxDnBlock(Module):
             The block output (i.e. next stage of denoised signal).
         """
 
-        def alpha_init_wrap(rng, shape, dtype=self.dtype):
+        def alpha_init_wrap(rng: PRNGKey, shape: Shape, dtype: DType = self.dtype) -> Array:
             return jnp.ones(shape, dtype) * self.alpha_ini
 
         alpha = self.param("alpha", alpha_init_wrap, (1,))
@@ -253,7 +253,7 @@ class ODPProxDblrBlock(Module):
             The block output (i.e. next stage of reconstructed signal).
         """
 
-        def alpha_init_wrap(rng, shape, dtype=self.dtype):
+        def alpha_init_wrap(rng: PRNGKey, shape: Shape, dtype: DType = self.dtype) -> Array:
             return jnp.ones(shape, dtype) * self.alpha_ini
 
         alpha = self.param("alpha", alpha_init_wrap, (1,))
@@ -337,7 +337,7 @@ class ODPGrDescBlock(Module):
             The block output (i.e. next stage of inverted signal).
         """
 
-        def alpha_init_wrap(rng, shape, dtype=self.dtype):
+        def alpha_init_wrap(rng: PRNGKey, shape: Shape, dtype: DType = self.dtype) -> Array:
             return jnp.ones(shape, dtype) * self.alpha_ini
 
         alpha = self.param("alpha", alpha_init_wrap, (1,))
