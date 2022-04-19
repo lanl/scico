@@ -2,8 +2,8 @@ numpy>=1.12
 scipy>=0.19.1
 imageio
 matplotlib
-jaxlib>=0.3.0,<=0.3.5
-jax>=0.3.0,<=0.3.5
+jaxlib>=0.3.0,<=0.3.7
+jax>=0.3.0,<=0.3.7
 flax>=0.4.0
 bm3d>=3.0.9
 bm4d
