@@ -212,8 +212,8 @@ class TestAbsLoss:
 
 def test_cubic_root():
     N = 10000
-    p, _ = uniform(shape=(N,), dtype=snp.float32, minval=-10.0, maxval=10.0)
-    q, _ = uniform(shape=(N,), dtype=snp.float32, minval=-10.0, maxval=10.0)
+    p, key = uniform(shape=(N,), dtype=snp.float32, minval=-10.0, maxval=10.0, seed=1234)
+    q, _ = uniform(shape=(N,), dtype=snp.float32, minval=-10.0, maxval=10.0, key=key)
     r = loss._dep_cubic_root(p, q)
     err = snp.abs(r**3 + p * r + q)
     assert err.max() < 1e-4
