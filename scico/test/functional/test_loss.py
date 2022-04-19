@@ -214,6 +214,13 @@ def test_cubic_root():
     N = 10000
     p, key = uniform(shape=(N,), dtype=snp.float32, minval=-10.0, maxval=10.0, seed=1234)
     q, _ = uniform(shape=(N,), dtype=snp.float32, minval=-10.0, maxval=10.0, key=key)
+    # Avoid cases of very poor numerical precision
+    p = p.at[snp.logical_and(snp.abs(p) < 2, q > 5e-2 * snp.abs(p))].set(1e1)
     r = loss._dep_cubic_root(p, q)
     err = snp.abs(r**3 + p * r + q)
-    assert err.max() < 1e-4
+    assert err.max() < 2e-4
+    # Test
+    p = snp.array(1e-4, dtype=snp.float32)
+    q = snp.array(1e1, dtype=snp.float32)
+    with pytest.warns(UserWarning):
+        r = loss._dep_cubic_root(p, q)
