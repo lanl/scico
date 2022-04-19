@@ -475,8 +475,8 @@ def _dep_cubic_root(
     .. math::
        w^3 = -q \;.
 
-    Despite taking this into account, very poor numerical precision is
-    obtained when :math:`p` is small but non-zero since, in this case
+    Despite taking this into account, very poor numerical precision can
+    be obtained when :math:`p` is small but non-zero since, in this case
 
     .. math::
        \sqrt{\Delta} = \sqrt{(q/2)^2 + (p/3)^3} \approx q/2 \;,
