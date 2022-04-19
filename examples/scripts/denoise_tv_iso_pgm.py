@@ -122,9 +122,9 @@ class IsoProjector(functional.Functional):
 
         x_out = v / jnp.maximum(jnp.ones(v.shape), norm_v_ptp)
         out1 = v[0, :, -1] / jnp.maximum(jnp.ones(v[0, :, -1].shape), jnp.abs(v[0, :, -1]))
-        x_out_1 = jax.ops.index_update(x_out, jax.ops.index[0, :, -1], out1)
+        x_out = x_out.at[0, :, -1].set(out1)
         out2 = v[1, -1, :] / jnp.maximum(jnp.ones(v[1, -1, :].shape), jnp.abs(v[1, -1, :]))
-        x_out = jax.ops.index_update(x_out_1, jax.ops.index[1, -1, :], out2)
+        x_out = x_out.at[1, -1, :].set(out2)
 
         return x_out
 
