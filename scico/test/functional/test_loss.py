@@ -10,7 +10,7 @@ config.update("jax_enable_x64", True)
 from prox import prox_test
 import scico.numpy as snp
 from scico import functional, linop, loss
-from scico.numpy import complex_dtype
+from scico.numpy.util import complex_dtype
 from scico.random import randn, uniform
 
 

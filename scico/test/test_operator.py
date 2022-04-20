@@ -12,7 +12,6 @@ config.update("jax_enable_x64", True)
 import jax
 
 import scico.numpy as snp
-from scico.numpy import BlockArray
 from scico.operator import Operator
 from scico.random import randn
 
@@ -180,7 +179,7 @@ def test_freeze_3arg():
     b, _ = randn((2, 1, 4))
     c, _ = randn((2, 3, 1))
 
-    x = BlockArray.array([a, b, c])
+    x = snp.blockarray([a, b, c])
     Abc = A.freeze(0, a)  # A as a function of b, c
     Aac = A.freeze(1, b)  # A as a function of a, c
     Aab = A.freeze(2, c)  # A as a function of a, b
@@ -189,9 +188,9 @@ def test_freeze_3arg():
     assert Aac.input_shape == ((1, 3, 4), (2, 3, 1))
     assert Aab.input_shape == ((1, 3, 4), (2, 1, 4))
 
-    bc = BlockArray.array([b, c])
-    ac = BlockArray.array([a, c])
-    ab = BlockArray.array([a, b])
+    bc = snp.blockarray([b, c])
+    ac = snp.blockarray([a, c])
+    ab = snp.blockarray([a, b])
     np.testing.assert_allclose(A(x), Abc(bc), rtol=5e-4)
     np.testing.assert_allclose(A(x), Aac(ac), rtol=5e-4)
     np.testing.assert_allclose(A(x), Aab(ab), rtol=5e-4)
@@ -204,7 +203,7 @@ def test_freeze_2arg():
     a, _ = randn((1, 3, 4))
     b, _ = randn((2, 1, 4))
 
-    x = BlockArray.array([a, b])
+    x = snp.blockarray([a, b])
     Ab = A.freeze(0, a)  # A as a function of 'b' only
     Aa = A.freeze(1, b)  # A as a function of 'a' only
 

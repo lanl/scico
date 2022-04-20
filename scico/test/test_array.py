@@ -7,16 +7,19 @@ from jax.interpreters.xla import DeviceArray
 import pytest
 
 import scico.numpy as snp
-from scico.numpy import (
-    BlockArray,
+from scico.numpy import BlockArray
+from scico.numpy.util import (
     complex_dtype,
+    ensure_on_device,
+    indexed_shape,
     is_complex_dtype,
     is_nested,
     is_real_dtype,
     no_nan_divide,
+    parse_axes,
     real_dtype,
+    slice_length,
 )
-from scico.numpy.util import ensure_on_device, indexed_shape, parse_axes, slice_length
 from scico.random import randn
 
 
@@ -28,7 +31,7 @@ def test_ensure_on_device():
 
         NP = np.ones(2)
         SNP = snp.ones(2)
-        BA = BlockArray.array([NP, SNP])
+        BA = snp.blockarray([NP, SNP])
         NP_, SNP_, BA_ = ensure_on_device(NP, SNP, BA)
 
         assert isinstance(NP_, DeviceArray)

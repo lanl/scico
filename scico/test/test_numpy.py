@@ -4,7 +4,6 @@ import jax
 from jax.interpreters.xla import DeviceArray
 
 import scico.numpy as snp
-from scico.numpy import BlockArray
 
 
 def on_cpu():
@@ -41,16 +40,16 @@ def test_ufunc_abs():
     res = snp.array([1, 1, 1])
     np.testing.assert_allclose(snp.abs(A), res)
 
-    Ba = BlockArray.array((snp.array([-1, 2, 5]),))
-    res = BlockArray.array((snp.array([1, 2, 5]),))
+    Ba = snp.blockarray((snp.array([-1, 2, 5]),))
+    res = snp.blockarray((snp.array([1, 2, 5]),))
     np.testing.assert_allclose(snp.abs(Ba).ravel(), res.ravel())
 
-    Ba = BlockArray.array((snp.array([-1, -1, -1]),))
-    res = BlockArray.array((snp.array([1, 1, 1]),))
+    Ba = snp.blockarray((snp.array([-1, -1, -1]),))
+    res = snp.blockarray((snp.array([1, 1, 1]),))
     np.testing.assert_allclose(snp.abs(Ba).ravel(), res.ravel())
 
-    Ba = BlockArray.array((snp.array([-1, 2, -3]), snp.array([1, -2, 3])))
-    res = BlockArray.array((snp.array([1, 2, 3]), snp.array([1, 2, 3])))
+    Ba = snp.blockarray((snp.array([-1, 2, -3]), snp.array([1, -2, 3])))
+    res = snp.blockarray((snp.array([1, 2, 3]), snp.array([1, 2, 3])))
     np.testing.assert_allclose(snp.abs(Ba).ravel(), res.ravel())
 
 
@@ -83,17 +82,17 @@ def test_ufunc_maximum():
     B = snp.array([2, 3, 4])
     C = snp.array([5, 6])
     D = snp.array([2, 7])
-    Ba = BlockArray.array((A, C))
-    Bb = BlockArray.array((B, D))
-    res = BlockArray.array((snp.array([2, 3, 4]), snp.array([5, 7])))
+    Ba = snp.blockarray((A, C))
+    Bb = snp.blockarray((B, D))
+    res = snp.blockarray((snp.array([2, 3, 4]), snp.array([5, 7])))
     Bmax = snp.maximum(Ba, Bb)
     snp.testing.assert_allclose(Bmax, res)
 
     A = snp.array([1, 6, 3])
     B = snp.array([6, 3, 8])
     C = 5
-    Ba = BlockArray.array((A, B))
-    res = BlockArray.array((snp.array([5, 6, 5]), snp.array([6, 5, 8])))
+    Ba = snp.blockarray((A, B))
+    res = snp.blockarray((snp.array([5, 6, 5]), snp.array([6, 5, 8])))
     Bmax = snp.maximum(Ba, C)
     snp.testing.assert_allclose(Bmax, res)
 
@@ -103,12 +102,12 @@ def test_ufunc_sign():
     res = snp.array([1, -1, 0])
     np.testing.assert_allclose(snp.sign(A), res)
 
-    Ba = BlockArray.array((snp.array([10, -5, 0]),))
-    res = BlockArray.array((snp.array([1, -1, 0]),))
+    Ba = snp.blockarray((snp.array([10, -5, 0]),))
+    res = snp.blockarray((snp.array([1, -1, 0]),))
     snp.testing.assert_allclose(snp.sign(Ba), res)
 
-    Ba = BlockArray.array((snp.array([10, -5, 0]), snp.array([0, 5, -6])))
-    res = BlockArray.array((snp.array([1, -1, 0]), snp.array([0, 1, -1])))
+    Ba = snp.blockarray((snp.array([10, -5, 0]), snp.array([0, 5, -6])))
+    res = snp.blockarray((snp.array([1, -1, 0]), snp.array([0, 1, -1])))
     snp.testing.assert_allclose(snp.sign(Ba), res)
 
 
@@ -119,19 +118,19 @@ def test_ufunc_where():
     res = snp.array([-1, -1, 4, 5])
     np.testing.assert_allclose(snp.where(cond, A, B), res)
 
-    Ba = BlockArray.array((snp.array([1, 2, 4, 5]),))
-    Bb = BlockArray.array((snp.array([-1, -1, -1, -1]),))
-    Bcond = BlockArray.array((snp.array([False, False, True, True]),))
-    Bres = BlockArray.array((snp.array([-1, -1, 4, 5]),))
+    Ba = snp.blockarray((snp.array([1, 2, 4, 5]),))
+    Bb = snp.blockarray((snp.array([-1, -1, -1, -1]),))
+    Bcond = snp.blockarray((snp.array([False, False, True, True]),))
+    Bres = snp.blockarray((snp.array([-1, -1, 4, 5]),))
     assert snp.where(Bcond, Ba, Bb).shape == Bres.shape
     np.testing.assert_allclose(snp.where(Bcond, Ba, Bb).ravel(), Bres.ravel())
 
-    Ba = BlockArray.array((snp.array([1, 2, 4, 5]), snp.array([1, 2, 4, 5])))
-    Bb = BlockArray.array((snp.array([-1, -1, -1, -1]), snp.array([-1, -1, -1, -1])))
-    Bcond = BlockArray.array(
+    Ba = snp.blockarray((snp.array([1, 2, 4, 5]), snp.array([1, 2, 4, 5])))
+    Bb = snp.blockarray((snp.array([-1, -1, -1, -1]), snp.array([-1, -1, -1, -1])))
+    Bcond = snp.blockarray(
         (snp.array([False, False, True, True]), snp.array([True, True, False, False]))
     )
-    Bres = BlockArray.array((snp.array([-1, -1, 4, 5]), snp.array([1, 2, -1, -1])))
+    Bres = snp.blockarray((snp.array([-1, -1, 4, 5]), snp.array([1, 2, -1, -1])))
     assert snp.where(Bcond, Ba, Bb).shape == Bres.shape
     np.testing.assert_allclose(snp.where(Bcond, Ba, Bb).ravel(), Bres.ravel())
 
@@ -147,19 +146,19 @@ def test_ufunc_true_divide():
     res = snp.array([0.33333333, 0.66666667, 1.0])
     np.testing.assert_allclose(snp.true_divide(A, B), res)
 
-    Ba = BlockArray.array((snp.array([1, 2, 3]),))
-    Bb = BlockArray.array((snp.array([3, 3, 3]),))
-    res = BlockArray.array((snp.array([0.33333333, 0.66666667, 1.0]),))
+    Ba = snp.blockarray((snp.array([1, 2, 3]),))
+    Bb = snp.blockarray((snp.array([3, 3, 3]),))
+    res = snp.blockarray((snp.array([0.33333333, 0.66666667, 1.0]),))
     snp.testing.assert_allclose(snp.true_divide(Ba, Bb), res)
 
-    Ba = BlockArray.array((snp.array([1, 2, 3]), snp.array([1, 2])))
-    Bb = BlockArray.array((snp.array([3, 3, 3]), snp.array([2, 2])))
-    res = BlockArray.array((snp.array([0.33333333, 0.66666667, 1.0]), snp.array([0.5, 1.0])))
+    Ba = snp.blockarray((snp.array([1, 2, 3]), snp.array([1, 2])))
+    Bb = snp.blockarray((snp.array([3, 3, 3]), snp.array([2, 2])))
+    res = snp.blockarray((snp.array([0.33333333, 0.66666667, 1.0]), snp.array([0.5, 1.0])))
     snp.testing.assert_allclose(snp.true_divide(Ba, Bb), res)
 
-    Ba = BlockArray.array((snp.array([1, 2, 3]), snp.array([1, 2])))
+    Ba = snp.blockarray((snp.array([1, 2, 3]), snp.array([1, 2])))
     A = 2
-    res = BlockArray.array((snp.array([0.5, 1.0, 1.5]), snp.array([0.5, 1.0])))
+    res = snp.blockarray((snp.array([0.5, 1.0, 1.5]), snp.array([0.5, 1.0])))
     snp.testing.assert_allclose(snp.true_divide(Ba, A), res)
 
 
@@ -174,19 +173,19 @@ def test_ufunc_floor_divide():
     res = snp.array([1.0, 0, 1.0])
     np.testing.assert_allclose(snp.floor_divide(A, B), res)
 
-    Ba = BlockArray.array((snp.array([1, 2, 3]),))
-    Bb = BlockArray.array((snp.array([3, 3, 3]),))
-    res = BlockArray.array((snp.array([0, 0, 1.0]),))
+    Ba = snp.blockarray((snp.array([1, 2, 3]),))
+    Bb = snp.blockarray((snp.array([3, 3, 3]),))
+    res = snp.blockarray((snp.array([0, 0, 1.0]),))
     snp.testing.assert_allclose(snp.floor_divide(Ba, Bb), res)
 
-    Ba = BlockArray.array((snp.array([1, 7, 3]), snp.array([1, 2])))
-    Bb = BlockArray.array((snp.array([3, 3, 3]), snp.array([2, 2])))
-    res = BlockArray.array((snp.array([0, 2, 1.0]), snp.array([0, 1.0])))
+    Ba = snp.blockarray((snp.array([1, 7, 3]), snp.array([1, 2])))
+    Bb = snp.blockarray((snp.array([3, 3, 3]), snp.array([2, 2])))
+    res = snp.blockarray((snp.array([0, 2, 1.0]), snp.array([0, 1.0])))
     snp.testing.assert_allclose(snp.floor_divide(Ba, Bb), res)
 
-    Ba = BlockArray.array((snp.array([1, 2, 3]), snp.array([1, 2])))
+    Ba = snp.blockarray((snp.array([1, 2, 3]), snp.array([1, 2])))
     A = 2
-    res = BlockArray.array((snp.array([0, 1.0, 1.0]), snp.array([0, 1.0])))
+    res = snp.blockarray((snp.array([0, 1.0, 1.0]), snp.array([0, 1.0])))
     snp.testing.assert_allclose(snp.floor_divide(Ba, A), res)
 
 
@@ -199,12 +198,12 @@ def test_ufunc_real():
     res = snp.array([1, 4.0])
     np.testing.assert_allclose(snp.real(A), res)
 
-    Ba = BlockArray.array((snp.array([1 + 3j]),))
-    res = BlockArray.array((snp.array([1]),))
+    Ba = snp.blockarray((snp.array([1 + 3j]),))
+    res = snp.blockarray((snp.array([1]),))
     snp.testing.assert_allclose(snp.real(Ba), res)
 
-    Ba = BlockArray.array((snp.array([1.0 + 3j]), snp.array([1 + 3j, 4.0])))
-    res = BlockArray.array((snp.array([1.0]), snp.array([1, 4.0])))
+    Ba = snp.blockarray((snp.array([1.0 + 3j]), snp.array([1 + 3j, 4.0])))
+    res = snp.blockarray((snp.array([1.0]), snp.array([1, 4.0])))
     snp.testing.assert_allclose(snp.real(Ba), res)
 
 
@@ -217,12 +216,12 @@ def test_ufunc_imag():
     res = snp.array([3, 2])
     np.testing.assert_allclose(snp.imag(A), res)
 
-    Ba = BlockArray.array((snp.array([1 + 3j]),))
-    res = BlockArray.array((snp.array([3]),))
+    Ba = snp.blockarray((snp.array([1 + 3j]),))
+    res = snp.blockarray((snp.array([3]),))
     snp.testing.assert_allclose(snp.imag(Ba), res)
 
-    Ba = BlockArray.array((snp.array([1 + 3j]), snp.array([1 + 3j, 4.0])))
-    res = BlockArray.array((snp.array([3]), snp.array([3, 0])))
+    Ba = snp.blockarray((snp.array([1 + 3j]), snp.array([1 + 3j, 4.0])))
+    res = snp.blockarray((snp.array([3]), snp.array([3, 0])))
     snp.testing.assert_allclose(snp.imag(Ba), res)
 
 
@@ -235,12 +234,12 @@ def test_ufunc_conj():
     res = snp.array([1 - 3j, 4.0 - 2j])
     np.testing.assert_allclose(snp.conj(A), res)
 
-    Ba = BlockArray.array((snp.array([1 + 3j]),))
-    res = BlockArray.array((snp.array([1 - 3j]),))
+    Ba = snp.blockarray((snp.array([1 + 3j]),))
+    res = snp.blockarray((snp.array([1 - 3j]),))
     snp.testing.assert_allclose(snp.conj(Ba), res)
 
-    Ba = BlockArray.array((snp.array([1 + 3j]), snp.array([1 + 3j, 4.0])))
-    res = BlockArray.array((snp.array([1 - 3j]), snp.array([1 - 3j, 4.0 - 0j])))
+    Ba = snp.blockarray((snp.array([1 + 3j]), snp.array([1 + 3j, 4.0])))
+    res = snp.blockarray((snp.array([1 - 3j]), snp.array([1 - 3j, 4.0 - 0j])))
     snp.testing.assert_allclose(snp.conj(Ba), res)
 
 

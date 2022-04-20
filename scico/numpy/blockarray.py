@@ -124,7 +124,7 @@ Instead, we can form a :class:`.BlockArray`: :math:`\mb{x}_B =
     >>> x_v, _ = scico.random.randn((n-1, m), key=key)
 
     # Form the blockarray
-    >>> x_B = BlockArray.array([x_h, x_v])
+    >>> x_B = snp.blockarray([x_h, x_v])
 
     # The blockarray shape is a tuple of tuples
     >>> x_B.shape
@@ -146,7 +146,7 @@ Constructing a BlockArray
      >>> import numpy as np
      >>> x0, key = scico.random.randn((32, 32))
      >>> x1, _ = scico.random.randn((16,), key=key)
-     >>> X = BlockArray.array((x0, x1))
+     >>> X = snp.blockarray((x0, x1))
      >>> X.shape
      ((32, 32), (16,))
      >>> X.size
@@ -154,7 +154,7 @@ Constructing a BlockArray
      >>> len(X)
      2
 
-While :func:`.BlockArray.array` will accept either `ndarray` or
+While :func:`.snp.blockarray` will accept either `ndarray` or
 `DeviceArray` as input, the resulting :class:`.BlockArray` will be backed
 by a `DeviceArray` memory buffer.
 
@@ -190,7 +190,7 @@ For example
       >>> A_2.shape  # array -> BlockArray
       (((2, 4), (3, 3)), (3, 4))
 
-      >>> diag = BlockArray.array([np.array(1.0), np.array(2.0)])
+      >>> diag = snp.blockarray([np.array(1.0), np.array(2.0)])
       >>> A_3 = scico.linop.Diagonal(diag, input_shape=(A_2.output_shape))
       >>> A_3.shape  # BlockArray -> BlockArray
       (((2, 4), (3, 3)), ((2, 4), (3, 3)))

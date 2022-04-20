@@ -69,7 +69,7 @@ class TestMisc:
 class TestBlockArray:
     def setup_method(self, method):
         np.random.seed(12345)
-        self.y = BlockArray.array(
+        self.y = snp.blockarray(
             (
                 np.random.randn(32, 33).astype(np.float32),
                 np.random.randn(

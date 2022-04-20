@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/Usr/bin/env python
 # -*- coding: utf-8 -*-
 # This file is part of the SCICO package. Details of the copyright
 # and user license can be found in the 'LICENSE.txt' file distributed

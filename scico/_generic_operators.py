@@ -320,8 +320,8 @@ output_dtype : {self.output_dtype}
         def concat_args(args):
             # Creates a blockarray with args and the frozen value in the correct place
             # Eg if this operator takes a blockarray with two blocks, then
-            # concat_args(args) = BlockArray.array([val, args]) if argnum = 0
-            # concat_args(args) = BlockArray.array([args, val]) if argnum = 1
+            # concat_args(args) = snp.blockarray([val, args]) if argnum = 0
+            # concat_args(args) = snp.blockarray([args, val]) if argnum = 1
 
             if isinstance(args, (DeviceArray, np.ndarray)):
                 # In the case that the original operator takes a blcokarray with two
@@ -336,7 +336,7 @@ output_dtype : {self.output_dtype}
                     arg_list.append(args[i - 1])
                 else:
                     arg_list.append(val)
-            return BlockArray.array(arg_list)
+            return snp.blockarray(arg_list)
 
         return Operator(
             input_shape=input_shape,

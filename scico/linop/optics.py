@@ -61,7 +61,7 @@ import jax
 
 import scico.numpy as snp
 from scico.linop import Diagonal, Identity, LinearOperator
-from scico.numpy import no_nan_divide
+from scico.numpy.util import no_nan_divide
 from scico.typing import Shape
 
 from ._dft import DFT

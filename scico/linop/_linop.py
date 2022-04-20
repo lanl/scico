@@ -16,10 +16,9 @@ from functools import partial
 from typing import Any, Callable, Optional, Union
 
 import scico.numpy as snp
-from scico import array
 from scico._generic_operators import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
 from scico.numpy import BlockArray
-from scico.numpy.util import is_nested
+from scico.numpy.util import ensure_on_device, indexed_shape, is_nested
 from scico.random import randn
 from scico.typing import ArrayIndex, BlockShape, DType, JaxArray, PRNGKey, Shape
 
@@ -182,7 +181,7 @@ class Diagonal(LinearOperator):
 
         """
 
-        self.diagonal = array.ensure_on_device(diagonal)
+        self.diagonal = ensure_on_device(diagonal)
 
         if input_shape is None:
             input_shape = self.diagonal.shape
@@ -286,7 +285,7 @@ class Slice(LinearOperator):
         if is_nested(input_shape):
             output_shape = input_shape[idx]
         else:
-            output_shape = array.indexed_shape(input_shape, idx)
+            output_shape = indexed_shape(input_shape, idx)
 
         self.idx: ArrayIndex = idx
         super().__init__(
