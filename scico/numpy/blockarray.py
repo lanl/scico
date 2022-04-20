@@ -140,10 +140,12 @@ Instead, we can form a :class:`.BlockArray`: :math:`\mb{x}_B =
 Constructing a BlockArray
 =========================
 
+The recommended way to construct a :class:`.BlockArray` is by using the
+`snp.blockarray` function.
+
   ::
 
-     >>> from scico.numpy import BlockArray
-     >>> import numpy as np
+     >>> import scico.numpy as snp
      >>> x0, key = scico.random.randn((32, 32))
      >>> x1, _ = scico.random.randn((16,), key=key)
      >>> X = snp.blockarray((x0, x1))
@@ -210,7 +212,7 @@ from ._wrapped_function_lists import binary_ops, unary_ops
 
 
 class BlockArray(list):
-    """BlockArray"""
+    """BlockArray class"""
 
     # Ensure we use BlockArray.__radd__, __rmul__, etc for binary
     # operations of the form op(np.ndarray, BlockArray) See
