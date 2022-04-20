@@ -9,6 +9,7 @@ import pytest
 
 import scico.numpy as snp
 from scico.numpy import BlockArray
+from scico.numpy.testing import assert_array_equal
 from scico.random import randn
 
 math_ops = [op.add, op.sub, op.mul, op.truediv, op.pow]  # op.floordiv doesn't work on complex
@@ -160,14 +161,11 @@ def test_split(test_operator_obj):
     np.testing.assert_allclose(a[1], test_operator_obj.a1)
 
 
-@pytest.mark.skip()
-# currently creation is exactly like a tuple,
-# so BlockArray(np.jnp.zeros((3,6))) makes a block array
-# with 3 length-6 blocks
-# TODO replace with test of new behavior
 def test_blockarray_from_one_array():
-    with pytest.raises(TypeError):
-        BlockArray(np.random.randn(32, 32))
+    # BlockArray(np.jnp.zeros((3,6))) makes a block array
+    # with 3 length-6 blocks
+    x = BlockArray(np.random.randn(3, 6))
+    assert len(x) == 3
 
 
 @pytest.mark.parametrize("axis", [None, 1])
@@ -317,75 +315,76 @@ class TestCreators:
         assert snp.all(x == fill_value)
 
 
-@pytest.mark.skip
-# indexing now works just like a list of DeviceArrays:
-# x[1] = x[1].at[:].set(0)
-# TODO: some of these are new syntax?
-class TestBlockArrayIndex:
-    def setup_method(self):
-        key = None
+# tests added for the BlockArray refactor
+@pytest.fixture
+def x():
+    # any BlockArray, arbitrary shape, content, type
+    return BlockArray([[[1.0, 2.0, 3.0], [0.0, 0.0, 0.0]], [42.0]])
 
-        self.A, key = randn(shape=((4, 4), (3,)), key=key)
-        self.B, key = randn(shape=((3, 3), (4, 2, 3)), key=key)
-        self.C, key = randn(shape=((3, 3), (4, 2), (4, 4)), key=key)
 
-    def test_set_block(self):
-        # Test assignment of an entire block
-        A2 = self.A[0].at[:].set(1)
-        np.testing.assert_allclose(A2[0], snp.ones_like(A2[0]), rtol=5e-5)
-        np.testing.assert_allclose(A2[1], A2[1], rtol=5e-5)
+@pytest.fixture
+def y():
+    # another BlockArray, content, type, shape matches x
+    return BlockArray([[[1.0, 4.0, 6.0], [1.0, 2.0, 3.0]], [-2.0]])
 
-    def test_set(self):
-        # Test assignment using (bkidx, idx) format
-        A2 = self.A[0].at[2:, :-2].set(1.45)
-        tmp = A2[2:, :-2]
-        np.testing.assert_allclose(A2[0][2:, :-2], 1.45 * snp.ones_like(tmp), rtol=5e-5)
-        np.testing.assert_allclose(A2[1].full_ravel(), A2[1], rtol=5e-5)
 
-    def test_add(self):
-        A2 = self.A.at[0, 2:, :-2].add(1.45)
-        tmp = np.array(self.A[0])
-        tmp[2:, :-2] += 1.45
-        y = BlockArray([tmp, self.A[1]])
-        np.testing.assert_allclose(A2.full_ravel(), y.full_ravel(), rtol=5e-5)
+@pytest.mark.parametrize("op", [op.neg, op.pos, op.abs])
+def test_unary(op, x):
+    actual = op(x)
+    expected = BlockArray(op(x_i) for x_i in x)
+    assert_array_equal(actual, expected)
+    assert actual.dtype == expected.dtype
 
-        D2 = self.D.at[1].add(1.45)
-        y = BlockArray([self.D[0], self.D[1] + 1.45])
-        np.testing.assert_allclose(D2.full_ravel(), y.full_ravel(), rtol=5e-5)
 
-    def test_multiply(self):
-        A2 = self.A.at[0, 2:, :-2].multiply(1.45)
-        tmp = np.array(self.A[0])
-        tmp[2:, :-2] *= 1.45
-        y = BlockArray([tmp, self.A[1]])
-        np.testing.assert_allclose(A2.full_ravel(), y.full_ravel(), rtol=5e-5)
+@pytest.mark.parametrize(
+    "op",
+    [
+        op.mul,
+        op.mod,
+        op.lt,
+        op.le,
+        op.gt,
+        op.ge,
+        op.floordiv,
+        op.eq,
+        op.add,
+        op.truediv,
+        op.sub,
+        op.ne,
+    ],
+)
+def test_elementwise_binary(op, x, y):
+    actual = op(x, y)
+    expected = BlockArray(op(x_i, y_i) for x_i, y_i in zip(x, y))
+    assert_array_equal(actual, expected)
+    assert actual.dtype == expected.dtype
 
-        D2 = self.D.at[1].multiply(1.45)
-        y = BlockArray([self.D[0], self.D[1] * 1.45])
-        np.testing.assert_allclose(D2.full_ravel(), y.full_ravel(), rtol=5e-5)
 
-    def test_divide(self):
-        A2 = self.A.at[0, 2:, :-2].divide(1.45)
-        tmp = np.array(self.A[0])
-        tmp[2:, :-2] /= 1.45
-        y = BlockArray([tmp, self.A[1]])
-        np.testing.assert_allclose(A2.full_ravel(), y.full_ravel(), rtol=5e-5)
+def test_not_implemented_binary(x):
+    with pytest.raises(TypeError, match=r"unsupported operand type\(s\)"):
+        y = x + "a string"
 
-        D2 = self.D.at[1].divide(1.45)
-        y = BlockArray([self.D[0], self.D[1] / 1.45])
-        np.testing.assert_allclose(D2.full_ravel(), y.full_ravel(), rtol=5e-5)
 
-    def test_power(self):
-        A2 = self.A.at[0, 2:, :-2].power(2)
-        tmp = np.array(self.A[0])
-        tmp[2:, :-2] **= 2
-        y = BlockArray([tmp, self.A[1]])
-        np.testing.assert_allclose(A2.full_ravel(), y.full_ravel(), rtol=5e-5)
+def test_matmul(x):
+    # x is ((2, 3), (1,))
+    # y is ((3, 1), (1, 2))
+    y = BlockArray([[[1.0], [2.0], [3.0]], [[0.0, 1.0]]])
+    actual = x @ y
+    expected = BlockArray([[[14.0], [0.0]], [0.0, 42.0]])
+    assert_array_equal(actual, expected)
+    assert actual.dtype == expected.dtype
 
-        D2 = self.D.at[1].power(1.45)
-        y = BlockArray([self.D[0], self.D[1] ** 1.45])
-        np.testing.assert_allclose(D2.full_ravel(), y.full_ravel(), rtol=5e-5)
 
-    def test_set_slice(self):
-        with pytest.raises(TypeError):
-            C2 = self.C.at[::2, 0].set(0)
+def test_property():
+    x = BlockArray(([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]], [0.0]))
+    actual = x.shape
+    expected = ((2, 3), (1,))
+    assert actual == expected
+
+
+def test_method():
+    x = BlockArray(([[1.0, 2.0, 3.0], [0.0, 0.0, 0.0]], [42.0]))
+    actual = x.max()
+    expected = BlockArray([[3.0], [42.0]])
+    assert_array_equal(actual, expected)
+    assert actual.dtype == expected.dtype
