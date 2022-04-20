@@ -53,9 +53,14 @@ def test_elementwise_binary(op, x, y):
     assert actual.dtype == expected.dtype
 
 
+def test_not_implemented_binary(x):
+    with pytest.raises(TypeError, match=r"unsupported operand type\(s\)"):
+        y = x + "a string"
+
+
 def test_matmul(x):
     # x is ((2, 3), (1,))
-    # y will be ((3, 1), (1, 2))
+    # y is ((3, 1), (1, 2))
     y = BlockArray([[[1.0], [2.0], [3.0]], [[0.0, 1.0]]])
     actual = x @ y
     expected = BlockArray([[[14.0], [0.0]], [0.0, 42.0]])

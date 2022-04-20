@@ -229,20 +229,26 @@ class BlockArray(list):
 
     @property
     def dtype(self):
-        """Allow snp.zeros(x.shape, x.dtype) to work."""
+        """Return the dtype of the blocks, which must currently be homogeneous.
+
+        This allows snp.zeros(x.shape, x.dtype) to work without a mechanism
+        to handle to lists of dtypes.
+        """
         return self[0].dtype
 
     def __getitem__(self, key):
-        """Make, e.g., x[:2] return a BlockArray, not a list."""
+        """Indexing method equivalent to x[key].
+
+        This is overridden to make, e.g., x[:2] return a BlockArray
+        rather than a list.
+        """
         result = super().__getitem__(key)
         if not isinstance(result, jnp.ndarray):
-            return BlockArray(result)
-        return result
-
-    """ backwards compatibility methods, could be removed """
+            return BlockArray(result)  # x[k:k+1] returns a BlockArray
+        return result  # x[k] returns a DeviceArray
 
     @staticmethod
-    def array(iterable):
+    def blockarray(iterable):
         """Construct a :class:`.BlockArray` from a list or tuple of existing array-like."""
         return BlockArray(iterable)
 
@@ -256,10 +262,8 @@ jax.tree_util.register_pytree_node(
 )
 
 
-""" Wrap unary ops like -x. """
-
-
-def _unary_op_wrapper(op):
+# Wrap unary ops like -x.
+def _unary_op_wrapper(op_name):
     op = getattr(DeviceArray, op_name)
 
     @wraps(op)
@@ -272,21 +276,24 @@ def _unary_op_wrapper(op):
 for op_name in unary_ops:
     setattr(BlockArray, op_name, _unary_op_wrapper(op_name))
 
-""" Wrap binary ops like x+y. """
 
-
+# Wrap binary ops like x + y. """
 def _binary_op_wrapper(op_name):
     op = getattr(DeviceArray, op_name)
 
     @wraps(op)
     def op_ba(self, other):
+        # If other is a BA, we can assume the operation is implemented
+        # (because BAs must contain DeviceArrays)
         if isinstance(other, BlockArray):
             return BlockArray(op(x, y) for x, y in zip(self, other))
 
-        result = BlockArray(op(x, other) for x in self)
+        # If not, need to handle possible NotImplemented
+        # without this, ba + 'hi' -> [NotImplemented, NotImplemented, ...]
+        result = list(op(x, other) for x in self)
         if NotImplemented in result:
             return NotImplemented
-        return result
+        return BlockArray(result)
 
     return op_ba
 
@@ -295,9 +302,7 @@ for op_name in binary_ops:
     setattr(BlockArray, op_name, _binary_op_wrapper(op_name))
 
 
-""" Wrap DeviceArray properties. """
-
-
+# Wrap DeviceArray properties.
 def _da_prop_wrapper(prop_name):
     prop = getattr(DeviceArray, prop_name)
 
@@ -305,8 +310,12 @@ def _da_prop_wrapper(prop_name):
     @wraps(prop)
     def prop_ba(self):
         result = tuple(getattr(x, prop_name) for x in self)
+
+        # if da.prop is a DA, return BA
         if isinstance(result[0], jnp.ndarray):
             return BlockArray(result)
+
+        # otherwise, return tuple
         return result
 
     return prop_ba
@@ -315,22 +324,26 @@ def _da_prop_wrapper(prop_name):
 skip_props = ("at",)
 da_props = [
     k
-    for k, v in dict(inspect.getmembers(DeviceArray)).items()
+    for k, v in dict(inspect.getmembers(DeviceArray)).items()  # (name, method) pairs
     if isinstance(v, property) and k[0] != "_" and k not in dir(BlockArray) and k not in skip_props
 ]
 
 for prop_name in da_props:
     setattr(BlockArray, prop_name, _da_prop_wrapper(prop_name))
 
-""" Wrap DeviceArray methods. """
+# Wrap DeviceArray methods.
+def _da_method_wrapper(method_name):
+    method = getattr(DeviceArray, method_name)
 
-
-def _da_method_wrapper(method):
     @wraps(method)
     def method_ba(self, *args, **kwargs):
-        result = tuple(getattr(x, method)(*args, **kwargs) for x in self)
+        result = tuple(getattr(x, method_name)(*args, **kwargs) for x in self)
+
+        # if da.method(...) is a DA, return a BA
         if isinstance(result[0], jnp.ndarray):
             return BlockArray(result)
+
+        # otherwise return a tuple
         return result
 
     return method_ba
@@ -339,12 +352,12 @@ def _da_method_wrapper(method):
 skip_methods = ()
 da_methods = [
     k
-    for k, v in dict(inspect.getmembers(DeviceArray)).items()
+    for k, v in dict(inspect.getmembers(DeviceArray)).items()  # (name, method) pairs
     if isinstance(v, Callable)
     and k[0] != "_"
     and k not in dir(BlockArray)
     and k not in skip_methods
 ]
 
-for method in da_methods:
-    setattr(BlockArray, method, _da_method_wrapper(method))
+for method_name in da_methods:
+    setattr(BlockArray, method_name, _da_method_wrapper(method_name))

@@ -14,7 +14,8 @@ from jax.scipy.signal import convolve
 
 from scico._generic_operators import LinearOperator, Operator
 from scico.linop import Convolve, ConvolveByX
-from scico.numpy import BlockArray, is_nested
+from scico.numpy import BlockArray
+from scico.numpy.util import is_nested
 from scico.typing import BlockShape, DType, JaxArray
 
 

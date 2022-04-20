@@ -7,7 +7,6 @@ from jax.interpreters.xla import DeviceArray
 import pytest
 
 import scico.numpy as snp
-from scico.array import ensure_on_device, indexed_shape, parse_axes, slice_length
 from scico.numpy import (
     BlockArray,
     complex_dtype,
@@ -17,6 +16,7 @@ from scico.numpy import (
     no_nan_divide,
     real_dtype,
 )
+from scico.numpy.util import ensure_on_device, indexed_shape, parse_axes, slice_length
 from scico.random import randn
 
 

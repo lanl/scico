@@ -23,7 +23,9 @@ import jax.numpy as jnp
 from . import _wrappers
 from ._wrapped_function_lists import *
 from .blockarray import BlockArray
-from .util import *
+
+# allow snp.blockarray(...) to create BlockArrays
+blockarray = BlockArray.blockarray
 
 # copy most of jnp without wrapping
 _wrappers.add_attributes(

@@ -23,7 +23,8 @@ from jax.interpreters.xla import DeviceArray
 
 import scico.numpy as snp
 from scico._autograd import linear_adjoint
-from scico.numpy import BlockArray, is_complex_dtype, is_nested, shape_to_size
+from scico.numpy import BlockArray
+from scico.numpy.util import is_complex_dtype, is_nested, shape_to_size
 from scico.typing import BlockShape, DType, JaxArray, Shape
 
 
