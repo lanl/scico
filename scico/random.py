@@ -59,7 +59,7 @@ import numpy as np
 import jax
 
 from scico.numpy import BlockArray
-from scico.numpy._util import map_func_over_tuple_of_tuples
+from scico.numpy._wrappers import map_func_over_tuple_of_tuples
 from scico.typing import BlockShape, DType, JaxArray, PRNGKey, Shape
 
 

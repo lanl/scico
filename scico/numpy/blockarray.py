@@ -18,9 +18,9 @@ r"""Block array class.
 The class :class:`.BlockArray` provides a way to combine arrays of
 different shapes into a single object for use with other SCICO classes.
 A :class:`.BlockArray` consists of a list of `DeviceArray` objects,
-which we refer to as blocks. :class:`.BlockArray`s differ from lists in
+which we refer to as blocks. :class:`.BlockArray` s differ from lists in
 that, whenever possible, :class:`.BlockArray` properties and methods
-(including unary and binary operators like +, -, *, ...) automatically
+(including unary and binary operators like +, -, \*, ...) automatically
 map along the blocks, returning another :class:`.BlockArray` or tuple as
 appropriate. For example,
 
@@ -50,35 +50,49 @@ appropriate. For example,
                   [2.3, 2.3, 1.3]], dtype=float32), DeviceArray([2.4, 4.4, 8.4], dtype=float32)]
 
 
-NumPy Functions
-===============
+NumPy and SciPy Functions
+=========================
 
-:mod:`scico.numpy` provides a wrapper around :mod:`jax.numpy` where many
-of the functions have been extended to work with `BlockArray`s. In
-particular:
+:mod:`scico.numpy`, :mod:`scico.numpy.testing`, and
+:mod:`scico.scipy.special` provide wrappers around :mod:`jax.numpy`,
+:mod:`numpy.testing` and :mod:`jax.scipy.special` where many of the
+functions have been extended to work with `BlockArray` s. In particular:
 
-* When a tuple of tuples is passed as the `shape`
-argument to an array creation routine, a `BlockArray` is created.
+ * When a tuple of tuples is passed as the `shape`
+   argument to an array creation routine, a `BlockArray` is created.
+ * When a `BlockArray` is passed to a reduction function, the blocks are
+   ravelled (i.e., reshaped to be 1D) and concatenated before the reduction
+   is applied. This behavior may be prevented by passing the `axis`
+   argument, in which case the function is mapped over the blocks.
+ * When one or more `BlockArray`s is passed to a mathematical
+   function that is not a reduction, the function is mapped over
+   (corresponding) blocks.
 
-* When a `BlockArray` is passed to a reduction function, the blocks are
-ravelled (i.e., reshaped to be 1D) and concatenated before the reduction
-is applied. This behavior may be prevented by passing the `axis`
-argument, in which case the function is mapped over the blocks.
+For a list of array creation routines, see
 
-* When one or more `BlockArray`s is passed to a mathematical
-function that is not a reduction, the function is mapped over
-(corresponding) blocks.
+  ::
 
-For lists of array creation routines, reduction functions, and mathematical
-functions that have been wrapped in this manner,
-see `scico.numpy.creation_routines`, `scico.numpy.reduction_fuctions`,
-and
-`scico.numpy.mathematical_functions`.
+    >>> scico.numpy.creation_routines  # doctest: +ELLIPSIS
+    ('empty', ...)
 
-:mod:`scico.numpy.testing` provides a wrapper around :mod:`numpy.testing`
-where some functions have been extended to map over blocks,
-notably `scico.numpy.testing.allclose`.
-For a list of the extended functions, see `scico.numpy.testing_functions`.
+For a list of  reduction functions, see
+
+  ::
+
+    >>> scico.numpy.reduction_functions  # doctest: +ELLIPSIS
+    ('sum', ...)
+
+For lists of the remaining wrapped functions, see
+
+  ::
+
+    >>> scico.numpy.mathematical_functions  # doctest: +ELLIPSIS
+    ('sin', ...)
+    >>> scico.numpy.testing_functions  # doctest: +ELLIPSIS
+    ('testing.assert_allclose', ...)
+    >>> import scico.scipy
+    >>> scico.scipy.special.functions  # doctest: +ELLIPSIS
+    ('betainc', ...)
 
 
 Motivating Example
@@ -126,7 +140,7 @@ Instead, we can form a :class:`.BlockArray`: :math:`\mb{x}_B =
 Constructing a BlockArray
 =========================
 
-  .. doctest::
+  ::
 
      >>> from scico.numpy import BlockArray
      >>> import numpy as np
@@ -147,11 +161,6 @@ by a `DeviceArray` memory buffer.
 **Note**: constructing a :class:`.BlockArray` always involves a copy to
 a new `DeviceArray` memory buffer.
 
-**Note**: by default, the resulting :class:`.BlockArray` is cast to
-single precision and will have dtype ``float32`` or ``complex64``.
-
-
-
 Operating on a BlockArray
 =========================
 
@@ -160,7 +169,7 @@ Operating on a BlockArray
 Indexing
 --------
 
-`BlockArray` indexing works just like indexing on a list.
+`BlockArray` indexing works just like indexing a list.
 
 Multiplication Between BlockArray and :class:`.LinearOperator`
 --------------------------------------------------------------
@@ -197,7 +206,7 @@ import jax.numpy as jnp
 
 from jaxlib.xla_extension import DeviceArray
 
-from .function_lists import binary_ops, unary_ops
+from ._wrapped_function_lists import binary_ops, unary_ops
 
 
 class BlockArray(list):
@@ -217,18 +226,6 @@ class BlockArray(list):
             raise ValueError("Heterogeneous dtypes not supported")
 
         return super().__init__(arrays)
-
-    def _full_ravel(self) -> DeviceArray:
-        """Return a copy of ``self._data`` as a contiguous, flattened `DeviceArray`.
-
-        Note that a copy, rather than a view, of the underlying array is
-        returned. This is consistent with :func:`jax.numpy.ravel`.
-
-        Returns:
-            Copy of underlying flattened array.
-
-        """
-        return jnp.concatenate(tuple(x_i.ravel() for x_i in self))
 
     @property
     def dtype(self):
@@ -257,6 +254,7 @@ jax.tree_util.register_pytree_node(
     lambda xs: (xs, None),  # to iter
     lambda _, xs: BlockArray(xs),  # from iter
 )
+
 
 """ Wrap unary ops like -x. """
 

@@ -4,8 +4,6 @@ import operator as op
 import numpy as np
 
 import jax
-import jax.numpy as jnp
-from jax.interpreters.xla import DeviceArray
 
 import pytest
 
@@ -75,75 +73,6 @@ def test_operator_right(test_operator_obj, operator):
     x = operator(a, scalar)
     y = BlockArray(operator(a_i, scalar) for a_i in a)
     snp.testing.assert_allclose(x, y)
-
-
-# Operations between a blockarray and a flat DeviceArray
-@pytest.mark.skip  # do we want to allow ((3,4), (4, 5, 6)) + (132,) ?
-# argument against: numpy doesn't allow (3, 4) + (12,)
-@pytest.mark.parametrize("operator", math_ops + comp_ops)
-def test_ba_da_left(test_operator_obj, operator):
-    flat_da = test_operator_obj.flat_da
-    a = test_operator_obj.a
-    x = operator(flat_da, a)
-    y = BlockArray(operator(flat_da, a_i) for a_i in a)
-    snp.testing.assert_allclose(x, y, rtol=5e-5)
-
-
-@pytest.mark.skip  # see previous
-@pytest.mark.parametrize("operator", math_ops + comp_ops)
-def test_ba_da_right(test_operator_obj, operator):
-    flat_da = test_operator_obj.flat_da
-    a = test_operator_obj.a
-    x = operator(a, flat_da)
-    y = BlockArray(operator(a_i, flat_da) for a_i in a)
-    np.testing.assert_allclose(x, y)
-
-
-# Blockwise comparison between a BlockArray and Ndarray
-@pytest.mark.skip  # do we want to allow ((3,4), (4, 5, 6)) + (2,) ?
-# argument against numpy doesn't allow (3, 4) + (3,), though leading dims match
-@pytest.mark.parametrize("operator", math_ops + comp_ops)
-def test_ndarray_left(test_operator_obj, operator):
-    a = test_operator_obj.a
-    block_nd = test_operator_obj.block_nd
-
-    x = operator(a, block_nd)
-    y = BlockArray([operator(a[i], block_nd[i]) for i in range(len(a))])
-    snp.testing.assert_allclose(x, y)
-
-
-@pytest.mark.skip  # see previous
-@pytest.mark.parametrize("operator", math_ops + comp_ops)
-def test_ndarray_right(test_operator_obj, operator):
-    a = test_operator_obj.a
-    block_nd = test_operator_obj.block_nd
-
-    x = operator(block_nd, a)
-    y = BlockArray([operator(block_nd[i], a[i]) for i in range(len(a))])
-    snp.testing.assert_allclose(x, y)
-
-
-# Blockwise comparison between a BlockArray and DeviceArray
-@pytest.mark.skip  # see previous
-@pytest.mark.parametrize("operator", math_ops + comp_ops)
-def test_devicearray_left(test_operator_obj, operator):
-    a = test_operator_obj.a
-    block_da = test_operator_obj.block_da
-
-    x = operator(a, block_da)
-    y = BlockArray([operator(a[i], block_da[i]) for i in range(len(a))])
-    snp.testing.assert_allclose(x, y)
-
-
-@pytest.mark.skip  # see previous
-@pytest.mark.parametrize("operator", math_ops + comp_ops)
-def test_devicearray_right(test_operator_obj, operator):
-    a = test_operator_obj.a
-    block_da = test_operator_obj.block_da
-
-    x = operator(block_da, a)
-    y = BlockArray([operator(block_da[i], a[i]) for i in range(len(a))])
-    snp.testing.assert_allclose(x, y, atol=1e-7, rtol=0)
 
 
 # Operations between two blockarrays of same size
@@ -225,30 +154,6 @@ def test_getitem(test_operator_obj):
     np.testing.assert_allclose(x[-1], b1)
 
 
-@pytest.mark.skip()
-# this is indexing block dimension and internal dimensions simultaneously
-# supporting it adds complexity, are we okay with just x[0][1:3] instead of x[0, 1:3]?
-@pytest.mark.parametrize("index", (np.s_[0, 0], np.s_[0, 1:3], np.s_[0, :, 0:2], np.s_[0, ..., 2:]))
-def test_getitem_tuple(test_operator_obj, index):
-    a = test_operator_obj.a
-    a0 = test_operator_obj.a0
-    np.testing.assert_allclose(a[index], a0[index[1:]])
-
-
-@pytest.mark.skip()
-# `.blockidx` was an index into the underlying 1D array that no longer exists
-def test_blockidx(test_operator_obj):
-    a = test_operator_obj.a
-    a0 = test_operator_obj.a0
-    a1 = test_operator_obj.a1
-
-    # use the blockidx to index the flattened data
-    x0 = a.full_ravel()[a.blockidx(0)]
-    x1 = a.full_ravel()[a.blockidx(1)]
-    np.testing.assert_allclose(x0, a0.full_ravel())
-    np.testing.assert_allclose(x1, a1.full_ravel())
-
-
 def test_split(test_operator_obj):
     a = test_operator_obj.a
     np.testing.assert_allclose(a[0], test_operator_obj.a0)
@@ -257,8 +162,9 @@ def test_split(test_operator_obj):
 
 @pytest.mark.skip()
 # currently creation is exactly like a tuple,
-# so BlockArray(np.jnp.zeros((32,32))) makes a block array
-# with 32 1d blocks
+# so BlockArray(np.jnp.zeros((3,6))) makes a block array
+# with 3 length-6 blocks
+# TODO replace with test of new behavior
 def test_blockarray_from_one_array():
     with pytest.raises(TypeError):
         BlockArray(np.random.randn(32, 32))
@@ -273,22 +179,6 @@ def test_sum_method(test_operator_obj, axis, keepdims):
     snp_result = snp.sum(a, axis=axis, keepdims=keepdims)
 
     snp.testing.assert_allclose(method_result, snp_result)
-
-
-@pytest.mark.skip()
-# previously vdot returned a scalar,
-# in this proposal, it acts blockwize
-def test_ba_ba_vdot(test_operator_obj):
-    a = test_operator_obj.a
-    d = test_operator_obj.d
-    a0 = test_operator_obj.a0
-    a1 = test_operator_obj.a1
-    d0 = test_operator_obj.d0
-    d1 = test_operator_obj.d1
-
-    x = snp.vdot(a, d)
-    y = jnp.vdot(a.full_ravel(), d.full_ravel())
-    np.testing.assert_allclose(x, y)
 
 
 @pytest.mark.parametrize("operator", [snp.dot, snp.matmul])
@@ -355,28 +245,6 @@ def test_reduce(reduction_obj, func):
     y = func(snp.concatenate(snp.ravel(reduction_obj.a)))
     np.testing.assert_allclose(x, x_jit, rtol=1e-6)  # test jitted function
     np.testing.assert_allclose(x, y, rtol=1e-6)  # test for correctness
-
-
-@pytest.mark.skip
-# this is reduction along the block axis, which (in the old version)
-# requires all blocks to be the same shape. If you know all blocks are the same shape,
-# why use a block array?
-@pytest.mark.parametrize(**REDUCTION_PARAMS)
-def test_reduce_axis0_old(reduction_obj, func):
-    f = lambda x: func(x, axis=0)
-    x = f(reduction_obj.b)
-    x_jit = jax.jit(f)(reduction_obj.b)
-
-    np.testing.assert_allclose(x, x_jit, rtol=1e-4)  # test jitted function
-
-    # test for correctness
-    # stack into a (2, 3, 4) array, call func
-    y = func(np.stack(list(reduction_obj.b)), axis=0)
-    np.testing.assert_allclose(x, y)
-
-    with pytest.raises(ValueError):
-        # Reduction along axis=0 only works if all blocks are same shape
-        func(reduction_obj.a, axis=0)
 
 
 @pytest.mark.parametrize(**REDUCTION_PARAMS)
@@ -450,128 +318,9 @@ class TestCreators:
 
 
 @pytest.mark.skip
-# it no longer makes sense to make a BlockArray from a flattened array
-def test_incompatible_shapes():
-    # Verify that array_from_flattened raises exception when
-    # len(data_ravel) != size determined by shape_tuple
-    shape_tuple = ((32, 32), (16,))  # len == 1040
-    data_ravel = np.ones(1030)
-    with pytest.raises(ValueError):
-        BlockArray.array_from_flattened(data_ravel=data_ravel, shape_tuple=shape_tuple)
-
-
-class NestedTestObj:
-    operators = math_ops + comp_ops
-
-    def __init__(self, dtype):
-        key = None
-        scalar, key = randn(shape=(1,), dtype=dtype, key=key)
-        self.scalar = scalar.item()  # convert to float
-
-        self.a00, key = randn(shape=(2, 2, 2), dtype=dtype, key=key)
-        self.a01, key = randn(shape=(3, 2, 4), dtype=dtype, key=key)
-        self.a1, key = randn(shape=(2, 4), dtype=dtype, key=key)
-
-        self.a = BlockArray(((self.a00, self.a01), self.a1))
-
-
-@pytest.fixture(scope="module")
-def nested_obj(request):
-    yield NestedTestObj(request.param)
-
-
-@pytest.mark.skip  # deeply nested shapes no longer allowed
-@pytest.mark.parametrize("nested_obj", [np.float32, np.complex64], indirect=True)
-def test_nested_shape(nested_obj):
-    a = nested_obj.a
-
-    a00 = nested_obj.a00
-    a01 = nested_obj.a01
-    a1 = nested_obj.a1
-
-    assert a.shape == (((2, 2, 2), (3, 2, 4)), (2, 4))
-    assert a.size == 2 * 2 * 2 + 3 * 2 * 4 + 2 * 4
-
-    assert a[0].shape == ((2, 2, 2), (3, 2, 4))
-    assert a[1].shape == (2, 4)
-
-    snp.testing.assert_allclose(a[0][0], a00)
-    snp.testing.assert_allclose(a[0][1], a01)
-    snp.testing.assert_allclose(a[1], a1)
-
-    # basic test for block_sizes
-    assert a.shape == (a[0].size, a[1].size)
-
-
-NESTED_REDUCTION_PARAMS = dict(
-    argnames="nested_obj, func",
-    argvalues=(
-        list(zip(itertools.repeat(np.float32), reduction_funcs))
-        + list(zip(itertools.repeat(np.complex64), reduction_funcs))
-        + list(zip(itertools.repeat(np.float32), real_reduction_funcs))
-    ),
-    indirect=["nested_obj"],
-)
-
-
-@pytest.mark.skip  # deeply nested shapes no longer allowed
-@pytest.mark.parametrize(**NESTED_REDUCTION_PARAMS)
-def test_nested_reduce_singleton(nested_obj, func):
-    a = nested_obj.a
-    x = func(a)
-    y = func(a.full_ravel())
-    np.testing.assert_allclose(x, y, rtol=5e-5)
-
-
-@pytest.mark.skip  # deeply nested shapes no longer allowed
-@pytest.mark.parametrize(**NESTED_REDUCTION_PARAMS)
-def test_nested_reduce_axis1(nested_obj, func):
-    a = nested_obj.a
-
-    with pytest.raises(ValueError):
-        # Blocks don't conform!
-        x = func(a, axis=1)
-
-
-@pytest.mark.skip  # deeply nested shapes no longer allowed
-@pytest.mark.parametrize(**NESTED_REDUCTION_PARAMS)
-def test_nested_reduce_axis2(nested_obj, func):
-    a = nested_obj.a
-
-    x = func(a, axis=2)
-    assert x.shape == (((2, 2), (2, 4)), (2,))
-
-    y = BlockArray((func(a[0], axis=1), func(a[1], axis=1)))
-    assert x.shape == y.shape
-
-    np.testing.assert_allclose(x.full_ravel(), y.full_ravel(), rtol=5e-5)
-
-
-@pytest.mark.skip  # deeply nested shapes no longer allowed
-@pytest.mark.parametrize(**NESTED_REDUCTION_PARAMS)
-def test_nested_reduce_axis3(nested_obj, func):
-    a = nested_obj.a
-
-    x = func(a, axis=3)
-    assert x.shape == (((2, 2), (3, 4)), (2, 4))
-
-    y = BlockArray((func(a[0], axis=2), a[1]))
-    assert x.shape == y.shape
-
-    np.testing.assert_allclose(x.full_ravel(), y.full_ravel(), rtol=5e-5)
-
-
-@pytest.mark.skip
-# no longer makes sense to make BlockArray from 1d array
-def test_array_from_flattened():
-    x = np.random.randn(19)
-    x_b = ba.BlockArray.array_from_flattened(x, shape_tuple=((4, 4), (3,)))
-    assert isinstance(x_b._data, DeviceArray)
-
-
-@pytest.mark.skip
 # indexing now works just like a list of DeviceArrays:
 # x[1] = x[1].at[:].set(0)
+# TODO: some of these are new syntax?
 class TestBlockArrayIndex:
     def setup_method(self):
         key = None

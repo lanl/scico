@@ -5,25 +5,24 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Wrapped versions of :mod:`jax.scipy.special` functions.
+""":class:`scico.numpy.BlockArray`-compatible :mod:`jax.scipy.special`
+functions.
 
-This modules consists of functions from :mod:`jax.scipy.special`. Some of
-these functions are wrapped to support compatibility with
-:class:`scico.numpy.BlockArray` and are documented here. The
-remaining functions are imported directly from :mod:`jax.numpy`. While
-they can be imported from the :mod:`scico.numpy` namespace, they are not
-documented here; please consult the documentation for the source module
-:mod:`jax.scipy.special`.
+This modules is a wrapper for :mod:`jax.scipy.special` where some
+functions have been extended to automatically map over block array
+blocks as described in :class:`scico.numpy.BlockArray`
 """
 import jax.scipy.special as js
 
-from scico.numpy import _util
+from scico.numpy import _wrappers
 
-_util.add_attributes(
+# add most everything in jax.scipy.special to this module
+_wrappers.add_attributes(
     vars(),
     js.__dict__,
 )
 
+# wrap select functions
 functions = (
     "betainc",
     "entr",
@@ -51,6 +50,7 @@ functions = (
     "zeta",
     "digamma",
 )
+_wrappers.wrap_recursively(vars(), functions, _wrappers.map_func_over_blocks)
 
-
-_util.wrap_recursively(vars(), functions, _util.map_func_over_blocks)
+# clean up
+del js, _wrappers
