@@ -98,7 +98,7 @@ For lists of the remaining wrapped functions, see
 Motivating Example
 ==================
 
-Consider a two dimensional array :math:`\mb{x} \in \mathbb{R}^{n \times m}`.
+Consider a two-dimensional array :math:`\mb{x} \in \mathbb{R}^{n \times m}`.
 
 We compute the discrete differences of :math:`\mb{x}` in the horizontal
 and vertical directions, generating two new arrays: :math:`\mb{x}_h \in
