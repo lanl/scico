@@ -13,9 +13,9 @@ import numpy as np
 from jax.scipy.signal import convolve
 
 from scico._generic_operators import LinearOperator, Operator
-from scico.array import is_nested
-from scico.blockarray import BlockArray
 from scico.linop import Convolve, ConvolveByX
+from scico.numpy import BlockArray
+from scico.numpy.util import is_nested
 from scico.typing import BlockShape, DType, JaxArray
 
 
@@ -26,7 +26,7 @@ class BiConvolve(Operator):
     blocks of equal ndims, and convolves the first block with the second.
 
     If `A` is a BiConvolve operator, then
-    `A(BlockArray.array([x, h]))` equals `jax.scipy.signal.convolve(x, h)`.
+    `A(snp.blockarray([x, h]))` equals `jax.scipy.signal.convolve(x, h)`.
 
     """
 

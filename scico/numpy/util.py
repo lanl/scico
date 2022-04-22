@@ -1,16 +1,9 @@
-# -*- coding: utf-8 -*-
-# Copyright (C) 2020-2022 by SCICO Developers
-# All rights reserved. BSD 3-clause License.
-# This file is part of the SCICO package. Details of the copyright and
-# user license can be found in the 'LICENSE' file distributed with the
-# package.
-
-"""Utility functions for arrays, array shapes, array indexing, etc."""
-
+""" Utility functions for working with BlockArrays and DeviceArrays. """
 
 from __future__ import annotations
 
 import warnings
+from math import prod
 from typing import Any, List, Optional, Tuple, Union
 
 import numpy as np
@@ -19,14 +12,15 @@ import jax
 from jax.interpreters.pxla import ShardedDeviceArray
 from jax.interpreters.xla import DeviceArray
 
-import scico.blockarray
 import scico.numpy as snp
-from scico.typing import ArrayIndex, Axes, AxisIndex, DType, JaxArray, Shape
+from scico.typing import ArrayIndex, Axes, AxisIndex, BlockShape, DType, JaxArray, Shape
+
+from .blockarray import BlockArray
 
 
 def ensure_on_device(
-    *arrays: Union[np.ndarray, JaxArray, scico.blockarray.BlockArray]
-) -> Union[JaxArray, scico.blockarray.BlockArray]:
+    *arrays: Union[np.ndarray, JaxArray, BlockArray]
+) -> Union[JaxArray, BlockArray]:
     """Cast ndarrays to DeviceArrays.
 
     Cast ndarrays to DeviceArrays and leaves DeviceArrays, BlockArrays,
@@ -58,35 +52,20 @@ def ensure_on_device(
                 stacklevel=2,
             )
 
-            arrays[i] = jax.device_put(arrays[i])
         elif not isinstance(
             array,
-            (DeviceArray, scico.blockarray.BlockArray, ShardedDeviceArray),
+            (DeviceArray, BlockArray, ShardedDeviceArray),
         ):
             raise TypeError(
                 "Each item of `arrays` must be ndarray, DeviceArray, BlockArray, or "
                 f"ShardedDeviceArray; Argument {i+1} of {len(arrays)} is {type(arrays[i])}."
             )
 
+        arrays[i] = jax.device_put(arrays[i])
+
     if len(arrays) == 1:
         return arrays[0]
     return arrays
-
-
-def no_nan_divide(
-    x: Union[scico.blockarray.BlockArray, JaxArray], y: Union[scico.blockarray.BlockArray, JaxArray]
-) -> Union[scico.blockarray.BlockArray, JaxArray]:
-    """Return `x/y`, with 0 instead of NaN where `y` is 0.
-
-    Args:
-        x: Numerator.
-        y: Denominator.
-
-    Returns:
-        `x / y` with 0 wherever `y == 0`.
-    """
-
-    return snp.where(y != 0, snp.divide(x, snp.where(y != 0, y, 1)), 0)
 
 
 def parse_axes(
@@ -192,6 +171,35 @@ def indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int, ...]:
     return tuple(filter(lambda x: x is not None, idx_shape))
 
 
+def no_nan_divide(
+    x: Union[BlockArray, JaxArray], y: Union[BlockArray, JaxArray]
+) -> Union[BlockArray, JaxArray]:
+    """Return `x/y`, with 0 instead of NaN where `y` is 0.
+
+    Args:
+        x: Numerator.
+        y: Denominator.
+
+    Returns:
+        `x / y` with 0 wherever `y == 0`.
+    """
+
+    return snp.where(y != 0, snp.divide(x, snp.where(y != 0, y, 1)), 0)
+
+
+def shape_to_size(shape: Union[Shape, BlockShape]) -> Axes:
+    r"""Compute the size corresponding to a (possibly nested) shape.
+
+    Args:
+       shape: A shape tuple; possibly tuples.
+    """
+
+    if is_nested(shape):
+        return sum(prod(s) for s in shape)
+
+    return prod(shape)
+
+
 def is_nested(x: Any) -> bool:
     """Check if input is a list/tuple containing at least one list/tuple.
 
@@ -199,8 +207,7 @@ def is_nested(x: Any) -> bool:
         x: Object to be tested.
 
     Returns:
-        ``True`` if `x` is a list/tuple of list/tuples, otherwise
-        ``False``.
+        ``True`` if `x` is a list/tuple containing at least one list/tuple, ``False`` otherwise.
 
 
     Example:
@@ -212,17 +219,15 @@ def is_nested(x: Any) -> bool:
         True
 
     """
-    if isinstance(x, (list, tuple)):
-        return any([isinstance(_, (list, tuple)) for _ in x])
-    return False
+    return isinstance(x, (list, tuple)) and any([isinstance(_, (list, tuple)) for _ in x])
 
 
 def is_real_dtype(dtype: DType) -> bool:
     """Determine whether a dtype is real.
 
     Args:
-        dtype: A numpy or scico.numpy dtype (e.g. ``np.float32``,
-               ``np.complex64``).
+        dtype: A numpy or scico.numpy dtype (e.g. np.float32,
+               snp.complex64).
 
     Returns:
         ``False`` if the dtype is complex, otherwise ``True``.
@@ -247,8 +252,8 @@ def real_dtype(dtype: DType) -> DType:
     """Construct the corresponding real dtype for a given complex dtype.
 
     Construct the corresponding real dtype for a given complex dtype,
-    e.g. the real dtype corresponding to ``np.complex64`` is
-    ``np.float32``.
+    e.g. the real dtype corresponding to `np.complex64` is
+    `np.float32`.
 
     Args:
         dtype: A complex numpy or scico.numpy dtype (e.g. ``np.complex64``,

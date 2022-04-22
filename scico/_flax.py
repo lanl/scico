@@ -17,7 +17,7 @@ from flax import serialization
 from flax.core import Scope  # noqa
 from flax.linen.module import _Sentinel  # noqa
 
-from scico.blockarray import BlockArray
+from scico.numpy import BlockArray
 from scico.typing import JaxArray
 
 # The imports of Scope and _Sentinel (above) and the definition of Module

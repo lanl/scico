@@ -32,7 +32,7 @@ def test_random():
         "eval_func",
         metric="cost",
         mode="min",
-        num_samples=50,
+        num_samples=100,
         config=config,
         resources_per_trial=resources,
         hyperopt=False,

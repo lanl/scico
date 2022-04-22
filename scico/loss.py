@@ -17,8 +17,8 @@ import jax
 
 import scico.numpy as snp
 from scico import functional, linop, operator
-from scico.array import ensure_on_device, no_nan_divide
-from scico.blockarray import BlockArray
+from scico.numpy import BlockArray
+from scico.numpy.util import ensure_on_device, no_nan_divide
 from scico.scipy.special import gammaln
 from scico.solver import cg
 from scico.typing import JaxArray
@@ -201,7 +201,7 @@ class SquaredL2Loss(Loss):
             self.has_prox = True
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
-        return self.scale * (self.W.diagonal * snp.abs(self.y - self.A(x)) ** 2).sum()
+        return self.scale * snp.sum(self.W.diagonal * snp.abs(self.y - self.A(x)) ** 2)
 
     def prox(
         self, v: Union[JaxArray, BlockArray], lam: float, **kwargs
