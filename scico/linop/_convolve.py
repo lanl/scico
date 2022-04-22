@@ -23,8 +23,8 @@ from jax.interpreters.xla import DeviceArray
 from jax.scipy.signal import convolve
 
 import scico.numpy as snp
-from scico import array
 from scico._generic_operators import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
+from scico.numpy.util import ensure_on_device
 from scico.typing import DType, JaxArray, Shape
 
 
@@ -66,7 +66,7 @@ class Convolve(LinearOperator):
 
         if h.ndim != len(input_shape):
             raise ValueError(f"h.ndim = {h.ndim} must equal len(input_shape) = {len(input_shape)}")
-        self.h = array.ensure_on_device(h)
+        self.h = ensure_on_device(h)
 
         if mode not in ["full", "valid", "same"]:
             raise ValueError(f"Invalid mode={mode}; must be one of 'full', 'valid', 'same'")

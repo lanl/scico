@@ -84,7 +84,7 @@ class MatrixOperator(LinearOperator):
 
         # Can only do rank-2 arrays
         if A.ndim != 2:
-            raise TypeError(f"Expected a 2-dimensional array, got array of shape {A.shape}")
+            raise TypeError(f"Expected a two-dimensional array, got array of shape {A.shape}")
 
         super().__init__(input_shape=A.shape[1], output_shape=A.shape[0], input_dtype=self.A.dtype)
 
@@ -224,7 +224,7 @@ class MatrixOperator(LinearOperator):
 
     def to_array(self):
         """Return a :class:`numpy.ndarray` containing `self.A`."""
-        return self.A.copy()
+        return np.array(self.A)
 
     @property
     def gram_op(self):

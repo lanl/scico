@@ -4,7 +4,6 @@ import os
 import re
 import sys
 import types
-from ast import parse
 from inspect import getmembers, isfunction
 from unittest.mock import MagicMock
 
@@ -12,7 +11,12 @@ from sphinx.ext.napoleon.docstring import GoogleDocstring
 
 confpath = os.path.dirname(__file__)
 sys.path.append(confpath)
+rootpath = os.path.join(confpath, "..", "..")
+sys.path.append(rootpath)
+
 from docutil import insert_inheritance_diagram, package_classes
+
+from scico._version import package_version
 
 
 ## See
@@ -164,8 +168,7 @@ copyright = "2020-2022, SCICO Developers"
 # built documents.
 #
 # The short X.Y version.
-with open(os.path.join(confpath, "..", "..", "scico", "__init__.py")) as f:
-    version = parse(next(filter(lambda line: line.startswith("__version__"), f))).body[0].value.s
+version = package_version()
 # The full version, including alpha/beta/rc tags.
 release = version
 

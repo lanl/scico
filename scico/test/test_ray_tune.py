@@ -50,7 +50,7 @@ def test_hyperopt():
         eval_params,
         metric="cost",
         mode="min",
-        num_samples=100,
+        num_samples=50,
         config=config,
         resources_per_trial=resources,
         hyperopt=True,

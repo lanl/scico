@@ -18,13 +18,13 @@ import jax
 from jax.scipy.sparse.linalg import cg as jax_cg
 
 import scico.numpy as snp
-from scico.array import ensure_on_device, is_real_dtype
-from scico.blockarray import BlockArray
 from scico.diagnostics import IterationStats
 from scico.functional import Functional
 from scico.linop import CircularConvolve, Identity, LinearOperator
 from scico.loss import SquaredL2Loss
+from scico.numpy import BlockArray
 from scico.numpy.linalg import norm
+from scico.numpy.util import ensure_on_device, is_real_dtype
 from scico.solver import cg as scico_cg
 from scico.solver import minimize
 from scico.typing import JaxArray
@@ -516,11 +516,11 @@ class ADMM:
             f(\mb{x}) + \sum_{i=1}^N g_i(\mb{z}_i) \;.
 
         Args:
-            x: Point at which to evaluate objective function. If `None`,
+            x: Point at which to evaluate objective function. If ``None``,
                 the objective is  evaluated at the current iterate
                 :code:`self.x`.
             z_list: Point at which to evaluate objective function. If
-                `None`, the objective is evaluated at the current iterate
+                ``None``, the objective is evaluated at the current iterate
                 :code:`self.z_list`.
 
         Returns:
@@ -549,7 +549,7 @@ class ADMM:
 
         Args:
             x: Point at which to evaluate primal residual.
-                If `None`, the primal residual is evaluated at the
+                If ``None``, the primal residual is evaluated at the
                 current iterate :code:`self.x`.
 
         Returns:

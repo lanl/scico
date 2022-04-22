@@ -12,10 +12,9 @@ from typing import Union
 from jax import jit, lax
 
 from scico import numpy as snp
-from scico.array import no_nan_divide
-from scico.blockarray import BlockArray
-from scico.numpy import count_nonzero
+from scico.numpy import BlockArray, count_nonzero
 from scico.numpy.linalg import norm
+from scico.numpy.util import no_nan_divide
 from scico.typing import JaxArray
 
 from ._functional import Functional

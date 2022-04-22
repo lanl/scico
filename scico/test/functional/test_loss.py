@@ -7,13 +7,12 @@ import pytest
 # enable 64-bit mode for output dtype checks
 config.update("jax_enable_x64", True)
 
-
 from prox import prox_test
 
 import scico.numpy as snp
 from scico import functional, linop, loss
-from scico.array import complex_dtype
-from scico.random import randn
+from scico.numpy.util import complex_dtype
+from scico.random import randn, uniform
 
 
 class TestLoss:
@@ -32,7 +31,7 @@ class TestLoss:
         self.v, key = randn((n,), key=key, dtype=dtype)  # point for prox eval
         scalar, key = randn((1,), key=key, dtype=dtype)
         self.key = key
-        self.scalar = scalar.copy().ravel()[0]
+        self.scalar = scalar.item()
 
     def test_generic_squared_l2(self):
         A = linop.Identity(input_shape=self.y.shape)
@@ -40,7 +39,9 @@ class TestLoss:
         L0 = loss.Loss(self.y, A=A, f=f, scale=0.5)
         L1 = loss.SquaredL2Loss(y=self.y, A=A)
         np.testing.assert_allclose(L0(self.v), L1(self.v))
-        np.testing.assert_allclose(L0.prox(self.v, self.scalar), L1.prox(self.v, self.scalar))
+        np.testing.assert_allclose(
+            L0.prox(self.v, self.scalar), L1.prox(self.v, self.scalar), rtol=1e-6
+        )
 
     def test_generic_exception(self):
         A = linop.Diagonal(self.v)
@@ -136,7 +137,7 @@ class TestAbsLoss:
         self.x, key = randn((n,), key=key, dtype=complex_dtype(dtype))
         self.v, key = randn((n,), key=key, dtype=complex_dtype(dtype))  # point for prox eval
         scalar, key = randn((1,), key=key, dtype=dtype)
-        self.scalar = scalar.copy().ravel()[0]
+        self.scalar = scalar.item()
 
     @pytest.mark.parametrize("loss_tuple", abs_loss)
     def test_properties(self, loss_tuple):
@@ -206,3 +207,19 @@ class TestAbsLoss:
 
         pf = prox_test((1 + 1j) * snp.zeros(self.v.shape), L, L.prox, 0.0)  # complex zero v
         pf = prox_test((1 + 1j) * snp.zeros(self.v.shape), L, L.prox, 1.0)  # complex zero v
+
+
+def test_cubic_root():
+    N = 10000
+    p, key = uniform(shape=(N,), dtype=snp.float32, minval=-10.0, maxval=10.0, seed=1234)
+    q, _ = uniform(shape=(N,), dtype=snp.float32, minval=-10.0, maxval=10.0, key=key)
+    # Avoid cases of very poor numerical precision
+    p = p.at[snp.logical_and(snp.abs(p) < 2, q > 5e-2 * snp.abs(p))].set(1e1)
+    r = loss._dep_cubic_root(p, q)
+    err = snp.abs(r**3 + p * r + q)
+    assert err.max() < 2e-4
+    # Test
+    p = snp.array(1e-4, dtype=snp.float32)
+    q = snp.array(1e1, dtype=snp.float32)
+    with pytest.warns(UserWarning):
+        r = loss._dep_cubic_root(p, q)

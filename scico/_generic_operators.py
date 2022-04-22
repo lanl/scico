@@ -23,8 +23,8 @@ from jax.interpreters.xla import DeviceArray
 
 import scico.numpy as snp
 from scico._autograd import linear_adjoint
-from scico.array import is_complex_dtype, is_nested
-from scico.blockarray import BlockArray, block_sizes
+from scico.numpy import BlockArray
+from scico.numpy.util import is_complex_dtype, is_nested, shape_to_size
 from scico.typing import BlockShape, DType, JaxArray, Shape
 
 
@@ -152,8 +152,8 @@ output_dtype : {self.output_dtype}
         # Determine the shape of the "vectorized" operator (as an element of ℝ^{n × m}
         # If the function returns a BlockArray we need to compute the size of each block,
         # then sum.
-        self.input_size = int(np.sum(block_sizes(self.input_shape)))
-        self.output_size = int(np.sum(block_sizes(self.output_shape)))
+        self.input_size = shape_to_size(self.input_shape)
+        self.output_size = shape_to_size(self.output_shape)
 
         self.shape = (self.output_shape, self.input_shape)
         self.matrix_shape = (self.output_size, self.input_size)
@@ -320,8 +320,8 @@ output_dtype : {self.output_dtype}
         def concat_args(args):
             # Creates a blockarray with args and the frozen value in the correct place
             # Eg if this operator takes a blockarray with two blocks, then
-            # concat_args(args) = BlockArray.array([val, args]) if argnum = 0
-            # concat_args(args) = BlockArray.array([args, val]) if argnum = 1
+            # concat_args(args) = snp.blockarray([val, args]) if argnum = 0
+            # concat_args(args) = snp.blockarray([args, val]) if argnum = 1
 
             if isinstance(args, (DeviceArray, np.ndarray)):
                 # In the case that the original operator takes a blcokarray with two
@@ -336,7 +336,7 @@ output_dtype : {self.output_dtype}
                     arg_list.append(args[i - 1])
                 else:
                     arg_list.append(val)
-            return BlockArray.array(arg_list)
+            return snp.blockarray(arg_list)
 
         return Operator(
             input_shape=input_shape,
