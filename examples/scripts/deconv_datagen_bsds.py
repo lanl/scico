@@ -15,14 +15,14 @@ import numpy as np
 from jax import vmap
 
 from scico import plot
-from scico.flax.examples import construct_blurring_operator, load_image_data
+from scico.flax.examples import load_image_data
 
 """
-Define blurring operator.
+Define blur operator.
 """
 output_size = 256  # patch size
-channels = 1  # Gray scale problem
-blur_ksize = (5, 5)  # Size of blurring kernel
+channels = 1  # gray scale problem
+blur_ksize = (5, 5)  # size of blur kernel
 blur_sigma = 5  # STD of Gaussian blurring
 
 opBlur = construct_blurring_operator(output_size, channels, blur_ksize, blur_sigma)

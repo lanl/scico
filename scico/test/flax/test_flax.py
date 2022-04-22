@@ -273,7 +273,7 @@ def test_FlaxMap_batch_call(testobj):
     fmap = sflax.FlaxMap(testobj.dncnn, testobj.variables)
     N = 128  # image size
     chn = 1  # channels
-    batch = 8  # Batch size
+    batch = 8  # batch size
     x, key = randn((batch, N, N, chn))
     out = fmap(x)
     assert x.dtype == out.dtype
@@ -306,7 +306,7 @@ def test_variable_load(variant):
         nlayer = 17
 
     model = sflax.DnCNNNet(depth=nlayer, channels=chn, num_filters=64, dtype=np.float32)
-    # Loads weights for DnCNN
+    # Load weights for DnCNN.
     variables = sflax.load_weights(_flax_data_path("dncnn%s.npz" % variant))
 
     try:
@@ -324,7 +324,7 @@ def test_variable_load_mismatch():
 
     nlayer = 6
     model = sflax.ResNet(depth=nlayer, channels=chn, num_filters=64, dtype=np.float32)
-    # Loads weights for DnCNN
+    # Load weights for DnCNN.
     variables = sflax.load_weights(_flax_data_path("dncnn6L.npz"))
 
     # created with mismatched parameters

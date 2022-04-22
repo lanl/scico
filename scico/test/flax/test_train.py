@@ -24,7 +24,7 @@ def test_mse_loss():
     N = 256
     x, key = random.randn((N, N), seed=4321)
     y, key = random.randn((N, N), key=key)
-    # Optax uses a 0.5 factor
+    # Optax uses a 0.5 factor.
     mse_jnp = 0.5 * jax.numpy.mean((x - y) ** 2)
     mse_optx = mse_loss(y, x)
     np.testing.assert_allclose(mse_jnp, mse_optx)
@@ -43,9 +43,9 @@ class SetupTest:
         self.test_ds_simple = {"image": datain_test, "label": dataout_test}
 
         # More complex data structure
-        self.N = 128  # Signal size
-        self.chn = 1  # Number of channels
-        self.bsize = 16  # Batch size
+        self.N = 128  # signal size
+        self.chn = 1  # number of channels
+        self.bsize = 16  # batch size
         self.x, key = random.randn((4 * self.bsize, self.N, self.N, self.chn), seed=4321)
 
         xt, key = random.randn((32, self.N, self.N, self.chn), key=key)
@@ -274,7 +274,7 @@ def test_eval(testobj, model_cls):
     key = jax.random.PRNGKey(123)
     variables = model.init(key, testobj.train_ds["image"])
 
-    # From train script
+    # from train script
     out_eval, _ = sflax.only_evaluate(
         testobj.dconf,
         "./",
@@ -282,7 +282,7 @@ def test_eval(testobj, model_cls):
         testobj.test_ds,
         variables,
     )
-    # From scico FlaxMap util
+    # from scico FlaxMap util
     fmap = sflax.FlaxMap(model, variables)
     out_fmap = fmap(testobj.test_ds["image"])
 

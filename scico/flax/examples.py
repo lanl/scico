@@ -839,7 +839,7 @@ def load_image_data(
     the data read from the cached file, a
     `RunTimeError` is generated. In contrast,
     there is no checking for the specific
-    contamination (i.e. noise level, blurring
+    contamination (i.e. noise level, blur
     kernel, etc.).
 
     If no cached file is found or not enough
@@ -932,7 +932,7 @@ def load_image_data(
                         f"{'Data range labels':26s}{'Min:':6s}{train_ds['label'].min():>5.2f}{', Max:':6s}{train_ds['label'].max():>8.2f}"
                     )
                     print(
-                        "NOTE: No checking that additive noise, blurring or other preprocessing performed in the data loaded agrees with the requested preprocessing! Delete cache to guarantee requested preprocessing."
+                        "NOTE: No checking that additive noise, blur or other preprocessing performed in the data loaded agrees with the requested preprocessing! Delete cache to guarantee requested preprocessing."
                     )
 
                 return train_ds, test_ds
@@ -1007,7 +1007,7 @@ def load_image_data(
     return train_ds, test_ds
 
 
-def construct_blurring_operator(
+def construct_blur_operator(
     output_size: Union[Shape, int],
     channels: int,
     kernel_size: Shape,
@@ -1015,13 +1015,13 @@ def construct_blurring_operator(
     dtype: Any = np.float32,
 ):
     """
-    Construct blurring operator.
+    Construct blur operator.
 
     Args:
         output_size: Size of the image to blur.
         channels: Number of channels in image to blur.
-        kernel_size: Size of the blurring kernel.
-        blur_sigma: Standard deviation of the blurring kernel.
+        kernel_size: Size of the blur kernel.
+        blur_sigma: Standard deviation of the blur kernel.
         dtype: Output data type. Default: np.float32.
 
     Returns:

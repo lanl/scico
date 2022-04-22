@@ -10,7 +10,7 @@ import pytest
 
 from scico import flax as sflax
 from scico import random
-from scico.flax.examples import construct_blurring_operator, have_astra
+from scico.flax.examples import construct_blur_operator, have_astra
 from scico.flax.train.train import clip_positive, construct_traversal, train_step_post
 from scico.linop import Identity
 
@@ -54,7 +54,7 @@ class TestSet:
         blur_ksize = (9, 9)
         blur_sigma = 2.24
         output_size = (self.N, self.N)
-        opBlur = construct_blurring_operator(output_size, self.chn, blur_ksize, blur_sigma)
+        opBlur = construct_blur_operator(output_size, self.chn, blur_ksize, blur_sigma)
 
         odpdb = sflax.ODPNet(
             operator=opBlur,
@@ -75,9 +75,9 @@ class TestSet:
 @pytest.mark.skipif(not have_astra, reason="astra package not installed")
 class TestCT:
     def setup(self):
-        self.N = 32  # Signal size
-        self.chn = 1  # Number of channels
-        self.bsize = 16  # Batch size
+        self.N = 32  # signal size
+        self.chn = 1  # number of channels
+        self.bsize = 16  # batch size
         xt, key = random.randn((2 * self.bsize, self.N, self.N, self.chn), seed=4321)
 
         self.nproj = 60  # number of projections
