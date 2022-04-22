@@ -30,7 +30,7 @@ Computed Tomography
    examples/ct_svmbir_ppp_bm3d_admm_prox
    examples/ct_fan_svmbir_ppp_bm3d_admm_prox
    examples/ct_svmbir_tv_multi
-   examples/ct_astra_train_unet
+   examples/ct_astra_unet_train_foam2
 
 
 Deconvolution
@@ -74,9 +74,9 @@ Miscellaneous
    examples/denoise_tv_iso_multi
    examples/superres_ppp_dncnn_admm
    examples/video_rpca_admm
-   examples/bsds_dn_datagen
-   examples/bsds_dblr_datagen
-   examples/ct_astra_datagen
+   examples/denoise_datagen_bsds
+   examples/deconv_datagen_bsds
+   examples/ct_astra_datagen_foam2
 
 
 
@@ -142,10 +142,10 @@ Neural Networks
 .. toctree::
    :maxdepth: 1
 
-   examples/bsds_train_dncnn
-   examples/bsds_dblr_train_odp
-   examples/bsds_dblr_train_modl
-   examples/ct_astra_train_unet
+   examples/denoise_dncnn_train_bsds
+   examples/deconv_odp_train_bsds
+   examples/deconv_modl_train_bsds
+   examples/ct_astra_unet_train_foam2
 
 
 
