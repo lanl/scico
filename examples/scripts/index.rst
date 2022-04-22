@@ -17,7 +17,7 @@ Computed Tomography
    - ct_svmbir_ppp_bm3d_admm_prox.py
    - ct_fan_svmbir_ppp_bm3d_admm_prox.py
    - ct_svmbir_tv_multi.py
-   - ct_astra_train_unet.py
+   - ct_astra_unet_train_foam2.py
 
 
 Deconvolution
@@ -51,9 +51,9 @@ Miscellaneous
    - denoise_tv_iso_multi.py
    - superres_ppp_dncnn_admm.py
    - video_rpca_admm.py
-   - bsds_dn_datagen.py
-   - bsds_dblr_datagen.py
-   - ct_astra_datagen.py
+   - denoise_datagen_bsds.py
+   - deconv_datagen_bsds.py
+   - ct_astra_datagen_foam2.py
 
 
 
@@ -103,10 +103,10 @@ Sparsity
 Neural Networks
 ^^^^^^^^^^^^^^^
 
-   - bsds_train_dncnn.py
-   - bsds_dblr_train_odp.py
-   - bsds_dblr_train_modl.py
-   - ct_astra_train_unet.py
+   - denoise_dncnn_train_bsds.py
+   - deconv_odp_train_bsds.py
+   - deconv_modl_train_bsds.py
+   - ct_astra_unet_train_foam2.py
 
 
 
