@@ -13,7 +13,7 @@ import jax
 
 import scico
 from scico import numpy as snp
-from scico.blockarray import BlockArray
+from scico.numpy import BlockArray
 from scico.typing import JaxArray
 
 
@@ -248,7 +248,7 @@ class SeparableFunctional(Functional):
 
         """
         if len(v.shape) == len(self.functional_list):
-            return BlockArray.array([fi.prox(vi, lam) for fi, vi in zip(self.functional_list, v)])
+            return snp.blockarray([fi.prox(vi, lam) for fi, vi in zip(self.functional_list, v)])
         raise ValueError(
             f"Number of blocks in v, {len(v.shape)}, and length of functional_list, "
             f"{len(self.functional_list)}, do not match"

@@ -16,11 +16,11 @@ from typing import Callable, Optional, Union
 import jax
 
 import scico.numpy as snp
-from scico.array import ensure_on_device
-from scico.blockarray import BlockArray
 from scico.diagnostics import IterationStats
 from scico.functional import Functional
 from scico.loss import Loss
+from scico.numpy import BlockArray
+from scico.numpy.util import ensure_on_device
 from scico.typing import JaxArray
 from scico.util import Timer
 

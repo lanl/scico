@@ -1,16 +1,9 @@
-# -*- coding: utf-8 -*-
-# Copyright (C) 2020-2022 by SCICO Developers
-# All rights reserved. BSD 3-clause License.
-# This file is part of the SCICO package. Details of the copyright and
-# user license can be found in the 'LICENSE' file distributed with the
-# package.
-
-"""Utility functions for arrays, array shapes, array indexing, etc."""
-
+""" Utility functions for working with BlockArrays and DeviceArrays. """
 
 from __future__ import annotations
 
 import warnings
+from math import prod
 from typing import Any, List, Optional, Tuple, Union
 
 import numpy as np
@@ -20,16 +13,14 @@ from jax.interpreters.pxla import ShardedDeviceArray
 from jax.interpreters.xla import DeviceArray
 
 import scico.numpy as snp
-from scico import blockarray
-from scico.typing import Array, ArrayIndex, Axes, AxisIndex, DType, JaxArray, Shape
+from scico.typing import ArrayIndex, Axes, AxisIndex, BlockShape, DType, JaxArray, Shape
 
-JaxOrBlockArray = Union[JaxArray, blockarray.BlockArray]
-"""A jax array or a BlockArray."""
+from .blockarray import BlockArray
 
 
 def ensure_on_device(
-    *arrays: Union[Array, blockarray.BlockArray]
-) -> Union[JaxOrBlockArray, List[JaxOrBlockArray]]:
+    *arrays: Union[np.ndarray, JaxArray, BlockArray]
+) -> Union[JaxArray, BlockArray]:
     """Cast ndarrays to DeviceArrays.
 
     Cast ndarrays to DeviceArrays and leaves DeviceArrays, BlockArrays,
@@ -49,50 +40,33 @@ def ensure_on_device(
         TypeError: If the arrays contain something that is neither
            ndarray, DeviceArray, BlockArray, nor ShardedDeviceArray.
     """
-    array_list = list(arrays)
+    arrays = list(arrays)
 
-    for i, array in enumerate(array_list):
+    for i, array in enumerate(arrays):
 
         if isinstance(array, np.ndarray):
             warnings.warn(
-                f"Argument {i+1} of {len(array_list)} is an np.ndarray. "
+                f"Argument {i+1} of {len(arrays)} is an np.ndarray. "
                 f"Will cast it to DeviceArray. "
-                f"To suppress this warning cast all np.ndarray_list to DeviceArray first.",
+                f"To suppress this warning cast all np.ndarrays to DeviceArray first.",
                 stacklevel=2,
             )
 
-            array_list[i] = jax.device_put(array_list[i])
         elif not isinstance(
             array,
-            (DeviceArray, blockarray.BlockArray, ShardedDeviceArray),
+            (DeviceArray, BlockArray, ShardedDeviceArray),
         ):
             raise TypeError(
-                "Each item of `array_list` must be ndarray, DeviceArray, BlockArray, or "
-                f"ShardedDeviceArray; Argument {i+1} of {len(array_list)} is {type(array_list[i])}."
+                "Each item of `arrays` must be ndarray, DeviceArray, BlockArray, or "
+                f"ShardedDeviceArray; Argument {i+1} of {len(arrays)} is {type(arrays[i])}."
             )
 
-    if len(array_list) == 1:
-        return array_list[0]
-    return array_list
-
-
-def no_nan_divide(x: JaxOrBlockArray, y: JaxOrBlockArray) -> JaxOrBlockArray:
-    """Return `x/y`, with 0 instead of NaN where `y` is 0.
-
-    Args:
-        x: Numerator.
-        y: Denominator.
-
-    Returns:
-        `x / y` with 0 wherever `y == 0`.
-    """
-
-    return snp.where(y != 0, snp.divide(x, snp.where(y != 0, y, 1)), 0)
+        arrays[i] = jax.device_put(arrays[i])
 
 
 def parse_axes(
     axes: Axes, shape: Optional[Shape] = None, default: Optional[List[int]] = None
-) -> Tuple[int, ...]:
+) -> List[int]:
     """Normalize `axes` to a list and optionally ensure correctness.
 
     Normalize `axes` to a list and (optionally) ensure that entries refer
@@ -193,6 +167,35 @@ def indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int, ...]:
     return tuple(filter(lambda x: x is not None, idx_shape))  # type: ignore
 
 
+def no_nan_divide(
+    x: Union[BlockArray, JaxArray], y: Union[BlockArray, JaxArray]
+) -> Union[BlockArray, JaxArray]:
+    """Return `x/y`, with 0 instead of NaN where `y` is 0.
+
+    Args:
+        x: Numerator.
+        y: Denominator.
+
+    Returns:
+        `x / y` with 0 wherever `y == 0`.
+    """
+
+    return snp.where(y != 0, snp.divide(x, snp.where(y != 0, y, 1)), 0)
+
+
+def shape_to_size(shape: Union[Shape, BlockShape]) -> Axes:
+    r"""Compute the size corresponding to a (possibly nested) shape.
+
+    Args:
+       shape: A shape tuple; possibly tuples.
+    """
+
+    if is_nested(shape):
+        return sum(prod(s) for s in shape)
+
+    return prod(shape)
+
+
 def is_nested(x: Any) -> bool:
     """Check if input is a list/tuple containing at least one list/tuple.
 
@@ -200,8 +203,7 @@ def is_nested(x: Any) -> bool:
         x: Object to be tested.
 
     Returns:
-        ``True`` if `x` is a list/tuple of list/tuples, otherwise
-        ``False``.
+        ``True`` if `x` is a list/tuple containing at least one list/tuple, ``False`` otherwise.
 
 
     Example:
@@ -213,9 +215,7 @@ def is_nested(x: Any) -> bool:
         True
 
     """
-    if isinstance(x, (list, tuple)):
-        return any([isinstance(_, (list, tuple)) for _ in x])
-    return False
+    return isinstance(x, (list, tuple)) and any([isinstance(_, (list, tuple)) for _ in x])
 
 
 def is_real_dtype(dtype: DType) -> bool:
