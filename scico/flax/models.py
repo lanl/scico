@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Flax implementation of different convolutional nets.
-"""
+"""Flax implementation of different convolutional nets."""
 
 from functools import partial
 from typing import Any, Callable, Tuple
@@ -42,7 +41,7 @@ class DnCNNNet(Module):
         num_filters: Number of filters in the convolutional layers.
         kernel_size: Size of the convolution filters. Default: (3, 3).
         strides: Convolution strides. Default: (1, 1).
-        dtype: Output type. Default: `jnp.float32`.
+        dtype: Output type. Default: ``jnp.float32``.
         act: Class of activation function to apply. Default: `nn.relu`.
     """
 
@@ -77,7 +76,7 @@ class DnCNNNet(Module):
         norm = partial(
             BatchNorm,
             use_running_average=not train,
-            momentum=0.9,
+            momentum=0.99,
             epsilon=1e-5,
             dtype=self.dtype,
         )
@@ -112,8 +111,7 @@ class DnCNNNet(Module):
 class ResNet(Module):
     """Flax implementation of convolutional network with residual connection.
 
-    Net constructed from sucessive applications
-    of convolution plus batch normalization
+    Net constructed from sucessive applications of convolution plus batch normalization
     blocks and ending with residual connection
     (i.e. adding the input to the output of the
     block).
@@ -121,10 +119,11 @@ class ResNet(Module):
     Args:
         depth: Depth of residual net.
         channels: Number of channels of input tensor.
-        num_filters: Number of filters in the layers of the block. Corresponds to the number of channels in the network processing.
+        num_filters: Number of filters in the layers of the block. Corresponds to
+            the number of channels in the network processing.
         kernel_size: Size of the convolution filters. Default: 3x3.
         strides: Convolution strides. Default: 1x1.
-        dtype: Output type. Default: `jnp.float32`.
+        dtype: Output type. Default: ``jnp.float32``.
     """
 
     depth: int
@@ -157,8 +156,8 @@ class ResNet(Module):
         norm = partial(
             BatchNorm,
             use_running_average=not train,
-            momentum=0.999,
-            epsilon=1e-6,
+            momentum=0.99,
+            epsilon=1e-5,
             dtype=self.dtype,
         )
         act = relu
@@ -187,15 +186,17 @@ class ResNet(Module):
 class ConvBNNet(Module):
     """Convolution and batch normalization net.
 
-    Net constructed from sucessive applications of convolution plus batch normalization blocks. No residual connection.
+    Net constructed from sucessive applications of convolution plus batch normalization
+    blocks. No residual connection.
 
     Args:
         depth: Depth of net.
         channels: Number of channels of input tensor.
-        num_filters: Number of filters in the layers of the block. Corresponds to the number of channels in the network processing.
+        num_filters: Number of filters in the layers of the block. Corresponds to
+            the number of channels in the network processing.
         kernel_size: Size of the convolution filters. Default: 3x3.
         strides: Convolution strides. Default: 1x1.
-        dtype: Output type. Default: `jnp.float32`.
+        dtype: Output type. Default: ``jnp.float32``.
     """
 
     depth: int
@@ -225,8 +226,8 @@ class ConvBNNet(Module):
         norm = partial(
             BatchNorm,
             use_running_average=not train,
-            momentum=0.999,
-            epsilon=1e-6,
+            momentum=0.99,
+            epsilon=1e-5,
             dtype=self.dtype,
         )
         act = relu
@@ -253,18 +254,19 @@ class ConvBNNet(Module):
 
 
 class UNet(Module):
-    """Flax implementation of UNet model.
+    """Flax implementation of UNet model :cite:`ronneberger-2015-unet`.
 
     Args:
         depth: Depth of U-net.
         channels: Number of channels of input tensor.
-        num_filters: Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the network processing.
+        num_filters: Number of filters in the convolutional layer of the block.
+            Corresponds to the number of channels in the network processing.
         kernel_size: Size of the convolution filters. Default: 3x3.
         strides: Convolution strides. Default: 1x1.
         block_depth: Number of processing layers per block. Default: 2.
         window_shape: Window for reduction for pooling and downsampling. Default: 2x2.
         upsampling: Factor for expanding. Default: 2.
-        dtype: Output type. Default: `jnp.float32`.
+        dtype: Output type. Default: ``jnp.float32``.
     """
 
     depth: int
@@ -297,8 +299,8 @@ class UNet(Module):
         norm = partial(
             BatchNorm,
             use_running_average=not train,
-            momentum=0.999,
-            epsilon=1e-6,
+            momentum=0.99,
+            epsilon=1e-5,
             dtype=self.dtype,
         )
 
