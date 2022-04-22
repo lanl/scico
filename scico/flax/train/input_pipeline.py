@@ -5,7 +5,10 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Generalized data handling for training script. Includes construction of data iterator and instantiation for parallel processing.
+"""Generalized data handling for training script.
+
+Includes construction of data iterator and
+instantiation for parallel processing.
 """
 
 from typing import Any, TypedDict, Union
@@ -40,7 +43,11 @@ class IterateData:
         Args:
             dt: Dictionary of data for supervised training including images and labels.
             batch_size: Size of batch for iterating through the data.
-            train: Flag indicating use of iterator for training.  Iterator for training is infinite, iterator for testing passes once through the data.  Default: ``True``.
+            train: Flag indicating use of iterator
+                for training.  Iterator for
+                training is infinite, iterator for
+                testing passes once through the
+                data.  Default: ``True``.
             key: A PRNGKey used as the random key.  Default: ``None``.
         """
         self.dt = dt
@@ -111,11 +118,18 @@ def create_input_iter(
         dataset: Dictionary of data for supervised training including images and labels.
         batch_size: Size of batch for iterating through the data.
         size_device_prefetch: Size of prefetch buffer. Default: 2.
-        dtype: Type of data to handle. Default: `jnp.float32`.
-        train: Flag indicating the type of iterator to construct and use.  The iterator for training permutes data on each epoch while the iterator for testing passes through the data without permuting it. Default: ``True``.
+        dtype: Type of data to handle. Default: ``jnp.float32``.
+        train: Flag indicating the type of
+            iterator to construct and use.  The
+            iterator for training permutes data on
+            each epoch while the iterator for
+            testing passes through the data
+            without permuting it. Default: ``True``.
 
     Returns:
-        array-like data sharded to specific devices coming from an iterator built from the provided dataset.
+        array-like data sharded to specific
+        devices coming from an iterator built from
+        the provided dataset.
     """
     ds = IterateData(dataset, batch_size, train, key)
     it = map(prepare_data, ds)
