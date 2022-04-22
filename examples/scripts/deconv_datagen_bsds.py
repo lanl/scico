@@ -15,7 +15,7 @@ import numpy as np
 from jax import vmap
 
 from scico import plot
-from scico.flax.examples import load_image_data
+from scico.flax.examples import construct_blur_operator, load_image_data
 
 """
 Define blur operator.
@@ -23,11 +23,11 @@ Define blur operator.
 output_size = 256  # patch size
 channels = 1  # gray scale problem
 blur_ksize = (5, 5)  # size of blur kernel
-blur_sigma = 5  # STD of Gaussian blurring
+blur_sigma = 5  # Gaussian blur kernel parameter
 
-opBlur = construct_blurring_operator(output_size, channels, blur_ksize, blur_sigma)
+opBlur = construct_blur_operator(output_size, channels, blur_ksize, blur_sigma)
 
-opBlur_vmap = vmap(opBlur)  # For batch processing
+opBlur_vmap = vmap(opBlur)  # for batch processing
 
 """
 Read data from cache or generate if not available.
@@ -37,10 +37,10 @@ test_nimg = 64  # number of testing images
 nimg = train_nimg + test_nimg
 gray = True  # use gray scale images
 data_mode = "dcnv"  # deconvolution problem
-noise_level = 0.01  # Standard deviation of noise
-noise_range = False  # Use fixed noise level
-stride = 100  # Stride to sample multiple patches from each image
-augment = True  # Augment data via rotations and flips
+noise_level = 0.01  # standard deviation of noise
+noise_range = False  # use fixed noise level
+stride = 100  # stride to sample multiple patches from each image
+augment = True  # augment data via rotations and flips
 
 
 train_ds, test_ds = load_image_data(
@@ -71,7 +71,7 @@ plot.imview(
 )
 plot.imview(
     train_ds["image"][indx_tr, ..., 0],
-    title="Blured Image - Training Sample",
+    title="Blurred Image - Training Sample",
     fig=fig,
     ax=axes[0, 1],
 )
@@ -82,7 +82,10 @@ plot.imview(
     ax=axes[1, 0],
 )
 plot.imview(
-    test_ds["image"][indx_te, ..., 0], title="Blured Image - Testing Sample", fig=fig, ax=axes[1, 1]
+    test_ds["image"][indx_te, ..., 0],
+    title="Blurred Image - Testing Sample",
+    fig=fig,
+    ax=axes[1, 1],
 )
 fig.suptitle(r"Training and Testing samples")
 fig.tight_layout()

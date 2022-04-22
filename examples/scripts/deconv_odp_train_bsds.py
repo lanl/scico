@@ -21,11 +21,11 @@ where $A$ is a circular convolution, $\mathbf{y}$ is a set of blurred images, $r
 
   $$\mathbf{x}^{k+1} = \mathrm{argmin}_{\mathbf{x}} \; \alpha_k \| A \mathbf{x} - \mathbf{y} \|_2^2 + \frac{1}{2} \| \mathbf{x} - \mathbf{x}^k - \mathbf{x}^{k+1/2} \|_2^2 \;,$$
 
-which for the deblurring problem corresponds to
+which for the deconvolution problem corresponds to
 
   $$\mathbf{x}^{k+1} = \mathcal{F}^{-1} \mathrm{diag} (\alpha_k | \mathcal{K}|^2 + 1 )^{-1} \mathcal{F} \, (\alpha_k K^T * \mathbf{y} + \mathbf{x}^k + \mathbf{x}^{k+1/2}) \;,$$
 
-where $k$ is the index of the stage (iteration), $\mathbf{x}^k + \mathbf{x}^{k+1/2} = \mathrm{ResNet}(\mathbf{x}^{k})$ is the regularization (implemented as a residual convolutional neural network), $\mathbf{x}^k$ is the output of the previous stage, $\alpha_k > 0$ is a learned stage-wise parameter weighting the contribution of the fidelity term, $\mathcal{F}$ is the DFT, $K$ is the blurring kernel, and $\mathcal{K}$ is the DFT of $K$. The output of the final stage is the set of deblurred images.
+where $k$ is the index of the stage (iteration), $\mathbf{x}^k + \mathbf{x}^{k+1/2} = \mathrm{ResNet}(\mathbf{x}^{k})$ is the regularization (implemented as a residual convolutional neural network), $\mathbf{x}^k$ is the output of the previous stage, $\alpha_k > 0$ is a learned stage-wise parameter weighting the contribution of the fidelity term, $\mathcal{F}$ is the DFT, $K$ is the blur kernel, and $\mathcal{K}$ is the DFT of $K$. The output of the final stage is the set of deblurred images.
 """
 
 import os
@@ -37,7 +37,7 @@ import jax.numpy as jnp
 
 from scico import flax as sflax
 from scico import plot
-from scico.flax.examples import construct_blurring_operator, load_image_data
+from scico.flax.examples import construct_blur_operator, load_image_data
 from scico.flax.train.train import clip_positive, construct_traversal, train_step_post
 from scico.metric import psnr, snr
 
@@ -50,16 +50,16 @@ platform = jax.lib.xla_bridge.get_backend().platform
 print("Platform: ", platform)
 
 """
-Define blurring operator.
+Define blur operator.
 """
 output_size = 256  # patch size
-channels = 1  # Gray scale problem
-blur_ksize = (5, 5)  # Size of blurring kernel
-blur_sigma = 5  # STD of Gaussian blurring
+channels = 1  # gray scale problem
+blur_ksize = (5, 5)  # size of blur kernel
+blur_sigma = 5  # Gaussian blur kernel parameter
 
-opBlur = construct_blurring_operator(output_size, channels, blur_ksize, blur_sigma)
+opBlur = construct_blur_operator(output_size, channels, blur_ksize, blur_sigma)
 
-opBlur_vmap = jax.vmap(opBlur)  # For batch processing in data generation
+opBlur_vmap = jax.vmap(opBlur)  # for batch processing in data generation
 
 """
 Read data from cache or generate if not available.
@@ -69,10 +69,10 @@ test_nimg = 64  # number of testing images
 nimg = train_nimg + test_nimg
 gray = True  # use gray scale images
 data_mode = "dcnv"  # deconvolution problem
-noise_level = 0.01  # Standard deviation of noise
-noise_range = False  # Use fixed noise level
-stride = 100  # Stride to sample multiple patches from each image
-augment = True  # Augment data via rotations and flips
+noise_level = 0.01  # standard deviation of noise
+noise_range = False  # use fixed noise level
+stride = 100  # stride to sample multiple patches from each image
+augment = True  # augment data via rotations and flips
 
 
 train_ds, test_ds = load_image_data(
@@ -195,7 +195,7 @@ plot.imview(
     fig=fig,
     ax=axes[2],
 )
-fig.suptitle(r"Compare ODPNet Deblurring")
+fig.suptitle(r"Compare ODPNet Deconvolution")
 fig.tight_layout()
 fig.colorbar(
     axes[2].get_images()[0],
