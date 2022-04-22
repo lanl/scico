@@ -11,7 +11,7 @@ ModuleDef = Any
 PyTree = Any
 
 
-def load_weights(filename: str):
+def load_weights(filename: str) -> PyTree:
     """Load trained model weights.
 
     Args:

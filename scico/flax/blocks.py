@@ -61,7 +61,7 @@ class ConvBNBlock(Module):
 
 
 class ConvBlock(Module):
-    """Define convolution Flax block.
+    """Define Flax convolution block.
 
     Args:
         num_filters: Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
