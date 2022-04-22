@@ -63,6 +63,10 @@ def ensure_on_device(
 
         arrays[i] = jax.device_put(arrays[i])
 
+    if len(arrays) == 1:
+        return arrays[0]
+    return arrays
+
 
 def parse_axes(
     axes: Axes, shape: Optional[Shape] = None, default: Optional[List[int]] = None
