@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Flax implementation of different convolutional blocks.
-"""
+"""Flax implementation of different convolutional blocks."""
 
 from typing import Any, Callable, Tuple
 
@@ -23,7 +22,9 @@ class ConvBNBlock(Module):
     """Define convolution and batch normalization Flax block.
 
     Args:
-        num_filters: Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
+        num_filters: Number of filters in the
+            convolutional layer of the block.
+            Corresponds to the number of channels in the output tensor.
         conv: Flax module implementing the convolution layer to apply.
         norm: Flax module implementing the batch normalization layer to apply.
         act: Flax function defining the activation operation to apply.
@@ -64,7 +65,8 @@ class ConvBlock(Module):
     """Define Flax convolution block.
 
     Args:
-        num_filters: Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
+        num_filters: Number of filters in the convolutional layer of the block.
+            Corresponds to the number of channels in the output tensor.
         conv: Flax module implementing the convolution layer to apply.
         act: Flax function defining the activation operation to apply.
         kernel_size: A shape tuple defining the size of the convolution filters. Default: (3, 3).
@@ -102,7 +104,8 @@ class ConvBNPoolBlock(Module):
     """Define convolution, batch normalization and pooling Flax block.
 
     Args:
-        num_filters: Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
+        num_filters: Number of filters in the convolutional layer of the block.
+            Corresponds to the number of channels in the output tensor.
         conv: Flax module implementing the convolution layer to apply.
         norm: Flax module implementing the batch normalization layer to apply.
         act: Flax function defining the activation operation to apply.
@@ -149,7 +152,8 @@ class ConvBNUpsampleBlock(Module):
     """Define convolution, batch normalization and upsample Flax block.
 
     Args:
-        num_filters: Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
+        num_filters: Number of filters in the convolutional layer of the block.
+            Corresponds to the number of channels in the output tensor.
         conv: Flax module implementing the convolution layer to apply.
         norm: Flax module implementing the batch normalization layer to apply.
         act: Flax function defining the activation operation to apply.
@@ -193,8 +197,11 @@ class ConvBNMultiBlock(Module):
     """Block constructed from sucessive applications of :class:`ConvBNBlock`.
 
     Args:
-        num_blocks: Number of convolutional batch normalization blocks to apply. Each block has its own parameters for convolution and batch normalization.
-        num_filters: Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
+        num_blocks: Number of convolutional batch normalization blocks to
+            apply. Each block has its own parameters for convolution
+            and batch normalization.
+        num_filters: Number of filters in the convolutional layer of the block.
+            Corresponds to the number of channels in the output tensor.
         conv: Flax module implementing the convolution layer to apply.
         norm: Flax module implementing the batch normalization layer to apply.
         act: Flax function defining the activation operation to apply.
