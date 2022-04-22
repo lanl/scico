@@ -51,10 +51,10 @@ class TestSet:
     def test_odpdcnv_default(self):
         y, key = random.randn((10, self.N, self.N, self.chn), seed=1234)
 
-        blur_ksize = (9, 9)
+        blur_shape = (9, 9)
         blur_sigma = 2.24
         output_size = (self.N, self.N)
-        opBlur = construct_blur_operator(output_size, self.chn, blur_ksize, blur_sigma)
+        opBlur = construct_blur_operator(output_size, self.chn, blur_shape, blur_sigma)
 
         odpdb = sflax.ODPNet(
             operator=opBlur,
