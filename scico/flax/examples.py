@@ -82,7 +82,8 @@ if have_xdesign:
             more sparse than for material 2 by design.
 
             Args:
-                size_range: The radius, or range of radius, of the circles to be added. Default: [0.05, 0.01].
+                size_range: The radius, or range of radius, of the
+                    circles to be added. Default: [0.05, 0.01].
                 gap: Minimum distance between circle boundaries. Default: 0.
                 porosity: Target porosity. Must be a value between [0, 1]. Default: 1.
                 attn1: Mass attenuation parameter for material 1. Default: 1.
@@ -114,7 +115,8 @@ def generate_foam2_images(seed: float, size: int, ndata: int) -> Array:
     if not have_xdesign:
         raise RuntimeError("Package xdesign is required for use of this function.")
 
-    key = jax.random.PRNGKey(seed)  # In XDesign?
+    # key = jax.random.PRNGKey(seed)  # In XDesign?
+    np.random.seed(seed)
     oneimg = lambda _: jnp.atleast_3d(
         discrete_phantom(Foam2(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=size)
     )
@@ -236,10 +238,8 @@ def load_ct_data(
     """
     Load or generate CT data.
 
-    Load or generate CT data for training of
-    machine learning network models. If
-    cached file exists and enough data of
-    the requested size is available, data is
+    Load or generate CT data for training of machine learning network models.
+    If cached file exists and enough data of the requested size is available, data is
     loaded and returned.
 
     If either `size` or `nproj` requested does
@@ -267,8 +267,10 @@ def load_ct_data(
     Returns:
        tuple: A tuple (trdt, ttdt) containing:
 
-           - **trdt** : (Dictionary): Collection of images (key `img`), sinograms (key `sino`) and filtered back projections (key `fbp`) for training.
-           - **ttdt** : (Dictionary): Collection of images (key `img`), sinograms (key `sino`) and filtered back projections (key `fbp`) for testing.
+           - **trdt** : (Dictionary): Collection of images (key `img`),
+               sinograms (key `sino`) and filtered back projections (key `fbp`) for training.
+           - **ttdt** : (Dictionary): Collection of images (key `img`),
+               sinograms (key `sino`) and filtered back projections (key `fbp`) for testing.
     """
     # Set default cache path if not specified.
     if cache_path is None:
@@ -287,12 +289,14 @@ def load_ct_data(
         # Check image size.
         if (trdt_in["img"].shape[1] != size) or (ttdt_in["img"].shape[1] != size):
             raise RuntimeError(
-                f"{'Provided size: '}{size}{' does not match read train size: '}{trdt_in['img'].shape[1]}{' or test size: '}{ttdt_in['img'].shape[1]}"
+                f"{'Provided size: '}{size}{' does not match read train size: '}"
+                "{trdt_in['img'].shape[1]}{' or test size: '}{ttdt_in['img'].shape[1]}"
             )
         # Check number of projections.
         if (trdt_in["sino"].shape[1] != nproj) or (ttdt_in["sino"].shape[1] != nproj):
             raise RuntimeError(
-                f"{'Provided views: '}{nproj}{' does not match read train views: '}{trdt_in['sino'].shape[1]}{' or test views: '}{ttdt_in['sino'].shape[1]}"
+                f"{'Provided views: '}{nproj}{' does not match read train views: '}"
+                "{trdt_in['sino'].shape[1]}{' or test views: '}{ttdt_in['sino'].shape[1]}"
             )
         # Check that enough data is available.
         if trdt_in["img"].shape[0] >= train_nimg:
@@ -310,24 +314,29 @@ def load_ct_data(
                 if verbose:
                     print(f"{'Data read from path:':22s}{cache_path}")
                     print(
-                        f"{'Data range images':26s}{'Min:':6s}{trdt['img'].min():>5.2f}{', Max:':6s}{trdt['img'].max():>8.2f}"
+                        f"{'Data range images':26s}{'Min:':6s}{trdt['img'].min():>5.2f}"
+                        "{', Max:':6s}{trdt['img'].max():>8.2f}"
                     )
                     print(
-                        f"{'Data range sinograms':26s}{'Min:':6s}{trdt['sino'].min():>5.2f}{', Max:':6s}{trdt['sino'].max():>8.2f}"
+                        f"{'Data range sinograms':26s}{'Min:':6s}{trdt['sino'].min():>5.2f}"
+                        "{', Max:':6s}{trdt['sino'].max():>8.2f}"
                     )
                     print(
-                        f"{'Data range FBP':26s}{'Min:':6s}{trdt['fbp'].min():>5.2f}{', Max:':6s}{trdt['fbp'].max():>8.2f}"
+                        f"{'Data range FBP':26s}{'Min:':6s}{trdt['fbp'].min():>5.2f}"
+                        "{', Max:':6s}{trdt['fbp'].max():>8.2f}"
                     )
 
                 return trdt, ttdt
 
             elif verbose:
                 print(
-                    f"{'Not enough data in testing file':34s}{'Requested:':12s}{test_nimg}{' Available:':12s}{ttdt_in['img'].shape[0]}"
+                    f"{'Not enough data in testing file':34s}{'Requested:':12s}{test_nimg}"
+                    "{' Available:':12s}{ttdt_in['img'].shape[0]}"
                 )
         elif verbose:
             print(
-                f"{'Not enough data in training file':34s}{'Requested:':12s}{train_nimg}{' Available:':12s}{trdt_in['img'].shape[0]}"
+                f"{'Not enough data in training file':34s}{'Requested:':12s}{train_nimg}"
+                "{' Available:':12s}{trdt_in['img'].shape[0]}"
             )
 
     # Generate new data.
@@ -363,9 +372,9 @@ def load_ct_data(
             f"{'Data range images':26s}{'Min:':6s}{img.min():>5.2f}{', Max:':6s}{img.max():>8.2f}"
         )
         print(
-            f"{'Data range sinograms':26s}{'Min:':6s}{sino.min():>5.2f}{', Max:':6s}{sino.max():>8.2f}"
+            f"{'Range sinograms':26s}{'Min:':6s}{sino.min():>5.2f}{', Max:':6s}{sino.max():>8.2f}"
         )
-        print(f"{'Data range FBP':26s}{'Min:':6s}{fbp.min():>5.2f}{', Max:':6s}{fbp.max():>8.2f}")
+        print(f"{'Range FBP':26s}{'Min:':6s}{fbp.min():>5.2f}{', Max:':6s}{fbp.max():>8.2f}")
 
     return trdt, ttdt
 
@@ -521,7 +530,8 @@ class RandomNoise:
         """
         Args:
             noise_level: Standard dev of the Gaussian noise.
-            range_flag: If true, the standard dev is randomly selected between 50% and 100% of `noise_level` set. Default: ``False``.
+            range_flag: If true, the standard dev is randomly selected
+                between 50% and 100% of `noise_level` set. Default: ``False``.
         """
         self.range_flag = range_flag
         if range_flag:
@@ -576,8 +586,9 @@ def reconfigure_images(
         gray_flag: If true, converts to gray scale.
         num_img: If specified, reads that number of images, if not reads all the images in path.
         multi_flag: If true, samples multiple patches of specified size in each image.
-        stride: Stride between patch origins (indexed from left-top corner). If int, the same stride is used in h and w.
-        dtype: type of array. Default: `np.float32`.
+        stride: Stride between patch origins (indexed from left-top
+            corner). If int, the same stride is used in h and w.
+        dtype: type of array. Default: ``np.float32``.
 
     Returns:
         Reconfigured nd-array.
@@ -676,7 +687,8 @@ def build_image_dataset(
            - **train_ds** : (DataSetDict): Dictionary of training data (includes images and labels).
            - **test_ds** : (DataSetDict): Dictionary of testing data (includes images and labels).
     """
-    # Reconfigure images by converting to gray scale or sampling multiple patches according to specified configuration.
+    # Reconfigure images by converting to gray scale or sampling multiple
+    # patches according to specified configuration.
     S_train = reconfigure_images(
         imgs_train,
         config["output_size"],
@@ -734,7 +746,9 @@ def images_read(path: str, ext: str = "jpg") -> Array:
     """Read a collection of color images from a set of files in the specified directory.
 
     All files with extension `ext` (i.e. matching glob `*.ext`)
-    in directory `path` are assumed to be image files and are read. Images may have different aspect ratios, therefore, they are transposed to keep the aspect ratio of the first image read.
+    in directory `path` are assumed to be image files and are read.
+    Images may have different aspect ratios, therefore, they are
+    transposed to keep the aspect ratio of the first image read.
 
     Args:
         path: Path to directory containing the image files.
@@ -834,7 +848,7 @@ def load_image_data(
     transf: Optional[Callable] = None,
     stride: Optional[int] = None,
     augment: bool = False,
-):  # pragma: no cover
+) -> Tuple[DataSetDict, ...]:  # pragma: no cover
     """
     Load and/or pre-process image data.
 
@@ -868,15 +882,20 @@ def load_image_data(
         train_nimg: Number of images required for sampling training data.
         test_nimg: Number of images required for sampling testing data.
         size: Size of reconstruction images.
-        gray_flag: Flag to indicate if gray scale images or color images. When ``True`` gray scale images are used.
+        gray_flag: Flag to indicate if gray scale images or color images.
+            When ``True`` gray scale images are used.
         data_mode: Type of image problem. Options are: `dn` for denosing, `dcnv` for deconvolution.
         cache_path: Directory in which processed data is saved. Default: ``None``.
         verbose: Flag indicating whether to print status messages. Default: ``False``.
         noise_level: Standard deviation of the Gaussian noise.
-        noise_range: Flag to indicate if a fixed or a random standard deviation must be used. Default: ``False`` i.e. fixed standard deviation given by `noise_level`.
-        transf: Operator for blurring or other non-trivial transformations. Should be able to handle batched (NHWC) data. Default: ``None``.
-        stride: Stride between patch origins (indexed from left-top corner). Default: 0 (i.e. no stride, only one patch per image).
-        augment: Augment training data set by flip and 90 degrees rotation. Default: ``False`` (i.e. no augmentation).
+        noise_range: Flag to indicate if a fixed or a random standard deviation must be used.
+            Default: ``False`` i.e. fixed standard deviation given by `noise_level`.
+        transf: Operator for blurring or other non-trivial transformations.
+            Should be able to handle batched (NHWC) data. Default: ``None``.
+        stride: Stride between patch origins (indexed from left-top corner).
+            Default: 0 (i.e. no stride, only one patch per image).
+        augment: Augment training data set by flip and 90 degrees rotation.
+            Default: ``False`` (i.e. no augmentation).
 
     Returns:
        tuple: A tuple (train_ds, test_ds) containing:
@@ -906,7 +925,8 @@ def load_image_data(
         # Check image size.
         if (train_in.shape[1] != size) or (test_in.shape[1] != size):
             raise RuntimeError(
-                f"{'Provided size: '}{size}{' does not match read train size: '}{train_in.shape[1]}{' or test size: '}{test_in.shape[1]}"
+                f"{'Provided size: '}{size}{' does not match read train size: '}"
+                "{train_in.shape[1]}{' or test size: '}{test_in.shape[1]}"
             )
         # Check gray scale or color images.
         C_train = train_in.shape[-1]
@@ -917,7 +937,8 @@ def load_image_data(
             C = 3
         if (C_train != C) or (C_test != C):
             raise RuntimeError(
-                f"{'Provided channels: '}{C}{' do not match read train channels: '}{C_train}{' or test channels: '}{C_test}"
+                f"{'Provided channels: '}{C}{' do not match read train channels: '}"
+                "{C_train}{' or test channels: '}{C_test}"
             )
         # Check that enough images were sampled.
         if trdt["numimg"] >= train_nimg:
@@ -935,24 +956,30 @@ def load_image_data(
                     print(f"{'Train images':26s}{train_ds['image'].shape[0]}")
                     print(f"{'Test images':26s}{test_ds['image'].shape[0]}")
                     print(
-                        f"{'Data range images':26s}{'Min:':6s}{train_ds['image'].min():>5.2f}{', Max:':6s}{train_ds['image'].max():>8.2f}"
+                        f"{'Data range images':26s}{'Min:':6s}{train_ds['image'].min():>5.2f}"
+                        "{', Max:':6s}{train_ds['image'].max():>8.2f}"
                     )
                     print(
-                        f"{'Data range labels':26s}{'Min:':6s}{train_ds['label'].min():>5.2f}{', Max:':6s}{train_ds['label'].max():>8.2f}"
+                        f"{'Data range labels':26s}{'Min:':6s}{train_ds['label'].min():>5.2f}"
+                        "{', Max:':6s}{train_ds['label'].max():>8.2f}"
                     )
                     print(
-                        "NOTE: No checking that additive noise, blur or other preprocessing performed in the data loaded agrees with the requested preprocessing! Delete cache to guarantee requested preprocessing."
+                        "NOTE: No checking that additive noise, blur or other preprocessing"
+                        " performed in the data loaded agrees with the requested preprocessing!"
+                        " Delete cache to guarantee requested preprocessing."
                     )
 
                 return train_ds, test_ds
 
             elif verbose:
                 print(
-                    f"{'Not enough images sampled in testing file':34s}{'Requested:':12s}{test_nimg}{' Sampled:':12s}{ttdt['numimg']}"
+                    f"{'Not enough images sampled in testing file':34s}{'Requested:':12s}"
+                    "{test_nimg}{'Sampled:':12s}{ttdt['numimg']}"
                 )
         elif verbose:
             print(
-                f"{'Not enough images sampled in training file':34s}{'Requested:':12s}{train_nimg}{' Available:':12s}{trdt['numimg']}"
+                f"{'Not enough images sampled in training file':34s}{'Requested:':12s}{train_nimg}"
+                "{' Available:':12s}{trdt['numimg']}"
             )
 
     # Check if BSDS folder exists if not create and download BSDS data.
@@ -1007,10 +1034,12 @@ def load_image_data(
         print(f"{'Train images':26s}{train_ds['image'].shape[0]}")
         print(f"{'Test images':26s}{test_ds['image'].shape[0]}")
         print(
-            f"{'Data range images':26s}{'Min:':6s}{train_ds['image'].min():>5.2f}{', Max:':6s}{train_ds['image'].max():>8.2f}"
+            f"{'Data range images':26s}{'Min:':6s}{train_ds['image'].min():>5.2f}"
+            "{', Max:':6s}{train_ds['image'].max():>8.2f}"
         )
         print(
-            f"{'Data range labels':26s}{'Min:':6s}{train_ds['label'].min():>5.2f}{', Max:':6s}{train_ds['label'].max():>8.2f}"
+            f"{'Data range labels':26s}{'Min:':6s}{train_ds['label'].min():>5.2f}"
+            "{', Max:':6s}{train_ds['label'].max():>8.2f}"
         )
 
     return train_ds, test_ds
@@ -1031,10 +1060,12 @@ def construct_blur_operator(
         channels: Number of channels in image to blur.
         kernel_size: Size of the blur kernel.
         blur_sigma: Standard deviation of the blur kernel.
-        dtype: Output data type. Default: np.float32.
+        dtype: Output data type. Default: ``np.float32``.
 
     Returns:
-       An operator that computes a circular convolution with the provided kernel. The input to the constructed operator should be HWC with H and W spatial dimensions given by `output_size` and C the given `channels`.
+       An operator that computes a circular convolution with the provided kernel.
+           The input to the constructed operator should be HWC with H and W spatial dimensions
+           given by `output_size` and C the given `channels`.
     """
     if isinstance(output_size, int):
         output_size = (output_size, output_size)
