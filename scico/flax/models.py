@@ -254,10 +254,10 @@ class ConvBNNet(Module):
 
 
 class UNet(Module):
-    """Flax implementation of UNet model :cite:`ronneberger-2015-unet`.
+    """Flax implementation of U-Net model :cite:`ronneberger-2015-unet`.
 
     Args:
-        depth: Depth of U-net.
+        depth: Depth of U-Net.
         channels: Number of channels of input tensor.
         num_filters: Number of filters in the convolutional layer of the block.
             Corresponds to the number of channels in the network processing.
@@ -281,14 +281,14 @@ class UNet(Module):
 
     @compact
     def __call__(self, x: Array, train: bool = True) -> Array:
-        """Apply UNet.
+        """Apply U-Net.
 
         Args:
             x: The nd-array to be transformed.
             train: Flag to differentiate between training and testing stages.
 
         Returns:
-            The UNet result.
+            The U-Net result.
         """
         # Definition using arguments common to all convolutions.
         conv = partial(
@@ -309,7 +309,7 @@ class UNet(Module):
         # Definition of upscaling function.
         upfn = partial(upscale_nn, scale=self.upsampling)
 
-        # Definition and application of UNet.
+        # Definition and application of U-Net.
         x = ConvBNMultiBlock(
             self.block_depth,
             self.num_filters,

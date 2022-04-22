@@ -158,9 +158,8 @@ def create_exp_lr_schedule(config: ConfigDict) -> optax._src.base.Schedule:
     """Create learning rate schedule to have an exponential decay.
 
     Args:
-        config: Dictionary of configuration. The values
-        to use corresponds to the `base_learning_rate`,
-        `num_epochs`, `steps_per_epochs` and `lr_decay_rate`.
+        config: Dictionary of configuration. The values to use correspond to `base_learning_rate`,
+            `num_epochs`, `steps_per_epochs` and `lr_decay_rate`.
 
     Returns:
         schedule: A function that maps step counts to values.

@@ -24,7 +24,7 @@ ModuleDef = Any
 
 
 class MoDLNet(Module):
-    r"""Flax implementation of MoDL :cite:`aggarwal-2019-modl`.
+    """Flax implementation of MoDL :cite:`aggarwal-2019-modl`.
 
     Flax implementation of the model-based deep learning (MoDL)
     architecture for inverse problems described in :cite:`aggarwal-2019-modl`.
@@ -42,6 +42,7 @@ class MoDLNet(Module):
         dtype: Output type. Default: ``jnp.float32``.
         cg_iter: Number of iterations for cg solver. Default: 10.
     """
+
     operator: ModuleDef
     depth: int
     channels: int
@@ -146,12 +147,11 @@ def cg_solver(A: Callable, b: Array, x0: Array = None, maxiter: int = 50) -> Arr
 
 
 class ODPProxDnBlock(Module):
-    r"""Flax implementation of ODP proximal gradient
+    """Flax implementation of ODP proximal gradient
     denoise block :cite:`diamond-2018-odp`.
 
-    Flax implementation of the unrolled optimization
-    with deep priors (ODP) proximal gradient block for
-    denoising described in :cite:`diamond-2018-odp`.
+    Flax implementation of the unrolled optimization with deep priors (ODP) proximal gradient block
+        for denoising described in :cite:`diamond-2018-odp`.
 
     Args:
         operator: Operator for computing forward and adjoint mappings. In this case it corresponds
@@ -165,6 +165,7 @@ class ODPProxDnBlock(Module):
         alpha_ini: Initial value of the fidelity weight `alpha`. Default: 0.2.
         dtype: Output type. Default: ``jnp.float32``.
     """
+
     operator: ModuleDef
     depth: int
     channels: int
@@ -211,13 +212,11 @@ class ODPProxDnBlock(Module):
 
 
 class ODPProxDcnvBlock(Module):
-    r"""Flax implementation of ODP proximal
-    gradient deconvolution (deblurring) block :cite:`diamond-2018-odp`.
+    """Flax implementation of ODP proximal
+    gradient deconvolution block :cite:`diamond-2018-odp`.
 
-    Flax implementation of the unrolled optimization
-    with deep priors (ODP) proximal gradient block for
-    deconvolution under Gaussian noise described in
-    :cite:`diamond-2018-odp`.
+    Flax implementation of the unrolled optimization with deep priors (ODP) proximal gradient block
+        for deconvolution under Gaussian noise described in :cite:`diamond-2018-odp`.
 
     Args:
         operator: Operator for computing forward and adjoint mappings. In this case it correponds
@@ -231,6 +230,7 @@ class ODPProxDcnvBlock(Module):
         alpha_ini: Initial value of the fidelity weight `alpha`. Default: 0.99.
         dtype: Output type. Default: ``jnp.float32``.
     """
+
     operator: ModuleDef
     depth: int
     channels: int
@@ -298,12 +298,10 @@ class ODPProxDcnvBlock(Module):
 
 class ODPGrDescBlock(Module):
     r"""Flax implementation of ODP gradient
-    descent with L2 loss block :cite:`diamond-2018-odp`.
+    descent with :math:`\ell_2` loss block :cite:`diamond-2018-odp`.
 
-    Flax implementation of the unrolled optimization
-    with deep priors (ODP) gradient descent block for
-    inversion using L2 loss described in
-    :cite:`diamond-2018-odp`.
+    Flax implementation of the unrolled optimization with deep priors (ODP) gradient descent block
+        for inversion using :math:`\ell_2` loss described in :cite:`diamond-2018-odp`.
 
     Args:
         operator: Operator for computing forward and adjoint mappings. In this case it corresponds
@@ -370,14 +368,12 @@ class ODPGrDescBlock(Module):
 
 
 class ODPNet(Module):
-    r"""Flax implementation of network
+    """Flax implementation of network
     :cite:`diamond-2018-odp`.
 
-    Flax implementation of the unrolled optimization
-    with deep priors (ODP) network for inverse problems
-    described in :cite:`diamond-2018-odp`. It can be
-    constructed with proximal gradient blocks or
-    gradient descent blocks.
+    Flax implementation of the unrolled optimization with deep priors (ODP) network
+        for inverse problems described in :cite:`diamond-2018-odp`. It can be constructed
+        with proximal gradient blocks or gradient descent blocks.
 
     Args:
         operator: Operator for computing forward and adjoint mappings.
@@ -392,6 +388,7 @@ class ODPNet(Module):
         dtype: Output type. Default: ``jnp.float32``.
         odp_block: processing block to apply. Default :class:`ODPProxDnBlock`.
     """
+
     operator: ModuleDef
     depth: int
     channels: int
