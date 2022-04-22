@@ -24,16 +24,20 @@ KeyArray = Union[Array, jax._src.prng.PRNGKeyArray]
 
 
 class DataSetDict(TypedDict):
-    """Definition of the dictionary structure
-    expected for the data sets for training."""
+    """Dictionary structure for training data sets.
+
+    Definition of the dictionary structure
+    expected for the training data sets."""
 
     image: Array  # input
     label: Array  # output
 
 
 class IterateData:
-    """Class to prepare image data for training and
-    testing. It uses the generator pattern to obtain
+    """Class to load data for training and
+    testing.
+
+    It uses the generator pattern to obtain
     an iterable object.
     """
 
@@ -76,9 +80,10 @@ class IterateData:
         return self
 
     def __next__(self):
-        """Gets next batch. During training it
-        reshuffles the batches when the data is
-        exhausted."""
+        """Gets next batch.
+
+        During training it reshuffles the batches
+        when the data is exhausted."""
         if self.ns >= self.steps_per_epoch:
             if self.train:
                 self.reset()
@@ -111,7 +116,8 @@ def create_input_iter(
 ) -> Any:
     """Create data iterator for training.
 
-    Create data iterator for training by sharding and prefetching batches on device.
+    Create data iterator for training by sharding
+    and prefetching batches on device.
 
     Args:
         key: A PRNGKey used for random data permutations.

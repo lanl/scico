@@ -54,10 +54,10 @@ PyTree = Any
 
 
 class ConfigDict(TypedDict):
-    """Dictionary structure for training data sets.
+    """Dictionary structure for training parmeters.
 
     Definition of the dictionary structure
-    expected for the training data sets."""
+    expected for specifying training parameters."""
 
     seed: float
     depth: int
@@ -77,15 +77,19 @@ class ConfigDict(TypedDict):
 
 
 class ModelVarDict(TypedDict):
-    """Definition of the dictionary structure
-    for including all Flax model variables."""
+    """Dictionary structure for Flax variables.
+
+    Definition of the dictionary structure
+    grouping all Flax model variables."""
 
     params: PyTree
     batch_stats: PyTree
 
 
 class MetricsDict(TypedDict, total=False):
-    """Definition of the dictionary structure
+    """Dictionary structure for training metrics.
+
+    Definition of the dictionary structure
     for metrics computed or updates made during
     training."""
 
