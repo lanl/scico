@@ -8,7 +8,10 @@ r"""
 Noisy Data Generation for NN Training
 =====================================
 
-This example demonstrates how to generate noisy image data for training neural network models for denoising. The original images are part of the [BSDS500 dataset] (http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/BSR/) provided by the Berkeley Segmentation Dataset and Benchmark project.
+This example demonstrates how to generate noisy image data for training neural network
+models for denoising. The original images are part of the [BSDS500 dataset]
+(http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/BSR/)
+provided by the Berkeley Segmentation Dataset and Benchmark project.
 """
 import numpy as np
 

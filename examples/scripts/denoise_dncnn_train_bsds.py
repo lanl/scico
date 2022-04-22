@@ -8,7 +8,8 @@ r"""
 Training of DnCNN for Denoising
 ===============================
 
-This example demonstrates the training and application of the DnCNN model from :cite:`zhang-2017-dncnn` to denoise images that have been corrupted with additive Gaussian noise.
+This example demonstrates the training and application of the DnCNN model from
+:cite:`zhang-2017-dncnn` to denoise images that have been corrupted with additive Gaussian noise.
 """
 
 import os
@@ -116,7 +117,8 @@ and data fidelity.
 snr_eval = snr(test_ds["label"][:660], output)
 psnr_eval = psnr(test_ds["label"][:660], output)
 print(
-    f"{'DnCNNNet':14s}{'epochs:':2s}{epochs:>5d}{'':3s}{'time[s]:':10s}{time_train:>5.2f}{'':3s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}"
+    f"{'DnCNNNet':14s}{'epochs:':2s}{epochs:>5d}{'':3s}{'time[s]:':10s}{time_train:>5.2f}{'':3s}"
+    "{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}"
 )
 
 

@@ -8,19 +8,32 @@ r"""
 Training of MoDL for Deconvolution
 ==================================
 
-This example demonstrates the training and application of a model-based deep learning (MoDL) architecture described in :cite:`aggarwal-2019-modl` for a deconvolution (deblurring) problem.
+This example demonstrates the training and application of a model-based deep learning
+(MoDL) architecture described in :cite:`aggarwal-2019-modl`
+ for a deconvolution (deblurring) problem.
 
-The source images are part of the [BSDS500 dataset] (http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/BSR/) provided by the Berkeley Segmentation Dataset and Benchmark project.
+The source images are part of the [BSDS500 dataset]
+(http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/BSR/)
+provided by the Berkeley Segmentation Dataset and Benchmark project.
 
-A class [flax.MoDLNet](../_autosummary/scico.learning.rst#scico.learning.MoDL) implements the MoDL architecture, which solves the optimization problem
+A class [flax.MoDLNet](../_autosummary/scico.learning.rst#scico.learning.MoDL)
+ implements the MoDL architecture, which solves the optimization problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; \| A \mathbf{x} - \mathbf{y} \|_2^2 + \lambda \, \| \mathbf{x} - \mathrm{D}_w(\mathbf{x})\|_2^2 \;,$$
 
-where $A$ is a circular convolution, $\mathbf{y}$ is a set of blurred images, $\mathrm{D}_w$ is the regularization (a denoiser), and $\mathbf{x}$ is the set of deblurred images. The MoDL abstracts the iterative solution by an unrolled network where each iteration corresponds to a different stage in the MoDL network and updates the prediction by solving
+where $A$ is a circular convolution, $\mathbf{y}$ is a set of blurred images, $\mathrm{D}_w$ is the
+ regularization (a denoiser), and $\mathbf{x}$ is the set of deblurred images.
+  The MoDL abstracts the iterative solution by an unrolled network where each iteration corresponds
+  to a different stage in the MoDL network and updates the prediction by solving
 
   $$\mathbf{x}^{k+1} = (A^T A + \lambda \, \mathbf{I})^{-1} (A^T \mathbf{y} + \lambda \, \mathbf{z}^k) \;,$$
 
-via conjugate gradient. In the expression, $k$ is the index of the stage (iteration), $\mathbf{z}^k = \mathrm{ResNet}(\mathbf{x}^{k})$ is the regularization (a denoiser implemented as a residual convolutional neural network), $\mathbf{x}^k$ is the output of the previous stage, $\lambda > 0$ is a learned regularization parameter, and $\mathbf{I}$ is the identity operator. The output of the final stage is the set of deblurred images.
+via conjugate gradient. In the expression, $k$ is the index of the stage (iteration),
+ $\mathbf{z}^k = \mathrm{ResNet}(\mathbf{x}^{k})$ is the regularization
+ (a denoiser implemented as a residual convolutional neural network), $\mathbf{x}^k$ is the output
+  of the previous stage, $\lambda > 0$
+  is a learned regularization parameter, and $\mathbf{I}$ is the identity operator.
+  The output of the final stage is the set of deblurred images.
 """
 
 import os
@@ -205,7 +218,9 @@ and data fidelity.
 snr_eval = snr(test_ds["label"][:test_nimg], output)
 psnr_eval = psnr(test_ds["label"][:test_nimg], output)
 print(
-    f"{'MoDLNet':14s}{'epochs:':2s}{dconf['num_epochs']:>5d}{'':3s}{'time[s]:':10s}{time_train:>5.2f}{'':3s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}"
+    f"{'MoDLNet':14s}{'epochs:':2s}{dconf['num_epochs']:>5d}{'':3s}{'time[s]:':10s}"
+    "{time_train:>5.2f}{'':3s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}"
+    "{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}"
 )
 
 
