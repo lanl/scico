@@ -54,10 +54,10 @@ Define blur operator.
 """
 output_size = 256  # patch size
 channels = 1  # gray scale problem
-blur_ksize = (5, 5)  # size of blur kernel
+blur_shape = (5, 5)  # shape of blur kernel
 blur_sigma = 5  # Gaussian blur kernel parameter
 
-opBlur = construct_blur_operator(output_size, channels, blur_ksize, blur_sigma)
+opBlur = construct_blur_operator(output_size, channels, blur_shape, blur_sigma)
 
 opBlur_vmap = jax.vmap(opBlur)  # for batch processing in data generation
 
