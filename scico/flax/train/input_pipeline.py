@@ -45,14 +45,18 @@ class IterateData:
         r"""Initialize a :class:`IterateData` object.
 
         Args:
-            dt: Dictionary of data for supervised training including images and labels.
-            batch_size: Size of batch for iterating through the data.
+            dt: Dictionary of data for supervised
+               training including images and
+               labels.
+            batch_size: Size of batch for
+               iterating through the data.
             train: Flag indicating use of iterator
-                for training.  Iterator for
+                for training. Iterator for
                 training is infinite, iterator for
                 testing passes once through the
-                data.  Default: ``True``.
-            key: A PRNGKey used as the random key.  Default: ``None``.
+                data. Default: ``True``.
+            key: A PRNGKey used as the random key.
+                Default: ``None``.
         """
         self.dt = dt
         self.batch_size = batch_size
@@ -121,12 +125,13 @@ def create_input_iter(
 
     Args:
         key: A PRNGKey used for random data permutations.
-        dataset: Dictionary of data for supervised training including images and labels.
+        dataset: Dictionary of data for supervised
+            training including images and labels.
         batch_size: Size of batch for iterating through the data.
         size_device_prefetch: Size of prefetch buffer. Default: 2.
         dtype: Type of data to handle. Default: ``jnp.float32``.
         train: Flag indicating the type of
-            iterator to construct and use.  The
+            iterator to construct and use. The
             iterator for training permutes data on
             each epoch while the iterator for
             testing passes through the data
