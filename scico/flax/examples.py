@@ -23,7 +23,7 @@ import jax.numpy as jnp
 import imageio
 
 try:
-    import xdesign
+    import xdesign  # noqa: F401
 except ImportError:
     have_xdesign = False
 else:
@@ -39,7 +39,7 @@ from scico.linop import CircularConvolve
 from scico.typing import Array, Shape
 
 try:
-    import astra
+    import astra  # noqa: F401
 except ImportError:
     have_astra = False
 else:
@@ -145,7 +145,9 @@ def distributed_data_generation(
     return imgs
 
 
-def ct_data_generation(nimg: int, size: int, nproj: int, verbose: bool = False):  # pragma: no cover
+def ct_data_generation(
+    nimg: int, size: int, nproj: int, verbose: bool = False
+) -> Tuple[Array, ...]:  # pragma: no cover
     """
     Generate CT data.
 
@@ -221,7 +223,7 @@ def load_ct_data(
     nproj: int,
     cache_path: str = None,
     verbose: bool = False,
-):  # pragma: no cover
+) -> Tuple[DataSetDict, ...]:  # pragma: no cover
     """
     Load or generate CT data.
 
@@ -373,6 +375,9 @@ def rotation90(img: Array) -> Array:
 
     Args:
         img: The nd-array to be rotated.
+
+    Returns:
+       An image, or batch of images, rotated by 90 degrees counterclockwise.
     """
     if img.ndim < 4:
         return np.swapaxes(img, 0, 1)
@@ -393,6 +398,9 @@ def flip(img: Array) -> Array:
 
     Args:
         img: The nd-array to be flipped.
+
+    Returns:
+       An image, or batch of images, flipped horizontally.
     """
     if img.ndim < 4:
         return img[:, ::-1, ...]
