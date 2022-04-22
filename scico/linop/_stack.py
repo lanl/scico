@@ -16,7 +16,7 @@ from typing import List, Optional, Union
 import numpy as np
 
 import scico.numpy as snp
-from scico.blockarray import BlockArray
+from scico.numpy import BlockArray
 from scico.typing import JaxArray
 
 from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
@@ -85,7 +85,7 @@ class LinearOperatorStack(LinearOperator):
     def _eval(self, x: JaxArray) -> Union[JaxArray, BlockArray]:
         if self.collapsable and self.collapse:
             return snp.stack([op @ x for op in self.ops])
-        return BlockArray.array([op @ x for op in self.ops])
+        return BlockArray([op @ x for op in self.ops])
 
     def _adj(self, y: Union[JaxArray, BlockArray]) -> JaxArray:
         return sum([op.adj(y_block) for y_block, op in zip(y, self.ops)])

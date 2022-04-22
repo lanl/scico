@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/Usr/bin/env python
 # -*- coding: utf-8 -*-
 # This file is part of the SCICO package. Details of the copyright
 # and user license can be found in the 'LICENSE.txt' file distributed
@@ -39,8 +39,8 @@ from xdesign import SiemensStar, discrete_phantom
 import scico.numpy as snp
 import scico.random
 from scico import functional, linop, loss, operator, plot
-from scico.array import ensure_on_device
-from scico.blockarray import BlockArray
+from scico.numpy import BlockArray
+from scico.numpy.util import ensure_on_device
 from scico.optimize.pgm import AcceleratedPGM, RobustLineSearchStepSize
 from scico.typing import JaxArray
 from scico.util import device_info
@@ -96,6 +96,7 @@ class DualTVLoss(loss.Loss):
         super().__init__(y=y, A=A, scale=1.0)
         self.lmbda = lmbda
 
+    @jax.jit
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
 
         xint = self.y - self.lmbda * self.A(x)
@@ -117,14 +118,15 @@ class IsoProjector(functional.Functional):
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         return 0.0
 
+    @jax.jit
     def prox(self, v: JaxArray, lam: float, **kwargs) -> JaxArray:
         norm_v_ptp = jnp.sqrt(jnp.sum(jnp.abs(v) ** 2, axis=0))
 
         x_out = v / jnp.maximum(jnp.ones(v.shape), norm_v_ptp)
         out1 = v[0, :, -1] / jnp.maximum(jnp.ones(v[0, :, -1].shape), jnp.abs(v[0, :, -1]))
-        x_out_1 = jax.ops.index_update(x_out, jax.ops.index[0, :, -1], out1)
+        x_out = x_out.at[0, :, -1].set(out1)
         out2 = v[1, -1, :] / jnp.maximum(jnp.ones(v[1, -1, :].shape), jnp.abs(v[1, -1, :]))
-        x_out = jax.ops.index_update(x_out_1, jax.ops.index[1, -1, :], out2)
+        x_out = x_out.at[1, -1, :].set(out2)
 
         return x_out
 

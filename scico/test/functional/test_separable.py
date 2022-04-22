@@ -10,7 +10,8 @@ import warnings
 import pytest
 
 from scico import functional
-from scico.blockarray import BlockArray
+from scico.numpy import blockarray
+from scico.numpy.testing import assert_allclose
 from scico.random import randn
 
 
@@ -26,7 +27,7 @@ class SeparableTestObject:
 
         self.v1, key = randn((n,), key=key, dtype=dtype)  # point for prox eval
         self.v2, key = randn((m,), key=key, dtype=dtype)  # point for prox eval
-        self.vb = BlockArray.array([self.v1, self.v2])
+        self.vb = blockarray([self.v1, self.v2])
 
 
 @pytest.fixture(params=[np.float32, np.complex64, np.float64, np.complex128])
@@ -38,7 +39,7 @@ def test_separable_eval(test_separable_obj):
     fv1 = test_separable_obj.f(test_separable_obj.v1)
     gv2 = test_separable_obj.g(test_separable_obj.v2)
     fgv = test_separable_obj.fg(test_separable_obj.vb)
-    np.testing.assert_allclose(fv1 + gv2, fgv, rtol=5e-2)
+    assert_allclose(fv1 + gv2, fgv, rtol=5e-2)
 
 
 def test_separable_prox(test_separable_obj):
@@ -46,8 +47,8 @@ def test_separable_prox(test_separable_obj):
     fv1 = test_separable_obj.f.prox(test_separable_obj.v1, alpha)
     gv2 = test_separable_obj.g.prox(test_separable_obj.v2, alpha)
     fgv = test_separable_obj.fg.prox(test_separable_obj.vb, alpha)
-    out = BlockArray.array((fv1, gv2)).ravel()
-    np.testing.assert_allclose(out, fgv.ravel(), rtol=5e-2)
+    out = blockarray((fv1, gv2)).ravel()
+    assert_allclose(out, fgv.ravel(), rtol=5e-2)
 
 
 def test_separable_grad(test_separable_obj):
@@ -64,5 +65,5 @@ def test_separable_grad(test_separable_obj):
         fv1 = test_separable_obj.f.grad(test_separable_obj.v1)
         gv2 = test_separable_obj.g.grad(test_separable_obj.v2)
         fgv = test_separable_obj.fg.grad(test_separable_obj.vb)
-        out = BlockArray.array((fv1, gv2)).ravel()
-        np.testing.assert_allclose(out, fgv.ravel(), rtol=5e-2)
+        out = blockarray((fv1, gv2)).ravel()
+        assert_allclose(out, fgv.ravel(), rtol=5e-2)
