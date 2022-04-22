@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Flax implementation of different imaging inversion models.
-"""
+"""Flax implementation of different imaging inversion models."""
 
 from functools import partial
 from typing import Any, Callable, Tuple
@@ -34,12 +33,13 @@ class MoDLNet(Module):
         operator: Operator for computing forward and adjoint mappings.
         depth: Depth of MoDL net. Default = 1.
         channels: Number of channels of input tensor.
-        num_filters: Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
+        num_filters: Number of filters in the convolutional layer of the block. Corresponds
+            to the number of channels in the output tensor.
         block_depth: Number of layers in the computational block.
         kernel_size: Size of the convolution filters. Default: (3, 3).
         strides: Convolution strides. Default: (1, 1).
         lmbda_ini: Initial value of the regularization weight `lambda`. Default: 0.5.
-        dtype: Output type. Default: jnp.float32.
+        dtype: Output type. Default: ``jnp.float32``.
         cg_iter: Number of iterations for cg solver. Default: 10.
     """
     operator: ModuleDef
@@ -103,7 +103,13 @@ def cg_solver(A: Callable, b: Array, x0: Array = None, maxiter: int = 50) -> Arr
     r"""Conjugate Gradient solver.
 
     Solve the linear system :math:`A\mb{x} = \mb{b}`, where :math:`A` is
-    positive definite, via the conjugate gradient method. This is a light version constructed to be differentiable with the autograd functionality from jax. Therefore, (i) it uses :meth:`jax.lax.scan` to execute a fixed number of iterations and (ii) it assumes that the linear operator may use :meth:`jax.experimental.host_callback`. Due to a while cycle, :meth:`scico.cg` is not differentiable by jax and :meth:`jax.scipy.sparse.linalg.cg` does not support functions using :meth:`jax.experimental.host_callback` explaining why an additional conjugate gradient function is implemented.
+    positive definite, via the conjugate gradient method. This is a light version constructed to be
+    differentiable with the autograd functionality from jax. Therefore, (i) it uses
+    :meth:`jax.lax.scan` to execute a fixed number of iterations and (ii) it assumes that the linear
+    operator may use :meth:`jax.experimental.host_callback`. Due the utilization of a while cycle,
+    :meth:`scico.cg` is not differentiable by jax and :meth:`jax.scipy.sparse.linalg.cg`
+    does not support functions using :meth:`jax.experimental.host_callback` explaining
+    why an additional conjugate gradient function is implemented.
 
     Args:
         A: Function implementing linear operator :math:`A`, should be
@@ -148,14 +154,16 @@ class ODPProxDnBlock(Module):
     denoising described in :cite:`diamond-2018-odp`.
 
     Args:
-        operator: Operator for computing forward and adjoint mappings. In this case it corresponds to the identity operator and is used at the network level.
+        operator: Operator for computing forward and adjoint mappings. In this case it corresponds
+            to the identity operator and is used at the network level.
         depth: Number of layers in block.
         channels: Number of channels of input tensor.
-        num_filters: Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
+        num_filters: Number of filters in the convolutional layer of the block. Corresponds
+            to the number of channels in the output tensor.
         kernel_size: Size of the convolution filters. Default: (3, 3).
         strides: Convolution strides. Default: (1, 1).
         alpha_ini: Initial value of the fidelity weight `alpha`. Default: 0.2.
-        dtype: Output type. Default: jnp.float32.
+        dtype: Output type. Default: ``jnp.float32``.
     """
     operator: ModuleDef
     depth: int
@@ -212,14 +220,16 @@ class ODPProxDcnvBlock(Module):
     :cite:`diamond-2018-odp`.
 
     Args:
-        operator: Operator for computing forward and adjoint mappings. In this case it correponds to a circular convolution operator.
+        operator: Operator for computing forward and adjoint mappings. In this case it correponds
+            to a circular convolution operator.
         depth: Number of layers in block.
         channels: Number of channels of input tensor.
-        num_filters: Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
+        num_filters: Number of filters in the convolutional layer of the block. Corresponds
+            to the number of channels in the output tensor.
         kernel_size: Size of the convolution filters. Default: (3, 3).
         strides: Convolution strides. Default: (1, 1).
         alpha_ini: Initial value of the fidelity weight `alpha`. Default: 0.99.
-        dtype: Output type. Default: jnp.float32.
+        dtype: Output type. Default: ``jnp.float32``.
     """
     operator: ModuleDef
     depth: int
@@ -296,14 +306,16 @@ class ODPGrDescBlock(Module):
     :cite:`diamond-2018-odp`.
 
     Args:
-        operator: Operator for computing forward and adjoint mappings. In this case it corresponds to the identity operator and is used at the network level.
+        operator: Operator for computing forward and adjoint mappings. In this case it corresponds
+            to the identity operator and is used at the network level.
         depth: Number of layers in block.
         channels: Number of channels of input tensor.
-        num_filters: Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
+        num_filters: Number of filters in the convolutional layer of the block. Corresponds
+            to the number of channels in the output tensor.
         kernel_size: Size of the convolution filters. Default: (3, 3).
         strides: Convolution strides. Default: (1, 1).
         alpha_ini: Initial value of the fidelity weight `alpha`. Default: 0.2.
-        dtype: Output type. Default: jnp.float32.
+        dtype: Output type. Default: ``jnp.float32``.
     """
     operator: ModuleDef
     depth: int
@@ -371,12 +383,13 @@ class ODPNet(Module):
         operator: Operator for computing forward and adjoint mappings.
         depth: Depth of MoDL net. Default = 1.
         channels: Number of channels of input tensor.
-        num_filters: Number of filters in the convolutional layer of the block. Corresponds to the number of channels in the output tensor.
+        num_filters: Number of filters in the convolutional layer of the block. Corresponds
+            to the number of channels in the output tensor.
         block_depth: Number of layers in the computational block.
         kernel_size: Size of the convolution filters. Default: (3, 3).
         strides: Convolution strides. Default: (1, 1).
         alpha_ini: Initial value of the fidelity weight `alpha`. Default: 0.5.
-        dtype: Output type. Default: jnp.float32.
+        dtype: Output type. Default: ``jnp.float32``.
         odp_block: processing block to apply. Default :class:`ODPProxDnBlock`.
     """
     operator: ModuleDef
