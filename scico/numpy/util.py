@@ -207,7 +207,7 @@ def is_nested(x: Any) -> bool:
         x: Object to be tested.
 
     Returns:
-        ``True`` if `x` is a list/tuple of list/tuples, ``False`` otherwise.
+        ``True`` if `x` is a list/tuple containing at least one list/tuple, ``False`` otherwise.
 
 
     Example:
@@ -219,9 +219,7 @@ def is_nested(x: Any) -> bool:
         True
 
     """
-    if isinstance(x, (list, tuple)):
-        return any([isinstance(_, (list, tuple)) for _ in x])
-    return False
+    return isinstance(x, (list, tuple)) and any([isinstance(_, (list, tuple)) for _ in x])
 
 
 def is_real_dtype(dtype: DType) -> bool:

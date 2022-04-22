@@ -32,10 +32,10 @@ def test_eval():
 def test_adjoint(input_shape, input_dtype, axes, jit):
     ndim = len(input_shape)
     if axes in [1, (1,)] and ndim == 1:
-        pass
-    else:
-        A = FiniteDifference(input_shape=input_shape, input_dtype=input_dtype, axes=axes, jit=jit)
-        adjoint_test(A)
+        return
+
+    A = FiniteDifference(input_shape=input_shape, input_dtype=input_dtype, axes=axes, jit=jit)
+    adjoint_test(A)
 
 
 @pytest.mark.parametrize(
