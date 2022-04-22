@@ -102,7 +102,9 @@ def create_input_iter(
     dtype: DType = jnp.float32,
     train: bool = True,
 ) -> Any:
-    """Create data iterator for training by sharding and prefetching batches on device.
+    """Create data iterator for training.
+
+    Create data iterator for training by sharding and prefetching batches on device.
 
     Args:
         key: A PRNGKey used for random data permutations.

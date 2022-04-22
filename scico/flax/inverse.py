@@ -9,7 +9,7 @@ from typing import Any, Callable, Tuple
 import jax.numpy as jnp
 from jax import lax
 
-from flax.core import Scope, _Sentinel  # noqa
+# from flax.core import Scope, _Sentinel  # noqa
 from flax.linen.module import Module, compact
 from scico.flax import ResNet
 from scico.linop import operator_norm

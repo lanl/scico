@@ -54,8 +54,10 @@ PyTree = Any
 
 
 class ConfigDict(TypedDict):
-    """Definition of the dictionary structure
-    expected for the data sets for training."""
+    """Dictionary structure for training data sets.
+
+    Definition of the dictionary structure
+    expected for the training data sets."""
 
     seed: float
     depth: int

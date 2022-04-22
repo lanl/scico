@@ -8,7 +8,7 @@ from typing import Any, Callable, Tuple
 
 import jax.numpy as jnp
 
-from flax.core import Scope, _Sentinel  # noqa
+# from flax.core import Scope, _Sentinel  # noqa
 from flax.linen import BatchNorm, Conv, max_pool, relu
 from flax.linen.initializers import kaiming_normal, xavier_normal
 from flax.linen.module import Module, compact
@@ -184,7 +184,9 @@ class ResNet(Module):
 
 
 class ConvBNNet(Module):
-    """Net constructed from sucessive applications of convolution plus batch normalization blocks.
+    """Convolution and batch normalization net.
+
+    Net constructed from sucessive applications of convolution plus batch normalization blocks. No residual connection.
 
     Args:
         depth: Depth of net.
