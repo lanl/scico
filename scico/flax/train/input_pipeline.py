@@ -24,8 +24,8 @@ class DataSetDict(TypedDict):
     """Definition of the dictionary structure
     expected for the data sets for training."""
 
-    image: Array  # Input
-    label: Array  # Output
+    image: Array  # input
+    label: Array  # output
 
 
 class IterateData:

@@ -3,7 +3,7 @@
 from typing import Any, Optional
 
 from flax import serialization
-from flax.core import Scope  # noqa
+from flax.core import Scope, _Sentinel  # noqa
 from flax.linen.module import Module
 from scico.blockarray import BlockArray
 from scico.typing import Array, Shape

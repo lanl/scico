@@ -12,7 +12,7 @@ This example demonstrates the training and application of the unrolled optimizat
 
 The source images are part of the [BSDS500 dataset] (http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/BSR/) provided by the Berkeley Segmentation Dataset and Benchmark project.
 
-A class [ODPNet] implements the ODP architecture,
+A class [flax.ODPNet](../_autosummary/scico.learning.rst#scico.learning.ODP) implements the ODP architecture,
 which solves the optimization problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; \| A \mathbf{x} - \mathbf{y} \|_2^2 + r(\mathbf{x}) \;,$$

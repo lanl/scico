@@ -53,6 +53,15 @@ if have_astra:
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 
 
+class CTDataSetDict(TypedDict):
+    """Definition of the dictionary structure
+    constructed in CT data generation."""
+
+    img: Array  # original image
+    sino: Array  # sinogram
+    fbp: Array  # filtered back projection
+
+
 if have_xdesign:
 
     class Foam2(UnitCircle):
@@ -223,7 +232,7 @@ def load_ct_data(
     nproj: int,
     cache_path: str = None,
     verbose: bool = False,
-) -> Tuple[DataSetDict, ...]:  # pragma: no cover
+) -> Tuple[CTDataSetDict, ...]:  # pragma: no cover
     """
     Load or generate CT data.
 
@@ -288,12 +297,12 @@ def load_ct_data(
         # Check that enough data is available.
         if trdt_in["img"].shape[0] >= train_nimg:
             if ttdt_in["img"].shape[0] >= test_nimg:
-                trdt = {
+                trdt: CTDataSetDict = {
                     "img": trdt_in["img"][:train_nimg],
                     "sino": trdt_in["sino"][:train_nimg],
                     "fbp": trdt_in["fbp"][:train_nimg],
                 }
-                ttdt = {
+                ttdt: CTDataSetDict = {
                     "img": ttdt_in["img"][:test_nimg],
                     "sino": ttdt_in["sino"][:test_nimg],
                     "fbp": ttdt_in["fbp"][:test_nimg],
@@ -646,7 +655,7 @@ class ConfigImageSetDict(TypedDict):
 
 def build_image_dataset(
     imgs_train, imgs_test, config: ConfigImageSetDict, transf: Optional[Callable] = None
-) -> Tuple[DataSetDict, DataSetDict]:
+) -> Tuple[DataSetDict, ...]:
     """Pre-process images according to the
     specified configuration. Keep training and
     testing partitions. Each dictionary returned
@@ -715,8 +724,8 @@ def build_image_dataset(
     rng = np.random.default_rng(config["seed"])
     perm_tr = rng.permutation(Stsfm_train.shape[0])
     perm_tt = rng.permutation(Stsfm_test.shape[0])
-    train_ds = {"image": Stsfm_train[perm_tr], "label": S_train[perm_tr]}
-    test_ds = {"image": Stsfm_test[perm_tt], "label": S_test[perm_tt]}
+    train_ds: DataSetDict = {"image": Stsfm_train[perm_tr], "label": S_train[perm_tr]}
+    test_ds: DataSetDict = {"image": Stsfm_test[perm_tt], "label": S_test[perm_tt]}
 
     return train_ds, test_ds
 
@@ -913,11 +922,11 @@ def load_image_data(
         # Check that enough images were sampled.
         if trdt["numimg"] >= train_nimg:
             if ttdt["numimg"] >= test_nimg:
-                train_ds = {
+                train_ds: DataSetDict = {
                     "image": train_in,
                     "label": train_out,
                 }
-                test_ds = {
+                test_ds: DataSetDict = {
                     "image": test_in,
                     "label": test_out,
                 }

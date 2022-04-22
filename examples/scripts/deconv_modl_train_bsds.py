@@ -12,7 +12,7 @@ This example demonstrates the training and application of a model-based deep lea
 
 The source images are part of the [BSDS500 dataset] (http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/BSR/) provided by the Berkeley Segmentation Dataset and Benchmark project.
 
-A class [MoDLNet] implements the MoDL architecture, which solves the optimization problem
+A class [flax.MoDLNet](../_autosummary/scico.learning.rst#scico.learning.MoDL) implements the MoDL architecture, which solves the optimization problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; \| A \mathbf{x} - \mathbf{y} \|_2^2 + \lambda \, \| \mathbf{x} - \mathrm{D}_w(\mathbf{x})\|_2^2 \;,$$
 
