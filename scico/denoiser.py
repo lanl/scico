@@ -128,7 +128,7 @@ def bm4d(x: JaxArray, sigma: float):
     x_in_shape = x.shape
 
     if isinstance(x.ndim, tuple) or x.ndim < 3:
-        raise ValueError(f"BM4D requires three dimensional inputs; got ndim = {x.ndim}")
+        raise ValueError(f"BM4D requires three-dimensional inputs; got ndim = {x.ndim}")
 
     # This check is also performed inside the BM4D call, but due to the host_callback,
     # no exception is raised and the program will crash with no traceback.
@@ -205,7 +205,7 @@ class DnCNN(FlaxMap):
 
         if isinstance(x.ndim, tuple) or x.ndim < 2:
             raise ValueError(
-                "DnCNN requires two dimensional (M, N) or three dimensional (M, N, C)"
+                "DnCNN requires two-dimensional (M, N) or three-dimensional (M, N, C)"
                 f" inputs; got ndim = {x.ndim}"
             )
 
