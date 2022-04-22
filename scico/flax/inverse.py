@@ -201,13 +201,13 @@ class ODPProxDnBlock(Module):
         return x
 
 
-class ODPProxDblrBlock(Module):
+class ODPProxDcnvBlock(Module):
     r"""Flax implementation of ODP proximal
-    gradient deblurring block :cite:`diamond-2018-odp`.
+    gradient deconvolution (deblurring) block :cite:`diamond-2018-odp`.
 
     Flax implementation of the unrolled optimization
     with deep priors (ODP) proximal gradient block for
-    debluring under Gaussian noise described in
+    deconvolution under Gaussian noise described in
     :cite:`diamond-2018-odp`.
 
     Args:

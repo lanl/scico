@@ -48,7 +48,7 @@ class TestSet:
         assert y.dtype == mny.dtype
         assert y.shape == mny.shape
 
-    def test_odpdblr_default(self):
+    def test_odpdcnv_default(self):
         y, key = random.randn((10, self.N, self.N, self.chn), seed=1234)
 
         blur_ksize = (9, 9)
@@ -62,7 +62,7 @@ class TestSet:
             channels=self.chn,
             num_filters=self.num_filters,
             block_depth=self.block_depth,
-            odp_block=sflax.ODPProxDblrBlock,
+            odp_block=sflax.ODPProxDcnvBlock,
         )
 
         variables = odpdb.init(key, y)

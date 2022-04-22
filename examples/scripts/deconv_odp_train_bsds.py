@@ -5,10 +5,10 @@
 # with the package.
 
 r"""
-Training of ODP for Deblurring
-==============================
+Training of ODP for Deconvolution
+=================================
 
-This example demonstrates the training and application of the unrolled optimization with deep priors (ODP) with proximal map architecture described in :cite:`diamond-2018-odp` for a deblurring problem.
+This example demonstrates the training and application of the unrolled optimization with deep priors (ODP) with proximal map architecture described in :cite:`diamond-2018-odp` for a deconvolution (deblurring) problem.
 
 The source images are part of the [BSDS500 dataset] (http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/BSR/) provided by the Berkeley Segmentation Dataset and Benchmark project.
 
@@ -68,7 +68,7 @@ train_nimg = 400  # number of training images
 test_nimg = 64  # number of testing images
 nimg = train_nimg + test_nimg
 gray = True  # use gray scale images
-data_mode = "dblr"  # Denoising problem
+data_mode = "dcnv"  # deconvolution problem
 noise_level = 0.01  # Standard deviation of noise
 noise_range = False  # Use fixed noise level
 stride = 100  # Stride to sample multiple patches from each image
@@ -119,7 +119,7 @@ model = sflax.ODPNet(
     channels=channels,
     num_filters=dconf["num_filters"],
     block_depth=dconf["block_depth"],
-    odp_block=sflax.ODPProxDblrBlock,
+    odp_block=sflax.ODPProxDcnvBlock,
     alpha_ini=10,
 )
 
@@ -142,7 +142,7 @@ train_step = partial(train_step_post, post_fn=alphapos)
 Run training loop.
 """
 workdir = os.path.join(
-    os.path.expanduser("~"), ".cache", "scico", "examples", "img", "odp_dblr_out"
+    os.path.expanduser("~"), ".cache", "scico", "examples", "img", "odp_dcnv_out"
 )
 print(f"{'JAX process: '}{jax.process_index()}{' / '}{jax.process_count()}")
 print(f"{'JAX local devices: '}{jax.local_devices()}")

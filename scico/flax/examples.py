@@ -690,7 +690,7 @@ def build_image_dataset(
     # Processing: add noise or blur or etc.
     if config["data_mode"] == "dn":  # Denoise problem
         tsfm = RandomNoise(config["noise_level"], config["noise_range"])
-    elif config["data_mode"] == "dblr":  # Deblurring problem
+    elif config["data_mode"] == "dcnv":  # Deconvolution problem
         assert transf is not None
         tsfm = transf
 
@@ -706,7 +706,7 @@ def build_image_dataset(
         if config["data_mode"] == "dn":
             Stsfm_train = tsfm(S_train.copy())
             Stsfm_test = tsfm(S_test.copy())
-        elif config["data_mode"] == "dblr":
+        elif config["data_mode"] == "dcnv":
             tsfm2 = RandomNoise(config["noise_level"], config["noise_range"])
             Stsfm_train = tsfm2(tsfm(S_train.copy()))
             Stsfm_test = tsfm2(tsfm(S_test.copy()))
@@ -851,8 +851,8 @@ def load_image_data(
     distinct files: `img_*_train.npz` and
     `img_*_test.npz` to keep separated training
     and testing partitions. The * stands for
-    `dn` if denoising problem or `dblr` if
-    deblurring problem. Other types of pre-processings
+    `dn` if denoising problem or `dcnv` if
+    deconvolution problem. Other types of pre-processings
     may be specified via the `transf` operator.
 
     Args:
@@ -860,7 +860,7 @@ def load_image_data(
         test_nimg: Number of images required for sampling testing data.
         size: Size of reconstruction images.
         gray_flag: Flag to indicate if gray scale images or color images. When ``True`` gray scale images are used.
-        data_mode: Type of image problem. Options are: `dn` for denosing, `dblr` for deblurring.
+        data_mode: Type of image problem. Options are: `dn` for denosing, `dcnv` for deconvolution.
         cache_path: Directory in which processed data is saved. Default: ``None``.
         verbose: Flag indicating whether to print status messages. Default: ``False``.
         noise_level: Standard deviation of the Gaussian noise.

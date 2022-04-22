@@ -8,7 +8,7 @@ r"""
 Generation of Blurred Data for NN Training
 ==========================================
 
-This example demonstrates how to generate blurred image data for training neural network models for deblurring. The original images are part of the [BSDS500 dataset] (http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/BSR/) provided by the Berkeley Segmentation Dataset and Benchmark project.
+This example demonstrates how to generate blurred image data for training neural network models for deconvolution (deblurring). The original images are part of the [BSDS500 dataset] (http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/BSR/) provided by the Berkeley Segmentation Dataset and Benchmark project.
 """
 import numpy as np
 
@@ -36,7 +36,7 @@ train_nimg = 400  # number of training images
 test_nimg = 64  # number of testing images
 nimg = train_nimg + test_nimg
 gray = True  # use gray scale images
-data_mode = "dblr"  # Denoising problem
+data_mode = "dcnv"  # deconvolution problem
 noise_level = 0.01  # Standard deviation of noise
 noise_range = False  # Use fixed noise level
 stride = 100  # Stride to sample multiple patches from each image

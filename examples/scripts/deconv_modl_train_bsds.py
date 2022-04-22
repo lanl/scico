@@ -5,10 +5,10 @@
 # with the package.
 
 r"""
-Training of MoDL for Deblurring
-===============================
+Training of MoDL for Deconvolution
+==================================
 
-This example demonstrates the training and application of a model-based deep learning (MoDL) architecture described in :cite:`aggarwal-2019-modl` for a deblurring problem.
+This example demonstrates the training and application of a model-based deep learning (MoDL) architecture described in :cite:`aggarwal-2019-modl` for a deconvolution (deblurring) problem.
 
 The source images are part of the [BSDS500 dataset] (http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/BSR/) provided by the Berkeley Segmentation Dataset and Benchmark project.
 
@@ -63,7 +63,7 @@ train_nimg = 400  # number of training images
 test_nimg = 64  # number of testing images
 nimg = train_nimg + test_nimg
 gray = True  # use gray scale images
-data_mode = "dblr"  # Denoising problem
+data_mode = "dcnv"  # deconvolution problem
 noise_level = 0.01  # Standard deviation of noise
 noise_range = False  # Use fixed noise level
 stride = 100  # Stride to sample multiple patches from each image
@@ -137,7 +137,7 @@ train_step = partial(train_step_post, post_fn=lmbdapos)
 Run first stage (initialization) training loop.
 """
 workdir = os.path.join(
-    os.path.expanduser("~"), ".cache", "scico", "examples", "img", "modl_dblr_out"
+    os.path.expanduser("~"), ".cache", "scico", "examples", "img", "modl_dcnv_out"
 )
 print(f"{'JAX process: '}{jax.process_index()}{' / '}{jax.process_count()}")
 print(f"{'JAX local devices: '}{jax.local_devices()}")
@@ -170,7 +170,7 @@ model = sflax.MoDLNet(
 
 dconf["num_epochs"] = 70
 workdir2 = os.path.join(
-    os.path.expanduser("~"), ".cache", "scico", "examples", "img", "modl_dblr_out", "iterated"
+    os.path.expanduser("~"), ".cache", "scico", "examples", "img", "modl_dcnv_out", "iterated"
 )
 
 start_time = time()

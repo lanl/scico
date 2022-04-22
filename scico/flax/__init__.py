@@ -21,7 +21,7 @@ from .blocks import (
 )
 from .models import DnCNNNet, ResNet, ConvBNNet, UNet
 
-from .inverse import MoDLNet, ODPProxDnBlock, ODPProxDblrBlock, ODPGrDescBlock, ODPNet
+from .inverse import MoDLNet, ODPProxDnBlock, ODPProxDcnvBlock, ODPGrDescBlock, ODPNet
 
 from .train.input_pipeline import create_input_iter
 from .train.train import ConfigDict, train_and_evaluate, only_evaluate
