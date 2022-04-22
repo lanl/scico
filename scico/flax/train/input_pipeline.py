@@ -86,7 +86,7 @@ def prepare_data(xs: Array) -> Any:
     """Reshape input batch for parallel training."""
     local_device_count = jax.local_device_count()
 
-    def _prepare(x):
+    def _prepare(x: Array) -> Array:
         # reshape (host_batch_size, height, width, channels) to
         # (local_devices, device_batch_size, height, width, channels)
         return x.reshape((local_device_count, -1) + x.shape[1:])
