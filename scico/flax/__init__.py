@@ -9,23 +9,19 @@
 
 import sys
 
-# isort: off
 from ._flax import FlaxMap, load_weights
 from .blocks import (
-    ConvBNBlock,
     ConvBlock,
+    ConvBNBlock,
+    ConvBNMultiBlock,
     ConvBNPoolBlock,
     ConvBNUpsampleBlock,
-    ConvBNMultiBlock,
     upscale_nn,
 )
-from .models import DnCNNNet, ResNet, ConvBNNet, UNet
-
-from .inverse import MoDLNet, ODPProxDnBlock, ODPProxDcnvBlock, ODPGrDescBlock, ODPNet
-
+from .inverse import MoDLNet, ODPGrDescBlock, ODPNet, ODPProxDcnvBlock, ODPProxDnBlock
+from .models import ConvBNNet, DnCNNNet, ResNet, UNet
 from .train.input_pipeline import create_input_iter
-from .train.train import ConfigDict, train_and_evaluate, only_evaluate
-
+from .train.train import ConfigDict, only_evaluate, train_and_evaluate
 
 __all__ = [
     "FlaxMap",
@@ -41,6 +37,8 @@ __all__ = [
     "ConvBNNet",
     "UNet",
     "MoDLNet",
+    "ODPProxDnBlock",
+    "ODPProxDcnvBlock",
     "ODPGrDescBlock",
     "ODPNet",
     "create_input_iter",
