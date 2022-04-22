@@ -3,16 +3,9 @@
 from typing import Any, Optional
 
 from flax import serialization
-
-# from flax.core import Scope, _Sentinel  # noqa
 from flax.linen.module import Module
 from scico.blockarray import BlockArray
 from scico.typing import Array, Shape
-
-# The imports of Scope and _Sentinel (above)
-# are required to silence "cannot resolve forward reference"
-# warnings when building sphinx api docs.
-
 
 ModuleDef = Any
 PyTree = Any
