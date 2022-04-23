@@ -19,7 +19,7 @@ import scico.numpy as snp
 from scico import functional, linop, operator
 from scico.numpy import BlockArray
 from scico.numpy.util import ensure_on_device, no_nan_divide
-from scico.scipy.special import gammaln
+from scico.scipy.special import gammaln  # type: ignore
 from scico.solver import cg
 from scico.typing import JaxArray
 
