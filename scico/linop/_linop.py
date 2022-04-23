@@ -15,6 +15,8 @@ import operator
 from functools import partial
 from typing import Any, Callable, Optional, Union
 
+import jax
+
 import scico.numpy as snp
 from scico._generic_operators import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
 from scico.numpy import BlockArray
@@ -144,14 +146,26 @@ def valid_adjoint(
     else:
         if x.shape != A.input_shape:
             raise ValueError("Shape of x array not appropriate as an input for operator A")
+    assert isinstance(
+        x, (jax.interpreters.xla.DeviceArray, jax.interpreters.pxla.ShardedDeviceArray)
+    )
     if y is None:
         y, key = randn(shape=AT.input_shape, key=key, dtype=AT.input_dtype)
     else:
         if y.shape != AT.input_shape:
             raise ValueError("Shape of y array not appropriate as an input for operator AT")
+    assert isinstance(
+        y, (jax.interpreters.xla.DeviceArray, jax.interpreters.pxla.ShardedDeviceArray)
+    )
 
     u = A(x)
     v = AT(y)
+    assert isinstance(
+        u, (jax.interpreters.xla.DeviceArray, jax.interpreters.pxla.ShardedDeviceArray)
+    )
+    assert isinstance(
+        v, (jax.interpreters.xla.DeviceArray, jax.interpreters.pxla.ShardedDeviceArray)
+    )
     yTu = snp.dot(y.ravel().conj(), u.ravel())
     vTx = snp.dot(v.ravel().conj(), x.ravel())
     err = snp.abs(yTu - vTx) / max(snp.abs(yTu), snp.abs(vTx))
@@ -331,13 +345,13 @@ def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = Non
         **kwargs: Any,
     ):
         self._eval = lambda x: f(x, *args, **kwargs)
-        super().__init__(input_shape, input_dtype=input_dtype, jit=jit)
+        super().__init__(input_shape, input_dtype=input_dtype, jit=jit)  # type: ignore
 
     OpClass = type(classname, (LinearOperator,), {"__init__": __init__})
     __class__ = OpClass  # needed for super() to work
 
     OpClass.__doc__ = f"Linear operator version of :func:`{f_name}`."
-    OpClass.__init__.__doc__ = rf"""
+    OpClass.__init__.__doc__ = rf"""  # type: ignore
 
         Args:
             input_shape: Shape of input array.

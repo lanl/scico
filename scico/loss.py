@@ -97,7 +97,7 @@ class Loss(functional.Functional):
         return self.scale * self.f(self.A(x) - self.y)
 
     def prox(
-        self, v: Union[JaxArray, BlockArray], lam: float, **kwargs
+        self, v: Union[JaxArray, BlockArray], lam: float = 1, **kwargs
     ) -> Union[JaxArray, BlockArray]:
         r"""Scaled proximal operator of loss function.
 
@@ -120,6 +120,7 @@ class Loss(functional.Functional):
                 f"prox is not implemented for {type(self)} when A is {type(self.A)}; "
                 "must be Identity"
             )
+        assert self.f is not None
         return self.f.prox(v - self.y, self.scale * lam, **kwargs) + self.y
 
     @_loss_mul_div_wrapper
@@ -195,7 +196,6 @@ class SquaredL2Loss(Loss):
         if prox_kwargs:
             default_prox_kwargs.update(prox_kwargs)
         self.prox_kwargs = default_prox_kwargs
-        prox_kwargs: dict = ({"maxiter": 100, "tol": 1e-5},)
 
         if isinstance(self.A, linop.LinearOperator):
             self.has_prox = True
@@ -204,7 +204,7 @@ class SquaredL2Loss(Loss):
         return self.scale * snp.sum(self.W.diagonal * snp.abs(self.y - self.A(x)) ** 2)
 
     def prox(
-        self, v: Union[JaxArray, BlockArray], lam: float, **kwargs
+        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
         if not isinstance(self.A, linop.LinearOperator):
             raise NotImplementedError(
@@ -237,7 +237,7 @@ class SquaredL2Loss(Loss):
         hessian = self.hessian  # = (2𝛼 A^T W A)
         lhs = linop.Identity(v.shape) + lam * hessian
         rhs = v + 2 * lam * 𝛼 * A.adj(W(y))
-        x, _ = cg(lhs, rhs, x0, **self.prox_kwargs)
+        x, _ = cg(lhs, rhs, x0, **self.prox_kwargs)  # type: ignore
         return x
 
     @property
@@ -357,7 +357,7 @@ class SquaredL2AbsLoss(Loss):
         return self.scale * (self.W.diagonal * snp.abs(self.y - snp.abs(self.A(x))) ** 2).sum()
 
     def prox(
-        self, v: Union[JaxArray, BlockArray], lam: float, **kwargs
+        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
         if not self.has_prox:
             raise NotImplementedError(f"prox is not implemented.")
@@ -564,7 +564,7 @@ class SquaredL2SquaredAbsLoss(Loss):
         return self.scale * (self.W.diagonal * snp.abs(self.y - snp.abs(self.A(x)) ** 2) ** 2).sum()
 
     def prox(
-        self, v: Union[JaxArray, BlockArray], lam: float, **kwargs
+        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
         if not self.has_prox:
             raise NotImplementedError(f"prox is not implemented.")

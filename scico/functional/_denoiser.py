@@ -65,7 +65,7 @@ class BM4D(Functional):
         r"""Initialize a :class:`BM4D` object."""
         super().__init__()
 
-    def prox(self, x: JaxArray, lam: float = 1.0, **kwargs) -> JaxArray:
+    def prox(self, x: JaxArray, lam: float = 1.0, **kwargs) -> JaxArray:  # type: ignore
         r"""Apply BM4D denoiser.
 
         Args:

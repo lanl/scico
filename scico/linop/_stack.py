@@ -17,7 +17,7 @@ import numpy as np
 
 import scico.numpy as snp
 from scico.numpy import BlockArray
-from scico.typing import JaxArray
+from scico.typing import BlockShape, JaxArray, Shape
 
 from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
 
@@ -38,7 +38,7 @@ class LinearOperatorStack(LinearOperator):
             collapse: If ``True`` and the output would be a `BlockArray`
                 with shape ((m, n, ...), (m, n, ...), ...), the output is
                 instead a `DeviceArray` with shape (S, m, n, ...) where S
-                is the length of `ops`. Defaults to True.
+                is the length of `ops`. Defaults to ``True``.
             jit: see `jit` in :class:`LinearOperator`.
 
         """
@@ -62,11 +62,15 @@ class LinearOperatorStack(LinearOperator):
             )
 
         self.collapse = collapse
+        output_shape: Union[Shape, BlockShape]
         output_shape = tuple(op.shape[0] for op in ops)  # assumes BlockArray output
 
         # check if collapsable and adjust output_shape if needed
-        self.collapsable = all(output_shape[0] == s for s in output_shape)
+        self.collapsable = isinstance(output_shape[0], tuple) and all(
+            output_shape[0] == s for s in output_shape
+        )
         if self.collapsable and self.collapse:
+            assert isinstance(output_shape[0], tuple)
             output_shape = (len(ops),) + output_shape[0]  # collapse to DeviceArray
 
         output_dtypes = [op.output_dtype for op in ops]
