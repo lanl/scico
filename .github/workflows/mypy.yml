@@ -33,4 +33,4 @@ jobs:
           pip install mypy
       - name: Run mypy
         run: |
-          mypy --ignore-missing-imports --exclude numpy --exclude scipy scico/
+          mypy --follow-imports=skip --ignore-missing-imports  --exclude "(numpy|test)" scico/
