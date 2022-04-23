@@ -274,7 +274,9 @@ def test_prox_cg(
     )
     y = A @ im
 
-    A_colsum = A.H @ snp.ones(y.shape)  # backproject ones to get sum over cols of A
+    A_colsum = A.H @ snp.ones(
+        y.shape, dtype=snp.float32
+    )  # backproject ones to get sum over cols of A
     if is_masked:
         mask = np.asarray(A_colsum) > 0  # cols of A which are not all zeros
     else:

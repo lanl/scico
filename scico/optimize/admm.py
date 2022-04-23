@@ -18,13 +18,13 @@ import jax
 from jax.scipy.sparse.linalg import cg as jax_cg
 
 import scico.numpy as snp
-from scico.array import ensure_on_device, is_real_dtype
-from scico.blockarray import BlockArray
 from scico.diagnostics import IterationStats
 from scico.functional import Functional
 from scico.linop import CircularConvolve, Identity, LinearOperator
 from scico.loss import SquaredL2Loss
+from scico.numpy import BlockArray
 from scico.numpy.linalg import norm
+from scico.numpy.util import ensure_on_device, is_real_dtype
 from scico.solver import cg as scico_cg
 from scico.solver import minimize
 from scico.typing import JaxArray

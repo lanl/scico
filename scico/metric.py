@@ -14,7 +14,7 @@ from typing import Optional, Union
 import numpy as np
 
 import scico.numpy as snp
-from scico.blockarray import BlockArray
+from scico.numpy import BlockArray
 from scico.typing import JaxArray
 
 

@@ -4,7 +4,7 @@ import jax
 
 import scico.numpy as snp
 from scico import functional, linop, loss, random
-from scico.blockarray import BlockArray
+from scico.numpy import BlockArray
 from scico.optimize import LinearizedADMM
 
 
@@ -69,7 +69,7 @@ class TestMisc:
 class TestBlockArray:
     def setup_method(self, method):
         np.random.seed(12345)
-        self.y = BlockArray.array(
+        self.y = snp.blockarray(
             (
                 np.random.randn(32, 33).astype(np.float32),
                 np.random.randn(

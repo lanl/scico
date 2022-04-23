@@ -7,13 +7,12 @@ import pytest
 # enable 64-bit mode for output dtype checks
 config.update("jax_enable_x64", True)
 
-
 from prox import prox_test
 
 import scico.numpy as snp
 from scico import functional, linop, loss
-from scico.array import complex_dtype
-from scico.random import randn
+from scico.numpy.util import complex_dtype
+from scico.random import randn, uniform
 
 
 class TestLoss:
@@ -208,3 +207,19 @@ class TestAbsLoss:
 
         pf = prox_test((1 + 1j) * snp.zeros(self.v.shape), L, L.prox, 0.0)  # complex zero v
         pf = prox_test((1 + 1j) * snp.zeros(self.v.shape), L, L.prox, 1.0)  # complex zero v
+
+
+def test_cubic_root():
+    N = 10000
+    p, key = uniform(shape=(N,), dtype=snp.float32, minval=-10.0, maxval=10.0, seed=1234)
+    q, _ = uniform(shape=(N,), dtype=snp.float32, minval=-10.0, maxval=10.0, key=key)
+    # Avoid cases of very poor numerical precision
+    p = p.at[snp.logical_and(snp.abs(p) < 2, q > 5e-2 * snp.abs(p))].set(1e1)
+    r = loss._dep_cubic_root(p, q)
+    err = snp.abs(r**3 + p * r + q)
+    assert err.max() < 2e-4
+    # Test
+    p = snp.array(1e-4, dtype=snp.float32)
+    q = snp.array(1e1, dtype=snp.float32)
+    with pytest.warns(UserWarning):
+        r = loss._dep_cubic_root(p, q)

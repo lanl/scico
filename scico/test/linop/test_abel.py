@@ -27,6 +27,7 @@ def test_inverse(Nx, Ny):
 
     Ax = A @ im
     im_hat = A.inverse(Ax)
+
     np.testing.assert_allclose(im_hat, im, rtol=5e-5)
 
 

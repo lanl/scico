@@ -282,13 +282,13 @@ def test_FlaxMap_batch_call(testobj):
 
 def test_FlaxMap_blockarray_exception(testobj):
 
-    import scico.blockarray as ba
+    from scico.numpy import BlockArray
 
     fmap = sflax.FlaxMap(testobj.dncnn, testobj.variables)
 
     x0, key = randn(shape=(3, 4), seed=4321)
     x1, key = randn(shape=(4, 5, 6), key=key)
-    x = ba.BlockArray.array((x0, x1))
+    x = BlockArray((x0, x1))
 
     with pytest.raises(NotImplementedError):
         fmap(x)
