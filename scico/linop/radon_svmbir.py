@@ -162,10 +162,10 @@ class TomographicProjector(LinearOperator):
 
         # Set up custom_vjp for _eval and _adj so jax.grad works on them.
         self._eval = jax.custom_vjp(self._proj_hcb)
-        self._eval.defvjp(lambda x: (self._proj_hcb(x), None), lambda _, y: (self._bproj_hcb(y),))
+        self._eval.defvjp(lambda x: (self._proj_hcb(x), None), lambda _, y: (self._bproj_hcb(y),))  # type: ignore
 
         self._adj = jax.custom_vjp(self._bproj_hcb)
-        self._adj.defvjp(lambda y: (self._bproj_hcb(y), None), lambda _, x: (self._proj_hcb(x),))
+        self._adj.defvjp(lambda y: (self._bproj_hcb(y), None), lambda _, x: (self._proj_hcb(x),))  # type: ignore
 
         super().__init__(
             input_shape=input_shape,
@@ -305,6 +305,9 @@ class SVMBIRExtendedLoss(Loss):
     described in class :class:`.TomographicProjector`.
     """
 
+    A: TomographicProjector
+    W: Union[Identity, Diagonal]
+
     def __init__(
         self,
         *args,
@@ -328,7 +331,7 @@ class SVMBIRExtendedLoss(Loss):
             W: Weighting diagonal operator. Must be non-negative.
                If ``None``, defaults to :class:`.Identity`.
         """
-        super().__init__(*args, scale=scale, **kwargs)
+        super().__init__(*args, scale=scale, **kwargs)  # type: ignore
 
         if not isinstance(self.A, TomographicProjector):
             raise ValueError("LinearOperator A must be a radon_svmbir.TomographicProjector.")
@@ -367,7 +370,7 @@ class SVMBIRExtendedLoss(Loss):
         else:
             return self.scale * (self.W.diagonal * snp.abs(self.y - self.A(x)) ** 2).sum()
 
-    def prox(self, v: JaxArray, lam: float, **kwargs) -> JaxArray:
+    def prox(self, v: JaxArray, lam: float = 1, **kwargs) -> JaxArray:
         v = v.reshape(self.A.svmbir_input_shape)
         y = self.y.reshape(self.A.svmbir_output_shape)
         weights = self.W.diagonal.reshape(self.A.svmbir_output_shape)

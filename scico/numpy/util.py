@@ -187,7 +187,7 @@ def no_nan_divide(
     return snp.where(y != 0, snp.divide(x, snp.where(y != 0, y, 1)), 0)
 
 
-def shape_to_size(shape: Union[Shape, BlockShape]) -> Axes:
+def shape_to_size(shape: Union[Shape, BlockShape]) -> int:
     r"""Compute the size corresponding to a (possibly nested) shape.
 
     Args:

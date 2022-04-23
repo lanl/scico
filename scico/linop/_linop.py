@@ -64,7 +64,6 @@ def operator_norm(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey] 
     :math:`A`,
 
     .. math::
-
        \| A \|_2 &= \max \{ \| A \mb{x} \|_2 \, : \, \| \mb{x} \|_2 \leq 1 \} \\
                  &= \sqrt{ \lambda_{ \mathrm{max} }( A^H A ) }
                  = \sigma_{\mathrm{max}}(A) \;,
@@ -273,7 +272,7 @@ class Slice(LinearOperator):
     def __init__(
         self,
         idx: ArrayIndex,
-        input_shape: Shape,
+        input_shape: Union[Shape, BlockShape],
         input_dtype: DType = snp.float32,
         jit: bool = True,
         **kwargs,
@@ -296,8 +295,9 @@ class Slice(LinearOperator):
                functions of the LinearOperator.
         """
 
+        output_shape: Union[Shape, BlockShape]
         if is_nested(input_shape):
-            output_shape = input_shape[idx]
+            output_shape = input_shape[idx]  # type: ignore
         else:
             output_shape = indexed_shape(input_shape, idx)
 
@@ -336,6 +336,22 @@ def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = Non
     if f_name is None:
         f_name = f"{f.__module__}.{f.__name__}"
 
+    f_doc = rf"""
+
+        Args:
+            input_shape: Shape of input array.
+            args: Positional arguments passed to :func:`{f_name}`.
+            input_dtype: `dtype` for input argument.
+                Defaults to ``float32``. If `LinearOperator` implements
+                complex-valued operations, this must be ``complex64`` for
+                proper adjoint and gradient calculation.
+            jit: If ``True``, call :meth:`.Operator.jit` on this
+                `LinearOperator` to jit the forward, adjoint, and gram
+                functions. Same as calling :meth:`.Operator.jit` after
+                the `LinearOperator` is created.
+            kwargs: Keyword arguments passed to :func:`{f_name}`.
+        """
+
     def __init__(
         self,
         input_shape: Union[Shape, BlockShape],
@@ -351,21 +367,7 @@ def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = Non
     __class__ = OpClass  # needed for super() to work
 
     OpClass.__doc__ = f"Linear operator version of :func:`{f_name}`."
-    OpClass.__init__.__doc__ = rf"""  # type: ignore
-
-        Args:
-            input_shape: Shape of input array.
-            args: Positional arguments passed to :func:`{f_name}`.
-            input_dtype: `dtype` for input argument.
-                Defaults to ``float32``. If `LinearOperator` implements
-                complex-valued operations, this must be ``complex64`` for
-                proper adjoint and gradient calculation.
-            jit: If ``True``, call :meth:`.Operator.jit` on this
-                `LinearOperator` to jit the forward, adjoint, and gram
-                functions. Same as calling :meth:`.Operator.jit` after
-                the `LinearOperator` is created.
-            kwargs: Keyword arguments passed to :func:`{f_name}`.
-        """
+    OpClass.__init__.__doc__ = f_doc  # type: ignore
 
     return OpClass
 

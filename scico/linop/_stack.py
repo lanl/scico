@@ -63,7 +63,8 @@ class LinearOperatorStack(LinearOperator):
 
         self.collapse = collapse
         output_shape: Union[Shape, BlockShape]
-        output_shape = tuple(op.shape[0] for op in ops)  # assumes BlockArray output
+        # start by assuming BlockArray output
+        output_shape = tuple(op.shape[0] for op in ops)  # type: ignore
 
         # check if collapsable and adjust output_shape if needed
         self.collapsable = isinstance(output_shape[0], tuple) and all(
