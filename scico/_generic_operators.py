@@ -588,7 +588,7 @@ class LinearOperator(Operator):
         input `y`.
 
         Args:
-            y:  Point at which to compute adjoint. If `y` is
+            y: Point at which to compute adjoint. If `y` is
                 :class:`DeviceArray` or :class:`.BlockArray`, must have
                 `shape == self.output_shape`. If `y` is a
                 :class:`.LinearOperator`, must have
