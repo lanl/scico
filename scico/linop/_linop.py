@@ -15,8 +15,6 @@ import operator
 from functools import partial
 from typing import Any, Callable, Optional, Union
 
-import jax
-
 import scico.numpy as snp
 from scico._generic_operators import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
 from scico.numpy import BlockArray
@@ -145,28 +143,16 @@ def valid_adjoint(
     else:
         if x.shape != A.input_shape:
             raise ValueError("Shape of x array not appropriate as an input for operator A")
-    assert isinstance(
-        x, (jax.interpreters.xla.DeviceArray, jax.interpreters.pxla.ShardedDeviceArray)
-    )
     if y is None:
         y, key = randn(shape=AT.input_shape, key=key, dtype=AT.input_dtype)
     else:
         if y.shape != AT.input_shape:
             raise ValueError("Shape of y array not appropriate as an input for operator AT")
-    assert isinstance(
-        y, (jax.interpreters.xla.DeviceArray, jax.interpreters.pxla.ShardedDeviceArray)
-    )
 
     u = A(x)
     v = AT(y)
-    assert isinstance(
-        u, (jax.interpreters.xla.DeviceArray, jax.interpreters.pxla.ShardedDeviceArray)
-    )
-    assert isinstance(
-        v, (jax.interpreters.xla.DeviceArray, jax.interpreters.pxla.ShardedDeviceArray)
-    )
-    yTu = snp.dot(y.ravel().conj(), u.ravel())
-    vTx = snp.dot(v.ravel().conj(), x.ravel())
+    yTu = snp.dot(y.ravel().conj(), u.ravel())  # type: ignore
+    vTx = snp.dot(v.ravel().conj(), x.ravel())  # type: ignore
     err = snp.abs(yTu - vTx) / max(snp.abs(yTu), snp.abs(vTx))
     if eps is None:
         return err
@@ -191,7 +177,6 @@ class Diagonal(LinearOperator):
                broadcast-compatiable with `diagonal.shape`.
             input_dtype: `dtype` of input argument. The default,
                ``None``, means `diagonal.dtype`.
-
         """
 
         self.diagonal = ensure_on_device(diagonal)
@@ -207,9 +192,9 @@ class Diagonal(LinearOperator):
         elif not isinstance(diagonal, BlockArray) and not is_nested(input_shape):
             output_shape = snp.broadcast_shapes(input_shape, self.diagonal.shape)
         elif isinstance(diagonal, BlockArray):
-            raise ValueError(f"`diagonal` was a BlockArray but `input_shape` was not nested.")
+            raise ValueError("`diagonal` was a BlockArray but `input_shape` was not nested.")
         else:
-            raise ValueError(f"`diagonal` was a not BlockArray but `input_shape` was nested.")
+            raise ValueError("`diagonal` was a not BlockArray but `input_shape` was nested.")
 
         super().__init__(
             input_shape=input_shape,
