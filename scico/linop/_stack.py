@@ -43,21 +43,21 @@ class LinearOperatorStack(LinearOperator):
 
         """
         if not isinstance(ops, (list, tuple)):
-            raise ValueError("expected a list of `LinearOperator`")
+            raise ValueError("Expected a list of `LinearOperator`")
 
         self.ops = ops
 
         input_shapes = [op.shape[1] for op in ops]
         if not all(input_shapes[0] == s for s in input_shapes):
             raise ValueError(
-                "expected all `LinearOperator`s to have the same input shapes, "
+                "Expected all `LinearOperator`s to have the same input shapes, "
                 f"but got {input_shapes}"
             )
 
         input_dtypes = [op.input_dtype for op in ops]
         if not all(input_dtypes[0] == s for s in input_dtypes):
             raise ValueError(
-                "expected all `LinearOperator`s to have the same input dtype, "
+                "Expected all `LinearOperator`s to have the same input dtype, "
                 f"but got {input_dtypes}."
             )
 
@@ -76,7 +76,7 @@ class LinearOperatorStack(LinearOperator):
 
         output_dtypes = [op.output_dtype for op in ops]
         if not np.all(output_dtypes[0] == s for s in output_dtypes):
-            raise ValueError("expected all `LinearOperator`s to have the same output dtype")
+            raise ValueError("Expected all `LinearOperator`s to have the same output dtype")
 
         super().__init__(
             input_shape=input_shapes[0],
