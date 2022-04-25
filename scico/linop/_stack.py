@@ -42,10 +42,37 @@ class LinearOperatorStack(LinearOperator):
             jit: see `jit` in :class:`LinearOperator`.
 
         """
-        if not isinstance(ops, (list, tuple)):
-            raise ValueError("Expected a list of `LinearOperator`")
+
+        LinearOperatorStack.check_if_stackable(ops)
 
         self.ops = ops
+        self.collapse = collapse
+
+        # start by assuming BlockArray output
+        output_shape: Union[Shape, BlockShape]
+        output_shape = tuple(op.shape[0] for op in ops)  # type: ignore
+
+        # check if collapsable and adjust output_shape if needed
+        self.collapsable = isinstance(output_shape[0], tuple) and all(
+            output_shape[0] == s for s in output_shape
+        )
+        if self.collapsable and self.collapse:
+            output_shape = (len(ops),) + output_shape[0]  # collapse to DeviceArray
+
+        super().__init__(
+            input_shape=ops[0].input_shape,
+            output_shape=output_shape,
+            input_dtype=ops[0].input_dtype,
+            output_dtype=ops[0].output_dtype,
+            jit=jit,
+            **kwargs,
+        )
+
+    @staticmethod
+    def check_if_stackable(ops):
+        """Check that input ops are suitable for stack creation."""
+        if not isinstance(ops, (list, tuple)):
+            raise ValueError("Expected a list of `LinearOperator`")
 
         input_shapes = [op.shape[1] for op in ops]
         if not all(input_shapes[0] == s for s in input_shapes):
@@ -61,31 +88,9 @@ class LinearOperatorStack(LinearOperator):
                 f"but got {input_dtypes}."
             )
 
-        self.collapse = collapse
-        output_shape: Union[Shape, BlockShape]
-        # start by assuming BlockArray output
-        output_shape = tuple(op.shape[0] for op in ops)  # type: ignore
-
-        # check if collapsable and adjust output_shape if needed
-        self.collapsable = isinstance(output_shape[0], tuple) and all(
-            output_shape[0] == s for s in output_shape
-        )
-        if self.collapsable and self.collapse:
-            assert isinstance(output_shape[0], tuple)
-            output_shape = (len(ops),) + output_shape[0]  # collapse to DeviceArray
-
         output_dtypes = [op.output_dtype for op in ops]
         if not np.all(output_dtypes[0] == s for s in output_dtypes):
             raise ValueError("Expected all `LinearOperator`s to have the same output dtype")
-
-        super().__init__(
-            input_shape=input_shapes[0],
-            output_shape=output_shape,
-            input_dtype=input_dtypes[0],
-            output_dtype=output_dtypes[0],
-            jit=jit,
-            **kwargs,
-        )
 
     def _eval(self, x: JaxArray) -> Union[JaxArray, BlockArray]:
         if self.collapsable and self.collapse:
