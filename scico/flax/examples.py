@@ -115,8 +115,7 @@ def generate_foam2_images(seed: float, size: int, ndata: int) -> Array:
     if not have_xdesign:
         raise RuntimeError("Package xdesign is required for use of this function.")
 
-    # key = jax.random.PRNGKey(seed)  # In XDesign?
-    np.random.seed(seed)
+    key = jax.random.PRNGKey(seed)  # In XDesign?
     oneimg = lambda _: jnp.atleast_3d(
         discrete_phantom(Foam2(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=size)
     )
