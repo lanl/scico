@@ -17,7 +17,8 @@ import numpy as np
 
 import scico.numpy as snp
 from scico.numpy import BlockArray
-from scico.typing import BlockShape, JaxArray, Shape
+from scico.numpy.util import is_nested
+from scico.typing import JaxArray
 
 from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
 
@@ -48,16 +49,13 @@ class LinearOperatorStack(LinearOperator):
         self.ops = ops
         self.collapse = collapse
 
-        # start by assuming BlockArray output
-        output_shape: Union[Shape, BlockShape]
-        output_shape = tuple(op.shape[0] for op in ops)  # type: ignore
+        self.collapsable = all(op.output_shape == ops[0].output_shape for op in ops)
 
-        # check if collapsable and adjust output_shape if needed
-        self.collapsable = isinstance(output_shape[0], tuple) and all(
-            output_shape[0] == s for s in output_shape
-        )
+        assert not isinstance(ops[0].output_shape, tuple)
         if self.collapsable and self.collapse:
-            output_shape = (len(ops),) + output_shape[0]  # collapse to DeviceArray
+            output_shape = (len(ops),) + ops[0].output_shape  # collapse to DeviceArray
+        else:
+            output_shape = tuple(op.output_shape for op in ops)
 
         super().__init__(
             input_shape=ops[0].input_shape,
@@ -69,7 +67,7 @@ class LinearOperatorStack(LinearOperator):
         )
 
     @staticmethod
-    def check_if_stackable(ops):
+    def check_if_stackable(ops: List[LinearOperator]):
         """Check that input ops are suitable for stack creation."""
         if not isinstance(ops, (list, tuple)):
             raise ValueError("Expected a list of `LinearOperator`")
@@ -88,9 +86,13 @@ class LinearOperatorStack(LinearOperator):
                 f"but got {input_dtypes}."
             )
 
+        output_shapes = [op.shape[0] for op in ops]
+        if any(is_nested(output_shapes)):
+            raise ValueError("Cannot stack `LinearOperators`s with nested output shapes.")
+
         output_dtypes = [op.output_dtype for op in ops]
         if not np.all(output_dtypes[0] == s for s in output_dtypes):
-            raise ValueError("Expected all `LinearOperator`s to have the same output dtype")
+            raise ValueError("Expected all `LinearOperator`s to have the same output dtype.")
 
     def _eval(self, x: JaxArray) -> Union[JaxArray, BlockArray]:
         if self.collapsable and self.collapse:
