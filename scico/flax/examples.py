@@ -290,13 +290,13 @@ def load_ct_data(
         if (trdt_in["img"].shape[1] != size) or (ttdt_in["img"].shape[1] != size):
             raise RuntimeError(
                 f"{'Provided size: '}{size}{' does not match read train size: '}"
-                "{trdt_in['img'].shape[1]}{' or test size: '}{ttdt_in['img'].shape[1]}"
+                f"{trdt_in['img'].shape[1]}{' or test size: '}{ttdt_in['img'].shape[1]}"
             )
         # Check number of projections.
         if (trdt_in["sino"].shape[1] != nproj) or (ttdt_in["sino"].shape[1] != nproj):
             raise RuntimeError(
                 f"{'Provided views: '}{nproj}{' does not match read train views: '}"
-                "{trdt_in['sino'].shape[1]}{' or test views: '}{ttdt_in['sino'].shape[1]}"
+                f"{trdt_in['sino'].shape[1]}{' or test views: '}{ttdt_in['sino'].shape[1]}"
             )
         # Check that enough data is available.
         if trdt_in["img"].shape[0] >= train_nimg:
@@ -315,15 +315,15 @@ def load_ct_data(
                     print(f"{'Data read from path:':22s}{cache_path}")
                     print(
                         f"{'Data range images':26s}{'Min:':6s}{trdt['img'].min():>5.2f}"
-                        "{', Max:':6s}{trdt['img'].max():>8.2f}"
+                        f"{', Max:':6s}{trdt['img'].max():>8.2f}"
                     )
                     print(
                         f"{'Data range sinograms':26s}{'Min:':6s}{trdt['sino'].min():>5.2f}"
-                        "{', Max:':6s}{trdt['sino'].max():>8.2f}"
+                        f"{', Max:':6s}{trdt['sino'].max():>8.2f}"
                     )
                     print(
                         f"{'Data range FBP':26s}{'Min:':6s}{trdt['fbp'].min():>5.2f}"
-                        "{', Max:':6s}{trdt['fbp'].max():>8.2f}"
+                        f"{', Max:':6s}{trdt['fbp'].max():>8.2f}"
                     )
 
                 return trdt, ttdt
@@ -331,12 +331,12 @@ def load_ct_data(
             elif verbose:
                 print(
                     f"{'Not enough data in testing file':34s}{'Requested:':12s}{test_nimg}"
-                    "{' Available:':12s}{ttdt_in['img'].shape[0]}"
+                    f"{' Available:':12s}{ttdt_in['img'].shape[0]}"
                 )
         elif verbose:
             print(
                 f"{'Not enough data in training file':34s}{'Requested:':12s}{train_nimg}"
-                "{' Available:':12s}{trdt_in['img'].shape[0]}"
+                f"{' Available:':12s}{trdt_in['img'].shape[0]}"
             )
 
     # Generate new data.
@@ -926,7 +926,7 @@ def load_image_data(
         if (train_in.shape[1] != size) or (test_in.shape[1] != size):
             raise RuntimeError(
                 f"{'Provided size: '}{size}{' does not match read train size: '}"
-                "{train_in.shape[1]}{' or test size: '}{test_in.shape[1]}"
+                f"{train_in.shape[1]}{' or test size: '}{test_in.shape[1]}"
             )
         # Check gray scale or color images.
         C_train = train_in.shape[-1]
@@ -938,7 +938,7 @@ def load_image_data(
         if (C_train != C) or (C_test != C):
             raise RuntimeError(
                 f"{'Provided channels: '}{C}{' do not match read train channels: '}"
-                "{C_train}{' or test channels: '}{C_test}"
+                f"{C_train}{' or test channels: '}{C_test}"
             )
         # Check that enough images were sampled.
         if trdt["numimg"] >= train_nimg:
@@ -957,11 +957,11 @@ def load_image_data(
                     print(f"{'Test images':26s}{test_ds['image'].shape[0]}")
                     print(
                         f"{'Data range images':26s}{'Min:':6s}{train_ds['image'].min():>5.2f}"
-                        "{', Max:':6s}{train_ds['image'].max():>8.2f}"
+                        f"{', Max:':6s}{train_ds['image'].max():>8.2f}"
                     )
                     print(
                         f"{'Data range labels':26s}{'Min:':6s}{train_ds['label'].min():>5.2f}"
-                        "{', Max:':6s}{train_ds['label'].max():>8.2f}"
+                        f"{', Max:':6s}{train_ds['label'].max():>8.2f}"
                     )
                     print(
                         "NOTE: No checking that additive noise, blur or other preprocessing"
@@ -974,12 +974,12 @@ def load_image_data(
             elif verbose:
                 print(
                     f"{'Not enough images sampled in testing file':34s}{'Requested:':12s}"
-                    "{test_nimg}{'Sampled:':12s}{ttdt['numimg']}"
+                    f"{test_nimg}{'Sampled:':12s}{ttdt['numimg']}"
                 )
         elif verbose:
             print(
                 f"{'Not enough images sampled in training file':34s}{'Requested:':12s}{train_nimg}"
-                "{' Available:':12s}{trdt['numimg']}"
+                f"{' Available:':12s}{trdt['numimg']}"
             )
 
     # Check if BSDS folder exists if not create and download BSDS data.
@@ -1035,11 +1035,11 @@ def load_image_data(
         print(f"{'Test images':26s}{test_ds['image'].shape[0]}")
         print(
             f"{'Data range images':26s}{'Min:':6s}{train_ds['image'].min():>5.2f}"
-            "{', Max:':6s}{train_ds['image'].max():>8.2f}"
+            f"{', Max:':6s}{train_ds['image'].max():>8.2f}"
         )
         print(
             f"{'Data range labels':26s}{'Min:':6s}{train_ds['label'].min():>5.2f}"
-            "{', Max:':6s}{train_ds['label'].max():>8.2f}"
+            f"{', Max:':6s}{train_ds['label'].max():>8.2f}"
         )
 
     return train_ds, test_ds

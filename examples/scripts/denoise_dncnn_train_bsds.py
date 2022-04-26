@@ -118,7 +118,7 @@ snr_eval = snr(test_ds["label"][:660], output)
 psnr_eval = psnr(test_ds["label"][:660], output)
 print(
     f"{'DnCNNNet':14s}{'epochs:':2s}{epochs:>5d}{'':3s}{'time[s]:':10s}{time_train:>5.2f}{'':3s}"
-    "{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}"
+    f"{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}"
 )
 
 
