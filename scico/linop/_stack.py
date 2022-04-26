@@ -51,15 +51,15 @@ class LinearOperatorStack(LinearOperator):
 
         self.collapsable = all(op.output_shape == ops[0].output_shape for op in ops)
 
-        assert not isinstance(ops[0].output_shape, tuple)
+        output_shapes = tuple(op.output_shape for op in ops)
         if self.collapsable and self.collapse:
-            output_shape = (len(ops),) + ops[0].output_shape  # collapse to DeviceArray
+            output_shape = (len(ops),) + output_shapes[0]  # collapse to DeviceArray
         else:
-            output_shape = tuple(op.output_shape for op in ops)
+            output_shape = output_shapes
 
         super().__init__(
             input_shape=ops[0].input_shape,
-            output_shape=output_shape,
+            output_shape=output_shape,  # type: ignore
             input_dtype=ops[0].input_dtype,
             output_dtype=ops[0].output_dtype,
             jit=jit,
@@ -86,8 +86,7 @@ class LinearOperatorStack(LinearOperator):
                 f"but got {input_dtypes}."
             )
 
-        output_shapes = [op.shape[0] for op in ops]
-        if any(is_nested(output_shapes)):
+        if any([is_nested(op.shape[0]) for op in ops]):
             raise ValueError("Cannot stack `LinearOperators`s with nested output shapes.")
 
         output_dtypes = [op.output_dtype for op in ops]
