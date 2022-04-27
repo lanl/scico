@@ -2,6 +2,7 @@ import warnings
 
 import numpy as np
 
+import jax.numpy as jnp
 from jax.config import config
 
 # enable 64-bit mode for output dtype checks
@@ -207,6 +208,10 @@ class TestBlockArrayEval:
 
         x = func(test_prox_obj.vb)
         y = func(test_prox_obj.vb.ravel())
+
+        assert jnp.isscalar(x) or x.ndim == 0
+        assert jnp.isscalar(y) or y.ndim == 0
+
         np.testing.assert_allclose(x, y, rtol=1e-6)
 
 
