@@ -99,7 +99,7 @@ class L1Norm(Functional):
         """
         tmp = snp.abs(v) - lam
         tmp = 0.5 * (tmp + snp.abs(tmp))
-        if snp.iscomplexobj(v):
+        if snp.util.is_complex_dtype(v.dtype):
             out = snp.exp(1j * snp.angle(v)) * tmp
         else:
             out = snp.sign(v) * tmp
