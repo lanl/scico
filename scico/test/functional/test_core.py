@@ -132,6 +132,9 @@ class TestNormProx:
         pf = nrmobj.prox(snp.concatenate(snp.ravel(test_prox_obj.vb)), alpha)
         pf_b = nrmobj.prox(test_prox_obj.vb, alpha)
 
+        assert pf.dtype == test_prox_obj.vb.dtype
+        assert pf_b.dtype == test_prox_obj.vb.dtype
+
         snp.testing.assert_allclose(pf, snp.concatenate(snp.ravel(pf_b)), rtol=1e-6)
 
     @pytest.mark.parametrize("norm", normlist)
