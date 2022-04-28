@@ -35,7 +35,7 @@ if have_xdesign:
 from scico import util
 from scico.examples import rgb2gray
 from scico.flax.train.input_pipeline import DataSetDict
-from scico.linop import CircularConvolve
+from scico.linop import CircularConvolve, LinearOperator
 from scico.typing import Array, Shape
 
 try:
@@ -1044,43 +1044,86 @@ def load_image_data(
     return train_ds, test_ds
 
 
-def construct_blur_operator(
-    output_size: Union[Shape, int],
-    channels: int,
-    kernel_size: Shape,
-    blur_sigma: float,
-    dtype: Any = np.float32,
-):
+class PaddedCircularConvolve(LinearOperator):
+    """Define padded convolutional operator.
+
+    The operator pads the signal with a reflection of the borders before convolving with the kernel
+    provided at initialization. It crops the result of the convolution to maintain the same
+    signal size.
     """
-    Construct blur operator.
 
-    Args:
-        output_size: Size of the image to blur.
-        channels: Number of channels in image to blur.
-        kernel_size: Size of the blur kernel.
-        blur_sigma: Standard deviation of the blur kernel.
-        dtype: Output data type. Default: ``np.float32``.
+    def __init__(
+        self,
+        output_size: Union[Shape, int],
+        channels: int,
+        kernel_size: Shape,
+        blur_sigma: float,
+        dtype: Any = np.float32,
+    ):
+        """
+        Args:
+            output_size: Size of the image to blur.
+            channels: Number of channels in image to blur.
+            kernel_size: Size of the blur kernel.
+            blur_sigma: Standard deviation of the blur kernel.
+            dtype: Output data type. Default: ``np.float32``.
+        """
+        if isinstance(output_size, int):
+            output_size = (output_size, output_size)
+        else:
+            assert len(output_size) == 2
 
-    Returns:
-       An operator that computes a circular convolution with the provided kernel.
-           The input to the constructed operator should be HWC with H and W spatial dimensions
-           given by `output_size` and C the given `channels`.
-    """
-    if isinstance(output_size, int):
-        output_size = (output_size, output_size)
-    else:
-        assert len(output_size) == 2
+        # Define padding.
+        self.padsz = (
+            (kernel_size[0] // 2, kernel_size[0] // 2),
+            (kernel_size[1] // 2, kernel_size[1] // 2),
+            (0, 0),
+        )
 
-    kernel = 1.0
-    meshgrids = np.meshgrid(*[np.arange(size, dtype=dtype) for size in kernel_size])
-    for size, mgrid in zip(kernel_size, meshgrids):
-        mean = (size - 1) / 2
-        kernel *= np.exp(-(((mgrid - mean) / blur_sigma) ** 2) / 2)
+        shape = (output_size[0], output_size[1], channels)
+        with_pad = (
+            output_size[0] + self.padsz[0][0] + self.padsz[0][1],
+            output_size[1] + self.padsz[1][0] + self.padsz[1][1],
+        )
+        shape_padded = (with_pad[0], with_pad[1], channels)
 
-    # Make sure norm of values in gaussian kernel equals 1.
-    kernel = kernel / np.sum(kernel)
+        # Define data types.
+        input_dtype = dtype
+        output_dtype = dtype
 
-    # Reshape to depthwise convolutional weight (HWC)
-    xshape = (output_size[0], output_size[1], channels)
+        # Construct blur kernel as specified.
+        kernel = 1.0
+        meshgrids = np.meshgrid(*[np.arange(size, dtype=dtype) for size in kernel_size])
+        for size, mgrid in zip(kernel_size, meshgrids):
+            mean = (size - 1) / 2
+            kernel *= np.exp(-(((mgrid - mean) / blur_sigma) ** 2) / 2)
+        # Make sure norm of values in gaussian kernel equals 1.
+        kernel = kernel / np.sum(kernel)
 
-    return CircularConvolve(kernel, input_shape=xshape, ndims=2, input_dtype=dtype)
+        # Define convolution part.
+        self.conv = CircularConvolve(kernel, input_shape=shape_padded, ndims=2, input_dtype=dtype)
+
+        # Initialize Linear Operator.
+        super().__init__(
+            input_shape=shape,
+            output_shape=shape,
+            input_dtype=input_dtype,
+            output_dtype=output_dtype,
+            jit=True,
+        )
+
+    def _eval(self, x: Array) -> Array:
+        """Apply operator.
+
+        Args:
+            x: The nd-array with input signal. The input to the constructed operator should
+                be HWC with H and W spatial dimensions given by `output_size` and C the given
+                `channels`.
+
+        Returns:
+            The result of padding, convolving and cropping the signal. The output signal has
+                the same HWC dimensions as the input signal.
+        """
+        xpadd = jnp.pad(x, self.padsz, mode="reflect")
+        rconv = self.conv(xpadd)
+        return rconv[self.padsz[0][0] : -self.padsz[0][1], self.padsz[1][0] : -self.padsz[1][1], :]

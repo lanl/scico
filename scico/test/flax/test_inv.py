@@ -10,7 +10,7 @@ import pytest
 
 from scico import flax as sflax
 from scico import random
-from scico.flax.examples import construct_blur_operator, have_astra
+from scico.flax.examples import PaddedCircularConvolve, have_astra
 from scico.flax.train.train import clip_positive, construct_traversal, train_step_post
 from scico.linop import Identity
 
@@ -54,7 +54,7 @@ class TestSet:
         blur_shape = (9, 9)
         blur_sigma = 2.24
         output_size = (self.N, self.N)
-        opBlur = construct_blur_operator(output_size, self.chn, blur_shape, blur_sigma)
+        opBlur = PaddedCircularConvolve(output_size, self.chn, blur_shape, blur_sigma)
 
         odpdb = sflax.ODPNet(
             operator=opBlur,
