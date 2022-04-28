@@ -32,7 +32,8 @@ which for the deconvolution problem corresponds to
 
   $$\mathbf{x}^{k+1} = \mathcal{F}^{-1} \mathrm{diag} (\alpha_k | \mathcal{K}|^2 + 1 )^{-1} \mathcal{F} \, (\alpha_k K^T * \mathbf{y} + \mathbf{x}^k + \mathbf{x}^{k+1/2}) \;,$$
 
-where $k$ is the index of the stage (iteration), $\mathbf{x}^k + \mathbf{x}^{k+1/2} = \mathrm{ResNet}(\mathbf{x}^{k})$
+where $k$ is the index of the stage (iteration),
+$\mathbf{x}^k + \mathbf{x}^{k+1/2} = \mathrm{ResNet}(\mathbf{x}^{k})$
 is the regularization (implemented as a residual convolutional neural network),
  $\mathbf{x}^k$ is the output of the previous stage,
  $\alpha_k > 0$ is a learned stage-wise parameter weighting the contribution of the fidelity term,
@@ -49,7 +50,7 @@ import jax.numpy as jnp
 
 from scico import flax as sflax
 from scico import plot
-from scico.flax.examples import construct_blur_operator, load_image_data
+from scico.flax.examples import PaddedCircularConvolve, load_image_data
 from scico.flax.train.train import clip_positive, construct_traversal, train_step_post
 from scico.metric import psnr, snr
 
@@ -66,10 +67,10 @@ Define blur operator.
 """
 output_size = 256  # patch size
 channels = 1  # gray scale problem
-blur_shape = (5, 5)  # shape of blur kernel
+blur_shape = (9, 9)  # shape of blur kernel
 blur_sigma = 5  # Gaussian blur kernel parameter
 
-opBlur = construct_blur_operator(output_size, channels, blur_shape, blur_sigma)
+opBlur = PaddedCircularConvolve(output_size, channels, blur_shape, blur_sigma)
 
 opBlur_vmap = jax.vmap(opBlur)  # for batch processing in data generation
 
@@ -106,16 +107,17 @@ train_ds, test_ds = load_image_data(
 Define configuration dictionary for model and training loop.
 """
 batch_size = 16
-epochs = 100
+epochs = 50
 dconf: sflax.ConfigDict = {
     "seed": 0,
-    "depth": 1,
+    "depth": 4,
     "num_filters": 64,
     "block_depth": 5,
-    "opt_type": "ADAM",
+    "opt_type": "SGD",
+    "momentum": 0.9,
     "batch_size": batch_size,
     "num_epochs": epochs,
-    "base_learning_rate": 1e-3,
+    "base_learning_rate": 1e-2,
     "warmup_epochs": 0,
     "num_train_steps": -1,
     "steps_per_eval": -1,

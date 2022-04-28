@@ -18,7 +18,7 @@ import numpy as np
 from jax import vmap
 
 from scico import plot
-from scico.flax.examples import construct_blur_operator, load_image_data
+from scico.flax.examples import PaddedCircularConvolve, load_image_data
 
 """
 Define blur operator.
@@ -28,7 +28,7 @@ channels = 1  # gray scale problem
 blur_shape = (5, 5)  # shape of blur kernel
 blur_sigma = 5  # Gaussian blur kernel parameter
 
-opBlur = construct_blur_operator(output_size, channels, blur_shape, blur_sigma)
+opBlur = PaddedCircularConvolve(output_size, channels, blur_shape, blur_sigma)
 
 opBlur_vmap = vmap(opBlur)  # for batch processing
 

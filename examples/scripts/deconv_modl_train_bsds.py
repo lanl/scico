@@ -45,7 +45,7 @@ import jax.numpy as jnp
 
 from scico import flax as sflax
 from scico import plot
-from scico.flax.examples import construct_blur_operator, load_image_data
+from scico.flax.examples import PaddedCircularConvolve, load_image_data
 from scico.flax.train.train import clip_positive, construct_traversal, train_step_post
 from scico.metric import psnr, snr
 
@@ -62,10 +62,10 @@ Define blur operator.
 """
 output_size = 256  # patch size
 channels = 1  # gray scale problem
-blur_shape = (5, 5)  # shape of blur kernel
+blur_shape = (9, 9)  # shape of blur kernel
 blur_sigma = 5  # Gaussian blur kernel parameter
 
-opBlur = construct_blur_operator(output_size, channels, blur_shape, blur_sigma)
+opBlur = PaddedCircularConvolve(output_size, channels, blur_shape, blur_sigma)
 
 opBlur_vmap = jax.vmap(opBlur)  # for batch processing in data generation
 
@@ -102,35 +102,22 @@ train_ds, test_ds = load_image_data(
 Define configuration dictionary for model and training loop.
 """
 batch_size = 16
-epochs = 10
+epochs = 40
 dconf: sflax.ConfigDict = {
     "seed": 0,
-    "depth": 1,
-    "num_filters": 64,
+    "depth": 4,
+    "num_filters": 32,
     "block_depth": 4,
-    "opt_type": "ADAM",
+    "opt_type": "SGD",
+    "momentum": 0.9,
     "batch_size": batch_size,
     "num_epochs": epochs,
-    "base_learning_rate": 1e-3,
+    "base_learning_rate": 1e-2,
     "warmup_epochs": 0,
     "num_train_steps": -1,
     "steps_per_eval": -1,
     "log_every_steps": 500,
 }
-
-"""
-Construct MoDLNet model. Use only one iteration in the model for
-faster intialization and few CG iterations.
-"""
-model = sflax.MoDLNet(
-    operator=opBlur,
-    depth=1,
-    channels=channels,
-    num_filters=dconf["num_filters"],
-    block_depth=dconf["block_depth"],
-    cg_iter=3,
-)
-
 
 """
 Construct functionality for making sure that
@@ -147,58 +134,97 @@ train_step = partial(train_step_post, post_fn=lmbdapos)
 
 
 """
-Run first stage (initialization) training loop.
+Print configuration of distributed run.
 """
-workdir = os.path.join(
-    os.path.expanduser("~"), ".cache", "scico", "examples", "img", "modl_dcnv_out"
-)
 print(f"{'JAX process: '}{jax.process_index()}{' / '}{jax.process_count()}")
 print(f"{'JAX local devices: '}{jax.local_devices()}")
 
-start_time = time()
-modvar = sflax.train_and_evaluate(
-    dconf,
-    workdir,
-    model,
-    train_ds,
-    test_ds,
-    training_step_fn=train_step,
-    checkpointing=True,
-    log=True,
-)
-time_init = time() - start_time
-
-print(f"{'MoDLNet Init':8s}{'epochs:':2s}{epochs:>5d}{'':3s}{'time[s]:':2s}{time_init:>5.2f}")
-
 """
-Run second stage (depth iterations) training loop.
+Check for iterated trained model. If not found, construct MoDLNet model, using only one iteration
+(depth) in model and few CG iterations for faster intialization. Run first stage
+(initialization) training loop
+followed by a second stage (depth iterations) training loop.
 """
-model = sflax.MoDLNet(
-    operator=opBlur,
-    depth=dconf["depth"],
-    channels=channels,
-    num_filters=dconf["num_filters"],
-    block_depth=dconf["block_depth"],
-)
-
-dconf["num_epochs"] = 70
 workdir2 = os.path.join(
     os.path.expanduser("~"), ".cache", "scico", "examples", "img", "modl_dcnv_out", "iterated"
 )
 
-start_time = time()
-modvar = sflax.train_and_evaluate(
-    dconf,
-    workdir2,
-    model,
-    train_ds,
-    test_ds,
-    training_step_fn=train_step,
-    variables0=modvar,
-    checkpointing=True,
-    log=True,
-)
-time_train = time() - start_time
+checkpoint_files = []
+for (dirpath, dirnames, filenames) in os.walk(workdir2):
+    checkpoint_files = [fn for fn in filenames if str.split(fn, "_")[0] == "checkpoint"]
+if len(checkpoint_files) > 0:
+    model = sflax.MoDLNet(
+        operator=opBlur,
+        depth=dconf["depth"],
+        channels=channels,
+        num_filters=dconf["num_filters"],
+        block_depth=dconf["block_depth"],
+    )
+
+    start_time = time()
+    modvar = sflax.train_and_evaluate(
+        dconf,
+        workdir2,
+        model,
+        train_ds,
+        test_ds,
+        training_step_fn=train_step,
+        checkpointing=True,
+        log=True,
+    )
+    time_train = time() - start_time
+else:
+    # One iteration (depth) in model and few CG iterations
+    model = sflax.MoDLNet(
+        operator=opBlur,
+        depth=1,
+        channels=channels,
+        num_filters=dconf["num_filters"],
+        block_depth=dconf["block_depth"],
+        cg_iter=3,
+    )
+    # First stage: initialization training loop.
+    workdir = os.path.join(
+        os.path.expanduser("~"), ".cache", "scico", "examples", "img", "modl_dcnv_out"
+    )
+
+    dconf["num_epochs"] = epochs // 2
+    start_time = time()
+    modvar = sflax.train_and_evaluate(
+        dconf,
+        workdir,
+        model,
+        train_ds,
+        test_ds,
+        training_step_fn=train_step,
+        checkpointing=True,
+        log=True,
+    )
+    time_init = time() - start_time
+
+    print(
+        f"{'MoDLNet Init':8s}{'epochs:':2s}{dconf['num_epochs']:>5d}{'':3s}"
+        f"{'time[s]:':10s}{time_init:>5.2f}"
+    )
+
+    # Second stage: depth iterations training loop.
+    model.depth = dconf["depth"]
+
+    dconf["num_epochs"] = epochs
+    dconf["base_learning_rate"] = 5e-3
+    start_time = time()
+    modvar = sflax.train_and_evaluate(
+        dconf,
+        workdir2,
+        model,
+        train_ds,
+        test_ds,
+        training_step_fn=train_step,
+        variables0=modvar,
+        checkpointing=True,
+        log=True,
+    )
+    time_train = time() - start_time
 
 """
 Evaluate on testing data.
