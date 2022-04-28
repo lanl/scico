@@ -25,7 +25,7 @@ Define blur operator.
 """
 output_size = 256  # patch size
 channels = 1  # gray scale problem
-blur_shape = (5, 5)  # shape of blur kernel
+blur_shape = (9, 9)  # shape of blur kernel
 blur_sigma = 5  # Gaussian blur kernel parameter
 
 opBlur = PaddedCircularConvolve(output_size, channels, blur_shape, blur_sigma)
