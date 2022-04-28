@@ -47,17 +47,18 @@ Note that :math:`x` corresponds to axis 0 (rows, increasing downwards)
 and :math:`y` to axis 1 (columns, increasing to the right).
 """
 
-
 # Needed to annotate a class method that returns the encapsulating class;
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import Tuple, Union
+from typing import Any, Tuple, Union
 
 import numpy as np
 from numpy.lib.scimath import sqrt  # complex sqrt
 
 import jax
+
+from typing_extensions import TypeGuard
 
 import scico.numpy as snp
 from scico.linop import Diagonal, Identity, LinearOperator
@@ -65,6 +66,11 @@ from scico.numpy.util import no_nan_divide
 from scico.typing import Shape
 
 from ._dft import DFT
+
+
+def _isscalar(element: Any) -> TypeGuard[Union[int, float]]:
+    """Type guard interface to `snp.isscalar`."""
+    return snp.isscalar(element)
 
 
 def radial_transverse_frequency(
@@ -89,12 +95,12 @@ def radial_transverse_frequency(
         :math:`\sqrt{k_x^2 + k_y^2}\,`.
     """
 
-    ndim = len(input_shape)  # 1 or 2 dimensions
+    ndim: int = len(input_shape)  # 1 or 2 dimensions
     if ndim not in (1, 2):
         raise ValueError("Invalid input dimensions; must be 1 or 2")
 
-    if np.isscalar(dx):
-        dx = (dx,) * ndim  # type: ignore
+    if _isscalar(dx):
+        dx = (dx,) * ndim
     else:
         assert isinstance(dx, tuple)
         if len(dx) != ndim:
@@ -147,8 +153,8 @@ class Propagator(LinearOperator):
         if ndim not in (1, 2):
             raise ValueError("Invalid input dimensions; must be 1 or 2")
 
-        if np.isscalar(dx):
-            dx = (dx,) * ndim  # type: ignore
+        if _isscalar(dx):
+            dx = (dx,) * ndim
         else:
             assert isinstance(dx, tuple)
             if len(dx) != ndim:
@@ -495,8 +501,8 @@ class FraunhoferPropagator(LinearOperator):
         if ndim not in (1, 2):
             raise ValueError("Invalid input dimensions; must be 1 or 2")
 
-        if np.isscalar(dx):
-            dx = (dx,) * ndim  # type: ignore
+        if _isscalar(dx):
+            dx = (dx,) * ndim
         else:
             assert isinstance(dx, tuple)
             if len(dx) != ndim:
