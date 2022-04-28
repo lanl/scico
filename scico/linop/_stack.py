@@ -87,7 +87,7 @@ class LinearOperatorStack(LinearOperator):
             )
 
         if any([is_nested(op.shape[0]) for op in ops]):
-            raise ValueError("Cannot stack `LinearOperators`s with nested output shapes.")
+            raise ValueError("Cannot stack `LinearOperator`s with nested output shapes.")
 
         output_dtypes = [op.output_dtype for op in ops]
         if not np.all(output_dtypes[0] == s for s in output_dtypes):
