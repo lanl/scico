@@ -14,8 +14,8 @@ all the functions from :mod:`jax.numpy` and :mod:`numpy.testing`, where
 many have been extended to automatically map over block array blocks as
 described in :mod:`scico.numpy.blockarray`. Also included are additional
 functions unique to SCICO in :mod:`.util`.
-
 """
+
 import numpy as np
 
 import jax.numpy as jnp
