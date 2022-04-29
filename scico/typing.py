@@ -11,9 +11,9 @@ from typing import Any, Tuple, Union
 
 try:
     # available in python 3.10
-    from typing import EllipsisType  # type: ignore
+    from types import EllipsisType  # type: ignore
 except ImportError:
-    EllipsisType = Any
+    EllipsisType = Any  # type: ignore
 
 import numpy as np
 
