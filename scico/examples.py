@@ -12,7 +12,7 @@ import glob
 import os
 import tempfile
 import zipfile
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import numpy as np
 
@@ -201,7 +201,7 @@ def tile_volume_slices(x: Array, sep_width: int = 10) -> Array:
     """
 
     if x.ndim == 3:
-        fshape = (x.shape[0], sep_width)
+        fshape: Tuple[int, ...] = (x.shape[0], sep_width)
     else:
         fshape = (x.shape[0], sep_width, 3)
     out = snp.concatenate(
@@ -214,9 +214,9 @@ def tile_volume_slices(x: Array, sep_width: int = 10) -> Array:
     )
 
     if x.ndim == 3:
-        fshape0 = (sep_width, out.shape[1])
-        fshape1 = (x.shape[2], x.shape[2] + sep_width)
-        trans = (1, 0)
+        fshape0: Tuple[int, ...] = (sep_width, out.shape[1])
+        fshape1: Tuple[int, ...] = (x.shape[2], x.shape[2] + sep_width)
+        trans: Tuple[int, ...] = (1, 0)
 
     else:
         fshape0 = (sep_width, out.shape[1], 3)
@@ -300,7 +300,7 @@ def create_3D_foam_phantom(
     r_std: float = 0.001,
     pad: float = 0.01,
     is_random: bool = False,
-):
+) -> JaxArray:
     """Construct a 3D phantom with random radii and centers.
 
     Args:
@@ -316,7 +316,7 @@ def create_3D_foam_phantom(
                 process deterministic. Default ``False``.
 
     Returns:
-        3D phantom of shape im_shape
+        3D phantom of shape `im_shape`.
     """
     c_lo = 0.0
     c_hi = 1.0
@@ -331,10 +331,10 @@ def create_3D_foam_phantom(
     radii = r_std * np.random.randn(N_sphere) + r_mean
 
     im = snp.zeros(im_shape) + c_lo
-    for c, r in zip(centers, radii):
+    for c, r in zip(centers, radii):  # type: ignore
         dist = snp.sum((x - c) ** 2, axis=-1)
         if snp.mean(im[dist < r**2] - c_lo) < 0.01 * c_hi:
-            # In numpy: im[dist < r**2] = c_hi
+            # equivalent to im[dist < r**2] = c_hi in numpy
             im = im.at[dist < r**2].set(c_hi)
 
     return im
@@ -354,13 +354,13 @@ def spnoise(img: Array, nfrac: float, nmin: float = 0.0, nmax: float = 1.0) -> A
     """
 
     if isinstance(img, np.ndarray):
-        spm = np.random.uniform(-1.0, 1.0, img.shape)
+        spm = np.random.uniform(-1.0, 1.0, img.shape)  # type: ignore
         imgn = img.copy()
         imgn[spm < nfrac - 1.0] = nmin
         imgn[spm > 1.0 - nfrac] = nmax
     else:
-        spm, key = random.uniform(shape=img.shape, minval=-1.0, maxval=1.0, seed=0)
+        spm, key = random.uniform(shape=img.shape, minval=-1.0, maxval=1.0, seed=0)  # type: ignore
         imgn = img
-        imgn = imgn.at[spm < nfrac - 1.0].set(nmin)
-        imgn = imgn.at[spm > 1.0 - nfrac].set(nmax)
+        imgn = imgn.at[spm < nfrac - 1.0].set(nmin)  # type: ignore
+        imgn = imgn.at[spm > 1.0 - nfrac].set(nmax)  # type: ignore
     return imgn

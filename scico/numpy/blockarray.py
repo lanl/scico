@@ -212,7 +212,7 @@ from ._wrapped_function_lists import binary_ops, unary_ops
 
 
 class BlockArray(list):
-    """BlockArray class"""
+    """BlockArray class."""
 
     # Ensure we use BlockArray.__radd__, __rmul__, etc for binary
     # operations of the form op(np.ndarray, BlockArray) See
@@ -233,7 +233,7 @@ class BlockArray(list):
     def dtype(self):
         """Return the dtype of the blocks, which must currently be homogeneous.
 
-        This allows snp.zeros(x.shape, x.dtype) to work without a mechanism
+        This allows `snp.zeros(x.shape, x.dtype)` to work without a mechanism
         to handle to lists of dtypes.
         """
         return self[0].dtype

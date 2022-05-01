@@ -62,10 +62,8 @@ has_prox = {self.has_prox}
            x: Point at which to evaluate this functional.
 
         """
-        if not self.has_eval:
-            raise NotImplementedError(
-                f"Functional {type(self)} cannot be evaluated; has_eval={self.has_eval}"
-            )
+        # Functionals that can be evaluated should override this method.
+        raise NotImplementedError(f"Functional {type(self)} cannot be evaluated.")
 
     def prox(
         self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
@@ -91,10 +89,8 @@ has_prox = {self.has_prox}
                 classes. These include `x0`, an initial guess for the
                 minimizer in the definition of :math:`\mathrm{prox}`.
         """
-        if not self.has_prox:
-            raise NotImplementedError(
-                f"Functional {type(self)} does not have a prox; has_prox={self.has_prox}"
-            )
+        # Functionals that have a prox should override this method.
+        raise NotImplementedError(f"Functional {type(self)} does not have a prox.")
 
     def conj_prox(
         self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs

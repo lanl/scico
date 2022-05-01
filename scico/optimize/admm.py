@@ -12,7 +12,7 @@
 from __future__ import annotations
 
 from functools import reduce
-from typing import Callable, List, Optional, Union
+from typing import Any, Callable, List, Optional, Tuple, Union
 
 import jax
 from jax.scipy.sparse.linalg import cg as jax_cg
@@ -80,7 +80,7 @@ class GenericSubproblemSolver(SubproblemSolver):
                 :func:`scico.solver.minimize`.
         """
         self.minimize_kwargs = minimize_kwargs
-        self.info = {}
+        self.info: dict = {}
 
     def solve(self, x0: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
         """Solve the ADMM step.
@@ -154,7 +154,7 @@ class LinearSubproblemSolver(SubproblemSolver):
             :math:`\mb{x}` update step.
     """
 
-    def __init__(self, cg_kwargs: Optional[dict] = None, cg_function: str = "scico"):
+    def __init__(self, cg_kwargs: Optional[dict[str, Any]] = None, cg_function: str = "scico"):
         """Initialize a :class:`LinearSubproblemSolver` object.
 
         Args:
@@ -236,8 +236,8 @@ class LinearSubproblemSolver(SubproblemSolver):
         rhs = snp.zeros(C0.input_shape, C0.input_dtype)
 
         if self.admm.f is not None:
-            ATWy = self.admm.f.A.adj(self.admm.f.W.diagonal * self.admm.f.y)
-            rhs += 2.0 * self.admm.f.scale * ATWy
+            ATWy = self.admm.f.A.adj(self.admm.f.W.diagonal * self.admm.f.y)  # type: ignore
+            rhs += 2.0 * self.admm.f.scale * ATWy  # type: ignore
 
         for rhoi, Ci, zi, ui in zip(
             self.admm.rho_list, self.admm.C_list, self.admm.z_list, self.admm.u_list
@@ -256,7 +256,7 @@ class LinearSubproblemSolver(SubproblemSolver):
         """
         x0 = ensure_on_device(x0)
         rhs = self.compute_rhs()
-        x, self.info = self.cg(self.lhs_op, rhs, x0, **self.cg_kwargs)
+        x, self.info = self.cg(self.lhs_op, rhs, x0, **self.cg_kwargs)  # type: ignore
         return x
 
 
@@ -481,7 +481,7 @@ class ADMM:
 
         # dynamically create itstat_func; see https://stackoverflow.com/questions/24733831
         itstat_return = "return(" + ", ".join(["obj." + attr for attr in itstat_attrib]) + ")"
-        scope = {}
+        scope: dict[str, Callable] = {}
         exec("def itstat_func(obj): " + itstat_return, scope)
 
         # determine itstat options and initialize IterationStats object
@@ -492,8 +492,8 @@ class ADMM:
         }
         if itstat_options:
             default_itstat_options.update(itstat_options)
-        self.itstat_insert_func = default_itstat_options.pop("itstat_func", None)
-        self.itstat_object = IterationStats(**default_itstat_options)
+        self.itstat_insert_func: Callable = default_itstat_options.pop("itstat_func", None)  # type: ignore
+        self.itstat_object = IterationStats(**default_itstat_options)  # type: ignore
 
         if x0 is None:
             input_shape = C_list[0].input_shape
@@ -531,6 +531,7 @@ class ADMM:
         if x is None:
             x = self.x
             z_list = self.z_list
+        assert z_list is not None
         out = 0.0
         if self.f:
             out += self.f(x)
@@ -581,7 +582,9 @@ class ADMM:
             out += norm(Ci.adj(zi - ziold)) ** 2
         return snp.sqrt(out)
 
-    def z_init(self, x0: Union[JaxArray, BlockArray]):
+    def z_init(
+        self, x0: Union[JaxArray, BlockArray]
+    ) -> Tuple[List[Union[JaxArray, BlockArray]], List[Union[JaxArray, BlockArray]]]:
         r"""Initialize auxiliary variables :math:`\mb{z}_i`.
 
         Initialized to
@@ -595,11 +598,11 @@ class ADMM:
         Args:
             x0: Initial value of :math:`\mb{x}`.
         """
-        z_list = [Ci(x0) for Ci in self.C_list]
+        z_list: List[Union[JaxArray, BlockArray]] = [Ci(x0) for Ci in self.C_list]
         z_list_old = z_list.copy()
         return z_list, z_list_old
 
-    def u_init(self, x0: Union[JaxArray, BlockArray]):
+    def u_init(self, x0: Union[JaxArray, BlockArray]) -> List[Union[JaxArray, BlockArray]]:
         r"""Initialize scaled Lagrange multipliers :math:`\mb{u}_i`.
 
         Initialized to

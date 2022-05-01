@@ -203,5 +203,5 @@ class FlaxMap:
             x = x.reshape((1,) + x.shape + (1,))
         elif x.ndim == 3:
             x = x.reshape((1,) + x.shape)
-        y = self.model.apply(self.variables, x, train=False, mutable=False)
+        y = self.model.apply(self.variables, x, train=False, mutable=False)  # type: ignore
         return y.reshape(x_shape)

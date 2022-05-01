@@ -108,12 +108,12 @@ def _add_seed(fun):
     fun_alt.__doc__ = "\n\n".join(
         lines[0:1]
         + [
-            f"  Wrapped version of `jax.random.{fun.__name__} <https://jax.readthedocs.io/en/stable/jax.random.html#jax.random.{fun.__name__}>`_. "
-            "The SCICO version of this function moves the `key` argument to the end of the argument list, "
-            "adds an additional `seed` argument after that, and allows the `shape` argument "
-            "to accept a nested list, in which case a `BlockArray` is returned. "
-            "Always returns a `(result, key)` tuple.",
-            "  Original docstring below.",
+            f"  Wrapped version of `jax.random.{fun.__name__} "
+            f"<https://jax.readthedocs.io/en/stable/jax.random.html#jax.random.{fun.__name__}>`_. "
+            "The SCICO version of this function moves the `key` argument to the end of the "
+            "argument list, adds an additional `seed` argument after that, and allows the "
+            "`shape` argument to accept a nested list, in which case a `BlockArray` is returned. "
+            "Always returns a `(result, key)` tuple. Original docstring below.",
         ]
         + lines[1:]
     )
@@ -168,4 +168,4 @@ def randn(
            - **x** : (DeviceArray):  Generated random array.
            - **key** : Updated random PRNGKey.
     """
-    return normal(shape, dtype, key, seed)
+    return normal(shape, dtype, key, seed)  # type: ignore
