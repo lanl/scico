@@ -17,6 +17,7 @@ import numpy as np
 
 import scico.numpy as snp
 from scico.numpy import BlockArray
+from scico.numpy.util import is_nested
 from scico.typing import JaxArray
 
 from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
@@ -35,59 +36,69 @@ class LinearOperatorStack(LinearOperator):
         r"""
         Args:
             ops: Operators to stack.
-            collapse: If `True` and the output would be a `BlockArray`
+            collapse: If ``True`` and the output would be a `BlockArray`
                 with shape ((m, n, ...), (m, n, ...), ...), the output is
                 instead a `DeviceArray` with shape (S, m, n, ...) where S
-                is the length of `ops`. Defaults to True.
+                is the length of `ops`. Defaults to ``True``.
             jit: see `jit` in :class:`LinearOperator`.
 
         """
-        if not isinstance(ops, (list, tuple)):
-            raise ValueError("expected a list of `LinearOperator`")
+
+        LinearOperatorStack.check_if_stackable(ops)
 
         self.ops = ops
+        self.collapse = collapse
+
+        self.collapsable = all(op.output_shape == ops[0].output_shape for op in ops)
+
+        output_shapes = tuple(op.output_shape for op in ops)
+        if self.collapsable and self.collapse:
+            output_shape = (len(ops),) + output_shapes[0]  # collapse to DeviceArray
+        else:
+            output_shape = output_shapes
+
+        super().__init__(
+            input_shape=ops[0].input_shape,
+            output_shape=output_shape,  # type: ignore
+            input_dtype=ops[0].input_dtype,
+            output_dtype=ops[0].output_dtype,
+            jit=jit,
+            **kwargs,
+        )
+
+    @staticmethod
+    def check_if_stackable(ops: List[LinearOperator]):
+        """Check that input ops are suitable for stack creation."""
+        if not isinstance(ops, (list, tuple)):
+            raise ValueError("Expected a list of `LinearOperator`")
 
         input_shapes = [op.shape[1] for op in ops]
         if not all(input_shapes[0] == s for s in input_shapes):
             raise ValueError(
-                "expected all `LinearOperator`s to have the same input shapes, "
+                "Expected all `LinearOperator`s to have the same input shapes, "
                 f"but got {input_shapes}"
             )
 
         input_dtypes = [op.input_dtype for op in ops]
         if not all(input_dtypes[0] == s for s in input_dtypes):
             raise ValueError(
-                "expected all `LinearOperator`s to have the same input dtype, "
+                "Expected all `LinearOperator`s to have the same input dtype, "
                 f"but got {input_dtypes}."
             )
 
-        self.collapse = collapse
-        output_shape = tuple(op.shape[0] for op in ops)  # assumes BlockArray output
-
-        # check if collapsable and adjust output_shape if needed
-        self.collapsable = all(output_shape[0] == s for s in output_shape)
-        if self.collapsable and self.collapse:
-            output_shape = (len(ops),) + output_shape[0]  # collapse to DeviceArray
+        if any([is_nested(op.shape[0]) for op in ops]):
+            raise ValueError("Cannot stack `LinearOperator`s with nested output shapes.")
 
         output_dtypes = [op.output_dtype for op in ops]
         if not np.all(output_dtypes[0] == s for s in output_dtypes):
-            raise ValueError("expected all `LinearOperator`s to have the same output dtype")
-
-        super().__init__(
-            input_shape=input_shapes[0],
-            output_shape=output_shape,
-            input_dtype=input_dtypes[0],
-            output_dtype=output_dtypes[0],
-            jit=jit,
-            **kwargs,
-        )
+            raise ValueError("Expected all `LinearOperator`s to have the same output dtype.")
 
     def _eval(self, x: JaxArray) -> Union[JaxArray, BlockArray]:
         if self.collapsable and self.collapse:
             return snp.stack([op @ x for op in self.ops])
         return BlockArray([op @ x for op in self.ops])
 
-    def _adj(self, y: Union[JaxArray, BlockArray]) -> JaxArray:
+    def _adj(self, y: Union[JaxArray, BlockArray]) -> JaxArray:  # type: ignore
         return sum([op.adj(y_block) for y_block, op in zip(y, self.ops)])
 
     def scale_ops(self, scalars: JaxArray):

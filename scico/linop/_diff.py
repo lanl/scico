@@ -73,19 +73,18 @@ class FiniteDifference(LinearOperatorStack):
                 functions of the LinearOperator.
         """
 
-        self.axes = parse_axes(axes, input_shape)
-
         if axes is None:
-            axes_list = range(len(input_shape))
+            axes_list = tuple(range(len(input_shape)))
         elif isinstance(axes, (list, tuple)):
             axes_list = axes
         else:
             axes_list = (axes,)
-        single_kwargs = dict(append=append, circular=circular, jit=False, input_dtype=input_dtype)
+        self.axes = parse_axes(axes_list, input_shape)
+        single_kwargs = dict(input_dtype=input_dtype, append=append, circular=circular, jit=False)
         ops = [FiniteDifferenceSingleAxis(axis, input_shape, **single_kwargs) for axis in axes_list]
 
         super().__init__(
-            ops,
+            ops,  # type: ignore
             jit=jit,
             **kwargs,
         )

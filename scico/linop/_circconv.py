@@ -10,7 +10,7 @@
 import math
 import operator
 from functools import partial
-from typing import Optional
+from typing import Optional, Tuple
 
 import numpy as np
 
@@ -19,7 +19,7 @@ from jax.dtypes import result_type
 import scico.numpy as snp
 from scico._generic_operators import Operator
 from scico.numpy.util import is_nested
-from scico.typing import DType, JaxArray, Shape
+from scico.typing import Array, DType, JaxArray, Shape
 
 from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
 
@@ -123,9 +123,9 @@ class CircularConvolve(LinearOperator):
             self.h_dft = snp.fft.fftn(h, s=fft_shape, axes=fft_axes)
             output_dtype = result_type(h.dtype, input_dtype)
 
-            if h_center is not None:
+            if self.h_center is not None:
                 offset = -self.h_center
-                shifts = np.ix_(
+                shifts: Tuple[Array, ...] = np.ix_(
                     *tuple(
                         np.exp(-1j * k * 2 * np.pi * np.fft.fftfreq(s))
                         for k, s in zip(offset, input_shape[-self.ndims :])
@@ -173,7 +173,7 @@ class CircularConvolve(LinearOperator):
             hx = hx.real
         return hx
 
-    def _adj(self, x: JaxArray) -> JaxArray:
+    def _adj(self, x: JaxArray) -> JaxArray:  # type: ignore
         x_dft = snp.fft.fftn(x, axes=self.ifft_axes)
         H_adj_x = snp.fft.ifftn(
             snp.conj(self.h_dft) * x_dft,
@@ -266,7 +266,7 @@ class CircularConvolve(LinearOperator):
             ndims = ndims
 
         if center is None:
-            center = tuple(d // 2 for d in H.input_shape[-ndims:])
+            center = tuple(d // 2 for d in H.input_shape[-ndims:])  # type: ignore
 
         # compute impulse response
         d = snp.zeros(H.input_shape, H.input_dtype)
@@ -276,7 +276,7 @@ class CircularConvolve(LinearOperator):
         # build CircularConvolve
         return CircularConvolve(
             Hd,
-            H.input_shape,
+            H.input_shape,  # type: ignore
             ndims=ndims,
             input_dtype=H.input_dtype,
             h_center=snp.array(center),

@@ -180,8 +180,8 @@ class AdaptiveBBStepSize(PGMStepSize):
         self.kappa: float = kappa
         self.xprev: Union[JaxArray, BlockArray] = None
         self.gradprev: Union[JaxArray, BlockArray] = None
-        self.Lbb1prev: float = None
-        self.Lbb2prev: float = None
+        self.Lbb1prev: Optional[float] = None
+        self.Lbb2prev: Optional[float] = None
 
     def update(self, v: Union[JaxArray, BlockArray]) -> float:
         """Update the reciprocal of the step size.
@@ -469,7 +469,7 @@ class PGM:
         if itstat_options:
             default_itstat_options.update(itstat_options)
         self.itstat_insert_func: Callable = default_itstat_options.pop("itstat_func")  # type: ignore
-        self.itstat_object = IterationStats(**default_itstat_options)
+        self.itstat_object = IterationStats(**default_itstat_options)  # type: ignore
 
         self.x: Union[JaxArray, BlockArray] = ensure_on_device(x0)  # current estimate of solution
 

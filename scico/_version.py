@@ -41,7 +41,7 @@ def variable_assign_value(path: str, var: str) -> Any:
     with open(path) as f:
         try:
             # See http://stackoverflow.com/questions/2058802
-            value = parse(next(filter(lambda line: line.startswith(var), f))).body[0].value.s
+            value = parse(next(filter(lambda line: line.startswith(var), f))).body[0].value.s  # type: ignore
         except StopIteration:
             raise RuntimeError(f"Could not find initialization of variable {var}")
     return value
@@ -70,7 +70,7 @@ def current_git_hash() -> Optional[str]:  # nosec  pragma: no cover
        Short git hash of current commit, or ``None`` if no git repo found.
     """
     process = Popen(["git", "rev-parse", "--short", "HEAD"], shell=False, stdout=PIPE, stderr=PIPE)
-    git_hash = process.communicate()[0].strip().decode("utf-8")
+    git_hash: Optional[str] = process.communicate()[0].strip().decode("utf-8")
     if git_hash == "":
         git_hash = None
     return git_hash
