@@ -267,7 +267,7 @@ mathematical_functions = (
     "full_like",
 )
 
-reduction_functions = ("sum", "linalg.norm", "count_nonzero")
+reduction_functions = ("sum", "linalg.norm", "count_nonzero", "any")
 
 """ "testing", """
 
