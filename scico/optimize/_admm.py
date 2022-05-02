@@ -23,11 +23,7 @@ from scico.numpy.util import ensure_on_device
 from scico.typing import JaxArray
 from scico.util import Timer
 
-from ._subproblem import (
-    GenericSubproblemSolver,
-    LinearSubproblemSolver,
-    SubproblemSolver,
-)
+from ._admmaux import GenericSubproblemSolver, LinearSubproblemSolver, SubproblemSolver
 
 
 class ADMM:

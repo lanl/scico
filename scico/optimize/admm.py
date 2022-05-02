@@ -10,7 +10,7 @@
 import sys
 
 # isort: off
-from ._subproblem import (
+from ._admmaux import (
     SubproblemSolver,
     GenericSubproblemSolver,
     LinearSubproblemSolver,

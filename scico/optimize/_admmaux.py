@@ -18,6 +18,7 @@ import jax
 from jax.scipy.sparse.linalg import cg as jax_cg
 
 import scico.numpy as snp
+import scico.optimize.admm as soa
 from scico.linop import CircularConvolve, Identity, LinearOperator
 from scico.loss import SquaredL2Loss
 from scico.numpy import BlockArray
@@ -49,7 +50,7 @@ class SubproblemSolver:
             solver is attached.
     """
 
-    def internal_init(self, admm: ADMM):
+    def internal_init(self, admm: soa.ADMM):
         """Second stage initializer to be called by :meth:`.ADMM.__init__`.
 
         Args:
