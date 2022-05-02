@@ -201,7 +201,7 @@ class TestBlockArrayEval:
     def test_eval(self, cls, test_prox_obj):
         func = cls()  # instantiate the functional we are testing
 
-        if cls in NO_COMPLEX and snp.iscomplexobj(test_prox_obj.vb):
+        if cls in NO_COMPLEX and snp.util.is_complex_dtype(test_prox_obj.vb.dtyp):
             with pytest.raises(ValueError):
                 x = func(test_prox_obj.vb)
             return
@@ -234,7 +234,7 @@ class TestProj:
         cns = cnsobj.__call__
         prx = cnsobj.prox
 
-        if cnstr in NO_COMPLEX and snp.iscomplexobj(test_proj_obj.v):
+        if cnstr in NO_COMPLEX and snp.is_complex_dtype(test_proj_obj.v.dtype):
             with pytest.raises(ValueError):
                 prox_test(test_proj_obj.v, cns, prx, alpha)
             return
@@ -254,7 +254,7 @@ class TestProj:
     @pytest.mark.parametrize("cnstr", cnstrlist)
     @pytest.mark.parametrize("alpha", alphalist)
     def test_setdistance(self, sdist, cnstr, alpha, test_proj_obj):
-        if cnstr in NO_COMPLEX and snp.iscomplexobj(test_proj_obj.v):
+        if cnstr in NO_COMPLEX and snp.is_complex_dtype(test_proj_obj.v.dtyp):
             return
         cnsobj = cnstr()
         proj = cnsobj.prox
