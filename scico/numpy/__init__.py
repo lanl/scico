@@ -5,27 +5,31 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-r""":class:`.BlockArray` and functions for working with them alongside
-:class:`DeviceArray`\ s.
+r""":class:`.BlockArray` and compatible functions.
 
-This module consists of :class:`.BlockArray` and functions for working
-:class`.BlockArray`\ s alongside class:`DeviceArray`\ s. This includes
-all the functions from :mod:`jax.numpy` and :mod:`numpy.testing`, where
-many have been extended to automatically map over block array blocks as
-described in :mod:`scico.numpy.blockarray`. Also included are additional
-functions unique to SCICO in :mod:`.util`.
+This module consists of :class:`.BlockArray` and functions that support
+both instances of this class and jax arrays. This includes all the
+functions from :mod:`jax.numpy` and :mod:`numpy.testing`, where many have
+been extended to automatically map over block array blocks as described
+in :mod:`scico.numpy.blockarray`. Also included are additional functions
+unique to SCICO in :mod:`.util`.
 """
+
+import sys
 
 import numpy as np
 
 import jax.numpy as jnp
 
 from . import _wrappers
+from ._blockarray import BlockArray
 from ._wrapped_function_lists import *
-from .blockarray import BlockArray
 
 # allow snp.blockarray(...) to create BlockArrays
 blockarray = BlockArray.blockarray
+
+# BlockArray appears to originate in this module
+sys.modules[__name__].BlockArray.__module__ = __name__
 
 # copy most of jnp without wrapping
 _wrappers.add_attributes(
