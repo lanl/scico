@@ -18,8 +18,8 @@ from scico.numpy import _wrappers
 
 # add most everything in jax.scipy.special to this module
 _wrappers.add_attributes(
-    vars(),
-    js.__dict__,
+    to_dict=vars(),
+    from_dict=js.__dict__,
 )
 
 # wrap select functions
