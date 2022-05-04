@@ -46,6 +46,8 @@ appropriate. For example,
 		  [2.3, 2.3, 1.3]], dtype=float32), DeviceArray([2.4, 4.4, 8.4], dtype=float32)]
 
 
+.. _numpy_functions_blockarray:
+
 NumPy and SciPy Functions
 -------------------------
 
