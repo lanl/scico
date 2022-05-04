@@ -5,10 +5,12 @@ Utilities for wrapping jnp functions to handle BlockArray inputs.
 import sys
 from functools import wraps
 from inspect import signature
-from types import ModuleType
+from types import FunctionType, ModuleType
 from typing import Callable, Iterable, Optional
 
 import jax.numpy as jnp
+
+import jaxlib
 
 from .blockarray import BlockArray
 
@@ -16,6 +18,7 @@ from .blockarray import BlockArray
 def add_attributes(
     to_dict: dict,
     from_dict: dict,
+    module_name: Optional[str] = None,
     modules_to_recurse: Optional[Iterable[str]] = None,
 ):
     """Add attributes in `from_dict` to `to_dict`.
@@ -39,6 +42,11 @@ def add_attributes(
             sys.modules[to_dict["__name__"] + "." + name] = to_dict[name]
             add_attributes(to_dict[name].__dict__, obj.__dict__)
         else:
+            if (
+                isinstance(obj, (FunctionType, jaxlib.xla_extension.CompiledFunction))
+                and module_name is not None
+            ):
+                obj.__module__ = module_name
             to_dict[name] = obj
 
 
@@ -46,6 +54,7 @@ def wrap_recursively(
     target_dict: dict,
     names: Iterable[str],
     wrap: Callable,
+    module_name: Optional[str] = None,
 ):
     """Call wrap functions in `target_dict`, correctly handling names like `"linalg.norm"`."""
 
@@ -55,12 +64,13 @@ def wrap_recursively(
             wrap_recursively(target_dict[module].__dict__, [rest], wrap)
         else:
             target_dict[name] = wrap(target_dict[name])
+            if module_name is not None:
+                target_dict[name].__module__ = module_name
 
 
 def map_func_over_tuple_of_tuples(func: Callable, map_arg_name: Optional[str] = "shape"):
     """Wrap a function so that it automatically maps over a tuple of tuples
     argument, returning a `BlockArray`.
-
     """
 
     @wraps(func)
@@ -94,6 +104,7 @@ def map_func_over_blocks(func, is_reduction=False):
     is not specified, the function is called on a fully ravelled version
     of all `BlockArray` inputs.
     """
+
     sig = signature(func)
 
     @wraps(func)
@@ -126,6 +137,7 @@ def add_full_reduction(func: Callable, axis_arg_name: Optional[str] = "axis"):
 
     Should be outside `map_func_over_blocks`.
     """
+
     sig = signature(func)
     if axis_arg_name not in sig.parameters:
         raise ValueError(

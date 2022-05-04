@@ -17,10 +17,7 @@ import jax.scipy.special as js
 from scico.numpy import _wrappers
 
 # add most everything in jax.scipy.special to this module
-_wrappers.add_attributes(
-    vars(),
-    js.__dict__,
-)
+_wrappers.add_attributes(vars(), js.__dict__, module_name=__name__)
 
 # wrap select functions
 functions = (
@@ -50,7 +47,7 @@ functions = (
     "zeta",
     "digamma",
 )
-_wrappers.wrap_recursively(vars(), functions, _wrappers.map_func_over_blocks)
+_wrappers.wrap_recursively(vars(), functions, _wrappers.map_func_over_blocks, module_name=__name__)
 
 # clean up
 del js, _wrappers

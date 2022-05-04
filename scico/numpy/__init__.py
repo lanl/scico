@@ -31,23 +31,33 @@ blockarray = BlockArray.blockarray
 _wrappers.add_attributes(
     to_dict=vars(),
     from_dict=jnp.__dict__,
+    module_name=__name__,
     modules_to_recurse=("linalg", "fft"),
 )
 
 # wrap jnp funcs
-_wrappers.wrap_recursively(vars(), creation_routines, _wrappers.map_func_over_tuple_of_tuples)
-_wrappers.wrap_recursively(vars(), mathematical_functions, _wrappers.map_func_over_blocks)
-_wrappers.wrap_recursively(vars(), reduction_functions, _wrappers.add_full_reduction)
+_wrappers.wrap_recursively(
+    vars(), creation_routines, _wrappers.map_func_over_tuple_of_tuples, module_name=__name__
+)
+_wrappers.wrap_recursively(
+    vars(), mathematical_functions, _wrappers.map_func_over_blocks, module_name=__name__
+)
+_wrappers.wrap_recursively(
+    vars(), reduction_functions, _wrappers.add_full_reduction, module_name=__name__
+)
 
 # copy np.testing
 _wrappers.add_attributes(
     to_dict=vars(),
     from_dict={"testing": np.testing},
+    module_name=__name__,
     modules_to_recurse=("testing",),
 )
 
 # wrap testing funcs
-_wrappers.wrap_recursively(vars(), testing_functions, _wrappers.map_func_over_blocks)
+_wrappers.wrap_recursively(
+    vars(), testing_functions, _wrappers.map_func_over_blocks, module_name=__name__
+)
 
 # clean up
 del np, jnp, _wrappers

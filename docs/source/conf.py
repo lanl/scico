@@ -4,9 +4,10 @@ import os
 import re
 import sys
 import types
-from inspect import getmembers, isfunction
+from inspect import getmembers
 from unittest.mock import MagicMock
 
+import jaxlib
 from sphinx.ext.napoleon.docstring import GoogleDocstring
 
 confpath = os.path.dirname(__file__)
@@ -391,26 +392,17 @@ autoclass_content = "both"
 exclude_patterns = ["_build", "**tests**", "**spi**", "**README.rst", "**exampledepend.rst"]
 
 
-# Rewrite module names for certain functions imported into scico.numpy so that they are
-# included in the docs for that module. While a bit messy to do so here rather than in a
+# Modify docs for certain functions imported into scico.numpy to avoid docs build
+# warnings. While a bit messy to do so here rather than in a
 # function run via app.connect, it is necessary (for some yet to be identified reason)
 # to do it here to ensure that the relevant API docs include a table of functions.
 import scico.numpy
 
-snp_func = getmembers(scico.numpy, isfunction)
+snp_func = getmembers(scico.numpy)
+modname = "numpy"
 for _, f in snp_func:
-    if (
-        f.__module__ == "scico.numpy"
-        or f.__module__[0:14] == "jax._src.numpy"
-        or f.__module__ == "scico.numpy._create"
-    ):
-        # Rewrite module name so that function is included in docs
-        f.__module__ = "scico.numpy"
+    if isinstance(f, (types.FunctionType, jaxlib.xla_extension.CompiledFunction)):
         # Attempt to fix incorrect cross-reference
-        if f.__name__ == "compare_chararrays":
-            modname = "numpy.char"
-        else:
-            modname = "numpy"
         f.__doc__ = re.sub(
             r"^:func:`([\w_]+)` wrapped to operate",
             r":obj:`jax.numpy.\1` wrapped to operate",
@@ -446,9 +438,10 @@ scico.numpy.vectorize.__doc__ = re.sub("^  ", "", scico.numpy.vectorize.__doc__,
 # Similar processing for scico.scipy
 import scico.scipy
 
-ssp_func = getmembers(scico.scipy.special, isfunction)
+ssp_func = getmembers(scico.scipy.special)
+modname = "scipy.special"
 for _, f in ssp_func:
-    if f.__module__[0:11] == "scico.scipy" or f.__module__[0:14] == "jax._src.scipy":
+    if isinstance(f, (types.FunctionType, jaxlib.xla_extension.CompiledFunction)):
         # Attempt to fix incorrect cross-reference
         f.__doc__ = re.sub(
             r"^:func:`([\w_]+)` wrapped to operate",
@@ -456,7 +449,6 @@ for _, f in ssp_func:
             str(f.__doc__),
             flags=re.M,
         )
-        modname = "scipy.special"
         f.__doc__ = re.sub(
             r"^LAX-backend implementation of :func:`([\w_]+)`.",
             r"LAX-backend implementation of :obj:`%s.\1`." % modname,
@@ -470,6 +462,10 @@ for _, f in ssp_func:
         # Remove problematic citation
         f.__doc__ = re.sub("See \[dlmf\]_ for details.", "", f.__doc__, re.M)
         f.__doc__ = re.sub("\[dlmf\]_", "NIST DLMF", f.__doc__, re.M)
+        # Remove cross-reference to numpydoc style references section
+        f.__doc__ = re.sub(r"^\[(\d+)\]_", "", f.__doc__, flags=re.M)
+        # Remove entire numpydoc references section
+        f.__doc__ = re.sub(r"References\n----------\n.*\n", "", f.__doc__, flags=re.DOTALL)
 
 # Fix indentation problems
 scico.scipy.special.sph_harm.__doc__ = re.sub(
