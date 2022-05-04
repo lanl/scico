@@ -20,9 +20,23 @@ from ._wrapped_function_lists import binary_ops, unary_ops
 
 
 class BlockArray(list):
-    """Block array class.
+    """Block array class, which provides a way to combine arrays of
+    different shapes into a single object for use with other SCICO classes.
 
-    See :ref:`detailed BlockArray documentation <blockarray_class>`.
+    For detailed documentation, see the :ref:`detailed BlockArray documentation <blockarray_class>`.
+
+    Example
+    -------
+    >>> x = snp.blockarray((
+    ...     [[1, 3, 7],
+    ...      [2, 2, 1]],
+    ...     [2, 4, 8]
+    ... ))
+    >>> x.shape
+    ((2, 3), (3,))
+    >>> snp.sum(x)
+    DeviceArray(30, dtype=int32)
+
     """
 
     # Ensure we use BlockArray.__radd__, __rmul__, etc for binary

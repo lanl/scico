@@ -22,7 +22,7 @@ appropriate. For example,
 
   ::
 
-    >>> x = BlockArray((
+    >>> x = snp.blockarray((
     ...     [[1, 3, 7],
     ...      [2, 2, 1]],
     ...     [2, 4, 8]
@@ -35,7 +35,7 @@ appropriate. For example,
     [DeviceArray([[ 2,  6, 14],
 		 [ 4,  4,  2]], dtype=int32), DeviceArray([ 4,  8, 16], dtype=int32)]
 
-    >>> y = BlockArray((
+    >>> y = snp.blockarray((
     ...        [[.2],
     ...         [.3]],
     ...        [.4]
@@ -155,12 +155,9 @@ The recommended way to construct a :class:`.BlockArray` is by using the
      >>> len(X)
      2
 
-While :func:`.snp.blockarray` will accept either :class:`~numpy.ndarray` or
-:obj:`~jax.numpy.DeviceArray` as input, the resulting :class:`.BlockArray` will be backed
-by a :obj:`~jax.numpy.DeviceArray` memory buffer.
-
-**Note**: constructing a :class:`.BlockArray` always involves a copy to
-a new :obj:`~jax.numpy.DeviceArray` memory buffer.
+While :func:`.snp.blockarray` will accept either :class:`~numpy.ndarray`\ s or
+:obj:`~jax.numpy.DeviceArray`\ s as input, :class:`~numpy.ndarray`\ s
+will be converted to :obj:`~jax.numpy.DeviceArray`\ s.
 
 
 Operating on a BlockArray
