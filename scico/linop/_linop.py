@@ -48,7 +48,7 @@ def power_iteration(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey
 
     for i in range(maxiter):
         Av = A @ v
-        mu = snp.vdot(v, Av.ravel()) / snp.linalg.norm(v) ** 2
+        mu = snp.sum(v.conj * Av) / snp.linalg.norm(v) ** 2
         v = Av / snp.linalg.norm(Av)
     return mu, v
 
