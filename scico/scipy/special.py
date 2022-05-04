@@ -5,12 +5,12 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-""":class:`scico.numpy.BlockArray`-compatible :mod:`jax.scipy.special`
+""":class:`~scico.numpy.BlockArray`-compatible :mod:`jax.scipy.special`
 functions.
 
 This modules is a wrapper for :mod:`jax.scipy.special` where some
 functions have been extended to automatically map over block array
-blocks as described in :class:`scico.numpy.BlockArray`
+blocks as described in :ref:`numpy_functions_blockarray`.
 """
 import jax.scipy.special as js
 

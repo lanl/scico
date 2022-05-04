@@ -11,7 +11,7 @@ This module consists of :class:`.BlockArray` and functions that support
 both instances of this class and jax arrays. This includes all the
 functions from :mod:`jax.numpy` and :mod:`numpy.testing`, where many have
 been extended to automatically map over block array blocks as described
-in :mod:`scico.numpy.blockarray`. Also included are additional functions
+in :ref:`numpy_functions_blockarray`. Also included are additional functions
 unique to SCICO in :mod:`.util`.
 """
 
