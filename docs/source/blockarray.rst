@@ -31,9 +31,9 @@ appropriate. For example,
     >>> x.shape  # returns tuple
     ((2, 3), (3,))
 
-    >>> x * 2  # returns BlockArray
+    >>> x * 2  # returns BlockArray   # doctest: +ELLIPSIS
     [DeviceArray([[ 2,  6, 14],
-		 [ 4,  4,  2]], dtype=int32), DeviceArray([ 4,  8, 16], dtype=int32)]
+		 [ 4,  4,  2]], dtype=...), DeviceArray([ 4,  8, 16], dtype=...)]
 
     >>> y = snp.blockarray((
     ...        [[.2],
@@ -41,9 +41,9 @@ appropriate. For example,
     ...        [.4]
     ... ))
 
-    >>> x + y  # returns BlockArray
+    >>> x + y  # returns BlockArray   # doctest: +ELLIPSIS
     [DeviceArray([[1.2, 3.2, 7.2],
-		  [2.3, 2.3, 1.3]], dtype=float32), DeviceArray([2.4, 4.4, 8.4], dtype=float32)]
+		  [2.3, 2.3, 1.3]], dtype=...), DeviceArray([2.4, 4.4, 8.4], dtype=...)]
 
 
 .. _numpy_functions_blockarray:
