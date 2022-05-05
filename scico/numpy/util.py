@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+import operator
 import warnings
-from math import prod
+from functools import reduce
 from typing import Any, List, Optional, Tuple, Union
 
 import numpy as np
@@ -16,6 +17,11 @@ import scico.numpy as snp
 from scico.typing import ArrayIndex, Axes, AxisIndex, BlockShape, DType, JaxArray, Shape
 
 from ._blockarray import BlockArray
+
+
+def prod(iterable):
+    """Replacement for math.prod for Python 3.7."""
+    return reduce(operator.mul, iterable, 1)
 
 
 def ensure_on_device(
