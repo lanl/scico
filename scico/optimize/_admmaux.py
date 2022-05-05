@@ -189,17 +189,17 @@ class LinearSubproblemSolver(SubproblemSolver):
             )
         self.info = None
 
-    def internal_init(self, admm):
+    def internal_init(self, admm: soa.ADMM):
         if admm.f is not None:
-            if not isinstance(admm.f.A, LinearOperator):
-                raise ValueError(
-                    f"LinearSubproblemSolver requires f.A to be a scico.linop.LinearOperator; "
-                    f"got {type(admm.f.A)}"
-                )
             if not isinstance(admm.f, SquaredL2Loss):
                 raise ValueError(
                     "LinearSubproblemSolver requires f to be a scico.loss.SquaredL2Loss; "
                     f"got {type(admm.f)}"
+                )
+            if not isinstance(admm.f.A, LinearOperator):
+                raise ValueError(
+                    f"LinearSubproblemSolver requires f.A to be a scico.linop.LinearOperator; "
+                    f"got {type(admm.f.A)}"
                 )
 
         super().internal_init(admm)
@@ -279,7 +279,7 @@ class CircularConvolveSolver(LinearSubproblemSolver):
     def __init__(self):
         """Initialize a :class:`CircularConvolveSolver` object."""
 
-    def internal_init(self, admm):
+    def internal_init(self, admm: soa.ADMM):
         if admm.f is not None:
             if not isinstance(admm.f, SquaredL2Loss):
                 raise ValueError(
