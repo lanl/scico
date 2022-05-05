@@ -188,7 +188,7 @@ class CircularConvolve(LinearOperator):
     @partial(_wrap_add_sub, op=operator.add)
     def __add__(self, other):
         if self.ndims != other.ndims:
-            raise ValueError(f"Incompatible ndims:  {self.ndims} != {other.ndims}")
+            raise ValueError(f"Incompatible ndims: {self.ndims} != {other.ndims}")
 
         return CircularConvolve(
             h=self.h_dft + other.h_dft,
@@ -201,7 +201,7 @@ class CircularConvolve(LinearOperator):
     @partial(_wrap_add_sub, op=operator.sub)
     def __sub__(self, other):
         if self.ndims != other.ndims:
-            raise ValueError(f"Incompatible ndims:  {self.ndims} != {other.ndims}")
+            raise ValueError(f"Incompatible ndims: {self.ndims} != {other.ndims}")
 
         return CircularConvolve(
             h=self.h_dft - other.h_dft,
