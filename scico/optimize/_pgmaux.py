@@ -257,7 +257,7 @@ class LineSearchStepSize(PGMStepSize):
 
         Args:
             gamma_u: Rate of increment in :math:`L`.
-            maxiter: maximum iterations in line search.
+            maxiter: Maximum iterations in line search.
         """
         self.gamma_u: float = gamma_u
         self.maxiter: int = maxiter
@@ -323,7 +323,7 @@ class RobustLineSearchStepSize(LineSearchStepSize):
         Args:
             gamma_d: Rate of decrement in :math:`L`.
             gamma_u: Rate of increment in :math:`L`.
-            maxiter: maximum iterations in line search.
+            maxiter: Maximum iterations in line search.
         """
         super(RobustLineSearchStepSize, self).__init__(gamma_u, maxiter)
         self.gamma_d: float = gamma_d
