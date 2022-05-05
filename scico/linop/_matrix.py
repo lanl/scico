@@ -136,7 +136,7 @@ class MatrixOperator(LinearOperator):
     def __neg__(self):
         return MatrixOperator(-self.A)
 
-    # Could write another wrapper for mul, truediv, and rtuediv, bu there is
+    # Could write another wrapper for mul, truediv, and rtuediv, but there is
     # no operator.__rtruediv__;  have to write that case out manually anyway.
     def __mul__(self, other):
         if np.isscalar(other):
