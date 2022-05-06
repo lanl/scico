@@ -196,7 +196,7 @@ def minimize(
     :func:`scipy.optimize.minimize`.
     """
 
-    if snp.iscomplexobj(x0):
+    if snp.util.is_complex_dtype(x0.dtype):
         # scipy minimize function requires real-valued arrays, so
         # we split x0 into a vector with real/imaginary parts stacked
         # and compose `func` with a `_join_real_imag`
@@ -336,7 +336,7 @@ def cg(
     r = b - Ax
     z = M(r)
     p = z
-    num = r.ravel().conj().T @ z.ravel()
+    num = snp.sum(r.conj() * z)
     ii = 0
 
     # termination tolerance
@@ -345,12 +345,12 @@ def cg(
 
     while (ii < maxiter) and (num > termination_tol_sq):
         Ap = A(p)
-        alpha = num / (p.ravel().conj().T @ Ap.ravel())
+        alpha = num / snp.sum(p.conj() * Ap)
         x = x + alpha * p
         r = r - alpha * Ap
         z = M(r)
         num_old = num
-        num = r.ravel().conj().T @ z.ravel()
+        num = snp.sum(r.conj() * z)
         beta = num / num_old
         p = z + beta * p
         ii += 1
