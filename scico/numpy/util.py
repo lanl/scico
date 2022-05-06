@@ -1,4 +1,4 @@
-""" Utility functions for working with BlockArrays and DeviceArrays. """
+"""Utility functions for working with BlockArrays and DeviceArrays."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from jax.interpreters.xla import DeviceArray
 import scico.numpy as snp
 from scico.typing import ArrayIndex, Axes, AxisIndex, BlockShape, DType, JaxArray, Shape
 
-from .blockarray import BlockArray
+from ._blockarray import BlockArray
 
 
 def ensure_on_device(
@@ -34,7 +34,7 @@ def ensure_on_device(
 
     Returns:
         Modified array or arrays. Modified are only those that were
-           necessary.
+        necessary.
 
     Raises:
         TypeError: If the arrays contain something that is neither
