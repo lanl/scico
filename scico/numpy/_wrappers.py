@@ -12,7 +12,7 @@ import jax.numpy as jnp
 
 import jaxlib
 
-from .blockarray import BlockArray
+from ._blockarray import BlockArray
 
 
 def add_attributes(

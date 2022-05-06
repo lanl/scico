@@ -53,7 +53,7 @@ y = vid.reshape((-1, vid.shape[-1]))
 """
 Define functional for Robust PCA problem.
 """
-A = linop.Sum(sum_axis=0, input_shape=(2,) + y.shape)
+A = linop.Sum(axis=0, input_shape=(2,) + y.shape)
 f = loss.SquaredL2Loss(y=y, A=A)
 C0 = linop.Slice(idx=0, input_shape=(2,) + y.shape)
 g0 = functional.NuclearNorm()
