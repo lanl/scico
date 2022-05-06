@@ -71,7 +71,7 @@ class PDHG:
         g (:class:`.Functional`): Functional :math:`g`.
         C (:class:`.LinearOperator`): :math:`C` operator.
         itnum (int): Iteration counter.
-        maxiter (int): Number of ADMM outer-loop iterations.
+        maxiter (int): Number of PDHG outer-loop iterations.
         timer (:class:`.Timer`): Iteration timer.
         tau (scalar): First algorithm parameter.
         sigma (scalar): Second algorithm parameter.
@@ -108,16 +108,16 @@ class PDHG:
             tau: First algorithm parameter.
             sigma: Second algorithm parameter.
             alpha: Relaxation parameter.
-            x0: Starting point for :math:`\mb{x}`. If None, defaults to
-               an array of zeros.
-            z0: Starting point for :math:`\mb{z}`. If None, defaults to
-               an array of zeros.
-            maxiter: Number of ADMM outer-loop iterations. Default: 100.
+            x0: Starting point for :math:`\mb{x}`. If ``None``, defaults
+               to an array of zeros.
+            z0: Starting point for :math:`\mb{z}`. If ``None``, defaults
+               to an array of zeros.
+            maxiter: Number of PDHG outer-loop iterations. Default: 100.
             itstat_options: A dict of named parameters to be passed to
                 the :class:`.diagnostics.IterationStats` initializer. The
                 dict may also include an additional key "itstat_func"
                 with the corresponding value being a function with two
-                parameters, an integer and an ADMM object, responsible
+                parameters, an integer and a `PDHG` object, responsible
                 for constructing a tuple ready for insertion into the
                 :class:`.diagnostics.IterationStats` object. If ``None``,
                 default values are used for the dict entries, otherwise
@@ -189,7 +189,7 @@ class PDHG:
             f(\mb{x}) + g(C \mb{x}) \;.
 
         Args:
-            x: Point at which to evaluate objective function. If `None`,
+            x: Point at which to evaluate objective function. If ``None``,
                 the objective is evaluated at the current iterate
                 :code:`self.x`
 

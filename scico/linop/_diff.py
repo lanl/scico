@@ -57,9 +57,9 @@ class FiniteDifference(LinearOperatorStack):
         Args:
             input_shape: Shape of input array.
             input_dtype: `dtype` for input argument. Defaults to
-                `float32`. If `LinearOperator` implements complex-valued
-                operations, this must be `complex64` for proper adjoint
-                and gradient calculation.
+                ``float32``. If `LinearOperator` implements
+                complex-valued operations, this must be ``complex64`` for
+                proper adjoint and gradient calculation.
             axes: Axis or axes over which to apply finite difference
                 operator. If not specified, or ``None``, differences are
                 evaluated along all axes.
@@ -108,9 +108,9 @@ class FiniteDifferenceSingleAxis(LinearOperator):
             axis: Axis over which to apply finite difference operator.
             input_shape: Shape of input array.
             input_dtype: `dtype` for input argument. Defaults to
-                `float32`. If `LinearOperator` implements complex-valued
-                operations, this must be `complex64` for proper adjoint
-                and gradient calculation.
+                ``float32``. If `LinearOperator` implements
+                complex-valued operations, this must be ``complex64`` for
+                proper adjoint and gradient calculation.
             append: Value to append to the input along `axis` before
                 taking differences. Defaults to 0.
             circular: If ``True``, perform circular differences, i.e.,

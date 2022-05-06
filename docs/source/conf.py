@@ -69,7 +69,7 @@ rootpath = os.path.abspath("../..")
 sys.path.insert(0, rootpath)
 
 # If your documentation needs a minimal Sphinx version, state it here.
-needs_sphinx = "3.3"
+needs_sphinx = "3.5.2"
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -445,6 +445,7 @@ for _, f in snp_func:
         f.__doc__ = re.sub(r" \[(\d+)\]_", "", f.__doc__, flags=re.M)
         # Remove entire numpydoc references section
         f.__doc__ = re.sub(r"References\n----------\n.*\n", "", f.__doc__, flags=re.DOTALL)
+
 
 # Remove spurious two-space indentation of entire docstring
 scico.numpy.vectorize.__doc__ = re.sub("^  ", "", scico.numpy.vectorize.__doc__, flags=re.M)

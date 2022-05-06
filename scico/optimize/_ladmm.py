@@ -73,7 +73,7 @@ class LinearizedADMM:
         g (:class:`.Functional`): Functional :math:`g`.
         C (:class:`.LinearOperator`): :math:`C` operator.
         itnum (int): Iteration counter.
-        maxiter (int): Number of ADMM outer-loop iterations.
+        maxiter (int): Number of linearized ADMM outer-loop iterations.
         timer (:class:`.Timer`): Iteration timer.
         mu (scalar): First algorithm parameter.
         nu (scalar): Second algorithm parameter.
@@ -105,19 +105,20 @@ class LinearizedADMM:
             C: Operator :math:`C`.
             mu: First algorithm parameter.
             nu: Second algorithm parameter.
-            x0: Starting point for :math:`\mb{x}`. If None, defaults to
-                an array of zeros.
-            maxiter: Number of ADMM outer-loop iterations. Default: 100.
+            x0: Starting point for :math:`\mb{x}`. If ``None``, defaults
+                to an array of zeros.
+            maxiter: Number of linearized ADMM outer-loop iterations.
+                Default: 100.
             itstat_options: A dict of named parameters to be passed to
                 the :class:`.diagnostics.IterationStats` initializer. The
                 dict may also include an additional key "itstat_func"
                 with the corresponding value being a function with two
-                parameters, an integer and an ADMM object, responsible
-                for constructing a tuple ready for insertion into the
-                :class:`.diagnostics.IterationStats` object. If ``None``,
-                default values are used for the dict entries, otherwise
-                the default dict is updated with the dict specified by
-                this parameter.
+                parameters, an integer and a `LinearizedADMM` object,
+                responsible for constructing a tuple ready for insertion
+                into the :class:`.diagnostics.IterationStats` object. If
+                ``None``, default values are used for the dict entries,
+                otherwise the default dict is updated with the dict
+                specified by this parameter.
         """
         self.f: Functional = f
         self.g: Functional = g
@@ -181,12 +182,12 @@ class LinearizedADMM:
 
 
         Args:
-            x: Point at which to evaluate objective function. If `None`,
-               the objective is evaluated at the current iterate
-               :code:`self.x`.
-            z: Point at which to evaluate objective function. If `None`,
-               the objective is evaluated at the current iterate
-               :code:`self.z`.
+            x: Point at which to evaluate objective function. If
+               ``None``, the objective is evaluated at the current
+               iterate :code:`self.x`.
+            z: Point at which to evaluate objective function. If
+               ``None``, the objective is evaluated at the current
+               iterate :code:`self.z`.
 
         Returns:
             scalar: Current value of the objective function.
@@ -205,15 +206,14 @@ class LinearizedADMM:
     def norm_primal_residual(self, x: Optional[Union[JaxArray, BlockArray]] = None) -> float:
         r"""Compute the :math:`\ell_2` norm of the primal residual.
 
-
         Compute the :math:`\ell_2` norm of the primal residual
 
         .. math::
             \norm{C \mb{x} - \mb{z}}_2 \;.
 
         Args:
-            x: Point at which to evaluate primal residual. If `None`, the
-               primal residual is evaluated at the currentiterate
+            x: Point at which to evaluate primal residual. If ``None``,
+               the primal residual is evaluated at the current iterate
                :code:`self.x`.
 
         Returns:
@@ -305,9 +305,9 @@ class LinearizedADMM:
         self,
         callback: Optional[Callable[[LinearizedADMM], None]] = None,
     ) -> Union[JaxArray, BlockArray]:
-        r"""Initialize and run the LinearizedADMM algorithm.
+        r"""Initialize and run the linearized ADMM algorithm.
 
-        Initialize and run the LinearizedADMM algorithm for a total of
+        Initialize and run the linearized ADMM algorithm for a total of
         `self.maxiter` iterations.
 
         Args:
