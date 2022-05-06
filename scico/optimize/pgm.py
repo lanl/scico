@@ -118,8 +118,8 @@ class BBStepSize(PGMStepSize):
             gradv = self.pgm.f.grad(v)
             Δg = gradv - self.gradprev
             # Taking real part of inner products in case of complex-value problem.
-            den = snp.real(snp.vdot(Δx, Δg))
-            num = snp.real(snp.vdot(Δg, Δg))
+            den = snp.real(snp.sum(Δx.conj() * Δg))
+            num = snp.real(snp.sum(Δg.conj() * Δg))
             L = num / den
             # Revert to previous iterate if update results in nan or negative value.
             if snp.isnan(L) or L <= 0.0:
@@ -205,9 +205,9 @@ class AdaptiveBBStepSize(PGMStepSize):
             gradv = self.pgm.f.grad(v)
             Δg = gradv - self.gradprev
             # Taking real part of inner products in case of complex-value problem.
-            innerxx = snp.real(snp.vdot(Δx, Δx))
-            innerxg = snp.real(snp.vdot(Δx, Δg))
-            innergg = snp.real(snp.vdot(Δg, Δg))
+            innerxx = snp.real(snp.sum(Δx.conj() * Δx))
+            innerxg = snp.real(snp.sum(Δx.conj() * Δg))
+            innergg = snp.real(snp.sum(Δg.conj() * Δg))
             Lbb1 = innerxg / innerxx
             # Revert to previous iterate if computation results in nan or negative value.
             if snp.isnan(Lbb1) or Lbb1 <= 0.0:
