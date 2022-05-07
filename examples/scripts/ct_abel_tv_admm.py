@@ -27,6 +27,7 @@ Create a ground truth image.
 N = 256  # phantom size
 x_gt = create_circular_phantom((N, N), [0.4 * N, 0.2 * N, 0.1 * N], [1, 0, 0.5])
 
+
 """
 Set up the forward operator and create a test measurement
 """
