@@ -33,7 +33,8 @@ from scico.util import device_info
 Create a ground truth image.
 """
 phantom = SiemensStar(32)
-x_gt = snp.pad(discrete_phantom(phantom, 240), 8)
+N = 256
+x_gt = snp.pad(discrete_phantom(phantom, N - 16), 8)
 x_gt = jax.device_put(x_gt)  # convert to jax type, push to GPU
 
 
