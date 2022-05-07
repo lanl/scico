@@ -24,7 +24,8 @@ from scico.util import device_info
 """
 Create a ground truth image.
 """
-x_gt = create_circular_phantom((256, 254), [100, 50, 25], [1, 0, 0.5])
+N = 256  # phantom size
+x_gt = create_circular_phantom((N, N), [100, 50, 25], [1, 0, 0.5])
 
 """
 Set up the forward operator and create a test measurement
