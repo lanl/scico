@@ -60,7 +60,7 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
     else:
         bm3d_eval = tunibm3d.bm3d
 
-    if np.iscomplexobj(x):
+    if snp.util.is_complex_dtype(x.dtype):
         raise TypeError(f"BM3D requires real-valued inputs, got {x.dtype}")
 
     # Support arrays with more than three axes when the additional axes are singletons.
@@ -119,7 +119,7 @@ def bm4d(x: JaxArray, sigma: float):
 
     bm4d_eval = tunibm4d.bm4d
 
-    if np.iscomplexobj(x):
+    if snp.util.is_complex_dtype(x.dtype):
         raise TypeError(f"BM4D requires real-valued inputs, got {x.dtype}")
 
     # Support arrays with more than three axes when the additional axes are singletons.
@@ -198,7 +198,7 @@ class DnCNN(FlaxMap):
         Returns:
             Denoised output.
         """
-        if np.iscomplexobj(x):
+        if snp.util.is_complex_dtype(x.dtype):
             raise TypeError(f"DnCNN requries real-valued inputs, got {x.dtype}")
 
         if isinstance(x.ndim, tuple) or x.ndim < 2:

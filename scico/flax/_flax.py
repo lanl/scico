@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """Convolutional neural network models implemented in Flax."""
 
 from typing import Any, Optional
@@ -7,7 +10,6 @@ from flax.linen.module import Module
 from scico.numpy import BlockArray
 from scico.typing import Array, Shape
 
-ModuleDef = Any
 PyTree = Any
 
 

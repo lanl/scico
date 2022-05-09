@@ -47,17 +47,18 @@ Note that :math:`x` corresponds to axis 0 (rows, increasing downwards)
 and :math:`y` to axis 1 (columns, increasing to the right).
 """
 
-
 # Needed to annotate a class method that returns the encapsulating class;
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import Tuple, Union
+from typing import Any, Tuple, Union
 
 import numpy as np
 from numpy.lib.scimath import sqrt  # complex sqrt
 
 import jax
+
+from typing_extensions import TypeGuard
 
 import scico.numpy as snp
 from scico.linop import Diagonal, Identity, LinearOperator
@@ -65,6 +66,11 @@ from scico.numpy.util import no_nan_divide
 from scico.typing import Shape
 
 from ._dft import DFT
+
+
+def _isscalar(element: Any) -> TypeGuard[Union[int, float]]:
+    """Type guard interface to `snp.isscalar`."""
+    return snp.isscalar(element)
 
 
 def radial_transverse_frequency(
@@ -89,18 +95,20 @@ def radial_transverse_frequency(
         :math:`\sqrt{k_x^2 + k_y^2}\,`.
     """
 
-    ndim = len(input_shape)  # 1 or 2 dimensions
+    ndim: int = len(input_shape)  # 1 or 2 dimensions
     if ndim not in (1, 2):
         raise ValueError("Invalid input dimensions; must be 1 or 2")
 
-    if np.isscalar(dx):
+    if _isscalar(dx):
         dx = (dx,) * ndim
     else:
+        assert isinstance(dx, tuple)
         if len(dx) != ndim:
             raise ValueError(
                 "dx must be a scalar or have len(dx) == len(input_shape); "
                 f"got len(dx)={len(dx)}, len(input_shape)={ndim}"
             )
+    assert isinstance(dx, tuple)
 
     if ndim == 1:
         kx = 2 * np.pi * np.fft.fftfreq(input_shape[0], dx[0])
@@ -145,14 +153,16 @@ class Propagator(LinearOperator):
         if ndim not in (1, 2):
             raise ValueError("Invalid input dimensions; must be 1 or 2")
 
-        if np.isscalar(dx):
+        if _isscalar(dx):
             dx = (dx,) * ndim
         else:
+            assert isinstance(dx, tuple)
             if len(dx) != ndim:
                 raise ValueError(
                     "dx must be a scalar or have len(dx) == len(input_shape); "
                     f"got len(dx)={len(dx)}, len(input_shape)={ndim}"
                 )
+        assert isinstance(dx, tuple)
 
         #: Illumination wavenumber; 2𝜋/wavelength
         self.k0: float = k0
@@ -173,7 +183,7 @@ class Propagator(LinearOperator):
         self.F = DFT(input_shape=input_shape, output_shape=self.padded_shape, jit=False)
 
         # Diagonal operator; phase shifting
-        self.D = Identity(self.kp.shape)
+        self.D: LinearOperator = Identity(self.kp.shape)
 
         super().__init__(
             input_shape=input_shape,
@@ -491,14 +501,16 @@ class FraunhoferPropagator(LinearOperator):
         if ndim not in (1, 2):
             raise ValueError("Invalid input dimensions; must be 1 or 2")
 
-        if np.isscalar(dx):
+        if _isscalar(dx):
             dx = (dx,) * ndim
         else:
+            assert isinstance(dx, tuple)
             if len(dx) != ndim:
                 raise ValueError(
                     "dx must be a scalar or have len(dx) == len(input_shape); "
                     f"got len(dx)={len(dx)}, len(input_shape)={ndim}"
                 )
+        assert isinstance(dx, tuple)
 
         L: Tuple[float, ...] = tuple(s * d for s, d in zip(input_shape, dx))
 
@@ -515,7 +527,7 @@ class FraunhoferPropagator(LinearOperator):
         self.dx_D: Tuple[float, ...] = tuple(np.abs(2 * np.pi * z / (k0 * l)) for l in L)
         #: Destination plane side length
         self.L_D: Tuple[float, ...] = tuple(np.abs(2 * np.pi * z / (k0 * d)) for d in dx)
-        x_D = tuple(np.r_[-l / 2 : l / 2 : d] for l, d in zip(self.L_D, self.dx_D))
+        x_D = tuple(np.r_[-l / 2 : l / 2 : d] for l, d in zip(self.L_D, self.dx_D))  # type: ignore
 
         # set up radial coordinate system; either x^2 or (x^2 + y^2)
         if ndim == 1:

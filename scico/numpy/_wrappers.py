@@ -10,7 +10,7 @@ from typing import Callable, Iterable, Optional
 
 import jax.numpy as jnp
 
-from .blockarray import BlockArray
+from ._blockarray import BlockArray
 
 
 def add_attributes(

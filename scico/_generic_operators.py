@@ -126,6 +126,9 @@ output_dtype : {self.output_dtype}
         #: Dtype of input
         self.input_dtype: DType
 
+        #: Dtype of operator
+        self.dtype: DType
+
         if isinstance(input_shape, int):
             self.input_shape = (input_shape,)
         else:
@@ -140,7 +143,7 @@ output_dtype : {self.output_dtype}
         if output_shape is None or output_dtype is None:
             tmp = self(snp.zeros(self.input_shape, dtype=input_dtype))
         if output_shape is None:
-            self.output_shape = tmp.shape
+            self.output_shape = tmp.shape  # type: ignore
         else:
             self.output_shape = (output_shape,) if isinstance(output_shape, int) else output_shape
 
@@ -312,10 +315,11 @@ output_dtype : {self.output_dtype}
                 f"{self.input_shape[argnum]}, got {val.shape}"
             )
 
-        input_shape = tuple(s for i, s in enumerate(self.input_shape) if i != argnum)
+        input_shape: Union[Shape, BlockShape]
+        input_shape = tuple(s for i, s in enumerate(self.input_shape) if i != argnum)  # type: ignore
 
         if len(input_shape) == 1:
-            input_shape = input_shape[0]
+            input_shape = input_shape[0]  # type: ignore
 
         def concat_args(args):
             # Creates a blockarray with args and the frozen value in the correct place
@@ -456,9 +460,9 @@ class LinearOperator(Operator):
         )
 
         if not hasattr(self, "_adj"):
-            self._adj = None
+            self._adj: Optional[Callable] = None
         if not hasattr(self, "_gram"):
-            self._gram = None
+            self._gram: Optional[Callable] = None
         if callable(adj_fn):
             self._adj = adj_fn
             self._gram = lambda x: self.adj(self(x))
@@ -584,7 +588,7 @@ class LinearOperator(Operator):
         input `y`.
 
         Args:
-            y:  Point at which to compute adjoint. If `y` is
+            y: Point at which to compute adjoint. If `y` is
                 :class:`DeviceArray` or :class:`.BlockArray`, must have
                 `shape == self.output_shape`. If `y` is a
                 :class:`.LinearOperator`, must have
@@ -605,6 +609,7 @@ class LinearOperator(Operator):
                 f"""Shapes do not conform: input array with shape {y.shape} does not match
                 LinearOperator output_shape {self.output_shape}"""
             )
+        assert self._adj is not None
         return self._adj(y)
 
     @property
@@ -715,6 +720,7 @@ class LinearOperator(Operator):
         """
         if self._gram is None:
             self._set_adjoint()
+        assert self._gram is not None
         return self._gram(x)
 
 

@@ -96,7 +96,6 @@ class DualTVLoss(loss.Loss):
         super().__init__(y=y, A=A, scale=1.0)
         self.lmbda = lmbda
 
-    @jax.jit
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
 
         xint = self.y - self.lmbda * self.A(x)
@@ -118,7 +117,6 @@ class IsoProjector(functional.Functional):
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         return 0.0
 
-    @jax.jit
     def prox(self, v: JaxArray, lam: float, **kwargs) -> JaxArray:
         norm_v_ptp = jnp.sqrt(jnp.sum(jnp.abs(v) ** 2, axis=0))
 

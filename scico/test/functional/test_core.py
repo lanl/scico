@@ -2,6 +2,7 @@ import warnings
 
 import numpy as np
 
+import jax.numpy as jnp
 from jax.config import config
 
 # enable 64-bit mode for output dtype checks
@@ -132,6 +133,9 @@ class TestNormProx:
         pf = nrmobj.prox(snp.concatenate(snp.ravel(test_prox_obj.vb)), alpha)
         pf_b = nrmobj.prox(test_prox_obj.vb, alpha)
 
+        assert pf.dtype == test_prox_obj.vb.dtype
+        assert pf_b.dtype == test_prox_obj.vb.dtype
+
         snp.testing.assert_allclose(pf, snp.concatenate(snp.ravel(pf_b)), rtol=1e-6)
 
     @pytest.mark.parametrize("norm", normlist)
@@ -197,13 +201,17 @@ class TestBlockArrayEval:
     def test_eval(self, cls, test_prox_obj):
         func = cls()  # instantiate the functional we are testing
 
-        if cls in NO_COMPLEX and snp.iscomplexobj(test_prox_obj.vb):
+        if cls in NO_COMPLEX and snp.util.is_complex_dtype(test_prox_obj.vb.dtype):
             with pytest.raises(ValueError):
                 x = func(test_prox_obj.vb)
             return
 
         x = func(test_prox_obj.vb)
         y = func(test_prox_obj.vb.ravel())
+
+        assert jnp.isscalar(x) or x.ndim == 0
+        assert jnp.isscalar(y) or y.ndim == 0
+
         np.testing.assert_allclose(x, y, rtol=1e-6)
 
 
@@ -226,7 +234,7 @@ class TestProj:
         cns = cnsobj.__call__
         prx = cnsobj.prox
 
-        if cnstr in NO_COMPLEX and snp.iscomplexobj(test_proj_obj.v):
+        if cnstr in NO_COMPLEX and snp.util.is_complex_dtype(test_proj_obj.v.dtype):
             with pytest.raises(ValueError):
                 prox_test(test_proj_obj.v, cns, prx, alpha)
             return
@@ -246,7 +254,7 @@ class TestProj:
     @pytest.mark.parametrize("cnstr", cnstrlist)
     @pytest.mark.parametrize("alpha", alphalist)
     def test_setdistance(self, sdist, cnstr, alpha, test_proj_obj):
-        if cnstr in NO_COMPLEX and snp.iscomplexobj(test_proj_obj.v):
+        if cnstr in NO_COMPLEX and snp.util.is_complex_dtype(test_proj_obj.v.dtype):
             return
         cnsobj = cnstr()
         proj = cnsobj.prox

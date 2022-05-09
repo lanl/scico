@@ -1,4 +1,4 @@
-""" Utility functions for working with BlockArrays and DeviceArrays. """
+"""Utility functions for working with BlockArrays and DeviceArrays."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from jax.interpreters.xla import DeviceArray
 import scico.numpy as snp
 from scico.typing import ArrayIndex, Axes, AxisIndex, BlockShape, DType, JaxArray, Shape
 
-from .blockarray import BlockArray
+from ._blockarray import BlockArray
 
 
 def ensure_on_device(
@@ -34,7 +34,7 @@ def ensure_on_device(
 
     Returns:
         Modified array or arrays. Modified are only those that were
-           necessary.
+        necessary.
 
     Raises:
         TypeError: If the arrays contain something that is neither
@@ -161,14 +161,14 @@ def indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int, ...]:
         idx = (idx,)
     if len(idx) > len(shape):
         raise ValueError(f"Slice {idx} has more dimensions than shape {shape}.")
-    idx_shape = list(shape)
+    idx_shape: List[Optional[int]] = list(shape)
     offset = 0
     for axis, ax_idx in enumerate(idx):
         if ax_idx is Ellipsis:
             offset = len(shape) - len(idx)
             continue
         idx_shape[axis + offset] = slice_length(shape[axis + offset], ax_idx)
-    return tuple(filter(lambda x: x is not None, idx_shape))
+    return tuple(filter(lambda x: x is not None, idx_shape))  # type: ignore
 
 
 def no_nan_divide(
@@ -187,11 +187,14 @@ def no_nan_divide(
     return snp.where(y != 0, snp.divide(x, snp.where(y != 0, y, 1)), 0)
 
 
-def shape_to_size(shape: Union[Shape, BlockShape]) -> Axes:
+def shape_to_size(shape: Union[Shape, BlockShape]) -> int:
     r"""Compute the size corresponding to a (possibly nested) shape.
 
     Args:
-       shape: A shape tuple; possibly tuples.
+        shape: A shape tuple; possibly nested.
+
+    Returns:
+        The number of elements in an array or BlockArray with shape `shape`.
     """
 
     if is_nested(shape):
@@ -226,8 +229,8 @@ def is_real_dtype(dtype: DType) -> bool:
     """Determine whether a dtype is real.
 
     Args:
-        dtype: A numpy or scico.numpy dtype (e.g. np.float32,
-               snp.complex64).
+        dtype: A numpy or scico.numpy dtype (e.g. ``np.float32``,
+               ``np.complex64``).
 
     Returns:
         ``False`` if the dtype is complex, otherwise ``True``.
@@ -252,8 +255,8 @@ def real_dtype(dtype: DType) -> DType:
     """Construct the corresponding real dtype for a given complex dtype.
 
     Construct the corresponding real dtype for a given complex dtype,
-    e.g. the real dtype corresponding to `np.complex64` is
-    `np.float32`.
+    e.g. the real dtype corresponding to ``np.complex64`` is
+    ``np.float32``.
 
     Args:
         dtype: A complex numpy or scico.numpy dtype (e.g. ``np.complex64``,

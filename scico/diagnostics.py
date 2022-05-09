@@ -68,23 +68,23 @@ class IterationStats:
         if not isinstance(fields, dict):
             raise TypeError("Parameter fields must be an instance of dict")
         # Subsampling rate of results that are to be displayed
-        self.period = period
+        self.period: int = period
         # Flag indicating whether to display and overwrite, or not display at all
-        self.overwrite = overwrite
+        self.overwrite: bool = overwrite
         # Number of spaces seperating fields in displayed tables
-        self.colsep = colsep
+        self.colsep: int = colsep
         # Main list of inserted values
-        self.iterations = []
+        self.iterations: List = []
         # Total length of header string in displayed tables
-        self.headlength = 0
+        self.headlength: int = 0
         # List of field names
-        self.fieldname = []
+        self.fieldname: List[str] = []
         # List of field format strings
-        self.fieldformat = []
+        self.fieldformat: List[str] = []
         # List of lengths of each field in displayed tables
-        self.fieldlength = []
+        self.fieldlength: List[int] = []
         # Names of fields in namedtuple used to record iteration values
-        self.tuplefields = []
+        self.tuplefields: List[str] = []
         # Compile regex for decomposing format strings
         fmre = re.compile(r"%(\+?-?)((?:\d+)?)(\.?)((?:\d+)?)([a-z])")
         # Iterate over field names
@@ -131,7 +131,7 @@ class IterationStats:
         self.headlength -= colsep
 
         # Construct namedtuple used to record values
-        self.IterTuple = namedtuple("IterationStatsTuple", self.tuplefields)
+        self.IterTuple = namedtuple("IterationStatsTuple", self.tuplefields)  # type: ignore
 
         # Set up table header string display if requested
         self.display = display
