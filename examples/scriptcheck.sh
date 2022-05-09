@@ -35,8 +35,9 @@ trap cleanupexit SIGINT
 re1="s/'maxiter' ?: ?[0-9]+/'maxiter': 2/g; "
 re2="s/^maxiter ?= ?[0-9]+/maxiter = 2/g; "
 re3="s/^N ?= ?[0-9]+/N = 32/g; "
-re4="s/input\(/#input\(/g; "
-re5="s/fig.show\(/#fig.show\(/g"
+re4="s/num_samples= ?[0-9]+/num_samples = 4/g; "
+re5="s/input\(/#input\(/g; "
+re6="s/fig.show\(/#fig.show\(/g"
 
 # Iterate over all scripts.
 for f in scripts/*.py; do
@@ -44,7 +45,7 @@ for f in scripts/*.py; do
     printf "%-50s " $f
 
     # Skip problem cases.
-    if grep -q -E '_tune|_microscopy' <<< $f; then
+    if grep -q '_microscopy' <<< $f; then
 	printf "%s\n" skipped
 	continue
     fi
@@ -52,7 +53,7 @@ for f in scripts/*.py; do
     # Create temporary copy of script with all algorithm maxiter values set
     # to small number and final input statements commented out.
     g=$d/$(basename $f)
-    sed -E -e "$re1$re2$re3$re4$re5" $f > $g
+    sed -E -e "$re1$re2$re3$re4$re5$re6" $f > $g
 
     # Run temporary script and print status message.
     if python $g > /dev/null 2>&1; then
