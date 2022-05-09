@@ -17,7 +17,7 @@ from flax import serialization
 from flax.core import Scope  # noqa
 from flax.linen.module import _Sentinel  # noqa
 
-from scico.blockarray import BlockArray
+from scico.numpy import BlockArray
 from scico.typing import JaxArray
 
 # The imports of Scope and _Sentinel (above) and the definition of Module
@@ -203,5 +203,5 @@ class FlaxMap:
             x = x.reshape((1,) + x.shape + (1,))
         elif x.ndim == 3:
             x = x.reshape((1,) + x.shape)
-        y = self.model.apply(self.variables, x, train=False, mutable=False)
+        y = self.model.apply(self.variables, x, train=False, mutable=False)  # type: ignore
         return y.reshape(x_shape)

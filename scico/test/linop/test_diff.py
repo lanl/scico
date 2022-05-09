@@ -3,62 +3,39 @@ import numpy as np
 import pytest
 
 import scico.numpy as snp
-from scico.blockarray import BlockArray
 from scico.linop import FiniteDifference
 from scico.random import randn
 from scico.test.linop.test_linop import adjoint_test
 
 
+def test_eval():
+    with pytest.raises(ValueError):  # axis 3 does not exist
+        A = FiniteDifference(input_shape=(3, 4, 5), axes=(0, 3))
+
+    A = FiniteDifference(input_shape=(2, 3), append=0.0)
+
+    x = snp.array([[1, 0, 1], [1, 1, 0]], dtype=snp.float32)
+
+    Ax = A @ x
+
+    snp.testing.assert_allclose(
+        Ax[0],  # down columns x[1] - x[0], ..., append - x[N-1]
+        snp.array([[0, 1, -1], [-1, -1, 0]]),
+    )
+    snp.testing.assert_allclose(Ax[1], snp.array([[-1, 1, -1], [0, -1, 0]]))  # along rows
+
+
 @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
-@pytest.mark.parametrize("input_shape", [(32,), (32, 48)])
+@pytest.mark.parametrize("input_shape", [(16,), (16, 24)])
 @pytest.mark.parametrize("axes", [0, 1, (0,), (1,), None])
 @pytest.mark.parametrize("jit", [False, True])
-@pytest.mark.parametrize("append", [None, 0.0])
-def test_eval(input_shape, input_dtype, axes, jit, append):
-
+def test_adjoint(input_shape, input_dtype, axes, jit):
     ndim = len(input_shape)
-    x, _ = randn(input_shape, dtype=input_dtype)
-
     if axes in [1, (1,)] and ndim == 1:
-        with pytest.raises(ValueError):
-            A = FiniteDifference(
-                input_shape=input_shape, input_dtype=input_dtype, axes=axes, append=append
-            )
-    else:
-        A = FiniteDifference(
-            input_shape=input_shape, input_dtype=input_dtype, axes=axes, jit=jit, append=append
-        )
-        Ax = A @ x
-        assert A.input_dtype == input_dtype
+        return
 
-        # construct expected output
-        if axes is None:
-            if ndim == 1:
-                y = snp.diff(x, append=append)
-            else:
-                y = BlockArray.array(
-                    [snp.diff(x, axis=0, append=append), snp.diff(x, axis=1, append=append)]
-                )
-        elif np.isscalar(axes):
-            y = snp.diff(x, axis=axes, append=append)
-        elif len(axes) == 1:
-            y = snp.diff(x, axis=axes[0], append=append)
-
-        np.testing.assert_allclose(Ax.ravel(), y.ravel(), rtol=1e-4)
-
-    @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
-    @pytest.mark.parametrize("input_shape", [(32,), (32, 48)])
-    @pytest.mark.parametrize("axes", [0, 1, (0,), (1,), None])
-    @pytest.mark.parametrize("jit", [False, True])
-    def test_adjoint(self, input_shape, input_dtype, axes, jit):
-        ndim = len(input_shape)
-        if axes in [1, (1,)] and ndim == 1:
-            pass
-        else:
-            A = FiniteDifference(
-                input_shape=input_shape, input_dtype=input_dtype, axes=axes, jit=jit
-            )
-            adjoint_test(A)
+    A = FiniteDifference(input_shape=input_shape, input_dtype=input_dtype, axes=axes, jit=jit)
+    adjoint_test(A)
 
 
 @pytest.mark.parametrize(

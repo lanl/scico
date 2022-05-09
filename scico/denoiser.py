@@ -43,7 +43,7 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
 
     Args:
         x: Input image. Expected to be a 2D array (gray-scale denoising)
-            or 3D array (color denoising). Higher dimensional arrays are
+            or 3D array (color denoising). Higher-dimensional arrays are
             tolerated only if the additional dimensions are singletons.
             For color denoising, the color channel is assumed to be in the
             last non-singleton dimension.
@@ -62,7 +62,7 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
     else:
         bm3d_eval = tunibm3d.bm3d
 
-    if np.iscomplexobj(x):
+    if snp.util.is_complex_dtype(x.dtype):
         raise TypeError(f"BM3D requires real-valued inputs, got {x.dtype}")
 
     # Support arrays with more than three axes when the additional axes are singletons.
@@ -70,7 +70,7 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
 
     if isinstance(x.ndim, tuple) or x.ndim < 2:
         raise ValueError(
-            "BM3D requires two dimensional or three dimensional inputs;" f" got ndim = {x.ndim}"
+            "BM3D requires two-dimensional or three dimensional inputs;" f" got ndim = {x.ndim}"
         )
 
     # This check is also performed inside the BM3D call, but due to the host_callback,
@@ -108,7 +108,7 @@ def bm4d(x: JaxArray, sigma: float):
     :cite:`maggioni-2012-nonlocal`.
 
     Args:
-        x: Input image. Expected to be a 3D array. Higher dimensional
+        x: Input image. Expected to be a 3D array. Higher-dimensional
             arrays are tolerated only if the additional dimensions are
             singletons.
         sigma: Noise parameter.
@@ -121,14 +121,14 @@ def bm4d(x: JaxArray, sigma: float):
 
     bm4d_eval = tunibm4d.bm4d
 
-    if np.iscomplexobj(x):
+    if snp.util.is_complex_dtype(x.dtype):
         raise TypeError(f"BM4D requires real-valued inputs, got {x.dtype}")
 
     # Support arrays with more than three axes when the additional axes are singletons.
     x_in_shape = x.shape
 
     if isinstance(x.ndim, tuple) or x.ndim < 3:
-        raise ValueError(f"BM4D requires three dimensional inputs; got ndim = {x.ndim}")
+        raise ValueError(f"BM4D requires three-dimensional inputs; got ndim = {x.ndim}")
 
     # This check is also performed inside the BM4D call, but due to the host_callback,
     # no exception is raised and the program will crash with no traceback.
@@ -200,12 +200,12 @@ class DnCNN(FlaxMap):
         Returns:
             Denoised output.
         """
-        if np.iscomplexobj(x):
+        if snp.util.is_complex_dtype(x.dtype):
             raise TypeError(f"DnCNN requries real-valued inputs, got {x.dtype}")
 
         if isinstance(x.ndim, tuple) or x.ndim < 2:
             raise ValueError(
-                "DnCNN requires two dimensional (M, N) or three dimensional (M, N, C)"
+                "DnCNN requires two-dimensional (M, N) or three-dimensional (M, N, C)"
                 f" inputs; got ndim = {x.ndim}"
             )
 

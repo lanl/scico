@@ -4,7 +4,7 @@ import jax
 
 import scico.numpy as snp
 from scico import functional, linop, loss, random
-from scico.blockarray import BlockArray
+from scico.numpy import BlockArray
 from scico.optimize import LinearizedADMM
 
 
@@ -12,13 +12,12 @@ class TestMisc:
     def setup_method(self, method):
         np.random.seed(12345)
         self.y = jax.device_put(np.random.randn(32, 33).astype(np.float32))
-        self.λ = 1e0
         self.maxiter = 2
         self.μ = 1e-1
         self.ν = 1e-1
         self.A = linop.Identity(self.y.shape)
         self.f = loss.SquaredL2Loss(y=self.y, A=self.A)
-        self.g = (self.λ / 2) * functional.BM3D()
+        self.g = functional.DnCNN()
         self.C = linop.Identity(self.y.shape)
 
     def test_itstat(self):
@@ -70,7 +69,7 @@ class TestMisc:
 class TestBlockArray:
     def setup_method(self, method):
         np.random.seed(12345)
-        self.y = BlockArray.array(
+        self.y = snp.blockarray(
             (
                 np.random.randn(32, 33).astype(np.float32),
                 np.random.randn(

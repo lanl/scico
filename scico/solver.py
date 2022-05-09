@@ -60,10 +60,12 @@ In the future, this module may be replaced with a dependency on
 from functools import wraps
 from typing import Any, Callable, Optional, Sequence, Tuple, Union
 
+import numpy as np
+
 import jax
 
 import scico.numpy as snp
-from scico.blockarray import BlockArray
+from scico.numpy import BlockArray
 from scico.typing import BlockShape, DType, JaxArray, Shape
 from scipy import optimize as spopt
 
@@ -88,9 +90,9 @@ def _wrap_func(func: Callable, shape: Union[Shape, BlockShape], dtype: DType) ->
         # apply val_grad_func to un-vectorized input
         val = val_func(snp.reshape(x, shape).astype(dtype), *args)
 
-        # Convert val into numpy array (.copy()), then cast to float
+        # Convert val into numpy array, then cast to float
         # Convert 'val' into a scalar, rather than ndarray of shape (1,)
-        val = val.copy().astype(float).item()
+        val = np.array(val).astype(float).item()
         return val
 
     return wrapper
@@ -119,10 +121,10 @@ def _wrap_func_and_grad(func: Callable, shape: Union[Shape, BlockShape], dtype: 
         # apply val_grad_func to un-vectorized input
         val, grad = val_grad_func(snp.reshape(x, shape).astype(dtype), *args)
 
-        # Convert val & grad into numpy arrays (.copy()), then cast to float
+        # Convert val & grad into numpy arrays, then cast to float
         # Convert 'val' into a scalar, rather than ndarray of shape (1,)
-        val = val.copy().astype(float).item()
-        grad = grad.copy().astype(float).ravel()
+        val = np.array(val).astype(float).item()
+        grad = np.array(grad).astype(float).ravel()
         return val, grad
 
     return wrapper
@@ -143,7 +145,7 @@ def _split_real_imag(x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArr
         BlockArray.
     """
     if isinstance(x, BlockArray):
-        return BlockArray.array([_split_real_imag(_) for _ in x])
+        return snp.blockarray([_split_real_imag(_) for _ in x])
     return snp.stack((snp.real(x), snp.imag(x)))
 
 
@@ -161,7 +163,7 @@ def _join_real_imag(x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArra
         and `x[1]` respectively.
     """
     if isinstance(x, BlockArray):
-        return BlockArray.array([_join_real_imag(_) for _ in x])
+        return snp.blockarray([_join_real_imag(_) for _ in x])
     return x[0] + 1j * x[1]
 
 
@@ -194,7 +196,7 @@ def minimize(
     :func:`scipy.optimize.minimize`.
     """
 
-    if snp.iscomplexobj(x0):
+    if snp.util.is_complex_dtype(x0.dtype):
         # scipy minimize function requires real-valued arrays, so
         # we split x0 into a vector with real/imaginary parts stacked
         # and compose `func` with a `_join_real_imag`
@@ -210,7 +212,7 @@ def minimize(
     x0 = x0.ravel()  # if x0 is a BlockArray it will become a DeviceArray here
     if isinstance(x0, jax.interpreters.xla.DeviceArray):
         dev = x0.device_buffer.device()  # device for x0; used to put result back in place
-        x0 = x0.copy().astype(float)
+        x0 = np.array(x0).astype(float)
     else:
         dev = None
 
@@ -298,7 +300,7 @@ def cg(
     maxiter: int = 1000,
     info: bool = False,
     M: Optional[Callable] = None,
-) -> Union[JaxArray, dict]:
+) -> Tuple[JaxArray, dict]:
     r"""Conjugate Gradient solver.
 
     Solve the linear system :math:`A\mb{x} = \mb{b}`, where :math:`A` is
@@ -334,7 +336,7 @@ def cg(
     r = b - Ax
     z = M(r)
     p = z
-    num = r.ravel().conj().T @ z.ravel()
+    num = snp.sum(r.conj() * z)
     ii = 0
 
     # termination tolerance
@@ -343,12 +345,12 @@ def cg(
 
     while (ii < maxiter) and (num > termination_tol_sq):
         Ap = A(p)
-        alpha = num / (p.ravel().conj().T @ Ap.ravel())
+        alpha = num / snp.sum(p.conj() * Ap)
         x = x + alpha * p
         r = r - alpha * Ap
         z = M(r)
         num_old = num
-        num = r.ravel().conj().T @ z.ravel()
+        num = snp.sum(r.conj() * z)
         beta = num / num_old
         p = z + beta * p
         ii += 1

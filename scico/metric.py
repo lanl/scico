@@ -14,7 +14,7 @@ from typing import Optional, Union
 import numpy as np
 
 import scico.numpy as snp
-from scico.blockarray import BlockArray
+from scico.numpy import BlockArray
 from scico.typing import JaxArray
 
 
@@ -89,7 +89,7 @@ def psnr(
     if signal_range is None:
         signal_range = snp.abs(snp.max(reference) - snp.min(reference))
     with np.errstate(divide="ignore"):
-        rt = signal_range ** 2 / mse(reference, comparison)
+        rt = signal_range**2 / mse(reference, comparison)
     return 10.0 * snp.log10(rt)
 
 

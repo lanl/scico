@@ -97,7 +97,9 @@ fi
 # On debian/ubuntu linux systems, install package build-essential
 if [ -z "$CC" ] && [ ! "$(which gcc 2>/dev/null)" ]; then
     echo "Error: gcc command not found and CC environment variable not set"
-    echo "       set CC to the path of your C compiler, or install gcc"
+    echo "       set CC to the path of your C compiler, or install gcc."
+    echo "       On debian/ubuntu, you may need to do"
+    echo "           sudo apt install build-essential"
     exit 5
 fi
 
@@ -168,9 +170,11 @@ else
 fi
 # Filter the list of requirements; sed patterns are for
 #  1st: escape >,<,| characters with a backslash
-#  2nd: remove recursive include (-r) lines and packages that require
+#  2nd: remove comments in requirements file
+#  3rd: remove recursive include (-r) lines and packages that require
 #       special handling, e.g. jaxlib
 sort $ALLREQUIRE | uniq | $SED -E 's/(>|<|\|)/\\\1/g' \
+    | $SED -E 's/\#.*$//g' \
     | $SED -E '/^-r.*|^jaxlib.*|^jax.*/d' > $FLTREQUIRE
 # Remove requirements that cannot be installed via conda
 for nc in $NOCONDA; do
@@ -213,9 +217,10 @@ pip install $NOCONDA
 # Warn if libopenblas-dev not installed on debian/ubuntu
 if [ "$(which dpkg 2>/dev/null)" ]; then
     if [ ! "$(dpkg -s libopenblas-dev 2>/dev/null)" ]; then
-	echo "Warning: package libopenblas-dev, which is required by"
-	echo "         bm3d, does not appear to be installed;"
-	echo "         install using the apt install command"
+	echo "Warning (debian/ubuntu): package libopenblas-dev,"
+	echo "which is required by bm3d, does not appear to be"
+	echo "installed; install using the command"
+	echo "   sudo apt install libopenblas-dev"
     fi
 fi
 

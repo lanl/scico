@@ -1,5 +1,6 @@
 Operators
 =========
+
 An operator is a map from :math:`\mathbb{R}^n` or :math:`\mathbb{C}^n`
 to :math:`\mathbb{R}^m` or :math:`\mathbb{C}^m`.
 In SCICO, operators are primarily used to represent imaging systems
@@ -13,7 +14,7 @@ Each :class:`.Operator` object has an ``input_shape`` and ``output_shape``; thes
 The ``matrix_shape`` attribute describes the shape of the :class:`.LinearOperator` if it were to act on vectorized, or flattened, inputs.
 
 
-For example, consider a two dimensional array :math:`\mb{x} \in \mathbb{R}^{n \times m}`.
+For example, consider a two-dimensional array :math:`\mb{x} \in \mathbb{R}^{n \times m}`.
 We compute the discrete differences of :math:`\mb{x}` in the horizontal and vertical directions,
 generating two new arrays: :math:`\mb{x}_h \in \mathbb{R}^{n \times (m-1)}` and :math:`\mb{x}_v \in
 \mathbb{R}^{(n-1) \times m}`. We represent this linear operator by

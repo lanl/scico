@@ -4,7 +4,6 @@ import os
 import re
 import sys
 import types
-from ast import parse
 from inspect import getmembers, isfunction
 from unittest.mock import MagicMock
 
@@ -12,7 +11,12 @@ from sphinx.ext.napoleon.docstring import GoogleDocstring
 
 confpath = os.path.dirname(__file__)
 sys.path.append(confpath)
+rootpath = os.path.join(confpath, "..", "..")
+sys.path.append(rootpath)
+
 from docutil import insert_inheritance_diagram, package_classes
+
+from scico._version import package_version
 
 
 ## See
@@ -65,7 +69,7 @@ rootpath = os.path.abspath("../..")
 sys.path.insert(0, rootpath)
 
 # If your documentation needs a minimal Sphinx version, state it here.
-needs_sphinx = "3.3"
+needs_sphinx = "3.5.2"
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -162,8 +166,7 @@ copyright = "2020-2022, SCICO Developers"
 # built documents.
 #
 # The short X.Y version.
-with open(os.path.join(confpath, "..", "..", "scico", "__init__.py")) as f:
-    version = parse(next(filter(lambda line: line.startswith("__version__"), f))).body[0].value.s
+version = package_version()
 # The full version, including alpha/beta/rc tags.
 release = version
 
@@ -435,6 +438,7 @@ for _, f in snp_func:
         f.__doc__ = re.sub(r" \[(\d+)\]_", "", f.__doc__, flags=re.M)
         # Remove entire numpydoc references section
         f.__doc__ = re.sub(r"References\n----------\n.*\n", "", f.__doc__, flags=re.DOTALL)
+
 
 # Remove spurious two-space indentation of entire docstring
 scico.numpy.vectorize.__doc__ = re.sub("^  ", "", scico.numpy.vectorize.__doc__, flags=re.M)

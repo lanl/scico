@@ -15,8 +15,8 @@ from scico.optimize.pgm import (
 class TestSet:
     def setup_method(self, method):
         np.random.seed(12345)
-        M = 9
-        N = 8
+        M = 5
+        N = 4
         # Set up arrays for problem argmin (1/2) ||A x - y||_2^2 + (λ/2) ||B x||_2^2
         Amx = np.random.randn(M, N)
         Bmx = np.identity(N)
@@ -30,7 +30,7 @@ class TestSet:
         self.grdb = Amx.T @ y
 
     def test_pgm(self):
-        maxiter = 200
+        maxiter = 100
 
         A = linop.MatrixOperator(self.Amx)
         L0 = 1.05 * linop.power_iteration(A.T @ A)[0]
@@ -41,7 +41,7 @@ class TestSet:
         np.testing.assert_allclose(self.grdA(x), self.grdb, rtol=5e-3)
 
     def test_accelerated_pgm(self):
-        maxiter = 200
+        maxiter = 100
 
         A = linop.MatrixOperator(self.Amx)
         L0 = 1.05 * linop.power_iteration(A.T @ A)[0]
@@ -52,7 +52,7 @@ class TestSet:
         np.testing.assert_allclose(self.grdA(x), self.grdb, rtol=5e-3)
 
     def test_pgm_BB_step_size(self):
-        maxiter = 200
+        maxiter = 100
         A = linop.MatrixOperator(self.Amx)
         L0 = 1.05 * linop.power_iteration(A.T @ A)[0] / 5.0
         loss_ = loss.SquaredL2Loss(y=self.y, A=A)
@@ -69,7 +69,7 @@ class TestSet:
         np.testing.assert_allclose(self.grdA(x), self.grdb, rtol=5e-3)
 
     def test_pgm_adaptive_BB_step_size(self):
-        maxiter = 200
+        maxiter = 100
         A = linop.MatrixOperator(self.Amx)
         L0 = 1.05 * linop.power_iteration(A.T @ A)[0] / 5.0
         loss_ = loss.SquaredL2Loss(y=self.y, A=A)
@@ -119,7 +119,7 @@ class TestSet:
         np.testing.assert_allclose(self.grdA(x), self.grdb, rtol=5e-3)
 
     def test_pgm_BB_step_size_jit(self):
-        maxiter = 200
+        maxiter = 100
         A = linop.MatrixOperator(self.Amx)
         L0 = 1.05 * linop.power_iteration(A.T @ A)[0] / 5.0
         loss_ = loss.SquaredL2Loss(y=self.y, A=A)
@@ -141,7 +141,7 @@ class TestSet:
             assert 0
 
     def test_accelerated_pgm_adaptive_BB_step_size_jit(self):
-        maxiter = 200
+        maxiter = 100
         A = linop.MatrixOperator(self.Amx)
         L0 = 1.05 * linop.power_iteration(A.T @ A)[0] / 5.0
         loss_ = loss.SquaredL2Loss(y=self.y, A=A)
@@ -165,8 +165,8 @@ class TestSet:
 
 class TestComplex:
     def setup_method(self, method):
-        M = 9
-        N = 8
+        M = 5
+        N = 4
         # Set up arrays for problem argmin (1/2) ||A x - y||_2^2 + (λ/2) ||x||_2^2
         Amx, key = random.randn((M, N), dtype=np.complex64, key=None)
         Bmx = np.identity(N)
@@ -181,7 +181,7 @@ class TestComplex:
         self.grdb = Amx.conj().T @ y
 
     def test_pgm(self):
-        maxiter = 200
+        maxiter = 150
         A = linop.MatrixOperator(self.Amx)
         L0 = 50.0
         loss_ = loss.SquaredL2Loss(y=self.y, A=A)
@@ -197,7 +197,7 @@ class TestComplex:
         np.testing.assert_allclose(self.grdA(x), self.grdb, rtol=5e-3)
 
     def test_accelerated_pgm(self):
-        maxiter = 200
+        maxiter = 100
         A = linop.MatrixOperator(self.Amx)
         L0 = 50.0
         loss_ = loss.SquaredL2Loss(y=self.y, A=A)
@@ -207,7 +207,7 @@ class TestComplex:
         np.testing.assert_allclose(self.grdA(x), self.grdb, rtol=5e-3)
 
     def test_pgm_BB_step_size(self):
-        maxiter = 200
+        maxiter = 100
         A = linop.MatrixOperator(self.Amx)
         L0 = 10.0
         loss_ = loss.SquaredL2Loss(y=self.y, A=A)
@@ -224,7 +224,7 @@ class TestComplex:
         np.testing.assert_allclose(self.grdA(x), self.grdb, rtol=5e-3)
 
     def test_pgm_adaptive_BB_step_size(self):
-        maxiter = 200
+        maxiter = 100
         A = linop.MatrixOperator(self.Amx)
         L0 = 10.0
         loss_ = loss.SquaredL2Loss(y=self.y, A=A)
@@ -241,7 +241,7 @@ class TestComplex:
         np.testing.assert_allclose(self.grdA(x), self.grdb, rtol=5e-3)
 
     def test_accelerated_pgm_line_search(self):
-        maxiter = 200
+        maxiter = 100
         A = linop.MatrixOperator(self.Amx)
         L0 = 10.0
         loss_ = loss.SquaredL2Loss(y=self.y, A=A)

@@ -22,7 +22,7 @@ measurement, $\mathbf{x}$ is the signal reconstruction, and
 $I(\mathbf{x}^{(0)} \geq 0)$ is the non-negative indicator.
 
 This example also demonstrates the application of
-[blockarray.BlockArray](../_autosummary/scico.blockarray.rst#scico.blockarray.BlockArray),
+[numpy.BlockArray](../_autosummary/scico.numpy.rst#scico.numpy.BlockArray),
 [functional.SeparableFunctional](../_autosummary/scico.functional.rst#scico.functional.SeparableFunctional),
 and
 [functional.ZeroFunctional](../_autosummary/scico.functional.rst#scico.functional.ZeroFunctional)
@@ -40,7 +40,7 @@ import matplotlib.pyplot as plt
 import scico.numpy as snp
 import scico.random
 from scico import functional, loss, plot
-from scico.blockarray import BlockArray
+from scico.numpy import BlockArray
 from scico.operator import Operator
 from scico.optimize.pgm import (
     AcceleratedPGM,

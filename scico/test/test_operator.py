@@ -12,7 +12,6 @@ config.update("jax_enable_x64", True)
 import jax
 
 import scico.numpy as snp
-from scico.blockarray import BlockArray
 from scico.operator import Operator
 from scico.random import randn
 
@@ -24,12 +23,12 @@ class AbsOperator(Operator):
 
 class SquareOperator(Operator):
     def _eval(self, x):
-        return x ** 2
+        return x**2
 
 
 class SumSquareOperator(Operator):
     def _eval(self, x):
-        return snp.sum(x ** 2)
+        return snp.sum(x**2)
 
 
 class OperatorTestObj:
@@ -45,7 +44,7 @@ class OperatorTestObj:
         self.mat = randn(self.A.input_shape, dtype=dtype, key=key)
         self.x, key = randn((N,), dtype=dtype, key=key)
         scalar, key = randn((1,), dtype=dtype, key=key)
-        self.scalar = scalar.copy().ravel()[0]
+        self.scalar = scalar.item()  # DeviceArray -> actual scalar
 
         self.z, key = randn((2 * N,), dtype=dtype, key=key)
 
@@ -176,11 +175,11 @@ def test_freeze_3arg():
         input_shape=((1, 3, 4), (2, 1, 4), (2, 3, 1)), eval_fn=lambda x: x[0] * x[1] * x[2]
     )
 
-    a = np.random.randn(1, 3, 4)
-    b = np.random.randn(2, 1, 4)
-    c = np.random.randn(2, 3, 1)
+    a, _ = randn((1, 3, 4))
+    b, _ = randn((2, 1, 4))
+    c, _ = randn((2, 3, 1))
 
-    x = BlockArray.array([a, b, c])
+    x = snp.blockarray([a, b, c])
     Abc = A.freeze(0, a)  # A as a function of b, c
     Aac = A.freeze(1, b)  # A as a function of a, c
     Aab = A.freeze(2, c)  # A as a function of a, b
@@ -189,9 +188,9 @@ def test_freeze_3arg():
     assert Aac.input_shape == ((1, 3, 4), (2, 3, 1))
     assert Aab.input_shape == ((1, 3, 4), (2, 1, 4))
 
-    bc = BlockArray.array([b, c])
-    ac = BlockArray.array([a, c])
-    ab = BlockArray.array([a, b])
+    bc = snp.blockarray([b, c])
+    ac = snp.blockarray([a, c])
+    ab = snp.blockarray([a, b])
     np.testing.assert_allclose(A(x), Abc(bc), rtol=5e-4)
     np.testing.assert_allclose(A(x), Aac(ac), rtol=5e-4)
     np.testing.assert_allclose(A(x), Aab(ab), rtol=5e-4)
@@ -201,10 +200,10 @@ def test_freeze_2arg():
 
     A = Operator(input_shape=((1, 3, 4), (2, 1, 4)), eval_fn=lambda x: x[0] * x[1])
 
-    a = np.random.randn(1, 3, 4)
-    b = np.random.randn(2, 1, 4)
+    a, _ = randn((1, 3, 4))
+    b, _ = randn((2, 1, 4))
 
-    x = BlockArray.array([a, b])
+    x = snp.blockarray([a, b])
     Ab = A.freeze(0, a)  # A as a function of 'b' only
     Aa = A.freeze(1, b)  # A as a function of 'a' only
 

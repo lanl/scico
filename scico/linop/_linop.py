@@ -16,9 +16,9 @@ from functools import partial
 from typing import Any, Callable, Optional, Union
 
 import scico.numpy as snp
-from scico import array, blockarray
 from scico._generic_operators import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
-from scico.blockarray import BlockArray
+from scico.numpy import BlockArray
+from scico.numpy.util import ensure_on_device, indexed_shape, is_nested
 from scico.random import randn
 from scico.typing import ArrayIndex, BlockShape, DType, JaxArray, PRNGKey, Shape
 
@@ -48,7 +48,7 @@ def power_iteration(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey
 
     for i in range(maxiter):
         Av = A @ v
-        mu = snp.vdot(v, Av.ravel()) / snp.linalg.norm(v) ** 2
+        mu = snp.sum(v.conj() * Av) / snp.linalg.norm(v) ** 2
         v = Av / snp.linalg.norm(Av)
     return mu, v
 
@@ -62,7 +62,6 @@ def operator_norm(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey] 
     :math:`A`,
 
     .. math::
-
        \| A \|_2 &= \max \{ \| A \mb{x} \|_2 \, : \, \| \mb{x} \|_2 \leq 1 \} \\
                  &= \sqrt{ \lambda_{ \mathrm{max} }( A^H A ) }
                  = \sigma_{\mathrm{max}}(A) \;,
@@ -152,8 +151,8 @@ def valid_adjoint(
 
     u = A(x)
     v = AT(y)
-    yTu = snp.dot(y.ravel().conj(), u.ravel())
-    vTx = snp.dot(v.ravel().conj(), x.ravel())
+    yTu = snp.dot(y.ravel().conj(), u.ravel())  # type: ignore
+    vTx = snp.dot(v.ravel().conj(), x.ravel())  # type: ignore
     err = snp.abs(yTu - vTx) / max(snp.abs(yTu), snp.abs(vTx))
     if eps is None:
         return err
@@ -178,10 +177,9 @@ class Diagonal(LinearOperator):
                broadcast-compatiable with `diagonal.shape`.
             input_dtype: `dtype` of input argument. The default,
                ``None``, means `diagonal.dtype`.
-
         """
 
-        self.diagonal = array.ensure_on_device(diagonal)
+        self.diagonal = ensure_on_device(diagonal)
 
         if input_shape is None:
             input_shape = self.diagonal.shape
@@ -189,14 +187,14 @@ class Diagonal(LinearOperator):
         if input_dtype is None:
             input_dtype = self.diagonal.dtype
 
-        if isinstance(diagonal, BlockArray) and array.is_nested(input_shape):
+        if isinstance(diagonal, BlockArray) and is_nested(input_shape):
             output_shape = (snp.empty(input_shape) * diagonal).shape
-        elif not isinstance(diagonal, BlockArray) and not array.is_nested(input_shape):
+        elif not isinstance(diagonal, BlockArray) and not is_nested(input_shape):
             output_shape = snp.broadcast_shapes(input_shape, self.diagonal.shape)
         elif isinstance(diagonal, BlockArray):
-            raise ValueError(f"`diagonal` was a BlockArray but `input_shape` was not nested.")
+            raise ValueError("`diagonal` was a BlockArray but `input_shape` was not nested.")
         else:
-            raise ValueError(f"`diagonal` was a not BlockArray but `input_shape` was nested.")
+            raise ValueError("`diagonal` was a not BlockArray but `input_shape` was nested.")
 
         super().__init__(
             input_shape=input_shape,
@@ -259,7 +257,7 @@ class Slice(LinearOperator):
     def __init__(
         self,
         idx: ArrayIndex,
-        input_shape: Shape,
+        input_shape: Union[Shape, BlockShape],
         input_dtype: DType = snp.float32,
         jit: bool = True,
         **kwargs,
@@ -282,10 +280,11 @@ class Slice(LinearOperator):
                functions of the LinearOperator.
         """
 
-        if array.is_nested(input_shape):
-            output_shape = blockarray.indexed_shape(input_shape, idx)
+        output_shape: Union[Shape, BlockShape]
+        if is_nested(input_shape):
+            output_shape = input_shape[idx]  # type: ignore
         else:
-            output_shape = array.indexed_shape(input_shape, idx)
+            output_shape = indexed_shape(input_shape, idx)
 
         self.idx: ArrayIndex = idx
         super().__init__(
@@ -322,22 +321,7 @@ def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = Non
     if f_name is None:
         f_name = f"{f.__module__}.{f.__name__}"
 
-    def __init__(
-        self,
-        input_shape: Union[Shape, BlockShape],
-        *args: Any,
-        input_dtype: DType = snp.float32,
-        jit: bool = True,
-        **kwargs: Any,
-    ):
-        self._eval = lambda x: f(x, *args, **kwargs)
-        super().__init__(input_shape, input_dtype=input_dtype, jit=jit)
-
-    OpClass = type(classname, (LinearOperator,), {"__init__": __init__})
-    __class__ = OpClass  # needed for super() to work
-
-    OpClass.__doc__ = f"Linear operator version of :func:`{f_name}`."
-    OpClass.__init__.__doc__ = fr"""
+    f_doc = rf"""
 
         Args:
             input_shape: Shape of input array.
@@ -352,6 +336,23 @@ def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = Non
                 the `LinearOperator` is created.
             kwargs: Keyword arguments passed to :func:`{f_name}`.
         """
+
+    def __init__(
+        self,
+        input_shape: Union[Shape, BlockShape],
+        *args: Any,
+        input_dtype: DType = snp.float32,
+        jit: bool = True,
+        **kwargs: Any,
+    ):
+        self._eval = lambda x: f(x, *args, **kwargs)
+        super().__init__(input_shape, input_dtype=input_dtype, jit=jit)  # type: ignore
+
+    OpClass = type(classname, (LinearOperator,), {"__init__": __init__})
+    __class__ = OpClass  # needed for super() to work
+
+    OpClass.__doc__ = f"Linear operator version of :func:`{f_name}`."
+    OpClass.__init__.__doc__ = f_doc  # type: ignore
 
     return OpClass
 

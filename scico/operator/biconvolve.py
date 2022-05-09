@@ -7,16 +7,17 @@
 
 """Biconvolution operator."""
 
+from typing import Tuple, cast
 
 import numpy as np
 
 from jax.scipy.signal import convolve
 
 from scico._generic_operators import LinearOperator, Operator
-from scico.array import is_nested
-from scico.blockarray import BlockArray
 from scico.linop import Convolve, ConvolveByX
-from scico.typing import BlockShape, DType, JaxArray
+from scico.numpy import BlockArray
+from scico.numpy.util import is_nested
+from scico.typing import DType, JaxArray, Shape
 
 
 class BiConvolve(Operator):
@@ -26,13 +27,13 @@ class BiConvolve(Operator):
     blocks of equal ndims, and convolves the first block with the second.
 
     If `A` is a BiConvolve operator, then
-    `A(BlockArray.array([x, h]))` equals `jax.scipy.signal.convolve(x, h)`.
+    `A(snp.blockarray([x, h]))` equals `jax.scipy.signal.convolve(x, h)`.
 
     """
 
     def __init__(
         self,
-        input_shape: BlockShape,
+        input_shape: Tuple[Shape, Shape],
         input_dtype: DType = np.float32,
         mode: str = "full",
         jit: bool = True,
@@ -87,7 +88,7 @@ class BiConvolve(Operator):
         if argnum == 0:
             return ConvolveByX(
                 x=val,
-                input_shape=self.input_shape[1],
+                input_shape=cast(Shape, self.input_shape[1]),
                 input_dtype=self.input_dtype,
                 output_shape=self.output_shape,
                 mode=self.mode,
@@ -95,7 +96,7 @@ class BiConvolve(Operator):
         if argnum == 1:
             return Convolve(
                 h=val,
-                input_shape=self.input_shape[0],
+                input_shape=cast(Shape, self.input_shape[0]),
                 input_dtype=self.input_dtype,
                 output_shape=self.output_shape,
                 mode=self.mode,

@@ -23,8 +23,8 @@ from jax.interpreters.xla import DeviceArray
 
 import scico.numpy as snp
 from scico._autograd import linear_adjoint
-from scico.array import is_complex_dtype, is_nested
-from scico.blockarray import BlockArray, block_sizes
+from scico.numpy import BlockArray
+from scico.numpy.util import is_complex_dtype, is_nested, shape_to_size
 from scico.typing import BlockShape, DType, JaxArray, Shape
 
 
@@ -126,6 +126,9 @@ output_dtype : {self.output_dtype}
         #: Dtype of input
         self.input_dtype: DType
 
+        #: Dtype of operator
+        self.dtype: DType
+
         if isinstance(input_shape, int):
             self.input_shape = (input_shape,)
         else:
@@ -140,7 +143,7 @@ output_dtype : {self.output_dtype}
         if output_shape is None or output_dtype is None:
             tmp = self(snp.zeros(self.input_shape, dtype=input_dtype))
         if output_shape is None:
-            self.output_shape = tmp.shape
+            self.output_shape = tmp.shape  # type: ignore
         else:
             self.output_shape = (output_shape,) if isinstance(output_shape, int) else output_shape
 
@@ -152,8 +155,8 @@ output_dtype : {self.output_dtype}
         # Determine the shape of the "vectorized" operator (as an element of ℝ^{n × m}
         # If the function returns a BlockArray we need to compute the size of each block,
         # then sum.
-        self.input_size = int(np.sum(block_sizes(self.input_shape)))
-        self.output_size = int(np.sum(block_sizes(self.output_shape)))
+        self.input_size = shape_to_size(self.input_shape)
+        self.output_size = shape_to_size(self.output_shape)
 
         self.shape = (self.output_shape, self.input_shape)
         self.matrix_shape = (self.output_size, self.input_size)
@@ -312,16 +315,17 @@ output_dtype : {self.output_dtype}
                 f"{self.input_shape[argnum]}, got {val.shape}"
             )
 
-        input_shape = tuple(s for i, s in enumerate(self.input_shape) if i != argnum)
+        input_shape: Union[Shape, BlockShape]
+        input_shape = tuple(s for i, s in enumerate(self.input_shape) if i != argnum)  # type: ignore
 
         if len(input_shape) == 1:
-            input_shape = input_shape[0]
+            input_shape = input_shape[0]  # type: ignore
 
         def concat_args(args):
             # Creates a blockarray with args and the frozen value in the correct place
             # Eg if this operator takes a blockarray with two blocks, then
-            # concat_args(args) = BlockArray.array([val, args]) if argnum = 0
-            # concat_args(args) = BlockArray.array([args, val]) if argnum = 1
+            # concat_args(args) = snp.blockarray([val, args]) if argnum = 0
+            # concat_args(args) = snp.blockarray([args, val]) if argnum = 1
 
             if isinstance(args, (DeviceArray, np.ndarray)):
                 # In the case that the original operator takes a blcokarray with two
@@ -336,7 +340,7 @@ output_dtype : {self.output_dtype}
                     arg_list.append(args[i - 1])
                 else:
                     arg_list.append(val)
-            return BlockArray.array(arg_list)
+            return snp.blockarray(arg_list)
 
         return Operator(
             input_shape=input_shape,
@@ -456,9 +460,9 @@ class LinearOperator(Operator):
         )
 
         if not hasattr(self, "_adj"):
-            self._adj = None
+            self._adj: Optional[Callable] = None
         if not hasattr(self, "_gram"):
-            self._gram = None
+            self._gram: Optional[Callable] = None
         if callable(adj_fn):
             self._adj = adj_fn
             self._gram = lambda x: self.adj(self(x))
@@ -584,7 +588,7 @@ class LinearOperator(Operator):
         input `y`.
 
         Args:
-            y:  Point at which to compute adjoint. If `y` is
+            y: Point at which to compute adjoint. If `y` is
                 :class:`DeviceArray` or :class:`.BlockArray`, must have
                 `shape == self.output_shape`. If `y` is a
                 :class:`.LinearOperator`, must have
@@ -605,6 +609,7 @@ class LinearOperator(Operator):
                 f"""Shapes do not conform: input array with shape {y.shape} does not match
                 LinearOperator output_shape {self.output_shape}"""
             )
+        assert self._adj is not None
         return self._adj(y)
 
     @property
@@ -613,7 +618,7 @@ class LinearOperator(Operator):
 
         Return a new :class:`LinearOperator` that implements the
         transpose of this :class:`LinearOperator`. For a real-valued
-        LinearOperator `A` (`A.input_dtype` is``np.float32`` or
+        LinearOperator `A` (`A.input_dtype` is ``np.float32`` or
         ``np.float64``), the LinearOperator `A.T` implements the
         adjoint: `A.T(y) == A.adj(y)`. For a complex-valued
         LinearOperator `A` (`A.input_dtype` is ``np.complex64`` or
@@ -715,6 +720,7 @@ class LinearOperator(Operator):
         """
         if self._gram is None:
             self._set_adjoint()
+        assert self._gram is not None
         return self._gram(x)
 
 
@@ -722,8 +728,7 @@ class ComposedLinearOperator(LinearOperator):
     """A LinearOperator formed by the composition of two LinearOperators."""
 
     def __init__(self, A: LinearOperator, B: LinearOperator, jit: bool = False):
-        r"""ComposedLinearOperator init method.
-
+        r"""
         A ComposedLinearOperator `AB` implements `AB @ x == A @ B @ x`.
         The LinearOperators `A` and `B` are stored as attributes of
         the ComposedLinearOperator.
@@ -741,12 +746,12 @@ class ComposedLinearOperator(LinearOperator):
         """
         if not isinstance(A, LinearOperator):
             raise TypeError(
-                "The first argument to ComposedLinearOpeator must be a LinearOperator; "
+                "The first argument to ComposedLinearOperator must be a LinearOperator; "
                 f"got {type(A)}"
             )
         if not isinstance(B, LinearOperator):
             raise TypeError(
-                "The second argument to ComposedLinearOpeator must be a LinearOperator; "
+                "The second argument to ComposedLinearOperator must be a LinearOperator; "
                 f"got {type(B)}"
             )
         if A.input_shape != B.output_shape:

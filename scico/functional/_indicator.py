@@ -12,7 +12,7 @@ from typing import Union
 import jax
 
 from scico import numpy as snp
-from scico.blockarray import BlockArray
+from scico.numpy import BlockArray
 from scico.numpy.linalg import norm
 from scico.typing import JaxArray
 
@@ -36,7 +36,7 @@ class NonNegativeIndicator(Functional):
     has_prox = True
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
-        if snp.iscomplexobj(x):
+        if snp.util.is_complex_dtype(x.dtype):
             raise ValueError("Not defined for complex input.")
 
         # Equivalent to snp.inf if snp.any(x < 0) else 0.0

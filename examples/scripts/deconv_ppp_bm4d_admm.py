@@ -48,7 +48,7 @@ additive Gaussian noise.
 n = 5  # convolution kernel size
 σ = 20.0 / 255  # noise level
 
-psf = snp.ones((n, n, n)) / (n ** 3)
+psf = snp.ones((n, n, n)) / (n**3)
 A = linop.Convolve(h=psf, input_shape=x_gt.shape)
 
 Ax = A(x_gt)  # blurred image

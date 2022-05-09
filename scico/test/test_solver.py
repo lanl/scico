@@ -6,7 +6,6 @@ import pytest
 
 import scico.numpy as snp
 from scico import random, solver
-from scico.blockarray import BlockArray
 
 
 class TestSet:
@@ -40,6 +39,7 @@ class TestSet:
         except Exception as e:
             print(e)
             assert 0
+        assert info["rel_res"].ndim == 0
         assert np.linalg.norm(A(xcg) - b) / np.linalg.norm(b) < 1e-6
 
     def test_cg_info(self):
@@ -196,18 +196,17 @@ def test_split_join_blockarray():
     x_s = solver._split_real_imag(x)
     assert x_s.shape == ((2, 4, 4), (2, 3))
 
-    real_block = BlockArray.array((x_s[0][0], x_s[1][0]))
-    imag_block = BlockArray.array((x_s[0][1], x_s[1][1]))
-    np.testing.assert_allclose(real_block.ravel(), snp.real(x).ravel(), rtol=1e-4)
-    np.testing.assert_allclose(imag_block.ravel(), snp.imag(x).ravel(), rtol=1e-4)
+    real_block = snp.blockarray((x_s[0][0], x_s[1][0]))
+    imag_block = snp.blockarray((x_s[0][1], x_s[1][1]))
+    snp.testing.assert_allclose(real_block, snp.real(x), rtol=1e-4)
+    snp.testing.assert_allclose(imag_block, snp.imag(x), rtol=1e-4)
 
     x_j = solver._join_real_imag(x_s)
-    assert x_j.shape == x.shape
-    np.testing.assert_allclose(x_j.ravel(), x.ravel(), rtol=1e-4)
+    snp.testing.assert_allclose(x_j, x, rtol=1e-4)
 
 
 def test_bisect():
-    f = lambda x: x ** 3
+    f = lambda x: x**3
     x, info = solver.bisect(f, -snp.ones((5, 1)), snp.ones((5, 1)), full_output=True)
     assert snp.sum(snp.abs(x)) == 0.0
     assert info["iter"] == 0
@@ -215,14 +214,14 @@ def test_bisect():
     assert snp.max(snp.abs(x)) <= 1e-5
     assert snp.max(snp.abs(f(x))) <= 1e-5
     c, key = random.randn((5, 1), dtype=np.float32)
-    f = lambda x, c: x ** 3 - c ** 3
+    f = lambda x, c: x**3 - c**3
     x = solver.bisect(f, -snp.abs(c) - 1, snp.abs(c) + 1, args=(c,), xtol=1e-5, ftol=1e-5)
     assert snp.max(snp.abs(x - c)) <= 1e-5
     assert snp.max(snp.abs(f(x, c))) <= 1e-5
 
 
 def test_golden():
-    f = lambda x: x ** 2
+    f = lambda x: x**2
     x, info = solver.golden(f, -snp.ones((5, 1)), snp.ones((5, 1)), full_output=True)
     assert snp.max(snp.abs(x)) <= 1e-7
     x = solver.golden(f, -2.0 * snp.ones((5, 3)), snp.ones((5, 3)), xtol=1e-5)
