@@ -34,24 +34,26 @@ trap cleanupexit SIGINT
 # Define regex strings.
 re1="s/'maxiter' ?: ?[0-9]+/'maxiter': 3/g; "
 re2="s/maxiter ?= ?[0-9]+/maxiter = 3/g; "
-re3="s/input\(+/#input\(/g"
+re3="s/input\(/#input\(/g; "
+re4="s/fig.show\(/#fig.show\(/g"
 
 # Iterate over all scripts.
 for f in scripts/*.py; do
+    printf "%-50s " $f
 
     # Create temporary copy of script with all algorithm maxiter values set
     # to small number and final input statements commented out.
     g=$d/$(basename $f)
-    sed -E -e "$re1$re2$re3" $f > $g
+    sed -E -e "$re1$re2$re3$re4" $f > $g
 
     # Run temporary script.
     python $g > /dev/null 2>&1
 
     # Run temporary script and print status message.
     if python $g > /dev/null 2>&1; then
-        printf "%-50s %s\n" $f succeeded
+        printf "%s\n" succeeded
     else
-        printf "%-50s %s\n" $f FAILED
+        printf "%s\n" FAILED
         retval=1
     fi
 

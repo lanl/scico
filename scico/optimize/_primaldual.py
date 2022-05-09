@@ -14,12 +14,12 @@ from __future__ import annotations
 from typing import Callable, Optional, Union
 
 import scico.numpy as snp
-from scico.array import ensure_on_device
-from scico.blockarray import BlockArray
 from scico.diagnostics import IterationStats
 from scico.functional import Functional
 from scico.linop import LinearOperator
+from scico.numpy import BlockArray
 from scico.numpy.linalg import norm
+from scico.numpy.util import ensure_on_device
 from scico.typing import JaxArray
 from scico.util import Timer
 
@@ -71,7 +71,7 @@ class PDHG:
         g (:class:`.Functional`): Functional :math:`g`.
         C (:class:`.LinearOperator`): :math:`C` operator.
         itnum (int): Iteration counter.
-        maxiter (int): Number of ADMM outer-loop iterations.
+        maxiter (int): Number of PDHG outer-loop iterations.
         timer (:class:`.Timer`): Iteration timer.
         tau (scalar): First algorithm parameter.
         sigma (scalar): Second algorithm parameter.
@@ -108,16 +108,16 @@ class PDHG:
             tau: First algorithm parameter.
             sigma: Second algorithm parameter.
             alpha: Relaxation parameter.
-            x0: Starting point for :math:`\mb{x}`. If None, defaults to
-               an array of zeros.
-            z0: Starting point for :math:`\mb{z}`. If None, defaults to
-               an array of zeros.
-            maxiter: Number of ADMM outer-loop iterations. Default: 100.
+            x0: Starting point for :math:`\mb{x}`. If ``None``, defaults
+               to an array of zeros.
+            z0: Starting point for :math:`\mb{z}`. If ``None``, defaults
+               to an array of zeros.
+            maxiter: Number of PDHG outer-loop iterations. Default: 100.
             itstat_options: A dict of named parameters to be passed to
                 the :class:`.diagnostics.IterationStats` initializer. The
                 dict may also include an additional key "itstat_func"
                 with the corresponding value being a function with two
-                parameters, an integer and an ADMM object, responsible
+                parameters, an integer and a `PDHG` object, responsible
                 for constructing a tuple ready for insertion into the
                 :class:`.diagnostics.IterationStats` object. If ``None``,
                 default values are used for the dict entries, otherwise
@@ -150,7 +150,7 @@ class PDHG:
 
         # dynamically create itstat_func; see https://stackoverflow.com/questions/24733831
         itstat_return = "return(" + ", ".join(["obj." + attr for attr in itstat_attrib]) + ")"
-        scope = {}
+        scope: dict[str, Callable] = {}
         exec("def itstat_func(obj): " + itstat_return, scope)
 
         # determine itstat options and initialize IterationStats object
@@ -161,8 +161,8 @@ class PDHG:
         }
         if itstat_options:
             default_itstat_options.update(itstat_options)
-        self.itstat_insert_func = default_itstat_options.pop("itstat_func", None)
-        self.itstat_object = IterationStats(**default_itstat_options)
+        self.itstat_insert_func: Callable = default_itstat_options.pop("itstat_func", None)  # type: ignore
+        self.itstat_object = IterationStats(**default_itstat_options)  # type: ignore
 
         if x0 is None:
             input_shape = C.input_shape
@@ -189,7 +189,7 @@ class PDHG:
             f(\mb{x}) + g(C \mb{x}) \;.
 
         Args:
-            x: Point at which to evaluate objective function. If `None`,
+            x: Point at which to evaluate objective function. If ``None``,
                 the objective is evaluated at the current iterate
                 :code:`self.x`
 
@@ -213,7 +213,7 @@ class PDHG:
             Current value of primal residual.
         """
 
-        return norm(self.x - self.x_old) / self.tau
+        return norm(self.x - self.x_old) / self.tau  # type: ignore
 
     def norm_dual_residual(self) -> float:
         r"""Compute the :math:`\ell_2` norm of the dual residual.

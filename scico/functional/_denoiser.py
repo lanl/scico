@@ -35,7 +35,7 @@ class BM3D(Functional):
         self.is_rgb = is_rgb
         super().__init__()
 
-    def prox(self, x: JaxArray, lam: float = 1.0, **kwargs) -> JaxArray:
+    def prox(self, x: JaxArray, lam: float = 1.0, **kwargs) -> JaxArray:  # type: ignore
         r"""Apply BM3D denoiser.
 
         Args:
@@ -65,7 +65,7 @@ class BM4D(Functional):
         r"""Initialize a :class:`BM4D` object."""
         super().__init__()
 
-    def prox(self, x: JaxArray, lam: float = 1.0, **kwargs) -> JaxArray:
+    def prox(self, x: JaxArray, lam: float = 1.0, **kwargs) -> JaxArray:  # type: ignore
         r"""Apply BM4D denoiser.
 
         Args:
@@ -99,7 +99,7 @@ class DnCNN(Functional):
         """
         self.dncnn = denoiser.DnCNN(variant)
 
-    def prox(self, x: JaxArray, lam: float = 1.0, **kwargs) -> JaxArray:
+    def prox(self, x: JaxArray, lam: float = 1.0, **kwargs) -> JaxArray:  # type: ignore
         r"""Apply DnCNN denoiser.
 
         *Warning*: The `lam` parameter is ignored, and has no effect on

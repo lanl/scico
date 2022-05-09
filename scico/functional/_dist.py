@@ -10,7 +10,7 @@
 from typing import Callable, Union
 
 from scico import numpy as snp
-from scico.blockarray import BlockArray
+from scico.numpy import BlockArray
 from scico.typing import JaxArray
 
 from ._functional import Functional

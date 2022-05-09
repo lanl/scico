@@ -17,7 +17,7 @@ from typing import Optional
 import numpy as np
 
 import scico.numpy as snp
-from scico.array import parse_axes
+from scico.numpy.util import parse_axes
 from scico.typing import Axes, DType, JaxArray, Shape
 
 from ._linop import LinearOperator
@@ -57,9 +57,9 @@ class FiniteDifference(LinearOperatorStack):
         Args:
             input_shape: Shape of input array.
             input_dtype: `dtype` for input argument. Defaults to
-                `float32`. If `LinearOperator` implements complex-valued
-                operations, this must be `complex64` for proper adjoint
-                and gradient calculation.
+                ``float32``. If `LinearOperator` implements
+                complex-valued operations, this must be ``complex64`` for
+                proper adjoint and gradient calculation.
             axes: Axis or axes over which to apply finite difference
                 operator. If not specified, or ``None``, differences are
                 evaluated along all axes.
@@ -73,19 +73,18 @@ class FiniteDifference(LinearOperatorStack):
                 functions of the LinearOperator.
         """
 
-        self.axes = parse_axes(axes, input_shape)
-
         if axes is None:
-            axes_list = range(len(input_shape))
+            axes_list = tuple(range(len(input_shape)))
         elif isinstance(axes, (list, tuple)):
             axes_list = axes
         else:
             axes_list = (axes,)
-        single_kwargs = dict(append=append, circular=circular, jit=False, input_dtype=input_dtype)
+        self.axes = parse_axes(axes_list, input_shape)
+        single_kwargs = dict(input_dtype=input_dtype, append=append, circular=circular, jit=False)
         ops = [FiniteDifferenceSingleAxis(axis, input_shape, **single_kwargs) for axis in axes_list]
 
         super().__init__(
-            ops,
+            ops,  # type: ignore
             jit=jit,
             **kwargs,
         )
@@ -109,9 +108,9 @@ class FiniteDifferenceSingleAxis(LinearOperator):
             axis: Axis over which to apply finite difference operator.
             input_shape: Shape of input array.
             input_dtype: `dtype` for input argument. Defaults to
-                `float32`. If `LinearOperator` implements complex-valued
-                operations, this must be `complex64` for proper adjoint
-                and gradient calculation.
+                ``float32``. If `LinearOperator` implements
+                complex-valued operations, this must be ``complex64`` for
+                proper adjoint and gradient calculation.
             append: Value to append to the input along `axis` before
                 taking differences. Defaults to 0.
             circular: If ``True``, perform circular differences, i.e.,

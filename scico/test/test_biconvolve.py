@@ -5,8 +5,8 @@ import jax.scipy.signal as signal
 
 import pytest
 
-from scico.blockarray import BlockArray
 from scico.linop import Convolve, ConvolveByX
+from scico.numpy import blockarray
 from scico.operator.biconvolve import BiConvolve
 from scico.random import randn
 
@@ -22,7 +22,7 @@ class TestBiConvolve:
         x, key = randn((32, 32), dtype=input_dtype, key=self.key)
         h, key = randn((4, 4), dtype=input_dtype, key=self.key)
 
-        x_h = BlockArray.array([x, h])
+        x_h = blockarray([x, h])
 
         A = BiConvolve(input_shape=x_h.shape, mode=mode, jit=jit)
         signal_out = signal.convolve(x, h, mode=mode)

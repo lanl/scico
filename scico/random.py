@@ -44,13 +44,12 @@ is returned:
 ::
 
    x, key = scico.random.randn( ((1, 1), (2,)), key=key)
-   print(x)  # scico.blockarray.BlockArray:
+   print(x)  # scico.numpy.BlockArray:
              # DeviceArray([ 1.1378784 , -1.220955  , -0.59153646], dtype=float32)
 
 """
 
 
-import functools
 import inspect
 import sys
 from typing import Optional, Tuple, Union
@@ -59,8 +58,8 @@ import numpy as np
 
 import jax
 
-from scico.array import is_nested
-from scico.blockarray import BlockArray, block_sizes
+from scico.numpy import BlockArray
+from scico.numpy._wrappers import map_func_over_tuple_of_tuples
 from scico.typing import BlockShape, DType, JaxArray, PRNGKey, Shape
 
 
@@ -109,12 +108,12 @@ def _add_seed(fun):
     fun_alt.__doc__ = "\n\n".join(
         lines[0:1]
         + [
-            f"  Wrapped version of `jax.random.{fun.__name__} <https://jax.readthedocs.io/en/stable/jax.random.html#jax.random.{fun.__name__}>`_. "
-            "The SCICO version of this function moves the `key` argument to the end of the argument list, "
-            "adds an additional `seed` argument after that, and allows the `shape` argument "
-            "to accept a nested list, in which case a `BlockArray` is returned. "
-            "Always returns a `(result, key)` tuple.",
-            "  Original docstring below.",
+            f"  Wrapped version of `jax.random.{fun.__name__} "
+            f"<https://jax.readthedocs.io/en/stable/jax.random.html#jax.random.{fun.__name__}>`_. "
+            "The SCICO version of this function moves the `key` argument to the end of the "
+            "argument list, adds an additional `seed` argument after that, and allows the "
+            "`shape` argument to accept a nested list, in which case a `BlockArray` is returned. "
+            "Always returns a `(result, key)` tuple. Original docstring below.",
         ]
         + lines[1:]
     )
@@ -122,49 +121,8 @@ def _add_seed(fun):
     return fun_alt
 
 
-def _allow_block_shape(fun):
-    """
-    Decorate a jax.random function so that the `shape` argument may be a BlockShape.
-    """
-
-    # use inspect to find which argument number is `shape`
-    shape_ind = list(inspect.signature(fun).parameters.keys()).index("shape")
-
-    @functools.wraps(fun)
-    def fun_alt(*args, **kwargs):
-
-        # get the shape argument if it was passed
-        if len(args) > shape_ind:
-            shape = args[shape_ind]
-        elif "shape" in kwargs:
-            shape = kwargs["shape"]
-        else:  # shape was not passed, call fun as normal
-            return fun(*args, **kwargs)
-
-        # if shape is not nested, call fun as normal
-        if not is_nested(shape):
-            return fun(*args, **kwargs)
-        # shape is nested, so make a BlockArray!
-
-        # call the wrapped fun with an shape=(size,)
-        subargs = list(args)
-        subkwargs = kwargs.copy()
-        size = np.sum(block_sizes(shape))
-
-        if len(subargs) > shape_ind:
-            subargs[shape_ind] = (size,)
-        else:  # shape must be a kwarg if not a positional arg
-            subkwargs["shape"] = (size,)
-
-        result_flat = fun(*subargs, **subkwargs)
-
-        return BlockArray.array_from_flattened(result_flat, shape)
-
-    return fun_alt
-
-
 def _wrap(fun):
-    fun_wrapped = _add_seed(_allow_block_shape(fun))
+    fun_wrapped = _add_seed(map_func_over_tuple_of_tuples(fun))
     fun_wrapped.__module__ = __name__  # so it appears in docs
     return fun_wrapped
 
@@ -210,4 +168,4 @@ def randn(
            - **x** : (DeviceArray):  Generated random array.
            - **key** : Updated random PRNGKey.
     """
-    return normal(shape, dtype, key, seed)
+    return normal(shape, dtype, key, seed)  # type: ignore

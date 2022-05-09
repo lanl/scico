@@ -12,10 +12,9 @@ from typing import Union
 from jax import jit, lax
 
 from scico import numpy as snp
-from scico.array import no_nan_divide
-from scico.blockarray import BlockArray
-from scico.numpy import count_nonzero
+from scico.numpy import BlockArray, count_nonzero
 from scico.numpy.linalg import norm
+from scico.numpy.util import no_nan_divide
 from scico.typing import JaxArray
 
 from ._functional import Functional
@@ -72,7 +71,7 @@ class L1Norm(Functional):
     has_prox = True
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
-        return snp.abs(x).sum()
+        return snp.sum(snp.abs(x))
 
     @staticmethod
     def prox(v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs) -> JaxArray:
@@ -100,7 +99,7 @@ class L1Norm(Functional):
         """
         tmp = snp.abs(v) - lam
         tmp = 0.5 * (tmp + snp.abs(tmp))
-        if snp.iscomplexobj(v):
+        if snp.util.is_complex_dtype(v.dtype):
             out = snp.exp(1j * snp.angle(v)) * tmp
         else:
             out = snp.sign(v) * tmp
@@ -122,7 +121,7 @@ class SquaredL2Norm(Functional):
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         # Directly implement the squared l2 norm to avoid nondifferentiable
         # behavior of snp.norm(x) at 0.
-        return (snp.abs(x) ** 2).sum()
+        return snp.sum(snp.abs(x) ** 2)
 
     def prox(
         self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
