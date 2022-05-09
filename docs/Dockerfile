@@ -20,6 +20,7 @@ RUN pip uninstall jax -y
 RUN pip uninstall jaxlib -y
 RUN conda install -c conda-forge jaxlib
 RUN conda install -c conda-forge jax
+RUN conda install -c astra-toolbox astra-toolbox
 
 # Switch working directory to notebooks
 WORKDIR ./scico/data/notebooks
