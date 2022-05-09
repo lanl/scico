@@ -54,9 +54,6 @@ for f in scripts/*.py; do
     g=$d/$(basename $f)
     sed -E -e "$re1$re2$re3$re4$re5" $f > $g
 
-    # Run temporary script.
-    python $g > /dev/null 2>&1
-
     # Run temporary script and print status message.
     if python $g > /dev/null 2>&1; then
         printf "%s\n" succeeded
