@@ -43,7 +43,7 @@ for f in scripts/*.py; do
 
     printf "%-50s " $f
 
-    # Skip problem cases
+    # Skip problem cases.
     if grep -q -E '_tune|_microscopy' <<< $f; then
 	printf "%s\n" skipped
 	continue
