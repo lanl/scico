@@ -68,9 +68,10 @@ re1="s/'maxiter' ?: ?[0-9]+/'maxiter': 2/g; "
 re2="s/^maxiter ?= ?[0-9]+/maxiter = 2/g; "
 re3="s/^N ?= ?[0-9]+/N = 32/g; "
 re4="s/num_samples= ?[0-9]+/num_samples = 2/g; "
-re5="s/^downsampling_rate ?= ?[0-9]+/downsampling_rate = 12/g; "
-re6="s/input\(/#input\(/g; "
-re7="s/fig.show\(/#fig.show\(/g"
+re5='s/\"cpu\": ?[0-9]+/\"cpu\": 1/g; '
+re6="s/^downsampling_rate ?= ?[0-9]+/downsampling_rate = 12/g; "
+re7="s/input\(/#input\(/g; "
+re8="s/fig.show\(/#fig.show\(/g"
 
 # Iterate over all scripts.
 for f in $SCRIPTPATH/scripts/deconv_tv_admm*.py; do
@@ -86,7 +87,7 @@ for f in $SCRIPTPATH/scripts/deconv_tv_admm*.py; do
     # Create temporary copy of script with all algorithm maxiter values set
     # to small number and final input statements commented out.
     g=$d/$(basename $f)
-    sed -E -e "$re1$re2$re3$re4$re5$re6$re7" $f > $g
+    sed -E -e "$re1$re2$re3$re4$re5$re6$re7$re8" $f > $g
 
     # Run temporary script and print status message.
     if python -m trace -t $g | grep -E --line-buffered "^deconv_tv_admm"; then
