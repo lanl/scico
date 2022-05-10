@@ -77,4 +77,4 @@ jobs:
       # Run example test
       - name: Run example test
         run: |
-          ${GITHUB_WORKSPACE}/examples/scriptcheck.sh -d
+          ${GITHUB_WORKSPACE}/examples/scriptcheck.sh -e -d
