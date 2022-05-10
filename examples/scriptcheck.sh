@@ -74,7 +74,7 @@ re7="s/input\(/#input\(/g; "
 re8="s/fig.show\(/#fig.show\(/g"
 
 # Iterate over all scripts.
-for f in $SCRIPTPATH/scripts/deconv_tv_admm*.py; do
+for f in $SCRIPTPATH/scripts/*.py; do
 
     printf "%-50s " $(basename $f)
 
@@ -90,11 +90,14 @@ for f in $SCRIPTPATH/scripts/deconv_tv_admm*.py; do
     sed -E -e "$re1$re2$re3$re4$re5$re6$re7$re8" $f > $g
 
     # Run temporary script and print status message.
-    if python -m trace -t $g | grep -E --line-buffered "^deconv_tv_admm"; then
+    if output=$(timeout 60s python $g 2>&1); then
         printf "%s\n" succeeded
     else
         printf "%s\n" FAILED
         retval=1
+	if [ $DISPLAY_ERROR -eq 1 ]; then
+	   echo "$output" | tail -8 | sed -e 's/^/    /'
+	fi
     fi
 
     # Remove temporary script.
