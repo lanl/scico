@@ -42,7 +42,7 @@ if [ ! "$(which Xvfb 2>/dev/null)" ]; then
     echo $msg >&2
     pid=0
 else
-    Xvfb :11 -screen 0 800x600x16 > /dev/null 2>&1 &
+    Xvfb :20 -screen 0 800x600x16 > /dev/null 2>&1 &
     pid=$!
     export DISPLAY=:10.0
 fi
