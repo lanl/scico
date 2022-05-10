@@ -9,15 +9,18 @@ SCRIPTPATH=$(realpath $(dirname $0))
 USAGE=$(cat <<-EOF
 Usage: $SCRIPT [-h] [-d]
           [-h] Display usage information
+          [-e] Display excerpt of error message on failure
           [-d] Skip tests involving additional data downloads
 EOF
 )
 
 OPTIND=1
+DISPLAY_ERROR=0
 SKIP_DOWNLOAD=0
-while getopts ":hd" opt; do
+while getopts ":hed" opt; do
     case $opt in
 	h) echo "$USAGE"; exit 0;;
+	e) DISPLAY_ERROR=1;;
 	d) SKIP_DOWNLOAD=1;;
 	\?) echo "Error: invalid option -$OPTARG" >&2
             echo "$USAGE" >&2
@@ -86,11 +89,14 @@ for f in $SCRIPTPATH/scripts/*.py; do
     sed -E -e "$re1$re2$re3$re4$re5$re6$re7" $f > $g
 
     # Run temporary script and print status message.
-    if python $g > /dev/null 2>&1; then
+    if output=$(python $g 2>&1); then
         printf "%s\n" succeeded
     else
         printf "%s\n" FAILED
         retval=1
+	if [ $DISPLAY_ERROR -eq 1 ]; then
+	   echo "$output" | tail -8 | sed -e 's/^/    /'
+	fi
     fi
 
     # Remove temporary script.
