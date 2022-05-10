@@ -1,6 +1,6 @@
 numpy>=1.12
 scipy>=0.19.1
-imageio[tifffile]
+imageio
 matplotlib
 jaxlib>=0.3.0,<=0.3.10
 jax>=0.3.0,<=0.3.10
