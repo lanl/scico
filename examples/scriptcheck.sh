@@ -89,7 +89,7 @@ for f in $SCRIPTPATH/scripts/deconv_tv_admm*.py; do
     sed -E -e "$re1$re2$re3$re4$re5$re6$re7" $f > $g
 
     # Run temporary script and print status message.
-    if timeout 60s python -m trace -t $g | grep -E "^deconv_tv_admm"; then
+    if python -m trace -t $g | grep -E --line-buffered "^deconv_tv_admm"; then
         printf "%s\n" succeeded
     else
         printf "%s\n" FAILED
