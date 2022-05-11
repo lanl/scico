@@ -11,7 +11,7 @@ import os.path
 
 from jax.interpreters.xla import DeviceArray
 
-from imageio import imread
+from imageio.v2 import imread
 
 import scico.numpy as snp
 
