@@ -31,7 +31,8 @@ from scico.ray import tune
 Create a ground truth image.
 """
 phantom = SiemensStar(32)
-x_gt = snp.pad(discrete_phantom(phantom, 240), 8)
+N = 256  # image size
+x_gt = snp.pad(discrete_phantom(phantom, N - 16), 8)
 
 
 """

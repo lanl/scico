@@ -358,10 +358,13 @@ particular:
 3. Citations are included using the standard `Sphinx <https://www.sphinx-doc.org/en/master/>`__ ``:cite:`cite-key``` syntax, where ``cite-key`` is the key of an entry in ``docs/source/references.bib``.
 
 
-4. Cross-references to other components of the documentation are included using the syntax described in the `nbsphinx documentation <https://nbsphinx.readthedocs.io/en/0.3.5/markdown-cells.html#Links-to-*.rst-Files-(and-Other-Sphinx-Source-Files)>`__.
+4. Cross-references to other components of the documentation are included using the syntax described in the `nbsphinx documentation <https://nbsphinx.readthedocs.io/en/latest/markdown-cells.html#Links-to-*.rst-Files-(and-Other-Sphinx-Source-Files)>`__.
 
 
 5. External links are included using Markdown syntax ``[link text](url)``.
+
+
+6. When constructing a synthetic image/volume for use in the example, define a global variable `N` that controls the size of the problem, and where relevant, define a global variable `maxiter` that controls the number of iterations of optimization algorithms such as ADMM. Adhering to this convention allows the ``examples/scriptcheck.sh`` utility to automatically construct less computationally expensive versions of the example scripts for testing that they run without any errors.
 
 
 Adding new examples

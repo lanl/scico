@@ -27,7 +27,8 @@ from scico.ray import tune
 """
 Create a ground truth image.
 """
-x_gt = create_circular_phantom((256, 256), [100, 50, 25], [1, 0, 0.5])
+N = 256  # phantom size
+x_gt = create_circular_phantom((N, N), [0.4 * N, 0.2 * N, 0.1 * N], [1, 0, 0.5])
 
 
 """
