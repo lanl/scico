@@ -16,7 +16,7 @@ from typing import List, Optional, Tuple
 
 import numpy as np
 
-import imageio
+import imageio.v2 as iio
 
 import scico.numpy as snp
 from scico import random, util
@@ -56,7 +56,7 @@ def volume_read(path: str, ext: str = "tif") -> Array:
 
     slices = []
     for file in sorted(glob.glob(os.path.join(path, "*." + ext))):
-        image = imageio.imread(file)
+        image = iio.imread(file)
         slices.append(image)
     return np.dstack(slices)
 
