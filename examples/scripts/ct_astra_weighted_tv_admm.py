@@ -113,8 +113,8 @@ f = loss.SquaredL2Loss(y=y, A=A)
 
 admm_unweighted = ADMM(
     f=f,
-    g_list=[lambda_unweighted * functional.L1Norm()],
-    C_list=[linop.FiniteDifference(x_gt.shape)],
+    g_list=[lambda_unweighted * functional.L21Norm()],
+    C_list=[linop.FiniteDifference(x_gt.shape, append=0)],
     rho_list=[ρ],
     x0=x0,
     maxiter=maxiter,
@@ -148,8 +148,8 @@ f = loss.SquaredL2Loss(y=y, A=A, W=linop.Diagonal(weights))
 
 admm_weighted = ADMM(
     f=f,
-    g_list=[lambda_weighted * functional.L1Norm()],
-    C_list=[linop.FiniteDifference(x_gt.shape)],
+    g_list=[lambda_weighted * functional.L21Norm()],
+    C_list=[linop.FiniteDifference(x_gt.shape, append=0)],
     rho_list=[ρ],
     maxiter=maxiter,
     x0=x0,
