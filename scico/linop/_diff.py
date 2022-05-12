@@ -12,7 +12,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import Optional, Union
+from typing import Literal, Optional, Union
 
 import numpy as np
 
@@ -51,8 +51,8 @@ class FiniteDifference(LinearOperatorStack):
         input_shape: Shape,
         input_dtype: DType = np.float32,
         axes: Optional[Axes] = None,
-        prepend: Optional[Union[0, 1]] = None,
-        append: Optional[Union[0, 1]] = None,
+        prepend: Optional[Union[Literal[0], Literal[1]]] = None,
+        append: Optional[Union[Literal[0], Literal[1]]] = None,
         circular: bool = False,
         jit: bool = True,
         **kwargs,
@@ -169,8 +169,8 @@ class SingleAxisFiniteDifference(LinearOperator):
         input_shape: Shape,
         input_dtype: DType = np.float32,
         axis: int = -1,
-        prepend: Optional[Union[0, 1]] = None,
-        append: Optional[Union[0, 1]] = None,
+        prepend: Optional[Union[Literal[0], Literal[1]]] = None,
+        append: Optional[Union[Literal[0], Literal[1]]] = None,
         circular: bool = False,
         jit: bool = True,
         **kwargs,
