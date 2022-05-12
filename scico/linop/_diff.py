@@ -247,27 +247,36 @@ class SingleAxisFiniteDifference(LinearOperator):
         prepend = None
         append = None
         if self.circular:
-            # set append to the first slice along the specified axis
+            # Append a copy of the initial value at the end of the array so that the difference
+            # array includes the difference across the right/bottom/etc. boundary.
             ind = tuple(
                 slice(0, 1) if i == self.axis else slice(None) for i in range(len(self.input_shape))
             )
             append = x[ind]
         else:
             if self.prepend == 0:
+                # Prepend a 0 to the difference array by prepending a copy of the initial value
+                # before the difference is computed.
                 ind = tuple(
                     slice(0, 1) if i == self.axis else slice(None)
                     for i in range(len(self.input_shape))
                 )
                 prepend = x[ind]
             elif self.prepend == 1:
+                # Prepend a copy of the initial value to the difference array by prepending a 0
+                # before the difference is computed.
                 prepend = 0
             if self.append == 0:
+                # Append a 0 to the difference array by appending a copy of the initial value
+                # before the difference is computed.
                 ind = tuple(
                     slice(-1, None) if i == self.axis else slice(None)
                     for i in range(len(self.input_shape))
                 )
                 append = x[ind]
             elif self.append == 1:
+                # Append a copy of the initial value to the difference array by appending a 0
+                # before the difference is computed.
                 append = 0
 
         return snp.diff(x, axis=self.axis, prepend=prepend, append=append)
