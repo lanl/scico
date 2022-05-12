@@ -25,6 +25,20 @@ def test_eval():
     snp.testing.assert_allclose(Ax[1], snp.array([[-1, 1, -1], [0, -1, 0]]))  # along rows
 
 
+def test_except():
+    with pytest.raises(TypeError):  # axis is not an int
+        A = SingleAxisFiniteDifference(input_shape=(3,), axis=2.5)
+
+    with pytest.raises(ValueError):  # invalid parameter combination
+        A = SingleAxisFiniteDifference(input_shape=(3,), prepend=0, circular=True)
+
+    with pytest.raises(ValueError):  # invalid prepend value
+        A = SingleAxisFiniteDifference(input_shape=(3,), prepend=2)
+
+    with pytest.raises(ValueError):  # invalid append value
+        A = SingleAxisFiniteDifference(input_shape=(3,), append="a")
+
+
 def test_eval_prepend():
     x = snp.arange(1, 6)
     A = SingleAxisFiniteDifference(input_shape=(5,), prepend=0)
