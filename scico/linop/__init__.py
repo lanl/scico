@@ -24,7 +24,7 @@ from ._linop import (
     valid_adjoint,
 )
 from ._matrix import MatrixOperator
-from ._diff import FiniteDifference
+from ._diff import FiniteDifference, SingleAxisFiniteDifference
 from ._convolve import Convolve, ConvolveByX
 from ._circconv import CircularConvolve
 from ._dft import DFT
@@ -37,6 +37,7 @@ __all__ = [
     "DFT",
     "Diagonal",
     "FiniteDifference",
+    "SingleAxisFiniteDifference",
     "Identity",
     "LinearOperatorStack",
     "MatrixOperator",
