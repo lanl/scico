@@ -85,7 +85,7 @@ def operator_norm(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey] 
         float: Norm of operator :math:`A`.
 
     """
-    return snp.sqrt(power_iteration(A.H @ A, maxiter, key)[0])
+    return snp.sqrt(power_iteration(A.H @ A, maxiter, key)[0].real)
 
 
 def valid_adjoint(
