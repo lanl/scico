@@ -66,6 +66,9 @@ class DFT(LinearOperator):
     def _eval(self, x: JaxArray) -> JaxArray:
         return snp.fft.fftn(x, s=self.output_shape)
 
+    def _norm(self) -> float:
+        return np.product(np.sqrt(self.output_shape))
+
     def inv(self, z: JaxArray, truncate: bool = True) -> JaxArray:
         """Compute the inverse of this LinearOperator.
 
