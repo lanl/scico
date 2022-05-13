@@ -33,7 +33,7 @@ class DFT(LinearOperator):
             input_shape: Shape of input array.
             output_shape: Shape of transformed output. Along any axis,
                 if the given output_shape is larger than the input, the
-                input is padded with zeros. If None, the shape of the
+                input is padded with zeros. If ``None``, the shape of the
                 input is used.
             jit: If ``True``, jit the evaluation, adjoint, and gram
                 functions of the LinearOperator.
@@ -73,7 +73,7 @@ class DFT(LinearOperator):
 
         Args:
             z: Array to take inverse DFT.
-            truncate: If `True`, the inverse DFT is truncated to be
+            truncate: If ``True``, the inverse DFT is truncated to be
                `input_shape`. This may be used when this DFT
                LinearOperator applies zero padding before computing the
                DFT.
