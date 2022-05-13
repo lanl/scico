@@ -30,7 +30,8 @@ from scico.util import device_info
 Create a ground truth image.
 """
 np.random.seed(1234)
-x_gt = discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=512)
+N = 512  # image size
+x_gt = discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=N)
 x_gt = jax.device_put(x_gt)  # convert to jax array, push to GPU
 
 
