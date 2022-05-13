@@ -506,7 +506,9 @@ class LinearOperator(Operator):
         If implemented, this method should provide a rapid calculation of
         the operator norm induced by the :math:`\ell_2` vector norm. A
         slower estimate is available for all `LinearOperator` classes by
-        use of :func:`.linop.operator_norm`.
+        use of :func:`.linop.operator_norm`. If this method is implemented
+        for operator `A`, then it is also available for operator `A.H`,
+        and also for `A.T` when `A` has a real `input_dtype`.
         """
         if self.has_norm:
             return self._norm()
