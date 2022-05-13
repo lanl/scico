@@ -418,6 +418,7 @@ class LinearOperator(Operator):
         output_shape: Optional[Union[Shape, BlockShape]] = None,
         eval_fn: Optional[Callable] = None,
         adj_fn: Optional[Callable] = None,
+        norm_fn: Optional[Callable] = None,
         input_dtype: DType = np.float32,
         output_dtype: Optional[DType] = None,
         jit: bool = False,
@@ -437,6 +438,10 @@ class LinearOperator(Operator):
                 adjoint is not set, and the :meth:`._set_adjoint`
                 will be called silently at the first :meth:`.adj` call or
                 can be called manually.
+            norm_fn: Function that computes the norm of this
+                LinearOperator. If ``None``, then `self._norm`
+                must be defined in any derived classes if :meth:`.norm()`
+                is to be usable.
             input_dtype: `dtype` for input argument.
                 Defaults to ``float32``. If `LinearOperator` implements
                 complex-valued operations, this must be ``complex64`` for
@@ -463,6 +468,8 @@ class LinearOperator(Operator):
             self._adj: Optional[Callable] = None
         if not hasattr(self, "_gram"):
             self._gram: Optional[Callable] = None
+        if not hasattr(self, "_norm"):
+            self._norm: Optional[Callable] = norm_fn
         if callable(adj_fn):
             self._adj = adj_fn
             self._gram = lambda x: self.adj(self(x))
@@ -491,7 +498,7 @@ class LinearOperator(Operator):
     @property
     def has_norm(self):
         """``True`` if the `LinearOperator` has a norm method, otherwise ``False``."""
-        return hasattr(self, "_norm")
+        return hasattr(self, "_norm") and self._norm is not None
 
     def norm(self):
         """Compute the operator norm induced by the :math:`\ell_2` vector norm.
@@ -658,6 +665,7 @@ class LinearOperator(Operator):
             output_shape=self.input_shape,
             eval_fn=self.adj,
             adj_fn=self.__call__,
+            norm_fn=self._norm,
             input_dtype=self.output_dtype,
             output_dtype=self.input_dtype,
         )
@@ -682,6 +690,7 @@ class LinearOperator(Operator):
             output_shape=self.input_shape,
             eval_fn=self.adj,
             adj_fn=self.__call__,
+            norm_fn=self._norm,
             input_dtype=self.output_dtype,
             output_dtype=self.input_dtype,
         )
