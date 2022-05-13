@@ -478,7 +478,7 @@ class LinearOperator(Operator):
         self._gram = lambda x: self.adj(self(x))
 
     def jit(self):
-        """Replaces the private functions :meth:`._eval`, :meth:`_adj`, :meth:`._gram`
+        """Replace the private functions :meth:`._eval`, :meth:`_adj`, :meth:`._gram`
         with jitted versions.
         """
         if (self._adj is None) or (self._gram is None):
@@ -487,6 +487,24 @@ class LinearOperator(Operator):
         self._eval = jax.jit(self._eval)
         self._adj = jax.jit(self._adj)
         self._gram = jax.jit(self._gram)
+
+    @property
+    def has_norm(self):
+        """``True`` if the `LinearOperator` has a norm method, otherwise ``False``."""
+        return hasattr(self, "_norm")
+
+    def norm(self):
+        """Compute the operator norm induced by the :math:`\ell_2` vector norm.
+
+        If implemented, this method should provide a rapid calculation of
+        the operator norm induced by the :math:`\ell_2` vector norm. A
+        slower estimate is available for all `LinearOperator` classes by
+        use of :func:`.linop.operator_norm`.
+        """
+        if self.has_norm:
+            return self._norm()
+        else:
+            raise NotImplementedError(f"Linear operator {type(self)} does not have a norm method.")
 
     @partial(_wrap_add_sub, op=operator.add)
     def __add__(self, other):
