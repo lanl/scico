@@ -1,6 +1,6 @@
 # When a tag is pushed, build packages and upload to PyPI
 
-name: PyPI
+name: pypi
 
 # Trigger when tags are pushed
 on:

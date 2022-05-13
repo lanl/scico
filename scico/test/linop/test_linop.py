@@ -14,7 +14,7 @@ import jax
 
 import scico.numpy as snp
 from scico import linop
-from scico.blockarray import BlockArray
+from scico.numpy import BlockArray
 from scico.random import randn
 from scico.typing import JaxArray, PRNGKey
 
@@ -39,11 +39,11 @@ def adjoint_test(
 
 def test_valid_adjoint():
 
-    diagonal, key = randn((16,), dtype=np.float32)
+    diagonal, key = randn((10,), dtype=np.float32)
     D = linop.Diagonal(diagonal=diagonal)
     assert linop.valid_adjoint(D, D.T, key=key, eps=None) < 1e-4
-    x, key = randn((8,), dtype=np.float32)
-    y, key = randn((8,), dtype=np.float32)
+    x, key = randn((5,), dtype=np.float32)
+    y, key = randn((5,), dtype=np.float32)
     with pytest.raises(ValueError):
         linop.valid_adjoint(D, D.T, key=key, x=x)
     with pytest.raises(ValueError):
@@ -70,7 +70,7 @@ class AbsMatOp(linop.LinearOperator):
 
 class LinearOperatorTestObj:
     def __init__(self, dtype):
-        M, N = (32, 64)
+        M, N = (8, 16)
         key = jax.random.PRNGKey(12345)
         self.dtype = dtype
 
@@ -82,7 +82,7 @@ class LinearOperatorTestObj:
         self.x, key = randn((N,), dtype=dtype, key=key)
         self.y, key = randn((M,), dtype=dtype, key=key)
         scalar, key = randn((1,), dtype=dtype, key=key)
-        self.scalar = scalar.copy().ravel()[0]
+        self.scalar = scalar.item()
         self.Ao = AbsMatOp(self.A)
         self.Bo = AbsMatOp(self.B)
         self.Co = AbsMatOp(self.C)
@@ -318,7 +318,7 @@ class TestDiagonal:
     def setup_method(self, method):
         self.key = jax.random.PRNGKey(12345)
 
-    input_shapes = [(32,), (32, 48), ((3,), (4, 5))]
+    input_shapes = [(8,), (8, 12), ((3,), (4, 5))]
 
     @pytest.mark.parametrize("diagonal_dtype", [np.float32, np.complex64])
     @pytest.mark.parametrize("input_shape", input_shapes)
@@ -328,7 +328,7 @@ class TestDiagonal:
 
         D = linop.Diagonal(diagonal=diagonal)
         assert (D @ x).shape == D.output_shape
-        np.testing.assert_allclose((diagonal * x).ravel(), (D @ x).ravel(), rtol=1e-5)
+        snp.testing.assert_allclose((diagonal * x), (D @ x), rtol=1e-5)
 
     @pytest.mark.parametrize("diagonal_dtype", [np.float32, np.complex64])
     def test_eval_broadcasting(self, diagonal_dtype):
@@ -341,10 +341,10 @@ class TestDiagonal:
 
         # blockarray broadcast
         diagonal, key = randn(((3, 1, 4), (5, 5)), dtype=diagonal_dtype, key=self.key)
-        x, key = randn(((5, 1), 1), dtype=diagonal_dtype, key=key)
+        x, key = randn(((5, 1), (1,)), dtype=diagonal_dtype, key=key)
         D = linop.Diagonal(diagonal, x.shape)
         assert (D @ x).shape == ((3, 5, 4), (5, 5))
-        np.testing.assert_allclose((diagonal * x).ravel(), (D @ x).ravel(), rtol=1e-5)
+        snp.testing.assert_allclose((diagonal * x), (D @ x), rtol=1e-5)
 
         # blockarray x array -> error
         diagonal, key = randn(((3, 1, 4), (5, 5)), dtype=diagonal_dtype, key=self.key)
@@ -354,7 +354,7 @@ class TestDiagonal:
 
         # array x blockarray -> error
         diagonal, key = randn((3, 1, 4), dtype=diagonal_dtype, key=self.key)
-        x, key = randn(((5, 1), 1), dtype=diagonal_dtype, key=key)
+        x, key = randn(((5, 1), (1,)), dtype=diagonal_dtype, key=key)
         with pytest.raises(ValueError):
             D = linop.Diagonal(diagonal, x.shape)
 
@@ -386,13 +386,13 @@ class TestDiagonal:
             a = operator(D1, D2) @ x
             Dnew = linop.Diagonal(operator(diagonal1, diagonal2))
             b = Dnew @ x
-            np.testing.assert_allclose(a.ravel(), b.ravel(), rtol=1e-5)
+            snp.testing.assert_allclose(a, b, rtol=1e-5)
 
     @pytest.mark.parametrize("operator", [op.add, op.sub])
     def test_binary_op_mismatch(self, operator):
         diagonal_dtype = np.float32
-        input_shape1 = (32,)
-        input_shape2 = (48,)
+        input_shape1 = (8,)
+        input_shape2 = (12,)
         diagonal1, key = randn(input_shape1, dtype=diagonal_dtype, key=self.key)
         diagonal2, key = randn(input_shape2, dtype=diagonal_dtype, key=key)
 
@@ -407,7 +407,7 @@ class TestDiagonal:
             pytest.xfail("scalar / LinearOperator is not supported")
 
         diagonal_dtype = np.float32
-        input_shape = (32,)
+        input_shape = (8,)
 
         diagonal1, key = randn(input_shape, dtype=diagonal_dtype, key=self.key)
         scalar = np.random.randn()
@@ -421,7 +421,7 @@ class TestDiagonal:
     @pytest.mark.parametrize("operator", [op.mul, op.truediv])
     def test_scalar_left(self, operator):
         diagonal_dtype = np.float32
-        input_shape = (32,)
+        input_shape = (8,)
 
         diagonal1, key = randn(input_shape, dtype=diagonal_dtype, key=self.key)
         scalar = np.random.randn()
@@ -435,7 +435,7 @@ class TestDiagonal:
 
 def test_adj_lazy():
     dtype = np.float32
-    M, N = (32, 64)
+    M, N = (8, 16)
     A, key = randn((M, N), dtype=np.float32, key=None)
     y, key = randn((M,), dtype=np.float32, key=key)
     Ao = AbsMatOp(A, adj_fn=None)  # defer setting the linop
@@ -448,7 +448,7 @@ def test_adj_lazy():
 
 def test_jit_adj_lazy():
     dtype = np.float32
-    M, N = (32, 64)
+    M, N = (8, 16)
     A, key = randn((M, N), dtype=np.float32, key=None)
     y, key = randn((M,), dtype=np.float32, key=key)
     Ao = AbsMatOp(A, adj_fn=None)  # defer setting the linop
@@ -462,7 +462,7 @@ def test_jit_adj_lazy():
 
 class PowerIterTestObj:
     def __init__(self, dtype):
-        M, N = (8, 8)
+        M, N = (4, 4)
         key = jax.random.PRNGKey(12345)
         self.dtype = dtype
 
@@ -498,7 +498,7 @@ def test_power_iteration(pitestobj):
 
 def test_operator_norm():
 
-    I = linop.Identity(16)
+    I = linop.Identity(8)
     Inorm = linop.operator_norm(I)
     assert np.abs(Inorm - 1.0) < 1e-5
     key = jax.random.PRNGKey(12345)
@@ -507,59 +507,6 @@ def test_operator_norm():
         D = linop.Diagonal(d)
         Dnorm = linop.operator_norm(D)
         assert np.abs(Dnorm - snp.abs(d).max()) < 1e-5
-
-
-class SumTestObj:
-    def __init__(self, dtype):
-        self.x, key = randn((4, 5, 6, 7), dtype=dtype)
-
-
-@pytest.fixture(scope="module", params=[np.float32, np.complex64])
-def sumtestobj(request):
-    yield SumTestObj(request.param)
-
-
-sum_axis = [
-    None,
-    0,
-    1,
-    2,
-    3,
-    (0, 1),
-    (0, 2),
-    (0, 3),
-    (1, 2),
-    (1, 3),
-    (2, 3),
-    (0, 1, 2),
-    (0, 1, 3),
-    (1, 2, 3),
-    (0, 1, 2, 3),
-]
-
-
-@pytest.mark.parametrize("axis", sum_axis)
-def test_sum_eval(sumtestobj, axis):
-    x = sumtestobj.x
-
-    A = linop.Sum(input_shape=x.shape, input_dtype=x.dtype, sum_axis=axis)
-
-    np.testing.assert_allclose(A @ x, snp.sum(x, axis=axis), rtol=1e-3)
-
-
-@pytest.mark.parametrize("axis", sum_axis)
-def test_sum_adj(sumtestobj, axis):
-    x = sumtestobj.x
-    A = linop.Sum(input_shape=x.shape, input_dtype=x.dtype, sum_axis=axis)
-    adjoint_test(A)
-
-
-@pytest.mark.parametrize("axis", (5, (1, 1), (0, 1, 2, 3, 4)))
-def test_sum_bad_shapes(sumtestobj, axis):
-    # integer too high, repeated values, list too long
-    x = sumtestobj.x
-    with pytest.raises(ValueError):
-        A = linop.Sum(input_shape=x.shape, input_dtype=x.dtype, sum_axis=axis)
 
 
 class SliceTestObj:
@@ -598,14 +545,40 @@ def test_slice_adj(slicetestobj, idx):
 
 block_slice_examples = [
     1,
-    np.s_[1, :-3],
-    np.s_[1, :, :3],
-    np.s_[1, ..., 2:],
+    np.s_[0:1],
+    np.s_[:1],
 ]
 
 
 @pytest.mark.parametrize("idx", block_slice_examples)
 def test_slice_blockarray(idx):
-    x = BlockArray.array((snp.zeros((3, 4)), snp.ones((3, 4, 5, 6))))
+    x = BlockArray((snp.zeros((3, 4)), snp.ones((3, 4, 5, 6))))
     A = linop.Slice(idx=idx, input_shape=x.shape, input_dtype=x.dtype)
     assert (A @ x).shape == x[idx].shape
+
+
+def test_transpose():
+    shape = (1, 2, 3, 4)
+    perm = (1, 0, 3, 2)
+    x, _ = randn(shape)
+    H = linop.Transpose(shape, perm)
+    np.testing.assert_array_equal(H @ x, x.transpose(perm))
+
+    # transpose transpose is transpose inverse
+    np.testing.assert_array_equal(H.T @ H @ x, x)
+
+
+def test_pad():
+    shape = (2, 3, 4)
+    pad = 1
+    x, _ = randn(shape)
+    H = linop.Pad(shape, pad)
+
+    pad_shape = tuple(n + 2 * pad for n in shape)
+    y = snp.zeros(pad_shape)
+    y = y.at[pad:-pad, pad:-pad, pad:-pad].set(x)
+    np.testing.assert_array_equal(H @ x, y)
+
+    # pad transpose is crop
+    y, _ = randn(pad_shape)
+    np.testing.assert_array_equal(H.T @ y, y[pad:-pad, pad:-pad, pad:-pad])

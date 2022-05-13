@@ -200,7 +200,7 @@ A feature development workflow might look like this:
       git push --set-upstream origin <username>/<brief-description>
 
 
-9.  Create a new pull request to the ``main`` branch; see `the GitHub instructions <https://docs.github.com/en/github/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request>`_.
+9. Create a new pull request to the ``main`` branch; see `the GitHub instructions <https://docs.github.com/en/github/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request>`_.
 
 10. The SCICO maintainers will review and merge your PR.
     The SCICO project favors the ``squash and merge`` option for merging PRs.
@@ -214,7 +214,7 @@ Adding Data
 The following steps show how to add new data, ``new_data.npz``, to the packaged data. We assume the SCICO repository has been cloned to ``scico/``.
 
 Note that the data is located in the scico-data submodule, which is
-symlinked to ``scico/data``.  When adding new data, both the scico and
+symlinked to ``scico/data``. When adding new data, both the scico and
 scico-data repositories must be updated and kept in sync.
 
 
@@ -228,7 +228,7 @@ scico-data repositories must be updated and kept in sync.
       git add new_data.npz
       git commit -m "Add new data file"
 
-3.  Return to the base SCICO repository, ensure the ``main`` branch is checked out, add/commit the new data and update submodule:
+3. Return to the base SCICO repository, ensure the ``main`` branch is checked out, add/commit the new data and update submodule:
 
    ::
 
@@ -237,7 +237,7 @@ scico-data repositories must be updated and kept in sync.
       git add data
       git commit -m "Add data and update data module"
 
-4.  Push both repositories:
+4. Push both repositories:
 
    ::
 
@@ -358,10 +358,13 @@ particular:
 3. Citations are included using the standard `Sphinx <https://www.sphinx-doc.org/en/master/>`__ ``:cite:`cite-key``` syntax, where ``cite-key`` is the key of an entry in ``docs/source/references.bib``.
 
 
-4. Cross-references to other components of the documentation are included using the syntax described in the `nbsphinx documentation <https://nbsphinx.readthedocs.io/en/0.3.5/markdown-cells.html#Links-to-*.rst-Files-(and-Other-Sphinx-Source-Files)>`__.
+4. Cross-references to other components of the documentation are included using the syntax described in the `nbsphinx documentation <https://nbsphinx.readthedocs.io/en/latest/markdown-cells.html#Links-to-*.rst-Files-(and-Other-Sphinx-Source-Files)>`__.
 
 
 5. External links are included using Markdown syntax ``[link text](url)``.
+
+
+6. When constructing a synthetic image/volume for use in the example, define a global variable `N` that controls the size of the problem, and where relevant, define a global variable `maxiter` that controls the number of iterations of optimization algorithms such as ADMM. Adhering to this convention allows the ``examples/scriptcheck.sh`` utility to automatically construct less computationally expensive versions of the example scripts for testing that they run without any errors.
 
 
 Adding new examples
@@ -374,7 +377,7 @@ been cloned to ``scico/``.
 Note that the ``.py`` scripts are included in
 ``scico/examples/scripts``, while the compiled Jupyter Notebooks are
 located in the scico-data submodule, which is symlinked to
-``scico/data``.  When adding a new usage example, both the ``scico``
+``scico/data``. When adding a new usage example, both the ``scico``
 and ``scico-data`` repositories must be updated and kept in sync.
 
 .. warning::
@@ -411,7 +414,7 @@ and ``scico-data`` repositories must be updated and kept in sync.
       git commit -m "Add usage example and update data module"
 
 
-6.  Push both repositories:
+6. Push both repositories:
 
    ::
 

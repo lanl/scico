@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021 by SCICO Developers
+# Copyright (C) 2021-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -10,7 +10,7 @@
 import math
 import operator
 from functools import partial
-from typing import Optional
+from typing import Optional, Tuple
 
 import numpy as np
 
@@ -18,17 +18,10 @@ from jax.dtypes import result_type
 
 import scico.numpy as snp
 from scico._generic_operators import Operator
-from scico.typing import DType, JaxArray, Shape
+from scico.numpy.util import is_nested
+from scico.typing import Array, DType, JaxArray, Shape
 
 from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
-
-__author__ = """\n""".join(
-    [
-        "Brendt Wohlberg <brendt@ieee.org>",
-        "Luke Pfister <luke.pfister@gmail.com>",
-        "Michael McCann <mccann@lanl.gov>",
-    ]
-)
 
 
 class CircularConvolve(LinearOperator):
@@ -102,9 +95,12 @@ class CircularConvolve(LinearOperator):
                involved in the convolution. Defaults to the number of
                dimensions in the input.
             input_dtype: `dtype` for input argument. Defaults to
-               `float32`.
-            h_is_dft: Flag indicating whether ``h`` is in the DFT domain.
-            jit:  If `True`, jit the evaluation, adjoint, and gram
+               ``float32``.
+            h_is_dft: Flag indicating whether `h` is in the DFT domain.
+            h_center: Array of length `ndims` specifying the center of
+               the filter. Defaults to the upper left corner, i.e.,
+               `h_center = [0, 0, ..., 0]`, may be noninteger.
+            jit:  If ``True``, jit the evaluation, adjoint, and gram
                functions of the LinearOperator.
         """
 
@@ -127,9 +123,9 @@ class CircularConvolve(LinearOperator):
             self.h_dft = snp.fft.fftn(h, s=fft_shape, axes=fft_axes)
             output_dtype = result_type(h.dtype, input_dtype)
 
-            if h_center is not None:
+            if self.h_center is not None:
                 offset = -self.h_center
-                shifts = np.ix_(
+                shifts: Tuple[Array, ...] = np.ix_(
                     *tuple(
                         np.exp(-1j * k * 2 * np.pi * np.fft.fftfreq(s))
                         for k, s in zip(offset, input_shape[-self.ndims :])
@@ -177,7 +173,7 @@ class CircularConvolve(LinearOperator):
             hx = hx.real
         return hx
 
-    def _adj(self, x: JaxArray) -> JaxArray:
+    def _adj(self, x: JaxArray) -> JaxArray:  # type: ignore
         x_dft = snp.fft.fftn(x, axes=self.ifft_axes)
         H_adj_x = snp.fft.ifftn(
             snp.conj(self.h_dft) * x_dft,
@@ -192,7 +188,7 @@ class CircularConvolve(LinearOperator):
     @partial(_wrap_add_sub, op=operator.add)
     def __add__(self, other):
         if self.ndims != other.ndims:
-            raise ValueError(f"Incompatible ndims:  {self.ndims} != {other.ndims}")
+            raise ValueError(f"Incompatible ndims: {self.ndims} != {other.ndims}")
 
         return CircularConvolve(
             h=self.h_dft + other.h_dft,
@@ -205,7 +201,7 @@ class CircularConvolve(LinearOperator):
     @partial(_wrap_add_sub, op=operator.sub)
     def __sub__(self, other):
         if self.ndims != other.ndims:
-            raise ValueError(f"Incompatible ndims:  {self.ndims} != {other.ndims}")
+            raise ValueError(f"Incompatible ndims: {self.ndims} != {other.ndims}")
 
         return CircularConvolve(
             h=self.h_dft - other.h_dft,
@@ -239,6 +235,7 @@ class CircularConvolve(LinearOperator):
             h_is_dft=True,
         )
 
+    @staticmethod
     def from_operator(
         H: Operator, ndims: Optional[int] = None, center: Optional[Shape] = None, jit: bool = True
     ):
@@ -256,13 +253,20 @@ class CircularConvolve(LinearOperator):
             jit: If ``True``, jit the resulting `CircularConvolve`.
         """
 
+        if is_nested(H.input_shape):
+            raise ValueError(
+                f"H.input_shape ({H.input_shape}) suggests that H "
+                "takes a BlockArray as input, which is not supported "
+                "by this function."
+            )
+
         if ndims is None:
             ndims = len(H.input_shape)
         else:
             ndims = ndims
 
         if center is None:
-            center = tuple(d // 2 for d in H.input_shape[-ndims:])
+            center = tuple(d // 2 for d in H.input_shape[-ndims:])  # type: ignore
 
         # compute impulse response
         d = snp.zeros(H.input_shape, H.input_dtype)
@@ -272,7 +276,7 @@ class CircularConvolve(LinearOperator):
         # build CircularConvolve
         return CircularConvolve(
             Hd,
-            H.input_shape,
+            H.input_shape,  # type: ignore
             ndims=ndims,
             input_dtype=H.input_dtype,
             h_center=snp.array(center),

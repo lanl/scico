@@ -16,18 +16,11 @@ import urllib.error as urlerror
 import urllib.request as urlrequest
 from functools import wraps
 from timeit import default_timer as timer
-from typing import Callable, List, Optional, Union
+from typing import Callable, Dict, List, Optional, Union
 
 import jax
 from jax.interpreters.batching import BatchTracer
 from jax.interpreters.partial_eval import DynamicJaxprTracer
-
-__author__ = """\n""".join(
-    [
-        "Brendt Wohlberg <brendt@ieee.org>",
-        "Luke Pfister <luke.pfister@gmail.com>",
-    ]
-)
 
 
 def device_info(devid: int = 0) -> str:  # pragma: no cover
@@ -51,7 +44,7 @@ def device_info(devid: int = 0) -> str:  # pragma: no cover
 
 
 def check_for_tracer(func: Callable) -> Callable:
-    """Check if positional arguments to ``func`` are jax tracers.
+    """Check if positional arguments to `func` are jax tracers.
 
     This is intended to be used as a decorator for functions that call
     external code from within SCICO. At present, external functions
@@ -123,15 +116,15 @@ class Timer:
         """
         Args:
             labels: Label(s) of the timer(s) to be initialised to zero.
-            default_label : Default timer label to be used when methods
+            default_label: Default timer label to be used when methods
                 are called without specifying a label.
-            all_label : Label string that will be used to denote all
+            all_label: Label string that will be used to denote all
                 timer labels.
         """
 
         # Initialise current and accumulated time dictionaries
-        self.t0 = {}
-        self.td = {}
+        self.t0: Dict[str, Optional[float]] = {}
+        self.td: Dict[str, float] = {}
         # Record default label and string indicating all labels
         self.default_label = default_label
         self.all_label = all_label
@@ -150,7 +143,7 @@ class Timer:
         """Start specified timer(s).
 
         Args:
-            labels : Label(s) of the timer(s) to be started. If it is
+            labels: Label(s) of the timer(s) to be started. If it is
                ``None``, start the default timer with label specified by
                the `default_label` parameter of :meth:`__init__`.
         """
@@ -195,7 +188,7 @@ class Timer:
         # All timers are affected if label is equal to self.all_label,
         # otherwise only the timer(s) specified by label
         if labels == self.all_label:
-            labels = self.t0.keys()
+            labels = list(self.t0.keys())
         elif not isinstance(labels, (list, tuple)):
             labels = [
                 labels,
@@ -209,7 +202,7 @@ class Timer:
             if self.t0[lbl] is not None:
                 # Increment time accumulator from the elapsed time
                 # since most recent start call
-                self.td[lbl] += t - self.t0[lbl]
+                self.td[lbl] += t - self.t0[lbl]  # type: ignore
                 # Set start time to None to indicate timer is not running
                 self.t0[lbl] = None
 
@@ -230,7 +223,7 @@ class Timer:
         # All timers are affected if label is equal to self.all_label,
         # otherwise only the timer(s) specified by label
         if labels == self.all_label:
-            labels = self.t0.keys()
+            labels = list(self.t0.keys())
         elif not isinstance(labels, (list, tuple)):
             labels = [
                 labels,
@@ -249,10 +242,10 @@ class Timer:
 
         Args:
            label: Label of the timer for which the elapsed time is
-               required.  If it is ``None``, the default timer with label
+               required. If it is ``None``, the default timer with label
                specified by the `default_label` parameter of
                :meth:`__init__` is selected.
-           total:  If ``True`` return the total elapsed time since the
+           total: If ``True`` return the total elapsed time since the
                first call of :meth:`start` for the selected timer,
                otherwise return the elapsed time since the most recent
                call of :meth:`start` for which there has not been a
@@ -278,7 +271,7 @@ class Timer:
         # return just the time since the current start call
         te = 0.0
         if self.t0[label] is not None:
-            te = t - self.t0[label]
+            te = t - self.t0[label]  # type: ignore
         if total:
             te += self.td[label]
 
@@ -291,7 +284,7 @@ class Timer:
           List of timer labels.
         """
 
-        return self.t0.keys()
+        return list(self.t0.keys())
 
     def __str__(self) -> str:
         """Return string representation of object.
@@ -320,7 +313,7 @@ class Timer:
             if self.t0[lbl] is None:
                 ts = " Stopped"
             else:
-                ts = f" {(t - self.t0[lbl]):.2e} s" % (t - self.t0[lbl])
+                ts = f" {(t - self.t0[lbl]):.2e} s" % (t - self.t0[lbl])  # type: ignore
             s += f"{lbl:{lfldln}s}  {td:.2e} s  {ts}\n"
 
         return s
@@ -334,7 +327,7 @@ class ContextTimer:
 
     >>> t = Timer()
     >>> t.start()
-    >>> do_something()
+    >>> x = sum(range(1000))
     >>> t.stop()
     >>> elapsed = t.elapsed()
 
@@ -342,7 +335,7 @@ class ContextTimer:
 
     >>> t = Timer()
     >>> with ContextTimer(t):
-    ...   do_something()
+    ...   x = sum(range(1000))
     >>> elapsed = t.elapsed()
     """
 
@@ -383,8 +376,8 @@ class ContextTimer:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        """Stop the timer and return True if no exception was raised
-        within the 'with' block, otherwise return False.
+        """Stop the timer and return ``True`` if no exception was raised
+        within the `with` block, otherwise return ``False``.
         """
 
         if self.action == "StartStop":

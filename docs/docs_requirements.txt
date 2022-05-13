@@ -4,7 +4,9 @@ sphinxcontrib-napoleon
 sphinxcontrib-bibtex
 sphinx-autodoc-typehints
 faculty-sphinx-theme
+jinja2<3.1.0  # temporary fix for jina2/nbconvert bug
 nbsphinx
+ipython_genutils
 py2jn
 pygraphviz>=1.7
 pandoc

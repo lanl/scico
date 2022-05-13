@@ -9,6 +9,8 @@ Organized by Application
 Computed Tomography
 ^^^^^^^^^^^^^^^^^^^
 
+   `ct_abel_tv_admm.py <ct_abel_tv_admm.py>`_
+      Regularized Abel Inversion
    `ct_astra_pcg.py <ct_astra_pcg.py>`_
       CT with Preconditioned Conjugate Gradient
    `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
@@ -19,6 +21,8 @@ Computed Tomography
       CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+CG)
    `ct_svmbir_ppp_bm3d_admm_prox.py <ct_svmbir_ppp_bm3d_admm_prox.py>`_
       CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+Prox)
+   `ct_fan_svmbir_ppp_bm3d_admm_prox.py <ct_fan_svmbir_ppp_bm3d_admm_prox.py>`_
+      Fan-beam CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+Prox)
    `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
       CT Reconstruction with TV Regularization
 
@@ -36,10 +40,14 @@ Deconvolution
       Image Deconvolution (ADMM Plug-and-Play Priors w/ BM3D)
    `deconv_ppp_bm3d_pgm.py <deconv_ppp_bm3d_pgm.py>`_
       Image Deconvolution (PGM Plug-and-Play Priors w/ BM3D)
+   `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
+      Image Deconvolution (ADMM Plug-and-Play Priors w/ BM4D)
    `deconv_ppp_dncnn_admm.py <deconv_ppp_dncnn_admm.py>`_
       Image Deconvolution (ADMM Plug-and-Play Priors w/ DnCNN)
    `deconv_tv_admm.py <deconv_tv_admm.py>`_
       Image Deconvolution (ADMM w/ Total Variation)
+   `deconv_tv_admm_tune.py <deconv_tv_admm_tune.py>`_
+      Image Deconvolution Parameter Tuning
 
 
 Sparse Coding
@@ -58,12 +66,16 @@ Miscellaneous
 
    `demosaic_ppp_bm3d_admm.py <demosaic_ppp_bm3d_admm.py>`_
       Image Demosaicing (ADMM Plug-and-Play Priors w/ BM3D)
+   `denoise_l1tv_iso_admm.py <denoise_l1tv_iso_admm.py>`_
+      ℓ1 Total Variation (ADMM)
    `denoise_tv_iso_admm.py <denoise_tv_iso_admm.py>`_
       Isotropic Total Variation (ADMM)
    `denoise_tv_iso_pgm.py <denoise_tv_iso_pgm.py>`_
       Isotropic Total Variation (Accelerated PGM)
    `denoise_tv_iso_multi.py <denoise_tv_iso_multi.py>`_
       Comparison of Optimization Algorithms for Total Variation Denoising
+   `superres_ppp_dncnn_admm.py <superres_ppp_dncnn_admm.py>`_
+      Image Superresolution (ADMM Plug-and-Play Priors w/ DnCNN)
    `video_rpca_admm.py <video_rpca_admm.py>`_
       Video Decomposition via Robust PCA
 
@@ -79,19 +91,27 @@ Plug and Play Priors
       CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+CG)
    `ct_svmbir_ppp_bm3d_admm_prox.py <ct_svmbir_ppp_bm3d_admm_prox.py>`_
       CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+Prox)
+   `ct_fan_svmbir_ppp_bm3d_admm_prox.py <ct_fan_svmbir_ppp_bm3d_admm_prox.py>`_
+      Fan-beam CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+Prox)
    `deconv_ppp_bm3d_admm.py <deconv_ppp_bm3d_admm.py>`_
       Image Deconvolution (ADMM Plug-and-Play Priors w/ BM3D)
    `deconv_ppp_bm3d_pgm.py <deconv_ppp_bm3d_pgm.py>`_
       Image Deconvolution (PGM Plug-and-Play Priors w/ BM3D)
+   `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
+      Image Deconvolution (ADMM Plug-and-Play Priors w/ BM4D)
    `deconv_ppp_dncnn_admm.py <deconv_ppp_dncnn_admm.py>`_
       Image Deconvolution (ADMM Plug-and-Play Priors w/ DnCNN)
    `demosaic_ppp_bm3d_admm.py <demosaic_ppp_bm3d_admm.py>`_
       Image Demosaicing (ADMM Plug-and-Play Priors w/ BM3D)
+   `superres_ppp_dncnn_admm.py <superres_ppp_dncnn_admm.py>`_
+      Image Superresolution (ADMM Plug-and-Play Priors w/ DnCNN)
 
 
 Total Variation
 ^^^^^^^^^^^^^^^
 
+   `ct_abel_tv_admm.py <ct_abel_tv_admm.py>`_
+      Regularized Abel Inversion
    `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
       Few-View CT (ADMM w/ Total Variation)
    `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
@@ -106,6 +126,10 @@ Total Variation
       Deconvolution Microscopy (All Channels)
    `deconv_tv_admm.py <deconv_tv_admm.py>`_
       Image Deconvolution (ADMM w/ Total Variation)
+   `deconv_tv_admm_tune.py <deconv_tv_admm_tune.py>`_
+      Image Deconvolution Parameter Tuning
+   `denoise_l1tv_iso_admm.py <denoise_l1tv_iso_admm.py>`_
+      ℓ1 Total Variation (ADMM)
    `denoise_tv_iso_admm.py <denoise_tv_iso_admm.py>`_
       Isotropic Total Variation (ADMM)
    `denoise_tv_iso_pgm.py <denoise_tv_iso_pgm.py>`_
@@ -134,6 +158,8 @@ Organized by Optimization Algorithm
 ADMM
 ^^^^
 
+   `ct_abel_tv_admm.py <ct_abel_tv_admm.py>`_
+      Regularized Abel Inversion
    `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
       Few-View CT (ADMM w/ Total Variation)
    `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
@@ -142,6 +168,8 @@ ADMM
       CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+CG)
    `ct_svmbir_ppp_bm3d_admm_prox.py <ct_svmbir_ppp_bm3d_admm_prox.py>`_
       CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+Prox)
+   `ct_fan_svmbir_ppp_bm3d_admm_prox.py <ct_fan_svmbir_ppp_bm3d_admm_prox.py>`_
+      Fan-beam CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+Prox)
    `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
       CT Reconstruction with TV Regularization
    `deconv_circ_tv_admm.py <deconv_circ_tv_admm.py>`_
@@ -152,18 +180,26 @@ ADMM
       Deconvolution Microscopy (All Channels)
    `deconv_ppp_bm3d_admm.py <deconv_ppp_bm3d_admm.py>`_
       Image Deconvolution (ADMM Plug-and-Play Priors w/ BM3D)
+   `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
+      Image Deconvolution (ADMM Plug-and-Play Priors w/ BM4D)
    `deconv_ppp_dncnn_admm.py <deconv_ppp_dncnn_admm.py>`_
       Image Deconvolution (ADMM Plug-and-Play Priors w/ DnCNN)
    `deconv_tv_admm.py <deconv_tv_admm.py>`_
       Image Deconvolution (ADMM w/ Total Variation)
+   `deconv_tv_admm_tune.py <deconv_tv_admm_tune.py>`_
+      Image Deconvolution Parameter Tuning
    `demosaic_ppp_bm3d_admm.py <demosaic_ppp_bm3d_admm.py>`_
       Image Demosaicing (ADMM Plug-and-Play Priors w/ BM3D)
+   `denoise_l1tv_iso_admm.py <denoise_l1tv_iso_admm.py>`_
+      ℓ1 Total Variation (ADMM)
    `denoise_tv_iso_admm.py <denoise_tv_iso_admm.py>`_
       Isotropic Total Variation (ADMM)
    `denoise_tv_iso_multi.py <denoise_tv_iso_multi.py>`_
       Comparison of Optimization Algorithms for Total Variation Denoising
    `sparsecode_admm.py <sparsecode_admm.py>`_
       Non-negative Basis Pursuit DeNoising (ADMM)
+   `superres_ppp_dncnn_admm.py <superres_ppp_dncnn_admm.py>`_
+      Image Superresolution (ADMM Plug-and-Play Priors w/ DnCNN)
    `video_rpca_admm.py <video_rpca_admm.py>`_
       Video Decomposition via Robust PCA
 

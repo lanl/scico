@@ -60,10 +60,12 @@ In the future, this module may be replaced with a dependency on
 from functools import wraps
 from typing import Any, Callable, Optional, Sequence, Tuple, Union
 
+import numpy as np
+
 import jax
 
 import scico.numpy as snp
-from scico.blockarray import BlockArray
+from scico.numpy import BlockArray
 from scico.typing import BlockShape, DType, JaxArray, Shape
 from scipy import optimize as spopt
 
@@ -88,9 +90,9 @@ def _wrap_func(func: Callable, shape: Union[Shape, BlockShape], dtype: DType) ->
         # apply val_grad_func to un-vectorized input
         val = val_func(snp.reshape(x, shape).astype(dtype), *args)
 
-        # Convert val into numpy array (.copy()), then cast to float
+        # Convert val into numpy array, then cast to float
         # Convert 'val' into a scalar, rather than ndarray of shape (1,)
-        val = val.copy().astype(float).item()
+        val = np.array(val).astype(float).item()
         return val
 
     return wrapper
@@ -119,10 +121,10 @@ def _wrap_func_and_grad(func: Callable, shape: Union[Shape, BlockShape], dtype: 
         # apply val_grad_func to un-vectorized input
         val, grad = val_grad_func(snp.reshape(x, shape).astype(dtype), *args)
 
-        # Convert val & grad into numpy arrays (.copy()), then cast to float
+        # Convert val & grad into numpy arrays, then cast to float
         # Convert 'val' into a scalar, rather than ndarray of shape (1,)
-        val = val.copy().astype(float).item()
-        grad = grad.copy().astype(float).ravel()
+        val = np.array(val).astype(float).item()
+        grad = np.array(grad).astype(float).ravel()
         return val, grad
 
     return wrapper
@@ -137,13 +139,13 @@ def _split_real_imag(x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArr
     Returns:
         A real ndarray with stacked real/imaginary parts. If `x` has
         shape (M, N, ...), the returned array will have shape
-        (2, M, N, ...) where the first slice contains the ``x.real`` and
-        the second contains ``x.imag``. If `x` is a BlockArray, this
+        (2, M, N, ...) where the first slice contains the `x.real` and
+        the second contains `x.imag`. If `x` is a BlockArray, this
         function is called on each block and the output is joined into a
         BlockArray.
     """
     if isinstance(x, BlockArray):
-        return BlockArray.array([_split_real_imag(_) for _ in x])
+        return snp.blockarray([_split_real_imag(_) for _ in x])
     return snp.stack((snp.real(x), snp.imag(x)))
 
 
@@ -157,11 +159,11 @@ def _join_real_imag(x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArra
         x: Array to join.
 
     Returns:
-        A complex array with real and imaginary parts taken from ``x[0]``
-        and ``x[1]`` respectively.
+        A complex array with real and imaginary parts taken from `x[0]`
+        and `x[1]` respectively.
     """
     if isinstance(x, BlockArray):
-        return BlockArray.array([_join_real_imag(_) for _ in x])
+        return snp.blockarray([_join_real_imag(_) for _ in x])
     return x[0] + 1j * x[1]
 
 
@@ -183,7 +185,7 @@ def minimize(
     Wrapper around :func:`scipy.optimize.minimize`. This function differs
     from :func:`scipy.optimize.minimize` in three ways:
 
-        - The `jac` options of  :func:`scipy.optimize.minimize` are not
+        - The `jac` options of :func:`scipy.optimize.minimize` are not
           supported. The gradient is calculated using `jax.grad`.
         - Functions mapping from N-dimensional arrays -> float are
           supported.
@@ -194,7 +196,7 @@ def minimize(
     :func:`scipy.optimize.minimize`.
     """
 
-    if snp.iscomplexobj(x0):
+    if snp.util.is_complex_dtype(x0.dtype):
         # scipy minimize function requires real-valued arrays, so
         # we split x0 into a vector with real/imaginary parts stacked
         # and compose `func` with a `_join_real_imag`
@@ -210,7 +212,7 @@ def minimize(
     x0 = x0.ravel()  # if x0 is a BlockArray it will become a DeviceArray here
     if isinstance(x0, jax.interpreters.xla.DeviceArray):
         dev = x0.device_buffer.device()  # device for x0; used to put result back in place
-        x0 = x0.copy().astype(float)
+        x0 = np.array(x0).astype(float)
     else:
         dev = None
 
@@ -298,20 +300,21 @@ def cg(
     maxiter: int = 1000,
     info: bool = False,
     M: Optional[Callable] = None,
-) -> Union[JaxArray, dict]:
+) -> Tuple[JaxArray, dict]:
     r"""Conjugate Gradient solver.
 
     Solve the linear system :math:`A\mb{x} = \mb{b}`, where :math:`A` is
     positive definite, via the conjugate gradient method.
 
     Args:
-        A: Function implementing linear operator :math:`A`.
-        b: Input array :math:`\mb{b}`, should be positive definite.
+        A: Function implementing linear operator :math:`A`, should be
+            positive definite.
+        b: Input array :math:`\mb{b}`.
         x0: Initial solution.
         tol: Relative residual stopping tolerance. Convergence occurs
-           when ``norm(residual) <= max(tol * norm(b), atol)``.
+           when `norm(residual) <= max(tol * norm(b), atol)`.
         atol: Absolute residual stopping tolerance. Convergence occurs
-           when ``norm(residual) <= max(tol * norm(b), atol)``.
+           when `norm(residual) <= max(tol * norm(b), atol)`.
         maxiter: Maximum iterations. Default: 1000.
         M: Preconditioner for `A`. The preconditioner should approximate
            the inverse of `A`. The default, ``None``, uses no
@@ -333,7 +336,7 @@ def cg(
     r = b - Ax
     z = M(r)
     p = z
-    num = r.ravel().conj().T @ z.ravel()
+    num = snp.sum(r.conj() * z)
     ii = 0
 
     # termination tolerance
@@ -342,14 +345,158 @@ def cg(
 
     while (ii < maxiter) and (num > termination_tol_sq):
         Ap = A(p)
-        alpha = num / (p.ravel().conj().T @ Ap.ravel())
+        alpha = num / snp.sum(p.conj() * Ap)
         x = x + alpha * p
         r = r - alpha * Ap
         z = M(r)
         num_old = num
-        num = r.ravel().conj().T @ z.ravel()
+        num = snp.sum(r.conj() * z)
         beta = num / num_old
         p = z + beta * p
         ii += 1
 
-    return (x, {"num_iter": ii, "rel_res": snp.sqrt(num) / bn})
+    return (x, {"num_iter": ii, "rel_res": snp.sqrt(num).real / bn})
+
+
+def bisect(
+    f: Callable,
+    a: JaxArray,
+    b: JaxArray,
+    args: Tuple = (),
+    xtol: float = 1e-7,
+    ftol: float = 1e-7,
+    maxiter: int = 100,
+    full_output: bool = False,
+    range_check: bool = True,
+) -> Union[JaxArray, dict]:
+    """Vectorised root finding via bisection method.
+
+    Vectorised root finding via bisection method, supporting
+    simultaneous finding of multiple roots on a function defined over a
+    multi-dimensional array. When the function is array-valued, each of
+    these values is treated as the independent application of a scalar
+    function. The initial interval `[a, b]` must bracket the root for all
+    scalar functions.
+
+    The interface is similar to that of :func:`scipy.optimize.bisect`,
+    which is much faster when `f` is a scalar function and `a` and `b`
+    are scalars.
+
+    Args:
+        f: Function returning a float or an array of floats.
+        a: Lower bound of interval on which to apply bisection.
+        b: Upper bound of interval on which to apply bisection.
+        args: Additional arguments for function `f`.
+        xtol: Stopping tolerance based on maximum bisection interval
+            length over array.
+        ftol: Stopping tolerance based on maximum absolute function value
+            over array.
+        maxiter: Maximum number of algorithm iterations.
+        full_output: If ``False``, return just the root, otherwise return a
+            tuple `(x, info)` where `x` is the root and `info` is a dict
+            containing algorithm status information.
+        range_check: If ``True``, check to ensure that the initial
+            `[a, b]` range brackets the root of `f`.
+
+    Returns:
+        tuple: A tuple `(x, info)` containing:
+
+            - **x** : Root array.
+            - **info**: Dictionary containing diagnostic information.
+    """
+
+    fa = f(*((a,) + args))
+    fb = f(*((b,) + args))
+    if range_check and snp.any(snp.sign(fa) == snp.sign(fb)):
+        raise ValueError("Initial bisection range does not bracket zero")
+
+    for numiter in range(maxiter):
+        c = (a + b) / 2.0
+        fc = f(*((c,) + args))
+        fcs = snp.sign(fc)
+        a = snp.where(snp.logical_or(snp.sign(fa) * fcs == 1, fc == 0.0), c, a)
+        b = snp.where(snp.logical_or(fcs * snp.sign(fb) == 1, fc == 0.0), c, b)
+        fa = f(*((a,) + args))
+        fb = f(*((b,) + args))
+        xerr = snp.max(snp.abs(b - a))
+        ferr = snp.max(snp.abs(fc))
+        if xerr <= xtol and ferr <= ftol:
+            break
+
+    idx = snp.argmin(snp.stack((snp.abs(fa), snp.abs(fb))), axis=0)
+    x = snp.choose(idx, (a, b))
+    if full_output:
+        r = x, {"iter": numiter, "xerr": xerr, "ferr": ferr, "a": a, "b": b}
+    else:
+        r = x
+    return r
+
+
+def golden(
+    f: Callable,
+    a: JaxArray,
+    b: JaxArray,
+    c: Optional[JaxArray] = None,
+    args: Tuple = (),
+    xtol: float = 1e-7,
+    maxiter: int = 100,
+    full_output: bool = False,
+) -> Union[JaxArray, dict]:
+    """Vectorised scalar minimization via golden section method.
+
+    Vectorised scalar minimization via golden section method, supporting
+    simultaneous minimization of a function defined over a
+    multi-dimensional array. When the function is array-valued, each of
+    these values is treated as the independent application of a scalar
+    function. The minimizer must lie within the interval `(a, b)` for all
+    scalar functions, and, if specified `c` must be within that interval.
+
+
+    The interface is more similar to that of :func:`.bisect` than that of
+    :func:`scipy.optimize.golden` which is much faster when `f` is a
+    scalar function and `a`, `b`, and `c` are scalars.
+
+    Args:
+        f: Function returning a float or an array of floats.
+        a: Lower bound of interval on which to search.
+        b: Upper bound of interval on which to search.
+        c: Initial value for first search point interior to bounding
+            interval `(a, b)`
+        args: Additional arguments for function `f`.
+        xtol: Stopping tolerance based on maximum search interval length
+            over array.
+        maxiter: Maximum number of algorithm iterations.
+        full_output: If ``False``, return just the minizer, otherwise
+            return a tuple `(x, info)` where `x` is the minimizer and
+            `info` is a dict containing algorithm status information.
+
+    Returns:
+        tuple: A tuple `(x, info)` containing:
+
+            - **x** : Minimizer array.
+            - **info**: Dictionary containing diagnostic information.
+    """
+    gr = 2 / (snp.sqrt(5) + 1)
+    if c is None:
+        c = b - gr * (b - a)
+    d = a + gr * (b - a)
+    for numiter in range(maxiter):
+        fc = f(*((c,) + args))
+        fd = f(*((d,) + args))
+        b = snp.where(fc < fd, d, b)
+        a = snp.where(fc >= fd, c, a)
+        xerr = snp.amax(snp.abs(b - a))
+        if xerr <= xtol:
+            break
+        c = b - gr * (b - a)
+        d = a + gr * (b - a)
+
+    fa = f(*((a,) + args))
+    fb = f(*((b,) + args))
+    idx = snp.argmin(snp.stack((fa, fb)), axis=0)
+    x = snp.choose(idx, (a, b))
+    if full_output:
+        r = (x, {"iter": numiter, "xerr": xerr})
+    else:
+        r = x
+    return r

@@ -4,7 +4,6 @@ import os
 import re
 import sys
 import types
-from ast import parse
 from inspect import getmembers, isfunction
 from unittest.mock import MagicMock
 
@@ -12,7 +11,12 @@ from sphinx.ext.napoleon.docstring import GoogleDocstring
 
 confpath = os.path.dirname(__file__)
 sys.path.append(confpath)
+rootpath = os.path.join(confpath, "..", "..")
+sys.path.append(rootpath)
+
 from docutil import insert_inheritance_diagram, package_classes
+
+from scico._version import package_version
 
 
 ## See
@@ -65,7 +69,7 @@ rootpath = os.path.abspath("../..")
 sys.path.insert(0, rootpath)
 
 # If your documentation needs a minimal Sphinx version, state it here.
-needs_sphinx = "3.3"
+needs_sphinx = "3.5.2"
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -162,14 +166,13 @@ copyright = "2020-2022, SCICO Developers"
 # built documents.
 #
 # The short X.Y version.
-with open(os.path.join("../../scico", "__init__.py")) as f:
-    version = parse(next(filter(lambda line: line.startswith("__version__"), f))).body[0].value.s
+version = package_version()
 # The full version, including alpha/beta/rc tags.
 release = version
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ["tmp", "*.tmp.*", "*.tmp", "index.ipynb"]
+exclude_patterns = ["tmp", "*.tmp.*", "*.tmp", "index.ipynb", "exampledepend.rst"]
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 add_function_parentheses = False
@@ -180,7 +183,7 @@ pygments_style = "sphinx"
 
 # -- Options for HTML output ----------------------------------------------
 
-# The theme to use for HTML and HTML Help pages.  See the documentation for
+# The theme to use for HTML and HTML Help pages. See the documentation for
 # a list of builtin themes.
 # html_theme = "sphinx_rtd_theme"
 html_theme = "faculty-sphinx-theme"
@@ -197,7 +200,7 @@ html_theme_options = {
 html_logo = "_static/logo.svg"
 
 # The name of an image file (within the static path) to use as favicon of the
-# docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
+# docs. This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
 # html_favicon = None
 html_favicon = "_static/scico.ico"
@@ -253,8 +256,8 @@ latex_elements = {"preamble": "\n".join(latex_macros)}
 # Intersphinx mapping
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
-    "numpy": ("https://docs.scipy.org/doc/numpy/", None),
-    "scipy": ("https://docs.scipy.org/doc/scipy/reference/", None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/", None),
     "matplotlib": ("https://matplotlib.org/stable/", None),
     "jax": ("https://jax.readthedocs.io/en/latest/", None),
     "flax": ("https://flax.readthedocs.io/en/latest/", None),
@@ -374,9 +377,10 @@ print("confpath: %s" % confpath)
 # Sort members by type
 autodoc_default_options = {
     "member-order": "bysource",
-    "inherited-members": True,
+    "inherited-members": False,
     "ignore-module-all": False,
     "show-inheritance": True,
+    "members": True,
     "special-members": "__call__",
 }
 autodoc_docstring_signature = True
@@ -384,7 +388,7 @@ autoclass_content = "both"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ["_build", "**tests**", "**spi**"]
+exclude_patterns = ["_build", "**tests**", "**spi**", "**README.rst", "**exampledepend.rst"]
 
 
 # Rewrite module names for certain functions imported into scico.numpy so that they are
@@ -434,6 +438,7 @@ for _, f in snp_func:
         f.__doc__ = re.sub(r" \[(\d+)\]_", "", f.__doc__, flags=re.M)
         # Remove entire numpydoc references section
         f.__doc__ = re.sub(r"References\n----------\n.*\n", "", f.__doc__, flags=re.DOTALL)
+
 
 # Remove spurious two-space indentation of entire docstring
 scico.numpy.vectorize.__doc__ = re.sub("^  ", "", scico.numpy.vectorize.__doc__, flags=re.M)
@@ -488,6 +493,11 @@ def process_docstring(app, what, name, obj, options, lines):
     # the current release of flax, but is arguably also useful in avoiding
     # extensive documentation of methods that are likely to be of limited
     # interest to users of the scico.flax classes.
+    #
+    # Note: this event handler currently has no effect since inclusion of
+    #   inherited members is currently globally disabled (see
+    #   "inherited-members" in autodoc_default_options), but is left in
+    #   place in case a decision is ever made to revert the global setting.
     #
     # See https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html
     # for documentation of the autodoc-process-docstring event used here.

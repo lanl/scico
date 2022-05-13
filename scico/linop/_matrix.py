@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -26,8 +26,6 @@ from scico._generic_operators import LinearOperator
 from scico.typing import JaxArray
 
 from ._linop import Identity
-
-__author__ = """Luke Pfister <luke.pfister@gmail.com>"""
 
 
 def _wrap_add_sub_matrix(func, op):
@@ -86,7 +84,7 @@ class MatrixOperator(LinearOperator):
 
         # Can only do rank-2 arrays
         if A.ndim != 2:
-            raise TypeError(f"Expected a 2-dimensional array, got array of shape {A.shape}")
+            raise TypeError(f"Expected a two-dimensional array, got array of shape {A.shape}")
 
         super().__init__(input_shape=A.shape[1], output_shape=A.shape[0], input_dtype=self.A.dtype)
 
@@ -138,7 +136,7 @@ class MatrixOperator(LinearOperator):
     def __neg__(self):
         return MatrixOperator(-self.A)
 
-    # Could write another wrapper for mul, truediv, and rtuediv, bu there is
+    # Could write another wrapper for mul, truediv, and rtuediv, but there is
     # no operator.__rtruediv__;  have to write that case out manually anyway.
     def __mul__(self, other):
         if np.isscalar(other):
@@ -225,15 +223,15 @@ class MatrixOperator(LinearOperator):
         return self.A.conj().T @ y
 
     def to_array(self):
-        """Return a :class:`numpy.ndarray` containing ``self.A``."""
-        return self.A.copy()
+        """Return a :class:`numpy.ndarray` containing `self.A`."""
+        return np.array(self.A)
 
     @property
     def gram_op(self):
         """Gram operator of this :class:`.MatrixOperator`.
 
-        Return a new :class:`.LinearOperator` ``G`` such that
-        ``G(x) = A.adj(A(x)))``."""
+        Return a new :class:`.LinearOperator` `G` such that
+        `G(x) = A.adj(A(x)))`."""
         return MatrixOperator(A=self.A.conj().T @ self.A)
 
     def norm(self, ord=None, axis=None, keepdims=False):  # pylint: disable=W0622

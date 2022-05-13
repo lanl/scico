@@ -7,17 +7,17 @@ import jax
 import pytest
 
 import scico.numpy as snp
-from scico.linop import CircularConvolve, Convolve
+from scico.linop import CircularConvolve, Convolve, Diagonal
 from scico.random import randint, randn, uniform
 from scico.test.linop.test_linop import adjoint_test
 
 SHAPE_SPECS = [
-    ((16,), None, (3,)),  # 1D
-    ((16, 10), None, (3, 2)),  # 2D
-    ((16, 10, 8), None, (3, 2, 4)),  # 3D
-    ((2, 16, 10), 2, (3, 2)),  # batching x
-    ((16, 10), None, (2, 3, 2)),  # batching h
-    ((2, 16, 10), 2, (2, 3, 2)),  # batching both
+    ((12,), None, (3,)),  # 1D
+    ((12, 8), None, (3, 2)),  # 2D
+    ((6, 8, 12), None, (3, 2, 4)),  # 3D
+    ((2, 12, 8), 2, (3, 2)),  # batching x
+    ((12, 8), None, (2, 3, 2)),  # batching h
+    ((2, 12, 8), 2, (2, 3, 2)),  # batching both
     # (M, N, b) x (H, W, 1)  # this was the old way
     # (M, N, b) x (H, W)  # this won't work: Luke, firm-no
     # (M, b, N) x (H, W)  # do we even want this?
@@ -138,3 +138,12 @@ class TestCircularConvolve:
         B = CircularConvolve.from_operator(A, ndims, jit=jit_new_op)
 
         np.testing.assert_allclose(A @ x, B @ x, atol=1e-5)
+
+    def test_from_operator_block_array(self):
+        """`from_operator` should throw an exception if asked to work
+        on an operator with blockarray inputs."""
+
+        H = Diagonal(snp.zeros(((1, 2), (3,))))
+
+        with pytest.raises(ValueError):
+            CircularConvolve.from_operator(H)

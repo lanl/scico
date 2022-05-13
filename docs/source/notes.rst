@@ -26,13 +26,13 @@ SCICO is built on top of the JAX library. Users are encouraged to become familia
 JAX Arrays
 ----------
 
-JAX utilizes a new array type called DeviceArray.  DeviceArrays are similar to NumPy
+JAX utilizes a new array type called DeviceArray. DeviceArrays are similar to NumPy
 ndarrays, but can be backed by CPU, GPU, or TPU memory and are immutable.
 
 DeviceArrays and NdArrays
 *************************
 
-SCICO and JAX functions can be applied directly to NumPy arrays without explicit conversion to DeviceArrays, but this is not recommended, as it can result in repeated data transfers from the CPU to GPU.  Consider this toy example on a system with a GPU present:
+SCICO and JAX functions can be applied directly to NumPy arrays without explicit conversion to DeviceArrays, but this is not recommended, as it can result in repeated data transfers from the CPU to GPU. Consider this toy example on a system with a GPU present:
 
 ::
 
@@ -175,9 +175,9 @@ Non-differentiable Functionals and scico.grad
 
 :func:`scico.grad` can be applied to any function, but has undefined behavior for
 non-differentiable functions.
-For non-differerentiable functions, :func:`scico.grad` may or may not return a valid subgradient.  As an example, ``scico.grad(snp.abs)(0.) = 0``, which is a valid subgradient.  However, ``scico.grad(snp.linalg.norm)([0., 0.]) = [nan, nan]``.
+For non-differerentiable functions, :func:`scico.grad` may or may not return a valid subgradient. As an example, ``scico.grad(snp.abs)(0.) = 0``, which is a valid subgradient. However, ``scico.grad(snp.linalg.norm)([0., 0.]) = [nan, nan]``.
 
-Differentiable functions that are written as the composition of a differentiable and non-differentiable function should be avoided.  As an example, :math:`f(x) = \norm{x}_2^2` can be implemented in as ``f = lambda x: snp.linalg.norm(x)**2``.  This involves first calculating the non-squared :math:`\ell_2` norm, then squaring it.  The un-squared :math:`\ell_2` norm is not differentiable at zero.
+Differentiable functions that are written as the composition of a differentiable and non-differentiable function should be avoided. As an example, :math:`f(x) = \norm{x}_2^2` can be implemented in as ``f = lambda x: snp.linalg.norm(x)**2``. This involves first calculating the non-squared :math:`\ell_2` norm, then squaring it. The un-squared :math:`\ell_2` norm is not differentiable at zero.
 When evaluating the gradient of ``f``  at 0, :func:`scico.grad` returns ``nan``:
 
 ::
@@ -185,16 +185,16 @@ When evaluating the gradient of ``f``  at 0, :func:`scico.grad` returns ``nan``:
    >>> import scico
    >>> import scico.numpy as snp
    >>> f = lambda x: snp.linalg.norm(x)**2
-   >>> scico.grad(f)(snp.zeros(2)) #
+   >>> scico.grad(f)(snp.zeros(2, dtype=snp.float32)) #
    DeviceArray([nan, nan], dtype=float32)
 
 This can be fixed by defining the squared :math:`\ell_2` norm directly as
-``g = lambda x: snp.sum(x**2)``.  The gradient will work as expected:
+``g = lambda x: snp.sum(x**2)``. The gradient will work as expected:
 
 ::
 
    >>> g = lambda x: snp.sum(x**2)
-   >>> scico.grad(g)(snp.zeros(2))
+   >>> scico.grad(g)(snp.zeros(2, dtype=snp.float32))
    DeviceArray([0., 0.], dtype=float32)
 
 An alternative is to define a `custom derivative rule <https://jax.readthedocs.io/en/latest/notebooks/Custom_derivative_rules_for_Python_code.html#enforcing-a-differentiation-convention>`_ to enforce a particular derivative convention at a point.

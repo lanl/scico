@@ -24,7 +24,7 @@ from xdesign import Foam, discrete_phantom
 import scico.numpy as snp
 from scico import functional, linop, metric, plot
 from scico.linop import Diagonal
-from scico.linop.radon_svmbir import ParallelBeamProjector, SVMBIRWeightedSquaredL2Loss
+from scico.linop.radon_svmbir import SVMBIRSquaredL2Loss, TomographicProjector
 from scico.optimize import PDHG, LinearizedADMM
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
@@ -47,7 +47,7 @@ Generate tomographic projector and sinogram.
 num_angles = int(N / 2)
 num_channels = N
 angles = snp.linspace(0, snp.pi, num_angles, dtype=snp.float32)
-A = ParallelBeamProjector(x_gt.shape, angles, num_channels)
+A = TomographicProjector(x_gt.shape, angles, num_channels)
 sino = A @ x_gt
 
 
@@ -84,7 +84,7 @@ y, x0, weights = jax.device_put([y, x_mrf, weights])
 
 λ = 1e-1  # L1 norm regularization parameter
 
-f = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(weights), scale=0.5)
+f = SVMBIRSquaredL2Loss(y=y, A=A, W=Diagonal(weights), scale=0.5)
 g = λ * functional.L21Norm()  # regularization functional
 
 # The append=0 option makes the results of horizontal and vertical finite

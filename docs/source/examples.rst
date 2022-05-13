@@ -6,21 +6,7 @@ Usage Examples
 .. toctree::
    :maxdepth: 1
 
-.. _example_dependencies:
-
-Example Dependencies
---------------------
-
-Some examples use additional dependencies, which are listed in `examples_requirements.txt <https://github.com/lanl/scico/blob/main/examples/examples_requirements.txt>`_.
-The additional requirements should be installed via pip, with the exception of ``astra-toolbox``,
-which should be installed via conda:
-
-   ::
-
-      conda install -c astra-toolbox astra-toolbox
-      pip install -r examples/examples_requirements.txt # Installs other example requirements
-
-The dependencies can also be installed individually as required.
+.. include:: exampledepend.rst
 
 
 Organized by Application
@@ -36,11 +22,13 @@ Computed Tomography
 .. toctree::
    :maxdepth: 1
 
+   examples/ct_abel_tv_admm
    examples/ct_astra_pcg
    examples/ct_astra_tv_admm
    examples/ct_astra_weighted_tv_admm
    examples/ct_svmbir_ppp_bm3d_admm_cg
    examples/ct_svmbir_ppp_bm3d_admm_prox
+   examples/ct_fan_svmbir_ppp_bm3d_admm_prox
    examples/ct_svmbir_tv_multi
 
 
@@ -55,8 +43,10 @@ Deconvolution
    examples/deconv_microscopy_allchn_tv_admm
    examples/deconv_ppp_bm3d_admm
    examples/deconv_ppp_bm3d_pgm
+   examples/deconv_ppp_bm4d_admm
    examples/deconv_ppp_dncnn_admm
    examples/deconv_tv_admm
+   examples/deconv_tv_admm_tune
 
 
 Sparse Coding
@@ -77,9 +67,11 @@ Miscellaneous
    :maxdepth: 1
 
    examples/demosaic_ppp_bm3d_admm
+   examples/denoise_l1tv_iso_admm
    examples/denoise_tv_iso_admm
    examples/denoise_tv_iso_pgm
    examples/denoise_tv_iso_multi
+   examples/superres_ppp_dncnn_admm
    examples/video_rpca_admm
 
 
@@ -98,10 +90,13 @@ Plug and Play Priors
 
    examples/ct_svmbir_ppp_bm3d_admm_cg
    examples/ct_svmbir_ppp_bm3d_admm_prox
+   examples/ct_fan_svmbir_ppp_bm3d_admm_prox
    examples/deconv_ppp_bm3d_admm
    examples/deconv_ppp_bm3d_pgm
+   examples/deconv_ppp_bm4d_admm
    examples/deconv_ppp_dncnn_admm
    examples/demosaic_ppp_bm3d_admm
+   examples/superres_ppp_dncnn_admm
 
 
 Total Variation
@@ -110,6 +105,7 @@ Total Variation
 .. toctree::
    :maxdepth: 1
 
+   examples/ct_abel_tv_admm
    examples/ct_astra_tv_admm
    examples/ct_astra_weighted_tv_admm
    examples/ct_svmbir_tv_multi
@@ -117,6 +113,8 @@ Total Variation
    examples/deconv_microscopy_tv_admm
    examples/deconv_microscopy_allchn_tv_admm
    examples/deconv_tv_admm
+   examples/deconv_tv_admm_tune
+   examples/denoise_l1tv_iso_admm
    examples/denoise_tv_iso_admm
    examples/denoise_tv_iso_pgm
    examples/denoise_tv_iso_multi
@@ -147,21 +145,27 @@ ADMM
 .. toctree::
    :maxdepth: 1
 
+   examples/ct_abel_tv_admm
    examples/ct_astra_tv_admm
    examples/ct_astra_weighted_tv_admm
    examples/ct_svmbir_ppp_bm3d_admm_cg
    examples/ct_svmbir_ppp_bm3d_admm_prox
+   examples/ct_fan_svmbir_ppp_bm3d_admm_prox
    examples/ct_svmbir_tv_multi
    examples/deconv_circ_tv_admm
    examples/deconv_microscopy_tv_admm
    examples/deconv_microscopy_allchn_tv_admm
    examples/deconv_ppp_bm3d_admm
+   examples/deconv_ppp_bm4d_admm
    examples/deconv_ppp_dncnn_admm
    examples/deconv_tv_admm
+   examples/deconv_tv_admm_tune
    examples/demosaic_ppp_bm3d_admm
+   examples/denoise_l1tv_iso_admm
    examples/denoise_tv_iso_admm
    examples/denoise_tv_iso_multi
    examples/sparsecode_admm
+   examples/superres_ppp_dncnn_admm
    examples/video_rpca_admm
 
 

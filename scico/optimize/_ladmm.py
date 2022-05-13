@@ -11,15 +11,15 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import Callable, List, Optional, Union
+from typing import Callable, List, Optional, Tuple, Union
 
 import scico.numpy as snp
-from scico.array import ensure_on_device
-from scico.blockarray import BlockArray
 from scico.diagnostics import IterationStats
 from scico.functional import Functional
 from scico.linop import LinearOperator
+from scico.numpy import BlockArray
 from scico.numpy.linalg import norm
+from scico.numpy.util import ensure_on_device
 from scico.typing import JaxArray
 from scico.util import Timer
 
@@ -73,7 +73,7 @@ class LinearizedADMM:
         g (:class:`.Functional`): Functional :math:`g`.
         C (:class:`.LinearOperator`): :math:`C` operator.
         itnum (int): Iteration counter.
-        maxiter (int): Number of ADMM outer-loop iterations.
+        maxiter (int): Number of linearized ADMM outer-loop iterations.
         timer (:class:`.Timer`): Iteration timer.
         mu (scalar): First algorithm parameter.
         nu (scalar): Second algorithm parameter.
@@ -105,19 +105,20 @@ class LinearizedADMM:
             C: Operator :math:`C`.
             mu: First algorithm parameter.
             nu: Second algorithm parameter.
-            x0: Starting point for :math:`\mb{x}`. If None, defaults to
-                an array of zeros.
-            maxiter: Number of ADMM outer-loop iterations. Default: 100.
+            x0: Starting point for :math:`\mb{x}`. If ``None``, defaults
+                to an array of zeros.
+            maxiter: Number of linearized ADMM outer-loop iterations.
+                Default: 100.
             itstat_options: A dict of named parameters to be passed to
                 the :class:`.diagnostics.IterationStats` initializer. The
                 dict may also include an additional key "itstat_func"
                 with the corresponding value being a function with two
-                parameters, an integer and an ADMM object, responsible
-                for constructing a tuple ready for insertion into the
-                :class:`.diagnostics.IterationStats` object. If ``None``,
-                default values are used for the dict entries, otherwise
-                the default dict is updated with the dict specified by
-                this parameter.
+                parameters, an integer and a `LinearizedADMM` object,
+                responsible for constructing a tuple ready for insertion
+                into the :class:`.diagnostics.IterationStats` object. If
+                ``None``, default values are used for the dict entries,
+                otherwise the default dict is updated with the dict
+                specified by this parameter.
         """
         self.f: Functional = f
         self.g: Functional = g
@@ -134,7 +135,7 @@ class LinearizedADMM:
             "Time": "%8.2e",
         }
         itstat_attrib = ["itnum", "timer.elapsed()"]
-        # objective function can be evaluated if all 'g' functions can be evaluated
+        # objective function can be evaluated if 'g' function can be evaluated
         if g.has_eval:
             itstat_fields.update({"Objective": "%9.3e"})
             itstat_attrib.append("objective()")
@@ -144,7 +145,7 @@ class LinearizedADMM:
 
         # dynamically create itstat_func; see https://stackoverflow.com/questions/24733831
         itstat_return = "return(" + ", ".join(["obj." + attr for attr in itstat_attrib]) + ")"
-        scope = {}
+        scope: dict[str, Callable] = {}
         exec("def itstat_func(obj): " + itstat_return, scope)
 
         # determine itstat options and initialize IterationStats object
@@ -155,8 +156,8 @@ class LinearizedADMM:
         }
         if itstat_options:
             default_itstat_options.update(itstat_options)
-        self.itstat_insert_func = default_itstat_options.pop("itstat_func", None)
-        self.itstat_object = IterationStats(**default_itstat_options)
+        self.itstat_insert_func: Callable = default_itstat_options.pop("itstat_func", None)  # type: ignore
+        self.itstat_object = IterationStats(**default_itstat_options)  # type: ignore
 
         if x0 is None:
             input_shape = C.input_shape
@@ -181,12 +182,12 @@ class LinearizedADMM:
 
 
         Args:
-            x: Point at which to evaluate objective function. If `None`,
-               the objective is evaluated at the current iterate
-               :code:`self.x`.
-            z: Point at which to evaluate objective function. If `None`,
-               the objective is evaluated at the current iterate
-               :code:`self.z`.
+            x: Point at which to evaluate objective function. If
+               ``None``, the objective is evaluated at the current
+               iterate :code:`self.x`.
+            z: Point at which to evaluate objective function. If
+               ``None``, the objective is evaluated at the current
+               iterate :code:`self.z`.
 
         Returns:
             scalar: Current value of the objective function.
@@ -205,15 +206,14 @@ class LinearizedADMM:
     def norm_primal_residual(self, x: Optional[Union[JaxArray, BlockArray]] = None) -> float:
         r"""Compute the :math:`\ell_2` norm of the primal residual.
 
-
         Compute the :math:`\ell_2` norm of the primal residual
 
         .. math::
             \norm{C \mb{x} - \mb{z}}_2 \;.
 
         Args:
-            x: Point at which to evaluate primal residual. If `None`, the
-               primal residual is evaluated at the currentiterate
+            x: Point at which to evaluate primal residual. If ``None``,
+               the primal residual is evaluated at the current iterate
                :code:`self.x`.
 
         Returns:
@@ -237,7 +237,9 @@ class LinearizedADMM:
         """
         return norm(self.C.adj(self.z - self.z_old))
 
-    def z_init(self, x0: Union[JaxArray, BlockArray]):
+    def z_init(
+        self, x0: Union[JaxArray, BlockArray]
+    ) -> Tuple[Union[JaxArray, BlockArray], Union[JaxArray, BlockArray]]:
         r"""Initialize auxiliary variable :math:`\mb{z}`.
 
         Initialized to
@@ -254,7 +256,7 @@ class LinearizedADMM:
         z_old = z
         return z, z_old
 
-    def u_init(self, x0: Union[JaxArray, BlockArray]):
+    def u_init(self, x0: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
         r"""Initialize scaled Lagrange multiplier :math:`\mb{u}`.
 
         Initialized to
@@ -303,10 +305,10 @@ class LinearizedADMM:
         self,
         callback: Optional[Callable[[LinearizedADMM], None]] = None,
     ) -> Union[JaxArray, BlockArray]:
-        r"""Initialize and run the LinearizedADMM algorithm.
+        r"""Initialize and run the linearized ADMM algorithm.
 
-        Initialize and run the LinearizedADMM algorithm for a total of
-        ``self.maxiter`` iterations.
+        Initialize and run the linearized ADMM algorithm for a total of
+        `self.maxiter` iterations.
 
         Args:
             callback: An optional callback function, taking an a single

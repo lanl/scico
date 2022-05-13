@@ -1,4 +1,4 @@
-# Runs isort and black on pushes to main and any pull requests
+# Run isort and black on pushes to main and any pull requests
 
 name: lint
 
@@ -25,10 +25,10 @@ jobs:
         with:
           python-version: "3.8"
 
-      - name: Black Code Formatter
+      - name: Black code formatter
         uses: psf/black@stable
         with:
-          version: "21.6b0"
+          version: "22.3"
 
-      - name: isort Import Sorter
+      - name: Isort import sorter
         uses: isort/isort-action@v0.1.0

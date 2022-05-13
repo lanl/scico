@@ -17,16 +17,18 @@ from flax import serialization
 from flax.core import Scope  # noqa
 from flax.linen.module import _Sentinel  # noqa
 
+from scico.numpy import BlockArray
+from scico.typing import JaxArray
+
 # The imports of Scope and _Sentinel (above) and the definition of Module
 # (below) are required to silence "cannot resolve forward reference"
 # warnings when building sphinx api docs.
 
+
 Module = nn.module.Module
 ModuleDef = Any
 Array = Any
-
-
-__author__ = """Cristina Garcia-Cardona <cgarciac@lanl.gov>"""
+PyTree = Any
 
 
 class ConvBNBlock(nn.Module):
@@ -163,3 +165,43 @@ def load_weights(filename: str):
     variables = serialization.msgpack_restore(bytes_input)
 
     return variables
+
+
+class FlaxMap:
+    r"""A trained flax model."""
+
+    def __init__(self, model: Callable[..., nn.Module], variables: PyTree):
+        r"""Initialize a :class:`FlaxMap` object.
+
+        Args:
+            model: Flax model to apply.
+            variables: Parameters and batch stats of trained model.
+        """
+        self.model = model
+        self.variables = variables
+        super().__init__()
+
+    def __call__(self, x: JaxArray) -> JaxArray:
+        r"""Apply trained flax model.
+
+        Args:
+            x: Input array.
+
+        Returns:
+            Output of flax model.
+        """
+        if isinstance(x, BlockArray):
+            raise NotImplementedError
+
+        # Add singleton to input as necessary:
+        #   scico typically works with (H x W) or (H x Wx C) arrays
+        #   flax expects (K x H x W x C) arrays
+        #   H: spatial height  W: spatial width
+        #   K: batch size  C: channel size
+        x_shape = x.shape
+        if x.ndim == 2:
+            x = x.reshape((1,) + x.shape + (1,))
+        elif x.ndim == 3:
+            x = x.reshape((1,) + x.shape)
+        y = self.model.apply(self.variables, x, train=False, mutable=False)  # type: ignore
+        return y.reshape(x_shape)

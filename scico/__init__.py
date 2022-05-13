@@ -1,4 +1,4 @@
-# Copyright (C) 2021 by SCICO Developers
+# Copyright (C) 2021-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -8,7 +8,7 @@
 solving the inverse problems that arise in scientific imaging applications.
 """
 
-__version__ = "0.0.2a1"
+__version__ = "0.0.3.dev0"
 
 import sys
 
@@ -17,8 +17,8 @@ from ._autograd import grad, jacrev, linear_adjoint, value_and_grad
 
 import jax, jaxlib
 
-jax_ver_req = "0.2.26"
-jaxlib_ver_req = "0.1.75"
+jax_ver_req = "0.3.0"
+jaxlib_ver_req = "0.3.0"
 if jax.__version__ < jax_ver_req:
     raise Exception(
         f"SCICO {__version__} requires jax>={jax_ver_req}; got {jax.__version__}; "

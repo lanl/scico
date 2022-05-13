@@ -31,7 +31,7 @@ Overview
 
 We adhere to `PEP8 <https://www.python.org/dev/peps/pep-0008/>`_ with the exception of allowing a line length limit of 99 characters (as opposed to 79 characters). The standard limit of 72 characters for "flowing long blocks of text" in docstrings or comments is retained. We use `Black <https://github.com/psf/black>`_ as our PEP-8 Formatter and `isort <https://pypi.org/project/isort/>`_ to sort imports. (Please set up a `pre-commit hook <https://pre-commit.com>`_ to ensure any modified code passes format check before it is committed to the development repo.)
 
-We aim to incorporate `PEP 526 <https://www.python.org/dev/peps/pep-0484/>`_ type annotations throughout the library.  See the `Mypy <https://mypy.readthedocs.io/en/stable/>`_ type annotation `cheat sheet <https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html>`_ for usage examples. Custom types are defined in :mod:`.typing`.
+We aim to incorporate `PEP 526 <https://www.python.org/dev/peps/pep-0484/>`_ type annotations throughout the library. See the `Mypy <https://mypy.readthedocs.io/en/stable/>`_ type annotation `cheat sheet <https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html>`_ for usage examples. Custom types are defined in :mod:`.typing`.
 
 Our coding conventions are based on both the `NumPy conventions <https://numpydoc.readthedocs.io/en/latest/format.html#overview>`_ and the `Google docstring conventions <https://google.github.io/styleguide/pyguide.html>`_.
 
@@ -111,8 +111,8 @@ We follow the `Google string conventions <https://google.github.io/styleguide/py
 .. code:: Python
 
     state = "active"
-    print("The state is %s")        # Not preferred
-    print(f"The state is {state}")  # Preferred
+    print("The state is %s" % state) # Not preferred
+    print(f"The state is {state}")   # Preferred
 
 
 Imports
@@ -256,14 +256,14 @@ Example:
         """Fetch rows from a Smalltable.
 
         Retrieve rows pertaining to the given keys from the Table instance
-        represented by table_handle.  String keys will be UTF-8 encoded.
+        represented by table_handle. String keys will be UTF-8 encoded.
 
         Args:
             table_handle:
                An open smalltable.Table instance.
             keys:
                A sequence of strings representing the key of each table
-               row to fetch.  String `keys` will be UTF-8 encoded.
+               row to fetch. String `keys` will be UTF-8 encoded.
             require_all_keys: Optional
                If `require_all_keys` is ``True`` only
                rows with values set for all keys will be returned.
@@ -277,7 +277,7 @@ Example:
              b'Zim': ('Irk', 'Invader'),
              b'Lrrr': ('Omicron Persei 8', 'Emperor')}
 
-            Returned keys are always bytes.  If a key from the keys argument is
+            Returned keys are always bytes. If a key from the keys argument is
             missing from the dictionary, then that row was not found in the
             table (and require_all_keys must have been False).
 
@@ -396,7 +396,7 @@ We follow the `NumPy style guide <https://numpydoc.readthedocs.io/en/latest/form
        with a ``...``
 
        >>> np.add([[1, 2], [3, 4]],
-       ...         [[5, 6], [7, 8]])
+       ...        [[5, 6], [7, 8]])
        array([[ 6,  8],
               [10, 12]])
 

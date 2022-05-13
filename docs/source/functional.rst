@@ -100,7 +100,7 @@ Separable Functionals
 *********************
 
 A separable functional :math:`f : \mathbb{C}^N \to \mathbb{R}` can be written as the sum
-of functionals :math:`f_i : \mathbb{C}^{N_i} \to \mathbb{R}` with :math:`\sum_i N_i = N`.  In particular,
+of functionals :math:`f_i : \mathbb{C}^{N_i} \to \mathbb{R}` with :math:`\sum_i N_i = N`. In particular,
 
     .. math::
        f(\mb{x}) = f(\mb{x}_1, \dots, \mb{x}_N) = f_1(\mb{x}_1) + \dots + f_N(\mb{x}_N)
@@ -118,7 +118,7 @@ in terms of the proximal operators of the :math:`f_i`
           \mathrm{prox}_{f_N}(\mb{x}_N, \lambda) \\
         \end{bmatrix}
 
-Separable Functionals are implemented in the :class:`.SeparableFunctional` class.  Separable functionals naturally accept :class:`.BlockArray` inputs and return the prox as a :class:`.BlockArray`.
+Separable Functionals are implemented in the :class:`.SeparableFunctional` class. Separable functionals naturally accept :class:`.BlockArray` inputs and return the prox as a :class:`.BlockArray`.
 
 
 

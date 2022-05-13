@@ -7,18 +7,17 @@
 
 """Biconvolution operator."""
 
+from typing import Tuple, cast
 
 import numpy as np
 
 from jax.scipy.signal import convolve
 
 from scico._generic_operators import LinearOperator, Operator
-from scico.array import is_nested
-from scico.blockarray import BlockArray
 from scico.linop import Convolve, ConvolveByX
-from scico.typing import BlockShape, DType, JaxArray
-
-__author__ = """Luke Pfister <luke.pfister@gmail.com>"""
+from scico.numpy import BlockArray
+from scico.numpy.util import is_nested
+from scico.typing import DType, JaxArray, Shape
 
 
 class BiConvolve(Operator):
@@ -28,13 +27,13 @@ class BiConvolve(Operator):
     blocks of equal ndims, and convolves the first block with the second.
 
     If `A` is a BiConvolve operator, then
-    `A(BlockArray.array([x, h]))` equals `jax.scipy.signal.convolve(x, h)`.
+    `A(snp.blockarray([x, h]))` equals `jax.scipy.signal.convolve(x, h)`.
 
     """
 
     def __init__(
         self,
-        input_shape: BlockShape,
+        input_shape: Tuple[Shape, Shape],
         input_dtype: DType = np.float32,
         mode: str = "full",
         jit: bool = True,
@@ -44,7 +43,7 @@ class BiConvolve(Operator):
             input_shape: Shape of input BlockArray. Must correspond to a
                 BlockArray with two blocks of equal ndims.
             input_dtype: `dtype` for input argument. Defaults to
-                `float32`.
+                ``float32``.
             mode:  A string indicating the size of the output. One of
                 "full", "valid", "same". Defaults to "full".
             jit: If ``True``, jit the evaluation of this Operator.
@@ -78,8 +77,8 @@ class BiConvolve(Operator):
         Return a new :class:`.LinearOperator` with block argument
         `argnum` fixed to value `val`.
 
-        If ``argnum == 0``, a :class:`.ConvolveByX` object is returned.
-        If ``argnum == 1``, a :class:`.Convolve` object is returned.
+        If `argnum == 0`, a :class:`.ConvolveByX` object is returned.
+        If `argnum == 1`, a :class:`.Convolve` object is returned.
 
         Args:
             argnum: Index of block to freeze. Must be 0 or 1.
@@ -89,7 +88,7 @@ class BiConvolve(Operator):
         if argnum == 0:
             return ConvolveByX(
                 x=val,
-                input_shape=self.input_shape[1],
+                input_shape=cast(Shape, self.input_shape[1]),
                 input_dtype=self.input_dtype,
                 output_shape=self.output_shape,
                 mode=self.mode,
@@ -97,7 +96,7 @@ class BiConvolve(Operator):
         if argnum == 1:
             return Convolve(
                 h=val,
-                input_shape=self.input_shape[0],
+                input_shape=cast(Shape, self.input_shape[0]),
                 input_dtype=self.input_dtype,
                 output_shape=self.output_shape,
                 mode=self.mode,
