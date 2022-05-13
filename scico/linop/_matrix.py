@@ -234,5 +234,5 @@ class MatrixOperator(LinearOperator):
         `G(x) = A.adj(A(x)))`."""
         return MatrixOperator(A=self.A.conj().T @ self.A)
 
-    def _norm(self) -> float:
+    def _norm(self):
         return snp.linalg.norm(self.A, ord=2)
