@@ -23,7 +23,7 @@ from ._linop import LinearOperator
 
 
 class DFT(LinearOperator):
-    r"""N-dimensional Discrete Fourier Transform."""
+    r"""Multi-dimensional discrete Fourier transform."""
 
     def __init__(
         self, input_shape: Shape, output_shape: Optional[Shape] = None, jit: bool = True, **kwargs
