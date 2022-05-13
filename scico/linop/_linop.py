@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import operator
 from functools import partial
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable, Optional, Tuple, Union
 
 import scico.numpy as snp
 from scico._generic_operators import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
@@ -23,7 +23,9 @@ from scico.random import randn
 from scico.typing import ArrayIndex, BlockShape, DType, JaxArray, PRNGKey, Shape
 
 
-def power_iteration(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey] = None):
+def power_iteration(
+    A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey] = None
+) -> Tuple[float, JaxArray]:
     """Compute largest eigenvalue of a diagonalizable :class:`.LinearOperator`.
 
     Compute largest eigenvalue of a diagonalizable
@@ -53,7 +55,7 @@ def power_iteration(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey
     return mu, v
 
 
-def operator_norm(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey] = None):
+def operator_norm(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey] = None) -> float:
     r"""Estimate the norm of a :class:`.LinearOperator`.
 
     Estimate the operator norm
