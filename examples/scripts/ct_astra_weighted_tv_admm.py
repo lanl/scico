@@ -163,6 +163,8 @@ x_weighted = postprocess(admm_weighted.x)
 """
 Show recovered images.
 """
+
+
 def plot_recon(x, title, ax):
     """Plot an image with title indicating error metrics."""
     plot.imview(
