@@ -103,9 +103,9 @@ Set up and solve the un-weighted reconstruction problem
 # Note that rho and lambda were selected via a parameter sweep (not
 # shown here).
 ρ = 2.5e3  # ADMM penalty parameter
-lambda_unweighted = 2.56e2  # regularization strength
+lambda_unweighted = 3e2  # regularization strength
 
-maxiter = 50  # number of ADMM iterations
+maxiter = 100  # number of ADMM iterations
 cg_tol = 1e-5  # CG relative tolerance
 cg_maxiter = 10  # maximum CG iterations per ADMM iteration
 
@@ -141,7 +141,7 @@ The data fidelity term in this formulation follows
 use to maintain balance between the data and regularization terms if
 $I_0$ changes.
 """
-lambda_weighted = 1.14e2
+lambda_weighted = 5e1
 
 weights = jax.device_put(counts / Io)
 f = loss.SquaredL2Loss(y=y, A=A, W=linop.Diagonal(weights))
@@ -163,8 +163,6 @@ x_weighted = postprocess(admm_weighted.x)
 """
 Show recovered images.
 """
-
-
 def plot_recon(x, title, ax):
     """Plot an image with title indicating error metrics."""
     plot.imview(
