@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 
 import scico.numpy as snp
-from scico.linop import FiniteDifference
+from scico.linop import FiniteDifference, SingleAxisFiniteDifference
 from scico.random import randn
 from scico.test.linop.test_linop import adjoint_test
 
@@ -12,7 +12,7 @@ def test_eval():
     with pytest.raises(ValueError):  # axis 3 does not exist
         A = FiniteDifference(input_shape=(3, 4, 5), axes=(0, 3))
 
-    A = FiniteDifference(input_shape=(2, 3), append=0.0)
+    A = FiniteDifference(input_shape=(2, 3), append=1)
 
     x = snp.array([[1, 0, 1], [1, 1, 0]], dtype=snp.float32)
 
@@ -23,6 +23,36 @@ def test_eval():
         snp.array([[0, 1, -1], [-1, -1, 0]]),
     )
     snp.testing.assert_allclose(Ax[1], snp.array([[-1, 1, -1], [0, -1, 0]]))  # along rows
+
+
+def test_except():
+    with pytest.raises(TypeError):  # axis is not an int
+        A = SingleAxisFiniteDifference(input_shape=(3,), axis=2.5)
+
+    with pytest.raises(ValueError):  # invalid parameter combination
+        A = SingleAxisFiniteDifference(input_shape=(3,), prepend=0, circular=True)
+
+    with pytest.raises(ValueError):  # invalid prepend value
+        A = SingleAxisFiniteDifference(input_shape=(3,), prepend=2)
+
+    with pytest.raises(ValueError):  # invalid append value
+        A = SingleAxisFiniteDifference(input_shape=(3,), append="a")
+
+
+def test_eval_prepend():
+    x = snp.arange(1, 6)
+    A = SingleAxisFiniteDifference(input_shape=(5,), prepend=0)
+    snp.testing.assert_allclose(A @ x, snp.array([0, 1, 1, 1, 1]))
+    A = SingleAxisFiniteDifference(input_shape=(5,), prepend=1)
+    snp.testing.assert_allclose(A @ x, snp.array([1, 1, 1, 1, 1]))
+
+
+def test_eval_append():
+    x = snp.arange(1, 6)
+    A = SingleAxisFiniteDifference(input_shape=(5,), append=0)
+    snp.testing.assert_allclose(A @ x, snp.array([1, 1, 1, 1, 0]))
+    A = SingleAxisFiniteDifference(input_shape=(5,), append=1)
+    snp.testing.assert_allclose(A @ x, snp.array([1, 1, 1, 1, -5]))
 
 
 @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
