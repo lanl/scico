@@ -70,8 +70,8 @@ def eval_params(config, reporter):
     # Set up problem to be solved.
     A = linop.Convolve(h=psf, input_shape=x_gt.shape)
     f = loss.SquaredL2Loss(y=y, A=A)
-    g = λ * functional.L1Norm()
-    C = linop.FiniteDifference(input_shape=x_gt.shape)
+    g = λ * functional.L21Norm()
+    C = linop.FiniteDifference(input_shape=x_gt.shape, append=0)
     # Define solver.
     solver = ADMM(
         f=f,

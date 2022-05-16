@@ -103,9 +103,9 @@ Set up and solve the un-weighted reconstruction problem
 # Note that rho and lambda were selected via a parameter sweep (not
 # shown here).
 ρ = 2.5e3  # ADMM penalty parameter
-lambda_unweighted = 2.56e2  # regularization strength
+lambda_unweighted = 3e2  # regularization strength
 
-maxiter = 50  # number of ADMM iterations
+maxiter = 100  # number of ADMM iterations
 cg_tol = 1e-5  # CG relative tolerance
 cg_maxiter = 10  # maximum CG iterations per ADMM iteration
 
@@ -113,8 +113,8 @@ f = loss.SquaredL2Loss(y=y, A=A)
 
 admm_unweighted = ADMM(
     f=f,
-    g_list=[lambda_unweighted * functional.L1Norm()],
-    C_list=[linop.FiniteDifference(x_gt.shape)],
+    g_list=[lambda_unweighted * functional.L21Norm()],
+    C_list=[linop.FiniteDifference(x_gt.shape, append=0)],
     rho_list=[ρ],
     x0=x0,
     maxiter=maxiter,
@@ -141,15 +141,15 @@ The data fidelity term in this formulation follows
 use to maintain balance between the data and regularization terms if
 $I_0$ changes.
 """
-lambda_weighted = 1.14e2
+lambda_weighted = 5e1
 
 weights = jax.device_put(counts / Io)
 f = loss.SquaredL2Loss(y=y, A=A, W=linop.Diagonal(weights))
 
 admm_weighted = ADMM(
     f=f,
-    g_list=[lambda_weighted * functional.L1Norm()],
-    C_list=[linop.FiniteDifference(x_gt.shape)],
+    g_list=[lambda_weighted * functional.L21Norm()],
+    C_list=[linop.FiniteDifference(x_gt.shape, append=0)],
     rho_list=[ρ],
     maxiter=maxiter,
     x0=x0,

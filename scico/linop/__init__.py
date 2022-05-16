@@ -24,7 +24,7 @@ from ._linop import (
     valid_adjoint,
 )
 from ._matrix import MatrixOperator
-from ._diff import FiniteDifference
+from ._diff import FiniteDifference, SingleAxisFiniteDifference
 from ._grad import ProjectedGradient, PolarGradient, CylindricalGradient, SphericalGradient
 from ._convolve import Convolve, ConvolveByX
 from ._circconv import CircularConvolve
@@ -42,6 +42,8 @@ __all__ = [
     "PolarGradient",
     "CylindricalGradient",
     "SphericalGradient",
+    "SingleAxisFiniteDifference",
+    "Identity",
     "LinearOperatorStack",
     "MatrixOperator",
     "Pad",
