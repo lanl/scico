@@ -58,15 +58,18 @@ y = Ax + σ * noise
 """
 Set up an ADMM solver object.
 """
-λ = 2e-2  # L1 norm regularization parameter
-ρ = 5e-1  # ADMM penalty parameter
+λ = 2.7e-2  # L1 norm regularization parameter
+ρ = 1.4e-1  # ADMM penalty parameter
 maxiter = 50  # number of ADMM iterations
 
 f = loss.SquaredL2Loss(y=y, A=A)
 # Penalty parameters must be accounted for in the gi functions, not as
 # additional inputs.
-g = λ * functional.L1Norm()  # regularization functionals gi
-C = linop.FiniteDifference(input_shape=x_gt.shape)  # analysis operators Ci
+g = λ * functional.L21Norm()
+# The append=0 option makes the results of horizontal and vertical
+# finite differences the same shape, which is required for the L21Norm,
+# which is used so that g(Cx) corresponds to isotropic TV.
+C = linop.FiniteDifference(input_shape=x_gt.shape, append=0)
 solver = ADMM(
     f=f,
     g_list=[g],
