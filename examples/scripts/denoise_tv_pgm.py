@@ -68,7 +68,7 @@ Define finite difference operator and adjoint.
 """
 # The append=0 option appends 0 to the input along the axis
 # prior to performing the difference to make the results of
-# horizontal and vertical finite differences the same shape
+# horizontal and vertical finite differences the same shape.
 C = linop.FiniteDifference(input_shape=x_gt.shape, append=0)
 A = C.adj
 

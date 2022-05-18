@@ -68,10 +68,10 @@ Miscellaneous
    :maxdepth: 1
 
    examples/demosaic_ppp_bm3d_admm
-   examples/denoise_l1tv_iso_admm
-   examples/denoise_tv_iso_admm
-   examples/denoise_tv_iso_pgm
-   examples/denoise_tv_iso_multi
+   examples/denoise_l1tv_admm
+   examples/denoise_tv_admm
+   examples/denoise_tv_pgm
+   examples/denoise_tv_multi
    examples/superres_ppp_dncnn_admm
    examples/video_rpca_admm
    examples/denoise_datagen_bsds
@@ -118,10 +118,10 @@ Total Variation
    examples/deconv_microscopy_allchn_tv_admm
    examples/deconv_tv_admm
    examples/deconv_tv_admm_tune
-   examples/denoise_l1tv_iso_admm
-   examples/denoise_tv_iso_admm
-   examples/denoise_tv_iso_pgm
-   examples/denoise_tv_iso_multi
+   examples/denoise_l1tv_admm
+   examples/denoise_tv_admm
+   examples/denoise_tv_pgm
+   examples/denoise_tv_multi
 
 
 Sparsity
@@ -177,9 +177,9 @@ ADMM
    examples/deconv_tv_admm
    examples/deconv_tv_admm_tune
    examples/demosaic_ppp_bm3d_admm
-   examples/denoise_l1tv_iso_admm
-   examples/denoise_tv_iso_admm
-   examples/denoise_tv_iso_multi
+   examples/denoise_l1tv_admm
+   examples/denoise_tv_admm
+   examples/denoise_tv_multi
    examples/sparsecode_admm
    examples/superres_ppp_dncnn_admm
    examples/video_rpca_admm
@@ -192,7 +192,7 @@ Linearized ADMM
    :maxdepth: 1
 
    examples/ct_svmbir_tv_multi
-   examples/denoise_tv_iso_multi
+   examples/denoise_tv_multi
 
 
 PDHG
@@ -202,7 +202,7 @@ PDHG
    :maxdepth: 1
 
    examples/ct_svmbir_tv_multi
-   examples/denoise_tv_iso_multi
+   examples/denoise_tv_multi
 
 
 PGM
@@ -212,7 +212,7 @@ PGM
    :maxdepth: 1
 
    examples/deconv_ppp_bm3d_pgm
-   examples/denoise_tv_iso_pgm
+   examples/denoise_tv_pgm
    examples/sparsecode_pgm
    examples/sparsecode_poisson_pgm
 
