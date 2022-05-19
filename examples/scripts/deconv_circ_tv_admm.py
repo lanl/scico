@@ -59,7 +59,7 @@ y = Ax + σ * noise
 """
 Set up an ADMM solver object.
 """
-λ = 2e-2  # L1 norm regularization parameter
+λ = 2e-2  # L21 norm regularization parameter
 ρ = 5e-1  # ADMM penalty parameter
 maxiter = 50  # number of ADMM iterations
 
