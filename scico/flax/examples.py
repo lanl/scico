@@ -30,7 +30,7 @@ else:
     have_xdesign = True
 
 if have_xdesign:
-    from xdesign import SimpleMaterial, UnitCircle, discrete_phantom
+    from xdesign import Foam, SimpleMaterial, UnitCircle, discrete_phantom
 
 from scico import util
 from scico.examples import rgb2gray
@@ -51,6 +51,7 @@ if have_astra:
 
 # Arbitray process count: only applies if GPU is not available.
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
+print("Device count: ", jax.device_count())
 
 
 class CTDataSetDict(TypedDict):
@@ -115,11 +116,37 @@ def generate_foam2_images(seed: float, size: int, ndata: int) -> Array:
     if not have_xdesign:
         raise RuntimeError("Package xdesign is required for use of this function.")
 
-    key = jax.random.PRNGKey(seed)  # In XDesign?
-    oneimg = lambda _: jnp.atleast_3d(
-        discrete_phantom(Foam2(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=size)
-    )
-    saux = jax.vmap(oneimg)(jnp.arange(ndata))
+    np.random.seed(seed)
+    saux = np.zeros((ndata, size, size, 1))
+    for i in range(ndata):
+        foam = Foam2(size_range=[0.075, 0.0025], gap=1e-3, porosity=1)
+        saux[i, ..., 0] = discrete_phantom(foam, size=size)
+
+    # Normalize
+    saux = saux / np.max(saux, axis=(1, 2), keepdims=True)
+
+    return saux
+
+
+def generate_foam_images(seed: float, size: int, ndata: int) -> Array:
+    """Generation of xdesign foam-like batch of images.
+
+    Args:
+        seed: Seed for data generation.
+        size: Size of image to generate.
+        ndata: Number of images to generate.
+
+    Returns:
+        nd-array of generated data.
+    """
+    if not have_xdesign:
+        raise RuntimeError("Package xdesign is required for use of this function.")
+
+    np.random.seed(seed)
+    saux = np.zeros((ndata, size, size, 1))
+    for i in range(ndata):
+        foam = Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1)
+        saux[i, ..., 0] = discrete_phantom(foam, size=size)
 
     return saux
 
@@ -156,7 +183,12 @@ def distributed_data_generation(
 
 
 def ct_data_generation(
-    nimg: int, size: int, nproj: int, verbose: bool = False
+    nimg: int,
+    size: int,
+    nproj: int,
+    imgfunc: Callable = generate_foam2_images,
+    seed: int = 1234,
+    verbose: bool = False,
 ) -> Tuple[Array, ...]:  # pragma: no cover
     """
     Generate CT data.
@@ -168,6 +200,8 @@ def ct_data_generation(
         nimg: Number of images to generate.
         size: Size of reconstruction images.
         nproj: Number of CT views.
+        imgfunc: Function for generating input images (e.g. foams).
+        seed: Seed for data generation.
         verbose: Flag indicating whether to print status messages. Default: ``False``.
 
     Returns:
@@ -185,11 +219,13 @@ def ct_data_generation(
 
     # Generate foam data.
     start_time = time()
-    imgshd = distributed_data_generation(generate_foam2_images, size, nimg)
+    img = imgfunc(seed, size, nimg)
     time_dtgen = time() - start_time
-    # Normalize and clip to [0,1] range.
-    imgshd = jnp.clip(imgshd / jnp.max(imgshd, axis=(2, 3), keepdims=True), a_min=0, a_max=1)
-    img = imgshd.reshape((-1, size, size, 1))
+    # Clip to [0,1] range.
+    img = jnp.clip(img, a_min=0, a_max=1)
+    # Shard array
+    nproc = jax.device_count()
+    imgshd = img.reshape((nproc, -1, size, size, 1))
 
     # Configure a CT projection operator to generate synthetic measurements.
     angles = np.linspace(0, jnp.pi, nproj)  # evenly spaced projection angles
@@ -198,7 +234,6 @@ def ct_data_generation(
     A = TomographicProjector(gt_sh, detector_spacing, size, angles)  # Radon transform operator
 
     # Compute sinograms in parallel.
-    nproc = jax.device_count()
     a_map = lambda v: jnp.atleast_3d(A @ v.squeeze())
     start_time = time()
     sinoshd = jax.pmap(lambda i: jax.lax.map(a_map, imgshd[i]))(jnp.arange(nproc))
@@ -219,9 +254,9 @@ def ct_data_generation(
     if verbose:
         platform = jax.lib.xla_bridge.get_backend().platform
         print(f"{'Platform':29s}{':':2s}{platform}")
-        print(f"{'Data Generation':22s}{'time[s]:':2s}{time_dtgen:>5.2f}")
-        print(f"{'Sinogram Generation':22s}{'time[s]:':2s}{time_sino:>5.2f}")
-        print(f"{'FBP Generation':22s}{'time[s]:':2s}{time_fbp:>5.2f}")
+        print(f"{'Data Generation':22s}{'time[s]:':8s}{time_dtgen:>7.2f}")
+        print(f"{'Sinogram Generation':22s}{'time[s]:':8s}{time_sino:>7.2f}")
+        print(f"{'FBP Generation':22s}{'time[s]:':8s}{time_fbp:>7.2f}")
 
     return img, sino, fbp
 
@@ -344,7 +379,7 @@ def load_ct_data(
         nimg,
         size,
         nproj,
-        verbose,
+        verbose=verbose,
     )
     # Separate training and testing partitions.
     trdt = {"img": img[:train_nimg], "sino": sino[:train_nimg], "fbp": fbp[:train_nimg]}
@@ -376,6 +411,231 @@ def load_ct_data(
         print(f"{'Range FBP':26s}{'Min:':6s}{fbp.min():>5.2f}{', Max:':6s}{fbp.max():>8.2f}")
 
     return trdt, ttdt
+
+
+def foam_blur_data_generation(
+    nimg: int,
+    size: int,
+    blur_kernel: Array,
+    noise_sigma: float,
+    imgfunc: Callable = generate_foam_images,
+    seed: int = 4321,
+    verbose: bool = False,
+) -> Tuple[Array, ...]:  # pragma: no cover
+    """
+    Generate blurred data based on xdesign foam structures.
+
+    Generate blurred data for training of machine
+    learning network models.
+
+    Args:
+        nimg: Number of images to generate.
+        size: Size of reconstruction images.
+        blur_kernel: Kernel for blurring the generated images.
+        noise_sigma: Level of additive Gaussian noise to apply.
+        imgfunc: Function to generate foams.
+        seed: Seed for data generation.
+        verbose: Flag indicating whether to print status messages. Default: ``False``.
+
+    Returns:
+       tuple: A tuple (img, blurn) containing:
+
+           - **img** : (DeviceArray): Generated foam images.
+           - **blurn** : (DeviceArray) Corresponding blurred and noisy images.
+    """
+    start_time = time()
+    img = imgfunc(seed, size, nimg)
+    time_dtgen = time() - start_time
+    # Clip to [0,1] range.
+    img = jnp.clip(img, a_min=0, a_max=1)
+    # Shard array
+    nproc = jax.device_count()
+    imgshd = img.reshape((nproc, -1, size, size, 1))
+
+    # Configure blur operator
+    ishape = (size, size)
+    A = CircularConvolve(h=blur_kernel, input_shape=ishape)
+
+    # Compute blurred images in parallel
+    a_map = lambda v: jnp.atleast_3d(A @ v.squeeze())
+    start_time = time()
+    blurshd = jax.pmap(lambda i: jax.lax.map(a_map, imgshd[i]))(jnp.arange(nproc))
+    time_blur = time() - start_time
+    blur = blurshd.reshape((-1, size, size, 1))
+    # Normalize blurred images
+    blur = blur / jnp.max(blur, axis=(1, 2), keepdims=True)
+    # Add Gaussian noise
+    key = jax.random.PRNGKey(seed)
+    noise = jax.random.normal(key, blur.shape)
+    blurn = blur + noise_sigma * noise
+    # Clip to [0,1] range.
+    blurn = jnp.clip(blurn, a_min=0, a_max=1)
+
+    if verbose:
+        platform = jax.lib.xla_bridge.get_backend().platform
+        print(f"{'Platform':29s}{':':2s}{platform}")
+        print(f"{'Data Generation':22s}{'time[s]:':8s}{time_dtgen:>7.2f}")
+        print(f"{'Blur Generation':22s}{'time[s]:':8s}{time_blur:>7.2f}")
+
+    return img, blurn
+
+
+def load_foam_blur_data(
+    train_nimg: int,
+    test_nimg: int,
+    size: int,
+    blur_kernel: Array,
+    noise_sigma: float,
+    cache_path: str = None,
+    verbose: bool = False,
+) -> Tuple[DataSetDict, ...]:  # pragma: no cover
+    """
+    Load or generate blurred data based on xdesign foam structures.
+
+    Load or generate blurred data for training of machine learning network models.
+    If cached file exists and enough data of the requested size is available, data is
+    loaded and returned.
+
+    If `size` requested does not match the data read from the cached
+    file, a `RunTimeError` is generated. In contrast, there is no checking for the
+    specific contamination (i.e. noise level, blur
+    kernel, etc.).
+
+    If no cached file is found or not enough data
+    is contained in the file a new data set
+    is generated and stored in `cache_path`. The
+    data is stored in `.npz` format for
+    convenient access via :func:`numpy.load`.
+    The data is saved in two distinct files:
+    `foam_dcnv_train.npz` and `foam_dcnv_test.npz`
+    to keep separated training and testing
+    partitions.
+
+    Args:
+        train_nimg: Number of images required for training.
+        test_nimg: Number of images required for testing.
+        size: Size of reconstruction images.
+        blur_kernel: Kernel for blurring the generated images.
+        noise_sigma: Level of additive Gaussian noise to apply.
+        cache_path: Directory in which generated data is saved. Default: ``None``.
+        verbose: Flag indicating whether to print status messages. Default: ``False``.
+
+    Returns:
+       tuple: A tuple (train_ds, test_ds) containing:
+
+           - **train_ds** : (DataSetDict): Dictionary of training data (includes images and labels).
+           - **test_ds** : (DataSetDict): Dictionary of testing data (includes images and labels).
+    """
+    # Set default cache path if not specified.
+    if cache_path is None:
+        cache_path = os.path.join(
+            os.path.expanduser("~"), ".cache", "scico", "examples", "img", "data"
+        )
+
+    # Create cache directory and generate data if not already present.
+    npz_train_file = os.path.join(cache_path, "foam_dcnv_train.npz")
+    npz_test_file = os.path.join(cache_path, "foam_dcnv_test.npz")
+
+    if os.path.isfile(npz_train_file) and os.path.isfile(npz_test_file):
+        # Load data and convert arrays to float32.
+        trdt = np.load(npz_train_file)  # Training
+        ttdt = np.load(npz_test_file)  # Testing
+        train_in = trdt["image"].astype(np.float32)
+        train_out = trdt["label"].astype(np.float32)
+        test_in = ttdt["image"].astype(np.float32)
+        test_out = ttdt["label"].astype(np.float32)
+
+        # Check image size.
+        if (train_in.shape[1] != size) or (test_in.shape[1] != size):
+            raise RuntimeError(
+                f"{'Provided size: '}{size}{' does not match read train size: '}"
+                f"{train_in.shape[1]}{' or test size: '}{test_in.shape[1]}"
+            )
+
+        # Check that enough images were restored.
+        if trdt["numimg"] >= train_nimg:
+            if ttdt["numimg"] >= test_nimg:
+                train_ds: DataSetDict = {
+                    "image": train_in,
+                    "label": train_out,
+                }
+                test_ds: DataSetDict = {
+                    "image": test_in,
+                    "label": test_out,
+                }
+                if verbose:
+                    print(f"{'Data read from path:':22s}{cache_path}")
+                    print(f"{'Train images':26s}{train_ds['image'].shape[0]}")
+                    print(f"{'Test images':26s}{test_ds['image'].shape[0]}")
+                    print(
+                        f"{'Data range images':26s}{'Min:':6s}{train_ds['image'].min():>5.2f}"
+                        f"{', Max:':6s}{train_ds['image'].max():>8.2f}"
+                    )
+                    print(
+                        f"{'Data range labels':26s}{'Min:':6s}{train_ds['label'].min():>5.2f}"
+                        f"{', Max:':6s}{train_ds['label'].max():>8.2f}"
+                    )
+                    print(
+                        "NOTE: No checking that additive noise, blur or other preprocessing"
+                        " performed in the data loaded agrees with the requested preprocessing!"
+                        " Delete cache to guarantee requested preprocessing."
+                    )
+
+                return train_ds, test_ds
+
+            elif verbose:
+                print(
+                    f"{'Not enough images for testing in file':34s}{'Requested:':12s}"
+                    f"{test_nimg}{'Available:':12s}{ttdt['numimg']}"
+                )
+        elif verbose:
+            print(
+                f"{'Not enough images for training in file':34s}{'Requested:':12s}{train_nimg}"
+                f"{' Available:':12s}{trdt['numimg']}"
+            )
+
+    # Generate new data.
+    nimg = train_nimg + test_nimg
+    img, blrn = foam_blur_data_generation(
+        nimg,
+        size,
+        blur_kernel,
+        noise_sigma,
+        verbose=verbose,
+    )
+    # Separate training and testing partitions.
+    train_ds = {"image": blrn[:train_nimg], "label": img[:train_nimg]}
+    test_ds = {"image": blrn[train_nimg:], "label": img[train_nimg:]}
+
+    # Store original and blurred images.
+    os.makedirs(cache_path, exist_ok=True)
+    np.savez(
+        npz_train_file,
+        image=train_ds["image"],
+        label=train_ds["label"],
+        numimg=train_nimg,
+    )
+    np.savez(
+        npz_test_file,
+        image=test_ds["image"],
+        label=test_ds["label"],
+        numimg=test_nimg,
+    )
+
+    if verbose:
+        print(f"{'Storing data in path':29s}{':':2s}{cache_path}")
+        print(f"{'Train images':26s}{train_ds['image'].shape[0]}")
+        print(f"{'Test images':26s}{test_ds['image'].shape[0]}")
+        print(
+            f"{'Data range images':26s}{'Min:':6s}{train_ds['image'].min():>5.2f}"
+            f"{', Max:':6s}{train_ds['image'].max():>8.2f}"
+        )
+        print(
+            f"{'Data range labels':26s}{'Min:':6s}{train_ds['label'].min():>5.2f}"
+            f"{', Max:':6s}{train_ds['label'].max():>8.2f}"
+        )
+
+    return train_ds, test_ds
 
 
 # Image manipulation utils
