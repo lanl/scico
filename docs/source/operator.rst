@@ -1,5 +1,6 @@
 Operators
 =========
+
 An operator is a map from :math:`\mathbb{R}^n` or :math:`\mathbb{C}^n`
 to :math:`\mathbb{R}^m` or :math:`\mathbb{C}^m`.
 In SCICO, operators are primarily used to represent imaging systems

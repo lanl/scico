@@ -22,7 +22,7 @@ measurement, $\mathbf{x}$ is the signal reconstruction, and
 $I(\mathbf{x}^{(0)} \geq 0)$ is the non-negative indicator.
 
 This example also demonstrates the application of
-[blockarray.BlockArray](../_autosummary/scico.numpy.rst#scico.numpy.BlockArray),
+[numpy.BlockArray](../_autosummary/scico.numpy.rst#scico.numpy.BlockArray),
 [functional.SeparableFunctional](../_autosummary/scico.functional.rst#scico.functional.SeparableFunctional),
 and
 [functional.ZeroFunctional](../_autosummary/scico.functional.rst#scico.functional.ZeroFunctional)

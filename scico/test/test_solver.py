@@ -39,6 +39,7 @@ class TestSet:
         except Exception as e:
             print(e)
             assert 0
+        assert info["rel_res"].ndim == 0
         assert np.linalg.norm(A(xcg) - b) / np.linalg.norm(b) < 1e-6
 
     def test_cg_info(self):

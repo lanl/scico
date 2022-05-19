@@ -35,7 +35,8 @@ from scico.ray import tune
 Create a ground truth image.
 """
 phantom = SiemensStar(32)
-x_gt = snp.pad(discrete_phantom(phantom, 240), 8)
+N = 256  # image size
+x_gt = snp.pad(discrete_phantom(phantom, N - 16), 8)
 
 
 """
@@ -73,8 +74,8 @@ def eval_params(config, reporter):
     # Set up problem to be solved.
     A = linop.Convolve(h=psf, input_shape=x_gt.shape)
     f = loss.SquaredL2Loss(y=y, A=A)
-    g = λ * functional.L1Norm()
-    C = linop.FiniteDifference(input_shape=x_gt.shape)
+    g = λ * functional.L21Norm()
+    C = linop.FiniteDifference(input_shape=x_gt.shape, append=0)
     # Define solver.
     solver = ADMM(
         f=f,

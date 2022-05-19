@@ -24,7 +24,9 @@ from scico.util import device_info
 """
 Create a ground truth image.
 """
-x_gt = create_circular_phantom((256, 254), [100, 50, 25], [1, 0, 0.5])
+N = 256  # phantom size
+x_gt = create_circular_phantom((N, N), [0.4 * N, 0.2 * N, 0.1 * N], [1, 0, 0.5])
+
 
 """
 Set up the forward operator and create a test measurement
@@ -39,12 +41,13 @@ ATy = A.T @ y
 """
 Set up ADMM solver object.
 """
-λ = 1.9e01  # L1 norm regularization parameter
-ρ = 4.9e01  # ADMM penalty parameter
+λ = 1.9e1  # L1 norm regularization parameter
+ρ = 4.9e1  # ADMM penalty parameter
 maxiter = 100  # number of ADMM iterations
 cg_tol = 1e-4  # CG relative tolerance
 cg_maxiter = 25  # maximum CG iterations per ADMM iteration
 
+# Note the use of anisotropic TV. Isotropic TV would require use of L21Norm.
 g = λ * functional.L1Norm()
 C = linop.FiniteDifference(input_shape=x_gt.shape)
 

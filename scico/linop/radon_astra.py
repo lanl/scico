@@ -53,12 +53,12 @@ class TomographicProjector(LinearOperator):
         Args:
             input_shape: Shape of the input array.
             volume_geometry: Defines the shape and size of the
-                discretized reconstruction volume. Must either `None`, or
-                of the form (min_x, max_x, min_y, max_y). If `None`,
+                discretized reconstruction volume. Must either ``None``,
+                or of the form (min_x, max_x, min_y, max_y). If ``None``,
                 volume pixels are squares with sides of unit length, and
-                the volume is centered around the origin. If not None,
+                the volume is centered around the origin. If not ``None``,
                 the extents of the volume can be specified arbitrarily.
-                The default, None, corresponds to
+                The default, ``None``, corresponds to
                 `volume_geometry = [cols, -cols/2, cols/2, -rows/2, rows/2]`.
                 Note: For usage with GPU code, the volume must be
                 centered around the origin and pixels must be square.
@@ -95,7 +95,7 @@ class TomographicProjector(LinearOperator):
                     "for specifics."
                 )
         else:
-            self.vol_geom: dict = astra.create_vol_geom(*input_shape)
+            self.vol_geom = astra.create_vol_geom(*input_shape)
 
         dev0 = jax.devices()[0]
         if dev0.device_kind == "cpu" or device == "cpu":
@@ -107,9 +107,9 @@ class TomographicProjector(LinearOperator):
 
         # Wrap our non-jax function to indicate we will supply fwd/rev mode functions
         self._eval = jax.custom_vjp(self._proj)
-        self._eval.defvjp(lambda x: (self._proj(x), None), lambda _, y: (self._bproj(y),))
+        self._eval.defvjp(lambda x: (self._proj(x), None), lambda _, y: (self._bproj(y),))  # type: ignore
         self._adj = jax.custom_vjp(self._bproj)
-        self._adj.defvjp(lambda y: (self._bproj(y), None), lambda _, x: (self._proj(x),))
+        self._adj.defvjp(lambda y: (self._bproj(y), None), lambda _, x: (self._proj(x),))  # type: ignore
 
         super().__init__(
             input_shape=self.input_shape,
