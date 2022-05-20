@@ -21,14 +21,14 @@ try:
 except ImportError:
     import typing
 
-    typing.Literal = typing.Any
+    typing.Literal = typing.Any  # type: ignore
 
     import math
     from functools import reduce
     from operator import mul
 
     # use a double lambda to bind reduce and mul right now
-    math.prod = (lambda fun, op: lambda iterable: fun(op, iterable, 1))(reduce, mul)
+    math.prod = (lambda fun, op: lambda iterable: fun(op, iterable, 1))(reduce, mul)  # type: ignore
 
     del typing, math, mul, reduce
 

@@ -41,7 +41,7 @@ def variable_assign_value(path: str, var: str) -> Any:
     with open(path) as f:
         try:
             # See http://stackoverflow.com/questions/2058802
-            value_obj = parse(next(filter(lambda line: line.startswith(var), f))).body[0].value
+            value_obj = parse(next(filter(lambda line: line.startswith(var), f))).body[0].value  # type: ignore
             try:
                 value = value_obj.s  # type: ignore
             except AttributeError:  # Python 3.7 s -> n
