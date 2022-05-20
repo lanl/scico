@@ -21,6 +21,8 @@ import psutil
 from nbconvert.preprocessors import CellExecutionError, ExecutePreprocessor
 from py2jn.tools import py_string_to_notebook, write_notebook
 
+examples_dir = Path(__file__).resolve().parent  # absolute path to ../scico/examples/
+
 have_ray = True
 try:
     import ray
@@ -127,13 +129,13 @@ def script_uses_ray(fname):
 def script_path(sname):
     """Get script path from script name."""
 
-    return Path("scripts") / Path(sname)
+    return examples_dir / "scripts" / Path(sname)
 
 
 def notebook_path(sname):
     """Get notebook path from script path."""
 
-    return Path("notebooks") / Path(Path(sname).stem + ".ipynb")
+    return examples_dir / "notebooks" / Path(Path(sname).stem + ".ipynb")
 
 
 argparser = argparse.ArgumentParser(
@@ -169,7 +171,7 @@ args = argparser.parse_args()
 
 # Raise error if ray needed but not present
 if not have_ray and not args.no_ray:
-    raise RuntimeError("The ray package is required to run this script")
+    raise RuntimeError("The ray package is required to run this script, try --no-ray")
 
 
 if args.filename:
@@ -178,7 +180,7 @@ if args.filename:
 else:
     # Read script names from index file
     scriptnames = []
-    srcidx = "scripts/index.rst"
+    srcidx = examples_dir / "scripts" / "index.rst"
     with open(srcidx, "r") as idxfile:
         for line in idxfile:
             m = re.match(r"(\s+)- ([^\s]+.py)", line)
