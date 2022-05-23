@@ -42,7 +42,7 @@ def variable_assign_value(path: str, var: str) -> Any:
         try:
             # See http://stackoverflow.com/questions/2058802
             value_obj = parse(next(filter(lambda line: line.startswith(var), f))).body[0].value  # type: ignore
-            if sys.version_info.minor == 7:
+            if sys.version_info.major == 3 and sys.version_info.minor == 7:
                 value = value_obj.n  # type: ignore
             else:
                 value = value_obj.s  # type: ignore

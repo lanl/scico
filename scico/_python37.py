@@ -11,7 +11,7 @@ This file should be removed when/if Colab upgrades to Python 3.8.
 
 import sys
 
-if sys.version_info.minor == 7:
+if sys.version_info.major == 3 and sys.version_info.minor == 7:
     import typing
 
     typing.Literal = typing.Any  # type: ignore
