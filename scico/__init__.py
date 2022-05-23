@@ -12,26 +12,7 @@ __version__ = "0.0.3.dev0"
 
 import sys
 
-# Python 3.7 compatibility
-try:
-    from math import prod
-    from typing import Literal
-
-    del Literal, prod
-except ImportError:
-    import typing
-
-    typing.Literal = typing.Any  # type: ignore
-
-    import math
-    from functools import reduce
-    from operator import mul
-
-    # use a double lambda to bind reduce and mul right now
-    math.prod = (lambda fun, op: lambda iterable: fun(op, iterable, 1))(reduce, mul)  # type: ignore
-
-    del typing, math, mul, reduce
-
+from . import _python37  # python 3.7 compatibility
 
 # isort: off
 from ._autograd import grad, jacrev, linear_adjoint, value_and_grad
