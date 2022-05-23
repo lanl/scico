@@ -8,6 +8,7 @@
 """Parameter tuning using :doc:`ray.tune <ray:tune/index>`."""
 
 import datetime
+import getpass
 import os
 import tempfile
 from typing import Any, Callable, Dict, List, Mapping, Optional, Type, Union
@@ -126,7 +127,11 @@ def run(
     name += "_" + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
     if local_dir is None:
-        local_dir = os.path.join(tempfile.gettempdir(), os.getlogin(), "ray_results")
+        try:
+            user = getpass.getuser()
+        except Exception:
+            user = "NOUSER"
+        local_dir = os.path.join(tempfile.gettempdir(), user, "ray_results")
 
     # Record original logger.info
     logger_info = ray.tune.tune.logger.info
