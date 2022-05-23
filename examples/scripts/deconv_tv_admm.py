@@ -11,7 +11,7 @@ Image Deconvolution (ADMM w/ Total Variation)
 This example demonstrates the use of class
 [admm.ADMM](../_autosummary/scico.optimize.rst#scico.optimize.ADMM) to solve
 an image deconvolution problem with anisotropic total variation (TV)
-regularization.
+regularization
 
   $$\mathrm{argmin}_{\mathbf{x}} \; \| \mathbf{y} - A \mathbf{x} \|_2^2
   + \lambda \| C \mathbf{x} \|_1 \;,$$
