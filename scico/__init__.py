@@ -12,6 +12,8 @@ __version__ = "0.0.3.dev0"
 
 import sys
 
+from . import _python37  # python 3.7 compatibility
+
 # isort: off
 from ._autograd import grad, jacrev, linear_adjoint, value_and_grad
 

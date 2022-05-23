@@ -60,7 +60,7 @@ if jax_ver != req_jax_ver:
         f"requirements.txt ({req_jax_ver}) do not match"
     )
 
-python_requires = ">=3.8"
+python_requires = ">=3.7"
 tests_require = ["pytest", "pytest-runner"]
 
 extra_require_files = [
