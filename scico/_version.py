@@ -7,9 +7,9 @@
 
 """Support functions for determining the package version."""
 
-
 import os
 import re
+import sys
 from ast import parse
 from subprocess import PIPE, Popen
 from typing import Any, Optional, Tuple, Union
@@ -41,7 +41,12 @@ def variable_assign_value(path: str, var: str) -> Any:
     with open(path) as f:
         try:
             # See http://stackoverflow.com/questions/2058802
-            value = parse(next(filter(lambda line: line.startswith(var), f))).body[0].value.s  # type: ignore
+            value_obj = parse(next(filter(lambda line: line.startswith(var), f))).body[0].value  # type: ignore
+            if sys.version_info.major == 3 and sys.version_info.minor == 7:
+                value = value_obj.n  # type: ignore
+            else:
+                value = value_obj.s  # type: ignore
+
         except StopIteration:
             raise RuntimeError(f"Could not find initialization of variable {var}")
     return value
