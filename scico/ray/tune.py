@@ -128,7 +128,17 @@ def run(
     if local_dir is None:
         local_dir = os.path.join(tempfile.gettempdir(), os.getlogin(), "ray_results")
 
-    return ray.tune.run(
+    # Record original logger.info
+    logger_info = ray.tune.tune.logger.info
+
+    # Replace logger.info with filtered version
+    def logger_info_filter(msg, *args, **kwargs):
+        if msg[0:15] != "Total run time:":
+            logger_info(msg, *args, **kwargs)
+
+    ray.tune.tune.logger.info = logger_info_filter
+
+    result = ray.tune.run(
         run_or_experiment,
         metric=metric,
         mode=mode,
@@ -143,3 +153,8 @@ def run(
         checkpoint_freq=0,
         **kwargs,
     )
+
+    # Restore original logger.info
+    ray.tune.tune.logger.info = logger_info
+
+    return result
