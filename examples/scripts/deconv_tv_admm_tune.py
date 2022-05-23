@@ -22,7 +22,7 @@ two environment variables are set to suppress the warnings because
 `JAX_PLATFORMS` was intended to replace `JAX_PLATFORM_NAME` but this change
 has yet to be correctly implemented
 (see [google/jax#6805](https://github.com/google/jax/issues/6805) and
-[google/jax#10272](https://github.com/google/jax/pull/10272).
+[google/jax#10272](https://github.com/google/jax/pull/10272)).
 """
 
 # isort: off
