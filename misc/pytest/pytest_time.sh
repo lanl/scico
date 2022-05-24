@@ -5,9 +5,13 @@
 
 tmp=/tmp/pytest_time.$$
 rm -f $tmp
-for f in $(find scico/test/ -name "test_*.py"); do
-    t=$(/usr/bin/time -f "%e" pytest -qqq --disable-warnings $f 2>&1\
-	    | grep -o -E "[0-9\.]*$")
+for f in $(find scico/test -name "test_*.py"); do
+    tstr=$(/usr/bin/time -p pytest -qqq --disable-warnings $f 2>&1 | tail -4)
+    # Warning does not work in OSX bash
+    if grep -q "Command exited with non-zero status" <<<"$tstr"; then
+	echo "WARNING: test failure in $f" >&2
+    fi
+    t=$(grep "^real" <<<"$tstr" | grep -o -E "[0-9\.]*$")
     printf "%6.2f  %s\n" $t $f >> $tmp
 done
 sort -r -n $tmp
