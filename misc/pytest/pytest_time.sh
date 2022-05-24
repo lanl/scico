@@ -3,11 +3,6 @@
 # This script runs each scico unit test module and lists them all in order
 # of decreasing run time. It must be run from the repository root directory.
 
-#if [ $(uname -s) != "Linux" ]; then
-#    echo "This script is only supported under Linux OS"
-#    exit 1
-#fi
-
 tmp=/tmp/pytest_time.$$
 rm -f $tmp
 for f in $(find scico/test -name "test_*.py"); do
