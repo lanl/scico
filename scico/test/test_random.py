@@ -4,7 +4,7 @@ import jax
 
 import pytest
 
-import scico
+import scico.random
 
 
 @pytest.mark.parametrize("seed", [None, 42])
