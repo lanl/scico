@@ -65,9 +65,8 @@ plot.imview(
 fig.suptitle(r"Training and Testing samples")
 fig.tight_layout()
 fig.colorbar(
-    axes[1, 0].get_images()[0],
+    axes[0, 2].get_images()[0],
     ax=axes,
-    location="bottom",
     shrink=0.5,
     pad=0.05,
     label="Arbitrary Units",
