@@ -120,25 +120,32 @@ print(
 
 
 # Plot comparison
-fig, axes = plot.subplots(nrows=1, ncols=3, figsize=(12, 4.5))
-plot.imview(test_ds["label"][0, ..., 0], title="Ground truth", fig=fig, ax=axes[0])
-plot.imview(test_ds["image"][0, ..., 0], title=r"FBP", fig=fig, ax=axes[1])
+fig, ax = plot.subplots(nrows=1, ncols=3, figsize=(15, 5))
+plot.imview(test_ds["label"][0, ..., 0], title="Ground truth", cbar=None, fig=fig, ax=ax[0])
+plot.imview(
+    test_ds["image"][0, ..., 0],
+    title="FBP Reconstruction: \nSNR: %.2f (dB), MAE: %.3f"
+    % (
+        metric.snr(test_ds["label"][0, ..., 0], test_ds["image"][0, ..., 0]),
+        metric.mae(test_ds["label"][0, ..., 0], test_ds["image"][0, ..., 0]),
+    ),
+    cbar=None,
+    fig=fig,
+    ax=ax[1],
+)
 plot.imview(
     output[0, ..., 0],
-    title=r"UNet Prediction",
+    title="UNet Reconstruction\nSNR: %.2f (dB), MAE: %.3f"
+    % (
+        metric.snr(test_ds["label"][0, ..., 0], output[0, ..., 0]),
+        metric.mae(test_ds["label"][0, ..., 0], output[0, ..., 0]),
+    ),
     fig=fig,
-    ax=axes[2],
+    ax=ax[2],
 )
-fig.suptitle(r"Compare FBP-based Prediction")
-fig.tight_layout()
-fig.colorbar(
-    axes[2].get_images()[0],
-    ax=axes,
-    location="right",
-    shrink=1.0,
-    pad=0.05,
-    label="Arbitrary Units",
-)
+divider = make_axes_locatable(ax[2])
+cax = divider.append_axes("right", size="5%", pad=0.2)
+fig.colorbar(ax[2].get_images()[0], cax=cax, label="arbitrary units")
 fig.show()
 
 input("\nWaiting for input to close figures and exit")
