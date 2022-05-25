@@ -348,7 +348,9 @@ def load_ct_data(
                     "fbp": ttdt_in["fbp"][:test_nimg],
                 }
                 if verbose:
-                    print(f"{'Data read from path:':22s}{cache_path_display}")
+                    print(f"{'Data read from path':29s}{':':2s}{cache_path_display}")
+                    print(f"{'Train images':29s}{':':2s}{trdt['img'].shape[0]}")
+                    print(f"{'Test images':29s}{':':2s}{ttdt['img'].shape[0]}")
                     print(
                         f"{'Data range images':26s}{'Min:':6s}{trdt['img'].min():>5.2f}"
                         f"{', Max:':6s}{trdt['img'].max():>8.2f}"
@@ -404,6 +406,8 @@ def load_ct_data(
 
     if verbose:
         print(f"{'Storing data in path':29s}{':':2s}{cache_path_display}")
+        print(f"{'Train images':29s}{':':2s}{train_nimg}")
+        print(f"{'Test images':29s}{':':2s}{test_nimg}")
         print(
             f"{'Data range images':26s}{'Min:':6s}{img.min():>5.2f}{', Max:':6s}{img.max():>8.2f}"
         )
@@ -569,9 +573,9 @@ def load_foam_blur_data(
                     "label": test_out,
                 }
                 if verbose:
-                    print(f"{'Data read from path:':22s}{cache_path_display}")
-                    print(f"{'Train images':26s}{train_ds['image'].shape[0]}")
-                    print(f"{'Test images':26s}{test_ds['image'].shape[0]}")
+                    print(f"{'Data read from path':26s}{':':2s}{cache_path_display}")
+                    print(f"{'Train images':26s}{':':2s}{train_ds['image'].shape[0]}")
+                    print(f"{'Test images':26s}{':':2s}{test_ds['image'].shape[0]}")
                     print(
                         f"{'Data range images':26s}{'Min:':6s}{train_ds['image'].min():>5.2f}"
                         f"{', Max:':6s}{train_ds['image'].max():>8.2f}"
@@ -629,8 +633,8 @@ def load_foam_blur_data(
 
     if verbose:
         print(f"{'Storing data in path':29s}{':':2s}{cache_path_display}")
-        print(f"{'Train images':26s}{train_ds['image'].shape[0]}")
-        print(f"{'Test images':26s}{test_ds['image'].shape[0]}")
+        print(f"{'Train images':29s}{':':2s}{train_ds['image'].shape[0]}")
+        print(f"{'Test images':29s}{':':2s}{test_ds['image'].shape[0]}")
         print(
             f"{'Data range images':26s}{'Min:':6s}{train_ds['image'].min():>5.2f}"
             f"{', Max:':6s}{train_ds['image'].max():>8.2f}"
