@@ -49,9 +49,8 @@ if have_astra:
     from scico.linop.radon_astra import TomographicProjector
 
 
-# Arbitray process count: only applies if GPU is not available.
+# Arbitrary process count: only applies if GPU is not available.
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
-print("Device count: ", jax.device_count())
 
 
 class CTDataSetDict(TypedDict):
@@ -254,6 +253,7 @@ def ct_data_generation(
     if verbose:
         platform = jax.lib.xla_bridge.get_backend().platform
         print(f"{'Platform':29s}{':':2s}{platform}")
+        print(f"{'Device count':29s}{':':2s}{jax.device_count()}")
         print(f"{'Data Generation':22s}{'time[s]:':8s}{time_dtgen:>7.2f}")
         print(f"{'Sinogram Generation':22s}{'time[s]:':8s}{time_sino:>7.2f}")
         print(f"{'FBP Generation':22s}{'time[s]:':8s}{time_fbp:>7.2f}")
@@ -286,7 +286,7 @@ def load_ct_data(
     data is stored in `.npz` format for
     convenient access via :func:`numpy.load`.
     The data is saved in two distinct files:
-    `foam2ct_train.npz` and `foam2ct_test.npz`
+    `ct_foam2_train.npz` and `ct_foam2_test.npz`
     to keep separated training and testing
     partitions.
 
@@ -308,13 +308,15 @@ def load_ct_data(
     """
     # Set default cache path if not specified.
     if cache_path is None:
-        cache_path = os.path.join(
-            os.path.expanduser("~"), ".cache", "scico", "examples", "ct", "data"
-        )
+        cache_path = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "data")
+        subpath = str.split(cache_path, ".cache")
+        cache_path_display = "~/.cache" + subpath[-1]
+    else:
+        cache_path_display = cache_path
 
     # Create cache directory and generate data if not already present.
-    npz_train_file = os.path.join(cache_path, "foam2ct_train.npz")
-    npz_test_file = os.path.join(cache_path, "foam2ct_test.npz")
+    npz_train_file = os.path.join(cache_path, "ct_foam2_train.npz")
+    npz_test_file = os.path.join(cache_path, "ct_foam2_test.npz")
 
     if os.path.isfile(npz_train_file) and os.path.isfile(npz_test_file):
         # Load data.
@@ -346,7 +348,7 @@ def load_ct_data(
                     "fbp": ttdt_in["fbp"][:test_nimg],
                 }
                 if verbose:
-                    print(f"{'Data read from path:':22s}{cache_path}")
+                    print(f"{'Data read from path:':22s}{cache_path_display}")
                     print(
                         f"{'Data range images':26s}{'Min:':6s}{trdt['img'].min():>5.2f}"
                         f"{', Max:':6s}{trdt['img'].max():>8.2f}"
@@ -401,7 +403,7 @@ def load_ct_data(
     )
 
     if verbose:
-        print(f"{'Storing data in path':29s}{':':2s}{cache_path}")
+        print(f"{'Storing data in path':29s}{':':2s}{cache_path_display}")
         print(
             f"{'Data range images':26s}{'Min:':6s}{img.min():>5.2f}{', Max:':6s}{img.max():>8.2f}"
         )
@@ -474,6 +476,7 @@ def foam_blur_data_generation(
     if verbose:
         platform = jax.lib.xla_bridge.get_backend().platform
         print(f"{'Platform':29s}{':':2s}{platform}")
+        print(f"{'Device count':29s}{':':2s}{jax.device_count()}")
         print(f"{'Data Generation':22s}{'time[s]:':8s}{time_dtgen:>7.2f}")
         print(f"{'Blur Generation':22s}{'time[s]:':8s}{time_blur:>7.2f}")
 
@@ -507,7 +510,7 @@ def load_foam_blur_data(
     data is stored in `.npz` format for
     convenient access via :func:`numpy.load`.
     The data is saved in two distinct files:
-    `foam_dcnv_train.npz` and `foam_dcnv_test.npz`
+    `dcnv_foam_train.npz` and `dcnv_foam_test.npz`
     to keep separated training and testing
     partitions.
 
@@ -528,13 +531,15 @@ def load_foam_blur_data(
     """
     # Set default cache path if not specified.
     if cache_path is None:
-        cache_path = os.path.join(
-            os.path.expanduser("~"), ".cache", "scico", "examples", "img", "data"
-        )
+        cache_path = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "data")
+        subpath = str.split(cache_path, ".cache")
+        cache_path_display = "~/.cache" + subpath[-1]
+    else:
+        cache_path_display = cache_path
 
     # Create cache directory and generate data if not already present.
-    npz_train_file = os.path.join(cache_path, "foam_dcnv_train.npz")
-    npz_test_file = os.path.join(cache_path, "foam_dcnv_test.npz")
+    npz_train_file = os.path.join(cache_path, "dcnv_foam_train.npz")
+    npz_test_file = os.path.join(cache_path, "dcnv_foam_test.npz")
 
     if os.path.isfile(npz_train_file) and os.path.isfile(npz_test_file):
         # Load data and convert arrays to float32.
@@ -564,7 +569,7 @@ def load_foam_blur_data(
                     "label": test_out,
                 }
                 if verbose:
-                    print(f"{'Data read from path:':22s}{cache_path}")
+                    print(f"{'Data read from path:':22s}{cache_path_display}")
                     print(f"{'Train images':26s}{train_ds['image'].shape[0]}")
                     print(f"{'Test images':26s}{test_ds['image'].shape[0]}")
                     print(
@@ -576,9 +581,9 @@ def load_foam_blur_data(
                         f"{', Max:':6s}{train_ds['label'].max():>8.2f}"
                     )
                     print(
-                        "NOTE: No checking that additive noise, blur or other preprocessing"
-                        " performed in the data loaded agrees with the requested preprocessing!"
-                        " Delete cache to guarantee requested preprocessing."
+                        "NOTE: If blur kernel or noise parameter are changed, the cache"
+                        " must be manually deleted to ensure that the training data "
+                        " is regenerated with these new parameters."
                     )
 
                 return train_ds, test_ds
@@ -623,7 +628,7 @@ def load_foam_blur_data(
     )
 
     if verbose:
-        print(f"{'Storing data in path':29s}{':':2s}{cache_path}")
+        print(f"{'Storing data in path':29s}{':':2s}{cache_path_display}")
         print(f"{'Train images':26s}{train_ds['image'].shape[0]}")
         print(f"{'Test images':26s}{test_ds['image'].shape[0]}")
         print(
@@ -1112,8 +1117,13 @@ def load_image_data(
     Load and/or pre-process image data.
 
     Load and/or pre-process image data for
-    training of machine learning network models.
-    If cached file exists, and enough images
+    training of neural network models. The original
+    source is the BSDS500 data from the Berkeley
+    Segmentation Dataset and Benchmark project.
+    Depending on the intended applications, different
+    pre-processings can be performed to the source data.
+
+    If a cached file exists, and enough images
     were sampled, data is loaded and returned.
 
     If either `size` or type of data (gray
@@ -1130,8 +1140,8 @@ def load_image_data(
     in `cache_path`. The data is stored in
     `.npz` format for convenient access via
     :func:`numpy.load`. The data is saved in two
-    distinct files: `img_*_train.npz` and
-    `img_*_test.npz` to keep separated training
+    distinct files: `*_bsds_train.npz` and
+    `*_bsds_test.npz` to keep separated training
     and testing partitions. The * stands for
     `dn` if denoising problem or `dcnv` if
     deconvolution problem. Other types of pre-processings
@@ -1164,13 +1174,15 @@ def load_image_data(
     """
     # Set default cache path if not specified.
     if cache_path is None:
-        cache_path = os.path.join(
-            os.path.expanduser("~"), ".cache", "scico", "examples", "img", "data"
-        )
+        cache_path = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "data")
+        subpath = str.split(cache_path, ".cache")
+        cache_path_display = "~/.cache" + subpath[-1]
+    else:
+        cache_path_display = cache_path
 
     # Create cache directory and generate data if not already present.
-    npz_train_file = os.path.join(cache_path, "img_" + data_mode + "_train.npz")
-    npz_test_file = os.path.join(cache_path, "img_" + data_mode + "_test.npz")
+    npz_train_file = os.path.join(cache_path, data_mode + "_bsds_train.npz")
+    npz_test_file = os.path.join(cache_path, data_mode + "_bsds_test.npz")
 
     if os.path.isfile(npz_train_file) and os.path.isfile(npz_test_file):
         # Load data and convert arrays to float32.
@@ -1211,7 +1223,7 @@ def load_image_data(
                     "label": test_out,
                 }
                 if verbose:
-                    print(f"{'Data read from path:':22s}{cache_path}")
+                    print(f"{'Data read from path:':22s}{cache_path_display}")
                     print(f"{'Train images':26s}{train_ds['image'].shape[0]}")
                     print(f"{'Test images':26s}{test_ds['image'].shape[0]}")
                     print(
@@ -1223,9 +1235,9 @@ def load_image_data(
                         f"{', Max:':6s}{train_ds['label'].max():>8.2f}"
                     )
                     print(
-                        "NOTE: No checking that additive noise, blur or other preprocessing"
-                        " performed in the data loaded agrees with the requested preprocessing!"
-                        " Delete cache to guarantee requested preprocessing."
+                        "NOTE: If blur kernel or noise parameter are changed, the cache"
+                        " must be manually deleted to ensure that the training data "
+                        " is regenerated with these new parameters."
                     )
 
                 return train_ds, test_ds
@@ -1289,7 +1301,7 @@ def load_image_data(
     )
 
     if verbose:
-        print(f"{'Storing data in path':29s}{':':2s}{cache_path}")
+        print(f"{'Storing data in path':29s}{':':2s}{cache_path_display}")
         print(f"{'Train images':26s}{train_ds['image'].shape[0]}")
         print(f"{'Test images':26s}{test_ds['image'].shape[0]}")
         print(
