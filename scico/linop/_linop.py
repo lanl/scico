@@ -15,6 +15,8 @@ import operator
 from functools import partial
 from typing import Any, Callable, Optional, Tuple, Union
 
+import numpy as np
+
 import scico.numpy as snp
 from scico._generic_operators import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
 from scico.numpy import BlockArray
@@ -304,8 +306,13 @@ class Slice(LinearOperator):
     def _eval(self, x: JaxArray) -> JaxArray:
         return x[self.idx]
 
+    def _norm(self):
+        return 1.0
 
-def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = None):
+
+def linop_from_function(
+    f: Callable, classname: str, f_norm: Optional[Callable] = None, f_name: Optional[str] = None
+):
     """Make a linear operator class from a function.
 
     Example
@@ -318,6 +325,8 @@ def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = Non
     Args:
         f: Function from which to create a linear operator class
         classname: Name of the resulting class.
+        f_norm: A function capable of computing the norm of the linear
+            operator.
         f_name: Name of `f` for use in docstrings. Useful for getting
             the correct version of wrapped functions. Defaults to
             `f"{f.__module__}.{f.__name__}"`.
@@ -350,6 +359,8 @@ def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = Non
         jit: bool = True,
         **kwargs: Any,
     ):
+        self._f_args = args
+        self._f_kwargs = kwargs
         self._eval = lambda x: f(x, *args, **kwargs)
         super().__init__(input_shape, input_dtype=input_dtype, jit=jit)  # type: ignore
 
@@ -359,9 +370,31 @@ def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = Non
     OpClass.__doc__ = f"Linear operator version of :func:`{f_name}`."
     OpClass.__init__.__doc__ = f_doc  # type: ignore
 
+    if f_norm is not None:
+        OpClass._norm = f_norm
+
     return OpClass
 
 
-Transpose = linop_from_function(snp.transpose, "Transpose", "scico.numpy.transpose")
-Sum = linop_from_function(snp.sum, "Sum")
-Pad = linop_from_function(snp.pad, "Pad", "scico.numpy.pad")
+def _unit_norm(self):
+    return 1.0
+
+
+Transpose = linop_from_function(
+    snp.transpose, "Transpose", f_norm=_unit_norm, f_name="scico.numpy.transpose"
+)
+
+
+def _sum_norm(self):
+    axis = self._f_kwargs.get("axis")
+    if axis is None:
+        size = np.prod(self.input_shape)
+    elif isinstance(axis, int):
+        size = self.input_shape[axis]
+    else:
+        size = np.prod([self.input_shape[k] for k in axis])
+    return np.sqrt(size)
+
+
+Sum = linop_from_function(snp.sum, "Sum", f_norm=_sum_norm)
+Pad = linop_from_function(snp.pad, "Pad", f_norm=_unit_norm, f_name="scico.numpy.pad")
