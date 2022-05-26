@@ -387,11 +387,19 @@ def _wrap_add_sub(func: Callable, op: Callable) -> Callable:
                 if isinstance(
                     b, LinearOperator
                 ):  # LinearOperator + LinearOperator -> LinearOperator
+                    if a.has_norm and b.has_norm:
+                        norm_fn = lambda: a.norm() + b.norm()
+                        norm_is_bound = True
+                    else:
+                        norm_fn = None
+                        norm_is_bound = False
                     return LinearOperator(
                         input_shape=a.input_shape,
                         output_shape=a.output_shape,
                         eval_fn=lambda x: op(a(x), b(x)),
                         adj_fn=lambda x: op(a(x), b(x)),
+                        norm_fn=norm_fn,
+                        norm_is_bound=norm_is_bound,
                         input_dtype=a.input_dtype,
                         output_dtype=result_type(a.output_dtype, b.output_dtype),
                     )

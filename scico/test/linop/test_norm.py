@@ -132,7 +132,7 @@ def test_sum_bound():
     B = DFT(input_shape=(N,))
     C = A + B
     Cnorm = operator_norm(C, maxiter=100)
-    assert C.norm() <= Cnorm + 1e-5
+    assert Cnorm <= C.norm() + 1e-4
     assert C.norm_is_bound
 
 
@@ -142,5 +142,5 @@ def test_sum_product():
     B = DFT(input_shape=(N,))
     C = A @ B
     Cnorm = operator_norm(C, maxiter=100)
-    assert C.norm() <= Cnorm + 1e-5
+    assert Cnorm <= C.norm() + 1e-4
     assert C.norm_is_bound
