@@ -397,4 +397,4 @@ def _sum_norm(self):
 
 
 Sum = linop_from_function(snp.sum, "Sum", f_norm=_sum_norm)
-Pad = linop_from_function(snp.pad, "Pad", f_norm=_unit_norm, f_name="scico.numpy.pad")
+Pad = linop_from_function(snp.pad, "Pad", f_name="scico.numpy.pad")
