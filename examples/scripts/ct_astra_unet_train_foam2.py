@@ -20,10 +20,11 @@ import numpy as np
 
 import jax
 
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+
 from scico import flax as sflax
-from scico import plot
+from scico import metric, plot
 from scico.flax.examples import load_ct_data
-from scico.metric import psnr, snr
 
 """
 Prepare parallel processing. Set an arbitrary processor
@@ -61,7 +62,7 @@ epochs = 200
 dconf: sflax.ConfigDict = {
     "seed": 0,
     "depth": 2,
-    "num_filters": 32,
+    "num_filters": 64,
     "block_depth": 2,
     "opt_type": "SGD",
     "momentum": 0.9,
@@ -88,7 +89,7 @@ model = sflax.UNet(
 """
 Run training loop.
 """
-workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "ct", "unet_out")
+workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "unet_ct_out")
 print(f"{'JAX process: '}{jax.process_index()}{' / '}{jax.process_count()}")
 print(f"{'JAX local devices: '}{jax.local_devices()}")
 
@@ -111,8 +112,8 @@ output = np.clip(output, a_min=0, a_max=1.0)
 Compare trained model in terms of reconstruction time
 and data fidelity.
 """
-snr_eval = snr(test_ds["label"], output)
-psnr_eval = psnr(test_ds["label"], output)
+snr_eval = metric.snr(test_ds["label"], output)
+psnr_eval = metric.psnr(test_ds["label"], output)
 print(
     f"{'UNet':14s}{'epochs:':2s}{epochs:>5d}{'':3s}{'time[s]:':10s}{time_train:>5.2f}{'':3s}"
     f"{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}"
