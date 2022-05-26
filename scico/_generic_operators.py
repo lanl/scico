@@ -139,7 +139,7 @@ output_dtype : {self.output_dtype}
         if eval_fn:
             self._eval = eval_fn  # type: ignore
 
-        # If the shape isn't specified by user we can infer it using by invoking the function
+        # If the shape isn't specified by user we can infer it by invoking the function
         if output_shape is None or output_dtype is None:
             tmp = self(snp.zeros(self.input_shape, dtype=input_dtype))
         if output_shape is None:
