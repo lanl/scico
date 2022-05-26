@@ -41,12 +41,13 @@ from time import time
 import jax
 import jax.numpy as jnp
 
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+
 from scico import flax as sflax
-from scico import plot
+from scico import metric, plot
 from scico.flax.examples import load_foam_blur_data
 from scico.flax.train.train import clip_positive, construct_traversal, train_step_post
 from scico.linop import CircularConvolve
-from scico.metric import psnr, snr
 
 """
 Prepare parallel processing. Set an arbitrary processor
@@ -136,7 +137,7 @@ followed by a second stage (depth iterations) training loop.
 """
 channels = train_ds["image"].shape[-1]
 workdir2 = os.path.join(
-    os.path.expanduser("~"), ".cache", "scico", "examples", "img", "modl_dcnv_out", "iterated"
+    os.path.expanduser("~"), ".cache", "scico", "examples", "modl_dcnv_out", "iterated"
 )
 
 checkpoint_files = []
@@ -174,9 +175,7 @@ else:
         cg_iter=4,
     )
     # First stage: initialization training loop.
-    workdir = os.path.join(
-        os.path.expanduser("~"), ".cache", "scico", "examples", "img", "modl_dcnv_out"
-    )
+    workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "modl_dcnv_out")
 
     dconf["num_epochs"] = epochs
     start_time = time()
@@ -230,37 +229,46 @@ output = jnp.clip(output, a_min=0, a_max=1.0)
 Compare trained model in terms of reconstruction time
 and data fidelity.
 """
-snr_eval = snr(test_ds["label"][:test_nimg], output)
-psnr_eval = psnr(test_ds["label"][:test_nimg], output)
+snr_eval = metric.snr(test_ds["label"], output)
+psnr_eval = metric.psnr(test_ds["label"], output)
 print(
-    f"{'MoDLNet':14s}{'epochs:':2s}{dconf['num_epochs']:>5d}{'':3s}{'time[s]:':10s}"
-    f"{time_train:>5.2f}{'':3s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}"
-    f"{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}"
+    f"{'MoDLNet training':18s}{'epochs:':2s}{epochs:>5d}{'':21s}{'time[s]:':10s}{time_train:>5.2f}{'':3s}"
 )
-
+print(
+    f"{'MoDLNet testing':18s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}{'':3s}{'time[s]:':10s}{time_eval:>5.2f}"
+)
 
 # Plot comparison
 key = jax.random.PRNGKey(54321)
-indx_te = jax.random.randint(key, (1,), 0, test_nimg)[0]
-fig, axes = plot.subplots(nrows=1, ncols=3, figsize=(12, 4.5))
-plot.imview(test_ds["label"][indx_te, ..., 0], title="Ground truth", fig=fig, ax=axes[0])
-plot.imview(test_ds["image"][indx_te, ..., 0], title=r"Blurred", fig=fig, ax=axes[1])
+indx = jax.random.randint(key, (1,), 0, test_nimg)[0]
+
+fig, ax = plot.subplots(nrows=1, ncols=3, figsize=(15, 5))
+plot.imview(test_ds["label"][indx, ..., 0], title="Ground truth", cbar=None, fig=fig, ax=ax[0])
 plot.imview(
-    output[indx_te, ..., 0],
-    title=r"MoDLNet Prediction",
+    test_ds["image"][indx, ..., 0],
+    title="Blurred: \nSNR: %.2f (dB), MAE: %.3f"
+    % (
+        metric.snr(test_ds["label"][indx, ..., 0], test_ds["image"][indx, ..., 0]),
+        metric.mae(test_ds["label"][indx, ..., 0], test_ds["image"][indx, ..., 0]),
+    ),
+    cbar=None,
     fig=fig,
-    ax=axes[2],
+    ax=ax[1],
 )
-fig.suptitle(r"Compare MoDLNet Deconvolution")
-fig.tight_layout()
-fig.colorbar(
-    axes[2].get_images()[0],
-    ax=axes,
-    location="right",
-    shrink=1.0,
-    pad=0.05,
-    label="Arbitrary Units",
+plot.imview(
+    output[indx, ..., 0],
+    title="MoDLNet Reconstruction\nSNR: %.2f (dB), MAE: %.3f"
+    % (
+        metric.snr(test_ds["label"][indx, ..., 0], output[indx, ..., 0]),
+        metric.mae(test_ds["label"][indx, ..., 0], output[indx, ..., 0]),
+    ),
+    fig=fig,
+    ax=ax[2],
 )
+divider = make_axes_locatable(ax[2])
+cax = divider.append_axes("right", size="5%", pad=0.2)
+fig.colorbar(ax[2].get_images()[0], cax=cax, label="arbitrary units")
 fig.show()
+
 
 input("\nWaiting for input to close figures and exit")
