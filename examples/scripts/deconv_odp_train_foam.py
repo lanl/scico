@@ -169,7 +169,7 @@ del train_ds["image"]
 del train_ds["label"]
 start_time = time()
 fmap = sflax.FlaxMap(model, modvar)
-output = fmap(test_ds["image"][:test_nimg])
+output = fmap(test_ds["image"])
 time_eval = time() - start_time
 output = jnp.clip(output, a_min=0, a_max=1.0)
 
