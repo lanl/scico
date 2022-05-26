@@ -419,6 +419,7 @@ class LinearOperator(Operator):
         eval_fn: Optional[Callable] = None,
         adj_fn: Optional[Callable] = None,
         norm_fn: Optional[Callable] = None,
+        norm_is_bound: bool = False,
         input_dtype: DType = np.float32,
         output_dtype: Optional[DType] = None,
         jit: bool = False,
@@ -442,6 +443,9 @@ class LinearOperator(Operator):
                 LinearOperator. If ``None``, then `self._norm`
                 must be defined in any derived classes if :meth:`.norm()`
                 is to be usable.
+            norm_is_bound: Flag indicating whether :meth:`.norm()`
+                computes the actual operator norm or an upper bound
+                thereof.
             input_dtype: `dtype` for input argument.
                 Defaults to ``float32``. If `LinearOperator` implements
                 complex-valued operations, this must be ``complex64`` for
@@ -470,6 +474,8 @@ class LinearOperator(Operator):
             self._gram: Optional[Callable] = None
         if not hasattr(self, "_norm"):
             self._norm: Optional[Callable] = norm_fn
+        if not hasattr(self, "_norm_is_bound"):
+            self._norm_is_bound: bool = norm_is_bound
         if callable(adj_fn):
             self._adj = adj_fn
             self._gram = lambda x: self.adj(self(x))
@@ -500,15 +506,45 @@ class LinearOperator(Operator):
         """``True`` if the `LinearOperator` has a norm method, otherwise ``False``."""
         return hasattr(self, "_norm") and self._norm is not None
 
+    @property
+    def norm_is_bound(self):
+        """``True`` if the norm method computes an upper bound of the norm.
+
+        ``True`` if the `LinearOperator` norm method computes an upper
+        bound of the norm rather than the actual norm, otherwise ``False``.
+        """
+        return self.has_norm and self._norm_is_bound
+
     def norm(self):
-        """Compute the operator norm induced by the :math:`\ell_2` vector norm.
+        r"""Compute the operator norm induced by the :math:`\ell_2` vector norm.
 
         If implemented, this method should provide a rapid calculation of
         the operator norm induced by the :math:`\ell_2` vector norm. A
         slower estimate is available for all `LinearOperator` classes by
-        use of :func:`.linop.operator_norm`. If this method is implemented
-        for operator `A`, then it is also available for operator `A.H`,
-        and also for `A.T` when `A` has a real `input_dtype`.
+        use of :func:`.linop.operator_norm`.
+
+        The identities
+
+        .. math::
+           \norm{A^H}_2 = \norm{A}_2 \\
+           \norm{\alpha A}_2 = \abs{\alpha} \, \norm{A}_2
+
+        and bounds
+
+        .. math::
+           \norm{A + B}_2 \leq \norm{A}_2 + \norm{B}_2 \\
+           \norm{A B}_2 \leq \norm{A}_2 \, \norm{B}_2 \,
+
+        for scalar :math:`\alpha` and operators :math:`A` and :math:`B`,
+        (assumed to be bounded) are exploited when norms are defined for
+        the operator(s) involved.
+
+        With respect to the identities, note that the norm is always
+        implemented for `A.H` when it is implemented for `A`, but is only
+        implemented for `A.T` when `A` has a real `input_dtype`.
+
+        When the bounds are exploited to construct a norm for a compound
+        operator, :meth:`norm_is_bound` returns ``True``.
         """
         if self.has_norm:
             return self._norm()
@@ -517,55 +553,86 @@ class LinearOperator(Operator):
 
     @partial(_wrap_add_sub, op=operator.add)
     def __add__(self, other):
+        if self.has_norm and other.has_norm:
+            norm_fn = lambda: self.norm() + other.norm()
+            norm_is_bound = True
+        else:
+            norm_fn = None
+            norm_is_bound = False
         return LinearOperator(
             input_shape=self.input_shape,
             output_shape=self.output_shape,
             eval_fn=lambda x: self(x) + other(x),
             adj_fn=lambda x: self.adj(x) + other.adj(x),
+            norm_fn=norm_fn,
+            norm_is_bound=norm_is_bound,
             input_dtype=self.input_dtype,
             output_dtype=result_type(self.output_dtype, other.output_dtype),
         )
 
     @partial(_wrap_add_sub, op=operator.sub)
     def __sub__(self, other):
+        if self.has_norm and other.has_norm:
+            norm_fn = lambda: self.norm() + other.norm()
+            norm_is_bound = True
+        else:
+            norm_fn = None
+            norm_is_bound = False
         return LinearOperator(
             input_shape=self.input_shape,
             output_shape=self.output_shape,
             eval_fn=lambda x: self(x) - other(x),
             adj_fn=lambda x: self.adj(x) - other.adj(x),
+            norm_fn=norm_fn,
+            norm_is_bound=norm_is_bound,
             input_dtype=self.input_dtype,
             output_dtype=result_type(self.output_dtype, other.output_dtype),
         )
 
     @_wrap_mul_div_scalar
     def __mul__(self, other):
+        if self.has_norm:
+            norm_fn = lambda: snp.abs(other) * self.norm()
+        else:
+            norm_fn = None
         return LinearOperator(
             input_shape=self.input_shape,
             output_shape=self.output_shape,
             eval_fn=lambda x: other * self(x),
             adj_fn=lambda x: snp.conj(other) * self.adj(x),
+            norm_fn=norm_fn,
             input_dtype=self.input_dtype,
             output_dtype=result_type(self.output_dtype, other),
         )
 
     @_wrap_mul_div_scalar
     def __rmul__(self, other):
+        if self.has_norm:
+            norm_fn = lambda: snp.abs(other) * self.norm()
+        else:
+            norm_fn = None
         return LinearOperator(
             input_shape=self.input_shape,
             output_shape=self.output_shape,
             eval_fn=lambda x: other * self(x),
             adj_fn=lambda x: snp.conj(other) * self.adj(x),
+            norm_fn=norm_fn,
             input_dtype=self.input_dtype,
             output_dtype=result_type(self.output_dtype, other),
         )
 
     @_wrap_mul_div_scalar
     def __truediv__(self, other):
+        if self.has_norm:
+            norm_fn = lambda: self.norm() / snp.abs(other)
+        else:
+            norm_fn = None
         return LinearOperator(
             input_shape=self.input_shape,
             output_shape=self.output_shape,
             eval_fn=lambda x: self(x) / other,
             adj_fn=lambda x: self.adj(x) / snp.conj(other),
+            norm_fn=norm_fn,
             input_dtype=self.input_dtype,
             output_dtype=result_type(self.output_dtype, other),
         )
@@ -793,6 +860,13 @@ class ComposedLinearOperator(LinearOperator):
         self.A = A
         self.B = B
 
+        if A.has_norm and B.has_norm:
+            norm_fn = lambda: self.A.norm() * self.B.norm()
+            norm_is_bound = True
+        else:
+            norm_fn = None
+            norm_is_bound = False
+
         super().__init__(
             input_shape=self.B.input_shape,
             output_shape=self.A.output_shape,
@@ -800,5 +874,7 @@ class ComposedLinearOperator(LinearOperator):
             output_dtype=self.A.output_dtype,
             eval_fn=lambda x: self.A(self.B(x)),
             adj_fn=lambda z: self.B.adj(self.A.adj(z)),
+            norm_fn=norm_fn,
+            norm_is_bound=norm_is_bound,
             jit=jit,
         )

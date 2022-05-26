@@ -16,17 +16,29 @@ from scico.linop import (
 
 
 def norm_test(A):
+    𝛼 = np.sqrt(2)
     x = A.norm()
     y = operator_norm(A, maxiter=100)
     np.testing.assert_allclose(x, y, rtol=1e-4)
     if A.input_dtype == np.float32:
-        x = A.T.norm()
-        y = operator_norm(A.T, maxiter=100)
-        np.testing.assert_allclose(x, y, rtol=1e-4)
+        B = A.T
     else:
-        x = A.H.norm()
-        y = operator_norm(A.H, maxiter=100)
-        np.testing.assert_allclose(x, y, rtol=1e-4)
+        B = A.H
+    x = B.norm()
+    y = operator_norm(B, maxiter=100)
+    np.testing.assert_allclose(x, y, rtol=1e-4)
+    B = 𝛼 * A
+    x = B.norm()
+    y = operator_norm(B, maxiter=100)
+    np.testing.assert_allclose(x, y, rtol=1e-4)
+    B = A * 𝛼
+    x = B.norm()
+    y = operator_norm(B, maxiter=100)
+    np.testing.assert_allclose(x, y, rtol=1e-4)
+    B = A / 𝛼
+    x = B.norm()
+    y = operator_norm(B, maxiter=100)
+    np.testing.assert_allclose(x, y, rtol=1e-4)
 
 
 @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
@@ -112,3 +124,23 @@ def test_sum(shape_and_axis):
     axis = shape_and_axis[1]
     A = Sum(input_shape=shape, axis=axis)
     norm_test(A)
+
+
+def test_sum_bound():
+    N = 8
+    A = Diagonal(snp.arange(0.0, N) - N / 2.0)
+    B = DFT(input_shape=(N,))
+    C = A + B
+    Cnorm = operator_norm(C, maxiter=100)
+    assert C.norm() <= Cnorm + 1e-5
+    assert C.norm_is_bound
+
+
+def test_sum_product():
+    N = 8
+    A = Diagonal(snp.arange(0.0, N) - N / 2.0, input_dtype=snp.complex64)
+    B = DFT(input_shape=(N,))
+    C = A @ B
+    Cnorm = operator_norm(C, maxiter=100)
+    assert C.norm() <= Cnorm + 1e-5
+    assert C.norm_is_bound
