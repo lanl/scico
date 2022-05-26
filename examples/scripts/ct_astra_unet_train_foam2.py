@@ -16,8 +16,6 @@ reconstruction inspired by :cite:`jin-2017-unet`.
 import os
 from time import time
 
-import numpy as np
-
 import jax
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -106,7 +104,7 @@ start_time = time()
 fmap = sflax.FlaxMap(model, modvar)
 output = fmap(test_ds["image"])
 time_eval = time() - start_time
-output = np.clip(output, a_min=0, a_max=1.0)
+output = jax.numpy.clip(output, a_min=0, a_max=1.0)
 
 """
 Compare trained model in terms of reconstruction time
@@ -115,31 +113,34 @@ and data fidelity.
 snr_eval = metric.snr(test_ds["label"], output)
 psnr_eval = metric.psnr(test_ds["label"], output)
 print(
-    f"{'UNet':14s}{'epochs:':2s}{epochs:>5d}{'':3s}{'time[s]:':10s}{time_train:>5.2f}{'':3s}"
-    f"{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}"
+    f"{'UNet Training':15s}{'epochs:':2s}{epochs:>5d}{'':3s}{'time[s]:':10s}{time_train:>5.2f}{'':3s}"
+    f"{'Testing SNR:':15s}{snr_eval:>5.2f}{' dB'}{'':3s}{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}"
 )
 
 
 # Plot comparison
+key = jax.random.PRNGKey(123)
+indx = jax.random.randint(key, shape=(1,), minval=0, maxval=test_nimg)[0]
+
 fig, ax = plot.subplots(nrows=1, ncols=3, figsize=(15, 5))
-plot.imview(test_ds["label"][0, ..., 0], title="Ground truth", cbar=None, fig=fig, ax=ax[0])
+plot.imview(test_ds["label"][indx, ..., 0], title="Ground truth", cbar=None, fig=fig, ax=ax[0])
 plot.imview(
-    test_ds["image"][0, ..., 0],
+    test_ds["image"][indx, ..., 0],
     title="FBP Reconstruction: \nSNR: %.2f (dB), MAE: %.3f"
     % (
-        metric.snr(test_ds["label"][0, ..., 0], test_ds["image"][0, ..., 0]),
-        metric.mae(test_ds["label"][0, ..., 0], test_ds["image"][0, ..., 0]),
+        metric.snr(test_ds["label"][indx, ..., 0], test_ds["image"][indx, ..., 0]),
+        metric.mae(test_ds["label"][indx, ..., 0], test_ds["image"][indx, ..., 0]),
     ),
     cbar=None,
     fig=fig,
     ax=ax[1],
 )
 plot.imview(
-    output[0, ..., 0],
+    output[indx, ..., 0],
     title="UNet Reconstruction\nSNR: %.2f (dB), MAE: %.3f"
     % (
-        metric.snr(test_ds["label"][0, ..., 0], output[0, ..., 0]),
-        metric.mae(test_ds["label"][0, ..., 0], output[0, ..., 0]),
+        metric.snr(test_ds["label"][indx, ..., 0], output[indx, ..., 0]),
+        metric.mae(test_ds["label"][indx, ..., 0], output[indx, ..., 0]),
     ),
     fig=fig,
     ax=ax[2],
