@@ -267,7 +267,7 @@ class HuberNorm(Functional):
          H_{\delta}(\mb{x}) = \begin{cases}
          (1/2) \| \mb{x} \|_2^2  & \text{ when } \| \mb{x} \|_2 \leq
          \delta \\
-         \delta \| \mb{x} \|_2  - (1/2) & \text{ when }  \| \mb{x} \|_2
+         \delta ( \| \mb{x} \|_2  - (\delta / 2)) & \text{ when }  \| \mb{x} \|_2
          > \delta \;,
          \end{cases}
 
