@@ -305,12 +305,12 @@ class HuberNorm(Functional):
 
         if separable:
             self._call = self._call_sep
-            self.prox = self._prox_sep
+            self._prox = self._prox_sep
         else:
             self._call_lt_branch = lambda xl2: 0.5 * xl2**2
             self._call_gt_branch = lambda xl2: self.delta * (xl2 - self.delta / 2.0)
             self._call = self._call_nonsep
-            self.prox = self._prox_nonsep
+            self._prox = self._prox_nonsep
 
         super().__init__()
 
@@ -370,6 +370,7 @@ class HuberNorm(Functional):
             kwargs: Additional arguments that may be used by derived
                 classes.
         """
+        return self._prox(v, lam=lam, **kwargs)
 
 
 class NuclearNorm(Functional):
