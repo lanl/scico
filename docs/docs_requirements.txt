@@ -1,5 +1,5 @@
 -r ../requirements.txt
-sphinx>=3.5.2
+sphinx>=4.2.0
 sphinxcontrib-napoleon
 sphinxcontrib-bibtex
 sphinx-autodoc-typehints
