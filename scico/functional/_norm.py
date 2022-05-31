@@ -267,8 +267,8 @@ class HuberNorm(Functional):
          H_{\delta}(\mb{x}) = \begin{cases}
          (1/2) \| \mb{x} \|_2^2  & \text{ when } \| \mb{x} \|_2 \leq
          \delta \\
-         \delta ( \| \mb{x} \|_2  - (\delta / 2)) & \text{ when }  \| \mb{x} \|_2
-         > \delta \;,
+         \delta \left( \| \mb{x} \|_2  - (\delta / 2) \right) &
+         \text{ when } \| \mb{x} \|_2 > \delta \;,
          \end{cases}
 
     where :math:`\delta` is a parameter controlling the transitions
@@ -298,8 +298,14 @@ class HuberNorm(Functional):
     ) -> Union[JaxArray, BlockArray]:
         r"""Evaluate proximal operator of the Huber function.
 
-        Evaluate proximal operator of the Huber function
-        :cite:`beck-2017-first` (Sec. 6.7.3).
+        Evaluate scaled proximal operator of the Huber function
+        :cite:`beck-2017-first` (Sec. 6.7.3)
+
+        .. math::
+             \prox_{\lambda H_{\delta}} (\mb{v}) = \left( 1 -
+             \frac{\lambda \delta} {\max\left\{\norm{\mb{v}}_2,
+             \delta + \lambda \delta\right\} } \right) \mb{v} \,.
+
 
         Args:
             v: Input array :math:`\mb{v}`.
