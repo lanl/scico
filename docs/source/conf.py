@@ -133,7 +133,7 @@ mathjax_config = {
             "abs": [r"\left| #1 \right|", 1],
             "argmin": [r"\mathop{\mathrm{argmin}}"],
             "sign": [r"\mathop{\mathrm{sign}}"],
-            "prox": [r"\mathop{\mathrm{prox}}"],
+            "prox": [r"\mathrm{prox}"],
             "loss": [r"\mathop{\mathrm{loss}}"],
             "kp": [r"k_{\|}"],
             "rp": [r"r_{\|}"],
