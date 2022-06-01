@@ -656,7 +656,7 @@ def train_and_evaluate(
             if log:  # pragma: no cover
                 summary = jax.tree_map(lambda x: x.mean(), eval_metrics)
                 print(
-                    "eval epoch: %d, loss: %.6f, snr: %.2f"
+                    "eval epoch: %5d,  loss: %.6f,  snr: %.2f"
                     % (epoch, summary["loss"], summary["snr"])
                 )
                 if have_clu:
