@@ -23,7 +23,8 @@ from ._functional import Functional
 class L0Norm(Functional):
     r"""The :math:`\ell_0` 'norm'.
 
-    Counts the number of non-zero elements in an array.
+    The :math:`\ell_0` 'norm' counts the number of non-zero elements in
+    an array.
     """
 
     has_eval = True
@@ -43,10 +44,10 @@ class L0Norm(Functional):
 
         .. math::
 
-            \mathrm{prox}_{\lambda\| \cdot \|_0}(\mb{v}) =
+            \left[ \prox_{\lambda\| \cdot \|_0}(\mb{v}) \right]_i =
             \begin{cases}
-            \mb{v},  & \text{if } \abs{\mb{v}} \geq \lambda \\
-            0,  & \text{else}
+            v_i  & \text{ if } \abs{v_i} \geq \lambda \\
+            0  & \text{ otherwise } \;.
             \end{cases}
 
         Args:
@@ -80,15 +81,15 @@ class L1Norm(Functional):
         Evaluate scaled proximal operator of :math:`\ell_1` norm using
 
         .. math::
-            \mathrm{prox}_{\lambda \|\cdot\|_1}(\mb{v})_i =
-            \mathrm{sign}(\mb{v}_i) (\abs{\mb{v}_i} - \lambda)_+ \;,
+            \left[ \prox_{\lambda \|\cdot\|_1}(\mb{v}) \right]_i =
+            \sign(v_i) (\abs{v_i} - \lambda)_+ \;,
 
         where
 
         .. math::
             (x)_+ = \begin{cases}
-            x  & \text{if } x \geq 0 \\
-            0  & \text{else} \;.
+            x  & \text{ if } x \geq 0 \\
+            0  & \text{ otherwise} \;.
             \end{cases}
 
         Args:
@@ -107,7 +108,7 @@ class L1Norm(Functional):
 
 
 class SquaredL2Norm(Functional):
-    r"""Squared :math:`\ell_2` norm.
+    r"""The squared :math:`\ell_2` norm.
 
     Squared :math:`\ell_2` norm
 
@@ -131,7 +132,7 @@ class SquaredL2Norm(Functional):
         Evaluate proximal operator of squared :math:`\ell_2` norm using
 
         .. math::
-            \mathrm{prox}_{\lambda \| \cdot \|_2^2}(\mb{v})
+            \prox_{\lambda \| \cdot \|_2^2}(\mb{v})
             = \frac{\mb{v}}{1 + 2 \lambda} \;.
 
         Args:
@@ -144,7 +145,7 @@ class SquaredL2Norm(Functional):
 
 
 class L2Norm(Functional):
-    r""":math:`\ell_2` norm.
+    r"""The :math:`\ell_2` norm.
 
     .. math::
        \norm{\mb{x}}_2 = \sqrt{\sum_i \abs{x_i}^2} \;.
@@ -164,15 +165,15 @@ class L2Norm(Functional):
         Evaluate proximal operator of :math:`\ell_2` norm using
 
         .. math::
-            \mathrm{prox}_{\lambda \| \cdot \|_2}(\mb{v})
-            = \mb{v} \left(1 - \frac{\lambda}{\norm{v}_2} \right)_+ \;,
+            \prox_{\lambda \| \cdot \|_2}(\mb{v}) = \mb{v} \,
+            \left(1 - \frac{\lambda}{\norm{\mb{v}}_2} \right)_+ \;,
 
         where
 
         .. math::
             (x)_+ = \begin{cases}
-            x  & \text{if } x \geq 0 \\
-            0  & \text{else} \;.
+            x  & \text{ if } x \geq 0 \\
+            0  & \text{ otherwise} \;.
             \end{cases}
 
         Args:
@@ -188,7 +189,7 @@ class L2Norm(Functional):
 
 
 class L21Norm(Functional):
-    r""":math:`\ell_{2,1}` norm.
+    r"""The :math:`\ell_{2,1}` norm.
 
     For a :math:`M \times N` matrix, :math:`\mb{A}`, by default,
 
@@ -228,7 +229,7 @@ class L21Norm(Functional):
         In two dimensions,
 
         .. math::
-            \mathrm{prox}_{\lambda \|\cdot\|_{2,1}}(\mb{v}, \lambda)_{:, n} =
+            \prox_{\lambda \|\cdot\|_{2,1}}(\mb{v}, \lambda)_{:, n} =
              \frac{\mb{v}_{:, n}}{\|\mb{v}_{:, n}\|_2}
              (\|\mb{v}_{:, n}\|_2 - \lambda)_+ \;,
 
@@ -236,8 +237,8 @@ class L21Norm(Functional):
 
         .. math::
             (x)_+ = \begin{cases}
-            x  & \text{if } x \geq 0 \\
-            0  & \text{else} \;.
+            x  & \text{ if } x \geq 0 \\
+            0  & \text{ otherwise} \;.
             \end{cases}
 
         Args:
@@ -261,45 +262,107 @@ class HuberNorm(Functional):
     r"""Huber norm.
 
     Compute a norm based on the Huber function :cite:`huber-1964-robust`
-    :cite:`beck-2017-first` (Sec. 6.7.1)
+    :cite:`beck-2017-first` (Sec. 6.7.1). In the non-separable case the
+    norm is
 
     .. math::
          H_{\delta}(\mb{x}) = \begin{cases}
-         (1/2) \| \mb{x} \|_2^2  & \text{ when } \| \mb{x} \|_2 \leq
-         \delta \\
-         \delta \| \mb{x} \|_2  - (1/2) & \text{ when }  \| \mb{x} \|_2
-         > \delta \;,
+         (1/2) \norm{ \mb{x} }_2^2  & \text{ when } \norm{ \mb{x} }_2
+         \leq \delta \\
+         \delta \left( \norm{ \mb{x} }_2  - (\delta / 2) \right) &
+         \text{ when } \norm{ \mb{x} }_2 > \delta \;,
          \end{cases}
 
     where :math:`\delta` is a parameter controlling the transitions
     between :math:`\ell_1`-norm like and :math:`\ell_2`-norm like
-    behavior.
+    behavior. In the separable case the norm is
+
+    .. math::
+         H_{\delta}(\mb{x}) = \sum_i h_{\delta}(x_i) \,,
+
+    where
+
+    .. math::
+         h_{\delta}(x) = \begin{cases}
+         (1/2) \abs{ x }^2  & \text{ when } \abs{ x } \leq \delta \\
+         \delta \left( \abs{ x }  - (\delta / 2) \right) &
+         \text{ when } \abs{ x } > \delta \;.
+         \end{cases}
     """
 
     has_eval = True
     has_prox = True
 
-    def __init__(self, delta: float = 1.0):
+    def __init__(self, delta: float = 1.0, separable: bool = True):
         r"""
         Args:
             delta: Huber function parameter :math:`\delta`.
+            separable: Flag indicating whether to compute separable or
+               non-separable form.
         """
         self.delta = delta
-        self._call_lt_branch = lambda xl2: 0.5 * xl2**2
-        self._call_gt_branch = lambda xl2: self.delta * (xl2 - self.delta / 2.0)
+        self.separable = separable
+
+        if separable:
+            self._call = self._call_sep
+            self._prox = self._prox_sep
+        else:
+            self._call_lt_branch = lambda xl2: 0.5 * xl2**2
+            self._call_gt_branch = lambda xl2: self.delta * (xl2 - self.delta / 2.0)
+            self._call = self._call_nonsep
+            self._prox = self._prox_nonsep
+
         super().__init__()
 
-    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+    def _call_sep(self, x: Union[JaxArray, BlockArray]) -> float:
+        xabs = snp.abs(x)
+        hx = snp.where(
+            xabs <= self.delta, 0.5 * xabs**2, self.delta * (xabs - (self.delta / 2.0))
+        )
+        return snp.sum(hx)
+
+    def _call_nonsep(self, x: Union[JaxArray, BlockArray]) -> float:
         xl2 = snp.linalg.norm(x)
         return lax.cond(xl2 <= self.delta, self._call_lt_branch, self._call_gt_branch, xl2)
+
+    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+        return self._call(x)
+
+    def _prox_sep(
+        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[JaxArray, BlockArray]:
+        den = snp.maximum(snp.abs(v), self.delta * (1.0 + lam))
+        return (1 - ((self.delta * lam) / den)) * v
+
+    def _prox_nonsep(
+        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[JaxArray, BlockArray]:
+        vl2 = snp.linalg.norm(v)
+        den = snp.maximum(vl2, self.delta * (1.0 + lam))
+        return (1 - ((self.delta * lam) / den)) * v
 
     def prox(
         self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
         r"""Evaluate proximal operator of the Huber function.
 
-        Evaluate proximal operator of the Huber function
-        :cite:`beck-2017-first` (Sec. 6.7.3).
+        Evaluate scaled proximal operator of the Huber function
+        :cite:`beck-2017-first` (Sec. 6.7.3). The prox is
+
+        .. math::
+             \prox_{\lambda H_{\delta}} (\mb{v}) = \left( 1 -
+             \frac{\lambda \delta} {\max\left\{\norm{\mb{v}}_2,
+             \delta + \lambda \delta\right\} } \right) \mb{v}
+
+        in the non-separable case, and
+
+        .. math::
+             \left[ \prox_{\lambda H_{\delta}} (\mb{v}) \right]_i =
+             \left( 1 - \frac{\lambda \delta} {\max\left\{\abs{v_i},
+             \delta + \lambda \delta\right\} } \right) v_i
+
+        in the separable case.
+
 
         Args:
             v: Input array :math:`\mb{v}`.
@@ -307,9 +370,7 @@ class HuberNorm(Functional):
             kwargs: Additional arguments that may be used by derived
                 classes.
         """
-        vl2 = snp.linalg.norm(v)
-        den = snp.maximum(vl2, self.delta * (1.0 + lam))
-        return (1 - ((self.delta * lam) / den)) * v
+        return self._prox(v, lam=lam, **kwargs)
 
 
 class NuclearNorm(Functional):
@@ -318,7 +379,7 @@ class NuclearNorm(Functional):
     Compute the nuclear norm
 
     .. math::
-      \| X \|_* = \sum_i \sigma_i
+        \| X \|_* = \sum_i \sigma_i
 
     where :math:`\sigma_i` are the singular values of matrix :math:`X`.
     """

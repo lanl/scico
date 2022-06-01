@@ -69,7 +69,7 @@ rootpath = os.path.abspath("../..")
 sys.path.insert(0, rootpath)
 
 # If your documentation needs a minimal Sphinx version, state it here.
-needs_sphinx = "3.5.2"
+needs_sphinx = "4.2.0"
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -135,7 +135,7 @@ mathjax_config = {
             "abs": [r"\left| #1 \right|", 1],
             "argmin": [r"\mathop{\mathrm{argmin}}"],
             "sign": [r"\mathop{\mathrm{sign}}"],
-            "prox": [r"\mathop{\mathrm{prox}}"],
+            "prox": [r"\mathrm{prox}"],
             "loss": [r"\mathop{\mathrm{loss}}"],
             "kp": [r"k_{\|}"],
             "rp": [r"r_{\|}"],

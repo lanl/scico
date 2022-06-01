@@ -1,10 +1,11 @@
 -r ../requirements.txt
-sphinx>=3.5.2
+sphinx>=4.2.0
 sphinxcontrib-napoleon
 sphinxcontrib-bibtex
 sphinx-autodoc-typehints
 faculty-sphinx-theme
 jinja2<3.1.0  # temporary fix for jina2/nbconvert bug
+traitlets!=5.2.2  # temporary fix for ipython/traitlets#741
 nbsphinx
 ipython_genutils
 py2jn
