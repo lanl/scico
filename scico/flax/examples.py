@@ -352,16 +352,16 @@ def load_ct_data(
                     print(f"{'Train images':26s}{':':4s}{trdt['img'].shape[0]}")
                     print(f"{'Test images':26s}{':':4s}{ttdt['img'].shape[0]}")
                     print(
-                        f"{'Data range images':23s}{'Min:':4s}{trdt['img'].min():>4.2f}"
-                        f"{', Max:':4s}{trdt['img'].max():>4.2f}"
+                        f"{'Data range images':23s}{'Min:':6s}{trdt['img'].min():>5.2f}"
+                        f"{', Max:':6s}{trdt['img'].max():>5.2f}"
                     )
                     print(
-                        f"{'Data range sinograms':23s}{'Min:':4s}{trdt['sino'].min():>4.2f}"
-                        f"{', Max:':4s}{trdt['sino'].max():>4.2f}"
+                        f"{'Data range sinograms':23s}{'Min:':6s}{trdt['sino'].min():>5.2f}"
+                        f"{', Max:':6s}{trdt['sino'].max():>5.2f}"
                     )
                     print(
-                        f"{'Data range FBP':23s}{'Min:':4s}{trdt['fbp'].min():>4.2f}"
-                        f"{', Max:':4s}{trdt['fbp'].max():>4.2f}"
+                        f"{'Data range FBP':23s}{'Min:':6s}{trdt['fbp'].min():>5.2f}"
+                        f"{', Max:':6s}{trdt['fbp'].max():>5.2f}"
                     )
 
                 return trdt, ttdt
@@ -577,12 +577,12 @@ def load_foam_blur_data(
                     print(f"{'Train images':26s}{':':4s}{train_ds['image'].shape[0]}")
                     print(f"{'Test images':26s}{':':4s}{test_ds['image'].shape[0]}")
                     print(
-                        f"{'Data range images':23s}{'Min:':4s}{train_ds['image'].min():>4.2f}"
-                        f"{', Max:':4s}{train_ds['image'].max():>4.2f}"
+                        f"{'Data range images':23s}{'Min:':6s}{train_ds['image'].min():>5.2f}"
+                        f"{', Max:':6s}{train_ds['image'].max():>5.2f}"
                     )
                     print(
-                        f"{'Data range labels':23s}{'Min:':4s}{train_ds['label'].min():>4.2f}"
-                        f"{', Max:':4s}{train_ds['label'].max():>4.2f}"
+                        f"{'Data range labels':23s}{'Min:':6s}{train_ds['label'].min():>5.2f}"
+                        f"{', Max:':6s}{train_ds['label'].max():>5.2f}"
                     )
                     print(
                         "NOTE: If blur kernel or noise parameter are changed, the cache"
@@ -1231,12 +1231,12 @@ def load_image_data(
                     print(f"{'Train images':26s}{':':4s}{train_ds['image'].shape[0]}")
                     print(f"{'Test images':26s}{':':4s}{test_ds['image'].shape[0]}")
                     print(
-                        f"{'Data range images':23s}{'Min:':4s}{train_ds['image'].min():>4.2f}"
-                        f"{', Max:':4s}{train_ds['image'].max():>4.2f}"
+                        f"{'Data range images':23s}{'Min:':6s}{train_ds['image'].min():>5.2f}"
+                        f"{', Max:':6s}{train_ds['image'].max():>5.2f}"
                     )
                     print(
-                        f"{'Data range labels':23s}{'Min:':4s}{train_ds['label'].min():>4.2f}"
-                        f"{', Max:':4s}{train_ds['label'].max():>4.2f}"
+                        f"{'Data range labels':23s}{'Min:':6s}{train_ds['label'].min():>5.2f}"
+                        f"{', Max:':6s}{train_ds['label'].max():>5.2f}"
                     )
                     print(
                         "NOTE: If blur kernel or noise parameter are changed, the cache"
