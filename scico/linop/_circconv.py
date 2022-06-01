@@ -128,7 +128,7 @@ class CircularConvolve(LinearOperator):
 
             if self.h_center is not None:
                 if isinstance(self.h_center, DeviceArray):
-                    offset = -self.h_center
+                    offset = -self.h_center  # type: ignore
                 else:
                     # support float or int values for h_center
                     if isinstance(self.h_center, (float, int)):

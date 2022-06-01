@@ -368,6 +368,8 @@ We follow the `NumPy style guide <https://numpydoc.readthedocs.io/en/latest/form
        The value of :math:`\omega` is larger than 5.
        """
 
+    | For a list of available LaTex macros, search for "macros" in `docs/source/conf.py <https://github.com/lanl/scico/blob/main/docs/source/conf.py>`_.
+
 -  Examples:
 
    -  Uses the doctest format and is meant to showcase usage.
