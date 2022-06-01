@@ -305,11 +305,11 @@ def ct_data_generation(
 
     if verbose:
         platform = jax.lib.xla_bridge.get_backend().platform
-        print(f"{'Platform':29s}{':':2s}{platform}")
-        print(f"{'Device count':29s}{':':2s}{jax.device_count()}")
+        print(f"{'Platform':26s}{':':4s}{platform}")
+        print(f"{'Device count':26s}{':':4s}{jax.device_count()}")
         print(f"{'Data Generation':22s}{'time[s]:':8s}{time_dtgen:>7.2f}")
-        print(f"{'Sinogram Generation':22s}{'time[s]:':8s}{time_sino:>7.2f}")
-        print(f"{'FBP Generation':22s}{'time[s]:':8s}{time_fbp:>7.2f}")
+        print(f"{'Sinogram Generation':19s}{'time[s]:':8s}{time_sino:>7.2f}")
+        print(f"{'FBP Generation':19s}{'time[s]:':8s}{time_fbp:>7.2f}")
 
     return img, sino, fbp
 
@@ -537,10 +537,10 @@ def foam_blur_data_generation(
 
     if verbose:
         platform = jax.lib.xla_bridge.get_backend().platform
-        print(f"{'Platform':29s}{':':2s}{platform}")
-        print(f"{'Device count':29s}{':':2s}{jax.device_count()}")
-        print(f"{'Data Generation':22s}{'time[s]:':8s}{time_dtgen:>7.2f}")
-        print(f"{'Blur Generation':22s}{'time[s]:':8s}{time_blur:>7.2f}")
+        print(f"{'Platform':26s}{':':4s}{platform}")
+        print(f"{'Device count':26s}{':':4s}{jax.device_count()}")
+        print(f"{'Data Generation':19s}{'time[s]:':8s}{time_dtgen:>7.2f}")
+        print(f"{'Blur Generation':19s}{'time[s]:':8s}{time_blur:>7.2f}")
 
     return img, blurn
 
