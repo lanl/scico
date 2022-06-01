@@ -91,7 +91,7 @@ model = sflax.DnCNNNet(
 """
 Run training loop.
 """
-workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "img", "dncnn_out")
+workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "dncnn_out")
 print(f"{'JAX process: '}{jax.process_index()}{' / '}{jax.process_count()}")
 print(f"{'JAX local devices: '}{jax.local_devices()}")
 

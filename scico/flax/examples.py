@@ -577,11 +577,11 @@ def load_foam_blur_data(
                     print(f"{'Train images':26s}{':':2s}{train_ds['image'].shape[0]}")
                     print(f"{'Test images':26s}{':':2s}{test_ds['image'].shape[0]}")
                     print(
-                        f"{'Data range images':26s}{'Min:':6s}{train_ds['image'].min():>5.2f}"
+                        f"{'Data range images':23s}{'Min:':6s}{train_ds['image'].min():>5.2f}"
                         f"{', Max:':6s}{train_ds['image'].max():>8.2f}"
                     )
                     print(
-                        f"{'Data range labels':26s}{'Min:':6s}{train_ds['label'].min():>5.2f}"
+                        f"{'Data range labels':23s}{'Min:':6s}{train_ds['label'].min():>5.2f}"
                         f"{', Max:':6s}{train_ds['label'].max():>8.2f}"
                     )
                     print(
