@@ -74,6 +74,7 @@ class ConfigDict(TypedDict):
     steps_per_eval: int
     log_every_steps: int
     steps_per_epoch: int
+    cg_iter: int
 
 
 class ModelVarDict(TypedDict):
