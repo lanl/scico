@@ -225,6 +225,7 @@ def ray_distributed_data_generation(
         [data_gen.remote(seed + seedg, size, ndata_per_proc, imgenf) for seed in range(nproc)]
     )
     imgs = np.vstack([t for t in ray_return])
+    ray.shutdown()
 
     return imgs
 
