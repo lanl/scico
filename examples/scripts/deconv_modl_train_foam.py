@@ -74,7 +74,7 @@ opBlur_vmap = jax.vmap(opBlur)  # for batch processing in data generation
 """
 Read data from cache or generate if not available.
 """
-train_nimg = 400  # number of training images
+train_nimg = 416  # number of training images
 test_nimg = 64  # number of testing images
 nimg = train_nimg + test_nimg
 

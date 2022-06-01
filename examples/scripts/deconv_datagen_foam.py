@@ -23,7 +23,7 @@ n = 3  # convolution kernel size
 σ = 20.0 / 255  # noise level
 psf = np.ones((n, n)) / (n * n)  # kernel
 
-train_nimg = 400  # number of training images
+train_nimg = 416  # number of training images
 test_nimg = 64  # number of testing images
 nimg = train_nimg + test_nimg
 output_size = 256  # image size

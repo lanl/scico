@@ -37,7 +37,7 @@ print("Platform: ", platform)
 Read data from cache or generate if not available.
 """
 N = 256  # phantom size
-train_nimg = 512  # number of training images
+train_nimg = 536  # number of training images
 test_nimg = 64  # number of testing images
 nimg = train_nimg + test_nimg
 n_projection = 45  # CT views
