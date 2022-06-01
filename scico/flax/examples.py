@@ -29,6 +29,13 @@ except ImportError:
 else:
     have_xdesign = True
 
+try:
+    import ray  # noqa: F401
+except ImportError:
+    have_ray = False
+else:
+    have_ray = True
+
 if have_xdesign:
     from xdesign import Foam, SimpleMaterial, UnitCircle, discrete_phantom
 
@@ -181,6 +188,47 @@ def distributed_data_generation(
     return imgs
 
 
+def ray_distributed_data_generation(
+    imgenf: Callable, size: int, nimg: int, seedg: float = 123
+) -> Array:
+    """Data generation distributed among processes using ray.
+
+    Args:
+        imagenf: Function for batch-data generation.
+        size: Size of image to generate.
+        ndata: Number of images to generate.
+        seedg: Base seed for data generation.
+
+    Returns:
+        nd-array of generated data.
+    """
+    if not have_ray:
+        raise RuntimeError("Package ray is required for use of this function.")
+
+    ray.init()
+
+    @ray.remote
+    def data_gen(seed, size, ndata, imgf):
+        return imgf(seed, size, ndata)
+
+    ar = ray.available_resources()
+    # Usage of half available CPU resources.
+    nproc = max(int(ar["CPU"]) // 2, 1)
+    if nproc > 1 and nimg % nproc > 0:
+        raise ValueError(
+            f"Number of images to generate ({nimg}) must be divisible by the number of available devices ({nproc})"
+        )
+
+    ndata_per_proc = int(nimg // nproc)
+
+    ray_return = ray.get(
+        [data_gen.remote(seed + seedg, size, ndata_per_proc, imgenf) for seed in range(nproc)]
+    )
+    imgs = np.vstack([t for t in ray_return])
+
+    return imgs
+
+
 def ct_data_generation(
     nimg: int,
     size: int,
@@ -217,9 +265,14 @@ def ct_data_generation(
         raise RuntimeError("Package astra is required for use of this function.")
 
     # Generate foam data.
-    start_time = time()
-    img = imgfunc(seed, size, nimg)
-    time_dtgen = time() - start_time
+    if have_ray:
+        start_time = time()
+        img = ray_distributed_data_generation(imgfunc, size, nimg, seed)
+        time_dtgen = time() - start_time
+    else:
+        start_time = time()
+        img = imgfunc(seed, size, nimg)
+        time_dtgen = time() - start_time
     # Clip to [0,1] range.
     img = jnp.clip(img, a_min=0, a_max=1)
     # Shard array
@@ -449,9 +502,14 @@ def foam_blur_data_generation(
            - **img** : (DeviceArray): Generated foam images.
            - **blurn** : (DeviceArray) Corresponding blurred and noisy images.
     """
-    start_time = time()
-    img = imgfunc(seed, size, nimg)
-    time_dtgen = time() - start_time
+    if have_ray:
+        start_time = time()
+        img = ray_distributed_data_generation(imgfunc, size, nimg, seed)
+        time_dtgen = time() - start_time
+    else:
+        start_time = time()
+        img = imgfunc(seed, size, nimg)
+        time_dtgen = time() - start_time
     # Clip to [0,1] range.
     img = jnp.clip(img, a_min=0, a_max=1)
     # Shard array
