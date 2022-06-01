@@ -458,16 +458,16 @@ def load_ct_data(
     )
 
     if verbose:
-        print(f"{'Storing data in path':29s}{':':2s}{cache_path_display}")
-        print(f"{'Train images':29s}{':':2s}{train_nimg}")
-        print(f"{'Test images':29s}{':':2s}{test_nimg}")
+        print(f"{'Storing data in path':26s}{':':4s}{cache_path_display}")
+        print(f"{'Train images':26s}{':':4s}{train_nimg}")
+        print(f"{'Test images':26s}{':':4s}{test_nimg}")
         print(
-            f"{'Data range images':26s}{'Min:':6s}{img.min():>5.2f}{', Max:':6s}{img.max():>8.2f}"
+            f"{'Data range images':23s}{'Min:':6s}{img.min():>5.2f}{', Max:':6s}{img.max():>5.2f}"
         )
         print(
-            f"{'Range sinograms':26s}{'Min:':6s}{sino.min():>5.2f}{', Max:':6s}{sino.max():>8.2f}"
+            f"{'Range sinograms':23s}{'Min:':6s}{sino.min():>5.2f}{', Max:':6s}{sino.max():>5.2f}"
         )
-        print(f"{'Range FBP':26s}{'Min:':6s}{fbp.min():>5.2f}{', Max:':6s}{fbp.max():>8.2f}")
+        print(f"{'Range FBP':23s}{'Min:':6s}{fbp.min():>5.2f}{', Max:':6s}{fbp.max():>5.2f}")
 
     return trdt, ttdt
 
@@ -690,16 +690,16 @@ def load_foam_blur_data(
     )
 
     if verbose:
-        print(f"{'Storing data in path':29s}{':':2s}{cache_path_display}")
-        print(f"{'Train images':29s}{':':2s}{train_ds['image'].shape[0]}")
-        print(f"{'Test images':29s}{':':2s}{test_ds['image'].shape[0]}")
+        print(f"{'Storing data in path':26s}{':':4s}{cache_path_display}")
+        print(f"{'Train images':26s}{':':4s}{train_ds['image'].shape[0]}")
+        print(f"{'Test images':26s}{':':4s}{test_ds['image'].shape[0]}")
         print(
-            f"{'Data range images':26s}{'Min:':6s}{train_ds['image'].min():>5.2f}"
-            f"{', Max:':6s}{train_ds['image'].max():>8.2f}"
+            f"{'Data range images':23s}{'Min:':6s}{train_ds['image'].min():>5.2f}"
+            f"{', Max:':6s}{train_ds['image'].max():>5.2f}"
         )
         print(
-            f"{'Data range labels':26s}{'Min:':6s}{train_ds['label'].min():>5.2f}"
-            f"{', Max:':6s}{train_ds['label'].max():>8.2f}"
+            f"{'Data range labels':23s}{'Min:':6s}{train_ds['label'].min():>5.2f}"
+            f"{', Max:':6s}{train_ds['label'].max():>5.2f}"
         )
 
     return train_ds, test_ds
@@ -1363,16 +1363,16 @@ def load_image_data(
     )
 
     if verbose:
-        print(f"{'Storing data in path':29s}{':':2s}{cache_path_display}")
-        print(f"{'Train images':26s}{train_ds['image'].shape[0]}")
-        print(f"{'Test images':26s}{test_ds['image'].shape[0]}")
+        print(f"{'Storing data in path':26s}{':':4s}{cache_path_display}")
+        print(f"{'Train images':26s}{':':4s}{train_ds['image'].shape[0]}")
+        print(f"{'Test images':26s}{':':4s}{test_ds['image'].shape[0]}")
         print(
-            f"{'Data range images':26s}{'Min:':6s}{train_ds['image'].min():>5.2f}"
-            f"{', Max:':6s}{train_ds['image'].max():>8.2f}"
+            f"{'Data range images':23s}{'Min:':6s}{train_ds['image'].min():>5.2f}"
+            f"{', Max:':6s}{train_ds['image'].max():>5.2f}"
         )
         print(
-            f"{'Data range labels':26s}{'Min:':6s}{train_ds['label'].min():>5.2f}"
-            f"{', Max:':6s}{train_ds['label'].max():>8.2f}"
+            f"{'Data range labels':23s}{'Min:':6s}{train_ds['label'].min():>5.2f}"
+            f"{', Max:':6s}{train_ds['label'].max():>5.2f}"
         )
 
     return train_ds, test_ds
