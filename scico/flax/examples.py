@@ -306,11 +306,11 @@ def ct_data_generation(
 
     if verbose:
         platform = jax.lib.xla_bridge.get_backend().platform
-        print(f"{'Platform':26s}{':':4s}{platform}")
-        print(f"{'Device count':26s}{':':4s}{jax.device_count()}")
-        print(f"{'Data Generation':22s}{'time[s]:':9s}{time_dtgen:>7.2f}")
-        print(f"{'Sinogram Generation':19s}{'time[s]:':9s}{time_sino:>7.2f}")
-        print(f"{'FBP Generation':19s}{'time[s]:':9s}{time_fbp:>7.2f}")
+        print(f"{'Platform':28s}{':':4s}{platform}")
+        print(f"{'Device count':28s}{':':4s}{jax.device_count()}")
+        print(f"{'Data generation':21s}{'time[s]:':9s}{time_dtgen:>7.2f}")
+        print(f"{'Sinogram generation':21s}{'time[s]:':9s}{time_sino:>7.2f}")
+        print(f"{'FBP generation':21s}{'time[s]:':9s}{time_fbp:>7.2f}")
 
     return img, sino, fbp
 
@@ -402,19 +402,19 @@ def load_ct_data(
                     "fbp": ttdt_in["fbp"][:test_nimg],
                 }
                 if verbose:
-                    print(f"{'Data read from path':26s}{':':4s}{cache_path_display}")
-                    print(f"{'Train images':26s}{':':4s}{trdt['img'].shape[0]}")
-                    print(f"{'Test images':26s}{':':4s}{ttdt['img'].shape[0]}")
+                    print(f"{'Data read from path':28s}{':':4s}{cache_path_display}")
+                    print(f"{'Train images':28s}{':':4s}{trdt['img'].shape[0]}")
+                    print(f"{'Test images':28s}{':':4s}{ttdt['img'].shape[0]}")
                     print(
-                        f"{'Data range images':23s}{'Min:':6s}{trdt['img'].min():>5.2f}"
+                        f"{'Data range images':25s}{'Min:':6s}{trdt['img'].min():>5.2f}"
                         f"{', Max:':6s}{trdt['img'].max():>5.2f}"
                     )
                     print(
-                        f"{'Data range sinograms':23s}{'Min:':6s}{trdt['sino'].min():>5.2f}"
+                        f"{'Data range sinograms':25s}{'Min:':6s}{trdt['sino'].min():>5.2f}"
                         f"{', Max:':6s}{trdt['sino'].max():>5.2f}"
                     )
                     print(
-                        f"{'Data range FBP':23s}{'Min:':6s}{trdt['fbp'].min():>5.2f}"
+                        f"{'Data range FBP':25s}{'Min:':6s}{trdt['fbp'].min():>5.2f}"
                         f"{', Max:':6s}{trdt['fbp'].max():>5.2f}"
                     )
 
@@ -459,16 +459,16 @@ def load_ct_data(
     )
 
     if verbose:
-        print(f"{'Storing data in path':26s}{':':4s}{cache_path_display}")
-        print(f"{'Train images':26s}{':':4s}{train_nimg}")
-        print(f"{'Test images':26s}{':':4s}{test_nimg}")
+        print(f"{'Storing data in path':28s}{':':4s}{cache_path_display}")
+        print(f"{'Train images':28s}{':':4s}{train_nimg}")
+        print(f"{'Test images':28s}{':':4s}{test_nimg}")
         print(
-            f"{'Data range images':23s}{'Min:':6s}{img.min():>5.2f}{', Max:':6s}{img.max():>5.2f}"
+            f"{'Data range images':25s}{'Min:':6s}{img.min():>5.2f}{', Max:':6s}{img.max():>5.2f}"
         )
         print(
-            f"{'Range sinograms':23s}{'Min:':6s}{sino.min():>5.2f}{', Max:':6s}{sino.max():>5.2f}"
+            f"{'Range sinograms':25s}{'Min:':6s}{sino.min():>5.2f}{', Max:':6s}{sino.max():>5.2f}"
         )
-        print(f"{'Range FBP':23s}{'Min:':6s}{fbp.min():>5.2f}{', Max:':6s}{fbp.max():>5.2f}")
+        print(f"{'Range FBP':25s}{'Min:':6s}{fbp.min():>5.2f}{', Max:':6s}{fbp.max():>5.2f}")
 
     return trdt, ttdt
 
@@ -538,10 +538,10 @@ def foam_blur_data_generation(
 
     if verbose:
         platform = jax.lib.xla_bridge.get_backend().platform
-        print(f"{'Platform':26s}{':':4s}{platform}")
-        print(f"{'Device count':26s}{':':4s}{jax.device_count()}")
-        print(f"{'Data Generation':19s}{'time[s]:':9s}{time_dtgen:>7.2f}")
-        print(f"{'Blur Generation':19s}{'time[s]:':9s}{time_blur:>7.2f}")
+        print(f"{'Platform':28s}{':':4s}{platform}")
+        print(f"{'Device count':28s}{':':4s}{jax.device_count()}")
+        print(f"{'Data generation':21s}{'time[s]:':9s}{time_dtgen:>7.2f}")
+        print(f"{'Blur generation':21s}{'time[s]:':9s}{time_blur:>7.2f}")
 
     return img, blurn
 
@@ -632,15 +632,15 @@ def load_foam_blur_data(
                     "label": test_out,
                 }
                 if verbose:
-                    print(f"{'Data read from path':26s}{':':4s}{cache_path_display}")
-                    print(f"{'Train images':26s}{':':4s}{train_ds['image'].shape[0]}")
-                    print(f"{'Test images':26s}{':':4s}{test_ds['image'].shape[0]}")
+                    print(f"{'Data read from path':28s}{':':4s}{cache_path_display}")
+                    print(f"{'Train images':28s}{':':4s}{train_ds['image'].shape[0]}")
+                    print(f"{'Test images':28s}{':':4s}{test_ds['image'].shape[0]}")
                     print(
-                        f"{'Data range images':23s}{'Min:':6s}{train_ds['image'].min():>5.2f}"
+                        f"{'Data range images':25s}{'Min:':6s}{train_ds['image'].min():>5.2f}"
                         f"{', Max:':6s}{train_ds['image'].max():>5.2f}"
                     )
                     print(
-                        f"{'Data range labels':23s}{'Min:':6s}{train_ds['label'].min():>5.2f}"
+                        f"{'Data range labels':25s}{'Min:':6s}{train_ds['label'].min():>5.2f}"
                         f"{', Max:':6s}{train_ds['label'].max():>5.2f}"
                     )
                     print(
@@ -691,15 +691,15 @@ def load_foam_blur_data(
     )
 
     if verbose:
-        print(f"{'Storing data in path':26s}{':':4s}{cache_path_display}")
-        print(f"{'Train images':26s}{':':4s}{train_ds['image'].shape[0]}")
-        print(f"{'Test images':26s}{':':4s}{test_ds['image'].shape[0]}")
+        print(f"{'Storing data in path':28s}{':':4s}{cache_path_display}")
+        print(f"{'Train images':28s}{':':4s}{train_ds['image'].shape[0]}")
+        print(f"{'Test images':28s}{':':4s}{test_ds['image'].shape[0]}")
         print(
-            f"{'Data range images':23s}{'Min:':6s}{train_ds['image'].min():>5.2f}"
+            f"{'Data range images':25s}{'Min:':6s}{train_ds['image'].min():>5.2f}"
             f"{', Max:':6s}{train_ds['image'].max():>5.2f}"
         )
         print(
-            f"{'Data range labels':23s}{'Min:':6s}{train_ds['label'].min():>5.2f}"
+            f"{'Data range labels':25s}{'Min:':6s}{train_ds['label'].min():>5.2f}"
             f"{', Max:':6s}{train_ds['label'].max():>5.2f}"
         )
 
@@ -1286,15 +1286,15 @@ def load_image_data(
                     "label": test_out,
                 }
                 if verbose:
-                    print(f"{'Data read from path':26s}{':':4s}{cache_path_display}")
-                    print(f"{'Train images':26s}{':':4s}{train_ds['image'].shape[0]}")
-                    print(f"{'Test images':26s}{':':4s}{test_ds['image'].shape[0]}")
+                    print(f"{'Data read from path':28s}{':':4s}{cache_path_display}")
+                    print(f"{'Train images':28s}{':':4s}{train_ds['image'].shape[0]}")
+                    print(f"{'Test images':28s}{':':4s}{test_ds['image'].shape[0]}")
                     print(
-                        f"{'Data range images':23s}{'Min:':6s}{train_ds['image'].min():>5.2f}"
+                        f"{'Data range images':25s}{'Min:':6s}{train_ds['image'].min():>5.2f}"
                         f"{', Max:':6s}{train_ds['image'].max():>5.2f}"
                     )
                     print(
-                        f"{'Data range labels':23s}{'Min:':6s}{train_ds['label'].min():>5.2f}"
+                        f"{'Data range labels':25s}{'Min:':6s}{train_ds['label'].min():>5.2f}"
                         f"{', Max:':6s}{train_ds['label'].max():>5.2f}"
                     )
                     print(
@@ -1364,15 +1364,15 @@ def load_image_data(
     )
 
     if verbose:
-        print(f"{'Storing data in path':26s}{':':4s}{cache_path_display}")
-        print(f"{'Train images':26s}{':':4s}{train_ds['image'].shape[0]}")
-        print(f"{'Test images':26s}{':':4s}{test_ds['image'].shape[0]}")
+        print(f"{'Storing data in path':28s}{':':4s}{cache_path_display}")
+        print(f"{'Train images':28s}{':':4s}{train_ds['image'].shape[0]}")
+        print(f"{'Test images':28s}{':':4s}{test_ds['image'].shape[0]}")
         print(
-            f"{'Data range images':23s}{'Min:':6s}{train_ds['image'].min():>5.2f}"
+            f"{'Data range images':25s}{'Min:':6s}{train_ds['image'].min():>5.2f}"
             f"{', Max:':6s}{train_ds['image'].max():>5.2f}"
         )
         print(
-            f"{'Data range labels':23s}{'Min:':6s}{train_ds['label'].min():>5.2f}"
+            f"{'Data range labels':25s}{'Min:':6s}{train_ds['label'].min():>5.2f}"
             f"{', Max:':6s}{train_ds['label'].max():>5.2f}"
         )
 
