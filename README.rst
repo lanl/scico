@@ -46,6 +46,10 @@
    :target: https://mybinder.org/v2/gh/lanl/scico-data/binder?labpath=notebooks%2Findex.ipynb
    :alt: Run notebooks on binder
 
+.. image:: https://colab.research.google.com/assets/colab-badge.svg
+   :target: https://colab.research.google.com/github/lanl/scico-data/blob/colab/notebooks/index.ipynb
+   :alt: Run notebooks on google colab
+
 
 
 Scientific Computational Imaging COde (SCICO)
