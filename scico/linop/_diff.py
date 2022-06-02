@@ -65,10 +65,10 @@ class FiniteDifference(LinearOperatorStack):
                 evaluated along all axes.
             append: Value to append to the input along each axis before
                 taking differences. Zero is a typical choice. If not
-                `None`, `circular` must be ``False``.
+                ``None``, `circular` must be ``False``.
             circular: If ``True``, perform circular differences, i.e.,
                 include x[-1] - x[0]. If ``True``, `append` must be
-                `None`.
+                ``None``.
             jit: If ``True``, jit the evaluation, adjoint, and gram
                 functions of the LinearOperator.
         """

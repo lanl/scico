@@ -115,7 +115,6 @@ x = x_pad[: y.shape[0], : y.shape[1], : y.shape[2]]
 """
 Show the recovered image.
 """
-
 fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(14, 7))
 plot.imview(tile_volume_slices(y), title="Blurred measurements", fig=fig, ax=ax[0])
 plot.imview(tile_volume_slices(x), title="Deconvolved image", fig=fig, ax=ax[1])
