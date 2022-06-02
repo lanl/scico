@@ -94,6 +94,13 @@ train_ds, test_ds = load_foam_blur_data(
 
 """
 Define configuration dictionary for model and training loop.
+
+Parameters have been selected for demonstration purposes and relatively short training.
+The model depth is akin to the number of unrolled iterations in the ODP model.
+The block depth controls the number of layers at each unrolled iteration.
+The number of filters is uniform throughout the iterations.
+Better performance may be obtained by increasing depth, block depth, number of filters or training epochs
+but may require longer training times.
 """
 batch_size = 16
 epochs = 50
@@ -124,7 +131,6 @@ model = sflax.ODPNet(
     num_filters=dconf["num_filters"],
     block_depth=dconf["block_depth"],
     odp_block=sflax.ODPProxDcnvBlock,
-    # alpha_ini=10,
 )
 
 
@@ -180,10 +186,10 @@ and data fidelity.
 snr_eval = metric.snr(test_ds["label"], output)
 psnr_eval = metric.psnr(test_ds["label"], output)
 print(
-    f"{'ODPNet training':18s}{'epochs:':2s}{epochs:>5d}{'':21s}{'time[s]:':10s}{time_train:>5.2f}{'':3s}"
+    f"{'ODPNet training':18s}{'epochs:':2s}{epochs:>5d}{'':21s}{'time[s]:':10s}{time_train:>7.2f}"
 )
 print(
-    f"{'ODPNet testing':18s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}{'':3s}{'time[s]:':10s}{time_eval:>5.2f}"
+    f"{'ODPNet testing':18s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}{'':3s}{'time[s]:':10s}{time_eval:>7.2f}"
 )
 
 # Plot comparison
