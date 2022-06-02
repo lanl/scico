@@ -174,6 +174,8 @@ if len(checkpoint_files) > 0:
         log=True,
     )
     time_train = time() - start_time
+    time_init = 0.0
+    epochs_init = 0
 else:
     # One iteration (depth) in model and few CG iterations
     model = sflax.MoDLNet(
@@ -187,7 +189,6 @@ else:
     # First stage: initialization training loop.
     workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "modl_dcnv_out")
 
-    dconf["num_epochs"] = epochs
     start_time = time()
     modvar = sflax.train_and_evaluate(
         dconf,
@@ -200,6 +201,7 @@ else:
         log=True,
     )
     time_init = time() - start_time
+    epochs_init = dconf["num_epochs"]
 
     print(
         f"{'MoDLNet init':18s}{'epochs:':2s}{dconf['num_epochs']:>5d}{'':3s}"
@@ -209,7 +211,6 @@ else:
     # Second stage: depth iterations training loop.
     model.depth = dconf["depth"]
 
-    dconf["num_epochs"] = epochs
     start_time = time()
     modvar = sflax.train_and_evaluate(
         dconf,
@@ -239,10 +240,12 @@ output = jnp.clip(output, a_min=0, a_max=1.0)
 Compare trained model in terms of reconstruction time
 and data fidelity.
 """
+total_epochs = epochs_init + epochs
+total_time_train = time_init + time_train
 snr_eval = metric.snr(test_ds["label"], output)
 psnr_eval = metric.psnr(test_ds["label"], output)
 print(
-    f"{'MoDLNet training':18s}{'epochs:':2s}{epochs:>5d}{'':21s}{'time[s]:':10s}{time_train:>7.2f}"
+    f"{'MoDLNet training':18s}{'epochs:':2s}{total_epochs:>5d}{'':21s}{'time[s]:':10s}{total_time_train:>7.2f}"
 )
 print(
     f"{'MoDLNet testing':18s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}{'':3s}{'time[s]:':10s}{time_eval:>7.2f}"
