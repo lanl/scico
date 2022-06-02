@@ -30,8 +30,8 @@ blur_shape = (9, 9)  # shape of blur kernel
 blur_sigma = 5  # Gaussian blur kernel parameter
 kernel = build_blur_kernel(blur_shape, blur_sigma)
 
-ishape = (output_size, output_size)
-opBlur = CircularConvolve(h=kernel, input_shape=ishape)
+ishape = (output_size, output_size, channels)
+opBlur = CircularConvolve(h=kernel, input_shape=ishape, ndims=2)
 
 opBlur_vmap = vmap(opBlur)  # for batch processing
 
