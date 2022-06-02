@@ -18,8 +18,7 @@ import numpy as np
 from jax import vmap
 
 from scico import plot
-from scico.flax.examples import build_blur_kernel, load_image_data
-from scico.linop import CircularConvolve
+from scico.flax.examples import PaddedCircularConvolve, load_image_data
 
 """
 Define blur operator.
@@ -28,10 +27,8 @@ output_size = 256  # patch size
 channels = 1  # gray scale problem
 blur_shape = (9, 9)  # shape of blur kernel
 blur_sigma = 5  # Gaussian blur kernel parameter
-kernel = build_blur_kernel(blur_shape, blur_sigma)
 
-ishape = (output_size, output_size, channels)
-opBlur = CircularConvolve(h=kernel, input_shape=ishape, ndims=2)
+opBlur = PaddedCircularConvolve(output_size, channels, blur_shape, blur_sigma)
 
 opBlur_vmap = vmap(opBlur)  # for batch processing
 
@@ -43,7 +40,7 @@ test_nimg = 64  # number of testing images
 nimg = train_nimg + test_nimg
 gray = True  # use gray scale images
 data_mode = "dcnv"  # deconvolution problem
-noise_level = 0.001  # standard deviation of noise
+noise_level = 0.005  # standard deviation of noise
 noise_range = False  # use fixed noise level
 stride = 100  # stride to sample multiple patches from each image
 augment = True  # augment data via rotations and flips

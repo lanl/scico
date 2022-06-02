@@ -10,7 +10,7 @@ import pytest
 
 from scico import flax as sflax
 from scico import random
-from scico.flax.examples import build_blur_kernel, have_astra
+from scico.flax.examples import PaddedCircularConvolve, build_blur_kernel, have_astra
 from scico.flax.train.train import clip_positive, construct_traversal, train_step_post
 from scico.linop import CircularConvolve, Identity
 
@@ -57,6 +57,28 @@ class TestSet:
 
         ishape = (self.N, self.N)
         opBlur = CircularConvolve(h=kernel, input_shape=ishape)
+
+        odpdb = sflax.ODPNet(
+            operator=opBlur,
+            depth=self.depth,
+            channels=self.chn,
+            num_filters=self.num_filters,
+            block_depth=self.block_depth,
+            odp_block=sflax.ODPProxDcnvBlock,
+        )
+
+        variables = odpdb.init(key, y)
+        # Test for the construction / forward pass.
+        mny = odpdb.apply(variables, y, train=False, mutable=False)
+        assert y.dtype == mny.dtype
+        assert y.shape == mny.shape
+
+    def test_odpdcnv_padded(self):
+        y, key = random.randn((10, self.N, self.N, self.chn), seed=1234)
+
+        blur_shape = (9, 9)
+        blur_sigma = 2.24
+        opBlur = PaddedCircularConvolve(self.N, self.chn, blur_shape, blur_sigma)
 
         odpdb = sflax.ODPNet(
             operator=opBlur,
