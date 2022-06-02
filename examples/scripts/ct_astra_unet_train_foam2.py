@@ -54,6 +54,14 @@ test_ds = {"image": ttdt["fbp"], "label": ttdt["img"]}
 
 """
 Define configuration dictionary for model and training loop.
+
+Parameters have been selected for demonstration purposes and relatively short training.
+The model depth controls the levels of pooling in the U-Net model.
+The block depth controls the number of layers at each level of depth.
+The number of filters controls the number of filters at the input and output levels and doubles (halves)
+at each pooling (unpooling) operation.
+Better performance may be obtained by increasing depth, block depth, number of filters or training epochs
+but may require longer training times.
 """
 batch_size = 16
 epochs = 200
@@ -112,9 +120,7 @@ and data fidelity.
 """
 snr_eval = metric.snr(test_ds["label"], output)
 psnr_eval = metric.psnr(test_ds["label"], output)
-print(
-    f"{'UNet training':15s}{'epochs:':2s}{epochs:>5d}{'':21s}{'time[s]:':10s}{time_train:>5.2f}{'':3s}"
-)
+print(f"{'UNet training':15s}{'epochs:':2s}{epochs:>5d}{'':21s}{'time[s]:':10s}{time_train:>5.2f}")
 print(
     f"{'UNet testing':15s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}{'':3s}{'time[s]:':10s}{time_eval:>5.2f}"
 )
