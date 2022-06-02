@@ -1397,6 +1397,7 @@ def build_blur_kernel(
         mean = (size - 1) / 2
         kernel *= np.exp(-(((mgrid - mean) / blur_sigma) ** 2) / 2)
     # Make sure norm of values in gaussian kernel equals 1.
-    kernel = kernel / np.sum(kernel)
+    knorm = np.sqrt(np.sum(kernel * kernel))
+    kernel = kernel / knorm
 
     return kernel
