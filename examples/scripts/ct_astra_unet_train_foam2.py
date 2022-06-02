@@ -60,7 +60,7 @@ The model depth controls the levels of pooling in the U-Net model.
 The block depth controls the number of layers at each level of depth.
 The number of filters controls the number of filters at the input and output levels and doubles (halves)
 at each pooling (unpooling) operation.
-Better performance may be obtained by increasing depth, block depth, number of filters or training epochs
+Better performance may be obtained by increasing depth, block depth, number of filters or training epochs,
 but may require longer training times.
 """
 batch_size = 16
@@ -145,10 +145,10 @@ plot.imview(
 )
 plot.imview(
     output[indx, ..., 0],
-    title="UNet Reconstruction\nSNR: %.2f (dB), MAE: %.3f"
+    title="UNet Reconstruction\nSNR: %.2f (dB), PSNR: %.2f"
     % (
         metric.snr(test_ds["label"][indx, ..., 0], output[indx, ..., 0]),
-        metric.mae(test_ds["label"][indx, ..., 0], output[indx, ..., 0]),
+        metric.psnr(test_ds["label"][indx, ..., 0], output[indx, ..., 0]),
     ),
     fig=fig,
     ax=ax[2],
