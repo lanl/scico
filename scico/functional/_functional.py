@@ -75,7 +75,7 @@ has_prox = {self.has_prox}
         :math:`\mb{v}` = `v`. The scaled proximal operator is defined as
 
         .. math::
-           \mathrm{prox}_{\lambda f}(\mb{v}) = \argmin_{\mb{x}}
+           \prox_{\lambda f}(\mb{v}) = \argmin_{\mb{x}}
            \lambda f(\mb{x}) +
            \frac{1}{2} \norm{\mb{v} - \mb{x}}_2^2\;,
 
@@ -87,7 +87,7 @@ has_prox = {self.has_prox}
             lam: Proximal parameter :math:`\lambda`.
             kwargs: Additional arguments that may be used by derived
                 classes. These include `x0`, an initial guess for the
-                minimizer in the definition of :math:`\mathrm{prox}`.
+                minimizer in the definition of :math:`\prox`.
         """
         # Functionals that have a prox should override this method.
         raise NotImplementedError(f"Functional {type(self)} does not have a prox.")
@@ -106,8 +106,8 @@ has_prox = {self.has_prox}
         Moreau decomposition (see Sec. 6.6 of :cite:`beck-2017-first`)
 
         .. math::
-           \mathrm{prox}_{\lambda f^*}(\mb{v}) = \mb{v} - \lambda
-           \mathrm{prox}_{\lambda^{-1} f}(\mb{v / \lambda}) \;.
+           \prox_{\lambda f^*}(\mb{v}) = \mb{v} - \lambda \,
+           \prox_{\lambda^{-1} f}(\mb{v / \lambda}) \;.
 
         Args:
             v: Point at which to evaluate prox function.
@@ -181,8 +181,8 @@ class ScaledFunctional(Functional):
         of functional :math:`f`,
 
         .. math::
-           \mathrm{prox}_{\alpha (\beta f)}(\mb{v}) =
-           \mathrm{prox}_{(\alpha \beta) f}(\mb{v}) \;.
+           \prox_{\alpha (\beta f)}(\mb{v}) =
+           \prox_{(\alpha \beta) f}(\mb{v}) \;.
 
         """
         return self.functional.prox(v, lam * self.scale)
@@ -232,12 +232,11 @@ class SeparableFunctional(Functional):
         Theorem 6.6 of :cite:`beck-2017-first`).
 
           .. math::
-             \mathrm{prox}_{\lambda f}(\mb{v})
+             \prox_{\lambda f}(\mb{v})
              =
              \begin{bmatrix}
-               \mathrm{prox}_{\lambda f_1}(\mb{v}_1) \\
-               \vdots \\
-               \mathrm{prox}_{\lambda f_N}(\mb{v}_N) \\
+               \prox_{\lambda f_1}(\mb{v}_1) \\ \vdots \\
+               \prox_{\lambda f_N}(\mb{v}_N) \\
              \end{bmatrix} \;.
 
         Args:

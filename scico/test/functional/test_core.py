@@ -90,6 +90,16 @@ def test_separable_grad(test_separable_obj):
         snp.testing.assert_allclose(out, fgv, rtol=5e-2)
 
 
+class HuberNormSep(functional.HuberNorm):
+    def __init__(self, delta=1.0):
+        super().__init__(delta=delta, separable=True)
+
+
+class HuberNormNonSep(functional.HuberNorm):
+    def __init__(self, delta=1.0):
+        super().__init__(delta=delta, separable=False)
+
+
 class TestNormProx:
 
     alphalist = [1e-2, 1e-1, 1e0, 1e1]
@@ -99,7 +109,8 @@ class TestNormProx:
         functional.SquaredL2Norm,
         functional.L2Norm,
         functional.L21Norm,
-        functional.HuberNorm,
+        HuberNormSep,
+        HuberNormNonSep,
         functional.NuclearNorm,
         functional.ZeroFunctional,
     ]

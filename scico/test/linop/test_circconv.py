@@ -123,6 +123,27 @@ class TestCircularConvolve:
         desired = A @ x
         np.testing.assert_allclose(actual, desired, atol=1e-6)
 
+    @pytest.mark.parametrize(
+        "center",
+        [
+            1,
+            [
+                1,
+            ],
+            snp.array([2]),
+        ],
+    )
+    def test_center(self, center):
+        x, key = uniform(minval=-1, maxval=1, shape=(16,), key=self.key)
+        h = snp.array([0.5, 1.0, 0.25])
+        A = CircularConvolve(h=h, input_shape=x.shape, h_center=center)
+        B = CircularConvolve(h=h, input_shape=x.shape)
+        if isinstance(center, int):
+            shift = -center
+        else:
+            shift = -center[0]
+        np.testing.assert_allclose(A @ x, snp.roll(B @ x, shift), atol=1e-5)
+
     @pytest.mark.parametrize("axes_shape_spec", SHAPE_SPECS)
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
     @pytest.mark.parametrize("jit_old_op", [True, False])

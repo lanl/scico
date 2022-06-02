@@ -11,8 +11,25 @@ Image Deconvolution Parameter Tuning
 This example demonstrates the use of
 [scico.ray.tune](../_autosummary/scico.ray.tune.rst) to tune parameters
 for the companion [example script](deconv_tv_admm.rst).
+
+This script is hard-coded to run on CPU only to avoid the large number of
+warnings that are emitted when GPU resources are requested but not available,
+and due to the difficulty of supressing these warnings in a way that does
+not force use of the CPU only. To enable GPU usage, comment out the
+`os.environ` statements near the beginning of the script, and change the
+value of the "gpu" entry in the `resources` dict from 0 to 1. Note that
+two environment variables are set to suppress the warnings because
+`JAX_PLATFORMS` was intended to replace `JAX_PLATFORM_NAME` but this change
+has yet to be correctly implemented
+(see [google/jax#6805](https://github.com/google/jax/issues/6805) and
+[google/jax#10272](https://github.com/google/jax/pull/10272)).
 """
 
+# isort: off
+import os
+
+os.environ["JAX_PLATFORM_NAME"] = "cpu"
+os.environ["JAX_PLATFORMS"] = "cpu"
 
 import numpy as np
 
@@ -70,8 +87,8 @@ def eval_params(config, reporter):
     # Set up problem to be solved.
     A = linop.Convolve(h=psf, input_shape=x_gt.shape)
     f = loss.SquaredL2Loss(y=y, A=A)
-    g = λ * functional.L1Norm()
-    C = linop.FiniteDifference(input_shape=x_gt.shape)
+    g = λ * functional.L21Norm()
+    C = linop.FiniteDifference(input_shape=x_gt.shape, append=0)
     # Define solver.
     solver = ADMM(
         f=f,
