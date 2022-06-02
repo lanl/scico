@@ -80,7 +80,7 @@ class BlockArray(list):
         return BlockArray(iterable)
 
     def __repr__(self):
-        return f"snp.BlockArray({super().__repr__()})"
+        return f"BlockArray({super().__repr__()})"
 
 
 # Register BlockArray as a jax pytree, without this, jax autograd won't work.
