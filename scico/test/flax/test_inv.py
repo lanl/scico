@@ -10,9 +10,9 @@ import pytest
 
 from scico import flax as sflax
 from scico import random
-from scico.flax.examples import PaddedCircularConvolve, have_astra
+from scico.flax.examples import build_blur_kernel, have_astra
 from scico.flax.train.train import clip_positive, construct_traversal, train_step_post
-from scico.linop import Identity
+from scico.linop import CircularConvolve, Identity
 
 if have_astra:
     from scico.linop.radon_astra import TomographicProjector
@@ -53,8 +53,10 @@ class TestSet:
 
         blur_shape = (9, 9)
         blur_sigma = 2.24
-        output_size = (self.N, self.N)
-        opBlur = PaddedCircularConvolve(output_size, self.chn, blur_shape, blur_sigma)
+        kernel = build_blur_kernel(blur_shape, blur_sigma)
+
+        ishape = (self.N, self.N)
+        opBlur = CircularConvolve(h=kernel, input_shape=ishape)
 
         odpdb = sflax.ODPNet(
             operator=opBlur,
