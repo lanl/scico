@@ -90,6 +90,14 @@ train_ds, test_ds = load_foam_blur_data(
 
 """
 Define configuration dictionary for model and training loop.
+
+Parameters have been selected for demonstration purposes and relatively short training.
+The model depth is akin to the number of unrolled iterations in the MoDL model.
+The block depth controls the number of layers at each unrolled iteration.
+The number of filters is uniform throughout the iterations.
+The iterations used for the conjugate gradient (CG) solver can also be specified.
+Better performance may be obtained by increasing depth, block depth, number of filters, CG iterations, or training epochs,
+but may require longer training times.
 """
 batch_size = 16
 epochs = 25
@@ -98,6 +106,7 @@ dconf: sflax.ConfigDict = {
     "depth": 2,
     "num_filters": 64,
     "block_depth": 4,
+    "cg_iter": 4,
     "opt_type": "SGD",
     "momentum": 0.9,
     "batch_size": batch_size,
@@ -150,6 +159,7 @@ if len(checkpoint_files) > 0:
         channels=channels,
         num_filters=dconf["num_filters"],
         block_depth=dconf["block_depth"],
+        cg_iter=dconf["cg_iter"],
     )
 
     start_time = time()
@@ -172,7 +182,7 @@ else:
         channels=channels,
         num_filters=dconf["num_filters"],
         block_depth=dconf["block_depth"],
-        cg_iter=4,
+        cg_iter=dconf["cg_iter"],
     )
     # First stage: initialization training loop.
     workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "modl_dcnv_out")
@@ -192,8 +202,8 @@ else:
     time_init = time() - start_time
 
     print(
-        f"{'MoDLNet Init':8s}{'epochs:':2s}{dconf['num_epochs']:>5d}{'':3s}"
-        f"{'time[s]:':10s}{time_init:>5.2f}"
+        f"{'MoDLNet init':18s}{'epochs:':2s}{dconf['num_epochs']:>5d}{'':3s}"
+        f"{'time[s]:':21s}{time_init:>7.2f}"
     )
 
     # Second stage: depth iterations training loop.
@@ -232,10 +242,10 @@ and data fidelity.
 snr_eval = metric.snr(test_ds["label"], output)
 psnr_eval = metric.psnr(test_ds["label"], output)
 print(
-    f"{'MoDLNet training':18s}{'epochs:':2s}{epochs:>5d}{'':21s}{'time[s]:':10s}{time_train:>5.2f}{'':3s}"
+    f"{'MoDLNet training':18s}{'epochs:':2s}{epochs:>5d}{'':21s}{'time[s]:':10s}{time_train:>7.2f}"
 )
 print(
-    f"{'MoDLNet testing':18s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}{'':3s}{'time[s]:':10s}{time_eval:>5.2f}"
+    f"{'MoDLNet testing':18s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}{'':3s}{'time[s]:':10s}{time_eval:>7.2f}"
 )
 
 # Plot comparison
@@ -246,10 +256,10 @@ fig, ax = plot.subplots(nrows=1, ncols=3, figsize=(15, 5))
 plot.imview(test_ds["label"][indx, ..., 0], title="Ground truth", cbar=None, fig=fig, ax=ax[0])
 plot.imview(
     test_ds["image"][indx, ..., 0],
-    title="Blurred: \nSNR: %.2f (dB), MAE: %.3f"
+    title="Blurred: \nSNR: %.2f (dB), PSNR: %.2f"
     % (
         metric.snr(test_ds["label"][indx, ..., 0], test_ds["image"][indx, ..., 0]),
-        metric.mae(test_ds["label"][indx, ..., 0], test_ds["image"][indx, ..., 0]),
+        metric.psnr(test_ds["label"][indx, ..., 0], test_ds["image"][indx, ..., 0]),
     ),
     cbar=None,
     fig=fig,
@@ -257,10 +267,10 @@ plot.imview(
 )
 plot.imview(
     output[indx, ..., 0],
-    title="MoDLNet Reconstruction\nSNR: %.2f (dB), MAE: %.3f"
+    title="MoDLNet Reconstruction\nSNR: %.2f (dB), PSNR: %.2f"
     % (
         metric.snr(test_ds["label"][indx, ..., 0], output[indx, ..., 0]),
-        metric.mae(test_ds["label"][indx, ..., 0], output[indx, ..., 0]),
+        metric.psnr(test_ds["label"][indx, ..., 0], output[indx, ..., 0]),
     ),
     fig=fig,
     ax=ax[2],
