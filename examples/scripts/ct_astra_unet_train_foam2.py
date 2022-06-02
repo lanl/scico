@@ -145,10 +145,10 @@ plot.imview(
 )
 plot.imview(
     output[indx, ..., 0],
-    title="UNet Reconstruction\nSNR: %.2f (dB), PSNR: %.2f"
+    title="UNet Reconstruction\nSNR: %.2f (dB), MAE: %.3f"
     % (
         metric.snr(test_ds["label"][indx, ..., 0], output[indx, ..., 0]),
-        metric.psnr(test_ds["label"][indx, ..., 0], output[indx, ..., 0]),
+        metric.mae(test_ds["label"][indx, ..., 0], output[indx, ..., 0]),
     ),
     fig=fig,
     ax=ax[2],

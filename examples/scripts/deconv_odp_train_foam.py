@@ -99,7 +99,7 @@ Parameters have been selected for demonstration purposes and relatively short tr
 The model depth is akin to the number of unrolled iterations in the ODP model.
 The block depth controls the number of layers at each unrolled iteration.
 The number of filters is uniform throughout the iterations.
-Better performance may be obtained by increasing depth, block depth, number of filters or training epochs
+Better performance may be obtained by increasing depth, block depth, number of filters or training epochs,
 but may require longer training times.
 """
 batch_size = 16
@@ -200,10 +200,10 @@ fig, ax = plot.subplots(nrows=1, ncols=3, figsize=(15, 5))
 plot.imview(test_ds["label"][indx, ..., 0], title="Ground truth", cbar=None, fig=fig, ax=ax[0])
 plot.imview(
     test_ds["image"][indx, ..., 0],
-    title="Blurred: \nSNR: %.2f (dB), MAE: %.3f"
+    title="Blurred: \nSNR: %.2f (dB), PSNR: %.2f"
     % (
         metric.snr(test_ds["label"][indx, ..., 0], test_ds["image"][indx, ..., 0]),
-        metric.mae(test_ds["label"][indx, ..., 0], test_ds["image"][indx, ..., 0]),
+        metric.psnr(test_ds["label"][indx, ..., 0], test_ds["image"][indx, ..., 0]),
     ),
     cbar=None,
     fig=fig,
@@ -211,10 +211,10 @@ plot.imview(
 )
 plot.imview(
     output[indx, ..., 0],
-    title="ODPNet Reconstruction\nSNR: %.2f (dB), MAE: %.3f"
+    title="ODPNet Reconstruction\nSNR: %.2f (dB), PSNR: %.2f"
     % (
         metric.snr(test_ds["label"][indx, ..., 0], output[indx, ..., 0]),
-        metric.mae(test_ds["label"][indx, ..., 0], output[indx, ..., 0]),
+        metric.psnr(test_ds["label"][indx, ..., 0], output[indx, ..., 0]),
     ),
     fig=fig,
     ax=ax[2],
