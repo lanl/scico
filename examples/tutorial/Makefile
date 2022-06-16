@@ -1,6 +1,15 @@
-all: tutorial_cells.py
+OUT=compiled_files
+
+all: $(OUT)/tutorial_cells.ipynb $(OUT)/install.html
+
+tutorial_%.ipynb: tutorial_%.py
 	rm -rf temp
 	mkdir temp
-	perl -0777 -pe 's/#\s*startq(.*?)#\s*starta(.*?)#\s*endqa/$$1/gs' tutorial_cells.py > temp/tutorial_cells_student.py
-	perl -0777 -pe 's/#\s*startq(.*?)#\s*starta(.*?)#\s*endqa/$$2/gs' tutorial_cells.py > temp/tutorial_cells_instructor.py
-	python -m py2jn temp/tutorial_cells_instructor.py out.ipynb
+	perl -0777 -pe 's/#\s*startq(.*?)#\s*starta(.*?)#\s*endqa/$$1/gs' $< > temp/tutorial_$*_questions.py
+	perl -0777 -pe 's/#\s*startq(.*?)#\s*starta(.*?)#\s*endqa/$$2/gs' $< > temp/tutorial_$*_answers.py
+	python -m py2jn temp/tutorial_$*_questions.py $@
+	python -m py2jn temp/tutorial_$*_answers.py $(OUT)/tutorial_$*_solution.ipynb
+	rm -rf temp
+
+install.html: install.md
+	grip --export --title=" " install.md $(OUT)/install.html
