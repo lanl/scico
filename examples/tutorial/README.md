@@ -6,9 +6,9 @@ for the the interactive SCICO tutorial.
 
 ## Formatting tutorial_XXX.py files
 * Use markdown syntax:
-** inline math: \$x = 1\$
-** equation: \$$ x = 1 \$$
-** heading: \## Heading
+  * inline math: \\$x = 1\\$
+  * equation: \\$\\$ x = 1 \\$\\$
+  * heading: \## Heading
 * Use this structure for question and answer pairs
 ```python
 # startq
