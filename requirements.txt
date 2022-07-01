@@ -4,7 +4,7 @@ tifffile
 imageio>=2.17
 matplotlib
 jaxlib>=0.3.0,<=0.3.10
-jax>=0.3.0,<=0.3.10
+jax>=0.3.0,<=0.3.13
 flax>=0.4.0
 bm3d>=3.0.9
 bm4d
