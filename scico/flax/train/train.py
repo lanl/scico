@@ -333,7 +333,10 @@ def save_checkpoint(state: TrainState, workdir: Union[str, os.PathLike]):  # pra
 
 
 def train_step(
-    state: TrainState, batch: DataSetDict, learning_rate_fn: optax._src.base.Schedule
+    state: TrainState,
+    batch: DataSetDict,
+    learning_rate_fn: optax._src.base.Schedule,
+    criterion: Callable = mse_loss,
 ) -> Tuple[TrainState, MetricsDict]:
     """Perform a single training step. Assummes sharded batched data.
 
@@ -342,8 +345,9 @@ def train_step(
            model apply function, the model parameters
            and an Optax optimizer.
         batch: Sharded and batched training data.
-        learning_rate_fn: A function that maps step
+        learning_rate_fn: A function to map step
            counts to values.
+        criterion: A function that specifies the loss being minimized in training.
 
     Returns:
         Updated parameters and diagnostic statistics.
@@ -359,7 +363,7 @@ def train_step(
             batch["image"],
             mutable=["batch_stats"],
         )
-        loss = mse_loss(output, batch["label"])
+        loss = criterion(output, batch["label"])
         return loss, (new_model_state, output)
 
     step = state.step
@@ -417,7 +421,7 @@ def train_step_post(
     """Perform a single training step. A postprocessing
     function (i.e. for spectral normalization or positivity
     condition, etc.) is applied after the gradient update.
-    Assummes sharded batched data.
+    Assumes sharded batched data.
 
     Args:
         state: Flax train state which includes the
@@ -444,7 +448,7 @@ def train_step_post(
 
 
 def eval_step(state: TrainState, batch: DataSetDict) -> MetricsDict:
-    """Evaluate current model state. Assummes sharded
+    """Evaluate current model state. Assumes sharded
     batched data.
 
     Args:
