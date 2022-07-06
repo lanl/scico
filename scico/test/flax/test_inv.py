@@ -11,7 +11,7 @@ import pytest
 from scico import flax as sflax
 from scico import random
 from scico.flax.examples import PaddedCircularConvolve, build_blur_kernel, have_astra
-from scico.flax.train.train import clip_positive, construct_traversal, train_step_post
+from scico.flax.train.train import clip_positive, construct_traversal
 from scico.linop import CircularConvolve, Identity
 
 if have_astra:
@@ -183,14 +183,13 @@ class TestCT:
                 traversal=lmbdatrav,
                 minval=minval,
             )
-            train_step = partial(train_step_post, post_fn=lmbdapos)
             modvar = sflax.train_and_evaluate(
                 self.dconf,
                 "./",
                 model,
                 self.train_ds,
                 self.test_ds,
-                training_step_fn=train_step,
+                post_lst=[lmbdapos],
             )
         except Exception as e:
             print(e)
@@ -217,14 +216,13 @@ class TestCT:
                 traversal=alphatrav,
                 minval=minval,
             )
-            train_step = partial(train_step_post, post_fn=alphapos)
             modvar = sflax.train_and_evaluate(
                 self.dconf,
                 "./",
                 model,
                 self.train_ds,
                 self.test_ds,
-                training_step_fn=train_step,
+                post_lst=[alphapos],
             )
         except Exception as e:
             print(e)

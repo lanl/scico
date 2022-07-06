@@ -332,13 +332,15 @@ def save_checkpoint(state: TrainState, workdir: Union[str, os.PathLike]):  # pra
         checkpoints.save_checkpoint(workdir, state, step, keep=3)
 
 
-def train_step(
+def _train_step(
     state: TrainState,
     batch: DataSetDict,
     learning_rate_fn: optax._src.base.Schedule,
-    criterion: Callable = mse_loss,
+    criterion: Callable,
 ) -> Tuple[TrainState, MetricsDict]:
     """Perform a single training step. Assummes sharded batched data.
+
+    This function is intended to be used via :meth:`train_and_evaluate`, not directly.
 
     Args:
         state: Flax train state which includes the
@@ -347,7 +349,7 @@ def train_step(
         batch: Sharded and batched training data.
         learning_rate_fn: A function to map step
            counts to values.
-        criterion: A function that specifies the loss being minimized in training. Default: `mse_loss`.
+        criterion: A function that specifies the loss being minimized in training. Default: :meth:`mse_loss`.
 
     Returns:
         Updated parameters and diagnostic statistics.
@@ -412,46 +414,53 @@ def clip_positive(params: PyTree, traversal: ModelParamTraversal, minval: float 
     return freeze(params_out)
 
 
-def train_step_post(
+def _train_step_post(
     state: TrainState,
     batch: DataSetDict,
     learning_rate_fn: optax._src.base.Schedule,
-    post_fn: Callable,
-    criterion: Callable = mse_loss,
+    criterion: Callable,
+    train_step_fn: Callable,
+    post_lst: List[Callable],
 ) -> Tuple[TrainState, MetricsDict]:
-    """Perform a single training step. A postprocessing
-    function (i.e. for spectral normalization or positivity
+    """Perform a single training step. A list of postprocessing
+    functions (i.e. for spectral normalization or positivity
     condition, etc.) is applied after the gradient update.
     Assumes sharded batched data.
+
+    This function is intended to be used via :meth:`train_and_evaluate`, not directly.
 
     Args:
         state: Flax train state which includes the
            model apply function, the model parameters
            and an Optax optimizer.
         batch: Sharded and batched training data.
-        learning_rate_fn: A function that maps step
+        learning_rate_fn: A function to map step
            counts to values.
-        post_fn: A postprocessing function for clipping
-           parameter range or normalizing parameter.
-        criterion: A function that specifies the loss being minimized in training. Default: `mse_loss`.
+        criterion: A function that specifies the loss being minimized in training.
+        train_step_fn: A function that executes a training step.
+        post_lst: List of postprocessing functions to apply to parameter set after optimizer step (e.g. clip
+            to a specified range, normalize, etc.).
 
     Returns:
         Updated parameters, fulfilling additional constraints,
         and diagnostic statistics.
     """
 
-    new_state, metrics = train_step(state, batch, learning_rate_fn, criterion)
+    new_state, metrics = train_step_fn(state, batch, learning_rate_fn, criterion)
 
     # Post-process parameters
-    new_params = post_fn(new_state.params)
-    new_state = new_state.replace(params=new_params)
+    for post_fn in post_lst:
+        new_params = post_fn(new_state.params)
+        new_state = new_state.replace(params=new_params)
 
     return new_state, metrics
 
 
-def eval_step(state: TrainState, batch: DataSetDict) -> MetricsDict:
+def _eval_step(state: TrainState, batch: DataSetDict) -> MetricsDict:
     """Evaluate current model state. Assumes sharded
     batched data.
+
+    This function is intended to be used via :meth:`train_and_evaluate` or :meth:`only_evaluate`, not directly.
 
     Args:
         state: Flax train state which includes the
@@ -489,7 +498,10 @@ def train_and_evaluate(
     train_ds: DataSetDict,
     test_ds: DataSetDict,
     create_lr_schedule: Callable = create_cnst_lr_schedule,
-    training_step_fn: Callable = train_step,
+    criterion: Callable = mse_loss,
+    train_step_fn: Callable = _train_step,
+    eval_step_fn: Callable = _eval_step,
+    post_lst: Optional[List[Callable]] = None,
     variables0: Optional[ModelVarDict] = None,
     checkpointing: bool = False,
     log: bool = False,
@@ -509,8 +521,11 @@ def train_and_evaluate(
         create_lr_schedule: A function that creates an Optax
             learning rate schedule. Default:
             :meth:`create_cnst_schedule`.
-        training_step_fn: A function that executes a training
-            step. Default: :meth:`training_step`.
+        criterion: A function that specifies the loss being minimized in training. Default: :meth:`mse_loss`.
+        train_step_fn: A hook for a function that executes a training step. Default: :meth:`_train_step`, i.e. use the standard train step.
+        eval_step_fn: A hook for a function that executes an eval step. Default: :meth:`_eval_step`, i.e. use the standard eval step.
+        post_lst: List of postprocessing functions to apply to parameter set after optimizer step (e.g. clip
+            to a specified range, normalize, etc.).
         variables0: Optional initial state of model
             parameters. Default: ``None``.
         checkpointing: A flag for checkpointing model state.
@@ -605,10 +620,23 @@ def train_and_evaluate(
 
     # For parallel training
     state = jax_utils.replicate(state)
-    p_train_step = jax.pmap(
-        functools.partial(training_step_fn, learning_rate_fn=lr_schedule), axis_name="batch"
-    )
-    p_eval_step = jax.pmap(eval_step, axis_name="batch")
+    if post_lst is not None:
+        p_train_step = jax.pmap(
+            functools.partial(
+                _train_step_post,
+                train_step_fn=train_step_fn,
+                learning_rate_fn=lr_schedule,
+                criterion=criterion,
+                post_lst=post_lst,
+            ),
+            axis_name="batch",
+        )
+    else:
+        p_train_step = jax.pmap(
+            functools.partial(train_step_fn, learning_rate_fn=lr_schedule, criterion=criterion),
+            axis_name="batch",
+        )
+    p_eval_step = jax.pmap(eval_step_fn, axis_name="batch")
 
     # Execute training loop and register stats
     train_metrics: List[Any] = []
