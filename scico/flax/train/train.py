@@ -116,7 +116,7 @@ def mse_loss(output: Array, labels: Array) -> float:
     return jnp.mean(mse)
 
 
-def compute_metrics(output: Array, labels: Array) -> MetricsDict:
+def compute_metrics(output: Array, labels: Array, criterion: Callable = mse_loss) -> MetricsDict:
     """Compute diagnostic metrics. Assummes sharded batched
     data (i.e. it only works inside pmap because it needs an
     axis name).
@@ -124,11 +124,12 @@ def compute_metrics(output: Array, labels: Array) -> MetricsDict:
     Args:
         output: Comparison signal.
         labels: Reference signal.
+        criterion: Loss function. Default: :meth:`mse_loss`.
 
     Returns:
-        MSE and SNR between `output` and `labels`.
+        Loss and SNR between `output` and `labels`.
     """
-    loss = mse_loss(output, labels)
+    loss = criterion(output, labels)
     snr_ = snr(labels, output)
     metrics: MetricsDict = {
         "loss": loss,
@@ -406,10 +407,28 @@ def clip_positive(params: PyTree, traversal: ModelParamTraversal, minval: float 
     Args:
         params: Current model parameters.
         traversal: Utility to select model parameters.
-        minval: Minimum value to clip parameters and keep them
-            in a positive range. Default: 1e-4.
+        minval: Minimum value to clip selected model parameters
+            and keep them in a positive range. Default: 1e-4.
     """
     params_out = traversal.update(lambda x: jnp.clip(x, a_min=minval), unfreeze(params))
+
+    return freeze(params_out)
+
+
+def clip_range(
+    params: PyTree, traversal: ModelParamTraversal, minval: float = 1e-4, maxval: float = 1
+) -> PyTree:
+    """Clip parameters to specified range.
+
+    Args:
+        params: Current model parameters.
+        traversal: Utility to select model parameters.
+        minval: Minimum value to clip selected model parameters. Default: 1e-4.
+        maxval: Maximum value to clip selected model parameters. Default: 1.
+    """
+    params_out = traversal.update(
+        lambda x: jnp.clip(x, a_min=minval, a_max=maxval), unfreeze(params)
+    )
 
     return freeze(params_out)
 

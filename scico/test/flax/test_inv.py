@@ -11,7 +11,7 @@ import pytest
 from scico import flax as sflax
 from scico import random
 from scico.flax.examples import PaddedCircularConvolve, build_blur_kernel, have_astra
-from scico.flax.train.train import clip_positive, construct_traversal
+from scico.flax.train.train import clip_positive, clip_range, construct_traversal
 from scico.linop import CircularConvolve, Identity
 
 if have_astra:
@@ -210,19 +210,16 @@ class TestCT:
 
         try:
             minval = 1.1e-2
+            maxval = 1e2
             alphatrav = construct_traversal("alpha")
-            alphapos = partial(
-                clip_positive,
-                traversal=alphatrav,
-                minval=minval,
-            )
+            alpharange = partial(clip_range, traversal=alphatrav, minval=minval, maxval=maxval)
             modvar = sflax.train_and_evaluate(
                 self.dconf,
                 "./",
                 model,
                 self.train_ds,
                 self.test_ds,
-                post_lst=[alphapos],
+                post_lst=[alpharange],
             )
         except Exception as e:
             print(e)
