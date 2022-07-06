@@ -11,6 +11,7 @@ from scico import random
 from scico.flax.train.input_pipeline import IterateData, prepare_data
 from scico.flax.train.train import (
     compute_metrics,
+    count_parameters,
     create_cnst_lr_schedule,
     create_cosine_lr_schedule,
     create_exp_lr_schedule,
@@ -147,6 +148,37 @@ def test_compute_metrics(testobj):
     mtrcs = jax.tree_map(lambda x: x.mean(), eval_metrics)
     assert np.abs(mtrcs["loss"]) < 0.51
     assert mtrcs["snr"] < 5e-4
+
+
+def test_count_parameters(testobj):
+    model = sflax.ResNet(testobj.dconf["depth"], testobj.chn, testobj.dconf["num_filters"])
+
+    key = jax.random.PRNGKey(seed=1234)
+    input_shape = (1, testobj.N, testobj.N, testobj.chn)
+    variables = model.init({"params": key}, np.ones(input_shape, model.dtype))
+
+    filter_sz = model.kernel_size[0] * model.kernel_size[1]
+    # filter parameters output layer
+    sum_manual_params = filter_sz * testobj.dconf["num_filters"] * testobj.chn
+    # bias and scale of batch normalization output layer
+    sum_manual_params += testobj.chn * 2
+    # mean and bar of batch normalization output layer
+    sum_manual_bst = testobj.chn * 2
+    chn_prev = 1
+    for i in range(testobj.dconf["depth"] - 1):
+        # filter parameters
+        sum_manual_params += filter_sz * testobj.dconf["num_filters"] * chn_prev
+        # bias and scale of batch normalization
+        sum_manual_params += testobj.dconf["num_filters"] * 2
+        # mean and bar of batch normalization
+        sum_manual_bst += testobj.dconf["num_filters"] * 2
+        chn_prev = testobj.dconf["num_filters"]
+
+    total_nvar_params = count_parameters(variables["params"])
+    total_nvar_bst = count_parameters(variables["batch_stats"])
+
+    assert total_nvar_params == sum_manual_params
+    assert total_nvar_bst == sum_manual_bst
 
 
 def test_cnst_learning_rate(testobj):

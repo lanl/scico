@@ -24,7 +24,7 @@ import optax
 from flax import jax_utils
 from flax.core import freeze, unfreeze
 from flax.training import common_utils, train_state
-from flax.traverse_util import ModelParamTraversal
+from flax.traverse_util import ModelParamTraversal, flatten_dict
 
 try:
     import clu  # noqa: F401
@@ -331,6 +331,21 @@ def save_checkpoint(state: TrainState, workdir: Union[str, os.PathLike]):  # pra
         state = jax.device_get(jax.tree_map(lambda x: x[0], state))
         step = int(state.step)
         checkpoints.save_checkpoint(workdir, state, step, keep=3)
+
+
+# Modified from https://github.com/google/CommonLoopUtils/blob/main/clu/parameter_overview.py
+def count_parameters(params: PyTree) -> int:
+    """Returns the count of variables for the parameter dictionary.
+
+    Args:
+        params: Flax model parameters.
+    """
+
+    import numpy as np
+
+    params = jax.tree_map(np.asarray, params)
+    flat_params = flatten_dict(params)
+    return sum(np.prod(v.shape) for v in flat_params.values())
 
 
 def _train_step(
