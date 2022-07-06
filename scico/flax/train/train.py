@@ -416,6 +416,7 @@ def train_step_post(
     state: TrainState,
     batch: DataSetDict,
     learning_rate_fn: optax._src.base.Schedule,
+    criterion: Callable,
     post_fn: Callable,
 ) -> Tuple[TrainState, MetricsDict]:
     """Perform a single training step. A postprocessing
@@ -430,6 +431,7 @@ def train_step_post(
         batch: Sharded and batched training data.
         learning_rate_fn: A function that maps step
            counts to values.
+        criterion: A function that specifies the loss being minimized in training.
         post_fn: A postprocessing function for clipping
            parameter range or normalizing parameter.
 
@@ -438,7 +440,7 @@ def train_step_post(
         and diagnostic statistics.
     """
 
-    new_state, metrics = train_step(state, batch, learning_rate_fn)
+    new_state, metrics = train_step(state, batch, learning_rate_fn, criterion)
 
     # Post-process parameters
     new_params = post_fn(new_state.params)
