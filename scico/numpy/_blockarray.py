@@ -79,6 +79,9 @@ class BlockArray(list):
         """Construct a :class:`.BlockArray` from a list or tuple of existing array-like."""
         return BlockArray(iterable)
 
+    def __repr__(self):
+        return f"BlockArray({super().__repr__()})"
+
 
 # Register BlockArray as a jax pytree, without this, jax autograd won't work.
 # taken from what is done with tuples in jax._src.tree_util
