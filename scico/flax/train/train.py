@@ -347,7 +347,7 @@ def train_step(
         batch: Sharded and batched training data.
         learning_rate_fn: A function to map step
            counts to values.
-        criterion: A function that specifies the loss being minimized in training.
+        criterion: A function that specifies the loss being minimized in training. Default: `mse_loss`.
 
     Returns:
         Updated parameters and diagnostic statistics.
@@ -416,8 +416,8 @@ def train_step_post(
     state: TrainState,
     batch: DataSetDict,
     learning_rate_fn: optax._src.base.Schedule,
-    criterion: Callable,
     post_fn: Callable,
+    criterion: Callable = mse_loss,
 ) -> Tuple[TrainState, MetricsDict]:
     """Perform a single training step. A postprocessing
     function (i.e. for spectral normalization or positivity
@@ -431,9 +431,9 @@ def train_step_post(
         batch: Sharded and batched training data.
         learning_rate_fn: A function that maps step
            counts to values.
-        criterion: A function that specifies the loss being minimized in training.
         post_fn: A postprocessing function for clipping
            parameter range or normalizing parameter.
+        criterion: A function that specifies the loss being minimized in training. Default: `mse_loss`.
 
     Returns:
         Updated parameters, fulfilling additional constraints,
