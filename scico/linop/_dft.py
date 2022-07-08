@@ -12,7 +12,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, Sequence
 
 import numpy as np
 
@@ -41,9 +41,9 @@ class DFT(LinearOperator):
                 DFT is computed over all axes.
             axes_shape: Output shape on the subset of array axes selected
                 by `axes`. This parameter has the same behavior as the
-                `s` parameter of :func:`snp.fft.fftn`.
-            norm: DFT normalization mode. See `norm` parameter of
-                :func:`snp.fft.fftn`.
+                `s` parameter of :func:`numpy.fft.fftn`.
+            norm: DFT normalization mode. See the `norm` parameter of
+                :func:`numpy.fft.fftn`.
             jit: If ``True``, jit the evaluation, adjoint, and gram
                 functions of the LinearOperator.
         """
