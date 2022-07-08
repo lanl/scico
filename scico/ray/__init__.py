@@ -5,7 +5,7 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Simplified interfaces to :doc:`ray <ray-core/package-ref>`."""
+"""Simplified interfaces to :external:doc:`ray <ray-core/package-ref>`."""
 
 
 try:
