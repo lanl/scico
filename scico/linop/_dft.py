@@ -55,10 +55,10 @@ class DFT(LinearOperator):
         if axes_shape is not None:
             if axes is None:
                 axes = tuple(range(len(input_shape) - len(axes_shape), len(input_shape)))
-            output_shape = list(input_shape)
+            tmp_output_shape = list(input_shape)
             for i, s in zip(axes, axes_shape):
-                output_shape[i] = s
-            output_shape = tuple(output_shape)
+                tmp_output_shape[i] = s
+            output_shape = tuple(tmp_output_shape)
         else:
             output_shape = input_shape
 
