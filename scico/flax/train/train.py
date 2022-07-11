@@ -24,14 +24,7 @@ import optax
 from flax import jax_utils
 from flax.core import freeze, unfreeze
 from flax.training import common_utils, train_state
-from flax.traverse_util import ModelParamTraversal, flatten_dict
-
-try:
-    import clu  # noqa: F401
-except ImportError:
-    have_clu = False
-else:
-    have_clu = True
+from flax.traverse_util import ModelParamTraversal
 
 try:
     from tensorflow.io import gfile  # noqa: F401
@@ -44,6 +37,7 @@ if have_tf:
     from flax.training import checkpoints
 
 from scico.flax import create_input_iter
+from scico.flax.train.clu_utils import get_parameter_overview
 from scico.flax.train.input_pipeline import DataSetDict
 from scico.metric import snr
 from scico.typing import Array, Shape
@@ -333,21 +327,6 @@ def save_checkpoint(state: TrainState, workdir: Union[str, os.PathLike]):  # pra
         checkpoints.save_checkpoint(workdir, state, step, keep=3)
 
 
-# Modified from https://github.com/google/CommonLoopUtils/blob/main/clu/parameter_overview.py
-def count_parameters(params: PyTree) -> int:
-    """Returns the count of variables for the parameter dictionary.
-
-    Args:
-        params: Flax model parameters.
-    """
-
-    import numpy as np
-
-    params = jax.tree_map(np.asarray, params)
-    flat_params = flatten_dict(params)
-    return sum(np.prod(v.shape) for v in flat_params.values())
-
-
 def _train_step(
     state: TrainState,
     batch: DataSetDict,
@@ -583,12 +562,6 @@ def train_and_evaluate(
                 train_ds["label"].shape[1],
             )
         )
-        if have_clu:
-            from clu import metric_writers
-
-            writer = metric_writers.create_default_writer(
-                logdir=workdir, just_logging=jax.process_index() != 0
-            )
 
     # Configure seed.
     key = jax.random.PRNGKey(config["seed"])
@@ -645,11 +618,9 @@ def train_and_evaluate(
             raise RuntimeError(
                 "Tensorflow not available and it is required for Flax checkpointing."
             )
-    if log and have_clu:  # pragma: no cover
-        from clu import parameter_overview
-
-        print(parameter_overview.get_parameter_overview(state.params))
-        print(parameter_overview.get_parameter_overview(state.batch_stats))
+    if log:  # pragma: no cover
+        print(get_parameter_overview(state.params))
+        print(get_parameter_overview(state.batch_stats))
     step_offset = int(state.step)  # > 0 if restarting from checkpoint
 
     # For parallel training
@@ -706,8 +677,6 @@ def train_and_evaluate(
                         summary["train_snr"],
                     )
                 )
-                if have_clu:
-                    writer.write_scalars(step + 1, summary)
                 train_metrics = []
                 train_metrics_last_t = time.time()
 
@@ -728,11 +697,6 @@ def train_and_evaluate(
                     "eval epoch: %5d,  loss: %.6f,  snr: %.2f"
                     % (epoch, summary["loss"], summary["snr"])
                 )
-                if have_clu:
-                    writer.write_scalars(
-                        step + 1, {f"eval_{key}": val for key, val in summary.items()}
-                    )
-                    writer.flush()
         if (step + 1) % steps_per_checkpoint == 0 or step + 1 == num_steps:
             state = sync_batch_stats(state)
             if checkpointing:  # pragma: no cover
@@ -794,11 +758,8 @@ def only_evaluate(
                 "params": state["params"],
                 "batch_stats": state["batch_stats"],
             }
-            if have_clu:
-                from clu import parameter_overview
-
-                print(parameter_overview.get_parameter_overview(variables["params"]))
-                print(parameter_overview.get_parameter_overview(variables["batch_stats"]))
+            print(get_parameter_overview(variables["params"]))
+            print(get_parameter_overview(variables["batch_stats"]))
         else:
             raise Exception("No variables or checkpoint provided")
 

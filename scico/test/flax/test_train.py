@@ -11,7 +11,6 @@ from scico import random
 from scico.flax.train.input_pipeline import IterateData, prepare_data
 from scico.flax.train.train import (
     compute_metrics,
-    count_parameters,
     create_cnst_lr_schedule,
     create_cosine_lr_schedule,
     create_exp_lr_schedule,
@@ -174,8 +173,8 @@ def test_count_parameters(testobj):
         sum_manual_bst += testobj.dconf["num_filters"] * 2
         chn_prev = testobj.dconf["num_filters"]
 
-    total_nvar_params = count_parameters(variables["params"])
-    total_nvar_bst = count_parameters(variables["batch_stats"])
+    total_nvar_params = sflax.count_parameters(variables["params"])
+    total_nvar_bst = sflax.count_parameters(variables["batch_stats"])
 
     assert total_nvar_params == sum_manual_params
     assert total_nvar_bst == sum_manual_bst

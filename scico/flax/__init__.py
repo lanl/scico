@@ -23,6 +23,7 @@ from .models import ConvBNNet, DnCNNNet, ResNet, UNet
 from .inverse import MoDLNet, ODPGrDescBlock, ODPNet, ODPProxDcnvBlock, ODPProxDnBlock
 from .train.input_pipeline import create_input_iter
 from .train.train import ConfigDict, only_evaluate, train_and_evaluate
+from .train.clu_utils import count_parameters
 
 __all__ = [
     "FlaxMap",
@@ -46,6 +47,7 @@ __all__ = [
     "ConfigDict",
     "train_and_evaluate",
     "only_evaluate",
+    "count_parameters",
 ]
 
 # Imported items in __all__ appear to originate in top-level flax module
