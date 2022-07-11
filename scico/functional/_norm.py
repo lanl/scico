@@ -7,7 +7,7 @@
 
 """Functionals that are norms."""
 
-from typing import Union
+from typing import Optional, Tuple, Union
 
 from jax import jit, lax
 
@@ -198,8 +198,8 @@ class L21Norm(Functional):
            \abs{A_{m,n}}^2} \;.
 
     The norm generalizes to more dimensions by first computing the
-    :math:`\ell_2` norm along a single (user-specified) dimension,
-    followed by a sum over all remaining dimensions.
+    :math:`\ell_2` norm along one or more (user-specified) axes,
+    followed by a sum over all remaining axes.
 
     For `BlockArray` inputs, the :math:`\ell_2` norm follows the
     reduction rules described in :class:`BlockArray`.
@@ -210,15 +210,22 @@ class L21Norm(Functional):
     has_eval = True
     has_prox = True
 
-    def __init__(self, l2_axis: int = 0):
+    def __init__(self, l2_axis: Union[int, Tuple] = 0):
         r"""
         Args:
-            l2_axis: Axis over which to take the l2 norm. Default: 0.
+            l2_axis: Axis/axes over which to take the l2 norm. Default: 0.
         """
         self.l2_axis = l2_axis
 
+    @staticmethod
+    def _l2norm(
+        x: Union[JaxArray, BlockArray], axis: Union[int, Tuple], keepdims: Optional[bool] = False
+    ):
+        r"""Return the :math:`\ell_2` norm of an array."""
+        return snp.sqrt(snp.sum(snp.abs(x) ** 2, axis=axis, keepdims=keepdims))
+
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
-        l2 = norm(x, axis=self.l2_axis)
+        l2 = L21Norm._l2norm(x, axis=self.l2_axis)
         return snp.abs(l2).sum()
 
     def prox(
@@ -247,8 +254,7 @@ class L21Norm(Functional):
             kwargs: Additional arguments that may be used by derived
                 classes.
         """
-
-        length = norm(v, axis=self.l2_axis, keepdims=True)
+        length = L21Norm._l2norm(v, axis=self.l2_axis, keepdims=True)
         direction = no_nan_divide(v, length)
 
         new_length = length - lam
