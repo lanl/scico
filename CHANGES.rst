@@ -19,7 +19,7 @@ Version 0.0.3   (unreleased)
 • New Huber norm (``HuberNorm``) and set distance functionals (``SetDistance`` and ``SquaredSetDistance``).
 • New loss functions ``loss.SquaredL2AbsLoss`` and ``loss.SquaredL2SquaredAbsLoss`` for phase retrieval problems.
 • Add interface to BM4D denoiser.
-• Change interface of ``linop.FiniteDifference``.
+• Change interfaces of ``linop.FiniteDifference`` and ``linop.DFT``.
 • Change filenames of some example scripts (and corresponding notebooks).
 • Change required packages and version numbers.
 • Add support for Python 3.7.
