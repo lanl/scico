@@ -22,7 +22,7 @@ from .blocks import (
 from .models import ConvBNNet, DnCNNNet, ResNet, UNet
 from .inverse import MoDLNet, ODPGrDescBlock, ODPNet, ODPProxDcnvBlock, ODPProxDnBlock
 from .train.input_pipeline import create_input_iter
-from .train.train import ConfigDict, only_evaluate, train_and_evaluate
+from .train.train import ConfigDict, only_apply, train_and_evaluate
 from .train.clu_utils import count_parameters
 
 __all__ = [
@@ -46,7 +46,7 @@ __all__ = [
     "create_input_iter",
     "ConfigDict",
     "train_and_evaluate",
-    "only_evaluate",
+    "only_apply",
     "count_parameters",
 ]
 

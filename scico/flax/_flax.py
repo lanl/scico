@@ -24,7 +24,22 @@ def load_weights(filename: str) -> PyTree:
 
     variables = serialization.msgpack_restore(bytes_input)
 
-    return variables
+    var_in = {"params": variables["params"], "batch_stats": variables["batch_stats"]}
+
+    return var_in
+
+
+def save_weights(variables: PyTree, filename: str) -> None:
+    """Save trained model weights.
+
+    Args:
+        filename: Name of file to save parameters of trained model.
+        variables: Parameters of model to save.
+    """
+    bytes_output = serialization.msgpack_serialize(variables)
+
+    with open(filename, "wb") as data_file:
+        data_file.write(bytes_output)
 
 
 class FlaxMap:

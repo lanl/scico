@@ -719,15 +719,34 @@ def train_and_evaluate(
     return dvar
 
 
-def only_evaluate(
+def _apply_fn(model: ModuleDef, variables: ModelVarDict, batch: DataSetDict) -> Array:
+    """Apply current model. Assumes sharded
+    batched data and replicated variables for distributed processing.
+
+    This function is intended to be used via :meth:`only_apply`, not directly.
+
+    Args:
+        model: Flax model to apply.
+        variables: State of model parameters (replicated).
+        batch: Sharded and batched training data.
+
+    Returns:
+        Output computed by given model.
+    """
+    output = model.apply(variables, batch["image"], train=False, mutable=False)
+    return output
+
+
+def only_apply(
     config: ConfigDict,
     workdir: str,
     model: ModuleDef,
     test_ds: DataSetDict,
+    apply_fn: Callable = _apply_fn,
     variables: Optional[ModelVarDict] = None,
     checkpointing: bool = False,
 ) -> Tuple[Array, ModelVarDict]:
-    """Execute model evaluation loop.
+    """Execute model application loop.
 
     Args:
         config: Hyperparameter configuration.
@@ -735,6 +754,7 @@ def only_evaluate(
         model: Flax model to apply.
         test_ds: Dictionary of testing data (includes images
             and labels).
+        apply_fn: A hook for a function that applies current model. Default: :meth:`_apply_fn`, i.e. use the standard apply function.
         variables: Model parameters to use for evaluation.
             Default: ``None`` (i.e. read from checkpoint).
         checkpointing: A flag for checkpointing model state.
@@ -763,10 +783,40 @@ def only_evaluate(
         else:
             raise Exception("No variables or checkpoint provided")
 
+    # For distributed testing
+    local_batch_size = config["batch_size"] // jax.process_count()
+    size_device_prefetch = 2  # Set for GPU
+    # Configure seed.
+    key = jax.random.PRNGKey(config["seed"])
+    # Set data iterator
+    eval_dt_iter = create_input_iter(
+        key,  # eval: no permutation
+        test_ds,
+        local_batch_size,
+        size_device_prefetch,
+        model.dtype,
+        train=False,
+    )
+    p_apply_step = jax.pmap(apply_fn, axis_name="batch", static_broadcasted_argnums=0)
+
     # Evaluate model with provided variables
-    output = model.apply(variables, test_ds["image"], train=False, mutable=False)
+    variables = jax_utils.replicate(variables)
+    num_examples = test_ds["image"].shape[0]
+    steps_ = num_examples // config["batch_size"]
+    output = []
+    for _ in range(steps_):
+        eval_batch = next(eval_dt_iter)
+        output_ = p_apply_step(model, variables, eval_batch)
+        output.append(output_.reshape((-1,) + output_.shape[-3:]))
 
     # Allow for completing the async run
     jax.random.normal(jax.random.PRNGKey(0), ()).block_until_ready()
+
+    # Extract one copy of variables
+    variables = jax_utils.unreplicate(variables)
+    # Convert to array
+    output = jnp.array(output)
+    # Remove leading dimension
+    output = output.reshape((-1,) + output.shape[-3:])
 
     return output, variables

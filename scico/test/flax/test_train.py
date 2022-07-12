@@ -282,11 +282,11 @@ def test_train_ext_init(testobj, chkflag):
     np.testing.assert_allclose(bn0var_before, bn0var_after, rtol=1e-5)
 
 
-def test_except_only_eval(testobj):
+def test_except_only_apply(testobj):
     model = sflax.ResNet(testobj.dconf["depth"], testobj.chn, testobj.dconf["num_filters"])
 
     with pytest.raises(Exception):
-        out_eval = sflax.only_evaluate(
+        out_ = sflax.only_apply(
             testobj.dconf,
             "./",
             model,
@@ -306,15 +306,15 @@ def test_eval(testobj, model_cls):
     variables = model.init(key, testobj.train_ds["image"])
 
     # from train script
-    out_eval, _ = sflax.only_evaluate(
+    out_, _ = sflax.only_apply(
         testobj.dconf,
         "./",
         model,
         testobj.test_ds,
-        variables,
+        variables=variables,
     )
     # from scico FlaxMap util
     fmap = sflax.FlaxMap(model, variables)
     out_fmap = fmap(testobj.test_ds["image"])
 
-    np.testing.assert_allclose(out_eval, out_fmap)
+    np.testing.assert_allclose(out_, out_fmap, atol=2e-6)
