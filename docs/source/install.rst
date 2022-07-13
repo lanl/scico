@@ -34,7 +34,6 @@ Install using the commands
    pip install -e .
 
 
-
 GPU Support
 -----------
 
@@ -56,6 +55,18 @@ The instructions above install a CPU-only version of SCICO. To install a version
 
       pip install --upgrade "jaxlib==0.3.0+cuda11.cudnn805" -f https://storage.googleapis.com/jax-releases/jax_releases.html
 
+
+Docker Installation For Examples
+--------------------------------
+
+1. Install docker locally
+
+2. Run the following commands to open a cpu-only jupyter docker image that has all of the examples for the current SCICO release:
+
+   ::
+
+      docker pull fernandodavisr/scico_notebook
+      docker run -v <docker-image-folder>:/home/jovyan/home -p 8888:8888 fernandodavisr/scico_notebook
 
 
 Additional Dependencies
