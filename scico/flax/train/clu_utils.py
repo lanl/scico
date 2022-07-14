@@ -21,12 +21,12 @@ import numpy as np
 import jax
 
 import flax
-from flax.traverse_util import flatten_dict
 
 PyTree = Any
 ParamsContainer = Union[Dict[str, np.ndarray], Mapping[str, Mapping[str, Any]]]
 
 
+@dataclasses.dataclass
 class ParamRow:
     """Definition of the structure of a row for printing parameters without stats."""
 
@@ -35,11 +35,32 @@ class ParamRow:
     size: int
 
 
+@dataclasses.dataclass
 class ParamRowWithStats(ParamRow):
     """Definition of the structure of a row for printing parameters with stats."""
 
     mean: float
     std: float
+
+
+def flatten_dict(
+    input_dict: Dict[str, Any], prefix: str = "", delimiter: str = "/"
+) -> Dict[str, Any]:
+    """Flattens the keys of a nested dictionary.
+
+    Args:
+        input_dict: Nested dictionary.
+        prefix: Prefix of already flatten. Default: empty string.
+        delimiter: Delimiter for displaying. Default: ``/``.
+    """
+    output_dict = {}
+    for key, value in input_dict.items():
+        nested_key = f"{prefix}{delimiter}{key}" if prefix else key
+        if isinstance(value, (dict, flax.core.FrozenDict)):
+            output_dict.update(flatten_dict(value, prefix=nested_key, delimiter=delimiter))
+        else:
+            output_dict[nested_key] = value
+    return output_dict
 
 
 def count_parameters(params: PyTree) -> int:
