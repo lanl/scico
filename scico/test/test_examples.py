@@ -3,7 +3,7 @@ import tempfile
 
 import numpy as np
 
-import imageio
+import imageio.v2 as iio
 import pytest
 
 import scico.numpy as snp
@@ -32,8 +32,8 @@ def test_volume_read():
     temp_dir = tempfile.TemporaryDirectory()
     v0 = np.zeros((32, 32), dtype=np.uint16)
     v1 = np.ones((32, 32), dtype=np.uint16)
-    imageio.imwrite(os.path.join(temp_dir.name, "v0.tif"), v0)
-    imageio.imwrite(os.path.join(temp_dir.name, "v1.tif"), v1)
+    iio.imwrite(os.path.join(temp_dir.name, "v0.tif"), v0)
+    iio.imwrite(os.path.join(temp_dir.name, "v1.tif"), v1)
     vol = volume_read(temp_dir.name, ext="tif")
     assert np.allclose(v0, vol[..., 0]) and np.allclose(v1, vol[..., 1])
 

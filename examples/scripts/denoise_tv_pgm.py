@@ -50,7 +50,7 @@ Create a ground truth image.
 """
 N = 256  # image size
 phantom = SiemensStar(16)
-x_gt = snp.pad(discrete_phantom(phantom, 240), 8)
+x_gt = snp.pad(discrete_phantom(phantom, N - 16), 8)
 x_gt = jax.device_put(x_gt)  # convert to jax type, push to GPU
 x_gt = x_gt / x_gt.max()
 
@@ -68,7 +68,7 @@ Define finite difference operator and adjoint.
 """
 # The append=0 option appends 0 to the input along the axis
 # prior to performing the difference to make the results of
-# horizontal and vertical finite differences the same shape
+# horizontal and vertical finite differences the same shape.
 C = linop.FiniteDifference(input_shape=x_gt.shape, append=0)
 A = C.adj
 
