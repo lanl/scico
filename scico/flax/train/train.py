@@ -36,6 +36,7 @@ else:
 if have_tf:
     from flax.training import checkpoints
 
+from scico.diagnostics import IterationStats
 from scico.flax import create_input_iter
 from scico.flax.train.clu_utils import get_parameter_overview
 from scico.flax.train.input_pipeline import DataSetDict
@@ -504,6 +505,61 @@ def sync_batch_stats(state: TrainState) -> TrainState:
 cross_replica_mean = jax.pmap(lambda x: lax.pmean(x, "x"), "x")
 
 
+class ArgumentStruct:
+    """Class that converts a python dictionary into an object with named entries given by the dictionary keys.
+
+    After the object instantiation both modes of access (dictionary or object entries) can be used.
+    """
+
+    def __init__(self, **entries):
+        self.__dict__.update(entries)
+
+
+def stats_obj():
+    """Functionality to log and store iteration statistics.
+
+    This function initializes an object :class:`.diagnostics.IterationStats` to log and store
+    iteration statistics if logging is enabled during training.
+    The statistics collected are: epoch, time, learning rate, loss and snr in training and loss and snr in evaluation.
+    The :class:`.diagnostics.IterationStats` object takes care of both: printing stats to command line and storing
+    them for further analysis.
+    """
+    # epoch, time learning rate loss and snr (train and
+    # eval) fields
+    itstat_fields = {
+        "Epoch": "%d",
+        "Time": "%8.2e",
+        "Train LR": "%.6f",
+        "Train Loss": "%.6f",
+        "Train SNR": "%.2f",
+        "Eval Loss": "%.6f",
+        "Eval SNR": "%.2f",
+    }
+    itstat_attrib = [
+        "epoch",
+        "time",
+        "train_learning_rate",
+        "train_loss",
+        "train_snr",
+        "loss",
+        "snr",
+    ]
+
+    # dynamically create itstat_func; see https://stackoverflow.com/questions/24733831
+    itstat_return = "return(" + ", ".join(["obj." + attr for attr in itstat_attrib]) + ")"
+    scope: dict[str, Callable] = {}
+    exec("def itstat_func(obj): " + itstat_return, scope)
+    default_itstat_options: dict[str, Union[dict, Callable, bool]] = {
+        "fields": itstat_fields,
+        "itstat_func": scope["itstat_func"],
+        "display": True,
+    }
+    itstat_insert_func: Callable = default_itstat_options.pop("itstat_func")  # type: ignore
+    itstat_object = IterationStats(**default_itstat_options)  # type: ignore
+
+    return itstat_object, itstat_insert_func
+
+
 def train_and_evaluate(
     config: ConfigDict,
     workdir: str,
@@ -523,9 +579,7 @@ def train_and_evaluate(
 
     Args:
         config: Hyperparameter configuration.
-        workdir: Directory to write checkpoints and
-            tensorboard summaries (the latter only if `clu` is
-            available).
+        workdir: Directory to write checkpoints.
         model: Flax model to train.
         train_ds: Dictionary of training data (includes images
             and labels).
@@ -544,13 +598,12 @@ def train_and_evaluate(
         checkpointing: A flag for checkpointing model state.
             Default: ``False``. `RunTimeError` is generated if
             ``True`` and tensorflow is not available.
-        log: A flag for logging. If `clu` is available a
-            tensorboard summary is also generated during
-            logging. Default: ``False``.
+        log: A flag for logging to the interface the evolution of results. Default: ``False``.
 
     Returns:
         Model variables extracted from TrainState.
     """
+    itstat_object = None
     if log:  # pragma: no cover
         print(
             "Channels: %d, training signals: %d, testing"
@@ -645,9 +698,11 @@ def train_and_evaluate(
 
     # Execute training loop and register stats
     train_metrics: List[Any] = []
-    train_metrics_last_t = time.time()
+    eval_metrics: List[Any] = []
+    t0 = time.time()
     if log:
         print("Initial compilation, this might take some minutes...")
+        itstat_object, itstat_insert_func = stats_obj()
 
     for step, batch in zip(range(step_offset, num_steps), train_dt_iter):
         state, metrics = p_train_step(state, batch)
@@ -662,41 +717,26 @@ def train_and_evaluate(
                     f"train_{k}": v
                     for k, v in jax.tree_map(lambda x: x.mean(), train_metrics).items()
                 }
-                summary["steps_per_second"] = config["log_every_steps"] / (
-                    time.time() - train_metrics_last_t
-                )
-                print(
-                    "step: %d, steps_per_second: %.6f, "
-                    "train_learning_rate: %.6f, "
-                    "train_loss: %.6f, train_snr: %.2f"
-                    % (
-                        step,
-                        summary["steps_per_second"],
-                        summary["train_learning_rate"],
-                        summary["train_loss"],
-                        summary["train_snr"],
-                    )
-                )
+
+                epoch = step // steps_per_epoch
+                summary["epoch"] = epoch
+                summary["time"] = time.time() - t0
                 train_metrics = []
-                train_metrics_last_t = time.time()
 
-        if (step + 1) % steps_per_epoch == 0:
-            epoch = step // steps_per_epoch
-            eval_metrics = []
+                # sync batch statistics across replicas
+                state = sync_batch_stats(state)
+                for _ in range(steps_per_eval):
+                    eval_batch = next(eval_dt_iter)
+                    metrics = p_eval_step(state, eval_batch)
+                    eval_metrics.append(metrics)
+                eval_metrics = common_utils.get_metrics(eval_metrics)
 
-            # sync batch statistics across replicas
-            state = sync_batch_stats(state)
-            for _ in range(steps_per_eval):
-                eval_batch = next(eval_dt_iter)
-                metrics = p_eval_step(state, eval_batch)
-                eval_metrics.append(metrics)
-            eval_metrics = common_utils.get_metrics(eval_metrics)
-            if log:  # pragma: no cover
-                summary = jax.tree_map(lambda x: x.mean(), eval_metrics)
-                print(
-                    "eval epoch: %5d,  loss: %.6f,  snr: %.2f"
-                    % (epoch, summary["loss"], summary["snr"])
-                )
+                summary_eval = jax.tree_map(lambda x: x.mean(), eval_metrics)
+                summary.update(summary_eval)
+                eval_metrics = []
+
+                itstat_object.insert(itstat_insert_func(ArgumentStruct(**summary)))
+
         if (step + 1) % steps_per_checkpoint == 0 or step + 1 == num_steps:
             state = sync_batch_stats(state)
             if checkpointing:  # pragma: no cover
@@ -707,6 +747,8 @@ def train_and_evaluate(
                 save_checkpoint(state, workdir)
 
     jax.random.normal(jax.random.PRNGKey(0), ()).block_until_ready()
+    if log:
+        itstat_object.end()
 
     state = sync_batch_stats(state)
     # Extract one copy of state
@@ -716,7 +758,7 @@ def train_and_evaluate(
         "batch_stats": state.batch_stats,
     }
 
-    return dvar
+    return dvar, itstat_object
 
 
 def _apply_fn(model: ModuleDef, variables: ModelVarDict, batch: DataSetDict) -> Array:

@@ -269,7 +269,7 @@ def test_train_ext_init(testobj, chkflag):
     dconf = testobj.dconf
     dconf["num_epochs"] = 0
     bn0var_before = variables["batch_stats"]["ConvBNBlock_0"]["BatchNorm_0"]["var"]
-    modvar = sflax.train_and_evaluate(
+    modvar, _ = sflax.train_and_evaluate(
         testobj.dconf,
         "./",
         model,

@@ -183,7 +183,7 @@ class TestCT:
                 traversal=lmbdatrav,
                 minval=minval,
             )
-            modvar = sflax.train_and_evaluate(
+            modvar, _ = sflax.train_and_evaluate(
                 self.dconf,
                 "./",
                 model,
@@ -213,7 +213,7 @@ class TestCT:
             maxval = 1e2
             alphatrav = construct_traversal("alpha")
             alpharange = partial(clip_range, traversal=alphatrav, minval=minval, maxval=maxval)
-            modvar = sflax.train_and_evaluate(
+            modvar, _ = sflax.train_and_evaluate(
                 self.dconf,
                 "./",
                 model,
