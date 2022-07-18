@@ -63,6 +63,7 @@ from typing import Any, Callable, Optional, Sequence, Tuple, Union
 import numpy as np
 
 import jax
+import jax.experimental.host_callback as hcb
 
 import scico.numpy as snp
 from scico.numpy import BlockArray
@@ -229,24 +230,35 @@ def minimize(
         min_func = _wrap_func(func_, x0_shape, x0_dtype)
         jac = False
 
-    res = spopt.minimize(
-        min_func,
-        x0=x0,
-        args=args,
-        jac=jac,
-        method=method,
-        options=options,
+    res_dict = {}
+
+    def fun(_, device):
+        min_res = spopt.minimize(
+            min_func,
+            x0=x0,
+            args=args,
+            jac=jac,
+            method=method,
+            options=options,
+        )  # Returns OptimizeResult
+        res_dict.update({"result": min_res})  # Updates res dict with side effect
+        return min_res.x.astype(x0.dtype)  # Return for host_callback
+
+    # hcb call with side effects to get the OptimizeResult on the same device it was called
+    hcb.call(
+        fun,
+        arg=None,
+        result_shape=x0,
+        call_with_device=isinstance(x0, jax.interpreters.xla.DeviceArray),
     )
 
+    res = res_dict["result"]
     # un-vectorize the output array, put on device
     res.x = snp.reshape(
         res.x, x0_shape
     )  # if x0 was originally a BlockArray then res.x is converted back to one here
 
     res.x = res.x.astype(x0_dtype)
-
-    if dev:
-        res.x = jax.device_put(res.x, dev)
 
     if iscomplex:
         res.x = _join_real_imag(res.x)
