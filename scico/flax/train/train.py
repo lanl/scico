@@ -529,11 +529,11 @@ def stats_obj():
     itstat_fields = {
         "Epoch": "%d",
         "Time": "%8.2e",
-        "Train LR": "%.6f",
-        "Train Loss": "%.6f",
-        "Train SNR": "%.2f",
-        "Eval Loss": "%.6f",
-        "Eval SNR": "%.2f",
+        "Train_LR": "%.6f",
+        "Train_Loss": "%.6f",
+        "Train_SNR": "%.2f",
+        "Eval_Loss": "%.6f",
+        "Eval_SNR": "%.2f",
     }
     itstat_attrib = [
         "epoch",
