@@ -46,7 +46,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scico import flax as sflax
 from scico import metric, plot
 from scico.flax.examples import load_foam_blur_data
-from scico.flax.train.train import clip_positive, construct_traversal, train_step_post
+from scico.flax.train.train import clip_positive, construct_traversal
 from scico.linop import CircularConvolve
 
 """
@@ -115,7 +115,7 @@ dconf: sflax.ConfigDict = {
     "warmup_epochs": 0,
     "num_train_steps": -1,
     "steps_per_eval": -1,
-    "log_every_steps": 500,
+    "log_every_steps": 5000,
 }
 
 """
@@ -129,7 +129,6 @@ lmbdapos = partial(
     traversal=lmbdatrav,
     minval=5e-4,
 )
-train_step = partial(train_step_post, post_fn=lmbdapos)
 
 
 """
@@ -163,13 +162,13 @@ if len(checkpoint_files) > 0:
     )
 
     start_time = time()
-    modvar = sflax.train_and_evaluate(
+    modvar, stats_object = sflax.train_and_evaluate(
         dconf,
         workdir2,
         model,
         train_ds,
         test_ds,
-        training_step_fn=train_step,
+        post_lst=[lmbdapos],
         checkpointing=True,
         log=True,
     )
@@ -190,13 +189,13 @@ else:
     workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "modl_dcnv_out")
 
     start_time = time()
-    modvar = sflax.train_and_evaluate(
+    modvar, stats_object_ini = sflax.train_and_evaluate(
         dconf,
         workdir,
         model,
         train_ds,
         test_ds,
-        training_step_fn=train_step,
+        post_lst=[lmbdapos],
         checkpointing=True,
         log=True,
     )
@@ -212,13 +211,13 @@ else:
     model.depth = dconf["depth"]
 
     start_time = time()
-    modvar = sflax.train_and_evaluate(
+    modvar, stats_object = sflax.train_and_evaluate(
         dconf,
         workdir2,
         model,
         train_ds,
         test_ds,
-        training_step_fn=train_step,
+        post_lst=[lmbdapos],
         variables0=modvar,
         checkpointing=True,
         log=True,
@@ -251,7 +250,9 @@ print(
     f"{'MoDLNet testing':18s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}{'':3s}{'time[s]:':10s}{time_eval:>7.2f}"
 )
 
-# Plot comparison
+"""
+Plot comparison.
+"""
 key = jax.random.PRNGKey(54321)
 indx = jax.random.randint(key, (1,), 0, test_nimg)[0]
 
@@ -282,6 +283,58 @@ divider = make_axes_locatable(ax[2])
 cax = divider.append_axes("right", size="5%", pad=0.2)
 fig.colorbar(ax[2].get_images()[0], cax=cax, label="arbitrary units")
 fig.show()
+
+"""
+Plot convergence statistics. Statistics only generated if a training cycle was done (i.e. not reading final epoch results from checkpoint).
+"""
+if stats_object is not None:
+    hist = stats_object.history(transpose=True)
+    fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
+    plot.plot(
+        np.vstack((hist.Train_Loss, hist.Eval_Loss)).T,
+        ptyp="semilogy",
+        title="Loss function",
+        xlbl="Epoch",
+        ylbl="Loss value",
+        lgnd=("Train", "Test"),
+        fig=fig,
+        ax=ax[0],
+    )
+    plot.plot(
+        np.vstack((hist.Train_SNR, hist.Eval_SNR)).T,
+        title="Metric",
+        xlbl="Epoch",
+        ylbl="SNR (dB)",
+        lgnd=("Train", "Test"),
+        fig=fig,
+        ax=ax[1],
+    )
+    fig.show()
+
+# Stats for initialization loop
+if stats_object_ini is not None:
+    hist = stats_object_ini.history(transpose=True)
+    fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
+    plot.plot(
+        np.vstack((hist.Train_Loss, hist.Eval_Loss)).T,
+        ptyp="semilogy",
+        title="Loss function - Initialization",
+        xlbl="Epoch",
+        ylbl="Loss value",
+        lgnd=("Train", "Test"),
+        fig=fig,
+        ax=ax[0],
+    )
+    plot.plot(
+        np.vstack((hist.Train_SNR, hist.Eval_SNR)).T,
+        title="Metric - Initialization",
+        xlbl="Epoch",
+        ylbl="SNR (dB)",
+        lgnd=("Train", "Test"),
+        fig=fig,
+        ax=ax[1],
+    )
+    fig.show()
 
 
 input("\nWaiting for input to close figures and exit")
