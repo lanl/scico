@@ -115,7 +115,7 @@ dconf: sflax.ConfigDict = {
     "warmup_epochs": 0,
     "num_train_steps": -1,
     "steps_per_eval": -1,
-    "log_every_steps": 5000,
+    "log_every_steps": 100,
 }
 
 """
@@ -291,7 +291,8 @@ if stats_object is not None:
     hist = stats_object.history(transpose=True)
     fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
     plot.plot(
-        np.vstack((hist.Train_Loss, hist.Eval_Loss)).T,
+        jnp.vstack((hist.Train_Loss, hist.Eval_Loss)).T,
+        x=hist.Epoch,
         ptyp="semilogy",
         title="Loss function",
         xlbl="Epoch",
@@ -301,7 +302,8 @@ if stats_object is not None:
         ax=ax[0],
     )
     plot.plot(
-        np.vstack((hist.Train_SNR, hist.Eval_SNR)).T,
+        jnp.vstack((hist.Train_SNR, hist.Eval_SNR)).T,
+        x=hist.Epoch,
         title="Metric",
         xlbl="Epoch",
         ylbl="SNR (dB)",
@@ -317,6 +319,7 @@ if stats_object_ini is not None:
     fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
     plot.plot(
         jnp.vstack((hist.Train_Loss, hist.Eval_Loss)).T,
+        x=hist.Epoch,
         ptyp="semilogy",
         title="Loss function - Initialization",
         xlbl="Epoch",
@@ -327,6 +330,7 @@ if stats_object_ini is not None:
     )
     plot.plot(
         jnp.vstack((hist.Train_SNR, hist.Eval_SNR)).T,
+        x=hist.Epoch,
         title="Metric - Initialization",
         xlbl="Epoch",
         ylbl="SNR (dB)",

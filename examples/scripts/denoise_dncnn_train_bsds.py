@@ -169,6 +169,7 @@ if stats_object is not None:
     fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
     plot.plot(
         np.vstack((hist.Train_Loss, hist.Eval_Loss)).T,
+        x=hist.Epoch,
         ptyp="semilogy",
         title="Loss function",
         xlbl="Epoch",
@@ -179,6 +180,7 @@ if stats_object is not None:
     )
     plot.plot(
         np.vstack((hist.Train_SNR, hist.Eval_SNR)).T,
+        x=hist.Epoch,
         title="Metric",
         xlbl="Epoch",
         ylbl="SNR (dB)",
