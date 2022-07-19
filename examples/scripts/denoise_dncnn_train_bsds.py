@@ -78,7 +78,7 @@ dconf: sflax.ConfigDict = {
     "warmup_epochs": 0,
     "num_train_steps": -1,
     "steps_per_eval": -1,
-    "log_every_steps": 2000,
+    "log_every_steps": 12000,
 }
 
 """
@@ -99,7 +99,7 @@ print(f"{'JAX process: '}{jax.process_index()}{' / '}{jax.process_count()}")
 print(f"{'JAX local devices: '}{jax.local_devices()}")
 
 start_time = time()
-modvar = sflax.train_and_evaluate(
+modvar, stats_object = sflax.train_and_evaluate(
     dconf, workdir, model, train_ds, test_ds, checkpointing=True, log=True
 )
 time_train = time() - start_time
@@ -158,6 +158,32 @@ plot.imview(
 divider = make_axes_locatable(ax[2])
 cax = divider.append_axes("right", size="5%", pad=0.2)
 fig.colorbar(ax[2].get_images()[0], cax=cax, label="arbitrary units")
+fig.show()
+
+"""
+Plot convergence statistics.
+"""
+hist = stats_object.history(transpose=True)
+fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
+plot.plot(
+    np.vstack((hist.Train_Loss, hist.Eval_Loss)).T,
+    ptyp="semilogy",
+    title="Loss function",
+    xlbl="Epoch",
+    ylbl="Loss value",
+    lgnd=("Train", "Test"),
+    fig=fig,
+    ax=ax[0],
+)
+plot.plot(
+    np.vstack((hist.Train_SNR, hist.Eval_SNR)).T,
+    title="Metric",
+    xlbl="Epoch",
+    ylbl="SNR (dB)",
+    lgnd=("Train", "Test"),
+    fig=fig,
+    ax=ax[1],
+)
 fig.show()
 
 input("\nWaiting for input to close figures and exit")
