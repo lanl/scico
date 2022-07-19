@@ -78,7 +78,7 @@ dconf: sflax.ConfigDict = {
     "warmup_epochs": 0,
     "num_train_steps": -1,
     "steps_per_eval": -1,
-    "log_every_steps": 400,
+    "log_every_steps": 1000,
 }
 
 """
@@ -100,7 +100,7 @@ print(f"{'JAX process: '}{jax.process_index()}{' / '}{jax.process_count()}")
 print(f"{'JAX local devices: '}{jax.local_devices()}")
 
 start_time = time()
-modvar = sflax.train_and_evaluate(
+modvar, stats_object = sflax.train_and_evaluate(
     dconf, workdir, model, train_ds, test_ds, checkpointing=True, log=True
 )
 time_train = time() - start_time
@@ -125,8 +125,9 @@ print(
     f"{'UNet testing':15s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}{'':3s}{'time[s]:':10s}{time_eval:>7.2f}"
 )
 
-
-# Plot comparison
+"""
+Plot comparison.
+"""
 key = jax.random.PRNGKey(123)
 indx = jax.random.randint(key, shape=(1,), minval=0, maxval=test_nimg)[0]
 
@@ -157,5 +158,32 @@ divider = make_axes_locatable(ax[2])
 cax = divider.append_axes("right", size="5%", pad=0.2)
 fig.colorbar(ax[2].get_images()[0], cax=cax, label="arbitrary units")
 fig.show()
+
+"""
+Plot convergence statistics. Only valid if a training cycle was done (i.e. not reading final epoch results from checkpoint).
+"""
+if stats_object is not None:
+    hist = stats_object.history(transpose=True)
+    fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
+    plot.plot(
+        np.vstack((hist.Train_Loss, hist.Eval_Loss)).T,
+        ptyp="semilogy",
+        title="Loss function",
+        xlbl="Epoch",
+        ylbl="Loss value",
+        lgnd=("Train", "Test"),
+        fig=fig,
+        ax=ax[0],
+    )
+    plot.plot(
+        np.vstack((hist.Train_SNR, hist.Eval_SNR)).T,
+        title="Metric",
+        xlbl="Epoch",
+        ylbl="SNR (dB)",
+        lgnd=("Train", "Test"),
+        fig=fig,
+        ax=ax[1],
+    )
+    fig.show()
 
 input("\nWaiting for input to close figures and exit")

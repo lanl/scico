@@ -127,8 +127,9 @@ print(
     f"{'DnCNNNet testing':18s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}{'':3s}{'time[s]:':10s}{time_eval:>7.2f}"
 )
 
-
-# Plot comparison
+"""
+Plot comparison.
+"""
 np.random.seed(543)
 indx = np.random.randint(0, high=test_patches)
 
@@ -161,29 +162,30 @@ fig.colorbar(ax[2].get_images()[0], cax=cax, label="arbitrary units")
 fig.show()
 
 """
-Plot convergence statistics.
+Plot convergence statistics. Only valid if a training cycle was done (i.e. not reading final epoch results from checkpoint).
 """
-hist = stats_object.history(transpose=True)
-fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
-plot.plot(
-    np.vstack((hist.Train_Loss, hist.Eval_Loss)).T,
-    ptyp="semilogy",
-    title="Loss function",
-    xlbl="Epoch",
-    ylbl="Loss value",
-    lgnd=("Train", "Test"),
-    fig=fig,
-    ax=ax[0],
-)
-plot.plot(
-    np.vstack((hist.Train_SNR, hist.Eval_SNR)).T,
-    title="Metric",
-    xlbl="Epoch",
-    ylbl="SNR (dB)",
-    lgnd=("Train", "Test"),
-    fig=fig,
-    ax=ax[1],
-)
-fig.show()
+if stats_object is not None:
+    hist = stats_object.history(transpose=True)
+    fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
+    plot.plot(
+        np.vstack((hist.Train_Loss, hist.Eval_Loss)).T,
+        ptyp="semilogy",
+        title="Loss function",
+        xlbl="Epoch",
+        ylbl="Loss value",
+        lgnd=("Train", "Test"),
+        fig=fig,
+        ax=ax[0],
+    )
+    plot.plot(
+        np.vstack((hist.Train_SNR, hist.Eval_SNR)).T,
+        title="Metric",
+        xlbl="Epoch",
+        ylbl="SNR (dB)",
+        lgnd=("Train", "Test"),
+        fig=fig,
+        ax=ax[1],
+    )
+    fig.show()
 
 input("\nWaiting for input to close figures and exit")
