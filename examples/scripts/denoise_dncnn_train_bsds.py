@@ -162,7 +162,7 @@ fig.colorbar(ax[2].get_images()[0], cax=cax, label="arbitrary units")
 fig.show()
 
 """
-Plot convergence statistics. Only valid if a training cycle was done (i.e. not reading final epoch results from checkpoint).
+Plot convergence statistics. Statistics only generated if a training cycle was done (i.e. not reading final epoch results from checkpoint).
 """
 if stats_object is not None:
     hist = stats_object.history(transpose=True)
