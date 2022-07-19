@@ -155,7 +155,7 @@ followed by a second stage (depth iterations) training loop.
 """
 channels = train_ds["image"].shape[-1]
 workdir2 = os.path.join(
-    os.path.expanduser("~"), ".cache", "scico", "examples", "modl_ct_out_ly10_5", "iterated"
+    os.path.expanduser("~"), ".cache", "scico", "examples", "modl_ct_out", "iterated"
 )
 
 checkpoint_files = []
@@ -196,9 +196,7 @@ else:
         cg_iter=dconf["cg_iter"],
     )
     # First stage: initialization training loop.
-    workdir = os.path.join(
-        os.path.expanduser("~"), ".cache", "scico", "examples", "modl_ct_out_ly10_5"
-    )
+    workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "modl_ct_out")
 
     start_time = time()
     modvar, stats_object_ini = sflax.train_and_evaluate(
