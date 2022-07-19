@@ -230,7 +230,7 @@ class TrainState(train_state.TrainState):
     batch_stats: Any
 
 
-def create_train_state(
+def create_basic_train_state(
     key: KeyArray,
     config: ConfigDict,
     model: ModuleDef,
@@ -238,7 +238,7 @@ def create_train_state(
     learning_rate_fn: optax._src.base.Schedule,
     variables0: Optional[ModelVarDict] = None,
 ) -> TrainState:
-    """Create initial training state.
+    """Create Flax basic train state and initialize.
 
     Args:
         key: A PRNGKey used as the random key.
@@ -345,7 +345,7 @@ def _train_step(
         batch: Sharded and batched training data.
         learning_rate_fn: A function to map step
            counts to values.
-        criterion: A function that specifies the loss being minimized in training. Default: :meth:`mse_loss`.
+        criterion: A function that specifies the loss being minimized in training.
 
     Returns:
         Updated parameters and diagnostic statistics.
@@ -567,6 +567,7 @@ def train_and_evaluate(
     train_ds: DataSetDict,
     test_ds: DataSetDict,
     create_lr_schedule: Callable = create_cnst_lr_schedule,
+    create_train_state: Callable = create_basic_train_state,
     criterion: Callable = mse_loss,
     train_step_fn: Callable = _train_step,
     eval_step_fn: Callable = _eval_step,
@@ -574,6 +575,7 @@ def train_and_evaluate(
     variables0: Optional[ModelVarDict] = None,
     checkpointing: bool = False,
     log: bool = False,
+    return_state: bool = False,
 ) -> ModelVarDict:
     """Execute model training and evaluation loop.
 
@@ -587,7 +589,9 @@ def train_and_evaluate(
             and labels).
         create_lr_schedule: A function that creates an Optax
             learning rate schedule. Default:
-            :meth:`create_cnst_schedule`.
+            :meth:`create_cnst_lr_schedule`.
+        create_train_state: A function that creates a Flax train state and initializes it. A train state object helps to keep optimizer and module functionality grouped for training. Default:
+            :meth:`create_basic_train_state`.
         criterion: A function that specifies the loss being minimized in training. Default: :meth:`mse_loss`.
         train_step_fn: A hook for a function that executes a training step. Default: :meth:`_train_step`, i.e. use the standard train step.
         eval_step_fn: A hook for a function that executes an eval step. Default: :meth:`_eval_step`, i.e. use the standard eval step.
@@ -599,9 +603,10 @@ def train_and_evaluate(
             Default: ``False``. `RunTimeError` is generated if
             ``True`` and tensorflow is not available.
         log: A flag for logging to the interface the evolution of results. Default: ``False``.
+        return_state: A flag for returning the train state instead of the model variables. Default: ``False``, i.e. return model variables.
 
     Returns:
-        Model variables extracted from TrainState.
+        Model variables extracted from TrainState or TrainState directly. It also returns the iteration stats object which is not None if log is enabled.
     """
     itstat_object = None
     if log:  # pragma: no cover
@@ -753,6 +758,9 @@ def train_and_evaluate(
     state = sync_batch_stats(state)
     # Extract one copy of state
     state = jax_utils.unreplicate(state)
+    if return_state:
+        return state, itstat_object
+
     dvar: ModelVarDict = {
         "params": state.params,
         "batch_stats": state.batch_stats,
