@@ -576,7 +576,7 @@ def train_and_evaluate(
     checkpointing: bool = False,
     log: bool = False,
     return_state: bool = False,
-) -> ModelVarDict:
+) -> Tuple[Union[ModelVarDict, TrainState], IterationStats]:
     """Execute model training and evaluation loop.
 
     Args:
@@ -606,7 +606,9 @@ def train_and_evaluate(
         return_state: A flag for returning the train state instead of the model variables. Default: ``False``, i.e. return model variables.
 
     Returns:
-        Model variables extracted from TrainState or TrainState directly. It also returns the iteration stats object which is not None if log is enabled.
+        Model variables extracted from TrainState and iteration stats object.
+        Alternatively the TrainState can be returned directly instead of the model variables.
+        Note that the iteration stats object is not None only if log is enabled.
     """
     itstat_object = None
     if log:  # pragma: no cover
