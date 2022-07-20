@@ -255,7 +255,7 @@ Install ``mypy``:
 
    conda install mypy
 
-To run the type checker, exectute the following from the scico repository root:
+To run the type checker, execute the following from the scico repository root:
 
 ::
 
