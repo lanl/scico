@@ -4,7 +4,14 @@ import jax
 
 import pytest
 
-from scico.linop import Convolve, Identity, LinearOperatorStack
+import scico.numpy as snp
+from scico.linop import (
+    BlockDiagonalLinearOperator,
+    Convolve,
+    Identity,
+    LinearOperatorStack,
+    Sum,
+)
 from scico.test.linop.test_linop import adjoint_test
 
 
@@ -107,3 +114,43 @@ class TestLinearOperatorStack:
         y2 = S2 @ x
 
         np.testing.assert_allclose(scalars[0] * y1[0], y2[0])
+
+
+class TestBlockDiagonalLinearOperator:
+    def test_apply(self):
+        S1 = (3, 4)
+        S2 = (3, 5)
+        S3 = (2, 2)
+        A1 = Identity(S1)
+        A2 = 2 * Identity(S2)
+        A3 = Sum(S3)
+        H = BlockDiagonalLinearOperator((A1, A2, A3))
+
+        x = snp.ones((S1, S2, S3))
+        y = H @ x
+        y_expected = snp.blockarray((snp.ones(S1), 2 * snp.ones(S2), snp.sum(snp.ones(S3))))
+
+        assert snp.all(y == y_expected)
+
+    def test_input_collapse(self):
+        S = (3, 4)
+        A1 = Identity(S)
+        A2 = Sum(S)
+
+        H = BlockDiagonalLinearOperator((A1, A2))
+        assert H.input_shape == (2, *S)
+
+        H = BlockDiagonalLinearOperator((A1, A2), allow_input_collapse=False)
+        assert H.input_shape == (S, S)
+
+    def test_output_collapse(self):
+        S1 = (3, 4)
+        S2 = (5, 3, 4)
+        A1 = Identity(S1)
+        A2 = Sum(S2, axis=0)
+
+        H = BlockDiagonalLinearOperator((A1, A2))
+        assert H.output_shape == (2, *S1)
+
+        H = BlockDiagonalLinearOperator((A1, A2), allow_output_collapse=False)
+        assert H.output_shape == (S1, S1)

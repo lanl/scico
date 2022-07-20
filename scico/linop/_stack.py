@@ -11,16 +11,47 @@ from __future__ import annotations
 
 import operator
 from functools import partial
-from typing import List, Optional, Union
+from typing import List, Optional, Sequence, Tuple, Union
 
 import numpy as np
+
+from typing_extensions import TypeGuard
 
 import scico.numpy as snp
 from scico.numpy import BlockArray
 from scico.numpy.util import is_nested
-from scico.typing import JaxArray
+from scico.typing import BlockShape, JaxArray, Shape
 
 from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
+
+
+def collapse_shapes(
+    shapes: Sequence[Union[Shape, BlockShape]], allow_collapse=True
+) -> Tuple[Union[Shape, BlockShape], bool]:
+    """Decides whether to collapse a sequence of shapes and returns the collpased
+    shape and a boolean indicating whether the shape was collapsed."""
+
+    if is_collapsable(shapes) and allow_collapse:
+        return (len(shapes), *shapes[0]), True
+
+    if is_blockable(shapes):
+        return shapes, False
+
+    raise ValueError(
+        "Combining these shapes would result in a twice-nested BlockArray, which is not supported"
+    )
+
+
+def is_collapsable(shapes: Sequence[Union[Shape, BlockShape]]) -> bool:
+    """Return ``True`` if the a list of shapes represent arrays that
+    can be stacked, i.e., they are all the same."""
+    return all(s == shapes[0] for s in shapes)
+
+
+def is_blockable(shapes: Sequence[Union[Shape, BlockShape]]) -> TypeGuard[Union[Shape, BlockShape]]:
+    """Return ``True`` if the list of shapes represent arrays that
+    can be combined into a BlockArray, i.e., none are nested."""
+    return not any(is_nested(s) for s in shapes)
 
 
 class LinearOperatorStack(LinearOperator):
@@ -49,9 +80,9 @@ class LinearOperatorStack(LinearOperator):
         self.ops = ops
         self.collapse = collapse
 
-        self.collapsable = all(op.output_shape == ops[0].output_shape for op in ops)
-
         output_shapes = tuple(op.output_shape for op in ops)
+        self.collapsable = is_collapsable(output_shapes)
+
         if self.collapsable and self.collapse:
             output_shape = (len(ops),) + output_shapes[0]  # collapse to DeviceArray
         else:
@@ -142,3 +173,90 @@ class LinearOperatorStack(LinearOperator):
     @_wrap_mul_div_scalar
     def __truediv__(self, scalar):
         return LinearOperatorStack([op / scalar for op in self.ops], collapse=self.collapse)
+
+
+"""
+"""
+
+
+class BlockDiagonalLinearOperator(LinearOperator):
+    r"""A block diagonal arrangement of linear operators.
+
+    Given operators :math:`A_1, A_2, \dots, A_N`, creates the operator
+    :math:`H` such that
+
+    .. math::
+       \begin{pmatrix}
+            A_1(\mathbf{x}_1) \\
+            A_2(\mathbf{x}_2) \\
+            \vdots \\
+            A_N(\mathbf{x}_N) \\
+       \end{pmatrix}
+       = H
+       \begin{pmatrix}
+            \mathbf{x}_1 \\
+            \mathbf{x}_2 \\
+            \vdots \\
+            \mathbf{x}_N \\
+       \end{pmatrix} \;.
+
+    By default, if the inputs :math:`\mathbf{x}_1, \mathbf{x}_2, \dots,
+    \mathbf{x}_N` all have the same (possibly nested) shape, `S`, this
+    operator will work on the stack, i.e., have an input shape of `(N,
+    *S)`. If the inputs have distinct shapes, `S1`, `S2`, ..., `SN`,
+    this operator will work on the block concatenation, i.e.,
+    have an input shape of `(S1, S2, ..., SN)`. The same holds for the
+    output shape.
+
+    """
+
+    def __init__(
+        self,
+        ops: List[LinearOperator],
+        allow_input_collapse: Optional[bool] = True,
+        allow_output_collapse: Optional[bool] = True,
+        jit: bool = True,
+        **kwargs,
+    ):
+        """
+        Args:
+            op: Operators to form into a block matrix.
+            allow_input_collapse: If ``True``, will expect inputs to be
+                stacked along the first dimension when possible.
+            allow_output_collapse: If ``True``, will stack the output
+                along the first dimension when possible.
+            jit: see `jit` in :class:`LinearOperator`.
+
+        """
+        self.ops = ops
+
+        input_shape, self.collapse_input = collapse_shapes(
+            tuple(op.input_shape for op in ops),
+            allow_input_collapse,
+        )
+
+        output_shape, self.collapse_output = collapse_shapes(
+            tuple(op.output_shape for op in ops),
+            allow_output_collapse,
+        )
+
+        super().__init__(
+            input_shape=input_shape,
+            output_shape=output_shape,
+            input_dtype=ops[0].input_dtype,
+            output_dtype=ops[0].output_dtype,
+            jit=jit,
+            **kwargs,
+        )
+
+    def _eval(self, x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
+        result = tuple(op @ x_n for op, x_n in zip(self.ops, x))
+        if self.collapse_output:
+            return snp.stack(result)
+        return snp.blockarray(result)
+
+    def _adj(self, y: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:  # type: ignore
+        result = tuple(op.T @ y_n for op, y_n in zip(self.ops, y))
+        if self.collapse_input:
+            return snp.stack(result)
+        return snp.blockarray(result)
