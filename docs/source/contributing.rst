@@ -255,11 +255,11 @@ Install ``mypy``:
 
    conda install mypy
 
-To run the type checker on the ``scico`` module:
+To run the type checker, execute the following from the scico repository root:
 
 ::
 
-   mypy -p scico
+   mypy --follow-imports=skip --ignore-missing-imports  --exclude "(numpy|test)" scico/
 
 
 
