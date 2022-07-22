@@ -1,9 +1,9 @@
 """
-# Example: Data-Driven Priors for Inverse Problems
+## Example: Data-Driven Priors for Inverse Problems
 
 In this example we will explore how to use CNN models as data-driven priors in a SCICO pipeline for performing computed tomography (CT) reconstruction.
 
-## Introduction
+# Introduction
 
 Suppose that you are measuring CTs of similar objects and want to construct a pipeline to rapidly compute the reconstruction of a new measurement. In this case we we will use foams to develop such a reconstruction engine.
 
