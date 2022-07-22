@@ -1,9 +1,9 @@
 """
-## Example: Data-Driven Priors for Inverse Problems
+# Example: Data-Driven Priors for Inverse Problems
 
 In this example we will explore how to use CNN models as data-driven priors in a SCICO pipeline for performing computed tomography (CT) reconstruction.
 
-# Introduction
+## Introduction
 
 Suppose that you are measuring CTs of similar objects and want to construct a pipeline to rapidly compute the reconstruction of a new measurement. In this case we we will use foams to develop such a reconstruction engine.
 
@@ -159,7 +159,7 @@ The shape corresponds to:...
 """
 
 # starta
-sino_collection.shape #
+sino_collection.shape
 """
 The shape corresponds to: (number of foams, number of projections, foam dimension)
 """
@@ -175,7 +175,7 @@ While you wait for others to finish, you could explore other SCICO linear operat
 """
 
 """
-## Solving a regularized reconstruction: Data-Driven Priors
+# Solving a regularized reconstruction: Data-Driven Priors
 
 When there is an explicit representation of the forward model, the signal reconstruction can be posed as
 a regularized least squares problem
@@ -225,7 +225,7 @@ via conjugate gradient. In the expression, $k$ is the index of the stage (iterat
 """
 
 """
-# Constructing the Data Sets
+## Constructing the Data Sets
 
 Machine learning processing for images in Flax assumes the following data shape: $(K, H, W, C)$
 
@@ -260,7 +260,7 @@ test_ds = {"image": sino_collection[16:], "label": foam_collection[16:]}
 # endqa
 
 """
-# Configuring the ML model and its training
+## Configuring the ML model and its training
 
 SCICO configures the training via a dictionary too. An example of a configuration dictionary with the corresponding definitions is shown next.
 
@@ -283,7 +283,7 @@ dconf = {
 }
 
 """
-# Constructing the ML model
+## Constructing the ML model
 
 SCICO ML functionality is based on FLAX (see https://flax.readthedocs.io/en/latest/overview.html). Frequently used models are provided in SCICO.
 
