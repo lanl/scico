@@ -1,6 +1,6 @@
 OUT=compiled_files
 
-all: $(OUT)/tutorial_PnP.ipynb $(OUT)/tutorial_cells.ipynb $(OUT)/install.html
+all: $(OUT)/tutorial_CNN.ipynb $(OUT)/tutorial_PnP.ipynb $(OUT)/tutorial_cells.ipynb $(OUT)/install.html
 
 $(OUT)/tutorial_%.ipynb: tutorial_%.py
 	rm -rf temp
