@@ -130,7 +130,28 @@ class TestBlockDiagonalLinearOperator:
         y = H @ x
         y_expected = snp.blockarray((snp.ones(S1), 2 * snp.ones(S2), snp.sum(snp.ones(S3))))
 
-        assert snp.all(y == y_expected)
+        assert y == y_expected
+
+    def test_adjoint(self):
+        S1 = (3, 4)
+        S2 = (3, 5)
+        S3 = (2, 2)
+        A1 = Identity(S1)
+        A2 = 2 * Identity(S2)
+        A3 = Sum(S3)
+        H = BlockDiagonalLinearOperator((A1, A2, A3))
+
+        y = snp.ones((S1, S2, ()), dtype=snp.float32)
+        x = H.T @ y
+        x_expected = snp.blockarray(
+            (
+                snp.ones(S1),
+                snp.ones(S2),
+                snp.ones(S3),
+            )
+        )
+
+        assert x == x_expected
 
     def test_input_collapse(self):
         S = (3, 4)
