@@ -68,7 +68,7 @@ class TomographicProjector(LinearOperator):
                 <https://www.astra-toolbox.com/docs/geom2d.html#volume-geometries>`_.
             detector_spacing: Spacing between detector elements.
             det_count: Number of detector elements.
-            angles: Array of projection angles.
+            angles: Array of projection angles in radians.
             device: Specifies device for projection operation.
                 One of ["auto", "gpu", "cpu"]. If "auto", a GPU is used
                 if available. Otherwise, the CPU is used.
