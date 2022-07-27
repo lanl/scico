@@ -28,7 +28,7 @@ from ._diff import FiniteDifference, SingleAxisFiniteDifference
 from ._convolve import Convolve, ConvolveByX
 from ._circconv import CircularConvolve
 from ._dft import DFT
-from ._stack import LinearOperatorStack, BlockDiagonalLinearOperator
+from ._stack import VerticalStack, DiagonalStack
 
 
 __all__ = [
@@ -39,8 +39,8 @@ __all__ = [
     "FiniteDifference",
     "SingleAxisFiniteDifference",
     "Identity",
-    "LinearOperatorStack",
-    "BlockDiagonalLinearOperator",
+    "VerticalStack",
+    "DiagonalStack",
     "MatrixOperator",
     "Pad",
     "Slice",

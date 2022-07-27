@@ -54,7 +54,7 @@ def is_blockable(shapes: Sequence[Union[Shape, BlockShape]]) -> TypeGuard[Union[
     return not any(is_nested(s) for s in shapes)
 
 
-class LinearOperatorStack(LinearOperator):
+class VerticalStack(LinearOperator):
     """A vertical stack of LinearOperators."""
 
     def __init__(
@@ -75,7 +75,7 @@ class LinearOperatorStack(LinearOperator):
 
         """
 
-        LinearOperatorStack.check_if_stackable(ops)
+        VerticalStack.check_if_stackable(ops)
 
         self.ops = ops
         self.collapse = collapse
@@ -144,43 +144,41 @@ class LinearOperatorStack(LinearOperator):
         if len(scalars) != len(self.ops):
             raise ValueError("expected `scalars` to be the same length as `self.ops`")
 
-        return LinearOperatorStack(
-            [a * op for a, op in zip(scalars, self.ops)], collapse=self.collapse
-        )
+        return VerticalStack([a * op for a, op in zip(scalars, self.ops)], collapse=self.collapse)
 
     @partial(_wrap_add_sub, op=operator.add)
     def __add__(self, other):
-        # add another LinearOperatorStack of the same shape
-        return LinearOperatorStack(
+        # add another VerticalStack of the same shape
+        return VerticalStack(
             [op1 + op2 for op1, op2 in zip(self.ops, other.ops)], collapse=self.collapse
         )
 
     @partial(_wrap_add_sub, op=operator.sub)
     def __sub__(self, other):
-        # subtract another LinearOperatorStack of the same shape
-        return LinearOperatorStack(
+        # subtract another VerticalStack of the same shape
+        return VerticalStack(
             [op1 - op2 for op1, op2 in zip(self.ops, other.ops)], collapse=self.collapse
         )
 
     @_wrap_mul_div_scalar
     def __mul__(self, scalar):
-        return LinearOperatorStack([scalar * op for op in self.ops], collapse=self.collapse)
+        return VerticalStack([scalar * op for op in self.ops], collapse=self.collapse)
 
     @_wrap_mul_div_scalar
     def __rmul__(self, scalar):
-        return LinearOperatorStack([scalar * op for op in self.ops], collapse=self.collapse)
+        return VerticalStack([scalar * op for op in self.ops], collapse=self.collapse)
 
     @_wrap_mul_div_scalar
     def __truediv__(self, scalar):
-        return LinearOperatorStack([op / scalar for op in self.ops], collapse=self.collapse)
+        return VerticalStack([op / scalar for op in self.ops], collapse=self.collapse)
 
 
 """
 """
 
 
-class BlockDiagonalLinearOperator(LinearOperator):
-    r"""A block diagonal arrangement of linear operators.
+class DiagonalStack(LinearOperator):
+    r"""A diagonal stack of linear operators.
 
     Given operators :math:`A_1, A_2, \dots, A_N`, creates the operator
     :math:`H` such that

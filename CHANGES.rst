@@ -23,6 +23,7 @@ Version 0.0.3   (unreleased)
 • Change filenames of some example scripts (and corresponding notebooks).
 • Change required packages and version numbers.
 • Add support for Python 3.7.
+• Add ``DiagonalStack`` linear operator.
 • Various bug fixes.
 
 
