@@ -273,12 +273,33 @@ output_dtype : {self.output_dtype}
 
         return jax.jvp(self, primals, tangents)
 
+    def jhvp(self, *primals):
+        """Compute a Jacobian-vector product with Hermitian transpose.
+
+        Compute the product :math:`[J(\mb{x})]^H \mb{v}` where
+        :math:`[J(\mb{x})]` is the Jacobian of the operator evaluated
+        at :math:`\mb{x}`. Instead of directly evaluating the product,
+        a function is returned that takes :math:`\mb{v}` as an argument.
+
+        Args:
+            primals: Sequence of values at which the Jacobian is
+               evaluated, with length equal to the number of positional
+               arguments of `_eval`.
+        """
+
+        primals, self_vjp = jax.vjp(self, *primals)
+
+        def conj_vjp(tangent):
+            return jax.tree_map(jax.numpy.conj, self_vjp(tangent.conj()))
+
+        return primals, conj_vjp
+
     def vjp(self, *primals):
         """Compute a vector-Jacobian product.
 
         Args:
             primals: Sequence of values at which the Jacobian is
-               evaluated, with length equal to the number of position
+               evaluated, with length equal to the number of positional
                arguments of `_eval`.
         """
 

@@ -137,7 +137,6 @@ class PDHG:
         self.f: Functional = f
         self.g: Functional = g
         self.C: Operator = C
-        self.Cgradfn: Callable
         self.tau: float = tau
         self.sigma: float = sigma
         self.alpha: float = alpha
@@ -187,11 +186,6 @@ class PDHG:
             z0 = snp.zeros(input_shape, dtype=dtype)
         self.z = ensure_on_device(z0)
         self.z_old = self.z
-
-        if isinstance(C, LinearOperator):
-            self.Cgradfn = None
-        else:
-            self.Cgradfn = scico.grad(C)
 
     def objective(
         self,
@@ -252,7 +246,7 @@ class PDHG:
         if isinstance(self.C, LinearOperator):
             proxarg = self.x - self.tau * self.C.conj().T(self.z)
         else:
-            proxarg = self.x - self.tau * self.Cgradfn(self.x).conj().T(self.z)
+            proxarg = self.x - self.tau * self.C.jhvp(self.x)[1](self.z)[0]
         self.x = self.f.prox(proxarg, self.tau, v0=self.x)
         proxarg = self.z + self.sigma * self.C(
             (1.0 + self.alpha) * self.x - self.alpha * self.x_old
