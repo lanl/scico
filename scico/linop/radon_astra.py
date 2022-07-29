@@ -21,11 +21,14 @@ import jax.experimental.host_callback as hcb
 
 try:
     import astra
-except ImportError:
-    raise ImportError("Could not import astra; please install the ASTRA toolbox.")
+except ModuleNotFoundError as e:
+    if e.name == "astra":
+        new_e = ModuleNotFoundError("Could not import astra; please install the ASTRA toolbox.")
+        new_e.name = "astra"
+        raise new_e from e
+    else:
+        raise e
 
-
-from jaxlib.xla_extension import GpuDevice
 
 from scico.typing import JaxArray, Shape
 
@@ -98,9 +101,9 @@ class TomographicProjector(LinearOperator):
             self.vol_geom = astra.create_vol_geom(*input_shape)
 
         dev0 = jax.devices()[0]
-        if dev0.device_kind == "cpu" or device == "cpu":
+        if dev0.platform == "cpu" or device == "cpu":
             self.proj_id = astra.create_projector("line", self.proj_geom, self.vol_geom)
-        elif isinstance(dev0, GpuDevice) and device in ["gpu", "auto"]:
+        elif dev0.platform == "gpu" and device in ["gpu", "auto"]:
             self.proj_id = astra.create_projector("cuda", self.proj_geom, self.vol_geom)
         else:
             raise ValueError(f"Invalid device specified; got {device}")
