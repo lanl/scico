@@ -75,15 +75,16 @@ class BlockArray:
             return BlockArray(result)  # x[k:k+1] returns a BlockArray
         return result  # x[k] returns a DeviceArray
 
+    def __setitem__(self, key, value):
+        self.arrays[key] = value
+
     @staticmethod
     def blockarray(iterable):
         """Construct a :class:`.BlockArray` from a list or tuple of existing array-like."""
         return BlockArray(iterable)
 
     def __repr__(self):
-        reprs = [a.__repr__() for a in self.arrays]
-        reprs_str = "".join(reprs)
-        return f"BlockArray({reprs_str})"
+        return f"BlockArray({repr(self.arrays)})"
 
 
 # Register BlockArray as a jax pytree, without this, jax autograd won't work.
