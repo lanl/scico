@@ -105,7 +105,7 @@ def test_binary_op(testobj, operator):
 
     assert isinstance(comp_op, linop.LinearOperator)  # Ensure we don't get a Map
     assert comp_op.input_dtype == testobj.A.dtype
-    np.testing.assert_allclose(comp_mat @ testobj.x, comp_op @ testobj.x, rtol=0, atol=1e-6)
+    np.testing.assert_allclose(comp_mat @ testobj.x, comp_op @ testobj.x, rtol=0, atol=1e-5)
 
     # linops of different sizes
     with pytest.raises(ValueError):
