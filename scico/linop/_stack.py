@@ -28,10 +28,10 @@ from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
 def collapse_shapes(
     shapes: Sequence[Union[Shape, BlockShape]], allow_collapse=True
 ) -> Tuple[Union[Shape, BlockShape], bool]:
-    """Decides whether to collapse a sequence of shapes and returns the collpased
+    """Decides whether to collapse a sequence of shapes and returns the collapsed
     shape and a boolean indicating whether the shape was collapsed."""
 
-    if is_collapsable(shapes) and allow_collapse:
+    if is_collapsible(shapes) and allow_collapse:
         return (len(shapes), *shapes[0]), True
 
     if is_blockable(shapes):
@@ -42,7 +42,7 @@ def collapse_shapes(
     )
 
 
-def is_collapsable(shapes: Sequence[Union[Shape, BlockShape]]) -> bool:
+def is_collapsible(shapes: Sequence[Union[Shape, BlockShape]]) -> bool:
     """Return ``True`` if the a list of shapes represent arrays that
     can be stacked, i.e., they are all the same."""
     return all(s == shapes[0] for s in shapes)
@@ -81,9 +81,9 @@ class VerticalStack(LinearOperator):
         self.collapse = collapse
 
         output_shapes = tuple(op.output_shape for op in ops)
-        self.collapsable = is_collapsable(output_shapes)
+        self.collapsible = is_collapsible(output_shapes)
 
-        if self.collapsable and self.collapse:
+        if self.collapsible and self.collapse:
             output_shape = (len(ops),) + output_shapes[0]  # collapse to DeviceArray
         else:
             output_shape = output_shapes
@@ -125,7 +125,7 @@ class VerticalStack(LinearOperator):
             raise ValueError("Expected all `LinearOperator`s to have the same output dtype.")
 
     def _eval(self, x: JaxArray) -> Union[JaxArray, BlockArray]:
-        if self.collapsable and self.collapse:
+        if self.collapsible and self.collapse:
             return snp.stack([op @ x for op in self.ops])
         return BlockArray([op @ x for op in self.ops])
 
@@ -173,10 +173,6 @@ class VerticalStack(LinearOperator):
         return VerticalStack([op / scalar for op in self.ops], collapse=self.collapse)
 
 
-"""
-"""
-
-
 class DiagonalStack(LinearOperator):
     r"""A diagonal stack of linear operators.
 
@@ -219,10 +215,10 @@ class DiagonalStack(LinearOperator):
         """
         Args:
             op: Operators to form into a block matrix.
-            allow_input_collapse: If ``True``, will expect inputs to be
+            allow_input_collapse: If ``True``, inputs are expected to be
                 stacked along the first dimension when possible.
-            allow_output_collapse: If ``True``, will stack the output
-                along the first dimension when possible.
+            allow_output_collapse: If ``True``, the output will be
+                stacked along the first dimension when possible.
             jit: see `jit` in :class:`LinearOperator`.
 
         """
