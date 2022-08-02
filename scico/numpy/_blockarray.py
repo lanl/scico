@@ -19,7 +19,7 @@ from jaxlib.xla_extension import DeviceArray
 from ._wrapped_function_lists import binary_ops, unary_ops
 
 
-class BlockArray(list):
+class BlockArray:
     """Block array class, which provides a way to combine arrays of
     different shapes into a single object for use with other SCICO classes.
 
@@ -46,13 +46,11 @@ class BlockArray(list):
 
     def __init__(self, inputs):
         # convert inputs to DeviceArrays
-        arrays = [x if isinstance(x, jnp.ndarray) else jnp.array(x) for x in inputs]
+        self.arrays = [x if isinstance(x, jnp.ndarray) else jnp.array(x) for x in inputs]
 
         # check that dtypes match
-        if not all(a.dtype == arrays[0].dtype for a in arrays):
+        if not all(a.dtype == self.arrays[0].dtype for a in self.arrays):
             raise ValueError("Heterogeneous dtypes not supported")
-
-        return super().__init__(arrays)
 
     @property
     def dtype(self):
@@ -61,7 +59,10 @@ class BlockArray(list):
         This allows `snp.zeros(x.shape, x.dtype)` to work without a mechanism
         to handle to lists of dtypes.
         """
-        return self[0].dtype
+        return self.arrays[0].dtype
+
+    def __len__(self):
+        return self.arrays.__len__()
 
     def __getitem__(self, key):
         """Indexing method equivalent to x[key].
@@ -69,10 +70,13 @@ class BlockArray(list):
         This is overridden to make, e.g., x[:2] return a BlockArray
         rather than a list.
         """
-        result = super().__getitem__(key)
+        result = self.arrays[key]
         if not isinstance(result, jnp.ndarray):
             return BlockArray(result)  # x[k:k+1] returns a BlockArray
         return result  # x[k] returns a DeviceArray
+
+    def __setitem__(self, key, value):
+        self.arrays[key] = value
 
     @staticmethod
     def blockarray(iterable):
@@ -80,7 +84,7 @@ class BlockArray(list):
         return BlockArray(iterable)
 
     def __repr__(self):
-        return f"BlockArray({super().__repr__()})"
+        return f"BlockArray({repr(self.arrays)})"
 
 
 # Register BlockArray as a jax pytree, without this, jax autograd won't work.

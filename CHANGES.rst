@@ -6,8 +6,8 @@ SCICO Release Notes
 Version 0.0.3   (unreleased)
 ----------------------------
 
-• Support ``jaxlib`` versions 0.3.0 to 0.3.10 and ``jax`` versions
-  0.3.0 to 0.3.13.
+• Support ``jaxlib`` versions 0.3.0 to 0.3.15 and ``jax`` versions
+  0.3.0 to 0.3.15.
 • Rename linear operators in ``radon_astra`` and ``radon_svmbir`` modules
   to ``TomographicProjector``.
 • Add support for fan beam CT in ``radon_svmbir`` module.

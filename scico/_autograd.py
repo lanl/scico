@@ -11,6 +11,7 @@ from typing import Any, Callable, Sequence, Tuple, Union
 
 import jax
 import jax.numpy as jnp
+from jax.tree_util import tree_map
 
 
 def _append_jax_docs(fn, jaxfn=None):
@@ -47,11 +48,11 @@ def grad(
 
     def conjugated_grad_aux(*args, **kwargs):
         jg, aux = jax_grad(*args, **kwargs)
-        return jax.tree_map(jax.numpy.conj, jg), aux
+        return tree_map(jax.numpy.conj, jg), aux
 
     def conjugated_grad(*args, **kwargs):
         jg = jax_grad(*args, **kwargs)
-        return jax.tree_map(jax.numpy.conj, jg)
+        return tree_map(jax.numpy.conj, jg)
 
     return conjugated_grad_aux if has_aux else conjugated_grad
 
@@ -78,12 +79,12 @@ def value_and_grad(
 
     def conjugated_value_and_grad_aux(*args, **kwargs):
         (value, aux), jg = jax_val_grad(*args, **kwargs)
-        conj_grad = jax.tree_map(jax.numpy.conj, jg)
+        conj_grad = tree_map(jax.numpy.conj, jg)
         return (value, aux), conj_grad
 
     def conjugated_value_and_grad(*args, **kwargs):
         value, jax_grad = jax_val_grad(*args, **kwargs)
-        conj_grad = jax.tree_map(jax.numpy.conj, jax_grad)
+        conj_grad = tree_map(jax.numpy.conj, jax_grad)
         return value, conj_grad
 
     return conjugated_value_and_grad_aux if has_aux else conjugated_value_and_grad
@@ -103,12 +104,12 @@ def linear_adjoint(fun: Callable, *primals) -> Callable:
     """
 
     def conj_fun(*primals):
-        conj_primals = jax.tree_map(jax.numpy.conj, primals)
-        return jax.tree_map(jax.numpy.conj, fun(*(conj_primals)))
+        conj_primals = tree_map(jax.numpy.conj, primals)
+        return tree_map(jax.numpy.conj, fun(*(conj_primals)))
 
     if any([jnp.iscomplexobj(_) for _ in primals]):
         # fun is C->R or C->C
-        _primals = jax.tree_map(jax.numpy.conj, primals)
+        _primals = tree_map(jax.numpy.conj, primals)
         _fun = conj_fun
     elif jnp.iscomplexobj(fun(*primals)):
         # fun is from R -> C
@@ -141,7 +142,7 @@ def jacrev(
 
     def conjugated_jacrev(*args, **kwargs):
         tmp = jax_jacrev(*args, **kwargs)
-        return jax.tree_map(jax.numpy.conj, tmp)
+        return tree_map(jax.numpy.conj, tmp)
 
     return conjugated_jacrev
 
