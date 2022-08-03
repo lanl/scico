@@ -48,12 +48,10 @@ print(f"Python version: {pyver}")
 print("Packages:")
 packages = [jaxlib, jax, scico]
 for p in packages:
-    try:
+    if hasattr(p, "__version__") and hasattr(p, "__name__"):
         v = getattr(p, "__version__")
         n = getattr(p, "__name__")
         print(f"    {n:15s} {v}")
-    except:
-        pass
 
 if have_psutil:
     print(f"Number of CPU cores: {psutil.cpu_count(logical=False)}")
