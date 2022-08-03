@@ -10,7 +10,7 @@ Complex Total Variation Denoising (ADMM)
 
 This example demonstrates solution of a problem of the form
 
-  $$\argmin_{\mathbf{x}} \; f(\mathbf{x}) + g(C \mathbf{x}) \;,$$
+  $$\argmin_{\mathbf{x}} \; f(\mathbf{x}) + g(C(\mathbf{x})) \;,$$
 
 where $C$ is a nonlinear operator, via non-linear PDHG
 :cite:`valkonen-2014-primal`. The example problem represents total
@@ -19,13 +19,14 @@ smooth magnitude and non-smooth phase. The appropriate TV denoising
 formulation for this problem is
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - \mathbf{x}
-  \|_2^2 + \lambda R(\mathbf{x}) \;,$$
+  \|_2^2 + \lambda \| C(\mathbf{x}) \|_{2,1} \;,$$
 
-where $\mathbf{y}$ is the measurement and $R$ is a non-linear operator
-that applies a linear difference operator to the magnitude of a complex
-array. The standard TV solution, which is also computed for comparison
-purposes, gives very poor results since the difference is applied
-independently to real and imaginary components of the complex image.
+where $\mathbf{y}$ is the measurement, $\|\cdot\|_{2,1}$ is the
+$\ell_{2,1}$ mixed norm, and $C$ is a non-linear operator that applies a
+linear difference operator to the magnitude of a complex array. The
+standard TV solution, which is also computed for comparison purposes,
+gives very poor results since the difference is applied independently to
+real and imaginary components of the complex image.
 """
 
 import jax
