@@ -13,7 +13,7 @@ Assummes sharded batched data and data parallel training.
 import functools
 import os
 import time
-from typing import Any, Callable, List, Optional, Tuple, TypedDict, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, TypedDict, Union
 
 import jax
 import jax.numpy as jnp
@@ -515,7 +515,7 @@ class ArgumentStruct:
         self.__dict__.update(entries)
 
 
-def stats_obj():
+def stats_obj() -> Tuple[IterationStats, Callable]:
     """Functionality to log and store iteration statistics.
 
     This function initializes an object :class:`.diagnostics.IterationStats` to log and store
@@ -547,9 +547,9 @@ def stats_obj():
 
     # dynamically create itstat_func; see https://stackoverflow.com/questions/24733831
     itstat_return = "return(" + ", ".join(["obj." + attr for attr in itstat_attrib]) + ")"
-    scope: dict[str, Callable] = {}
+    scope: Dict[str, Callable] = {}
     exec("def itstat_func(obj): " + itstat_return, scope)
-    default_itstat_options: dict[str, Union[dict, Callable, bool]] = {
+    default_itstat_options: Dict[str, Union[dict, Callable, bool]] = {
         "fields": itstat_fields,
         "itstat_func": scope["itstat_func"],
         "display": True,
@@ -610,7 +610,7 @@ def train_and_evaluate(
         Alternatively the TrainState can be returned directly instead of the model variables.
         Note that the iteration stats object is not None only if log is enabled.
     """
-    itstat_object = None
+    itstat_object: Optional[IterationStats] = None
     if log:  # pragma: no cover
         print(
             "Channels: %d, training signals: %d, testing"
