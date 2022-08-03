@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2022 by SCICO Developers
+# Copyright (C) 2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Utilities for training Flax models modified from the Common Loop Utils (CLU)."""
+"""Utilities for displaying Flax models."""
+
+# These utilities have been copied from the Common Loop Utils (CLU)
+# https://github.com/google/CommonLoopUtils/tree/main/clu
+# and have been modified to remove TensorFlow dependencies
 
 # CLU is licensed under the Apache License, Version 2.0 (the "License");
 # You may obtain a copy of the License at
