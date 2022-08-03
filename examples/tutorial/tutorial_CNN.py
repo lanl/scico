@@ -9,6 +9,7 @@ Suppose that you are measuring CTs of similar objects and want to construct a pi
 
 """
 import numpy as np
+
 from scico import plot
 
 plot.config_notebook_plotting()
@@ -21,9 +22,9 @@ import matplotlib.pyplot as plt
 
 plt.rcParams["image.cmap"] = "gray"  # set default colormap
 
-from xdesign import Foam, discrete_phantom
-
 import numpy as np
+
+from xdesign import Foam, discrete_phantom
 
 np.random.seed(7654)
 
@@ -35,7 +36,7 @@ x_gt = np.clip(x_gt, 0, 1.0)
 # Plot signal
 fig, ax = plt.subplots()
 ax.imshow(x_gt)
-ax.set_title('Foam')
+ax.set_title("Foam")
 fig.show()
 
 """
@@ -49,7 +50,6 @@ ASTRA interface (see https://scico.readthedocs.io/en/latest/_autosummary/scico.l
 """
 # startq
 
-from scico.linop.radon_astra import ...
 
 n_projection = ...  # number of projections
 angles = ...
@@ -59,7 +59,7 @@ from scico.linop.radon_astra import TomographicProjector
 
 n_projection = 45  # number of projections
 angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
-A = TomographicProjector(x_gt.shape, 1, N, angles) / N # Normalized Radon transform operator
+A = TomographicProjector(x_gt.shape, 1, N, angles) / N  # Normalized Radon transform operator
 # endqa
 
 """
@@ -117,7 +117,7 @@ for i in range(1, nfoams):
     x_ = discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=N)
     x_ = x_ / np.max(x_)
     foam_collection[i] = np.clip(x_, 0, 1.0)
-#endqa
+# endqa
 
 """
 Run the next cell to plot the generated foams.
@@ -127,15 +127,17 @@ ncols = 6
 fig, ax = plot.subplots(nrows=nrows, ncols=ncols, figsize=(15, 10))
 for i in range(nrows):
     for j in range(ncols):
-        plot.imview(foam_collection[i*ncols+j], cbar=None, fig=fig, ax=ax[i, j])
-    divider = make_axes_locatable(ax[i,j])
+        plot.imview(foam_collection[i * ncols + j], cbar=None, fig=fig, ax=ax[i, j])
+    divider = make_axes_locatable(ax[i, j])
     cax = divider.append_axes("right", size="5%", pad=0.2)
-    fig.colorbar(ax[i,j].get_images()[0], cax=cax, label="arbitrary units")
+    fig.colorbar(ax[i, j].get_images()[0], cax=cax, label="arbitrary units")
 fig.show()
 
 """
 Distributing the processing among GPUs in the same node is transparent in JAX, but in CPUs it only uses one core. The following commands force to have 8 core CPUs in the processing, but if GPUs are available, it will ignore the forcing.
 """
+
+import os
 
 import jax
 
@@ -146,7 +148,7 @@ print("Platform: ", platform)
 """
 For purely jax functionality, a distributed processing can be computed via `jax.vmap`. However, the CT operator uses a python (not jax) library. In that case we can distribute the processing via `jax.lax`. Run the next cell to distribute the computation of the sinograms.
 """
-sino_collection = jax.lax.map(lambda x : A @ x, foam_collection)
+sino_collection = jax.lax.map(lambda x: A @ x, foam_collection)
 
 """
 Check the shape of the result. **Do you understand each of the dimensions?**
@@ -268,18 +270,18 @@ Run the next cell to build the configuration dictionary.
 """
 
 dconf = {
-    "seed": 100, # Seed for random generation
-    "depth": 2, # Number of layers (=iterations) in the unrolled ML model
-    "num_filters": 16, # Number of filters in the denoiser
-    "block_depth": 3, # Number of layers in the denoiser
-    "opt_type": "ADAM", # Optimization (other available options: SGD, ADAMW)
-    "batch_size": 8, # Number of samples to include in each batch
-    "num_epochs": 50, # Number of training epochs
-    "base_learning_rate": 1e-2, # Base learning rate
-    "warmup_epochs": 0, # Iterations to reach the base learning rate (if a scheduler is specified)
-    "num_train_steps": -1, # Number of training steps, (if -1 train based on epochs specification)
-    "steps_per_eval": -1, # Number of steps in testing, (if -1 eval over all the testing set)
-    "log_every_steps": 5, # Frequency of reporting training stats, given in units of training steps
+    "seed": 100,  # Seed for random generation
+    "depth": 2,  # Number of layers (=iterations) in the unrolled ML model
+    "num_filters": 16,  # Number of filters in the denoiser
+    "block_depth": 3,  # Number of layers in the denoiser
+    "opt_type": "ADAM",  # Optimization (other available options: SGD, ADAMW)
+    "batch_size": 8,  # Number of samples to include in each batch
+    "num_epochs": 50,  # Number of training epochs
+    "base_learning_rate": 1e-2,  # Base learning rate
+    "warmup_epochs": 0,  # Iterations to reach the base learning rate (if a scheduler is specified)
+    "num_train_steps": -1,  # Number of training steps, (if -1 train based on epochs specification)
+    "steps_per_eval": -1,  # Number of steps in testing, (if -1 eval over all the testing set)
+    "log_every_steps": 5,  # Frequency of reporting training stats, given in units of training steps
 }
 
 """
@@ -302,13 +304,13 @@ model = sflax.MoDLNet(...)
 # starta
 channels = train_ds["image"].shape[-1]
 model = sflax.MoDLNet(
-        operator=A,
-        depth=1,
-        channels=channels,
-        num_filters=dconf["num_filters"],
-        block_depth=dconf["block_depth"],
-        cg_iter=3,
-    )
+    operator=A,
+    depth=1,
+    channels=channels,
+    num_filters=dconf["num_filters"],
+    block_depth=dconf["block_depth"],
+    cg_iter=3,
+)
 # endqa
 
 """
@@ -328,13 +330,16 @@ Run the next cell to build the structure necessary to assure that the training w
 """
 
 from functools import partial
-from scico.flax.train.train import construct_traversal, clip_positive
 
-lmbdatrav = construct_traversal("lmbda") # Functionality to track parameter to constraint inside model
+from scico.flax.train.train import clip_positive, construct_traversal
+
+lmbdatrav = construct_traversal(
+    "lmbda"
+)  # Functionality to track parameter to constraint inside model
 lmbdapos = partial(
-    clip_positive, # Type of constraint to apply, here positivity constraint
+    clip_positive,  # Type of constraint to apply, here positivity constraint
     traversal=lmbdatrav,
-    minval=5e-4, # Minimum value to accept when enforcing the positivity constraint
+    minval=5e-4,  # Minimum value to accept when enforcing the positivity constraint
 )
 
 """
@@ -350,14 +355,14 @@ workdir = "./modl_ct/"
 
 start_time = time()
 modvar, stats_object = sflax.train_and_evaluate(
-    dconf, # Dictionary with training configuration
-    workdir, # Directory to store checkpoints
-    model, # Model to train
-    train_ds, # Data set for training (image-label dictionary)
-    test_ds, # Data set for testing (image-label dictionary)
-    post_lst=[lmbdapos], # Constraints to model parameters
-    checkpointing=True, # Checkpoint stats during training
-    log=True # Display training messages and statistics
+    dconf,  # Dictionary with training configuration
+    workdir,  # Directory to store checkpoints
+    model,  # Model to train
+    train_ds,  # Data set for training (image-label dictionary)
+    test_ds,  # Data set for testing (image-label dictionary)
+    post_lst=[lmbdapos],  # Constraints to model parameters
+    checkpointing=False,  # Checkpoint stats during training
+    log=True,  # Display training messages and statistics
 )
 time_train = time() - start_time
 print(f"Time train [s]: {time_train}")
@@ -424,16 +429,16 @@ workdir2 = workdir + "iterated/"
 
 start_time = time()
 modvar, stats_object = sflax.train_and_evaluate(
-    dconf, # Dictionary with training configuration
-    workdir2, # Directory to store checkpoints
-    model, # Model to train
-    train_ds, # Data set for training (image-label dictionary)
-    test_ds, # Data set for testing (image-label dictionary)
-    create_lr_schedule = create_exp_lr_schedule, # Exponentially decaying LR
-    post_lst=[lmbdapos], # Constraints to model parameters
-    variables0=modvar, # Model variables after initial training
-    checkpointing=True, # Checkpoint stats during training
-    log=True # Display training messages and statistics
+    dconf,  # Dictionary with training configuration
+    workdir2,  # Directory to store checkpoints
+    model,  # Model to train
+    train_ds,  # Data set for training (image-label dictionary)
+    test_ds,  # Data set for testing (image-label dictionary)
+    create_lr_schedule=create_exp_lr_schedule,  # Exponentially decaying LR
+    post_lst=[lmbdapos],  # Constraints to model parameters
+    variables0=modvar,  # Model variables after initial training
+    checkpointing=False,  # Checkpoint stats during training
+    log=True,  # Display training messages and statistics
 )
 time_train = time() - start_time
 print(f"Time train [s]: {time_train}")
@@ -500,12 +505,14 @@ Use SCICO documentation to figure out how to compute SNR and MAE for the reconst
 """
 # startq
 from scico import metric
+
 snr_eval = ...
 mae_eval = ...
 print(f"SNR [dB]: {snr_eval}")
 print(f"MAE: {mae_eval}")
 # starta
 from scico import metric
+
 snr_eval = metric.snr(test_ds["label"], output)
 mae_eval = metric.mae(test_ds["label"], output)
 print(f"SNR [dB]: {snr_eval}")

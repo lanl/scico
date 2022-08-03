@@ -465,7 +465,7 @@ plot.imview(
 )
 plot.imview(
     x_bm3d_reconstruction,
-    title="TV Reconstruction\nSNR: %.2f (dB), MAE: %.3f"
+    title="PnP Reconstruction\nSNR: %.2f (dB), MAE: %.3f"
     % (metric.snr(x_gt_ct, x_bm3d_reconstruction), metric.mae(x_gt_ct, x_bm3d_reconstruction)),
     fig=fig,
     ax=ax[2],

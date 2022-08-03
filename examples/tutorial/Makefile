@@ -9,6 +9,8 @@ $(OUT)/tutorial_%.ipynb: tutorial_%.py
 	perl -0777 -pe 's/#\s*startq(.*?)#\s*starta(.*?)#\s*endqa/$$2/gs' $< > temp/tutorial_$*_answers.py
 	python -m py2jn temp/tutorial_$*_questions.py $@
 	python -m py2jn temp/tutorial_$*_answers.py $(OUT)/tutorial_$*_solution.ipynb
+	cp tutorial_funcs.py $(OUT)/
+	cp tutorial_funcs_part2.py $(OUT)/
 	rm -rf temp
 
 $(OUT)/install.html: install.md
