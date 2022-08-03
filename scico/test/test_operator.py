@@ -12,7 +12,7 @@ config.update("jax_enable_x64", True)
 import jax
 
 import scico.numpy as snp
-from scico.operator import Operator
+from scico.operator import Abs, Angle, Exp, Operator
 from scico.random import randn
 
 
@@ -212,3 +212,14 @@ def test_freeze_2arg():
 
     np.testing.assert_allclose(A(x), Ab(b), rtol=5e-4)
     np.testing.assert_allclose(A(x), Aa(a), rtol=5e-4)
+
+
+@pytest.mark.parametrize("dtype", [np.float32, np.complex64])
+@pytest.mark.parametrize("op_fn", [(Abs, snp.abs), (Angle, snp.angle), (Exp, snp.exp)])
+def test_func_op(op_fn, dtype):
+    op = op_fn[0]
+    fn = op_fn[1]
+    shape = (2, 3)
+    x, _ = randn(shape, dtype=dtype)
+    H = op(input_shape=shape, input_dtype=dtype)
+    np.testing.assert_array_equal(H(x), fn(x))
