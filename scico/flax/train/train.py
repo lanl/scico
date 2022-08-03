@@ -855,11 +855,11 @@ def only_apply(
     variables = jax_utils.replicate(variables)
     num_examples = test_ds["image"].shape[0]
     steps_ = num_examples // config["batch_size"]
-    output = []
+    output_lst = []
     for _ in range(steps_):
         eval_batch = next(eval_dt_iter)
-        output_ = p_apply_step(model, variables, eval_batch)
-        output.append(output_.reshape((-1,) + output_.shape[-3:]))
+        output_batch = p_apply_step(model, variables, eval_batch)
+        output_lst.append(output_batch.reshape((-1,) + output_batch.shape[-3:]))
 
     # Allow for completing the async run
     jax.random.normal(jax.random.PRNGKey(0), ()).block_until_ready()
@@ -867,7 +867,7 @@ def only_apply(
     # Extract one copy of variables
     variables = jax_utils.unreplicate(variables)
     # Convert to array
-    output = jnp.array(output)
+    output = jnp.array(output_lst)
     # Remove leading dimension
     output = output.reshape((-1,) + output.shape[-3:])
 
