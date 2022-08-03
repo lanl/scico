@@ -65,7 +65,6 @@ Denoise with standard total variation.
 λ_tv = 6e-2
 f = loss.SquaredL2Loss(y=y)
 g = λ_tv * functional.L21Norm()
-
 # The append=0 option makes the results of horizontal and vertical finite
 # differences the same shape, which is required for the L21Norm.
 C = linop.FiniteDifference(input_shape=x_gt.shape, input_dtype=snp.complex64, append=0)
@@ -84,25 +83,14 @@ hist_tv = solver_tv.itstat_object.history(transpose=True)
 
 
 """
-Set up operator for non-linear TV solution.
-"""
-# Redefine C for real input (now applied to magnitude of a complex array)
-C = linop.FiniteDifference(input_shape=x_gt.shape, input_dtype=snp.float32, append=0)
-# Define absolute value operator
-class Abs(operator.Operator):
-    def __init__(self, input_shape):
-        super().__init__(input_shape=input_shape, eval_fn=snp.abs)
-
-
-# Operator computing differences of absolute values
-D = C @ Abs(input_shape=x_gt.shape)
-
-
-"""
 Denoise with non-linear total variation.
 """
 λ_nltv = 2e-1
 g = λ_nltv * functional.L21Norm()
+# Redefine C for real input (now applied to magnitude of a complex array)
+C = linop.FiniteDifference(input_shape=x_gt.shape, input_dtype=snp.float32, append=0)
+# Operator computing differences of absolute values
+D = C @ operator.Abs(input_shape=x_gt.shape, input_dtype=snp.complex64)
 solver_nltv = PDHG(
     f=f,
     g=g,
