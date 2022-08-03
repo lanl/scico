@@ -1,5 +1,10 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# Copyright (C) 2021-2022 by SCICO Developers
+# All rights reserved. BSD 3-clause License.
+# This file is part of the SCICO package. Details of the copyright and
+# user license can be found in the 'LICENSE' file distributed with the
+# package.
+
 """Flax implementation of different convolutional blocks."""
 
 from typing import Any, Callable, Tuple
