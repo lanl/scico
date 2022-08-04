@@ -65,11 +65,15 @@ but may require longer training times.
 """
 batch_size = 16
 epochs = 200
-dconf: sflax.ConfigDict = {
-    "seed": 0,
+# model configuration
+mconf = {
     "depth": 2,
     "num_filters": 64,
     "block_depth": 2,
+}
+# training configuration
+dconf: sflax.ConfigDict = {
+    "seed": 0,
     "opt_type": "SGD",
     "momentum": 0.9,
     "batch_size": batch_size,
@@ -86,10 +90,10 @@ Construct UNet model.
 """
 channels = train_ds["image"].shape[-1]
 model = sflax.UNet(
-    depth=dconf["depth"],
+    depth=mconf["depth"],
     channels=channels,
-    num_filters=dconf["num_filters"],
-    block_depth=dconf["block_depth"],
+    num_filters=mconf["num_filters"],
+    block_depth=mconf["block_depth"],
 )
 
 """

@@ -101,12 +101,16 @@ but may require longer training times.
 """
 batch_size = 16
 epochs = 25
-dconf: sflax.ConfigDict = {
-    "seed": 0,
+# model configuration
+mconf = {
     "depth": 2,
     "num_filters": 64,
     "block_depth": 4,
     "cg_iter": 4,
+}
+# training configuration
+dconf: sflax.ConfigDict = {
+    "seed": 0,
     "opt_type": "SGD",
     "momentum": 0.9,
     "batch_size": batch_size,
@@ -154,11 +158,11 @@ for (dirpath, dirnames, filenames) in os.walk(workdir2):
 if len(checkpoint_files) > 0:
     model = sflax.MoDLNet(
         operator=opBlur,
-        depth=dconf["depth"],
+        depth=mconf["depth"],
         channels=channels,
-        num_filters=dconf["num_filters"],
-        block_depth=dconf["block_depth"],
-        cg_iter=dconf["cg_iter"],
+        num_filters=mconf["num_filters"],
+        block_depth=mconf["block_depth"],
+        cg_iter=mconf["cg_iter"],
     )
 
     start_time = time()
@@ -181,9 +185,9 @@ else:
         operator=opBlur,
         depth=1,
         channels=channels,
-        num_filters=dconf["num_filters"],
-        block_depth=dconf["block_depth"],
-        cg_iter=dconf["cg_iter"],
+        num_filters=mconf["num_filters"],
+        block_depth=mconf["block_depth"],
+        cg_iter=mconf["cg_iter"],
     )
     # First stage: initialization training loop.
     workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "modl_dcnv_out")
@@ -208,7 +212,7 @@ else:
     )
 
     # Second stage: depth iterations training loop.
-    model.depth = dconf["depth"]
+    model.depth = mconf["depth"]
 
     start_time = time()
     modvar, stats_object = sflax.train_and_evaluate(

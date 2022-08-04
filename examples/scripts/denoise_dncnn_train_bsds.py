@@ -67,10 +67,14 @@ Parameters have been selected for demonstration purposes and relatively short tr
 """
 batch_size = 16
 epochs = 50
-dconf: sflax.ConfigDict = {
-    "seed": 0,
+# model configuration
+mconf = {
     "depth": 6,
     "num_filters": 64,
+}
+# training configuration
+dconf: sflax.ConfigDict = {
+    "seed": 0,
     "opt_type": "ADAM",
     "batch_size": batch_size,
     "num_epochs": epochs,
@@ -86,9 +90,9 @@ Construct DnCNN model.
 """
 channels = train_ds["image"].shape[-1]
 model = sflax.DnCNNNet(
-    depth=dconf["depth"],
+    depth=mconf["depth"],
     channels=channels,
-    num_filters=dconf["num_filters"],
+    num_filters=mconf["num_filters"],
 )
 
 """
