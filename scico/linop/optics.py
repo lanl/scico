@@ -180,7 +180,7 @@ class Propagator(LinearOperator):
         self.z: float = z
 
         # Fourier operator
-        self.F = DFT(input_shape=input_shape, output_shape=self.padded_shape, jit=False)
+        self.F = DFT(input_shape=input_shape, axes_shape=self.padded_shape, jit=False)
 
         # Diagonal operator; phase shifting
         self.D: LinearOperator = Identity(self.kp.shape)
@@ -540,7 +540,7 @@ class FraunhoferPropagator(LinearOperator):
         phase *= np.prod(dx)  # from approximating continouous FT with DFT
         phase = phase.astype(np.complex64)
 
-        self.F = DFT(input_shape=input_shape, output_shape=input_shape, jit=False)
+        self.F = DFT(input_shape=input_shape, jit=False)
         self.D = Diagonal(phase)
         super().__init__(
             input_shape=input_shape,

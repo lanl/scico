@@ -54,8 +54,8 @@ SCICO's main advantages are:
 
 
 If you use this library for published work,
-please cite :cite:`pfister-2021-scico`
-(see bibtex entry ``pfister-2021-scico`` in
+please cite :cite:`scico-2022`
+(see bibtex entry ``scico-2022`` in
 `docs/source/references.bib
 <https://github.com/lanl/scico/blob/main/docs/source/references.bib>`_
 in the source distribution).
