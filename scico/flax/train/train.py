@@ -738,6 +738,7 @@ def train_and_evaluate(
                 summary.update(summary_eval)
                 eval_metrics = []
 
+                assert isinstance(itstat_object, IterationStats)  # for mypy
                 itstat_object.insert(itstat_insert_func(ArgumentStruct(**summary)))
 
         if (step + 1) % steps_per_checkpoint == 0 or step + 1 == num_steps:
@@ -751,6 +752,7 @@ def train_and_evaluate(
 
     jax.random.normal(jax.random.PRNGKey(0), ()).block_until_ready()
     if log:
+        assert isinstance(itstat_object, IterationStats)  # for mypy
         itstat_object.end()
 
     state = sync_batch_stats(state)
@@ -866,5 +868,7 @@ def only_apply(
     output = jnp.array(output_lst)
     # Remove leading dimension
     output = output.reshape((-1,) + output.shape[-3:])
+
+    assert isinstance(variables, dict)  # for mypy
 
     return output, variables
