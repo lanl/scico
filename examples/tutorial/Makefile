@@ -1,4 +1,5 @@
 OUT=compiled_files
+OUT2=../notebooks/tutorial
 
 all: $(OUT)/tutorial_CNN.ipynb $(OUT)/tutorial_PnP.ipynb $(OUT)/tutorial_cells.ipynb $(OUT)/install.html
 
@@ -9,8 +10,12 @@ $(OUT)/tutorial_%.ipynb: tutorial_%.py
 	perl -0777 -pe 's/#\s*startq(.*?)#\s*starta(.*?)#\s*endqa/$$2/gs' $< > temp/tutorial_$*_answers.py
 	python -m py2jn temp/tutorial_$*_questions.py $@
 	python -m py2jn temp/tutorial_$*_answers.py $(OUT)/tutorial_$*_solution.ipynb
+	cp $(OUT)/tutorial_$*_solution.ipynb $(OUT2)/
+	cp $@ $(OUT2)/
 	cp tutorial_funcs.py $(OUT)/
+	cp tutorial_funcs.py $(OUT2)/
 	cp tutorial_funcs_part2.py $(OUT)/
+	cp tutorial_funcs_part2.py $(OUT2)/
 	rm -rf temp
 
 $(OUT)/install.html: install.md

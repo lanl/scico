@@ -46,7 +46,7 @@ This image shows one foam,
 SCICO provides CT projectors based on Python libraries such as ASTRA and SVMBIR. In this case we will use the
 ASTRA interface (see https://scico.readthedocs.io/en/latest/_autosummary/scico.linop.radon_astra.html).
 
-**Define an ASTRA SCICO CT projector assuming 45 equally spaced projections.** Normalize by the dimension of the images.
+**Define an ASTRA SCICO CT projector assuming 45 equally spaced projections.**
 """
 # startq
 
@@ -58,8 +58,16 @@ from scico.linop.radon_astra import TomographicProjector
 
 n_projection = 45  # number of projections
 angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
-A = TomographicProjector(x_gt.shape, 1, N, angles) / N  # Normalized Radon transform operator
+A = TomographicProjector(x_gt.shape, 1, N, angles)  # Radon transform operator
 # endqa
+
+"""
+Machine learning algorithms are typically very sensitive to the scaling of their inputs.
+For this reason, we normalize the operator `A` by the dimension of the image,
+which, for this operator, makes $ ||Ax|| \approx ||x||$.
+"""
+
+A = A / N
 
 """
 **Test your operator by computing the sinogram of the generated foam and plotting your results.**
@@ -114,8 +122,7 @@ foam_collection = ...
 # starta
 nfoams = 24
 foam_collection = np.zeros((nfoams, N, N))
-foam_collection[0] = x_gt
-for i in range(1, nfoams):
+for i in range(nfoams):
     print(i, end=", ")
     x_ = discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=N)
     x_ = x_ / np.max(x_)
@@ -196,7 +203,7 @@ While you wait for others to finish, you could explore other SCICO linear operat
 When there is an explicit representation of the forward model, the signal reconstruction can be posed as
 a regularized least squares problem
 
-$$ \min_x \| y - Ax \|_2^2 + \, \lambda \, r(x).$$
+$$ \min_\mathbf{x} \| \mathbf{y} - A \mathbf{x} \|_2^2 + \, \lambda \, r(\mathbf{x}).$$
 
 For example, in the CT case, the forward model $A$ is the CT projector, the measurements are the sinograms $y$ and
 the solution $x$ represents the signal reconstruction. The constant $\lambda > 0$, establishes the trade-off
@@ -212,7 +219,7 @@ performance will depend on the training data, as is usually the case in machine 
 
 The following diagram illustrates the kind of ML structure we will be training for the CT reconstruction:
 
-![Unrolled end-to-end](unrolled.png "Unrolled end-to-end")
+![Unrolled end-to-end](../../examples/tutorial/unrolled.png "Unrolled end-to-end")
 
 In the diagram, the green blocks correspond to a denoiser, generally a residual convolutional neural network, and are trainable. The red blocks correspond to a data consistency block and use the forward and adjoint operators. We will be constructing and training one such unrolled model.
 """
@@ -221,7 +228,7 @@ In the diagram, the green blocks correspond to a denoiser, generally a residual 
 For this tutorial we will use the MoDL architecture.
 
 The class [flax.MoDLNet](../_autosummary/scico.learning.rst#scico.learning.MoDL)
- implements the MoDL architecture, which solves the optimization problem
+ implements the MoDL architecture, which unrolls the optimization problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; \| A \mathbf{x} - \mathbf{y} \|_2^2 + \lambda \, \| \mathbf{x} - \mathrm{D}_w(\mathbf{x})\|_2^2 \;,$$
 
@@ -416,7 +423,9 @@ The MoDL architecture shares the parameters between the different iteration laye
 **Repeat the training process**, but this time use the configured depth, 10 cg iterations and initialize with the current model parameters. Train for 100 epochs.
 In addition, set an exponentially decaying learning rate by
  adding a decay rate of 0.95 to the configuration dictionary.
-and using the `create_lr_schedule` option for `train_and_evaluate`
+and using the `create_lr_schedule` option for `train_and_evaluate`.
+Make sure you pass the parameter `variables0=modvar` to `train_and_evaluate`
+to start with your pretrained weights.
 """
 
 # startq
@@ -520,6 +529,7 @@ output = np.clip(output, a_min=0, a_max=1.0)
 
 """
 Use the SCICO documentation to figure out how to compute SNR and MAE for the reconstructions obtained with MoDL.
+You might start looking in https://scico.readthedocs.io/en/latest/_autosummary/scico.metric.html.
 """
 # startq
 from scico import metric
