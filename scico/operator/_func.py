@@ -26,10 +26,10 @@ def operator_from_function(f: Callable, classname: str, f_name: Optional[str] = 
 
     Example
     -------
-    >>> Sum = linop_from_function(snp.sum, 'Sum')
-    >>> H = Sum((2, 10), axis=1)
-    >>> H @ snp.ones((2, 10))
-    DeviceArray([10., 10.], dtype=float32)
+    >>> AbsVal = operator_from_function(snp.abs, 'AbsVal')
+    >>> H = AbsVal((2,))
+    >>> H(snp.array([1.0, -1.0]))
+    DeviceArray([1., 1.], dtype=float32)
 
     Args:
         f: Function from which to create an operator class.
