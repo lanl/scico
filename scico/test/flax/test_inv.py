@@ -118,11 +118,16 @@ class TestCT:
         self.train_ds = {"image": y, "label": xt}
         self.test_ds = {"image": y, "label": xt}
 
-        self.dconf: sflax.ConfigDict = {
-            "seed": 0,
+        # Model configuration
+        self.mconf = {
             "depth": 1,
             "num_filters": 16,
             "block_depth": 2,
+        }
+
+        # Training configuration
+        self.dconf: sflax.ConfigDict = {
+            "seed": 0,
             "opt_type": "ADAM",
             "batch_size": self.bsize,
             "num_epochs": 2,
@@ -139,10 +144,10 @@ class TestCT:
 
         model = sflax.ODPNet(
             operator=self.opCT,
-            depth=self.dconf["depth"],
+            depth=self.mconf["depth"],
             channels=self.chn,
-            num_filters=self.dconf["num_filters"],
-            block_depth=self.dconf["block_depth"],
+            num_filters=self.mconf["num_filters"],
+            block_depth=self.mconf["block_depth"],
             odp_block=sflax.ODPGrDescBlock,
         )
 
@@ -156,10 +161,10 @@ class TestCT:
 
         model = sflax.MoDLNet(
             operator=self.opCT,
-            depth=self.dconf["depth"],
+            depth=self.mconf["depth"],
             channels=self.chn,
-            num_filters=self.dconf["num_filters"],
-            block_depth=self.dconf["block_depth"],
+            num_filters=self.mconf["num_filters"],
+            block_depth=self.mconf["block_depth"],
         )
 
         variables = model.init(key, y)
@@ -170,10 +175,10 @@ class TestCT:
     def test_train_modl(self):
         model = sflax.MoDLNet(
             operator=self.opCT,
-            depth=self.dconf["depth"],
+            depth=self.mconf["depth"],
             channels=self.chn,
-            num_filters=self.dconf["num_filters"],
-            block_depth=self.dconf["block_depth"],
+            num_filters=self.mconf["num_filters"],
+            block_depth=self.mconf["block_depth"],
         )
         try:
             minval = 1.1e-2
@@ -201,10 +206,10 @@ class TestCT:
     def test_train_odpct(self):
         model = sflax.ODPNet(
             operator=self.opCT,
-            depth=self.dconf["depth"],
+            depth=self.mconf["depth"],
             channels=self.chn,
-            num_filters=self.dconf["num_filters"],
-            block_depth=self.dconf["block_depth"],
+            num_filters=self.mconf["num_filters"],
+            block_depth=self.mconf["block_depth"],
             odp_block=sflax.ODPGrDescBlock,
         )
 

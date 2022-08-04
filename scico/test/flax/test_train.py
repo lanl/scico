@@ -53,11 +53,16 @@ class SetupTest:
         self.train_ds = {"image": self.x, "label": self.x}
         self.test_ds = {"image": xt, "label": xt}
 
-        self.dconf: sflax.ConfigDict = {
-            "seed": 0,
+        # Model configuration
+        self.mconf = {
             "depth": 2,
             "num_filters": 16,
             "block_depth": 2,
+        }
+
+        # Training configuration
+        self.dconf: sflax.ConfigDict = {
+            "seed": 0,
             "opt_type": "ADAM",
             "momentum": 0.9,
             "batch_size": 16,
@@ -150,7 +155,7 @@ def test_compute_metrics(testobj):
 
 
 def test_count_parameters(testobj):
-    model = sflax.ResNet(testobj.dconf["depth"], testobj.chn, testobj.dconf["num_filters"])
+    model = sflax.ResNet(testobj.mconf["depth"], testobj.chn, testobj.mconf["num_filters"])
 
     key = jax.random.PRNGKey(seed=1234)
     input_shape = (1, testobj.N, testobj.N, testobj.chn)
@@ -158,20 +163,20 @@ def test_count_parameters(testobj):
 
     filter_sz = model.kernel_size[0] * model.kernel_size[1]
     # filter parameters output layer
-    sum_manual_params = filter_sz * testobj.dconf["num_filters"] * testobj.chn
+    sum_manual_params = filter_sz * testobj.mconf["num_filters"] * testobj.chn
     # bias and scale of batch normalization output layer
     sum_manual_params += testobj.chn * 2
     # mean and bar of batch normalization output layer
     sum_manual_bst = testobj.chn * 2
     chn_prev = 1
-    for i in range(testobj.dconf["depth"] - 1):
+    for i in range(testobj.mconf["depth"] - 1):
         # filter parameters
-        sum_manual_params += filter_sz * testobj.dconf["num_filters"] * chn_prev
+        sum_manual_params += filter_sz * testobj.mconf["num_filters"] * chn_prev
         # bias and scale of batch normalization
-        sum_manual_params += testobj.dconf["num_filters"] * 2
+        sum_manual_params += testobj.mconf["num_filters"] * 2
         # mean and bar of batch normalization
-        sum_manual_bst += testobj.dconf["num_filters"] * 2
-        chn_prev = testobj.dconf["num_filters"]
+        sum_manual_bst += testobj.mconf["num_filters"] * 2
+        chn_prev = testobj.mconf["num_filters"]
 
     total_nvar_params = sflax.count_parameters(variables["params"])
     total_nvar_bst = sflax.count_parameters(variables["batch_stats"])
@@ -207,7 +212,7 @@ def test_exp_learning_rate(testobj):
 
 @pytest.mark.parametrize("opt_type", ["SGD", "ADAM", "ADAMW"])
 def test_optimizers(testobj, opt_type):
-    model = sflax.ResNet(testobj.dconf["depth"], testobj.chn, testobj.dconf["num_filters"])
+    model = sflax.ResNet(testobj.mconf["depth"], testobj.chn, testobj.mconf["num_filters"])
 
     dconf = testobj.dconf.copy()
     dconf["opt_type"] = opt_type
@@ -225,7 +230,7 @@ def test_optimizers(testobj, opt_type):
 
 
 def test_optimizers_exception(testobj):
-    model = sflax.ResNet(testobj.dconf["depth"], testobj.chn, testobj.dconf["num_filters"])
+    model = sflax.ResNet(testobj.mconf["depth"], testobj.chn, testobj.mconf["num_filters"])
 
     dconf = testobj.dconf.copy()
     dconf["opt_type"] = ""
@@ -241,11 +246,11 @@ def test_optimizers_exception(testobj):
 
 @pytest.mark.parametrize("model_cls", [sflax.DnCNNNet, sflax.ResNet, sflax.ConvBNNet, sflax.UNet])
 def test_train_iter(testobj, model_cls):
-    depth = testobj.dconf["depth"]
-    model = model_cls(depth, testobj.chn, testobj.dconf["num_filters"])
+    depth = testobj.mconf["depth"]
+    model = model_cls(depth, testobj.chn, testobj.mconf["num_filters"])
     if isinstance(model, sflax.DnCNNNet):
         depth = 3
-        model = sflax.DnCNNNet(depth, testobj.chn, testobj.dconf["num_filters"])
+        model = sflax.DnCNNNet(depth, testobj.chn, testobj.mconf["num_filters"])
     try:
         modvar = sflax.train_and_evaluate(
             testobj.dconf,
@@ -261,7 +266,7 @@ def test_train_iter(testobj, model_cls):
 
 @pytest.mark.parametrize("chkflag", [False, True])
 def test_train_ext_init(testobj, chkflag):
-    model = sflax.ResNet(testobj.dconf["depth"], testobj.chn, testobj.dconf["num_filters"])
+    model = sflax.ResNet(testobj.mconf["depth"], testobj.chn, testobj.mconf["num_filters"])
 
     key = jax.random.PRNGKey(seed=1234)
     input_shape = (1, testobj.N, testobj.N, testobj.chn)
@@ -283,7 +288,7 @@ def test_train_ext_init(testobj, chkflag):
 
 
 def test_except_only_apply(testobj):
-    model = sflax.ResNet(testobj.dconf["depth"], testobj.chn, testobj.dconf["num_filters"])
+    model = sflax.ResNet(testobj.mconf["depth"], testobj.chn, testobj.mconf["num_filters"])
 
     with pytest.raises(Exception):
         out_ = sflax.only_apply(
@@ -296,11 +301,11 @@ def test_except_only_apply(testobj):
 
 @pytest.mark.parametrize("model_cls", [sflax.DnCNNNet, sflax.ResNet, sflax.ConvBNNet, sflax.UNet])
 def test_eval(testobj, model_cls):
-    depth = testobj.dconf["depth"]
-    model = model_cls(depth, testobj.chn, testobj.dconf["num_filters"])
+    depth = testobj.mconf["depth"]
+    model = model_cls(depth, testobj.chn, testobj.mconf["num_filters"])
     if isinstance(model, sflax.DnCNNNet):
         depth = 3
-        model = sflax.DnCNNNet(depth, testobj.chn, testobj.dconf["num_filters"])
+        model = sflax.DnCNNNet(depth, testobj.chn, testobj.mconf["num_filters"])
 
     key = jax.random.PRNGKey(123)
     variables = model.init(key, testobj.train_ds["image"])

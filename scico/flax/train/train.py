@@ -55,9 +55,6 @@ class ConfigDict(TypedDict):
     expected for specifying training parameters."""
 
     seed: float
-    depth: int
-    num_filters: int
-    block_depth: int
     opt_type: str
     momentum: float
     batch_size: int
@@ -69,7 +66,6 @@ class ConfigDict(TypedDict):
     steps_per_eval: int
     log_every_steps: int
     steps_per_epoch: int
-    cg_iter: int
 
 
 class ModelVarDict(TypedDict):

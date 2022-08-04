@@ -84,6 +84,7 @@ def get_parameter_rows(
     include_stats: bool = False,
 ) -> List[Union[ParamRow, ParamRowWithStats]]:
     """Returns information about parameters as a list of dictionaries.
+
     Args:
         params: Dictionary with parameters as NumPy arrays. The dictionary can be
             nested.
@@ -198,8 +199,7 @@ def get_parameter_overview(
     """Returns a string with variables names, their shapes, count.
 
     Args:
-        params: Dictionary with parameters as NumPy arrays. The dictionary can be
-      nested.
+        params: Dictionary with parameters as NumPy arrays. The dictionary can be nested.
         include_stats: If True, add columns with mean and std for each variable.
         max_lines: If not `None`, the maximum number of variables to include.
 
