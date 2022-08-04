@@ -12,7 +12,7 @@ config.update("jax_enable_x64", True)
 import jax
 
 import scico.numpy as snp
-from scico.operator import Abs, Angle, Exp, Operator
+from scico.operator import Abs, Angle, Exp, Operator, operator_from_function
 from scico.random import randn
 
 
@@ -223,3 +223,11 @@ def test_func_op(op_fn, dtype):
     x, _ = randn(shape, dtype=dtype)
     H = op(input_shape=shape, input_dtype=dtype)
     np.testing.assert_array_equal(H(x), fn(x))
+
+
+def test_make_func_op():
+    AbsVal = operator_from_function(snp.abs, "AbsVal")
+    shape = (2,)
+    x, _ = randn(shape, dtype=np.float32)
+    H = AbsVal(input_shape=shape, input_dtype=np.float32)
+    np.testing.assert_array_equal(H(x), snp.abs(x))
