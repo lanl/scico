@@ -1,30 +1,28 @@
 """
 # Example: Data-Driven Priors for Inverse Problems
 
-In this example we will explore how to use CNN models as data-driven priors in a SCICO pipeline for performing computed tomography (CT) reconstruction.
+In this example,
+ we will explore how to use CNN models as data-driven priors in a SCICO pipeline for performing computed tomography (CT) reconstruction.
 
 ## Introduction
 
-Suppose that you are measuring CTs of similar objects and want to construct a pipeline to rapidly compute the reconstruction of a new measurement. In this case we we will use foams to develop such a reconstruction engine.
-
+Suppose that you are performing CT scans of many of similar objects
+ and want to construct a pipeline to rapidly compute the reconstruction
+ of each new measurement.
+For this example, we will use computer-generated foam images
+as the objects we want to image.
+Run the next cell to generate and visualize one of such foam.
 """
+
 import numpy as np
+
+import matplotlib.pyplot as plt
+from xdesign import Foam, discrete_phantom
 
 from scico import plot
 
-plot.config_notebook_plotting()
-
-"""
-Run the next cell to generate and visualize one of such foams.
-"""
-
-import matplotlib.pyplot as plt
-
+plot.config_notebook_plotting()  # set up plotting
 plt.rcParams["image.cmap"] = "gray"  # set default colormap
-
-import numpy as np
-
-from xdesign import Foam, discrete_phantom
 
 np.random.seed(7654)
 
@@ -40,8 +38,10 @@ ax.set_title("Foam")
 fig.show()
 
 """
-This image shows one foam but data-driven pipelines assume that you have access to a wealth of relevant data. Let's generate several different foams to use in our CT reconstruction pipeline. Since we are interested in CT reconstruction, we need to generate both images and sinograms.
-
+This image shows one foam,
+ but data-driven pipelines assume that you have access to a wealth of relevant data.
+ Let's generate several different foams to use in our CT reconstruction pipeline.
+ Since we are interested in CT reconstruction, we need to generate both images and sinograms.
 
 SCICO provides CT projectors based on Python libraries such as ASTRA and SVMBIR. In this case we will use the
 ASTRA interface (see https://scico.readthedocs.io/en/latest/_autosummary/scico.linop.radon_astra.html).
@@ -49,7 +49,6 @@ ASTRA interface (see https://scico.readthedocs.io/en/latest/_autosummary/scico.l
 **Define an ASTRA SCICO CT projector assuming 45 equally spaced projections.** Normalize by the dimension of the images.
 """
 # startq
-
 
 n_projection = ...  # number of projections
 angles = ...
@@ -104,7 +103,10 @@ fig.show()
 # endqa
 
 """
-Repeat the proces to generate at least 24 different (foam, sinogram) pairs. **Start by generating the foams.** We will show how you can distribute the sinogram generation for parallel computation.
+Now, we repeat the proces to generate at least 24 different (foam, sinogram) pairs.
+ **Start by generating the foams.**
+You'll need to make sure that you return an `ndarray`, not a `list`.
+The function `np.stack` may be useful for that.
 """
 # startq
 nfoams = ...
@@ -114,6 +116,7 @@ nfoams = 24
 foam_collection = np.zeros((nfoams, N, N))
 foam_collection[0] = x_gt
 for i in range(1, nfoams):
+    print(i, end=", ")
     x_ = discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=N)
     x_ = x_ / np.max(x_)
     foam_collection[i] = np.clip(x_, 0, 1.0)
@@ -134,7 +137,11 @@ for i in range(nrows):
 fig.show()
 
 """
-Distributing the processing among GPUs in the same node is transparent in JAX, but in CPUs it only uses one core. The following commands force to have 8 core CPUs in the processing, but if GPUs are available, it will ignore the forcing.
+Let's use parallel computation to accelerate the sinogram generation.
+Distributing processing among GPUs on the same node happens automatically in JAX,
+ but for CPUs, JAX only uses one core by default.
+The following commands force JAX to use 8 CPU cores.
+ (If GPUs are available, the command will be ignored)
 """
 
 import os
@@ -146,32 +153,39 @@ platform = jax.lib.xla_bridge.get_backend().platform
 print("Platform: ", platform)
 
 """
-For purely jax functionality, a distributed processing can be computed via `jax.vmap`. However, the CT operator uses a python (not jax) library. In that case we can distribute the processing via `jax.lax`. Run the next cell to distribute the computation of the sinograms.
+For purely jax functionality, a distributed processing can be computed via `jax.vmap`. However, the CT operator uses a python (not JAX) library.
+In that case we can distribute the processing via `jax.lax`. Run the next cell to distribute the computation of the sinograms.
 """
 sino_collection = jax.lax.map(lambda x: A @ x, foam_collection)
 
 """
-Check the shape of the result. **Do you understand each of the dimensions?**
+**Check the shape of the result.**
+"""
+# startq
+...
+# starta
+sino_collection.shape
+# endqa
+
+"""
+**Explain the shape of `sino_collection`**
 """
 
 # startq
-...
 """
-The shape corresponds to:...
+The shape corresponds to ...
 """
 
 # starta
-sino_collection.shape
 """
-The shape corresponds to: (number of foams, number of projections, foam dimension)
+The shape corresponds to (number of foams, number of projections, foam dimension)
 """
-
 # endqa
 
 """
 You are done with part 1. Please report back in the Webex chat: **done with part 1**.
 
-While you wait for others to finish, you could explore other SCICO linear operators that can be used to transform image data.
+While you wait for others to finish, you could explore other SCICO linear operators that can be used to transform image data, e.g., `Convolve`.
 
 🛑 **PAUSE HERE** 🛑
 """
@@ -200,13 +214,13 @@ The following diagram illustrates the kind of ML structure we will be training f
 
 ![Unrolled end-to-end](unrolled.png "Unrolled end-to-end")
 
-In the diagram, the green blocks correspond to a denoiser, generally a residual convolutional neural network, and are trainable. The red blocks correspond to a data consistency block and use the forward and adjoint operators. We will be constructing and training one of such unrolled models available in SCICO.
+In the diagram, the green blocks correspond to a denoiser, generally a residual convolutional neural network, and are trainable. The red blocks correspond to a data consistency block and use the forward and adjoint operators. We will be constructing and training one such unrolled model.
 """
 
 """
 For this tutorial we will use the MoDL architecture.
 
-A class [flax.MoDLNet](../_autosummary/scico.learning.rst#scico.learning.MoDL)
+The class [flax.MoDLNet](../_autosummary/scico.learning.rst#scico.learning.MoDL)
  implements the MoDL architecture, which solves the optimization problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; \| A \mathbf{x} - \mathbf{y} \|_2^2 + \lambda \, \| \mathbf{x} - \mathrm{D}_w(\mathbf{x})\|_2^2 \;,$$
@@ -223,7 +237,7 @@ via conjugate gradient. In the expression, $k$ is the index of the stage (iterat
  (a denoiser implemented as a residual convolutional neural network), $\mathbf{x}^k$ is the output
   of the previous stage, $\lambda > 0$
   is a learned regularization parameter, and $\mathbf{I}$ is the identity operator.
-  The output of the final stage is the set of reconstructed images.
+  The output of the final stage is the reconstructed image.
 """
 
 """
@@ -324,7 +338,7 @@ While you wait for others to finish, explore other ML models available in SCICO.
 """
 # Training the MoDL model
 
-$\lambda$, the regularization parameter in MoDL, is also learned in the training process. However, it is important that it keeps being a positive multiplier.
+$\lambda$, the regularization parameter in MoDL, is also learned in the training process. However, it is important that it remains positive.
 
 Run the next cell to build the structure necessary to assure that the training will respect such constraint.
 """
@@ -397,9 +411,12 @@ plot.plot(
 fig.show()
 
 """
-The MoDL architecture shares the parameters between the different iteration layers. The previous training was the initialization and used only one iteration. Now we can train the model with the specified depth.
+The MoDL architecture shares the parameters between the different iteration layers. The previous training was the initialization and used only one iteration. Now we can train the model with the specified depth (from `dconf`).
 
-**Repeat the training process**, but this time use the configured depth, 10 cg iterations and initialize with the current model parameters. **Train** for a longer number of epochs. In addition, use the exponentially decaying learning rate function. You need to add a decay rate to the configuration dictionary. Use a decaying rate of 0.95.
+**Repeat the training process**, but this time use the configured depth, 10 cg iterations and initialize with the current model parameters. Train for 100 epochs.
+In addition, set an exponentially decaying learning rate by
+ adding a decay rate of 0.95 to the configuration dictionary.
+and using the `create_lr_schedule` option for `train_and_evaluate`
 """
 
 # startq
@@ -482,7 +499,8 @@ fig.show()
 """
 You are done with part 3. Please report back in the Webex chat: **done with part 3**.
 
-While you wait for others to finish, think of ways to improve the performance of MoDL for CT reconstruction.
+While you wait for others to finish, think of things you could try
+ to improve the performance of MoDL for CT reconstruction.
 
 🛑 **PAUSE HERE** 🛑
 """
@@ -501,7 +519,7 @@ time_eval = time() - start_time
 output = np.clip(output, a_min=0, a_max=1.0)
 
 """
-Use SCICO documentation to figure out how to compute SNR and MAE for the reconstructions obtained with MoDL.
+Use the SCICO documentation to figure out how to compute SNR and MAE for the reconstructions obtained with MoDL.
 """
 # startq
 from scico import metric
@@ -558,5 +576,6 @@ a SCICO pipeline for performing computed tomography (CT) reconstruction using da
 """
 You are done with this tutorial! Please report back in the Webex chat: **done with the CNN tutorial**.
 
-While you wait for others to finish, you could think of similar problems you may want to solve with SCICO. We want to discuss other uses and help you deploy SCICO on suitable applications.
+While you wait for others to finish, you could think of similar problems you may want to solve with SCICO.
+We would be happy to talk with you about using SCICO in your own work!
 """
