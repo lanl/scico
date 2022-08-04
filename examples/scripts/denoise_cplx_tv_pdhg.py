@@ -37,6 +37,7 @@ from xdesign import SiemensStar, discrete_phantom
 import scico.numpy as snp
 import scico.random
 from scico import functional, linop, loss, metric, operator, plot
+from scico.examples import phase_diff
 from scico.optimize import PDHG
 from scico.util import device_info
 
@@ -147,7 +148,7 @@ norm = plot.matplotlib.colors.Normalize(
 plot.imview(snp.abs(x_gt), title="Ground truth", cbar=None, fig=fig, ax=ax[0, 0], norm=norm)
 plot.imview(
     snp.abs(y),
-    title="Measured: %.2f (dB)" % metric.psnr(snp.abs(x_gt), snp.abs(y)),
+    title="Measured: PSNR %.2f (dB)" % metric.psnr(snp.abs(x_gt), snp.abs(y)),
     cbar=None,
     fig=fig,
     ax=ax[0, 1],
@@ -155,7 +156,7 @@ plot.imview(
 )
 plot.imview(
     snp.abs(x_tv),
-    title="TV: %.2f (dB)" % metric.psnr(snp.abs(x_gt), snp.abs(x_tv)),
+    title="TV: PSNR %.2f (dB)" % metric.psnr(snp.abs(x_gt), snp.abs(x_tv)),
     cbar=None,
     fig=fig,
     ax=ax[0, 2],
@@ -163,7 +164,7 @@ plot.imview(
 )
 plot.imview(
     snp.abs(x_nltv),
-    title="NL-TV: %.2f (dB)" % metric.psnr(snp.abs(x_gt), snp.abs(x_nltv)),
+    title="NL-TV: PSNR %.2f (dB)" % metric.psnr(snp.abs(x_gt), snp.abs(x_nltv)),
     cbar=None,
     fig=fig,
     ax=ax[0, 3],
@@ -186,7 +187,7 @@ plot.imview(
 )
 plot.imview(
     snp.angle(y),
-    title="Measured: %.2f (dB)" % metric.psnr(snp.angle(x_gt), snp.angle(y)),
+    title="Measured: Mean phase diff. %.2f" % phase_diff(snp.angle(x_gt), snp.angle(y)).mean(),
     cbar=None,
     fig=fig,
     ax=ax[1, 1],
@@ -194,7 +195,7 @@ plot.imview(
 )
 plot.imview(
     snp.angle(x_tv),
-    title="TV: %.2f (dB)" % metric.psnr(snp.angle(x_gt), snp.angle(x_tv)),
+    title="TV: Mean phase diff. %.2f" % phase_diff(snp.angle(x_gt), snp.angle(x_tv)).mean(),
     cbar=None,
     fig=fig,
     ax=ax[1, 2],
@@ -202,7 +203,7 @@ plot.imview(
 )
 plot.imview(
     snp.angle(x_nltv),
-    title="NL-TV: %.2f (dB)" % metric.psnr(snp.angle(x_gt), snp.angle(x_nltv)),
+    title="NL-TV: Mean phase diff. %.2f" % phase_diff(snp.angle(x_gt), snp.angle(x_nltv)).mean(),
     cbar=None,
     fig=fig,
     ax=ax[1, 3],
