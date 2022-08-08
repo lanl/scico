@@ -46,7 +46,7 @@ Create a ground truth image.
 """
 N = 256  # image size
 phantom = SiemensStar(16)
-x_mag = snp.pad(discrete_phantom(phantom, 240), 8) + 1.0
+x_mag = snp.pad(discrete_phantom(phantom, N - 16), 8) + 1.0
 x_mag /= x_mag.max()
 # Create reference image with structured magnitude and random phase
 x_gt = x_mag * snp.exp(-1j * scico.random.randn(x_mag.shape, seed=0)[0])

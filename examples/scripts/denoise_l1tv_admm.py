@@ -37,7 +37,7 @@ noisy test image.
 """
 N = 256  # image size
 phantom = SiemensStar(16)
-x_gt = snp.pad(discrete_phantom(phantom, 240), 8)
+x_gt = snp.pad(discrete_phantom(phantom, N - 16), 8)
 x_gt = 0.5 * x_gt / x_gt.max()
 x_gt = jax.device_put(x_gt)  # convert to jax type, push to GPU
 y = spnoise(x_gt, 0.5)
