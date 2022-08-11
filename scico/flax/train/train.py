@@ -869,6 +869,4 @@ def only_apply(
     # Remove leading dimension
     output = output.reshape((-1,) + output.shape[-3:])
 
-    assert isinstance(variables, dict)  # for mypy
-
-    return output, variables
+    return output, variables  # type: ignore
