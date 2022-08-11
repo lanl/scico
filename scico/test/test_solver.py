@@ -169,7 +169,7 @@ def test_minimize(dtype, method):
 
     # result by directly inverting the dense matrix
     A_mat = block_diag(*A)
-    expected = np.linalg.pinv(A_mat) @ y.ravel()
+    expected = snp.linalg.pinv(A_mat) @ y.ravel()
 
     def f(x):
         return 0.5 * snp.linalg.norm(y - snp.sum(A * x[:, None], axis=2)) ** 2

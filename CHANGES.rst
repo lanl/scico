@@ -6,8 +6,8 @@ SCICO Release Notes
 Version 0.0.3   (unreleased)
 ----------------------------
 
-• Support ``jaxlib`` versions 0.3.0 to 0.3.10 and ``jax`` versions
-  0.3.0 to 0.3.10.
+• Support ``jaxlib`` versions 0.3.0 to 0.3.15 and ``jax`` versions
+  0.3.0 to 0.3.15.
 • Rename linear operators in ``radon_astra`` and ``radon_svmbir`` modules
   to ``TomographicProjector``.
 • Add support for fan beam CT in ``radon_svmbir`` module.
@@ -19,10 +19,11 @@ Version 0.0.3   (unreleased)
 • New Huber norm (``HuberNorm``) and set distance functionals (``SetDistance`` and ``SquaredSetDistance``).
 • New loss functions ``loss.SquaredL2AbsLoss`` and ``loss.SquaredL2SquaredAbsLoss`` for phase retrieval problems.
 • Add interface to BM4D denoiser.
-• Change interface of ``linop.FiniteDifference``.
+• Change interfaces of ``linop.FiniteDifference`` and ``linop.DFT``.
 • Change filenames of some example scripts (and corresponding notebooks).
 • Change required packages and version numbers.
 • Add support for Python 3.7.
+• Add ``DiagonalStack`` linear operator.
 • Various bug fixes.
 
 
