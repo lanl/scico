@@ -7,7 +7,9 @@ N = 350  # image size
 
 # prep the ground truth, x
 def make_x():
-    x = imageio.imread("cells.jpg")  # image is CC0, can use without attribution
+    x = imageio.imread(
+        "../../examples/tutorial/cells.jpg"
+    )  # image is CC0, can use without attribution
     x = x.sum(axis=-1)[90 : 90 + N, : N + Tx]
     x = x / x.max()
     return x.astype(np.float32)

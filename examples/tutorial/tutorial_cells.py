@@ -510,7 +510,7 @@ q_hat, info = scico.solver.cg(...)
 # starta
 q_hat, info = scico.solver.cg(A.T @ A + alpha * D.T @ D, A.T @ y, snp.zeros(A.input_shape))
 # endqa
-print(info_2)
+print(info)
 
 """
 Run the cell below to see your results!
