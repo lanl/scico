@@ -10,12 +10,13 @@ To set up your environment, run the cell below.
 If you get a popup with 'Warning: This notebook was not authored by Google.', select 'Run anyway'.
 You should see console outputs appearing.
 The install may take several minutes;
-when it is finished, you should see `Resolving deltas: 100% (187/187), done.`.
+when it is finished, you should see `==done with install==`.
 
 """
 !pip install git+https://github.com/lanl/scico@cristina/more-flax
 !git clone -b cristina-mike/tutorial https://github.com/lanl/scico-data.git
 %cd /content/scico-data/notebooks/tutorial
+print('`==done with install==')
 
 """
 ## Introduction
@@ -81,7 +82,10 @@ print(f"y2 is y1 shifted to the left by {offset} pixels")
 """
 You are done with part 1. Please report back in the Webex chat: **done with part 1**.
 
-While you wait for others to finish, you could think about how you would recover $x_1$ and $w$ with the to f f f f f f f f f f f f f f f🛑 **""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""" f f f f f f f f f f f f f f"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""" f f f f f f f f f f f f f f f f f f f f f f f f f f f f f"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""" f f f f f f f f f f f f f f f"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""" f f"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""\"  """
+While you wait for others to finish, you could think about how you would recover $x_1$ and $w$ with the tools you know.
+
+🛑 **PAUSE HERE** 🛑
+"""
 
 """
 ## Defining a forward model (NumPy version)
