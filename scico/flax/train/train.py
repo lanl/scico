@@ -759,14 +759,14 @@ def train_and_evaluate(
     # Extract one copy of state
     state = jax_utils.unreplicate(state)
     if return_state:
-        return state, itstat_object
+        return state, itstat_object  # type: ignore
 
     dvar: ModelVarDict = {
         "params": state.params,
         "batch_stats": state.batch_stats,
     }
 
-    return dvar, itstat_object
+    return dvar, itstat_object  # type: ignore
 
 
 def _apply_fn(model: ModuleDef, variables: ModelVarDict, batch: DataSetDict) -> Array:
