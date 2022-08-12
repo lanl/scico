@@ -6,8 +6,14 @@ import jax
 
 import pytest
 
+from flax.linen import Conv
+from flax.linen.module import Module, compact
 from scico import flax as sflax
 from scico import random
+from scico.flax.train.clu_utils import (
+    _default_table_value_formatter,
+    get_parameter_overview,
+)
 from scico.flax.train.input_pipeline import IterateData, prepare_data
 from scico.flax.train.train import (
     compute_metrics,
@@ -185,6 +191,10 @@ def test_count_parameters(testobj):
     assert total_nvar_bst == sum_manual_bst
 
 
+def test_count_parameters_empty():
+    assert sflax.count_parameters({}) == 0
+
+
 def test_cnst_learning_rate(testobj):
     step = 1
     cnst_sch = create_cnst_lr_schedule(testobj.dconf)
@@ -323,3 +333,65 @@ def test_eval(testobj, model_cls):
     out_fmap = fmap(testobj.test_ds["image"])
 
     np.testing.assert_allclose(out_, out_fmap, atol=2e-6)
+
+
+# From https://github.com/google/CommonLoopUtils/blob/main/clu/parameter_overview_test.py
+EMPTY_PARAMETER_OVERVIEW = """+------+-------+------+------+-----+
+| Name | Shape | Size | Mean | Std |
++------+-------+------+------+-----+
++------+-------+------+------+-----+
+Total: 0"""
+
+FLAX_CONV2D_PARAMETER_OVERVIEW = """+-------------+--------------+------+
+| Name        | Shape        | Size |
++-------------+--------------+------+
+| conv/bias   | (2,)         | 2    |
+| conv/kernel | (3, 3, 3, 2) | 54   |
++-------------+--------------+------+
+Total: 56"""
+
+FLAX_CONV2D_PARAMETER_OVERVIEW_WITH_STATS = """+-------------+--------------+------+------+-----+
+| Name        | Shape        | Size | Mean | Std |
++-------------+--------------+------+------+-----+
+| conv/bias   | (2,)         | 2    | 1.0  | 0.0 |
+| conv/kernel | (3, 3, 3, 2) | 54   | 1.0  | 0.0 |
++-------------+--------------+------+------+-----+
+Total: 56"""
+
+FLAX_CONV2D_MAPPING_PARAMETER_OVERVIEW_WITH_STATS = """+--------------------+--------------+------+------+-----+
+| Name               | Shape        | Size | Mean | Std |
++--------------------+--------------+------+------+-----+
+| params/conv/bias   | (2,)         | 2    | 1.0  | 0.0 |
+| params/conv/kernel | (3, 3, 3, 2) | 54   | 1.0  | 0.0 |
++--------------------+--------------+------+------+-----+
+Total: 56"""
+
+# From https://github.com/google/CommonLoopUtils/blob/main/clu/parameter_overview_test.py
+def test_get_parameter_overview_empty():
+    assert get_parameter_overview({}) == EMPTY_PARAMETER_OVERVIEW
+
+
+class CNN(Module):
+    @compact
+    def __call__(self, x):
+        return Conv(features=2, kernel_size=(3, 3), name="conv")(x)
+
+
+# From https://github.com/google/CommonLoopUtils/blob/main/clu/parameter_overview_test.py
+def test_get_parameter_overview():
+    rng = jax.random.PRNGKey(42)
+    # Weights of a 2D convolution with 2 filters..
+    variables = CNN().init(rng, np.zeros((2, 5, 5, 3)))
+    variables = jax.tree_map(jax.numpy.ones_like, variables)
+    assert (
+        get_parameter_overview(variables["params"], include_stats=False)
+        == FLAX_CONV2D_PARAMETER_OVERVIEW
+    )
+    assert get_parameter_overview(variables["params"]) == FLAX_CONV2D_PARAMETER_OVERVIEW_WITH_STATS
+    assert get_parameter_overview(variables) == FLAX_CONV2D_MAPPING_PARAMETER_OVERVIEW_WITH_STATS
+
+
+# From https://github.com/google/CommonLoopUtils/blob/main/clu/parameter_overview_test.py
+def test_printing_bool():
+    assert _default_table_value_formatter(True) == "True"
+    assert _default_table_value_formatter(False) == "False"
