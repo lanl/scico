@@ -166,7 +166,7 @@ modvar, stats_object = sflax.train_and_evaluate(
     train_ds,
     test_ds,
     post_lst=[alphapos],
-    checkpointing=True,
+    checkpointing=False,
     log=True,
 )
 time_train = time() - start_time

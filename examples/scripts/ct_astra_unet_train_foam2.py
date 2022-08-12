@@ -105,7 +105,7 @@ print(f"{'JAX local devices: '}{jax.local_devices()}")
 
 start_time = time()
 modvar, stats_object = sflax.train_and_evaluate(
-    dconf, workdir, model, train_ds, test_ds, checkpointing=True, log=True
+    dconf, workdir, model, train_ds, test_ds, checkpointing=False, log=True
 )
 time_train = time() - start_time
 
