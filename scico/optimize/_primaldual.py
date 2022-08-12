@@ -20,6 +20,7 @@ from scico.linop import LinearOperator
 from scico.numpy import BlockArray
 from scico.numpy.linalg import norm
 from scico.numpy.util import ensure_on_device
+from scico.operator import Operator
 from scico.typing import JaxArray
 from scico.util import Timer
 
@@ -45,7 +46,7 @@ class PDHG:
     of :class:`.Loss`), and :math:`C` is an instance of
     :class:`.LinearOperator`.
 
-    The algorithm iterations are
+    When `C` is a :class:`.LinearOperator`, the algorithm iterations are
 
     .. math::
        \begin{aligned}
@@ -65,11 +66,20 @@ class PDHG:
 
     and it is required that :math:`\alpha \in [0, 1]`.
 
+    When `C` is a non-linear :class:`.Operator`, a non-linear PDHG variant
+    :cite:`valkonen-2014-primal` is used, with the same iterations except
+    for :math:`\mb{x}` update
+
+    .. math::
+       \mb{x}^{(k+1)} = \mathrm{prox}_{\tau f} \left( \mb{x}^{(k)} -
+       \tau [\nabla C(\mb{x}^{(k)})]^T \mb{z}^{(k)} \right) \;.
+
+
     Attributes:
         f (:class:`.Functional`): Functional :math:`f` (usually a
           :class:`.Loss`).
         g (:class:`.Functional`): Functional :math:`g`.
-        C (:class:`.LinearOperator`): :math:`C` operator.
+        C (:class:`.Operator`): :math:`C` operator.
         itnum (int): Iteration counter.
         maxiter (int): Number of PDHG outer-loop iterations.
         timer (:class:`.Timer`): Iteration timer.
@@ -90,7 +100,7 @@ class PDHG:
         self,
         f: Functional,
         g: Functional,
-        C: LinearOperator,
+        C: Operator,
         tau: float,
         sigma: float,
         alpha: float = 1.0,
@@ -126,7 +136,7 @@ class PDHG:
         """
         self.f: Functional = f
         self.g: Functional = g
-        self.C: LinearOperator = C
+        self.C: Operator = C
         self.tau: float = tau
         self.sigma: float = sigma
         self.alpha: float = alpha
@@ -233,7 +243,10 @@ class PDHG:
         """Perform a single iteration."""
         self.x_old = self.x
         self.z_old = self.z
-        proxarg = self.x - self.tau * self.C.conj().T(self.z)
+        if isinstance(self.C, LinearOperator):
+            proxarg = self.x - self.tau * self.C.conj().T(self.z)
+        else:
+            proxarg = self.x - self.tau * self.C.jhvp(self.x)[1](self.z)[0]
         self.x = self.f.prox(proxarg, self.tau, v0=self.x)
         proxarg = self.z + self.sigma * self.C(
             (1.0 + self.alpha) * self.x - self.alpha * self.x_old

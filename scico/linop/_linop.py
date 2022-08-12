@@ -311,7 +311,7 @@ def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = Non
     DeviceArray([10., 10.], dtype=float32)
 
     Args:
-        f: Function from which to create a linear operator class
+        f: Function from which to create a linear operator class.
         classname: Name of the resulting class.
         f_name: Name of `f` for use in docstrings. Useful for getting
             the correct version of wrapped functions. Defaults to
