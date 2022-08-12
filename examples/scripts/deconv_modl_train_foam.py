@@ -152,81 +152,53 @@ workdir2 = os.path.join(
     os.path.expanduser("~"), ".cache", "scico", "examples", "modl_dcnv_out", "iterated"
 )
 
-checkpoint_files = []
-for (dirpath, dirnames, filenames) in os.walk(workdir2):
-    checkpoint_files = [fn for fn in filenames if str.split(fn, "_")[0] == "checkpoint"]
-if len(checkpoint_files) > 0:
-    model = sflax.MoDLNet(
-        operator=opBlur,
-        depth=mconf["depth"],
-        channels=channels,
-        num_filters=mconf["num_filters"],
-        block_depth=mconf["block_depth"],
-        cg_iter=mconf["cg_iter"],
-    )
+# One iteration (depth) in model and few CG iterations
+model = sflax.MoDLNet(
+    operator=opBlur,
+    depth=1,
+    channels=channels,
+    num_filters=mconf["num_filters"],
+    block_depth=mconf["block_depth"],
+    cg_iter=mconf["cg_iter"],
+)
+# First stage: initialization training loop.
+workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "modl_dcnv_out")
 
-    start_time = time()
-    modvar, stats_object = sflax.train_and_evaluate(
-        dconf,
-        workdir2,
-        model,
-        train_ds,
-        test_ds,
-        post_lst=[lmbdapos],
-        checkpointing=True,
-        log=True,
-    )
-    time_train = time() - start_time
-    time_init = 0.0
-    epochs_init = 0
-else:
-    # One iteration (depth) in model and few CG iterations
-    model = sflax.MoDLNet(
-        operator=opBlur,
-        depth=1,
-        channels=channels,
-        num_filters=mconf["num_filters"],
-        block_depth=mconf["block_depth"],
-        cg_iter=mconf["cg_iter"],
-    )
-    # First stage: initialization training loop.
-    workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "modl_dcnv_out")
+start_time = time()
+modvar, stats_object_ini = sflax.train_and_evaluate(
+    dconf,
+    workdir,
+    model,
+    train_ds,
+    test_ds,
+    post_lst=[lmbdapos],
+    checkpointing=False,
+    log=True,
+)
+time_init = time() - start_time
+epochs_init = dconf["num_epochs"]
 
-    start_time = time()
-    modvar, stats_object_ini = sflax.train_and_evaluate(
-        dconf,
-        workdir,
-        model,
-        train_ds,
-        test_ds,
-        post_lst=[lmbdapos],
-        checkpointing=True,
-        log=True,
-    )
-    time_init = time() - start_time
-    epochs_init = dconf["num_epochs"]
+print(
+    f"{'MoDLNet init':18s}{'epochs:':2s}{dconf['num_epochs']:>5d}{'':3s}"
+    f"{'time[s]:':21s}{time_init:>7.2f}"
+)
 
-    print(
-        f"{'MoDLNet init':18s}{'epochs:':2s}{dconf['num_epochs']:>5d}{'':3s}"
-        f"{'time[s]:':21s}{time_init:>7.2f}"
-    )
+# Second stage: depth iterations training loop.
+model.depth = mconf["depth"]
 
-    # Second stage: depth iterations training loop.
-    model.depth = mconf["depth"]
-
-    start_time = time()
-    modvar, stats_object = sflax.train_and_evaluate(
-        dconf,
-        workdir2,
-        model,
-        train_ds,
-        test_ds,
-        post_lst=[lmbdapos],
-        variables0=modvar,
-        checkpointing=True,
-        log=True,
-    )
-    time_train = time() - start_time
+start_time = time()
+modvar, stats_object = sflax.train_and_evaluate(
+    dconf,
+    workdir2,
+    model,
+    train_ds,
+    test_ds,
+    post_lst=[lmbdapos],
+    variables0=modvar,
+    checkpointing=False,
+    log=True,
+)
+time_train = time() - start_time
 
 """
 Evaluate on testing data.
