@@ -10,7 +10,8 @@ def make_x():
     x = imageio.imread(
         "../../examples/tutorial/cells.jpg"
     )  # image is CC0, can use without attribution
-    x = x.sum(axis=-1)[90 : 90 + N, : N + Tx]
+    channel_ind = x.shape.index(3)
+    x = x.sum(axis=channel_ind)[90 : 90 + N, : N + Tx]
     x = x / x.max()
     return x.astype(np.float32)
 

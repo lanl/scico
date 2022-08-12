@@ -16,7 +16,7 @@ when it is finished, you should see `==done with install==`.
 !pip install git+https://github.com/lanl/scico@cristina/more-flax
 !git clone -b cristina-mike/tutorial https://github.com/lanl/scico-data.git
 %cd /content/scico-data/notebooks/tutorial
-print('`==done with install==')
+print('==done with install==')
 
 """
 ## Introduction
