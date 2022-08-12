@@ -50,7 +50,6 @@ x_mag = snp.pad(discrete_phantom(phantom, N - 16), 8) + 1.0
 x_mag /= x_mag.max()
 # Create reference image with structured magnitude and random phase
 x_gt = x_mag * snp.exp(-1j * scico.random.randn(x_mag.shape, seed=0)[0])
-x_gt = jax.device_put(x_gt)  # convert to jax type, push to device
 
 
 """
