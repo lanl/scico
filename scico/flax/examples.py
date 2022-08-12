@@ -769,7 +769,7 @@ class CenterCrop:
         """
         # assert isinstance(output_size, (int, tuple))
         if isinstance(output_size, int):
-            self.output_size = (output_size, output_size)
+            self.output_size: Shape = (output_size, output_size)
         else:
             assert len(output_size) == 2
             self.output_size = output_size
@@ -810,7 +810,7 @@ class PositionalCrop:
         """
         # assert isinstance(output_size, (int, tuple))
         if isinstance(output_size, int):
-            self.output_size = (output_size, output_size)
+            self.output_size: Shape = (output_size, output_size)
         else:
             assert len(output_size) == 2
             self.output_size = output_size
@@ -978,7 +978,7 @@ class ConfigImageSetDict(TypedDict):
     for training."""
 
     output_size: Union[int, Shape]
-    stride: Union[int, Shape]
+    stride: Optional[Union[Shape, int]]
     multi: bool
     augment: bool
     run_gray: bool
@@ -1477,6 +1477,6 @@ class PaddedCircularConvolve(LinearOperator):
             The result of padding, convolving and cropping the signal. The output signal has
                 the same HWC dimensions as the input signal.
         """
-        xpadd = jnp.pad(x, self.padsz, mode="reflect")
-        rconv = self.conv(xpadd)
+        xpadd: Array = jnp.pad(x, self.padsz, mode="reflect")
+        rconv: Array = self.conv(xpadd)
         return rconv[self.padsz[0][0] : -self.padsz[0][1], self.padsz[1][0] : -self.padsz[1][1], :]
