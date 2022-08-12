@@ -7,7 +7,8 @@ You set up a new microscope in your lab and take a brightfield image, which we'l
 
 Run the next cell to see $y_1$.
 """
-%cd /content/scico-data/notebooks/tutorial  # set path
+# set path
+%cd /content/scico-data/notebooks/tutorial
 
 import matplotlib.pyplot as plt
 

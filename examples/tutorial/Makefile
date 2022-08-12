@@ -3,7 +3,8 @@ OUT=../notebooks/tutorial
 objects = $(OUT)/tutorial_CNN.ipynb  $(OUT)/tutorial_CNN_solution.ipynb \
           $(OUT)/tutorial_PnP.ipynb  $(OUT)/tutorial_PnP_solution.ipynb \
           $(OUT)/tutorial_cells.ipynb $(OUT)/tutorial_cells_solution.ipynb \
-          $(OUT)/tutorial_funcs.py $(OUT)/tutorial_funcs_part2.py
+          $(OUT)/tutorial_funcs.py $(OUT)/tutorial_funcs_part2.py \
+          $(OUT)/setup.ipynb
 all: $(objects)
 
 $(OUT)/tutorial_%.ipynb: tutorial_%.py
@@ -19,6 +20,9 @@ $(OUT)/tutorial_%.ipynb: tutorial_%.py
 
 $(OUT)/%.py: %.py
 	cp $< $@
+
+$(OUT)/setup.ipynb: setup.py
+	python -m py2jn setup.py $(OUT)/setup.ipynb
 
 clean:
 	rm $(objects)
