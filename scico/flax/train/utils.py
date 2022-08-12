@@ -3,21 +3,19 @@
 """Utils for spectral normalization of convolutional layers in Flax models.
 """
 
-from functools import partial
 from typing import Any, Callable
 
 import jax
 import jax.numpy as jnp
 from jax import lax
 
+import scipy
 from flax.core import freeze, unfreeze
 from flax.linen.linear import _conv_dimension_numbers
 from flax.traverse_util import ModelParamTraversal
 from scico.typing import Array, Shape
 
 PyTree = Any
-
-PRNGKey = jax.random.PRNGKey(10)
 
 # From https://github.com/deepmind/dm-haiku/issues/71
 def _l2_normalize(x: Array, eps: float = 1e-12) -> Array:
@@ -33,64 +31,40 @@ def _l2_normalize(x: Array, eps: float = 1e-12) -> Array:
     return x * lax.rsqrt((x**2).sum() + eps)
 
 
-def _l2_norm(x: Array) -> float:
-    r"""Compute :math:`\el_2` norm of array.
-
-    Args:
-        x: Array to compute norm.
-    """
-    return jnp.sqrt((x**2).sum())
-
-
-def _power_iteration(A: Callable, u: Array, n_steps: int = 10) -> Array:
-    """Update an estimate of the first right-singular vector of A().
-
-    Args:
-        A: Operator to compute spectral norm.
-        u: Current estimate of the first right-singular vector of A.
-        n_steps: Number of iterations in power method.
-
-    Returns:
-        Updated estimate.
-    """
-
-    def fun(u, _):
-        v, A_transpose = jax.vjp(A, u)
-        (u,) = A_transpose(v)
-        u = _l2_normalize(u)
-        return u, None
-
-    u, _ = lax.scan(fun, u, xs=None, length=n_steps)
-    return u
-
-
-def spectral_norm_conv(
-    unfrw: Array, xshape: Shape, seed: float = 0, maxit: int = 10, eps: float = 1e-12
+# From https://nbviewer.org/gist/shoyer/fa9a29fd0880e2e033d7696585978bfc
+def estimate_spectral_norm(
+    f: Callable, input_shape: Shape, seed: float = 0, n_steps: int = 10, eps: float = 1e-12
 ):
-    """Estimate spectral norm of convolution operator.
+    """Estimate spectral norm of operator.
 
-    This function estimates the spectral norm of a convolution operator
+    This function estimates the spectral norm of an operator
     by estimating the singular vectors of the operator via the
-    power iteration method.
+    power iteration method and the transpose operator enabled by nested autodiff in JAX.
 
     Args:
-        unfrw: Unfrozen parameters of convolutional layer (i.e. convolution filter).
-        xshape: Shape of input to convolution operator.
+        f: Operator to compute spectral norm.
+        input_shape: Shape of input to operator.
         seed: Value to seed the random generation. Default: 0.
-        maxit: Number of power iterations to compute. Default: 10.
+        n_steps: Number of power iterations to compute. Default: 10.
         eps: Small value to prevent divide by zero. Default: 1e-12.
 
     Returns:
         Spectral norm.
     """
-
-    ishape = (1, xshape[1], xshape[2], unfrw.shape[2])
     rng = jax.random.PRNGKey(seed)
-    u0 = jax.random.normal(rng, ishape)
-    f = partial(conv, kernel=unfrw)
-    u = _power_iteration(f, u0, maxit)
-    sigma = _l2_norm(f(u))
-    return sigma
+    u0 = jax.random.normal(rng, input_shape)
+    v0 = jnp.zeros_like(f(u0))
+
+    def fun(carry, _):
+        u, v = carry
+        v, f_vjp = jax.vjp(f, u)
+        v = _l2_normalize(v, eps)
+        (u,) = f_vjp(v)
+        u = _l2_normalize(u, eps)
+        return (u, v), None
+
+    (u, v), _ = lax.scan(fun, (u0, v0), xs=None, length=n_steps)
+    return jnp.vdot(v, f(u))
 
 
 def conv(inputs: Array, kernel: Array) -> Array:
@@ -131,7 +105,9 @@ def conv(inputs: Array, kernel: Array) -> Array:
     return y
 
 
-def spectral_normalization(params: PyTree, traversal: ModelParamTraversal, xshape: Shape) -> PyTree:
+def spectral_normalization_conv(
+    params: PyTree, traversal: ModelParamTraversal, xshape: Shape
+) -> PyTree:
     """Normalize parameters of convolutional layer by its spectral norm.
 
     Args:
@@ -140,7 +116,33 @@ def spectral_normalization(params: PyTree, traversal: ModelParamTraversal, xshap
         xshape: Shape of input.
     """
     params_out = traversal.update(
-        lambda x: x / (spectral_norm_conv(x, xshape) * 1.02), unfreeze(params)
+        lambda kernel: kernel
+        / (
+            estimate_spectral_norm(
+                lambda x: conv(x, kernel), (1, xshape[1], xshape[2], kernel.shape[2])
+            )
+            * 1.02
+        ),
+        unfreeze(params),
     )
 
     return freeze(params_out)
+
+
+# From https://nbviewer.org/gist/shoyer/fa9a29fd0880e2e033d7696585978bfc
+def exact_spectral_norm(f, input_shape):
+    """Compute spectral norm of operator.
+
+    This function computes the spectral norm of an operator via autodiff in JAX.
+
+    Args:
+        f: Operator to compute spectral norm.
+        input_shape: Shape of input to operator.
+
+    Returns:
+        Spectral norm.
+    """
+    dummy_input = jnp.zeros(input_shape)
+    jacobian = jax.jacfwd(f)(dummy_input)
+    shape = (np.prod(jacobian.shape[: -dummy_input.ndim]), np.prod(input_shape))
+    return scipy.linalg.svdvals(jacobian.reshape(shape)).max()
