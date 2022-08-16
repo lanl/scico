@@ -178,10 +178,10 @@ and $y$ contains the measurements.
 In this section, we'll convert our problem into this form.
 
 A compact way to write our system of equations is
-$$ \\underbrace{\begin{bmatrix}y_1 \ y_2 \end{bmatrix}}_{y}
+$$ \underbrace{\begin{bmatrix}y_1 \ y_2 \end{bmatrix}}_{y}
 =
-\\underbrace{\begin{bmatrix}C_1 & I   \\ C_2 & I  \end{bmatrix}}_{A}
-\\underbrace{\begin{bmatrix}x \\ w \end{bmatrix}}_{q} $$
+\underbrace{\begin{bmatrix}C_1 & I   \\ C_2 & I  \end{bmatrix}}_{A}
+\underbrace{\begin{bmatrix}x \\ w \end{bmatrix}}_{q} $$
 
 $$y = A q.$$
 
