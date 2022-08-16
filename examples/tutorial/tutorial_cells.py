@@ -656,7 +656,7 @@ Now we define the nonnegative indicator function, $g$.
 """
 
 # startq
-g = loss.FindTheCorrectFunctional(...)  # your code here
+g = functional.FindTheCorrectFunctional(...)  # your code here
 # starta
 g = functional.NonNegativeIndicator()
 # endqa
