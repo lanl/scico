@@ -11,23 +11,23 @@ header-includes:
   - \DeclareMathOperator*{\argmin}{arg\,min}
 authors:
   - name: Thilo Balke
-	orcid: 0000-0002-1716-5923
-	affiliation: "1, 2"
+    orcid: 0000-0002-1716-5923
+    affiliation: "1, 2"
   - name: Fernando Davis
-	orcid: 0000-0000-0000-0000
-	affiliation: "1, 3"
+    orcid: 0000-0000-0000-0000
+    affiliation: "1, 3"
   - name: Cristina Garcia-Cardona
-	orcid: 0000-0002-5641-3491
-	affiliation: 1
+    orcid: 0000-0002-5641-3491
+    affiliation: 1
   - name: Soumendu Majee
-	orcid: 0000-0002-8442-2897
-	affiliation: 4
+    orcid: 0000-0002-8442-2897
+    affiliation: 4
   - name: Michael McCann
-	orcid: 0000-0001-7645-252X
-	affiliation: 1
+    orcid: 0000-0001-7645-252X
+    affiliation: 1
   - name: Brendt Wohlberg
-	orcid: 0000-0002-4767-1843
-	affiliation: 1
+    orcid: 0000-0002-4767-1843
+    affiliation: 1
 affiliations:
  - name: Los Alamos National Laboratory
    index: 1
@@ -37,7 +37,7 @@ affiliations:
    index: 3
  - name: Samsung Research America
    index: 4
-date: 2 June 2022
+date: 20 August 2022
 bibliography: paper.bib
 ---
 
