@@ -39,6 +39,7 @@ class TestSet:
         except Exception as e:
             print(e)
             assert 0
+        assert info["rel_res"].ndim == 0
         assert np.linalg.norm(A(xcg) - b) / np.linalg.norm(b) < 1e-6
 
     def test_cg_info(self):
@@ -168,7 +169,7 @@ def test_minimize(dtype, method):
 
     # result by directly inverting the dense matrix
     A_mat = block_diag(*A)
-    expected = np.linalg.pinv(A_mat) @ y.ravel()
+    expected = snp.linalg.pinv(A_mat) @ y.ravel()
 
     def f(x):
         return 0.5 * snp.linalg.norm(y - snp.sum(A * x[:, None], axis=2)) ** 2

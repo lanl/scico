@@ -191,7 +191,10 @@ def shape_to_size(shape: Union[Shape, BlockShape]) -> int:
     r"""Compute the size corresponding to a (possibly nested) shape.
 
     Args:
-       shape: A shape tuple; possibly tuples.
+        shape: A shape tuple; possibly nested.
+
+    Returns:
+        The number of elements in an array or BlockArray with shape `shape`.
     """
 
     if is_nested(shape):

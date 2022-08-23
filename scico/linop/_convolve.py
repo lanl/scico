@@ -50,8 +50,8 @@ class Convolve(LinearOperator):
                 as `len(input_shape)`.
             input_shape: Shape of input array.
             input_dtype: `dtype` for input argument. Defaults to
-                `float32`. If `LinearOperator` implements
-                complex-valued operations, this must be `complex64` for
+                ``float32``. If `LinearOperator` implements
+                complex-valued operations, this must be ``complex64`` for
                 proper adjoint and gradient calculation.
             mode: A string indicating the size of the output. One of
                 "full", "valid", "same". Defaults to "full".

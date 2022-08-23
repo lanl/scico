@@ -112,4 +112,4 @@ A number of files in this directory assist in the mangement of the usage example
    Auto-generate the docs example index ``docs/source/examples.rst`` from the example scripts index ``scripts/index.rst``.
 
 `scriptcheck.sh <scriptcheck.sh>`_
-   Run all example scripts with a reduced number of iterations as a rapid check that they are functioning correctly.
+   Run all example scripts with smaller problems and a reduced number of iterations as a rapid check that they are functioning correctly.

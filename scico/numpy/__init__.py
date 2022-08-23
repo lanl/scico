@@ -21,7 +21,7 @@ import numpy as np
 
 import jax.numpy as jnp
 
-from . import _wrappers
+from . import _wrappers, util
 from ._blockarray import BlockArray
 from ._wrapped_function_lists import *
 

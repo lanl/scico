@@ -2,6 +2,7 @@ import warnings
 
 import numpy as np
 
+import jax.numpy as jnp
 from jax.config import config
 
 # enable 64-bit mode for output dtype checks
@@ -89,6 +90,16 @@ def test_separable_grad(test_separable_obj):
         snp.testing.assert_allclose(out, fgv, rtol=5e-2)
 
 
+class HuberNormSep(functional.HuberNorm):
+    def __init__(self, delta=1.0):
+        super().__init__(delta=delta, separable=True)
+
+
+class HuberNormNonSep(functional.HuberNorm):
+    def __init__(self, delta=1.0):
+        super().__init__(delta=delta, separable=False)
+
+
 class TestNormProx:
 
     alphalist = [1e-2, 1e-1, 1e0, 1e1]
@@ -98,7 +109,8 @@ class TestNormProx:
         functional.SquaredL2Norm,
         functional.L2Norm,
         functional.L21Norm,
-        functional.HuberNorm,
+        HuberNormSep,
+        HuberNormNonSep,
         functional.NuclearNorm,
         functional.ZeroFunctional,
     ]
@@ -131,6 +143,9 @@ class TestNormProx:
         prx = nrmobj.prox
         pf = nrmobj.prox(snp.concatenate(snp.ravel(test_prox_obj.vb)), alpha)
         pf_b = nrmobj.prox(test_prox_obj.vb, alpha)
+
+        assert pf.dtype == test_prox_obj.vb.dtype
+        assert pf_b.dtype == test_prox_obj.vb.dtype
 
         snp.testing.assert_allclose(pf, snp.concatenate(snp.ravel(pf_b)), rtol=1e-6)
 
@@ -197,13 +212,17 @@ class TestBlockArrayEval:
     def test_eval(self, cls, test_prox_obj):
         func = cls()  # instantiate the functional we are testing
 
-        if cls in NO_COMPLEX and snp.iscomplexobj(test_prox_obj.vb):
+        if cls in NO_COMPLEX and snp.util.is_complex_dtype(test_prox_obj.vb.dtype):
             with pytest.raises(ValueError):
                 x = func(test_prox_obj.vb)
             return
 
         x = func(test_prox_obj.vb)
         y = func(test_prox_obj.vb.ravel())
+
+        assert jnp.isscalar(x) or x.ndim == 0
+        assert jnp.isscalar(y) or y.ndim == 0
+
         np.testing.assert_allclose(x, y, rtol=1e-6)
 
 
@@ -226,7 +245,7 @@ class TestProj:
         cns = cnsobj.__call__
         prx = cnsobj.prox
 
-        if cnstr in NO_COMPLEX and snp.iscomplexobj(test_proj_obj.v):
+        if cnstr in NO_COMPLEX and snp.util.is_complex_dtype(test_proj_obj.v.dtype):
             with pytest.raises(ValueError):
                 prox_test(test_proj_obj.v, cns, prx, alpha)
             return
@@ -246,7 +265,7 @@ class TestProj:
     @pytest.mark.parametrize("cnstr", cnstrlist)
     @pytest.mark.parametrize("alpha", alphalist)
     def test_setdistance(self, sdist, cnstr, alpha, test_proj_obj):
-        if cnstr in NO_COMPLEX and snp.iscomplexobj(test_proj_obj.v):
+        if cnstr in NO_COMPLEX and snp.util.is_complex_dtype(test_proj_obj.v.dtype):
             return
         cnsobj = cnstr()
         proj = cnsobj.prox

@@ -27,8 +27,8 @@ class NonNegativeIndicator(Functional):
 
     .. math::
         I(\mb{x}) = \begin{cases}
-        0  & \text{if } x_i \geq 0 \text{ for each } i \\
-        \infty  & \text{else} \;.
+        0  & \text{ if } x_i \geq 0 \; \forall i \\
+        \infty  & \text{ otherwise} \;.
         \end{cases}
     """
 
@@ -36,7 +36,7 @@ class NonNegativeIndicator(Functional):
     has_prox = True
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
-        if snp.iscomplexobj(x):
+        if snp.util.is_complex_dtype(x.dtype):
             raise ValueError("Not defined for complex input.")
 
         # Equivalent to snp.inf if snp.any(x < 0) else 0.0
@@ -45,14 +45,16 @@ class NonNegativeIndicator(Functional):
     def prox(
         self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
-        r"""Evaluate the scaled proximal operator of the indicator over
+        r"""The scaled proximal operator of the non-negative indicator.
+
+        Evaluate the scaled proximal operator of the indicator over
         the non-negative orthant, :math:`I_{>= 0}`,
 
         .. math::
             [\mathrm{prox}_{\lambda I_{>=0}}(\mb{v})]_i =
             \begin{cases}
-            v_i\,, & \text{if } v_i \geq 0 \\
-            0\,, & \text{otherwise} \;.
+            v_i\, & \text{ if } v_i \geq 0 \\
+            0\, & \text{ otherwise} \;.
             \end{cases}
 
         Args:
@@ -67,12 +69,12 @@ class NonNegativeIndicator(Functional):
 class L2BallIndicator(Functional):
     r"""Indicator function for :math:`\ell_2` ball of given radius.
 
-    Indicator function for :math:`\ell_2` ball of given radius
+    Indicator function for :math:`\ell_2` ball of given radius, :math:`r`
 
     .. math::
         I(\mb{x}) = \begin{cases}
-        0  & \text{if } \norm{\mb{x}}_2 \leq \mathrm{radius} \\
-        \infty  & \text{else} \;.
+        0  & \text{ if } \norm{\mb{x}}_2 \leq r \\
+        \infty  & \text{ otherwise} \;.
         \end{cases}
 
     Attributes:
@@ -99,9 +101,11 @@ class L2BallIndicator(Functional):
     def prox(
         self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
-        r"""Evaluate the scaled proximal operator of the indicator over
-        a :math:`\ell_2` ball with radius :math:`r` = `self.radius`,
-        :math:`I_r`:
+        r"""The scaled proximal operator of the :math:`\ell_2` ball indicator.
+        a :math:`\ell_2` ball
+
+        Evaluate the scaled proximal operator of the indicator, :math:`I_r`,
+        of the :math:`\ell_2` ball with radius :math:`r`
 
         .. math::
             \mathrm{prox}_{\lambda I_r}(\mb{v}) = r \frac{\mb{v}}{\norm{\mb{v}}_2}\;.

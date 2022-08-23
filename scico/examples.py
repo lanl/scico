@@ -16,7 +16,7 @@ from typing import List, Optional, Tuple
 
 import numpy as np
 
-import imageio
+import imageio.v2 as iio
 
 import scico.numpy as snp
 from scico import random, util
@@ -56,7 +56,7 @@ def volume_read(path: str, ext: str = "tif") -> Array:
 
     slices = []
     for file in sorted(glob.glob(os.path.join(path, "*." + ext))):
-        image = imageio.imread(file)
+        image = iio.imread(file)
         slices.append(image)
     return np.dstack(slices)
 
@@ -364,3 +364,21 @@ def spnoise(img: Array, nfrac: float, nmin: float = 0.0, nmax: float = 1.0) -> A
         imgn = imgn.at[spm < nfrac - 1.0].set(nmin)  # type: ignore
         imgn = imgn.at[spm > 1.0 - nfrac].set(nmax)  # type: ignore
     return imgn
+
+
+def phase_diff(x: Array, y: Array) -> Array:
+    """Distance between phase angles.
+
+    Compute the distance between two arrays of phase angles, with
+    appropriate phase wrapping to minimize the distance.
+
+    Args:
+        x: Input array.
+        y: Input array.
+
+    Returns:
+        Array of angular distances.
+    """
+
+    mod = snp.mod(snp.abs(x - y), 2 * snp.pi)
+    return snp.minimum(mod, 2 * snp.pi - mod)

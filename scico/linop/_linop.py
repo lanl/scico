@@ -48,7 +48,7 @@ def power_iteration(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey
 
     for i in range(maxiter):
         Av = A @ v
-        mu = snp.vdot(v, Av.ravel()) / snp.linalg.norm(v) ** 2
+        mu = snp.sum(v.conj() * Av) / snp.linalg.norm(v) ** 2
         v = Av / snp.linalg.norm(Av)
     return mu, v
 
@@ -311,7 +311,7 @@ def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = Non
     DeviceArray([10., 10.], dtype=float32)
 
     Args:
-        f: Function from which to create a linear operator class
+        f: Function from which to create a linear operator class.
         classname: Name of the resulting class.
         f_name: Name of `f` for use in docstrings. Useful for getting
             the correct version of wrapped functions. Defaults to
