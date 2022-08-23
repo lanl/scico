@@ -12,9 +12,6 @@ import sys
 # isort: off
 from ._linop import (
     LinearOperator,
-    Diagonal,
-    Identity,
-    Slice,
     operator_norm,
     power_iteration,
     valid_adjoint,
@@ -26,6 +23,7 @@ from ._circconv import CircularConvolve
 from ._dft import DFT
 from ._stack import VerticalStack, DiagonalStack
 from ._func import linop_from_function, Transpose, Sum, Pad
+from ._misc import Diagonal, Identity, Slice
 
 __all__ = [
     "CircularConvolve",

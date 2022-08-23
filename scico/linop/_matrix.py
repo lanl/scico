@@ -24,7 +24,8 @@ from jax.interpreters.xla import DeviceArray
 import scico.numpy as snp
 from scico.typing import JaxArray
 
-from ._linop import Identity, LinearOperator
+from ._linop import LinearOperator
+from ._misc import Identity
 
 
 def _wrap_add_sub_matrix(func, op):
