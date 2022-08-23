@@ -23,9 +23,10 @@ from jax.interpreters.xla import DeviceArray
 from jax.scipy.signal import convolve
 
 import scico.numpy as snp
-from scico._generic_operators import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
 from scico.numpy.util import ensure_on_device
 from scico.typing import DType, JaxArray, Shape
+
+from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
 
 
 class Convolve(LinearOperator):

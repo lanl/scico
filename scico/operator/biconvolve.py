@@ -7,17 +7,23 @@
 
 """Biconvolution operator."""
 
+
+# Needed to annotate a class method that returns the encapsulating class;
+# see https://www.python.org/dev/peps/pep-0563/
+from __future__ import annotations
+
 from typing import Tuple, cast
 
 import numpy as np
 
 from jax.scipy.signal import convolve
 
-from scico._generic_operators import LinearOperator, Operator
-from scico.linop import Convolve, ConvolveByX
+import scico.linop
 from scico.numpy import BlockArray
 from scico.numpy.util import is_nested
 from scico.typing import DType, JaxArray, Shape
+
+from ._operator import Operator
 
 
 class BiConvolve(Operator):
@@ -71,7 +77,7 @@ class BiConvolve(Operator):
     def _eval(self, x: BlockArray) -> JaxArray:
         return convolve(x[0], x[1], mode=self.mode)
 
-    def freeze(self, argnum: int, val: JaxArray) -> LinearOperator:
+    def freeze(self, argnum: int, val: JaxArray) -> scico.linop.LinearOperator:
         """Freeze the `argnum` parameter.
 
         Return a new :class:`.LinearOperator` with block argument
@@ -86,7 +92,7 @@ class BiConvolve(Operator):
         """
 
         if argnum == 0:
-            return ConvolveByX(
+            return scico.linop.ConvolveByX(
                 x=val,
                 input_shape=cast(Shape, self.input_shape[1]),
                 input_dtype=self.input_dtype,
@@ -94,7 +100,7 @@ class BiConvolve(Operator):
                 mode=self.mode,
             )
         if argnum == 1:
-            return Convolve(
+            return scico.linop.Convolve(
                 h=val,
                 input_shape=cast(Shape, self.input_shape[0]),
                 input_dtype=self.input_dtype,

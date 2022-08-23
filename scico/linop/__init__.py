@@ -10,8 +10,8 @@
 import sys
 
 # isort: off
-from scico._generic_operators import LinearOperator
 from ._linop import (
+    LinearOperator,
     Diagonal,
     Identity,
     Pad,

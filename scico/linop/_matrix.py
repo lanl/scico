@@ -22,10 +22,9 @@ from jax.dtypes import result_type
 from jax.interpreters.xla import DeviceArray
 
 import scico.numpy as snp
-from scico._generic_operators import LinearOperator
 from scico.typing import JaxArray
 
-from ._linop import Identity
+from ._linop import Identity, LinearOperator
 
 
 def _wrap_add_sub_matrix(func, op):

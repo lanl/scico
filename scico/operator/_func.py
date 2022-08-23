@@ -10,8 +10,9 @@
 from typing import Any, Callable, Optional, Union
 
 import scico.numpy as snp
-from scico._generic_operators import Operator
 from scico.typing import BlockShape, DType, Shape
+
+from ._operator import Operator
 
 __all__ = [
     "operator_from_function",
