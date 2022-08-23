@@ -14,11 +14,7 @@ from ._linop import (
     LinearOperator,
     Diagonal,
     Identity,
-    Pad,
     Slice,
-    Sum,
-    Transpose,
-    linop_from_function,
     operator_norm,
     power_iteration,
     valid_adjoint,
@@ -29,7 +25,7 @@ from ._convolve import Convolve, ConvolveByX
 from ._circconv import CircularConvolve
 from ._dft import DFT
 from ._stack import VerticalStack, DiagonalStack
-
+from ._func import linop_from_function, Transpose, Sum, Pad
 
 __all__ = [
     "CircularConvolve",
