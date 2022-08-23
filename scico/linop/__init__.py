@@ -9,21 +9,16 @@
 
 import sys
 
-# isort: off
-from ._linop import (
-    LinearOperator,
-    operator_norm,
-    power_iteration,
-    valid_adjoint,
-)
-from ._matrix import MatrixOperator
-from ._diff import FiniteDifference, SingleAxisFiniteDifference
-from ._convolve import Convolve, ConvolveByX
 from ._circconv import CircularConvolve
+from ._convolve import Convolve, ConvolveByX
 from ._dft import DFT
-from ._stack import VerticalStack, DiagonalStack
-from ._func import linop_from_function, Transpose, Sum, Pad
+from ._diff import FiniteDifference, SingleAxisFiniteDifference
+from ._func import Pad, Sum, Transpose, linop_from_function
+from ._linop import LinearOperator
+from ._matrix import MatrixOperator
 from ._misc import Diagonal, Identity, Slice
+from ._stack import DiagonalStack, VerticalStack
+from ._util import operator_norm, power_iteration, valid_adjoint
 
 __all__ = [
     "CircularConvolve",
