@@ -27,7 +27,7 @@ from ._operator import Operator
 
 
 class BiConvolve(Operator):
-    """BiConvolution operator.
+    """Biconvolution operator.
 
     A BiConvolve operator accepts a :class:`.BlockArray` input with two
     blocks of equal ndims, and convolves the first block with the second.
