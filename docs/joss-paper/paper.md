@@ -26,6 +26,7 @@ authors:
     affiliation: 1
   - name: Luke Pfister
     orcid: 0000-0001-7485-5966
+    affiliation: 1
   - name: Brendt Wohlberg
     orcid: 0000-0002-4767-1843
     affiliation: 1
