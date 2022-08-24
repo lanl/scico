@@ -17,6 +17,8 @@ import scico.numpy as snp
 from scico.random import randn
 from scico.typing import JaxArray, PRNGKey
 
+from ._linop import LinearOperator
+
 
 def power_iteration(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey] = None):
     """Compute largest eigenvalue of a diagonalizable :class:`.LinearOperator`.
