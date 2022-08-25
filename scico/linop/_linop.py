@@ -275,7 +275,7 @@ class LinearOperator(Operator):
                 `y.output_shape == self.output_shape`.
 
         Returns:
-            Result of adjoint evaluated at `y`.
+            Adjoint evaluated at `y`.
         """
         if self._adj is None:
             self._set_adjoint()

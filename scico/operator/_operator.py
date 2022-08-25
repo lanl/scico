@@ -26,23 +26,23 @@ from scico.numpy.util import is_nested, shape_to_size
 from scico.typing import BlockShape, DType, JaxArray, Shape
 
 
-def _wrap_mul_div_scalar(func):
-    r"""Wrapper function for defining mul, rmul, and truediv.
+def _wrap_mul_div_scalar(func: Callable) -> Callable:
+    r"""Wrapper function for multiplication and division operators.
 
-    Wrapper function for defining mul, rmul, and truediv between a scalar
-    and an Operator.
+    Wrapper function for defining `__mul__`, `__rmul__`, and
+    `__truediv__` between a scalar and an `Operator`.
 
     If one of these binary operations are called in the form
-    binop(Operator, other) and 'b' is a scalar, specialized
-    Operator constructors can be called.
+    `binop(Operator, other)` and 'b' is a scalar, specialized
+    :class:`.Operator` constructors can be called.
 
     Args:
-        func: should be either .__mul__(), .__rmul__(),
-           or .__truediv__().
+        func: should be either `.__mul__()`, `.__rmul__()`,
+           or `.__truediv__()`.
 
     Raises:
-        TypeError: A binop with the form binop(Operator, other) is
-        called and other is not a scalar.
+        TypeError: If a binop with the form `binop(Operator, other)` is
+        called and `other` is not a scalar.
     """
 
     @wraps(func)
@@ -85,11 +85,11 @@ output_dtype : {self.output_dtype}
                 Defaults to ``None``. If ``None``, `output_shape` is
                 determined by evaluating `self.__call__` on an input
                 array of zeros.
-            eval_fn: Function used in evaluating this Operator.
+            eval_fn: Function used in evaluating this :class:`.Operator`.
                 Defaults to ``None``. If ``None``, then `self.__call__`
                 must be defined in any derived classes.
             input_dtype: `dtype` for input argument.
-                Defaults to ``float32``. If `Operator` implements
+                Defaults to ``float32``. If :class:`.Operator` implements
                 complex-valued operations, this must be ``complex64`` for
                 proper adjoint and gradient calculation.
             output_dtype: `dtype` for output argument.
@@ -97,9 +97,9 @@ output_dtype : {self.output_dtype}
                 determined by evaluating `self.__call__` on an input
                 array of zeros.
             jit: If ``True``, call :meth:`Operator.jit()` on this
-                Operator to jit the forward, adjoint, and gram functions.
-                Same as calling :meth:`Operator.jit` after the Operator
-                is created.
+                :class:`.Operator` to jit the forward, adjoint, and gram
+                functions. Same as calling :meth:`Operator.jit` after the
+                :class:`.Operator` is created.
         """
 
         #: Shape of input array or :class:`.BlockArray`.
@@ -172,11 +172,20 @@ output_dtype : {self.output_dtype}
         r"""Evaluate this Operator at the point :math:`\mb{x}`.
 
         Args:
-            x: Point at which to evaluate this Operator. If `x` is a
-               :class:`DeviceArray` or :class:`.BlockArray`, must have
-               `shape == self.input_shape`. If `x` is a
-               :class:`.Operator` or :class:`.LinearOperator`, must have
-               `x.output_shape == self.input_shape`.
+            x: Point at which to evaluate this :class:`.Operator`. If `x`
+               is a :class:`DeviceArray` or :class:`.BlockArray`, it must
+               have `shape == self.input_shape`. If `x` is a
+               :class:`.Operator` or :class:`.LinearOperator`, it must
+               have `x.output_shape == self.input_shape`.
+
+        Returns:
+             :class:`.Operator` evaluated at `x`.
+
+        Raises:
+            ValueError: If the `input_shape` attribute of the
+                :class:`.Operator` is not equal to the input array shape,
+                or to the `output_shape` attribute of another
+                :class:`.Operator` with which it is composed.
         """
 
         if isinstance(x, Operator):
@@ -202,7 +211,7 @@ output_dtype : {self.output_dtype}
         # Currently: in jit and grad tracers
         return self._eval(x)
 
-    def __add__(self, other):
+    def __add__(self, other: Operator) -> Operator:
         if isinstance(other, Operator):
             if self.shape == other.shape:
                 return Operator(
@@ -215,7 +224,7 @@ output_dtype : {self.output_dtype}
             raise ValueError(f"shapes {self.shape} and {other.shape} do not match")
         raise TypeError(f"Operation __add__ not defined between {type(self)} and {type(other)}")
 
-    def __sub__(self, other):
+    def __sub__(self, other: Operator) -> Operator:
         if isinstance(other, Operator):
             if self.shape == other.shape:
                 return Operator(
@@ -238,7 +247,7 @@ output_dtype : {self.output_dtype}
             output_dtype=result_type(self.output_dtype, other),
         )
 
-    def __neg__(self):
+    def __neg__(self) -> Operator:
         return -1.0 * self
 
     @_wrap_mul_div_scalar
@@ -267,6 +276,9 @@ output_dtype : {self.output_dtype}
         Args:
             primals: Values at which the Jacobian is evaluated.
             tangents: Vector in the Jacobian-vector product.
+
+        Returns:
+           Jacobian-vector product value.
         """
 
         return jax.jvp(self, primals, tangents)
@@ -275,14 +287,21 @@ output_dtype : {self.output_dtype}
         """Compute a Jacobian-vector product with Hermitian transpose.
 
         Compute the product :math:`[J(\mb{x})]^H \mb{v}` where
-        :math:`[J(\mb{x})]` is the Jacobian of the operator evaluated
-        at :math:`\mb{x}`. Instead of directly evaluating the product,
-        a function is returned that takes :math:`\mb{v}` as an argument.
+        :math:`[J(\mb{x})]` is the Jacobian of the :class:`.Operator`
+        evaluated at :math:`\mb{x}`. Instead of directly evaluating the
+        product, a function is returned that takes :math:`\mb{v}` as an
+        argument.
 
         Args:
             primals: Sequence of values at which the Jacobian is
                evaluated, with length equal to the number of positional
                arguments of `_eval`.
+
+        Returns:
+            A pair `(primals, conj_vjp)` where `primals` is the input
+            parameter of the same name, and `conj_vjp` is a function
+            that computes the product of the Hermitian transpose of the
+            Jacobian of this :class:`.Operator` and its argument.
         """
 
         primals, self_vjp = jax.vjp(self, *primals)
@@ -299,21 +318,38 @@ output_dtype : {self.output_dtype}
             primals: Sequence of values at which the Jacobian is
                evaluated, with length equal to the number of positional
                arguments of `_eval`.
+
+        Returns:
+            A pair `(primals, self_vjp)` where `primals` is the input
+            parameter of the same name, and `self_vjp` is a function
+            that computes the product of its argument and the Jacobian of
+            this :class:`.Operator`.
         """
 
         primals, self_vjp = jax.vjp(self, *primals)
         return primals, self_vjp
 
     def freeze(self, argnum: int, val: Union[JaxArray, BlockArray]) -> Operator:
-        """Return a new Operator with fixed block argument `argnum`.
+        """Return a new :class:`.Operator` with fixed block argument.
 
-        Return a new Operator with block argument `argnum` fixed to value
-        `val`.
+        Return a new :class:`.Operator` with block argument `argnum`
+        fixed to value `val`.
 
         Args:
             argnum: Index of block to freeze. Must be less than or equal
                to the number of blocks in an input array.
             val: Value to fix the `argnum`-th input to.
+
+        Returns:
+            A new :class:`.Operator` with one of the blocks of the input
+            fixed to the specified value.
+
+        Raises:
+            ValueError: If the :class:`.Operator` does not take a
+               :class:`.BlockArray` as its input, if the block index
+               equals or exceeds the number of blocks, or if the shape of
+               the fixed value differs from the shape of the specified
+               block.
         """
 
         if not is_nested(self.input_shape):
@@ -341,13 +377,13 @@ output_dtype : {self.output_dtype}
             input_shape = input_shape[0]  # type: ignore
 
         def concat_args(args):
-            # Creates a blockarray with args and the frozen value in the correct place
-            # Eg if this operator takes a blockarray with two blocks, then
+            # Create a blockarray with args and the frozen value in the correct place
+            # E.g. if this operator takes a blockarray with two blocks, then
             # concat_args(args) = snp.blockarray([val, args]) if argnum = 0
             # concat_args(args) = snp.blockarray([args, val]) if argnum = 1
 
             if isinstance(args, (DeviceArray, np.ndarray)):
-                # In the case that the original operator takes a blcokarray with two
+                # In the case that the original operator takes a blockkarray with two
                 # blocks, wrap in a list so we can use the same indexing as >2 block case
                 args = [args]
 

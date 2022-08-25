@@ -29,10 +29,11 @@ from ._operator import Operator
 class BiConvolve(Operator):
     """Biconvolution operator.
 
-    A BiConvolve operator accepts a :class:`.BlockArray` input with two
-    blocks of equal ndims, and convolves the first block with the second.
+    A :class:`.BiConvolve` operator accepts a :class:`.BlockArray` input
+    with two blocks of equal ndims, and convolves the first block with
+    the second.
 
-    If `A` is a BiConvolve operator, then
+    If `A` is a :class:`.BiConvolve` operator, then
     `A(snp.blockarray([x, h]))` equals `jax.scipy.signal.convolve(x, h)`.
 
     """
@@ -46,13 +47,15 @@ class BiConvolve(Operator):
     ):
         r"""
         Args:
-            input_shape: Shape of input BlockArray. Must correspond to a
-                BlockArray with two blocks of equal ndims.
+            input_shape: Shape of input :class:`.BlockArray`. Must
+                correspond to a :class:`.`BlockArray` with two blocks of
+                equal ndims.
             input_dtype: `dtype` for input argument. Defaults to
                 ``float32``.
             mode:  A string indicating the size of the output. One of
                 "full", "valid", "same". Defaults to "full".
-            jit: If ``True``, jit the evaluation of this Operator.
+            jit: If ``True``, jit the evaluation of this
+                :class:`.Operator`.
 
         For more details on `mode`, see :func:`jax.scipy.signal.convolve`.
         """

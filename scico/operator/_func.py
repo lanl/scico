@@ -23,7 +23,7 @@ __all__ = [
 
 
 def operator_from_function(f: Callable, classname: str, f_name: Optional[str] = None):
-    """Make an operator class from a function.
+    """Make an :class:`.Operator` from a function.
 
     Example
     -------
@@ -33,7 +33,7 @@ def operator_from_function(f: Callable, classname: str, f_name: Optional[str] = 
     DeviceArray([1., 1.], dtype=float32)
 
     Args:
-        f: Function from which to create an operator class.
+        f: Function from which to create an :class:`.Operator`.
         classname: Name of the resulting class.
         f_name: Name of `f` for use in docstrings. Useful for getting
             the correct version of wrapped functions. Defaults to
@@ -49,13 +49,13 @@ def operator_from_function(f: Callable, classname: str, f_name: Optional[str] = 
             input_shape: Shape of input array.
             args: Positional arguments passed to :func:`{f_name}`.
             input_dtype: `dtype` for input argument.
-                Defaults to ``float32``. If `Operator` implements
+                Defaults to ``float32``. If :class:`.Operator` implements
                 complex-valued operations, this must be ``complex64`` for
                 proper adjoint and gradient calculation.
             jit: If ``True``, call :meth:`.Operator.jit` on this
                 `Operator` to jit the forward, adjoint, and gram
                 functions. Same as calling :meth:`.Operator.jit` after
-                the `Operator` is created.
+                the :class:`.Operator` is created.
             kwargs: Keyword arguments passed to :func:`{f_name}`.
         """
 
