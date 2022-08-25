@@ -14,7 +14,7 @@ from ._convolve import Convolve, ConvolveByX
 from ._dft import DFT
 from ._diff import FiniteDifference, SingleAxisFiniteDifference
 from ._func import Pad, Sum, Transpose, linop_from_function
-from ._linop import LinearOperator
+from ._linop import ComposedLinearOperator, LinearOperator
 from ._matrix import MatrixOperator
 from ._misc import Diagonal, Identity, Slice
 from ._stack import DiagonalStack, VerticalStack
@@ -36,6 +36,7 @@ __all__ = [
     "Sum",
     "Transpose",
     "LinearOperator",
+    "ComposedLinearOperator",
     "linop_from_function",
     "operator_norm",
     "power_iteration",
