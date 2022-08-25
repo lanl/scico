@@ -13,12 +13,7 @@ from scico.typing import BlockShape, DType, Shape
 
 from ._linop import LinearOperator
 
-__all__ = [
-    "operator_from_function",
-    "Tranpose",
-    "Sum",
-    "Pad",
-]
+__all__ = ["operator_from_function", "Tranpose", "Sum", "Pad", "Reshape"]
 
 
 def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = None):
@@ -80,5 +75,6 @@ def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = Non
 
 
 Transpose = linop_from_function(snp.transpose, "Transpose", "scico.numpy.transpose")
-Sum = linop_from_function(snp.sum, "Sum")
+Reshape = linop_from_function(snp.reshape, "Reshape")
 Pad = linop_from_function(snp.pad, "Pad", "scico.numpy.pad")
+Sum = linop_from_function(snp.sum, "Sum")

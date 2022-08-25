@@ -13,7 +13,7 @@ from ._circconv import CircularConvolve
 from ._convolve import Convolve, ConvolveByX
 from ._dft import DFT
 from ._diff import FiniteDifference, SingleAxisFiniteDifference
-from ._func import Pad, Sum, Transpose, linop_from_function
+from ._func import Pad, Reshape, Sum, Transpose, linop_from_function
 from ._linop import ComposedLinearOperator, LinearOperator
 from ._matrix import MatrixOperator
 from ._misc import Diagonal, Identity, Slice
@@ -32,6 +32,7 @@ __all__ = [
     "DiagonalStack",
     "MatrixOperator",
     "Pad",
+    "Reshape",
     "Slice",
     "Sum",
     "Transpose",

@@ -568,6 +568,17 @@ def test_transpose():
     np.testing.assert_array_equal(H.T @ H @ x, x)
 
 
+def test_reshape():
+    shape = (1, 2, 3, 4)
+    newshape = (2, 12)
+    x, _ = randn(shape)
+    H = linop.Reshape(shape, newshape)
+    np.testing.assert_array_equal(H @ x, x.reshape(newshape))
+
+    # reshape reshape is reshape inverse
+    np.testing.assert_array_equal(H.T @ H @ x, x)
+
+
 def test_pad():
     shape = (2, 3, 4)
     pad = 1
