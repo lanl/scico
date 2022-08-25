@@ -22,7 +22,7 @@ __all__ = [
 
 
 def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = None):
-    """Make a linear operator class from a function.
+    """Make a :class:`LinearOperator` from a function.
 
     Example
     -------
@@ -32,7 +32,7 @@ def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = Non
     DeviceArray([10., 10.], dtype=float32)
 
     Args:
-        f: Function from which to create a linear operator class.
+        f: Function from which to create a :class:`LinearOperator`.
         classname: Name of the resulting class.
         f_name: Name of `f` for use in docstrings. Useful for getting
             the correct version of wrapped functions. Defaults to
@@ -48,13 +48,14 @@ def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = Non
             input_shape: Shape of input array.
             args: Positional arguments passed to :func:`{f_name}`.
             input_dtype: `dtype` for input argument.
-                Defaults to ``float32``. If `LinearOperator` implements
-                complex-valued operations, this must be ``complex64`` for
-                proper adjoint and gradient calculation.
-            jit: If ``True``, call :meth:`.Operator.jit` on this
-                `LinearOperator` to jit the forward, adjoint, and gram
-                functions. Same as calling :meth:`.Operator.jit` after
-                the `LinearOperator` is created.
+                Defaults to ``float32``. If :class:`LinearOperator`
+                implements complex-valued operations, this must be
+                ``complex64`` for proper adjoint and gradient calculation.
+            jit: If ``True``, call :meth:`~.LinearOperator.jit` on this
+                :class:`LinearOperator` to jit the forward, adjoint, and
+                gram functions. Same as calling
+                :meth:`~.LinearOperator.jit` after the
+                :class:`LinearOperator` is created.
             kwargs: Keyword arguments passed to :func:`{f_name}`.
         """
 
