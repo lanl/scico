@@ -32,6 +32,7 @@ __all__ = [
     "DiagonalStack",
     "MatrixOperator",
     "Pad",
+    "Crop",
     "Reshape",
     "Slice",
     "Sum",
