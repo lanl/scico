@@ -102,7 +102,7 @@ class VerticalStack(LinearOperator):
     def check_if_stackable(ops: List[LinearOperator]):
         """Check that input ops are suitable for stack creation."""
         if not isinstance(ops, (list, tuple)):
-            raise ValueError("Expected a list of `LinearOperator`")
+            raise ValueError("Expected a list of LinearOperator")
 
         input_shapes = [op.shape[1] for op in ops]
         if not all(input_shapes[0] == s for s in input_shapes):
@@ -119,7 +119,7 @@ class VerticalStack(LinearOperator):
             )
 
         if any([is_nested(op.shape[0]) for op in ops]):
-            raise ValueError("Cannot stack `LinearOperator`s with nested output shapes.")
+            raise ValueError("Cannot stack LinearOperators with nested output shapes.")
 
         output_dtypes = [op.output_dtype for op in ops]
         if not np.all(output_dtypes[0] == s for s in output_dtypes):

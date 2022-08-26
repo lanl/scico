@@ -7,7 +7,7 @@
 
 """Tomographic projector LinearOperator wrapping the svmbir package.
 
-Tomographic projector LinearOperator wrapping the
+Tomographic projector :class:`.LinearOperator` wrapping the
 `svmbir <https://github.com/cabouman/svmbir>`_ package.
 """
 
