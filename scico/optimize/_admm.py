@@ -306,7 +306,10 @@ class ADMM:
         Initialized to
 
         .. math::
-            \mb{u}_i = C_i \mb{x}^{(0)} \;.
+            \mb{u}_i = \mb{0} \;.
+
+        Note that the parameter `x0` is unused, but is provided for
+        potential use in an overridden method.
 
         Args:
             x0: Initial value of :math:`\mb{x}`.

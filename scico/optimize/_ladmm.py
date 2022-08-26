@@ -262,8 +262,10 @@ class LinearizedADMM:
         Initialized to
 
         .. math::
-            \mb{u} = C \mb{x}^{(0)} \;.
+            \mb{u} = \mb{0} \;.
 
+        Note that the parameter `x0` is unused, but is provided for
+        potential use in an overridden method.
 
         Args:
             x0: Starting point for :math:`\mb{x}`.
