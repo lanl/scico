@@ -97,7 +97,7 @@ class Crop(LinearOperator):
         Args:
             crop_width: Specify the crop width using the same format as
                 the `pad_width` parameter of :func:`snp.pad`.
-            input_shape: Shape of input :any:`JaxArray.
+            input_shape: Shape of input :any:`JaxArray`.
             input_dtype: `dtype` for input argument.
                 Defaults to ``float32``. If this LinearOperator implements
                 complex-valued operations, this must be ``complex64`` for
