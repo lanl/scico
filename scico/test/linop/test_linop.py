@@ -14,7 +14,6 @@ import jax
 
 import scico.numpy as snp
 from scico import linop
-from scico.numpy import BlockArray
 from scico.random import randn
 from scico.typing import JaxArray, PRNGKey
 
@@ -507,51 +506,3 @@ def test_operator_norm():
         D = linop.Diagonal(d)
         Dnorm = linop.operator_norm(D)
         assert np.abs(Dnorm - snp.abs(d).max()) < 1e-5
-
-
-class SliceTestObj:
-    def __init__(self, dtype):
-        self.x = snp.zeros((4, 5, 6, 7), dtype=dtype)
-
-
-@pytest.fixture(scope="module", params=[np.float32, np.complex64])
-def slicetestobj(request):
-    yield SliceTestObj(request.param)
-
-
-slice_examples = [
-    np.s_[1:],
-    np.s_[:, 2:],
-    np.s_[..., 3:],
-    np.s_[1:, :-3],
-    np.s_[1:, :, :3],
-    np.s_[1:, ..., 2:],
-]
-
-
-@pytest.mark.parametrize("idx", slice_examples)
-def test_slice_eval(slicetestobj, idx):
-    x = slicetestobj.x
-    A = linop.Slice(idx=idx, input_shape=x.shape, input_dtype=x.dtype)
-    assert (A @ x).shape == x[idx].shape
-
-
-@pytest.mark.parametrize("idx", slice_examples)
-def test_slice_adj(slicetestobj, idx):
-    x = slicetestobj.x
-    A = linop.Slice(idx=idx, input_shape=x.shape, input_dtype=x.dtype)
-    adjoint_test(A)
-
-
-block_slice_examples = [
-    1,
-    np.s_[0:1],
-    np.s_[:1],
-]
-
-
-@pytest.mark.parametrize("idx", block_slice_examples)
-def test_slice_blockarray(idx):
-    x = BlockArray((snp.zeros((3, 4)), snp.ones((3, 4, 5, 6))))
-    A = linop.Slice(idx=idx, input_shape=x.shape, input_dtype=x.dtype)
-    assert (A @ x).shape == x[idx].shape
