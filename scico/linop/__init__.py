@@ -12,11 +12,11 @@ import sys
 from ._circconv import CircularConvolve
 from ._convolve import Convolve, ConvolveByX
 from ._dft import DFT
+from ._diag import Diagonal, Identity
 from ._diff import FiniteDifference, SingleAxisFiniteDifference
 from ._func import Pad, Reshape, Slice, Sum, Transpose, linop_from_function
 from ._linop import ComposedLinearOperator, LinearOperator
 from ._matrix import MatrixOperator
-from ._misc import Diagonal, Identity
 from ._stack import DiagonalStack, VerticalStack
 from ._util import operator_norm, power_iteration, valid_adjoint
 

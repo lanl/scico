@@ -22,8 +22,8 @@ import scico.numpy as snp
 from scico.loss import Loss, SquaredL2Loss
 from scico.typing import Array, JaxArray, Shape
 
+from ._diag import Diagonal, Identity
 from ._linop import LinearOperator
-from ._misc import Diagonal, Identity
 
 try:
     import svmbir
