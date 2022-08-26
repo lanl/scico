@@ -46,6 +46,24 @@ def test_pad():
     np.testing.assert_array_equal(H.T @ y, y[pad:-pad, pad:-pad, pad:-pad])
 
 
+def test_crop():
+    shape = (7, 9)
+    crop = (1, 2)
+    x, _ = randn(shape)
+    H = linop.Crop(crop, shape)
+
+    y = x[crop[0] : -crop[1], crop[0] : -crop[1]]
+    np.testing.assert_array_equal(H @ x, y)
+
+
+@pytest.mark.parametrize("pad", [1, (1, 2), ((1, 0), (0, 1)), ((1, 1), (2, 2))])
+def test_crop_pad_adjoint(pad):
+    shape = (9, 10)
+    H = linop.Pad(shape, pad)
+    G = linop.Crop(pad, H.output_shape)
+    assert linop.valid_adjoint(H, G)
+
+
 class SliceTestObj:
     def __init__(self, dtype):
         self.x = snp.zeros((4, 5, 6, 7), dtype=dtype)
