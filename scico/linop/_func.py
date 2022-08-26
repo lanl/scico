@@ -99,11 +99,11 @@ class Crop(LinearOperator):
                 the `pad_width` parameter of :func:`snp.pad`.
             input_shape: Shape of input :any:`JaxArray`.
             input_dtype: `dtype` for input argument.
-                Defaults to ``float32``. If this LinearOperator implements
-                complex-valued operations, this must be ``complex64`` for
-                proper adjoint and gradient calculation.
+                Defaults to ``float32``. If this :class:`LinearOperator`
+                implements complex-valued operations, this must be
+                ``complex64`` for proper adjoint and gradient calculation.
             jit: If ``True``, jit the evaluation, adjoint, and gram
-               functions of the LinearOperator.
+               functions of the :class:`LinearOperator`.
         """
 
         self.crop_width = crop_width
@@ -150,11 +150,11 @@ class Slice(LinearOperator):
                 :data:`numpy.s_`, for example.
             input_shape: Shape of input :any:`JaxArray` or :class:`.BlockArray`.
             input_dtype: `dtype` for input argument.
-                Defaults to ``float32``. If this LinearOperator implements
-                complex-valued operations, this must be ``complex64`` for
-                proper adjoint and gradient calculation.
+                Defaults to ``float32``. If this :class:`LinearOperator`
+                implements complex-valued operations, this must be
+                ``complex64`` for proper adjoint and gradient calculation.
             jit: If ``True``, jit the evaluation, adjoint, and gram
-               functions of the LinearOperator.
+               functions of the :class:`LinearOperator`.
         """
 
         output_shape: Union[Shape, BlockShape]

@@ -41,7 +41,7 @@ class Diagonal(LinearOperator):
     ):
         r"""
         Args:
-            diagonal: Diagonal elements of this linear operator.
+            diagonal: Diagonal elements of this :class:`LinearOperator`.
             input_shape:  Shape of input array. By default, equal to
                `diagonal.shape`, but may also be set to a shape that is
                broadcast-compatiable with `diagonal.shape`.
@@ -103,7 +103,7 @@ class Diagonal(LinearOperator):
 
 
 class Identity(Diagonal):
-    """Identity operator"""
+    """Identity operator."""
 
     def __init__(
         self, input_shape: Union[Shape, BlockShape], input_dtype: DType = snp.float32, **kwargs
