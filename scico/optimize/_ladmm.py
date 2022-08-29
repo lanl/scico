@@ -190,7 +190,7 @@ class LinearizedADMM:
                iterate :code:`self.z`.
 
         Returns:
-            scalar: Current value of the objective function.
+            scalar: Value of the objective function.
         """
         if (x is None) != (z is None):
             raise ValueError("Both or neither of x and z must be supplied")
@@ -217,7 +217,7 @@ class LinearizedADMM:
                :code:`self.x`.
 
         Returns:
-            Current value of primal residual.
+            Value of primal residual.
         """
         if x is None:
             x = self.x

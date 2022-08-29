@@ -204,7 +204,7 @@ class PDHG:
                 :code:`self.x`
 
         Returns:
-            scalar: Current value of the objective function.
+            scalar: Value of the objective function.
         """
         if x is None:
             x = self.x

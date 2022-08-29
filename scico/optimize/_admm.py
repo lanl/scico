@@ -222,7 +222,7 @@ class ADMM:
                 :code:`self.z_list`.
 
         Returns:
-            scalar: Current value of the objective function.
+            scalar: Value of the objective function.
         """
         if (x is None) != (z_list is None):
             raise ValueError("Both or neither of x and z_list must be supplied")
@@ -252,7 +252,7 @@ class ADMM:
                 current iterate :code:`self.x`.
 
         Returns:
-            Current value of primal residual.
+            Value of primal residual.
         """
         if x is None:
             x = self.x
