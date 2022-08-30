@@ -3,7 +3,7 @@
 """Utils for spectral normalization of convolutional layers in Flax models.
 """
 
-from typing import Any, Callable
+from typing import Any, Callable, Sequence
 
 import numpy as np
 
@@ -13,7 +13,8 @@ from jax import lax
 
 import scipy
 from flax.core import freeze, unfreeze
-from flax.linen.linear import _conv_dimension_numbers
+from flax.linen import Conv
+from flax.linen.module import Module, compact
 from flax.traverse_util import ModelParamTraversal
 from scico.typing import Array, Shape
 
@@ -69,46 +70,75 @@ def estimate_spectral_norm(
     return jnp.vdot(v, f(u))
 
 
+class CNN(Module):
+    """Evaluation of convolution operator via Flax implementation of a convolutional layer.
+
+    This is form of convolution is used only for the
+    estimation of the spectral norm of the operator.
+    Therefore, the value of the kernel is provided too.
+
+    Attributes:
+        kernel_size: Size of the convolution filter.
+        kernel0: Convolution filter.
+        dtype: Output type.
+
+    """
+
+    kernel_size: Sequence[int]
+    kernel0: Array
+    dtype: Any
+
+    @compact
+    def __call__(self, x):
+        """Apply CNN layer.
+
+        Args:
+            x: The nd-array to be convolved.
+
+        Returns:
+            The result of the convolution with `kernel0`.
+        """
+
+        def kinit_wrap(rng, shape, dtype=self.dtype):
+            return jnp.array(self.kernel0, dtype)
+
+        return Conv(
+            features=self.kernel_size[3],
+            kernel_size=self.kernel_size[:2],
+            use_bias=False,
+            padding="CIRCULAR",
+            kernel_init=kinit_wrap,
+        )(x)
+
+
 def conv(inputs: Array, kernel: Array) -> Array:
     """Compute convolution betwen input
        and kernel.
+
+    The convolution is evaluated via a CNN Flax model.
 
     Args:
         inputs: Array to compute convolution.
         kernel: Filter of the convolutional operator.
 
     Returns:
-        Singular vectors.
+        Result of convolution of input with kernel.
     """
-    strides = (1, 1)
-    padding = "SAME"
-    input_dilation = (1, 1)
-    kernel_dilation = (1, 1)
-    feature_group_count = 1
-    dtype = jnp.float32
 
+    dtype = kernel.dtype
     inputs = jnp.asarray(inputs, dtype)
-
     kernel = jnp.asarray(kernel, dtype)
 
-    dimension_numbers = _conv_dimension_numbers(inputs.shape)
-
-    y = lax.conv_general_dilated(
-        inputs,
-        kernel,
-        strides,
-        padding,
-        lhs_dilation=input_dilation,
-        rhs_dilation=kernel_dilation,
-        dimension_numbers=dimension_numbers,
-        feature_group_count=feature_group_count,
-    )
+    rng = jax.random.PRNGKey(0)  # not used
+    model = CNN(kernel_size=kernel.shape, kernel0=kernel, dtype=dtype)
+    variables = model.init(rng, np.zeros(inputs.shape))
+    y = model.apply(variables, inputs)
 
     return y
 
 
 def spectral_normalization_conv(
-    params: PyTree, traversal: ModelParamTraversal, xshape: Shape
+    params: PyTree, traversal: ModelParamTraversal, xshape: Shape, n_steps: int = 10
 ) -> PyTree:
     """Normalize parameters of convolutional layer by its spectral norm.
 
@@ -116,12 +146,13 @@ def spectral_normalization_conv(
         params: Current model parameters.
         traversal: Utility to select model parameters.
         xshape: Shape of input.
+        n_steps: Number of power iterations to compute. Default: 10.
     """
     params_out = traversal.update(
         lambda kernel: kernel
         / (
             estimate_spectral_norm(
-                lambda x: conv(x, kernel), (1, xshape[1], xshape[2], kernel.shape[2])
+                lambda x: conv(x, kernel), (1, xshape[1], xshape[2], kernel.shape[2]), n_steps
             )
             * 1.02
         ),
