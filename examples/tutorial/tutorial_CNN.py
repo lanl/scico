@@ -285,24 +285,27 @@ test_ds = {"image": sino_collection[16:], "label": foam_collection[16:]}
 """
 ## Configuring the ML model and its training
 
-SCICO configures the training via a dictionary too. An example of a configuration dictionary with the corresponding definitions is shown next.
+SCICO configures both model and training via dictionaries too. An example of configuration dictionaries with the corresponding definitions is shown next.
 
 Run the next cell to build the configuration dictionary.
 """
-
-dconf = {
-    "seed": 100,  # Seed for random generation
+model_conf = {
     "depth": 2,  # Number of layers (=iterations) in the unrolled ML model
     "num_filters": 16,  # Number of filters in the denoiser
     "block_depth": 3,  # Number of layers in the denoiser
+}
+
+train_conf = {
+    "seed": 100,  # Seed for random generation
     "opt_type": "ADAM",  # Optimization (other available options: SGD, ADAMW)
     "batch_size": 8,  # Number of samples to include in each batch
     "num_epochs": 50,  # Number of training epochs
     "base_learning_rate": 1e-2,  # Base learning rate
     "warmup_epochs": 0,  # Iterations to reach the base learning rate (if a scheduler is specified)
-    "num_train_steps": -1,  # Number of training steps, (if -1 train based on epochs specification)
-    "steps_per_eval": -1,  # Number of steps in testing, (if -1 eval over all the testing set)
     "log_every_steps": 5,  # Frequency of reporting training stats, given in units of training steps
+    "workdir": "./modl_ct/",
+    "checkpointing": False,  # Checkpoint stats during training
+    "log": True,  # Display training messages and statistics
 }
 
 """
@@ -328,8 +331,8 @@ model = sflax.MoDLNet(
     operator=A,
     depth=1,
     channels=channels,
-    num_filters=dconf["num_filters"],
-    block_depth=dconf["block_depth"],
+    num_filters=model_conf["num_filters"],
+    block_depth=model_conf["block_depth"],
     cg_iter=3,
 )
 # endqa
@@ -356,12 +359,15 @@ from scico.flax.train.train import clip_positive, construct_traversal
 
 lmbdatrav = construct_traversal(
     "lmbda"
-)  # Functionality to track parameter to constraint inside model
+)  # Functionality to get parameter to constraint inside model
 lmbdapos = partial(
     clip_positive,  # Type of constraint to apply, here positivity constraint
-    traversal=lmbdatrav,
+    traversal=lmbdatrav, # Operate over lmbda parameters
     minval=5e-4,  # Minimum value to accept when enforcing the positivity constraint
 )
+
+train_conf["post_lst"] = [lmbdapos]  # Constraints to model parameters
+
 
 """
 Now that we have all the structures needed for training: a data set, a model, and parameter constraints, we can use SCICO to train the model.
@@ -372,19 +378,14 @@ Run the next cell to train the model for the number of epochs specified. Check t
 """
 from time import time
 
-workdir = "./modl_ct/"
-
-start_time = time()
-modvar, stats_object = sflax.train_and_evaluate(
-    dconf,  # Dictionary with training configuration
-    workdir,  # Directory to store checkpoints
+trainer = sflax.train_and_evaluate(
+    train_conf,  # Dictionary with training configuration
     model,  # Model to train
     train_ds,  # Data set for training (image-label dictionary)
     test_ds,  # Data set for testing (image-label dictionary)
-    post_lst=[lmbdapos],  # Constraints to model parameters
-    checkpointing=False,  # Checkpoint stats during training
-    log=True,  # Display training messages and statistics
 )
+start_time = time()
+modvar, stats_object = trainer.train()
 time_train = time() - start_time
 print(f"Time train [s]: {time_train}")
 
