@@ -9,11 +9,20 @@ import pytest
 from scico import random
 from scico.flax.examples import (
     CenterCrop,
+    ConfigImageSetDict,
+    PaddedCircularConvolve,
     PositionalCrop,
     RandomNoise,
+    blur_data_generation,
+    build_image_dataset,
+    ct_data_generation,
     distributed_data_generation,
     flip,
+    have_astra,
+    have_ray,
     have_xdesign,
+    ray_distributed_data_generation,
+    reconfigure_images,
     rotation90,
 )
 from scico.typing import Shape
@@ -31,6 +40,17 @@ def test_foam2_gen():
     from scico.flax.examples import generate_foam2_images
 
     dt = generate_foam2_images(seed, N, ndata)
+    assert dt.shape == (ndata, N, N, 1)
+
+
+@pytest.mark.skipif(not have_xdesign, reason="xdesign package not installed")
+def test_foam_gen():
+    seed = 4444
+    N = 32
+    ndata = 2
+    from scico.flax.examples import generate_foam_images
+
+    dt = generate_foam_images(seed, N, ndata)
     assert dt.shape == (ndata, N, N, 1)
 
 
@@ -64,6 +84,58 @@ def test_distdatagen_exception():
     nimg = 15
     with pytest.raises(ValueError):
         distributed_data_generation(fake_data_gen, N, nimg)
+
+
+@pytest.mark.skipif(not have_ray, reason="ray package not installed")
+def test_ray_distdatagen():
+    N = 32
+    nimg = 16
+    dt = ray_distributed_data_generation(fake_data_gen, N, nimg)
+    assert dt.ndim == 4
+    assert dt.shape == (nimg, N, N, 1)
+
+
+@pytest.mark.skipif(not have_astra, reason="astra package not installed")
+def test_ct_data_generation():
+    N = 32
+    nimg = 16
+    nproj = 45
+
+    def random_img_gen(seed, size, ndata):
+        np.random.seed(seed)
+        return np.random.randn(ndata, size, size, 1)
+
+    try:
+        img, sino, fbp = ct_data_generation(nimg, N, nproj, imgfunc=random_img_gen)
+    except Exception as e:
+        print(e)
+        assert 0
+    else:
+        assert img.shape == (nimg, N, N, 1)
+        assert sino.shape == (nimg, nproj, N, 1)
+        assert fbp.shape == (nimg, N, N, 1)
+
+
+def test_blur_data_generation():
+    N = 32
+    nimg = 16
+    n = 3  # convolution kernel size
+    blur_kernel = np.ones((n, n)) / (n * n)
+
+    def random_img_gen(seed, size, ndata):
+        np.random.seed(seed)
+        return np.random.randn(ndata, size, size, 1)
+
+    try:
+        img, blurn = blur_data_generation(
+            nimg, N, blur_kernel, noise_sigma=0.01, imgfunc=random_img_gen
+        )
+    except Exception as e:
+        print(e)
+        assert 0
+    else:
+        assert img.shape == (nimg, N, N, 1)
+        assert blurn.shape == (nimg, N, N, 1)
 
 
 def test_rotation90():
@@ -139,3 +211,133 @@ def test_random_noise2(shape):
     xn = noise(x)
 
     assert x.shape == x.shape
+
+
+@pytest.mark.parametrize("output_size", [64, (64, 64)])
+@pytest.mark.parametrize("gray_flag", [False, True])
+@pytest.mark.parametrize("num_img_req", [None, 4])
+def test_reconfigure_images(output_size, gray_flag, num_img_req):
+
+    num_img = 10
+    N = 128
+    C = 3
+    shape = (num_img, N, N, C)
+    images, key = random.randn(shape, seed=4444)
+
+    stride = 1
+    try:
+        output = reconfigure_images(
+            images, output_size, gray_flag, num_img_req, multi_flag=False, stride=stride
+        )
+    except Exception as e:
+        print(e)
+        assert 0
+    else:
+        assert output.shape[1] == 64
+        assert output.shape[2] == 64
+
+        if gray_flag:
+            assert output.shape[-1] == 1
+        else:
+            assert output.shape[-1] == C
+
+        if num_img_req is None:
+            assert output.shape[0] == num_img
+        else:
+            assert output.shape[0] == num_img_req
+
+
+def test_reconfigure_images_multi_flag():
+    num_img = 10
+    N = 128
+    C = 3
+    shape = (num_img, N, N, C)
+    images, key = random.randn(shape, seed=4444)
+
+    output_size = (64, 64)
+    gray_flag = True
+    num_img_req = 4
+
+    stride = 64  # 2 per side = 4 patches per image
+    try:
+        output = reconfigure_images(
+            images, output_size, gray_flag, num_img_req, multi_flag=True, stride=stride
+        )
+    except Exception as e:
+        print(e)
+        assert 0
+    else:
+        assert output.shape[0] == (4 * num_img_req)
+        assert output.shape[1] == 64
+        assert output.shape[2] == 64
+        assert output.shape[-1] == 1
+
+
+class SetupTest:
+    def __init__(self):
+        # Data configuration
+        self.dtconf: ConfigImageSetDict = {
+            "seed": 0,
+            "output_size": 64,
+            "stride": 1,
+            "multi": False,
+            "augment": False,
+            "run_gray": True,
+            "num_img": 10,
+            "test_num_img": 4,
+            "data_mode": "dn",
+            "noise_level": 0.01,
+            "noise_range": False,
+            "test_split": 0.1,
+        }
+
+
+@pytest.fixture(scope="module")
+def testobj():
+    yield SetupTest()
+
+
+@pytest.mark.parametrize("augment", [False, True])
+def test_build_image_dataset(testobj, augment):
+    num_train = testobj.dtconf["num_img"]
+    num_test = testobj.dtconf["test_num_img"]
+    N = 128
+    C = 3
+    shape = (num_train, N, N, C)
+    img_train, key = random.randn(shape, seed=4444)
+    img_test, key = random.randn((num_test, N, N, C), key=key)
+
+    dtconf = dict(testobj.dtconf)
+    dtconf["augment"] = augment
+
+    try:
+        train_ds, test_ds = build_image_dataset(img_train, img_test, dtconf)
+    except Exception as e:
+        print(e)
+        assert 0
+    else:
+        assert train_ds["image"].shape == train_ds["label"].shape
+        assert test_ds["image"].shape == test_ds["label"].shape
+        assert test_ds["label"].shape[0] == num_test
+        if augment:
+            assert train_ds["label"].shape[0] == num_train * 3
+        else:
+            assert train_ds["label"].shape[0] == num_train
+
+
+def test_padded_circular_convolve():
+    N = 64
+    C = 3
+    kernel_size = 5
+    blur_sigma = 2.1
+
+    x, key = random.randn((N, N, C), seed=2468)
+
+    try:
+        pcc_op = PaddedCircularConvolve(N, C, kernel_size, blur_sigma)
+        xblur = pcc_op(x)
+    except Exception as e:
+        print(e)
+        assert 0
+    else:
+        assert xblur.shape == x.shape

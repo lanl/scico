@@ -205,7 +205,7 @@ def ray_distributed_data_generation(
     if not have_ray:
         raise RuntimeError("Package ray is required for use of this function.")
 
-    ray.init()
+    ray.init(local_mode=True, ignore_reinit_error=True)
 
     @ray.remote
     def data_gen(seed, size, ndata, imgf):
@@ -214,6 +214,8 @@ def ray_distributed_data_generation(
     ar = ray.available_resources()
     # Usage of half available CPU resources.
     nproc = max(int(ar["CPU"]) // 2, 1)
+    if nproc > nimg:
+        nproc = nimg
     if nproc > 1 and nimg % nproc > 0:
         raise ValueError(
             f"Number of images to generate ({nimg}) must be divisible by the number of available devices ({nproc})"
@@ -237,7 +239,7 @@ def ct_data_generation(
     imgfunc: Callable = generate_foam2_images,
     seed: int = 1234,
     verbose: bool = False,
-) -> Tuple[Array, ...]:  # pragma: no cover
+) -> Tuple[Array, ...]:
     """
     Generate CT data.
 
@@ -473,15 +475,15 @@ def load_ct_data(
     return trdt, ttdt
 
 
-def foam_blur_data_generation(
+def blur_data_generation(
     nimg: int,
     size: int,
     blur_kernel: Array,
     noise_sigma: float,
-    imgfunc: Callable = generate_foam_images,
+    imgfunc: Callable,
     seed: int = 4321,
     verbose: bool = False,
-) -> Tuple[Array, ...]:  # pragma: no cover
+) -> Tuple[Array, ...]:
     """
     Generate blurred data based on xdesign foam structures.
 
@@ -536,7 +538,7 @@ def foam_blur_data_generation(
     # Clip to [0,1] range.
     blurn = jnp.clip(blurn, a_min=0, a_max=1)
 
-    if verbose:
+    if verbose:  # pragma: no cover
         platform = jax.lib.xla_bridge.get_backend().platform
         print(f"{'Platform':28s}{':':4s}{platform}")
         print(f"{'Device count':28s}{':':4s}{jax.device_count()}")
@@ -664,11 +666,12 @@ def load_foam_blur_data(
 
     # Generate new data.
     nimg = train_nimg + test_nimg
-    img, blrn = foam_blur_data_generation(
+    img, blrn = blur_data_generation(
         nimg,
         size,
         blur_kernel,
         noise_sigma,
+        imgfunc=generate_foam_images,
         verbose=verbose,
     )
     # Separate training and testing partitions.
@@ -939,7 +942,7 @@ def reconfigure_images(
         S = np.zeros((num_img, images.shape[1], images.shape[2], C), dtype=dtype)
     else:
         tsfm_crop = CenterCrop(output_size)
-        S = np.zeros((num_img, tsfm.output_size[0], tsfm.output_size[1], C), dtype=dtype)
+        S = np.zeros((num_img, tsfm_crop.output_size[0], tsfm_crop.output_size[1], C), dtype=dtype)
 
     # Convert to gray scale and/or crop.
     for i in range(S.shape[0]):
@@ -1069,7 +1072,7 @@ def build_image_dataset(
     return train_ds, test_ds
 
 
-def images_read(path: str, ext: str = "jpg") -> Array:
+def images_read(path: str, ext: str = "jpg") -> Array:  # pragma: no cover
     """Read a collection of color images from a set of files in the specified directory.
 
     All files with extension `ext` (i.e. matching glob `*.ext`)
@@ -1160,6 +1163,72 @@ def get_bsds_data(path: str, verbose: bool = False):  # pragma: no cover
     if verbose:
         print(f"Saving as {npz_file}")
     np.savez(npz_file, imgstr=imgs400, imgstt=imgs_val)
+
+
+def check_img_data_requirements(
+    train_nimg: int,
+    test_nimg: int,
+    size: int,
+    gray_flag: bool,
+    train_in_shp: Shape,
+    test_in_shp: Shape,
+    train_nimg_avail: int,
+    test_nimg_avail: int,
+    verbose: bool,
+) -> bool:  # pragma: no cover
+    """Check data loaded vs. data requirements.
+
+    Args:
+        train_nimg: Number of images required for training data.
+        test_nimg: Number of images required for testing data.
+        size: Size of images requested.
+        gray_flag: Flag to indicate if gray scale images or color images are requested.
+            When ``True`` gray scale images are used, therefore, one channel is expected.
+        train_in_shp: Shape of images/patches loaded as training data.
+        test_in_shp: Shape of images/patches loaded as testing data.
+        train_nimg_avail: Number of images available in  loaded training image data.
+        test_nimg_avail: Number of images available in loaded testing image data.
+        verbose: Flag indicating whether to print status messages.
+
+    Returns:
+       True if the loaded image data satifies requirements of size, number of samples
+       and number of channels and False otherwise.
+    """
+
+    # Check image size.
+    if (train_in_shp[1] != size) or (test_in_shp[1] != size):
+        raise RuntimeError(
+            f"{'Provided size: '}{size}{' does not match read train size: '}"
+            f"{train_in_shp[1]}{' or test size: '}{test_in_shp[1]}"
+        )
+    # Check gray scale or color images.
+    C_train = train_in_shp[-1]
+    C_test = test_in_shp[-1]
+    if gray_flag:
+        C = 1
+    else:
+        C = 3
+    if (C_train != C) or (C_test != C):
+        raise RuntimeError(
+            f"{'Provided channels: '}{C}{' do not match read train channels: '}"
+            f"{C_train}{' or test channels: '}{C_test}"
+        )
+    # Check that enough images were sampled.
+    if train_nimg_avail >= train_nimg:
+        if test_nimg_avail >= test_nimg:
+            return True
+
+        elif verbose:
+            print(
+                f"{'Not enough images sampled in testing file':34s}{'Requested:':12s}"
+                f"{test_nimg}{'Sampled:':12s}{test_nimg_avail}"
+            )
+    elif verbose:
+        print(
+            f"{'Not enough images sampled in training file':34s}{'Requested:':12s}{train_nimg}"
+            f"{' Available:':12s}{train_nimg_avail}"
+        )
+    return False
 
 
 def load_image_data(
@@ -1256,65 +1325,45 @@ def load_image_data(
         test_in = ttdt["image"].astype(np.float32)
         test_out = ttdt["label"].astype(np.float32)
 
-        # Check image size.
-        if (train_in.shape[1] != size) or (test_in.shape[1] != size):
-            raise RuntimeError(
-                f"{'Provided size: '}{size}{' does not match read train size: '}"
-                f"{train_in.shape[1]}{' or test size: '}{test_in.shape[1]}"
-            )
-        # Check gray scale or color images.
-        C_train = train_in.shape[-1]
-        C_test = test_in.shape[-1]
-        if gray_flag:
-            C = 1
-        else:
-            C = 3
-        if (C_train != C) or (C_test != C):
-            raise RuntimeError(
-                f"{'Provided channels: '}{C}{' do not match read train channels: '}"
-                f"{C_train}{' or test channels: '}{C_test}"
-            )
-        # Check that enough images were sampled.
-        if trdt["numimg"] >= train_nimg:
-            if ttdt["numimg"] >= test_nimg:
-                train_ds: DataSetDict = {
-                    "image": train_in,
-                    "label": train_out,
-                }
-                test_ds: DataSetDict = {
-                    "image": test_in,
-                    "label": test_out,
-                }
-                if verbose:
-                    print(f"{'Data read from path':28s}{':':4s}{cache_path_display}")
-                    print(f"{'Train images':28s}{':':4s}{train_ds['image'].shape[0]}")
-                    print(f"{'Test images':28s}{':':4s}{test_ds['image'].shape[0]}")
-                    print(
-                        f"{'Data range images':25s}{'Min:':6s}{train_ds['image'].min():>5.2f}"
-                        f"{', Max:':6s}{train_ds['image'].max():>5.2f}"
-                    )
-                    print(
-                        f"{'Data range labels':25s}{'Min:':6s}{train_ds['label'].min():>5.2f}"
-                        f"{', Max:':6s}{train_ds['label'].max():>5.2f}"
-                    )
-                    print(
-                        "NOTE: If blur kernel or noise parameter are changed, the cache"
-                        " must be manually deleted to ensure that the training data "
-                        " is regenerated with these new parameters."
-                    )
+        if check_img_data_requirements(
+            train_nimg,
+            test_nimg,
+            size,
+            gray_flag,
+            train_in.shape,
+            test_in.shape,
+            trdt["numimg"],
+            ttdt["numimg"],
+            verbose,
+        ):
 
-                return train_ds, test_ds
-
-            elif verbose:
+            train_ds: DataSetDict = {
+                "image": train_in,
+                "label": train_out,
+            }
+            test_ds: DataSetDict = {
+                "image": test_in,
+                "label": test_out,
+            }
+            if verbose:
+                print(f"{'Data read from path':28s}{':':4s}{cache_path_display}")
+                print(f"{'Train images':28s}{':':4s}{train_ds['image'].shape[0]}")
+                print(f"{'Test images':28s}{':':4s}{test_ds['image'].shape[0]}")
                 print(
-                    f"{'Not enough images sampled in testing file':34s}{'Requested:':12s}"
-                    f"{test_nimg}{'Sampled:':12s}{ttdt['numimg']}"
+                    f"{'Data range images':25s}{'Min:':6s}{train_ds['image'].min():>5.2f}"
+                    f"{', Max:':6s}{train_ds['image'].max():>5.2f}"
                 )
-        elif verbose:
-            print(
-                f"{'Not enough images sampled in training file':34s}{'Requested:':12s}{train_nimg}"
-                f"{' Available:':12s}{trdt['numimg']}"
-            )
+                print(
+                    f"{'Data range labels':25s}{'Min:':6s}{train_ds['label'].min():>5.2f}"
+                    f"{', Max:':6s}{train_ds['label'].max():>5.2f}"
+                )
+                print(
+                    "NOTE: If blur kernel or noise parameter are changed, the cache"
+                    " must be manually deleted to ensure that the training data "
+                    " is regenerated with these new parameters."
+                )
+
+            return train_ds, test_ds
 
     # Check if BSDS folder exists if not create and download BSDS data.
     bsds_cache_path = os.path.join(cache_path, "BSDS")
@@ -1415,7 +1464,7 @@ class PaddedCircularConvolve(LinearOperator):
         self,
         output_size: Union[Shape, int],
         channels: int,
-        kernel_size: Shape,
+        kernel_size: Union[Shape, int],
         blur_sigma: float,
         dtype: Any = np.float32,
     ):
@@ -1431,6 +1480,11 @@ class PaddedCircularConvolve(LinearOperator):
             output_size = (output_size, output_size)
         else:
             assert len(output_size) == 2
+
+        if isinstance(kernel_size, int):
+            kernel_size = (kernel_size, kernel_size)
+        else:
+            assert len(kernel_size) == 2
 
         # Define padding.
         self.padsz = (
