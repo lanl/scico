@@ -10,7 +10,7 @@
 import sys
 
 # isort: off
-from ._flax import FlaxMap, load_weights
+from ._flax import FlaxMap, load_weights, save_weights
 from .blocks import (
     ConvBlock,
     ConvBNBlock,
@@ -22,12 +22,13 @@ from .blocks import (
 from .models import ConvBNNet, DnCNNNet, ResNet, UNet
 from .inverse import MoDLNet, ODPGrDescBlock, ODPNet, ODPProxDcnvBlock, ODPProxDnBlock
 from .train.input_pipeline import create_input_iter
-from .train.train import ConfigDict, only_apply, train_and_evaluate
+from .train.train import ConfigDict, BasicFlaxTrainer, only_apply
 from .train.clu_utils import count_parameters
 
 __all__ = [
     "FlaxMap",
     "load_weights",
+    "save_weigths",
     "ConvBNBlock",
     "ConvBlock",
     "ConvBNPoolBlock",
@@ -45,7 +46,7 @@ __all__ = [
     "ODPNet",
     "create_input_iter",
     "ConfigDict",
-    "train_and_evaluate",
+    "BasicFlaxTrainer",
     "only_apply",
     "count_parameters",
 ]
