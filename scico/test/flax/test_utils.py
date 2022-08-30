@@ -1,4 +1,5 @@
 from functools import partial
+from typing import Any, Tuple
 
 import numpy as np
 
@@ -6,6 +7,8 @@ import jax
 
 import pytest
 
+from flax.linen import Conv
+from flax.linen.module import Module, compact
 from scico import flax as sflax
 from scico import linop
 from scico.flax.train.train import construct_traversal
@@ -30,19 +33,65 @@ def test_l2_normalize():
     np.testing.assert_allclose(l2n_jnp, l2n_util, rtol=eps)
 
 
-@pytest.mark.parametrize("kernel_shape", [(3, 3, 1, 1), (11, 11, 1, 1)])
-def test_conv(kernel_shape):
+@pytest.mark.parametrize("kernel_size", [(3, 3, 1, 1), (11, 11, 1, 1)])
+def test_conv(kernel_size):
     key = jax.random.PRNGKey(97531)
-    kernel, key = randn(kernel_shape, dtype=np.float32, key=key)
+    kernel, key = randn(kernel_size, dtype=np.float32, key=key)
 
-    input_shape = (1, 128, 128, 1)
-    x, key = randn(input_shape, dtype=np.float32, key=key)
+    input_size = (1, 128, 128, 1)
+    x, key = randn(input_size, dtype=np.float32, key=key)
 
-    y = jax.scipy.signal.convolve(x.squeeze(), jax.numpy.flip(kernel).squeeze(), mode="same")
+    pads = (
+        [(0, 0)]
+        + [(kernel_size[0] // 2, kernel_size[0] // 2)]
+        + [(kernel_size[1] // 2, kernel_size[1] // 2)]
+        + [(0, 0)]
+    )
+    xext = np.pad(x, pads, mode="wrap")
+
+    y = jax.scipy.signal.convolve(xext.squeeze(), jax.numpy.flip(kernel).squeeze(), mode="valid")
 
     y_util = conv(x, kernel).squeeze()
 
     np.testing.assert_allclose(y, y_util)
+
+
+class CNN(Module):
+    kernel_size: Tuple[int, int]
+    kernel0: Any
+
+    @compact
+    def __call__(self, x):
+        def kinit_wrap(rng, shape, dtype=np.float32):
+            return np.array(self.kernel0, dtype)
+
+        return Conv(
+            features=1,
+            kernel_size=self.kernel_size,
+            use_bias=False,
+            padding="CIRCULAR",
+            kernel_init=kinit_wrap,
+        )(x)
+
+
+@pytest.mark.parametrize("kernel_size", [(3, 3, 1, 1), (11, 11, 1, 1)])
+def test_conv_layer(kernel_size):
+    key = jax.random.PRNGKey(12345)
+    kernel, key = randn(kernel_size, dtype=np.float32, key=key)
+
+    input_size = (1, 128, 128, 1)
+    x, key = randn(input_size, dtype=np.float32, key=key)
+
+    rng = jax.random.PRNGKey(42)
+    model = CNN(kernel_size=kernel_size[:2], kernel0=kernel)
+    variables = model.init(rng, np.zeros(x.shape))
+    prms = variables["params"]
+    np.testing.assert_allclose(prms["Conv_0"]["kernel"], kernel)
+
+    y_layer = model.apply(variables, x)
+    y_util = conv(x, kernel)
+
+    np.testing.assert_allclose(y_layer, y_util)
 
 
 @pytest.mark.parametrize("input_shape", [(8,), (128,)])
@@ -56,7 +105,7 @@ def test_spectral_norm(input_shape):
     x, key = randn(input_shape, dtype=np.float32, key=key)
     mu_util = estimate_spectral_norm(lambda x: D @ x, x.shape, n_steps=200)
 
-    np.testing.assert_allclose(mu, mu_util)
+    np.testing.assert_allclose(mu, mu_util, rtol=1e-6)
 
 
 @pytest.mark.parametrize("kernel_shape", [(3, 3, 1, 1), (7, 7, 1, 1)])
@@ -70,9 +119,9 @@ def test_spectral_norm_conv(kernel_shape):
 
     sn = exact_spectral_norm(lambda x: conv(x, kernel), x.shape)
 
-    sn_util = estimate_spectral_norm(lambda x: conv(x, kernel), x.shape, n_steps=200)
+    sn_util = estimate_spectral_norm(lambda x: conv(x, kernel), x.shape, n_steps=100)
 
-    np.testing.assert_allclose(sn, sn_util, rtol=5e-5)
+    np.testing.assert_allclose(sn, sn_util, rtol=1e-3, atol=1e-2)
 
 
 def test_train_spectral_norm():
@@ -81,7 +130,7 @@ def test_train_spectral_norm():
     num_filters = 16
     model = sflax.DnCNNNet(depth, channels, num_filters)
 
-    dconf: sflax.ConfigDict = {
+    train_conf: sflax.ConfigDict = {
         "seed": 0,
         "opt_type": "ADAM",
         "batch_size": 16,
@@ -96,8 +145,8 @@ def test_train_spectral_norm():
     }
 
     N = 64
-    xtr, key = randn((dconf["batch_size"], N, N, channels), seed=4321)
-    xtt, key = randn((dconf["batch_size"], N, N, channels), key=key)
+    xtr, key = randn((train_conf["batch_size"], N, N, channels), seed=4321)
+    xtt, key = randn((train_conf["batch_size"], N, N, channels), key=key)
     train_ds = {"image": xtr, "label": xtr}
     test_ds = {"image": xtt, "label": xtt}
 
@@ -109,14 +158,14 @@ def test_train_spectral_norm():
             traversal=convtrav,
             xshape=xshape,
         )
-        modvar, _ = sflax.train_and_evaluate(
-            dconf,
-            "./",
+        train_conf["post_lst"] = [kernelnorm]
+        trainer = sflax.BasicFlaxTrainer(
+            train_conf,
             model,
             train_ds,
             test_ds,
-            post_lst=[kernelnorm],
         )
+        modvar, _ = trainer.train()
     except Exception as e:
         print(e)
         assert 0
