@@ -28,7 +28,7 @@ from .train.clu_utils import count_parameters
 __all__ = [
     "FlaxMap",
     "load_weights",
-    "save_weigths",
+    "save_weights",
     "ConvBNBlock",
     "ConvBlock",
     "ConvBNPoolBlock",
