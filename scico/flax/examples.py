@@ -265,13 +265,10 @@ def ct_data_generation(
            - **sino** : (DeviceArray): Corresponding sinograms.
            - **fbp** : (DeviceArray) Corresponding filtered back projections.
     """
-    if not have_xdesign:
-        raise RuntimeError("Package xdesign is required for use of this function.")
-
     if not have_astra:
         raise RuntimeError("Package astra is required for use of this function.")
 
-    # Generate foam data.
+    # Generate input data.
     if have_ray:
         start_time = time()
         img = ray_distributed_data_generation(imgfunc, size, nimg, seed)
