@@ -7,7 +7,7 @@
 
 """Utilities for training Flax models.
 
-Assummes sharded batched data and data parallel training.
+Assumes sharded batched data and data parallel training.
 """
 
 import functools
@@ -46,6 +46,7 @@ from scico.typing import Array, Shape
 ModuleDef = Any
 KeyArray = Union[Array, jax._src.prng.PRNGKeyArray]
 PyTree = Any
+DType = Any
 
 
 class ConfigDict(TypedDict):
@@ -203,7 +204,7 @@ def initialize(key: KeyArray, model: ModuleDef, ishape: Shape) -> Tuple[PyTree, 
     Args:
         key: A PRNGKey used as the random key.
         model: Flax model to train.
-        ishape: Shape of signal (image) to process by `model`.
+        ishape: Shape of signal (image) to process by `model`. Make sure that no batch dimension is included.
 
     Returns:
         Initial model parameters (including `batch_stats`).
@@ -242,7 +243,7 @@ def create_basic_train_state(
            to use correspond to keywords: `opt_type`
            and `momentum`.
         model: Flax model to train.
-        ishape: Shape of signal (image) to process by `model`.
+        ishape: Shape of signal (image) to process by `model`. Make sure that no batch dimension is included.
         variables0: Optional initial state of model
            parameters. If not provided a random initialization
            is performed. Default: ``None``.
@@ -330,7 +331,7 @@ def _train_step(
     learning_rate_fn: optax._src.base.Schedule,
     criterion: Callable,
 ) -> Tuple[TrainState, MetricsDict]:
-    """Perform a single training step. Assummes sharded batched data.
+    """Perform a single data parallel training step. Assumes sharded batched data.
 
     This function is intended to be used via :meth:`train_and_evaluate`, not directly.
 
@@ -815,7 +816,7 @@ def only_apply(
         Output of model evaluated at the input provided in `test_ds`.
 
     Raises:
-        Error if no state and no checkpoint are specified.
+        Error if no variables and no checkpoint are specified.
     """
     if variables is None:
         if checkpointing:
