@@ -7,7 +7,7 @@
 
 """Utilities for training Flax models.
 
-Assumes sharded batched data and data parallel training.
+Assumes sharded batched data and uses data parallel training.
 """
 
 import functools
@@ -351,7 +351,9 @@ def _train_step(
            and an Optax optimizer.
         batch: Sharded and batched training data.
         learning_rate_fn: A function to map step
-           counts to values.
+           counts to values. This is only used for display purposes (optax optimizers are stateless, so the current
+           learning rate is not stored). The real learnig rate schedule applied is the one defined when creating the
+           Flax state. If a different object is passed here, then the displayed value will be inaccurate.
         criterion: A function that specifies the loss being minimized in training.
 
     Returns:
@@ -372,6 +374,8 @@ def _train_step(
         return loss, (new_model_state, output)
 
     step = state.step
+    # Only to figure out current learning rate, which cannot be stored in stateless optax.
+    # Requires agreement between the function passed here and the one used to create the train state.
     lr = learning_rate_fn(step)
 
     grad_fn = jax.value_and_grad(loss_fn, has_aux=True)
@@ -443,7 +447,7 @@ def _train_step_post(
     train_step_fn: Callable,
     post_lst: List[Callable],
 ) -> Tuple[TrainState, MetricsDict]:
-    """Perform a single training step. A list of postprocessing
+    """Perform a single data parallel training step. A list of postprocessing
     functions (i.e. for spectral normalization or positivity
     condition, etc.) is applied after the gradient update.
     Assumes sharded batched data.
@@ -477,7 +481,7 @@ def _train_step_post(
     return new_state, metrics
 
 
-def _eval_step(state: TrainState, batch: DataSetDict) -> MetricsDict:
+def _eval_step(state: TrainState, batch: DataSetDict, criterion: Callable) -> MetricsDict:
     """Evaluate current model state. Assumes sharded
     batched data.
 
@@ -487,6 +491,7 @@ def _eval_step(state: TrainState, batch: DataSetDict) -> MetricsDict:
         state: Flax train state which includes the
            model apply function and the model parameters.
         batch: Sharded and batched training data.
+        criterion: Loss function.
 
     Returns:
         Current diagnostic statistics.
@@ -496,7 +501,7 @@ def _eval_step(state: TrainState, batch: DataSetDict) -> MetricsDict:
         "batch_stats": state.batch_stats,
     }
     output = state.apply_fn(variables, batch["image"], train=False, mutable=False)
-    return compute_metrics(output, batch["label"])
+    return compute_metrics(output, batch["label"], criterion)
 
 
 # sync across replicas
@@ -1027,27 +1032,21 @@ def _apply_fn(model: ModuleDef, variables: ModelVarDict, batch: DataSetDict) -> 
 
 def only_apply(
     config: ConfigDict,
-    workdir: str,
     model: ModuleDef,
     test_ds: DataSetDict,
     apply_fn: Callable = _apply_fn,
     variables: Optional[ModelVarDict] = None,
-    checkpointing: bool = False,
 ) -> Tuple[Array, ModelVarDict]:
     """Execute model application loop.
 
     Args:
         config: Hyperparameter configuration.
-        workdir: Directory to read checkpoint (if enabled).
         model: Flax model to apply.
         test_ds: Dictionary of testing data (includes images
             and labels).
         apply_fn: A hook for a function that applies current model. Default: :meth:`_apply_fn`, i.e. use the standard apply function.
         variables: Model parameters to use for evaluation.
             Default: ``None`` (i.e. read from checkpoint).
-        checkpointing: A flag for checkpointing model state.
-            Default: ``False``. `RunTimeError` is generated if
-            ``True`` and tensorflow is not available.
 
     Returns:
         Output of model evaluated at the input provided in `test_ds`.
@@ -1055,6 +1054,16 @@ def only_apply(
     Raises:
         Error if no variables and no checkpoint are specified.
     """
+    if "workdir" in config:
+        workdir: str = config["workdir"]
+    else:
+        workdir = "./"
+
+    if "checkpointing" in config:
+        checkpointing: bool = config["checkpointing"]
+    else:
+        checkpointing = False
+
     if variables is None:
         if checkpointing:
             if not have_tf:
