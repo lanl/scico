@@ -102,26 +102,23 @@ The number of filters is uniform throughout the iterations.
 Better performance may be obtained by increasing depth, block depth, number of filters or training epochs,
 but may require longer training times.
 """
-batch_size = 16
-epochs = 50
 # model configuration
-mconf = {
+model_conf = {
     "depth": 2,
     "num_filters": 64,
     "block_depth": 3,
 }
 # training configuration
-dconf: sflax.ConfigDict = {
+train_conf: sflax.ConfigDict = {
     "seed": 0,
     "opt_type": "SGD",
     "momentum": 0.9,
-    "batch_size": batch_size,
-    "num_epochs": epochs,
+    "batch_size": 16,
+    "num_epochs": 50,
     "base_learning_rate": 1e-2,
     "warmup_epochs": 0,
-    "num_train_steps": -1,
-    "steps_per_eval": -1,
     "log_every_steps": 100,
+    "log": True,
 }
 
 """
@@ -130,10 +127,10 @@ Construct ODPNet model.
 channels = train_ds["image"].shape[-1]
 model = sflax.ODPNet(
     operator=opBlur,
-    depth=mconf["depth"],
+    depth=model_conf["depth"],
     channels=channels,
-    num_filters=mconf["num_filters"],
-    block_depth=mconf["block_depth"],
+    num_filters=model_conf["num_filters"],
+    block_depth=model_conf["block_depth"],
     odp_block=sflax.ODPProxDcnvBlock,
 )
 
@@ -143,10 +140,10 @@ Construct functionality for making sure that
 the learned fidelity weight parameter is always
 positive.
 """
-alphatrav = construct_traversal("alpha")
+alphatrav = construct_traversal("alpha")  # select alpha parameters in model
 alphapos = partial(
-    clip_positive,
-    traversal=alphatrav,
+    clip_positive,  # apply this function
+    traversal=alphatrav,  # to alpha parameters in model
     minval=1e-3,
 )
 
@@ -158,17 +155,18 @@ workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "
 print(f"{'JAX process: '}{jax.process_index()}{' / '}{jax.process_count()}")
 print(f"{'JAX local devices: '}{jax.local_devices()}")
 
-start_time = time()
-modvar, stats_object = sflax.train_and_evaluate(
-    dconf,
-    workdir,
+train_conf["workdir"] = workdir
+train_conf["post_lst"] = [alphapos]
+# Construct training object
+trainer = sflax.BasicFlaxTrainer(
+    train_conf,
     model,
     train_ds,
     test_ds,
-    post_lst=[alphapos],
-    checkpointing=False,
-    log=True,
 )
+
+start_time = time()
+modvar, stats_object = trainer.train()
 time_train = time() - start_time
 
 """
@@ -189,7 +187,7 @@ and data fidelity.
 snr_eval = metric.snr(test_ds["label"], output)
 psnr_eval = metric.psnr(test_ds["label"], output)
 print(
-    f"{'ODPNet training':18s}{'epochs:':2s}{epochs:>5d}{'':21s}{'time[s]:':10s}{time_train:>7.2f}"
+    f"{'ODPNet training':18s}{'epochs:':2s}{train_conf['num_epochs']:>5d}{'':21s}{'time[s]:':10s}{time_train:>7.2f}"
 )
 print(
     f"{'ODPNet testing':18s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}{'':3s}{'time[s]:':10s}{time_eval:>7.2f}"

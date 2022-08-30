@@ -65,24 +65,21 @@ Define configuration dictionary for model and training loop.
 
 Parameters have been selected for demonstration purposes and relatively short training. The depth of the model has been reduced to 6, instead of the 17 of the original model. The suggested settings can be found in the original paper.
 """
-batch_size = 16
-epochs = 50
 # model configuration
-mconf = {
+model_conf = {
     "depth": 6,
     "num_filters": 64,
 }
 # training configuration
-dconf: sflax.ConfigDict = {
+train_conf: sflax.ConfigDict = {
     "seed": 0,
     "opt_type": "ADAM",
-    "batch_size": batch_size,
-    "num_epochs": epochs,
+    "batch_size": 16,
+    "num_epochs": 50,
     "base_learning_rate": 1e-3,
     "warmup_epochs": 0,
-    "num_train_steps": -1,
-    "steps_per_eval": -1,
-    "log_every_steps": 12000,
+    "log_every_steps": 60000,
+    "log": True,
 }
 
 """
@@ -90,22 +87,28 @@ Construct DnCNN model.
 """
 channels = train_ds["image"].shape[-1]
 model = sflax.DnCNNNet(
-    depth=mconf["depth"],
+    depth=model_conf["depth"],
     channels=channels,
-    num_filters=mconf["num_filters"],
+    num_filters=model_conf["num_filters"],
 )
 
 """
 Run training loop.
 """
 workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "dncnn_out")
+train_conf["workdir"] = workdir
 print(f"{'JAX process: '}{jax.process_index()}{' / '}{jax.process_count()}")
 print(f"{'JAX local devices: '}{jax.local_devices()}")
 
-start_time = time()
-modvar, stats_object = sflax.train_and_evaluate(
-    dconf, workdir, model, train_ds, test_ds, checkpointing=False, log=True
+trainer = sflax.BasicFlaxTrainer(
+    train_conf,
+    model,
+    train_ds,
+    test_ds,
 )
+
+start_time = time()
+modvar, stats_object = trainer.train()
 time_train = time() - start_time
 
 """
@@ -125,7 +128,7 @@ and data fidelity.
 snr_eval = metric.snr(test_ds["label"][:test_patches], output)
 psnr_eval = metric.psnr(test_ds["label"][:test_patches], output)
 print(
-    f"{'DnCNNNet training':18s}{'epochs:':2s}{epochs:>5d}{'':21s}{'time[s]:':10s}{time_train:>7.2f}"
+    f"{'DnCNNNet training':18s}{'epochs:':2s}{train_conf['epochs']:>5d}{'':21s}{'time[s]:':10s}{time_train:>7.2f}"
 )
 print(
     f"{'DnCNNNet testing':18s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}{'':3s}{'time[s]:':10s}{time_eval:>7.2f}"

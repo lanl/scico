@@ -99,27 +99,24 @@ The iterations used for the conjugate gradient (CG) solver can also be specified
 Better performance may be obtained by increasing depth, block depth, number of filters, CG iterations, or training epochs,
 but may require longer training times.
 """
-batch_size = 16
-epochs = 25
 # model configuration
-mconf = {
+model_conf = {
     "depth": 2,
     "num_filters": 64,
     "block_depth": 4,
     "cg_iter": 4,
 }
 # training configuration
-dconf: sflax.ConfigDict = {
+train_conf: sflax.ConfigDict = {
     "seed": 0,
     "opt_type": "SGD",
     "momentum": 0.9,
-    "batch_size": batch_size,
-    "num_epochs": epochs,
+    "batch_size": 16,
+    "num_epochs": 25,
     "base_learning_rate": 1e-2,
     "warmup_epochs": 0,
-    "num_train_steps": -1,
-    "steps_per_eval": -1,
     "log_every_steps": 100,
+    "log": True,
 }
 
 """
@@ -127,10 +124,10 @@ Construct functionality for making sure that
 the learned regularization parameter is always
 positive.
 """
-lmbdatrav = construct_traversal("lmbda")
+lmbdatrav = construct_traversal("lmbda")  # select lmbda parameters in model
 lmbdapos = partial(
-    clip_positive,
-    traversal=lmbdatrav,
+    clip_positive,  # apply this function
+    traversal=lmbdatrav,  # to lmbda parameters in model
     minval=5e-4,
 )
 
@@ -152,53 +149,84 @@ workdir2 = os.path.join(
     os.path.expanduser("~"), ".cache", "scico", "examples", "modl_dcnv_out", "iterated"
 )
 
-# One iteration (depth) in model and few CG iterations
-model = sflax.MoDLNet(
-    operator=opBlur,
-    depth=1,
-    channels=channels,
-    num_filters=mconf["num_filters"],
-    block_depth=mconf["block_depth"],
-    cg_iter=mconf["cg_iter"],
-)
-# First stage: initialization training loop.
-workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "modl_dcnv_out")
+stats_object_ini = None
 
-start_time = time()
-modvar, stats_object_ini = sflax.train_and_evaluate(
-    dconf,
-    workdir,
-    model,
-    train_ds,
-    test_ds,
-    post_lst=[lmbdapos],
-    checkpointing=False,
-    log=True,
-)
-time_init = time() - start_time
-epochs_init = dconf["num_epochs"]
+checkpoint_files = []
+for (dirpath, dirnames, filenames) in os.walk(workdir2):
+    checkpoint_files = [fn for fn in filenames if str.split(fn, "_")[0] == "checkpoint"]
 
-print(
-    f"{'MoDLNet init':18s}{'epochs:':2s}{dconf['num_epochs']:>5d}{'':3s}"
-    f"{'time[s]:':21s}{time_init:>7.2f}"
-)
+if len(checkpoint_files) > 0:
+    model = sflax.MoDLNet(
+        operator=opBlur,
+        depth=model_conf["depth"],
+        channels=channels,
+        num_filters=model_conf["num_filters"],
+        block_depth=model_conf["block_depth"],
+        cg_iter=model_conf["cg_iter"],
+    )
 
-# Second stage: depth iterations training loop.
-model.depth = mconf["depth"]
+    train_conf["workdir"] = workdir2
+    train_conf["post_lst"] = [lmbdapos]
+    # Construct training object
+    trainer = sflax.BasicFlaxTrainer(
+        train_conf,
+        model,
+        train_ds,
+        test_ds,
+    )
+    start_time = time()
+    modvar, stats_object = trainer.train()
+    time_train = time() - start_time
+    time_init = 0.0
+    epochs_init = 0
+else:
+    # One iteration (depth) in model and few CG iterations
+    model = sflax.MoDLNet(
+        operator=opBlur,
+        depth=1,
+        channels=channels,
+        num_filters=model_conf["num_filters"],
+        block_depth=model_conf["block_depth"],
+        cg_iter=model_conf["cg_iter"],
+    )
+    # First stage: initialization training loop.
+    workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "modl_dcnv_out")
 
-start_time = time()
-modvar, stats_object = sflax.train_and_evaluate(
-    dconf,
-    workdir2,
-    model,
-    train_ds,
-    test_ds,
-    post_lst=[lmbdapos],
-    variables0=modvar,
-    checkpointing=False,
-    log=True,
-)
-time_train = time() - start_time
+    train_conf["workdir"] = workdir
+    train_conf["post_lst"] = [lmbdapos]
+    # Construct training object
+    trainer = sflax.BasicFlaxTrainer(
+        train_conf,
+        model,
+        train_ds,
+        test_ds,
+    )
+
+    start_time = time()
+    modvar, stats_object_ini = trainer.train()
+    time_init = time() - start_time
+    epochs_init = train_conf["num_epochs"]
+
+    print(
+        f"{'MoDLNet init':18s}{'epochs:':2s}{train_conf['num_epochs']:>5d}{'':3s}"
+        f"{'time[s]:':21s}{time_init:>7.2f}"
+    )
+
+    # Second stage: depth iterations training loop.
+    model.depth = model_conf["depth"]
+    train_conf["workdir"] = workdir2
+    # Construct training object, include current model parameters
+    trainer = sflax.BasicFlaxTrainer(
+        train_conf,
+        model,
+        train_ds,
+        test_ds,
+        variables0=modvar,
+    )
+
+    start_time = time()
+    modvar, stats_object = trainer.train()
+    time_train = time() - start_time
 
 """
 Evaluate on testing data.
@@ -215,7 +243,7 @@ output = jnp.clip(output, a_min=0, a_max=1.0)
 Compare trained model in terms of reconstruction time
 and data fidelity.
 """
-total_epochs = epochs_init + epochs
+total_epochs = epochs_init + train_conf["num_epochs"]
 total_time_train = time_init + time_train
 snr_eval = metric.snr(test_ds["label"], output)
 psnr_eval = metric.psnr(test_ds["label"], output)

@@ -97,7 +97,6 @@ fig.colorbar(
     ax=axes,
     shrink=0.5,
     pad=0.05,
-    label="Arbitrary Units",
 )
 fig.show()
 
