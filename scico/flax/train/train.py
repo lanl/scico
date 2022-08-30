@@ -63,10 +63,20 @@ class ConfigDict(TypedDict):
     base_learning_rate: float
     lr_decay_rate: float
     warmup_epochs: int
-    num_train_steps: int
     steps_per_eval: int
     log_every_steps: int
     steps_per_epoch: int
+    steps_per_checkpoint: int
+    log: bool
+    workdir: str
+    checkpointing: bool
+    return_state: bool
+    lr_schedule: Callable
+    criterion: Callable
+    create_train_state: Callable
+    train_step_fn: Callable
+    eval_step_fn: Callable
+    post_lst: List[Callable]
 
 
 class ModelVarDict(TypedDict):
@@ -333,7 +343,7 @@ def _train_step(
 ) -> Tuple[TrainState, MetricsDict]:
     """Perform a single data parallel training step. Assumes sharded batched data.
 
-    This function is intended to be used via :meth:`train_and_evaluate`, not directly.
+    This function is intended to be used via :class:`BasicFlaxTrainer`, not directly.
 
     Args:
         state: Flax train state which includes the
@@ -438,7 +448,7 @@ def _train_step_post(
     condition, etc.) is applied after the gradient update.
     Assumes sharded batched data.
 
-    This function is intended to be used via :meth:`train_and_evaluate`, not directly.
+    This function is intended to be used via :class:`BasicFlaxTrainer`, not directly.
 
     Args:
         state: Flax train state which includes the
@@ -471,7 +481,7 @@ def _eval_step(state: TrainState, batch: DataSetDict) -> MetricsDict:
     """Evaluate current model state. Assumes sharded
     batched data.
 
-    This function is intended to be used via :meth:`train_and_evaluate` or :meth:`only_evaluate`, not directly.
+    This function is intended to be used via :class:`BasicFlaxTrainer` or :meth:`only_evaluate`, not directly.
 
     Args:
         state: Flax train state which includes the
@@ -557,59 +567,257 @@ def stats_obj() -> Tuple[IterationStats, Callable]:
     return itstat_object, itstat_insert_func
 
 
-def train_and_evaluate(
-    config: ConfigDict,
-    workdir: str,
-    model: ModuleDef,
-    train_ds: DataSetDict,
-    test_ds: DataSetDict,
-    create_lr_schedule: Callable = create_cnst_lr_schedule,
-    create_train_state: Callable = create_basic_train_state,
-    criterion: Callable = mse_loss,
-    train_step_fn: Callable = _train_step,
-    eval_step_fn: Callable = _eval_step,
-    post_lst: Optional[List[Callable]] = None,
-    variables0: Optional[ModelVarDict] = None,
-    checkpointing: bool = False,
-    log: bool = False,
-    return_state: bool = False,
-) -> Tuple[Union[ModelVarDict, TrainState], IterationStats]:
-    """Execute model training and evaluation loop.
+class BasicFlaxTrainer:
+    """Class for encapsulating Flax training configuration and execution."""
 
-    Args:
-        config: Hyperparameter configuration.
-        workdir: Directory to write checkpoints.
-        model: Flax model to train.
-        train_ds: Dictionary of training data (includes images
-            and labels).
-        test_ds: Dictionary of testing data (includes images
-            and labels).
-        create_lr_schedule: A function that creates an Optax
-            learning rate schedule. Default:
-            :meth:`create_cnst_lr_schedule`.
-        create_train_state: A function that creates a Flax train state and initializes it. A train state object helps to keep optimizer and module functionality grouped for training. Default:
-            :meth:`create_basic_train_state`.
-        criterion: A function that specifies the loss being minimized in training. Default: :meth:`mse_loss`.
-        train_step_fn: A hook for a function that executes a training step. Default: :meth:`_train_step`, i.e. use the standard train step.
-        eval_step_fn: A hook for a function that executes an eval step. Default: :meth:`_eval_step`, i.e. use the standard eval step.
-        post_lst: List of postprocessing functions to apply to parameter set after optimizer step (e.g. clip
-            to a specified range, normalize, etc.).
-        variables0: Optional initial state of model
-            parameters. Default: ``None``.
-        checkpointing: A flag for checkpointing model state.
+    def __init__(
+        self,
+        config: ConfigDict,
+        model: ModuleDef,
+        train_ds: DataSetDict,
+        test_ds: DataSetDict,
+        variables0: Optional[ModelVarDict] = None,
+    ):
+        """Configure model training and evaluation loop.
+
+        Assumes sharded batched data and uses data parallel training.
+        Additionally, construct a Flax train state which includes the model apply function,
+        the model parameters and an Optax optimizer.
+
+        Args:
+            config: Hyperparameter configuration.
+            model: Flax model to train.
+            train_ds: Dictionary of training data (includes images
+                and labels).
+            test_ds: Dictionary of testing data (includes images
+                and labels).
+            variables0: Optional initial state of model
+                parameters. Default: ``None``.
+        """
+        # Configure seed
+        if "seed" not in config:
+            key = jax.random.PRNGKey(0)
+        else:
+            key = jax.random.PRNGKey(config["seed"])
+        # Split seed for data iterators and model initialization
+        key1, key2 = jax.random.split(key)
+
+        # Object for storing iteration stats
+        self.itstat_object: Optional[IterationStats] = None
+
+        # Configure training loop
+        len_train = train_ds["image"].shape[0]
+        len_test = test_ds["image"].shape[0]
+        self.set_training_parameters(config, len_train, len_test)
+        self.construct_data_iterators(train_ds, test_ds, key1, model.dtype)
+
+        self.define_parallel_training_functions()
+
+        self.initialize_training_state(config, key2, model, variables0)
+
+    def set_training_parameters(
+        self,
+        config: ConfigDict,
+        len_train: int,
+        len_test: int,
+    ):
+        """Extract configuration parameters and construct training functions.
+
+        Parameters and functions are passed in the configuration dictionary.
+        Default values are used when parameters are not included in configuration.
+
+        Args:
+            config: Hyperparameter configuration.
+            len_train: Number of samples in training set.
+            len_test: Number of samples in testing set.
+        """
+        self.configure_steps(config, len_train, len_test)
+        self.configure_reporting(config)
+        self.configure_training_functions(config)
+
+    def configure_steps(
+        self,
+        config: ConfigDict,
+        len_train: int,
+        len_test: int,
+    ):
+        """Configure training, evaluation and monitoring steps.
+
+        Args:
+            config: Hyperparameter configuration.
+            len_train: Number of samples in training set.
+            len_test: Number of samples in testing set.
+        """
+        # Set required defaults if not present
+        if "batch_size" not in config:
+            batch_size = 2 * jax.device_count()
+        else:
+            batch_size = config["batch_size"]
+        if "num_epochs" not in config:
+            num_epochs = 10
+        else:
+            num_epochs = config["num_epochs"]
+
+        # Determine sharded vs. batch partition
+        if batch_size % jax.device_count() > 0:
+            raise ValueError("Batch size must be divisible by the number of devices")
+        self.local_batch_size: int = batch_size // jax.process_count()
+
+        # Training steps
+        self.steps_per_epoch: int = len_train // batch_size
+        config["steps_per_epoch"] = self.steps_per_epoch  # needed for creating lr schedule
+        self.num_steps: int = int(self.steps_per_epoch * num_epochs)
+
+        # Evaluation (over testing set) steps
+        num_validation_examples: int = len_test
+        if "steps_per_eval" not in config:
+            self.steps_per_eval: int = num_validation_examples // batch_size
+        else:
+            self.steps_per_eval = config["steps_per_eval"]
+
+        # Determine monitoring steps
+        if "steps_per_checkpoint" not in config:
+            self.steps_per_checkpoint: int = self.steps_per_epoch * 10
+        else:
+            self.steps_per_checkpoint = config["steps_per_checkpoint"]
+
+        if "log_every_steps" not in config:
+            self.log_every_steps: int = self.steps_per_epoch * 20
+        else:
+            self.log_every_steps = config["log_every_steps"]
+
+    def configure_reporting(self, config: ConfigDict):
+        """Configure logging and checkpointing.
+
+        The parameters configured correspond to
+
+        - log: A flag for logging to the output terminal the evolution of results. Default: ``False``.
+        - workdir: Directory to write checkpoints. Default: execution directory.
+        - checkpointing: A flag for checkpointing model state.
             Default: ``False``. `RunTimeError` is generated if
             ``True`` and tensorflow is not available.
-        log: A flag for logging to the interface the evolution of results. Default: ``False``.
-        return_state: A flag for returning the train state instead of the model variables. Default: ``False``, i.e. return model variables.
+        - return_state: A flag for returning the train state instead of the model variables. Default: ``False``, i.e. return model variables.
 
-    Returns:
-        Model variables extracted from TrainState and iteration stats object.
-        Alternatively the TrainState can be returned directly instead of the model variables.
-        Note that the iteration stats object is not None only if log is enabled.
-    """
-    itstat_object: Optional[IterationStats] = None
-    if log:  # pragma: no cover
-        print(
+        Args:
+            config: Hyperparameter configuration.
+        """
+
+        # Determine logging configuration
+        if "log" in config:
+            self.logflag: bool = config["log"]
+            if self.logflag:
+                self.itstat_object, self.itstat_insert_func = stats_obj()
+        else:
+            self.logflag = False
+
+        # Determine checkpointing configuration
+        if "workdir" in config:
+            self.workdir: str = config["workdir"]
+        else:
+            self.workdir = "./"
+
+        if "checkpointing" in config:
+            self.checkpointing: bool = config["checkpointing"]
+        else:
+            self.checkpointing = False
+
+        # Determine variable to return at end of training
+        if "return_state" in config:
+            # Returning Flax train state
+            self.return_state = config["return_state"]
+        else:
+            # Return model variables
+            self.return_state = False
+
+    def configure_training_functions(self, config: ConfigDict):
+        """Construct training functions.
+
+        Default functions are used if not specified in configuration.
+
+        The functions constructed correspond to
+
+        - `create_lr_schedule`: A function that creates an Optax learning rate schedule. Default:
+            :meth:`create_cnst_lr_schedule`.
+        - `criterion`: A function that specifies the loss being minimized in training. Default: :meth:`mse_loss`.
+        - `create_train_state`: A function that creates a Flax train state and initializes it. A train state object helps to keep optimizer and module functionality grouped for training. Default:
+            :meth:`create_basic_train_state`.
+        - `train_step_fn`: A hook for a function that executes a training step. Default: :meth:`_train_step`, i.e. use the standard train step.
+        - `eval_step_fn`: A hook for a function that executes an eval step. Default: :meth:`_eval_step`, i.e. use the standard eval step.
+        - `post_lst`: List of postprocessing functions to apply to parameter set after optimizer step (e.g. clip
+            to a specified range, normalize, etc.).
+
+        Args:
+            config: Hyperparameter configuration.
+        """
+
+        if "lr_schedule" in config:
+            create_lr_schedule: Callable = config["lr_schedule"]
+            self.lr_schedule = create_lr_schedule(config)
+        else:
+            self.lr_schedule = create_cnst_lr_schedule(config)
+
+        if "criterion" in config:
+            self.criterion: Callable = config["criterion"]
+        else:
+            self.criterion = mse_loss
+
+        if "create_train_state" in config:
+            self.create_train_state: Callable = config["create_train_state"]
+        else:
+            self.create_train_state = create_basic_train_state
+
+        if "train_step_fn" in config:
+            self.train_step_fn: Callable = config["train_step_fn"]
+        else:
+            self.train_step_fn = _train_step
+
+        if "eval_step_fn" in config:
+            self.eval_step_fn: Callable = config["eval_step_fn"]
+        else:
+            self.eval_step_fn = _eval_step
+
+        self.post_lst: Optional[List[Callable]] = None
+        if "post_lst" in config:
+            self.post_lst = config["post_lst"]
+
+    def construct_data_iterators(
+        self,
+        train_ds: DataSetDict,
+        test_ds: DataSetDict,
+        key: KeyArray,
+        mdtype: DType,
+    ):
+        """Construct iterators for training and testing (evaluation) sets.
+
+        Args:
+            train_ds: Dictionary of training data (includes images
+                and labels).
+            test_ds: Dictionary of testing data (includes images
+                and labels).
+            key: A PRNGKey used as the random key.
+            mdtype: Output type of Flax model to be trained.
+        """
+        size_device_prefetch = 2  # Set for GPU
+
+        self.train_dt_iter = create_input_iter(
+            key,
+            train_ds,
+            self.local_batch_size,
+            size_device_prefetch,
+            mdtype,
+            train=True,
+        )
+        self.eval_dt_iter = create_input_iter(
+            key,  # eval: no permutation
+            test_ds,
+            self.local_batch_size,
+            size_device_prefetch,
+            mdtype,
+            train=False,
+        )
+
+        self.ishape = train_ds["image"].shape[1:3]
+        self.log(
             "Channels: %d, training signals: %d, testing"
             " signals: %d, signal size: %d"
             % (
@@ -620,154 +828,183 @@ def train_and_evaluate(
             )
         )
 
-    # Configure seed.
-    key = jax.random.PRNGKey(config["seed"])
-    # Split seed for data iterators and model initialization
-    key1, key2 = jax.random.split(key)
-
-    # Determine sharded vs. batch partition
-    if config["batch_size"] % jax.device_count() > 0:
-        raise ValueError("Batch size must be divisible by the number of devices")
-    local_batch_size = config["batch_size"] // jax.process_count()
-    size_device_prefetch = 2  # Set for GPU
-
-    # Determine monitoring steps
-    steps_per_epoch = train_ds["image"].shape[0] // config["batch_size"]
-    config["steps_per_epoch"] = steps_per_epoch  # needed for creating lr schedule
-    if config["num_train_steps"] == -1:
-        num_steps = int(steps_per_epoch * config["num_epochs"])
-    else:
-        num_steps = config["num_train_steps"]
-    num_validation_examples = test_ds["image"].shape[0]
-    if config["steps_per_eval"] == -1:
-        steps_per_eval = num_validation_examples // config["batch_size"]
-    else:
-        steps_per_eval = config["steps_per_eval"]
-    steps_per_checkpoint = steps_per_epoch * 10
-
-    # Construct data iterators
-    train_dt_iter = create_input_iter(
-        key1,
-        train_ds,
-        local_batch_size,
-        size_device_prefetch,
-        model.dtype,
-        train=True,
-    )
-    eval_dt_iter = create_input_iter(
-        key1,  # eval: no permutation
-        test_ds,
-        local_batch_size,
-        size_device_prefetch,
-        model.dtype,
-        train=False,
-    )
-
-    # Create Flax training state
-    ishape = train_ds["image"].shape[1:3]
-    lr_schedule = create_lr_schedule(config)
-    state = create_train_state(key2, config, model, ishape, lr_schedule, variables0)
-    if checkpointing and variables0 is None:
-        # Only restore if no initialization is provided
-        if have_tf:  # Flax checkpointing requires tensorflow
-            state = restore_checkpoint(state, workdir)
-        else:
-            raise RuntimeError(
-                "Tensorflow not available and it is required for Flax checkpointing."
+    def define_parallel_training_functions(self):
+        """Construct parallel versions of training functions via `jax.pmap`."""
+        if self.post_lst is not None:
+            self.p_train_step = jax.pmap(
+                functools.partial(
+                    _train_step_post,
+                    train_step_fn=self.train_step_fn,
+                    learning_rate_fn=self.lr_schedule,
+                    criterion=self.criterion,
+                    post_lst=self.post_lst,
+                ),
+                axis_name="batch",
             )
-    if log:  # pragma: no cover
-        print(get_parameter_overview(state.params))
-        print(get_parameter_overview(state.batch_stats))
-    step_offset = int(state.step)  # > 0 if restarting from checkpoint
-
-    # For parallel training
-    state = jax_utils.replicate(state)
-    if post_lst is not None:
-        p_train_step = jax.pmap(
-            functools.partial(
-                _train_step_post,
-                train_step_fn=train_step_fn,
-                learning_rate_fn=lr_schedule,
-                criterion=criterion,
-                post_lst=post_lst,
-            ),
+        else:
+            self.p_train_step = jax.pmap(
+                functools.partial(
+                    self.train_step_fn, learning_rate_fn=self.lr_schedule, criterion=self.criterion
+                ),
+                axis_name="batch",
+            )
+        self.p_eval_step = jax.pmap(
+            functools.partial(self.eval_step_fn, criterion=self.criterion),
             axis_name="batch",
         )
-    else:
-        p_train_step = jax.pmap(
-            functools.partial(train_step_fn, learning_rate_fn=lr_schedule, criterion=criterion),
-            axis_name="batch",
+
+    def initialize_training_state(
+        self,
+        config: ConfigDict,
+        key: KeyArray,
+        model: ModuleDef,
+        variables0: Optional[ModelVarDict] = None,
+    ):
+        """Construct and initialize Flax train state.
+
+        A train state object helps to keep optimizer and module functionality grouped for training.
+
+        Args:
+            config: Hyperparameter configuration.
+            key: A PRNGKey used as the random key.
+            model: Flax model to train.
+            variables0: Optional initial state of model
+                parameters. Default: ``None``.
+        """
+        # Create Flax training state
+        state = self.create_train_state(
+            key, config, model, self.ishape, self.lr_schedule, variables0
         )
-    p_eval_step = jax.pmap(eval_step_fn, axis_name="batch")
+        if self.checkpointing and variables0 is None:
+            # Only restore if no initialization is provided
+            if have_tf:  # Flax checkpointing requires tensorflow
+                state = restore_checkpoint(state, self.workdir)
+            else:
+                raise RuntimeError(
+                    "Tensorflow not available and it is required for Flax checkpointing."
+                )
+        self.log(get_parameter_overview(state.params))
+        self.log(get_parameter_overview(state.batch_stats))
 
-    # Execute training loop and register stats
-    train_metrics: List[Any] = []
-    eval_metrics: List[Any] = []
-    t0 = time.time()
-    if log:
-        print("Initial compilation, this might take some minutes...")
-        itstat_object, itstat_insert_func = stats_obj()
+        self.state = state
 
-    for step, batch in zip(range(step_offset, num_steps), train_dt_iter):
-        state, metrics = p_train_step(state, batch)
-        if log and step == step_offset:
-            print("Initial compilation completed.")
+    def train(self):
+        """Execute training loop.
 
-        if log:  # pragma: no cover
-            train_metrics.append(metrics)
-            if (step + 1) % config["log_every_steps"] == 0:
-                train_metrics = common_utils.get_metrics(train_metrics)
-                summary = {
-                    f"train_{k}": v
-                    for k, v in jax.tree_map(lambda x: x.mean(), train_metrics).items()
-                }
+        Returns:
+            Model variables extracted from TrainState  and iteration stats object obtained after executing the training loop.
+            Alternatively the TrainState can be returned directly instead of the model variables.
+            Note that the iteration stats object is not None only if log is enabled when configuring the training loop.
+        """
+        state = self.state
+        step_offset = int(state.step)  # > 0 if restarting from checkpoint
 
-                epoch = step // steps_per_epoch
-                summary["epoch"] = epoch
-                summary["time"] = time.time() - t0
-                train_metrics = []
+        # For parallel training
+        state = jax_utils.replicate(state)
+        # Execute training loop and register stats
+        t0 = time.time()
+        self.log("Initial compilation, this might take some minutes...")
 
+        for step, batch in zip(range(step_offset, self.num_steps), self.train_dt_iter):
+            state, metrics = self.p_train_step(state, batch)
+            if step == step_offset:
+                self.log("Initial compilation completed.")
+            if (step + 1) % self.log_every_steps == 0:
                 # sync batch statistics across replicas
                 state = sync_batch_stats(state)
-                for _ in range(steps_per_eval):
-                    eval_batch = next(eval_dt_iter)
-                    metrics = p_eval_step(state, eval_batch)
-                    eval_metrics.append(metrics)
-                eval_metrics = common_utils.get_metrics(eval_metrics)
+                self.update_metrics(state, step, metrics, t0)
+            if (step + 1) % self.steps_per_checkpoint == 0 or step + 1 == self.num_steps:
+                # sync batch statistics across replicas
+                state = sync_batch_stats(state)
+                self.checkpoint(state)
 
-                summary_eval = jax.tree_map(lambda x: x.mean(), eval_metrics)
-                summary.update(summary_eval)
-                eval_metrics = []
+        # Wait for finishing asynchronous execution
+        jax.random.normal(jax.random.PRNGKey(0), ()).block_until_ready()
+        # Close object for iteration stats if logging
+        if self.logflag:
+            self.itstat_object.end()
 
-                assert isinstance(itstat_object, IterationStats)  # for mypy
-                itstat_object.insert(itstat_insert_func(ArgumentStruct(**summary)))
+        state = sync_batch_stats(state)
+        # Extract one copy of state
+        state = jax_utils.unreplicate(state)
+        if self.return_state:
+            return state, self.itstat_object  # type: ignore
 
-        if (step + 1) % steps_per_checkpoint == 0 or step + 1 == num_steps:
-            state = sync_batch_stats(state)
-            if checkpointing:  # pragma: no cover
-                if not have_tf:  # Flax checkpointing requires tensorflow
-                    raise RuntimeError(
-                        "Tensorflow not available and it is" " required for Flax checkpointing."
-                    )
-                save_checkpoint(state, workdir)
+        dvar: ModelVarDict = {
+            "params": state.params,
+            "batch_stats": state.batch_stats,
+        }
 
-    jax.random.normal(jax.random.PRNGKey(0), ()).block_until_ready()
-    if log:
-        assert isinstance(itstat_object, IterationStats)  # for mypy
-        itstat_object.end()
+        return dvar, self.itstat_object  # type: ignore
 
-    state = sync_batch_stats(state)
-    # Extract one copy of state
-    state = jax_utils.unreplicate(state)
-    if return_state:
-        return state, itstat_object  # type: ignore
+    def update_metrics(self, state: TrainState, step: int, metrics: MetricsDict, t0):
+        """Compute metrics for current model state.
 
-    dvar: ModelVarDict = {
-        "params": state.params,
-        "batch_stats": state.batch_stats,
-    }
+        Metrics for training and testing (eval) sets are computed and stored in an
+        iteration stats object. This is executed only if logging is enabled.
 
-    return dvar, itstat_object  # type: ignore
+        Args:
+            state: Flax train state which includes the
+                model apply function and the model parameters.
+            step: Current step in training.
+            metrics: Current diagnostic statistics computed from training set.
+            t0: Time when training loop started.
+        """
+        if not self.logflag:
+            return
+
+        train_metrics: List[Any] = []
+        eval_metrics: List[Any] = []
+
+        # Training metrics computed in step
+        train_metrics.append(metrics)
+        # Build summary dictionary for logging
+        # Include training stats
+        train_metrics = common_utils.get_metrics(train_metrics)
+        summary = {
+            f"train_{k}": v for k, v in jax.tree_map(lambda x: x.mean(), train_metrics).items()
+        }
+        epoch = step // self.steps_per_epoch
+        summary["epoch"] = epoch
+        summary["time"] = time.time() - t0
+
+        # Eval over testing set
+        for _ in range(self.steps_per_eval):
+            eval_batch = next(self.eval_dt_iter)
+            metrics = self.p_eval_step(state, eval_batch)
+            eval_metrics.append(metrics)
+        # Compute testing metrics
+        eval_metrics = common_utils.get_metrics(eval_metrics)
+
+        # Add testing stats to summary
+        summary_eval = jax.tree_map(lambda x: x.mean(), eval_metrics)
+        summary.update(summary_eval)
+
+        # Update iteration stats object
+        assert isinstance(self.itstat_object, IterationStats)  # for mypy
+        self.itstat_object.insert(self.itstat_insert_func(ArgumentStruct(**summary)))
+
+    def checkpoint(self, state: TrainState):  # pragma: no cover
+        """Checkpoint training state if enabled (and Tensorflow available).
+
+        Args:
+            state: Flax train state.
+        """
+        if self.checkpointing:
+            if not have_tf:  # Flax checkpointing requires tensorflow
+                raise RuntimeError(
+                    "Tensorflow not available and it is" " required for Flax checkpointing."
+                )
+            save_checkpoint(state, self.workdir)
+
+    def log(self, logstr: str):
+        """Print stats to output terminal if logging is enabled.
+
+        Args:
+            logstr: String to be logged.
+        """
+        if self.logflag:
+            print(logstr)
 
 
 def _apply_fn(model: ModuleDef, variables: ModelVarDict, batch: DataSetDict) -> Array:
