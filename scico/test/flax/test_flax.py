@@ -1,9 +1,12 @@
+import os
+import tempfile
 from functools import partial
 
 import numpy as np
 
 import pytest
 
+from flax.core import unfreeze
 from flax.errors import ScopeParamShapeError
 from flax.linen import BatchNorm, Conv, elu, leaky_relu, max_pool, relu
 from scico import flax as sflax
@@ -331,3 +334,23 @@ def test_variable_load_mismatch():
     fmap = sflax.FlaxMap(model, variables)
     with pytest.raises(ScopeParamShapeError):
         fmap(x)
+
+
+def test_variable_save():
+    N = 128  # image size
+    chn = 1  # channels
+    x, key = randn((10, N, N, chn), seed=1234)
+
+    nlayer = 6
+    model = sflax.ResNet(depth=nlayer, channels=chn, num_filters=64, dtype=np.float32)
+
+    aux, key = randn((1,), seed=23432)
+    input_shape = (1, N, N, chn)
+    variables = model.init({"params": key}, np.ones(input_shape, model.dtype))
+
+    try:
+        temp_dir = tempfile.TemporaryDirectory()
+        sflax.save_weights(unfreeze(variables), os.path.join(temp_dir.name, "vres6.npz"))
+    except Exception as e:
+        print(e)
+        assert 0
