@@ -205,7 +205,7 @@ def ray_distributed_data_generation(
     if not have_ray:
         raise RuntimeError("Package ray is required for use of this function.")
 
-    ray.init(local_mode=True, ignore_reinit_error=True)
+    ray.init()
 
     @ray.remote
     def data_gen(seed, size, ndata, imgf):
