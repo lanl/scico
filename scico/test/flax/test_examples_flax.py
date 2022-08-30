@@ -90,7 +90,7 @@ def test_distdatagen_exception():
 def test_ray_distdatagen():
     N = 32
     nimg = 16
-    dt = ray_distributed_data_generation(fake_data_gen, N, nimg)
+    dt = ray_distributed_data_generation(fake_data_gen, N, nimg, test_flag=True)
     assert dt.ndim == 4
     assert dt.shape == (nimg, N, N, 1)
 
