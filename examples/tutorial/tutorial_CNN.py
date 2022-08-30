@@ -15,8 +15,8 @@ The install may take several minutes;
 when it is finished, you should see `==done with install==`.
 
 """
+!pip install -q condacolab
 import condacolab
-
 condacolab.install()
 
 !pip install git+https://github.com/lanl/scico@cristina/more-flax
