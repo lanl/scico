@@ -12,8 +12,14 @@ Assumes sharded batched data and uses data parallel training.
 
 import functools
 import os
+import sys
 import time
-from typing import Any, Callable, Dict, List, Optional, Tuple, TypedDict, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+
+if sys.version_info >= (3, 8):
+    from typing import TypedDict  # pylint: disable=no-name-in-module
+else:
+    from typing_extensions import TypedDict
 
 import jax
 import jax.numpy as jnp

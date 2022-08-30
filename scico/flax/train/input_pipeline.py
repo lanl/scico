@@ -11,7 +11,14 @@ Includes construction of data iterator and
 instantiation for parallel processing.
 """
 
-from typing import Any, TypedDict, Union
+import sys
+
+if sys.version_info >= (3, 8):
+    from typing import TypedDict  # pylint: disable=no-name-in-module
+else:
+    from typing_extensions import TypedDict
+
+from typing import Any, Union
 
 import jax
 import jax.numpy as jnp
