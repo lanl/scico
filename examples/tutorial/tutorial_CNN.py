@@ -3,7 +3,29 @@
 
 In this example,
  we will explore how to use CNN models as data-driven priors in a SCICO pipeline for performing computed tomography (CT) reconstruction.
+"""
 
+"""
+## Setup
+To set up your environment, run the cell below.
+
+If you get a popup with 'Warning: This notebook was not authored by Google.', select 'Run anyway'.
+You should see console outputs appearing.
+The install may take several minutes;
+when it is finished, you should see `==done with install==`.
+
+"""
+import condacolab
+
+condacolab.install()
+
+!pip install git+https://github.com/lanl/scico@cristina/more-flax
+!pip install xdesign
+!conda install -c astra-toolbox astra-toolbox
+
+print('==done with install==')
+
+"""
 ## Introduction
 
 Suppose that you are performing CT scans of many of similar objects
