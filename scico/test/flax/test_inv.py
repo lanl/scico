@@ -119,14 +119,14 @@ class TestCT:
         self.test_ds = {"image": y, "label": xt}
 
         # Model configuration
-        self.mconf = {
+        self.model_conf = {
             "depth": 1,
             "num_filters": 16,
             "block_depth": 2,
         }
 
         # Training configuration
-        self.dconf: sflax.ConfigDict = {
+        self.train_conf: sflax.ConfigDict = {
             "seed": 0,
             "opt_type": "ADAM",
             "batch_size": self.bsize,
@@ -144,10 +144,10 @@ class TestCT:
 
         model = sflax.ODPNet(
             operator=self.opCT,
-            depth=self.mconf["depth"],
+            depth=self.model_conf["depth"],
             channels=self.chn,
-            num_filters=self.mconf["num_filters"],
-            block_depth=self.mconf["block_depth"],
+            num_filters=self.model_conf["num_filters"],
+            block_depth=self.model_conf["block_depth"],
             odp_block=sflax.ODPGrDescBlock,
         )
 
@@ -161,10 +161,10 @@ class TestCT:
 
         model = sflax.MoDLNet(
             operator=self.opCT,
-            depth=self.mconf["depth"],
+            depth=self.model_conf["depth"],
             channels=self.chn,
-            num_filters=self.mconf["num_filters"],
-            block_depth=self.mconf["block_depth"],
+            num_filters=self.model_conf["num_filters"],
+            block_depth=self.model_conf["block_depth"],
         )
 
         variables = model.init(key, y)
@@ -175,10 +175,10 @@ class TestCT:
     def test_train_modl(self):
         model = sflax.MoDLNet(
             operator=self.opCT,
-            depth=self.mconf["depth"],
+            depth=self.model_conf["depth"],
             channels=self.chn,
-            num_filters=self.mconf["num_filters"],
-            block_depth=self.mconf["block_depth"],
+            num_filters=self.model_conf["num_filters"],
+            block_depth=self.model_conf["block_depth"],
         )
         try:
             minval = 1.1e-2
@@ -188,14 +188,15 @@ class TestCT:
                 traversal=lmbdatrav,
                 minval=minval,
             )
-            modvar, _ = sflax.train_and_evaluate(
-                self.dconf,
-                "./",
+            train_conf = dict(self.train_conf)
+            train_conf["post_lst"] = [lmbdapos]
+            trainer = sflax.BasicFlaxTrainer(
+                train_conf,
                 model,
                 self.train_ds,
                 self.test_ds,
-                post_lst=[lmbdapos],
             )
+            modvar, _ = trainer.train()
         except Exception as e:
             print(e)
             assert 0
@@ -206,10 +207,10 @@ class TestCT:
     def test_train_odpct(self):
         model = sflax.ODPNet(
             operator=self.opCT,
-            depth=self.mconf["depth"],
+            depth=self.model_conf["depth"],
             channels=self.chn,
-            num_filters=self.mconf["num_filters"],
-            block_depth=self.mconf["block_depth"],
+            num_filters=self.model_conf["num_filters"],
+            block_depth=self.model_conf["block_depth"],
             odp_block=sflax.ODPGrDescBlock,
         )
 
@@ -218,14 +219,15 @@ class TestCT:
             maxval = 1e2
             alphatrav = construct_traversal("alpha")
             alpharange = partial(clip_range, traversal=alphatrav, minval=minval, maxval=maxval)
-            modvar, _ = sflax.train_and_evaluate(
-                self.dconf,
-                "./",
+            train_conf = dict(self.train_conf)
+            train_conf["post_lst"] = [alpharange]
+            trainer = sflax.BasicFlaxTrainer(
+                train_conf,
                 model,
                 self.train_ds,
                 self.test_ds,
-                post_lst=[alpharange],
             )
+            modvar, _ = trainer.train()
         except Exception as e:
             print(e)
             assert 0
