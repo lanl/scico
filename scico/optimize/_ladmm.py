@@ -217,7 +217,7 @@ class LinearizedADMM:
                :code:`self.x`.
 
         Returns:
-            Value of primal residual.
+            Norm of primal residual.
         """
         if x is None:
             x = self.x
@@ -233,7 +233,7 @@ class LinearizedADMM:
             \norm{\mb{z}^{(k)} - \mb{z}^{(k-1)}}_2 \;.
 
         Returns:
-            Current value of dual residual.
+            Current norm of dual residual.
         """
         return norm(self.C.adj(self.z - self.z_old))
 

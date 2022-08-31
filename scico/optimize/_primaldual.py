@@ -220,7 +220,7 @@ class PDHG:
             \tau^{-1} \norm{\mb{x}^{(k)} - \mb{x}^{(k-1)}}_2 \;.
 
         Returns:
-            Current value of primal residual.
+            Current norm of primal residual.
         """
 
         return norm(self.x - self.x_old) / self.tau  # type: ignore
@@ -234,7 +234,7 @@ class PDHG:
             \sigma^{-1} \norm{\mb{z}^{(k)} - \mb{z}^{(k-1)}}_2 \;.
 
         Returns:
-            Current value of dual residual.
+            Current norm of dual residual.
 
         """
         return norm(self.z - self.z_old) / self.sigma

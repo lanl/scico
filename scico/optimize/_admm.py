@@ -252,7 +252,7 @@ class ADMM:
                 current iterate :code:`self.x`.
 
         Returns:
-            Value of primal residual.
+            Norm of primal residual.
         """
         if x is None:
             x = self.x
@@ -272,7 +272,7 @@ class ADMM:
             \mb{z}^{(k-1)}_i}_2^2\right)^{1/2} \;.
 
         Returns:
-            Current value of dual residual.
+            Current norm of dual residual.
 
         """
         out = 0.0
