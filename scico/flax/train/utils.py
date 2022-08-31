@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 """Utils for spectral normalization of convolutional layers in Flax models.
 """
+import warnings
+
+warnings.simplefilter(action="ignore", category=FutureWarning)
 
 from typing import Any, Callable, Sequence
 

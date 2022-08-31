@@ -7,6 +7,10 @@
 
 """Flax implementation of different convolutional nets."""
 
+import warnings
+
+warnings.simplefilter(action="ignore", category=FutureWarning)
+
 from functools import partial
 from typing import Any, Callable, Tuple
 

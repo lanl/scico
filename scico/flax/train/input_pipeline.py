@@ -11,6 +11,10 @@ Includes construction of data iterator and
 instantiation for parallel processing.
 """
 
+import warnings
+
+warnings.simplefilter(action="ignore", category=FutureWarning)
+
 import sys
 
 if sys.version_info >= (3, 8):

@@ -6,6 +6,10 @@
 # package.
 """Flax implementation of different imaging inversion models."""
 
+import warnings
+
+warnings.simplefilter(action="ignore", category=FutureWarning)
+
 from functools import partial
 from typing import Any, Callable, Tuple
 

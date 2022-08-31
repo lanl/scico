@@ -7,7 +7,10 @@
 
 """Convolutional neural network models implemented in Flax."""
 
+import warnings
 from typing import Any, Optional
+
+warnings.simplefilter(action="ignore", category=FutureWarning)
 
 from flax import serialization
 from flax.linen.module import Module

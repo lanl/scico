@@ -9,6 +9,9 @@
 
 Assumes sharded batched data and uses data parallel training.
 """
+import warnings
+
+warnings.simplefilter(action="ignore", category=FutureWarning)
 
 import functools
 import os

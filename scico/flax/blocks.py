@@ -7,6 +7,10 @@
 
 """Flax implementation of different convolutional blocks."""
 
+import warnings
+
+warnings.simplefilter(action="ignore", category=FutureWarning)
+
 from typing import Any, Callable, Tuple
 
 import jax.numpy as jnp
