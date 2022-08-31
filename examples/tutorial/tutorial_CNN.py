@@ -15,6 +15,7 @@ The install may take several minutes;
 when it is finished, you should see `==done with install==`.
 
 """
+!pip install -q condacolab
 import condacolab
 
 condacolab.install()
@@ -28,12 +29,12 @@ print('==done with install==')
 """
 ## Introduction
 
-Suppose that you are performing CT scans of many of similar objects
+Suppose that you are performing CT scans of many similar objects
  and want to construct a pipeline to rapidly compute the reconstruction
  of each new measurement.
 For this example, we will use computer-generated foam images
 as the objects we want to image.
-Run the next cell to generate and visualize one of such foam.
+Run the next cell to generate and visualize one of such foams.
 """
 
 import numpy as np
@@ -309,14 +310,16 @@ test_ds = {"image": sino_collection[16:], "label": foam_collection[16:]}
 
 SCICO configures both model and training via dictionaries too. An example of configuration dictionaries with the corresponding definitions is shown next.
 
-Run the next cell to build the configuration dictionary.
+Run the next cell to build the configuration dictionaries.
 """
+# Model configuration
 model_conf = {
     "depth": 2,  # Number of layers (=iterations) in the unrolled ML model
     "num_filters": 16,  # Number of filters in the denoiser
     "block_depth": 3,  # Number of layers in the denoiser
 }
 
+# Training configuration
 train_conf = {
     "seed": 100,  # Seed for random generation
     "opt_type": "ADAM",  # Optimization (other available options: SGD, ADAMW)
@@ -325,7 +328,6 @@ train_conf = {
     "base_learning_rate": 1e-2,  # Base learning rate
     "warmup_epochs": 0,  # Iterations to reach the base learning rate (if a scheduler is specified)
     "log_every_steps": 5,  # Frequency of reporting training stats, given in units of training steps
-    "workdir": "./modl_ct/",
     "checkpointing": False,  # Checkpoint stats during training
     "log": True,  # Display training messages and statistics
 }
@@ -394,27 +396,27 @@ train_conf["post_lst"] = [lmbdapos]  # Constraints to model parameters
 """
 Now that we have all the structures needed for training: a data set, a model, and parameter constraints, we can use SCICO to train the model.
 
-All the training in SCICO is carried out through the `train_and_evaluate` function. The following cell shows how to pass the necessary information to that function. It uses an MSE loss function as minimization criterion by default. Look into the documentation and compare with the arguments provided.
+All the training in SCICO is carried out through the `BasicFlaxTrainer` class. The following cell shows how to instantiate an object of that class. It uses an MSE loss function as minimization criterion by default (so it is not necessary to pass it explicitly). Look into the documentation and compare with the arguments provided.
 
-Run the next cell to train the model for the number of epochs specified. Check the output being produced. It corresponds, first, to the description of the model architecture and parameter default initialization and, next, to the training statistics. If it is taking too long, you can try to train for less epochs or use less layers in the model.
+Run the next cell to train the model for the number of epochs specified. Check the output being produced. It corresponds, first, to the variables of the model and, next, to the training statistics. If it is taking too long, you can try to train for less epochs or use less layers in the model.
 """
 from time import time
 
-trainer = sflax.train_and_evaluate(
+trainer = sflax.BasicFlaxTrainer(
     train_conf,  # Dictionary with training configuration
     model,  # Model to train
     train_ds,  # Data set for training (image-label dictionary)
     test_ds,  # Data set for testing (image-label dictionary)
 )
 start_time = time()
-modvar, stats_object = trainer.train()
+modvar, stats_object_ini = trainer.train()
 time_train = time() - start_time
 print(f"Time train [s]: {time_train}")
 
 """
 Run the next cell to plot the training statistics.
 """
-hist = stats_object.history(transpose=True)
+hist = stats_object_ini.history(transpose=True)
 fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
 plot.plot(
     np.vstack((hist.Train_Loss, hist.Eval_Loss)).T,
@@ -441,14 +443,11 @@ plot.plot(
 fig.show()
 
 """
-The MoDL architecture shares the parameters between the different iteration layers. The previous training was the initialization and used only one iteration. Now we can train the model with the specified depth (from `dconf`).
+The MoDL architecture shares the parameters between the different iteration layers. The previous training was the initialization and used only one layer (corresponding to only unrolling one iteration of the optimization computation). Now we can train the model with the specified depth (from `model_conf`).
 
-**Repeat the training process**, but this time use the configured depth, 10 cg iterations and initialize with the current model parameters. Train for 100 epochs.
+**Repeat the training process**, but this time use the configured depth, 10 cg iterations and initialize with the current model parameters. Train for 10 epochs.
 In addition, set an exponentially decaying learning rate by
- adding a decay rate of 0.95 to the configuration dictionary.
-and using the `create_lr_schedule` option for `train_and_evaluate`.
-Make sure you pass the parameter `variables0=modvar` to `train_and_evaluate`
-to start with your pretrained weights.
+ adding a `create_lr_schedule` and a decay rate of 0.95 to the training configuration dictionary. Create a new trainer object. Make sure you pass the parameter `variables0=modvar` when initializing the object to start training with your pretrained weights.
 """
 
 # startq
@@ -456,39 +455,36 @@ from scico.flax.train.train import create_exp_lr_schedule
 
 model.depth = ...
 model.cg_iter = ...
-dconf["num_epochs"] = ...
-dconf["lr_decay_rate"] = ...
+train_conf["num_epochs"] = ...
+train_conf["lr_decay_rate"] = ...
+train_conf["create_lr_schedule"] = ...
+train_conf["post_lst"] = ...
 
-workdir2 = workdir + "iterated/"
-
+trainer = ...
 start_time = time()
-modvar, stats_object = sflax.train_and_evaluate(...)
+modvar, stats_object = ...
 time_train = time() - start_time
 print(f"Time train [s]: {time_train}")
 
 # starta
 from scico.flax.train.train import create_exp_lr_schedule
 
-model.depth = dconf["depth"]
+model.depth = model_conf["depth"]
 model.cg_iter = 10
-dconf["num_epochs"] = 100
-dconf["lr_decay_rate"] = 0.95
+train_conf["num_epochs"] = 10
+train_conf["lr_decay_rate"] = 0.95
+train_conf["create_lr_schedule"] = create_exp_lr_schedule  # Exponentially decaying LR
+train_conf["post_lst"] = [lmbdapos]  # Constraints to model parameters"]
 
-workdir2 = workdir + "iterated/"
-
-start_time = time()
-modvar, stats_object = sflax.train_and_evaluate(
-    dconf,  # Dictionary with training configuration
-    workdir2,  # Directory to store checkpoints
+trainer = sflax.BasicFlaxTrainer(
+    train_conf,  # Dictionary with training configuration
     model,  # Model to train
     train_ds,  # Data set for training (image-label dictionary)
     test_ds,  # Data set for testing (image-label dictionary)
-    create_lr_schedule=create_exp_lr_schedule,  # Exponentially decaying LR
-    post_lst=[lmbdapos],  # Constraints to model parameters
     variables0=modvar,  # Model variables after initial training
-    checkpointing=False,  # Checkpoint stats during training
-    log=True,  # Display training messages and statistics
 )
+start_time = time()
+modvar, stats_object = trainer.train()
 time_train = time() - start_time
 print(f"Time train [s]: {time_train}")
 # endqa
