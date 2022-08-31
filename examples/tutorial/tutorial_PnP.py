@@ -2,12 +2,42 @@
 # Example: CT Reconstruction
 
 This example demonstrates the process of signal reconstruction in SCICO.
+"""
 
+
+"""
+## Setup
+To set up your environment, run the cell below.
+
+If you get a popup with 'Warning: This notebook was not authored by Google.', select 'Run anyway'.
+You should see console outputs appearing.
+The install may take several minutes;
+when it is finished, you should see `==done with install==`.
+
+"""
+
+!pip install -q condacolab
+import condacolab
+
+condacolab.install()
+
+!pip install git+https://github.com/lanl/scico@cristina/more-flax
+!pip install xdesign
+!conda install -c astra-toolbox astra-toolbox
+
+!git clone -b cristina-mike/tutorial https://github.com/lanl/scico-data.git
+
+print('==done with install==')
+
+
+"""
 ## Introduction
 
 You perform a computed tomography (CT) measurement of an object and will want to reconstruct it from
 the sinogram, which we'll call $y$.
 """
+%cd /content/scico-data/notebooks/tutorial
+
 import scico.numpy as snp
 from scico import plot
 
