@@ -1,6 +1,7 @@
 OUT=../notebooks/tutorial
 
 objects = $(OUT)/tutorial_CNN.ipynb  $(OUT)/tutorial_CNN_solution.ipynb \
+          $(OUT)/tutorial_CNN_extended.ipynb  $(OUT)/tutorial_CNN_extended_solution.ipynb \
           $(OUT)/tutorial_PnP.ipynb  $(OUT)/tutorial_PnP_solution.ipynb \
           $(OUT)/tutorial_cells.ipynb $(OUT)/tutorial_cells_solution.ipynb \
           $(OUT)/tutorial_funcs.py $(OUT)/tutorial_funcs_part2.py
