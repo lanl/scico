@@ -606,6 +606,7 @@ While you wait for others to finish, think why you need to provide both model an
 """
 
 """
+## UQ/ML
 A basic UQ/ML model is to perform aletoric analysis and assume that the output (predictions) are independently and normally distributed. We can build a model to simultaneosuly predict mean and variance of the (independent) outputs.
 
 The corresponding loss function, denominated a heteroscedastic loss, can be expressed as
@@ -616,18 +617,18 @@ with $f(\mathbf{x_i})$ the mean prediction and $\sigma(\mathbf{x_i})^2$ the vari
 
 Run the next cell to define the heteroscedastic loss function.
 """
+
 import jax.numpy as jnp
 
 def het_loss(predictions, targets):
-    diff_sq = (targets - predictions[:,...[0]])**2
-    log_sig2 = predictions[:,...[1]])
+    diff_sq = (targets - predictions[..., [0]])**2
+    log_sig2 = predictions[..., [1]]
 
     return jnp.mean(jnp.exp(-log_sig2) * diff_sq + log_sig2)
 
 """
 Build a MoDL model that can use the heteroscedastic loss function and train it as you did with previous models.
 """
-
 
 # startq
 from flax.linen.module import Module, compact
@@ -745,7 +746,6 @@ modvar, stats_object = trainer.train()
 time_train = time() - start_time
 print(f"Time train [s]: {time_train}")
 # endqa
-
 
 """
 Run the next cell to check one of the testing results.
