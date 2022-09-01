@@ -939,14 +939,19 @@ class BasicFlaxTrainer:
         t0 = time.time()
         self.log("Initial compilation, this might take some minutes...")
 
+        train_metrics: List[Any] = []
+
         for step, batch in zip(range(step_offset, self.num_steps), self.train_dt_iter):
             state, metrics = self.p_train_step(state, batch)
+            # Training metrics computed in step
+            train_metrics.append(metrics)
             if step == step_offset:
                 self.log("Initial compilation completed.")
             if (step + 1) % self.log_every_steps == 0:
                 # sync batch statistics across replicas
                 state = sync_batch_stats(state)
-                self.update_metrics(state, step, metrics, t0)
+                self.update_metrics(state, step, train_metrics, t0)
+                train_metrics = []
             if (step + 1) % self.steps_per_checkpoint == 0 or step + 1 == self.num_steps:
                 # sync batch statistics across replicas
                 state = sync_batch_stats(state)
@@ -971,7 +976,7 @@ class BasicFlaxTrainer:
 
         return dvar, self.itstat_object  # type: ignore
 
-    def update_metrics(self, state: TrainState, step: int, metrics: MetricsDict, t0):
+    def update_metrics(self, state: TrainState, step: int, train_metrics: List[MetricsDict], t0):
         """Compute metrics for current model state.
 
         Metrics for training and testing (eval) sets are computed and stored in an
@@ -981,17 +986,14 @@ class BasicFlaxTrainer:
             state: Flax train state which includes the
                 model apply function and the model parameters.
             step: Current step in training.
-            metrics: Current diagnostic statistics computed from training set.
+            train_metrics: List of diagnostic statistics computed from training set.
             t0: Time when training loop started.
         """
         if not self.logflag:
             return
 
-        train_metrics: List[Any] = []
         eval_metrics: List[Any] = []
 
-        # Training metrics computed in step
-        train_metrics.append(metrics)
         # Build summary dictionary for logging
         # Include training stats
         train_metrics = common_utils.get_metrics(train_metrics)
