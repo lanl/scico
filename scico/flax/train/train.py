@@ -392,7 +392,7 @@ def _train_step(
     # Re-use same axis_name as in call to pmap
     grads = lax.pmean(grads, axis_name="batch")
     new_model_state, output = aux[1]
-    metrics = compute_metrics(output, batch["label"])
+    metrics = compute_metrics(output, batch["label"], criterion)
     metrics["learning_rate"] = lr
 
     # Update params and stats
