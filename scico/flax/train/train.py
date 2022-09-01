@@ -85,6 +85,7 @@ class ConfigDict(TypedDict):
     create_train_state: Callable
     train_step_fn: Callable
     eval_step_fn: Callable
+    metrics_fn: Callable
     post_lst: List[Callable]
 
 
@@ -349,6 +350,7 @@ def _train_step(
     batch: DataSetDict,
     learning_rate_fn: optax._src.base.Schedule,
     criterion: Callable,
+    metrics_fn: Callable,
 ) -> Tuple[TrainState, MetricsDict]:
     """Perform a single data parallel training step. Assumes sharded batched data.
 
@@ -364,6 +366,7 @@ def _train_step(
            learning rate is not stored). The real learnig rate schedule applied is the one defined when creating the
            Flax state. If a different object is passed here, then the displayed value will be inaccurate.
         criterion: A function that specifies the loss being minimized in training.
+        metrics_fn: A function to evaluate quality of current model.
 
     Returns:
         Updated parameters and diagnostic statistics.
@@ -392,7 +395,7 @@ def _train_step(
     # Re-use same axis_name as in call to pmap
     grads = lax.pmean(grads, axis_name="batch")
     new_model_state, output = aux[1]
-    metrics = compute_metrics(output, batch["label"], criterion)
+    metrics = metrics_fn(output, batch["label"], criterion)
     metrics["learning_rate"] = lr
 
     # Update params and stats
@@ -454,6 +457,7 @@ def _train_step_post(
     learning_rate_fn: optax._src.base.Schedule,
     criterion: Callable,
     train_step_fn: Callable,
+    metrics_fn: Callable,
     post_lst: List[Callable],
 ) -> Tuple[TrainState, MetricsDict]:
     """Perform a single data parallel training step. A list of postprocessing
@@ -472,6 +476,7 @@ def _train_step_post(
            counts to values.
         criterion: A function that specifies the loss being minimized in training.
         train_step_fn: A function that executes a training step.
+        metrics_fn: A function to evaluate quality of current model.
         post_lst: List of postprocessing functions to apply to parameter set after optimizer step (e.g. clip
             to a specified range, normalize, etc.).
 
@@ -480,7 +485,7 @@ def _train_step_post(
         and diagnostic statistics.
     """
 
-    new_state, metrics = train_step_fn(state, batch, learning_rate_fn, criterion)
+    new_state, metrics = train_step_fn(state, batch, learning_rate_fn, criterion, metrics_fn)
 
     # Post-process parameters
     for post_fn in post_lst:
@@ -490,7 +495,9 @@ def _train_step_post(
     return new_state, metrics
 
 
-def _eval_step(state: TrainState, batch: DataSetDict, criterion: Callable) -> MetricsDict:
+def _eval_step(
+    state: TrainState, batch: DataSetDict, criterion: Callable, metrics_fn: Callable
+) -> MetricsDict:
     """Evaluate current model state. Assumes sharded
     batched data.
 
@@ -501,6 +508,7 @@ def _eval_step(state: TrainState, batch: DataSetDict, criterion: Callable) -> Me
            model apply function and the model parameters.
         batch: Sharded and batched training data.
         criterion: Loss function.
+        metrics_fn: A function to evaluate quality of current model.
 
     Returns:
         Current diagnostic statistics.
@@ -510,7 +518,7 @@ def _eval_step(state: TrainState, batch: DataSetDict, criterion: Callable) -> Me
         "batch_stats": state.batch_stats,
     }
     output = state.apply_fn(variables, batch["image"], train=False, mutable=False)
-    return compute_metrics(output, batch["label"], criterion)
+    return metrics_fn(output, batch["label"], criterion)
 
 
 # sync across replicas
@@ -757,6 +765,7 @@ class BasicFlaxTrainer:
             :meth:`create_basic_train_state`.
         - `train_step_fn`: A hook for a function that executes a training step. Default: :meth:`_train_step`, i.e. use the standard train step.
         - `eval_step_fn`: A hook for a function that executes an eval step. Default: :meth:`_eval_step`, i.e. use the standard eval step.
+        - `metrics_fn`: A hook for a function that computes metrics. Default: :meth:`compute_metrics`, i.e. use the standard compute metrics function.
         - `post_lst`: List of postprocessing functions to apply to parameter set after optimizer step (e.g. clip
             to a specified range, normalize, etc.).
 
@@ -789,6 +798,11 @@ class BasicFlaxTrainer:
             self.eval_step_fn: Callable = config["eval_step_fn"]
         else:
             self.eval_step_fn = _eval_step
+
+        if "metrics_fn" in config:
+            self.metrics_fn: Callable = config["metrics_fn"]
+        else:
+            self.metrics_fn = compute_metrics
 
         self.post_lst: Optional[List[Callable]] = None
         if "post_lst" in config:
@@ -851,6 +865,7 @@ class BasicFlaxTrainer:
                     train_step_fn=self.train_step_fn,
                     learning_rate_fn=self.lr_schedule,
                     criterion=self.criterion,
+                    metrics_fn=self.metrics_fn,
                     post_lst=self.post_lst,
                 ),
                 axis_name="batch",
@@ -858,12 +873,17 @@ class BasicFlaxTrainer:
         else:
             self.p_train_step = jax.pmap(
                 functools.partial(
-                    self.train_step_fn, learning_rate_fn=self.lr_schedule, criterion=self.criterion
+                    self.train_step_fn,
+                    learning_rate_fn=self.lr_schedule,
+                    criterion=self.criterion,
+                    metrics_fn=self.metrics_fn,
                 ),
                 axis_name="batch",
             )
         self.p_eval_step = jax.pmap(
-            functools.partial(self.eval_step_fn, criterion=self.criterion),
+            functools.partial(
+                self.eval_step_fn, criterion=self.criterion, metrics_fn=self.metrics_fn
+            ),
             axis_name="batch",
         )
 

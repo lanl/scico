@@ -366,7 +366,12 @@ def test_basic_train_step(testobj):
     # Training is configured as parallel operation
     state = jax_utils.replicate(state)
     p_train_step = jax.pmap(
-        functools.partial(_train_step, learning_rate_fn=learning_rate, criterion=criterion),
+        functools.partial(
+            _train_step,
+            learning_rate_fn=learning_rate,
+            criterion=criterion,
+            metrics_fn=compute_metrics,
+        ),
         axis_name="batch",
     )
 
@@ -432,6 +437,7 @@ def test_post_train_step(testobj):
             learning_rate_fn=learning_rate,
             criterion=criterion,
             train_step_fn=_train_step,
+            metrics_fn=compute_metrics,
             post_lst=[krange],
         ),
         axis_name="batch",
@@ -471,7 +477,7 @@ def test_basic_eval_step(testobj):
     # Evaluation is configured as parallel operation
     state = jax_utils.replicate(state)
     p_eval_step = jax.pmap(
-        functools.partial(_eval_step, criterion=criterion),
+        functools.partial(_eval_step, criterion=criterion, metrics_fn=compute_metrics),
         axis_name="batch",
     )
 
