@@ -322,7 +322,6 @@ model_conf = {
 
 # Training configuration
 train_conf = {
-    "seed": 100,  # Seed for random generation
     "opt_type": "ADAM",  # Optimization (other available options: SGD, ADAMW)
     "batch_size": 8,  # Number of samples to include in each batch
     "num_epochs": 50,  # Number of training epochs
@@ -448,7 +447,7 @@ The MoDL architecture shares the parameters between the different iteration laye
 
 **Repeat the training process**, but this time use the configured depth, 10 cg iterations and initialize with the current model parameters. Train for 10 epochs.
 In addition, set an exponentially decaying learning rate by
- adding a `create_lr_schedule` and a decay rate of 0.95 to the training configuration dictionary. Create a new trainer object. Make sure you pass the parameter `variables0=modvar` when initializing the object to start training with your pretrained weights.
+ adding a `create_lr_schedule` and a decay rate of 0.5 to the training configuration dictionary. Create a new trainer object. Make sure you pass the parameter `variables0=modvar` when initializing the object to start training with your pretrained weights.
 """
 
 # startq
@@ -473,7 +472,7 @@ from scico.flax.train.train import create_exp_lr_schedule
 model.depth = model_conf["depth"]
 model.cg_iter = 10
 train_conf["num_epochs"] = 10
-train_conf["lr_decay_rate"] = 0.95
+train_conf["lr_decay_rate"] = 0.5
 train_conf["create_lr_schedule"] = create_exp_lr_schedule  # Exponentially decaying LR
 train_conf["post_lst"] = [lmbdapos]  # Constraints to model parameters"]
 
@@ -611,7 +610,7 @@ A basic UQ/ML model is to perform aletoric analysis and assume that the output (
 
 The corresponding loss function, denominated a heteroscedastic loss, can be expressed as
 
-$$L_{\mathrm{het}} = \frac{1}{N} \sum_i \frac{1}{2 \sigma(\mathbf{x_i})^2} || \mathbf{y_i} - f(\mathbf{x_i}) ||^2 \frac{1}{2} \log \sigma(\mathbf{x_i})^2;,$$
+$$L_{\mathrm{het}} = \frac{1}{N} \sum_i \frac{1}{2 \sigma(\mathbf{x_i})^2} || \mathbf{y_i} - f(\mathbf{x_i}) ||^2 + \frac{1}{2} \log \sigma(\mathbf{x_i})^2;,$$
 
 with $f(\mathbf{x_i})$ the mean prediction and $\sigma(\mathbf{x_i})^2$ the variance.
 
@@ -627,7 +626,7 @@ def het_loss(predictions, targets):
     return jnp.mean(jnp.exp(-log_sig2) * diff_sq + log_sig2)
 
 """
-Build a MoDL model that can use the heteroscedastic loss function and train it as you did with previous models.
+Build a MoDL model that can use the heteroscedastic loss function.
 """
 
 # startq
@@ -643,13 +642,6 @@ class MoDLNet_het(Module): ...
 def compute_metrics_het(output, labels, criterion): ...
 
 model = MoDLNet_het(...)
-train_conf = {...}
-
-trainer = sflax.BasicFlaxTrainer(...)
-start_time = time()
-modvar, stats_object = trainer.train()
-time_train = time() - start_time
-print(f"Time train [s]: {time_train}")
 
 # starta
 from jax import lax
@@ -675,15 +667,6 @@ class MoDLNet_het(Module):
 
     @compact
     def __call__(self, y: Array, train: bool = True) -> Array:
-        """Apply MoDL net for inversion.
-
-        Args:
-            y: The nd-array with signal to invert.
-            train: Flag to differentiate between training and testing stages.
-
-        Returns:
-            The mean of the reconstructed signal and the predicted variance.
-        """
 
         def lmbda_init_wrap(rng: PRNGKey, shape: Shape, dtype: DType = self.dtype) -> Array:
             return jnp.ones(shape, dtype) * self.lmbda_ini
@@ -725,7 +708,7 @@ class MoDLNet_het(Module):
 def compute_metrics_het(output, labels, criterion):
     loss = criterion(output, labels)
     snr_ = snr(labels, output[...,[0]]) # vs. mean
-    metrics: MetricsDict = {
+    metrics = {
         "loss": loss,
         "snr": snr_,
     }
@@ -739,21 +722,36 @@ model = MoDLNet_het(
     channels=channels,
     num_filters=model_conf["num_filters"],
     block_depth=model_conf["block_depth"],
+    cg_iter=3,
 )
+# endqa
+
+"""
+Train the model as you did with previous models.
+"""
+
+# startq
+train_conf = {...}
+
+trainer = sflax.BasicFlaxTrainer(...)
+start_time = time()
+modvar, stats_object = trainer.train()
+time_train = time() - start_time
+print(f"Time train [s]: {time_train}")
 
 
+# starta
 train_conf = {
-    "seed": 100,  # Seed for random generation
     "opt_type": "ADAM",  # Optimization (other available options: SGD, ADAMW)
     "batch_size": 8,  # Number of samples to include in each batch
     "num_epochs": 50,  # Number of training epochs
-    "base_learning_rate": 1e-2,  # Base learning rate
+    "base_learning_rate": 1e-3,  # Base learning rate
     "warmup_epochs": 0,  # Iterations to reach the base learning rate (if a scheduler is specified)
     "log_every_steps": 5,  # Frequency of reporting training stats, given in units of training steps
     "checkpointing": False,  # Checkpoint stats during training
     "log": True,  # Display training messages and statistics
     "post_lst": [lmbdapos],  # Constraints to model parameters
-    "criterion": het_loss # Minimize heteroscedastic loss
+    "criterion": het_loss, # Minimize heteroscedastic loss
     "metrics_fn": compute_metrics_het # Use modified metrics to handle mean, std prediction
 }
 
@@ -790,10 +788,11 @@ plot.imview(
         metric.snr(test_ds["label"][indx, ..., 0], output[indx, ..., 0]),
         metric.mae(test_ds["label"][indx, ..., 0], output[indx, ..., 0]),
     ),
+    cbar=None,
     fig=fig,
     ax=ax[1],
 )
-plot.imview(std_indx, title="Standard Deviation", cbar=None, fig=fig, ax=ax[2])
+plot.imview(std_indx, title="Standard Deviation", fig=fig, ax=ax[2])
 
 divider = make_axes_locatable(ax[2])
 cax = divider.append_axes("right", size="5%", pad=0.2)
