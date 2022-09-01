@@ -249,7 +249,7 @@ In the diagram, the green blocks correspond to a denoiser, generally a residual 
 """
 For this tutorial we will use the MoDL architecture.
 
-The class [flax.MoDLNet](../_autosummary/scico.learning.rst#scico.learning.MoDL)
+The class [flax.MoDLNet](https://scico--325.org.readthedocs.build/en/325/_autosummary/scico.flax.html#scico.flax.MoDLNet)
  implements the MoDL architecture, which unrolls the optimization problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; \| A \mathbf{x} - \mathbf{y} \|_2^2 + \lambda \, \| \mathbf{x} - \mathrm{D}_w(\mathbf{x})\|_2^2 \;,$$
