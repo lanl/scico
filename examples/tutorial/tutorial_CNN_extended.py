@@ -631,12 +631,16 @@ Build a MoDL model that can use the heteroscedastic loss function and train it a
 """
 
 # startq
+from jax import lax
+from typing import Any, Tuple
 from flax.linen.module import Module, compact
 from scico.flax import ResNet
 from scico.flax.inverse import cg_solver
-from typing import Any, Tuple
+from scico.metric import snr
+from scico.typing import Array, DType, PRNGKey, Shape
 
 class MoDLNet_het(Module): ...
+def compute_metrics_het(output, labels, criterion): ...
 
 model = MoDLNet_het(...)
 train_conf = {...}
@@ -648,10 +652,14 @@ time_train = time() - start_time
 print(f"Time train [s]: {time_train}")
 
 # starta
+from jax import lax
+from typing import Any, Tuple
 from flax.linen.module import Module, compact
 from scico.flax import ResNet
 from scico.flax.inverse import cg_solver
-from typing import Any, Tuple
+from scico.metric import snr
+from scico.typing import Array, DType, PRNGKey, Shape
+
 
 class MoDLNet_het(Module):
     operator: Any
@@ -713,6 +721,18 @@ class MoDLNet_het(Module):
             x = jnp.concatenate((x0, x1), axis=-1)
         return x
 
+
+def compute_metrics_het(output, labels, criterion):
+    loss = criterion(output, labels)
+    snr_ = snr(labels, output[...,[0]]) # vs. mean
+    metrics: MetricsDict = {
+        "loss": loss,
+        "snr": snr_,
+    }
+    metrics = lax.pmean(metrics, axis_name="batch")
+    return metrics
+
+
 model = MoDLNet_het(
     operator=A,
     depth=1,
@@ -720,6 +740,7 @@ model = MoDLNet_het(
     num_filters=model_conf["num_filters"],
     block_depth=model_conf["block_depth"],
 )
+
 
 train_conf = {
     "seed": 100,  # Seed for random generation
@@ -731,8 +752,9 @@ train_conf = {
     "log_every_steps": 5,  # Frequency of reporting training stats, given in units of training steps
     "checkpointing": False,  # Checkpoint stats during training
     "log": True,  # Display training messages and statistics
-    "post_lst": [lmbdapos]  # Constraints to model parameters
+    "post_lst": [lmbdapos],  # Constraints to model parameters
     "criterion": het_loss # Minimize heteroscedastic loss
+    "metrics_fn": compute_metrics_het # Use modified metrics to handle mean, std prediction
 }
 
 trainer = sflax.BasicFlaxTrainer(
