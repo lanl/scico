@@ -39,7 +39,7 @@ Read data from cache or generate if not available.
 """
 size = 40  # patch size
 train_nimg = 400  # number of training images
-test_nimg = 64  # number of testing images
+test_nimg = 16  # number of testing images
 nimg = train_nimg + test_nimg
 gray = True  # use gray scale images
 data_mode = "dn"  # Denoising problem
@@ -74,11 +74,11 @@ model_conf = {
 train_conf: sflax.ConfigDict = {
     "seed": 0,
     "opt_type": "ADAM",
-    "batch_size": 16,
+    "batch_size": 128,
     "num_epochs": 50,
     "base_learning_rate": 1e-3,
     "warmup_epochs": 0,
-    "log_every_steps": 60000,
+    "log_every_steps": 5000,
     "log": True,
 }
 
@@ -128,7 +128,7 @@ and data fidelity.
 snr_eval = metric.snr(test_ds["label"][:test_patches], output)
 psnr_eval = metric.psnr(test_ds["label"][:test_patches], output)
 print(
-    f"{'DnCNNNet training':18s}{'epochs:':2s}{train_conf['epochs']:>5d}{'':21s}{'time[s]:':10s}{time_train:>7.2f}"
+    f"{'DnCNNNet training':18s}{'epochs:':2s}{train_conf['num_epochs']:>5d}{'':21s}{'time[s]:':10s}{time_train:>7.2f}"
 )
 print(
     f"{'DnCNNNet testing':18s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}{'':3s}{'time[s]:':10s}{time_eval:>7.2f}"
