@@ -23,9 +23,10 @@ from jax.interpreters.xla import DeviceArray
 from jax.scipy.signal import convolve
 
 import scico.numpy as snp
-from scico._generic_operators import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
 from scico.numpy.util import ensure_on_device
 from scico.typing import DType, JaxArray, Shape
+
+from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
 
 
 class Convolve(LinearOperator):
@@ -50,13 +51,13 @@ class Convolve(LinearOperator):
                 as `len(input_shape)`.
             input_shape: Shape of input array.
             input_dtype: `dtype` for input argument. Defaults to
-                ``float32``. If `LinearOperator` implements
+                ``float32``. If :class:`LinearOperator` implements
                 complex-valued operations, this must be ``complex64`` for
                 proper adjoint and gradient calculation.
             mode: A string indicating the size of the output. One of
                 "full", "valid", "same". Defaults to "full".
             jit:  If ``True``, jit the evaluation, adjoint, and gram
-                functions of the LinearOperator.
+                functions of the :class:`LinearOperator`.
 
         For more details on `mode`, see :func:`jax.scipy.signal.convolve`.
         """
@@ -159,7 +160,8 @@ class Convolve(LinearOperator):
 class ConvolveByX(LinearOperator):
     """A LinearOperator that performs convolution as a function of the first argument.
 
-    The LinearOperator ConvolveByX(x=x)(y) implements jax.scipy.signal.convolve(x, y).
+    The :class:`LinearOperator` `ConvolveByX(x=x)(y)` implements
+    `jax.scipy.signal.convolve(x, y)`.
     """
 
     def __init__(
@@ -184,7 +186,7 @@ class ConvolveByX(LinearOperator):
             mode: A string indicating the size of the output. One of
                 "full", "valid", "same". Defaults to "full".
             jit: If ``True``, jit the evaluation, adjoint, and gram
-                functions of the LinearOperator.
+                functions of the :class:`LinearOperator`.
 
         For more details on `mode`, see :func:`jax.scipy.signal.convolve`.
         """

@@ -10,7 +10,7 @@
 import sys
 
 # isort: off
-from scico._generic_operators import Operator
+from ._operator import Operator
 from .biconvolve import BiConvolve
 from ._func import operator_from_function, Abs, Angle, Exp
 
