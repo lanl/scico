@@ -25,40 +25,26 @@ Overview
 
 
 
-`SCICO <https://github.com/lanl/scico>`__ is a Python package
-for solving the inverse problems that arise
-in scientific imaging applications.
-Its primary focus is providing methods
-for solving ill-posed inverse problems
-by using an appropriate prior model of the reconstruction space.
-SCICO includes a growing suite of operators, cost
-functionals, regularizers, and optimization routines that may be
-combined to solve a wide range of problems and is designed so that it is
-easy to add new building blocks.
+`SCICO <https://github.com/lanl/scico>`__ is a Python package for solving the inverse problems that arise in scientific imaging applications.  Its primary focus is providing methods for solving ill-posed inverse problems by using an appropriate prior model of the reconstruction space.  SCICO includes a growing suite of operators, cost functionals, regularizers, and optimization routines that may be combined to solve a wide range of problems and is designed so that it is easy to add new building blocks.
 
 SCICO's main advantages are:
 
-   - Operators in SCICO are defined using a simple, NumPy-like syntax,
-     yet automatically benefit from GPU/TPU acceleration and
-     `just-in-time compilation
-     <https://jax.readthedocs.io/en/latest/notebooks/quickstart.html#using-jit-to-speed-up-functions>`__
-   - SCICO can compute the adjoint of linear operators automatically,
-     which saves time when defining new operators.
-   - SCICO's operator calculus makes code for optimization routines
-     look like the pseudocode in scientific papers.
-   - SCICO provides state-of-the-art optimization routines,
-     including projected gradients
-     and the alternating direction method of multipliers (ADMM)
-     with the flexibility of plug-and-play priors
-     including BM3D :cite:`dabov-2008-image` and DnCNN :cite:`zhang-2017-dncnn` denoisers.
+   - Operators in SCICO are defined using a simple, NumPy-like syntax, yet automatically benefit from GPU/TPU acceleration and `just-in-time compilation <https://jax.readthedocs.io/en/latest/notebooks/quickstart.html#using-jit-to-speed-up-functions>`__.
+   - SCICO can compute the adjoint of linear operators automatically, which saves time when defining new operators.
+   - SCICO's operator calculus makes code for optimization routines look like the pseudocode in scientific papers.
+   - SCICO provides state-of-the-art optimization routines, including projected gradients and the alternating direction method of multipliers (ADMM),
+     with the flexibility of plug-and-play priors :cite:`venkatakrishnan-2013-plugandplay2` with BM3D :cite:`dabov-2008-image` and DnCNN :cite:`zhang-2017-dncnn` denoisers.
 
 
-If you use this library for published work,
-please cite :cite:`scico-2022`
-(see bibtex entry ``scico-2022`` in
-`docs/source/references.bib
-<https://github.com/lanl/scico/blob/main/docs/source/references.bib>`_
-in the source distribution).
+If you use this library for published work, please cite :cite:`scico-2022` (see bibtex entry ``scico-2022`` in `docs/source/references.bib <https://github.com/lanl/scico/blob/main/docs/source/references.bib>`_ in the source distribution).
+
+
+Computational Imaging
+---------------------
+
+In traditional imaging, the burden of image formation is placed on physical components, such as a lens, with the resulting image being taken from the sensor with minimal processing. In computational imaging, in contrast, the burden of image formation is shared with or shifted to computation, with the resulting image typically being very different from the measured data. Common examples of computational imaging include demosaicing in consumer cameras, computed tomography and magnetic resonance imaging in medicine, and synthetic aperture radar in remote sensing. This is an active and growing area of research, and many of these problems have common properties that could be supported by shared implementations of solution components.
+
+The goal of SCICO is to provide a general research tool for computational imaging, with a particular focus on scientific imaging applications, which are particularly underrepresented in the existing range of open-source packages in this area. While a number of other packages overlap somewhat in functionality with SCICO, only a few support execution of the same code on both CPU and GPU devices, and we are not aware of any that support just-in-time compilation and automatic gradient computation, which is invaluable in computational imaging. SCICO provides all three of these valuable features by being built on top of `JAX <https://jax.readthedocs.io/en/latest/>`__ rather than `NumPy <https://numpy.org/>`__.
 
 
 Inverse Problems
@@ -113,20 +99,16 @@ and :math:`C` be a :class:`.FiniteDifferece` linear operator,
 which promotes piecewise smooth solutions
 to the inverse problem.
 
+
+
+
 For more detail in these classes, see :ref:`classes`.
 
 
 Usage Examples
 --------------
 
-Usage examples are available as Python scripts and Jupyter Notebooks.
-Example scripts are located in ``examples/scripts``.
-The corresponding Jupyter Notebooks
-are provided in the ``scico-data`` submodule
-and symlinked to ``examples/notebooks``.
-They are also viewable on
-`GitHub <https://github.com/lanl/scico-data/tree/main/notebooks>`_
-and in the documentation under :ref:`example_notebooks`.
+Usage examples are available as Python scripts and Jupyter Notebooks.  Example scripts are located in ``examples/scripts``.  The corresponding Jupyter Notebooks are provided in the ``scico-data`` submodule and symlinked to ``examples/notebooks``. They are also viewable on `GitHub <https://github.com/lanl/scico-data/tree/main/notebooks>`_ and in the documentation under :ref:`example_notebooks`.
 
 
 Related Projects
@@ -170,37 +152,14 @@ Other related projects that may be of interest include:
 Contributing
 ------------
 
-Bug reports, feature requests, and general suggestions are welcome,
-and should be submitted via the
-`github issue system <https://github.com/lanl/scico/issues>`__.
-More substantial contributions are also welcome;
-please see :ref:`scico_dev_contributing`.
+Bug reports, feature requests, and general suggestions are welcome, and should be submitted via the `github issue system <https://github.com/lanl/scico/issues>`__.  More substantial contributions are also welcome; please see :ref:`scico_dev_contributing`.
 
 
 
 License
 -------
 
-SCICO is distributed as open-source software
-under a BSD 3-Clause License
-(see the
-`LICENSE <https://github.com/lanl/scico/blob/master/LICENSE>`__ file
-for details).
-LANL open source approval reference C20091.
+SCICO is distributed as open-source software under a BSD 3-Clause License (see the `LICENSE <https://github.com/lanl/scico/blob/master/LICENSE>`__ file for details). LANL open source approval reference C20091.
 
 © 2020-2022. Triad National Security, LLC. All rights reserved.
-This program was produced under
-U.S. Government contract 89233218CNA000001
-for Los Alamos National Laboratory (LANL),
-which is operated by Triad National Security, LLC for the
-U.S. Department of Energy/National Nuclear Security Administration.
-All rights in the program are reserved by Triad National Security, LLC,
-and the
-U.S. Department of Energy/National Nuclear Security Administration.
-The Government has granted for itself and others acting on its behalf
-a nonexclusive, paid-up, irrevocable worldwide license in this material
-to reproduce,
-prepare derivative works,
-distribute copies to the public,
-perform publicly and display publicly,
-and to permit others to do so.
+This program was produced under U.S. Government contract 89233218CNA000001 for Los Alamos National Laboratory (LANL), which is operated by Triad National Security, LLC for the U.S. Department of Energy/National Nuclear Security Administration.  All rights in the program are reserved by Triad National Security, LLC, and the U.S. Department of Energy/National Nuclear Security Administration.  The Government has granted for itself and others acting on its behalf a nonexclusive, paid-up, irrevocable worldwide license in this material to reproduce, prepare derivative works, distribute copies to the public, perform publicly and display publicly, and to permit others to do so.
