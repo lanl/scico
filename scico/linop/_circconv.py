@@ -19,8 +19,8 @@ from jax.dtypes import result_type
 from jaxlib.xla_extension import DeviceArray
 
 import scico.numpy as snp
-from scico._generic_operators import Operator
 from scico.numpy.util import is_nested
+from scico.operator import Operator
 from scico.typing import Array, DType, JaxArray, Shape
 
 from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
