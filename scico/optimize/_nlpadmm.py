@@ -110,7 +110,7 @@ class NonLinearPADMM:
             nu: Second algorithm parameter.
             x0: Starting point for :math:`\mb{x}`. If ``None``, defaults
                 to an array of zeros.
-            maxiter: Number of linearized ADMM outer-loop iterations.
+            maxiter: Number of main algorithm iterations iterations.
                 Default: 100.
             itstat_options: A dict of named parameters to be passed to
                 the :class:`.diagnostics.IterationStats` initializer. The
@@ -213,7 +213,7 @@ class NonLinearPADMM:
         Compute the :math:`\ell_2` norm of the primal residual
 
         .. math::
-            \norm{C \mb{x} - \mb{z}}_2 \;.
+            \norm{H(\mb{x}, \mb{z})}_2 \;.
 
         Args:
             x: Point at which to evaluate primal residual. If ``None``,
@@ -221,7 +221,7 @@ class NonLinearPADMM:
                :code:`self.x`.
 
         Returns:
-            Current norm of primal residual.
+            Norm of primal residual.
         """
         if x is None:
             x = self.x
