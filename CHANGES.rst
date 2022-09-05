@@ -6,8 +6,8 @@ SCICO Release Notes
 Version 0.0.3   (unreleased)
 ----------------------------
 
-• Support ``jaxlib`` versions 0.3.0 to 0.3.10 and ``jax`` versions
-  0.3.0 to 0.3.10.
+• Support ``jaxlib`` versions 0.3.0 to 0.3.15 and ``jax`` versions
+  0.3.0 to 0.3.15.
 • Rename linear operators in ``radon_astra`` and ``radon_svmbir`` modules
   to ``TomographicProjector``.
 • Add support for fan beam CT in ``radon_svmbir`` module.
@@ -23,6 +23,8 @@ Version 0.0.3   (unreleased)
 • Change filenames of some example scripts (and corresponding notebooks).
 • Change required packages and version numbers.
 • Add support for Python 3.7.
+• New ``DiagonalStack`` linear operator.
+• Add support for non-linear operators to ``optimize.PDHG`` optimizer class.
 • Various bug fixes.
 
 

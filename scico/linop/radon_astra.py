@@ -7,8 +7,9 @@
 
 """Radon transform LinearOperator wrapping the ASTRA toolbox.
 
-Radon transform LinearOperator wrapping the parallel beam projections in
-the `ASTRA toolbox <https://github.com/astra-toolbox/astra-toolbox>`_.
+Radon transform :class:`.LinearOperator` wrapping the parallel beam
+projections in the
+`ASTRA toolbox <https://github.com/astra-toolbox/astra-toolbox>`_.
 """
 
 
@@ -21,11 +22,14 @@ import jax.experimental.host_callback as hcb
 
 try:
     import astra
-except ImportError:
-    raise ImportError("Could not import astra; please install the ASTRA toolbox.")
+except ModuleNotFoundError as e:
+    if e.name == "astra":
+        new_e = ModuleNotFoundError("Could not import astra; please install the ASTRA toolbox.")
+        new_e.name = "astra"
+        raise new_e from e
+    else:
+        raise e
 
-
-from jaxlib.xla_extension import GpuDevice
 
 from scico.typing import JaxArray, Shape
 
@@ -68,7 +72,7 @@ class TomographicProjector(LinearOperator):
                 <https://www.astra-toolbox.com/docs/geom2d.html#volume-geometries>`_.
             detector_spacing: Spacing between detector elements.
             det_count: Number of detector elements.
-            angles: Array of projection angles.
+            angles: Array of projection angles in radians.
             device: Specifies device for projection operation.
                 One of ["auto", "gpu", "cpu"]. If "auto", a GPU is used
                 if available. Otherwise, the CPU is used.
@@ -98,9 +102,9 @@ class TomographicProjector(LinearOperator):
             self.vol_geom = astra.create_vol_geom(*input_shape)
 
         dev0 = jax.devices()[0]
-        if dev0.device_kind == "cpu" or device == "cpu":
+        if dev0.platform == "cpu" or device == "cpu":
             self.proj_id = astra.create_projector("line", self.proj_geom, self.vol_geom)
-        elif isinstance(dev0, GpuDevice) and device in ["gpu", "auto"]:
+        elif dev0.platform == "gpu" and device in ["gpu", "auto"]:
             self.proj_id = astra.create_projector("cuda", self.proj_geom, self.vol_geom)
         else:
             raise ValueError(f"Invalid device specified; got {device}")

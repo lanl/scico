@@ -7,7 +7,7 @@
 
 """Tomographic projector LinearOperator wrapping the svmbir package.
 
-Tomographic projector LinearOperator wrapping the
+Tomographic projector :class:`.LinearOperator` wrapping the
 `svmbir <https://github.com/cabouman/svmbir>`_ package.
 """
 
@@ -22,7 +22,8 @@ import scico.numpy as snp
 from scico.loss import Loss, SquaredL2Loss
 from scico.typing import Array, JaxArray, Shape
 
-from ._linop import Diagonal, Identity, LinearOperator
+from ._diag import Diagonal, Identity
+from ._linop import LinearOperator
 
 try:
     import svmbir
