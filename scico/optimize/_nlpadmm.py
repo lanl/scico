@@ -280,26 +280,9 @@ class NonLinearPADMM:
         return u, u_old
 
     def step(self):
-        r"""Perform a single PADMM iteration.
+        r"""Perform a single algorithm iteration.
 
-        The primary variable :math:`\mb{x}` is updated by computing
-
-        .. math::
-            \mb{x}^{(k+1)} = \mathrm{prox}_{\mu f} \left( \mb{x}^{(k)} -
-            (\mu / \nu) A^T \left(A \mb{x}^{(k)} - \mb{z}^{(k)} +
-            \mb{u}^{(k)} \right) \right) \;.
-
-        The auxiliary variable is updated according to
-
-        .. math::
-            \mb{z}^{(k+1)} = \mathrm{prox}_{\nu g} \left(A \mb{x}^{(k+1)}
-            + \mb{u}^{(k)} \right) \;,
-
-        and the scaled Lagrange multiplier is updated according to
-
-        .. math::
-            \mb{u}^{(k+1)} =  \mb{u}^{(k)} + C \mb{x}^{(k+1)} -
-            \mb{z}^{(k+1)} \;.
+        Perform a single algorithm iteration.
         """
         proxarg = self.x - (self.mu / self.nu) * self.C.conj().T(self.C(self.x) - self.z + self.u)
         self.x = self.f.prox(proxarg, self.mu, v0=self.x)
@@ -313,14 +296,14 @@ class NonLinearPADMM:
         self,
         callback: Optional[Callable[[NonLinearPADMM], None]] = None,
     ) -> Union[JaxArray, BlockArray]:
-        r"""Initialize and run the linearized ADMM algorithm.
+        r"""Initialize and run the optimization algorithm.
 
-        Initialize and run the linearized ADMM algorithm for a total of
+        Initialize and run the opimization algorithm for a total of
         `self.maxiter` iterations.
 
         Args:
             callback: An optional callback function, taking an a single
-              argument of type :class:`LinearizedADMM`, that is called
+              argument of type :class:`NonLinearPADMM`, that is called
               at the end of every iteration.
 
         Returns:
