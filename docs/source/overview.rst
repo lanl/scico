@@ -25,128 +25,21 @@ Overview
 
 
 
-`SCICO <https://github.com/lanl/scico>`__ is a Python package for solving the inverse problems that arise in scientific imaging applications.  Its primary focus is providing methods for solving ill-posed inverse problems by using an appropriate prior model of the reconstruction space.  SCICO includes a growing suite of operators, cost functionals, regularizers, and optimization routines that may be combined to solve a wide range of problems and is designed so that it is easy to add new building blocks.
+`Scientific Computational Imaging Code (SCICO) <https://github.com/lanl/scico>`__ is a Python package for solving the inverse problems that arise in scientific imaging applications. Its primary focus is providing methods for solving ill-posed inverse problems by using an appropriate prior model of the reconstruction space. SCICO includes a growing suite of operators, cost functionals, regularizers, and optimization algorithms that may be combined to solve a wide range of problems, and is designed so that it is easy to add new building blocks. When solving a problem, these components are combined in a way that makes code for optimization routines look like the pseudocode in scientific papers. SCICO is built on top of `JAX <https://jax.readthedocs.io/en/latest/>`__ rather than `NumPy <https://numpy.org/>`__, enabling GPU/TPU acceleration, just-in-time compilation, and automatic gradient functionality, which is used to automatically compute the adjoints of linear operators. An example of how to solve a multi-channel tomography problem with SCICO is shown in the figure below.
 
-SCICO's main advantages are:
 
-   - Operators in SCICO are defined using a simple, NumPy-like syntax, yet automatically benefit from GPU/TPU acceleration and `just-in-time compilation <https://jax.readthedocs.io/en/latest/notebooks/quickstart.html#using-jit-to-speed-up-functions>`__.
-   - SCICO can compute the adjoint of linear operators automatically, which saves time when defining new operators.
-   - SCICO's operator calculus makes code for optimization routines look like the pseudocode in scientific papers.
-   - SCICO provides state-of-the-art optimization routines, including projected gradients and the alternating direction method of multipliers (ADMM),
-     with the flexibility of plug-and-play priors :cite:`venkatakrishnan-2013-plugandplay2` with BM3D :cite:`dabov-2008-image` and DnCNN :cite:`zhang-2017-dncnn` denoisers.
+.. image:: /figures/scico-tomo-overview.png
+     :align: center
+     :width: 95%
+     :alt: Solving a multi-channel tomography problem with SCICO.
+
+|
+
+The SCICO source code is available from `GitHub <https://github.com/lanl/scico>`__, and pre-built packages are available from `PyPI <https://github.com/lanl/scico>`__. (Detailed insructions for installing SCICO are available in :ref:`installing`.) It has extensive `online documentation <https://scico.rtfd.io/>`__, including API documentation and usage examples, which can be run online at `Google Colab <https://colab.research.google.com/github/lanl/scico-data/blob/colab/notebooks/index.ipynb>`__ and `binder <https://mybinder.org/v2/gh/lanl/scico-data/binder?labpath=notebooks%2Findex.ipynb>`__.
 
 
 If you use this library for published work, please cite :cite:`scico-2022` (see bibtex entry ``scico-2022`` in `docs/source/references.bib <https://github.com/lanl/scico/blob/main/docs/source/references.bib>`_ in the source distribution).
 
-
-Computational Imaging
----------------------
-
-In traditional imaging, the burden of image formation is placed on physical components, such as a lens, with the resulting image being taken from the sensor with minimal processing. In computational imaging, in contrast, the burden of image formation is shared with or shifted to computation, with the resulting image typically being very different from the measured data. Common examples of computational imaging include demosaicing in consumer cameras, computed tomography and magnetic resonance imaging in medicine, and synthetic aperture radar in remote sensing. This is an active and growing area of research, and many of these problems have common properties that could be supported by shared implementations of solution components.
-
-The goal of SCICO is to provide a general research tool for computational imaging, with a particular focus on scientific imaging applications, which are particularly underrepresented in the existing range of open-source packages in this area. While a number of other packages overlap somewhat in functionality with SCICO, only a few support execution of the same code on both CPU and GPU devices, and we are not aware of any that support just-in-time compilation and automatic gradient computation, which is invaluable in computational imaging. SCICO provides all three of these valuable features by being built on top of `JAX <https://jax.readthedocs.io/en/latest/>`__ rather than `NumPy <https://numpy.org/>`__.
-
-
-Inverse Problems
-----------------
-
-SCICO is designed to solve inverse problems such as
-
-.. math::
-
-   \argmin_{\mb{x}} \; f(\mb{x}) + g(C \mb{x}) \;,
-
-where :math:`\mb{x} \in \mathbb{R}^{n}` represents the reconstruction,
-e.g., a 1D signal, 2D image, 3D volume, or 3D+time volume sequence,
-:math:`C: \mathbb{R}^{n} \to \mathbb{R}^{m}`
-is a regularization operator,
-and :math:`f: \mathbb{R}^{n} \to \mathbb{R}`
-and :math:`g: \mathbb{R}^{m} \to \mathbb{R}`
-are functionals associated with the data fidelity
-and regularization term, respectively.
-
-In a typical computational imaging problem,
-we have a `forward model` that models the data acquisition process.
-We denote this forward model
-by the (possibly nonlinear) operator :math:`A`.
-We want to find :math:`\mb{x}`
-such that :math:`\mb{y} \approx A(\mb{x})`
-in some appropriate sense.
-This discrepency is measured in our data fidelity, or `loss`, function
-
-.. Math::
-   f(\mb{x}) = L(A(\mb{x}), \mb{y}) \;,
-
-where :math:`L` is a `functional` that maps a vector (or array)
-into a scalar.
-A common choice is :math:`f(\mb{x}) = \norm{\mb{y} - A(\mb{x})}_2^2`.
-Note that :math:`f(\mb{x})` can often be interpreted
-as the negative log likelihood of the candidate :math:`\mb{x}`,
-given the measurements :math:`\mb{y}` and an underlying noise model.
-The SCICO :class:`.Loss` object encapsulates
-the data :math:`\mb{y}`,
-the forward model :math:`A`,
-and the functional :math:`L` in a single object.
-A library of functionals and losses are implemented
-in :mod:`.functional` and :mod:`.loss`, respectively.
-
-The functionals :math:`g(\cdot)` or :math:`g(C (\cdot))`
-are regularization functionals, and the :math:`C` are operators,
-usually linear operators.
-Together, these terms encourage solutions that are "simple" in some sense.
-A popular choice is to let :math:`g = \norm{ \cdot }_1`
-and :math:`C` be a :class:`.FiniteDifferece` linear operator,
-which promotes piecewise smooth solutions
-to the inverse problem.
-
-
-
-
-For more detail in these classes, see :ref:`classes`.
-
-
-Usage Examples
---------------
-
-Usage examples are available as Python scripts and Jupyter Notebooks.  Example scripts are located in ``examples/scripts``.  The corresponding Jupyter Notebooks are provided in the ``scico-data`` submodule and symlinked to ``examples/notebooks``. They are also viewable on `GitHub <https://github.com/lanl/scico-data/tree/main/notebooks>`_ and in the documentation under :ref:`example_notebooks`.
-
-
-Related Projects
-----------------
-
-The SCICO library is inspired by the
-`GlobalBiolm <https://biomedical-imaging-group.github.io/GlobalBioIm/>`_
-MATLAB package,
-which provides a similar object-oriented design
-for solving computational imaging problems.
-`Pycsou <https://matthieumeo.github.io/pycsou/html/index>`_
-is a similar Python library for inverse problems
-that is also inspired by GlobalBioIm.
-
-A key advantage of SCICO over these libraries is the usage of
-`JAX <https://jax.readthedocs.io/>`_,
-which provides
-automatic hardware acceleration,
-automatic differentiation,
-and automatic adjoint calculations.
-Moreover, beause JAX is a machine learning library,
-it enables implementation and training
-of state of the art plug-and-play regularizers such as DnCNN.
-
-
-Other related projects that may be of interest include:
-
-   - `ODL <https://github.com/odlgroup/odl>`_
-   - `PyLops <https://pylops.readthedocs.io/en/latest/>`_
-   - `ProxImaL <https://github.com/comp-imaging/ProxImaL>`_
-   - `ProxMin <https://github.com/pmelchior/proxmin>`_
-   - `ToMoBAR <https://github.com/dkazanc/ToMoBAR>`_
-   - `CCPi-Regularisation Toolkit
-     <https://github.com/vais-ral/CCPi-Regularisation-Toolkit>`_
-   - `SPORCO <https://github.com/lanl/sporco>`_
-   - `SigPy <https://github.com/mikgroup/sigpy>`_
-   - `MIRT <https://github.com/JeffFessler/MIRT.jl>`_
-   - `BART <http://mrirecon.github.io/bart/>`_
 
 
 Contributing

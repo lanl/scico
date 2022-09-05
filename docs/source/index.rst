@@ -6,12 +6,14 @@ SCICO Documentation
    :caption: User Documentation
 
    overview
-   team
+   inverse
+   advantages
    install
-   classes
-   notes
    examples
+   classes
    API Reference <_autosummary/scico.rst>
+   notes
+   team
    zreferences
 
 .. toctree::
