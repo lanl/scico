@@ -42,10 +42,10 @@ model of the measurement process,
 
 .. math:: \mathbf{y} = A(\mathbf{x}) \,.
 
-SCICO provides the ``Operator`` and ``LinearOperator`` classes, which
-may be subclassed by users, in order to implement the forward
-operator, :math:`A`. It also has several built-in operators, most of
-which are linear, e.g., finite convolutions, discrete Fourier
+SCICO provides the :class:`.Operator` and :class:`.LinearOperator`
+classes, which may be subclassed by users, in order to implement the
+forward operator, :math:`A`. It also has several built-in operators,
+most of which are linear, e.g., finite convolutions, discrete Fourier
 transforms, optical propagators, Abel transforms, and Radon
 transforms. For example,
 
@@ -59,43 +59,47 @@ transforms. For example,
 
 defines a tomographic projection operator.
 
-A significant advantage of SCICO being built on top of
-`JAX <https://jax.readthedocs.io/en/latest/>`__ is that the adjoints of
+A significant advantage of SCICO being built on top of `JAX
+<https://jax.readthedocs.io/en/latest/>`__ is that the adjoints of
 linear operators, which can be quite time consuming to implement even
-when the operator itself is straightforward, are computed automatically
-by exploiting the automatic differentation features of
-`JAX <https://jax.readthedocs.io/en/latest/>`__. If ``A`` is a
-``LinearOperator``, then its adjoint is simply ``A.T`` for real
-transforms and ``A.H`` for complex transforms. Likewise, Jacobian-vector
-products can be automatically computed for non-linear operators,
-allowing for simple linearization and gradient calculations.
+when the operator itself is straightforward, are computed
+automatically by exploiting the automatic differentation features of
+`JAX <https://jax.readthedocs.io/en/latest/>`__. If :code:`A` is a
+:class:`.LinearOperator`, then its adjoint is simply :code:`A.T` for
+real transforms and :code:`A.H` for complex transforms. Likewise,
+Jacobian-vector products can be automatically computed for non-linear
+operators, allowing for simple linearization and gradient
+calculations.
 
 SCICO operators can be composed to construct new operators. (If both
 operands are linear, then the result is also linear.) For example, if
-``A`` and ``B`` have been defined as distinct linear operators, then
+:code:`A` and :code:`B` have been defined as distinct linear
+operators, then
 
 .. code:: python
 
        C = B @ A
 
-defines a new linear operator ``C`` that first applies operator ``A``
-and then applies operator ``B`` to the result (i.e. :math:`C = B A` in
-math notation). This operator algebra can be used to build complicated
-forward operators from simpler building blocks.
+defines a new linear operator :code:`C` that first applies operator
+:code:`A` and then applies operator :code:`B` to the result
+(i.e. :math:`C = B A` in math notation). This operator algebra can be
+used to build complicated forward operators from simpler building
+blocks.
 
-SCICO also handles cases where either the image we want to reconstruct,
-:math:`\mathbf{x}`, or its measurements, :math:`\mathbf{y}`, do not fit
-neatly into a multi-dimensional array. This is achieved via
-``BlockArray`` objects, which consist of a ``list`` of multi-dimensional
-array *blocks*. A ``BlockArray`` differs from a ``list`` in that,
-whenever possible, ``BlockArray`` properties and methods (including
-unary and binary operators like ``+``, ``-``, ``*``, …) automatically
-map along the blocks, returning another ``BlockArray`` or ``tuple`` as
-appropriate. For example, consider a system that measures the column
-sums and row sums of an image. If the input image has shape
-:math:`M \times N`, the resulting measurement will have shape
-:math:`M + N`, which is awkward to represent as a multi-dimensional
-array. In SCICO, we can represent this operator by
+SCICO also handles cases where either the image we want to
+reconstruct, :math:`\mb{x}`, or its measurements, :math:`\mb{y}`, do
+not fit neatly into a multi-dimensional array. This is achieved via
+:class:`.BlockArray` objects, which consist of a ``list`` of
+multi-dimensional array *blocks*. A :class:`.BlockArray` differs from a
+``list`` in that, whenever possible, :class:`.BlockArray` properties and
+methods (including unary and binary operators like ``+``, ``-``,
+``*``, …) automatically map along the blocks, returning another
+:class:`.BlockArray` or ``tuple`` as appropriate. For example, consider
+a system that measures the column sums and row sums of an image. If
+the input image has shape :math:`M \times N`, the resulting
+measurement will have shape :math:`M + N`, which is awkward to
+represent as a multi-dimensional array. In SCICO, we can represent
+this operator by
 
 .. code:: python
 
@@ -105,9 +109,9 @@ array. In SCICO, we can represent this operator by
        H = scico.linop.VerticalStack((H0, H1))
 
 The result of applying ``H`` to an image with shape ``(130, 50)`` is a
-``BlockArray`` with shape ``((50,), (130,))``. This result is compatible
-with the rest of SCICO and may be used, e.g., as the input of other
-operators.
+:class:`.BlockArray` with shape ``((50,), (130,))``. This result is
+compatible with the rest of SCICO and may be used, e.g., as the input
+of other operators.
 
 Inverse Problem Formulation
 ---------------------------
@@ -116,29 +120,29 @@ In order to estimate the image from the measured data, we need to solve
 an *inverse problem*. In its simplest form, the solution to such an
 inverse problem can be expressed as the optimization problem
 
-.. math:: \hat{\mathbf{x}} = \mathop{\mathrm{arg\,min}}_{\mathbf{x}} f( \mathbf{x} ) \,,
+.. math:: \hat{\mb{x}} = \mathop{\mathrm{arg\,min}}_{\mb{x}} f( \mb{x} ) \,,
 
-where :math:`\mathbf{x}` is the unknown image and
-:math:`\hat{\mathbf{x}}` is the recovered image. A common choice of
-:math:`f` is
+where :math:`\mb{x}` is the unknown image and :math:`\hat{\mb{x}}` is
+the recovered image. A common choice of :math:`f` is
 
-.. math:: f(\mathbf{x}) = (1/2) \| A(\mathbf{x}) - \mathbf{y} \|_2^2 \,,
+.. math:: f(\mb{x}) = (1/2) \| A(\mb{x}) - \mb{y} \|_2^2 \,,
 
-where :math:`\mathbf{y}` is the measured data and :math:`A` is the
+where :math:`\mb{y}` is the measured data and :math:`A` is the
 forward operator; in this case the minimization problem is a least
 squares problem.
 
-In SCICO, the ``functional`` module provides implementations of common
+In SCICO, the :mod:`.functional` module provides implementations of common
 functionals such as :math:`\ell_2` and :math:`\ell_1` norms. The
-``loss`` module is used to implement a special type of functional
+:mod:`.loss` module is used to implement a special type of functional
 
-.. math:: f(\mathbf{x}) = \alpha l(A(\mathbf{x}),\mathbf{y}) \,,
+.. math:: f(\mb{x}) = \alpha l(A(\mb{x}),\mb{y}) \,,
 
 where :math:`\alpha` is a scaling parameter and :math:`l(\cdot)` is
-another functional. The SCICO ``loss`` module contains a variety of loss
-functionals that are commonly used in computational imaging. For
-example, the squared :math:`\ell_2` loss written above for a forward
-operator, :math:`A`, can be defined in SCICO using the code:
+another functional. The SCICO :mod:`.loss` module contains a variety
+of loss functionals that are commonly used in computational
+imaging. For example, the squared :math:`\ell_2` loss written above
+for a forward operator, :math:`A`, can be defined in SCICO using the
+code:
 
 .. code:: python
 
@@ -149,23 +153,23 @@ the measured data and the properties of the forward operator. In
 particular, if :math:`A` is a linear operator, then the difficulty of
 the inverse problem depends significantly on the condition number of
 :math:`A`, since a large condition number implies that large changes in
-:math:`\mathbf{x}` can correspond to small changes in
-:math:`\mathbf{y}`, making it difficult to estimate :math:`\mathbf{x}`
-from :math:`\mathbf{y}`. When there is a significant amount of
+:math:`\mb{x}` can correspond to small changes in
+:math:`\mb{y}`, making it difficult to estimate :math:`\mb{x}`
+from :math:`\mb{y}`. When there is a significant amount of
 measurement noise or ill-conditioning of :math:`A`, the standard
 approach to resolve the limitations in the information available from
 the measured data is to introduce a *prior model* of the solution space,
 which is typically achieved by adding a *regularization term* to the
 data fidelity term, resulting in the optimization problem
 
-.. math:: \hat{\mathbf{x}} = \mathop{\mathrm{arg\,min}}_{\mathbf{x}} f(\mathbf{x}) + g(C (\mathbf{x})) \,,
+.. math:: \hat{\mb{x}} = \mathop{\mathrm{arg\,min}}_{\mb{x}} f(\mb{x}) + g(C (\mb{x})) \,,
 
 where the functional :math:`g(C(\cdot))` is designed to increase the
 cost for solutions that are considered less likely or desirable, based
 on prior knowledge of the properties of the solution space. A common
 choice of :math:`g(C(\cdot))` is the total variation norm
 
-.. math:: g(\mathbf{x}) = \lambda \| C \mathbf{x} \|_{2,1} \,,
+.. math:: g(\mb{x}) = \lambda \| C \mb{x} \|_{2,1} \,,
 
 where :math:`\lambda` is a scalar controlling the regularization
 strength, :math:`C` is a linear operator that computes the spatial
@@ -174,7 +178,7 @@ gradients of its argument, and :math:`\| \cdot \|_{2,1}` denotes the
 functional as a regularization term corresponds to the assumption that
 the images of interest are piecewise constant. In SCICO, we can
 represent this regularization functional using a built-in linear
-operator and a member of the ``functional`` module:
+operator and a member of the :mod:`functional` module:
 
 .. code:: python
 
@@ -183,7 +187,7 @@ operator and a member of the ``functional`` module:
        g = λ * scico.functional.L21Norm()
 
 Computing the value of the regularizer then closely matches the math:
-``g(C(x))``.
+:code:`g(C(x))`.
 
 Finally, the overall objective function needs to be optimized. One of
 the primary goals of SCICO is to make the solution of such problems
@@ -204,12 +208,12 @@ belong to two distinct categories.
 SciPy Solvers
 ~~~~~~~~~~~~~
 
-The ``scico.solver`` module provides an interface to functions in
-``scipy.optimize``, supporting their use with multi-dimensional arrays
-and scico ``Functional`` objects. These algorithms are useful both as
-sub-problem solvers within the second category of optimization
-algorithms described below, as well as for direct solution of
-higher-level problems.
+The :mod:`scico.solver` module provides an interface to functions in
+:mod:`scipy.optimize`, supporting their use with multi-dimensional
+arrays and scico :class:`.Functional` objects. These algorithms are
+useful both as sub-problem solvers within the second category of
+optimization algorithms described below, as well as for direct
+solution of higher-level problems.
 
 For example,
 
@@ -227,7 +231,7 @@ defines a Poisson objective function and minimizes it using the BFGS
 Proximal Algorithms
 ~~~~~~~~~~~~~~~~~~~
 
-The ``scico.optimize`` sub-package provides a set of *proximal
+The :mod:`scico.optimize` sub-package provides a set of *proximal
 algorithms* :cite:`parikh-2014-proximal` that have proven to be useful for
 solving imaging inverse problems. The common feature of these algorithms
 is their exploitation of the *proximal operator*
@@ -238,14 +242,14 @@ is the alternating direction method of multipliers (ADMM)
 :cite:`glowinski-1975-approximation` :cite:`gabay-1976-dual`
 :cite:`boyd-2010-distributed`, which supports solving problems of the form
 
-.. math:: \mathop{\mathrm{arg\,min}}_{\mathbf{x}} \; f(\mathbf{x}) + \sum_{i=1}^N g_i(C_i \mathbf{x}) \,.
+.. math:: \mathop{\mathrm{arg\,min}}_{\mb{x}} \; f(\mb{x}) + \sum_{i=1}^N g_i(C_i \mb{x}) \,.
 
 When :math:`f(\cdot)` is an instance of ``scico.loss.SquaredL2Loss``,
 i.e.,
 
-.. math:: f(\mathbf{x}) = (1/2) \| A \mathbf{x} - \mathbf{y} \|_2^2 \,,
+.. math:: f(\mb{x}) = (1/2) \| A \mb{x} - \mb{y} \|_2^2 \,,
 
-for linear operator :math:`A` and constant vector :math:`\mathbf{y}`,
+for linear operator :math:`A` and constant vector :math:`\mb{y}`,
 the primary computational cost of the algorithm is typically in solving
 a linear system involving a weighted sum of :math:`A^\top A` and the
 :math:`C_i^\top C_i`, assuming that the proximal operators of the
@@ -256,7 +260,7 @@ system can also be solved efficiently when :math:`A` and all of the
 **Linearized ADMM** Linearized ADMM :cite:`yang-2012-linearized`
 :cite:`parikh-2014-proximal` solves a more restricted problem form,
 
-.. math:: \mathop{\mathrm{arg\,min}}_{\mathbf{x}} \; f(\mathbf{x}) + g(C \mathbf{x}) \,.
+.. math:: \mathop{\mathrm{arg\,min}}_{\mb{x}} \; f(\mb{x}) + g(C \mb{x}) \,.
 
 It is an effective algorithm when the proximal operators of both
 :math:`f(\cdot)` and :math:`g(\cdot)` can be computed efficiently, and
@@ -266,7 +270,7 @@ a linear system involving :math:`C^\top C`.
 **PDHG** Primal–dual hybrid gradient (PDHG) :cite:`esser-2010-general`
 :cite:`chambolle-2010-firstorder` :cite:`pock-2011-diagonal` solves the same form of problem as linearized ADMM
 
-.. math:: \mathop{\mathrm{arg\,min}}_{\mathbf{x}} \; f(\mathbf{x}) + g(C \mathbf{x}) \,,
+.. math:: \mathop{\mathrm{arg\,min}}_{\mb{x}} \; f(\mb{x}) + g(C \mb{x}) \,,
 
 but unlike the linearized ADMM implementation, both linear and
 non-linear operators :math:`C` are supported. For some problems, PDHG
@@ -277,7 +281,7 @@ converges substantially faster than ADMM or linearized ADMM.
 (APGM), which is also known as FISTA :cite:`beck-2017-first`, solve problems
 of the form
 
-.. math:: \mathop{\mathrm{arg\,min}}_{\mathbf{x}} \; f(\mathbf{x}) + g(\mathbf{x}) \,,
+.. math:: \mathop{\mathrm{arg\,min}}_{\mb{x}} \; f(\mb{x}) + g(\mb{x}) \,,
 
 where :math:`f(\cdot)` is assumed to be differentiable, and
 :math:`g(\cdot)` is assumed to have a proximal operator that can be
@@ -313,7 +317,7 @@ in the original DnCNN paper), but DnCNN has a significant speed
 advantage when GPUs are available. As an example, the following code
 outline demonstrates a PPP solution, with a non-negativity constraint
 and a 17-layer DnCNN denoiser as a regularizer, of an inverse problem
-with measurement, :math:`\mathbf{y}`, and a generic linear forward
+with measurement, :math:`\mb{y}`, and a generic linear forward
 operator, :math:`A`.
 
 .. code:: python
