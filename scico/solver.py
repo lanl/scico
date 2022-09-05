@@ -232,7 +232,7 @@ def minimize(
 
     res_dict = {}
 
-    def fun(_, device):
+    def fun(_):
         min_res = spopt.minimize(
             min_func,
             x0=x0,
