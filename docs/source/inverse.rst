@@ -89,16 +89,16 @@ blocks.
 SCICO also handles cases where either the image we want to
 reconstruct, :math:`\mb{x}`, or its measurements, :math:`\mb{y}`, do
 not fit neatly into a multi-dimensional array. This is achieved via
-:class:`.BlockArray` objects, which consist of a ``list`` of
-multi-dimensional array *blocks*. A :class:`.BlockArray` differs from a
-``list`` in that, whenever possible, :class:`.BlockArray` properties and
-methods (including unary and binary operators like ``+``, ``-``,
-``*``, …) automatically map along the blocks, returning another
-:class:`.BlockArray` or ``tuple`` as appropriate. For example, consider
-a system that measures the column sums and row sums of an image. If
-the input image has shape :math:`M \times N`, the resulting
-measurement will have shape :math:`M + N`, which is awkward to
-represent as a multi-dimensional array. In SCICO, we can represent
+:class:`.BlockArray` objects, which consist of a :class:`list` of
+multi-dimensional array *blocks*. A :class:`.BlockArray` differs from
+a :class:`list` in that, whenever possible, :class:`.BlockArray`
+properties and methods (including unary and binary operators like
+``+``, ``-``, ``*``, …) automatically map along the blocks, returning
+another :class:`.BlockArray` or :class:`tuple` as appropriate. For
+example, consider a system that measures the column sums and row sums
+of an image. If the input image has shape :math:`M \times N`, the
+resulting measurement will have shape :math:`M + N`, which is awkward
+to represent as a multi-dimensional array. In SCICO, we can represent
 this operator by
 
 .. code:: python
@@ -178,7 +178,7 @@ gradients of its argument, and :math:`\| \cdot \|_{2,1}` denotes the
 functional as a regularization term corresponds to the assumption that
 the images of interest are piecewise constant. In SCICO, we can
 represent this regularization functional using a built-in linear
-operator and a member of the :mod:`functional` module:
+operator and a member of the :mod:`.functional` module:
 
 .. code:: python
 

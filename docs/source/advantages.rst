@@ -51,13 +51,13 @@ improvement by an order of magnitude or more can be obtained by running
 the same code on a GPU rather than a CPU, and similar speed gains can
 sometimes also be obtained via JIT compilation.
 
-The figure below shows timing results obtained on a compute server with
-an Intel Xeon Gold 6230 CPU and NVIDIA GeForce RTX 2080 Ti GPU. It is
-interesting to note that for ``FiniteDifference`` the GPU provides no
-acceleration, while JIT provides more than an order of magnitude of
-speed improvement on both CPU and GPU. For ``DFT`` and ``Convolve``,
-significant JIT acceleration is limited to the GPU, which also provides
-significant acceleration over the CPU.
+The figure below shows timing results obtained on a compute server
+with an Intel Xeon Gold 6230 CPU and NVIDIA GeForce RTX 2080 Ti
+GPU. It is interesting to note that for :class:`.FiniteDifference` the
+GPU provides no acceleration, while JIT provides more than an order of
+magnitude of speed improvement on both CPU and GPU. For :class:`.DFT`
+and :class:`.Convolve`, significant JIT acceleration is limited to the
+GPU, which also provides significant acceleration over the CPU.
 
 
 .. image:: /figures/jax-timing.png

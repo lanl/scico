@@ -35,7 +35,17 @@ Overview
 
 |
 
-The SCICO source code is available from `GitHub <https://github.com/lanl/scico>`__, and pre-built packages are available from `PyPI <https://github.com/lanl/scico>`__. (Detailed insructions for installing SCICO are available in :ref:`installing`.) It has extensive `online documentation <https://scico.rtfd.io/>`__, including API documentation and usage examples, which can be run online at `Google Colab <https://colab.research.google.com/github/lanl/scico-data/blob/colab/notebooks/index.ipynb>`__ and `binder <https://mybinder.org/v2/gh/lanl/scico-data/binder?labpath=notebooks%2Findex.ipynb>`__.
+The SCICO source code is available from `GitHub
+<https://github.com/lanl/scico>`__, and pre-built packages are
+available from `PyPI <https://github.com/lanl/scico>`__. (Detailed
+instructions for installing SCICO are available in :ref:`installing`.)
+It has extensive `online documentation <https://scico.rtfd.io/>`__,
+including :doc:`API documentation <_autosummary/scico>` and
+:ref:`usage examples <example_notebooks>`, which can be run online at
+`Google Colab
+<https://colab.research.google.com/github/lanl/scico-data/blob/colab/notebooks/index.ipynb>`__
+and `binder
+<https://mybinder.org/v2/gh/lanl/scico-data/binder?labpath=notebooks%2Findex.ipynb>`__.
 
 
 If you use this library for published work, please cite :cite:`scico-2022` (see bibtex entry ``scico-2022`` in `docs/source/references.bib <https://github.com/lanl/scico/blob/main/docs/source/references.bib>`_ in the source distribution).
@@ -45,7 +55,10 @@ If you use this library for published work, please cite :cite:`scico-2022` (see 
 Contributing
 ------------
 
-Bug reports, feature requests, and general suggestions are welcome, and should be submitted via the `github issue system <https://github.com/lanl/scico/issues>`__.  More substantial contributions are also welcome; please see :ref:`scico_dev_contributing`.
+Bug reports, feature requests, and general suggestions are welcome,
+and should be submitted via the `GitHub issue system
+<https://github.com/lanl/scico/issues>`__. More substantial
+contributions are also :ref:`welcome <scico_dev_contributing>`.
 
 
 
