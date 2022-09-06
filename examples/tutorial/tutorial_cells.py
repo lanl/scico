@@ -302,12 +302,12 @@ ax.set_title("w_test")
 fig.show()
 
 fig, ax = plt.subplots()
-ax.imshow(y1_test)
-ax.set_title("y1_test")
+ax.imshow(y_test[0])
+ax.set_title("y_test[0]")
 
 fig, ax = plt.subplots()
-ax.imshow(y2_test)
-ax.set_title("y2_test")
+ax.imshow(y_test[1])
+ax.set_title("y_test[1]")
 fig.show()
 
 """
@@ -333,12 +333,12 @@ from our previous example.
 y_test = A @ q_test
 
 fig, ax = plt.subplots()
-ax.imshow(y1_test)
-ax.set_title("y1_test")
+ax.imshow(y_test[0])
+ax.set_title("y_test[0]")
 
 fig, ax = plt.subplots()
-ax.imshow(y2_test)
-ax.set_title("y2_test")
+ax.imshow(y_test[1])
+ax.set_title(y_test[1])
 fig.show()
 
 """
@@ -516,7 +516,7 @@ D = Dw @ S
 We are now ready to solve.
 We can still use the conjugate gradient (CG) method, we just need to compute the gradient including the regularization
 
-$$A^T A q + \alpha D^T D - A^T y.$$
+$$A^T A q + \alpha D^T D q - A^T y.$$
 
 **In the next cell, fill in the CG solver.**
 """
