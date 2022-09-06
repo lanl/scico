@@ -235,4 +235,4 @@ As a starting point,
 look at the source for :class:`.radon_svmbir.TomographicProjector` or :class:`.radon_astra.TomographicProjector`
 and the JAX documentation for the
 `vector-jacobian product <https://jax.readthedocs.io/en/latest/notebooks/autodiff_cookbook.html#vector-jacobian-products-vjps-aka-reverse-mode-autodiff>`_
-and `ustom VJP rules <https://jax.readthedocs.io/en/latest/notebooks/Custom_derivative_rules_for_Python_code.html>`_.
+and `custom VJP rules <https://jax.readthedocs.io/en/latest/notebooks/Custom_derivative_rules_for_Python_code.html>`_.

@@ -169,7 +169,7 @@ Operating on a BlockArray
 Indexing
 ********
 
-`BlockArray` indexing works just like indexing a list.
+:class:`.BlockArray` indexing works just like indexing a list.
 
 
 Multiplication Between BlockArray and :class:`.LinearOperator`
