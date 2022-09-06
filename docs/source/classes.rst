@@ -1,12 +1,10 @@
 .. _classes:
 
-Important Classes
-=================
+############
+Base Classes
+############
 
-.. toctree::
-   :maxdepth: 1
-
-   blockarray
-   operator
-   functional
-   optimizer
+.. include:: blockarray.rst
+.. include:: operator.rst
+.. include:: functional.rst
+.. include:: optimizer.rst

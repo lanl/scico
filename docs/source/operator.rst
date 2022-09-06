@@ -35,6 +35,7 @@ and
 
 Operator Calculus
 -----------------
+
 SCICO supports a variety of operator calculus rules,
 allowing new operators to be defined in terms of old ones.
 The following table summarizes the available operations.
@@ -60,6 +61,7 @@ The following table summarizes the available operations.
 
 Defining A New Operator
 -----------------------
+
 To define a new operator,
 pass a callable to the :class:`.Operator` constructor:
 
@@ -153,6 +155,7 @@ private method or returning a composite LinearOperator.
 
 Linear Operator Calculus
 ------------------------
+
 SCICO supports several linear operator calculus rules.
 Given
 ``A`` and ``B`` of class :class:`.LinearOperator` and of appropriate shape,
@@ -218,7 +221,7 @@ the Operator on an input of appropriate shape and dtype.
 ------------------
 
 Strict Types in Adjoint
-***********************
+^^^^^^^^^^^^^^^^^^^^^^^
 
 SCICO silently promotes real types to complex types in forward application,
 but enforces strict type checking in the adjoint.
@@ -226,7 +229,7 @@ This is due to the strict type-safe nature of jax adjoints.
 
 
 LinearOperators From External Code
-**********************************
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 External code may be wrapped as a subclass of :class:`.Operator` or :class:`.LinearOperator`
 and used in SCICO optimization routines;
