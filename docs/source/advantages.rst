@@ -1,5 +1,5 @@
-Why Use SCICO?
-==============
+Why SCICO?
+==========
 
 
 .. raw:: html
