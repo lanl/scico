@@ -139,7 +139,7 @@ output_dtype : {self.output_dtype}
             self._eval = eval_fn  # type: ignore
         elif not hasattr(self, "_eval"):
             raise NotImplementedError(
-                "Operator is an abstract base class when the " "eval_fn parameter is not specified."
+                "Operator is an abstract base class when the eval_fn parameter is not specified."
             )
 
         # If the shape isn't specified by user we can infer it using by invoking the function
