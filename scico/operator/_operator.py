@@ -86,8 +86,9 @@ output_dtype : {self.output_dtype}
                 determined by evaluating `self.__call__` on an input
                 array of zeros.
             eval_fn: Function used in evaluating this :class:`.Operator`.
-                Defaults to ``None``. If ``None``, then `self.__call__`
-                must be defined in any derived classes.
+                Defaults to ``None``. Required unless :code:`__init__` is
+                being called from a derived class with an :code:`_eval`
+                method.
             input_dtype: `dtype` for input argument.
                 Defaults to ``float32``. If :class:`.Operator` implements
                 complex-valued operations, this must be ``complex64`` for
@@ -136,6 +137,10 @@ output_dtype : {self.output_dtype}
         # Allows for dynamic creation of new Operator/LinearOperator, e.g. for adjoints
         if eval_fn:
             self._eval = eval_fn  # type: ignore
+        elif not hasattr(self, "_eval"):
+            raise NotImplementedError(
+                "Operator is an abstract base class when the " "eval_fn parameter is not specified."
+            )
 
         # If the shape isn't specified by user we can infer it using by invoking the function
         if output_shape is None or output_dtype is None:
