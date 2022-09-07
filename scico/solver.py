@@ -230,10 +230,11 @@ def minimize(
         min_func = _wrap_func(func_, x0_shape, x0_dtype)
         jac = False
 
-    res_dict = {}
+    res = None
 
-    def fun(_):
-        min_res = spopt.minimize(
+    def fun(x0, device=None):
+        nonlocal res  # To use the external res and update side effect
+        res = spopt.minimize(
             min_func,
             x0=x0,
             args=args,
@@ -241,18 +242,17 @@ def minimize(
             method=method,
             options=options,
         )  # Returns OptimizeResult
-        res_dict.update({"result": min_res})  # Updates res dict with side effect
-        return min_res.x.astype(x0.dtype)  # Return for host_callback
+        return res.x.astype(x0.dtype)  # Return for host_callback
 
     # hcb call with side effects to get the OptimizeResult on the same device it was called
+    has_device = isinstance(x0, jax.interpreters.xla.DeviceArray)
     hcb.call(
         fun,
-        arg=None,
+        arg=x0,
         result_shape=x0,
-        call_with_device=isinstance(x0, jax.interpreters.xla.DeviceArray),
+        call_with_device=has_device,
     )
 
-    res = res_dict["result"]
     # un-vectorize the output array, put on device
     res.x = snp.reshape(
         res.x, x0_shape
