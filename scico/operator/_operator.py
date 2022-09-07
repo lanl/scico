@@ -87,8 +87,7 @@ output_dtype : {self.output_dtype}
                 array of zeros.
             eval_fn: Function used in evaluating this :class:`.Operator`.
                 Defaults to ``None``. Required unless :code:`__init__` is
-                being called from a derived class with an :code:`_eval`
-                method.
+                being called from a derived class with an `_eval` method.
             input_dtype: `dtype` for input argument.
                 Defaults to ``float32``. If :class:`.Operator` implements
                 complex-valued operations, this must be ``complex64`` for
@@ -101,6 +100,11 @@ output_dtype : {self.output_dtype}
                 :class:`.Operator` to jit the forward, adjoint, and gram
                 functions. Same as calling :meth:`Operator.jit` after the
                 :class:`.Operator` is created.
+
+        Raises:
+            NotImplementedError: If the `eval_fn` parameter is not
+               specified and the `_eval` method is not defined in a
+               derived class.
         """
 
         #: Shape of input array or :class:`.BlockArray`.
