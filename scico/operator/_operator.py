@@ -86,8 +86,8 @@ output_dtype : {self.output_dtype}
                 determined by evaluating `self.__call__` on an input
                 array of zeros.
             eval_fn: Function used in evaluating this :class:`.Operator`.
-                Defaults to ``None``. Required unless :code:`__init__` is
-                being called from a derived class with an `_eval` method.
+                Defaults to ``None``. Required unless `__init__` is being
+                called from a derived class with an `_eval` method.
             input_dtype: `dtype` for input argument.
                 Defaults to ``float32``. If :class:`.Operator` implements
                 complex-valued operations, this must be ``complex64`` for
@@ -178,7 +178,7 @@ output_dtype : {self.output_dtype}
     def __call__(
         self, x: Union[Operator, JaxArray, BlockArray]
     ) -> Union[Operator, JaxArray, BlockArray]:
-        r"""Evaluate this Operator at the point :math:`\mb{x}`.
+        r"""Evaluate this :class:`Operator` at the point :math:`\mb{x}`.
 
         Args:
             x: Point at which to evaluate this :class:`.Operator`. If `x`
