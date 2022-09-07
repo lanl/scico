@@ -56,7 +56,7 @@ def _wrap_mul_div_scalar(func: Callable) -> Callable:
 
 
 class Operator:
-    """Generic Operator class."""
+    """Generic operator class."""
 
     def __repr__(self):
         return f"""{type(self)}
