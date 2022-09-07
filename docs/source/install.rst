@@ -63,18 +63,19 @@ The instructions above install a CPU-only version of SCICO. To install a version
 
    ::
 
-      pip install --upgrade "jaxlib==0.3.0+cuda11.cudnn805" -f https://storage.googleapis.com/jax-releases/jax_releases.html
+      pip install --upgrade "jaxlib==0.3.0+cuda11.cudnn805" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
 
 
 
 Additional Dependencies
 -----------------------
 
-For instructions on installing dependencies related to the examples please see :ref:`example_depend`.
+See :ref:`example_depend` for instructions on installing dependencies
+related to the examples.
 
 
 For Developers
 --------------
 
-For installing a version of SCICO suitable for development,
-see the instructions in :ref:`scico_dev_contributing`.
+See :ref:`scico_dev_contributing` for instructions on installing a
+version of SCICO suitable for development.
