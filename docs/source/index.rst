@@ -13,13 +13,13 @@ SCICO Documentation
    classes
    API Reference <_autosummary/scico.rst>
    notes
-   team
    zreferences
 
 .. toctree::
    :maxdepth: 2
    :caption: Developer Documentation
 
+   team
    contributing
    style
 
