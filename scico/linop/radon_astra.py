@@ -7,8 +7,9 @@
 
 """Radon transform LinearOperator wrapping the ASTRA toolbox.
 
-Radon transform LinearOperator wrapping the parallel beam projections in
-the `ASTRA toolbox <https://github.com/astra-toolbox/astra-toolbox>`_.
+Radon transform :class:`.LinearOperator` wrapping the parallel beam
+projections in the
+`ASTRA toolbox <https://github.com/astra-toolbox/astra-toolbox>`_.
 """
 
 

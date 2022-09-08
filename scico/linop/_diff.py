@@ -28,8 +28,8 @@ class FiniteDifference(VerticalStack):
     """Finite difference operator.
 
     Computes finite differences along the specified axes, returning the
-    results in a `DeviceArray` (whenever possible) or `BlockArray`. See
-    :class:`VerticalStack` for details on how this choice is made.
+    results in a `DeviceArray` (whenever possible) or :class:`BlockArray`.
+    See :class:`VerticalStack` for details on how this choice is made.
     See :class:`SingleAxisFiniteDifference` for the mathematical
     implications of the different boundary handling options `prepend`,
     `append`, and `circular`.
@@ -61,7 +61,7 @@ class FiniteDifference(VerticalStack):
         Args:
             input_shape: Shape of input array.
             input_dtype: `dtype` for input argument. Defaults to
-                ``float32``. If `LinearOperator` implements
+                ``float32``. If :class:`LinearOperator` implements
                 complex-valued operations, this must be ``complex64`` for
                 proper adjoint and gradient calculation.
             axes: Axis or axes over which to apply finite difference
@@ -81,7 +81,7 @@ class FiniteDifference(VerticalStack):
                 include x[-1] - x[0]. If ``True``, `prepend` and `append
                 must both be ``None``.
             jit: If ``True``, jit the evaluation, adjoint, and gram
-                functions of the LinearOperator.
+                functions of the :class:`LinearOperator`.
         """
 
         if axes is None:
@@ -179,7 +179,7 @@ class SingleAxisFiniteDifference(LinearOperator):
         Args:
             input_shape: Shape of input array.
             input_dtype: `dtype` for input argument. Defaults to
-                ``float32``. If `LinearOperator` implements
+                ``float32``. If :class:`LinearOperator` implements
                 complex-valued operations, this must be ``complex64`` for
                 proper adjoint and gradient calculation.
             axis: Axis over which to apply finite difference operator.
@@ -197,7 +197,7 @@ class SingleAxisFiniteDifference(LinearOperator):
                 include x[-1] - x[0]. If ``True``, `prepend` and `append
                 must both be ``None``.
             jit: If ``True``, jit the evaluation, adjoint, and gram
-                functions of the LinearOperator.
+                functions of the :class:`LinearOperator`.
         """
 
         if not isinstance(axis, int):

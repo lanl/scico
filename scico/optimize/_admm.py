@@ -222,7 +222,7 @@ class ADMM:
                 :code:`self.z_list`.
 
         Returns:
-            scalar: Current value of the objective function.
+            scalar: Value of the objective function.
         """
         if (x is None) != (z_list is None):
             raise ValueError("Both or neither of x and z_list must be supplied")
@@ -252,7 +252,7 @@ class ADMM:
                 current iterate :code:`self.x`.
 
         Returns:
-            Current value of primal residual.
+            Norm of primal residual.
         """
         if x is None:
             x = self.x
@@ -272,7 +272,7 @@ class ADMM:
             \mb{z}^{(k-1)}_i}_2^2\right)^{1/2} \;.
 
         Returns:
-            Current value of dual residual.
+            Current norm of dual residual.
 
         """
         out = 0.0
@@ -306,7 +306,10 @@ class ADMM:
         Initialized to
 
         .. math::
-            \mb{u}_i = C_i \mb{x}^{(0)} \;.
+            \mb{u}_i = \mb{0} \;.
+
+        Note that the parameter `x0` is unused, but is provided for
+        potential use in an overridden method.
 
         Args:
             x0: Initial value of :math:`\mb{x}`.
