@@ -235,7 +235,7 @@ The :mod:`scico.optimize` sub-package provides a set of *proximal
 algorithms* :cite:`parikh-2014-proximal` that have proven to be useful for
 solving imaging inverse problems. The common feature of these algorithms
 is their exploitation of the *proximal operator*
-:cite:`beck-2017-first` (Ch. 7), of the components of the functions that they minimize.
+:cite:`beck-2017-first` (Ch. 6), of the components of the functions that they minimize.
 
 **ADMM** The most flexible of the proximal algorithms supported by SCICO
 is the alternating direction method of multipliers (ADMM)
