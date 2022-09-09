@@ -1,8 +1,8 @@
 .. _classes:
 
-##################
+******************
 Main SCICO Classes
-##################
+******************
 
 .. include:: blockarray.rst
 .. include:: operator.rst
