@@ -33,8 +33,8 @@ on `NumPy <https://numpy.org/>`__ and `SciPy <https://scipy.org/>`__.
 SCICO, in contrast, is based on
 `JAX <https://jax.readthedocs.io/en/latest/>`__, which provides most of
 the same features, but with the addition of automatic differentiation,
-GPU support, and just-in-time (JIT) compilation. (Note that the availability
-of these features in SCICO is subject to some :ref:`caveats <jax_caveats>`.)
+GPU support, and just-in-time (JIT) compilation. (The availability
+of these features in SCICO is subject to some :ref:`caveats <non_jax_dep>`.) SCICO users and developers are advised to become familiar with the `differences between JAX and NumPy. <https://jax.readthedocs.io/en/latest/notebooks/thinking_in_jax.html>`_.
 
 While recent advances in automatic differentiation have primarily been
 driven by its important role in deep learning, it is also invaluable in
@@ -65,21 +65,6 @@ GPU, which also provides significant acceleration over the CPU.
      :align: center
      :width: 95%
      :alt: Timing results for SCICO operators on CPU and GPU with and without JIT
-
-
-.. _jax_caveats:
-
-Caveats
-~~~~~~~
-
-The code acceleration and automatic differentiation features of JAX are not available for some components of SCICO that are provided via interfaces to compiled C code. When these components are used on a platform with GPUs, the remainder of the code will run on a GPU, but there is potential for a considerable delay due to host-GPU memory transfers. This issue primarily affects:
-
-**Denoisers** The :func:`.bm3d` and :func:`.bm4d` denoisers (and the corresponding :class:`.BM3D` and :class:`.BM4d` pseudo-functionals) are implemented via interfaces to the `bm3d <https://pypi.org/project/bm3d/>`__ and `bm4d <https://pypi.org/project/bm4d/>`__
-packages respectively. The :class:`~.denoiser.DnCNN` denoiser (and the corresponding :class:`~.functional.DnCNN` pseudo-functional) denoiser should be used when the full benefits of JAX-based code are required.
-
-
-**Tomographic Projectors** The :class:`.radon_svmbir.TomographicProjector` class is implemented via an interface to the `svmbir <https://svmbir.readthedocs.io/en/latest/>`__ package. While the :class:`.radon_astra.TomographicProjector` class is also implemented via an interface to non-JAX package, the `ASTRA toolbox <https://www.astra-toolbox.com/>`__, GPU acceleration is supported.
-
 
 
 Related Packages
