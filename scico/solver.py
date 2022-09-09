@@ -211,11 +211,6 @@ def minimize(
     x0_shape = x0.shape
     x0_dtype = x0.dtype
     x0 = x0.ravel()  # if x0 is a BlockArray it will become a DeviceArray here
-    if isinstance(x0, jax.interpreters.xla.DeviceArray):
-        dev = x0.device_buffer.device()  # device for x0; used to put result back in place
-        x0 = np.array(x0).astype(float)
-    else:
-        dev = None
 
     # Run the SciPy minimizer
     if method in (
@@ -230,9 +225,9 @@ def minimize(
         min_func = _wrap_func(func_, x0_shape, x0_dtype)
         jac = False
 
-    res = None
+    res = Optional[Any]
 
-    def fun(x0, device=None):
+    def fun(x0):
         nonlocal res  # To use the external res and update side effect
         res = spopt.minimize(
             min_func,
@@ -244,13 +239,14 @@ def minimize(
         )  # Returns OptimizeResult
         return res.x.astype(x0.dtype)  # Return for host_callback
 
+    if isinstance(x0, jax.interpreters.xla.DeviceArray):
+        dev = x0.device_buffer.device()  # Save to return x0 to its proper device later
+
     # hcb call with side effects to get the OptimizeResult on the same device it was called
-    has_device = isinstance(x0, jax.interpreters.xla.DeviceArray)
     hcb.call(
         fun,
         arg=x0,
         result_shape=x0,
-        call_with_device=has_device,
     )
 
     # un-vectorize the output array, put on device
@@ -259,6 +255,9 @@ def minimize(
     )  # if x0 was originally a BlockArray then res.x is converted back to one here
 
     res.x = res.x.astype(x0_dtype)
+
+    if isinstance(x0, jax.interpreters.xla.DeviceArray):
+        res.x = jax.device_put(res.x, dev)  # Return x0/res.x to its device
 
     if iscomplex:
         res.x = _join_real_imag(res.x)

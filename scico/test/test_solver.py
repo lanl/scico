@@ -179,13 +179,22 @@ def test_minimize(dtype, method):
     assert out.x.shape == x.shape
     np.testing.assert_allclose(out.x.ravel(), expected, rtol=5e-4)
 
+    # Check if minimize returns the object to the proper device
     devices = jax.devices()
 
-    print(devices)
+    # For default device:
+    x0 = jax.device_put(snp.zeros_like(x), devices[0])
+    out = solver.minimize(f, x0=x0, method=method)
+    assert out.x.device_buffer.device() == devices[0]
+    assert out.x.shape == x0.shape
+    np.testing.assert_allclose(out.x.ravel(), expected, rtol=5e-4)
+
+    # If there are more than one device present:
     if len(devices) > 1:
-        out = solver.minimize(f, x0=jax.device_put(snp.zeros_like(x), devices[1]), method=method)
-        # Need to add device test here to compare old device and new device
-        assert out.x.shape == x.shape
+        x0 = jax.device_put(snp.zeros_like(x), devices[1])
+        out = solver.minimize(f, x0=x0, method=method)
+        assert out.x.device_buffer.device() == devices[1]
+        assert out.x.shape == x0.shape
         np.testing.assert_allclose(out.x.ravel(), expected, rtol=5e-4)
 
 
