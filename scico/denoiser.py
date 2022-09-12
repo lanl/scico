@@ -39,7 +39,9 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
 
     BM3D denoising is performed using the
     `code <https://pypi.org/project/bm3d>`__ released with
-    :cite:`makinen-2019-exact`.
+    :cite:`makinen-2019-exact`. Since this package is an interface
+    to compiled C code, JAX features such as automatic differentiation
+    and support for GPU devices are not available.
 
     Args:
         x: Input image. Expected to be a 2D array (gray-scale denoising)
@@ -105,7 +107,9 @@ def bm4d(x: JaxArray, sigma: float):
 
     BM4D denoising is performed using the
     `code <https://pypi.org/project/bm4d/>`__ released by the authors of
-    :cite:`maggioni-2012-nonlocal`.
+    :cite:`maggioni-2012-nonlocal`. Since this package is an interface
+    to compiled C code, JAX features such as automatic differentiation
+    and support for GPU devices are not available.
 
     Args:
         x: Input image. Expected to be a 3D array. Higher-dimensional
