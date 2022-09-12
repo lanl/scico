@@ -14,10 +14,10 @@ solve a low-dose CT reconstruction problem with anisotropic total
 variation (TV) regularization
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
-  \|_W^2 + \lambda \| C \mathbf{x} \|_1 \;,$$
+  \|_W^2 + \lambda \| C \mathbf{x} \|_{2,1} \;,$$
 
 where $A$ is the Radon transform, $\mathbf{y}$ is the sinogram, $C$ is
-a 2D Finite Difference operator, and $\mathbf{x}$ is the desired
+a 2D finite difference operator, and $\mathbf{x}$ is the desired
 image.
 
 The weighted norm is an approximation to the Poisson negative log
@@ -98,7 +98,7 @@ r"""
 Set up and solve the un-weighted reconstruction problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
-  \|_2^2 + \lambda \| C \mathbf{x} \|_1.$$
+  \|_2^2 + \lambda \| C \mathbf{x} \|_{2,1} \;.$$
 """
 # Note that rho and lambda were selected via a parameter sweep (not
 # shown here).
@@ -130,7 +130,7 @@ r"""
 Set up and solve the weighted reconstruction problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
-  \|_W^2 + \lambda \| C \mathbf{x} \|_1 \;,$$
+  \|_W^2 + \lambda \| C \mathbf{x} \|_{2,1} \;,$$
 
 where
 

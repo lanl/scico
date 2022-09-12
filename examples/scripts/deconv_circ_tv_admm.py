@@ -14,7 +14,7 @@ solve an image deconvolution problem with isotropic total variation (TV)
 regularization
 
   $$\mathrm{argmin}_{\mathbf{x}} \; \| \mathbf{y} - A \mathbf{x} \|_2^2
-  + \lambda \| C \mathbf{x} \|_1 \;,$$
+  + \lambda \| C \mathbf{x} \|_{2,1} \;,$$
 
 where $A$ is Toeplitz matrix, $\mathbf{y}$ is the blurred image, $C$
 is a 2D Finite Difference operator, and $\mathbf{x}$ is the desired
