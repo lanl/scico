@@ -9,8 +9,15 @@ CT Reconstruction with TV Regularization
 ========================================
 
 This example demonstrates the use of different optimization algorithms to
-solve the TV-regularized CT problem, using SVMBIR :cite:`svmbir-2020` for
-tomographic projection.
+solve the TV-regularized CT problem
+
+  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
+  \|_2^2 + \lambda \| C \mathbf{x} \|_{2,1} \;,$$
+
+where $A$ is the Radon transform (implemented using the SVMBIR
+:cite:`svmbir-2020` tomographic projection), $\mathbf{y}$ is the sinogram,
+$C$ is a 2D finite difference operator, and $\mathbf{x}$ is the desired
+image.
 """
 
 import numpy as np

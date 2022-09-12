@@ -5,8 +5,8 @@
 # with the package.
 
 r"""
-Regularized Abel Inversion Tuning Demo
-======================================
+TV Regularized Abel Inversion Tuning Demo
+=========================================
 
 This example demonstrates the use of
 [scico.ray.tune](../_autosummary/scico.ray.tune.rst) to tune

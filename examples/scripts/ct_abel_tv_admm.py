@@ -5,12 +5,21 @@
 # with the package.
 
 r"""
-Regularized Abel Inversion
-==========================
+TV Regularized Abel Inversion
+=============================
 
-This example demonstrates a TV-regularized Abel inversion using
-an Abel projector based on PyAbel :cite:`pyabel-2022`
+This example demonstrates a TV-regularized Abel inversion by solving the
+problem
+
+  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
+  \|_2^2 + \lambda \| C \mathbf{x} \|_1\;,$$
+
+where $A$ is the Abel projector (with an implementation based on a
+projector from PyAbel :cite:`pyabel-2022`), $\mathbf{y}$ is the measured
+data, $C$ is a 2D finite difference operator, and $\mathbf{x}$ is the
+desired image.
 """
+
 
 import numpy as np
 
@@ -29,7 +38,7 @@ x_gt = create_circular_phantom((N, N), [0.4 * N, 0.2 * N, 0.1 * N], [1, 0, 0.5])
 
 
 """
-Set up the forward operator and create a test measurement
+Set up the forward operator and create a test measurement.
 """
 A = AbelProjector(x_gt.shape)
 y = A @ x_gt
