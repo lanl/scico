@@ -278,10 +278,10 @@ class AngularSpectrumPropagator(Propagator):
             z: Propagation distance, :math:`z`.
             pad_factor: The padded input shape is the input shape
                multiplied by this integer factor.
-            jit: If ``True``, call :meth:`.Operator.jit` on this
-               `LinearOperator` to jit the forward, adjoint, and gram
-               functions. Same as calling :meth:`.Operator.jit` after the
-               `LinearOperator` is created.
+            jit: If ``True``, call :meth:`~.Operator.jit` on this
+               :class:`LinearOperator` to jit the forward, adjoint, and
+               gram functions. Same as calling :meth:`~.Operator.jit`
+               after the :class:`LinearOperator` is created.
         """
 
         # Diagonal operator; phase shifting
@@ -494,7 +494,8 @@ class FraunhoferPropagator(LinearOperator):
                :math:`2 \pi` / wavelength.
             z: Propagation distance, :math:`z`.
             jit: If ``True``, jit the evaluation, adjoint, and gram
-               functions of this `LinearOperator`. Default: ``True``.
+               functions of this :class:`LinearOperator`. Default:
+               ``True``.
         """
 
         ndim = len(input_shape)  # 1 or 2 dimensions
