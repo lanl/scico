@@ -293,7 +293,7 @@ output_dtype : {self.output_dtype}
         return jax.jvp(self, primals, tangents)
 
     def jhvp(self, *primals):
-        """Compute a Jacobian-vector product with Hermitian transpose.
+        r"""Compute a Jacobian-vector product with Hermitian transpose.
 
         Compute the product :math:`[J(\mb{x})]^H \mb{v}` where
         :math:`[J(\mb{x})]` is the Jacobian of the :class:`.Operator`
