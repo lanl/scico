@@ -13,10 +13,10 @@ Computed Tomography
    - ct_astra_noreg_pcg.py
    - ct_astra_tv_admm.py
    - ct_astra_weighted_tv_admm.py
+   - ct_svmbir_tv_multi.py
    - ct_svmbir_ppp_bm3d_admm_cg.py
    - ct_svmbir_ppp_bm3d_admm_prox.py
    - ct_fan_svmbir_ppp_bm3d_admm_prox.py
-   - ct_svmbir_tv_multi.py
 
 
 Deconvolution
@@ -46,11 +46,11 @@ Miscellaneous
 
    - demosaic_ppp_bm3d_admm.py
    - superres_ppp_dncnn_admm.py
-   - denoise_cplx_tv_pdhg.py
    - denoise_l1tv_admm.py
    - denoise_tv_admm.py
    - denoise_tv_pgm.py
    - denoise_tv_multi.py
+   - denoise_cplx_tv_pdhg.py
    - video_rpca_admm.py
 
 
