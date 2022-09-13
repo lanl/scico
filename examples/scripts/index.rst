@@ -45,12 +45,12 @@ Miscellaneous
 ^^^^^^^^^^^^^
 
    - demosaic_ppp_bm3d_admm.py
+   - superres_ppp_dncnn_admm.py
    - denoise_cplx_tv_pdhg.py
    - denoise_l1tv_admm.py
    - denoise_tv_admm.py
    - denoise_tv_pgm.py
    - denoise_tv_multi.py
-   - superres_ppp_dncnn_admm.py
    - video_rpca_admm.py
 
 

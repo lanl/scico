@@ -67,12 +67,12 @@ Miscellaneous
    :maxdepth: 1
 
    examples/demosaic_ppp_bm3d_admm
+   examples/superres_ppp_dncnn_admm
    examples/denoise_cplx_tv_pdhg
    examples/denoise_l1tv_admm
    examples/denoise_tv_admm
    examples/denoise_tv_pgm
    examples/denoise_tv_multi
-   examples/superres_ppp_dncnn_admm
    examples/video_rpca_admm
 
 

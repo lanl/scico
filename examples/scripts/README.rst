@@ -66,6 +66,8 @@ Miscellaneous
 
    `demosaic_ppp_bm3d_admm.py <demosaic_ppp_bm3d_admm.py>`_
       PPP (with BM3D) Image Demosaicing
+   `superres_ppp_dncnn_admm.py <superres_ppp_dncnn_admm.py>`_
+      PPP (with DnCNN) Image Superresolution
    `denoise_cplx_tv_pdhg.py <denoise_cplx_tv_pdhg.py>`_
       Complex Total Variation Denoising
    `denoise_l1tv_admm.py <denoise_l1tv_admm.py>`_
@@ -76,8 +78,6 @@ Miscellaneous
       Total Variation Denoising with Constraint (APGM)
    `denoise_tv_multi.py <denoise_tv_multi.py>`_
       Comparison of Optimization Algorithms for Total Variation Denoising
-   `superres_ppp_dncnn_admm.py <superres_ppp_dncnn_admm.py>`_
-      PPP (with DnCNN) Image Superresolution
    `video_rpca_admm.py <video_rpca_admm.py>`_
       Video Decomposition via Robust PCA
 
