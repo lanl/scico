@@ -5,8 +5,8 @@
 # with the package.
 
 r"""
-Non-negative Poisson Loss Reconstruction (APGM w/ adaptive PGMStepSize)
-=======================================================================
+Non-negative Poisson Loss Reconstruction (APGM)
+===============================================
 
 This example demonstrates the use of class
 [pgm.PGMStepSize](../_autosummary/scico.optimize.pgm.rst#scico.optimize.pgm.PGMStepSize)
@@ -15,7 +15,7 @@ log likelihood loss
 
   $$\mathrm{argmin}_{\mathbf{x}} \; \frac{1}{2} \left ( A(\mathbf{x}) -
   \mathbf{y} \log\left( A(\mathbf{x}) \right) + \log(\mathbf{y}!) \right
-  ) + I(\mathbf{x}^{(0)} \geq 0)\;,$$
+  ) + I(\mathbf{x}^{(0)} \geq 0) \;,$$
 
 where $A$ is the forward operator, $\mathbf{y}$ is the
 measurement, $\mathbf{x}$ is the signal reconstruction, and

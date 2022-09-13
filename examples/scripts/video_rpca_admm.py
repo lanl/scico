@@ -11,8 +11,8 @@ Video Decomposition via Robust PCA
 This example demonstrates video foreground/background separation via a
 variant of the Robust PCA problem
 
-  $$\mathrm{argmin}_{\mathbf{x}_0, \mathbf{x}_1} \; \| \mathbf{x}_0 +
-      \mathbf{x}_1 - \mathbf{y} \|_2^2 + \lambda_0 \| \mathbf{x}_0 \|_*
+  $$\mathrm{argmin}_{\mathbf{x}_0, \mathbf{x}_1} \; (1/2) \| \mathbf{x}_0
+      + \mathbf{x}_1 - \mathbf{y} \|_2^2 + \lambda_0 \| \mathbf{x}_0 \|_*
       + \lambda_1 \| \mathbf{x}_1 \|_1 \;,$$
 
 where $\mathbf{x}_0$ and $\mathbf{x}_1$ are respectively low-rank and

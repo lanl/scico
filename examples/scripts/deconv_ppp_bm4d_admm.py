@@ -5,17 +5,14 @@
 # with the package.
 
 """
-Image Deconvolution (ADMM Plug-and-Play Priors w/ BM4D)
-=======================================================
+PPP (with BM4D) Volume Deconvolution (ADMM Solver)
+==================================================
 
-This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.optimize.rst#scico.optimize.ADMM) to
-solve a 3D image deconvolution problem using the Plug-and-Play Priors
-framework :cite:`venkatakrishnan-2013-plugandplay2`, using BM4D
-:cite:`maggioni-2012-nonlocal` as a denoiser.
-
-The 3D deconvolution problem is the task of recovering a 3D image
-that has been convolved with a 3D kernel and corrupted by noise.
+This example demonstrates the solution of a 3D image deconvolution problem
+(involving recovering a 3D volume that has been convolved with a 3D kernel
+and corrupted by noise) using the ADMM Plug-and-Play Priors (PPP)
+algorithm :cite:`venkatakrishnan-2013-plugandplay2`, with the BM4D
+:cite:`maggioni-2012-nonlocal` denoiser.
 """
 
 import numpy as np

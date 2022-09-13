@@ -31,34 +31,34 @@ Deconvolution
 ^^^^^^^^^^^^^
 
    `deconv_circ_tv_admm.py <deconv_circ_tv_admm.py>`_
-      Image Deconvolution (ADMM w/ Total Variation and Circulant Blur)
+      Circulant Blur Image Deconvolution with TV Regularization
+   `deconv_tv_admm.py <deconv_tv_admm.py>`_
+      Image Deconvolution with TV Regularization
+   `deconv_tv_admm_tune.py <deconv_tv_admm_tune.py>`_
+      Image Deconvolution Parameter Tuning
    `deconv_microscopy_tv_admm.py <deconv_microscopy_tv_admm.py>`_
       Deconvolution Microscopy (Single Channel)
    `deconv_microscopy_allchn_tv_admm.py <deconv_microscopy_allchn_tv_admm.py>`_
       Deconvolution Microscopy (All Channels)
    `deconv_ppp_bm3d_admm.py <deconv_ppp_bm3d_admm.py>`_
-      Image Deconvolution (ADMM Plug-and-Play Priors w/ BM3D)
+      PPP (with BM3D) Image Deconvolution (ADMM Solver)
    `deconv_ppp_bm3d_pgm.py <deconv_ppp_bm3d_pgm.py>`_
-      Image Deconvolution (PGM Plug-and-Play Priors w/ BM3D)
+      PPP (with BM3D) Image Deconvolution (APGM Solver)
    `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
-      Image Deconvolution (ADMM Plug-and-Play Priors w/ BM4D)
+      PPP (with BM4D) Volume Deconvolution (ADMM Solver)
    `deconv_ppp_dncnn_admm.py <deconv_ppp_dncnn_admm.py>`_
-      Image Deconvolution (ADMM Plug-and-Play Priors w/ DnCNN)
-   `deconv_tv_admm.py <deconv_tv_admm.py>`_
-      Image Deconvolution (ADMM w/ Total Variation)
-   `deconv_tv_admm_tune.py <deconv_tv_admm_tune.py>`_
-      Image Deconvolution Parameter Tuning
+      PPP (with DnCNN) Image Deconvolution (ADMM Solver)
 
 
 Sparse Coding
 ^^^^^^^^^^^^^
 
    `sparsecode_admm.py <sparsecode_admm.py>`_
-      Non-negative Basis Pursuit DeNoising (ADMM)
+      Non-Negative Basis Pursuit DeNoising (ADMM)
    `sparsecode_pgm.py <sparsecode_pgm.py>`_
-      Basis Pursuit DeNoising (Accelerated PGM)
+      Basis Pursuit DeNoising (APGM)
    `sparsecode_poisson_pgm.py <sparsecode_poisson_pgm.py>`_
-      Non-negative Poisson Loss Reconstruction (APGM w/ adaptive PGMStepSize)
+      Non-negative Poisson Loss Reconstruction (APGM)
 
 
 Miscellaneous
@@ -96,13 +96,13 @@ Plug and Play Priors
    `ct_fan_svmbir_ppp_bm3d_admm_prox.py <ct_fan_svmbir_ppp_bm3d_admm_prox.py>`_
       PPP (with BM3D) Fan-Beam CT Reconstruction
    `deconv_ppp_bm3d_admm.py <deconv_ppp_bm3d_admm.py>`_
-      Image Deconvolution (ADMM Plug-and-Play Priors w/ BM3D)
+      PPP (with BM3D) Image Deconvolution (ADMM Solver)
    `deconv_ppp_bm3d_pgm.py <deconv_ppp_bm3d_pgm.py>`_
-      Image Deconvolution (PGM Plug-and-Play Priors w/ BM3D)
+      PPP (with BM3D) Image Deconvolution (APGM Solver)
    `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
-      Image Deconvolution (ADMM Plug-and-Play Priors w/ BM4D)
+      PPP (with BM4D) Volume Deconvolution (ADMM Solver)
    `deconv_ppp_dncnn_admm.py <deconv_ppp_dncnn_admm.py>`_
-      Image Deconvolution (ADMM Plug-and-Play Priors w/ DnCNN)
+      PPP (with DnCNN) Image Deconvolution (ADMM Solver)
    `demosaic_ppp_bm3d_admm.py <demosaic_ppp_bm3d_admm.py>`_
       Image Demosaicing (ADMM Plug-and-Play Priors w/ BM3D)
    `superres_ppp_dncnn_admm.py <superres_ppp_dncnn_admm.py>`_
@@ -121,13 +121,13 @@ Total Variation
    `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
       TV Regularized CT Reconstruction (Multiple Algorithms)
    `deconv_circ_tv_admm.py <deconv_circ_tv_admm.py>`_
-      Image Deconvolution (ADMM w/ Total Variation and Circulant Blur)
+      Circulant Blur Image Deconvolution with TV Regularization
    `deconv_microscopy_tv_admm.py <deconv_microscopy_tv_admm.py>`_
       Deconvolution Microscopy (Single Channel)
    `deconv_microscopy_allchn_tv_admm.py <deconv_microscopy_allchn_tv_admm.py>`_
       Deconvolution Microscopy (All Channels)
    `deconv_tv_admm.py <deconv_tv_admm.py>`_
-      Image Deconvolution (ADMM w/ Total Variation)
+      Image Deconvolution with TV Regularization
    `deconv_tv_admm_tune.py <deconv_tv_admm_tune.py>`_
       Image Deconvolution Parameter Tuning
    `denoise_cplx_tv_pdhg.py <denoise_cplx_tv_pdhg.py>`_
@@ -146,11 +146,11 @@ Sparsity
 ^^^^^^^^
 
    `sparsecode_admm.py <sparsecode_admm.py>`_
-      Non-negative Basis Pursuit DeNoising (ADMM)
+      Non-Negative Basis Pursuit DeNoising (ADMM)
    `sparsecode_pgm.py <sparsecode_pgm.py>`_
-      Basis Pursuit DeNoising (Accelerated PGM)
+      Basis Pursuit DeNoising (APGM)
    `sparsecode_poisson_pgm.py <sparsecode_poisson_pgm.py>`_
-      Non-negative Poisson Loss Reconstruction (APGM w/ adaptive PGMStepSize)
+      Non-negative Poisson Loss Reconstruction (APGM)
    `video_rpca_admm.py <video_rpca_admm.py>`_
       Video Decomposition via Robust PCA
 
@@ -177,19 +177,19 @@ ADMM
    `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
       TV Regularized CT Reconstruction (Multiple Algorithms)
    `deconv_circ_tv_admm.py <deconv_circ_tv_admm.py>`_
-      Image Deconvolution (ADMM w/ Total Variation and Circulant Blur)
+      Circulant Blur Image Deconvolution with TV Regularization
    `deconv_microscopy_tv_admm.py <deconv_microscopy_tv_admm.py>`_
       Deconvolution Microscopy (Single Channel)
    `deconv_microscopy_allchn_tv_admm.py <deconv_microscopy_allchn_tv_admm.py>`_
       Deconvolution Microscopy (All Channels)
    `deconv_ppp_bm3d_admm.py <deconv_ppp_bm3d_admm.py>`_
-      Image Deconvolution (ADMM Plug-and-Play Priors w/ BM3D)
+      PPP (with BM3D) Image Deconvolution (ADMM Solver)
    `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
-      Image Deconvolution (ADMM Plug-and-Play Priors w/ BM4D)
+      PPP (with BM4D) Volume Deconvolution (ADMM Solver)
    `deconv_ppp_dncnn_admm.py <deconv_ppp_dncnn_admm.py>`_
-      Image Deconvolution (ADMM Plug-and-Play Priors w/ DnCNN)
+      PPP (with DnCNN) Image Deconvolution (ADMM Solver)
    `deconv_tv_admm.py <deconv_tv_admm.py>`_
-      Image Deconvolution (ADMM w/ Total Variation)
+      Image Deconvolution with TV Regularization
    `deconv_tv_admm_tune.py <deconv_tv_admm_tune.py>`_
       Image Deconvolution Parameter Tuning
    `demosaic_ppp_bm3d_admm.py <demosaic_ppp_bm3d_admm.py>`_
@@ -201,7 +201,7 @@ ADMM
    `denoise_tv_multi.py <denoise_tv_multi.py>`_
       Comparison of Optimization Algorithms for Total Variation Denoising
    `sparsecode_admm.py <sparsecode_admm.py>`_
-      Non-negative Basis Pursuit DeNoising (ADMM)
+      Non-Negative Basis Pursuit DeNoising (ADMM)
    `superres_ppp_dncnn_admm.py <superres_ppp_dncnn_admm.py>`_
       Image Superresolution (ADMM Plug-and-Play Priors w/ DnCNN)
    `video_rpca_admm.py <video_rpca_admm.py>`_
@@ -232,13 +232,13 @@ PGM
 ^^^
 
    `deconv_ppp_bm3d_pgm.py <deconv_ppp_bm3d_pgm.py>`_
-      Image Deconvolution (PGM Plug-and-Play Priors w/ BM3D)
+      PPP (with BM3D) Image Deconvolution (APGM Solver)
    `denoise_tv_pgm.py <denoise_tv_pgm.py>`_
       Isotropic Total Variation (Accelerated PGM)
    `sparsecode_pgm.py <sparsecode_pgm.py>`_
-      Basis Pursuit DeNoising (Accelerated PGM)
+      Basis Pursuit DeNoising (APGM)
    `sparsecode_poisson_pgm.py <sparsecode_poisson_pgm.py>`_
-      Non-negative Poisson Loss Reconstruction (APGM w/ adaptive PGMStepSize)
+      Non-negative Poisson Loss Reconstruction (APGM)
 
 
 PCG
