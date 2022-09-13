@@ -237,7 +237,7 @@ def minimize(
             method=method,
             options=options,
         )  # Returns OptimizeResult with x0 as ndarray
-        return res.x
+        return res.x.astype(x0_dtype)
 
     # HCB call with side effects to get the OptimizeResult on the same device it was called
     res.x = hcb.call(

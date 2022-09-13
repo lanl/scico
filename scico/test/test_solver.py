@@ -192,7 +192,6 @@ def test_minimize(dtype, method):
     # If there are more than one device present:
     if len(devices) > 1:
         x0 = jax.device_put(snp.zeros_like(x), devices[1])
-        assert x0.device() == devices[1]
         out = solver.minimize(f, x0=x0, method=method)
         assert out.x.device() == devices[1]
         assert out.x.shape == x0.shape
