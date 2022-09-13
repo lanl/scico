@@ -5,7 +5,7 @@
 # with the package.
 
 r"""
-Complex Total Variation Denoising (ADMM)
+Complex Total Variation Denoising (PDHG)
 ========================================
 
 This example demonstrates solution of a problem of the form
@@ -29,7 +29,6 @@ gives very poor results since the difference is applied independently to
 real and imaginary components of the complex image.
 """
 
-import jax
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from xdesign import SiemensStar, discrete_phantom
