@@ -10,7 +10,7 @@ Computed Tomography
 ^^^^^^^^^^^^^^^^^^^
 
    - ct_abel_tv_admm.py
-   - ct_astra_pcg.py
+   - ct_astra_noreg_pcg.py
    - ct_astra_tv_admm.py
    - ct_astra_weighted_tv_admm.py
    - ct_svmbir_ppp_bm3d_admm_cg.py
@@ -158,4 +158,4 @@ PGM
 PCG
 ^^^
 
-   - ct_astra_pcg.py
+   - ct_astra_noreg_pcg.py
