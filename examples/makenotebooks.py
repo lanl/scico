@@ -16,6 +16,7 @@ import sys
 from pathlib import Path
 
 import psutil
+from jnb import execute_notebook, script_to_notebook
 
 examples_dir = Path(__file__).resolve().parent  # absolute path to ../scico/examples/
 
