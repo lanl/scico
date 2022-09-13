@@ -251,8 +251,6 @@ def minimize(
         res.x, x0_shape
     )  # if x0 was originally a BlockArray then res.x is converted back to one here
 
-    res.x = res.x.astype(x0_dtype)
-
     if iscomplex:
         res.x = _join_real_imag(res.x)
 
