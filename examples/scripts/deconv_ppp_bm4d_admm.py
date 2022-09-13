@@ -5,8 +5,8 @@
 # with the package.
 
 """
-PPP (with BM4D) Volume Deconvolution (ADMM Solver)
-==================================================
+PPP (with BM4D) Volume Deconvolution
+====================================
 
 This example demonstrates the solution of a 3D image deconvolution problem
 (involving recovering a 3D volume that has been convolved with a 3D kernel

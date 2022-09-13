@@ -5,8 +5,8 @@
 # with the package.
 
 r"""
-ℓ1 Total Variation Denoising (ADMM)
-===================================
+ℓ1 Total Variation Denoising
+============================
 
 This example demonstrates impulse noise removal via ℓ1 total variation
 :cite:`alliney-1992-digital` :cite:`esser-2010-primal` (Sec. 2.4.4)

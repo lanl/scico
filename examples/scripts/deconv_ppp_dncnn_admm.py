@@ -5,8 +5,8 @@
 # with the package.
 
 """
-PPP (with DnCNN) Image Deconvolution (ADMM Solver)
-==================================================
+PPP (with DnCNN) Image Deconvolution
+====================================
 
 This example demonstrates the solution of an image deconvolution problem
 using the ADMM Plug-and-Play Priors (PPP) algorithm

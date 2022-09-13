@@ -44,10 +44,10 @@ Deconvolution
       PPP (with BM3D) Image Deconvolution (ADMM Solver)
    `deconv_ppp_bm3d_pgm.py <deconv_ppp_bm3d_pgm.py>`_
       PPP (with BM3D) Image Deconvolution (APGM Solver)
-   `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
-      PPP (with BM4D) Volume Deconvolution (ADMM Solver)
    `deconv_ppp_dncnn_admm.py <deconv_ppp_dncnn_admm.py>`_
-      PPP (with DnCNN) Image Deconvolution (ADMM Solver)
+      PPP (with DnCNN) Image Deconvolution
+   `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
+      PPP (with BM4D) Volume Deconvolution
 
 
 Sparse Coding
@@ -65,19 +65,19 @@ Miscellaneous
 ^^^^^^^^^^^^^
 
    `demosaic_ppp_bm3d_admm.py <demosaic_ppp_bm3d_admm.py>`_
-      Image Demosaicing (ADMM Plug-and-Play Priors w/ BM3D)
+      PPP (with BM3D) Image Demosaicing
    `denoise_cplx_tv_pdhg.py <denoise_cplx_tv_pdhg.py>`_
-      Complex Total Variation Denoising (PDHG)
+      Complex Total Variation Denoising
    `denoise_l1tv_admm.py <denoise_l1tv_admm.py>`_
-      ℓ1 Total Variation (ADMM)
+      ℓ1 Total Variation Denoising
    `denoise_tv_admm.py <denoise_tv_admm.py>`_
       Total Variation Denoising (ADMM)
    `denoise_tv_pgm.py <denoise_tv_pgm.py>`_
-      Isotropic Total Variation (Accelerated PGM)
+      Total Variation Denoising with Constraint (APGM)
    `denoise_tv_multi.py <denoise_tv_multi.py>`_
       Comparison of Optimization Algorithms for Total Variation Denoising
    `superres_ppp_dncnn_admm.py <superres_ppp_dncnn_admm.py>`_
-      Image Superresolution (ADMM Plug-and-Play Priors w/ DnCNN)
+      PPP (with DnCNN) Image Superresolution
    `video_rpca_admm.py <video_rpca_admm.py>`_
       Video Decomposition via Robust PCA
 
@@ -100,13 +100,13 @@ Plug and Play Priors
    `deconv_ppp_bm3d_pgm.py <deconv_ppp_bm3d_pgm.py>`_
       PPP (with BM3D) Image Deconvolution (APGM Solver)
    `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
-      PPP (with BM4D) Volume Deconvolution (ADMM Solver)
+      PPP (with BM4D) Volume Deconvolution
    `deconv_ppp_dncnn_admm.py <deconv_ppp_dncnn_admm.py>`_
-      PPP (with DnCNN) Image Deconvolution (ADMM Solver)
+      PPP (with DnCNN) Image Deconvolution
    `demosaic_ppp_bm3d_admm.py <demosaic_ppp_bm3d_admm.py>`_
-      Image Demosaicing (ADMM Plug-and-Play Priors w/ BM3D)
+      PPP (with BM3D) Image Demosaicing
    `superres_ppp_dncnn_admm.py <superres_ppp_dncnn_admm.py>`_
-      Image Superresolution (ADMM Plug-and-Play Priors w/ DnCNN)
+      PPP (with DnCNN) Image Superresolution
 
 
 Total Variation
@@ -131,13 +131,13 @@ Total Variation
    `deconv_tv_admm_tune.py <deconv_tv_admm_tune.py>`_
       Image Deconvolution Parameter Tuning
    `denoise_cplx_tv_pdhg.py <denoise_cplx_tv_pdhg.py>`_
-      Complex Total Variation Denoising (PDHG)
+      Complex Total Variation Denoising
    `denoise_l1tv_admm.py <denoise_l1tv_admm.py>`_
-      ℓ1 Total Variation (ADMM)
+      ℓ1 Total Variation Denoising
    `denoise_tv_admm.py <denoise_tv_admm.py>`_
       Total Variation Denoising (ADMM)
    `denoise_tv_pgm.py <denoise_tv_pgm.py>`_
-      Isotropic Total Variation (Accelerated PGM)
+      Total Variation Denoising with Constraint (APGM)
    `denoise_tv_multi.py <denoise_tv_multi.py>`_
       Comparison of Optimization Algorithms for Total Variation Denoising
 
@@ -185,17 +185,17 @@ ADMM
    `deconv_ppp_bm3d_admm.py <deconv_ppp_bm3d_admm.py>`_
       PPP (with BM3D) Image Deconvolution (ADMM Solver)
    `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
-      PPP (with BM4D) Volume Deconvolution (ADMM Solver)
+      PPP (with BM4D) Volume Deconvolution
    `deconv_ppp_dncnn_admm.py <deconv_ppp_dncnn_admm.py>`_
-      PPP (with DnCNN) Image Deconvolution (ADMM Solver)
+      PPP (with DnCNN) Image Deconvolution
    `deconv_tv_admm.py <deconv_tv_admm.py>`_
       Image Deconvolution with TV Regularization
    `deconv_tv_admm_tune.py <deconv_tv_admm_tune.py>`_
       Image Deconvolution Parameter Tuning
    `demosaic_ppp_bm3d_admm.py <demosaic_ppp_bm3d_admm.py>`_
-      Image Demosaicing (ADMM Plug-and-Play Priors w/ BM3D)
+      PPP (with BM3D) Image Demosaicing
    `denoise_l1tv_admm.py <denoise_l1tv_admm.py>`_
-      ℓ1 Total Variation (ADMM)
+      ℓ1 Total Variation Denoising
    `denoise_tv_admm.py <denoise_tv_admm.py>`_
       Total Variation Denoising (ADMM)
    `denoise_tv_multi.py <denoise_tv_multi.py>`_
@@ -203,7 +203,7 @@ ADMM
    `sparsecode_admm.py <sparsecode_admm.py>`_
       Non-Negative Basis Pursuit DeNoising (ADMM)
    `superres_ppp_dncnn_admm.py <superres_ppp_dncnn_admm.py>`_
-      Image Superresolution (ADMM Plug-and-Play Priors w/ DnCNN)
+      PPP (with DnCNN) Image Superresolution
    `video_rpca_admm.py <video_rpca_admm.py>`_
       Video Decomposition via Robust PCA
 
@@ -223,7 +223,7 @@ PDHG
     `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
        TV Regularized CT Reconstruction (Multiple Algorithms)
     `denoise_cplx_tv_pdhg.py <denoise_cplx_tv_pdhg.py>`_
-       Complex Total Variation Denoising (PDHG)
+       Complex Total Variation Denoising
     `denoise_tv_multi.py <denoise_tv_multi.py>`_
        Comparison of Optimization Algorithms for Total Variation Denoising
 
@@ -234,7 +234,7 @@ PGM
    `deconv_ppp_bm3d_pgm.py <deconv_ppp_bm3d_pgm.py>`_
       PPP (with BM3D) Image Deconvolution (APGM Solver)
    `denoise_tv_pgm.py <denoise_tv_pgm.py>`_
-      Isotropic Total Variation (Accelerated PGM)
+      Total Variation Denoising with Constraint (APGM)
    `sparsecode_pgm.py <sparsecode_pgm.py>`_
       Basis Pursuit DeNoising (APGM)
    `sparsecode_poisson_pgm.py <sparsecode_poisson_pgm.py>`_

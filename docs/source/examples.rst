@@ -45,8 +45,8 @@ Deconvolution
    examples/deconv_microscopy_allchn_tv_admm
    examples/deconv_ppp_bm3d_admm
    examples/deconv_ppp_bm3d_pgm
-   examples/deconv_ppp_bm4d_admm
    examples/deconv_ppp_dncnn_admm
+   examples/deconv_ppp_bm4d_admm
 
 
 Sparse Coding
