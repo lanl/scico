@@ -12,7 +12,7 @@ This example demonstrates a TV-regularized Abel inversion by solving the
 problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
-  \|_2^2 + \lambda \| C \mathbf{x} \|_1\;,$$
+  \|_2^2 + \lambda \| C \mathbf{x} \|_1 \;,$$
 
 where $A$ is the Abel projector (with an implementation based on a
 projector from PyAbel :cite:`pyabel-2022`), $\mathbf{y}$ is the measured
