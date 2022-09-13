@@ -225,9 +225,9 @@ def minimize(
         min_func = _wrap_func(func_, x0_shape, x0_dtype)
         jac = False
 
-    res = Optional[Any]
+    res = spopt.OptimizeResult({"x": None})
 
-    def fun(x0):
+    def fun(x0):  # Second argument for id_tap callback
         nonlocal res  # To use the external res and update side effect
         res = spopt.minimize(
             min_func,
@@ -236,28 +236,22 @@ def minimize(
             jac=jac,
             method=method,
             options=options,
-        )  # Returns OptimizeResult
-        return res.x.astype(x0.dtype)  # Return for host_callback
-
-    if isinstance(x0, jax.interpreters.xla.DeviceArray):
-        dev = x0.device_buffer.device()  # Save to return x0 to its proper device later
+        )  # Returns OptimizeResult with x0 as ndarray
+        return res.x
 
     # hcb call with side effects to get the OptimizeResult on the same device it was called
-    hcb.call(
+    res.x = hcb.call(
         fun,
         arg=x0,
-        result_shape=x0,
+        result_shape=x0,  # From Jax-docs: This can be ... an object that has .shape and .dtype attributes
     )
 
-    # un-vectorize the output array, put on device
+    # un-vectorize the output array
     res.x = snp.reshape(
         res.x, x0_shape
     )  # if x0 was originally a BlockArray then res.x is converted back to one here
 
     res.x = res.x.astype(x0_dtype)
-
-    if isinstance(x0, jax.interpreters.xla.DeviceArray):
-        res.x = jax.device_put(res.x, dev)  # Return x0/res.x to its device
 
     if iscomplex:
         res.x = _join_real_imag(res.x)
