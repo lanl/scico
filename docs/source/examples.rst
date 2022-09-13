@@ -23,7 +23,7 @@ Computed Tomography
    :maxdepth: 1
 
    examples/ct_abel_tv_admm
-   examples/ct_astra_pcg
+   examples/ct_astra_noreg_pcg
    examples/ct_astra_tv_admm
    examples/ct_astra_weighted_tv_admm
    examples/ct_svmbir_ppp_bm3d_admm_cg
@@ -210,4 +210,4 @@ PCG
 .. toctree::
    :maxdepth: 1
 
-   examples/ct_astra_pcg
+   examples/ct_astra_noreg_pcg
