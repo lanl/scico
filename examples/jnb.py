@@ -59,7 +59,7 @@ def py_file_to_string(src):
 
         # Process remainder of source file
         for line in srcfile:
-            if re.match("^input", line):  # end processing when input statement encountered
+            if re.match("^input\(", line):  # end processing when input statement encountered
                 break
             line = re.sub('^r"""', '"""', line)  # remove r from r"""
             line = re.sub(":cite:\`([^`]+)\`", r'<cite data-cite="\1"/>', line)  # fix cite format
