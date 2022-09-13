@@ -6,18 +6,20 @@ SCICO Documentation
    :caption: User Documentation
 
    overview
-   team
+   inverse
+   advantages
    install
-   classes
-   notes
    examples
+   classes
    API Reference <_autosummary/scico.rst>
+   notes
    zreferences
 
 .. toctree::
    :maxdepth: 2
    :caption: Developer Documentation
 
+   team
    contributing
    style
 
