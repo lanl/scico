@@ -39,14 +39,14 @@ Deconvolution
    :maxdepth: 1
 
    examples/deconv_circ_tv_admm
+   examples/deconv_tv_admm
+   examples/deconv_tv_admm_tune
    examples/deconv_microscopy_tv_admm
    examples/deconv_microscopy_allchn_tv_admm
    examples/deconv_ppp_bm3d_admm
    examples/deconv_ppp_bm3d_pgm
    examples/deconv_ppp_bm4d_admm
    examples/deconv_ppp_dncnn_admm
-   examples/deconv_tv_admm
-   examples/deconv_tv_admm_tune
 
 
 Sparse Coding
