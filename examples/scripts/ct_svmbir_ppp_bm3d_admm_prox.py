@@ -5,13 +5,12 @@
 # with the package.
 
 """
-CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+Prox)
-==================================================================
+PPP (with BM3D) CT Reconstruction (ADMM with SVMBIR Fast Prox)
+==============================================================
 
-This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.optimize.rst#scico.optimize.ADMM) to
-solve a tomographic reconstruction problem using the Plug-and-Play Priors
-framework :cite:`venkatakrishnan-2013-plugandplay2`, using BM3D
+This example demonstrates solution of a tomographic reconstruction
+problem using the Plug-and-Play Priors framework
+:cite:`venkatakrishnan-2013-plugandplay2`, using BM3D
 :cite:`dabov-2008-image` as a denoiser and SVMBIR :cite:`svmbir-2020` for
 tomographic projection.
 

@@ -5,13 +5,11 @@
 # with the package.
 
 r"""
-Few-View CT (ADMM w/ Total Variation)
-=====================================
+TV Regularized Few-View CT Reconstruction
+=========================================
 
-This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.optimize.rst#scico.optimize.ADMM) to
-solve a few-view CT reconstruction problem with isotropic total
-variation (TV) regularization
+This example demonstrates solution of a few-view CT reconstruction problem
+with isotropic total variation (TV) regularization
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
   \|_2^2 + \lambda \| C \mathbf{x} \|_{2,1} \;,$$

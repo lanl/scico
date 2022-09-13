@@ -5,8 +5,8 @@
 # with the package.
 
 """
-CT Reconstruction with TV Regularization
-========================================
+TV Regularized CT Reconstruction (Multiple Algorithms)
+======================================================
 
 This example demonstrates the use of different optimization algorithms to
 solve the TV-regularized CT problem
