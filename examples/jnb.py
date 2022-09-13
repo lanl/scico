@@ -85,6 +85,16 @@ def script_to_notebook(src, dst):
     write_notebook(nb, dst)
 
 
+def read_notebook(fname):
+    """Read a notebook from the specified notebook file."""
+
+    try:
+        nb = nbformat.read(fname, as_version=4)
+    except (AttributeError, nbformat.reader.NotJSONError):
+        raise RuntimeError("Error reading notebook file %s." % fname)
+    return nb
+
+
 def execute_notebook(fname):
     """Execute the specified notebook file."""
 
@@ -102,3 +112,112 @@ def execute_notebook(fname):
         return False
     print(f"{fname} done in {(t1 - t0):.1e} s")
     return True
+
+
+def notebook_executed(nbfn):
+    """Determine whether the notebook at `nbfn` has been executed."""
+
+    try:
+        nb = nbformat.read(nbfn, as_version=4)
+    except (AttributeError, nbformat.reader.NotJSONError):
+        raise RuntimeError("Error reading notebook file %s." % pth)
+    cells = nb["worksheets"][0]["cells"]
+    for n in range(len(nb["cells"])):
+        if cells[n].cell_type == "code" and cells[n].execution_count is None:
+            return False
+    return True
+
+
+def same_notebook_code(nb1, nb2):
+    """Return ``True`` if the code cells of notebook objects `nb1` and `nb2`
+    are all the same.
+    """
+
+    if "cells" in nb1:
+        nb1c = nb1["cells"]
+    else:
+        nb1c = nb1["worksheets"][0]["cells"]
+    if "cells" in nb2:
+        nb2c = nb2["cells"]
+    else:
+        nb2c = nb2["worksheets"][0]["cells"]
+
+    # Notebooks do not match if the number of cells differ
+    if len(nb1c) != len(nb2c):
+        return False
+
+    # Iterate over cells in nb1
+    for n in range(len(nb1c)):
+        # Notebooks do not match if corresponding cells have different
+        # types
+        if nb1c[n]["cell_type"] != nb2c[n]["cell_type"]:
+            return False
+        # Notebooks do not match if source of corresponding code cells
+        # differ
+        if nb1c[n]["cell_type"] == "code" and nb1c[n]["source"] != nb2c[n]["source"]:
+            return False
+
+    return True
+
+
+def same_notebook_markdown(nb1, nb2):
+    """Return ``True`` if the markdown cells of notebook objects `nb1`
+    and `nb2` are all the same.
+    """
+
+    if "cells" in nb1:
+        nb1c = nb1["cells"]
+    else:
+        nb1c = nb1["worksheets"][0]["cells"]
+    if "cells" in nb2:
+        nb2c = nb2["cells"]
+    else:
+        nb2c = nb2["worksheets"][0]["cells"]
+
+    # Notebooks do not match if the number of cells differ
+    if len(nb1c) != len(nb2c):
+        return False
+
+    # Iterate over cells in nb1
+    for n in range(len(nb1c)):
+        # Notebooks do not match if corresponding cells have different
+        # types
+        if nb1c[n]["cell_type"] != nb2c[n]["cell_type"]:
+            return False
+        # Notebooks do not match if source of corresponding code cells
+        # differ
+        if nb1c[n]["cell_type"] == "markdown" and nb1c[n]["source"] != nb2c[n]["source"]:
+            return False
+
+    return True
+
+
+def replace_markdown_cells(src, dst):
+    """Overwrite markdown cells in notebook object `dst` with corresponding
+    cells in notebook object `src`.
+    """
+
+    if "cells" in src:
+        srccell = src["cells"]
+    else:
+        srccell = src["worksheets"][0]["cells"]
+    if "cells" in dst:
+        dstcell = dst["cells"]
+    else:
+        dstcell = dst["worksheets"][0]["cells"]
+
+    # It is an error to attempt markdown replacement if src and dst
+    # have different numbers of cells
+    if len(srccell) != len(dstcell):
+        raise ValueError("Notebooks do not have the same number of cells.")
+
+    # Iterate over cells in src
+    for n in range(len(srccell)):
+        # It is an error to attempt markdown replacement if any
+        # corresponding pair of cells have different type
+        if srccell[n]["cell_type"] != dstcell[n]["cell_type"]:
+            raise ValueError("Cell number %d of different type in src and dst.")
+        # If current src cell is a markdown cell, copy the src cell to
+        # the dst cell
+        if srccell[n]["cell_type"] == "markdown":
+            dstcell[n]["source"] = srccell[n]["source"]
