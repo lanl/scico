@@ -227,7 +227,7 @@ def minimize(
 
     res = spopt.OptimizeResult({"x": None})
 
-    def fun(x0):  # Second argument for id_tap callback
+    def fun(x0):
         nonlocal res  # To use the external res and update side effect
         res = spopt.minimize(
             min_func,
@@ -239,14 +239,14 @@ def minimize(
         )  # Returns OptimizeResult with x0 as ndarray
         return res.x
 
-    # hcb call with side effects to get the OptimizeResult on the same device it was called
+    # HCB call with side effects to get the OptimizeResult on the same device it was called
     res.x = hcb.call(
         fun,
         arg=x0,
-        result_shape=x0,  # From Jax-docs: This can be ... an object that has .shape and .dtype attributes
+        result_shape=x0,  # From Jax-docs: This can be an object that has .shape and .dtype attributes
     )
 
-    # un-vectorize the output array
+    # un-vectorize the output array from spopt.minimize
     res.x = snp.reshape(
         res.x, x0_shape
     )  # if x0 was originally a BlockArray then res.x is converted back to one here
