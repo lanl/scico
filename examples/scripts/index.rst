@@ -23,14 +23,14 @@ Deconvolution
 ^^^^^^^^^^^^^
 
    - deconv_circ_tv_admm.py
+   - deconv_tv_admm.py
+   - deconv_tv_admm_tune.py
    - deconv_microscopy_tv_admm.py
    - deconv_microscopy_allchn_tv_admm.py
    - deconv_ppp_bm3d_admm.py
    - deconv_ppp_bm3d_pgm.py
    - deconv_ppp_bm4d_admm.py
    - deconv_ppp_dncnn_admm.py
-   - deconv_tv_admm.py
-   - deconv_tv_admm_tune.py
 
 
 Sparse Coding
