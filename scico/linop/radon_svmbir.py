@@ -8,7 +8,9 @@
 """Tomographic projector LinearOperator wrapping the svmbir package.
 
 Tomographic projector :class:`.LinearOperator` wrapping the
-`svmbir <https://github.com/cabouman/svmbir>`_ package.
+`svmbir <https://github.com/cabouman/svmbir>`_ package. Since this
+package is an interface to compiled C code, JAX features such as
+automatic differentiation and support for GPU devices are not available.
 """
 
 from typing import Optional, Tuple, Union
