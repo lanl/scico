@@ -1,5 +1,5 @@
-SCICO Contributors
-------------------
+Developers
+==========
 
 
 .. raw:: html
@@ -25,7 +25,7 @@ SCICO Contributors
 
 
 Core Developers
-===============
+---------------
 
 - `Thilo Balke <https://github.com/tbalke>`_
 - `Fernando Davis <https://github.com/FernandoDavis>`_
@@ -37,7 +37,7 @@ Core Developers
 
 
 Contributors
-============
+------------
 
 - `Oleg Korobkin <https://github.com/korobkin>`_ (BlockArray improvements)
 - `Yanpeng Yuan <https://github.com/yanpeng7>`_ (ASTRA interface improvements)
