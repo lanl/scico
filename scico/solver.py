@@ -63,6 +63,7 @@ from typing import Any, Callable, Optional, Sequence, Tuple, Union
 import numpy as np
 
 import jax
+import jax.experimental.host_callback as hcb
 
 import scico.numpy as snp
 from scico.numpy import BlockArray
@@ -210,11 +211,6 @@ def minimize(
     x0_shape = x0.shape
     x0_dtype = x0.dtype
     x0 = x0.ravel()  # if x0 is a BlockArray it will become a DeviceArray here
-    if isinstance(x0, jax.interpreters.xla.DeviceArray):
-        dev = x0.device_buffer.device()  # device for x0; used to put result back in place
-        x0 = np.array(x0).astype(float)
-    else:
-        dev = None
 
     # Run the SciPy minimizer
     if method in (
@@ -229,24 +225,31 @@ def minimize(
         min_func = _wrap_func(func_, x0_shape, x0_dtype)
         jac = False
 
-    res = spopt.minimize(
-        min_func,
-        x0=x0,
-        args=args,
-        jac=jac,
-        method=method,
-        options=options,
+    res = spopt.OptimizeResult({"x": None})
+
+    def fun(x0):
+        nonlocal res  # To use the external res and update side effect
+        res = spopt.minimize(
+            min_func,
+            x0=x0,
+            args=args,
+            jac=jac,
+            method=method,
+            options=options,
+        )  # Returns OptimizeResult with x0 as ndarray
+        return res.x.astype(x0_dtype)
+
+    # HCB call with side effects to get the OptimizeResult on the same device it was called
+    res.x = hcb.call(
+        fun,
+        arg=x0,
+        result_shape=x0,  # From Jax-docs: This can be an object that has .shape and .dtype attributes
     )
 
-    # un-vectorize the output array, put on device
+    # un-vectorize the output array from spopt.minimize
     res.x = snp.reshape(
         res.x, x0_shape
     )  # if x0 was originally a BlockArray then res.x is converted back to one here
-
-    res.x = res.x.astype(x0_dtype)
-
-    if dev:
-        res.x = jax.device_put(res.x, dev)
 
     if iscomplex:
         res.x = _join_real_imag(res.x)
