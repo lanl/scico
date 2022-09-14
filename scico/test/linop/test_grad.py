@@ -8,8 +8,8 @@ import pytest
 from jaxlib.xla_extension import DeviceArray
 
 import scico.numpy as snp
-from scico.blockarray import BlockArray
 from scico.linop import CylindricalGradient, PolarGradient, SphericalGradient
+from scico.numpy import BlockArray
 from scico.random import randn
 
 
@@ -127,7 +127,7 @@ class TestCylindricalGradient:
         Nc = sum([angular, radial, axial])
         if Nc > 1:
             assert type(Ax) is BlockArray
-            assert Ax.num_blocks == Nc
+            assert len(Ax) == Nc
             for n in range(Nc):
                 assert Ax[n].shape == input_shape
         else:
@@ -140,7 +140,7 @@ class TestCylindricalGradient:
         for n0, n1 in combinations(range(len(coord)), 2):
             c0 = coord[n0]
             c1 = coord[n1]
-            s = sum([c0[m] * c1[m] for m in range(c0.num_blocks)]).sum()
+            s = sum([c0[m] * c1[m] for m in range(len(c0))]).sum()
             assert snp.abs(s) < 1e-5
 
 
@@ -200,7 +200,7 @@ class TestSphericalGradient:
         Nc = sum([azimuthal, polar, radial])
         if Nc > 1:
             assert type(Ax) is BlockArray
-            assert Ax.num_blocks == Nc
+            assert len(Ax) == Nc
             for n in range(Nc):
                 assert Ax[n].shape == input_shape
         else:
@@ -213,5 +213,5 @@ class TestSphericalGradient:
         for n0, n1 in combinations(range(len(coord)), 2):
             c0 = coord[n0]
             c1 = coord[n1]
-            s = sum([c0[m] * c1[m] for m in range(c0.num_blocks)]).sum()
+            s = sum([c0[m] * c1[m] for m in range(len(c0))]).sum()
             assert snp.abs(s) < 1e-5
