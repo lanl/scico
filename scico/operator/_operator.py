@@ -56,7 +56,7 @@ def _wrap_mul_div_scalar(func: Callable) -> Callable:
 
 
 class Operator:
-    """Generic Operator class."""
+    """Generic operator class."""
 
     def __repr__(self):
         return f"""{type(self)}
@@ -86,8 +86,8 @@ output_dtype : {self.output_dtype}
                 determined by evaluating `self.__call__` on an input
                 array of zeros.
             eval_fn: Function used in evaluating this :class:`.Operator`.
-                Defaults to ``None``. If ``None``, then `self.__call__`
-                must be defined in any derived classes.
+                Defaults to ``None``. Required unless `__init__` is being
+                called from a derived class with an `_eval` method.
             input_dtype: `dtype` for input argument.
                 Defaults to ``float32``. If :class:`.Operator` implements
                 complex-valued operations, this must be ``complex64`` for
@@ -100,6 +100,11 @@ output_dtype : {self.output_dtype}
                 :class:`.Operator` to jit the forward, adjoint, and gram
                 functions. Same as calling :meth:`Operator.jit` after the
                 :class:`.Operator` is created.
+
+        Raises:
+            NotImplementedError: If the `eval_fn` parameter is not
+               specified and the `_eval` method is not defined in a
+               derived class.
         """
 
         #: Shape of input array or :class:`.BlockArray`.
@@ -136,6 +141,10 @@ output_dtype : {self.output_dtype}
         # Allows for dynamic creation of new Operator/LinearOperator, e.g. for adjoints
         if eval_fn:
             self._eval = eval_fn  # type: ignore
+        elif not hasattr(self, "_eval"):
+            raise NotImplementedError(
+                "Operator is an abstract base class when the eval_fn parameter is not specified."
+            )
 
         # If the shape isn't specified by user we can infer it using by invoking the function
         if output_shape is None or output_dtype is None:
@@ -169,7 +178,7 @@ output_dtype : {self.output_dtype}
     def __call__(
         self, x: Union[Operator, JaxArray, BlockArray]
     ) -> Union[Operator, JaxArray, BlockArray]:
-        r"""Evaluate this Operator at the point :math:`\mb{x}`.
+        r"""Evaluate this :class:`Operator` at the point :math:`\mb{x}`.
 
         Args:
             x: Point at which to evaluate this :class:`.Operator`. If `x`
@@ -284,7 +293,7 @@ output_dtype : {self.output_dtype}
         return jax.jvp(self, primals, tangents)
 
     def jhvp(self, *primals):
-        """Compute a Jacobian-vector product with Hermitian transpose.
+        r"""Compute a Jacobian-vector product with Hermitian transpose.
 
         Compute the product :math:`[J(\mb{x})]^H \mb{v}` where
         :math:`[J(\mb{x})]` is the Jacobian of the :class:`.Operator`

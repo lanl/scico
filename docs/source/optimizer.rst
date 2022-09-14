@@ -164,7 +164,7 @@ functions. The algorithm has similar advantages over ADMM to those of Linearized
 The SCICO PDHG solver, :class:`.PDHG`,
 requires :math:`f` and :math:`g` to be instances of :class:`.Functional`,
 and to have a proximal operator defined (:meth:`.Functional.prox`), and
-:math:`C` is required to be an instance of :class:`.LinearOperator`.
+:math:`C` is required to be an instance of :class:`.Operator` or :class:`.LinearOperator`.
 
 
 

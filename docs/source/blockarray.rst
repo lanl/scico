@@ -167,13 +167,13 @@ Operating on a BlockArray
 .. _blockarray_indexing:
 
 Indexing
-********
+^^^^^^^^
 
-`BlockArray` indexing works just like indexing a list.
+:class:`.BlockArray` indexing works just like indexing a list.
 
 
 Multiplication Between BlockArray and :class:`.LinearOperator`
-**************************************************************
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The :class:`.Operator` and :class:`.LinearOperator` classes are designed
 to work on instances of :class:`.BlockArray` in addition to instances of
