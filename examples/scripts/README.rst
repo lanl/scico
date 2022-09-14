@@ -10,19 +10,19 @@ Computed Tomography
 ^^^^^^^^^^^^^^^^^^^
 
    `ct_abel_tv_admm.py <ct_abel_tv_admm.py>`_
-      TV Regularized Abel Inversion
+      TV-Regularized Abel Inversion
    `ct_astra_noreg_pcg.py <ct_astra_noreg_pcg.py>`_
       CT Reconstruction with CG and PCG
    `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
-      TV Regularized Few-View CT Reconstruction
+      TV-Regularized Sparse-View CT Reconstruction
    `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
-      TV Regularized Low-Dose CT Reconstruction
+      TV-Regularized Low-Dose CT Reconstruction
    `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
-      TV Regularized CT Reconstruction (Multiple Algorithms)
+      TV-Regularized CT Reconstruction (Multiple Algorithms)
    `ct_svmbir_ppp_bm3d_admm_cg.py <ct_svmbir_ppp_bm3d_admm_cg.py>`_
       PPP (with BM3D) CT Reconstruction (ADMM with CG Subproblem Solver)
    `ct_svmbir_ppp_bm3d_admm_prox.py <ct_svmbir_ppp_bm3d_admm_prox.py>`_
-      PPP (with BM3D) CT Reconstruction (ADMM with SVMBIR Fast Prox)
+      PPP (with BM3D) CT Reconstruction (ADMM with Fast SVMBIR Prox)
    `ct_fan_svmbir_ppp_bm3d_admm_prox.py <ct_fan_svmbir_ppp_bm3d_admm_prox.py>`_
       PPP (with BM3D) Fan-Beam CT Reconstruction
 
@@ -92,7 +92,7 @@ Plug and Play Priors
    `ct_svmbir_ppp_bm3d_admm_cg.py <ct_svmbir_ppp_bm3d_admm_cg.py>`_
       PPP (with BM3D) CT Reconstruction (ADMM with CG Subproblem Solver)
    `ct_svmbir_ppp_bm3d_admm_prox.py <ct_svmbir_ppp_bm3d_admm_prox.py>`_
-      PPP (with BM3D) CT Reconstruction (ADMM with SVMBIR Fast Prox)
+      PPP (with BM3D) CT Reconstruction (ADMM with Fast SVMBIR Prox)
    `ct_fan_svmbir_ppp_bm3d_admm_prox.py <ct_fan_svmbir_ppp_bm3d_admm_prox.py>`_
       PPP (with BM3D) Fan-Beam CT Reconstruction
    `deconv_ppp_bm3d_admm.py <deconv_ppp_bm3d_admm.py>`_
@@ -113,13 +113,13 @@ Total Variation
 ^^^^^^^^^^^^^^^
 
    `ct_abel_tv_admm.py <ct_abel_tv_admm.py>`_
-      TV Regularized Abel Inversion
+      TV-Regularized Abel Inversion
    `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
-      TV Regularized Few-View CT Reconstruction
+      TV-Regularized Sparse-View CT Reconstruction
    `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
-      TV Regularized Low-Dose CT Reconstruction
+      TV-Regularized Low-Dose CT Reconstruction
    `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
-      TV Regularized CT Reconstruction (Multiple Algorithms)
+      TV-Regularized CT Reconstruction (Multiple Algorithms)
    `deconv_circ_tv_admm.py <deconv_circ_tv_admm.py>`_
       Circulant Blur Image Deconvolution with TV Regularization
    `deconv_tv_admm.py <deconv_tv_admm.py>`_
@@ -163,17 +163,17 @@ ADMM
 ^^^^
 
    `ct_abel_tv_admm.py <ct_abel_tv_admm.py>`_
-      TV Regularized Abel Inversion
+      TV-Regularized Abel Inversion
    `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
-      TV Regularized Few-View CT Reconstruction
+      TV-Regularized Sparse-View CT Reconstruction
    `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
-      TV Regularized Low-Dose CT Reconstruction
+      TV-Regularized Low-Dose CT Reconstruction
    `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
-      TV Regularized CT Reconstruction (Multiple Algorithms)
+      TV-Regularized CT Reconstruction (Multiple Algorithms)
    `ct_svmbir_ppp_bm3d_admm_cg.py <ct_svmbir_ppp_bm3d_admm_cg.py>`_
       PPP (with BM3D) CT Reconstruction (ADMM with CG Subproblem Solver)
    `ct_svmbir_ppp_bm3d_admm_prox.py <ct_svmbir_ppp_bm3d_admm_prox.py>`_
-      PPP (with BM3D) CT Reconstruction (ADMM with SVMBIR Fast Prox)
+      PPP (with BM3D) CT Reconstruction (ADMM with Fast SVMBIR Prox)
    `ct_fan_svmbir_ppp_bm3d_admm_prox.py <ct_fan_svmbir_ppp_bm3d_admm_prox.py>`_
       PPP (with BM3D) Fan-Beam CT Reconstruction
    `deconv_circ_tv_admm.py <deconv_circ_tv_admm.py>`_
@@ -212,7 +212,7 @@ Linearized ADMM
 ^^^^^^^^^^^^^^^
 
     `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
-       TV Regularized CT Reconstruction (Multiple Algorithms)
+       TV-Regularized CT Reconstruction (Multiple Algorithms)
     `denoise_tv_multi.py <denoise_tv_multi.py>`_
        Comparison of Optimization Algorithms for Total Variation Denoising
 
@@ -221,7 +221,7 @@ PDHG
 ^^^^
 
     `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
-       TV Regularized CT Reconstruction (Multiple Algorithms)
+       TV-Regularized CT Reconstruction (Multiple Algorithms)
     `denoise_tv_multi.py <denoise_tv_multi.py>`_
        Comparison of Optimization Algorithms for Total Variation Denoising
     `denoise_cplx_tv_pdhg.py <denoise_cplx_tv_pdhg.py>`_
