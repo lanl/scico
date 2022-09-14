@@ -5,7 +5,7 @@
 # with the package.
 
 r"""
-TV Regularized Abel Inversion
+TV-Regularized Abel Inversion
 =============================
 
 This example demonstrates a TV-regularized Abel inversion by solving the
@@ -103,7 +103,7 @@ plot.imview(
 )
 plot.imview(
     x_tv,
-    title="TV Regularized Inversion: %.2f (dB)" % metric.psnr(x_gt, x_tv),
+    title="TV-Regularized Inversion: %.2f (dB)" % metric.psnr(x_gt, x_tv),
     cmap=plot.cm.Blues,
     fig=fig,
     ax=ax[1, 1],

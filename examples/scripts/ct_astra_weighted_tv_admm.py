@@ -5,7 +5,7 @@
 # with the package.
 
 r"""
-TV Regularized Low-Dose CT Reconstruction
+TV-Regularized Low-Dose CT Reconstruction
 =========================================
 
 This example demonstrates solution of a low-dose CT reconstruction problem

@@ -5,7 +5,7 @@
 # with the package.
 
 r"""
-TV Regularized Abel Inversion Tuning Demo
+TV-Regularized Abel Inversion Tuning Demo
 =========================================
 
 This example demonstrates the use of

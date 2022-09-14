@@ -5,11 +5,11 @@
 # with the package.
 
 r"""
-TV Regularized Few-View CT Reconstruction
-=========================================
+TV-Regularized Sparse-View CT Reconstruction
+============================================
 
-This example demonstrates solution of a few-view CT reconstruction problem
-with isotropic total variation (TV) regularization
+This example demonstrates solution of a sparse-view CT reconstruction
+problem with isotropic total variation (TV) regularization
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
   \|_2^2 + \lambda \| C \mathbf{x} \|_{2,1} \;,$$

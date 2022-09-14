@@ -5,7 +5,7 @@
 # with the package.
 
 """
-PPP (with BM3D) CT Reconstruction (ADMM with SVMBIR Fast Prox)
+PPP (with BM3D) CT Reconstruction (ADMM with Fast SVMBIR Prox)
 ==============================================================
 
 This example demonstrates solution of a tomographic reconstruction
@@ -14,12 +14,16 @@ problem using the Plug-and-Play Priors framework
 :cite:`dabov-2008-image` as a denoiser and SVMBIR :cite:`svmbir-2020` for
 tomographic projection.
 
-This version uses the data fidelity term as one of the ADMM $g$
-functionals so that the optimization with respect to the data fidelity is
-able to exploit the internal prox of the `SVMBIRExtendedLoss` and
-`SVMBIRSquaredL2Loss` functionals.
+There are two versions of this example, solving the same problem in two
+different ways. This version uses the data fidelity term as one of the
+ADMM $g$ functionals so that the optimization with respect to the data
+fidelity is able to exploit the internal prox of the `SVMBIRExtendedLoss`
+and `SVMBIRSquaredL2Loss` functionals. The
+[other version](ct_svmbir_ppp_bm3d_admm_cg.rst) solves the ADMM subproblem
+corresponding to the data fidelity term via CG.
 
-We solve the problem in two different ways:
+Two ways of exploiting the SVMBIR internal prox are explored in this
+example:
 1. Using the `SVMBIRSquaredL2Loss` together with the BM3D pseudo-functional
    and a non-negative indicator function, and
 2. Using the `SVMBIRExtendedLoss`, which includes a non-negativity
