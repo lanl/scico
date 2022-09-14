@@ -5,13 +5,11 @@
 # with the package.
 
 r"""
-Isotropic Total Variation (Accelerated PGM)
-===========================================
+Total Variation Denoising with Constraint (APGM)
+================================================
 
-This example demonstrates the use of class
-[pgm.AcceleratedPGM](../_autosummary/scico.optimize.rst#scico.optimize.AcceleratedPGM)
-to solve isotropic total variation (TV) regularization. It solves the
-denoising problem
+This example demonstrates the solution of the isotropic total variation
+(TV) denoising problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - \mathbf{x}
   \|_2^2 + \lambda R(\mathbf{x}) + \iota_C(\mathbf{x}) \;,$$
@@ -22,9 +20,9 @@ i.e. the set of vectors with components constrained to be in the interval
 $[0, 1]$. The problem is solved seperately with $R$ taken as isotropic
 and anisotropic TV regularization
 
-The solution via PGM is based on the approach in :cite:`beck-2009-tv`,
+The solution via APGM is based on the approach in :cite:`beck-2009-tv`,
 which involves constructing a dual for the constrained denoising problem.
-The PGM solution minimizes the resulting dual. In this case, switching
+The APGM solution minimizes the resulting dual. In this case, switching
 between the two regularizers corresponds to switching between two
 different projectors.
 """

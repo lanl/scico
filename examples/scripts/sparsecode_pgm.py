@@ -5,15 +5,13 @@
 # with the package.
 
 r"""
-Basis Pursuit DeNoising (Accelerated PGM)
-=========================================
+Basis Pursuit DeNoising (APGM)
+==============================
 
-This example demonstrates the use of class
-[pgm.AcceleratedPGM](../_autosummary/scico.optimize.rst#scico.optimize.AcceleratedPGM)
-to solve the sparse coding problem problem
+This example demonstrates the solution of the the sparse coding problem
 
-  $$\mathrm{argmin}_{\mathbf{x}} \; \| \mathbf{y} - D \mathbf{x} \|_2^2
-  + \lambda \| \mathbf{x} \|_1\;,$$
+  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - D \mathbf{x}
+  \|_2^2 + \lambda \| \mathbf{x} \|_1\;,$$
 
 where $D$ the dictionary, $\mathbf{y}$ the signal to be represented,
 and $\mathbf{x}$ is the sparse representation.

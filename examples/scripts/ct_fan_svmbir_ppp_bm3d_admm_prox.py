@@ -5,17 +5,16 @@
 # with the package.
 
 """
-Fan-beam CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+Prox)
-===========================================================================
+PPP (with BM3D) Fan-Beam CT Reconstruction
+==========================================
 
-This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.optimize.rst#scico.optimize.ADMM) to
-solve a fan-beam tomographic reconstruction problem using
-the Plug-and-Play Priors framework :cite:`venkatakrishnan-2013-plugandplay2`,
-using BM3D :cite:`dabov-2008-image` as a denoiser and SVMBIR
+This example demonstrates solution of a fan-beam tomographic reconstruction
+problem using the Plug-and-Play Priors framework
+:cite:`venkatakrishnan-2013-plugandplay2`, using BM3D
+:cite:`dabov-2008-image` as a denoiser and SVMBIR
 :cite:`svmbir-2020` for tomographic projection.
 
-This version uses the data fidelity term as one of the ADMM $g$
+This example uses the data fidelity term as one of the ADMM $g$
 functionals so that the optimization with respect to the data fidelity is
 able to exploit the internal prox of the `SVMBIRExtendedLoss` functional.
 
