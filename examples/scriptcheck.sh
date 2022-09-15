@@ -2,7 +2,8 @@
 
 # Basic test of example script functionality by running them all with
 # optimization algorithms configured to use only a small number of iterations.
-# Currently only supported under Linux.
+# Currently only supported under Linux running an X11 session (for example,
+# it does not function correctly under Wayland on Ubuntu 22.04).
 
 SCRIPT=$(basename $0)
 SCRIPTPATH=$(realpath $(dirname $0))
