@@ -5,12 +5,13 @@
 # with the package.
 
 """
-Image Demosaicing (ADMM Plug-and-Play Priors w/ BM3D)
-=====================================================
+PPP (with BM3D) Image Demosaicing
+=================================
 
-This example demonstrates the use of the ADMM Plug and Play Priors
-(PPP) algorithm :cite:`venkatakrishnan-2013-plugandplay2` for solving
-a raw image demosaicing problem.
+This example demonstrates the use of the ADMM Plug and Play Priors (PPP)
+algorithm :cite:`venkatakrishnan-2013-plugandplay2`, with the BM3D
+:cite:`dabov-2008-image` denoiser, for solving a raw image demosaicing
+problem.
 """
 
 import numpy as np

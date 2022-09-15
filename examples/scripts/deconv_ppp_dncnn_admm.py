@@ -5,14 +5,13 @@
 # with the package.
 
 """
-Image Deconvolution (ADMM Plug-and-Play Priors w/ DnCNN)
-========================================================
+PPP (with DnCNN) Image Deconvolution
+====================================
 
-This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.optimize.rst#scico.optimize.ADMM) to
-solve an image deconvolution problem using the Plug-and-Play Priors
-framework :cite:`venkatakrishnan-2013-plugandplay2`, using DnCNN
-:cite:`zhang-2017-dncnn` as a denoiser.
+This example demonstrates the solution of an image deconvolution problem
+using the ADMM Plug-and-Play Priors (PPP) algorithm
+:cite:`venkatakrishnan-2013-plugandplay2`, with the DnCNN
+:cite:`zhang-2017-dncnn` denoiser.
 """
 
 import numpy as np
