@@ -3,7 +3,7 @@ SCICO Release Notes
 ===================
 
 
-Version 0.0.3   (unreleased)
+Version 0.0.3   (2022-09-20)
 ----------------------------
 
 • Support ``jaxlib`` versions 0.3.0 to 0.3.15 and ``jax`` versions
@@ -16,8 +16,10 @@ Version 0.0.3   (unreleased)
 • Enable addition operator for functionals.
 • Completely new implementation of ``BlockArray`` class.
 • Additional solvers in ``scico.solver``.
-• New Huber norm (``HuberNorm``) and set distance functionals (``SetDistance`` and ``SquaredSetDistance``).
-• New loss functions ``loss.SquaredL2AbsLoss`` and ``loss.SquaredL2SquaredAbsLoss`` for phase retrieval problems.
+• New Huber norm (``HuberNorm``) and set distance functionals (``SetDistance``
+  and ``SquaredSetDistance``).
+• New loss functions ``loss.SquaredL2AbsLoss`` and
+  ``loss.SquaredL2SquaredAbsLoss`` for phase retrieval problems.
 • Add interface to BM4D denoiser.
 • Change interfaces of ``linop.FiniteDifference`` and ``linop.DFT``.
 • Change filenames of some example scripts (and corresponding notebooks).
