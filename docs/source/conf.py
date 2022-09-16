@@ -377,7 +377,13 @@ module.ExperimentAnalysis = ExperimentAnalysis
 for func_name in ["loguniform", "report", "uniform"]:
     setattr(module, func_name, null_func)
 
-for module_name in ["progress_reporter", "schedulers", "suggest", "suggest.hyperopt", "trial"]:
+for module_name in [
+    "progress_reporter",
+    "schedulers",
+    "suggest",
+    "search.hyperopt",
+    "experiment.trial",
+]:
     sys.modules["ray.tune." + module_name] = Mock()
 
 
