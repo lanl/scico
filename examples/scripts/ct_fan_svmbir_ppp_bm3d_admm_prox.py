@@ -55,14 +55,14 @@ x_gt[x_gt < 0] = 0
 
 
 """
-Generate tomographic projector and sinogram for fan-beam and parallel beam.
-For fan-beam, use view-angles spanning 2π since unlike parallel-beam, views
+Generate tomographic projector and sinogram for fan beam and parallel beam.
+For fan beam, use view angles spanning 2π since unlike parallel beam, views
 at 0 and π are not equivalent.
 """
 num_angles = int(N / 2)
 num_channels = N
 
-# Use angles in the range [0, 2*pi] for fanbeam
+# Use angles in the range [0, 2*pi] for fan beam
 angles = snp.linspace(0, 2 * snp.pi, num_angles, endpoint=False, dtype=snp.float32)
 
 dist_source_detector = 1500.0
@@ -71,7 +71,7 @@ A_fan = TomographicProjector(
     x_gt.shape,
     angles,
     num_channels,
-    geometry="fan",
+    geometry="fan-curved",
     dist_source_detector=dist_source_detector,
     magnification=magnification,
 )
@@ -116,7 +116,7 @@ x_mrf_fan = svmbir.recon(
     positivity=True,
     verbose=0,
     stop_threshold=0.0,
-    geometry="fan",
+    geometry="fan-curved",
     dist_source_detector=dist_source_detector,
     magnification=magnification,
     delta_channel=1.0,
