@@ -146,7 +146,7 @@ class TomographicProjector(LinearOperator):
         self.dist_source_detector = dist_source_detector
         self.magnification = magnification
 
-        if self.geometry[0:3] == "fan":
+        if self.geometry == "fan-curved" or self.geometry == "fan-flat":
             if self.dist_source_detector is None:
                 raise ValueError("dist_source_detector must be specified for fan beam geometry")
             if self.magnification is None:
