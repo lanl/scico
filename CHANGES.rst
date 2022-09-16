@@ -3,6 +3,13 @@ SCICO Release Notes
 ===================
 
 
+Version 0.0.4   (unreleased)
+----------------------------
+
+• No changes yet.
+
+
+
 Version 0.0.3   (2022-09-20)
 ----------------------------
 
@@ -44,6 +51,7 @@ Version 0.0.2   (2022-02-14)
 • Move some functions from ``util`` and ``math`` modules to new ``array``
   module.
 • Bump pinned ``jaxlib`` and ``jax`` versions to 0.3.0.
+
 
 
 Version 0.0.1   (2021-11-24)
