@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -50,7 +50,7 @@ def is_collapsible(shapes: Sequence[Union[Shape, BlockShape]]) -> bool:
 
 def is_blockable(shapes: Sequence[Union[Shape, BlockShape]]) -> TypeGuard[Union[Shape, BlockShape]]:
     """Return ``True`` if the list of shapes represent arrays that
-    can be combined into a BlockArray, i.e., none are nested."""
+    can be combined into a :class:`BlockArray`, i.e., none are nested."""
     return not any(is_nested(s) for s in shapes)
 
 
@@ -67,10 +67,11 @@ class VerticalStack(LinearOperator):
         r"""
         Args:
             ops: Operators to stack.
-            collapse: If ``True`` and the output would be a `BlockArray`
-                with shape ((m, n, ...), (m, n, ...), ...), the output is
-                instead a `DeviceArray` with shape (S, m, n, ...) where S
-                is the length of `ops`. Defaults to ``True``.
+            collapse: If ``True`` and the output would be a
+                :class:`BlockArray` with shape ((m, n, ...), (m, n, ...),
+                ...), the output is instead a `DeviceArray` with shape
+                (S, m, n, ...) where S is the length of `ops`. Defaults
+                to ``True``.
             jit: see `jit` in :class:`LinearOperator`.
 
         """
@@ -101,28 +102,28 @@ class VerticalStack(LinearOperator):
     def check_if_stackable(ops: List[LinearOperator]):
         """Check that input ops are suitable for stack creation."""
         if not isinstance(ops, (list, tuple)):
-            raise ValueError("Expected a list of `LinearOperator`")
+            raise ValueError("Expected a list of LinearOperator")
 
         input_shapes = [op.shape[1] for op in ops]
         if not all(input_shapes[0] == s for s in input_shapes):
             raise ValueError(
-                "Expected all `LinearOperator`s to have the same input shapes, "
+                "Expected all LinearOperators to have the same input shapes, "
                 f"but got {input_shapes}"
             )
 
         input_dtypes = [op.input_dtype for op in ops]
         if not all(input_dtypes[0] == s for s in input_dtypes):
             raise ValueError(
-                "Expected all `LinearOperator`s to have the same input dtype, "
+                "Expected all LinearOperators to have the same input dtype, "
                 f"but got {input_dtypes}."
             )
 
         if any([is_nested(op.shape[0]) for op in ops]):
-            raise ValueError("Cannot stack `LinearOperator`s with nested output shapes.")
+            raise ValueError("Cannot stack LinearOperators with nested output shapes.")
 
         output_dtypes = [op.output_dtype for op in ops]
         if not np.all(output_dtypes[0] == s for s in output_dtypes):
-            raise ValueError("Expected all `LinearOperator`s to have the same output dtype.")
+            raise ValueError("Expected all LinearOperators to have the same output dtype.")
 
     def _eval(self, x: JaxArray) -> Union[JaxArray, BlockArray]:
         if self.collapsible and self.collapse:

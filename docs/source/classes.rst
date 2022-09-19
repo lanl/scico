@@ -1,13 +1,10 @@
 .. _classes:
 
-Important Classes
-=================
+******************
+Main SCICO Classes
+******************
 
-.. toctree::
-   :maxdepth: 1
-
-   blockarray
-   operator
-   functional
-   optimizer
-   learning
+.. include:: blockarray.rst
+.. include:: operator.rst
+.. include:: functional.rst
+.. include:: optimizer.rst

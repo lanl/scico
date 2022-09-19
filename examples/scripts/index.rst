@@ -46,6 +46,7 @@ Miscellaneous
 ^^^^^^^^^^^^^
 
    - demosaic_ppp_bm3d_admm.py
+   - denoise_cplx_tv_pdhg.py
    - denoise_l1tv_admm.py
    - denoise_tv_admm.py
    - denoise_tv_pgm.py
@@ -87,6 +88,7 @@ Total Variation
    - deconv_microscopy_allchn_tv_admm.py
    - deconv_tv_admm.py
    - deconv_tv_admm_tune.py
+   - denoise_cplx_tv_pdhg.py
    - denoise_l1tv_admm.py
    - denoise_tv_admm.py
    - denoise_tv_pgm.py
@@ -153,6 +155,7 @@ PDHG
 ^^^^
 
     - ct_svmbir_tv_multi.py
+    - denoise_cplx_tv_pdhg.py
     - denoise_tv_multi.py
 
 
