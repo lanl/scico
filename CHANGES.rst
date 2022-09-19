@@ -6,8 +6,12 @@ SCICO Release Notes
 Version 0.0.3   (unreleased)
 ----------------------------
 
+• Change required packages and version numbers, including more recent version
+  requirements for `numpy`, `scipy`, `svmbir`, and `ray`.
+• Packages `bm3d` and `bm4d` removed from main requirements list due to
+  issue #342.
 • Support ``jaxlib`` versions 0.3.0 to 0.3.15 and ``jax`` versions
-  0.3.0 to 0.3.15.
+  0.3.0 to 0.3.17.
 • Rename linear operators in ``radon_astra`` and ``radon_svmbir`` modules
   to ``TomographicProjector``.
 • Add support for fan beam CT in ``radon_svmbir`` module.
@@ -21,9 +25,6 @@ Version 0.0.3   (unreleased)
 • Add interface to BM4D denoiser.
 • Change interfaces of ``linop.FiniteDifference`` and ``linop.DFT``.
 • Change filenames of some example scripts (and corresponding notebooks).
-• Change required packages and version numbers.
-• Packages `bm3d` and `bm4d` removed from main requirements list due to
-  issue #342.
 • Add support for Python 3.7.
 • New ``DiagonalStack`` linear operator.
 • Add support for non-linear operators to ``optimize.PDHG`` optimizer class.
