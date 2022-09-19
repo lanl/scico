@@ -1,6 +1,6 @@
-.. image:: https://img.shields.io/badge/python-3.8+-green.svg
+.. image:: https://img.shields.io/badge/python-3.7+-green.svg
     :target: https://www.python.org/
-    :alt: Python >= 3.8
+    :alt: Python >= 3.7
 
 .. image:: https://img.shields.io/github/license/lanl/scico.svg
     :target: https://github.com/lanl/scico/blob/main/LICENSE

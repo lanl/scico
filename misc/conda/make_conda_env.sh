@@ -120,9 +120,9 @@ if [ "$OS" == "Darwin" ]; then
     fi
 fi
 
-JLVER=$($SED -n 's/^jaxlib>=\([0-9\.]*\).*/\1/p' \
+JLVER=$($SED -n 's/^jaxlib>=.*<=\([0-9\.]*\).*/\1/p' \
 	     $REPOPATH/../../requirements.txt)
-JXVER=$($SED -n 's/^jax>=\([0-9\.]*\).*/\1/p' \
+JXVER=$($SED -n 's/^jax>=.*<=\([0-9\.]*\).*/\1/p' \
 	     $REPOPATH/../../requirements.txt)
 
 CONDAHOME=$(conda info --base)
@@ -152,7 +152,7 @@ fi
 
 # Construct merged list of all requirements
 if [ "$OS" == "Darwin" ]; then
-    ALLREQUIRE=$(mktemp -t condaenv)
+    ALLREQUIRE=$(/usr/bin/mktemp -t condaenv)
 else
     ALLREQUIRE=$(mktemp -t condaenv_XXXXXX.txt)
 fi
@@ -194,18 +194,21 @@ conda create $CONDA_FLAGS -n $ENVNM python=$PYVER
 eval "$(conda shell.bash hook)"  # required to avoid errors re: `conda init`
 conda activate $ENVNM  # Q: why not `source activate`? A: not always in the path
 
-# Add conda-forge as a backup channel
+# Add conda-forge and astra-toolbox channels
 conda config --env --append channels conda-forge
 conda config --env --append channels astra-toolbox
 
+# Install mamba
+conda install mamba -n base -c conda-forge
+
 # Install required conda packages (and extra useful packages)
-conda install $CONDA_FLAGS $CONDAREQ ipython
+mamba install $CONDA_FLAGS $CONDAREQ ipython
 
 # Utility ffmpeg is required by imageio for reading mp4 video files
 # it can also be installed via the system package manager, .e.g.
 #    sudo apt install ffmpeg
 if [ "$(which ffmpeg)" = '' ]; then
-    conda install $CONDA_FLAGS ffmpeg
+    mamba install $CONDA_FLAGS ffmpeg
 fi
 
 # Install jaxlib and jax
