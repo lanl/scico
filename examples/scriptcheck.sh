@@ -2,8 +2,7 @@
 
 # Basic test of example script functionality by running them all with
 # optimization algorithms configured to use only a small number of iterations.
-# Currently only supported under Linux running an X11 session (for example,
-# it does not function correctly under Wayland on Ubuntu 22.04).
+# Currently only supported under Linux.
 
 SCRIPT=$(basename $0)
 SCRIPTPATH=$(realpath $(dirname $0))
@@ -45,7 +44,7 @@ if [ ! "$(which Xvfb 2>/dev/null)" ]; then
 else
     Xvfb :20 -screen 0 800x600x16 > /dev/null 2>&1 &
     pid=$!
-    export DISPLAY=:10.0
+    export DISPLAY=:20.0
 fi
 
 # Set environment variables and paths. This script is assumed to be run
