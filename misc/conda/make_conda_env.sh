@@ -199,7 +199,7 @@ conda config --env --append channels conda-forge
 conda config --env --append channels astra-toolbox
 
 # Install mamba
-conda install mamba
+conda install mamba -n base -c conda-forge
 
 # Install required conda packages (and extra useful packages)
 mamba install $CONDA_FLAGS $CONDAREQ ipython
