@@ -1,5 +1,5 @@
 astra-toolbox
 colour_demosaicing
 xdesign>=0.5.5
-ray[tune]
+ray[tune]>=2.0.0
 hyperopt
