@@ -79,7 +79,7 @@ def make_A(
 @pytest.mark.parametrize("is_3d", (True, False))
 @pytest.mark.parametrize("center_offset", BIG_INPUT_OFFSET_RANGE)
 @pytest.mark.parametrize("is_masked", (True, False))
-@pytest.mark.parametrize("geometry", ("parallel", "fan"))
+@pytest.mark.parametrize("geometry", ("parallel", "fan-curved", "fan-flat"))
 def test_grad(
     Nx,
     Ny,
@@ -119,7 +119,7 @@ def test_grad(
 @pytest.mark.parametrize("is_3d", (True, False))
 @pytest.mark.parametrize("center_offset", BIG_INPUT_OFFSET_RANGE)
 @pytest.mark.parametrize("is_masked", (True, False))
-@pytest.mark.parametrize("geometry", ("parallel", "fan"))
+@pytest.mark.parametrize("geometry", ("parallel", "fan-curved", "fan-flat"))
 def test_adjoint(
     Nx,
     Ny,
@@ -153,7 +153,7 @@ def test_adjoint(
 @pytest.mark.parametrize("is_3d", (True, False))
 @pytest.mark.parametrize("center_offset", SMALL_INPUT_OFFSET_RANGE)
 @pytest.mark.parametrize("is_masked", (True, False))
-@pytest.mark.parametrize("geometry", ("parallel", "fan"))
+@pytest.mark.parametrize("geometry", ("parallel", "fan-curved", "fan-flat"))
 def test_prox(
     Nx,
     Ny,
@@ -197,7 +197,7 @@ def test_prox(
 @pytest.mark.parametrize("is_3d", (True, False))
 @pytest.mark.parametrize("center_offset", SMALL_INPUT_OFFSET_RANGE)
 @pytest.mark.parametrize("is_masked", (True, False))
-@pytest.mark.parametrize("geometry", ("parallel", "fan"))
+@pytest.mark.parametrize("geometry", ("parallel", "fan-curved", "fan-flat"))
 def test_prox_weights(
     Nx,
     Ny,
@@ -246,7 +246,7 @@ def test_prox_weights(
 @pytest.mark.parametrize("weight_type", ("transmission", "unweighted"))
 @pytest.mark.parametrize("center_offset", SMALL_INPUT_OFFSET_RANGE)
 @pytest.mark.parametrize("is_masked", (True, False))
-@pytest.mark.parametrize("geometry", ("parallel", "fan"))
+@pytest.mark.parametrize("geometry", ("parallel", "fan-curved", "fan-flat"))
 def test_prox_cg(
     Nx,
     Ny,
@@ -312,7 +312,7 @@ def test_prox_cg(
 @pytest.mark.parametrize("center_offset", SMALL_INPUT_OFFSET_RANGE)
 @pytest.mark.parametrize("is_masked", (True, False))
 @pytest.mark.parametrize("positivity", (True, False))
-@pytest.mark.parametrize("geometry", ("parallel", "fan"))
+@pytest.mark.parametrize("geometry", ("parallel", "fan-curved", "fan-flat"))
 def test_approx_prox(
     Nx,
     Ny,

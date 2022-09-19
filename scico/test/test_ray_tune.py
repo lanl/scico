@@ -9,25 +9,21 @@ try:
     import ray
     from scico.ray import tune
 
-    ray.init(local_mode=True)
+    ray.init(num_cpus=1)
 except ImportError as e:
     pytest.skip("ray.tune not installed", allow_module_level=True)
 
 
-def eval_params(config, reporter):
-    x, y = config["x"], config["y"]
-    cost = x**2 + (y - 0.5) ** 2
-    reporter(cost=cost)
-
-
-tune.ray.tune.register_trainable("eval_func", eval_params)
-
-config = {"x": tune.uniform(-1, 1), "y": tune.uniform(-1, 1)}
-resources = {"gpu": 0, "cpu": 1}
-
-
-@pytest.mark.filterwarnings("ignore::pytest.PytestUnhandledThreadExceptionWarning")
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_random():
+    def eval_params(config, reporter):
+        x, y = config["x"], config["y"]
+        cost = x**2 + (y - 0.5) ** 2
+        reporter(cost=cost)
+
+    config = {"x": tune.uniform(-1, 1), "y": tune.uniform(-1, 1)}
+    resources = {"gpu": 0, "cpu": 1}
+    tune.ray.tune.register_trainable("eval_func", eval_params)
     analysis = tune.run(
         "eval_func",
         metric="cost",
@@ -44,8 +40,15 @@ def test_random():
     assert np.abs(best_config["y"] - 0.5) < 0.25
 
 
-@pytest.mark.filterwarnings("ignore::pytest.PytestUnhandledThreadExceptionWarning")
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_hyperopt():
+    def eval_params(config, reporter):
+        x, y = config["x"], config["y"]
+        cost = x**2 + (y - 0.5) ** 2
+        reporter(cost=cost)
+
+    config = {"x": tune.uniform(-1, 1), "y": tune.uniform(-1, 1)}
+    resources = {"gpu": 0, "cpu": 1}
     analysis = tune.run(
         eval_params,
         metric="cost",
