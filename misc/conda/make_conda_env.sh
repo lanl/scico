@@ -152,7 +152,7 @@ fi
 
 # Construct merged list of all requirements
 if [ "$OS" == "Darwin" ]; then
-    ALLREQUIRE=$(mktemp -t condaenv)
+    ALLREQUIRE=$(/usr/bin/mktemp -t condaenv)
 else
     ALLREQUIRE=$(mktemp -t condaenv_XXXXXX.txt)
 fi
