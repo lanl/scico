@@ -22,6 +22,8 @@ Version 0.0.3   (unreleased)
 • Change interfaces of ``linop.FiniteDifference`` and ``linop.DFT``.
 • Change filenames of some example scripts (and corresponding notebooks).
 • Change required packages and version numbers.
+• Packages `bm3d` and `bm4d` removed from main requirements list due to
+  issue #342.
 • Add support for Python 3.7.
 • New ``DiagonalStack`` linear operator.
 • Add support for non-linear operators to ``optimize.PDHG`` optimizer class.

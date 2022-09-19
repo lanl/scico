@@ -1,4 +1,6 @@
 astra-toolbox
+bm3d>=3.0.9
+bm4d>=4.0.0
 colour_demosaicing
 xdesign>=0.5.5
 ray[tune]

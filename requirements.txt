@@ -6,7 +6,5 @@ matplotlib
 jaxlib>=0.3.0,<=0.3.15
 jax>=0.3.0,<=0.3.17
 flax>=0.4.0
-bm3d>=3.0.9
-bm4d
 svmbir>=0.2.9
 pyabel>=0.8.5
