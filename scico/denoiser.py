@@ -8,22 +8,18 @@
 """
 Interfaces to standard denoisers.
 
-**Warning**: The :func:`bm3d` and :func:`bm4d` functions are
-implemented as interfaces to the `bm3d
-<https://pypi.org/project/bm3d>`__ and `bm4d
-<https://pypi.org/project/bm4d>`__ packages respectively. The current
-versions of these packages (bm3d 3.0.9 and bm4d 4.0.0) appear to
-be compiled with compiler options that `change the behavior of the
-floating point unit
+**Warning**: The :func:`bm4d` function is implemented as an interface
+to the `bm4d <https://pypi.org/project/bm4d>`__ package. The current
+version of this package, 4.0.0, appears to be compiled with compiler
+options that `change the behavior of the floating point unit
 <https://moyix.blogspot.com/2022/09/someones-been-messing-with-my-subnormals.html>`__
 in a way that results in lower numerical accuracy, and that persist
-for the duration of the process that loads them. If either of these
-packages are installed, simply loading this module
-(:mod:`scico.denoiser`), is sufficient to inflict this loss of
-numerical precision on all other calculations run within the same
-process, even if neither of :func:`bm3d` or :func:`bm4d` are actually
-used. Users who are not making use of either :func:`bm3d` or
-:func:`bm4d` are advised not to install the corresponding packages.
+for the duration of the process that loads it. If this package is
+installed, simply loading this module (:mod:`scico.denoiser`), is
+sufficient to inflict this loss of numerical precision on all other
+calculations run within the same process, even if :func:`bm4d` is not
+actually used. Users who are not making use of :func:`bm4d` are
+advised not to install the corresponding package. For additional information, see `scico issue #342 <https://github.com/lanl/scico/issues/342>`__.
 """
 
 
