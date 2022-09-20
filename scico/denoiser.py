@@ -19,7 +19,9 @@ installed, simply loading this module (:mod:`scico.denoiser`), is
 sufficient to inflict this loss of numerical precision on all other
 calculations run within the same process, even if :func:`bm4d` is not
 actually used. Users who are not making use of :func:`bm4d` are
-advised not to install the corresponding package. For additional information, see `scico issue #342 <https://github.com/lanl/scico/issues/342>`__.
+advised not to install the corresponding package. For additional
+information, see `scico issue #342
+<https://github.com/lanl/scico/issues/342>`__.
 """
 
 import warnings
