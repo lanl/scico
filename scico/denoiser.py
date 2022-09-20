@@ -22,6 +22,7 @@ actually used. Users who are not making use of :func:`bm4d` are
 advised not to install the corresponding package. For additional information, see `scico issue #342 <https://github.com/lanl/scico/issues/342>`__.
 """
 
+import warnings
 
 import numpy as np
 
@@ -40,6 +41,19 @@ except ImportError:
     have_bm4d = False
 else:
     have_bm4d = True
+    finfo = np.finfo(np.float32)
+    if hasattr(finfo, "smallest_subnormal"):  # can't test with older numpy versions
+        if finfo.smallest_subnormal == 0.0:
+            warnings.warn(
+                "Importing module bm4d has had an adverse affect on floating point "
+                "accuracy. See the documentation for module scico.denoiser, and "
+                "scico issue #342."
+            )
+            warnings.filterwarnings(
+                action="ignore",
+                message="^The value of the smallest subnormal",
+                category=UserWarning,
+            )
 
 import scico.numpy as snp
 from scico._flax import DnCNNNet, load_weights
