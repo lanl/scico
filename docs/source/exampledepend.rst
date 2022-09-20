@@ -14,7 +14,6 @@ which should be installed via conda:
 
 The dependencies can also be installed individually as required.
 
-Users are advised to read the warning in :mod:`scico.denoiser` before installing `bm3d <https://pypi.org/project/bm3d>`__ or
-`bm4d <https://pypi.org/project/bm4d>`__.
+Users are advised to read the warning in :mod:`scico.denoiser` before installing `bm4d <https://pypi.org/project/bm4d>`__.
 
 |
