@@ -15,6 +15,7 @@ Version 0.0.3   (2022-09-20)
 
 • Change required packages and version numbers, including more recent version
   requirements for `numpy`, `scipy`, `svmbir`, and `ray`.
+• Package `bm4d` removed from main requirements list due to issue #342.
 • Support ``jaxlib`` versions 0.3.0 to 0.3.15 and ``jax`` versions
   0.3.0 to 0.3.17.
 • Rename linear operators in ``radon_astra`` and ``radon_svmbir`` modules
