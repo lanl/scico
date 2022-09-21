@@ -29,6 +29,8 @@ SMALL_INPUT = (4, 5, 7, 8, 16, 1.2)
 BIG_INPUT_OFFSET_RANGE = (0, 3)
 SMALL_INPUT_OFFSET_RANGE = (0, 0.1)
 
+device = jax.devices()[0]
+
 
 def make_im(Nx, Ny, is_3d=True):
     x, y = snp.meshgrid(snp.linspace(-1, 1, Nx), snp.linspace(-1, 1, Ny))
@@ -147,6 +149,7 @@ def test_adjoint(
     adjoint_test(A)
 
 
+@pytest.mark.skipif(device.platform != "cpu", reason="test hangs on gpu")
 @pytest.mark.parametrize(
     "Nx, Ny, num_angles, num_channels, dist_source_detector, magnification", (SMALL_INPUT,)
 )
@@ -191,6 +194,7 @@ def test_prox(
     prox_test(v, f, f.prox, alpha=0.25, rtol=5e-4)
 
 
+@pytest.mark.skipif(device.platform != "cpu", reason="test hangs on gpu")
 @pytest.mark.parametrize(
     "Nx, Ny, num_angles, num_channels, dist_source_detector, magnification", (SMALL_INPUT,)
 )
