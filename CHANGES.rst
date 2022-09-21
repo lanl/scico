@@ -3,7 +3,7 @@ SCICO Release Notes
 ===================
 
 
-Version 0.0.3   (2022-09-20)
+Version 0.0.3   (2022-09-21)
 ----------------------------
 
 • Change required packages and version numbers, including more recent version
