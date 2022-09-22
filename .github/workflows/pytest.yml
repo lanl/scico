@@ -73,7 +73,8 @@ jobs:
           pip install -r dev_requirements.txt
           mamba install -c astra-toolbox astra-toolbox
           mamba install -c conda-forge pyyaml
-          pip install "ray[tune]"
+          pip install bm4d>=4.0.0
+          pip install "ray[tune]>=2.0.0"
           pip install hyperopt
       # Install package to be tested
       - name: Install package to be tested

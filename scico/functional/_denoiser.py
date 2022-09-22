@@ -18,7 +18,9 @@ class BM3D(Functional):
 
     A pseudo-functional that has the BM3D algorithm
     :cite:`dabov-2008-image` as its proximal operator, which calls
-    :func:`.denoiser.bm3d`.
+    :func:`.denoiser.bm3d`. Since this function provides an interface
+    to compiled C code, JAX features such as automatic differentiation
+    and support for GPU devices are not available.
     """
 
     has_eval = False
@@ -55,7 +57,9 @@ class BM4D(Functional):
 
     A pseudo-functional that has the BM4D algorithm
     :cite:`maggioni-2012-nonlocal` as its proximal operator, which calls
-    :func:`.denoiser.bm4d`.
+    :func:`.denoiser.bm4d`. Since this function provides an interface
+    to compiled C code, JAX features such as automatic differentiation
+    and support for GPU devices are not available.
     """
 
     has_eval = False

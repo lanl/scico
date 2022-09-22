@@ -172,7 +172,17 @@ release = version
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ["tmp", "*.tmp.*", "*.tmp", "index.ipynb", "exampledepend.rst"]
+exclude_patterns = [
+    "tmp",
+    "*.tmp.*",
+    "*.tmp",
+    "index.ipynb",
+    "exampledepend.rst",
+    "blockarray.rst",
+    "operator.rst",
+    "functional.rst",
+    "optimizer.rst",
+]
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 add_function_parentheses = False
@@ -367,7 +377,13 @@ module.ExperimentAnalysis = ExperimentAnalysis
 for func_name in ["loguniform", "report", "uniform"]:
     setattr(module, func_name, null_func)
 
-for module_name in ["progress_reporter", "schedulers", "suggest", "suggest.hyperopt", "trial"]:
+for module_name in [
+    "progress_reporter",
+    "schedulers",
+    "suggest",
+    "search.hyperopt",
+    "experiment.trial",
+]:
     sys.modules["ray.tune." + module_name] = Mock()
 
 
@@ -388,7 +404,7 @@ autoclass_content = "both"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ["_build", "**tests**", "**spi**", "**README.rst", "**exampledepend.rst"]
+exclude_patterns = ["_build", "**tests**", "**spi**", "**README.rst", "include"]
 
 
 # Rewrite module names for certain functions imported into scico.numpy so that they are

@@ -23,7 +23,7 @@ Double Precision
 
 By default, JAX enforces single-precision numbers. Double precision can be enabled in one of two ways:
 
-1. Setting the environment variable ``JAX_ENABLE_X64=TRUE`` before launching python.
+1. Setting the environment variable ``JAX_ENABLE_X64=TRUE`` before launching Python.
 2. Manually setting the ``jax_enable_x64`` flag **at program startup**; that is, **before** importing SCICO.
 
 ::

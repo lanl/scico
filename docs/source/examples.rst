@@ -6,7 +6,7 @@ Usage Examples
 .. toctree::
    :maxdepth: 1
 
-.. include:: exampledepend.rst
+.. include:: include/exampledepend.rst
 
 
 Organized by Application

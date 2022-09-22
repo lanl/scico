@@ -5,15 +5,14 @@
 # with the package.
 
 r"""
-Non-negative Basis Pursuit DeNoising (ADMM)
+Non-Negative Basis Pursuit DeNoising (ADMM)
 ===========================================
 
-This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.optimize.rst#scico.optimize.ADMM) to
-solve the non-negative sparse coding problem problem
+This example demonstrates the solution of a non-negative sparse coding
+problem
 
-  $$\mathrm{argmin}_{\mathbf{x}} \; \| \mathbf{y} - D \mathbf{x} \|_2^2
-  + \lambda \| \mathbf{x} \|_1 + I(\mathbf{x} \geq 0)\;,$$
+  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - D \mathbf{x} \|_2^2
+  + \lambda \| \mathbf{x} \|_1 + I(\mathbf{x} \geq 0) \;,$$
 
 where $D$ the dictionary, $\mathbf{y}$ the signal to be represented,
 $\mathbf{x}$ is the sparse representation, and $I(\mathbf{x} \geq 0)$

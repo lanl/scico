@@ -29,6 +29,8 @@ SMALL_INPUT = (4, 5, 7, 8, 16, 1.2)
 BIG_INPUT_OFFSET_RANGE = (0, 3)
 SMALL_INPUT_OFFSET_RANGE = (0, 0.1)
 
+device = jax.devices()[0]
+
 
 def make_im(Nx, Ny, is_3d=True):
     x, y = snp.meshgrid(snp.linspace(-1, 1, Nx), snp.linspace(-1, 1, Ny))
@@ -79,7 +81,7 @@ def make_A(
 @pytest.mark.parametrize("is_3d", (True, False))
 @pytest.mark.parametrize("center_offset", BIG_INPUT_OFFSET_RANGE)
 @pytest.mark.parametrize("is_masked", (True, False))
-@pytest.mark.parametrize("geometry", ("parallel", "fan"))
+@pytest.mark.parametrize("geometry", ("parallel", "fan-curved", "fan-flat"))
 def test_grad(
     Nx,
     Ny,
@@ -119,7 +121,7 @@ def test_grad(
 @pytest.mark.parametrize("is_3d", (True, False))
 @pytest.mark.parametrize("center_offset", BIG_INPUT_OFFSET_RANGE)
 @pytest.mark.parametrize("is_masked", (True, False))
-@pytest.mark.parametrize("geometry", ("parallel", "fan"))
+@pytest.mark.parametrize("geometry", ("parallel", "fan-curved", "fan-flat"))
 def test_adjoint(
     Nx,
     Ny,
@@ -147,13 +149,14 @@ def test_adjoint(
     adjoint_test(A)
 
 
+@pytest.mark.skipif(device.platform != "cpu", reason="test hangs on gpu")
 @pytest.mark.parametrize(
     "Nx, Ny, num_angles, num_channels, dist_source_detector, magnification", (SMALL_INPUT,)
 )
 @pytest.mark.parametrize("is_3d", (True, False))
 @pytest.mark.parametrize("center_offset", SMALL_INPUT_OFFSET_RANGE)
 @pytest.mark.parametrize("is_masked", (True, False))
-@pytest.mark.parametrize("geometry", ("parallel", "fan"))
+@pytest.mark.parametrize("geometry", ("parallel", "fan-curved", "fan-flat"))
 def test_prox(
     Nx,
     Ny,
@@ -191,13 +194,14 @@ def test_prox(
     prox_test(v, f, f.prox, alpha=0.25, rtol=5e-4)
 
 
+@pytest.mark.skipif(device.platform != "cpu", reason="test hangs on gpu")
 @pytest.mark.parametrize(
     "Nx, Ny, num_angles, num_channels, dist_source_detector, magnification", (SMALL_INPUT,)
 )
 @pytest.mark.parametrize("is_3d", (True, False))
 @pytest.mark.parametrize("center_offset", SMALL_INPUT_OFFSET_RANGE)
 @pytest.mark.parametrize("is_masked", (True, False))
-@pytest.mark.parametrize("geometry", ("parallel", "fan"))
+@pytest.mark.parametrize("geometry", ("parallel", "fan-curved", "fan-flat"))
 def test_prox_weights(
     Nx,
     Ny,
@@ -246,7 +250,7 @@ def test_prox_weights(
 @pytest.mark.parametrize("weight_type", ("transmission", "unweighted"))
 @pytest.mark.parametrize("center_offset", SMALL_INPUT_OFFSET_RANGE)
 @pytest.mark.parametrize("is_masked", (True, False))
-@pytest.mark.parametrize("geometry", ("parallel", "fan"))
+@pytest.mark.parametrize("geometry", ("parallel", "fan-curved", "fan-flat"))
 def test_prox_cg(
     Nx,
     Ny,
@@ -312,7 +316,7 @@ def test_prox_cg(
 @pytest.mark.parametrize("center_offset", SMALL_INPUT_OFFSET_RANGE)
 @pytest.mark.parametrize("is_masked", (True, False))
 @pytest.mark.parametrize("positivity", (True, False))
-@pytest.mark.parametrize("geometry", ("parallel", "fan"))
+@pytest.mark.parametrize("geometry", ("parallel", "fan-curved", "fan-flat"))
 def test_approx_prox(
     Nx,
     Ny,

@@ -108,6 +108,9 @@ A number of files in this directory assist in the mangement of the usage example
 `makenotebooks.py <makenotebooks.py>`_
    Auto-generate Jupyter notebooks from the example scripts.
 
+`updatejnbmd.py <updatejnbmd.py>`_
+   Update markdown cells in notebooks from corresponding example scripts.
+
 `makeindex.py <makeindex.py>`_
    Auto-generate the docs example index ``docs/source/examples.rst`` from the example scripts index ``scripts/index.rst``.
 
