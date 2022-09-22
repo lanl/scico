@@ -5,17 +5,14 @@
 # with the package.
 
 """
-Image Deconvolution (ADMM Plug-and-Play Priors w/ BM4D)
-=======================================================
+PPP (with BM4D) Volume Deconvolution
+====================================
 
-This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.optimize.rst#scico.optimize.ADMM) to
-solve a 3D image deconvolution problem using the Plug-and-Play Priors
-framework :cite:`venkatakrishnan-2013-plugandplay2`, using BM4D
-:cite:`maggioni-2012-nonlocal` as a denoiser.
-
-The 3D deconvolution problem is the task of recovering a 3D image
-that has been convolved with a 3D kernel and corrupted by noise.
+This example demonstrates the solution of a 3D image deconvolution problem
+(involving recovering a 3D volume that has been convolved with a 3D kernel
+and corrupted by noise) using the ADMM Plug-and-Play Priors (PPP)
+algorithm :cite:`venkatakrishnan-2013-plugandplay2`, with the BM4D
+:cite:`maggioni-2012-nonlocal` denoiser.
 """
 
 import numpy as np
@@ -32,9 +29,8 @@ from scico.util import device_info
 Create a ground truth image.
 """
 np.random.seed(1234)
-Nx = 128
-Ny = 128
-Nz = 128
+N = 128  # phantom size
+Nx, Ny, Nz = N, N, N // 4
 upsamp = 2
 x_gt_hires = create_3D_foam_phantom((upsamp * Nz, upsamp * Ny, upsamp * Nx), N_sphere=100)
 x_gt = downsample_volume(x_gt_hires, upsamp)

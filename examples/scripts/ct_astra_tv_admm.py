@@ -5,16 +5,14 @@
 # with the package.
 
 r"""
-Few-View CT (ADMM w/ Total Variation)
-=====================================
+TV-Regularized Sparse-View CT Reconstruction
+============================================
 
-This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.optimize.rst#scico.optimize.ADMM) to
-solve a few-view CT reconstruction problem with anisotropic total
-variation (TV) regularization
+This example demonstrates solution of a sparse-view CT reconstruction
+problem with isotropic total variation (TV) regularization
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
-  \|_2^2 + \lambda \| C \mathbf{x} \|_1 \;,$$
+  \|_2^2 + \lambda \| C \mathbf{x} \|_{2,1} \;,$$
 
 where $A$ is the Radon transform, $\mathbf{y}$ is the sinogram, $C$ is
 a 2D finite difference operator, and $\mathbf{x}$ is the desired
@@ -38,6 +36,7 @@ from scico.util import device_info
 Create a ground truth image.
 """
 N = 512  # phantom size
+np.random.seed(1234)
 x_gt = discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=N)
 x_gt = jax.device_put(x_gt)  # convert to jax type, push to GPU
 
@@ -54,14 +53,17 @@ y = A @ x_gt  # sinogram
 """
 Set up ADMM solver object.
 """
-λ = 2e-0  # L1 norm regularization parameter
-ρ = 5e-0  # ADMM penalty parameter
+λ = 2e0  # L1 norm regularization parameter
+ρ = 5e0  # ADMM penalty parameter
 maxiter = 25  # number of ADMM iterations
 cg_tol = 1e-4  # CG relative tolerance
 cg_maxiter = 25  # maximum CG iterations per ADMM iteration
 
-g = λ * functional.L1Norm()  # regularization functionals gi
-C = linop.FiniteDifference(input_shape=x_gt.shape)  # analysis operators Ci
+# The append=0 option makes the results of horizontal and vertical
+# finite differences the same shape, which is required for the L21Norm,
+# which is used so that g(Cx) corresponds to isotropic TV.
+C = linop.FiniteDifference(input_shape=x_gt.shape, append=0)
+g = λ * functional.L21Norm()
 
 f = loss.SquaredL2Loss(y=y, A=A)
 

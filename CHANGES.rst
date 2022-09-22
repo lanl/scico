@@ -3,20 +3,40 @@ SCICO Release Notes
 ===================
 
 
-Version 0.0.3   (unreleased)
+Version 0.0.4   (unreleased)
 ----------------------------
 
-• Support for ``jaxlib`` versions 0.3.0 to 0.3.2 and ``jax`` versions
-  0.3.0 to 0.3.4.
+• No changes yet.
+
+
+
+Version 0.0.3   (2022-09-21)
+----------------------------
+
+• Change required packages and version numbers, including more recent version
+  requirements for `numpy`, `scipy`, `svmbir`, and `ray`.
+• Package `bm4d` removed from main requirements list due to issue #342.
+• Support ``jaxlib`` versions 0.3.0 to 0.3.15 and ``jax`` versions
+  0.3.0 to 0.3.17.
 • Rename linear operators in ``radon_astra`` and ``radon_svmbir`` modules
   to ``TomographicProjector``.
 • Add support for fan beam CT in ``radon_svmbir`` module.
 • Add function ``linop.linop_from_function`` for constructing linear
   operators from functions.
-• Add support for addition of functionals.
+• Enable addition operator for functionals.
+• Completely new implementation of ``BlockArray`` class.
 • Additional solvers in ``scico.solver``.
-• New Huber norm and set distance functionals.
+• New Huber norm (``HuberNorm``) and set distance functionals (``SetDistance``
+  and ``SquaredSetDistance``).
+• New loss functions ``loss.SquaredL2AbsLoss`` and
+  ``loss.SquaredL2SquaredAbsLoss`` for phase retrieval problems.
 • Add interface to BM4D denoiser.
+• Change interfaces of ``linop.FiniteDifference`` and ``linop.DFT``.
+• Change filenames of some example scripts (and corresponding notebooks).
+• Add support for Python 3.7.
+• New ``DiagonalStack`` linear operator.
+• Add support for non-linear operators to ``optimize.PDHG`` optimizer class.
+• Various bug fixes.
 
 
 

@@ -8,6 +8,7 @@
 """Parameter tuning using :doc:`ray.tune <ray:tune/index>`."""
 
 import datetime
+import getpass
 import os
 import tempfile
 from typing import Any, Callable, Dict, List, Mapping, Optional, Type, Union
@@ -19,10 +20,10 @@ try:
 except ImportError:
     raise ImportError("Could not import ray.tune; please install it.")
 from ray.tune import loguniform, report, uniform  # noqa
+from ray.tune.experiment.trial import Trial
 from ray.tune.progress_reporter import TuneReporterBase, _get_trials_by_state
 from ray.tune.schedulers import AsyncHyperBandScheduler
-from ray.tune.suggest.hyperopt import HyperOptSearch
-from ray.tune.trial import Trial
+from ray.tune.search.hyperopt import HyperOptSearch
 
 
 class _CustomReporter(TuneReporterBase):
@@ -99,9 +100,9 @@ def run(
             and "T:" respectively, followed by the current best metric
             value and the parameters at which it was reported.
         local_dir: Directory in which to save tuning results. Defaults to
-            a subdirectory "ray_results" within the path returned by
+            a subdirectory "<username>/ray_results" within the path returned by
             `tempfile.gettempdir()`, corresponding e.g. to
-            "/tmp/ray_results" under Linux.
+            "/tmp/<username>/ray_results" under Linux.
 
     Returns:
         Result of parameter search.
@@ -126,9 +127,23 @@ def run(
     name += "_" + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
     if local_dir is None:
-        local_dir = os.path.join(tempfile.gettempdir(), "ray_results")
+        try:
+            user = getpass.getuser()
+        except Exception:
+            user = "NOUSER"
+        local_dir = os.path.join(tempfile.gettempdir(), user, "ray_results")
 
-    return ray.tune.run(
+    # Record original logger.info
+    logger_info = ray.tune.tune.logger.info
+
+    # Replace logger.info with filtered version
+    def logger_info_filter(msg, *args, **kwargs):
+        if msg[0:15] != "Total run time:":
+            logger_info(msg, *args, **kwargs)
+
+    ray.tune.tune.logger.info = logger_info_filter
+
+    result = ray.tune.run(
         run_or_experiment,
         metric=metric,
         mode=mode,
@@ -143,3 +158,8 @@ def run(
         checkpoint_freq=0,
         **kwargs,
     )
+
+    # Restore original logger.info
+    ray.tune.tune.logger.info = logger_info
+
+    return result

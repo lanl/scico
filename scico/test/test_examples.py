@@ -3,7 +3,7 @@ import tempfile
 
 import numpy as np
 
-import imageio
+import imageio.v2 as iio
 import pytest
 
 import scico.numpy as snp
@@ -13,6 +13,7 @@ from scico.examples import (
     create_cone,
     downsample_volume,
     epfl_deconv_data,
+    phase_diff,
     rgb2gray,
     spnoise,
     tile_volume_slices,
@@ -32,8 +33,8 @@ def test_volume_read():
     temp_dir = tempfile.TemporaryDirectory()
     v0 = np.zeros((32, 32), dtype=np.uint16)
     v1 = np.ones((32, 32), dtype=np.uint16)
-    imageio.imwrite(os.path.join(temp_dir.name, "v0.tif"), v0)
-    imageio.imwrite(os.path.join(temp_dir.name, "v1.tif"), v1)
+    iio.imwrite(os.path.join(temp_dir.name, "v0.tif"), v0)
+    iio.imwrite(os.path.join(temp_dir.name, "v1.tif"), v1)
     vol = volume_read(temp_dir.name, ext="tif")
     assert np.allclose(v0, vol[..., 0]) and np.allclose(v1, vol[..., 1])
 
@@ -117,3 +118,11 @@ def test_spnoise():
     y = spnoise(x, 0.5, nmin=0.01, nmax=0.99)
     assert np.all(y >= 0.01)
     assert np.all(y <= 0.99)
+
+
+def test_phase_diff():
+    x = np.pi * np.random.randn(16)
+    y = np.pi * np.random.randn(16)
+    d = phase_diff(x, y)
+    assert np.all(d >= 0)
+    assert np.all(d <= np.pi)

@@ -35,7 +35,7 @@ Installing a Development Version
 
 1. Fork both the ``scico`` and ``scico-data`` repositories, creating copies of these repositories in your own git account.
 
-2. Make sure that you have python >= 3.8 installed in order to create a conda virtual environment.
+2. Make sure that you have Python 3.7 or later installed in order to create a conda virtual environment.
 
 3. Clone your fork from the source repo.
 
@@ -44,11 +44,11 @@ Installing a Development Version
       git clone --recurse-submodules git@github.com:<username>/scico.git
 
 
-4. Create a conda environment using python >= 3.8:
+4. Create a conda environment using Python 3.7 or later, e.g.:
 
    ::
 
-      conda create -n scico python=3.8
+      conda create -n scico python=3.9
 
 
 5. Activate the created conda virtual environment:
@@ -255,11 +255,11 @@ Install ``mypy``:
 
    conda install mypy
 
-To run the type checker on the ``scico`` module:
+To run the type checker, execute the following from the scico repository root:
 
 ::
 
-   mypy -p scico
+   mypy --follow-imports=skip --ignore-missing-imports  --exclude "(numpy|test)" scico/
 
 
 
@@ -358,10 +358,13 @@ particular:
 3. Citations are included using the standard `Sphinx <https://www.sphinx-doc.org/en/master/>`__ ``:cite:`cite-key``` syntax, where ``cite-key`` is the key of an entry in ``docs/source/references.bib``.
 
 
-4. Cross-references to other components of the documentation are included using the syntax described in the `nbsphinx documentation <https://nbsphinx.readthedocs.io/en/0.3.5/markdown-cells.html#Links-to-*.rst-Files-(and-Other-Sphinx-Source-Files)>`__.
+4. Cross-references to other components of the documentation are included using the syntax described in the `nbsphinx documentation <https://nbsphinx.readthedocs.io/en/latest/markdown-cells.html#Links-to-*.rst-Files-(and-Other-Sphinx-Source-Files)>`__.
 
 
 5. External links are included using Markdown syntax ``[link text](url)``.
+
+
+6. When constructing a synthetic image/volume for use in the example, define a global variable `N` that controls the size of the problem, and where relevant, define a global variable `maxiter` that controls the number of iterations of optimization algorithms such as ADMM. Adhering to this convention allows the ``examples/scriptcheck.sh`` utility to automatically construct less computationally expensive versions of the example scripts for testing that they run without any errors.
 
 
 Adding new examples

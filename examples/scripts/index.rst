@@ -10,27 +10,27 @@ Computed Tomography
 ^^^^^^^^^^^^^^^^^^^
 
    - ct_abel_tv_admm.py
-   - ct_astra_pcg.py
+   - ct_astra_noreg_pcg.py
    - ct_astra_tv_admm.py
    - ct_astra_weighted_tv_admm.py
+   - ct_svmbir_tv_multi.py
    - ct_svmbir_ppp_bm3d_admm_cg.py
    - ct_svmbir_ppp_bm3d_admm_prox.py
    - ct_fan_svmbir_ppp_bm3d_admm_prox.py
-   - ct_svmbir_tv_multi.py
 
 
 Deconvolution
 ^^^^^^^^^^^^^
 
    - deconv_circ_tv_admm.py
+   - deconv_tv_admm.py
+   - deconv_tv_admm_tune.py
    - deconv_microscopy_tv_admm.py
    - deconv_microscopy_allchn_tv_admm.py
    - deconv_ppp_bm3d_admm.py
    - deconv_ppp_bm3d_pgm.py
-   - deconv_ppp_bm4d_admm.py
    - deconv_ppp_dncnn_admm.py
-   - deconv_tv_admm.py
-   - deconv_tv_admm_tune.py
+   - deconv_ppp_bm4d_admm.py
 
 
 Sparse Coding
@@ -45,11 +45,12 @@ Miscellaneous
 ^^^^^^^^^^^^^
 
    - demosaic_ppp_bm3d_admm.py
-   - denoise_l1tv_iso_admm.py
-   - denoise_tv_iso_admm.py
-   - denoise_tv_iso_pgm.py
-   - denoise_tv_iso_multi.py
    - superres_ppp_dncnn_admm.py
+   - denoise_l1tv_admm.py
+   - denoise_tv_admm.py
+   - denoise_tv_pgm.py
+   - denoise_tv_multi.py
+   - denoise_cplx_tv_pdhg.py
    - video_rpca_admm.py
 
 
@@ -65,8 +66,8 @@ Plug and Play Priors
    - ct_fan_svmbir_ppp_bm3d_admm_prox.py
    - deconv_ppp_bm3d_admm.py
    - deconv_ppp_bm3d_pgm.py
-   - deconv_ppp_bm4d_admm.py
    - deconv_ppp_dncnn_admm.py
+   - deconv_ppp_bm4d_admm.py
    - demosaic_ppp_bm3d_admm.py
    - superres_ppp_dncnn_admm.py
 
@@ -79,14 +80,15 @@ Total Variation
    - ct_astra_weighted_tv_admm.py
    - ct_svmbir_tv_multi.py
    - deconv_circ_tv_admm.py
-   - deconv_microscopy_tv_admm.py
-   - deconv_microscopy_allchn_tv_admm.py
    - deconv_tv_admm.py
    - deconv_tv_admm_tune.py
-   - denoise_l1tv_iso_admm.py
-   - denoise_tv_iso_admm.py
-   - denoise_tv_iso_pgm.py
-   - denoise_tv_iso_multi.py
+   - deconv_microscopy_tv_admm.py
+   - deconv_microscopy_allchn_tv_admm.py
+   - denoise_l1tv_admm.py
+   - denoise_tv_admm.py
+   - denoise_tv_pgm.py
+   - denoise_tv_multi.py
+   - denoise_cplx_tv_pdhg.py
 
 
 Sparsity
@@ -108,24 +110,24 @@ ADMM
    - ct_abel_tv_admm.py
    - ct_astra_tv_admm.py
    - ct_astra_weighted_tv_admm.py
+   - ct_svmbir_tv_multi.py
    - ct_svmbir_ppp_bm3d_admm_cg.py
    - ct_svmbir_ppp_bm3d_admm_prox.py
    - ct_fan_svmbir_ppp_bm3d_admm_prox.py
-   - ct_svmbir_tv_multi.py
    - deconv_circ_tv_admm.py
+   - deconv_tv_admm.py
+   - deconv_tv_admm_tune.py
    - deconv_microscopy_tv_admm.py
    - deconv_microscopy_allchn_tv_admm.py
    - deconv_ppp_bm3d_admm.py
-   - deconv_ppp_bm4d_admm.py
    - deconv_ppp_dncnn_admm.py
-   - deconv_tv_admm.py
-   - deconv_tv_admm_tune.py
-   - demosaic_ppp_bm3d_admm.py
-   - denoise_l1tv_iso_admm.py
-   - denoise_tv_iso_admm.py
-   - denoise_tv_iso_multi.py
+   - deconv_ppp_bm4d_admm.py
    - sparsecode_admm.py
+   - demosaic_ppp_bm3d_admm.py
    - superres_ppp_dncnn_admm.py
+   - denoise_l1tv_admm.py
+   - denoise_tv_admm.py
+   - denoise_tv_multi.py
    - video_rpca_admm.py
 
 
@@ -133,26 +135,27 @@ Linearized ADMM
 ^^^^^^^^^^^^^^^
 
     - ct_svmbir_tv_multi.py
-    - denoise_tv_iso_multi.py
+    - denoise_tv_multi.py
 
 
 PDHG
 ^^^^
 
     - ct_svmbir_tv_multi.py
-    - denoise_tv_iso_multi.py
+    - denoise_tv_multi.py
+    - denoise_cplx_tv_pdhg.py
 
 
 PGM
 ^^^
 
    - deconv_ppp_bm3d_pgm.py
-   - denoise_tv_iso_pgm.py
    - sparsecode_pgm.py
    - sparsecode_poisson_pgm.py
+   - denoise_tv_pgm.py
 
 
 PCG
 ^^^
 
-   - ct_astra_pcg.py
+   - ct_astra_noreg_pcg.py

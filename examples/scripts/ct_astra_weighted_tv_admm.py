@@ -5,23 +5,20 @@
 # with the package.
 
 r"""
-Low-Dose CT (ADMM w/ Total Variation)
-=====================================
+TV-Regularized Low-Dose CT Reconstruction
+=========================================
 
-This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.optimize.rst#scico.optimize.ADMM) to
-solve a low-dose CT reconstruction problem with anisotropic total
-variation (TV) regularization
+This example demonstrates solution of a low-dose CT reconstruction problem
+with isotropic total variation (TV) regularization
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
-  \|_W^2 + \lambda \| C \mathbf{x} \|_1 \;,$$
+  \|_W^2 + \lambda \| C \mathbf{x} \|_{2,1} \;,$$
 
-where $A$ is the Radon transform, $\mathbf{y}$ is the sinogram, $C$ is
-a 2D Finite Difference operator, and $\mathbf{x}$ is the desired
+where $A$ is the Radon transform, $\mathbf{y}$ is the sinogram, the norm
+weighting $W$ is chosen so that the weighted norm is an approximation to
+the Poisson negative log likelihood :cite:`sauer-1993-local`, $C$ is
+a 2D finite difference operator, and $\mathbf{x}$ is the desired
 image.
-
-The weighted norm is an approximation to the Poisson negative log
-likelihood :cite:`sauer-1993-local`.
 """
 
 import numpy as np
@@ -98,14 +95,14 @@ r"""
 Set up and solve the un-weighted reconstruction problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
-  \|_2^2 + \lambda \| C \mathbf{x} \|_1.$$
+  \|_2^2 + \lambda \| C \mathbf{x} \|_{2,1} \;.$$
 """
 # Note that rho and lambda were selected via a parameter sweep (not
 # shown here).
 ρ = 2.5e3  # ADMM penalty parameter
-lambda_unweighted = 2.56e2  # regularization strength
+lambda_unweighted = 3e2  # regularization strength
 
-maxiter = 50  # number of ADMM iterations
+maxiter = 100  # number of ADMM iterations
 cg_tol = 1e-5  # CG relative tolerance
 cg_maxiter = 10  # maximum CG iterations per ADMM iteration
 
@@ -113,8 +110,8 @@ f = loss.SquaredL2Loss(y=y, A=A)
 
 admm_unweighted = ADMM(
     f=f,
-    g_list=[lambda_unweighted * functional.L1Norm()],
-    C_list=[linop.FiniteDifference(x_gt.shape)],
+    g_list=[lambda_unweighted * functional.L21Norm()],
+    C_list=[linop.FiniteDifference(x_gt.shape, append=0)],
     rho_list=[ρ],
     x0=x0,
     maxiter=maxiter,
@@ -130,7 +127,7 @@ r"""
 Set up and solve the weighted reconstruction problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
-  \|_W^2 + \lambda \| C \mathbf{x} \|_1 \;,$$
+  \|_W^2 + \lambda \| C \mathbf{x} \|_{2,1} \;,$$
 
 where
 
@@ -141,15 +138,15 @@ The data fidelity term in this formulation follows
 use to maintain balance between the data and regularization terms if
 $I_0$ changes.
 """
-lambda_weighted = 1.14e2
+lambda_weighted = 5e1
 
 weights = jax.device_put(counts / Io)
 f = loss.SquaredL2Loss(y=y, A=A, W=linop.Diagonal(weights))
 
 admm_weighted = ADMM(
     f=f,
-    g_list=[lambda_weighted * functional.L1Norm()],
-    C_list=[linop.FiniteDifference(x_gt.shape)],
+    g_list=[lambda_weighted * functional.L21Norm()],
+    C_list=[linop.FiniteDifference(x_gt.shape, append=0)],
     rho_list=[ρ],
     maxiter=maxiter,
     x0=x0,

@@ -5,17 +5,16 @@
 # with the package.
 
 """
-Fan-beam CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+Prox)
-===========================================================================
+PPP (with BM3D) Fan-Beam CT Reconstruction
+==========================================
 
-This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.optimize.rst#scico.optimize.ADMM) to
-solve a fan-beam tomographic reconstruction problem using
-the Plug-and-Play Priors framework :cite:`venkatakrishnan-2013-plugandplay2`,
-using BM3D :cite:`dabov-2008-image` as a denoiser and SVMBIR
+This example demonstrates solution of a fan-beam tomographic reconstruction
+problem using the Plug-and-Play Priors framework
+:cite:`venkatakrishnan-2013-plugandplay2`, using BM3D
+:cite:`dabov-2008-image` as a denoiser and SVMBIR
 :cite:`svmbir-2020` for tomographic projection.
 
-This version uses the data fidelity term as one of the ADMM $g$
+This example uses the data fidelity term as one of the ADMM $g$
 functionals so that the optimization with respect to the data fidelity is
 able to exploit the internal prox of the `SVMBIRExtendedLoss` functional.
 
@@ -56,14 +55,14 @@ x_gt[x_gt < 0] = 0
 
 
 """
-Generate tomographic projector and sinogram for fan-beam and parallel beam.
-For fan-beam, use view-angles spanning 2π since unlike parallel-beam, views
+Generate tomographic projector and sinogram for fan beam and parallel beam.
+For fan beam, use view angles spanning 2π since unlike parallel beam, views
 at 0 and π are not equivalent.
 """
 num_angles = int(N / 2)
 num_channels = N
 
-# Use angles in the range [0, 2*pi] for fanbeam
+# Use angles in the range [0, 2*pi] for fan beam
 angles = snp.linspace(0, 2 * snp.pi, num_angles, endpoint=False, dtype=snp.float32)
 
 dist_source_detector = 1500.0
@@ -72,7 +71,7 @@ A_fan = TomographicProjector(
     x_gt.shape,
     angles,
     num_channels,
-    geometry="fan",
+    geometry="fan-curved",
     dist_source_detector=dist_source_detector,
     magnification=magnification,
 )
@@ -117,7 +116,7 @@ x_mrf_fan = svmbir.recon(
     positivity=True,
     verbose=0,
     stop_threshold=0.0,
-    geometry="fan",
+    geometry="fan-curved",
     dist_source_detector=dist_source_detector,
     magnification=magnification,
     delta_channel=1.0,

@@ -10,8 +10,11 @@ from scico.test.linop.test_radon_svmbir import make_im
 
 try:
     from scico.linop.radon_astra import TomographicProjector
-except ImportError as e:
-    pytest.skip("astra not installed", allow_module_level=True)
+except ModuleNotFoundError as e:
+    if e.name == "astra":
+        pytest.skip("astra not installed", allow_module_level=True)
+    else:
+        raise e
 
 
 N = 128

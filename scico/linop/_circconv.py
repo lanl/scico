@@ -10,15 +10,17 @@
 import math
 import operator
 from functools import partial
-from typing import Optional, Tuple
+from typing import Optional, Sequence, Tuple, Union
 
 import numpy as np
 
 from jax.dtypes import result_type
 
+from jaxlib.xla_extension import DeviceArray
+
 import scico.numpy as snp
-from scico._generic_operators import Operator
 from scico.numpy.util import is_nested
+from scico.operator import Operator
 from scico.typing import Array, DType, JaxArray, Shape
 
 from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
@@ -27,10 +29,10 @@ from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
 class CircularConvolve(LinearOperator):
     r"""A circular convolution linear operator.
 
-    This linear operator implements circular, n-dimensional convolution
-    via pointwise multiplication in the DFT domain. In its simplest form,
-    it implements a single convolution and can be represented by linear
-    operator :math:`H` such that
+    This linear operator implements circular, multi-dimensional
+    convolution via pointwise multiplication in the DFT domain. In its
+    simplest form, it implements a single convolution and can be
+    represented by linear operator :math:`H` such that
 
     .. math::
        H \mb{x} = \mb{h} \ast \mb{x} \;,
@@ -83,7 +85,7 @@ class CircularConvolve(LinearOperator):
         ndims: Optional[int] = None,
         input_dtype: DType = snp.float32,
         h_is_dft: bool = False,
-        h_center: Optional[JaxArray] = None,
+        h_center: Optional[Union[JaxArray, Sequence, float, int]] = None,
         jit: bool = True,
         **kwargs,
     ):
@@ -99,7 +101,8 @@ class CircularConvolve(LinearOperator):
             h_is_dft: Flag indicating whether `h` is in the DFT domain.
             h_center: Array of length `ndims` specifying the center of
                the filter. Defaults to the upper left corner, i.e.,
-               `h_center = [0, 0, ..., 0]`, may be noninteger.
+               `h_center = [0, 0, ..., 0]`, may be noninteger. May be a
+               ``float`` or ``int`` if `h` is one-dimensional.
             jit:  If ``True``, jit the evaluation, adjoint, and gram
                functions of the LinearOperator.
         """
@@ -124,7 +127,18 @@ class CircularConvolve(LinearOperator):
             output_dtype = result_type(h.dtype, input_dtype)
 
             if self.h_center is not None:
-                offset = -self.h_center
+                if isinstance(self.h_center, DeviceArray):
+                    offset = -self.h_center  # type: ignore
+                else:
+                    # support float or int values for h_center
+                    if isinstance(self.h_center, (float, int)):
+                        offset = -snp.array(
+                            [
+                                self.h_center,
+                            ]
+                        )
+                    else:  # support list/tuple values for h_center
+                        offset = -snp.array(self.h_center)
                 shifts: Tuple[Array, ...] = np.ix_(
                     *tuple(
                         np.exp(-1j * k * 2 * np.pi * np.fft.fftfreq(s))

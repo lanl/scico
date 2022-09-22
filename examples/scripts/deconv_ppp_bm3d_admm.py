@@ -5,14 +5,13 @@
 # with the package.
 
 """
-Image Deconvolution (ADMM Plug-and-Play Priors w/ BM3D)
-=======================================================
+PPP (with BM3D) Image Deconvolution (ADMM Solver)
+=================================================
 
-This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.optimize.rst#scico.optimize.ADMM) to
-solve an image deconvolution problem using the Plug-and-Play Priors
-framework :cite:`venkatakrishnan-2013-plugandplay2`, using BM3D
-:cite:`dabov-2008-image` as a denoiser.
+This example demonstrates the solution of an image deconvolution problem
+using the ADMM Plug-and-Play Priors (PPP) algorithm
+:cite:`venkatakrishnan-2013-plugandplay2`, with the BM3D
+:cite:`dabov-2008-image` denoiser.
 """
 
 import numpy as np
@@ -30,7 +29,8 @@ from scico.util import device_info
 Create a ground truth image.
 """
 np.random.seed(1234)
-x_gt = discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=512)
+N = 512  # image size
+x_gt = discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=N)
 x_gt = jax.device_put(x_gt)  # convert to jax array, push to GPU
 
 

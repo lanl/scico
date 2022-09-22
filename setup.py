@@ -60,7 +60,7 @@ if jax_ver != req_jax_ver:
         f"requirements.txt ({req_jax_ver}) do not match"
     )
 
-python_requires = ">=3.8"
+python_requires = ">=3.7"
 tests_require = ["pytest", "pytest-runner"]
 
 extra_require_files = [
@@ -111,7 +111,7 @@ setup(
     extras_require=extras_require,
     classifiers=[
         "License :: OSI Approved :: BSD License",
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Education",
         "Intended Audience :: Science/Research",
         "Operating System :: OS Independent",
