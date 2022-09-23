@@ -404,21 +404,6 @@ class LinearOperator(Operator):
 
         Return a new :class:`LinearOperator` that implements the
         transpose of this :class:`LinearOperator`. For a real-valued
-        :class:`LinearOperator` `A` (`A.input_dtype` is ``np.float32``
-        or ``np.float64``), the :class:`LinearOperator` `A.T` implements
-        the adjoint: `A.T(y) == A.adj(y)`. For a complex-valued
-        :class:`LinearOperator` `A` (`A.input_dtype` is ``np.complex64``
-        or ``np.complex128``), the :class:`LinearOperator` `A.T` is not
-        the adjoint. For the conjugate transpose, use `.conj().T` or
-        :meth:`.H`.
-        """
-
-    @property
-    def T(self) -> LinearOperator:
-        """Transpose of this :class:`LinearOperator`.
-
-        Return a new :class:`LinearOperator` that implements the
-        transpose of this :class:`LinearOperator`. For a real-valued
         LinearOperator `A` (`A.input_dtype` is ``np.float32`` or
         ``np.float64``), the LinearOperator `A.T` implements the
         adjoint: `A.T(y) == A.adj(y)`. For a complex-valued
@@ -466,7 +451,7 @@ class LinearOperator(Operator):
             output_shape=self.input_shape,
             eval_fn=self.adj,
             adj_fn=self.__call__,
-            n=self._norm,
+            norm_fn=self._norm,
             input_dtype=self.output_dtype,
             output_dtype=self.input_dtype,
         )
