@@ -72,7 +72,7 @@ We support a limited subset of proximal calculus rules:
 
 
 Scaled Functionals
-******************
+^^^^^^^^^^^^^^^^^^
 
 Given a scalar ``c`` and a functional ``f`` with a defined proximal method, we can
 determine the proximal method of ``c * f`` as
@@ -97,7 +97,7 @@ but the proximal method is modified to accomodate the additional scalar.
 
 
 Separable Functionals
-*********************
+^^^^^^^^^^^^^^^^^^^^^
 
 A separable functional :math:`f : \mathbb{C}^N \to \mathbb{R}` can be written as the sum
 of functionals :math:`f_i : \mathbb{C}^{N_i} \to \mathbb{R}` with :math:`\sum_i N_i = N`. In particular,
@@ -124,6 +124,7 @@ Separable Functionals are implemented in the :class:`.SeparableFunctional` class
 
 Adding New Functionals
 ----------------------
+
 To add a new functional,
 create a class which
 

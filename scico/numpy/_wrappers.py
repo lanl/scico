@@ -61,7 +61,6 @@ def wrap_recursively(
 def map_func_over_tuple_of_tuples(func: Callable, map_arg_name: Optional[str] = "shape"):
     """Wrap a function so that it automatically maps over a tuple of tuples
     argument, returning a `BlockArray`.
-
     """
 
     @wraps(func)

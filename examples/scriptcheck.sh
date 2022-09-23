@@ -44,7 +44,7 @@ if [ ! "$(which Xvfb 2>/dev/null)" ]; then
 else
     Xvfb :20 -screen 0 800x600x16 > /dev/null 2>&1 &
     pid=$!
-    export DISPLAY=:10.0
+    export DISPLAY=:20.0
 fi
 
 # Set environment variables and paths. This script is assumed to be run

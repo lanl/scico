@@ -1,8 +1,17 @@
+.. _installing:
+
 Installing SCICO
 ================
 
-SCICO requires Python version 3.8 or later. It has been tested on Linux and macOS, but is not currently supported on Windows due to the limited support for ``jaxlib`` on Windows. However, Windows users can use SCICO via the `Windows Subsystem for Linux <https://docs.microsoft.com/en-us/windows/wsl/about>`_. Guides exist for using WSL with `CPU only <https://docs.microsoft.com/en-us/windows/wsl/install-win10>`_ and with
-`GPU support <https://docs.microsoft.com/en-us/windows/win32/direct3d12/gpu-cuda-in-wsl>`_.
+SCICO requires Python version 3.7 or later. It has been tested on
+Linux and macOS, but is not currently supported on Windows due to the
+limited support for ``jaxlib`` on Windows. However, Windows users can
+use SCICO via the `Windows Subsystem for Linux
+<https://docs.microsoft.com/en-us/windows/wsl/about>`_ (WSL). Guides
+exist for using WSL with `CPU only
+<https://docs.microsoft.com/en-us/windows/wsl/install-win10>`_ and
+with `GPU support
+<https://docs.microsoft.com/en-us/windows/win32/direct3d12/gpu-cuda-in-wsl>`_.
 
 
 From PyPI
@@ -54,18 +63,19 @@ The instructions above install a CPU-only version of SCICO. To install a version
 
    ::
 
-      pip install --upgrade "jaxlib==0.3.0+cuda11.cudnn805" -f https://storage.googleapis.com/jax-releases/jax_releases.html
+      pip install --upgrade "jaxlib==0.3.0+cuda11.cudnn805" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
 
 
 
 Additional Dependencies
 -----------------------
 
-For instructions on installing dependencies related to the examples please see :ref:`example_depend`.
+See :ref:`example_depend` for instructions on installing dependencies
+related to the examples.
 
 
 For Developers
 --------------
 
-For installing a version of SCICO suitable for development,
-see the instructions in :ref:`scico_dev_contributing`.
+See :ref:`scico_dev_contributing` for instructions on installing a
+version of SCICO suitable for development.

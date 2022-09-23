@@ -190,7 +190,7 @@ class LinearizedADMM:
                iterate :code:`self.z`.
 
         Returns:
-            scalar: Current value of the objective function.
+            scalar: Value of the objective function.
         """
         if (x is None) != (z is None):
             raise ValueError("Both or neither of x and z must be supplied")
@@ -217,7 +217,7 @@ class LinearizedADMM:
                :code:`self.x`.
 
         Returns:
-            Current value of primal residual.
+            Norm of primal residual.
         """
         if x is None:
             x = self.x
@@ -233,7 +233,7 @@ class LinearizedADMM:
             \norm{\mb{z}^{(k)} - \mb{z}^{(k-1)}}_2 \;.
 
         Returns:
-            Current value of dual residual.
+            Current norm of dual residual.
         """
         return norm(self.C.adj(self.z - self.z_old))
 
@@ -262,8 +262,10 @@ class LinearizedADMM:
         Initialized to
 
         .. math::
-            \mb{u} = C \mb{x}^{(0)} \;.
+            \mb{u} = \mb{0} \;.
 
+        Note that the parameter `x0` is unused, but is provided for
+        potential use in an overridden method.
 
         Args:
             x0: Starting point for :math:`\mb{x}`.
