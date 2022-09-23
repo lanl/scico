@@ -4,7 +4,7 @@
 Main SCICO Classes
 ******************
 
-.. include:: blockarray.rst
-.. include:: operator.rst
-.. include:: functional.rst
-.. include:: optimizer.rst
+.. include:: include/blockarray.rst
+.. include:: include/operator.rst
+.. include:: include/functional.rst
+.. include:: include/optimizer.rst

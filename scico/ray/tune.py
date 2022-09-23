@@ -20,10 +20,10 @@ try:
 except ImportError:
     raise ImportError("Could not import ray.tune; please install it.")
 from ray.tune import loguniform, report, uniform  # noqa
+from ray.tune.experiment.trial import Trial
 from ray.tune.progress_reporter import TuneReporterBase, _get_trials_by_state
 from ray.tune.schedulers import AsyncHyperBandScheduler
-from ray.tune.suggest.hyperopt import HyperOptSearch
-from ray.tune.trial import Trial
+from ray.tune.search.hyperopt import HyperOptSearch
 
 
 class _CustomReporter(TuneReporterBase):
