@@ -111,7 +111,7 @@ setup(
     extras_require=extras_require,
     classifiers=[
         "License :: OSI Approved :: BSD License",
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Education",
         "Intended Audience :: Science/Research",
         "Operating System :: OS Independent",
