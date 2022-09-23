@@ -3,7 +3,7 @@
 Installing SCICO
 ================
 
-SCICO requires Python version 3.8 or later. It has been tested on
+SCICO requires Python version 3.7 or later. It has been tested on
 Linux and macOS, but is not currently supported on Windows due to the
 limited support for ``jaxlib`` on Windows. However, Windows users can
 use SCICO via the `Windows Subsystem for Linux

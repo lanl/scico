@@ -5,11 +5,18 @@
 # with the package.
 
 r"""
-CT with Preconditioned Conjugate Gradient
-=========================================
+CT Reconstruction with CG and PCG
+=================================
 
-This example demonstrates the use of preconditioner to efficiently
-solve a CT reconstruction problem.
+This example demonstrates a simple iterative CT reconstruction using
+conjugate gradient (CG) and preconditioned conjugate gradient (PCG)
+algorithms to solve the problem
+
+  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
+  \|_2^2 \;,$$
+
+where $A$ is the Radon transform, $\mathbf{y}$ is the sinogram, and
+$\mathbf{x}$ is the reconstructed image.
 """
 
 from time import time

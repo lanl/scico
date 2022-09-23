@@ -5,16 +5,14 @@
 # with the package.
 
 r"""
-Few-View CT (ADMM w/ Total Variation)
-=====================================
+TV-Regularized Sparse-View CT Reconstruction
+============================================
 
-This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.optimize.rst#scico.optimize.ADMM) to
-solve a few-view CT reconstruction problem with anisotropic total
-variation (TV) regularization
+This example demonstrates solution of a sparse-view CT reconstruction
+problem with isotropic total variation (TV) regularization
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
-  \|_2^2 + \lambda \| C \mathbf{x} \|_1 \;,$$
+  \|_2^2 + \lambda \| C \mathbf{x} \|_{2,1} \;,$$
 
 where $A$ is the Radon transform, $\mathbf{y}$ is the sinogram, $C$ is
 a 2D finite difference operator, and $\mathbf{x}$ is the desired

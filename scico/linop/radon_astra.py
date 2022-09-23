@@ -10,6 +10,11 @@
 Radon transform :class:`.LinearOperator` wrapping the parallel beam
 projections in the
 `ASTRA toolbox <https://github.com/astra-toolbox/astra-toolbox>`_.
+This package provides both C and CUDA implementations of core
+functionality, but note that use of the CUDA/GPU implementation is
+expected to result in GPU-host-GPU memory copies when transferring
+JAX arrays. Other JAX features such as automatic differentiation are
+not available.
 """
 
 

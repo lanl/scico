@@ -8,7 +8,9 @@
 """Tomographic projector LinearOperator wrapping the svmbir package.
 
 Tomographic projector :class:`.LinearOperator` wrapping the
-`svmbir <https://github.com/cabouman/svmbir>`_ package.
+`svmbir <https://github.com/cabouman/svmbir>`_ package. Since this
+package is an interface to compiled C code, JAX features such as
+automatic differentiation and support for GPU devices are not available.
 """
 
 from typing import Optional, Tuple, Union
@@ -45,7 +47,7 @@ class TomographicProjector(LinearOperator):
 
     A brief description of the supported scanner geometries can be found
     in the `svmbir documentation <https://svmbir.readthedocs.io/en/latest/overview.html>`_.
-    Both parallel and fan beam geometries are supported.
+    Parallel beam geometry and two different fan beam geometries are supported.
 
     .. list-table::
 
@@ -59,7 +61,7 @@ class TomographicProjector(LinearOperator):
               :align: center
               :width: 75%
 
-              Fig 2. Fan beam geometry.
+              Fig 2. Curved fan beam geometry.
     """
 
     def __init__(
@@ -91,8 +93,8 @@ class TomographicProjector(LinearOperator):
                 single slice of the input. A slice is a plane
                 perpendicular to the axis of rotation of the tomographic
                 system. At angle zero, each row is oriented along the
-                X-rays (parallel-beam) or the X-ray beam directed toward
-                the detector center (fan-beam).  Note that
+                X-rays (parallel beam) or the X-ray beam directed toward
+                the detector center (fan beam).  Note that
                 `input_shape=(num_rows, num_cols)` and
                 `input_shape=(1, num_rows, num_cols)` result in the
                 same underlying projector.
@@ -107,14 +109,15 @@ class TomographicProjector(LinearOperator):
                 determined by a mask defined as the circle inscribed
                 within the image boundary. Otherwise, the whole image
                 array is taken into account by projections.
-            geometry: Scanner geometry, either "parallel" or "fan".
-                Note that the `dist_source_detector` and `magnification`
-                arguments must be provided for fan geometry.
+            geometry: Scanner geometry, either "parallel", "fan-curved",
+                or "fan-flat". Note that the `dist_source_detector` and
+                `magnification` arguments must be provided for then fan
+                beam geometries.
             dist_source_detector: Distance from X-ray focal spot to
                 detectors in units of pixel pitch. Only used when geometry
-                is "fan".
+                is "fan-flat" or "fan-curved".
             magnification: Magnification factor of the scanner geometry.
-                Only used when geometry is "fan".
+                Only used when geometry is "fan-flat" or "fan-curved".
         """
         self.angles = angles
         self.num_channels = num_channels
@@ -143,11 +146,11 @@ class TomographicProjector(LinearOperator):
         self.dist_source_detector = dist_source_detector
         self.magnification = magnification
 
-        if self.geometry == "fan":
+        if self.geometry == "fan-curved" or self.geometry == "fan-flat":
             if self.dist_source_detector is None:
-                raise ValueError("dist_source_detector must be specified if geometry is fan")
+                raise ValueError("dist_source_detector must be specified for fan beam geometry")
             if self.magnification is None:
-                raise ValueError("magnification must be specified if geometry is fan")
+                raise ValueError("magnification must be specified for fan beam geometry")
 
             self.delta_channel = 1.0
             self.delta_pixel = self.delta_channel / self.magnification

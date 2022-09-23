@@ -5,8 +5,26 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Denoisers."""
+"""
+Interfaces to standard denoisers.
 
+**Warning**: The :func:`bm4d` function is implemented as an interface
+to the `bm4d <https://pypi.org/project/bm4d>`__ package. The current
+version of this package, 4.0.0, appears to be compiled with compiler
+options that `change the behavior of the floating point unit
+<https://moyix.blogspot.com/2022/09/someones-been-messing-with-my-subnormals.html>`__
+in a way that results in lower numerical accuracy, and that persist
+for the duration of the process that loads it. If this package is
+installed, simply loading this module (:mod:`scico.denoiser`), is
+sufficient to inflict this loss of numerical precision on all other
+calculations run within the same process, even if :func:`bm4d` is not
+actually used. Users who are not making use of :func:`bm4d` are
+advised not to install the corresponding package. For additional
+information, see `scico issue #342
+<https://github.com/lanl/scico/issues/342>`__.
+"""
+
+import warnings
 
 import numpy as np
 
@@ -25,6 +43,19 @@ except ImportError:
     have_bm4d = False
 else:
     have_bm4d = True
+    finfo = np.finfo(np.float32)
+    if hasattr(finfo, "smallest_subnormal"):  # can't test with older numpy versions
+        if finfo.smallest_subnormal == 0.0:
+            warnings.warn(
+                "Importing module bm4d has had an adverse affect on floating point "
+                "accuracy. See the documentation for module scico.denoiser, and "
+                "scico issue #342."
+            )
+            warnings.filterwarnings(
+                action="ignore",
+                message="^The value of the smallest subnormal",
+                category=UserWarning,
+            )
 
 import scico.numpy as snp
 from scico.data import _flax_data_path
@@ -37,7 +68,9 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
 
     BM3D denoising is performed using the
     `code <https://pypi.org/project/bm3d>`__ released with
-    :cite:`makinen-2019-exact`.
+    :cite:`makinen-2019-exact`. Since this package is an interface
+    to compiled C code, JAX features such as automatic differentiation
+    and support for GPU devices are not available.
 
     Args:
         x: Input image. Expected to be a 2D array (gray-scale denoising)
@@ -103,7 +136,9 @@ def bm4d(x: JaxArray, sigma: float):
 
     BM4D denoising is performed using the
     `code <https://pypi.org/project/bm4d/>`__ released by the authors of
-    :cite:`maggioni-2012-nonlocal`.
+    :cite:`maggioni-2012-nonlocal`. Since this package is an interface
+    to compiled C code, JAX features such as automatic differentiation
+    and support for GPU devices are not available.
 
     Args:
         x: Input image. Expected to be a 3D array. Higher-dimensional
