@@ -1,14 +1,15 @@
+*****
 Notes
-=====
+*****
 
 No GPU/TPU Warning
-------------------
+==================
 
 JAX currently issues a warning when used on a platform without a GPU. To disable this warning, set the environment variable ``JAX_PLATFORM_NAME=cpu`` before running Python.
 
 
 Debugging
----------
+=========
 
 If difficulties are encountered in debugging jitted functions, jit can be globally disabled by setting the environment variable ``JAX_DISABLE_JIT=1`` before running Python, as in
 
@@ -17,70 +18,12 @@ If difficulties are encountered in debugging jitted functions, jit can be global
    JAX_DISABLE_JIT=1 python test_script.py
 
 
-How to Think in JAX
--------------------
-
-SCICO is built on top of the JAX library. Users are encouraged to become familiar with JAX in conjunction with SCICO. The `How to Think in JAX <https://jax.readthedocs.io/en/latest/notebooks/thinking_in_jax.html>`_ documentation is a useful resource that illustrate how JAX operates.
-
-
-JAX Arrays
-----------
-
-JAX utilizes a new array type called DeviceArray. DeviceArrays are similar to NumPy
-ndarrays, but can be backed by CPU, GPU, or TPU memory and are immutable.
-
-DeviceArrays and NdArrays
-*************************
-
-SCICO and JAX functions can be applied directly to NumPy arrays without explicit conversion to DeviceArrays, but this is not recommended, as it can result in repeated data transfers from the CPU to GPU. Consider this toy example on a system with a GPU present:
-
-::
-
-   x = np.random.randn(8)    # Array on host
-   A = np.random.randn(8, 8) # Array on host
-   y = snp.dot(A, x)         # A, x transfered to GPU
-                             # y resides on GPU
-   z = y + x                 # x must be transfered to GPU again
-
-
-The unnecessary transfer can be avoided by first converting ``A`` and ``x`` to
-DeviceArrays:
-
-::
-
-   x = np.random.randn(8)    # Array on host
-   A = np.random.randn(8, 8) # Array on host
-   x = jax.device_put(x)     # Transfer to GPU
-   A = jax.device_put(A)
-   y = snp.dot(A, x)         # no transfer needed
-   z = y + x                 # no transfer needed
-
-
-We recommend that input data be converted to DeviceArray via ``jax.device_put`` before
-calling any SCICO optimizers.
-
-On a multi-GPU system, ``jax.device_put`` can place data on a specific GPU.
-See these `JAX notes on data placement <https://jax.readthedocs.io/en/latest/faq.html?highlight=data%20placement#controlling-data-and-computation-placement-on-devices>`_.
-
-
-
-DeviceArrays are Immutable
-**************************
-
-Unlike standard NumPy arrays, JAX arrays are immutable: once they have been created, they cannot be changed. This prohibits in-place updating of JAX arrays.
-
-JAX provides special syntax for updating individual array elements through the `indexed update operators <https://jax.readthedocs.io/en/latest/jax.ops.html#syntactic-sugar-for-indexed-update-operators>`_.
-
-In-place operations such as `x += y` must be replaced with the out-of-place version `x = x + y`. Note that these operations will be optimized if they are placed inside of a `jitted function <https://jax.readthedocs.io/en/latest/notebooks/thinking_in_jax.html#to-jit-or-not-to-jit>`_.
-
-
-
 Double Precision
-----------------
+================
 
 By default, JAX enforces single-precision numbers. Double precision can be enabled in one of two ways:
 
-1. Setting the environment variable ``JAX_ENABLE_X64=TRUE`` before launching python.
+1. Setting the environment variable ``JAX_ENABLE_X64=TRUE`` before launching Python.
 2. Manually setting the ``jax_enable_x64`` flag **at program startup**; that is, **before** importing SCICO.
 
 ::
@@ -94,7 +37,7 @@ For more information, see the `JAX notes on double precision <https://jax.readth
 
 
 Random Number Generation
-------------------------
+========================
 
 JAX implements an explicit, non-stateful pseudorandom number generator (PRNG).
 The user is responsible for generating a PRNG key and mutating it each time a
@@ -134,8 +77,33 @@ random numbers:
 
 
 
-Complex Functions and scico.grad
---------------------------------
+.. _non_jax_dep:
+
+Compiled Dependency Packages
+============================
+
+The code acceleration and automatic differentiation features of JAX are not available for some components of SCICO that are provided via interfaces to compiled C code. When these components are used on a platform with GPUs, the remainder of the code will run on a GPU, but there is potential for a considerable delay due to host-GPU memory transfers. This issue primarily affects:
+
+Denoisers
+---------
+
+The :func:`.bm3d` and :func:`.bm4d` denoisers (and the corresponding :class:`.BM3D` and :class:`.BM4d` pseudo-functionals) are implemented via interfaces to the `bm3d <https://pypi.org/project/bm3d/>`__ and `bm4d <https://pypi.org/project/bm4d/>`__
+packages respectively. The :class:`~.denoiser.DnCNN` denoiser (and the corresponding :class:`~.functional.DnCNN` pseudo-functional) denoiser should be used when the full benefits of JAX-based code are required.
+
+
+Tomographic Projectors
+----------------------
+
+The :class:`.radon_svmbir.TomographicProjector` class is implemented via an interface to the `svmbir <https://svmbir.readthedocs.io/en/latest/>`__ package. The :class:`.radon_astra.TomographicProjector` class is implemented via an interface to the `ASTRA toolbox <https://www.astra-toolbox.com/>`__. This toolbox does provide some GPU acceleration support, but efficiency is expected to be lower than JAX-based code due to host-GPU memory transfers.
+
+
+
+Automatic Differentiation Caveats
+=================================
+
+
+Complex Functions
+-----------------
 
 The JAX-defined gradient of a complex-valued function is a complex-conjugated
 version of the usual gradient used in mathematical optimization and
@@ -170,8 +138,8 @@ The following code demonstrates the use of ``jax.grad`` and :func:`scico.grad`:
     np.testing.assert_allclose(scico.grad(f)(x), an_grad, rtol=1e-4)
 
 
-Non-differentiable Functionals and scico.grad
----------------------------------------------
+Non-differentiable Functionals
+------------------------------
 
 :func:`scico.grad` can be applied to any function, but has undefined behavior for
 non-differentiable functions.
@@ -198,3 +166,55 @@ This can be fixed by defining the squared :math:`\ell_2` norm directly as
    DeviceArray([0., 0.], dtype=float32)
 
 An alternative is to define a `custom derivative rule <https://jax.readthedocs.io/en/latest/notebooks/Custom_derivative_rules_for_Python_code.html#enforcing-a-differentiation-convention>`_ to enforce a particular derivative convention at a point.
+
+
+
+JAX Arrays
+==========
+
+JAX utilizes a new array type :class:`~jaxlib.xla_extension.DeviceArray`, which is similar to NumPy :class:`~numpy.ndarray`, but can be backed by CPU, GPU, or TPU memory and are immutable.
+
+
+DeviceArrays and NumPy Arrays
+-----------------------------
+
+SCICO and JAX functions can be applied directly to NumPy arrays without explicit conversion to DeviceArrays, but this is not recommended, as it can result in repeated data transfers from the CPU to GPU. Consider this toy example on a system with a GPU present:
+
+::
+
+   x = np.random.randn(8)    # Array on host
+   A = np.random.randn(8, 8) # Array on host
+   y = snp.dot(A, x)         # A, x transfered to GPU
+                             # y resides on GPU
+   z = y + x                 # x must be transfered to GPU again
+
+
+The unnecessary transfer can be avoided by first converting ``A`` and ``x`` to
+DeviceArrays:
+
+::
+
+   x = np.random.randn(8)    # Array on host
+   A = np.random.randn(8, 8) # Array on host
+   x = jax.device_put(x)     # Transfer to GPU
+   A = jax.device_put(A)
+   y = snp.dot(A, x)         # no transfer needed
+   z = y + x                 # no transfer needed
+
+
+We recommend that input data be converted to DeviceArray via ``jax.device_put`` before
+calling any SCICO optimizers.
+
+On a multi-GPU system, ``jax.device_put`` can place data on a specific GPU.
+See the `JAX notes on data placement <https://jax.readthedocs.io/en/latest/faq.html?highlight=data%20placement#controlling-data-and-computation-placement-on-devices>`_.
+
+
+
+DeviceArrays are Immutable
+--------------------------
+
+Unlike standard NumPy arrays, JAX arrays are immutable: once they have been created, they cannot be changed. This prohibits in-place updating of JAX arrays.
+
+JAX provides special syntax for updating individual array elements through the `indexed update operators <https://jax.readthedocs.io/en/latest/jax.ops.html#syntactic-sugar-for-indexed-update-operators>`_.
+
+In-place operations such as `x += y` must be replaced with the out-of-place version `x = x + y`. Note that these operations will be optimized if they are placed inside of a `jitted function <https://jax.readthedocs.io/en/latest/notebooks/thinking_in_jax.html#to-jit-or-not-to-jit>`_.

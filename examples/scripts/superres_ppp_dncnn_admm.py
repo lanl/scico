@@ -5,12 +5,13 @@
 # with the package.
 
 """
-Image Superresolution (ADMM Plug-and-Play Priors w/ DnCNN)
-==========================================================
+PPP (with DnCNN) Image Superresolution
+======================================
 
 This example demonstrates the use of the ADMM Plug and Play Priors
-(PPP) algorithm :cite:`venkatakrishnan-2013-plugandplay2` for solving
-a simple image superresolution problem.
+(PPP) algorithm :cite:`venkatakrishnan-2013-plugandplay2`, with DnCNN
+:cite:`zhang-2017-dncnn` denoiser, for solving a simple image
+superresolution problem.
 """
 
 import jax

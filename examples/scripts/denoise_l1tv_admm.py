@@ -5,8 +5,8 @@
 # with the package.
 
 r"""
-ℓ1 Total Variation (ADMM)
-=========================
+ℓ1 Total Variation Denoising
+============================
 
 This example demonstrates impulse noise removal via ℓ1 total variation
 :cite:`alliney-1992-digital` :cite:`esser-2010-primal` (Sec. 2.4.4)
@@ -14,7 +14,7 @@ This example demonstrates impulse noise removal via ℓ1 total variation
 minimizing the functional
 
   $$\mathrm{argmin}_{\mathbf{x}} \;  \| \mathbf{y} - \mathbf{x}
-  \|_1 + \lambda \| C \mathbf{x} \|_1 \;,$$
+  \|_1 + \lambda \| C \mathbf{x} \|_{2,1} \;,$$
 
 where $\mathbf{y}$ is the noisy image, $C$ is a 2D finite difference
 operator, and $\mathbf{x}$ is the denoised image.

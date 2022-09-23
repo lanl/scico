@@ -5,7 +5,7 @@
 # with the package.
 
 r"""
-Isotropic Total Variation (ADMM)
+Total Variation Denoising (ADMM)
 ================================
 
 This example compares denoising via isotropic and anisotropic total
