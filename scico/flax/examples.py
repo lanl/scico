@@ -189,7 +189,7 @@ def distributed_data_generation(
 
 
 def ray_distributed_data_generation(
-    imgenf: Callable, size: int, nimg: int, seedg: float = 123, test_flag: bool = False
+    imgenf: Callable, size: int, nimg: int, seedg: float = 123
 ) -> Array:
     """Data generation distributed among processes using ray.
 
@@ -198,7 +198,6 @@ def ray_distributed_data_generation(
         size: Size of image to generate.
         ndata: Number of images to generate.
         seedg: Base seed for data generation.
-        test_flag: Flag to indicate if running in testing mode. Testing mode requires a different initialization of ray.
 
     Returns:
         nd-array of generated data.
@@ -206,10 +205,7 @@ def ray_distributed_data_generation(
     if not have_ray:
         raise RuntimeError("Package ray is required for use of this function.")
 
-    if test_flag:
-        ray.init(local_mode=True, ignore_reinit_error=True)
-    else:
-        ray.init()
+    ray.init()
 
     @ray.remote
     def data_gen(seed, size, ndata, imgf):

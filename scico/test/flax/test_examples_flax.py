@@ -87,6 +87,7 @@ def test_distdatagen_exception():
 
 
 @pytest.mark.skipif(not have_ray, reason="ray package not installed")
+@pytest.fixture(scope="module")
 def test_ray_distdatagen():
     N = 32
     nimg = 16
