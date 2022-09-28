@@ -118,7 +118,7 @@ def prepare_data(xs: Array) -> Any:
         # (local_devices, device_batch_size, height, width, channels)
         return x.reshape((local_device_count, -1) + x.shape[1:])
 
-    return jax.tree_map(_prepare, xs)
+    return jax.tree_util.tree_map(_prepare, xs)
 
 
 def create_input_iter(

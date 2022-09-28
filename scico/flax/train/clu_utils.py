@@ -221,7 +221,7 @@ def get_parameter_overview(
     Total: 65,172,512
     """
     if isinstance(params, (dict, flax.core.FrozenDict)):
-        params = jax.tree_map(np.asarray, params)
+        params = jax.tree_util.tree_map(np.asarray, params)
     rows = get_parameter_rows(params, include_stats=include_stats)
     total_weights = count_parameters(params)
     RowType = ParamRowWithStats if include_stats else ParamRow

@@ -162,7 +162,7 @@ def test_compute_metrics(testobj):
 
     p_eval = jax.pmap(compute_metrics, axis_name="batch")
     eval_metrics = p_eval(ybtch, xbtch)
-    mtrcs = jax.tree_map(lambda x: x.mean(), eval_metrics)
+    mtrcs = jax.tree_util.tree_map(lambda x: x.mean(), eval_metrics)
     assert np.abs(mtrcs["loss"]) < 0.51
     assert mtrcs["snr"] < 5e-4
 

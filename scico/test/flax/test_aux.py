@@ -102,7 +102,7 @@ def test_get_parameter_overview():
     rng = jax.random.PRNGKey(42)
     # Weights of a 2D convolution with 2 filters..
     variables = CNN().init(rng, np.zeros((2, 5, 5, 3)))
-    variables = jax.tree_map(jax.numpy.ones_like, variables)
+    variables = jax.tree_util.tree_map(jax.numpy.ones_like, variables)
     assert (
         get_parameter_overview(variables["params"], include_stats=False)
         == FLAX_CONV2D_PARAMETER_OVERVIEW

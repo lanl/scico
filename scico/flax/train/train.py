@@ -340,7 +340,7 @@ def save_checkpoint(state: TrainState, workdir: Union[str, os.PathLike]):  # pra
     """
     if jax.process_index() == 0:
         # get train state from first replica
-        state = jax.device_get(jax.tree_map(lambda x: x[0], state))
+        state = jax.device_get(jax.tree_util.tree_map(lambda x: x[0], state))
         step = int(state.step)
         checkpoints.save_checkpoint(workdir, state, step, keep=3)
 
@@ -998,7 +998,8 @@ class BasicFlaxTrainer:
         # Include training stats
         train_metrics = common_utils.get_metrics(train_metrics)
         summary = {
-            f"train_{k}": v for k, v in jax.tree_map(lambda x: x.mean(), train_metrics).items()
+            f"train_{k}": v
+            for k, v in jax.tree_util.tree_map(lambda x: x.mean(), train_metrics).items()
         }
         epoch = step // self.steps_per_epoch
         summary["epoch"] = epoch
@@ -1013,7 +1014,7 @@ class BasicFlaxTrainer:
         eval_metrics = common_utils.get_metrics(eval_metrics)
 
         # Add testing stats to summary
-        summary_eval = jax.tree_map(lambda x: x.mean(), eval_metrics)
+        summary_eval = jax.tree_util.tree_map(lambda x: x.mean(), eval_metrics)
         summary.update(summary_eval)
 
         # Update iteration stats object
