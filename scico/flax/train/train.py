@@ -33,7 +33,6 @@ import optax
 from flax import jax_utils
 from flax.core import freeze, unfreeze
 from flax.training import common_utils, train_state
-from flax.traverse_util import ModelParamTraversal
 
 try:
     from tensorflow.io import gfile  # noqa: F401
@@ -49,6 +48,7 @@ from scico.diagnostics import IterationStats
 from scico.flax import create_input_iter
 from scico.flax.train.clu_utils import get_parameter_overview
 from scico.flax.train.input_pipeline import DataSetDict
+from scico.flax.train.utils import ModelParamTraversal
 from scico.metric import snr
 from scico.typing import Array, Shape
 

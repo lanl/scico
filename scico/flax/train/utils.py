@@ -15,13 +15,21 @@ import jax.numpy as jnp
 from jax import lax
 
 import scipy
-from flax.core import freeze, unfreeze
+from flax.core import FrozenDict, freeze, unfreeze
 from flax.linen import Conv
 from flax.linen.module import Module, compact
-from flax.traverse_util import _get_params_dict, flatten_dict, unflatten_dict
+from flax.traverse_util import (
+    _EmptyNode,
+    _get_params_dict,
+    _sorted_items,
+    flatten_dict,
+    unflatten_dict,
+)
 from scico.typing import Array, Shape
 
 PyTree = Any
+
+empty_node = _EmptyNode()
 
 # From https://github.com/deepmind/dm-haiku/issues/71
 def _l2_normalize(x: Array, eps: float = 1e-12) -> Array:
@@ -194,7 +202,7 @@ class ModelParamTraversal:
 
     """
 
-    def __init__(self, filter_fn):
+    def __init__(self, filter_fn: Callable):
         """Constructor a new ModelParamTraversal.
 
         Args:
@@ -205,23 +213,7 @@ class ModelParamTraversal:
         """
         self._filter_fn = filter_fn
 
-    def iterate(self, inputs):
-        """Iterate over the values selected by this `Traversal`.
-
-        Args:
-            inputs: the object that should be traversed.
-        Returns:
-            An iterator over the traversed values.
-        """
-
-        params = _get_params_dict(inputs)
-        flat_dict = flatten_dict(params)
-        for key, value in _sorted_items(flat_dict):
-            path = "/" + "/".join(key)
-            if self._filter_fn(path, value):
-                yield value
-
-    def update(self, fn, inputs):
+    def update(self, fn: Callable, inputs: PyTree) -> PyTree:
         """Update the focused items.
 
         Args:
@@ -242,7 +234,7 @@ class ModelParamTraversal:
                     value = fn(value)
             new_dict[key] = value
         new_params = unflatten_dict(new_dict)
-        if isinstance(inputs, flax.core.FrozenDict):
-            return flax.core.FrozenDict(new_params)
+        if isinstance(inputs, FrozenDict):
+            return FrozenDict(new_params)
         else:
             return new_params
