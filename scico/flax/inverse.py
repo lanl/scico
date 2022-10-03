@@ -249,11 +249,25 @@ class ODPProxDcnvBlock(Module):
     dtype: Any = jnp.float32
 
     def setup(self):
-        """Computing operator norm and setting operator for batch evaluation."""
+        """Computing operator norm and setting operator for batch evaluation and defining network layers."""
         self.operator_norm = operator_norm(self.operator)
         self.ah_f = lambda v: jnp.atleast_3d(
             self.operator.adj(v.reshape(self.operator.output_shape))
         )
+
+        self.resnet = ResNet(
+            self.depth,
+            self.channels,
+            self.num_filters,
+            self.kernel_size,
+            self.strides,
+            dtype=self.dtype,
+        )
+
+        def alpha_init_wrap(rng: PRNGKey, shape: Shape, dtype: DType = self.dtype) -> Array:
+            return jnp.ones(shape, dtype) * self.alpha_ini
+
+        self.alpha = self.param("alpha", alpha_init_wrap, (1,))
 
     def batch_op_adj(self, y: Array) -> Array:
         """Batch application of adjoint operator."""
@@ -271,29 +285,17 @@ class ODPProxDcnvBlock(Module):
             The block output (i.e. next stage of reconstructed signal).
         """
 
-        def alpha_init_wrap(rng: PRNGKey, shape: Shape, dtype: DType = self.dtype) -> Array:
-            return jnp.ones(shape, dtype) * self.alpha_ini
-
-        alpha = self.param("alpha", alpha_init_wrap, (1,))
-
-        resnet = ResNet(
-            self.depth,
-            self.channels,
-            self.num_filters,
-            self.kernel_size,
-            self.strides,
-            dtype=self.dtype,
-        )
-
         # DFT over spatial dimensions
         fft_shape: Shape = x.shape[1:-1]
         fft_axes: Tuple[int, int] = (1, 2)
 
-        scale = 1.0 / (alpha * self.operator_norm**2 + 1)
+        scale = 1.0 / (self.alpha * self.operator_norm**2 + 1)
 
         x = jnp.fft.irfftn(
             jnp.fft.rfftn(
-                alpha * self.batch_op_adj(y) + resnet(x, train), s=fft_shape, axes=fft_axes
+                self.alpha * self.batch_op_adj(y) + self.resnet(x, train),
+                s=fft_shape,
+                axes=fft_axes,
             )
             / scale,
             s=fft_shape,
@@ -332,11 +334,25 @@ class ODPGrDescBlock(Module):
     dtype: Any = jnp.float32
 
     def setup(self):
-        """Setting operator for batch evaluation."""
+        """Setting operator for batch evaluation and defining network layers."""
         self.ah_f = lambda v: jnp.atleast_3d(
             self.operator.adj(v.reshape(self.operator.output_shape))
         )
         self.a_f = lambda v: jnp.atleast_3d(self.operator(v.reshape(self.operator.input_shape)))
+
+        self.resnet = ResNet(
+            self.depth,
+            self.channels,
+            self.num_filters,
+            self.kernel_size,
+            self.strides,
+            dtype=self.dtype,
+        )
+
+        def alpha_init_wrap(rng: PRNGKey, shape: Shape, dtype: DType = self.dtype) -> Array:
+            return jnp.ones(shape, dtype) * self.alpha_ini
+
+        self.alpha = self.param("alpha", alpha_init_wrap, (1,))
 
     def batch_op_adj(self, y: Array) -> Array:
         """Batch application of adjoint operator."""
@@ -354,21 +370,7 @@ class ODPGrDescBlock(Module):
             The block output (i.e. next stage of inverted signal).
         """
 
-        def alpha_init_wrap(rng: PRNGKey, shape: Shape, dtype: DType = self.dtype) -> Array:
-            return jnp.ones(shape, dtype) * self.alpha_ini
-
-        alpha = self.param("alpha", alpha_init_wrap, (1,))
-
-        resnet = ResNet(
-            self.depth,
-            self.channels,
-            self.num_filters,
-            self.kernel_size,
-            self.strides,
-            dtype=self.dtype,
-        )
-
-        x = resnet(x, train) - alpha * self.batch_op_adj(lax.map(self.a_f, x) - y)
+        x = self.resnet(x, train) - self.alpha * self.batch_op_adj(lax.map(self.a_f, x) - y)
 
         return x
 
