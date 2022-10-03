@@ -259,7 +259,6 @@ class ODPProxDcnvBlock(Module):
         """Batch application of adjoint operator."""
         return lax.map(self.ah_f, y)
 
-    @compact
     def __call__(self, x: Array, y: Array, train: bool = True) -> Array:
         """Apply debluring block.
 
@@ -343,7 +342,6 @@ class ODPGrDescBlock(Module):
         """Batch application of adjoint operator."""
         return lax.map(self.ah_f, y)
 
-    @compact
     def __call__(self, x: Array, y: Array, train: bool = True) -> Array:
         """Apply gradient descent block.
 
