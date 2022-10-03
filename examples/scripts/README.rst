@@ -78,6 +78,8 @@ Miscellaneous
       Comparison of Optimization Algorithms for Total Variation Denoising
    `denoise_cplx_tv_pdhg.py <denoise_cplx_tv_pdhg.py>`_
       Complex Total Variation Denoising
+   `denoise_dncnn_with_noise_level_input.py <denoise_dncnn_with_noise_level_input.py>`_
+      Variants of DnCNNs for Image Denoising
    `video_rpca_admm.py <video_rpca_admm.py>`_
       Video Decomposition via Robust PCA
 
