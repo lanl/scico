@@ -51,6 +51,7 @@ Miscellaneous
    - denoise_tv_pgm.py
    - denoise_tv_multi.py
    - denoise_cplx_tv_pdhg.py
+   - denoise_dncnn_with_noise_level_input.py
    - video_rpca_admm.py
 
 
