@@ -19,8 +19,8 @@ from ._autograd import grad, jacrev, linear_adjoint, value_and_grad
 
 import jax, jaxlib
 
-jax_ver_req = "0.3.0"
-jaxlib_ver_req = "0.3.0"
+jax_ver_req = "0.3.2"
+jaxlib_ver_req = "0.3.2"
 if jax.__version__ < jax_ver_req:
     raise RuntimeError(
         f"SCICO {__version__} requires jax>={jax_ver_req}; got {jax.__version__}; "
