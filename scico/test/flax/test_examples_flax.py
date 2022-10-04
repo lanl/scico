@@ -107,7 +107,7 @@ def test_ct_data_generation():
         return np.random.randn(ndata, size, size, 1)
 
     try:
-        img, sino, fbp = ct_data_generation(nimg, N, nproj, imgfunc=random_img_gen)
+        img, sino, fbp = ct_data_generation(nimg, N, nproj, imgfunc=random_img_gen, test_flag=True)
     except Exception as e:
         print(e)
         assert 0
@@ -129,7 +129,7 @@ def test_blur_data_generation():
 
     try:
         img, blurn = blur_data_generation(
-            nimg, N, blur_kernel, noise_sigma=0.01, imgfunc=random_img_gen
+            nimg, N, blur_kernel, noise_sigma=0.01, imgfunc=random_img_gen, test_flag=True
         )
     except Exception as e:
         print(e)

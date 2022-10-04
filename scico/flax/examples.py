@@ -189,7 +189,7 @@ def distributed_data_generation(
 
 
 def ray_distributed_data_generation(
-    imgenf: Callable, size: int, nimg: int, seedg: float = 123
+    imgenf: Callable, size: int, nimg: int, seedg: float = 123, test_flag: bool = False
 ) -> Array:
     """Data generation distributed among processes using ray.
 
@@ -197,7 +197,8 @@ def ray_distributed_data_generation(
         imagenf: Function for batch-data generation.
         size: Size of image to generate.
         ndata: Number of images to generate.
-        seedg: Base seed for data generation.
+        seedg: Base seed for data generation. Default: 123.
+        test_flag: Flag to indicate if running in testing mode. Testing mode requires a different initialization of ray. Default: ``False``.
 
     Returns:
         nd-array of generated data.
@@ -205,7 +206,10 @@ def ray_distributed_data_generation(
     if not have_ray:
         raise RuntimeError("Package ray is required for use of this function.")
 
-    ray.init()
+    if test_flag:
+        ray.init(ignore_reinit_error=True)
+    else:
+        ray.init()
 
     @ray.remote
     def data_gen(seed, size, ndata, imgf):
@@ -239,6 +243,7 @@ def ct_data_generation(
     imgfunc: Callable = generate_foam2_images,
     seed: int = 1234,
     verbose: bool = False,
+    test_flag: bool = False,
 ) -> Tuple[Array, ...]:
     """
     Generate CT data.
@@ -253,6 +258,7 @@ def ct_data_generation(
         imgfunc: Function for generating input images (e.g. foams).
         seed: Seed for data generation.
         verbose: Flag indicating whether to print status messages. Default: ``False``.
+        test_flag: Flag to indicate if running in testing mode. Testing mode requires a different initialization of ray. Default: ``False``.
 
     Returns:
        tuple: A tuple (img, sino, fbp) containing:
@@ -267,7 +273,7 @@ def ct_data_generation(
     # Generate input data.
     if have_ray:
         start_time = time()
-        img = ray_distributed_data_generation(imgfunc, size, nimg, seed)
+        img = ray_distributed_data_generation(imgfunc, size, nimg, seed, test_flag)
         time_dtgen = time() - start_time
     else:
         start_time = time()
@@ -480,6 +486,7 @@ def blur_data_generation(
     imgfunc: Callable,
     seed: int = 4321,
     verbose: bool = False,
+    test_flag: bool = False,
 ) -> Tuple[Array, ...]:
     """
     Generate blurred data based on xdesign foam structures.
@@ -495,6 +502,7 @@ def blur_data_generation(
         imgfunc: Function to generate foams.
         seed: Seed for data generation.
         verbose: Flag indicating whether to print status messages. Default: ``False``.
+        test_flag: Flag to indicate if running in testing mode. Testing mode requires a different initialization of ray. Default: ``False``.
 
     Returns:
        tuple: A tuple (img, blurn) containing:
@@ -504,7 +512,7 @@ def blur_data_generation(
     """
     if have_ray:
         start_time = time()
-        img = ray_distributed_data_generation(imgfunc, size, nimg, seed)
+        img = ray_distributed_data_generation(imgfunc, size, nimg, seed, test_flag)
         time_dtgen = time() - start_time
     else:
         start_time = time()
