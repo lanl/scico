@@ -44,7 +44,7 @@ train_ds, test_ds = load_image_data(
 )
 
 """
-Plot randomly selected sample.
+Plot randomly selected sample. Note that patches have small sizes, thus, plots may correspond to unidentifiable fragments.
 """
 indx_tr = np.random.randint(0, train_nimg)
 indx_te = np.random.randint(0, test_nimg)
