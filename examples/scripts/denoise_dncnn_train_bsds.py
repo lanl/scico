@@ -114,7 +114,7 @@ time_train = time() - start_time
 """
 Evaluate on testing data.
 """
-test_patches = 660
+test_patches = 720
 start_time = time()
 fmap = sflax.FlaxMap(model, modvar)
 output = fmap(test_ds["image"][:test_patches])
@@ -137,7 +137,7 @@ print(
 """
 Plot comparison. Note that patches have small sizes, thus, plots may correspond to unidentifiable fragments.
 """
-np.random.seed(543)
+np.random.seed(123)
 indx = np.random.randint(0, high=test_patches)
 
 fig, ax = plot.subplots(nrows=1, ncols=3, figsize=(15, 5))
