@@ -6,7 +6,11 @@ SCICO Release Notes
 Version 0.0.4   (unreleased)
 ----------------------------
 
-• No changes yet.
+• Extend support for other ML models including UNet, ODP and MoDL.
+• Add functionality for training Flax-based ML models and for data generation.
+• Enable diagnostics for ML training loops.
+• Change required packages and version numbers, including more recent version
+  for `flax`.
 
 
 
