@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from typing import Callable, List, Optional, Union
 
+from scico import jhvp
 from scico.diagnostics import IterationStats
 from scico.functional import Functional
 from scico.numpy import BlockArray
@@ -257,13 +258,15 @@ class NonLinearPADMM:
 
         Perform a single algorithm iteration.
         """
-        proxarg = self.x - (self.mu / self.nu) * self.C.conj().T(self.C(self.x) - self.z + self.u)
-        self.x = self.f.prox(proxarg, self.mu, v0=self.x)
-
+        _, A = jhvp(self.H, self.x, self.z, jidx=0)
+        proxarg = self.x - (1.0 / self.mu) * A(2.0 * self.u - self.u_old)
+        self.x = self.f.prox(proxarg, (1.0 / (self.rho * self.mu)), v0=self.x)
+        _, B = jhvp(self.H, self.x, self.z, jidx=1)
+        proxarg = self.z - (1.0 / self.nu) * B(self.H(self.x, self.z) + self.u)
         self.z_old = self.z
-        Cx = self.C(self.x)
-        self.z = self.g.prox(Cx + self.u, self.nu, v0=self.z)
-        self.u = self.u + Cx - self.z
+        self.z = self.g.prox(proxarg, (1.0 / (self.rho * self.nu)), v0=self.x)
+        self.u_old = self.u
+        self.u = self.u + self.H(self.x, self.z)
 
     def solve(
         self,
