@@ -84,7 +84,6 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinxcontrib.bibtex",
     "sphinx.ext.inheritance_diagram",
-    "sphinx.ext.mathjax",
     "sphinx.ext.todo",
     "nbsphinx",
 ]
@@ -121,7 +120,10 @@ if os.environ.get("NO_MATHJAX"):
     imgmath_image_format = "svg"
 else:
     extensions.append("sphinx.ext.mathjax")
-    mathjax_path = "https://cdn.mathjax.org/mathjax/latest/" "MathJax.js?config=TeX-AMS_HTML"
+    if os.environ.get("MATHJAX_URI"):
+        mathjax_path = os.environ.get("MATHJAX_URI")
+    else:
+        mathjax_path = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"
 
 mathjax_config = {
     "TeX": {
@@ -226,7 +228,7 @@ else:
 # Output file base name for HTML help builder.
 htmlhelp_basename = "SCICOdoc"
 
-# Include TOODs
+# Include TODOs
 todo_include_todos = True
 
 
