@@ -83,7 +83,7 @@ def get_epfl_deconv_data(channel: int, path: str, verbose: bool = False):  # pra
 
     # ensure path directory exists
     if not os.path.isdir(path):
-        raise ValueError(f"Path {path} does not exist or is not a directory")
+        raise ValueError(f"Path {path} does not exist or is not a directory.")
 
     # create temporary directory
     temp_dir = tempfile.TemporaryDirectory()
