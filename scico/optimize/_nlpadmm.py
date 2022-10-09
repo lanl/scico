@@ -11,9 +11,8 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import Callable, List, Optional, Tuple, Union
+from typing import Callable, List, Optional, Union
 
-import scico.numpy as snp
 from scico.diagnostics import IterationStats
 from scico.functional import Functional
 from scico.numpy import BlockArray
@@ -96,6 +95,8 @@ class NonLinearPADMM:
         mu: float,
         nu: float,
         x0: Optional[Union[JaxArray, BlockArray]] = None,
+        z0: Optional[Union[JaxArray, BlockArray]] = None,
+        u0: Optional[Union[JaxArray, BlockArray]] = None,
         maxiter: int = 100,
         itstat_options: Optional[dict] = None,
     ):
@@ -110,8 +111,11 @@ class NonLinearPADMM:
             nu: Second algorithm parameter.
             x0: Starting point for :math:`\mb{x}`. If ``None``, defaults
                 to an array of zeros.
-            maxiter: Number of main algorithm iterations iterations.
-                Default: 100.
+            z0: Starting point for :math:`\mb{z}`. If ``None``, defaults
+                to an array of zeros.
+            u0: Starting point for :math:`\mb{u}`. If ``None``, defaults
+                to an array of zeros.
+            maxiter: Number of main algorithm iterations. Default: 100.
             itstat_options: A dict of named parameters to be passed to
                 the :class:`.diagnostics.IterationStats` initializer. The
                 dict may also include an additional key "itstat_func"
@@ -163,13 +167,11 @@ class NonLinearPADMM:
         self.itstat_insert_func: Callable = default_itstat_options.pop("itstat_func", None)  # type: ignore
         self.itstat_object = IterationStats(**default_itstat_options)  # type: ignore
 
-        if x0 is None:
-            input_shape = C.input_shape
-            dtype = C.input_dtype
-            x0 = snp.zeros(input_shape, dtype=dtype)
         self.x = ensure_on_device(x0)
-        self.z, self.z_old = self.z_init(self.x)
-        self.u, self.u_old = self.u_init(self.x)
+        self.z = ensure_on_device(z0)
+        self.z_old = self.z
+        self.u = ensure_on_device(u0)
+        self.u_old = self.u
 
     def objective(
         self,
@@ -177,7 +179,6 @@ class NonLinearPADMM:
         z: Optional[List[Union[JaxArray, BlockArray]]] = None,
     ) -> float:
         r"""Evaluate the objective function.
-
 
         Evaluate the objective function
 
@@ -207,7 +208,11 @@ class NonLinearPADMM:
         out += self.g(z)
         return out
 
-    def norm_primal_residual(self, x: Optional[Union[JaxArray, BlockArray]] = None) -> float:
+    def norm_primal_residual(
+        self,
+        x: Optional[Union[JaxArray, BlockArray]] = None,
+        z: Optional[List[Union[JaxArray, BlockArray]]] = None,
+    ) -> float:
         r"""Compute the :math:`\ell_2` norm of the primal residual.
 
         Compute the :math:`\ell_2` norm of the primal residual
@@ -219,14 +224,20 @@ class NonLinearPADMM:
             x: Point at which to evaluate primal residual. If ``None``,
                the primal residual is evaluated at the current iterate
                :code:`self.x`.
+            z: Point at which to evaluate primal residual. If ``None``,
+               the primal residual is evaluated at the current iterate
+               :code:`self.z`.
 
         Returns:
             Norm of primal residual.
         """
+        if (x is None) != (z is None):
+            raise ValueError("Both or neither of x and z must be supplied")
         if x is None:
             x = self.x
+            z = self.z
 
-        return norm(self.H(self.x, self.z))
+        return norm(self.H(x, z))
 
     def norm_dual_residual(self) -> float:
         r"""Compute the :math:`\ell_2` norm of the dual residual.
@@ -239,45 +250,7 @@ class NonLinearPADMM:
         Returns:
             Current norm of dual residual.
         """
-        return norm(self.C.adj(self.z - self.z_old))
-
-    def z_init(
-        self, x0: Union[JaxArray, BlockArray]
-    ) -> Tuple[Union[JaxArray, BlockArray], Union[JaxArray, BlockArray]]:
-        r"""Initialize auxiliary variable :math:`\mb{z}`.
-
-        Initialized to
-
-        .. math::
-            \mb{z} = C \mb{x}^{(0)} \;.
-
-        :code:`z` and :code:`z_old` are initialized to the same value.
-
-        Args:
-            x0: Starting point for :math:`\mb{x}`.
-        """
-        z = self.C(x0)
-        z_old = z
-        return z, z_old
-
-    def u_init(
-        self, x0: Union[JaxArray, BlockArray]
-    ) -> Tuple[Union[JaxArray, BlockArray], Union[JaxArray, BlockArray]]:
-        r"""Initialize scaled Lagrange multiplier :math:`\mb{u}`.
-
-        Initialized to
-
-        .. math::
-            \mb{u} = \mb{0} \;.
-
-        :code:`u` and :code:`u_old` are initialized to the same value.
-
-        Args:
-            x0: Starting point for :math:`\mb{x}`.
-        """
-        u = snp.zeros(self.C.output_shape, dtype=self.C.output_dtype)
-        u_old = u
-        return u, u_old
+        return norm(self.z - self.z_old)  # NB: requires attention
 
     def step(self):
         r"""Perform a single algorithm iteration.
