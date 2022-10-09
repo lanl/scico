@@ -7,11 +7,13 @@
 """Automatic differentiation tools."""
 
 
-from typing import Any, Callable, Sequence, Tuple, Union
+from typing import Any, Callable, Optional, Sequence, Tuple, Union
 
 import jax
 import jax.numpy as jnp
 from jax.tree_util import tree_map
+
+import scico.util
 
 
 def _append_jax_docs(fn, jaxfn=None):
@@ -149,3 +151,45 @@ def jacrev(
 
 # Append docstring from original jax function
 jacrev.__doc__ = _append_jax_docs(jacrev)
+
+
+def jhvp(fun: Callable, *primals, jidx: Optional[int] = None) -> Callable:
+    r"""Compute a Jacobian-vector product with Hermitian transpose.
+
+    Compute the product :math:`[J(\mb{x})]^H \mb{v}` where
+    :math:`[J(\mb{x})]` is the Jacobian of the function :math:`f(\cdot)`
+    evaluated at :math:`\mb{x}`. Instead of directly evaluating the
+    product, a function is returned that takes :math:`\mb{v}` as an
+    argument. If `fun` has multiple positional parameters, the Jacobian
+    can be taken with respect to only one of them by setting the `jidx`
+    parameter of this function to the positional index of that parameter.
+
+    Args:
+        fun: Function for which the Jacobian is implicitly computed.
+        primals: Sequence of values at which the Jacobian is
+           evaluated, with length equal to the number of positional
+           arguments of `fun`.
+        jidx: Index of the positional parameter of `fun` with respect
+           to which the Jacobian is taken.
+
+    Returns:
+        A pair `(primals, conj_vjp)` where `primals` is the input
+        parameter of the same name, and `conj_vjp` is a function
+        that computes the product of the Hermitian transpose of the
+        Jacobian of `fun` and its argument. If the `jidx` parameter is
+        an integer, then `primals` just consists of the corresponding
+        element of the `primals` input.
+    """
+
+    if jidx is None:
+        primals, fun_vjp = jax.vjp(fun, *primals)
+    else:
+        fixidx = tuple(range(0, jidx)) + tuple(range(jidx + 1, len(primals)))
+        fixprm = primals[0:jidx] + primals[jidx + 1 :]
+        pfun = scico.util.partial(fun, fixidx, *fixprm)
+        primals, fun_vjp = jax.vjp(pfun, primals[jidx])
+
+    def conj_vjp(tangent):
+        return jax.tree_map(jax.numpy.conj, fun_vjp(tangent.conj()))
+
+    return primals, conj_vjp
