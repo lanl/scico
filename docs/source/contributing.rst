@@ -65,7 +65,7 @@ Installing a Development Version
       cd scico
 
 
-7. Add the SCICO repo as an upstream remote to sync your changes:
+7. Add the ``scico`` repo as an upstream remote to sync your changes:
 
    ::
 
@@ -203,7 +203,7 @@ A feature development workflow might look like this:
 9. Create a new pull request to the ``main`` branch; see `the GitHub instructions <https://docs.github.com/en/github/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request>`_.
 
 10. The SCICO maintainers will review and merge your PR.
-    The SCICO project favors the ``squash and merge`` option for merging PRs.
+    The SCICO project recommends the ``squash and merge`` option for merging PRs.
 
 11. Delete the branch after it has been merged.
 
@@ -211,37 +211,36 @@ A feature development workflow might look like this:
 Adding Data
 -----------
 
-The following steps show how to add new data, ``new_data.npz``, to the packaged data. We assume the SCICO repository has been cloned to ``scico/``.
-
-Note that the data is located in the scico-data submodule, which is
-symlinked to ``scico/data``. When adding new data, both the scico and
-scico-data repositories must be updated and kept in sync.
+The following steps show how to add new data, ``new_data.npz``, to the packaged data. We assume the ``scico`` repository has been cloned to ``scico/``. Note that the data is located in the ``scico-data`` submodule, which is attached to the main `scico` repository via the directory ``scico/data`` (i.e. the ``data/`` subdirectory of the repository root directory, *not* the ``scico/data`` subdirectory of the repository root directory). When adding new data, both the ``scico`` and ``scico-data`` repositories must be updated and kept in sync.
 
 
-1. Add the ``new_data.npz`` file to the ``scico/data`` directory.
+1. Create new branches in the main ``scico`` repository as well as in the submodule corresponding to the ``scico-data`` repository (which can be achieved by following the usual branch creation procedure after changing the current directory to ``scico/data``).
 
-2. Change directory to the ``data`` directory and add/commit the new data file:
+
+2. Add the ``new_data.npz`` file to the appropriate subdirectory (creating a new one if necessary) of thee ``scico/data`` directory.
+
+3. Change directory to this directory (taken to be ``scico/data/flax`` for the purposes of this example) and add/commit the new data file:
 
    ::
 
-      cd scico/data
+      cd scico/data/flax
       git add new_data.npz
       git commit -m "Add new data file"
 
-3. Return to the base SCICO repository, ensure the ``main`` branch is checked out, add/commit the new data and update submodule:
+4. Return to the ``scico`` repository root directory, add/commit the new data, and update submodule:
 
    ::
 
-      cd ..  # pwd now `scico` repo root
-      git checkout main
+      cd ../..  # pwd now `scico` repo root
       git add data
       git commit -m "Add data and update data module"
 
-4. Push both repositories:
+5. Push both repositories:
 
    ::
 
       git submodule foreach --recursive 'git push' && git push
+
 
 
 Type Checking
@@ -292,8 +291,8 @@ or (if ``pytest-runner`` is installed)
 
     python setup.py test
 
-from the SCICO repository root directory. Tests can be run in an installed
-version of SCICO by
+from the ``scico`` repository root directory. Tests can be run in an installed
+version of ``scico`` by
 
 ::
 
@@ -371,7 +370,7 @@ Adding new examples
 ^^^^^^^^^^^^^^^^^^^
 
 The following steps show how to add a new example, ``new_example.py``,
-to the packaged usage examples. We assume the SCICO repository has
+to the packaged usage examples. We assume the ``scico`` repository has
 been cloned to ``scico/``.
 
 Note that the ``.py`` scripts are included in
@@ -384,18 +383,21 @@ and ``scico-data`` repositories must be updated and kept in sync.
    Ensure that all binary data (including raw data, images, ``.ipynb`` files) are added to ``scico-data``, not the main ``scico`` repo.
 
 
-1. Add the ``new_example.py`` script to the ``scico/examples/scripts`` directory.
+1. Create new branches in the main `scico` repository as well as in the submodule corresponding to the `scico-data` repository (which can be achieved by following the usual branch creation procedure after changing the current directory to ``scico/data``).
 
 
-2. Add the basename of the script (i.e., without the pathname; in this case,
+2. Add the ``new_example.py`` script to the ``scico/examples/scripts`` directory.
+
+
+3. Add the basename of the script (i.e., without the pathname; in this case,
 ``new_example.py``) to the appropriate section of
 ``examples/scripts/index.rst``.
 
 
-3. Convert your new example to a Jupyter notebook by changing directory to the ``scico/examples`` directory and following the instructions in ``scico/examples/README.rst``.
+4. Convert your new example to a Jupyter notebook by changing directory to the ``scico/examples`` directory and following the instructions in ``scico/examples/README.rst``.
 
 
-4. Change directory to the ``data`` directory and add/commit the new Jupyter Notebook:
+5. Change directory to the ``data`` directory and add/commit the new Jupyter Notebook:
 
    ::
 
@@ -404,7 +406,7 @@ and ``scico-data`` repositories must be updated and kept in sync.
       git commit -m "Add new usage example"
 
 
-5. Return to the main SCICO repository, ensure the ``main`` branch is checked out, add/commit the new script and updated submodule:
+6. Return to the main ``scico`` repository root directory, ensure the ``main`` branch is checked out, add/commit the new script and updated submodule:
 
    ::
 
@@ -414,7 +416,7 @@ and ``scico-data`` repositories must be updated and kept in sync.
       git commit -m "Add usage example and update data module"
 
 
-6. Push both repositories:
+7. Push both repositories:
 
    ::
 
