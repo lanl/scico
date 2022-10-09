@@ -33,7 +33,7 @@ def partial(func: Callable, indices: Sequence, *fixargs: Any, **fixkwargs: Any) 
     Args:
         func: Function from which partial function is to be derived.
         indices: Tuple of indices of positional args of `func` that are
-           to be fixes to the values specified in `fixargs`.
+           to be fixed to the values specified in `fixargs`.
         *fixargs: Fixed values for specified positional arguments.
         **fixkwargs: Fixed values for keyword arguments.
 
