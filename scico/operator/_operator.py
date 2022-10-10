@@ -50,7 +50,7 @@ def _wrap_mul_div_scalar(func: Callable) -> Callable:
         if np.isscalar(b) or isinstance(b, jax.core.Tracer):
             return func(a, b)
 
-        raise TypeError(f"Operation {func.__name__} not defined between {type(a)} and {type(b)}")
+        raise TypeError(f"Operation {func.__name__} not defined between {type(a)} and {type(b)}.")
 
     return wrapper
 
@@ -207,14 +207,14 @@ output_dtype : {self.output_dtype}
                     input_dtype=self.input_dtype,
                     output_dtype=x.output_dtype,
                 )
-            raise ValueError(f"""Incompatible shapes {self.shape}, {x.shape} """)
+            raise ValueError(f"Incompatible shapes {self.shape}, {x.shape}.")
 
         if isinstance(x, (np.ndarray, DeviceArray, BlockArray)):
             if self.input_shape == x.shape:
                 return self._eval(x)
             raise ValueError(
                 f"Cannot evaluate {type(self)} with input_shape={self.input_shape} "
-                f"on array with shape={x.shape}"
+                f"on array with shape={x.shape}."
             )
         # What is the context under which this gets called?
         # Currently: in jit and grad tracers
@@ -230,8 +230,8 @@ output_dtype : {self.output_dtype}
                     input_dtype=self.input_dtype,
                     output_dtype=result_type(self.output_dtype, other.output_dtype),
                 )
-            raise ValueError(f"shapes {self.shape} and {other.shape} do not match")
-        raise TypeError(f"Operation __add__ not defined between {type(self)} and {type(other)}")
+            raise ValueError(f"Shapes {self.shape} and {other.shape} do not match.")
+        raise TypeError(f"Operation __add__ not defined between {type(self)} and {type(other)}.")
 
     def __sub__(self, other: Operator) -> Operator:
         if isinstance(other, Operator):
@@ -243,8 +243,8 @@ output_dtype : {self.output_dtype}
                     input_dtype=self.input_dtype,
                     output_dtype=result_type(self.output_dtype, other.output_dtype),
                 )
-            raise ValueError(f"shapes {self.shape} and {other.shape} do not match")
-        raise TypeError(f"Operation __sub__ not defined between {type(self)} and {type(other)}")
+            raise ValueError(f"Shapes {self.shape} and {other.shape} do not match.")
+        raise TypeError(f"Operation __sub__ not defined between {type(self)} and {type(other)}.")
 
     @_wrap_mul_div_scalar
     def __mul__(self, other):
@@ -363,20 +363,20 @@ output_dtype : {self.output_dtype}
 
         if not is_nested(self.input_shape):
             raise ValueError(
-                "The `freeze` method can only be applied to Operators that take BlockArray inputs"
+                "The freeze method can only be applied to Operators that take BlockArray inputs."
             )
 
         input_ndim = len(self.input_shape)
         if argnum > input_ndim - 1:
             raise ValueError(
-                f"argnum to freeze must be less than the number of input arguments to "
-                f"this operator ({input_ndim}); got {argnum}"
+                f"Parameter argnum to freeze must be less than the number of input arguments to "
+                f"this operator ({input_ndim}); got {argnum}."
             )
 
         if val.shape != self.input_shape[argnum]:
             raise ValueError(
-                f"value to be frozen at position {argnum} must have shape "
-                f"{self.input_shape[argnum]}, got {val.shape}"
+                f"Value to be frozen at position {argnum} must have shape "
+                f"{self.input_shape[argnum]}, got {val.shape}."
             )
 
         input_shape: Union[Shape, BlockShape]

@@ -133,7 +133,7 @@ class TomographicProjector(LinearOperator):
             self.svmbir_output_shape = output_shape
         else:
             raise ValueError(
-                f"Only 2D and 3D inputs are supported, but input_shape was {input_shape}"
+                f"Only 2D and 3D inputs are supported, but input_shape was {input_shape}."
             )
 
         self.is_masked = is_masked
@@ -148,9 +148,11 @@ class TomographicProjector(LinearOperator):
 
         if self.geometry == "fan-curved" or self.geometry == "fan-flat":
             if self.dist_source_detector is None:
-                raise ValueError("dist_source_detector must be specified for fan beam geometry")
+                raise ValueError(
+                    "Parameter dist_source_detector must be specified for fan beam geometry."
+                )
             if self.magnification is None:
-                raise ValueError("magnification must be specified for fan beam geometry")
+                raise ValueError("Parameter magnification must be specified for fan beam geometry.")
 
             self.delta_channel = 1.0
             self.delta_pixel = self.delta_channel / self.magnification
@@ -162,7 +164,7 @@ class TomographicProjector(LinearOperator):
             self.delta_pixel = 1.0
 
         else:
-            raise ValueError("unspecified geometry {}".format(self.geometry))
+            raise ValueError("Unspecified geometry {}.".format(self.geometry))
 
         # Set up custom_vjp for _eval and _adj so jax.grad works on them.
         self._eval = jax.custom_vjp(self._proj_hcb)
@@ -365,7 +367,7 @@ class SVMBIRExtendedLoss(Loss):
             else:
                 raise Exception(f"The weights, W, must be non-negative.")
         else:
-            raise TypeError(f"W must be None or a linop.Diagonal, got {type(W)}")
+            raise TypeError(f"Parameter W must be None or a linop.Diagonal, got {type(W)}.")
 
     def __call__(self, x: JaxArray) -> float:
 
@@ -407,7 +409,7 @@ class SVMBIRExtendedLoss(Loss):
             **self.svmbir_prox_args,
         )
         if np.sum(np.isnan(result)):
-            raise ValueError("Result contains NaNs")
+            raise ValueError("Result contains NaNs.")
 
         return jax.device_put(result.reshape(self.A.input_shape))
 
@@ -450,7 +452,7 @@ class SVMBIRSquaredL2Loss(SVMBIRExtendedLoss, SquaredL2Loss):
 
         if self.A.is_masked:
             raise ValueError(
-                "is_masked must be false for the TomographicProjector in " "SVMBIRSquaredL2Loss."
+                "Parameter is_masked must be False for the TomographicProjector in SVMBIRSquaredL2Loss."
             )
 
 

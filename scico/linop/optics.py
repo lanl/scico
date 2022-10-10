@@ -97,7 +97,7 @@ def radial_transverse_frequency(
 
     ndim: int = len(input_shape)  # 1 or 2 dimensions
     if ndim not in (1, 2):
-        raise ValueError("Invalid input dimensions; must be 1 or 2")
+        raise ValueError("Invalid input dimensions; must be 1 or 2.")
 
     if _isscalar(dx):
         dx = (dx,) * ndim
@@ -105,8 +105,8 @@ def radial_transverse_frequency(
         assert isinstance(dx, tuple)
         if len(dx) != ndim:
             raise ValueError(
-                "dx must be a scalar or have len(dx) == len(input_shape); "
-                f"got len(dx)={len(dx)}, len(input_shape)={ndim}"
+                "Parameter dx must be a scalar or have len(dx) == len(input_shape); "
+                f"got len(dx)={len(dx)}, len(input_shape)={ndim}."
             )
     assert isinstance(dx, tuple)
 
@@ -151,7 +151,7 @@ class Propagator(LinearOperator):
 
         ndim = len(input_shape)  # 1 or 2 dimensions
         if ndim not in (1, 2):
-            raise ValueError("Invalid input dimensions; must be 1 or 2")
+            raise ValueError("Invalid input dimensions; must be 1 or 2.")
 
         if _isscalar(dx):
             dx = (dx,) * ndim
@@ -159,8 +159,8 @@ class Propagator(LinearOperator):
             assert isinstance(dx, tuple)
             if len(dx) != ndim:
                 raise ValueError(
-                    "dx must be a scalar or have len(dx) == len(input_shape); "
-                    f"got len(dx)={len(dx)}, len(input_shape)={ndim}"
+                    "Parameter dx must be a scalar or have len(dx) == len(input_shape); "
+                    f"got len(dx)={len(dx)}, len(input_shape)={ndim}."
                 )
         assert isinstance(dx, tuple)
 
@@ -500,7 +500,7 @@ class FraunhoferPropagator(LinearOperator):
 
         ndim = len(input_shape)  # 1 or 2 dimensions
         if ndim not in (1, 2):
-            raise ValueError("Invalid input dimensions; must be 1 or 2")
+            raise ValueError("Invalid input dimensions; must be 1 or 2.")
 
         if _isscalar(dx):
             dx = (dx,) * ndim
@@ -508,8 +508,8 @@ class FraunhoferPropagator(LinearOperator):
             assert isinstance(dx, tuple)
             if len(dx) != ndim:
                 raise ValueError(
-                    "dx must be a scalar or have len(dx) == len(input_shape); "
-                    f"got len(dx)={len(dx)}, len(input_shape)={ndim}"
+                    "Parameter dx must be a scalar or have len(dx) == len(input_shape); "
+                    f"got len(dx)={len(dx)}, len(input_shape)={ndim}."
                 )
         assert isinstance(dx, tuple)
 

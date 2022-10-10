@@ -66,7 +66,7 @@ class IterationStats:
         # Parameter fields must be specified as an OrderedDict to ensure
         # that field order is retained
         if not isinstance(fields, dict):
-            raise TypeError("Parameter fields must be an instance of dict")
+            raise TypeError("Parameter fields must be an instance of dict.")
         # Subsampling rate of results that are to be displayed
         self.period: int = period
         # Flag indicating whether to display and overwrite, or not display at all
@@ -93,7 +93,7 @@ class IterationStats:
             fmt = fields[name]
             fmtmatch = fmre.match(fmt)
             if not fmtmatch:
-                raise ValueError(f'Format string "{fmt}" could not be parsed')
+                raise ValueError(f'Format string "{fmt}" could not be parsed.')
             fmflg, fmlen, fmdot, fmprc, fmtyp = fmtmatch.groups()
             flen = len(fmt % 0)
             # Warn if actual formatted length longer than specified field

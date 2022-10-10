@@ -101,7 +101,7 @@ class TomographicProjector(LinearOperator):
                 raise AssertionError(
                     "Volume_geometry must be the shape of the volume as a tuple of len 4 "
                     "containing the volume geometry dimensions. Please see documentation "
-                    "for specifics."
+                    "for details."
                 )
         else:
             self.vol_geom = astra.create_vol_geom(*input_shape)
@@ -112,7 +112,7 @@ class TomographicProjector(LinearOperator):
         elif dev0.platform == "gpu" and device in ["gpu", "auto"]:
             self.proj_id = astra.create_projector("cuda", self.proj_geom, self.vol_geom)
         else:
-            raise ValueError(f"Invalid device specified; got {device}")
+            raise ValueError(f"Invalid device specified; got {device}.")
 
         # Wrap our non-jax function to indicate we will supply fwd/rev mode functions
         self._eval = jax.custom_vjp(self._proj)
