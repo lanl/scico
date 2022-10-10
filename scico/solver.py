@@ -411,7 +411,7 @@ def bisect(
     fa = f(*((a,) + args))
     fb = f(*((b,) + args))
     if range_check and snp.any(snp.sign(fa) == snp.sign(fb)):
-        raise ValueError("Initial bisection range does not bracket zero")
+        raise ValueError("Initial bisection range does not bracket zero.")
 
     for numiter in range(maxiter):
         c = (a + b) / 2.0

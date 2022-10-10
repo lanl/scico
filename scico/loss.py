@@ -31,7 +31,7 @@ def _loss_mul_div_wrapper(func):
             return func(self, other)
 
         raise NotImplementedError(
-            f"Operation {func} not defined between {type(self)} and {type(other)}"
+            f"Operation {func} not defined between {type(self)} and {type(other)}."
         )
 
     return wrapper
@@ -92,7 +92,7 @@ class Loss(functional.Functional):
         """
         if self.f is None:
             raise NotImplementedError(
-                "Functional f is not defined and __call__ has not been overridden"
+                "Functional f is not defined and __call__ has not been overridden."
             )
         return self.scale * self.f(self.A(x) - self.y)
 
@@ -117,8 +117,8 @@ class Loss(functional.Functional):
         """
         if not self.has_prox:
             raise NotImplementedError(
-                f"prox is not implemented for {type(self)} when A is {type(self.A)}; "
-                "must be Identity"
+                f"Method prox is not implemented for {type(self)} when A is {type(self.A)}; "
+                "A must be an Identity."
             )
         assert self.f is not None
         return self.f.prox(v - self.y, self.scale * lam, **kwargs) + self.y
@@ -188,7 +188,7 @@ class SquaredL2Loss(Loss):
             else:
                 raise ValueError(f"The weights, W.diagonal, must be non-negative.")
         else:
-            raise TypeError(f"W must be None or a linop.Diagonal, got {type(W)}")
+            raise TypeError(f"Parameter W must be None or a linop.Diagonal, got {type(W)}.")
 
         super().__init__(y=y, A=A, scale=scale)
 
@@ -208,8 +208,8 @@ class SquaredL2Loss(Loss):
     ) -> Union[JaxArray, BlockArray]:
         if not isinstance(self.A, linop.LinearOperator):
             raise NotImplementedError(
-                f"prox is not implemented for {type(self)} when `A` is {type(self.A)}; "
-                "must be LinearOperator"
+                f"Method prox is not implemented for {type(self)} when A is {type(self.A)}; "
+                "A must be a LinearOperator."
             )
 
         if isinstance(self.A, linop.Diagonal):
@@ -261,7 +261,7 @@ class SquaredL2Loss(Loss):
 
         raise NotImplementedError(
             f"Hessian is not implemented for {type(self)} when A is {type(A)}; "
-            "must be LinearOperator."
+            "A must be LinearOperator."
         )
 
 
@@ -346,7 +346,7 @@ class SquaredL2AbsLoss(Loss):
             else:
                 raise ValueError("The weights, W.diagonal, must be non-negative.")
         else:
-            raise TypeError(f"W must be None or a linop.Diagonal, got {type(W)}.")
+            raise TypeError(f"Parameter W must be None or a linop.Diagonal, got {type(W)}.")
 
         super().__init__(y=y, A=A, scale=scale)
 
@@ -360,7 +360,7 @@ class SquaredL2AbsLoss(Loss):
         self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
         if not self.has_prox:
-            raise NotImplementedError(f"prox is not implemented.")
+            raise NotImplementedError(f"Method prox is not implemented.")
 
         𝛼 = lam * 2.0 * self.scale * self.W.diagonal
         y = self.y
@@ -553,7 +553,7 @@ class SquaredL2SquaredAbsLoss(Loss):
             else:
                 raise ValueError("The weights, W.diagonal, must be non-negative.")
         else:
-            raise TypeError(f"W must be None or a linop.Diagonal, got {type(W)}.")
+            raise TypeError(f"Parameter W must be None or a linop.Diagonal, got {type(W)}.")
 
         super().__init__(y=y, A=A, scale=scale)
 
@@ -569,7 +569,7 @@ class SquaredL2SquaredAbsLoss(Loss):
         self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
         if not self.has_prox:
-            raise NotImplementedError(f"prox is not implemented.")
+            raise NotImplementedError(f"Method prox is not implemented.")
 
         𝛼 = lam * 4.0 * self.scale * self.W.diagonal
         𝛽 = snp.abs(v)

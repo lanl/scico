@@ -96,14 +96,14 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
         bm3d_eval = tunibm3d.bm3d
 
     if snp.util.is_complex_dtype(x.dtype):
-        raise TypeError(f"BM3D requires real-valued inputs, got {x.dtype}")
+        raise TypeError(f"BM3D requires real-valued inputs, got {x.dtype}.")
 
     # Support arrays with more than three axes when the additional axes are singletons.
     x_in_shape = x.shape
 
     if isinstance(x.ndim, tuple) or x.ndim < 2:
         raise ValueError(
-            "BM3D requires two-dimensional or three dimensional inputs;" f" got ndim = {x.ndim}"
+            "BM3D requires two-dimensional or three dimensional inputs; got ndim = {x.ndim}."
         )
 
     # This check is also performed inside the BM3D call, but due to the host_callback,
@@ -113,7 +113,7 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
     if np.min(x.shape[:2]) < 8:
         raise ValueError(
             "Two leading dimensions of input cannot be smaller than block size "
-            f"(8); got image size = {x.shape}"
+            f"(8); got image size = {x.shape}."
         )
 
     if x.ndim > 3:
@@ -122,7 +122,7 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
         else:
             raise ValueError(
                 "Arrays with more than three axes are only supported when "
-                " the additional axes are singletons"
+                " the additional axes are singletons."
             )
 
     y = hcb.call(lambda args: bm3d_eval(*args).astype(x.dtype), (x, sigma), result_shape=x)
@@ -157,13 +157,13 @@ def bm4d(x: JaxArray, sigma: float):
     bm4d_eval = tunibm4d.bm4d
 
     if snp.util.is_complex_dtype(x.dtype):
-        raise TypeError(f"BM4D requires real-valued inputs, got {x.dtype}")
+        raise TypeError(f"BM4D requires real-valued inputs, got {x.dtype}.")
 
     # Support arrays with more than three axes when the additional axes are singletons.
     x_in_shape = x.shape
 
     if isinstance(x.ndim, tuple) or x.ndim < 3:
-        raise ValueError(f"BM4D requires three-dimensional inputs; got ndim = {x.ndim}")
+        raise ValueError(f"BM4D requires three-dimensional inputs; got ndim = {x.ndim}.")
 
     # This check is also performed inside the BM4D call, but due to the host_callback,
     # no exception is raised and the program will crash with no traceback.
@@ -172,7 +172,7 @@ def bm4d(x: JaxArray, sigma: float):
     if np.min(x.shape[:3]) < 8:
         raise ValueError(
             "Three leading dimensions of input cannot be smaller than block size "
-            f"(8); got image size = {x.shape}"
+            f"(8); got image size = {x.shape}."
         )
 
     if x.ndim > 3:
@@ -181,7 +181,7 @@ def bm4d(x: JaxArray, sigma: float):
         else:
             raise ValueError(
                 "Arrays with more than three axes are only supported when "
-                " the additional axes are singletons"
+                " the additional axes are singletons."
             )
 
     y = hcb.call(lambda args: bm4d_eval(*args).astype(x.dtype), (x, sigma), result_shape=x)
@@ -217,7 +217,7 @@ class DnCNN(FlaxMap):
                 with respect to data in the range [0, 1].
         """
         if variant not in ["6L", "6M", "6H", "17L", "17M", "17H"]:
-            raise ValueError(f"Invalid value of parameter variant: {variant}")
+            raise ValueError(f"Invalid value {variant} of parameter variant.")
         if variant[0] == "6":
             nlayer = 6
         else:
@@ -236,12 +236,12 @@ class DnCNN(FlaxMap):
             Denoised output.
         """
         if snp.util.is_complex_dtype(x.dtype):
-            raise TypeError(f"DnCNN requries real-valued inputs, got {x.dtype}")
+            raise TypeError(f"DnCNN requries real-valued inputs, got {x.dtype}.")
 
         if isinstance(x.ndim, tuple) or x.ndim < 2:
             raise ValueError(
                 "DnCNN requires two-dimensional (M, N) or three-dimensional (M, N, C)"
-                f" inputs; got ndim = {x.ndim}"
+                f" inputs; got ndim = {x.ndim}."
             )
 
         x_in_shape = x.shape
@@ -251,7 +251,7 @@ class DnCNN(FlaxMap):
             else:
                 raise ValueError(
                     "Arrays with more than three axes are only supported when"
-                    " the additional axes are singletons"
+                    " the additional axes are singletons."
                 )
 
         if x.ndim == 3:

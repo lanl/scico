@@ -131,9 +131,9 @@ class ADMM:
         """
         N = len(g_list)
         if len(C_list) != N:
-            raise Exception(f"len(C_list)={len(C_list)} not equal to len(g_list)={N}")
+            raise Exception(f"len(C_list)={len(C_list)} not equal to len(g_list)={N}.")
         if len(rho_list) != N:
-            raise Exception(f"len(rho_list)={len(rho_list)} not equal to len(g_list)={N}")
+            raise Exception(f"len(rho_list)={len(rho_list)} not equal to len(g_list)={N}.")
 
         self.f: Functional = f
         self.g_list: List[Functional] = g_list
@@ -225,7 +225,7 @@ class ADMM:
             scalar: Value of the objective function.
         """
         if (x is None) != (z_list is None):
-            raise ValueError("Both or neither of x and z_list must be supplied")
+            raise ValueError("Both or neither of x and z_list must be supplied.")
         if x is None:
             x = self.x
             z_list = self.z_list

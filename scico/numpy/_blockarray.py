@@ -50,7 +50,7 @@ class BlockArray:
 
         # check that dtypes match
         if not all(a.dtype == self.arrays[0].dtype for a in self.arrays):
-            raise ValueError("Heterogeneous dtypes not supported")
+            raise ValueError("Heterogeneous dtypes not supported.")
 
     @property
     def dtype(self):
