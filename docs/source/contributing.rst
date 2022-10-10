@@ -207,7 +207,7 @@ The following steps show how to add new data, ``new_data.npz``, to the packaged 
 
 1. Create new branches in the main ``scico`` repository as well as in the submodule corresponding to the ``scico-data`` repository (which can be achieved by following the usual branch creation procedure after changing the current directory to ``scico/data``).
 
-2. Add the ``new_data.npz`` file to the appropriate subdirectory (creating a new one if necessary) of thee ``scico/data`` directory.
+2. Add the ``new_data.npz`` file to the appropriate subdirectory (creating a new one if necessary) of the ``scico/data`` directory.
 
 3. Change directory to this directory (taken to be ``scico/data/flax`` for the purposes of this example) and add/commit the new data file:
 
