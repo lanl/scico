@@ -222,7 +222,7 @@ class SeparableFunctional(Functional):
             return snp.sum(snp.array([fi(xi) for fi, xi in zip(self.functional_list, x)]))
         raise ValueError(
             f"Number of blocks in x, {len(x.shape)}, and length of functional_list, "
-            f"{len(self.functional_list)}, do not match"
+            f"{len(self.functional_list)}, do not match."
         )
 
     def prox(self, v: BlockArray, lam: float = 1.0, **kwargs) -> BlockArray:
@@ -250,7 +250,7 @@ class SeparableFunctional(Functional):
             return snp.blockarray([fi.prox(vi, lam) for fi, vi in zip(self.functional_list, v)])
         raise ValueError(
             f"Number of blocks in v, {len(v.shape)}, and length of functional_list, "
-            f"{len(self.functional_list)}, do not match"
+            f"{len(self.functional_list)}, do not match."
         )
 
 

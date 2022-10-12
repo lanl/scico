@@ -92,7 +92,7 @@ def _add_seed(fun):
             seed = args[num_params]
 
         if key is not None and seed is not None:
-            raise ValueError("Key and seed cannot both be specified")
+            raise ValueError("Key and seed cannot both be specified.")
 
         if key is None:
             if seed is None:

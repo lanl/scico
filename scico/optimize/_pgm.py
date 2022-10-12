@@ -80,7 +80,7 @@ class PGM:
         self.f: Union[Loss, Functional] = f
 
         if g.has_prox is not True:
-            raise Exception(f"The functional g ({type(g)}) must have a proximal method.")
+            raise Exception(f"The functional g ({type(g)}) must have a prox method.")
 
         #: Functional to minimize; must have prox defined
         self.g: Functional = g

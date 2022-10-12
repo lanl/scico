@@ -128,7 +128,7 @@ def add_full_reduction(func: Callable, axis_arg_name: Optional[str] = "axis"):
     sig = signature(func)
     if axis_arg_name not in sig.parameters:
         raise ValueError(
-            f"Cannot wrap {func} as a reduction because it has no {axis_arg_name} argument"
+            f"Cannot wrap {func} as a reduction because it has no {axis_arg_name} argument."
         )
 
     @wraps(func)
