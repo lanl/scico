@@ -62,9 +62,9 @@ class Diagonal(LinearOperator):
         elif not isinstance(diagonal, BlockArray) and not is_nested(input_shape):
             output_shape = snp.broadcast_shapes(input_shape, self.diagonal.shape)
         elif isinstance(diagonal, BlockArray):
-            raise ValueError("`diagonal` was a BlockArray but `input_shape` was not nested.")
+            raise ValueError("Parameter diagonal was a BlockArray but input_shape was not nested.")
         else:
-            raise ValueError("`diagonal` was a not BlockArray but `input_shape` was nested.")
+            raise ValueError("Parameter diagonal was a not BlockArray but input_shape was nested.")
 
         super().__init__(
             input_shape=input_shape,
@@ -81,13 +81,13 @@ class Diagonal(LinearOperator):
     def __add__(self, other):
         if self.diagonal.shape == other.diagonal.shape:
             return Diagonal(diagonal=self.diagonal + other.diagonal)
-        raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}")
+        raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}.")
 
     @partial(_wrap_add_sub, op=operator.sub)
     def __sub__(self, other):
         if self.diagonal.shape == other.diagonal.shape:
             return Diagonal(diagonal=self.diagonal - other.diagonal)
-        raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}")
+        raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}.")
 
     @_wrap_mul_div_scalar
     def __mul__(self, scalar):

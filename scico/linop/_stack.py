@@ -38,7 +38,7 @@ def collapse_shapes(
         return shapes, False
 
     raise ValueError(
-        "Combining these shapes would result in a twice-nested BlockArray, which is not supported"
+        "Combining these shapes would result in a twice-nested BlockArray, which is not supported."
     )
 
 
@@ -102,13 +102,13 @@ class VerticalStack(LinearOperator):
     def check_if_stackable(ops: List[LinearOperator]):
         """Check that input ops are suitable for stack creation."""
         if not isinstance(ops, (list, tuple)):
-            raise ValueError("Expected a list of LinearOperator")
+            raise ValueError("Expected a list of LinearOperator.")
 
         input_shapes = [op.shape[1] for op in ops]
         if not all(input_shapes[0] == s for s in input_shapes):
             raise ValueError(
                 "Expected all LinearOperators to have the same input shapes, "
-                f"but got {input_shapes}"
+                f"but got {input_shapes}."
             )
 
         input_dtypes = [op.input_dtype for op in ops]
@@ -143,7 +143,7 @@ class VerticalStack(LinearOperator):
             scalars: List or array of scalars to use.
         """
         if len(scalars) != len(self.ops):
-            raise ValueError("expected `scalars` to be the same length as `self.ops`")
+            raise ValueError("Expected `scalars` to be the same length as self.ops.")
 
         return VerticalStack([a * op for a, op in zip(scalars, self.ops)], collapse=self.collapse)
 

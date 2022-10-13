@@ -34,7 +34,7 @@ def device_info(devid: int = 0) -> str:  # pragma: no cover
     """
     numdev = jax.device_count()
     if devid >= numdev:
-        raise RuntimeError(f"Requested information for device {devid} but only {numdev} present")
+        raise RuntimeError(f"Requested information for device {devid} but only {numdev} present.")
     dev = jax.devices()[devid]
     if dev.platform == "cpu":
         info = "CPU"
@@ -196,7 +196,7 @@ class Timer:
         # Iterate over specified label(s)
         for lbl in labels:
             if lbl not in self.t0:
-                raise KeyError(f"Unrecognized timer key {lbl}")
+                raise KeyError(f"Unrecognized timer key {lbl}.")
             # If self.t0[lbl] is None, the corresponding timer is
             # already stopped, so no action is required
             if self.t0[lbl] is not None:
@@ -231,7 +231,7 @@ class Timer:
         # Iterate over specified label(s)
         for lbl in labels:
             if lbl not in self.t0:
-                raise KeyError(f"Unrecognized timer key {lbl}")
+                raise KeyError(f"Unrecognized timer key {lbl}.")
             # Set start time to None to indicate timer is not running
             self.t0[lbl] = None
             # Set time accumulator to zero
@@ -265,7 +265,7 @@ class Timer:
                 return 0.0
         # Raise exception if timer with specified label does not exist
         if label not in self.t0:
-            raise KeyError(f"Unrecognized timer key {label}")
+            raise KeyError(f"Unrecognized timer key {label}.")
         # If total flag is True return sum of accumulated time from
         # previous start/stop calls and current start call, otherwise
         # return just the time since the current start call
@@ -358,7 +358,7 @@ class ContextTimer:
         """
 
         if action not in ["StartStop", "StopStart"]:
-            raise ValueError(f"Unrecognized action {action}")
+            raise ValueError(f"Unrecognized action {action}.")
         if timer is None:
             self.timer = Timer()
         else:
