@@ -26,7 +26,7 @@ class NonNegativeIndicator(Functional):
     inf otherwise
 
     .. math::
-        I(\mb{x}) = \begin{cases}
+        I_{>= 0}(\mb{x}) = \begin{cases}
         0  & \text{ if } x_i \geq 0 \; \forall i \\
         \infty  & \text{ otherwise} \;.
         \end{cases}
@@ -72,7 +72,7 @@ class L2BallIndicator(Functional):
     Indicator function for :math:`\ell_2` ball of given radius, :math:`r`
 
     .. math::
-        I(\mb{x}) = \begin{cases}
+        I_r(\mb{x}) = \begin{cases}
         0  & \text{ if } \norm{\mb{x}}_2 \leq r \\
         \infty  & \text{ otherwise} \;.
         \end{cases}
