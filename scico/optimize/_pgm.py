@@ -68,12 +68,12 @@ class PGM:
                 the :class:`.diagnostics.IterationStats` initializer. The
                 dict may also include an additional key "itstat_func"
                 with the corresponding value being a function with two
-                parameters, an integer and a PGM object, responsible
-                for constructing a tuple ready for insertion into the
-                :class:`.diagnostics.IterationStats` object. If ``None``,
-                default values are used for the dict entries, otherwise
-                the default dict is updated with the dict specified by
-                this parameter.
+                parameters, an integer and a :class:`PGM` object,
+                responsible for constructing a tuple ready for insertion
+                into the :class:`.diagnostics.IterationStats` object. If
+                ``None``, default values are used for the dict entries,
+                otherwise the default dict is updated with the dict
+                specified by this parameter.
         """
 
         #: Functional or Loss to minimize; must have grad method defined.
@@ -100,6 +100,25 @@ class PGM:
 
         self.x_step = jax.jit(x_step)
 
+        self.x: Union[JaxArray, BlockArray] = ensure_on_device(x0)  # current estimate of solution
+
+        self._itstat_init(itstat_options)
+
+    def _itstat_init(self, itstat_options: Optional[dict] = None):
+        """Initialize iteration statistics mechanism.
+
+        Args:
+            itstat_options: A dict of named parameters to be passed to
+                the :class:`.diagnostics.IterationStats` initializer. The
+                dict may also include an additional key "itstat_func"
+                with the corresponding value being a function with two
+                parameters, an integer and a :class:`PGM` object,
+                responsible for constructing a tuple ready for insertion
+                into the :class:`.diagnostics.IterationStats` object. If
+                ``None``, default values are used for the dict entries,
+                otherwise the default dict is updated with the dict
+                specified by this parameter.
+        """
         # iteration number and time fields
         itstat_fields = {
             "Iter": "%d",
@@ -107,7 +126,7 @@ class PGM:
         }
         itstat_attrib = ["itnum", "timer.elapsed()"]
         # objective function can be evaluated if 'g' function can be evaluated
-        if g.has_eval:
+        if self.g.has_eval:
             itstat_fields.update({"Objective": "%9.3e"})
             itstat_attrib.append("objective()")
         # step size and residual fields
@@ -128,8 +147,6 @@ class PGM:
             default_itstat_options.update(itstat_options)
         self.itstat_insert_func: Callable = default_itstat_options.pop("itstat_func")  # type: ignore
         self.itstat_object = IterationStats(**default_itstat_options)  # type: ignore
-
-        self.x: Union[JaxArray, BlockArray] = ensure_on_device(x0)  # current estimate of solution
 
     def objective(self, x: Optional[Union[JaxArray, BlockArray]] = None) -> float:
         r"""Evaluate the objective function :math:`f(\mb{x}) + g(\mb{x})`."""

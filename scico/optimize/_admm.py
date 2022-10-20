@@ -122,12 +122,12 @@ class ADMM:
                 the :class:`.diagnostics.IterationStats` initializer. The
                 dict may also include an additional key "itstat_func"
                 with the corresponding value being a function with two
-                parameters, an integer and an `ADMM` object, responsible
-                for constructing a tuple ready for insertion into the
-                :class:`.diagnostics.IterationStats` object. If ``None``,
-                default values are used for the dict entries, otherwise
-                the default dict is updated with the dict specified by
-                this parameter.
+                parameters, an integer and an :class:`ADMM` object,
+                responsible for constructing a tuple ready for insertion
+                into the :class:`.diagnostics.IterationStats` object. If
+                ``None``, default values are used for the dict entries,
+                otherwise the default dict is updated with the dict
+                specified by this parameter.
         """
         N = len(g_list)
         if len(C_list) != N:
@@ -148,6 +148,31 @@ class ADMM:
         self.subproblem_solver: SubproblemSolver = subproblem_solver
         self.subproblem_solver.internal_init(self)
 
+        if x0 is None:
+            input_shape = C_list[0].input_shape
+            dtype = C_list[0].input_dtype
+            x0 = snp.zeros(input_shape, dtype=dtype)
+        self.x = ensure_on_device(x0)
+        self.z_list, self.z_list_old = self.z_init(self.x)
+        self.u_list = self.u_init(self.x)
+
+        self._itstat_init(itstat_options)
+
+    def _itstat_init(self, itstat_options: Optional[dict] = None):
+        """Initialize iteration statistics mechanism.
+
+        Args:
+            itstat_options: A dict of named parameters to be passed to
+                the :class:`.diagnostics.IterationStats` initializer. The
+                dict may also include an additional key "itstat_func"
+                with the corresponding value being a function with two
+                parameters, an integer and an :class:`ADMM` object,
+                responsible for constructing a tuple ready for insertion
+                into the :class:`.diagnostics.IterationStats` object. If
+                ``None``, default values are used for the dict entries,
+                otherwise the default dict is updated with the dict
+                specified by this parameter.
+        """
         # iteration number and time fields
         itstat_fields = {
             "Iter": "%d",
@@ -192,14 +217,6 @@ class ADMM:
             default_itstat_options.update(itstat_options)
         self.itstat_insert_func: Callable = default_itstat_options.pop("itstat_func", None)  # type: ignore
         self.itstat_object = IterationStats(**default_itstat_options)  # type: ignore
-
-        if x0 is None:
-            input_shape = C_list[0].input_shape
-            dtype = C_list[0].input_dtype
-            x0 = snp.zeros(input_shape, dtype=dtype)
-        self.x = ensure_on_device(x0)
-        self.z_list, self.z_list_old = self.z_init(self.x)
-        self.u_list = self.u_init(self.x)
 
     def objective(
         self,
