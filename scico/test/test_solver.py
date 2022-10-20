@@ -5,7 +5,7 @@ import jax
 import pytest
 
 import scico.numpy as snp
-from scico import random, solver
+from scico import linop, random, solver
 
 
 class TestSet:
@@ -42,7 +42,7 @@ class TestSet:
         assert info["rel_res"].ndim == 0
         assert np.linalg.norm(A(xcg) - b) / np.linalg.norm(b) < 1e-6
 
-    def test_cg_info(self):
+    def test_cg_no_info(self):
         N = 64
         Ac = np.random.randn(N, N)
         Am = Ac.dot(Ac.T)
@@ -52,11 +52,10 @@ class TestSet:
         x0 = np.zeros((N,))
         tol = 1e-12
         try:
-            xcg, info = solver.cg(A, b, x0, tol=tol, info=True)
+            xcg = solver.cg(A, b, x0, tol=tol, info=False)
         except Exception as e:
             print(e)
             assert 0
-        assert info["rel_res"] <= tol
         assert np.linalg.norm(A(xcg) - b) / np.linalg.norm(b) < 1e-6
 
     def test_cg_complex(self):
@@ -97,6 +96,38 @@ class TestSet:
 
         # Assert that PCG converges faster in a few iterations
         assert cg_info["rel_res"] > 3 * pcg_info["rel_res"]
+
+    def test_lstsq_func(self):
+        N = 24
+        M = 32
+        Ac = jax.device_put(np.random.randn(N, M).astype(np.float32))
+        Am = Ac.dot(Ac.T)
+        A = Am.dot
+        x = jax.device_put(np.random.randn(N).astype(np.float32))
+        b = Am.dot(x)
+        x0 = snp.zeros((N,), dtype=np.float32)
+        tol = 1e-6
+        try:
+            xlsq = solver.lstsq(A, b, x0=x0, tol=tol)
+        except Exception as e:
+            print(e)
+            assert 0
+        assert np.linalg.norm(A(xlsq) - b) / np.linalg.norm(b) < 5e-6
+
+    def test_lstsq_op(self):
+        N = 32
+        M = 24
+        Ac = jax.device_put(np.random.randn(N, M).astype(np.float32))
+        A = linop.MatrixOperator(Ac)
+        x = jax.device_put(np.random.randn(M).astype(np.float32))
+        b = Ac.dot(x)
+        tol = 1e-7
+        try:
+            xlsq = solver.lstsq(A, b, tol=tol)
+        except Exception as e:
+            print(e)
+            assert 0
+        assert np.linalg.norm(A(xlsq) - b) / np.linalg.norm(b) < 1e-6
 
 
 class TestOptimizeScalar:
