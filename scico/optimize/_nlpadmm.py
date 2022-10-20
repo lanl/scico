@@ -264,7 +264,7 @@ class NonLinearPADMM:
         _, B = jhvp(self.H, self.x, self.z, jidx=1)
         proxarg = self.z - (1.0 / self.nu) * B(self.H(self.x, self.z) + self.u)[0]
         self.z_old = self.z
-        self.z = self.g.prox(proxarg, (1.0 / (self.rho * self.nu)), v0=self.x)
+        self.z = self.g.prox(proxarg, (1.0 / (self.rho * self.nu)), v0=self.z)
         self.u_old = self.u
         self.u = self.u + self.H(self.x, self.z)
 
