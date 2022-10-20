@@ -8,7 +8,7 @@
 """Functions common to multiple optimizer modules."""
 
 
-from typing import Callable, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 from scico.diagnostics import IterationStats
 
@@ -44,7 +44,7 @@ def itstat_func_and_object(
     """
     # dynamically create itstat_func; see https://stackoverflow.com/questions/24733831
     itstat_return = "return(" + ", ".join(["obj." + attr for attr in itstat_attrib]) + ")"
-    scope: dict[str, Callable] = {}
+    scope: Dict[str, Callable] = {}
     exec("def itstat_func(obj): " + itstat_return, scope)
 
     # determine itstat options and initialize IterationStats object
