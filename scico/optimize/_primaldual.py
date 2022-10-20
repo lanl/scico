@@ -14,7 +14,6 @@ from __future__ import annotations
 from typing import Callable, Optional, Union
 
 import scico.numpy as snp
-from scico.diagnostics import IterationStats
 from scico.functional import Functional
 from scico.linop import LinearOperator
 from scico.numpy import BlockArray
@@ -23,6 +22,8 @@ from scico.numpy.util import ensure_on_device
 from scico.operator import Operator
 from scico.typing import JaxArray
 from scico.util import Timer
+
+from ._common import itstat_func_and_object
 
 
 class PDHG:
@@ -188,21 +189,9 @@ class PDHG:
         itstat_fields.update({"Prml Rsdl": "%9.3e", "Dual Rsdl": "%9.3e"})
         itstat_attrib.extend(["norm_primal_residual()", "norm_dual_residual()"])
 
-        # dynamically create itstat_func; see https://stackoverflow.com/questions/24733831
-        itstat_return = "return(" + ", ".join(["obj." + attr for attr in itstat_attrib]) + ")"
-        scope: dict[str, Callable] = {}
-        exec("def itstat_func(obj): " + itstat_return, scope)
-
-        # determine itstat options and initialize IterationStats object
-        default_itstat_options = {
-            "fields": itstat_fields,
-            "itstat_func": scope["itstat_func"],
-            "display": False,
-        }
-        if itstat_options:
-            default_itstat_options.update(itstat_options)
-        self.itstat_insert_func: Callable = default_itstat_options.pop("itstat_func", None)  # type: ignore
-        self.itstat_object = IterationStats(**default_itstat_options)  # type: ignore
+        self.itstat_insert_func, self.itstat_object = itstat_func_and_object(
+            itstat_fields, itstat_attrib, itstat_options
+        )
 
     def objective(
         self,

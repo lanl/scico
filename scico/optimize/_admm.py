@@ -14,7 +14,6 @@ from __future__ import annotations
 from typing import Callable, List, Optional, Tuple, Union
 
 import scico.numpy as snp
-from scico.diagnostics import IterationStats
 from scico.functional import Functional
 from scico.linop import LinearOperator
 from scico.numpy import BlockArray
@@ -24,6 +23,7 @@ from scico.typing import JaxArray
 from scico.util import Timer
 
 from ._admmaux import GenericSubproblemSolver, LinearSubproblemSolver, SubproblemSolver
+from ._common import itstat_func_and_object
 
 
 class ADMM:
@@ -202,21 +202,9 @@ class ADMM:
                 ["subproblem_solver.info['num_iter']", "subproblem_solver.info['rel_res']"]
             )
 
-        # dynamically create itstat_func; see https://stackoverflow.com/questions/24733831
-        itstat_return = "return(" + ", ".join(["obj." + attr for attr in itstat_attrib]) + ")"
-        scope: dict[str, Callable] = {}
-        exec("def itstat_func(obj): " + itstat_return, scope)
-
-        # determine itstat options and initialize IterationStats object
-        default_itstat_options: dict[str, Union[dict, Callable, bool]] = {
-            "fields": itstat_fields,
-            "itstat_func": scope["itstat_func"],
-            "display": False,
-        }
-        if itstat_options:
-            default_itstat_options.update(itstat_options)
-        self.itstat_insert_func: Callable = default_itstat_options.pop("itstat_func", None)  # type: ignore
-        self.itstat_object = IterationStats(**default_itstat_options)  # type: ignore
+        self.itstat_insert_func, self.itstat_object = itstat_func_and_object(
+            itstat_fields, itstat_attrib, itstat_options
+        )
 
     def objective(
         self,
