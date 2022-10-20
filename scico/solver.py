@@ -378,7 +378,7 @@ def lstsq(
     info: bool = False,
     M: Optional[Callable] = None,
 ) -> Tuple[JaxArray, dict]:
-    r"""Conjugate Gradient solver.
+    r"""Least squares solver.
 
     Solve the least squares problem
 
