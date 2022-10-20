@@ -301,7 +301,7 @@ def cg(
     tol: float = 1e-5,
     atol: float = 0.0,
     maxiter: int = 1000,
-    info: bool = False,
+    info: bool = True,
     M: Optional[Callable] = None,
 ) -> Tuple[JaxArray, dict]:
     r"""Conjugate Gradient solver.
@@ -319,6 +319,9 @@ def cg(
         atol: Absolute residual stopping tolerance. Convergence occurs
            when `norm(residual) <= max(tol * norm(b), atol)`.
         maxiter: Maximum iterations. Default: 1000.
+        info: If ``True`` return a tuple consting of the solution array
+           and a dictionary containing diagnostic information, otherwise
+           just return the solution.
         M: Preconditioner for `A`. The preconditioner should approximate
            the inverse of `A`. The default, ``None``, uses no
            preconditioner.
@@ -358,7 +361,10 @@ def cg(
         p = z + beta * p
         ii += 1
 
-    return (x, {"num_iter": ii, "rel_res": snp.sqrt(num).real / bn})
+    if info:
+        return (x, {"num_iter": ii, "rel_res": snp.sqrt(num).real / bn})
+    else:
+        return x
 
 
 def bisect(
