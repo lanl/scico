@@ -48,7 +48,7 @@ def itstat_func_and_object(
     exec("def itstat_func(obj): " + itstat_return, scope)
 
     # determine itstat options and initialize IterationStats object
-    default_itstat_options: dict[str, Union[dict, Callable, bool]] = {
+    default_itstat_options: Dict[str, Union[dict, Callable, bool]] = {
         "fields": itstat_fields,
         "itstat_func": scope["itstat_func"],
         "display": False,
