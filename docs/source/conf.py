@@ -114,7 +114,6 @@ nbsphinx_prolog = """
 #  https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion
 autosummary_generate = True
 
-# Copied from scikit-learn sphinx configuration
 if os.environ.get("NO_MATHJAX"):
     extensions.append("sphinx.ext.imgmath")
     imgmath_image_format = "svg"
@@ -144,6 +143,15 @@ mathjax2_config = {
 }
 
 mathjax3_config = {"tex": {"macros": mathjax2_config["TeX"]["Macros"]}}
+
+latex_macros = []
+for k, v in mathjax2_config["TeX"]["Macros"].items():
+    if len(v) == 1:
+        latex_macros.append(r"\newcommand{\%s}{%s}" % (k, v[0]))
+    else:
+        latex_macros.append(r"\newcommand{\%s}[1]{%s}" % (k, v[0]))
+
+imgmath_latex_preamble = "\n".join(latex_macros)
 
 
 # See https://stackoverflow.com/questions/5599254
@@ -252,17 +260,9 @@ latex_documents = [
     ("index", "scico.tex", "SCICO Documentation", "The SCICO Developers", "manual"),
 ]
 
-
 latex_engine = "xelatex"
 
 # latex_use_xindy = False
-
-latex_macros = []
-for k, v in mathjax2_config["TeX"]["Macros"].items():
-    if len(v) == 1:
-        latex_macros.append(r"\newcommand{\%s}{%s}" % (k, v[0]))
-    else:
-        latex_macros.append(r"\newcommand{\%s}[1]{%s}" % (k, v[0]))
 
 latex_elements = {"preamble": "\n".join(latex_macros)}
 
