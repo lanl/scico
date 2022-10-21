@@ -120,12 +120,12 @@ if os.environ.get("NO_MATHJAX"):
     imgmath_image_format = "svg"
 else:
     extensions.append("sphinx.ext.mathjax")
+    # To use local copy of MathJax for offline use, set MATHJAX_URI to
+    #   file:///[path-to-mathjax-repo-root]/es5/tex-chtml-full.js?config=TeX-AMS_HTML
     if os.environ.get("MATHJAX_URI"):
         mathjax_path = os.environ.get("MATHJAX_URI")
-    else:
-        mathjax_path = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"
 
-mathjax_config = {
+mathjax2_config = {
     "TeX": {
         "Macros": {
             "mb": [r"\mathbf{#1}", 1],
@@ -142,6 +142,8 @@ mathjax_config = {
         }
     }
 }
+
+mathjax3_config = {"tex": {"macros": mathjax2_config["TeX"]["Macros"]}}
 
 
 # See https://stackoverflow.com/questions/5599254
@@ -256,7 +258,7 @@ latex_engine = "xelatex"
 # latex_use_xindy = False
 
 latex_macros = []
-for k, v in mathjax_config["TeX"]["Macros"].items():
+for k, v in mathjax2_config["TeX"]["Macros"].items():
     if len(v) == 1:
         latex_macros.append(r"\newcommand{\%s}{%s}" % (k, v[0]))
     else:
