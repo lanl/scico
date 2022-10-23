@@ -297,7 +297,7 @@ def minimize_scalar(
 def cg(
     A: Callable,
     b: JaxArray,
-    x0: JaxArray,
+    x0: Optional[JaxArray] = None,
     *,
     tol: float = 1e-5,
     atol: float = 0.0,
@@ -311,10 +311,12 @@ def cg(
     positive definite, via the conjugate gradient method.
 
     Args:
-        A: Function implementing linear operator :math:`A`, should be
-           positive definite.
+        A: Callable implementing linear operator :math:`A`, which should
+           be positive definite.
         b: Input array :math:`\mb{b}`.
-        x0: Initial solution.
+        x0: Initial solution. If `A` is a :class:`.LinearOperator`, this
+          parameter need to be specified, and defaults to a zero array.
+          Otherwise, it is required.
         tol: Relative residual stopping tolerance. Convergence occurs
            when `norm(residual) <= max(tol * norm(b), atol)`.
         atol: Absolute residual stopping tolerance. Convergence occurs
@@ -333,6 +335,11 @@ def cg(
             - **x** : Solution array.
             - **info**: Dictionary containing diagnostic information.
     """
+    if x0 is None:
+        if isinstance(A, scico.linop.LinearOperator):
+            x0 = snp.zeros(A.input_shape, b.dtype)
+        else:
+            raise ValueError("Parameter x0 must be specified if A is not a LinearOperator")
 
     if M is None:
         M = lambda x: x
@@ -346,8 +353,7 @@ def cg(
     num = snp.sum(r.conj() * z)
     ii = 0
 
-    # termination tolerance
-    # uses the "non-legacy" form of scicpy.sparse.linalg.cg
+    # termination tolerance (uses the "non-legacy" form of scicpy.sparse.linalg.cg)
     termination_tol_sq = snp.maximum(tol * bn, atol) ** 2
 
     while (ii < maxiter) and (num > termination_tol_sq):
@@ -412,12 +418,6 @@ def lstsq(
             - **x** : Solution array.
             - **info**: Dictionary containing diagnostic information.
     """
-    if x0 is None:
-        if isinstance(A, scico.linop.LinearOperator):
-            x0 = snp.zeros(A.input_shape, b.dtype)
-        else:
-            raise ValueError("Parameter x0 must be specified if A is not a LinearOperator")
-
     if isinstance(A, scico.linop.LinearOperator):
         Aop = A
     else:

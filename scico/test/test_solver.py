@@ -42,6 +42,22 @@ class TestSet:
         assert info["rel_res"].ndim == 0
         assert np.linalg.norm(A(xcg) - b) / np.linalg.norm(b) < 1e-6
 
+    def test_cg_op(self):
+        N = 32
+        Ac = np.random.randn(N, N).astype(np.float32)
+        Am = Ac.dot(Ac.T)
+        A = Am.dot
+        x = np.random.randn(N).astype(np.float32)
+        b = Am.dot(x)
+        tol = 1e-12
+        try:
+            xcg, info = solver.cg(linop.MatrixOperator(Am), b, tol=tol)
+        except Exception as e:
+            print(e)
+            assert 0
+        assert info["rel_res"].ndim == 0
+        assert np.linalg.norm(A(xcg) - b) / np.linalg.norm(b) < 1e-6
+
     def test_cg_no_info(self):
         N = 64
         Ac = np.random.randn(N, N)
