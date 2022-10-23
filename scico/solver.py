@@ -421,6 +421,7 @@ def lstsq(
     if isinstance(A, scico.linop.LinearOperator):
         Aop = A
     else:
+        assert x0 is not None
         Aop = scico.linop.LinearOperator(
             input_shape=x0.shape,
             output_shape=b.shape,
