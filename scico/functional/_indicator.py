@@ -51,7 +51,7 @@ class NonNegativeIndicator(Functional):
         the non-negative orthant, :math:`I`,
 
         .. math::
-            [\mathrm{prox}_{\lambda I_{>=0}}(\mb{v})]_i =
+            [\mathrm{prox}_{\lambda I}(\mb{v})]_i =
             \begin{cases}
             v_i\, & \text{ if } v_i \geq 0 \\
             0\, & \text{ otherwise} \;.
