@@ -48,10 +48,10 @@ class NonNegativeIndicator(Functional):
         r"""The scaled proximal operator of the non-negative indicator.
 
         Evaluate the scaled proximal operator of the indicator over
-        the non-negative orthant, :math:`I_{>= 0}`,
+        the non-negative orthant, :math:`I`,
 
         .. math::
-            [\mathrm{prox}_{\lambda I_{>=0}}(\mb{v})]_i =
+            [\mathrm{prox}_{\lambda I}(\mb{v})]_i =
             \begin{cases}
             v_i\, & \text{ if } v_i \geq 0 \\
             0\, & \text{ otherwise} \;.
@@ -104,10 +104,10 @@ class L2BallIndicator(Functional):
         r"""The scaled proximal operator of the :math:`\ell_2` ball indicator.
         a :math:`\ell_2` ball
 
-        Evaluate the scaled proximal operator of the indicator, :math:`I_r`,
+        Evaluate the scaled proximal operator of the indicator, :math:`I`,
         of the :math:`\ell_2` ball with radius :math:`r`
 
         .. math::
-            \mathrm{prox}_{\lambda I_r}(\mb{v}) = r \frac{\mb{v}}{\norm{\mb{v}}_2}\;.
+            \mathrm{prox}_{\lambda I}(\mb{v}) = r \frac{\mb{v}}{\norm{\mb{v}}_2}\;.
         """
         return self.radius * v / norm(v)
