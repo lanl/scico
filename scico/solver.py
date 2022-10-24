@@ -315,7 +315,7 @@ def cg(
            be positive definite.
         b: Input array :math:`\mb{b}`.
         x0: Initial solution. If `A` is a :class:`.LinearOperator`, this
-          parameter need to be specified, and defaults to a zero array.
+          parameter need not be specified, and defaults to a zero array.
           Otherwise, it is required.
         tol: Relative residual stopping tolerance. Convergence occurs
            when `norm(residual) <= max(tol * norm(b), atol)`.
@@ -398,7 +398,7 @@ def lstsq(
         A: Callable implementing linear operator :math:`A`.
         b: Input array :math:`\mb{b}`.
         x0: Initial solution. If `A` is a :class:`.LinearOperator`, this
-          parameter need to be specified, and defaults to a zero array.
+          parameter need not be specified, and defaults to a zero array.
           Otherwise, it is required.
         tol: Relative residual stopping tolerance. Convergence occurs
            when `norm(residual) <= max(tol * norm(b), atol)`.
