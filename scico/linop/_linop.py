@@ -84,8 +84,8 @@ def _wrap_add_sub(func: Callable, op: Callable) -> Callable:
                     input_dtype=a.input_dtype,
                     output_dtype=result_type(a.output_dtype, b.output_dtype),
                 )
-            raise ValueError(f"shapes {a.shape} and {b.shape} do not match")
-        raise TypeError(f"Operation {func.__name__} not defined between {type(a)} and {type(b)}")
+            raise ValueError(f"Shapes {a.shape} and {b.shape} do not match.")
+        raise TypeError(f"Operation {func.__name__} not defined between {type(a)} and {type(b)}.")
 
     return wrapper
 
@@ -150,7 +150,7 @@ class LinearOperator(Operator):
             self._adj = adj_fn
             self._gram = lambda x: self.adj(self(x))
         elif adj_fn is not None:
-            raise TypeError(f"Parameter adj_fn must be either a Callable or None; got {adj_fn}")
+            raise TypeError(f"Parameter adj_fn must be either a Callable or None; got {adj_fn}.")
 
         if jit:
             self.jit()
@@ -243,7 +243,7 @@ class LinearOperator(Operator):
             return self.adj(other.conj().T).conj().T
 
         raise NotImplementedError(
-            f"Operation __rmatmul__ not defined between {type(self)} and {type(other)}"
+            f"Operation __rmatmul__ not defined between {type(self)} and {type(other)}."
         )
 
     def __call__(
@@ -287,11 +287,11 @@ class LinearOperator(Operator):
         if isinstance(y, LinearOperator):
             return ComposedLinearOperator(self.H, y)
         if self.output_dtype != y.dtype:
-            raise ValueError(f"dtype error: expected {self.output_dtype}, got {y.dtype}")
+            raise ValueError(f"Dtype error: expected {self.output_dtype}, got {y.dtype}.")
         if self.output_shape != y.shape:
             raise ValueError(
                 f"""Shapes do not conform: input array with shape {y.shape} does not match
-                LinearOperator output_shape {self.output_shape}"""
+                LinearOperator output_shape {self.output_shape}."""
             )
         assert self._adj is not None
         return self._adj(y)
@@ -437,18 +437,18 @@ class ComposedLinearOperator(LinearOperator):
         if not isinstance(A, LinearOperator):
             raise TypeError(
                 "The first argument to ComposedLinearOperator must be a LinearOperator; "
-                f"got {type(A)}"
+                f"got {type(A)}."
             )
         if not isinstance(B, LinearOperator):
             raise TypeError(
                 "The second argument to ComposedLinearOperator must be a LinearOperator; "
-                f"got {type(B)}"
+                f"got {type(B)}."
             )
         if A.input_shape != B.output_shape:
-            raise ValueError(f"Incompatable LinearOperator shapes {A.shape}, {B.shape}")
+            raise ValueError(f"Incompatable LinearOperator shapes {A.shape}, {B.shape}.")
         if A.input_dtype != B.output_dtype:
             raise ValueError(
-                f"Incompatable LinearOperator dtypes {A.input_dtype}, {B.output_dtype}"
+                f"Incompatable LinearOperator dtypes {A.input_dtype}, {B.output_dtype}."
             )
 
         self.A = A

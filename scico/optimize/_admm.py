@@ -14,7 +14,6 @@ from __future__ import annotations
 from typing import Callable, List, Optional, Tuple, Union
 
 import scico.numpy as snp
-from scico.diagnostics import IterationStats
 from scico.functional import Functional
 from scico.linop import LinearOperator
 from scico.numpy import BlockArray
@@ -24,6 +23,7 @@ from scico.typing import JaxArray
 from scico.util import Timer
 
 from ._admmaux import GenericSubproblemSolver, LinearSubproblemSolver, SubproblemSolver
+from ._common import itstat_func_and_object
 
 
 class ADMM:
@@ -122,18 +122,18 @@ class ADMM:
                 the :class:`.diagnostics.IterationStats` initializer. The
                 dict may also include an additional key "itstat_func"
                 with the corresponding value being a function with two
-                parameters, an integer and an `ADMM` object, responsible
-                for constructing a tuple ready for insertion into the
-                :class:`.diagnostics.IterationStats` object. If ``None``,
-                default values are used for the dict entries, otherwise
-                the default dict is updated with the dict specified by
-                this parameter.
+                parameters, an integer and an :class:`ADMM` object,
+                responsible for constructing a tuple ready for insertion
+                into the :class:`.diagnostics.IterationStats` object. If
+                ``None``, default values are used for the dict entries,
+                otherwise the default dict is updated with the dict
+                specified by this parameter.
         """
         N = len(g_list)
         if len(C_list) != N:
-            raise Exception(f"len(C_list)={len(C_list)} not equal to len(g_list)={N}")
+            raise Exception(f"len(C_list)={len(C_list)} not equal to len(g_list)={N}.")
         if len(rho_list) != N:
-            raise Exception(f"len(rho_list)={len(rho_list)} not equal to len(g_list)={N}")
+            raise Exception(f"len(rho_list)={len(rho_list)} not equal to len(g_list)={N}.")
 
         self.f: Functional = f
         self.g_list: List[Functional] = g_list
@@ -148,6 +148,31 @@ class ADMM:
         self.subproblem_solver: SubproblemSolver = subproblem_solver
         self.subproblem_solver.internal_init(self)
 
+        if x0 is None:
+            input_shape = C_list[0].input_shape
+            dtype = C_list[0].input_dtype
+            x0 = snp.zeros(input_shape, dtype=dtype)
+        self.x = ensure_on_device(x0)
+        self.z_list, self.z_list_old = self.z_init(self.x)
+        self.u_list = self.u_init(self.x)
+
+        self._itstat_init(itstat_options)
+
+    def _itstat_init(self, itstat_options: Optional[dict] = None):
+        """Initialize iteration statistics mechanism.
+
+        Args:
+            itstat_options: A dict of named parameters to be passed to
+                the :class:`.diagnostics.IterationStats` initializer. The
+                dict may also include an additional key "itstat_func"
+                with the corresponding value being a function with two
+                parameters, an integer and an :class:`ADMM` object,
+                responsible for constructing a tuple ready for insertion
+                into the :class:`.diagnostics.IterationStats` object. If
+                ``None``, default values are used for the dict entries,
+                otherwise the default dict is updated with the dict
+                specified by this parameter.
+        """
         # iteration number and time fields
         itstat_fields = {
             "Iter": "%d",
@@ -177,29 +202,9 @@ class ADMM:
                 ["subproblem_solver.info['num_iter']", "subproblem_solver.info['rel_res']"]
             )
 
-        # dynamically create itstat_func; see https://stackoverflow.com/questions/24733831
-        itstat_return = "return(" + ", ".join(["obj." + attr for attr in itstat_attrib]) + ")"
-        scope: dict[str, Callable] = {}
-        exec("def itstat_func(obj): " + itstat_return, scope)
-
-        # determine itstat options and initialize IterationStats object
-        default_itstat_options = {
-            "fields": itstat_fields,
-            "itstat_func": scope["itstat_func"],
-            "display": False,
-        }
-        if itstat_options:
-            default_itstat_options.update(itstat_options)
-        self.itstat_insert_func: Callable = default_itstat_options.pop("itstat_func", None)  # type: ignore
-        self.itstat_object = IterationStats(**default_itstat_options)  # type: ignore
-
-        if x0 is None:
-            input_shape = C_list[0].input_shape
-            dtype = C_list[0].input_dtype
-            x0 = snp.zeros(input_shape, dtype=dtype)
-        self.x = ensure_on_device(x0)
-        self.z_list, self.z_list_old = self.z_init(self.x)
-        self.u_list = self.u_init(self.x)
+        self.itstat_insert_func, self.itstat_object = itstat_func_and_object(
+            itstat_fields, itstat_attrib, itstat_options
+        )
 
     def objective(
         self,
@@ -225,7 +230,7 @@ class ADMM:
             scalar: Value of the objective function.
         """
         if (x is None) != (z_list is None):
-            raise ValueError("Both or neither of x and z_list must be supplied")
+            raise ValueError("Both or neither of x and z_list must be supplied.")
         if x is None:
             x = self.x
             z_list = self.z_list

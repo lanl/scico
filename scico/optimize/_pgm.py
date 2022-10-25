@@ -16,7 +16,6 @@ from typing import Callable, Optional, Union
 import jax
 
 import scico.numpy as snp
-from scico.diagnostics import IterationStats
 from scico.functional import Functional
 from scico.loss import Loss
 from scico.numpy import BlockArray
@@ -24,6 +23,7 @@ from scico.numpy.util import ensure_on_device
 from scico.typing import JaxArray
 from scico.util import Timer
 
+from ._common import itstat_func_and_object
 from ._pgmaux import (
     AdaptiveBBStepSize,
     BBStepSize,
@@ -68,19 +68,19 @@ class PGM:
                 the :class:`.diagnostics.IterationStats` initializer. The
                 dict may also include an additional key "itstat_func"
                 with the corresponding value being a function with two
-                parameters, an integer and a PGM object, responsible
-                for constructing a tuple ready for insertion into the
-                :class:`.diagnostics.IterationStats` object. If ``None``,
-                default values are used for the dict entries, otherwise
-                the default dict is updated with the dict specified by
-                this parameter.
+                parameters, an integer and a :class:`PGM` object,
+                responsible for constructing a tuple ready for insertion
+                into the :class:`.diagnostics.IterationStats` object. If
+                ``None``, default values are used for the dict entries,
+                otherwise the default dict is updated with the dict
+                specified by this parameter.
         """
 
         #: Functional or Loss to minimize; must have grad method defined.
         self.f: Union[Loss, Functional] = f
 
         if g.has_prox is not True:
-            raise Exception(f"The functional g ({type(g)}) must have a proximal method.")
+            raise Exception(f"The functional g ({type(g)}) must have a prox method.")
 
         #: Functional to minimize; must have prox defined
         self.g: Functional = g
@@ -100,6 +100,25 @@ class PGM:
 
         self.x_step = jax.jit(x_step)
 
+        self.x: Union[JaxArray, BlockArray] = ensure_on_device(x0)  # current estimate of solution
+
+        self._itstat_init(itstat_options)
+
+    def _itstat_init(self, itstat_options: Optional[dict] = None):
+        """Initialize iteration statistics mechanism.
+
+        Args:
+            itstat_options: A dict of named parameters to be passed to
+                the :class:`.diagnostics.IterationStats` initializer. The
+                dict may also include an additional key "itstat_func"
+                with the corresponding value being a function with two
+                parameters, an integer and a :class:`PGM` object,
+                responsible for constructing a tuple ready for insertion
+                into the :class:`.diagnostics.IterationStats` object. If
+                ``None``, default values are used for the dict entries,
+                otherwise the default dict is updated with the dict
+                specified by this parameter.
+        """
         # iteration number and time fields
         itstat_fields = {
             "Iter": "%d",
@@ -107,29 +126,16 @@ class PGM:
         }
         itstat_attrib = ["itnum", "timer.elapsed()"]
         # objective function can be evaluated if 'g' function can be evaluated
-        if g.has_eval:
+        if self.g.has_eval:
             itstat_fields.update({"Objective": "%9.3e"})
             itstat_attrib.append("objective()")
         # step size and residual fields
         itstat_fields.update({"L": "%9.3e", "Residual": "%9.3e"})
         itstat_attrib.extend(["L", "norm_residual()"])
 
-        # dynamically create itstat_func; see https://stackoverflow.com/questions/24733831
-        itstat_return = "return(" + ", ".join(["obj." + attr for attr in itstat_attrib]) + ")"
-        scope: dict[str, Callable] = {}
-        exec("def itstat_func(obj): " + itstat_return, scope)
-
-        default_itstat_options: dict[str, Union[dict, Callable, bool]] = {
-            "fields": itstat_fields,
-            "itstat_func": scope["itstat_func"],
-            "display": False,
-        }
-        if itstat_options:
-            default_itstat_options.update(itstat_options)
-        self.itstat_insert_func: Callable = default_itstat_options.pop("itstat_func")  # type: ignore
-        self.itstat_object = IterationStats(**default_itstat_options)  # type: ignore
-
-        self.x: Union[JaxArray, BlockArray] = ensure_on_device(x0)  # current estimate of solution
+        self.itstat_insert_func, self.itstat_object = itstat_func_and_object(
+            itstat_fields, itstat_attrib, itstat_options
+        )
 
     def objective(self, x: Optional[Union[JaxArray, BlockArray]] = None) -> float:
         r"""Evaluate the objective function :math:`f(\mb{x}) + g(\mb{x})`."""

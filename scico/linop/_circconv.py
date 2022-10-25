@@ -113,7 +113,7 @@ class CircularConvolve(LinearOperator):
             self.ndims = ndims
 
         if h_is_dft and h_center is not None:
-            raise ValueError("h_center is not supported when h_is_dft=True")
+            raise ValueError("Parameter h_center must be None when h_is_dft=True.")
         self.h_center = h_center
 
         if h_is_dft:
@@ -156,7 +156,7 @@ class CircularConvolve(LinearOperator):
             output_shape = np.broadcast_shapes(self.h_dft.shape, input_shape)
         except ValueError:
             raise ValueError(
-                f"h shape after padding was {self.h_dft.shape}, needs to be compatible "
+                f"Shape of h after padding was {self.h_dft.shape}, needs to be compatible "
                 f"for broadcasting with {input_shape}."
             )
 
@@ -202,7 +202,7 @@ class CircularConvolve(LinearOperator):
     @partial(_wrap_add_sub, op=operator.add)
     def __add__(self, other):
         if self.ndims != other.ndims:
-            raise ValueError(f"Incompatible ndims: {self.ndims} != {other.ndims}")
+            raise ValueError(f"Incompatible ndims: {self.ndims} != {other.ndims}.")
 
         return CircularConvolve(
             h=self.h_dft + other.h_dft,
@@ -215,7 +215,7 @@ class CircularConvolve(LinearOperator):
     @partial(_wrap_add_sub, op=operator.sub)
     def __sub__(self, other):
         if self.ndims != other.ndims:
-            raise ValueError(f"Incompatible ndims: {self.ndims} != {other.ndims}")
+            raise ValueError(f"Incompatible ndims: {self.ndims} != {other.ndims}.")
 
         return CircularConvolve(
             h=self.h_dft - other.h_dft,
