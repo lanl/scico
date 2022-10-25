@@ -236,7 +236,6 @@ CNN Training
 .. toctree::
    :maxdepth: 1
 
-   examples/ct_astra_modl_train_foam2
    examples/ct_astra_unet_train_foam2
    examples/deconv_modl_train_foam
    examples/deconv_odp_train_foam
