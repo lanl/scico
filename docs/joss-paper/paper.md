@@ -63,13 +63,14 @@ The goal of SCICO is to provide a general research tool for computational imagin
 
 # Solving Imaging Inverse Problems in SCICO
 
-SCICO provides a set of building blocks that can be used to express a wide variety of problems and their corresponding solutions. These building blocks include operators for representing the *forward model* of an imaging problem, functionals for representing *data fildelity* and *regularization* terms, and optimization algorithms for minimizing these functionals. The [online documentation](https://scico.rtfd.io/) includes a guide to the use of these components as well as numerous example scripts demonstrating their use in practice.
+SCICO provides a set of building blocks that can be used to express a wide variety of problems and their corresponding solutions. These building blocks include operators for representing the *forward model* of an imaging problem, functionals for representing *data fidelity* and *regularization* terms, and optimization algorithms for minimizing these functionals. The [online documentation](https://scico.rtfd.io/) includes a guide to the use of these components as well as numerous example scripts demonstrating their use in practice.
 
 
 
 ## Machine Learning
 
-SCICO includes an implementation of the DnCNN denoiser [@zhang-2017-dncnn], which can be applied to other inverse problems via the *plug-and-play priors* (PPP) [@venkatakrishnan-2013-plugandplay2; @sreehari-2016-plug; @kamilov-2022-plug] framework (see \autoref{fig:deconv}). A number of other machine learning methods are currently being implemented, and will be included in a future SCICO release.
+SCICO includes an implementation of the DnCNN denoiser [@zhang-2017-dncnn], which can be applied to other inverse problems via the *plug-and-play priors* (PPP) [@venkatakrishnan-2013-plugandplay2; @sreehari-2016-plug; @kamilov-2022-plug] framework (see \autoref{fig:deconv}). A number of other leading machine learning methods have been implemented, and are expected to be merged into the main SCICO github branch in the near future.
+
 
 ![Image deconvolution via PPP with DnCNN denoiser.\label{fig:deconv}](figures/deconv_ppp_dncnn.pdf){ width=100% }
 
