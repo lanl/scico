@@ -114,19 +114,20 @@ nbsphinx_prolog = """
 #  https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion
 autosummary_generate = True
 
+
 if os.environ.get("NO_MATHJAX"):
     extensions.append("sphinx.ext.imgmath")
     imgmath_image_format = "svg"
 else:
     extensions.append("sphinx.ext.mathjax")
     # To use local copy of MathJax for offline use, set MATHJAX_URI to
-    #   file:///[path-to-mathjax-repo-root]/es5/tex-chtml-full.js?config=TeX-AMS_HTML
+    #    file:///[path-to-mathjax-repo-root]/es5/tex-mml-chtml.js
     if os.environ.get("MATHJAX_URI"):
         mathjax_path = os.environ.get("MATHJAX_URI")
 
-mathjax2_config = {
-    "TeX": {
-        "Macros": {
+mathjax3_config = {
+    "tex": {
+        "macros": {
             "mb": [r"\mathbf{#1}", 1],
             "mbs": [r"\boldsymbol{#1}", 1],
             "mbb": [r"\mathbb{#1}", 1],
@@ -142,10 +143,8 @@ mathjax2_config = {
     }
 }
 
-mathjax3_config = {"tex": {"macros": mathjax2_config["TeX"]["Macros"]}}
-
 latex_macros = []
-for k, v in mathjax2_config["TeX"]["Macros"].items():
+for k, v in mathjax3_config["tex"]["macros"].items():
     if len(v) == 1:
         latex_macros.append(r"\newcommand{\%s}{%s}" % (k, v[0]))
     else:
