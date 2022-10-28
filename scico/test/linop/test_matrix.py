@@ -18,12 +18,13 @@ class TestMatrix:
     def setup_method(self, method):
         self.key = jax.random.PRNGKey(12345)
 
+    @pytest.mark.parametrize("input_cols", [0, 2])
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
     @pytest.mark.parametrize("matrix_shape", [(3, 3), (3, 4)])
-    def test_eval(self, matrix_shape, input_dtype):
+    def test_eval(self, matrix_shape, input_dtype, input_cols):
 
         A, key = randn(matrix_shape, dtype=input_dtype, key=self.key)
-        Ao = MatrixOperator(A)
+        Ao = MatrixOperator(A, input_cols=input_cols)
 
         x, key = randn(Ao.input_shape, dtype=Ao.input_dtype, key=key)
         np.testing.assert_allclose(A @ x, Ao @ x)
@@ -33,45 +34,50 @@ class TestMatrix:
             y, key = randn((64,), dtype=Ao.input_dtype, key=key)
             _ = Ao @ y
 
+    @pytest.mark.parametrize("input_cols", [0, 2])
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
     @pytest.mark.parametrize("matrix_shape", [(3, 3), (3, 4)])
-    def test_adjoint(self, matrix_shape, input_dtype):
+    def test_adjoint(self, matrix_shape, input_dtype, input_cols):
 
         A, key = randn(matrix_shape, dtype=input_dtype, key=self.key)
-        Ao = MatrixOperator(A)
+        Ao = MatrixOperator(A, input_cols=input_cols)
 
         x, key = randn(Ao.output_shape, dtype=Ao.input_dtype, key=key)
         np.testing.assert_allclose(A.conj().T @ x, Ao.conj().T @ x)
 
+    @pytest.mark.parametrize("input_cols", [0, 2])
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
     @pytest.mark.parametrize("matrix_shape", [(3, 3), (3, 4)])
-    def test_adjoint_method(self, matrix_shape, input_dtype):
+    def test_adjoint_method(self, matrix_shape, input_dtype, input_cols):
         A, key = randn(matrix_shape, dtype=input_dtype, key=self.key)
-        Ao = MatrixOperator(A)
+        Ao = MatrixOperator(A, input_cols=input_cols)
         x, key = randn(Ao.output_shape, dtype=Ao.input_dtype, key=key)
         np.testing.assert_allclose(Ao.adj(x), Ao.conj().T @ x)
 
+    @pytest.mark.parametrize("input_cols", [0, 2])
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
     @pytest.mark.parametrize("matrix_shape", [(3, 3), (3, 4)])
-    def test_hermetian_method(self, matrix_shape, input_dtype):
+    def test_hermetian_method(self, matrix_shape, input_dtype, input_cols):
         A, key = randn(matrix_shape, dtype=input_dtype, key=self.key)
-        Ao = MatrixOperator(A)
+        Ao = MatrixOperator(A, input_cols=input_cols)
         x, key = randn(Ao.output_shape, dtype=Ao.input_dtype, key=key)
         np.testing.assert_allclose(Ao.H @ x, Ao.conj().T @ x)
 
+    @pytest.mark.parametrize("input_cols", [0, 2])
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
     @pytest.mark.parametrize("matrix_shape", [(3, 3), (3, 4)])
-    def test_gram_method(self, matrix_shape, input_dtype):
+    def test_gram_method(self, matrix_shape, input_dtype, input_cols):
         A, key = randn(matrix_shape, dtype=input_dtype, key=self.key)
-        Ao = MatrixOperator(A)
+        Ao = MatrixOperator(A, input_cols=input_cols)
         x, key = randn(Ao.input_shape, dtype=Ao.input_dtype, key=key)
         np.testing.assert_allclose(Ao.gram(x), A.conj().T @ A @ x, rtol=5e-5)
 
+    @pytest.mark.parametrize("input_cols", [0, 2])
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
     @pytest.mark.parametrize("matrix_shape", [(3, 3), (3, 4)])
-    def test_gram_op(self, matrix_shape, input_dtype):
+    def test_gram_op(self, matrix_shape, input_dtype, input_cols):
         A, key = randn(matrix_shape, dtype=input_dtype, key=self.key)
-        Ao = MatrixOperator(A)
+        Ao = MatrixOperator(A, input_cols=input_cols)
         G = Ao.gram_op
         x, key = randn(Ao.input_shape, dtype=Ao.input_dtype, key=key)
         np.testing.assert_allclose(G @ x, A.conj().T @ A @ x, rtol=5e-5)
@@ -196,6 +202,16 @@ class TestMatrix:
         B, key = randn((6, 3), key=key)
         Ao = MatrixOperator(A)
         Bo = MatrixOperator(B)
+        x, key = randn(Bo.input_shape, dtype=Ao.input_dtype, key=key)
+
+        AB = Ao @ Bo
+        np.testing.assert_allclose((Ao @ Bo) @ x, Ao @ (Bo @ x), rtol=5e-5)
+
+    def test_matmul_cols(self):
+        A, key = randn((4, 6), key=self.key)
+        B, key = randn((6, 3), key=key)
+        Ao = MatrixOperator(A, input_cols=2)
+        Bo = MatrixOperator(B, input_cols=2)
         x, key = randn(Bo.input_shape, dtype=Ao.input_dtype, key=key)
 
         AB = Ao @ Bo
