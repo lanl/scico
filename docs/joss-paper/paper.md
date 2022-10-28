@@ -69,7 +69,7 @@ SCICO provides a set of building blocks that can be used to express a wide varie
 
 ## Machine Learning
 
-SCICO includes an implementation of the DnCNN denoiser [@zhang-2017-dncnn], which can be applied to other inverse problems via the *plug-and-play priors* (PPP) [@venkatakrishnan-2013-plugandplay2; @sreehari-2016-plug; @kamilov-2022-plug] framework (see \autoref{fig:deconv}). A number of other leading machine learning methods have been implemented, and are expected to be merged into the main SCICO github branch in the near future.
+SCICO includes an implementation of the DnCNN denoiser [@zhang-2017-dncnn], which can be applied to other inverse problems via the *plug-and-play priors* (PPP) [@venkatakrishnan-2013-plugandplay2; @sreehari-2016-plug; @kamilov-2022-plug] framework (see \autoref{fig:deconv}). A number of other leading machine learning methods have been implemented, and are expected to be merged into the main SCICO GitHub branch in the near future.
 
 
 ![Image deconvolution via PPP with DnCNN denoiser.\label{fig:deconv}](figures/deconv_ppp_dncnn.pdf){ width=100% }
