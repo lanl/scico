@@ -48,7 +48,7 @@ and `binder
 <https://mybinder.org/v2/gh/lanl/scico-data/binder?labpath=notebooks%2Findex.ipynb>`__.
 
 
-If you use this library for published work, please cite :cite:`scico-2022` (see bibtex entry ``scico-2022`` in `docs/source/references.bib <https://github.com/lanl/scico/blob/main/docs/source/references.bib>`_ in the source distribution).
+If you use this library for published work, please cite :cite:`balke-2022-scico` (see bibtex entry ``balke-2022-scico`` in `docs/source/references.bib <https://github.com/lanl/scico/blob/main/docs/source/references.bib>`_ in the source distribution).
 
 
 
