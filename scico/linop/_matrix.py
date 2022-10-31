@@ -66,11 +66,17 @@ def _wrap_add_sub_matrix(func, op):
 class MatrixOperator(LinearOperator):
     """Linear operator implementing matrix multiplication."""
 
-    def __init__(self, A: JaxArray):
+    def __init__(self, A: JaxArray, input_cols: int = 0):
         """
         Args:
-            A: Dense array. The action of the created LinearOperator will
+            A: Dense array. The action of the created
+                :class:`.LinearOperator` will
                 implement matrix multiplication with `A`.
+            input_cols: If this parameter is set to the default of 0, the
+                :class:`MatrixOperator` takes a vector (one-dimensional
+                array) input. If the input is intended to be a matrix
+                (two-dimensional array), this parameter should specify
+                number of columns in the matrix.
         """
         self.A: JaxArray  #: Dense array implementing this matrix
 
@@ -86,7 +92,16 @@ class MatrixOperator(LinearOperator):
         if A.ndim != 2:
             raise TypeError(f"Expected a two-dimensional array, got array of shape {A.shape}.")
 
-        super().__init__(input_shape=A.shape[1], output_shape=A.shape[0], input_dtype=self.A.dtype)
+        if input_cols == 0:
+            input_shape = A.shape[1]
+            output_shape = A.shape[0]
+        else:
+            input_shape = (A.shape[1], input_cols)
+            output_shape = (A.shape[0], input_cols)
+
+        super().__init__(
+            input_shape=input_shape, output_shape=output_shape, input_dtype=self.A.dtype
+        )
 
     def __call__(self, other):
         if isinstance(other, LinearOperator):
