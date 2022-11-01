@@ -98,7 +98,7 @@ class TestSet:
 
 @pytest.mark.skipif(not have_astra, reason="astra package not installed")
 class TestCT:
-    def setup(self):
+    def setup_method(self, method):
         self.N = 32  # signal size
         self.chn = 1  # number of channels
         self.bsize = 16  # batch size
