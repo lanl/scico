@@ -53,7 +53,7 @@ from scico.metric import snr
 from scico.typing import Array, Shape
 
 ModuleDef = Any
-KeyArray = Union[Array, jax._src.prng.PRNGKeyArray]
+KeyArray = Union[Array, jax.random.PRNGKeyArray]
 PyTree = Any
 DType = Any
 

@@ -31,7 +31,7 @@ from flax import jax_utils
 from scico.typing import Array
 
 DType = Any
-KeyArray = Union[Array, jax._src.prng.PRNGKeyArray]
+KeyArray = Union[Array, jax.random.PRNGKeyArray]
 
 
 class DataSetDict(TypedDict):
