@@ -60,6 +60,9 @@ def flatten_dict(
         input_dict: Nested dictionary.
         prefix: Prefix of already flatten. Default: empty string.
         delimiter: Delimiter for displaying. Default: ``/``.
+
+    Returns:
+        A dictionary with the keys flattened.
     """
     output_dict = {}
     for key, value in input_dict.items():
@@ -76,6 +79,9 @@ def count_parameters(params: PyTree) -> int:
 
     Args:
         params: Flax model parameters.
+
+    Returns:
+        The number of parameters in the model.
     """
 
     flat_params = flatten_dict(params)

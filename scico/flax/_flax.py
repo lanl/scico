@@ -25,6 +25,9 @@ def load_weights(filename: str) -> PyTree:
 
     Args:
         filename: Name of file containing parameters for trained model.
+
+    Returns:
+        A tree-like structure containing the values of the parameters of the model.
     """
     with open(filename, "rb") as data_file:
         bytes_input = data_file.read()
@@ -36,7 +39,7 @@ def load_weights(filename: str) -> PyTree:
     return var_in
 
 
-def save_weights(variables: PyTree, filename: str) -> None:
+def save_weights(variables: PyTree, filename: str):
     """Save trained model weights.
 
     Args:

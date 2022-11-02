@@ -5,8 +5,8 @@
 # with the package.
 
 r"""
-Generation of Blurred Data for NN Training
-==========================================
+Generation of Blurred Data (Natural Images) for NN Training
+===========================================================
 
 This example demonstrates how to generate blurred image data for training neural network models
 for deconvolution (deblurring). The original images are part of the [BSDS500 dataset]

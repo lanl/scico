@@ -88,6 +88,6 @@ The model-based deep learning (MoDL) :cite:`aggarwal-2019-modl`, implemented as 
 by directly computing the update
 
     .. math::
-       \mb{x}^{k+1} = (A^T A + \lambda \, \mb{I})^{-1} (A^T \mb{y} + \lambda \, \mb{z}^k) \;,
+       \mb{x}^{k+1} = (A^T A + \lambda \, I)^{-1} (A^T \mb{y} + \lambda \, \mb{z}^k) \;,
 
 via conjugate gradient. The regularization :math:`\mb{z}^k = \mathrm{D}_w(\mb{x}^{k})` incorporates prior information, usually in the form of a denoiser model. In this case, the denoiser :math:`\mathrm{D}_w` is shared between all the stages of the network requiring relatively less memory than other unrolling methods. This also allows for deploying a different number of iterations in testing than the ones used in training.

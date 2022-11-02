@@ -24,13 +24,13 @@ where $A$ is a circular convolution, $\mathbf{y}$ is a set of blurred images, $\
   The MoDL abstracts the iterative solution by an unrolled network where each iteration corresponds
   to a different stage in the MoDL network and updates the prediction by solving
 
-  $$\mathbf{x}^{k+1} = (A^T A + \lambda \, \mathbf{I})^{-1} (A^T \mathbf{y} + \lambda \, \mathbf{z}^k) \;,$$
+  $$\mathbf{x}^{k+1} = (A^T A + \lambda \, I)^{-1} (A^T \mathbf{y} + \lambda \, \mathbf{z}^k) \;,$$
 
 via conjugate gradient. In the expression, $k$ is the index of the stage (iteration),
  $\mathbf{z}^k = \mathrm{ResNet}(\mathbf{x}^{k})$ is the regularization
  (a denoiser implemented as a residual convolutional neural network), $\mathbf{x}^k$ is the output
   of the previous stage, $\lambda > 0$
-  is a learned regularization parameter, and $\mathbf{I}$ is the identity operator.
+  is a learned regularization parameter, and $I$ is the identity operator.
   The output of the final stage is the set of deblurred images.
 """
 

@@ -8,8 +8,9 @@ r"""
 CT Data Generation for NN Training
 ==================================
 
-This example demonstrates how to generate CT synthetic data for
-training neural network models. If desired, a basic reconstruction can be generated
+This example demonstrates how to generate CT
+synthetic data for training neural network models.
+If desired, a basic reconstruction can be generated
 using filtered back projection (FBP).
 """
 
