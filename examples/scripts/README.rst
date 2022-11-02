@@ -222,6 +222,8 @@ PDHG
 
     `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
        TV-Regularized CT Reconstruction (Multiple Algorithms)
+    `denoise_tv_multi.py <denoise_tv_multi.py>`_
+       Comparison of Optimization Algorithms for Total Variation Denoising
     `denoise_cplx_tv_pdhg.py <denoise_cplx_tv_pdhg.py>`_
        Complex Total Variation Denoising
 
@@ -236,7 +238,6 @@ PGM
    `sparsecode_poisson_pgm.py <sparsecode_poisson_pgm.py>`_
       Non-negative Poisson Loss Reconstruction (APGM)
    `denoise_tv_pgm.py <denoise_tv_pgm.py>`_
-      Isotropic Total Variation (Accelerated PGM)
       Total Variation Denoising with Constraint (APGM)
 
 
