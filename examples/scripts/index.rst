@@ -52,7 +52,8 @@ Miscellaneous
    - denoise_tv_multi.py
    - denoise_cplx_tv_pdhg.py
    - video_rpca_admm.py
-
+   - ct_astra_datagen_foam2.py
+   - deconv_datagen_foam.py
 
 
 Organized by Regularization
@@ -99,6 +100,15 @@ Sparsity
    - sparsecode_poisson_pgm.py
    - video_rpca_admm.py
 
+
+CNN Training
+^^^^^^^^^^^^
+
+   - ct_astra_modl_train_foam2.py
+   - ct_astra_unet_train_foam2.py
+   - deconv_modl_train_foam.py
+   - deconv_odp_train_foam.py
+   - denoise_dncnn_train_bsds.py
 
 
 Organized by Optimization Algorithm
@@ -159,14 +169,3 @@ PCG
 ^^^
 
    - ct_astra_noreg_pcg.py
-
-
-
-CNN Training
-------------
-
-   - ct_astra_modl_train_foam2.py
-   - ct_astra_unet_train_foam2.py
-   - deconv_modl_train_foam.py
-   - deconv_odp_train_foam.py
-   - denoise_dncnn_train_bsds.py

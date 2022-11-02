@@ -80,6 +80,11 @@ Miscellaneous
       Complex Total Variation Denoising
    `video_rpca_admm.py <video_rpca_admm.py>`_
       Video Decomposition via Robust PCA
+   `ct_astra_datagen_foam2.py <ct_astra_datagen_foam2.py>`_
+      Generation of CT Data for Machine Learning Training
+   `deconv_datagen_foam.py <deconv_datagen_foam.py>`_
+      Generation of Blured Data for Machine Learning Training
+
 
 
 
@@ -153,6 +158,21 @@ Sparsity
       Non-negative Poisson Loss Reconstruction (APGM)
    `video_rpca_admm.py <video_rpca_admm.py>`_
       Video Decomposition via Robust PCA
+
+
+CNN Training
+^^^^^^^^^^^^
+
+   `ct_astra_modl_train_foam2.py <ct_astra_modl_train_foam2.py>`_
+      CT Reconstruction with MoDL
+   `ct_astra_unet_train_foam2.py <ct_astra_unet_train_foam2.py>`_
+      CT with UNet for Denoising of FBP
+   `deconv_modl_train_foam.py <deconv_modl_train_foam.py>`_
+      Training of MoDL for Deconvolution
+   `deconv_odp_train_foam.py <deconv_odp_train_foam.py>`_
+      Training of ODP for Deconvolution
+   `denoise_dncnn_train_bsds.py <denoise_dncnn_train_bsds.py>`_
+      Training of DnCNN for Denoising
 
 
 
@@ -246,19 +266,3 @@ PCG
 
    `ct_astra_noreg_pcg.py <ct_astra_noreg_pcg.py>`_
       CT Reconstruction with CG and PCG
-
-
-
-CNN Training
-------------
-
-   `ct_astra_modl_train_foam2.py <ct_astra_modl_train_foam2.py>`_
-      CT Reconstruction with MoDL
-   `ct_astra_unet_train_foam2.py <ct_astra_unet_train_foam2.py>`_
-      CT with UNet for Denoising of FBP
-   `deconv_modl_train_foam.py <deconv_modl_train_foam.py>`_
-      Training of MoDL for Deconvolution
-   `deconv_odp_train_foam.py <deconv_odp_train_foam.py>`_
-      Training of ODP for Deconvolution
-   `denoise_dncnn_train_bsds.py <denoise_dncnn_train_bsds.py>`_
-      Training of DnCNN for Denoising
