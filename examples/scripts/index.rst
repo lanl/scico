@@ -101,8 +101,8 @@ Sparsity
    - video_rpca_admm.py
 
 
-CNN Training
-^^^^^^^^^^^^
+Machine Learning
+^^^^^^^^^^^^^^^^
 
    - ct_astra_modl_train_foam2.py
    - ct_astra_unet_train_foam2.py

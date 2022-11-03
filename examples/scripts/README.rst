@@ -160,8 +160,8 @@ Sparsity
       Video Decomposition via Robust PCA
 
 
-CNN Training
-^^^^^^^^^^^^
+Machine Learning
+^^^^^^^^^^^^^^^^
 
    `ct_astra_modl_train_foam2.py <ct_astra_modl_train_foam2.py>`_
       CT Reconstruction with MoDL
