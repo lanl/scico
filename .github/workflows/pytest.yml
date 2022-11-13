@@ -73,7 +73,7 @@ jobs:
           pip install -r dev_requirements.txt
           mamba install -c astra-toolbox astra-toolbox
           mamba install -c conda-forge pyyaml
-          mamba install -c conda-forge gcc=12.1.0
+          mamba install -c conda-forge gcc=12.2.0
           pip install bm4d>=4.0.0
           pip install "ray[tune]>=2.0.0"
           pip install hyperopt
