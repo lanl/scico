@@ -49,7 +49,7 @@ jobs:
           path: ${{ env.CONDA }}/envs
           key: conda-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('dev_requirements.txt') }}-${{ hashFiles('examples/examples_requirements.txt') }}-${{ env.CACHE_NUMBER }}
         env:
-          CACHE_NUMBER: 2  # Increase this value to force cache reset
+          CACHE_NUMBER: 0  # Increase this value to force cache reset
         id: cache
       # Display environment details
       - name: Display environment details
@@ -70,7 +70,7 @@ jobs:
           pip install -r dev_requirements.txt
           mamba install -c astra-toolbox astra-toolbox
           mamba install -c conda-forge pyyaml
-          pip install --upgrade --force-reinstall scipy>=1.6.0
+          pip install --upgrade --force-reinstall scipy>=1.6.0  # Temporary fix for GLIBCXX_3.4.30 not found in conda forge version
           pip install -r examples/examples_requirements.txt
       # Install package to be tested
       - name: Install package to be tested
