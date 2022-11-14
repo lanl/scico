@@ -13,7 +13,7 @@ from scico.test.osver import osx_ver_geq_than
 @pytest.mark.skipif(osx_ver_geq_than("11.6.5"), reason="bm3d broken on this platform")
 @pytest.mark.skipif(not have_bm3d, reason="bm3d package not installed")
 class TestBM3D:
-    def setup(self):
+    def setup_method(self):
         key = None
         self.x_gry, key = randn((32, 33), key=key, dtype=np.float32)
         self.x_rgb, key = randn((33, 34, 3), key=key, dtype=np.float32)
@@ -36,7 +36,7 @@ class TestBM3D:
 @pytest.mark.skipif(osx_ver_geq_than("11.6.5"), reason="bm4d broken on this platform")
 @pytest.mark.skipif(not have_bm4d, reason="bm4d package not installed")
 class TestBM4D:
-    def setup(self):
+    def setup_method(self):
         key = None
         self.x, key = randn((16, 17, 14), key=key, dtype=np.float32)
         self.f = functional.BM4D()
@@ -48,7 +48,7 @@ class TestBM4D:
 
 
 class TestDnCNN:
-    def setup(self):
+    def setup_method(self):
         key = None
         self.x_sngchn, key = randn((32, 33), key=key, dtype=np.float32)
         self.x_mltchn, key = randn((33, 34, 5), key=key, dtype=np.float32)
