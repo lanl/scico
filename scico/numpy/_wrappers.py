@@ -3,6 +3,7 @@ Utilities for wrapping jnp functions to handle BlockArray inputs.
 """
 
 import sys
+import warnings
 from functools import wraps
 from inspect import signature
 from types import ModuleType
@@ -54,7 +55,10 @@ def wrap_recursively(
             module, rest = name.split(".", maxsplit=1)
             wrap_recursively(target_dict[module].__dict__, [rest], wrap)
         else:
-            target_dict[name] = wrap(target_dict[name])
+            if name in target_dict:
+                target_dict[name] = wrap(target_dict[name])
+            else:
+                warnings.warn(f"In call to wrap_recursively, name {name} is not in target_dict")
 
 
 def map_func_over_tuple_of_tuples(func: Callable, map_arg_name: Optional[str] = "shape"):
