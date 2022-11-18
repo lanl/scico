@@ -121,12 +121,12 @@ class NonLinearPADMM:
                 the :class:`.diagnostics.IterationStats` initializer. The
                 dict may also include an additional key "itstat_func"
                 with the corresponding value being a function with two
-                parameters, an integer and a `NonLinearPADMM` object,
-                responsible for constructing a tuple ready for insertion
-                into the :class:`.diagnostics.IterationStats` object. If
-                ``None``, default values are used for the dict entries,
-                otherwise the default dict is updated with the dict
-                specified by this parameter.
+                parameters, an integer and a :class:`NonLinearPADMM`
+                object, responsible for constructing a tuple ready for
+                insertion into the :class:`.diagnostics.IterationStats`
+                object. If ``None``, default values are used for the dict
+                entries, otherwise the default dict is updated with the
+                dict specified by this parameter.
         """
         self.f: Functional = f
         self.g: Functional = g
