@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from typing import Callable, List, Optional, Union
 
-from scico import jhvp
+from scico import jhvp, jvp
 from scico.diagnostics import IterationStats
 from scico.functional import Functional
 from scico.numpy import BlockArray
@@ -99,6 +99,7 @@ class NonLinearPADMM:
         z0: Optional[Union[JaxArray, BlockArray]] = None,
         u0: Optional[Union[JaxArray, BlockArray]] = None,
         maxiter: int = 100,
+        fast_dual_residual: bool = True,
         itstat_options: Optional[dict] = None,
     ):
         r"""Initialize a :class:`NonLinearPADMM` object.
@@ -117,6 +118,9 @@ class NonLinearPADMM:
             u0: Starting point for :math:`\mb{u}`. If ``None``, defaults
                 to an array of zeros.
             maxiter: Number of main algorithm iterations. Default: 100.
+            fast_dual_residual: Flag indicating whether to use fast
+                approximation to the dual residual, or a slower but more
+                accurate calculation.
             itstat_options: A dict of named parameters to be passed to
                 the :class:`.diagnostics.IterationStats` initializer. The
                 dict may also include an additional key "itstat_func"
@@ -136,6 +140,7 @@ class NonLinearPADMM:
         self.nu: float = nu
         self.itnum: int = 0
         self.maxiter: int = maxiter
+        self.fast_dual_residual: bool = fast_dual_residual
         self.timer: Timer = Timer()
 
         # iteration number and time fields
@@ -251,7 +256,15 @@ class NonLinearPADMM:
         Returns:
             Current norm of dual residual.
         """
-        return norm(self.z - self.z_old)  # NB: requires attention
+        if self.fast_dual_residual:
+            rsdl = self.z - self.z_old  # fast but poor approximation
+        else:
+            Hz = lambda z: self.H(self.x, z)
+            B = lambda u: jvp(Hz, (self.z,), (u,))[1]
+            Hx = lambda x: self.H(x, self.z)
+            AH = jhvp(Hx, self.x)[1]
+            rsdl = AH(B(self.z - self.z_old))
+        return norm(rsdl)
 
     def step(self):
         r"""Perform a single algorithm iteration.
