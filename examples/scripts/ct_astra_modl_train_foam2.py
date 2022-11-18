@@ -81,7 +81,7 @@ A = TomographicProjector(
     det_count=N,
     angles=angles,
 )  # Radon transform operator
-A = (1 / N) * A  # Normalized
+A = (1.0 / N) * A  # Normalized
 
 """
 Build training and testing structures. Inputs are the sinograms and
