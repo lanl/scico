@@ -56,13 +56,13 @@ Machine Learning
    :maxdepth: 1
 
    examples/ct_astra_datagen_foam2
-   examples/ct_astra_unet_foam2
+   examples/ct_astra_unet_train_foam2
    examples/deconv_datagen_bsds
    examples/deconv_datagen_foam1
-   examples/deconv_modl_foam1
-   examples/deconv_odp_foam1
+   examples/deconv_modl_train_foam1
+   examples/deconv_odp_train_foam1
    examples/denoise_datagen_bsds
-   examples/denoise_dncnn_bsds
+   examples/denoise_dncnn_train_bsds
 
 
 Sparse Coding
@@ -236,7 +236,7 @@ CNN Training
 .. toctree::
    :maxdepth: 1
 
-   examples/ct_astra_unet_foam2
-   examples/deconv_modl_foam1
-   examples/deconv_odp_foam1
-   examples/denoise_dncnn_bsds
+   examples/ct_astra_unet_train_foam2
+   examples/deconv_modl_train_foam1
+   examples/deconv_odp_train_foam1
+   examples/denoise_dncnn_train_bsds
