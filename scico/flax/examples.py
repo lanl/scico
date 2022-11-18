@@ -325,7 +325,7 @@ def load_ct_data(
     test_nimg: int,
     size: int,
     nproj: int,
-    cache_path: str = None,
+    cache_path: Optional[str] = None,
     verbose: bool = False,
 ) -> Tuple[CTDataSetDict, ...]:  # pragma: no cover
     """
@@ -559,7 +559,7 @@ def load_foam_blur_data(
     size: int,
     blur_kernel: Array,
     noise_sigma: float,
-    cache_path: str = None,
+    cache_path: Optional[str] = None,
     verbose: bool = False,
 ) -> Tuple[DataSetDict, ...]:  # pragma: no cover
     """
@@ -1242,7 +1242,7 @@ def load_image_data(
     size: int,
     gray_flag: bool,
     data_mode: str = "dn",
-    cache_path: str = None,
+    cache_path: Optional[str] = None,
     verbose: bool = False,
     noise_level: float = 0.1,
     noise_range: bool = False,
