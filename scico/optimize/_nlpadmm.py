@@ -258,11 +258,11 @@ class NonLinearPADMM:
 
         Perform a single algorithm iteration.
         """
-        _, A = jhvp(self.H, self.x, self.z, jidx=0)
-        proxarg = self.x - (1.0 / self.mu) * A(2.0 * self.u - self.u_old)[0]
+        _, AH = jhvp(self.H, self.x, self.z, jidx=0)
+        proxarg = self.x - (1.0 / self.mu) * AH(2.0 * self.u - self.u_old)[0]
         self.x = self.f.prox(proxarg, (1.0 / (self.rho * self.mu)), v0=self.x)
-        _, B = jhvp(self.H, self.x, self.z, jidx=1)
-        proxarg = self.z - (1.0 / self.nu) * B(self.H(self.x, self.z) + self.u)[0]
+        _, BH = jhvp(self.H, self.x, self.z, jidx=1)
+        proxarg = self.z - (1.0 / self.nu) * BH(self.H(self.x, self.z) + self.u)[0]
         self.z_old = self.z
         self.z = self.g.prox(proxarg, (1.0 / (self.rho * self.nu)), v0=self.z)
         self.u_old = self.u
