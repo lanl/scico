@@ -75,16 +75,13 @@ trdt, ttdt = load_ct_data(train_nimg, test_nimg, N, n_projection, verbose=True)
 Build CT projection operator.
 """
 angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
-A = (
-    TomographicProjector(
-        input_shape=(N, N),
-        detector_spacing=1,
-        det_count=N,
-        angles=angles,
-    )
-    / N
-)  # Normalized Radon transform operator
-
+A = TomographicProjector(
+    input_shape=(N, N),
+    detector_spacing=1,
+    det_count=N,
+    angles=angles,
+)  # Radon transform operator
+A = (1 / N) * A  # Normalized
 
 """
 Build training and testing structures. Inputs are the sinograms and
