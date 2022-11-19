@@ -54,7 +54,7 @@ class ParamRowWithStats(ParamRow):
 def flatten_dict(
     input_dict: Dict[str, Any], prefix: str = "", delimiter: str = "/"
 ) -> Dict[str, Any]:
-    """Flattens the keys of a nested dictionary.
+    """Flatten keys of a nested dictionary.
 
     Args:
         input_dict: Nested dictionary.
@@ -75,7 +75,7 @@ def flatten_dict(
 
 
 def count_parameters(params: PyTree) -> int:
-    """Returns the count of variables for the parameter dictionary.
+    """Return count of variables for the parameter dictionary.
 
     Args:
         params: Flax model parameters.
@@ -93,12 +93,12 @@ def get_parameter_rows(
     *,
     include_stats: bool = False,
 ) -> List[Union[ParamRow, ParamRowWithStats]]:
-    """Returns information about parameters as a list of dictionaries.
+    """Return information about parameters as a list of dictionaries.
 
     Args:
         params: Dictionary with parameters as NumPy arrays. The dictionary can be
             nested.
-        include_stats: If True add columns with mean and std for each variable. Note
+        include_stats: If ``True`` add columns with mean and std for each variable. Note
             that this can be considerably more compute intensive and cause a lot of
             memory to be transferred to the host.
 
@@ -129,7 +129,7 @@ def get_parameter_rows(
 
 
 def _default_table_value_formatter(value):
-    """Formats ints with "," between thousands and floats to 3 digits."""
+    """Format ints with "," between thousands and floats to 3 digits."""
     if isinstance(value, bool):
         return str(value)
     elif isinstance(value, int):
@@ -147,7 +147,7 @@ def make_table(
     value_formatter: Callable[[Any], str] = _default_table_value_formatter,
     max_lines: Optional[int] = None,
 ) -> str:
-    """Renders a list of rows to a table.
+    """Render list of rows to a table.
 
     Args:
         rows: List of dataclass instances of a single type (e.g. `ParamRow`).
@@ -206,12 +206,12 @@ def make_table(
 def get_parameter_overview(
     params: ParamsContainer, *, include_stats: bool = True, max_lines: Optional[int] = None
 ) -> str:
-    """Returns a string with variables names, their shapes, count.
+    """Return string with variables names, their shapes, count.
 
     Args:
         params: Dictionary with parameters as NumPy arrays. The dictionary can be nested.
-        include_stats: If True, add columns with mean and std for each variable.
-        max_lines: If not `None`, the maximum number of variables to include.
+        include_stats: If ``True``, add columns with mean and std for each variable.
+        max_lines: If not ``None``, the maximum number of variables to include.
 
     Returns:
         A string with a table like in the example.

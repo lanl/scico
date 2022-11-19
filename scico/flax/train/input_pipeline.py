@@ -65,7 +65,7 @@ class IterateData:
         self.reset()
 
     def reset(self):
-        """Re-shuffles data in training."""
+        """Re-shuffle data in training."""
         if self.train:
             self.key, subkey = jax.random.split(self.key)
             self.perms = jax.random.permutation(subkey, self.n)
