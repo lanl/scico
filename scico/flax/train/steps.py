@@ -94,10 +94,9 @@ def train_step_post(
     metrics_fn: Callable,
     post_lst: List[Callable],
 ) -> Tuple[TrainState, MetricsDict]:
-    """Perform a single data parallel training step. A list of postprocessing
-    functions (i.e. for spectral normalization or positivity
-    condition, etc.) is applied after the gradient update.
-    Assumes sharded batched data.
+    """Perform a single data parallel training step with postprocessing.
+    A list of postprocessing functions (i.e. for spectral normalization or positivity
+    condition, etc.) is applied after the gradient update. Assumes sharded batched data.
 
     This function is intended to be used via :class:`~.trainer.BasicFlaxTrainer`, not directly.
 
