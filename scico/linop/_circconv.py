@@ -141,7 +141,7 @@ class CircularConvolve(LinearOperator):
                         offset = -snp.array(self.h_center)
                 shifts: Tuple[Array, ...] = np.ix_(
                     *tuple(
-                        np.exp(-1j * k * 2 * np.pi * np.fft.fftfreq(s))
+                        np.exp(-1j * k * 2 * np.pi * np.fft.fftfreq(s))  # type: ignore
                         for k, s in zip(offset, input_shape[-self.ndims :])
                     )
                 )
