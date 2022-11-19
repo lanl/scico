@@ -106,8 +106,8 @@ Machine Learning
 
    - ct_astra_modl_train_foam2.py
    - ct_astra_unet_train_foam2.py
-   - deconv_modl_train_foam.py
-   - deconv_odp_train_foam.py
+   - deconv_modl_train_foam1.py
+   - deconv_odp_train_foam1.py
    - denoise_dncnn_train_bsds.py
 
 

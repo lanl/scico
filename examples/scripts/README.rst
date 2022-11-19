@@ -167,9 +167,9 @@ Machine Learning
       CT Reconstruction with MoDL
    `ct_astra_unet_train_foam2.py <ct_astra_unet_train_foam2.py>`_
       CT with UNet for Denoising of FBP
-   `deconv_modl_train_foam.py <deconv_modl_train_foam.py>`_
+   `deconv_modl_train_foam1.py <deconv_modl_train_foam1.py>`_
       Training of MoDL for Deconvolution
-   `deconv_odp_train_foam.py <deconv_odp_train_foam.py>`_
+   `deconv_odp_train_foam1.py <deconv_odp_train_foam1.py>`_
       Training of ODP for Deconvolution
    `denoise_dncnn_train_bsds.py <denoise_dncnn_train_bsds.py>`_
       Training of DnCNN for Denoising
