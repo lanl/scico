@@ -32,7 +32,7 @@ def train_step(
 ) -> Tuple[TrainState, MetricsDict]:
     """Perform a single data parallel training step. Assumes sharded batched data.
 
-    This function is intended to be used via :class:`~scico.flax.train.trainer.BasicFlaxTrainer`, not directly.
+    This function is intended to be used via :class:`~scico.flax.BasicFlaxTrainer`, not directly.
 
     Args:
         state: Flax train state which includes the
@@ -98,7 +98,7 @@ def train_step_post(
     A list of postprocessing functions (i.e. for spectral normalization or positivity
     condition, etc.) is applied after the gradient update. Assumes sharded batched data.
 
-    This function is intended to be used via :class:`~scico.flax.train.trainer.BasicFlaxTrainer`, not directly.
+    This function is intended to be used via :class:`~scico.flax.BasicFlaxTrainer`, not directly.
 
     Args:
         state: Flax train state which includes the
@@ -134,7 +134,7 @@ def eval_step(
     """Evaluate current model state. Assumes sharded
     batched data.
 
-    This function is intended to be used via :class:`~scico.flax.train.trainer.BasicFlaxTrainer` or :meth:`~scico.flax.train.apply.only_evaluate`, not directly.
+    This function is intended to be used via :class:`~scico.flax.BasicFlaxTrainer` or :meth:`~scico.flax.only_evaluate`, not directly.
 
     Args:
         state: Flax train state which includes the

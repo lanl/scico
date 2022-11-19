@@ -40,7 +40,7 @@ def apply_fn(model: ModuleDef, variables: ModelVarDict, batch: DataSetDict) -> A
     """Apply current model. Assumes sharded
     batched data and replicated variables for distributed processing.
 
-    This function is intended to be used via :meth:`~scico.flax.train.apply.only_apply`, not directly.
+    This function is intended to be used via :meth:`~scico.flax.only_apply`, not directly.
 
     Args:
         model: Flax model to apply.
