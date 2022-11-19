@@ -13,6 +13,7 @@ import jax
 
 import scico.numpy as snp
 from scico.numpy import BlockArray
+from scico.operator import Operator
 from scico.typing import BlockShape, DType, JaxArray, Shape
 
 
@@ -52,6 +53,7 @@ class Function:
                 evaluating `self.__call__` on an input arrays of zeros.
             jit: If ``True``,  jit the evaluation function.
         """
+        self.jit = jit
         self.input_shapes = input_shapes
         if isinstance(input_dtypes, (list, tuple)):
             self.input_dtypes = input_dtypes
@@ -91,7 +93,7 @@ output_dtype   : {self.output_dtype}
         """
 
     def __call__(self, *args: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
-        r"""Evaluate this function with the specified parameters.
+        """Evaluate this function with the specified parameters.
 
         Args:
            *args: Parameters at which to evaluate the function.
@@ -100,3 +102,28 @@ output_dtype   : {self.output_dtype}
            Value of function with specified parameters.
         """
         return self._eval(*args)
+
+    def slice(self, index: int, *fix_args: Union[JaxArray, BlockArray]) -> Operator:
+        """Fix all but one parameter, returning a :class:`.Operator`.
+
+        Args:
+           index: Index of parameter that remains free.
+           *fix_args: Fixed values for remaining parameters.
+
+        Returns:
+           An :class:`.Operator` taking the free parameter of the
+           :class:`Function` as its input.
+        """
+
+        def pfunc(var_arg):
+            args = fix_args[0:index] + (var_arg,) + fix_args[index:]
+            return self._eval(*args)
+
+        return Operator(
+            self.input_shapes[index],
+            output_shape=self.output_shape,
+            eval_fn=pfunc,
+            input_dtype=self.input_dtypes[index],
+            output_dtype=self.output_dtype,
+            jit=self.jit,
+        )
