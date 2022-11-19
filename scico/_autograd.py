@@ -153,7 +153,7 @@ def jacrev(
 jacrev.__doc__ = _append_jax_docs(jacrev)
 
 
-def jhvp(fun: Callable, *primals, jidx: Optional[int] = None) -> Callable:
+def jhvp(fun: Callable, *primals, jidx: Optional[int] = None) -> Tuple[Tuple[Any, ...], Callable]:
     r"""Compute a Jacobian-vector product with Hermitian transpose.
 
     Compute the product :math:`[J(\mb{x})]^H \mb{v}` where
