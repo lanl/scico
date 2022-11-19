@@ -14,7 +14,7 @@ This example demonstrates the training and application of a model-based deep lea
 
 The source images are foam phantoms generated with xdesign.
 
-A class [flax.MoDLNet](../_autosummary/scico.learning.rst#scico.learning.MoDL)
+A class [flax.MoDLNet](../_autosummary/scico.flax.rst#scico.flax.MoDLNet)
  implements the MoDL architecture, which solves the optimization problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; \| A \mathbf{x} - \mathbf{y} \|_2^2 + \lambda \, \| \mathbf{x} - \mathrm{D}_w(\mathbf{x})\|_2^2 \;,$$

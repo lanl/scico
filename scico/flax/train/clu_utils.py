@@ -83,7 +83,6 @@ def count_parameters(params: PyTree) -> int:
     Returns:
         The number of parameters in the model.
     """
-
     flat_params = flatten_dict(params)
     return sum(np.prod(v.shape) for v in flat_params.values())
 
@@ -224,6 +223,7 @@ def get_parameter_overview(
     | FC_2/weights:0 |    (1024, 32) |     32,768 |
     | FC_2/biases:0  |         (32,) |         32 |
     +----------------+---------------+------------+
+
     Total: 65,172,512
     """
     if isinstance(params, (dict, flax.core.FrozenDict)):

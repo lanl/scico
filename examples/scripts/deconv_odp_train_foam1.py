@@ -14,7 +14,7 @@ This example demonstrates the training and application of the unrolled optimizat
 
 The source images are foam phantoms generated with xdesign.
 
-A class [flax.ODPNet](../_autosummary/scico.learning.rst#scico.learning.ODP)
+A class [flax.ODPNet](../_autosummary/scico.flax.rst#scico.flax.ODPNet)
 implements the ODP architecture, which solves the optimization problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; \| A \mathbf{x} - \mathbf{y} \|_2^2 + r(\mathbf{x}) \;,$$
