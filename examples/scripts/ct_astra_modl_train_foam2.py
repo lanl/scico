@@ -47,7 +47,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scico import flax as sflax
 from scico import metric, plot
 from scico.flax.examples import load_ct_data
-from scico.flax.train.train import clip_positive, construct_traversal
+from scico.flax.train.traversals import clip_positive, construct_traversal
 from scico.linop.radon_astra import TomographicProjector
 
 """
