@@ -81,21 +81,19 @@ output_dtype : {self.output_dtype}
         r"""
         Args:
             input_shape: Shape of input array.
-            output_shape: Shape of output array.
-                Defaults to ``None``. If ``None``, `output_shape` is
-                determined by evaluating `self.__call__` on an input
-                array of zeros.
+            output_shape: Shape of output array. Defaults to ``None``.
+                If ``None``, `output_shape` is determined by evaluating
+                `self.__call__` on an input array of zeros.
             eval_fn: Function used in evaluating this :class:`.Operator`.
                 Defaults to ``None``. Required unless `__init__` is being
                 called from a derived class with an `_eval` method.
-            input_dtype: `dtype` for input argument.
-                Defaults to ``float32``. If :class:`.Operator` implements
+            input_dtype: `dtype` for input argument. Defaults to
+                ``float32``. If :class:`.Operator` implements
                 complex-valued operations, this must be ``complex64`` for
                 proper adjoint and gradient calculation.
-            output_dtype: `dtype` for output argument.
-                Defaults to ``None``. If ``None``, `output_shape` is
-                determined by evaluating `self.__call__` on an input
-                array of zeros.
+            output_dtype: `dtype` for output argument. Defaults to
+                ``None``. If ``None``, `output_dtype` is determined by
+                evaluating `self.__call__` on an input array of zeros.
             jit: If ``True``, call :meth:`Operator.jit()` on this
                 :class:`.Operator` to jit the forward, adjoint, and gram
                 functions. Same as calling :meth:`Operator.jit` after the
@@ -123,7 +121,7 @@ output_dtype : {self.output_dtype}
         #: Consists of (output_size, input_size)
         self.matrix_shape: Tuple[int, int]
 
-        #: Shape of Operator. Consists of (output_shape, input_shape).
+        #: Shape of Operator, consisting of (output_shape, input_shape).
         self.shape: Tuple[Union[Shape, BlockShape], Union[Shape, BlockShape]]
 
         #: Dtype of input

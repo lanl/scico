@@ -106,10 +106,9 @@ class LinearOperator(Operator):
         r"""
         Args:
             input_shape: Shape of input array.
-            output_shape: Shape of output array.
-                Defaults to ``None``. If ``None``, `output_shape` is
-                determined by evaluating `self.__call__` on an input
-                array of zeros.
+            output_shape: Shape of output array. Defaults to ``None``.
+                If ``None``, `output_shape` is determined by evaluating
+                `self.__call__` on an input array of zeros.
             eval_fn: Function used in evaluating this
                 :class:`LinearOperator`. Defaults to ``None``. If
                 ``None``, then `self.__call__` must be defined in any
@@ -119,14 +118,13 @@ class LinearOperator(Operator):
                 ``None``, the adjoint is not set, and the
                 :meth:`._set_adjoint` will be called silently at the
                 first :meth:`.adj` call or can be called manually.
-            input_dtype: `dtype` for input argument.
-                Defaults to ``float32``. If :class:`LinearOperator`
-                implements complex-valued operations, this must be
-                ``complex64`` for proper adjoint and gradient calculation.
-            output_dtype: `dtype` for output argument.
-                Defaults to ``None``. If ``None``, `output_shape` is
-                determined by evaluating `self.__call__` on an input
-                array of zeros.
+            input_dtype: `dtype` for input argument. Defaults to
+                ``float32``. If :class:`LinearOperator` implements
+                complex-valued operations, this must be ``complex64`` for
+                proper adjoint and gradient calculation.
+            output_dtype: `dtype` for output argument. Defaults to
+                ``None``. If ``None``, `output_dtype` is determined by
+                evaluating `self.__call__` on an input array of zeros.
             jit: If ``True``, call :meth:`.jit()` on this
                 :class:`LinearOperator` to jit the forward, adjoint, and
                 gram functions. Same as calling :meth:`.jit` after the
