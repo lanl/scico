@@ -22,7 +22,9 @@ from .blocks import (
 from .models import ConvBNNet, DnCNNNet, ResNet, UNet
 from .inverse import MoDLNet, ODPGrDescBlock, ODPNet, ODPProxDcnvBlock, ODPProxDnBlock
 from .train.input_pipeline import create_input_iter
-from .train.train import ConfigDict, BasicFlaxTrainer, only_apply
+from .train.typed_dict import ConfigDict
+from .train.trainer import BasicFlaxTrainer
+from .train.apply import only_apply
 from .train.clu_utils import count_parameters
 
 __all__ = [

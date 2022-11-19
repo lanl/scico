@@ -11,27 +11,20 @@ import pytest
 from flax import jax_utils
 from scico import flax as sflax
 from scico import random
+from scico.flax.train.apply import _apply_fn
 from scico.flax.train.clu_utils import flatten_dict
+from scico.flax.train.diagnostics import ArgumentStruct, compute_metrics, stats_obj
 from scico.flax.train.input_pipeline import IterateData, prepare_data
-from scico.flax.train.train import (
-    ArgumentStruct,
-    _apply_fn,
-    _eval_step,
-    _train_step,
-    _train_step_post,
-    clip_positive,
-    clip_range,
-    compute_metrics,
-    construct_traversal,
-    create_basic_train_state,
+from scico.flax.train.learning_rate import (
     create_cnst_lr_schedule,
     create_cosine_lr_schedule,
     create_exp_lr_schedule,
-    initialize,
-    mse_loss,
-    stats_obj,
-    sync_batch_stats,
 )
+from scico.flax.train.losses import mse_loss
+from scico.flax.train.state import create_basic_train_state, initialize
+from scico.flax.train.steps import _eval_step, _train_step, _train_step_post
+from scico.flax.train.trainer import sync_batch_stats
+from scico.flax.train.traversals import clip_positive, clip_range, construct_traversal
 
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 

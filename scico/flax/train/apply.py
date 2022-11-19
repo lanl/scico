@@ -1,0 +1,143 @@
+# -*- coding: utf-8 -*-
+# Copyright (C) 2022 by SCICO Developers
+# All rights reserved. BSD 3-clause License.
+# This file is part of the SCICO package. Details of the copyright and
+# user license can be found in the 'LICENSE' file distributed with the
+# package.
+
+"""Functionality to apply trained model.
+
+Uses data parallel evaluation.
+"""
+
+from typing import Any, Callable, Optional, Tuple
+
+import jax
+import jax.numpy as jnp
+
+from flax import jax_utils
+
+try:
+    from tensorflow.io import gfile  # noqa: F401
+except ImportError:
+    have_tf = False
+else:
+    have_tf = True
+
+if have_tf:
+    from flax.training import checkpoints
+
+from scico.flax import create_input_iter
+from scico.typing import Array
+
+from .clu_utils import get_parameter_overview
+from .typed_dict import ConfigDict, DataSetDict, ModelVarDict
+
+ModuleDef = Any
+
+
+def _apply_fn(model: ModuleDef, variables: ModelVarDict, batch: DataSetDict) -> Array:
+    """Apply current model. Assumes sharded
+    batched data and replicated variables for distributed processing.
+
+    This function is intended to be used via :meth:`only_apply`, not directly.
+
+    Args:
+        model: Flax model to apply.
+        variables: State of model parameters (replicated).
+        batch: Sharded and batched training data.
+
+    Returns:
+        Output computed by given model.
+    """
+    output = model.apply(variables, batch["image"], train=False, mutable=False)
+    return output
+
+
+def only_apply(
+    config: ConfigDict,
+    model: ModuleDef,
+    test_ds: DataSetDict,
+    apply_fn: Callable = _apply_fn,
+    variables: Optional[ModelVarDict] = None,
+) -> Tuple[Array, ModelVarDict]:
+    """Execute model application loop.
+
+    Args:
+        config: Hyperparameter configuration.
+        model: Flax model to apply.
+        test_ds: Dictionary of testing data (includes images
+            and labels).
+        apply_fn: A hook for a function that applies current model. Default: :meth:`_apply_fn`, i.e. use the standard apply function.
+        variables: Model parameters to use for evaluation.
+            Default: ``None`` (i.e. read from checkpoint).
+
+    Returns:
+        Output of model evaluated at the input provided in `test_ds`.
+
+    Raises:
+        Error if no variables and no checkpoint are specified.
+    """
+    if "workdir" in config:
+        workdir: str = config["workdir"]
+    else:
+        workdir = "./"
+
+    if "checkpointing" in config:
+        checkpointing: bool = config["checkpointing"]
+    else:
+        checkpointing = False
+
+    if variables is None:
+        if checkpointing:
+            if not have_tf:
+                raise RuntimeError(
+                    "Tensorflow not available and it is " "required for Flax checkpointing."
+                )
+            state = checkpoints.restore_checkpoint(workdir, model)
+            variables = {
+                "params": state["params"],
+                "batch_stats": state["batch_stats"],
+            }
+            print(get_parameter_overview(variables["params"]))
+            print(get_parameter_overview(variables["batch_stats"]))
+        else:
+            raise Exception("No variables or checkpoint provided")
+
+    # For distributed testing
+    local_batch_size = config["batch_size"] // jax.process_count()
+    size_device_prefetch = 2  # Set for GPU
+    # Configure seed.
+    key = jax.random.PRNGKey(config["seed"])
+    # Set data iterator
+    eval_dt_iter = create_input_iter(
+        key,  # eval: no permutation
+        test_ds,
+        local_batch_size,
+        size_device_prefetch,
+        model.dtype,
+        train=False,
+    )
+    p_apply_step = jax.pmap(apply_fn, axis_name="batch", static_broadcasted_argnums=0)
+
+    # Evaluate model with provided variables
+    variables = jax_utils.replicate(variables)
+    num_examples = test_ds["image"].shape[0]
+    steps_ = num_examples // config["batch_size"]
+    output_lst = []
+    for _ in range(steps_):
+        eval_batch = next(eval_dt_iter)
+        output_batch = p_apply_step(model, variables, eval_batch)
+        output_lst.append(output_batch.reshape((-1,) + output_batch.shape[-3:]))
+
+    # Allow for completing the async run
+    jax.random.normal(jax.random.PRNGKey(0), ()).block_until_ready()
+
+    # Extract one copy of variables
+    variables = jax_utils.unreplicate(variables)
+    # Convert to array
+    output = jnp.array(output_lst)
+    # Remove leading dimension
+    output = output.reshape((-1,) + output.shape[-3:])
+
+    return output, variables  # type: ignore

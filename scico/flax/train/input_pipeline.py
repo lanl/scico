@@ -15,13 +15,6 @@ import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
-import sys
-
-if sys.version_info >= (3, 8):
-    from typing import TypedDict  # pylint: disable=no-name-in-module
-else:
-    from typing_extensions import TypedDict
-
 from typing import Any, Union
 
 import jax
@@ -30,18 +23,10 @@ import jax.numpy as jnp
 from flax import jax_utils
 from scico.typing import Array
 
+from .typed_dict import DataSetDict
+
 DType = Any
 KeyArray = Union[Array, jax.random.PRNGKeyArray]
-
-
-class DataSetDict(TypedDict):
-    """Dictionary structure for training data sets.
-
-    Definition of the dictionary structure
-    expected for the training data sets."""
-
-    image: Array  # input
-    label: Array  # output
 
 
 class IterateData:
