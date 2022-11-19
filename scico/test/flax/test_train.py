@@ -22,7 +22,7 @@ from scico.flax.train.learning_rate import (
 )
 from scico.flax.train.losses import mse_loss
 from scico.flax.train.state import create_basic_train_state, initialize
-from scico.flax.train.steps import _eval_step, _train_step, _train_step_post
+from scico.flax.train.steps import eval_step, train_step, train_step_post
 from scico.flax.train.trainer import sync_batch_stats
 from scico.flax.train.traversals import clip_positive, clip_range, construct_traversal
 
@@ -360,7 +360,7 @@ def test_basic_train_step(testobj):
     state = jax_utils.replicate(state)
     p_train_step = jax.pmap(
         functools.partial(
-            _train_step,
+            train_step,
             learning_rate_fn=learning_rate,
             criterion=criterion,
             metrics_fn=compute_metrics,
@@ -426,10 +426,10 @@ def test_post_train_step(testobj):
     state = jax_utils.replicate(state)
     p_train_step = jax.pmap(
         functools.partial(
-            _train_step_post,
+            train_step_post,
             learning_rate_fn=learning_rate,
             criterion=criterion,
-            train_step_fn=_train_step,
+            train_step_fn=train_step,
             metrics_fn=compute_metrics,
             post_lst=[krange],
         ),
@@ -470,7 +470,7 @@ def test_basic_eval_step(testobj):
     # Evaluation is configured as parallel operation
     state = jax_utils.replicate(state)
     p_eval_step = jax.pmap(
-        functools.partial(_eval_step, criterion=criterion, metrics_fn=compute_metrics),
+        functools.partial(eval_step, criterion=criterion, metrics_fn=compute_metrics),
         axis_name="batch",
     )
 
@@ -762,8 +762,8 @@ def test_class_train_set_functions(testobj):
     train_conf = dict(testobj.train_conf)
     train_conf["criterion"] = huber_loss
     train_conf["create_train_state"] = create_basic_train_state
-    train_conf["train_step_fn"] = _train_step
-    train_conf["eval_step_fn"] = _eval_step
+    train_conf["train_step_fn"] = train_step
+    train_conf["eval_step_fn"] = eval_step
     train_conf["post_lst"] = [krange]
     try:
         trainer = sflax.BasicFlaxTrainer(

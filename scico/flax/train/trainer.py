@@ -42,7 +42,7 @@ from .input_pipeline import create_input_iter
 from .learning_rate import create_cnst_lr_schedule
 from .losses import mse_loss
 from .state import TrainState, create_basic_train_state
-from .steps import _eval_step, _train_step, _train_step_post
+from .steps import eval_step, train_step, train_step_post
 from .typed_dict import ConfigDict, DataSetDict, MetricsDict, ModelVarDict
 
 ModuleDef = Any
@@ -74,11 +74,11 @@ class BasicFlaxTrainer:
         test_ds: DataSetDict,
         variables0: Optional[ModelVarDict] = None,
     ):
-        """Configure model training and evaluation loop.
+        """Initializer for :class:`BasicFlaxTrainer` to configure model training and evaluation loop.
 
-        Assumes sharded batched data and uses data parallel training.
-        Additionally, construct a Flax train state which includes the model apply function,
-        the model parameters and an Optax optimizer.
+        Construct a Flax train state (which includes the model apply function,
+        the model parameters and an Optax optimizer).
+        This uses data parallel training assuming sharded batched data.
 
         Args:
             config: Hyperparameter configuration.
@@ -233,13 +233,13 @@ class BasicFlaxTrainer:
         The functions constructed correspond to
 
         - `create_lr_schedule`: A function that creates an Optax learning rate schedule. Default:
-            :meth:`create_cnst_lr_schedule`.
-        - `criterion`: A function that specifies the loss being minimized in training. Default: :meth:`mse_loss`.
+            :meth:`~.learning_rate.create_cnst_lr_schedule`.
+        - `criterion`: A function that specifies the loss being minimized in training. Default: :meth:`~.losses.mse_loss`.
         - `create_train_state`: A function that creates a Flax train state and initializes it. A train state object helps to keep optimizer and module functionality grouped for training. Default:
-            :meth:`create_basic_train_state`.
-        - `train_step_fn`: A hook for a function that executes a training step. Default: :meth:`_train_step`, i.e. use the standard train step.
-        - `eval_step_fn`: A hook for a function that executes an eval step. Default: :meth:`_eval_step`, i.e. use the standard eval step.
-        - `metrics_fn`: A hook for a function that computes metrics. Default: :meth:`compute_metrics`, i.e. use the standard compute metrics function.
+            :meth:`~.state.create_basic_train_state`.
+        - `train_step_fn`: A hook for a function that executes a training step. Default: :meth:`~.steps.train_step`, i.e. use the standard train step.
+        - `eval_step_fn`: A hook for a function that executes an eval step. Default: :meth:`~.steps.eval_step`, i.e. use the standard eval step.
+        - `metrics_fn`: A hook for a function that computes metrics. Default: :meth:`~.diagnostics.compute_metrics`, i.e. use the standard compute metrics function.
         - `post_lst`: List of postprocessing functions to apply to parameter set after optimizer step (e.g. clip
             to a specified range, normalize, etc.).
 
@@ -266,12 +266,12 @@ class BasicFlaxTrainer:
         if "train_step_fn" in config:
             self.train_step_fn: Callable = config["train_step_fn"]
         else:
-            self.train_step_fn = _train_step
+            self.train_step_fn = train_step
 
         if "eval_step_fn" in config:
             self.eval_step_fn: Callable = config["eval_step_fn"]
         else:
-            self.eval_step_fn = _eval_step
+            self.eval_step_fn = eval_step
 
         if "metrics_fn" in config:
             self.metrics_fn: Callable = config["metrics_fn"]
@@ -335,7 +335,7 @@ class BasicFlaxTrainer:
         if self.post_lst is not None:
             self.p_train_step = jax.pmap(
                 functools.partial(
-                    _train_step_post,
+                    train_step_post,
                     train_step_fn=self.train_step_fn,
                     learning_rate_fn=self.lr_schedule,
                     criterion=self.criterion,

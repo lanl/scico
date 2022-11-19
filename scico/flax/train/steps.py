@@ -23,7 +23,7 @@ KeyArray = Union[Array, jax.random.PRNGKeyArray]
 PyTree = Any
 
 
-def _train_step(
+def train_step(
     state: TrainState,
     batch: DataSetDict,
     learning_rate_fn: optax._src.base.Schedule,
@@ -32,7 +32,7 @@ def _train_step(
 ) -> Tuple[TrainState, MetricsDict]:
     """Perform a single data parallel training step. Assumes sharded batched data.
 
-    This function is intended to be used via :class:`BasicFlaxTrainer`, not directly.
+    This function is intended to be used via :class:`~.trainer.BasicFlaxTrainer`, not directly.
 
     Args:
         state: Flax train state which includes the
@@ -85,7 +85,7 @@ def _train_step(
     return new_state, metrics
 
 
-def _train_step_post(
+def train_step_post(
     state: TrainState,
     batch: DataSetDict,
     learning_rate_fn: optax._src.base.Schedule,
@@ -99,7 +99,7 @@ def _train_step_post(
     condition, etc.) is applied after the gradient update.
     Assumes sharded batched data.
 
-    This function is intended to be used via :class:`BasicFlaxTrainer`, not directly.
+    This function is intended to be used via :class:`~.trainer.BasicFlaxTrainer`, not directly.
 
     Args:
         state: Flax train state which includes the
@@ -129,13 +129,13 @@ def _train_step_post(
     return new_state, metrics
 
 
-def _eval_step(
+def eval_step(
     state: TrainState, batch: DataSetDict, criterion: Callable, metrics_fn: Callable
 ) -> MetricsDict:
     """Evaluate current model state. Assumes sharded
     batched data.
 
-    This function is intended to be used via :class:`BasicFlaxTrainer` or :meth:`only_evaluate`, not directly.
+    This function is intended to be used via :class:`~.trainer.BasicFlaxTrainer` or :meth:`~.apply.only_evaluate`, not directly.
 
     Args:
         state: Flax train state which includes the

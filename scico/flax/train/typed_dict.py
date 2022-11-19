@@ -5,7 +5,7 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Definition of typed dictionaries for training functionality."""
+"""Definition of typed dictionaries for objects in training functionality."""
 
 import sys
 from typing import Any, Callable, List

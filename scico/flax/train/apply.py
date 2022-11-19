@@ -5,7 +5,7 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Functionality to apply trained model.
+"""Functionality to evaluate Flax trained model.
 
 Uses data parallel evaluation.
 """
@@ -40,7 +40,7 @@ def _apply_fn(model: ModuleDef, variables: ModelVarDict, batch: DataSetDict) -> 
     """Apply current model. Assumes sharded
     batched data and replicated variables for distributed processing.
 
-    This function is intended to be used via :meth:`only_apply`, not directly.
+    This function is intended to be used via :meth:`~.apply.only_apply`, not directly.
 
     Args:
         model: Flax model to apply.
@@ -68,7 +68,7 @@ def only_apply(
         model: Flax model to apply.
         test_ds: Dictionary of testing data (includes images
             and labels).
-        apply_fn: A hook for a function that applies current model. Default: :meth:`_apply_fn`, i.e. use the standard apply function.
+        apply_fn: A hook for a function that applies current model. Default: :meth:`~.apply._apply_fn`, i.e. use the standard apply function.
         variables: Model parameters to use for evaluation.
             Default: ``None`` (i.e. read from checkpoint).
 

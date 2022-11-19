@@ -11,7 +11,15 @@ from typing import Union
 
 import jax
 
-from flax.training import checkpoints
+try:
+    from tensorflow.io import gfile  # noqa: F401
+except ImportError:
+    have_tf = False
+else:
+    have_tf = True
+
+if have_tf:
+    from flax.training import checkpoints
 
 from .state import TrainState
 

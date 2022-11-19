@@ -30,7 +30,7 @@ def compute_metrics(output: Array, labels: Array, criterion: Callable = mse_loss
     Args:
         output: Comparison signal.
         labels: Reference signal.
-        criterion: Loss function. Default: :meth:`mse_loss`.
+        criterion: Loss function. Default: :meth:`~.losses.mse_loss`.
 
     Returns:
         Loss and SNR between `output` and `labels`.
@@ -58,10 +58,10 @@ class ArgumentStruct:
 def stats_obj() -> Tuple[IterationStats, Callable]:
     """Functionality to log and store iteration statistics.
 
-    This function initializes an object :class:`.diagnostics.IterationStats` to log and store
+    This function initializes an object :class:`~.diagnostics.IterationStats` to log and store
     iteration statistics if logging is enabled during training.
     The statistics collected are: epoch, time, learning rate, loss and snr in training and loss and snr in evaluation.
-    The :class:`.diagnostics.IterationStats` object takes care of both: printing stats to command line and storing
+    The :class:`~.diagnostics.IterationStats` object takes care of both: printing stats to command line and storing
     them for further analysis.
     """
     # epoch, time learning rate loss and snr (train and
