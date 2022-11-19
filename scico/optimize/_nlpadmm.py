@@ -248,10 +248,23 @@ class NonLinearPADMM:
     def norm_dual_residual(self) -> float:
         r"""Compute the :math:`\ell_2` norm of the dual residual.
 
-        Compute the :math:`\ell_2` norm of the dual residual
+        Compute the :math:`\ell_2` norm of the dual residual. If the flag
+        requesting a fast approximate calculation is set, it is computed
+        as
 
         .. math::
-            \norm{\mb{z}^{(k)} - \mb{z}^{(k-1)}}_2 \;.
+            \norm{\mb{z}^{(k+1)} - \mb{z}^{(k)}}_2 \;,
+
+        otherwise it is computed as
+
+        .. math::
+            \norm{A^T B ( \mb{z}^{(k+1)} - \mb{z}^{(k)} ) }_2 \;,
+
+        where
+
+        .. math::
+            A &= J_{\mb{x}} H(\mb{x}^{(k+1)}, \mb{z}^{(k+1)}) \\
+            B &= J_{\mb{z}} H(\mb{x}^{(k+1)}, \mb{z}^{(k+1)}) \;.
 
         Returns:
             Current norm of dual residual.
