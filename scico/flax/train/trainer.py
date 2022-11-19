@@ -233,13 +233,13 @@ class BasicFlaxTrainer:
         The functions constructed correspond to
 
         - `create_lr_schedule`: A function that creates an Optax learning rate schedule. Default:
-            :meth:`~.learning_rate.create_cnst_lr_schedule`.
-        - `criterion`: A function that specifies the loss being minimized in training. Default: :meth:`~.losses.mse_loss`.
+            :meth:`~scico.flax.train.learning_rate.create_cnst_lr_schedule`.
+        - `criterion`: A function that specifies the loss being minimized in training. Default: :meth:`~scico.flax.train.losses.mse_loss`.
         - `create_train_state`: A function that creates a Flax train state and initializes it. A train state object helps to keep optimizer and module functionality grouped for training. Default:
-            :meth:`~.state.create_basic_train_state`.
-        - `train_step_fn`: A hook for a function that executes a training step. Default: :meth:`~.steps.train_step`, i.e. use the standard train step.
-        - `eval_step_fn`: A hook for a function that executes an eval step. Default: :meth:`~.steps.eval_step`, i.e. use the standard eval step.
-        - `metrics_fn`: A hook for a function that computes metrics. Default: :meth:`~.diagnostics.compute_metrics`, i.e. use the standard compute metrics function.
+            :meth:`~scico.flax.train.state.create_basic_train_state`.
+        - `train_step_fn`: A hook for a function that executes a training step. Default: :meth:`~scico.flax.train.steps.train_step`, i.e. use the standard train step.
+        - `eval_step_fn`: A hook for a function that executes an eval step. Default: :meth:`~scico.flax.train.steps.eval_step`, i.e. use the standard eval step.
+        - `metrics_fn`: A hook for a function that computes metrics. Default: :meth:`~scico.flax.train.diagnostics.compute_metrics`, i.e. use the standard compute metrics function.
         - `post_lst`: List of postprocessing functions to apply to parameter set after optimizer step (e.g. clip
             to a specified range, normalize, etc.).
 

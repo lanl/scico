@@ -36,11 +36,11 @@ from .typed_dict import ConfigDict, DataSetDict, ModelVarDict
 ModuleDef = Any
 
 
-def _apply_fn(model: ModuleDef, variables: ModelVarDict, batch: DataSetDict) -> Array:
+def apply_fn(model: ModuleDef, variables: ModelVarDict, batch: DataSetDict) -> Array:
     """Apply current model. Assumes sharded
     batched data and replicated variables for distributed processing.
 
-    This function is intended to be used via :meth:`~.apply.only_apply`, not directly.
+    This function is intended to be used via :meth:`~scico.flax.train.apply.only_apply`, not directly.
 
     Args:
         model: Flax model to apply.
@@ -58,7 +58,7 @@ def only_apply(
     config: ConfigDict,
     model: ModuleDef,
     test_ds: DataSetDict,
-    apply_fn: Callable = _apply_fn,
+    apply_fn: Callable = apply_fn,
     variables: Optional[ModelVarDict] = None,
 ) -> Tuple[Array, ModelVarDict]:
     """Execute model application loop.
@@ -68,7 +68,7 @@ def only_apply(
         model: Flax model to apply.
         test_ds: Dictionary of testing data (includes images
             and labels).
-        apply_fn: A hook for a function that applies current model. Default: :meth:`~.apply._apply_fn`, i.e. use the standard apply function.
+        apply_fn: A hook for a function that applies current model. Default: :meth:`~scico.flax.train.apply.apply_fn`, i.e. use the standard apply function.
         variables: Model parameters to use for evaluation.
             Default: ``None`` (i.e. read from checkpoint).
 

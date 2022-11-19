@@ -30,7 +30,7 @@ def compute_metrics(output: Array, labels: Array, criterion: Callable = mse_loss
     Args:
         output: Comparison signal.
         labels: Reference signal.
-        criterion: Loss function. Default: :meth:`~.losses.mse_loss`.
+        criterion: Loss function. Default: :meth:`~scico.flax.train.losses.mse_loss`.
 
     Returns:
         Loss and SNR between `output` and `labels`.

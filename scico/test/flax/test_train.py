@@ -11,7 +11,7 @@ import pytest
 from flax import jax_utils
 from scico import flax as sflax
 from scico import random
-from scico.flax.train.apply import _apply_fn
+from scico.flax.train.apply import apply_fn
 from scico.flax.train.clu_utils import flatten_dict
 from scico.flax.train.diagnostics import ArgumentStruct, compute_metrics, stats_obj
 from scico.flax.train.input_pipeline import IterateData, prepare_data
@@ -1014,7 +1014,7 @@ def test_apply_fn(testobj):
 
     try:
         batch = next(ds)
-        output = _apply_fn(model, variables, batch)
+        output = apply_fn(model, variables, batch)
     except Exception as e:
         print(e)
         assert 0
