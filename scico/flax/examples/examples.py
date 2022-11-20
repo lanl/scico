@@ -8,7 +8,7 @@
 """Generation and loading of data used in Flax example scripts."""
 
 import os
-from typing import Callable, Optional, Tuple
+from typing import Callable, Optional, Tuple, Union
 
 import numpy as np
 
@@ -627,7 +627,9 @@ def print_data_warning(idstring: str, requested: int, available: int):
     )
 
 
-def runtime_error(type: str, idstring: str, requested: int, available: int):
+def runtime_error(
+    type: str, idstring: str, requested: Union[int, float], available: Union[int, float]
+):
     """Raise run time error related to parameter request not satisfied in available data.
 
     Args:
