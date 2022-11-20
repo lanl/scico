@@ -45,7 +45,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from scico import flax as sflax
 from scico import metric, plot
-from scico.flax.examples import load_foam_blur_data
+from scico.flax.examples import load_foam1_blur_data
 from scico.flax.train.traversals import clip_positive, construct_traversal
 from scico.linop import CircularConvolve
 
@@ -78,7 +78,7 @@ train_nimg = 416  # number of training images
 test_nimg = 64  # number of testing images
 nimg = train_nimg + test_nimg
 
-train_ds, test_ds = load_foam_blur_data(
+train_ds, test_ds = load_foam1_blur_data(
     train_nimg,
     test_nimg,
     output_size,

@@ -150,6 +150,7 @@ def generate_ct_data(
     seed: int = 1234,
     verbose: bool = False,
     test_flag: bool = False,
+    prefer_ray: bool = True,
 ) -> Tuple[Array, ...]:
     """
     Generate CT data.
@@ -166,6 +167,7 @@ def generate_ct_data(
         verbose: Flag indicating whether to print status messages. Default: ``False``.
         test_flag: Flag to indicate if running in testing mode. Testing mode requires a different
             initialization of ray. Default: ``False``.
+        prefer_ray: Use ray for distributed processing if available. Default: ``True``.
 
     Returns:
        tuple: A tuple (img, sino, fbp) containing:
@@ -178,7 +180,7 @@ def generate_ct_data(
         raise RuntimeError("Package astra is required for use of this function.")
 
     # Generate input data.
-    if have_ray:
+    if have_ray and prefer_ray:
         start_time = time()
         img = ray_distributed_data_generation(imgfunc, size, nimg, seed, test_flag)
         time_dtgen = time() - start_time
@@ -218,11 +220,11 @@ def generate_ct_data(
 
     if verbose:
         platform = jax.lib.xla_bridge.get_backend().platform
-        print(f"{'Platform':28s}{':':4s}{platform}")
-        print(f"{'Device count':28s}{':':4s}{jax.device_count()}")
-        print(f"{'Data generation':21s}{'time[s]:':10s}{time_dtgen:>7.2f}")
-        print(f"{'Sinogram generation':21s}{'time[s]:':10s}{time_sino:>7.2f}")
-        print(f"{'FBP generation':21s}{'time[s]:':10s}{time_fbp:>7.2f}")
+        print(f"{'Platform':26s}{':':4s}{platform}")
+        print(f"{'Device count':26s}{':':4s}{jax.device_count()}")
+        print(f"{'Data generation':19s}{'time[s]:':10s}{time_dtgen:>7.2f}")
+        print(f"{'Sinogram':19s}{'time[s]:':10s}{time_sino:>7.2f}")
+        print(f"{'FBP':19s}{'time[s]:':10s}{time_fbp:>7.2f}")
 
     return img, sino, fbp
 
@@ -236,6 +238,7 @@ def generate_blur_data(
     seed: int = 4321,
     verbose: bool = False,
     test_flag: bool = False,
+    prefer_ray: bool = True,
 ) -> Tuple[Array, ...]:
     """
     Generate blurred data based on xdesign foam structures.
@@ -253,6 +256,7 @@ def generate_blur_data(
         verbose: Flag indicating whether to print status messages. Default: ``False``.
         test_flag: Flag to indicate if running in testing mode. Testing mode requires a different
             initialization of ray. Default: ``False``.
+        prefer_ray: Use ray for distributed processing if available. Default: ``True``.
 
     Returns:
        tuple: A tuple (img, blurn) containing:
@@ -260,7 +264,7 @@ def generate_blur_data(
            - **img** : Generated foam images.
            - **blurn** : Corresponding blurred and noisy images.
     """
-    if have_ray:
+    if have_ray and prefer_ray:
         start_time = time()
         img = ray_distributed_data_generation(imgfunc, size, nimg, seed, test_flag)
         time_dtgen = time() - start_time
@@ -295,10 +299,10 @@ def generate_blur_data(
 
     if verbose:  # pragma: no cover
         platform = jax.lib.xla_bridge.get_backend().platform
-        print(f"{'Platform':28s}{':':4s}{platform}")
-        print(f"{'Device count':28s}{':':4s}{jax.device_count()}")
-        print(f"{'Data generation':21s}{'time[s]:':10s}{time_dtgen:>7.2f}")
-        print(f"{'Blur generation':21s}{'time[s]:':10s}{time_blur:>7.2f}")
+        print(f"{'Platform':26s}{':':4s}{platform}")
+        print(f"{'Device count':26s}{':':4s}{jax.device_count()}")
+        print(f"{'Data generation':19s}{'time[s]:':10s}{time_dtgen:>7.2f}")
+        print(f"{'Blur generation':19s}{'time[s]:':10s}{time_blur:>7.2f}")
 
     return img, blurn
 

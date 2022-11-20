@@ -46,6 +46,7 @@ def load_ct_data(
     nproj: int,
     cache_path: Optional[str] = None,
     verbose: bool = False,
+    prefer_ray: bool = True,
 ) -> Tuple[CTDataSetDict, ...]:  # pragma: no cover
     """
     Load or generate CT data.
@@ -69,6 +70,7 @@ def load_ct_data(
         nproj: Number of CT views.
         cache_path: Directory in which generated data is saved. Default: ``None``.
         verbose: Flag indicating whether to print status messages. Default: ``False``.
+        prefer_ray: Use ray for distributed processing if available. Default: ``True``.
 
     Returns:
        tuple: A tuple (trdt, ttdt) containing:
@@ -115,10 +117,10 @@ def load_ct_data(
                 if verbose:
                     print_input_path(cache_path_display)
                     print_data_size("training", trdt["img"].shape[0])
-                    print_data_size("testing", ttdt["img"].shape[0])
-                    print_data_range("images", trdt["img"])
-                    print_data_range("sinograms", trdt["sino"])
-                    print_data_range("FBP", trdt["fbp"])
+                    print_data_size("testing ", ttdt["img"].shape[0])
+                    print_data_range("images  ", trdt["img"])
+                    print_data_range("sinogram", trdt["sino"])
+                    print_data_range("FBP     ", trdt["fbp"])
 
                 return trdt, ttdt
 
@@ -134,6 +136,7 @@ def load_ct_data(
         size,
         nproj,
         verbose=verbose,
+        prefer_ray=prefer_ray,
     )
     # Separate training and testing partitions.
     trdt = {"img": img[:train_nimg], "sino": sino[:train_nimg], "fbp": fbp[:train_nimg]}
@@ -157,15 +160,15 @@ def load_ct_data(
     if verbose:
         print_output_path(cache_path_display)
         print_data_size("training", train_nimg)
-        print_data_size("testing", test_nimg)
-        print_data_range("images", img)
-        print_data_range("sinograms", sino)
-        print_data_range("FBP", fbp)
+        print_data_size("testing ", test_nimg)
+        print_data_range("images  ", img)
+        print_data_range("sinogram", sino)
+        print_data_range("FBP     ", fbp)
 
     return trdt, ttdt
 
 
-def load_foam_blur_data(
+def load_foam1_blur_data(
     train_nimg: int,
     test_nimg: int,
     size: int,
@@ -173,6 +176,7 @@ def load_foam_blur_data(
     noise_sigma: float,
     cache_path: Optional[str] = None,
     verbose: bool = False,
+    prefer_ray: bool = True,
 ) -> Tuple[DataSetDict, ...]:  # pragma: no cover
     """
     Load or generate blurred data based on xdesign foam structures.
@@ -181,14 +185,13 @@ def load_foam_blur_data(
     If cached file exists and enough data of the requested size is available, data is
     loaded and returned.
 
-    If `size` requested does not match the data read from the cached
-    file, a `RunTimeError` is generated. In contrast, there is no checking for the
-    specific contamination (i.e. noise level, blur kernel, etc.).
+    If `size`, `blur_kernel` or `noise_sigma` requested do not match the data read from the cached
+    file, a `RunTimeError` is generated.
 
     If no cached file is found or not enough data is contained in the file a new data set
     is generated and stored in `cache_path`. The data is stored in `.npz` format for
     convenient access via :func:`numpy.load`. The data is saved in two distinct files:
-    `dcnv_foam_train.npz` and `dcnv_foam_test.npz` to keep separated training and testing partitions.
+    `dcnv_foam1_train.npz` and `dcnv_foam1_test.npz` to keep separated training and testing partitions.
 
     Args:
         train_nimg: Number of images required for training.
@@ -198,19 +201,20 @@ def load_foam_blur_data(
         noise_sigma: Level of additive Gaussian noise to apply.
         cache_path: Directory in which generated data is saved. Default: ``None``.
         verbose: Flag indicating whether to print status messages. Default: ``False``.
+        prefer_ray: Use ray for distributed processing if available. Default: ``True``.
 
     Returns:
        tuple: A tuple (train_ds, test_ds) containing:
 
-           - **train_ds** : (DataSetDict): Dictionary of training data (includes images and labels).
-           - **test_ds** : (DataSetDict): Dictionary of testing data (includes images and labels).
+           - **train_ds** : Dictionary of training data (includes images and labels).
+           - **test_ds** : Dictionary of testing data (includes images and labels).
     """
     # Set default cache path if not specified
     cache_path, cache_path_display = get_cache_path(cache_path)
 
     # Create cache directory and generate data if not already present.
-    npz_train_file = os.path.join(cache_path, "dcnv_foam_train.npz")
-    npz_test_file = os.path.join(cache_path, "dcnv_foam_test.npz")
+    npz_train_file = os.path.join(cache_path, "dcnv_foam1_train.npz")
+    npz_test_file = os.path.join(cache_path, "dcnv_foam1_test.npz")
 
     if os.path.isfile(npz_train_file) and os.path.isfile(npz_test_file):
         # Load data and convert arrays to float32.
@@ -225,7 +229,21 @@ def load_foam_blur_data(
         if train_in.shape[1] != size:
             runtime_error("size", "training", size, train_in.shape[1])
         if test_in.shape[1] != size:
-            runtime_error("size", "testing", size, test_in.shape[1])
+            runtime_error("size", "testing ", size, test_in.shape[1])
+
+        # Check noise_sigma
+        if trdt["noise"] != noise_sigma:
+            runtime_error("noise", "training", noise_sigma, trdt["noise"])
+        if ttdt["noise"] != noise_sigma:
+            runtime_error("noise", "testing ", noise_sigma, ttdt["noise"])
+
+        # Check blur kernel
+        blur_train = trdt["blur"].astype(np.float32)
+        if not np.allclose(blur_kernel, blur_train):
+            runtime_error("blur", "testing ", blur_kernel[0], blur_train[0])
+        blur_test = ttdt["blur"].astype(np.float32)
+        if not np.allclose(blur_kernel, blur_test):
+            runtime_error("blur", "testing ", blur_kernel[0], blur_test[0])
 
         # Check that enough images were restored.
         if trdt["numimg"] >= train_nimg:
@@ -247,16 +265,10 @@ def load_foam_blur_data(
                         test_ds["image"].shape[0],
                     )
 
-                    print(
-                        "NOTE: If blur kernel or noise parameter are changed, the cache"
-                        " must be manually deleted to ensure that the training data "
-                        " is regenerated with these new parameters."
-                    )
-
                 return train_ds, test_ds
 
             elif verbose:
-                print_data_warning("testing", test_nimg, ttdt["numimg"])
+                print_data_warning("testing ", test_nimg, ttdt["numimg"])
         elif verbose:
             print_data_warning("training", train_nimg, trdt["numimg"])
 
@@ -269,6 +281,7 @@ def load_foam_blur_data(
         noise_sigma,
         imgfunc=generate_foam1_images,
         verbose=verbose,
+        prefer_ray=prefer_ray,
     )
     # Separate training and testing partitions.
     train_ds = {"image": blrn[:train_nimg], "label": img[:train_nimg]}
@@ -281,12 +294,16 @@ def load_foam_blur_data(
         image=train_ds["image"],
         label=train_ds["label"],
         numimg=train_nimg,
+        noise=noise_sigma,
+        blur=blur_kernel.astype(np.float32),
     )
     np.savez(
         npz_test_file,
         image=test_ds["image"],
         label=test_ds["label"],
         numimg=test_nimg,
+        noise=noise_sigma,
+        blur=blur_kernel.astype(np.float32),
     )
 
     if verbose:
@@ -506,7 +523,7 @@ def check_img_data_requirements(
     if train_in_shp[1] != size:
         runtime_error("size", "training", size, train_in_shp[1])
     if test_in_shp[1] != size:
-        runtime_error("size", "testing", size, test_in_shp[1])
+        runtime_error("size", "testing ", size, test_in_shp[1])
 
     # Check gray scale or color images.
     C_train = train_in_shp[-1]
@@ -518,7 +535,7 @@ def check_img_data_requirements(
     if C_train != C:
         runtime_error("channels", "training", C, C_train)
     if C_test != C:
-        runtime_error("channels", "testing", C, C_test)
+        runtime_error("channels", "testing ", C, C_test)
 
     # Check that enough images were sampled.
     if train_nimg_avail >= train_nimg:
@@ -526,9 +543,9 @@ def check_img_data_requirements(
             return True
 
         elif verbose:
-            print_data_warning("testing", test_nimg_avail, test_nimg)
+            print_data_warning("testing ", test_nimg, test_nimg_avail)
     elif verbose:
-        print_data_warning("training", train_nimg_avail, train_nimg)
+        print_data_warning("training", train_nimg, train_nimg_avail)
 
     return False
 
@@ -539,7 +556,7 @@ def print_input_path(path_display: str):
     Args:
         path_display: Path for loading data.
     """
-    print(f"{'Data read from path':28s}{':':4s}{path_display}")
+    print(f"{'Data read from path':26s}{':':4s}{path_display}")
 
 
 def print_output_path(path_display: str):
@@ -548,7 +565,7 @@ def print_output_path(path_display: str):
     Args:
         path_display: Path for storing data.
     """
-    print(f"{'Storing data in path':28s}{':':4s}{path_display}")
+    print(f"{'Storing data in path':26s}{':':4s}{path_display}")
 
 
 def print_data_range(idstring: str, data: Array):
@@ -559,7 +576,7 @@ def print_data_range(idstring: str, data: Array):
         data: Array to compute min and max.
     """
     print(
-        f"{'Data range':10s}{idstring}{'':25s}"
+        f"{'Data range --':10s}{idstring}{'--':5s}{':':5s}"
         f"{'Min:':6s}{data.min():>5.2f}"
         f"{', Max:':6s}{data.max():>5.2f}"
     )
@@ -572,7 +589,7 @@ def print_data_size(idstring: str, size: int):
         idstring: Set descriptive string.
         size: Integer representing size of a set.
     """
-    print(f"{'Set:':10s}{idstring}{'':23s}{'Size:':4s}{size}")
+    print(f"{'Set --':3s}{idstring}{'--':12s}{':':4s}{'Size:':8s}{size}")
 
 
 def print_info(iomode: str, path_display: str, train_in: Array, train_out: Array, test_size: int):
@@ -590,9 +607,9 @@ def print_info(iomode: str, path_display: str, train_in: Array, train_out: Array
     else:
         print_output_path(path_display)
     print_data_size("training", train_in.shape[0])
-    print_data_size("testing", test_size)
-    print_data_range("images", train_in)
-    print_data_range("labels", train_out)
+    print_data_size("testing ", test_size)
+    print_data_range(" images ", train_in)
+    print_data_range(" labels ", train_out)
 
 
 def print_data_warning(idstring: str, requested: int, available: int):
@@ -605,8 +622,8 @@ def print_data_warning(idstring: str, requested: int, available: int):
     """
     print(
         f"{'Not enough images sampled in ':10s}{idstring}"
-        f"{'file':34s}{'Requested:':12s}{requested}"
-        f"{' Available:':12s}{available}"
+        f"{' file':6s}{'Requested :':14s}{requested}"
+        f"{' Available :':14s}{available}"
     )
 
 
@@ -620,7 +637,8 @@ def runtime_error(type: str, idstring: str, requested: int, available: int):
         available: Parameter value available in data.
     """
     raise RuntimeError(
-        f"{'Requested parameter':10s}{type}{':':2s}{requested}"
-        f"{' does not match parameter read from'}"
-        f"{':10s'}{idstring}{'file:':12s}{available}"
+        f"{'Requested parameter --':15s}{type}{'-- :':7s}{requested}"
+        f"{' does not match parameter read from '}"
+        f"{idstring}{' file :':10s}{available}"
+        f"\nDelete cache and check data source"
     )

@@ -461,7 +461,9 @@ def get_bsds_data(path: str, verbose: bool = False):  # pragma: no cover
 
     npz_file = os.path.join(path, "bsds500.npz")
     if verbose:
-        print(f"Saving as {npz_file}")
+        subpath = str.split(npz_file, ".cache")
+        npz_file_display = "~/.cache" + subpath[-1]
+        print(f"Saving as {npz_file_display}")
     np.savez(npz_file, imgstr=imgs400, imgstt=imgs_val)
 
 

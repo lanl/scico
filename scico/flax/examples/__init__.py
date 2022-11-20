@@ -6,3 +6,13 @@
 # package.
 
 """Data utility functions used by Flax example scripts."""
+
+from .data_preprocessing import PaddedCircularConvolve
+from .examples import load_ct_data, load_foam1_blur_data, load_image_data
+
+__all__ = [
+    "load_ct_data",
+    "load_foam1_blur_data",
+    "load_image_data",
+    "PaddedCircularConvolve",
+]
