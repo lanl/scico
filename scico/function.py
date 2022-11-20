@@ -12,6 +12,7 @@ from typing import Callable, Optional, Sequence, Union
 import jax
 
 import scico.numpy as snp
+from scico.linop import LinearOperator, jacobian
 from scico.numpy import BlockArray
 from scico.operator import Operator
 from scico.typing import BlockShape, DType, JaxArray, Shape
@@ -127,3 +128,31 @@ output_dtype   : {self.output_dtype}
             output_dtype=self.output_dtype,
             jit=self.jit,
         )
+
+    def jacobian(
+        self, index: int, *args: Union[JaxArray, BlockArray], include_eval: Optional[bool] = False
+    ) -> LinearOperator:
+        """Construct Jacobian linear operator for the function.
+
+                Construct a Jacobian :class:`LinearOperator` that computes the
+                Jacobian with respect to a specified variable of the function.
+
+                Args:
+                   index: Index of parameter with respect to which the Jacobian
+                      is to be computed.
+                   *args: Values of function parameters at which Jacobian is to
+                      be computed.
+                   include_eval: Flag indicating whether the result of evaluating
+                      the :class:`.Operator` should be included (as the first
+                      component of a :class:`.BlockArray`) in the output of the
+                      Jacobian :class:`LinearOperator` constructed by this
+                      function
+        .
+                Returns:
+                  A :class:`LinearOperator` capable of computing Jacobian-vector
+                  products.
+        """
+        var_arg = args[index]
+        fix_args = args[0:index] + args[(index + 1) :]
+        F = self.slice(index, *fix_args)
+        return jacobian(F, var_arg, include_eval=include_eval)
