@@ -133,7 +133,7 @@ def test_linear_adjoint_c_to_r():
 
 
 @pytest.mark.parametrize("dtype", [np.float32, np.complex64])
-def test_jhvp(dtype):
+def test_cvjp(dtype):
     A, key = randn((3, 3), dtype=dtype)
     B, key = randn((3, 4), dtype=dtype, key=key)
     xp, key = randn((3,), dtype=dtype, key=key)
@@ -142,8 +142,8 @@ def test_jhvp(dtype):
     def fun(x, y):
         return A @ x + B @ y
 
-    px, jfnx = scico.jhvp(fun, xp, yp, jidx=0)
-    py, jfny = scico.jhvp(fun, xp, yp, jidx=1)
+    px, jfnx = scico.cvjp(fun, xp, yp, jidx=0)
+    py, jfny = scico.cvjp(fun, xp, yp, jidx=1)
 
     for k in range(3):
         v = np.zeros((3,), dtype=dtype)

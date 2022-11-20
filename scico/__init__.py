@@ -15,7 +15,7 @@ import sys
 from . import _python37  # python 3.7 compatibility
 
 # isort: off
-from ._autograd import grad, jacrev, linear_adjoint, value_and_grad, jhvp
+from ._autograd import grad, jacrev, linear_adjoint, value_and_grad, cvjp
 
 import jax, jaxlib
 
@@ -28,7 +28,7 @@ __all__ = [
     "value_and_grad",
     "linear_adjoint",
     "vjp",
-    "jhvp",
+    "cvjp",
     "jvp",
     "jacfwd",
     "jacrev",

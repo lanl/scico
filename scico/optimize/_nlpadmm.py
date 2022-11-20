@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from typing import Callable, List, Optional, Union
 
-from scico import jhvp, jvp
+from scico import cvjp, jvp
 from scico.diagnostics import IterationStats
 from scico.functional import Functional
 from scico.numpy import BlockArray
@@ -275,7 +275,7 @@ class NonLinearPADMM:
             Hz = lambda z: self.H(self.x, z)
             B = lambda u: jvp(Hz, (self.z,), (u,))[1]
             Hx = lambda x: self.H(x, self.z)
-            AH = jhvp(Hx, self.x)[1]
+            AH = cvjp(Hx, self.x)[1]
             rsdl = AH(B(self.z - self.z_old))
         return norm(rsdl)
 
@@ -284,10 +284,10 @@ class NonLinearPADMM:
 
         Perform a single algorithm iteration.
         """
-        _, AH = jhvp(self.H, self.x, self.z, jidx=0)
+        _, AH = cvjp(self.H, self.x, self.z, jidx=0)
         proxarg = self.x - (1.0 / self.mu) * AH(2.0 * self.u - self.u_old)[0]
         self.x = self.f.prox(proxarg, (1.0 / (self.rho * self.mu)), v0=self.x)
-        _, BH = jhvp(self.H, self.x, self.z, jidx=1)
+        _, BH = cvjp(self.H, self.x, self.z, jidx=1)
         proxarg = self.z - (1.0 / self.nu) * BH(self.H(self.x, self.z) + self.u)[0]
         self.z_old = self.z
         self.z = self.g.prox(proxarg, (1.0 / (self.rho * self.nu)), v0=self.z)
