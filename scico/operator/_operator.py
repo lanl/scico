@@ -283,7 +283,7 @@ output_dtype : {self.output_dtype}
         Compute the product :math:`J_F(\mb{u}) \mb{v}` where :math:`F`
         represents this operator and :math:`J_F(\mb{u})` is the Jacobian
         of :math:`F` evaluated at :math:`\mb{u}`. This method is
-        implemented via a call to :function:`jax.jvp`.
+        implemented via a call to :func:`jax.jvp`.
 
         Args:
             u: Value at which the Jacobian is evaluated.
@@ -305,7 +305,7 @@ output_dtype : {self.output_dtype}
         computing the vector-Jacobian product, this method returns a
         function, taking :math:`\mb{v}` as an argument, that returns
         the product. This method is implemented via a call to
-        :function:`jax.vjp`.
+        :func:`jax.vjp`.
 
         Args:
             u: Value at which the Jacobian is evaluated.
