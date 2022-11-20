@@ -11,6 +11,7 @@ import jax
 
 import scico.numpy as snp
 from scico import linop
+from scico.operator import Operator
 from scico.random import randn
 from scico.test.linop.test_linop import AbsMatOp
 
@@ -73,3 +74,35 @@ def test_operator_norm():
         D = linop.Diagonal(d)
         Dnorm = linop.operator_norm(D)
         assert np.abs(Dnorm - snp.abs(d).max()) < 1e-5
+
+
+@pytest.mark.parametrize("dtype", [snp.float32, snp.complex64])
+@pytest.mark.parametrize("inc_eval", [True, False])
+def test_jacobian(dtype, inc_eval):
+    N = 7
+    M = 8
+    key = None
+    fmx, key = randn((M, N), key=key, dtype=dtype)
+    F = Operator(
+        (N, 1),
+        output_shape=(M, 1),
+        eval_fn=lambda x: fmx @ x,
+        input_dtype=dtype,
+        output_dtype=dtype,
+    )
+    u, key = randn((N, 1), key=key, dtype=dtype)
+    v, key = randn((N, 1), key=key, dtype=dtype)
+    w, key = randn((M, 1), key=key, dtype=dtype)
+
+    J = linop.jacobian(F, u, include_eval=inc_eval)
+    Jv = J(v)
+    JHw = J.H(w)
+
+    if inc_eval:
+        np.testing.assert_allclose(Jv[0], F(u))
+        np.testing.assert_allclose(Jv[1], F.jvp(u, v)[1])
+        np.testing.assert_allclose(JHw[0], F(u))
+        np.testing.assert_allclose(JHw[1], F.vjp(u)[1](w))
+    else:
+        np.testing.assert_allclose(Jv, F.jvp(u, v)[1])
+        np.testing.assert_allclose(JHw, F.vjp(u)[1](w))
