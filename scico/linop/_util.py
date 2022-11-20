@@ -14,6 +14,7 @@ from __future__ import annotations
 from typing import Optional, Union
 
 import scico.numpy as snp
+from scico.operator._operator import Operator
 from scico.random import randn
 from scico.typing import JaxArray, PRNGKey
 
