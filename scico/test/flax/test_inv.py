@@ -10,7 +10,8 @@ import pytest
 
 from scico import flax as sflax
 from scico import random
-from scico.flax.examples import PaddedCircularConvolve, build_blur_kernel, have_astra
+from scico.flax.examples import PaddedCircularConvolve, build_blur_kernel
+from scico.flax.examples.data_generation import have_astra
 from scico.flax.train.traversals import clip_positive, clip_range, construct_traversal
 from scico.linop import CircularConvolve, Identity
 
