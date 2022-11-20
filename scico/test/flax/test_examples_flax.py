@@ -7,24 +7,26 @@ from jax import device_count
 import pytest
 
 from scico import random
-from scico.flax.examples import (
-    CenterCrop,
-    ConfigImageSetDict,
-    PaddedCircularConvolve,
-    PositionalCrop,
-    RandomNoise,
-    blur_data_generation,
-    build_image_dataset,
-    ct_data_generation,
+from scico.flax.examples.data_generation import (
     distributed_data_generation,
-    flip,
+    generate_blur_data,
+    generate_ct_data,
     have_astra,
     have_ray,
     have_xdesign,
     ray_distributed_data_generation,
+)
+from scico.flax.examples.data_preprocessing import (
+    CenterCrop,
+    PaddedCircularConvolve,
+    PositionalCrop,
+    RandomNoise,
+    build_image_dataset,
+    flip,
     reconfigure_images,
     rotation90,
 )
+from scico.flax.examples.typed_dict import ConfigImageSetDict
 from scico.typing import Shape
 
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
@@ -37,7 +39,7 @@ def test_foam2_gen():
     seed = 4321
     N = 32
     ndata = 2
-    from scico.flax.examples import generate_foam2_images
+    from scico.flax.examples.data_generation import generate_foam2_images
 
     dt = generate_foam2_images(seed, N, ndata)
     assert dt.shape == (ndata, N, N, 1)
@@ -48,9 +50,9 @@ def test_foam_gen():
     seed = 4444
     N = 32
     ndata = 2
-    from scico.flax.examples import generate_foam_images
+    from scico.flax.examples.data_generation import generate_foam1_images
 
-    dt = generate_foam_images(seed, N, ndata)
+    dt = generate_foam1_images(seed, N, ndata)
     assert dt.shape == (ndata, N, N, 1)
 
 
@@ -107,7 +109,7 @@ def test_ct_data_generation():
         return np.random.randn(ndata, size, size, 1)
 
     try:
-        img, sino, fbp = ct_data_generation(nimg, N, nproj, imgfunc=random_img_gen, test_flag=True)
+        img, sino, fbp = generate_ct_data(nimg, N, nproj, imgfunc=random_img_gen, test_flag=True)
     except Exception as e:
         print(e)
         assert 0
@@ -128,7 +130,7 @@ def test_blur_data_generation():
         return np.random.randn(ndata, size, size, 1)
 
     try:
-        img, blurn = blur_data_generation(
+        img, blurn = generate_blur_data(
             nimg, N, blur_kernel, noise_sigma=0.01, imgfunc=random_img_gen, test_flag=True
         )
     except Exception as e:
