@@ -134,23 +134,23 @@ output_dtype   : {self.output_dtype}
     ) -> LinearOperator:
         """Construct Jacobian linear operator for the function.
 
-                Construct a Jacobian :class:`LinearOperator` that computes the
-                Jacobian with respect to a specified variable of the function.
+        Construct a Jacobian :class:`.LinearOperator` that computes the
+        Jacobian with respect to a specified variable of the function.
 
-                Args:
-                   index: Index of parameter with respect to which the Jacobian
-                      is to be computed.
-                   *args: Values of function parameters at which Jacobian is to
-                      be computed.
-                   include_eval: Flag indicating whether the result of evaluating
-                      the :class:`.Operator` should be included (as the first
-                      component of a :class:`.BlockArray`) in the output of the
-                      Jacobian :class:`LinearOperator` constructed by this
-                      function
-        .
-                Returns:
-                  A :class:`LinearOperator` capable of computing Jacobian-vector
-                  products.
+        Args:
+           index: Index of parameter with respect to which the Jacobian
+              is to be computed.
+           *args: Values of function parameters at which Jacobian is to
+              be computed.
+           include_eval: Flag indicating whether the result of evaluating
+              the :class:`.Operator` should be included (as the first
+              component of a :class:`.BlockArray`) in the output of the
+              Jacobian :class:`.LinearOperator` constructed by this
+              function.
+
+        Returns:
+           A :class:`.LinearOperator` capable of computing Jacobian-vector
+           products.
         """
         var_arg = args[index]
         fix_args = args[0:index] + args[(index + 1) :]
