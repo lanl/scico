@@ -231,31 +231,73 @@ def test_make_func_op():
     np.testing.assert_array_equal(H(x), snp.abs(x))
 
 
-class TestJacobianProd:
+class TestJacobianProdReal:
     def setup_method(self):
         N = 7
         M = 8
         key = None
-        self.dtype = snp.float32
-        self.fmx, key = randn((M, N), key=key, dtype=self.dtype)
+        dtype = snp.float32
+        self.fmx, key = randn((M, N), key=key, dtype=dtype)
         self.F = Operator(
             (N, 1),
             output_shape=(M, 1),
             eval_fn=lambda x: self.fmx @ x,
-            input_dtype=self.dtype,
-            output_dtype=self.dtype,
+            input_dtype=dtype,
+            output_dtype=dtype,
         )
-        self.u, key = randn((N, 1), key=key, dtype=self.dtype)
-        self.v, key = randn((N, 1), key=key, dtype=self.dtype)
-        self.w, key = randn((M, 1), key=key, dtype=self.dtype)
+        self.u, key = randn((N, 1), key=key, dtype=dtype)
+        self.v, key = randn((N, 1), key=key, dtype=dtype)
+        self.w, key = randn((M, 1), key=key, dtype=dtype)
 
     def test_jvp(self):
         Fu, JFuv = self.F.jvp(self.u, self.v)
         np.testing.assert_allclose(Fu, self.F(self.u))
         np.testing.assert_allclose(JFuv, self.fmx @ self.v, rtol=1e-6)
 
-    def test_vjp(self):
-        Fu, G = self.F.vjp(self.u)
+    def test_vjp_conj(self):
+        Fu, G = self.F.vjp(self.u, conjugate=True)
+        JFTw = G(self.w)
+        np.testing.assert_allclose(Fu, self.F(self.u))
+        np.testing.assert_allclose(JFTw, self.fmx.T @ self.w, rtol=1e-6)
+
+    def test_vjp_noconj(self):
+        Fu, G = self.F.vjp(self.u, conjugate=False)
+        JFTw = G(self.w)
+        np.testing.assert_allclose(Fu, self.F(self.u))
+        np.testing.assert_allclose(JFTw, self.fmx.T @ self.w, rtol=1e-6)
+
+
+class TestJacobianProdComplex:
+    def setup_method(self):
+        N = 7
+        M = 8
+        key = None
+        dtype = snp.complex64
+        self.fmx, key = randn((M, N), key=key, dtype=dtype)
+        self.F = Operator(
+            (N, 1),
+            output_shape=(M, 1),
+            eval_fn=lambda x: self.fmx @ x,
+            input_dtype=dtype,
+            output_dtype=dtype,
+        )
+        self.u, key = randn((N, 1), key=key, dtype=dtype)
+        self.v, key = randn((N, 1), key=key, dtype=dtype)
+        self.w, key = randn((M, 1), key=key, dtype=dtype)
+
+    def test_jvp(self):
+        Fu, JFuv = self.F.jvp(self.u, self.v)
+        np.testing.assert_allclose(Fu, self.F(self.u))
+        np.testing.assert_allclose(JFuv, self.fmx @ self.v, rtol=1e-6)
+
+    def test_vjp_conj(self):
+        Fu, G = self.F.vjp(self.u, conjugate=True)
+        JFTw = G(self.w)
+        np.testing.assert_allclose(Fu, self.F(self.u))
+        np.testing.assert_allclose(JFTw, self.fmx.T.conj() @ self.w, rtol=1e-6)
+
+    def test_vjp_noconj(self):
+        Fu, G = self.F.vjp(self.u, conjugate=False)
         JFTw = G(self.w)
         np.testing.assert_allclose(Fu, self.F(self.u))
         np.testing.assert_allclose(JFTw, self.fmx.T @ self.w, rtol=1e-6)
