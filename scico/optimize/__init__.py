@@ -14,10 +14,9 @@ from .admm import ADMM
 from ._ladmm import LinearizedADMM
 from .pgm import PGM, AcceleratedPGM
 from ._primaldual import PDHG
-from ._nlpadmm import NonLinearPADMM
 
 
-__all__ = ["ADMM", "LinearizedADMM", "NonLinearPADMM", "PGM", "AcceleratedPGM", "PDHG"]
+__all__ = ["ADMM", "LinearizedADMM", "PGM", "AcceleratedPGM", "PDHG"]
 
 # Imported items in __all__ appear to originate in top-level linop module
 for name in __all__:
