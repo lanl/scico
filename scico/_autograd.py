@@ -154,15 +154,15 @@ jacrev.__doc__ = _append_jax_docs(jacrev)
 
 
 def cvjp(fun: Callable, *primals, jidx: Optional[int] = None) -> Tuple[Tuple[Any, ...], Callable]:
-    r"""Compute a Jacobian-vector product with Hermitian transpose.
+    r"""Compute a vector-Jacobian product with conjugate transpose.
 
     Compute the product :math:`[J(\mb{x})]^H \mb{v}` where
-    :math:`[J(\mb{x})]` is the Jacobian of the function :math:`f(\cdot)`
-    evaluated at :math:`\mb{x}`. Instead of directly evaluating the
-    product, a function is returned that takes :math:`\mb{v}` as an
-    argument. If `fun` has multiple positional parameters, the Jacobian
-    can be taken with respect to only one of them by setting the `jidx`
-    parameter of this function to the positional index of that parameter.
+    :math:`[J(\mb{x})]` is the Jacobian of function `fun` evaluated at
+    :math:`\mb{x}`. Instead of directly evaluating the product, a
+    function is returned that takes :math:`\mb{v}` as an argument. If
+    `fun` has multiple positional parameters, the Jacobian can be taken
+    with respect to only one of them by setting the `jidx` parameter of
+    this function to the positional index of that parameter.
 
     Args:
         fun: Function for which the Jacobian is implicitly computed.
@@ -173,23 +173,24 @@ def cvjp(fun: Callable, *primals, jidx: Optional[int] = None) -> Tuple[Tuple[Any
            to which the Jacobian is taken.
 
     Returns:
-        A pair `(primals, conj_vjp)` where `primals` is the input
-        parameter of the same name, and `conj_vjp` is a function
-        that computes the product of the Hermitian transpose of the
-        Jacobian of `fun` and its argument. If the `jidx` parameter is
-        an integer, then `primals` just consists of the corresponding
-        element of the `primals` input.
+        A pair `(primals_out, conj_vjp)` where `primals_out` is the
+        output of `fun` evaluated at `primals`, i.e. `primals_out
+        = fun(*primals)`, and `conj_vjp` is a function that computes the
+        product of the conjugate (Hermitian) transpose of the Jacobian of
+        `fun` and its argument. If the `jidx` parameter is an integer,
+        then the Jacobian is only taken with respect to the coresponding
+        positional parameter of `fun`.
     """
 
     if jidx is None:
-        primals, fun_vjp = jax.vjp(fun, *primals)
+        primals_out, fun_vjp = jax.vjp(fun, *primals)
     else:
         fixidx = tuple(range(0, jidx)) + tuple(range(jidx + 1, len(primals)))
         fixprm = primals[0:jidx] + primals[jidx + 1 :]
         pfun = scico.util.partial(fun, fixidx, *fixprm)
-        primals, fun_vjp = jax.vjp(pfun, primals[jidx])
+        primals_out, fun_vjp = jax.vjp(pfun, primals[jidx])
 
     def conj_vjp(tangent):
         return jax.tree_map(jax.numpy.conj, fun_vjp(tangent.conj()))
 
-    return primals, conj_vjp
+    return primals_out, conj_vjp
