@@ -5,7 +5,7 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Function base class."""
+"""Function class."""
 
 from typing import Callable, Optional, Sequence, Union
 
@@ -19,7 +19,7 @@ from scico.typing import BlockShape, DType, JaxArray, Shape
 
 
 class Function:
-    r"""Base class for functions.
+    r"""Function class.
 
     A :class:`Function` maps multiple :code:`array-like` arguments to
     another :code:`array-like`. It is more general than both
