@@ -50,6 +50,7 @@ Miscellaneous
    - denoise_tv_admm.py
    - denoise_tv_pgm.py
    - denoise_tv_multi.py
+   - denoise_cplx_tv_nlpadmm.py
    - denoise_cplx_tv_pdhg.py
    - video_rpca_admm.py
 
@@ -88,6 +89,7 @@ Total Variation
    - denoise_tv_admm.py
    - denoise_tv_pgm.py
    - denoise_tv_multi.py
+   - denoise_cplx_tv_nlpadmm.py
    - denoise_cplx_tv_pdhg.py
 
 
@@ -136,6 +138,12 @@ Linearized ADMM
 
     - ct_svmbir_tv_multi.py
     - denoise_tv_multi.py
+
+
+Non-linear Proximal ADMM
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+   - denoise_cplx_tv_nlpadmm.py
 
 
 PDHG

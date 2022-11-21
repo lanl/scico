@@ -6,7 +6,7 @@ Usage Examples
 .. toctree::
    :maxdepth: 1
 
-.. include:: include/exampledepend.rst
+.. include:: exampledepend.rst
 
 
 Organized by Application
@@ -72,6 +72,7 @@ Miscellaneous
    examples/denoise_tv_admm
    examples/denoise_tv_pgm
    examples/denoise_tv_multi
+   examples/denoise_cplx_tv_nlpadmm
    examples/denoise_cplx_tv_pdhg
    examples/video_rpca_admm
 
@@ -119,6 +120,7 @@ Total Variation
    examples/denoise_tv_admm
    examples/denoise_tv_pgm
    examples/denoise_tv_multi
+   examples/denoise_cplx_tv_nlpadmm
    examples/denoise_cplx_tv_pdhg
 
 
@@ -179,6 +181,15 @@ Linearized ADMM
 
    examples/ct_svmbir_tv_multi
    examples/denoise_tv_multi
+
+
+Non-linear Proximal ADMM
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. toctree::
+   :maxdepth: 1
+
+   examples/denoise_cplx_tv_nlpadmm
 
 
 PDHG

@@ -76,8 +76,10 @@ Miscellaneous
       Total Variation Denoising with Constraint (APGM)
    `denoise_tv_multi.py <denoise_tv_multi.py>`_
       Comparison of Optimization Algorithms for Total Variation Denoising
+   `denoise_cplx_tv_nlpadmm.py <denoise_cplx_tv_nlpadmm.py>`_
+      Complex Total Variation Denoising with NLPADMM Solver
    `denoise_cplx_tv_pdhg.py <denoise_cplx_tv_pdhg.py>`_
-      Complex Total Variation Denoising
+      Complex Total Variation Denoising with PDHG Solver
    `video_rpca_admm.py <video_rpca_admm.py>`_
       Video Decomposition via Robust PCA
 
@@ -138,8 +140,10 @@ Total Variation
       Total Variation Denoising with Constraint (APGM)
    `denoise_tv_multi.py <denoise_tv_multi.py>`_
       Comparison of Optimization Algorithms for Total Variation Denoising
+   `denoise_cplx_tv_nlpadmm.py <denoise_cplx_tv_nlpadmm.py>`_
+      Complex Total Variation Denoising with NLPADMM Solver
    `denoise_cplx_tv_pdhg.py <denoise_cplx_tv_pdhg.py>`_
-      Complex Total Variation Denoising
+      Complex Total Variation Denoising with PDHG Solver
 
 
 Sparsity
@@ -217,6 +221,13 @@ Linearized ADMM
        Comparison of Optimization Algorithms for Total Variation Denoising
 
 
+Non-linear Proximal ADMM
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+   `denoise_cplx_tv_nlpadmm.py <denoise_cplx_tv_nlpadmm.py>`_
+      Complex Total Variation Denoising with NLPADMM Solver
+
+
 PDHG
 ^^^^
 
@@ -225,7 +236,7 @@ PDHG
     `denoise_tv_multi.py <denoise_tv_multi.py>`_
        Comparison of Optimization Algorithms for Total Variation Denoising
     `denoise_cplx_tv_pdhg.py <denoise_cplx_tv_pdhg.py>`_
-       Complex Total Variation Denoising
+       Complex Total Variation Denoising with PDHG Solver
 
 
 PGM
