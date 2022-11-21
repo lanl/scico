@@ -3,7 +3,7 @@ import numpy as np
 import jax
 
 import scico.numpy as snp
-from scico import functional, linop, loss, random
+from scico import function, functional, linop, loss, random
 from scico.numpy import BlockArray
 from scico.optimize import NonLinearPADMM
 
@@ -19,7 +19,13 @@ class TestMisc:
         self.A = linop.Identity(self.y.shape)
         self.f = loss.SquaredL2Loss(y=self.y, A=self.A)
         self.g = functional.DnCNN()
-        self.H = lambda x, z: x - z
+        self.H = function.Function(
+            (self.A.input_shape, self.A.input_shape),
+            output_shape=self.A.input_shape,
+            eval_fn=lambda x, z: x - z,
+            input_dtypes=np.float32,
+            output_dtype=np.float32,
+        )
         self.x0 = snp.zeros(self.A.input_shape, dtype=snp.float32)
 
     def test_itstat(self):
@@ -50,9 +56,6 @@ class TestMisc:
             rho=self.ρ,
             mu=self.μ,
             nu=self.ν,
-            x0=self.x0,
-            z0=self.x0,
-            u0=self.x0,
             maxiter=self.maxiter,
             itstat_options={"fields": itstat_fields, "itstat_func": itstat_func, "display": False},
         )
@@ -66,9 +69,6 @@ class TestMisc:
             rho=self.ρ,
             mu=self.μ,
             nu=self.ν,
-            x0=self.x0,
-            z0=self.x0,
-            u0=self.x0,
             maxiter=self.maxiter,
         )
         nlpadmm_.test_flag = False
@@ -99,7 +99,13 @@ class TestBlockArray:
         self.A = linop.Identity(self.y.shape)
         self.f = loss.SquaredL2Loss(y=self.y, A=self.A)
         self.g = (self.λ / 2) * functional.L2Norm()
-        self.H = lambda x, z: x - z
+        self.H = function.Function(
+            (self.A.input_shape, self.A.input_shape),
+            output_shape=self.A.input_shape,
+            eval_fn=lambda x, z: x - z,
+            input_dtypes=np.float32,
+            output_dtype=np.float32,
+        )
         self.x0 = snp.zeros(self.A.input_shape, dtype=snp.float32)
 
     def test_blockarray(self):
@@ -110,9 +116,6 @@ class TestBlockArray:
             rho=self.ρ,
             mu=self.μ,
             nu=self.ν,
-            x0=self.x0,
-            z0=self.x0,
-            u0=self.x0,
             maxiter=self.maxiter,
         )
         x = nlpadmm_.solve()
@@ -146,7 +149,13 @@ class TestReal:
         f = loss.SquaredL2Loss(y=self.y, A=A)
         g = (self.λ / 2) * functional.SquaredL2Norm()
         C = linop.MatrixOperator(self.Bmx)
-        H = lambda x, z: C(x) - z
+        H = function.Function(
+            (C.input_shape, C.output_shape),
+            output_shape=C.output_shape,
+            eval_fn=lambda x, z: C(x) - z,
+            input_dtypes=snp.float32,
+            output_dtype=snp.float32,
+        )
         nlpadmm_ = NonLinearPADMM(
             f=f,
             g=g,
@@ -154,9 +163,6 @@ class TestReal:
             rho=ρ,
             mu=μ,
             nu=ν,
-            x0=snp.zeros(A.input_shape, dtype=snp.float32),
-            z0=snp.zeros(C.output_shape, dtype=snp.float32),
-            u0=snp.zeros(C.output_shape, dtype=snp.float32),
             maxiter=maxiter,
         )
         x = nlpadmm_.solve()
@@ -190,7 +196,13 @@ class TestComplex:
         f = loss.SquaredL2Loss(y=self.y, A=A)
         g = (self.λ / 2) * functional.SquaredL2Norm()
         C = linop.MatrixOperator(self.Bmx)
-        H = lambda x, z: C(x) - z
+        H = function.Function(
+            (C.input_shape, C.output_shape),
+            output_shape=C.output_shape,
+            eval_fn=lambda x, z: C(x) - z,
+            input_dtypes=snp.complex64,
+            output_dtype=snp.complex64,
+        )
         nlpadmm_ = NonLinearPADMM(
             f=f,
             g=g,
@@ -198,9 +210,6 @@ class TestComplex:
             rho=ρ,
             mu=μ,
             nu=ν,
-            x0=snp.zeros(A.input_shape, dtype=snp.complex64),
-            z0=snp.zeros(C.output_shape, dtype=snp.complex64),
-            u0=snp.zeros(C.output_shape, dtype=snp.complex64),
             maxiter=maxiter,
         )
         x = nlpadmm_.solve()
