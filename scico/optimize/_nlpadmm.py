@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from typing import Callable, List, Optional, Union
 
+import scico.numpy as snp
 from scico import cvjp, jvp
 from scico.diagnostics import IterationStats
 from scico.function import Function
@@ -291,11 +292,11 @@ class NonLinearPADMM:
 
         Perform a single algorithm iteration.
         """
-        _, AH = cvjp(self.H, self.x, self.z, jidx=0)
-        proxarg = self.x - (1.0 / self.mu) * AH(2.0 * self.u - self.u_old)[0]
+        AH = self.H.vjp(0, self.x, self.z, conjugate=True)[1]
+        proxarg = self.x - (1.0 / self.mu) * AH(2.0 * self.u - self.u_old)
         self.x = self.f.prox(proxarg, (1.0 / (self.rho * self.mu)), v0=self.x)
-        _, BH = cvjp(self.H, self.x, self.z, jidx=1)
-        proxarg = self.z - (1.0 / self.nu) * BH(self.H(self.x, self.z) + self.u)[0]
+        BH = self.H.vjp(1, self.x, self.z, conjugate=True)[1]
+        proxarg = self.z - (1.0 / self.nu) * BH(self.H(self.x, self.z) + self.u)
         self.z_old = self.z
         self.z = self.g.prox(proxarg, (1.0 / (self.rho * self.nu)), v0=self.z)
         self.u_old = self.u
