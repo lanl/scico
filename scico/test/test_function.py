@@ -65,12 +65,16 @@ def test_jacobian(dtype):
 
     op = F.slice(0, u1)
     J0op = jacobian(op, u0)
+    np.testing.assert_allclose(J0op(v), F.jvp(0, v, u0, u1)[1])
+    np.testing.assert_allclose(J0op.H(w), F.vjp(0, u0, u1)[1](w))
     J0fn = F.jacobian(0, u0, u1)
     np.testing.assert_allclose(J0op(v), J0fn(v))
     np.testing.assert_allclose(J0op.H(w), J0fn.H(w))
 
     op = F.slice(1, u0)
     J1op = jacobian(op, u1)
+    np.testing.assert_allclose(J1op(v), F.jvp(1, v, u0, u1)[1])
+    np.testing.assert_allclose(J1op.H(w), F.vjp(1, u0, u1)[1](w))
     J1fn = F.jacobian(1, u0, u1)
     np.testing.assert_allclose(J1op(v), J1fn(v))
     np.testing.assert_allclose(J1op.H(w), J1fn.H(w))
