@@ -7,7 +7,7 @@
 
 """Function class."""
 
-from typing import Callable, Optional, Sequence, Union
+from typing import Any, Callable, Optional, Sequence, Tuple, Union
 
 import jax
 
@@ -129,13 +129,67 @@ output_dtype   : {self.output_dtype}
             jit=self.jit,
         )
 
+    def jvp(
+        self, index: int, v: Union[JaxArray, BlockArray], *args: Union[JaxArray, BlockArray]
+    ) -> Tuple[Union[JaxArray, BlockArray], Union[JaxArray, BlockArray]]:
+        """Jacobian-vector product with respect to a single parameter.
+
+        Compute a Jacobian-vector product with respect to a single
+        parameter of a :class:`Function`. Note that the order of the
+        parameters specifying where to evaluate the Jacobian and the
+        vector in the product is reverse with respect to :func:`jax.jvp`.
+
+        Args:
+           index: Index of parameter with respect to which the Jacobian
+              is to be computed.
+           v: Vector against which the Jacobian-vector product is to be
+              computed.
+           *args: Values of function parameters at which Jacobian is to
+              be computed.
+
+        Returns:
+           A pair consisting of the operator evaluated at the parameters
+           specified by `*args` and the Jacobian-vector product.
+        """
+        var_arg = args[index]
+        fix_args = args[0:index] + args[(index + 1) :]
+        F = self.slice(index, *fix_args)
+        return F.jvp(var_arg, v)
+
+    def vjp(
+        self, index: int, *args: Union[JaxArray, BlockArray], conjugate: Optional[bool] = True
+    ) -> Tuple[Tuple[Any, ...], Callable]:
+        """Vector-Jacobian product with respect to a single parameter.
+
+        Compute a vector-Jacobian product with respect to a single
+        parameter of a :class:`Function`.
+
+        Args:
+           index: Index of parameter with respect to which the Jacobian
+              is to be computed.
+           *args: Values of function parameters at which Jacobian is to
+              be computed.
+           conjugate: If ``True``, compute the product using the
+               conjugate (Hermitian) transpose.
+
+        Returns:
+           A pair consisting of the operator evaluated at the parameters
+           specified by `*args` and a function that computes the
+           vector-Jacobian product.
+        """
+        var_arg = args[index]
+        fix_args = args[0:index] + args[(index + 1) :]
+        F = self.slice(index, *fix_args)
+        return F.vjp(var_arg, conjugate=conjugate)
+
     def jacobian(
         self, index: int, *args: Union[JaxArray, BlockArray], include_eval: Optional[bool] = False
     ) -> LinearOperator:
         """Construct Jacobian linear operator for the function.
 
-        Construct a Jacobian :class:`.LinearOperator` that computes the
-        Jacobian with respect to a specified variable of the function.
+        Construct a Jacobian :class:`.LinearOperator` that computes
+        vector products with the Jacobian with respect to a specified
+        variable of the function.
 
         Args:
            index: Index of parameter with respect to which the Jacobian
