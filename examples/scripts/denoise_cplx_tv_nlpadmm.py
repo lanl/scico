@@ -39,7 +39,7 @@ from xdesign import SiemensStar, discrete_phantom
 
 import scico.numpy as snp
 import scico.random
-from scico import functional, linop, loss, metric, operator, plot
+from scico import function, functional, linop, loss, metric, operator, plot
 from scico.examples import phase_diff
 from scico.optimize import NonLinearPADMM
 from scico.util import device_info
@@ -71,9 +71,15 @@ f = loss.SquaredL2Loss(y=y)
 g = λ_tv * functional.L21Norm()
 # The append=0 option makes the results of horizontal and vertical finite
 # differences the same shape, which is required for the L21Norm.
-C = linop.FiniteDifference(input_shape=x_gt.shape, input_dtype=snp.complex64, append=0)
-
-H = lambda x, y: C(x) - y
+C = linop.FiniteDifference(input_shape=y.shape, input_dtype=snp.complex64, append=0)
+# Constraint function imposing z = C(x) constraint
+H = function.Function(
+    (C.shape[1], C.shape[0]),
+    output_shape=C.shape[0],
+    eval_fn=lambda x, z: C(x) - z,
+    input_dtypes=snp.complex64,
+    output_dtype=snp.complex64,
+)
 
 solver_tv = NonLinearPADMM(
     f=f,
@@ -82,9 +88,6 @@ solver_tv = NonLinearPADMM(
     rho=1.0,
     mu=8.0,
     nu=1.0,
-    x0=snp.zeros(y.shape, dtype=snp.complex64),
-    z0=snp.zeros(C.shape[0], dtype=snp.complex64),
-    u0=snp.zeros(C.shape[0], dtype=snp.complex64),
     maxiter=200,
     itstat_options={"display": True, "period": 20},
 )
@@ -99,11 +102,17 @@ Denoise with total variation applied to the magnitude of a complex image.
 λ_nltv = 2e-1
 g = λ_nltv * functional.L21Norm()
 # Redefine C for real input (now applied to magnitude of a complex array)
-C = linop.FiniteDifference(input_shape=x_gt.shape, input_dtype=snp.float32, append=0)
+C = linop.FiniteDifference(input_shape=y.shape, input_dtype=snp.float32, append=0)
 # Operator computing differences of absolute values
 D = C @ operator.Abs(input_shape=x_gt.shape, input_dtype=snp.complex64)
-
-H = lambda x, y: D(x) - y
+# Constraint function imposing z = D(x) constraint
+H = function.Function(
+    (C.shape[1], C.shape[0]),
+    output_shape=C.shape[0],
+    eval_fn=lambda x, z: D(x) - z,
+    input_dtypes=(snp.complex64, snp.float32),
+    output_dtype=snp.float32,
+)
 
 solver_nltv = NonLinearPADMM(
     f=f,
@@ -112,9 +121,6 @@ solver_nltv = NonLinearPADMM(
     rho=5.0,
     mu=6.0,
     nu=1.0,
-    x0=snp.zeros(y.shape, dtype=snp.complex64),
-    z0=snp.zeros(C.shape[0], dtype=snp.float32),
-    u0=snp.zeros(C.shape[0], dtype=snp.float32),
     maxiter=200,
     itstat_options={"display": True, "period": 20},
 )
