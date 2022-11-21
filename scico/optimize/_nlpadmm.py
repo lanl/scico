@@ -15,6 +15,7 @@ from typing import Callable, List, Optional, Union
 
 from scico import cvjp, jvp
 from scico.diagnostics import IterationStats
+from scico.function import Function
 from scico.functional import Functional
 from scico.numpy import BlockArray
 from scico.numpy.linalg import norm
@@ -69,7 +70,7 @@ class NonLinearPADMM:
         f (:class:`.Functional`): Functional :math:`f` (usually a
            :class:`.Loss`).
         g (:class:`.Functional`): Functional :math:`g`.
-        H (Callable): :math:`H` function.
+        H (:class:`.Function`): :math:`H` function.
         itnum (int): Iteration counter.
         maxiter (int): Number of linearized ADMM outer-loop iterations.
         timer (:class:`.Timer`): Iteration timer.
@@ -91,7 +92,7 @@ class NonLinearPADMM:
         self,
         f: Functional,
         g: Functional,
-        H: Callable,
+        H: Function,
         rho: float,
         mu: float,
         nu: float,
@@ -111,11 +112,11 @@ class NonLinearPADMM:
             rho: Penalty parameter.
             mu: First algorithm parameter.
             nu: Second algorithm parameter.
-            x0: Starting point for :math:`\mb{x}`. If ``None``, defaults
+            x0: Starting value for :math:`\mb{x}`. If ``None``, defaults
                 to an array of zeros.
-            z0: Starting point for :math:`\mb{z}`. If ``None``, defaults
+            z0: Starting value for :math:`\mb{z}`. If ``None``, defaults
                 to an array of zeros.
-            u0: Starting point for :math:`\mb{u}`. If ``None``, defaults
+            u0: Starting value for :math:`\mb{u}`. If ``None``, defaults
                 to an array of zeros.
             maxiter: Number of main algorithm iterations. Default: 100.
             fast_dual_residual: Flag indicating whether to use fast
@@ -134,7 +135,7 @@ class NonLinearPADMM:
         """
         self.f: Functional = f
         self.g: Functional = g
-        self.H: Callable = H
+        self.H: Function = H
         self.rho: float = rho
         self.mu: float = mu
         self.nu: float = nu
@@ -173,9 +174,15 @@ class NonLinearPADMM:
         self.itstat_insert_func: Callable = default_itstat_options.pop("itstat_func", None)  # type: ignore
         self.itstat_object = IterationStats(**default_itstat_options)  # type: ignore
 
+        if x0 is None:
+            x0 = snp.zeros(H.input_shapes[0], dtype=H.input_dtypes[0])
         self.x = ensure_on_device(x0)
+        if z0 is None:
+            z0 = snp.zeros(H.input_shapes[1], dtype=H.input_dtypes[1])
         self.z = ensure_on_device(z0)
         self.z_old = self.z
+        if u0 is None:
+            u0 = snp.zeros(H.output_shape, dtype=H.output_dtype)
         self.u = ensure_on_device(u0)
         self.u_old = self.u
 
