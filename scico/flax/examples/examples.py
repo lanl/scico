@@ -544,8 +544,8 @@ def check_img_data_requirements(
         verbose: Flag indicating whether to print status messages.
 
     Returns:
-       True if the loaded image data satifies requirements of size,
-       number of samples and number of channels and False otherwise.
+       ``True`` if the loaded image data satifies requirements of size,
+       number of samples and number of channels and ``False`` otherwise.
     """
     # Check image size
     if train_in_shp[1] != size:

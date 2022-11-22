@@ -65,7 +65,8 @@ class ModelVarDict(TypedDict):
     """Dictionary structure for Flax variables.
 
     Definition of the dictionary structure grouping all Flax model
-    variables."""
+    variables.
+    """
 
     params: PyTree
     batch_stats: PyTree
@@ -75,7 +76,8 @@ class MetricsDict(TypedDict, total=False):
     """Dictionary structure for training metrics.
 
     Definition of the dictionary structure for metrics computed or
-    updates made during training."""
+    updates made during training.
+    """
 
     loss: float
     snr: float

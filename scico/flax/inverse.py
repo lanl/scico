@@ -112,7 +112,7 @@ class MoDLNet(Module):
 
 
 def cg_solver(A: Callable, b: Array, x0: Array = None, maxiter: int = 50) -> Array:
-    r"""Conjugate Gradient solver.
+    r"""Conjugate gradient solver.
 
     Solve the linear system :math:`A\mb{x} = \mb{b}`, where :math:`A` is
     positive definite, via the conjugate gradient method. This is a light
@@ -160,12 +160,10 @@ def cg_solver(A: Callable, b: Array, x0: Array = None, maxiter: int = 50) -> Arr
 
 
 class ODPProxDnBlock(Module):
-    """Flax implementation of ODP proximal gradient
-    denoise block :cite:`diamond-2018-odp`.
+    """Flax implementation of ODP proximal gradient denoise block.
 
     Flax implementation of the unrolled optimization with deep priors
-    (ODP) proximal gradient block for denoising described in
-    :cite:`diamond-2018-odp`.
+    (ODP) proximal gradient block for denoising :cite:`diamond-2018-odp`.
 
     Args:
         operator: Operator for computing forward and adjoint mappings.
@@ -230,12 +228,11 @@ class ODPProxDnBlock(Module):
 
 
 class ODPProxDcnvBlock(Module):
-    """Flax implementation of ODP proximal
-    gradient deconvolution block :cite:`diamond-2018-odp`.
+    """Flax implementation of ODP proximal gradient deconvolution block.
 
     Flax implementation of the unrolled optimization with deep priors
     (ODP) proximal gradient block for deconvolution under Gaussian noise
-    described in :cite:`diamond-2018-odp`.
+    :cite:`diamond-2018-odp`.
 
     Args:
         operator: Operator for computing forward and adjoint mappings.
@@ -321,8 +318,7 @@ class ODPProxDcnvBlock(Module):
 
 
 class ODPGrDescBlock(Module):
-    r"""Flax implementation of ODP gradient
-    descent with :math:`\ell_2` loss block :cite:`diamond-2018-odp`.
+    r"""Flax implementation of ODP gradient descent with :math:`\ell_2` loss block.
 
     Flax implementation of the unrolled optimization with deep priors
     (ODP) gradient descent block for inversion using :math:`\ell_2` loss
@@ -396,8 +392,7 @@ class ODPGrDescBlock(Module):
 
 
 class ODPNet(Module):
-    """Flax implementation of network
-    :cite:`diamond-2018-odp`.
+    """Flax implementation of network :cite:`diamond-2018-odp`.
 
     Flax implementation of the unrolled optimization with deep priors
     (ODP) network for inverse problems described in

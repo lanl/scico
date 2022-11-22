@@ -51,6 +51,7 @@ class ModelParamTraversal:
 
         Args:
             inputs: the object that should be traversed.
+
         Returns:
             An iterator over the traversed values.
         """
@@ -68,6 +69,7 @@ class ModelParamTraversal:
             fn: the callback function that maps each traversed item to
                 its updated value.
             inputs: the object that should be traversed.
+
         Returns:
             A new object with the updated values.
         """

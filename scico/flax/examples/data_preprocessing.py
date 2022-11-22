@@ -42,7 +42,7 @@ def rotation90(img: Array) -> Array:
 
     Returns:
        An image, or batch of images, rotated by 90 degrees
-           counterclockwise.
+       counterclockwise.
     """
     if img.ndim < 4:
         return np.swapaxes(img, 0, 1)
@@ -151,7 +151,7 @@ class PositionalCrop:
 class RandomNoise:
     """Add Gaussian noise to an image or a batch of images.
 
-    Adds Gaussian noise to an image or a batch of images. An image is
+    Add Gaussian noise to an image or a batch of images. An image is
     an nd-array with size H x W x C with H and W spatial dimensions
     and C number of channels. A batch of images is an nd-array with
     size N x H x W x C with N number of images. The Gaussian noise is
@@ -563,8 +563,8 @@ class PaddedCircularConvolve(LinearOperator):
 
         Returns:
             The result of padding, convolving and cropping the signal.
-                The output signal has the same HWC dimensions as the
-                input signal.
+            The output signal has the same HWC dimensions as the input
+            signal.
         """
         xpadd: Array = jnp.pad(x, self.padsz, mode="reflect")
         rconv: Array = self.conv(xpadd)

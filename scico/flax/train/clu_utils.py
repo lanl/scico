@@ -104,7 +104,7 @@ def get_parameter_rows(
 
     Returns:
         A list of `ParamRow`, or `ParamRowWithStats`, depending on the
-            passed value of `include_stats`.
+        passed value of `include_stats`.
     """
     assert isinstance(params, (dict, flax.core.FrozenDict))
     if params:
