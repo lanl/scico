@@ -277,64 +277,61 @@ output_dtype : {self.output_dtype}
             output_dtype=result_type(self.output_dtype, other),
         )
 
-    def jvp(self, primals, tangents):
-        """Compute a Jacobian-vector product.
+    def jvp(self, u, v):
+        r"""Compute a Jacobian-vector product.
+
+        Compute the product :math:`J_F(\mb{u}) \mb{v}` where :math:`F`
+        represents this operator and :math:`J_F(\mb{u})` is the Jacobian
+        of :math:`F` evaluated at :math:`\mb{u}`. This method is
+        implemented via a call to :func:`jax.jvp`.
 
         Args:
-            primals: Values at which the Jacobian is evaluated.
-            tangents: Vector in the Jacobian-vector product.
+            u: Value at which the Jacobian is evaluated.
+            v: Vector in the Jacobian-vector product.
 
         Returns:
-           Jacobian-vector product value.
+           A pair :math:`(F(\mb{u}), J_F(\mb{u}) \mb{v})`, i.e. a pair
+           consisting of the operator evaluated at :math:`\mb{u}` and the
+           Jacobian-vector product.
         """
+        return jax.jvp(self, (u,), (v,))
 
-        return jax.jvp(self, primals, tangents)
+    def vjp(self, u, conjugate=True):
+        r"""Compute a vector-Jacobian product.
 
-    def jhvp(self, *primals):
-        r"""Compute a Jacobian-vector product with Hermitian transpose.
-
-        Compute the product :math:`[J(\mb{x})]^H \mb{v}` where
-        :math:`[J(\mb{x})]` is the Jacobian of the :class:`.Operator`
-        evaluated at :math:`\mb{x}`. Instead of directly evaluating the
-        product, a function is returned that takes :math:`\mb{v}` as an
-        argument.
+        Compute the product :math:`[J_F(\mb{u})]^T \mb{v}` where :math:`F`
+        represents this operator and :math:`J_F(\mb{u})` is the Jacobian
+        of :math:`F` evaluated at :math:`\mb{u}`. Instead of directly
+        computing the vector-Jacobian product, this method returns a
+        function, taking :math:`\mb{v}` as an argument, that returns
+        the product. This method is implemented via a call to
+        :func:`jax.vjp`.
 
         Args:
-            primals: Sequence of values at which the Jacobian is
-               evaluated, with length equal to the number of positional
-               arguments of `_eval`.
+            u: Value at which the Jacobian is evaluated.
+            conjugate: If ``True``, compute the product using the
+               conjugate (Hermitian) transpose.
 
         Returns:
-            A pair `(primals, conj_vjp)` where `primals` is the input
-            parameter of the same name, and `conj_vjp` is a function
-            that computes the product of the Hermitian transpose of the
-            Jacobian of this :class:`.Operator` and its argument.
+            A pair :math:`(F(\mb{u}), G(\cdot))` where :math:`G(\cdot)`
+            is a function that computes the vector-Jacobian product, i.e.
+            :math:`G(\mb{v}) = [J_F(\mb{u})]^T \mb{v}` when `conjugate`
+            is ``False``, or :math:`G(\mb{v}) = [J_F(\mb{u})]^H \mb{v}`
+            when `conjugate` is ``True``.
         """
+        Fu, G = jax.vjp(self, u)
 
-        primals, self_vjp = jax.vjp(self, *primals)
+        if conjugate:
 
-        def conj_vjp(tangent):
-            return jax.tree_map(jax.numpy.conj, self_vjp(tangent.conj()))
+            def Gmap(v):
+                return G(v.conj())[0].conj()
 
-        return primals, conj_vjp
+        else:
 
-    def vjp(self, *primals):
-        """Compute a vector-Jacobian product.
+            def Gmap(v):
+                return G(v)[0]
 
-        Args:
-            primals: Sequence of values at which the Jacobian is
-               evaluated, with length equal to the number of positional
-               arguments of `_eval`.
-
-        Returns:
-            A pair `(primals, self_vjp)` where `primals` is the input
-            parameter of the same name, and `self_vjp` is a function
-            that computes the product of its argument and the Jacobian of
-            this :class:`.Operator`.
-        """
-
-        primals, self_vjp = jax.vjp(self, *primals)
-        return primals, self_vjp
+        return Fu, Gmap
 
     def freeze(self, argnum: int, val: Union[JaxArray, BlockArray]) -> Operator:
         """Return a new :class:`.Operator` with fixed block argument.
