@@ -41,7 +41,7 @@ x_gt = discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), 
 x_gt = jax.device_put(x_gt)  # convert to jax array, push to GPU
 
 """
-Test different DnCNN on images with different noise levels
+Test different DnCNN variants on images with different noise levels
 """
 print("  σ   | variant | noisy image PSNR (dB)   | denoised image PSNR (dB)")
 for σ in [0.06, 0.1, 0.2]:
