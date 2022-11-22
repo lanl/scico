@@ -65,8 +65,8 @@ def test_power_iteration(pitestobj):
 
 
 def test_operator_norm():
-    I = linop.Identity(8)
-    Inorm = linop.operator_norm(I)
+    Iop = linop.Identity(8)
+    Inorm = linop.operator_norm(Iop)
     assert np.abs(Inorm - 1.0) < 1e-5
     key = jax.random.PRNGKey(12345)
     for dtype in [np.float32, np.complex64]:
