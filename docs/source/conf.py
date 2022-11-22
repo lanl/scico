@@ -84,7 +84,6 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinxcontrib.bibtex",
     "sphinx.ext.inheritance_diagram",
-    "sphinx.ext.mathjax",
     "sphinx.ext.todo",
     "nbsphinx",
 ]
@@ -115,17 +114,20 @@ nbsphinx_prolog = """
 #  https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion
 autosummary_generate = True
 
-# Copied from scikit-learn sphinx configuration
+
 if os.environ.get("NO_MATHJAX"):
     extensions.append("sphinx.ext.imgmath")
     imgmath_image_format = "svg"
 else:
     extensions.append("sphinx.ext.mathjax")
-    mathjax_path = "https://cdn.mathjax.org/mathjax/latest/" "MathJax.js?config=TeX-AMS_HTML"
+    # To use local copy of MathJax for offline use, set MATHJAX_URI to
+    #    file:///[path-to-mathjax-repo-root]/es5/tex-mml-chtml.js
+    if os.environ.get("MATHJAX_URI"):
+        mathjax_path = os.environ.get("MATHJAX_URI")
 
-mathjax_config = {
-    "TeX": {
-        "Macros": {
+mathjax3_config = {
+    "tex": {
+        "macros": {
             "mb": [r"\mathbf{#1}", 1],
             "mbs": [r"\boldsymbol{#1}", 1],
             "mbb": [r"\mathbb{#1}", 1],
@@ -140,6 +142,15 @@ mathjax_config = {
         }
     }
 }
+
+latex_macros = []
+for k, v in mathjax3_config["tex"]["macros"].items():
+    if len(v) == 1:
+        latex_macros.append(r"\newcommand{\%s}{%s}" % (k, v[0]))
+    else:
+        latex_macros.append(r"\newcommand{\%s}[1]{%s}" % (k, v[0]))
+
+imgmath_latex_preamble = "\n".join(latex_macros)
 
 
 # See https://stackoverflow.com/questions/5599254
@@ -226,7 +237,7 @@ else:
 # Output file base name for HTML help builder.
 htmlhelp_basename = "SCICOdoc"
 
-# Include TOODs
+# Include TODOs
 todo_include_todos = True
 
 
@@ -248,17 +259,9 @@ latex_documents = [
     ("index", "scico.tex", "SCICO Documentation", "The SCICO Developers", "manual"),
 ]
 
-
 latex_engine = "xelatex"
 
 # latex_use_xindy = False
-
-latex_macros = []
-for k, v in mathjax_config["TeX"]["Macros"].items():
-    if len(v) == 1:
-        latex_macros.append(r"\newcommand{\%s}{%s}" % (k, v[0]))
-    else:
-        latex_macros.append(r"\newcommand{\%s}[1]{%s}" % (k, v[0]))
 
 latex_elements = {"preamble": "\n".join(latex_macros)}
 

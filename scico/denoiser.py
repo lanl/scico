@@ -43,7 +43,7 @@ except ImportError:
     have_bm4d = False
 else:
     have_bm4d = True
-    finfo = np.finfo(np.float32)
+    finfo = np.finfo(np.float32)  # type: ignore
     if hasattr(finfo, "smallest_subnormal"):  # can't test with older numpy versions
         if finfo.smallest_subnormal == 0.0:
             warnings.warn(
