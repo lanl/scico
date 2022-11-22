@@ -45,7 +45,8 @@ Test different DnCNN on images with different noise levels
 """
 print("  σ   | variant | noisy image PSNR (dB)   | denoised image PSNR (dB)")
 for σ in [0.06, 0.1, 0.2]:
-    for variant in ["17L", "17M", "17H", "17N", "6L", "6M", "6H", "6N"]:
+    print("------+---------+-------------------------+-------------------------")
+    for variant in ["6L", "6M", "6H", "6N", "17L", "17M", "17H", "17N"]:
 
         # Instantiate a DnCnn
         denoiser = DnCNN(variant=variant)
@@ -69,7 +70,6 @@ for σ in [0.06, 0.1, 0.2]:
             % (σ, variant, metric.psnr(x_gt, y), metric.psnr(x_gt, x_hat))
         )
 
-    print("")
 
 """
 Show reference and denoised images for σ=0.2 and variant=6N.
