@@ -25,7 +25,6 @@ information, see `scico issue #342
 """
 
 import warnings
-
 from typing import Optional
 
 import numpy as np
