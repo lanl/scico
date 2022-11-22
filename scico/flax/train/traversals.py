@@ -29,8 +29,8 @@ empty_node = _EmptyNode()
 class ModelParamTraversal:
     """Select model parameters using a name filter.
 
-    This traversal operates on a nested dictionary of parameters and selects a
-    subset based on the `filter_fn` argument.
+    This traversal operates on a nested dictionary of parameters and
+    selects a subset based on the `filter_fn` argument.
 
     """
 
@@ -38,10 +38,11 @@ class ModelParamTraversal:
         """Constructor a new ModelParamTraversal.
 
         Args:
-          filter_fn: a function that takes a parameter's full name and its value and
-            returns whether this parameter should be selected or not. The name of a
-            parameter is determined by the module hierarchy and the parameter name
-            (for example: '/module/sub_module/parameter_name').
+          filter_fn: a function that takes a parameter's full name and
+            its value and returns whether this parameter should be
+            selected or not. The name of a parameter is determined by the
+            module hierarchy and the parameter name (for example:
+            '/module/sub_module/parameter_name').
         """
         self._filter_fn = filter_fn
 
@@ -64,7 +65,8 @@ class ModelParamTraversal:
         """Update the focused items.
 
         Args:
-            fn: the callback function that maps each traversed item to its updated value.
+            fn: the callback function that maps each traversed item to
+                its updated value.
             inputs: the object that should be traversed.
         Returns:
             A new object with the updated values.
@@ -105,8 +107,8 @@ def clip_positive(params: PyTree, traversal: ModelParamTraversal, minval: float 
     Args:
         params: Current model parameters.
         traversal: Utility to select model parameters.
-        minval: Minimum value to clip selected model parameters
-            and keep them in a positive range. Default: 1e-4.
+        minval: Minimum value to clip selected model parameters and keep
+            them in a positive range. Default: 1e-4.
     """
     params_out = traversal.update(lambda x: jnp.clip(x, a_min=minval), unfreeze(params))
 
@@ -121,8 +123,10 @@ def clip_range(
     Args:
         params: Current model parameters.
         traversal: Utility to select model parameters.
-        minval: Minimum value to clip selected model parameters. Default: 1e-4.
-        maxval: Maximum value to clip selected model parameters. Default: 1.
+        minval: Minimum value to clip selected model parameters.
+            Default: 1e-4.
+        maxval: Maximum value to clip selected model parameters.
+            Default: 1.
     """
     params_out = traversal.update(
         lambda x: jnp.clip(x, a_min=minval, a_max=maxval), unfreeze(params)

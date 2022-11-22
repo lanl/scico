@@ -74,21 +74,23 @@ class BasicFlaxTrainer:
         test_ds: DataSetDict,
         variables0: Optional[ModelVarDict] = None,
     ):
-        """Initializer for :class:`BasicFlaxTrainer` to configure model training and evaluation loop.
+        """Initializer for :class:`BasicFlaxTrainer`.
 
-        Construct a Flax train state (which includes the model apply function,
-        the model parameters and an Optax optimizer).
-        This uses data parallel training assuming sharded batched data.
+        Initializer for :class:`BasicFlaxTrainer` to configure model
+        training and evaluation loop. Construct a Flax train state (which
+        includes the model apply function, the model parameters and an
+        Optax optimizer). This uses data parallel training assuming
+        sharded batched data.
 
         Args:
             config: Hyperparameter configuration.
             model: Flax model to train.
-            train_ds: Dictionary of training data (includes images
-                and labels).
-            test_ds: Dictionary of testing data (includes images
-                and labels).
-            variables0: Optional initial state of model
-                parameters. Default: ``None``.
+            train_ds: Dictionary of training data (includes images and
+                labels).
+            test_ds: Dictionary of testing data (includes images and
+                labels).
+            variables0: Optional initial state of model parameters.
+                Default: ``None``.
         """
         # Configure seed
         if "seed" not in config:
@@ -119,8 +121,9 @@ class BasicFlaxTrainer:
     ):
         """Extract configuration parameters and construct training functions.
 
-        Parameters and functions are passed in the configuration dictionary.
-        Default values are used when parameters are not included in configuration.
+        Parameters and functions are passed in the configuration
+        dictionary. Default values are used when parameters are not
+        included in configuration.
 
         Args:
             config: Hyperparameter configuration.
@@ -187,12 +190,16 @@ class BasicFlaxTrainer:
 
         The parameters configured correspond to
 
-        - log: A flag for logging to the output terminal the evolution of results. Default: ``False``.
-        - workdir: Directory to write checkpoints. Default: execution directory.
-        - checkpointing: A flag for checkpointing model state.
-            Default: ``False``. `RunTimeError` is generated if
-            ``True`` and tensorflow is not available.
-        - return_state: A flag for returning the train state instead of the model variables. Default: ``False``, i.e. return model variables.
+        - log: A flag for logging to the output terminal the evolution of
+          results. Default: ``False``.
+        - workdir: Directory to write checkpoints. Default: execution
+          directory.
+        - checkpointing: A flag for checkpointing model state. Default:
+          ``False``. `RunTimeError` is generated if ``True`` and
+          tensorflow is not available.
+        - return_state: A flag for returning the train state instead of
+          the model variables. Default: ``False``, i.e. return model
+          variables.
 
         Args:
             config: Hyperparameter configuration.
@@ -232,16 +239,27 @@ class BasicFlaxTrainer:
 
         The functions constructed correspond to
 
-        - `create_lr_schedule`: A function that creates an Optax learning rate schedule. Default:
-            :meth:`~scico.flax.train.learning_rate.create_cnst_lr_schedule`.
-        - `criterion`: A function that specifies the loss being minimized in training. Default: :meth:`~scico.flax.train.losses.mse_loss`.
-        - `create_train_state`: A function that creates a Flax train state and initializes it. A train state object helps to keep optimizer and module functionality grouped for training. Default:
-            :meth:`~scico.flax.train.state.create_basic_train_state`.
-        - `train_step_fn`: A hook for a function that executes a training step. Default: :meth:`~scico.flax.train.steps.train_step`, i.e. use the standard train step.
-        - `eval_step_fn`: A hook for a function that executes an eval step. Default: :meth:`~scico.flax.train.steps.eval_step`, i.e. use the standard eval step.
-        - `metrics_fn`: A hook for a function that computes metrics. Default: :meth:`~scico.flax.train.diagnostics.compute_metrics`, i.e. use the standard compute metrics function.
-        - `post_lst`: List of postprocessing functions to apply to parameter set after optimizer step (e.g. clip
-            to a specified range, normalize, etc.).
+        - `create_lr_schedule`: A function that creates an Optax learning
+           rate schedule. Default:
+           :meth:`~scico.flax.train.learning_rate.create_cnst_lr_schedule`.
+        - `criterion`: A function that specifies the loss being minimized
+           in training. Default: :meth:`~scico.flax.train.losses.mse_loss`.
+        - `create_train_state`: A function that creates a Flax train
+           state and initializes it. A train state object helps to keep
+           optimizer and module functionality grouped for training.
+           Default: :meth:`~scico.flax.train.state.create_basic_train_state`.
+        - `train_step_fn`: A hook for a function that executes a training
+           step. Default: :meth:`~scico.flax.train.steps.train_step`,
+           i.e. use the standard train step.
+        - `eval_step_fn`: A hook for a function that executes an eval
+           step. Default: :meth:`~scico.flax.train.steps.eval_step`, i.e.
+           use the standard eval step.
+        - `metrics_fn`: A hook for a function that computes metrics.
+           Default: :meth:`~scico.flax.train.diagnostics.compute_metrics`,
+           i.e. use the standard compute metrics function.
+        - `post_lst`: List of postprocessing functions to apply to
+           parameter set after optimizer step (e.g. clip to a specified
+           range, normalize, etc.).
 
         Args:
             config: Hyperparameter configuration.
@@ -370,14 +388,15 @@ class BasicFlaxTrainer:
     ):
         """Construct and initialize Flax train state.
 
-        A train state object helps to keep optimizer and module functionality grouped for training.
+        A train state object helps to keep optimizer and module
+        functionality grouped for training.
 
         Args:
             config: Hyperparameter configuration.
             key: A PRNGKey used as the random key.
             model: Flax model to train.
-            variables0: Optional initial state of model
-                parameters. Default: ``None``.
+            variables0: Optional initial state of model parameters.
+                Default: ``None``.
         """
         # Create Flax training state
         state = self.create_train_state(
@@ -400,9 +419,12 @@ class BasicFlaxTrainer:
         """Execute training loop.
 
         Returns:
-            Model variables extracted from TrainState  and iteration stats object obtained after executing the training loop.
-            Alternatively the TrainState can be returned directly instead of the model variables.
-            Note that the iteration stats object is not None only if log is enabled when configuring the training loop.
+            Model variables extracted from TrainState and iteration
+            stats object obtained after executing the training loop.
+            Alternatively the TrainState can be returned directly instead
+            of the model variables. Note that the iteration stats object
+            is not ``None`` only if log is enabled when configuring the
+            training loop.
         """
         state = self.state
         step_offset = int(state.step)  # > 0 if restarting from checkpoint
@@ -453,14 +475,16 @@ class BasicFlaxTrainer:
     def update_metrics(self, state: TrainState, step: int, train_metrics: List[MetricsDict], t0):
         """Compute metrics for current model state.
 
-        Metrics for training and testing (eval) sets are computed and stored in an
-        iteration stats object. This is executed only if logging is enabled.
+        Metrics for training and testing (eval) sets are computed and
+        stored in an iteration stats object. This is executed only if
+        logging is enabled.
 
         Args:
-            state: Flax train state which includes the
-                model apply function and the model parameters.
+            state: Flax train state which includes the model apply
+                function and the model parameters.
             step: Current step in training.
-            train_metrics: List of diagnostic statistics computed from training set.
+            train_metrics: List of diagnostic statistics computed from
+                training set.
             t0: Time when training loop started.
         """
         if not self.logflag:

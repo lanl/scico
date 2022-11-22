@@ -33,8 +33,8 @@ class DataSetDict(TypedDict):
 class ConfigDict(TypedDict):
     """Dictionary structure for training parmeters.
 
-    Definition of the dictionary structure
-    expected for specifying training parameters."""
+    Definition of the dictionary structure expected for specifying
+    training parameters."""
 
     seed: float
     opt_type: str
@@ -64,8 +64,8 @@ class ConfigDict(TypedDict):
 class ModelVarDict(TypedDict):
     """Dictionary structure for Flax variables.
 
-    Definition of the dictionary structure
-    grouping all Flax model variables."""
+    Definition of the dictionary structure grouping all Flax model
+    variables."""
 
     params: PyTree
     batch_stats: PyTree
@@ -74,9 +74,8 @@ class ModelVarDict(TypedDict):
 class MetricsDict(TypedDict, total=False):
     """Dictionary structure for training metrics.
 
-    Definition of the dictionary structure
-    for metrics computed or updates made during
-    training."""
+    Definition of the dictionary structure for metrics computed or
+    updates made during training."""
 
     loss: float
     snr: float

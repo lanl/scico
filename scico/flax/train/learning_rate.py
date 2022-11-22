@@ -17,9 +17,8 @@ def create_cnst_lr_schedule(config: ConfigDict) -> optax._src.base.Schedule:
     value.
 
     Args:
-        config: Dictionary of configuration. The value
-           to use corresponds to the `base_learning_rate`
-           keyword.
+        config: Dictionary of configuration. The value to use corresponds
+           to the `base_learning_rate` keyword.
 
     Returns:
         schedule: A function that maps step counts to values.
@@ -32,8 +31,9 @@ def create_exp_lr_schedule(config: ConfigDict) -> optax._src.base.Schedule:
     """Create learning rate schedule to have an exponential decay.
 
     Args:
-        config: Dictionary of configuration. The values to use correspond to `base_learning_rate`,
-            `num_epochs`, `steps_per_epochs` and `lr_decay_rate`.
+        config: Dictionary of configuration. The values to use correspond
+            to `base_learning_rate`, `num_epochs`, `steps_per_epochs` and
+            `lr_decay_rate`.
 
     Returns:
         schedule: A function that maps step counts to values.
@@ -46,13 +46,15 @@ def create_exp_lr_schedule(config: ConfigDict) -> optax._src.base.Schedule:
 
 
 def create_cosine_lr_schedule(config: ConfigDict) -> optax._src.base.Schedule:
-    """Create learning rate to follow a pre-specified
-    schedule with warmup and cosine stages.
+    """Create learning rate to follow a pre-specified schedule.
+
+    Create learning rate to follow a pre-specified schedule with warmup
+    and cosine stages.
 
     Args:
-        config: Dictionary of configuration. The parameters
-        to use correspond to keywords: `base_learning_rate`,
-        `num_epochs`, `warmup_epochs` and `steps_per_epoch`.
+        config: Dictionary of configuration. The parameters to use
+            correspond to keywords: `base_learning_rate`, `num_epochs`,
+            `warmup_epochs` and `steps_per_epoch`.
 
     Returns:
         schedule: A function that maps step counts to values.

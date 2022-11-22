@@ -23,9 +23,10 @@ from .typed_dict import MetricsDict
 
 
 def compute_metrics(output: Array, labels: Array, criterion: Callable = mse_loss) -> MetricsDict:
-    """Compute diagnostic metrics. Assummes sharded batched
-    data (i.e. it only works inside pmap because it needs an
-    axis name).
+    """Compute diagnostic metrics.
+
+    Assumes sharded batched data (i.e. it only works inside pmap because
+    it needs an axis name).
 
     Args:
         output: Comparison signal.
@@ -46,9 +47,11 @@ def compute_metrics(output: Array, labels: Array, criterion: Callable = mse_loss
 
 
 class ArgumentStruct:
-    """Class that converts a python dictionary into an object with named entries given by the dictionary keys.
+    """Class that converts a dictionary into an object with named entries.
 
-    After the object instantiation both modes of access (dictionary or object entries) can be used.
+    Class that converts a python dictionary into an object with named
+    entries given by the dictionary keys. After the object instantiation
+    both modes of access (dictionary or object entries) can be used.
     """
 
     def __init__(self, **entries):
@@ -58,11 +61,13 @@ class ArgumentStruct:
 def stats_obj() -> Tuple[IterationStats, Callable]:
     """Functionality to log and store iteration statistics.
 
-    This function initializes an object :class:`~.diagnostics.IterationStats` to log and store
-    iteration statistics if logging is enabled during training.
-    The statistics collected are: epoch, time, learning rate, loss and snr in training and loss and snr in evaluation.
-    The :class:`~.diagnostics.IterationStats` object takes care of both: printing stats to command line and storing
-    them for further analysis.
+    This function initializes an object
+    :class:`~.diagnostics.IterationStats` to log and store iteration
+    statistics if logging is enabled during training. The statistics
+    collected are: epoch, time, learning rate, loss and snr in training
+    and loss and snr in evaluation. The
+    :class:`~.diagnostics.IterationStats` object takes care of both
+    printing stats to command line and storing them for further analysis.
     """
     # epoch, time learning rate loss and snr (train and
     # eval) fields

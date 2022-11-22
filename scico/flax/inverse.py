@@ -23,9 +23,9 @@ from scico.flax import ResNet
 from scico.linop import operator_norm
 from scico.typing import Array, DType, PRNGKey, Shape
 
-# The imports of Scope and _Sentinel (above)
-# are required to silence "cannot resolve forward reference"
-# warnings when building sphinx api docs.
+# The imports of Scope and _Sentinel (above) are required to silence
+# "cannot resolve forward reference" warnings when building sphinx api
+# docs.
 
 
 ModuleDef = Any
@@ -41,12 +41,14 @@ class MoDLNet(Module):
         operator: Operator for computing forward and adjoint mappings.
         depth: Depth of MoDL net. Default = 1.
         channels: Number of channels of input tensor.
-        num_filters: Number of filters in the convolutional layer of the block. Corresponds
-            to the number of channels in the output tensor.
+        num_filters: Number of filters in the convolutional layer of the
+            block. Corresponds to the number of channels in the output
+            tensor.
         block_depth: Number of layers in the computational block.
         kernel_size: Size of the convolution filters. Default: (3, 3).
         strides: Convolution strides. Default: (1, 1).
-        lmbda_ini: Initial value of the regularization weight `lambda`. Default: 0.5.
+        lmbda_ini: Initial value of the regularization weight `lambda`.
+            Default: 0.5.
         dtype: Output type. Default: ``jnp.float32``.
         cg_iter: Number of iterations for cg solver. Default: 10.
     """
@@ -68,7 +70,8 @@ class MoDLNet(Module):
 
         Args:
             y: The nd-array with signal to invert.
-            train: Flag to differentiate between training and testing stages.
+            train: Flag to differentiate between training and testing
+               stages.
 
         Returns:
             The reconstructed signal.
@@ -112,13 +115,15 @@ def cg_solver(A: Callable, b: Array, x0: Array = None, maxiter: int = 50) -> Arr
     r"""Conjugate Gradient solver.
 
     Solve the linear system :math:`A\mb{x} = \mb{b}`, where :math:`A` is
-    positive definite, via the conjugate gradient method. This is a light version constructed to be
-    differentiable with the autograd functionality from jax. Therefore, (i) it uses
-    :meth:`jax.lax.scan` to execute a fixed number of iterations and (ii) it assumes that the linear
-    operator may use :meth:`jax.experimental.host_callback`. Due the utilization of a while cycle,
-    :meth:`scico.cg` is not differentiable by jax and :meth:`jax.scipy.sparse.linalg.cg`
-    does not support functions using :meth:`jax.experimental.host_callback` explaining
-    why an additional conjugate gradient function is implemented.
+    positive definite, via the conjugate gradient method. This is a light
+    version constructed to be differentiable with the autograd
+    functionality from jax. Therefore, (i) it uses :meth:`jax.lax.scan`
+    to execute a fixed number of iterations and (ii) it assumes that the
+    linear operator may use :meth:`jax.experimental.host_callback`. Due
+    to the utilization of a while cycle, :meth:`scico.cg` is not
+    differentiable by jax and :meth:`jax.scipy.sparse.linalg.cg` does not
+    support functions using :meth:`jax.experimental.host_callback`
+    explaining why an additional conjugate gradient function is implemented.
 
     Args:
         A: Function implementing linear operator :math:`A`, should be
@@ -158,19 +163,23 @@ class ODPProxDnBlock(Module):
     """Flax implementation of ODP proximal gradient
     denoise block :cite:`diamond-2018-odp`.
 
-    Flax implementation of the unrolled optimization with deep priors (ODP) proximal gradient block
-        for denoising described in :cite:`diamond-2018-odp`.
+    Flax implementation of the unrolled optimization with deep priors
+    (ODP) proximal gradient block for denoising described in
+    :cite:`diamond-2018-odp`.
 
     Args:
-        operator: Operator for computing forward and adjoint mappings. In this case it corresponds
-            to the identity operator and is used at the network level.
+        operator: Operator for computing forward and adjoint mappings.
+            In this case it corresponds to the identity operator and is
+            used at the network level.
         depth: Number of layers in block.
         channels: Number of channels of input tensor.
-        num_filters: Number of filters in the convolutional layer of the block. Corresponds
-            to the number of channels in the output tensor.
+        num_filters: Number of filters in the convolutional layer of the
+            block. Corresponds to the number of channels in the output
+            tensor.
         kernel_size: Size of the convolution filters. Default: (3, 3).
         strides: Convolution strides. Default: (1, 1).
-        alpha_ini: Initial value of the fidelity weight `alpha`. Default: 0.2.
+        alpha_ini: Initial value of the fidelity weight `alpha`.
+            Default: 0.2.
         dtype: Output type. Default: ``jnp.float32``.
     """
 
@@ -194,7 +203,8 @@ class ODPProxDnBlock(Module):
         Args:
             x: The nd-array with current stage of denoised signal.
             y: The nd-array with noisy signal.
-            train: Flag to differentiate between training and testing stages.
+            train: Flag to differentiate between training and testing
+                stages.
 
         Returns:
             The block output (i.e. next stage of denoised signal).
@@ -223,19 +233,22 @@ class ODPProxDcnvBlock(Module):
     """Flax implementation of ODP proximal
     gradient deconvolution block :cite:`diamond-2018-odp`.
 
-    Flax implementation of the unrolled optimization with deep priors (ODP) proximal gradient block
-        for deconvolution under Gaussian noise described in :cite:`diamond-2018-odp`.
+    Flax implementation of the unrolled optimization with deep priors
+    (ODP) proximal gradient block for deconvolution under Gaussian noise
+    described in :cite:`diamond-2018-odp`.
 
     Args:
-        operator: Operator for computing forward and adjoint mappings. In this case it correponds
-            to a circular convolution operator.
+        operator: Operator for computing forward and adjoint mappings.
+            In this case it correponds to a circular convolution operator.
         depth: Number of layers in block.
         channels: Number of channels of input tensor.
-        num_filters: Number of filters in the convolutional layer of the block. Corresponds
-            to the number of channels in the output tensor.
+        num_filters: Number of filters in the convolutional layer of the
+            block. Corresponds to the number of channels in the output
+            tensor.
         kernel_size: Size of the convolution filters. Default: (3, 3).
         strides: Convolution strides. Default: (1, 1).
-        alpha_ini: Initial value of the fidelity weight `alpha`. Default: 0.99.
+        alpha_ini: Initial value of the fidelity weight `alpha`.
+            Default: 0.99.
         dtype: Output type. Default: ``jnp.float32``.
     """
 
@@ -249,7 +262,8 @@ class ODPProxDcnvBlock(Module):
     dtype: Any = jnp.float32
 
     def setup(self):
-        """Computing operator norm and setting operator for batch evaluation and defining network layers."""
+        """Computing operator norm and setting operator for batch
+        evaluation and defining network layers."""
         self.operator_norm = operator_norm(self.operator)
         self.ah_f = lambda v: jnp.atleast_3d(
             self.operator.adj(v.reshape(self.operator.output_shape))
@@ -279,7 +293,8 @@ class ODPProxDcnvBlock(Module):
         Args:
             x: The nd-array with current stage of reconstructed signal.
             y: The nd-array with signal to invert.
-            train: Flag to differentiate between training and testing stages.
+            train: Flag to differentiate between training and testing
+                stages.
 
         Returns:
             The block output (i.e. next stage of reconstructed signal).
@@ -309,19 +324,23 @@ class ODPGrDescBlock(Module):
     r"""Flax implementation of ODP gradient
     descent with :math:`\ell_2` loss block :cite:`diamond-2018-odp`.
 
-    Flax implementation of the unrolled optimization with deep priors (ODP) gradient descent block
-        for inversion using :math:`\ell_2` loss described in :cite:`diamond-2018-odp`.
+    Flax implementation of the unrolled optimization with deep priors
+    (ODP) gradient descent block for inversion using :math:`\ell_2` loss
+    described in :cite:`diamond-2018-odp`.
 
     Args:
-        operator: Operator for computing forward and adjoint mappings. In this case it corresponds
-            to the identity operator and is used at the network level.
+        operator: Operator for computing forward and adjoint mappings. In
+            this case it corresponds to the identity operator and is used
+            at the network level.
         depth: Number of layers in block.
         channels: Number of channels of input tensor.
-        num_filters: Number of filters in the convolutional layer of the block. Corresponds
-            to the number of channels in the output tensor.
+        num_filters: Number of filters in the convolutional layer of the
+            block. Corresponds to the number of channels in the output
+            tensor.
         kernel_size: Size of the convolution filters. Default: (3, 3).
         strides: Convolution strides. Default: (1, 1).
-        alpha_ini: Initial value of the fidelity weight `alpha`. Default: 0.2.
+        alpha_ini: Initial value of the fidelity weight `alpha`.
+            Default: 0.2.
         dtype: Output type. Default: ``jnp.float32``.
     """
     operator: ModuleDef
@@ -364,7 +383,8 @@ class ODPGrDescBlock(Module):
         Args:
             x: The nd-array with current stage of reconstructed signal.
             y: The nd-array with signal to invert.
-            train: Flag to differentiate between training and testing stages.
+            train: Flag to differentiate between training and testing
+                stages.
 
         Returns:
             The block output (i.e. next stage of inverted signal).
@@ -379,22 +399,26 @@ class ODPNet(Module):
     """Flax implementation of network
     :cite:`diamond-2018-odp`.
 
-    Flax implementation of the unrolled optimization with deep priors (ODP) network
-        for inverse problems described in :cite:`diamond-2018-odp`. It can be constructed
-        with proximal gradient blocks or gradient descent blocks.
+    Flax implementation of the unrolled optimization with deep priors
+    (ODP) network for inverse problems described in
+    :cite:`diamond-2018-odp`. It can be constructed with proximal gradient
+    blocks or gradient descent blocks.
 
     Args:
         operator: Operator for computing forward and adjoint mappings.
         depth: Depth of MoDL net. Default = 1.
         channels: Number of channels of input tensor.
-        num_filters: Number of filters in the convolutional layer of the block. Corresponds
-            to the number of channels in the output tensor.
+        num_filters: Number of filters in the convolutional layer of the
+            block. Corresponds to the number of channels in the output
+            tensor.
         block_depth: Number of layers in the computational block.
         kernel_size: Size of the convolution filters. Default: (3, 3).
         strides: Convolution strides. Default: (1, 1).
-        alpha_ini: Initial value of the fidelity weight `alpha`. Default: 0.5.
+        alpha_ini: Initial value of the fidelity weight `alpha`.
+            Default: 0.5.
         dtype: Output type. Default: ``jnp.float32``.
-        odp_block: processing block to apply. Default :class:`ODPProxDnBlock`.
+        odp_block: processing block to apply. Default
+            :class:`ODPProxDnBlock`.
     """
 
     operator: ModuleDef
@@ -414,7 +438,8 @@ class ODPNet(Module):
 
         Args:
             y: The nd-array with signal to invert.
-            train: Flag to differentiate between training and testing stages.
+            train: Flag to differentiate between training and testing
+                stages.
 
         Returns:
             The reconstructed signal.

@@ -30,21 +30,19 @@ from .typed_dict import ConfigImageSetDict
 
 
 def rotation90(img: Array) -> Array:
-    """Rotates an image, or a batch of images,
-    by 90 degrees.
+    """Rotate an image, or a batch of images, by 90 degrees.
 
-    Rotates an image or a batch of images by 90
-    degrees counterclockwise. An image is an
-    nd-array with size H x W x C with H and W
-    spatial dimensions and C number of channels.
-    A batch of images is an nd-array with size
-    N x H x W x C with N number of images.
+    Rotate an image or a batch of images by 90 degrees counterclockwise.
+    An image is an nd-array with size H x W x C with H and W spatial
+    dimensions and C number of channels. A batch of images is an nd-array
+    with size N x H x W x C with N number of images.
 
     Args:
         img: The nd-array to be rotated.
 
     Returns:
-       An image, or batch of images, rotated by 90 degrees counterclockwise.
+       An image, or batch of images, rotated by 90 degrees
+           counterclockwise.
     """
     if img.ndim < 4:
         return np.swapaxes(img, 0, 1)
@@ -53,15 +51,12 @@ def rotation90(img: Array) -> Array:
 
 
 def flip(img: Array) -> Array:
-    """Horizontal flip of an image or a batch of
-    images.
+    """Horizontal flip of an image or a batch of images.
 
-    Horizontally flips an image or a batch of
-    images. An image is an nd-array with size
-    H x W x C with H and W spatial dimensions
-    and C number of channels. A batch of images
-    is an nd-array with size N x H x W x C with
-    N number of images.
+    Horizontally flip an image or a batch of images. An image is an
+    nd-array with size H x W x C with H and W spatial dimensions and C
+    number of channels. A batch of images is an nd-array with size
+    N x H x W x C with N number of images.
 
     Args:
         img: The nd-array to be flipped.
@@ -78,10 +73,8 @@ def flip(img: Array) -> Array:
 class CenterCrop:
     """Crop central part of an image to a specified size.
 
-    Crops central part of an image. An image
-    is an nd-array with size H x W x C with H
-    and W spatial dimensions and C number of
-    channels.
+    Crop central part of an image. An image is an nd-array with size
+    H x W x C with H and W spatial dimensions and C number of channels.
     """
 
     def __init__(self, output_size: Union[Shape, int]):
@@ -119,10 +112,8 @@ class CenterCrop:
 class PositionalCrop:
     """Crop an image from a given corner to a specified size.
 
-    Crops an image from a given corner. An image
-    is an nd-array with size H x W x C with H
-    and W spatial dimensions and C number of
-    channels.
+    Crop an image from a given corner. An image is an nd-array with size
+    H x W x C with H and W spatial dimensions and C number of channels.
     """
 
     def __init__(self, output_size: Union[Shape, int]):
@@ -158,21 +149,16 @@ class PositionalCrop:
 
 
 class RandomNoise:
-    """Adds Gaussian noise to an image or a
-    batch of images.
+    """Add Gaussian noise to an image or a batch of images.
 
-    Adds Gaussian noise to an image or a batch
-    of images. An image is an nd-array with size
-    H x W x C with H and W spatial dimensions
-    and C number of channels. A batch of images
-    is an nd-array with size N x H x W x C with
-    N number of images. The Gaussian noise is
-    a Gaussian random variable with mean zero and
-    given standard deviation. The standard
-    deviation can be a fix value corresponding
-    to the specified noise level or randomly
-    selected on a range between 50% and 100% of
-    the specified noise level.
+    Adds Gaussian noise to an image or a batch of images. An image is
+    an nd-array with size H x W x C with H and W spatial dimensions
+    and C number of channels. A batch of images is an nd-array with
+    size N x H x W x C with N number of images. The Gaussian noise is
+    a Gaussian random variable with mean zero and given standard
+    deviation. The standard deviation can be a fix value corresponding
+    to the specified noise level or randomly selected on a range
+    between 50% and 100% of the specified noise level.
     """
 
     def __init__(self, noise_level: float, range_flag: bool = False):
@@ -180,7 +166,8 @@ class RandomNoise:
         Args:
             noise_level: Standard dev of the Gaussian noise.
             range_flag: If true, the standard dev is randomly selected
-                between 50% and 100% of `noise_level` set. Default: ``False``.
+                between 50% and 100% of `noise_level` set. Default:
+                ``False``.
         """
         self.range_flag = range_flag
         if range_flag:
@@ -224,17 +211,20 @@ def reconfigure_images(
     stride: Optional[Union[Shape, int]] = None,
     dtype: Any = np.float32,
 ) -> Array:
-    """Reconfigure set of images, converting to
-    gray scale, or cropping or sampling multiple
-    patches from each one, or selecting a subset
-    of them, according to specified setup.
+    """Reconfigure set of images.
+
+    Reconfigure set of images, converting to gray scale, or cropping or
+    sampling multiple patches from each one, or selecting a subset of
+    them, according to specified setup.
 
     Args:
         images: Array of color images.
         output_size: Desired output size. If int, square crop is made.
         gray_flag: If true, converts to gray scale.
-        num_img: If specified, reads that number of images, if not reads all the images in path.
-        multi_flag: If true, samples multiple patches of specified size in each image.
+        num_img: If specified, reads that number of images, if not reads
+            all the images in path.
+        multi_flag: If true, samples multiple patches of specified size
+            in each image.
         stride: Stride between patch origins (indexed from left-top
             corner). If int, the same stride is used in h and w.
         dtype: type of array. Default: ``np.float32``.
@@ -297,19 +287,20 @@ def reconfigure_images(
 def build_image_dataset(
     imgs_train, imgs_test, config: ConfigImageSetDict, transf: Optional[Callable] = None
 ) -> Tuple[DataSetDict, ...]:
-    """Pre-process images according to the
-    specified configuration. Keep training and
-    testing partitions. Each dictionary returned
-    has images and labels, which are nd-arrays
-    of dimensions (N, H, W, C) with
-    N: number of images; H, W: spatial dimensions
-    and C: number of channels.
+    """Pre-process images according to the specified configuration.
+
+    Pre-process images according to the specified configuration. Keep
+    training and testing partitions. Each dictionary returned has
+    images and labels, which are nd-arrays of dimensions (N, H, W, C)
+    with N: number of images; H, W: spatial dimensions and C: number
+    of channels.
 
     Args:
         imgs_train: 4D array (NHWC) with images for training.
         imgs_test: 4D array (NHWC) with images for testing.
         config: Configuration of image data set to read.
-        transf: Operator for blurring or other non-trivial transformations. Default: ``None``.
+        transf: Operator for blurring or other non-trivial
+            transformations. Default: ``None``.
 
     Returns:
        tuple: A tuple (train_ds, test_ds) containing:
@@ -373,12 +364,14 @@ def build_image_dataset(
 
 
 def images_read(path: str, ext: str = "jpg") -> Array:  # pragma: no cover
-    """Read a collection of color images from a set of files in the specified directory.
+    """Read a collection of color images from a set of files.
 
-    All files with extension `ext` (i.e. matching glob `*.ext`)
-    in directory `path` are assumed to be image files and are read.
-    Images may have different aspect ratios, therefore, they are
-    transposed to keep the aspect ratio of the first image read.
+    Read a collection of color images from a set of files in the
+    specified directory. All files with extension `ext` (i.e.
+    matching glob `*.ext`) in directory `path` are assumed to be image
+    files and are read. Images may have different aspect ratios,
+    therefore, they are transposed to keep the aspect ratio of the first
+    image read.
 
     Args:
         path: Path to directory containing the image files.
@@ -401,7 +394,7 @@ def images_read(path: str, ext: str = "jpg") -> Array:  # pragma: no cover
 
 
 def get_bsds_data(path: str, verbose: bool = False):  # pragma: no cover
-    """Download BSDS500 data from the Berkeley Segmentation Dataset and Benchmark project.
+    """Download BSDS500 data from the BSDB project.
 
     Download the BSDS500 dataset, a set of 500 color images of size
     481x321 or 321x481, from the Berkeley Segmentation Dataset and
@@ -494,9 +487,10 @@ def build_blur_kernel(
 class PaddedCircularConvolve(LinearOperator):
     """Define padded convolutional operator.
 
-    The operator pads the signal with a reflection of the borders before convolving with the kernel
-    provided at initialization. It crops the result of the convolution to maintain the same
-    signal size.
+    The operator pads the signal with a reflection of the borders
+    before convolving with the kernel provided at initialization. It
+    crops the result of the convolution to maintain the same signal
+    size.
     """
 
     def __init__(
@@ -562,13 +556,15 @@ class PaddedCircularConvolve(LinearOperator):
         """Apply operator.
 
         Args:
-            x: The nd-array with input signal. The input to the constructed operator should
-                be HWC with H and W spatial dimensions given by `output_size` and C the given
+            x: The nd-array with input signal. The input to the
+                constructed operator should be HWC with H and W spatial
+                dimensions given by `output_size` and C the given
                 `channels`.
 
         Returns:
-            The result of padding, convolving and cropping the signal. The output signal has
-                the same HWC dimensions as the input signal.
+            The result of padding, convolving and cropping the signal.
+                The output signal has the same HWC dimensions as the
+                input signal.
         """
         xpadd: Array = jnp.pad(x, self.padsz, mode="reflect")
         rconv: Array = self.conv(xpadd)

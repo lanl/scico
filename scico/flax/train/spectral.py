@@ -45,9 +45,10 @@ def estimate_spectral_norm(
 ):
     """Estimate spectral norm of operator.
 
-    This function estimates the spectral norm of an operator
-    by estimating the singular vectors of the operator via the
-    power iteration method and the transpose operator enabled by nested autodiff in JAX.
+    This function estimates the spectral norm of an operator by
+    estimating the singular vectors of the operator via the power
+    iteration method and the transpose operator enabled by nested
+    autodiff in JAX.
 
     Args:
         f: Operator to compute spectral norm.
@@ -76,17 +77,17 @@ def estimate_spectral_norm(
 
 
 class CNN(Module):
-    """Evaluation of convolution operator via Flax implementation of a convolutional layer.
+    """Evaluation of convolution operator via Flax convolutional layer.
 
-    This is form of convolution is used only for the
-    estimation of the spectral norm of the operator.
-    Therefore, the value of the kernel is provided too.
+    Evaluation of convolution operator via Flax implementation of a
+    convolutional layer. This is form of convolution is used only for the
+    estimation of the spectral norm of the operator. Therefore, the value
+    of the kernel is provided too.
 
     Attributes:
         kernel_size: Size of the convolution filter.
         kernel0: Convolution filter.
         dtype: Output type.
-
     """
 
     kernel_size: Sequence[int]
@@ -117,8 +118,7 @@ class CNN(Module):
 
 
 def conv(inputs: Array, kernel: Array) -> Array:
-    """Compute convolution betwen input
-       and kernel.
+    """Compute convolution betwen input and kernel.
 
     The convolution is evaluated via a CNN Flax model.
 
@@ -171,7 +171,8 @@ def spectral_normalization_conv(
 def exact_spectral_norm(f, input_shape):
     """Compute spectral norm of operator.
 
-    This function computes the spectral norm of an operator via autodiff in JAX.
+    This function computes the spectral norm of an operator via autodiff
+    in JAX.
 
     Args:
         f: Operator to compute spectral norm.

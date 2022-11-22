@@ -20,9 +20,9 @@ from flax.linen.module import _Sentinel  # noqa
 from flax.linen.module import Module, compact
 from scico.typing import Array
 
-# The imports of Scope and _Sentinel (above)
-# are required to silence "cannot resolve forward reference"
-# warnings when building sphinx api docs.
+# The imports of Scope and _Sentinel (above) are required to silence
+# "cannot resolve forward reference" warnings when building sphinx api
+# docs.
 
 ModuleDef = Any
 
@@ -35,10 +35,13 @@ class ConvBNBlock(Module):
             convolutional layer of the block.
             Corresponds to the number of channels in the output tensor.
         conv: Flax module implementing the convolution layer to apply.
-        norm: Flax module implementing the batch normalization layer to apply.
+        norm: Flax module implementing the batch normalization layer to
+            apply.
         act: Flax function defining the activation operation to apply.
-        kernel_size: A shape tuple defining the size of the convolution filters. Default: (3, 3).
-        strides: A shape tuple defining the size of strides in convolution. Default: (1, 1).
+        kernel_size: A shape tuple defining the size of the convolution
+            filters. Default: (3, 3).
+        strides: A shape tuple defining the size of strides in
+            convolution. Default: (1, 1).
     """
 
     num_filters: int
@@ -74,12 +77,15 @@ class ConvBlock(Module):
     """Define Flax convolution block.
 
     Args:
-        num_filters: Number of filters in the convolutional layer of the block.
-            Corresponds to the number of channels in the output tensor.
+        num_filters: Number of filters in the convolutional layer of the
+            block. Corresponds to the number of channels in the output
+            tensor.
         conv: Flax module implementing the convolution layer to apply.
         act: Flax function defining the activation operation to apply.
-        kernel_size: A shape tuple defining the size of the convolution filters. Default: (3, 3).
-        strides: A shape tuple defining the size of strides in convolution. Default: (1, 1).
+        kernel_size: A shape tuple defining the size of the convolution
+            filters. Default: (3, 3).
+        strides: A shape tuple defining the size of strides in
+            convolution. Default: (1, 1).
     """
 
     num_filters: int
@@ -113,15 +119,19 @@ class ConvBNPoolBlock(Module):
     """Define convolution, batch normalization and pooling Flax block.
 
     Args:
-        num_filters: Number of filters in the convolutional layer of the block.
-            Corresponds to the number of channels in the output tensor.
+        num_filters: Number of filters in the convolutional layer of the
+            block. Corresponds to the number of channels in the output
+            tensor.
         conv: Flax module implementing the convolution layer to apply.
-        norm: Flax module implementing the batch normalization layer to apply.
+        norm: Flax module implementing the batch normalization layer to
+            apply.
         act: Flax function defining the activation operation to apply.
         pool: Flax function defining the pooling operation to apply.
-        kernel_size: A shape tuple defining the size of the convolution filters.
+        kernel_size: A shape tuple defining the size of the convolution
+            filters.
         strides: A shape tuple defining the size of strides in convolution.
-        window_shape: A shape tuple defining the window to reduce over in the pooling operation.
+        window_shape: A shape tuple defining the window to reduce over in
+            the pooling operation.
     """
 
     num_filters: int
@@ -161,13 +171,16 @@ class ConvBNUpsampleBlock(Module):
     """Define convolution, batch normalization and upsample Flax block.
 
     Args:
-        num_filters: Number of filters in the convolutional layer of the block.
-            Corresponds to the number of channels in the output tensor.
+        num_filters: Number of filters in the convolutional layer of the
+            block. Corresponds to the number of channels in the output
+            tensor.
         conv: Flax module implementing the convolution layer to apply.
-        norm: Flax module implementing the batch normalization layer to apply.
+        norm: Flax module implementing the batch normalization layer to
+            apply.
         act: Flax function defining the activation operation to apply.
         upfn: Flax function defining the upsampling operation to apply.
-        kernel_size: A shape tuple defining the size of the convolution filters.
+        kernel_size: A shape tuple defining the size of the convolution
+            filters.
         strides: A shape tuple defining the size of strides in convolution.
     """
 
@@ -209,13 +222,17 @@ class ConvBNMultiBlock(Module):
         num_blocks: Number of convolutional batch normalization blocks to
             apply. Each block has its own parameters for convolution
             and batch normalization.
-        num_filters: Number of filters in the convolutional layer of the block.
-            Corresponds to the number of channels in the output tensor.
+        num_filters: Number of filters in the convolutional layer of the
+            block. Corresponds to the number of channels in the output
+            tensor.
         conv: Flax module implementing the convolution layer to apply.
-        norm: Flax module implementing the batch normalization layer to apply.
+        norm: Flax module implementing the batch normalization layer to
+            apply.
         act: Flax function defining the activation operation to apply.
-        kernel_size: A shape tuple defining the size of the convolution filters. Default: (3, 3).
-        strides: A shape tuple defining the size of strides in convolution. Default: (1, 1).
+        kernel_size: A shape tuple defining the size of the convolution
+            filters. Default: (3, 3).
+        strides: A shape tuple defining the size of strides in
+            convolution. Default: (1, 1).
     """
 
     num_blocks: int
@@ -231,7 +248,10 @@ class ConvBNMultiBlock(Module):
         self,
         x: Array,
     ) -> Array:
-        """Apply sucessive blocks, each one composed of convolution normalization and activation.
+        """Apply sucessive convolution normalization and activation blocks.
+
+        Apply sucessive blocks, each one composed of convolution
+        normalization and activation.
 
         Args:
             x: The nd-array to be transformed.

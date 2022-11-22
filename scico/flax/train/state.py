@@ -25,8 +25,10 @@ PyTree = Any
 
 
 class TrainState(train_state.TrainState):
-    """Definition of Flax train state including
-    `batch_stats` for batch normalization."""
+    """Definition of Flax train state.
+
+    Definition of Flax train state including `batch_stats` for batch normalization.
+    """
 
     batch_stats: Any
 
@@ -37,7 +39,8 @@ def initialize(key: KeyArray, model: ModuleDef, ishape: Shape) -> Tuple[PyTree, 
     Args:
         key: A PRNGKey used as the random key.
         model: Flax model to train.
-        ishape: Shape of signal (image) to process by `model`. Make sure that no batch dimension is included.
+        ishape: Shape of signal (image) to process by `model`. Make sure
+            that no batch dimension is included.
 
     Returns:
         Initial model parameters (including `batch_stats`).
@@ -64,21 +67,19 @@ def create_basic_train_state(
 
     Args:
         key: A PRNGKey used as the random key.
-        config: Dictionary of configuration. The values
-           to use correspond to keywords: `opt_type`
-           and `momentum`.
+        config: Dictionary of configuration. The values to use correspond
+            to keywords: `opt_type` and `momentum`.
         model: Flax model to train.
-        ishape: Shape of signal (image) to process by `model`. Make sure that no batch dimension is included.
-        variables0: Optional initial state of model
-           parameters. If not provided a random initialization
-           is performed. Default: ``None``.
-        learning_rate_fn: A function that maps step
-           counts to values.
+        ishape: Shape of signal (image) to process by `model`. Ensure
+            that no batch dimension is included.
+        variables0: Optional initial state of model parameters. If not
+            provided a random initialization is performed. Default:
+            ``None``.
+        learning_rate_fn: A function that maps step counts to values.
 
     Returns:
-        state: Flax train state which includes the
-           model apply function, the model parameters
-           and an Optax optimizer.
+        state: Flax train state which includes the model apply function,
+           the model parameters and an Optax optimizer.
     """
     if variables0 is None:
         params, batch_stats = initialize(key, model, ishape)

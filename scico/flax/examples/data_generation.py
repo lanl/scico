@@ -7,7 +7,8 @@
 
 """Functionality to generate training data for Flax example scripts.
 
-It distributes computations via ray (if available) or jax or to reduce processing time.
+It distributes computations via ray (if available) or jax or to reduce
+processing time.
 """
 
 import os
@@ -57,9 +58,8 @@ os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 if have_xdesign:
 
     class Foam2(UnitCircle):
-        """Define functionality to generate phantom
-        with structure similar to foam with two
-        different attenuation properties."""
+        """Define functionality to generate phantom with structure
+        similar to foam with two different attenuation properties."""
 
         def __init__(
             self,
@@ -69,17 +69,21 @@ if have_xdesign:
             attn1: float = 1.0,
             attn2: float = 10.0,
         ):
-            """Foam-like structure with two different
-            attenuations. Circles for material 1 are
-            more sparse than for material 2 by design.
+            """Foam-like structure with two different attenuations.
+            Circles for material 1 are more sparse than for material 2 by
+            design.
 
             Args:
                 size_range: The radius, or range of radius, of the
                     circles to be added. Default: [0.05, 0.01].
-                gap: Minimum distance between circle boundaries. Default: 0.
-                porosity: Target porosity. Must be a value between [0, 1]. Default: 1.
-                attn1: Mass attenuation parameter for material 1. Default: 1.
-                attn2: Mass attenuation parameter for material 2. Default: 10.
+                gap: Minimum distance between circle boundaries.
+                    Default: 0.
+                porosity: Target porosity. Must be a value between [0, 1].
+                    Default: 1.
+                attn1: Mass attenuation parameter for material 1.
+                    Default: 1.
+                attn2: Mass attenuation parameter for material 2.
+                    Default: 10.
             """
             super(Foam2, self).__init__(radius=0.5, material=SimpleMaterial(attn1))
             if porosity < 0 or porosity > 1:
@@ -92,9 +96,8 @@ if have_xdesign:
 
 
 def generate_foam2_images(seed: float, size: int, ndata: int) -> Array:
-    """Generation of batch of images with
-    :class:`Foam2` structure (foam-like structure
-    with two different attenuations).
+    """Generation of batch of images with :class:`Foam2` structure
+    (foam-like structure with two different attenuations).
 
     Args:
         seed: Seed for data generation.
@@ -152,11 +155,9 @@ def generate_ct_data(
     test_flag: bool = False,
     prefer_ray: bool = True,
 ) -> Tuple[Array, ...]:
-    """
-    Generate CT data.
+    """Generate CT data.
 
-    Generate CT data for training of machine
-    learning network models.
+    Generate CT data for training of machine learning network models.
 
     Args:
         nimg: Number of images to generate.
@@ -164,10 +165,13 @@ def generate_ct_data(
         nproj: Number of CT views.
         imgfunc: Function for generating input images (e.g. foams).
         seed: Seed for data generation.
-        verbose: Flag indicating whether to print status messages. Default: ``False``.
-        test_flag: Flag to indicate if running in testing mode. Testing mode requires a different
-            initialization of ray. Default: ``False``.
-        prefer_ray: Use ray for distributed processing if available. Default: ``True``.
+        verbose: Flag indicating whether to print status messages.
+            Default: ``False``.
+        test_flag: Flag to indicate if running in testing mode. Testing
+            mode requires a different initialization of ray. Default:
+            ``False``.
+        prefer_ray: Use ray for distributed processing if available.
+            Default: ``True``.
 
     Returns:
        tuple: A tuple (img, sino, fbp) containing:
@@ -240,11 +244,9 @@ def generate_blur_data(
     test_flag: bool = False,
     prefer_ray: bool = True,
 ) -> Tuple[Array, ...]:
-    """
-    Generate blurred data based on xdesign foam structures.
+    """Generate blurred data based on xdesign foam structures.
 
-    Generate blurred data for training of machine
-    learning network models.
+    Generate blurred data for training of machine learning network models.
 
     Args:
         nimg: Number of images to generate.
@@ -253,10 +255,13 @@ def generate_blur_data(
         noise_sigma: Level of additive Gaussian noise to apply.
         imgfunc: Function to generate foams.
         seed: Seed for data generation.
-        verbose: Flag indicating whether to print status messages. Default: ``False``.
-        test_flag: Flag to indicate if running in testing mode. Testing mode requires a different
-            initialization of ray. Default: ``False``.
-        prefer_ray: Use ray for distributed processing if available. Default: ``True``.
+        verbose: Flag indicating whether to print status messages.
+            Default: ``False``.
+        test_flag: Flag to indicate if running in testing mode. Testing
+            mode requires a different initialization of ray.
+            Default: ``False``.
+        prefer_ray: Use ray for distributed processing if available.
+            Default: ``True``.
 
     Returns:
        tuple: A tuple (img, blurn) containing:
@@ -316,9 +321,8 @@ def distributed_data_generation(
         imagenf: Function for batch-data generation.
         size: Size of image to generate.
         ndata: Number of images to generate.
-        sharded: Flag to indicate if data is to
-            be returned as the chunks generated by
-            each process or consolidated. Default: ``True``.
+        sharded: Flag to indicate if data is to be returned as the chunks
+            generated by each process or consolidated. Default: ``True``.
 
     Returns:
         nd-array of generated data.
@@ -348,8 +352,9 @@ def ray_distributed_data_generation(
         size: Size of image to generate.
         ndata: Number of images to generate.
         seedg: Base seed for data generation. Default: 123.
-        test_flag: Flag to indicate if running in testing mode. Testing mode
-            requires a different initialization of ray. Default: ``False``.
+        test_flag: Flag to indicate if running in testing mode. Testing
+            mode requires a different initialization of ray. Default:
+            ``False``.
 
     Returns:
         nd-array of generated data.

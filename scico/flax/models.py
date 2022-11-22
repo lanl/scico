@@ -30,9 +30,9 @@ from scico.flax import (
 )
 from scico.typing import Array
 
-# The imports of Scope and _Sentinel (above)
-# are required to silence "cannot resolve forward reference"
-# warnings when building sphinx api docs.
+# The imports of Scope and _Sentinel (above) are required to silence
+# "cannot resolve forward reference" warnings when building sphinx api
+# docs.
 
 
 ModuleDef = Any
@@ -120,16 +120,16 @@ class DnCNNNet(Module):
 class ResNet(Module):
     """Flax implementation of convolutional network with residual connection.
 
-    Net constructed from sucessive applications of convolution plus batch normalization
-    blocks and ending with residual connection
-    (i.e. adding the input to the output of the
-    block).
+    Net constructed from sucessive applications of convolution plus batch
+    normalization blocks and ending with residual connection (i.e. adding
+    the input to the output of the block).
 
     Args:
         depth: Depth of residual net.
         channels: Number of channels of input tensor.
-        num_filters: Number of filters in the layers of the block. Corresponds to
-            the number of channels in the network processing.
+        num_filters: Number of filters in the layers of the block.
+            Corresponds to the number of channels in the network
+            processing.
         kernel_size: Size of the convolution filters. Default: 3x3.
         strides: Convolution strides. Default: 1x1.
         dtype: Output type. Default: ``jnp.float32``.
@@ -195,14 +195,15 @@ class ResNet(Module):
 class ConvBNNet(Module):
     """Convolution and batch normalization net.
 
-    Net constructed from sucessive applications of convolution plus batch normalization
-    blocks. No residual connection.
+    Net constructed from sucessive applications of convolution plus batch
+    normalization blocks. No residual connection.
 
     Args:
         depth: Depth of net.
         channels: Number of channels of input tensor.
-        num_filters: Number of filters in the layers of the block. Corresponds to
-            the number of channels in the network processing.
+        num_filters: Number of filters in the layers of the block.
+            Corresponds to the number of channels in the network
+            processing.
         kernel_size: Size of the convolution filters. Default: 3x3.
         strides: Convolution strides. Default: 1x1.
         dtype: Output type. Default: ``jnp.float32``.
@@ -268,12 +269,14 @@ class UNet(Module):
     Args:
         depth: Depth of U-Net.
         channels: Number of channels of input tensor.
-        num_filters: Number of filters in the convolutional layer of the block.
-            Corresponds to the number of channels in the network processing.
+        num_filters: Number of filters in the convolutional layer of the
+            block. Corresponds to the number of channels in the network
+            processing.
         kernel_size: Size of the convolution filters. Default: 3x3.
         strides: Convolution strides. Default: 1x1.
         block_depth: Number of processing layers per block. Default: 2.
-        window_shape: Window for reduction for pooling and downsampling. Default: 2x2.
+        window_shape: Window for reduction for pooling and downsampling.
+            Default: 2x2.
         upsampling: Factor for expanding. Default: 2.
         dtype: Output type. Default: ``jnp.float32``.
     """

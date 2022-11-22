@@ -15,9 +15,7 @@ from scico.typing import Array
 
 
 def mse_loss(output: Array, labels: Array) -> float:
-    """
-    Compute Mean Squared Error (MSE) loss for training
-    via Optax.
+    """Compute Mean Squared Error (MSE) loss for training via Optax.
 
     Args:
         output: Comparison signal.

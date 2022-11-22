@@ -31,15 +31,14 @@ def restore_checkpoint(
     """Load model and optimiser state.
 
     Args:
-        state: Flax train state which includes model and
-            optimiser parameters.
-        workdir: checkpoint file or directory of checkpoints
-            to restore from.
+        state: Flax train state which includes model and optimiser
+            parameters.
+        workdir: checkpoint file or directory of checkpoints to restore
+            from.
 
     Returns:
-        Restored `state` updated from checkpoint file,
-        or if no checkpoint files present, returns the
-        passed-in `state` unchanged.
+        Restored `state` updated from checkpoint file, or if no
+        checkpoint files present, returns the passed-in `state` unchanged.
     """
     return checkpoints.restore_checkpoint(workdir, state)
 
@@ -48,10 +47,9 @@ def save_checkpoint(state: TrainState, workdir: Union[str, os.PathLike]):  # pra
     """Store model and optimiser state.
 
     Args:
-        state: Flax train state which includes model and
-            optimiser parameters.
-        workdir: str or pathlib-like path to store checkpoint
-            files in.
+        state: Flax train state which includes model and optimiser
+            parameters.
+        workdir: str or pathlib-like path to store checkpoint files in.
     """
     if jax.process_index() == 0:
         # get train state from first replica

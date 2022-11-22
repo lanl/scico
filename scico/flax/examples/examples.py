@@ -24,10 +24,12 @@ def get_cache_path(cache_path: Optional[str] = None) -> Tuple[str, str]:
     """Get input/output SCICO cache path.
 
     Args:
-        cache_path: Given cache path. If ``None`` SCICO default cache path is constructed.
+        cache_path: Given cache path. If ``None`` SCICO default cache
+            path is constructed.
 
     Returns:
-        The cache path and a display string with private user path information stripped.
+        The cache path and a display string with private user path
+        information stripped.
     """
     if cache_path is None:
         cache_path = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "data")
@@ -51,34 +53,41 @@ def load_ct_data(
     """
     Load or generate CT data.
 
-    Load or generate CT data for training of machine learning network models.
-    If cached file exists and enough data of the requested size is available, data is
-    loaded and returned.
+    Load or generate CT data for training of machine learning network
+    models. If cached file exists and enough data of the requested
+    size is available, data is loaded and returned.
 
-    If either `size` or `nproj` requested does not match the data read from the cached
-    file, a `RunTimeError` is generated.
+    If either `size` or `nproj` requested does not match the data read
+    from the cached file, a `RunTimeError` is generated.
 
-    If no cached file is found or not enough data is contained in the file a new data set
-    is generated and stored in `cache_path`. The data is stored in `.npz` format for
-    convenient access via :func:`numpy.load`. The data is saved in two distinct files:
-    `ct_foam2_train.npz` and `ct_foam2_test.npz` to keep separated training and testing partitions.
+    If no cached file is found or not enough data is contained in the
+    file a new data set is generated and stored in `cache_path`. The
+    data is stored in `.npz` format for convenient access via
+    :func:`numpy.load`. The data is saved in two distinct files:
+    `ct_foam2_train.npz` and `ct_foam2_test.npz` to keep separated
+    training and testing partitions.
 
     Args:
         train_nimg: Number of images required for training.
         test_nimg: Number of images required for testing.
         size: Size of reconstruction images.
         nproj: Number of CT views.
-        cache_path: Directory in which generated data is saved. Default: ``None``.
-        verbose: Flag indicating whether to print status messages. Default: ``False``.
-        prefer_ray: Use ray for distributed processing if available. Default: ``True``.
+        cache_path: Directory in which generated data is saved.
+            Default: ``None``.
+        verbose: Flag indicating whether to print status messages.
+            Default: ``False``.
+        prefer_ray: Use ray for distributed processing if available.
+            Default: ``True``.
 
     Returns:
        tuple: A tuple (trdt, ttdt) containing:
 
            - **trdt** : (Dictionary): Collection of images (key `img`),
-               sinograms (key `sino`) and filtered back projections (key `fbp`) for training.
+               sinograms (key `sino`) and filtered back projections
+               (key `fbp`) for training.
            - **ttdt** : (Dictionary): Collection of images (key `img`),
-               sinograms (key `sino`) and filtered back projections (key `fbp`) for testing.
+               sinograms (key `sino`) and filtered back projections
+               (key `fbp`) for testing.
     """
     # Set default cache path if not specified
     cache_path, cache_path_display = get_cache_path(cache_path)
@@ -178,20 +187,21 @@ def load_foam1_blur_data(
     verbose: bool = False,
     prefer_ray: bool = True,
 ) -> Tuple[DataSetDict, ...]:  # pragma: no cover
-    """
-    Load or generate blurred data based on xdesign foam structures.
+    """Load or generate blurred data based on xdesign foam structures.
 
-    Load or generate blurred data for training of machine learning network models.
-    If cached file exists and enough data of the requested size is available, data is
-    loaded and returned.
+    Load or generate blurred data for training of machine learning
+    network models. If cached file exists and enough data of the
+    requested size is available, data is loaded and returned.
 
-    If `size`, `blur_kernel` or `noise_sigma` requested do not match the data read from the cached
-    file, a `RunTimeError` is generated.
+    If `size`, `blur_kernel` or `noise_sigma` requested do not match
+    the data read from the cached file, a `RunTimeError` is generated.
 
-    If no cached file is found or not enough data is contained in the file a new data set
-    is generated and stored in `cache_path`. The data is stored in `.npz` format for
-    convenient access via :func:`numpy.load`. The data is saved in two distinct files:
-    `dcnv_foam1_train.npz` and `dcnv_foam1_test.npz` to keep separated training and testing partitions.
+    If no cached file is found or not enough data is contained in the
+    file a new data set is generated and stored in `cache_path`. The
+    data is stored in `.npz` format for convenient access via
+    :func:`numpy.load`. The data is saved in two distinct files:
+    `dcnv_foam1_train.npz` and `dcnv_foam1_test.npz` to keep separated
+    training and testing partitions.
 
     Args:
         train_nimg: Number of images required for training.
@@ -199,15 +209,20 @@ def load_foam1_blur_data(
         size: Size of reconstruction images.
         blur_kernel: Kernel for blurring the generated images.
         noise_sigma: Level of additive Gaussian noise to apply.
-        cache_path: Directory in which generated data is saved. Default: ``None``.
-        verbose: Flag indicating whether to print status messages. Default: ``False``.
-        prefer_ray: Use ray for distributed processing if available. Default: ``True``.
+        cache_path: Directory in which generated data is saved.
+            Default: ``None``.
+        verbose: Flag indicating whether to print status messages.
+            Default: ``False``.
+        prefer_ray: Use ray for distributed processing if available.
+            Default: ``True``.
 
     Returns:
        tuple: A tuple (train_ds, test_ds) containing:
 
-           - **train_ds** : Dictionary of training data (includes images and labels).
-           - **test_ds** : Dictionary of testing data (includes images and labels).
+           - **train_ds** : Dictionary of training data (includes images
+                            and labels).
+           - **test_ds** : Dictionary of testing data (includes images
+                           and labels).
     """
     # Set default cache path if not specified
     cache_path, cache_path_display = get_cache_path(cache_path)
@@ -332,26 +347,30 @@ def load_image_data(
     stride: Optional[int] = None,
     augment: bool = False,
 ) -> Tuple[DataSetDict, ...]:  # pragma: no cover
-    """
-    Load and/or pre-process image data.
+    """Load and/or pre-process image data.
 
-    Load and/or pre-process image data for training of neural network models. The original
-    source is the BSDS500 data from the Berkeley Segmentation Dataset and Benchmark project.
-    Depending on the intended applications, different pre-processings can be performed to the
-    source data.
+    Load and/or pre-process image data for training of neural network
+    models. The original source is the BSDS500 data from the Berkeley
+    Segmentation Dataset and Benchmark project. Depending on the
+    intended applications, different pre-processings can be performed
+    to the source data.
 
-    If a cached file exists, and enough images were sampled, data is loaded and returned.
+    If a cached file exists, and enough images were sampled, data is
+    loaded and returned.
 
-    If either `size` or type of data (gray scale or color) requested does not match
-    the data read from the cached file, a `RunTimeError` is generated. In contrast,
-    there is no checking for the specific contamination (i.e. noise level, blur kernel, etc.).
+    If either `size` or type of data (gray scale or color) requested
+    does not match the data read from the cached file, a
+    `RunTimeError` is generated. In contrast, there is no checking for
+    the specific contamination (i.e. noise level, blur kernel, etc.).
 
-    If no cached file is found or not enough images were sampled and stored in the
-    file, a new data set is generated and stored in `cache_path`. The data is stored in
-    `.npz` format for convenient access via :func:`numpy.load`. The data is saved in two
-    distinct files: `*_bsds_train.npz` and `*_bsds_test.npz` to keep separated training
-    and testing partitions. The * stands for `dn` if denoising problem or `dcnv` if
-    deconvolution problem. Other types of pre-processings may be specified via the `transf` operator.
+    If no cached file is found or not enough images were sampled and
+    stored in the file, a new data set is generated and stored in
+    `cache_path`. The data is stored in `.npz` format for convenient
+    access via :func:`numpy.load`. The data is saved in two distinct
+    files: `*_bsds_train.npz` and `*_bsds_test.npz` to keep separated
+    training and testing partitions. The * stands for `dn` if
+    denoising problem or `dcnv` if deconvolution problem. Other types
+    of pre-processings may be specified via the `transf` operator.
 
     Args:
         train_nimg: Number of images required for sampling training data.
@@ -359,12 +378,16 @@ def load_image_data(
         size: Size of reconstruction images.
         gray_flag: Flag to indicate if gray scale images or color images.
             When ``True`` gray scale images are used.
-        data_mode: Type of image problem. Options are: `dn` for denosing, `dcnv` for deconvolution.
-        cache_path: Directory in which processed data is saved. Default: ``None``.
-        verbose: Flag indicating whether to print status messages. Default: ``False``.
+        data_mode: Type of image problem. Options are: `dn` for denosing,
+            `dcnv` for deconvolution.
+        cache_path: Directory in which processed data is saved.
+            Default: ``None``.
+        verbose: Flag indicating whether to print status messages.
+            Default: ``False``.
         noise_level: Standard deviation of the Gaussian noise.
-        noise_range: Flag to indicate if a fixed or a random standard deviation must be used.
-            Default: ``False`` i.e. fixed standard deviation given by `noise_level`.
+        noise_range: Flag to indicate if a fixed or a random standard
+            deviation must be used. Default: ``False`` i.e. fixed
+            standard deviation given by `noise_level`.
         transf: Operator for blurring or other non-trivial transformations.
             Should be able to handle batched (NHWC) data. Default: ``None``.
         stride: Stride between patch origins (indexed from left-top corner).
@@ -375,8 +398,10 @@ def load_image_data(
     Returns:
        tuple: A tuple (train_ds, test_ds) containing:
 
-           - **train_ds** : (DataSetDict): Dictionary of training data (includes images and labels).
-           - **test_ds** : (DataSetDict): Dictionary of testing data (includes images and labels).
+           - **train_ds** : (DataSetDict): Dictionary of training data
+                            (includes images and labels).
+           - **test_ds** : (DataSetDict): Dictionary of testing data
+                           (includes images and labels).
     """
     # Set default cache path if not specified
     cache_path, cache_path_display = get_cache_path(cache_path)
@@ -507,17 +532,20 @@ def check_img_data_requirements(
         train_nimg: Number of images required for training data.
         test_nimg: Number of images required for testing data.
         size: Size of images requested.
-        gray_flag: Flag to indicate if gray scale images or color images are requested.
-            When ``True`` gray scale images are used, therefore, one channel is expected.
+        gray_flag: Flag to indicate if gray scale images or color images
+            are requested. When ``True`` gray scale images are used,
+            therefore, one channel is expected.
         train_in_shp: Shape of images/patches loaded as training data.
         test_in_shp: Shape of images/patches loaded as testing data.
-        train_nimg_avail: Number of images available in  loaded training image data.
-        test_nimg_avail: Number of images available in loaded testing image data.
+        train_nimg_avail: Number of images available in loaded training
+            image data.
+        test_nimg_avail: Number of images available in loaded testing
+            image data.
         verbose: Flag indicating whether to print status messages.
 
     Returns:
-       True if the loaded image data satifies requirements of size, number of samples
-       and number of channels and False otherwise.
+       True if the loaded image data satifies requirements of size,
+       number of samples and number of channels and False otherwise.
     """
     # Check image size
     if train_in_shp[1] != size:
@@ -630,7 +658,8 @@ def print_data_warning(idstring: str, requested: int, available: int):
 def runtime_error(
     type: str, idstring: str, requested: Union[int, float], available: Union[int, float]
 ):
-    """Raise run time error related to parameter request not satisfied in available data.
+    """Raise run time error related to parameter request not satisfied in
+    available data.
 
     Args:
         type: Type of parameter in the request.

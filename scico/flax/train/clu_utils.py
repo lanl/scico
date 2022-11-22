@@ -95,15 +95,16 @@ def get_parameter_rows(
     """Return information about parameters as a list of dictionaries.
 
     Args:
-        params: Dictionary with parameters as NumPy arrays. The dictionary can be
-            nested.
-        include_stats: If ``True`` add columns with mean and std for each variable. Note
-            that this can be considerably more compute intensive and cause a lot of
-            memory to be transferred to the host.
+        params: Dictionary with parameters as NumPy arrays. The dictionary
+            can be nested.
+        include_stats: If ``True`` add columns with mean and std for each
+            variable. Note that this can be considerably more compute
+            intensive and cause a lot of memory to be transferred to the
+            host.
 
     Returns:
-        A list of `ParamRow`, or `ParamRowWithStats`, depending on the passed value
-            of `include_stats`.
+        A list of `ParamRow`, or `ParamRowWithStats`, depending on the
+            passed value of `include_stats`.
     """
     assert isinstance(params, (dict, flax.core.FrozenDict))
     if params:
@@ -149,9 +150,11 @@ def make_table(
     """Render list of rows to a table.
 
     Args:
-        rows: List of dataclass instances of a single type (e.g. `ParamRow`).
-        column_names: List of columns that that should be included in the output. If
-            not provided, then the columns are taken from keys of the first row.
+        rows: List of dataclass instances of a single type
+            (e.g. `ParamRow`).
+        column_names: List of columns that that should be included in the
+            output. If not provided, then the columns are taken from keys
+            of the first row.
         value_formatter: Callable used to format cell values.
         max_lines: Don't render a table longer than this.
 
@@ -208,9 +211,12 @@ def get_parameter_overview(
     """Return string with variables names, their shapes, count.
 
     Args:
-        params: Dictionary with parameters as NumPy arrays. The dictionary can be nested.
-        include_stats: If ``True``, add columns with mean and std for each variable.
-        max_lines: If not ``None``, the maximum number of variables to include.
+        params: Dictionary with parameters as NumPy arrays. The dictionary
+            can be nested.
+        include_stats: If ``True``, add columns with mean and std for each
+            variable.
+        max_lines: If not ``None``, the maximum number of variables to
+            include.
 
     Returns:
         A string with a table like in the example.

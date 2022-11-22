@@ -27,7 +27,8 @@ def load_weights(filename: str) -> PyTree:
         filename: Name of file containing parameters for trained model.
 
     Returns:
-        A tree-like structure containing the values of the parameters of the model.
+        A tree-like structure containing the values of the parameters of
+        the model.
     """
     with open(filename, "rb") as data_file:
         bytes_input = data_file.read()

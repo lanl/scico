@@ -30,29 +30,22 @@ KeyArray = Union[Array, jax.random.PRNGKeyArray]
 
 
 class IterateData:
-    """Class to load data for training and
-    testing.
+    """Class to load data for training and testing.
 
-    It uses the generator pattern to obtain
-    an iterable object.
+    It uses the generator pattern to obtain an iterable object.
     """
 
     def __init__(self, dt: DataSetDict, batch_size: int, train: bool = True, key: KeyArray = None):
         r"""Initialize a :class:`IterateData` object.
 
         Args:
-            dt: Dictionary of data for supervised
-               training including images and
-               labels.
-            batch_size: Size of batch for
-               iterating through the data.
-            train: Flag indicating use of iterator
-                for training. Iterator for
-                training is infinite, iterator for
-                testing passes once through the
-                data. Default: ``True``.
-            key: A PRNGKey used as the random key.
-                Default: ``None``.
+            dt: Dictionary of data for supervised training including
+               images and labels.
+            batch_size: Size of batch for iterating through the data.
+            train: Flag indicating use of iterator for training. Iterator
+                for training is infinite, iterator for testing passes
+                once through the data. Default: ``True``.
+            key: A PRNGKey used as the random key. Default: ``None``.
         """
         self.dt = dt
         self.batch_size = batch_size
@@ -80,10 +73,10 @@ class IterateData:
         return self
 
     def __next__(self):
-        """Gets next batch.
+        """Get next batch.
 
-        During training it reshuffles the batches
-        when the data is exhausted."""
+        During training it reshuffles the batches when the data is
+        exhausted."""
         if self.ns >= self.steps_per_epoch:
             if self.train:
                 self.reset()
@@ -116,27 +109,24 @@ def create_input_iter(
 ) -> Any:
     """Create data iterator for training.
 
-    Create data iterator for training by sharding
-    and prefetching batches on device.
+    Create data iterator for training by sharding and prefetching batches
+    on device.
 
     Args:
         key: A PRNGKey used for random data permutations.
-        dataset: Dictionary of data for supervised
-            training including images and labels.
+        dataset: Dictionary of data for supervised training including
+            images and labels.
         batch_size: Size of batch for iterating through the data.
         size_device_prefetch: Size of prefetch buffer. Default: 2.
         dtype: Type of data to handle. Default: ``jnp.float32``.
-        train: Flag indicating the type of
-            iterator to construct and use. The
-            iterator for training permutes data on
-            each epoch while the iterator for
-            testing passes through the data
-            without permuting it. Default: ``True``.
+        train: Flag indicating the type of iterator to construct and use.
+            The iterator for training permutes data on each epoch while
+            the iterator for testing passes through the data without
+            permuting it. Default: ``True``.
 
     Returns:
-        array-like data sharded to specific
-        devices coming from an iterator built from
-        the provided dataset.
+        Array-like data sharded to specific devices coming from an
+        iterator built from the provided dataset.
     """
     ds = IterateData(dataset, batch_size, train, key)
     it = map(prepare_data, ds)

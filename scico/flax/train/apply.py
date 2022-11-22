@@ -37,10 +37,13 @@ ModuleDef = Any
 
 
 def apply_fn(model: ModuleDef, variables: ModelVarDict, batch: DataSetDict) -> Array:
-    """Apply current model. Assumes sharded
-    batched data and replicated variables for distributed processing.
+    """Apply current model.
 
-    This function is intended to be used via :meth:`~scico.flax.only_apply`, not directly.
+    Assumes sharded batched data and replicated variables for distributed
+    processing.
+
+    This function is intended to be used via
+    :meth:`~scico.flax.only_apply`, not directly.
 
     Args:
         model: Flax model to apply.
@@ -66,11 +69,12 @@ def only_apply(
     Args:
         config: Hyperparameter configuration.
         model: Flax model to apply.
-        test_ds: Dictionary of testing data (includes images
-            and labels).
-        apply_fn: A hook for a function that applies current model. Default: :meth:`~scico.flax.train.apply.apply_fn`, i.e. use the standard apply function.
-        variables: Model parameters to use for evaluation.
-            Default: ``None`` (i.e. read from checkpoint).
+        test_ds: Dictionary of testing data (includes images and labels).
+        apply_fn: A hook for a function that applies current model.
+            Default: :meth:`~scico.flax.train.apply.apply_fn`, i.e. use
+            the standard apply function.
+        variables: Model parameters to use for evaluation. Default:
+            ``None`` (i.e. read from checkpoint).
 
     Returns:
         Output of model evaluated at the input provided in `test_ds`.
@@ -92,7 +96,7 @@ def only_apply(
         if checkpointing:
             if not have_tf:
                 raise RuntimeError(
-                    "Tensorflow not available and it is " "required for Flax checkpointing."
+                    "Tensorflow not available but is required for Flax checkpointing."
                 )
             state = checkpoints.restore_checkpoint(workdir, model)
             variables = {
