@@ -6,7 +6,7 @@
 
 """
 Comparison of DnCNN Variants for Image Denoising
-======================================
+================================================
 
 This example demonstrates the solution of an image denoising problem
 using different DnCNN variants.
@@ -47,26 +47,22 @@ print("  σ   | variant | noisy image PSNR (dB)   | denoised image PSNR (dB)")
 for σ in [0.06, 0.1, 0.2]:
     for variant in ["17L", "17M", "17H", "17N", "6L", "6M", "6H", "6N"]:
 
-        """
-        Instantiate a DnCnn
-        """
+        # Instantiate a DnCnn
         denoiser = DnCNN(variant=variant)
 
-        """
-        Generate a noisy image.
-        """
+        # Generate a noisy image.
         noise, key = scico.random.randn(x_gt.shape, seed=0)
         y = x_gt + σ * noise
 
         if variant in ["6N", "17N"]:
-            x_hat = denoiser(y, noise_level=σ)
+            x_hat = denoiser(y, sigma=σ)
         else:
             x_hat = denoiser(y)
 
         x_hat = np.clip(x_hat, a_min=0, a_max=1.0)
 
         if variant[0] == "6":
-            variant += " "  # add spaces for better visulaization
+            variant += " "  # add spaces to maintain alignment
 
         print(
             " %.2f | %s     |          %.2f          |          %.2f          "
@@ -76,7 +72,7 @@ for σ in [0.06, 0.1, 0.2]:
     print("")
 
 """
-Show reference and denoised images, where σ=0.2 and variant=6N.
+Show reference and denoised images for σ=0.2 and variant=6N.
 """
 fig, ax = plot.subplots(nrows=1, ncols=3, sharex=True, sharey=True, figsize=(21, 7))
 plot.imview(x_gt, title="Reference", fig=fig, ax=ax[0])
