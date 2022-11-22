@@ -252,7 +252,7 @@ class PDHG:
         if isinstance(self.C, LinearOperator):
             proxarg = self.x - self.tau * self.C.conj().T(self.z)
         else:
-            proxarg = self.x - self.tau * self.C.jhvp(self.x)[1](self.z)[0]
+            proxarg = self.x - self.tau * self.C.vjp(self.x, conjugate=True)[1](self.z)
         self.x = self.f.prox(proxarg, self.tau, v0=self.x)
         proxarg = self.z + self.sigma * self.C(
             (1.0 + self.alpha) * self.x - self.alpha * self.x_old

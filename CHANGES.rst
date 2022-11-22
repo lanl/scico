@@ -11,6 +11,8 @@ Version 0.0.4   (unreleased)
 • Enable diagnostics for ML training loops.
 • Change required packages and version numbers, including more recent version
   for `flax`.
+• New methods and a function for computing Jacobian-vector products for
+  `Operator` objects.
 
 
 
