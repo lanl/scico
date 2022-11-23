@@ -1,4 +1,5 @@
 import os
+import tempfile
 
 import numpy as np
 
@@ -26,6 +27,7 @@ from scico.flax.examples.data_preprocessing import (
     preprocess_images,
     rotation90,
 )
+from scico.flax.examples.examples import get_cache_path, runtime_error
 from scico.flax.examples.typed_dict import ConfigImageSetDict
 from scico.typing import Shape
 
@@ -344,3 +346,31 @@ def test_padded_circular_convolve():
         assert 0
     else:
         assert xblur.shape == x.shape
+
+
+def test_runtime_error():
+    with pytest.raises(RuntimeError):
+        runtime_error("channels", "testing ", 3, 1)
+
+
+def test_default_cache_path():
+    try:
+        cache_path, cache_path_display = get_cache_path()
+    except Exception as e:
+        print(e)
+        assert 0
+    else:
+        cache_path_display == "~/.cache/scico/examples/data"
+
+
+def test_cache_path():
+    try:
+        temp_dir = tempfile.TemporaryDirectory()
+        cache_path = os.path.join(temp_dir.name, ".cache")
+        cache_path_, cache_path_display = get_cache_path(cache_path)
+    except Exception as e:
+        print(e)
+        assert 0
+    else:
+        cache_path_ == cache_path
+        cache_path_display == cache_path

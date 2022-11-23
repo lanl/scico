@@ -1,5 +1,6 @@
 import functools
 import os
+import tempfile
 
 import numpy as np
 
@@ -15,8 +16,12 @@ from scico.flax.train.clu_utils import flatten_dict
 from scico.flax.train.learning_rate import create_cnst_lr_schedule
 from scico.flax.train.state import create_basic_train_state
 from scico.flax.train.steps import eval_step, train_step
-from scico.flax.train.trainer import sync_batch_stats
+from scico.flax.train.trainer import have_tf, sync_batch_stats
 from scico.flax.train.traversals import clip_positive, clip_range, construct_traversal
+
+if have_tf:
+    from .checkpoints import save_checkpoint
+
 
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 
@@ -532,3 +537,26 @@ def test_class_train_update_metrics_nolog(testobj):
         assert 0
     else:
         assert stats_object is None
+
+
+@pytest.mark.skipif(not have_tf, reason="tensorflow package not installed")
+def test_checkpointing(testobj):
+    depth = 3
+    model = sflax.DnCNNNet(depth, testobj.chn, testobj.model_conf["num_filters"])
+
+    key = jax.random.PRNGKey(123)
+    variables = model.init(key, testobj.train_ds["image"])
+
+    temp_dir = tempfile.TemporaryDirectory()
+    workdir = os.path.join(temp_dir.name, "temp_ckp")
+
+    # State initialization
+    learning_rate = create_cnst_lr_schedule(testobj.train_conf)
+    state = create_basic_train_state(
+        key, testobj.train_conf, model, (testobj.N, testobj.N), learning_rate
+    )
+    try:
+        save_checkpoint(state, workdir)
+    except Exception as e:
+        print(e)
+        assert 0

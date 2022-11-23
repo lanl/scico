@@ -242,6 +242,32 @@ def test_create_basic_train_state(testobj):
             np.testing.assert_allclose(bstats1[i], bstats2[i], rtol=1e-5)
 
 
+def test_sgd_train_state(testobj):
+    model = sflax.ConvBNNet(
+        testobj.model_conf["depth"], testobj.chn, testobj.model_conf["num_filters"]
+    )
+
+    key = jax.random.PRNGKey(seed=432)
+    input_shape = (1, testobj.N, testobj.N, testobj.chn)
+
+    # Model initialization
+    variables = model.init({"params": key}, np.ones(input_shape, model.dtype))
+    learning_rate = create_cnst_lr_schedule(testobj.train_conf)
+
+    train_conf = dict(testobj.train_conf)
+    train_conf["opt_type"] = "SGD"
+    train_conf.pop("momentum")
+
+    try:
+        # State initialization
+        state = create_basic_train_state(
+            key, train_conf, model, input_shape[1:3], learning_rate, variables
+        )
+    except Exception as e:
+        print(e)
+        assert 0
+
+
 def test_argument_struct():
     dictaux = {"epochs": 5, "num_steps": 10, "seed": 0}
     try:
