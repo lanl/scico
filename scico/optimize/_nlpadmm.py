@@ -22,7 +22,7 @@ from scico.linop import operator_norm
 from scico.numpy import BlockArray
 from scico.numpy.linalg import norm
 from scico.numpy.util import ensure_on_device
-from scico.typing import JaxArray
+from scico.typing import JaxArray, PRNGKey
 from scico.util import Timer
 
 
