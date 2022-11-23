@@ -165,7 +165,7 @@ class RandomNoise:
         """
         Args:
             noise_level: Standard dev of the Gaussian noise.
-            range_flag: If true, the standard dev is randomly selected
+            range_flag: If ``True``, the standard dev is randomly selected
                 between 50% and 100% of `noise_level` set. Default:
                 ``False``.
         """
@@ -220,10 +220,10 @@ def reconfigure_images(
     Args:
         images: Array of color images.
         output_size: Desired output size. If int, square crop is made.
-        gray_flag: If true, converts to gray scale.
+        gray_flag: If ``True``, converts to gray scale.
         num_img: If specified, reads that number of images, if not reads
             all the images in path.
-        multi_flag: If true, samples multiple patches of specified size
+        multi_flag: If ``True``, samples multiple patches of specified size
             in each image.
         stride: Stride between patch origins (indexed from left-top
             corner). If int, the same stride is used in h and w.

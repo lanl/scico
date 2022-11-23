@@ -58,8 +58,11 @@ os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 if have_xdesign:
 
     class Foam2(UnitCircle):
-        """Define functionality to generate phantom with structure
-        similar to foam with two different attenuation properties."""
+        """Foam-like material with two attenuations.
+
+        Define functionality to generate phantom with structure
+        similar to foam
+        with two different attenuation properties."""
 
         def __init__(
             self,
@@ -96,8 +99,10 @@ if have_xdesign:
 
 
 def generate_foam2_images(seed: float, size: int, ndata: int) -> Array:
-    """Generation of batch of images with :class:`Foam2` structure
-    (foam-like structure with two different attenuations).
+    """Generate batch of foam-like structures.
+
+    Generate batch of images with :class:`Foam2` structure
+    (foam-like material with two different attenuations).
 
     Args:
         seed: Seed for data generation.
@@ -123,7 +128,10 @@ def generate_foam2_images(seed: float, size: int, ndata: int) -> Array:
 
 
 def generate_foam1_images(seed: float, size: int, ndata: int) -> Array:
-    """Generation of xdesign foam-like batch of images.
+    """Generate batch of xdesign foam-like structures.
+
+    Generate batch of images with `xdesign` foam-like structure,
+    which uses one attenuation.
 
     Args:
         seed: Seed for data generation.
@@ -155,9 +163,9 @@ def generate_ct_data(
     test_flag: bool = False,
     prefer_ray: bool = True,
 ) -> Tuple[Array, ...]:
-    """Generate CT data.
+    """Generate batch of computed tomography (CT) data.
 
-    Generate CT data for training of machine learning network models.
+    Generate batch of CT data for training of machine learning network models.
 
     Args:
         nimg: Number of images to generate.
@@ -244,9 +252,9 @@ def generate_blur_data(
     test_flag: bool = False,
     prefer_ray: bool = True,
 ) -> Tuple[Array, ...]:
-    """Generate blurred data based on xdesign foam structures.
+    """Generate batch of blurred data.
 
-    Generate blurred data for training of machine learning network models.
+    Generate batch of blurred data for training of machine learning network models.
 
     Args:
         nimg: Number of images to generate.
