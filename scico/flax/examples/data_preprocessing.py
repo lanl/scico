@@ -202,7 +202,7 @@ class RandomNoise:
         return imgnoised
 
 
-def reconfigure_images(
+def preprocess_images(
     images: Array,
     output_size: Union[Shape, int],
     gray_flag: bool = False,
@@ -211,9 +211,9 @@ def reconfigure_images(
     stride: Optional[Union[Shape, int]] = None,
     dtype: Any = np.float32,
 ) -> Array:
-    """Reconfigure set of images.
+    """Preprocess (scale, crop, etc.) set of images.
 
-    Reconfigure set of images, converting to gray scale, or cropping or
+    Preprocess set of images, converting to gray scale, or cropping or
     sampling multiple patches from each one, or selecting a subset of
     them, according to specified setup.
 
@@ -230,7 +230,7 @@ def reconfigure_images(
         dtype: type of array. Default: ``np.float32``.
 
     Returns:
-        Reconfigured nd-array.
+        Preprocessed nd-array.
     """
 
     # Get number of images to use.
@@ -287,9 +287,10 @@ def reconfigure_images(
 def build_image_dataset(
     imgs_train, imgs_test, config: ConfigImageSetDict, transf: Optional[Callable] = None
 ) -> Tuple[DataSetDict, ...]:
-    """Pre-process images according to the specified configuration.
+    """Preprocess and assemble dataset for training.
 
-    Pre-process images according to the specified configuration. Keep
+    Preprocess images according to the specified configuration and assemble
+    a dataset into a structure that can be used for training machine learning models. Keep
     training and testing partitions. Each dictionary returned has
     images and labels, which are nd-arrays of dimensions (N, H, W, C)
     with N: number of images; H, W: spatial dimensions and C: number
@@ -308,9 +309,9 @@ def build_image_dataset(
            - **train_ds** : Dictionary of training data (includes images and labels).
            - **test_ds** : Dictionary of testing data (includes images and labels).
     """
-    # Reconfigure images by converting to gray scale or sampling multiple
+    # Preprocess images by converting to gray scale or sampling multiple
     # patches according to specified configuration.
-    S_train = reconfigure_images(
+    S_train = preprocess_images(
         imgs_train,
         config["output_size"],
         gray_flag=config["run_gray"],
@@ -318,7 +319,7 @@ def build_image_dataset(
         multi_flag=config["multi"],
         stride=config["stride"],
     )
-    S_test = reconfigure_images(
+    S_test = preprocess_images(
         imgs_test,
         config["output_size"],
         gray_flag=config["run_gray"],

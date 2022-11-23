@@ -23,7 +23,7 @@ from scico.flax.examples.data_preprocessing import (
     RandomNoise,
     build_image_dataset,
     flip,
-    reconfigure_images,
+    preprocess_images,
     rotation90,
 )
 from scico.flax.examples.typed_dict import ConfigImageSetDict
@@ -219,7 +219,7 @@ def test_random_noise2(shape):
 @pytest.mark.parametrize("output_size", [64, (64, 64)])
 @pytest.mark.parametrize("gray_flag", [False, True])
 @pytest.mark.parametrize("num_img_req", [None, 4])
-def test_reconfigure_images(output_size, gray_flag, num_img_req):
+def test_preprocess_images(output_size, gray_flag, num_img_req):
 
     num_img = 10
     N = 128
@@ -229,7 +229,7 @@ def test_reconfigure_images(output_size, gray_flag, num_img_req):
 
     stride = 1
     try:
-        output = reconfigure_images(
+        output = preprocess_images(
             images, output_size, gray_flag, num_img_req, multi_flag=False, stride=stride
         )
     except Exception as e:
@@ -250,7 +250,7 @@ def test_reconfigure_images(output_size, gray_flag, num_img_req):
             assert output.shape[0] == num_img_req
 
 
-def test_reconfigure_images_multi_flag():
+def test_preprocess_images_multi_flag():
     num_img = 10
     N = 128
     C = 3
@@ -263,7 +263,7 @@ def test_reconfigure_images_multi_flag():
 
     stride = 64  # 2 per side = 4 patches per image
     try:
-        output = reconfigure_images(
+        output = preprocess_images(
             images, output_size, gray_flag, num_img_req, multi_flag=True, stride=stride
         )
     except Exception as e:

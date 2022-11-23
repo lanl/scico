@@ -19,7 +19,7 @@ from scico.typing import Array, Shape
 
 
 class CTDataSetDict(TypedDict):
-    """Definition of the dictionary constructed in CT data generation."""
+    """Definition of the structure to store generated CT data."""
 
     img: Array  # original image
     sino: Array  # sinogram
@@ -27,8 +27,7 @@ class CTDataSetDict(TypedDict):
 
 
 class ConfigImageSetDict(TypedDict):
-    """Definition of the dictionary structure expected for building and
-    image data set for training."""
+    """Definition of the configuration for image data preprocessing."""
 
     output_size: Union[int, Shape]
     stride: Optional[Union[Shape, int]]
