@@ -1,3 +1,4 @@
+import os
 import tempfile
 
 import numpy as np
@@ -7,8 +8,11 @@ import jax
 import pytest
 from test_trainer import SetupTest
 
+from flax import jax_utils
 from scico import flax as sflax
 from scico.flax.train.checkpoints import have_tf
+from scico.flax.train.learning_rate import create_cnst_lr_schedule
+from scico.flax.train.state import create_basic_train_state
 
 if have_tf:
     from scico.flax.train.checkpoints import checkpoint_restore, checkpoint_save
@@ -35,6 +39,8 @@ def test_checkpoint(testobj):
     state = create_basic_train_state(
         key, testobj.train_conf, model, (testobj.N, testobj.N), learning_rate
     )
+    # Emulating parallel training
+    state = jax_utils.replicate(state)
     try:
         checkpoint_save(state, workdir)
         state_in = checkpoint_restore(model, workdir)

@@ -18,7 +18,7 @@ except ImportError:
 else:
     have_tf = True
 
-if have_tf:
+if have_tf:  # Flax checkpoints require tensorflow
     from flax.training import checkpoints
 
 from .state import TrainState
