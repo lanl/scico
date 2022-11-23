@@ -39,8 +39,8 @@ ModuleDef = Any
 def apply_fn(model: ModuleDef, variables: ModelVarDict, batch: DataSetDict) -> Array:
     """Apply current model.
 
-    Assumes sharded batched data and replicated variables for distributed
-    processing.
+    Assumes sharded batched data and replicated variables for
+    distributed processing.
 
     This function is intended to be used via
     :meth:`~scico.flax.only_apply`, not directly.
@@ -69,7 +69,8 @@ def only_apply(
     Args:
         config: Hyperparameter configuration.
         model: Flax model to apply.
-        test_ds: Dictionary of testing data (includes images and labels).
+        test_ds: Dictionary of testing data (includes images and
+            labels).
         apply_fn: A hook for a function that applies current model.
             Default: :meth:`~scico.flax.train.apply.apply_fn`, i.e. use
             the standard apply function.
@@ -80,7 +81,8 @@ def only_apply(
         Output of model evaluated at the input provided in `test_ds`.
 
     Raises:
-        RuntimeError: If no model variables and no checkpoint are specified.
+        RuntimeError: If no model variables and no checkpoint are
+            specified.
     """
     if "workdir" in config:
         workdir: str = config["workdir"]
