@@ -80,7 +80,7 @@ def only_apply(
         Output of model evaluated at the input provided in `test_ds`.
 
     Raises:
-        Error if no variables and no checkpoint are specified.
+        RuntimeError: If no model variables and no checkpoint are specified.
     """
     if "workdir" in config:
         workdir: str = config["workdir"]
@@ -106,7 +106,7 @@ def only_apply(
             print(get_parameter_overview(variables["params"]))
             print(get_parameter_overview(variables["batch_stats"]))
         else:
-            raise Exception("No variables or checkpoint provided")
+            raise RuntimeError("No variables or checkpoint provided.")
 
     # For distributed testing
     local_batch_size = config["batch_size"] // jax.process_count()

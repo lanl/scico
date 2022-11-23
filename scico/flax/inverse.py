@@ -39,7 +39,7 @@ class MoDLNet(Module):
 
     Args:
         operator: Operator for computing forward and adjoint mappings.
-        depth: Depth of MoDL net. Default = 1.
+        depth: Depth of MoDL net. Default: 1.
         channels: Number of channels of input tensor.
         num_filters: Number of filters in the convolutional layer of the
             block. Corresponds to the number of channels in the output
@@ -392,7 +392,7 @@ class ODPGrDescBlock(Module):
 
 
 class ODPNet(Module):
-    """Flax implementation of network :cite:`diamond-2018-odp`.
+    """Flax implementation of ODP network :cite:`diamond-2018-odp`.
 
     Flax implementation of the unrolled optimization with deep priors
     (ODP) network for inverse problems described in
@@ -401,7 +401,7 @@ class ODPNet(Module):
 
     Args:
         operator: Operator for computing forward and adjoint mappings.
-        depth: Depth of MoDL net. Default = 1.
+        depth: Depth of MoDL net. Default: 1.
         channels: Number of channels of input tensor.
         num_filters: Number of filters in the convolutional layer of the
             block. Corresponds to the number of channels in the output

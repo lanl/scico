@@ -190,16 +190,10 @@ class BasicFlaxTrainer:
 
         The parameters configured correspond to
 
-        - log: A flag for logging to the output terminal the evolution of
-              results. Default: ``False``.
-        - workdir: Directory to write checkpoints. Default: execution
-              directory.
-        - checkpointing: A flag for checkpointing model state. Default:
-              ``False``. `RunTimeError` is generated if ``True`` and
-              tensorflow is not available.
-        - return_state: A flag for returning the train state instead of
-              the model variables. Default: ``False``, i.e. return model
-              variables.
+        - logflag: A flag for logging to the output terminal the evolution of results. Default: ``False``.
+        - workdir: Directory to write checkpoints. Default: execution directory.
+        - checkpointing: A flag for checkpointing model state. Default: ``False``. `RunTimeError` is generated if ``True`` and tensorflow is not available.
+        - return_state: A flag for returning the train state instead of the model variables. Default: ``False``, i.e. return model variables.
 
         Args:
             config: Hyperparameter configuration.
@@ -237,29 +231,15 @@ class BasicFlaxTrainer:
 
         Default functions are used if not specified in configuration.
 
-        The functions constructed correspond to
+        The parameters configured correspond to
 
-        - `create_lr_schedule`: A function that creates an Optax learning
-               rate schedule. Default:
-               :meth:`~scico.flax.train.learning_rate.create_cnst_lr_schedule`.
-        - `criterion`: A function that specifies the loss being minimized
-               in training. Default: :meth:`~scico.flax.train.losses.mse_loss`.
-        - `create_train_state`: A function that creates a Flax train
-               state and initializes it. A train state object helps to keep
-               optimizer and module functionality grouped for training.
-               Default: :meth:`~scico.flax.train.state.create_basic_train_state`.
-        - `train_step_fn`: A hook for a function that executes a training
-               step. Default: :meth:`~scico.flax.train.steps.train_step`,
-               i.e. use the standard train step.
-        - `eval_step_fn`: A hook for a function that executes an eval
-               step. Default: :meth:`~scico.flax.train.steps.eval_step`, i.e.
-               use the standard eval step.
-        - `metrics_fn`: A hook for a function that computes metrics.
-               Default: :meth:`~scico.flax.train.diagnostics.compute_metrics`,
-               i.e. use the standard compute metrics function.
-        - `post_lst`: List of postprocessing functions to apply to
-               parameter set after optimizer step (e.g. clip to a specified
-               range, normalize, etc.).
+        - lr_schedule: A function that creates an Optax learning rate schedule. Default: :meth:`~scico.flax.train.learning_rate.create_cnst_lr_schedule`.
+        - criterion: A function that specifies the loss being minimized in training. Default: :meth:`~scico.flax.train.losses.mse_loss`.
+        - create_train_state: A function that creates a Flax train state and initializes it. A train state object helps to keep optimizer and module functionality grouped for training. Default: :meth:`~scico.flax.train.state.create_basic_train_state`.
+        - train_step_fn: A function that executes a training step. Default: :meth:`~scico.flax.train.steps.train_step`, i.e. use the standard train step.
+        - eval_step_fn: A function that executes an eval step. Default: :meth:`~scico.flax.train.steps.eval_step`, i.e. use the standard eval step.
+        - metrics_fn: A function that computes metrics. Default: :meth:`~scico.flax.train.diagnostics.compute_metrics`, i.e. use the standard compute metrics function.
+        - post_lst: List of postprocessing functions to apply to parameter set after optimizer step (e.g. clip to a specified range, normalize, etc.).
 
         Args:
             config: Hyperparameter configuration.
