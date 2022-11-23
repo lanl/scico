@@ -25,9 +25,7 @@ from .state import TrainState
 
 
 # Flax checkpoints
-def restore_checkpoint(
-    state: TrainState, workdir: Union[str, os.PathLike]
-) -> TrainState:  # pragma: no cover
+def checkpoint_restore(state: TrainState, workdir: Union[str, os.PathLike]) -> TrainState:
     """Load model and optimiser state.
 
     Args:
@@ -43,7 +41,7 @@ def restore_checkpoint(
     return checkpoints.restore_checkpoint(workdir, state)
 
 
-def save_checkpoint(state: TrainState, workdir: Union[str, os.PathLike]):  # pragma: no cover
+def checkpoint_save(state: TrainState, workdir: Union[str, os.PathLike]):
     """Store model and optimiser state.
 
     Args:

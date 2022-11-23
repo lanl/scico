@@ -230,7 +230,7 @@ def generate_ct_data(
     fbpshd = jnp.clip(fbpshd, a_min=0, a_max=1)
     fbp = fbpshd.reshape((-1, size, size, 1))
 
-    if verbose:
+    if verbose:  # pragma: no cover
         platform = jax.lib.xla_bridge.get_backend().platform
         print(f"{'Platform':26s}{':':4s}{platform}")
         print(f"{'Device count':26s}{':':4s}{jax.device_count()}")

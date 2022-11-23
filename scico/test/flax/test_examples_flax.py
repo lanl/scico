@@ -9,6 +9,7 @@ import pytest
 
 from scico import random
 from scico.flax.examples.data_generation import (
+    Foam2,
     distributed_data_generation,
     generate_blur_data,
     generate_ct_data,
@@ -34,6 +35,15 @@ from scico.typing import Shape
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 
 # These tests are for the scico.flax.examples module, NOT the example scripts
+
+
+@pytest.mark.skipif(not have_xdesign, reason="xdesign package not installed")
+def test_foam2():
+    try:
+        foam = Foam2(size_range=[0.07, 0.003], gap=1e-2, porosity=0.3)
+    except Exception as e:
+        print(e)
+        assert 0
 
 
 @pytest.mark.skipif(not have_xdesign, reason="xdesign package not installed")
@@ -64,8 +74,8 @@ def fake_data_gen(seed, N, ndata):
 
 
 def test_distdatagen():
-    N = 32
-    nimg = 16
+    N = 16
+    nimg = 8
     dt = distributed_data_generation(fake_data_gen, N, nimg)
     assert dt.ndim == 5
     assert dt.shape[0] * dt.shape[1] == nimg
@@ -73,8 +83,8 @@ def test_distdatagen():
 
 
 def test_distdatagen_flag():
-    N = 32
-    nimg = 16
+    N = 16
+    nimg = 8
     dt = distributed_data_generation(fake_data_gen, N, nimg, False)
     assert dt.ndim == 4
     assert dt.shape == (nimg, N, N, 1)
@@ -84,7 +94,7 @@ def test_distdatagen_flag():
     device_count() == 1, reason="no processes for checking failure of distributed computing"
 )
 def test_distdatagen_exception():
-    N = 32
+    N = 16
     nimg = 15
     with pytest.raises(ValueError):
         distributed_data_generation(fake_data_gen, N, nimg)
@@ -93,8 +103,8 @@ def test_distdatagen_exception():
 @pytest.mark.skipif(not have_ray, reason="ray package not installed")
 @pytest.fixture(scope="module")
 def test_ray_distdatagen():
-    N = 32
-    nimg = 16
+    N = 16
+    nimg = 8
     dt = ray_distributed_data_generation(fake_data_gen, N, nimg, test_flag=True)
     assert dt.ndim == 4
     assert dt.shape == (nimg, N, N, 1)
@@ -103,7 +113,7 @@ def test_ray_distdatagen():
 @pytest.mark.skipif(not have_astra, reason="astra package not installed")
 def test_ct_data_generation():
     N = 32
-    nimg = 16
+    nimg = 8
     nproj = 45
 
     def random_img_gen(seed, size, ndata):
@@ -123,7 +133,7 @@ def test_ct_data_generation():
 
 def test_blur_data_generation():
     N = 32
-    nimg = 16
+    nimg = 8
     n = 3  # convolution kernel size
     blur_kernel = np.ones((n, n)) / (n * n)
 
@@ -205,8 +215,11 @@ def test_random_noise1(range_flag):
     x, key = random.randn((N, N), seed=4321)
     noise = RandomNoise(0.1, range_flag)
     xn = noise(x)
+    x2, key = random.randn((10, N, N, 1), key=key)
+    xn2 = noise(x2)
 
-    assert x.shape == x.shape
+    assert x.shape == xn.shape
+    assert x2.shape == xn2.shape
 
 
 @pytest.mark.parametrize("shape", [(128, 128), (128, 128, 3), (5, 128, 128, 1)])
@@ -215,7 +228,7 @@ def test_random_noise2(shape):
     noise = RandomNoise(0.1, True)
     xn = noise(x)
 
-    assert x.shape == x.shape
+    assert x.shape == xn.shape
 
 
 @pytest.mark.parametrize("output_size", [64, (64, 64)])
