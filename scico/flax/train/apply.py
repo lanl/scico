@@ -93,7 +93,7 @@ def only_apply(
         checkpointing = False
 
     if variables is None:
-        if checkpointing:
+        if checkpointing:  # pragma: no cover
             if not have_tf:
                 raise RuntimeError(
                     "Tensorflow not available but is required for Flax checkpointing."
