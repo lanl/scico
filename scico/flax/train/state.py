@@ -89,7 +89,12 @@ def create_basic_train_state(
 
     if config["opt_type"] == "SGD":
         # Stochastic Gradient Descent optimiser
-        tx = optax.sgd(learning_rate=learning_rate_fn, momentum=config["momentum"], nesterov=True)
+        if "momentum" in config:
+            tx = optax.sgd(
+                learning_rate=learning_rate_fn, momentum=config["momentum"], nesterov=True
+            )
+        else:
+            tx = optax.sgd(learning_rate=learning_rate_fn)
     elif config["opt_type"] == "ADAM":
         # Adam optimiser
         tx = optax.adam(
