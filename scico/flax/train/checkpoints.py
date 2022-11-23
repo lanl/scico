@@ -28,7 +28,8 @@ from .state import TrainState
 def checkpoint_restore(state: TrainState, workdir: Union[str, os.PathLike]) -> TrainState:
     """Load model and optimiser state.
 
-    Note that naming is slightly different to distinguish from Flax functions.
+    Note that naming is slightly different to distinguish from Flax
+    functions.
 
     Args:
         state: Flax train state which includes model and optimiser
@@ -38,7 +39,8 @@ def checkpoint_restore(state: TrainState, workdir: Union[str, os.PathLike]) -> T
 
     Returns:
         Restored `state` updated from checkpoint file, or if no
-        checkpoint files present, returns the passed-in `state` unchanged.
+        checkpoint files present, returns the passed-in `state`
+        unchanged.
     """
     return checkpoints.restore_checkpoint(workdir, state)
 
@@ -46,7 +48,8 @@ def checkpoint_restore(state: TrainState, workdir: Union[str, os.PathLike]) -> T
 def checkpoint_save(state: TrainState, workdir: Union[str, os.PathLike]):
     """Store model and optimiser state.
 
-    Note that naming is slightly different to distinguish from Flax functions.
+    Note that naming is slightly different to distinguish from Flax
+    functions.
 
     Args:
         state: Flax train state which includes model and optimiser
