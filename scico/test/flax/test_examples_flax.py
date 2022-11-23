@@ -9,7 +9,6 @@ import pytest
 
 from scico import random
 from scico.flax.examples.data_generation import (
-    Foam2,
     distributed_data_generation,
     generate_blur_data,
     generate_ct_data,
@@ -35,15 +34,6 @@ from scico.typing import Shape
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 
 # These tests are for the scico.flax.examples module, NOT the example scripts
-
-
-@pytest.mark.skipif(not have_xdesign, reason="xdesign package not installed")
-def test_foam2():
-    try:
-        foam = Foam2(size_range=[0.07, 0.003], gap=1e-2, porosity=0.3)
-    except Exception as e:
-        print(e)
-        assert 0
 
 
 @pytest.mark.skipif(not have_xdesign, reason="xdesign package not installed")
