@@ -578,7 +578,7 @@ def check_img_data_requirements(
     return False
 
 
-def print_input_path(path_display: str):
+def print_input_path(path_display: str):  # pragma: no cover
     """Display path from where data is being loaded.
 
     Args:
@@ -587,7 +587,7 @@ def print_input_path(path_display: str):
     print(f"{'Data read from path':26s}{':':4s}{path_display}")
 
 
-def print_output_path(path_display: str):
+def print_output_path(path_display: str):  # pragma: no cover
     """Display path where data is being stored.
 
     Args:
@@ -596,7 +596,7 @@ def print_output_path(path_display: str):
     print(f"{'Storing data in path':26s}{':':4s}{path_display}")
 
 
-def print_data_range(idstring: str, data: Array):
+def print_data_range(idstring: str, data: Array):  # pragma: no cover
     """Display min and max values of given data array.
 
     Args:
@@ -610,17 +610,19 @@ def print_data_range(idstring: str, data: Array):
     )
 
 
-def print_data_size(idstring: str, size: int):
+def print_data_size(idstring: str, size: int):  # pragma: no cover
     """Display integer given.
 
     Args:
-        idstring: Set descriptive string.
+        idstring: Data descriptive string.
         size: Integer representing size of a set.
     """
     print(f"{'Set --':3s}{idstring}{'--':12s}{':':4s}{'Size:':8s}{size}")
 
 
-def print_info(iomode: str, path_display: str, train_in: Array, train_out: Array, test_size: int):
+def print_info(
+    iomode: str, path_display: str, train_in: Array, train_out: Array, test_size: int
+):  # pragma: no cover
     """Display information related to data input/output.
 
     Args:
@@ -640,7 +642,7 @@ def print_info(iomode: str, path_display: str, train_in: Array, train_out: Array
     print_data_range(" labels ", train_out)
 
 
-def print_data_warning(idstring: str, requested: int, available: int):
+def print_data_warning(idstring: str, requested: int, available: int):  # pragma: no cover
     """Display warning related to data size demands not satisfied.
 
     Args:
