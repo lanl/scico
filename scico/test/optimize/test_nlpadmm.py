@@ -6,6 +6,7 @@ import scico.numpy as snp
 from scico import function, functional, linop, loss, random
 from scico.numpy import BlockArray
 from scico.optimize import NonLinearPADMM
+from scico.optimize.nlpadmm import estimate_parameters
 
 
 class TestMisc:
@@ -214,3 +215,32 @@ class TestComplex:
         )
         x = nlpadmm_.solve()
         assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-4
+
+
+class TestEstimateParameters:
+    def setup_method(self):
+        shape = (32, 33)
+        self.Hr = function.Function(
+            (shape, shape),
+            output_shape=shape,
+            eval_fn=lambda x, z: x - z,
+            input_dtypes=np.float32,
+            output_dtype=np.float32,
+        )
+        self.Hc = function.Function(
+            (shape, shape),
+            output_shape=shape,
+            eval_fn=lambda x, z: x - z,
+            input_dtypes=np.complex64,
+            output_dtype=np.complex64,
+        )
+
+    def test_real(self):
+        mu, nu = estimate_parameters(self.Hr, factor=1.0)
+        assert mu == 1.0
+        assert nu == 1.0
+
+    def test_complex(self):
+        mu, nu = estimate_parameters(self.Hc, factor=1.0)
+        assert mu == 1.0
+        assert nu == 1.0
