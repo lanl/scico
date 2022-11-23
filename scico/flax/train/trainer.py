@@ -31,7 +31,7 @@ else:
     have_tf = True
 
 if have_tf:
-    from .checkpoints import restore_checkpoint, save_checkpoint
+    from .checkpoints import checkpoint_restore, checkpoint_save
 
 from scico.diagnostics import IterationStats
 from scico.typing import Array
@@ -385,7 +385,7 @@ class BasicFlaxTrainer:
         if self.checkpointing and variables0 is None:
             # Only restore if no initialization is provided
             if have_tf:  # Flax checkpointing requires tensorflow
-                state = restore_checkpoint(state, self.workdir)
+                state = checkpoint_restore(state, self.workdir)
             else:
                 raise RuntimeError(
                     "Tensorflow not available and it is required for Flax checkpointing."
@@ -510,7 +510,7 @@ class BasicFlaxTrainer:
                 raise RuntimeError(
                     "Tensorflow not available and it is" " required for Flax checkpointing."
                 )
-            save_checkpoint(state, self.workdir)
+            checkpoint_save(state, self.workdir)
 
     def log(self, logstr: str):
         """Print stats to output terminal if logging is enabled.

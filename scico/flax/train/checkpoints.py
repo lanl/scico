@@ -28,6 +28,8 @@ from .state import TrainState
 def checkpoint_restore(state: TrainState, workdir: Union[str, os.PathLike]) -> TrainState:
     """Load model and optimiser state.
 
+    Note that naming is slightly different to distinguish from Flax functions.
+
     Args:
         state: Flax train state which includes model and optimiser
             parameters.
@@ -43,6 +45,8 @@ def checkpoint_restore(state: TrainState, workdir: Union[str, os.PathLike]) -> T
 
 def checkpoint_save(state: TrainState, workdir: Union[str, os.PathLike]):
     """Store model and optimiser state.
+
+    Note that naming is slightly different to distinguish from Flax functions.
 
     Args:
         state: Flax train state which includes model and optimiser
