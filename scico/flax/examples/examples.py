@@ -349,10 +349,10 @@ def load_image_data(
 ) -> Tuple[DataSetDict, ...]:  # pragma: no cover
     """Load or load and preprocess image data.
 
-    Load or load and preprocess image data for training of neural network
-    models. The original source is the BSDS500 data from the Berkeley
-    Segmentation Dataset and Benchmark project. Depending on the
-    intended applications, different preprocessings can be performed
+    Load or load and preprocess image data for training of neural
+    network models. The original source is the BSDS500 data from the
+    Berkeley Segmentation Dataset and Benchmark project. Depending on
+    the intended applications, different preprocessings can be performed
     to the source data.
 
     If a cached file exists, and enough images were sampled, data is
@@ -376,10 +376,10 @@ def load_image_data(
         train_nimg: Number of images required for sampling training data.
         test_nimg: Number of images required for sampling testing data.
         size: Size of reconstruction images.
-        gray_flag: Flag to indicate if gray scale images or color images.
-            When ``True`` gray scale images are used.
-        data_mode: Type of image problem. Options are: `dn` for denosing,
-            `dcnv` for deconvolution.
+        gray_flag: Flag to indicate if gray scale images or color
+            images. When ``True`` gray scale images are used.
+        data_mode: Type of image problem. Options are: `dn` for
+            denosing, `dcnv` for deconvolution.
         cache_path: Directory in which processed data is saved.
             Default: ``None``.
         verbose: Flag indicating whether to print status messages.
@@ -388,12 +388,14 @@ def load_image_data(
         noise_range: Flag to indicate if a fixed or a random standard
             deviation must be used. Default: ``False`` i.e. fixed
             standard deviation given by `noise_level`.
-        transf: Operator for blurring or other non-trivial transformations.
-            Should be able to handle batched (NHWC) data. Default: ``None``.
-        stride: Stride between patch origins (indexed from left-top corner).
-            Default: 0 (i.e. no stride, only one patch per image).
-        augment: Augment training data set by flip and 90 degrees rotation.
-            Default: ``False`` (i.e. no augmentation).
+        transf: Operator for blurring or other non-trivial
+            transformations. Should be able to handle batched (NHWC)
+            data. Default: ``None``.
+        stride: Stride between patch origins (indexed from left-top
+            corner). Default: 0 (i.e. no stride, only one patch per
+            image).
+        augment: Augment training data set by flip and 90 degrees
+            rotation. Default: ``False`` (i.e. no augmentation).
 
     Returns:
        tuple: A tuple (train_ds, test_ds) containing:
@@ -461,7 +463,8 @@ def load_image_data(
     if not os.path.isdir(bsds_cache_path):
         os.makedirs(bsds_cache_path)
         get_bsds_data(path=bsds_cache_path, verbose=verbose)
-    # Load data, convert arrays to float32 and return after pre-processing for specified data_mode.
+    # Load data, convert arrays to float32 and return
+    # after pre-processing for specified data_mode.
     npz_file = os.path.join(bsds_cache_path, "bsds500.npz")
     npz = np.load(npz_file)
     imgs_train = npz["imgstr"].astype(np.float32)
@@ -626,7 +629,8 @@ def print_info(
     """Display information related to data input/output.
 
     Args:
-        iomode: Identification of input (load) or ouput (save) operation.
+        iomode: Identification of input (load) or ouput (save)
+            operation.
         path_display: Input or output path.
         train_in: Input features in training set.
         train_out: Outputs in training set.
