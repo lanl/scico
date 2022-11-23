@@ -39,6 +39,11 @@ def test_checkpoint(testobj):
     state = create_basic_train_state(
         key, testobj.train_conf, model, (testobj.N, testobj.N), learning_rate
     )
+    flat_params1 = flatten_dict(state.params)
+    flat_bstats1 = flatten_dict(state.batch_stats)
+    params1 = [t[1] for t in sorted(flat_params1.items())]
+    bstats1 = [t[1] for t in sorted(flat_bstats1.items())]
+
     # Emulating parallel training
     state = jax_utils.replicate(state)
     try:
@@ -49,11 +54,6 @@ def test_checkpoint(testobj):
         print(e)
         assert 0
     else:
-
-        flat_params1 = flatten_dict(state.params)
-        flat_bstats1 = flatten_dict(state.batch_stats)
-        params1 = [t[1] for t in sorted(flat_params1.items())]
-        bstats1 = [t[1] for t in sorted(flat_bstats1.items())]
 
         flat_params2 = flatten_dict(state_in.params)
         flat_bstats2 = flatten_dict(state_in.batch_stats)
