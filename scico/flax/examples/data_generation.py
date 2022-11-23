@@ -99,7 +99,7 @@ if have_xdesign:
 
 
 def generate_foam2_images(seed: float, size: int, ndata: int) -> Array:
-    """Generate batch of foam-like structures.
+    """Generate batch of foam2 structures.
 
     Generate batch of images with :class:`Foam2` structure
     (foam-like material with two different attenuations).
@@ -323,7 +323,7 @@ def generate_blur_data(
 def distributed_data_generation(
     imgenf: Callable, size: int, nimg: int, sharded: bool = True
 ) -> Array:
-    """Data generation distributed among processes.
+    """Data generation distributed among processes using jax.
 
     Args:
         imagenf: Function for batch-data generation.

@@ -347,12 +347,12 @@ def load_image_data(
     stride: Optional[int] = None,
     augment: bool = False,
 ) -> Tuple[DataSetDict, ...]:  # pragma: no cover
-    """Load and/or pre-process image data.
+    """Load or load and preprocess image data.
 
-    Load and/or pre-process image data for training of neural network
+    Load or load and preprocess image data for training of neural network
     models. The original source is the BSDS500 data from the Berkeley
     Segmentation Dataset and Benchmark project. Depending on the
-    intended applications, different pre-processings can be performed
+    intended applications, different preprocessings can be performed
     to the source data.
 
     If a cached file exists, and enough images were sampled, data is
@@ -526,7 +526,7 @@ def check_img_data_requirements(
     test_nimg_avail: int,
     verbose: bool,
 ) -> bool:  # pragma: no cover
-    """Check data loaded vs. data requirements.
+    """Check data loaded with respect to data requirements.
 
     Args:
         train_nimg: Number of images required for training data.
