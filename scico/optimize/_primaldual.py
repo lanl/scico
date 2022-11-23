@@ -14,7 +14,6 @@ from __future__ import annotations
 from typing import Callable, Optional, Union
 
 import scico.numpy as snp
-from scico.diagnostics import IterationStats
 from scico.functional import Functional
 from scico.linop import LinearOperator
 from scico.numpy import BlockArray
@@ -23,6 +22,8 @@ from scico.numpy.util import ensure_on_device
 from scico.operator import Operator
 from scico.typing import JaxArray
 from scico.util import Timer
+
+from ._common import itstat_func_and_object
 
 
 class PDHG:
@@ -127,12 +128,12 @@ class PDHG:
                 the :class:`.diagnostics.IterationStats` initializer. The
                 dict may also include an additional key "itstat_func"
                 with the corresponding value being a function with two
-                parameters, an integer and a `PDHG` object, responsible
-                for constructing a tuple ready for insertion into the
-                :class:`.diagnostics.IterationStats` object. If ``None``,
-                default values are used for the dict entries, otherwise
-                the default dict is updated with the dict specified by
-                this parameter.
+                parameters, an integer and a :class:`PDHG` object,
+                responsible for constructing a tuple ready for insertion
+                into the :class:`.diagnostics.IterationStats` object. If
+                ``None``, default values are used for the dict entries,
+                otherwise the default dict is updated with the dict
+                specified by this parameter.
         """
         self.f: Functional = f
         self.g: Functional = g
@@ -143,36 +144,6 @@ class PDHG:
         self.itnum: int = 0
         self.maxiter: int = maxiter
         self.timer: Timer = Timer()
-
-        # iteration number and time fields
-        itstat_fields = {
-            "Iter": "%d",
-            "Time": "%8.2e",
-        }
-        itstat_attrib = ["itnum", "timer.elapsed()"]
-        # objective function can be evaluated if 'g' function can be evaluated
-        if g.has_eval:
-            itstat_fields.update({"Objective": "%9.3e"})
-            itstat_attrib.append("objective()")
-        # primal and dual residual fields
-        itstat_fields.update({"Prml Rsdl": "%9.3e", "Dual Rsdl": "%9.3e"})
-        itstat_attrib.extend(["norm_primal_residual()", "norm_dual_residual()"])
-
-        # dynamically create itstat_func; see https://stackoverflow.com/questions/24733831
-        itstat_return = "return(" + ", ".join(["obj." + attr for attr in itstat_attrib]) + ")"
-        scope: dict[str, Callable] = {}
-        exec("def itstat_func(obj): " + itstat_return, scope)
-
-        # determine itstat options and initialize IterationStats object
-        default_itstat_options = {
-            "fields": itstat_fields,
-            "itstat_func": scope["itstat_func"],
-            "display": False,
-        }
-        if itstat_options:
-            default_itstat_options.update(itstat_options)
-        self.itstat_insert_func: Callable = default_itstat_options.pop("itstat_func", None)  # type: ignore
-        self.itstat_object = IterationStats(**default_itstat_options)  # type: ignore
 
         if x0 is None:
             input_shape = C.input_shape
@@ -186,6 +157,41 @@ class PDHG:
             z0 = snp.zeros(input_shape, dtype=dtype)
         self.z = ensure_on_device(z0)
         self.z_old = self.z
+
+        self._itstat_init(itstat_options)
+
+    def _itstat_init(self, itstat_options: Optional[dict] = None):
+        """Initialize iteration statistics mechanism.
+
+        Args:
+           itstat_options: A dict of named parameters to be passed to
+                the :class:`.diagnostics.IterationStats` initializer. The
+                dict may also include an additional key "itstat_func"
+                with the corresponding value being a function with two
+                parameters, an integer and a :class:`PDHG` object,
+                responsible for constructing a tuple ready for insertion
+                into the :class:`.diagnostics.IterationStats` object. If
+                ``None``, default values are used for the dict entries,
+                otherwise the default dict is updated with the dict
+                specified by this parameter.
+        """
+        # iteration number and time fields
+        itstat_fields = {
+            "Iter": "%d",
+            "Time": "%8.2e",
+        }
+        itstat_attrib = ["itnum", "timer.elapsed()"]
+        # objective function can be evaluated if 'g' function can be evaluated
+        if self.g.has_eval:
+            itstat_fields.update({"Objective": "%9.3e"})
+            itstat_attrib.append("objective()")
+        # primal and dual residual fields
+        itstat_fields.update({"Prml Rsdl": "%9.3e", "Dual Rsdl": "%9.3e"})
+        itstat_attrib.extend(["norm_primal_residual()", "norm_dual_residual()"])
+
+        self.itstat_insert_func, self.itstat_object = itstat_func_and_object(
+            itstat_fields, itstat_attrib, itstat_options
+        )
 
     def objective(
         self,
@@ -246,7 +252,7 @@ class PDHG:
         if isinstance(self.C, LinearOperator):
             proxarg = self.x - self.tau * self.C.conj().T(self.z)
         else:
-            proxarg = self.x - self.tau * self.C.jhvp(self.x)[1](self.z)[0]
+            proxarg = self.x - self.tau * self.C.vjp(self.x, conjugate=True)[1](self.z)
         self.x = self.f.prox(proxarg, self.tau, v0=self.x)
         proxarg = self.z + self.sigma * self.C(
             (1.0 + self.alpha) * self.x - self.alpha * self.x_old

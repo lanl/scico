@@ -254,7 +254,7 @@ def plot(y, x=None, ptyp="plot", xlbl=None, ylbl=None, title=None, lgnd=None, lg
         kwargs["ms"] = 6.0
 
     if ptyp not in ("plot", "semilogx", "semilogy", "loglog"):
-        raise ValueError("Invalid plot type '%s'" % ptyp)
+        raise ValueError("Invalid plot type '%s'." % ptyp)
     pltmth = getattr(ax, ptyp)
     if x is None:
         pltln = pltmth(y, **kwargs)
@@ -617,7 +617,7 @@ def imview(
     """
 
     if img.ndim > 2 and img.shape[2] != 3:
-        raise ValueError("Argument img must be an Nr x Nc array or an Nr x Nc x 3 array")
+        raise ValueError("Argument img must be an Nr x Nc array or an Nr x Nc x 3 array.")
 
     figp = fig
     if fig is None:

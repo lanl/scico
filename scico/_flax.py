@@ -191,7 +191,7 @@ class FlaxMap:
             Output of flax model.
         """
         if isinstance(x, BlockArray):
-            raise NotImplementedError
+            raise NotImplementedError("Applying a FlaxMap to a BlockArray input is not supported.")
 
         # Add singleton to input as necessary:
         #   scico typically works with (H x W) or (H x Wx C) arrays

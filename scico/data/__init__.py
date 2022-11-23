@@ -8,6 +8,7 @@
 """Data files for usage examples."""
 
 import os.path
+from typing import Optional
 
 from jax.interpreters.xla import DeviceArray
 
@@ -18,7 +19,7 @@ import scico.numpy as snp
 __all__ = ["kodim23"]
 
 
-def _imread(filename: str, path: str = None, asfloat: bool = False) -> DeviceArray:
+def _imread(filename: str, path: Optional[str] = None, asfloat: bool = False) -> DeviceArray:
     """Read an image from disk.
 
     Args:

@@ -206,7 +206,6 @@ mathematical_functions = (
     "asfortranarray",
     "ascontiguousarray",
     "asarray_chkfinite",
-    "asscalar",
     "require",
     "stack",
     "block",

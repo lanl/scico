@@ -24,7 +24,7 @@ from ._grad import (
 from ._linop import ComposedLinearOperator, LinearOperator
 from ._matrix import MatrixOperator
 from ._stack import DiagonalStack, VerticalStack
-from ._util import operator_norm, power_iteration, valid_adjoint
+from ._util import jacobian, operator_norm, power_iteration, valid_adjoint
 
 __all__ = [
     "CircularConvolve",
@@ -53,6 +53,7 @@ __all__ = [
     "operator_norm",
     "power_iteration",
     "valid_adjoint",
+    "jacobian",
 ]
 
 # Imported items in __all__ appear to originate in top-level linop module

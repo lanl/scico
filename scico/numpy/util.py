@@ -57,7 +57,7 @@ def ensure_on_device(
             (DeviceArray, BlockArray, ShardedDeviceArray),
         ):
             raise TypeError(
-                "Each item of `arrays` must be ndarray, DeviceArray, BlockArray, or "
+                "Each element of parameter arrays must be ndarray, DeviceArray, BlockArray, or "
                 f"ShardedDeviceArray; Argument {i+1} of {len(arrays)} is {type(arrays[i])}."
             )
 
@@ -92,7 +92,9 @@ def parse_axes(
     if axes is None:
         if default is None:
             if shape is None:
-                raise ValueError("`axes` cannot be `None` without a default or shape specified.")
+                raise ValueError(
+                    "Parameter axes cannot be None without a default or shape specified."
+                )
             axes = list(range(len(shape)))
         else:
             axes = default
@@ -101,7 +103,7 @@ def parse_axes(
     elif isinstance(axes, int):
         axes = (axes,)
     else:
-        raise ValueError(f"Could not understand axes {axes} as a list of axes")
+        raise ValueError(f"Could not understand axes {axes} as a list of axes.")
     if shape is not None and max(axes) >= len(shape):
         raise ValueError(
             f"Invalid axes {axes} specified; each axis must be less than `len(shape)`={len(shape)}."
