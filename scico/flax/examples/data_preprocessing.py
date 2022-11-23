@@ -34,8 +34,8 @@ def rotation90(img: Array) -> Array:
 
     Rotate an image or a batch of images by 90 degrees counterclockwise.
     An image is an nd-array with size H x W x C with H and W spatial
-    dimensions and C number of channels. A batch of images is an nd-array
-    with size N x H x W x C with N number of images.
+    dimensions and C number of channels. A batch of images is an
+    nd-array with size N x H x W x C with N number of images.
 
     Args:
         img: The nd-array to be rotated.
@@ -80,7 +80,8 @@ class CenterCrop:
     def __init__(self, output_size: Union[Shape, int]):
         """
         Args:
-            output_size: Desired output size. If int, square crop is made.
+            output_size: Desired output size. If int, square crop is
+                made.
         """
         # assert isinstance(output_size, (int, tuple))
         if isinstance(output_size, int):
@@ -119,7 +120,8 @@ class PositionalCrop:
     def __init__(self, output_size: Union[Shape, int]):
         """
         Args:
-            output_size: Desired output size. If int, square crop is made.
+            output_size: Desired output size. If int, square crop is
+                made.
         """
         # assert isinstance(output_size, (int, tuple))
         if isinstance(output_size, int):
@@ -134,7 +136,8 @@ class PositionalCrop:
         Args:
             image: The nd-array to be cropped.
             top: Vertical top coordinate of corner to start cropping.
-            left: Horizontal left coordinate of corner to start cropping.
+            left: Horizontal left coordinate of corner to start
+                cropping.
 
         Returns:
             The cropped image.
@@ -165,9 +168,9 @@ class RandomNoise:
         """
         Args:
             noise_level: Standard dev of the Gaussian noise.
-            range_flag: If ``True``, the standard dev is randomly selected
-                between 50% and 100% of `noise_level` set. Default:
-                ``False``.
+            range_flag: If ``True``, the standard dev is randomly
+                selected between 50% and 100% of `noise_level` set.
+                Default: ``False``.
         """
         self.range_flag = range_flag
         if range_flag:
@@ -223,8 +226,8 @@ def preprocess_images(
         gray_flag: If ``True``, converts to gray scale.
         num_img: If specified, reads that number of images, if not reads
             all the images in path.
-        multi_flag: If ``True``, samples multiple patches of specified size
-            in each image.
+        multi_flag: If ``True``, samples multiple patches of specified
+            size in each image.
         stride: Stride between patch origins (indexed from left-top
             corner). If int, the same stride is used in h and w.
         dtype: type of array. Default: ``np.float32``.
@@ -289,12 +292,12 @@ def build_image_dataset(
 ) -> Tuple[DataSetDict, ...]:
     """Preprocess and assemble dataset for training.
 
-    Preprocess images according to the specified configuration and assemble
-    a dataset into a structure that can be used for training machine learning models. Keep
-    training and testing partitions. Each dictionary returned has
-    images and labels, which are nd-arrays of dimensions (N, H, W, C)
-    with N: number of images; H, W: spatial dimensions and C: number
-    of channels.
+    Preprocess images according to the specified configuration and
+    assemble a dataset into a structure that can be used for training
+    machine learning models. Keep training and testing partitions.
+    Each dictionary returned has images and labels, which are nd-arrays
+    of dimensions (N, H, W, C) with N: number of images; H,
+    W: spatial dimensions and C: number of channels.
 
     Args:
         imgs_train: 4D array (NHWC) with images for training.
