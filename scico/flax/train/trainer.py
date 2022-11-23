@@ -5,7 +5,8 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Class to provide integrated access to functionality for training Flax models.
+"""Class to provide integrated access to functionality for training Flax
+    models.
 
 Assumes sharded batched data and uses data parallel training.
 """
@@ -329,7 +330,8 @@ class BasicFlaxTrainer:
         )
 
     def define_parallel_training_functions(self):
-        """Construct parallel versions of training functions via `jax.pmap`."""
+        """Construct parallel versions of training functions via
+        `jax.pmap`."""
         if self.post_lst is not None:
             self.p_train_step = jax.pmap(
                 functools.partial(
