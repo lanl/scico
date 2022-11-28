@@ -26,7 +26,7 @@ class TestBM3D:
     def test_gry(self):
         no_jit = bm3d(self.x_gry, 1.0)
         jitted = jax.jit(bm3d)(self.x_gry, 1.0)
-        np.testing.assert_allclose(no_jit, jitted, rtol=1e-3)
+        np.testing.assert_allclose(no_jit, jitted, atol=1e-3, rtol=0)
         assert no_jit.dtype == np.float32
         assert jitted.dtype == np.float32
 
