@@ -159,13 +159,16 @@ def make_table(
         max_lines: Don't render a table longer than this.
 
     Returns:
-        A string representation of the table in the form:
-        +---------+---------+
-        | Col1    | Col2    |
-        +---------+---------+
-        | value11 | value12 |
-        | value21 | value22 |
-        +---------+---------+
+        A string representation of the table as in the example below.
+
+        ::
+
+          +---------+---------+
+          | Col1    | Col2    |
+          +---------+---------+
+          | value11 | value12 |
+          | value21 | value22 |
+          +---------+---------+
     """
     if any(not dataclasses.is_dataclass(row) for row in rows):
         raise ValueError("Expected `rows` to be list of dataclasses")
@@ -219,18 +222,20 @@ def get_parameter_overview(
             include.
 
     Returns:
-        A string with a table like in the example.
+        A string with a table as in the example below.
 
-    +----------------+---------------+------------+
-    | Name           | Shape         | Size       |
-    +----------------+---------------+------------+
-    | FC_1/weights:0 | (63612, 1024) | 65,138,688 |
-    | FC_1/biases:0  |       (1024,) |      1,024 |
-    | FC_2/weights:0 |    (1024, 32) |     32,768 |
-    | FC_2/biases:0  |         (32,) |         32 |
-    +----------------+---------------+------------+
+        ::
 
-    Total: 65,172,512
+          +----------------+---------------+------------+
+          | Name           | Shape         | Size       |
+          +----------------+---------------+------------+
+          | FC_1/weights:0 | (63612, 1024) | 65,138,688 |
+          | FC_1/biases:0  |       (1024,) |      1,024 |
+          | FC_2/weights:0 |    (1024, 32) |     32,768 |
+          | FC_2/biases:0  |         (32,) |         32 |
+          +----------------+---------------+------------+
+
+          Total: 65,172,512
     """
     if isinstance(params, (dict, flax.core.FrozenDict)):
         params = jax.tree_util.tree_map(np.asarray, params)
