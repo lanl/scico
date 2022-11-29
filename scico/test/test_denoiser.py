@@ -26,14 +26,14 @@ class TestBM3D:
     def test_gry(self):
         no_jit = bm3d(self.x_gry, 1.0)
         jitted = jax.jit(bm3d)(self.x_gry, 1.0)
-        np.testing.assert_allclose(no_jit, jitted, atol=1e-3, rtol=0)
+        assert np.linalg.norm(no_jit - jitted) < 1e-3
         assert no_jit.dtype == np.float32
         assert jitted.dtype == np.float32
 
     def test_rgb(self):
         no_jit = bm3d(self.x_rgb, 1.0)
         jitted = jax.jit(bm3d)(self.x_rgb, 1.0, is_rgb=True)
-        np.testing.assert_allclose(no_jit, jitted, rtol=1e-3)
+        assert np.linalg.norm(no_jit - jitted) < 1e-3
         assert no_jit.dtype == np.float32
         assert jitted.dtype == np.float32
 
@@ -74,13 +74,13 @@ class TestBM4D:
     def test_jit(self):
         no_jit = bm4d(self.x1, 1.0)
         jitted = jax.jit(bm4d)(self.x1, 1.0)
-        np.testing.assert_allclose(no_jit, jitted, rtol=1e-3)
+        assert np.linalg.norm(no_jit - jitted) < 1e-3
         assert no_jit.dtype == np.float32
         assert jitted.dtype == np.float32
 
         no_jit = bm4d(self.x2, 1.0)
         jitted = jax.jit(bm4d)(self.x2, 1.0)
-        np.testing.assert_allclose(no_jit, jitted, rtol=1e-3)
+        assert np.linalg.norm(no_jit - jitted) < 1e-3
         assert no_jit.dtype == np.float32
         assert jitted.dtype == np.float32
 
