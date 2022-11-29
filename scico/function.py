@@ -129,6 +129,36 @@ output_dtype   : {self.output_dtype}
             jit=self.jit,
         )
 
+    def join(self) -> Operator:
+        """Combine inputs into a :class:`.BlockArray`.
+
+        Construct an equivalent :class:`.Operator` taking a single
+        :class:`.BlockArray` input combining all inputs of this
+        :class:`Function`.
+
+        Returns:
+           An :class:`.Operator` taking a :class:`.BlockArray` as its
+           input.
+        """
+        for dtype in self.input_dtypes[1:]:
+            if dtype != self.input_dtypes[0]:
+                raise ValueError(
+                    "The join method may only be applied to Functions that have "
+                    "homogenous input dtypes."
+                )
+
+        def jfunc(blkarr):
+            return self._eval(*blkarr.arrays)
+
+        return Operator(
+            self.input_shapes,
+            output_shape=self.output_shape,
+            eval_fn=jfunc,
+            input_dtype=self.input_dtypes[0],
+            output_dtype=self.output_dtype,
+            jit=self.jit,
+        )
+
     def jvp(
         self, index: int, v: Union[JaxArray, BlockArray], *args: Union[JaxArray, BlockArray]
     ) -> Tuple[Union[JaxArray, BlockArray], Union[JaxArray, BlockArray]]:

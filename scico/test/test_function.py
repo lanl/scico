@@ -49,6 +49,18 @@ class TestFunction:
         Op = F.slice(0, self.y)
         np.testing.assert_allclose(Op(self.x), F(self.x, self.y))
 
+    def test_join(self):
+        F = Function((self.shape, self.shape), input_dtypes=self.dtype, eval_fn=self.func)
+        Op = F.join()
+        np.testing.assert_allclose(Op(snp.blockarray((self.x, self.y))), F(self.x, self.y))
+
+    def test_join_raise(self):
+        F = Function(
+            (self.shape, self.shape), input_dtypes=(snp.float32, snp.complex64), eval_fn=self.func
+        )
+        with pytest.raises(ValueError):
+            Op = F.join()
+
 
 @pytest.mark.parametrize("dtype", [snp.float32, snp.complex64])
 def test_jacobian(dtype):
