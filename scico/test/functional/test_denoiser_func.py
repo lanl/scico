@@ -23,12 +23,12 @@ class TestBM3D:
     def test_gry(self):
         y0 = self.f_gry.prox(self.x_gry, 1.0)
         y1 = denoiser.bm3d(self.x_gry, 1.0)
-        np.testing.assert_allclose(y0, y1, rtol=1e-5)
+        assert np.linalg.norm(y1 - y0) < 1e-3
 
     def test_rgb(self):
         y0 = self.f_rgb.prox(self.x_rgb, 1.0)
         y1 = denoiser.bm3d(self.x_rgb, 1.0, is_rgb=True)
-        np.testing.assert_allclose(y0, y1, rtol=1e-5)
+        assert np.linalg.norm(y1 - y0) < 1e-3
 
 
 # bm4d is known to be broken on OSX 11.6.5. It may be broken on earlier versions too,
@@ -44,7 +44,7 @@ class TestBM4D:
     def test(self):
         y0 = self.f.prox(self.x, 1.0)
         y1 = denoiser.bm4d(self.x, 1.0)
-        np.testing.assert_allclose(y0, y1, rtol=1e-5)
+        assert np.linalg.norm(y1 - y0) < 1e-3
 
 
 class TestDnCNN:
