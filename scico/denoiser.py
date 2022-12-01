@@ -21,7 +21,7 @@ except ImportError:
     BM3DProfile = Any
 else:
     have_bm3d = True
-    from bm3d.profiles import BM3DProfile
+    from bm3d.profiles import BM3DProfile  # type: ignore
 
 try:
     import bm4d as tbm4d
@@ -30,7 +30,7 @@ except ImportError:
     BM4DProfile = Any
 else:
     have_bm4d = True
-    from bm4d.profiles import BM4DProfile
+    from bm4d.profiles import BM4DProfile  # type: ignore
 
 import scico.numpy as snp
 from scico._flax import DnCNNNet, load_weights
