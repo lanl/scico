@@ -15,7 +15,7 @@ import numpy as np
 from jax.experimental import host_callback as hcb
 
 try:
-    import bm3d as tbm3d
+    import bm3d as tubm3d
 except ImportError:
     have_bm3d = False
     BM3DProfile = Any
@@ -24,7 +24,7 @@ else:
     from bm3d.profiles import BM3DProfile  # type: ignore
 
 try:
-    import bm4d as tbm4d
+    import bm4d as tubm4d
 except ImportError:
     have_bm4d = False
     BM4DProfile = Any
@@ -67,9 +67,14 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False, profile: Union[BM3DPro
         raise RuntimeError("Package bm3d is required for use of this function.")
 
     if is_rgb is True:
-        bm3d_eval = lambda x, sigma: tbm3d.bm3d_rgb(x, sigma, profile=profile)
+
+        def bm3d_eval(x: JaxArray, sigma: float):
+            return tubm3d.bm3d_rgb(x, sigma, profile=profile)
+
     else:
-        bm3d_eval = lambda x, sigma: tbm3d.bm3d(x, sigma, profile=profile)
+
+        def bm3d_eval(x: JaxArray, sigma: float):
+            return tubm3d.bm3d(x, sigma, profile=profile)
 
     if snp.util.is_complex_dtype(x.dtype):
         raise TypeError(f"BM3D requires real-valued inputs, got {x.dtype}.")
@@ -131,7 +136,8 @@ def bm4d(x: JaxArray, sigma: float, profile: Union[BM4DProfile, str] = "np"):
     if not have_bm4d:
         raise RuntimeError("Package bm4d is required for use of this function.")
 
-    bm4d_eval = lambda x, sigma: tbm4d.bm4d(x, sigma, profile=profile)
+    def bm4d_eval(x: JaxArray, sigma: float):
+        return tubm4d.bm4d(x, sigma, profile=profile)
 
     if snp.util.is_complex_dtype(x.dtype):
         raise TypeError(f"BM4D requires real-valued inputs, got {x.dtype}.")
