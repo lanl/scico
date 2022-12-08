@@ -221,11 +221,20 @@ Linearized ADMM
        Comparison of Optimization Algorithms for Total Variation Denoising
 
 
+Proximal ADMM
+^^^^^^^^^^^^^
+
+    `denoise_tv_multi.py <denoise_tv_multi.py>`_
+       Comparison of Optimization Algorithms for Total Variation Denoising
+    `denoise_cplx_tv_nlpadmm.py <denoise_cplx_tv_nlpadmm.py>`_
+       Complex Total Variation Denoising with NLPADMM Solver
+
+
 Non-linear Proximal ADMM
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-   `denoise_cplx_tv_nlpadmm.py <denoise_cplx_tv_nlpadmm.py>`_
-      Complex Total Variation Denoising with NLPADMM Solver
+    `denoise_cplx_tv_nlpadmm.py <denoise_cplx_tv_nlpadmm.py>`_
+       Complex Total Variation Denoising with NLPADMM Solver
 
 
 PDHG

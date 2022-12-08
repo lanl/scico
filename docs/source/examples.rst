@@ -183,6 +183,16 @@ Linearized ADMM
    examples/denoise_tv_multi
 
 
+Proximal ADMM
+^^^^^^^^^^^^^
+
+.. toctree::
+   :maxdepth: 1
+
+   examples/denoise_tv_multi
+   examples/denoise_cplx_tv_nlpadmm
+
+
 Non-linear Proximal ADMM
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
