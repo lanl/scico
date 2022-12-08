@@ -14,7 +14,7 @@ from .admm import ADMM
 from ._ladmm import LinearizedADMM
 from .pgm import PGM, AcceleratedPGM
 from ._primaldual import PDHG
-from ._nlpadmm import NonLinearPADMM
+from ._padmm import NonLinearPADMM
 
 
 __all__ = ["ADMM", "LinearizedADMM", "NonLinearPADMM", "PGM", "AcceleratedPGM", "PDHG"]
