@@ -44,7 +44,8 @@ class ProximalADMM:
     :class:`LinearOperator`.
 
     The optimization problem is solved via a variant of the proximal ADMM
-    algorithm, consisting of the iterations (see :meth:`step`)
+    algorithm :cite:`deng-2015-global`, consisting of the iterations
+    (see :meth:`step`)
 
     .. math::
        \begin{aligned}
@@ -56,7 +57,7 @@ class ProximalADMM:
          B \mb{x}^{(k+1)} + A \mb{z}^{(k)} - \mb{c} + \mb{u}^{(k)}
          \right) \right) \\
        \mb{u}^{(k+1)} &=  \mb{u}^{(k)} + A \mb{x}^{(k+1)} + B
-         \mb{z}^{(k+1)}) - \mb{c}  \;.
+         \mb{z}^{(k+1)} - \mb{c}  \;.
        \end{aligned}
 
     Parameters :math:`\mu` and :math:`\nu` are required to satisfy
