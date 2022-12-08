@@ -140,6 +140,12 @@ Linearized ADMM
     - denoise_tv_multi.py
 
 
+Proximal ADMM
+^^^^^^^^^^^^^
+
+    - denoise_tv_multi.py
+
+
 Non-linear Proximal ADMM
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
