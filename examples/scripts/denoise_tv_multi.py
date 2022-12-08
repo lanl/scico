@@ -156,8 +156,10 @@ hist_pdhg = solver_pdhg.itstat_object.history(transpose=True)
 Plot results. It is worth noting that:
 
 1. PDHG outperforms ADMM both with respect to iterations and time.
-2. ADMM greatly outperforms Linearized ADMM with respect to iterations.
-3. ADMM slightly outperforms Linearized ADMM with respect to time. This is
+2. Proximal ADMM has similar performance to PDHG with respect to iterations,
+   but is slightly inferior with respect to time.
+3. ADMM greatly outperforms Linearized ADMM with respect to iterations.
+4. ADMM slightly outperforms Linearized ADMM with respect to time. This is
    possible because the ADMM $\mathbf{x}$-update can be solved relatively
    cheaply, with only 2 CG iterations. If more CG iterations were required,
    the time comparison would be favorable to Linearized ADMM.
