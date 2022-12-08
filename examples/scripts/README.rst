@@ -26,11 +26,11 @@ Computed Tomography
    `ct_fan_svmbir_ppp_bm3d_admm_prox.py <ct_fan_svmbir_ppp_bm3d_admm_prox.py>`_
       PPP (with BM3D) Fan-Beam CT Reconstruction
    `ct_astra_modl_train_foam2.py <ct_astra_modl_train_foam2.py>`_
-      Training of MoDL for CT Reconstruction
+      CT Train and Reconstruction with MoDL
    `ct_astra_odp_train_foam2.py <ct_astra_odp_train_foam2.py>`_
-      Training of ODP for CT Reconstruction
+      CT Reconstruction with ODP
    `ct_astra_unet_train_foam2.py <ct_astra_unet_train_foam2.py>`_
-      Training of UNet for CT Reconstruction
+      CT with UNet for Denoising of FBP
 
 
 Deconvolution
@@ -91,15 +91,13 @@ Miscellaneous
    `video_rpca_admm.py <video_rpca_admm.py>`_
       Video Decomposition via Robust PCA
    `ct_astra_datagen_foam2.py <ct_astra_datagen_foam2.py>`_
-      Generation of CT Data for Machine Learning Training
-   `deconv_datagen_bsds.py <deconv_datagen_foam.py>`_
-      Generation of Blured Data for Machine Learning Training
-   `deconv_datagen_foam1.py <deconv_datagen_foam.py>`_
-      Generation of Foam Blured Data for Machine Learning Training
+      CT Data Generation for NN Training
+   `deconv_datagen_bsds.py <deconv_datagen_bsds.py>`_
+      Generation of Blurred Data (Natural Images) for NN Training
+   `deconv_datagen_foam1.py <deconv_datagen_foam1.py>`_
+      Generation of Blurred Data for NN Training
    `denoise_datagen_bsds.py <denoise_datagen_bsds.py>`_
-      Generation of Noisy Data for Machine Learning Training
-
-
+      Noisy Data Generation for NN Training
 
 
 Organized by Regularization
@@ -178,18 +176,17 @@ Machine Learning
 ^^^^^^^^^^^^^^^^
 
    `ct_astra_modl_train_foam2.py <ct_astra_modl_train_foam2.py>`_
-      Training of MoDL for CT Reconstruction
+      CT Train and Reconstruction with MoDL
    `ct_astra_odp_train_foam2.py <ct_astra_odp_train_foam2.py>`_
-      Training of ODP for CT Reconstruction
+      CT Reconstruction with ODP
    `ct_astra_unet_train_foam2.py <ct_astra_unet_train_foam2.py>`_
-      Training of UNet for CT Reconstruction
+      CT with UNet for Denoising of FBP
    `deconv_modl_train_foam1.py <deconv_modl_train_foam1.py>`_
       Training of MoDL for Deconvolution
    `deconv_odp_train_foam1.py <deconv_odp_train_foam1.py>`_
       Training of ODP for Deconvolution
    `denoise_dncnn_train_bsds.py <denoise_dncnn_train_bsds.py>`_
       Training of DnCNN for Denoising
-
 
 
 Organized by Optimization Algorithm
