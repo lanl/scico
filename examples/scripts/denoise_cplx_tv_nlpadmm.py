@@ -41,7 +41,7 @@ import scico.numpy as snp
 import scico.random
 from scico import function, functional, linop, loss, metric, operator, plot
 from scico.examples import phase_diff
-from scico.optimize import NonLinearPADMM
+from scico.optimize import NonLinearPADMM, ProximalADMM
 from scico.util import device_info
 
 """
@@ -81,10 +81,11 @@ H = function.Function(
     output_dtype=snp.complex64,
 )
 
-solver_tv = NonLinearPADMM(
+solver_tv = ProximalADMM(
     f=f,
     g=g,
-    H=H,
+    A=C,
+    B=None,
     rho=1.0,
     mu=8.0,
     nu=1.0,
