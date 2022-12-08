@@ -8,14 +8,14 @@
 """Interfaces to standard denoisers."""
 
 
-from typing import Any
+from typing import Any, Union
 
 import numpy as np
 
 from jax.experimental import host_callback as hcb
 
 try:
-    pass
+    import bm3d as tubm3d
 except ImportError:
     have_bm3d = False
     BM3DProfile = Any
@@ -24,7 +24,7 @@ else:
     from bm3d.profiles import BM3DProfile  # type: ignore
 
 try:
-    pass
+    import bm4d as tubm4d
 except ImportError:
     have_bm4d = False
     BM4DProfile = Any
@@ -40,7 +40,7 @@ from scico.typing import JaxArray
 from ._flax import FlaxMap
 
 
-def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
+def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False, profile: Union[BM3DProfile, str] = "np"):
     r"""An interface to the BM3D denoiser :cite:`dabov-2008-image`.
 
     BM3D denoising is performed using the
@@ -55,9 +55,10 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
             tolerated only if the additional dimensions are singletons.
             For color denoising, the color channel is assumed to be in the
             last non-singleton dimension.
-        sigma: Noise standard deviation.
+        sigma: Noise parameter.
         is_rgb: Flag indicating use of BM3D with a color transform.
             Default: ``False``.
+        profile: Parameter configuration for BM3D.
 
     Returns:
         Denoised output.
@@ -66,9 +67,14 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
         raise RuntimeError("Package bm3d is required for use of this function.")
 
     if is_rgb is True:
-        bm3d_eval = tunibm3d.bm3d_rgb
+
+        def bm3d_eval(x: JaxArray, sigma: float):
+            return tubm3d.bm3d_rgb(x, sigma, profile=profile)
+
     else:
-        bm3d_eval = tunibm3d.bm3d
+
+        def bm3d_eval(x: JaxArray, sigma: float):
+            return tubm3d.bm3d(x, sigma, profile=profile)
 
     if snp.util.is_complex_dtype(x.dtype):
         raise TypeError(f"BM3D requires real-valued inputs, got {x.dtype}.")
@@ -85,7 +91,7 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
     # no exception is raised and the program will crash with no traceback.
     # NOTE: if BM3D is extended to allow for different profiles, the block size must be
     #       updated; this presumes 'np' profile (bs=8)
-    if np.min(x.shape[:2]) < 8:
+    if profile == "np" and np.min(x.shape[:2]) < 8:
         raise ValueError(
             "Two leading dimensions of input cannot be smaller than block size "
             f"(8); got image size = {x.shape}."
@@ -108,7 +114,7 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
     return y
 
 
-def bm4d(x: JaxArray, sigma: float):
+def bm4d(x: JaxArray, sigma: float, profile: Union[BM4DProfile, str] = "np"):
     r"""An interface to the BM4D denoiser :cite:`maggioni-2012-nonlocal`.
 
     BM4D denoising is performed using the
@@ -121,7 +127,8 @@ def bm4d(x: JaxArray, sigma: float):
         x: Input image. Expected to be a 3D array. Higher-dimensional
             arrays are tolerated only if the additional dimensions are
             singletons.
-        sigma: Noise standard deviation.
+        sigma: Noise parameter.
+        profile: Parameter configuration for BM4D.
 
     Returns:
         Denoised output.
@@ -129,7 +136,8 @@ def bm4d(x: JaxArray, sigma: float):
     if not have_bm4d:
         raise RuntimeError("Package bm4d is required for use of this function.")
 
-    bm4d_eval = tunibm4d.bm4d
+    def bm4d_eval(x: JaxArray, sigma: float):
+        return tubm4d.bm4d(x, sigma, profile=profile)
 
     if snp.util.is_complex_dtype(x.dtype):
         raise TypeError(f"BM4D requires real-valued inputs, got {x.dtype}.")
@@ -144,7 +152,7 @@ def bm4d(x: JaxArray, sigma: float):
     # no exception is raised and the program will crash with no traceback.
     # NOTE: if BM4D is extended to allow for different profiles, the block size must be
     #       updated; this presumes 'np' profile (bs=8)
-    if np.min(x.shape[:3]) < 8:
+    if profile == "np" and np.min(x.shape[:3]) < 8:
         raise ValueError(
             "Three leading dimensions of input cannot be smaller than block size "
             f"(8); got image size = {x.shape}."
@@ -174,11 +182,6 @@ class DnCNN(FlaxMap):
     Note that :class:`.DnCNNNet` represents an untrained form of the
     generic DnCNN CNN structure, while this class represents a trained
     form with six or seventeen layers.
-
-    The standard DnCNN as proposed in :cite:`zhang-2017-dncnn` is a blind
-    denoiser without a noise level input. This implementation also supports
-    a custom variant that includes a noise level input (as in
-    :cite:`zhang-2021-plug`, but using a different network architecture).
     """
 
     def __init__(self, variant: str = "6M"):
@@ -189,53 +192,32 @@ class DnCNN(FlaxMap):
 
         Args:
             variant: Identify the DnCNN model to be used. Options are
-                '6L', '6M' (default), '6H', '6N', '17L', '17M', '17H',
-                and '17N', where the integer indicates the number of
-                layers in the network, and the postfix indicates the
-                training noise standard deviation (with respect to data
-                in the range [0, 1]): L (low) = 0.06, M (mid) = 0.1,
-                H (high) = 0.2, or N indicating that a noise level input
-                is available.
+                '6L', '6M' (default), '6H', '17L', '17M', and '17H',
+                where the integer indicates the number of layers in the
+                network, and the postfix indicates the training noise
+                standard deviation: L (low) = 0.06, M (mid) = 0.1,
+                H (high) = 0.2, where the standard deviations are
+                with respect to data in the range [0, 1].
         """
-
-        self.variant = variant
-
-        if variant not in ["6L", "6M", "6H", "17L", "17M", "17H", "6N", "17N"]:
+        if variant not in ["6L", "6M", "6H", "17L", "17M", "17H"]:
             raise ValueError(f"Invalid value {variant} of parameter variant.")
         if variant[0] == "6":
             nlayer = 6
         else:
             nlayer = 17
-
-        channels = 2 if variant in ["6N", "17N"] else 1
-
-        model = DnCNNNet(depth=nlayer, channels=channels, num_filters=64, dtype=np.float32)
+        model = DnCNNNet(depth=nlayer, channels=1, num_filters=64, dtype=np.float32)
         variables = load_weights(_flax_data_path("dncnn%s.npz" % variant))
         super().__init__(model, variables)
 
-    def __call__(self, x: JaxArray, sigma: Optional[float] = None) -> JaxArray:
+    def __call__(self, x: JaxArray) -> JaxArray:
         r"""Apply DnCNN denoiser.
 
         Args:
             x: Input array.
-            sigma: Noise standard deviation (for variants `6N` and `17N`).
 
         Returns:
             Denoised output.
         """
-        if sigma is not None and self.variant not in ["6N", "17N"]:
-            raise ValueError(
-                "A non-default value for the sigma parameter may "
-                "only be specified when the variant is 6N or 17N"
-                f"; got variant = {self.variant}."
-            )
-
-        if sigma is None and self.variant in ["6N", "17N"]:
-            raise ValueError(
-                "A float value must be specified for the sigma "
-                "parameter when the variant is 6N or 17N."
-            )
-
         if snp.util.is_complex_dtype(x.dtype):
             raise TypeError(f"DnCNN requries real-valued inputs, got {x.dtype}.")
 
@@ -256,27 +238,12 @@ class DnCNN(FlaxMap):
                 )
 
         if x.ndim == 3:
-            y = snp.swapaxes(x, 0, -1)
-
-            if sigma is not None:
-                y = snp.stack([y, snp.ones_like(y) * sigma], -1)
-            else:
-                y = y[..., np.newaxis]
-
             # swap channel axis to batch axis and add singleton axis at end
-            y = super().__call__(y)
+            y = super().__call__(snp.swapaxes(x, 0, -1)[..., np.newaxis])
             # drop singleton axis and swap axes back to original positions
             y = snp.swapaxes(y[..., 0], 0, -1)
-
         else:
-            if sigma is not None:
-                x = snp.stack([x, snp.ones_like(x) * sigma], -1)
-                x = x[np.newaxis, ...]
-
             y = super().__call__(x)
-
-            if sigma is not None:
-                y = y[0, ..., 0]
 
         y = y.reshape(x_in_shape)
 
