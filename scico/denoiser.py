@@ -8,7 +8,7 @@
 """Interfaces to standard denoisers."""
 
 
-from typing import Any, Union
+from typing import Any, Optional, Union
 
 import numpy as np
 
