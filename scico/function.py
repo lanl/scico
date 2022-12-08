@@ -151,7 +151,7 @@ output_dtype   : {self.output_dtype}
             return self._eval(*blkarr.arrays)
 
         return Operator(
-            self.input_shapes,
+            self.input_shapes,  # type: ignore
             output_shape=self.output_shape,
             eval_fn=jfunc,
             input_dtype=self.input_dtypes[0],

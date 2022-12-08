@@ -11,7 +11,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import Callable, List, Optional, Union
+from typing import Callable, List, Optional, Tuple, Union
 
 import scico.numpy as snp
 from scico import cvjp, jvp
@@ -25,6 +25,8 @@ from scico.typing import JaxArray, PRNGKey
 from scico.util import Timer
 
 from ._common import itstat_func_and_object
+
+# mypy: disable-error-code=override
 
 
 class ProximalADMM:
@@ -133,7 +135,7 @@ class ProximalADMM:
                 the :class:`.diagnostics.IterationStats` initializer. The
                 dict may also include an additional key "itstat_func"
                 with the corresponding value being a function with two
-                parameters, an integer and a :class:`NonLinearPADMM`
+                parameters, an integer and a :class:`ProximalADMM`
                 object, responsible for constructing a tuple ready for
                 insertion into the :class:`.diagnostics.IterationStats`
                 object. If ``None``, default values are used for the dict
@@ -313,7 +315,7 @@ class ProximalADMM:
 
     def solve(
         self,
-        callback: Optional[Callable[[NonLinearPADMM], None]] = None,
+        callback: Optional[Callable[[ProximalADMM], None]] = None,
     ) -> Union[JaxArray, BlockArray]:
         r"""Initialize and run the optimization algorithm.
 
@@ -322,7 +324,7 @@ class ProximalADMM:
 
         Args:
             callback: An optional callback function, taking an a single
-              argument of type :class:`NonLinearPADMM`, that is called
+              argument of type :class:`ProximalADMM`, that is called
               at the end of every iteration.
 
         Returns:
@@ -348,7 +350,7 @@ class ProximalADMM:
         factor: Optional[float] = 1.01,
         maxiter: int = 100,
         key: Optional[PRNGKey] = None,
-    ):
+    ) -> Tuple[float, float]:
         r"""Estimate `mu` and `nu` parameters of :class:`ProximalADMM`.
 
         Find values of the `mu` and `nu` parameters of :class:`ProximalADMM`
@@ -377,7 +379,8 @@ class ProximalADMM:
             depending on the value of the `factor` parameter.
         """
         if B is None:
-            B = -Identity(A.output_shape, A.output_dtype)
+            B = -Identity(A.output_shape, A.output_dtype)  # type: ignore
+        assert isinstance(B, LinearOperator)
         mu = operator_norm(A, maxiter=maxiter, key=key) ** 2
         nu = operator_norm(B, maxiter=maxiter, key=key) ** 2
         if factor is None:
@@ -608,7 +611,7 @@ class NonLinearPADMM(ProximalADMM):
         factor: Optional[float] = 1.01,
         maxiter: int = 100,
         key: Optional[PRNGKey] = None,
-    ):
+    ) -> Tuple[float, float]:
         r"""Estimate `mu` and `nu` parameters of :class:`NonLinearPADMM`.
 
         Find values of the `mu` and `nu` parameters of :class:`NonLinearPADMM`
