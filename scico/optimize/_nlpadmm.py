@@ -333,53 +333,53 @@ class NonLinearPADMM:
         self.itstat_object.end()
         return self.x
 
+    @staticmethod
+    def estimate_parameters(
+        H: Function,
+        x: Optional[Union[JaxArray, BlockArray]] = None,
+        z: Optional[Union[JaxArray, BlockArray]] = None,
+        factor: Optional[float] = 1.01,
+        maxiter: int = 100,
+        key: Optional[PRNGKey] = None,
+    ):
+        r"""Estimate `mu` and `nu` parameters of :class:`NonLinearPADMM`.
 
-def estimate_parameters(
-    H: Function,
-    x: Optional[Union[JaxArray, BlockArray]] = None,
-    z: Optional[Union[JaxArray, BlockArray]] = None,
-    factor: Optional[float] = 1.01,
-    maxiter: int = 100,
-    key: Optional[PRNGKey] = None,
-):
-    r"""Estimate `mu` and `nu` parameters of :class:`NonLinearPADMM`.
+        Find values of the `mu` and `nu` parameters of :class:`NonLinearPADMM`
+        that respect the constraints
 
-    Find values of the `mu` and `nu` parameters of :class:`NonLinearPADMM`
-    that respect the constraints
+        .. math::
+           \mu > \norm{ J_x H(\mb{x}, \mb{z}) }_2^2 \quad \text{and} \quad
+           \nu > \norm{ J_z H(\mb{x}, \mb{z}) }_2^2 \;.
 
-    .. math::
-       \mu > \norm{ J_x H(\mb{x}, \mb{z}) }_2^2 \quad \text{and} \quad
-       \nu > \norm{ J_z H(\mb{x}, \mb{z}) }_2^2 \;.
+        Args:
+            H: Constraint function :math:`H`.
+            x: Value of :math:`\mb{x}` at which to evaluate the Jacobian.
+               If ``None``, defaults to an array of zeros.
+            z: Value of :math:`\mb{z}` at which to evaluate the Jacobian.
+               If ``None``, defaults to an array of zeros.
+            factor: Safety factor with which to multiply estimated
+               operator norms to ensure strict inequality compliance. If
+               ``None``, return the estimated squared operator norms.
+            maxiter: Maximum number of power iterations to use in operator
+               norm estimation (see :func:`.operator_norm`). Default: 100.
+            key: Jax PRNG key to use in operator norm estimation (see
+               :func:`.operator_norm`). Defaults to ``None``, in which
+               case a new key is created.
 
-    Args:
-        H: Constraint function :math:`H`.
-        x: Value of :math:`\mb{x}` at which to evaluate the Jacobian. If
-           ``None``, defaults to an array of zeros.
-        z: Value of :math:`\mb{z}` at which to evaluate the Jacobian. If
-           ``None``, defaults to an array of zeros.
-        factor: Safety factor with which to multiply estimated operator
-           norms to ensure strict inequality compliance. If ``None``,
-           return the estimated squared operator norms.
-        maxiter: Maximum number of power iterations to use in operator
-           norm estimation (see :func:`.operator_norm`). Default: 100.
-        key: Jax PRNG key to use in operator norm estimation (see
-           :func:`.operator_norm`). Defaults to ``None``, in which case a
-           new key is created.
-
-    Returns:
-        A tuple (`mu`, `nu`) representing the estimated parameter values
-        or corresponding squared operator norm values, depending on the
-        value of the `factor` parameter.
-    """
-    if x is None:
-        x = snp.zeros(H.input_shapes[0], dtype=H.input_dtypes[0])
-    if z is None:
-        z = snp.zeros(H.input_shapes[1], dtype=H.input_dtypes[1])
-    Jx = H.jacobian(0, x, z)
-    Jz = H.jacobian(1, x, z)
-    mu = operator_norm(Jx, maxiter=maxiter, key=key) ** 2
-    nu = operator_norm(Jz, maxiter=maxiter, key=key) ** 2
-    if factor is None:
-        return (mu, nu)
-    else:
-        return (factor * mu, factor * nu)
+        Returns:
+            A tuple (`mu`, `nu`) representing the estimated parameter
+            values or corresponding squared operator norm values,
+            depending on the value of the `factor` parameter.
+        """
+        if x is None:
+            x = snp.zeros(H.input_shapes[0], dtype=H.input_dtypes[0])
+        if z is None:
+            z = snp.zeros(H.input_shapes[1], dtype=H.input_dtypes[1])
+        Jx = H.jacobian(0, x, z)
+        Jz = H.jacobian(1, x, z)
+        mu = operator_norm(Jx, maxiter=maxiter, key=key) ** 2
+        nu = operator_norm(Jz, maxiter=maxiter, key=key) ** 2
+        if factor is None:
+            return (mu, nu)
+        else:
+            return (factor * mu, factor * nu)

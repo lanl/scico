@@ -289,55 +289,57 @@ class PDHG:
         self.itstat_object.end()
         return self.x
 
+    @staticmethod
+    def estimate_parameters(
+        C: Operator,
+        x: Optional[Union[JaxArray, BlockArray]] = None,
+        ratio: float = 1.0,
+        factor: Optional[float] = 1.01,
+        maxiter: int = 100,
+        key: Optional[PRNGKey] = None,
+    ):
+        r"""Estimate `tau` and `sigma` parameters of :class:`PDHG`.
 
-def estimate_parameters(
-    C: Operator,
-    x: Optional[Union[JaxArray, BlockArray]] = None,
-    ratio: float = 1.0,
-    factor: Optional[float] = 1.01,
-    maxiter: int = 100,
-    key: Optional[PRNGKey] = None,
-):
-    r"""Estimate `tau` and `sigma` parameters of :class:`PDHG`.
+        Find values of the `tau` and `sigma` parameters of :class:`PDHG`
+        that respect the constraint
 
-    Find values of the `tau` and `sigma` parameters of :class:`PDHG`
-    that respect the constraint
+        .. math::
+           \tau \sigma < \| C \|_2^{-2} \quad \text{or} \quad
+           \tau \sigma < \| J_x C(\mb{x}) \|_2^{-2} \;,
 
-    .. math::
-       \tau \sigma < \| C \|_2^{-2} \quad \text{or} \quad
-       \tau \sigma < \| J_x C(\mb{x}) \|_2^{-2} \;,
+        depending on whether :math:`C` is a :class:`.LinearOperator` or
+        not.
 
-    depending on whether :math:`C` is a :class:`.LinearOperator` or not.
+        Args:
+            C: Operator :math:`C`.
+            x: Value of :math:`\mb{x}` at which to evaluate the Jacobian
+               of :math:`C` (when it is not a :class:`.LinearOperator`).
+               If ``None``, defaults to an array of zeros.
+            ratio: Desired ratio between return :math:`\tau` and
+               :math:`\sigma` values (:math:`\sigma = \mathrm{ratio}
+               \tau`).
+            factor: Safety factor with which to multiply :math:`\| C
+               \|_2^{-2}` to ensure strict inequality compliance. If
+               ``None``, the value is set to 1.0.
+            maxiter: Maximum number of power iterations to use in operator
+               norm estimation (see :func:`.operator_norm`). Default: 100.
+            key: Jax PRNG key to use in operator norm estimation (see
+               :func:`.operator_norm`). Defaults to ``None``, in which
+               case a new key is created.
 
-    Args:
-        C: Operator :math:`C`.
-        x: Value of :math:`\mb{x}` at which to evaluate the Jacobian of
-           :math:`C` (when it is not a :class:`.LinearOperator`). If
-           ``None``, defaults to an array of zeros.
-        ratio: Desired ratio between return :math:`\tau` and
-           :math:`\sigma` values (:math:`\sigma = \mathrm{ratio} \tau`).
-        factor: Safety factor with which to multiply :math:`\| C \|_2^{-2}`
-           to ensure strict inequality compliance. If ``None``, the value
-           is set to 1.0.
-        maxiter: Maximum number of power iterations to use in operator
-           norm estimation (see :func:`.operator_norm`). Default: 100.
-        key: Jax PRNG key to use in operator norm estimation (see
-           :func:`.operator_norm`). Defaults to ``None``, in which case a
-           new key is created.
-
-    Returns:
-        A tuple (`tau`, `sigma`) representing the estimated parameter
-        values.
-    """
-    if x is None:
-        x = snp.zeros(C.input_shape, dtype=C.input_dtype)
-    if factor is None:
-        factor = 1.0
-    if isinstance(C, LinearOperator):
-        J = C
-    else:
-        J = jacobian(C, x)
-    Cnrm = operator_norm(J, maxiter=maxiter, key=key)
-    tau = snp.sqrt(factor / ratio) / Cnrm
-    sigma = ratio * tau
-    return (tau, sigma)
+        Returns:
+            A tuple (`tau`, `sigma`) representing the estimated parameter
+            values.
+        """
+        if x is None:
+            x = snp.zeros(C.input_shape, dtype=C.input_dtype)
+        if factor is None:
+            factor = 1.0
+        if isinstance(C, LinearOperator):
+            J = C
+        else:
+            J = jacobian(C, x)
+        Cnrm = operator_norm(J, maxiter=maxiter, key=key)
+        tau = snp.sqrt(factor / ratio) / Cnrm
+        sigma = ratio * tau
+        return (tau, sigma)
