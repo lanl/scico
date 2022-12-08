@@ -5,57 +5,32 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""
-Interfaces to standard denoisers.
+"""Interfaces to standard denoisers."""
 
-**Warning**: The :func:`bm4d` function is implemented as an interface
-to the `bm4d <https://pypi.org/project/bm4d>`__ package. The current
-version of this package, 4.0.0, appears to be compiled with compiler
-options that `change the behavior of the floating point unit
-<https://moyix.blogspot.com/2022/09/someones-been-messing-with-my-subnormals.html>`__
-in a way that results in lower numerical accuracy, and that persist
-for the duration of the process that loads it. If this package is
-installed, simply loading this module (:mod:`scico.denoiser`), is
-sufficient to inflict this loss of numerical precision on all other
-calculations run within the same process, even if :func:`bm4d` is not
-actually used. Users who are not making use of :func:`bm4d` are
-advised not to install the corresponding package. For additional
-information, see `scico issue #342
-<https://github.com/lanl/scico/issues/342>`__.
-"""
 
-import warnings
+from typing import Any, Union
 
 import numpy as np
 
 from jax.experimental import host_callback as hcb
 
 try:
-    import bm3d as tunibm3d
+    import bm3d as tubm3d
 except ImportError:
     have_bm3d = False
+    BM3DProfile = Any
 else:
     have_bm3d = True
+    from bm3d.profiles import BM3DProfile  # type: ignore
 
 try:
-    import bm4d as tunibm4d
+    import bm4d as tubm4d
 except ImportError:
     have_bm4d = False
+    BM4DProfile = Any
 else:
     have_bm4d = True
-    finfo = np.finfo(np.float32)  # type: ignore
-    if hasattr(finfo, "smallest_subnormal"):  # can't test with older numpy versions
-        if finfo.smallest_subnormal == 0.0:
-            warnings.warn(
-                "Importing module bm4d has had an adverse affect on floating point "
-                "accuracy. See the documentation for module scico.denoiser, and "
-                "scico issue #342."
-            )
-            warnings.filterwarnings(
-                action="ignore",
-                message="^The value of the smallest subnormal",
-                category=UserWarning,
-            )
+    from bm4d.profiles import BM4DProfile  # type: ignore
 
 import scico.numpy as snp
 from scico._flax import DnCNNNet, load_weights
@@ -65,7 +40,7 @@ from scico.typing import JaxArray
 from ._flax import FlaxMap
 
 
-def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
+def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False, profile: Union[BM3DProfile, str] = "np"):
     r"""An interface to the BM3D denoiser :cite:`dabov-2008-image`.
 
     BM3D denoising is performed using the
@@ -83,6 +58,7 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
         sigma: Noise parameter.
         is_rgb: Flag indicating use of BM3D with a color transform.
             Default: ``False``.
+        profile: Parameter configuration for BM3D.
 
     Returns:
         Denoised output.
@@ -91,9 +67,14 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
         raise RuntimeError("Package bm3d is required for use of this function.")
 
     if is_rgb is True:
-        bm3d_eval = tunibm3d.bm3d_rgb
+
+        def bm3d_eval(x: JaxArray, sigma: float):
+            return tubm3d.bm3d_rgb(x, sigma, profile=profile)
+
     else:
-        bm3d_eval = tunibm3d.bm3d
+
+        def bm3d_eval(x: JaxArray, sigma: float):
+            return tubm3d.bm3d(x, sigma, profile=profile)
 
     if snp.util.is_complex_dtype(x.dtype):
         raise TypeError(f"BM3D requires real-valued inputs, got {x.dtype}.")
@@ -110,7 +91,7 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
     # no exception is raised and the program will crash with no traceback.
     # NOTE: if BM3D is extended to allow for different profiles, the block size must be
     #       updated; this presumes 'np' profile (bs=8)
-    if np.min(x.shape[:2]) < 8:
+    if profile == "np" and np.min(x.shape[:2]) < 8:
         raise ValueError(
             "Two leading dimensions of input cannot be smaller than block size "
             f"(8); got image size = {x.shape}."
@@ -133,7 +114,7 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False):
     return y
 
 
-def bm4d(x: JaxArray, sigma: float):
+def bm4d(x: JaxArray, sigma: float, profile: Union[BM4DProfile, str] = "np"):
     r"""An interface to the BM4D denoiser :cite:`maggioni-2012-nonlocal`.
 
     BM4D denoising is performed using the
@@ -147,6 +128,7 @@ def bm4d(x: JaxArray, sigma: float):
             arrays are tolerated only if the additional dimensions are
             singletons.
         sigma: Noise parameter.
+        profile: Parameter configuration for BM4D.
 
     Returns:
         Denoised output.
@@ -154,7 +136,8 @@ def bm4d(x: JaxArray, sigma: float):
     if not have_bm4d:
         raise RuntimeError("Package bm4d is required for use of this function.")
 
-    bm4d_eval = tunibm4d.bm4d
+    def bm4d_eval(x: JaxArray, sigma: float):
+        return tubm4d.bm4d(x, sigma, profile=profile)
 
     if snp.util.is_complex_dtype(x.dtype):
         raise TypeError(f"BM4D requires real-valued inputs, got {x.dtype}.")
@@ -169,7 +152,7 @@ def bm4d(x: JaxArray, sigma: float):
     # no exception is raised and the program will crash with no traceback.
     # NOTE: if BM4D is extended to allow for different profiles, the block size must be
     #       updated; this presumes 'np' profile (bs=8)
-    if np.min(x.shape[:3]) < 8:
+    if profile == "np" and np.min(x.shape[:3]) < 8:
         raise ValueError(
             "Three leading dimensions of input cannot be smaller than block size "
             f"(8); got image size = {x.shape}."

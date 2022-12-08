@@ -7,6 +7,9 @@
 
 """Pseudo-functionals that have denoisers as their proximal operators."""
 
+
+from typing import Union
+
 from scico import denoiser
 from scico.typing import JaxArray
 
@@ -26,15 +29,17 @@ class BM3D(Functional):
     has_eval = False
     has_prox = True
 
-    def __init__(self, is_rgb: bool = False):
+    def __init__(self, is_rgb: bool = False, profile: Union[denoiser.BM3DProfile, str] = "np"):
         r"""Initialize a :class:`BM3D` object.
 
         Args:
             is_rgb: Flag indicating use of BM3D with a color transform.
                     Default: ``False``.
+            profile: Parameter configuration for BM3D.
         """
 
         self.is_rgb = is_rgb
+        self.profile = profile
         super().__init__()
 
     def prox(self, x: JaxArray, lam: float = 1.0, **kwargs) -> JaxArray:  # type: ignore
@@ -49,7 +54,7 @@ class BM3D(Functional):
         Returns:
             Denoised output.
         """
-        return denoiser.bm3d(x, lam, self.is_rgb)
+        return denoiser.bm3d(x, lam, self.is_rgb, profile=self.profile)
 
 
 class BM4D(Functional):
@@ -65,8 +70,13 @@ class BM4D(Functional):
     has_eval = False
     has_prox = True
 
-    def __init__(self):
-        r"""Initialize a :class:`BM4D` object."""
+    def __init__(self, profile: Union[denoiser.BM4DProfile, str] = "np"):
+        r"""Initialize a :class:`BM4D` object.
+
+        Args:
+            profile: Parameter configuration for BM4D.
+        """
+        self.profile = profile
         super().__init__()
 
     def prox(self, x: JaxArray, lam: float = 1.0, **kwargs) -> JaxArray:  # type: ignore
@@ -81,7 +91,7 @@ class BM4D(Functional):
         Returns:
             Denoised output.
         """
-        return denoiser.bm4d(x, lam)
+        return denoiser.bm4d(x, lam, profile=self.profile)
 
 
 class DnCNN(Functional):
