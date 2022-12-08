@@ -92,8 +92,10 @@ Miscellaneous
       Video Decomposition via Robust PCA
    `ct_astra_datagen_foam2.py <ct_astra_datagen_foam2.py>`_
       Generation of CT Data for Machine Learning Training
-   `deconv_datagen_foam1.py <deconv_datagen_foam.py>`_
+   `deconv_datagen_bsds.py <deconv_datagen_foam.py>`_
       Generation of Blured Data for Machine Learning Training
+   `deconv_datagen_foam1.py <deconv_datagen_foam.py>`_
+      Generation of Foam Blured Data for Machine Learning Training
    `denoise_datagen_bsds.py <denoise_datagen_bsds.py>`_
       Generation of Noisy Data for Machine Learning Training
 
