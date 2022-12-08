@@ -149,7 +149,7 @@ Proximal ADMM
 Non-linear Proximal ADMM
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-   - denoise_cplx_tv_nlpadmm.py
+    - denoise_cplx_tv_nlpadmm.py
 
 
 PDHG
