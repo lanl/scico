@@ -25,7 +25,7 @@ from xdesign import SiemensStar, discrete_phantom
 import scico.numpy as snp
 import scico.random
 from scico import functional, linop, loss, plot
-from scico.optimize import PDHG, LinearizedADMM
+from scico.optimize import PDHG, LinearizedADMM, ProximalADMM
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
@@ -90,6 +90,7 @@ solver_admm = ADMM(
     itstat_options={"display": True, "period": 10},
 )
 print(f"Solving on {device_info()}\n")
+print("ADMM solver")
 solver_admm.solve()
 hist_admm = solver_admm.itstat_object.history(transpose=True)
 
@@ -107,22 +108,46 @@ solver_ladmm = LinearizedADMM(
     maxiter=200,
     itstat_options={"display": True, "period": 10},
 )
+print("Linearized ADMM solver")
 solver_ladmm.solve()
 hist_ladmm = solver_ladmm.itstat_object.history(transpose=True)
 
 
 """
+Solve via Proximal ADMM.
+"""
+mu, nu = ProximalADMM.estimate_parameters(C)
+solver_padmm = ProximalADMM(
+    f=f,
+    g=g,
+    A=C,
+    B=None,
+    rho=1e0,
+    mu=mu,
+    nu=nu,
+    x0=y,
+    maxiter=200,
+    itstat_options={"display": True, "period": 10},
+)
+print("Proximal ADMM solver")
+solver_padmm.solve()
+hist_padmm = solver_padmm.itstat_object.history(transpose=True)
+
+
+"""
 Solve via PDHG.
 """
+tau, sigma = PDHG.estimate_parameters(C, factor=1.5)
 solver_pdhg = PDHG(
     f=f,
     g=g,
     C=C,
-    tau=4e-1,
-    sigma=4e-1,
+    tau=tau,
+    sigma=sigma,
     maxiter=200,
     itstat_options={"display": True, "period": 10},
 )
+print("PDHG solver")
 solver_pdhg.solve()
 hist_pdhg = solver_pdhg.itstat_object.history(transpose=True)
 
@@ -139,29 +164,35 @@ Plot results. It is worth noting that:
 """
 fig, ax = plot.subplots(nrows=1, ncols=3, sharex=True, sharey=False, figsize=(27, 6))
 plot.plot(
-    snp.vstack((hist_admm.Objective, hist_ladmm.Objective, hist_pdhg.Objective)).T,
+    snp.vstack(
+        (hist_admm.Objective, hist_ladmm.Objective, hist_padmm.Objective, hist_pdhg.Objective)
+    ).T,
     ptyp="semilogy",
     title="Objective function",
     xlbl="Iteration",
-    lgnd=("ADMM", "LinADMM", "PDHG"),
+    lgnd=("ADMM", "LinADMM", "ProxADMM", "PDHG"),
     fig=fig,
     ax=ax[0],
 )
 plot.plot(
-    snp.vstack((hist_admm.Prml_Rsdl, hist_ladmm.Prml_Rsdl, hist_pdhg.Prml_Rsdl)).T,
+    snp.vstack(
+        (hist_admm.Prml_Rsdl, hist_ladmm.Prml_Rsdl, hist_padmm.Prml_Rsdl, hist_pdhg.Prml_Rsdl)
+    ).T,
     ptyp="semilogy",
     title="Primal residual",
     xlbl="Iteration",
-    lgnd=("ADMM", "LinADMM", "PDHG"),
+    lgnd=("ADMM", "LinADMM", "ProxADMM", "PDHG"),
     fig=fig,
     ax=ax[1],
 )
 plot.plot(
-    snp.vstack((hist_admm.Dual_Rsdl, hist_ladmm.Dual_Rsdl, hist_pdhg.Dual_Rsdl)).T,
+    snp.vstack(
+        (hist_admm.Dual_Rsdl, hist_ladmm.Dual_Rsdl, hist_padmm.Dual_Rsdl, hist_pdhg.Dual_Rsdl)
+    ).T,
     ptyp="semilogy",
     title="Dual residual",
     xlbl="Iteration",
-    lgnd=("ADMM", "LinADMM", "PDHG"),
+    lgnd=("ADMM", "LinADMM", "ProxADMM", "PDHG"),
     fig=fig,
     ax=ax[2],
 )
@@ -169,32 +200,38 @@ fig.show()
 
 fig, ax = plot.subplots(nrows=1, ncols=3, sharex=True, sharey=False, figsize=(27, 6))
 plot.plot(
-    snp.vstack((hist_admm.Objective, hist_ladmm.Objective, hist_pdhg.Objective)).T,
-    snp.vstack((hist_admm.Time, hist_ladmm.Time, hist_pdhg.Time)).T,
+    snp.vstack(
+        (hist_admm.Objective, hist_ladmm.Objective, hist_padmm.Objective, hist_pdhg.Objective)
+    ).T,
+    snp.vstack((hist_admm.Time, hist_ladmm.Time, hist_padmm.Time, hist_pdhg.Time)).T,
     ptyp="semilogy",
     title="Objective function",
     xlbl="Time (s)",
-    lgnd=("ADMM", "LinADMM", "PDHG"),
+    lgnd=("ADMM", "LinADMM", "ProxADMM", "PDHG"),
     fig=fig,
     ax=ax[0],
 )
 plot.plot(
-    snp.vstack((hist_admm.Prml_Rsdl, hist_ladmm.Prml_Rsdl, hist_pdhg.Prml_Rsdl)).T,
-    snp.vstack((hist_admm.Time, hist_ladmm.Time, hist_pdhg.Time)).T,
+    snp.vstack(
+        (hist_admm.Prml_Rsdl, hist_ladmm.Prml_Rsdl, hist_padmm.Prml_Rsdl, hist_pdhg.Prml_Rsdl)
+    ).T,
+    snp.vstack((hist_admm.Time, hist_ladmm.Time, hist_padmm.Time, hist_pdhg.Time)).T,
     ptyp="semilogy",
     title="Primal residual",
     xlbl="Time (s)",
-    lgnd=("ADMM", "LinADMM", "PDHG"),
+    lgnd=("ADMM", "LinADMM", "ProxADMM", "PDHG"),
     fig=fig,
     ax=ax[1],
 )
 plot.plot(
-    snp.vstack((hist_admm.Dual_Rsdl, hist_ladmm.Dual_Rsdl, hist_pdhg.Dual_Rsdl)).T,
-    snp.vstack((hist_admm.Time, hist_ladmm.Time, hist_pdhg.Time)).T,
+    snp.vstack(
+        (hist_admm.Dual_Rsdl, hist_ladmm.Dual_Rsdl, hist_padmm.Dual_Rsdl, hist_pdhg.Dual_Rsdl)
+    ).T,
+    snp.vstack((hist_admm.Time, hist_ladmm.Time, hist_padmm.Time, hist_pdhg.Time)).T,
     ptyp="semilogy",
     title="Dual residual",
     xlbl="Time (s)",
-    lgnd=("ADMM", "LinADMM", "PDHG"),
+    lgnd=("ADMM", "LinADMM", "ProxADMM", "PDHG"),
     fig=fig,
     ax=ax[2],
 )
