@@ -212,18 +212,18 @@ class TestEstimateParameters:
     def test_operators_dlft(self):
         for op in self.operators[0:2]:
             tau, sigma = PDHG.estimate_parameters(op, factor=1.0)
-            assert tau == sigma
-            assert tau == 1.0
+            assert snp.abs(tau - sigma) < 1e-6
+            assert snp.abs(tau - 1.0) < 1e-6
 
     def test_operators(self):
         for op in self.operators:
             x = snp.ones(op.input_shape, op.input_dtype)
             tau, sigma = PDHG.estimate_parameters(op, x=x, factor=None)
-            assert tau == sigma
-            assert tau == 1.0
+            assert snp.abs(tau - sigma) < 1e-6
+            assert snp.abs(tau - 1.0) < 1e-6
 
     def test_ratio(self):
         op = self.operators[0]
         tau, sigma = PDHG.estimate_parameters(op, factor=1.0, ratio=10.0)
-        assert tau * sigma == 1
-        assert sigma == 10.0 * tau
+        assert snp.abs(tau * sigma - 1.0) < 1e-6
+        assert snp.abs(sigma - 10.0 * tau) < 1e-6

@@ -309,15 +309,15 @@ class TestEstimateParameters:
 
     def test_padmm(self):
         mu, nu = ProximalADMM.estimate_parameters(self.A, factor=1.0)
-        assert mu == 1.0
-        assert nu == 1.0
+        assert snp.abs(mu - 1.0) < 1e-6
+        assert snp.abs(nu - 1.0) < 1e-6
 
     def test_real(self):
         mu, nu = NonLinearPADMM.estimate_parameters(self.Hr, factor=1.0)
-        assert mu == 1.0
-        assert nu == 1.0
+        assert snp.abs(mu - 1.0) < 1e-6
+        assert snp.abs(nu - 1.0) < 1e-6
 
     def test_complex(self):
         mu, nu = NonLinearPADMM.estimate_parameters(self.Hc, factor=1.0)
-        assert mu == 1.0
-        assert nu == 1.0
+        assert snp.abs(mu - 1.0) < 1e-6
+        assert snp.abs(nu - 1.0) < 1e-6
