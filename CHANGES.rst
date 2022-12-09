@@ -10,6 +10,7 @@ Version 0.0.4   (unreleased)
   one input.
 • New methods and a function for computing Jacobian-vector products for `Operator`
   objects.
+• New proximal ADMM solvers.
 
 
 
