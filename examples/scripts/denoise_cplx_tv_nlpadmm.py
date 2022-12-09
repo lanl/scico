@@ -11,7 +11,7 @@ Complex Total Variation Denoising with NLPADMM Solver
 This example demonstrates solution of a problem of the form
 
 $$\argmin_{\mathbf{x}} \; f(\mathbf{x}) + g(\mathbf{z}) \; \text{such
-that}\; H(\mb{x}, \mb{z}) = 0 \;,$$
+ that}\; H(\mb{x}, \mb{z}) = 0 \;,$$
 
 where $H$ is a function, via a variant of the proximal ADMM
 algorithm for problems with a non-linear operator constraint
