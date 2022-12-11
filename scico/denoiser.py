@@ -181,10 +181,15 @@ class DnCNN(FlaxMap):
     Note that :class:`.DnCNNNet` represents an untrained form of the
     generic DnCNN CNN structure, while this class represents a trained
     form with six or seventeen layers.
-    The standard DnCNN as proposed in :cite:`zhang-2017-dncnn` is a blind
+    The standard DnCNN as proposed in :cite:`zhang-2017-dncnn` is a non-blind
     denoiser without a noise level input. This implementation also supports
-    a custom variant that includes a noise level input (as in
-    :cite:`zhang-2021-plug`, but using a different network architecture).
+    a custom variant of DnCNN that includes a noise level input (inspired by
+    :cite:`zhang-2021-plug`, which uses a different network architecture
+    known as DRUNET). This variant takes sigma (noise level) ranging from
+    0 to 0.2 as an extra input, concatenates the noisy image and an array
+    of sigma as a two-channel input of DnCNN, then generate a denoised
+    image corresponding to denoising strength controlled by the value
+    of sigma.
     """
 
     def __init__(self, variant: str = "6M"):
