@@ -144,3 +144,24 @@ class TestDnCNN:
         z, key = randn((32, 32), key=None, dtype=np.complex64)
         with pytest.raises(TypeError):
             self.dncnn(z)
+
+
+class TestNonBLindDnCNN:
+    def setup_method(self):
+        key = None
+        self.x_sngchn, key = randn((32, 33), key=key, dtype=np.float32)
+        self.x_mltchn, key = randn((33, 34, 5), key=key, dtype=np.float32)
+        self.sigma = 0.1
+        self.dncnn = DnCNN(variant="6N")
+
+    def test_single_channel(self):
+        rslt = self.dncnn(self.x_sngchn, sigma=self.sigma)
+        assert rslt.dtype == np.float32
+
+    def test_multi_channel(self):
+        rslt = self.dncnn(self.x_mltchn, sigma=self.sigma)
+        assert rslt.dtype == np.float32
+
+    def test_bad_inputs(self):
+        with pytest.raises(ValueError):
+            rslt = self.dncnn(self.x_sngchn)

@@ -56,6 +56,7 @@ Miscellaneous
    - denoise_tv_pgm.py
    - denoise_tv_multi.py
    - denoise_cplx_tv_pdhg.py
+   - denoise_dncnn_universal.py
    - video_rpca_admm.py
    - ct_astra_datagen_foam2.py
    - deconv_datagen_bsds.py

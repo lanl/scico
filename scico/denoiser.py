@@ -8,7 +8,7 @@
 """Interfaces to standard denoisers."""
 
 
-from typing import Any, Union
+from typing import Any, Optional, Union
 
 import numpy as np
 
@@ -51,8 +51,8 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False, profile: Union[BM3DPro
         x: Input image. Expected to be a 2D array (gray-scale denoising)
             or 3D array (color denoising). Higher-dimensional arrays are
             tolerated only if the additional dimensions are singletons.
-            For color denoising, the color channel is assumed to be in the
-            last non-singleton dimension.
+            For color denoising, the color channel is assumed to be in
+            the last non-singleton dimension.
         sigma: Noise parameter.
         is_rgb: Flag indicating use of BM3D with a color transform.
             Default: ``False``.
@@ -180,42 +180,75 @@ class DnCNN(FlaxMap):
     Note that :class:`.DnCNNNet` represents an untrained form of the
     generic DnCNN CNN structure, while this class represents a trained
     form with six or seventeen layers.
+
+    The standard DnCNN as proposed in :cite:`zhang-2017-dncnn` does not
+    have a noise level input. This implementation of DnCNN also supports
+    a custom variant that includes a noise standard deviation input,
+    `sigma`, which is included in the network as an additional channel
+    consisting of a constant array with value `sigma`. This network was
+    trained with image data on the range [0, 1], and with noise standard
+    deviations ranging from 0.0 to 0.2. It is worth noting that DRUNet
+    :cite:`zhang-2021-plug`, another recent approach to including a noise
+    level input in a CNN denoiser, is based on a substantially different
+    network architecture.
     """
 
     def __init__(self, variant: str = "6M"):
         """
         Note that all DnCNN models are trained for single-channel image
         input. Multi-channel input is supported via independent denoising
-        of each channel.
+        of each channel. Input images are expected to have pixel values
+        in the range [0, 1].
 
         Args:
             variant: Identify the DnCNN model to be used. Options are
-                '6L', '6M' (default), '6H', '17L', '17M', and '17H',
-                where the integer indicates the number of layers in the
-                network, and the postfix indicates the training noise
-                standard deviation: L (low) = 0.06, M (mid) = 0.1,
-                H (high) = 0.2, where the standard deviations are
-                with respect to data in the range [0, 1].
+                '6L', '6M' (default), '6H', '6N', '17L', '17M', '17H',
+                and '17N', where the integer indicates the number of
+                layers in the network, and the postfix indicates the
+                training noise standard deviation (with respect to data
+                in the range [0, 1]): L (low) = 0.06, M (mid) = 0.10,
+                H (high) = 0.20, or N indicating that a noise standard
+                deviation input, `sigma`, is available.
         """
-        if variant not in ["6L", "6M", "6H", "17L", "17M", "17H"]:
+
+        self.variant = variant
+
+        if variant not in ["6L", "6M", "6H", "17L", "17M", "17H", "6N", "17N"]:
             raise ValueError(f"Invalid value {variant} of parameter variant.")
         if variant[0] == "6":
             nlayer = 6
         else:
             nlayer = 17
-        model = DnCNNNet(depth=nlayer, channels=1, num_filters=64, dtype=np.float32)
+
+        channels = 2 if variant in ["6N", "17N"] else 1
+
+        model = DnCNNNet(depth=nlayer, channels=channels, num_filters=64, dtype=np.float32)
         variables = load_weights(_flax_data_path("dncnn%s.npz" % variant))
         super().__init__(model, variables)
 
-    def __call__(self, x: JaxArray) -> JaxArray:
+    def __call__(self, x: JaxArray, sigma: Optional[float] = None) -> JaxArray:
         r"""Apply DnCNN denoiser.
 
         Args:
             x: Input array.
+            sigma: Noise standard deviation (for variants `6N` and `17N`).
 
         Returns:
             Denoised output.
         """
+        if sigma is not None and self.variant not in ["6N", "17N"]:
+            raise ValueError(
+                "A non-default value for the sigma parameter may "
+                "only be specified when the variant is 6N or 17N"
+                f"; got variant = {self.variant}."
+            )
+
+        if sigma is None and self.variant in ["6N", "17N"]:
+            raise ValueError(
+                "A float value must be specified for the sigma "
+                "parameter when the variant is 6N or 17N."
+            )
+
         if snp.util.is_complex_dtype(x.dtype):
             raise TypeError(f"DnCNN requries real-valued inputs, got {x.dtype}.")
 
@@ -236,12 +269,27 @@ class DnCNN(FlaxMap):
                 )
 
         if x.ndim == 3:
+            y = snp.swapaxes(x, 0, -1)
+
+            if sigma is not None:
+                y = snp.stack([y, snp.ones_like(y) * sigma], -1)
+            else:
+                y = y[..., np.newaxis]
+
             # swap channel axis to batch axis and add singleton axis at end
-            y = super().__call__(snp.swapaxes(x, 0, -1)[..., np.newaxis])
+            y = super().__call__(y)
             # drop singleton axis and swap axes back to original positions
             y = snp.swapaxes(y[..., 0], 0, -1)
+
         else:
+            if sigma is not None:
+                x = snp.stack([x, snp.ones_like(x) * sigma], -1)
+                x = x[np.newaxis, ...]
+
             y = super().__call__(x)
+
+            if sigma is not None:
+                y = y[0, ..., 0]
 
         y = y.reshape(x_in_shape)
 
