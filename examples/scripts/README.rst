@@ -26,11 +26,11 @@ Computed Tomography
    `ct_fan_svmbir_ppp_bm3d_admm_prox.py <ct_fan_svmbir_ppp_bm3d_admm_prox.py>`_
       PPP (with BM3D) Fan-Beam CT Reconstruction
    `ct_astra_modl_train_foam2.py <ct_astra_modl_train_foam2.py>`_
-      CT Train and Reconstruction with MoDL
+      CT Training and Reconstructions with MoDL
    `ct_astra_odp_train_foam2.py <ct_astra_odp_train_foam2.py>`_
-      CT Reconstruction with ODP
+      CT Training and Reconstructions with ODP
    `ct_astra_unet_train_foam2.py <ct_astra_unet_train_foam2.py>`_
-      CT with UNet for Denoising of FBP
+      CT Training and Reconstructions with UNet
 
 
 Deconvolution
@@ -55,9 +55,9 @@ Deconvolution
    `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
       PPP (with BM4D) Volume Deconvolution
    `deconv_modl_train_foam1.py <deconv_modl_train_foam1.py>`_
-      Training of MoDL for Deconvolution
+      Training and Reconstructions with MoDL for Deconvolution
    `deconv_odp_train_foam1.py <deconv_odp_train_foam1.py>`_
-      Training of ODP for Deconvolution
+      Training and Reconstructions with ODP for Deconvolution
 
 
 Sparse Coding
@@ -95,9 +95,9 @@ Miscellaneous
    `ct_astra_datagen_foam2.py <ct_astra_datagen_foam2.py>`_
       CT Data Generation for NN Training
    `deconv_datagen_bsds.py <deconv_datagen_bsds.py>`_
-      Generation of Blurred Data (Natural Images) for NN Training
-   `deconv_datagen_foam1.py <deconv_datagen_foam1.py>`_
       Generation of Blurred Data for NN Training
+   `deconv_datagen_foam1.py <deconv_datagen_foam1.py>`_
+      Generation of Blurred Data (Foams) for NN Training
    `denoise_datagen_bsds.py <denoise_datagen_bsds.py>`_
       Noisy Data Generation for NN Training
 
@@ -177,18 +177,28 @@ Sparsity
 Machine Learning
 ^^^^^^^^^^^^^^^^
 
+   `ct_astra_datagen_foam2.py <ct_astra_datagen_foam2.py>`_
+      CT Data Generation for NN Training
    `ct_astra_modl_train_foam2.py <ct_astra_modl_train_foam2.py>`_
-      CT Train and Reconstruction with MoDL
+      CT Training and Reconstructions with MoDL
    `ct_astra_odp_train_foam2.py <ct_astra_odp_train_foam2.py>`_
-      CT Reconstruction with ODP
+      CT Training and Reconstructions with ODP
    `ct_astra_unet_train_foam2.py <ct_astra_unet_train_foam2.py>`_
-      CT with UNet for Denoising of FBP
+      CT Training and Reconstructions with UNet
+   `deconv_datagen_bsds.py <deconv_datagen_bsds.py>`_
+      Generation of Blurred Data for NN Training
+   `deconv_datagen_foam1.py <deconv_datagen_foam1.py>`_
+      Generation of Blurred Data (Foams) for NN Training
    `deconv_modl_train_foam1.py <deconv_modl_train_foam1.py>`_
-      Training of MoDL for Deconvolution
+      Training and Reconstructions with MoDL for Deconvolution
    `deconv_odp_train_foam1.py <deconv_odp_train_foam1.py>`_
-      Training of ODP for Deconvolution
+      Training and Reconstructions with ODP for Deconvolution
+   `denoise_datagen_bsds.py <denoise_datagen_bsds.py>`_
+      Noisy Data Generation for NN Training
    `denoise_dncnn_train_bsds.py <denoise_dncnn_train_bsds.py>`_
       Training of DnCNN for Denoising
+   `denoise_dncnn_universal.py <denoise_dncnn_universal.py>`_
+      Comparison of DnCNN Variants for Image Denoising
 
 
 Organized by Optimization Algorithm
