@@ -8,8 +8,10 @@ r"""
 Comparison of Optimization Algorithms for Total Variation Denoising
 ===================================================================
 
-This example compares the performance of ADMM, Linearized ADMM, and PDHG
-in solving the isotropic total variation (TV) denoising problem
+This example compares the performance of alternating direction method of
+multipliers (ADMM), linearized ADMM, proximal ADMM, and primal–dual
+hybrid gradient (PDHG) in solving the isotropic total variation (TV)
+denoising problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - \mathbf{x}
   \|_2^2 + \lambda R(\mathbf{x}) \;,$$
@@ -58,10 +60,11 @@ g = λ * functional.L21Norm()
 
 
 """
-For reasons that are not entirely clear, the first step of the first-run
-solver is much slower than the following steps. Perform a preliminary
-solver step, the result of which is discarded, to avoid this bias in the
-timing results.
+The first step of the first-run solver is much slower than the
+following steps, presumably due to just-in-time compilation of
+relevant operators in first use. Perform a preliminary solver step,
+the result of which is discarded, to avoid this bias in the timing
+results.
 """
 solver_admm = ADMM(
     f=f,
