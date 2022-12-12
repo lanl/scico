@@ -112,12 +112,17 @@ Sparsity
 Machine Learning
 ^^^^^^^^^^^^^^^^
 
+   - ct_astra_datagen_foam2.py
    - ct_astra_modl_train_foam2.py
    - ct_astra_odp_train_foam2.py
    - ct_astra_unet_train_foam2.py
+   - deconv_datagen_bsds.py
+   - deconv_datagen_foam1.py
    - deconv_modl_train_foam1.py
    - deconv_odp_train_foam1.py
+   - denoise_datagen_bsds.py
    - denoise_dncnn_train_bsds.py
+   - denoise_dncnn_universal.py
 
 
 Organized by Optimization Algorithm
