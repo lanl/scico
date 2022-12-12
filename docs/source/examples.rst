@@ -74,6 +74,7 @@ Miscellaneous
    examples/denoise_tv_multi
    examples/denoise_cplx_tv_nlpadmm
    examples/denoise_cplx_tv_pdhg
+   examples/denoise_dncnn_universal
    examples/video_rpca_admm
 
 
