@@ -9,17 +9,16 @@ Comparison of DnCNN Variants for Image Denoising
 ================================================
 
 This example demonstrates the solution of an image denoising problem
-using different DnCNN variants.
-:cite:`zhang-2017-dncnn` DnCNN,
-:cite:`zhang-2021-plug` training denoiser with noise level as input.
+using DnCNN :cite:`zhang-2017-dncnn` networks trained for different noise
+levels, as well as custom variants with fewer network layers, and  with a
+noise level input.
 
-Overview of different DnCNNs used in this script:
-[6L, 6M, 6H, 17L, 17M, 17H] non-blind DnCNNs, where [6, 17] denote the
-number of layers, and [L, M, H] represent noise level of the training
-samples.
-
-[6N, 17N] DnCNNs with addtional noise levels as inputs, where [6, 17]
-denote the number of layers
+The networks trained for specific noise levels are labeled 6L, 6M, 6H,
+17L, 17M, and 17H, where {6, 17} denote the number of layers, and {L, M,
+H} represent noise standard deviation of the training images (0.06, 0.10,
+and 0.20 respectively). The networks with a noise standard deviation
+input are labeled 6N and 17N, where {6, 17} again denote the number of
+layers.
 """
 
 import numpy as np
@@ -41,14 +40,14 @@ x_gt = discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), 
 x_gt = jax.device_put(x_gt)  # convert to jax array, push to GPU
 
 """
-Test different DnCNN variants on images with different noise levels
+Test different DnCNN variants on images with different noise levels.
 """
 print("  σ   | variant | noisy image PSNR (dB)   | denoised image PSNR (dB)")
-for σ in [0.06, 0.1, 0.2]:
+for σ in [0.06, 0.10, 0.20]:
     print("------+---------+-------------------------+-------------------------")
     for variant in ["17L", "17M", "17H", "17N", "6L", "6M", "6H", "6N"]:
 
-        # Instantiate a DnCnn
+        # Instantiate a DnCNN.
         denoiser = DnCNN(variant=variant)
 
         # Generate a noisy image.
