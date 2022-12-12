@@ -38,7 +38,7 @@ class ProximalADMM:
 
     .. math::
         \argmin_{\mb{x}} \; f(\mb{x}) + g(\mb{z}) \;
-        \text{such that}\; A \mb{x} + B \mb{z}) = \mb{c} \;,
+        \text{such that}\; A \mb{x} + B \mb{z} = \mb{c} \;,
 
     where :math:`f` and :math:`g` are instances of :class:`.Functional`,
     (in most cases :math:`f` will, more specifically be an an instance
