@@ -6,7 +6,7 @@ Usage Examples
 .. toctree::
    :maxdepth: 1
 
-.. include:: include/exampledepend.rst
+.. include:: exampledepend.rst
 
 
 Organized by Application
@@ -73,6 +73,7 @@ Miscellaneous
    examples/denoise_tv_pgm
    examples/denoise_tv_multi
    examples/denoise_cplx_tv_pdhg
+   examples/denoise_dncnn_universal
    examples/video_rpca_admm
 
 
