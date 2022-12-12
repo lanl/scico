@@ -5,8 +5,8 @@
 # with the package.
 
 r"""
-CT with UNet for Denoising of FBP
-=================================
+CT Training and Reconstructions with UNet
+=========================================
 
 This example demonstrates the training and application of UNet
 to denoise previously filtered back projections (FBP) for CT

@@ -5,8 +5,8 @@
 # with the package.
 
 r"""
-Training of MoDL for Deconvolution
-==================================
+Training and Reconstructions with MoDL for Deconvolution
+========================================================
 
 This example demonstrates the training and application of a model-based deep learning
 (MoDL) architecture described in :cite:`aggarwal-2019-modl`

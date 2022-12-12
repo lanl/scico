@@ -5,8 +5,8 @@
 # with the package.
 
 r"""
-CT Reconstruction with ODP
-==========================
+CT Training and Reconstructions with ODP
+========================================
 
 This example demonstrates the training of the unrolled
 optimization with deep priors (ODP) gradient descent architecture
