@@ -10,24 +10,28 @@ Complex Total Variation Denoising with NLPADMM Solver
 
 This example demonstrates solution of a problem of the form
 
-$$\argmin_{\mathbf{x}} \; f(\mathbf{x}) + g(\mathbf{z}) \; \text{such
- that}\; H(\mb{x}, \mb{z}) = 0 \;,$$
+$$\argmin_{\mb{x}} \; f(\mb{x}) + g(\mb{z}) \; \text{such that}\;
+H(\mb{x}, \mb{z}) = 0 \;,$$
 
-where $H$ is a function, via a variant of the proximal ADMM
+where $H$ is a nonlinear function, via a variant of the proximal ADMM
 algorithm for problems with a non-linear operator constraint
 :cite:`benning-2016-preconditioned`. The example problem represents
 total variation (TV) denoising applied to a complex image with
-piece-wise smooth magnitude and non-smooth phase. The appropriate TV
-denoising formulation for this problem is
+piece-wise smooth magnitude and non-smooth phase. (This example is rather
+contrived, and was not constructed to represent a specific real imaging
+problem, but it does have some properties in common with synthetic
+aperture radar single look complex data in which the magnitude has much
+more discernible structure than the phase.) The appropriate TV denoising
+formulation for this problem is
 
-$$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - \mathbf{x}
-\|_2^2 + \lambda \| C(\mathbf{x}) \|_{2,1} \;,$$
+$$\argmin_{\mb{x}} \; (1/2) \| \mb{y} - \mb{x} \|_2^2 + \lambda
+\| C(\mb{x}) \|_{2,1} \;,$$
 
-where $\mathbf{y}$ is the measurement, $\|\cdot\|_{2,1}$ is the
-$\ell_{2,1}$ mixed norm, and $C$ is a non-linear operator that applies
-a linear difference operator to the magnitude of a complex array.
+where $\mb{y}$ is the measurement, $\|\cdot\|_{2,1}$ is the
+$\ell_{2,1}$ mixed norm, and $C$ is a non-linear operator consisting of
+a linear difference operator applied to the magnitude of a complex array.
 This problem is represented in the form above by taking $H(\mb{x},
-\mb{z}) = C(\mathbf{x}) - \mb{z}$. The standard TV solution, which is
+\mb{z}) = C(\mb{x}) - \mb{z}$. The standard TV solution, which is
 also computed for comparison purposes, gives very poor results since
 the difference is applied independently to real and imaginary
 components of the complex image.
@@ -72,14 +76,6 @@ g = λ_tv * functional.L21Norm()
 # The append=0 option makes the results of horizontal and vertical finite
 # differences the same shape, which is required for the L21Norm.
 C = linop.FiniteDifference(input_shape=y.shape, input_dtype=snp.complex64, append=0)
-# Constraint function imposing z = C(x) constraint
-H = function.Function(
-    (C.shape[1], C.shape[0]),
-    output_shape=C.shape[0],
-    eval_fn=lambda x, z: C(x) - z,
-    input_dtypes=snp.complex64,
-    output_dtype=snp.complex64,
-)
 
 solver_tv = ProximalADMM(
     f=f,
