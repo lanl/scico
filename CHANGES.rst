@@ -6,8 +6,11 @@ SCICO Release Notes
 Version 0.0.4   (unreleased)
 ----------------------------
 
-• New methods and a function for computing Jacobian-vector products for
-  `Operator` objects.
+• New `Function` class for representing array-to-array mappings with more than
+  one input.
+• New methods and a function for computing Jacobian-vector products for `Operator`
+  objects.
+• New proximal ADMM solvers.
 
 
 

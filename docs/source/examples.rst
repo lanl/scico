@@ -72,6 +72,7 @@ Miscellaneous
    examples/denoise_tv_admm
    examples/denoise_tv_pgm
    examples/denoise_tv_multi
+   examples/denoise_cplx_tv_nlpadmm
    examples/denoise_cplx_tv_pdhg
    examples/denoise_dncnn_universal
    examples/video_rpca_admm
@@ -120,6 +121,7 @@ Total Variation
    examples/denoise_tv_admm
    examples/denoise_tv_pgm
    examples/denoise_tv_multi
+   examples/denoise_cplx_tv_nlpadmm
    examples/denoise_cplx_tv_pdhg
 
 
@@ -180,6 +182,25 @@ Linearized ADMM
 
    examples/ct_svmbir_tv_multi
    examples/denoise_tv_multi
+
+
+Proximal ADMM
+^^^^^^^^^^^^^
+
+.. toctree::
+   :maxdepth: 1
+
+   examples/denoise_tv_multi
+   examples/denoise_cplx_tv_nlpadmm
+
+
+Non-linear Proximal ADMM
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. toctree::
+   :maxdepth: 1
+
+   examples/denoise_cplx_tv_nlpadmm
 
 
 PDHG
