@@ -55,9 +55,9 @@ Deconvolution
    `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
       PPP (with BM4D) Volume Deconvolution
    `deconv_modl_train_foam1.py <deconv_modl_train_foam1.py>`_
-      Training and Reconstructions with MoDL for Deconvolution
+      Deconvolution Training and Reconstructions with MoDL
    `deconv_odp_train_foam1.py <deconv_odp_train_foam1.py>`_
-      Training and Reconstructions with ODP for Deconvolution
+      Deconvolution Training and Reconstructions with ODP
 
 
 Sparse Coding
@@ -95,9 +95,9 @@ Miscellaneous
    `ct_astra_datagen_foam2.py <ct_astra_datagen_foam2.py>`_
       CT Data Generation for NN Training
    `deconv_datagen_bsds.py <deconv_datagen_bsds.py>`_
-      Generation of Blurred Data for NN Training
+      Blurred Data Generation (Natural Images) for NN Training
    `deconv_datagen_foam1.py <deconv_datagen_foam1.py>`_
-      Generation of Blurred Data (Foams) for NN Training
+      Blurred Data Generation (Foams) for NN Training
    `denoise_datagen_bsds.py <denoise_datagen_bsds.py>`_
       Noisy Data Generation for NN Training
 
@@ -186,13 +186,13 @@ Machine Learning
    `ct_astra_unet_train_foam2.py <ct_astra_unet_train_foam2.py>`_
       CT Training and Reconstructions with UNet
    `deconv_datagen_bsds.py <deconv_datagen_bsds.py>`_
-      Generation of Blurred Data for NN Training
+      Blurred Data Generation (Natural Images) for NN Training
    `deconv_datagen_foam1.py <deconv_datagen_foam1.py>`_
-      Generation of Blurred Data (Foams) for NN Training
+      Blurred Data Generation (Foams) for NN Training
    `deconv_modl_train_foam1.py <deconv_modl_train_foam1.py>`_
-      Training and Reconstructions with MoDL for Deconvolution
+      Deconvolution Training and Reconstructions with MoDL
    `deconv_odp_train_foam1.py <deconv_odp_train_foam1.py>`_
-      Training and Reconstructions with ODP for Deconvolution
+      Deconvolution Training and Reconstructions with ODP
    `denoise_datagen_bsds.py <denoise_datagen_bsds.py>`_
       Noisy Data Generation for NN Training
    `denoise_dncnn_train_bsds.py <denoise_dncnn_train_bsds.py>`_
