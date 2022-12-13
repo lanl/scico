@@ -5,8 +5,8 @@
 # with the package.
 
 r"""
-Training and Reconstructions with ODP for Deconvolution
-=======================================================
+Deconvolution Training and Reconstructions with ODP
+===================================================
 
 This example demonstrates the training and application of the unrolled optimization with deep priors
 (ODP) with proximal map architecture described in :cite:`diamond-2018-odp` for
