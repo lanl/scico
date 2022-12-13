@@ -5,28 +5,36 @@
 # with the package.
 
 r"""
-Complex Total Variation Denoising with PDHG Solver
-==================================================
+Complex Total Variation Denoising with NLPADMM Solver
+=====================================================
 
 This example demonstrates solution of a problem of the form
 
-  $$\argmin_{\mathbf{x}} \; f(\mathbf{x}) + g(C(\mathbf{x})) \;,$$
+$$\argmin_{\mb{x}} \; f(\mb{x}) + g(\mb{z}) \; \text{such that}\;
+H(\mb{x}, \mb{z}) = 0 \;,$$
 
-where $C$ is a nonlinear operator, via non-linear PDHG
-:cite:`valkonen-2014-primal`. The example problem represents total
-variation (TV) denoising applied to a complex image with piece-wise
-smooth magnitude and non-smooth phase. The appropriate TV denoising
+where $H$ is a nonlinear function, via a variant of the proximal ADMM
+algorithm for problems with a non-linear operator constraint
+:cite:`benning-2016-preconditioned`. The example problem represents
+total variation (TV) denoising applied to a complex image with
+piece-wise smooth magnitude and non-smooth phase. (This example is rather
+contrived, and was not constructed to represent a specific real imaging
+problem, but it does have some properties in common with synthetic
+aperture radar single look complex data in which the magnitude has much
+more discernible structure than the phase.) The appropriate TV denoising
 formulation for this problem is
 
-  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - \mathbf{x}
-  \|_2^2 + \lambda \| C(\mathbf{x}) \|_{2,1} \;,$$
+$$\argmin_{\mb{x}} \; (1/2) \| \mb{y} - \mb{x} \|_2^2 + \lambda
+\| C(\mb{x}) \|_{2,1} \;,$$
 
-where $\mathbf{y}$ is the measurement, $\|\cdot\|_{2,1}$ is the
-$\ell_{2,1}$ mixed norm, and $C$ is a non-linear operator that applies a
-linear difference operator to the magnitude of a complex array. The
-standard TV solution, which is also computed for comparison purposes,
-gives very poor results since the difference is applied independently to
-real and imaginary components of the complex image.
+where $\mb{y}$ is the measurement, $\|\cdot\|_{2,1}$ is the
+$\ell_{2,1}$ mixed norm, and $C$ is a non-linear operator consisting of
+a linear difference operator applied to the magnitude of a complex array.
+This problem is represented in the form above by taking $H(\mb{x},
+\mb{z}) = C(\mb{x}) - \mb{z}$. The standard TV solution, which is
+also computed for comparison purposes, gives very poor results since
+the difference is applied independently to real and imaginary
+components of the complex image.
 """
 
 
@@ -35,9 +43,9 @@ from xdesign import SiemensStar, discrete_phantom
 
 import scico.numpy as snp
 import scico.random
-from scico import functional, linop, loss, metric, operator, plot
+from scico import function, functional, linop, loss, metric, operator, plot
 from scico.examples import phase_diff
-from scico.optimize import PDHG
+from scico.optimize import NonLinearPADMM, ProximalADMM
 from scico.util import device_info
 
 """
@@ -67,15 +75,18 @@ f = loss.SquaredL2Loss(y=y)
 g = λ_tv * functional.L21Norm()
 # The append=0 option makes the results of horizontal and vertical finite
 # differences the same shape, which is required for the L21Norm.
-C = linop.FiniteDifference(input_shape=x_gt.shape, input_dtype=snp.complex64, append=0)
-solver_tv = PDHG(
+C = linop.FiniteDifference(input_shape=y.shape, input_dtype=snp.complex64, append=0)
+
+solver_tv = ProximalADMM(
     f=f,
     g=g,
-    C=C,
-    tau=4e-1,
-    sigma=4e-1,
+    A=C,
+    B=None,
+    rho=1.0,
+    mu=8.0,
+    nu=1.0,
     maxiter=200,
-    itstat_options={"display": True, "period": 10},
+    itstat_options={"display": True, "period": 20},
 )
 print(f"Solving on {device_info()}\n")
 x_tv = solver_tv.solve()
@@ -88,17 +99,27 @@ Denoise with total variation applied to the magnitude of a complex image.
 λ_nltv = 2e-1
 g = λ_nltv * functional.L21Norm()
 # Redefine C for real input (now applied to magnitude of a complex array)
-C = linop.FiniteDifference(input_shape=x_gt.shape, input_dtype=snp.float32, append=0)
+C = linop.FiniteDifference(input_shape=y.shape, input_dtype=snp.float32, append=0)
 # Operator computing differences of absolute values
 D = C @ operator.Abs(input_shape=x_gt.shape, input_dtype=snp.complex64)
-solver_nltv = PDHG(
+# Constraint function imposing z = D(x) constraint
+H = function.Function(
+    (C.shape[1], C.shape[0]),
+    output_shape=C.shape[0],
+    eval_fn=lambda x, z: D(x) - z,
+    input_dtypes=(snp.complex64, snp.float32),
+    output_dtype=snp.float32,
+)
+
+solver_nltv = NonLinearPADMM(
     f=f,
     g=g,
-    C=D,
-    tau=4e-1,
-    sigma=4e-1,
+    H=H,
+    rho=5.0,
+    mu=6.0,
+    nu=1.0,
     maxiter=200,
-    itstat_options={"display": True, "period": 10},
+    itstat_options={"display": True, "period": 20},
 )
 x_nltv = solver_nltv.solve()
 hist_nltv = solver_nltv.itstat_object.history(transpose=True)
@@ -113,7 +134,7 @@ plot.plot(
     ptyp="semilogy",
     title="Objective function",
     xlbl="Iteration",
-    lgnd=("PDHG", "NL-PDHG"),
+    lgnd=("Standard TV", "Magnitude TV"),
     fig=fig,
     ax=ax[0],
 )
@@ -122,7 +143,7 @@ plot.plot(
     ptyp="semilogy",
     title="Primal residual",
     xlbl="Iteration",
-    lgnd=("PDHG", "NL-PDHG"),
+    lgnd=("Standard TV", "Magnitude TV"),
     fig=fig,
     ax=ax[1],
 )
@@ -131,7 +152,7 @@ plot.plot(
     ptyp="semilogy",
     title="Dual residual",
     xlbl="Iteration",
-    lgnd=("PDHG", "NL-PDHG"),
+    lgnd=("Standard TV", "Magnitude TV"),
     fig=fig,
     ax=ax[2],
 )
@@ -154,7 +175,7 @@ plot.imview(
 )
 plot.imview(
     snp.abs(x_tv),
-    title="TV: PSNR %.2f (dB)" % metric.psnr(snp.abs(x_gt), snp.abs(x_tv)),
+    title="Standard TV: PSNR %.2f (dB)" % metric.psnr(snp.abs(x_gt), snp.abs(x_tv)),
     cbar=None,
     fig=fig,
     ax=ax[0, 2],
@@ -162,7 +183,7 @@ plot.imview(
 )
 plot.imview(
     snp.abs(x_nltv),
-    title="NL-TV: PSNR %.2f (dB)" % metric.psnr(snp.abs(x_gt), snp.abs(x_nltv)),
+    title="Magnitude TV: PSNR %.2f (dB)" % metric.psnr(snp.abs(x_gt), snp.abs(x_nltv)),
     cbar=None,
     fig=fig,
     ax=ax[0, 3],
@@ -193,7 +214,8 @@ plot.imview(
 )
 plot.imview(
     snp.angle(x_tv),
-    title="TV: Mean phase diff. %.2f" % phase_diff(snp.angle(x_gt), snp.angle(x_tv)).mean(),
+    title="Standard TV: Mean phase diff. %.2f"
+    % phase_diff(snp.angle(x_gt), snp.angle(x_tv)).mean(),
     cbar=None,
     fig=fig,
     ax=ax[1, 2],
@@ -201,7 +223,8 @@ plot.imview(
 )
 plot.imview(
     snp.angle(x_nltv),
-    title="NL-TV: Mean phase diff. %.2f" % phase_diff(snp.angle(x_gt), snp.angle(x_nltv)).mean(),
+    title="Magnitude TV: Mean phase diff. %.2f"
+    % phase_diff(snp.angle(x_gt), snp.angle(x_nltv)).mean(),
     cbar=None,
     fig=fig,
     ax=ax[1, 3],
