@@ -51,13 +51,13 @@ class TestBM4D:
         assert np.linalg.norm(y1 - y0) < 1e-6
 
 
-class TestDnCNN:
+class TestBlindDnCNN:
     def setup_method(self):
         key = None
         self.x_sngchn, key = randn((32, 33), key=key, dtype=np.float32)
         self.x_mltchn, key = randn((33, 34, 5), key=key, dtype=np.float32)
-        self.dncnn = denoiser.DnCNN()
-        self.f = functional.DnCNN()
+        self.dncnn = denoiser.DnCNN(variant="6M")
+        self.f = functional.DnCNN(variant="6M")
 
     def test_sngchn(self):
         y0 = self.f.prox(self.x_sngchn, 1.0)
@@ -67,4 +67,23 @@ class TestDnCNN:
     def test_mltchn(self):
         y0 = self.f.prox(self.x_mltchn, 1.0)
         y1 = self.dncnn(self.x_mltchn)
+        np.testing.assert_allclose(y0, y1, rtol=1e-5)
+
+
+class TestNonBlindDnCNN:
+    def setup_method(self):
+        key = None
+        self.x_sngchn, key = randn((32, 33), key=key, dtype=np.float32)
+        self.x_mltchn, key = randn((33, 34, 5), key=key, dtype=np.float32)
+        self.dncnn = denoiser.DnCNN(variant="6N")
+        self.f = functional.DnCNN(variant="6N")
+
+    def test_sngchn(self):
+        y0 = self.f.prox(self.x_sngchn, 1.5)
+        y1 = self.dncnn(self.x_sngchn, 1.5)
+        np.testing.assert_allclose(y0, y1, rtol=1e-5)
+
+    def test_mltchn(self):
+        y0 = self.f.prox(self.x_mltchn, 0.7)
+        y1 = self.dncnn(self.x_mltchn, 0.7)
         np.testing.assert_allclose(y0, y1, rtol=1e-5)

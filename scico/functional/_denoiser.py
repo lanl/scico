@@ -112,6 +112,17 @@ class DnCNN(Functional):
                :class:`.denoiser.DnCNN` for valid values.
         """
         self.dncnn = denoiser.DnCNN(variant)
+        if self.dncnn.is_blind:
+
+            def denoise(x, sigma):
+                return self.dncnn(x)
+
+        else:
+
+            def denoise(x, sigma):
+                return self.dncnn(x, sigma)
+
+        self._denoise = denoise
 
     def prox(self, x: JaxArray, lam: float = 1.0, **kwargs) -> JaxArray:  # type: ignore
         r"""Apply DnCNN denoiser.
@@ -128,4 +139,4 @@ class DnCNN(Functional):
         Returns:
             Denoised output.
         """
-        return self.dncnn(x)
+        return self._denoise(x, lam)

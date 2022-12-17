@@ -221,8 +221,12 @@ class DnCNN(FlaxMap):
             nlayer = 6
         else:
             nlayer = 17
-
         channels = 2 if variant in ["6N", "17N"] else 1
+
+        if variant in ["6N", "17N"]:
+            self.is_blind = False
+        else:
+            self.is_blind = True
 
         model = DnCNNNet(depth=nlayer, channels=channels, num_filters=64, dtype=np.float32)
         variables = load_weights(_flax_data_path("dncnn%s.npz" % variant))
@@ -238,14 +242,14 @@ class DnCNN(FlaxMap):
         Returns:
             Denoised output.
         """
-        if sigma is not None and self.variant not in ["6N", "17N"]:
+        if sigma is not None and self.is_blind:
             raise ValueError(
                 "A non-default value for the sigma parameter may "
                 "only be specified when the variant is 6N or 17N"
                 f"; got variant = {self.variant}."
             )
 
-        if sigma is None and self.variant in ["6N", "17N"]:
+        if sigma is None and not self.is_blind:
             raise ValueError(
                 "A float value must be specified for the sigma "
                 "parameter when the variant is 6N or 17N."
