@@ -30,6 +30,7 @@ Deconvolution
    - deconv_ppp_bm3d_admm.py
    - deconv_ppp_bm3d_pgm.py
    - deconv_ppp_dncnn_admm.py
+   - deconv_ppp_dncnn_padmm.py
    - deconv_ppp_bm4d_admm.py
 
 
@@ -69,6 +70,7 @@ Plug and Play Priors
    - deconv_ppp_bm3d_admm.py
    - deconv_ppp_bm3d_pgm.py
    - deconv_ppp_dncnn_admm.py
+   - deconv_ppp_dncnn_padmm.py
    - deconv_ppp_bm4d_admm.py
    - demosaic_ppp_bm3d_admm.py
    - superres_ppp_dncnn_admm.py
@@ -146,6 +148,7 @@ Proximal ADMM
 
     - denoise_tv_multi.py
     - denoise_cplx_tv_nlpadmm.py
+    - deconv_ppp_bm4d_admm.py
 
 
 Non-linear Proximal ADMM
