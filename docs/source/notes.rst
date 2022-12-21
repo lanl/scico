@@ -153,7 +153,7 @@ When evaluating the gradient of ``f``  at 0, :func:`scico.grad` returns ``nan``:
    >>> import scico
    >>> import scico.numpy as snp
    >>> f = lambda x: snp.linalg.norm(x)**2
-   >>> scico.grad(f)(snp.zeros(2, dtype=snp.float32)) #
+   >>> scico.grad(f)(snp.zeros(2, dtype=snp.float32))  # doctest: +SKIP
    Array([nan, nan], dtype=float32)
 
 This can be fixed by defining the squared :math:`\ell_2` norm directly as
@@ -162,7 +162,7 @@ This can be fixed by defining the squared :math:`\ell_2` norm directly as
 ::
 
    >>> g = lambda x: snp.sum(x**2)
-   >>> scico.grad(g)(snp.zeros(2, dtype=snp.float32))
+   >>> scico.grad(g)(snp.zeros(2, dtype=snp.float32))  #doctest: +SKIP
    Array([0., 0.], dtype=float32)
 
 An alternative is to define a `custom derivative rule <https://jax.readthedocs.io/en/latest/notebooks/Custom_derivative_rules_for_Python_code.html#enforcing-a-differentiation-convention>`_ to enforce a particular derivative convention at a point.

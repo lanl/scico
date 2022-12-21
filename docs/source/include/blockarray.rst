@@ -32,8 +32,8 @@ appropriate. For example,
     ((2, 3), (3,))
 
     >>> x * 2  # returns BlockArray   # doctest: +ELLIPSIS
-    BlockArray([Array([[ 2,  6, 14],
-		 [ 4,  4,  2]], dtype=...), Array([ 4,  8, 16], dtype=...)])
+    BlockArray([...Array([[ 2,  6, 14],
+		 [ 4,  4,  2]], dtype=...), ...Array([ 4,  8, 16], dtype=...)])
 
     >>> y = snp.blockarray((
     ...        [[.2],
@@ -41,9 +41,9 @@ appropriate. For example,
     ...        [.4]
     ... ))
 
-    >>> x + y  # returns BlockArray   # doctest: +ELLIPSIS
-    BlockArray([Array([[1.2, 3.2, 7.2],
-		  [2.3, 2.3, 1.3]], dtype=...), Array([2.4, 4.4, 8.4], dtype=...)])
+    >>> x + y  # returns BlockArray  # doctest: +ELLIPSIS
+    BlockArray([...Array([[1.2, 3.2, 7.2],
+		  [2.3, 2.3, 1.3]], dtype=...), ...Array([2.4, 4.4, 8.4], dtype=...)])
 
 
 .. _numpy_functions_blockarray:
