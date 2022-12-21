@@ -18,8 +18,8 @@ from typing import Callable, Optional, Union
 import numpy as np
 
 import jax
+import jax.numpy as jnp
 from jax.dtypes import result_type
-from jax.interpreters.xla import DeviceArray
 
 import scico.numpy as snp
 from scico._autograd import linear_adjoint
@@ -234,7 +234,7 @@ class LinearOperator(Operator):
         if isinstance(other, LinearOperator):
             return other(self)
 
-        if isinstance(other, (np.ndarray, DeviceArray)):
+        if isinstance(other, (np.ndarray, jnp.ndarray)):
             # for real valued inputs: y @ self == (self.T @ y.T).T
             # for complex:  y @ self == (self.conj().T @ y.conj().T).conj().T
             # self.conj().T == self.adj

@@ -4,6 +4,7 @@ import warnings
 import numpy as np
 
 import jax
+import jax.numpy as jnp
 import jax.scipy.signal as signal
 
 import pytest
@@ -174,7 +175,7 @@ def test_ndarray_h():
 
         h = np.random.randn(3, 3).astype(np.float32)
         A = Convolve(input_shape=(16, 16), h=h)
-        assert isinstance(A.h, jax.interpreters.xla.DeviceArray)
+        assert isinstance(A.h, jnp.ndarray)
 
 
 class TestConvolveByX:
@@ -339,4 +340,4 @@ def test_ndarray_x():
 
         x = np.random.randn(3, 3).astype(np.float32)
         A = ConvolveByX(input_shape=(16, 16), x=x)
-        assert isinstance(A.x, jax.interpreters.xla.DeviceArray)
+        assert isinstance(A.x, jnp.ndarray)

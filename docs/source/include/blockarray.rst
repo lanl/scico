@@ -32,8 +32,8 @@ appropriate. For example,
     ((2, 3), (3,))
 
     >>> x * 2  # returns BlockArray   # doctest: +ELLIPSIS
-    BlockArray([DeviceArray([[ 2,  6, 14],
-		 [ 4,  4,  2]], dtype=...), DeviceArray([ 4,  8, 16], dtype=...)])
+    BlockArray([Array([[ 2,  6, 14],
+		 [ 4,  4,  2]], dtype=...), Array([ 4,  8, 16], dtype=...)])
 
     >>> y = snp.blockarray((
     ...        [[.2],
@@ -42,8 +42,8 @@ appropriate. For example,
     ... ))
 
     >>> x + y  # returns BlockArray   # doctest: +ELLIPSIS
-    BlockArray([DeviceArray([[1.2, 3.2, 7.2],
-		  [2.3, 2.3, 1.3]], dtype=...), DeviceArray([2.4, 4.4, 8.4], dtype=...)])
+    BlockArray([Array([[1.2, 3.2, 7.2],
+		  [2.3, 2.3, 1.3]], dtype=...), Array([2.4, 4.4, 8.4], dtype=...)])
 
 
 .. _numpy_functions_blockarray:
@@ -157,7 +157,7 @@ The recommended way to construct a :class:`.BlockArray` is by using the
 
 While :func:`.snp.blockarray` will accept either :class:`~numpy.ndarray`\ s or
 :obj:`~jax.numpy.DeviceArray`\ s as input, :class:`~numpy.ndarray`\ s
-will be converted to :obj:`~jax.numpy.DeviceArray`\ s.
+will be converted to :obj:`~jax.Array`\ s.
 
 
 Operating on a BlockArray
@@ -177,7 +177,7 @@ Multiplication Between BlockArray and :class:`.LinearOperator`
 
 The :class:`.Operator` and :class:`.LinearOperator` classes are designed
 to work on instances of :class:`.BlockArray` in addition to instances of
-:obj:`~jax.numpy.DeviceArray`. For example
+:obj:`~jax.Array`. For example
 
 
    ::
