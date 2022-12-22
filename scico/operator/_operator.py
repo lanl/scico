@@ -17,8 +17,8 @@ from typing import Callable, Optional, Tuple, Union
 import numpy as np
 
 import jax
+import jax.numpy as jnp
 from jax.dtypes import result_type
-from jax.interpreters.xla import DeviceArray
 
 import scico.numpy as snp
 from scico.numpy import BlockArray
@@ -207,15 +207,12 @@ output_dtype : {self.output_dtype}
                 )
             raise ValueError(f"Incompatible shapes {self.shape}, {x.shape}.")
 
-        if isinstance(x, (np.ndarray, DeviceArray, BlockArray)):
-            if self.input_shape == x.shape:
-                return self._eval(x)
+        if self.input_shape != x.shape:
             raise ValueError(
                 f"Cannot evaluate {type(self)} with input_shape={self.input_shape} "
                 f"on array with shape={x.shape}."
             )
-        # What is the context under which this gets called?
-        # Currently: in jit and grad tracers
+
         return self._eval(x)
 
     def __add__(self, other: Operator) -> Operator:
@@ -386,7 +383,7 @@ output_dtype : {self.output_dtype}
             # concat_args(args) = snp.blockarray([val, args]) if argnum = 0
             # concat_args(args) = snp.blockarray([args, val]) if argnum = 1
 
-            if isinstance(args, (DeviceArray, np.ndarray)):
+            if isinstance(args, (jnp.ndarray, np.ndarray)):
                 # In the case that the original operator takes a blockkarray with two
                 # blocks, wrap in a list so we can use the same indexing as >2 block case
                 args = [args]
