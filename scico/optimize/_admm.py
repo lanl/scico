@@ -20,13 +20,12 @@ from scico.numpy import BlockArray
 from scico.numpy.linalg import norm
 from scico.numpy.util import ensure_on_device
 from scico.typing import JaxArray
-from scico.util import Timer
 
 from ._admmaux import GenericSubproblemSolver, LinearSubproblemSolver, SubproblemSolver
-from ._common import itstat_func_and_object
+from ._common import Optimizer, itstat_func_and_object
 
 
-class ADMM:
+class ADMM(Optimizer):
     r"""Basic Alternating Direction Method of Multipliers (ADMM) algorithm.
 
     |
@@ -98,9 +97,10 @@ class ADMM:
         rho_list: List[float],
         alpha: float = 1.0,
         x0: Optional[Union[JaxArray, BlockArray]] = None,
-        maxiter: int = 100,
+        # maxiter: int = 100,
         subproblem_solver: Optional[SubproblemSolver] = None,
-        itstat_options: Optional[dict] = None,
+        # itstat_options: Optional[dict] = None,
+        **kwargs,
     ):
         r"""Initialize an :class:`ADMM` object.
 
@@ -140,9 +140,7 @@ class ADMM:
         self.C_list: List[LinearOperator] = C_list
         self.rho_list: List[float] = rho_list
         self.alpha: float = alpha
-        self.itnum: int = 0
-        self.maxiter: int = maxiter
-        self.timer: Timer = Timer()
+
         if subproblem_solver is None:
             subproblem_solver = GenericSubproblemSolver()
         self.subproblem_solver: SubproblemSolver = subproblem_solver
@@ -156,7 +154,13 @@ class ADMM:
         self.z_list, self.z_list_old = self.z_init(self.x)
         self.u_list = self.u_init(self.x)
 
-        self._itstat_init(itstat_options)
+        super().__init__(
+            itstat_fields={"Prml Rsdl": "%9.3e", "Dual Rsdl": "%9.3e"},
+            itstat_attrib=["norm_primal_residual()", "norm_dual_residual()"],
+            # itstat_options=itstat_options,
+            kwargs=kwargs,
+        )
+        # self._itstat_init(itstat_options)
 
     def _itstat_init(self, itstat_options: Optional[dict] = None):
         """Initialize iteration statistics mechanism.
