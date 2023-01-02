@@ -155,10 +155,10 @@ class ADMM(Optimizer):
         self.u_list = self.u_init(self.x)
 
         super().__init__(
-            itstat_fields={"Prml Rsdl": "%9.3e", "Dual Rsdl": "%9.3e"},
-            itstat_attrib=["norm_primal_residual()", "norm_dual_residual()"],
+            # itstat_fields={"Prml Rsdl": "%9.3e", "Dual Rsdl": "%9.3e"},
+            # itstat_attrib=["norm_primal_residual()", "norm_dual_residual()"],
             # itstat_options=itstat_options,
-            kwargs=kwargs,
+            **kwargs
         )
         # self._itstat_init(itstat_options)
 
@@ -209,6 +209,30 @@ class ADMM(Optimizer):
         self.itstat_insert_func, self.itstat_object = itstat_func_and_object(
             itstat_fields, itstat_attrib, itstat_options
         )
+
+    def _objective_evaluatable(self):
+        return all([_.has_eval for _ in self.g_list])
+
+    def _itstat_extra_fields(self):
+        itstat_fields = {"Prml Rsdl": "%9.3e", "Dual Rsdl": "%9.3e"}
+        itstat_attrib = ["norm_primal_residual()", "norm_dual_residual()"]
+
+        # subproblem solver info when available
+        if isinstance(self.subproblem_solver, GenericSubproblemSolver):
+            itstat_fields.update({"Num FEv": "%6d", "Num It": "%6d"})
+            itstat_attrib.extend(
+                ["subproblem_solver.info['nfev']", "subproblem_solver.info['nit']"]
+            )
+        elif (
+            type(self.subproblem_solver) == LinearSubproblemSolver
+            and self.subproblem_solver.cg_function == "scico"
+        ):
+            itstat_fields.update({"CG It": "%5d", "CG Res": "%9.3e"})
+            itstat_attrib.extend(
+                ["subproblem_solver.info['num_iter']", "subproblem_solver.info['rel_res']"]
+            )
+
+        return itstat_fields, itstat_attrib
 
     def objective(
         self,

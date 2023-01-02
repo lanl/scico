@@ -69,49 +69,43 @@ def itstat_func_and_object(
 class Optimizer:
     """Base class for optimizer classes."""
 
-    def __init__(self, itstat_fields: dict, itstat_attrib: list, **kwargs):
+    def __init__(self, **kwargs):
         itstat_options = kwargs.pop("itstat_options", None)
         self.maxiter: int = kwargs.pop("maxiter", 100)
+
         self.itnum: int = 0
         self.timer: Timer = Timer()
-        self._itstat_init(itstat_fields, itstat_attrib, itstat_options=itstat_options)
 
-    def _itstat_init(
-        self, itstat_fields: dict, itstat_attrib: list, itstat_options: Optional[dict] = None
-    ):
-        """Initialize iteration statistics mechanism.
+        itstat_fields, itstat_attrib = self._itstat_default_fields()
+        itstat_extra_fields, itstat_extra_attrib = self._itstat_extra_fields()
+        itstat_fields.update(itstat_extra_fields)
+        itstat_attrib.extend(itstat_extra_attrib)
 
-        Args:
-           itstat_options: A dict of named parameters to be passed to
-                the :class:`.diagnostics.IterationStats` initializer. The
-                dict may also include an additional key "itstat_func"
-                with the corresponding value being a function with two
-                parameters, an integer and a :class:`PDHG` object,
-                responsible for constructing a tuple ready for insertion
-                into the :class:`.diagnostics.IterationStats` object. If
-                ``None``, default values are used for the dict entries,
-                otherwise the default dict is updated with the dict
-                specified by this parameter.
-        """
+        self.itstat_insert_func, self.itstat_object = itstat_func_and_object(
+            itstat_fields, itstat_attrib, itstat_options
+        )
+        print(kwargs)
+        print(itstat_options, self.maxiter)
+
+    def _itstat_default_fields(self):
         # iteration number and time fields
-        _itstat_fields = {
+        itstat_fields = {
             "Iter": "%d",
             "Time": "%8.2e",
         }
-        _itstat_attrib = ["itnum", "timer.elapsed()"]
+        itstat_attrib = ["itnum", "timer.elapsed()"]
         # objective function can be evaluated if 'g' function can be evaluated
-        if self.g.has_eval:
-            _itstat_fields.update({"Objective": "%9.3e"})
-            _itstat_attrib.append("objective()")
-        # primal and dual residual fields
-        # itstat_fields.update({"Prml Rsdl": "%9.3e", "Dual Rsdl": "%9.3e"})
-        # itstat_attrib.extend(["norm_primal_residual()", "norm_dual_residual()"])
-        _itstat_fields.update(itstat_fields)
-        _itstat_attrib.extend(itstat_attrib)
+        if self._objective_evaluatable():
+            itstat_fields.update({"Objective": "%9.3e"})
+            itstat_attrib.append("objective()")
 
-        self.itstat_insert_func, self.itstat_object = itstat_func_and_object(
-            _itstat_fields, _itstat_attrib, itstat_options
-        )
+        return itstat_fields, itstat_attrib
+
+    def _objective_evaluatable(self):
+        return False
+
+    def _itstat_extra_fields(self):
+        return {}, []
 
     def solve(
         self,
