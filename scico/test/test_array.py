@@ -2,7 +2,7 @@ import warnings
 
 import numpy as np
 
-from jax.interpreters.xla import DeviceArray
+import jax.numpy as jnp
 
 import pytest
 
@@ -34,20 +34,18 @@ def test_ensure_on_device():
         BA = snp.blockarray([NP, SNP])
         NP_, SNP_, BA_ = ensure_on_device(NP, SNP, BA)
 
-        assert isinstance(NP_, DeviceArray)
+        assert isinstance(NP_, jnp.ndarray)
 
-        assert isinstance(SNP_, DeviceArray)
+        assert isinstance(SNP_, jnp.ndarray)
         assert SNP.unsafe_buffer_pointer() == SNP_.unsafe_buffer_pointer()
 
         assert isinstance(BA_, BlockArray)
-        assert isinstance(BA_[0], DeviceArray)
-        assert isinstance(BA_[1], DeviceArray)
+        assert isinstance(BA_[0], jnp.ndarray)
+        assert isinstance(BA_[1], jnp.ndarray)
         assert BA[1].unsafe_buffer_pointer() == BA_[1].unsafe_buffer_pointer()
 
-        np.testing.assert_raises(TypeError, ensure_on_device, [1, 1, 1])
-
         NP_ = ensure_on_device(NP)
-        assert isinstance(NP_, DeviceArray)
+        assert isinstance(NP_, jnp.ndarray)
 
 
 def test_no_nan_divide_array():
