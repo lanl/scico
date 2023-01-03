@@ -182,6 +182,10 @@ class ADMM(Optimizer):
 
         return itstat_fields, itstat_attrib
 
+    def minimizer(self):
+        """Return current estimate of the functional mimimizer."""
+        return self.x
+
     def objective(
         self,
         x: Optional[Union[JaxArray, BlockArray]] = None,

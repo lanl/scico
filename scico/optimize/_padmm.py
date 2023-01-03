@@ -604,7 +604,7 @@ class NonLinearPADMM(ProximalADMM):
         self.u = self.u + self.H(self.x, self.z)
 
     @staticmethod
-    def estimate_parameters(
+    def estimate_parameters(  # type: ignore
         H: Function,
         x: Optional[Union[JaxArray, BlockArray]] = None,
         z: Optional[Union[JaxArray, BlockArray]] = None,

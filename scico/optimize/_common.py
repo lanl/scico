@@ -146,6 +146,12 @@ class Optimizer:
         """
         return {}, []
 
+    def minimizer(self):
+        """Return the current estimate of the functional mimimizer."""
+
+    def step(self):
+        """Perform a single optimizer step."""
+
     def solve(
         self,
         callback: Optional[Callable[[Optimizer], None]] = None,
@@ -174,4 +180,4 @@ class Optimizer:
         self.timer.stop()
         self.itnum += 1
         self.itstat_object.end()
-        return self.x
+        return self.minimizer()
