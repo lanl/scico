@@ -11,7 +11,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import Callable, List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import scico.numpy as snp
 from scico.functional import Functional
@@ -347,32 +347,3 @@ class ADMM(Optimizer):
             ui = ui + Cix - zi
             self.z_list[i] = zi
             self.u_list[i] = ui
-
-    def solve(
-        self,
-        callback: Optional[Callable[[ADMM], None]] = None,
-    ) -> Union[JaxArray, BlockArray]:
-        """Run the ADMM algorithm.
-
-        Run the ADMM algorithm for a total of `self.maxiter` iterations.
-
-        Args:
-            callback: An optional callback function, taking an a single
-               argument of type :class:`ADMM`, that is called at the end
-               of every iteration.
-
-        Returns:
-            Computed solution.
-        """
-        self.timer.start()
-        for self.itnum in range(self.itnum, self.itnum + self.maxiter):
-            self.step()
-            self.itstat_object.insert(self.itstat_insert_func(self))
-            if callback:
-                self.timer.stop()
-                callback(self)
-                self.timer.start()
-        self.timer.stop()
-        self.itnum += 1
-        self.itstat_object.end()
-        return self.x
