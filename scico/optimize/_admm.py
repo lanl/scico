@@ -97,9 +97,7 @@ class ADMM(Optimizer):
         rho_list: List[float],
         alpha: float = 1.0,
         x0: Optional[Union[JaxArray, BlockArray]] = None,
-        # maxiter: int = 100,
         subproblem_solver: Optional[SubproblemSolver] = None,
-        # itstat_options: Optional[dict] = None,
         **kwargs,
     ):
         r"""Initialize an :class:`ADMM` object.
