@@ -23,7 +23,7 @@ from scico.numpy.util import ensure_on_device
 from scico.typing import JaxArray
 from scico.util import Timer
 
-from ._common import itstat_func_and_object
+from ._common import Optimizer
 from ._pgmaux import (
     AdaptiveBBStepSize,
     BBStepSize,
@@ -32,7 +32,7 @@ from ._pgmaux import (
 )
 
 
-class PGM:
+class PGM(Optimizer):
     r"""Proximal Gradient Method (PGM) base class.
 
     Minimize a function of the form :math:`f(\mb{x}) + g(\mb{x})`, where
@@ -50,8 +50,7 @@ class PGM:
         L0: float,
         x0: Union[JaxArray, BlockArray],
         step_size: Optional[PGMStepSize] = None,
-        maxiter: int = 100,
-        itstat_options: Optional[dict] = None,
+        **kwargs,
     ):
         r"""
 
@@ -62,18 +61,8 @@ class PGM:
             x0: Starting point for :math:`\mb{x}`.
             step_size: helper :class:`StepSize` to estimate the Lipschitz
                 constant of f.
-            maxiter: Maximum number of PGM iterations to perform.
-                Default: 100.
-            itstat_options: A dict of named parameters to be passed to
-                the :class:`.diagnostics.IterationStats` initializer. The
-                dict may also include an additional key "itstat_func"
-                with the corresponding value being a function with two
-                parameters, an integer and a :class:`PGM` object,
-                responsible for constructing a tuple ready for insertion
-                into the :class:`.diagnostics.IterationStats` object. If
-                ``None``, default values are used for the dict entries,
-                otherwise the default dict is updated with the dict
-                specified by this parameter.
+            **kwargs: Additional optional parameters handled by
+                initializer of base class :class:`.Optimizer`.
         """
 
         #: Functional or Loss to minimize; must have grad method defined.
@@ -90,8 +79,6 @@ class PGM:
         self.step_size: PGMStepSize = step_size
         self.step_size.internal_init(self)
         self.L: float = L0  # reciprocal of step size (estimate of Lipschitz constant of f)
-        self.itnum: int = 0
-        self.maxiter: int = maxiter  # maximum number of iterations to perform
         self.timer: Timer = Timer()
         self.fixed_point_residual = snp.inf
 
@@ -102,40 +89,21 @@ class PGM:
 
         self.x: Union[JaxArray, BlockArray] = ensure_on_device(x0)  # current estimate of solution
 
-        self._itstat_init(itstat_options)
+        super().__init__(**kwargs)
 
-    def _itstat_init(self, itstat_options: Optional[dict] = None):
-        """Initialize iteration statistics mechanism.
+    def _objective_evaluatable(self):
+        """Determine whether the objective function can be evaluated."""
+        return self.g.has_eval
 
-        Args:
-            itstat_options: A dict of named parameters to be passed to
-                the :class:`.diagnostics.IterationStats` initializer. The
-                dict may also include an additional key "itstat_func"
-                with the corresponding value being a function with two
-                parameters, an integer and a :class:`PGM` object,
-                responsible for constructing a tuple ready for insertion
-                into the :class:`.diagnostics.IterationStats` object. If
-                ``None``, default values are used for the dict entries,
-                otherwise the default dict is updated with the dict
-                specified by this parameter.
-        """
-        # iteration number and time fields
-        itstat_fields = {
-            "Iter": "%d",
-            "Time": "%8.2e",
-        }
-        itstat_attrib = ["itnum", "timer.elapsed()"]
-        # objective function can be evaluated if 'g' function can be evaluated
-        if self.g.has_eval:
-            itstat_fields.update({"Objective": "%9.3e"})
-            itstat_attrib.append("objective()")
-        # step size and residual fields
-        itstat_fields.update({"L": "%9.3e", "Residual": "%9.3e"})
-        itstat_attrib.extend(["L", "norm_residual()"])
+    def _itstat_extra_fields(self):
+        """Define linearized ADMM-specific iteration statistics fields."""
+        itstat_fields = {"L": "%9.3e", "Residual": "%9.3e"}
+        itstat_attrib = ["L", "norm_residual()"]
+        return itstat_fields, itstat_attrib
 
-        self.itstat_insert_func, self.itstat_object = itstat_func_and_object(
-            itstat_fields, itstat_attrib, itstat_options
-        )
+    def minimizer(self):
+        """Return current estimate of the functional mimimizer."""
+        return self.x
 
     def objective(self, x: Optional[Union[JaxArray, BlockArray]] = None) -> float:
         r"""Evaluate the objective function :math:`f(\mb{x}) + g(\mb{x})`."""
