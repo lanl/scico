@@ -116,16 +116,8 @@ class ADMM(Optimizer):
             subproblem_solver: Solver for :math:`\mb{x}`-update step.
                 Defaults to ``None``, which implies use of an instance of
                 :class:`GenericSubproblemSolver`.
-            itstat_options: A dict of named parameters to be passed to
-                the :class:`.diagnostics.IterationStats` initializer. The
-                dict may also include an additional key "itstat_func"
-                with the corresponding value being a function with two
-                parameters, an integer and an :class:`ADMM` object,
-                responsible for constructing a tuple ready for insertion
-                into the :class:`.diagnostics.IterationStats` object. If
-                ``None``, default values are used for the dict entries,
-                otherwise the default dict is updated with the dict
-                specified by this parameter.
+            **kwargs: Additional optional parameters handled by
+                initializer of base class :class:`.Optimizer`.
         """
         N = len(g_list)
         if len(C_list) != N:

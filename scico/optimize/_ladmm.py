@@ -115,7 +115,6 @@ class LinearizedADMM(Optimizer):
         self.C: LinearOperator = C
         self.mu: float = mu
         self.nu: float = nu
-        self.itnum: int = 0
         self.timer: Timer = Timer()
 
         if x0 is None:
