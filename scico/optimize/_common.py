@@ -14,6 +14,8 @@ from __future__ import annotations
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
 from scico.diagnostics import IterationStats
+from scico.numpy import BlockArray
+from scico.typing import JaxArray
 from scico.util import Timer
 
 
@@ -35,7 +37,7 @@ def itstat_func_and_object(
               the :class:`.diagnostics.IterationStats` initializer. The
               dict may also include an additional key "itstat_func"
               with the corresponding value being a function with two
-              parameters, an integer and an optimizer object,
+              parameters, an integer and a :class:`Optimizer` object,
               responsible for constructing a tuple ready for insertion
               into the :class:`.diagnostics.IterationStats` object. If
               ``None``, default values are used for the dict entries,
@@ -70,6 +72,26 @@ class Optimizer:
     """Base class for optimizer classes."""
 
     def __init__(self, **kwargs):
+        """Initialize common attributes of :class:`Optimizer` objects.
+
+        Args:
+            **kwargs: Optional parameter dict. Valid keys are:
+
+                itstat_options:
+                  A dict of named parameters to be passed to
+                  the :class:`.diagnostics.IterationStats` initializer. The
+                  dict may also include an additional key "itstat_func"
+                  with the corresponding value being a function with two
+                  parameters, an integer and an :class:`Optimizer` object,
+                  responsible for constructing a tuple ready for insertion
+                  into the :class:`.diagnostics.IterationStats` object. If
+                  ``None``, default values are used for the dict entries,
+                  otherwise the default dict is updated with the dict
+                  specified by this parameter.
+
+               maxiter:
+                  Maximum iterations on call to :method:`solve`.
+        """
         itstat_options = kwargs.pop("itstat_options", None)
         self.maxiter: int = kwargs.pop("maxiter", 100)
 
@@ -84,10 +106,14 @@ class Optimizer:
         self.itstat_insert_func, self.itstat_object = itstat_func_and_object(
             itstat_fields, itstat_attrib, itstat_options
         )
-        print(kwargs)
-        print(itstat_options, self.maxiter)
 
     def _itstat_default_fields(self):
+        """Define iterations stats default fields.
+
+        Return a dict mapping field names to format strings, and a list
+        of strings containing the names of attributes or methods to call
+        in order to determine the value for each field.
+        """
         # iteration number and time fields
         itstat_fields = {
             "Iter": "%d",
@@ -102,9 +128,22 @@ class Optimizer:
         return itstat_fields, itstat_attrib
 
     def _objective_evaluatable(self):
+        """Determine whether the objective function can be evaluated.
+
+        Determine whether the objective function for a :class:`Optimizer`
+        object can be evaluated.
+        """
         return False
 
     def _itstat_extra_fields(self):
+        """Define additional iterations stats fields.
+
+        Define iterations stats fields that are not common to all
+        :class:`Optimizer` classes. Return a dict mapping field names to
+        format strings, and a list of strings containing the names of
+        attributes or methods to call in order to determine the value for
+        each field.
+        """
         return {}, []
 
     def solve(

@@ -22,7 +22,7 @@ from scico.numpy.util import ensure_on_device
 from scico.typing import JaxArray
 
 from ._admmaux import GenericSubproblemSolver, LinearSubproblemSolver, SubproblemSolver
-from ._common import Optimizer, itstat_func_and_object
+from ._common import Optimizer
 
 
 class ADMM(Optimizer):
@@ -154,66 +154,14 @@ class ADMM(Optimizer):
         self.z_list, self.z_list_old = self.z_init(self.x)
         self.u_list = self.u_init(self.x)
 
-        super().__init__(
-            # itstat_fields={"Prml Rsdl": "%9.3e", "Dual Rsdl": "%9.3e"},
-            # itstat_attrib=["norm_primal_residual()", "norm_dual_residual()"],
-            # itstat_options=itstat_options,
-            **kwargs
-        )
-        # self._itstat_init(itstat_options)
-
-    def _itstat_init(self, itstat_options: Optional[dict] = None):
-        """Initialize iteration statistics mechanism.
-
-        Args:
-            itstat_options: A dict of named parameters to be passed to
-                the :class:`.diagnostics.IterationStats` initializer. The
-                dict may also include an additional key "itstat_func"
-                with the corresponding value being a function with two
-                parameters, an integer and an :class:`ADMM` object,
-                responsible for constructing a tuple ready for insertion
-                into the :class:`.diagnostics.IterationStats` object. If
-                ``None``, default values are used for the dict entries,
-                otherwise the default dict is updated with the dict
-                specified by this parameter.
-        """
-        # iteration number and time fields
-        itstat_fields = {
-            "Iter": "%d",
-            "Time": "%8.2e",
-        }
-        itstat_attrib = ["itnum", "timer.elapsed()"]
-        # objective function can be evaluated if all 'g' functions can be evaluated
-        if all([_.has_eval for _ in self.g_list]):
-            itstat_fields.update({"Objective": "%9.3e"})
-            itstat_attrib.append("objective()")
-        # primal and dual residual fields
-        itstat_fields.update({"Prml Rsdl": "%9.3e", "Dual Rsdl": "%9.3e"})
-        itstat_attrib.extend(["norm_primal_residual()", "norm_dual_residual()"])
-
-        # subproblem solver info when available
-        if isinstance(self.subproblem_solver, GenericSubproblemSolver):
-            itstat_fields.update({"Num FEv": "%6d", "Num It": "%6d"})
-            itstat_attrib.extend(
-                ["subproblem_solver.info['nfev']", "subproblem_solver.info['nit']"]
-            )
-        elif (
-            type(self.subproblem_solver) == LinearSubproblemSolver
-            and self.subproblem_solver.cg_function == "scico"
-        ):
-            itstat_fields.update({"CG It": "%5d", "CG Res": "%9.3e"})
-            itstat_attrib.extend(
-                ["subproblem_solver.info['num_iter']", "subproblem_solver.info['rel_res']"]
-            )
-
-        self.itstat_insert_func, self.itstat_object = itstat_func_and_object(
-            itstat_fields, itstat_attrib, itstat_options
-        )
+        super().__init__(**kwargs)
 
     def _objective_evaluatable(self):
+        """Determine whether the objective function can be evaluated."""
         return all([_.has_eval for _ in self.g_list])
 
     def _itstat_extra_fields(self):
+        """Define ADMM-specific iteration statistics fields."""
         itstat_fields = {"Prml Rsdl": "%9.3e", "Dual Rsdl": "%9.3e"}
         itstat_attrib = ["norm_primal_residual()", "norm_dual_residual()"]
 
