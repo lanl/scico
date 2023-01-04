@@ -61,7 +61,7 @@ the $f$ functional to the $\lambda R(\cdot)$ term and the $g$ functional
 to the data fidelity term to allow the use of proximal ADMM, which avoids
 the need for conjugate gradient sub-iterations in the solver steps.
 """
-λ = 10.0 / 255  # DnCNN denoiser sigma
+λ = 9.0 / 255  # DnCNN denoiser sigma
 f = λ * functional.DnCNN(variant="6N")
 g = loss.SquaredL2Loss(y=y)
 g.has_eval = False  # temporary scico bug workaround
@@ -70,7 +70,7 @@ g.has_eval = False  # temporary scico bug workaround
 """
 Set up proximal ADMM solver.
 """
-ρ = 0.35  # ADMM penalty parameter
+ρ = 0.3  # ADMM penalty parameter
 maxiter = 12  # number of PADMM iterations
 mu, nu = ProximalADMM.estimate_parameters(A)
 
