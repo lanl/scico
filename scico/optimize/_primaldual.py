@@ -178,8 +178,7 @@ class PDHG(Optimizer):
         """
         if x is None:
             x = self.x
-        out = self.f(x) + self.g(self.C(x))
-        return out
+        return self.f(x) + self.g(self.C(x))
 
     def norm_primal_residual(self) -> float:
         r"""Compute the :math:`\ell_2` norm of the primal residual.
