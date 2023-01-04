@@ -50,7 +50,7 @@ y = Ax + σ * noise
 
 
 """
-Create DnCNN denoiser presudo-functional.
+Create DnCNN denoiser pseudo-functional.
 """
 g = functional.DnCNN("17M")
 
