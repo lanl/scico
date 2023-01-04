@@ -5,11 +5,11 @@
 # with the package.
 
 """
-PPP (with BM3D) Image Deconvolution (PADMM Solver)
-==================================================
+PPP (with DnCNN) Image Deconvolution (Proximal ADMM Solver)
+===========================================================
 
 This example demonstrates the solution of an image deconvolution problem
-using the ADMM Plug-and-Play Priors (PPP) algorithm
+using a proximal ADMM variant of the Plug-and-Play Priors (PPP) algorithm
 :cite:`venkatakrishnan-2013-plugandplay2`, with a non-blind variant of
 the DnCNN :cite:`zhang-2017-dncnn` denoiser.
 """
@@ -56,27 +56,28 @@ Set up the problem to be solved. We want to minimize the functional
     \|_2^2 + \lambda R(\mathbf{x}) \;$$
 
 where $R(\cdot)$ is a pseudo-functional having the DnCNN denoiser as its
-proximal operator.
+proximal operator. A slightly unusual splitting is used, including setting
+the $f$ functional to the $\lambda R(\cdot)$ term and the $g$ functional
+to the data fidelity term to allow the use of proximal ADMM, which avoids
+the need for conjugate gradient sub-iterations in the solver steps.
 """
-f = functional.ZeroFunctional()
-g0 = loss.SquaredL2Loss(y=y)
-λ = 15.0 / 255  # DnCNN denoiser sigma
-g1 = λ * functional.DnCNN(variant="6N")
-g = functional.SeparableFunctional((g0, g1))
-D = linop.VerticalStack((A, linop.Identity(input_shape=A.input_shape)))
+λ = 10.0 / 255  # DnCNN denoiser sigma
+f = λ * functional.DnCNN(variant="6N")
+g = loss.SquaredL2Loss(y=y)
+g.has_eval = False  # temporary scico bug workaround
 
 
 """
 Set up proximal ADMM solver.
 """
-ρ = 0.4  # ADMM penalty parameter
-maxiter = 20  # number of PADMM iterations
-mu, nu = ProximalADMM.estimate_parameters(D)
+ρ = 0.35  # ADMM penalty parameter
+maxiter = 12  # number of PADMM iterations
+mu, nu = ProximalADMM.estimate_parameters(A)
 
 solver = ProximalADMM(
     f=f,
     g=g,
-    A=D,
+    A=A,
     B=None,
     rho=ρ,
     mu=mu,
