@@ -35,7 +35,7 @@ x_gt = jax.device_put(x_gt)  # convert to jax array, push to GPU
 
 
 """
-Set up forward operator and test signal consisting of blurred signal with
+Set up forward operator $A$ and test signal consisting of blurred signal with
 additive Gaussian noise.
 """
 n = 5  # convolution kernel size
@@ -50,22 +50,29 @@ y = Ax + σ * noise
 
 
 """
-Set up PADMM solver.
+Set up the problem to be solved. We want to minimize the functional
+
+    $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
+    \|_2^2 + \lambda R(\mathbf{x}) \;$$
+
+where $R(\cdot)$ is a pseudo-functional having the DnCNN denoiser as its
+proximal operator.
 """
 f = functional.ZeroFunctional()
-
 g0 = loss.SquaredL2Loss(y=y)
 λ = 15.0 / 255  # DnCNN denoiser sigma
 g1 = λ * functional.DnCNN(variant="6N")
 g = functional.SeparableFunctional((g0, g1))
-
 D = linop.VerticalStack((A, linop.Identity(input_shape=A.input_shape)))
 
 
+"""
+Set up PADMM solver.
+"""
 ρ = 0.4  # ADMM penalty parameter
 maxiter = 20  # number of PADMM iterations
-
 mu, nu = ProximalADMM.estimate_parameters(D)
+
 solver = ProximalADMM(
     f=f,
     g=g,
