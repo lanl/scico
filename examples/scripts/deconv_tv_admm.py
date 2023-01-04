@@ -5,8 +5,8 @@
 # with the package.
 
 r"""
-Image Deconvolution with TV Regularization
-==========================================
+Image Deconvolution with TV Regularization (ADMM Solver)
+========================================================
 
 This example demonstrates the solution of an image deconvolution problem
 with isotropic total variation (TV) regularization
@@ -17,6 +17,9 @@ with isotropic total variation (TV) regularization
 where $A$ is a convolution operator, $\mathbf{y}$ is the blurred image,
 $C$ is a 2D finite fifference operator, and $\mathbf{x}$ is the
 deconvolved image.
+
+In this example the problem is solved via standard ADMM, while proximal
+ADMM is used in a [companion example](deconv_tv_padmm.rst).
 """
 
 import jax
