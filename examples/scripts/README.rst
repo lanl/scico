@@ -45,7 +45,9 @@ Deconvolution
    `deconv_ppp_bm3d_pgm.py <deconv_ppp_bm3d_pgm.py>`_
       PPP (with BM3D) Image Deconvolution (APGM Solver)
    `deconv_ppp_dncnn_admm.py <deconv_ppp_dncnn_admm.py>`_
-      PPP (with DnCNN) Image Deconvolution
+      PPP (with DnCNN) Image Deconvolution (ADMM Solver)
+   `deconv_ppp_dncnn_padmm.py <deconv_ppp_dncnn_padmm.py>`_
+      PPP (with BM3D) Image Deconvolution (PADMM Solver)
    `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
       PPP (with BM4D) Volume Deconvolution
 
@@ -104,7 +106,9 @@ Plug and Play Priors
    `deconv_ppp_bm3d_pgm.py <deconv_ppp_bm3d_pgm.py>`_
       PPP (with BM3D) Image Deconvolution (APGM Solver)
    `deconv_ppp_dncnn_admm.py <deconv_ppp_dncnn_admm.py>`_
-      PPP (with DnCNN) Image Deconvolution
+      PPP (with DnCNN) Image Deconvolution (ADMM Solver)
+   `deconv_ppp_dncnn_padmm.py <deconv_ppp_dncnn_padmm.py>`_
+      PPP (with BM3D) Image Deconvolution (PADMM Solver)
    `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
       PPP (with BM4D) Volume Deconvolution
    `demosaic_ppp_bm3d_admm.py <demosaic_ppp_bm3d_admm.py>`_
@@ -195,7 +199,7 @@ ADMM
    `deconv_ppp_bm3d_admm.py <deconv_ppp_bm3d_admm.py>`_
       PPP (with BM3D) Image Deconvolution (ADMM Solver)
    `deconv_ppp_dncnn_admm.py <deconv_ppp_dncnn_admm.py>`_
-      PPP (with DnCNN) Image Deconvolution
+      PPP (with DnCNN) Image Deconvolution (ADMM Solver)
    `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
       PPP (with BM4D) Volume Deconvolution
    `sparsecode_admm.py <sparsecode_admm.py>`_
@@ -223,6 +227,24 @@ Linearized ADMM
        Comparison of Optimization Algorithms for Total Variation Denoising
 
 
+Proximal ADMM
+^^^^^^^^^^^^^
+
+    `denoise_tv_multi.py <denoise_tv_multi.py>`_
+       Comparison of Optimization Algorithms for Total Variation Denoising
+    `denoise_cplx_tv_nlpadmm.py <denoise_cplx_tv_nlpadmm.py>`_
+       Complex Total Variation Denoising with NLPADMM Solver
+    `deconv_ppp_dncnn_padmm.py <deconv_ppp_dncnn_padmm.py>`_
+       PPP (with BM3D) Image Deconvolution (PADMM Solver)
+
+
+Non-linear Proximal ADMM
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+    `denoise_cplx_tv_nlpadmm.py <denoise_cplx_tv_nlpadmm.py>`_
+       Complex Total Variation Denoising with NLPADMM Solver
+
+
 PDHG
 ^^^^
 
@@ -231,7 +253,7 @@ PDHG
     `denoise_tv_multi.py <denoise_tv_multi.py>`_
        Comparison of Optimization Algorithms for Total Variation Denoising
     `denoise_cplx_tv_pdhg.py <denoise_cplx_tv_pdhg.py>`_
-       Complex Total Variation Denoising
+       Complex Total Variation Denoising with PDHG Solver
 
 
 PGM

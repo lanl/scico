@@ -148,7 +148,7 @@ Proximal ADMM
 
     - denoise_tv_multi.py
     - denoise_cplx_tv_nlpadmm.py
-    - deconv_ppp_bm4d_admm.py
+    - deconv_ppp_dncnn_padmm.py
 
 
 Non-linear Proximal ADMM

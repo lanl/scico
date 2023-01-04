@@ -46,6 +46,7 @@ Deconvolution
    examples/deconv_ppp_bm3d_admm
    examples/deconv_ppp_bm3d_pgm
    examples/deconv_ppp_dncnn_admm
+   examples/deconv_ppp_dncnn_padmm
    examples/deconv_ppp_bm4d_admm
 
 
@@ -97,6 +98,7 @@ Plug and Play Priors
    examples/deconv_ppp_bm3d_admm
    examples/deconv_ppp_bm3d_pgm
    examples/deconv_ppp_dncnn_admm
+   examples/deconv_ppp_dncnn_padmm
    examples/deconv_ppp_bm4d_admm
    examples/demosaic_ppp_bm3d_admm
    examples/superres_ppp_dncnn_admm
@@ -192,6 +194,7 @@ Proximal ADMM
 
    examples/denoise_tv_multi
    examples/denoise_cplx_tv_nlpadmm
+   examples/deconv_ppp_dncnn_padmm
 
 
 Non-linear Proximal ADMM
