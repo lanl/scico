@@ -49,7 +49,7 @@ Deconvolution
    `deconv_ppp_dncnn_admm.py <deconv_ppp_dncnn_admm.py>`_
       PPP (with DnCNN) Image Deconvolution (ADMM Solver)
    `deconv_ppp_dncnn_padmm.py <deconv_ppp_dncnn_padmm.py>`_
-      PPP (with BM3D) Image Deconvolution (PADMM Solver)
+      PPP (with DnCNN) Image Deconvolution (Proximal ADMM Solver)
    `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
       PPP (with BM4D) Volume Deconvolution
 
@@ -110,7 +110,7 @@ Plug and Play Priors
    `deconv_ppp_dncnn_admm.py <deconv_ppp_dncnn_admm.py>`_
       PPP (with DnCNN) Image Deconvolution (ADMM Solver)
    `deconv_ppp_dncnn_padmm.py <deconv_ppp_dncnn_padmm.py>`_
-      PPP (with BM3D) Image Deconvolution (PADMM Solver)
+      PPP (with DnCNN) Image Deconvolution (Proximal ADMM Solver)
    `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
       PPP (with BM4D) Volume Deconvolution
    `demosaic_ppp_bm3d_admm.py <demosaic_ppp_bm3d_admm.py>`_
@@ -241,7 +241,7 @@ Proximal ADMM
     `denoise_cplx_tv_nlpadmm.py <denoise_cplx_tv_nlpadmm.py>`_
        Complex Total Variation Denoising with NLPADMM Solver
     `deconv_ppp_dncnn_padmm.py <deconv_ppp_dncnn_padmm.py>`_
-       PPP (with BM3D) Image Deconvolution (PADMM Solver)
+       PPP (with DnCNN) Image Deconvolution (Proximal ADMM Solver)
 
 
 Non-linear Proximal ADMM
