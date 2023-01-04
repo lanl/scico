@@ -69,7 +69,13 @@ def itstat_func_and_object(
 
 
 class Optimizer:
-    """Base class for optimizer classes."""
+    """Base class for optimizer classes.
+
+    Attributes:
+        itnum (int): Optimizer iteration counter.
+        maxiter (int): Maximum number of optimizer outer-loop iterations.
+        timer (:class:`.Timer`): Iteration timer.
+    """
 
     def __init__(self, **kwargs):
         """Initialize common attributes of :class:`Optimizer` objects.

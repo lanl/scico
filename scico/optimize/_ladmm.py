@@ -72,9 +72,6 @@ class LinearizedADMM(Optimizer):
            :class:`.Loss`).
         g (:class:`.Functional`): Functional :math:`g`.
         C (:class:`.LinearOperator`): :math:`C` operator.
-        itnum (int): Iteration counter.
-        maxiter (int): Number of linearized ADMM outer-loop iterations.
-        timer (:class:`.Timer`): Iteration timer.
         mu (scalar): First algorithm parameter.
         nu (scalar): Second algorithm parameter.
         u (array-like): Scaled Lagrange multipliers :math:`\mb{u}` at

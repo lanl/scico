@@ -71,9 +71,6 @@ class ADMM(Optimizer):
             :code:`rho_list`.
         C_list (list of :class:`.LinearOperator`): List of :math:`C_i`
             operators.
-        itnum (int): Iteration counter.
-        maxiter (int): Number of ADMM outer-loop iterations.
-        timer (:class:`.Timer`): Iteration timer.
         rho_list (list of scalars): List of :math:`\rho_i` penalty
             parameters. Must be same length as :code:`C_list` and
             :code:`g_list`.
@@ -112,7 +109,6 @@ class ADMM(Optimizer):
             alpha: Relaxation parameter. No relaxation for default 1.0.
             x0: Initial value for :math:`\mb{x}`. If ``None``, defaults
                 to an array of zeros.
-            maxiter: Number of ADMM outer-loop iterations. Default: 100.
             subproblem_solver: Solver for :math:`\mb{x}`-update step.
                 Defaults to ``None``, which implies use of an instance of
                 :class:`GenericSubproblemSolver`.

@@ -80,9 +80,6 @@ class PDHG(Optimizer):
           :class:`.Loss`).
         g (:class:`.Functional`): Functional :math:`g`.
         C (:class:`.Operator`): :math:`C` operator.
-        itnum (int): Iteration counter.
-        maxiter (int): Number of PDHG outer-loop iterations.
-        timer (:class:`.Timer`): Iteration timer.
         tau (scalar): First algorithm parameter.
         sigma (scalar): Second algorithm parameter.
         alpha (scalar): Relaxation parameter.

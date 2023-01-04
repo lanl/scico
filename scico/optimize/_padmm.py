@@ -74,9 +74,6 @@ class ProximalADMM(Optimizer):
         A (:class:`.LinearOperator`): :math:`A` linear operator.
         B (:class:`.LinearOperator`): :math:`B` linear operator.
         c (array-like): constant :math:`\mb{c}`.
-        itnum (int): Iteration counter.
-        maxiter (int): Number of linearized ADMM outer-loop iterations.
-        timer (:class:`.Timer`): Iteration timer.
         rho (scalar): Penalty parameter.
         mu (scalar): First algorithm parameter.
         nu (scalar): Second algorithm parameter.
@@ -372,9 +369,6 @@ class NonLinearPADMM(ProximalADMM):
            :class:`.Loss`).
         g (:class:`.Functional`): Functional :math:`g`.
         H (:class:`.Function`): :math:`H` function.
-        itnum (int): Iteration counter.
-        maxiter (int): Number of linearized ADMM outer-loop iterations.
-        timer (:class:`.Timer`): Iteration timer.
         rho (scalar): Penalty parameter.
         mu (scalar): First algorithm parameter.
         nu (scalar): Second algorithm parameter.
