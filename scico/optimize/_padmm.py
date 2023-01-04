@@ -215,10 +215,10 @@ class ProximalADMM(ProximalADMMBase):
         f: Functional,
         g: Functional,
         A: LinearOperator,
-        B: Optional[LinearOperator],
         rho: float,
         mu: float,
         nu: float,
+        B: Optional[LinearOperator] = None,
         c: Optional[Union[float, JaxArray, BlockArray]] = None,
         x0: Optional[Union[JaxArray, BlockArray]] = None,
         z0: Optional[Union[JaxArray, BlockArray]] = None,
@@ -232,11 +232,11 @@ class ProximalADMM(ProximalADMMBase):
             f: Functional :math:`f` (usually a loss function).
             g: Functional :math:`g`.
             A: Linear operator :math:`A`.
-            B: Linear operator :math:`B` (if ``None``, :math:`B = -I`
-               where :math:`I` is the identity operator).
             rho: Penalty parameter.
             mu: First algorithm parameter.
             nu: Second algorithm parameter.
+            B: Linear operator :math:`B` (if ``None``, :math:`B = -I`
+               where :math:`I` is the identity operator).
             c: Constant :math:`\mb{c}`. If ``None``, defaults to zero.
             x0: Starting value for :math:`\mb{x}`. If ``None``, defaults
                 to an array of zeros.
