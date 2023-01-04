@@ -166,11 +166,7 @@ class LinearizedADMM(Optimizer):
         if x is None:
             x = self.x
             z = self.z
-        out = 0.0
-        if self.f:
-            out += self.f(x)
-        out += self.g(z)
-        return out
+        return self.f(x) + self.g(z)
 
     def norm_primal_residual(self, x: Optional[Union[JaxArray, BlockArray]] = None) -> float:
         r"""Compute the :math:`\ell_2` norm of the primal residual.

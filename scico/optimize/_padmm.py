@@ -158,11 +158,7 @@ class ProximalADMMBase(Optimizer):
         if x is None:
             x = self.x
             z = self.z
-        out = 0.0
-        if self.f:
-            out += self.f(x)
-        out += self.g(z)
-        return out
+        return self.f(x) + self.g(z)
 
 
 class ProximalADMM(ProximalADMMBase):
