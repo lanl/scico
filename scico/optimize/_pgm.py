@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2022 by SCICO Developers
+# Copyright (C) 2020-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -165,11 +165,9 @@ class AcceleratedPGM(PGM):
         L0: float,
         x0: Union[JaxArray, BlockArray],
         step_size: Optional[PGMStepSize] = None,
-        maxiter: int = 100,
-        itstat_options: Optional[dict] = None,
+        **kwargs,
     ):
         r"""
-
         Args:
             f: Loss or Functional object with `grad` defined.
             g: Instance of Functional with defined prox method.
@@ -177,29 +175,11 @@ class AcceleratedPGM(PGM):
             x0: Starting point for :math:`\mb{x}`.
             step_size: helper :class:`StepSize` to estimate the Lipschitz
                 constant of f.
-            maxiter: Maximum number of PGM iterations to perform.
-                Default: 100.
-            itstat_options: A dict of named parameters to be passed to
-                the :class:`.diagnostics.IterationStats` initializer. The
-                dict may also include an additional key "itstat_func"
-                with the corresponding value being a function with two
-                parameters, an integer and a `PGM` object, responsible
-                for constructing a tuple ready for insertion into the
-                :class:`.diagnostics.IterationStats` object. If ``None``,
-                default values are used for the dict entries, otherwise
-                the default dict is updated with the dict specified by
-                this parameter.
+            **kwargs: Additional optional parameters handled by
+                initializer of base class :class:`.Optimizer`.
         """
         x0 = ensure_on_device(x0)
-        super().__init__(
-            f=f,
-            g=g,
-            L0=L0,
-            x0=x0,
-            step_size=step_size,
-            maxiter=maxiter,
-            itstat_options=itstat_options,
-        )
+        super().__init__(f=f, g=g, L0=L0, x0=x0, step_size=step_size, **kwargs)
 
         self.v = x0
         self.t = 1.0
