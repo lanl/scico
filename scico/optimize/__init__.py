@@ -15,13 +15,14 @@ from ._common import Optimizer
 from ._ladmm import LinearizedADMM
 from .pgm import PGM, AcceleratedPGM
 from ._primaldual import PDHG
-from ._padmm import ProximalADMM, NonLinearPADMM
+from ._padmm import ProximalADMM, NonLinearPADMM, ProximalADMMBase
 
 
 __all__ = [
     "ADMM",
     "LinearizedADMM",
     "ProximalADMM",
+    "ProximalADMMBase",
     "NonLinearPADMM",
     "PGM",
     "AcceleratedPGM",
