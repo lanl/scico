@@ -145,7 +145,7 @@ class PDHG(Optimizer):
 
     def _objective_evaluatable(self):
         """Determine whether the objective function can be evaluated."""
-        return self.g.has_eval
+        return self.f.has_eval and self.g.has_eval
 
     def _itstat_extra_fields(self):
         """Define linearized ADMM-specific iteration statistics fields."""

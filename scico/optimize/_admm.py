@@ -144,7 +144,7 @@ class ADMM(Optimizer):
 
     def _objective_evaluatable(self):
         """Determine whether the objective function can be evaluated."""
-        return all([_.has_eval for _ in self.g_list])
+        return (not self.f or self.f.has_eval) and all([_.has_eval for _ in self.g_list])
 
     def _itstat_extra_fields(self):
         """Define ADMM-specific iteration statistics fields."""
