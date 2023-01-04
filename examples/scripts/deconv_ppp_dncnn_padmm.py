@@ -52,8 +52,8 @@ y = Ax + σ * noise
 """
 Set up the problem to be solved. We want to minimize the functional
 
-    $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
-    \|_2^2 + \lambda R(\mathbf{x}) \;$$
+  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
+  \|_2^2 + \lambda R(\mathbf{x}) \;$$
 
 where $R(\cdot)$ is a pseudo-functional having the DnCNN denoiser as its
 proximal operator. A slightly unusual splitting is used, including setting
