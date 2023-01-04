@@ -56,38 +56,39 @@ noise, key = scico.random.randn(Cx.shape, seed=0)
 y = Cx + σ * noise
 
 
-"""
+r"""
 Set up the problem to be solved. We want to minimize the functional
 
-    $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - C \mathbf{x}
-    \|_2^2 + \lambda \| D \mathbf{x} \|_1 \;$$
+  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - C \mathbf{x}
+  \|_2^2 + \lambda \| D \mathbf{x} \|_{2,1} \;,$$
 
 where $C$ is the convolution operator and $D$ is a finite difference
 operator. This problem can be expressed as
 
-    $$\mathrm{argmin}_{\mathbf{x}, \mathbf{z}} \; (1/2) \| \mathbf{y} -
-    \mathbf{z}_0 \|_2^2 + \lambda \| \mathbf{z}_1 \|_1 \quad
-    \text{such that} \mathbf{z}_0 = C \mathbf{x} \; \text{and} \;
-    \mathbf{z}_1 = D \mathbf{x} \;,$$
+  $$\mathrm{argmin}_{\mathbf{x}, \mathbf{z}} \; (1/2) \| \mathbf{y} -
+  \mathbf{z}_0 \|_2^2 + \lambda \| \mathbf{z}_1 \|_{2,1} \;\;
+  \text{such that} \;\; \mathbf{z}_0 = C \mathbf{x} \;\; \text{and} \;\;
+  \mathbf{z}_1 = D \mathbf{x} \;,$$
 
 which can be written in the form of a standard ADMM problem
 
-   $$\mathrm{argmin}_{\mathbf{x}, \mathbf{z}} f(\mathbf{x}) + g(\mathbf{z})
-   \quad \text{such that} A \mathbf{x} + B \mathbf{z} = \mathbf{c}
+  $$\mathrm{argmin}_{\mathbf{x}, \mathbf{z}} \; f(\mathbf{x}) + g(\mathbf{z})
+  \;\; \text{such that} \;\; A \mathbf{x} + B \mathbf{z} = \mathbf{c}$$
 
 with
 
-   $$f = 0 \quad g = g_0 + g_1$$
-   $$g_0(\mathbf{z}_0) = (1/2) \| \mathbf{y} - \mathbf{z}_0 \|_2^2$$
-   $$g_1(\mathbf{z}_1) = $$\lambda \| \mathbf{z}_1 \|_1$$
-   $$A = \begin{array}{c} C \\ D \end{array}$$
-   $$B = \begin{array}{cc} -I & 0 \\ 0 & -I \end{array}$$
-   $$\mathbf{c} = \begin{array}{c} 0 \\ 0 \end{array} \;.$$
+  $$f = 0 \quad g = g_0 + g_1$$
+  $$g_0(\mathbf{z}_0) = (1/2) \| \mathbf{y} - \mathbf{z}_0 \|_2^2 \quad
+  g_1(\mathbf{z}_1) = \lambda \| \mathbf{z}_1 \|_{2,1}$$
+  $$A = \left( \begin{array}{c} C \\ D \end{array} \right) \quad
+  B = \left( \begin{array}{cc} -I & 0 \\ 0 & -I \end{array} \right) \quad
+  \mathbf{c} = \left( \begin{array}{c} 0 \\ 0 \end{array} \right) \;.$$
 
-This is a more complex splitting than that used in the [companion example]
-(deconv_tv_admm.rst), but it allows the use of a proximal ADMM solver in
-a way that avoids the need for the conjugate gradient sub-iterations used
-by the ADMM solver in the [companion example](deconv_tv_admm.rst).
+This is a more complex splitting than that used in the
+[companion example](deconv_tv_admm.rst), but it allows the use of a
+proximal ADMM solver in a way that avoids the need for the conjugate
+gradient sub-iterations used by the ADMM solver in the
+[companion example](deconv_tv_admm.rst).
 """
 f = functional.ZeroFunctional()
 g0 = loss.SquaredL2Loss(y=y)

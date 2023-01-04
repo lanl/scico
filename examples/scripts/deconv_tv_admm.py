@@ -56,25 +56,25 @@ noise, key = scico.random.randn(Cx.shape, seed=0)
 y = Cx + σ * noise
 
 
-"""
+r"""
 Set up the problem to be solved. We want to minimize the functional
 
-    $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - C \mathbf{x}
-    \|_2^2 + \lambda \| D \mathbf{x} \|_1 \;$$
+  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - C \mathbf{x}
+  \|_2^2 + \lambda \| D \mathbf{x} \|_{2,1} \;,$$
 
 where $C$ is the convolution operator and $D$ is a finite difference
 operator. This problem can be expressed as
 
-    $$\mathrm{argmin}_{\mathbf{x}, \mathbf{z}} \; (1/2) \| \mathbf{y} -
-    C \mathbf{x} \|_2^2 + \lambda \| \mathbf{z} \|_1 \quad
-    \text{such that} \mathbf{z} = C \mathbf{x} \;,$$
+  $$\mathrm{argmin}_{\mathbf{x}, \mathbf{z}} \; (1/2) \| \mathbf{y} -
+  C \mathbf{x} \|_2^2 + \lambda \| \mathbf{z} \|_{2,1} \;\;
+  \text{such that} \;\; \mathbf{z} = C \mathbf{x} \;,$$
 
 which is easily written in the form of a standard ADMM problem.
 
-This is simpler splitting than that used in the [companion example]
-(deconv_tv_padmm.rst), but it requires the use conjugate gradient
-sub-iterations to solve the ADMM step associated with the data fidelity
-term.
+This is simpler splitting than that used in the
+[companion example](deconv_tv_padmm.rst), but it requires the use
+conjugate gradient sub-iterations to solve the ADMM step associated with
+the data fidelity term.
 """
 f = loss.SquaredL2Loss(y=y, A=C)
 # Penalty parameters must be accounted for in the gi functions, not as
