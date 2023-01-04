@@ -33,7 +33,9 @@ Deconvolution
    `deconv_circ_tv_admm.py <deconv_circ_tv_admm.py>`_
       Circulant Blur Image Deconvolution with TV Regularization
    `deconv_tv_admm.py <deconv_tv_admm.py>`_
-      Image Deconvolution with TV Regularization
+      Image Deconvolution with TV Regularization (ADMM Solver)
+   `deconv_tv_padmm.py <deconv_tv_padmm.py>`_
+      Image Deconvolution with TV Regularization (Proximal ADMM Solver)
    `deconv_tv_admm_tune.py <deconv_tv_admm_tune.py>`_
       Image Deconvolution Parameter Tuning
    `deconv_microscopy_tv_admm.py <deconv_microscopy_tv_admm.py>`_
@@ -131,9 +133,11 @@ Total Variation
    `deconv_circ_tv_admm.py <deconv_circ_tv_admm.py>`_
       Circulant Blur Image Deconvolution with TV Regularization
    `deconv_tv_admm.py <deconv_tv_admm.py>`_
-      Image Deconvolution with TV Regularization
+      Image Deconvolution with TV Regularization (ADMM Solver)
    `deconv_tv_admm_tune.py <deconv_tv_admm_tune.py>`_
       Image Deconvolution Parameter Tuning
+   `deconv_tv_padmm.py <deconv_tv_padmm.py>`_
+      Image Deconvolution with TV Regularization (Proximal ADMM Solver)
    `deconv_microscopy_tv_admm.py <deconv_microscopy_tv_admm.py>`_
       Deconvolution Microscopy (Single Channel)
    `deconv_microscopy_allchn_tv_admm.py <deconv_microscopy_allchn_tv_admm.py>`_
@@ -189,7 +193,7 @@ ADMM
    `deconv_circ_tv_admm.py <deconv_circ_tv_admm.py>`_
       Circulant Blur Image Deconvolution with TV Regularization
    `deconv_tv_admm.py <deconv_tv_admm.py>`_
-      Image Deconvolution with TV Regularization
+      Image Deconvolution with TV Regularization (ADMM Solver)
    `deconv_tv_admm_tune.py <deconv_tv_admm_tune.py>`_
       Image Deconvolution Parameter Tuning
    `deconv_microscopy_tv_admm.py <deconv_microscopy_tv_admm.py>`_
@@ -230,6 +234,8 @@ Linearized ADMM
 Proximal ADMM
 ^^^^^^^^^^^^^
 
+    `deconv_tv_padmm.py <deconv_tv_padmm.py>`_
+       Image Deconvolution with TV Regularization (Proximal ADMM Solver)
     `denoise_tv_multi.py <denoise_tv_multi.py>`_
        Comparison of Optimization Algorithms for Total Variation Denoising
     `denoise_cplx_tv_nlpadmm.py <denoise_cplx_tv_nlpadmm.py>`_

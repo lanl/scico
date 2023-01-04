@@ -40,6 +40,7 @@ Deconvolution
 
    examples/deconv_circ_tv_admm
    examples/deconv_tv_admm
+   examples/deconv_tv_padmm
    examples/deconv_tv_admm_tune
    examples/deconv_microscopy_tv_admm
    examples/deconv_microscopy_allchn_tv_admm
@@ -117,6 +118,7 @@ Total Variation
    examples/deconv_circ_tv_admm
    examples/deconv_tv_admm
    examples/deconv_tv_admm_tune
+   examples/deconv_tv_padmm
    examples/deconv_microscopy_tv_admm
    examples/deconv_microscopy_allchn_tv_admm
    examples/denoise_l1tv_admm
@@ -192,6 +194,7 @@ Proximal ADMM
 .. toctree::
    :maxdepth: 1
 
+   examples/deconv_tv_padmm
    examples/denoise_tv_multi
    examples/denoise_cplx_tv_nlpadmm
    examples/deconv_ppp_dncnn_padmm
