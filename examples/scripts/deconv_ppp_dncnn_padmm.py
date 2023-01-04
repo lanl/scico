@@ -67,7 +67,7 @@ D = linop.VerticalStack((A, linop.Identity(input_shape=A.input_shape)))
 
 
 """
-Set up PADMM solver.
+Set up proximal ADMM solver.
 """
 ρ = 0.4  # ADMM penalty parameter
 maxiter = 20  # number of PADMM iterations
