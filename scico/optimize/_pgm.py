@@ -21,7 +21,6 @@ from scico.loss import Loss
 from scico.numpy import BlockArray
 from scico.numpy.util import ensure_on_device
 from scico.typing import JaxArray
-from scico.util import Timer
 
 from ._common import Optimizer
 from ._pgmaux import (
@@ -79,7 +78,6 @@ class PGM(Optimizer):
         self.step_size: PGMStepSize = step_size
         self.step_size.internal_init(self)
         self.L: float = L0  # reciprocal of step size (estimate of Lipschitz constant of f)
-        self.timer: Timer = Timer()
         self.fixed_point_residual = snp.inf
 
         def x_step(v: Union[JaxArray, BlockArray], L: float) -> Union[JaxArray, BlockArray]:

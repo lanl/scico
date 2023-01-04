@@ -22,7 +22,6 @@ from scico.numpy import BlockArray
 from scico.numpy.linalg import norm
 from scico.numpy.util import ensure_on_device
 from scico.typing import JaxArray, PRNGKey
-from scico.util import Timer
 
 from ._common import Optimizer
 
@@ -147,7 +146,6 @@ class ProximalADMM(Optimizer):
         self.mu: float = mu
         self.nu: float = nu
         self.fast_dual_residual: bool = fast_dual_residual
-        self.timer: Timer = Timer()
 
         if x0 is None:
             x0 = snp.zeros(self.A.input_shape, dtype=self.A.input_dtype)
@@ -433,7 +431,6 @@ class NonLinearPADMM(ProximalADMM):
         self.mu: float = mu
         self.nu: float = nu
         self.fast_dual_residual: bool = fast_dual_residual
-        self.timer: Timer = Timer()
 
         if x0 is None:
             x0 = snp.zeros(H.input_shapes[0], dtype=H.input_dtypes[0])

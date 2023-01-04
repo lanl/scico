@@ -20,7 +20,6 @@ from scico.numpy import BlockArray
 from scico.numpy.linalg import norm
 from scico.numpy.util import ensure_on_device
 from scico.typing import JaxArray
-from scico.util import Timer
 
 from ._common import Optimizer
 
@@ -115,7 +114,6 @@ class LinearizedADMM(Optimizer):
         self.C: LinearOperator = C
         self.mu: float = mu
         self.nu: float = nu
-        self.timer: Timer = Timer()
 
         if x0 is None:
             input_shape = C.input_shape
