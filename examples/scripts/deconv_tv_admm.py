@@ -57,20 +57,42 @@ y = Cx + σ * noise
 
 
 """
-Set up an ADMM solver object.
-"""
-λ = 2.7e-2  # L1 norm regularization parameter
-ρ = 1.4e-1  # ADMM penalty parameter
-maxiter = 50  # number of ADMM iterations
+Set up the problem to be solved. We want to minimize the functional
 
+    $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - C \mathbf{x}
+    \|_2^2 + \lambda \| D \mathbf{x} \|_1 \;$$
+
+where $C$ is the convolution operator and $D$ is a finite difference
+operator. This problem can be expressed as
+
+    $$\mathrm{argmin}_{\mathbf{x}, \mathbf{z}} \; (1/2) \| \mathbf{y} -
+    C \mathbf{x} \|_2^2 + \lambda \| \mathbf{z} \|_1 \quad
+    \text{such that} \mathbf{z} = C \mathbf{x} \;,$$
+
+which is easily written in the form of a standard ADMM problem.
+
+This is simpler splitting than that used in the [companion example]
+(deconv_tv_padmm.rst), but it requires the use conjugate gradient
+sub-iterations to solve the ADMM step associated with the data fidelity
+term.
+"""
 f = loss.SquaredL2Loss(y=y, A=C)
 # Penalty parameters must be accounted for in the gi functions, not as
 # additional inputs.
+λ = 2.7e-2  # L1 norm regularization parameter
 g = λ * functional.L21Norm()
 # The append=0 option makes the results of horizontal and vertical
 # finite differences the same shape, which is required for the L21Norm,
 # which is used so that g(Cx) corresponds to isotropic TV.
 D = linop.FiniteDifference(input_shape=x_gt.shape, append=0)
+
+
+"""
+Set up an ADMM solver object.
+"""
+ρ = 1.4e-1  # ADMM penalty parameter
+maxiter = 50  # number of ADMM iterations
+
 solver = ADMM(
     f=f,
     g_list=[g],
