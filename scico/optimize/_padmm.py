@@ -21,59 +21,20 @@ from scico.linop import Identity, LinearOperator, operator_norm
 from scico.numpy import BlockArray
 from scico.numpy.linalg import norm
 from scico.numpy.util import ensure_on_device
-from scico.typing import JaxArray, PRNGKey
+from scico.typing import BlockShape, DType, JaxArray, PRNGKey, Shape
 
 from ._common import Optimizer
 
 # mypy: disable-error-code=override
 
 
-class ProximalADMM(Optimizer):
-    r"""Proximal alternating direction method of multipliers.
-
-    |
-
-    Solve an optimization problem of the form
-
-    .. math::
-        \argmin_{\mb{x}} \; f(\mb{x}) + g(\mb{z}) \;
-        \text{such that}\; A \mb{x} + B \mb{z} = \mb{c} \;,
-
-    where :math:`f` and :math:`g` are instances of :class:`.Functional`,
-    (in most cases :math:`f` will, more specifically be an an instance
-    of :class:`.Loss`), and :math:`A` and :math:`B` are instances of
-    :class:`LinearOperator`.
-
-    The optimization problem is solved via a variant of the proximal ADMM
-    algorithm :cite:`deng-2015-global`, consisting of the iterations
-    (see :meth:`step`)
-
-    .. math::
-       \begin{aligned}
-       \mb{x}^{(k+1)} &= \mathrm{prox}_{\rho^{-1} \mu^{-1} f} \left(
-         \mb{x}^{(k)} - \mu^{-1} A^T \left(2 \mb{u}^{(k)} -
-         \mb{u}^{(k-1)} \right) \right) \\
-       \mb{z}^{(k+1)} &= \mathrm{prox}_{\rho^{-1} \nu^{-1} g} \left(
-         \mb{z}^{(k)} - \nu^{-1} B^T \left(
-         B \mb{x}^{(k+1)} + A \mb{z}^{(k)} - \mb{c} + \mb{u}^{(k)}
-         \right) \right) \\
-       \mb{u}^{(k+1)} &=  \mb{u}^{(k)} + A \mb{x}^{(k+1)} + B
-         \mb{z}^{(k+1)} - \mb{c}  \;.
-       \end{aligned}
-
-    Parameters :math:`\mu` and :math:`\nu` are required to satisfy
-
-    .. math::
-       \mu > \norm{ A }_2^2 \quad \text{and} \quad \nu > \norm{ B }_2^2 \;.
-
+class ProximalADMMBase(Optimizer):
+    r"""Base class for proximal ADMM solvers.
 
     Attributes:
         f (:class:`.Functional`): Functional :math:`f` (usually a
            :class:`.Loss`).
         g (:class:`.Functional`): Functional :math:`g`.
-        A (:class:`.LinearOperator`): :math:`A` linear operator.
-        B (:class:`.LinearOperator`): :math:`B` linear operator.
-        c (array-like): constant :math:`\mb{c}`.
         rho (scalar): Penalty parameter.
         mu (scalar): First algorithm parameter.
         nu (scalar): Second algorithm parameter.
@@ -92,35 +53,40 @@ class ProximalADMM(Optimizer):
         self,
         f: Functional,
         g: Functional,
-        A: LinearOperator,
-        B: Optional[LinearOperator],
         rho: float,
         mu: float,
         nu: float,
-        c: Optional[Union[float, JaxArray, BlockArray]] = None,
+        xshape: Union[Shape, BlockShape],
+        zshape: Union[Shape, BlockShape],
+        ushape: Union[Shape, BlockShape],
+        xdtype: DType,
+        zdtype: DType,
+        udtype: DType,
         x0: Optional[Union[JaxArray, BlockArray]] = None,
         z0: Optional[Union[JaxArray, BlockArray]] = None,
         u0: Optional[Union[JaxArray, BlockArray]] = None,
         fast_dual_residual: bool = True,
         **kwargs,
     ):
-        r"""Initialize a :class:`ProximalADMM` object.
+        r"""Initialize a :class:`ProximalADMMBase` object.
 
         Args:
             f: Functional :math:`f` (usually a loss function).
             g: Functional :math:`g`.
-            A: Linear operator :math:`A`.
-            B: Linear operator :math:`B` (if ``None``, :math:`B = -I`
-               where :math:`I` is the identity operator).
             rho: Penalty parameter.
             mu: First algorithm parameter.
             nu: Second algorithm parameter.
-            c: Constant :math:`\mb{c}`. If ``None``, defaults to zero.
-            x0: Starting value for :math:`\mb{x}`. If ``None``, defaults
+            xshape: Shape of variable :math:`\mb{x}`.
+            zshape: Shape of variable :math:`\mb{z}`.
+            ushape: Shape of variable :math:`\mb{u}`.
+            xdtype: Dtype of variable :math:`\mb{x}`.
+            zdtype: Dtype of variable :math:`\mb{z}`.
+            udtype: Dtype of variable :math:`\mb{u}`.
+            x0: Initial value for :math:`\mb{x}`. If ``None``, defaults
                 to an array of zeros.
-            z0: Starting value for :math:`\mb{z}`. If ``None``, defaults
+            z0: Initial value for :math:`\mb{z}`. If ``None``, defaults
                 to an array of zeros.
-            u0: Starting value for :math:`\mb{u}`. If ``None``, defaults
+            u0: Initial value for :math:`\mb{u}`. If ``None``, defaults
                 to an array of zeros.
             fast_dual_residual: Flag indicating whether to use fast
                 approximation to the dual residual, or a slower but more
@@ -130,29 +96,21 @@ class ProximalADMM(Optimizer):
         """
         self.f: Functional = f
         self.g: Functional = g
-        self.A: LinearOperator = A
-        if B is None:
-            self.B = -Identity(self.A.output_shape, self.A.output_dtype)
-        else:
-            self.B = B
-        if c is None:
-            self.c = 0.0
-        else:
-            self.c = c
+
         self.rho: float = rho
         self.mu: float = mu
         self.nu: float = nu
         self.fast_dual_residual: bool = fast_dual_residual
 
         if x0 is None:
-            x0 = snp.zeros(self.A.input_shape, dtype=self.A.input_dtype)
+            x0 = snp.zeros(xshape, dtype=xdtype)
         self.x = ensure_on_device(x0)
         if z0 is None:
-            z0 = snp.zeros(self.B.input_shape, dtype=self.B.input_dtype)
+            z0 = snp.zeros(zshape, dtype=zdtype)
         self.z = ensure_on_device(z0)
         self.z_old = self.z
         if u0 is None:
-            u0 = snp.zeros(self.A.output_shape, dtype=self.A.output_dtype)
+            u0 = snp.zeros(ushape, dtype=udtype)
         self.u = ensure_on_device(u0)
         self.u_old = self.u
 
@@ -205,6 +163,121 @@ class ProximalADMM(Optimizer):
             out += self.f(x)
         out += self.g(z)
         return out
+
+
+class ProximalADMM(ProximalADMMBase):
+    r"""Proximal alternating direction method of multipliers.
+
+    |
+
+    Solve an optimization problem of the form
+
+    .. math::
+        \argmin_{\mb{x}} \; f(\mb{x}) + g(\mb{z}) \;
+        \text{such that}\; A \mb{x} + B \mb{z} = \mb{c} \;,
+
+    where :math:`f` and :math:`g` are instances of :class:`.Functional`,
+    (in most cases :math:`f` will, more specifically be an an instance
+    of :class:`.Loss`), and :math:`A` and :math:`B` are instances of
+    :class:`LinearOperator`.
+
+    The optimization problem is solved via a variant of the proximal ADMM
+    algorithm :cite:`deng-2015-global`, consisting of the iterations
+    (see :meth:`step`)
+
+    .. math::
+       \begin{aligned}
+       \mb{x}^{(k+1)} &= \mathrm{prox}_{\rho^{-1} \mu^{-1} f} \left(
+         \mb{x}^{(k)} - \mu^{-1} A^T \left(2 \mb{u}^{(k)} -
+         \mb{u}^{(k-1)} \right) \right) \\
+       \mb{z}^{(k+1)} &= \mathrm{prox}_{\rho^{-1} \nu^{-1} g} \left(
+         \mb{z}^{(k)} - \nu^{-1} B^T \left(
+         B \mb{x}^{(k+1)} + A \mb{z}^{(k)} - \mb{c} + \mb{u}^{(k)}
+         \right) \right) \\
+       \mb{u}^{(k+1)} &=  \mb{u}^{(k)} + A \mb{x}^{(k+1)} + B
+         \mb{z}^{(k+1)} - \mb{c}  \;.
+       \end{aligned}
+
+    Parameters :math:`\mu` and :math:`\nu` are required to satisfy
+
+    .. math::
+       \mu > \norm{ A }_2^2 \quad \text{and} \quad \nu > \norm{ B }_2^2 \;.
+
+
+    Attributes:
+        A (:class:`.LinearOperator`): :math:`A` linear operator.
+        B (:class:`.LinearOperator`): :math:`B` linear operator.
+        c (array-like): constant :math:`\mb{c}`.
+    """
+
+    def __init__(
+        self,
+        f: Functional,
+        g: Functional,
+        A: LinearOperator,
+        B: Optional[LinearOperator],
+        rho: float,
+        mu: float,
+        nu: float,
+        c: Optional[Union[float, JaxArray, BlockArray]] = None,
+        x0: Optional[Union[JaxArray, BlockArray]] = None,
+        z0: Optional[Union[JaxArray, BlockArray]] = None,
+        u0: Optional[Union[JaxArray, BlockArray]] = None,
+        fast_dual_residual: bool = True,
+        **kwargs,
+    ):
+        r"""Initialize a :class:`ProximalADMM` object.
+
+        Args:
+            f: Functional :math:`f` (usually a loss function).
+            g: Functional :math:`g`.
+            A: Linear operator :math:`A`.
+            B: Linear operator :math:`B` (if ``None``, :math:`B = -I`
+               where :math:`I` is the identity operator).
+            rho: Penalty parameter.
+            mu: First algorithm parameter.
+            nu: Second algorithm parameter.
+            c: Constant :math:`\mb{c}`. If ``None``, defaults to zero.
+            x0: Starting value for :math:`\mb{x}`. If ``None``, defaults
+                to an array of zeros.
+            z0: Starting value for :math:`\mb{z}`. If ``None``, defaults
+                to an array of zeros.
+            u0: Starting value for :math:`\mb{u}`. If ``None``, defaults
+                to an array of zeros.
+            fast_dual_residual: Flag indicating whether to use fast
+                approximation to the dual residual, or a slower but more
+                accurate calculation.
+            **kwargs: Additional optional parameters handled by
+                initializer of base class :class:`.Optimizer`.
+        """
+        self.A: LinearOperator = A
+        if B is None:
+            self.B = -Identity(self.A.output_shape, self.A.output_dtype)
+        else:
+            self.B = B
+        if c is None:
+            self.c = 0.0
+        else:
+            self.c = c
+
+        super().__init__(
+            f,
+            g,
+            rho,
+            mu,
+            nu,
+            self.A.input_shape,
+            self.B.input_shape,
+            self.A.output_shape,
+            self.A.input_dtype,
+            self.B.input_dtype,
+            self.A.output_dtype,
+            x0=x0,
+            z0=z0,
+            u0=u0,
+            fast_dual_residual=fast_dual_residual,
+            **kwargs,
+        )
 
     def norm_primal_residual(
         self,
@@ -322,7 +395,7 @@ class ProximalADMM(Optimizer):
             return (factor * mu, factor * nu)
 
 
-class NonLinearPADMM(ProximalADMM):
+class NonLinearPADMM(ProximalADMMBase):
     r"""Non-linear proximal alternating direction method of multipliers.
 
     |
@@ -365,22 +438,7 @@ class NonLinearPADMM(ProximalADMM):
 
 
     Attributes:
-        f (:class:`.Functional`): Functional :math:`f` (usually a
-           :class:`.Loss`).
-        g (:class:`.Functional`): Functional :math:`g`.
         H (:class:`.Function`): :math:`H` function.
-        rho (scalar): Penalty parameter.
-        mu (scalar): First algorithm parameter.
-        nu (scalar): Second algorithm parameter.
-        x (array-like): Solution variable.
-        z (array-like): Auxiliary variables :math:`\mb{z}` at current
-          iteration.
-        z_old (array-like): Auxiliary variables :math:`\mb{z}` at
-          previous iteration.
-        u (array-like): Scaled Lagrange multipliers :math:`\mb{u}` at
-           current iteration.
-        u_old (array-like): Scaled Lagrange multipliers :math:`\mb{u}` at
-           previous iteration.
     """
 
     def __init__(
@@ -418,27 +476,26 @@ class NonLinearPADMM(ProximalADMM):
             **kwargs: Additional optional parameters handled by
                 initializer of base class :class:`.Optimizer`.
         """
-        self.f: Functional = f
-        self.g: Functional = g
         self.H: Function = H
-        self.rho: float = rho
-        self.mu: float = mu
-        self.nu: float = nu
-        self.fast_dual_residual: bool = fast_dual_residual
 
-        if x0 is None:
-            x0 = snp.zeros(H.input_shapes[0], dtype=H.input_dtypes[0])
-        self.x = ensure_on_device(x0)
-        if z0 is None:
-            z0 = snp.zeros(H.input_shapes[1], dtype=H.input_dtypes[1])
-        self.z = ensure_on_device(z0)
-        self.z_old = self.z
-        if u0 is None:
-            u0 = snp.zeros(H.output_shape, dtype=H.output_dtype)
-        self.u = ensure_on_device(u0)
-        self.u_old = self.u
-
-        Optimizer.__init__(self, **kwargs)
+        super().__init__(
+            f,
+            g,
+            rho,
+            mu,
+            nu,
+            H.input_shapes[0],
+            H.input_shapes[1],
+            H.output_shape,
+            H.input_dtypes[0],
+            H.input_dtypes[1],
+            H.output_dtype,
+            x0=x0,
+            z0=z0,
+            u0=u0,
+            fast_dual_residual=fast_dual_residual,
+            **kwargs,
+        )
 
     def norm_primal_residual(
         self,
@@ -521,7 +578,7 @@ class NonLinearPADMM(ProximalADMM):
         self.u = self.u + self.H(self.x, self.z)
 
     @staticmethod
-    def estimate_parameters(  # type: ignore
+    def estimate_parameters(
         H: Function,
         x: Optional[Union[JaxArray, BlockArray]] = None,
         z: Optional[Union[JaxArray, BlockArray]] = None,
