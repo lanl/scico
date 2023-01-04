@@ -85,12 +85,13 @@ class Optimizer:
 
                 itstat_options:
                   A dict of named parameters to be passed to
-                  the :class:`.diagnostics.IterationStats` initializer. The
-                  dict may also include an additional key "itstat_func"
-                  with the corresponding value being a function with two
-                  parameters, an integer and an :class:`Optimizer` object,
-                  responsible for constructing a tuple ready for insertion
-                  into the :class:`.diagnostics.IterationStats` object. If
+                  the :class:`.diagnostics.IterationStats` initializer.
+                  The dict may also include an additional key
+                  "itstat_func" with the corresponding value being a
+                  function with two parameters, an integer and an
+                  :class:`Optimizer` object, responsible for constructing
+                  a tuple ready for insertion into the
+                  :class:`.diagnostics.IterationStats` object. If
                   ``None``, default values are used for the dict entries,
                   otherwise the default dict is updated with the dict
                   specified by this parameter.
