@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022 by SCICO Developers
+# Copyright (C) 2022-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -11,7 +11,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import Callable, List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import scico.numpy as snp
 from scico import cvjp, jvp
@@ -24,12 +24,12 @@ from scico.numpy.util import ensure_on_device
 from scico.typing import JaxArray, PRNGKey
 from scico.util import Timer
 
-from ._common import itstat_func_and_object
+from ._common import Optimizer
 
 # mypy: disable-error-code=override
 
 
-class ProximalADMM:
+class ProximalADMM(Optimizer):
     r"""Proximal alternating direction method of multipliers.
 
     |
@@ -105,9 +105,8 @@ class ProximalADMM:
         x0: Optional[Union[JaxArray, BlockArray]] = None,
         z0: Optional[Union[JaxArray, BlockArray]] = None,
         u0: Optional[Union[JaxArray, BlockArray]] = None,
-        maxiter: int = 100,
         fast_dual_residual: bool = True,
-        itstat_options: Optional[dict] = None,
+        **kwargs,
     ):
         r"""Initialize a :class:`ProximalADMM` object.
 
@@ -127,20 +126,11 @@ class ProximalADMM:
                 to an array of zeros.
             u0: Starting value for :math:`\mb{u}`. If ``None``, defaults
                 to an array of zeros.
-            maxiter: Number of main algorithm iterations. Default: 100.
             fast_dual_residual: Flag indicating whether to use fast
                 approximation to the dual residual, or a slower but more
                 accurate calculation.
-            itstat_options: A dict of named parameters to be passed to
-                the :class:`.diagnostics.IterationStats` initializer. The
-                dict may also include an additional key "itstat_func"
-                with the corresponding value being a function with two
-                parameters, an integer and a :class:`ProximalADMM`
-                object, responsible for constructing a tuple ready for
-                insertion into the :class:`.diagnostics.IterationStats`
-                object. If ``None``, default values are used for the dict
-                entries, otherwise the default dict is updated with the
-                dict specified by this parameter.
+            **kwargs: Additional optional parameters handled by
+                initializer of base class :class:`.Optimizer`.
         """
         self.f: Functional = f
         self.g: Functional = g
@@ -156,8 +146,6 @@ class ProximalADMM:
         self.rho: float = rho
         self.mu: float = mu
         self.nu: float = nu
-        self.itnum: int = 0
-        self.maxiter: int = maxiter
         self.fast_dual_residual: bool = fast_dual_residual
         self.timer: Timer = Timer()
 
@@ -173,40 +161,21 @@ class ProximalADMM:
         self.u = ensure_on_device(u0)
         self.u_old = self.u
 
-        self._itstat_init(itstat_options)
+        super().__init__(**kwargs)
 
-    def _itstat_init(self, itstat_options: Optional[dict] = None):
-        """Initialize iteration statistics mechanism.
+    def _objective_evaluatable(self):
+        """Determine whether the objective function can be evaluated."""
+        return self.g.has_eval
 
-        Args:
-           itstat_options: A dict of named parameters to be passed to
-                the :class:`.diagnostics.IterationStats` initializer. The
-                dict may also include an additional key "itstat_func"
-                with the corresponding value being a function with two
-                parameters, an integer and a :class:`PDHG` object,
-                responsible for constructing a tuple ready for insertion
-                into the :class:`.diagnostics.IterationStats` object. If
-                ``None``, default values are used for the dict entries,
-                otherwise the default dict is updated with the dict
-                specified by this parameter.
-        """
-        # iteration number and time fields
-        itstat_fields = {
-            "Iter": "%d",
-            "Time": "%8.2e",
-        }
-        itstat_attrib = ["itnum", "timer.elapsed()"]
-        # objective function can be evaluated if 'g' function can be evaluated
-        if self.g.has_eval:
-            itstat_fields.update({"Objective": "%9.3e"})
-            itstat_attrib.append("objective()")
-        # primal and dual residual fields
-        itstat_fields.update({"Prml Rsdl": "%9.3e", "Dual Rsdl": "%9.3e"})
-        itstat_attrib.extend(["norm_primal_residual()", "norm_dual_residual()"])
+    def _itstat_extra_fields(self):
+        """Define linearized ADMM-specific iteration statistics fields."""
+        itstat_fields = {"Prml Rsdl": "%9.3e", "Dual Rsdl": "%9.3e"}
+        itstat_attrib = ["norm_primal_residual()", "norm_dual_residual()"]
+        return itstat_fields, itstat_attrib
 
-        self.itstat_insert_func, self.itstat_object = itstat_func_and_object(
-            itstat_fields, itstat_attrib, itstat_options
-        )
+    def minimizer(self):
+        """Return current estimate of the functional mimimizer."""
+        return self.x
 
     def objective(
         self,
@@ -219,7 +188,6 @@ class ProximalADMM:
 
         .. math::
             f(\mb{x}) + g(\mb{z}) \;.
-
 
         Args:
             x: Point at which to evaluate objective function. If
@@ -312,36 +280,6 @@ class ProximalADMM:
         self.z = self.g.prox(proxarg, (1.0 / (self.rho * self.nu)), v0=self.z)
         self.u_old = self.u
         self.u = self.u + self.A(self.x) + self.B(self.z) - self.c
-
-    def solve(
-        self,
-        callback: Optional[Callable[[ProximalADMM], None]] = None,
-    ) -> Union[JaxArray, BlockArray]:
-        r"""Initialize and run the optimization algorithm.
-
-        Initialize and run the opimization algorithm for a total of
-        `self.maxiter` iterations.
-
-        Args:
-            callback: An optional callback function, taking an a single
-              argument of type :class:`ProximalADMM`, that is called
-              at the end of every iteration.
-
-        Returns:
-            Computed solution.
-        """
-        self.timer.start()
-        for self.itnum in range(self.itnum, self.itnum + self.maxiter):
-            self.step()
-            self.itstat_object.insert(self.itstat_insert_func(self))
-            if callback:
-                self.timer.stop()
-                callback(self)
-                self.timer.start()
-        self.timer.stop()
-        self.itnum += 1
-        self.itstat_object.end()
-        return self.x
 
     @staticmethod
     def estimate_parameters(
@@ -464,9 +402,8 @@ class NonLinearPADMM(ProximalADMM):
         x0: Optional[Union[JaxArray, BlockArray]] = None,
         z0: Optional[Union[JaxArray, BlockArray]] = None,
         u0: Optional[Union[JaxArray, BlockArray]] = None,
-        maxiter: int = 100,
         fast_dual_residual: bool = True,
-        itstat_options: Optional[dict] = None,
+        **kwargs,
     ):
         r"""Initialize a :class:`NonLinearPADMM` object.
 
@@ -483,20 +420,11 @@ class NonLinearPADMM(ProximalADMM):
                 to an array of zeros.
             u0: Starting value for :math:`\mb{u}`. If ``None``, defaults
                 to an array of zeros.
-            maxiter: Number of main algorithm iterations. Default: 100.
             fast_dual_residual: Flag indicating whether to use fast
                 approximation to the dual residual, or a slower but more
                 accurate calculation.
-            itstat_options: A dict of named parameters to be passed to
-                the :class:`.diagnostics.IterationStats` initializer. The
-                dict may also include an additional key "itstat_func"
-                with the corresponding value being a function with two
-                parameters, an integer and a :class:`NonLinearPADMM`
-                object, responsible for constructing a tuple ready for
-                insertion into the :class:`.diagnostics.IterationStats`
-                object. If ``None``, default values are used for the dict
-                entries, otherwise the default dict is updated with the
-                dict specified by this parameter.
+            **kwargs: Additional optional parameters handled by
+                initializer of base class :class:`.Optimizer`.
         """
         self.f: Functional = f
         self.g: Functional = g
@@ -504,8 +432,6 @@ class NonLinearPADMM(ProximalADMM):
         self.rho: float = rho
         self.mu: float = mu
         self.nu: float = nu
-        self.itnum: int = 0
-        self.maxiter: int = maxiter
         self.fast_dual_residual: bool = fast_dual_residual
         self.timer: Timer = Timer()
 
@@ -521,7 +447,7 @@ class NonLinearPADMM(ProximalADMM):
         self.u = ensure_on_device(u0)
         self.u_old = self.u
 
-        self._itstat_init(itstat_options)
+        Optimizer.__init__(self, **kwargs)
 
     def norm_primal_residual(
         self,
