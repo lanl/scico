@@ -11,11 +11,11 @@ Image Deconvolution with TV Regularization (ADMM Solver)
 This example demonstrates the solution of an image deconvolution problem
 with isotropic total variation (TV) regularization
 
-  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
-  \|_2^2 + \lambda \| C \mathbf{x} \|_{2,1} \;,$$
+  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - C \mathbf{x}
+  \|_2^2 + \lambda \| D \mathbf{x} \|_{2,1} \;,$$
 
-where $A$ is a convolution operator, $\mathbf{y}$ is the blurred image,
-$C$ is a 2D finite fifference operator, and $\mathbf{x}$ is the
+where $C$ is a convolution operator, $\mathbf{y}$ is the blurred image,
+$D$ is a 2D finite fifference operator, and $\mathbf{x}$ is the
 deconvolved image.
 
 In this example the problem is solved via standard ADMM, while proximal
@@ -49,11 +49,11 @@ n = 5  # convolution kernel size
 σ = 20.0 / 255  # noise level
 
 psf = snp.ones((n, n)) / (n * n)
-A = linop.Convolve(h=psf, input_shape=x_gt.shape)
+C = linop.Convolve(h=psf, input_shape=x_gt.shape)
 
-Ax = A(x_gt)  # blurred image
-noise, key = scico.random.randn(Ax.shape, seed=0)
-y = Ax + σ * noise
+Cx = C(x_gt)  # blurred image
+noise, key = scico.random.randn(Cx.shape, seed=0)
+y = Cx + σ * noise
 
 
 """
@@ -63,20 +63,20 @@ Set up an ADMM solver object.
 ρ = 1.4e-1  # ADMM penalty parameter
 maxiter = 50  # number of ADMM iterations
 
-f = loss.SquaredL2Loss(y=y, A=A)
+f = loss.SquaredL2Loss(y=y, A=C)
 # Penalty parameters must be accounted for in the gi functions, not as
 # additional inputs.
 g = λ * functional.L21Norm()
 # The append=0 option makes the results of horizontal and vertical
 # finite differences the same shape, which is required for the L21Norm,
 # which is used so that g(Cx) corresponds to isotropic TV.
-C = linop.FiniteDifference(input_shape=x_gt.shape, append=0)
+D = linop.FiniteDifference(input_shape=x_gt.shape, append=0)
 solver = ADMM(
     f=f,
     g_list=[g],
-    C_list=[C],
+    C_list=[D],
     rho_list=[ρ],
-    x0=A.adj(y),
+    x0=C.adj(y),
     maxiter=maxiter,
     subproblem_solver=LinearSubproblemSolver(),
     itstat_options={"display": True, "period": 10},
