@@ -81,7 +81,6 @@ solver_tv = ProximalADMM(
     f=f,
     g=g,
     A=C,
-    B=None,
     rho=1.0,
     mu=8.0,
     nu=1.0,
@@ -90,6 +89,7 @@ solver_tv = ProximalADMM(
 )
 print(f"Solving on {device_info()}\n")
 x_tv = solver_tv.solve()
+print()
 hist_tv = solver_tv.itstat_object.history(transpose=True)
 
 
