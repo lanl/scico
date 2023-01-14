@@ -64,7 +64,6 @@ the need for conjugate gradient sub-iterations in the solver steps.
 λ = 9.0 / 255  # DnCNN denoiser sigma
 f = λ * functional.DnCNN(variant="6N")
 g = loss.SquaredL2Loss(y=y)
-g.has_eval = False  # temporary scico bug workaround
 
 
 """

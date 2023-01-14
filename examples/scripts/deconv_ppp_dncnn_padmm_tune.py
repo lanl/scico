@@ -90,7 +90,6 @@ def eval_params(config, reporter):
     A = linop.Convolve(h=psf, input_shape=x_gt.shape)
     f = λ * functional.DnCNN(variant="6N")
     g = loss.SquaredL2Loss(y=y)
-    g.has_eval = False  # temporary scico bug workaround
     # Define solver.
     solver = ProximalADMM(
         f=f,
