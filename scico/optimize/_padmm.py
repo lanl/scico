@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022 by SCICO Developers
+# Copyright (C) 2022-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -11,7 +11,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import Callable, List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import scico.numpy as snp
 from scico import cvjp, jvp
@@ -21,15 +21,147 @@ from scico.linop import Identity, LinearOperator, operator_norm
 from scico.numpy import BlockArray
 from scico.numpy.linalg import norm
 from scico.numpy.util import ensure_on_device
-from scico.typing import JaxArray, PRNGKey
-from scico.util import Timer
+from scico.typing import BlockShape, DType, JaxArray, PRNGKey, Shape
 
-from ._common import itstat_func_and_object
+from ._common import Optimizer
 
 # mypy: disable-error-code=override
 
 
-class ProximalADMM:
+class ProximalADMMBase(Optimizer):
+    r"""Base class for proximal ADMM solvers.
+
+    Attributes:
+        f (:class:`.Functional`): Functional :math:`f` (usually a
+           :class:`.Loss`).
+        g (:class:`.Functional`): Functional :math:`g`.
+        rho (scalar): Penalty parameter.
+        mu (scalar): First algorithm parameter.
+        nu (scalar): Second algorithm parameter.
+        x (array-like): Solution variable.
+        z (array-like): Auxiliary variables :math:`\mb{z}` at current
+          iteration.
+        z_old (array-like): Auxiliary variables :math:`\mb{z}` at
+          previous iteration.
+        u (array-like): Scaled Lagrange multipliers :math:`\mb{u}` at
+           current iteration.
+        u_old (array-like): Scaled Lagrange multipliers :math:`\mb{u}` at
+           previous iteration.
+    """
+
+    def __init__(
+        self,
+        f: Functional,
+        g: Functional,
+        rho: float,
+        mu: float,
+        nu: float,
+        xshape: Union[Shape, BlockShape],
+        zshape: Union[Shape, BlockShape],
+        ushape: Union[Shape, BlockShape],
+        xdtype: DType,
+        zdtype: DType,
+        udtype: DType,
+        x0: Optional[Union[JaxArray, BlockArray]] = None,
+        z0: Optional[Union[JaxArray, BlockArray]] = None,
+        u0: Optional[Union[JaxArray, BlockArray]] = None,
+        fast_dual_residual: bool = True,
+        **kwargs,
+    ):
+        r"""Initialize a :class:`ProximalADMMBase` object.
+
+        Args:
+            f: Functional :math:`f` (usually a loss function).
+            g: Functional :math:`g`.
+            rho: Penalty parameter.
+            mu: First algorithm parameter.
+            nu: Second algorithm parameter.
+            xshape: Shape of variable :math:`\mb{x}`.
+            zshape: Shape of variable :math:`\mb{z}`.
+            ushape: Shape of variable :math:`\mb{u}`.
+            xdtype: Dtype of variable :math:`\mb{x}`.
+            zdtype: Dtype of variable :math:`\mb{z}`.
+            udtype: Dtype of variable :math:`\mb{u}`.
+            x0: Initial value for :math:`\mb{x}`. If ``None``, defaults
+                to an array of zeros.
+            z0: Initial value for :math:`\mb{z}`. If ``None``, defaults
+                to an array of zeros.
+            u0: Initial value for :math:`\mb{u}`. If ``None``, defaults
+                to an array of zeros.
+            fast_dual_residual: Flag indicating whether to use fast
+                approximation to the dual residual, or a slower but more
+                accurate calculation.
+            **kwargs: Additional optional parameters handled by
+                initializer of base class :class:`.Optimizer`.
+        """
+        self.f: Functional = f
+        self.g: Functional = g
+
+        self.rho: float = rho
+        self.mu: float = mu
+        self.nu: float = nu
+        self.fast_dual_residual: bool = fast_dual_residual
+
+        if x0 is None:
+            x0 = snp.zeros(xshape, dtype=xdtype)
+        self.x = ensure_on_device(x0)
+        if z0 is None:
+            z0 = snp.zeros(zshape, dtype=zdtype)
+        self.z = ensure_on_device(z0)
+        self.z_old = self.z
+        if u0 is None:
+            u0 = snp.zeros(ushape, dtype=udtype)
+        self.u = ensure_on_device(u0)
+        self.u_old = self.u
+
+        super().__init__(**kwargs)
+
+    def _objective_evaluatable(self):
+        """Determine whether the objective function can be evaluated."""
+        return self.f.has_eval and self.g.has_eval
+
+    def _itstat_extra_fields(self):
+        """Define linearized ADMM-specific iteration statistics fields."""
+        itstat_fields = {"Prml Rsdl": "%9.3e", "Dual Rsdl": "%9.3e"}
+        itstat_attrib = ["norm_primal_residual()", "norm_dual_residual()"]
+        return itstat_fields, itstat_attrib
+
+    def minimizer(self):
+        """Return current estimate of the functional mimimizer."""
+        return self.x
+
+    def objective(
+        self,
+        x: Optional[Union[JaxArray, BlockArray]] = None,
+        z: Optional[List[Union[JaxArray, BlockArray]]] = None,
+    ) -> float:
+        r"""Evaluate the objective function.
+
+        Evaluate the objective function
+
+        .. math::
+            f(\mb{x}) + g(\mb{z}) \;.
+
+        Args:
+            x: Point at which to evaluate objective function. If
+               ``None``, the objective is evaluated at the current
+               iterate :code:`self.x`.
+            z: Point at which to evaluate objective function. If
+               ``None``, the objective is evaluated at the current
+               iterate :code:`self.z`.
+
+        Returns:
+            scalar: Current value of the objective function.
+        """
+        if (x is None) != (z is None):
+            raise ValueError("Both or neither of x and z must be supplied")
+        if x is None:
+            x = self.x
+            z = self.z
+        return self.f(x) + self.g(z)
+
+
+class ProximalADMM(ProximalADMMBase):
     r"""Proximal alternating direction method of multipliers.
 
     |
@@ -69,27 +201,9 @@ class ProximalADMM:
 
 
     Attributes:
-        f (:class:`.Functional`): Functional :math:`f` (usually a
-           :class:`.Loss`).
-        g (:class:`.Functional`): Functional :math:`g`.
         A (:class:`.LinearOperator`): :math:`A` linear operator.
         B (:class:`.LinearOperator`): :math:`B` linear operator.
         c (array-like): constant :math:`\mb{c}`.
-        itnum (int): Iteration counter.
-        maxiter (int): Number of linearized ADMM outer-loop iterations.
-        timer (:class:`.Timer`): Iteration timer.
-        rho (scalar): Penalty parameter.
-        mu (scalar): First algorithm parameter.
-        nu (scalar): Second algorithm parameter.
-        x (array-like): Solution variable.
-        z (array-like): Auxiliary variables :math:`\mb{z}` at current
-          iteration.
-        z_old (array-like): Auxiliary variables :math:`\mb{z}` at
-          previous iteration.
-        u (array-like): Scaled Lagrange multipliers :math:`\mb{u}` at
-           current iteration.
-        u_old (array-like): Scaled Lagrange multipliers :math:`\mb{u}` at
-           previous iteration.
     """
 
     def __init__(
@@ -97,17 +211,16 @@ class ProximalADMM:
         f: Functional,
         g: Functional,
         A: LinearOperator,
-        B: Optional[LinearOperator],
         rho: float,
         mu: float,
         nu: float,
+        B: Optional[LinearOperator] = None,
         c: Optional[Union[float, JaxArray, BlockArray]] = None,
         x0: Optional[Union[JaxArray, BlockArray]] = None,
         z0: Optional[Union[JaxArray, BlockArray]] = None,
         u0: Optional[Union[JaxArray, BlockArray]] = None,
-        maxiter: int = 100,
         fast_dual_residual: bool = True,
-        itstat_options: Optional[dict] = None,
+        **kwargs,
     ):
         r"""Initialize a :class:`ProximalADMM` object.
 
@@ -115,11 +228,11 @@ class ProximalADMM:
             f: Functional :math:`f` (usually a loss function).
             g: Functional :math:`g`.
             A: Linear operator :math:`A`.
-            B: Linear operator :math:`B` (if ``None``, :math:`B = -I`
-               where :math:`I` is the identity operator).
             rho: Penalty parameter.
             mu: First algorithm parameter.
             nu: Second algorithm parameter.
+            B: Linear operator :math:`B` (if ``None``, :math:`B = -I`
+               where :math:`I` is the identity operator).
             c: Constant :math:`\mb{c}`. If ``None``, defaults to zero.
             x0: Starting value for :math:`\mb{x}`. If ``None``, defaults
                 to an array of zeros.
@@ -127,23 +240,12 @@ class ProximalADMM:
                 to an array of zeros.
             u0: Starting value for :math:`\mb{u}`. If ``None``, defaults
                 to an array of zeros.
-            maxiter: Number of main algorithm iterations. Default: 100.
             fast_dual_residual: Flag indicating whether to use fast
                 approximation to the dual residual, or a slower but more
                 accurate calculation.
-            itstat_options: A dict of named parameters to be passed to
-                the :class:`.diagnostics.IterationStats` initializer. The
-                dict may also include an additional key "itstat_func"
-                with the corresponding value being a function with two
-                parameters, an integer and a :class:`ProximalADMM`
-                object, responsible for constructing a tuple ready for
-                insertion into the :class:`.diagnostics.IterationStats`
-                object. If ``None``, default values are used for the dict
-                entries, otherwise the default dict is updated with the
-                dict specified by this parameter.
+            **kwargs: Additional optional parameters handled by
+                initializer of base class :class:`.Optimizer`.
         """
-        self.f: Functional = f
-        self.g: Functional = g
         self.A: LinearOperator = A
         if B is None:
             self.B = -Identity(self.A.output_shape, self.A.output_dtype)
@@ -153,95 +255,25 @@ class ProximalADMM:
             self.c = 0.0
         else:
             self.c = c
-        self.rho: float = rho
-        self.mu: float = mu
-        self.nu: float = nu
-        self.itnum: int = 0
-        self.maxiter: int = maxiter
-        self.fast_dual_residual: bool = fast_dual_residual
-        self.timer: Timer = Timer()
 
-        if x0 is None:
-            x0 = snp.zeros(self.A.input_shape, dtype=self.A.input_dtype)
-        self.x = ensure_on_device(x0)
-        if z0 is None:
-            z0 = snp.zeros(self.B.input_shape, dtype=self.B.input_dtype)
-        self.z = ensure_on_device(z0)
-        self.z_old = self.z
-        if u0 is None:
-            u0 = snp.zeros(self.A.output_shape, dtype=self.A.output_dtype)
-        self.u = ensure_on_device(u0)
-        self.u_old = self.u
-
-        self._itstat_init(itstat_options)
-
-    def _itstat_init(self, itstat_options: Optional[dict] = None):
-        """Initialize iteration statistics mechanism.
-
-        Args:
-           itstat_options: A dict of named parameters to be passed to
-                the :class:`.diagnostics.IterationStats` initializer. The
-                dict may also include an additional key "itstat_func"
-                with the corresponding value being a function with two
-                parameters, an integer and a :class:`PDHG` object,
-                responsible for constructing a tuple ready for insertion
-                into the :class:`.diagnostics.IterationStats` object. If
-                ``None``, default values are used for the dict entries,
-                otherwise the default dict is updated with the dict
-                specified by this parameter.
-        """
-        # iteration number and time fields
-        itstat_fields = {
-            "Iter": "%d",
-            "Time": "%8.2e",
-        }
-        itstat_attrib = ["itnum", "timer.elapsed()"]
-        # objective function can be evaluated if 'g' function can be evaluated
-        if self.g.has_eval:
-            itstat_fields.update({"Objective": "%9.3e"})
-            itstat_attrib.append("objective()")
-        # primal and dual residual fields
-        itstat_fields.update({"Prml Rsdl": "%9.3e", "Dual Rsdl": "%9.3e"})
-        itstat_attrib.extend(["norm_primal_residual()", "norm_dual_residual()"])
-
-        self.itstat_insert_func, self.itstat_object = itstat_func_and_object(
-            itstat_fields, itstat_attrib, itstat_options
+        super().__init__(
+            f,
+            g,
+            rho,
+            mu,
+            nu,
+            self.A.input_shape,
+            self.B.input_shape,
+            self.A.output_shape,
+            self.A.input_dtype,
+            self.B.input_dtype,
+            self.A.output_dtype,
+            x0=x0,
+            z0=z0,
+            u0=u0,
+            fast_dual_residual=fast_dual_residual,
+            **kwargs,
         )
-
-    def objective(
-        self,
-        x: Optional[Union[JaxArray, BlockArray]] = None,
-        z: Optional[List[Union[JaxArray, BlockArray]]] = None,
-    ) -> float:
-        r"""Evaluate the objective function.
-
-        Evaluate the objective function
-
-        .. math::
-            f(\mb{x}) + g(\mb{z}) \;.
-
-
-        Args:
-            x: Point at which to evaluate objective function. If
-               ``None``, the objective is evaluated at the current
-               iterate :code:`self.x`.
-            z: Point at which to evaluate objective function. If
-               ``None``, the objective is evaluated at the current
-               iterate :code:`self.z`.
-
-        Returns:
-            scalar: Current value of the objective function.
-        """
-        if (x is None) != (z is None):
-            raise ValueError("Both or neither of x and z must be supplied")
-        if x is None:
-            x = self.x
-            z = self.z
-        out = 0.0
-        if self.f:
-            out += self.f(x)
-        out += self.g(z)
-        return out
 
     def norm_primal_residual(
         self,
@@ -313,36 +345,6 @@ class ProximalADMM:
         self.u_old = self.u
         self.u = self.u + self.A(self.x) + self.B(self.z) - self.c
 
-    def solve(
-        self,
-        callback: Optional[Callable[[ProximalADMM], None]] = None,
-    ) -> Union[JaxArray, BlockArray]:
-        r"""Initialize and run the optimization algorithm.
-
-        Initialize and run the opimization algorithm for a total of
-        `self.maxiter` iterations.
-
-        Args:
-            callback: An optional callback function, taking an a single
-              argument of type :class:`ProximalADMM`, that is called
-              at the end of every iteration.
-
-        Returns:
-            Computed solution.
-        """
-        self.timer.start()
-        for self.itnum in range(self.itnum, self.itnum + self.maxiter):
-            self.step()
-            self.itstat_object.insert(self.itstat_insert_func(self))
-            if callback:
-                self.timer.stop()
-                callback(self)
-                self.timer.start()
-        self.timer.stop()
-        self.itnum += 1
-        self.itstat_object.end()
-        return self.x
-
     @staticmethod
     def estimate_parameters(
         A: LinearOperator,
@@ -389,7 +391,7 @@ class ProximalADMM:
             return (factor * mu, factor * nu)
 
 
-class NonLinearPADMM(ProximalADMM):
+class NonLinearPADMM(ProximalADMMBase):
     r"""Non-linear proximal alternating direction method of multipliers.
 
     |
@@ -432,25 +434,7 @@ class NonLinearPADMM(ProximalADMM):
 
 
     Attributes:
-        f (:class:`.Functional`): Functional :math:`f` (usually a
-           :class:`.Loss`).
-        g (:class:`.Functional`): Functional :math:`g`.
         H (:class:`.Function`): :math:`H` function.
-        itnum (int): Iteration counter.
-        maxiter (int): Number of linearized ADMM outer-loop iterations.
-        timer (:class:`.Timer`): Iteration timer.
-        rho (scalar): Penalty parameter.
-        mu (scalar): First algorithm parameter.
-        nu (scalar): Second algorithm parameter.
-        x (array-like): Solution variable.
-        z (array-like): Auxiliary variables :math:`\mb{z}` at current
-          iteration.
-        z_old (array-like): Auxiliary variables :math:`\mb{z}` at
-          previous iteration.
-        u (array-like): Scaled Lagrange multipliers :math:`\mb{u}` at
-           current iteration.
-        u_old (array-like): Scaled Lagrange multipliers :math:`\mb{u}` at
-           previous iteration.
     """
 
     def __init__(
@@ -464,9 +448,8 @@ class NonLinearPADMM(ProximalADMM):
         x0: Optional[Union[JaxArray, BlockArray]] = None,
         z0: Optional[Union[JaxArray, BlockArray]] = None,
         u0: Optional[Union[JaxArray, BlockArray]] = None,
-        maxiter: int = 100,
         fast_dual_residual: bool = True,
-        itstat_options: Optional[dict] = None,
+        **kwargs,
     ):
         r"""Initialize a :class:`NonLinearPADMM` object.
 
@@ -483,45 +466,32 @@ class NonLinearPADMM(ProximalADMM):
                 to an array of zeros.
             u0: Starting value for :math:`\mb{u}`. If ``None``, defaults
                 to an array of zeros.
-            maxiter: Number of main algorithm iterations. Default: 100.
             fast_dual_residual: Flag indicating whether to use fast
                 approximation to the dual residual, or a slower but more
                 accurate calculation.
-            itstat_options: A dict of named parameters to be passed to
-                the :class:`.diagnostics.IterationStats` initializer. The
-                dict may also include an additional key "itstat_func"
-                with the corresponding value being a function with two
-                parameters, an integer and a :class:`NonLinearPADMM`
-                object, responsible for constructing a tuple ready for
-                insertion into the :class:`.diagnostics.IterationStats`
-                object. If ``None``, default values are used for the dict
-                entries, otherwise the default dict is updated with the
-                dict specified by this parameter.
+            **kwargs: Additional optional parameters handled by
+                initializer of base class :class:`.Optimizer`.
         """
-        self.f: Functional = f
-        self.g: Functional = g
         self.H: Function = H
-        self.rho: float = rho
-        self.mu: float = mu
-        self.nu: float = nu
-        self.itnum: int = 0
-        self.maxiter: int = maxiter
-        self.fast_dual_residual: bool = fast_dual_residual
-        self.timer: Timer = Timer()
 
-        if x0 is None:
-            x0 = snp.zeros(H.input_shapes[0], dtype=H.input_dtypes[0])
-        self.x = ensure_on_device(x0)
-        if z0 is None:
-            z0 = snp.zeros(H.input_shapes[1], dtype=H.input_dtypes[1])
-        self.z = ensure_on_device(z0)
-        self.z_old = self.z
-        if u0 is None:
-            u0 = snp.zeros(H.output_shape, dtype=H.output_dtype)
-        self.u = ensure_on_device(u0)
-        self.u_old = self.u
-
-        self._itstat_init(itstat_options)
+        super().__init__(
+            f,
+            g,
+            rho,
+            mu,
+            nu,
+            H.input_shapes[0],
+            H.input_shapes[1],
+            H.output_shape,
+            H.input_dtypes[0],
+            H.input_dtypes[1],
+            H.output_dtype,
+            x0=x0,
+            z0=z0,
+            u0=u0,
+            fast_dual_residual=fast_dual_residual,
+            **kwargs,
+        )
 
     def norm_primal_residual(
         self,

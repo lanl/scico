@@ -115,7 +115,7 @@ solver_ladmm = LinearizedADMM(
     maxiter=200,
     itstat_options={"display": True, "period": 10},
 )
-print("Linearized ADMM solver")
+print("\nLinearized ADMM solver")
 solver_ladmm.solve()
 hist_ladmm = solver_ladmm.itstat_object.history(transpose=True)
 
@@ -128,7 +128,6 @@ solver_padmm = ProximalADMM(
     f=f,
     g=g,
     A=C,
-    B=None,
     rho=1e0,
     mu=mu,
     nu=nu,
@@ -136,7 +135,7 @@ solver_padmm = ProximalADMM(
     maxiter=200,
     itstat_options={"display": True, "period": 10},
 )
-print("Proximal ADMM solver")
+print("\nProximal ADMM solver")
 solver_padmm.solve()
 hist_padmm = solver_padmm.itstat_object.history(transpose=True)
 
@@ -154,7 +153,7 @@ solver_pdhg = PDHG(
     maxiter=200,
     itstat_options={"display": True, "period": 10},
 )
-print("PDHG solver")
+print("\nPDHG solver")
 solver_pdhg.solve()
 hist_pdhg = solver_pdhg.itstat_object.history(transpose=True)
 
