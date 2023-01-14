@@ -83,6 +83,9 @@ class Optimizer:
         Args:
             **kwargs: Optional parameter dict. Valid keys are:
 
+                maxiter:
+                  Maximum iterations on call to :meth:`solve`.
+
                 itstat_options:
                   A dict of named parameters to be passed to
                   the :class:`.diagnostics.IterationStats` initializer.
@@ -95,9 +98,6 @@ class Optimizer:
                   ``None``, default values are used for the dict entries,
                   otherwise the default dict is updated with the dict
                   specified by this parameter.
-
-                maxiter:
-                  Maximum iterations on call to :meth:`solve`.
         """
         itstat_options = kwargs.pop("itstat_options", None)
         self.maxiter: int = kwargs.pop("maxiter", 100)
