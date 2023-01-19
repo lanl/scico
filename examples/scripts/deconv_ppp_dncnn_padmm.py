@@ -10,8 +10,8 @@ PPP (with DnCNN) Image Deconvolution (Proximal ADMM Solver)
 
 This example demonstrates the solution of an image deconvolution problem
 using a proximal ADMM variant of the Plug-and-Play Priors (PPP) algorithm
-:cite:`venkatakrishnan-2013-plugandplay2`, with a non-blind variant of
-the DnCNN :cite:`zhang-2017-dncnn` denoiser.
+:cite:`venkatakrishnan-2013-plugandplay2`, with the DnCNN
+:cite:`zhang-2017-dncnn` denoiser.
 """
 
 import numpy as np
@@ -53,31 +53,30 @@ y = Ax + σ * noise
 Set up the problem to be solved. We want to minimize the functional
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
-  \|_2^2 + \lambda R(\mathbf{x}) \;$$
+  \|_2^2 + R(\mathbf{x}) \;$$
 
 where $R(\cdot)$ is a pseudo-functional having the DnCNN denoiser as its
-proximal operator. A slightly unusual splitting is used, including setting
-the $f$ functional to the $\lambda R(\cdot)$ term and the $g$ functional
-to the data fidelity term to allow the use of proximal ADMM, which avoids
-the need for conjugate gradient sub-iterations in the solver steps.
+proximal operator. A slightly unusual variable splitting is used,\
+including setting the $f$ functional to the $R(\cdot)$ term and the $g$
+functional to the data fidelity term to allow the use of proximal ADMM,
+which avoids the need for conjugate gradient sub-iterations in the solver
+steps.
 """
-λ = 9.0 / 255  # DnCNN denoiser sigma
-f = λ * functional.DnCNN(variant="6N")
+f = functional.DnCNN(variant="17M")
 g = loss.SquaredL2Loss(y=y)
 
 
 """
 Set up proximal ADMM solver.
 """
-ρ = 0.3  # ADMM penalty parameter
-maxiter = 12  # number of PADMM iterations
+ρ = 0.2  # ADMM penalty parameter
+maxiter = 10  # number of proximal ADMM iterations
 mu, nu = ProximalADMM.estimate_parameters(A)
 
 solver = ProximalADMM(
     f=f,
     g=g,
     A=A,
-    B=None,
     rho=ρ,
     mu=mu,
     nu=nu,
