@@ -18,8 +18,8 @@ from functools import partial
 import numpy as np
 
 import jax
+import jax.numpy as jnp
 from jax.dtypes import result_type
-from jax.interpreters.xla import DeviceArray
 from jax.scipy.signal import convolve
 
 import scico.numpy as snp
@@ -197,9 +197,9 @@ class ConvolveByX(LinearOperator):
         if x.ndim != len(input_shape):
             raise ValueError(f"x.ndim = {x.ndim} must equal len(input_shape) = {len(input_shape)}.")
 
-        if isinstance(x, DeviceArray):
+        if isinstance(x, jnp.ndarray):
             self.x = x
-        elif isinstance(x, np.ndarray):
+        elif isinstance(x, np.ndarray):  # TODO: this should not be handled at the LinOp level
             self.x = jax.device_put(x)
         else:
             raise TypeError(f"Expected np.ndarray or DeviceArray, got {type(x)}.")

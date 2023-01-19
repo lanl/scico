@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2022 by SCICO Developers
+# Copyright (C) 2021-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -11,7 +11,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import Callable, List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import scico.numpy as snp
 from scico.functional import Functional
@@ -20,12 +20,11 @@ from scico.numpy import BlockArray
 from scico.numpy.linalg import norm
 from scico.numpy.util import ensure_on_device
 from scico.typing import JaxArray
-from scico.util import Timer
 
-from ._common import itstat_func_and_object
+from ._common import Optimizer
 
 
-class LinearizedADMM:
+class LinearizedADMM(Optimizer):
     r"""Linearized alternating direction method of multipliers algorithm.
 
     |
@@ -73,9 +72,6 @@ class LinearizedADMM:
            :class:`.Loss`).
         g (:class:`.Functional`): Functional :math:`g`.
         C (:class:`.LinearOperator`): :math:`C` operator.
-        itnum (int): Iteration counter.
-        maxiter (int): Number of linearized ADMM outer-loop iterations.
-        timer (:class:`.Timer`): Iteration timer.
         mu (scalar): First algorithm parameter.
         nu (scalar): Second algorithm parameter.
         u (array-like): Scaled Lagrange multipliers :math:`\mb{u}` at
@@ -95,8 +91,7 @@ class LinearizedADMM:
         mu: float,
         nu: float,
         x0: Optional[Union[JaxArray, BlockArray]] = None,
-        maxiter: int = 100,
-        itstat_options: Optional[dict] = None,
+        **kwargs,
     ):
         r"""Initialize a :class:`LinearizedADMM` object.
 
@@ -108,27 +103,14 @@ class LinearizedADMM:
             nu: Second algorithm parameter.
             x0: Starting point for :math:`\mb{x}`. If ``None``, defaults
                 to an array of zeros.
-            maxiter: Number of linearized ADMM outer-loop iterations.
-                Default: 100.
-            itstat_options: A dict of named parameters to be passed to
-                the :class:`.diagnostics.IterationStats` initializer. The
-                dict may also include an additional key "itstat_func"
-                with the corresponding value being a function with two
-                parameters, an integer and a :class:`LinearizedADMM`
-                object, responsible for constructing a tuple ready for
-                insertion into the :class:`.diagnostics.IterationStats`
-                object. If ``None``, default values are used for the dict
-                entries, otherwise the default dict is updated with the
-                dict specified by this parameter.
+            **kwargs: Additional optional parameters handled by
+                initializer of base class :class:`.Optimizer`.
         """
         self.f: Functional = f
         self.g: Functional = g
         self.C: LinearOperator = C
         self.mu: float = mu
         self.nu: float = nu
-        self.itnum: int = 0
-        self.maxiter: int = maxiter
-        self.timer: Timer = Timer()
 
         if x0 is None:
             input_shape = C.input_shape
@@ -138,40 +120,21 @@ class LinearizedADMM:
         self.z, self.z_old = self.z_init(self.x)
         self.u = self.u_init(self.x)
 
-        self._itstat_init(itstat_options)
+        super().__init__(**kwargs)
 
-    def _itstat_init(self, itstat_options: Optional[dict] = None):
-        """Initialize iteration statistics mechanism.
+    def _objective_evaluatable(self):
+        """Determine whether the objective function can be evaluated."""
+        return self.f.has_eval and self.g.has_eval
 
-        Args:
-           itstat_options: A dict of named parameters to be passed to
-                the :class:`.diagnostics.IterationStats` initializer. The
-                dict may also include an additional key "itstat_func"
-                with the corresponding value being a function with two
-                parameters, an integer and a :class:`LinearizedADMM`
-                object, responsible for constructing a tuple ready for
-                insertion into the :class:`.diagnostics.IterationStats`
-                object. If ``None``, default values are used for the dict
-                entries, otherwise the default dict is updated with the
-                dict specified by this parameter.
-        """
-        # iteration number and time fields
-        itstat_fields = {
-            "Iter": "%d",
-            "Time": "%8.2e",
-        }
-        itstat_attrib = ["itnum", "timer.elapsed()"]
-        # objective function can be evaluated if 'g' function can be evaluated
-        if self.g.has_eval:
-            itstat_fields.update({"Objective": "%9.3e"})
-            itstat_attrib.append("objective()")
-        # primal and dual residual fields
-        itstat_fields.update({"Prml Rsdl": "%9.3e", "Dual Rsdl": "%9.3e"})
-        itstat_attrib.extend(["norm_primal_residual()", "norm_dual_residual()"])
+    def _itstat_extra_fields(self):
+        """Define linearized ADMM-specific iteration statistics fields."""
+        itstat_fields = {"Prml Rsdl": "%9.3e", "Dual Rsdl": "%9.3e"}
+        itstat_attrib = ["norm_primal_residual()", "norm_dual_residual()"]
+        return itstat_fields, itstat_attrib
 
-        self.itstat_insert_func, self.itstat_object = itstat_func_and_object(
-            itstat_fields, itstat_attrib, itstat_options
-        )
+    def minimizer(self):
+        """Return current estimate of the functional mimimizer."""
+        return self.x
 
     def objective(
         self,
@@ -203,11 +166,7 @@ class LinearizedADMM:
         if x is None:
             x = self.x
             z = self.z
-        out = 0.0
-        if self.f:
-            out += self.f(x)
-        out += self.g(z)
-        return out
+        return self.f(x) + self.g(z)
 
     def norm_primal_residual(self, x: Optional[Union[JaxArray, BlockArray]] = None) -> float:
         r"""Compute the :math:`\ell_2` norm of the primal residual.
@@ -308,33 +267,3 @@ class LinearizedADMM:
         Cx = self.C(self.x)
         self.z = self.g.prox(Cx + self.u, self.nu, v0=self.z)
         self.u = self.u + Cx - self.z
-
-    def solve(
-        self,
-        callback: Optional[Callable[[LinearizedADMM], None]] = None,
-    ) -> Union[JaxArray, BlockArray]:
-        r"""Initialize and run the linearized ADMM algorithm.
-
-        Initialize and run the linearized ADMM algorithm for a total of
-        `self.maxiter` iterations.
-
-        Args:
-            callback: An optional callback function, taking an a single
-              argument of type :class:`LinearizedADMM`, that is called
-              at the end of every iteration.
-
-        Returns:
-            Computed solution.
-        """
-        self.timer.start()
-        for self.itnum in range(self.itnum, self.itnum + self.maxiter):
-            self.step()
-            self.itstat_object.insert(self.itstat_insert_func(self))
-            if callback:
-                self.timer.stop()
-                callback(self)
-                self.timer.start()
-        self.timer.stop()
-        self.itnum += 1
-        self.itstat_object.end()
-        return self.x

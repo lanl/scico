@@ -18,8 +18,8 @@ from functools import partial, wraps
 import numpy as np
 
 import jax
+import jax.numpy as jnp
 from jax.dtypes import result_type
-from jax.interpreters.xla import DeviceArray
 
 import scico.numpy as snp
 from scico.typing import JaxArray
@@ -40,7 +40,7 @@ def _wrap_add_sub_matrix(func, op):
 
             raise ValueError(f"MatrixOperator shapes {a.shape} and {b.shape} do not match.")
 
-        if isinstance(b, (DeviceArray, np.ndarray)):
+        if isinstance(b, (jnp.ndarray, np.ndarray)):
             if a.matrix_shape == b.shape:
                 return MatrixOperator(op(a.A, b))
 
@@ -81,10 +81,10 @@ class MatrixOperator(LinearOperator):
         self.A: JaxArray  #: Dense array implementing this matrix
 
         # if A is an ndarray, make sure it gets converted to a DeviceArray
-        if isinstance(A, DeviceArray):
+        if isinstance(A, jnp.ndarray):
             self.A = A
         elif isinstance(A, np.ndarray):
-            self.A = jax.device_put(A)
+            self.A = jax.device_put(A)  # TODO: ensure_on_device?
         else:
             raise TypeError(f"Expected np.ndarray or DeviceArray, got {type(A)}.")
 
@@ -163,7 +163,7 @@ class MatrixOperator(LinearOperator):
 
             raise ValueError(f"Shapes {self.shape} and {other.shape} do not match.")
 
-        if isinstance(other, (DeviceArray, np.ndarray)):
+        if isinstance(other, (jnp.ndarray, np.ndarray)):
             if self.matrix_shape == other.shape:
                 return MatrixOperator(self.A * other)
 
@@ -185,7 +185,7 @@ class MatrixOperator(LinearOperator):
                 return MatrixOperator(self.A / other.A)
             raise ValueError(f"Shapes {self.shape} and {other.shape} do not match.")
 
-        if isinstance(other, (DeviceArray, np.ndarray)):
+        if isinstance(other, (jnp.ndarray, np.ndarray)):
             if self.matrix_shape == other.shape:
                 return MatrixOperator(self.A / other)
 
@@ -199,7 +199,7 @@ class MatrixOperator(LinearOperator):
         if np.isscalar(other):
             return MatrixOperator(other / self.A)
 
-        if isinstance(other, (DeviceArray, np.ndarray)):
+        if isinstance(other, (jnp.ndarray, np.ndarray)):
             if self.matrix_shape == other.shape:
                 return MatrixOperator(other / self.A)
 
