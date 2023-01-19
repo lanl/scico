@@ -50,17 +50,25 @@ y = Ax + σ * noise
 
 
 """
-Create DnCNN denoiser pseudo-functional.
+Set up the problem to be solved. We want to minimize the functional
+
+  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
+  \|_2^2 + R(\mathbf{x}) \;$$
+
+where $R(\cdot)$ is a pseudo-functional having the DnCNN denoiser as its
+proximal operator. The problem is solved via ADMM, using the standard
+variable splitting for problems of this form, which requires the use of
+conjugate gradient sub-iterations in the ADMM step that involves the data
+fidelity term.
 """
+f = loss.SquaredL2Loss(y=y, A=A)
 g = functional.DnCNN("17M")
+C = linop.Identity(x_gt.shape)
 
 
 """
 Set up ADMM solver.
 """
-f = loss.SquaredL2Loss(y=y, A=A)
-C = linop.Identity(x_gt.shape)
-
 ρ = 0.2  # ADMM penalty parameter
 maxiter = 10  # number of ADMM iterations
 
