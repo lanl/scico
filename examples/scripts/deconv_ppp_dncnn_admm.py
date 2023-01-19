@@ -10,7 +10,7 @@ PPP (with DnCNN) Image Deconvolution (ADMM Solver)
 
 This example demonstrates the solution of an image deconvolution problem
 using the ADMM Plug-and-Play Priors (PPP) algorithm
-:cite:`venkatakrishnan-2013-plugandplay2`, with the DnCNN
+:cite:`venkatakrishnan-2013-plugandplay2` with the DnCNN
 :cite:`zhang-2017-dncnn` denoiser.
 """
 
