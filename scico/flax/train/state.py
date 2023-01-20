@@ -22,6 +22,7 @@ from .typed_dict import ConfigDict, ModelVarDict
 ModuleDef = Any
 KeyArray = Union[Array, jax.random.PRNGKeyArray]
 PyTree = Any
+ArrayTree = optax.Params
 
 
 class TrainState(train_state.TrainState):
@@ -107,7 +108,7 @@ def create_basic_train_state(
         )
     else:
         raise NotImplementedError(
-            f"Optimizer specified {config['opt_type']} has not been included in SCICO"
+            f"Optimizer specified {config['opt_type']} has not been included in SCICO."
         )
 
     state = TrainState.create(
