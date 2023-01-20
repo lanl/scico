@@ -173,4 +173,36 @@ ax.set_ylim([config["lambda"].lower, config["lambda"].upper])
 fig.show()
 
 
+"""
+Plot parameter values visited during parameter search and corresponding
+reconstruction PSNRs.The best point in the parameter space is indicated
+in red.
+"""
+𝜌 = [t.config["rho"] for t in analysis.trials]
+𝜆 = [t.config["lambda"] for t in analysis.trials]
+psnr = [t.metric_analysis["psnr"]["max"] for t in analysis.trials]
+𝜌, 𝜆, psnr = zip(*filter(lambda x: x[2] >= 18.0, zip(𝜌, 𝜆, psnr)))
+fig, ax = plot.subplots(figsize=(10, 8))
+sc = ax.scatter(𝜌, 𝜆, c=psnr, cmap=plot.cm.plasma_r)
+fig.colorbar(sc)
+plot.plot(
+    best_config["lambda"],
+    best_config["rho"],
+    ptyp="loglog",
+    lw=0,
+    ms=12.0,
+    marker="2",
+    mfc="red",
+    mec="red",
+    fig=fig,
+    ax=ax,
+)
+ax.set_xscale("log")
+ax.set_yscale("log")
+ax.set_xlabel(r"$\rho$")
+ax.set_ylabel(r"$\lambda$")
+ax.set_title("PSNR at each sample location\n(values below 18 dB omitted)")
+fig.show()
+
+
 input("\nWaiting for input to close figures and exit")
