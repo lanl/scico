@@ -33,11 +33,9 @@ else:
     from bm4d.profiles import BM4DProfile  # type: ignore
 
 import scico.numpy as snp
-from scico._flax import DnCNNNet, load_weights
 from scico.data import _flax_data_path
+from scico.flax import DnCNNNet, FlaxMap, load_weights
 from scico.typing import JaxArray
-
-from ._flax import FlaxMap
 
 
 def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False, profile: Union[BM3DProfile, str] = "np"):

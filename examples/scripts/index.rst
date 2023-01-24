@@ -17,6 +17,9 @@ Computed Tomography
    - ct_svmbir_ppp_bm3d_admm_cg.py
    - ct_svmbir_ppp_bm3d_admm_prox.py
    - ct_fan_svmbir_ppp_bm3d_admm_prox.py
+   - ct_astra_modl_train_foam2.py
+   - ct_astra_odp_train_foam2.py
+   - ct_astra_unet_train_foam2.py
 
 
 Deconvolution
@@ -33,6 +36,8 @@ Deconvolution
    - deconv_ppp_dncnn_admm.py
    - deconv_ppp_dncnn_padmm.py
    - deconv_ppp_bm4d_admm.py
+   - deconv_modl_train_foam1.py
+   - deconv_odp_train_foam1.py
 
 
 Sparse Coding
@@ -56,7 +61,10 @@ Miscellaneous
    - denoise_cplx_tv_pdhg.py
    - denoise_dncnn_universal.py
    - video_rpca_admm.py
-
+   - ct_astra_datagen_foam2.py
+   - deconv_datagen_bsds.py
+   - deconv_datagen_foam1.py
+   - denoise_datagen_bsds.py
 
 
 Organized by Regularization
@@ -106,6 +114,21 @@ Sparsity
    - sparsecode_poisson_pgm.py
    - video_rpca_admm.py
 
+
+Machine Learning
+^^^^^^^^^^^^^^^^
+
+   - ct_astra_datagen_foam2.py
+   - ct_astra_modl_train_foam2.py
+   - ct_astra_odp_train_foam2.py
+   - ct_astra_unet_train_foam2.py
+   - deconv_datagen_bsds.py
+   - deconv_datagen_foam1.py
+   - deconv_modl_train_foam1.py
+   - deconv_odp_train_foam1.py
+   - denoise_datagen_bsds.py
+   - denoise_dncnn_train_bsds.py
+   - denoise_dncnn_universal.py
 
 
 Organized by Optimization Algorithm

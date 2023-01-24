@@ -30,6 +30,9 @@ Computed Tomography
    examples/ct_svmbir_ppp_bm3d_admm_cg
    examples/ct_svmbir_ppp_bm3d_admm_prox
    examples/ct_fan_svmbir_ppp_bm3d_admm_prox
+   examples/ct_astra_modl_train_foam2
+   examples/ct_astra_odp_train_foam2
+   examples/ct_astra_unet_train_foam2
 
 
 Deconvolution
@@ -49,6 +52,8 @@ Deconvolution
    examples/deconv_ppp_dncnn_admm
    examples/deconv_ppp_dncnn_padmm
    examples/deconv_ppp_bm4d_admm
+   examples/deconv_modl_train_foam1
+   examples/deconv_odp_train_foam1
 
 
 Sparse Coding
@@ -78,7 +83,10 @@ Miscellaneous
    examples/denoise_cplx_tv_pdhg
    examples/denoise_dncnn_universal
    examples/video_rpca_admm
-
+   examples/ct_astra_datagen_foam2
+   examples/deconv_datagen_bsds
+   examples/deconv_datagen_foam1
+   examples/denoise_datagen_bsds
 
 
 Organized by Regularization
@@ -140,6 +148,24 @@ Sparsity
    examples/sparsecode_poisson_pgm
    examples/video_rpca_admm
 
+
+Machine Learning
+^^^^^^^^^^^^^^^^
+
+.. toctree::
+   :maxdepth: 1
+
+   examples/ct_astra_datagen_foam2
+   examples/ct_astra_modl_train_foam2
+   examples/ct_astra_odp_train_foam2
+   examples/ct_astra_unet_train_foam2
+   examples/deconv_datagen_bsds
+   examples/deconv_datagen_foam1
+   examples/deconv_modl_train_foam1
+   examples/deconv_odp_train_foam1
+   examples/denoise_datagen_bsds
+   examples/denoise_dncnn_train_bsds
+   examples/denoise_dncnn_universal
 
 
 Organized by Optimization Algorithm
