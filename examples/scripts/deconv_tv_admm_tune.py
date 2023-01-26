@@ -5,8 +5,8 @@
 # with the package.
 
 r"""
-Image Deconvolution Parameter Tuning
-====================================
+Parameter Tuning for Image Deconvolution with TV Regularization (ADMM Solver)
+=============================================================================
 
 This example demonstrates the use of
 [scico.ray.tune](../_autosummary/scico.ray.tune.rst) to tune parameters
