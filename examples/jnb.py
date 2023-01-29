@@ -100,7 +100,7 @@ def execute_notebook(fname):
 
     with open(fname) as f:
         nb = nbformat.read(f, as_version=4)
-    ep = ExecutePreprocessor()
+    ep = ExecutePreprocessor(timeout=None)
     try:
         t0 = timer()
         out = ep.preprocess(nb)
