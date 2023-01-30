@@ -197,7 +197,7 @@ class IterationStats:
             inserted iterations.
         """
 
-        if transpose:
+        if transpose and self.iterations:
             return self.IterTuple(
                 *[
                     [self.iterations[m][n] for m in range(len(self.iterations))]
