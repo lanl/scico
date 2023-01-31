@@ -118,7 +118,7 @@ train_conf: sflax.ConfigDict = {
     "opt_type": "SGD",
     "momentum": 0.9,
     "batch_size": 16,
-    "num_epochs": 5,
+    "num_epochs": 20,
     "base_learning_rate": 1e-2,
     "warmup_epochs": 0,
     "log_every_steps": 40,
@@ -223,7 +223,7 @@ else:
     model.cg_iter = 8
     train_conf["base_learning_rate"] = 1e-2
     train_conf["opt_type"] = "ADAM"
-    train_conf["num_epochs"] = 200
+    train_conf["num_epochs"] = 150
     train_conf["workdir"] = workdir2
     # Construct training object, include current model parameters
     trainer = sflax.BasicFlaxTrainer(
