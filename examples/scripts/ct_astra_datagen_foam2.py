@@ -4,14 +4,13 @@
 # and user license can be found in the 'LICENSE.txt' file distributed
 # with the package.
 
-r"""
+"""
 CT Data Generation for NN Training
 ==================================
 
-This example demonstrates how to generate CT
-synthetic data for training neural network models.
-If desired, a basic reconstruction can be generated
-using filtered back projection (FBP).
+This example demonstrates how to generate CT synthetic data for
+training neural network models. If desired, a basic reconstruction can
+be generated using filtered back projection (FBP).
 """
 
 import numpy as np
@@ -29,6 +28,7 @@ nimg = train_nimg + test_nimg
 n_projection = 45  # CT views
 
 trdt, ttdt = load_ct_data(train_nimg, test_nimg, N, n_projection, verbose=True)
+
 
 """
 Plot randomly selected sample.
@@ -73,5 +73,6 @@ fig.colorbar(
     label="Arbitrary Units",
 )
 fig.show()
+
 
 input("\nWaiting for input to close figures and exit")

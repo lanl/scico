@@ -4,13 +4,13 @@
 # and user license can be found in the 'LICENSE.txt' file distributed
 # with the package.
 
-r"""
+"""
 CT Training and Reconstructions with UNet
 =========================================
 
-This example demonstrates the training and application of UNet
-to denoise previously filtered back projections (FBP) for CT
-reconstruction inspired by :cite:`jin-2017-unet`.
+This example demonstrates the training and application of UNet to denoise
+previously filtered back projections (FBP) for CT reconstruction inspired
+by :cite:`jin-2017-unet`.
 """
 
 import os
@@ -25,8 +25,8 @@ from scico import metric, plot
 from scico.flax.examples import load_ct_data
 
 """
-Prepare parallel processing. Set an arbitrary processor
-count (only applies if GPU is not available).
+Prepare parallel processing. Set an arbitrary processor count (only
+applies if GPU is not available).
 """
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 platform = jax.lib.xla_bridge.get_backend().platform
@@ -44,6 +44,7 @@ n_projection = 45  # CT views
 
 trdt, ttdt = load_ct_data(train_nimg, test_nimg, N, n_projection, verbose=True)
 
+
 """
 Build training and testing structures. Inputs are the filter
 back-projected sinograms and outpus are the original generated foams.
@@ -52,16 +53,18 @@ Keep training and testing partitions.
 train_ds = {"image": trdt["fbp"], "label": trdt["img"]}
 test_ds = {"image": ttdt["fbp"], "label": ttdt["img"]}
 
+
 """
 Define configuration dictionary for model and training loop.
 
-Parameters have been selected for demonstration purposes and relatively short training.
-The model depth controls the levels of pooling in the U-Net model.
-The block depth controls the number of layers at each level of depth.
-The number of filters controls the number of filters at the input and output levels and doubles (halves)
-at each pooling (unpooling) operation.
-Better performance may be obtained by increasing depth, block depth, number of filters or training epochs,
-but may require longer training times.
+Parameters have been selected for demonstration purposes and relatively
+short training. The model depth controls the levels of pooling in the
+U-Net model. The block depth controls the number of layers at each level
+of depth. The number of filters controls the number of filters at the
+input and output levels and doubles (halves) at each pooling (unpooling)
+operation. Better performance may be obtained by increasing depth, block
+depth, number of filters or training epochs, but may require longer
+training times.
 """
 # model configuration
 model_conf = {
@@ -82,6 +85,7 @@ train_conf: sflax.ConfigDict = {
     "log": True,
 }
 
+
 """
 Construct UNet model.
 """
@@ -92,6 +96,7 @@ model = sflax.UNet(
     num_filters=model_conf["num_filters"],
     block_depth=model_conf["block_depth"],
 )
+
 
 """
 Run training loop.
@@ -124,18 +129,21 @@ output = fmap(test_ds["image"])
 time_eval = time() - start_time
 output = jax.numpy.clip(output, a_min=0, a_max=1.0)
 
+
 """
-Compare trained model in terms of reconstruction time
-and data fidelity.
+Compare trained model in terms of reconstruction time and data fidelity.
 """
 snr_eval = metric.snr(test_ds["label"], output)
 psnr_eval = metric.psnr(test_ds["label"], output)
 print(
-    f"{'UNet training':15s}{'epochs:':2s}{train_conf['num_epochs']:>5d}{'':21s}{'time[s]:':10s}{time_train:>7.2f}"
+    f"{'UNet training':15s}{'epochs:':2s}{train_conf['num_epochs']:>5d}"
+    f"{'':21s}{'time[s]:':10s}{time_train:>7.2f}"
 )
 print(
-    f"{'UNet testing':15s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}{'':3s}{'time[s]:':10s}{time_eval:>7.2f}"
+    f"{'UNet testing':15s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}"
+    f"{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}{'':3s}{'time[s]:':10s}{time_eval:>7.2f}"
 )
+
 
 """
 Plot comparison.
@@ -171,8 +179,10 @@ cax = divider.append_axes("right", size="5%", pad=0.2)
 fig.colorbar(ax[2].get_images()[0], cax=cax, label="arbitrary units")
 fig.show()
 
+
 """
-Plot convergence statistics. Statistics only generated if a training cycle was done (i.e. not reading final epoch results from checkpoint).
+Plot convergence statistics. Statistics only generated if a training
+cycle was done (i.e. not reading final epoch results from checkpoint).
 """
 if stats_object is not None:
     hist = stats_object.history(transpose=True)
@@ -199,5 +209,6 @@ if stats_object is not None:
         ax=ax[1],
     )
     fig.show()
+
 
 input("\nWaiting for input to close figures and exit")

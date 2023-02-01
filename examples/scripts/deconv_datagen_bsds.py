@@ -8,8 +8,9 @@ r"""
 Blurred Data Generation (Natural Images) for NN Training
 ========================================================
 
-This example demonstrates how to generate blurred image data for training neural network models
-for deconvolution (deblurring). The original images are part of the [BSDS500 dataset]
+This example demonstrates how to generate blurred image data for
+training neural network models for deconvolution (deblurring). The
+original images are part of the [BSDS500 dataset]
 (http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/BSR/)
 provided by the Berkeley Segmentation Dataset and Benchmark project.
 """
@@ -31,6 +32,7 @@ blur_sigma = 5  # Gaussian blur kernel parameter
 opBlur = PaddedCircularConvolve(output_size, channels, blur_shape, blur_sigma)
 
 opBlur_vmap = vmap(opBlur)  # for batch processing
+
 
 """
 Read data from cache or generate if not available.
@@ -59,6 +61,7 @@ train_ds, test_ds = load_image_data(
     stride=stride,
     augment=augment,
 )
+
 
 """
 Plot randomly selected sample.
@@ -99,5 +102,6 @@ fig.colorbar(
     pad=0.05,
 )
 fig.show()
+
 
 input("\nWaiting for input to close figures and exit")
