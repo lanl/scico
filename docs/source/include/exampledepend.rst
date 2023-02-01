@@ -14,4 +14,16 @@ which should be installed via conda:
 
 The dependencies can also be installed individually as required.
 
+
+Run Time
+--------
+
+Most of these examples have been constructed with sufficiently small test
+problems to allow them to run to completion within 5 minutes or less on a
+reasonable workstation. Note, however, that it was not feasible to
+construct meaningful examples of the training of some of the deep learning
+algorithms that complete within a relatively short time; the examples
+"CT Training and Reconstructions with MoDL" and "CT Training and Reconstructions with ODP" in particular are much slower, and can require
+multiple hours to run on a workstation with multiple GPUs.
+
 |
