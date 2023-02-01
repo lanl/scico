@@ -16,7 +16,7 @@ problem.
 The source images are foam phantoms generated with xdesign.
 
 A class
-[flax.ODPNet](../_autosummary/scico.flax.rst#scico.flax.ODPNet)
+[scico.flax.ODPNet](../_autosummary/scico.flax.rst#scico.flax.ODPNet)
 implements the ODP architecture, which solves the optimization problem
 
 $$\mathrm{argmin}_{\mathbf{x}} \; \| A \mathbf{x} - \mathbf{y} \|_2^2

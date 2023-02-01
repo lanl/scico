@@ -8,8 +8,9 @@ r"""
 Training of DnCNN for Denoising
 ===============================
 
-This example demonstrates the training and application of the DnCNN model from
-:cite:`zhang-2017-dncnn` to denoise images that have been corrupted with additive Gaussian noise.
+This example demonstrates the training and application of the DnCNN model
+from :cite:`zhang-2017-dncnn` to denoise images that have been corrupted
+with additive Gaussian noise.
 """
 
 import os
@@ -26,8 +27,8 @@ from scico import metric, plot
 from scico.flax.examples import load_image_data
 
 """
-Prepare parallel processing. Set an arbitrary processor
-count (only applies if GPU is not available).
+Prepare parallel processing. Set an arbitrary processor count (only
+applies if GPU is not available).
 """
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 platform = jax.lib.xla_bridge.get_backend().platform
@@ -60,10 +61,14 @@ train_ds, test_ds = load_image_data(
     stride=stride,
 )
 
+
 """
 Define configuration dictionary for model and training loop.
 
-Parameters have been selected for demonstration purposes and relatively short training. The depth of the model has been reduced to 6, instead of the 17 of the original model. The suggested settings can be found in the original paper.
+Parameters have been selected for demonstration purposes and relatively
+short training. The depth of the model has been reduced to 6, instead of
+the 17 of the original model. The suggested settings can be found in the
+original paper.
 """
 # model configuration
 model_conf = {
@@ -82,6 +87,7 @@ train_conf: sflax.ConfigDict = {
     "log": True,
 }
 
+
 """
 Construct DnCNN model.
 """
@@ -91,6 +97,7 @@ model = sflax.DnCNNNet(
     channels=channels,
     num_filters=model_conf["num_filters"],
 )
+
 
 """
 Run training loop.
@@ -111,6 +118,7 @@ start_time = time()
 modvar, stats_object = trainer.train()
 time_train = time() - start_time
 
+
 """
 Evaluate on testing data.
 """
@@ -122,20 +130,23 @@ time_eval = time() - start_time
 output = np.clip(output, a_min=0, a_max=1.0)
 
 """
-Compare trained model in terms of reconstruction time
-and data fidelity.
+Compare trained model in terms of reconstruction time and data fidelity.
 """
 snr_eval = metric.snr(test_ds["label"][:test_patches], output)
 psnr_eval = metric.psnr(test_ds["label"][:test_patches], output)
 print(
-    f"{'DnCNNNet training':18s}{'epochs:':2s}{train_conf['num_epochs']:>5d}{'':21s}{'time[s]:':10s}{time_train:>7.2f}"
+    f"{'DnCNNNet training':18s}{'epochs:':2s}{train_conf['num_epochs']:>5d}"
+    f"{'':21s}{'time[s]:':10s}{time_train:>7.2f}"
 )
 print(
-    f"{'DnCNNNet testing':18s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}{'':3s}{'time[s]:':10s}{time_eval:>7.2f}"
+    f"{'DnCNNNet testing':18s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}"
+    f"{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}{'':3s}{'time[s]:':10s}{time_eval:>7.2f}"
 )
 
+
 """
-Plot comparison. Note that patches have small sizes, thus, plots may correspond to unidentifiable fragments.
+Plot comparison. Note that patches have small sizes, thus, plots may
+correspond to unidentifiable fragments.
 """
 np.random.seed(123)
 indx = np.random.randint(0, high=test_patches)
@@ -168,8 +179,10 @@ cax = divider.append_axes("right", size="5%", pad=0.2)
 fig.colorbar(ax[2].get_images()[0], cax=cax, label="arbitrary units")
 fig.show()
 
+
 """
-Plot convergence statistics. Statistics only generated if a training cycle was done (i.e. not reading final epoch results from checkpoint).
+Plot convergence statistics. Statistics only generated if a training
+cycle was done (i.e. not reading final epoch results from checkpoint).
 """
 if stats_object is not None:
     hist = stats_object.history(transpose=True)
@@ -196,5 +209,6 @@ if stats_object is not None:
         ax=ax[1],
     )
     fig.show()
+
 
 input("\nWaiting for input to close figures and exit")

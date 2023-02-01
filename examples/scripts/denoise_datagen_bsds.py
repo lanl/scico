@@ -4,13 +4,14 @@
 # and user license can be found in the 'LICENSE.txt' file distributed
 # with the package.
 
-r"""
+"""
 Noisy Data Generation for NN Training
 =====================================
 
-This example demonstrates how to generate noisy image data for training neural network
-models for denoising. The original images are part of the [BSDS500 dataset]
-(http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/BSR/)
+This example demonstrates how to generate noisy image data for
+training neural network models for denoising. The original images are
+part of the
+[BSDS500 dataset](http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/BSR/)
 provided by the Berkeley Segmentation Dataset and Benchmark project.
 """
 import numpy as np
@@ -43,8 +44,10 @@ train_ds, test_ds = load_image_data(
     stride=stride,
 )
 
+
 """
-Plot randomly selected sample. Note that patches have small sizes, thus, plots may correspond to unidentifiable fragments.
+Plot randomly selected sample. Note that patches have small sizes, thus,
+plots may correspond to unidentifiable fragments.
 """
 indx_tr = np.random.randint(0, train_nimg)
 indx_te = np.random.randint(0, test_nimg)
@@ -79,5 +82,6 @@ fig.colorbar(
     pad=0.05,
 )
 fig.show()
+
 
 input("\nWaiting for input to close figures and exit")

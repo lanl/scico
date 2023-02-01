@@ -15,7 +15,7 @@ model-based deep learning (MoDL) architecture described in
 The source images are foam phantoms generated with xdesign.
 
 A class
-[flax.MoDLNet](../_autosummary/scico.flax.rst#scico.flax.MoDLNet)
+[scico.flax.MoDLNet](../_autosummary/scico.flax.rst#scico.flax.MoDLNet)
 implements the MoDL architecture, which solves the optimization
 problem
 
