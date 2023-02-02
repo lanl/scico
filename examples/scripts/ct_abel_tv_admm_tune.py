@@ -173,7 +173,8 @@ in red.
 𝜌 = [t.config["rho"] for t in analysis.trials]
 𝜆 = [t.config["lambda"] for t in analysis.trials]
 psnr = [t.metric_analysis["psnr"]["max"] for t in analysis.trials]
-𝜌, 𝜆, psnr = zip(*filter(lambda x: x[2] >= 20.0, zip(𝜌, 𝜆, psnr)))
+minpsnr = min(max(psnr), 20.0)
+𝜌, 𝜆, psnr = zip(*filter(lambda x: x[2] >= minpsnr, zip(𝜌, 𝜆, psnr)))
 fig, ax = plot.subplots(figsize=(10, 8))
 sc = ax.scatter(𝜌, 𝜆, c=psnr, cmap=plot.cm.plasma_r)
 fig.colorbar(sc)
