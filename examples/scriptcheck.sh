@@ -39,21 +39,11 @@ if [ ! $# -eq 0 ] ; then
     exit 2
 fi
 
-# Check for presence of Xvfb tool which is used to avoid plots being displayed.
-if [ ! "$(which Xvfb 2>/dev/null)" ]; then
-    msg="Warning: required tool Xvfb not found: functionality will be degraded"
-    echo $msg >&2
-    pid=0
-else
-    Xvfb :20 -screen 0 800x600x16 > /dev/null 2>&1 &
-    pid=$!
-    export DISPLAY=:20.0
-fi
-
 # Set environment variables and paths. This script is assumed to be run
 # from its root directory.
 export PYTHONPATH=$SCRIPTPATH/..
 export PYTHONIOENCODING=utf-8
+export MPLBACKEND=agg
 d='/tmp/scriptcheck_'$$
 mkdir -p $d
 retval=0
@@ -99,7 +89,7 @@ for f in $SCRIPTPATH/scripts/*.py; do
     sed -E -e "$re1$re2$re3$re4$re5$re6$re7$re8" $f > $g
 
     # Run temporary script and print status message.
-    if output=$(timeout 60s python $g 2>&1); then
+    if output=$(timeout 60s python -W ignore $g 2>&1); then
         printf "%s\n" succeeded
     else
         printf "%s\n" FAILED
@@ -116,10 +106,5 @@ done
 
 # Remove temporary script directory.
 rmdir $d
-
-# Kill Xvfb process if it was started.
-if [ $pid != 0 ]; then
-  kill $pid
-fi
 
 exit $retval
