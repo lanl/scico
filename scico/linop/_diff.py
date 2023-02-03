@@ -40,10 +40,10 @@ class FiniteDifference(VerticalStack):
     >>> x = snp.array([[1, 2, 4],
     ...                [0, 4, 1]])
     >>> (A @ x)[0]
-    DeviceArray([[-1,  2, -3]], dtype=int32)
+    Array([[-1,  2, -3]], dtype=int32)
     >>> (A @ x)[1]
-    DeviceArray([[ 1,  2],
-                 [ 4, -3]], dtype=int32)
+    Array([[ 1,  2],
+           [ 4, -3]], dtype=int32)
     """
 
     def __init__(

@@ -30,7 +30,7 @@ def operator_from_function(f: Callable, classname: str, f_name: Optional[str] = 
     >>> AbsVal = operator_from_function(snp.abs, 'AbsVal')
     >>> H = AbsVal((2,))
     >>> H(snp.array([1.0, -1.0]))
-    DeviceArray([1., 1.], dtype=float32)
+    Array([1., 1.], dtype=float32)
 
     Args:
         f: Function from which to create an :class:`.Operator`.

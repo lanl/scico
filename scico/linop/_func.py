@@ -26,7 +26,7 @@ def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = Non
     >>> Sum = linop_from_function(snp.sum, 'Sum')
     >>> H = Sum((2, 10), axis=1)
     >>> H @ snp.ones((2, 10))
-    DeviceArray([10., 10.], dtype=float32)
+    Array([10., 10.], dtype=float32)
 
     Args:
         f: Function from which to create a :class:`LinearOperator`.

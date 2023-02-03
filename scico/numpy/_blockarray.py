@@ -35,7 +35,7 @@ class BlockArray:
     >>> x.shape
     ((2, 3), (3,))
     >>> snp.sum(x)
-    DeviceArray(30, dtype=int32)
+    Array(30, dtype=int32)
 
     """
 
