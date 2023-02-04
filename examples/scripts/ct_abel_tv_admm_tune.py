@@ -100,7 +100,7 @@ def eval_params(config, reporter):
 """
 Define parameter search space and resources per trial.
 """
-config = {"lambda": tune.loguniform(1e-2, 1e3), "rho": tune.loguniform(1e-1, 1e3)}
+config = {"lambda": tune.loguniform(1e0, 1e2), "rho": tune.loguniform(1e1, 1e3)}
 resources = {"gpu": 0, "cpu": 1}  # gpus per trial, cpus per trial
 
 
