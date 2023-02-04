@@ -5,7 +5,7 @@ Notes
 No GPU/TPU Warning
 ==================
 
-JAX currently issues a warning when used on a platform without a GPU. To disable this warning, set the environment variable ``JAX_PLATFORM_NAME=cpu`` before running Python.
+JAX currently issues a warning when used on a platform without a GPU. To disable this warning, set the environment variable ``JAX_PLATFORM_NAME=cpu`` before running Python. This warning is suppressed by SCICO for JAX versions after 0.3.23, making use of the environment variable unnecessary.
 
 
 Debugging
