@@ -301,7 +301,8 @@ class CircularConvolve(LinearOperator):
 def _gradient_filters(ndim: int, axes: Shape, shape: Shape, dtype: DType = snp.float32) -> JaxArray:
     r"""Construct filters for computing gradients in the frequency domain.
 
-    Construct a set of filters for computing gradients in the frequency domain.
+    Construct a set of filters for computing gradients in the frequency
+    domain.
 
     Args:
         ndim: Total number of dimensions in array in which gradients are
