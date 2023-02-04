@@ -92,7 +92,7 @@ gradient sub-iterations used by the ADMM solver in the
 """
 f = functional.ZeroFunctional()
 g0 = loss.SquaredL2Loss(y=y)
-λ = 2.7e-2  # L1 norm regularization parameter
+λ = 2.0e-2  # L1 norm regularization parameter
 g1 = λ * functional.L21Norm()
 g = functional.SeparableFunctional((g0, g1))
 

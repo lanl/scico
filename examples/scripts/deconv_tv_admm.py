@@ -79,7 +79,7 @@ the data fidelity term.
 f = loss.SquaredL2Loss(y=y, A=C)
 # Penalty parameters must be accounted for in the gi functions, not as
 # additional inputs.
-λ = 2.7e-2  # L1 norm regularization parameter
+λ = 2.1e-2  # L1 norm regularization parameter
 g = λ * functional.L21Norm()
 # The append=0 option makes the results of horizontal and vertical
 # finite differences the same shape, which is required for the L21Norm,
@@ -90,7 +90,7 @@ D = linop.FiniteDifference(input_shape=x_gt.shape, append=0)
 """
 Set up an ADMM solver object.
 """
-ρ = 1.4e-1  # ADMM penalty parameter
+ρ = 1.0e-1  # ADMM penalty parameter
 maxiter = 50  # number of ADMM iterations
 
 solver = ADMM(
