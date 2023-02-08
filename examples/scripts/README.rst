@@ -39,7 +39,9 @@ Deconvolution
    `deconv_circ_tv_admm.py <deconv_circ_tv_admm.py>`_
       Circulant Blur Image Deconvolution with TV Regularization
    `deconv_tv_admm.py <deconv_tv_admm.py>`_
-      Image Deconvolution with TV Regularization
+      Image Deconvolution with TV Regularization (ADMM Solver)
+   `deconv_tv_padmm.py <deconv_tv_padmm.py>`_
+      Image Deconvolution with TV Regularization (Proximal ADMM Solver)
    `deconv_tv_admm_tune.py <deconv_tv_admm_tune.py>`_
       Image Deconvolution Parameter Tuning
    `deconv_microscopy_tv_admm.py <deconv_microscopy_tv_admm.py>`_
@@ -51,7 +53,9 @@ Deconvolution
    `deconv_ppp_bm3d_pgm.py <deconv_ppp_bm3d_pgm.py>`_
       PPP (with BM3D) Image Deconvolution (APGM Solver)
    `deconv_ppp_dncnn_admm.py <deconv_ppp_dncnn_admm.py>`_
-      PPP (with DnCNN) Image Deconvolution
+      PPP (with DnCNN) Image Deconvolution (ADMM Solver)
+   `deconv_ppp_dncnn_padmm.py <deconv_ppp_dncnn_padmm.py>`_
+      PPP (with DnCNN) Image Deconvolution (Proximal ADMM Solver)
    `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
       PPP (with BM4D) Volume Deconvolution
    `deconv_modl_train_foam1.py <deconv_modl_train_foam1.py>`_
@@ -121,7 +125,9 @@ Plug and Play Priors
    `deconv_ppp_bm3d_pgm.py <deconv_ppp_bm3d_pgm.py>`_
       PPP (with BM3D) Image Deconvolution (APGM Solver)
    `deconv_ppp_dncnn_admm.py <deconv_ppp_dncnn_admm.py>`_
-      PPP (with DnCNN) Image Deconvolution
+      PPP (with DnCNN) Image Deconvolution (ADMM Solver)
+   `deconv_ppp_dncnn_padmm.py <deconv_ppp_dncnn_padmm.py>`_
+      PPP (with DnCNN) Image Deconvolution (Proximal ADMM Solver)
    `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
       PPP (with BM4D) Volume Deconvolution
    `demosaic_ppp_bm3d_admm.py <demosaic_ppp_bm3d_admm.py>`_
@@ -144,9 +150,11 @@ Total Variation
    `deconv_circ_tv_admm.py <deconv_circ_tv_admm.py>`_
       Circulant Blur Image Deconvolution with TV Regularization
    `deconv_tv_admm.py <deconv_tv_admm.py>`_
-      Image Deconvolution with TV Regularization
+      Image Deconvolution with TV Regularization (ADMM Solver)
    `deconv_tv_admm_tune.py <deconv_tv_admm_tune.py>`_
       Image Deconvolution Parameter Tuning
+   `deconv_tv_padmm.py <deconv_tv_padmm.py>`_
+      Image Deconvolution with TV Regularization (Proximal ADMM Solver)
    `deconv_microscopy_tv_admm.py <deconv_microscopy_tv_admm.py>`_
       Deconvolution Microscopy (Single Channel)
    `deconv_microscopy_allchn_tv_admm.py <deconv_microscopy_allchn_tv_admm.py>`_
@@ -228,7 +236,7 @@ ADMM
    `deconv_circ_tv_admm.py <deconv_circ_tv_admm.py>`_
       Circulant Blur Image Deconvolution with TV Regularization
    `deconv_tv_admm.py <deconv_tv_admm.py>`_
-      Image Deconvolution with TV Regularization
+      Image Deconvolution with TV Regularization (ADMM Solver)
    `deconv_tv_admm_tune.py <deconv_tv_admm_tune.py>`_
       Image Deconvolution Parameter Tuning
    `deconv_microscopy_tv_admm.py <deconv_microscopy_tv_admm.py>`_
@@ -238,7 +246,7 @@ ADMM
    `deconv_ppp_bm3d_admm.py <deconv_ppp_bm3d_admm.py>`_
       PPP (with BM3D) Image Deconvolution (ADMM Solver)
    `deconv_ppp_dncnn_admm.py <deconv_ppp_dncnn_admm.py>`_
-      PPP (with DnCNN) Image Deconvolution
+      PPP (with DnCNN) Image Deconvolution (ADMM Solver)
    `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
       PPP (with BM4D) Volume Deconvolution
    `sparsecode_admm.py <sparsecode_admm.py>`_
@@ -266,6 +274,26 @@ Linearized ADMM
        Comparison of Optimization Algorithms for Total Variation Denoising
 
 
+Proximal ADMM
+^^^^^^^^^^^^^
+
+    `deconv_tv_padmm.py <deconv_tv_padmm.py>`_
+       Image Deconvolution with TV Regularization (Proximal ADMM Solver)
+    `denoise_tv_multi.py <denoise_tv_multi.py>`_
+       Comparison of Optimization Algorithms for Total Variation Denoising
+    `denoise_cplx_tv_nlpadmm.py <denoise_cplx_tv_nlpadmm.py>`_
+       Complex Total Variation Denoising with NLPADMM Solver
+    `deconv_ppp_dncnn_padmm.py <deconv_ppp_dncnn_padmm.py>`_
+       PPP (with DnCNN) Image Deconvolution (Proximal ADMM Solver)
+
+
+Non-linear Proximal ADMM
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+    `denoise_cplx_tv_nlpadmm.py <denoise_cplx_tv_nlpadmm.py>`_
+       Complex Total Variation Denoising with NLPADMM Solver
+
+
 PDHG
 ^^^^
 
@@ -274,7 +302,7 @@ PDHG
     `denoise_tv_multi.py <denoise_tv_multi.py>`_
        Comparison of Optimization Algorithms for Total Variation Denoising
     `denoise_cplx_tv_pdhg.py <denoise_cplx_tv_pdhg.py>`_
-       Complex Total Variation Denoising
+       Complex Total Variation Denoising with PDHG Solver
 
 
 PGM

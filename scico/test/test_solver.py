@@ -1,6 +1,7 @@
 import numpy as np
 
 import jax
+from jax.scipy.linalg import block_diag
 
 import pytest
 
@@ -204,14 +205,12 @@ class TestOptimizeScalar:
 
 @pytest.mark.parametrize("dtype", [snp.float32, snp.complex64])
 @pytest.mark.parametrize("method", ["CG", "L-BFGS-B"])
-def test_minimize(dtype, method):
-    from scipy.linalg import block_diag
-
+def test_minimize_vector(dtype, method):
     B, M, N = (4, 3, 2)
 
     # Models a 12x8 block-diagonal matrix with 4x3 blocks
     A, key = random.randn((B, M, N), dtype=dtype)
-    x, key = random.randn((B, N), dtype=dtype)
+    x, key = random.randn((B, N), dtype=dtype, key=key)
     y = snp.sum(A * x[:, None], axis=2)  # contract along the N axis
 
     # result by directly inverting the dense matrix
@@ -236,7 +235,7 @@ def test_minimize(dtype, method):
     assert out.x.shape == x0.shape
     np.testing.assert_allclose(out.x.ravel(), expected, rtol=5e-4)
 
-    # If there are more than one device present:
+    # If more than one device is present:
     if len(devices) > 1:
         x0 = jax.device_put(snp.zeros_like(x), devices[1])
         out = solver.minimize(f, x0=x0, method=method)

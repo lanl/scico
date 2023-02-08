@@ -100,7 +100,7 @@ def eval_params(config, reporter):
 """
 Define parameter search space and resources per trial.
 """
-config = {"lambda": tune.loguniform(1e-2, 1e3), "rho": tune.loguniform(1e-1, 1e3)}
+config = {"lambda": tune.loguniform(1e0, 1e2), "rho": tune.loguniform(1e1, 1e3)}
 resources = {"gpu": 0, "cpu": 1}  # gpus per trial, cpus per trial
 
 
@@ -162,6 +162,39 @@ plot.plot(
 ax = fig.axes[0]
 ax.set_xlim([config["rho"].lower, config["rho"].upper])
 ax.set_ylim([config["lambda"].lower, config["lambda"].upper])
+fig.show()
+
+
+"""
+Plot parameter values visited during parameter search and corresponding
+reconstruction PSNRs.The best point in the parameter space is indicated
+in red.
+"""
+𝜌 = [t.config["rho"] for t in analysis.trials]
+𝜆 = [t.config["lambda"] for t in analysis.trials]
+psnr = [t.metric_analysis["psnr"]["max"] for t in analysis.trials]
+minpsnr = min(max(psnr), 20.0)
+𝜌, 𝜆, psnr = zip(*filter(lambda x: x[2] >= minpsnr, zip(𝜌, 𝜆, psnr)))
+fig, ax = plot.subplots(figsize=(10, 8))
+sc = ax.scatter(𝜌, 𝜆, c=psnr, cmap=plot.cm.plasma_r)
+fig.colorbar(sc)
+plot.plot(
+    best_config["lambda"],
+    best_config["rho"],
+    ptyp="loglog",
+    lw=0,
+    ms=12.0,
+    marker="2",
+    mfc="red",
+    mec="red",
+    fig=fig,
+    ax=ax,
+)
+ax.set_xscale("log")
+ax.set_yscale("log")
+ax.set_xlabel(r"$\rho$")
+ax.set_ylabel(r"$\lambda$")
+ax.set_title("PSNR at each sample location\n(values below 20 dB omitted)")
 fig.show()
 
 

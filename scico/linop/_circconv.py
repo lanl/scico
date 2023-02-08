@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2022 by SCICO Developers
+# Copyright (C) 2021-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -301,7 +301,8 @@ class CircularConvolve(LinearOperator):
 def _gradient_filters(ndim: int, axes: Shape, shape: Shape, dtype: DType = snp.float32) -> JaxArray:
     r"""Construct filters for computing gradients in the frequency domain.
 
-    Construct a set of filters for computing gradients in the frequency domain.
+    Construct a set of filters for computing gradients in the frequency
+    domain.
 
     Args:
         ndim: Total number of dimensions in array in which gradients are

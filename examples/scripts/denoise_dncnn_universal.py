@@ -39,6 +39,7 @@ N = 512  # image size
 x_gt = discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=N)
 x_gt = jax.device_put(x_gt)  # convert to jax array, push to GPU
 
+
 """
 Test different DnCNN variants on images with different noise levels.
 """
@@ -78,5 +79,6 @@ plot.imview(x_gt, title="Reference", fig=fig, ax=ax[0])
 plot.imview(y, title="Noisy image: %.2f (dB)" % metric.psnr(x_gt, y), fig=fig, ax=ax[1])
 plot.imview(x_hat, title="Denoised image: %.2f (dB)" % metric.psnr(x_gt, x_hat), fig=fig, ax=ax[2])
 fig.show()
+
 
 input("\nWaiting for input to close figures and exit")

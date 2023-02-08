@@ -8,35 +8,45 @@ r"""
 Deconvolution Training and Reconstructions with ODP
 ===================================================
 
-This example demonstrates the training and application of the unrolled optimization with deep priors
-(ODP) with proximal map architecture described in :cite:`diamond-2018-odp` for
- a deconvolution (deblurring) problem.
+This example demonstrates the training and application of the unrolled
+optimization with deep priors (ODP) with proximal map architecture
+described in :cite:`diamond-2018-odp` for a deconvolution (deblurring)
+problem.
 
 The source images are foam phantoms generated with xdesign.
 
-A class [flax.ODPNet](../_autosummary/scico.flax.rst#scico.flax.ODPNet)
+A class
+[scico.flax.ODPNet](../_autosummary/scico.flax.rst#scico.flax.ODPNet)
 implements the ODP architecture, which solves the optimization problem
 
-  $$\mathrm{argmin}_{\mathbf{x}} \; \| A \mathbf{x} - \mathbf{y} \|_2^2 + r(\mathbf{x}) \;,$$
+$$\mathrm{argmin}_{\mathbf{x}} \; \| A \mathbf{x} - \mathbf{y} \|_2^2
++ r(\mathbf{x}) \;,$$
 
-where $A$ is a circular convolution, $\mathbf{y}$ is a set of blurred images, $r$ is a regularizer
-and $\mathbf{x}$ is the set of deblurred images. The ODP, proximal map architecture,
-abstracts the iterative solution by an unrolled network where each iteration corresponds
-to a different stage in the ODP network and updates the prediction by solving
+where $A$ is a circular convolution, $\mathbf{y}$ is a set of blurred
+images, $r$ is a regularizer and $\mathbf{x}$ is the set of deblurred
+images. The ODP, proximal map architecture, abstracts the iterative
+solution by an unrolled network where each iteration corresponds to a
+different stage in the ODP network and updates the prediction by
+solving
 
-  $$\mathbf{x}^{k+1} = \mathrm{argmin}_{\mathbf{x}} \; \alpha_k \| A \mathbf{x} - \mathbf{y} \|_2^2 + \frac{1}{2} \| \mathbf{x} - \mathbf{x}^k - \mathbf{x}^{k+1/2} \|_2^2 \;,$$
+$$\mathbf{x}^{k+1} = \mathrm{argmin}_{\mathbf{x}} \; \alpha_k \| A
+\mathbf{x} - \mathbf{y} \|_2^2 + \frac{1}{2} \| \mathbf{x} -
+\mathbf{x}^k - \mathbf{x}^{k+1/2} \|_2^2 \;,$$
 
 which for the deconvolution problem corresponds to
 
-  $$\mathbf{x}^{k+1} = \mathcal{F}^{-1} \mathrm{diag} (\alpha_k | \mathcal{K}|^2 + 1 )^{-1} \mathcal{F} \, (\alpha_k K^T * \mathbf{y} + \mathbf{x}^k + \mathbf{x}^{k+1/2}) \;,$$
+$$\mathbf{x}^{k+1} = \mathcal{F}^{-1} \mathrm{diag} (\alpha_k |
+\mathcal{K}|^2 + 1 )^{-1} \mathcal{F} \, (\alpha_k K^T * \mathbf{y} +
+\mathbf{x}^k + \mathbf{x}^{k+1/2}) \;,$$
 
-where $k$ is the index of the stage (iteration),
-$\mathbf{x}^k + \mathbf{x}^{k+1/2} = \mathrm{ResNet}(\mathbf{x}^{k})$
-is the regularization (implemented as a residual convolutional neural network),
- $\mathbf{x}^k$ is the output of the previous stage,
- $\alpha_k > 0$ is a learned stage-wise parameter weighting the contribution of the fidelity term,
- $\mathcal{F}$ is the DFT, $K$ is the blur kernel, and $\mathcal{K}$ is the DFT of $K$.
- The output of the final stage is the set of deblurred images.
+where $k$ is the index of the stage (iteration), $\mathbf{x}^k +
+\mathbf{x}^{k+1/2} = \mathrm{ResNet}(\mathbf{x}^{k})$ is the
+regularization (implemented as a residual convolutional neural network),
+$\mathbf{x}^k$ is the output of the previous stage, $\alpha_k > 0$ is a
+learned stage-wise parameter weighting the contribution of the fidelity
+term, $\mathcal{F}$ is the DFT, $K$ is the blur kernel, and
+$\mathcal{K}$ is the DFT of $K$. The output of the final stage is the
+set of deblurred images.
 """
 
 import os
@@ -55,12 +65,13 @@ from scico.flax.train.traversals import clip_positive, construct_traversal
 from scico.linop import CircularConvolve
 
 """
-Prepare parallel processing. Set an arbitrary processor
-count (only applies if GPU is not available).
+Prepare parallel processing. Set an arbitrary processor count (only
+applies if GPU is not available).
 """
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 platform = jax.lib.xla_bridge.get_backend().platform
 print("Platform: ", platform)
+
 
 """
 Define blur operator.
@@ -75,6 +86,7 @@ ishape = (output_size, output_size)
 opBlur = CircularConvolve(h=psf, input_shape=ishape)
 
 opBlur_vmap = jax.vmap(opBlur)  # for batch processing in data generation
+
 
 """
 Read data from cache or generate if not available.
@@ -92,15 +104,17 @@ train_ds, test_ds = load_foam1_blur_data(
     verbose=True,
 )
 
+
 """
 Define configuration dictionary for model and training loop.
 
-Parameters have been selected for demonstration purposes and relatively short training.
-The model depth is akin to the number of unrolled iterations in the ODP model.
-The block depth controls the number of layers at each unrolled iteration.
-The number of filters is uniform throughout the iterations.
-Better performance may be obtained by increasing depth, block depth, number of filters or training epochs,
-but may require longer training times.
+Parameters have been selected for demonstration purposes and
+relatively short training. The model depth is akin to the number of
+unrolled iterations in the ODP model. The block depth controls the number
+of layers at each unrolled iteration. The number of filters is uniform
+throughout the iterations. Better performance may be obtained by
+increasing depth, block depth, number of filters or training epochs, but
+may require longer training times.
 """
 # model configuration
 model_conf = {
@@ -121,6 +135,7 @@ train_conf: sflax.ConfigDict = {
     "log": True,
 }
 
+
 """
 Construct ODPNet model.
 """
@@ -136,9 +151,8 @@ model = sflax.ODPNet(
 
 
 """
-Construct functionality for making sure that
-the learned fidelity weight parameter is always
-positive.
+Construct functionality for making sure that the learned fidelity weight
+parameter is always positive.
 """
 alphatrav = construct_traversal("alpha")  # select alpha parameters in model
 alphapos = partial(
@@ -169,6 +183,7 @@ start_time = time()
 modvar, stats_object = trainer.train()
 time_train = time() - start_time
 
+
 """
 Evaluate on testing data.
 """
@@ -180,18 +195,22 @@ output = fmap(test_ds["image"])
 time_eval = time() - start_time
 output = jnp.clip(output, a_min=0, a_max=1.0)
 
+
 """
-Compare trained model in terms of reconstruction time
-and data fidelity.
+Compare trained model in terms of reconstruction time and data
+fidelity.
 """
 snr_eval = metric.snr(test_ds["label"], output)
 psnr_eval = metric.psnr(test_ds["label"], output)
 print(
-    f"{'ODPNet training':18s}{'epochs:':2s}{train_conf['num_epochs']:>5d}{'':21s}{'time[s]:':10s}{time_train:>7.2f}"
+    f"{'ODPNet training':18s}{'epochs:':2s}{train_conf['num_epochs']:>5d}"
+    f"{'':21s}{'time[s]:':10s}{time_train:>7.2f}"
 )
 print(
-    f"{'ODPNet testing':18s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}{'':3s}{'time[s]:':10s}{time_eval:>7.2f}"
+    f"{'ODPNet testing':18s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}"
+    f"{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}{'':3s}{'time[s]:':10s}{time_eval:>7.2f}"
 )
+
 
 """
 Plot comparison.
@@ -227,8 +246,10 @@ cax = divider.append_axes("right", size="5%", pad=0.2)
 fig.colorbar(ax[2].get_images()[0], cax=cax, label="arbitrary units")
 fig.show()
 
+
 """
-Plot convergence statistics. Statistics only generated if a training cycle was done (i.e. not reading final epoch results from checkpoint).
+Plot convergence statistics. Statistics only generated if a training
+cycle was done (i.e. not reading final epoch results from checkpoint).
 """
 if stats_object is not None:
     hist = stats_object.history(transpose=True)
@@ -255,5 +276,6 @@ if stats_object is not None:
         ax=ax[1],
     )
     fig.show()
+
 
 input("\nWaiting for input to close figures and exit")

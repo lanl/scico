@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022 by SCICO Developers
+# Copyright (C) 2022-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -43,14 +43,14 @@ def collapse_shapes(
 
 
 def is_collapsible(shapes: Sequence[Union[Shape, BlockShape]]) -> bool:
-    """Return ``True`` if the a list of shapes represent arrays that
-    can be stacked, i.e., they are all the same."""
+    """Return ``True`` if the a list of shapes represent arrays that can
+    be stacked, i.e., they are all the same."""
     return all(s == shapes[0] for s in shapes)
 
 
 def is_blockable(shapes: Sequence[Union[Shape, BlockShape]]) -> TypeGuard[Union[Shape, BlockShape]]:
-    """Return ``True`` if the list of shapes represent arrays that
-    can be combined into a :class:`BlockArray`, i.e., none are nested."""
+    """Return ``True`` if the list of shapes represent arrays that can be
+    combined into a :class:`BlockArray`, i.e., none are nested."""
     return not any(is_nested(s) for s in shapes)
 
 
@@ -73,9 +73,7 @@ class VerticalStack(LinearOperator):
                 (S, m, n, ...) where S is the length of `ops`. Defaults
                 to ``True``.
             jit: see `jit` in :class:`LinearOperator`.
-
         """
-
         VerticalStack.check_if_stackable(ops)
 
         self.ops = ops
@@ -175,7 +173,7 @@ class VerticalStack(LinearOperator):
 
 
 class DiagonalStack(LinearOperator):
-    r"""A diagonal stack of linear operators.
+    r"""A diagonal stack of LinearOperators.
 
     Given operators :math:`A_1, A_2, \dots, A_N`, creates the operator
     :math:`H` such that
@@ -202,7 +200,6 @@ class DiagonalStack(LinearOperator):
     this operator will work on the block concatenation, i.e.,
     have an input shape of `(S1, S2, ..., SN)`. The same holds for the
     output shape.
-
     """
 
     def __init__(

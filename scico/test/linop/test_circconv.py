@@ -104,6 +104,22 @@ class TestCircularConvolve:
 
         np.testing.assert_allclose(operator(scalar, A.h_dft.ravel()), cA.h_dft.ravel(), rtol=5e-5)
 
+    @pytest.mark.parametrize("jit", [True, False])
+    @pytest.mark.parametrize("axes_shape_spec", SHAPE_SPECS)
+    def test_add_sub(self, axes_shape_spec, jit):
+        input_dtype = np.float32
+
+        x_shape, ndims, h_shape = axes_shape_spec
+
+        h, key = randn(tuple(h_shape), dtype=input_dtype, key=self.key)
+        g, key = randn(tuple(h_shape), dtype=input_dtype, key=self.key)
+
+        A = CircularConvolve(h, x_shape, ndims, input_dtype, jit=jit)
+        B = CircularConvolve(g, x_shape, ndims, input_dtype, jit=jit)
+
+        np.testing.assert_allclose(A.h_dft + B.h_dft, (A + B).h_dft, rtol=5e-5)
+        np.testing.assert_allclose(A.h_dft - B.h_dft, (A - B).h_dft, rtol=5e-5)
+
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
     @pytest.mark.parametrize("jit", [True, False])
     def test_matches_convolve(self, input_dtype, jit):

@@ -6,7 +6,7 @@ Usage Examples
 .. toctree::
    :maxdepth: 1
 
-.. include:: include/exampledepend.rst
+.. include:: include/examplenotes.rst
 
 
 Organized by Application
@@ -43,12 +43,14 @@ Deconvolution
 
    examples/deconv_circ_tv_admm
    examples/deconv_tv_admm
+   examples/deconv_tv_padmm
    examples/deconv_tv_admm_tune
    examples/deconv_microscopy_tv_admm
    examples/deconv_microscopy_allchn_tv_admm
    examples/deconv_ppp_bm3d_admm
    examples/deconv_ppp_bm3d_pgm
    examples/deconv_ppp_dncnn_admm
+   examples/deconv_ppp_dncnn_padmm
    examples/deconv_ppp_bm4d_admm
    examples/deconv_modl_train_foam1
    examples/deconv_odp_train_foam1
@@ -105,6 +107,7 @@ Plug and Play Priors
    examples/deconv_ppp_bm3d_admm
    examples/deconv_ppp_bm3d_pgm
    examples/deconv_ppp_dncnn_admm
+   examples/deconv_ppp_dncnn_padmm
    examples/deconv_ppp_bm4d_admm
    examples/demosaic_ppp_bm3d_admm
    examples/superres_ppp_dncnn_admm
@@ -123,6 +126,7 @@ Total Variation
    examples/deconv_circ_tv_admm
    examples/deconv_tv_admm
    examples/deconv_tv_admm_tune
+   examples/deconv_tv_padmm
    examples/deconv_microscopy_tv_admm
    examples/deconv_microscopy_allchn_tv_admm
    examples/denoise_l1tv_admm
@@ -216,8 +220,10 @@ Proximal ADMM
 .. toctree::
    :maxdepth: 1
 
+   examples/deconv_tv_padmm
    examples/denoise_tv_multi
    examples/denoise_cplx_tv_nlpadmm
+   examples/deconv_ppp_dncnn_padmm
 
 
 Non-linear Proximal ADMM

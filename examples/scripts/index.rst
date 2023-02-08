@@ -27,12 +27,14 @@ Deconvolution
 
    - deconv_circ_tv_admm.py
    - deconv_tv_admm.py
+   - deconv_tv_padmm.py
    - deconv_tv_admm_tune.py
    - deconv_microscopy_tv_admm.py
    - deconv_microscopy_allchn_tv_admm.py
    - deconv_ppp_bm3d_admm.py
    - deconv_ppp_bm3d_pgm.py
    - deconv_ppp_dncnn_admm.py
+   - deconv_ppp_dncnn_padmm.py
    - deconv_ppp_bm4d_admm.py
    - deconv_modl_train_foam1.py
    - deconv_odp_train_foam1.py
@@ -77,6 +79,7 @@ Plug and Play Priors
    - deconv_ppp_bm3d_admm.py
    - deconv_ppp_bm3d_pgm.py
    - deconv_ppp_dncnn_admm.py
+   - deconv_ppp_dncnn_padmm.py
    - deconv_ppp_bm4d_admm.py
    - demosaic_ppp_bm3d_admm.py
    - superres_ppp_dncnn_admm.py
@@ -92,6 +95,7 @@ Total Variation
    - deconv_circ_tv_admm.py
    - deconv_tv_admm.py
    - deconv_tv_admm_tune.py
+   - deconv_tv_padmm.py
    - deconv_microscopy_tv_admm.py
    - deconv_microscopy_allchn_tv_admm.py
    - denoise_l1tv_admm.py
@@ -167,8 +171,10 @@ Linearized ADMM
 Proximal ADMM
 ^^^^^^^^^^^^^
 
+    - deconv_tv_padmm.py
     - denoise_tv_multi.py
     - denoise_cplx_tv_nlpadmm.py
+    - deconv_ppp_dncnn_padmm.py
 
 
 Non-linear Proximal ADMM
