@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2022 by SCICO Developers
+# Copyright (C) 2020-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -11,7 +11,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import Callable, List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import scico.numpy as snp
 from scico.functional import Functional
@@ -20,13 +20,12 @@ from scico.numpy import BlockArray
 from scico.numpy.linalg import norm
 from scico.numpy.util import ensure_on_device
 from scico.typing import JaxArray
-from scico.util import Timer
 
 from ._admmaux import GenericSubproblemSolver, LinearSubproblemSolver, SubproblemSolver
-from ._common import itstat_func_and_object
+from ._common import Optimizer
 
 
-class ADMM:
+class ADMM(Optimizer):
     r"""Basic Alternating Direction Method of Multipliers (ADMM) algorithm.
 
     |
@@ -72,9 +71,6 @@ class ADMM:
             :code:`rho_list`.
         C_list (list of :class:`.LinearOperator`): List of :math:`C_i`
             operators.
-        itnum (int): Iteration counter.
-        maxiter (int): Number of ADMM outer-loop iterations.
-        timer (:class:`.Timer`): Iteration timer.
         rho_list (list of scalars): List of :math:`\rho_i` penalty
             parameters. Must be same length as :code:`C_list` and
             :code:`g_list`.
@@ -98,9 +94,8 @@ class ADMM:
         rho_list: List[float],
         alpha: float = 1.0,
         x0: Optional[Union[JaxArray, BlockArray]] = None,
-        maxiter: int = 100,
         subproblem_solver: Optional[SubproblemSolver] = None,
-        itstat_options: Optional[dict] = None,
+        **kwargs,
     ):
         r"""Initialize an :class:`ADMM` object.
 
@@ -114,20 +109,11 @@ class ADMM:
             alpha: Relaxation parameter. No relaxation for default 1.0.
             x0: Initial value for :math:`\mb{x}`. If ``None``, defaults
                 to an array of zeros.
-            maxiter: Number of ADMM outer-loop iterations. Default: 100.
             subproblem_solver: Solver for :math:`\mb{x}`-update step.
                 Defaults to ``None``, which implies use of an instance of
                 :class:`GenericSubproblemSolver`.
-            itstat_options: A dict of named parameters to be passed to
-                the :class:`.diagnostics.IterationStats` initializer. The
-                dict may also include an additional key "itstat_func"
-                with the corresponding value being a function with two
-                parameters, an integer and an :class:`ADMM` object,
-                responsible for constructing a tuple ready for insertion
-                into the :class:`.diagnostics.IterationStats` object. If
-                ``None``, default values are used for the dict entries,
-                otherwise the default dict is updated with the dict
-                specified by this parameter.
+            **kwargs: Additional optional parameters handled by
+                initializer of base class :class:`.Optimizer`.
         """
         N = len(g_list)
         if len(C_list) != N:
@@ -140,9 +126,7 @@ class ADMM:
         self.C_list: List[LinearOperator] = C_list
         self.rho_list: List[float] = rho_list
         self.alpha: float = alpha
-        self.itnum: int = 0
-        self.maxiter: int = maxiter
-        self.timer: Timer = Timer()
+
         if subproblem_solver is None:
             subproblem_solver = GenericSubproblemSolver()
         self.subproblem_solver: SubproblemSolver = subproblem_solver
@@ -156,36 +140,16 @@ class ADMM:
         self.z_list, self.z_list_old = self.z_init(self.x)
         self.u_list = self.u_init(self.x)
 
-        self._itstat_init(itstat_options)
+        super().__init__(**kwargs)
 
-    def _itstat_init(self, itstat_options: Optional[dict] = None):
-        """Initialize iteration statistics mechanism.
+    def _objective_evaluatable(self):
+        """Determine whether the objective function can be evaluated."""
+        return (not self.f or self.f.has_eval) and all([_.has_eval for _ in self.g_list])
 
-        Args:
-            itstat_options: A dict of named parameters to be passed to
-                the :class:`.diagnostics.IterationStats` initializer. The
-                dict may also include an additional key "itstat_func"
-                with the corresponding value being a function with two
-                parameters, an integer and an :class:`ADMM` object,
-                responsible for constructing a tuple ready for insertion
-                into the :class:`.diagnostics.IterationStats` object. If
-                ``None``, default values are used for the dict entries,
-                otherwise the default dict is updated with the dict
-                specified by this parameter.
-        """
-        # iteration number and time fields
-        itstat_fields = {
-            "Iter": "%d",
-            "Time": "%8.2e",
-        }
-        itstat_attrib = ["itnum", "timer.elapsed()"]
-        # objective function can be evaluated if all 'g' functions can be evaluated
-        if all([_.has_eval for _ in self.g_list]):
-            itstat_fields.update({"Objective": "%9.3e"})
-            itstat_attrib.append("objective()")
-        # primal and dual residual fields
-        itstat_fields.update({"Prml Rsdl": "%9.3e", "Dual Rsdl": "%9.3e"})
-        itstat_attrib.extend(["norm_primal_residual()", "norm_dual_residual()"])
+    def _itstat_extra_fields(self):
+        """Define ADMM-specific iteration statistics fields."""
+        itstat_fields = {"Prml Rsdl": "%9.3e", "Dual Rsdl": "%9.3e"}
+        itstat_attrib = ["norm_primal_residual()", "norm_dual_residual()"]
 
         # subproblem solver info when available
         if isinstance(self.subproblem_solver, GenericSubproblemSolver):
@@ -202,9 +166,11 @@ class ADMM:
                 ["subproblem_solver.info['num_iter']", "subproblem_solver.info['rel_res']"]
             )
 
-        self.itstat_insert_func, self.itstat_object = itstat_func_and_object(
-            itstat_fields, itstat_attrib, itstat_options
-        )
+        return itstat_fields, itstat_attrib
+
+    def minimizer(self):
+        """Return current estimate of the functional mimimizer."""
+        return self.x
 
     def objective(
         self,
@@ -367,32 +333,3 @@ class ADMM:
             ui = ui + Cix - zi
             self.z_list[i] = zi
             self.u_list[i] = ui
-
-    def solve(
-        self,
-        callback: Optional[Callable[[ADMM], None]] = None,
-    ) -> Union[JaxArray, BlockArray]:
-        """Run the ADMM algorithm.
-
-        Run the ADMM algorithm for a total of `self.maxiter` iterations.
-
-        Args:
-            callback: An optional callback function, taking an a single
-               argument of type :class:`ADMM`, that is called at the end
-               of every iteration.
-
-        Returns:
-            Computed solution.
-        """
-        self.timer.start()
-        for self.itnum in range(self.itnum, self.itnum + self.maxiter):
-            self.step()
-            self.itstat_object.insert(self.itstat_insert_func(self))
-            if callback:
-                self.timer.stop()
-                callback(self)
-                self.timer.start()
-        self.timer.stop()
-        self.itnum += 1
-        self.itstat_object.end()
-        return self.x

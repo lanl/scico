@@ -3,7 +3,7 @@ import operator as op
 import numpy as np
 
 import jax
-from jax.interpreters.xla import DeviceArray
+import jax.numpy as jnp
 
 import pytest
 
@@ -244,7 +244,7 @@ class TestMatrix:
     def test_init_devicearray(self):
         A = np.random.randn(4, 6)
         Ao = MatrixOperator(A)
-        assert isinstance(Ao.A, DeviceArray)
+        assert isinstance(Ao.A, jnp.ndarray)
 
         with pytest.raises(TypeError):
             MatrixOperator([1.0, 3.0])

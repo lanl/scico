@@ -25,6 +25,12 @@ Computed Tomography
       PPP (with BM3D) CT Reconstruction (ADMM with Fast SVMBIR Prox)
    `ct_fan_svmbir_ppp_bm3d_admm_prox.py <ct_fan_svmbir_ppp_bm3d_admm_prox.py>`_
       PPP (with BM3D) Fan-Beam CT Reconstruction
+   `ct_astra_modl_train_foam2.py <ct_astra_modl_train_foam2.py>`_
+      CT Training and Reconstructions with MoDL
+   `ct_astra_odp_train_foam2.py <ct_astra_odp_train_foam2.py>`_
+      CT Training and Reconstructions with ODP
+   `ct_astra_unet_train_foam2.py <ct_astra_unet_train_foam2.py>`_
+      CT Training and Reconstructions with UNet
 
 
 Deconvolution
@@ -48,6 +54,10 @@ Deconvolution
       PPP (with DnCNN) Image Deconvolution
    `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
       PPP (with BM4D) Volume Deconvolution
+   `deconv_modl_train_foam1.py <deconv_modl_train_foam1.py>`_
+      Deconvolution Training and Reconstructions with MoDL
+   `deconv_odp_train_foam1.py <deconv_odp_train_foam1.py>`_
+      Deconvolution Training and Reconstructions with ODP
 
 
 Sparse Coding
@@ -76,11 +86,22 @@ Miscellaneous
       Total Variation Denoising with Constraint (APGM)
    `denoise_tv_multi.py <denoise_tv_multi.py>`_
       Comparison of Optimization Algorithms for Total Variation Denoising
+   `denoise_cplx_tv_nlpadmm.py <denoise_cplx_tv_nlpadmm.py>`_
+      Complex Total Variation Denoising with NLPADMM Solver
    `denoise_cplx_tv_pdhg.py <denoise_cplx_tv_pdhg.py>`_
-      Complex Total Variation Denoising
+      Complex Total Variation Denoising with PDHG Solver
+   `denoise_dncnn_universal.py <denoise_dncnn_universal.py>`_
+      Comparison of DnCNN Variants for Image Denoising
    `video_rpca_admm.py <video_rpca_admm.py>`_
       Video Decomposition via Robust PCA
-
+   `ct_astra_datagen_foam2.py <ct_astra_datagen_foam2.py>`_
+      CT Data Generation for NN Training
+   `deconv_datagen_bsds.py <deconv_datagen_bsds.py>`_
+      Blurred Data Generation (Natural Images) for NN Training
+   `deconv_datagen_foam1.py <deconv_datagen_foam1.py>`_
+      Blurred Data Generation (Foams) for NN Training
+   `denoise_datagen_bsds.py <denoise_datagen_bsds.py>`_
+      Noisy Data Generation for NN Training
 
 
 Organized by Regularization
@@ -138,8 +159,10 @@ Total Variation
       Total Variation Denoising with Constraint (APGM)
    `denoise_tv_multi.py <denoise_tv_multi.py>`_
       Comparison of Optimization Algorithms for Total Variation Denoising
+   `denoise_cplx_tv_nlpadmm.py <denoise_cplx_tv_nlpadmm.py>`_
+      Complex Total Variation Denoising with NLPADMM Solver
    `denoise_cplx_tv_pdhg.py <denoise_cplx_tv_pdhg.py>`_
-      Complex Total Variation Denoising
+      Complex Total Variation Denoising with PDHG Solver
 
 
 Sparsity
@@ -154,6 +177,32 @@ Sparsity
    `video_rpca_admm.py <video_rpca_admm.py>`_
       Video Decomposition via Robust PCA
 
+
+Machine Learning
+^^^^^^^^^^^^^^^^
+
+   `ct_astra_datagen_foam2.py <ct_astra_datagen_foam2.py>`_
+      CT Data Generation for NN Training
+   `ct_astra_modl_train_foam2.py <ct_astra_modl_train_foam2.py>`_
+      CT Training and Reconstructions with MoDL
+   `ct_astra_odp_train_foam2.py <ct_astra_odp_train_foam2.py>`_
+      CT Training and Reconstructions with ODP
+   `ct_astra_unet_train_foam2.py <ct_astra_unet_train_foam2.py>`_
+      CT Training and Reconstructions with UNet
+   `deconv_datagen_bsds.py <deconv_datagen_bsds.py>`_
+      Blurred Data Generation (Natural Images) for NN Training
+   `deconv_datagen_foam1.py <deconv_datagen_foam1.py>`_
+      Blurred Data Generation (Foams) for NN Training
+   `deconv_modl_train_foam1.py <deconv_modl_train_foam1.py>`_
+      Deconvolution Training and Reconstructions with MoDL
+   `deconv_odp_train_foam1.py <deconv_odp_train_foam1.py>`_
+      Deconvolution Training and Reconstructions with ODP
+   `denoise_datagen_bsds.py <denoise_datagen_bsds.py>`_
+      Noisy Data Generation for NN Training
+   `denoise_dncnn_train_bsds.py <denoise_dncnn_train_bsds.py>`_
+      Training of DnCNN for Denoising
+   `denoise_dncnn_universal.py <denoise_dncnn_universal.py>`_
+      Comparison of DnCNN Variants for Image Denoising
 
 
 Organized by Optimization Algorithm

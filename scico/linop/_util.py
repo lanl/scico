@@ -46,8 +46,13 @@ def power_iteration(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey
 
     for i in range(maxiter):
         Av = A @ v
+        normAv = snp.linalg.norm(Av)
+        if normAv == 0.0:  # Assume that ||Av|| == 0 implies A is a zero operator
+            mu = 0.0
+            v = Av
+            break
         mu = snp.sum(v.conj() * Av) / snp.linalg.norm(v) ** 2
-        v = Av / snp.linalg.norm(Av)
+        v = Av / normAv
     return mu, v
 
 
@@ -81,7 +86,7 @@ def operator_norm(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey] 
         float: Norm of operator :math:`A`.
 
     """
-    return snp.sqrt(power_iteration(A.H @ A, maxiter, key)[0])
+    return snp.sqrt(power_iteration(A.H @ A, maxiter, key)[0].real)
 
 
 def valid_adjoint(

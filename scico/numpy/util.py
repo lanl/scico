@@ -9,8 +9,6 @@ from typing import Any, List, Optional, Tuple, Union
 import numpy as np
 
 import jax
-from jax.interpreters.pxla import ShardedDeviceArray
-from jax.interpreters.xla import DeviceArray
 
 import scico.numpy as snp
 from scico.typing import ArrayIndex, Axes, AxisIndex, BlockShape, DType, JaxArray, Shape
@@ -50,15 +48,6 @@ def ensure_on_device(
                 f"Will cast it to DeviceArray. "
                 f"To suppress this warning cast all np.ndarrays to DeviceArray first.",
                 stacklevel=2,
-            )
-
-        elif not isinstance(
-            array,
-            (DeviceArray, BlockArray, ShardedDeviceArray),
-        ):
-            raise TypeError(
-                "Each element of parameter arrays must be ndarray, DeviceArray, BlockArray, or "
-                f"ShardedDeviceArray; Argument {i+1} of {len(arrays)} is {type(arrays[i])}."
             )
 
         arrays[i] = jax.device_put(arrays[i])

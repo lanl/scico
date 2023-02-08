@@ -2,7 +2,7 @@
 
 # Determine whether files are acceptable for commit into main scico repo
 
-size_threshold=51200
+size_threshold=65536
 
 SAVEIFS=$IFS
 IFS=$(echo -en "\n\b")

@@ -30,6 +30,9 @@ Computed Tomography
    examples/ct_svmbir_ppp_bm3d_admm_cg
    examples/ct_svmbir_ppp_bm3d_admm_prox
    examples/ct_fan_svmbir_ppp_bm3d_admm_prox
+   examples/ct_astra_modl_train_foam2
+   examples/ct_astra_odp_train_foam2
+   examples/ct_astra_unet_train_foam2
 
 
 Deconvolution
@@ -47,6 +50,8 @@ Deconvolution
    examples/deconv_ppp_bm3d_pgm
    examples/deconv_ppp_dncnn_admm
    examples/deconv_ppp_bm4d_admm
+   examples/deconv_modl_train_foam1
+   examples/deconv_odp_train_foam1
 
 
 Sparse Coding
@@ -72,9 +77,14 @@ Miscellaneous
    examples/denoise_tv_admm
    examples/denoise_tv_pgm
    examples/denoise_tv_multi
+   examples/denoise_cplx_tv_nlpadmm
    examples/denoise_cplx_tv_pdhg
+   examples/denoise_dncnn_universal
    examples/video_rpca_admm
-
+   examples/ct_astra_datagen_foam2
+   examples/deconv_datagen_bsds
+   examples/deconv_datagen_foam1
+   examples/denoise_datagen_bsds
 
 
 Organized by Regularization
@@ -119,6 +129,7 @@ Total Variation
    examples/denoise_tv_admm
    examples/denoise_tv_pgm
    examples/denoise_tv_multi
+   examples/denoise_cplx_tv_nlpadmm
    examples/denoise_cplx_tv_pdhg
 
 
@@ -133,6 +144,24 @@ Sparsity
    examples/sparsecode_poisson_pgm
    examples/video_rpca_admm
 
+
+Machine Learning
+^^^^^^^^^^^^^^^^
+
+.. toctree::
+   :maxdepth: 1
+
+   examples/ct_astra_datagen_foam2
+   examples/ct_astra_modl_train_foam2
+   examples/ct_astra_odp_train_foam2
+   examples/ct_astra_unet_train_foam2
+   examples/deconv_datagen_bsds
+   examples/deconv_datagen_foam1
+   examples/deconv_modl_train_foam1
+   examples/deconv_odp_train_foam1
+   examples/denoise_datagen_bsds
+   examples/denoise_dncnn_train_bsds
+   examples/denoise_dncnn_universal
 
 
 Organized by Optimization Algorithm
@@ -179,6 +208,25 @@ Linearized ADMM
 
    examples/ct_svmbir_tv_multi
    examples/denoise_tv_multi
+
+
+Proximal ADMM
+^^^^^^^^^^^^^
+
+.. toctree::
+   :maxdepth: 1
+
+   examples/denoise_tv_multi
+   examples/denoise_cplx_tv_nlpadmm
+
+
+Non-linear Proximal ADMM
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. toctree::
+   :maxdepth: 1
+
+   examples/denoise_cplx_tv_nlpadmm
 
 
 PDHG

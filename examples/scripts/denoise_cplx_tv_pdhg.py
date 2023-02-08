@@ -5,8 +5,8 @@
 # with the package.
 
 r"""
-Complex Total Variation Denoising
-=================================
+Complex Total Variation Denoising with PDHG Solver
+==================================================
 
 This example demonstrates solution of a problem of the form
 

@@ -74,6 +74,9 @@ def test_operator_norm():
         D = linop.Diagonal(d)
         Dnorm = linop.operator_norm(D)
         assert np.abs(Dnorm - snp.abs(d).max()) < 1e-5
+    Zop = linop.MatrixOperator(snp.zeros((3, 3)))
+    Znorm = linop.operator_norm(Zop)
+    assert np.abs(Znorm) < 1e-6
 
 
 @pytest.mark.parametrize("dtype", [snp.float32, snp.complex64])
