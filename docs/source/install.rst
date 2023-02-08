@@ -51,19 +51,23 @@ The instructions above install a CPU-only version of SCICO. To install a version
 
 1. Follow the CPU only instructions, above
 
-2. Identify which version of jaxlib was installed
+2. Install the version of jaxlib with GPU support, as described in the `JAX installation
+   instructions  <https://github.com/google/jax#installation>`_.
+   In the simplest case, the appropriate command is
 
    ::
 
-      pip list | grep jaxlib
+      pip install -upgrade "jax[cuda]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
 
-3. Install the same version of jaxlib, but with GPU support.
-   For help with this, see `JAX with GPU support <https://github.com/google/jax#installation>`_.
-   The command will be something like
 
+   but it may be necessary to explicitly specify the ``jaxlib`` version if the most recent release is not yet
+   supported by SCICO (as specified in the ``requirements.txt`` file), or if using a version of CUDA older
+   than 11.4, or CuDNN older than 8.2, in which case the command would be of the form
    ::
 
-      pip install --upgrade "jaxlib==0.3.0+cuda11.cudnn805" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
+      pip install -upgrade "jaxlib==0.4.2+cuda11.cudnn82" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
+
+   with appropriate substitution of ``jaxlib``, CUDA, and CuDNN version numbers.
 
 
 

@@ -8,8 +8,9 @@ r"""
 Blurred Data Generation (Foams) for NN Training
 ===============================================
 
-This example demonstrates how to generate blurred image data for training neural network models
-for deconvolution (deblurring). Foam phantoms from xdesign are used to generate the clean images.
+This example demonstrates how to generate blurred image data for
+training neural network models for deconvolution (deblurring). Foam
+phantoms from xdesign are used to generate the clean images.
 """
 import numpy as np
 
@@ -36,6 +37,7 @@ train_ds, test_ds = load_foam1_blur_data(
     σ,
     verbose=True,
 )
+
 
 """
 Plot randomly selected sample.
@@ -77,5 +79,6 @@ fig.colorbar(
     label="Arbitrary Units",
 )
 fig.show()
+
 
 input("\nWaiting for input to close figures and exit")

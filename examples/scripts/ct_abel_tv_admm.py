@@ -50,8 +50,8 @@ ATy = A.T @ y
 """
 Set up ADMM solver object.
 """
-λ = 1.9e1  # L1 norm regularization parameter
-ρ = 4.9e1  # ADMM penalty parameter
+λ = 2.9e1  # L1 norm regularization parameter
+ρ = 8.5e1  # ADMM penalty parameter
 maxiter = 100  # number of ADMM iterations
 cg_tol = 1e-4  # CG relative tolerance
 cg_maxiter = 25  # maximum CG iterations per ADMM iteration
