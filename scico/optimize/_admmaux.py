@@ -265,9 +265,12 @@ class CircularConvolveSolver(LinearSubproblemSolver):
     where :code:`f` is an instance of :class:`.SquaredL2Loss`, the
     forward operator :code:`f.A` is either an instance of
     :class:`.Identity` or :class:`.CircularConvolve`, and the
-    :code:`C_i` are all instances of :class:`.Identity` or
-    :class:`.CircularConvolve`. None of the instances of
-    :class:`.CircularConvolve` may sum over any of their axes.
+    :code:`C_i` are all shift invariant linear operators, examples of
+    which include instances of :class:`.Identity` as well as some
+    instances (depending on initializer parameters) of
+    :class:`.CircularConvolve` and :class:`.FiniteDifference`.
+    None of the instances of :class:`.CircularConvolve` may sum over any
+    of their axes.
 
     Attributes:
         admm (:class:`.ADMM`): ADMM solver object to which the solver is
@@ -296,6 +299,8 @@ class CircularConvolveSolver(LinearSubproblemSolver):
 
         self.real_result = is_real_dtype(admm.C_list[0].input_dtype)
 
+        # All of the C operators are assumed to be linear and shift invariant
+        # but this is not checked.
         lhs_op_list = [
             rho * CircularConvolve.from_operator(C.gram_op)
             for rho, C in zip(admm.rho_list, admm.C_list)
