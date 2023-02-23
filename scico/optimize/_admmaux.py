@@ -19,7 +19,13 @@ from jax.scipy.sparse.linalg import cg as jax_cg
 
 import scico.numpy as snp
 import scico.optimize.admm as soa
-from scico.linop import CircularConvolve, Identity, LinearOperator
+from scico.linop import (
+    CircularConvolve,
+    ComposedLinearOperator,
+    Identity,
+    LinearOperator,
+    Sum,
+)
 from scico.loss import SquaredL2Loss
 from scico.numpy import BlockArray
 from scico.numpy.linalg import norm
@@ -315,16 +321,116 @@ class CircularConvolveSolver(LinearSubproblemSolver):
         """Solve the ADMM step.
 
         Args:
-            x0: Initial value.
+            x0: Initial value (unused, has no effect).
 
         Returns:
             Computed solution.
         """
-        x0 = ensure_on_device(x0)
         rhs = self.compute_rhs()
         rhs_dft = snp.fft.fftn(rhs, axes=self.A_lhs.x_fft_axes)
         x_dft = rhs_dft / self.A_lhs.h_dft
         x = snp.fft.ifftn(x_dft, axes=self.A_lhs.x_fft_axes)
+        if self.real_result:
+            x = x.real
+
+        return x
+
+
+class BlockCircularConvolveSolver(LinearSubproblemSolver):
+    r"""Solver for linear operators block-diagonalized in the DFT domain.
+
+    Specialization of :class:`.LinearSubproblemSolver` for the case where
+    :code:`f` is an instance of :class:`.SquaredL2Loss`, the forward
+    operator :code:`f.A` is a composition of a :class:`.Sum` operator and
+    a :class:`.CircularConvolve` operator. The former must sum over the
+    first axis of its input, and the latter must be initialized so that
+    it convolves a set of filers, indexed by the first axis, with an
+    input array that has the same number of axes as the filter array, and
+    has an initial axis of the same length as that of the filter array.
+    The :code:`C_i` must all be shift invariant linear operators,
+    examples of which include instances of :class:`.Identity` as well as
+    some instances (depending on initializer parameters) of
+    :class:`.CircularConvolve` and :class:`.FiniteDifference`. None of
+    the instances of :class:`.CircularConvolve` may be summed over any of
+    their axes.
+
+    Attributes:
+        admm (:class:`.ADMM`): ADMM solver object to which the solver is
+            attached.
+        lhs_f (array): Left hand side, in the DFT domain, of the linear
+            equation to be solved.
+    """
+
+    def __init__(self):
+        """Initialize a :class:`BlockCircularConvolveSolver` object."""
+
+    def internal_init(self, admm: soa.ADMM):
+        if admm.f is not None:
+            if not isinstance(admm.f, SquaredL2Loss):
+                raise ValueError(
+                    "BlockCircularConvolveSolver requires f to be a scico.loss.SquaredL2Loss; "
+                    f"got {type(admm.f)}."
+                )
+            if not isinstance(admm.f.A, ComposedLinearOperator):
+                raise ValueError(
+                    "BlockCircularConvolveSolver requires f.A to be a composition of Sum "
+                    f"and CircularConvolve linear operators; got {type(admm.f.A)}."
+                )
+            if not isinstance(admm.f.A.A, Sum) or not isinstance(admm.f.A.B, CircularConvolve):
+                raise ValueError(
+                    "BlockCircularConvolveSolver requires f.A to be a composition of Sum "
+                    "and CircularConvolve linear operators; got a composition of "
+                    f"{type(admm.f.A.A)} and {type(admm.f.A.B)}."
+                )
+            if not len(admm.f.A.B.input_shape) - admm.f.A.B.ndims == 1:
+                raise ValueError(
+                    "BlockCircularConvolveSolver requires the CircularConvolve operator "
+                    "component of f.A to have an initial axis representing multiple filters; "
+                    f"but it has input shape {admm.f.A.B.input_shape} and convolves over "
+                    f"{admm.f.A.B.ndims} dimensions."
+                )
+            if not admm.f.A.A.input_shape[1:] == admm.f.A.A.output_shape:
+                raise ValueError(
+                    "BlockCircularConvolveSolver requires the Sum operator component "
+                    "of f.A to sum over the first axis of its input."
+                )
+
+        super().internal_init(admm)
+
+        self.real_result = is_real_dtype(admm.C_list[0].input_dtype)
+
+        # All of the C operators are assumed to be linear and shift invariant
+        # but this is not checked.
+        c_conv_list = [
+            rho * CircularConvolve.from_operator(C.gram_op)
+            for rho, C in zip(admm.rho_list, admm.C_list)
+        ]
+        self.c_conv_sum = reduce(lambda a, b: a + b, c_conv_list)
+        # if self.admm.f is not None:
+        #    A_lhs += 2.0 * admm.f.scale * CircularConvolve.from_operator(admm.f.A.gram_op)
+        #
+        self.invexpr = 1.0 + snp.sum(
+            self.admm.f.A.B.h_dft * (self.admm.f.A.B.h_dft.conj() / self.c_conv_sum.h_dft),
+            axis=0,
+            keepdims=True,
+        )
+
+    def solve(self, x0: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
+        """Solve the ADMM step.
+
+        Args:
+            x0: Initial value (unused, has no effect).
+
+        Returns:
+            Computed solution.
+        """
+        rhs = self.compute_rhs()
+        fft_axes = self.admm.f.A.B.x_fft_axes
+        rhs_dft = snp.fft.fftn(rhs, axes=fft_axes) / self.c_conv_sum.h_dft
+        x_dft = (1.0 / self.c_conv_sum.h_dft) * rhs_dft + self.admm.f.A.B.h_dft.conj() * (
+            (self.admm.f.A.B.h_dft * rhs_dft) / self.invexpr
+        )
+        x = snp.fft.ifftn(x_dft, axes=fft_axes)
         if self.real_result:
             x = x.real
 
