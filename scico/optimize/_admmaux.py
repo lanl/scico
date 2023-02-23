@@ -427,8 +427,10 @@ class BlockCircularConvolveSolver(LinearSubproblemSolver):
         rhs = self.compute_rhs()
         fft_axes = self.admm.f.A.B.x_fft_axes
         rhs_dft = snp.fft.fftn(rhs, axes=fft_axes) / self.c_conv_sum.h_dft
-        x_dft = (1.0 / self.c_conv_sum.h_dft) * rhs_dft + self.admm.f.A.B.h_dft.conj() * (
-            (self.admm.f.A.B.h_dft * rhs_dft) / self.invexpr
+        x_dft = (rhs_dft / self.c_conv_sum.h_dft) - (
+            self.admm.f.A.B.h_dft.conj()
+            * ((self.admm.f.A.B.h_dft * rhs_dft) / self.invexpr)
+            / self.c_conv_sum.h_dft
         )
         x = snp.fft.ifftn(x_dft, axes=fft_axes)
         if self.real_result:
