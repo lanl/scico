@@ -6,6 +6,7 @@ import scico.numpy as snp
 from scico import functional, linop, loss, metric, random
 from scico.optimize import ADMM
 from scico.optimize.admm import (
+    BlockCircularConvolveSolver,
     CircularConvolveSolver,
     GenericSubproblemSolver,
     LinearSubproblemSolver,
@@ -319,6 +320,56 @@ class TestCircularConvolveSolve:
             itstat_options={"display": False},
             x0=self.A.adj(self.y),
             subproblem_solver=CircularConvolveSolver(),
+        )
+        x_dft = admm_dft.solve()
+        np.testing.assert_allclose(x_dft, x_lin, atol=1e-4, rtol=0)
+        assert metric.mse(x_lin, x_dft) < 1e-9
+
+
+class TestBlockCircularConvolveSolve:
+    def setup_method(self, method):
+        np.random.seed(12345)
+        Nx = 8
+        x = np.zeros((2, Nx, Nx), dtype=np.float32)
+        x[0, 2, 2] = 1.0
+        x[1, 3, 3] = 1.0
+        Npsf = 3
+        psf = np.zeros((2, Npsf, Npsf), dtype=np.float32)
+        psf[0, 1] = 1.0
+        psf[1, :, 1] = 1.0
+        C = linop.CircularConvolve(h=psf, input_shape=x.shape, input_dtype=np.float32, ndims=2)
+        S = linop.Sum(input_shape=x.shape, axis=0)
+        self.A = S @ C
+        self.y = self.A(x)
+        λ = 1e-1
+        self.f = loss.SquaredL2Loss(y=self.y, A=self.A)
+        self.g_list = [λ * functional.L1Norm()]
+        self.C_list = [linop.Identity(input_shape=x.shape)]
+
+    def test_admm(self):
+        maxiter = 50
+        ρ = 1e1
+        rho_list = [ρ]
+        admm_lin = ADMM(
+            f=self.f,
+            g_list=self.g_list,
+            C_list=self.C_list,
+            rho_list=rho_list,
+            maxiter=maxiter,
+            itstat_options={"display": False},
+            x0=self.A.adj(self.y),
+            subproblem_solver=LinearSubproblemSolver(),
+        )
+        x_lin = admm_lin.solve()
+        admm_dft = ADMM(
+            f=self.f,
+            g_list=self.g_list,
+            C_list=self.C_list,
+            rho_list=rho_list,
+            maxiter=maxiter,
+            itstat_options={"display": False},
+            x0=self.A.adj(self.y),
+            subproblem_solver=BlockCircularConvolveSolver(),
         )
         x_dft = admm_dft.solve()
         np.testing.assert_allclose(x_dft, x_lin, atol=1e-4, rtol=0)
