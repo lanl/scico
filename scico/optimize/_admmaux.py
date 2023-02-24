@@ -401,19 +401,13 @@ class BlockCircularConvolveSolver(LinearSubproblemSolver):
 
         # All of the C operators are assumed to be linear and shift invariant
         # but this is not checked.
-        c_conv_list = [
+        c_gram_list = [
             rho * CircularConvolve.from_operator(C.gram_op)
             for rho, C in zip(admm.rho_list, admm.C_list)
         ]
-        self.c_conv_sum = reduce(lambda a, b: a + b, c_conv_list)
-        # if self.admm.f is not None:
-        #    A_lhs += 2.0 * admm.f.scale * CircularConvolve.from_operator(admm.f.A.gram_op)
-        #
-        self.invexpr = 1.0 + snp.sum(
-            self.admm.f.A.B.h_dft * (self.admm.f.A.B.h_dft.conj() / self.c_conv_sum.h_dft),
-            axis=0,
-            keepdims=True,
-        )
+        self.D = reduce(lambda a, b: a + b, c_gram_list) / (2.0 * self.admm.f.scale)
+        A = self.admm.f.A.B
+        self.E = 1.0 + snp.sum(A.h_dft * (A.h_dft.conj() / self.D.h_dft), axis=0, keepdims=True)
 
     def solve(self, x0: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
         """Solve the ADMM step.
@@ -424,13 +418,15 @@ class BlockCircularConvolveSolver(LinearSubproblemSolver):
         Returns:
             Computed solution.
         """
-        rhs = self.compute_rhs()
+        rhs = self.compute_rhs() / (2.0 * self.admm.f.scale)
         fft_axes = self.admm.f.A.B.x_fft_axes
-        rhs_dft = snp.fft.fftn(rhs, axes=fft_axes) / self.c_conv_sum.h_dft
-        x_dft = (rhs_dft / self.c_conv_sum.h_dft) - (
-            self.admm.f.A.B.h_dft.conj()
-            * ((self.admm.f.A.B.h_dft * rhs_dft) / self.invexpr)
-            / self.c_conv_sum.h_dft
+        rhs_dft = snp.fft.fftn(rhs, axes=fft_axes)
+        dinv_rhs = rhs_dft / self.D.h_dft
+        A = self.admm.f.A.B
+        x_dft = (
+            dinv_rhs
+            - (A.h_dft.conj() * (snp.sum(A.h_dft * dinv_rhs, axis=0, keepdims=True) / self.E))
+            / self.D.h_dft
         )
         x = snp.fft.ifftn(x_dft, axes=fft_axes)
         if self.real_result:
