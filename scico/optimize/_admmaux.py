@@ -365,7 +365,9 @@ class BlockCircularConvolveSolver(LinearSubproblemSolver):
         """Initialize a :class:`BlockCircularConvolveSolver` object."""
 
     def internal_init(self, admm: soa.ADMM):
-        if admm.f is not None:
+        if admm.f is None:
+            raise ValueError("BlockCircularConvolveSolver does not allow f to be None.")
+        else:
             if not isinstance(admm.f, SquaredL2Loss):
                 raise ValueError(
                     "BlockCircularConvolveSolver requires f to be a scico.loss.SquaredL2Loss; "
@@ -397,6 +399,10 @@ class BlockCircularConvolveSolver(LinearSubproblemSolver):
 
         super().internal_init(admm)
 
+        assert isinstance(self.admm.f, SquaredL2Loss)
+        assert isinstance(self.admm.f.A, ComposedLinearOperator)
+        assert isinstance(self.admm.f.A.B, CircularConvolve)
+
         self.real_result = is_real_dtype(admm.C_list[0].input_dtype)
 
         # All of the C operators are assumed to be linear and shift invariant
@@ -418,6 +424,10 @@ class BlockCircularConvolveSolver(LinearSubproblemSolver):
         Returns:
             Computed solution.
         """
+        assert isinstance(self.admm.f, SquaredL2Loss)
+        assert isinstance(self.admm.f.A, ComposedLinearOperator)
+        assert isinstance(self.admm.f.A.B, CircularConvolve)
+
         rhs = self.compute_rhs() / (2.0 * self.admm.f.scale)
         fft_axes = self.admm.f.A.B.x_fft_axes
         rhs_dft = snp.fft.fftn(rhs, axes=fft_axes)
