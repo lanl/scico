@@ -352,7 +352,8 @@ class BlockCircularConvolveSolver(LinearSubproblemSolver):
     some instances (depending on initializer parameters) of
     :class:`.CircularConvolve` and :class:`.FiniteDifference`. None of
     the instances of :class:`.CircularConvolve` may be summed over any of
-    their axes.
+    their axes. The solver is based on the frequency-domain approach
+    proposed in :cite:`wohlberg-2014-efficient`.
 
     Attributes:
         admm (:class:`.ADMM`): ADMM solver object to which the solver is
