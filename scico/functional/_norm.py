@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2022 by SCICO Developers
+# Copyright (C) 2020-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -262,6 +262,70 @@ class L21Norm(Functional):
         new_length = 0.5 * (new_length + snp.abs(new_length))
 
         return new_length * direction
+
+
+class DiffL1L2Norms(Functional):
+    r"""Difference of :math:`\ell_1` and :math:`\ell_2` norms.
+
+    Difference of :math:`\ell_1` and :math:`\ell_2` norms
+
+    .. math::
+        \norm{\mb{x}}_1 - \beta * \norm{\mb{x}}_2
+    """
+
+    has_eval = True
+    has_prox = True
+
+    def __init__(self, beta: float = 1.0):
+        r"""
+        Args:
+            beta: Parameter :math:`\beta` in the norm definition.
+        """
+        self.beta = beta
+
+    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+        return snp.sum(snp.abs(x)) - self.beta * norm(x)
+
+    def prox(
+        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[JaxArray, BlockArray]:
+        r"""Proximal operator of difference of :math:`\ell_1` and :math:`\ell_2` norms
+
+        Evaluate the proximal operator of the difference of :math:`\ell_1`
+        and :math:`\ell_2` norms, i.e. :math:`\alpha \left( \| \mb{x} \|_1 -
+        \beta \| \mb{x} \|_2 \right)` :cite:`lou-2018-fast`.
+
+        Args:
+            v: Input array :math:`\mb{v}`.
+            lam: Proximal parameter :math:`\lambda`.
+            kwargs: Additional arguments that may be used by derived
+                classes.
+        """
+        alpha = lam
+        beta = self.beta
+        va = snp.abs(v)
+        vamx = snp.max(va)
+        if snp.util.is_complex_dtype(v.dtype):
+            vs = snp.exp(1j * snp.angle(v))
+        else:
+            vs = snp.sign(v)
+        if vamx > 0.0:
+            if vamx > alpha:
+                u = snp.maximum(va - alpha, 0.0) * vs
+                l2u = norm(u)
+                u *= (l2u + alpha * beta) / l2u
+            else:
+                u = snp.zeros(v.shape, dtype=v.dtype)
+                if vamx >= (1.0 - beta) * alpha:
+                    idx = va.ravel().argmax()
+                    u = (
+                        u.ravel()
+                        .at[idx]
+                        .set((va.ravel()[idx] + (beta - 1.0) * alpha) * vs.ravel()[idx])
+                    ).reshape(v.shape)
+        else:
+            u = snp.zeros(v.shape, dtype=v.dtype)
+        return u
 
 
 class HuberNorm(Functional):
