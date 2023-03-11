@@ -102,6 +102,9 @@ class Optimizer:
         itstat_options = kwargs.pop("itstat_options", None)
         self.maxiter: int = kwargs.pop("maxiter", 100)
 
+        if kwargs:
+            raise TypeError(f"Unrecognized keyword argument(s) {', '.join([k for k in kwargs])}")
+
         self.itnum: int = 0
         self.timer: Timer = Timer()
 
