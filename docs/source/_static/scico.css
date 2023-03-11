@@ -52,6 +52,19 @@ div.doctest.highlight-default {
 }
 
 
+/* Improve references layout */
+
+div.citation {
+  display: flex;
+}
+
+div.citation > span.label {
+  float: left;
+  padding-right: 0.8em;
+  padding-top: 0.1em;
+}
+
+
 /* Todo note */
 
 div.admonition-todo {
