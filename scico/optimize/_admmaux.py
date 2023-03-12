@@ -344,7 +344,7 @@ class BlockCircularConvolveSolver(LinearSubproblemSolver):
     operator :code:`f.A` is a composition of a :class:`.Sum` operator and
     a :class:`.CircularConvolve` operator. The former must sum over the
     first axis of its input, and the latter must be initialized so that
-    it convolves a set of filers, indexed by the first axis, with an
+    it convolves a set of filters, indexed by the first axis, with an
     input array that has the same number of axes as the filter array, and
     has an initial axis of the same length as that of the filter array.
     The :code:`C_i` must all be shift invariant linear operators,
