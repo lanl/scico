@@ -295,7 +295,7 @@ def create_circular_phantom(
     return img
 
 
-def create_3D_foam_phantom(
+def create_3d_foam_phantom(
     im_shape: Shape,
     N_sphere: int,
     r_mean: float = 0.1,

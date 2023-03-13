@@ -8,7 +8,7 @@ import pytest
 
 import scico.numpy as snp
 from scico.examples import (
-    create_3D_foam_phantom,
+    create_3d_foam_phantom,
     create_circular_phantom,
     create_cone,
     downsample_volume,
@@ -104,8 +104,8 @@ def test_create_cone(img_shape):
     ),
 )
 @pytest.mark.parametrize("N_sphere", (3, 10, 20))
-def test_create_3D_foam_phantom(img_shape, N_sphere):
-    x_gt = create_3D_foam_phantom(img_shape, N_sphere)
+def test_create_3d_foam_phantom(img_shape, N_sphere):
+    x_gt = create_3d_foam_phantom(img_shape, N_sphere)
     assert x_gt.shape == img_shape
 
 
