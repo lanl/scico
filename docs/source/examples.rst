@@ -6,7 +6,7 @@ Usage Examples
 .. toctree::
    :maxdepth: 1
 
-.. include:: include/examplenotes.rst
+.. include:: exampledepend.rst
 
 
 Organized by Application
@@ -63,6 +63,7 @@ Sparse Coding
    :maxdepth: 1
 
    examples/sparsecode_admm
+   examples/sparsecode_conv_admm
    examples/sparsecode_pgm
    examples/sparsecode_poisson_pgm
 
@@ -144,6 +145,7 @@ Sparsity
    :maxdepth: 1
 
    examples/sparsecode_admm
+   examples/sparsecode_conv_admm
    examples/sparsecode_pgm
    examples/sparsecode_poisson_pgm
    examples/video_rpca_admm
@@ -196,6 +198,7 @@ ADMM
    examples/deconv_ppp_dncnn_admm
    examples/deconv_ppp_bm4d_admm
    examples/sparsecode_admm
+   examples/sparsecode_conv_admm
    examples/demosaic_ppp_bm3d_admm
    examples/superres_ppp_dncnn_admm
    examples/denoise_l1tv_admm

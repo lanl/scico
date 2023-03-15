@@ -43,7 +43,7 @@ Deconvolution
    `deconv_tv_padmm.py <deconv_tv_padmm.py>`_
       Image Deconvolution with TV Regularization (Proximal ADMM Solver)
    `deconv_tv_admm_tune.py <deconv_tv_admm_tune.py>`_
-      Image Deconvolution Parameter Tuning
+      Parameter Tuning for Image Deconvolution with TV Regularization (ADMM Solver)
    `deconv_microscopy_tv_admm.py <deconv_microscopy_tv_admm.py>`_
       Deconvolution Microscopy (Single Channel)
    `deconv_microscopy_allchn_tv_admm.py <deconv_microscopy_allchn_tv_admm.py>`_
@@ -69,6 +69,8 @@ Sparse Coding
 
    `sparsecode_admm.py <sparsecode_admm.py>`_
       Non-Negative Basis Pursuit DeNoising (ADMM)
+   `sparsecode_conv_admm.py <sparsecode_conv_admm.py>`_
+      Convolutional Sparse Coding (ADMM)
    `sparsecode_pgm.py <sparsecode_pgm.py>`_
       Basis Pursuit DeNoising (APGM)
    `sparsecode_poisson_pgm.py <sparsecode_poisson_pgm.py>`_
@@ -152,7 +154,7 @@ Total Variation
    `deconv_tv_admm.py <deconv_tv_admm.py>`_
       Image Deconvolution with TV Regularization (ADMM Solver)
    `deconv_tv_admm_tune.py <deconv_tv_admm_tune.py>`_
-      Image Deconvolution Parameter Tuning
+      Parameter Tuning for Image Deconvolution with TV Regularization (ADMM Solver)
    `deconv_tv_padmm.py <deconv_tv_padmm.py>`_
       Image Deconvolution with TV Regularization (Proximal ADMM Solver)
    `deconv_microscopy_tv_admm.py <deconv_microscopy_tv_admm.py>`_
@@ -178,6 +180,8 @@ Sparsity
 
    `sparsecode_admm.py <sparsecode_admm.py>`_
       Non-Negative Basis Pursuit DeNoising (ADMM)
+   `sparsecode_conv_admm.py <sparsecode_conv_admm.py>`_
+      Convolutional Sparse Coding (ADMM)
    `sparsecode_pgm.py <sparsecode_pgm.py>`_
       Basis Pursuit DeNoising (APGM)
    `sparsecode_poisson_pgm.py <sparsecode_poisson_pgm.py>`_
@@ -238,7 +242,7 @@ ADMM
    `deconv_tv_admm.py <deconv_tv_admm.py>`_
       Image Deconvolution with TV Regularization (ADMM Solver)
    `deconv_tv_admm_tune.py <deconv_tv_admm_tune.py>`_
-      Image Deconvolution Parameter Tuning
+      Parameter Tuning for Image Deconvolution with TV Regularization (ADMM Solver)
    `deconv_microscopy_tv_admm.py <deconv_microscopy_tv_admm.py>`_
       Deconvolution Microscopy (Single Channel)
    `deconv_microscopy_allchn_tv_admm.py <deconv_microscopy_allchn_tv_admm.py>`_
@@ -251,6 +255,8 @@ ADMM
       PPP (with BM4D) Volume Deconvolution
    `sparsecode_admm.py <sparsecode_admm.py>`_
       Non-Negative Basis Pursuit DeNoising (ADMM)
+   `sparsecode_conv_admm.py <sparsecode_conv_admm.py>`_
+      Convolutional Sparse Coding (ADMM)
    `demosaic_ppp_bm3d_admm.py <demosaic_ppp_bm3d_admm.py>`_
       PPP (with BM3D) Image Demosaicing
    `superres_ppp_dncnn_admm.py <superres_ppp_dncnn_admm.py>`_
