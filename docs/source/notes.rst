@@ -7,7 +7,9 @@ No GPU/TPU Warning
 
 JAX currently issues a warning when used on a platform without a
 GPU. To disable this warning, set the environment variable
-``JAX_PLATFORM_NAME=cpu`` before running Python.
+``JAX_PLATFORM_NAME=cpu`` before running Python. This warning is
+suppressed by SCICO for JAX versions after 0.3.23, making use of
+the environment variable unnecessary.
 
 
 Debugging
@@ -70,7 +72,7 @@ the generation and splitting of PRNG keys.
    print(y) # [ 0.00870693 -0.04888531]
 
 The user is responsible for passing the PRNG key to
-:mod:`scico.random` functions.  If no key is passed, repeated calls to
+:mod:`scico.random` functions. If no key is passed, repeated calls to
 :mod:`scico.random` functions will return the same random numbers:
 
 ::
@@ -169,7 +171,7 @@ Non-differentiable Functionals
 ------------------------------
 
 :func:`scico.grad` can be applied to any function, but has undefined
-behavior for non-differentiable functions.  For non-differerentiable
+behavior for non-differentiable functions. For non-differerentiable
 functions, :func:`scico.grad` may or may not return a valid
 subgradient. As an example, ``scico.grad(snp.abs)(0.) = 0``, which is
 a valid subgradient. However, ``scico.grad(snp.linalg.norm)([0., 0.])
@@ -180,7 +182,7 @@ differentiable and non-differentiable function should be avoided. As
 an example, :math:`f(x) = \norm{x}_2^2` can be implemented in as ``f =
 lambda x: snp.linalg.norm(x)**2``. This involves first calculating the
 non-squared :math:`\ell_2` norm, then squaring it. The un-squared
-:math:`\ell_2` norm is not differentiable at zero.  When evaluating
+:math:`\ell_2` norm is not differentiable at zero. When evaluating
 the gradient of ``f`` at 0, :func:`scico.grad` returns ``nan``:
 
 ::
@@ -248,7 +250,7 @@ We recommend that input data be converted to DeviceArray via
 ``jax.device_put`` before calling any SCICO optimizers.
 
 On a multi-GPU system, ``jax.device_put`` can place data on a specific
-GPU.  See the `JAX notes on data placement
+GPU. See the `JAX notes on data placement
 <https://jax.readthedocs.io/en/latest/faq.html?highlight=data%20placement#controlling-data-and-computation-placement-on-devices>`_.
 
 
