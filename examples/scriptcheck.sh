@@ -39,21 +39,12 @@ if [ ! $# -eq 0 ] ; then
     exit 2
 fi
 
-# Check for presence of Xvfb tool which is used to avoid plots being displayed.
-if [ ! "$(which Xvfb 2>/dev/null)" ]; then
-    msg="Warning: required tool Xvfb not found: functionality will be degraded"
-    echo $msg >&2
-    pid=0
-else
-    Xvfb :20 -screen 0 800x600x16 > /dev/null 2>&1 &
-    pid=$!
-    export DISPLAY=:20.0
-fi
-
 # Set environment variables and paths. This script is assumed to be run
 # from its root directory.
 export PYTHONPATH=$SCRIPTPATH/..
 export PYTHONIOENCODING=utf-8
+export MPLBACKEND=agg
+export PYTHONWARNINGS=ignore:Matplotlib:UserWarning
 d='/tmp/scriptcheck_'$$
 mkdir -p $d
 retval=0
@@ -116,10 +107,5 @@ done
 
 # Remove temporary script directory.
 rmdir $d
-
-# Kill Xvfb process if it was started.
-if [ $pid != 0 ]; then
-  kill $pid
-fi
 
 exit $retval

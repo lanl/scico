@@ -8,34 +8,40 @@ r"""
 CT Training and Reconstructions with ODP
 ========================================
 
-This example demonstrates the training of the unrolled
-optimization with deep priors (ODP) gradient descent architecture
-described in :cite:`diamond-2018-odp` applied to a CT reconstruction problem.
+This example demonstrates the training of the unrolled optimization with
+deep priors (ODP) gradient descent architecture described in
+:cite:`diamond-2018-odp` applied to a CT reconstruction problem.
 
 The source images are foam phantoms generated with xdesign.
 
-A class [scico.flax.ODPNet](../_autosummary/scico.flax.rst#scico.flax.ODPNet)
+A class
+[scico.flax.ODPNet](../_autosummary/scico.flax.rst#scico.flax.ODPNet)
 implements the ODP architecture, which solves the optimization problem
 
-  $$\mathrm{argmin}_{\mathbf{x}} \; \| A \mathbf{x} - \mathbf{y} \|_2^2 + r(\mathbf{x}) \;,$$
+$$\mathrm{argmin}_{\mathbf{x}} \; \| A \mathbf{x} - \mathbf{y} \|_2^2
++ r(\mathbf{x}) \;,$$
 
-where $A$ is a tomographic projector, $\mathbf{y}$ is a set of sinograms, $r$ is a regularizer
-and $\mathbf{x}$ is the set of reconstructed images. The ODP, gradient descent architecture,
-abstracts the iterative solution by an unrolled network where each iteration corresponds
-to a different stage in the ODP network and updates the prediction by solving
+where $A$ is a tomographic projector, $\mathbf{y}$ is a set of sinograms,
+$r$ is a regularizer and $\mathbf{x}$ is the set of reconstructed images.
+The ODP, gradient descent architecture, abstracts the iterative solution
+by an unrolled network where each iteration corresponds to a different
+stage in the ODP network and updates the prediction by solving
 
-  $$\mathbf{x}^{k+1} = \mathrm{argmin}_{\mathbf{x}} \; \alpha_k \| A \mathbf{x} - \mathbf{y} \|_2^2 + \frac{1}{2} \| \mathbf{x} - \mathbf{x}^k - \mathbf{x}^{k+1/2} \|_2^2 \;,$$
+$$\mathbf{x}^{k+1} = \mathrm{argmin}_{\mathbf{x}} \; \alpha_k \| A
+\mathbf{x} - \mathbf{y} \|_2^2 + \frac{1}{2} \| \mathbf{x} -
+\mathbf{x}^k - \mathbf{x}^{k+1/2} \|_2^2 \;,$$
 
 which for the CT problem, using gradient descent, corresponds to
 
-  $$\mathbf{x}^{k+1} = \mathbf{x}^k + \mathbf{x}^{k+1/2} -  \alpha_k \, A^T \, (A \mathbf{x}^k - \mathbf{y}) \;,$$
+$$\mathbf{x}^{k+1} = \mathbf{x}^k + \mathbf{x}^{k+1/2} - \alpha_k \,
+A^T \, (A \mathbf{x}^k - \mathbf{y}) \;,$$
 
-where $k$ is the index of the stage (iteration),
-$\mathbf{x}^k + \mathbf{x}^{k+1/2} = \mathrm{ResNet}(\mathbf{x}^{k})$
-is the regularization (implemented as a residual convolutional neural network),
- $\mathbf{x}^k$ is the output of the previous stage and
- $\alpha_k > 0$ is a learned stage-wise parameter weighting the contribution of the fidelity term.
- The output of the final stage is the set of reconstructed images.
+where $k$ is the index of the stage (iteration), $\mathbf{x}^k +
+\mathbf{x}^{k+1/2} = \mathrm{ResNet}(\mathbf{x}^{k})$ is the
+regularization (implemented as a residual convolutional neural network),
+$\mathbf{x}^k$ is the output of the previous stage and $\alpha_k > 0$ is
+a learned stage-wise parameter weighting the contribution of the fidelity
+term. The output of the final stage is the set of reconstructed images.
 """
 
 import os
@@ -55,8 +61,8 @@ from scico.flax.train.traversals import clip_positive, construct_traversal
 from scico.linop.radon_astra import TomographicProjector
 
 """
-Prepare parallel processing. Set an arbitrary processor
-count (only applies if GPU is not available).
+Prepare parallel processing. Set an arbitrary processor count (only
+applies if GPU is not available).
 """
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 platform = jax.lib.xla_bridge.get_backend().platform
@@ -87,6 +93,7 @@ A = TomographicProjector(
 )  # Radon transform operator
 A = (1.0 / N) * A  # normalized
 
+
 """
 Build training and testing structures. Inputs are the sinograms and
 outpus are the original generated foams. Keep training and testing
@@ -101,13 +108,14 @@ test_ds = {"image": ttdt["sino"][:numtt], "label": ttdt["img"][:numtt]}
 """
 Define configuration dictionary for model and training loop.
 
-Parameters have been selected for demonstration purposes and relatively short training.
-The model depth is akin to the number of unrolled iterations in the MoDL model.
-The block depth controls the number of layers at each unrolled iteration.
-The number of filters is uniform throughout the iterations.
-The iterations used for the conjugate gradient (CG) solver can also be specified.
-Better performance may be obtained by increasing depth, block depth, number of filters, CG iterations, or training epochs,
-but may require longer training times.
+Parameters have been selected for demonstration purposes and relatively
+short training. The model depth is akin to the number of unrolled
+iterations in the MoDL model. The block depth controls the number of
+layers at each unrolled iteration. The number of filters is uniform
+throughout the iterations. The iterations used for the conjugate gradient
+(CG) solver can also be specified. Better performance may be obtained by
+increasing depth, block depth, number of filters, CG iterations, or
+training epochs, but may require longer training times.
 """
 # model configuration
 model_conf = {
@@ -127,10 +135,10 @@ train_conf: sflax.ConfigDict = {
     "log": True,
 }
 
+
 """
-Construct functionality for making sure that
-the learned fidelity weight parameter is always
-positive.
+Construct functionality for making sure that the learned fidelity weight
+parameter is always positive.
 """
 alphatrav = construct_traversal("alpha")  # select alpha parameters in model
 alphapost = partial(
@@ -139,11 +147,13 @@ alphapost = partial(
     minval=1e-3,
 )
 
+
 """
 Print configuration of distributed run.
 """
 print(f"{'JAX process: '}{jax.process_index()}{' / '}{jax.process_count()}")
 print(f"{'JAX local devices: '}{jax.local_devices()}")
+
 
 """
 Construct ODPNet model.
@@ -179,6 +189,7 @@ start_time = time()
 modvar, stats_object = trainer.train()
 time_train = time() - start_time
 
+
 """
 Evaluate on testing data.
 """
@@ -195,17 +206,19 @@ time_eval = time() - start_time
 output = np.clip(output, a_min=0, a_max=1.0)
 epochs = train_conf["num_epochs"]
 
+
 """
-Compare trained model in terms of reconstruction time
-and data fidelity.
+Compare trained model in terms of reconstruction time and data fidelity.
 """
 snr_eval = metric.snr(test_ds["label"][:maxn], output)
 psnr_eval = metric.psnr(test_ds["label"][:maxn], output)
 print(
-    f"{'ODPNet training':18s}{'epochs:':2s}{epochs:>5d}{'':21s}{'time[s]:':10s}{time_train:>7.2f}"
+    f"{'ODPNet training':18s}{'epochs:':2s}{epochs:>5d}{'':21s}"
+    f"{'time[s]:':10s}{time_train:>7.2f}"
 )
 print(
-    f"{'ODPNet testing':18s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}{'':3s}{'time[s]:':10s}{time_eval:>7.2f}"
+    f"{'ODPNet testing':18s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}"
+    f"{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}{'':3s}{'time[s]:':10s}{time_eval:>7.2f}"
 )
 
 # Plot comparison
@@ -238,7 +251,8 @@ fig.show()
 
 
 """
-Plot convergence statistics. Statistics only generated if a training cycle was done (i.e. not reading final epoch results from checkpoint).
+Plot convergence statistics. Statistics only generated if a training
+cycle was done (i.e. not reading final epoch results from checkpoint).
 """
 if stats_object is not None:
     hist = stats_object.history(transpose=True)
@@ -265,5 +279,6 @@ if stats_object is not None:
         ax=ax[1],
     )
     fig.show()
+
 
 input("\nWaiting for input to close figures and exit")

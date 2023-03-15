@@ -31,7 +31,10 @@ Contributing
     </style>
 
 
-Contributions to SCICO are welcome. Before starting work, please contact the maintainers, either via email or the GitHub issue system, to discuss the relevance of your contribution and the most appropriate location within the existing package structure.
+Contributions to SCICO are welcome. Before starting work, please
+contact the maintainers, either via email or the GitHub issue system,
+to discuss the relevance of your contribution and the most appropriate
+location within the existing package structure.
 
 
 .. _installing_dev:
@@ -39,9 +42,11 @@ Contributions to SCICO are welcome. Before starting work, please contact the mai
 Installing a Development Version
 --------------------------------
 
-1. Fork both the ``scico`` and ``scico-data`` repositories, creating copies of these repositories in your own git account.
+1. Fork both the ``scico`` and ``scico-data`` repositories, creating
+   copies of these repositories in your own git account.
 
-2. Make sure that you have Python 3.7 or later installed in order to create a conda virtual environment.
+2. Make sure that you have Python 3.7 or later installed in order to
+   create a conda virtual environment.
 
 3. Clone your fork from the source repo.
 
@@ -73,7 +78,8 @@ Installing a Development Version
 
       git remote add upstream https://www.github.com/lanl/scico
 
-8. After adding the upstream, the recommended way to install SCICO and its dependencies is via pip:
+8. After adding the upstream, the recommended way to install SCICO and
+   its dependencies is via pip:
 
    ::
 
@@ -85,10 +91,13 @@ Installing a Development Version
    For installing dependencies related to the examples please see :ref:`example_notebooks`.
    Installing these are neccessary for the successfull running of the tests.
 
-9. The SCICO project uses the `black <https://black.readthedocs.io/en/stable/>`_,
-   `isort <https://pypi.org/project/isort/>`_ and `pylint <https://pylint.pycqa.org/en/latest/>`_
-   code formatting utilities. It is important to set up a `pre-commit hook <https://pre-commit.com>`_ to
-   ensure that any modified code passes format check before it is committed to the development repo:
+9. The SCICO project uses the `black
+   <https://black.readthedocs.io/en/stable/>`_, `isort
+   <https://pypi.org/project/isort/>`_ and `pylint
+   <https://pylint.pycqa.org/en/latest/>`_ code formatting
+   utilities. It is important to set up a `pre-commit hook
+   <https://pre-commit.com>`_ to ensure that any modified code passes
+   format check before it is committed to the development repo:
 
    ::
 
@@ -106,20 +115,23 @@ Installing a Development Version
 Building Documentation
 ----------------------
 
-Before building the documentation, one must install the documentation specific dependencies by running
+Before building the documentation, one must install the documentation
+specific dependencies by running
 
 ::
 
    pip install -r docs_requirements.txt
 
-Then, a local copy of the documentation can be built from the respository root directory by running
+Then, a local copy of the documentation can be built from the
+respository root directory by running
 
 ::
 
   python setup.py build_sphinx
 
 
-Alternatively, one can also build the documentation by running the following from the `docs/` directory
+Alternatively, one can also build the documentation by running the
+following from the `docs/` directory
 
 ::
 
@@ -131,8 +143,11 @@ Contributing Code
 -----------------
 
 - New features / bugs / documentation are *always* developed in separate branches.
-- Branches should be named in the form `<username>/<brief-description>`,
-  where `<brief-description>` provides a highly condensed description of the purpose of the branch (e.g. `address_todo`), and may include an issue number if appropriate (e.g. `fix_223`).
+- Branches should be named in the form
+  `<username>/<brief-description>`, where `<brief-description>`
+  provides a highly condensed description of the purpose of the branch
+  (e.g. `address_todo`), and may include an issue number if
+  appropriate (e.g. `fix_223`).
 
 
 A feature development workflow might look like this:
@@ -202,14 +217,27 @@ A feature development workflow might look like this:
 Adding Data
 -----------
 
-The following steps show how to add new data, ``new_data.npz``, to the packaged data. We assume the ``scico`` repository has been cloned to ``scico/``. Note that the data is located in the ``scico-data`` submodule, which is attached to the main `scico` repository via the directory ``scico/data`` (i.e. the ``data/`` subdirectory of the repository root directory, *not* the ``scico/data`` subdirectory of the repository root directory). When adding new data, both the ``scico`` and ``scico-data`` repositories must be updated and kept in sync.
+The following steps show how to add new data, ``new_data.npz``, to the
+packaged data. We assume the ``scico`` repository has been cloned to
+``scico/``. Note that the data is located in the ``scico-data``
+submodule, which is attached to the main `scico` repository via the
+directory ``scico/data`` (i.e. the ``data/`` subdirectory of the
+repository root directory, *not* the ``scico/data`` subdirectory of
+the repository root directory). When adding new data, both the
+``scico`` and ``scico-data`` repositories must be updated and kept in
+sync.
 
 
-1. Create new branches in the main ``scico`` repository as well as in the submodule corresponding to the ``scico-data`` repository (which can be achieved by following the usual branch creation procedure after changing the current directory to ``scico/data``).
+1. Create new branches in the main ``scico`` repository as well as in
+   the submodule corresponding to the ``scico-data`` repository (which
+   can be achieved by following the usual branch creation procedure
+   after changing the current directory to ``scico/data``).
 
-2. Add the ``new_data.npz`` file to the appropriate subdirectory (creating a new one if necessary) of the ``scico/data`` directory.
+2. Add the ``new_data.npz`` file to the appropriate subdirectory
+   (creating a new one if necessary) of the ``scico/data`` directory.
 
-3. Change directory to this directory (taken to be ``scico/data/flax`` for the purposes of this example) and add/commit the new data file:
+3. Change directory to this directory (taken to be ``scico/data/flax``
+   for the purposes of this example) and add/commit the new data file:
 
    ::
 
@@ -217,7 +245,8 @@ The following steps show how to add new data, ``new_data.npz``, to the packaged 
       git add new_data.npz
       git commit -m "Add new data file"
 
-4. Return to the ``scico`` repository root directory, add/commit the new data, and update submodule:
+4. Return to the ``scico`` repository root directory, add/commit the
+   new data, and update submodule:
 
    ::
 
@@ -236,7 +265,7 @@ The following steps show how to add new data, ``new_data.npz``, to the packaged 
 Type Checking
 -------------
 
-In the future, we will require all code to pass ``mypy`` type checking. This is not currently enforced.
+All code is required to pass ``mypy`` type checking.
 
 Install ``mypy``:
 
@@ -292,7 +321,10 @@ version of ``scico`` by
 Test Coverage
 ^^^^^^^^^^^^^
 
-Test coverage is a measure of the fraction of the package code that is exercised by the tests. While this should not be the primary criterion in designing tests, it is a useful tool for finding obvious areas of omission.
+Test coverage is a measure of the fraction of the package code that is
+exercised by the tests. While this should not be the primary criterion
+in designing tests, it is a useful tool for finding obvious areas of
+omission.
 
 To be able to check test coverage, install ``coverage``:
 
@@ -319,7 +351,9 @@ existing examples to ensure that the mechanism for automatically
 generating corresponding Jupyter notebooks functions correctly. In
 particular:
 
-1. The initial lines of the script should consist of a comment block, followed by a blank line, followed by a multiline string with an RST heading on the first line, e.g.,
+1. The initial lines of the script should consist of a comment block,
+   followed by a blank line, followed by a multiline string with an
+   RST heading on the first line, e.g.,
 
    ::
 
@@ -336,19 +370,33 @@ particular:
      Script description.
      """
 
-2. The final line of the script is an ``input`` statement intended to avoid the script terminating immediately, thereby closing all figures:
+2. The final line of the script is an ``input`` statement intended to
+   avoid the script terminating immediately, thereby closing all
+   figures:
 
    ::
 
      input("\nWaiting for input to close figures and exit")
 
-3. Citations are included using the standard `Sphinx <https://www.sphinx-doc.org/en/master/>`__ ``:cite:`cite-key``` syntax, where ``cite-key`` is the key of an entry in ``docs/source/references.bib``.
+3. Citations are included using the standard `Sphinx
+   <https://www.sphinx-doc.org/en/master/>`__ ``:cite:`cite-key```
+   syntax, where ``cite-key`` is the key of an entry in
+   ``docs/source/references.bib``.
 
-4. Cross-references to other components of the documentation are included using the syntax described in the `nbsphinx documentation <https://nbsphinx.readthedocs.io/en/latest/markdown-cells.html#Links-to-*.rst-Files-(and-Other-Sphinx-Source-Files)>`__.
+4. Cross-references to other components of the documentation are
+   included using the syntax described in the `nbsphinx documentation
+   <https://nbsphinx.readthedocs.io/en/latest/markdown-cells.html#Links-to-*.rst-Files-(and-Other-Sphinx-Source-Files)>`__.
 
 5. External links are included using Markdown syntax ``[link text](url)``.
 
-6. When constructing a synthetic image/volume for use in the example, define a global variable `N` that controls the size of the problem, and where relevant, define a global variable `maxiter` that controls the number of iterations of optimization algorithms such as ADMM. Adhering to this convention allows the ``examples/scriptcheck.sh`` utility to automatically construct less computationally expensive versions of the example scripts for testing that they run without any errors.
+6. When constructing a synthetic image/volume for use in the example,
+   define a global variable `N` that controls the size of the problem,
+   and where relevant, define a global variable `maxiter` that
+   controls the number of iterations of optimization algorithms such
+   as ADMM. Adhering to this convention allows the
+   ``examples/scriptcheck.sh`` utility to automatically construct less
+   computationally expensive versions of the example scripts for
+   testing that they run without any errors.
 
 
 Adding new examples
@@ -364,19 +412,28 @@ located in the scico-data submodule, which is symlinked to
 ``scico/data``. When adding a new usage example, both the ``scico``
 and ``scico-data`` repositories must be updated and kept in sync.
 
-.. warning::
-   Ensure that all binary data (including raw data, images, ``.ipynb`` files) are added to ``scico-data``, not the main ``scico`` repo.
+.. warning:: Ensure that all binary data (including raw data, images,
+   ``.ipynb`` files) are added to ``scico-data``, not the main
+   ``scico`` repo.
 
 
-1. Create new branches in the main `scico` repository as well as in the submodule corresponding to the `scico-data` repository (which can be achieved by following the usual branch creation procedure after changing the current directory to ``scico/data``).
+1. Create new branches in the main `scico` repository as well as in
+   the submodule corresponding to the `scico-data` repository (which
+   can be achieved by following the usual branch creation procedure
+   after changing the current directory to ``scico/data``).
 
 2. Add the ``new_example.py`` script to the ``scico/examples/scripts`` directory.
 
-3. Add the basename of the script (i.e., without the pathname; in this case, ``new_example.py``) to the appropriate section of ``examples/scripts/index.rst``.
+3. Add the basename of the script (i.e., without the pathname; in this
+   case, ``new_example.py``) to the appropriate section of
+   ``examples/scripts/index.rst``.
 
-4. Convert your new example to a Jupyter notebook by changing directory to the ``scico/examples`` directory and following the instructions in ``scico/examples/README.rst``.
+4. Convert your new example to a Jupyter notebook by changing
+   directory to the ``scico/examples`` directory and following the
+   instructions in ``scico/examples/README.rst``.
 
-5. Change directory to the ``data`` directory and add/commit the new Jupyter Notebook:
+5. Change directory to the ``data`` directory and add/commit the new
+   Jupyter Notebook:
 
    ::
 
@@ -384,7 +441,9 @@ and ``scico-data`` repositories must be updated and kept in sync.
       git add notebooks/new_example.ipynb
       git commit -m "Add new usage example"
 
-6. Return to the main ``scico`` repository root directory, ensure the ``main`` branch is checked out, add/commit the new script and updated submodule:
+6. Return to the main ``scico`` repository root directory, ensure the
+   ``main`` branch is checked out, add/commit the new script and
+   updated submodule:
 
    ::
 

@@ -1,4 +1,4 @@
-# Copyright (C) 2020-2022 by SCICO Developers
+# Copyright (C) 2020-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -26,7 +26,7 @@ def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = Non
     >>> Sum = linop_from_function(snp.sum, 'Sum')
     >>> H = Sum((2, 10), axis=1)
     >>> H @ snp.ones((2, 10))
-    DeviceArray([10., 10.], dtype=float32)
+    Array([10., 10.], dtype=float32)
 
     Args:
         f: Function from which to create a :class:`LinearOperator`.

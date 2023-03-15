@@ -5,8 +5,8 @@
 # with the package.
 
 r"""
-Image Deconvolution with TV Regularization (ADMM Solver)
-========================================================
+Image Deconvolution with TV Regularization (Proximal ADMM Solver)
+=================================================================
 
 This example demonstrates the solution of an image deconvolution problem
 with isotropic total variation (TV) regularization
@@ -18,8 +18,8 @@ where $C$ is a convolution operator, $\mathbf{y}$ is the blurred image,
 $D$ is a 2D finite fifference operator, and $\mathbf{x}$ is the
 deconvolved image.
 
-In this example the problem is solved via standard ADMM, while proximal
-ADMM is used in a [companion example](deconv_tv_padmm.rst).
+In this example the problem is solved via proximal ADMM, while standard
+ADMM is used in a [companion example](deconv_tv_admm.rst).
 """
 
 import jax
@@ -29,7 +29,7 @@ from xdesign import SiemensStar, discrete_phantom
 import scico.numpy as snp
 import scico.random
 from scico import functional, linop, loss, metric, plot
-from scico.optimize.admm import ADMM, LinearSubproblemSolver
+from scico.optimize import ProximalADMM
 from scico.util import device_info
 
 """
@@ -66,41 +66,57 @@ where $C$ is the convolution operator and $D$ is a finite difference
 operator. This problem can be expressed as
 
   $$\mathrm{argmin}_{\mathbf{x}, \mathbf{z}} \; (1/2) \| \mathbf{y} -
-  C \mathbf{x} \|_2^2 + \lambda \| \mathbf{z} \|_{2,1} \;\;
-  \text{such that} \;\; \mathbf{z} = C \mathbf{x} \;,$$
+  \mathbf{z}_0 \|_2^2 + \lambda \| \mathbf{z}_1 \|_{2,1} \;\;
+  \text{such that} \;\; \mathbf{z}_0 = C \mathbf{x} \;\; \text{and} \;\;
+  \mathbf{z}_1 = D \mathbf{x} \;,$$
 
-which is easily written in the form of a standard ADMM problem.
+which can be written in the form of a standard ADMM problem
 
-This is simpler splitting than that used in the
-[companion example](deconv_tv_padmm.rst), but it requires the use
-conjugate gradient sub-iterations to solve the ADMM step associated with
-the data fidelity term.
+  $$\mathrm{argmin}_{\mathbf{x}, \mathbf{z}} \; f(\mathbf{x}) + g(\mathbf{z})
+  \;\; \text{such that} \;\; A \mathbf{x} + B \mathbf{z} = \mathbf{c}$$
+
+with
+
+  $$f = 0 \quad g = g_0 + g_1$$
+  $$g_0(\mathbf{z}_0) = (1/2) \| \mathbf{y} - \mathbf{z}_0 \|_2^2 \quad
+  g_1(\mathbf{z}_1) = \lambda \| \mathbf{z}_1 \|_{2,1}$$
+  $$A = \left( \begin{array}{c} C \\ D \end{array} \right) \quad
+  B = \left( \begin{array}{cc} -I & 0 \\ 0 & -I \end{array} \right) \quad
+  \mathbf{c} = \left( \begin{array}{c} 0 \\ 0 \end{array} \right) \;.$$
+
+This is a more complex splitting than that used in the
+[companion example](deconv_tv_admm.rst), but it allows the use of a
+proximal ADMM solver in a way that avoids the need for the conjugate
+gradient sub-iterations used by the ADMM solver in the
+[companion example](deconv_tv_admm.rst).
 """
-f = loss.SquaredL2Loss(y=y, A=C)
-# Penalty parameters must be accounted for in the gi functions, not as
-# additional inputs.
-λ = 2.1e-2  # L1 norm regularization parameter
-g = λ * functional.L21Norm()
-# The append=0 option makes the results of horizontal and vertical
-# finite differences the same shape, which is required for the L21Norm,
-# which is used so that g(Cx) corresponds to isotropic TV.
+f = functional.ZeroFunctional()
+g0 = loss.SquaredL2Loss(y=y)
+λ = 2.0e-2  # L1 norm regularization parameter
+g1 = λ * functional.L21Norm()
+g = functional.SeparableFunctional((g0, g1))
+
 D = linop.FiniteDifference(input_shape=x_gt.shape, append=0)
+A = linop.VerticalStack((C, D))
 
 
 """
-Set up an ADMM solver object.
+Set up a proximal ADMM solver object.
 """
 ρ = 1.0e-1  # ADMM penalty parameter
 maxiter = 50  # number of ADMM iterations
+mu, nu = ProximalADMM.estimate_parameters(D)
 
-solver = ADMM(
+solver = ProximalADMM(
     f=f,
-    g_list=[g],
-    C_list=[D],
-    rho_list=[ρ],
+    g=g,
+    A=A,
+    B=None,
+    rho=ρ,
+    mu=mu,
+    nu=nu,
     x0=C.adj(y),
     maxiter=maxiter,
-    subproblem_solver=LinearSubproblemSolver(),
     itstat_options={"display": True, "period": 10},
 )
 
