@@ -342,6 +342,47 @@ def create_3d_foam_phantom(
     return im
 
 
+def create_conv_sparse_phantom(Nx: int, Nnz: int) -> Tuple[Array, Array]:
+    """Construct a disc dictionary and sparse coefficient maps.
+
+    Construct a disc dictionary and a corresponding set of sparse
+    coefficient maps for testing convolutional sparse coding algorithms.
+
+    Args:
+        Nx: Size of coefficient maps (3 x Nx x Nx).
+        Nnz: Number of non-zero coefficients across all coefficient maps.
+
+    Returns:
+        A tuple consisting of a stack of 2D filters and the coefficient
+           map array.
+    """
+
+    # constant parameters
+    M = 3
+    Nh = 7
+    e = 1
+
+    # create disc filters
+    h = np.zeros((M, 2 * Nh + 1, 2 * Nh + 1))
+    gr, gc = np.ogrid[-Nh : Nh + 1, -Nh : Nh + 1]
+    for m in range(M):
+        r = 2 * m + 3
+        d = np.sqrt(gr**2 + gc**2)
+        v = (np.clip(d, r - e, r + e) - (r - e)) / (2 * e)
+        v = 1.0 - v
+        h[m] = v
+
+    # create sparse random coefficient maps
+    np.random.seed(1234)
+    x = np.zeros((M, Nx, Nx))
+    idx0 = np.random.randint(0, M, size=(Nnz,))
+    idx1 = np.random.randint(0, Nx, size=(2, Nnz))
+    val = np.random.uniform(0, 5, size=(Nnz,))
+    x[idx0, idx1[0], idx1[1]] = val
+
+    return h, x
+
+
 def spnoise(img: Array, nfrac: float, nmin: float = 0.0, nmax: float = 1.0) -> Array:
     """Return image with salt & pepper noise imposed on it.
 

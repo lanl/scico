@@ -11,6 +11,7 @@ from scico.examples import (
     create_3d_foam_phantom,
     create_circular_phantom,
     create_cone,
+    create_conv_sparse_phantom,
     downsample_volume,
     epfl_deconv_data,
     phase_diff,
@@ -107,6 +108,13 @@ def test_create_cone(img_shape):
 def test_create_3d_foam_phantom(img_shape, N_sphere):
     x_gt = create_3d_foam_phantom(img_shape, N_sphere)
     assert x_gt.shape == img_shape
+
+
+def test_conv_sparse_phantom():
+    h, x = create_conv_sparse_phantom(64, 32)
+    assert h.shape == (3, 15, 15)
+    assert x.shape == (3, 64, 64)
+    assert np.sum(x > 0) == 32
 
 
 def test_spnoise():
