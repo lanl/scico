@@ -16,7 +16,7 @@ for f in $@; do
         *)      echo "Error: unsupported operating system $OS" >&2; exit 1;;
     esac
     if [ $size -gt $size_threshold ]; then
-        echo "file exceeds maximum allowable size"
+        echo "file exceeds maximum allowable size of $size_threshold bytes"
         echo "raw data and ipynb files should go in scico-data"
         exit 2
     fi
