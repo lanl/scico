@@ -396,11 +396,44 @@ class BlockCircularConvolveSolver(LinearSubproblemSolver):
        \hat{\mb{y}} + \frac{1}{2 \omega} \sum_i \rho_i \hat{C}_i^H
        (\hat{\mb{z}}_i - \hat{\mb{u}}_i) \;.
 
-    Attributes:
-        admm (:class:`.ADMM`): ADMM solver object to which the solver is
-            attached.
-        lhs_f (array): Left hand side, in the DFT domain, of the linear
-            equation to be solved.
+    This linear equation is computational expensive to solve because
+    the left hand side includes the term :math:`\hat{A}^H \hat{A}`,
+    which corresponds to the outer product of :math:`\hat{A}^H`
+    and :math:`\hat{A}`. A computationally efficient solution is possible,
+    however, by exploiting the Woodbury matrix identity
+
+    .. math::
+
+       (D + U G V)^{-1} = D^{-1} - D^{-1} U (G^{-1} + V D^{-1} U)^{-1}
+       V D^{-1} \;.
+
+    Setting
+
+    .. math::
+
+       D &= \frac{1}{2 \omega} \sum_i \rho_i \hat{C}_i^H \hat{C}_i \\
+       U &= \hat{A}^H \\
+       G &= I \\
+       V &= \hat{A}
+
+    we have
+
+    .. math::
+
+       (D + \hat{A}^H \hat{A})^{-1} = D^{-1} - D^{-1} \hat{A}^H
+       (I + \hat{A} D^{-1} \hat{A}^H)^{-1} \hat{A} D^{-1}
+
+    which can be simplified to
+
+    .. math::
+
+       (D + \hat{A}^H \hat{A})^{-1} = D^{-1} (I - \hat{A}^H E^{-1}
+       \hat{A} D^{-1})
+
+    by defining :math:`E = I + \hat{A} D^{-1} \hat{A}^H`. The right
+    hand side is much cheaper to compute because the only matrix
+    inversions involve $D$, which is diagonal, and $E$, which is a
+    weighted inner product of :math:`\hat{A}^H` and :math:`\hat{A}`.
     """
 
     def __init__(self, check_solve: bool = False):
