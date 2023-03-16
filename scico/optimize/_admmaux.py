@@ -27,6 +27,7 @@ from scico.linop import (
     Sum,
 )
 from scico.loss import SquaredL2Loss
+from scico.metric import rel_res
 from scico.numpy import BlockArray
 from scico.numpy.linalg import norm
 from scico.numpy.util import ensure_on_device, is_real_dtype
@@ -391,7 +392,7 @@ class BlockCircularConvolveSolver(LinearSubproblemSolver):
     .. math::
 
        \left( \hat{A}^H \hat{A} + \frac{1}{2 \omega} \sum_i \rho_i
-       \hat{C}_i^H \hat{C}_i \right)^{-1} \hat{\mathbf{x}} = \hat{A}^H
+       \hat{C}_i^H \hat{C}_i \right) \hat{\mathbf{x}} = \hat{A}^H
        \hat{\mb{y}} + \frac{1}{2 \omega} \sum_i \rho_i \hat{C}_i^H
        (\hat{\mb{z}}_i - \hat{\mb{u}}_i) \;.
 
@@ -402,8 +403,15 @@ class BlockCircularConvolveSolver(LinearSubproblemSolver):
             equation to be solved.
     """
 
-    def __init__(self):
-        """Initialize a :class:`BlockCircularConvolveSolver` object."""
+    def __init__(self, check_solve: bool = False):
+        """Initialize a :class:`BlockCircularConvolveSolver` object.
+
+        Args:
+            check_solve: If ``True``, compute solver accuracy after each
+                solve.
+        """
+        self.check_solve = check_solve
+        self.accuracy = None
 
     def internal_init(self, admm: soa.ADMM):
         if admm.f is None:
@@ -482,5 +490,9 @@ class BlockCircularConvolveSolver(LinearSubproblemSolver):
         x = snp.fft.ifftn(x_dft, axes=fft_axes)
         if self.real_result:
             x = x.real
+
+        if self.check_solve:
+            lhs = self.admm.f.A.gram_op(x) + self.D(x)
+            self.accuracy = rel_res(lhs, rhs)
 
         return x

@@ -21,7 +21,12 @@ from scico.numpy.linalg import norm
 from scico.numpy.util import ensure_on_device
 from scico.typing import JaxArray
 
-from ._admmaux import GenericSubproblemSolver, LinearSubproblemSolver, SubproblemSolver
+from ._admmaux import (
+    BlockCircularConvolveSolver,
+    GenericSubproblemSolver,
+    LinearSubproblemSolver,
+    SubproblemSolver,
+)
 from ._common import Optimizer
 
 
@@ -165,6 +170,12 @@ class ADMM(Optimizer):
             itstat_attrib.extend(
                 ["subproblem_solver.info['num_iter']", "subproblem_solver.info['rel_res']"]
             )
+        elif (
+            type(self.subproblem_solver) == BlockCircularConvolveSolver
+            and self.subproblem_solver.check_solve
+        ):
+            itstat_fields.update({"Slv Res": "%9.3e"})
+            itstat_attrib.extend(["subproblem_solver.accuracy"])
 
         return itstat_fields, itstat_attrib
 
