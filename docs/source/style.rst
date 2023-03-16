@@ -153,7 +153,7 @@ imported. The only exception to this is the typing module.
 
 - Use ``import x`` for importing packages and modules, where x is the
    package or module name.
--  Use ``from x import y`` where x is the package name and y is the module name.
+- Use ``from x import y`` where x is the package name and y is the module name.
 - Use ``from x import y as z`` if two modules named ``y`` are imported
    or if ``y`` is too long of a name.
 - Use ``import y as z`` when ``z`` is a standard abbreviation like
@@ -203,11 +203,11 @@ the `NumPy parameter conventions
 2. Default Values
 
    Parameters should include ``parameter_name = value`` where value is
-   the default for that particular parameter.  If the parameter has a
-   type then the format is ``parameter_name: Type = value``.  When
+   the default for that particular parameter. If the parameter has a
+   type then the format is ``parameter_name: Type = value``. When
    documenting parameters, if a parameter can only assume one of a
    fixed set of values, those values can be listed in braces, with the
-   default appearing first.  For example,
+   default appearing first. For example,
 
    .. code-block:: python
 
@@ -220,9 +220,9 @@ the `NumPy parameter conventions
 
    In Python, ``NoneType`` is a first-class type, meaning the type
    itself can be passed into and returned from functions.  ``None`` is
-   the most commonly used alias for ``NoneType``.  If any of the
+   the most commonly used alias for ``NoneType``. If any of the
    parameters of a function can be ``None`` then it has to be
-   declared.  ``Optional[T]`` is preferred over ``Union[T, None]``.
+   declared. ``Optional[T]`` is preferred over ``Union[T, None]``.
    For example,
 
    .. code-block:: python
@@ -421,7 +421,7 @@ classes, or method definitions.
 -  Notes
 
    - Provides additional information about the code. May include
-      mathematical equations in LaTeX format.  For example,
+      mathematical equations in LaTeX format. For example,
 
      .. code-block:: python
 
@@ -444,12 +444,11 @@ classes, or method definitions.
        """
 
     | For a list of available LaTex macros, search for "macros" in
-    `docs/source/conf.py
-    <https://github.com/lanl/scico/blob/main/docs/source/conf.py>`_.
+      `docs/source/conf.py <https://github.com/lanl/scico/blob/main/docs/source/conf.py>`_.
 
 -  Examples:
 
-   -  Uses the doctest format and is meant to showcase usage.
+   - Uses the doctest format and is meant to showcase usage.
    - If there are multiple examples include blank lines before and
       after each example. For example,
 
@@ -529,7 +528,9 @@ The following components require the recommended markup taken from the
 - Types:
   Should be written between double back-ticks (e.g. \`\`int\`\`, rendered as ``int``).
 
-Other components can use \*italics\*, \*\*bold\*\*, and \`\`monospace\`\` (respectively rendered as *italics*, **bold**, and ``monospace``) if needed, but not for variable names, doctest code, or multi-line code.
+Other components can use \*italics\*, \*\*bold\*\*, and \`\`monospace\`\`
+(respectively rendered as *italics*, **bold**, and ``monospace``) if needed, but
+not for variable names, doctest code, or multi-line code.
 
 
 Documentation
