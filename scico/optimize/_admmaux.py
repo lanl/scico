@@ -352,8 +352,48 @@ class BlockCircularConvolveSolver(LinearSubproblemSolver):
     some instances (depending on initializer parameters) of
     :class:`.CircularConvolve` and :class:`.FiniteDifference`. None of
     the instances of :class:`.CircularConvolve` may be summed over any of
-    their axes. The solver is based on the frequency-domain approach
-    proposed in :cite:`wohlberg-2014-efficient`.
+    their axes.
+
+    The solver is based on the frequency-domain approach proposed in
+    :cite:`wohlberg-2014-efficient`. We have :math:`f = \omega
+    \norm{A \mb{x} - \mb{y}}_2^2`, where typically :math:`\omega = 1/2`,
+    and :math:`A` is a block-row operator with circulant blocks, i.e. it
+    can be written as
+
+    .. math::
+
+       A = \left( \begin{array}{cccc} A_0 & A_1 & \ldots & A_{K-1}
+           \end{array} \right) \;,
+
+    where all of the :math:`A_k` are circular convolution operators. The
+    complete functional to be minimized is
+
+    .. math::
+
+       \omega \norm{A \mb{x} - \mb{y}}_2^2 + \sum_{i=1}^N g_i(C_i \mb{x})
+       \;,
+
+    where the :math:`C_i` are either identity or circular convolutions,
+    and the ADMM x-step is
+
+    .. math::
+
+       \mb{x}^{(j+1)} = \argmin_{\mb{x}} \; \omega \norm{A \mb{x}
+       - \mb{y}}_2^2 + \sum_i \frac{\rho_i}{2} \norm{\mb{z}^{(j)}_i -
+       \mb{u}^{(j)}_i - C_i \mb{x}}_2^2 \;.
+
+    This subproblem is most easily solved in the DFT transform domain,
+    where the circular convolutions become diagonal operators. Denoting
+    the frequency-domain versions of variables with a circumflex (e.g.
+    :math:`\hat{\mb{x}}` is the frequency-domain version of
+    :math:`\mb{x}`), the solution of the subproblem can be written as
+
+    .. math::
+
+       \left( \hat{A}^H \hat{A} + \frac{1}{2 \omega} \sum_i \rho_i
+       \hat{C}_i^H \hat{C}_i \right)^{-1} \hat{\mathbf{x}} = \hat{A}^H
+       \hat{\mb{y}} + \frac{1}{2 \omega} \sum_i \rho_i \hat{C}_i^H
+       (\hat{\mb{z}}_i - \hat{\mb{u}}_i) \;.
 
     Attributes:
         admm (:class:`.ADMM`): ADMM solver object to which the solver is
