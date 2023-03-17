@@ -437,7 +437,9 @@ class BlockCircularConvolveSolver(LinearSubproblemSolver):
     :math:`\hat{A}`.
     """
 
-    def __init__(self, ndims: Optional[Sequence[int]] = None, check_solve: bool = False):
+    def __init__(
+        self, ndims: Optional[Sequence[Union[int, None]]] = None, check_solve: bool = False
+    ):
         """Initialize a :class:`BlockCircularConvolveSolver` object.
 
         Args:
@@ -446,7 +448,7 @@ class BlockCircularConvolveSolver(LinearSubproblemSolver):
         """
         self.ndims = ndims
         self.check_solve = check_solve
-        self.accuracy = None
+        self.accuracy: Optional[float] = None
 
     def internal_init(self, admm: soa.ADMM):
         if admm.f is None:
