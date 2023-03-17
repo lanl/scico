@@ -12,7 +12,7 @@
 from __future__ import annotations
 
 from functools import reduce
-from typing import Any, Optional, Union
+from typing import Any, Optional, Sequence, Union
 
 import jax
 from jax.scipy.sparse.linalg import cg as jax_cg
@@ -432,17 +432,19 @@ class BlockCircularConvolveSolver(LinearSubproblemSolver):
 
     by defining :math:`E = I + \hat{A} D^{-1} \hat{A}^H`. The right
     hand side is much cheaper to compute because the only matrix
-    inversions involve $D$, which is diagonal, and $E$, which is a
-    weighted inner product of :math:`\hat{A}^H` and :math:`\hat{A}`.
+    inversions involve :math:`D`, which is diagonal, and :math:`E`,
+    which is a weighted inner product of :math:`\hat{A}^H` and
+    :math:`\hat{A}`.
     """
 
-    def __init__(self, check_solve: bool = False):
+    def __init__(self, ndims: Optional[Sequence[int]] = None, check_solve: bool = False):
         """Initialize a :class:`BlockCircularConvolveSolver` object.
 
         Args:
             check_solve: If ``True``, compute solver accuracy after each
                 solve.
         """
+        self.ndims = ndims
         self.check_solve = check_solve
         self.accuracy = None
 
@@ -466,17 +468,11 @@ class BlockCircularConvolveSolver(LinearSubproblemSolver):
                     "and CircularConvolve linear operators; got a composition of "
                     f"{type(admm.f.A.A)} and {type(admm.f.A.B)}."
                 )
-            if not len(admm.f.A.B.input_shape) - admm.f.A.B.ndims == 1:
-                raise ValueError(
-                    "BlockCircularConvolveSolver requires the CircularConvolve operator "
-                    "component of f.A to have an initial axis representing multiple filters; "
-                    f"but it has input shape {admm.f.A.B.input_shape} and convolves over "
-                    f"{admm.f.A.B.ndims} dimensions."
-                )
-            if not admm.f.A.A.input_shape[1:] == admm.f.A.A.output_shape:
+            self.sum_axis = admm.f.A.A.kwargs["axis"]
+            if not isinstance(self.sum_axis, int):
                 raise ValueError(
                     "BlockCircularConvolveSolver requires the Sum operator component "
-                    "of f.A to sum over the first axis of its input."
+                    "of f.A to sum over a single axis of its input."
                 )
 
         super().internal_init(admm)
@@ -487,15 +483,21 @@ class BlockCircularConvolveSolver(LinearSubproblemSolver):
 
         self.real_result = is_real_dtype(admm.C_list[0].input_dtype)
 
+        if self.ndims is None:
+            self.ndims = [None] * len(admm.C_list)
+
         # All of the C operators are assumed to be linear and shift invariant
         # but this is not checked.
         c_gram_list = [
-            rho * CircularConvolve.from_operator(C.gram_op)
-            for rho, C in zip(admm.rho_list, admm.C_list)
+            rho * CircularConvolve.from_operator(C.gram_op, ndims=ndims)
+            for ndims, rho, C in zip(self.ndims, admm.rho_list, admm.C_list)
         ]
         self.D = reduce(lambda a, b: a + b, c_gram_list) / (2.0 * self.admm.f.scale)
         A = self.admm.f.A.B
-        self.E = 1.0 + snp.sum(A.h_dft * (A.h_dft.conj() / self.D.h_dft), axis=0, keepdims=True)
+        self.AHEinv = A.h_dft.conj() / (
+            1.0
+            + snp.sum(A.h_dft * (A.h_dft.conj() / self.D.h_dft), axis=self.sum_axis, keepdims=True)
+        )
 
     def solve(self, x0: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
         """Solve the ADMM step.
@@ -513,13 +515,14 @@ class BlockCircularConvolveSolver(LinearSubproblemSolver):
         rhs = self.compute_rhs() / (2.0 * self.admm.f.scale)
         fft_axes = self.admm.f.A.B.x_fft_axes
         rhs_dft = snp.fft.fftn(rhs, axes=fft_axes)
-        dinv_rhs = rhs_dft / self.D.h_dft
         A = self.admm.f.A.B
         x_dft = (
-            dinv_rhs
-            - (A.h_dft.conj() * (snp.sum(A.h_dft * dinv_rhs, axis=0, keepdims=True) / self.E))
-            / self.D.h_dft
-        )
+            rhs_dft
+            - (
+                self.AHEinv
+                * (snp.sum(A.h_dft * rhs_dft / self.D.h_dft, axis=self.sum_axis, keepdims=True))
+            )
+        ) / self.D.h_dft
         x = snp.fft.ifftn(x_dft, axes=fft_axes)
         if self.real_result:
             x = x.real
