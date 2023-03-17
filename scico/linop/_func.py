@@ -65,6 +65,7 @@ def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = Non
         **kwargs: Any,
     ):
         self._eval = lambda x: f(x, *args, **kwargs)
+        self.kwargs = kwargs
         super().__init__(input_shape, input_dtype=input_dtype, jit=jit)  # type: ignore
 
     OpClass = type(classname, (LinearOperator,), {"__init__": __init__})
