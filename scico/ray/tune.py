@@ -174,15 +174,8 @@ class Tuner(ray.tune.Tuner):
     def __init__(
         self,
         trainable: Union[Type["Trainable"], Callable],
-        # trainable: Optional[
-        #    Union[str, Callable, Type[ray.tune.trainable.trainable.Trainable], BaseTrainer]
-        # ] = None,
         *,
         param_space: Optional[Dict[str, Any]] = None,
-        # tune_config: Optional[ray.tune.tune_config.TuneConfig] = None,
-        # run_config: Optional[ray.air.config.RunConfig] = None,
-        # _tuner_kwargs: Optional[Dict] = None,
-        # _tuner_internal: Optional[ray.tune.impl.tuner_internal.TunerInternal] = None,
         resources: Optional[Dict] = None,
         metric: Optional[str] = None,
         mode: Optional[str] = None,
