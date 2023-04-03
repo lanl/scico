@@ -180,6 +180,7 @@ class Tuner(ray.tune.Tuner):
         metric: Optional[str] = None,
         mode: Optional[str] = None,
         num_samples: Optional[int] = None,
+        num_iterations: Optional[int] = None,
         hyperopt: bool = True,
         verbose: bool = True,
         local_dir: Optional[str] = None,
@@ -197,6 +198,8 @@ class Tuner(ray.tune.Tuner):
         mode: Either "min" or "max", indicating which represents better
             performance.
         num_samples: Number of parameter evaluation samples to compute.
+        num_iterations: Number of training iterations for evaluation of a
+            single configuration. Only required for the Tune Class API.
         hyperopt: If ``True``, use
             :class:`~ray.tune.suggest.hyperopt.HyperOptSearch` search,
             otherwise use simple random search (see
@@ -229,7 +232,7 @@ class Tuner(ray.tune.Tuner):
                 else:
                     tune_config_kwargs = {}
                 tune_config = ray.tune.TuneConfig(
-                    mode=mode, metric=metric, num_samples=num_samples, **kwargs
+                    mode=mode, metric=metric, num_samples=num_samples, **tune_config_kwargs
                 )
             else:
                 warnings.warn(
@@ -251,7 +254,12 @@ class Tuner(ray.tune.Tuner):
         run_config_kwargs = {"name": name, "local_dir": local_dir, "verbose": 0}
         if verbose:
             run_config_kwargs.update({"verbose": 1, "progress_reporter": _CustomReporter()})
+        if num_iterations is not None:
+            run_config_kwargs.update({"stop": {"training_iteration": num_iterations}})
         if run_config is None:
+            run_config_kwargs.update(
+                {"checkpoint_config": ray.air.CheckpointConfig(checkpoint_at_end=False)}
+            )
             run_config = ray.air.config.RunConfig(**run_config_kwargs)
         else:
             for k, v in run_config_kwargs.items():
