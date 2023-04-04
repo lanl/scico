@@ -184,10 +184,13 @@ class Tuner(ray.tune.Tuner):
         *,
         param_space: Optional[Dict[str, Any]] = None,
         resources: Optional[Dict] = None,
+        max_concurrent_trials: Optional[int] = None,
         metric: Optional[str] = None,
         mode: Optional[str] = None,
         num_samples: Optional[int] = None,
         num_iterations: Optional[int] = None,
+        time_budget: Optional[int] = None,
+        reuse_actors: bool = True,
         hyperopt: bool = True,
         verbose: bool = True,
         local_dir: Optional[str] = None,
@@ -200,6 +203,8 @@ class Tuner(ray.tune.Tuner):
            resources: A dict mapping keys "cpu" and "gpu" to integers
               specifying the corresponding resources to allocate for each
               performance evaluation trial.
+           max_concurrent_trials: Maximum number of trials to run
+            concurrently.
            metric: Name of the metric reported in the performance
               evaluation function.
            mode: Either "min" or "max", indicating which represents
@@ -208,6 +213,10 @@ class Tuner(ray.tune.Tuner):
            num_iterations: Number of training iterations for evaluation
               of a single configuration. Only required for the Tune Class
               API.
+           time_budget: Maximum time allowed in seconds for a single
+              parameter evaluation.
+           reuse_actors: If ``True``, reuse the same process/object for
+              multiple hyperparameters.
            hyperopt: If ``True``, use
               :class:`~ray.tune.search.hyperopt.HyperOptSearch` search,
               otherwise use simple random search (see
@@ -229,7 +238,12 @@ class Tuner(ray.tune.Tuner):
             trainable_with_resources = ray.tune.with_resources(trainable, resources)
 
         tune_config = kwargs.pop("tune_config", None)
-        tune_config_kwargs = {"mode": mode, "metric": metric, "num_samples": num_samples}
+        tune_config_kwargs = {
+            "mode": mode,
+            "metric": metric,
+            "num_samples": num_samples,
+            "reuse_actors": reuse_actors,
+        }
         if hyperopt:
             tune_config_kwargs.update(
                 {
@@ -237,6 +251,8 @@ class Tuner(ray.tune.Tuner):
                     "scheduler": AsyncHyperBandScheduler(),
                 }
             )
+        if max_concurrent_trials is not None:
+            tune_config_kwargs.update({"max_concurrent_trials": max_concurrent_trials})
         if tune_config is None:
             tune_config = ray.tune.TuneConfig(**tune_config_kwargs)
         else:
@@ -255,8 +271,13 @@ class Tuner(ray.tune.Tuner):
         run_config_kwargs = {"name": name, "local_dir": local_dir, "verbose": 0}
         if verbose:
             run_config_kwargs.update({"verbose": 1, "progress_reporter": _CustomReporter()})
-        if num_iterations is not None:
-            run_config_kwargs.update({"stop": {"training_iteration": num_iterations}})
+        if num_iterations is not None or time_budget is not None:
+            stop_criteria = {}
+            if num_iterations is not None:
+                stop_criteria.update({"training_iteration": num_iterations})
+            if time_budget is not None:
+                stop_criteria.update({"time_total_s": time_budget})
+            run_config_kwargs.update({"stop": stop_criteria})
         if run_config is None:
             run_config_kwargs.update(
                 {"checkpoint_config": ray.air.CheckpointConfig(checkpoint_at_end=False)}
