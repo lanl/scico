@@ -12,7 +12,6 @@ import getpass
 import logging
 import os
 import tempfile
-import warnings
 from typing import Any, Callable, Dict, List, Mapping, Optional, Type, Union
 
 import ray
@@ -230,26 +229,19 @@ class Tuner(ray.tune.Tuner):
             trainable_with_resources = ray.tune.with_resources(trainable, resources)
 
         tune_config = kwargs.pop("tune_config", None)
-        relevant_param = [mode, metric, num_samples, hyperopt]
-        if any(val is not None for val in relevant_param):
-            if tune_config is None:
-                if hyperopt:
-                    tune_config_kwargs = {
-                        "search_alg": HyperOptSearch(metric=metric, mode=mode),
-                        "scheduler": AsyncHyperBandScheduler(),
-                    }
-                else:
-                    tune_config_kwargs = {}
-                tune_config = ray.tune.TuneConfig(
-                    mode=mode, metric=metric, num_samples=num_samples, **tune_config_kwargs
-                )
-            else:
-                warnings.warn(
-                    "The tune_config named parameter should not be specified if "
-                    "any of the named parameters mode, metric, num_samples, or "
-                    "hyperopt are specified; tune_config will take precedence and "
-                    "these other parameters will be ignored."
-                )
+        tune_config_kwargs = {"mode": mode, "metric": metric, "num_samples": num_samples}
+        if hyperopt:
+            tune_config_kwargs.update(
+                {
+                    "search_alg": HyperOptSearch(metric=metric, mode=mode),
+                    "scheduler": AsyncHyperBandScheduler(),
+                }
+            )
+        if tune_config is None:
+            tune_config = ray.tune.TuneConfig(**tune_config_kwargs)
+        else:
+            for k, v in tune_config_kwargs.items():
+                setattr(tune_config, k, v)
 
         name = trainable.__name__ + "_" + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         if local_dir is None:
