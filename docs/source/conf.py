@@ -4,7 +4,6 @@ import os
 import re
 import sys
 from inspect import getmembers, isfunction
-from unittest.mock import MagicMock
 
 from sphinx.ext.napoleon.docstring import GoogleDocstring
 
@@ -335,82 +334,6 @@ if on_rtd:
     import matplotlib
 
     matplotlib.use("agg")
-
-
-## Mock modules to avoid installing them prior to building docs
-# MOCK_MODULES = ["astra", "svmbir"]
-
-
-class Mock(MagicMock):
-    @classmethod
-    def __getattr__(cls, name):
-        return MagicMock()
-
-
-# sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
-
-## Avoid need to install ray; more complexity involved than modules above because
-## we need ray.tune.ExperimentAnalysis to have a __qualname__ attribute.
-# def null_func():
-#    pass
-
-
-# module_name = "ray"
-# module = types.ModuleType(module_name)
-# sys.modules[module_name] = module
-
-# module.put = null_func
-# module.get = null_func
-
-# module_name = "ray.tune"
-# module = types.ModuleType(module_name)
-# sys.modules[module_name] = module
-# sys.modules["ray"].tune = module
-
-# class ExperimentAnalysis:
-#    pass
-
-## The intersphinx link does not work without this modification
-# ExperimentAnalysis.__qualname__ = "~ray.tune.ExperimentAnalysis"
-
-# module.ExperimentAnalysis = ExperimentAnalysis
-
-
-# class Tuner:
-#    pass
-
-## The intersphinx link does not work without this modification
-# Tuner.__qualname__ = "~ray.tune.Tuner"
-
-# module.Tuner = Tuner
-
-
-# class Trainable:
-#    pass
-
-## The intersphinx link does not work without this modification
-# Trainable.__qualname__ = "~ray.tune.Trainable"
-
-# module.Trainable = Trainable
-
-
-# for func_name in ["loguniform", "report", "uniform"]:
-#    setattr(module, func_name, null_func)
-
-# for module_name in [
-#    "progress_reporter",
-#    "schedulers",
-#    "suggest",
-#    "search.hyperopt",
-#    "experiment.trial",
-#    "result_grid"
-# ]:
-#    sys.modules["ray.tune." + module_name] = Mock()
-
-# module_name = "ray.air"
-# module = types.ModuleType(module_name)
-# sys.modules[module_name] = module
-# sys.modules["ray"].air = module
 
 
 print("rootpath: %s" % rootpath)
