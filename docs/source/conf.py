@@ -3,7 +3,6 @@
 import os
 import re
 import sys
-import types
 from inspect import getmembers, isfunction
 from unittest.mock import MagicMock
 
@@ -338,8 +337,8 @@ if on_rtd:
     matplotlib.use("agg")
 
 
-# Mock modules to avoid installing them prior to building docs
-MOCK_MODULES = ["astra", "svmbir"]
+## Mock modules to avoid installing them prior to building docs
+# MOCK_MODULES = ["astra", "svmbir"]
 
 
 class Mock(MagicMock):
@@ -348,46 +347,70 @@ class Mock(MagicMock):
         return MagicMock()
 
 
-sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+# sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
-# Avoid need to install ray; more complexity involved than modules above because
-# we need ray.tune.ExperimentAnalysis to have a __qualname__ attribute.
-def null_func():
-    pass
-
-
-module_name = "ray"
-module = types.ModuleType(module_name)
-sys.modules[module_name] = module
-
-module.put = null_func
-module.get = null_func
-
-module_name = "ray.tune"
-module = types.ModuleType(module_name)
-sys.modules[module_name] = module
-sys.modules["ray"].tune = module
+## Avoid need to install ray; more complexity involved than modules above because
+## we need ray.tune.ExperimentAnalysis to have a __qualname__ attribute.
+# def null_func():
+#    pass
 
 
-class ExperimentAnalysis:
-    pass
+# module_name = "ray"
+# module = types.ModuleType(module_name)
+# sys.modules[module_name] = module
+
+# module.put = null_func
+# module.get = null_func
+
+# module_name = "ray.tune"
+# module = types.ModuleType(module_name)
+# sys.modules[module_name] = module
+# sys.modules["ray"].tune = module
+
+# class ExperimentAnalysis:
+#    pass
+
+## The intersphinx link does not work without this modification
+# ExperimentAnalysis.__qualname__ = "~ray.tune.ExperimentAnalysis"
+
+# module.ExperimentAnalysis = ExperimentAnalysis
 
 
-# The intersphinx link does not work without this modification
-ExperimentAnalysis.__qualname__ = "~ray.tune.ExperimentAnalysis"
+# class Tuner:
+#    pass
 
-module.ExperimentAnalysis = ExperimentAnalysis
-for func_name in ["loguniform", "report", "uniform"]:
-    setattr(module, func_name, null_func)
+## The intersphinx link does not work without this modification
+# Tuner.__qualname__ = "~ray.tune.Tuner"
 
-for module_name in [
-    "progress_reporter",
-    "schedulers",
-    "suggest",
-    "search.hyperopt",
-    "experiment.trial",
-]:
-    sys.modules["ray.tune." + module_name] = Mock()
+# module.Tuner = Tuner
+
+
+# class Trainable:
+#    pass
+
+## The intersphinx link does not work without this modification
+# Trainable.__qualname__ = "~ray.tune.Trainable"
+
+# module.Trainable = Trainable
+
+
+# for func_name in ["loguniform", "report", "uniform"]:
+#    setattr(module, func_name, null_func)
+
+# for module_name in [
+#    "progress_reporter",
+#    "schedulers",
+#    "suggest",
+#    "search.hyperopt",
+#    "experiment.trial",
+#    "result_grid"
+# ]:
+#    sys.modules["ray.tune." + module_name] = Mock()
+
+# module_name = "ray.air"
+# module = types.ModuleType(module_name)
+# sys.modules[module_name] = module
+# sys.modules["ray"].air = module
 
 
 print("rootpath: %s" % rootpath)
@@ -404,6 +427,9 @@ autodoc_default_options = {
 }
 autodoc_docstring_signature = True
 autoclass_content = "both"
+
+# See https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html#confval-autodoc_mock_imports
+autodoc_mock_imports = ["astra", "svmbir", "ray"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -501,9 +527,10 @@ def class_inherit_diagrams(_):
     # Insert inheritance diagrams for classes that have base classes
     import scico
 
+    custom_parts = {"scico.ray.tune.Tuner": 4}
     clslst = package_classes(scico)
     for cls in clslst:
-        insert_inheritance_diagram(cls)
+        insert_inheritance_diagram(cls, parts=custom_parts)
 
 
 def process_docstring(app, what, name, obj, options, lines):
