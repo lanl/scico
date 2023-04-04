@@ -9,6 +9,7 @@
 
 import datetime
 import getpass
+import logging
 import os
 import tempfile
 import warnings
@@ -24,6 +25,7 @@ import ray.air
 from ray.tune import loguniform, report, uniform  # noqa
 from ray.tune.experiment.trial import Trial
 from ray.tune.progress_reporter import TuneReporterBase, _get_trials_by_state
+from ray.tune.result_grid import ResultGrid
 from ray.tune.schedulers import AsyncHyperBandScheduler
 from ray.tune.search.hyperopt import HyperOptSearch
 
@@ -76,7 +78,13 @@ def run(
     verbose: bool = True,
     local_dir: Optional[str] = None,
 ) -> ray.tune.ExperimentAnalysis:
-    """Simplified wrapper for :func:`ray.tune.run`.
+    """Simplified wrapper for `ray.tune.run`_.
+
+    .. _ray.tune.run: https://github.com/ray-project/ray/blob/master/python/ray/tune/tune.py#L232
+
+    The `ray.tune.run`_ interface appears to be scheduled for deprecation.
+    Use of :class:`Tuner`, which is a simplified interface to
+    :class:`ray.tune.Tuner` is recommended instead.
 
     Args:
         run_or_experiment: Function that reports performance values.
@@ -94,9 +102,9 @@ def run(
             concurrently.
         config: Specification of the parameter search space.
         hyperopt: If ``True``, use
-            :class:`~ray.tune.suggest.hyperopt.HyperOptSearch` search,
+            :class:`~ray.tune.search.hyperopt.HyperOptSearch` search,
             otherwise use simple random search (see
-            :class:`~ray.tune.suggest.basic_variant.BasicVariantGenerator`).
+            :class:`~ray.tune.search.basic_variant.BasicVariantGenerator`).
         verbose: Flag indicating whether verbose operation is desired.
             When verbose operation is enabled, the number of pending,
             running, and terminated trials are indicated by "P:", "R:",
@@ -169,11 +177,11 @@ def run(
 
 
 class Tuner(ray.tune.Tuner):
-    """Simplified interface for :func:`ray.tune.Tuner`."""
+    """Simplified interface for :class:`ray.tune.Tuner`."""
 
     def __init__(
         self,
-        trainable: Union[Type["Trainable"], Callable],
+        trainable: Union[Type[ray.tune.Trainable], Callable],
         *,
         param_space: Optional[Dict[str, Any]] = None,
         resources: Optional[Dict] = None,
@@ -193,26 +201,27 @@ class Tuner(ray.tune.Tuner):
            resources: A dict mapping keys "cpu" and "gpu" to integers
               specifying the corresponding resources to allocate for each
               performance evaluation trial.
-        metric: Name of the metric reported in the performance evaluation
-            function.
-        mode: Either "min" or "max", indicating which represents better
-            performance.
-        num_samples: Number of parameter evaluation samples to compute.
-        num_iterations: Number of training iterations for evaluation of a
-            single configuration. Only required for the Tune Class API.
-        hyperopt: If ``True``, use
-            :class:`~ray.tune.suggest.hyperopt.HyperOptSearch` search,
-            otherwise use simple random search (see
-            :class:`~ray.tune.suggest.basic_variant.BasicVariantGenerator`).
-        verbose: Flag indicating whether verbose operation is desired.
-            When verbose operation is enabled, the number of pending,
-            running, and terminated trials are indicated by "P:", "R:",
-            and "T:" respectively, followed by the current best metric
-            value and the parameters at which it was reported.
-        local_dir: Directory in which to save tuning results. Defaults to
-            a subdirectory "<username>/ray_results" within the path returned by
-            `tempfile.gettempdir()`, corresponding e.g. to
-            "/tmp/<username>/ray_results" under Linux.
+           metric: Name of the metric reported in the performance
+              evaluation function.
+           mode: Either "min" or "max", indicating which represents
+              better performance.
+           num_samples: Number of parameter evaluation samples to compute.
+           num_iterations: Number of training iterations for evaluation
+              of a single configuration. Only required for the Tune Class
+              API.
+           hyperopt: If ``True``, use
+              :class:`~ray.tune.search.hyperopt.HyperOptSearch` search,
+              otherwise use simple random search (see
+              :class:`~ray.tune.search.basic_variant.BasicVariantGenerator`).
+           verbose: Flag indicating whether verbose operation is desired.
+              When verbose operation is enabled, the number of pending,
+              running, and terminated trials are indicated by "P:", "R:",
+              and "T:" respectively, followed by the current best metric
+              value and the parameters at which it was reported.
+           local_dir: Directory in which to save tuning results. Defaults
+              to a subdirectory "<username>/ray_results" within the path
+              returned by `tempfile.gettempdir()`, corresponding e.g. to
+              "/tmp/<username>/ray_results" under Linux.
         """
 
         if resources is None:
@@ -272,3 +281,24 @@ class Tuner(ray.tune.Tuner):
             run_config=run_config,
             **kwargs,
         )
+
+    def fit(self) -> ResultGrid:
+        """Initialize ray and call :meth:`ray.tune.Tuner.fit`.
+
+        Initialize ray if not already initialized, and call
+        :meth:`ray.tune.Tuner.fit`. If ray was not previously initialized,
+        shut it down after fit process has completed.
+
+        Returns:
+           Result of parameter search.
+        """
+        ray_init = ray.is_initialized()
+        if not ray_init:
+            ray.init(logging_level=logging.ERROR)
+
+        results = super().fit()
+
+        if not ray_init:
+            ray.shutdown()
+
+        return results
