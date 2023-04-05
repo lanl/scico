@@ -47,32 +47,38 @@ y = y + np.random.normal(size=y.shape).astype(np.float32)
 
 
 """
+Compute inverse Abel transform solution.
+"""
+x_inv = A.inverse(y)
+
+
+"""
+Set up the problem to be solved. Anisotropic TV, which gives slightly
+better performance than isotropic TV for this problem, is used here.
+"""
+f = loss.SquaredL2Loss(y=y, A=A)
+λ = 2.13e1  # L1 norm regularization parameter
+g = λ * functional.L1Norm()  # Note the use of anisotropic TV
+C = linop.FiniteDifference(input_shape=x_gt.shape)
+
+
+"""
 Set up ADMM solver object.
 """
-λ = 2.9e1  # L1 norm regularization parameter
-ρ = 8.5e1  # ADMM penalty parameter
+ρ = 9.48e1  # ADMM penalty parameter
 maxiter = 100  # number of ADMM iterations
 cg_tol = 1e-4  # CG relative tolerance
 cg_maxiter = 25  # maximum CG iterations per ADMM iteration
-
-# Note the use of anisotropic TV. Isotropic TV would require use of L21Norm.
-g = λ * functional.L1Norm()
-C = linop.FiniteDifference(input_shape=x_gt.shape)
-
-f = loss.SquaredL2Loss(y=y, A=A)
-
-x_inv = A.inverse(y)
-x0 = snp.clip(x_inv, 0, 1.0)
 
 solver = ADMM(
     f=f,
     g_list=[g],
     C_list=[C],
     rho_list=[ρ],
-    x0=x0,
+    x0=snp.clip(x_inv, 0.0, 1.0),
     maxiter=maxiter,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": cg_tol, "maxiter": cg_maxiter}),
-    itstat_options={"display": True, "period": 5},
+    itstat_options={"display": True, "period": 10},
 )
 
 
@@ -82,7 +88,7 @@ Run the solver.
 print(f"Solving on {device_info()}\n")
 solver.solve()
 hist = solver.itstat_object.history(transpose=True)
-x_tv = snp.clip(solver.x, 0, 1.0)
+x_tv = snp.clip(solver.x, 0.0, 1.0)
 
 
 """

@@ -36,6 +36,7 @@ import numpy as np
 
 import jax
 
+import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot
 from scico.examples import create_circular_phantom
 from scico.linop.abel import AbelProjector
@@ -55,7 +56,14 @@ Set up the forward operator and create a test measurement.
 A = AbelProjector(x_gt.shape)
 y = A @ x_gt
 np.random.seed(12345)
-y = y + np.random.normal(size=y.shape)
+y = y + np.random.normal(size=y.shape).astype(np.float32)
+
+
+"""
+Compute inverse Abel transform solution for use as initial solution.
+"""
+x_inv = A.inverse(y)
+x0 = snp.clip(x_inv, 0.0, 1.0)
 
 
 """
@@ -66,7 +74,7 @@ Define performance evaluation class.
 class Trainable(tune.Trainable):
     """Parameter evaluation class."""
 
-    def setup(self, config, x_gt, y):
+    def setup(self, config, x_gt, x0, y):
         """This method initializes a new parameter evaluation object. It
         is called once when a new parameter evaluation object is created.
         The `config` parameter is a dict of specific parameters for
@@ -75,7 +83,7 @@ class Trainable(tune.Trainable):
         to the evaluation function via the ray object store.
         """
         # Put main arrays on jax device.
-        self.x_gt, self.y = jax.device_put([x_gt, y])
+        self.x_gt, self.x0, self.y = jax.device_put([x_gt, x0, y])
         # Set up problem to be solved.
         self.A = AbelProjector(self.x_gt.shape)
         self.f = loss.SquaredL2Loss(y=self.y, A=self.A)
@@ -98,14 +106,18 @@ class Trainable(tune.Trainable):
         # Set up parameter-dependent functional.
         g = λ * functional.L1Norm()
         # Define solver.
+        cg_tol = 1e-4
+        cg_maxiter = 25
         self.solver = ADMM(
             f=self.f,
             g_list=[g],
             C_list=[self.C],
             rho_list=[ρ],
-            x0=A.inverse(self.y),
+            x0=self.x0,
             maxiter=10,
-            subproblem_solver=LinearSubproblemSolver(),
+            subproblem_solver=LinearSubproblemSolver(
+                cg_kwargs={"tol": cg_tol, "maxiter": cg_maxiter}
+            ),
         )
         return True
 
@@ -116,8 +128,8 @@ class Trainable(tune.Trainable):
         in the initialization of a `scico.ray.tune.Tuner` object.
         """
         # Perform 10 solver steps for every ray.tune step
-        x_admm = self.solver.solve()
-        return {"psnr": float(metric.psnr(self.x_gt, x_admm))}
+        x_tv = snp.clip(self.solver.solve(), 0.0, 1.0)
+        return {"psnr": float(metric.psnr(self.x_gt, x_tv))}
 
 
 """
@@ -131,7 +143,7 @@ resources = {"gpu": 0, "cpu": 1}  # gpus per trial, cpus per trial
 Run parameter search.
 """
 tuner = tune.Tuner(
-    tune.with_parameters(Trainable, x_gt=x_gt, y=y),
+    tune.with_parameters(Trainable, x_gt=x_gt, x0=x0, y=y),
     param_space=config,
     resources=resources,
     metric="psnr",
