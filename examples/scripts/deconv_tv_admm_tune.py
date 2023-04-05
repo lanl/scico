@@ -10,7 +10,8 @@ Parameter Tuning for Image Deconvolution with TV Regularization (ADMM Solver)
 
 This example demonstrates the use of
 [scico.ray.tune](../_autosummary/scico.ray.tune.rst) to tune parameters
-for the companion [example script](deconv_tv_admm.rst).
+for the companion [example script](deconv_tv_admm.rst). The `ray.tune`
+function API is used in this example.
 
 This script is hard-coded to run on CPU only to avoid the large number of
 warnings that are emitted when GPU resources are requested but not available,
