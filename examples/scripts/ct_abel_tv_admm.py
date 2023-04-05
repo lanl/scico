@@ -33,7 +33,7 @@ from scico.util import device_info
 """
 Create a ground truth image.
 """
-N = 256  # phantom size
+N = 256  # image size
 x_gt = create_circular_phantom((N, N), [0.4 * N, 0.2 * N, 0.1 * N], [1, 0, 0.5])
 
 
@@ -44,7 +44,6 @@ A = AbelProjector(x_gt.shape)
 y = A @ x_gt
 np.random.seed(12345)
 y = y + np.random.normal(size=y.shape).astype(np.float32)
-ATy = A.T @ y
 
 
 """
