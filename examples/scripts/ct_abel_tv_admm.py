@@ -57,7 +57,7 @@ Set up the problem to be solved. Anisotropic TV, which gives slightly
 better performance than isotropic TV for this problem, is used here.
 """
 f = loss.SquaredL2Loss(y=y, A=A)
-λ = 2.13e1  # L1 norm regularization parameter
+λ = 2.35e1  # L1 norm regularization parameter
 g = λ * functional.L1Norm()  # Note the use of anisotropic TV
 C = linop.FiniteDifference(input_shape=x_gt.shape)
 
@@ -65,7 +65,7 @@ C = linop.FiniteDifference(input_shape=x_gt.shape)
 """
 Set up ADMM solver object.
 """
-ρ = 9.48e1  # ADMM penalty parameter
+ρ = 1.03e2  # ADMM penalty parameter
 maxiter = 100  # number of ADMM iterations
 cg_tol = 1e-4  # CG relative tolerance
 cg_maxiter = 25  # maximum CG iterations per ADMM iteration
