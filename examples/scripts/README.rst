@@ -11,6 +11,8 @@ Computed Tomography
 
    `ct_abel_tv_admm.py <ct_abel_tv_admm.py>`_
       TV-Regularized Abel Inversion
+   `ct_abel_tv_admm_tune.py <ct_abel_tv_admm_tune.py>`_
+      Parameter Tuning for TV-Regularized Abel Inversion
    `ct_astra_noreg_pcg.py <ct_astra_noreg_pcg.py>`_
       CT Reconstruction with CG and PCG
    `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
@@ -43,7 +45,7 @@ Deconvolution
    `deconv_tv_padmm.py <deconv_tv_padmm.py>`_
       Image Deconvolution with TV Regularization (Proximal ADMM Solver)
    `deconv_tv_admm_tune.py <deconv_tv_admm_tune.py>`_
-      Image Deconvolution Parameter Tuning
+      Parameter Tuning for Image Deconvolution with TV Regularization (ADMM Solver)
    `deconv_microscopy_tv_admm.py <deconv_microscopy_tv_admm.py>`_
       Deconvolution Microscopy (Single Channel)
    `deconv_microscopy_allchn_tv_admm.py <deconv_microscopy_allchn_tv_admm.py>`_
@@ -141,6 +143,8 @@ Total Variation
 
    `ct_abel_tv_admm.py <ct_abel_tv_admm.py>`_
       TV-Regularized Abel Inversion
+   `ct_abel_tv_admm_tune.py <ct_abel_tv_admm_tune.py>`_
+      Parameter Tuning for TV-Regularized Abel Inversion
    `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
       TV-Regularized Sparse-View CT Reconstruction
    `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
@@ -152,7 +156,7 @@ Total Variation
    `deconv_tv_admm.py <deconv_tv_admm.py>`_
       Image Deconvolution with TV Regularization (ADMM Solver)
    `deconv_tv_admm_tune.py <deconv_tv_admm_tune.py>`_
-      Image Deconvolution Parameter Tuning
+      Parameter Tuning for Image Deconvolution with TV Regularization (ADMM Solver)
    `deconv_tv_padmm.py <deconv_tv_padmm.py>`_
       Image Deconvolution with TV Regularization (Proximal ADMM Solver)
    `deconv_microscopy_tv_admm.py <deconv_microscopy_tv_admm.py>`_
@@ -221,6 +225,8 @@ ADMM
 
    `ct_abel_tv_admm.py <ct_abel_tv_admm.py>`_
       TV-Regularized Abel Inversion
+   `ct_abel_tv_admm_tune.py <ct_abel_tv_admm_tune.py>`_
+      Parameter Tuning for TV-Regularized Abel Inversion
    `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
       TV-Regularized Sparse-View CT Reconstruction
    `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
@@ -238,7 +244,7 @@ ADMM
    `deconv_tv_admm.py <deconv_tv_admm.py>`_
       Image Deconvolution with TV Regularization (ADMM Solver)
    `deconv_tv_admm_tune.py <deconv_tv_admm_tune.py>`_
-      Image Deconvolution Parameter Tuning
+      Parameter Tuning for Image Deconvolution with TV Regularization (ADMM Solver)
    `deconv_microscopy_tv_admm.py <deconv_microscopy_tv_admm.py>`_
       Deconvolution Microscopy (Single Channel)
    `deconv_microscopy_allchn_tv_admm.py <deconv_microscopy_allchn_tv_admm.py>`_
