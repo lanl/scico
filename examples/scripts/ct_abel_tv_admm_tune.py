@@ -35,7 +35,6 @@ import numpy as np
 
 import jax
 
-import scico.ray
 from scico import functional, linop, loss, metric, plot
 from scico.examples import create_circular_phantom
 from scico.linop.abel import AbelProjector
@@ -63,7 +62,7 @@ Define performance evaluation class.
 """
 
 
-class Trainable(scico.ray.tune.Trainable):
+class Trainable(tune.Trainable):
     """Parameter evaluation class."""
 
     def setup(self, config, x_gt, y):
@@ -131,7 +130,7 @@ resources = {"gpu": 0, "cpu": 1}  # gpus per trial, cpus per trial
 Run parameter search.
 """
 tuner = tune.Tuner(
-    scico.ray.tune.with_parameters(Trainable, x_gt=x_gt, y=y),
+    tune.with_parameters(Trainable, x_gt=x_gt, y=y),
     param_space=config,
     resources=resources,
     metric="psnr",

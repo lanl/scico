@@ -31,17 +31,16 @@ import os
 os.environ["JAX_PLATFORM_NAME"] = "cpu"
 os.environ["JAX_PLATFORMS"] = "cpu"
 
-
 import jax
 
 from xdesign import SiemensStar, discrete_phantom
 
 import scico.numpy as snp
 import scico.random
-import scico.ray
 from scico import functional, linop, loss, metric, plot
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
-from scico.ray import tune
+from scico.ray import report, tune
+
 
 """
 Create a ground truth image.
@@ -100,7 +99,7 @@ def eval_params(config, x_gt, psf, y):
     # Perform 50 iterations, reporting performance to ray.tune every 10 iterations.
     for step in range(5):
         x_admm = solver.solve()
-        scico.ray.report({"psnr": float(metric.psnr(x_gt, x_admm))})
+        report({"psnr": float(metric.psnr(x_gt, x_admm))})
 
 
 """
@@ -113,8 +112,8 @@ resources = {"cpu": 4, "gpu": 0}  # cpus per trial, gpus per trial
 """
 Run parameter search.
 """
-tuner = scico.ray.tune.Tuner(
-    scico.ray.tune.with_parameters(eval_params, x_gt=x_gt, psf=psf, y=y),
+tuner = tune.Tuner(
+    tune.with_parameters(eval_params, x_gt=x_gt, psf=psf, y=y),
     param_space=config,
     resources=resources,
     metric="psnr",
