@@ -21,7 +21,7 @@ try:
 except ImportError:
     raise ImportError("Could not import ray.tune; please install it.")
 import ray.air
-from ray.tune import loguniform, report, uniform  # noqa
+from ray.tune import Trainable, loguniform, report, uniform, with_parameters  # noqa
 from ray.tune.experiment.trial import Trial
 from ray.tune.progress_reporter import TuneReporterBase, _get_trials_by_state
 from ray.tune.result_grid import ResultGrid

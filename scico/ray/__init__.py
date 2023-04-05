@@ -11,6 +11,5 @@
 try:
     from ray import get, put
     from ray.air.session import report
-    from ray.tune import with_parameters
 except ImportError:
     raise ImportError("Could not import ray; please install it.")
