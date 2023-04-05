@@ -72,6 +72,12 @@ Define performance evaluation function.
 
 
 def eval_params(config, x_gt, psf, y):
+    """Parameter evaluation function. Initial `config` parameter is a
+    dict of specific parameters for evaluation of a single parameter
+    set (a pair of parameters in this case). The remaining parameters
+    are objects that are passed to the evaluation function via the
+    ray object store.
+    """
     # Extract solver parameters from config dict.
     λ, ρ = config["lambda"], config["rho"]
     # Put main arrays on jax device.
@@ -107,16 +113,16 @@ resources = {"cpu": 4, "gpu": 0}  # cpus per trial, gpus per trial
 """
 Run parameter search.
 """
-
 tuner = scico.ray.tune.Tuner(
-    scico.ray.with_parameters(eval_params, x_gt=x_gt, psf=psf, y=y),
+    scico.ray.tune.with_parameters(eval_params, x_gt=x_gt, psf=psf, y=y),
     param_space=config,
     resources=resources,
     metric="psnr",
     mode="max",
-    num_samples=100,
+    num_samples=100,  # perform 100 parameter evaluations
 )
 results = tuner.fit()
+
 
 """
 Display best parameters and corresponding performance.
