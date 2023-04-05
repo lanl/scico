@@ -72,7 +72,7 @@ Define performance evaluation function.
 
 
 def eval_params(config, x_gt, psf, y):
-    """Parameter evaluation function. Initial `config` parameter is a
+    """Parameter evaluation function. The `config` parameter is a
     dict of specific parameters for evaluation of a single parameter
     set (a pair of parameters in this case). The remaining parameters
     are objects that are passed to the evaluation function via the
