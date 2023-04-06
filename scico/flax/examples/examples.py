@@ -102,14 +102,14 @@ def load_ct_data(
         ttdt_in = np.load(npz_test_file)
         # Check image size
         if trdt_in["img"].shape[1] != size:
-            runtime_error("size", "training", size, trdt_in["img"].shape[1])
+            runtime_error_scalar("size", "training", size, trdt_in["img"].shape[1])
         if ttdt_in["img"].shape[1] != size:
-            runtime_error("size", "testing", size, ttdt_in["img"].shape[1])
+            runtime_error_scalar("size", "testing", size, ttdt_in["img"].shape[1])
         # Check number of projections
         if trdt_in["sino"].shape[1] != nproj:
-            runtime_error("views", "training", nproj, trdt_in["sino"].shape[1])
+            runtime_error_scalar("views", "training", nproj, trdt_in["sino"].shape[1])
         if ttdt_in["sino"].shape[1] != nproj:
-            runtime_error("views", "testing", nproj, ttdt_in["sino"].shape[1])
+            runtime_error_scalar("views", "testing", nproj, ttdt_in["sino"].shape[1])
         # Check that enough data is available
         if trdt_in["img"].shape[0] >= train_nimg:
             if ttdt_in["img"].shape[0] >= test_nimg:
@@ -242,23 +242,23 @@ def load_foam1_blur_data(
 
         # Check image size
         if train_in.shape[1] != size:
-            runtime_error("size", "training", size, train_in.shape[1])
+            runtime_error_scalar("size", "training", size, train_in.shape[1])
         if test_in.shape[1] != size:
-            runtime_error("size", "testing ", size, test_in.shape[1])
+            runtime_error_scalar("size", "testing ", size, test_in.shape[1])
 
         # Check noise_sigma
         if trdt["noise"] != noise_sigma:
-            runtime_error("noise", "training", noise_sigma, trdt["noise"])
+            runtime_error_scalar("noise", "training", noise_sigma, trdt["noise"])
         if ttdt["noise"] != noise_sigma:
-            runtime_error("noise", "testing ", noise_sigma, ttdt["noise"])
+            runtime_error_scalar("noise", "testing ", noise_sigma, ttdt["noise"])
 
         # Check blur kernel
         blur_train = trdt["blur"].astype(np.float32)
         if not np.allclose(blur_kernel, blur_train):
-            runtime_error("blur", "testing ", blur_kernel[0], blur_train[0])
+            runtime_error_array("blur", "testing ", np.abs(blur_kernel - blur_train).max())
         blur_test = ttdt["blur"].astype(np.float32)
         if not np.allclose(blur_kernel, blur_test):
-            runtime_error("blur", "testing ", blur_kernel[0], blur_test[0])
+            runtime_error_array("blur", "testing ", np.abs(blur_kernel - blur_test).max())
 
         # Check that enough images were restored.
         if trdt["numimg"] >= train_nimg:
@@ -552,9 +552,9 @@ def check_img_data_requirements(
     """
     # Check image size
     if train_in_shp[1] != size:
-        runtime_error("size", "training", size, train_in_shp[1])
+        runtime_error_scalar("size", "training", size, train_in_shp[1])
     if test_in_shp[1] != size:
-        runtime_error("size", "testing ", size, test_in_shp[1])
+        runtime_error_scalar("size", "testing ", size, test_in_shp[1])
 
     # Check gray scale or color images.
     C_train = train_in_shp[-1]
@@ -564,9 +564,9 @@ def check_img_data_requirements(
     else:
         C = 3
     if C_train != C:
-        runtime_error("channels", "training", C, C_train)
+        runtime_error_scalar("channels", "training", C, C_train)
     if C_test != C:
-        runtime_error("channels", "testing ", C, C_test)
+        runtime_error_scalar("channels", "testing ", C, C_test)
 
     # Check that enough images were sampled.
     if train_nimg_avail >= train_nimg:
@@ -661,11 +661,13 @@ def print_data_warning(idstring: str, requested: int, available: int):  # pragma
     )
 
 
-def runtime_error(
+def runtime_error_scalar(
     type: str, idstring: str, requested: Union[int, float], available: Union[int, float]
 ):
-    """Raise run time error related to parameter request not satisfied in
-    available data.
+    """Raise run time error related to unsatisfied scalar parameter request.
+
+    Raise run time error related to scalar parameter request not satisfied
+    in available data.
 
     Args:
         type: Type of parameter in the request.
@@ -676,6 +678,26 @@ def runtime_error(
     raise RuntimeError(
         f"{'Requested parameter --':15s}{type}{'-- :':7s}{requested}"
         f"{' does not match parameter read from '}"
-        f"{idstring}{' file :':10s}{available}"
-        f"\nDelete cache and check data source"
+        f"{idstring}{' file :':10s}{available}."
+        f"\nDelete cache and check data source."
+    )
+
+
+def runtime_error_array(type: str, idstring: str, maxdiff: float):
+    """Raise run time error related to unsatisfied array parameter request.
+
+    Raise run time error related to array parameter request not satisfied
+    in available data.
+
+    Args:
+        type: Type of parameter in the request.
+        idstring: Data descriptive string.
+        maxdiff: Maximum error between requested and available array
+           entries.
+    """
+    raise RuntimeError(
+        f"{'Requested parameter --':15s}{type}{'-- :':7s}"
+        f"{' does not match parameter read from '}"
+        f"{idstring}{' file :':10s}. Maximum array difference: {maxdiff}."
+        f"\nDelete cache and check data source."
     )
