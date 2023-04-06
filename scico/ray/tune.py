@@ -232,6 +232,9 @@ class Tuner(ray.tune.Tuner):
               "/tmp/<username>/ray_results" under Linux.
         """
 
+        k: Any  # Avoid typing errors
+        v: Any
+
         if resources is None:
             trainable_with_resources = trainable
         else:
