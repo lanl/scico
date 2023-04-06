@@ -98,7 +98,7 @@ solver = ADMM(
     rho_list=[ρ],
     alpha=1.8,
     maxiter=maxiter,
-    subproblem_solver=BlockCircularConvolveSolver(),
+    subproblem_solver=BlockCircularConvolveSolver(check_solve=True),
     itstat_options={"display": True, "period": 10},
 )
 
