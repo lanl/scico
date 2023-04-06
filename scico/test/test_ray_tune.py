@@ -7,7 +7,7 @@ import pytest
 
 try:
     import ray
-    from scico.ray import tune
+    from scico.ray import report, tune
 
     ray.init(num_cpus=1)
 except ImportError as e:
@@ -15,7 +15,7 @@ except ImportError as e:
 
 
 @pytest.mark.filterwarnings("ignore::DeprecationWarning")
-def test_random():
+def test_random_run():
     def eval_params(config, reporter):
         x, y = config["x"], config["y"]
         cost = x**2 + (y - 0.5) ** 2
@@ -41,7 +41,33 @@ def test_random():
 
 
 @pytest.mark.filterwarnings("ignore::DeprecationWarning")
-def test_hyperopt():
+def test_random_tune():
+    def eval_params(config):
+        x, y = config["x"], config["y"]
+        cost = x**2 + (y - 0.5) ** 2
+        report({"cost": cost})
+
+    config = {"x": tune.uniform(-1, 1), "y": tune.uniform(-1, 1)}
+    resources = {"gpu": 0, "cpu": 1}
+    tuner = tune.Tuner(
+        eval_params,
+        param_space=config,
+        resources=resources,
+        metric="cost",
+        mode="min",
+        num_samples=100,
+        hyperopt=False,
+        verbose=False,
+        local_dir=os.path.join(tempfile.gettempdir(), "ray_test"),
+    )
+    results = tuner.fit()
+    best_config = results.get_best_result().config
+    assert np.abs(best_config["x"]) < 0.25
+    assert np.abs(best_config["y"] - 0.5) < 0.25
+
+
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
+def test_hyperopt_run():
     def eval_params(config, reporter):
         x, y = config["x"], config["y"]
         cost = x**2 + (y - 0.5) ** 2
@@ -60,5 +86,30 @@ def test_hyperopt():
         verbose=True,
     )
     best_config = analysis.get_best_config(metric="cost", mode="min")
+    assert np.abs(best_config["x"]) < 0.25
+    assert np.abs(best_config["y"] - 0.5) < 0.25
+
+
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
+def test_hyperopt_tune():
+    def eval_params(config):
+        x, y = config["x"], config["y"]
+        cost = x**2 + (y - 0.5) ** 2
+        report({"cost": cost})
+
+    config = {"x": tune.uniform(-1, 1), "y": tune.uniform(-1, 1)}
+    resources = {"gpu": 0, "cpu": 1}
+    tuner = tune.Tuner(
+        eval_params,
+        param_space=config,
+        resources=resources,
+        metric="cost",
+        mode="min",
+        num_samples=50,
+        hyperopt=True,
+        verbose=True,
+    )
+    results = tuner.fit()
+    best_config = results.get_best_result().config
     assert np.abs(best_config["x"]) < 0.25
     assert np.abs(best_config["y"] - 0.5) < 0.25
