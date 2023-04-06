@@ -12,7 +12,7 @@
 from __future__ import annotations
 
 from functools import reduce
-from typing import Any, Optional, Sequence, Union
+from typing import Any, Optional, Union
 
 import jax
 from jax.scipy.sparse.linalg import cg as jax_cg
@@ -437,9 +437,7 @@ class BlockCircularConvolveSolver(LinearSubproblemSolver):
     :math:`\hat{A}`.
     """
 
-    def __init__(
-        self, ndims: Optional[Sequence[Union[int, None]]] = None, check_solve: bool = False
-    ):
+    def __init__(self, ndims: Optional[int] = None, check_solve: bool = False):
         """Initialize a :class:`BlockCircularConvolveSolver` object.
 
         Args:
@@ -485,14 +483,11 @@ class BlockCircularConvolveSolver(LinearSubproblemSolver):
 
         self.real_result = is_real_dtype(admm.C_list[0].input_dtype)
 
-        if self.ndims is None:
-            self.ndims = [None] * len(admm.C_list)
-
         # All of the C operators are assumed to be linear and shift invariant
         # but this is not checked.
         c_gram_list = [
-            rho * CircularConvolve.from_operator(C.gram_op, ndims=ndims)
-            for ndims, rho, C in zip(self.ndims, admm.rho_list, admm.C_list)
+            rho * CircularConvolve.from_operator(C.gram_op, ndims=self.ndims)
+            for rho, C in zip(admm.rho_list, admm.C_list)
         ]
         self.D = reduce(lambda a, b: a + b, c_gram_list) / (2.0 * self.admm.f.scale)
         A = self.admm.f.A.B
