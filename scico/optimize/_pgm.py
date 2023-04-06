@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2022 by SCICO Developers
+# Copyright (C) 2020-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -11,19 +11,18 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import Callable, Optional, Union
+from typing import Optional, Union
 
 import jax
 
 import scico.numpy as snp
-from scico.diagnostics import IterationStats
 from scico.functional import Functional
 from scico.loss import Loss
 from scico.numpy import BlockArray
 from scico.numpy.util import ensure_on_device
 from scico.typing import JaxArray
-from scico.util import Timer
 
+from ._common import Optimizer
 from ._pgmaux import (
     AdaptiveBBStepSize,
     BBStepSize,
@@ -32,7 +31,7 @@ from ._pgmaux import (
 )
 
 
-class PGM:
+class PGM(Optimizer):
     r"""Proximal Gradient Method (PGM) base class.
 
     Minimize a function of the form :math:`f(\mb{x}) + g(\mb{x})`, where
@@ -50,8 +49,7 @@ class PGM:
         L0: float,
         x0: Union[JaxArray, BlockArray],
         step_size: Optional[PGMStepSize] = None,
-        maxiter: int = 100,
-        itstat_options: Optional[dict] = None,
+        **kwargs,
     ):
         r"""
 
@@ -62,25 +60,15 @@ class PGM:
             x0: Starting point for :math:`\mb{x}`.
             step_size: helper :class:`StepSize` to estimate the Lipschitz
                 constant of f.
-            maxiter: Maximum number of PGM iterations to perform.
-                Default: 100.
-            itstat_options: A dict of named parameters to be passed to
-                the :class:`.diagnostics.IterationStats` initializer. The
-                dict may also include an additional key "itstat_func"
-                with the corresponding value being a function with two
-                parameters, an integer and a PGM object, responsible
-                for constructing a tuple ready for insertion into the
-                :class:`.diagnostics.IterationStats` object. If ``None``,
-                default values are used for the dict entries, otherwise
-                the default dict is updated with the dict specified by
-                this parameter.
+            **kwargs: Additional optional parameters handled by
+                initializer of base class :class:`.Optimizer`.
         """
 
         #: Functional or Loss to minimize; must have grad method defined.
         self.f: Union[Loss, Functional] = f
 
         if g.has_prox is not True:
-            raise Exception(f"The functional g ({type(g)}) must have a proximal method.")
+            raise Exception(f"The functional g ({type(g)}) must have a prox method.")
 
         #: Functional to minimize; must have prox defined
         self.g: Functional = g
@@ -90,9 +78,6 @@ class PGM:
         self.step_size: PGMStepSize = step_size
         self.step_size.internal_init(self)
         self.L: float = L0  # reciprocal of step size (estimate of Lipschitz constant of f)
-        self.itnum: int = 0
-        self.maxiter: int = maxiter  # maximum number of iterations to perform
-        self.timer: Timer = Timer()
         self.fixed_point_residual = snp.inf
 
         def x_step(v: Union[JaxArray, BlockArray], L: float) -> Union[JaxArray, BlockArray]:
@@ -100,36 +85,23 @@ class PGM:
 
         self.x_step = jax.jit(x_step)
 
-        # iteration number and time fields
-        itstat_fields = {
-            "Iter": "%d",
-            "Time": "%8.2e",
-        }
-        itstat_attrib = ["itnum", "timer.elapsed()"]
-        # objective function can be evaluated if 'g' function can be evaluated
-        if g.has_eval:
-            itstat_fields.update({"Objective": "%9.3e"})
-            itstat_attrib.append("objective()")
-        # step size and residual fields
-        itstat_fields.update({"L": "%9.3e", "Residual": "%9.3e"})
-        itstat_attrib.extend(["L", "norm_residual()"])
-
-        # dynamically create itstat_func; see https://stackoverflow.com/questions/24733831
-        itstat_return = "return(" + ", ".join(["obj." + attr for attr in itstat_attrib]) + ")"
-        scope: dict[str, Callable] = {}
-        exec("def itstat_func(obj): " + itstat_return, scope)
-
-        default_itstat_options: dict[str, Union[dict, Callable, bool]] = {
-            "fields": itstat_fields,
-            "itstat_func": scope["itstat_func"],
-            "display": False,
-        }
-        if itstat_options:
-            default_itstat_options.update(itstat_options)
-        self.itstat_insert_func: Callable = default_itstat_options.pop("itstat_func")  # type: ignore
-        self.itstat_object = IterationStats(**default_itstat_options)  # type: ignore
-
         self.x: Union[JaxArray, BlockArray] = ensure_on_device(x0)  # current estimate of solution
+
+        super().__init__(**kwargs)
+
+    def _objective_evaluatable(self):
+        """Determine whether the objective function can be evaluated."""
+        return self.f.has_eval and self.g.has_eval
+
+    def _itstat_extra_fields(self):
+        """Define linearized ADMM-specific iteration statistics fields."""
+        itstat_fields = {"L": "%9.3e", "Residual": "%9.3e"}
+        itstat_attrib = ["L", "norm_residual()"]
+        return itstat_fields, itstat_attrib
+
+    def minimizer(self):
+        """Return current estimate of the functional mimimizer."""
+        return self.x
 
     def objective(self, x: Optional[Union[JaxArray, BlockArray]] = None) -> float:
         r"""Evaluate the objective function :math:`f(\mb{x}) + g(\mb{x})`."""
@@ -170,35 +142,6 @@ class PGM:
         self.fixed_point_residual = snp.linalg.norm(self.x - x)
         self.x = x
 
-    def solve(
-        self,
-        callback: Optional[Callable[[PGM], None]] = None,
-    ) -> Union[JaxArray, BlockArray]:
-        """Run the PGM algorithm.
-
-        Run the PGM algorithm for a total of `self.maxiter` iterations.
-
-        Args:
-            callback: An optional callback function, taking an a single
-               argument of type :class:`PGM`, that is called at the end
-               of every iteration.
-
-        Returns:
-            Computed solution.
-        """
-        self.timer.start()
-        for self.itnum in range(self.itnum, self.itnum + self.maxiter):
-            self.step()
-            self.itstat_object.insert(self.itstat_insert_func(self))
-            if callback:
-                self.timer.stop()
-                callback(self)
-                self.timer.start()
-        self.timer.stop()
-        self.itnum += 1
-        self.itstat_object.end()
-        return self.x
-
 
 class AcceleratedPGM(PGM):
     r"""Accelerated Proximal Gradient Method (AcceleratedPGM) base class.
@@ -220,11 +163,9 @@ class AcceleratedPGM(PGM):
         L0: float,
         x0: Union[JaxArray, BlockArray],
         step_size: Optional[PGMStepSize] = None,
-        maxiter: int = 100,
-        itstat_options: Optional[dict] = None,
+        **kwargs,
     ):
         r"""
-
         Args:
             f: Loss or Functional object with `grad` defined.
             g: Instance of Functional with defined prox method.
@@ -232,29 +173,11 @@ class AcceleratedPGM(PGM):
             x0: Starting point for :math:`\mb{x}`.
             step_size: helper :class:`StepSize` to estimate the Lipschitz
                 constant of f.
-            maxiter: Maximum number of PGM iterations to perform.
-                Default: 100.
-            itstat_options: A dict of named parameters to be passed to
-                the :class:`.diagnostics.IterationStats` initializer. The
-                dict may also include an additional key "itstat_func"
-                with the corresponding value being a function with two
-                parameters, an integer and a `PGM` object, responsible
-                for constructing a tuple ready for insertion into the
-                :class:`.diagnostics.IterationStats` object. If ``None``,
-                default values are used for the dict entries, otherwise
-                the default dict is updated with the dict specified by
-                this parameter.
+            **kwargs: Additional optional parameters handled by
+                initializer of base class :class:`.Optimizer`.
         """
         x0 = ensure_on_device(x0)
-        super().__init__(
-            f=f,
-            g=g,
-            L0=L0,
-            x0=x0,
-            step_size=step_size,
-            maxiter=maxiter,
-            itstat_options=itstat_options,
-        )
+        super().__init__(f=f, g=g, L0=L0, x0=x0, step_size=step_size, **kwargs)
 
         self.v = x0
         self.t = 1.0

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022 by SCICO Developers
+# Copyright (C) 2022-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -30,7 +30,7 @@ def operator_from_function(f: Callable, classname: str, f_name: Optional[str] = 
     >>> AbsVal = operator_from_function(snp.abs, 'AbsVal')
     >>> H = AbsVal((2,))
     >>> H(snp.array([1.0, -1.0]))
-    DeviceArray([1., 1.], dtype=float32)
+    Array([1., 1.], dtype=float32)
 
     Args:
         f: Function from which to create an :class:`.Operator`.

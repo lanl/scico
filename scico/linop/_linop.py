@@ -18,8 +18,8 @@ from typing import Callable, Optional, Union
 import numpy as np
 
 import jax
+import jax.numpy as jnp
 from jax.dtypes import result_type
-from jax.interpreters.xla import DeviceArray
 
 import scico.numpy as snp
 from scico._autograd import linear_adjoint
@@ -84,8 +84,8 @@ def _wrap_add_sub(func: Callable, op: Callable) -> Callable:
                     input_dtype=a.input_dtype,
                     output_dtype=result_type(a.output_dtype, b.output_dtype),
                 )
-            raise ValueError(f"shapes {a.shape} and {b.shape} do not match")
-        raise TypeError(f"Operation {func.__name__} not defined between {type(a)} and {type(b)}")
+            raise ValueError(f"Shapes {a.shape} and {b.shape} do not match.")
+        raise TypeError(f"Operation {func.__name__} not defined between {type(a)} and {type(b)}.")
 
     return wrapper
 
@@ -106,10 +106,9 @@ class LinearOperator(Operator):
         r"""
         Args:
             input_shape: Shape of input array.
-            output_shape: Shape of output array.
-                Defaults to ``None``. If ``None``, `output_shape` is
-                determined by evaluating `self.__call__` on an input
-                array of zeros.
+            output_shape: Shape of output array. Defaults to ``None``.
+                If ``None``, `output_shape` is determined by evaluating
+                `self.__call__` on an input array of zeros.
             eval_fn: Function used in evaluating this
                 :class:`LinearOperator`. Defaults to ``None``. If
                 ``None``, then `self.__call__` must be defined in any
@@ -119,14 +118,13 @@ class LinearOperator(Operator):
                 ``None``, the adjoint is not set, and the
                 :meth:`._set_adjoint` will be called silently at the
                 first :meth:`.adj` call or can be called manually.
-            input_dtype: `dtype` for input argument.
-                Defaults to ``float32``. If :class:`LinearOperator`
-                implements complex-valued operations, this must be
-                ``complex64`` for proper adjoint and gradient calculation.
-            output_dtype: `dtype` for output argument.
-                Defaults to ``None``. If ``None``, `output_shape` is
-                determined by evaluating `self.__call__` on an input
-                array of zeros.
+            input_dtype: `dtype` for input argument. Defaults to
+                ``float32``. If :class:`LinearOperator` implements
+                complex-valued operations, this must be ``complex64`` for
+                proper adjoint and gradient calculation.
+            output_dtype: `dtype` for output argument. Defaults to
+                ``None``. If ``None``, `output_dtype` is determined by
+                evaluating `self.__call__` on an input array of zeros.
             jit: If ``True``, call :meth:`.jit()` on this
                 :class:`LinearOperator` to jit the forward, adjoint, and
                 gram functions. Same as calling :meth:`.jit` after the
@@ -150,7 +148,7 @@ class LinearOperator(Operator):
             self._adj = adj_fn
             self._gram = lambda x: self.adj(self(x))
         elif adj_fn is not None:
-            raise TypeError(f"Parameter adj_fn must be either a Callable or None; got {adj_fn}")
+            raise TypeError(f"Parameter adj_fn must be either a Callable or None; got {adj_fn}.")
 
         if jit:
             self.jit()
@@ -236,14 +234,14 @@ class LinearOperator(Operator):
         if isinstance(other, LinearOperator):
             return other(self)
 
-        if isinstance(other, (np.ndarray, DeviceArray)):
+        if isinstance(other, (np.ndarray, jnp.ndarray)):
             # for real valued inputs: y @ self == (self.T @ y.T).T
             # for complex:  y @ self == (self.conj().T @ y.conj().T).conj().T
             # self.conj().T == self.adj
             return self.adj(other.conj().T).conj().T
 
         raise NotImplementedError(
-            f"Operation __rmatmul__ not defined between {type(self)} and {type(other)}"
+            f"Operation __rmatmul__ not defined between {type(self)} and {type(other)}."
         )
 
     def __call__(
@@ -287,11 +285,11 @@ class LinearOperator(Operator):
         if isinstance(y, LinearOperator):
             return ComposedLinearOperator(self.H, y)
         if self.output_dtype != y.dtype:
-            raise ValueError(f"dtype error: expected {self.output_dtype}, got {y.dtype}")
+            raise ValueError(f"Dtype error: expected {self.output_dtype}, got {y.dtype}.")
         if self.output_shape != y.shape:
             raise ValueError(
                 f"""Shapes do not conform: input array with shape {y.shape} does not match
-                LinearOperator output_shape {self.output_shape}"""
+                LinearOperator output_shape {self.output_shape}."""
             )
         assert self._adj is not None
         return self._adj(y)
@@ -437,18 +435,18 @@ class ComposedLinearOperator(LinearOperator):
         if not isinstance(A, LinearOperator):
             raise TypeError(
                 "The first argument to ComposedLinearOperator must be a LinearOperator; "
-                f"got {type(A)}"
+                f"got {type(A)}."
             )
         if not isinstance(B, LinearOperator):
             raise TypeError(
                 "The second argument to ComposedLinearOperator must be a LinearOperator; "
-                f"got {type(B)}"
+                f"got {type(B)}."
             )
         if A.input_shape != B.output_shape:
-            raise ValueError(f"Incompatable LinearOperator shapes {A.shape}, {B.shape}")
+            raise ValueError(f"Incompatable LinearOperator shapes {A.shape}, {B.shape}.")
         if A.input_dtype != B.output_dtype:
             raise ValueError(
-                f"Incompatable LinearOperator dtypes {A.input_dtype}, {B.output_dtype}"
+                f"Incompatable LinearOperator dtypes {A.input_dtype}, {B.output_dtype}."
             )
 
         self.A = A

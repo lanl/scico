@@ -185,7 +185,7 @@ class LinearSubproblemSolver(SubproblemSolver):
             self.cg = jax_cg
         else:
             raise ValueError(
-                f"Parameter cg_function must be one of 'jax', 'scico'; got {cg_function}"
+                f"Parameter cg_function must be one of 'jax', 'scico'; got {cg_function}."
             )
         self.info = None
 
@@ -194,12 +194,12 @@ class LinearSubproblemSolver(SubproblemSolver):
             if not isinstance(admm.f, SquaredL2Loss):
                 raise ValueError(
                     "LinearSubproblemSolver requires f to be a scico.loss.SquaredL2Loss; "
-                    f"got {type(admm.f)}"
+                    f"got {type(admm.f)}."
                 )
             if not isinstance(admm.f.A, LinearOperator):
                 raise ValueError(
                     f"LinearSubproblemSolver requires f.A to be a scico.linop.LinearOperator; "
-                    f"got {type(admm.f.A)}"
+                    f"got {type(admm.f.A)}."
                 )
 
         super().internal_init(admm)
@@ -284,12 +284,12 @@ class CircularConvolveSolver(LinearSubproblemSolver):
             if not isinstance(admm.f, SquaredL2Loss):
                 raise ValueError(
                     "CircularConvolveSolver requires f to be a scico.loss.SquaredL2Loss; "
-                    f"got {type(admm.f)}"
+                    f"got {type(admm.f)}."
                 )
             if not isinstance(admm.f.A, (CircularConvolve, Identity)):
                 raise ValueError(
                     "CircularConvolveSolver requires f.A to be a scico.linop.CircularConvolve "
-                    f"or scico.linop.Identity; got {type(admm.f.A)}"
+                    f"or scico.linop.Identity; got {type(admm.f.A)}."
                 )
 
         super().internal_init(admm)

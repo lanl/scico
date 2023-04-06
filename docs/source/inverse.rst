@@ -24,12 +24,36 @@ Inverse Problems
     </style>
 
 
-In traditional imaging, the burden of image formation is placed on physical components, such as a lens, with the resulting image being taken from the sensor with minimal processing. In computational imaging, in contrast, the burden of image formation is shared with or shifted to computation, with the resulting image typically being very different from the measured data. Common examples of computational imaging include demosaicing in consumer cameras, computed tomography and magnetic resonance imaging in medicine, and synthetic aperture radar in remote sensing. This is an active and growing area of research, and many of these problems have common properties that could be supported by shared implementations of solution components.
+In traditional imaging, the burden of image formation is placed on
+physical components, such as a lens, with the resulting image being
+taken from the sensor with minimal processing. In computational
+imaging, in contrast, the burden of image formation is shared with or
+shifted to computation, with the resulting image typically being very
+different from the measured data. Common examples of computational
+imaging include demosaicing in consumer cameras, computed tomography
+and magnetic resonance imaging in medicine, and synthetic aperture
+radar in remote sensing. This is an active and growing area of
+research, and many of these problems have common properties that could
+be supported by shared implementations of solution components.
 
-The goal of SCICO is to provide a general research tool for computational imaging, with a particular focus on scientific imaging applications, which are particularly underrepresented in the existing range of open-source packages in this area. While a number of other packages overlap somewhat in functionality with SCICO, only a few support execution of the same code on both CPU and GPU devices, and we are not aware of any that support just-in-time compilation and automatic gradient computation, which is invaluable in computational imaging. SCICO provides all three of these valuable features (subject to some :ref:`caveats <non_jax_dep>`) by being built on top of `JAX <https://jax.readthedocs.io/en/latest/>`__ rather than `NumPy <https://numpy.org/>`__.
+The goal of SCICO is to provide a general research tool for
+computational imaging, with a particular focus on scientific imaging
+applications, which are particularly underrepresented in the existing
+range of open-source packages in this area. While a number of other
+packages overlap somewhat in functionality with SCICO, only a few
+support execution of the same code on both CPU and GPU devices, and we
+are not aware of any that support just-in-time compilation and
+automatic gradient computation, which is invaluable in computational
+imaging. SCICO provides all three of these valuable features (subject
+to some :ref:`caveats <non_jax_dep>`) by being built on top of `JAX
+<https://jax.readthedocs.io/en/latest/>`__ rather than `NumPy
+<https://numpy.org/>`__.
 
 
-The remainder of this section outlines the steps involved in solving an inverse problem, and shows how each concept maps to a component of SCICO. More detail on the main classes involved in setting up and solving an inverse problem can be found in :ref:`classes`.
+The remainder of this section outlines the steps involved in solving
+an inverse problem, and shows how each concept maps to a component of
+SCICO. More detail on the main classes involved in setting up and
+solving an inverse problem can be found in :ref:`classes`.
 
 
 Forward Modeling
@@ -112,6 +136,7 @@ The result of applying ``H`` to an image with shape ``(130, 50)`` is a
 :class:`.BlockArray` with shape ``((50,), (130,))``. This result is
 compatible with the rest of SCICO and may be used, e.g., as the input
 of other operators.
+
 
 Inverse Problem Formulation
 ---------------------------
@@ -196,6 +221,7 @@ computational imaging, providing infrastructure for solving this type of
 problem efficiently, without the need for the user to implement complex
 algorithms.
 
+
 Solvers
 -------
 
@@ -204,6 +230,7 @@ the resulting functional must be minimized in order to solve the
 problem. SCICO provides a number of optimization algorithms for
 addressing a wide range of problems. These optimization algorithms
 belong to two distinct categories.
+
 
 SciPy Solvers
 ~~~~~~~~~~~~~
@@ -228,14 +255,16 @@ For example,
 defines a Poisson objective function and minimizes it using the BFGS
 :cite:`nocedal-2006-numerical` algorithm.
 
+
 Proximal Algorithms
 ~~~~~~~~~~~~~~~~~~~
 
 The :mod:`scico.optimize` sub-package provides a set of *proximal
-algorithms* :cite:`parikh-2014-proximal` that have proven to be useful for
-solving imaging inverse problems. The common feature of these algorithms
-is their exploitation of the *proximal operator*
-:cite:`beck-2017-first` (Ch. 6), of the components of the functions that they minimize.
+algorithms* :cite:`parikh-2014-proximal` that have proven to be useful
+for solving imaging inverse problems. The common feature of these
+algorithms is their exploitation of the *proximal operator*
+:cite:`beck-2017-first` (Ch. 6), of the components of the functions
+that they minimize.
 
 **ADMM** The most flexible of the proximal algorithms supported by SCICO
 is the alternating direction method of multipliers (ADMM)
@@ -268,7 +297,8 @@ has the advantage over “standard” ADMM of avoiding the need for solving
 a linear system involving :math:`C^\top C`.
 
 **PDHG** Primal–dual hybrid gradient (PDHG) :cite:`esser-2010-general`
-:cite:`chambolle-2010-firstorder` :cite:`pock-2011-diagonal` solves the same form of problem as linearized ADMM
+:cite:`chambolle-2010-firstorder` :cite:`pock-2011-diagonal` solves
+the same form of problem as linearized ADMM
 
 .. math:: \mathop{\mathrm{arg\,min}}_{\mb{x}} \; f(\mb{x}) + g(C \mb{x}) \,,
 
@@ -288,6 +318,7 @@ where :math:`f(\cdot)` is assumed to be differentiable, and
 computed efficiently. These algorithms typically require more iterations
 for convergence than ADMM, but can provide faster convergence with time
 when the linear solve required by ADMM is slow to compute.
+
 
 Machine Learning
 ----------------

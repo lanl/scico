@@ -5,8 +5,8 @@
 # with the package.
 
 r"""
-Complex Total Variation Denoising
-=================================
+Complex Total Variation Denoising with PDHG Solver
+==================================================
 
 This example demonstrates solution of a problem of the form
 
@@ -83,7 +83,7 @@ hist_tv = solver_tv.itstat_object.history(transpose=True)
 
 
 """
-Denoise with non-linear total variation.
+Denoise with total variation applied to the magnitude of a complex image.
 """
 λ_nltv = 2e-1
 g = λ_nltv * functional.L21Norm()

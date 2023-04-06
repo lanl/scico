@@ -18,8 +18,8 @@ from functools import partial, wraps
 import numpy as np
 
 import jax
+import jax.numpy as jnp
 from jax.dtypes import result_type
-from jax.interpreters.xla import DeviceArray
 
 import scico.numpy as snp
 from scico.typing import JaxArray
@@ -38,13 +38,13 @@ def _wrap_add_sub_matrix(func, op):
             if a.shape == b.shape:
                 return MatrixOperator(op(a.A, b.A))
 
-            raise ValueError(f"MatrixOperator shapes {a.shape} and {b.shape} do not match")
+            raise ValueError(f"MatrixOperator shapes {a.shape} and {b.shape} do not match.")
 
-        if isinstance(b, (DeviceArray, np.ndarray)):
+        if isinstance(b, (jnp.ndarray, np.ndarray)):
             if a.matrix_shape == b.shape:
                 return MatrixOperator(op(a.A, b))
 
-            raise ValueError(f"Shapes {a.matrix_shape} and {b.shape} do not match")
+            raise ValueError(f"Shapes {a.matrix_shape} and {b.shape} do not match.")
 
         if isinstance(b, LinearOperator):
             if a.shape == b.shape:
@@ -56,9 +56,9 @@ def _wrap_add_sub_matrix(func, op):
                     output_dtype=result_type(a.output_dtype, b.output_dtype),
                 )
 
-            raise ValueError(f"Shapes {a.shape} and {b.shape} do not match")
+            raise ValueError(f"Shapes {a.shape} and {b.shape} do not match.")
 
-        raise TypeError(f"Operation {func.__name__} not defined between {type(a)} and {type(b)}")
+        raise TypeError(f"Operation {func.__name__} not defined between {type(a)} and {type(b)}.")
 
     return wrapper
 
@@ -66,27 +66,42 @@ def _wrap_add_sub_matrix(func, op):
 class MatrixOperator(LinearOperator):
     """Linear operator implementing matrix multiplication."""
 
-    def __init__(self, A: JaxArray):
+    def __init__(self, A: JaxArray, input_cols: int = 0):
         """
         Args:
-            A: Dense array. The action of the created LinearOperator will
+            A: Dense array. The action of the created
+                :class:`.LinearOperator` will
                 implement matrix multiplication with `A`.
+            input_cols: If this parameter is set to the default of 0, the
+                :class:`MatrixOperator` takes a vector (one-dimensional
+                array) input. If the input is intended to be a matrix
+                (two-dimensional array), this parameter should specify
+                number of columns in the matrix.
         """
         self.A: JaxArray  #: Dense array implementing this matrix
 
         # if A is an ndarray, make sure it gets converted to a DeviceArray
-        if isinstance(A, DeviceArray):
+        if isinstance(A, jnp.ndarray):
             self.A = A
         elif isinstance(A, np.ndarray):
-            self.A = jax.device_put(A)
+            self.A = jax.device_put(A)  # TODO: ensure_on_device?
         else:
-            raise TypeError(f"Expected np.ndarray or DeviceArray, got {type(A)}")
+            raise TypeError(f"Expected np.ndarray or DeviceArray, got {type(A)}.")
 
         # Can only do rank-2 arrays
         if A.ndim != 2:
-            raise TypeError(f"Expected a two-dimensional array, got array of shape {A.shape}")
+            raise TypeError(f"Expected a two-dimensional array, got array of shape {A.shape}.")
 
-        super().__init__(input_shape=A.shape[1], output_shape=A.shape[0], input_dtype=self.A.dtype)
+        if input_cols == 0:
+            input_shape = A.shape[1]
+            output_shape = A.shape[0]
+        else:
+            input_shape = (A.shape[1], input_cols)
+            output_shape = (A.shape[0], input_cols)
+
+        super().__init__(
+            input_shape=input_shape, output_shape=output_shape, input_dtype=self.A.dtype
+        )
 
     def __call__(self, other):
         if isinstance(other, LinearOperator):
@@ -107,7 +122,7 @@ class MatrixOperator(LinearOperator):
 
             raise ValueError(
                 "Cannot compute MatrixOperator-LinearOperator product, "
-                f"{other.output_shape} does not match {self.input_shape}"
+                f"{other.output_shape} does not match {self.input_shape}."
             )
 
         return self._eval(other)
@@ -146,16 +161,16 @@ class MatrixOperator(LinearOperator):
             if self.shape == other.shape:
                 return MatrixOperator(self.A * other.A)
 
-            raise ValueError(f"Shapes {self.shape} and {other.shape} do not match")
+            raise ValueError(f"Shapes {self.shape} and {other.shape} do not match.")
 
-        if isinstance(other, (DeviceArray, np.ndarray)):
+        if isinstance(other, (jnp.ndarray, np.ndarray)):
             if self.matrix_shape == other.shape:
                 return MatrixOperator(self.A * other)
 
-            raise ValueError(f"Shapes {self.matrix_shape} and {other.shape} do not match")
+            raise ValueError(f"Shapes {self.matrix_shape} and {other.shape} do not match.")
 
         # includes generic LinearOperator
-        raise TypeError(f"Operation __mul__ not defined between {type(self)} and {type(other)}")
+        raise TypeError(f"Operation __mul__ not defined between {type(self)} and {type(other)}.")
 
     def __rmul__(self, other):
         # Multiplication is commutative
@@ -168,27 +183,31 @@ class MatrixOperator(LinearOperator):
         if isinstance(other, MatrixOperator):
             if self.shape == other.shape:
                 return MatrixOperator(self.A / other.A)
-            raise ValueError(f"Shapes {self.shape} and {other.shape} do not match")
+            raise ValueError(f"Shapes {self.shape} and {other.shape} do not match.")
 
-        if isinstance(other, (DeviceArray, np.ndarray)):
+        if isinstance(other, (jnp.ndarray, np.ndarray)):
             if self.matrix_shape == other.shape:
                 return MatrixOperator(self.A / other)
 
-            raise ValueError(f"Shapes {self.matrix_shape} and {other.shape} do not match")
+            raise ValueError(f"Shapes {self.matrix_shape} and {other.shape} do not match.")
 
-        raise TypeError(f"Operation __truediv__ not defined between {type(self)} and {type(other)}")
+        raise TypeError(
+            f"Operation __truediv__ not defined between {type(self)} and {type(other)}."
+        )
 
     def __rtruediv__(self, other):
         if np.isscalar(other):
             return MatrixOperator(other / self.A)
 
-        if isinstance(other, (DeviceArray, np.ndarray)):
+        if isinstance(other, (jnp.ndarray, np.ndarray)):
             if self.matrix_shape == other.shape:
                 return MatrixOperator(other / self.A)
 
-            raise ValueError(f"Shapes {other.shape} and {self.matrix_shape} do not match")
+            raise ValueError(f"Shapes {other.shape} and {self.matrix_shape} do not match.")
 
-        raise TypeError(f"Operation __truediv__ not defined between {type(other)} and {type(self)}")
+        raise TypeError(
+            f"Operation __truediv__ not defined between {type(other)} and {type(self)}."
+        )
 
     def __getitem__(self, key):
         return self.A[key]

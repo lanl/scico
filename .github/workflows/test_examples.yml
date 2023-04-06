@@ -70,6 +70,7 @@ jobs:
           pip install -r dev_requirements.txt
           mamba install -c astra-toolbox astra-toolbox
           mamba install -c conda-forge pyyaml
+          pip install --upgrade --force-reinstall scipy>=1.6.0  # Temporary fix for GLIBCXX_3.4.30 not found in conda forge version
           pip install -r examples/examples_requirements.txt
       # Install package to be tested
       - name: Install package to be tested
@@ -77,4 +78,4 @@ jobs:
       # Run example test
       - name: Run example test
         run: |
-          ${GITHUB_WORKSPACE}/examples/scriptcheck.sh -e -d
+          ${GITHUB_WORKSPACE}/examples/scriptcheck.sh -e -d -t

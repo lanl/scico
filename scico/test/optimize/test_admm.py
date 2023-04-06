@@ -2,6 +2,8 @@ import numpy as np
 
 import jax
 
+import pytest
+
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, random
 from scico.optimize import ADMM
@@ -40,6 +42,7 @@ class TestMisc:
         )
         assert len(admm_.itstat_object.fieldname) == 6
         assert snp.sum(admm_.x) == 0.0
+
         admm_ = ADMM(
             f=f,
             g_list=[g],
@@ -57,6 +60,9 @@ class TestMisc:
 
         x = admm_.solve(callback=callback)
         assert admm_.test_flag
+
+        with pytest.raises(TypeError):
+            admm_ = ADMM(f=f, g_list=[g], C_list=[C], rho_list=[ρ], invalid_keyword_arg=None)
 
 
 class TestReal:

@@ -16,11 +16,59 @@ import urllib.error as urlerror
 import urllib.request as urlrequest
 from functools import wraps
 from timeit import default_timer as timer
-from typing import Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Sequence, Union
 
 import jax
 from jax.interpreters.batching import BatchTracer
 from jax.interpreters.partial_eval import DynamicJaxprTracer
+
+
+def partial(func: Callable, indices: Sequence, *fixargs: Any, **fixkwargs: Any) -> Callable:
+    """Flexible partial function creation.
+
+    This function is similar to :func:`functools.partial`, but allows
+    fixing of arbitrary positional arguments rather than just some number
+    of trailing positional arguments.
+
+    Args:
+        func: Function from which partial function is to be derived.
+        indices: Tuple of indices of positional args of `func` that are
+           to be fixed to the values specified in `fixargs`.
+        *fixargs: Fixed values for specified positional arguments.
+        **fixkwargs: Fixed values for keyword arguments.
+
+    Returns:
+       The partial function with fixed arguments.
+    """
+
+    def pfunc(*freeargs, **freekwargs):
+        numargs = len(fixargs) + len(freeargs)
+        args = [
+            None,
+        ] * numargs
+        kfix = 0
+        kfree = 0
+        for k in range(numargs):
+            if k in indices:
+                args[k] = fixargs[kfix]
+                kfix += 1
+            else:
+                args[k] = freeargs[kfree]
+                kfree += 1
+        kwargs = freekwargs.copy()
+        kwargs.update(fixkwargs)
+        return func(*args, **kwargs)
+
+    posdoc = ""
+    if indices:
+        posdoc = f"positional arguments {','.join(map(str, indices))}"
+    kwdoc = ""
+    if fixkwargs:
+        kwdoc = f"keyword arguments {','.join(fixkwargs.keys())}"
+    pfunc.__doc__ = f"Partial function derived from function {func.__name__}"
+    if posdoc or kwdoc:
+        pfunc.__doc__ += " by fixing " + (" and ".join(filter(None, (posdoc, kwdoc))))
+    return pfunc
 
 
 def device_info(devid: int = 0) -> str:  # pragma: no cover
@@ -34,7 +82,7 @@ def device_info(devid: int = 0) -> str:  # pragma: no cover
     """
     numdev = jax.device_count()
     if devid >= numdev:
-        raise RuntimeError(f"Requested information for device {devid} but only {numdev} present")
+        raise RuntimeError(f"Requested information for device {devid} but only {numdev} present.")
     dev = jax.devices()[devid]
     if dev.platform == "cpu":
         info = "CPU"
@@ -196,7 +244,7 @@ class Timer:
         # Iterate over specified label(s)
         for lbl in labels:
             if lbl not in self.t0:
-                raise KeyError(f"Unrecognized timer key {lbl}")
+                raise KeyError(f"Unrecognized timer key {lbl}.")
             # If self.t0[lbl] is None, the corresponding timer is
             # already stopped, so no action is required
             if self.t0[lbl] is not None:
@@ -231,7 +279,7 @@ class Timer:
         # Iterate over specified label(s)
         for lbl in labels:
             if lbl not in self.t0:
-                raise KeyError(f"Unrecognized timer key {lbl}")
+                raise KeyError(f"Unrecognized timer key {lbl}.")
             # Set start time to None to indicate timer is not running
             self.t0[lbl] = None
             # Set time accumulator to zero
@@ -265,7 +313,7 @@ class Timer:
                 return 0.0
         # Raise exception if timer with specified label does not exist
         if label not in self.t0:
-            raise KeyError(f"Unrecognized timer key {label}")
+            raise KeyError(f"Unrecognized timer key {label}.")
         # If total flag is True return sum of accumulated time from
         # previous start/stop calls and current start call, otherwise
         # return just the time since the current start call
@@ -358,7 +406,7 @@ class ContextTimer:
         """
 
         if action not in ["StartStop", "StopStart"]:
-            raise ValueError(f"Unrecognized action {action}")
+            raise ValueError(f"Unrecognized action {action}.")
         if timer is None:
             self.timer = Timer()
         else:

@@ -55,7 +55,7 @@ argparser = argparse.ArgumentParser(
 argparser.add_argument(
     "--all",
     action="store_true",
-    help="Process all notebooks, without  checking timestamps. "
+    help="Process all notebooks, without checking timestamps. "
     "Has no effect when files to process are explicitly specified.",
 )
 argparser.add_argument(

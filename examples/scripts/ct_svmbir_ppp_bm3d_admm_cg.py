@@ -15,7 +15,7 @@ using the Plug-and-Play Priors framework
 tomographic projection.
 
 There are two versions of this example, solving the same problem in two
-different ways.  This version uses the data fidelity term as the ADMM $f$,
+different ways. This version uses the data fidelity term as the ADMM $f$,
 and thus the optimization with respect to the data fidelity uses CG rather
 than the prox of the `SVMBIRSquaredL2Loss` functional, as in the
 [other version](ct_svmbir_ppp_bm3d_admm_prox.rst).

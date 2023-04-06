@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2022 by SCICO Developers
+# Copyright (C) 2021-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -10,37 +10,33 @@ solving the inverse problems that arise in scientific imaging applications.
 
 __version__ = "0.0.4.dev0"
 
+import logging
 import sys
 
 from . import _python37  # python 3.7 compatibility
 
 # isort: off
-from ._autograd import grad, jacrev, linear_adjoint, value_and_grad
+from ._autograd import grad, jacrev, linear_adjoint, value_and_grad, cvjp
 
 import jax, jaxlib
-
-jax_ver_req = "0.3.0"
-jaxlib_ver_req = "0.3.0"
-if jax.__version__ < jax_ver_req:
-    raise RuntimeError(
-        f"SCICO {__version__} requires jax>={jax_ver_req}; got {jax.__version__}; "
-        "please upgrade jax."
-    )
-if jaxlib.__version__ < jaxlib_ver_req:
-    raise RuntimeError(
-        f"SCICO {__version__} requires jaxlib>={jaxlib_ver_req}; got {jaxlib.__version__}; "
-        "please upgrade jaxlib."
-    )
 
 from jax import custom_jvp, custom_vjp, jacfwd, jvp, linearize, vjp, hessian
 
 from . import numpy
+
+# Suppress jax device warning. See https://github.com/google/jax/issues/6805
+# This only works for jax>0.3.23; for earlier versions, the getLogger
+# argument should be "absl".
+logging.getLogger("jax._src.lib.xla_bridge").addFilter(
+    logging.Filter("No GPU/TPU found, falling back to CPU.")
+)
 
 __all__ = [
     "grad",
     "value_and_grad",
     "linear_adjoint",
     "vjp",
+    "cvjp",
     "jvp",
     "jacfwd",
     "jacrev",
