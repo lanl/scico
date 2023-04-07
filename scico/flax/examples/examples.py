@@ -696,8 +696,8 @@ def runtime_error_array(type: str, idstring: str, maxdiff: float):
            entries.
     """
     raise RuntimeError(
-        f"{'Requested parameter --':15s}{type}{'-- :':7s}"
+        f"{'Requested parameter --':15s}{type}{'--'}"
         f"{' does not match parameter read from '}"
-        f"{idstring}{' file :':10s}. Maximum array difference: {maxdiff}."
+        f"{idstring}{' file'}. Maximum array difference: {maxdiff:>5.3f}."
         f"\nDelete cache and check data source."
     )
