@@ -27,7 +27,11 @@ from scico.flax.examples.data_preprocessing import (
     preprocess_images,
     rotation90,
 )
-from scico.flax.examples.examples import get_cache_path, runtime_error
+from scico.flax.examples.examples import (
+    get_cache_path,
+    runtime_error_array,
+    runtime_error_scalar,
+)
 from scico.flax.examples.typed_dict import ConfigImageSetDict
 from scico.typing import Shape
 
@@ -394,9 +398,14 @@ def test_padded_circular_convolve():
         assert xblur.shape == x.shape
 
 
-def test_runtime_error():
+def test_runtime_error_scalar():
     with pytest.raises(RuntimeError):
-        runtime_error("channels", "testing ", 3, 1)
+        runtime_error_scalar("channels", "testing ", 3, 1)
+
+
+def test_runtime_error_array():
+    with pytest.raises(RuntimeError):
+        runtime_error_array("channels", "testing ", 1e-2)
 
 
 def test_default_cache_path():
