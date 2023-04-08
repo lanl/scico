@@ -24,7 +24,7 @@ jobs:
         shell: bash -l {0}
     steps:
       # Check-out the repository under $GITHUB_WORKSPACE
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
       # Set up conda/mamba environment
@@ -35,10 +35,10 @@ jobs:
             miniforge-version: latest
             activate-environment: test-env
             use-mamba: true
-            python-version: 3.9
+            python-version: "3.9"
       # Configure conda environment cache
       - name: Set up conda environment cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ env.CONDA }}/envs
           key: conda-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('dev_requirements.txt') }}-${{ env.CACHE_NUMBER }}
