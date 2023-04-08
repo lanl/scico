@@ -15,7 +15,8 @@ for f in $@; do
         Darwin) size=$(stat -f "%z" $f);;
         *)      echo "Error: unsupported operating system $OS" >&2; exit 1;;
     esac
-    if [ $size -gt $size_threshold ]; then
+    # Exception on maximum size for pytest-split .test_durations file
+    if [ $size -gt $size_threshold ] && [ "$(basename $f)" != ".test_durations" ]; then
         echo "file exceeds maximum allowable size of $size_threshold bytes"
         echo "raw data and ipynb files should go in scico-data"
         exit 2
