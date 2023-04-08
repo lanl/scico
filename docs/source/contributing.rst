@@ -317,6 +317,16 @@ version of ``scico`` by
 
    pytest --pyargs scico
 
+When any significant changes are made to the test suite, the ``pytest-split`` test
+time database file ``.test_durations`` in the repository root directory should be
+updated
+
+::
+
+   pytest --store-durations
+
+and the changes should be committed into the repository.
+
 
 Test Coverage
 ^^^^^^^^^^^^^
