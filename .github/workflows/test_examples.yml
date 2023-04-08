@@ -13,15 +13,10 @@ on:
 
 jobs:
   build:
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            label: linux-64
-            prefix: /usr/share/miniconda3/envs/test-env
-    name: ${{ matrix.label }}
-    runs-on: ${{ matrix.os }}
+    name: test examples (ubuntu)
     defaults:
       run:
         shell: bash -l {0}
@@ -55,7 +50,6 @@ jobs:
           printenv | sort
       # Install required system package
       - name: Install required system package
-        if: matrix.os == 'ubuntu-latest'
         run: sudo apt-get install -y libopenblas-dev
       # Install dependencies in conda environment
       - name: Install dependencies
