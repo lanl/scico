@@ -86,7 +86,7 @@ jobs:
         run: |
           pytest --ignore-glob="*test_*.py" --doctest-modules scico
 
-coverage:
+  coverage:
     needs: test
     runs-on: ubuntu-latest
     steps:
