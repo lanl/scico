@@ -11,7 +11,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from scico.diagnostics import IterationStats
 from scico.numpy import BlockArray
@@ -77,7 +77,7 @@ class Optimizer:
         timer (:class:`.Timer`): Iteration timer.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         """Initialize common attributes of :class:`Optimizer` objects.
 
         Args:
@@ -117,7 +117,7 @@ class Optimizer:
             itstat_fields, itstat_attrib, itstat_options
         )
 
-    def _itstat_default_fields(self):
+    def _itstat_default_fields(self) -> Tuple[Dict[str, str], List[str]]:
         """Define iterations stats default fields.
 
         Return a dict mapping field names to format strings, and a list
@@ -137,7 +137,7 @@ class Optimizer:
 
         return itstat_fields, itstat_attrib
 
-    def _objective_evaluatable(self):
+    def _objective_evaluatable(self) -> bool:
         """Determine whether the objective function can be evaluated.
 
         Determine whether the objective function for a :class:`Optimizer`
@@ -145,7 +145,7 @@ class Optimizer:
         """
         return False
 
-    def _itstat_extra_fields(self):
+    def _itstat_extra_fields(self) -> Tuple[Dict[str, str], List[str]]:
         """Define additional iterations stats fields.
 
         Define iterations stats fields that are not common to all
@@ -156,7 +156,7 @@ class Optimizer:
         """
         return {}, []
 
-    def minimizer(self):
+    def minimizer(self) -> Union[JaxArray, BlockArray]:
         """Return the current estimate of the functional mimimizer."""
 
     def step(self):
