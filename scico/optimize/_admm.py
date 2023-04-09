@@ -22,7 +22,7 @@ from scico.numpy.util import ensure_on_device
 from scico.typing import JaxArray
 
 from ._admmaux import (
-    BlockCircularConvolveSolver,
+    BlockCircularConvolveForm1Solver,
     GenericSubproblemSolver,
     LinearSubproblemSolver,
     SubproblemSolver,
@@ -171,7 +171,7 @@ class ADMM(Optimizer):
                 ["subproblem_solver.info['num_iter']", "subproblem_solver.info['rel_res']"]
             )
         elif (
-            type(self.subproblem_solver) == BlockCircularConvolveSolver
+            type(self.subproblem_solver) == BlockCircularConvolveForm1Solver
             and self.subproblem_solver.check_solve
         ):
             itstat_fields.update({"Slv Res": "%9.3e"})

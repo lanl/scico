@@ -30,7 +30,7 @@ from scico.examples import create_conv_sparse_phantom
 from scico.functional import DiffL1L2Norms
 from scico.linop import CircularConvolve, Identity, Sum
 from scico.loss import SquaredL2Loss
-from scico.optimize.admm import ADMM, BlockCircularConvolveSolver
+from scico.optimize.admm import ADMM, BlockCircularConvolveForm1Solver
 from scico.util import device_info
 
 """
@@ -98,7 +98,7 @@ solver = ADMM(
     rho_list=[ρ],
     alpha=1.8,
     maxiter=maxiter,
-    subproblem_solver=BlockCircularConvolveSolver(check_solve=True),
+    subproblem_solver=BlockCircularConvolveForm1Solver(check_solve=True),
     itstat_options={"display": True, "period": 10},
 )
 

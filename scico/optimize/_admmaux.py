@@ -337,7 +337,7 @@ class CircularConvolveSolver(LinearSubproblemSolver):
         return x
 
 
-class BlockCircularConvolveSolver(LinearSubproblemSolver):
+class BlockCircularConvolveForm1Solver(LinearSubproblemSolver):
     r"""Solver for linear operators block-diagonalized in the DFT domain.
 
     Specialization of :class:`.LinearSubproblemSolver` for the case where
@@ -348,7 +348,7 @@ class BlockCircularConvolveSolver(LinearSubproblemSolver):
     it convolves a set of filters, indexed by the first axis, with an
     input array that has the same number of axes as the filter array, and
     has an initial axis of the same length as that of the filter array.
-    The :code:`C_i` must all be shift invariant linear operators,
+    The :math:`C_i` must all be shift invariant linear operators,
     examples of which include instances of :class:`.Identity` as well as
     some instances (depending on initializer parameters) of
     :class:`.CircularConvolve` and :class:`.FiniteDifference`. None of
@@ -363,7 +363,7 @@ class BlockCircularConvolveSolver(LinearSubproblemSolver):
 
     .. math::
 
-       A = \left( \begin{array}{cccc} A_0 & A_1 & \ldots & A_{K-1}
+       A = \left( \begin{array}{cccc} A_1 & A_2 & \ldots & A_{K}
            \end{array} \right) \;,
 
     where all of the :math:`A_k` are circular convolution operators. The
@@ -438,7 +438,7 @@ class BlockCircularConvolveSolver(LinearSubproblemSolver):
     """
 
     def __init__(self, ndims: Optional[int] = None, check_solve: bool = False):
-        """Initialize a :class:`BlockCircularConvolveSolver` object.
+        """Initialize a :class:`BlockCircularConvolveForm1Solver` object.
 
         Args:
             check_solve: If ``True``, compute solver accuracy after each
@@ -450,28 +450,234 @@ class BlockCircularConvolveSolver(LinearSubproblemSolver):
 
     def internal_init(self, admm: soa.ADMM):
         if admm.f is None:
-            raise ValueError("BlockCircularConvolveSolver does not allow f to be None.")
+            raise ValueError("BlockCircularConvolveForm1Solver does not allow f to be None.")
         else:
             if not isinstance(admm.f, SquaredL2Loss):
                 raise ValueError(
-                    "BlockCircularConvolveSolver requires f to be a scico.loss.SquaredL2Loss; "
+                    "BlockCircularConvolveForm1Solver requires f to be a scico.loss.SquaredL2Loss; "
                     f"got {type(admm.f)}."
                 )
             if not isinstance(admm.f.A, ComposedLinearOperator):
                 raise ValueError(
-                    "BlockCircularConvolveSolver requires f.A to be a composition of Sum "
+                    "BlockCircularConvolveForm1Solver requires f.A to be a composition of Sum "
                     f"and CircularConvolve linear operators; got {type(admm.f.A)}."
                 )
             if not isinstance(admm.f.A.A, Sum) or not isinstance(admm.f.A.B, CircularConvolve):
                 raise ValueError(
-                    "BlockCircularConvolveSolver requires f.A to be a composition of Sum "
+                    "BlockCircularConvolveForm1Solver requires f.A to be a composition of Sum "
                     "and CircularConvolve linear operators; got a composition of "
                     f"{type(admm.f.A.A)} and {type(admm.f.A.B)}."
                 )
             self.sum_axis = admm.f.A.A.kwargs["axis"]
             if not isinstance(self.sum_axis, int):
                 raise ValueError(
-                    "BlockCircularConvolveSolver requires the Sum operator component "
+                    "BlockCircularConvolveForm1Solver requires the Sum operator component "
+                    "of f.A to sum over a single axis of its input."
+                )
+
+        super().internal_init(admm)
+
+        assert isinstance(self.admm.f, SquaredL2Loss)
+        assert isinstance(self.admm.f.A, ComposedLinearOperator)
+        assert isinstance(self.admm.f.A.B, CircularConvolve)
+
+        self.real_result = is_real_dtype(admm.C_list[0].input_dtype)
+
+        # All of the C operators are assumed to be linear and shift invariant
+        # but this is not checked.
+        c_gram_list = [
+            rho * CircularConvolve.from_operator(C.gram_op, ndims=self.ndims)
+            for rho, C in zip(admm.rho_list, admm.C_list)
+        ]
+        self.D = reduce(lambda a, b: a + b, c_gram_list) / (2.0 * self.admm.f.scale)
+        A = self.admm.f.A.B
+        self.AHEinv = A.h_dft.conj() / (
+            1.0
+            + snp.sum(A.h_dft * (A.h_dft.conj() / self.D.h_dft), axis=self.sum_axis, keepdims=True)
+        )
+
+    def solve(self, x0: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
+        """Solve the ADMM step.
+
+        Args:
+            x0: Initial value (unused, has no effect).
+
+        Returns:
+            Computed solution.
+        """
+        assert isinstance(self.admm.f, SquaredL2Loss)
+        assert isinstance(self.admm.f.A, ComposedLinearOperator)
+        assert isinstance(self.admm.f.A.B, CircularConvolve)
+
+        rhs = self.compute_rhs() / (2.0 * self.admm.f.scale)
+        fft_axes = self.admm.f.A.B.x_fft_axes
+        rhs_dft = snp.fft.fftn(rhs, axes=fft_axes)
+        A = self.admm.f.A.B
+        x_dft = (
+            rhs_dft
+            - (
+                self.AHEinv
+                * (snp.sum(A.h_dft * rhs_dft / self.D.h_dft, axis=self.sum_axis, keepdims=True))
+            )
+        ) / self.D.h_dft
+        x = snp.fft.ifftn(x_dft, axes=fft_axes)
+        if self.real_result:
+            x = x.real
+
+        if self.check_solve:
+            lhs = self.admm.f.A.gram_op(x) + self.D(x)
+            self.accuracy = rel_res(lhs, rhs)
+
+        return x
+
+
+class BlockCircularConvolveForm2Solver(LinearSubproblemSolver):
+    r"""Solver for linear operators block-diagonalized in the DFT
+    domain.
+
+    Specialization of :class:`.LinearSubproblemSolver` for the case
+    where :math:`f = 0` (i.e. :code:`f` is a `.ZeroFunctional`),
+    :math:`g_1` is an instance of :class:`.SquaredL2Loss`, :math:`C_1`
+    is a composition of a :class:`.Sum` operator an a
+    :class:`.CircularConvolve` operator.  The former must sum over the
+    first axis of its input, and the latter must be initialized so
+    that it convolves a set of filters, indexed by the first axis,
+    with an input array that has the same number of axes as the filter
+    array, and has an initial axis of the same length as that of the
+    filter array.  The other :math:`C_i` must all be shift invariant
+    linear operators, examples of which include instances of
+    :class:`.Identity` as well as some instances (depending on
+    initializer parameters) of :class:`.CircularConvolve` and
+    :class:`.FiniteDifference`.  None of the instances of
+    :class:`.CircularConvolve` may be summed over any of their axes.
+
+    The solver is based on the frequency-domain approach proposed in
+    :cite:`wohlberg-2014-efficient`.  We have :math:`g_1 = \omega
+    \norm{B A \mb{x} - \mb{y}}_2^2`, where typically :math:`\omega =
+    1/2`, :math:`B` is the identity or a diagonal operator, and
+    :math:`A` is a block-row operator with circulant blocks, i.e. it
+    can be written as
+
+    .. math::
+
+       A = \left( \begin{array}{cccc} A_1 & A_2 & \ldots & A_{K}
+           \end{array} \right) \;,
+
+    where all of the :math:`A_k` are circular convolution operators. The
+    complete functional to be minimized is
+
+    .. math::
+
+       \sum_{i=1}^N g_i(C_i \mb{x}) \;,
+
+    where
+
+    .. math::
+
+       g_1(\mb{z}) &= \omega \norm{B \mb{z} - \mb{y}}_2^2`\\
+       C_1 &= A \;,
+
+    and the other :math:`C_i` are either identity or circular
+    convolutions. The ADMM x-step is
+
+    .. math::
+
+       \mb{x}^{(j+1)} = \argmin_{\mb{x}} \; \rho_1 \omega \norm{
+       \mb{z}^{(j)}_1 - \mb{u}^{(j)}_1 - A \mb{x}}_2^2 + \sum_{i=2}^N
+       \frac{\rho_i}{2} \norm{\mb{z}^{(j)}_i - \mb{u}^{(j)}_i -
+       C_i \mb{x}}_2^2 \;.
+
+    This subproblem is most easily solved in the DFT transform domain,
+    where the circular convolutions become diagonal operators. Denoting
+    the frequency-domain versions of variables with a circumflex (e.g.
+    :math:`\hat{\mb{x}}` is the frequency-domain version of
+    :math:`\mb{x}`), the solution of the subproblem can be written as
+
+    .. math::
+
+       \left( \hat{A}^H \hat{A} + \frac{1}{2 \omega \rho_1} \sum_{i=2}^N
+       \rho_i \hat{C}_i^H \hat{C}_i \right) \hat{\mathbf{x}} =
+       \hat{A}^H (\hat{\mb{z}}_1 - \hat{\mb{u}}_1) +
+       \frac{1}{2 \omega \rho_1} \sum_{i=2}^N \rho_i
+       \hat{C}_i^H (\hat{\mb{z}}_i - \hat{\mb{u}}_i) \;.
+
+    This linear equation is computational expensive to solve because
+    the left hand side includes the term :math:`\hat{A}^H \hat{A}`,
+    which corresponds to the outer product of :math:`\hat{A}^H`
+    and :math:`\hat{A}`. A computationally efficient solution is possible,
+    however, by exploiting the Woodbury matrix identity
+
+    .. math::
+
+       (D + U G V)^{-1} = D^{-1} - D^{-1} U (G^{-1} + V D^{-1} U)^{-1}
+       V D^{-1} \;.
+
+    Setting
+
+    .. math::
+
+       D &= \frac{1}{2 \omega \rho_1} \sum_{i=2}^N \rho_i \hat{C}_i^H
+            \hat{C}_i \\
+       U &= \hat{A}^H \\
+       G &= I \\
+       V &= \hat{A}
+
+    we have
+
+    .. math::
+
+       (D + \hat{A}^H \hat{A})^{-1} = D^{-1} - D^{-1} \hat{A}^H
+       (I + \hat{A} D^{-1} \hat{A}^H)^{-1} \hat{A} D^{-1}
+
+    which can be simplified to
+
+    .. math::
+
+       (D + \hat{A}^H \hat{A})^{-1} = D^{-1} (I - \hat{A}^H E^{-1}
+       \hat{A} D^{-1})
+
+    by defining :math:`E = I + \hat{A} D^{-1} \hat{A}^H`. The right
+    hand side is much cheaper to compute because the only matrix
+    inversions involve :math:`D`, which is diagonal, and :math:`E`,
+    which is a weighted inner product of :math:`\hat{A}^H` and
+    :math:`\hat{A}`.
+    """
+
+    def __init__(self, ndims: Optional[int] = None, check_solve: bool = False):
+        """Initialize a :class:`BlockCircularConvolveForm2Solver` object.
+
+        Args:
+            check_solve: If ``True``, compute solver accuracy after each
+                solve.
+        """
+        self.ndims = ndims
+        self.check_solve = check_solve
+        self.accuracy: Optional[float] = None
+
+    def internal_init(self, admm: soa.ADMM):
+        if admm.f is None:
+            raise ValueError("BlockCircularConvolveForm1Solver does not allow f to be None.")
+        else:
+            if not isinstance(admm.f, SquaredL2Loss):
+                raise ValueError(
+                    "BlockCircularConvolveForm1Solver requires f to be a scico.loss.SquaredL2Loss; "
+                    f"got {type(admm.f)}."
+                )
+            if not isinstance(admm.f.A, ComposedLinearOperator):
+                raise ValueError(
+                    "BlockCircularConvolveForm1Solver requires f.A to be a composition of Sum "
+                    f"and CircularConvolve linear operators; got {type(admm.f.A)}."
+                )
+            if not isinstance(admm.f.A.A, Sum) or not isinstance(admm.f.A.B, CircularConvolve):
+                raise ValueError(
+                    "BlockCircularConvolveForm1Solver requires f.A to be a composition of Sum "
+                    "and CircularConvolve linear operators; got a composition of "
+                    f"{type(admm.f.A.A)} and {type(admm.f.A.B)}."
+                )
+            self.sum_axis = admm.f.A.A.kwargs["axis"]
+            if not isinstance(self.sum_axis, int):
+                raise ValueError(
+                    "BlockCircularConvolveForm1Solver requires the Sum operator component "
                     "of f.A to sum over a single axis of its input."
                 )
 

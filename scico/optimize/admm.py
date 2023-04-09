@@ -15,7 +15,8 @@ from ._admmaux import (
     GenericSubproblemSolver,
     LinearSubproblemSolver,
     CircularConvolveSolver,
-    BlockCircularConvolveSolver,
+    BlockCircularConvolveForm1Solver,
+    BlockCircularConvolveForm2Solver,
 )
 from ._admm import ADMM
 
@@ -24,7 +25,8 @@ __all__ = [
     "GenericSubproblemSolver",
     "LinearSubproblemSolver",
     "CircularConvolveSolver",
-    "BlockCircularConvolveSolver",
+    "BlockCircularConvolveForm1Solver",
+    "BlockCircularConvolveForm2Solver",
     "ADMM",
 ]
 
