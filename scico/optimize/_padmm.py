@@ -173,7 +173,7 @@ class ProximalADMM(ProximalADMMBase):
         \text{such that}\; A \mb{x} + B \mb{z} = \mb{c} \;,
 
     where :math:`f` and :math:`g` are instances of :class:`.Functional`,
-    (in most cases :math:`f` will, more specifically be an an instance
+    (in most cases :math:`f` will, more specifically be an instance
     of :class:`.Loss`), and :math:`A` and :math:`B` are instances of
     :class:`LinearOperator`.
 
@@ -403,7 +403,7 @@ class NonLinearPADMM(ProximalADMMBase):
         \text{such that}\; H(\mb{x}, \mb{z}) = 0 \;,
 
     where :math:`f` and :math:`g` are instances of :class:`.Functional`,
-    (in most cases :math:`f` will, more specifically be an an instance
+    (in most cases :math:`f` will, more specifically be an instance
     of :class:`.Loss`), and :math:`H` is a function.
 
     The optimization problem is solved via a variant of the proximal ADMM
