@@ -19,6 +19,7 @@ from jax.scipy.sparse.linalg import cg as jax_cg
 
 import scico.numpy as snp
 import scico.optimize.admm as soa
+from scico.functional import ZeroFunctional
 from scico.linop import (
     CircularConvolve,
     ComposedLinearOperator,
@@ -536,7 +537,7 @@ class BlockCircularConvolveForm2Solver(LinearSubproblemSolver):
     domain.
 
     Specialization of :class:`.LinearSubproblemSolver` for the case
-    where :math:`f = 0` (i.e. :code:`f` is a `.ZeroFunctional`),
+    where :math:`f = 0` (i.e. :code:`f` is a :class:`.ZeroFunctional`),
     :math:`g_1` is an instance of :class:`.SquaredL2Loss`, :math:`C_1`
     is a composition of a :class:`.Sum` operator an a
     :class:`.CircularConvolve` operator.  The former must sum over the
@@ -655,37 +656,40 @@ class BlockCircularConvolveForm2Solver(LinearSubproblemSolver):
         self.accuracy: Optional[float] = None
 
     def internal_init(self, admm: soa.ADMM):
-        if admm.f is None:
-            raise ValueError("BlockCircularConvolveForm1Solver does not allow f to be None.")
-        else:
-            if not isinstance(admm.f, SquaredL2Loss):
-                raise ValueError(
-                    "BlockCircularConvolveForm1Solver requires f to be a scico.loss.SquaredL2Loss; "
-                    f"got {type(admm.f)}."
-                )
-            if not isinstance(admm.f.A, ComposedLinearOperator):
-                raise ValueError(
-                    "BlockCircularConvolveForm1Solver requires f.A to be a composition of Sum "
-                    f"and CircularConvolve linear operators; got {type(admm.f.A)}."
-                )
-            if not isinstance(admm.f.A.A, Sum) or not isinstance(admm.f.A.B, CircularConvolve):
-                raise ValueError(
-                    "BlockCircularConvolveForm1Solver requires f.A to be a composition of Sum "
-                    "and CircularConvolve linear operators; got a composition of "
-                    f"{type(admm.f.A.A)} and {type(admm.f.A.B)}."
-                )
-            self.sum_axis = admm.f.A.A.kwargs["axis"]
-            if not isinstance(self.sum_axis, int):
-                raise ValueError(
-                    "BlockCircularConvolveForm1Solver requires the Sum operator component "
-                    "of f.A to sum over a single axis of its input."
-                )
+        if admm.f is not None and not isinstance(f, ZeroFunctional):
+            raise ValueError(
+                "BlockCircularConvolveForm2Solver requires f to be None " "or a ZeroFunctional"
+            )
+        if not isinstance(admm.g_list[0], SquaredL2Loss):
+            raise ValueError(
+                "BlockCircularConvolveForm2Solver requires g_1 to be a scico.loss.SquaredL2Loss; "
+                f"got {type(admm.g_list[0])}."
+            )
+        if not isinstance(admm.C_list[0], ComposedLinearOperator):
+            raise ValueError(
+                "BlockCircularConvolveForm2Solver requires C_1 to be a composition of Sum "
+                f"and CircularConvolve linear operators; got {type(admm.C_list[0])}."
+            )
+        if not isinstance(admm.C_list[0].A, Sum) or not isinstance(
+            admm.C_list[0].B, CircularConvolve
+        ):
+            raise ValueError(
+                "BlockCircularConvolveForm2Solver requires C_1 to be a composition of Sum "
+                "and CircularConvolve linear operators; got a composition of "
+                f"{type(admm.C_list[0].A)} and {type(admm.C_list[0].B)}."
+            )
+        self.sum_axis = admm.C_list[0].A.kwargs["axis"]
+        if not isinstance(self.sum_axis, int):
+            raise ValueError(
+                "BlockCircularConvolveForm2Solver requires the Sum operator component "
+                "of C_1 to sum over a single axis of its input."
+            )
 
         super().internal_init(admm)
 
-        assert isinstance(self.admm.f, SquaredL2Loss)
-        assert isinstance(self.admm.f.A, ComposedLinearOperator)
-        assert isinstance(self.admm.f.A.B, CircularConvolve)
+        assert isinstance(self.admm.g_list[0], SquaredL2Loss)
+        assert isinstance(self.admm.C_list[0], ComposedLinearOperator)
+        assert isinstance(self.admm.C_list[0].B, CircularConvolve)
 
         self.real_result = is_real_dtype(admm.C_list[0].input_dtype)
 
@@ -693,14 +697,43 @@ class BlockCircularConvolveForm2Solver(LinearSubproblemSolver):
         # but this is not checked.
         c_gram_list = [
             rho * CircularConvolve.from_operator(C.gram_op, ndims=self.ndims)
-            for rho, C in zip(admm.rho_list, admm.C_list)
+            for rho, C in zip(admm.rho_list[1], admm.C_list[1])
         ]
-        self.D = reduce(lambda a, b: a + b, c_gram_list) / (2.0 * self.admm.f.scale)
-        A = self.admm.f.A.B
+        self.D = reduce(lambda a, b: a + b, c_gram_list) / (
+            2.0 * self.admm.g_list[0].scale * admm.rho_list[0]
+        )
+        A = self.admm.C_list[0].B
         self.AHEinv = A.h_dft.conj() / (
             1.0
             + snp.sum(A.h_dft * (A.h_dft.conj() / self.D.h_dft), axis=self.sum_axis, keepdims=True)
         )
+
+    def compute_rhs(self) -> Union[JaxArray, BlockArray]:
+        r"""Compute the right hand side of the linear equation to be solved.
+
+        Compute
+
+        .. math::
+
+            C_1^H  ( \mb{z}^{(k)}_1 - \mb{u}^{(k)}_1) +
+            \frac{1}{2 \omega \rho_1}\sum_{i=2}^N \rho_i C_i^H
+            ( \mb{z}^{(k)}_i - \mb{u}^{(k)}_i) \;.
+
+        Returns:
+            Computed solution.
+        """
+
+        C0 = self.admm.C_list[0]
+        rhs = snp.zeros(C0.input_shape, C0.input_dtype)
+        omega = self.admm.g_list[0].scale
+        omega_list = [omega,] + [
+            1.0,
+        ] * (len(self.admm.C_list) - 1)
+        for omegai, rhoi, Ci, zi, ui in zip(
+            omega_list, self.admm.rho_list, self.admm.C_list, self.admm.z_list, self.admm.u_list
+        ):
+            rhs += omegai * rhoi * Ci.adj(zi - ui)
+        return rhs
 
     def solve(self, x0: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
         """Solve the ADMM step.
@@ -711,14 +744,14 @@ class BlockCircularConvolveForm2Solver(LinearSubproblemSolver):
         Returns:
             Computed solution.
         """
-        assert isinstance(self.admm.f, SquaredL2Loss)
-        assert isinstance(self.admm.f.A, ComposedLinearOperator)
-        assert isinstance(self.admm.f.A.B, CircularConvolve)
+        assert isinstance(self.admm.g_list[0], SquaredL2Loss)
+        assert isinstance(self.admm.C_list[0], ComposedLinearOperator)
+        assert isinstance(self.admm.C_list[0].B, CircularConvolve)
 
-        rhs = self.compute_rhs() / (2.0 * self.admm.f.scale)
-        fft_axes = self.admm.f.A.B.x_fft_axes
+        rhs = self.compute_rhs() / (2.0 * self.admm.g_list[0].scale)
+        fft_axes = self.admm.C_list[0].B.x_fft_axes
         rhs_dft = snp.fft.fftn(rhs, axes=fft_axes)
-        A = self.admm.f.A.B
+        A = self.admm.C_list[0].B
         x_dft = (
             rhs_dft
             - (
@@ -731,7 +764,7 @@ class BlockCircularConvolveForm2Solver(LinearSubproblemSolver):
             x = x.real
 
         if self.check_solve:
-            lhs = self.admm.f.A.gram_op(x) + self.D(x)
+            lhs = self.admm.C_list[0].gram_op(x) + self.D(x)
             self.accuracy = rel_res(lhs, rhs)
 
         return x
