@@ -67,7 +67,7 @@ operator. This problem can be expressed as
 
   $$\mathrm{argmin}_{\mathbf{x}, \mathbf{z}} \; (1/2) \| \mathbf{y} -
   C \mathbf{x} \|_2^2 + \lambda \| \mathbf{z} \|_{2,1} \;\;
-  \text{such that} \;\; \mathbf{z} = C \mathbf{x} \;,$$
+  \text{such that} \;\; \mathbf{z} = D \mathbf{x} \;,$$
 
 which is easily written in the form of a standard ADMM problem.
 
