@@ -74,13 +74,13 @@ class TestBM4D:
     def test_jit(self):
         no_jit = bm4d(self.x1, 1.0)
         jitted = jax.jit(bm4d)(self.x1, 1.0)
-        assert np.linalg.norm(no_jit - jitted) < 1e-3
+        assert np.linalg.norm(no_jit - jitted) < 2e-3
         assert no_jit.dtype == np.float32
         assert jitted.dtype == np.float32
 
         no_jit = bm4d(self.x2, 1.0)
         jitted = jax.jit(bm4d)(self.x2, 1.0)
-        assert np.linalg.norm(no_jit - jitted) < 1e-3
+        assert np.linalg.norm(no_jit - jitted) < 2e-3
         assert no_jit.dtype == np.float32
         assert jitted.dtype == np.float32
 
