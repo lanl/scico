@@ -86,7 +86,6 @@ extensions = [
     "sphinx.ext.inheritance_diagram",
     "sphinx.ext.todo",
     "nbsphinx",
-    "IPython.sphinxext.ipython_console_highlighting",
 ]
 
 bibtex_bibfiles = ["references.bib"]
