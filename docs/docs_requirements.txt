@@ -12,3 +12,4 @@ py2jn
 pygraphviz>=1.7
 pandoc
 docutils==0.16
+ipython
