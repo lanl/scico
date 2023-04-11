@@ -259,13 +259,6 @@ DeviceArrays are Immutable
 
 Unlike standard NumPy arrays, JAX arrays are immutable: once they have
 been created, they cannot be changed. This prohibits in-place updating
-of JAX arrays.
-
-JAX provides special syntax for updating individual array elements
-through the `indexed update operators
+of JAX arrays. JAX provides special syntax for updating individual
+array elements through the `indexed update operators
 <https://jax.readthedocs.io/en/latest/jax.ops.html#syntactic-sugar-for-indexed-update-operators>`_.
-
-In-place operations such as `x += y` must be replaced with the
-out-of-place version `x = x + y`. Note that these operations will be
-optimized if they are placed inside of a `jitted function
-<https://jax.readthedocs.io/en/latest/notebooks/thinking_in_jax.html#to-jit-or-not-to-jit>`_.
