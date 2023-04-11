@@ -99,9 +99,9 @@ class GenericSubproblemSolver(SubproblemSolver):
             for rhoi, Ci, zi, ui in zip(
                 self.admm.rho_list, self.admm.C_list, self.admm.z_list, self.admm.u_list
             ):
-                out = out + 0.5 * rhoi * snp.sum(snp.abs(zi - ui - Ci(x)) ** 2)
+                out += 0.5 * rhoi * snp.sum(snp.abs(zi - ui - Ci(x)) ** 2)
             if self.admm.f is not None:
-                out = out + self.admm.f(x)
+                out += self.admm.f(x)
             return out
 
         res = minimize(obj, x0, **self.minimize_kwargs)
@@ -212,7 +212,7 @@ class LinearSubproblemSolver(SubproblemSolver):
         )
         if admm.f is not None:
             # hessian = A.T @ W @ A; W may be identity
-            lhs_op = lhs_op + admm.f.hessian
+            lhs_op += admm.f.hessian
 
         lhs_op.jit()
         self.lhs_op = lhs_op
@@ -241,7 +241,7 @@ class LinearSubproblemSolver(SubproblemSolver):
         for rhoi, Ci, zi, ui in zip(
             self.admm.rho_list, self.admm.C_list, self.admm.z_list, self.admm.u_list
         ):
-            rhs = rhs + rhoi * Ci.adj(zi - ui)
+            rhs += rhoi * Ci.adj(zi - ui)
         return rhs
 
     def solve(self, x0: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
