@@ -193,14 +193,27 @@ the gradient of ``f`` at 0, :func:`scico.grad` returns ``nan``:
    >>> scico.grad(f)(snp.zeros(2, dtype=snp.float32))  # doctest: +SKIP
    Array([nan, nan], dtype=float32)
 
-This can be fixed by defining the squared :math:`\ell_2` norm directly as
-``g = lambda x: snp.sum(x**2)``. The gradient will work as expected:
+This can be fixed (assuming real-valued arrays only) by defining the
+squared :math:`\ell_2` norm directly as ``g = lambda x: snp.sum(x**2)``.
+The gradient will work as expected:
 
 ::
 
    >>> g = lambda x: snp.sum(x**2)
    >>> scico.grad(g)(snp.zeros(2, dtype=snp.float32))  #doctest: +SKIP
    Array([0., 0.], dtype=float32)
+
+If complex-valued arrays also need to be supported, a minor modification is
+necessary:
+
+::
+
+   >>> g = lambda x: snp.sum(snp.abs(x)**2)
+   >>> scico.grad(g)(snp.zeros(2, dtype=snp.float32))  #doctest: +SKIP
+   Array([0., 0.], dtype=float32)
+   >>> scico.grad(g)(snp.zeros(2, dtype=snp.complex64))  #doctest: +SKIP
+   Array([0.-0.j, 0.-0.j], dtype=complex64)
+
 
 An alternative is to define a `custom derivative rule
 <https://jax.readthedocs.io/en/latest/notebooks/Custom_derivative_rules_for_Python_code.html#enforcing-a-differentiation-convention>`_
