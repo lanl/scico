@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2022 by SCICO Developers
+# Copyright (C) 2020-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -22,7 +22,6 @@ import scico.optimize.admm as soa
 from scico.linop import CircularConvolve, Identity, LinearOperator
 from scico.loss import SquaredL2Loss
 from scico.numpy import BlockArray
-from scico.numpy.linalg import norm
 from scico.numpy.util import ensure_on_device, is_real_dtype
 from scico.solver import cg as scico_cg
 from scico.solver import minimize
@@ -100,7 +99,7 @@ class GenericSubproblemSolver(SubproblemSolver):
             for rhoi, Ci, zi, ui in zip(
                 self.admm.rho_list, self.admm.C_list, self.admm.z_list, self.admm.u_list
             ):
-                out = out + 0.5 * rhoi * norm(zi - ui - Ci(x)) ** 2
+                out = out + 0.5 * rhoi * snp.sum(snp.abs(zi - ui - Ci(x)) ** 2)
             if self.admm.f is not None:
                 out = out + self.admm.f(x)
             return out
