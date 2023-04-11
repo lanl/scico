@@ -63,6 +63,8 @@ class SubproblemSolver:
 class GenericSubproblemSolver(SubproblemSolver):
     """Solver for generic problem without special structure.
 
+    Note that this solver is only suitable for small-scale problems.
+
     Attributes:
         admm (:class:`.ADMM`): ADMM solver object to which the solver is
            attached.
