@@ -30,7 +30,6 @@ from scico.linop import (
 from scico.loss import SquaredL2Loss
 from scico.metric import rel_res
 from scico.numpy import BlockArray
-from scico.numpy.linalg import norm
 from scico.numpy.util import ensure_on_device, is_real_dtype
 from scico.solver import cg as scico_cg
 from scico.solver import minimize
@@ -71,6 +70,8 @@ class SubproblemSolver:
 class GenericSubproblemSolver(SubproblemSolver):
     """Solver for generic problem without special structure.
 
+    Note that this solver is only suitable for small-scale problems.
+
     Attributes:
         admm (:class:`.ADMM`): ADMM solver object to which the solver is
            attached.
@@ -106,9 +107,9 @@ class GenericSubproblemSolver(SubproblemSolver):
             for rhoi, Ci, zi, ui in zip(
                 self.admm.rho_list, self.admm.C_list, self.admm.z_list, self.admm.u_list
             ):
-                out = out + 0.5 * rhoi * norm(zi - ui - Ci(x)) ** 2
+                out += 0.5 * rhoi * snp.sum(snp.abs(zi - ui - Ci(x)) ** 2)
             if self.admm.f is not None:
-                out = out + self.admm.f(x)
+                out += self.admm.f(x)
             return out
 
         res = minimize(obj, x0, **self.minimize_kwargs)
@@ -219,7 +220,7 @@ class LinearSubproblemSolver(SubproblemSolver):
         )
         if admm.f is not None:
             # hessian = A.T @ W @ A; W may be identity
-            lhs_op = lhs_op + admm.f.hessian
+            lhs_op += admm.f.hessian
 
         lhs_op.jit()
         self.lhs_op = lhs_op
@@ -248,7 +249,7 @@ class LinearSubproblemSolver(SubproblemSolver):
         for rhoi, Ci, zi, ui in zip(
             self.admm.rho_list, self.admm.C_list, self.admm.z_list, self.admm.u_list
         ):
-            rhs = rhs + rhoi * Ci.adj(zi - ui)
+            rhs += rhoi * Ci.adj(zi - ui)
         return rhs
 
     def solve(self, x0: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:

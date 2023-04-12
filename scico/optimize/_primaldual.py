@@ -44,7 +44,7 @@ class PDHG(Optimizer):
     where :math:`f` and :math:`g` are instances of :class:`.Functional`,
     (in most cases :math:`f` will, more specifically be an an instance
     of :class:`.Loss`), and :math:`C` is an instance of
-    :class:`.LinearOperator`.
+    :class:`.Operator` or :class:`.LinearOperator`.
 
     When `C` is a :class:`.LinearOperator`, the algorithm iterations are
 
