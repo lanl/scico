@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022 by SCICO Developers
+# Copyright (C) 2022-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Class to provide integrated access to functionality for training Flax
-    models.
+"""Class providing integrated access to functionality for training Flax
+   models.
 
 Assumes sharded batched data and uses data parallel training.
 """
@@ -16,7 +16,7 @@ warnings.simplefilter(action="ignore", category=FutureWarning)
 
 import functools
 import time
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import jax
 from jax import lax
@@ -397,7 +397,7 @@ class BasicFlaxTrainer:
 
         self.state = state
 
-    def train(self):
+    def train(self) -> Tuple[Dict[str, Any], Optional[IterationStats]]:
         """Execute training loop.
 
         Returns:
@@ -439,6 +439,7 @@ class BasicFlaxTrainer:
         jax.random.normal(jax.random.PRNGKey(0), ()).block_until_ready()
         # Close object for iteration stats if logging
         if self.logflag:
+            assert self.itstat_object is not None
             self.itstat_object.end()
 
         state = sync_batch_stats(state)

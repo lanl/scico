@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2022 by SCICO Developers
+# Copyright (C) 2021-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -10,6 +10,7 @@ solving the inverse problems that arise in scientific imaging applications.
 
 __version__ = "0.0.4.dev0"
 
+import logging
 import sys
 
 from . import _python37  # python 3.7 compatibility
@@ -22,6 +23,13 @@ import jax, jaxlib
 from jax import custom_jvp, custom_vjp, jacfwd, jvp, linearize, vjp, hessian
 
 from . import numpy
+
+# Suppress jax device warning. See https://github.com/google/jax/issues/6805
+# This only works for jax>0.3.23; for earlier versions, the getLogger
+# argument should be "absl".
+logging.getLogger("jax._src.lib.xla_bridge").addFilter(
+    logging.Filter("No GPU/TPU found, falling back to CPU.")
+)
 
 __all__ = [
     "grad",

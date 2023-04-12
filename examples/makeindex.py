@@ -80,7 +80,7 @@ with open(dst, "w") as dstfile:
             if line[0:3] == "===":
                 print(line, end="", file=dstfile)
                 print("\n.. toctree::\n   :maxdepth: 1", file=dstfile)
-                print("\n.. include:: exampledepend.rst", file=dstfile)
+                print("\n.. include:: include/examplenotes.rst", file=dstfile)
                 continue
             # Detect lines containing script filenames
             m = re.match(r"(\s+)- ([^\s]+).py", line)
