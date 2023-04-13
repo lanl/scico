@@ -58,6 +58,9 @@ class SubproblemSolver:
         """
         self.admm = admm
 
+    def rho_changed(self):
+        """Action to be taken when penalty parameter list has changed."""
+
 
 class GenericSubproblemSolver(SubproblemSolver):
     """Solver for generic problem without special structure.
@@ -204,15 +207,20 @@ class LinearSubproblemSolver(SubproblemSolver):
                 )
 
         super().internal_init(admm)
+        self.rho_changed()
+
+    def rho_changed(self):
+        """Action to be taken when penalty parameter list has changed."""
 
         # Set lhs_op =  \sum_i rho_i * Ci.H @ CircularConvolve
         # Use reduce as the initialization of this sum is messy otherwise
         lhs_op = reduce(
-            lambda a, b: a + b, [rhoi * Ci.gram_op for rhoi, Ci in zip(admm.rho_list, admm.C_list)]
+            lambda a, b: a + b,
+            [rhoi * Ci.gram_op for rhoi, Ci in zip(self.admm.rho_list, self.admm.C_list)],
         )
-        if admm.f is not None:
+        if self.admm.f is not None:
             # hessian = A.T @ W @ A; W may be identity
-            lhs_op += admm.f.hessian
+            lhs_op += self.admm.f.hessian
 
         lhs_op.jit()
         self.lhs_op = lhs_op
@@ -297,13 +305,18 @@ class CircularConvolveSolver(LinearSubproblemSolver):
 
         self.real_result = is_real_dtype(admm.C_list[0].input_dtype)
 
+        self.rho_changed()
+
+    def rho_changed(self):
+        """Action to be taken when penalty parameter list has changed."""
+
         lhs_op_list = [
             rho * CircularConvolve.from_operator(C.gram_op)
-            for rho, C in zip(admm.rho_list, admm.C_list)
+            for rho, C in zip(self.admm.rho_list, self.admm.C_list)
         ]
         A_lhs = reduce(lambda a, b: a + b, lhs_op_list)
         if self.admm.f is not None:
-            A_lhs += 2.0 * admm.f.scale * CircularConvolve.from_operator(admm.f.A.gram_op)
+            A_lhs += 2.0 * self.admm.f.scale * CircularConvolve.from_operator(self.admm.f.A.gram_op)
 
         self.A_lhs = A_lhs
 
