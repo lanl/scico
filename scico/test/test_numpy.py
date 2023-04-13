@@ -1,7 +1,6 @@
 import numpy as np
 
 import jax
-from jax.interpreters.xla import DeviceArray
 
 import scico.numpy as snp
 
@@ -15,7 +14,7 @@ def check_results(jout, sout):
         # multiple outputs from the function
         for x, y in zip(jout, sout):
             np.testing.assert_allclose(x, y, rtol=1e-4)
-    elif isinstance(jout, DeviceArray) and isinstance(sout, DeviceArray):
+    elif isinstance(jout, jax.Array) and isinstance(sout, jax.Array):
         # single array output from the function
         np.testing.assert_allclose(sout, jout, rtol=1e-4)
     elif jout.shape == () and sout.shape == ():

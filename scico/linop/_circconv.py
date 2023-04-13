@@ -14,9 +14,8 @@ from typing import Optional, Sequence, Tuple, Union
 
 import numpy as np
 
+import jax
 from jax.dtypes import result_type
-
-from jaxlib.xla_extension import DeviceArray
 
 import scico.numpy as snp
 from scico.numpy.util import is_nested
@@ -127,7 +126,7 @@ class CircularConvolve(LinearOperator):
             output_dtype = result_type(h.dtype, input_dtype)
 
             if self.h_center is not None:
-                if isinstance(self.h_center, DeviceArray):
+                if isinstance(self.h_center, jax.Array):
                     offset = -self.h_center  # type: ignore
                 else:
                     # support float or int values for h_center
