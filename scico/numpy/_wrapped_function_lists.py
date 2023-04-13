@@ -1,3 +1,14 @@
+# -*- coding: utf-8 -*-
+# Copyright (C) 2022-2023 by SCICO Developers
+# All rights reserved. BSD 3-clause License.
+# This file is part of the SPORCO package. Details of the copyright
+# and user license can be found in the 'LICENSE.txt' file distributed
+# with the package.
+
+
+"""Lists of functions to be wrapped in scico.numpy."""
+
+
 """ BlockArray """
 unary_ops = (  # found from dir(DeviceArray)
     "__abs__",
