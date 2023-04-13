@@ -65,6 +65,7 @@ import numpy as np
 import jax
 import jax.experimental.host_callback as hcb
 
+import scico.linop
 import scico.numpy as snp
 from scico.numpy import BlockArray
 from scico.typing import BlockShape, DType, JaxArray, Shape
@@ -296,12 +297,12 @@ def minimize_scalar(
 def cg(
     A: Callable,
     b: JaxArray,
-    x0: JaxArray,
+    x0: Optional[JaxArray] = None,
     *,
     tol: float = 1e-5,
     atol: float = 0.0,
     maxiter: int = 1000,
-    info: bool = False,
+    info: bool = True,
     M: Optional[Callable] = None,
 ) -> Tuple[JaxArray, dict]:
     r"""Conjugate Gradient solver.
@@ -310,15 +311,20 @@ def cg(
     positive definite, via the conjugate gradient method.
 
     Args:
-        A: Function implementing linear operator :math:`A`, should be
-            positive definite.
+        A: Callable implementing linear operator :math:`A`, which should
+           be positive definite.
         b: Input array :math:`\mb{b}`.
-        x0: Initial solution.
+        x0: Initial solution. If `A` is a :class:`.LinearOperator`, this
+          parameter need not be specified, and defaults to a zero array.
+          Otherwise, it is required.
         tol: Relative residual stopping tolerance. Convergence occurs
            when `norm(residual) <= max(tol * norm(b), atol)`.
         atol: Absolute residual stopping tolerance. Convergence occurs
            when `norm(residual) <= max(tol * norm(b), atol)`.
         maxiter: Maximum iterations. Default: 1000.
+        info: If ``True`` return a tuple consting of the solution array
+           and a dictionary containing diagnostic information, otherwise
+           just return the solution.
         M: Preconditioner for `A`. The preconditioner should approximate
            the inverse of `A`. The default, ``None``, uses no
            preconditioner.
@@ -329,6 +335,11 @@ def cg(
             - **x** : Solution array.
             - **info**: Dictionary containing diagnostic information.
     """
+    if x0 is None:
+        if isinstance(A, scico.linop.LinearOperator):
+            x0 = snp.zeros(A.input_shape, b.dtype)
+        else:
+            raise ValueError("Parameter x0 must be specified if A is not a LinearOperator")
 
     if M is None:
         M = lambda x: x
@@ -342,8 +353,7 @@ def cg(
     num = snp.sum(r.conj() * z)
     ii = 0
 
-    # termination tolerance
-    # uses the "non-legacy" form of scicpy.sparse.linalg.cg
+    # termination tolerance (uses the "non-legacy" form of scicpy.sparse.linalg.cg)
     termination_tol_sq = snp.maximum(tol * bn, atol) ** 2
 
     while (ii < maxiter) and (num > termination_tol_sq):
@@ -358,7 +368,71 @@ def cg(
         p = z + beta * p
         ii += 1
 
-    return (x, {"num_iter": ii, "rel_res": snp.sqrt(num).real / bn})
+    if info:
+        return (x, {"num_iter": ii, "rel_res": snp.sqrt(num).real / bn})
+    else:
+        return x
+
+
+def lstsq(
+    A: Callable,
+    b: JaxArray,
+    x0: Optional[JaxArray] = None,
+    tol: float = 1e-5,
+    atol: float = 0.0,
+    maxiter: int = 1000,
+    info: bool = False,
+    M: Optional[Callable] = None,
+) -> Tuple[JaxArray, dict]:
+    r"""Least squares solver.
+
+    Solve the least squares problem
+
+    .. math::
+        \argmin_{\mb{x}} \; (1/2) \norm{ A \mb{x} - \mb{b}) }_2^2 \;,
+
+    where :math:`A` is a linear operator and :math:`\mb{b}` is a vector.
+    The problem is solved using :func:`cg`.
+
+    Args:
+        A: Callable implementing linear operator :math:`A`.
+        b: Input array :math:`\mb{b}`.
+        x0: Initial solution. If `A` is a :class:`.LinearOperator`, this
+          parameter need not be specified, and defaults to a zero array.
+          Otherwise, it is required.
+        tol: Relative residual stopping tolerance. Convergence occurs
+           when `norm(residual) <= max(tol * norm(b), atol)`.
+        atol: Absolute residual stopping tolerance. Convergence occurs
+           when `norm(residual) <= max(tol * norm(b), atol)`.
+        maxiter: Maximum iterations. Default: 1000.
+        info: If ``True`` return a tuple consting of the solution array
+           and a dictionary containing diagnostic information, otherwise
+           just return the solution.
+        M: Preconditioner for `A`. The preconditioner should approximate
+           the inverse of `A`. The default, ``None``, uses no
+           preconditioner.
+
+    Returns:
+        tuple: A tuple (x, info) containing:
+
+            - **x** : Solution array.
+            - **info**: Dictionary containing diagnostic information.
+    """
+    if isinstance(A, scico.linop.LinearOperator):
+        Aop = A
+    else:
+        assert x0 is not None
+        Aop = scico.linop.LinearOperator(
+            input_shape=x0.shape,
+            output_shape=b.shape,
+            eval_fn=A,
+            input_dtype=b.dtype,
+            output_dtype=b.dtype,
+        )
+
+    ATA = Aop.T @ Aop
+    ATb = Aop.T @ b
+    return cg(ATA, ATb, x0=x0, tol=tol, atol=atol, maxiter=maxiter, info=info, M=M)
 
 
 def bisect(
@@ -411,7 +485,7 @@ def bisect(
     fa = f(*((a,) + args))
     fb = f(*((b,) + args))
     if range_check and snp.any(snp.sign(fa) == snp.sign(fb)):
-        raise ValueError("Initial bisection range does not bracket zero")
+        raise ValueError("Initial bisection range does not bracket zero.")
 
     for numiter in range(maxiter):
         c = (a + b) / 2.0

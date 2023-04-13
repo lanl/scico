@@ -83,7 +83,7 @@ def get_epfl_deconv_data(channel: int, path: str, verbose: bool = False):  # pra
 
     # ensure path directory exists
     if not os.path.isdir(path):
-        raise ValueError(f"Path {path} does not exist or is not a directory")
+        raise ValueError(f"Path {path} does not exist or is not a directory.")
 
     # create temporary directory
     temp_dir = tempfile.TemporaryDirectory()
@@ -117,7 +117,9 @@ def get_epfl_deconv_data(channel: int, path: str, verbose: bool = False):  # pra
     np.savez(npz_file, y=y, psf=psf)
 
 
-def epfl_deconv_data(channel: int, verbose: bool = False, cache_path: str = None) -> Array:
+def epfl_deconv_data(
+    channel: int, verbose: bool = False, cache_path: Optional[str] = None
+) -> Array:
     """Get deconvolution problem data from EPFL Biomedical Imaging Group.
 
     If the data has previously been downloaded, it will be retrieved from

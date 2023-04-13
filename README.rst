@@ -18,8 +18,8 @@
    :target: https://github.com/lanl/scico/actions/workflows/lint.yml
    :alt: Lint status
 
-.. image:: https://github.com/lanl/scico/actions/workflows/pytest.yml/badge.svg
-   :target: https://github.com/lanl/scico/actions/workflows/pytest.yml
+.. image:: https://github.com/lanl/scico/actions/workflows/pytest_ubuntu.yml/badge.svg
+   :target: https://github.com/lanl/scico/actions/workflows/pytest_ubuntu.yml
    :alt: Test status
 
 .. image:: https://codecov.io/gh/lanl/scico/branch/main/graph/badge.svg?token=wQimmjnzFf
@@ -50,14 +50,18 @@
    :target: https://colab.research.google.com/github/lanl/scico-data/blob/colab/notebooks/index.ipynb
    :alt: Run notebooks on google colab
 
+.. image:: https://joss.theoj.org/papers/10.21105/joss.04722/status.svg
+   :target: https://doi.org/10.21105/joss.04722
+   :alt: JOSS paper
 
 
-Scientific Computational Imaging COde (SCICO)
+
+Scientific Computational Imaging Code (SCICO)
 =============================================
 
 SCICO is a Python package for solving the inverse problems that arise in scientific imaging applications. Its primary focus is providing methods for solving ill-posed inverse problems by using an appropriate prior model of the reconstruction space. SCICO includes a growing suite of operators, cost functionals, regularizers, and optimization routines that may be combined to solve a wide range of problems, and is designed so that it is easy to add new building blocks. SCICO is built on top of `JAX <https://github.com/google/jax>`_, which provides features such as automatic gradient calculation and GPU acceleration.
 
-`Documentation <https://scico.rtfd.io/>`_ is available online. If you use this software for published work, please cite bibtex entry ``scico-2022`` in ``docs/source/references.bib``.
+`Documentation <https://scico.rtfd.io/>`_ is available online. If you use this software for published work, please cite the corresponding `JOSS Paper <https://doi.org/10.21105/joss.04722>`_ (see bibtex entry ``balke-2022-scico`` in ``docs/source/references.bib``).
 
 
 Installation
@@ -79,5 +83,5 @@ SCICO is distributed as open-source software under a BSD 3-Clause License (see t
 
 LANL open source approval reference C20091.
 
-(c) 2020-2022. Triad National Security, LLC. All rights reserved.
+(c) 2020-2023. Triad National Security, LLC. All rights reserved.
 This program was produced under U.S. Government contract 89233218CNA000001 for Los Alamos National Laboratory (LANL), which is operated by Triad National Security, LLC for the U.S. Department of Energy/National Nuclear Security Administration. All rights in the program are reserved by Triad National Security, LLC, and the U.S. Department of Energy/National Nuclear Security Administration. The Government has granted for itself and others acting on its behalf a nonexclusive, paid-up, irrevocable worldwide license in this material to reproduce, prepare derivative works, distribute copies to the public, perform publicly and display publicly, and to permit others to do so.

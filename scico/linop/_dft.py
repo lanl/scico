@@ -49,7 +49,7 @@ class DFT(LinearOperator):
         """
         if axes is not None and axes_shape is not None and len(axes) != len(axes_shape):
             raise ValueError(
-                f"len(axes)={len(axes)} does not equal len(axes_shape)={len(axes_shape)}"
+                f"len(axes)={len(axes)} does not equal len(axes_shape)={len(axes_shape)}."
             )
 
         if axes_shape is not None:

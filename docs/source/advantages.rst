@@ -30,11 +30,14 @@ Advantages of JAX-based Design
 
 The vast majority of scientific computing packages in Python are based
 on `NumPy <https://numpy.org/>`__ and `SciPy <https://scipy.org/>`__.
-SCICO, in contrast, is based on
-`JAX <https://jax.readthedocs.io/en/latest/>`__, which provides most of
-the same features, but with the addition of automatic differentiation,
-GPU support, and just-in-time (JIT) compilation. (The availability
-of these features in SCICO is subject to some :ref:`caveats <non_jax_dep>`.) SCICO users and developers are advised to become familiar with the `differences between JAX and NumPy. <https://jax.readthedocs.io/en/latest/notebooks/thinking_in_jax.html>`_.
+SCICO, in contrast, is based on `JAX
+<https://jax.readthedocs.io/en/latest/>`__, which provides most of the
+same features, but with the addition of automatic differentiation, GPU
+support, and just-in-time (JIT) compilation. (The availability of
+these features in SCICO is subject to some :ref:`caveats
+<non_jax_dep>`.) SCICO users and developers are advised to become
+familiar with the `differences between JAX and
+NumPy. <https://jax.readthedocs.io/en/latest/notebooks/thinking_in_jax.html>`_.
 
 While recent advances in automatic differentiation have primarily been
 driven by its important role in deep learning, it is also invaluable in

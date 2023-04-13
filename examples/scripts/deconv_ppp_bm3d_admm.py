@@ -88,8 +88,7 @@ Show the recovered image.
 fig, ax = plot.subplots(nrows=1, ncols=3, figsize=(15, 5))
 plot.imview(x_gt, title="Ground truth", fig=fig, ax=ax[0])
 nc = n // 2
-yc = y[nc:-nc, nc:-nc]
-yc = snp.clip(yc, 0, 1)
+yc = snp.clip(y[nc:-nc, nc:-nc], 0, 1)
 plot.imview(y, title="Blurred, noisy image: %.2f (dB)" % metric.psnr(x_gt, yc), fig=fig, ax=ax[1])
 plot.imview(x, title="Deconvolved image: %.2f (dB)" % metric.psnr(x_gt, x), fig=fig, ax=ax[2])
 fig.show()

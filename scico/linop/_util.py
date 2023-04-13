@@ -14,6 +14,7 @@ from __future__ import annotations
 from typing import Optional, Union
 
 import scico.numpy as snp
+from scico.operator._operator import Operator
 from scico.random import randn
 from scico.typing import JaxArray, PRNGKey
 
@@ -45,8 +46,13 @@ def power_iteration(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey
 
     for i in range(maxiter):
         Av = A @ v
+        normAv = snp.linalg.norm(Av)
+        if normAv == 0.0:  # Assume that ||Av|| == 0 implies A is a zero operator
+            mu = 0.0
+            v = Av
+            break
         mu = snp.sum(v.conj() * Av) / snp.linalg.norm(v) ** 2
-        v = Av / snp.linalg.norm(Av)
+        v = Av / normAv
     return mu, v
 
 
@@ -80,7 +86,7 @@ def operator_norm(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey] 
         float: Norm of operator :math:`A`.
 
     """
-    return snp.sqrt(power_iteration(A.H @ A, maxiter, key)[0])
+    return snp.sqrt(power_iteration(A.H @ A, maxiter, key)[0].real)
 
 
 def valid_adjoint(
@@ -154,3 +160,62 @@ def valid_adjoint(
     if eps is None:
         return err
     return err < eps
+
+
+def jacobian(F: Operator, u: JaxArray, include_eval: Optional[bool] = False) -> LinearOperator:
+    """Construct Jacobian linear operator for a general operator.
+
+    For a specified :class:`.Operator`, construct a corresponding
+    Jacobian :class:`LinearOperator`, the application of which is
+    equivalent to multiplication by the Jacobian of the
+    :class:`.Operator` at a specified input value.
+
+    The implementation of this function is based on :meth:`.Operator.jvp`
+    and :meth:`.Operator.vjp`, which are themselves based on
+    :func:`jax.jvp` and :func:`jax.vjp`. For reasons of computational
+    efficiency, these functions return the value of the :class:`.Operator`
+    evaluated at the specified point in addition to the requested
+    Jacobian-vector product. If the `include_eval` parameter of this
+    function is ``True``, the constructed :class:`LinearOperator` returns
+    a :class:`.BlockArray` output, the first component of which is the
+    result of the :class:`.Operator` evaluation, and the second component
+    of which is the requested Jacobian-vector product. If `include_eval`
+    is ``False``, then the :class:`.Operator` evaluation computed by
+    :func:`jax.jvp` and :func:`jax.vjp` are discarded.
+
+    Args:
+        F: :class:`.Operator` of which the Jacobian is to be computed.
+        u: Input value of the :class:`.Operator` at which the Jacobian is
+           to be computed.
+        include_eval: Flag indicating whether the result of evaluating
+           the :class:`.Operator` should be included (as the first
+           component of a :class:`.BlockArray`) in the output of the
+           Jacobian :class:`LinearOperator` constructed by this function.
+
+    Returns:
+      A :class:`LinearOperator` capable of computing Jacobian-vector
+      products.
+    """
+    if include_eval:
+        Fu, G = F.vjp(u, conjugate=True)
+
+        def adj_fn(v):
+            return snp.blockarray((Fu, G(v)))
+
+        def eval_fn(v):
+            return snp.blockarray(F.jvp(u, v))
+
+    else:
+        adj_fn = F.vjp(u, conjugate=True)[1]
+
+        def eval_fn(v):
+            return F.jvp(u, v)[1]
+
+    return LinearOperator(
+        F.input_shape,
+        output_shape=F.output_shape,
+        eval_fn=eval_fn,
+        adj_fn=adj_fn,
+        input_dtype=F.input_dtype,
+        output_dtype=F.output_dtype,
+    )

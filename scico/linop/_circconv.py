@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2022 by SCICO Developers
+# Copyright (C) 2021-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -113,7 +113,7 @@ class CircularConvolve(LinearOperator):
             self.ndims = ndims
 
         if h_is_dft and h_center is not None:
-            raise ValueError("h_center is not supported when h_is_dft=True")
+            raise ValueError("Parameter h_center must be None when h_is_dft=True.")
         self.h_center = h_center
 
         if h_is_dft:
@@ -141,7 +141,7 @@ class CircularConvolve(LinearOperator):
                         offset = -snp.array(self.h_center)
                 shifts: Tuple[Array, ...] = np.ix_(
                     *tuple(
-                        np.exp(-1j * k * 2 * np.pi * np.fft.fftfreq(s))
+                        np.exp(-1j * k * 2 * np.pi * np.fft.fftfreq(s))  # type: ignore
                         for k, s in zip(offset, input_shape[-self.ndims :])
                     )
                 )
@@ -156,7 +156,7 @@ class CircularConvolve(LinearOperator):
             output_shape = np.broadcast_shapes(self.h_dft.shape, input_shape)
         except ValueError:
             raise ValueError(
-                f"h shape after padding was {self.h_dft.shape}, needs to be compatible "
+                f"Shape of h after padding was {self.h_dft.shape}, needs to be compatible "
                 f"for broadcasting with {input_shape}."
             )
 
@@ -202,7 +202,7 @@ class CircularConvolve(LinearOperator):
     @partial(_wrap_add_sub, op=operator.add)
     def __add__(self, other):
         if self.ndims != other.ndims:
-            raise ValueError(f"Incompatible ndims: {self.ndims} != {other.ndims}")
+            raise ValueError(f"Incompatible ndims: {self.ndims} != {other.ndims}.")
 
         return CircularConvolve(
             h=self.h_dft + other.h_dft,
@@ -215,7 +215,7 @@ class CircularConvolve(LinearOperator):
     @partial(_wrap_add_sub, op=operator.sub)
     def __sub__(self, other):
         if self.ndims != other.ndims:
-            raise ValueError(f"Incompatible ndims: {self.ndims} != {other.ndims}")
+            raise ValueError(f"Incompatible ndims: {self.ndims} != {other.ndims}.")
 
         return CircularConvolve(
             h=self.h_dft - other.h_dft,
@@ -301,7 +301,8 @@ class CircularConvolve(LinearOperator):
 def _gradient_filters(ndim: int, axes: Shape, shape: Shape, dtype: DType = snp.float32) -> JaxArray:
     r"""Construct filters for computing gradients in the frequency domain.
 
-    Construct a set of filters for computing gradients in the frequency domain.
+    Construct a set of filters for computing gradients in the frequency
+    domain.
 
     Args:
         ndim: Total number of dimensions in array in which gradients are

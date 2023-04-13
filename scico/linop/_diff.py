@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2022 by SCICO Developers
+# Copyright (C) 2020-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -40,10 +40,10 @@ class FiniteDifference(VerticalStack):
     >>> x = snp.array([[1, 2, 4],
     ...                [0, 4, 1]])
     >>> (A @ x)[0]
-    DeviceArray([[-1,  2, -3]], dtype=int32)
+    Array([[-1,  2, -3]], dtype=int32)
     >>> (A @ x)[1]
-    DeviceArray([[ 1,  2],
-                 [ 4, -3]], dtype=int32)
+    Array([[ 1,  2],
+           [ 4, -3]], dtype=int32)
     """
 
     def __init__(

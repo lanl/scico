@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2022 by SCICO Developers
+# Copyright (C) 2020-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SPORCO package. Details of the copyright
 # and user license can be found in the 'LICENSE.txt' file distributed
@@ -35,7 +35,7 @@ class BlockArray:
     >>> x.shape
     ((2, 3), (3,))
     >>> snp.sum(x)
-    DeviceArray(30, dtype=int32)
+    Array(30, dtype=int32)
 
     """
 
@@ -50,7 +50,7 @@ class BlockArray:
 
         # check that dtypes match
         if not all(a.dtype == self.arrays[0].dtype for a in self.arrays):
-            raise ValueError("Heterogeneous dtypes not supported")
+            raise ValueError("Heterogeneous dtypes not supported.")
 
     @property
     def dtype(self):

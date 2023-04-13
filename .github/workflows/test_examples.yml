@@ -1,10 +1,8 @@
-# Install scico requirements and run pytest
+# Install scico requirements and run short versions of example scripts
 
 name: test examples
 
-# Control when the workflow will run
 on:
-  # Trigger the workflow on push or pull request events but only for the main branch
   push:
     branches: [ main ]
   pull_request:
@@ -15,22 +13,16 @@ on:
 
 jobs:
   build:
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            label: linux-64
-            prefix: /usr/share/miniconda3/envs/test-env
-    name: ${{ matrix.label }}
-    runs-on: ${{ matrix.os }}
+    name: test examples (ubuntu)
     defaults:
       run:
         shell: bash -l {0}
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Check-out the repository under $GITHUB_WORKSPACE
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
       # Set up conda/mamba environment
@@ -41,10 +33,10 @@ jobs:
             miniforge-version: latest
             activate-environment: test-env
             use-mamba: true
-            python-version: 3.9
+            python-version: "3.9"
       # Configure conda environment cache
       - name: Set up conda environment cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ env.CONDA }}/envs
           key: conda-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('dev_requirements.txt') }}-${{ hashFiles('examples/examples_requirements.txt') }}-${{ env.CACHE_NUMBER }}
@@ -58,7 +50,6 @@ jobs:
           printenv | sort
       # Install required system package
       - name: Install required system package
-        if: matrix.os == 'ubuntu-latest'
         run: sudo apt-get install -y libopenblas-dev
       # Install dependencies in conda environment
       - name: Install dependencies
@@ -70,6 +61,7 @@ jobs:
           pip install -r dev_requirements.txt
           mamba install -c astra-toolbox astra-toolbox
           mamba install -c conda-forge pyyaml
+          pip install --upgrade --force-reinstall scipy>=1.6.0  # Temporary fix for GLIBCXX_3.4.30 not found in conda forge version
           pip install -r examples/examples_requirements.txt
       # Install package to be tested
       - name: Install package to be tested
@@ -77,4 +69,4 @@ jobs:
       # Run example test
       - name: Run example test
         run: |
-          ${GITHUB_WORKSPACE}/examples/scriptcheck.sh -e -d
+          ${GITHUB_WORKSPACE}/examples/scriptcheck.sh -e -d -t

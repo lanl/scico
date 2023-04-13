@@ -89,8 +89,8 @@ class BBStepSize(PGMStepSize):
 
     def __init__(self):
         """Initialize a :class:`BBStepSize` object."""
-        self.xprev: Union[JaxArray, BlockArray] = None
-        self.gradprev: Union[JaxArray, BlockArray] = None
+        self.xprev = None
+        self.gradprev = None
 
     def update(self, v: Union[JaxArray, BlockArray]) -> float:
         """Update the reciprocal of the step size.

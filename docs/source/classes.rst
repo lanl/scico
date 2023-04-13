@@ -8,3 +8,4 @@ Main SCICO Classes
 .. include:: include/operator.rst
 .. include:: include/functional.rst
 .. include:: include/optimizer.rst
+.. include:: include/learning.rst

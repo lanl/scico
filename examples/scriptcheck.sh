@@ -11,17 +11,20 @@ Usage: $SCRIPT [-h] [-d]
           [-h] Display usage information
           [-e] Display excerpt of error message on failure
           [-d] Skip tests involving additional data downloads
+          [-t] Skip tests related to learned model training
 EOF
 )
 
 OPTIND=1
 DISPLAY_ERROR=0
 SKIP_DOWNLOAD=0
-while getopts ":hed" opt; do
+SKIP_TRAINING=0
+while getopts ":hedt" opt; do
     case $opt in
 	h) echo "$USAGE"; exit 0;;
 	e) DISPLAY_ERROR=1;;
 	d) SKIP_DOWNLOAD=1;;
+	t) SKIP_TRAINING=1;;
 	\?) echo "Error: invalid option -$OPTARG" >&2
             echo "$USAGE" >&2
             exit 1
@@ -36,21 +39,12 @@ if [ ! $# -eq 0 ] ; then
     exit 2
 fi
 
-# Check for presence of Xvfb tool which is used to avoid plots being displayed.
-if [ ! "$(which Xvfb 2>/dev/null)" ]; then
-    msg="Warning: required tool Xvfb not found: functionality will be degraded"
-    echo $msg >&2
-    pid=0
-else
-    Xvfb :20 -screen 0 800x600x16 > /dev/null 2>&1 &
-    pid=$!
-    export DISPLAY=:20.0
-fi
-
 # Set environment variables and paths. This script is assumed to be run
 # from its root directory.
 export PYTHONPATH=$SCRIPTPATH/..
 export PYTHONIOENCODING=utf-8
+export MPLBACKEND=agg
+export PYTHONWARNINGS=ignore:Matplotlib:UserWarning
 d='/tmp/scriptcheck_'$$
 mkdir -p $d
 retval=0
@@ -83,6 +77,12 @@ for f in $SCRIPTPATH/scripts/*.py; do
 	printf "%s\n" skipped
 	continue
     fi
+    if [ $SKIP_TRAINING -eq 1 ]; then
+	if grep -q '_datagen' <<< $f || grep -q '_train' <<< $f; then
+	    printf "%s\n" skipped
+	    continue
+        fi
+    fi
 
     # Create temporary copy of script with all algorithm maxiter values set
     # to small number and final input statements commented out.
@@ -107,10 +107,5 @@ done
 
 # Remove temporary script directory.
 rmdir $d
-
-# Kill Xvfb process if it was started.
-if [ $pid != 0 ]; then
-  kill $pid
-fi
 
 exit $retval
