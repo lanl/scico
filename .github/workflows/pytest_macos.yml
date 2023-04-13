@@ -1,6 +1,6 @@
-# Install scico requirements and run short versions of example scripts
+# Install scico requirements and run pytest
 
-name: test examples
+name: unit tests (macos)
 
 on:
   push:
@@ -8,15 +8,17 @@ on:
   pull_request:
     branches: [ main ]
 
-  # Allow this workflow to be run manually from the Actions tab
   workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+
+  test:
+    runs-on: macos-latest
     strategy:
       fail-fast: false
-    name: test examples (ubuntu)
+      matrix:
+        group: [1, 2, 3, 4, 5]
+    name: pytest split ${{ matrix.group }} (macos)
     defaults:
       run:
         shell: bash -l {0}
@@ -39,34 +41,38 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ env.CONDA }}/envs
-          key: conda-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('dev_requirements.txt') }}-${{ hashFiles('examples/examples_requirements.txt') }}-${{ env.CACHE_NUMBER }}
+          key: conda-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('dev_requirements.txt') }}-${{ env.CACHE_NUMBER }}
         env:
-          CACHE_NUMBER: 0  # Increase this value to force cache reset
+          CACHE_NUMBER: 1  # Increase this value to force cache reset
         id: cache
       # Display environment details
       - name: Display environment details
         run: |
           conda info
           printenv | sort
-      # Install required system package
-      - name: Install required system package
-        run: sudo apt-get install -y libopenblas-dev
       # Install dependencies in conda environment
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           mamba install -c conda-forge pytest pytest-cov
           python -m pip install --upgrade pip
+          pip install pytest-split
           pip install -r requirements.txt
           pip install -r dev_requirements.txt
           mamba install -c astra-toolbox astra-toolbox
           mamba install -c conda-forge pyyaml
           pip install --upgrade --force-reinstall scipy>=1.6.0  # Temporary fix for GLIBCXX_3.4.30 not found in conda forge version
-          pip install -r examples/examples_requirements.txt
+          pip install bm4d>=4.0.0
+          pip install "ray[tune]>=2.0.0"
+          pip install hyperopt
       # Install package to be tested
       - name: Install package to be tested
         run: pip install -e .
-      # Run example test
-      - name: Run example test
+      # Run unit tests
+      - name: Run main unit tests
+        run: pytest -x --splits 5 --group ${{ matrix.group }}
+      # Run doc tests
+      - name: Run doc tests
+        if: matrix.group == 1
         run: |
-          ${GITHUB_WORKSPACE}/examples/scriptcheck.sh -e -d -t
+          pytest --ignore-glob="*test_*.py" --doctest-modules scico
