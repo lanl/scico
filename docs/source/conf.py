@@ -4,7 +4,6 @@ import os
 import re
 import sys
 import types
-from ast import parse
 from inspect import getmembers, isfunction
 from unittest.mock import MagicMock
 
@@ -12,7 +11,12 @@ from sphinx.ext.napoleon.docstring import GoogleDocstring
 
 confpath = os.path.dirname(__file__)
 sys.path.append(confpath)
+rootpath = os.path.join(confpath, "..", "..")
+sys.path.append(rootpath)
+
 from docutil import insert_inheritance_diagram, package_classes
+
+from scico._version import package_version
 
 
 ## See
@@ -65,7 +69,7 @@ rootpath = os.path.abspath("../..")
 sys.path.insert(0, rootpath)
 
 # If your documentation needs a minimal Sphinx version, state it here.
-needs_sphinx = "3.3"
+needs_sphinx = "4.2.0"
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -80,7 +84,6 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinxcontrib.bibtex",
     "sphinx.ext.inheritance_diagram",
-    "sphinx.ext.mathjax",
     "sphinx.ext.todo",
     "nbsphinx",
 ]
@@ -111,17 +114,20 @@ nbsphinx_prolog = """
 #  https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion
 autosummary_generate = True
 
-# Copied from scikit-learn sphinx configuration
+
 if os.environ.get("NO_MATHJAX"):
     extensions.append("sphinx.ext.imgmath")
     imgmath_image_format = "svg"
 else:
     extensions.append("sphinx.ext.mathjax")
-    mathjax_path = "https://cdn.mathjax.org/mathjax/latest/" "MathJax.js?config=TeX-AMS_HTML"
+    # To use local copy of MathJax for offline use, set MATHJAX_URI to
+    #    file:///[path-to-mathjax-repo-root]/es5/tex-mml-chtml.js
+    if os.environ.get("MATHJAX_URI"):
+        mathjax_path = os.environ.get("MATHJAX_URI")
 
-mathjax_config = {
-    "TeX": {
-        "Macros": {
+mathjax3_config = {
+    "tex": {
+        "macros": {
             "mb": [r"\mathbf{#1}", 1],
             "mbs": [r"\boldsymbol{#1}", 1],
             "mbb": [r"\mathbb{#1}", 1],
@@ -129,13 +135,22 @@ mathjax_config = {
             "abs": [r"\left| #1 \right|", 1],
             "argmin": [r"\mathop{\mathrm{argmin}}"],
             "sign": [r"\mathop{\mathrm{sign}}"],
-            "prox": [r"\mathop{\mathrm{prox}}"],
+            "prox": [r"\mathrm{prox}"],
             "loss": [r"\mathop{\mathrm{loss}}"],
             "kp": [r"k_{\|}"],
             "rp": [r"r_{\|}"],
         }
     }
 }
+
+latex_macros = []
+for k, v in mathjax3_config["tex"]["macros"].items():
+    if len(v) == 1:
+        latex_macros.append(r"\newcommand{\%s}{%s}" % (k, v[0]))
+    else:
+        latex_macros.append(r"\newcommand{\%s}[1]{%s}" % (k, v[0]))
+
+imgmath_latex_preamble = "\n".join(latex_macros)
 
 
 # See https://stackoverflow.com/questions/5599254
@@ -155,21 +170,30 @@ master_doc = "index"
 
 # General information about the project.
 project = "SCICO"
-copyright = "2020-2022, SCICO Developers"
+copyright = "2020-2023, SCICO Developers"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 # The short X.Y version.
-with open(os.path.join("../../scico", "__init__.py")) as f:
-    version = parse(next(filter(lambda line: line.startswith("__version__"), f))).body[0].value.s
+version = package_version()
 # The full version, including alpha/beta/rc tags.
 release = version
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ["tmp", "*.tmp.*", "*.tmp", "index.ipynb"]
+exclude_patterns = [
+    "tmp",
+    "*.tmp.*",
+    "*.tmp",
+    "index.ipynb",
+    "exampledepend.rst",
+    "blockarray.rst",
+    "operator.rst",
+    "functional.rst",
+    "optimizer.rst",
+]
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 add_function_parentheses = False
@@ -180,7 +204,7 @@ pygments_style = "sphinx"
 
 # -- Options for HTML output ----------------------------------------------
 
-# The theme to use for HTML and HTML Help pages.  See the documentation for
+# The theme to use for HTML and HTML Help pages. See the documentation for
 # a list of builtin themes.
 # html_theme = "sphinx_rtd_theme"
 html_theme = "faculty-sphinx-theme"
@@ -197,7 +221,7 @@ html_theme_options = {
 html_logo = "_static/logo.svg"
 
 # The name of an image file (within the static path) to use as favicon of the
-# docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
+# docs. This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
 # html_favicon = None
 html_favicon = "_static/scico.ico"
@@ -213,7 +237,7 @@ else:
 # Output file base name for HTML help builder.
 htmlhelp_basename = "SCICOdoc"
 
-# Include TOODs
+# Include TODOs
 todo_include_todos = True
 
 
@@ -235,17 +259,9 @@ latex_documents = [
     ("index", "scico.tex", "SCICO Documentation", "The SCICO Developers", "manual"),
 ]
 
-
 latex_engine = "xelatex"
 
 # latex_use_xindy = False
-
-latex_macros = []
-for k, v in mathjax_config["TeX"]["Macros"].items():
-    if len(v) == 1:
-        latex_macros.append(r"\newcommand{\%s}{%s}" % (k, v[0]))
-    else:
-        latex_macros.append(r"\newcommand{\%s}[1]{%s}" % (k, v[0]))
 
 latex_elements = {"preamble": "\n".join(latex_macros)}
 
@@ -253,8 +269,8 @@ latex_elements = {"preamble": "\n".join(latex_macros)}
 # Intersphinx mapping
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
-    "numpy": ("https://docs.scipy.org/doc/numpy/", None),
-    "scipy": ("https://docs.scipy.org/doc/scipy/reference/", None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/", None),
     "matplotlib": ("https://matplotlib.org/stable/", None),
     "jax": ("https://jax.readthedocs.io/en/latest/", None),
     "flax": ("https://flax.readthedocs.io/en/latest/", None),
@@ -364,7 +380,13 @@ module.ExperimentAnalysis = ExperimentAnalysis
 for func_name in ["loguniform", "report", "uniform"]:
     setattr(module, func_name, null_func)
 
-for module_name in ["progress_reporter", "schedulers", "suggest", "suggest.hyperopt", "trial"]:
+for module_name in [
+    "progress_reporter",
+    "schedulers",
+    "suggest",
+    "search.hyperopt",
+    "experiment.trial",
+]:
     sys.modules["ray.tune." + module_name] = Mock()
 
 
@@ -374,9 +396,10 @@ print("confpath: %s" % confpath)
 # Sort members by type
 autodoc_default_options = {
     "member-order": "bysource",
-    "inherited-members": True,
+    "inherited-members": False,
     "ignore-module-all": False,
     "show-inheritance": True,
+    "members": True,
     "special-members": "__call__",
 }
 autodoc_docstring_signature = True
@@ -384,7 +407,7 @@ autoclass_content = "both"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ["_build", "**tests**", "**spi**"]
+exclude_patterns = ["_build", "**tests**", "**spi**", "**README.rst", "include"]
 
 
 # Rewrite module names for certain functions imported into scico.numpy so that they are
@@ -395,7 +418,11 @@ import scico.numpy
 
 snp_func = getmembers(scico.numpy, isfunction)
 for _, f in snp_func:
-    if f.__module__[0:14] == "jax._src.numpy" or f.__module__ == "scico.numpy._create":
+    if (
+        f.__module__ == "scico.numpy"
+        or f.__module__[0:14] == "jax._src.numpy"
+        or f.__module__ == "scico.numpy._create"
+    ):
         # Rewrite module name so that function is included in docs
         f.__module__ = "scico.numpy"
         # Attempt to fix incorrect cross-reference
@@ -403,6 +430,12 @@ for _, f in snp_func:
             modname = "numpy.char"
         else:
             modname = "numpy"
+        f.__doc__ = re.sub(
+            r"^:func:`([\w_]+)` wrapped to operate",
+            r":obj:`jax.numpy.\1` wrapped to operate",
+            str(f.__doc__),
+            flags=re.M,
+        )
         f.__doc__ = re.sub(
             r"^LAX-backend implementation of :func:`([\w_]+)`.",
             r"LAX-backend implementation of :obj:`%s.\1`." % modname,
@@ -425,8 +458,43 @@ for _, f in snp_func:
         # Remove entire numpydoc references section
         f.__doc__ = re.sub(r"References\n----------\n.*\n", "", f.__doc__, flags=re.DOTALL)
 
+
 # Remove spurious two-space indentation of entire docstring
 scico.numpy.vectorize.__doc__ = re.sub("^  ", "", scico.numpy.vectorize.__doc__, flags=re.M)
+
+
+# Similar processing for scico.scipy
+import scico.scipy
+
+ssp_func = getmembers(scico.scipy.special, isfunction)
+for _, f in ssp_func:
+    if f.__module__[0:11] == "scico.scipy" or f.__module__[0:14] == "jax._src.scipy":
+        # Attempt to fix incorrect cross-reference
+        f.__doc__ = re.sub(
+            r"^:func:`([\w_]+)` wrapped to operate",
+            r":obj:`jax.scipy.special.\1` wrapped to operate",
+            str(f.__doc__),
+            flags=re.M,
+        )
+        modname = "scipy.special"
+        f.__doc__ = re.sub(
+            r"^LAX-backend implementation of :func:`([\w_]+)`.",
+            r"LAX-backend implementation of :obj:`%s.\1`." % modname,
+            str(f.__doc__),
+            flags=re.M,
+        )
+        # Remove cross-reference to numpydoc style references section
+        f.__doc__ = re.sub(r" \[(\d+)\]_", "", f.__doc__, flags=re.M)
+        # Remove entire numpydoc references section
+        f.__doc__ = re.sub(r"References\n----------\n.*\n", "", f.__doc__, flags=re.DOTALL)
+        # Remove problematic citation
+        f.__doc__ = re.sub("See \[dlmf\]_ for details.", "", f.__doc__, re.M)
+        f.__doc__ = re.sub("\[dlmf\]_", "NIST DLMF", f.__doc__, re.M)
+
+# Fix indentation problems
+scico.scipy.special.sph_harm.__doc__ = re.sub(
+    "^Computes the", "  Computes the", scico.scipy.special.sph_harm.__doc__, flags=re.M
+)
 
 
 def class_inherit_diagrams(_):
@@ -444,6 +512,11 @@ def process_docstring(app, what, name, obj, options, lines):
     # the current release of flax, but is arguably also useful in avoiding
     # extensive documentation of methods that are likely to be of limited
     # interest to users of the scico.flax classes.
+    #
+    # Note: this event handler currently has no effect since inclusion of
+    #   inherited members is currently globally disabled (see
+    #   "inherited-members" in autodoc_default_options), but is left in
+    #   place in case a decision is ever made to revert the global setting.
     #
     # See https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html
     # for documentation of the autodoc-process-docstring event used here.

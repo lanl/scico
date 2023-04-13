@@ -9,13 +9,16 @@
 
 from typing import Any, Tuple, Union
 
+try:
+    # available in python 3.10
+    from types import EllipsisType  # type: ignore
+except ImportError:
+    EllipsisType = Any  # type: ignore
+
 import numpy as np
 
 import jax
 import jax.numpy as jnp
-
-__author__ = """Luke Pfister <luke.pfister@gmail.com>"""
-
 
 JaxArray = Union[jax.interpreters.xla.DeviceArray, jax.interpreters.pxla.ShardedDeviceArray]
 """A jax array."""
@@ -38,9 +41,9 @@ BlockShape = Tuple[Tuple[int, ...], ...]
 Axes = Union[int, Tuple[int, ...]]
 """Specification of one or more array axes."""
 
-AxisIndex = Union[slice, type(Ellipsis), int]
+AxisIndex = Union[slice, EllipsisType, int]
 """An entity suitable for indexing/slicing of a single array axis; either
 a slice object, Ellipsis, or int."""
 
-ArrayIndex = Union[AxisIndex, Tuple[AxisIndex]]
+ArrayIndex = Union[AxisIndex, Tuple[AxisIndex, ...]]
 """An entity suitable for indexing/slicing of multi-dimentional arrays."""

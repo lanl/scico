@@ -1,0 +1,29 @@
+# Install and run mypy
+
+name: mypy
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  workflow_dispatch:
+
+jobs:
+  mypy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Install Python 3
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+      - name: Install dependencies
+        run: |
+          pip install mypy
+      - name: Run mypy
+        run: |
+          mypy --follow-imports=skip --ignore-missing-imports  --exclude "(numpy|test)" scico/

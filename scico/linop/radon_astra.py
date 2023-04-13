@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -7,8 +7,14 @@
 
 """Radon transform LinearOperator wrapping the ASTRA toolbox.
 
-Radon transform LinearOperator wrapping the parallel beam projections in
-the `ASTRA toolbox <https://github.com/astra-toolbox/astra-toolbox>`_.
+Radon transform :class:`.LinearOperator` wrapping the parallel beam
+projections in the
+`ASTRA toolbox <https://github.com/astra-toolbox/astra-toolbox>`_.
+This package provides both C and CUDA implementations of core
+functionality, but note that use of the CUDA/GPU implementation is
+expected to result in GPU-host-GPU memory copies when transferring
+JAX arrays. Other JAX features such as automatic differentiation are
+not available.
 """
 
 
@@ -21,20 +27,21 @@ import jax.experimental.host_callback as hcb
 
 try:
     import astra
-except ImportError:
-    raise ImportError("Could not import astra; please install the ASTRA toolbox.")
+except ModuleNotFoundError as e:
+    if e.name == "astra":
+        new_e = ModuleNotFoundError("Could not import astra; please install the ASTRA toolbox.")
+        new_e.name = "astra"
+        raise new_e from e
+    else:
+        raise e
 
-
-from jaxlib.xla_extension import GpuDevice
 
 from scico.typing import JaxArray, Shape
 
 from ._linop import LinearOperator
 
-__author__ = """Luke Pfister <luke.pfister@gmail.com>"""
 
-
-class ParallelBeamProjector(LinearOperator):
+class TomographicProjector(LinearOperator):
     r"""Parallel beam Radon transform based on the ASTRA toolbox.
 
     Perform tomographic projection of an image at specified angles,
@@ -55,13 +62,13 @@ class ParallelBeamProjector(LinearOperator):
         Args:
             input_shape: Shape of the input array.
             volume_geometry: Defines the shape and size of the
-                discretized reconstruction volume. Must either `None`, or
-                of the form (min_x, max_x, min_y, max_y). If `None`,
+                discretized reconstruction volume. Must either ``None``,
+                or of the form (min_x, max_x, min_y, max_y). If ``None``,
                 volume pixels are squares with sides of unit length, and
-                the volume is centered around the origin. If not None,
+                the volume is centered around the origin. If not ``None``,
                 the extents of the volume can be specified arbitrarily.
-                The default, None, corresponds to
-                ``volume_geometry = [cols, -cols/2, cols/2, -rows/2, rows/2]``.
+                The default, ``None``, corresponds to
+                `volume_geometry = [cols, -cols/2, cols/2, -rows/2, rows/2]`.
                 Note: For usage with GPU code, the volume must be
                 centered around the origin and pixels must be square.
                 This is not always explicitly checked in all functions,
@@ -70,9 +77,9 @@ class ParallelBeamProjector(LinearOperator):
                 <https://www.astra-toolbox.com/docs/geom2d.html#volume-geometries>`_.
             detector_spacing: Spacing between detector elements.
             det_count: Number of detector elements.
-            angles: Array of projection angles.
+            angles: Array of projection angles in radians.
             device: Specifies device for projection operation.
-                One of ["auto", "gpu", "cpu"].  If "auto",  a GPU is used
+                One of ["auto", "gpu", "cpu"]. If "auto", a GPU is used
                 if available. Otherwise, the CPU is used.
         """
 
@@ -94,24 +101,24 @@ class ParallelBeamProjector(LinearOperator):
                 raise AssertionError(
                     "Volume_geometry must be the shape of the volume as a tuple of len 4 "
                     "containing the volume geometry dimensions. Please see documentation "
-                    "for specifics."
+                    "for details."
                 )
         else:
-            self.vol_geom: dict = astra.create_vol_geom(*input_shape)
+            self.vol_geom = astra.create_vol_geom(*input_shape)
 
         dev0 = jax.devices()[0]
-        if dev0.device_kind == "cpu" or device == "cpu":
+        if dev0.platform == "cpu" or device == "cpu":
             self.proj_id = astra.create_projector("line", self.proj_geom, self.vol_geom)
-        elif isinstance(dev0, GpuDevice) and device in ["gpu", "auto"]:
+        elif dev0.platform == "gpu" and device in ["gpu", "auto"]:
             self.proj_id = astra.create_projector("cuda", self.proj_geom, self.vol_geom)
         else:
-            raise ValueError(f"Invalid device specified; got {device}")
+            raise ValueError(f"Invalid device specified; got {device}.")
 
         # Wrap our non-jax function to indicate we will supply fwd/rev mode functions
         self._eval = jax.custom_vjp(self._proj)
-        self._eval.defvjp(lambda x: (self._proj(x), None), lambda _, y: (self._bproj(y),))
+        self._eval.defvjp(lambda x: (self._proj(x), None), lambda _, y: (self._bproj(y),))  # type: ignore
         self._adj = jax.custom_vjp(self._bproj)
-        self._adj.defvjp(lambda y: (self._bproj(y), None), lambda _, x: (self._proj(x),))
+        self._adj.defvjp(lambda y: (self._bproj(y), None), lambda _, x: (self._proj(x),))  # type: ignore
 
         super().__init__(
             input_shape=self.input_shape,

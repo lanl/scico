@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021 by SCICO Developers
+# Copyright (C) 2021-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -8,17 +8,18 @@
 """Data files for usage examples."""
 
 import os.path
+from typing import Optional
 
 from jax.interpreters.xla import DeviceArray
 
-from imageio import imread
+from imageio.v2 import imread
 
 import scico.numpy as snp
 
 __all__ = ["kodim23"]
 
 
-def _imread(filename: str, path: str = None, asfloat: bool = False) -> DeviceArray:
+def _imread(filename: str, path: Optional[str] = None, asfloat: bool = False) -> DeviceArray:
     """Read an image from disk.
 
     Args:

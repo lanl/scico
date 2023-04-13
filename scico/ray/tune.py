@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021 by SCICO Developers
+# Copyright (C) 2021-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -8,6 +8,9 @@
 """Parameter tuning using :doc:`ray.tune <ray:tune/index>`."""
 
 import datetime
+import getpass
+import os
+import tempfile
 from typing import Any, Callable, Dict, List, Mapping, Optional, Type, Union
 
 import ray
@@ -17,12 +20,10 @@ try:
 except ImportError:
     raise ImportError("Could not import ray.tune; please install it.")
 from ray.tune import loguniform, report, uniform  # noqa
+from ray.tune.experiment.trial import Trial
 from ray.tune.progress_reporter import TuneReporterBase, _get_trials_by_state
 from ray.tune.schedulers import AsyncHyperBandScheduler
-from ray.tune.suggest.hyperopt import HyperOptSearch
-from ray.tune.trial import Trial
-
-__author__ = """Brendt Wohlberg <brendt@ieee.org>"""
+from ray.tune.search.hyperopt import HyperOptSearch
 
 
 class _CustomReporter(TuneReporterBase):
@@ -71,6 +72,7 @@ def run(
     config: Optional[Dict[str, Any]] = None,
     hyperopt: bool = True,
     verbose: bool = True,
+    local_dir: Optional[str] = None,
 ) -> ray.tune.ExperimentAnalysis:
     """Simplified wrapper for :func:`ray.tune.run`.
 
@@ -97,6 +99,10 @@ def run(
             running, and terminated trials are indicated by "P:", "R:",
             and "T:" respectively, followed by the current best metric
             value and the parameters at which it was reported.
+        local_dir: Directory in which to save tuning results. Defaults to
+            a subdirectory "<username>/ray_results" within the path returned by
+            `tempfile.gettempdir()`, corresponding e.g. to
+            "/tmp/<username>/ray_results" under Linux.
 
     Returns:
         Result of parameter search.
@@ -114,15 +120,37 @@ def run(
     else:
         kwargs.update({"verbose": 0})
 
-    def _run(config, checkpoint_dir=None):
-        run_or_experiment(config)
+    if isinstance(run_or_experiment, str):
+        name = run_or_experiment
+    else:
+        name = run_or_experiment.__name__
+    name += "_" + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-    return ray.tune.run(
-        _run,
+    if local_dir is None:
+        try:
+            user = getpass.getuser()
+        except Exception:
+            user = "NOUSER"
+        local_dir = os.path.join(tempfile.gettempdir(), user, "ray_results")
+
+    # Record original logger.info
+    logger_info = ray.tune.tune.logger.info
+
+    # Replace logger.info with filtered version
+    def logger_info_filter(msg, *args, **kwargs):
+        if msg[0:15] != "Total run time:":
+            logger_info(msg, *args, **kwargs)
+
+    ray.tune.tune.logger.info = logger_info_filter
+
+    result = ray.tune.run(
+        run_or_experiment,
         metric=metric,
         mode=mode,
+        name=name,
         time_budget_s=time_budget_s,
         num_samples=num_samples,
+        local_dir=local_dir,
         resources_per_trial=resources_per_trial,
         max_concurrent_trials=max_concurrent_trials,
         reuse_actors=True,
@@ -130,3 +158,8 @@ def run(
         checkpoint_freq=0,
         **kwargs,
     )
+
+    # Restore original logger.info
+    ray.tune.tune.logger.info = logger_info
+
+    return result

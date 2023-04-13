@@ -1,41 +1,55 @@
 # Install scico requirements and run pytest with latest jax version
 
-name: test w/ latest jax
+name: unit tests (latest jax)
 
 # Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  # Run workflow every Sunday at midnight UTC
+  schedule:
+    - cron: "0 0 * * 0"
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
   pytest-latest-jax:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
       - name: Install Python 3
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.8
-      - name: Install dependencies
+          python-version: "3.9"
+      - name: Install lastversion
         run: |
           python -m pip install --upgrade pip
-          sudo apt-get install -y libopenblas-dev
-          pip install pytest-cov
-          pip install -r requirements.txt
-          pip install -r dev_requirements.txt
-          pip install -e .
-          pip install --upgrade "jax[cpu]"
+          pip install lastversion
+      - name: Install dependencies
+        run: |
+          rjaxlib=$(grep jaxlib requirements.txt | sed -e 's/jaxlib.*<=\([0-9\.]*$\)/\1/')
+          rjax=$(grep -E "jax[^lib]" requirements.txt | sed -e 's/jax.*<=\([0-9\.]*$\)/\1/')
+          ljaxlib=$(lastversion --at pip jaxlib)
+          ljax=$(lastversion --at pip jax)
+          echo jaxlib  required: $rjaxlib  latest: $ljaxlib
+          echo jax     required: $rjax  latest: $ljax
+          if [ "$rjaxlib" = "$ljaxlib" ] && [ "$rjax" = "$ljax" ]; then
+            echo Test is redundant: required and latest jaxlib/jax versions match
+            echo "TEST=cancel" >> $GITHUB_ENV
+          else
+            echo "TEST=run" >> $GITHUB_ENV
+            sudo apt-get install -y libopenblas-dev
+            pip install -r requirements.txt
+            pip install -r dev_requirements.txt
+            pip install -e .
+            pip install --upgrade "jax[cpu]"
+          fi
       - name: Run tests with pytest
-        run: pytest
+        run: |
+          TEST="${{ env.TEST }}"
+          if [ "$TEST" = "run" ]; then
+            pytest
+          else
+            exit 0
+          fi

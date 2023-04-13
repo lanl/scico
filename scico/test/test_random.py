@@ -4,7 +4,7 @@ import jax
 
 import pytest
 
-import scico
+import scico.random
 
 
 @pytest.mark.parametrize("seed", [None, 42])
@@ -25,11 +25,7 @@ def test_wrapped_funcs(seed):
     seed = 42
     key = jax.random.PRNGKey(seed)
 
-    result = fun_wrapped(shape, seed=seed)
-
-    # test nested blockarray
-    shape = ((7, (1, 3)), (3, 2), (2, 4, 1))
-    result = fun_wrapped(shape, seed=seed)
+    result, _ = fun_wrapped(shape, seed=seed)
 
 
 def test_add_seed_adapter():
@@ -73,29 +69,3 @@ def test_add_seed_adapter():
     # error when key and seed are specified
     with pytest.raises(Exception):
         _ = fun_alt(key=jax.random.PRNGKey(0), seed=42)[0]
-
-
-def test_block_shape_adapter():
-    fun = jax.random.normal
-    fun_alt = scico.random._allow_block_shape(fun)
-
-    # when shape is nested, result should be a BlockArray...
-    shape = ((7,), (3, 2), (2, 4, 1))
-    seed = 42
-    key = jax.random.PRNGKey(seed)
-
-    result = fun_alt(key, shape)
-    assert isinstance(result, scico.blockarray.BlockArray)
-
-    # should work for deeply nested as well
-    shape = ((7,), (3, (2, 1)), (2, 4, 1))
-    result = fun_alt(key, shape)
-    assert isinstance(result, scico.blockarray.BlockArray)
-
-    # when shape is not nested, behavior should be normal
-    shape = (1,)
-    result_A = fun(key, shape)
-    result_B = fun_alt(key, shape)
-    np.testing.assert_array_equal(result_A, result_B)
-
-    assert fun(key) == fun_alt(key)

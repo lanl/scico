@@ -5,19 +5,29 @@
 # with the package.
 
 """
-CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+Prox)
-==================================================================
+PPP (with BM3D) CT Reconstruction (ADMM with Fast SVMBIR Prox)
+==============================================================
 
-This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.optimize.rst#scico.optimize.ADMM) to
-solve a tomographic reconstruction problem using the Plug-and-Play Priors
-framework :cite:`venkatakrishnan-2013-plugandplay2`, using BM3D
+This example demonstrates solution of a tomographic reconstruction
+problem using the Plug-and-Play Priors framework
+:cite:`venkatakrishnan-2013-plugandplay2`, using BM3D
 :cite:`dabov-2008-image` as a denoiser and SVMBIR :cite:`svmbir-2020` for
 tomographic projection.
 
-This version uses the data fidelity term as one of the ADMM g functionals,
-and thus the optimization with respect to the data fidelity is able to
-exploit the internal prox of the SVMBIRWeightedSquaredL2Loss functional.
+There are two versions of this example, solving the same problem in two
+different ways. This version uses the data fidelity term as one of the
+ADMM $g$ functionals so that the optimization with respect to the data
+fidelity is able to exploit the internal prox of the `SVMBIRExtendedLoss`
+and `SVMBIRSquaredL2Loss` functionals. The
+[other version](ct_svmbir_ppp_bm3d_admm_cg.rst) solves the ADMM subproblem
+corresponding to the data fidelity term via CG.
+
+Two ways of exploiting the SVMBIR internal prox are explored in this
+example:
+1. Using the `SVMBIRSquaredL2Loss` together with the BM3D pseudo-functional
+   and a non-negative indicator function, and
+2. Using the `SVMBIRExtendedLoss`, which includes a non-negativity
+   constraint, together with the BM3D pseudo-functional.
 """
 
 import numpy as np
@@ -26,13 +36,18 @@ import jax
 
 import matplotlib.pyplot as plt
 import svmbir
+from matplotlib.ticker import MaxNLocator
 from xdesign import Foam, discrete_phantom
 
 import scico.numpy as snp
 from scico import metric, plot
 from scico.functional import BM3D, NonNegativeIndicator
 from scico.linop import Diagonal, Identity
-from scico.linop.radon_svmbir import ParallelBeamProjector, SVMBIRWeightedSquaredL2Loss
+from scico.linop.radon_svmbir import (
+    SVMBIRExtendedLoss,
+    SVMBIRSquaredL2Loss,
+    TomographicProjector,
+)
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
@@ -54,7 +69,7 @@ Generate tomographic projector and sinogram.
 num_angles = int(N / 2)
 num_channels = N
 angles = snp.linspace(0, snp.pi, num_angles, endpoint=False, dtype=snp.float32)
-A = ParallelBeamProjector(x_gt.shape, angles, num_channels)
+A = TomographicProjector(x_gt.shape, angles, num_channels)
 sino = A @ x_gt
 
 
@@ -85,22 +100,30 @@ x_mrf = svmbir.recon(
 
 
 """
-Set up an ADMM solver.
+Push arrays to device.
 """
 y, x0, weights = jax.device_put([y, x_mrf, weights])
 
+
+"""
+Set problem parameters and BM3D pseudo-functional.
+"""
 ρ = 10  # ADMM penalty parameter
 σ = density * 0.26  # denoiser sigma
+g0 = σ * ρ * BM3D()
 
-f = SVMBIRWeightedSquaredL2Loss(
+
+"""
+Set up problem using `SVMBIRSquaredL2Loss` and `NonNegativeIndicator`.
+"""
+f_l2loss = SVMBIRSquaredL2Loss(
     y=y, A=A, W=Diagonal(weights), scale=0.5, prox_kwargs={"maxiter": 5, "ctol": 0.0}
 )
-g0 = σ * ρ * BM3D()
 g1 = NonNegativeIndicator()
 
-solver = ADMM(
+solver_l2loss = ADMM(
     f=None,
-    g_list=[f, g0, g1],
+    g_list=[f_l2loss, g0, g1],
     C_list=[Identity(x_mrf.shape), Identity(x_mrf.shape), Identity(x_mrf.shape)],
     rho_list=[ρ, ρ, ρ],
     x0=x0,
@@ -111,33 +134,73 @@ solver = ADMM(
 
 
 """
-Run the solver.
+Run the ADMM solver.
 """
 print(f"Solving on {device_info()}\n")
-x_bm3d = solver.solve()
-hist = solver.itstat_object.history(transpose=True)
+x_l2loss = solver_l2loss.solve()
+hist_l2loss = solver_l2loss.itstat_object.history(transpose=True)
 
 
 """
-Show the recovered image.
+Set up problem using `SVMBIRExtendedLoss`, without need for `NonNegativeIndicator`.
+"""
+f_extloss = SVMBIRExtendedLoss(
+    y=y,
+    A=A,
+    W=Diagonal(weights),
+    scale=0.5,
+    positivity=True,
+    prox_kwargs={"maxiter": 5, "ctol": 0.0},
+)
+
+solver_extloss = ADMM(
+    f=None,
+    g_list=[f_extloss, g0],
+    C_list=[Identity(x_mrf.shape), Identity(x_mrf.shape)],
+    rho_list=[ρ, ρ],
+    x0=x0,
+    maxiter=20,
+    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-3, "maxiter": 100}),
+    itstat_options={"display": True},
+)
+
+
+"""
+Run the ADMM solver.
+"""
+print()
+x_extloss = solver_extloss.solve()
+hist_extloss = solver_extloss.itstat_object.history(transpose=True)
+
+
+"""
+Show the recovered images.
 """
 norm = plot.matplotlib.colors.Normalize(vmin=-0.1 * density, vmax=1.2 * density)
-fig, ax = plt.subplots(1, 3, figsize=[15, 5])
-plot.imview(img=x_gt, title="Ground Truth Image", cbar=True, fig=fig, ax=ax[0], norm=norm)
+fig, ax = plt.subplots(2, 2, figsize=(15, 15))
+plot.imview(img=x_gt, title="Ground Truth Image", cbar=True, fig=fig, ax=ax[0, 0], norm=norm)
 plot.imview(
     img=x_mrf,
     title=f"MRF (PSNR: {metric.psnr(x_gt, x_mrf):.2f} dB)",
     cbar=True,
     fig=fig,
-    ax=ax[1],
+    ax=ax[0, 1],
     norm=norm,
 )
 plot.imview(
-    img=x_bm3d,
-    title=f"BM3D (PSNR: {metric.psnr(x_gt, x_bm3d):.2f} dB)",
+    img=x_l2loss,
+    title=f"SquaredL2Loss + non-negativity (PSNR: {metric.psnr(x_gt, x_l2loss):.2f} dB)",
     cbar=True,
     fig=fig,
-    ax=ax[2],
+    ax=ax[1, 0],
+    norm=norm,
+)
+plot.imview(
+    img=x_extloss,
+    title=f"ExtendedLoss (PSNR: {metric.psnr(x_gt, x_extloss):.2f} dB)",
+    cbar=True,
+    fig=fig,
+    ax=ax[1, 1],
     norm=norm,
 )
 fig.show()
@@ -146,13 +209,30 @@ fig.show()
 """
 Plot convergence statistics.
 """
+fig, ax = plt.subplots(1, 2, figsize=(15, 5))
 plot.plot(
-    snp.vstack((hist.Prml_Rsdl, hist.Dual_Rsdl)).T,
+    snp.vstack((hist_l2loss.Prml_Rsdl, hist_l2loss.Dual_Rsdl)).T,
     ptyp="semilogy",
-    title="Residuals",
+    title="Residuals (SquaredL2Loss + non-negativity)",
     xlbl="Iteration",
     lgnd=("Primal", "Dual"),
+    fig=fig,
+    ax=ax[0],
 )
+ax[0].set_ylim([5e-3, 1e0])
+ax[0].xaxis.set_major_locator(MaxNLocator(integer=True))
+plot.plot(
+    snp.vstack((hist_extloss.Prml_Rsdl, hist_extloss.Dual_Rsdl)).T,
+    ptyp="semilogy",
+    title="Residuals (ExtendedLoss)",
+    xlbl="Iteration",
+    lgnd=("Primal", "Dual"),
+    fig=fig,
+    ax=ax[1],
+)
+ax[1].set_ylim([5e-3, 1e0])
+ax[1].xaxis.set_major_locator(MaxNLocator(integer=True))
+fig.show()
 
 
 input("\nWaiting for input to close figures and exit")

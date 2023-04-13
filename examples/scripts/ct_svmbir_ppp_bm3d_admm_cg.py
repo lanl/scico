@@ -5,19 +5,20 @@
 # with the package.
 
 """
-CT Reconstruction (ADMM Plug-and-Play Priors w/ BM3D, SVMBIR+CG)
-================================================================
+PPP (with BM3D) CT Reconstruction (ADMM with CG Subproblem Solver)
+==================================================================
 
-This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.optimize.rst#scico.optimize.ADMM) to
-solve a tomographic reconstruction problem using the Plug-and-Play Priors
-framework :cite:`venkatakrishnan-2013-plugandplay2`, using BM3D
+This example demonstrates solution of a tomographic reconstruction problem
+using the Plug-and-Play Priors framework
+:cite:`venkatakrishnan-2013-plugandplay2`, using BM3D
 :cite:`dabov-2008-image` as a denoiser and SVMBIR :cite:`svmbir-2020` for
 tomographic projection.
 
-This version uses the data fidelity term as the ADMM f, and thus the
-optimization with respect to the data fidelity uses CG rather than the
-prox of the SVMBIRWeightedSquaredL2Loss functional.
+There are two versions of this example, solving the same problem in two
+different ways. This version uses the data fidelity term as the ADMM $f$,
+and thus the optimization with respect to the data fidelity uses CG rather
+than the prox of the `SVMBIRSquaredL2Loss` functional, as in the
+[other version](ct_svmbir_ppp_bm3d_admm_prox.rst).
 """
 
 import numpy as np
@@ -32,7 +33,7 @@ import scico.numpy as snp
 from scico import metric, plot
 from scico.functional import BM3D, NonNegativeIndicator
 from scico.linop import Diagonal, Identity
-from scico.linop.radon_svmbir import ParallelBeamProjector, SVMBIRWeightedSquaredL2Loss
+from scico.linop.radon_svmbir import SVMBIRSquaredL2Loss, TomographicProjector
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
@@ -54,7 +55,7 @@ Generate tomographic projector and sinogram.
 num_angles = int(N / 2)
 num_channels = N
 angles = snp.linspace(0, snp.pi, num_angles, endpoint=False, dtype=snp.float32)
-A = ParallelBeamProjector(x_gt.shape, angles, num_channels)
+A = TomographicProjector(x_gt.shape, angles, num_channels)
 sino = A @ x_gt
 
 
@@ -92,7 +93,7 @@ y, x0, weights = jax.device_put([y, x_mrf, weights])
 ρ = 15  # ADMM penalty parameter
 σ = density * 0.18  # denoiser sigma
 
-f = SVMBIRWeightedSquaredL2Loss(y=y, A=A, W=Diagonal(weights), scale=0.5)
+f = SVMBIRSquaredL2Loss(y=y, A=A, W=Diagonal(weights), scale=0.5)
 g0 = σ * ρ * BM3D()
 g1 = NonNegativeIndicator()
 

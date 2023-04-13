@@ -24,7 +24,7 @@ while getopts ":hy" opt; do
     y) AGREE=yes;;
     \?) echo "Error: invalid option -$OPTARG" >&2
 	echo "$USAGE" >&2
-        exit 1
+	exit 1
 	;;
   esac
 done
@@ -70,7 +70,7 @@ fi
 CONDAHOME=$INSTALLROOT/miniconda3
 if [ -d "$CONDAHOME" ]; then
     echo "Error: miniconda3 installation directory $CONDAHOME already exists"\
-	  >&2
+	 >&2
     exit 5
 fi
 
@@ -97,10 +97,9 @@ rm -f /tmp/miniconda.sh
 export PATH="$CONDAHOME/bin:$PATH"
 hash -r
 conda config --set always_yes yes
-conda install -n root _license
+conda install mamba -n base -c conda-forge
 conda update -q conda
 conda info -a
-#conda config --add channels conda-forge
 
 echo "Add the following to your .bashrc or .bash_aliases file"
 echo "  export CONDAHOME=$CONDAHOME"

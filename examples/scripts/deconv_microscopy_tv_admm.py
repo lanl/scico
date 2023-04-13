@@ -18,7 +18,7 @@ The deconvolution problem is solved using class
 solve an image deconvolution problem with isotropic total variation (TV)
 regularization
 
-  $$\mathrm{argmin}_{\mathbf{x}} \; \| M (\mathbf{y} - A \mathbf{x})
+  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| M (\mathbf{y} - A \mathbf{x})
   \|_2^2 + \lambda \| C \mathbf{x} \|_{2,1} +
   \iota_{\mathrm{NN}}(\mathbf{x}) \;,$$
 
@@ -115,7 +115,6 @@ x = x_pad[: y.shape[0], : y.shape[1], : y.shape[2]]
 """
 Show the recovered image.
 """
-
 fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(14, 7))
 plot.imview(tile_volume_slices(y), title="Blurred measurements", fig=fig, ax=ax[0])
 plot.imview(tile_volume_slices(x), title="Deconvolved image", fig=fig, ax=ax[1])

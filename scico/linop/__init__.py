@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021 by SCICO Developers
+# Copyright (C) 2021-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -9,32 +9,41 @@
 
 import sys
 
-# isort: off
-from scico._generic_operators import LinearOperator
-from ._linop import Diagonal, Identity, power_iteration, operator_norm, Sum, Slice, valid_adjoint
-from ._matrix import MatrixOperator
-from ._diff import FiniteDifference
-from ._convolve import Convolve, ConvolveByX
 from ._circconv import CircularConvolve
+from ._convolve import Convolve, ConvolveByX
 from ._dft import DFT
-from ._stack import LinearOperatorStack
-
+from ._diag import Diagonal, Identity
+from ._diff import FiniteDifference, SingleAxisFiniteDifference
+from ._func import Crop, Pad, Reshape, Slice, Sum, Transpose, linop_from_function
+from ._linop import ComposedLinearOperator, LinearOperator
+from ._matrix import MatrixOperator
+from ._stack import DiagonalStack, VerticalStack
+from ._util import jacobian, operator_norm, power_iteration, valid_adjoint
 
 __all__ = [
-    "LinearOperator",
-    "Identity",
-    "Diagonal",
-    "MatrixOperator",
-    "FiniteDifference",
-    "Convolve",
     "CircularConvolve",
+    "Convolve",
     "DFT",
-    "LinearOperatorStack",
-    "Sum",
+    "Diagonal",
+    "FiniteDifference",
+    "SingleAxisFiniteDifference",
+    "Identity",
+    "VerticalStack",
+    "DiagonalStack",
+    "MatrixOperator",
+    "Pad",
+    "Crop",
+    "Reshape",
     "Slice",
-    "power_iteration",
+    "Sum",
+    "Transpose",
+    "LinearOperator",
+    "ComposedLinearOperator",
+    "linop_from_function",
     "operator_norm",
+    "power_iteration",
     "valid_adjoint",
+    "jacobian",
 ]
 
 # Imported items in __all__ appear to originate in top-level linop module

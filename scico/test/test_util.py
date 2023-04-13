@@ -8,7 +8,31 @@ import jax
 import pytest
 
 import scico.numpy as snp
-from scico.util import ContextTimer, Timer, check_for_tracer, url_get
+from scico.util import ContextTimer, Timer, check_for_tracer, partial, url_get
+
+
+def test_partial_pos():
+    def func(a, b, c, d):
+        return a + 2 * b + 4 * c + 8 * d
+
+    pfunc = partial(func, (0, 2), 0, 0)
+    assert pfunc(1, 0) == 2 and pfunc(0, 1) == 8
+
+
+def test_partial_kw():
+    def func(a=1, b=1, c=1, d=1):
+        return a + 2 * b + 4 * c + 8 * d
+
+    pfunc = partial(func, (), a=0, c=0)
+    assert pfunc(b=1, d=0) == 2 and pfunc(b=0, d=1) == 8
+
+
+def test_partial_pos_and_kw():
+    def func(a, b, c=1, d=1):
+        return a + 2 * b + 4 * c + 8 * d
+
+    pfunc = partial(func, (0,), 0, c=0)
+    assert pfunc(1, d=0) == 2 and pfunc(0, d=1) == 8
 
 
 # See https://stackoverflow.com/a/33117579

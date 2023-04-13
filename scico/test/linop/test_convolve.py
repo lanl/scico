@@ -4,6 +4,7 @@ import warnings
 import numpy as np
 
 import jax
+import jax.numpy as jnp
 import jax.scipy.signal as signal
 
 import pytest
@@ -18,7 +19,7 @@ class TestConvolve:
         self.key = jax.random.PRNGKey(12345)
 
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
-    @pytest.mark.parametrize("input_shape", [(32,), (32, 48)])
+    @pytest.mark.parametrize("input_shape", [(16,), (16, 24)])
     @pytest.mark.parametrize("mode", ["full", "valid", "same"])
     @pytest.mark.parametrize("jit", [False, True])
     def test_eval(self, input_shape, input_dtype, mode, jit):
@@ -34,7 +35,7 @@ class TestConvolve:
         np.testing.assert_allclose(Ax.ravel(), y.ravel(), rtol=1e-4)
 
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
-    @pytest.mark.parametrize("input_shape", [(32,), (32, 48)])
+    @pytest.mark.parametrize("input_shape", [(16,), (16, 24)])
     @pytest.mark.parametrize("mode", ["full", "valid", "same"])
     @pytest.mark.parametrize("jit", [False, True])
     def test_adjoint(self, input_shape, mode, jit, input_dtype):
@@ -58,9 +59,9 @@ class ConvolveTestObj:
         self.psf_B, key = randn((3,), dtype=dtype, key=key)
         self.psf_C, key = randn((5,), dtype=dtype, key=key)
 
-        self.A = Convolve(input_shape=(32,), h=self.psf_A)
-        self.B = Convolve(input_shape=(32,), h=self.psf_B)
-        self.C = Convolve(input_shape=(32,), h=self.psf_C)
+        self.A = Convolve(input_shape=(16,), h=self.psf_A)
+        self.B = Convolve(input_shape=(16,), h=self.psf_B)
+        self.C = Convolve(input_shape=(16,), h=self.psf_C)
 
         # Matrix for a 'generic linop'
         m = self.A.output_shape[0]
@@ -68,7 +69,7 @@ class ConvolveTestObj:
         G_mat, key = randn((m, n), dtype=dtype, key=key)
         self.G = AbsMatOp(G_mat)
 
-        self.x, key = randn((32,), dtype=dtype, key=key)
+        self.x, key = randn((16,), dtype=dtype, key=key)
 
         self.scalar = 3.141
 
@@ -82,7 +83,7 @@ def testobj(request):
 def test_scalar_left(testobj, operator):
     A = operator(testobj.A, testobj.scalar)
     x = testobj.x
-    B = Convolve(input_shape=(32,), h=operator(testobj.psf_A, testobj.scalar))
+    B = Convolve(input_shape=(16,), h=operator(testobj.psf_A, testobj.scalar))
     np.testing.assert_allclose(A @ x, B @ x, rtol=5e-5)
 
 
@@ -92,7 +93,7 @@ def test_scalar_right(testobj, operator):
         pytest.xfail("scalar / LinearOperator is not supported")
     A = operator(testobj.scalar, testobj.A)
     x = testobj.x
-    B = Convolve(input_shape=(32,), h=operator(testobj.scalar, testobj.psf_A))
+    B = Convolve(input_shape=(16,), h=operator(testobj.scalar, testobj.psf_A))
     np.testing.assert_allclose(A @ x, B @ x, rtol=5e-5)
 
 
@@ -118,7 +119,7 @@ def test_convolve_add_sub(testobj, operator):
 def test_add_sub_different_mode(testobj, operator):
     # These tests get caught inside of the _wrap_add_sub input/output shape checks,
     # not the explicit mode check inside of the wrapped __add__ method
-    B_same = Convolve(input_shape=(32,), h=testobj.psf_B, mode="same")
+    B_same = Convolve(input_shape=(16,), h=testobj.psf_B, mode="same")
     with pytest.raises(ValueError):
         operator(testobj.A, B_same)
 
@@ -157,13 +158,13 @@ def test_mul_div_generic_linop(testobj, operator):
 def test_invalid_mode(testobj):
     # mode that doesn't exist
     with pytest.raises(ValueError):
-        Convolve(input_shape=(32,), h=testobj.psf_A, mode="foo")
+        Convolve(input_shape=(16,), h=testobj.psf_A, mode="foo")
 
 
 def test_dimension_mismatch(testobj):
     with pytest.raises(ValueError):
         # 2-dim input shape, 1-dim filter
-        Convolve(input_shape=(32, 32), h=testobj.psf_A)
+        Convolve(input_shape=(16, 16), h=testobj.psf_A)
 
 
 def test_ndarray_h():
@@ -173,8 +174,8 @@ def test_ndarray_h():
         warnings.filterwarnings(action="ignore", category=UserWarning)
 
         h = np.random.randn(3, 3).astype(np.float32)
-        A = Convolve(input_shape=(32, 32), h=h)
-        assert isinstance(A.h, jax.interpreters.xla.DeviceArray)
+        A = Convolve(input_shape=(16, 16), h=h)
+        assert isinstance(A.h, jnp.ndarray)
 
 
 class TestConvolveByX:
@@ -182,7 +183,7 @@ class TestConvolveByX:
         self.key = jax.random.PRNGKey(12345)
 
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
-    @pytest.mark.parametrize("input_shape", [(32,), (32, 48)])
+    @pytest.mark.parametrize("input_shape", [(16,), (16, 24)])
     @pytest.mark.parametrize("mode", ["full", "valid", "same"])
     @pytest.mark.parametrize("jit", [False, True])
     def test_eval(self, input_shape, input_dtype, mode, jit):
@@ -199,7 +200,7 @@ class TestConvolveByX:
         np.testing.assert_allclose(Ax.ravel(), y.ravel(), rtol=1e-4)
 
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
-    @pytest.mark.parametrize("input_shape", [(32,), (32, 48)])
+    @pytest.mark.parametrize("input_shape", [(16,), (16, 24)])
     @pytest.mark.parametrize("mode", ["full", "valid", "same"])
     @pytest.mark.parametrize("jit", [False, True])
     def test_adjoint(self, input_shape, mode, jit, input_dtype):
@@ -223,9 +224,9 @@ class ConvolveByXTestObj:
         self.x_B, key = randn((3,), dtype=dtype, key=key)
         self.x_C, key = randn((5,), dtype=dtype, key=key)
 
-        self.A = ConvolveByX(input_shape=(32,), x=self.x_A)
-        self.B = ConvolveByX(input_shape=(32,), x=self.x_B)
-        self.C = ConvolveByX(input_shape=(32,), x=self.x_C)
+        self.A = ConvolveByX(input_shape=(16,), x=self.x_A)
+        self.B = ConvolveByX(input_shape=(16,), x=self.x_B)
+        self.C = ConvolveByX(input_shape=(16,), x=self.x_C)
 
         # Matrix for a 'generic linop'
         m = self.A.output_shape[0]
@@ -233,7 +234,7 @@ class ConvolveByXTestObj:
         G_mat, key = randn((m, n), dtype=dtype, key=key)
         self.G = AbsMatOp(G_mat)
 
-        self.h, key = randn((32,), dtype=dtype, key=key)
+        self.h, key = randn((16,), dtype=dtype, key=key)
 
         self.scalar = 3.141
 
@@ -247,7 +248,7 @@ def cbx_testobj(request):
 def test_cbx_scalar_left(cbx_testobj, operator):
     A = operator(cbx_testobj.A, cbx_testobj.scalar)
     h = cbx_testobj.h
-    B = ConvolveByX(input_shape=(32,), x=operator(cbx_testobj.x_A, cbx_testobj.scalar))
+    B = ConvolveByX(input_shape=(16,), x=operator(cbx_testobj.x_A, cbx_testobj.scalar))
     np.testing.assert_allclose(A @ h, B @ h, rtol=5e-5)
 
 
@@ -257,7 +258,7 @@ def test_cbx_scalar_right(cbx_testobj, operator):
         pytest.xfail("scalar / LinearOperator is not supported")
     A = operator(cbx_testobj.scalar, cbx_testobj.A)
     h = cbx_testobj.h
-    B = ConvolveByX(input_shape=(32,), x=operator(cbx_testobj.scalar, cbx_testobj.x_A))
+    B = ConvolveByX(input_shape=(16,), x=operator(cbx_testobj.scalar, cbx_testobj.x_A))
     np.testing.assert_allclose(A @ h, B @ h, rtol=5e-5)
 
 
@@ -283,7 +284,7 @@ def test_convolve_add_sub(cbx_testobj, operator):
 def test_add_sub_different_mode(cbx_testobj, operator):
     # These tests get caught inside of the _wrap_add_sub input/output shape checks,
     # not the explicit mode check inside of the wrapped __add__ method
-    B_same = ConvolveByX(input_shape=(32,), x=cbx_testobj.x_B, mode="same")
+    B_same = ConvolveByX(input_shape=(16,), x=cbx_testobj.x_B, mode="same")
     with pytest.raises(ValueError):
         operator(cbx_testobj.A, B_same)
 
@@ -322,13 +323,13 @@ def test_mul_div_generic_linop(cbx_testobj, operator):
 def test_invalid_mode(cbx_testobj):
     # mode that doesn't exist
     with pytest.raises(ValueError):
-        ConvolveByX(input_shape=(32,), x=cbx_testobj.x_A, mode="foo")
+        ConvolveByX(input_shape=(16,), x=cbx_testobj.x_A, mode="foo")
 
 
 def test_dimension_mismatch(cbx_testobj):
     with pytest.raises(ValueError):
         # 2-dim input shape, 1-dim xer
-        ConvolveByX(input_shape=(32, 32), x=cbx_testobj.x_A)
+        ConvolveByX(input_shape=(16, 16), x=cbx_testobj.x_A)
 
 
 def test_ndarray_x():
@@ -338,5 +339,5 @@ def test_ndarray_x():
         warnings.filterwarnings(action="ignore", category=UserWarning)
 
         x = np.random.randn(3, 3).astype(np.float32)
-        A = ConvolveByX(input_shape=(32, 32), x=x)
-        assert isinstance(A.x, jax.interpreters.xla.DeviceArray)
+        A = ConvolveByX(input_shape=(16, 16), x=x)
+        assert isinstance(A.x, jnp.ndarray)

@@ -5,20 +5,18 @@
 # with the package.
 
 r"""
-Image Deconvolution (ADMM w/ Total Variation and Circulant Blur)
-================================================================
+Circulant Blur Image Deconvolution with TV Regularization
+=========================================================
 
-This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.optimize.rst#scico.optimize.ADMM) to
-solve an image deconvolution problem with isotropic total variation (TV)
-regularization
+This example demonstrates the solution of an image deconvolution problem
+with isotropic total variation (TV) regularization
 
-  $$\mathrm{argmin}_{\mathbf{x}} \; \| \mathbf{y} - A \mathbf{x} \|_2^2
-  + \lambda \| C \mathbf{x} \|_1 \;,$$
+  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
+  \|_2^2 + \lambda \| C \mathbf{x} \|_{2,1} \;,$$
 
-where $A$ is Toeplitz matrix, $\mathbf{y}$ is the blurred image, $C$
-is a 2D Finite Difference operator, and $\mathbf{x}$ is the desired
-image.
+where $A$ is a circular convolution operator, $\mathbf{y}$ is the blurred
+image, $C$ is a 2D finite difference operator, and $\mathbf{x}$ is the
+deconvolved image.
 """
 
 
@@ -36,7 +34,8 @@ from scico.util import device_info
 Create a ground truth image.
 """
 phantom = SiemensStar(32)
-x_gt = snp.pad(discrete_phantom(phantom, 240), 8)
+N = 256  # image size
+x_gt = snp.pad(discrete_phantom(phantom, N - 16), 8)
 x_gt = jax.device_put(x_gt)  # convert to jax type, push to GPU
 
 
@@ -58,7 +57,7 @@ y = Ax + σ * noise
 """
 Set up an ADMM solver object.
 """
-λ = 2e-2  # L1 norm regularization parameter
+λ = 2e-2  # L21 norm regularization parameter
 ρ = 5e-1  # ADMM penalty parameter
 maxiter = 50  # number of ADMM iterations
 

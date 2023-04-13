@@ -1,0 +1,117 @@
+# Install scico requirements and run pytest
+
+name: unit tests (ubuntu)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  workflow_dispatch:
+
+jobs:
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [1, 2, 3, 4, 5]
+    name: pytest split ${{ matrix.group }} (ubuntu)
+    defaults:
+      run:
+        shell: bash -l {0}
+    steps:
+      # Check-out the repository under $GITHUB_WORKSPACE
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      # Set up conda/mamba environment
+      - name: Set up mambaforge
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+            miniforge-variant: Mambaforge
+            miniforge-version: latest
+            activate-environment: test-env
+            use-mamba: true
+            python-version: "3.9"
+      # Configure conda environment cache
+      - name: Set up conda environment cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.CONDA }}/envs
+          key: conda-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('dev_requirements.txt') }}-${{ env.CACHE_NUMBER }}
+        env:
+          CACHE_NUMBER: 1  # Increase this value to force cache reset
+        id: cache
+      # Display environment details
+      - name: Display environment details
+        run: |
+          conda info
+          printenv | sort
+      # Install required system package
+      - name: Install required system package
+        run: sudo apt-get install -y libopenblas-dev
+      # Install dependencies in conda environment
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          mamba install -c conda-forge pytest pytest-cov
+          python -m pip install --upgrade pip
+          pip install pytest-split
+          pip install -r requirements.txt
+          pip install -r dev_requirements.txt
+          mamba install -c astra-toolbox astra-toolbox
+          mamba install -c conda-forge pyyaml
+          pip install --upgrade --force-reinstall scipy>=1.6.0  # Temporary fix for GLIBCXX_3.4.30 not found in conda forge version
+          pip install bm4d>=4.0.0
+          pip install "ray[tune]>=2.0.0"
+          pip install hyperopt
+      # Install package to be tested
+      - name: Install package to be tested
+        run: pip install -e .
+      # Run unit tests
+      - name: Run main unit tests
+        run: pytest -x --cov --splits 5 --group ${{ matrix.group }}
+      # Upload coverage data
+      - name: Upload coverage
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage${{ matrix.group }}
+          path: .coverage
+      # Run doc tests
+      - name: Run doc tests
+        if: matrix.group == 1
+        run: |
+          pytest --ignore-glob="*test_*.py" --doctest-modules scico
+
+  coverage:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install coverage
+      - name: Download all artifacts
+        # Downloads coverage1, coverage2, etc.
+        uses: actions/download-artifact@v3
+      - name: Run coverage
+        run: |
+          coverage combine coverage*/.coverage*
+          coverage report
+          coverage xml
+      - uses: codecov/codecov-action@v3
+        with:
+          env_vars: OS,PYTHON
+          fail_ci_if_error: false
+          files: coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          verbose: true

@@ -1,3 +1,36 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# This file is part of the SCICO package. Details of the copyright
+# and user license can be found in the 'LICENSE.txt' file distributed
+# with the package.
+
+r"""
+Parameter Tuning for Image Deconvolution with TV Regularization (ADMM Solver)
+=============================================================================
+
+This example demonstrates the use of
+[scico.ray.tune](../_autosummary/scico.ray.tune.rst) to tune parameters
+for the companion [example script](deconv_tv_admm.rst).
+
+This script is hard-coded to run on CPU only to avoid the large number of
+warnings that are emitted when GPU resources are requested but not available,
+and due to the difficulty of supressing these warnings in a way that does
+not force use of the CPU only. To enable GPU usage, comment out the
+`os.environ` statements near the beginning of the script, and change the
+value of the "gpu" entry in the `resources` dict from 0 to 1. Note that
+two environment variables are set to suppress the warnings because
+`JAX_PLATFORMS` was intended to replace `JAX_PLATFORM_NAME` but this change
+has yet to be correctly implemented
+(see [google/jax#6805](https://github.com/google/jax/issues/6805) and
+[google/jax#10272](https://github.com/google/jax/pull/10272)).
+"""
+
+# isort: off
+import os
+
+os.environ["JAX_PLATFORM_NAME"] = "cpu"
+os.environ["JAX_PLATFORMS"] = "cpu"
+
 import numpy as np
 
 import jax
@@ -15,7 +48,8 @@ from scico.ray import tune
 Create a ground truth image.
 """
 phantom = SiemensStar(32)
-x_gt = snp.pad(discrete_phantom(phantom, 240), 8)
+N = 256  # image size
+x_gt = snp.pad(discrete_phantom(phantom, N - 16), 8)
 
 
 """
@@ -43,7 +77,7 @@ Define performance evaluation function.
 """
 
 
-def eval_params(config):
+def eval_params(config, reporter):
     # Extract solver parameters from config dict.
     λ, ρ = config["lambda"], config["rho"]
     # Get main arrays from ray object store.
@@ -53,8 +87,8 @@ def eval_params(config):
     # Set up problem to be solved.
     A = linop.Convolve(h=psf, input_shape=x_gt.shape)
     f = loss.SquaredL2Loss(y=y, A=A)
-    g = λ * functional.L1Norm()
-    C = linop.FiniteDifference(input_shape=x_gt.shape)
+    g = λ * functional.L21Norm()
+    C = linop.FiniteDifference(input_shape=x_gt.shape, append=0)
     # Define solver.
     solver = ADMM(
         f=f,
@@ -62,20 +96,20 @@ def eval_params(config):
         C_list=[C],
         rho_list=[ρ],
         x0=A.adj(y),
-        maxiter=5,
+        maxiter=10,
         subproblem_solver=LinearSubproblemSolver(),
     )
-    # Perform 50 iterations, reporting performance to ray.tune every 5 iterations.
-    for step in range(10):
+    # Perform 50 iterations, reporting performance to ray.tune every 10 iterations.
+    for step in range(5):
         x_admm = solver.solve()
-        tune.report(psnr=float(metric.psnr(x_gt, x_admm)))
+        reporter(psnr=float(metric.psnr(x_gt, x_admm)))
 
 
 """
 Define parameter search space and resources per trial.
 """
-config = {"lambda": tune.loguniform(1e-2, 1e0), "rho": tune.loguniform(1e-1, 1e1)}
-resources = {"gpu": 0, "cpu": 1}  # gpus per trial, cpus per trial
+config = {"lambda": tune.loguniform(1e-3, 1e-1), "rho": tune.loguniform(1e-2, 1e0)}
+resources = {"cpu": 4, "gpu": 0}  # cpus per trial, gpus per trial
 
 
 """
@@ -119,7 +153,7 @@ for t in analysis.trials:
         mec="blue",
         fig=fig,
     )
-_, ax = plot.plot(
+plot.plot(
     best_config["lambda"],
     best_config["rho"],
     ptyp="loglog",
@@ -133,8 +167,42 @@ _, ax = plot.plot(
     mec="red",
     fig=fig,
 )
+ax = fig.axes[0]
 ax.set_xlim([config["rho"].lower, config["rho"].upper])
 ax.set_ylim([config["lambda"].lower, config["lambda"].upper])
+fig.show()
+
+
+"""
+Plot parameter values visited during parameter search and corresponding
+reconstruction PSNRs.The best point in the parameter space is indicated
+in red.
+"""
+𝜌 = [t.config["rho"] for t in analysis.trials]
+𝜆 = [t.config["lambda"] for t in analysis.trials]
+psnr = [t.metric_analysis["psnr"]["max"] for t in analysis.trials]
+minpsnr = min(max(psnr), 18.0)
+𝜌, 𝜆, psnr = zip(*filter(lambda x: x[2] >= minpsnr, zip(𝜌, 𝜆, psnr)))
+fig, ax = plot.subplots(figsize=(10, 8))
+sc = ax.scatter(𝜌, 𝜆, c=psnr, cmap=plot.cm.plasma_r)
+fig.colorbar(sc)
+plot.plot(
+    best_config["lambda"],
+    best_config["rho"],
+    ptyp="loglog",
+    lw=0,
+    ms=12.0,
+    marker="2",
+    mfc="red",
+    mec="red",
+    fig=fig,
+    ax=ax,
+)
+ax.set_xscale("log")
+ax.set_yscale("log")
+ax.set_xlabel(r"$\rho$")
+ax.set_ylabel(r"$\lambda$")
+ax.set_title("PSNR at each sample location\n(values below 18 dB omitted)")
 fig.show()
 
 

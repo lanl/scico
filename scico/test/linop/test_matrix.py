@@ -3,7 +3,7 @@ import operator as op
 import numpy as np
 
 import jax
-from jax.interpreters.xla import DeviceArray
+import jax.numpy as jnp
 
 import pytest
 
@@ -18,12 +18,13 @@ class TestMatrix:
     def setup_method(self, method):
         self.key = jax.random.PRNGKey(12345)
 
+    @pytest.mark.parametrize("input_cols", [0, 2])
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
-    @pytest.mark.parametrize("input_shape", [(3, 3), (3, 4)])
-    def test_eval(self, input_shape, input_dtype):
+    @pytest.mark.parametrize("matrix_shape", [(3, 3), (3, 4)])
+    def test_eval(self, matrix_shape, input_dtype, input_cols):
 
-        A, key = randn(input_shape, dtype=input_dtype, key=self.key)
-        Ao = MatrixOperator(A)
+        A, key = randn(matrix_shape, dtype=input_dtype, key=self.key)
+        Ao = MatrixOperator(A, input_cols=input_cols)
 
         x, key = randn(Ao.input_shape, dtype=Ao.input_dtype, key=key)
         np.testing.assert_allclose(A @ x, Ao @ x)
@@ -33,45 +34,50 @@ class TestMatrix:
             y, key = randn((64,), dtype=Ao.input_dtype, key=key)
             _ = Ao @ y
 
+    @pytest.mark.parametrize("input_cols", [0, 2])
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
-    @pytest.mark.parametrize("input_shape", [(3, 3), (3, 4)])
-    def test_adjoint(self, input_shape, input_dtype):
+    @pytest.mark.parametrize("matrix_shape", [(3, 3), (3, 4)])
+    def test_adjoint(self, matrix_shape, input_dtype, input_cols):
 
-        A, key = randn(input_shape, dtype=input_dtype, key=self.key)
-        Ao = MatrixOperator(A)
+        A, key = randn(matrix_shape, dtype=input_dtype, key=self.key)
+        Ao = MatrixOperator(A, input_cols=input_cols)
 
         x, key = randn(Ao.output_shape, dtype=Ao.input_dtype, key=key)
         np.testing.assert_allclose(A.conj().T @ x, Ao.conj().T @ x)
 
+    @pytest.mark.parametrize("input_cols", [0, 2])
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
-    @pytest.mark.parametrize("input_shape", [(3, 3), (3, 4)])
-    def test_adjoint_method(self, input_shape, input_dtype):
-        A, key = randn(input_shape, dtype=input_dtype, key=self.key)
-        Ao = MatrixOperator(A)
+    @pytest.mark.parametrize("matrix_shape", [(3, 3), (3, 4)])
+    def test_adjoint_method(self, matrix_shape, input_dtype, input_cols):
+        A, key = randn(matrix_shape, dtype=input_dtype, key=self.key)
+        Ao = MatrixOperator(A, input_cols=input_cols)
         x, key = randn(Ao.output_shape, dtype=Ao.input_dtype, key=key)
         np.testing.assert_allclose(Ao.adj(x), Ao.conj().T @ x)
 
+    @pytest.mark.parametrize("input_cols", [0, 2])
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
-    @pytest.mark.parametrize("input_shape", [(3, 3), (3, 4)])
-    def test_hermetian_method(self, input_shape, input_dtype):
-        A, key = randn(input_shape, dtype=input_dtype, key=self.key)
-        Ao = MatrixOperator(A)
+    @pytest.mark.parametrize("matrix_shape", [(3, 3), (3, 4)])
+    def test_hermetian_method(self, matrix_shape, input_dtype, input_cols):
+        A, key = randn(matrix_shape, dtype=input_dtype, key=self.key)
+        Ao = MatrixOperator(A, input_cols=input_cols)
         x, key = randn(Ao.output_shape, dtype=Ao.input_dtype, key=key)
         np.testing.assert_allclose(Ao.H @ x, Ao.conj().T @ x)
 
+    @pytest.mark.parametrize("input_cols", [0, 2])
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
-    @pytest.mark.parametrize("input_shape", [(3, 3), (3, 4)])
-    def test_gram_method(self, input_shape, input_dtype):
-        A, key = randn(input_shape, dtype=input_dtype, key=self.key)
-        Ao = MatrixOperator(A)
+    @pytest.mark.parametrize("matrix_shape", [(3, 3), (3, 4)])
+    def test_gram_method(self, matrix_shape, input_dtype, input_cols):
+        A, key = randn(matrix_shape, dtype=input_dtype, key=self.key)
+        Ao = MatrixOperator(A, input_cols=input_cols)
         x, key = randn(Ao.input_shape, dtype=Ao.input_dtype, key=key)
         np.testing.assert_allclose(Ao.gram(x), A.conj().T @ A @ x, rtol=5e-5)
 
+    @pytest.mark.parametrize("input_cols", [0, 2])
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
-    @pytest.mark.parametrize("input_shape", [(3, 3), (3, 4)])
-    def test_gram_op(self, input_shape, input_dtype):
-        A, key = randn(input_shape, dtype=input_dtype, key=self.key)
-        Ao = MatrixOperator(A)
+    @pytest.mark.parametrize("matrix_shape", [(3, 3), (3, 4)])
+    def test_gram_op(self, matrix_shape, input_dtype, input_cols):
+        A, key = randn(matrix_shape, dtype=input_dtype, key=self.key)
+        Ao = MatrixOperator(A, input_cols=input_cols)
         G = Ao.gram_op
         x, key = randn(Ao.input_shape, dtype=Ao.input_dtype, key=key)
         np.testing.assert_allclose(G @ x, A.conj().T @ A @ x, rtol=5e-5)
@@ -201,6 +207,16 @@ class TestMatrix:
         AB = Ao @ Bo
         np.testing.assert_allclose((Ao @ Bo) @ x, Ao @ (Bo @ x), rtol=5e-5)
 
+    def test_matmul_cols(self):
+        A, key = randn((4, 6), key=self.key)
+        B, key = randn((6, 3), key=key)
+        Ao = MatrixOperator(A, input_cols=2)
+        Bo = MatrixOperator(B, input_cols=2)
+        x, key = randn(Bo.input_shape, dtype=Ao.input_dtype, key=key)
+
+        AB = Ao @ Bo
+        np.testing.assert_allclose((Ao @ Bo) @ x, Ao @ (Bo @ x), rtol=5e-5)
+
     def test_matmul_linop(self):
         A, key = randn((4, 6), key=self.key)
         B, key = randn((6, 3), key=key)
@@ -228,14 +244,14 @@ class TestMatrix:
     def test_init_devicearray(self):
         A = np.random.randn(4, 6)
         Ao = MatrixOperator(A)
-        assert isinstance(Ao.A, DeviceArray)
+        assert isinstance(Ao.A, jnp.ndarray)
 
         with pytest.raises(TypeError):
             MatrixOperator([1.0, 3.0])
 
-    @pytest.mark.parametrize("input_shape", [(3,), (2, 3, 4)])
-    def test_init_wrong_dims(self, input_shape):
-        A = np.random.randn(*input_shape)
+    @pytest.mark.parametrize("matrix_shape", [(3,), (2, 3, 4)])
+    def test_init_wrong_dims(self, matrix_shape):
+        A = np.random.randn(*matrix_shape)
         with pytest.raises(TypeError):
             Ao = MatrixOperator(A)
 

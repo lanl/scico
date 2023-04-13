@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021 by SCICO Developers
+# Copyright (C) 2021-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -10,34 +10,29 @@
 import math
 import operator
 from functools import partial
-from typing import Optional
+from typing import Optional, Sequence, Tuple, Union
 
 import numpy as np
 
 from jax.dtypes import result_type
 
+from jaxlib.xla_extension import DeviceArray
+
 import scico.numpy as snp
-from scico._generic_operators import Operator
-from scico.typing import DType, JaxArray, Shape
+from scico.numpy.util import is_nested
+from scico.operator import Operator
+from scico.typing import Array, DType, JaxArray, Shape
 
 from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
-
-__author__ = """\n""".join(
-    [
-        "Brendt Wohlberg <brendt@ieee.org>",
-        "Luke Pfister <luke.pfister@gmail.com>",
-        "Michael McCann <mccann@lanl.gov>",
-    ]
-)
 
 
 class CircularConvolve(LinearOperator):
     r"""A circular convolution linear operator.
 
-    This linear operator implements circular, n-dimensional convolution
-    via pointwise multiplication in the DFT domain. In its simplest form,
-    it implements a single convolution and can be represented by linear
-    operator :math:`H` such that
+    This linear operator implements circular, multi-dimensional
+    convolution via pointwise multiplication in the DFT domain. In its
+    simplest form, it implements a single convolution and can be
+    represented by linear operator :math:`H` such that
 
     .. math::
        H \mb{x} = \mb{h} \ast \mb{x} \;,
@@ -90,7 +85,7 @@ class CircularConvolve(LinearOperator):
         ndims: Optional[int] = None,
         input_dtype: DType = snp.float32,
         h_is_dft: bool = False,
-        h_center: Optional[JaxArray] = None,
+        h_center: Optional[Union[JaxArray, Sequence, float, int]] = None,
         jit: bool = True,
         **kwargs,
     ):
@@ -102,9 +97,13 @@ class CircularConvolve(LinearOperator):
                involved in the convolution. Defaults to the number of
                dimensions in the input.
             input_dtype: `dtype` for input argument. Defaults to
-               `float32`.
-            h_is_dft: Flag indicating whether ``h`` is in the DFT domain.
-            jit:  If `True`, jit the evaluation, adjoint, and gram
+               ``float32``.
+            h_is_dft: Flag indicating whether `h` is in the DFT domain.
+            h_center: Array of length `ndims` specifying the center of
+               the filter. Defaults to the upper left corner, i.e.,
+               `h_center = [0, 0, ..., 0]`, may be noninteger. May be a
+               ``float`` or ``int`` if `h` is one-dimensional.
+            jit:  If ``True``, jit the evaluation, adjoint, and gram
                functions of the LinearOperator.
         """
 
@@ -114,7 +113,7 @@ class CircularConvolve(LinearOperator):
             self.ndims = ndims
 
         if h_is_dft and h_center is not None:
-            raise ValueError("h_center is not supported when h_is_dft=True")
+            raise ValueError("Parameter h_center must be None when h_is_dft=True.")
         self.h_center = h_center
 
         if h_is_dft:
@@ -127,11 +126,22 @@ class CircularConvolve(LinearOperator):
             self.h_dft = snp.fft.fftn(h, s=fft_shape, axes=fft_axes)
             output_dtype = result_type(h.dtype, input_dtype)
 
-            if h_center is not None:
-                offset = -self.h_center
-                shifts = np.ix_(
+            if self.h_center is not None:
+                if isinstance(self.h_center, DeviceArray):
+                    offset = -self.h_center  # type: ignore
+                else:
+                    # support float or int values for h_center
+                    if isinstance(self.h_center, (float, int)):
+                        offset = -snp.array(
+                            [
+                                self.h_center,
+                            ]
+                        )
+                    else:  # support list/tuple values for h_center
+                        offset = -snp.array(self.h_center)
+                shifts: Tuple[Array, ...] = np.ix_(
                     *tuple(
-                        np.exp(-1j * k * 2 * np.pi * np.fft.fftfreq(s))
+                        np.exp(-1j * k * 2 * np.pi * np.fft.fftfreq(s))  # type: ignore
                         for k, s in zip(offset, input_shape[-self.ndims :])
                     )
                 )
@@ -146,7 +156,7 @@ class CircularConvolve(LinearOperator):
             output_shape = np.broadcast_shapes(self.h_dft.shape, input_shape)
         except ValueError:
             raise ValueError(
-                f"h shape after padding was {self.h_dft.shape}, needs to be compatible "
+                f"Shape of h after padding was {self.h_dft.shape}, needs to be compatible "
                 f"for broadcasting with {input_shape}."
             )
 
@@ -177,7 +187,7 @@ class CircularConvolve(LinearOperator):
             hx = hx.real
         return hx
 
-    def _adj(self, x: JaxArray) -> JaxArray:
+    def _adj(self, x: JaxArray) -> JaxArray:  # type: ignore
         x_dft = snp.fft.fftn(x, axes=self.ifft_axes)
         H_adj_x = snp.fft.ifftn(
             snp.conj(self.h_dft) * x_dft,
@@ -192,7 +202,7 @@ class CircularConvolve(LinearOperator):
     @partial(_wrap_add_sub, op=operator.add)
     def __add__(self, other):
         if self.ndims != other.ndims:
-            raise ValueError(f"Incompatible ndims:  {self.ndims} != {other.ndims}")
+            raise ValueError(f"Incompatible ndims: {self.ndims} != {other.ndims}.")
 
         return CircularConvolve(
             h=self.h_dft + other.h_dft,
@@ -205,7 +215,7 @@ class CircularConvolve(LinearOperator):
     @partial(_wrap_add_sub, op=operator.sub)
     def __sub__(self, other):
         if self.ndims != other.ndims:
-            raise ValueError(f"Incompatible ndims:  {self.ndims} != {other.ndims}")
+            raise ValueError(f"Incompatible ndims: {self.ndims} != {other.ndims}.")
 
         return CircularConvolve(
             h=self.h_dft - other.h_dft,
@@ -239,6 +249,7 @@ class CircularConvolve(LinearOperator):
             h_is_dft=True,
         )
 
+    @staticmethod
     def from_operator(
         H: Operator, ndims: Optional[int] = None, center: Optional[Shape] = None, jit: bool = True
     ):
@@ -256,13 +267,20 @@ class CircularConvolve(LinearOperator):
             jit: If ``True``, jit the resulting `CircularConvolve`.
         """
 
+        if is_nested(H.input_shape):
+            raise ValueError(
+                f"H.input_shape ({H.input_shape}) suggests that H "
+                "takes a BlockArray as input, which is not supported "
+                "by this function."
+            )
+
         if ndims is None:
             ndims = len(H.input_shape)
         else:
             ndims = ndims
 
         if center is None:
-            center = tuple(d // 2 for d in H.input_shape[-ndims:])
+            center = tuple(d // 2 for d in H.input_shape[-ndims:])  # type: ignore
 
         # compute impulse response
         d = snp.zeros(H.input_shape, H.input_dtype)
@@ -272,7 +290,7 @@ class CircularConvolve(LinearOperator):
         # build CircularConvolve
         return CircularConvolve(
             Hd,
-            H.input_shape,
+            H.input_shape,  # type: ignore
             ndims=ndims,
             input_dtype=H.input_dtype,
             h_center=snp.array(center),
@@ -283,7 +301,8 @@ class CircularConvolve(LinearOperator):
 def _gradient_filters(ndim: int, axes: Shape, shape: Shape, dtype: DType = snp.float32) -> JaxArray:
     r"""Construct filters for computing gradients in the frequency domain.
 
-    Construct a set of filters for computing gradients in the frequency domain.
+    Construct a set of filters for computing gradients in the frequency
+    domain.
 
     Args:
         ndim: Total number of dimensions in array in which gradients are

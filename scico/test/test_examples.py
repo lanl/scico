@@ -3,11 +3,19 @@ import tempfile
 
 import numpy as np
 
-import imageio
+import imageio.v2 as iio
+import pytest
 
+import scico.numpy as snp
 from scico.examples import (
+    create_3D_foam_phantom,
+    create_circular_phantom,
+    create_cone,
     downsample_volume,
     epfl_deconv_data,
+    phase_diff,
+    rgb2gray,
+    spnoise,
     tile_volume_slices,
     volume_read,
 )
@@ -15,12 +23,18 @@ from scico.examples import (
 # These tests are for the scico.examples module, NOT the example scripts
 
 
+def test_rgb2gray():
+    rgb = np.ones((31, 32, 3), dtype=np.float32)
+    gry = rgb2gray(rgb)
+    assert np.abs(gry.mean() - 1.0) < 1e-6
+
+
 def test_volume_read():
     temp_dir = tempfile.TemporaryDirectory()
     v0 = np.zeros((32, 32), dtype=np.uint16)
     v1 = np.ones((32, 32), dtype=np.uint16)
-    imageio.imwrite(os.path.join(temp_dir.name, "v0.tif"), v0)
-    imageio.imwrite(os.path.join(temp_dir.name, "v1.tif"), v1)
+    iio.imwrite(os.path.join(temp_dir.name, "v0.tif"), v0)
+    iio.imwrite(os.path.join(temp_dir.name, "v1.tif"), v1)
     vol = volume_read(temp_dir.name, ext="tif")
     assert np.allclose(v0, vol[..., 0]) and np.allclose(v1, vol[..., 1])
 
@@ -53,3 +67,62 @@ def test_tile_volume_slices():
     v = np.ones((16, 16, 16, 3))
     tvs = tile_volume_slices(v)
     assert tvs.ndim == 3 and tvs.shape[-1] == 3
+
+
+def test_create_circular_phantom():
+    img_shape = (32, 32)
+    radius_list = [2, 4, 8]
+    val_list = [2, 4, 8]
+    x_gt = create_circular_phantom(img_shape, radius_list, val_list)
+
+    assert x_gt.shape == img_shape
+    assert np.max(x_gt) == max(val_list)
+    assert np.min(x_gt) == 0
+
+
+@pytest.mark.parametrize(
+    "img_shape",
+    (
+        (3, 3),
+        (50, 51),
+        (3, 3, 3),
+    ),
+)
+def test_create_cone(img_shape):
+    x_gt = create_cone(img_shape)
+    assert x_gt.shape == img_shape
+    # check symmetry
+    assert np.abs(x_gt[(0,) * len(img_shape)] - x_gt[(-1,) * len(img_shape)]) < 1e-6
+
+
+@pytest.mark.parametrize(
+    "img_shape",
+    (
+        (3, 3, 3),
+        (20, 21, 22),
+        (15, 15, 5),
+    ),
+)
+@pytest.mark.parametrize("N_sphere", (3, 10, 20))
+def test_create_3D_foam_phantom(img_shape, N_sphere):
+    x_gt = create_3D_foam_phantom(img_shape, N_sphere)
+    assert x_gt.shape == img_shape
+
+
+def test_spnoise():
+    x = 0.5 * np.ones((10, 11))
+    y = spnoise(x, 0.5, nmin=0.01, nmax=0.99)
+    assert np.all(y >= 0.01)
+    assert np.all(y <= 0.99)
+    x = 0.5 * snp.ones((10, 11))
+    y = spnoise(x, 0.5, nmin=0.01, nmax=0.99)
+    assert np.all(y >= 0.01)
+    assert np.all(y <= 0.99)
+
+
+def test_phase_diff():
+    x = np.pi * np.random.randn(16)
+    y = np.pi * np.random.randn(16)
+    d = phase_diff(x, y)
+    assert np.all(d >= 0)
+    assert np.all(d <= np.pi)

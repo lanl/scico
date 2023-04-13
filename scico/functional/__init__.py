@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021 by SCICO Developers
+# Copyright (C) 2021-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -11,10 +11,10 @@ import sys
 
 # isort: off
 from ._functional import Functional, ScaledFunctional, SeparableFunctional, ZeroFunctional
-from ._norm import L0Norm, L1Norm, SquaredL2Norm, L2Norm, L21Norm
+from ._norm import HuberNorm, L0Norm, L1Norm, SquaredL2Norm, L2Norm, L21Norm, NuclearNorm
 from ._indicator import NonNegativeIndicator, L2BallIndicator
-from ._flax import FlaxMap
-from ._denoiser import BM3D, DnCNN
+from ._denoiser import BM3D, BM4D, DnCNN
+from ._dist import SetDistance, SquaredSetDistance
 
 
 __all__ = [
@@ -22,15 +22,19 @@ __all__ = [
     "ScaledFunctional",
     "SeparableFunctional",
     "ZeroFunctional",
+    "HuberNorm",
     "L0Norm",
     "L1Norm",
     "SquaredL2Norm",
     "L2Norm",
     "L21Norm",
     "NonNegativeIndicator",
+    "NuclearNorm",
     "L2BallIndicator",
-    "FlaxMap",
+    "SetDistance",
+    "SquaredSetDistance",
     "BM3D",
+    "BM4D",
     "DnCNN",
 ]
 

@@ -5,20 +5,21 @@
 # with the package.
 
 r"""
-Image Deconvolution (ADMM w/ Total Variation)
-=============================================
+Image Deconvolution with TV Regularization (ADMM Solver)
+========================================================
 
-This example demonstrates the use of class
-[admm.ADMM](../_autosummary/scico.optimize.rst#scico.optimize.ADMM) to solve
-an image deconvolution problem with anisotropic total variation (TV)
-regularization.
+This example demonstrates the solution of an image deconvolution problem
+with isotropic total variation (TV) regularization
 
-  $$\mathrm{argmin}_{\mathbf{x}} \; \| \mathbf{y} - A \mathbf{x} \|_2^2
-  + \lambda \| C \mathbf{x} \|_1 \;,$$
+  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - C \mathbf{x}
+  \|_2^2 + \lambda \| D \mathbf{x} \|_{2,1} \;,$$
 
-where $A$ is Toeplitz matrix, $\mathbf{y}$ is the blurred image, $C$
-is a 2D Finite Difference operator, and $\mathbf{x}$ is the desired
-image.
+where $C$ is a convolution operator, $\mathbf{y}$ is the blurred image,
+$D$ is a 2D finite fifference operator, and $\mathbf{x}$ is the
+deconvolved image.
+
+In this example the problem is solved via standard ADMM, while proximal
+ADMM is used in a [companion example](deconv_tv_padmm.rst).
 """
 
 import jax
@@ -35,7 +36,8 @@ from scico.util import device_info
 Create a ground truth image.
 """
 phantom = SiemensStar(32)
-x_gt = snp.pad(discrete_phantom(phantom, 240), 8)
+N = 256  # image size
+x_gt = snp.pad(discrete_phantom(phantom, N - 16), 8)
 x_gt = jax.device_put(x_gt)  # convert to jax type, push to GPU
 
 
@@ -47,31 +49,56 @@ n = 5  # convolution kernel size
 σ = 20.0 / 255  # noise level
 
 psf = snp.ones((n, n)) / (n * n)
-A = linop.Convolve(h=psf, input_shape=x_gt.shape)
+C = linop.Convolve(h=psf, input_shape=x_gt.shape)
 
-Ax = A(x_gt)  # blurred image
-noise, key = scico.random.randn(Ax.shape, seed=0)
-y = Ax + σ * noise
+Cx = C(x_gt)  # blurred image
+noise, key = scico.random.randn(Cx.shape, seed=0)
+y = Cx + σ * noise
+
+
+r"""
+Set up the problem to be solved. We want to minimize the functional
+
+  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - C \mathbf{x}
+  \|_2^2 + \lambda \| D \mathbf{x} \|_{2,1} \;,$$
+
+where $C$ is the convolution operator and $D$ is a finite difference
+operator. This problem can be expressed as
+
+  $$\mathrm{argmin}_{\mathbf{x}, \mathbf{z}} \; (1/2) \| \mathbf{y} -
+  C \mathbf{x} \|_2^2 + \lambda \| \mathbf{z} \|_{2,1} \;\;
+  \text{such that} \;\; \mathbf{z} = D \mathbf{x} \;,$$
+
+which is easily written in the form of a standard ADMM problem.
+
+This is simpler splitting than that used in the
+[companion example](deconv_tv_padmm.rst), but it requires the use
+conjugate gradient sub-iterations to solve the ADMM step associated with
+the data fidelity term.
+"""
+f = loss.SquaredL2Loss(y=y, A=C)
+# Penalty parameters must be accounted for in the gi functions, not as
+# additional inputs.
+λ = 2.1e-2  # L1 norm regularization parameter
+g = λ * functional.L21Norm()
+# The append=0 option makes the results of horizontal and vertical
+# finite differences the same shape, which is required for the L21Norm,
+# which is used so that g(Cx) corresponds to isotropic TV.
+D = linop.FiniteDifference(input_shape=x_gt.shape, append=0)
 
 
 """
 Set up an ADMM solver object.
 """
-λ = 2e-2  # L1 norm regularization parameter
-ρ = 5e-1  # ADMM penalty parameter
+ρ = 1.0e-1  # ADMM penalty parameter
 maxiter = 50  # number of ADMM iterations
 
-f = loss.SquaredL2Loss(y=y, A=A)
-# Penalty parameters must be accounted for in the gi functions, not as
-# additional inputs.
-g = λ * functional.L1Norm()  # regularization functionals gi
-C = linop.FiniteDifference(input_shape=x_gt.shape)  # analysis operators Ci
 solver = ADMM(
     f=f,
     g_list=[g],
-    C_list=[C],
+    C_list=[D],
     rho_list=[ρ],
-    x0=A.adj(y),
+    x0=C.adj(y),
     maxiter=maxiter,
     subproblem_solver=LinearSubproblemSolver(),
     itstat_options={"display": True, "period": 10},

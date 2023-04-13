@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021 by SCICO Developers
+# Copyright (C) 2021-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -12,22 +12,33 @@ import glob
 import os
 import tempfile
 import zipfile
+from typing import List, Optional, Tuple
 
 import numpy as np
 
-import imageio
+import imageio.v2 as iio
 
 import scico.numpy as snp
-from scico import util
-from scico.typing import JaxArray
+from scico import random, util
+from scico.typing import Array, JaxArray, Shape
 from scipy.ndimage import zoom
 
-__author__ = """\n""".join(
-    ["Brendt Wohlberg <brendt@ieee.org>", "Michael McCann <mccann@lanl.gov>"]
-)
+
+def rgb2gray(rgb: JaxArray) -> JaxArray:
+    """Convert an RGB image (or images) to grayscale.
+
+    Args:
+        rgb: RGB image as Nr x Nc x 3 or Nr x Nc x 3 x K array.
+
+    Returns:
+        Grayscale image as Nr x Nc or Nr x Nc x K array.
+    """
+
+    w = snp.array([0.299, 0.587, 0.114], dtype=rgb.dtype)[np.newaxis, np.newaxis]
+    return snp.sum(w * rgb, axis=2)
 
 
-def volume_read(path: str, ext: str = "tif") -> JaxArray:
+def volume_read(path: str, ext: str = "tif") -> Array:
     """Read a 3D volume from a set of files in the specified directory.
 
     All files with extension `ext` (i.e. matching glob `*.ext`)
@@ -45,7 +56,7 @@ def volume_read(path: str, ext: str = "tif") -> JaxArray:
 
     slices = []
     for file in sorted(glob.glob(os.path.join(path, "*." + ext))):
-        image = imageio.imread(file)
+        image = iio.imread(file)
         slices.append(image)
     return np.dstack(slices)
 
@@ -72,7 +83,7 @@ def get_epfl_deconv_data(channel: int, path: str, verbose: bool = False):  # pra
 
     # ensure path directory exists
     if not os.path.isdir(path):
-        raise ValueError(f"Path {path} does not exist or is not a directory")
+        raise ValueError(f"Path {path} does not exist or is not a directory.")
 
     # create temporary directory
     temp_dir = tempfile.TemporaryDirectory()
@@ -106,7 +117,9 @@ def get_epfl_deconv_data(channel: int, path: str, verbose: bool = False):  # pra
     np.savez(npz_file, y=y, psf=psf)
 
 
-def epfl_deconv_data(channel: int, verbose: bool = False, cache_path: str = None) -> JaxArray:
+def epfl_deconv_data(
+    channel: int, verbose: bool = False, cache_path: Optional[str] = None
+) -> Array:
     """Get deconvolution problem data from EPFL Biomedical Imaging Group.
 
     If the data has previously been downloaded, it will be retrieved from
@@ -144,7 +157,7 @@ def epfl_deconv_data(channel: int, verbose: bool = False, cache_path: str = None
     return y, psf
 
 
-def downsample_volume(vol: JaxArray, rate: int) -> JaxArray:
+def downsample_volume(vol: Array, rate: int) -> Array:
     """Downsample a 3D array.
 
     Downsample a 3D array. If the volume dimensions can be divided by
@@ -173,7 +186,7 @@ def downsample_volume(vol: JaxArray, rate: int) -> JaxArray:
     return vol
 
 
-def tile_volume_slices(x: JaxArray, sep_width: int = 10) -> JaxArray:
+def tile_volume_slices(x: Array, sep_width: int = 10) -> Array:
     """Make an image with tiled slices from an input volume.
 
     Make an image with tiled `xy`, `xz`, and `yz` slices from an input
@@ -190,7 +203,7 @@ def tile_volume_slices(x: JaxArray, sep_width: int = 10) -> JaxArray:
     """
 
     if x.ndim == 3:
-        fshape = (x.shape[0], sep_width)
+        fshape: Tuple[int, ...] = (x.shape[0], sep_width)
     else:
         fshape = (x.shape[0], sep_width, 3)
     out = snp.concatenate(
@@ -203,9 +216,9 @@ def tile_volume_slices(x: JaxArray, sep_width: int = 10) -> JaxArray:
     )
 
     if x.ndim == 3:
-        fshape0 = (sep_width, out.shape[1])
-        fshape1 = (x.shape[2], x.shape[2] + sep_width)
-        trans = (1, 0)
+        fshape0: Tuple[int, ...] = (sep_width, out.shape[1])
+        fshape1: Tuple[int, ...] = (x.shape[2], x.shape[2] + sep_width)
+        trans: Tuple[int, ...] = (1, 0)
 
     else:
         fshape0 = (sep_width, out.shape[1], 3)
@@ -229,3 +242,145 @@ def tile_volume_slices(x: JaxArray, sep_width: int = 10) -> JaxArray:
     out = snp.where(snp.isnan(out), snp.nanmax(out), out)
 
     return out
+
+
+def create_cone(img_shape: Shape, center: Optional[List[float]] = None) -> Array:
+    """Compute a 2D map of the distance from a center pixel.
+
+    Args:
+        img_shape: Shape of the image for which the distance map is being
+            computed.
+        center: Tuple of center pixel coordinates. If ``None``, this is
+            set to the center of the image.
+
+    Returns:
+        An image containing a 2D map of the distances.
+    """
+
+    if center is None:
+        center = [(img_dim - 1) / 2 for img_dim in img_shape]
+
+    coords = [snp.arange(0, img_dim) for img_dim in img_shape]
+    coord_mesh = snp.meshgrid(*coords, sparse=True, indexing="ij")
+
+    dist_map = sum([(coord_mesh[i] - center[i]) ** 2 for i in range(len(coord_mesh))])
+    dist_map = snp.sqrt(dist_map)
+
+    return dist_map
+
+
+def create_circular_phantom(
+    img_shape: Shape, radius_list: list, val_list: list, center: Optional[list] = None
+) -> Array:
+    """Construct a circular phantom with given radii and intensities.
+
+    Args:
+        img_shape: Shape of the phantom to be created.
+        radius_list: List of radii of the rings in the phantom.
+        val_list: List of intensity values of the rings in the phantom.
+        center: Tuple of center pixel coordinates. If ``None``, this is
+           set to the center of the image.
+
+    Returns:
+        The computed circular phantom.
+    """
+
+    dist_map = create_cone(img_shape, center)
+
+    img = snp.zeros(img_shape)
+    for r, val in zip(radius_list, val_list):
+        # In numpy: img[dist_map < r] = val
+        img = img.at[dist_map < r].set(val)
+
+    return img
+
+
+def create_3D_foam_phantom(
+    im_shape: Shape,
+    N_sphere: int,
+    r_mean: float = 0.1,
+    r_std: float = 0.001,
+    pad: float = 0.01,
+    is_random: bool = False,
+) -> JaxArray:
+    """Construct a 3D phantom with random radii and centers.
+
+    Args:
+        im_shape: Shape of input image.
+        N_sphere: Number of spheres added.
+        r_mean: Mean radius of sphere (normalized to 1 along each axis).
+                Default 0.1.
+        r_std: Standard deviation of radius of sphere (normalized to 1
+                along each axis). Default 0.001.
+        pad: Padding length (normalized to 1 along each axis). Default 0.01.
+        is_random: Flag used to controll randomness of phantom generation.
+                If ``False``, random seed is set to 1 in order to make the
+                process deterministic. Default ``False``.
+
+    Returns:
+        3D phantom of shape `im_shape`.
+    """
+    c_lo = 0.0
+    c_hi = 1.0
+
+    if not is_random:
+        np.random.seed(1)
+
+    coord_list = [snp.linspace(0, 1, N) for N in im_shape]
+    x = snp.stack(snp.meshgrid(*coord_list, indexing="ij"), axis=-1)
+
+    centers = np.random.uniform(low=r_mean + pad, high=1 - r_mean - pad, size=(N_sphere, 3))
+    radii = r_std * np.random.randn(N_sphere) + r_mean
+
+    im = snp.zeros(im_shape) + c_lo
+    for c, r in zip(centers, radii):  # type: ignore
+        dist = snp.sum((x - c) ** 2, axis=-1)
+        if snp.mean(im[dist < r**2] - c_lo) < 0.01 * c_hi:
+            # equivalent to im[dist < r**2] = c_hi in numpy
+            im = im.at[dist < r**2].set(c_hi)
+
+    return im
+
+
+def spnoise(img: Array, nfrac: float, nmin: float = 0.0, nmax: float = 1.0) -> Array:
+    """Return image with salt & pepper noise imposed on it.
+
+    Args:
+        img: Input image.
+        nfrac: Desired fraction of pixels corrupted by noise.
+        nmin: Lower value for noise (pepper). Default 0.0.
+        nmax: Upper value for noise (salt). Default 1.0.
+
+    Returns:
+        Noisy image
+    """
+
+    if isinstance(img, np.ndarray):
+        spm = np.random.uniform(-1.0, 1.0, img.shape)  # type: ignore
+        imgn = img.copy()
+        imgn[spm < nfrac - 1.0] = nmin
+        imgn[spm > 1.0 - nfrac] = nmax
+    else:
+        spm, key = random.uniform(shape=img.shape, minval=-1.0, maxval=1.0, seed=0)  # type: ignore
+        imgn = img
+        imgn = imgn.at[spm < nfrac - 1.0].set(nmin)  # type: ignore
+        imgn = imgn.at[spm > 1.0 - nfrac].set(nmax)  # type: ignore
+    return imgn
+
+
+def phase_diff(x: Array, y: Array) -> Array:
+    """Distance between phase angles.
+
+    Compute the distance between two arrays of phase angles, with
+    appropriate phase wrapping to minimize the distance.
+
+    Args:
+        x: Input array.
+        y: Input array.
+
+    Returns:
+        Array of angular distances.
+    """
+
+    mod = snp.mod(snp.abs(x - y), 2 * snp.pi)
+    return snp.minimum(mod, 2 * snp.pi - mod)

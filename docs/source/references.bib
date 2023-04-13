@@ -1,3 +1,28 @@
+@Article {aggarwal-2019-modl,
+  author =	 {Aggarwal, Hemant K. and Mani, Merry P. and Jacob,
+                  Mathews},
+  journal =	 {IEEE Transactions on Medical Imaging},
+  title =	 {{MoDL}: Model-Based Deep Learning Architecture for
+                  Inverse Problems},
+  year =	 2019,
+  volume =	 38,
+  number =	 2,
+  pages =	 {394--405},
+  doi =		 {10.1109/TMI.2018.2865356}
+}
+
+@Article {alliney-1992-digital,
+  author =	 {Alliney, Stefano},
+  journal =	 {IEEE Transactions on Signal Processing},
+  title =	 {Digital filters as absolute norm regularizers},
+  year =	 1992,
+  volume =	 40,
+  number =	 6,
+  pages =	 {1548--1562},
+  doi =		 {10.1109/78.139258},
+  month =	 Jun
+}
+
 @Article {almeida-2013-deconvolving,
   author =	 {Almeida, Mariana S. C. and Figueiredo, M\'ario},
   journal =	 {IEEE Transactions on Image Processing},
@@ -9,6 +34,19 @@
   number =	 8,
   pages =	 {3074--3086},
   doi =		 {10.1109/TIP.2013.2258354}
+}
+
+@Article {balke-2022-scico,
+  author =	 {Thilo Balke and Fernando Davis and Cristina
+                  Garcia-Cardona and Soumendu Majee and Michael McCann
+                  and Luke Pfister and Brendt Wohlberg},
+  title =	 {Scientific Computational Imaging Code ({SCICO})},
+  journal =	 {Journal of Open Source Software},
+  year =	 2022,
+  volume =	 7,
+  number =	 78,
+  pages =	 4722,
+  doi =		 {10.21105/joss.04722}
 }
 
 @Article {barzilai-1988-stepsize,
@@ -47,7 +85,7 @@
   doi =		 {10.1109/TIP.2009.2028250}
 }
 
-@InCollection{beck-2010-gradient,
+@InCollection {beck-2010-gradient,
   author =	 {Amir Beck and Marc Teboulle},
   editor =	 {Daniel P. Palomar and Yonina C. Eldar},
   title =	 {Gradient-based algorithms with applications to
@@ -69,6 +107,30 @@
                   (SIAM)},
   doi =		 {10.1137/1.9781611974997},
   isbn =	 1611974984
+}
+
+@Software {bradbury-2018-jax,
+  author =	 {James Bradbury and Roy Frostig and Peter Hawkins and
+                  Matthew James Johnson and Chris Leary and Dougal
+                  Maclaurin and George Necula and Adam Paszke and Jake
+                  Vander{P}las and Skye Wanderman-{M}ilne and Qiao
+                  Zhang},
+  title =	 {{JAX}: composable transformations of
+                  {P}ython+{N}um{P}y programs},
+  url =		 {http://github.com/google/jax},
+  version =	 {0.2.5},
+  year =	 {2018}
+}
+
+@InProceedings {benning-2016-preconditioned,
+  title =	 {Preconditioned {ADMM} with nonlinear operator
+                  constraint},
+  author =	 {Benning, Martin and Knoll, Florian and
+                  Sch{\"o}nlieb, Carola-Bibiane and Valkonen, Tuomo},
+  booktitle =	 {IFIP Conference on System Modeling and Optimization (CSMO) 2015},
+  pages =	 {117--126},
+  year =	 2016,
+  doi =		 {10.1007/978-3-319-55795-3_10}
 }
 
 @Article {boyd-2010-distributed,
@@ -97,11 +159,24 @@
   doi =		 {10.1137/17M1122451}
 }
 
+@Article {cai-2010-singular,
+  title =	 {A Singular Value Thresholding Algorithm for Matrix
+                  Completion},
+  author =	 {Cai, Jian-Feng and Cand{\`e}s, Emmanuel J. and Shen,
+                  Zuowei},
+  journal =	 {SIAM Journal on Optimization},
+  year =	 2010,
+  volume =	 20,
+  number =	 4,
+  pages =	 {1956--1982},
+  doi =		 {10.1137/080738970}
+}
+
 @Article {chambolle-2010-firstorder,
   author =	 {Antonin Chambolle and Thomas Pock},
   title =	 {A First-Order Primal-Dual Algorithm for Convex
                   Problems with~Applications to Imaging},
-  journal =      {Journal of Mathematical Imaging and Vision},
+  journal =	 {Journal of Mathematical Imaging and Vision},
   doi =		 {10.1007/s10851-010-0251-1},
   year =	 2010,
   month =	 Dec,
@@ -124,11 +199,11 @@
   doi =		 {10.1109/42.222670}
 }
 
-@InProceedings{dabov-2008-image,
+@InProceedings {dabov-2008-image,
   author =	 {Kostadin Dabov and Alessandro Foi and Vladimir
                   Katkovnik and Karen Egiazarian},
-  title =	 {{Image restoration by sparse 3D transform-domain
-                  collaborative filtering}},
+  title =	 {Image restoration by sparse {3D} transform-domain
+                  collaborative filtering},
   volume =	 6812,
   booktitle =	 {Image Processing: Algorithms and Systems VI},
   editor =	 {Jaakko T. Astola and Karen O. Egiazarian and Edward
@@ -139,20 +214,6 @@
   year =	 2008,
   month =	 Mar,
   doi =		 {10.1117/12.766355}
-}
-
-@Article {esser-2010-general,
-  author =	 {Ernie Esser and Xiaoqun Zhang and Tony F. Chan},
-  title =	 {A General Framework for a Class of First Order
-                  Primal-Dual Algorithms for Convex Optimization in
-                  Imaging Science},
-  journal =	 {SIAM Journal on Imaging Sciences},
-  doi =	 {10.1137/09076934x},
-  year =	 2010,
-  month =	 Jan,
-  volume =	 3,
-  number =	 4,
-  pages =	 {1015--1046}
 }
 
 @Article {daubechies-2004-iterative,
@@ -166,6 +227,52 @@
   pages =	 {1413--1457},
   year =	 2004,
   doi =		 {10.1002/cpa.20042}
+}
+
+@Article {deng-2015-global,
+  author =	 {Wei Deng and Wotao Yin},
+  title =	 {On the Global and Linear Convergence of the
+                  Generalized Alternating Direction Method of
+                  Multipliers},
+  journal =	 {Journal of Scientific Computing},
+  year =	 2015,
+  month =	 May,
+  volume =	 66,
+  number =	 3,
+  pages =	 {889--916},
+  doi =		 {10.1007/s10915-015-0048-x},
+}
+
+@Misc {diamond-2018-odp,
+  author =	 {Steven Diamond and Vincent Sitzmann and Felix Heide
+                  and Gordon Wetzstein},
+  title =	 {Unrolled Optimization with Deep Priors},
+  year =	 2018,
+  eprint =	 {arXiv:1705.08041v2},
+  url =		 {http://arxiv.org/abs/1705.08041v2},
+}
+
+@Article {esser-2010-general,
+  author =	 {Ernie Esser and Xiaoqun Zhang and Tony F. Chan},
+  title =	 {A General Framework for a Class of First Order
+                  Primal-Dual Algorithms for Convex Optimization in
+                  Imaging Science},
+  journal =	 {SIAM Journal on Imaging Sciences},
+  doi =		 {10.1137/09076934x},
+  year =	 2010,
+  month =	 Jan,
+  volume =	 3,
+  number =	 4,
+  pages =	 {1015--1046}
+}
+
+@PhDThesis {esser-2010-primal,
+  author =	 {Ernie Esser},
+  title =	 {Primal Dual Algorithms for Convex Models and
+                  Applications to Image Restoration, Registration and
+                  Nonlocal Inpainting},
+  school =	 {University of California Los Angeles},
+  year =	 2010
 }
 
 @InProceedings {florea-2017-robust,
@@ -209,6 +316,18 @@
   url =		 {http://eudml.org/doc/193269}
 }
 
+@Article {goldstein-2009-split,
+  author =	 {Tom Goldstein and Stanley Osher},
+  title =	 {The Split {B}regman Method for L1-Regularized
+                  Problems},
+  journal =	 {SIAM Journal on Imaging Sciences},
+  volume =	 2,
+  number =	 2,
+  pages =	 {323--343},
+  year =	 2009,
+  doi =		 {10.1137/080725891}
+}
+
 @Misc {goldstein-2014-fasta,
   title =	 {A Field Guide to Forward-Backward Splitting with a
                   {FASTA} Implementation},
@@ -228,6 +347,31 @@
   edition =	 3
 }
 
+@Article {huber-1964-robust,
+  doi =		 {10.1214/aoms/1177703732},
+  year =	 1964,
+  month =	 Mar,
+  volume =	 35,
+  number =	 1,
+  pages =	 {73--101},
+  author =	 {Peter J. Huber},
+  title =	 {Robust Estimation of a Location Parameter},
+  journal =	 {The Annals of Mathematical Statistics}
+}
+
+@Article {jin-2017-unet,
+  title =	 {Deep Convolutional Neural Network for Inverse
+                  Problems in Imaging},
+  author =	 {Kyong Hwan Jin and Michael T. McCann and Emmanuel
+                  Froustey and Michael Unser},
+  journal =	 {IEEE Transactions on Image Processing},
+  volume =	 26,
+  number =	 9,
+  pages =	 {4509--4522},
+  year =	 2017,
+  doi =		 {10.1109/TIP.2017.2713099}
+}
+
 @Article {kamilov-2017-plugandplay,
   author =	 {Ulugbek Kamilov and Hassan Mansour and Brendt
                   Wohlberg},
@@ -242,6 +386,17 @@
   pages =	 {1872--1876}
 }
 
+@Article {kamilov-2022-plug,
+  author =	 {Ulugbek S. Kamilov and Charles A. Bouman and Gregery
+                  T. Buzzard and Brendt Wohlberg},
+  title =	 {Plug-and-Play Methods for Integrating Physical and
+                  Learned Models in Computational Imaging},
+  journal =      {IEEE Signal Processing Magazine},
+  year =	 2022,
+  eprint =	 {arXiv:2203.17061},
+  note =         {To appear.}
+}
+
 @Article {liu-2018-first,
   author =	 {Jialin Liu and Cristina Garcia-Cardona and Brendt
                   Wohlberg and Wotao Yin},
@@ -254,6 +409,19 @@
   pages =	 {1589--1628},
   doi =		 {10.1137/17M1145689},
   eprint =	 {1709.00106}
+}
+
+@Article {maggioni-2012-nonlocal,
+  title =	 {Nonlocal transform-domain filter for volumetric data
+                  denoising and reconstruction},
+  author =	 {Maggioni, Matteo and Katkovnik, Vladimir and
+                  Egiazarian, Karen and Foi, Alessandro},
+  journal =	 {IEEE Transactions on Image Processing},
+  volume =	 22,
+  number =	 1,
+  pages =	 {119--133},
+  year =	 2012,
+  doi =          {10.1109/TIP.2012.2210725}
 }
 
 @InProceedings {makinen-2019-exact,
@@ -283,6 +451,37 @@
   doi =		 {10.1109/tip.2006.884928}
 }
 
+@Article {monga-2021-algorithm,
+  author =	 {Monga, Vishal and Li, Yuelong and Eldar, Yonina C.},
+  journal =	 {IEEE Signal Processing Magazine},
+  title =	 {Algorithm Unrolling: Interpretable, Efficient Deep
+                  Learning for Signal and Image Processing},
+  year =	 2021,
+  volume =	 38,
+  number =	 2,
+  pages =	 {18-44},
+  doi =		 {10.1109/MSP.2020.3016905}
+}
+
+@Book {nocedal-2006-numerical,
+  title =	 {Numerical Optimization},
+  author =	 {Jorge Nocedal and Stephen J. Wright},
+  year =	 2006,
+  publisher =	 {Springer},
+  doi =		 {10.1007/978-0-387-40065-5},
+  isbn =	 9780387303031
+}
+
+@Book {paganin-2006-coherent,
+  doi =		 {10.1093/acprof:oso/9780198567288.001.0001},
+  isbn =	 {9780198567288},
+  year =	 2006,
+  month =	 Jan,
+  publisher =	 {Oxford University Press},
+  author =	 {David Paganin},
+  title =	 {Coherent X-Ray Optics}
+}
+
 @Article {parikh-2014-proximal,
   title =	 {Proximal algorithms},
   author =	 {Parikh, Neal and Boyd, Stephen},
@@ -294,28 +493,51 @@
   doi =		 {10.1561/2400000003}
 }
 
-@Misc {pfister-2021-scico,
-  author =	 {Luke Pfister‬ and Thilo Balke and Fernando Davis and
-                  Cristina Garcia-Cardona and Michael McCann and
-                  Brendt Wohlberg},
-  title =	 {{S}cientific {C}omputational {I}maging {CO}de
-                  {(SCICO)}},
-  howpublished = {Software library available from
-                  \url{https://github.com/lanl/scico}},
-  year =	 2021
-}
-
 @InProceedings {pock-2011-diagonal,
   author =	 {Thomas Pock and Antonin Chambolle},
   title =	 {Diagonal preconditioning for first order primal-dual
                   algorithms in convex optimization},
   booktitle =	 {Proceedings of the International Conference on
                   Computer Vision (ICCV)},
-  doi =	 {10.1109/iccv.2011.6126441},
+  doi =		 {10.1109/iccv.2011.6126441},
   pages =	 {1762--1769},
   year =	 2011,
   month =	 Nov,
   address =	 {Barcelona, Spain}
+}
+
+@Misc {pyabel-2022,
+  author =	 {Stephen Gibson and Daniel Hickstein and Roman
+                  Yurchak, Mikhail Ryazanov and Dhrubajyoti Das and
+                  Gilbert Shih},
+  title =	 {PyAbel},
+  howpublished = {PyAbel/PyAbel: v0.8.5},
+  year =	 2022,
+  doi =		 {10.5281/zenodo.5888391}
+}
+
+@InProceedings {ronneberger-2015-unet,
+  author =	 {Olaf Ronneberger and Philipp Fischer and Thomas Brox},
+  title =	 {{U}-{N}et: Convolutional Networks for Biomedical Image Segmentation},
+  booktitle =	 {Proceedings of the 18th International Conference on Medical Image Computing and Computer-Assisted Intervention},
+  doi =		 {10.1007/978-3-319-24574-4_28},
+  volume = 9351,
+  pages =	 {234--241},
+  year =	 2015,
+  month =	 Oct,
+  address =	 {Munich, Germany},
+}
+
+@Article {rudin-1992-nonlinear,
+  author =	 {Leonid I. Rudin and Stanley Osher and Emad Fatemi},
+  title =	 {Nonlinear total variation based noise removal
+                  algorithms},
+  journal =	 {Physica D: Nonlinear Phenomena},
+  volume =	 60,
+  number =	 {1--4},
+  pages =	 {259-268},
+  year =	 1992,
+  doi =		 {10.1016/0167-2789(92)90242-F}
 }
 
 @Article {sauer-1993-local,
@@ -329,6 +551,20 @@
   pages =	 {534--548},
   volume =	 41,
   doi =		 {10.1109/78.193196}
+}
+
+@Article {soulez-2016-proximity,
+  author =	 {Ferr{\'{e}}ol Soulez and {\'{E}}ric Thi{\'{e}}baut
+                  and Antony Schutz and Andr{\'{e}} Ferrari and
+                  Fr{\'{e}}d{\'{e}}ric Courbin and Michael Unser},
+  title =	 {Proximity operators for phase retrieval},
+  journal =	 {Applied Optics},
+  doi =		 {10.1364/ao.55.007412},
+  year =	 2016,
+  month =	 Sep,
+  volume =	 55,
+  number =	 26,
+  pages =	 {7412--7421}
 }
 
 @Article {sreehari-2016-plug,
@@ -354,6 +590,18 @@
   howpublished = {Software library available from
                   \url{https://github.com/cabouman/svmbir}},
   year =	 2020
+}
+
+@Article {valkonen-2014-primal,
+  title =	 {A primal--dual hybrid gradient method for nonlinear
+                  operators with applications to {MRI}},
+  author =	 {Valkonen, Tuomo},
+  journal =	 {Inverse Problems},
+  volume =	 30,
+  number =	 5,
+  pages =	 {055012},
+  year =	 2014,
+  doi =		 {10.1088/0266-5611/30/5/055012}
 }
 
 @InProceedings {venkatakrishnan-2013-plugandplay2,
@@ -392,14 +640,14 @@
   isbn =	 9780819482044,
 }
 
-@article{yang-2012-linearized,
+@Article {yang-2012-linearized,
   author =	 {Junfeng Yang and Xiaoming Yuan},
   title =	 {Linearized augmented {L}agrangian and alternating
                   direction methods for nuclear norm minimization},
   journal =	 {Mathematics of Computation},
-  doi =	 {10.1090/s0025-5718-2012-02598-1},
+  doi =		 {10.1090/s0025-5718-2012-02598-1},
   year =	 2012,
-  month =	 mar,
+  month =	 Mar,
   volume =	 82,
   number =	 281,
   pages =	 {301--329}
@@ -417,6 +665,20 @@
   number =	 7,
   doi =		 {10.1109/TIP.2017.2662206},
   pages =	 {3142--3155}
+}
+
+@Article {zhang-2021-plug,
+  author =	 {Zhang, Kai and Li, Yawei and Zuo, Wangmeng and
+                  Zhang, Lei and Van Gool, Luc and Timofte, Radu},
+  title =	 {Plug-and-Play Image Restoration With Deep Denoiser
+                  Prior},
+  journal =	 {IEEE Transactions on Pattern Analysis and Machine
+                  Intelligence},
+  year =	 2022,
+  volume =	 44,
+  number =	 10,
+  doi =		 {10.1109/TPAMI.2021.3088914},
+  pages =	 {6360--6376}
 }
 
 @Article {zhou-2006-adaptive,

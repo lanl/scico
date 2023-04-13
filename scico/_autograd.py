@@ -1,4 +1,4 @@
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -7,16 +7,19 @@
 """Automatic differentiation tools."""
 
 
-from typing import Any, Callable, Sequence, Tuple, Union
+from typing import Any, Callable, Optional, Sequence, Tuple, Union
 
 import jax
 import jax.numpy as jnp
+from jax.tree_util import tree_map
+
+import scico.util
 
 
 def _append_jax_docs(fn, jaxfn=None):
     """Append the jax function docs.
 
-    Given wrapper function ``fn``, concatenate its docstring with the
+    Given wrapper function `fn`, concatenate its docstring with the
     docstring of the wrapped jax function.
     """
 
@@ -35,7 +38,7 @@ def grad(
     holomorphic: bool = False,
     allow_int: bool = False,
 ) -> Callable:
-    """Create a function that evaluates the gradient of ``fun``.
+    """Create a function that evaluates the gradient of `fun`.
 
     :func:`scico.grad` differs from :func:`jax.grad` in that the output
     is conjugated.
@@ -47,11 +50,11 @@ def grad(
 
     def conjugated_grad_aux(*args, **kwargs):
         jg, aux = jax_grad(*args, **kwargs)
-        return jax.tree_map(jax.numpy.conj, jg), aux
+        return tree_map(jax.numpy.conj, jg), aux
 
     def conjugated_grad(*args, **kwargs):
         jg = jax_grad(*args, **kwargs)
-        return jax.tree_map(jax.numpy.conj, jg)
+        return tree_map(jax.numpy.conj, jg)
 
     return conjugated_grad_aux if has_aux else conjugated_grad
 
@@ -67,7 +70,7 @@ def value_and_grad(
     holomorphic: bool = False,
     allow_int: bool = False,
 ) -> Callable[..., Tuple[Any, Any]]:
-    """Create a function that evaluates both ``fun`` and its gradient.
+    """Create a function that evaluates both `fun` and its gradient.
 
     :func:`scico.value_and_grad` differs from :func:`jax.value_and_grad`
     in that the gradient is conjugated.
@@ -78,12 +81,12 @@ def value_and_grad(
 
     def conjugated_value_and_grad_aux(*args, **kwargs):
         (value, aux), jg = jax_val_grad(*args, **kwargs)
-        conj_grad = jax.tree_map(jax.numpy.conj, jg)
+        conj_grad = tree_map(jax.numpy.conj, jg)
         return (value, aux), conj_grad
 
     def conjugated_value_and_grad(*args, **kwargs):
         value, jax_grad = jax_val_grad(*args, **kwargs)
-        conj_grad = jax.tree_map(jax.numpy.conj, jax_grad)
+        conj_grad = tree_map(jax.numpy.conj, jax_grad)
         return value, conj_grad
 
     return conjugated_value_and_grad_aux if has_aux else conjugated_value_and_grad
@@ -103,12 +106,12 @@ def linear_adjoint(fun: Callable, *primals) -> Callable:
     """
 
     def conj_fun(*primals):
-        conj_primals = jax.tree_map(jax.numpy.conj, primals)
-        return jax.tree_map(jax.numpy.conj, fun(*(conj_primals)))
+        conj_primals = tree_map(jax.numpy.conj, primals)
+        return tree_map(jax.numpy.conj, fun(*(conj_primals)))
 
     if any([jnp.iscomplexobj(_) for _ in primals]):
         # fun is C->R or C->C
-        _primals = jax.tree_map(jax.numpy.conj, primals)
+        _primals = tree_map(jax.numpy.conj, primals)
         _fun = conj_fun
     elif jnp.iscomplexobj(fun(*primals)):
         # fun is from R -> C
@@ -131,7 +134,7 @@ def jacrev(
     holomorphic: bool = False,
     allow_int: bool = False,
 ) -> Callable:
-    """Jacobian of ``fun`` evaluated row-by-row using reverse-mode AD.
+    """Jacobian of `fun` evaluated row-by-row using reverse-mode AD.
 
     :func:`scico.jacrev` differs from :func:`jax.jacrev` in that the
     output is conjugated.
@@ -141,10 +144,53 @@ def jacrev(
 
     def conjugated_jacrev(*args, **kwargs):
         tmp = jax_jacrev(*args, **kwargs)
-        return jax.tree_map(jax.numpy.conj, tmp)
+        return tree_map(jax.numpy.conj, tmp)
 
     return conjugated_jacrev
 
 
 # Append docstring from original jax function
 jacrev.__doc__ = _append_jax_docs(jacrev)
+
+
+def cvjp(fun: Callable, *primals, jidx: Optional[int] = None) -> Tuple[Tuple[Any, ...], Callable]:
+    r"""Compute a vector-Jacobian product with conjugate transpose.
+
+    Compute the product :math:`[J(\mb{x})]^H \mb{v}` where
+    :math:`[J(\mb{x})]` is the Jacobian of function `fun` evaluated at
+    :math:`\mb{x}`. Instead of directly evaluating the product, a
+    function is returned that takes :math:`\mb{v}` as an argument. If
+    `fun` has multiple positional parameters, the Jacobian can be taken
+    with respect to only one of them by setting the `jidx` parameter of
+    this function to the positional index of that parameter.
+
+    Args:
+        fun: Function for which the Jacobian is implicitly computed.
+        primals: Sequence of values at which the Jacobian is
+           evaluated, with length equal to the number of positional
+           arguments of `fun`.
+        jidx: Index of the positional parameter of `fun` with respect
+           to which the Jacobian is taken.
+
+    Returns:
+        A pair `(primals_out, conj_vjp)` where `primals_out` is the
+        output of `fun` evaluated at `primals`, i.e. `primals_out
+        = fun(*primals)`, and `conj_vjp` is a function that computes the
+        product of the conjugate (Hermitian) transpose of the Jacobian of
+        `fun` and its argument. If the `jidx` parameter is an integer,
+        then the Jacobian is only taken with respect to the coresponding
+        positional parameter of `fun`.
+    """
+
+    if jidx is None:
+        primals_out, fun_vjp = jax.vjp(fun, *primals)
+    else:
+        fixidx = tuple(range(0, jidx)) + tuple(range(jidx + 1, len(primals)))
+        fixprm = primals[0:jidx] + primals[jidx + 1 :]
+        pfun = scico.util.partial(fun, fixidx, *fixprm)
+        primals_out, fun_vjp = jax.vjp(pfun, primals[jidx])
+
+    def conj_vjp(tangent):
+        return jax.tree_map(jax.numpy.conj, fun_vjp(tangent.conj()))
+
+    return primals_out, conj_vjp

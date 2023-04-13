@@ -130,3 +130,23 @@ def test_linear_adjoint_c_to_r():
 
     np.testing.assert_allclose(a.real, b.real, rtol=1e-4)
     np.testing.assert_allclose(a.imag, 0, atol=1e-2)
+
+
+@pytest.mark.parametrize("dtype", [np.float32, np.complex64])
+def test_cvjp(dtype):
+    A, key = randn((3, 3), dtype=dtype)
+    B, key = randn((3, 4), dtype=dtype, key=key)
+    xp, key = randn((3,), dtype=dtype, key=key)
+    yp, key = randn((4,), dtype=dtype, key=key)
+
+    def fun(x, y):
+        return A @ x + B @ y
+
+    px, jfnx = scico.cvjp(fun, xp, yp, jidx=0)
+    py, jfny = scico.cvjp(fun, xp, yp, jidx=1)
+
+    for k in range(3):
+        v = np.zeros((3,), dtype=dtype)
+        v[k] = 1.0
+        np.testing.assert_allclose(jfnx(v)[0], A[k].conj())
+        np.testing.assert_allclose(jfny(v)[0], B[k].conj())

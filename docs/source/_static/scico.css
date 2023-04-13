@@ -34,9 +34,20 @@ footer > div.rst-footer-buttons {
 }
 
 
-/* Code display section */
+/* Literal sections */
+
+div.highlight-default {
+  border: 0 !important;
+}
 
 div.highlight {
+  background-color: inherit;
+}
+
+
+/* Code display section */
+
+div.doctest.highlight-default {
   background-color: #f9f9f4;
 }
 

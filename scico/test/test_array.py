@@ -2,12 +2,13 @@ import warnings
 
 import numpy as np
 
-from jax.interpreters.xla import DeviceArray
+import jax.numpy as jnp
 
 import pytest
 
 import scico.numpy as snp
-from scico.array import (
+from scico.numpy import BlockArray
+from scico.numpy.util import (
     complex_dtype,
     ensure_on_device,
     indexed_shape,
@@ -19,7 +20,6 @@ from scico.array import (
     real_dtype,
     slice_length,
 )
-from scico.blockarray import BlockArray
 from scico.random import randn
 
 
@@ -31,21 +31,21 @@ def test_ensure_on_device():
 
         NP = np.ones(2)
         SNP = snp.ones(2)
-        BA = BlockArray.array([NP, SNP])
+        BA = snp.blockarray([NP, SNP])
         NP_, SNP_, BA_ = ensure_on_device(NP, SNP, BA)
 
-        assert isinstance(NP_, DeviceArray)
+        assert isinstance(NP_, jnp.ndarray)
 
-        assert isinstance(SNP_, DeviceArray)
+        assert isinstance(SNP_, jnp.ndarray)
         assert SNP.unsafe_buffer_pointer() == SNP_.unsafe_buffer_pointer()
 
         assert isinstance(BA_, BlockArray)
-        assert BA._data.unsafe_buffer_pointer() == BA_._data.unsafe_buffer_pointer()
-
-        np.testing.assert_raises(TypeError, ensure_on_device, [1, 1, 1])
+        assert isinstance(BA_[0], jnp.ndarray)
+        assert isinstance(BA_[1], jnp.ndarray)
+        assert BA[1].unsafe_buffer_pointer() == BA_[1].unsafe_buffer_pointer()
 
         NP_ = ensure_on_device(NP)
-        assert isinstance(NP_, DeviceArray)
+        assert isinstance(NP_, jnp.ndarray)
 
 
 def test_no_nan_divide_array():
@@ -64,7 +64,7 @@ def test_no_nan_divide_blockarray():
     x, key = randn(((3, 3), (4,)), dtype=np.float32)
 
     y, key = randn(x.shape, dtype=np.float32, key=key)
-    y = y.at[1].set(0 * y[1])
+    y[1] = y[1].at[:].set(0 * y[1])
 
     res = no_nan_divide(x, y)
 
@@ -112,13 +112,17 @@ def test_slice_length(length, start, stop, stride):
 @pytest.mark.parametrize("slc", (0, 1, -4, Ellipsis))
 def test_slice_length_other(length, slc):
     x = np.zeros(length)
-    assert x[slc].size == slice_length(length, slc)
+    if isinstance(slc, int):
+        assert slice_length(length, slc) is None
+    else:
+        assert x[slc].size == slice_length(length, slc)
 
 
 @pytest.mark.parametrize("shape", ((8, 8, 1), (7, 1, 6, 5)))
 @pytest.mark.parametrize(
     "slc",
     (
+        np.s_[0],
         np.s_[0:5],
         np.s_[:, 0:4],
         np.s_[2:, :, :-2],

@@ -3,8 +3,8 @@ import numpy as np
 import jax
 
 import scico.numpy as snp
-from scico import functional, linop, loss, random
-from scico.blockarray import BlockArray
+from scico import functional, linop, loss, operator, random
+from scico.numpy import BlockArray
 from scico.optimize import PDHG
 
 
@@ -12,13 +12,12 @@ class TestMisc:
     def setup_method(self, method):
         np.random.seed(12345)
         self.y = jax.device_put(np.random.randn(32, 33).astype(np.float32))
-        self.λ = 1e0
         self.maxiter = 2
         self.τ = 1e-1
         self.σ = 1e-1
         self.A = linop.Identity(self.y.shape)
         self.f = loss.SquaredL2Loss(y=self.y, A=self.A)
-        self.g = (self.λ / 2) * functional.BM3D()
+        self.g = functional.DnCNN()
         self.C = linop.Identity(self.y.shape)
 
     def test_itstat(self):
@@ -70,7 +69,7 @@ class TestMisc:
 class TestBlockArray:
     def setup_method(self, method):
         np.random.seed(12345)
-        self.y = BlockArray.array(
+        self.y = snp.blockarray(
             (
                 np.random.randn(32, 33).astype(np.float32),
                 np.random.randn(
@@ -138,6 +137,28 @@ class TestReal:
         x = pdhg_.solve()
         assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-4
 
+    def test_nlpdhg(self):
+        maxiter = 300
+        τ = 2e-1
+        σ = 2e-1
+        A = linop.Diagonal(snp.diag(self.Amx))
+        f = loss.SquaredL2Loss(y=self.y, A=A)
+        g = (self.λ / 2) * functional.SquaredL2Norm()
+        cfn = lambda x: self.Bmx @ x
+        Cop = operator.operator_from_function(cfn, "Cop")
+        C = Cop(input_shape=self.Bmx.shape[1:])
+        pdhg_ = PDHG(
+            f=f,
+            g=g,
+            C=C,
+            tau=τ,
+            sigma=σ,
+            maxiter=maxiter,
+            x0=A.adj(self.y),
+        )
+        x = pdhg_.solve()
+        assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-4
+
 
 class TestComplex:
     def setup_method(self, method):
@@ -176,3 +197,33 @@ class TestComplex:
         )
         x = pdhg_.solve()
         assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 5e-4
+
+
+class TestEstimateParameters:
+    def setup_method(self):
+        shape = (32, 33)
+        A = linop.Identity(shape, input_dtype=np.float32)
+        B = linop.Identity(shape, input_dtype=np.complex64)
+        opcls = operator.operator_from_function(lambda x: snp.abs(x), "op")
+        C = opcls(input_shape=shape, input_dtype=np.float32)
+        D = opcls(input_shape=shape, input_dtype=np.complex64)
+        self.operators = [A, B, C, D]
+
+    def test_operators_dlft(self):
+        for op in self.operators[0:2]:
+            tau, sigma = PDHG.estimate_parameters(op, factor=1.0)
+            assert snp.abs(tau - sigma) < 1e-6
+            assert snp.abs(tau - 1.0) < 1e-6
+
+    def test_operators(self):
+        for op in self.operators:
+            x = snp.ones(op.input_shape, op.input_dtype)
+            tau, sigma = PDHG.estimate_parameters(op, x=x, factor=None)
+            assert snp.abs(tau - sigma) < 1e-6
+            assert snp.abs(tau - 1.0) < 1e-6
+
+    def test_ratio(self):
+        op = self.operators[0]
+        tau, sigma = PDHG.estimate_parameters(op, factor=1.0, ratio=10.0)
+        assert snp.abs(tau * sigma - 1.0) < 1e-6
+        assert snp.abs(sigma - 10.0 * tau) < 1e-6

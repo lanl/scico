@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2021 by SCICO Developers
+# Copyright (C) 2020-2022 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -7,19 +7,14 @@
 
 """Functional base class."""
 
-import warnings
 from typing import List, Optional, Union
 
 import jax
 
 import scico
 from scico import numpy as snp
-from scico.blockarray import BlockArray
+from scico.numpy import BlockArray
 from scico.typing import JaxArray
-
-__author__ = """\n""".join(
-    ["Luke Pfister <luke.pfister@gmail.com>", "Thilo Balke <thilo.balke@gmail.com>"]
-)
 
 
 class Functional:
@@ -38,11 +33,6 @@ class Functional:
     #: This attribute must be overridden and set to True or False in any derived classes.
     has_prox: Optional[bool] = None
 
-    #: True if this functional is differentiable, False otherwise.
-    #: Note that ``is_smooth = False`` does not preclude the use of the :func:`.grad` method.
-    #: This attribute must be overridden and set to True or False in any derived classes.
-    is_smooth: Optional[bool] = None
-
     def __init__(self):
         self._grad = scico.grad(self.__call__)
 
@@ -50,18 +40,20 @@ class Functional:
         return f"""{type(self)}
 has_eval = {self.has_eval}
 has_prox = {self.has_prox}
-is_smooth = {self.is_smooth}
         """
 
     def __mul__(self, other):
         if snp.isscalar(other) or isinstance(other, jax.core.Tracer):
             return ScaledFunctional(self, other)
-        raise NotImplementedError(
-            f"Operation __mul__ not defined between {type(self)} and {type(other)}"
-        )
+        return NotImplemented
 
     def __rmul__(self, other):
         return self.__mul__(other)
+
+    def __add__(self, other):
+        if isinstance(other, Functional):
+            return FunctionalSum(self, other)
+        return NotImplemented
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         r"""Evaluate this functional at point :math:`\mb{x}`.
@@ -70,10 +62,8 @@ is_smooth = {self.is_smooth}
            x: Point at which to evaluate this functional.
 
         """
-        if not self.has_eval:
-            raise NotImplementedError(
-                f"Functional {type(self)} cannot be evaluated; has_eval={self.has_eval}"
-            )
+        # Functionals that can be evaluated should override this method.
+        raise NotImplementedError(f"Functional {type(self)} cannot be evaluated.")
 
     def prox(
         self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
@@ -85,7 +75,7 @@ is_smooth = {self.is_smooth}
         :math:`\mb{v}` = `v`. The scaled proximal operator is defined as
 
         .. math::
-           \mathrm{prox}_{\lambda f}(\mb{v}) = \argmin_{\mb{x}}
+           \prox_{\lambda f}(\mb{v}) = \argmin_{\mb{x}}
            \lambda f(\mb{x}) +
            \frac{1}{2} \norm{\mb{v} - \mb{x}}_2^2\;,
 
@@ -96,14 +86,11 @@ is_smooth = {self.is_smooth}
             v: Point at which to evaluate prox function.
             lam: Proximal parameter :math:`\lambda`.
             kwargs: Additional arguments that may be used by derived
-                classes. These include ``x0``, an initial guess for the
-                minimizer in the defintion of :math:`\mathrm{prox}`.
-
+                classes. These include `x0`, an initial guess for the
+                minimizer in the definition of :math:`\prox`.
         """
-        if not self.has_prox:
-            raise NotImplementedError(
-                f"Functional {type(self)} does not have a prox; has_prox={self.has_prox}"
-            )
+        # Functionals that have a prox should override this method.
+        raise NotImplementedError(f"Functional {type(self)} does not have a prox.")
 
     def conj_prox(
         self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
@@ -119,14 +106,14 @@ is_smooth = {self.is_smooth}
         Moreau decomposition (see Sec. 6.6 of :cite:`beck-2017-first`)
 
         .. math::
-           \mathrm{prox}_{\lambda f^*}(\mb{v}) = \mb{v} - \lambda
-           \mathrm{prox}_{\lambda^{-1} f}(\mb{v / \lambda}) \;.
+           \prox_{\lambda f^*}(\mb{v}) = \mb{v} - \lambda \,
+           \prox_{\lambda^{-1} f}(\mb{v / \lambda}) \;.
 
         Args:
             v: Point at which to evaluate prox function.
             lam: Proximal parameter :math:`\lambda`.
             kwargs: Additional keyword args, passed directly to
-               ``self.prox``.
+               `self.prox`.
         """
         return v - lam * self.prox(v / lam, 1.0 / lam, **kwargs)
 
@@ -136,10 +123,29 @@ is_smooth = {self.is_smooth}
         Args:
             x: Point at which to evaluate gradient.
         """
-        if not self.is_smooth:  # could be True, False, or None
-            warnings.warn("This functional isn't smooth!", stacklevel=2)
-
         return self._grad(x)
+
+
+class FunctionalSum(Functional):
+    r"""A sum of two functionals."""
+
+    def __repr__(self):
+        return (
+            "Sum of functionals of types "
+            + str(type(self.functional1))
+            + " and "
+            + str(type(self.functional2))
+        )
+
+    def __init__(self, functional1: Functional, functional2: Functional):
+        self.functional1 = functional1
+        self.functional2 = functional2
+        self.has_eval = functional1.has_eval and functional2.has_eval
+        self.has_prox = False
+        super().__init__()
+
+    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+        return self.functional1(x) + self.functional2(x)
 
 
 class ScaledFunctional(Functional):
@@ -151,7 +157,6 @@ class ScaledFunctional(Functional):
     def __init__(self, functional: Functional, scale: float):
         self.functional = functional
         self.scale = scale
-        self.is_smooth = functional.is_smooth
         self.has_eval = functional.has_eval
         self.has_prox = functional.has_prox
         super().__init__()
@@ -162,7 +167,7 @@ class ScaledFunctional(Functional):
     def prox(
         self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[JaxArray, BlockArray]:
-        r"""Evaulate the scaled proximal operator of the scaled functional.
+        r"""Evaluate the scaled proximal operator of the scaled functional.
 
         Note that, by definition, the scaled proximal operator of a
         functional is the proximal operator of the scaled functional. The
@@ -172,12 +177,12 @@ class ScaledFunctional(Functional):
         factors, i.e., for functional :math:`f` and scaling factors
         :math:`\alpha` and :math:`\beta`, the proximal operator with scaling
         parameter :math:`\alpha` of scaled functional :math:`\beta f` is
-        the proximal operator with scaling parameter :math:`\alpha \beta` of
-        functional :math:`f`,
+        the proximal operator with scaling parameter :math:`\alpha \beta`
+        of functional :math:`f`,
 
         .. math::
-           \mathrm{prox}_{\alpha (\beta f)}(\mb{v}) =
-           \mathrm{prox}_{(\alpha \beta) f}(\mb{v}) \;.
+           \prox_{\alpha (\beta f)}(\mb{v}) =
+           \prox_{(\alpha \beta) f}(\mb{v}) \;.
 
         """
         return self.functional.prox(v, lam * self.scale)
@@ -201,15 +206,14 @@ class SeparableFunctional(Functional):
     def __init__(self, functional_list: List[Functional]):
         r"""
         Args:
-            functional_list:  List of component functionals f_i.  This functional
-                takes as an input a :class:`.BlockArray` with
-                ``num_blocks == len(functional_list)``.
+            functional_list: List of component functionals f_i. This
+               functional takes as an input a :class:`.BlockArray` with
+               `num_blocks == len(functional_list)`.
         """
         self.functional_list: List[Functional] = functional_list
 
         self.has_eval: bool = all(fi.has_eval for fi in functional_list)
         self.has_prox: bool = all(fi.has_prox for fi in functional_list)
-        self.is_smooth: bool = all(fi.is_smooth for fi in functional_list)
 
         super().__init__()
 
@@ -218,7 +222,7 @@ class SeparableFunctional(Functional):
             return snp.sum(snp.array([fi(xi) for fi, xi in zip(self.functional_list, x)]))
         raise ValueError(
             f"Number of blocks in x, {len(x.shape)}, and length of functional_list, "
-            f"{len(self.functional_list)}, do not match"
+            f"{len(self.functional_list)}, do not match."
         )
 
     def prox(self, v: BlockArray, lam: float = 1.0, **kwargs) -> BlockArray:
@@ -228,12 +232,11 @@ class SeparableFunctional(Functional):
         Theorem 6.6 of :cite:`beck-2017-first`).
 
           .. math::
-             \mathrm{prox}_{\lambda f}(\mb{v})
+             \prox_{\lambda f}(\mb{v})
              =
              \begin{bmatrix}
-               \mathrm{prox}_{\lambda f_1}(\mb{v}_1) \\
-               \vdots \\
-               \mathrm{prox}_{\lambda f_N}(\mb{v}_N) \\
+               \prox_{\lambda f_1}(\mb{v}_1) \\ \vdots \\
+               \prox_{\lambda f_N}(\mb{v}_N) \\
              \end{bmatrix} \;.
 
         Args:
@@ -244,10 +247,10 @@ class SeparableFunctional(Functional):
 
         """
         if len(v.shape) == len(self.functional_list):
-            return BlockArray.array([fi.prox(vi, lam) for fi, vi in zip(self.functional_list, v)])
+            return snp.blockarray([fi.prox(vi, lam) for fi, vi in zip(self.functional_list, v)])
         raise ValueError(
-            f"Number of blocks in x, {len(x.shape)}, and length of functional_list, "
-            f"{len(self.functional_list)}, do not match"
+            f"Number of blocks in v, {len(v.shape)}, and length of functional_list, "
+            f"{len(self.functional_list)}, do not match."
         )
 
 
@@ -256,7 +259,6 @@ class ZeroFunctional(Functional):
 
     has_eval = True
     has_prox = True
-    is_smooth = True
 
     def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
         return 0.0

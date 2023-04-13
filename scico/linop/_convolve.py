@@ -18,16 +18,15 @@ from functools import partial
 import numpy as np
 
 import jax
+import jax.numpy as jnp
 from jax.dtypes import result_type
-from jax.interpreters.xla import DeviceArray
 from jax.scipy.signal import convolve
 
 import scico.numpy as snp
-from scico import array
-from scico._generic_operators import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
+from scico.numpy.util import ensure_on_device
 from scico.typing import DType, JaxArray, Shape
 
-__author__ = """Luke Pfister <luke.pfister@gmail.com>"""
+from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
 
 
 class Convolve(LinearOperator):
@@ -52,13 +51,13 @@ class Convolve(LinearOperator):
                 as `len(input_shape)`.
             input_shape: Shape of input array.
             input_dtype: `dtype` for input argument. Defaults to
-                `float32`. If ``LinearOperator`` implements
-                complex-valued operations, this must be `complex64` for
+                ``float32``. If :class:`LinearOperator` implements
+                complex-valued operations, this must be ``complex64`` for
                 proper adjoint and gradient calculation.
             mode: A string indicating the size of the output. One of
                 "full", "valid", "same". Defaults to "full".
             jit:  If ``True``, jit the evaluation, adjoint, and gram
-                functions of the LinearOperator.
+                functions of the :class:`LinearOperator`.
 
         For more details on `mode`, see :func:`jax.scipy.signal.convolve`.
         """
@@ -67,11 +66,11 @@ class Convolve(LinearOperator):
         self.mode: str  # : Convolution mode
 
         if h.ndim != len(input_shape):
-            raise ValueError(f"h.ndim = {h.ndim} must equal len(input_shape) = {len(input_shape)}")
-        self.h = array.ensure_on_device(h)
+            raise ValueError(f"h.ndim = {h.ndim} must equal len(input_shape) = {len(input_shape)}.")
+        self.h = ensure_on_device(h)
 
         if mode not in ["full", "valid", "same"]:
-            raise ValueError(f"Invalid mode={mode}; must be one of 'full', 'valid', 'same'")
+            raise ValueError(f"Invalid mode={mode}; must be one of 'full', 'valid', 'same'.")
 
         self.mode = mode
 
@@ -94,7 +93,7 @@ class Convolve(LinearOperator):
     @partial(_wrap_add_sub, op=operator.add)
     def __add__(self, other):
         if self.mode != other.mode:
-            raise ValueError(f"Incompatible modes:  {self.mode} != {other.mode}")
+            raise ValueError(f"Incompatible modes:  {self.mode} != {other.mode}.")
 
         if self.h.shape == other.h.shape:
             return Convolve(
@@ -106,12 +105,12 @@ class Convolve(LinearOperator):
                 adj_fn=lambda x: self.adj(x) + other.adj(x),
             )
 
-        raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}")
+        raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}.")
 
     @partial(_wrap_add_sub, op=operator.sub)
     def __sub__(self, other):
         if self.mode != other.mode:
-            raise ValueError(f"Incompatible modes:  {self.mode} != {other.mode}")
+            raise ValueError(f"Incompatible modes:  {self.mode} != {other.mode}.")
 
         if self.h.shape == other.h.shape:
             return Convolve(
@@ -122,7 +121,7 @@ class Convolve(LinearOperator):
                 output_shape=self.output_shape,
                 adj_fn=lambda x: self.adj(x) - other.adj(x),
             )
-        raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}")
+        raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}.")
 
     @_wrap_mul_div_scalar
     def __mul__(self, scalar):
@@ -161,7 +160,8 @@ class Convolve(LinearOperator):
 class ConvolveByX(LinearOperator):
     """A LinearOperator that performs convolution as a function of the first argument.
 
-    The LinearOperator ConvolveByX(x=x)(y) implements jax.scipy.signal.convolve(x, y).
+    The :class:`LinearOperator` `ConvolveByX(x=x)(y)` implements
+    `jax.scipy.signal.convolve(x, y)`.
     """
 
     def __init__(
@@ -180,13 +180,13 @@ class ConvolveByX(LinearOperator):
                 as `len(input_shape)`.
             input_shape: Shape of input array.
             input_dtype: `dtype` for input argument. Defaults to
-                `float32`. If :class:`.LinearOperator` implements
-                complex-valued operations, this must be `complex64` for
+                ``float32``. If :class:`.LinearOperator` implements
+                complex-valued operations, this must be ``complex64`` for
                 proper adjoint and gradient calculation.
             mode: A string indicating the size of the output. One of
                 "full", "valid", "same". Defaults to "full".
             jit: If ``True``, jit the evaluation, adjoint, and gram
-                functions of the LinearOperator.
+                functions of the :class:`LinearOperator`.
 
         For more details on `mode`, see :func:`jax.scipy.signal.convolve`.
         """
@@ -195,17 +195,17 @@ class ConvolveByX(LinearOperator):
         self.mode: str  # : Convolution mode
 
         if x.ndim != len(input_shape):
-            raise ValueError(f"x.ndim = {x.ndim} must equal len(input_shape) = {len(input_shape)}")
+            raise ValueError(f"x.ndim = {x.ndim} must equal len(input_shape) = {len(input_shape)}.")
 
-        if isinstance(x, DeviceArray):
+        if isinstance(x, jnp.ndarray):
             self.x = x
-        elif isinstance(x, np.ndarray):
+        elif isinstance(x, np.ndarray):  # TODO: this should not be handled at the LinOp level
             self.x = jax.device_put(x)
         else:
-            raise TypeError(f"Expected np.ndarray or DeviceArray, got {type(x)}")
+            raise TypeError(f"Expected np.ndarray or DeviceArray, got {type(x)}.")
 
         if mode not in ["full", "valid", "same"]:
-            raise ValueError(f"Invalid mode={mode}; must be one of 'full', 'valid', 'same'")
+            raise ValueError(f"Invalid mode={mode}; must be one of 'full', 'valid', 'same'.")
 
         self.mode = mode
 
@@ -228,7 +228,7 @@ class ConvolveByX(LinearOperator):
     @partial(_wrap_add_sub, op=operator.add)
     def __add__(self, other):
         if self.mode != other.mode:
-            raise ValueError(f"Incompatible modes:  {self.mode} != {other.mode}")
+            raise ValueError(f"Incompatible modes:  {self.mode} != {other.mode}.")
         if self.x.shape == other.x.shape:
             return ConvolveByX(
                 x=self.x + other.x,
@@ -238,12 +238,12 @@ class ConvolveByX(LinearOperator):
                 output_shape=self.output_shape,
                 adj_fn=lambda x: self.adj(x) + other.adj(x),
             )
-        raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}")
+        raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}.")
 
     @partial(_wrap_add_sub, op=operator.sub)
     def __sub__(self, other):
         if self.mode != other.mode:
-            raise ValueError(f"Incompatible modes:  {self.mode} != {other.mode}")
+            raise ValueError(f"Incompatible modes:  {self.mode} != {other.mode}.")
 
         if self.x.shape == other.x.shape:
             return ConvolveByX(
@@ -255,7 +255,7 @@ class ConvolveByX(LinearOperator):
                 adj_fn=lambda x: self.adj(x) - other.adj(x),
             )
 
-        raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}")
+        raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}.")
 
     @_wrap_mul_div_scalar
     def __mul__(self, scalar):
