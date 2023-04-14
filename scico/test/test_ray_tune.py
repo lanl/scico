@@ -113,3 +113,30 @@ def test_hyperopt_tune():
     best_config = results.get_best_result().config
     assert np.abs(best_config["x"]) < 0.25
     assert np.abs(best_config["y"] - 0.5) < 0.25
+
+
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
+def test_hyperopt_tune_alt_init():
+    def eval_params(config):
+        x, y = config["x"], config["y"]
+        cost = x**2 + (y - 0.5) ** 2
+        report({"cost": cost})
+
+    config = {"x": tune.uniform(-1, 1), "y": tune.uniform(-1, 1)}
+    tuner = tune.Tuner(
+        eval_params,
+        param_space=config,
+        max_concurrent_trials=4,
+        metric="cost",
+        mode="min",
+        num_samples=50,
+        time_budget=2,
+        hyperopt=True,
+        verbose=True,
+        tune_config=ray.tune.TuneConfig(),
+        run_config=tune.ray.air.config.RunConfig(),
+    )
+    results = tuner.fit()
+    best_config = results.get_best_result().config
+    assert np.abs(best_config["x"]) < 0.25
+    assert np.abs(best_config["y"] - 0.5) < 0.25
