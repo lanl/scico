@@ -46,4 +46,4 @@ repos:
       language_version: python3
       types: [python]
       exclude: ^(scico/test/|examples|docs)
-      args: ['--score=n', '--disable=all', '--enable=missing-docstring']
+      args: ['--score=n', '--disable=all', '--enable=missing-docstring,broad-exception-raised']
