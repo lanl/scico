@@ -139,7 +139,7 @@ def run(
     if local_dir is None:
         try:
             user = getpass.getuser()
-        except Exception:
+        except Exception:  # pragma: no cover
             user = "NOUSER"
         local_dir = os.path.join(tempfile.gettempdir(), user, "ray_results")
 
@@ -266,7 +266,7 @@ class Tuner(ray.tune.Tuner):
         if local_dir is None:
             try:
                 user = getpass.getuser()
-            except Exception:
+            except Exception:  # pragma: no cover
                 user = "NOUSER"
             local_dir = os.path.join(tempfile.gettempdir(), user, "ray_results")
 
