@@ -6,18 +6,24 @@ SCICO Release Notes
 Version 0.0.4   (unreleased)
 ----------------------------
 
-• New `Function` class for representing array-to-array mappings with more than
+• New ``Function`` class for representing array-to-array mappings with more than
   one input.
-• New methods and a function for computing Jacobian-vector products for `Operator`
-  objects.
+• New methods and a function for computing Jacobian-vector products for
+  ``Operator`` objects.
 • New proximal ADMM solvers.
 • Extend support for other ML models including UNet, ODP and MoDL.
 • Add functionality for training Flax-based ML models and for data generation.
 • Enable diagnostics for ML training loops.
 • Change required packages and version numbers, including more recent version
-  for `flax`.
+  for ``flax``.
+• New variant of DnCNN denoiser with a noise level input.
 • New methods and a function for computing Jacobian-vector products for
-  `Operator` objects.
+  ``Operator`` objects.
+• Suppress ``jax`` "No GPU/TPU found" warnings (for ``jax`` >= 0.3.23)
+• All optimizer classes defined in ``scico.optimize`` now have a common base
+  class ``Optimizer``.
+• Rewrite of ``scico.ray.tune`` supporting the new ``ray.tune`` interface based
+  on ``ray.tune.Tuner.fit`` rather than ``ray.tune.run``.
 
 
 
@@ -25,8 +31,8 @@ Version 0.0.3   (2022-09-21)
 ----------------------------
 
 • Change required packages and version numbers, including more recent version
-  requirements for `numpy`, `scipy`, `svmbir`, and `ray`.
-• Package `bm4d` removed from main requirements list due to issue #342.
+  requirements for ``numpy``, ``scipy``, ``svmbir``, and ``ray``.
+• Package ``bm4d`` removed from main requirements list due to issue #342.
 • Support ``jaxlib`` versions 0.3.0 to 0.3.15 and ``jax`` versions
   0.3.0 to 0.3.17.
 • Rename linear operators in ``radon_astra`` and ``radon_svmbir`` modules
