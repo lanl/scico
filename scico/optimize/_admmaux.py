@@ -533,7 +533,7 @@ class BlockCircularConvolveForm1Solver(LinearSubproblemSolver):
         return x
 
 
-class BlockCircularConvolveForm2Solver(LinearSubproblemSolver):
+class BlockCircularConvolveForm2Solver(SubproblemSolver):
     r"""Solver for linear operators block-diagonalized in the DFT
     domain.
 
@@ -657,9 +657,9 @@ class BlockCircularConvolveForm2Solver(LinearSubproblemSolver):
         self.accuracy: Optional[float] = None
 
     def internal_init(self, admm: soa.ADMM):
-        if admm.f is not None and not isinstance(f, ZeroFunctional):
+        if admm.f is not None and not isinstance(admm.f, ZeroFunctional):
             raise ValueError(
-                "BlockCircularConvolveForm2Solver requires f to be None " "or a ZeroFunctional"
+                "BlockCircularConvolveForm2Solver requires f to be None or a ZeroFunctional"
             )
         if not isinstance(admm.g_list[0], SquaredL2Loss):
             raise ValueError(
@@ -698,7 +698,7 @@ class BlockCircularConvolveForm2Solver(LinearSubproblemSolver):
         # but this is not checked.
         c_gram_list = [
             rho * CircularConvolve.from_operator(C.gram_op, ndims=self.ndims)
-            for rho, C in zip(admm.rho_list[1], admm.C_list[1])
+            for rho, C in zip(admm.rho_list[1:], admm.C_list[1:])
         ]
         self.D = reduce(lambda a, b: a + b, c_gram_list) / (
             2.0 * self.admm.g_list[0].scale * admm.rho_list[0]
