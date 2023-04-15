@@ -198,7 +198,10 @@ class Optimizer:
         for self.itnum in range(self.itnum, self.itnum + self.maxiter):
             self.step()
             if self.nanstop and not self._working_vars_finite():
-                raise ValueError("NaN value encountered in working variable." "")
+                raise ValueError(
+                    f"NaN or Inf value encountered in working variable in iteration {self.itnum}."
+                    ""
+                )
             self.itstat_object.insert(self.itstat_insert_func(self))
             if callback:
                 self.timer.stop()
