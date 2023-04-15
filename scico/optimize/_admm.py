@@ -148,6 +148,23 @@ class ADMM(Optimizer):
 
         super().__init__(**kwargs)
 
+    def _working_vars_finite(self) -> bool:
+        """Determine where ``NaN`` of ``Inf`` encountered in solve.
+
+        Return ``False`` if a ``NaN`` or ``Inf`` value is encountered in
+        a solver working variable.
+        """
+        for v in (
+            [
+                self.x,
+            ]
+            + self.z_list
+            + self.u_list
+        ):
+            if not snp.all(snp.isfinite(v)):
+                return False
+        return True
+
     def _objective_evaluatable(self):
         """Determine whether the objective function can be evaluated."""
         return (not self.f or self.f.has_eval) and all([_.has_eval for _ in self.g_list])

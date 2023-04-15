@@ -86,6 +86,10 @@ class Optimizer:
                 maxiter:
                   Maximum iterations on call to :meth:`solve`.
 
+                nanstop:
+                  If ``True``, stop iterations if a ``NaN`` or ``Inf``
+                  value is encountered in a solver working variable.
+
                 itstat_options:
                   A dict of named parameters to be passed to
                   the :class:`.diagnostics.IterationStats` initializer.
@@ -99,8 +103,9 @@ class Optimizer:
                   otherwise the default dict is updated with the dict
                   specified by this parameter.
         """
-        itstat_options = kwargs.pop("itstat_options", None)
         self.maxiter: int = kwargs.pop("maxiter", 100)
+        self.nanstop: bool = kwargs.pop("nanstop", False)
+        itstat_options = kwargs.pop("itstat_options", None)
 
         if kwargs:
             raise TypeError(f"Unrecognized keyword argument(s) {', '.join([k for k in kwargs])}")
@@ -115,6 +120,16 @@ class Optimizer:
 
         self.itstat_insert_func, self.itstat_object = itstat_func_and_object(
             itstat_fields, itstat_attrib, itstat_options
+        )
+
+    def _working_vars_finite(self) -> bool:
+        """Determine where ``NaN`` of ``Inf`` encountered in solve.
+
+        Return ``False`` if a ``NaN`` or ``Inf`` value is encountered in
+        a solver working variable.
+        """
+        raise NotImplementedError(
+            "NaN check requested but _working_vars_finite not implemented." ""
         )
 
     def _itstat_default_fields(self) -> Tuple[Dict[str, str], List[str]]:
@@ -182,6 +197,8 @@ class Optimizer:
         self.timer.start()
         for self.itnum in range(self.itnum, self.itnum + self.maxiter):
             self.step()
+            if self.nanstop and not self._working_vars_finite():
+                raise ValueError("NaN value encountered in working variable." "")
             self.itstat_object.insert(self.itstat_insert_func(self))
             if callback:
                 self.timer.stop()

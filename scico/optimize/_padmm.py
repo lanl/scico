@@ -116,6 +116,18 @@ class ProximalADMMBase(Optimizer):
 
         super().__init__(**kwargs)
 
+    def _working_vars_finite(self) -> bool:
+        """Determine where ``NaN`` of ``Inf`` encountered in solve.
+
+        Return ``False`` if a ``NaN`` or ``Inf`` value is encountered in
+        a solver working variable.
+        """
+        return (
+            snp.all(snp.isfinite(self.x))
+            and snp.all(snp.isfinite(self.z))
+            and snp.all(snp.isfinite(self.u))
+        )
+
     def _objective_evaluatable(self):
         """Determine whether the objective function can be evaluated."""
         return self.f.has_eval and self.g.has_eval

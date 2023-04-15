@@ -8,7 +8,7 @@ import scico.numpy as snp
 from scico import functional, linop, loss, metric, random
 from scico.optimize import ADMM
 from scico.optimize.admm import (
-    BlockCircularConvolveSolver,
+    BlockCircularConvolveForm1Solver,
     CircularConvolveSolver,
     GenericSubproblemSolver,
     LinearSubproblemSolver,
@@ -64,6 +64,12 @@ class TestMisc:
 
         with pytest.raises(TypeError):
             admm_ = ADMM(f=f, g_list=[g], C_list=[C], rho_list=[ρ], invalid_keyword_arg=None)
+
+        admm_ = ADMM(f=f, g_list=[g], C_list=[C], rho_list=[ρ], maxiter=maxiter, nanstop=True)
+        admm_.step()
+        admm_.x = admm_.x.at[0].set(np.nan)
+        with pytest.raises(ValueError):
+            admm_.solve()
 
 
 class TestReal:
@@ -375,7 +381,7 @@ class TestBlockCircularConvolveSolve:
             maxiter=maxiter,
             itstat_options={"display": False},
             x0=self.A.adj(self.y),
-            subproblem_solver=BlockCircularConvolveSolver(),
+            subproblem_solver=BlockCircularConvolveForm1Solver(),
         )
         x_dft = admm_dft.solve()
         np.testing.assert_allclose(x_dft, x_lin, atol=1e-4, rtol=0)
