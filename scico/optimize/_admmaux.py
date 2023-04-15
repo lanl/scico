@@ -550,7 +550,7 @@ class BlockCircularConvolveForm2Solver(SubproblemSolver):
     linear operators, examples of which include instances of
     :class:`.Identity` as well as some instances (depending on
     initializer parameters) of :class:`.CircularConvolve` and
-    :class:`.FiniteDifference`.  None of the instances of
+    :class:`.FiniteDifference`.  None of these instances of
     :class:`.CircularConvolve` may be summed over any of their axes.
 
     The solver is based on the frequency-domain approach proposed in
