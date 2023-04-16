@@ -207,7 +207,7 @@ class LinearSubproblemSolver(SubproblemSolver):
                 )
             if not isinstance(admm.f.A, LinearOperator):
                 raise ValueError(
-                    f"LinearSubproblemSolver requires f.A to be a scico.linop.LinearOperator; "
+                    "LinearSubproblemSolver requires f.A to be a scico.linop.LinearOperator; "
                     f"got {type(admm.f.A)}."
                 )
 
@@ -727,13 +727,13 @@ class BlockCircularConvolveForm2Solver(SubproblemSolver):
         C0 = self.admm.C_list[0]
         rhs = snp.zeros(C0.input_shape, C0.input_dtype)
         omega = self.admm.g_list[0].scale
-        omega_list = [omega,] + [
+        omega_list = [2.0 * omega,] + [
             1.0,
         ] * (len(self.admm.C_list) - 1)
         for omegai, rhoi, Ci, zi, ui in zip(
             omega_list, self.admm.rho_list, self.admm.C_list, self.admm.z_list, self.admm.u_list
         ):
-            rhs += 2.0 * omegai * rhoi * Ci.adj(zi - ui)
+            rhs += omegai * rhoi * Ci.adj(zi - ui)
         return rhs
 
     def solve(self, x0: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
