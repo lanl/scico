@@ -9,6 +9,7 @@ from scico import functional, linop, loss, metric, random
 from scico.optimize import ADMM
 from scico.optimize.admm import (
     BlockCircularConvolveForm1Solver,
+    BlockCircularConvolveForm2Solver,
     CircularConvolveSolver,
     GenericSubproblemSolver,
     LinearSubproblemSolver,
@@ -369,20 +370,33 @@ class TestBlockCircularConvolveSolve:
             rho_list=rho_list,
             maxiter=maxiter,
             itstat_options={"display": False},
-            x0=self.A.adj(self.y),
             subproblem_solver=LinearSubproblemSolver(),
         )
         x_lin = admm_lin.solve()
-        admm_dft = ADMM(
+
+        admm_dft1 = ADMM(
             f=self.f,
             g_list=self.g_list,
             C_list=self.C_list,
             rho_list=rho_list,
             maxiter=maxiter,
             itstat_options={"display": False},
-            x0=self.A.adj(self.y),
             subproblem_solver=BlockCircularConvolveForm1Solver(),
         )
-        x_dft = admm_dft.solve()
-        np.testing.assert_allclose(x_dft, x_lin, atol=1e-4, rtol=0)
-        assert metric.mse(x_lin, x_dft) < 1e-9
+        x_dft1 = admm_dft1.solve()
+        np.testing.assert_allclose(x_dft1, x_lin, atol=1e-4, rtol=0)
+        assert metric.mse(x_lin, x_dft1) < 1e-9
+
+        admm_dft2 = ADMM(
+            f=functional.ZeroFunctional(),
+            g_list=[loss.SquaredL2Loss(y=self.y)] + self.g_list,
+            C_list=[self.A] + self.C_list,
+            rho_list=[1.0, ρ],
+            maxiter=maxiter,
+            itstat_options={"display": False},
+            subproblem_solver=BlockCircularConvolveForm2Solver(),
+        )
+        admm_dft2.z_list[0] = self.y  # significantly improves convergence
+        x_dft2 = admm_dft2.solve()
+        np.testing.assert_allclose(x_dft2, x_lin, atol=1e-4, rtol=0)
+        assert metric.mse(x_lin, x_dft2) < 1e-9
