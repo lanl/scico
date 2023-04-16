@@ -382,8 +382,8 @@ class BlockCircularConvolveForm1Solver(LinearSubproblemSolver):
     .. math::
 
        \mb{x}^{(j+1)} = \argmin_{\mb{x}} \; \omega \norm{A \mb{x}
-       - \mb{y}}_2^2 + \sum_i \frac{\rho_i}{2} \norm{\mb{z}^{(j)}_i -
-       \mb{u}^{(j)}_i - C_i \mb{x}}_2^2 \;.
+       - \mb{y}}_2^2 + \sum_i \frac{\rho_i}{2} \norm{C_i \mb{x} -
+       (\mb{z}^{(j)}_i - \mb{u}^{(j)}_i)}_2^2 \;.
 
     This subproblem is most easily solved in the DFT transform domain,
     where the circular convolutions become diagonal operators. Denoting
@@ -585,9 +585,9 @@ class BlockCircularConvolveForm2Solver(SubproblemSolver):
     .. math::
 
        \mb{x}^{(j+1)} = \argmin_{\mb{x}} \; \rho_1 \omega \norm{
-       \mb{z}^{(j)}_1 - \mb{u}^{(j)}_1 - A \mb{x}}_2^2 + \sum_{i=2}^N
-       \frac{\rho_i}{2} \norm{\mb{z}^{(j)}_i - \mb{u}^{(j)}_i -
-       C_i \mb{x}}_2^2 \;.
+       A \mb{x} - (\mb{z}^{(j)}_1 - \mb{u}^{(j)}_1)}_2^2 + \sum_{i=2}^N
+       \frac{\rho_i}{2} \norm{C_i \mb{x} - (\mb{z}^{(j)}_i -
+       \mb{u}^{(j)}_i)}_2^2 \;.
 
     This subproblem is most easily solved in the DFT transform domain,
     where the circular convolutions become diagonal operators. Denoting
