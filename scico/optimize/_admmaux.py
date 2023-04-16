@@ -576,7 +576,7 @@ class BlockCircularConvolveForm2Solver(SubproblemSolver):
 
     .. math::
 
-       g_1(\mb{z}) &= \omega \norm{B \mb{z} - \mb{y}}_2^2`\\
+       g_1(\mb{z}) &= \omega \norm{B \mb{z} - \mb{y}}_2^2\\
        C_1 &= A \;,
 
     and the other :math:`C_i` are either identity or circular
@@ -733,7 +733,7 @@ class BlockCircularConvolveForm2Solver(SubproblemSolver):
         for omegai, rhoi, Ci, zi, ui in zip(
             omega_list, self.admm.rho_list, self.admm.C_list, self.admm.z_list, self.admm.u_list
         ):
-            rhs += omegai * rhoi * Ci.adj(zi - ui)
+            rhs += 2.0 * omegai * rhoi * Ci.adj(zi - ui)
         return rhs
 
     def solve(self, x0: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
@@ -749,7 +749,7 @@ class BlockCircularConvolveForm2Solver(SubproblemSolver):
         assert isinstance(self.admm.C_list[0], ComposedLinearOperator)
         assert isinstance(self.admm.C_list[0].B, CircularConvolve)
 
-        rhs = self.compute_rhs() / (2.0 * self.admm.g_list[0].scale)
+        rhs = self.compute_rhs() / (2.0 * self.admm.g_list[0].scale * self.admm.rho_list[0])
         fft_axes = self.admm.C_list[0].B.x_fft_axes
         rhs_dft = snp.fft.fftn(rhs, axes=fft_axes)
         A = self.admm.C_list[0].B
