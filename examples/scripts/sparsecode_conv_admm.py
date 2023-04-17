@@ -63,7 +63,7 @@ x0 = jax.device_put(x0)
 Set up sum-of-convolutions forward operator.
 """
 C = CircularConvolve(h, input_shape=x0.shape, ndims=2)
-S = Sum(input_shape=x0.shape, axis=0)
+S = Sum(input_shape=C.output_shape, axis=0)
 A = S @ C
 
 
@@ -84,9 +84,8 @@ maxiter = 200  # number of ADMM iterations
 
 """
 Define loss function and regularization. Note the use of the
-:math:`\ell_1 - \ell_2` norm, which has been found to provide
-slightly better performance than the :math:`\ell_1` norm in
-this type of problem.
+$\ell_1 - \ell_2$ norm, which has been found to provide slightly better
+performance than the $\ell_1$ norm in this type of problem.
 """
 f = SquaredL2Loss(y=y, A=A)
 g0 = λ * DiffL1L2Norms()

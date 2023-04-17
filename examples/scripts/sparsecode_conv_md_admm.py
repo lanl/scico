@@ -88,8 +88,8 @@ A = S @ C
 
 
 """
-Construct test image from dictionary $\mathbf{h}$ and coefficient maps
-$\mathbf{x}_0$.
+Construct test image from dictionary $\mathbf{h}$ and padded version of
+coefficient maps $\mathbf{x}_0$.
 """
 y = B(A(x0p))
 
@@ -105,9 +105,8 @@ maxiter = 200  # number of ADMM iterations
 
 """
 Define loss function and regularization. Note the use of the
-:math:`\ell_1 - \ell_2` norm, which has been found to provide
-slightly better performance than the :math:`\ell_1` norm in
-this type of problem.
+$\ell_1 - \ell_2$ norm, which has been found to provide slightly better
+performance than the $\ell_1$ norm in this type of problem.
 """
 f = ZeroFunctional()
 g0 = SquaredL2Loss(y=y, A=B)
