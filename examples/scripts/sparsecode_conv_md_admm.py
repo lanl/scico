@@ -129,7 +129,6 @@ solver = ADMM(
     subproblem_solver=BlockCircularConvolveForm2Solver(check_solve=True),
     itstat_options={"display": True, "period": 10},
 )
-# solver.z_list[0] = snp.pad(y, pad_width=pad_width[1:])
 
 
 """
