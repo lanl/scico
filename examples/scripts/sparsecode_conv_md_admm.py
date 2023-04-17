@@ -157,7 +157,9 @@ fig.show()
 
 
 """
-Show test image and reconstruction from recovered coefficient maps.
+Show test image and reconstruction from recovered coefficient maps. Note
+the absence of the wrap-around effects at the boundary that can be seen
+in the corresponding images in the [related example](sparsecode_conv_admm.rst).
 """
 fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 6))
 plot.imview(y, title="Test image", cmap=plot.cm.gist_heat_r, fig=fig, ax=ax[0])
