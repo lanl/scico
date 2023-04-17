@@ -45,6 +45,7 @@ Sparse Coding
 
    - sparsecode_admm.py
    - sparsecode_conv_admm.py
+   - sparsecode_conv_md_admm.py
    - sparsecode_pgm.py
    - sparsecode_poisson_pgm.py
 
@@ -112,6 +113,7 @@ Sparsity
 
    - sparsecode_admm.py
    - sparsecode_conv_admm.py
+   - sparsecode_conv_md_admm.py
    - sparsecode_pgm.py
    - sparsecode_poisson_pgm.py
    - video_rpca_admm.py
@@ -156,6 +158,7 @@ ADMM
    - deconv_ppp_bm4d_admm.py
    - sparsecode_admm.py
    - sparsecode_conv_admm.py
+   - sparsecode_conv_md_admm.py
    - demosaic_ppp_bm3d_admm.py
    - superres_ppp_dncnn_admm.py
    - denoise_l1tv_admm.py

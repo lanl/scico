@@ -64,6 +64,7 @@ Sparse Coding
 
    examples/sparsecode_admm
    examples/sparsecode_conv_admm
+   examples/sparsecode_conv_md_admm
    examples/sparsecode_pgm
    examples/sparsecode_poisson_pgm
 
@@ -146,6 +147,7 @@ Sparsity
 
    examples/sparsecode_admm
    examples/sparsecode_conv_admm
+   examples/sparsecode_conv_md_admm
    examples/sparsecode_pgm
    examples/sparsecode_poisson_pgm
    examples/video_rpca_admm
@@ -199,6 +201,7 @@ ADMM
    examples/deconv_ppp_bm4d_admm
    examples/sparsecode_admm
    examples/sparsecode_conv_admm
+   examples/sparsecode_conv_md_admm
    examples/demosaic_ppp_bm3d_admm
    examples/superres_ppp_dncnn_admm
    examples/denoise_l1tv_admm

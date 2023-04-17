@@ -71,6 +71,8 @@ Sparse Coding
       Non-Negative Basis Pursuit DeNoising (ADMM)
    `sparsecode_conv_admm.py <sparsecode_conv_admm.py>`_
       Convolutional Sparse Coding (ADMM)
+   `sparsecode_conv_md_admm.py <sparsecode_conv_md_admm.py>`_
+      Convolutional Sparse Coding with Mask Decoupling (ADMM)
    `sparsecode_pgm.py <sparsecode_pgm.py>`_
       Basis Pursuit DeNoising (APGM)
    `sparsecode_poisson_pgm.py <sparsecode_poisson_pgm.py>`_
@@ -182,6 +184,8 @@ Sparsity
       Non-Negative Basis Pursuit DeNoising (ADMM)
    `sparsecode_conv_admm.py <sparsecode_conv_admm.py>`_
       Convolutional Sparse Coding (ADMM)
+   `sparsecode_conv_md_admm.py <sparsecode_conv_md_admm.py>`_
+      Convolutional Sparse Coding with Mask Decoupling (ADMM)
    `sparsecode_pgm.py <sparsecode_pgm.py>`_
       Basis Pursuit DeNoising (APGM)
    `sparsecode_poisson_pgm.py <sparsecode_poisson_pgm.py>`_
@@ -257,6 +261,8 @@ ADMM
       Non-Negative Basis Pursuit DeNoising (ADMM)
    `sparsecode_conv_admm.py <sparsecode_conv_admm.py>`_
       Convolutional Sparse Coding (ADMM)
+   `sparsecode_conv_md_admm.py <sparsecode_conv_md_admm.py>`_
+      Convolutional Sparse Coding with Mask Decoupling (ADMM)
    `demosaic_ppp_bm3d_admm.py <demosaic_ppp_bm3d_admm.py>`_
       PPP (with BM3D) Image Demosaicing
    `superres_ppp_dncnn_admm.py <superres_ppp_dncnn_admm.py>`_
