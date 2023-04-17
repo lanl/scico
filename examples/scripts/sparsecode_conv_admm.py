@@ -17,7 +17,9 @@ coding problem
 
 where the $\mathbf{h}$_k is a set of filters comprising the dictionary,
 the $\mathbf{x}$_k is a corrresponding set of coefficient maps, and
-$\mathbf{y}$ is the signal to be represented.
+$\mathbf{y}$ is the signal to be represented. The problem is solved via
+an ADMM algorithm using the frequency-domain approach proposed in
+:cite:`wohlberg-2014-efficient`.
 """
 
 import numpy as np
@@ -34,8 +36,8 @@ from scico.optimize.admm import ADMM, BlockCircularConvolveForm1Solver
 from scico.util import device_info
 
 """
-Set problem size and Create random convolutional dictionary (a set of filters)
-and a corresponding sparse random set of coefficient maps.
+Set problem size and create random convolutional dictionary (a set of
+filters) and a corresponding sparse random set of coefficient maps.
 """
 N = 128  # image size
 Nnz = 128  # number of non-zeros in coefficient maps
@@ -75,17 +77,20 @@ y = A(x0)
 """
 Set functional and solver parameters.
 """
-λ = 1e0  # L1-L2 norm regularization parameter
+λ = 1e0  # l1-l2 norm regularization parameter
 ρ = 2e0  # ADMM penalty parameter
 maxiter = 200  # number of ADMM iterations
 
 
 """
-Define loss function and regularization.
+Define loss function and regularization. Note the use of the
+:math:`\ell_1 - \ell_2` norm, which has been found to provide
+slightly better performance than the :math:`\ell_1` norm in
+this type of problem.
 """
 f = SquaredL2Loss(y=y, A=A)
-g = λ * DiffL1L2Norms()
-C = Identity(input_shape=x0.shape)
+g0 = λ * DiffL1L2Norms()
+C0 = Identity(input_shape=x0.shape)
 
 
 """
@@ -93,8 +98,8 @@ Initialize ADMM solver.
 """
 solver = ADMM(
     f=f,
-    g_list=[g],
-    C_list=[C],
+    g_list=[g0],
+    C_list=[C0],
     rho_list=[ρ],
     alpha=1.8,
     maxiter=maxiter,
@@ -114,7 +119,7 @@ hist = solver.itstat_object.history(transpose=True)
 """
 Show the recovered coefficient maps.
 """
-fig, ax = plot.subplots(nrows=2, ncols=3, figsize=(14, 10))
+fig, ax = plot.subplots(nrows=2, ncols=3, figsize=(12, 8.6))
 plot.imview(x0[0], title="Coef. map 0", cmap=plot.cm.Blues, fig=fig, ax=ax[0, 0])
 ax[0, 0].set_ylabel("Ground truth")
 plot.imview(x0[1], title="Coef. map 1", cmap=plot.cm.Blues, fig=fig, ax=ax[0, 1])
@@ -131,8 +136,8 @@ fig.show()
 Show test image and reconstruction from recovered coefficient maps.
 """
 fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 6))
-plot.imview(y, title="Test image", fig=fig, ax=ax[0])
-plot.imview(A(x1), title="Reconstructed image", fig=fig, ax=ax[1])
+plot.imview(y, title="Test image", cmap=plot.cm.gist_heat_r, fig=fig, ax=ax[0])
+plot.imview(A(x1), title="Reconstructed image", cmap=plot.cm.gist_heat_r, fig=fig, ax=ax[1])
 fig.show()
 
 
