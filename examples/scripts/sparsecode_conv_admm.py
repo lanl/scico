@@ -85,7 +85,8 @@ maxiter = 200  # number of ADMM iterations
 """
 Define loss function and regularization. Note the use of the
 $\ell_1 - \ell_2$ norm, which has been found to provide slightly better
-performance than the $\ell_1$ norm in this type of problem.
+performance than the $\ell_1$ norm in this type of problem
+:cite:`wohlberg-2021-psf`.
 """
 f = SquaredL2Loss(y=y, A=A)
 g0 = λ * DiffL1L2Norms()

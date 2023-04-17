@@ -11,9 +11,9 @@ Convolutional Sparse Coding with Mask Decoupling (ADMM)
 This example demonstrates the solution of a convolutional sparse coding
 problem
 
-  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - B (\sum_k
-  \mathbf{h}_k \ast \mathbf{x}_k) \|_2^2 + \lambda \sum_k
-  \| \mathbf{x}_k \|_1  \;,$$
+  $$\mathrm{argmin}_{\mathbf{x}} \; \frac{1}{2} \Big\| \mathbf{y} -
+  B \Big( \sum_k \mathbf{h}_k \ast \mathbf{x}_k \Big) \Big\|_2^2 +
+  \lambda \sum_k \| \mathbf{x}_k \|_1  \;,$$
 
 where the $\mathbf{h}$_k is a set of filters comprising the dictionary,
 the $\mathbf{x}$_k is a corrresponding set of coefficient maps,
@@ -106,7 +106,8 @@ maxiter = 200  # number of ADMM iterations
 """
 Define loss function and regularization. Note the use of the
 $\ell_1 - \ell_2$ norm, which has been found to provide slightly better
-performance than the $\ell_1$ norm in this type of problem.
+performance than the $\ell_1$ norm in this type of problem
+:cite:`wohlberg-2021-psf`.
 """
 f = ZeroFunctional()
 g0 = SquaredL2Loss(y=y, A=B)
