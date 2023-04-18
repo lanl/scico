@@ -79,13 +79,13 @@ class MatrixOperator(LinearOperator):
         """
         self.A: snp.Array  #: Dense array implementing this matrix
 
-        # if A is an ndarray, make sure it gets converted to a DeviceArray
+        # if A is an ndarray, make sure it gets converted to a jax array
         if isinstance(A, jnp.ndarray):
             self.A = A
         elif isinstance(A, np.ndarray):
             self.A = jax.device_put(A)  # TODO: ensure_on_device?
         else:
-            raise TypeError(f"Expected np.ndarray or DeviceArray, got {type(A)}.")
+            raise TypeError(f"Expected numpy or jax array, got {type(A)}.")
 
         # Can only do rank-2 arrays
         if A.ndim != 2:

@@ -202,7 +202,7 @@ class ConvolveByX(LinearOperator):
         elif isinstance(x, np.ndarray):  # TODO: this should not be handled at the LinOp level
             self.x = jax.device_put(x)
         else:
-            raise TypeError(f"Expected np.ndarray or DeviceArray, got {type(x)}.")
+            raise TypeError(f"Expected numpy or jax array, got {type(x)}.")
 
         if mode not in ["full", "valid", "same"]:
             raise ValueError(f"Invalid mode={mode}; must be one of 'full', 'valid', 'same'.")

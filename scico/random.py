@@ -45,7 +45,7 @@ is returned:
 
    x, key = scico.random.randn( ((1, 1), (2,)), key=key)
    print(x)  # scico.numpy.BlockArray:
-             # DeviceArray([ 1.1378784 , -1.220955  , -0.59153646], dtype=float32)
+             # Array([ 1.1378784 , -1.220955  , -0.59153646], dtype=float32)
 
 """
 
@@ -153,8 +153,8 @@ def randn(
 
     Args:
         shape: Shape of output array. If shape is a tuple, a
-            DeviceArray is returned. If shape is a tuple of tuples, a
-            :class:`.BlockArray` is returned.
+            :class:`jax.Array` is returned. If shape is a tuple of tuples,
+            a :class:`.BlockArray` is returned.
         key: JAX PRNGKey. Defaults to ``None``, in which case a new key
             is created using the seed arg.
         seed: Seed for new PRNGKey. Default: 0.
@@ -165,7 +165,7 @@ def randn(
     Returns:
         tuple: A tuple (x, key) containing:
 
-           - **x** : (DeviceArray):  Generated random array.
+           - **x** : (:class:`jax.Array`):  Generated random array.
            - **key** : Updated random PRNGKey.
     """
     return normal(shape, dtype, key, seed)  # type: ignore

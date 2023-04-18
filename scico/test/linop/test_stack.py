@@ -38,7 +38,7 @@ class TestVerticalStack:
         assert np.allclose(y[0], A @ x)
         assert np.allclose(y[1], B @ x)
 
-        # by default, collapse to DeviceArray when possible
+        # by default, collapse to jax array when possible
         A = Convolve(jax.device_put(np.ones((2, 2))), (7, 11))
         B = Convolve(jax.device_put(np.ones((2, 2))), (7, 11))
         H = VerticalStack([A, B], jit=jit)

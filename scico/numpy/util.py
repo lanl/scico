@@ -5,7 +5,7 @@
 # and user license can be found in the 'LICENSE.txt' file distributed
 # with the package.
 
-"""Utility functions for working with BlockArrays and DeviceArrays."""
+"""Utility functions for working with jax arrays BlockArrays."""
 
 
 from __future__ import annotations
@@ -27,24 +27,22 @@ from ._blockarray import BlockArray
 def ensure_on_device(
     *arrays: Union[np.ndarray, snp.Array, BlockArray]
 ) -> Union[snp.Array, BlockArray]:
-    """Cast ndarrays to DeviceArrays.
+    """Cast ndarrays to jax arrays.
 
-    Cast ndarrays to DeviceArrays and leaves DeviceArrays, BlockArrays,
-    and ShardedDeviceArray as is. This is intended to be used when
-    initializing optimizers and functionals so that all arrays are either
-    DeviceArrays, BlockArrays, or ShardedDeviceArray.
+    Cast ndarrays to jax arrays and leave jax arrays, BlockArrays,
+    as is. This is intended to be used when initializing optimizers and
+    functionals so that all arrays are either jax arrays or BlockArrays.
 
     Args:
-        *arrays: One or more input arrays (ndarray, DeviceArray,
-           BlockArray, or ShardedDeviceArray).
+        *arrays: One or more input arrays (ndarray, jax array, or
+            BlockArray).
 
     Returns:
-        Modified array or arrays. Modified are only those that were
-        necessary.
+        Array or arrays, modified where appropriate.
 
     Raises:
-        TypeError: If the arrays contain something that is neither
-           ndarray, DeviceArray, BlockArray, nor ShardedDeviceArray.
+        TypeError: If the arrays contain anything that is neither
+           ndarray, jax array, nor BlockArray.
     """
     arrays = list(arrays)
 
@@ -52,9 +50,9 @@ def ensure_on_device(
 
         if isinstance(array, np.ndarray):
             warnings.warn(
-                f"Argument {i+1} of {len(arrays)} is an np.ndarray. "
-                f"Will cast it to DeviceArray. "
-                f"To suppress this warning cast all np.ndarrays to DeviceArray first.",
+                f"Argument {i+1} of {len(arrays)} is a numpyy ndarray. "
+                "Will cast it to a jax array. "
+                f"To suppress this warning cast all numpy ndarrays to jax arrays.",
                 stacklevel=2,
             )
 

@@ -251,7 +251,7 @@ class LinearOperator(Operator):
 
         Args:
             x: Point at which to evaluate this :class:`LinearOperator`.
-               If `x` is a :class:`DeviceArray` or :class:`.BlockArray`,
+               If `x` is a :class:`jax.Array` or :class:`.BlockArray`,
                must have `shape == self.input_shape`. If `x` is a
                :class:`LinearOperator`, must have
                `x.output_shape == self.input_shape`.
@@ -271,7 +271,7 @@ class LinearOperator(Operator):
 
         Args:
             y: Point at which to compute adjoint. If `y` is
-                :class:`DeviceArray` or :class:`.BlockArray`, must have
+                :class:`jax.Array` or :class:`.BlockArray`, must have
                 `shape == self.output_shape`. If `y` is a
                 :class:`LinearOperator`, must have
                 `y.output_shape == self.output_shape`.
@@ -392,7 +392,7 @@ class LinearOperator(Operator):
 
         Args:
             x: Point at which to evaluate the gram operator. If `x` is
-               a :class:`DeviceArray` or :class:`.BlockArray`, must have
+               a :class:`jax.Array` or :class:`.BlockArray`, must have
                `shape == self.input_shape`. If `x` is a
                :class:`LinearOperator`, must have
                `x.output_shape == self.input_shape`.

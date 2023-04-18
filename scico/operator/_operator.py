@@ -178,7 +178,7 @@ output_dtype : {self.output_dtype}
 
         Args:
             x: Point at which to evaluate this :class:`.Operator`. If `x`
-               is a :class:`DeviceArray` or :class:`.BlockArray`, it must
+               is a :class:`jax.Array` or :class:`.BlockArray`, it must
                have `shape == self.input_shape`. If `x` is a
                :class:`.Operator` or :class:`.LinearOperator`, it must
                have `x.output_shape == self.input_shape`.

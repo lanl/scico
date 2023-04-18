@@ -135,8 +135,8 @@ def epfl_deconv_data(
     Returns:
        tuple: A tuple (y, psf) containing:
 
-           - **y** : (DeviceArray): Blurred channel data.
-           - **psf** : (DeviceArray): Channel psf.
+           - **y** : (jax.Array): Blurred channel data.
+           - **psf** : (jax.Array): Channel psf.
     """
 
     # set default cache path if not specified

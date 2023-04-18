@@ -211,7 +211,7 @@ def minimize(
 
     x0_shape = x0.shape
     x0_dtype = x0.dtype
-    x0 = x0.ravel()  # if x0 is a BlockArray it will become a DeviceArray here
+    x0 = x0.ravel()  # if x0 is a BlockArray it will become a jax array here
 
     # Run the SciPy minimizer
     if method in (
@@ -278,8 +278,8 @@ def minimize_scalar(
     """
 
     def f(x, *args):
-        # Wrap jax-based function `func` to return a numpy float
-        # rather than a DeviceArray of size (1,)
+        # Wrap jax-based function `func` to return a numpy float rather
+        # than a jax array of size (1,)
         return func(x, *args).item()
 
     res = spopt.minimize_scalar(

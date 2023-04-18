@@ -28,7 +28,7 @@ class FiniteDifference(VerticalStack):
     """Finite difference operator.
 
     Computes finite differences along the specified axes, returning the
-    results in a `DeviceArray` (whenever possible) or :class:`BlockArray`.
+    results in a :class:`jax.Array` (when possible) or :class:`BlockArray`.
     See :class:`VerticalStack` for details on how this choice is made.
     See :class:`SingleAxisFiniteDifference` for the mathematical
     implications of the different boundary handling options `prepend`,

@@ -69,9 +69,9 @@ class VerticalStack(LinearOperator):
             ops: Operators to stack.
             collapse: If ``True`` and the output would be a
                 :class:`BlockArray` with shape ((m, n, ...), (m, n, ...),
-                ...), the output is instead a `DeviceArray` with shape
-                (S, m, n, ...) where S is the length of `ops`. Defaults
-                to ``True``.
+                ...), the output is instead a :class:`jax.Array` with
+                shape (S, m, n, ...) where S is the length of `ops`.
+                Defaults to ``True``.
             jit: see `jit` in :class:`LinearOperator`.
         """
         VerticalStack.check_if_stackable(ops)
@@ -83,7 +83,7 @@ class VerticalStack(LinearOperator):
         self.collapsible = is_collapsible(output_shapes)
 
         if self.collapsible and self.collapse:
-            output_shape = (len(ops),) + output_shapes[0]  # collapse to DeviceArray
+            output_shape = (len(ops),) + output_shapes[0]  # collapse to jax array
         else:
             output_shape = output_shapes
 

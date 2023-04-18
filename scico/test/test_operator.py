@@ -44,7 +44,7 @@ class OperatorTestObj:
         self.mat = randn(self.A.input_shape, dtype=dtype, key=key)
         self.x, key = randn((N,), dtype=dtype, key=key)
         scalar, key = randn((1,), dtype=dtype, key=key)
-        self.scalar = scalar.item()  # DeviceArray -> actual scalar
+        self.scalar = scalar.item()  # jax array -> actual scalar
 
         self.z, key = randn((2 * N,), dtype=dtype, key=key)
 
