@@ -13,7 +13,7 @@ BlockArray
 
 The class :class:`.BlockArray` provides a way to combine arrays of
 different shapes into a single object for use with other SCICO classes.
-A :class:`.BlockArray` consists of a list of :obj:`~jax.numpy.DeviceArray` objects,
+A :class:`.BlockArray` consists of a list of :class:`jax.Array` objects,
 which we refer to as blocks. A :class:`.BlockArray` differs from a list in
 that, whenever possible, :class:`.BlockArray` properties and methods
 (including unary and binary operators like +, -, \*, ...) automatically
@@ -156,8 +156,8 @@ The recommended way to construct a :class:`.BlockArray` is by using the
      2
 
 While :func:`.snp.blockarray` will accept either :class:`~numpy.ndarray`\ s or
-:obj:`~jax.numpy.DeviceArray`\ s as input, :class:`~numpy.ndarray`\ s
-will be converted to :obj:`~jax.Array`\ s.
+:class:`~jax.Array`\ s as input, :class:`~numpy.ndarray`\ s will be converted to
+:class:`~jax.Array`\ s.
 
 
 Operating on a BlockArray
