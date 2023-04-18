@@ -1,4 +1,4 @@
-# Copyright (C) 2020-2022 by SCICO Developers
+# Copyright (C) 2020-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -21,9 +21,9 @@ import jax.numpy as jnp
 from jax.dtypes import result_type
 
 import scico.numpy as snp
-from scico.numpy import BlockArray
+from scico.numpy import Array, BlockArray
 from scico.numpy.util import is_nested, shape_to_size
-from scico.typing import BlockShape, DType, JaxArray, Shape
+from scico.typing import BlockShape, DType, Shape
 
 
 def _wrap_mul_div_scalar(func: Callable) -> Callable:
@@ -173,9 +173,7 @@ output_dtype : {self.output_dtype}
         """Activate just-in-time compilation for the `_eval` method."""
         self._eval = jax.jit(self._eval)
 
-    def __call__(
-        self, x: Union[Operator, JaxArray, BlockArray]
-    ) -> Union[Operator, JaxArray, BlockArray]:
+    def __call__(self, x: Union[Operator, Array, BlockArray]) -> Union[Operator, Array, BlockArray]:
         r"""Evaluate this :class:`Operator` at the point :math:`\mb{x}`.
 
         Args:
@@ -330,7 +328,7 @@ output_dtype : {self.output_dtype}
 
         return Fu, Gmap
 
-    def freeze(self, argnum: int, val: Union[JaxArray, BlockArray]) -> Operator:
+    def freeze(self, argnum: int, val: Union[Array, BlockArray]) -> Operator:
         """Return a new :class:`.Operator` with fixed block argument.
 
         Return a new :class:`.Operator` with block argument `argnum`

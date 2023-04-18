@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2022 by SCICO Developers
+# Copyright (C) 2020-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -67,8 +67,8 @@ import jax.experimental.host_callback as hcb
 
 import scico.linop
 import scico.numpy as snp
-from scico.numpy import BlockArray
-from scico.typing import BlockShape, DType, JaxArray, Shape
+from scico.numpy import Array, BlockArray
+from scico.typing import BlockShape, DType, Shape
 from scipy import optimize as spopt
 
 
@@ -132,7 +132,7 @@ def _wrap_func_and_grad(func: Callable, shape: Union[Shape, BlockShape], dtype: 
     return wrapper
 
 
-def _split_real_imag(x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
+def _split_real_imag(x: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
     """Split an array of shape (N, M, ...) into real and imaginary parts.
 
     Args:
@@ -151,7 +151,7 @@ def _split_real_imag(x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArr
     return snp.stack((snp.real(x), snp.imag(x)))
 
 
-def _join_real_imag(x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
+def _join_real_imag(x: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
     """Join a real array of shape (2,N,M,...) into a complex array.
 
     Join a real array of shape (2,N,M,...) into a complex array of length
@@ -171,7 +171,7 @@ def _join_real_imag(x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArra
 
 def minimize(
     func: Callable,
-    x0: Union[JaxArray, BlockArray],
+    x0: Union[Array, BlockArray],
     args: Union[Tuple, Tuple[Any]] = (),
     method: str = "L-BFGS-B",
     hess: Optional[Union[Callable, str]] = None,
@@ -296,15 +296,15 @@ def minimize_scalar(
 
 def cg(
     A: Callable,
-    b: JaxArray,
-    x0: Optional[JaxArray] = None,
+    b: Array,
+    x0: Optional[Array] = None,
     *,
     tol: float = 1e-5,
     atol: float = 0.0,
     maxiter: int = 1000,
     info: bool = True,
     M: Optional[Callable] = None,
-) -> Tuple[JaxArray, dict]:
+) -> Tuple[Array, dict]:
     r"""Conjugate Gradient solver.
 
     Solve the linear system :math:`A\mb{x} = \mb{b}`, where :math:`A` is
@@ -376,14 +376,14 @@ def cg(
 
 def lstsq(
     A: Callable,
-    b: JaxArray,
-    x0: Optional[JaxArray] = None,
+    b: Array,
+    x0: Optional[Array] = None,
     tol: float = 1e-5,
     atol: float = 0.0,
     maxiter: int = 1000,
     info: bool = False,
     M: Optional[Callable] = None,
-) -> Tuple[JaxArray, dict]:
+) -> Tuple[Array, dict]:
     r"""Least squares solver.
 
     Solve the least squares problem
@@ -437,15 +437,15 @@ def lstsq(
 
 def bisect(
     f: Callable,
-    a: JaxArray,
-    b: JaxArray,
+    a: Array,
+    b: Array,
     args: Tuple = (),
     xtol: float = 1e-7,
     ftol: float = 1e-7,
     maxiter: int = 100,
     full_output: bool = False,
     range_check: bool = True,
-) -> Union[JaxArray, dict]:
+) -> Union[Array, dict]:
     """Vectorised root finding via bisection method.
 
     Vectorised root finding via bisection method, supporting
@@ -511,14 +511,14 @@ def bisect(
 
 def golden(
     f: Callable,
-    a: JaxArray,
-    b: JaxArray,
-    c: Optional[JaxArray] = None,
+    a: Array,
+    b: Array,
+    c: Optional[Array] = None,
     args: Tuple = (),
     xtol: float = 1e-7,
     maxiter: int = 100,
     full_output: bool = False,
-) -> Union[JaxArray, dict]:
+) -> Union[Array, dict]:
     """Vectorised scalar minimization via golden section method.
 
     Vectorised scalar minimization via golden section method, supporting

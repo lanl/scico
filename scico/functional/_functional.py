@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2022 by SCICO Developers
+# Copyright (C) 2020-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -13,8 +13,7 @@ import jax
 
 import scico
 from scico import numpy as snp
-from scico.numpy import BlockArray
-from scico.typing import JaxArray
+from scico.numpy import Array, BlockArray
 
 
 class Functional:
@@ -55,7 +54,7 @@ has_prox = {self.has_prox}
             return FunctionalSum(self, other)
         return NotImplemented
 
-    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+    def __call__(self, x: Union[Array, BlockArray]) -> float:
         r"""Evaluate this functional at point :math:`\mb{x}`.
 
         Args:
@@ -66,8 +65,8 @@ has_prox = {self.has_prox}
         raise NotImplementedError(f"Functional {type(self)} cannot be evaluated.")
 
     def prox(
-        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
-    ) -> Union[JaxArray, BlockArray]:
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[Array, BlockArray]:
         r"""Scaled proximal operator of functional.
 
         Evaluate scaled proximal operator of this functional, with
@@ -93,8 +92,8 @@ has_prox = {self.has_prox}
         raise NotImplementedError(f"Functional {type(self)} does not have a prox.")
 
     def conj_prox(
-        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
-    ) -> Union[JaxArray, BlockArray]:
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[Array, BlockArray]:
         r"""Scaled proximal operator of convex conjugate of functional.
 
         Evaluate scaled proximal operator of convex conjugate (Fenchel
@@ -117,7 +116,7 @@ has_prox = {self.has_prox}
         """
         return v - lam * self.prox(v / lam, 1.0 / lam, **kwargs)
 
-    def grad(self, x: Union[JaxArray, BlockArray]):
+    def grad(self, x: Union[Array, BlockArray]):
         r"""Evaluates the gradient of this functional at :math:`\mb{x}`.
 
         Args:
@@ -144,7 +143,7 @@ class FunctionalSum(Functional):
         self.has_prox = False
         super().__init__()
 
-    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+    def __call__(self, x: Union[Array, BlockArray]) -> float:
         return self.functional1(x) + self.functional2(x)
 
 
@@ -161,12 +160,12 @@ class ScaledFunctional(Functional):
         self.has_prox = functional.has_prox
         super().__init__()
 
-    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+    def __call__(self, x: Union[Array, BlockArray]) -> float:
         return self.scale * self.functional(x)
 
     def prox(
-        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
-    ) -> Union[JaxArray, BlockArray]:
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[Array, BlockArray]:
         r"""Evaluate the scaled proximal operator of the scaled functional.
 
         Note that, by definition, the scaled proximal operator of a
@@ -260,10 +259,10 @@ class ZeroFunctional(Functional):
     has_eval = True
     has_prox = True
 
-    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+    def __call__(self, x: Union[Array, BlockArray]) -> float:
         return 0.0
 
     def prox(
-        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
-    ) -> Union[JaxArray, BlockArray]:
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[Array, BlockArray]:
         return v

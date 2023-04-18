@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2022 by SCICO Developers
+# Copyright (C) 2020-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -24,7 +24,7 @@ from jax.scipy.signal import convolve
 
 import scico.numpy as snp
 from scico.numpy.util import ensure_on_device
-from scico.typing import DType, JaxArray, Shape
+from scico.typing import DType, Shape
 
 from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
 
@@ -34,7 +34,7 @@ class Convolve(LinearOperator):
 
     def __init__(
         self,
-        h: JaxArray,
+        h: snp.Array,
         input_shape: Shape,
         input_dtype: DType = np.float32,
         mode: str = "full",
@@ -62,7 +62,7 @@ class Convolve(LinearOperator):
         For more details on `mode`, see :func:`jax.scipy.signal.convolve`.
         """
 
-        self.h: JaxArray  # : Convolution kernel
+        self.h: snp.Array  # : Convolution kernel
         self.mode: str  # : Convolution mode
 
         if h.ndim != len(input_shape):
@@ -87,7 +87,7 @@ class Convolve(LinearOperator):
             **kwargs,
         )
 
-    def _eval(self, x: JaxArray) -> JaxArray:
+    def _eval(self, x: snp.Array) -> snp.Array:
         return convolve(x, self.h, mode=self.mode)
 
     @partial(_wrap_add_sub, op=operator.add)
@@ -166,7 +166,7 @@ class ConvolveByX(LinearOperator):
 
     def __init__(
         self,
-        x: JaxArray,
+        x: snp.Array,
         input_shape: Shape,
         input_dtype: DType = np.float32,
         mode: str = "full",
@@ -191,7 +191,7 @@ class ConvolveByX(LinearOperator):
         For more details on `mode`, see :func:`jax.scipy.signal.convolve`.
         """
 
-        self.x: JaxArray  # : Fixed signal to convolve with
+        self.x: snp.Array  # : Fixed signal to convolve with
         self.mode: str  # : Convolution mode
 
         if x.ndim != len(input_shape):
@@ -222,7 +222,7 @@ class ConvolveByX(LinearOperator):
             **kwargs,
         )
 
-    def _eval(self, h: JaxArray) -> JaxArray:
+    def _eval(self, h: snp.Array) -> snp.Array:
         return convolve(self.x, h, mode=self.mode)
 
     @partial(_wrap_add_sub, op=operator.add)

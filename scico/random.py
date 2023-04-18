@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2022 by SCICO Developers
+# Copyright (C) 2020-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -58,9 +58,9 @@ import numpy as np
 
 import jax
 
-from scico.numpy import BlockArray
+from scico.numpy import Array, BlockArray
 from scico.numpy._wrappers import map_func_over_tuple_of_tuples
-from scico.typing import BlockShape, DType, JaxArray, PRNGKey, Shape
+from scico.typing import BlockShape, DType, PRNGKey, Shape
 
 
 def _add_seed(fun):
@@ -146,7 +146,7 @@ def randn(
     dtype: DType = np.float32,
     key: Optional[PRNGKey] = None,
     seed: Optional[int] = None,
-) -> Tuple[Union[JaxArray, BlockArray], PRNGKey]:
+) -> Tuple[Union[Array, BlockArray], PRNGKey]:
     """Return an array drawn from the standard normal distribution.
 
     Alias for :func:`scico.random.normal`.

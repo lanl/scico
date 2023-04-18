@@ -20,7 +20,7 @@ from jax.dtypes import result_type
 import scico.numpy as snp
 from scico.numpy.util import is_nested
 from scico.operator import Operator
-from scico.typing import Array, DType, JaxArray, Shape
+from scico.typing import Array, DType, Shape
 
 from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
 
@@ -79,12 +79,12 @@ class CircularConvolve(LinearOperator):
 
     def __init__(
         self,
-        h: JaxArray,
+        h: snp.Array,
         input_shape: Shape,
         ndims: Optional[int] = None,
         input_dtype: DType = snp.float32,
         h_is_dft: bool = False,
-        h_center: Optional[Union[JaxArray, Sequence, float, int]] = None,
+        h_center: Optional[Union[snp.Array, Sequence, float, int]] = None,
         jit: bool = True,
         **kwargs,
     ):
@@ -175,7 +175,7 @@ class CircularConvolve(LinearOperator):
             **kwargs,
         )
 
-    def _eval(self, x: JaxArray) -> JaxArray:
+    def _eval(self, x: snp.Array) -> snp.Array:
         x = x.astype(self.input_dtype)
         x_dft = snp.fft.fftn(x, axes=self.x_fft_axes)
         hx = snp.fft.ifftn(
@@ -186,7 +186,7 @@ class CircularConvolve(LinearOperator):
             hx = hx.real
         return hx
 
-    def _adj(self, x: JaxArray) -> JaxArray:  # type: ignore
+    def _adj(self, x: snp.Array) -> snp.Array:  # type: ignore
         x_dft = snp.fft.fftn(x, axes=self.ifft_axes)
         H_adj_x = snp.fft.ifftn(
             snp.conj(self.h_dft) * x_dft,
@@ -297,7 +297,9 @@ class CircularConvolve(LinearOperator):
         )
 
 
-def _gradient_filters(ndim: int, axes: Shape, shape: Shape, dtype: DType = snp.float32) -> JaxArray:
+def _gradient_filters(
+    ndim: int, axes: Shape, shape: Shape, dtype: DType = snp.float32
+) -> snp.Array:
     r"""Construct filters for computing gradients in the frequency domain.
 
     Construct a set of filters for computing gradients in the frequency

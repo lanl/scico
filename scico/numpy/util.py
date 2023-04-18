@@ -19,14 +19,14 @@ import numpy as np
 import jax
 
 import scico.numpy as snp
-from scico.typing import ArrayIndex, Axes, AxisIndex, BlockShape, DType, JaxArray, Shape
+from scico.typing import ArrayIndex, Axes, AxisIndex, BlockShape, DType, Shape
 
 from ._blockarray import BlockArray
 
 
 def ensure_on_device(
-    *arrays: Union[np.ndarray, JaxArray, BlockArray]
-) -> Union[JaxArray, BlockArray]:
+    *arrays: Union[np.ndarray, snp.Array, BlockArray]
+) -> Union[snp.Array, BlockArray]:
     """Cast ndarrays to DeviceArrays.
 
     Cast ndarrays to DeviceArrays and leaves DeviceArrays, BlockArrays,
@@ -171,8 +171,8 @@ def indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int, ...]:
 
 
 def no_nan_divide(
-    x: Union[BlockArray, JaxArray], y: Union[BlockArray, JaxArray]
-) -> Union[BlockArray, JaxArray]:
+    x: Union[BlockArray, snp.Array], y: Union[BlockArray, snp.Array]
+) -> Union[BlockArray, snp.Array]:
     """Return `x/y`, with 0 instead of NaN where `y` is 0.
 
     Args:

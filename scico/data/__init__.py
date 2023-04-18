@@ -13,12 +13,11 @@ from typing import Optional
 from imageio.v2 import imread
 
 import scico.numpy as snp
-from scico.typing import JaxArray
 
 __all__ = ["kodim23"]
 
 
-def _imread(filename: str, path: Optional[str] = None, asfloat: bool = False) -> JaxArray:
+def _imread(filename: str, path: Optional[str] = None, asfloat: bool = False) -> snp.Array:
     """Read an image from disk.
 
     Args:
@@ -39,7 +38,7 @@ def _imread(filename: str, path: Optional[str] = None, asfloat: bool = False) ->
     return im
 
 
-def kodim23(asfloat: bool = False) -> JaxArray:
+def kodim23(asfloat: bool = False) -> snp.Array:
     """Return the `kodim23` test image.
 
     Args:

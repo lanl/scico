@@ -18,7 +18,7 @@ import numpy as np
 
 import scico.numpy as snp
 from scico.numpy.util import parse_axes
-from scico.typing import Axes, DType, JaxArray, Shape
+from scico.typing import Axes, DType, Shape
 
 from ._linop import LinearOperator
 from ._stack import VerticalStack
@@ -243,7 +243,7 @@ class SingleAxisFiniteDifference(LinearOperator):
             **kwargs,
         )
 
-    def _eval(self, x: JaxArray) -> JaxArray:
+    def _eval(self, x: snp.Array) -> snp.Array:
         prepend = None
         append = None
         if self.circular:

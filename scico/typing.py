@@ -20,10 +20,7 @@ import numpy as np
 import jax
 import jax.numpy as jnp
 
-JaxArray = jax.Array
-"""A jax array."""
-
-Array = Union[np.ndarray, JaxArray]
+Array = Union[np.ndarray, jax.Array]
 """Either a numpy or jax array."""
 
 PRNGKey = jnp.ndarray

@@ -16,11 +16,11 @@ from typing import Optional, Union
 import scico.numpy as snp
 from scico.functional import Functional
 from scico.linop import LinearOperator, jacobian, operator_norm
-from scico.numpy import BlockArray
+from scico.numpy import Array, BlockArray
 from scico.numpy.linalg import norm
 from scico.numpy.util import ensure_on_device
 from scico.operator import Operator
-from scico.typing import JaxArray, PRNGKey
+from scico.typing import PRNGKey
 
 from ._common import Optimizer
 
@@ -101,8 +101,8 @@ class PDHG(Optimizer):
         tau: float,
         sigma: float,
         alpha: float = 1.0,
-        x0: Optional[Union[JaxArray, BlockArray]] = None,
-        z0: Optional[Union[JaxArray, BlockArray]] = None,
+        x0: Optional[Union[Array, BlockArray]] = None,
+        z0: Optional[Union[Array, BlockArray]] = None,
         **kwargs,
     ):
         r"""Initialize a :class:`PDHG` object.
@@ -159,7 +159,7 @@ class PDHG(Optimizer):
 
     def objective(
         self,
-        x: Optional[Union[JaxArray, BlockArray]] = None,
+        x: Optional[Union[Array, BlockArray]] = None,
     ) -> float:
         r"""Evaluate the objective function.
 
@@ -225,7 +225,7 @@ class PDHG(Optimizer):
     @staticmethod
     def estimate_parameters(
         C: Operator,
-        x: Optional[Union[JaxArray, BlockArray]] = None,
+        x: Optional[Union[Array, BlockArray]] = None,
         ratio: float = 1.0,
         factor: Optional[float] = 1.01,
         maxiter: int = 100,

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2022 by SCICO Developers
+# Copyright (C) 2021-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -20,11 +20,11 @@ import imageio.v2 as iio
 
 import scico.numpy as snp
 from scico import random, util
-from scico.typing import Array, JaxArray, Shape
+from scico.typing import Array, Shape
 from scipy.ndimage import zoom
 
 
-def rgb2gray(rgb: JaxArray) -> JaxArray:
+def rgb2gray(rgb: snp.Array) -> snp.Array:
     """Convert an RGB image (or images) to grayscale.
 
     Args:
@@ -302,7 +302,7 @@ def create_3D_foam_phantom(
     r_std: float = 0.001,
     pad: float = 0.01,
     is_random: bool = False,
-) -> JaxArray:
+) -> snp.Array:
     """Construct a 3D phantom with random radii and centers.
 
     Args:

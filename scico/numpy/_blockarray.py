@@ -16,6 +16,8 @@ import jax.numpy as jnp
 
 from ._wrapped_function_lists import binary_ops, unary_ops
 
+Array = type(jnp.array([0]))  # temporary hack
+
 
 class BlockArray:
     """Block array class, which provides a way to combine arrays of
@@ -43,7 +45,7 @@ class BlockArray:
     __array_priority__ = 1
 
     def __init__(self, inputs):
-        # convert inputs to jax.Arrays
+        # convert inputs to jax arrays
         self.arrays = [x if isinstance(x, jnp.ndarray) else jnp.array(x) for x in inputs]
 
         # check that dtypes match
@@ -71,7 +73,7 @@ class BlockArray:
         result = self.arrays[key]
         if not isinstance(result, jnp.ndarray):
             return BlockArray(result)  # x[k:k+1] returns a BlockArray
-        return result  # x[k] returns a jax.Array
+        return result  # x[k] returns a jax array
 
     def __setitem__(self, key, value):
         self.arrays[key] = value
@@ -96,7 +98,7 @@ jax.tree_util.register_pytree_node(
 
 # Wrap unary ops like -x.
 def _unary_op_wrapper(op_name):
-    op = getattr(jax.Array, op_name)
+    op = getattr(Array, op_name)
 
     @wraps(op)
     def op_ba(self):
@@ -111,12 +113,12 @@ for op_name in unary_ops:
 
 # Wrap binary ops like x + y. """
 def _binary_op_wrapper(op_name):
-    op = getattr(jax.Array, op_name)
+    op = getattr(Array, op_name)
 
     @wraps(op)
     def op_ba(self, other):
         # If other is a BA, we can assume the operation is implemented
-        # (because BAs must contain jax.Arrays)
+        # (because BAs must contain jax arrays)
         if isinstance(other, BlockArray):
             return BlockArray(op(x, y) for x, y in zip(self, other))
 
@@ -134,9 +136,9 @@ for op_name in binary_ops:
     setattr(BlockArray, op_name, _binary_op_wrapper(op_name))
 
 
-# Wrap jax.Array properties.
+# Wrap jax array properties.
 def _da_prop_wrapper(prop_name):
-    prop = getattr(jax.Array, prop_name)
+    prop = getattr(Array, prop_name)
 
     @property
     @wraps(prop)
@@ -156,16 +158,16 @@ def _da_prop_wrapper(prop_name):
 skip_props = ("at",)
 da_props = [
     k
-    for k, v in dict(inspect.getmembers(jax.Array)).items()  # (name, method) pairs
+    for k, v in dict(inspect.getmembers(Array)).items()  # (name, method) pairs
     if isinstance(v, property) and k[0] != "_" and k not in dir(BlockArray) and k not in skip_props
 ]
 
 for prop_name in da_props:
     setattr(BlockArray, prop_name, _da_prop_wrapper(prop_name))
 
-# Wrap jax.Array methods.
+# Wrap jax array methods.
 def _da_method_wrapper(method_name):
-    method = getattr(jax.Array, method_name)
+    method = getattr(Array, method_name)
 
     @wraps(method)
     def method_ba(self, *args, **kwargs):
@@ -184,7 +186,7 @@ def _da_method_wrapper(method_name):
 skip_methods = ()
 da_methods = [
     k
-    for k, v in dict(inspect.getmembers(jax.Array)).items()  # (name, method) pairs
+    for k, v in dict(inspect.getmembers(Array)).items()  # (name, method) pairs
     if isinstance(v, Callable)
     and k[0] != "_"
     and k not in dir(BlockArray)
