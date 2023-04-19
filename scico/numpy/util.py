@@ -19,32 +19,30 @@ import numpy as np
 import jax
 
 import scico.numpy as snp
-from scico.typing import ArrayIndex, Axes, AxisIndex, BlockShape, DType, JaxArray, Shape
+from scico.typing import ArrayIndex, Axes, AxisIndex, BlockShape, DType, Shape
 
 from ._blockarray import BlockArray
 
 
 def ensure_on_device(
-    *arrays: Union[np.ndarray, JaxArray, BlockArray]
-) -> Union[JaxArray, BlockArray]:
-    """Cast ndarrays to DeviceArrays.
+    *arrays: Union[np.ndarray, snp.Array, BlockArray]
+) -> Union[snp.Array, BlockArray]:
+    """Cast ndarrays to jax arrays.
 
-    Cast ndarrays to DeviceArrays and leaves DeviceArrays, BlockArrays,
-    and ShardedDeviceArray as is. This is intended to be used when
-    initializing optimizers and functionals so that all arrays are either
-    DeviceArrays, BlockArrays, or ShardedDeviceArray.
+    Cast ndarrays to jax arrays and leave jax arrays, BlockArrays,
+    as is. This is intended to be used when initializing optimizers and
+    functionals so that all arrays are either jax arrays or BlockArrays.
 
     Args:
-        *arrays: One or more input arrays (ndarray, DeviceArray,
-           BlockArray, or ShardedDeviceArray).
+        *arrays: One or more input arrays (ndarray, jax array, or
+            BlockArray).
 
     Returns:
-        Modified array or arrays. Modified are only those that were
-        necessary.
+        Array or arrays, modified where appropriate.
 
     Raises:
-        TypeError: If the arrays contain something that is neither
-           ndarray, DeviceArray, BlockArray, nor ShardedDeviceArray.
+        TypeError: If the arrays contain anything that is neither
+           ndarray, jax array, nor BlockArray.
     """
     arrays = list(arrays)
 
@@ -52,9 +50,9 @@ def ensure_on_device(
 
         if isinstance(array, np.ndarray):
             warnings.warn(
-                f"Argument {i+1} of {len(arrays)} is an np.ndarray. "
-                f"Will cast it to DeviceArray. "
-                f"To suppress this warning cast all np.ndarrays to DeviceArray first.",
+                f"Argument {i+1} of {len(arrays)} is a numpyy ndarray. "
+                "Will cast it to a jax array. "
+                f"To suppress this warning cast all numpy ndarrays to jax arrays.",
                 stacklevel=2,
             )
 
@@ -171,8 +169,8 @@ def indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int, ...]:
 
 
 def no_nan_divide(
-    x: Union[BlockArray, JaxArray], y: Union[BlockArray, JaxArray]
-) -> Union[BlockArray, JaxArray]:
+    x: Union[BlockArray, snp.Array], y: Union[BlockArray, snp.Array]
+) -> Union[BlockArray, snp.Array]:
     """Return `x/y`, with 0 instead of NaN where `y` is 0.
 
     Args:
