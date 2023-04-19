@@ -16,7 +16,9 @@ import jax.numpy as jnp
 
 from ._wrapped_function_lists import binary_ops, unary_ops
 
-Array = type(jnp.array([0]))  # temporary hack
+# Determine type of "standard" jax array since jax.Array is an abstract
+# base class type that is not suitable for use here.
+Array = type(jnp.array([0]))
 
 
 class BlockArray:
