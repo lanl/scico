@@ -123,9 +123,9 @@ class ADMM(Optimizer):
         """
         N = len(g_list)
         if len(C_list) != N:
-            raise Exception(f"len(C_list)={len(C_list)} not equal to len(g_list)={N}.")
+            raise ValueError(f"len(C_list)={len(C_list)} not equal to len(g_list)={N}.")
         if len(rho_list) != N:
-            raise Exception(f"len(rho_list)={len(rho_list)} not equal to len(g_list)={N}.")
+            raise ValueError(f"len(rho_list)={len(rho_list)} not equal to len(g_list)={N}.")
 
         self.f: Functional = f
         self.g_list: List[Functional] = g_list
