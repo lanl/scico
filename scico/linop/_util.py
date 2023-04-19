@@ -159,7 +159,7 @@ def valid_adjoint(
     err = snp.abs(yTu - vTx) / max(snp.abs(yTu), snp.abs(vTx))
     if eps is None:
         return err
-    return err < eps
+    return float(err) < eps
 
 
 def jacobian(F: Operator, u: JaxArray, include_eval: Optional[bool] = False) -> LinearOperator:
