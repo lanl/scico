@@ -25,4 +25,4 @@ jobs:
       - name: Pylint code analysis
         run: |
           pip install pylint
-          pylint --disable=all --enable=missing-docstring scico
+          pylint --disable=all --enable=missing-docstring,broad-exception-raised scico
