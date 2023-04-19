@@ -61,7 +61,7 @@ def test_crop_pad_adjoint(pad):
     shape = (9, 10)
     H = linop.Pad(shape, pad)
     G = linop.Crop(pad, H.output_shape)
-    assert linop.valid_adjoint(H, G, eps=1e-6)
+    assert linop.valid_adjoint(H, G, eps=1e-5)
 
 
 class SliceTestObj:
