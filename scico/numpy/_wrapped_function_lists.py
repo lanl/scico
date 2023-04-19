@@ -64,7 +64,7 @@ creation_routines = (
 )
 
 mathematical_functions = (
-    "sin",  # https://numpy.org/doc/stable/reference/routines.math.html#
+    "sin",  # https://numpy.org/doc/stable/reference/routines.math.html
     "cos",
     "tan",
     "arcsin",
@@ -119,7 +119,6 @@ mathematical_functions = (
     "frexp",
     "ldexp",
     "nextafter",
-    "spacing",
     "lcm",
     "gcd",
     "add",
@@ -162,7 +161,6 @@ mathematical_functions = (
     "sign",
     "heaviside",
     "nan_to_num",
-    "real_if_close",
     "interp",
     "sort",  # https://numpy.org/doc/stable/reference/routines.sort.html
     "lexsort",
@@ -170,7 +168,6 @@ mathematical_functions = (
     "msort",
     "sort_complex",
     "partition",
-    "argpartition",
     "argmax",
     "nanargmax",
     "argmin",
@@ -225,13 +222,6 @@ mathematical_functions = (
     "expand_dims",
     "squeeze",
     "asarray",
-    "asanyarray",
-    "asmatrix",
-    "asfarray",
-    "asfortranarray",
-    "ascontiguousarray",
-    "asarray_chkfinite",
-    "require",
     "stack",
     "block",
     "vstack",
@@ -262,12 +252,10 @@ mathematical_functions = (
     "isfinite",
     "isinf",
     "isnan",
-    "isnat",
     "isneginf",
     "isposinf",
     "iscomplex",
     "iscomplexobj",
-    "isfortran",
     "isreal",
     "isrealobj",
     "isscalar",
