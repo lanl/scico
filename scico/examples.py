@@ -167,7 +167,6 @@ def get_ucb_diffusercam_data(path: str, verbose: bool = False):  # pragma: no co
     converted data is saved in a file `ucb_diffcam_data.npz.npz` in
     the directory specified by `path`.
     Args:
-        channel: Channel number between 0 and 2.
         path: Directory in which converted data is saved.
         verbose: Flag indicating whether to print status messages.
     """
