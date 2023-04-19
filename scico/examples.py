@@ -195,12 +195,12 @@ def get_ucb_diffusercam_data(path: str, verbose: bool = False):  # pragma: no co
     # load data, normalize it, and save as npz
     y = iio.imread(os.path.join(temp_dir.name, "example_raw.png"))
     y = y.astype(np.float32)
-    y -= y.min()
+    y -= 100.0
     y /= y.max()
     mat = loadmat(os.path.join(temp_dir.name, "example_psfs.mat"))
     psf = mat["psf"].astype(np.float64)
-    psf -= psf.min()
-    psf /= psf.max()
+    psf -= 102.0
+    psf /= np.linalg.norm(psf, axis=(0, 1)).min()
 
     # save as .npz
     npz_file = os.path.join(path, "ucb_diffcam_data.npz")
