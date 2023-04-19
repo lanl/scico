@@ -5,7 +5,7 @@
 # and user license can be found in the 'LICENSE.txt' file distributed
 # with the package.
 
-"""Utility functions for working with jax arrays BlockArrays."""
+"""Utility functions for working with jax arrays and BlockArrays."""
 
 
 from __future__ import annotations
@@ -19,30 +19,32 @@ import numpy as np
 import jax
 
 import scico.numpy as snp
-from scico.typing import ArrayIndex, Axes, AxisIndex, BlockShape, DType, Shape
+from scico.typing import ArrayIndex, Axes, AxisIndex, BlockShape, DType, JaxArray, Shape
 
 from ._blockarray import BlockArray
 
 
 def ensure_on_device(
-    *arrays: Union[np.ndarray, snp.Array, BlockArray]
-) -> Union[snp.Array, BlockArray]:
-    """Cast ndarrays to jax arrays.
+    *arrays: Union[np.ndarray, JaxArray, BlockArray]
+) -> Union[JaxArray, BlockArray]:
+    """Cast ndarrays to DeviceArrays.
 
-    Cast ndarrays to jax arrays and leave jax arrays, BlockArrays,
-    as is. This is intended to be used when initializing optimizers and
-    functionals so that all arrays are either jax arrays or BlockArrays.
+    Cast ndarrays to DeviceArrays and leaves DeviceArrays, BlockArrays,
+    and ShardedDeviceArray as is. This is intended to be used when
+    initializing optimizers and functionals so that all arrays are either
+    DeviceArrays, BlockArrays, or ShardedDeviceArray.
 
     Args:
-        *arrays: One or more input arrays (ndarray, jax array, or
-            BlockArray).
+        *arrays: One or more input arrays (ndarray, DeviceArray,
+           BlockArray, or ShardedDeviceArray).
 
     Returns:
-        Array or arrays, modified where appropriate.
+        Modified array or arrays. Modified are only those that were
+        necessary.
 
     Raises:
-        TypeError: If the arrays contain anything that is neither
-           ndarray, jax array, nor BlockArray.
+        TypeError: If the arrays contain something that is neither
+           ndarray, DeviceArray, BlockArray, nor ShardedDeviceArray.
     """
     arrays = list(arrays)
 
@@ -50,9 +52,9 @@ def ensure_on_device(
 
         if isinstance(array, np.ndarray):
             warnings.warn(
-                f"Argument {i+1} of {len(arrays)} is a numpyy ndarray. "
-                "Will cast it to a jax array. "
-                f"To suppress this warning cast all numpy ndarrays to jax arrays.",
+                f"Argument {i+1} of {len(arrays)} is an np.ndarray. "
+                f"Will cast it to DeviceArray. "
+                f"To suppress this warning cast all np.ndarrays to DeviceArray first.",
                 stacklevel=2,
             )
 
@@ -169,8 +171,8 @@ def indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int, ...]:
 
 
 def no_nan_divide(
-    x: Union[BlockArray, snp.Array], y: Union[BlockArray, snp.Array]
-) -> Union[BlockArray, snp.Array]:
+    x: Union[BlockArray, JaxArray], y: Union[BlockArray, JaxArray]
+) -> Union[BlockArray, JaxArray]:
     """Return `x/y`, with 0 instead of NaN where `y` is 0.
 
     Args:

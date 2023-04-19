@@ -2,7 +2,10 @@ import numpy as np
 
 import jax
 
+import pytest
+
 import scico.numpy as snp
+from scico.numpy import _wrappers
 
 
 def on_cpu():
@@ -22,7 +25,7 @@ def check_results(jout, sout):
         np.testing.assert_allclose(jout, sout, rtol=1e-4)
     else:
         # some type of output that isn't being captured?
-        raise Exception
+        raise TypeError(f"Unexpected input type {type(jout)} or {type(sout)}.")
 
 
 def test_reshape_array():
@@ -333,3 +336,16 @@ def test_create_full_like():
     A = snp.zeros(((2,), (2,)), dtype=np.float32)
     B = snp.full_like(A, 1)
     assert all(snp.all(B == 1)) and (A.shape == B.shape) and (A.dtype == B.dtype)
+
+
+def test_wrap_recursively():
+    target_dict = {"a": 1, "b": 2}
+    names = ["a", "c"]
+    wrap = lambda x: x + 1
+    with pytest.warns(Warning):
+        _wrappers.wrap_recursively(target_dict, names, wrap)
+
+
+def test_add_full_reduction():
+    with pytest.raises(ValueError):
+        _wrappers.add_full_reduction(np.sum, axis_arg_name="not_axis")

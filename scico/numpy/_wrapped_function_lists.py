@@ -6,7 +6,21 @@
 # with the package.
 
 
-"""Lists of functions to be wrapped in scico.numpy."""
+"""
+Lists of functions to be wrapped in scico.numpy.
+
+These are intended to be the functions in :mod:`jax.numpy` that should
+either
+   #. map over the blocks of a block array (for math functions);
+   #. map over a tuple of tuples to create a block array (for creation
+      functions); or
+   #. reduce a block array to a scalar (for reductions).
+
+The links to the numpy docs in the comments are useful for distinguishing
+between these three cases, but note that these lists of numpy functions
+include extra functions that are not in :mod:`jax.numpy`, and that are
+therefore not listed here.
+"""
 
 
 """ BlockArray """
@@ -105,6 +119,7 @@ mathematical_functions = (
     "frexp",
     "ldexp",
     "nextafter",
+    "spacing",
     "lcm",
     "gcd",
     "add",
@@ -147,6 +162,7 @@ mathematical_functions = (
     "sign",
     "heaviside",
     "nan_to_num",
+    "real_if_close",
     "interp",
     "sort",  # https://numpy.org/doc/stable/reference/routines.sort.html
     "lexsort",
@@ -154,6 +170,7 @@ mathematical_functions = (
     "msort",
     "sort_complex",
     "partition",
+    "argpartition",
     "argmax",
     "nanargmax",
     "argmin",
@@ -208,6 +225,13 @@ mathematical_functions = (
     "expand_dims",
     "squeeze",
     "asarray",
+    "asanyarray",
+    "asmatrix",
+    "asfarray",
+    "asfortranarray",
+    "ascontiguousarray",
+    "asarray_chkfinite",
+    "require",
     "stack",
     "block",
     "vstack",
@@ -238,10 +262,12 @@ mathematical_functions = (
     "isfinite",
     "isinf",
     "isnan",
+    "isnat",
     "isneginf",
     "isposinf",
     "iscomplex",
     "iscomplexobj",
+    "isfortran",
     "isreal",
     "isrealobj",
     "isscalar",
