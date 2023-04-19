@@ -23,6 +23,7 @@ Computed Tomography
    :maxdepth: 1
 
    examples/ct_abel_tv_admm
+   examples/ct_abel_tv_admm_tune
    examples/ct_astra_noreg_pcg
    examples/ct_astra_tv_admm
    examples/ct_astra_weighted_tv_admm
@@ -120,6 +121,7 @@ Total Variation
    :maxdepth: 1
 
    examples/ct_abel_tv_admm
+   examples/ct_abel_tv_admm_tune
    examples/ct_astra_tv_admm
    examples/ct_astra_weighted_tv_admm
    examples/ct_svmbir_tv_multi
@@ -181,6 +183,7 @@ ADMM
    :maxdepth: 1
 
    examples/ct_abel_tv_admm
+   examples/ct_abel_tv_admm_tune
    examples/ct_astra_tv_admm
    examples/ct_astra_weighted_tv_admm
    examples/ct_svmbir_tv_multi
