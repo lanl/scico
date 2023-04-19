@@ -6,7 +6,21 @@
 # with the package.
 
 
-"""Lists of functions to be wrapped in scico.numpy."""
+"""
+Lists of functions to be wrapped in scico.numpy.
+
+These are intended to be the functions in :mod:`jax.numpy` that should
+either
+   #. map over the blocks of a block array (for math functions);
+   #. map over a tuple of tuples to create a block array (for creation
+      functions); or
+   #. reduce a block array to a scalar (for reductions).
+
+The links to the numpy docs in the comments are useful for distinguishing
+between these three cases, but note that these lists of numpy functions
+include extra functions that are not in :mod:`jax.numpy`, and that are
+therefore not listed here.
+"""
 
 
 """ BlockArray """
@@ -50,7 +64,7 @@ creation_routines = (
 )
 
 mathematical_functions = (
-    "sin",  # https://numpy.org/doc/stable/reference/routines.math.html#
+    "sin",  # https://numpy.org/doc/stable/reference/routines.math.html
     "cos",
     "tan",
     "arcsin",
