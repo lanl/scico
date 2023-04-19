@@ -23,7 +23,7 @@ def check_results(jout, sout):
         np.testing.assert_allclose(jout, sout, rtol=1e-4)
     else:
         # some type of output that isn't being captured?
-        raise Exception
+        raise TypeError(f"Unexpected input type {type(jout)} or {type(sout)}.")
 
 
 def test_reshape_array():

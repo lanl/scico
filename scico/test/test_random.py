@@ -39,12 +39,12 @@ def test_add_seed_adapter():
     # seed defaults to zero
     assert fun(jax.random.PRNGKey(0)) == fun_alt()[0]
 
-    # other parameters still work...
+    # other parameters still work ...
     key = jax.random.PRNGKey(0)
     sz = (10, 3)
     dtype = np.float64
 
-    # ...positional
+    # ... positional
     np.testing.assert_array_equal(fun(key, sz), fun_alt(sz)[0])
     np.testing.assert_array_equal(fun(key, sz, dtype), fun_alt(sz, dtype)[0])
     np.testing.assert_array_equal(fun(key, sz, dtype), fun_alt(sz, dtype, key)[0])
@@ -67,5 +67,5 @@ def test_add_seed_adapter():
     np.testing.assert_array_equal(key_a, key_b)
 
     # error when key and seed are specified
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         _ = fun_alt(key=jax.random.PRNGKey(0), seed=42)[0]
