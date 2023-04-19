@@ -18,6 +18,7 @@ Version 0.0.4   (unreleased)
   for `flax`.
 • New methods and a function for computing Jacobian-vector products for
   `Operator` objects.
+• Drop support for Python 3.7.
 
 
 
