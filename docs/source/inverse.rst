@@ -286,6 +286,23 @@ functionals :math:`g_i(\cdot)` can be computed efficiently. This linear
 system can also be solved efficiently when :math:`A` and all of the
 :math:`C_i` are either identity operators or circular convolutions.
 
+**Proximal ADMM** Proximal ADMM :cite:`deng-2015-global` solves problems of
+the form
+
+    .. math::
+        \argmin_{\mb{x}} \; f(\mb{x}) + g(\mb{z}) \;
+        \text{such that}\; A \mb{x} + B \mb{z} = \mb{c} \;,
+
+where :math:`A` and :math:`B` are linear operators. There is also a non-linear
+PADMM solver :cite:`benning-2016-preconditioned` for problems of the form
+
+    .. math::
+        \argmin_{\mb{x}} \; f(\mb{x}) + g(\mb{z}) \;
+        \text{such that}\; H(\mb{x}, \mb{z}) = 0 \;,
+
+where :math:`H` is a function. For some problems, proximal ADMM converges
+substantially faster than ADMM or linearized ADMM.
+
 **Linearized ADMM** Linearized ADMM :cite:`yang-2012-linearized`
 :cite:`parikh-2014-proximal` solves a more restricted problem form,
 
@@ -293,7 +310,7 @@ system can also be solved efficiently when :math:`A` and all of the
 
 It is an effective algorithm when the proximal operators of both
 :math:`f(\cdot)` and :math:`g(\cdot)` can be computed efficiently, and
-has the advantage over “standard” ADMM of avoiding the need for solving
+has the advantage over "standard" ADMM of avoiding the need for solving
 a linear system involving :math:`C^\top C`.
 
 **PDHG** Primal–dual hybrid gradient (PDHG) :cite:`esser-2010-general`
