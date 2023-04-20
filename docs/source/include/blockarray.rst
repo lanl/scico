@@ -109,8 +109,8 @@ vectorize each array and concatenate the resulting vectors, leading to
 stored as a one-dimensional array, but this makes it hard to access
 the individual components :math:`\mb{x}_h` and :math:`\mb{x}_v`.
 
-Instead, we can construct a :class:`.BlockArray`: :math:`\mb{x}_B =
-[\mb{x}_h, \mb{x}_v]`
+Instead, we can construct a :class:`.BlockArray`, :math:`\mb{x}_B =
+[\mb{x}_h, \mb{x}_v]`:
 
 
   ::
