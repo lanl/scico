@@ -22,7 +22,7 @@ import jax.experimental.host_callback
 
 import scico.numpy as snp
 from scico.loss import Loss, SquaredL2Loss
-from scico.typing import Array, Shape
+from scico.typing import Shape
 
 from ._diag import Diagonal, Identity
 from ._linop import LinearOperator
@@ -67,7 +67,7 @@ class TomographicProjector(LinearOperator):
     def __init__(
         self,
         input_shape: Shape,
-        angles: Array,
+        angles: snp.Array,
         num_channels: int,
         center_offset: float = 0.0,
         is_masked: bool = False,
@@ -382,7 +382,9 @@ class SVMBIRExtendedLoss(Loss):
         weights = self.W.diagonal.reshape(self.A.svmbir_output_shape)
         sigma_p = snp.sqrt(lam)
         if "v0" in kwargs and kwargs["v0"] is not None:
-            v0: Union[float, Array] = np.reshape(np.array(kwargs["v0"]), self.A.svmbir_input_shape)
+            v0: Union[float, np.ndarray] = np.reshape(
+                np.array(kwargs["v0"]), self.A.svmbir_input_shape
+            )
         else:
             v0 = 0.0
 

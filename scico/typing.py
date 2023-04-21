@@ -15,13 +15,8 @@ try:
 except ImportError:
     EllipsisType = Any  # type: ignore
 
-import numpy as np
 
-import jax
 import jax.numpy as jnp
-
-Array = Union[np.ndarray, jax.Array]
-"""Either a numpy or jax array."""
 
 PRNGKey = jnp.ndarray
 """A key for jax random number generators (see :mod:`jax.random`)."""

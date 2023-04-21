@@ -20,7 +20,7 @@ from jax.dtypes import result_type
 import scico.numpy as snp
 from scico.numpy.util import is_nested
 from scico.operator import Operator
-from scico.typing import Array, DType, Shape
+from scico.typing import DType, Shape
 
 from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
 
@@ -138,7 +138,7 @@ class CircularConvolve(LinearOperator):
                         )
                     else:  # support list/tuple values for h_center
                         offset = -snp.array(self.h_center)
-                shifts: Tuple[Array, ...] = np.ix_(
+                shifts: Tuple[np.ndarray, ...] = np.ix_(
                     *tuple(
                         np.exp(-1j * k * 2 * np.pi * np.fft.fftfreq(s))  # type: ignore
                         for k, s in zip(offset, input_shape[-self.ndims :])

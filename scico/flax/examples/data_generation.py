@@ -38,7 +38,7 @@ if have_xdesign:
     from xdesign import Foam, SimpleMaterial, UnitCircle, discrete_phantom
 
 from scico.linop import CircularConvolve
-from scico.typing import Array
+from scico.numpy import Array
 
 try:
     import astra  # noqa: F401
