@@ -14,20 +14,28 @@ import logging
 import sys
 
 # isort: off
-from ._autograd import grad, jacrev, linear_adjoint, value_and_grad, cvjp
-
-import jax, jaxlib
-
-from jax import custom_jvp, custom_vjp, jacfwd, jvp, linearize, vjp, hessian
-
-from . import numpy
 
 # Suppress jax device warning. See https://github.com/google/jax/issues/6805
 # This only works for jax>0.3.23; for earlier versions, the getLogger
-# argument should be "absl".
-logging.getLogger("jax._src.lib.xla_bridge").addFilter(
+# argument should be "absl". Two filters are included here due to a change
+# in jax between versions 0.4.2 and 0.4.8, both of which are supported by
+# scico.
+logging.getLogger("jax._src.lib.xla_bridge").addFilter(  # jax 0.4.2
     logging.Filter("No GPU/TPU found, falling back to CPU.")
 )
+logging.getLogger("jax._src.xla_bridge").addFilter(  # jax 0.4.8
+    logging.Filter("No GPU/TPU found, falling back to CPU.")
+)
+
+# isort: on
+
+import jax
+from jax import custom_jvp, custom_vjp, hessian, jacfwd, jvp, linearize, vjp
+
+import jaxlib
+
+from . import numpy
+from ._autograd import cvjp, grad, jacrev, linear_adjoint, value_and_grad
 
 __all__ = [
     "grad",
