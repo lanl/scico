@@ -12,10 +12,9 @@ from typing import Optional, Tuple, Union
 from jax import jit, lax
 
 from scico import numpy as snp
-from scico.numpy import BlockArray, count_nonzero
+from scico.numpy import Array, BlockArray, count_nonzero
 from scico.numpy.linalg import norm
 from scico.numpy.util import no_nan_divide
-from scico.typing import JaxArray
 
 from ._functional import Functional
 
@@ -30,14 +29,12 @@ class L0Norm(Functional):
     has_eval = True
     has_prox = True
 
-    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+    def __call__(self, x: Union[Array, BlockArray]) -> float:
         return count_nonzero(x)
 
     @staticmethod
     @jit
-    def prox(
-        v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
-    ) -> Union[JaxArray, BlockArray]:
+    def prox(v: Union[Array, BlockArray], lam: float = 1.0, **kwargs) -> Union[Array, BlockArray]:
         r"""Evaluate scaled proximal operator of :math:`\ell_0` norm.
 
         Evaluate scaled proximal operator of :math:`\ell_0` norm using
@@ -71,11 +68,11 @@ class L1Norm(Functional):
     has_eval = True
     has_prox = True
 
-    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+    def __call__(self, x: Union[Array, BlockArray]) -> float:
         return snp.sum(snp.abs(x))
 
     @staticmethod
-    def prox(v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs) -> JaxArray:
+    def prox(v: Union[Array, BlockArray], lam: float = 1.0, **kwargs) -> Array:
         r"""Evaluate scaled proximal operator of :math:`\ell_1` norm.
 
         Evaluate scaled proximal operator of :math:`\ell_1` norm using
@@ -119,14 +116,14 @@ class SquaredL2Norm(Functional):
     has_eval = True
     has_prox = True
 
-    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+    def __call__(self, x: Union[Array, BlockArray]) -> float:
         # Directly implement the squared l2 norm to avoid nondifferentiable
         # behavior of snp.norm(x) at 0.
         return snp.sum(snp.abs(x) ** 2)
 
     def prox(
-        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
-    ) -> Union[JaxArray, BlockArray]:
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[Array, BlockArray]:
         r"""Evaluate proximal operator of squared :math:`\ell_2` norm.
 
         Evaluate proximal operator of squared :math:`\ell_2` norm using
@@ -154,12 +151,12 @@ class L2Norm(Functional):
     has_eval = True
     has_prox = True
 
-    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+    def __call__(self, x: Union[Array, BlockArray]) -> float:
         return norm(x)
 
     def prox(
-        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
-    ) -> Union[JaxArray, BlockArray]:
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[Array, BlockArray]:
         r"""Evaluate proximal operator of :math:`\ell_2` norm.
 
         Evaluate proximal operator of :math:`\ell_2` norm using
@@ -219,18 +216,18 @@ class L21Norm(Functional):
 
     @staticmethod
     def _l2norm(
-        x: Union[JaxArray, BlockArray], axis: Union[int, Tuple], keepdims: Optional[bool] = False
+        x: Union[Array, BlockArray], axis: Union[int, Tuple], keepdims: Optional[bool] = False
     ):
         r"""Return the :math:`\ell_2` norm of an array."""
         return snp.sqrt(snp.sum(snp.abs(x) ** 2, axis=axis, keepdims=keepdims))
 
-    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+    def __call__(self, x: Union[Array, BlockArray]) -> float:
         l2 = L21Norm._l2norm(x, axis=self.l2_axis)
         return snp.abs(l2).sum()
 
     def prox(
-        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
-    ) -> Union[JaxArray, BlockArray]:
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[Array, BlockArray]:
         r"""Evaluate proximal operator of the :math:`\ell_{2,1}` norm.
 
         In two dimensions,
@@ -283,12 +280,12 @@ class DiffL1L2Norms(Functional):
         """
         self.beta = beta
 
-    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+    def __call__(self, x: Union[Array, BlockArray]) -> float:
         return snp.sum(snp.abs(x)) - self.beta * norm(x)
 
     def prox(
-        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
-    ) -> Union[JaxArray, BlockArray]:
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[Array, BlockArray]:
         r"""Proximal operator of difference of :math:`\ell_1` and :math:`\ell_2` norms
 
         Evaluate the proximal operator of the difference of :math:`\ell_1`
@@ -384,36 +381,36 @@ class HuberNorm(Functional):
 
         super().__init__()
 
-    def _call_sep(self, x: Union[JaxArray, BlockArray]) -> float:
+    def _call_sep(self, x: Union[Array, BlockArray]) -> float:
         xabs = snp.abs(x)
         hx = snp.where(
             xabs <= self.delta, 0.5 * xabs**2, self.delta * (xabs - (self.delta / 2.0))
         )
         return snp.sum(hx)
 
-    def _call_nonsep(self, x: Union[JaxArray, BlockArray]) -> float:
+    def _call_nonsep(self, x: Union[Array, BlockArray]) -> float:
         xl2 = snp.linalg.norm(x)
         return lax.cond(xl2 <= self.delta, self._call_lt_branch, self._call_gt_branch, xl2)
 
-    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+    def __call__(self, x: Union[Array, BlockArray]) -> float:
         return self._call(x)
 
     def _prox_sep(
-        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
-    ) -> Union[JaxArray, BlockArray]:
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[Array, BlockArray]:
         den = snp.maximum(snp.abs(v), self.delta * (1.0 + lam))
         return (1 - ((self.delta * lam) / den)) * v
 
     def _prox_nonsep(
-        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
-    ) -> Union[JaxArray, BlockArray]:
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[Array, BlockArray]:
         vl2 = snp.linalg.norm(v)
         den = snp.maximum(vl2, self.delta * (1.0 + lam))
         return (1 - ((self.delta * lam) / den)) * v
 
     def prox(
-        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
-    ) -> Union[JaxArray, BlockArray]:
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[Array, BlockArray]:
         r"""Evaluate proximal operator of the Huber function.
 
         Evaluate scaled proximal operator of the Huber function
@@ -457,12 +454,12 @@ class NuclearNorm(Functional):
     has_eval = True
     has_prox = True
 
-    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+    def __call__(self, x: Union[Array, BlockArray]) -> float:
         return snp.sum(snp.linalg.svd(x, full_matrices=False, compute_uv=False))
 
     def prox(
-        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
-    ) -> Union[JaxArray, BlockArray]:
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[Array, BlockArray]:
         r"""Evaluate proximal operator of the nuclear norm.
 
         Evaluate proximal operator of the nuclear norm

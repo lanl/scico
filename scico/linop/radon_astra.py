@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2022 by SCICO Developers
+# Copyright (C) 2020-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -36,7 +36,7 @@ except ModuleNotFoundError as e:
         raise e
 
 
-from scico.typing import JaxArray, Shape
+from scico.typing import Shape
 
 from ._linop import LinearOperator
 
@@ -129,7 +129,7 @@ class TomographicProjector(LinearOperator):
             jit=False,
         )
 
-    def _proj(self, x: JaxArray) -> JaxArray:
+    def _proj(self, x: jax.Array) -> jax.Array:
         # Applies the forward projector and generates a sinogram
 
         def f(x):
@@ -143,7 +143,7 @@ class TomographicProjector(LinearOperator):
             f, x, result_shape=jax.ShapeDtypeStruct(self.output_shape, self.output_dtype)
         )
 
-    def _bproj(self, y: JaxArray) -> JaxArray:
+    def _bproj(self, y: jax.Array) -> jax.Array:
         # applies backprojector
         def f(y):
             if y.flags.writeable == False:
@@ -154,7 +154,7 @@ class TomographicProjector(LinearOperator):
 
         return hcb.call(f, y, result_shape=jax.ShapeDtypeStruct(self.input_shape, self.input_dtype))
 
-    def fbp(self, sino: JaxArray, filter_type: str = "Ram-Lak") -> JaxArray:
+    def fbp(self, sino: jax.Array, filter_type: str = "Ram-Lak") -> jax.Array:
         """Perform tomographic reconstruction using the filtered back
         projection (FBP) algorithm.
 

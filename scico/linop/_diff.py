@@ -18,7 +18,7 @@ import numpy as np
 
 import scico.numpy as snp
 from scico.numpy.util import parse_axes
-from scico.typing import Axes, DType, JaxArray, Shape
+from scico.typing import Axes, DType, Shape
 
 from ._linop import LinearOperator
 from ._stack import VerticalStack
@@ -28,7 +28,7 @@ class FiniteDifference(VerticalStack):
     """Finite difference operator.
 
     Computes finite differences along the specified axes, returning the
-    results in a `DeviceArray` (whenever possible) or :class:`BlockArray`.
+    results in a :class:`jax.Array` (when possible) or :class:`BlockArray`.
     See :class:`VerticalStack` for details on how this choice is made.
     See :class:`SingleAxisFiniteDifference` for the mathematical
     implications of the different boundary handling options `prepend`,
@@ -243,7 +243,7 @@ class SingleAxisFiniteDifference(LinearOperator):
             **kwargs,
         )
 
-    def _eval(self, x: JaxArray) -> JaxArray:
+    def _eval(self, x: snp.Array) -> snp.Array:
         prepend = None
         append = None
         if self.circular:

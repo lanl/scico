@@ -12,7 +12,7 @@ import glob
 import os
 import tempfile
 import zipfile
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -20,12 +20,12 @@ import imageio.v2 as iio
 
 import scico.numpy as snp
 from scico import random, util
-from scico.typing import Array, JaxArray, Shape
+from scico.typing import Shape
 from scipy.io import loadmat
 from scipy.ndimage import zoom
 
 
-def rgb2gray(rgb: JaxArray) -> JaxArray:
+def rgb2gray(rgb: snp.Array) -> snp.Array:
     """Convert an RGB image (or images) to grayscale.
 
     Args:
@@ -39,7 +39,7 @@ def rgb2gray(rgb: JaxArray) -> JaxArray:
     return snp.sum(w * rgb, axis=2)
 
 
-def volume_read(path: str, ext: str = "tif") -> Array:
+def volume_read(path: str, ext: str = "tif") -> np.ndarray:
     """Read a 3D volume from a set of files in the specified directory.
 
     All files with extension `ext` (i.e. matching glob `*.ext`)
@@ -120,7 +120,7 @@ def get_epfl_deconv_data(channel: int, path: str, verbose: bool = False):  # pra
 
 def epfl_deconv_data(
     channel: int, verbose: bool = False, cache_path: Optional[str] = None
-) -> Array:
+) -> Tuple[np.ndarray, np.ndarray]:
     """Get deconvolution problem data from EPFL Biomedical Imaging Group.
 
     If the data has previously been downloaded, it will be retrieved from
@@ -136,8 +136,8 @@ def epfl_deconv_data(
     Returns:
        tuple: A tuple (y, psf) containing:
 
-           - **y** : (DeviceArray): Blurred channel data.
-           - **psf** : (DeviceArray): Channel psf.
+           - **y** : (np.ndarray): Blurred channel data.
+           - **psf** : (np.ndarray): Channel psf.
     """
 
     # set default cache path if not specified
@@ -211,7 +211,7 @@ def get_ucb_diffusercam_data(path: str, verbose: bool = False):  # pragma: no co
 
 def ucb_diffusercam_data(
     verbose: bool = False, cache_path: Optional[str] = None
-) -> Tuple[Array, Array]:
+) -> Tuple[np.ndarray, np.ndarray]:
     """Get example data from UC Berkeley Waller Lab diffusercam project.
 
     If the data has previously been downloaded, it will be retrieved from
@@ -226,8 +226,8 @@ def ucb_diffusercam_data(
     Returns:
        tuple: A tuple (y, psf) containing:
 
-           - **y** : (DeviceArray): Measured image
-           - **psf** : (DeviceArray): Stack of psfs.
+           - **y** : (np.ndarray): Measured image
+           - **psf** : (np.ndarray): Stack of psfs.
     """
 
     # set default cache path if not specified
@@ -248,7 +248,7 @@ def ucb_diffusercam_data(
     return y, psf
 
 
-def downsample_volume(vol: Array, rate: int) -> Array:
+def downsample_volume(vol: snp.Array, rate: int) -> snp.Array:
     """Downsample a 3D array.
 
     Downsample a 3D array. If the volume dimensions can be divided by
@@ -277,7 +277,7 @@ def downsample_volume(vol: Array, rate: int) -> Array:
     return vol
 
 
-def tile_volume_slices(x: Array, sep_width: int = 10) -> Array:
+def tile_volume_slices(x: snp.Array, sep_width: int = 10) -> snp.Array:
     """Make an image with tiled slices from an input volume.
 
     Make an image with tiled `xy`, `xz`, and `yz` slices from an input
@@ -335,7 +335,7 @@ def tile_volume_slices(x: Array, sep_width: int = 10) -> Array:
     return out
 
 
-def create_cone(img_shape: Shape, center: Optional[List[float]] = None) -> Array:
+def create_cone(img_shape: Shape, center: Optional[List[float]] = None) -> snp.Array:
     """Compute a 2D map of the distance from a center pixel.
 
     Args:
@@ -362,7 +362,7 @@ def create_cone(img_shape: Shape, center: Optional[List[float]] = None) -> Array
 
 def create_circular_phantom(
     img_shape: Shape, radius_list: list, val_list: list, center: Optional[list] = None
-) -> Array:
+) -> snp.Array:
     """Construct a circular phantom with given radii and intensities.
 
     Args:
@@ -393,7 +393,7 @@ def create_3d_foam_phantom(
     r_std: float = 0.001,
     pad: float = 0.01,
     is_random: bool = False,
-) -> JaxArray:
+) -> snp.Array:
     """Construct a 3D phantom with random radii and centers.
 
     Args:
@@ -433,7 +433,7 @@ def create_3d_foam_phantom(
     return im
 
 
-def create_conv_sparse_phantom(Nx: int, Nnz: int) -> Tuple[Array, Array]:
+def create_conv_sparse_phantom(Nx: int, Nnz: int) -> Tuple[np.ndarray, np.ndarray]:
     """Construct a disc dictionary and sparse coefficient maps.
 
     Construct a disc dictionary and a corresponding set of sparse
@@ -474,7 +474,9 @@ def create_conv_sparse_phantom(Nx: int, Nnz: int) -> Tuple[Array, Array]:
     return h, x
 
 
-def spnoise(img: Array, nfrac: float, nmin: float = 0.0, nmax: float = 1.0) -> Array:
+def spnoise(
+    img: Union[np.ndarray, snp.Array], nfrac: float, nmin: float = 0.0, nmax: float = 1.0
+) -> Union[np.ndarray, snp.Array]:
     """Return image with salt & pepper noise imposed on it.
 
     Args:
@@ -500,7 +502,7 @@ def spnoise(img: Array, nfrac: float, nmin: float = 0.0, nmax: float = 1.0) -> A
     return imgn
 
 
-def phase_diff(x: Array, y: Array) -> Array:
+def phase_diff(x: snp.Array, y: snp.Array) -> snp.Array:
     """Distance between phase angles.
 
     Compute the distance between two arrays of phase angles, with

@@ -16,10 +16,9 @@ from typing import List, Optional, Tuple, Union
 import scico.numpy as snp
 from scico.functional import Functional
 from scico.linop import LinearOperator
-from scico.numpy import BlockArray
+from scico.numpy import Array, BlockArray
 from scico.numpy.linalg import norm
 from scico.numpy.util import ensure_on_device
-from scico.typing import JaxArray
 
 from ._admmaux import (
     FBlockCircularConvolveSolver,
@@ -99,7 +98,7 @@ class ADMM(Optimizer):
         C_list: List[LinearOperator],
         rho_list: List[float],
         alpha: float = 1.0,
-        x0: Optional[Union[JaxArray, BlockArray]] = None,
+        x0: Optional[Union[Array, BlockArray]] = None,
         subproblem_solver: Optional[SubproblemSolver] = None,
         **kwargs,
     ):
@@ -204,8 +203,8 @@ class ADMM(Optimizer):
 
     def objective(
         self,
-        x: Optional[Union[JaxArray, BlockArray]] = None,
-        z_list: Optional[List[Union[JaxArray, BlockArray]]] = None,
+        x: Optional[Union[Array, BlockArray]] = None,
+        z_list: Optional[List[Union[Array, BlockArray]]] = None,
     ) -> float:
         r"""Evaluate the objective function.
 
@@ -238,7 +237,7 @@ class ADMM(Optimizer):
             out += g(z)
         return out
 
-    def norm_primal_residual(self, x: Optional[Union[JaxArray, BlockArray]] = None) -> float:
+    def norm_primal_residual(self, x: Optional[Union[Array, BlockArray]] = None) -> float:
         r"""Compute the :math:`\ell_2` norm of the primal residual.
 
         Compute the :math:`\ell_2` norm of the primal residual
@@ -282,8 +281,8 @@ class ADMM(Optimizer):
         return snp.sqrt(out)
 
     def z_init(
-        self, x0: Union[JaxArray, BlockArray]
-    ) -> Tuple[List[Union[JaxArray, BlockArray]], List[Union[JaxArray, BlockArray]]]:
+        self, x0: Union[Array, BlockArray]
+    ) -> Tuple[List[Union[Array, BlockArray]], List[Union[Array, BlockArray]]]:
         r"""Initialize auxiliary variables :math:`\mb{z}_i`.
 
         Initialized to
@@ -297,11 +296,11 @@ class ADMM(Optimizer):
         Args:
             x0: Initial value of :math:`\mb{x}`.
         """
-        z_list: List[Union[JaxArray, BlockArray]] = [Ci(x0) for Ci in self.C_list]
+        z_list: List[Union[Array, BlockArray]] = [Ci(x0) for Ci in self.C_list]
         z_list_old = z_list.copy()
         return z_list, z_list_old
 
-    def u_init(self, x0: Union[JaxArray, BlockArray]) -> List[Union[JaxArray, BlockArray]]:
+    def u_init(self, x0: Union[Array, BlockArray]) -> List[Union[Array, BlockArray]]:
         r"""Initialize scaled Lagrange multipliers :math:`\mb{u}_i`.
 
         Initialized to
