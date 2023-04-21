@@ -10,6 +10,7 @@ Computed Tomography
 ^^^^^^^^^^^^^^^^^^^
 
    - ct_abel_tv_admm.py
+   - ct_abel_tv_admm_tune.py
    - ct_astra_noreg_pcg.py
    - ct_astra_tv_admm.py
    - ct_astra_weighted_tv_admm.py
@@ -89,6 +90,7 @@ Total Variation
 ^^^^^^^^^^^^^^^
 
    - ct_abel_tv_admm.py
+   - ct_abel_tv_admm_tune.py
    - ct_astra_tv_admm.py
    - ct_astra_weighted_tv_admm.py
    - ct_svmbir_tv_multi.py
@@ -138,6 +140,7 @@ ADMM
 ^^^^
 
    - ct_abel_tv_admm.py
+   - ct_abel_tv_admm_tune.py
    - ct_astra_tv_admm.py
    - ct_astra_weighted_tv_admm.py
    - ct_svmbir_tv_multi.py

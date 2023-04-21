@@ -13,12 +13,12 @@ BlockArray
 
 The class :class:`.BlockArray` provides a way to combine arrays of
 different shapes into a single object for use with other SCICO classes.
-A :class:`.BlockArray` consists of a list of :obj:`~jax.numpy.DeviceArray` objects,
-which we refer to as blocks. A :class:`.BlockArray` differs from a list in
-that, whenever possible, :class:`.BlockArray` properties and methods
-(including unary and binary operators like +, -, \*, ...) automatically
-map along the blocks, returning another :class:`.BlockArray` or tuple as
-appropriate. For example,
+A :class:`.BlockArray` consists of a list of :obj:`~jax.numpy.DeviceArray`
+objects, which we refer to as blocks. A :class:`.BlockArray` differs from
+a list in that, whenever possible, :class:`.BlockArray` properties and
+methods (including unary and binary operators like +, -, \*, ...)
+automatically map along the blocks, returning another :class:`.BlockArray`
+or tuple as appropriate. For example,
 
   ::
 
@@ -92,6 +92,17 @@ For lists of the remaining wrapped functions, see
     >>> import scico.scipy
     >>> scico.scipy.special.functions  # doctest: +ELLIPSIS
     ('betainc', ...)
+
+Note that:
+ * Both :func:`scico.numpy.ravel` and :meth:`.BlockArray.ravel` return a
+   :class:`.BlockArray` with ravelled blocks rather than the concatenation
+   of these blocks as a single array.
+ * The functional and method versions of the "same" function differ in their
+   behavior, with the method version only applying the reduction within each
+   block, and the function version applying the reduction across all blocks.
+   For example, :func:`scico.numpy.sum` applied to a :class:`.BlockArray` with
+   two blocks returns a scalar value, while :meth:`.BlockArray.sum` returns a
+   :class:`.BlockArray` two scalar blocks.
 
 
 Motivating Example

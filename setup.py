@@ -31,7 +31,7 @@ with open("requirements.txt") as f:
     lines = f.readlines()
 install_requires = [line.strip() for line in lines]
 
-python_requires = ">=3.7"
+python_requires = ">=3.8"
 tests_require = ["pytest", "pytest-runner"]
 
 extra_require_files = [

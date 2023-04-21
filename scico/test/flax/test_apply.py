@@ -43,7 +43,7 @@ def test_except_only_apply(testobj):
         testobj.model_conf["depth"], testobj.chn, testobj.model_conf["num_filters"]
     )
 
-    with pytest.raises(Exception):
+    with pytest.raises(RuntimeError):
         out_ = sflax.only_apply(
             testobj.train_conf,
             model,
