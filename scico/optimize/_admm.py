@@ -214,6 +214,14 @@ class ADMM(Optimizer):
         .. math::
             f(\mb{x}) + \sum_{i=1}^N g_i(\mb{z}_i) \;.
 
+        Note that this form is cheaper to compute, but may have very poor
+        accuracy compare with the "true" objective function
+
+        .. math::
+            f(\mb{x}) + \sum_{i=1}^N g_i(C_i \mb{x}) \;.
+
+        when primal residual is large.
+
         Args:
             x: Point at which to evaluate objective function. If ``None``,
                 the objective is  evaluated at the current iterate
@@ -223,7 +231,7 @@ class ADMM(Optimizer):
                 :code:`self.z_list`.
 
         Returns:
-            scalar: Value of the objective function.
+            Value of the objective function.
         """
         if (x is None) != (z_list is None):
             raise ValueError("Both or neither of x and z_list must be supplied.")
@@ -244,13 +252,13 @@ class ADMM(Optimizer):
         Compute the :math:`\ell_2` norm of the primal residual
 
         .. math::
-            \left(\sum_{i=1}^N \norm{C_i \mb{x} -
-            \mb{z}_i}_2^2\right)^{1/2} \;.
+            \left( \sum_{i=1}^N \rho_i \left\| C_i \mb{x} -
+            \mb{z}_i^{(k)} \right\|_2^2\right)^{1/2} \;.
 
         Args:
-            x: Point at which to evaluate primal residual.
-                If ``None``, the primal residual is evaluated at the
-                current iterate :code:`self.x`.
+            x: Point at which to evaluate primal residual. If ``None``,
+                the primal residual is evaluated at the current iterate
+                :code:`self.x`.
 
         Returns:
             Norm of primal residual.
@@ -258,10 +266,10 @@ class ADMM(Optimizer):
         if x is None:
             x = self.x
 
-        out = 0.0
-        for Ci, zi in zip(self.C_list, self.z_list):
-            out += norm(Ci(self.x) - zi) ** 2
-        return snp.sqrt(out)
+        sum = 0.0
+        for rhoi, Ci, zi in zip(self.rho_list, self.C_list, self.z_list):
+            sum += rhoi * norm(Ci(self.x) - zi) ** 2
+        return snp.sqrt(sum)
 
     def norm_dual_residual(self) -> float:
         r"""Compute the :math:`\ell_2` norm of the dual residual.
@@ -269,17 +277,17 @@ class ADMM(Optimizer):
         Compute the :math:`\ell_2` norm of the dual residual
 
         .. math::
-            \left(\sum_{i=1}^N \norm{\mb{z}^{(k)}_i -
-            \mb{z}^{(k-1)}_i}_2^2\right)^{1/2} \;.
+            \left\| \sum_{i=1}^N \rho_i C_i^T \left( \mb{z}^{(k)}_i -
+            \mb{z}^{(k-1)}_i \right) \right\|_2 \;.
 
         Returns:
-            Current norm of dual residual.
+            Norm of dual residual.
 
         """
-        out = 0.0
-        for zi, ziold, Ci in zip(self.z_list, self.z_list_old, self.C_list):
-            out += norm(Ci.adj(zi - ziold)) ** 2
-        return snp.sqrt(out)
+        sum = 0.0
+        for rhoi, zi, ziold, Ci in zip(self.rho_list, self.z_list, self.z_list_old, self.C_list):
+            sum += rhoi * Ci.adj(zi - ziold)
+        return norm(sum)
 
     def z_init(
         self, x0: Union[JaxArray, BlockArray]
