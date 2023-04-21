@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022 by SCICO Developers
+# Copyright (C) 2022-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -23,7 +23,7 @@ import jax.numpy.fft as jnfft
 import abel
 
 from scico.linop import LinearOperator
-from scico.typing import JaxArray, Shape
+from scico.typing import Shape
 from scipy.linalg import solve_triangular
 
 
@@ -51,17 +51,17 @@ class AbelProjector(LinearOperator):
             jit=True,
         )
 
-    def _eval(self, x: JaxArray) -> JaxArray:
+    def _eval(self, x: jax.Array) -> jax.Array:
         return _pyabel_transform(x, direction="forward", proj_mat_quad=self.proj_mat_quad).astype(
             self.output_dtype
         )
 
-    def _adj(self, x: JaxArray) -> JaxArray:  # type: ignore
+    def _adj(self, x: jax.Array) -> jax.Array:  # type: ignore
         return _pyabel_transform(x, direction="transpose", proj_mat_quad=self.proj_mat_quad).astype(
             self.input_dtype
         )
 
-    def inverse(self, y: JaxArray) -> JaxArray:
+    def inverse(self, y: jax.Array) -> jax.Array:
         """Perform inverse Abel transform.
 
         Args:
@@ -76,8 +76,8 @@ class AbelProjector(LinearOperator):
 
 
 def _pyabel_transform(
-    x: JaxArray, direction: str, proj_mat_quad: JaxArray, symmetry_axis: Optional[list] = None
-) -> JaxArray:
+    x: jax.Array, direction: str, proj_mat_quad: jax.Array, symmetry_axis: Optional[list] = None
+) -> jax.Array:
     """Perform Abel transformations (forward, inverse and transposed).
 
     This function contains code copied from `PyAbel <https://github.com/PyAbel/PyAbel>`_.
@@ -117,7 +117,7 @@ def _pyabel_transform(
     )
 
 
-def _pyabel_daun_get_proj_matrix(img_shape: Shape) -> JaxArray:
+def _pyabel_daun_get_proj_matrix(img_shape: Shape) -> jax.Array:
     """Get single-quadrant projection matrix."""
     proj_matrix = abel.daun.get_bs_cached(
         math.ceil(img_shape[1] / 2),

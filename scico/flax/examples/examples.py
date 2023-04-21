@@ -13,7 +13,8 @@ from typing import Callable, Optional, Tuple, Union
 import numpy as np
 
 from scico.flax.train.typed_dict import DataSetDict
-from scico.typing import Array, Shape
+from scico.numpy import Array
+from scico.typing import Shape
 
 from .data_generation import generate_blur_data, generate_ct_data, generate_foam1_images
 from .data_preprocessing import ConfigImageSetDict, build_image_dataset, get_bsds_data

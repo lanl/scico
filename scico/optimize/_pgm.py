@@ -18,9 +18,8 @@ import jax
 import scico.numpy as snp
 from scico.functional import Functional
 from scico.loss import Loss
-from scico.numpy import BlockArray
+from scico.numpy import Array, BlockArray
 from scico.numpy.util import ensure_on_device
-from scico.typing import JaxArray
 
 from ._common import Optimizer
 from ._pgmaux import (
@@ -47,7 +46,7 @@ class PGM(Optimizer):
         f: Union[Loss, Functional],
         g: Functional,
         L0: float,
-        x0: Union[JaxArray, BlockArray],
+        x0: Union[Array, BlockArray],
         step_size: Optional[PGMStepSize] = None,
         **kwargs,
     ):
@@ -80,12 +79,12 @@ class PGM(Optimizer):
         self.L: float = L0  # reciprocal of step size (estimate of Lipschitz constant of f)
         self.fixed_point_residual = snp.inf
 
-        def x_step(v: Union[JaxArray, BlockArray], L: float) -> Union[JaxArray, BlockArray]:
+        def x_step(v: Union[Array, BlockArray], L: float) -> Union[Array, BlockArray]:
             return self.g.prox(v - 1.0 / L * self.f.grad(v), 1.0 / L)
 
         self.x_step = jax.jit(x_step)
 
-        self.x: Union[JaxArray, BlockArray] = ensure_on_device(x0)  # current estimate of solution
+        self.x: Union[Array, BlockArray] = ensure_on_device(x0)  # current estimate of solution
 
         super().__init__(**kwargs)
 
@@ -111,14 +110,14 @@ class PGM(Optimizer):
         """Return current estimate of the functional mimimizer."""
         return self.x
 
-    def objective(self, x: Optional[Union[JaxArray, BlockArray]] = None) -> float:
+    def objective(self, x: Optional[Union[Array, BlockArray]] = None) -> float:
         r"""Evaluate the objective function :math:`f(\mb{x}) + g(\mb{x})`."""
         if x is None:
             x = self.x
         return self.f(x) + self.g(x)
 
     def f_quad_approx(
-        self, x: Union[JaxArray, BlockArray], y: Union[JaxArray, BlockArray], L: float
+        self, x: Union[Array, BlockArray], y: Union[Array, BlockArray], L: float
     ) -> float:
         r"""Evaluate the quadratic approximation to function :math:`f`.
 
@@ -169,7 +168,7 @@ class AcceleratedPGM(PGM):
         f: Union[Loss, Functional],
         g: Functional,
         L0: float,
-        x0: Union[JaxArray, BlockArray],
+        x0: Union[Array, BlockArray],
         step_size: Optional[PGMStepSize] = None,
         **kwargs,
     ):

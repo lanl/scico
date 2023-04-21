@@ -14,8 +14,7 @@ from __future__ import annotations
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from scico.diagnostics import IterationStats
-from scico.numpy import BlockArray
-from scico.typing import JaxArray
+from scico.numpy import Array, BlockArray
 from scico.util import Timer
 
 
@@ -171,7 +170,7 @@ class Optimizer:
         """
         return {}, []
 
-    def minimizer(self) -> Union[JaxArray, BlockArray]:
+    def minimizer(self) -> Union[Array, BlockArray]:
         """Return the current estimate of the functional mimimizer."""
 
     def step(self):
@@ -180,7 +179,7 @@ class Optimizer:
     def solve(
         self,
         callback: Optional[Callable[[Optimizer], None]] = None,
-    ) -> Union[JaxArray, BlockArray]:
+    ) -> Union[Array, BlockArray]:
         r"""Initialize and run the optimization algorithm.
 
         Initialize and run the opimization algorithm for a total of

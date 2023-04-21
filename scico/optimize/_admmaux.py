@@ -29,11 +29,10 @@ from scico.linop import (
 )
 from scico.loss import SquaredL2Loss
 from scico.metric import rel_res
-from scico.numpy import BlockArray
+from scico.numpy import Array, BlockArray
 from scico.numpy.util import ensure_on_device, is_real_dtype
 from scico.solver import cg as scico_cg
 from scico.solver import minimize
-from scico.typing import JaxArray
 
 
 class SubproblemSolver:
@@ -89,7 +88,7 @@ class GenericSubproblemSolver(SubproblemSolver):
         self.minimize_kwargs = minimize_kwargs
         self.info: dict = {}
 
-    def solve(self, x0: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
+    def solve(self, x0: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         """Solve the ADMM step.
 
         Args:
@@ -225,7 +224,7 @@ class LinearSubproblemSolver(SubproblemSolver):
         lhs_op.jit()
         self.lhs_op = lhs_op
 
-    def compute_rhs(self) -> Union[JaxArray, BlockArray]:
+    def compute_rhs(self) -> Union[Array, BlockArray]:
         r"""Compute the right hand side of the linear equation to be solved.
 
         Compute
@@ -252,7 +251,7 @@ class LinearSubproblemSolver(SubproblemSolver):
             rhs += rhoi * Ci.adj(zi - ui)
         return rhs
 
-    def solve(self, x0: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
+    def solve(self, x0: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         """Solve the ADMM step.
 
         Args:
@@ -320,7 +319,7 @@ class CircularConvolveSolver(LinearSubproblemSolver):
 
         self.A_lhs = A_lhs
 
-    def solve(self, x0: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
+    def solve(self, x0: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         """Solve the ADMM step.
 
         Args:
@@ -498,7 +497,7 @@ class FBlockCircularConvolveSolver(LinearSubproblemSolver):
             + snp.sum(A.h_dft * (A.h_dft.conj() / self.D.h_dft), axis=self.sum_axis, keepdims=True)
         )
 
-    def solve(self, x0: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
+    def solve(self, x0: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         """Solve the ADMM step.
 
         Args:
@@ -709,7 +708,7 @@ class G0BlockCircularConvolveSolver(SubproblemSolver):
             + snp.sum(A.h_dft * (A.h_dft.conj() / self.D.h_dft), axis=self.sum_axis, keepdims=True)
         )
 
-    def compute_rhs(self) -> Union[JaxArray, BlockArray]:
+    def compute_rhs(self) -> Union[Array, BlockArray]:
         r"""Compute the right hand side of the linear equation to be solved.
 
         Compute
@@ -723,6 +722,7 @@ class G0BlockCircularConvolveSolver(SubproblemSolver):
         Returns:
             Computed solution.
         """
+        assert isinstance(self.admm.g_list[0], SquaredL2Loss)
 
         C0 = self.admm.C_list[0]
         rhs = snp.zeros(C0.input_shape, C0.input_dtype)
@@ -736,7 +736,7 @@ class G0BlockCircularConvolveSolver(SubproblemSolver):
             rhs += omegai * rhoi * Ci.adj(zi - ui)
         return rhs
 
-    def solve(self, x0: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
+    def solve(self, x0: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         """Solve the ADMM step.
 
         Args:
