@@ -21,11 +21,10 @@ import scico.numpy as snp
 import scico.optimize.admm as soa
 from scico.linop import CircularConvolve, Identity, LinearOperator
 from scico.loss import SquaredL2Loss
-from scico.numpy import BlockArray
+from scico.numpy import Array, BlockArray
 from scico.numpy.util import ensure_on_device, is_real_dtype
 from scico.solver import cg as scico_cg
 from scico.solver import minimize
-from scico.typing import JaxArray
 
 
 class SubproblemSolver:
@@ -81,7 +80,7 @@ class GenericSubproblemSolver(SubproblemSolver):
         self.minimize_kwargs = minimize_kwargs
         self.info: dict = {}
 
-    def solve(self, x0: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
+    def solve(self, x0: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         """Solve the ADMM step.
 
         Args:
@@ -217,7 +216,7 @@ class LinearSubproblemSolver(SubproblemSolver):
         lhs_op.jit()
         self.lhs_op = lhs_op
 
-    def compute_rhs(self) -> Union[JaxArray, BlockArray]:
+    def compute_rhs(self) -> Union[Array, BlockArray]:
         r"""Compute the right hand side of the linear equation to be solved.
 
         Compute
@@ -244,7 +243,7 @@ class LinearSubproblemSolver(SubproblemSolver):
             rhs += rhoi * Ci.adj(zi - ui)
         return rhs
 
-    def solve(self, x0: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
+    def solve(self, x0: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         """Solve the ADMM step.
 
         Args:
@@ -307,7 +306,7 @@ class CircularConvolveSolver(LinearSubproblemSolver):
 
         self.A_lhs = A_lhs
 
-    def solve(self, x0: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
+    def solve(self, x0: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         """Solve the ADMM step.
 
         Args:

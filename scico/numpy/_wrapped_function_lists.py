@@ -24,13 +24,13 @@ therefore not listed here.
 
 
 """ BlockArray """
-unary_ops = (  # found from dir(DeviceArray)
+unary_ops = (  # found from dir() on jax array
     "__abs__",
     "__neg__",
     "__pos__",
 )
 
-binary_ops = (  # found from dir(DeviceArray)
+binary_ops = (  # found from dir() on jax array
     "__add__",
     "__radd__",
     "__sub__",

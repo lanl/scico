@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2022 by SCICO Developers
+# Copyright (C) 2020-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -17,8 +17,7 @@ import jax
 
 import scico.numpy as snp
 import scico.optimize.pgm as sop
-from scico.numpy import BlockArray
-from scico.typing import JaxArray
+from scico.numpy import Array, BlockArray
 
 
 class PGMStepSize:
@@ -47,7 +46,7 @@ class PGMStepSize:
         """
         self.pgm = pgm
 
-    def update(self, v: Union[JaxArray, BlockArray]) -> float:
+    def update(self, v: Union[Array, BlockArray]) -> float:
         """Hook for updating the step size in derived classes.
 
         Hook for updating the reciprocal of the step size in derived
@@ -92,7 +91,7 @@ class BBStepSize(PGMStepSize):
         self.xprev = None
         self.gradprev = None
 
-    def update(self, v: Union[JaxArray, BlockArray]) -> float:
+    def update(self, v: Union[Array, BlockArray]) -> float:
         """Update the reciprocal of the step size.
 
         Args:
@@ -174,12 +173,12 @@ class AdaptiveBBStepSize(PGMStepSize):
             kappa : Threshold for step size selection :math:`\kappa`.
         """
         self.kappa: float = kappa
-        self.xprev: Union[JaxArray, BlockArray] = None
-        self.gradprev: Union[JaxArray, BlockArray] = None
+        self.xprev: Union[Array, BlockArray] = None
+        self.gradprev: Union[Array, BlockArray] = None
         self.Lbb1prev: Optional[float] = None
         self.Lbb2prev: Optional[float] = None
 
-    def update(self, v: Union[JaxArray, BlockArray]) -> float:
+    def update(self, v: Union[Array, BlockArray]) -> float:
         """Update the reciprocal of the step size.
 
         Args:
@@ -267,7 +266,7 @@ class LineSearchStepSize(PGMStepSize):
 
         self.g_prox = jax.jit(g_prox)
 
-    def update(self, v: Union[JaxArray, BlockArray]) -> float:
+    def update(self, v: Union[Array, BlockArray]) -> float:
         """Update the reciprocal of the step size.
 
         Args:
@@ -329,11 +328,11 @@ class RobustLineSearchStepSize(LineSearchStepSize):
         self.gamma_d: float = gamma_d
         self.Tk: float = 0.0
         # State needed for computing auxiliary extrapolation sequence in robust line search.
-        self.Zrb: Union[JaxArray, BlockArray] = None
+        self.Zrb: Union[Array, BlockArray] = None
         #: Current estimate of solution in robust line search.
-        self.Z: Union[JaxArray, BlockArray] = None
+        self.Z: Union[Array, BlockArray] = None
 
-    def update(self, v: Union[JaxArray, BlockArray]) -> float:
+    def update(self, v: Union[Array, BlockArray]) -> float:
         """Update the reciprocal of the step size.
 
         Args:
