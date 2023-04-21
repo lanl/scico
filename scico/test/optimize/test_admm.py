@@ -8,9 +8,9 @@ import scico.numpy as snp
 from scico import functional, linop, loss, metric, random
 from scico.optimize import ADMM
 from scico.optimize.admm import (
-    BlockCircularConvolveForm1Solver,
-    BlockCircularConvolveForm2Solver,
     CircularConvolveSolver,
+    FBlockCircularConvolveSolver,
+    G0BlockCircularConvolveSolver,
     GenericSubproblemSolver,
     LinearSubproblemSolver,
 )
@@ -381,7 +381,7 @@ class TestBlockCircularConvolveSolve:
             rho_list=rho_list,
             maxiter=maxiter,
             itstat_options={"display": False},
-            subproblem_solver=BlockCircularConvolveForm1Solver(),
+            subproblem_solver=FBlockCircularConvolveSolver(),
         )
         x_dft1 = admm_dft1.solve()
         np.testing.assert_allclose(x_dft1, x_lin, atol=1e-4, rtol=0)
@@ -394,7 +394,7 @@ class TestBlockCircularConvolveSolve:
             rho_list=[1.0, ρ],
             maxiter=maxiter,
             itstat_options={"display": False},
-            subproblem_solver=BlockCircularConvolveForm2Solver(),
+            subproblem_solver=G0BlockCircularConvolveSolver(),
         )
         admm_dft2.z_list[0] = self.y  # significantly improves convergence
         x_dft2 = admm_dft2.solve()

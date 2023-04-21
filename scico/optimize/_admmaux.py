@@ -339,7 +339,7 @@ class CircularConvolveSolver(LinearSubproblemSolver):
         return x
 
 
-class BlockCircularConvolveForm1Solver(LinearSubproblemSolver):
+class FBlockCircularConvolveSolver(LinearSubproblemSolver):
     r"""Solver for linear operators block-diagonalized in the DFT domain.
 
     Specialization of :class:`.LinearSubproblemSolver` for the case where
@@ -440,7 +440,7 @@ class BlockCircularConvolveForm1Solver(LinearSubproblemSolver):
     """
 
     def __init__(self, ndims: Optional[int] = None, check_solve: bool = False):
-        """Initialize a :class:`BlockCircularConvolveForm1Solver` object.
+        """Initialize a :class:`FBlockCircularConvolveSolver` object.
 
         Args:
             check_solve: If ``True``, compute solver accuracy after each
@@ -452,28 +452,28 @@ class BlockCircularConvolveForm1Solver(LinearSubproblemSolver):
 
     def internal_init(self, admm: soa.ADMM):
         if admm.f is None:
-            raise ValueError("BlockCircularConvolveForm1Solver does not allow f to be None.")
+            raise ValueError("FBlockCircularConvolveSolver does not allow f to be None.")
         else:
             if not isinstance(admm.f, SquaredL2Loss):
                 raise ValueError(
-                    "BlockCircularConvolveForm1Solver requires f to be a scico.loss.SquaredL2Loss; "
+                    "FBlockCircularConvolveSolver requires f to be a scico.loss.SquaredL2Loss; "
                     f"got {type(admm.f)}."
                 )
             if not isinstance(admm.f.A, ComposedLinearOperator):
                 raise ValueError(
-                    "BlockCircularConvolveForm1Solver requires f.A to be a composition of Sum "
+                    "FBlockCircularConvolveSolver requires f.A to be a composition of Sum "
                     f"and CircularConvolve linear operators; got {type(admm.f.A)}."
                 )
             if not isinstance(admm.f.A.A, Sum) or not isinstance(admm.f.A.B, CircularConvolve):
                 raise ValueError(
-                    "BlockCircularConvolveForm1Solver requires f.A to be a composition of Sum "
+                    "FBlockCircularConvolveSolver requires f.A to be a composition of Sum "
                     "and CircularConvolve linear operators; got a composition of "
                     f"{type(admm.f.A.A)} and {type(admm.f.A.B)}."
                 )
             self.sum_axis = admm.f.A.A.kwargs["axis"]
             if not isinstance(self.sum_axis, int):
                 raise ValueError(
-                    "BlockCircularConvolveForm1Solver requires the Sum operator component "
+                    "FBlockCircularConvolveSolver requires the Sum operator component "
                     "of f.A to sum over a single axis of its input."
                 )
 
@@ -533,7 +533,7 @@ class BlockCircularConvolveForm1Solver(LinearSubproblemSolver):
         return x
 
 
-class BlockCircularConvolveForm2Solver(SubproblemSolver):
+class G0BlockCircularConvolveSolver(SubproblemSolver):
     r"""Solver for linear operators block-diagonalized in the DFT
     domain.
 
@@ -646,7 +646,7 @@ class BlockCircularConvolveForm2Solver(SubproblemSolver):
     """
 
     def __init__(self, ndims: Optional[int] = None, check_solve: bool = False):
-        """Initialize a :class:`BlockCircularConvolveForm2Solver` object.
+        """Initialize a :class:`G0BlockCircularConvolveSolver` object.
 
         Args:
             check_solve: If ``True``, compute solver accuracy after each
@@ -659,30 +659,30 @@ class BlockCircularConvolveForm2Solver(SubproblemSolver):
     def internal_init(self, admm: soa.ADMM):
         if admm.f is not None and not isinstance(admm.f, ZeroFunctional):
             raise ValueError(
-                "BlockCircularConvolveForm2Solver requires f to be None or a ZeroFunctional"
+                "G0BlockCircularConvolveSolver requires f to be None or a ZeroFunctional"
             )
         if not isinstance(admm.g_list[0], SquaredL2Loss):
             raise ValueError(
-                "BlockCircularConvolveForm2Solver requires g_1 to be a scico.loss.SquaredL2Loss; "
+                "G0BlockCircularConvolveSolver requires g_1 to be a scico.loss.SquaredL2Loss; "
                 f"got {type(admm.g_list[0])}."
             )
         if not isinstance(admm.C_list[0], ComposedLinearOperator):
             raise ValueError(
-                "BlockCircularConvolveForm2Solver requires C_1 to be a composition of Sum "
+                "G0BlockCircularConvolveSolver requires C_1 to be a composition of Sum "
                 f"and CircularConvolve linear operators; got {type(admm.C_list[0])}."
             )
         if not isinstance(admm.C_list[0].A, Sum) or not isinstance(
             admm.C_list[0].B, CircularConvolve
         ):
             raise ValueError(
-                "BlockCircularConvolveForm2Solver requires C_1 to be a composition of Sum "
+                "G0BlockCircularConvolveSolver requires C_1 to be a composition of Sum "
                 "and CircularConvolve linear operators; got a composition of "
                 f"{type(admm.C_list[0].A)} and {type(admm.C_list[0].B)}."
             )
         self.sum_axis = admm.C_list[0].A.kwargs["axis"]
         if not isinstance(self.sum_axis, int):
             raise ValueError(
-                "BlockCircularConvolveForm2Solver requires the Sum operator component "
+                "G0BlockCircularConvolveSolver requires the Sum operator component "
                 "of C_1 to sum over a single axis of its input."
             )
 
