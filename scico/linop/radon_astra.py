@@ -61,26 +61,26 @@ class TomographicProjector(LinearOperator):
         """
         Args:
             input_shape: Shape of the input array.
-            volume_geometry: Defines the shape and size of the
-                discretized reconstruction volume. Must either ``None``,
-                or of the form (min_x, max_x, min_y, max_y). If ``None``,
-                volume pixels are squares with sides of unit length, and
-                the volume is centered around the origin. If not ``None``,
-                the extents of the volume can be specified arbitrarily.
-                The default, ``None``, corresponds to
-                `volume_geometry = [cols, -cols/2, cols/2, -rows/2, rows/2]`.
-                Note: For usage with GPU code, the volume must be
-                centered around the origin and pixels must be square.
-                This is not always explicitly checked in all functions,
-                so not following these requirements may have
-                unpredictable results. See `original ASTRA documentation
-                <https://www.astra-toolbox.com/docs/geom2d.html#volume-geometries>`_.
             detector_spacing: Spacing between detector elements.
             det_count: Number of detector elements.
             angles: Array of projection angles in radians.
+            volume_geometry: Defines the shape and size of the
+               discretized reconstruction volume. Must either ``None``,
+               or of the form `(min_x, max_x, min_y, max_y)`. If ``None``,
+               volume pixels are squares with sides of unit length, and
+               the volume is centered around the origin. If not ``None``,
+               the extents of the volume can be specified arbitrarily.
+               The default, ``None``, corresponds to
+               `volume_geometry = [cols, -cols/2, cols/2, -rows/2, rows/2]`.
+               **Note**: The volume must be centered around the origin and
+               pixels must be square for GPU usage. This is not always
+               explicitly checked in all functions, so not following these
+               requirements may have unpredictable results. For further
+               details, see the `ASTRA documentation
+               <https://www.astra-toolbox.com/docs/geom2d.html#volume-geometries>`_.
             device: Specifies device for projection operation.
-                One of ["auto", "gpu", "cpu"]. If "auto", a GPU is used
-                if available. Otherwise, the CPU is used.
+               One of ["auto", "gpu", "cpu"]. If "auto", a GPU is used if
+               available, otherwise, the CPU is used.
         """
 
         # Set up all the ASTRA config
@@ -98,7 +98,7 @@ class TomographicProjector(LinearOperator):
             if len(volume_geometry) == 4:
                 self.vol_geom: dict = astra.create_vol_geom(*input_shape, *volume_geometry)
             else:
-                raise AssertionError(
+                raise ValueError(
                     "Volume_geometry must be the shape of the volume as a tuple of len 4 "
                     "containing the volume geometry dimensions. Please see documentation "
                     "for details."
@@ -155,13 +155,16 @@ class TomographicProjector(LinearOperator):
         return hcb.call(f, y, result_shape=jax.ShapeDtypeStruct(self.input_shape, self.input_dtype))
 
     def fbp(self, sino: jax.Array, filter_type: str = "Ram-Lak") -> jax.Array:
-        """Perform tomographic reconstruction using the filtered back
+        """Filtered back projection (FBP) reconstruction.
+
+        Perform tomographic reconstruction using the filtered back
         projection (FBP) algorithm.
 
         Args:
             sino: Sinogram to reconstruct.
-            filter_type: Which filter to use, see `cfg.FilterType` in
-               `<https://www.astra-toolbox.com/docs/algs/FBP_CUDA.html>`_.
+            filter_type: Select the filter to use. For a list of options
+               see `cfg.FilterType` in the `ASTRA documentation
+               <https://www.astra-toolbox.com/docs/algs/FBP_CUDA.html>`_.
         """
 
         # Just use the CPU FBP alg for now; hitting memory issues with GPU one.
