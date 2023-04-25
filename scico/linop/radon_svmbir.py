@@ -74,6 +74,7 @@ class TomographicProjector(LinearOperator):
         geometry: str = "parallel",
         dist_source_detector: Optional[float] = None,
         magnification: Optional[float] = None,
+        delta_channel: Optional[float] = None,
     ):
         """
         The output of this linear operator is an array of shape
@@ -118,6 +119,7 @@ class TomographicProjector(LinearOperator):
                 is "fan-flat" or "fan-curved".
             magnification: Magnification factor of the scanner geometry.
                 Only used when geometry is "fan-flat" or "fan-curved".
+            delta_channel: Detector channel spacing.
         """
         self.angles = angles
         self.num_channels = num_channels
@@ -146,6 +148,11 @@ class TomographicProjector(LinearOperator):
         self.dist_source_detector = dist_source_detector
         self.magnification = magnification
 
+        if delta_channel is None:
+            self.delta_channel = 1.0
+        else:
+            self.delta_channel = delta_channel
+
         if self.geometry == "fan-curved" or self.geometry == "fan-flat":
             if self.dist_source_detector is None:
                 raise ValueError(
@@ -160,8 +167,7 @@ class TomographicProjector(LinearOperator):
         elif self.geometry == "parallel":
 
             self.magnification = 1.0
-            self.delta_channel = 1.0
-            self.delta_pixel = 1.0
+            self.delta_pixel = self.delta_channel
 
         else:
             raise ValueError("Unspecified geometry {}.".format(self.geometry))
