@@ -84,6 +84,11 @@ class TomographicProjector(LinearOperator):
         where `num_angles` is the length of the `angles` argument, and
         `num_slices` is inferred from the `input_shape` argument.
 
+        Most of the the following arguments have the same name as and
+        correspond to arguments of :func:`svmbir.project`. A brief
+        summary of each is provided here, but the documentation for
+        :func:`svmbir.project` should be consulted for further details.
+
         Args:
             input_shape: Shape of the input array. May be of length 2 (a
                 2D array) or 3 (a 3D array). When specifying a 2D array,
