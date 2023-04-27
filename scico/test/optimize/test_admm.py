@@ -359,7 +359,65 @@ class TestBlockCircularConvolveSolve:
         self.g_list = [λ * functional.L1Norm()]
         self.C_list = [linop.Identity(input_shape=x.shape)]
 
-    def test_admm(self):
+    def test_fblock_init(self):
+        with pytest.raises(ValueError):
+            slvr = ADMM(
+                f=None,
+                g_list=self.g_list,
+                C_list=self.C_list,
+                rho_list=[1.0],
+                itstat_options={"display": False},
+                subproblem_solver=FBlockCircularConvolveSolver(),
+            )
+        with pytest.raises(ValueError):
+            slvr = ADMM(
+                f=loss.PoissonLoss(y=self.y),
+                g_list=self.g_list,
+                C_list=self.C_list,
+                rho_list=[1.0],
+                itstat_options={"display": False},
+                subproblem_solver=FBlockCircularConvolveSolver(),
+            )
+        with pytest.raises(ValueError):
+            slvr = ADMM(
+                f=loss.SquaredL2Loss(y=self.y, A=self.A.A),
+                g_list=self.g_list,
+                C_list=self.C_list,
+                rho_list=[1.0],
+                itstat_options={"display": False},
+                subproblem_solver=FBlockCircularConvolveSolver(),
+            )
+
+    def test_g0block_init(self):
+        with pytest.raises(ValueError):
+            slvr = ADMM(
+                f=self.f,
+                g_list=self.g_list,
+                C_list=self.C_list,
+                rho_list=[1.0],
+                itstat_options={"display": False},
+                subproblem_solver=G0BlockCircularConvolveSolver(),
+            )
+        with pytest.raises(ValueError):
+            slvr = ADMM(
+                f=functional.ZeroFunctional(),
+                g_list=[loss.PoissonLoss(y=self.y)],
+                C_list=self.C_list,
+                rho_list=[1.0],
+                itstat_options={"display": False},
+                subproblem_solver=G0BlockCircularConvolveSolver(),
+            )
+        with pytest.raises(ValueError):
+            slvr = ADMM(
+                f=functional.ZeroFunctional(),
+                g_list=[loss.SquaredL2Loss(y=self.y)] + self.g_list,
+                C_list=[self.A.A] + self.C_list,
+                rho_list=[1.0, 1.0],
+                itstat_options={"display": False},
+                subproblem_solver=G0BlockCircularConvolveSolver(),
+            )
+
+    def test_solve(self):
         maxiter = 50
         ρ = 1e1
         rho_list = [ρ]
@@ -381,11 +439,12 @@ class TestBlockCircularConvolveSolve:
             rho_list=rho_list,
             maxiter=maxiter,
             itstat_options={"display": False},
-            subproblem_solver=FBlockCircularConvolveSolver(),
+            subproblem_solver=FBlockCircularConvolveSolver(check_solve=True),
         )
         x_dft1 = admm_dft1.solve()
         np.testing.assert_allclose(x_dft1, x_lin, atol=1e-4, rtol=0)
         assert metric.mse(x_lin, x_dft1) < 1e-9
+        assert admm_dft1.subproblem_solver.accuracy <= 1e-6
 
         admm_dft2 = ADMM(
             f=functional.ZeroFunctional(),
@@ -394,9 +453,10 @@ class TestBlockCircularConvolveSolve:
             rho_list=[1.0, ρ],
             maxiter=maxiter,
             itstat_options={"display": False},
-            subproblem_solver=G0BlockCircularConvolveSolver(),
+            subproblem_solver=G0BlockCircularConvolveSolver(check_solve=True),
         )
         admm_dft2.z_list[0] = self.y  # significantly improves convergence
         x_dft2 = admm_dft2.solve()
         np.testing.assert_allclose(x_dft2, x_lin, atol=1e-4, rtol=0)
         assert metric.mse(x_lin, x_dft2) < 1e-9
+        assert admm_dft2.subproblem_solver.accuracy <= 1e-6
