@@ -58,7 +58,7 @@ of the reconstruction is reduced slightly by removing parts of the PSF
 stack that don't make a significant contribution to the reconstruction.
 """
 y, psf = ucb_diffusercam_data()
-psf = psf[..., 1:-6]
+psf = psf[..., 1:-7]
 
 
 """
@@ -130,7 +130,7 @@ solver = ADMM(
     g_list=[g0, g1, g2],
     C_list=[C0, C1, C2],
     rho_list=[ρ0, ρ1, ρ2],
-    alpha=1.8,
+    alpha=1.4,
     maxiter=maxiter,
     nanstop=True,
     subproblem_solver=G0BlockCircularConvolveSolver(ndims=2, check_solve=True),
@@ -159,7 +159,6 @@ Show the recovered volume with depth indicated by color.
 XCrop = Crop(((0, 0),) + pad_spec, input_shape=x_shape, input_dtype=dtype)
 xm = np.array(XCrop(x[..., ::-1]))
 xmr = xm.transpose((1, 2, 0))[..., np.newaxis] / xm.max()
-# cmap = plot.plt.cm.YlOrRd
 cmap = plot.plt.cm.viridis_r
 cmval = cmap(np.arange(0, xm.shape[0]).reshape(1, 1, -1) / (xm.shape[0] - 1))
 xms = np.sum(cmval * xmr, axis=2)[..., 0:3]
