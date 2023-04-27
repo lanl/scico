@@ -75,7 +75,6 @@ half_psf = np.array(psf.shape[0:2]) // 2
 pad_spec = ((half_psf[0],) * 2, (half_psf[1],) * 2)
 y_pad_shape = tuple(np.array(y.shape) + np.array(pad_spec).sum(axis=1))
 x_shape = (psf.shape[-1],) + y_pad_shape
-# psf = snp.pad(psf, pad_spec + ((0, 0),))
 psf = psf.transpose((2, 0, 1))
 psf /= np.sqrt(np.sum(psf**2, axis=(1, 2), keepdims=True))
 
@@ -157,10 +156,11 @@ fig.show()
 """
 Show the recovered volume with depth indicated by color.
 """
-XCrop = Crop(((0, 0),) + pad_spec, input_shape=x_shape)
+XCrop = Crop(((0, 0),) + pad_spec, input_shape=x_shape, input_dtype=dtype)
 xm = np.array(XCrop(x[..., ::-1]))
 xmr = xm.transpose((1, 2, 0))[..., np.newaxis] / xm.max()
-cmap = plot.plt.cm.YlOrRd
+# cmap = plot.plt.cm.YlOrRd
+cmap = plot.plt.cm.viridis_r
 cmval = cmap(np.arange(0, xm.shape[0]).reshape(1, 1, -1) / (xm.shape[0] - 1))
 xms = np.sum(cmval * xmr, axis=2)[..., 0:3]
 
