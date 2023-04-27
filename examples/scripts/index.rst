@@ -63,6 +63,7 @@ Miscellaneous
    - denoise_cplx_tv_nlpadmm.py
    - denoise_cplx_tv_pdhg.py
    - denoise_dncnn_universal.py
+   - diffusercam_tv_admm.py
    - video_rpca_admm.py
    - ct_astra_datagen_foam2.py
    - deconv_datagen_bsds.py
@@ -108,11 +109,14 @@ Total Variation
    - denoise_tv_multi.py
    - denoise_cplx_tv_nlpadmm.py
    - denoise_cplx_tv_pdhg.py
+   - diffusercam_tv_admm.py
+
 
 
 Sparsity
 ^^^^^^^^
 
+   - diffusercam_tv_admm.py
    - sparsecode_admm.py
    - sparsecode_conv_admm.py
    - sparsecode_conv_md_admm.py
@@ -159,6 +163,7 @@ ADMM
    - deconv_ppp_bm3d_admm.py
    - deconv_ppp_dncnn_admm.py
    - deconv_ppp_bm4d_admm.py
+   - diffusercam_tv_admm.py
    - sparsecode_admm.py
    - sparsecode_conv_admm.py
    - sparsecode_conv_md_admm.py

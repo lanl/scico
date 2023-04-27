@@ -85,6 +85,7 @@ Miscellaneous
    examples/denoise_cplx_tv_nlpadmm
    examples/denoise_cplx_tv_pdhg
    examples/denoise_dncnn_universal
+   examples/diffusercam_tv_admm
    examples/video_rpca_admm
    examples/ct_astra_datagen_foam2
    examples/deconv_datagen_bsds
@@ -139,6 +140,8 @@ Total Variation
    examples/denoise_tv_multi
    examples/denoise_cplx_tv_nlpadmm
    examples/denoise_cplx_tv_pdhg
+   examples/diffusercam_tv_admm
+
 
 
 Sparsity
@@ -147,6 +150,7 @@ Sparsity
 .. toctree::
    :maxdepth: 1
 
+   examples/diffusercam_tv_admm
    examples/sparsecode_admm
    examples/sparsecode_conv_admm
    examples/sparsecode_conv_md_admm
@@ -202,6 +206,7 @@ ADMM
    examples/deconv_ppp_bm3d_admm
    examples/deconv_ppp_dncnn_admm
    examples/deconv_ppp_bm4d_admm
+   examples/diffusercam_tv_admm
    examples/sparsecode_admm
    examples/sparsecode_conv_admm
    examples/sparsecode_conv_md_admm

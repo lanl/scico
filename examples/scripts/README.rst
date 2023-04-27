@@ -102,6 +102,8 @@ Miscellaneous
       Complex Total Variation Denoising with PDHG Solver
    `denoise_dncnn_universal.py <denoise_dncnn_universal.py>`_
       Comparison of DnCNN Variants for Image Denoising
+   `diffusercam_tv_admm.py <diffusercam_tv_admm.py>`_
+      TV-Regularized 3D DiffuserCam Reconstruction
    `video_rpca_admm.py <video_rpca_admm.py>`_
       Video Decomposition via Robust PCA
    `ct_astra_datagen_foam2.py <ct_astra_datagen_foam2.py>`_
@@ -179,11 +181,16 @@ Total Variation
       Complex Total Variation Denoising with NLPADMM Solver
    `denoise_cplx_tv_pdhg.py <denoise_cplx_tv_pdhg.py>`_
       Complex Total Variation Denoising with PDHG Solver
+   `diffusercam_tv_admm.py <diffusercam_tv_admm.py>`_
+      TV-Regularized 3D DiffuserCam Reconstruction
+
 
 
 Sparsity
 ^^^^^^^^
 
+   `diffusercam_tv_admm.py <diffusercam_tv_admm.py>`_
+      TV-Regularized 3D DiffuserCam Reconstruction
    `sparsecode_admm.py <sparsecode_admm.py>`_
       Non-Negative Basis Pursuit DeNoising (ADMM)
    `sparsecode_conv_admm.py <sparsecode_conv_admm.py>`_
@@ -263,6 +270,8 @@ ADMM
       PPP (with DnCNN) Image Deconvolution (ADMM Solver)
    `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
       PPP (with BM4D) Volume Deconvolution
+   `diffusercam_tv_admm.py <diffusercam_tv_admm.py>`_
+      TV-Regularized 3D DiffuserCam Reconstruction
    `sparsecode_admm.py <sparsecode_admm.py>`_
       Non-Negative Basis Pursuit DeNoising (ADMM)
    `sparsecode_conv_admm.py <sparsecode_conv_admm.py>`_
