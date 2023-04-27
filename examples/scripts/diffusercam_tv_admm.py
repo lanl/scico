@@ -6,7 +6,7 @@
 
 r"""
 TV-Regularized 3D DiffuserCam Reconstruction
-=========================================
+============================================
 
 This example demonstrates reconstruction of a 3D DiffuserCam
 :cite:`antipa-2018-diffusercam`
