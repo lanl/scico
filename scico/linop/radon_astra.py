@@ -77,7 +77,7 @@ class TomographicProjector(LinearOperator):
                explicitly checked in all functions, so not following these
                requirements may have unpredictable results. For further
                details, see the `ASTRA documentation
-               <https://www.astra-toolbox.com/docs/geom2d.html#volume-geometries>`_.
+               <https://www.astra-toolbox.com/docs/geom2d.html#volume-geometries>`__.
             device: Specifies device for projection operation.
                One of ["auto", "gpu", "cpu"]. If "auto", a GPU is used if
                available, otherwise, the CPU is used.
@@ -99,7 +99,7 @@ class TomographicProjector(LinearOperator):
                 self.vol_geom: dict = astra.create_vol_geom(*input_shape, *volume_geometry)
             else:
                 raise ValueError(
-                    "Volume_geometry must be the shape of the volume as a tuple of len 4 "
+                    "volume_geometry must be the shape of the volume as a tuple of len 4 "
                     "containing the volume geometry dimensions. Please see documentation "
                     "for details."
                 )
@@ -164,7 +164,7 @@ class TomographicProjector(LinearOperator):
             sino: Sinogram to reconstruct.
             filter_type: Select the filter to use. For a list of options
                see `cfg.FilterType` in the `ASTRA documentation
-               <https://www.astra-toolbox.com/docs/algs/FBP_CUDA.html>`_.
+               <https://www.astra-toolbox.com/docs/algs/FBP_CUDA.html>`__.
         """
 
         # Just use the CPU FBP alg for now; hitting memory issues with GPU one.
