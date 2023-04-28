@@ -141,12 +141,12 @@ def epfl_deconv_data(
     """
 
     # set default cache path if not specified
-    if cache_path is None:
+    if cache_path is None:  # pragma: no cover
         cache_path = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples")
 
     # create cache directory and download data if not already present
     npz_file = os.path.join(cache_path, f"epfl_big_deconv_{channel}.npz")
-    if not os.path.isfile(npz_file):
+    if not os.path.isfile(npz_file):  # pragma: no cover
         if not os.path.isdir(cache_path):
             os.makedirs(cache_path)
         get_epfl_deconv_data(channel, path=cache_path, verbose=verbose)
@@ -231,12 +231,12 @@ def ucb_diffusercam_data(
     """
 
     # set default cache path if not specified
-    if cache_path is None:
+    if cache_path is None:  # pragma: no cover
         cache_path = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples")
 
     # create cache directory and download data if not already present
     npz_file = os.path.join(cache_path, "ucb_diffcam_data.npz")
-    if not os.path.isfile(npz_file):
+    if not os.path.isfile(npz_file):  # pragma: no cover
         if not os.path.isdir(cache_path):
             os.makedirs(cache_path)
         get_ucb_diffusercam_data(path=cache_path, verbose=verbose)
