@@ -196,12 +196,15 @@ class PolarGradient(ProjectedGradient):
         if not angular and not radial:
             raise ValueError("At least one of angular and radial must be True.")
 
+        real_input_dtype = snp.util.real_dtype(input_dtype)
         if axes is None:
             axes = (0, 1)
         axes_shape = [input_shape[ax] for ax in axes]
         if center is None:
-            center = (snp.array(axes_shape) - 1) / 2
-        end = snp.array(axes_shape) - center
+            center = (snp.array(axes_shape, dtype=real_input_dtype) - 1) / 2
+        else:
+            center = center.astype(real_input_dtype)
+        end = snp.array(axes_shape, dtype=real_input_dtype) - center
         g0, g1 = snp.ogrid[-center[0] : end[0], -center[1] : end[1]]
         theta = snp.arctan2(g0, g1)
         # Re-order theta axes in case indices in axes parameter are not in increasing order.
@@ -289,13 +292,16 @@ class CylindricalGradient(ProjectedGradient):
         if not angular and not radial and not axial:
             raise ValueError("At least one of angular, radial, and axial must be True.")
 
+        real_input_dtype = snp.util.real_dtype(input_dtype)
         if axes is None:
             axes = (0, 1, 2)
         axes_shape = [input_shape[ax] for ax in axes]
         if center is None:
-            center = (snp.array(axes_shape) - 1) / 2
+            center = (snp.array(axes_shape, dtype=real_input_dtype) - 1) / 2
             center = center.at[-1].set(0)
-        end = snp.array(axes_shape) - center
+        else:
+            center = center.astype(real_input_dtype)
+        end = snp.array(axes_shape, dtype=real_input_dtype) - center
         g0, g1 = snp.ogrid[-center[0] : end[0], -center[1] : end[1]]
         g0 = g0[..., np.newaxis]
         g1 = g1[..., np.newaxis]
@@ -310,11 +316,27 @@ class CylindricalGradient(ProjectedGradient):
             theta = snp.expand_dims(theta, single)
         coord = []
         if angular:
-            coord.append(snp.blockarray([-snp.cos(theta), snp.sin(theta), snp.array([0.0])]))
+            coord.append(
+                snp.blockarray(
+                    [-snp.cos(theta), snp.sin(theta), snp.array([0.0], dtype=real_input_dtype)]
+                )
+            )
         if radial:
-            coord.append(snp.blockarray([snp.sin(theta), snp.cos(theta), snp.array([0.0])]))
+            coord.append(
+                snp.blockarray(
+                    [snp.sin(theta), snp.cos(theta), snp.array([0.0], dtype=real_input_dtype)]
+                )
+            )
         if axial:
-            coord.append(snp.blockarray([snp.array([0.0]), snp.array([0.0]), snp.array([1.0])]))
+            coord.append(
+                snp.blockarray(
+                    [
+                        snp.array([0.0], dtype=real_input_dtype),
+                        snp.array([0.0], dtype=real_input_dtype),
+                        snp.array([1.0], dtype=real_input_dtype),
+                    ]
+                )
+            )
         super().__init__(
             input_shape=input_shape,
             input_dtype=input_dtype,
@@ -386,12 +408,15 @@ class SphericalGradient(ProjectedGradient):
         if not azimuthal and not polar and not radial:
             raise ValueError("At least one of azimuthal, polar, and radial must be True.")
 
+        real_input_dtype = snp.util.real_dtype(input_dtype)
         if axes is None:
             axes = (0, 1, 2)
         axes_shape = [input_shape[ax] for ax in axes]
         if center is None:
-            center = (snp.array(axes_shape) - 1) / 2
-        end = snp.array(axes_shape) - center
+            center = (snp.array(axes_shape, dtype=real_input_dtype) - 1) / 2
+        else:
+            center = center.astype(real_input_dtype)
+        end = snp.array(axes_shape, dtype=real_input_dtype) - center
         g0, g1, g2 = snp.ogrid[-center[0] : end[0], -center[1] : end[1], -center[2] : end[2]]
         theta = snp.arctan2(g1, g0)
         phi = snp.arctan2(snp.sqrt(g0**2 + g1**2), g2)
@@ -408,7 +433,11 @@ class SphericalGradient(ProjectedGradient):
             phi = snp.expand_dims(phi, single)
         coord = []
         if azimuthal:
-            coord.append(snp.blockarray([snp.sin(theta), -snp.cos(theta), snp.array([0.0])]))
+            coord.append(
+                snp.blockarray(
+                    [snp.sin(theta), -snp.cos(theta), snp.array([0.0], dtype=real_input_dtype)]
+                )
+            )
         if polar:
             coord.append(
                 snp.blockarray(
