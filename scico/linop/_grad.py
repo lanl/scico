@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2022 by SCICO Developers
+# Copyright (C) 2021-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -17,8 +17,8 @@ from typing import Optional, Tuple, Union
 import numpy as np
 
 import scico.numpy as snp
-from scico.numpy import BlockArray
-from scico.typing import DType, JaxArray, Shape
+from scico.numpy import Array, BlockArray
+from scico.typing import DType, Shape
 
 from ._linop import LinearOperator
 
@@ -55,7 +55,7 @@ class ProjectedGradient(LinearOperator):
         self,
         input_shape: Shape,
         axes: Optional[Tuple[int]] = None,
-        coord: Optional[Tuple[Union[JaxArray, BlockArray]]] = None,
+        coord: Optional[Tuple[Union[Array, BlockArray]]] = None,
         input_dtype: DType = np.float32,
         jit: bool = True,
     ):
@@ -67,7 +67,7 @@ class ProjectedGradient(LinearOperator):
                 all axes.
             coord: A tuple of arrays, each of which specifies a local
                 coordinate axis direction. Each member of the tuple
-                should either be a `DeviceArray` or a
+                should either be a :class:`jax.Array` or a
                 :class:`.BlockArray`. If it is the former, it should have
                 shape :math:`N \times M_0 \times M_1 \times \ldots`,
                 where :math:`N` is the number of axes specified by
@@ -77,14 +77,14 @@ class ProjectedGradient(LinearOperator):
                 that is suitable for multiplication with an array of
                 shape :math:`M_0 \times M_1 \times \ldots`. If `coord` is
                 a singleton tuple, the result of applying the operator is
-                a `DeviceArray`; otherwise it consists of the gradients
-                for each of the local coordinate axes in `coord` stacked
-                into a :class:`.BlockArray`. If `coord` is ``None``,
-                which is the default, gradients are computed in the
-                standard axis-aligned coordinate system, and the return
-                type depends on the number of axes on which the gradient
-                is calculated, as specified explicitly or implicitly via
-                the `axes` parameter.
+                a :class:`jax.Array`; otherwise it consists of the
+                gradients for each of the local coordinate axes in
+                `coord` stacked into a :class:`.BlockArray`. If `coord`
+                is ``None``, which is the default, gradients are computed
+                in the standard axis-aligned coordinate system, and the
+                return type depends on the number of axes on which the
+                gradient is calculated, as specified explicitly or
+                implicitly via the `axes` parameter.
             input_dtype: `dtype` for input argument. Default is
                 ``float32``.
             jit: If ``True``, jit the evaluation, adjoint, and gram
@@ -98,7 +98,7 @@ class ProjectedGradient(LinearOperator):
             if np.any(np.array(axes) >= len(input_shape)):
                 raise ValueError(
                     "Invalid axes specified; all elements of `axes` must be less than "
-                    f"len(input_shape)={len(input_shape)}"
+                    f"len(input_shape)={len(input_shape)}."
                 )
             self.axes = axes
         if coord is None:
@@ -122,7 +122,7 @@ class ProjectedGradient(LinearOperator):
             jit=jit,
         )
 
-    def _eval(self, x: JaxArray) -> Union[JaxArray, BlockArray]:
+    def _eval(self, x: Array) -> Union[Array, BlockArray]:
 
         grad = snp.gradient(x, axis=self.axes)
         if self.coord is None:
@@ -154,15 +154,16 @@ class PolarGradient(ProjectedGradient):
 
     |
 
-    If only one of `angular` and `radial` is ``True``, the operator output
-    is a `DeviceArray`, otherwise it is a :class:`.BlockArray`.
+    If only one of `angular` and `radial` is ``True``, the operator
+    output is a :class:`jax.Array`, otherwise it is a
+    :class:`.BlockArray`.
     """
 
     def __init__(
         self,
         input_shape: Shape,
         axes: Optional[Tuple[int]] = None,
-        center: Optional[Union[Tuple[int], JaxArray]] = None,
+        center: Optional[Union[Tuple[int], Array]] = None,
         angular: bool = True,
         radial: bool = True,
         input_dtype: DType = np.float32,
@@ -189,11 +190,11 @@ class PolarGradient(ProjectedGradient):
         """
 
         if len(input_shape) < 2:
-            raise ValueError("Invalid input shape; input must have at least two axes")
+            raise ValueError("Invalid input shape; input must have at least two axes.")
         if axes is not None and len(axes) != 2:
-            raise ValueError("Invalid axes specified; exactly two axes must be specified")
+            raise ValueError("Invalid axes specified; exactly two axes must be specified.")
         if not angular and not radial:
-            raise ValueError("At least one of angular and radial must be True")
+            raise ValueError("At least one of angular and radial must be True.")
 
         if axes is None:
             axes = (0, 1)
@@ -238,7 +239,7 @@ class CylindricalGradient(ProjectedGradient):
     |
 
     If only one of `angular`, `radial`, and `axial` is ``True``, the
-    operator output is a `DeviceArray`, otherwise it is a
+    operator output is a :class:`jax.Array`, otherwise it is a
     :class:`.BlockArray`.
     """
 
@@ -246,7 +247,7 @@ class CylindricalGradient(ProjectedGradient):
         self,
         input_shape: Shape,
         axes: Optional[Tuple[int]] = None,
-        center: Optional[Union[Tuple[int], JaxArray]] = None,
+        center: Optional[Union[Tuple[int], Array]] = None,
         angular: bool = True,
         radial: bool = True,
         axial: bool = True,
@@ -262,8 +263,8 @@ class CylindricalGradient(ProjectedGradient):
                 to :math:`x`, :math:`y`, and :math:`z` coordinates
                 respectively. Defaults to ``None``, in which case the
                 axes are taken to be `(0, 1, 2)`. If an integer, this
-                operator returns a `DeviceArray`. If a tuple or ``None``,
-                the resulting arrays are stacked into a
+                operator returns a :class:`jax.Array`. If a tuple or
+                ``None``, the resulting arrays are stacked into a
                 :class:`.BlockArray`.
             center: Center of the cylindrical coordinate system in array
                 indexing coordinates. Default is ``None``, which places
@@ -282,11 +283,11 @@ class CylindricalGradient(ProjectedGradient):
         """
 
         if len(input_shape) < 3:
-            raise ValueError("Invalid input shape; input must have at least three axes")
+            raise ValueError("Invalid input shape; input must have at least three axes.")
         if axes is not None and len(axes) != 3:
-            raise ValueError("Invalid axes specified; exactly three axes must be specified")
+            raise ValueError("Invalid axes specified; exactly three axes must be specified.")
         if not angular and not radial and not axial:
-            raise ValueError("At least one of angular, radial, and axial must be True")
+            raise ValueError("At least one of angular, radial, and axial must be True.")
 
         if axes is None:
             axes = (0, 1, 2)
@@ -336,7 +337,7 @@ class SphericalGradient(ProjectedGradient):
     |
 
     If only one of `azimuthal`, `polar`, and `radial` is ``True``, the
-    operator output is a `DeviceArray`, otherwise it is a
+    operator output is a :class:`jax.Array`, otherwise it is a
     :class:`.BlockArray`.
     """
 
@@ -344,7 +345,7 @@ class SphericalGradient(ProjectedGradient):
         self,
         input_shape: Shape,
         axes: Optional[Tuple[int]] = None,
-        center: Optional[Union[Tuple[int], JaxArray]] = None,
+        center: Optional[Union[Tuple[int], Array]] = None,
         azimuthal: bool = True,
         polar: bool = True,
         radial: bool = True,
@@ -360,8 +361,8 @@ class SphericalGradient(ProjectedGradient):
                 to :math:`x`, :math:`y`, and :math:`z` coordinates
                 respectively. Defaults to ``None``, in which case the
                 axes are taken to be `(0, 1, 2)`. If an integer, this
-                operator returns a `DeviceArray`. If a tuple or ``None``,
-                the resulting arrays are stacked into a
+                operator returns a :class:`jax.Array`. If a tuple or
+                ``None``, the resulting arrays are stacked into a
                 :class:`.BlockArray`.
             center: Center of the spherical coordinate system in array
                 indexing coordinates. Default is ``None``, which places
@@ -379,11 +380,11 @@ class SphericalGradient(ProjectedGradient):
         """
 
         if len(input_shape) < 3:
-            raise ValueError("Invalid input shape; input must have at least three axes")
+            raise ValueError("Invalid input shape; input must have at least three axes.")
         if axes is not None and len(axes) != 3:
-            raise ValueError("Invalid axes specified; exactly three axes must be specified")
+            raise ValueError("Invalid axes specified; exactly three axes must be specified.")
         if not azimuthal and not polar and not radial:
-            raise ValueError("At least one of azimuthal, polar, and radial must be True")
+            raise ValueError("At least one of azimuthal, polar, and radial must be True.")
 
         if axes is None:
             axes = (0, 1, 2)
