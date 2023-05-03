@@ -290,7 +290,9 @@ class DiffL1L2Norms(Functional):
 
         Evaluate the proximal operator of the difference of :math:`\ell_1`
         and :math:`\ell_2` norms, i.e. :math:`\alpha \left( \| \mb{x} \|_1 -
-        \beta \| \mb{x} \|_2 \right)` :cite:`lou-2018-fast`.
+        \beta \| \mb{x} \|_2 \right)` :cite:`lou-2018-fast`. Note that this
+        is not a proximal operator according to the strict definition since
+        the loss function is non-convex.
 
         Args:
             v: Input array :math:`\mb{v}`.
