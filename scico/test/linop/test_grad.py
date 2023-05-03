@@ -5,11 +5,10 @@ import numpy as np
 import jax
 
 import pytest
-from jaxlib.xla_extension import DeviceArray
 
 import scico.numpy as snp
 from scico.linop import CylindricalGradient, PolarGradient, SphericalGradient
-from scico.numpy import BlockArray
+from scico.numpy import Array, BlockArray
 from scico.random import randn
 
 
@@ -54,12 +53,12 @@ class TestPolarGradient:
         )
         Ax = A @ x
         if angular and radial:
-            assert type(Ax) is BlockArray
+            assert isinstance(Ax, BlockArray)
             assert len(Ax.shape) == 2
             assert Ax[0].shape == input_shape
             assert Ax[1].shape == input_shape
         else:
-            assert type(Ax) is DeviceArray
+            assert isinstance(Ax, Array)
             assert Ax.shape == input_shape
         assert Ax.dtype == input_dtype
 
@@ -126,12 +125,12 @@ class TestCylindricalGradient:
         Ax = A @ x
         Nc = sum([angular, radial, axial])
         if Nc > 1:
-            assert type(Ax) is BlockArray
+            assert isinstance(Ax, BlockArray)
             assert len(Ax) == Nc
             for n in range(Nc):
                 assert Ax[n].shape == input_shape
         else:
-            assert type(Ax) is DeviceArray
+            assert isinstance(Ax, Array)
             assert Ax.shape == input_shape
         assert Ax.dtype == input_dtype
 
@@ -199,12 +198,12 @@ class TestSphericalGradient:
         Ax = A @ x
         Nc = sum([azimuthal, polar, radial])
         if Nc > 1:
-            assert type(Ax) is BlockArray
+            assert isinstance(Ax, BlockArray)
             assert len(Ax) == Nc
             for n in range(Nc):
                 assert Ax[n].shape == input_shape
         else:
-            assert type(Ax) is DeviceArray
+            assert isinstance(Ax, Array)
             assert Ax.shape == input_shape
         assert Ax.dtype == input_dtype
 
