@@ -95,7 +95,7 @@ class ProjectedGradient(LinearOperator):
             self.axes = tuple(range(len(input_shape)))
         else:
             # Ensure no invalid axis indices specified.
-            if np.any(np.array(axes) >= len(input_shape)):
+            if snp.any(np.array(axes) >= len(input_shape)):
                 raise ValueError(
                     "Invalid axes specified; all elements of `axes` must be less than "
                     f"len(input_shape)={len(input_shape)}."
@@ -202,11 +202,11 @@ class PolarGradient(ProjectedGradient):
         if center is None:
             center = (snp.array(axes_shape) - 1) / 2
         end = snp.array(axes_shape) - center
-        g0, g1 = np.ogrid[-center[0] : end[0], -center[1] : end[1]]
+        g0, g1 = snp.ogrid[-center[0] : end[0], -center[1] : end[1]]
         theta = snp.arctan2(g0, g1)
         # Re-order theta axes in case indices in axes parameter are not in increasing order.
         axis_order = np.argsort(axes)
-        theta = np.transpose(theta, axis_order)
+        theta = snp.transpose(theta, axis_order)
         if len(input_shape) > 2:
             # Construct list of input axes that are not included in the gradient axes.
             single = tuple(set(range(len(input_shape))) - set(axes))
@@ -296,13 +296,13 @@ class CylindricalGradient(ProjectedGradient):
             center = (snp.array(axes_shape) - 1) / 2
             center = center.at[-1].set(0)
         end = snp.array(axes_shape) - center
-        g0, g1 = np.ogrid[-center[0] : end[0], -center[1] : end[1]]
+        g0, g1 = snp.ogrid[-center[0] : end[0], -center[1] : end[1]]
         g0 = g0[..., np.newaxis]
         g1 = g1[..., np.newaxis]
         theta = snp.arctan2(g0, g1)
         # Re-order theta axes in case indices in axes parameter are not in increasing order.
         axis_order = np.argsort(axes)
-        theta = np.transpose(theta, axis_order)
+        theta = snp.transpose(theta, axis_order)
         if len(input_shape) > 3:
             # Construct list of input axes that are not included in the gradient axes.
             single = tuple(set(range(len(input_shape))) - set(axes))
@@ -310,11 +310,11 @@ class CylindricalGradient(ProjectedGradient):
             theta = snp.expand_dims(theta, single)
         coord = []
         if angular:
-            coord.append(snp.blockarray([-snp.cos(theta), snp.sin(theta), np.array([0.0])]))
+            coord.append(snp.blockarray([-snp.cos(theta), snp.sin(theta), snp.array([0.0])]))
         if radial:
-            coord.append(snp.blockarray([snp.sin(theta), snp.cos(theta), np.array([0.0])]))
+            coord.append(snp.blockarray([snp.sin(theta), snp.cos(theta), snp.array([0.0])]))
         if axial:
-            coord.append(snp.blockarray([np.array([0.0]), np.array([0.0]), np.array([1.0])]))
+            coord.append(snp.blockarray([snp.array([0.0]), snp.array([0.0]), snp.array([1.0])]))
         super().__init__(
             input_shape=input_shape,
             input_dtype=input_dtype,
@@ -392,14 +392,14 @@ class SphericalGradient(ProjectedGradient):
         if center is None:
             center = (snp.array(axes_shape) - 1) / 2
         end = snp.array(axes_shape) - center
-        g0, g1, g2 = np.ogrid[-center[0] : end[0], -center[1] : end[1], -center[2] : end[2]]
+        g0, g1, g2 = snp.ogrid[-center[0] : end[0], -center[1] : end[1], -center[2] : end[2]]
         theta = snp.arctan2(g1, g0)
-        phi = snp.arctan2(np.sqrt(g0**2 + g1**2), g2)
+        phi = snp.arctan2(snp.sqrt(g0**2 + g1**2), g2)
         # Re-order theta and phi axes in case indices in axes parameter are not in
         # increasing order.
         axis_order = np.argsort(axes)
-        theta = np.transpose(theta, axis_order)
-        phi = np.transpose(phi, axis_order)
+        theta = snp.transpose(theta, axis_order)
+        phi = snp.transpose(phi, axis_order)
         if len(input_shape) > 3:
             # Construct list of input axes that are not included in the gradient axes.
             single = tuple(set(range(len(input_shape))) - set(axes))
@@ -408,7 +408,7 @@ class SphericalGradient(ProjectedGradient):
             phi = snp.expand_dims(phi, single)
         coord = []
         if azimuthal:
-            coord.append(snp.blockarray([snp.sin(theta), -snp.cos(theta), np.array([0.0])]))
+            coord.append(snp.blockarray([snp.sin(theta), -snp.cos(theta), snp.array([0.0])]))
         if polar:
             coord.append(
                 snp.blockarray(
