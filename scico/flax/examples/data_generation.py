@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022 by SCICO Developers
+# Copyright (C) 2022-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -38,7 +38,7 @@ if have_xdesign:
     from xdesign import Foam, SimpleMaterial, UnitCircle, discrete_phantom
 
 from scico.linop import CircularConvolve
-from scico.typing import Array
+from scico.numpy import Array
 
 try:
     import astra  # noqa: F401
@@ -185,9 +185,9 @@ def generate_ct_data(
     Returns:
        tuple: A tuple (img, sino, fbp) containing:
 
-           - **img** : (DeviceArray): Generated foam images.
-           - **sino** : (DeviceArray): Corresponding sinograms.
-           - **fbp** : (DeviceArray) Corresponding filtered back projections.
+           - **img** : (:class:`jax.Array`): Generated foam images.
+           - **sino** : (:class:`jax.Array`): Corresponding sinograms.
+           - **fbp** : (:class:`jax.Array`) Corresponding filtered back projections.
     """
     if not have_astra:
         raise RuntimeError("Package astra is required for use of this function.")

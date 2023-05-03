@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2022 by SCICO Developers
+# Copyright (C) 2020-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -19,9 +19,9 @@ import numpy as np
 from jax.scipy.signal import convolve
 
 import scico.linop
-from scico.numpy import BlockArray
+from scico.numpy import Array, BlockArray
 from scico.numpy.util import is_nested
-from scico.typing import DType, JaxArray, Shape
+from scico.typing import DType, Shape
 
 from ._operator import Operator
 
@@ -77,10 +77,10 @@ class BiConvolve(Operator):
 
         super().__init__(input_shape=input_shape, input_dtype=input_dtype, jit=jit)
 
-    def _eval(self, x: BlockArray) -> JaxArray:
+    def _eval(self, x: BlockArray) -> Array:
         return convolve(x[0], x[1], mode=self.mode)
 
-    def freeze(self, argnum: int, val: JaxArray) -> scico.linop.LinearOperator:
+    def freeze(self, argnum: int, val: Array) -> scico.linop.LinearOperator:
         """Freeze the `argnum` parameter.
 
         Return a new :class:`.LinearOperator` with block argument

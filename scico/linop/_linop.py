@@ -1,4 +1,4 @@
-# Copyright (C) 2020-2022 by SCICO Developers
+# Copyright (C) 2020-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -23,10 +23,10 @@ from jax.dtypes import result_type
 
 import scico.numpy as snp
 from scico._autograd import linear_adjoint
-from scico.numpy import BlockArray
+from scico.numpy import Array, BlockArray
 from scico.numpy.util import is_complex_dtype
 from scico.operator._operator import Operator, _wrap_mul_div_scalar
-from scico.typing import BlockShape, DType, JaxArray, Shape
+from scico.typing import BlockShape, DType, Shape
 
 
 def _wrap_add_sub(func: Callable, op: Callable) -> Callable:
@@ -245,13 +245,13 @@ class LinearOperator(Operator):
         )
 
     def __call__(
-        self, x: Union[LinearOperator, JaxArray, BlockArray]
-    ) -> Union[LinearOperator, JaxArray, BlockArray]:
+        self, x: Union[LinearOperator, Array, BlockArray]
+    ) -> Union[LinearOperator, Array, BlockArray]:
         r"""Evaluate this :class:`LinearOperator` at the point :math:`\mb{x}`.
 
         Args:
             x: Point at which to evaluate this :class:`LinearOperator`.
-               If `x` is a :class:`DeviceArray` or :class:`.BlockArray`,
+               If `x` is a :class:`jax.Array` or :class:`.BlockArray`,
                must have `shape == self.input_shape`. If `x` is a
                :class:`LinearOperator`, must have
                `x.output_shape == self.input_shape`.
@@ -262,8 +262,8 @@ class LinearOperator(Operator):
         return super().__call__(x)
 
     def adj(
-        self, y: Union[LinearOperator, JaxArray, BlockArray]
-    ) -> Union[LinearOperator, JaxArray, BlockArray]:
+        self, y: Union[LinearOperator, Array, BlockArray]
+    ) -> Union[LinearOperator, Array, BlockArray]:
         """Adjoint of this :class:`LinearOperator`.
 
         Compute the adjoint of this :class:`LinearOperator` applied to
@@ -271,7 +271,7 @@ class LinearOperator(Operator):
 
         Args:
             y: Point at which to compute adjoint. If `y` is
-                :class:`DeviceArray` or :class:`.BlockArray`, must have
+                :class:`jax.Array` or :class:`.BlockArray`, must have
                 `shape == self.output_shape`. If `y` is a
                 :class:`LinearOperator`, must have
                 `y.output_shape == self.output_shape`.
@@ -386,13 +386,13 @@ class LinearOperator(Operator):
         )
 
     def gram(
-        self, x: Union[LinearOperator, JaxArray, BlockArray]
-    ) -> Union[LinearOperator, JaxArray, BlockArray]:
+        self, x: Union[LinearOperator, Array, BlockArray]
+    ) -> Union[LinearOperator, Array, BlockArray]:
         """Compute `A.adj(A(x)).`
 
         Args:
             x: Point at which to evaluate the gram operator. If `x` is
-               a :class:`DeviceArray` or :class:`.BlockArray`, must have
+               a :class:`jax.Array` or :class:`.BlockArray`, must have
                `shape == self.input_shape`. If `x` is a
                :class:`LinearOperator`, must have
                `x.output_shape == self.input_shape`.

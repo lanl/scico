@@ -37,10 +37,9 @@ from xdesign import SiemensStar, discrete_phantom
 import scico.numpy as snp
 import scico.random
 from scico import functional, linop, loss, operator, plot
-from scico.numpy import BlockArray
+from scico.numpy import Array, BlockArray
 from scico.numpy.util import ensure_on_device
 from scico.optimize.pgm import AcceleratedPGM, RobustLineSearchStepSize
-from scico.typing import JaxArray
 from scico.util import device_info
 
 """
@@ -85,7 +84,7 @@ Define the dual of the total variation denoising problem.
 class DualTVLoss(loss.Loss):
     def __init__(
         self,
-        y: Union[JaxArray, BlockArray],
+        y: Union[Array, BlockArray],
         A: Optional[Union[Callable, operator.Operator]] = None,
         lmbda: float = 0.5,
     ):
@@ -94,7 +93,7 @@ class DualTVLoss(loss.Loss):
         super().__init__(y=y, A=A, scale=1.0)
         self.lmbda = lmbda
 
-    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+    def __call__(self, x: Union[Array, BlockArray]) -> float:
 
         xint = self.y - self.lmbda * self.A(x)
         return -1.0 * self.functional(xint - jnp.clip(xint, 0.0, 1.0)) + self.functional(xint)
@@ -112,10 +111,10 @@ class IsoProjector(functional.Functional):
     has_eval = True
     has_prox = True
 
-    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+    def __call__(self, x: Union[Array, BlockArray]) -> float:
         return 0.0
 
-    def prox(self, v: JaxArray, lam: float, **kwargs) -> JaxArray:
+    def prox(self, v: Array, lam: float, **kwargs) -> Array:
         norm_v_ptp = jnp.sqrt(jnp.sum(jnp.abs(v) ** 2, axis=0))
 
         x_out = v / jnp.maximum(jnp.ones(v.shape), norm_v_ptp)
@@ -165,10 +164,10 @@ class AnisoProjector(functional.Functional):
     has_eval = True
     has_prox = True
 
-    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+    def __call__(self, x: Union[Array, BlockArray]) -> float:
         return 0.0
 
-    def prox(self, v: JaxArray, lam: float, **kwargs) -> JaxArray:
+    def prox(self, v: Array, lam: float, **kwargs) -> Array:
 
         return v / jnp.maximum(jnp.ones(v.shape), jnp.abs(v))
 
@@ -194,6 +193,7 @@ solver = AcceleratedPGM(
 )
 
 # Run the solver.
+print()
 x = solver.solve()
 # Project to constraint set.
 x_aniso = jnp.clip(y - f.lmbda * f.A(x), 0.0, 1.0)
@@ -203,7 +203,7 @@ x_aniso = jnp.clip(y - f.lmbda * f.A(x), 0.0, 1.0)
 Compute the data fidelity.
 """
 df = hist_iso.Objective[-1]
-print(f"Data fidelity for isotropic TV was {df:.2e}")
+print(f"\nData fidelity for isotropic TV was {df:.2e}")
 hist = solver.itstat_object.history(transpose=True)
 df = hist.Objective[-1]
 print(f"Data fidelity for anisotropic TV was {df:.2e}")

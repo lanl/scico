@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2022 by SCICO Developers
+# Copyright (C) 2020-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -10,8 +10,7 @@
 from typing import Callable, Union
 
 from scico import numpy as snp
-from scico.numpy import BlockArray
-from scico.typing import JaxArray
+from scico.numpy import Array, BlockArray
 
 from ._functional import Functional
 
@@ -48,7 +47,7 @@ class SetDistance(Functional):
         self.proj = proj
         self.args = args
 
-    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+    def __call__(self, x: Union[Array, BlockArray]) -> float:
         r"""Compute the :math:`\ell_2` distance to the set.
 
         Compute the distance :math:`d(\mb{x})` between :math:`\mb{x}` and
@@ -64,8 +63,8 @@ class SetDistance(Functional):
         return snp.linalg.norm(x - y)
 
     def prox(
-        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
-    ) -> Union[JaxArray, BlockArray]:
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[Array, BlockArray]:
         r"""Proximal operator of the :math:`\ell_2` distance function.
 
         Compute the proximal operator of the :math:`\ell_2` distance
@@ -119,7 +118,7 @@ class SquaredSetDistance(Functional):
         self.proj = proj
         self.args = args
 
-    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+    def __call__(self, x: Union[Array, BlockArray]) -> float:
         r"""Compute the squared :math:`\ell_2` distance to the set.
 
         Compute the distance :math:`d(\mb{x})` between :math:`\mb{x}` and
@@ -135,8 +134,8 @@ class SquaredSetDistance(Functional):
         return 0.5 * snp.linalg.norm(x - y) ** 2
 
     def prox(
-        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
-    ) -> Union[JaxArray, BlockArray]:
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[Array, BlockArray]:
         r"""Proximal operator of the squared :math:`\ell_2` distance function.
 
         Compute the proximal operator of the squared :math:`\ell_2` distance

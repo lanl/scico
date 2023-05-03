@@ -22,7 +22,7 @@ import jax.experimental.host_callback
 
 import scico.numpy as snp
 from scico.loss import Loss, SquaredL2Loss
-from scico.typing import Array, JaxArray, Shape
+from scico.typing import Shape
 
 from ._diag import Diagonal, Identity
 from ._linop import LinearOperator
@@ -67,7 +67,7 @@ class TomographicProjector(LinearOperator):
     def __init__(
         self,
         input_shape: Shape,
-        angles: Array,
+        angles: snp.Array,
         num_channels: int,
         center_offset: float = 0.0,
         is_masked: bool = False,
@@ -184,8 +184,8 @@ class TomographicProjector(LinearOperator):
 
     @staticmethod
     def _proj(
-        x: JaxArray,
-        angles: JaxArray,
+        x: snp.Array,
+        angles: snp.Array,
         num_channels: int,
         center_offset: float = 0.0,
         roi_radius: Optional[float] = None,
@@ -194,7 +194,7 @@ class TomographicProjector(LinearOperator):
         magnification: Optional[float] = None,
         delta_channel: Optional[float] = None,
         delta_pixel: Optional[float] = None,
-    ) -> JaxArray:
+    ) -> snp.Array:
         return jax.device_put(
             svmbir.project(
                 np.array(x),
@@ -234,8 +234,8 @@ class TomographicProjector(LinearOperator):
 
     @staticmethod
     def _bproj(
-        y: JaxArray,
-        angles: JaxArray,
+        y: snp.Array,
+        angles: snp.Array,
         num_rows: int,
         num_cols: int,
         center_offset: Optional[float] = 0.0,
@@ -369,20 +369,22 @@ class SVMBIRExtendedLoss(Loss):
         else:
             raise TypeError(f"Parameter W must be None or a linop.Diagonal, got {type(W)}.")
 
-    def __call__(self, x: JaxArray) -> float:
+    def __call__(self, x: snp.Array) -> float:
 
         if self.positivity and snp.sum(x < 0) > 0:
             return snp.inf
         else:
             return self.scale * (self.W.diagonal * snp.abs(self.y - self.A(x)) ** 2).sum()
 
-    def prox(self, v: JaxArray, lam: float = 1, **kwargs) -> JaxArray:
+    def prox(self, v: snp.Array, lam: float = 1, **kwargs) -> snp.Array:
         v = v.reshape(self.A.svmbir_input_shape)
         y = self.y.reshape(self.A.svmbir_output_shape)
         weights = self.W.diagonal.reshape(self.A.svmbir_output_shape)
         sigma_p = snp.sqrt(lam)
         if "v0" in kwargs and kwargs["v0"] is not None:
-            v0: Union[float, Array] = np.reshape(np.array(kwargs["v0"]), self.A.svmbir_input_shape)
+            v0: Union[float, np.ndarray] = np.reshape(
+                np.array(kwargs["v0"]), self.A.svmbir_input_shape
+            )
         else:
             v0 = 0.0
 
@@ -456,7 +458,7 @@ class SVMBIRSquaredL2Loss(SVMBIRExtendedLoss, SquaredL2Loss):
             )
 
 
-def _unsqueeze(x: JaxArray, input_shape: Shape) -> JaxArray:
+def _unsqueeze(x: snp.Array, input_shape: Shape) -> snp.Array:
     """If x is 2D, make it 3D according to the SVMBIR convention."""
     if len(input_shape) == 2:
         x = x[snp.newaxis, :, :]

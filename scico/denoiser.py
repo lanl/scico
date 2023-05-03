@@ -35,10 +35,9 @@ else:
 import scico.numpy as snp
 from scico.data import _flax_data_path
 from scico.flax import DnCNNNet, FlaxMap, load_weights
-from scico.typing import JaxArray
 
 
-def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False, profile: Union[BM3DProfile, str] = "np"):
+def bm3d(x: snp.Array, sigma: float, is_rgb: bool = False, profile: Union[BM3DProfile, str] = "np"):
     r"""An interface to the BM3D denoiser :cite:`dabov-2008-image`.
 
     BM3D denoising is performed using the
@@ -66,12 +65,12 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False, profile: Union[BM3DPro
 
     if is_rgb is True:
 
-        def bm3d_eval(x: JaxArray, sigma: float):
+        def bm3d_eval(x: snp.Array, sigma: float):
             return tubm3d.bm3d_rgb(x, sigma, profile=profile)
 
     else:
 
-        def bm3d_eval(x: JaxArray, sigma: float):
+        def bm3d_eval(x: snp.Array, sigma: float):
             return tubm3d.bm3d(x, sigma, profile=profile)
 
     if snp.util.is_complex_dtype(x.dtype):
@@ -112,7 +111,7 @@ def bm3d(x: JaxArray, sigma: float, is_rgb: bool = False, profile: Union[BM3DPro
     return y
 
 
-def bm4d(x: JaxArray, sigma: float, profile: Union[BM4DProfile, str] = "np"):
+def bm4d(x: snp.Array, sigma: float, profile: Union[BM4DProfile, str] = "np"):
     r"""An interface to the BM4D denoiser :cite:`maggioni-2012-nonlocal`.
 
     BM4D denoising is performed using the
@@ -134,7 +133,7 @@ def bm4d(x: JaxArray, sigma: float, profile: Union[BM4DProfile, str] = "np"):
     if not have_bm4d:
         raise RuntimeError("Package bm4d is required for use of this function.")
 
-    def bm4d_eval(x: JaxArray, sigma: float):
+    def bm4d_eval(x: snp.Array, sigma: float):
         return tubm4d.bm4d(x, sigma, profile=profile)
 
     if snp.util.is_complex_dtype(x.dtype):
@@ -230,7 +229,7 @@ class DnCNN(FlaxMap):
         variables = load_weights(_flax_data_path("dncnn%s.npz" % variant))
         super().__init__(model, variables)
 
-    def __call__(self, x: JaxArray, sigma: Optional[float] = None) -> JaxArray:
+    def __call__(self, x: snp.Array, sigma: Optional[float] = None) -> snp.Array:
         r"""Apply DnCNN denoiser.
 
         Args:
