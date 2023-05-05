@@ -214,12 +214,12 @@ class ADMM(Optimizer):
             f(\mb{x}) + \sum_{i=1}^N g_i(\mb{z}_i) \;.
 
         Note that this form is cheaper to compute, but may have very poor
-        accuracy compare with the "true" objective function
+        accuracy compared with the "true" objective function
 
         .. math::
             f(\mb{x}) + \sum_{i=1}^N g_i(C_i \mb{x}) \;.
 
-        when primal residual is large.
+        when the primal residual is large.
 
         Args:
             x: Point at which to evaluate objective function. If ``None``,
