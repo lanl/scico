@@ -13,7 +13,7 @@ coding problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - \sum_k
   \mathbf{h}_k \ast \mathbf{x}_k \|_2^2 + \lambda \sum_k
-  \| \mathbf{x}_k \|_1  \;,$$
+  ( \| \mathbf{x}_k \|_1 - \| \mathbf{x}_k \|_2 ) \;,$$
 
 where the $\mathbf{h}$_k is a set of filters comprising the dictionary,
 the $\mathbf{x}$_k is a corrresponding set of coefficient maps, and

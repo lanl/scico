@@ -13,7 +13,7 @@ problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; \frac{1}{2} \Big\| \mathbf{y} -
   B \Big( \sum_k \mathbf{h}_k \ast \mathbf{x}_k \Big) \Big\|_2^2 +
-  \lambda \sum_k \| \mathbf{x}_k \|_1  \;,$$
+  \lambda \sum_k ( \| \mathbf{x}_k \|_1 - \| \mathbf{x}_k \|_2 ) \;,$$
 
 where the $\mathbf{h}$_k is a set of filters comprising the dictionary,
 the $\mathbf{x}$_k is a corrresponding set of coefficient maps,
@@ -24,9 +24,10 @@ convolution to be avoided. Following the mask decoupling approach
 as
 
   $$\mathrm{argmin}_{\mathbf{x}, \mathbf{z}_0, \mathbf{z}_1} \; (1/2) \|
-  \mathbf{y} - B \mb{z}_0 \|_2^2 + \lambda \sum_k \| \mathbf{z}_{1,k}
-  \|_1  \\ \;\; \text{s.t.} \;\; \mathbf{z}_0 = \sum_k \mathbf{h}_k \ast
-  \mathbf{x}_k \;\; \mathbf{z}_{1,k} = \mathbf{x}_k\;,$$.
+  \mathbf{y} - B \mb{z}_0 \|_2^2 + \lambda \sum_k ( \| \mathbf{z}_{1,k}
+  \|_1 - \| \mathbf{z}_{1,k} \|_2 ) \\ \;\; \text{s.t.} \;\;
+  \mathbf{z}_0 = \sum_k \mathbf{h}_k \ast \mathbf{x}_k \;\;
+  \mathbf{z}_{1,k} = \mathbf{x}_k\;,$$.
 
 The most computationally expensive step in the ADMM algorithm is solved
 using the frequency-domain approach proposed in
