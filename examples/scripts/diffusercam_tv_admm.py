@@ -19,7 +19,7 @@ The inverse problem can be written as
   \lambda_1 \sum_k \| \mathbf{x}_k \|_1  \;,$$
 
 where the $\mathbf{h}$_k are the components of the PSF stack, the
-$\mathbf{x}$_k are the corrresponding components of the reconstructed,
+$\mathbf{x}$_k are the corrresponding components of the reconstructed
 volume, $\mathbf{y}$ is the measured image, and $M$ is a cropping
 operator that allows the boundary artifacts resulting from circular
 convolution to be avoided. Following the mask decoupling approach
@@ -27,7 +27,7 @@ convolution to be avoided. Following the mask decoupling approach
 as
 
   $$\mathrm{argmin}_{\mathbf{x}, \mathbf{z}_0, \mathbf{z}_1,
-  \mathbf{z}_2} \; (1/2) \| \mathbf{y} - M \mathbf{z}_0 \|_2^2 +
+  \mathbf{z}_2} \; \frac{1}{2} \| \mathbf{y} - M \mathbf{z}_0 \|_2^2 +
   \lambda_0 \sum_k \| \mathbf{z}_{1,k} \|_{2,1} +
   \lambda_1 \sum_k \| \mathbf{z}_{2,k}
   \|_1  \\ \;\; \text{s.t.} \;\; \mathbf{z}_0 = \sum_k \mathbf{h}_k \ast
@@ -65,7 +65,7 @@ psf = psf[..., 1:-7]
 To avoid boundary artifacts, the measured image is padded by half the PSF
 width/height and then cropped within the data fidelity term. This padding
 is implicit in that the reconstruction volume is computed at the padded
-size, but the actual measured image is never explicitly padded since it's
+size, but the actual measured image is never explicitly padded since it is
 used at the original (unpadded) size within the data fidelity term due to
 the cropping operation. The PSF axis order is modified to put the stack
 axis at index 0, as required by components of the ADMM solver to be used.
