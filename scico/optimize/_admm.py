@@ -20,7 +20,13 @@ from scico.numpy import Array, BlockArray
 from scico.numpy.linalg import norm
 from scico.numpy.util import ensure_on_device
 
-from ._admmaux import GenericSubproblemSolver, LinearSubproblemSolver, SubproblemSolver
+from ._admmaux import (
+    FBlockCircularConvolveSolver,
+    G0BlockCircularConvolveSolver,
+    GenericSubproblemSolver,
+    LinearSubproblemSolver,
+    SubproblemSolver,
+)
 from ._common import Optimizer
 
 
@@ -141,6 +147,23 @@ class ADMM(Optimizer):
 
         super().__init__(**kwargs)
 
+    def _working_vars_finite(self) -> bool:
+        """Determine where ``NaN`` of ``Inf`` encountered in solve.
+
+        Return ``False`` if a ``NaN`` or ``Inf`` value is encountered in
+        a solver working variable.
+        """
+        for v in (
+            [
+                self.x,
+            ]
+            + self.z_list
+            + self.u_list
+        ):
+            if not snp.all(snp.isfinite(v)):
+                return False
+        return True
+
     def _objective_evaluatable(self):
         """Determine whether the objective function can be evaluated."""
         return (not self.f or self.f.has_eval) and all([_.has_eval for _ in self.g_list])
@@ -164,6 +187,13 @@ class ADMM(Optimizer):
             itstat_attrib.extend(
                 ["subproblem_solver.info['num_iter']", "subproblem_solver.info['rel_res']"]
             )
+        elif (
+            type(self.subproblem_solver)
+            in [FBlockCircularConvolveSolver, G0BlockCircularConvolveSolver]
+            and self.subproblem_solver.check_solve
+        ):
+            itstat_fields.update({"Slv Res": "%9.3e"})
+            itstat_attrib.extend(["subproblem_solver.accuracy"])
 
         return itstat_fields, itstat_attrib
 
@@ -183,6 +213,14 @@ class ADMM(Optimizer):
         .. math::
             f(\mb{x}) + \sum_{i=1}^N g_i(\mb{z}_i) \;.
 
+        Note that this form is cheaper to compute, but may have very poor
+        accuracy compared with the "true" objective function
+
+        .. math::
+            f(\mb{x}) + \sum_{i=1}^N g_i(C_i \mb{x}) \;.
+
+        when the primal residual is large.
+
         Args:
             x: Point at which to evaluate objective function. If ``None``,
                 the objective is  evaluated at the current iterate
@@ -192,7 +230,7 @@ class ADMM(Optimizer):
                 :code:`self.z_list`.
 
         Returns:
-            scalar: Value of the objective function.
+            Value of the objective function.
         """
         if (x is None) != (z_list is None):
             raise ValueError("Both or neither of x and z_list must be supplied.")
@@ -213,13 +251,13 @@ class ADMM(Optimizer):
         Compute the :math:`\ell_2` norm of the primal residual
 
         .. math::
-            \left(\sum_{i=1}^N \norm{C_i \mb{x} -
-            \mb{z}_i}_2^2\right)^{1/2} \;.
+            \left( \sum_{i=1}^N \rho_i \left\| C_i \mb{x} -
+            \mb{z}_i^{(k)} \right\|_2^2\right)^{1/2} \;.
 
         Args:
-            x: Point at which to evaluate primal residual.
-                If ``None``, the primal residual is evaluated at the
-                current iterate :code:`self.x`.
+            x: Point at which to evaluate primal residual. If ``None``,
+                the primal residual is evaluated at the current iterate
+                :code:`self.x`.
 
         Returns:
             Norm of primal residual.
@@ -227,10 +265,10 @@ class ADMM(Optimizer):
         if x is None:
             x = self.x
 
-        out = 0.0
-        for Ci, zi in zip(self.C_list, self.z_list):
-            out += norm(Ci(self.x) - zi) ** 2
-        return snp.sqrt(out)
+        sum = 0.0
+        for rhoi, Ci, zi in zip(self.rho_list, self.C_list, self.z_list):
+            sum += rhoi * norm(Ci(self.x) - zi) ** 2
+        return snp.sqrt(sum)
 
     def norm_dual_residual(self) -> float:
         r"""Compute the :math:`\ell_2` norm of the dual residual.
@@ -238,17 +276,17 @@ class ADMM(Optimizer):
         Compute the :math:`\ell_2` norm of the dual residual
 
         .. math::
-            \left(\sum_{i=1}^N \norm{\mb{z}^{(k)}_i -
-            \mb{z}^{(k-1)}_i}_2^2\right)^{1/2} \;.
+            \left\| \sum_{i=1}^N \rho_i C_i^T \left( \mb{z}^{(k)}_i -
+            \mb{z}^{(k-1)}_i \right) \right\|_2 \;.
 
         Returns:
-            Current norm of dual residual.
+            Norm of dual residual.
 
         """
-        out = 0.0
-        for zi, ziold, Ci in zip(self.z_list, self.z_list_old, self.C_list):
-            out += norm(Ci.adj(zi - ziold)) ** 2
-        return snp.sqrt(out)
+        sum = 0.0
+        for rhoi, zi, ziold, Ci in zip(self.rho_list, self.z_list, self.z_list_old, self.C_list):
+            sum += rhoi * Ci.adj(zi - ziold)
+        return norm(sum)
 
     def z_init(
         self, x0: Union[Array, BlockArray]

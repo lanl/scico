@@ -2,6 +2,8 @@ import numpy as np
 
 import jax
 
+import pytest
+
 import scico.numpy as snp
 from scico import functional, linop, loss, operator, random
 from scico.numpy import BlockArray
@@ -64,6 +66,21 @@ class TestMisc:
 
         x = pdhg_.solve(callback=callback)
         assert pdhg_.test_flag
+
+    def test_finite_check(self):
+        pdhg_ = PDHG(
+            f=self.f,
+            g=self.g,
+            C=self.C,
+            tau=self.τ,
+            sigma=self.σ,
+            maxiter=self.maxiter,
+            nanstop=True,
+        )
+        pdhg_.step()
+        pdhg_.x = pdhg_.x.at[0].set(np.nan)
+        with pytest.raises(ValueError):
+            pdhg_.solve()
 
 
 class TestBlockArray:

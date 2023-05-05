@@ -350,11 +350,11 @@ complex data that is often encountered in practice. A widely-used
 alternative framework for regularizing the solution of imaging inverse
 problems is *plug-and-play priors* (PPP)
 :cite:`venkatakrishnan-2013-plugandplay2` :cite:`sreehari-2016-plug`
-:cite:`kamilov-2022-plug`, which provides a mechanism for exploiting
-image denoisers such as BM3D :cite:`dabov-2008-image` as implicit
-priors. With the rise of deep learning methods, PPP provided one of
-the first frameworks for applying machine learning methods to inverse
-problems via the use of learned denoisers such as DnCNN
+:cite:`kamilov-2023-plugandplay`, which provides a mechanism for
+exploiting image denoisers such as BM3D :cite:`dabov-2008-image` as
+implicit priors. With the rise of deep learning methods, PPP provided
+one of the first frameworks for applying machine learning methods to
+inverse problems via the use of learned denoisers such as DnCNN
 :cite:`zhang-2017-dncnn`.
 
 SCICO supports PPP inverse problems solutions with both BM3D and DnCNN

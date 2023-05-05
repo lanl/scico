@@ -2,6 +2,8 @@ import numpy as np
 
 import jax
 
+import pytest
+
 import scico.numpy as snp
 from scico import functional, linop, loss, random
 from scico.numpy import BlockArray
@@ -64,6 +66,15 @@ class TestMisc:
 
         x = ladmm_.solve(callback=callback)
         assert ladmm_.test_flag
+
+    def test_finite_check(self):
+        ladmm_ = LinearizedADMM(
+            f=self.f, g=self.g, C=self.C, mu=self.μ, nu=self.ν, maxiter=self.maxiter, nanstop=True
+        )
+        ladmm_.step()
+        ladmm_.x = ladmm_.x.at[0].set(np.nan)
+        with pytest.raises(ValueError):
+            ladmm_.solve()
 
 
 class TestBlockArray:
