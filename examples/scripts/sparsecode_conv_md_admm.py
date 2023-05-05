@@ -41,7 +41,7 @@ import jax
 import scico.numpy as snp
 from scico import plot
 from scico.examples import create_conv_sparse_phantom
-from scico.functional import DiffL1L2Norms, ZeroFunctional
+from scico.functional import L1MinusL2Norm, ZeroFunctional
 from scico.linop import CircularConvolve, Crop, Identity, Sum
 from scico.loss import SquaredL2Loss
 from scico.optimize.admm import ADMM, G0BlockCircularConvolveSolver
@@ -112,7 +112,7 @@ performance than the $\ell_1$ norm in this type of problem
 """
 f = ZeroFunctional()
 g0 = SquaredL2Loss(y=y, A=B)
-g1 = λ * DiffL1L2Norms()
+g1 = λ * L1MinusL2Norm()
 C0 = A
 C1 = Identity(input_shape=x0p.shape)
 

@@ -261,7 +261,7 @@ class L21Norm(Functional):
         return new_length * direction
 
 
-class DiffL1L2Norms(Functional):
+class L1MinusL2Norm(Functional):
     r"""Difference of :math:`\ell_1` and :math:`\ell_2` norms.
 
     Difference of :math:`\ell_1` and :math:`\ell_2` norms

@@ -19,7 +19,7 @@ from ._norm import (
     L2Norm,
     L21Norm,
     NuclearNorm,
-    DiffL1L2Norms,
+    L1MinusL2Norm,
 )
 from ._indicator import NonNegativeIndicator, L2BallIndicator
 from ._denoiser import BM3D, BM4D, DnCNN
@@ -37,7 +37,7 @@ __all__ = [
     "SquaredL2Norm",
     "L2Norm",
     "L21Norm",
-    "DiffL1L2Norms",
+    "L1MinusL2Norm",
     "NonNegativeIndicator",
     "NuclearNorm",
     "L2BallIndicator",
