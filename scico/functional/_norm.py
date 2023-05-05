@@ -261,6 +261,72 @@ class L21Norm(Functional):
         return new_length * direction
 
 
+class L1MinusL2Norm(Functional):
+    r"""Difference of :math:`\ell_1` and :math:`\ell_2` norms.
+
+    Difference of :math:`\ell_1` and :math:`\ell_2` norms
+
+    .. math::
+        \norm{\mb{x}}_1 - \beta * \norm{\mb{x}}_2
+    """
+
+    has_eval = True
+    has_prox = True
+
+    def __init__(self, beta: float = 1.0):
+        r"""
+        Args:
+            beta: Parameter :math:`\beta` in the norm definition.
+        """
+        self.beta = beta
+
+    def __call__(self, x: Union[Array, BlockArray]) -> float:
+        return snp.sum(snp.abs(x)) - self.beta * norm(x)
+
+    def prox(
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[Array, BlockArray]:
+        r"""Proximal operator of difference of :math:`\ell_1` and :math:`\ell_2` norms
+
+        Evaluate the proximal operator of the difference of :math:`\ell_1`
+        and :math:`\ell_2` norms, i.e. :math:`\alpha \left( \| \mb{x} \|_1 -
+        \beta \| \mb{x} \|_2 \right)` :cite:`lou-2018-fast`. Note that this
+        is not a proximal operator according to the strict definition since
+        the loss function is non-convex.
+
+        Args:
+            v: Input array :math:`\mb{v}`.
+            lam: Proximal parameter :math:`\lambda`.
+            kwargs: Additional arguments that may be used by derived
+                classes.
+        """
+        alpha = lam
+        beta = self.beta
+        va = snp.abs(v)
+        vamx = snp.max(va)
+        if snp.util.is_complex_dtype(v.dtype):
+            vs = snp.exp(1j * snp.angle(v))
+        else:
+            vs = snp.sign(v)
+        if vamx > 0.0:
+            if vamx > alpha:
+                u = snp.maximum(va - alpha, 0.0) * vs
+                l2u = norm(u)
+                u *= (l2u + alpha * beta) / l2u
+            else:
+                u = snp.zeros(v.shape, dtype=v.dtype)
+                if vamx >= (1.0 - beta) * alpha:
+                    idx = va.ravel().argmax()
+                    u = (
+                        u.ravel()
+                        .at[idx]
+                        .set((va.ravel()[idx] + (beta - 1.0) * alpha) * vs.ravel()[idx])
+                    ).reshape(v.shape)
+        else:
+            u = snp.zeros(v.shape, dtype=v.dtype)
+        return u
+
+
 class HuberNorm(Functional):
     r"""Huber norm.
 

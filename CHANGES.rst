@@ -11,6 +11,8 @@ Version 0.0.4   (unreleased)
 • New methods and a function for computing Jacobian-vector products for `Operator`
   objects.
 • New proximal ADMM solvers.
+• New ADMM subproblem solvers for problems involving a sum-of-convolutions
+  operator.
 • Extend support for other ML models including UNet, ODP and MoDL.
 • Add functionality for training Flax-based ML models and for data generation.
 • Enable diagnostics for ML training loops.

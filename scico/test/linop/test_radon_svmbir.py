@@ -311,6 +311,8 @@ def test_prox_cg(
 @pytest.mark.parametrize(
     "Nx, Ny, num_angles, num_channels, dist_source_detector, magnification", (SMALL_INPUT,)
 )
+@pytest.mark.parametrize("delta_channel", (None, 0.5))
+@pytest.mark.parametrize("delta_pixel", (None, 0.5))
 @pytest.mark.parametrize("is_3d", (True, False))
 @pytest.mark.parametrize("weight_type", ("transmission", "unweighted"))
 @pytest.mark.parametrize("center_offset", SMALL_INPUT_OFFSET_RANGE)
@@ -330,6 +332,8 @@ def test_approx_prox(
     geometry,
     dist_source_detector,
     magnification,
+    delta_channel,
+    delta_pixel,
 ):
     im = make_im(Nx, Ny, is_3d)
     A = make_A(
@@ -341,6 +345,8 @@ def test_approx_prox(
         geometry=geometry,
         dist_source_detector=dist_source_detector,
         magnification=magnification,
+        delta_channel=delta_channel,
+        delta_pixel=delta_pixel,
     )
 
     y = A @ im

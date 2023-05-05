@@ -88,6 +88,14 @@ class PGM(Optimizer):
 
         super().__init__(**kwargs)
 
+    def _working_vars_finite(self) -> bool:
+        """Determine where ``NaN`` of ``Inf`` encountered in solve.
+
+        Return ``False`` if a ``NaN`` or ``Inf`` value is encountered in
+        a solver working variable.
+        """
+        return snp.all(snp.isfinite(self.x))
+
     def _objective_evaluatable(self):
         """Determine whether the objective function can be evaluated."""
         return self.f.has_eval and self.g.has_eval
@@ -201,3 +209,11 @@ class AcceleratedPGM(PGM):
             t_old = self.t
             self.t = 0.5 * (1 + snp.sqrt(1 + 4 * t_old**2))
             self.v = self.x + ((t_old - 1) / self.t) * (self.x - x_old)
+
+    def _working_vars_finite(self) -> bool:
+        """Determine where ``NaN`` of ``Inf`` encountered in solve.
+
+        Return ``False`` if a ``NaN`` or ``Inf`` value is encountered in
+        a solver working variable.
+        """
+        return snp.all(snp.isfinite(self.x)) and snp.all(snp.isfinite(self.v))

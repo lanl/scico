@@ -77,9 +77,9 @@ def psnr(
     Args:
         reference: Reference image.
         comparison: Comparison image.
-        signal_range: Signal range, either the value to use (e.g. 255
-            for 8 bit samples) or None, in which case the actual range
-            of the reference signal is used.
+        signal_range: Signal range, either the value to use (e.g. 255 for
+            8 bit samples) or ``None``, in which case the actual range of
+            the reference signal is used.
 
     Returns:
         PSNR of `comparison` with respect to `reference`.
@@ -104,8 +104,8 @@ def isnr(
 
     Args:
         reference: Reference image.
-        degraded: Degraded image.
-        restored: Restored image.
+        degraded: Degraded/observed image.
+        restored: Restored/estimated image.
 
     Returns:
         ISNR of `restored` with respect to `reference` and `degraded`.
@@ -129,7 +129,7 @@ def bsnr(blurry: Union[Array, BlockArray], noisy: Union[Array, BlockArray]) -> f
         noisy: Blurred image with additive noise.
 
     Returns:
-        BSNR of `noisy` with respect to `blurry` and `degraded`.
+        BSNR of `noisy` with respect to `blurry`.
     """
 
     blrvar = snp.var(blurry)

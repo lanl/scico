@@ -22,7 +22,7 @@ class NonNegativeIndicator(Functional):
     r"""Indicator function for non-negative orthant.
 
     Returns 0 if all elements of input array-like are non-negative, and
-    inf otherwise
+    `inf` otherwise
 
     .. math::
         I(\mb{x}) = \begin{cases}
