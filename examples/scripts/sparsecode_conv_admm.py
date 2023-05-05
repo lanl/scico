@@ -11,8 +11,8 @@ Convolutional Sparse Coding (ADMM)
 This example demonstrates the solution of a simple convolutional sparse
 coding problem
 
-  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - \sum_k
-  \mathbf{h}_k \ast \mathbf{x}_k \|_2^2 + \lambda \sum_k
+  $$\mathrm{argmin}_{\mathbf{x}} \; \frac{1}{2} \Big\| \mathbf{y} -
+  \sum_k \mathbf{h}_k \ast \mathbf{x}_k \Big\|_2^2 + \lambda \sum_k
   ( \| \mathbf{x}_k \|_1 - \| \mathbf{x}_k \|_2 ) \;,$$
 
 where the $\mathbf{h}$_k is a set of filters comprising the dictionary,
