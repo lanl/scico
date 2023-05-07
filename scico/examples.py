@@ -360,7 +360,7 @@ def create_cone(img_shape: Shape, center: Optional[List[float]] = None) -> snp.A
     return dist_map
 
 
-def gaussian(shape: Shape, sigma: Optional[snp.Array] = None) -> snp.Array:
+def gaussian(shape: Shape, sigma: Optional[np.ndarray] = None) -> np.ndarray:
     r"""Construct a multivariate Gaussian distribution function.
 
     Construct a zero-mean multivariate Gaussian distribution function
@@ -383,7 +383,7 @@ def gaussian(shape: Shape, sigma: Optional[snp.Array] = None) -> snp.Array:
     """
 
     if sigma is None:
-        sigma = np.identity(len(shape))
+        sigma = np.diag(np.array(shape) / 7) ** 2
     N = len(shape)
     try:
         sigmainv = np.linalg.inv(sigma)
