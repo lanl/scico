@@ -14,6 +14,7 @@ from scico.examples import (
     create_conv_sparse_phantom,
     downsample_volume,
     epfl_deconv_data,
+    gaussian,
     phase_diff,
     rgb2gray,
     spnoise,
@@ -78,6 +79,15 @@ def test_tile_volume_slices():
     v = np.ones((16, 16, 16, 3))
     tvs = tile_volume_slices(v)
     assert tvs.ndim == 3 and tvs.shape[-1] == 3
+
+
+def test_gaussian():
+    g0 = gaussian((5, 5))
+    assert g0.shape == (5, 5)
+    g1 = gaussian((5, 5), sigma=np.array([[3, 0], [0, 2]]))
+    assert np.sum(g1 / g1.max()) > np.sum(g0 / g0.max())
+    with pytest.raises(ValueError):
+        g2 = gaussian((5, 5), sigma=np.array([[2, 2], [2, 2]]))
 
 
 def test_create_circular_phantom():

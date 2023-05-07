@@ -134,6 +134,8 @@ mathjax3_config = {
             "argmin": [r"\mathop{\mathrm{argmin}}"],
             "sign": [r"\mathop{\mathrm{sign}}"],
             "prox": [r"\mathrm{prox}"],
+            "det": [r"\mathrm{det}"],
+            "exp": [r"\mathrm{exp}"],
             "loss": [r"\mathop{\mathrm{loss}}"],
             "kp": [r"k_{\|}"],
             "rp": [r"r_{\|}"],
