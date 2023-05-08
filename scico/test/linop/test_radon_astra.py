@@ -1,3 +1,5 @@
+import numpy as np
+
 import jax
 
 import pytest
@@ -121,6 +123,7 @@ def test_adjoint_typical_input(testobj):
 
 
 def test_jit_in_DiagonalStack():
+    """See https://github.com/lanl/scico/issues/331"""
     N = 10
     H = DiagonalStack([TomographicProjector((N, N), 1.0, N, snp.linspace(0, snp.pi, N))])
     H.T @ snp.zeros(H.output_shape, dtype=snp.float32)
