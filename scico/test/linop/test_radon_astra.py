@@ -1,10 +1,10 @@
-import numpy as np
-
 import jax
 
 import pytest
 
 import scico
+import scico.numpy as snp
+from scico.linop import DiagonalStack
 from scico.test.linop.test_linop import adjoint_test
 from scico.test.linop.test_radon_svmbir import make_im
 
@@ -118,3 +118,9 @@ def test_adjoint_typical_input(testobj):
     x = make_im(A.input_shape[0], A.input_shape[1], is_3d=False)
 
     adjoint_test(A, x=x, rtol=get_tol())
+
+
+def test_jit_in_DiagonalStack():
+    N = 10
+    H = DiagonalStack([TomographicProjector((N, N), 1.0, N, snp.linspace(0, snp.pi, N))])
+    H.T @ snp.zeros(H.output_shape, dtype=snp.float32)
