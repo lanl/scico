@@ -154,17 +154,23 @@ class LinearOperator(Operator):
             self.jit()
 
     def _set_adjoint(self):
-        """Automatically create adjoint and gram methods."""
+        """Automatically create adjoint method."""
         adj_fun = linear_adjoint(self.__call__, snp.zeros(self.input_shape, dtype=self.input_dtype))
         self._adj = lambda x: adj_fun(x)[0]
+
+    def _set_gram(self):
+        """Automatically create gram method."""
         self._gram = lambda x: self.adj(self(x))
 
     def jit(self):
         """Replace the private functions :meth:`._eval`, :meth:`_adj`, :meth:`._gram`
         with jitted versions.
         """
-        if (self._adj is None) or (self._gram is None):
+        if self._adj is None:
             self._set_adjoint()
+
+        if self._gram is None:
+            self._set_gram()
 
         self._eval = jax.jit(self._eval)
         self._adj = jax.jit(self._adj)
@@ -374,7 +380,7 @@ class LinearOperator(Operator):
         `G(x) = A.adj(A(x)))`.
         """
         if self._gram is None:
-            self._set_adjoint()
+            self._set_gram()
 
         return LinearOperator(
             input_shape=self.input_shape,
@@ -401,7 +407,7 @@ class LinearOperator(Operator):
             Result of `A.adj(A(x))`.
         """
         if self._gram is None:
-            self._set_adjoint()
+            self._set_gram()
         assert self._gram is not None
         return self._gram(x)
 
