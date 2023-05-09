@@ -21,8 +21,23 @@ import jax.numpy as jnp
 PRNGKey = jnp.ndarray
 """A key for jax random number generators (see :mod:`jax.random`)."""
 
-DType = Any
-"""A numpy or jax dtype."""
+DType = Union[
+    jnp.int8,
+    jnp.int16,
+    jnp.int32,
+    jnp.int64,
+    jnp.uint8,
+    jnp.uint16,
+    jnp.uint32,
+    jnp.uint64,
+    jnp.float16,
+    jnp.float32,
+    jnp.float64,
+    jnp.complex64,
+    jnp.complex128,
+    bool,
+]
+"""A jax dtype."""
 
 Shape = Tuple[int, ...]
 """A shape of a numpy or jax array."""
