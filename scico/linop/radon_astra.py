@@ -86,10 +86,10 @@ class TomographicProjector(LinearOperator):
         # Set up all the ASTRA config
         self.detector_spacing: float = detector_spacing
         self.det_count: int = det_count
-        self.angles: np.ndarray = angles
+        self.angles: np.ndarray = np.array(angles)
 
         self.proj_geom: dict = astra.create_proj_geom(
-            "parallel", detector_spacing, det_count, angles
+            "parallel", detector_spacing, det_count, self.angles
         )
         self.proj_id: int
         self.input_shape: tuple = input_shape
