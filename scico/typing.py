@@ -12,16 +12,19 @@ from typing import Any, Tuple, Union
 try:
     # available in python 3.10
     from types import EllipsisType  # type: ignore
+    from typing import TypeAlias  # type: ignore
 except ImportError:
-    EllipsisType = Any  # type: ignore
+    from typing_extensions import TypeAlias  # type: ignore
+
+    EllipsisType: TypeAlias = Any  # type: ignore
 
 
 import jax.numpy as jnp
 
-PRNGKey = jnp.ndarray
+PRNGKey: TypeAlias = jnp.ndarray
 """A key for jax random number generators (see :mod:`jax.random`)."""
 
-DType = Union[
+DType: TypeAlias = Union[
     jnp.int8,
     jnp.int16,
     jnp.int32,
@@ -39,18 +42,18 @@ DType = Union[
 ]
 """A jax dtype."""
 
-Shape = Tuple[int, ...]
+Shape: TypeAlias = Tuple[int, ...]
 """A shape of a numpy or jax array."""
 
-BlockShape = Tuple[Tuple[int, ...], ...]
+BlockShape: TypeAlias = Tuple[Tuple[int, ...], ...]
 """A shape of a :class:`.BlockArray`."""
 
-Axes = Union[int, Tuple[int, ...]]
+Axes: TypeAlias = Union[int, Tuple[int, ...]]
 """Specification of one or more array axes."""
 
-AxisIndex = Union[slice, EllipsisType, int]
+AxisIndex: TypeAlias = Union[slice, EllipsisType, int]
 """An entity suitable for indexing/slicing of a single array axis; either
 a slice object, Ellipsis, or int."""
 
-ArrayIndex = Union[AxisIndex, Tuple[AxisIndex, ...]]
+ArrayIndex: TypeAlias = Union[AxisIndex, Tuple[AxisIndex, ...]]
 """An entity suitable for indexing/slicing of multi-dimentional arrays."""
