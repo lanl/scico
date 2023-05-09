@@ -87,7 +87,7 @@ class FiniteDifference(VerticalStack):
         if axes is None:
             axes_list = tuple(range(len(input_shape)))
         elif isinstance(axes, (list, tuple)):
-            axes_list = axes
+            axes_list = axes  # type: ignore
         else:
             axes_list = (axes,)
         self.axes = parse_axes(axes_list, input_shape)
