@@ -231,7 +231,7 @@ def preprocess_images(
             size in each image.
         stride: Stride between patch origins (indexed from left-top
             corner). If int, the same stride is used in h and w.
-        dtype: type of array. Default: ``np.float32``.
+        dtype: dtype of array. Default: :attr:`~numpy.float32`.
 
     Returns:
         Preprocessed nd-array.
@@ -475,7 +475,7 @@ def build_blur_kernel(
     Args:
         kernel_size: Size of the blur kernel.
         blur_sigma: Standard deviation of the blur kernel.
-        dtype: Output data type. Default: ``np.float32``.
+        dtype: Output dtype. Default: :attr:`~numpy.float32`.
     """
     kernel = 1.0
     meshgrids = np.meshgrid(*[np.arange(size, dtype=dtype) for size in kernel_size])
@@ -512,7 +512,7 @@ class PaddedCircularConvolve(LinearOperator):
             channels: Number of channels in image to blur.
             kernel_size: Size of the blur kernel.
             blur_sigma: Standard deviation of the blur kernel.
-            dtype: Output data type. Default: ``np.float32``.
+            dtype: Output dtype. Default: :attr:`~numpy.float32`.
         """
         if isinstance(output_size, int):
             output_size = (output_size, output_size)
