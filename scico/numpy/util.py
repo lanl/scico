@@ -27,22 +27,23 @@ from ._blockarray import BlockArray
 def ensure_on_device(
     *arrays: Union[np.ndarray, snp.Array, BlockArray]
 ) -> Union[snp.Array, BlockArray]:
-    """Cast ndarrays to jax arrays.
+    """Cast numpy arrays to jax arrays.
 
-    Cast ndarrays to jax arrays and leave jax arrays, BlockArrays,
-    as is. This is intended to be used when initializing optimizers and
-    functionals so that all arrays are either jax arrays or BlockArrays.
+    Cast numpy arrays to jax arrays and leave jax arrays and BlockArrays,
+    as they are. This is intended to be used when initializing optimizers
+    and functionals so that all arrays are either jax arrays or
+    BlockArrays.
 
     Args:
-        *arrays: One or more input arrays (ndarray, jax array, or
-            BlockArray).
+        *arrays: One or more input arrays (numpy array, jax array, or
+            :class:`BlockArray`).
 
     Returns:
         Array or arrays, modified where appropriate.
 
     Raises:
         TypeError: If the arrays contain anything that is neither
-           ndarray, jax array, nor BlockArray.
+           numpy array, jax array, nor BlockArray.
     """
     arrays = list(arrays)
 
@@ -50,9 +51,9 @@ def ensure_on_device(
 
         if isinstance(array, np.ndarray):
             warnings.warn(
-                f"Argument {i+1} of {len(arrays)} is a numpyy ndarray. "
+                f"Argument {i+1} of {len(arrays)} is a numpy array. "
                 "Will cast it to a jax array. "
-                f"To suppress this warning cast all numpy ndarrays to jax arrays.",
+                f"To suppress this warning cast all numpy arrays to jax arrays.",
                 stacklevel=2,
             )
 
@@ -185,10 +186,13 @@ def no_nan_divide(
 
 
 def shape_to_size(shape: Union[Shape, BlockShape]) -> int:
-    r"""Compute the size corresponding to a (possibly nested) shape.
+    r"""Compute array size corresponding to a specified shape.
+
+    Compute array size corresponding to a specified shape, which may be
+    nested, i.e. corresponding to a :class:`.BlockArray`.
 
     Args:
-        shape: A shape tuple, possibly nested.
+        shape: A shape tuple.
 
     Returns:
         The number of elements in an array or :class:`.BlockArray` with
