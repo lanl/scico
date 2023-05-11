@@ -36,7 +36,7 @@ def ensure_on_device(
 
     Args:
         *arrays: One or more input arrays (numpy array, jax array, or
-            :class:`BlockArray`).
+            BlockArray).
 
     Returns:
         Array or arrays, modified where appropriate.
