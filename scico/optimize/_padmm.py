@@ -18,10 +18,10 @@ from scico import cvjp, jvp
 from scico.function import Function
 from scico.functional import Functional
 from scico.linop import Identity, LinearOperator, operator_norm
-from scico.numpy import BlockArray
+from scico.numpy import Array, BlockArray
 from scico.numpy.linalg import norm
 from scico.numpy.util import ensure_on_device
-from scico.typing import BlockShape, DType, JaxArray, PRNGKey, Shape
+from scico.typing import BlockShape, DType, PRNGKey, Shape
 
 from ._common import Optimizer
 
@@ -62,9 +62,9 @@ class ProximalADMMBase(Optimizer):
         xdtype: DType,
         zdtype: DType,
         udtype: DType,
-        x0: Optional[Union[JaxArray, BlockArray]] = None,
-        z0: Optional[Union[JaxArray, BlockArray]] = None,
-        u0: Optional[Union[JaxArray, BlockArray]] = None,
+        x0: Optional[Union[Array, BlockArray]] = None,
+        z0: Optional[Union[Array, BlockArray]] = None,
+        u0: Optional[Union[Array, BlockArray]] = None,
         fast_dual_residual: bool = True,
         **kwargs,
     ):
@@ -116,6 +116,18 @@ class ProximalADMMBase(Optimizer):
 
         super().__init__(**kwargs)
 
+    def _working_vars_finite(self) -> bool:
+        """Determine where ``NaN`` of ``Inf`` encountered in solve.
+
+        Return ``False`` if a ``NaN`` or ``Inf`` value is encountered in
+        a solver working variable.
+        """
+        return (
+            snp.all(snp.isfinite(self.x))
+            and snp.all(snp.isfinite(self.z))
+            and snp.all(snp.isfinite(self.u))
+        )
+
     def _objective_evaluatable(self):
         """Determine whether the objective function can be evaluated."""
         return self.f.has_eval and self.g.has_eval
@@ -132,8 +144,8 @@ class ProximalADMMBase(Optimizer):
 
     def objective(
         self,
-        x: Optional[Union[JaxArray, BlockArray]] = None,
-        z: Optional[List[Union[JaxArray, BlockArray]]] = None,
+        x: Optional[Union[Array, BlockArray]] = None,
+        z: Optional[List[Union[Array, BlockArray]]] = None,
     ) -> float:
         r"""Evaluate the objective function.
 
@@ -215,10 +227,10 @@ class ProximalADMM(ProximalADMMBase):
         mu: float,
         nu: float,
         B: Optional[LinearOperator] = None,
-        c: Optional[Union[float, JaxArray, BlockArray]] = None,
-        x0: Optional[Union[JaxArray, BlockArray]] = None,
-        z0: Optional[Union[JaxArray, BlockArray]] = None,
-        u0: Optional[Union[JaxArray, BlockArray]] = None,
+        c: Optional[Union[float, Array, BlockArray]] = None,
+        x0: Optional[Union[Array, BlockArray]] = None,
+        z0: Optional[Union[Array, BlockArray]] = None,
+        u0: Optional[Union[Array, BlockArray]] = None,
         fast_dual_residual: bool = True,
         **kwargs,
     ):
@@ -277,8 +289,8 @@ class ProximalADMM(ProximalADMMBase):
 
     def norm_primal_residual(
         self,
-        x: Optional[Union[JaxArray, BlockArray]] = None,
-        z: Optional[List[Union[JaxArray, BlockArray]]] = None,
+        x: Optional[Union[Array, BlockArray]] = None,
+        z: Optional[List[Union[Array, BlockArray]]] = None,
     ) -> float:
         r"""Compute the :math:`\ell_2` norm of the primal residual.
 
@@ -445,9 +457,9 @@ class NonLinearPADMM(ProximalADMMBase):
         rho: float,
         mu: float,
         nu: float,
-        x0: Optional[Union[JaxArray, BlockArray]] = None,
-        z0: Optional[Union[JaxArray, BlockArray]] = None,
-        u0: Optional[Union[JaxArray, BlockArray]] = None,
+        x0: Optional[Union[Array, BlockArray]] = None,
+        z0: Optional[Union[Array, BlockArray]] = None,
+        u0: Optional[Union[Array, BlockArray]] = None,
         fast_dual_residual: bool = True,
         **kwargs,
     ):
@@ -495,8 +507,8 @@ class NonLinearPADMM(ProximalADMMBase):
 
     def norm_primal_residual(
         self,
-        x: Optional[Union[JaxArray, BlockArray]] = None,
-        z: Optional[List[Union[JaxArray, BlockArray]]] = None,
+        x: Optional[Union[Array, BlockArray]] = None,
+        z: Optional[List[Union[Array, BlockArray]]] = None,
     ) -> float:
         r"""Compute the :math:`\ell_2` norm of the primal residual.
 
@@ -576,8 +588,8 @@ class NonLinearPADMM(ProximalADMMBase):
     @staticmethod
     def estimate_parameters(
         H: Function,
-        x: Optional[Union[JaxArray, BlockArray]] = None,
-        z: Optional[Union[JaxArray, BlockArray]] = None,
+        x: Optional[Union[Array, BlockArray]] = None,
+        z: Optional[Union[Array, BlockArray]] = None,
         factor: Optional[float] = 1.01,
         maxiter: int = 100,
         key: Optional[PRNGKey] = None,

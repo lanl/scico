@@ -5,12 +5,13 @@
 # with the package.
 
 r"""
-TV-Regularized Abel Inversion Tuning Demo
-=========================================
+Parameter Tuning for TV-Regularized Abel Inversion
+==================================================
 
 This example demonstrates the use of
 [scico.ray.tune](../_autosummary/scico.ray.tune.rst) to tune
-parameters for the companion [example script](ct_abel_tv_admm.rst).
+parameters for the companion [example script](ct_abel_tv_admm.rst). The
+`ray.tune` class API is used in this example.
 
 This script is hard-coded to run on CPU only to avoid the large number of
 warnings that are emitted when GPU resources are requested but not available,
@@ -35,7 +36,7 @@ import numpy as np
 
 import jax
 
-import scico.ray as ray
+import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot
 from scico.examples import create_circular_phantom
 from scico.linop.abel import AbelProjector
@@ -45,7 +46,7 @@ from scico.ray import tune
 """
 Create a ground truth image.
 """
-N = 256  # phantom size
+N = 256  # image size
 x_gt = create_circular_phantom((N, N), [0.4 * N, 0.2 * N, 0.1 * N], [1, 0, 0.5])
 
 
@@ -55,46 +56,80 @@ Set up the forward operator and create a test measurement.
 A = AbelProjector(x_gt.shape)
 y = A @ x_gt
 np.random.seed(12345)
-y = y + np.random.normal(size=y.shape)
-ATy = A.T @ y
-
-"""
-Put main arrays into ray object store.
-"""
-ray_x_gt, ray_y = ray.put(np.array(x_gt)), ray.put(np.array(y))
+y = y + np.random.normal(size=y.shape).astype(np.float32)
 
 
 """
-Define performance evaluation function.
+Compute inverse Abel transform solution for use as initial solution.
+"""
+x_inv = A.inverse(y)
+x0 = snp.clip(x_inv, 0.0, 1.0)
+
+
+"""
+Define performance evaluation class.
 """
 
 
-def eval_params(config, reporter):
-    # Extract solver parameters from config dict.
-    λ, ρ = config["lambda"], config["rho"]
-    # Get main arrays from ray object store.
-    x_gt, y = ray.get([ray_x_gt, ray_y])
-    # Put main arrays on jax device.
-    x_gt, y = jax.device_put([x_gt, y])
-    # Set up problem to be solved.
-    A = AbelProjector(x_gt.shape)
-    f = loss.SquaredL2Loss(y=y, A=A)
-    g = λ * functional.L1Norm()
-    C = linop.FiniteDifference(input_shape=x_gt.shape)
-    # Define solver.
-    solver = ADMM(
-        f=f,
-        g_list=[g],
-        C_list=[C],
-        rho_list=[ρ],
-        x0=A.inverse(y),
-        maxiter=10,
-        subproblem_solver=LinearSubproblemSolver(),
-    )
-    # Perform 100 iterations, reporting performance to ray.tune every 10 iterations.
-    for step in range(10):
-        x_admm = solver.solve()
-        reporter(psnr=float(metric.psnr(x_gt, x_admm)))
+class Trainable(tune.Trainable):
+    """Parameter evaluation class."""
+
+    def setup(self, config, x_gt, x0, y):
+        """This method initializes a new parameter evaluation object. It
+        is called once when a new parameter evaluation object is created.
+        The `config` parameter is a dict of specific parameters for
+        evaluation of a single parameter set (a pair of parameters in
+        this case). The remaining parameters are objects that are passed
+        to the evaluation function via the ray object store.
+        """
+        # Put main arrays on jax device.
+        self.x_gt, self.x0, self.y = jax.device_put([x_gt, x0, y])
+        # Set up problem to be solved.
+        self.A = AbelProjector(self.x_gt.shape)
+        self.f = loss.SquaredL2Loss(y=self.y, A=self.A)
+        self.C = linop.FiniteDifference(input_shape=self.x_gt.shape)
+        self.reset_config(config)
+
+    def reset_config(self, config):
+        """This method is only required when `scico.ray.tune.Tuner` is
+        initialized with `reuse_actors` set to ``True`` (the default). In
+        this case, a set of parameter evaluation processes and
+        corresponding objects are created once (including initialization
+        via a call to the `setup` method), and this method is called when
+        switching to evaluation of a different parameter configuration.
+        If `reuse_actors` is set to ``False``, then a new process and
+        object are created for each parameter configuration, and this
+        method is not used.
+        """
+        # Extract solver parameters from config dict.
+        λ, ρ = config["lambda"], config["rho"]
+        # Set up parameter-dependent functional.
+        g = λ * functional.L1Norm()
+        # Define solver.
+        cg_tol = 1e-4
+        cg_maxiter = 25
+        self.solver = ADMM(
+            f=self.f,
+            g_list=[g],
+            C_list=[self.C],
+            rho_list=[ρ],
+            x0=self.x0,
+            maxiter=10,
+            subproblem_solver=LinearSubproblemSolver(
+                cg_kwargs={"tol": cg_tol, "maxiter": cg_maxiter}
+            ),
+        )
+        return True
+
+    def step(self):
+        """This method is called for each step in the evaluation of a
+        single parameter configuration. The maximum number of times it
+        can be called is controlled by the `num_iterations` parameter
+        in the initialization of a `scico.ray.tune.Tuner` object.
+        """
+        # Perform 10 solver steps for every ray.tune step
+        x_tv = snp.clip(self.solver.solve(), 0.0, 1.0)
+        return {"psnr": float(metric.psnr(self.x_gt, x_tv))}
 
 
 """
@@ -107,22 +142,24 @@ resources = {"gpu": 0, "cpu": 1}  # gpus per trial, cpus per trial
 """
 Run parameter search.
 """
-analysis = tune.run(
-    eval_params,
+tuner = tune.Tuner(
+    tune.with_parameters(Trainable, x_gt=x_gt, x0=x0, y=y),
+    param_space=config,
+    resources=resources,
     metric="psnr",
     mode="max",
-    num_samples=100,
-    config=config,
-    resources_per_trial=resources,
-    hyperopt=True,
-    verbose=True,
+    num_samples=100,  # perform 100 parameter evaluations
+    num_iterations=10,  # perform at most 10 steps for each parameter evaluation
 )
+results = tuner.fit()
+
 
 """
 Display best parameters and corresponding performance.
 """
-best_config = analysis.get_best_config(metric="psnr", mode="max")
-print(f"Best PSNR: {analysis.get_best_trial().last_result['psnr']:.2f} dB")
+best_result = results.get_best_result()
+best_config = best_result.config
+print(f"Best PSNR: {best_result.metrics['psnr']:.2f} dB")
 print("Best config: " + ", ".join([f"{k}: {v:.2e}" for k, v in best_config.items()]))
 
 
@@ -132,11 +169,12 @@ proportional to number of iterations run at each parameter pair. The best
 point in the parameter space is indicated in red.
 """
 fig = plot.figure(figsize=(8, 8))
-for t in analysis.trials:
-    n = t.metric_analysis["training_iteration"]["max"]
+trials = results.get_dataframe()
+for t in trials.iloc:
+    n = t["training_iteration"]
     plot.plot(
-        t.config["lambda"],
-        t.config["rho"],
+        t["config/lambda"],
+        t["config/rho"],
         ptyp="loglog",
         lw=0,
         ms=(0.5 + 1.5 * n),
@@ -170,9 +208,9 @@ Plot parameter values visited during parameter search and corresponding
 reconstruction PSNRs.The best point in the parameter space is indicated
 in red.
 """
-𝜌 = [t.config["rho"] for t in analysis.trials]
-𝜆 = [t.config["lambda"] for t in analysis.trials]
-psnr = [t.metric_analysis["psnr"]["max"] for t in analysis.trials]
+𝜌 = [t["config/rho"] for t in trials.iloc]
+𝜆 = [t["config/lambda"] for t in trials.iloc]
+psnr = [t["psnr"] for t in trials.iloc]
 minpsnr = min(max(psnr), 20.0)
 𝜌, 𝜆, psnr = zip(*filter(lambda x: x[2] >= minpsnr, zip(𝜌, 𝜆, psnr)))
 fig, ax = plot.subplots(figsize=(10, 8))

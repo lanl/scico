@@ -1,5 +1,4 @@
 import functools
-import os
 
 import numpy as np
 
@@ -17,8 +16,6 @@ from scico.flax.train.state import create_basic_train_state
 from scico.flax.train.steps import eval_step, train_step
 from scico.flax.train.trainer import sync_batch_stats
 from scico.flax.train.traversals import clip_positive, clip_range, construct_traversal
-
-os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 
 
 class SetupTest:
@@ -217,12 +214,13 @@ def test_class_train_required_steps(testobj):
         assert trainer.num_steps == num_steps
 
 
+@pytest.mark.skipif(jax.device_count() == 1, reason="single device present")
 def test_except_class_train_batch_size(testobj):
     model = sflax.ResNet(
         testobj.model_conf["depth"], testobj.chn, testobj.model_conf["num_filters"]
     )
     train_conf = dict(testobj.train_conf)
-    train_conf["batch_size"] = 5
+    train_conf["batch_size"] = jax.device_count() + 1
     with pytest.raises(ValueError):
         trainer = sflax.BasicFlaxTrainer(
             train_conf,

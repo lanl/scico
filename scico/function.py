@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022 by SCICO Developers
+# Copyright (C) 2022-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -13,9 +13,9 @@ import jax
 
 import scico.numpy as snp
 from scico.linop import LinearOperator, jacobian
-from scico.numpy import BlockArray
+from scico.numpy import Array, BlockArray
 from scico.operator import Operator
-from scico.typing import BlockShape, DType, JaxArray, Shape
+from scico.typing import BlockShape, DType, Shape
 
 
 class Function:
@@ -93,7 +93,7 @@ output_shape   : {self.output_shape}
 output_dtype   : {self.output_dtype}
         """
 
-    def __call__(self, *args: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
+    def __call__(self, *args: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         """Evaluate this function with the specified parameters.
 
         Args:
@@ -104,7 +104,7 @@ output_dtype   : {self.output_dtype}
         """
         return self._eval(*args)
 
-    def slice(self, index: int, *fix_args: Union[JaxArray, BlockArray]) -> Operator:
+    def slice(self, index: int, *fix_args: Union[Array, BlockArray]) -> Operator:
         """Fix all but one parameter, returning a :class:`.Operator`.
 
         Args:
@@ -160,8 +160,8 @@ output_dtype   : {self.output_dtype}
         )
 
     def jvp(
-        self, index: int, v: Union[JaxArray, BlockArray], *args: Union[JaxArray, BlockArray]
-    ) -> Tuple[Union[JaxArray, BlockArray], Union[JaxArray, BlockArray]]:
+        self, index: int, v: Union[Array, BlockArray], *args: Union[Array, BlockArray]
+    ) -> Tuple[Union[Array, BlockArray], Union[Array, BlockArray]]:
         """Jacobian-vector product with respect to a single parameter.
 
         Compute a Jacobian-vector product with respect to a single
@@ -187,7 +187,7 @@ output_dtype   : {self.output_dtype}
         return F.jvp(var_arg, v)
 
     def vjp(
-        self, index: int, *args: Union[JaxArray, BlockArray], conjugate: Optional[bool] = True
+        self, index: int, *args: Union[Array, BlockArray], conjugate: Optional[bool] = True
     ) -> Tuple[Tuple[Any, ...], Callable]:
         """Vector-Jacobian product with respect to a single parameter.
 
@@ -213,7 +213,7 @@ output_dtype   : {self.output_dtype}
         return F.vjp(var_arg, conjugate=conjugate)
 
     def jacobian(
-        self, index: int, *args: Union[JaxArray, BlockArray], include_eval: Optional[bool] = False
+        self, index: int, *args: Union[Array, BlockArray], include_eval: Optional[bool] = False
     ) -> LinearOperator:
         """Construct Jacobian linear operator for the function.
 

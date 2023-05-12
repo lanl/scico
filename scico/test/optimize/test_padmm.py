@@ -2,6 +2,8 @@ import numpy as np
 
 import jax
 
+import pytest
+
 import scico.numpy as snp
 from scico import function, functional, linop, loss, random
 from scico.numpy import BlockArray
@@ -112,6 +114,22 @@ class TestMisc:
 
         x = padmm_.solve(callback=callback)
         assert padmm_.test_flag
+
+    def test_finite_check(self):
+        padmm_ = ProximalADMM(
+            f=self.f,
+            g=self.g,
+            A=self.A,
+            rho=self.ρ,
+            mu=self.μ,
+            nu=self.ν,
+            maxiter=self.maxiter,
+            nanstop=True,
+        )
+        padmm_.step()
+        padmm_.x = padmm_.x.at[0].set(np.nan)
+        with pytest.raises(ValueError):
+            padmm_.solve()
 
 
 class TestBlockArray:

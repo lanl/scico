@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2022 by SCICO Developers
+# Copyright (C) 2021-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -22,7 +22,7 @@ import jax.experimental.host_callback
 
 import scico.numpy as snp
 from scico.loss import Loss, SquaredL2Loss
-from scico.typing import Array, JaxArray, Shape
+from scico.typing import Shape
 
 from ._diag import Diagonal, Identity
 from ._linop import LinearOperator
@@ -67,13 +67,15 @@ class TomographicProjector(LinearOperator):
     def __init__(
         self,
         input_shape: Shape,
-        angles: Array,
+        angles: snp.Array,
         num_channels: int,
         center_offset: float = 0.0,
         is_masked: bool = False,
         geometry: str = "parallel",
         dist_source_detector: Optional[float] = None,
         magnification: Optional[float] = None,
+        delta_channel: Optional[float] = None,
+        delta_pixel: Optional[float] = None,
     ):
         """
         The output of this linear operator is an array of shape
@@ -81,6 +83,11 @@ class TomographicProjector(LinearOperator):
         `(num_angles, num_slices, num_channels)` when input_shape is 3D,
         where `num_angles` is the length of the `angles` argument, and
         `num_slices` is inferred from the `input_shape` argument.
+
+        Most of the the following arguments have the same name as and
+        correspond to arguments of :func:`svmbir.project`. A brief
+        summary of each is provided here, but the documentation for
+        :func:`svmbir.project` should be consulted for further details.
 
         Args:
             input_shape: Shape of the input array. May be of length 2 (a
@@ -118,6 +125,9 @@ class TomographicProjector(LinearOperator):
                 is "fan-flat" or "fan-curved".
             magnification: Magnification factor of the scanner geometry.
                 Only used when geometry is "fan-flat" or "fan-curved".
+            delta_channel: Detector channel spacing.
+            delta_pixel: Spacing between image pixels in the 2D slice
+                plane.
         """
         self.angles = angles
         self.num_channels = num_channels
@@ -146,6 +156,11 @@ class TomographicProjector(LinearOperator):
         self.dist_source_detector = dist_source_detector
         self.magnification = magnification
 
+        if delta_channel is None:
+            self.delta_channel = 1.0
+        else:
+            self.delta_channel = delta_channel
+
         if self.geometry == "fan-curved" or self.geometry == "fan-flat":
             if self.dist_source_detector is None:
                 raise ValueError(
@@ -154,14 +169,18 @@ class TomographicProjector(LinearOperator):
             if self.magnification is None:
                 raise ValueError("Parameter magnification must be specified for fan beam geometry.")
 
-            self.delta_channel = 1.0
-            self.delta_pixel = self.delta_channel / self.magnification
+            if delta_pixel is None:
+                self.delta_pixel = self.delta_channel / self.magnification
+            else:
+                self.delta_pixel = delta_pixel
 
         elif self.geometry == "parallel":
 
             self.magnification = 1.0
-            self.delta_channel = 1.0
-            self.delta_pixel = 1.0
+            if delta_pixel is None:
+                self.delta_pixel = self.delta_channel
+            else:
+                self.delta_pixel = delta_pixel
 
         else:
             raise ValueError("Unspecified geometry {}.".format(self.geometry))
@@ -184,8 +203,8 @@ class TomographicProjector(LinearOperator):
 
     @staticmethod
     def _proj(
-        x: JaxArray,
-        angles: JaxArray,
+        x: snp.Array,
+        angles: snp.Array,
         num_channels: int,
         center_offset: float = 0.0,
         roi_radius: Optional[float] = None,
@@ -194,7 +213,7 @@ class TomographicProjector(LinearOperator):
         magnification: Optional[float] = None,
         delta_channel: Optional[float] = None,
         delta_pixel: Optional[float] = None,
-    ) -> JaxArray:
+    ) -> snp.Array:
         return jax.device_put(
             svmbir.project(
                 np.array(x),
@@ -234,8 +253,8 @@ class TomographicProjector(LinearOperator):
 
     @staticmethod
     def _bproj(
-        y: JaxArray,
-        angles: JaxArray,
+        y: snp.Array,
+        angles: snp.Array,
         num_rows: int,
         num_cols: int,
         center_offset: Optional[float] = 0.0,
@@ -365,24 +384,26 @@ class SVMBIRExtendedLoss(Loss):
             if snp.all(W.diagonal >= 0):
                 self.W = W
             else:
-                raise Exception(f"The weights, W, must be non-negative.")
+                raise ValueError(f"The weights, W, must be non-negative.")
         else:
             raise TypeError(f"Parameter W must be None or a linop.Diagonal, got {type(W)}.")
 
-    def __call__(self, x: JaxArray) -> float:
+    def __call__(self, x: snp.Array) -> float:
 
         if self.positivity and snp.sum(x < 0) > 0:
             return snp.inf
         else:
             return self.scale * (self.W.diagonal * snp.abs(self.y - self.A(x)) ** 2).sum()
 
-    def prox(self, v: JaxArray, lam: float = 1, **kwargs) -> JaxArray:
+    def prox(self, v: snp.Array, lam: float = 1, **kwargs) -> snp.Array:
         v = v.reshape(self.A.svmbir_input_shape)
         y = self.y.reshape(self.A.svmbir_output_shape)
         weights = self.W.diagonal.reshape(self.A.svmbir_output_shape)
         sigma_p = snp.sqrt(lam)
         if "v0" in kwargs and kwargs["v0"] is not None:
-            v0: Union[float, Array] = np.reshape(np.array(kwargs["v0"]), self.A.svmbir_input_shape)
+            v0: Union[float, np.ndarray] = np.reshape(
+                np.array(kwargs["v0"]), self.A.svmbir_input_shape
+            )
         else:
             v0 = 0.0
 
@@ -456,7 +477,7 @@ class SVMBIRSquaredL2Loss(SVMBIRExtendedLoss, SquaredL2Loss):
             )
 
 
-def _unsqueeze(x: JaxArray, input_shape: Shape) -> JaxArray:
+def _unsqueeze(x: snp.Array, input_shape: Shape) -> snp.Array:
     """If x is 2D, make it 3D according to the SVMBIR convention."""
     if len(input_shape) == 2:
         x = x[snp.newaxis, :, :]

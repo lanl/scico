@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2022 by SCICO Developers
+# Copyright (C) 2021-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -17,7 +17,7 @@ from typing import Optional, Sequence
 import numpy as np
 
 import scico.numpy as snp
-from scico.typing import JaxArray, Shape
+from scico.typing import Shape
 
 from ._linop import LinearOperator
 
@@ -86,10 +86,10 @@ class DFT(LinearOperator):
             **kwargs,
         )
 
-    def _eval(self, x: JaxArray) -> JaxArray:
+    def _eval(self, x: snp.Array) -> snp.Array:
         return snp.fft.fftn(x, s=self.axes_shape, axes=self.axes, norm=self.norm)
 
-    def inv(self, z: JaxArray) -> JaxArray:
+    def inv(self, z: snp.Array) -> snp.Array:
         """Compute the inverse of this LinearOperator.
 
         Compute the inverse of this LinearOperator applied to `z`.

@@ -15,6 +15,8 @@ from ._admmaux import (
     GenericSubproblemSolver,
     LinearSubproblemSolver,
     CircularConvolveSolver,
+    FBlockCircularConvolveSolver,
+    G0BlockCircularConvolveSolver,
     AdaptivePenaltyParameter,
     ResidualBalancing,
 )
@@ -25,6 +27,8 @@ __all__ = [
     "GenericSubproblemSolver",
     "LinearSubproblemSolver",
     "CircularConvolveSolver",
+    "FBlockCircularConvolveSolver",
+    "G0BlockCircularConvolveSolver",
     "AdaptivePenaltyParameter",
     "ResidualBalancing",
     "ADMM",

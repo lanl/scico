@@ -11,7 +11,7 @@
 from typing import Union
 
 from scico import denoiser
-from scico.typing import JaxArray
+from scico.numpy import Array
 
 from ._functional import Functional
 
@@ -42,7 +42,7 @@ class BM3D(Functional):
         self.profile = profile
         super().__init__()
 
-    def prox(self, x: JaxArray, lam: float = 1.0, **kwargs) -> JaxArray:  # type: ignore
+    def prox(self, x: Array, lam: float = 1.0, **kwargs) -> Array:  # type: ignore
         r"""Apply BM3D denoiser.
 
         Args:
@@ -79,7 +79,7 @@ class BM4D(Functional):
         self.profile = profile
         super().__init__()
 
-    def prox(self, x: JaxArray, lam: float = 1.0, **kwargs) -> JaxArray:  # type: ignore
+    def prox(self, x: Array, lam: float = 1.0, **kwargs) -> Array:  # type: ignore
         r"""Apply BM4D denoiser.
 
         Args:
@@ -124,7 +124,7 @@ class DnCNN(Functional):
 
         self._denoise = denoise
 
-    def prox(self, x: JaxArray, lam: float = 1.0, **kwargs) -> JaxArray:  # type: ignore
+    def prox(self, x: Array, lam: float = 1.0, **kwargs) -> Array:  # type: ignore
         r"""Apply DnCNN denoiser.
 
         *Warning*: The `lam` parameter is ignored, and has no effect on

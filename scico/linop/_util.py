@@ -1,4 +1,4 @@
-# Copyright (C) 2020-2022 by SCICO Developers
+# Copyright (C) 2020-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -16,7 +16,7 @@ from typing import Optional, Union
 import scico.numpy as snp
 from scico.operator._operator import Operator
 from scico.random import randn
-from scico.typing import JaxArray, PRNGKey
+from scico.typing import PRNGKey
 
 from ._linop import LinearOperator
 
@@ -93,8 +93,8 @@ def valid_adjoint(
     A: LinearOperator,
     AT: LinearOperator,
     eps: Optional[float] = 1e-7,
-    x: Optional[JaxArray] = None,
-    y: Optional[JaxArray] = None,
+    x: Optional[snp.Array] = None,
+    y: Optional[snp.Array] = None,
     key: Optional[PRNGKey] = None,
 ) -> Union[bool, float]:
     r"""Check whether :class:`.LinearOperator` `AT` is the adjoint of `A`.
@@ -154,15 +154,15 @@ def valid_adjoint(
 
     u = A(x)
     v = AT(y)
-    yTu = snp.dot(y.ravel().conj(), u.ravel())  # type: ignore
-    vTx = snp.dot(v.ravel().conj(), x.ravel())  # type: ignore
+    yTu = snp.sum(y.conj() * u)  # type: ignore
+    vTx = snp.sum(v.conj() * x)  # type: ignore
     err = snp.abs(yTu - vTx) / max(snp.abs(yTu), snp.abs(vTx))
     if eps is None:
         return err
-    return err < eps
+    return float(err) < eps
 
 
-def jacobian(F: Operator, u: JaxArray, include_eval: Optional[bool] = False) -> LinearOperator:
+def jacobian(F: Operator, u: snp.Array, include_eval: Optional[bool] = False) -> LinearOperator:
     """Construct Jacobian linear operator for a general operator.
 
     For a specified :class:`.Operator`, construct a corresponding
