@@ -15,15 +15,15 @@ import jax
 import scico.numpy as snp
 from scico import linop
 from scico.random import randn
-from scico.typing import JaxArray, PRNGKey
+from scico.typing import PRNGKey
 
 
 def adjoint_test(
     A: linop.LinearOperator,
     key: Optional[PRNGKey] = None,
     rtol: float = 1e-4,
-    x: Optional[JaxArray] = None,
-    y: Optional[JaxArray] = None,
+    x: Optional[snp.Array] = None,
+    y: Optional[snp.Array] = None,
 ):
     """Check the validity of A.conj().T as the adjoint for a LinearOperator A.
 

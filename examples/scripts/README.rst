@@ -11,6 +11,8 @@ Computed Tomography
 
    `ct_abel_tv_admm.py <ct_abel_tv_admm.py>`_
       TV-Regularized Abel Inversion
+   `ct_abel_tv_admm_tune.py <ct_abel_tv_admm_tune.py>`_
+      Parameter Tuning for TV-Regularized Abel Inversion
    `ct_astra_noreg_pcg.py <ct_astra_noreg_pcg.py>`_
       CT Reconstruction with CG and PCG
    `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
@@ -43,7 +45,7 @@ Deconvolution
    `deconv_tv_padmm.py <deconv_tv_padmm.py>`_
       Image Deconvolution with TV Regularization (Proximal ADMM Solver)
    `deconv_tv_admm_tune.py <deconv_tv_admm_tune.py>`_
-      Image Deconvolution Parameter Tuning
+      Parameter Tuning for Image Deconvolution with TV Regularization (ADMM Solver)
    `deconv_microscopy_tv_admm.py <deconv_microscopy_tv_admm.py>`_
       Deconvolution Microscopy (Single Channel)
    `deconv_microscopy_allchn_tv_admm.py <deconv_microscopy_allchn_tv_admm.py>`_
@@ -69,6 +71,10 @@ Sparse Coding
 
    `sparsecode_admm.py <sparsecode_admm.py>`_
       Non-Negative Basis Pursuit DeNoising (ADMM)
+   `sparsecode_conv_admm.py <sparsecode_conv_admm.py>`_
+      Convolutional Sparse Coding (ADMM)
+   `sparsecode_conv_md_admm.py <sparsecode_conv_md_admm.py>`_
+      Convolutional Sparse Coding with Mask Decoupling (ADMM)
    `sparsecode_pgm.py <sparsecode_pgm.py>`_
       Basis Pursuit DeNoising (APGM)
    `sparsecode_poisson_pgm.py <sparsecode_poisson_pgm.py>`_
@@ -96,6 +102,8 @@ Miscellaneous
       Complex Total Variation Denoising with PDHG Solver
    `denoise_dncnn_universal.py <denoise_dncnn_universal.py>`_
       Comparison of DnCNN Variants for Image Denoising
+   `diffusercam_tv_admm.py <diffusercam_tv_admm.py>`_
+      TV-Regularized 3D DiffuserCam Reconstruction
    `video_rpca_admm.py <video_rpca_admm.py>`_
       Video Decomposition via Robust PCA
    `ct_astra_datagen_foam2.py <ct_astra_datagen_foam2.py>`_
@@ -141,6 +149,8 @@ Total Variation
 
    `ct_abel_tv_admm.py <ct_abel_tv_admm.py>`_
       TV-Regularized Abel Inversion
+   `ct_abel_tv_admm_tune.py <ct_abel_tv_admm_tune.py>`_
+      Parameter Tuning for TV-Regularized Abel Inversion
    `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
       TV-Regularized Sparse-View CT Reconstruction
    `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
@@ -152,7 +162,7 @@ Total Variation
    `deconv_tv_admm.py <deconv_tv_admm.py>`_
       Image Deconvolution with TV Regularization (ADMM Solver)
    `deconv_tv_admm_tune.py <deconv_tv_admm_tune.py>`_
-      Image Deconvolution Parameter Tuning
+      Parameter Tuning for Image Deconvolution with TV Regularization (ADMM Solver)
    `deconv_tv_padmm.py <deconv_tv_padmm.py>`_
       Image Deconvolution with TV Regularization (Proximal ADMM Solver)
    `deconv_microscopy_tv_admm.py <deconv_microscopy_tv_admm.py>`_
@@ -171,13 +181,22 @@ Total Variation
       Complex Total Variation Denoising with NLPADMM Solver
    `denoise_cplx_tv_pdhg.py <denoise_cplx_tv_pdhg.py>`_
       Complex Total Variation Denoising with PDHG Solver
+   `diffusercam_tv_admm.py <diffusercam_tv_admm.py>`_
+      TV-Regularized 3D DiffuserCam Reconstruction
+
 
 
 Sparsity
 ^^^^^^^^
 
+   `diffusercam_tv_admm.py <diffusercam_tv_admm.py>`_
+      TV-Regularized 3D DiffuserCam Reconstruction
    `sparsecode_admm.py <sparsecode_admm.py>`_
       Non-Negative Basis Pursuit DeNoising (ADMM)
+   `sparsecode_conv_admm.py <sparsecode_conv_admm.py>`_
+      Convolutional Sparse Coding (ADMM)
+   `sparsecode_conv_md_admm.py <sparsecode_conv_md_admm.py>`_
+      Convolutional Sparse Coding with Mask Decoupling (ADMM)
    `sparsecode_pgm.py <sparsecode_pgm.py>`_
       Basis Pursuit DeNoising (APGM)
    `sparsecode_poisson_pgm.py <sparsecode_poisson_pgm.py>`_
@@ -221,6 +240,8 @@ ADMM
 
    `ct_abel_tv_admm.py <ct_abel_tv_admm.py>`_
       TV-Regularized Abel Inversion
+   `ct_abel_tv_admm_tune.py <ct_abel_tv_admm_tune.py>`_
+      Parameter Tuning for TV-Regularized Abel Inversion
    `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
       TV-Regularized Sparse-View CT Reconstruction
    `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
@@ -238,7 +259,7 @@ ADMM
    `deconv_tv_admm.py <deconv_tv_admm.py>`_
       Image Deconvolution with TV Regularization (ADMM Solver)
    `deconv_tv_admm_tune.py <deconv_tv_admm_tune.py>`_
-      Image Deconvolution Parameter Tuning
+      Parameter Tuning for Image Deconvolution with TV Regularization (ADMM Solver)
    `deconv_microscopy_tv_admm.py <deconv_microscopy_tv_admm.py>`_
       Deconvolution Microscopy (Single Channel)
    `deconv_microscopy_allchn_tv_admm.py <deconv_microscopy_allchn_tv_admm.py>`_
@@ -249,8 +270,14 @@ ADMM
       PPP (with DnCNN) Image Deconvolution (ADMM Solver)
    `deconv_ppp_bm4d_admm.py <deconv_ppp_bm4d_admm.py>`_
       PPP (with BM4D) Volume Deconvolution
+   `diffusercam_tv_admm.py <diffusercam_tv_admm.py>`_
+      TV-Regularized 3D DiffuserCam Reconstruction
    `sparsecode_admm.py <sparsecode_admm.py>`_
       Non-Negative Basis Pursuit DeNoising (ADMM)
+   `sparsecode_conv_admm.py <sparsecode_conv_admm.py>`_
+      Convolutional Sparse Coding (ADMM)
+   `sparsecode_conv_md_admm.py <sparsecode_conv_md_admm.py>`_
+      Convolutional Sparse Coding with Mask Decoupling (ADMM)
    `demosaic_ppp_bm3d_admm.py <demosaic_ppp_bm3d_admm.py>`_
       PPP (with BM3D) Image Demosaicing
    `superres_ppp_dncnn_admm.py <superres_ppp_dncnn_admm.py>`_

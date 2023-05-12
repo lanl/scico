@@ -1,4 +1,4 @@
-# Copyright (C) 2020-2022 by SCICO Developers
+# Copyright (C) 2020-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -16,10 +16,10 @@ from functools import partial
 from typing import Optional, Union
 
 import scico.numpy as snp
-from scico.numpy import BlockArray
+from scico.numpy import Array, BlockArray
 from scico.numpy.util import ensure_on_device, is_nested
 from scico.operator._operator import _wrap_mul_div_scalar
-from scico.typing import BlockShape, DType, JaxArray, Shape
+from scico.typing import BlockShape, DType, Shape
 
 from ._linop import LinearOperator, _wrap_add_sub
 
@@ -34,7 +34,7 @@ class Diagonal(LinearOperator):
 
     def __init__(
         self,
-        diagonal: Union[JaxArray, BlockArray],
+        diagonal: Union[Array, BlockArray],
         input_shape: Optional[Shape] = None,
         input_dtype: Optional[DType] = None,
         **kwargs,
@@ -117,8 +117,8 @@ class Identity(Diagonal):
         """
         super().__init__(diagonal=snp.ones(input_shape, dtype=input_dtype), **kwargs)
 
-    def _eval(self, x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
+    def _eval(self, x: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         return x
 
-    def __rmatmul__(self, x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
+    def __rmatmul__(self, x: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         return x

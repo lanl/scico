@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2022 by SCICO Developers
+# Copyright (C) 2021-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -14,11 +14,10 @@ from typing import Optional, Union
 import numpy as np
 
 import scico.numpy as snp
-from scico.numpy import BlockArray
-from scico.typing import JaxArray
+from scico.numpy import Array, BlockArray
 
 
-def mae(reference: Union[JaxArray, BlockArray], comparison: Union[JaxArray, BlockArray]) -> float:
+def mae(reference: Union[Array, BlockArray], comparison: Union[Array, BlockArray]) -> float:
     """Compute Mean Absolute Error (MAE) between two images.
 
     Args:
@@ -32,7 +31,7 @@ def mae(reference: Union[JaxArray, BlockArray], comparison: Union[JaxArray, Bloc
     return snp.mean(snp.abs(reference - comparison).ravel())
 
 
-def mse(reference: Union[JaxArray, BlockArray], comparison: Union[JaxArray, BlockArray]) -> float:
+def mse(reference: Union[Array, BlockArray], comparison: Union[Array, BlockArray]) -> float:
     """Compute Mean Squared Error (MSE) between two images.
 
     Args:
@@ -46,7 +45,7 @@ def mse(reference: Union[JaxArray, BlockArray], comparison: Union[JaxArray, Bloc
     return snp.mean(snp.abs(reference - comparison).ravel() ** 2)
 
 
-def snr(reference: Union[JaxArray, BlockArray], comparison: Union[JaxArray, BlockArray]) -> float:
+def snr(reference: Union[Array, BlockArray], comparison: Union[Array, BlockArray]) -> float:
     """Compute Signal to Noise Ratio (SNR) of two images.
 
     Args:
@@ -64,8 +63,8 @@ def snr(reference: Union[JaxArray, BlockArray], comparison: Union[JaxArray, Bloc
 
 
 def psnr(
-    reference: Union[JaxArray, BlockArray],
-    comparison: Union[JaxArray, BlockArray],
+    reference: Union[Array, BlockArray],
+    comparison: Union[Array, BlockArray],
     signal_range: Optional[Union[int, float]] = None,
 ) -> float:
     """Compute Peak Signal to Noise Ratio (PSNR) of two images.
@@ -78,9 +77,9 @@ def psnr(
     Args:
         reference: Reference image.
         comparison: Comparison image.
-        signal_range: Signal range, either the value to use (e.g. 255
-            for 8 bit samples) or None, in which case the actual range
-            of the reference signal is used.
+        signal_range: Signal range, either the value to use (e.g. 255 for
+            8 bit samples) or ``None``, in which case the actual range of
+            the reference signal is used.
 
     Returns:
         PSNR of `comparison` with respect to `reference`.
@@ -94,9 +93,9 @@ def psnr(
 
 
 def isnr(
-    reference: Union[JaxArray, BlockArray],
-    degraded: Union[JaxArray, BlockArray],
-    restored: Union[JaxArray, BlockArray],
+    reference: Union[Array, BlockArray],
+    degraded: Union[Array, BlockArray],
+    restored: Union[Array, BlockArray],
 ) -> float:
     """Compute Improvement Signal to Noise Ratio (ISNR).
 
@@ -105,8 +104,8 @@ def isnr(
 
     Args:
         reference: Reference image.
-        degraded: Degraded image.
-        restored: Restored image.
+        degraded: Degraded/observed image.
+        restored: Restored/estimated image.
 
     Returns:
         ISNR of `restored` with respect to `reference` and `degraded`.
@@ -119,7 +118,7 @@ def isnr(
     return 10.0 * snp.log10(rt)
 
 
-def bsnr(blurry: Union[JaxArray, BlockArray], noisy: Union[JaxArray, BlockArray]) -> float:
+def bsnr(blurry: Union[Array, BlockArray], noisy: Union[Array, BlockArray]) -> float:
     """Compute Blurred Signal to Noise Ratio (BSNR).
 
     Compute Blurred Signal to Noise Ratio (BSNR) for a blurred and noisy
@@ -130,7 +129,7 @@ def bsnr(blurry: Union[JaxArray, BlockArray], noisy: Union[JaxArray, BlockArray]
         noisy: Blurred image with additive noise.
 
     Returns:
-        BSNR of `noisy` with respect to `blurry` and `degraded`.
+        BSNR of `noisy` with respect to `blurry`.
     """
 
     blrvar = snp.var(blurry)
@@ -140,7 +139,7 @@ def bsnr(blurry: Union[JaxArray, BlockArray], noisy: Union[JaxArray, BlockArray]
     return 10.0 * snp.log10(rt)
 
 
-def rel_res(ax: Union[BlockArray, JaxArray], b: Union[BlockArray, JaxArray]) -> float:
+def rel_res(ax: Union[BlockArray, Array], b: Union[BlockArray, Array]) -> float:
     r"""Relative residual of the solution to a linear equation.
 
     The standard relative residual for the linear system

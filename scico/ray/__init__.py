@@ -10,5 +10,6 @@
 
 try:
     from ray import get, put
+    from ray.air.session import report
 except ImportError:
     raise ImportError("Could not import ray; please install it.")

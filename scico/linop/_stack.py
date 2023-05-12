@@ -18,9 +18,9 @@ import numpy as np
 from typing_extensions import TypeGuard
 
 import scico.numpy as snp
-from scico.numpy import BlockArray
+from scico.numpy import Array, BlockArray
 from scico.numpy.util import is_nested
-from scico.typing import BlockShape, JaxArray, Shape
+from scico.typing import BlockShape, Shape
 
 from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
 
@@ -69,9 +69,9 @@ class VerticalStack(LinearOperator):
             ops: Operators to stack.
             collapse: If ``True`` and the output would be a
                 :class:`BlockArray` with shape ((m, n, ...), (m, n, ...),
-                ...), the output is instead a `DeviceArray` with shape
-                (S, m, n, ...) where S is the length of `ops`. Defaults
-                to ``True``.
+                ...), the output is instead a :class:`jax.Array` with
+                shape (S, m, n, ...) where S is the length of `ops`.
+                Defaults to ``True``.
             jit: see `jit` in :class:`LinearOperator`.
         """
         VerticalStack.check_if_stackable(ops)
@@ -83,7 +83,7 @@ class VerticalStack(LinearOperator):
         self.collapsible = is_collapsible(output_shapes)
 
         if self.collapsible and self.collapse:
-            output_shape = (len(ops),) + output_shapes[0]  # collapse to DeviceArray
+            output_shape = (len(ops),) + output_shapes[0]  # collapse to jax array
         else:
             output_shape = output_shapes
 
@@ -123,15 +123,15 @@ class VerticalStack(LinearOperator):
         if not np.all(output_dtypes[0] == s for s in output_dtypes):
             raise ValueError("Expected all LinearOperators to have the same output dtype.")
 
-    def _eval(self, x: JaxArray) -> Union[JaxArray, BlockArray]:
+    def _eval(self, x: Array) -> Union[Array, BlockArray]:
         if self.collapsible and self.collapse:
             return snp.stack([op @ x for op in self.ops])
         return BlockArray([op @ x for op in self.ops])
 
-    def _adj(self, y: Union[JaxArray, BlockArray]) -> JaxArray:  # type: ignore
+    def _adj(self, y: Union[Array, BlockArray]) -> Array:  # type: ignore
         return sum([op.adj(y_block) for y_block, op in zip(y, self.ops)])
 
-    def scale_ops(self, scalars: JaxArray):
+    def scale_ops(self, scalars: Array):
         """Scale component linear operators.
 
         Return a copy of `self` with each operator scaled by the
@@ -241,13 +241,13 @@ class DiagonalStack(LinearOperator):
             **kwargs,
         )
 
-    def _eval(self, x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
+    def _eval(self, x: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         result = tuple(op @ x_n for op, x_n in zip(self.ops, x))
         if self.collapse_output:
             return snp.stack(result)
         return snp.blockarray(result)
 
-    def _adj(self, y: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:  # type: ignore
+    def _adj(self, y: Union[Array, BlockArray]) -> Union[Array, BlockArray]:  # type: ignore
         result = tuple(op.T @ y_n for op, y_n in zip(self.ops, y))
         if self.collapse_input:
             return snp.stack(result)

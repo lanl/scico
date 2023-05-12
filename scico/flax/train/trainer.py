@@ -35,7 +35,7 @@ if have_tf:
     from .checkpoints import checkpoint_restore, checkpoint_save
 
 from scico.diagnostics import IterationStats
-from scico.typing import Array
+from scico.numpy import Array
 
 from .clu_utils import get_parameter_overview
 from .diagnostics import ArgumentStruct, compute_metrics, stats_obj

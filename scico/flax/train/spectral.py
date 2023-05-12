@@ -18,7 +18,8 @@ import scipy
 from flax.core import freeze, unfreeze
 from flax.linen import Conv
 from flax.linen.module import Module, compact
-from scico.typing import Array, Shape
+from scico.numpy import Array
+from scico.typing import Shape
 
 from .traversals import ModelParamTraversal
 

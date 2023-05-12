@@ -1,11 +1,36 @@
+# -*- coding: utf-8 -*-
+# Copyright (C) 2022-2023 by SCICO Developers
+# All rights reserved. BSD 3-clause License.
+# This file is part of the SPORCO package. Details of the copyright
+# and user license can be found in the 'LICENSE.txt' file distributed
+# with the package.
+
+
+"""
+Lists of functions to be wrapped in scico.numpy.
+
+These are intended to be the functions in :mod:`jax.numpy` that should
+either
+   #. map over the blocks of a block array (for math functions);
+   #. map over a tuple of tuples to create a block array (for creation
+      functions); or
+   #. reduce a block array to a scalar (for reductions).
+
+The links to the numpy docs in the comments are useful for distinguishing
+between these three cases, but note that these lists of numpy functions
+include extra functions that are not in :mod:`jax.numpy`, and that are
+therefore not listed here.
+"""
+
+
 """ BlockArray """
-unary_ops = (  # found from dir(DeviceArray)
+unary_ops = (  # found from dir() on jax array
     "__abs__",
     "__neg__",
     "__pos__",
 )
 
-binary_ops = (  # found from dir(DeviceArray)
+binary_ops = (  # found from dir() on jax array
     "__add__",
     "__radd__",
     "__sub__",
@@ -39,7 +64,7 @@ creation_routines = (
 )
 
 mathematical_functions = (
-    "sin",  # https://numpy.org/doc/stable/reference/routines.math.html#
+    "sin",  # https://numpy.org/doc/stable/reference/routines.math.html
     "cos",
     "tan",
     "arcsin",
@@ -94,7 +119,6 @@ mathematical_functions = (
     "frexp",
     "ldexp",
     "nextafter",
-    "spacing",
     "lcm",
     "gcd",
     "add",
@@ -137,7 +161,6 @@ mathematical_functions = (
     "sign",
     "heaviside",
     "nan_to_num",
-    "real_if_close",
     "interp",
     "sort",  # https://numpy.org/doc/stable/reference/routines.sort.html
     "lexsort",
@@ -145,7 +168,6 @@ mathematical_functions = (
     "msort",
     "sort_complex",
     "partition",
-    "argpartition",
     "argmax",
     "nanargmax",
     "argmin",
@@ -200,13 +222,6 @@ mathematical_functions = (
     "expand_dims",
     "squeeze",
     "asarray",
-    "asanyarray",
-    "asmatrix",
-    "asfarray",
-    "asfortranarray",
-    "ascontiguousarray",
-    "asarray_chkfinite",
-    "require",
     "stack",
     "block",
     "vstack",
@@ -237,12 +252,10 @@ mathematical_functions = (
     "isfinite",
     "isinf",
     "isnan",
-    "isnat",
     "isneginf",
     "isposinf",
     "iscomplex",
     "iscomplexobj",
-    "isfortran",
     "isreal",
     "isrealobj",
     "isscalar",

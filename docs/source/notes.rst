@@ -223,17 +223,16 @@ to enforce a particular derivative convention at a point.
 JAX Arrays
 ==========
 
-JAX utilizes a new array type
-:class:`~jaxlib.xla_extension.DeviceArray`, which is similar to NumPy
-:class:`~numpy.ndarray`, but can be backed by CPU, GPU, or TPU memory
-and are immutable.
+JAX utilizes a new array type :class:`~jax.Array`, which is similar to
+NumPy :class:`~numpy.ndarray`, but can be backed by CPU, GPU, or TPU
+memory and is immutable.
 
 
-DeviceArrays and NumPy Arrays
------------------------------
+JAX and NumPy Arrays
+--------------------
 
 SCICO and JAX functions can be applied directly to NumPy arrays
-without explicit conversion to DeviceArrays, but this is not
+without explicit conversion to JAX arrays, but this is not
 recommended, as it can result in repeated data transfers from the CPU
 to GPU. Consider this toy example on a system with a GPU present:
 
@@ -247,19 +246,19 @@ to GPU. Consider this toy example on a system with a GPU present:
 
 
 The unnecessary transfer can be avoided by first converting ``A`` and ``x`` to
-DeviceArrays:
+JAX arrays:
 
 ::
 
-   x = np.random.randn(8)    # Array on host
-   A = np.random.randn(8, 8) # Array on host
-   x = jax.device_put(x)     # Transfer to GPU
+   x = np.random.randn(8)    # array on host
+   A = np.random.randn(8, 8) # array on host
+   x = jax.device_put(x)     # transfer to GPU
    A = jax.device_put(A)
    y = snp.dot(A, x)         # no transfer needed
    z = y + x                 # no transfer needed
 
 
-We recommend that input data be converted to DeviceArray via
+We recommend that input data be converted to JAX arrays via
 ``jax.device_put`` before calling any SCICO optimizers.
 
 On a multi-GPU system, ``jax.device_put`` can place data on a specific
@@ -267,8 +266,8 @@ GPU. See the `JAX notes on data placement
 <https://jax.readthedocs.io/en/latest/faq.html?highlight=data%20placement#controlling-data-and-computation-placement-on-devices>`_.
 
 
-DeviceArrays are Immutable
---------------------------
+JAX Arrays are Immutable
+------------------------
 
 Unlike standard NumPy arrays, JAX arrays are immutable: once they have
 been created, they cannot be changed. This prohibits in-place updating

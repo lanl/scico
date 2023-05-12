@@ -16,10 +16,9 @@ from typing import List, Optional, Tuple, Union
 import scico.numpy as snp
 from scico.functional import Functional
 from scico.linop import LinearOperator
-from scico.numpy import BlockArray
+from scico.numpy import Array, BlockArray
 from scico.numpy.linalg import norm
 from scico.numpy.util import ensure_on_device
-from scico.typing import JaxArray
 
 from ._common import Optimizer
 
@@ -90,7 +89,7 @@ class LinearizedADMM(Optimizer):
         C: LinearOperator,
         mu: float,
         nu: float,
-        x0: Optional[Union[JaxArray, BlockArray]] = None,
+        x0: Optional[Union[Array, BlockArray]] = None,
         **kwargs,
     ):
         r"""Initialize a :class:`LinearizedADMM` object.
@@ -122,6 +121,18 @@ class LinearizedADMM(Optimizer):
 
         super().__init__(**kwargs)
 
+    def _working_vars_finite(self) -> bool:
+        """Determine where ``NaN`` of ``Inf`` encountered in solve.
+
+        Return ``False`` if a ``NaN`` or ``Inf`` value is encountered in
+        a solver working variable.
+        """
+        return (
+            snp.all(snp.isfinite(self.x))
+            and snp.all(snp.isfinite(self.z))
+            and snp.all(snp.isfinite(self.u))
+        )
+
     def _objective_evaluatable(self):
         """Determine whether the objective function can be evaluated."""
         return self.f.has_eval and self.g.has_eval
@@ -138,8 +149,8 @@ class LinearizedADMM(Optimizer):
 
     def objective(
         self,
-        x: Optional[Union[JaxArray, BlockArray]] = None,
-        z: Optional[List[Union[JaxArray, BlockArray]]] = None,
+        x: Optional[Union[Array, BlockArray]] = None,
+        z: Optional[List[Union[Array, BlockArray]]] = None,
     ) -> float:
         r"""Evaluate the objective function.
 
@@ -168,7 +179,7 @@ class LinearizedADMM(Optimizer):
             z = self.z
         return self.f(x) + self.g(z)
 
-    def norm_primal_residual(self, x: Optional[Union[JaxArray, BlockArray]] = None) -> float:
+    def norm_primal_residual(self, x: Optional[Union[Array, BlockArray]] = None) -> float:
         r"""Compute the :math:`\ell_2` norm of the primal residual.
 
         Compute the :math:`\ell_2` norm of the primal residual
@@ -203,8 +214,8 @@ class LinearizedADMM(Optimizer):
         return norm(self.C.adj(self.z - self.z_old))
 
     def z_init(
-        self, x0: Union[JaxArray, BlockArray]
-    ) -> Tuple[Union[JaxArray, BlockArray], Union[JaxArray, BlockArray]]:
+        self, x0: Union[Array, BlockArray]
+    ) -> Tuple[Union[Array, BlockArray], Union[Array, BlockArray]]:
         r"""Initialize auxiliary variable :math:`\mb{z}`.
 
         Initialized to
@@ -221,7 +232,7 @@ class LinearizedADMM(Optimizer):
         z_old = z
         return z, z_old
 
-    def u_init(self, x0: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
+    def u_init(self, x0: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         r"""Initialize scaled Lagrange multiplier :math:`\mb{u}`.
 
         Initialized to

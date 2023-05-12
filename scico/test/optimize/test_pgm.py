@@ -2,6 +2,8 @@ import numpy as np
 
 import jax
 
+import pytest
+
 from scico import functional, linop, loss, random
 from scico.optimize import PGM, AcceleratedPGM
 from scico.optimize.pgm import (
@@ -40,6 +42,18 @@ class TestSet:
         x = pgm_.solve()
         np.testing.assert_allclose(self.grdA(x), self.grdb, rtol=5e-3)
 
+    def test_pgm_isfinite(self):
+        maxiter = 5
+        A = linop.MatrixOperator(self.Amx)
+        L0 = 1.05 * linop.power_iteration(A.T @ A)[0]
+        loss_ = loss.SquaredL2Loss(y=self.y, A=A)
+        g = (self.λ / 2.0) * functional.SquaredL2Norm()
+        pgm_ = PGM(f=loss_, g=g, L0=L0, maxiter=maxiter, x0=A.adj(self.y), nanstop=True)
+        pgm_.step()
+        pgm_.x = pgm_.x.at[0].set(np.nan)
+        with pytest.raises(ValueError):
+            pgm_.solve()
+
     def test_accelerated_pgm(self):
         maxiter = 100
 
@@ -50,6 +64,18 @@ class TestSet:
         apgm_ = AcceleratedPGM(f=loss_, g=g, L0=L0, maxiter=maxiter, x0=A.adj(self.y))
         x = apgm_.solve()
         np.testing.assert_allclose(self.grdA(x), self.grdb, rtol=5e-3)
+
+    def test_accelerated_pgm_isfinite(self):
+        maxiter = 5
+        A = linop.MatrixOperator(self.Amx)
+        L0 = 1.05 * linop.power_iteration(A.T @ A)[0]
+        loss_ = loss.SquaredL2Loss(y=self.y, A=A)
+        g = (self.λ / 2.0) * functional.SquaredL2Norm()
+        apgm_ = AcceleratedPGM(f=loss_, g=g, L0=L0, maxiter=maxiter, x0=A.adj(self.y), nanstop=True)
+        apgm_.step()
+        apgm_.v = apgm_.v.at[0].set(np.nan)
+        with pytest.raises(ValueError):
+            apgm_.solve()
 
     def test_pgm_BB_step_size(self):
         maxiter = 100
