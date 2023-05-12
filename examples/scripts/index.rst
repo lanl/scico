@@ -10,6 +10,7 @@ Computed Tomography
 ^^^^^^^^^^^^^^^^^^^
 
    - ct_abel_tv_admm.py
+   - ct_abel_tv_admm_tune.py
    - ct_astra_noreg_pcg.py
    - ct_astra_tv_admm.py
    - ct_astra_weighted_tv_admm.py
@@ -44,6 +45,8 @@ Sparse Coding
 ^^^^^^^^^^^^^
 
    - sparsecode_admm.py
+   - sparsecode_conv_admm.py
+   - sparsecode_conv_md_admm.py
    - sparsecode_pgm.py
    - sparsecode_poisson_pgm.py
 
@@ -60,6 +63,7 @@ Miscellaneous
    - denoise_cplx_tv_nlpadmm.py
    - denoise_cplx_tv_pdhg.py
    - denoise_dncnn_universal.py
+   - diffusercam_tv_admm.py
    - video_rpca_admm.py
    - ct_astra_datagen_foam2.py
    - deconv_datagen_bsds.py
@@ -89,6 +93,7 @@ Total Variation
 ^^^^^^^^^^^^^^^
 
    - ct_abel_tv_admm.py
+   - ct_abel_tv_admm_tune.py
    - ct_astra_tv_admm.py
    - ct_astra_weighted_tv_admm.py
    - ct_svmbir_tv_multi.py
@@ -104,12 +109,17 @@ Total Variation
    - denoise_tv_multi.py
    - denoise_cplx_tv_nlpadmm.py
    - denoise_cplx_tv_pdhg.py
+   - diffusercam_tv_admm.py
+
 
 
 Sparsity
 ^^^^^^^^
 
+   - diffusercam_tv_admm.py
    - sparsecode_admm.py
+   - sparsecode_conv_admm.py
+   - sparsecode_conv_md_admm.py
    - sparsecode_pgm.py
    - sparsecode_poisson_pgm.py
    - video_rpca_admm.py
@@ -138,6 +148,7 @@ ADMM
 ^^^^
 
    - ct_abel_tv_admm.py
+   - ct_abel_tv_admm_tune.py
    - ct_astra_tv_admm.py
    - ct_astra_weighted_tv_admm.py
    - ct_svmbir_tv_multi.py
@@ -152,7 +163,10 @@ ADMM
    - deconv_ppp_bm3d_admm.py
    - deconv_ppp_dncnn_admm.py
    - deconv_ppp_bm4d_admm.py
+   - diffusercam_tv_admm.py
    - sparsecode_admm.py
+   - sparsecode_conv_admm.py
+   - sparsecode_conv_md_admm.py
    - demosaic_ppp_bm3d_admm.py
    - superres_ppp_dncnn_admm.py
    - denoise_l1tv_admm.py

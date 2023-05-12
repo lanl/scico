@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022 by SCICO Developers
+# Copyright (C) 2022-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -28,7 +28,7 @@ if have_tf:
     from flax.training import checkpoints
 
 from scico.flax import create_input_iter
-from scico.typing import Array
+from scico.numpy import Array
 
 from .clu_utils import get_parameter_overview
 from .typed_dict import ConfigDict, DataSetDict, ModelVarDict

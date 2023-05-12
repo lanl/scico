@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021 by SCICO Developers
+# Copyright (C) 2021-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -18,14 +18,18 @@ import sys
 def package_classes(package):
     """Get a list of classes in a package.
 
-    Return a list of qualified names of classes in the specified package. Classes in modules
-    with names beginning with an "_" are omitted, as are classes whose internal module name
-    record is not the same as the module in which they are found (i.e. indicating that they
-    have been imported from elsewhere).
+    Return a list of qualified names of classes in the specified
+    package. Classes in modules with names beginning with an "_" are
+    omitted, as are classes whose internal module name record is not
+    the same as the module in which they are found (i.e. indicating
+    that they have been imported from elsewhere).
 
     Args:
-        package: Reference to package for which classes are to be listed (not package name
-          string)
+        package: Reference to package for which classes are to be listed
+          (not package name string).
+
+    Returns:
+        A list of qualified names of classes in the specified package.
     """
 
     classes = []
@@ -51,13 +55,17 @@ def package_classes(package):
     return classes
 
 
-def insert_inheritance_diagram(clsqname):
+def insert_inheritance_diagram(clsqname, parts=None, default_nparts=2):
     """Insert an inheritance diagram into a class docstring.
 
-    No action is taken for classes without a base clase, and for classes without a docstring.
+    No action is taken for classes without a base clase, and for classes
+    without a docstring.
 
     Args:
-        clsqname: Qualified name (i.e. including module name path) of class
+        clsqname: Qualified name (i.e. including module name path) of class.
+        parts: A dict mapping qualified class names to custom values for
+          the ":parts:" directive.
+        default_nparts: Default value for the ":parts:" directive.
     """
 
     # Extract module name and class name from qualified class name
@@ -74,6 +82,11 @@ def insert_inheritance_diagram(clsqname):
     # Return immediately if class has no docstring
     if docstr is None:
         return
+    # Use class-specific parts or default parts directive value
+    if parts and clsqname in parts:
+        nparts = parts[clsqname]
+    else:
+        nparts = default_nparts
     # Split docstring into individual lines
     lines = docstr.splitlines()
     # Return immediately if there are no lines
@@ -86,16 +99,13 @@ def insert_inheritance_diagram(clsqname):
             break
     lines = lines[n:]
     # Define inheritance diagram insertion text
-    idstr = (
-        """
+    idstr = f"""
 
-        .. inheritance-diagram:: %s
-           :parts: 2
+        .. inheritance-diagram:: {clsname}
+           :parts: {nparts}
 
 
     """
-        % clsname
-    )
     # Insert inheritance diagram after summary line and whitespace line following it
     lines.insert(2, idstr)
     # Construct new docstring and attach it to the class

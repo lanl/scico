@@ -349,7 +349,7 @@ def test_except_incomplete_stats_obj():
         "train_loss": 1.4e-2,
         "train_snr": 3,
     }
-    with pytest.raises(Exception):
+    with pytest.raises(AttributeError):
         itstat_object.insert(itstat_insert_func(ArgumentStruct(**summary2)))
 
 

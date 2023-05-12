@@ -8,15 +8,17 @@ import pytest
 
 import scico.numpy as snp
 from scico.examples import (
-    create_3D_foam_phantom,
+    create_3d_foam_phantom,
     create_circular_phantom,
     create_cone,
+    create_conv_sparse_phantom,
     downsample_volume,
     epfl_deconv_data,
     phase_diff,
     rgb2gray,
     spnoise,
     tile_volume_slices,
+    ucb_diffusercam_data,
     volume_read,
 )
 
@@ -45,6 +47,15 @@ def test_epfl_deconv_data():
     psf0 = np.ones((32, 32), dtype=np.uint16)
     np.savez(os.path.join(temp_dir.name, "epfl_big_deconv_0.npz"), y=y0, psf=psf0)
     y, psf = epfl_deconv_data(0, cache_path=temp_dir.name)
+    assert np.allclose(y0, y) and np.allclose(psf0, psf)
+
+
+def test_ucb_diffusercam_data():
+    temp_dir = tempfile.TemporaryDirectory()
+    y0 = np.zeros((32, 32), dtype=np.uint16)
+    psf0 = np.ones((8, 32, 32), dtype=np.uint16)
+    np.savez(os.path.join(temp_dir.name, "ucb_diffcam_data.npz"), y=y0, psf=psf0)
+    y, psf = ucb_diffusercam_data(cache_path=temp_dir.name)
     assert np.allclose(y0, y) and np.allclose(psf0, psf)
 
 
@@ -104,9 +115,16 @@ def test_create_cone(img_shape):
     ),
 )
 @pytest.mark.parametrize("N_sphere", (3, 10, 20))
-def test_create_3D_foam_phantom(img_shape, N_sphere):
-    x_gt = create_3D_foam_phantom(img_shape, N_sphere)
+def test_create_3d_foam_phantom(img_shape, N_sphere):
+    x_gt = create_3d_foam_phantom(img_shape, N_sphere)
     assert x_gt.shape == img_shape
+
+
+def test_conv_sparse_phantom():
+    h, x = create_conv_sparse_phantom(64, 32)
+    assert h.shape == (3, 15, 15)
+    assert x.shape == (3, 64, 64)
+    assert np.sum(x > 0) == 32
 
 
 def test_spnoise():

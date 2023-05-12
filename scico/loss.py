@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2022 by SCICO Developers
+# Copyright (C) 2020-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -17,11 +17,10 @@ import jax
 
 import scico.numpy as snp
 from scico import functional, linop, operator
-from scico.numpy import BlockArray
+from scico.numpy import Array, BlockArray
 from scico.numpy.util import ensure_on_device, no_nan_divide
 from scico.scipy.special import gammaln  # type: ignore
 from scico.solver import cg
-from scico.typing import JaxArray
 
 
 def _loss_mul_div_wrapper(func):
@@ -51,7 +50,7 @@ class Loss(functional.Functional):
 
     def __init__(
         self,
-        y: Union[JaxArray, BlockArray],
+        y: Union[Array, BlockArray],
         A: Optional[Union[Callable, operator.Operator]] = None,
         f: Optional[functional.Functional] = None,
         scale: float = 1.0,
@@ -84,7 +83,7 @@ class Loss(functional.Functional):
             self.has_prox = False
         super().__init__()
 
-    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+    def __call__(self, x: Union[Array, BlockArray]) -> float:
         r"""Evaluate this loss at point :math:`\mb{x}`.
 
         Args:
@@ -97,8 +96,8 @@ class Loss(functional.Functional):
         return self.scale * self.f(self.A(x) - self.y)
 
     def prox(
-        self, v: Union[JaxArray, BlockArray], lam: float = 1, **kwargs
-    ) -> Union[JaxArray, BlockArray]:
+        self, v: Union[Array, BlockArray], lam: float = 1, **kwargs
+    ) -> Union[Array, BlockArray]:
         r"""Scaled proximal operator of loss function.
 
         Evaluate scaled proximal operator of this loss function, with
@@ -161,7 +160,7 @@ class SquaredL2Loss(Loss):
 
     def __init__(
         self,
-        y: Union[JaxArray, BlockArray],
+        y: Union[Array, BlockArray],
         A: Optional[Union[Callable, operator.Operator]] = None,
         scale: float = 0.5,
         W: Optional[linop.Diagonal] = None,
@@ -200,12 +199,12 @@ class SquaredL2Loss(Loss):
         if isinstance(self.A, linop.LinearOperator):
             self.has_prox = True
 
-    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+    def __call__(self, x: Union[Array, BlockArray]) -> float:
         return self.scale * snp.sum(self.W.diagonal * snp.abs(self.y - self.A(x)) ** 2)
 
     def prox(
-        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
-    ) -> Union[JaxArray, BlockArray]:
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[Array, BlockArray]:
         if not isinstance(self.A, linop.LinearOperator):
             raise NotImplementedError(
                 f"Method prox is not implemented for {type(self)} when A is {type(self.A)}; "
@@ -279,7 +278,7 @@ class PoissonLoss(Loss):
 
     def __init__(
         self,
-        y: Union[JaxArray, BlockArray],
+        y: Union[Array, BlockArray],
         A: Optional[Union[Callable, operator.Operator]] = None,
         scale: float = 0.5,
     ):
@@ -296,7 +295,7 @@ class PoissonLoss(Loss):
         #: Constant term, :math:`\ln(y!)`, in Poisson log likehood.
         self.const = gammaln(self.y + 1.0)
 
-    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+    def __call__(self, x: Union[Array, BlockArray]) -> float:
         Ax = self.A(x)
         return self.scale * snp.sum(Ax - self.y * snp.log(Ax) + self.const)
 
@@ -322,7 +321,7 @@ class SquaredL2AbsLoss(Loss):
 
     def __init__(
         self,
-        y: Union[JaxArray, BlockArray],
+        y: Union[Array, BlockArray],
         A: Optional[Union[Callable, operator.Operator]] = None,
         scale: float = 0.5,
         W: Optional[linop.Diagonal] = None,
@@ -353,12 +352,12 @@ class SquaredL2AbsLoss(Loss):
         if isinstance(self.A, linop.Identity) and snp.all(y >= 0):
             self.has_prox = True
 
-    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+    def __call__(self, x: Union[Array, BlockArray]) -> float:
         return self.scale * snp.sum(self.W.diagonal * snp.abs(self.y - snp.abs(self.A(x))) ** 2)
 
     def prox(
-        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
-    ) -> Union[JaxArray, BlockArray]:
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[Array, BlockArray]:
         if not self.has_prox:
             raise NotImplementedError(f"Method prox is not implemented.")
 
@@ -370,7 +369,7 @@ class SquaredL2AbsLoss(Loss):
         return x
 
 
-def _cbrt(x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
+def _cbrt(x: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
     """Compute the cube root of the argument.
 
     The two standard options for computing the cube root of an array are
@@ -391,9 +390,9 @@ def _cbrt(x: Union[JaxArray, BlockArray]) -> Union[JaxArray, BlockArray]:
 
 
 def _check_root(
-    x: Union[JaxArray, BlockArray],
-    p: Union[JaxArray, BlockArray],
-    q: Union[JaxArray, BlockArray],
+    x: Union[Array, BlockArray],
+    p: Union[Array, BlockArray],
+    q: Union[Array, BlockArray],
     tol: float = 1e-4,
 ):
     """Check the precision of a cubic equation solution.
@@ -418,8 +417,8 @@ def _check_root(
 
 
 def _dep_cubic_root(
-    p: Union[JaxArray, BlockArray], q: Union[JaxArray, BlockArray]
-) -> Union[JaxArray, BlockArray]:
+    p: Union[Array, BlockArray], q: Union[Array, BlockArray]
+) -> Union[Array, BlockArray]:
     r"""Compute a real root of a depressed cubic equation.
 
     A depressed cubic equation is one that can be written in the form
@@ -529,7 +528,7 @@ class SquaredL2SquaredAbsLoss(Loss):
 
     def __init__(
         self,
-        y: Union[JaxArray, BlockArray],
+        y: Union[Array, BlockArray],
         A: Optional[Union[Callable, operator.Operator]] = None,
         scale: float = 0.5,
         W: Optional[linop.Diagonal] = None,
@@ -560,14 +559,14 @@ class SquaredL2SquaredAbsLoss(Loss):
         if isinstance(self.A, linop.Identity) and snp.all(y >= 0):
             self.has_prox = True
 
-    def __call__(self, x: Union[JaxArray, BlockArray]) -> float:
+    def __call__(self, x: Union[Array, BlockArray]) -> float:
         return self.scale * snp.sum(
             self.W.diagonal * snp.abs(self.y - snp.abs(self.A(x)) ** 2) ** 2
         )
 
     def prox(
-        self, v: Union[JaxArray, BlockArray], lam: float = 1.0, **kwargs
-    ) -> Union[JaxArray, BlockArray]:
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[Array, BlockArray]:
         if not self.has_prox:
             raise NotImplementedError(f"Method prox is not implemented.")
 

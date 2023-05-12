@@ -13,7 +13,7 @@ BlockArray
 
 The class :class:`.BlockArray` provides a way to combine arrays of
 different shapes into a single object for use with other SCICO classes.
-A :class:`.BlockArray` consists of a list of :obj:`~jax.numpy.DeviceArray` objects,
+A :class:`.BlockArray` consists of a list of :class:`jax.Array` objects,
 which we refer to as blocks. A :class:`.BlockArray` differs from a list in
 that, whenever possible, :class:`.BlockArray` properties and methods
 (including unary and binary operators like +, -, \*, ...) automatically
@@ -93,26 +93,35 @@ For lists of the remaining wrapped functions, see
     >>> scico.scipy.special.functions  # doctest: +ELLIPSIS
     ('betainc', ...)
 
+Note that:
+ * Both :func:`scico.numpy.ravel` and :meth:`.BlockArray.ravel` return a
+   :class:`.BlockArray` with ravelled blocks rather than the concatenation
+   of these blocks as a single array.
+ * The functional and method versions of the "same" function differ in their
+   behavior, with the method version only applying the reduction within each
+   block, and the function version applying the reduction across all blocks.
+   For example, :func:`scico.numpy.sum` applied to a :class:`.BlockArray` with
+   two blocks returns a scalar value, while :meth:`.BlockArray.sum` returns a
+   :class:`.BlockArray` two scalar blocks.
+
 
 Motivating Example
 ------------------
 
-Consider a two-dimensional array :math:`\mb{x} \in \mbb{R}^{n \times m}`.
+The discrete differences of a two-dimensional array, :math:`\mb{x} \in
+\mbb{R}^{n \times m}`, in the horizontal and vertical directions can
+be represented by the arrays :math:`\mb{x}_h \in \mbb{R}^{n \times
+(m-1)}` and :math:`\mb{x}_v \in \mbb{R}^{(n-1) \times m}`
+respectively. While it is usually useful to consider the output of a
+difference operator as a single entity, we cannot combine these two
+arrays into a single array since they have different shapes. We could
+vectorize each array and concatenate the resulting vectors, leading to
+:math:`\mb{\bar{x}} \in \mbb{R}^{n(m-1) + m(n-1)}`, which can be
+stored as a one-dimensional array, but this makes it hard to access
+the individual components :math:`\mb{x}_h` and :math:`\mb{x}_v`.
 
-We compute the discrete differences of :math:`\mb{x}` in the horizontal
-and vertical directions, generating two new arrays: :math:`\mb{x}_h \in
-\mbb{R}^{n \times (m-1)}` and :math:`\mb{x}_v \in \mbb{R}^{(n-1)
-\times m}`.
-
-As these arrays are of different shapes, we cannot combine them into a
-single :class:`~numpy.ndarray`. Instead, we might vectorize each array and concatenate
-the resulting vectors, leading to :math:`\mb{\bar{x}} \in
-\mbb{R}^{n(m-1) + m(n-1)}`, which can be stored as a one-dimensional
-:class:`~numpy.ndarray`. Unfortunately, this makes it hard to access the individual
-components :math:`\mb{x}_h` and :math:`\mb{x}_v`.
-
-Instead, we can form a :class:`.BlockArray`: :math:`\mb{x}_B =
-[\mb{x}_h, \mb{x}_v]`
+Instead, we can construct a :class:`.BlockArray`, :math:`\mb{x}_B =
+[\mb{x}_h, \mb{x}_v]`:
 
 
   ::
@@ -140,7 +149,7 @@ Constructing a BlockArray
 -------------------------
 
 The recommended way to construct a :class:`.BlockArray` is by using the
-`snp.blockarray` function.
+:func:`snp.blockarray` function.
 
   ::
 
@@ -156,8 +165,8 @@ The recommended way to construct a :class:`.BlockArray` is by using the
      2
 
 While :func:`.snp.blockarray` will accept either :class:`~numpy.ndarray`\ s or
-:obj:`~jax.numpy.DeviceArray`\ s as input, :class:`~numpy.ndarray`\ s
-will be converted to :obj:`~jax.Array`\ s.
+:class:`~jax.Array`\ s as input, :class:`~numpy.ndarray`\ s will be converted to
+:class:`~jax.Array`\ s.
 
 
 Operating on a BlockArray

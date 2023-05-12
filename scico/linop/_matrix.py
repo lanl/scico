@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2022 by SCICO Developers
+# Copyright (C) 2020-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -22,7 +22,6 @@ import jax.numpy as jnp
 from jax.dtypes import result_type
 
 import scico.numpy as snp
-from scico.typing import JaxArray
 
 from ._diag import Identity
 from ._linop import LinearOperator
@@ -66,7 +65,7 @@ def _wrap_add_sub_matrix(func, op):
 class MatrixOperator(LinearOperator):
     """Linear operator implementing matrix multiplication."""
 
-    def __init__(self, A: JaxArray, input_cols: int = 0):
+    def __init__(self, A: snp.Array, input_cols: int = 0):
         """
         Args:
             A: Dense array. The action of the created
@@ -78,15 +77,15 @@ class MatrixOperator(LinearOperator):
                 (two-dimensional array), this parameter should specify
                 number of columns in the matrix.
         """
-        self.A: JaxArray  #: Dense array implementing this matrix
+        self.A: snp.Array  #: Dense array implementing this matrix
 
-        # if A is an ndarray, make sure it gets converted to a DeviceArray
+        # if A is an ndarray, make sure it gets converted to a jax array
         if isinstance(A, jnp.ndarray):
             self.A = A
         elif isinstance(A, np.ndarray):
             self.A = jax.device_put(A)  # TODO: ensure_on_device?
         else:
-            raise TypeError(f"Expected np.ndarray or DeviceArray, got {type(A)}.")
+            raise TypeError(f"Expected numpy or jax array, got {type(A)}.")
 
         # Can only do rank-2 arrays
         if A.ndim != 2:

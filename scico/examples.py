@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2022 by SCICO Developers
+# Copyright (C) 2021-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -12,7 +12,7 @@ import glob
 import os
 import tempfile
 import zipfile
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -20,11 +20,12 @@ import imageio.v2 as iio
 
 import scico.numpy as snp
 from scico import random, util
-from scico.typing import Array, JaxArray, Shape
+from scico.typing import Shape
+from scipy.io import loadmat
 from scipy.ndimage import zoom
 
 
-def rgb2gray(rgb: JaxArray) -> JaxArray:
+def rgb2gray(rgb: snp.Array) -> snp.Array:
     """Convert an RGB image (or images) to grayscale.
 
     Args:
@@ -38,7 +39,7 @@ def rgb2gray(rgb: JaxArray) -> JaxArray:
     return snp.sum(w * rgb, axis=2)
 
 
-def volume_read(path: str, ext: str = "tif") -> Array:
+def volume_read(path: str, ext: str = "tif") -> np.ndarray:
     """Read a 3D volume from a set of files in the specified directory.
 
     All files with extension `ext` (i.e. matching glob `*.ext`)
@@ -119,7 +120,7 @@ def get_epfl_deconv_data(channel: int, path: str, verbose: bool = False):  # pra
 
 def epfl_deconv_data(
     channel: int, verbose: bool = False, cache_path: Optional[str] = None
-) -> Array:
+) -> Tuple[np.ndarray, np.ndarray]:
     """Get deconvolution problem data from EPFL Biomedical Imaging Group.
 
     If the data has previously been downloaded, it will be retrieved from
@@ -135,17 +136,17 @@ def epfl_deconv_data(
     Returns:
        tuple: A tuple (y, psf) containing:
 
-           - **y** : (DeviceArray): Blurred channel data.
-           - **psf** : (DeviceArray): Channel psf.
+           - **y** : (np.ndarray): Blurred channel data.
+           - **psf** : (np.ndarray): Channel psf.
     """
 
     # set default cache path if not specified
-    if cache_path is None:
+    if cache_path is None:  # pragma: no cover
         cache_path = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples")
 
     # create cache directory and download data if not already present
     npz_file = os.path.join(cache_path, f"epfl_big_deconv_{channel}.npz")
-    if not os.path.isfile(npz_file):
+    if not os.path.isfile(npz_file):  # pragma: no cover
         if not os.path.isdir(cache_path):
             os.makedirs(cache_path)
         get_epfl_deconv_data(channel, path=cache_path, verbose=verbose)
@@ -157,7 +158,97 @@ def epfl_deconv_data(
     return y, psf
 
 
-def downsample_volume(vol: Array, rate: int) -> Array:
+def get_ucb_diffusercam_data(path: str, verbose: bool = False):  # pragma: no cover
+    """Download example data from UC Berkeley Waller Lab diffusercam project.
+
+    Download deconvolution problem data from UC Berkeley Waller Lab
+    diffusercam project.  The downloaded data is converted to `.npz`
+    format for convenient access via :func:`numpy.load`.  The
+    converted data is saved in a file `ucb_diffcam_data.npz.npz` in
+    the directory specified by `path`.
+    Args:
+        path: Directory in which converted data is saved.
+        verbose: Flag indicating whether to print status messages.
+    """
+
+    # data source URL and filenames
+    data_base_url = "https://github.com/Waller-Lab/DiffuserCam/blob/master/example_data/"
+    data_files = ["example_psfs.mat", "example_raw.png"]
+
+    # ensure path directory exists
+    if not os.path.isdir(path):
+        raise ValueError(f"Path {path} does not exist or is not a directory.")
+
+    # create temporary directory
+    temp_dir = tempfile.TemporaryDirectory()
+    # download data files into temporary directory
+    for data_file in data_files:
+        if verbose:
+            print(f"Downloading {data_file} from {data_base_url}")
+        data = util.url_get(data_base_url + data_file + "?raw=true")
+        f = open(os.path.join(temp_dir.name, data_file), "wb")
+        f.write(data.read())
+        f.close()
+        if verbose:
+            print("Download complete")
+
+    # load data, normalize it, and save as npz
+    y = iio.imread(os.path.join(temp_dir.name, "example_raw.png"))
+    y = y.astype(np.float32)
+    y -= 100.0
+    y /= y.max()
+    mat = loadmat(os.path.join(temp_dir.name, "example_psfs.mat"))
+    psf = mat["psf"].astype(np.float64)
+    psf -= 102.0
+    psf /= np.linalg.norm(psf, axis=(0, 1)).min()
+
+    # save as .npz
+    npz_file = os.path.join(path, "ucb_diffcam_data.npz")
+    if verbose:
+        print(f"Saving as {npz_file}")
+    np.savez(npz_file, y=y, psf=psf)
+
+
+def ucb_diffusercam_data(
+    verbose: bool = False, cache_path: Optional[str] = None
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Get example data from UC Berkeley Waller Lab diffusercam project.
+
+    If the data has previously been downloaded, it will be retrieved from
+    a local cache.
+
+    Args:
+        verbose: Flag indicating whether to print status messages.
+        cache_path: Directory in which downloaded data is cached. The
+           default is `~/.cache/scico/examples`, where `~` represents
+           the user home directory.
+
+    Returns:
+       tuple: A tuple (y, psf) containing:
+
+           - **y** : (np.ndarray): Measured image
+           - **psf** : (np.ndarray): Stack of psfs.
+    """
+
+    # set default cache path if not specified
+    if cache_path is None:  # pragma: no cover
+        cache_path = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples")
+
+    # create cache directory and download data if not already present
+    npz_file = os.path.join(cache_path, "ucb_diffcam_data.npz")
+    if not os.path.isfile(npz_file):  # pragma: no cover
+        if not os.path.isdir(cache_path):
+            os.makedirs(cache_path)
+        get_ucb_diffusercam_data(path=cache_path, verbose=verbose)
+
+    # load data and return y and psf arrays converted to float32
+    npz = np.load(npz_file)
+    y = npz["y"].astype(np.float32)
+    psf = npz["psf"].astype(np.float64)
+    return y, psf
+
+
+def downsample_volume(vol: snp.Array, rate: int) -> snp.Array:
     """Downsample a 3D array.
 
     Downsample a 3D array. If the volume dimensions can be divided by
@@ -186,7 +277,7 @@ def downsample_volume(vol: Array, rate: int) -> Array:
     return vol
 
 
-def tile_volume_slices(x: Array, sep_width: int = 10) -> Array:
+def tile_volume_slices(x: snp.Array, sep_width: int = 10) -> snp.Array:
     """Make an image with tiled slices from an input volume.
 
     Make an image with tiled `xy`, `xz`, and `yz` slices from an input
@@ -244,7 +335,7 @@ def tile_volume_slices(x: Array, sep_width: int = 10) -> Array:
     return out
 
 
-def create_cone(img_shape: Shape, center: Optional[List[float]] = None) -> Array:
+def create_cone(img_shape: Shape, center: Optional[List[float]] = None) -> snp.Array:
     """Compute a 2D map of the distance from a center pixel.
 
     Args:
@@ -271,7 +362,7 @@ def create_cone(img_shape: Shape, center: Optional[List[float]] = None) -> Array
 
 def create_circular_phantom(
     img_shape: Shape, radius_list: list, val_list: list, center: Optional[list] = None
-) -> Array:
+) -> snp.Array:
     """Construct a circular phantom with given radii and intensities.
 
     Args:
@@ -295,14 +386,14 @@ def create_circular_phantom(
     return img
 
 
-def create_3D_foam_phantom(
+def create_3d_foam_phantom(
     im_shape: Shape,
     N_sphere: int,
     r_mean: float = 0.1,
     r_std: float = 0.001,
     pad: float = 0.01,
     is_random: bool = False,
-) -> JaxArray:
+) -> snp.Array:
     """Construct a 3D phantom with random radii and centers.
 
     Args:
@@ -313,7 +404,7 @@ def create_3D_foam_phantom(
         r_std: Standard deviation of radius of sphere (normalized to 1
                 along each axis). Default 0.001.
         pad: Padding length (normalized to 1 along each axis). Default 0.01.
-        is_random: Flag used to controll randomness of phantom generation.
+        is_random: Flag used to control randomness of phantom generation.
                 If ``False``, random seed is set to 1 in order to make the
                 process deterministic. Default ``False``.
 
@@ -342,7 +433,50 @@ def create_3D_foam_phantom(
     return im
 
 
-def spnoise(img: Array, nfrac: float, nmin: float = 0.0, nmax: float = 1.0) -> Array:
+def create_conv_sparse_phantom(Nx: int, Nnz: int) -> Tuple[np.ndarray, np.ndarray]:
+    """Construct a disc dictionary and sparse coefficient maps.
+
+    Construct a disc dictionary and a corresponding set of sparse
+    coefficient maps for testing convolutional sparse coding algorithms.
+
+    Args:
+        Nx: Size of coefficient maps (3 x Nx x Nx).
+        Nnz: Number of non-zero coefficients across all coefficient maps.
+
+    Returns:
+        A tuple consisting of a stack of 2D filters and the coefficient
+           map array.
+    """
+
+    # constant parameters
+    M = 3
+    Nh = 7
+    e = 1
+
+    # create disc filters
+    h = np.zeros((M, 2 * Nh + 1, 2 * Nh + 1))
+    gr, gc = np.ogrid[-Nh : Nh + 1, -Nh : Nh + 1]
+    for m in range(M):
+        r = 2 * m + 3
+        d = np.sqrt(gr**2 + gc**2)
+        v = (np.clip(d, r - e, r + e) - (r - e)) / (2 * e)
+        v = 1.0 - v
+        h[m] = v
+
+    # create sparse random coefficient maps
+    np.random.seed(1234)
+    x = np.zeros((M, Nx, Nx))
+    idx0 = np.random.randint(0, M, size=(Nnz,))
+    idx1 = np.random.randint(0, Nx, size=(2, Nnz))
+    val = np.random.uniform(0, 5, size=(Nnz,))
+    x[idx0, idx1[0], idx1[1]] = val
+
+    return h, x
+
+
+def spnoise(
+    img: Union[np.ndarray, snp.Array], nfrac: float, nmin: float = 0.0, nmax: float = 1.0
+) -> Union[np.ndarray, snp.Array]:
     """Return image with salt & pepper noise imposed on it.
 
     Args:
@@ -368,7 +502,7 @@ def spnoise(img: Array, nfrac: float, nmin: float = 0.0, nmax: float = 1.0) -> A
     return imgn
 
 
-def phase_diff(x: Array, y: Array) -> Array:
+def phase_diff(x: snp.Array, y: snp.Array) -> snp.Array:
     """Distance between phase angles.
 
     Compute the distance between two arrays of phase angles, with

@@ -3,7 +3,7 @@
 Installing SCICO
 ================
 
-SCICO requires Python version 3.7 or later. (Version 3.9 is
+SCICO requires Python version 3.8 or later. (Version 3.9 is
 recommended as it is the version under which SCICO has been most
 thoroughly tested.) It is supported on both Linux and macOS, but is
 not currently supported on Windows due to the limited support for
@@ -62,7 +62,7 @@ a version with GPU support:
 
    ::
 
-      pip install -upgrade "jax[cuda]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
+      pip install --upgrade "jax[cuda]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
 
 
    but it may be necessary to explicitly specify the ``jaxlib``
@@ -71,7 +71,7 @@ a version with GPU support:
    version of CUDA older than 11.4, or CuDNN older than 8.2, in which
    case the command would be of the form ::
 
-      pip install -upgrade "jaxlib==0.4.2+cuda11.cudnn82" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
+      pip install --upgrade "jaxlib==0.4.2+cuda11.cudnn82" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
 
    with appropriate substitution of ``jaxlib``, CUDA, and CuDNN version numbers.
 

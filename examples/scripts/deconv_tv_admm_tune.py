@@ -10,7 +10,8 @@ Parameter Tuning for Image Deconvolution with TV Regularization (ADMM Solver)
 
 This example demonstrates the use of
 [scico.ray.tune](../_autosummary/scico.ray.tune.rst) to tune parameters
-for the companion [example script](deconv_tv_admm.rst).
+for the companion [example script](deconv_tv_admm.rst). The `ray.tune`
+function API is used in this example.
 
 This script is hard-coded to run on CPU only to avoid the large number of
 warnings that are emitted when GPU resources are requested but not available,
@@ -31,18 +32,16 @@ import os
 os.environ["JAX_PLATFORM_NAME"] = "cpu"
 os.environ["JAX_PLATFORMS"] = "cpu"
 
-import numpy as np
-
 import jax
 
 from xdesign import SiemensStar, discrete_phantom
 
 import scico.numpy as snp
 import scico.random
-import scico.ray as ray
 from scico import functional, linop, loss, metric, plot
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
-from scico.ray import tune
+from scico.ray import report, tune
+
 
 """
 Create a ground truth image.
@@ -66,22 +65,21 @@ Ax = A(x_gt)  # blurred image
 noise, key = scico.random.randn(Ax.shape, seed=0)
 y = Ax + σ * noise
 
-"""
-Put main arrays into ray object store.
-"""
-ray_x_gt, ray_psf, ray_y = ray.put(np.array(x_gt)), ray.put(np.array(psf)), ray.put(np.array(y))
-
 
 """
 Define performance evaluation function.
 """
 
 
-def eval_params(config, reporter):
+def eval_params(config, x_gt, psf, y):
+    """Parameter evaluation function. The `config` parameter is a
+    dict of specific parameters for evaluation of a single parameter
+    set (a pair of parameters in this case). The remaining parameters
+    are objects that are passed to the evaluation function via the
+    ray object store.
+    """
     # Extract solver parameters from config dict.
     λ, ρ = config["lambda"], config["rho"]
-    # Get main arrays from ray object store.
-    x_gt, psf, y = ray.get([ray_x_gt, ray_psf, ray_y])
     # Put main arrays on jax device.
     x_gt, psf, y = jax.device_put([x_gt, psf, y])
     # Set up problem to be solved.
@@ -102,7 +100,7 @@ def eval_params(config, reporter):
     # Perform 50 iterations, reporting performance to ray.tune every 10 iterations.
     for step in range(5):
         x_admm = solver.solve()
-        reporter(psnr=float(metric.psnr(x_gt, x_admm)))
+        report({"psnr": float(metric.psnr(x_gt, x_admm))})
 
 
 """
@@ -115,22 +113,23 @@ resources = {"cpu": 4, "gpu": 0}  # cpus per trial, gpus per trial
 """
 Run parameter search.
 """
-analysis = tune.run(
-    eval_params,
+tuner = tune.Tuner(
+    tune.with_parameters(eval_params, x_gt=x_gt, psf=psf, y=y),
+    param_space=config,
+    resources=resources,
     metric="psnr",
     mode="max",
-    num_samples=100,
-    config=config,
-    resources_per_trial=resources,
-    hyperopt=True,
-    verbose=True,
+    num_samples=100,  # perform 100 parameter evaluations
 )
+results = tuner.fit()
+
 
 """
 Display best parameters and corresponding performance.
 """
-best_config = analysis.get_best_config(metric="psnr", mode="max")
-print(f"Best PSNR: {analysis.get_best_trial().last_result['psnr']:.2f} dB")
+best_result = results.get_best_result()
+best_config = best_result.config
+print(f"Best PSNR: {best_result.metrics['psnr']:.2f} dB")
 print("Best config: " + ", ".join([f"{k}: {v:.2e}" for k, v in best_config.items()]))
 
 
@@ -140,11 +139,12 @@ proportional to number of iterations run at each parameter pair. The best
 point in the parameter space is indicated in red.
 """
 fig = plot.figure(figsize=(8, 8))
-for t in analysis.trials:
-    n = t.metric_analysis["training_iteration"]["max"]
+trials = results.get_dataframe()
+for t in trials.iloc:
+    n = t["training_iteration"]
     plot.plot(
-        t.config["lambda"],
-        t.config["rho"],
+        t["config/lambda"],
+        t["config/rho"],
         ptyp="loglog",
         lw=0,
         ms=(0.5 + 1.5 * n),
@@ -178,9 +178,9 @@ Plot parameter values visited during parameter search and corresponding
 reconstruction PSNRs.The best point in the parameter space is indicated
 in red.
 """
-𝜌 = [t.config["rho"] for t in analysis.trials]
-𝜆 = [t.config["lambda"] for t in analysis.trials]
-psnr = [t.metric_analysis["psnr"]["max"] for t in analysis.trials]
+𝜌 = [t["config/rho"] for t in trials.iloc]
+𝜆 = [t["config/lambda"] for t in trials.iloc]
+psnr = [t["psnr"] for t in trials.iloc]
 minpsnr = min(max(psnr), 18.0)
 𝜌, 𝜆, psnr = zip(*filter(lambda x: x[2] >= minpsnr, zip(𝜌, 𝜆, psnr)))
 fig, ax = plot.subplots(figsize=(10, 8))
