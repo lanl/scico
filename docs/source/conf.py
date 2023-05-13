@@ -67,7 +67,7 @@ rootpath = os.path.abspath("../..")
 sys.path.insert(0, rootpath)
 
 # If your documentation needs a minimal Sphinx version, state it here.
-needs_sphinx = "4.2.0"
+needs_sphinx = "5.0.0"
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -185,7 +185,7 @@ exclude_patterns = [
     "tmp",
     "*.tmp.*",
     "*.tmp",
-    "index.ipynb",
+    "examples",
     "exampledepend.rst",
     "blockarray.rst",
     "operator.rst",
@@ -204,12 +204,12 @@ pygments_style = "sphinx"
 
 # The theme to use for HTML and HTML Help pages. See the documentation for
 # a list of builtin themes.
-# html_theme = "sphinx_rtd_theme"
-html_theme = "faculty-sphinx-theme"
+# html_theme = "python_docs_theme"
+html_theme = "furo"
+
 
 html_theme_options = {
-    "includehidden": False,
-    "logo_only": True,
+    "sidebar_hide_name": True,
 }
 
 
