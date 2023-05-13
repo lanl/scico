@@ -207,21 +207,23 @@ pygments_style = "sphinx"
 # html_theme = "python_docs_theme"
 html_theme = "furo"
 
-
 html_theme_options = {
     "sidebar_hide_name": True,
 }
 
+if html_theme == "python_docs_theme":
+    html_sidebars = {
+        "**": ["globaltoc.html", "sourcelink.html", "searchbox.html"],
+    }
+
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-# html_logo = None
 html_logo = "_static/logo.svg"
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs. This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-# html_favicon = None
 html_favicon = "_static/scico.ico"
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -328,7 +330,10 @@ texinfo_documents = [
 
 if on_rtd:
     print("Building on ReadTheDocs\n")
-    print("Current working directory: {}".format(os.path.abspath(os.curdir)))
+    print("  current working directory: {}".format(os.path.abspath(os.curdir)))
+    print("  rootpath: %s" % rootpath)
+    print("  confpath: %s" % confpath)
+
     import numpy as np
 
     print("NumPy version: %s" % np.__version__)
@@ -336,9 +341,6 @@ if on_rtd:
 
     matplotlib.use("agg")
 
-
-print("rootpath: %s" % rootpath)
-print("confpath: %s" % confpath)
 
 # Sort members by type
 autodoc_default_options = {
