@@ -186,11 +186,7 @@ exclude_patterns = [
     "*.tmp.*",
     "*.tmp",
     "examples",
-    "exampledepend.rst",
-    "blockarray.rst",
-    "operator.rst",
-    "functional.rst",
-    "optimizer.rst",
+    "include",
 ]
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
