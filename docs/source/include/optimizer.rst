@@ -3,31 +3,6 @@
 Optimization Algorithms
 =======================
 
-
-.. raw:: html
-
-    <style type='text/css'>
-    div.document ul blockquote {
-       margin-bottom: 8px !important;
-    }
-    div.document li > p {
-       margin-bottom: 4px !important;
-    }
-    div.document ul > li {
-      list-style: square outside !important;
-      margin-left: 1em !important;
-      margin-bottom: 1em !important;
-    }
-    section {
-      padding-bottom: 1em;
-    }
-    ul {
-      margin-bottom: 1em;
-    }
-    </style>
-
-
-
 ADMM
 ----
 
@@ -84,11 +59,11 @@ Subproblem Solvers
 The most computational expensive component of the ADMM iterations is typically
 the :math:`\mb{x}`-update,
 
-    .. math::
-       :label: eq:admm_x_step
+.. math::
+   :label: eq:admm_x_step
 
-       \argmin_{\mb{x}} \; f(\mb{x}) + \sum_i \frac{\rho_i}{2}
-       \norm{\mb{z}^{(k)}_i - \mb{u}^{(k)}_i - C_i \mb{x}}_2^2 \;.
+   \argmin_{\mb{x}} \; f(\mb{x}) + \sum_i \frac{\rho_i}{2}
+   \norm{\mb{z}^{(k)}_i - \mb{u}^{(k)}_i - C_i \mb{x}}_2^2 \;.
 
 
 The available solvers for this problem are:
@@ -126,17 +101,17 @@ Linearized ADMM algorithm :cite:`yang-2012-linearized`
 :cite:`parikh-2014-proximal` (Sec. 4.4.2) is an algorithm for solving
 problems of the form
 
-    .. math::
-       \argmin_{\mb{x}} \; f(\mb{x}) + g(C \mb{x}) \;,
+.. math::
+   \argmin_{\mb{x}} \; f(\mb{x}) + g(C \mb{x}) \;,
 
 where :math:`f` and :math:`g` are are convex (but not necessarily smooth)
 functions. Although convergence per iteration is typically significantly
 worse than that of ADMM, the :math:`\mb{x}`-update,
 
-    .. math::
+.. math::
 
-       \mathrm{prox}_{\mu f} \left( \mb{x}^{(k)} - (\mu / \nu) C^T
-       \left(C \mb{x}^{(k)} - \mb{z}^{(k)} + \mb{u}^{(k)} \right) \right)
+   \mathrm{prox}_{\mu f} \left( \mb{x}^{(k)} - (\mu / \nu) C^T
+   \left(C \mb{x}^{(k)} - \mb{z}^{(k)} + \mb{u}^{(k)} \right) \right)
 
 is can be much cheaper than that of ADMM, giving Linearized ADMM competitive
 time convergence performance.
@@ -155,8 +130,8 @@ The Primal–Dual Hybrid Gradient (PDHG) algorithm
 :cite:`esser-2010-general` :cite:`chambolle-2010-firstorder`
 :cite:`pock-2011-diagonal` solves problems of the form
 
-    .. math::
-       \argmin_{\mb{x}} \; f(\mb{x}) + g(C \mb{x}) \;,
+.. math::
+   \argmin_{\mb{x}} \; f(\mb{x}) + g(C \mb{x}) \;,
 
 where :math:`f` and :math:`g` are are convex (but not necessarily smooth)
 functions. The algorithm has similar advantages over ADMM to those of Linearized ADMM, but typically exhibits better convergence properties.

@@ -3,34 +3,6 @@
 Contributing
 ============
 
-.. raw:: html
-
-    <style type='text/css'>
-    div.document ul blockquote {
-       margin-bottom: 8px !important;
-    }
-    div.document li > p {
-       margin-bottom: 4px !important;
-    }
-    div.document ul > li {
-      list-style: square outside !important;
-      margin-left: 1em !important;
-    }
-    div.highlight-default.notranslate {
-      margin-bottom: 8px !important;
-    }
-    section {
-      padding-bottom: 1em;
-    }
-    ul {
-      margin-bottom: 1em;
-    }
-    p {
-      margin-bottom: 8px !important;
-    }
-    </style>
-
-
 Contributions to SCICO are welcome. Before starting work, please
 contact the maintainers, either via email or the GitHub issue system,
 to discuss the relevance of your contribution and the most appropriate

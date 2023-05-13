@@ -23,14 +23,14 @@ In SCICO, this linear operator will return a :class:`.BlockArray` with the horiz
 stored as blocks. Letting :math:`y = \mb{A} x`, we have ``y.shape = ((n, m-1), (n-1, m))``
 and
 
-   ::
+::
 
-      A.input_shape = (n, m)
-      A.output_shape = ((n, m-1), (n-1, m)], (n, m))
-      A.shape = ( ((n, m-1), (n-1, m)), (n, m))   # (output_shape, input_shape)
-      A.input_size = n*m
-      A.output_size = n*(n-1)*m*(m-1)
-      A.matrix_shape = (n*(n-1)*m*(m-1), n*m)    # (output_size, input_size)
+    A.input_shape = (n, m)
+    A.output_shape = ((n, m-1), (n-1, m)], (n, m))
+    A.shape = ( ((n, m-1), (n-1, m)), (n, m))   # (output_shape, input_shape)
+    A.input_size = n*m
+    A.output_size = n*(n-1)*m*(m-1)
+    A.matrix_shape = (n*(n-1)*m*(m-1), n*m)    # (output_size, input_size)
 
 
 Operator Calculus
@@ -65,23 +65,23 @@ Defining A New Operator
 To define a new operator,
 pass a callable to the :class:`.Operator` constructor:
 
-  ::
+::
 
-      A = Operator(input_shape=(32,),
-                   eval_fn = lambda x: 2 * x)
+    A = Operator(input_shape=(32,),
+                 eval_fn = lambda x: 2 * x)
 
 
 Or use subclassing:
 
-  ::
+::
 
-     >>> from scico.operator import Operator
-     >>> class MyOp(Operator):
-     ...
-     ...     def _eval(self, x):
-     ...         return 2 * x
+   >>> from scico.operator import Operator
+   >>> class MyOp(Operator):
+   ...
+   ...     def _eval(self, x):
+   ...         return 2 * x
 
-     >>> A = MyOp(input_shape=(32,))
+   >>> A = MyOp(input_shape=(32,))
 
 At a minimum, the ``_eval`` function must be overridden.
 If either ``output_shape`` or ``output_dtype`` are unspecified, they are determined by evaluating
@@ -93,9 +93,9 @@ Linear Operators
 
 Linear operators are those for which
 
-  .. math::
+.. math::
 
-    H(a \mb{x} + b \mb{y}) = a H(\mb{x}) + b H(\mb{y}).
+   H(a \mb{x} + b \mb{y}) = a H(\mb{x}) + b H(\mb{y}).
 
 SCICO represents linear operators as instances of the class :class:`.LinearOperator`.
 While finite-dimensional linear operators
@@ -194,22 +194,21 @@ Defining A New Linear Operator
 To define a new linear operator,
 pass a callable to the :class:`.LinearOperator` constructor
 
-  ::
+::
 
-     >>> from scico.linop import LinearOperator
-     >>> A = LinearOperator(input_shape=(32,),
-     ...       eval_fn = lambda x: 2 * x)
-
+   >>> from scico.linop import LinearOperator
+   >>> A = LinearOperator(input_shape=(32,),
+   ...       eval_fn = lambda x: 2 * x)
 
 Or, use subclassing:
 
-  ::
+::
 
-     >>> class MyLinearOperator(LinearOperator):
-     ...    def _eval(self, x):
-     ...        return 2 * x
+   >>> class MyLinearOperator(LinearOperator):
+   ...    def _eval(self, x):
+   ...        return 2 * x
 
-     >>> A = MyLinearOperator(input_shape=(32,))
+   >>> A = MyLinearOperator(input_shape=(32,))
 
 At a minimum, the ``_eval`` method must be overridden.
 If the ``_adj`` method is not overriden, the adjoint is determined using :func:`scico.linear_adjoint`.
