@@ -1,8 +1,25 @@
+/* furo theme customization */
+
+.sidebar-drawer {
+  width: fit-content !important;
+}
+
+.main > .content {
+  width: fit-content !important;
+  max-width: 80em;
+}
+
+.highlight {
+  background: #f0ffe8;
+}
+
+
 /* Code display section */
 
 div.doctest.highlight-default {
   background-color: #f9f9f4;
 }
+
 
 /* Style for autosummary API docs */
 
