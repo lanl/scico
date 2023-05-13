@@ -5,6 +5,7 @@
 }
 
 .main > .content {
+  min-width: 75%;
   width: fit-content !important;
   max-width: 80em;
 }
