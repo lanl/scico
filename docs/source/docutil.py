@@ -55,6 +55,46 @@ def package_classes(package):
     return classes
 
 
+def get_text_indentation(text, skiplines=0):
+    """Compute the leading whitespace indentation in a block of text.
+
+    Args:
+        text: A block of text as a string.
+
+    Returns:
+        Indentation length.
+    """
+    min_indent = len(text)
+    lines = text.splitlines()
+    if len(lines) > skiplines:
+        lines = lines[skiplines:]
+    else:
+        return None
+    for line in lines:
+        if len(line) > 0:
+            indent = len(line) - len(line.lstrip())
+            if indent < min_indent:
+                min_indent = indent
+    return min_indent
+
+
+def add_text_indentation(text, indent):
+    """Insert leading whitespace into a block of text.
+
+    Args:
+        text: A block of text as a string.
+        indent: Number of leading spaces to insert on each line.
+
+    Returns:
+        Text with additional indentation.
+    """
+    lines = text.splitlines()
+    for n, line in enumerate(lines):
+        if len(line) > 0:
+            lines[n] = (" " * indent) + line
+    return "\n".join(lines)
+
+
 def insert_inheritance_diagram(clsqname, parts=None, default_nparts=2):
     """Insert an inheritance diagram into a class docstring.
 
@@ -101,11 +141,14 @@ def insert_inheritance_diagram(clsqname, parts=None, default_nparts=2):
     # Define inheritance diagram insertion text
     idstr = f"""
 
-        .. inheritance-diagram:: {clsname}
-           :parts: {nparts}
+    .. inheritance-diagram:: {clsname}
+       :parts: {nparts}
 
 
     """
+    docstr_indent = get_text_indentation(docstr, skiplines=1)
+    if docstr_indent is not None and docstr_indent > 4:
+        idstr = add_text_indentation(idstr, docstr_indent - 4)
     # Insert inheritance diagram after summary line and whitespace line following it
     lines.insert(2, idstr)
     # Construct new docstring and attach it to the class
