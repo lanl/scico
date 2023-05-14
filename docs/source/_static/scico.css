@@ -14,6 +14,12 @@
   background: #f0ffe8;
 }
 
+.sidebar-brand-text {
+  font-size: 1.0rem !important;
+  text-align: center;
+  padding-top: 0.5em;
+}
+
 
 /* Code display section */
 

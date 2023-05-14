@@ -204,7 +204,7 @@ pygments_style = "sphinx"
 html_theme = "furo"
 
 html_theme_options = {
-    "sidebar_hide_name": True,
+    # "sidebar_hide_name": True,
 }
 
 if html_theme == "python_docs_theme":
