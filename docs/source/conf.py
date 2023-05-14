@@ -189,6 +189,14 @@ exclude_patterns = [
     "include",
 ]
 
+
+# napoleon_include_init_with_doc = True
+napoleon_use_ivar = True
+napoleon_use_rtype = False
+
+# See https://github.com/sphinx-doc/sphinx/issues/9119
+# napoleon_custom_sections = [("Returns", "params_style")]
+
 # If true, '()' will be appended to :func: etc. cross-reference text.
 add_function_parentheses = False
 
@@ -275,13 +283,6 @@ intersphinx_mapping = {
 }
 # Added timeout due to periodic scipy.org down time
 # intersphinx_timeout = 30
-
-# napoleon_include_init_with_doc = True
-napoleon_use_ivar = True
-napoleon_use_rtype = False
-
-# See https://github.com/sphinx-doc/sphinx/issues/9119
-# napoleon_custom_sections = [("Returns", "params_style")]
 
 
 graphviz_output_format = "svg"
