@@ -24,71 +24,76 @@ div.doctest.highlight-default {
 
 /* Style for autosummary API docs */
 
-dl.field-list.simple {
+[data-theme=light] dl.field-list.simple {
   background-color: #f5f5f5;
   border-radius: 4px;
 }
 
-dl.field-list.simple > dt.field-odd {
+[data-theme=light] dl.field-list.simple > dt.field-odd {
   background-color: #f2f2f2;
   border-radius: 4px;
 }
 
-dl.field-list.simple > dt.field-even {
+[data-theme=light] dl.field-list.simple > dt.field-even {
   background-color: #f2f2f2;
   border-radius: 4px;
 }
 
-dl.py.data {
+[data-theme=light] dl.py.data {
   background-color: #fdfafa;
   border-radius: 4px;
 }
 
-dl.py.data > dt {
+[data-theme=light] dl.py.data > dt {
   border-radius: 4px;
 }
 
-dl.py.attribute {
+[data-theme=light] dl.py.attribute {
   background-color: #fdfafa;
   border-radius: 4px;
 }
 
-dl.py.attribute > dt {
+[data-theme=light] dl.py.attribute > dt {
   border-radius: 4px;
 }
 
-dl.py.function {
+[data-theme=light] dl.py.function {
   background-color: #fdfafa;
   border-radius: 4px;
 }
 
-dl.py.function > dt {
+[data-theme=light] dl.py.function > dt {
   border-radius: 4px;
 }
 
-dl.py.class {
+[data-theme=light] dl.py.function blockquote {
+  background-color: #f5f5f5;
+  border-left: 0px;
+}
+
+[data-theme=light] dl.py.class {
   background-color: #fdfafa;
   border-radius: 4px;
 }
 
-dl.py.class > dt {
+[data-theme=light] dl.py.class > dt {
   border-radius: 4px;
 }
 
-dl.py.method {
+[data-theme=light] dl.py.method {
   background-color: #f6f6f6;
   border-radius: 4px;
 }
 
-dl.py.method > dt {
+[data-theme=light] dl.py.method > dt {
   border-radius: 4px;
 }
 
-dl.py.property {
+[data-theme=light] dl.py.property {
   background-color: #f6f6f6;
   border-radius: 4px;
 }
 
-dl.py.property > dt {
+[data-theme=light] dl.py.property > dt {
   border-radius: 4px;
 }
