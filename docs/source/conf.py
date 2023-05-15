@@ -383,6 +383,8 @@ autoclass_content = "both"
 def typehints_formatter_function(annotation, config):
     markup = {
         DType: ":obj:`~scico.typing.DType`",
+        # Compound types involving DType must be added here to avoid their DType
+        # component being expanded in the docs.
         Optional[DType]: ":obj:`~typing.Optional`\ [\ :obj:`~scico.typing.DType`\ ]",
         Union[DType, Sequence[DType]]: (
             ":obj:`~typing.Union`\ [\ :obj:`~scico.typing.DType`\ , "
