@@ -92,7 +92,7 @@ specific dependencies by running
 
 ::
 
-   pip install -r docs_requirements.txt
+   pip install -r docs/docs_requirements.txt
 
 Then, a local copy of the documentation can be built from the
 respository root directory by running
