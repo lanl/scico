@@ -51,7 +51,7 @@ class BiConvolve(Operator):
                 correspond to a :class:`.`BlockArray` with two blocks of
                 equal ndims.
             input_dtype: `dtype` for input argument. Defaults to
-                ``float32``.
+                :attr:`~numpy.float32`.
             mode:  A string indicating the size of the output. One of
                 "full", "valid", "same". Defaults to "full".
             jit: If ``True``, jit the evaluation of this

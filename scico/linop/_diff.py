@@ -61,9 +61,7 @@ class FiniteDifference(VerticalStack):
         Args:
             input_shape: Shape of input array.
             input_dtype: `dtype` for input argument. Defaults to
-                ``float32``. If :class:`LinearOperator` implements
-                complex-valued operations, this must be ``complex64`` for
-                proper adjoint and gradient calculation.
+                :attr:`~numpy.float32`.
             axes: Axis or axes over which to apply finite difference
                 operator. If not specified, or ``None``, differences are
                 evaluated along all axes.
@@ -179,9 +177,7 @@ class SingleAxisFiniteDifference(LinearOperator):
         Args:
             input_shape: Shape of input array.
             input_dtype: `dtype` for input argument. Defaults to
-                ``float32``. If :class:`LinearOperator` implements
-                complex-valued operations, this must be ``complex64`` for
-                proper adjoint and gradient calculation.
+                :attr:`~numpy.float32`.
             axis: Axis over which to apply finite difference operator.
             prepend: Flag indicating handling of the left/top/etc.
                 boundary. If ``None``, there is no boundary extension.
