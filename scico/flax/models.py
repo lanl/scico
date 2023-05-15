@@ -50,7 +50,7 @@ class DnCNNNet(Module):
         num_filters: Number of filters in the convolutional layers.
         kernel_size: Size of the convolution filters. Default: (3, 3).
         strides: Convolution strides. Default: (1, 1).
-        dtype: Output type. Default: ``jnp.float32``.
+        dtype: Output dtype. Default: :attr:`~numpy.float32`.
         act: Class of activation function to apply. Default: `nn.relu`.
     """
 
@@ -132,7 +132,7 @@ class ResNet(Module):
             processing.
         kernel_size: Size of the convolution filters. Default: 3x3.
         strides: Convolution strides. Default: 1x1.
-        dtype: Output type. Default: ``jnp.float32``.
+        dtype: Output dtype. Default: :attr:`~numpy.float32`.
     """
 
     depth: int
@@ -206,7 +206,7 @@ class ConvBNNet(Module):
             processing.
         kernel_size: Size of the convolution filters. Default: 3x3.
         strides: Convolution strides. Default: 1x1.
-        dtype: Output type. Default: ``jnp.float32``.
+        dtype: Output dtype. Default: :attr:`~numpy.float32`.
     """
 
     depth: int
@@ -278,7 +278,7 @@ class UNet(Module):
         window_shape: Window for reduction for pooling and downsampling.
             Default: 2x2.
         upsampling: Factor for expanding. Default: 2.
-        dtype: Output type. Default: ``jnp.float32``.
+        dtype: Output dtype. Default: :attr:`~numpy.float32`.
     """
 
     depth: int
