@@ -235,18 +235,8 @@ def broadcast_nested_shapes(
         A (possibly nested) shape tuple.
 
     Example:
-        >>> broadcast_nested_shape(
-                (
-                    (1, 1, 3),
-                    (2, 3, 4)
-                ),
-                    (3,),
-                    (2, 1, 4)
-                )
-        (
-            (1, 1, 3),
-            (2, 3, 4)
-        )
+        >>> broadcast_nested_shapes(((1, 1, 3), (2, 3, 4)), ((3,), (2, 1, 4)))
+        ((1, 1, 3), (2, 3, 4))
     """
     if not is_nested(shape_a) and not is_nested(shape_b):
         return snp.broadcast_shapes(shape_a, shape_b)
