@@ -504,6 +504,8 @@ The following components require the recommended markup taken from the
   rendered as ``None``, ``True``).
 - Types:
   Should be written between double back-ticks (e.g. \`\`int\`\`, rendered as ``int``).
+  NumPy dtypes, however, should be written using cross-reference syntax, e.g.
+  \:attr\:\`~numpy.float32\` for :attr:`~numpy.float32`.
 
 Other components can use \*italics\*, \*\*bold\*\*, and \`\`monospace\`\`
 (respectively rendered as *italics*, **bold**, and ``monospace``) if needed, but
