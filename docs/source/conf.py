@@ -73,7 +73,7 @@ rootpath = os.path.abspath("../..")
 sys.path.insert(0, rootpath)
 
 # If your documentation needs a minimal Sphinx version, state it here.
-needs_sphinx = "4.2.0"
+needs_sphinx = "5.0.0"
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -193,13 +193,17 @@ exclude_patterns = [
     "tmp",
     "*.tmp.*",
     "*.tmp",
-    "index.ipynb",
-    "exampledepend.rst",
-    "blockarray.rst",
-    "operator.rst",
-    "functional.rst",
-    "optimizer.rst",
+    "examples",
+    "include",
 ]
+
+
+# napoleon_include_init_with_doc = True
+napoleon_use_ivar = True
+napoleon_use_rtype = False
+
+# See https://github.com/sphinx-doc/sphinx/issues/9119
+# napoleon_custom_sections = [("Returns", "params_style")]
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 add_function_parentheses = False
@@ -212,24 +216,26 @@ pygments_style = "sphinx"
 
 # The theme to use for HTML and HTML Help pages. See the documentation for
 # a list of builtin themes.
-# html_theme = "sphinx_rtd_theme"
-html_theme = "faculty-sphinx-theme"
+# html_theme = "python_docs_theme"
+html_theme = "furo"
 
 html_theme_options = {
-    "includehidden": False,
-    "logo_only": True,
+    # "sidebar_hide_name": True,
 }
+
+if html_theme == "python_docs_theme":
+    html_sidebars = {
+        "**": ["globaltoc.html", "sourcelink.html", "searchbox.html"],
+    }
 
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-# html_logo = None
 html_logo = "_static/logo.svg"
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs. This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-# html_favicon = None
 html_favicon = "_static/scico.ico"
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -286,23 +292,21 @@ intersphinx_mapping = {
 # Added timeout due to periodic scipy.org down time
 # intersphinx_timeout = 30
 
-# napoleon_include_init_with_doc = True
-napoleon_use_ivar = True
-napoleon_use_rtype = False
-
-# See https://github.com/sphinx-doc/sphinx/issues/9119
-# napoleon_custom_sections = [("Returns", "params_style")]
-
 
 graphviz_output_format = "svg"
 inheritance_graph_attrs = dict(rankdir="LR", fontsize=9, ratio="compress", bgcolor="transparent")
+inheritance_edge_attrs = dict(
+    color='"#2962ffff"',
+)
 inheritance_node_attrs = dict(
     shape="box",
     fontsize=9,
     height=0.4,
     margin='"0.08, 0.03"',
     style='"rounded,filled"',
-    fillcolor='"#f4f4ffff"',
+    color='"#2962ffff"',
+    fontcolor='"#2962ffff"',
+    fillcolor='"#f0f0f8b0"',
 )
 
 
@@ -336,17 +340,16 @@ texinfo_documents = [
 
 if on_rtd:
     print("Building on ReadTheDocs\n")
-    print("Current working directory: {}".format(os.path.abspath(os.curdir)))
+    print("  current working directory: {}".format(os.path.abspath(os.curdir)))
+    print("  rootpath: %s" % rootpath)
+    print("  confpath: %s" % confpath)
+
     import numpy as np
 
     print("NumPy version: %s" % np.__version__)
     import matplotlib
 
     matplotlib.use("agg")
-
-print("Sphinx paths:")
-print(f"  rootpath: {rootpath}")
-print(f"  confpath: {confpath}")
 
 
 autodoc_default_options = {

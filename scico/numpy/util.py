@@ -215,7 +215,6 @@ def is_nested(x: Any) -> bool:
         ``True`` if `x` is a list/tuple containing at least one
         list/tuple, ``False`` otherwise.
 
-
     Example:
         >>> is_nested([1, 2, 3])
         False

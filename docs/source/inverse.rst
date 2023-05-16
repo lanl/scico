@@ -1,29 +1,6 @@
 Inverse Problems
 ================
 
-
-.. raw:: html
-
-    <style type='text/css'>
-    div.document ul blockquote {
-       margin-bottom: 8px !important;
-    }
-    div.document li > p {
-       margin-bottom: 4px !important;
-    }
-    div.document ul > li {
-      list-style: square outside !important;
-      margin-left: 1em !important;
-    }
-    section {
-      padding-bottom: 1em;
-    }
-    ul {
-      margin-bottom: 1em;
-    }
-    </style>
-
-
 In traditional imaging, the burden of image formation is placed on
 physical components, such as a lens, with the resulting image being
 taken from the sensor with minimal processing. In computational

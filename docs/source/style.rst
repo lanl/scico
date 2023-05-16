@@ -4,27 +4,6 @@
 Style Guide
 ===========
 
-.. raw:: html
-
-    <style type='text/css'>
-    div.document ul blockquote {
-       margin-bottom: 8px !important;
-    }
-    div.document li > p {
-       margin-bottom: 4px !important;
-    }
-    div.document li {
-      list-style: square outside !important;
-      margin-left: 1em !important;
-    }
-    section {
-      padding-bottom: 1em;
-    }
-    ul {
-      margin-bottom: 1em;
-    }
-    </style>
-
 
 Overview
 --------
@@ -59,7 +38,7 @@ interface for functions or methods.
 Naming
 ------
 
-We follow the `Google naming conventions <https://google.github.io/styleguide/pyguide.html#3164-guidelines-derived-from-guidos-recommendations>`_ listed here:
+We follow the `Google naming conventions <https://google.github.io/styleguide/pyguide.html#3164-guidelines-derived-from-guidos-recommendations>`_:
 
 .. list-table:: Naming Conventions
    :widths: 20 20
@@ -105,26 +84,24 @@ Example:
 
 .. code:: Python
 
-    fldln = 5 # field length
+   fldln = 5 # field length
 
 This could be improved by using the descriptive variable ``field_len``.
 
 Things to avoid:
 
 - Single character names except for the following special cases:
-
-   - counters or iterators (``i``, ``j``);
-   - `e` as an exception identifier (``Exception e``);
-   - `f` as a file in ``with`` statements;
-   - mathematical notation in which a reference to the paper or
-     algorithm with said notation is preferred if not clear from the
-     intended purpose.
+    - counters or iterators (``i``, ``j``);
+    - `e` as an exception identifier (``Exception e``);
+    - `f` as a file in ``with`` statements;
+    - mathematical notation in which a reference to the paper or
+      algorithm with said notation is preferred if not clear from the
+      intended purpose.
 
 - Trailing underscores unless the component is meant to be protected or private:
-
-   - protected: Use a single underscore, ``_``, for protected access; and
-   - pseudo-private: Use double underscores, ``__``, for
-     pseudo-private access via name mangling.
+    - protected: Use a single underscore, ``_``, for protected access; and
+    - pseudo-private: Use double underscores, ``__``, for
+      pseudo-private access via name mangling.
 
 
 Displaying and Printing Strings
@@ -137,9 +114,9 @@ syntax. For example:
 
 .. code:: Python
 
-    state = "active"
-    print("The state is %s" % state) # Not preferred
-    print(f"The state is {state}")   # Preferred
+   state = "active"
+   print("The state is %s" % state) # Not preferred
+   print(f"The state is {state}")   # Preferred
 
 
 Imports
@@ -151,13 +128,13 @@ use of ``import`` statements should be reserved for packages and
 modules only, i.e. individual classes and functions should not be
 imported. The only exception to this is the typing module.
 
-- Use ``import x`` for importing packages and modules, where x is the
-   package or module name.
+- Use ``import x`` for importing packages and modules, where x is the package or
+  module name.
 - Use ``from x import y`` where x is the package name and y is the module name.
 - Use ``from x import y as z`` if two modules named ``y`` are imported
-   or if ``y`` is too long of a name.
+  or if ``y`` is too long of a name.
 - Use ``import y as z`` when ``z`` is a standard abbreviation like
-   ``import numpy as np``.
+  ``import numpy as np``.
 
 
 Variables
@@ -171,9 +148,9 @@ practices that can be applied to variables such as:
 - One may type a variables by using a ``: type`` before the function
   value is assigned, e.g.,
 
-   .. code-block:: python
+  .. code-block:: python
 
-      a: Foo = SomeDecoratedFunction()
+     a: Foo = SomeDecoratedFunction()
 
 - Avoid global variables.
 - A function can refer to variables defined in enclosing functions but
@@ -420,8 +397,8 @@ classes, or method definitions.
 
 -  Notes
 
-   - Provides additional information about the code. May include
-      mathematical equations in LaTeX format. For example,
+   - Provide additional information about the code. May include
+     mathematical equations in LaTeX format. For example,
 
      .. code-block:: python
 
@@ -433,7 +410,7 @@ classes, or method definitions.
             X(e^{j\omega } ) = x(n)e^{ - j\omega n}
        """
 
-    | Additionally, math can be used inline:
+     Math can also be used inline:
 
      .. code-block:: python
 
@@ -443,8 +420,8 @@ classes, or method definitions.
        The value of :math:`\omega` is larger than 5.
        """
 
-    | For a list of available LaTex macros, search for "macros" in
-      `docs/source/conf.py <https://github.com/lanl/scico/blob/main/docs/source/conf.py>`_.
+     For a list of available LaTex macros, search for "macros" in
+     `docs/source/conf.py <https://github.com/lanl/scico/blob/main/docs/source/conf.py>`_.
 
 -  Examples:
 
@@ -545,21 +522,21 @@ For additional grammar and usage guidance,
 refer to `The Chicago Manual of Style <https://www.chicagomanualofstyle.org/>`_.
 A few notable guidelines:
 
-    * Equations which conclude a sentence should end with a period,
-      e.g., "Poisson's equation is
+* Equations which conclude a sentence should end with a period,
+  e.g., "Poisson's equation is
 
-      .. math::
+  .. math::
 
-       \Delta \varphi = f \;."
+     \Delta \varphi = f \;."
 
-    * Do not capitalize acronyms or inititalisms when defining them,
-      e.g., "computer-aided system engineering (CASE),"
-      "fast Fourier transform (FFT)."
+* Do not capitalize acronyms or inititalisms when defining them,
+  e.g., "computer-aided system engineering (CASE),"
+  "fast Fourier transform (FFT)."
 
-    * Avoid capitalization in text except where absolutely necessary,
-      e.g., "Newton’s first law."
+* Avoid capitalization in text except where absolutely necessary,
+  e.g., "Newton’s first law."
 
-    * Use a single space after the period at the end of a sentence.
+* Use a single space after the period at the end of a sentence.
 
 
 The source code (`.rst` files) for these pages does not have a hard
