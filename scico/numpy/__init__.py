@@ -28,6 +28,7 @@ from ._wrapped_function_lists import *
 
 # allow snp.blockarray(...) to create BlockArrays
 blockarray = BlockArray.blockarray
+blockarray.__module__ = __name__  # so that blockarray can be referenced in docs
 
 # BlockArray appears to originate in this module
 sys.modules[__name__].BlockArray.__module__ = __name__
