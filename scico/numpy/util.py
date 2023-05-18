@@ -49,9 +49,9 @@ def ensure_on_device(
     for i, array in enumerate(arrays):
         if isinstance(array, np.ndarray):
             warnings.warn(
-                f"Argument {i+1} of {len(arrays)} is a numpyy ndarray. "
+                f"Argument {i+1} of {len(arrays)} is a numpy array. "
                 "Will cast it to a jax array. "
-                f"To suppress this warning cast all numpy ndarrays to jax arrays.",
+                f"To suppress this warning cast all numpy arrays to jax arrays.",
                 stacklevel=2,
             )
 
@@ -224,8 +224,12 @@ def is_nested(x: Any) -> bool:
 def broadcast_nested_shapes(
     shape_a: Union[Shape, BlockShape], shape_b: Union[Shape, BlockShape]
 ) -> Union[Shape, BlockShape]:
-    r"""Compute the result of applying a broadcasting binary operator to
+    r"""Compute the result of broadcasting on array shapes.
+
+    Compute the result of applying a broadcasting binary operator to
     (block) arrays with (possibly nested) shapes `shape_a` and `shape_b`.
+    Extends :func:`numpy.broadcast_shapes` to also support the nested
+    tuple shapes of :class:`.BlockArray`\ s.
 
     Args:
         shape_a: First array shape.
@@ -235,8 +239,8 @@ def broadcast_nested_shapes(
         A (possibly nested) shape tuple.
 
     Example:
-        >>> broadcast_nested_shapes(((1, 1, 3), (2, 3, 4)), ((3,), (2, 1, 4)))
-        ((1, 1, 3), (2, 3, 4))
+        >>> broadcast_nested_shapes(((1, 1, 3), (2, 3, 1)), ((2, 3,), (2, 1, 4)))
+        ((1, 2, 3), (2, 3, 4))
     """
     if not is_nested(shape_a) and not is_nested(shape_b):
         return snp.broadcast_shapes(shape_a, shape_b)
