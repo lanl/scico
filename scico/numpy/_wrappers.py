@@ -38,13 +38,14 @@ def add_attributes(
     for name, obj in from_dict.items():
         if name[0] == "_":
             continue
-        if isinstance(obj, ModuleType) and name in modules_to_recurse:
-            to_dict[name] = ModuleType(name)
-            to_dict[name].__package__ = to_dict["__name__"]
-            to_dict[name].__doc__ = obj.__doc__
-            # enable `import scico.numpy.linalg` and `from scico.numpy.linalg import norm`
-            sys.modules[to_dict["__name__"] + "." + name] = to_dict[name]
-            add_attributes(to_dict[name].__dict__, obj.__dict__)
+        if isinstance(obj, ModuleType):
+            if name in modules_to_recurse:
+                to_dict[name] = ModuleType(name)
+                to_dict[name].__package__ = to_dict["__name__"]
+                to_dict[name].__doc__ = obj.__doc__
+                # enable `import scico.numpy.linalg` and `from scico.numpy.linalg import norm`
+                sys.modules[to_dict["__name__"] + "." + name] = to_dict[name]
+                add_attributes(to_dict[name].__dict__, obj.__dict__)
         else:
             to_dict[name] = obj
 
