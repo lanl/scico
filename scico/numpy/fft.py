@@ -13,7 +13,6 @@ import jax.numpy as jnp
 
 from . import _wrappers
 
-
 _wrappers.add_attributes(
     to_dict=vars(),
     from_dict=jnp.fft.__dict__,

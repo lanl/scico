@@ -11,7 +11,6 @@ import numpy as np
 
 from . import _wrappers
 
-
 _wrappers.add_attributes(
     to_dict=vars(),
     from_dict=np.testing.__dict__,
