@@ -71,7 +71,7 @@ class DnCNNNet(Module):
         """Apply DnCNN denoiser.
 
         Args:
-            inputs: The nd-array to be transformed.
+            inputs: The array to be transformed.
             train: Flag to differentiate between training and testing stages.
 
         Returns:
@@ -147,7 +147,7 @@ class ResNet(Module):
         """Apply ResNet.
 
         Args:
-            x: The nd-array to be transformed.
+            x: The array to be transformed.
             train: Flag to differentiate between training and testing stages.
 
         Returns:
@@ -221,7 +221,7 @@ class ConvBNNet(Module):
         """Apply ConvBNNet.
 
         Args:
-            x: The nd-array to be transformed.
+            x: The array to be transformed.
             train: Flag to differentiate between training and testing stages.
 
         Returns:
@@ -296,7 +296,7 @@ class UNet(Module):
         """Apply U-Net.
 
         Args:
-            x: The nd-array to be transformed.
+            x: The array to be transformed.
             train: Flag to differentiate between training and testing stages.
 
         Returns:

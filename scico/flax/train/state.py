@@ -29,7 +29,8 @@ ArrayTree = optax.Params
 class TrainState(train_state.TrainState):
     """Definition of Flax train state.
 
-    Definition of Flax train state including `batch_stats` for batch normalization.
+    Definition of Flax train state including `batch_stats` for batch
+    normalization.
     """
 
     batch_stats: Any
