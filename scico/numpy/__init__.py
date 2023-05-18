@@ -22,7 +22,7 @@ import numpy as np
 import jax.numpy as jnp
 from jax import Array
 
-from . import _wrappers, util, fft, linalg, testing
+from . import _wrappers, fft, linalg, testing, util
 from ._blockarray import BlockArray
 from ._wrapped_function_lists import *
 
@@ -34,10 +34,7 @@ blockarray.__module__ = __name__  # so that blockarray can be referenced in docs
 sys.modules[__name__].BlockArray.__module__ = __name__
 
 # copy most of jnp without wrapping
-_wrappers.add_attributes(
-    to_dict=vars(),
-    from_dict=jnp.__dict__
-)
+_wrappers.add_attributes(to_dict=vars(), from_dict=jnp.__dict__)
 
 # wrap jnp funcs
 _wrappers.wrap_recursively(vars(), creation_routines, _wrappers.map_func_over_tuple_of_tuples)
