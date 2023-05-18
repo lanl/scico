@@ -440,17 +440,13 @@ for _, f in snp_func:
     ):
         # Rewrite module name so that function is included in docs
         f.__module__ = "scico.numpy"
-        # Attempt to fix incorrect cross-reference
-        if f.__name__ == "compare_chararrays":
-            modname = "numpy.char"
-        else:
-            modname = "numpy"
         f.__doc__ = re.sub(
             r"^:func:`([\w_]+)` wrapped to operate",
             r":obj:`jax.numpy.\1` wrapped to operate",
             str(f.__doc__),
             flags=re.M,
         )
+        modname = "numpy"
         f.__doc__ = re.sub(
             r"^LAX-backend implementation of :func:`([\w_]+)`.",
             r"LAX-backend implementation of :obj:`%s.\1`." % modname,
@@ -484,6 +480,8 @@ import scico.scipy
 ssp_func = getmembers(scico.scipy.special, isfunction)
 for _, f in ssp_func:
     if f.__module__[0:11] == "scico.scipy" or f.__module__[0:14] == "jax._src.scipy":
+        # Rewrite module name so that function is included in docs
+        f.__module__ = "scico.scipy.special"
         # Attempt to fix incorrect cross-reference
         f.__doc__ = re.sub(
             r"^:func:`([\w_]+)` wrapped to operate",
