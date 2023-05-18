@@ -40,11 +40,12 @@ def add_attributes(
             continue
         if isinstance(obj, ModuleType):
             if name in modules_to_recurse:
-                to_dict[name] = ModuleType(name)
+                qualname = to_dict["__name__"] + "." + name
+                to_dict[name] = ModuleType(name, doc=obj.__doc__)
                 to_dict[name].__package__ = to_dict["__name__"]
-                to_dict[name].__doc__ = obj.__doc__
                 # enable `import scico.numpy.linalg` and `from scico.numpy.linalg import norm`
-                sys.modules[to_dict["__name__"] + "." + name] = to_dict[name]
+                sys.modules[qualname] = to_dict[name]
+                sys.modules[qualname].__name__ = qualname
                 add_attributes(to_dict[name].__dict__, obj.__dict__)
         else:
             to_dict[name] = obj
