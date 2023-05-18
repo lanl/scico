@@ -88,9 +88,10 @@ output_dtype : {self.output_dtype}
                 Defaults to ``None``. Required unless `__init__` is being
                 called from a derived class with an `_eval` method.
             input_dtype: `dtype` for input argument. Defaults to
-                ``float32``. If :class:`.Operator` implements
-                complex-valued operations, this must be ``complex64`` for
-                proper adjoint and gradient calculation.
+                :attr:`~numpy.float32`. If the :class:`.Operator`
+                implements complex-valued operations, this must be a
+                complex dtype (typically :attr:`~numpy.complex64`) for
+                correct adjoint and gradient calculation.
             output_dtype: `dtype` for output argument. Defaults to
                 ``None``. If ``None``, `output_dtype` is determined by
                 evaluating `self.__call__` on an input array of zeros.

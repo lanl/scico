@@ -48,7 +48,7 @@ class Function:
             input_dtypes: `dtype` for input argument. If a single `dtype`
                 is specified, it implies a common `dtype` for all inputs,
                 otherwise a list or tuple of values should be provided,
-                one per input. Defaults to ``float32``.
+                one per input. Defaults to :attr:`~numpy.float32`.
             output_dtype: `dtype` for output argument. Defaults to
                 ``None``. If ``None``, `output_dtype` is determined by
                 evaluating `self.__call__` on an input arrays of zeros.

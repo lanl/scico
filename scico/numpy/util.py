@@ -27,14 +27,15 @@ from ._blockarray import BlockArray
 def ensure_on_device(
     *arrays: Union[np.ndarray, snp.Array, BlockArray]
 ) -> Union[snp.Array, BlockArray]:
-    """Cast ndarrays to jax arrays.
+    """Cast numpy arrays to jax arrays.
 
-    Cast ndarrays to jax arrays and leave jax arrays, BlockArrays,
-    as is. This is intended to be used when initializing optimizers and
-    functionals so that all arrays are either jax arrays or BlockArrays.
+    Cast numpy arrays to jax arrays and leave jax arrays and BlockArrays,
+    as they are. This is intended to be used when initializing optimizers
+    and functionals so that all arrays are either jax arrays or
+    BlockArrays.
 
     Args:
-        *arrays: One or more input arrays (ndarray, jax array, or
+        *arrays: One or more input arrays (numpy array, jax array, or
             BlockArray).
 
     Returns:
@@ -42,7 +43,7 @@ def ensure_on_device(
 
     Raises:
         TypeError: If the arrays contain anything that is neither
-           ndarray, jax array, nor BlockArray.
+           numpy array, jax array, nor BlockArray.
     """
     arrays = list(arrays)
 
@@ -170,7 +171,7 @@ def indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int, ...]:
 def no_nan_divide(
     x: Union[BlockArray, snp.Array], y: Union[BlockArray, snp.Array]
 ) -> Union[BlockArray, snp.Array]:
-    """Return `x/y`, with 0 instead of NaN where `y` is 0.
+    """Return `x/y`, with 0 instead of :data:`~numpy.NaN` where `y` is 0.
 
     Args:
         x: Numerator.
@@ -184,13 +185,17 @@ def no_nan_divide(
 
 
 def shape_to_size(shape: Union[Shape, BlockShape]) -> int:
-    r"""Compute the size corresponding to a (possibly nested) shape.
+    r"""Compute array size corresponding to a specified shape.
+
+    Compute array size corresponding to a specified shape, which may be
+    nested, i.e. corresponding to a :class:`.BlockArray`.
 
     Args:
-        shape: A shape tuple; possibly nested.
+        shape: A shape tuple.
 
     Returns:
-        The number of elements in an array or BlockArray with shape `shape`.
+        The number of elements in an array or :class:`.BlockArray` with
+        shape `shape`.
     """
 
     if is_nested(shape):
@@ -206,8 +211,8 @@ def is_nested(x: Any) -> bool:
         x: Object to be tested.
 
     Returns:
-        ``True`` if `x` is a list/tuple containing at least one list/tuple, ``False`` otherwise.
-
+        ``True`` if `x` is a list/tuple containing at least one
+        list/tuple, ``False`` otherwise.
 
     Example:
         >>> is_nested([1, 2, 3])
@@ -259,8 +264,8 @@ def is_real_dtype(dtype: DType) -> bool:
     """Determine whether a dtype is real.
 
     Args:
-        dtype: A numpy or scico.numpy dtype (e.g. ``np.float32``,
-               ``np.complex64``).
+        dtype: A :mod:`numpy` or :mod:`scico.numpy` dtype (e.g.
+               :attr:`~numpy.float32`, :attr:`~numpy.complex64`).
 
     Returns:
         ``False`` if the dtype is complex, otherwise ``True``.
@@ -272,8 +277,8 @@ def is_complex_dtype(dtype: DType) -> bool:
     """Determine whether a dtype is complex.
 
     Args:
-        dtype: A numpy or scico.numpy dtype (e.g. ``np.float32``,
-               ``np.complex64``).
+        dtype: A :mod:`numpy` or :mod:`scico.numpy` dtype (e.g.
+               :attr:`~numpy.float32`, :attr:`~numpy.complex64`).
 
     Returns:
         ``True`` if the dtype is complex, otherwise ``False``.
@@ -285,12 +290,12 @@ def real_dtype(dtype: DType) -> DType:
     """Construct the corresponding real dtype for a given complex dtype.
 
     Construct the corresponding real dtype for a given complex dtype,
-    e.g. the real dtype corresponding to ``np.complex64`` is
-    ``np.float32``.
+    e.g. the real dtype corresponding to :attr:`~numpy.complex64` is
+    :attr:`~numpy.float32`.
 
     Args:
-        dtype: A complex numpy or scico.numpy dtype (e.g. ``np.complex64``,
-               ``np.complex128``).
+        dtype: A complex numpy or scico.numpy dtype (e.g.
+               :attr:`~numpy.complex64`, :attr:`~numpy.complex128`).
 
     Returns:
         The real dtype corresponding to the input dtype
@@ -303,12 +308,12 @@ def complex_dtype(dtype: DType) -> DType:
     """Construct the corresponding complex dtype for a given real dtype.
 
     Construct the corresponding complex dtype for a given real dtype,
-    e.g. the complex dtype corresponding to ``np.float32`` is
-    ``np.complex64``.
+    e.g. the complex dtype corresponding to :attr:`~numpy.float32` is
+    :attr:`~numpy.complex64`.
 
     Args:
-        dtype: A real numpy or scico.numpy dtype (e.g. ``np.float32``,
-               ``np.float64``).
+        dtype: A real numpy or scico.numpy dtype (e.g. :attr:`~numpy.float32`,
+               :attr:`~numpy.float64`).
 
     Returns:
         The complex dtype corresponding to the input dtype.

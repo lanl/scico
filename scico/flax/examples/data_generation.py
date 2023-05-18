@@ -7,7 +7,7 @@
 
 """Functionality to generate training data for Flax example scripts.
 
-It distributes computations via ray (if available) or jax or to reduce
+Computation is distributed via ray (if available) or jax or to reduce
 processing time.
 """
 
@@ -60,9 +60,8 @@ if have_xdesign:
     class Foam2(UnitCircle):
         """Foam-like material with two attenuations.
 
-        Define functionality to generate phantom with structure
-        similar to foam
-        with two different attenuation properties."""
+        Define functionality to generate phantom with structure similar
+        to foam with two different attenuation properties."""
 
         def __init__(
             self,
@@ -130,8 +129,8 @@ def generate_foam2_images(seed: float, size: int, ndata: int) -> Array:
 def generate_foam1_images(seed: float, size: int, ndata: int) -> Array:
     """Generate batch of xdesign foam-like structures.
 
-    Generate batch of images with `xdesign` foam-like structure,
-    which uses one attenuation.
+    Generate batch of images with `xdesign` foam-like structure, which
+    uses one attenuation.
 
     Args:
         seed: Seed for data generation.
@@ -166,7 +165,7 @@ def generate_ct_data(
     """Generate batch of computed tomography (CT) data.
 
     Generate batch of CT data for training of machine learning network
-        models.
+    models.
 
     Args:
         nimg: Number of images to generate.
@@ -256,7 +255,7 @@ def generate_blur_data(
     """Generate batch of blurred data.
 
     Generate batch of blurred data for training of machine learning
-        network models.
+    network models.
 
     Args:
         nimg: Number of images to generate.
@@ -336,7 +335,7 @@ def distributed_data_generation(
             Default: ``True``.
 
     Returns:
-        nd-array of generated data.
+        Array of generated data.
     """
     nproc = jax.device_count()
     seeds = jnp.arange(nproc)
@@ -368,7 +367,7 @@ def ray_distributed_data_generation(
             ``False``.
 
     Returns:
-        nd-array of generated data.
+        Array of generated data.
     """
     if not have_ray:
         raise RuntimeError("Package ray is required for use of this function.")

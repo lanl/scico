@@ -22,9 +22,9 @@ From PyPI
 The simplest way to install the most recent release of SCICO from
 `PyPI <https://pypi.python.org/pypi/scico/>`_ is
 
-   ::
+::
 
-      pip install scico
+   pip install scico
 
 
 From GitHub

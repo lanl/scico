@@ -61,9 +61,7 @@ class FiniteDifference(VerticalStack):
         Args:
             input_shape: Shape of input array.
             input_dtype: `dtype` for input argument. Defaults to
-                ``float32``. If :class:`LinearOperator` implements
-                complex-valued operations, this must be ``complex64`` for
-                proper adjoint and gradient calculation.
+                :attr:`~numpy.float32`.
             axes: Axis or axes over which to apply finite difference
                 operator. If not specified, or ``None``, differences are
                 evaluated along all axes.
@@ -78,7 +76,7 @@ class FiniteDifference(VerticalStack):
                 -1 times the final value in the array are appended to the
                 difference array.
             circular: If ``True``, perform circular differences, i.e.,
-                include x[-1] - x[0]. If ``True``, `prepend` and `append
+                include x[-1] - x[0]. If ``True``, `prepend` and `append`
                 must both be ``None``.
             jit: If ``True``, jit the evaluation, adjoint, and gram
                 functions of the :class:`LinearOperator`.
@@ -87,7 +85,7 @@ class FiniteDifference(VerticalStack):
         if axes is None:
             axes_list = tuple(range(len(input_shape)))
         elif isinstance(axes, (list, tuple)):
-            axes_list = axes
+            axes_list = axes  # type: ignore
         else:
             axes_list = (axes,)
         self.axes = parse_axes(axes_list, input_shape)
@@ -95,7 +93,7 @@ class FiniteDifference(VerticalStack):
             input_dtype=input_dtype, prepend=prepend, append=append, circular=circular, jit=False
         )
         ops = [
-            SingleAxisFiniteDifference(input_shape, axis=axis, **single_kwargs)
+            SingleAxisFiniteDifference(input_shape, axis=axis, **single_kwargs)  # type: ignore
             for axis in axes_list
         ]
 
@@ -179,9 +177,7 @@ class SingleAxisFiniteDifference(LinearOperator):
         Args:
             input_shape: Shape of input array.
             input_dtype: `dtype` for input argument. Defaults to
-                ``float32``. If :class:`LinearOperator` implements
-                complex-valued operations, this must be ``complex64`` for
-                proper adjoint and gradient calculation.
+                :attr:`~numpy.float32`.
             axis: Axis over which to apply finite difference operator.
             prepend: Flag indicating handling of the left/top/etc.
                 boundary. If ``None``, there is no boundary extension.
@@ -194,7 +190,7 @@ class SingleAxisFiniteDifference(LinearOperator):
                 -1 times the final value in the array are appended to the
                 difference array.
             circular: If ``True``, perform circular differences, i.e.,
-                include x[-1] - x[0]. If ``True``, `prepend` and `append
+                include x[-1] - x[0]. If ``True``, `prepend` and `append`
                 must both be ``None``.
             jit: If ``True``, jit the evaluation, adjoint, and gram
                 functions of the :class:`LinearOperator`.

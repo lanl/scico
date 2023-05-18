@@ -93,17 +93,17 @@ class CircularConvolve(LinearOperator):
             h: Array of filters.
             input_shape: Shape of input array.
             ndims: Number of (trailing) dimensions of the input and `h`
-               involved in the convolution. Defaults to the number of
-               dimensions in the input.
+                involved in the convolution. Defaults to the number of
+                dimensions in the input.
             input_dtype: `dtype` for input argument. Defaults to
-               ``float32``.
+                :attr:`~numpy.float32`.
             h_is_dft: Flag indicating whether `h` is in the DFT domain.
             h_center: Array of length `ndims` specifying the center of
-               the filter. Defaults to the upper left corner, i.e.,
-               `h_center = [0, 0, ..., 0]`, may be noninteger. May be a
-               ``float`` or ``int`` if `h` is one-dimensional.
+                the filter. Defaults to the upper left corner, i.e.,
+                `h_center = [0, 0, ..., 0]`, may be noninteger. May be a
+                ``float`` or ``int`` if `h` is one-dimensional.
             jit:  If ``True``, jit the evaluation, adjoint, and gram
-               functions of the LinearOperator.
+                functions of the :class:`LinearOperator`.
         """
 
         if ndims is None:

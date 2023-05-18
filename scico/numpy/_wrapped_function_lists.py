@@ -165,7 +165,6 @@ mathematical_functions = (
     "sort",  # https://numpy.org/doc/stable/reference/routines.sort.html
     "lexsort",
     "argsort",
-    "msort",
     "sort_complex",
     "partition",
     "argmax",

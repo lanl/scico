@@ -1,9 +1,9 @@
 -r ../requirements.txt
-sphinx>=4.2.0,<=5.3.0
+sphinx>=5.0.0
 sphinxcontrib-napoleon
 sphinxcontrib-bibtex
 sphinx-autodoc-typehints
-faculty-sphinx-theme
+furo
 jinja2<3.1.0  # temporary fix for jinja2/nbconvert bug
 traitlets!=5.2.2  # temporary fix for ipython/traitlets#741
 nbsphinx
@@ -12,4 +12,4 @@ ipython_genutils
 py2jn
 pygraphviz>=1.7
 pandoc
-docutils==0.16
+docutils>=0.18
