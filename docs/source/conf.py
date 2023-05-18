@@ -419,34 +419,17 @@ exclude_patterns = ["_build", "**tests**", "**spi**", "**README.rst", "include"]
 # to do it here to ensure that the relevant API docs include a table of functions.
 import scico.numpy
 
-snp_func = getmembers(scico.numpy.fft, isfunction)
-for _, f in snp_func:
-    f.__module__ = "scico.numpy.fft"
-
-snp_func = getmembers(scico.numpy.linalg, isfunction)
-for _, f in snp_func:
-    f.__module__ = "scico.numpy.linalg"
-
-snp_func = getmembers(scico.numpy.testing, isfunction)
-for _, f in snp_func:
-    f.__module__ = "scico.numpy.testing"
-
-snp_func = getmembers(scico.numpy, isfunction)
-for _, f in snp_func:
-    if (
-        f.__module__ == "scico.numpy"
-        or f.__module__[0:14] == "jax._src.numpy"
-        or f.__module__ == "scico.numpy._create"
-    ):
+for module in (scico.numpy, scico.numpy.fft, scico.numpy.linalg, scico.numpy.testing):
+    for _, f in getmembers(module, isfunction):
         # Rewrite module name so that function is included in docs
-        f.__module__ = "scico.numpy"
+        f.__module__ = module.__name__
         f.__doc__ = re.sub(
             r"^:func:`([\w_]+)` wrapped to operate",
             r":obj:`jax.numpy.\1` wrapped to operate",
             str(f.__doc__),
             flags=re.M,
         )
-        modname = "numpy"
+        modname = ".".join(module.__name__.split(".")[1:])
         f.__doc__ = re.sub(
             r"^LAX-backend implementation of :func:`([\w_]+)`.",
             r"LAX-backend implementation of :obj:`%s.\1`." % modname,
@@ -473,6 +456,26 @@ for _, f in snp_func:
 # Remove spurious two-space indentation of entire docstring
 scico.numpy.vectorize.__doc__ = re.sub("^  ", "", scico.numpy.vectorize.__doc__, flags=re.M)
 
+# Fix various docstring formatting errors
+scico.numpy.testing.break_cycles.__doc__ = re.sub(
+    "calling gc.collect$",
+    "calling gc.collect.\n\n",
+    scico.numpy.testing.break_cycles.__doc__,
+    flags=re.M,
+)
+scico.numpy.testing.break_cycles.__doc__ = re.sub(
+    " __del__\) inside", "__del__\) inside", scico.numpy.testing.break_cycles.__doc__, flags=re.M
+)
+scico.numpy.testing.assert_raises_regex.__doc__ = re.sub(
+    "\*args,\n.*\*\*kwargs",
+    "*args, **kwargs",
+    scico.numpy.testing.assert_raises_regex.__doc__,
+    flags=re.M,
+)
+scico.numpy.BlockArray.global_shards.__doc__ = re.sub(
+    "`Shard`s", "`Shard`\ s", scico.numpy.BlockArray.global_shards.__doc__, flags=re.M
+)
+
 
 # Similar processing for scico.scipy
 import scico.scipy
@@ -497,7 +500,7 @@ for _, f in ssp_func:
             flags=re.M,
         )
         # Remove cross-reference to numpydoc style references section
-        f.__doc__ = re.sub(r" \[(\d+)\]_", "", f.__doc__, flags=re.M)
+        f.__doc__ = re.sub(r"(^|\ )\[(\d+)\]_", "", f.__doc__, flags=re.M)
         # Remove entire numpydoc references section
         f.__doc__ = re.sub(r"References\n----------\n.*\n", "", f.__doc__, flags=re.DOTALL)
         # Remove problematic citation
