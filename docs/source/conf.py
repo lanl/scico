@@ -419,6 +419,18 @@ exclude_patterns = ["_build", "**tests**", "**spi**", "**README.rst", "include"]
 # to do it here to ensure that the relevant API docs include a table of functions.
 import scico.numpy
 
+snp_func = getmembers(scico.numpy.fft, isfunction)
+for _, f in snp_func:
+    f.__module__ = "scico.numpy.fft"
+
+snp_func = getmembers(scico.numpy.linalg, isfunction)
+for _, f in snp_func:
+    f.__module__ = "scico.numpy.linalg"
+
+snp_func = getmembers(scico.numpy.testing, isfunction)
+for _, f in snp_func:
+    f.__module__ = "scico.numpy.testing"
+
 snp_func = getmembers(scico.numpy, isfunction)
 for _, f in snp_func:
     if (
