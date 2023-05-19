@@ -9,6 +9,7 @@
 import re
 from pathlib import Path
 
+import nbformat as nbf
 import py2jn
 import pypandoc
 
@@ -67,6 +68,9 @@ md_text = '"""' + md_text + '"""'
 # Convert from python to notebook format and write notebook
 nb = py2jn.py_string_to_notebook(md_text)
 py2jn.tools.write_notebook(nb, dst, nbver=4)
+nb = nbf.read(dst, nbf.NO_CONVERT)
+nb.metadata = {"nbsphinx": {"orphan": True}}
+nbf.write(nb, dst)
 
 
 # Build examples index for docs

@@ -1,27 +1,6 @@
 Functionals
 ===========
 
-.. raw:: html
-
-    <style type='text/css'>
-    div.document ul blockquote {
-       margin-bottom: 8px !important;
-    }
-    div.document li > p {
-       margin-bottom: 4px !important;
-    }
-    div.document ul > li {
-      list-style: square outside !important;
-      margin-left: 1em !important;
-    }
-    section {
-      padding-bottom: 1em;
-    }
-    ul {
-      margin-bottom: 1em;
-    }
-    </style>
-
 A functional is
 a mapping from :math:`\mathbb{R}^n` or :math:`\mathbb{C}^n` to :math:`\mathbb{R}`.
 In SCICO, functionals are
@@ -77,13 +56,13 @@ Scaled Functionals
 Given a scalar ``c`` and a functional ``f`` with a defined proximal method, we can
 determine the proximal method of ``c * f`` as
 
-  .. math::
+.. math::
 
-     \begin{align}
-      \mathrm{prox}_{c f} (v, \lambda) &=  \argmin_x \lambda (c f)(x) + \frac{1}{2} \norm{v - x}_2^2  \\
-      &=  \argmin_x (\lambda c) f(x) + \frac{1}{2} \norm{v - x}_2^2 \\
-      &= \mathrm{prox}_{f} (v, c \lambda)
-      \end{align}
+   \begin{align}
+    \mathrm{prox}_{c f} (v, \lambda) &=  \argmin_x \lambda (c f)(x) + \frac{1}{2} \norm{v - x}_2^2  \\
+    &=  \argmin_x (\lambda c) f(x) + \frac{1}{2} \norm{v - x}_2^2 \\
+    &= \mathrm{prox}_{f} (v, c \lambda)
+    \end{align}
 
 Note that we have made no assumptions regarding homogeneity of ``f``;
 rather, only that the proximal method of ``f`` is given
@@ -102,21 +81,21 @@ Separable Functionals
 A separable functional :math:`f : \mathbb{C}^N \to \mathbb{R}` can be written as the sum
 of functionals :math:`f_i : \mathbb{C}^{N_i} \to \mathbb{R}` with :math:`\sum_i N_i = N`. In particular,
 
-    .. math::
-       f(\mb{x}) = f(\mb{x}_1, \dots, \mb{x}_N) = f_1(\mb{x}_1) + \dots + f_N(\mb{x}_N)
+.. math::
+   f(\mb{x}) = f(\mb{x}_1, \dots, \mb{x}_N) = f_1(\mb{x}_1) + \dots + f_N(\mb{x}_N)
 
 The proximal operator of a separable :math:`f` can be written
 in terms of the proximal operators of the :math:`f_i`
 (see Theorem 6.6 of :cite:`beck-2017-first`):
 
-    .. math::
-        \mathrm{prox}_f(\mb{x}, \lambda)
-        =
-        \begin{bmatrix}
-          \mathrm{prox}_{f_1}(\mb{x}_1, \lambda) \\
-          \vdots \\
-          \mathrm{prox}_{f_N}(\mb{x}_N, \lambda) \\
-        \end{bmatrix}
+.. math::
+    \mathrm{prox}_f(\mb{x}, \lambda)
+    =
+    \begin{bmatrix}
+      \mathrm{prox}_{f_1}(\mb{x}_1, \lambda) \\
+      \vdots \\
+      \mathrm{prox}_{f_N}(\mb{x}_N, \lambda) \\
+    \end{bmatrix}
 
 Separable Functionals are implemented in the :class:`.SeparableFunctional` class. Separable functionals naturally accept :class:`.BlockArray` inputs and return the prox as a :class:`.BlockArray`.
 
@@ -134,18 +113,18 @@ create a class which
 
 For example,
 
-   ::
+::
 
-      class MyFunctional(scico.functional.Functional):
+   class MyFunctional(scico.functional.Functional):
 
-          has_eval = True
-          has_prox = True
+       has_eval = True
+       has_prox = True
 
-          def _eval(self, x: JaxArray) -> float:
-               return snp.sum(x)
+       def _eval(self, x: JaxArray) -> float:
+            return snp.sum(x)
 
-          def prox(self, x: JaxArray, lam : float) -> JaxArray:
-               return x - lam
+       def prox(self, x: JaxArray, lam : float) -> JaxArray:
+            return x - lam
 
 
 Losses
@@ -153,8 +132,8 @@ Losses
 
 In SCICO, a loss is a special type of functional
 
-  .. math::
-     f(\mb{x}) = \alpha l( \mb{y}, A(\mb{x}) )
+.. math::
+   f(\mb{x}) = \alpha l( \mb{y}, A(\mb{x}) )
 
 where :math:`\alpha` is a scaling parameter,
 :math:`l` is a functional,

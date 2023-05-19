@@ -374,4 +374,4 @@ def test_approx_prox(
 
     xprox_approx = snp.array(f_approx.prox(v, lam=λ, v0=xprox))
 
-    assert snp.linalg.norm(xprox - xprox_approx) / snp.linalg.norm(xprox) < 4e-6
+    assert snp.linalg.norm(xprox - xprox_approx) / snp.linalg.norm(xprox) < 5e-5

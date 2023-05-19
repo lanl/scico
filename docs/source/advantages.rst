@@ -1,30 +1,6 @@
 Why SCICO?
 ==========
 
-
-.. raw:: html
-
-    <style type='text/css'>
-    div.document ul blockquote {
-       margin-bottom: 8px !important;
-    }
-    div.document li > p {
-       margin-bottom: 4px !important;
-    }
-    div.document ul > li {
-      list-style: square outside !important;
-      margin-left: 1em !important;
-    }
-    section {
-      padding-bottom: 1em;
-    }
-    ul {
-      margin-bottom: 1em;
-    }
-    </style>
-
-
-
 Advantages of JAX-based Design
 ------------------------------
 

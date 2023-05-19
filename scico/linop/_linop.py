@@ -119,9 +119,10 @@ class LinearOperator(Operator):
                 :meth:`._set_adjoint` will be called silently at the
                 first :meth:`.adj` call or can be called manually.
             input_dtype: `dtype` for input argument. Defaults to
-                ``float32``. If :class:`LinearOperator` implements
-                complex-valued operations, this must be ``complex64`` for
-                proper adjoint and gradient calculation.
+                :attr:`~numpy.float32`. If the :class:`.LinearOperator`
+                implements complex-valued operations, this must be a
+                complex dtype (typically :attr:`~numpy.complex64`) for
+                correct adjoint and gradient calculation.
             output_dtype: `dtype` for output argument. Defaults to
                 ``None``. If ``None``, `output_dtype` is determined by
                 evaluating `self.__call__` on an input array of zeros.
@@ -154,17 +155,23 @@ class LinearOperator(Operator):
             self.jit()
 
     def _set_adjoint(self):
-        """Automatically create adjoint and gram methods."""
+        """Automatically create adjoint method."""
         adj_fun = linear_adjoint(self.__call__, snp.zeros(self.input_shape, dtype=self.input_dtype))
         self._adj = lambda x: adj_fun(x)[0]
+
+    def _set_gram(self):
+        """Automatically create gram method."""
         self._gram = lambda x: self.adj(self(x))
 
     def jit(self):
         """Replace the private functions :meth:`._eval`, :meth:`_adj`, :meth:`._gram`
         with jitted versions.
         """
-        if (self._adj is None) or (self._gram is None):
+        if self._adj is None:
             self._set_adjoint()
+
+        if self._gram is None:
+            self._set_gram()
 
         self._eval = jax.jit(self._eval)
         self._adj = jax.jit(self._adj)
@@ -300,12 +307,13 @@ class LinearOperator(Operator):
 
         Return a new :class:`LinearOperator` that implements the
         transpose of this :class:`LinearOperator`. For a real-valued
-        :class:`LinearOperator` `A` (`A.input_dtype` is ``np.float32``
-        or ``np.float64``), the :class:`LinearOperator` `A.T` implements
-        the adjoint: `A.T(y) == A.adj(y)`. For a complex-valued
-        :class:`LinearOperator` `A` (`A.input_dtype` is ``np.complex64``
-        or ``np.complex128``), the :class:`LinearOperator` `A.T` is not
-        the adjoint. For the conjugate transpose, use `.conj().T` or
+        :class:`LinearOperator` `A` (`A.input_dtype` is
+        :attr:`~numpy.float32` or :attr:`~numpy.float64`), the
+        :class:`LinearOperator` `A.T` implements the adjoint:
+        `A.T(y) == A.adj(y)`. For a complex-valued :class:`LinearOperator`
+        `A` (`A.input_dtype` is :attr:`~numpy.complex64` or
+        :attr:`~numpy.complex128`), the :class:`LinearOperator` `A.T` is
+        not the adjoint. For the conjugate transpose, use `.conj().T` or
         :meth:`.H`.
         """
         if is_complex_dtype(self.input_dtype):
@@ -332,12 +340,13 @@ class LinearOperator(Operator):
 
         Return a new :class:`LinearOperator` that is the Hermitian
         transpose of this :class:`LinearOperator`. For a real-valued
-        :class:`LinearOperator` `A` (`A.input_dtype` is ``np.float32`` or
-        ``np.float64``), the :class:`LinearOperator` `A.H` is equivalent
-        to `A.T`. For a complex-valued :class:`LinearOperator` `A`
-        (`A.input_dtype` is ``np.complex64`` or ``np.complex128``), the
-        :class:`LinearOperator` `A.H` implements the adjoint of
-        `A : A.H @ y == A.adj(y) == A.conj().T @ y)`.
+        :class:`LinearOperator` `A` (`A.input_dtype` is
+        :attr:`~numpy.float32` or :attr:`~numpy.float64`), the
+        :class:`LinearOperator` `A.H` is equivalent to `A.T`. For a
+        complex-valued :class:`LinearOperator` `A` (`A.input_dtype` is
+        :attr:`~numpy.complex64` or :attr:`~numpy.complex128`), the
+        :class:`LinearOperator` `A.H` implements the adjoint of `A :
+        A.H @ y == A.adj(y) == A.conj().T @ y)`.
 
         For the non-conjugate transpose, see :meth:`.T`.
         """
@@ -374,7 +383,7 @@ class LinearOperator(Operator):
         `G(x) = A.adj(A(x)))`.
         """
         if self._gram is None:
-            self._set_adjoint()
+            self._set_gram()
 
         return LinearOperator(
             input_shape=self.input_shape,
@@ -401,7 +410,7 @@ class LinearOperator(Operator):
             Result of `A.adj(A(x))`.
         """
         if self._gram is None:
-            self._set_adjoint()
+            self._set_gram()
         assert self._gram is not None
         return self._gram(x)
 
