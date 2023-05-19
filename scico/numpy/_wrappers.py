@@ -69,7 +69,7 @@ def wrap_recursively(
 
 def map_func_over_tuple_of_tuples(func: Callable, map_arg_name: Optional[str] = "shape"):
     """Wrap a function so that it automatically maps over a tuple of tuples
-    argument, returning a `BlockArray`.
+    argument, returning a BlockArray.
     """
 
     @wraps(func)
@@ -95,7 +95,7 @@ def map_func_over_tuple_of_tuples(func: Callable, map_arg_name: Optional[str] = 
 
 
 def map_func_over_blocks(func):
-    """Wrap a function so that it maps over all of its `BlockArray`
+    """Wrap a function so that it maps over all of its BlockArray
     arguments.
     """
 
@@ -127,12 +127,14 @@ def map_func_over_blocks(func):
 
 
 def add_full_reduction(func: Callable, axis_arg_name: Optional[str] = "axis"):
-    """Wrap a function so that it can fully reduce a `BlockArray`. If
+    """Wrap a function so that it can fully reduce a BlockArray.
+
+    Wrap a function so that it can fully reduce a :class:`.BlockArray`. If
     nothing is passed for the axis argument and the function is called
-    on a `BlockArray`, it is fully ravelled before the function is
+    on a :class:`.BlockArray`, it is fully ravelled before the function is
     called.
 
-    Should be outside `map_func_over_blocks`.
+    Should be outside :func:`map_func_over_blocks`.
     """
     sig = signature(func)
     if axis_arg_name not in sig.parameters:

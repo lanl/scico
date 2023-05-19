@@ -4,6 +4,7 @@ import os
 import re
 import sys
 from inspect import getmembers, isfunction
+from typing import Optional, Sequence, Union  # needed for typehints_formatter hack
 
 from sphinx.ext.napoleon.docstring import GoogleDocstring
 
@@ -15,6 +16,11 @@ sys.path.append(rootpath)
 from docutil import insert_inheritance_diagram, package_classes
 
 from scico._version import package_version
+from scico.typing import (  # needed for typehints_formatter hack
+    ArrayIndex,
+    AxisIndex,
+    DType,
+)
 
 
 ## See
@@ -67,7 +73,7 @@ rootpath = os.path.abspath("../..")
 sys.path.insert(0, rootpath)
 
 # If your documentation needs a minimal Sphinx version, state it here.
-needs_sphinx = "4.2.0"
+needs_sphinx = "5.0.0"
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -134,6 +140,8 @@ mathjax3_config = {
             "argmin": [r"\mathop{\mathrm{argmin}}"],
             "sign": [r"\mathop{\mathrm{sign}}"],
             "prox": [r"\mathrm{prox}"],
+            "det": [r"\mathrm{det}"],
+            "exp": [r"\mathrm{exp}"],
             "loss": [r"\mathop{\mathrm{loss}}"],
             "kp": [r"k_{\|}"],
             "rp": [r"r_{\|}"],
@@ -185,13 +193,17 @@ exclude_patterns = [
     "tmp",
     "*.tmp.*",
     "*.tmp",
-    "index.ipynb",
-    "exampledepend.rst",
-    "blockarray.rst",
-    "operator.rst",
-    "functional.rst",
-    "optimizer.rst",
+    "examples",
+    "include",
 ]
+
+
+# napoleon_include_init_with_doc = True
+napoleon_use_ivar = True
+napoleon_use_rtype = False
+
+# See https://github.com/sphinx-doc/sphinx/issues/9119
+# napoleon_custom_sections = [("Returns", "params_style")]
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 add_function_parentheses = False
@@ -204,24 +216,26 @@ pygments_style = "sphinx"
 
 # The theme to use for HTML and HTML Help pages. See the documentation for
 # a list of builtin themes.
-# html_theme = "sphinx_rtd_theme"
-html_theme = "faculty-sphinx-theme"
+# html_theme = "python_docs_theme"
+html_theme = "furo"
 
 html_theme_options = {
-    "includehidden": False,
-    "logo_only": True,
+    # "sidebar_hide_name": True,
 }
+
+if html_theme == "python_docs_theme":
+    html_sidebars = {
+        "**": ["globaltoc.html", "sourcelink.html", "searchbox.html"],
+    }
 
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-# html_logo = None
 html_logo = "_static/logo.svg"
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs. This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-# html_favicon = None
 html_favicon = "_static/scico.ico"
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -278,23 +292,21 @@ intersphinx_mapping = {
 # Added timeout due to periodic scipy.org down time
 # intersphinx_timeout = 30
 
-# napoleon_include_init_with_doc = True
-napoleon_use_ivar = True
-napoleon_use_rtype = False
-
-# See https://github.com/sphinx-doc/sphinx/issues/9119
-# napoleon_custom_sections = [("Returns", "params_style")]
-
 
 graphviz_output_format = "svg"
 inheritance_graph_attrs = dict(rankdir="LR", fontsize=9, ratio="compress", bgcolor="transparent")
+inheritance_edge_attrs = dict(
+    color='"#2962ffff"',
+)
 inheritance_node_attrs = dict(
     shape="box",
     fontsize=9,
     height=0.4,
     margin='"0.08, 0.03"',
     style='"rounded,filled"',
-    fillcolor='"#f4f4ffff"',
+    color='"#2962ffff"',
+    fontcolor='"#2962ffff"',
+    fillcolor='"#f0f0f8b0"',
 )
 
 
@@ -328,7 +340,10 @@ texinfo_documents = [
 
 if on_rtd:
     print("Building on ReadTheDocs\n")
-    print("Current working directory: {}".format(os.path.abspath(os.curdir)))
+    print("  current working directory: {}".format(os.path.abspath(os.curdir)))
+    print("  rootpath: %s" % rootpath)
+    print("  confpath: %s" % confpath)
+
     import numpy as np
 
     print("NumPy version: %s" % np.__version__)
@@ -337,10 +352,6 @@ if on_rtd:
     matplotlib.use("agg")
 
 
-print("rootpath: %s" % rootpath)
-print("confpath: %s" % confpath)
-
-# Sort members by type
 autodoc_default_options = {
     "member-order": "bysource",
     "inherited-members": False,
@@ -351,6 +362,48 @@ autodoc_default_options = {
 }
 autodoc_docstring_signature = True
 autoclass_content = "both"
+
+
+# An explanation for this nasty hack, the primary purpose of which is to avoid
+# the very long definition of the scico.typing.DType appearing explicitly in the
+# docs. This is handled correctly by sphinx.ext.autodoc in some circumstances,
+# but only when sphinx_autodoc_typehints is not included in the extension list,
+# and the appearance of the type hints (e.g. whether links to definitions are
+# included) seems to depend on whether "from __future__ import annotations" was
+# used in the module being documented, which is not ideal from a consistency
+# perspective. (It's also worth noting that sphinx.ext.autodoc provides some
+# configurability for type aliases via the autodoc_type_aliases sphinx
+# configuration option.) The alternative is to include sphinx_autodoc_typehints,
+# which gives a consistent appearance to the type hints, but the
+# autodoc_type_aliases configuration option is ignored, and type aliases are
+# always expanded. This hack avoids expansion for the type aliases with the
+# longest definitions by definining a custom function for formatting the
+# type hints, using an option provided by sphinx_autodoc_typehints. For
+# more information, see
+#   https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html#confval-autodoc_type_aliases
+#   https://github.com/tox-dev/sphinx-autodoc-typehints/issues/284
+#   https://github.com/tox-dev/sphinx-autodoc-typehints/blob/main/README.md
+def typehints_formatter_function(annotation, config):
+    markup = {
+        DType: ":obj:`~scico.typing.DType`",
+        # Compound types involving DType must be added here to avoid their DType
+        # component being expanded in the docs.
+        Optional[DType]: ":obj:`~typing.Optional`\ [\ :obj:`~scico.typing.DType`\ ]",
+        Union[DType, Sequence[DType]]: (
+            ":obj:`~typing.Union`\ [\ :obj:`~scico.typing.DType`\ , "
+            ":obj:`~typing.Sequence`\ [\ :obj:`~scico.typing.DType`\ ]]"
+        ),
+        AxisIndex: ":obj:`~scico.typing.AxisIndex`",
+        ArrayIndex: ":obj:`~scico.typing.ArrayIndex`",
+    }
+    if annotation in markup:
+        return markup[annotation]
+    else:
+        return None
+
+
+typehints_formatter = typehints_formatter_function
+
 
 # See https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html#confval-autodoc_mock_imports
 autodoc_mock_imports = ["astra", "svmbir", "ray"]

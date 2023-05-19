@@ -9,10 +9,10 @@ SCICO Documentation
    inverse
    advantages
    install
-   examples
    classes
-   API Reference <_autosummary/scico.rst>
    notes
+   examples
+   API Reference <_autosummary/scico.rst>
    zreferences
 
 .. toctree::
@@ -22,13 +22,6 @@ SCICO Documentation
    team
    contributing
    style
-
-
-.. toctree::
-   :hidden:
-
-   api
-   examples/index.ipynb
 
 
 Indices

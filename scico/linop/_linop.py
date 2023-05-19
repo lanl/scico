@@ -119,9 +119,10 @@ class LinearOperator(Operator):
                 :meth:`._set_adjoint` will be called silently at the
                 first :meth:`.adj` call or can be called manually.
             input_dtype: `dtype` for input argument. Defaults to
-                ``float32``. If :class:`LinearOperator` implements
-                complex-valued operations, this must be ``complex64`` for
-                proper adjoint and gradient calculation.
+                :attr:`~numpy.float32`. If the :class:`.LinearOperator`
+                implements complex-valued operations, this must be a
+                complex dtype (typically :attr:`~numpy.complex64`) for
+                correct adjoint and gradient calculation.
             output_dtype: `dtype` for output argument. Defaults to
                 ``None``. If ``None``, `output_dtype` is determined by
                 evaluating `self.__call__` on an input array of zeros.
@@ -306,12 +307,13 @@ class LinearOperator(Operator):
 
         Return a new :class:`LinearOperator` that implements the
         transpose of this :class:`LinearOperator`. For a real-valued
-        :class:`LinearOperator` `A` (`A.input_dtype` is ``np.float32``
-        or ``np.float64``), the :class:`LinearOperator` `A.T` implements
-        the adjoint: `A.T(y) == A.adj(y)`. For a complex-valued
-        :class:`LinearOperator` `A` (`A.input_dtype` is ``np.complex64``
-        or ``np.complex128``), the :class:`LinearOperator` `A.T` is not
-        the adjoint. For the conjugate transpose, use `.conj().T` or
+        :class:`LinearOperator` `A` (`A.input_dtype` is
+        :attr:`~numpy.float32` or :attr:`~numpy.float64`), the
+        :class:`LinearOperator` `A.T` implements the adjoint:
+        `A.T(y) == A.adj(y)`. For a complex-valued :class:`LinearOperator`
+        `A` (`A.input_dtype` is :attr:`~numpy.complex64` or
+        :attr:`~numpy.complex128`), the :class:`LinearOperator` `A.T` is
+        not the adjoint. For the conjugate transpose, use `.conj().T` or
         :meth:`.H`.
         """
         if is_complex_dtype(self.input_dtype):
@@ -338,12 +340,13 @@ class LinearOperator(Operator):
 
         Return a new :class:`LinearOperator` that is the Hermitian
         transpose of this :class:`LinearOperator`. For a real-valued
-        :class:`LinearOperator` `A` (`A.input_dtype` is ``np.float32`` or
-        ``np.float64``), the :class:`LinearOperator` `A.H` is equivalent
-        to `A.T`. For a complex-valued :class:`LinearOperator` `A`
-        (`A.input_dtype` is ``np.complex64`` or ``np.complex128``), the
-        :class:`LinearOperator` `A.H` implements the adjoint of
-        `A : A.H @ y == A.adj(y) == A.conj().T @ y)`.
+        :class:`LinearOperator` `A` (`A.input_dtype` is
+        :attr:`~numpy.float32` or :attr:`~numpy.float64`), the
+        :class:`LinearOperator` `A.H` is equivalent to `A.T`. For a
+        complex-valued :class:`LinearOperator` `A` (`A.input_dtype` is
+        :attr:`~numpy.complex64` or :attr:`~numpy.complex128`), the
+        :class:`LinearOperator` `A.H` implements the adjoint of `A :
+        A.H @ y == A.adj(y) == A.conj().T @ y)`.
 
         For the non-conjugate transpose, see :meth:`.T`.
         """

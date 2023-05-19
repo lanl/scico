@@ -5,7 +5,7 @@
 # and user license can be found in the 'LICENSE.txt' file distributed
 # with the package.
 
-r"""Block array class."""
+"""Block array class."""
 
 import inspect
 from functools import wraps
@@ -22,13 +22,16 @@ Array = type(jnp.array([0]))
 
 
 class BlockArray:
-    """Block array class, which provides a way to combine arrays of
-    different shapes into a single object for use with other SCICO classes.
+    """Block array class.
 
-    For detailed documentation, see the :ref:`detailed BlockArray documentation <blockarray_class>`.
+    A block array provides a way to combine arrays of different shapes
+    into a single object for use with other SCICO classes. For further
+    information, see the
+    :ref:`detailed BlockArray documentation <blockarray_class>`.
 
     Example
     -------
+
     >>> x = snp.blockarray((
     ...     [[1, 3, 7],
     ...      [2, 2, 1]],
@@ -38,7 +41,6 @@ class BlockArray:
     ((2, 3), (3,))
     >>> snp.sum(x)
     Array(30, dtype=int32)
-
     """
 
     # Ensure we use BlockArray.__radd__, __rmul__, etc for binary

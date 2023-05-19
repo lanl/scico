@@ -24,7 +24,7 @@ def _imread(filename: str, path: Optional[str] = None, asfloat: bool = False) ->
         filename: Base filename (i.e. without path) of image file.
         path: Path to directory containing the image file.
         asfloat: Flag indicating whether the returned image should be
-          converted to float32 dtype with a range [0, 1].
+          converted to :attr:`~numpy.float32` dtype with a range [0, 1].
 
     Returns:
        Image data array.
@@ -43,7 +43,7 @@ def kodim23(asfloat: bool = False) -> snp.Array:
 
     Args:
         asfloat: Flag indicating whether the returned image should be
-          converted to float32 dtype with a range [0, 1].
+          converted to :attr:`~numpy.float32` dtype with a range [0, 1].
 
     Returns:
        Image data array.

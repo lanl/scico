@@ -50,7 +50,7 @@ class MoDLNet(Module):
         strides: Convolution strides. Default: (1, 1).
         lmbda_ini: Initial value of the regularization weight `lambda`.
             Default: 0.5.
-        dtype: Output type. Default: ``jnp.float32``.
+        dtype: Output dtype. Default: :attr:`~numpy.float32`.
         cg_iter: Number of iterations for cg solver. Default: 10.
     """
 
@@ -179,7 +179,7 @@ class ODPProxDnBlock(Module):
         strides: Convolution strides. Default: (1, 1).
         alpha_ini: Initial value of the fidelity weight `alpha`.
             Default: 0.2.
-        dtype: Output type. Default: ``jnp.float32``.
+        dtype: Output dtype. Default: :attr:`~numpy.float32`.
     """
 
     operator: ModuleDef
@@ -247,7 +247,7 @@ class ODPProxDcnvBlock(Module):
         strides: Convolution strides. Default: (1, 1).
         alpha_ini: Initial value of the fidelity weight `alpha`.
             Default: 0.99.
-        dtype: Output type. Default: ``jnp.float32``.
+        dtype: Output dtype. Default: :attr:`~numpy.float32`.
     """
 
     operator: ModuleDef
@@ -338,7 +338,7 @@ class ODPGrDescBlock(Module):
         strides: Convolution strides. Default: (1, 1).
         alpha_ini: Initial value of the fidelity weight `alpha`.
             Default: 0.2.
-        dtype: Output type. Default: ``jnp.float32``.
+        dtype: Output dtype. Default: :attr:`~numpy.float32`.
     """
     operator: ModuleDef
     depth: int
@@ -412,7 +412,7 @@ class ODPNet(Module):
         strides: Convolution strides. Default: (1, 1).
         alpha_ini: Initial value of the fidelity weight `alpha`.
             Default: 0.5.
-        dtype: Output type. Default: ``jnp.float32``.
+        dtype: Output dtype. Default: :attr:`~numpy.float32`.
         odp_block: processing block to apply. Default
             :class:`ODPProxDnBlock`.
     """

@@ -360,6 +360,43 @@ def create_cone(img_shape: Shape, center: Optional[List[float]] = None) -> snp.A
     return dist_map
 
 
+def gaussian(shape: Shape, sigma: Optional[np.ndarray] = None) -> np.ndarray:
+    r"""Construct a multivariate Gaussian distribution function.
+
+    Construct a zero-mean multivariate Gaussian distribution function
+
+    .. math::
+        f(\mb{x}) = (2 \pi)^{-N/2} \, \det(\Sigma)^{-1/2} \, \exp \left(
+        -\frac{\mb{x}^T \, \Sigma^{-1} \, \mb{x}}{2} \right) \;,
+
+    where :math:`\Sigma` is the covariance matrix of the distribution.
+
+    Args:
+        shape: Shape of output array.
+        sigma: Covariance matrix.
+
+    Returns:
+        Sampled function.
+
+    Raises:
+        ValueError: If the array `sigma` cannot be inverted.
+    """
+
+    if sigma is None:
+        sigma = np.diag(np.array(shape) / 7) ** 2
+    N = len(shape)
+    try:
+        sigmainv = np.linalg.inv(sigma)
+        sigmadet = np.linalg.det(sigma)
+    except np.linalg.LinAlgError as e:
+        raise ValueError(f"Invalid covariance matrix {sigma}.") from e
+    grd = np.stack(np.mgrid[[slice(-(n - 1) / 2, (n + 1) / 2) for n in shape]], axis=-1)
+    sigmax = np.dot(grd, sigmainv)
+    xtsigmax = np.sum(grd * np.dot(grd, sigmainv), axis=-1)
+    const = ((2.0 * np.pi) ** (-N / 2.0)) * (sigmadet ** (-1.0 / 2.0))
+    return const * np.exp(-xtsigmax / 2.0)
+
+
 def create_circular_phantom(
     img_shape: Shape, radius_list: list, val_list: list, center: Optional[list] = None
 ) -> snp.Array:
