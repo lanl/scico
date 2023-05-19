@@ -59,7 +59,7 @@ class ConvBNBlock(Module):
         """Apply convolution followed by normalization and activation.
 
         Args:
-            inputs: The nd-array to be transformed.
+            inputs: The array to be transformed.
 
         Returns:
             The transformed input.
@@ -102,7 +102,7 @@ class ConvBlock(Module):
         """Apply convolution followed by activation.
 
         Args:
-            inputs: The nd-array to be transformed.
+            inputs: The array to be transformed.
 
         Returns:
             The transformed input.
@@ -151,7 +151,7 @@ class ConvBNPoolBlock(Module):
         """Apply convolution followed by normalization, activation and pooling.
 
         Args:
-            inputs: The nd-array to be transformed.
+            inputs: The array to be transformed.
 
         Returns:
             The transformed input.
@@ -200,7 +200,7 @@ class ConvBNUpsampleBlock(Module):
         """Apply convolution followed by normalization, activation and upsampling.
 
         Args:
-            inputs: The nd-array to be transformed.
+            inputs: The array to be transformed.
 
         Returns:
             The transformed input.
@@ -254,7 +254,7 @@ class ConvBNMultiBlock(Module):
         normalization and activation.
 
         Args:
-            x: The nd-array to be transformed.
+            x: The array to be transformed.
 
         Returns:
             The transformed input.
