@@ -30,7 +30,8 @@ class TestPolarGradient:
             ((2, 17, 16, 3), (2, 1)),
         ],
     )
-    def test_eval(self, shape_axes, center, outflags, input_dtype, jit):
+    @pytest.mark.parametrize("cdiff", [True, False])
+    def test_eval(self, cdiff, shape_axes, center, outflags, input_dtype, jit):
 
         input_shape, axes = shape_axes
         if axes is None:
@@ -48,6 +49,7 @@ class TestPolarGradient:
             center=center,
             angular=angular,
             radial=radial,
+            cdiff=cdiff,
             input_dtype=input_dtype,
             jit=jit,
         )

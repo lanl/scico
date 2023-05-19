@@ -23,6 +23,32 @@ from scico.typing import DType, Shape
 from ._linop import LinearOperator
 
 
+def diffstack(x, axis=None):
+    """Compute the discrete difference along multiple axes.
+
+    Apply :func:`snp.diff` along multiple axes, stacking the results on
+    a newly inserted axis at index 0. The `append` parameter of
+    :func:`snp.diff` is exploited to give output of the same length as
+    the input, which is achieved by zero-padding the output at the end
+    of each axis.
+
+
+    """
+    if axis is None:
+        axis = tuple(range(x.ndim))
+    elif isinstance(axis, int):
+        axis = (axis,)
+    dstack = [
+        snp.diff(
+            x,
+            axis=ax,
+            append=x[tuple(slice(-1, None) if i == ax else slice(None) for i in range(x.ndim))],
+        )
+        for ax in axis
+    ]
+    return snp.stack(dstack)
+
+
 class ProjectedGradient(LinearOperator):
     """Gradient projected onto local coordinate system.
 
@@ -56,6 +82,7 @@ class ProjectedGradient(LinearOperator):
         input_shape: Shape,
         axes: Optional[Tuple[int]] = None,
         coord: Optional[Tuple[Union[Array, BlockArray]]] = None,
+        cdiff: bool = False,
         input_dtype: DType = np.float32,
         jit: bool = True,
     ):
@@ -85,6 +112,10 @@ class ProjectedGradient(LinearOperator):
                 return type depends on the number of axes on which the
                 gradient is calculated, as specified explicitly or
                 implicitly via the `axes` parameter.
+            cdiff: If ``True``, estimate gradients using the second order
+                central different returned by :func:`snp.gradient`,
+                otherwise use the first order asymmetric difference
+                returned by :func:`snp.diff`.
             input_dtype: `dtype` for input argument. Default is
                 ``float32``.
             jit: If ``True``, jit the evaluation, adjoint, and gram
@@ -114,6 +145,7 @@ class ProjectedGradient(LinearOperator):
             else:
                 output_shape = (input_shape,) * len(coord)
         self.coord = coord
+        self.cdiff = cdiff
         super().__init__(
             input_shape=input_shape,
             output_shape=output_shape,
@@ -124,7 +156,10 @@ class ProjectedGradient(LinearOperator):
 
     def _eval(self, x: Array) -> Union[Array, BlockArray]:
 
-        grad = snp.gradient(x, axis=self.axes)
+        if self.cdiff:
+            grad = snp.gradient(x, axis=self.axes)
+        else:
+            grad = diffstack(x, axis=self.axes)
         if self.coord is None:
             # If coord attribute is None, just return gradients on specified axes.
             if len(self.axes) == 1:
@@ -166,6 +201,7 @@ class PolarGradient(ProjectedGradient):
         center: Optional[Union[Tuple[int], Array]] = None,
         angular: bool = True,
         radial: bool = True,
+        cdiff: bool = False,
         input_dtype: DType = np.float32,
         jit: bool = True,
     ):
@@ -184,6 +220,10 @@ class PolarGradient(ProjectedGradient):
                 angular (i.e. tangent to circles) direction.
             radial: Flag indicating whether to compute gradients in the
                 radial (i.e. directed outwards from the origin) direction.
+            cdiff: If ``True``, estimate gradients using the second order
+                central different returned by :func:`snp.gradient`,
+                otherwise use the first order asymmetric difference
+                returned by :func:`snp.diff`.
             input_dtype: `dtype` for input argument. Default is ``float32``.
             jit: If ``True``, jit the evaluation, adjoint, and gram
                 functions of the LinearOperator.
@@ -225,6 +265,7 @@ class PolarGradient(ProjectedGradient):
             input_dtype=input_dtype,
             axes=axes,
             coord=coord,
+            cdiff=cdiff,
             jit=jit,
         )
 
@@ -254,6 +295,7 @@ class CylindricalGradient(ProjectedGradient):
         angular: bool = True,
         radial: bool = True,
         axial: bool = True,
+        cdiff: bool = False,
         input_dtype: DType = np.float32,
         jit: bool = True,
     ):
@@ -279,6 +321,10 @@ class CylindricalGradient(ProjectedGradient):
                 radial (i.e. directed outwards from the origin) direction.
             axial: Flag indicating whether to compute gradients in the
                 direction of the axis of the cylinder.
+            cdiff: If ``True``, estimate gradients using the second order
+                central different returned by :func:`snp.gradient`,
+                otherwise use the first order asymmetric difference
+                returned by :func:`snp.diff`.
             input_dtype: `dtype` for input argument. Default is
                 ``float32``.
             jit: If ``True``, jit the evaluation, adjoint, and gram
@@ -341,6 +387,7 @@ class CylindricalGradient(ProjectedGradient):
             input_shape=input_shape,
             input_dtype=input_dtype,
             axes=axes,
+            cdiff=cdiff,
             coord=coord,
             jit=jit,
         )
@@ -371,6 +418,7 @@ class SphericalGradient(ProjectedGradient):
         azimuthal: bool = True,
         polar: bool = True,
         radial: bool = True,
+        cdiff: bool = False,
         input_dtype: DType = np.float32,
         jit: bool = True,
     ):
@@ -395,6 +443,10 @@ class SphericalGradient(ProjectedGradient):
                 polar direction.
             radial: Flag indicating whether to compute gradients in the
                 radial direction.
+            cdiff: If ``True``, estimate gradients using the second order
+                central different returned by :func:`snp.gradient`,
+                otherwise use the first order asymmetric difference
+                returned by :func:`snp.diff`.
             input_dtype: `dtype` for input argument. Default is
                 ``float32``.
             jit: If ``True``, jit the evaluation, adjoint, and gram
@@ -455,5 +507,6 @@ class SphericalGradient(ProjectedGradient):
             input_dtype=input_dtype,
             axes=axes,
             coord=coord,
+            cdiff=cdiff,
             jit=jit,
         )
