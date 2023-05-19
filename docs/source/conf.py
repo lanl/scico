@@ -220,6 +220,7 @@ pygments_style = "sphinx"
 html_theme = "furo"
 
 html_theme_options = {
+    "top_of_page_button": None,
     # "sidebar_hide_name": True,
 }
 
