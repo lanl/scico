@@ -23,14 +23,17 @@ NO_COMPLEX = [functional.NonNegativeIndicator]
 def pytest_generate_tests(metafunc):
     level = int(metafunc.config.getoption("--level"))
     alpha_range = [1e-2, 1e-1, 1e0, 1e1]
+    dtype_range = [np.float32, np.complex64, np.float64, np.complex128]
     if level == 2:
         alpha_range = [1e-2, 1e1]
+        dtype_range = [np.float32, np.complex64, np.float64]
     elif level < 2:
-        alpha_range = [
-            1e-2,
-        ]
+        alpha_range = [1e-2]
+        dtype_range = [np.float32, np.complex64]
     if "alpha" in metafunc.fixturenames:
         metafunc.parametrize("alpha", alpha_range)
+    if "test_dtype" in metafunc.fixturenames:
+        metafunc.parametrize("test_dtype", dtype_range)
 
 
 class ProxTestObj:
@@ -42,9 +45,9 @@ class ProxTestObj:
         self.vz = snp.zeros((3, 4), dtype=dtype)
 
 
-@pytest.fixture(params=[np.float32, np.complex64, np.float64, np.complex128])
-def test_prox_obj(request):
-    return ProxTestObj(request.param)
+@pytest.fixture
+def test_prox_obj(test_dtype):
+    return ProxTestObj(test_dtype)
 
 
 class SeparableTestObject:
@@ -62,9 +65,9 @@ class SeparableTestObject:
         self.vb = snp.blockarray([self.v1, self.v2])
 
 
-@pytest.fixture(params=[np.float32, np.complex64, np.float64, np.complex128])
-def test_separable_obj(request):
-    return SeparableTestObject(request.param)
+@pytest.fixture
+def test_separable_obj(test_dtype):
+    return SeparableTestObject(test_dtype)
 
 
 def test_separable_eval(test_separable_obj):
