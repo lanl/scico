@@ -34,12 +34,12 @@ def rotation90(img: Array) -> Array:
     """Rotate an image, or a batch of images, by 90 degrees.
 
     Rotate an image or a batch of images by 90 degrees counterclockwise.
-    An image is an nd-array with size H x W x C with H and W spatial
+    An image is an array with size H x W x C with H and W spatial
     dimensions and C number of channels. A batch of images is an
-    nd-array with size N x H x W x C with N number of images.
+    array with size N x H x W x C with N number of images.
 
     Args:
-        img: The nd-array to be rotated.
+        img: The array to be rotated.
 
     Returns:
        An image, or batch of images, rotated by 90 degrees
@@ -55,12 +55,12 @@ def flip(img: Array) -> Array:
     """Horizontal flip of an image or a batch of images.
 
     Horizontally flip an image or a batch of images. An image is an
-    nd-array with size H x W x C with H and W spatial dimensions and C
-    number of channels. A batch of images is an nd-array with size
+    array with size H x W x C with H and W spatial dimensions and C
+    number of channels. A batch of images is an array with size
     N x H x W x C with N number of images.
 
     Args:
-        img: The nd-array to be flipped.
+        img: The array to be flipped.
 
     Returns:
        An image, or batch of images, flipped horizontally.
@@ -74,7 +74,7 @@ def flip(img: Array) -> Array:
 class CenterCrop:
     """Crop central part of an image to a specified size.
 
-    Crop central part of an image. An image is an nd-array with size
+    Crop central part of an image. An image is an array with size
     H x W x C with H and W spatial dimensions and C number of channels.
     """
 
@@ -95,7 +95,7 @@ class CenterCrop:
         """Apply center crop.
 
         Args:
-            image: The nd-array to be cropped.
+            image: The array to be cropped.
 
         Returns:
             The cropped image.
@@ -114,7 +114,7 @@ class CenterCrop:
 class PositionalCrop:
     """Crop an image from a given corner to a specified size.
 
-    Crop an image from a given corner. An image is an nd-array with size
+    Crop an image from a given corner. An image is an array with size
     H x W x C with H and W spatial dimensions and C number of channels.
     """
 
@@ -135,7 +135,7 @@ class PositionalCrop:
         """Apply positional crop.
 
         Args:
-            image: The nd-array to be cropped.
+            image: The array to be cropped.
             top: Vertical top coordinate of corner to start cropping.
             left: Horizontal left coordinate of corner to start
                 cropping.
@@ -156,8 +156,8 @@ class RandomNoise:
     """Add Gaussian noise to an image or a batch of images.
 
     Add Gaussian noise to an image or a batch of images. An image is
-    an nd-array with size H x W x C with H and W spatial dimensions
-    and C number of channels. A batch of images is an nd-array with
+    an array with size H x W x C with H and W spatial dimensions
+    and C number of channels. A batch of images is an array with
     size N x H x W x C with N number of images. The Gaussian noise is
     a Gaussian random variable with mean zero and given standard
     deviation. The standard deviation can be a fix value corresponding
@@ -182,7 +182,7 @@ class RandomNoise:
         """Add Gaussian noise.
 
         Args:
-            image: The nd-array to add noise to.
+            image: The array to add noise to.
 
         Returns:
             The noisy image.
@@ -234,7 +234,7 @@ def preprocess_images(
         dtype: dtype of array. Default: :attr:`~numpy.float32`.
 
     Returns:
-        Preprocessed nd-array.
+        Preprocessed array.
     """
 
     # Get number of images to use.
@@ -296,7 +296,7 @@ def build_image_dataset(
     Preprocess images according to the specified configuration and
     assemble a dataset into a structure that can be used for training
     machine learning models. Keep training and testing partitions.
-    Each dictionary returned has images and labels, which are nd-arrays
+    Each dictionary returned has images and labels, which are arrays
     of dimensions (N, H, W, C) with N: number of images; H,
     W: spatial dimensions and C: number of channels.
 
@@ -561,7 +561,7 @@ class PaddedCircularConvolve(LinearOperator):
         """Apply operator.
 
         Args:
-            x: The nd-array with input signal. The input to the
+            x: The array with input signal. The input to the
                 constructed operator should be HWC with H and W spatial
                 dimensions given by `output_size` and C the given
                 `channels`.

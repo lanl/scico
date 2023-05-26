@@ -266,16 +266,16 @@ system can also be solved efficiently when :math:`A` and all of the
 **Proximal ADMM** Proximal ADMM :cite:`deng-2015-global` solves problems of
 the form
 
-    .. math::
-        \argmin_{\mb{x}} \; f(\mb{x}) + g(\mb{z}) \;
-        \text{such that}\; A \mb{x} + B \mb{z} = \mb{c} \;,
+.. math::
+    \argmin_{\mb{x}} \; f(\mb{x}) + g(\mb{z}) \;
+    \text{such that}\; A \mb{x} + B \mb{z} = \mb{c} \;,
 
 where :math:`A` and :math:`B` are linear operators. There is also a non-linear
 PADMM solver :cite:`benning-2016-preconditioned` for problems of the form
 
-    .. math::
-        \argmin_{\mb{x}} \; f(\mb{x}) + g(\mb{z}) \;
-        \text{such that}\; H(\mb{x}, \mb{z}) = 0 \;,
+.. math::
+    \argmin_{\mb{x}} \; f(\mb{x}) + g(\mb{z}) \;
+    \text{such that}\; H(\mb{x}, \mb{z}) = 0 \;,
 
 where :math:`H` is a function. For some problems, proximal ADMM converges
 substantially faster than ADMM or linearized ADMM.

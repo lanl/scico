@@ -100,7 +100,7 @@ class CNN(Module):
         """Apply CNN layer.
 
         Args:
-            x: The nd-array to be convolved.
+            x: The array to be convolved.
 
         Returns:
             The result of the convolution with `kernel0`.

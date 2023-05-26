@@ -103,7 +103,7 @@ Denoisers
 ---------
 
 The :func:`.bm3d` and :func:`.bm4d` denoisers (and the corresponding
-:class:`.BM3D` and :class:`.BM4d` pseudo-functionals) are implemented
+:class:`.BM3D` and :class:`.BM4D` pseudo-functionals) are implemented
 via interfaces to the `bm3d <https://pypi.org/project/bm3d/>`__ and
 `bm4d <https://pypi.org/project/bm4d/>`__ packages respectively. The
 :class:`~.denoiser.DnCNN` denoiser (and the corresponding
@@ -145,11 +145,12 @@ As a concrete example, consider the function :math:`f(x) =
 \frac{1}{2}\norm{\mb{A} \mb{x}}_2^2` where :math:`\mb{A}` is a complex
 matrix. The gradient of :math:`f` is usually given :math:`(\nabla
 f)(\mb{x}) = \mb{A}^H \mb{A} \mb{x}`, where :math:`\mb{A}^H` is the
-conjugate transpose of :math:`\mb{A}`. Applying ``jax.grad`` to
+conjugate transpose of :math:`\mb{A}`. Applying :func:`jax.grad` to
 :math:`f` will yield :math:`(\mb{A}^H \mb{A} \mb{x})^*`, where
 :math:`\cdot^*` denotes complex conjugation.
 
-The following code demonstrates the use of ``jax.grad`` and :func:`scico.grad`:
+The following code demonstrates the use of :func:`jax.grad` and
+:func:`scico.grad`:
 
 
 ::
@@ -183,7 +184,7 @@ an example, :math:`f(x) = \norm{x}_2^2` can be implemented in as ``f =
 lambda x: snp.linalg.norm(x)**2``. This involves first calculating the
 non-squared :math:`\ell_2` norm, then squaring it. The un-squared
 :math:`\ell_2` norm is not differentiable at zero. When evaluating
-the gradient of ``f`` at 0, :func:`scico.grad` returns ``nan``:
+the gradient of ``f`` at 0, :func:`scico.grad` returns :data:`~numpy.NaN`:
 
 ::
 
@@ -259,9 +260,9 @@ JAX arrays:
 
 
 We recommend that input data be converted to JAX arrays via
-``jax.device_put`` before calling any SCICO optimizers.
+:func:`jax.device_put` before calling any SCICO optimizers.
 
-On a multi-GPU system, ``jax.device_put`` can place data on a specific
+On a multi-GPU system, :func:`jax.device_put` can place data on a specific
 GPU. See the `JAX notes on data placement
 <https://jax.readthedocs.io/en/latest/faq.html?highlight=data%20placement#controlling-data-and-computation-placement-on-devices>`_.
 

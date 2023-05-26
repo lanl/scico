@@ -150,7 +150,7 @@ Constructing a BlockArray
 -------------------------
 
 The recommended way to construct a :class:`.BlockArray` is by using the
-:func:`snp.blockarray` function.
+:func:`~scico.numpy.blockarray` function.
 
 ::
 
@@ -165,8 +165,8 @@ The recommended way to construct a :class:`.BlockArray` is by using the
    >>> len(X)
    2
 
-While :func:`.snp.blockarray` will accept either :class:`~numpy.ndarray`\ s or
-:class:`~jax.Array`\ s as input, :class:`~numpy.ndarray`\ s will be converted to
+While :func:`~scico.numpy.blockarray` will accept either :class:`~numpy.ndarray`\ s
+or :class:`~jax.Array`\ s as input, :class:`~numpy.ndarray`\ s will be converted to
 :class:`~jax.Array`\ s.
 
 

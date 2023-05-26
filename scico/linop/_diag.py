@@ -17,7 +17,7 @@ from typing import Optional, Union
 
 import scico.numpy as snp
 from scico.numpy import Array, BlockArray
-from scico.numpy.util import ensure_on_device, is_nested
+from scico.numpy.util import broadcast_nested_shapes, ensure_on_device, is_nested
 from scico.operator._operator import _wrap_mul_div_scalar
 from scico.typing import BlockShape, DType, Shape
 
@@ -58,7 +58,7 @@ class Diagonal(LinearOperator):
             input_dtype = self.diagonal.dtype
 
         if isinstance(diagonal, BlockArray) and is_nested(input_shape):
-            output_shape = (snp.empty(input_shape) * diagonal).shape
+            output_shape = broadcast_nested_shapes(input_shape, self.diagonal.shape)
         elif not isinstance(diagonal, BlockArray) and not is_nested(input_shape):
             output_shape = snp.broadcast_shapes(input_shape, self.diagonal.shape)
         elif isinstance(diagonal, BlockArray):

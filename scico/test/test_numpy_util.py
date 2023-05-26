@@ -175,3 +175,20 @@ def test_real_dtype():
 
 def test_complex_dtype():
     assert complex_dtype(snp.float32) == snp.complex64
+
+
+def test_broadcast_nested_shapes():
+    # unnested should work as usual
+    assert snp.util.broadcast_nested_shapes((1, 3, 4, 7), (3, 1, 7)) == (1, 3, 4, 7)
+
+    # nested + unested
+    assert snp.util.broadcast_nested_shapes(((2, 3), (1, 1, 3)), (2, 3)) == ((2, 3), (1, 2, 3))
+
+    # unested + nested
+    assert snp.util.broadcast_nested_shapes((1, 1, 3), ((2, 3), (7, 3))) == ((1, 2, 3), (1, 7, 3))
+
+    # nested + nested
+    snp.util.broadcast_nested_shapes(((1, 1, 3), (1, 7, 1, 3)), ((2, 3), (7, 4, 3))) == (
+        (1, 2, 3),
+        (1, 7, 4, 3),
+    )

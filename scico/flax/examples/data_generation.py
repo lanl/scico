@@ -109,7 +109,7 @@ def generate_foam2_images(seed: float, size: int, ndata: int) -> Array:
         ndata: Number of images to generate.
 
     Returns:
-        nd-array of generated data.
+        Array of generated data.
     """
     if not have_xdesign:
         raise RuntimeError("Package xdesign is required for use of this function.")
@@ -138,7 +138,7 @@ def generate_foam1_images(seed: float, size: int, ndata: int) -> Array:
         ndata: Number of images to generate.
 
     Returns:
-        nd-array of generated data.
+        Array of generated data.
     """
     if not have_xdesign:
         raise RuntimeError("Package xdesign is required for use of this function.")

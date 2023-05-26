@@ -70,7 +70,7 @@ class MoDLNet(Module):
         """Apply MoDL net for inversion.
 
         Args:
-            y: The nd-array with signal to invert.
+            y: The array with signal to invert.
             train: Flag to differentiate between training and testing
                stages.
 
@@ -200,8 +200,8 @@ class ODPProxDnBlock(Module):
         """Apply denoising block.
 
         Args:
-            x: The nd-array with current stage of denoised signal.
-            y: The nd-array with noisy signal.
+            x: The array with current stage of denoised signal.
+            y: The array with noisy signal.
             train: Flag to differentiate between training and testing
                 stages.
 
@@ -289,8 +289,8 @@ class ODPProxDcnvBlock(Module):
         """Apply debluring block.
 
         Args:
-            x: The nd-array with current stage of reconstructed signal.
-            y: The nd-array with signal to invert.
+            x: The array with current stage of reconstructed signal.
+            y: The array with signal to invert.
             train: Flag to differentiate between training and testing
                 stages.
 
@@ -378,8 +378,8 @@ class ODPGrDescBlock(Module):
         """Apply gradient descent block.
 
         Args:
-            x: The nd-array with current stage of reconstructed signal.
-            y: The nd-array with signal to invert.
+            x: The array with current stage of reconstructed signal.
+            y: The array with signal to invert.
             train: Flag to differentiate between training and testing
                 stages.
 
@@ -433,7 +433,7 @@ class ODPNet(Module):
         """Apply ODP net for inversion.
 
         Args:
-            y: The nd-array with signal to invert.
+            y: The array with signal to invert.
             train: Flag to differentiate between training and testing
                 stages.
 
