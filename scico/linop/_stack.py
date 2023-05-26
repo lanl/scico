@@ -72,7 +72,7 @@ class VerticalStack(LinearOperator):
                 ...), the output is instead a :class:`jax.Array` with
                 shape (S, m, n, ...) where S is the length of `ops`.
                 Defaults to ``True``.
-            jit: see `jit` in :class:`LinearOperator`.
+            jit: See `jit` in :class:`LinearOperator`.
         """
         VerticalStack.check_if_stackable(ops)
 
@@ -180,21 +180,21 @@ class DiagonalStack(LinearOperator):
 
     .. math::
        \begin{pmatrix}
-            A_1(\mathbf{x}_1) \\
-            A_2(\mathbf{x}_2) \\
+            A_1(\mb{x}_1) \\
+            A_2(\mb{x}_2) \\
             \vdots \\
-            A_N(\mathbf{x}_N) \\
+            A_N(\mb{x}_N) \\
        \end{pmatrix}
        = H
        \begin{pmatrix}
-            \mathbf{x}_1 \\
-            \mathbf{x}_2 \\
+            \mb{x}_1 \\
+            \mb{x}_2 \\
             \vdots \\
-            \mathbf{x}_N \\
+            \mb{x}_N \\
        \end{pmatrix} \;.
 
-    By default, if the inputs :math:`\mathbf{x}_1, \mathbf{x}_2, \dots,
-    \mathbf{x}_N` all have the same (possibly nested) shape, `S`, this
+    By default, if the inputs :math:`\mb{x}_1, \mb{x}_2, \dots,
+    \mb{x}_N` all have the same (possibly nested) shape, `S`, this
     operator will work on the stack, i.e., have an input shape of `(N,
     *S)`. If the inputs have distinct shapes, `S1`, `S2`, ..., `SN`,
     this operator will work on the block concatenation, i.e.,
@@ -217,7 +217,7 @@ class DiagonalStack(LinearOperator):
                 stacked along the first dimension when possible.
             allow_output_collapse: If ``True``, the output will be
                 stacked along the first dimension when possible.
-            jit: see `jit` in :class:`LinearOperator`.
+            jit: See `jit` in :class:`LinearOperator`.
 
         """
         self.ops = ops
