@@ -171,14 +171,21 @@ class TomographicProjector(LinearOperator):
         def f(sino):
             if sino.flags.writeable == False:
                 sino.flags.writeable = True
-            proj_id = astra.create_projector("line", self.proj_geom, self.vol_geom)
+            dev0 = jax.devices()[0]
+            if dev0.platform == "gpu":
+                proj_id = astra.create_projector("cuda", self.proj_geom, self.vol_geom)
+            else:
+                proj_id = astra.create_projector("line", self.proj_geom, self.vol_geom)
             sino_id = astra.data2d.create("-sino", self.proj_geom, sino)
 
             # create memory for result
             rec_id = astra.data2d.create("-vol", self.vol_geom)
 
             # start to populate config
-            cfg = astra.astra_dict("FBP")
+            if dev0.platform == "gpu":
+                cfg = astra.astra_dict("FBP_CUDA")
+            else:
+                cfg = astra.astra_dict('FBP"')
             cfg["ReconstructionDataId"] = rec_id
             cfg["ProjectorId"] = proj_id
             cfg["ProjectionDataId"] = sino_id
@@ -193,6 +200,7 @@ class TomographicProjector(LinearOperator):
 
             # cleanup FBP-specific arra
             astra.algorithm.delete(alg_id)
+            astra.data2d.delete(sino_id)
             astra.data2d.delete(rec_id)
             return out
 
