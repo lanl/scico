@@ -10,13 +10,6 @@ sys.path.append(rootpath)
 
 from docsutil import insert_inheritance_diagram, package_classes, run_conf_files
 
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-# rootpath = os.path.abspath("../..")
-# sys.path.insert(0, rootpath)
-
-
 # Process settings in files in conf directory
 _vardict = run_conf_files(vardict={"confpath": confpath, "rootpath": rootpath})
 for _k, _v in _vardict.items():
