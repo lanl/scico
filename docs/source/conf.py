@@ -37,7 +37,7 @@ templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ["_build", "**tests**", "**README.rst", "examples", "include"]
+exclude_patterns = ["_build", "**tests**", "**README.rst", "include"]
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 add_function_parentheses = False
