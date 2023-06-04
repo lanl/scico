@@ -13,7 +13,7 @@ sys.path.append(confpath)
 rootpath = os.path.join(confpath, "..", "..")
 sys.path.append(rootpath)
 
-from docutil import insert_inheritance_diagram, package_classes
+from docsutil import insert_inheritance_diagram, package_classes
 
 from scico._version import package_version
 from scico.typing import (  # needed for typehints_formatter hack
