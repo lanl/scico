@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2022 by SCICO Developers
+# Copyright (C) 2020-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -14,13 +14,51 @@ import io
 import socket
 import urllib.error as urlerror
 import urllib.request as urlrequest
-from functools import wraps
+from functools import reduce, wraps
 from timeit import default_timer as timer
 from typing import Any, Callable, Dict, List, Optional, Sequence, Union
 
 import jax
 from jax.interpreters.batching import BatchTracer
 from jax.interpreters.partial_eval import DynamicJaxprTracer
+
+
+def rgetattr(obj, name: str, default: Optional[Any] = None) -> Any:
+    """Recursive version of :func:`getattr`.
+
+    Args:
+        obj: Object with the attribute to be accessed.
+        name: Path to object in with components delimited by a "."
+           character.
+        default: Default value to be returned if the attribute does not
+           exist.
+
+    Returns:
+        Attribute value of default if attribute does not exist.
+    """
+
+    try:
+        return reduce(getattr, name.split("."), obj)
+    except AttributeError as e:
+        if default is not None:
+            return default
+        else:
+            raise e
+
+
+def rsetattr(obj, name: str, value: Any):
+    """Recursive version of :func:`setattr`.
+
+    Args:
+        obj: Object with the attribute to be set.
+        name: Path to object in with components delimited by a "."
+           character.
+        value: Value to which the attribute is to be set.
+    """
+
+    # See goo.gl/BVJ7MN
+    path = name.split(".")
+    setattr(reduce(getattr, path[:-1], obj), path[-1], value)
 
 
 def partial(func: Callable, indices: Sequence, *fixargs: Any, **fixkwargs: Any) -> Callable:

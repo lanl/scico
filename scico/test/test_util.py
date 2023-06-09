@@ -8,7 +8,27 @@ import jax
 import pytest
 
 import scico.numpy as snp
-from scico.util import ContextTimer, Timer, check_for_tracer, partial, url_get
+from scico.util import (
+    ContextTimer,
+    Timer,
+    check_for_tracer,
+    partial,
+    rgetattr,
+    rsetattr,
+    url_get,
+)
+
+
+def set_rec_attr():
+    class A:
+        class B:
+            c = 0
+
+        b = B()
+
+    a = A()
+    rsetattr(a, "b.c", 1)
+    assert rgetattr(a, "b.c") == 1
 
 
 def test_partial_pos():
