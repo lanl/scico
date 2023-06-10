@@ -597,6 +597,9 @@ class SolveATAI:
     factorizing the matrix :math:`A^T A + \alpha I` or
     :math:`A A^T + \alpha I`, depending on which is smaller. If it is the
     latter, the matrix inversion lemma is used to solve the linear system.
+
+    To solve problems directly involving a matrix of the form
+    :math:`A A^T + \alpha I`, initialize with `A.T` instead of `A`.
     """
 
     def __init__(
