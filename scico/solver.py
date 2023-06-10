@@ -55,9 +55,15 @@ import numpy as np
 import jax
 import jax.experimental.host_callback as hcb
 
-import scico.linop
 import scico.numpy as snp
 import scipy.linalg as spl
+from scico.linop import (
+    CircularConvolve,
+    ComposedLinearOperator,
+    LinearOperator,
+    MatrixOperator,
+    Sum,
+)
 from scico.metric import rel_res
 from scico.numpy import Array, BlockArray
 from scico.numpy.util import is_real_dtype
@@ -329,7 +335,7 @@ def cg(
             - **info**: Dictionary containing diagnostic information.
     """
     if x0 is None:
-        if isinstance(A, scico.linop.LinearOperator):
+        if isinstance(A, LinearOperator):
             x0 = snp.zeros(A.input_shape, b.dtype)
         else:
             raise ValueError("Parameter x0 must be specified if A is not a LinearOperator")
@@ -411,11 +417,11 @@ def lstsq(
             - **x** : Solution array.
             - **info**: Dictionary containing diagnostic information.
     """
-    if isinstance(A, scico.linop.LinearOperator):
+    if isinstance(A, LinearOperator):
         Aop = A
     else:
         assert x0 is not None
-        Aop = scico.linop.LinearOperator(
+        Aop = LinearOperator(
             input_shape=x0.shape,
             output_shape=b.shape,
             eval_fn=A,
@@ -595,7 +601,7 @@ class SolveATAI:
 
     def __init__(
         self,
-        A: Union[scico.linop.MatrixOperator, Array],
+        A: Union[MatrixOperator, Array],
         alpha: float,
         cho_factor: bool = True,
         lower: bool = False,
@@ -613,7 +619,7 @@ class SolveATAI:
             check_finite: Flag indicating whether the input array should
                 be checked for ``Inf`` and ``NaN`` values.
         """
-        if isinstance(A, scico.linop.MatrixOperator):
+        if isinstance(A, MatrixOperator):
             A = A.to_array()
         self.A = A
         self.alpha = alpha
@@ -750,15 +756,13 @@ class SolveConvATAD:
     :math:`\hat{A}^H` and :math:`\hat{A}`.
     """
 
-    def __init__(self, A: scico.linop.ComposedLinearOperator, D: scico.linop.CircularConvolve):
+    def __init__(self, A: ComposedLinearOperator, D: CircularConvolve):
         r"""
         Args:
             A: Operator :math:`A`.
             D: Operator :math:`D`.
         """
-        if not isinstance(A.A, scico.linop.Sum) or not isinstance(
-            A.B, scico.linop.CircularConvolve
-        ):
+        if not isinstance(A.A, Sum) or not isinstance(A.B, CircularConvolve):
             raise TypeError(
                 "Operator A is required to be a composition of Sum and CircularConvolve"
                 f"linear operators; got a composition of {type(A.A)} and {type(A.B)}."
@@ -787,7 +791,7 @@ class SolveConvATAD:
         Returns:
           Solution to the linear system.
         """
-        assert isinstance(self.A.B, scico.linop.CircularConvolve)
+        assert isinstance(self.A.B, CircularConvolve)
 
         Ahat = self.A.B.h_dft
         Dhat = self.D.h_dft
