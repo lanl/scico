@@ -5,9 +5,14 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""SciPy optimization algorithms.
+"""Solver and optimization algorithms.
 
-This module provides scico interface wrappers for functions
+This module provides a number of functions for solving linear systems and
+optimization problems, some of which are used as subproblem solvers
+within the iterations of the proximal algorithms in the
+:mod:`scico.optimize` subpackage.
+
+This module also provides scico interface wrappers for functions
 from :mod:`scipy.optimize` since jax directly implements only a very
 limited subset of these functions (there is limited, experimental support
 for `L-BFGS-B <https://github.com/google/jax/pull/6053>`_), but only CG
@@ -24,8 +29,8 @@ arrays. These limitations are addressed by:
 
 The wrapper also JIT compiles the function and gradient evaluations.
 
-The functions provided in this module have a number of advantages and
-disadvantages with respect to those in :mod:`jax.scipy.optimize`:
+These wrapper functions have a number of advantages and disadvantages
+with respect to those in :mod:`jax.scipy.optimize`:
 
 - This module provides many more algorithms than
   :mod:`jax.scipy.optimize`.
@@ -37,7 +42,7 @@ disadvantages with respect to those in :mod:`jax.scipy.optimize`:
 - The solvers in this module can't be JIT compiled, and gradients cannot
   be taken through them.
 
-In the future, this module may be replaced with a dependency on
+In the future, these wrapper functions may be replaced with a dependency on
 `JAXopt <https://github.com/google/jaxopt>`__.
 """
 
