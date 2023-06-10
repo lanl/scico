@@ -698,7 +698,6 @@ class SolveConvATAD:
     the frequency-domain version of :math:`\mb{x}`), the the problem can
     be written as
 
-
     .. math::
 
        (\hat{A}^H \hat{A} + \hat{D}) \hat{\mb{x}} = \hat{\mb{b}} \;,
