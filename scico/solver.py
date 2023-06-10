@@ -68,7 +68,9 @@ import jax.experimental.host_callback as hcb
 import scico.linop
 import scico.numpy as snp
 import scipy.linalg as spl
+from scico.metric import rel_res
 from scico.numpy import Array, BlockArray
+from scico.numpy.util import is_real_dtype
 from scico.typing import BlockShape, DType, Shape
 from scipy import optimize as spopt
 
@@ -645,13 +647,13 @@ class SolveATAI:
             self.factor = (lu, piv)
 
     def solve(self, b: Array, check_finite: bool = None) -> Array:
-        """Solve the linear system.
+        r"""Solve the linear system.
 
         Solve the linear system with right hand side :math:`\mb{b}` (`b`
         is a vector) or :math:`B` (`b` is a 2d array).
 
         Args:
-           b : Vector :math:`\mathbf{b}` or matrix :math:`B`.
+           b: Vector :math:`\mathbf{b}` or matrix :math:`B`.
            check_finite: Flag indicating whether the input array should
                be checked for ``Inf`` and ``NaN`` values. If ``None``,
                use the value selected on initialization.
@@ -672,4 +674,148 @@ class SolveATAI:
             x = fact_solve(b, 0)
         else:
             x = (b - self.A.T @ fact_solve(self.A @ b, 1)) / self.alpha
+        return x
+
+
+class SolveConvATAD:
+    r"""Solver for sum of convolutions linear system`        .
+
+    Solve a linear system of the form
+
+    .. math::
+
+       (A^H A + D) \mb{x} = \mb{b}
+
+    where :math:`A` is a block-row operator with circulant blocks, i.e. it
+    can be written as
+
+    .. math::
+
+       A = \left( \begin{array}{cccc} A_1 & A_2 & \ldots & A_{K}
+           \end{array} \right) \;,
+
+    where all of the :math:`A_k` are circular convolution operators, and
+    :math:`D` is a circular convolution operator. This problem is most
+    easily solved in the DFT transform domain, where the circular
+    convolutions become diagonal operators. Denoting the frequency-domain
+    versions of variables with a circumflex (e.g. :math:`\hat{\mb{x}}` is
+    the frequency-domain version of :math:`\mb{x}`), the the problem can
+    be written as
+
+
+    .. math::
+
+       (\hat{A}^H \hat{A} + \hat{D}) \hat{\mb{x}} = \hat{\mb{b}} \;,
+
+    where
+
+    .. math::
+
+       \hat{A} = \left( \begin{array}{cccc} \hat{A}_1 & \hat{A}_2 &
+       \ldots & \hat{A}_{K} \end{array} \right) \;,
+
+    and :math:`\hat{D}` and all the :math:`\hat{A}_k` are diagonal
+    operators.
+
+    This linear equation is computational expensive to solve because
+    the left hand side includes the term :math:`\hat{A}^H \hat{A}`,
+    which corresponds to the outer product of :math:`\hat{A}^H`
+    and :math:`\hat{A}`. A computationally efficient solution is possible,
+    however, by exploiting the Woodbury matrix identity
+    :cite:`wohlberg-2014-efficient`
+
+    .. math::
+
+       (B + U C V)^{-1} = B^{-1} - B^{-1} U (C^{-1} + V B^{-1} U)^{-1}
+       V B^{-1} \;.
+
+    Setting
+
+    .. math::
+
+       B &= \hat{D} \\
+       U &= \hat{A}^H \\
+       C &= I \\
+       V &= \hat{A}
+
+    we have
+
+    .. math::
+
+       (\hat{D} + \hat{A}^H \hat{A})^{-1} = \hat{D}^{-1} - \hat{D}^{-1}
+       \hat{A}^H (I + \hat{A} \hat{D}^{-1} \hat{A}^H)^{-1} \hat{A}
+       \hat{D}^{-1}
+
+    which can be simplified to
+
+    .. math::
+
+       (\hat{D} + \hat{A}^H \hat{A})^{-1} = \hat{D}^{-1} (I - \hat{A}^H
+       \hat{E}^{-1} \hat{A} \hat{D}^{-1})
+
+    by defining :math:`\hat{E} = I + \hat{A} \hat{D}^{-1} \hat{A}^H`. The
+    right hand side is much cheaper to compute because the only matrix
+    inversions involve :math:`\hat{D}`, which is diagonal, and
+    :math:`\hat{E}`, which is a weighted inner product of
+    :math:`\hat{A}^H` and :math:`\hat{A}`.
+    """
+
+    def __init__(self, A: scico.linop.ComposedLinearOperator, D: scico.linop.CircularConvolve):
+        r"""
+        Args:
+            A: Operator :math:`A`.
+            D: Operator :math:`D`.
+        """
+        if not isinstance(A.A, scico.linop.Sum) or not isinstance(
+            A.B, scico.linop.CircularConvolve
+        ):
+            raise TypeError(
+                "Operator A is required to be a composition of Sum and CircularConvolve"
+                f"linear operators; got a composition of {type(A.A)} and {type(A.B)}."
+            )
+
+        self.A = A
+        self.D = D
+        self.sum_axis = A.A.kwargs["axis"]
+        self.fft_axes = A.B.x_fft_axes
+        self.real_result = is_real_dtype(D.input_dtype)
+        self.accuracy: Optional[float] = None
+
+        Ahat = A.B.h_dft
+        Dhat = D.h_dft
+        self.AHEinv = Ahat.conj() / (
+            1.0 + snp.sum(Ahat * (Ahat.conj() / Dhat), axis=self.sum_axis, keepdims=True)
+        )
+
+    def solve(self, b: Array, check_solve: bool = False) -> Array:
+        r"""Solve the linear system.
+
+        Solve the linear system with right hand side :math:`\mb{b}`.
+
+        Args:
+           b: Array :math:`\mathbf{b}`.
+           check_solve: Flag indicating whether the solution accuracy
+               should be computed.
+
+        Returns:
+          Solution to the linear system.
+        """
+        assert isinstance(self.A.B, scico.linop.CircularConvolve)
+
+        Ahat = self.A.B.h_dft
+        Dhat = self.D.h_dft
+        bhat = snp.fft.fftn(b, axes=self.fft_axes)
+        xhat = (
+            bhat - (self.AHEinv * (snp.sum(Ahat * bhat / Dhat, axis=self.sum_axis, keepdims=True)))
+        ) / Dhat
+        x = snp.fft.ifftn(xhat, axes=self.fft_axes)
+        if self.real_result:
+            x = x.real
+
+        if check_solve:
+            lhs = self.A.gram_op(x) + self.D(x)
+            self.accuracy = rel_res(lhs, b)
+        else:
+            self.accuracy = None
+
         return x

@@ -28,9 +28,9 @@ from scico.linop import (
     Sum,
 )
 from scico.loss import SquaredL2Loss
-from scico.metric import rel_res
 from scico.numpy import Array, BlockArray
 from scico.numpy.util import ensure_on_device, is_real_dtype
+from scico.solver import SolveConvATAD
 from scico.solver import cg as scico_cg
 from scico.solver import minimize
 
@@ -480,9 +480,6 @@ class FBlockCircularConvolveSolver(LinearSubproblemSolver):
 
         assert isinstance(self.admm.f, SquaredL2Loss)
         assert isinstance(self.admm.f.A, ComposedLinearOperator)
-        assert isinstance(self.admm.f.A.B, CircularConvolve)
-
-        self.real_result = is_real_dtype(admm.C_list[0].input_dtype)
 
         # All of the C operators are assumed to be linear and shift invariant
         # but this is not checked.
@@ -490,12 +487,8 @@ class FBlockCircularConvolveSolver(LinearSubproblemSolver):
             rho * CircularConvolve.from_operator(C.gram_op, ndims=self.ndims)
             for rho, C in zip(admm.rho_list, admm.C_list)
         ]
-        self.D = reduce(lambda a, b: a + b, c_gram_list) / (2.0 * self.admm.f.scale)
-        A = self.admm.f.A.B
-        self.AHEinv = A.h_dft.conj() / (
-            1.0
-            + snp.sum(A.h_dft * (A.h_dft.conj() / self.D.h_dft), axis=self.sum_axis, keepdims=True)
-        )
+        D = reduce(lambda a, b: a + b, c_gram_list) / (2.0 * self.admm.f.scale)
+        self.solver = SolveConvATAD(self.admm.f.A, D)
 
     def solve(self, x0: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         """Solve the ADMM step.
@@ -507,27 +500,11 @@ class FBlockCircularConvolveSolver(LinearSubproblemSolver):
             Computed solution.
         """
         assert isinstance(self.admm.f, SquaredL2Loss)
-        assert isinstance(self.admm.f.A, ComposedLinearOperator)
-        assert isinstance(self.admm.f.A.B, CircularConvolve)
 
         rhs = self.compute_rhs() / (2.0 * self.admm.f.scale)
-        fft_axes = self.admm.f.A.B.x_fft_axes
-        rhs_dft = snp.fft.fftn(rhs, axes=fft_axes)
-        A = self.admm.f.A.B
-        x_dft = (
-            rhs_dft
-            - (
-                self.AHEinv
-                * (snp.sum(A.h_dft * rhs_dft / self.D.h_dft, axis=self.sum_axis, keepdims=True))
-            )
-        ) / self.D.h_dft
-        x = snp.fft.ifftn(x_dft, axes=fft_axes)
-        if self.real_result:
-            x = x.real
-
+        x = self.solver.solve(rhs, check_solve=self.check_solve)
         if self.check_solve:
-            lhs = self.admm.f.A.gram_op(x) + self.D(x)
-            self.accuracy = rel_res(lhs, rhs)
+            self.accuracy = self.solver.accuracy
 
         return x
 
@@ -689,9 +666,6 @@ class G0BlockCircularConvolveSolver(SubproblemSolver):
 
         assert isinstance(self.admm.g_list[0], SquaredL2Loss)
         assert isinstance(self.admm.C_list[0], ComposedLinearOperator)
-        assert isinstance(self.admm.C_list[0].B, CircularConvolve)
-
-        self.real_result = is_real_dtype(admm.C_list[0].input_dtype)
 
         # All of the C operators are assumed to be linear and shift invariant
         # but this is not checked.
@@ -699,14 +673,10 @@ class G0BlockCircularConvolveSolver(SubproblemSolver):
             rho * CircularConvolve.from_operator(C.gram_op, ndims=self.ndims)
             for rho, C in zip(admm.rho_list[1:], admm.C_list[1:])
         ]
-        self.D = reduce(lambda a, b: a + b, c_gram_list) / (
+        D = reduce(lambda a, b: a + b, c_gram_list) / (
             2.0 * self.admm.g_list[0].scale * admm.rho_list[0]
         )
-        A = self.admm.C_list[0].B
-        self.AHEinv = A.h_dft.conj() / (
-            1.0
-            + snp.sum(A.h_dft * (A.h_dft.conj() / self.D.h_dft), axis=self.sum_axis, keepdims=True)
-        )
+        self.solver = SolveConvATAD(self.admm.C_list[0], D)
 
     def compute_rhs(self) -> Union[Array, BlockArray]:
         r"""Compute the right hand side of the linear equation to be solved.
@@ -746,26 +716,10 @@ class G0BlockCircularConvolveSolver(SubproblemSolver):
             Computed solution.
         """
         assert isinstance(self.admm.g_list[0], SquaredL2Loss)
-        assert isinstance(self.admm.C_list[0], ComposedLinearOperator)
-        assert isinstance(self.admm.C_list[0].B, CircularConvolve)
 
         rhs = self.compute_rhs() / (2.0 * self.admm.g_list[0].scale * self.admm.rho_list[0])
-        fft_axes = self.admm.C_list[0].B.x_fft_axes
-        rhs_dft = snp.fft.fftn(rhs, axes=fft_axes)
-        A = self.admm.C_list[0].B
-        x_dft = (
-            rhs_dft
-            - (
-                self.AHEinv
-                * (snp.sum(A.h_dft * rhs_dft / self.D.h_dft, axis=self.sum_axis, keepdims=True))
-            )
-        ) / self.D.h_dft
-        x = snp.fft.ifftn(x_dft, axes=fft_axes)
-        if self.real_result:
-            x = x.real
-
+        x = self.solver.solve(rhs, check_solve=self.check_solve)
         if self.check_solve:
-            lhs = self.admm.C_list[0].gram_op(x) + self.D(x)
-            self.accuracy = rel_res(lhs, rhs)
+            self.accuracy = self.solver.accuracy
 
         return x
