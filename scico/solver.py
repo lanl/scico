@@ -762,6 +762,10 @@ class SolveConvATAD:
             A: Operator :math:`A`.
             D: Operator :math:`D`.
         """
+        if not isinstance(A, ComposedLinearOperator):
+            raise TypeError(
+                f"Operator A is required to be a ComposedLinearOperator; got a {type(A)}."
+            )
         if not isinstance(A.A, Sum) or not isinstance(A.B, CircularConvolve):
             raise TypeError(
                 "Operator A is required to be a composition of Sum and CircularConvolve"
@@ -771,6 +775,10 @@ class SolveConvATAD:
         self.A = A
         self.D = D
         self.sum_axis = A.A.kwargs["axis"]
+        if not isinstance(self.sum_axis, int):
+            raise ValueError(
+                "Sum component of operator A must sum over a single axis of its input."
+            )
         self.fft_axes = A.B.x_fft_axes
         self.real_result = is_real_dtype(D.input_dtype)
 

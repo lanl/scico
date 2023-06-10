@@ -25,7 +25,6 @@ from scico.linop import (
     ComposedLinearOperator,
     Identity,
     LinearOperator,
-    Sum,
 )
 from scico.loss import SquaredL2Loss
 from scico.numpy import Array, BlockArray
@@ -463,18 +462,6 @@ class FBlockCircularConvolveSolver(LinearSubproblemSolver):
                     "FBlockCircularConvolveSolver requires f.A to be a composition of Sum "
                     f"and CircularConvolve linear operators; got {type(admm.f.A)}."
                 )
-            if not isinstance(admm.f.A.A, Sum) or not isinstance(admm.f.A.B, CircularConvolve):
-                raise ValueError(
-                    "FBlockCircularConvolveSolver requires f.A to be a composition of Sum "
-                    "and CircularConvolve linear operators; got a composition of "
-                    f"{type(admm.f.A.A)} and {type(admm.f.A.B)}."
-                )
-            self.sum_axis = admm.f.A.A.kwargs["axis"]
-            if not isinstance(self.sum_axis, int):
-                raise ValueError(
-                    "FBlockCircularConvolveSolver requires the Sum operator component "
-                    "of f.A to sum over a single axis of its input."
-                )
 
         super().internal_init(admm)
 
@@ -647,20 +634,6 @@ class G0BlockCircularConvolveSolver(SubproblemSolver):
                 "G0BlockCircularConvolveSolver requires C_1 to be a composition of Sum "
                 f"and CircularConvolve linear operators; got {type(admm.C_list[0])}."
             )
-        if not isinstance(admm.C_list[0].A, Sum) or not isinstance(
-            admm.C_list[0].B, CircularConvolve
-        ):
-            raise ValueError(
-                "G0BlockCircularConvolveSolver requires C_1 to be a composition of Sum "
-                "and CircularConvolve linear operators; got a composition of "
-                f"{type(admm.C_list[0].A)} and {type(admm.C_list[0].B)}."
-            )
-        self.sum_axis = admm.C_list[0].A.kwargs["axis"]
-        if not isinstance(self.sum_axis, int):
-            raise ValueError(
-                "G0BlockCircularConvolveSolver requires the Sum operator component "
-                "of C_1 to sum over a single axis of its input."
-            )
 
         super().internal_init(admm)
 
@@ -690,7 +663,7 @@ class G0BlockCircularConvolveSolver(SubproblemSolver):
             ( \mb{z}^{(k)}_i - \mb{u}^{(k)}_i) \;.
 
         Returns:
-            Computed solution.
+            Right hand side of the linear equation.
         """
         assert isinstance(self.admm.g_list[0], SquaredL2Loss)
 
