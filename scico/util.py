@@ -23,7 +23,7 @@ from jax.interpreters.batching import BatchTracer
 from jax.interpreters.partial_eval import DynamicJaxprTracer
 
 
-def rgetattr(obj, name: str, default: Optional[Any] = None) -> Any:
+def rgetattr(obj: object, name: str, default: Optional[Any] = None) -> Any:
     """Recursive version of :func:`getattr`.
 
     Args:
@@ -46,7 +46,7 @@ def rgetattr(obj, name: str, default: Optional[Any] = None) -> Any:
             raise e
 
 
-def rsetattr(obj, name: str, value: Any):
+def rsetattr(obj: object, name: str, value: Any):
     """Recursive version of :func:`setattr`.
 
     Args:
