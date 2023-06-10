@@ -502,9 +502,9 @@ class FBlockCircularConvolveSolver(LinearSubproblemSolver):
         assert isinstance(self.admm.f, SquaredL2Loss)
 
         rhs = self.compute_rhs() / (2.0 * self.admm.f.scale)
-        x = self.solver.solve(rhs, check_solve=self.check_solve)
+        x = self.solver.solve(rhs)
         if self.check_solve:
-            self.accuracy = self.solver.accuracy
+            self.accuracy = self.solver.accuracy(x, rhs)
 
         return x
 
@@ -718,8 +718,8 @@ class G0BlockCircularConvolveSolver(SubproblemSolver):
         assert isinstance(self.admm.g_list[0], SquaredL2Loss)
 
         rhs = self.compute_rhs() / (2.0 * self.admm.g_list[0].scale * self.admm.rho_list[0])
-        x = self.solver.solve(rhs, check_solve=self.check_solve)
+        x = self.solver.solve(rhs)
         if self.check_solve:
-            self.accuracy = self.solver.accuracy
+            self.accuracy = self.solver.accuracy(x, rhs)
 
         return x

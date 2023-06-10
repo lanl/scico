@@ -583,7 +583,7 @@ def golden(
 
 
 class SolveATAI:
-    r"""Solver for linear system involving a matrix :math:`A^T A + \alpha I`        .
+    r"""Solver for linear system involving a matrix :math:`A^T A + \alpha I`.
 
     Solve a linear system of the form
 
@@ -678,7 +678,7 @@ class SolveATAI:
 
 
 class SolveConvATAD:
-    r"""Solver for sum of convolutions linear system`        .
+    r"""Solver for sum of convolutions linear system.
 
     Solve a linear system of the form
 
@@ -779,7 +779,6 @@ class SolveConvATAD:
         self.sum_axis = A.A.kwargs["axis"]
         self.fft_axes = A.B.x_fft_axes
         self.real_result = is_real_dtype(D.input_dtype)
-        self.accuracy: Optional[float] = None
 
         Ahat = A.B.h_dft
         Dhat = D.h_dft
@@ -787,15 +786,13 @@ class SolveConvATAD:
             1.0 + snp.sum(Ahat * (Ahat.conj() / Dhat), axis=self.sum_axis, keepdims=True)
         )
 
-    def solve(self, b: Array, check_solve: bool = False) -> Array:
+    def solve(self, b: Array) -> Array:
         r"""Solve the linear system.
 
         Solve the linear system with right hand side :math:`\mb{b}`.
 
         Args:
            b: Array :math:`\mathbf{b}`.
-           check_solve: Flag indicating whether the solution accuracy
-               should be computed.
 
         Returns:
           Solution to the linear system.
@@ -812,10 +809,16 @@ class SolveConvATAD:
         if self.real_result:
             x = x.real
 
-        if check_solve:
-            lhs = self.A.gram_op(x) + self.D(x)
-            self.accuracy = rel_res(lhs, b)
-        else:
-            self.accuracy = None
-
         return x
+
+    def accuracy(self, x: Array, b: Array) -> float:
+        r"""Compute solution relative residual.
+
+        Args:
+           x: Array :math:`\mathbf{x}` (solution).
+           b: Array :math:`\mathbf{b}` (right hand side of linear system).
+
+        Returns:
+           Relative residual of solution.
+        """
+        return rel_res(self.A.gram_op(x) + self.D(x), b)
