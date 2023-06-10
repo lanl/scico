@@ -67,6 +67,7 @@ import jax.experimental.host_callback as hcb
 
 import scico.linop
 import scico.numpy as snp
+import scipy.linalg as spl
 from scico.numpy import Array, BlockArray
 from scico.typing import BlockShape, DType, Shape
 from scipy import optimize as spopt
@@ -577,3 +578,98 @@ def golden(
     else:
         r = x
     return r
+
+
+class SolveATAI:
+    r"""Solver for linear system involving a matrix :math:`A^T A + \alpha I`        .
+
+    Solve a linear system of the form
+
+    .. math::
+
+       (A^T A + \alpha I) \mb{x} = \mb{b}
+
+    or
+
+    .. math::
+
+       (A^T A + \alpha I) X = B \;,
+
+    where :math:`A \in \mbb{R}^{M \times N}`. The solution is computed by
+    factorizing the matrix :math:`A^T A + \alpha I` or
+    :math:`A A^T + \alpha I`, depending on which is smaller. If it is the
+    latter, the matrix inversion lemma is used to solve the linear system.
+    """
+
+    def __init__(
+        self,
+        A: Union[scico.linop.MatrixOperator, Array],
+        alpha: float,
+        cho_factor: bool = True,
+        lower: bool = False,
+        check_finite: bool = True,
+    ):
+        r"""
+        Args:
+            A: Matrix :math:`A`.
+            alpha: Scalar :math:`\alpha`.
+            cho_factor: Flag indicating whether to use Cholesky
+                (``True``) or LU (``False``) factorization.
+            lower: Flag indicating whether lower (``True``) or upper
+                (``False``) triangular factorization should be computed.
+                Only relevant to Cholesky factorization.
+            check_finite: Flag indicating whether the input array should
+                be checked for ``Inf`` and ``NaN`` values.
+        """
+        if isinstance(A, scico.linop.MatrixOperator):
+            A = A.to_array()
+        self.A = A
+        self.alpha = alpha
+        self.cho_factor = cho_factor
+        self.lower = lower
+        self.check_finite = check_finite
+
+        N, M = A.shape
+        # If N < M it is cheaper to factorise A*A^T + alpha*I and then use the
+        # matrix inversion lemma to compute the inverse of A^T*A + alpha*I
+        if N >= M:
+            B = A.T @ A + alpha * np.identity(M, dtype=A.dtype)
+        else:
+            B = A @ A.T + alpha * np.identity(N, dtype=A.dtype)
+
+        if cho_factor:
+            c, lower = spl.cho_factor(B, lower=lower, check_finite=check_finite)
+            self.factor = (c, lower)
+        else:
+            lu, piv = spl.lu_factor(B, check_finite=check_finite)
+            self.factor = (lu, piv)
+
+    def solve(self, b: Array, check_finite: bool = None) -> Array:
+        """Solve the linear system.
+
+        Solve the linear system with right hand side :math:`\mb{b}` (`b`
+        is a vector) or :math:`B` (`b` is a 2d array).
+
+        Args:
+           b : Vector :math:`\mathbf{b}` or matrix :math:`B`.
+           check_finite: Flag indicating whether the input array should
+               be checked for ``Inf`` and ``NaN`` values. If ``None``,
+               use the value selected on initialization.
+
+        Returns:
+          Solution to the linear system.
+        """
+        if check_finite is None:
+            check_finite = self.check_finite
+        if self.cho_factor:
+            fact_solve = lambda x, t: spl.cho_solve(self.factor, x, check_finite=check_finite)
+        else:
+            fact_solve = lambda x, t: spl.lu_solve(
+                self.factor, x, trans=t, check_finite=check_finite
+            )
+        N, M = self.A.shape
+        if N >= M:
+            x = fact_solve(b, 0)
+        else:
+            x = (b - self.A.T @ fact_solve(self.A @ b, 1)) / self.alpha
+        return x

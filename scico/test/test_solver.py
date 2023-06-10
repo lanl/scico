@@ -6,7 +6,7 @@ from jax.scipy.linalg import block_diag
 import pytest
 
 import scico.numpy as snp
-from scico import linop, random, solver
+from scico import linop, metric, random, solver
 
 
 class TestSet:
@@ -294,3 +294,39 @@ def test_golden():
     f = lambda x, c: (x - c) ** 2
     x = solver.golden(f, -snp.abs(c) - 1, snp.abs(c) + 1, args=(c,), xtol=1e-5)
     assert snp.max(snp.abs(x - c)) <= 1e-5
+
+
+@pytest.mark.parametrize("cho_factor", [True, False])
+@pytest.mark.parametrize("wide", [True, False])
+@pytest.mark.parametrize("alpha", [1e-1, 1e0, 1e1])
+def test_solve_atai(cho_factor, wide, alpha):
+    A, key = random.randn((5, 8), dtype=snp.float32)
+    if wide:
+        x0, key = random.randn((8,), key=key)
+    else:
+        A = A.T
+        x0, key = random.randn((5,), key=key)
+
+    ATAI = A.T @ A + alpha * snp.identity(A.shape[1])
+    b = ATAI @ x0
+    slv = solver.SolveATAI(A, alpha, cho_factor=cho_factor)
+    x1 = slv.solve(b)
+    assert metric.rel_res(x0, x1) < 5e-5
+
+
+@pytest.mark.parametrize("cho_factor", [True, False])
+@pytest.mark.parametrize("wide", [True, False])
+@pytest.mark.parametrize("alpha", [1e-1, 1e0, 1e1])
+def test_solve_aati(cho_factor, wide, alpha):
+    A, key = random.randn((5, 8), dtype=snp.float32)
+    if wide:
+        x0, key = random.randn((5,), key=key)
+    else:
+        A = A.T
+        x0, key = random.randn((8,), key=key)
+
+    AATI = A @ A.T + alpha * snp.identity(A.shape[0])
+    b = AATI @ x0
+    slv = solver.SolveATAI(A.T, alpha)
+    x1 = slv.solve(b)
+    assert metric.rel_res(x0, x1) < 5e-5
