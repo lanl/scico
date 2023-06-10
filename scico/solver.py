@@ -7,21 +7,6 @@
 
 """SciPy optimization algorithms.
 
-.. raw:: html
-
-    <style type='text/css'>
-    div.document li {
-      list-style: square outside !important;
-      margin-left: 1em !important;
-    }
-    div.document li > p {
-       margin-bottom: 4px !important;
-    }
-    ul {
-      margin-bottom: 1em;
-    }
-    </style>
-
 This module provides scico interface wrappers for functions
 from :mod:`scipy.optimize` since jax directly implements only a very
 limited subset of these functions (there is limited, experimental support
