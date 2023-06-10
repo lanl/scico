@@ -369,7 +369,7 @@ class TestBlockCircularConvolveSolve:
                 itstat_options={"display": False},
                 subproblem_solver=FBlockCircularConvolveSolver(),
             )
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             slvr = ADMM(
                 f=loss.PoissonLoss(y=self.y),
                 g_list=self.g_list,
@@ -378,7 +378,7 @@ class TestBlockCircularConvolveSolve:
                 itstat_options={"display": False},
                 subproblem_solver=FBlockCircularConvolveSolver(),
             )
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             slvr = ADMM(
                 f=loss.SquaredL2Loss(y=self.y, A=self.A.A),
                 g_list=self.g_list,
@@ -398,7 +398,7 @@ class TestBlockCircularConvolveSolve:
                 itstat_options={"display": False},
                 subproblem_solver=G0BlockCircularConvolveSolver(),
             )
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             slvr = ADMM(
                 f=functional.ZeroFunctional(),
                 g_list=[loss.PoissonLoss(y=self.y)],
@@ -407,7 +407,7 @@ class TestBlockCircularConvolveSolve:
                 itstat_options={"display": False},
                 subproblem_solver=G0BlockCircularConvolveSolver(),
             )
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             slvr = ADMM(
                 f=functional.ZeroFunctional(),
                 g_list=[loss.SquaredL2Loss(y=self.y)] + self.g_list,

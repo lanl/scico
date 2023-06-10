@@ -199,12 +199,12 @@ class LinearSubproblemSolver(SubproblemSolver):
     def internal_init(self, admm: soa.ADMM):
         if admm.f is not None:
             if not isinstance(admm.f, SquaredL2Loss):
-                raise ValueError(
+                raise TypeError(
                     "LinearSubproblemSolver requires f to be a scico.loss.SquaredL2Loss; "
                     f"got {type(admm.f)}."
                 )
             if not isinstance(admm.f.A, LinearOperator):
-                raise ValueError(
+                raise TypeError(
                     "LinearSubproblemSolver requires f.A to be a scico.linop.LinearOperator; "
                     f"got {type(admm.f.A)}."
                 )
@@ -292,12 +292,12 @@ class CircularConvolveSolver(LinearSubproblemSolver):
     def internal_init(self, admm: soa.ADMM):
         if admm.f is not None:
             if not isinstance(admm.f, SquaredL2Loss):
-                raise ValueError(
+                raise TypeError(
                     "CircularConvolveSolver requires f to be a scico.loss.SquaredL2Loss; "
                     f"got {type(admm.f)}."
                 )
             if not isinstance(admm.f.A, (CircularConvolve, Identity)):
-                raise ValueError(
+                raise TypeError(
                     "CircularConvolveSolver requires f.A to be a scico.linop.CircularConvolve "
                     f"or scico.linop.Identity; got {type(admm.f.A)}."
                 )
@@ -453,12 +453,12 @@ class FBlockCircularConvolveSolver(LinearSubproblemSolver):
             raise ValueError("FBlockCircularConvolveSolver does not allow f to be None.")
         else:
             if not isinstance(admm.f, SquaredL2Loss):
-                raise ValueError(
+                raise TypeError(
                     "FBlockCircularConvolveSolver requires f to be a scico.loss.SquaredL2Loss; "
                     f"got {type(admm.f)}."
                 )
             if not isinstance(admm.f.A, ComposedLinearOperator):
-                raise ValueError(
+                raise TypeError(
                     "FBlockCircularConvolveSolver requires f.A to be a composition of Sum "
                     f"and CircularConvolve linear operators; got {type(admm.f.A)}."
                 )
@@ -624,12 +624,12 @@ class G0BlockCircularConvolveSolver(SubproblemSolver):
                 "G0BlockCircularConvolveSolver requires f to be None or a ZeroFunctional"
             )
         if not isinstance(admm.g_list[0], SquaredL2Loss):
-            raise ValueError(
+            raise TypeError(
                 "G0BlockCircularConvolveSolver requires g_1 to be a scico.loss.SquaredL2Loss; "
                 f"got {type(admm.g_list[0])}."
             )
         if not isinstance(admm.C_list[0], ComposedLinearOperator):
-            raise ValueError(
+            raise TypeError(
                 "G0BlockCircularConvolveSolver requires C_1 to be a composition of Sum "
                 f"and CircularConvolve linear operators; got {type(admm.C_list[0])}."
             )
