@@ -462,7 +462,6 @@ class FBlockCircularConvolveSolver(LinearSubproblemSolver):
                     "FBlockCircularConvolveSolver requires f.A to be a composition of Sum "
                     f"and CircularConvolve linear operators; got {type(admm.f.A)}."
                 )
-
         super().internal_init(admm)
 
         assert isinstance(self.admm.f, SquaredL2Loss)

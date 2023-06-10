@@ -763,11 +763,11 @@ class SolveConvATAD:
             D: Operator :math:`D`.
         """
         if not isinstance(A, ComposedLinearOperator):
-            raise TypeError(
+            raise ValueError(
                 f"Operator A is required to be a ComposedLinearOperator; got a {type(A)}."
             )
         if not isinstance(A.A, Sum) or not isinstance(A.B, CircularConvolve):
-            raise TypeError(
+            raise ValueError(
                 "Operator A is required to be a composition of Sum and CircularConvolve"
                 f"linear operators; got a composition of {type(A.A)} and {type(A.B)}."
             )
