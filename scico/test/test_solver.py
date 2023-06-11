@@ -336,15 +336,22 @@ def test_solve_aati(cho_factor, wide, alpha):
 
 @pytest.mark.parametrize("cho_factor", [True, False])
 @pytest.mark.parametrize("wide", [True, False])
-def test_solve_atad(cho_factor, wide):
+@pytest.mark.parametrize("vector", [True, False])
+def test_solve_atad(cho_factor, wide, vector):
     A, key = random.randn((5, 8), dtype=snp.float32)
     if wide:
         D, key = random.randn((8,), key=key)
-        x0, key = random.randn((8,), key=key)
+        if vector:
+            x0, key = random.randn((8,), key=key)
+        else:
+            x0, key = random.randn((8, 3), key=key)
     else:
         A = A.T
         D, key = random.randn((5,), key=key)
-        x0, key = random.randn((5,), key=key)
+        if vector:
+            x0, key = random.randn((5,), key=key)
+        else:
+            x0, key = random.randn((5, 3), key=key)
 
     D = snp.abs(D)  # only required for Cholesky, but improved accuracy for LU
     ATAD = A.T @ A + snp.diag(D)
@@ -352,3 +359,4 @@ def test_solve_atad(cho_factor, wide):
     slv = solver.SolveATAD(A, D, cho_factor=cho_factor)
     x1 = slv.solve(b)
     assert metric.rel_res(x0, x1) < 5e-5
+    assert slv.accuracy(x1, b) < 5e-5

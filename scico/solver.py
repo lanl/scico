@@ -750,10 +750,14 @@ class SolveATAD:
         else:
             fact_solve = lambda x: jsl.lu_solve(self.factor, x, trans=0, check_finite=check_finite)
 
+        if b.ndim == 1:
+            D = self.D
+        else:
+            D = self.D[:, snp.newaxis]
         N, M = self.A.shape
         if N < M and self.D.ndim == 1:
-            w = fact_solve(self.A @ (b / self.D))
-            x = (b - (self.A.T @ w)) / self.D
+            w = fact_solve(self.A @ (b / D))
+            x = (b - (self.A.T @ w)) / D
         else:
             x = fact_solve(b)
 
@@ -769,7 +773,11 @@ class SolveATAD:
         Returns:
            Relative residual of solution.
         """
-        return rel_res(self.A.T @ self.A @ x + self.D * x, b)
+        if b.ndim == 1:
+            D = self.D
+        else:
+            D = self.D[:, snp.newaxis]
+        return rel_res(self.A.T @ self.A @ x + D * x, b)
 
 
 class SolveConvATAD:
