@@ -42,9 +42,9 @@ class Diagonal(LinearOperator):
         r"""
         Args:
             diagonal: Diagonal elements of this :class:`LinearOperator`.
-            input_shape:  Shape of input array. By default, equal to
+            input_shape: Shape of input array. By default, equal to
                `diagonal.shape`, but may also be set to a shape that is
-               broadcast-compatiable with `diagonal.shape`.
+               broadcast-compatible with `diagonal.shape`.
             input_dtype: `dtype` of input argument. The default,
                ``None``, means `diagonal.dtype`.
         """
