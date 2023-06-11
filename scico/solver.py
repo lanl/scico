@@ -60,6 +60,7 @@ import scipy.linalg as spl
 from scico.linop import (
     CircularConvolve,
     ComposedLinearOperator,
+    Diagonal,
     LinearOperator,
     MatrixOperator,
     Sum,
@@ -578,34 +579,105 @@ def golden(
     return r
 
 
-class SolveATAI:
-    r"""Solver for linear system involving a matrix :math:`A^T A + \alpha I`.
+class SolveATAD:
+    r"""Solver for linear system involving a symmetric product plus a diagonal.
 
     Solve a linear system of the form
 
     .. math::
 
-       (A^T A + \alpha I) \mb{x} = \mb{b}
+       (A^T A + D) \mb{x} = \mb{b}
 
     or
 
     .. math::
 
-       (A^T A + \alpha I) X = B \;,
+       (A^T A + D) X = B \;,
 
-    where :math:`A \in \mbb{R}^{M \times N}`. The solution is computed by
-    factorizing the matrix :math:`A^T A + \alpha I` or
-    :math:`A A^T + \alpha I`, depending on which is smaller. If it is the
-    latter, the matrix inversion lemma is used to solve the linear system.
+    where :math:`A \in \mbb{R}^{M \times N}` and
+    :math:`D \in \mbb{R}^{N \times N}`. The solution is computed by
+    factorizing the matrix :math:`A^T A + D` and solving via Gaussian
+    elimination. If :math:`D` is diagonal and :math:`N < M` (i.e.
+    :math:`A A^T` is smaller than :math:`A^T A`), then :math:`A A^T + D`
+    is factorized and the original problem is solved via the Woodbury
+    matrix identity
+
+    .. math::
+
+       (E + U C V)^{-1} = E^{-1} - E^{-1} U (C^{-1} + V E^{-1} U)^{-1}
+       V E^{-1} \;.
+
+    Setting
+
+    .. math::
+
+       E &= D \\
+       U &= A^T \\
+       C &= I \\
+       V &= A
+
+    we have
+
+    .. math::
+
+       (D + A^T A)^{-1} = D^{-1} - D^{-1} A^T (I + A D^{-1} A^T)^{-1} A
+       D^{-1}
+
+    which can be simplified to
+
+    .. math::
+
+       (D + A^T A)^{-1} = D^{-1} (I - A^T G^{-1} A D^{-1})
+
+    by defining :math:`G = I + A D^{-1} A^T`. We therefore have that
+
+    .. math::
+
+       \mb{x} = (D + A^T A)^{-1} \mb{b} = D^{-1} (I - A^T G^{-1} A D^{-1})
+       \mb{b} \;.
+
+    If we have a Cholesky factorization of :math:`G`, i.e.
+    :math:`G = L L^T`, we can define
+
+    .. math::
+
+       \mb{w} = G^{-1} A D^{-1} \mb{b}
+
+    so that
+
+    .. math::
+
+       G \mb{w} &= A D^{-1} \mb{b} \\
+       L L^T \mb{w} &= A D^{-1} \mb{b} \;.
+
+    The Cholesky factorization can be exploited by solving for
+    :math:`\mb{z}` in
+
+    .. math::
+
+       L \mb{z} = A D^{-1} \mb{b}
+
+    and then for :math:`\mb{w}` in
+
+    .. math::
+
+       L^T \mb{w} = \mb{z} \;,
+
+    so that
+
+    .. math::
+
+       \mb{x} = D^{-1} \mb{b} - D^{-1} A^T \mb{w} \;.
+
 
     To solve problems directly involving a matrix of the form
-    :math:`A A^T + \alpha I`, initialize with `A.T` instead of `A`.
+    :math:`A A^T + D`, initialize with `A.T` instead of `A`.
     """
 
     def __init__(
         self,
         A: Union[MatrixOperator, Array],
-        alpha: float,
+        D: Union[MatrixOperator, Diagonal, Array],
         cho_factor: bool = True,
         lower: bool = False,
         check_finite: bool = True,
@@ -613,7 +685,7 @@ class SolveATAI:
         r"""
         Args:
             A: Matrix :math:`A`.
-            alpha: Scalar :math:`\alpha`.
+            D: Matrix :math:`A`.
             cho_factor: Flag indicating whether to use Cholesky
                 (``True``) or LU (``False``) factorization.
             lower: Flag indicating whether lower (``True``) or upper
@@ -624,25 +696,30 @@ class SolveATAI:
         """
         if isinstance(A, MatrixOperator):
             A = A.to_array()
+        if isinstance(D, MatrixOperator):
+            D = D.to_array()
+        elif isinstance(D, Diagonal):
+            D = D.diagonal
         self.A = A
-        self.alpha = alpha
+        self.D = D
         self.cho_factor = cho_factor
         self.lower = lower
         self.check_finite = check_finite
 
         N, M = A.shape
-        # If N < M it is cheaper to factorise A*A^T + alpha*I and then use the
-        # matrix inversion lemma to compute the inverse of A^T*A + alpha*I
-        if N >= M:
-            B = A.T @ A + alpha * np.identity(M, dtype=A.dtype)
+        if N < M and D.ndim == 1:
+            G = np.identity(N, dtype=A.dtype) + A @ (A.T / D[:, snp.newaxis])
         else:
-            B = A @ A.T + alpha * np.identity(N, dtype=A.dtype)
+            if D.ndim == 1:
+                G = A.T @ A + snp.diag(D)
+            else:
+                G = A.T @ A + D
 
         if cho_factor:
-            c, lower = spl.cho_factor(B, lower=lower, check_finite=check_finite)
+            c, lower = spl.cho_factor(G, lower=lower, check_finite=check_finite)
             self.factor = (c, lower)
         else:
-            lu, piv = spl.lu_factor(B, check_finite=check_finite)
+            lu, piv = spl.lu_factor(G, check_finite=check_finite)
             self.factor = (lu, piv)
 
     def solve(self, b: Array, check_finite: bool = None) -> Array:
@@ -663,21 +740,34 @@ class SolveATAI:
         if check_finite is None:
             check_finite = self.check_finite
         if self.cho_factor:
-            fact_solve = lambda x, t: spl.cho_solve(self.factor, x, check_finite=check_finite)
+            fact_solve = lambda x: spl.cho_solve(self.factor, x, check_finite=check_finite)
         else:
-            fact_solve = lambda x, t: spl.lu_solve(
-                self.factor, x, trans=t, check_finite=check_finite
-            )
+            fact_solve = lambda x: spl.lu_solve(self.factor, x, trans=0, check_finite=check_finite)
+
         N, M = self.A.shape
-        if N >= M:
-            x = fact_solve(b, 0)
+        if N < M and self.D.ndim == 1:
+            w = fact_solve(self.A @ (b / self.D))
+            x = (b - (self.A.T @ w)) / self.D
         else:
-            x = (b - self.A.T @ fact_solve(self.A @ b, 1)) / self.alpha
+            x = fact_solve(b)
+
         return x
+
+    def accuracy(self, x: Array, b: Array) -> float:
+        r"""Compute solution relative residual.
+
+        Args:
+           x: Array :math:`\mathbf{x}` (solution).
+           b: Array :math:`\mathbf{b}` (right hand side of linear system).
+
+        Returns:
+           Relative residual of solution.
+        """
+        return rel_res(self.A.T @ self.A @ x + self.D * x, b)
 
 
 class SolveConvATAD:
-    r"""Solver for sum of convolutions linear system.
+    r"""Solver for sum of convolutions plus diagonal linear system.
 
     Solve a linear system of the form
 

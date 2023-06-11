@@ -307,9 +307,10 @@ def test_solve_atai(cho_factor, wide, alpha):
         A = A.T
         x0, key = random.randn((5,), key=key)
 
-    ATAI = A.T @ A + alpha * snp.identity(A.shape[1])
-    b = ATAI @ x0
-    slv = solver.SolveATAI(A, alpha, cho_factor=cho_factor)
+    D = alpha * snp.ones((A.shape[1],))
+    ATAD = A.T @ A + alpha * snp.identity(A.shape[1])
+    b = ATAD @ x0
+    slv = solver.SolveATAD(A, D, cho_factor=cho_factor)
     x1 = slv.solve(b)
     assert metric.rel_res(x0, x1) < 5e-5
 
@@ -325,8 +326,29 @@ def test_solve_aati(cho_factor, wide, alpha):
         A = A.T
         x0, key = random.randn((8,), key=key)
 
-    AATI = A @ A.T + alpha * snp.identity(A.shape[0])
-    b = AATI @ x0
-    slv = solver.SolveATAI(A.T, alpha)
+    D = alpha * snp.ones((A.shape[0],))
+    AATD = A @ A.T + alpha * snp.identity(A.shape[0])
+    b = AATD @ x0
+    slv = solver.SolveATAD(A.T, D)
+    x1 = slv.solve(b)
+    assert metric.rel_res(x0, x1) < 5e-5
+
+
+@pytest.mark.parametrize("cho_factor", [True, False])
+@pytest.mark.parametrize("wide", [True, False])
+def test_solve_atad(cho_factor, wide):
+    A, key = random.randn((5, 8), dtype=snp.float32)
+    if wide:
+        D, key = random.randn((8,), key=key)
+        x0, key = random.randn((8,), key=key)
+    else:
+        A = A.T
+        D, key = random.randn((5,), key=key)
+        x0, key = random.randn((5,), key=key)
+
+    D = snp.abs(D)  # only required for Cholesky, but improved accuracy for LU
+    ATAD = A.T @ A + snp.diag(D)
+    b = ATAD @ x0
+    slv = solver.SolveATAD(A, D, cho_factor=cho_factor)
     x1 = slv.solve(b)
     assert metric.rel_res(x0, x1) < 5e-5
