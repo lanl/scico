@@ -54,9 +54,9 @@ import numpy as np
 
 import jax
 import jax.experimental.host_callback as hcb
+import jax.scipy.linalg as jsl
 
 import scico.numpy as snp
-import scipy.linalg as spl
 from scico.linop import (
     CircularConvolve,
     ComposedLinearOperator,
@@ -669,6 +669,12 @@ class SolveATAD:
 
        \mb{x} = D^{-1} \mb{b} - D^{-1} A^T \mb{w} \;.
 
+    (Functions :func:`~jax.scipy.linalg.cho_solve` and
+    :func:`~jax.scipy.linalg.lu_solve` allow direct solution for
+    :math:`\mb{w}` without the two-step procedure described here.)
+    Note that :math:`G` must be positive-definite (e.g. :math:`D` is
+    diagonal and positive) if a Cholesky factorization is used; if not,
+    an LU factorization should be used.
 
     To solve problems directly involving a matrix of the form
     :math:`A A^T + D`, initialize with `A.T` instead of `A`.
@@ -716,10 +722,10 @@ class SolveATAD:
                 G = A.T @ A + D
 
         if cho_factor:
-            c, lower = spl.cho_factor(G, lower=lower, check_finite=check_finite)
+            c, lower = jsl.cho_factor(G, lower=lower, check_finite=check_finite)
             self.factor = (c, lower)
         else:
-            lu, piv = spl.lu_factor(G, check_finite=check_finite)
+            lu, piv = jsl.lu_factor(G, check_finite=check_finite)
             self.factor = (lu, piv)
 
     def solve(self, b: Array, check_finite: bool = None) -> Array:
@@ -740,9 +746,9 @@ class SolveATAD:
         if check_finite is None:
             check_finite = self.check_finite
         if self.cho_factor:
-            fact_solve = lambda x: spl.cho_solve(self.factor, x, check_finite=check_finite)
+            fact_solve = lambda x: jsl.cho_solve(self.factor, x, check_finite=check_finite)
         else:
-            fact_solve = lambda x: spl.lu_solve(self.factor, x, trans=0, check_finite=check_finite)
+            fact_solve = lambda x: jsl.lu_solve(self.factor, x, trans=0, check_finite=check_finite)
 
         N, M = self.A.shape
         if N < M and self.D.ndim == 1:
