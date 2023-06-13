@@ -720,6 +720,7 @@ class SolveATAD:
         self.lower = lower
         self.check_finite = check_finite
 
+        assert isinstance(W, Array)
         N, M = A.shape
         if N < M and D.ndim == 1:
             G = snp.diag(1.0 / W) + A @ (A.T / D[:, snp.newaxis])
@@ -785,6 +786,7 @@ class SolveATAD:
             D = self.D
         else:
             D = self.D[:, snp.newaxis]
+        assert isinstance(self.W, Array)
         return rel_res(self.A.T @ (self.W[:, snp.newaxis] * self.A) @ x + D * x, b)
 
 
