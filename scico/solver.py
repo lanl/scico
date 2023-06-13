@@ -586,21 +586,22 @@ class SolveATAD:
 
     .. math::
 
-       (A^T A + D) \mb{x} = \mb{b}
+       (A^T W A + D) \mb{x} = \mb{b}
 
     or
 
     .. math::
 
-       (A^T A + D) X = B \;,
+       (A^T W A + D) X = B \;,
 
-    where :math:`A \in \mbb{R}^{M \times N}` and
+    where :math:`A \in \mbb{R}^{M \times N}`,
+    :math:`W \in \mbb{R}^{M \times M}` and
     :math:`D \in \mbb{R}^{N \times N}`. The solution is computed by
-    factorizing the matrix :math:`A^T A + D` and solving via Gaussian
+    factorization of matrix :math:`A^T W A + D` and solution via Gaussian
     elimination. If :math:`D` is diagonal and :math:`N < M` (i.e.
-    :math:`A A^T` is smaller than :math:`A^T A`), then :math:`A A^T + D`
-    is factorized and the original problem is solved via the Woodbury
-    matrix identity
+    :math:`A W A^T` is smaller than :math:`A^T W A`), then
+    :math:`A W A^T + D` is factorized and the original problem is solved
+    via the Woodbury matrix identity
 
     .. math::
 
@@ -613,30 +614,30 @@ class SolveATAD:
 
        E &= D \\
        U &= A^T \\
-       C &= I \\
+       C &= W \\
        V &= A
 
     we have
 
     .. math::
 
-       (D + A^T A)^{-1} = D^{-1} - D^{-1} A^T (I + A D^{-1} A^T)^{-1} A
+       (D + A^T W A)^{-1} = D^{-1} - D^{-1} A^T (W^{-1} + A D^{-1} A^T)^{-1} A
        D^{-1}
 
     which can be simplified to
 
     .. math::
 
-       (D + A^T A)^{-1} = D^{-1} (I - A^T G^{-1} A D^{-1})
+       (D + A^T W A)^{-1} = D^{-1} (I - A^T G^{-1} A D^{-1})
 
-    by defining :math:`G = I + A D^{-1} A^T`. We therefore have that
+    by defining :math:`G = W^{-1} + A D^{-1} A^T`. We therefore have that
 
     .. math::
 
-       \mb{x} = (D + A^T A)^{-1} \mb{b} = D^{-1} (I - A^T G^{-1} A D^{-1})
-       \mb{b} \;.
+       \mb{x} = (D + A^T W A)^{-1} \mb{b} = D^{-1} (I - A^T G^{-1} A
+       D^{-1}) \mb{b} \;.
 
-    If we have a Cholesky factorization of :math:`G`, i.e.
+    If we have a Cholesky factorization of :math:`G`, e.g.
     :math:`G = L L^T`, we can define
 
     .. math::
@@ -671,27 +672,29 @@ class SolveATAD:
 
     (Functions :func:`~jax.scipy.linalg.cho_solve` and
     :func:`~jax.scipy.linalg.lu_solve` allow direct solution for
-    :math:`\mb{w}` without the two-step procedure described here.)
-    Note that :math:`G` must be positive-definite (e.g. :math:`D` is
-    diagonal and positive) if a Cholesky factorization is used; if not,
+    :math:`\mb{w}` without the two-step procedure described here.) A
+    Cholesky factorization should only be used when :math:`G` is
+    positive-definite (e.g. :math:`D` is diagonal and positive); if not,
     an LU factorization should be used.
 
     To solve problems directly involving a matrix of the form
-    :math:`A A^T + D`, initialize with `A.T` instead of `A`.
+    :math:`A W A^T + D`, initialize with `A.T` instead of `A`.
     """
 
     def __init__(
         self,
         A: Union[MatrixOperator, Array],
         D: Union[MatrixOperator, Diagonal, Array],
-        cho_factor: bool = True,
+        W: Optional[Union[Diagonal, Array]] = None,
+        cho_factor: bool = False,
         lower: bool = False,
         check_finite: bool = True,
     ):
         r"""
         Args:
             A: Matrix :math:`A`.
-            D: Matrix :math:`A`.
+            D: Matrix :math:`D`.
+            W: Matrix :math:`W`.
             cho_factor: Flag indicating whether to use Cholesky
                 (``True``) or LU (``False``) factorization.
             lower: Flag indicating whether lower (``True``) or upper
@@ -706,20 +709,25 @@ class SolveATAD:
             D = D.to_array()
         elif isinstance(D, Diagonal):
             D = D.diagonal
+        if W is None:
+            W = snp.ones(A.shape[0], dtype=A.dtype)
+        elif isinstance(W, Diagonal):
+            W = W.diagonal
         self.A = A
         self.D = D
+        self.W = W
         self.cho_factor = cho_factor
         self.lower = lower
         self.check_finite = check_finite
 
         N, M = A.shape
         if N < M and D.ndim == 1:
-            G = np.identity(N, dtype=A.dtype) + A @ (A.T / D[:, snp.newaxis])
+            G = snp.diag(1.0 / W) + A @ (A.T / D[:, snp.newaxis])
         else:
             if D.ndim == 1:
-                G = A.T @ A + snp.diag(D)
+                G = A.T @ (W[:, snp.newaxis] * A) + snp.diag(D)
             else:
-                G = A.T @ A + D
+                G = A.T @ (W[:, snp.newaxis] * A) + D
 
         if cho_factor:
             c, lower = jsl.cho_factor(G, lower=lower, check_finite=check_finite)
@@ -777,7 +785,7 @@ class SolveATAD:
             D = self.D
         else:
             D = self.D[:, snp.newaxis]
-        return rel_res(self.A.T @ self.A @ x + D * x, b)
+        return rel_res(self.A.T @ (self.W[:, snp.newaxis] * self.A) @ x + D * x, b)
 
 
 class SolveConvATAD:

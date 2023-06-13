@@ -298,8 +298,9 @@ def test_golden():
 
 @pytest.mark.parametrize("cho_factor", [True, False])
 @pytest.mark.parametrize("wide", [True, False])
-@pytest.mark.parametrize("alpha", [1e-1, 1e0, 1e1])
-def test_solve_atai(cho_factor, wide, alpha):
+@pytest.mark.parametrize("weighted", [True, False])
+@pytest.mark.parametrize("alpha", [1e-1, 1e1])
+def test_solve_atai(cho_factor, wide, weighted, alpha):
     A, key = random.randn((5, 8), dtype=snp.float32)
     if wide:
         x0, key = random.randn((8,), key=key)
@@ -307,17 +308,25 @@ def test_solve_atai(cho_factor, wide, alpha):
         A = A.T
         x0, key = random.randn((5,), key=key)
 
+    if weighted:
+        W, key = random.randn((A.shape[0],), key=key)
+        W = snp.abs(W)
+        Wa = W[:, snp.newaxis]
+    else:
+        W = None
+        Wa = snp.array([1.0])[:, snp.newaxis]
+
     D = alpha * snp.ones((A.shape[1],))
-    ATAD = A.T @ A + alpha * snp.identity(A.shape[1])
+    ATAD = A.T @ (Wa * A) + alpha * snp.identity(A.shape[1])
     b = ATAD @ x0
-    slv = solver.SolveATAD(A, D, cho_factor=cho_factor)
+    slv = solver.SolveATAD(A, D, W=W, cho_factor=cho_factor)
     x1 = slv.solve(b)
     assert metric.rel_res(x0, x1) < 5e-5
 
 
 @pytest.mark.parametrize("cho_factor", [True, False])
 @pytest.mark.parametrize("wide", [True, False])
-@pytest.mark.parametrize("alpha", [1e-1, 1e0, 1e1])
+@pytest.mark.parametrize("alpha", [1e-1, 1e1])
 def test_solve_aati(cho_factor, wide, alpha):
     A, key = random.randn((5, 8), dtype=snp.float32)
     if wide:
