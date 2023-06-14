@@ -185,7 +185,7 @@ class TomographicProjector(LinearOperator):
             if dev0.platform == "gpu":
                 cfg = astra.astra_dict("FBP_CUDA")
             else:
-                cfg = astra.astra_dict('FBP"')
+                cfg = astra.astra_dict('FBP')
             cfg["ReconstructionDataId"] = rec_id
             cfg["ProjectorId"] = proj_id
             cfg["ProjectionDataId"] = sino_id
