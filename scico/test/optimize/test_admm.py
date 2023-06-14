@@ -256,12 +256,12 @@ class TestComplex:
         # Set up arrays for problem argmin (𝛼/2) ||A x - y||_2^2 + (λ/2) ||B x||_2^2
         Amx, key = random.randn((MA, N), dtype=np.complex64, key=None)
         Bmx, key = random.randn((MB, N), dtype=np.complex64, key=key)
-        y = np.random.randn(MA)
+        y, key = random.randn((MA,), dtype=np.complex64, key=key)
         𝛼 = 1.0 / 3.0
         λ = 1e0
         self.Amx = Amx
         self.Bmx = Bmx
-        self.y = jax.device_put(y)
+        self.y = y
         self.𝛼 = 𝛼
         self.λ = λ
         # Solution of problem is given by linear system (𝛼 A^T A + λ B^T B) x = A^T y
