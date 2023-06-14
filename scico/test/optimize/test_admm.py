@@ -289,7 +289,7 @@ class TestComplex:
         x = admm_.solve()
         assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-3
 
-    def test_admm_quadratic(self):
+    def test_admm_quadratic_linear(self):
         maxiter = 50
         ρ = 1e0
         A = linop.MatrixOperator(self.Amx)
@@ -311,6 +311,27 @@ class TestComplex:
         )
         x = admm_.solve()
         assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-4
+
+    def test_admm_quadratic_matrix(self):
+        maxiter = 50
+        ρ = 1e0
+        A = linop.MatrixOperator(self.Amx)
+        f = loss.SquaredL2Loss(y=self.y, A=A, scale=self.𝛼 / 2.0)
+        g_list = [(self.λ / 2) * functional.SquaredL2Norm()]
+        C_list = [linop.MatrixOperator(self.Bmx)]
+        rho_list = [ρ]
+        admm_ = ADMM(
+            f=f,
+            g_list=g_list,
+            C_list=C_list,
+            rho_list=rho_list,
+            maxiter=maxiter,
+            itstat_options={"display": False},
+            x0=A.adj(self.y),
+            subproblem_solver=MatrixSubproblemSolver(),
+        )
+        x = admm_.solve()
+        assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-5
 
 
 class TestCircularConvolveSolve:
