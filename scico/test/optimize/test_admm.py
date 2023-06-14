@@ -13,6 +13,7 @@ from scico.optimize.admm import (
     G0BlockCircularConvolveSolver,
     GenericSubproblemSolver,
     LinearSubproblemSolver,
+    MatrixSubproblemSolver,
 )
 
 
@@ -204,7 +205,7 @@ class TestRealWeighted:
         self.grdA = lambda x: (𝛼 * Amx.T @ (W * Amx) + λ * Bmx.T @ Bmx) @ x
         self.grdb = 𝛼 * Amx.T @ (W[:, 0] * y)
 
-    def test_admm_quadratic(self):
+    def test_admm_quadratic_linear(self):
         maxiter = 100
         ρ = 1e0
         A = linop.MatrixOperator(self.Amx)
@@ -224,6 +225,27 @@ class TestRealWeighted:
         )
         x = admm_.solve()
         assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-4
+
+    def test_admm_quadratic_matrix(self):
+        maxiter = 50
+        ρ = 1e0
+        A = linop.MatrixOperator(self.Amx)
+        f = loss.SquaredL2Loss(y=self.y, A=A, W=linop.Diagonal(self.W[:, 0]), scale=self.𝛼 / 2.0)
+        g_list = [(self.λ / 2) * functional.SquaredL2Norm()]
+        C_list = [linop.MatrixOperator(self.Bmx)]
+        rho_list = [ρ]
+        admm_ = ADMM(
+            f=f,
+            g_list=g_list,
+            C_list=C_list,
+            rho_list=rho_list,
+            maxiter=maxiter,
+            itstat_options={"display": False},
+            x0=A.adj(self.y),
+            subproblem_solver=MatrixSubproblemSolver(),
+        )
+        x = admm_.solve()
+        assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-5
 
 
 class TestComplex:

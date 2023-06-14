@@ -23,13 +23,15 @@ from scico.functional import ZeroFunctional
 from scico.linop import (
     CircularConvolve,
     ComposedLinearOperator,
+    Diagonal,
     Identity,
     LinearOperator,
+    MatrixOperator,
 )
 from scico.loss import SquaredL2Loss
 from scico.numpy import Array, BlockArray
 from scico.numpy.util import ensure_on_device, is_real_dtype
-from scico.solver import SolveConvATAD
+from scico.solver import SolveATAD, SolveConvATAD
 from scico.solver import cg as scico_cg
 from scico.solver import minimize
 
@@ -211,7 +213,7 @@ class LinearSubproblemSolver(SubproblemSolver):
 
         super().internal_init(admm)
 
-        # Set lhs_op =  \sum_i rho_i * Ci.H @ CircularConvolve
+        # Set lhs_op =  \sum_i rho_i * Ci.H @ Ci
         # Use reduce as the initialization of this sum is messy otherwise
         lhs_op = reduce(
             lambda a, b: a + b, [rhoi * Ci.gram_op for rhoi, Ci in zip(admm.rho_list, admm.C_list)]
@@ -262,6 +264,110 @@ class LinearSubproblemSolver(SubproblemSolver):
         x0 = ensure_on_device(x0)
         rhs = self.compute_rhs()
         x, self.info = self.cg(self.lhs_op, rhs, x0, **self.cg_kwargs)  # type: ignore
+        return x
+
+
+class MatrixSubproblemSolver(LinearSubproblemSolver):
+    r"""Solver for quadratic functionals involving matrix operators.
+
+    Solver for the case in which :math:`f` is a quadratic function of
+    :math:`\mb{x}`, and :math:`A` and all the :math:`C_i` are diagonal
+    or matrix operators. It is a specialization of
+    :class:`.LinearSubproblemSolver`.
+
+    As for :class:`.LinearSubproblemSolver`, the :math:`\mb{x}`-update
+    step is
+
+    ..  math::
+
+        \mb{x}^{(k+1)} = \argmin_{\mb{x}} \; \frac{1}{2}
+        \norm{\mb{y} - A \mb{x}}_W^2 + \sum_i \frac{\rho_i}{2}
+        \norm{\mb{z}^{(k)}_i - \mb{u}^{(k)}_i - C_i \mb{x}}_2^2 \;,
+
+    where :math:`W` is a weighting :class:`.Diagonal` operator
+    or an :class:`.Identity` operator (i.e. no weighting).
+    This update step reduces to the solution of the linear system
+
+    ..  math::
+
+        \left(A^H W A + \sum_{i=1}^N \rho_i C_i^H C_i \right)
+        \mb{x}^{(k+1)} = \;
+        A^H W \mb{y} + \sum_{i=1}^N \rho_i C_i^H ( \mb{z}^{(k)}_i -
+        \mb{u}^{(k)}_i) \;,
+
+    which is solved by factorization of the left hand side of the
+    equation, using :class:`.SolveATAD`.
+
+
+    Attributes:
+        admm (:class:`.ADMM`): ADMM solver object to which the solver is
+            attached.
+        solve_kwargs (dict): Dictionary of arguments for solver
+            :class:`.SolveATAD` initialization.
+    """
+
+    def __init__(self, check_solve: bool = False, solve_kwargs: Optional[dict[str, Any]] = None):
+        """Initialize a :class:`MatrixSubproblemSolver` object.
+
+        Args:
+            check_solve: If ``True``, compute solver accuracy after each
+                solve.
+            solve_kwargs: Dictionary of arguments for solver
+                :class:`.SolveATAD` initialization.
+        """
+        self.check_solve = check_solve
+        default_solve_kwargs = {"cho_factor": False}
+        if solve_kwargs:
+            default_solve_kwargs.update(solve_kwargs)
+        self.solve_kwargs = default_solve_kwargs
+
+    def internal_init(self, admm: soa.ADMM):
+        if admm.f is not None:
+            if not isinstance(admm.f, SquaredL2Loss):
+                raise TypeError(
+                    "MatrixSubproblemSolver requires f to be a scico.loss.SquaredL2Loss; "
+                    f"got {type(admm.f)}."
+                )
+            if not isinstance(admm.f.A, (Diagonal, MatrixOperator)):
+                raise TypeError(
+                    "MatrixSubproblemSolver requires f.A to be a Diagonal or MatrixOperator; "
+                    f"got {type(admm.f.A)}."
+                )
+        for i, Ci in enumerate(admm.C_list):
+            if not isinstance(Ci, (Diagonal, MatrixOperator)):
+                raise TypeError(
+                    "MatrixSubproblemSolver requires C[{i}] to be a Diagonal or MatrixOperator; "
+                    f"got {type(Ci)}."
+                )
+
+        super().internal_init(admm)
+
+        if admm.f is None:
+            A = snp.zeros(admm.C_list[0].input_shape[0], dtype=admm.C_list[0].input_dtype)
+            W = None
+        else:
+            A = admm.f.A
+            W = 2.0 * self.admm.f.scale * admm.f.W  # type: ignore
+
+        Csum = reduce(
+            lambda a, b: a + b, [rhoi * Ci.gram_op for rhoi, Ci in zip(admm.rho_list, admm.C_list)]
+        )
+        self.solver = SolveATAD(A, Csum, W, **self.solve_kwargs)
+
+    def solve(self, x0: Array) -> Array:
+        """Solve the ADMM step.
+
+        Args:
+            x0: Initial value (ignored).
+
+        Returns:
+            Computed solution.
+        """
+        rhs = self.compute_rhs()
+        x = self.solver.solve(rhs)
+        if self.check_solve:
+            self.accuracy = self.solver.accuracy(x, rhs)
+
         return x
 
 
