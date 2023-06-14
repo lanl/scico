@@ -678,12 +678,12 @@ class SolveATAD:
     an LU factorization should be used.
 
     Complex-valued problems are also supported, in which case the
-    transpose :math:`^T` in the equations above should be taken to
+    transpose :math:`\cdot^T` in the equations above should be taken to
     represent the conjugate transpose.
 
     To solve problems directly involving a matrix of the form
-    :math:`A W A^T + D`, initialize with `A.T` (or `A.T.conj()` for
-    complex problems) instead of `A`.
+    :math:`A W A^T + D`, initialize with :code:`A.T` (or
+    :code:`A.T.conj()` for complex problems) instead of :code:`A`.
     """
 
     def __init__(
