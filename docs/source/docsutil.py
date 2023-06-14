@@ -11,8 +11,38 @@
 
 import importlib
 import inspect
+import os
 import pkgutil
 import sys
+from glob import glob
+from runpy import run_path
+
+
+def run_conf_files(vardict=None, path=None):
+    """Execute Python files in conf directory.
+
+    Args:
+        vardict: Dictionary into which variable names should be inserted.
+            Defaults to empty dict.
+        path: Path to conf directory. Defaults to path to this module.
+
+    Returns:
+        A dict populated with variables defined during execution of the
+        configuration files.
+    """
+    if vardict is None:
+        vardict = {}
+    if path is None:
+        path = os.path.dirname(__file__)
+
+    files = os.path.join(path, "conf", "*.py")
+    for f in sorted(glob(files)):
+        conf = run_path(f, init_globals=vardict)
+        for k, v in conf.items():
+            if len(k) >= 4 and k[0:2] == "__" and k[-2:] == "__":  # ignore __<name>__ variables
+                continue
+            vardict[k] = v
+    return vardict
 
 
 def package_classes(package):
