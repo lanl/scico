@@ -19,7 +19,7 @@ from scico.util import (
 )
 
 
-def set_rec_attr():
+def test_rattr():
     class A:
         class B:
             c = 0
@@ -29,6 +29,11 @@ def set_rec_attr():
     a = A()
     rsetattr(a, "b.c", 1)
     assert rgetattr(a, "b.c") == 1
+
+    assert rgetattr(a, "c.d", 10) == 10
+
+    with pytest.raises(AttributeError):
+        assert rgetattr(a, "c.d")
 
 
 def test_partial_pos():
