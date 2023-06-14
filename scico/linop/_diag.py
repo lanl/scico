@@ -135,6 +135,30 @@ class Diagonal(LinearOperator):
         else:
             return self(other)
 
+    def norm(self, ord=None):  # pylint: disable=W0622
+        """Compute the matrix norm of the diagonal operator.
+
+        Valid values of `ord` and the corresponding norm definition
+        are those listed under "norm for matrices" in the
+        :func:`scico.numpy.linalg.norm` documentation.
+        """
+        ordfunc = {
+            "fro": lambda x: snp.linalg.norm(x),
+            "nuc": lambda x: snp.sum(snp.abs(x)),
+            -snp.inf: lambda x: snp.abs(x).min(),
+            snp.inf: lambda x: snp.abs(x).max(),
+        }
+        mord = ord
+        if mord is None:
+            mord = "fro"
+        elif mord in (-1, -2):
+            mord = -snp.inf
+        elif mord in (1, 2):
+            mord = snp.inf
+        if mord not in ordfunc:
+            raise ValueError(f"Invalid value {ord} for parameter ord.")
+        return ordfunc[mord](self.diagonal)
+
 
 class Identity(Diagonal):
     """Identity operator."""

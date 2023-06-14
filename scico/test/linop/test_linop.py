@@ -446,13 +446,25 @@ class TestDiagonal:
 
         input_shape = (7,)
         diagonal, key = randn(input_shape, dtype=diagonal_dtype, key=self.key)
-        x, key = randn(input_shape, dtype=diagonal_dtype, key=key)
 
         D1 = linop.Diagonal(diagonal=diagonal)
         D2 = D1.gram_op
         D3 = D1.H @ D1
         assert isinstance(D3, linop.Diagonal)
         snp.testing.assert_allclose(D2.diagonal, D3.diagonal, rtol=1e-6)
+
+    @pytest.mark.parametrize("diagonal_dtype", [np.float32, np.complex64])
+    @pytest.mark.parametrize("ord", [None, "fro", "nuc", -np.inf, np.inf, 1, -1, 2, -2])
+    def test_norm(self, diagonal_dtype, ord):
+
+        input_shape = (5,)
+        diagonal, key = randn(input_shape, dtype=diagonal_dtype, key=self.key)
+
+        D1 = linop.Diagonal(diagonal=diagonal)
+        D2 = snp.diag(diagonal)
+        n1 = D1.norm(ord=ord)
+        n2 = snp.linalg.norm(D2, ord=ord)
+        snp.testing.assert_allclose(n1, n2, rtol=1e-6)
 
 
 def test_adj_lazy():
