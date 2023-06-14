@@ -374,6 +374,29 @@ class TestDiagonal:
             b = Dnew @ x
             snp.testing.assert_allclose(a, b, rtol=1e-5)
 
+    @pytest.mark.parametrize("diagonal_dtype", [np.float32, np.complex64])
+    @pytest.mark.parametrize("input_shape1", input_shapes)
+    @pytest.mark.parametrize("input_shape2", input_shapes)
+    def test_matmul(self, input_shape1, input_shape2, diagonal_dtype):
+
+        diagonal1, key = randn(input_shape1, dtype=diagonal_dtype, key=self.key)
+        diagonal2, key = randn(input_shape2, dtype=diagonal_dtype, key=key)
+        x, key = randn(input_shape1, dtype=diagonal_dtype, key=key)
+
+        D1 = linop.Diagonal(diagonal=diagonal1)
+        D2 = linop.Diagonal(diagonal=diagonal2)
+
+        if input_shape1 != input_shape2:
+            with pytest.raises(ValueError):
+                D3 = D1 @ D2
+        else:
+            D3 = D1 @ D2
+            assert isinstance(D3, linop.Diagonal)
+            a = D3 @ x
+            D4 = linop.Diagonal(diagonal1 * diagonal2)
+            b = D4 @ x
+            snp.testing.assert_allclose(a, b, rtol=1e-5)
+
     @pytest.mark.parametrize("operator", [op.add, op.sub])
     def test_binary_op_mismatch(self, operator):
         diagonal_dtype = np.float32
@@ -417,6 +440,19 @@ class TestDiagonal:
         scaled_D = operator(D, scalar)
 
         np.testing.assert_allclose(scaled_D @ x, operator(D @ x, scalar), rtol=5e-5)
+
+    @pytest.mark.parametrize("diagonal_dtype", [np.float32, np.complex64])
+    def test_gram_op(self, diagonal_dtype):
+
+        input_shape = (7,)
+        diagonal, key = randn(input_shape, dtype=diagonal_dtype, key=self.key)
+        x, key = randn(input_shape, dtype=diagonal_dtype, key=key)
+
+        D1 = linop.Diagonal(diagonal=diagonal)
+        D2 = D1.gram_op
+        D3 = D1.H @ D1
+        assert isinstance(D3, linop.Diagonal)
+        snp.testing.assert_allclose(D2.diagonal, D3.diagonal, rtol=1e-6)
 
 
 def test_adj_lazy():
