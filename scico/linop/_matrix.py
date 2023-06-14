@@ -172,7 +172,7 @@ class MatrixOperator(LinearOperator):
         raise TypeError(f"Operation __mul__ not defined between {type(self)} and {type(other)}.")
 
     def __rmul__(self, other):
-        # Multiplication is commutative
+        # multiplication is commutative
         return self * other
 
     def __truediv__(self, other):
