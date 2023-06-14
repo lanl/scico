@@ -742,7 +742,7 @@ class SolveATAD:
             lu, piv = jsl.lu_factor(G, check_finite=check_finite)
             self.factor = (lu, piv)
 
-    def solve(self, b: Array, check_finite: bool = None) -> Array:
+    def solve(self, b: Array, check_finite: Optional[bool] = None) -> Array:
         r"""Solve the linear system.
 
         Solve the linear system with right hand side :math:`\mb{b}` (`b`
