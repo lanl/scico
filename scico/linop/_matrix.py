@@ -255,6 +255,6 @@ class MatrixOperator(LinearOperator):
     def norm(self, ord=None, axis=None, keepdims=False):  # pylint: disable=W0622
         """Compute the norm of the dense matrix `self.A`.
 
-        Call :func:`scico.numpy.norm` on the dense matrix `self.A`.
+        Call :func:`scico.numpy.linalg.norm` on the dense matrix `self.A`.
         """
         return snp.linalg.norm(self.A, ord=ord, axis=axis, keepdims=keepdims)
