@@ -677,8 +677,13 @@ class SolveATAD:
     positive-definite (e.g. :math:`D` is diagonal and positive); if not,
     an LU factorization should be used.
 
+    Complex-valued problems are also supported, in which case the
+    transpose :math:`^T` in the equations above should be taken to
+    represent the conjugate transpose.
+
     To solve problems directly involving a matrix of the form
-    :math:`A W A^T + D`, initialize with `A.T` instead of `A`.
+    :math:`A W A^T + D`, initialize with `A.T` (or `A.T.conj()` for
+    complex problems) instead of `A`.
     """
 
     def __init__(
@@ -723,12 +728,12 @@ class SolveATAD:
         assert isinstance(W, Array)
         N, M = A.shape
         if N < M and D.ndim == 1:
-            G = snp.diag(1.0 / W) + A @ (A.T / D[:, snp.newaxis])
+            G = snp.diag(1.0 / W) + A @ (A.T.conj() / D[:, snp.newaxis])
         else:
             if D.ndim == 1:
-                G = A.T @ (W[:, snp.newaxis] * A) + snp.diag(D)
+                G = A.T.conj() @ (W[:, snp.newaxis] * A) + snp.diag(D)
             else:
-                G = A.T @ (W[:, snp.newaxis] * A) + D
+                G = A.T.conj() @ (W[:, snp.newaxis] * A) + D
 
         if cho_factor:
             c, lower = jsl.cho_factor(G, lower=lower, check_finite=check_finite)
@@ -766,7 +771,7 @@ class SolveATAD:
         N, M = self.A.shape
         if N < M and self.D.ndim == 1:
             w = fact_solve(self.A @ (b / D))
-            x = (b - (self.A.T @ w)) / D
+            x = (b - (self.A.T.conj() @ w)) / D
         else:
             x = fact_solve(b)
 
@@ -787,7 +792,7 @@ class SolveATAD:
         else:
             D = self.D[:, snp.newaxis]
         assert isinstance(self.W, Array)
-        return rel_res(self.A.T @ (self.W[:, snp.newaxis] * self.A) @ x + D * x, b)
+        return rel_res(self.A.T.conj() @ (self.W[:, snp.newaxis] * self.A) @ x + D * x, b)
 
 
 class SolveConvATAD:
