@@ -5,7 +5,7 @@ import jax
 import pytest
 
 import scico.numpy as snp
-from scico import functional, linop, loss, metric, random
+from scico import functional, linop, loss, metric, operator, random
 from scico.optimize import ADMM
 from scico.optimize.admm import (
     CircularConvolveSolver,
@@ -72,6 +72,37 @@ class TestMisc:
         admm_.x = admm_.x.at[0].set(np.nan)
         with pytest.raises(ValueError):
             admm_.solve()
+
+    @pytest.mark.parametrize(
+        "solver", [LinearSubproblemSolver, MatrixSubproblemSolver, CircularConvolveSolver]
+    )
+    def test_admm_aux(self, solver):
+        maxiter = 2
+        ρ = 1e-1
+        A = operator.Abs(self.y.shape)
+        f = loss.SquaredL2Loss(y=self.y, A=A)
+        g = functional.DnCNN()
+        C = linop.Identity(self.y.shape)
+
+        with pytest.raises(TypeError):
+            admm_ = ADMM(
+                f=f,
+                g_list=[g],
+                C_list=[C],
+                rho_list=[ρ],
+                maxiter=maxiter,
+                subproblem_solver=solver(),
+            )
+
+        with pytest.raises(TypeError):
+            admm_ = ADMM(
+                f=g,
+                g_list=[g],
+                C_list=[C],
+                rho_list=[ρ],
+                maxiter=maxiter,
+                subproblem_solver=solver(),
+            )
 
 
 class TestReal:
