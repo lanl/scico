@@ -466,6 +466,15 @@ class TestDiagonal:
         n2 = snp.linalg.norm(D2, ord=ord)
         snp.testing.assert_allclose(n1, n2, rtol=1e-6)
 
+    def test_norm_except(self):
+
+        input_shape = (5,)
+        diagonal, key = randn(input_shape, dtype=np.float32, key=self.key)
+
+        D = linop.Diagonal(diagonal=diagonal)
+        with pytest.raises(ValueError):
+            n = D.norm(ord=3)
+
 
 def test_adj_lazy():
     dtype = np.float32
