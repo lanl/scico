@@ -127,8 +127,8 @@ class LinearSubproblemSolver(SubproblemSolver):
     for the case where :code:`f` is an :math:`\ell_2` or weighted
     :math:`\ell_2` norm, and :code:`f.A` is a linear operator, so that
     the subproblem involves solving a linear equation. This requires that
-    `f.functional` be an instance of :class:`.SquaredL2Loss` and for
-    the forward operator :code:`f.A` to be an instance of
+    :code:`f.functional` be an instance of :class:`.SquaredL2Loss` and
+    for the forward operator :code:`f.A` to be an instance of
     :class:`.LinearOperator`.
 
     The :math:`\mb{x}`-update step is
