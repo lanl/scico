@@ -42,9 +42,9 @@ class Diagonal(LinearOperator):
         r"""
         Args:
             diagonal: Diagonal elements of this :class:`LinearOperator`.
-            input_shape:  Shape of input array. By default, equal to
+            input_shape: Shape of input array. By default, equal to
                `diagonal.shape`, but may also be set to a shape that is
-               broadcast-compatiable with `diagonal.shape`.
+               broadcast-compatible with `diagonal.shape`.
             input_dtype: `dtype` of input argument. The default,
                ``None``, means `diagonal.dtype`.
         """
@@ -64,7 +64,7 @@ class Diagonal(LinearOperator):
         elif isinstance(diagonal, BlockArray):
             raise ValueError("Parameter diagonal was a BlockArray but input_shape was not nested.")
         else:
-            raise ValueError("Parameter diagonal was a not BlockArray but input_shape was nested.")
+            raise ValueError("Parameter diagonal was not a BlockArray but input_shape was nested.")
 
         super().__init__(
             input_shape=input_shape,
@@ -76,6 +76,29 @@ class Diagonal(LinearOperator):
 
     def _eval(self, x):
         return x * self.diagonal
+
+    @property
+    def T(self) -> Diagonal:
+        """Transpose of this :class:`Diagonal`."""
+        return self
+
+    def conj(self) -> Diagonal:
+        """Complex conjugate of this :class:`Diagonal`."""
+        return Diagonal(diagonal=self.diagonal.conj())
+
+    @property
+    def H(self) -> Diagonal:
+        """Hermitian transpose of this :class:`Diagonal`."""
+        return self.conj()
+
+    @property
+    def gram_op(self) -> Diagonal:
+        """Gram operator of this :class:`Diagonal`.
+
+        Return a new :class:`Diagonal` :code:`G` such that
+        :code:`G(x) = A.adj(A(x)))`.
+        """
+        return Diagonal(diagonal=self.diagonal.conj() * self.diagonal)
 
     @partial(_wrap_add_sub, op=operator.add)
     def __add__(self, other):
@@ -100,6 +123,41 @@ class Diagonal(LinearOperator):
     @_wrap_mul_div_scalar
     def __truediv__(self, scalar):
         return Diagonal(diagonal=self.diagonal / scalar)
+
+    def __matmul__(self, other):
+        # self @ other
+        if isinstance(other, Diagonal):
+            if self.shape == other.shape:
+                return Diagonal(diagonal=self.diagonal * other.diagonal)
+
+            raise ValueError(f"Shapes {self.shape} and {other.shape} do not match.")
+
+        else:
+            return self(other)
+
+    def norm(self, ord=None):  # pylint: disable=W0622
+        """Compute the matrix norm of the diagonal operator.
+
+        Valid values of `ord` and the corresponding norm definition
+        are those listed under "norm for matrices" in the
+        :func:`scico.numpy.linalg.norm` documentation.
+        """
+        ordfunc = {
+            "fro": lambda x: snp.linalg.norm(x),
+            "nuc": lambda x: snp.sum(snp.abs(x)),
+            -snp.inf: lambda x: snp.abs(x).min(),
+            snp.inf: lambda x: snp.abs(x).max(),
+        }
+        mord = ord
+        if mord is None:
+            mord = "fro"
+        elif mord in (-1, -2):
+            mord = -snp.inf
+        elif mord in (1, 2):
+            mord = snp.inf
+        if mord not in ordfunc:
+            raise ValueError(f"Invalid value {ord} for parameter ord.")
+        return ordfunc[mord](self.diagonal)
 
 
 class Identity(Diagonal):
