@@ -140,7 +140,7 @@ class LinearSubproblemSolver(SubproblemSolver):
         \norm{\mb{z}^{(k)}_i - \mb{u}^{(k)}_i - C_i \mb{x}}_2^2 \;,
 
     where :math:`W` a weighting :class:`.Diagonal` operator
-    or an :class:`.Identity` operator (i.e. no weighting).
+    or an :class:`.Identity` operator (i.e., no weighting).
     This update step reduces to the solution of the linear system
 
     ..  math::
@@ -285,7 +285,7 @@ class MatrixSubproblemSolver(LinearSubproblemSolver):
         \norm{\mb{z}^{(k)}_i - \mb{u}^{(k)}_i - C_i \mb{x}}_2^2 \;,
 
     where :math:`W` is a weighting :class:`.Diagonal` operator
-    or an :class:`.Identity` operator (i.e. no weighting).
+    or an :class:`.Identity` operator (i.e., no weighting).
     This update step reduces to the solution of the linear system
 
     ..  math::
@@ -606,7 +606,7 @@ class G0BlockCircularConvolveSolver(SubproblemSolver):
     domain.
 
     Specialization of :class:`.LinearSubproblemSolver` for the case
-    where :math:`f = 0` (i.e. :code:`f` is a :class:`.ZeroFunctional`),
+    where :math:`f = 0` (i.e, :code:`f` is a :class:`.ZeroFunctional`),
     :math:`g_1` is an instance of :class:`.SquaredL2Loss`, :math:`C_1`
     is a composition of a :class:`.Sum` operator an a
     :class:`.CircularConvolve` operator.  The former must sum over the
