@@ -17,7 +17,6 @@ JAX arrays. Other JAX features such as automatic differentiation are
 not available.
 """
 
-
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
@@ -90,14 +89,18 @@ class TomographicProjector(LinearOperator):
                 f"Only 2D and 3D projections are supported, but `input_shape` is {input_shape}."
             )
 
+        output_shape: Shape
         if self.num_dims == 2:
             output_shape = (len(angles), det_count)
         elif self.num_dims == 3:
+            assert isinstance(det_count, tuple)
+            if len(det_count) != 2:
+                raise ValueError("Expected `det_count` to have 2 elements")
             output_shape = (det_count[0], len(angles), det_count[1])
 
         # Set up all the ASTRA config
-        self.detector_spacing: float = detector_spacing
-        self.det_count: int = det_count
+        self.detector_spacing = detector_spacing
+        self.det_count = det_count
         self.angles: np.ndarray = np.array(angles)
 
         if self.num_dims == 2:
@@ -105,6 +108,10 @@ class TomographicProjector(LinearOperator):
                 "parallel", detector_spacing, det_count, self.angles
             )
         elif self.num_dims == 3:
+            assert isinstance(detector_spacing, tuple)
+            assert isinstance(det_count, tuple)
+            if len(detector_spacing) != 2:
+                raise ValueError("Expected `detector_spacing` to have 2 elements")
             self.proj_geom = astra.create_proj_geom(
                 "parallel3d",
                 detector_spacing[0],
@@ -114,12 +121,12 @@ class TomographicProjector(LinearOperator):
                 self.angles,
             )
 
-        self.proj_id: int
+        self.proj_id: Optional[int]
         self.input_shape: tuple = input_shape
 
         if volume_geometry is not None:
             if (self.num_dims == 2 and len(volume_geometry) == 4) or (
-                self.num_dims == 3 and len(volume_geometry == 6)
+                self.num_dims == 3 and len(volume_geometry) == 6
             ):
                 self.vol_geom: dict = astra.create_vol_geom(*input_shape, *volume_geometry)
             else:
