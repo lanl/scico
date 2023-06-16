@@ -12,6 +12,7 @@ Usage: $SCRIPT [-h] [-d]
           [-e] Display excerpt of error message on failure
           [-d] Skip tests involving additional data downloads
           [-t] Skip tests related to learned model training
+          [-g] Skip tests that need the GPU
 EOF
 )
 
@@ -19,12 +20,14 @@ OPTIND=1
 DISPLAY_ERROR=0
 SKIP_DOWNLOAD=0
 SKIP_TRAINING=0
+SKIP_GPU=0
 while getopts ":hedt" opt; do
     case $opt in
 	h) echo "$USAGE"; exit 0;;
 	e) DISPLAY_ERROR=1;;
 	d) SKIP_DOWNLOAD=1;;
 	t) SKIP_TRAINING=1;;
+    g) SKIP_GPU=1;;
 	\?) echo "Error: invalid option -$OPTARG" >&2
             echo "$USAGE" >&2
             exit 1
@@ -74,14 +77,18 @@ for f in $SCRIPTPATH/scripts/*.py; do
 
     # Skip problem cases.
     if [ $SKIP_DOWNLOAD -eq 1 ] && grep -q '_microscopy' <<< $f; then
-	printf "%s\n" skipped
-	continue
+	    printf "%s\n" skipped
+	    continue
     fi
     if [ $SKIP_TRAINING -eq 1 ]; then
 	if grep -q '_datagen' <<< $f || grep -q '_train' <<< $f; then
 	    printf "%s\n" skipped
 	    continue
         fi
+    fi
+    if [ $SKIP_GPU -eq 1 ] && grep -q '_astra_3d' <<< $f; then
+	    printf "%s\n" skipped
+	    continue
     fi
 
     # Create temporary copy of script with all algorithm maxiter values set
