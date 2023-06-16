@@ -579,7 +579,7 @@ def golden(
     return r
 
 
-class SolveATAD:
+class ATADSolver:
     r"""Solver for linear system involving a symmetric product plus a diagonal.
 
     Solve a linear system of the form
@@ -795,7 +795,7 @@ class SolveATAD:
         return rel_res(self.A.T.conj() @ (self.W[:, snp.newaxis] * self.A) @ x + D * x, b)
 
 
-class SolveConvATAD:
+class ConvATADSolver:
     r"""Solver for sum of convolutions plus diagonal linear system.
 
     Solve a linear system of the form

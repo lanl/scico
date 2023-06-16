@@ -31,7 +31,7 @@ from scico.linop import (
 from scico.loss import SquaredL2Loss
 from scico.numpy import Array, BlockArray
 from scico.numpy.util import ensure_on_device, is_real_dtype
-from scico.solver import SolveATAD, SolveConvATAD
+from scico.solver import ATADSolver, ConvATADSolver
 from scico.solver import cg as scico_cg
 from scico.solver import minimize
 
@@ -296,14 +296,14 @@ class MatrixSubproblemSolver(LinearSubproblemSolver):
         \mb{u}^{(k)}_i) \;,
 
     which is solved by factorization of the left hand side of the
-    equation, using :class:`.SolveATAD`.
+    equation, using :class:`.ATADSolver`.
 
 
     Attributes:
         admm (:class:`.ADMM`): ADMM solver object to which the solver is
             attached.
         solve_kwargs (dict): Dictionary of arguments for solver
-            :class:`.SolveATAD` initialization.
+            :class:`.ATADSolver` initialization.
     """
 
     def __init__(self, check_solve: bool = False, solve_kwargs: Optional[dict[str, Any]] = None):
@@ -313,7 +313,7 @@ class MatrixSubproblemSolver(LinearSubproblemSolver):
             check_solve: If ``True``, compute solver accuracy after each
                 solve.
             solve_kwargs: Dictionary of arguments for solver
-                :class:`.SolveATAD` initialization.
+                :class:`.ATADSolver` initialization.
         """
         self.check_solve = check_solve
         default_solve_kwargs = {"cho_factor": False}
@@ -352,7 +352,7 @@ class MatrixSubproblemSolver(LinearSubproblemSolver):
         Csum = reduce(
             lambda a, b: a + b, [rhoi * Ci.gram_op for rhoi, Ci in zip(admm.rho_list, admm.C_list)]
         )
-        self.solver = SolveATAD(A, Csum, W, **self.solve_kwargs)
+        self.solver = ATADSolver(A, Csum, W, **self.solve_kwargs)
 
     def solve(self, x0: Array) -> Array:
         """Solve the ADMM step.
@@ -580,7 +580,7 @@ class FBlockCircularConvolveSolver(LinearSubproblemSolver):
             for rho, C in zip(admm.rho_list, admm.C_list)
         ]
         D = reduce(lambda a, b: a + b, c_gram_list) / (2.0 * self.admm.f.scale)
-        self.solver = SolveConvATAD(self.admm.f.A, D)
+        self.solver = ConvATADSolver(self.admm.f.A, D)
 
     def solve(self, x0: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         """Solve the ADMM step.
@@ -754,7 +754,7 @@ class G0BlockCircularConvolveSolver(SubproblemSolver):
         D = reduce(lambda a, b: a + b, c_gram_list) / (
             2.0 * self.admm.g_list[0].scale * admm.rho_list[0]
         )
-        self.solver = SolveConvATAD(self.admm.C_list[0], D)
+        self.solver = ConvATADSolver(self.admm.C_list[0], D)
 
     def compute_rhs(self) -> Union[Array, BlockArray]:
         r"""Compute the right hand side of the linear equation to be solved.

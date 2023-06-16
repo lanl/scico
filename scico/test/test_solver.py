@@ -319,7 +319,7 @@ def test_solve_atai(cho_factor, wide, weighted, alpha):
     D = alpha * snp.ones((A.shape[1],))
     ATAD = A.T @ (Wa * A) + alpha * snp.identity(A.shape[1])
     b = ATAD @ x0
-    slv = solver.SolveATAD(A, D, W=W, cho_factor=cho_factor)
+    slv = solver.ATADSolver(A, D, W=W, cho_factor=cho_factor)
     x1 = slv.solve(b)
     assert metric.rel_res(x0, x1) < 5e-5
 
@@ -338,7 +338,7 @@ def test_solve_aati(cho_factor, wide, alpha):
     D = alpha * snp.ones((A.shape[0],))
     AATD = A @ A.T + alpha * snp.identity(A.shape[0])
     b = AATD @ x0
-    slv = solver.SolveATAD(A.T, D)
+    slv = solver.ATADSolver(A.T, D)
     x1 = slv.solve(b)
     assert metric.rel_res(x0, x1) < 5e-5
 
@@ -365,7 +365,7 @@ def test_solve_atad(cho_factor, wide, vector):
     D = snp.abs(D)  # only required for Cholesky, but improved accuracy for LU
     ATAD = A.T @ A + snp.diag(D)
     b = ATAD @ x0
-    slv = solver.SolveATAD(A, D, cho_factor=cho_factor)
+    slv = solver.ATADSolver(A, D, cho_factor=cho_factor)
     x1 = slv.solve(b)
     assert metric.rel_res(x0, x1) < 5e-5
     assert slv.accuracy(x1, b) < 5e-5
