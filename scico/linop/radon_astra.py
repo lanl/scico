@@ -18,7 +18,7 @@ not available.
 """
 
 
-from typing import List, Optional
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -52,15 +52,16 @@ class TomographicProjector(LinearOperator):
     def __init__(
         self,
         input_shape: Shape,
-        detector_spacing: float,
-        det_count: int,
+        detector_spacing: Union[float, Tuple[float, float]],
+        det_count: Union[int, Tuple[int, int]],
         angles: np.ndarray,
         volume_geometry: Optional[List[float]] = None,
         device: str = "auto",
     ):
         """
         Args:
-            input_shape: Shape of the input array.
+            input_shape: Shape of the input array. Determines whether 2D
+               or 3D algorithm is used.
             detector_spacing: Spacing between detector elements.
             det_count: Number of detector elements.
             angles: Array of projection angles in radians.
@@ -83,36 +84,61 @@ class TomographicProjector(LinearOperator):
                available, otherwise, the CPU is used.
         """
 
+        self.num_dims = len(input_shape)
+        if self.num_dims not in [2, 3]:
+            raise ValueError(
+                f"Only 2D and 3D projections are supported, but `input_shape` is {input_shape}."
+            )
+
+        if self.num_dims == 3 and device == "cpu":
+            raise ValueError("No CPU algorithm exists for 3D tomography.")
+
         # Set up all the ASTRA config
         self.detector_spacing: float = detector_spacing
         self.det_count: int = det_count
         self.angles: np.ndarray = np.array(angles)
 
-        self.proj_geom: dict = astra.create_proj_geom(
-            "parallel", detector_spacing, det_count, self.angles
-        )
+        if self.num_dims == 2:
+            self.proj_geom: dict = astra.create_proj_geom(
+                "parallel", detector_spacing, det_count, self.angles
+            )
+        elif self.num_dims == 3:
+            self.proj_geom = astra.create_proj_geom(
+                "parallel3d",
+                detector_spacing[0],
+                detector_spacing[1],
+                det_count[0],
+                det_count[1],
+                angles,
+            )
+
         self.proj_id: int
         self.input_shape: tuple = input_shape
 
         if volume_geometry is not None:
-            if len(volume_geometry) == 4:
+            if (self.num_dims == 2 and len(volume_geometry) == 4) or (
+                self.num_dims == 3 and len(volume_geometry == 6)
+            ):
                 self.vol_geom: dict = astra.create_vol_geom(*input_shape, *volume_geometry)
             else:
                 raise ValueError(
-                    "volume_geometry must be the shape of the volume as a tuple of len 4 "
-                    "containing the volume geometry dimensions. Please see documentation "
-                    "for details."
+                    "`volume_geometry` must be a tuple of len 4 (2D) or 6 (3D)."
+                    "Please see documentation the astra documentation for details."
                 )
         else:
             self.vol_geom = astra.create_vol_geom(*input_shape)
 
-        dev0 = jax.devices()[0]
-        if dev0.platform == "cpu" or device == "cpu":
-            self.proj_id = astra.create_projector("line", self.proj_geom, self.vol_geom)
-        elif dev0.platform == "gpu" and device in ["gpu", "auto"]:
-            self.proj_id = astra.create_projector("cuda", self.proj_geom, self.vol_geom)
-        else:
-            raise ValueError(f"Invalid device specified; got {device}.")
+        if self.num_dims == 3:
+            # not needed for astra's 3D algorithm
+            self.proj_id = None
+        elif self.num_dims == 2:
+            dev0 = jax.devices()[0]
+            if dev0.platform == "cpu" or device == "cpu":
+                self.proj_id = astra.create_projector("line", self.proj_geom, self.vol_geom)
+            elif dev0.platform == "gpu" and device in ["gpu", "auto"]:
+                self.proj_id = astra.create_projector("cuda", self.proj_geom, self.vol_geom)
+            else:
+                raise ValueError(f"Invalid device specified; got {device}.")
 
         # Wrap our non-jax function to indicate we will supply fwd/rev mode functions
         self._eval = jax.custom_vjp(self._proj)
@@ -135,8 +161,12 @@ class TomographicProjector(LinearOperator):
         def f(x):
             if x.flags.writeable == False:
                 x.flags.writeable = True
-            proj_id, result = astra.create_sino(x, self.proj_id)
-            astra.data2d.delete(proj_id)
+            if self.num_dims == 2:
+                proj_id, result = astra.create_sino(x, self.proj_id)
+                astra.data2d.delete(proj_id)
+            elif self.num_dims == 3:
+                proj_id, result = astra.create_sino3d_gpu(x, self.proj_geom, self.vol_geom)
+                astra.data3d.delete(proj_id)
             return result
 
         return hcb.call(
@@ -148,8 +178,14 @@ class TomographicProjector(LinearOperator):
         def f(y):
             if y.flags.writeable == False:
                 y.flags.writeable = True
-            proj_id, result = astra.create_backprojection(y, self.proj_id)
-            astra.data2d.delete(proj_id)
+            if self.num_dims == 2:
+                proj_id, result = astra.create_backprojection(y, self.proj_id)
+                astra.data2d.delete(proj_id)
+            elif self.num_dims == 3:
+                proj_id, result = astra.create_backprojection3d_gpu(
+                    y, self.proj_geom, self.vol_geom
+                )
+                astra.data3d.delete(proj_id)
             return result
 
         return hcb.call(f, y, result_shape=jax.ShapeDtypeStruct(self.input_shape, self.input_dtype))
@@ -167,11 +203,13 @@ class TomographicProjector(LinearOperator):
                <https://www.astra-toolbox.com/docs/algs/FBP_CUDA.html>`__.
         """
 
+        if self.num_dims == 3:
+            raise NotImplementedError("3D FBP is not implemented")
+
         # Just use the CPU FBP alg for now; hitting memory issues with GPU one.
         def f(sino):
             if sino.flags.writeable == False:
                 sino.flags.writeable = True
-            proj_id = astra.create_projector("line", self.proj_geom, self.vol_geom)
             sino_id = astra.data2d.create("-sino", self.proj_geom, sino)
 
             # create memory for result
@@ -180,7 +218,7 @@ class TomographicProjector(LinearOperator):
             # start to populate config
             cfg = astra.astra_dict("FBP")
             cfg["ReconstructionDataId"] = rec_id
-            cfg["ProjectorId"] = proj_id
+            cfg["ProjectorId"] = self.proj_id
             cfg["ProjectionDataId"] = sino_id
             cfg["option"] = {"FilterType": filter_type}
 
