@@ -90,9 +90,6 @@ class TomographicProjector(LinearOperator):
                 f"Only 2D and 3D projections are supported, but `input_shape` is {input_shape}."
             )
 
-        if self.num_dims == 3 and device == "cpu":
-            raise ValueError("No CPU algorithm exists for 3D tomography.")
-
         if self.num_dims == 2:
             output_shape = (len(angles), det_count)
         elif self.num_dims == 3:
@@ -114,7 +111,7 @@ class TomographicProjector(LinearOperator):
                 detector_spacing[1],
                 det_count[0],
                 det_count[1],
-                angles,
+                self.angles,
             )
 
         self.proj_id: int
@@ -138,17 +135,25 @@ class TomographicProjector(LinearOperator):
                     input_shape[1], input_shape[2], input_shape[0]
                 )
 
+        dev0 = jax.devices()[0]
+        if dev0.platform == "cpu" or device == "cpu":
+            self.device = "cpu"
+        elif dev0.platform == "gpu" and device in ["gpu", "auto"]:
+            self.device = "gpu"
+        else:
+            raise ValueError(f"Invalid device specified; got {device}.")
+
+        if self.num_dims == 3 and self.device == "cpu":
+            raise ValueError("No CPU algorithm exists for 3D tomography.")
+
         if self.num_dims == 3:
             # not needed for astra's 3D algorithm
             self.proj_id = None
         elif self.num_dims == 2:
-            dev0 = jax.devices()[0]
-            if dev0.platform == "cpu" or device == "cpu":
+            if self.device == "cpu":
                 self.proj_id = astra.create_projector("line", self.proj_geom, self.vol_geom)
-            elif dev0.platform == "gpu" and device in ["gpu", "auto"]:
+            elif self.device == "gpu":
                 self.proj_id = astra.create_projector("cuda", self.proj_geom, self.vol_geom)
-            else:
-                raise ValueError(f"Invalid device specified; got {device}.")
 
         # Wrap our non-jax function to indicate we will supply fwd/rev mode functions
         self._eval = jax.custom_vjp(self._proj)

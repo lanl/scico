@@ -127,3 +127,20 @@ def test_jit_in_DiagonalStack():
     N = 10
     H = DiagonalStack([TomographicProjector((N, N), 1.0, N, snp.linspace(0, snp.pi, N))])
     H.T @ snp.zeros(H.output_shape, dtype=snp.float32)
+
+
+@pytest.mark.skipif(jax.devices()[0].platform != "cpu", reason="checking CPU behavior")
+def test_3D_on_CPU():
+    x = snp.zeros((4, 5, 6))
+    with pytest.raises(ValueError):
+        A = TomographicProjector(x.shape, [1.0, 1.0], [6, 6], snp.linspace(0, snp.pi, 10))
+
+
+@pytest.mark.skipif(jax.devices()[0].platform != "gpu", reason="checking GPU behavior")
+def test_3D_on_GPU():
+    x = snp.zeros((4, 5, 6))
+    A = TomographicProjector(x.shape, [1.0, 1.0], [6, 6], snp.linspace(0, snp.pi, 10))
+
+    assert A.num_dims == 3
+    y = A @ x
+    ATy = A.T @ y
