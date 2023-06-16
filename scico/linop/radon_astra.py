@@ -247,6 +247,7 @@ class TomographicProjector(LinearOperator):
             # cleanup FBP-specific arra
             astra.algorithm.delete(alg_id)
             astra.data2d.delete(rec_id)
+            astra.data2d.delete(sino_id)
             return out
 
         return hcb.call(
