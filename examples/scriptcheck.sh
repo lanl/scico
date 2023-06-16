@@ -21,7 +21,7 @@ DISPLAY_ERROR=0
 SKIP_DOWNLOAD=0
 SKIP_TRAINING=0
 SKIP_GPU=0
-while getopts ":hedt" opt; do
+while getopts ":hedtg" opt; do
     case $opt in
 	h) echo "$USAGE"; exit 0;;
 	e) DISPLAY_ERROR=1;;
