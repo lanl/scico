@@ -93,6 +93,11 @@ class TomographicProjector(LinearOperator):
         if self.num_dims == 3 and device == "cpu":
             raise ValueError("No CPU algorithm exists for 3D tomography.")
 
+        if self.num_dims == 2:
+            output_shape = (len(angles), det_count)
+        elif self.num_dims == 3:
+            output_shape = (det_count[0], len(angles), det_count[1])
+
         # Set up all the ASTRA config
         self.detector_spacing: float = detector_spacing
         self.det_count: int = det_count
@@ -126,7 +131,12 @@ class TomographicProjector(LinearOperator):
                     "Please see documentation the astra documentation for details."
                 )
         else:
-            self.vol_geom = astra.create_vol_geom(*input_shape)
+            if self.num_dims == 2:
+                self.vol_geom = astra.create_vol_geom(*input_shape)
+            elif self.num_dims == 3:
+                self.vol_geom = astra.create_vol_geom(
+                    input_shape[1], input_shape[2], input_shape[0]
+                )
 
         if self.num_dims == 3:
             # not needed for astra's 3D algorithm
@@ -148,7 +158,7 @@ class TomographicProjector(LinearOperator):
 
         super().__init__(
             input_shape=self.input_shape,
-            output_shape=(len(angles), det_count),
+            output_shape=output_shape,
             input_dtype=np.float32,
             output_dtype=np.float32,
             adj_fn=self._adj,
