@@ -172,7 +172,7 @@ class MatrixOperator(LinearOperator):
         raise TypeError(f"Operation __mul__ not defined between {type(self)} and {type(other)}.")
 
     def __rmul__(self, other):
-        # Multiplication is commutative
+        # multiplication is commutative
         return self * other
 
     def __truediv__(self, other):
@@ -255,6 +255,6 @@ class MatrixOperator(LinearOperator):
     def norm(self, ord=None, axis=None, keepdims=False):  # pylint: disable=W0622
         """Compute the norm of the dense matrix `self.A`.
 
-        Call :func:`scico.numpy.norm` on the dense matrix `self.A`.
+        Call :func:`scico.numpy.linalg.norm` on the dense matrix `self.A`.
         """
         return snp.linalg.norm(self.A, ord=ord, axis=axis, keepdims=keepdims)
