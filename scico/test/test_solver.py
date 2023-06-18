@@ -6,7 +6,7 @@ from jax.scipy.linalg import block_diag
 import pytest
 
 import scico.numpy as snp
-from scico import linop, random, solver
+from scico import linop, metric, random, solver
 
 
 class TestSet:
@@ -294,3 +294,78 @@ def test_golden():
     f = lambda x, c: (x - c) ** 2
     x = solver.golden(f, -snp.abs(c) - 1, snp.abs(c) + 1, args=(c,), xtol=1e-5)
     assert snp.max(snp.abs(x - c)) <= 1e-5
+
+
+@pytest.mark.parametrize("cho_factor", [True, False])
+@pytest.mark.parametrize("wide", [True, False])
+@pytest.mark.parametrize("weighted", [True, False])
+@pytest.mark.parametrize("alpha", [1e-1, 1e1])
+def test_solve_atai(cho_factor, wide, weighted, alpha):
+    A, key = random.randn((5, 8), dtype=snp.float32)
+    if wide:
+        x0, key = random.randn((8,), key=key)
+    else:
+        A = A.T
+        x0, key = random.randn((5,), key=key)
+
+    if weighted:
+        W, key = random.randn((A.shape[0],), key=key)
+        W = snp.abs(W)
+        Wa = W[:, snp.newaxis]
+    else:
+        W = None
+        Wa = snp.array([1.0])[:, snp.newaxis]
+
+    D = alpha * snp.ones((A.shape[1],))
+    ATAD = A.T @ (Wa * A) + alpha * snp.identity(A.shape[1])
+    b = ATAD @ x0
+    slv = solver.ATADSolver(A, D, W=W, cho_factor=cho_factor)
+    x1 = slv.solve(b)
+    assert metric.rel_res(x0, x1) < 5e-5
+
+
+@pytest.mark.parametrize("cho_factor", [True, False])
+@pytest.mark.parametrize("wide", [True, False])
+@pytest.mark.parametrize("alpha", [1e-1, 1e1])
+def test_solve_aati(cho_factor, wide, alpha):
+    A, key = random.randn((5, 8), dtype=snp.float32)
+    if wide:
+        x0, key = random.randn((5,), key=key)
+    else:
+        A = A.T
+        x0, key = random.randn((8,), key=key)
+
+    D = alpha * snp.ones((A.shape[0],))
+    AATD = A @ A.T + alpha * snp.identity(A.shape[0])
+    b = AATD @ x0
+    slv = solver.ATADSolver(A.T, D)
+    x1 = slv.solve(b)
+    assert metric.rel_res(x0, x1) < 5e-5
+
+
+@pytest.mark.parametrize("cho_factor", [True, False])
+@pytest.mark.parametrize("wide", [True, False])
+@pytest.mark.parametrize("vector", [True, False])
+def test_solve_atad(cho_factor, wide, vector):
+    A, key = random.randn((5, 8), dtype=snp.float32)
+    if wide:
+        D, key = random.randn((8,), key=key)
+        if vector:
+            x0, key = random.randn((8,), key=key)
+        else:
+            x0, key = random.randn((8, 3), key=key)
+    else:
+        A = A.T
+        D, key = random.randn((5,), key=key)
+        if vector:
+            x0, key = random.randn((5,), key=key)
+        else:
+            x0, key = random.randn((5, 3), key=key)
+
+    D = snp.abs(D)  # only required for Cholesky, but improved accuracy for LU
+    ATAD = A.T @ A + snp.diag(D)
+    b = ATAD @ x0
+    slv = solver.ATADSolver(A, D, cho_factor=cho_factor)
+    x1 = slv.solve(b)
+    assert metric.rel_res(x0, x1) < 5e-5
+    assert slv.accuracy(x1, b) < 5e-5

@@ -25,6 +25,7 @@ from ._admmaux import (
     G0BlockCircularConvolveSolver,
     GenericSubproblemSolver,
     LinearSubproblemSolver,
+    MatrixSubproblemSolver,
     SubproblemSolver,
 )
 from ._common import Optimizer
@@ -189,7 +190,7 @@ class ADMM(Optimizer):
             )
         elif (
             type(self.subproblem_solver)
-            in [FBlockCircularConvolveSolver, G0BlockCircularConvolveSolver]
+            in [MatrixSubproblemSolver, FBlockCircularConvolveSolver, G0BlockCircularConvolveSolver]
             and self.subproblem_solver.check_solve
         ):
             itstat_fields.update({"Slv Res": "%9.3e"})
