@@ -76,7 +76,7 @@ jobs:
         run: |
           DURATIONS_FILE=$(mktemp)
           bzcat data/pytest/durations_ubuntu.bz2 > $DURATIONS_FILE
-          pytest --traceconfig -x --cov --durations-path $DURATIONS_FILE --splits 5 --group ${{ matrix.group }}
+          pytest --traceconfig -x --cov --durations-path $DURATIONS_FILE --splits 5 --group ${{ matrix.group }} --level 2
       # Upload coverage data
       - name: Upload coverage
         uses: actions/upload-artifact@v3
