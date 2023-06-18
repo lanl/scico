@@ -70,7 +70,10 @@ jobs:
         run: pip install -e .
       # Run unit tests
       - name: Run main unit tests
-        run: pytest -x --splits 5 --group ${{ matrix.group }} --level 1
+        run: |
+          DURATIONS_FILE=$(mktemp)
+          bzcat data/pytest/durations_macos.bz2 > $DURATIONS_FILE
+          pytest -x --durations-path $DURATIONS_FILE --splits 5 --group ${{ matrix.group }} --level 1
       # Run doc tests
       - name: Run doc tests
         if: matrix.group == 1
