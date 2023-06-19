@@ -24,7 +24,7 @@ import numpy as np
 import jax
 
 from scico import functional, linop, loss, plot
-from scico.optimize.admm import ADMM, LinearSubproblemSolver
+from scico.optimize.admm import ADMM, MatrixSubproblemSolver
 from scico.util import device_info
 
 """
@@ -67,7 +67,7 @@ solver = ADMM(
     rho_list=rho_list,
     x0=A.adj(y),
     maxiter=maxiter,
-    subproblem_solver=LinearSubproblemSolver(),
+    subproblem_solver=MatrixSubproblemSolver(),
     itstat_options={"display": True, "period": 10},
 )
 

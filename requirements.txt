@@ -3,8 +3,8 @@ scipy>=1.6.0
 tifffile
 imageio>=2.17
 matplotlib
-jaxlib>=0.4.3,<=0.4.10
-jax>=0.4.3,<=0.4.10
+jaxlib>=0.4.3,<=0.4.11
+jax>=0.4.3,<=0.4.11
 flax>=0.6.1,<=0.6.9
 bm3d>=4.0.0
 bm4d>=4.2.2
