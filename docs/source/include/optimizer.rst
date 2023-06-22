@@ -6,8 +6,9 @@ Optimization Algorithms
 ADMM
 ----
 
-The Alternating Direction Method of Multipliers (ADMM) :cite:`glowinski-1975-approximation` :cite:`gabay-1976-dual`
-is an algorithm for minimizing problems of the form
+The Alternating Direction Method of Multipliers (ADMM)
+:cite:`glowinski-1975-approximation` :cite:`gabay-1976-dual` is an
+algorithm for minimizing problems of the form
 
 .. math::
    :label: eq:admm_prob
@@ -16,7 +17,7 @@ is an algorithm for minimizing problems of the form
    \; \acute{A} \mb{x} + \acute{B} \mb{z} = \mb{c} \;,
 
 where :math:`f` and :math:`g` are convex (but not necessarily smooth)
-functions, :math:`\acute{A}` and :math:`\acute{B}` are linear operators,
+functionals, :math:`\acute{A}` and :math:`\acute{B}` are linear operators,
 and :math:`\mb{c}` is a constant vector. (For a thorough introduction and
 overview, see :cite:`boyd-2010-distributed`.)
 
@@ -47,14 +48,17 @@ in :eq:`eq:admm_prob`, corresponding to defining
   \mb{c} = \left( \begin{array}{c} 0 \\ 0 \\ 0 \\
               \vdots \end{array} \right) \;.
 
-In :class:`.ADMM`, :math:`f` is a :class:`.Functional`, typically a :class:`.Loss`, corresponding to the forward model of an imaging problem,
-and the :math:`g_i` are :class:`.Functional`, typically corresponding to a
-regularization term or constraint. Each of the :math:`g_i` must have a
-proximal operator defined. It is also possible to set ``f = None``, which corresponds to defining :math:`f = 0`, i.e. the zero function.
+In :class:`.ADMM`, :math:`f` is a :class:`.Functional`, typically a
+:class:`.Loss`, corresponding to the forward model of an imaging
+problem, and the :math:`g_i` are :class:`.Functional`, typically
+corresponding to a regularization term or constraint. Each of the
+:math:`g_i` must have a proximal operator defined. It is also possible
+to set ``f = None``, which corresponds to defining :math:`f = 0`,
+i.e. the zero function.
 
 
-Subproblem Solvers
-^^^^^^^^^^^^^^^^^^
+Sub-Problem Solvers
+^^^^^^^^^^^^^^^^^^^
 
 The most computational expensive component of the ADMM iterations is typically
 the :math:`\mb{x}`-update,
@@ -70,50 +74,101 @@ The available solvers for this problem are:
 
 * :class:`.admm.GenericSubproblemSolver`
 
-  This is the default subproblem solver as it is applicable in all cases. It
+  This is the default sub-problem solver as it is applicable in all cases. It
   it is only suitable for relatively small-scale problems as it makes use of
   :func:`.solver.minimize`, which wraps :func:`scipy.optimize.minimize`.
 
-
 * :class:`.admm.LinearSubproblemSolver`
 
-  This subproblem solver can be used when :math:`f` takes the form
+  This sub-problem solver can be used when :math:`f` takes the form
   :math:`\norm{\mb{A} \mb{x} - \mb{y}}^2_W`. It makes use of the conjugate
   gradient method, and is significantly more efficient than
   :class:`.admm.GenericSubproblemSolver` when it can be used.
 
+* :class:`.admm.MatrixSubproblemSolver`
+
+  This sub-problem solver can be used when :math:`f` takes the form
+  :math:`\norm{\mb{A} \mb{x} - \mb{y}}^2_W`, and :math:`A` and all of the
+  :math:`C_i` are diagonal (:class:`.Diagonal`) or matrix operators
+  (:class:`MatrixOperator`). It exploits a pre-computed matrix factorization
+  for a significantly more efficient solution than conjugate gradient.
+
 * :class:`.admm.CircularConvolveSolver`
 
-  This subproblem solver can be used when :math:`f` takes the form
+  This sub-problem solver can be used when :math:`f` takes the form
   :math:`\norm{\mb{A} \mb{x} - \mb{y}}^2_W` and :math:`\mb{A}` and all
-  the :math:`C_i` s are circulant (i.e., diagonalizable in a Fourier basis).
+  the :math:`C_i` s are circulant (i.e., diagonalized by the DFT).
+
+* :class:`.admm.FBlockCircularConvolveSolver` and :class:`.admm.G0BlockCircularConvolveSolver`
+
+  These sub-problem solvers can be used when the primary linear operator
+  is block-circulant (i.e. an operator with blocks that are diagonalied
+  by the DFT).
 
 
 For more details of these solvers and how to specify them, see the API
 reference page for :mod:`scico.admm`.
 
 
+Proximal ADMM
+-------------
+
+Proximal ADMM :cite:`deng-2015-global` is an algorithm for solving
+problems of the form
+
+.. math::
+
+   \argmin_{\mb{x}} \; f(\mb{x}) + g(\mb{z}) \;
+   \text{such that}\; A \mb{x} + B \mb{z} = \mb{c} \;,
+
+where :math:`f` and :math:`g` are are convex (but not necessarily
+smooth) functionals and :math:`A` and :math:`B` are linear
+operators. Although convergence per iteration is typically somewhat
+worse than that of ADMM, the iterations can be much cheaper than that
+of ADMM, giving Proximal ADMM competitive time convergence
+performance.
+
+The SCICO Proximal ADMM solver, :class:`.ProximalADMM`, requires
+:math:`f` and :math:`g` to be instances of :class:`.Functional`, and
+to have a proximal operator defined (:meth:`.Functional.prox`), and
+:math:`A` and :math:`B` are required to be an instance of
+:class:`.LinearOperator`.
+
+
+Non-Linear Proximal ADMM
+------------------------
+
+Non-Linear Proximal ADMM :cite:`benning-2016-preconditioned` is an
+algorithm for solving problems of the form
+
+.. math::
+   \argmin_{\mb{x}} \; f(\mb{x}) + g(\mb{z}) \;
+   \text{such that}\; H(\mb{x}, \mb{z}) = 0 \;,
+
+where :math:`f` and :math:`g` are are convex (but not necessarily
+smooth) functionals and :math:`H` is a function of two vector variables.
+
+The SCICO Non-Linear Proximal ADMM solver, :class:`.NonLinearPADMM`, requires
+:math:`f` and :math:`g` to be instances of :class:`.Functional`, and
+to have a proximal operator defined (:meth:`.Functional.prox`), and
+:math:`H` is required to be an instance of :class:`.Function`.
+
+
 
 Linearized ADMM
 ---------------
 
-Linearized ADMM algorithm :cite:`yang-2012-linearized`
+Linearized ADMM :cite:`yang-2012-linearized`
 :cite:`parikh-2014-proximal` (Sec. 4.4.2) is an algorithm for solving
 problems of the form
 
 .. math::
    \argmin_{\mb{x}} \; f(\mb{x}) + g(C \mb{x}) \;,
 
-where :math:`f` and :math:`g` are are convex (but not necessarily smooth)
-functions. Although convergence per iteration is typically significantly
-worse than that of ADMM, the :math:`\mb{x}`-update,
-
-.. math::
-
-   \mathrm{prox}_{\mu f} \left( \mb{x}^{(k)} - (\mu / \nu) C^T
-   \left(C \mb{x}^{(k)} - \mb{z}^{(k)} + \mb{u}^{(k)} \right) \right)
-
-is can be much cheaper than that of ADMM, giving Linearized ADMM competitive
+where :math:`f` and :math:`g` are are convex (but not necessarily
+smooth) functionals. Although convergence per iteration is typically
+significantly worse than that of ADMM, the :math:`\mb{x}`-update, can
+be much cheaper than that of ADMM, giving Linearized ADMM competitive
 time convergence performance.
 
 The SCICO Linearized ADMM solver, :class:`.LinearizedADMM`,
@@ -134,7 +189,7 @@ The Primal–Dual Hybrid Gradient (PDHG) algorithm
    \argmin_{\mb{x}} \; f(\mb{x}) + g(C \mb{x}) \;,
 
 where :math:`f` and :math:`g` are are convex (but not necessarily smooth)
-functions. The algorithm has similar advantages over ADMM to those of Linearized ADMM, but typically exhibits better convergence properties.
+functionals. The algorithm has similar advantages over ADMM to those of Linearized ADMM, but typically exhibits better convergence properties.
 
 The SCICO PDHG solver, :class:`.PDHG`,
 requires :math:`f` and :math:`g` to be instances of :class:`.Functional`,
@@ -143,12 +198,12 @@ and to have a proximal operator defined (:meth:`.Functional.prox`), and
 
 
 
-
 PGM
 ---
 
 The Proximal Gradient Method (PGM) :cite:`daubechies-2004-iterative`
-:cite:`beck-2010-gradient` and Accelerated Proximal Gradient Method (AcceleratedPGM) :cite:`beck-2009-fast` are algorithms for minimizing
+:cite:`beck-2010-gradient` and Accelerated Proximal Gradient Method
+(AcceleratedPGM) :cite:`beck-2009-fast` are algorithms for minimizing
 problems of the form
 
 .. math::
@@ -173,7 +228,8 @@ solution of :eq:`eq:admm_x_step`.
 Step Size Options
 ^^^^^^^^^^^^^^^^^
 
-The step size (usually referred to in terms of its reciprocal, :math:`L`) for the gradient descent in :class:`PGM` can be adapted via
+The step size (usually referred to in terms of its reciprocal,
+:math:`L`) for the gradient descent in :class:`PGM` can be adapted via
 Barzilai-Borwein methods (also called spectral methods) and iterative
 line search methods.
 

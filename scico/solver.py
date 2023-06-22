@@ -8,7 +8,7 @@
 """Solver and optimization algorithms.
 
 This module provides a number of functions for solving linear systems and
-optimization problems, some of which are used as subproblem solvers
+optimization problems, some of which are used as sub-problem solvers
 within the iterations of the proximal algorithms in the
 :mod:`scico.optimize` subpackage.
 
