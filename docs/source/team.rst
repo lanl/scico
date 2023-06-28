@@ -4,13 +4,18 @@ Developers
 Core Developers
 ---------------
 
+- `Cristina Garcia Cardona <https://github.com/crstngc>`_
+- `Michael McCann <https://github.com/Michael-T-McCann>`_
+- `Brendt Wohlberg <https://github.com/bwohlberg>`_
+
+
+Emeritus Developers
+-------------------
+
 - `Thilo Balke <https://github.com/tbalke>`_
 - `Fernando Davis <https://github.com/FernandoDavis>`_
-- `Cristina Garcia Cardona <https://github.com/crstngc>`_
 - `Soumendu Majee <https://github.com/smajee>`_
-- `Michael McCann <https://github.com/Michael-T-McCann>`_
 - `Luke Pfister <https://github.com/lukepfister>`_
-- `Brendt Wohlberg <https://github.com/bwohlberg>`_
 
 
 Contributors
