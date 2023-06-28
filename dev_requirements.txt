@@ -1,5 +1,5 @@
 pylint
-pytest
+pytest>=7.3.0
 pytest-runner
 packaging
 pre-commit
