@@ -43,8 +43,8 @@ from ._linop import LinearOperator
 class TomographicProjector(LinearOperator):
     r"""Parallel beam Radon transform based on the ASTRA toolbox.
 
-    Perform tomographic projection of an image at specified angles,
-    using the
+    Perform tomographic projection (also called X-ray projection) of an
+    image or volume at specified angles, using the
     `ASTRA toolbox <https://github.com/astra-toolbox/astra-toolbox>`_.
     """
 
@@ -61,23 +61,24 @@ class TomographicProjector(LinearOperator):
         Args:
             input_shape: Shape of the input array. Determines whether 2D
                or 3D algorithm is used.
-            detector_spacing: Spacing between detector elements.
-            det_count: Number of detector elements.
+            detector_spacing: Spacing between detector elements. See
+               <https://www.astra-toolbox.com/docs/geom2d.html#projection-geometries>`__
+               or
+               <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
+               for more information.
+            det_count: Number of detector elements. See
+               <https://www.astra-toolbox.com/docs/geom2d.html#projection-geometries>`__
+               or
+               <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
+               for more information.
             angles: Array of projection angles in radians.
-            volume_geometry: Defines the shape and size of the
+            volume_geometry: Specification of the shape of the
                discretized reconstruction volume. Must either ``None``,
-               or of the form `(min_x, max_x, min_y, max_y)`. If ``None``,
-               volume pixels are squares with sides of unit length, and
-               the volume is centered around the origin. If not ``None``,
-               the extents of the volume can be specified arbitrarily.
-               The default, ``None``, corresponds to
-               `volume_geometry = [-cols/2, cols/2, -rows/2, rows/2]`.
-               **Note**: The volume must be centered around the origin and
-               pixels must be square for GPU usage. This is not always
-               explicitly checked in all functions, so not following these
-               requirements may have unpredictable results. For further
-               details, see the `ASTRA documentation
-               <https://www.astra-toolbox.com/docs/geom2d.html#volume-geometries>`__.
+               in which case it is inferred from `input_shape`, or
+               follow the astra syntax described in
+               <https://www.astra-toolbox.com/docs/geom2d.html#volume-geometries>`__
+               or
+               <https://www.astra-toolbox.com/docs/geom3d.html#d-geometries>`__.
             device: Specifies device for projection operation.
                One of ["auto", "gpu", "cpu"]. If "auto", a GPU is used if
                available, otherwise, the CPU is used.
@@ -132,7 +133,7 @@ class TomographicProjector(LinearOperator):
             else:
                 raise ValueError(
                     "`volume_geometry` must be a tuple of len 4 (2D) or 6 (3D)."
-                    "Please see documentation the astra documentation for details."
+                    "Please see the astra documentation for details."
                 )
         else:
             if self.num_dims == 2:

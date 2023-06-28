@@ -6,10 +6,11 @@
 
 r"""
 3D TV-Regularized Sparse-View CT Reconstruction
-============================================
+===============================================
 
-This example demonstrates solution of a sparse-view CT reconstruction
-problem with isotropic total variation (TV) regularization
+This example demonstrates solution of a sparse-view, 3D CT
+reconstruction problem with isotropic total variation (TV)
+regularization
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
   \|_2^2 + \lambda \| C \mathbf{x} \|_{2,1} \;,$$
@@ -26,39 +27,16 @@ import jax
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from scico import functional, linop, loss, metric, plot
+from scico.examples import create_tangle_phantom
 from scico.linop.radon_astra import TomographicProjector
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
-
-
-def make_tangle(nx, ny, nz):
-    xs = 1.0 * np.linspace(-1.0, 1.0, nx)
-    ys = 1.0 * np.linspace(-1.0, 1.0, ny)
-    zs = 1.0 * np.linspace(-1.0, 1.0, nz)
-
-    # default ordering for meshgrid is `xy`, this makes inputs of length
-    # M, N, P will create a mesh of N, M, P. Thus we want ys, zs and xs.
-    xx, yy, zz = np.meshgrid(ys, zs, xs, copy=True)
-    xx = 3.0 * xx
-    yy = 3.0 * yy
-    zz = 3.0 * zz
-    values = (
-        xx * xx * xx * xx
-        - 5.0 * xx * xx
-        + yy * yy * yy * yy
-        - 5.0 * yy * yy
-        + zz * zz * zz * zz
-        - 5.0 * zz * zz
-        + 11.8
-    ) * 0.2 + 0.5
-    return values
-
 
 Nx = 128
 Ny = 256
 Nz = 64
 
-tangle = (make_tangle(Nx, Ny, Nz) < 2.0).astype(float)
+tangle = create_tangle_phantom(Nx, Ny, Nz)
 tangle = jax.device_put(tangle)
 
 n_projection = 10  # number of projections
