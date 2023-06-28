@@ -146,7 +146,7 @@ model = sflax.ODPNet(
     channels=channels,
     num_filters=model_conf["num_filters"],
     block_depth=model_conf["block_depth"],
-    odp_block=sflax.ODPProxDcnvBlock,
+    odp_block=sflax.inverse.ODPProxDcnvBlock,
 )
 
 
