@@ -20,6 +20,7 @@ a 3D finite difference operator, and $\mathbf{x}$ is the desired
 image.
 """
 
+
 import numpy as np
 
 import jax
@@ -31,6 +32,10 @@ from scico.examples import create_tangle_phantom
 from scico.linop.radon_astra import TomographicProjector
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
+
+"""
+Create a ground truth image and projector.
+"""
 
 Nx = 128
 Ny = 256
@@ -107,3 +112,5 @@ divider = make_axes_locatable(ax[1])
 cax = divider.append_axes("right", size="5%", pad=0.2)
 fig.colorbar(ax[1].get_images()[0], cax=cax, label="arbitrary units")
 fig.show()
+
+input("\nWaiting for input to close figures and exit")

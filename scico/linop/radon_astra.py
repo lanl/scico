@@ -62,23 +62,23 @@ class TomographicProjector(LinearOperator):
             input_shape: Shape of the input array. Determines whether 2D
                or 3D algorithm is used.
             detector_spacing: Spacing between detector elements. See
-               <https://www.astra-toolbox.com/docs/geom2d.html#projection-geometries>`__
+               https://www.astra-toolbox.com/docs/geom2d.html#projection-geometries
                or
-               <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
+               https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries
                for more information.
             det_count: Number of detector elements. See
-               <https://www.astra-toolbox.com/docs/geom2d.html#projection-geometries>`__
+               https://www.astra-toolbox.com/docs/geom2d.html#projection-geometries
                or
-               <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
+               https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries
                for more information.
             angles: Array of projection angles in radians.
             volume_geometry: Specification of the shape of the
                discretized reconstruction volume. Must either ``None``,
                in which case it is inferred from `input_shape`, or
                follow the astra syntax described in
-               <https://www.astra-toolbox.com/docs/geom2d.html#volume-geometries>`__
+               https://www.astra-toolbox.com/docs/geom2d.html#volume-geometries
                or
-               <https://www.astra-toolbox.com/docs/geom3d.html#d-geometries>`__.
+               https://www.astra-toolbox.com/docs/geom3d.html#d-geometries.
             device: Specifies device for projection operation.
                One of ["auto", "gpu", "cpu"]. If "auto", a GPU is used if
                available, otherwise, the CPU is used.
