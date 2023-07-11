@@ -12,6 +12,7 @@ from scico.examples import (
     create_circular_phantom,
     create_cone,
     create_conv_sparse_phantom,
+    create_tangle_phantom,
     downsample_volume,
     epfl_deconv_data,
     gaussian,
@@ -135,6 +136,11 @@ def test_conv_sparse_phantom():
     assert h.shape == (3, 15, 15)
     assert x.shape == (3, 64, 64)
     assert np.sum(x > 0) == 32
+
+
+def test_tangle_phantom():
+    v = create_tangle_phantom(3, 4, 5)
+    assert v.shape == (5, 4, 3)
 
 
 def test_spnoise():
