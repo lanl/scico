@@ -120,7 +120,7 @@ def generate_foam2_images(seed: float, size: int, ndata: int) -> Array:
         foam = Foam2(size_range=[0.075, 0.0025], gap=1e-3, porosity=1)
         saux[i, ..., 0] = discrete_phantom(foam, size=size)
 
-    # Normalize
+    # normalize
     saux = saux / np.max(saux, axis=(1, 2), keepdims=True)
 
     return saux

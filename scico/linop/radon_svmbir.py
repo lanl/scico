@@ -475,10 +475,3 @@ class SVMBIRSquaredL2Loss(SVMBIRExtendedLoss, SquaredL2Loss):
             raise ValueError(
                 "Parameter is_masked must be False for the TomographicProjector in SVMBIRSquaredL2Loss."
             )
-
-
-def _unsqueeze(x: snp.Array, input_shape: Shape) -> snp.Array:
-    """If x is 2D, make it 3D according to the SVMBIR convention."""
-    if len(input_shape) == 2:
-        x = x[snp.newaxis, :, :]
-    return x
