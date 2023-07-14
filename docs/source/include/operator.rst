@@ -67,8 +67,7 @@ pass a callable to the :class:`.Operator` constructor:
 
 ::
 
-    A = Operator(input_shape=(32,),
-                 eval_fn = lambda x: 2 * x)
+    A = Operator(input_shape=(32,), eval_fn = lambda x: 2 * x)
 
 
 Or use subclassing:
@@ -95,7 +94,7 @@ Linear operators are those for which
 
 .. math::
 
-   H(a \mb{x} + b \mb{y}) = a H(\mb{x}) + b H(\mb{y}).
+   H(a \mb{x} + b \mb{y}) = a H(\mb{x}) + b H(\mb{y}) \;.
 
 SCICO represents linear operators as instances of the class :class:`.LinearOperator`.
 While finite-dimensional linear operators
@@ -111,17 +110,17 @@ Using A LinearOperator
 We implement two ways to evaluate a :class:`.LinearOperator`. The first is using standard
 callable syntax: ``A(x)``. The second mimics the NumPy matrix multiplication
 syntax: ``A @ x``. Both methods perform shape and type checks to validate the
-input before ultimately either calling `A._eval` or generating a new :class:`.LinearOperator`.
+input before ultimately either calling :code:`A._eval` or generating a new :class:`.LinearOperator`.
 
 For linear operators that map real-valued inputs to real-valued outputs, there are two ways to apply the adjoint:
-``A.adj(y)`` and ``A.T @ y``.
+:code:`A.adj(y)` and :code:`A.T @ y`.
 
-For complex-valued linear operators, there are three ways to apply the adjoint ``A.adj(y)``, ``A.H @ y``, and ``A.conj().T @ y``.
-Note that in this case, ``A.T`` returns the non-conjugated transpose of the LinearOperator.
+For complex-valued linear operators, there are three ways to apply the adjoint :code:`A.adj(y)`, :code:`A.H @ y`, and :code:`A.conj().T @ y`.
+Note that in this case, :code:`A.T` returns the non-conjugated transpose of the :class:`.LinearOperator`.
 
-While the cost of evaluating the linear operator is virtually identical for ``A(x)`` and ``A @ x``,
-the ``A.H`` and ``A.conj().T`` methods are somewhat slower; especially the latter. This is because two
-intermediate linear operators must be created before the function is evaluated.  Evaluating ``A.conj().T @ y``
+While the cost of evaluating the linear operator is virtually identical for :code:`A(x)` and :code:`A @ x`,
+the :code:`A.H` and :code:`A.conj().T` methods are somewhat slower; especially the latter. This is because two
+intermediate linear operators must be created before the function is evaluated.  Evaluating :code:`A.conj().T @ y`
 is equivalent to:
 
 ::
