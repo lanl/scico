@@ -107,7 +107,7 @@ The available solvers for this problem are:
 
 
 For more details of these solvers and how to specify them, see the API
-reference page for :mod:`scico.admm`.
+reference page for :mod:`scico.optimize.admm`.
 
 
 Proximal ADMM
@@ -207,11 +207,11 @@ The Proximal Gradient Method (PGM) :cite:`daubechies-2004-iterative`
 problems of the form
 
 .. math::
-   \argmin_{\mb{x}} f(\mb{x}) + g(\mb{x})
+   \argmin_{\mb{x}} f(\mb{x}) + g(\mb{x}) \;,
 
 where :math:`g` is convex and :math:`f` is smooth and convex. The
-corresponding SCICO solvers are :class:`PGM` and :class:`AcceleratedPGM`
-respectively. In most cases :class:`AcceleratedPGM` is expected to provide
+corresponding SCICO solvers are :class:`.PGM` and :class:`.AcceleratedPGM`
+respectively. In most cases :class:`.AcceleratedPGM` is expected to provide
 faster convergence. In both of these classes, :math:`f` and :math:`g` are
 both of type :class:`.Functional`, where :math:`f` must be differentiable,
 and :math:`g` must have a proximal operator defined.
@@ -235,7 +235,7 @@ line search methods.
 
 The available step size policy classes are:
 
-* :class:`BBStepSize`
+* :class:`.BBStepSize`
 
   This implements the step size adaptation based on the Barzilai-Borwein
   method :cite:`barzilai-1988-stepsize`. The step size :math:`\alpha` is
@@ -245,13 +245,13 @@ The available step size policy classes are:
      \mb{\Delta x} = \mb{x}_k - \mb{x}_{k-1} \; \\
      \mb{\Delta g} = \nabla f(\mb{x}_k) - \nabla f (\mb{x}_{k-1}) \; \\
      \alpha = \frac{\mb{\Delta x}^T \mb{\Delta g}}{\mb{\Delta g}^T
-     \mb{\Delta g}} \;\;.
+     \mb{\Delta g}} \;.
 
   Since the PGM solver uses the reciprocal of the step size, the value
   :math:`L = 1 / \alpha` is returned.
 
 
-* :class:`AdaptiveBBStepSize`
+* :class:`.AdaptiveBBStepSize`
 
   This implements the adaptive Barzilai-Borwein method as introduced in
   :cite:`zhou-2006-adaptive`. The adaptive step size rule computes
@@ -262,16 +262,16 @@ The available step size policy classes are:
      \alpha^{\mathrm{BB1}} = \frac{\mb{\Delta x}^T \mb{\Delta x}}
      {\mb{\Delta x}^T \mb{\Delta g}} \; \\
      \alpha^{\mathrm{BB2}} = \frac{\mb{\Delta x}^T \mb{\Delta g}}
-     {\mb{\Delta g}^T \mb{\Delta g}} \;\;.
+     {\mb{\Delta g}^T \mb{\Delta g}} \;.
 
   The determination of the new step size is made via the rule
 
   .. math::
-     \alpha = \left\{ \begin{matrix} \alpha^{\mathrm{BB2}} \;, &
+     \alpha = \left\{ \begin{array}{ll} \alpha^{\mathrm{BB2}}  &
      \mathrm{~if~} \alpha^{\mathrm{BB2}} / \alpha^{\mathrm{BB1}}
      < \kappa \; \\
-     \alpha^{\mathrm{BB1}} \;, & \mathrm{~otherwise} \end{matrix}
-     \right . \;\;,
+     \alpha^{\mathrm{BB1}}  & \mathrm{~otherwise} \end{array}
+     \right . \;,
 
   with :math:`\kappa \in (0, 1)`.
 
@@ -279,7 +279,7 @@ The available step size policy classes are:
   :math:`L = 1 / \alpha` is returned.
 
 
-* :class:`LineSearchStepSize`
+* :class:`.LineSearchStepSize`
 
   This implements the line search strategy described in :cite:`beck-2009-fast`.
   This strategy estimates :math:`L` such that
@@ -289,13 +289,13 @@ The available step size policy classes are:
   .. math::
      \hat{f}_{L}(\mb{x}, \mb{y}) = f(\mb{y}) + \nabla f(\mb{y})^H
      (\mb{x} - \mb{y}) + \frac{L}{2} \left\| \mb{x} - \mb{y}
-     \right\|_2^2 \;\;,
+     \right\|_2^2 \;,
 
   with :math:`\mb{x}` the potential new update and :math:`\mb{y}` the
-  current solution or current extrapolation (if using :class:`AcceleratedPGM`).
+  current solution or current extrapolation (if using :class:`.AcceleratedPGM`).
 
 
-* :class:`RobustLineSearchStepSize`
+* :class:`.RobustLineSearchStepSize`
 
   This implements the robust line search strategy described in
   :cite:`florea-2017-robust`. This strategy estimates :math:`L` such that
@@ -304,12 +304,12 @@ The available step size policy classes are:
 
   .. math::
      \hat{f}_{L}(\mb{x}, \mb{y}) = f(\mb{y}) + \nabla f(\mb{y})^H
-     (\mb{x} - \mb{y}) + \frac{L}{2} \left\| \mb{x} - \mb{y} \right\|_2^2 \;\;,
+     (\mb{x} - \mb{y}) + \frac{L}{2} \left\| \mb{x} - \mb{y} \right\|_2^2 \;,
 
   with :math:`\mb{x}` the potential new update and :math:`\mb{y}` the
   auxiliary extrapolation state. Note that this should only be used
-  with :class:`AcceleratedPGM`.
+  with :class:`.AcceleratedPGM`.
 
 
 For more details of these step size managers and how to specify them, see
-the API reference page for :mod:`scico.pgm`.
+the API reference page for :mod:`scico.optimize.pgm`.
