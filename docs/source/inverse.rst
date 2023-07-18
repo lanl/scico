@@ -213,11 +213,11 @@ Basic Solvers
 
 The :mod:`scico.solver` module provides a number of functions for
 solving linear systems and simple optimization problems, some of which
-are useful as sub-problem solvers within the proximal algorithms
+are useful as subproblem solvers within the proximal algorithms
 described in the following section. It also provides an interface to
 functions in :mod:`scipy.optimize`, supporting their use with
 multi-dimensional arrays and scico :class:`.Functional` objects. These
-algorithms are useful both as sub-problem solvers within the proximal
+algorithms are useful both as subproblem solvers within the proximal
 algorithms described below, as well as for direct solution of
 higher-level problems.
 

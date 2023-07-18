@@ -57,8 +57,8 @@ to set ``f = None``, which corresponds to defining :math:`f = 0`,
 i.e. the zero function.
 
 
-Sub-Problem Solvers
-^^^^^^^^^^^^^^^^^^^
+Subproblem Solvers
+^^^^^^^^^^^^^^^^^^
 
 The most computational expensive component of the ADMM iterations is typically
 the :math:`\mb{x}`-update,
@@ -74,20 +74,20 @@ The available solvers for this problem are:
 
 * :class:`.admm.GenericSubproblemSolver`
 
-  This is the default sub-problem solver as it is applicable in all cases. It
+  This is the default subproblem solver as it is applicable in all cases. It
   it is only suitable for relatively small-scale problems as it makes use of
   :func:`.solver.minimize`, which wraps :func:`scipy.optimize.minimize`.
 
 * :class:`.admm.LinearSubproblemSolver`
 
-  This sub-problem solver can be used when :math:`f` takes the form
+  This subproblem solver can be used when :math:`f` takes the form
   :math:`\norm{\mb{A} \mb{x} - \mb{y}}^2_W`. It makes use of the conjugate
   gradient method, and is significantly more efficient than
   :class:`.admm.GenericSubproblemSolver` when it can be used.
 
 * :class:`.admm.MatrixSubproblemSolver`
 
-  This sub-problem solver can be used when :math:`f` takes the form
+  This subproblem solver can be used when :math:`f` takes the form
   :math:`\norm{\mb{A} \mb{x} - \mb{y}}^2_W`, and :math:`A` and all of the
   :math:`C_i` are diagonal (:class:`.Diagonal`) or matrix operators
   (:class:`MatrixOperator`). It exploits a pre-computed matrix factorization
@@ -95,13 +95,13 @@ The available solvers for this problem are:
 
 * :class:`.admm.CircularConvolveSolver`
 
-  This sub-problem solver can be used when :math:`f` takes the form
+  This subproblem solver can be used when :math:`f` takes the form
   :math:`\norm{\mb{A} \mb{x} - \mb{y}}^2_W` and :math:`\mb{A}` and all
   the :math:`C_i` s are circulant (i.e., diagonalized by the DFT).
 
 * :class:`.admm.FBlockCircularConvolveSolver` and :class:`.admm.G0BlockCircularConvolveSolver`
 
-  These sub-problem solvers can be used when the primary linear operator
+  These subproblem solvers can be used when the primary linear operator
   is block-circulant (i.e. an operator with blocks that are diagonalied
   by the DFT).
 
