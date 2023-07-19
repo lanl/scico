@@ -55,8 +55,7 @@ transforms. For example,
        input_shape = (512, 512)
        angles = np.linspace(0, 2 * np.pi, 180, endpoint=False)
        channels = 512
-       A = scico.linop.radon_svmbir.ParallelBeamProjector(
-           input_shape, angles, channels)
+       A = scico.linop.radon_svmbir.ParallelBeamProjector(input_shape, angles, channels)
 
 defines a tomographic projection operator.
 
@@ -209,15 +208,18 @@ addressing a wide range of problems. These optimization algorithms
 belong to two distinct categories.
 
 
-SciPy Solvers
+Basic Solvers
 ~~~~~~~~~~~~~
 
-The :mod:`scico.solver` module provides an interface to functions in
-:mod:`scipy.optimize`, supporting their use with multi-dimensional
-arrays and scico :class:`.Functional` objects. These algorithms are
-useful both as sub-problem solvers within the second category of
-optimization algorithms described below, as well as for direct
-solution of higher-level problems.
+The :mod:`scico.solver` module provides a number of functions for
+solving linear systems and simple optimization problems, some of which
+are useful as subproblem solvers within the proximal algorithms
+described in the following section. It also provides an interface to
+functions in :mod:`scipy.optimize`, supporting their use with
+multi-dimensional arrays and scico :class:`.Functional` objects. These
+algorithms are useful both as subproblem solvers within the proximal
+algorithms described below, as well as for direct solution of
+higher-level problems.
 
 For example,
 

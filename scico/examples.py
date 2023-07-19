@@ -511,6 +511,40 @@ def create_conv_sparse_phantom(Nx: int, Nnz: int) -> Tuple[np.ndarray, np.ndarra
     return h, x
 
 
+def create_tangle_phantom(nx: int, ny: int, nz: int) -> snp.Array:
+    """Construct a volume phantom.
+
+    Args:
+        nx: x-size of output.
+        ny: y-size of output.
+        nz: z-size of output.
+
+    Returns:
+        An array with shape (nz, ny, nx).
+
+    """
+    xs = 1.0 * np.linspace(-1.0, 1.0, nx)
+    ys = 1.0 * np.linspace(-1.0, 1.0, ny)
+    zs = 1.0 * np.linspace(-1.0, 1.0, nz)
+
+    # default ordering for meshgrid is `xy`, this makes inputs of length
+    # M, N, P will create a mesh of N, M, P. Thus we want ys, zs and xs.
+    xx, yy, zz = np.meshgrid(ys, zs, xs, copy=True)
+    xx = 3.0 * xx
+    yy = 3.0 * yy
+    zz = 3.0 * zz
+    values = (
+        xx * xx * xx * xx
+        - 5.0 * xx * xx
+        + yy * yy * yy * yy
+        - 5.0 * yy * yy
+        + zz * zz * zz * zz
+        - 5.0 * zz * zz
+        + 11.8
+    ) * 0.2 + 0.5
+    return (values < 2.0).astype(float)
+
+
 def spnoise(
     img: Union[np.ndarray, snp.Array], nfrac: float, nmin: float = 0.0, nmax: float = 1.0
 ) -> Union[np.ndarray, snp.Array]:

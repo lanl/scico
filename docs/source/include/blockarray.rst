@@ -165,9 +165,8 @@ The recommended way to construct a :class:`.BlockArray` is by using the
    >>> len(X)
    2
 
-While :func:`~scico.numpy.blockarray` will accept either :class:`~numpy.ndarray`\ s
-or :class:`~jax.Array`\ s as input, :class:`~numpy.ndarray`\ s will be converted to
-:class:`~jax.Array`\ s.
+While :func:`~scico.numpy.blockarray` will accept arguments of type
+:class:`~numpy.ndarray` or :class:`~jax.Array`, arguments of type :class:`~numpy.ndarray` will be converted to :class:`~jax.Array` type.
 
 
 Operating on a BlockArray
@@ -182,13 +181,12 @@ Indexing
 :class:`.BlockArray` indexing works just like indexing a list.
 
 
-Multiplication Between BlockArray and :class:`.LinearOperator`
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Multiplication Between BlockArray and LinearOperator
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The :class:`.Operator` and :class:`.LinearOperator` classes are designed
 to work on instances of :class:`.BlockArray` in addition to instances of
 :obj:`~jax.Array`. For example
-
 
 ::
 

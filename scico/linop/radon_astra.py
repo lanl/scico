@@ -17,8 +17,7 @@ JAX arrays. Other JAX features such as automatic differentiation are
 not available.
 """
 
-
-from typing import List, Optional
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -44,75 +43,125 @@ from ._linop import LinearOperator
 class TomographicProjector(LinearOperator):
     r"""Parallel beam Radon transform based on the ASTRA toolbox.
 
-    Perform tomographic projection of an image at specified angles,
-    using the
+    Perform tomographic projection (also called X-ray projection) of an
+    image or volume at specified angles, using the
     `ASTRA toolbox <https://github.com/astra-toolbox/astra-toolbox>`_.
     """
 
     def __init__(
         self,
         input_shape: Shape,
-        detector_spacing: float,
-        det_count: int,
+        detector_spacing: Union[float, Tuple[float, float]],
+        det_count: Union[int, Tuple[int, int]],
         angles: np.ndarray,
         volume_geometry: Optional[List[float]] = None,
         device: str = "auto",
     ):
         """
         Args:
-            input_shape: Shape of the input array.
-            detector_spacing: Spacing between detector elements.
-            det_count: Number of detector elements.
+            input_shape: Shape of the input array. Determines whether 2D
+               or 3D algorithm is used.
+            detector_spacing: Spacing between detector elements. See
+               https://www.astra-toolbox.com/docs/geom2d.html#projection-geometries
+               or
+               https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries
+               for more information.
+            det_count: Number of detector elements. See
+               https://www.astra-toolbox.com/docs/geom2d.html#projection-geometries
+               or
+               https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries
+               for more information.
             angles: Array of projection angles in radians.
-            volume_geometry: Defines the shape and size of the
+            volume_geometry: Specification of the shape of the
                discretized reconstruction volume. Must either ``None``,
-               or of the form `(min_x, max_x, min_y, max_y)`. If ``None``,
-               volume pixels are squares with sides of unit length, and
-               the volume is centered around the origin. If not ``None``,
-               the extents of the volume can be specified arbitrarily.
-               The default, ``None``, corresponds to
-               `volume_geometry = [-cols/2, cols/2, -rows/2, rows/2]`.
-               **Note**: The volume must be centered around the origin and
-               pixels must be square for GPU usage. This is not always
-               explicitly checked in all functions, so not following these
-               requirements may have unpredictable results. For further
-               details, see the `ASTRA documentation
-               <https://www.astra-toolbox.com/docs/geom2d.html#volume-geometries>`__.
+               in which case it is inferred from `input_shape`, or
+               follow the astra syntax described in
+               https://www.astra-toolbox.com/docs/geom2d.html#volume-geometries
+               or
+               https://www.astra-toolbox.com/docs/geom3d.html#d-geometries.
             device: Specifies device for projection operation.
                One of ["auto", "gpu", "cpu"]. If "auto", a GPU is used if
                available, otherwise, the CPU is used.
         """
 
+        self.num_dims = len(input_shape)
+        if self.num_dims not in [2, 3]:
+            raise ValueError(
+                f"Only 2D and 3D projections are supported, but `input_shape` is {input_shape}."
+            )
+
+        output_shape: Shape
+        if self.num_dims == 2:
+            output_shape = (len(angles), det_count)
+        elif self.num_dims == 3:
+            assert isinstance(det_count, (list, tuple))
+            if len(det_count) != 2:
+                raise ValueError("Expected `det_count` to have 2 elements")
+            output_shape = (det_count[0], len(angles), det_count[1])
+
         # Set up all the ASTRA config
-        self.detector_spacing: float = detector_spacing
-        self.det_count: int = det_count
+        self.detector_spacing = detector_spacing
+        self.det_count = det_count
         self.angles: np.ndarray = np.array(angles)
 
-        self.proj_geom: dict = astra.create_proj_geom(
-            "parallel", detector_spacing, det_count, self.angles
-        )
-        self.proj_id: int
+        if self.num_dims == 2:
+            self.proj_geom: dict = astra.create_proj_geom(
+                "parallel", detector_spacing, det_count, self.angles
+            )
+        elif self.num_dims == 3:
+            assert isinstance(detector_spacing, (list, tuple))
+            assert isinstance(det_count, (list, tuple))
+            if len(detector_spacing) != 2:
+                raise ValueError("Expected `detector_spacing` to have 2 elements")
+            self.proj_geom = astra.create_proj_geom(
+                "parallel3d",
+                detector_spacing[0],
+                detector_spacing[1],
+                det_count[0],
+                det_count[1],
+                self.angles,
+            )
+
+        self.proj_id: Optional[int]
         self.input_shape: tuple = input_shape
 
         if volume_geometry is not None:
-            if len(volume_geometry) == 4:
+            if (self.num_dims == 2 and len(volume_geometry) == 4) or (
+                self.num_dims == 3 and len(volume_geometry) == 6
+            ):
                 self.vol_geom: dict = astra.create_vol_geom(*input_shape, *volume_geometry)
             else:
                 raise ValueError(
-                    "volume_geometry must be the shape of the volume as a tuple of len 4 "
-                    "containing the volume geometry dimensions. Please see documentation "
-                    "for details."
+                    "`volume_geometry` must be a tuple of len 4 (2D) or 6 (3D)."
+                    "Please see the astra documentation for details."
                 )
         else:
-            self.vol_geom = astra.create_vol_geom(*input_shape)
+            if self.num_dims == 2:
+                self.vol_geom = astra.create_vol_geom(*input_shape)
+            elif self.num_dims == 3:
+                self.vol_geom = astra.create_vol_geom(
+                    input_shape[1], input_shape[2], input_shape[0]
+                )
 
         dev0 = jax.devices()[0]
         if dev0.platform == "cpu" or device == "cpu":
-            self.proj_id = astra.create_projector("line", self.proj_geom, self.vol_geom)
+            self.device = "cpu"
         elif dev0.platform == "gpu" and device in ["gpu", "auto"]:
-            self.proj_id = astra.create_projector("cuda", self.proj_geom, self.vol_geom)
+            self.device = "gpu"
         else:
             raise ValueError(f"Invalid device specified; got {device}.")
+
+        if self.num_dims == 3 and self.device == "cpu":
+            raise ValueError("No CPU algorithm exists for 3D tomography.")
+
+        if self.num_dims == 3:
+            # not needed for astra's 3D algorithm
+            self.proj_id = None
+        elif self.num_dims == 2:
+            if self.device == "cpu":
+                self.proj_id = astra.create_projector("line", self.proj_geom, self.vol_geom)
+            elif self.device == "gpu":
+                self.proj_id = astra.create_projector("cuda", self.proj_geom, self.vol_geom)
 
         # Wrap our non-jax function to indicate we will supply fwd/rev mode functions
         self._eval = jax.custom_vjp(self._proj)
@@ -122,7 +171,7 @@ class TomographicProjector(LinearOperator):
 
         super().__init__(
             input_shape=self.input_shape,
-            output_shape=(len(angles), det_count),
+            output_shape=output_shape,
             input_dtype=np.float32,
             output_dtype=np.float32,
             adj_fn=self._adj,
@@ -135,8 +184,12 @@ class TomographicProjector(LinearOperator):
         def f(x):
             if x.flags.writeable == False:
                 x.flags.writeable = True
-            proj_id, result = astra.create_sino(x, self.proj_id)
-            astra.data2d.delete(proj_id)
+            if self.num_dims == 2:
+                proj_id, result = astra.create_sino(x, self.proj_id)
+                astra.data2d.delete(proj_id)
+            elif self.num_dims == 3:
+                proj_id, result = astra.create_sino3d_gpu(x, self.proj_geom, self.vol_geom)
+                astra.data3d.delete(proj_id)
             return result
 
         return hcb.call(
@@ -148,8 +201,14 @@ class TomographicProjector(LinearOperator):
         def f(y):
             if y.flags.writeable == False:
                 y.flags.writeable = True
-            proj_id, result = astra.create_backprojection(y, self.proj_id)
-            astra.data2d.delete(proj_id)
+            if self.num_dims == 2:
+                proj_id, result = astra.create_backprojection(y, self.proj_id)
+                astra.data2d.delete(proj_id)
+            elif self.num_dims == 3:
+                proj_id, result = astra.create_backprojection3d_gpu(
+                    y, self.proj_geom, self.vol_geom
+                )
+                astra.data3d.delete(proj_id)
             return result
 
         return hcb.call(f, y, result_shape=jax.ShapeDtypeStruct(self.input_shape, self.input_dtype))
@@ -167,11 +226,13 @@ class TomographicProjector(LinearOperator):
                <https://www.astra-toolbox.com/docs/algs/FBP_CUDA.html>`__.
         """
 
+        if self.num_dims == 3:
+            raise NotImplementedError("3D FBP is not implemented")
+
         # Just use the CPU FBP alg for now; hitting memory issues with GPU one.
         def f(sino):
             if sino.flags.writeable == False:
                 sino.flags.writeable = True
-            proj_id = astra.create_projector("line", self.proj_geom, self.vol_geom)
             sino_id = astra.data2d.create("-sino", self.proj_geom, sino)
 
             # create memory for result
@@ -180,7 +241,7 @@ class TomographicProjector(LinearOperator):
             # start to populate config
             cfg = astra.astra_dict("FBP")
             cfg["ReconstructionDataId"] = rec_id
-            cfg["ProjectorId"] = proj_id
+            cfg["ProjectorId"] = self.proj_id
             cfg["ProjectionDataId"] = sino_id
             cfg["option"] = {"FilterType": filter_type}
 
@@ -194,6 +255,7 @@ class TomographicProjector(LinearOperator):
             # cleanup FBP-specific arra
             astra.algorithm.delete(alg_id)
             astra.data2d.delete(rec_id)
+            astra.data2d.delete(sino_id)
             return out
 
         return hcb.call(
