@@ -61,7 +61,7 @@ determine the proximal method of ``c * f`` as
    \begin{align}
     \mathrm{prox}_{c f} (v, \lambda) &=  \argmin_x \lambda (c f)(x) + \frac{1}{2} \norm{v - x}_2^2  \\
     &=  \argmin_x (\lambda c) f(x) + \frac{1}{2} \norm{v - x}_2^2 \\
-    &= \mathrm{prox}_{f} (v, c \lambda)
+    &= \mathrm{prox}_{f} (v, c \lambda) \;.
     \end{align}
 
 Note that we have made no assumptions regarding homogeneity of ``f``;
@@ -82,7 +82,7 @@ A separable functional :math:`f : \mathbb{C}^N \to \mathbb{R}` can be written as
 of functionals :math:`f_i : \mathbb{C}^{N_i} \to \mathbb{R}` with :math:`\sum_i N_i = N`. In particular,
 
 .. math::
-   f(\mb{x}) = f(\mb{x}_1, \dots, \mb{x}_N) = f_1(\mb{x}_1) + \dots + f_N(\mb{x}_N)
+   f(\mb{x}) = f(\mb{x}_1, \dots, \mb{x}_N) = f_1(\mb{x}_1) + \dots + f_N(\mb{x}_N) \;.
 
 The proximal operator of a separable :math:`f` can be written
 in terms of the proximal operators of the :math:`f_i`
@@ -95,7 +95,7 @@ in terms of the proximal operators of the :math:`f_i`
       \mathrm{prox}_{f_1}(\mb{x}_1, \lambda) \\
       \vdots \\
       \mathrm{prox}_{f_N}(\mb{x}_N, \lambda) \\
-    \end{bmatrix}
+    \end{bmatrix} \;.
 
 Separable Functionals are implemented in the :class:`.SeparableFunctional` class. Separable functionals naturally accept :class:`.BlockArray` inputs and return the prox as a :class:`.BlockArray`.
 
@@ -133,7 +133,7 @@ Losses
 In SCICO, a loss is a special type of functional
 
 .. math::
-   f(\mb{x}) = \alpha l( \mb{y}, A(\mb{x}) )
+   f(\mb{x}) = \alpha l( \mb{y}, A(\mb{x}) ) \;,
 
 where :math:`\alpha` is a scaling parameter,
 :math:`l` is a functional,

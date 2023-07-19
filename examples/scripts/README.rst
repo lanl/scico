@@ -15,6 +15,8 @@ Computed Tomography
       Parameter Tuning for TV-Regularized Abel Inversion
    `ct_astra_noreg_pcg.py <ct_astra_noreg_pcg.py>`_
       CT Reconstruction with CG and PCG
+   `ct_astra_3d_tv_admm.py <ct_astra_3d_tv_admm.py>`_
+      3D TV-Regularized Sparse-View CT Reconstruction
    `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
       TV-Regularized Sparse-View CT Reconstruction
    `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
@@ -153,6 +155,8 @@ Total Variation
       Parameter Tuning for TV-Regularized Abel Inversion
    `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
       TV-Regularized Sparse-View CT Reconstruction
+   `ct_astra_3d_tv_admm.py <ct_astra_3d_tv_admm.py>`_
+      3D TV-Regularized Sparse-View CT Reconstruction
    `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
       TV-Regularized Low-Dose CT Reconstruction
    `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
@@ -244,6 +248,8 @@ ADMM
       Parameter Tuning for TV-Regularized Abel Inversion
    `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
       TV-Regularized Sparse-View CT Reconstruction
+   `ct_astra_3d_tv_admm.py <ct_astra_3d_tv_admm.py>`_
+      3D TV-Regularized Sparse-View CT Reconstruction
    `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
       TV-Regularized Low-Dose CT Reconstruction
    `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
