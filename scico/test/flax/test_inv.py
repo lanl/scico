@@ -65,7 +65,7 @@ class TestSet:
             channels=self.chn,
             num_filters=self.num_filters,
             block_depth=self.block_depth,
-            odp_block=sflax.ODPProxDcnvBlock,
+            odp_block=sflax.inverse.ODPProxDcnvBlock,
         )
 
         variables = odpdb.init(key, y)
@@ -87,7 +87,7 @@ class TestSet:
             channels=self.chn,
             num_filters=self.num_filters,
             block_depth=self.block_depth,
-            odp_block=sflax.ODPProxDcnvBlock,
+            odp_block=sflax.inverse.ODPProxDcnvBlock,
         )
 
         variables = odpdb.init(key, y)
@@ -149,7 +149,7 @@ class TestCT:
             channels=self.chn,
             num_filters=self.model_conf["num_filters"],
             block_depth=self.model_conf["block_depth"],
-            odp_block=sflax.ODPGrDescBlock,
+            odp_block=sflax.inverse.ODPGrDescBlock,
         )
 
         variables = model.init(key, y)
@@ -212,7 +212,7 @@ class TestCT:
             channels=self.chn,
             num_filters=self.model_conf["num_filters"],
             block_depth=self.model_conf["block_depth"],
-            odp_block=sflax.ODPGrDescBlock,
+            odp_block=sflax.inverse.ODPGrDescBlock,
         )
 
         try:
