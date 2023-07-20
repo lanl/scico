@@ -11,16 +11,8 @@ import sys
 
 # isort: off
 from ._flax import FlaxMap, load_weights, save_weights
-from .blocks import (
-    ConvBlock,
-    ConvBNBlock,
-    ConvBNMultiBlock,
-    ConvBNPoolBlock,
-    ConvBNUpsampleBlock,
-    upscale_nn,
-)
-from .models import ConvBNNet, DnCNNNet, ResNet, UNet
-from .inverse import MoDLNet, ODPGrDescBlock, ODPNet, ODPProxDcnvBlock, ODPProxDnBlock
+from ._models import ConvBNNet, DnCNNNet, ResNet, UNet
+from .inverse import MoDLNet, ODPNet
 from .train.input_pipeline import create_input_iter
 from .train.typed_dict import ConfigDict
 from .train.trainer import BasicFlaxTrainer
@@ -31,20 +23,11 @@ __all__ = [
     "FlaxMap",
     "load_weights",
     "save_weights",
-    "ConvBNBlock",
-    "ConvBlock",
-    "ConvBNPoolBlock",
-    "ConvBNUpsampleBlock",
-    "ConvBNMultiBlock",
-    "upscale_nn",
     "ConvBNNet",
     "DnCNNNet",
     "ResNet",
     "UNet",
     "MoDLNet",
-    "ODPProxDnBlock",
-    "ODPProxDcnvBlock",
-    "ODPGrDescBlock",
     "ODPNet",
     "create_input_iter",
     "ConfigDict",

@@ -21,7 +21,7 @@ from flax.linen import BatchNorm, Conv, max_pool, relu
 from flax.linen.initializers import kaiming_normal, xavier_normal
 from flax.linen.module import _Sentinel  # noqa
 from flax.linen.module import Module, compact
-from scico.flax import (
+from scico.flax.blocks import (
     ConvBNBlock,
     ConvBNMultiBlock,
     ConvBNPoolBlock,
