@@ -10,6 +10,7 @@
 X-ray projector classes.
 """
 from functools import partial
+from typing import Optional
 
 import numpy as np
 
@@ -29,7 +30,7 @@ class XRayProject(LinearOperator):
     :class:`LinearOperator`.
     """
 
-    def __init__(self, projector: object):
+    def __init__(self, projector):
         r"""
         Args:
             projector: instance of an X-ray projector object to wrap,
@@ -48,7 +49,11 @@ class ParallelFixedAxis2dProjector:
     """Parallel ray, single axis, 2D X-ray projector."""
 
     def __init__(
-        self, im_shape: Shape, angles: ArrayLike, det_length: int = None, do_dithering: bool = True
+        self,
+        im_shape: Shape,
+        angles: ArrayLike,
+        det_length: Optional[int] = None,
+        do_dithering: bool = True,
     ):
         r"""
         Args:
