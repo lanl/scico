@@ -93,6 +93,7 @@ as fast as ASTRA when both are run on the GPU, and about
 10% slower when both are run the CPU.
 
 On our server, using the GPU:
+```    
 Label               Accum.       Current
 -------------------------------------------
 astra_avg_proj      4.62e-02 s   Stopped
@@ -101,8 +102,10 @@ astra_init          1.36e-03 s   Stopped
 scico_avg_proj      1.61e-02 s   Stopped
 scico_first_proj    2.95e-02 s   Stopped
 scico_init          1.37e+01 s   Stopped
+```
 
 Using the CPU:
+```
 Label               Accum.       Current
 -------------------------------------------
 astra_avg_proj      9.11e-01 s   Stopped
@@ -111,6 +114,7 @@ astra_init          1.06e-03 s   Stopped
 scico_avg_proj      1.03e+00 s   Stopped
 scico_first_proj    1.04e+00 s   Stopped
 scico_init          1.00e+01 s   Stopped
+```
 """
 
 print(timer)
@@ -166,20 +170,24 @@ faster than ASTRA when both are run on the GPU,
 and about three times faster when both are run on the CPU.
 
 On our server, using the GPU:
+```
 Label             Accum.       Current
 -----------------------------------------
 astra_avg_BP      3.71e-02 s   Stopped
 astra_first_BP    4.20e-02 s   Stopped
 scico_avg_BP      1.05e-03 s   Stopped
 scico_first_BP    7.63e+00 s   Stopped
+```
 
 Using the CPU:
+```
 Label             Accum.       Current
 -----------------------------------------
 astra_avg_BP      9.34e-01 s   Stopped
 astra_first_BP    9.39e-01 s   Stopped
 scico_avg_BP      2.62e-01 s   Stopped
 scico_first_BP    1.00e+01 s   Stopped
+```
 """
 
 print(timer)
