@@ -18,8 +18,8 @@ from ._func import Crop, Pad, Reshape, Slice, Sum, Transpose, linop_from_functio
 from ._linop import ComposedLinearOperator, LinearOperator
 from ._matrix import MatrixOperator
 from ._stack import DiagonalStack, VerticalStack
-from ._xray import XRayProject, ParallelFixedAxis2dProjector
 from ._util import jacobian, operator_norm, power_iteration, valid_adjoint
+from ._xray import ParallelFixedAxis2dProjector, XRayProject
 
 __all__ = [
     "CircularConvolve",
