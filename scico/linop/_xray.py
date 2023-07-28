@@ -12,6 +12,7 @@ X-ray projector classes.
 from functools import partial
 
 import numpy as np
+
 import jax
 import jax.numpy as jnp
 from jax.typing import ArrayLike
@@ -87,7 +88,7 @@ class ParallelFixedAxis2dProjector:
 
             return inds
 
-        inds = compute_inds(angles)
+        inds = compute_inds(angles)  # (len(angles), *im_shape)
 
         @partial(jax.vmap, in_axes=(None, 0))
         def project_inds(im: ArrayLike, inds: ArrayLike) -> ArrayLike:
@@ -98,38 +99,3 @@ class ParallelFixedAxis2dProjector:
             return project_inds(im, inds)
 
         self.project = project
-
-
-# num_angles = 127
-
-# x = jnp.ones((128, 129))
-
-
-# H = ParallelFixedAxis2dProjector(x.shape, angles)
-# y1 = H.project(x)
-
-# import matplotlib.pyplot as plt
-
-# fig, ax = plt.subplots()
-# ax.imshow(y)
-# fig.show()
-
-# f = lambda x: H.project(x)[65, 90]
-# grad_f = jax.grad(f)
-
-# fig, ax = plt.subplots()
-# ax.imshow(grad_f(x))
-# fig.show()
-
-
-# ## back project
-
-
-# bad_angle = jnp.array([jnp.pi / 4])
-# H = ParallelFixedAxis2dProjector(x.shape, bad_angle)
-# y = H.project(x)
-
-
-# fig, ax = plt.subplots()
-# ax.plot(y[0])
-# fig.show()
