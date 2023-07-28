@@ -395,7 +395,6 @@ class Timer:
         s += "-" * (lfldln + 25) + "\n"
         # Construct table of timer details
         for lbl in sorted(self.t0):
-            print(lbl)
             td = self.td[lbl]
             if self.t0[lbl] is None:
                 ts = " Stopped"

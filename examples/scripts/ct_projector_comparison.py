@@ -13,6 +13,8 @@ This example compares SCICO's native X-ray projection algorithm
 to that of the ASTRA Toolbox.
 """
 
+import numpy as np
+
 import jax
 import jax.numpy as jnp
 
@@ -86,10 +88,31 @@ for name, H in projectors.items():
 """
 Display timing results.
 
-On our server, using the GPU:
+On our server, the SCICO projection is more than twice
+as fast as ASTRA when run on the GPU, and about about
+10% slower on the CPU.
 
+On our server, using the GPU:
+Label               Accum.       Current
+-------------------------------------------
+astra_avg_proj      4.62e-02 s   Stopped
+astra_first_proj    6.92e-02 s   Stopped
+astra_init          1.36e-03 s   Stopped
+scico_avg_proj      1.61e-02 s   Stopped
+scico_first_proj    2.95e-02 s   Stopped
+scico_init          1.37e+01 s   Stopped
 
 Using the CPU:
+Label               Accum.       Current
+-------------------------------------------
+astra_avg_proj      9.11e-01 s   Stopped
+astra_first_proj    9.16e-01 s   Stopped
+astra_init          1.06e-03 s   Stopped
+scico_avg_proj      1.03e+00 s   Stopped
+scico_first_proj    1.04e+00 s   Stopped
+scico_init          1.00e+01 s   Stopped
+
+
 
 """
 
@@ -99,9 +122,71 @@ print(timer)
 Show projections.
 """
 
-fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(7, 5))
+fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(7, 3))
 plot.imview(ys["scico"], title="SCICO projection", cbar=None, fig=fig, ax=ax[0])
 plot.imview(ys["astra"], title="ASTRA projection", cbar=None, fig=fig, ax=ax[1])
 fig.show()
+
+
+"""
+Time first back projection, which might include JIT overhead.
+"""
+timer = Timer()
+
+y = np.zeros(H.output_shape, dtype=np.float32)
+y[num_angles // 3, det_count // 2] = 1.0
+y = jax.device_put(y)
+
+HTys = {}
+for name, H in projectors.items():
+    timer_label = f"{name}_first_BP"
+    timer.start(timer_label)
+    HTys[name] = H.T @ y
+    jax.block_until_ready(ys[name])
+    timer.stop(timer_label)
+
+
+"""
+Compute average time for back projection.
+"""
+num_repeats = 3
+for name, H in projectors.items():
+    timer_label = f"{name}_avg_BP"
+    timer.start(timer_label)
+    for _ in range(num_repeats):
+        HTys[name] = H.T @ y
+        jax.block_until_ready(ys[name])
+    timer.stop(timer_label)
+    timer.td[timer_label] /= num_repeats
+
+"""
+Display back projection timing results.
+
+
+
+On our server, using the GPU:
+
+
+Using the CPU:
+
+
+
+"""
+
+print(timer)
+
+"""
+Show back projections of a single detector element,
+i.e., a line.
+"""
+
+fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(7, 3))
+plot.imview(HTys["scico"], title="SCICO back projection (zoom)", cbar=None, fig=fig, ax=ax[0])
+plot.imview(HTys["astra"], title="ASTRA back projection (zoom)", cbar=None, fig=fig, ax=ax[1])
+for ax_i in ax:
+    ax_i.set_xlim(2 * N / 5, N - 2 * N / 5)
+    ax_i.set_ylim(2 * N / 5, N - 2 * N / 5)
+fig.show()
+
 
 input("\nWaiting for input to close figures and exit")

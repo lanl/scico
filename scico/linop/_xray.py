@@ -17,13 +17,25 @@ import jax
 import jax.numpy as jnp
 from jax.typing import ArrayLike
 
+from scico.typing import Shape
+
 from ._linop import LinearOperator
 
 
 class XRayProject(LinearOperator):
-    """options to select type of projection"""
+    """X-ray projection operator.
 
-    def __init__(self, projector):
+    Wraps an X-ray projector object in a SCICO
+    :class:`LinearOperator`.
+    """
+
+    def __init__(self, projector: object):
+        r"""
+        Args:
+            projector: instance of an X-ray projector object to wrap,
+                currently the only option is
+                :class:`ParallelFixedAxis2dProjector`
+        """
         self._eval = projector.project
 
         super().__init__(
@@ -33,9 +45,20 @@ class XRayProject(LinearOperator):
 
 
 class ParallelFixedAxis2dProjector:
-    """Parallel ray, single axis, 2D X-ray projector"""
+    """Parallel ray, single axis, 2D X-ray projector."""
 
-    def __init__(self, im_shape, angles, det_length=None, dither=True):
+    def __init__(
+        self, im_shape: Shape, angles: ArrayLike, det_length: int = None, do_dithering: bool = True
+    ):
+        r"""
+        Args:
+            im_shape: Shape of input array.
+            angles: (num_angles,) array of angles in radians.
+            det_length: Length of detector, in ``None``, defaults to the
+                length of diagonal of `im_shape`.
+            do_dither: If ``True`` randomly shift pixel locations to
+                reduce projection artifacts caused by aliasing.
+        """
         self.im_shape = im_shape
         self.angles = angles
 
@@ -51,15 +74,9 @@ class ParallelFixedAxis2dProjector:
 
         @jax.vmap
         def compute_inds(angle: float) -> ArrayLike:
-            # fast, but does not allow easy dithering
-            # dydx = jnp.stack((jnp.cos(angle), jnp.sin(angle)))
-            # Px0 = jnp.dot(x0, dydx)
-            # Px = (
-            #     Px0
-            #     + dydx[0] * jnp.arange(im_shape[0])[:, jnp.newaxis]
-            #     + dydx[1] * jnp.arange(im_shape[1])[jnp.newaxis, :]
-            # )
-
+            """Project pixel positions on to a detector at the given
+            angle, determine which detector element they contribute to.
+            """
             x = jnp.stack(
                 jnp.meshgrid(
                     *(
@@ -72,7 +89,7 @@ class ParallelFixedAxis2dProjector:
             )
 
             # dither
-            if dither:
+            if do_dithering:
                 key = jax.random.PRNGKey(0)
                 x = x + jax.random.uniform(key, shape=x.shape, minval=-0.5, maxval=0.5)
 
@@ -92,10 +109,12 @@ class ParallelFixedAxis2dProjector:
 
         @partial(jax.vmap, in_axes=(None, 0))
         def project_inds(im: ArrayLike, inds: ArrayLike) -> ArrayLike:
+            """Compute the projection at a single angle."""
             return jnp.zeros(det_length).at[inds].add(im)
 
         @jax.jit
         def project(im: ArrayLike) -> ArrayLike:
+            """Compute the projection for all angles."""
             return project_inds(im, inds)
 
         self.project = project
