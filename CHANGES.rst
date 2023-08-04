@@ -3,19 +3,20 @@ SCICO Release Notes
 ===================
 
 
-Version 0.0.4   (unreleased)
+Version 0.0.4   (2023-08-03)
 ----------------------------
 
-• Add new `Function` class for representing array-to-array mappings with more than
-  one input.
-• Add new methods and a function for computing Jacobian-vector products for `Operator`
-  objects.
+• Add new `Function` class for representing array-to-array mappings with more
+  than one input.
+• Add new methods and a function for computing Jacobian-vector products for
+  `Operator` objects.
 • Add new proximal ADMM solvers.
 • Add new ADMM subproblem solvers for problems involving a sum-of-convolutions
   operator.
 • Extend support for other ML models including UNet, ODP and MoDL.
 • Add functionality for training Flax-based ML models and for data generation.
 • Enable diagnostics for ML training loops.
+• Support ``jaxlib`` and ``jax`` versions 0.4.3 to 0.4.14.
 • Change required packages and version numbers, including more recent version
   for `flax`.
 • Add new methods and a function for computing Jacobian-vector products for
