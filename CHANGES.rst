@@ -3,6 +3,13 @@ SCICO Release Notes
 ===================
 
 
+Version 0.0.5   (unreleased)
+----------------------------
+
+• No significant changes yet.
+
+
+
 Version 0.0.4   (2023-08-03)
 ----------------------------
 
@@ -19,8 +26,6 @@ Version 0.0.4   (2023-08-03)
 • Support ``jaxlib`` and ``jax`` versions 0.4.3 to 0.4.14.
 • Change required packages and version numbers, including more recent version
   for `flax`.
-• Add new methods and a function for computing Jacobian-vector products for
-  `Operator` objects.
 • Drop support for Python 3.7.
 • Add support for 3D tomographic projection with the ASTRA Toolbox.
 
