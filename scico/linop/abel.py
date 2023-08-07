@@ -28,11 +28,11 @@ from scipy.linalg import solve_triangular
 
 
 class AbelTransform(LinearOperator):
-    r"""Abel transform projector based on `PyAbel <https://github.com/PyAbel/PyAbel>`_.
+    r"""Abel transform based on `PyAbel <https://github.com/PyAbel/PyAbel>`_.
 
-    Perform Abel transform (parallel beam tomographic projection of
-    cylindrically symmetric objects) for a 2D image. The input 2D image
-    is assumed to be centered and left-right symmetric.
+    Perform Abel transform (parallel beam projection of cylindrically
+    symmetric objects) for a 2D image. The input 2D image is assumed to
+    be centered and left-right symmetric.
     """
 
     def __init__(self, img_shape: Shape):
@@ -78,7 +78,7 @@ class AbelTransform(LinearOperator):
 def _pyabel_transform(
     x: jax.Array, direction: str, proj_mat_quad: jax.Array, symmetry_axis: Optional[list] = None
 ) -> jax.Array:
-    """Perform Abel transformations (forward, inverse and transposed).
+    """Apply Abel transforms (forward, inverse and transposed).
 
     This function contains code copied from `PyAbel <https://github.com/PyAbel/PyAbel>`_.
     """

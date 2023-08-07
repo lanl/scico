@@ -5,9 +5,9 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Tomographic projector LinearOperator wrapping the svmbir package.
+"""X-ray transform LinearOperator wrapping the svmbir package.
 
-Tomographic projector :class:`.LinearOperator` wrapping the
+X-ray transform :class:`.LinearOperator` wrapping the
 `svmbir <https://github.com/cabouman/svmbir>`_ package. Since this
 package is an interface to compiled C code, JAX features such as
 automatic differentiation and support for GPU devices are not available.
@@ -34,7 +34,7 @@ except ImportError:
 
 
 class XRayTransform(LinearOperator):
-    r"""Tomographic projector based on svmbir.
+    r"""X-ray transform based on svmbir.
 
     Perform tomographic projection of an image at specified angles, using
     the `svmbir <https://github.com/cabouman/svmbir>`_ package. The
