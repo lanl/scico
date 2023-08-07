@@ -87,7 +87,7 @@ class XRayTransform(LinearOperator):
         self.num_dims = len(input_shape)
         if self.num_dims not in [2, 3]:
             raise ValueError(
-                f"Only 2D and 3D projections are supported, but `input_shape` is {input_shape}."
+                f"Only 2D and 3D projections are supported, but input_shape is {input_shape}."
             )
 
         output_shape: Shape
@@ -96,7 +96,7 @@ class XRayTransform(LinearOperator):
         elif self.num_dims == 3:
             assert isinstance(det_count, (list, tuple))
             if len(det_count) != 2:
-                raise ValueError("Expected `det_count` to have 2 elements")
+                raise ValueError("Expected det_count to have 2 elements")
             output_shape = (det_count[0], len(angles), det_count[1])
 
         # Set up all the ASTRA config
@@ -112,7 +112,7 @@ class XRayTransform(LinearOperator):
             assert isinstance(detector_spacing, (list, tuple))
             assert isinstance(det_count, (list, tuple))
             if len(detector_spacing) != 2:
-                raise ValueError("Expected `detector_spacing` to have 2 elements")
+                raise ValueError("Expected detector_spacing to have 2 elements")
             self.proj_geom = astra.create_proj_geom(
                 "parallel3d",
                 detector_spacing[0],
@@ -132,7 +132,7 @@ class XRayTransform(LinearOperator):
                 self.vol_geom: dict = astra.create_vol_geom(*input_shape, *volume_geometry)
             else:
                 raise ValueError(
-                    "`volume_geometry` must be a tuple of len 4 (2D) or 6 (3D)."
+                    "volume_geometry must be a tuple of len 4 (2D) or 6 (3D)."
                     "Please see the astra documentation for details."
                 )
         else:
@@ -152,7 +152,7 @@ class XRayTransform(LinearOperator):
             raise ValueError(f"Invalid device specified; got {device}.")
 
         if self.num_dims == 3 and self.device == "cpu":
-            raise ValueError("No CPU algorithm exists for 3D tomography.")
+            raise ValueError("No CPU algorithm for 3D projection.")
 
         if self.num_dims == 3:
             # not needed for astra's 3D algorithm
@@ -227,7 +227,7 @@ class XRayTransform(LinearOperator):
         """
 
         if self.num_dims == 3:
-            raise NotImplementedError("3D FBP is not implemented")
+            raise NotImplementedError("3D FBP is not implemented.")
 
         # Just use the CPU FBP alg for now; hitting memory issues with GPU one.
         def f(sino):
