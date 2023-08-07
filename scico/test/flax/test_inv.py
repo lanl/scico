@@ -16,7 +16,7 @@ from scico.flax.train.traversals import clip_positive, clip_range, construct_tra
 from scico.linop import CircularConvolve, Identity
 
 if have_astra:
-    from scico.linop.radon_astra import TomographicProjector
+    from scico.linop.xray_astra import XRayTransform
 
 
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
@@ -107,7 +107,7 @@ class TestCT:
 
         self.nproj = 60  # number of projections
         angles = np.linspace(0, np.pi, self.nproj)  # evenly spaced projection angles
-        self.opCT = TomographicProjector(
+        self.opCT = XRayTransform(
             input_shape=(self.N, self.N),
             detector_spacing=1,
             det_count=self.N,
