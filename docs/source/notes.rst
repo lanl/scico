@@ -114,10 +114,10 @@ when the full benefits of JAX-based code are required.
 Tomographic Projectors
 ----------------------
 
-The :class:`.radon_svmbir.XRayTransform` class is implemented
+The :class:`.xray_svmbir.XRayTransform` class is implemented
 via an interface to the `svmbir
 <https://svmbir.readthedocs.io/en/latest/>`__ package. The
-:class:`.radon_astra.XRayTransform` class is implemented via an
+:class:`.xray_astra.XRayTransform` class is implemented via an
 interface to the `ASTRA toolbox
 <https://www.astra-toolbox.com/>`__. This toolbox does provide some
 GPU acceleration support, but efficiency is expected to be lower than

@@ -33,7 +33,7 @@ import scico.numpy as snp
 from scico import metric, plot
 from scico.functional import BM3D, NonNegativeIndicator
 from scico.linop import Diagonal, Identity
-from scico.linop.radon_svmbir import SVMBIRSquaredL2Loss, XRayTransform
+from scico.linop.xray_svmbir import SVMBIRSquaredL2Loss, XRayTransform
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 

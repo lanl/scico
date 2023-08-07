@@ -55,7 +55,7 @@ transforms. For example,
        input_shape = (512, 512)
        angles = np.linspace(0, 2 * np.pi, 180, endpoint=False)
        channels = 512
-       A = scico.linop.radon_svmbir.ParallelBeamProjector(input_shape, angles, channels)
+       A = scico.linop.xray_svmbir.XRayTransform(input_shape, angles, channels)
 
 defines a tomographic projection operator.
 

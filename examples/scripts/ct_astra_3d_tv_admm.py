@@ -29,7 +29,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from scico import functional, linop, loss, metric, plot
 from scico.examples import create_tangle_phantom
-from scico.linop.radon_astra import XRayTransform
+from scico.linop.xray_astra import XRayTransform
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
