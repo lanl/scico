@@ -40,7 +40,7 @@ from scico.typing import Shape
 from ._linop import LinearOperator
 
 
-class TomographicProjector(LinearOperator):
+class XRayTransform(LinearOperator):
     r"""Parallel beam Radon transform based on the ASTRA toolbox.
 
     Perform tomographic projection (also called X-ray projection) of an

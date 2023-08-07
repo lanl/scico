@@ -33,7 +33,7 @@ import scico.numpy as snp
 from scico import metric, plot
 from scico.functional import BM3D, NonNegativeIndicator
 from scico.linop import Diagonal, Identity
-from scico.linop.radon_svmbir import SVMBIRSquaredL2Loss, TomographicProjector
+from scico.linop.radon_svmbir import SVMBIRSquaredL2Loss, XRayTransform
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
@@ -55,7 +55,7 @@ Generate tomographic projector and sinogram.
 num_angles = int(N / 2)
 num_channels = N
 angles = snp.linspace(0, snp.pi, num_angles, endpoint=False, dtype=snp.float32)
-A = TomographicProjector(x_gt.shape, angles, num_channels)
+A = XRayTransform(x_gt.shape, angles, num_channels)
 sino = A @ x_gt
 
 

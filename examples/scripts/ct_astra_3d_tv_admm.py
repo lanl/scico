@@ -29,7 +29,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from scico import functional, linop, loss, metric, plot
 from scico.examples import create_tangle_phantom
-from scico.linop.radon_astra import TomographicProjector
+from scico.linop.radon_astra import XRayTransform
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
@@ -46,9 +46,7 @@ tangle = jax.device_put(tangle)
 
 n_projection = 10  # number of projections
 angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
-A = TomographicProjector(
-    tangle.shape, [1.0, 1.0], [Nz, max(Nx, Ny)], angles
-)  # Radon transform operator
+A = XRayTransform(tangle.shape, [1.0, 1.0], [Nz, max(Nx, Ny)], angles)  # Radon transform operator
 y = A @ tangle  # sinogram
 
 

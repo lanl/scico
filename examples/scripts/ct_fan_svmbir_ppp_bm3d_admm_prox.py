@@ -37,7 +37,7 @@ import scico.numpy as snp
 from scico import metric, plot
 from scico.functional import BM3D
 from scico.linop import Diagonal, Identity
-from scico.linop.radon_svmbir import SVMBIRExtendedLoss, TomographicProjector
+from scico.linop.radon_svmbir import SVMBIRExtendedLoss, XRayTransform
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
@@ -67,7 +67,7 @@ angles = snp.linspace(0, 2 * snp.pi, num_angles, endpoint=False, dtype=snp.float
 
 dist_source_detector = 1500.0
 magnification = 1.2
-A_fan = TomographicProjector(
+A_fan = XRayTransform(
     x_gt.shape,
     angles,
     num_channels,
@@ -75,7 +75,7 @@ A_fan = TomographicProjector(
     dist_source_detector=dist_source_detector,
     magnification=magnification,
 )
-A_parallel = TomographicProjector(
+A_parallel = XRayTransform(
     x_gt.shape,
     angles,
     num_channels,
