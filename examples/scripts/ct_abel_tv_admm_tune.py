@@ -39,7 +39,7 @@ import jax
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot
 from scico.examples import create_circular_phantom
-from scico.linop.abel import AbelProjector
+from scico.linop.abel import AbelTransform
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.ray import tune
 
@@ -53,7 +53,7 @@ x_gt = create_circular_phantom((N, N), [0.4 * N, 0.2 * N, 0.1 * N], [1, 0, 0.5])
 """
 Set up the forward operator and create a test measurement.
 """
-A = AbelProjector(x_gt.shape)
+A = AbelTransform(x_gt.shape)
 y = A @ x_gt
 np.random.seed(12345)
 y = y + np.random.normal(size=y.shape).astype(np.float32)
@@ -85,7 +85,7 @@ class Trainable(tune.Trainable):
         # Put main arrays on jax device.
         self.x_gt, self.x0, self.y = jax.device_put([x_gt, x0, y])
         # Set up problem to be solved.
-        self.A = AbelProjector(self.x_gt.shape)
+        self.A = AbelTransform(self.x_gt.shape)
         self.f = loss.SquaredL2Loss(y=self.y, A=self.A)
         self.C = linop.FiniteDifference(input_shape=self.x_gt.shape)
         self.reset_config(config)

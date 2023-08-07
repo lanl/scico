@@ -5,7 +5,7 @@ import jax
 import pytest
 
 import scico.numpy as snp
-from scico.linop.abel import AbelProjector
+from scico.linop.abel import AbelTransform
 from scico.test.linop.test_linop import adjoint_test
 
 BIG_INPUT = (128, 128)
@@ -23,7 +23,7 @@ def make_im(Nx, Ny):
 @pytest.mark.parametrize("Nx, Ny", (BIG_INPUT, SMALL_INPUT))
 def test_inverse(Nx, Ny):
     im = make_im(Nx, Ny)
-    A = AbelProjector(im.shape)
+    A = AbelTransform(im.shape)
 
     Ax = A @ im
     im_hat = A.inverse(Ax)
@@ -34,14 +34,14 @@ def test_inverse(Nx, Ny):
 @pytest.mark.parametrize("Nx, Ny", (BIG_INPUT, SMALL_INPUT))
 def test_adjoint(Nx, Ny):
     im = make_im(Nx, Ny)
-    A = AbelProjector(im.shape)
+    A = AbelTransform(im.shape)
     adjoint_test(A)
 
 
 @pytest.mark.parametrize("Nx, Ny", (BIG_INPUT, SMALL_INPUT))
 def test_ATA(Nx, Ny):
     x = make_im(Nx, Ny)
-    A = AbelProjector(x.shape)
+    A = AbelTransform(x.shape)
     Ax = A(x)
     ATAx = A.adj(Ax)
     np.testing.assert_allclose(np.sum(x * ATAx), np.linalg.norm(Ax) ** 2, rtol=5e-5)
@@ -52,7 +52,7 @@ def test_grad(Nx, Ny):
     # ensure that we can take grad on a function using our projector
     # grad || A(x) ||_2^2 == 2 A.T @ A x
     x = make_im(Nx, Ny)
-    A = AbelProjector(x.shape)
+    A = AbelTransform(x.shape)
     g = lambda x: jax.numpy.linalg.norm(A(x)) ** 2
     np.testing.assert_allclose(jax.grad(g)(x), 2 * A.adj(A(x)), rtol=5e-5)
 
@@ -60,7 +60,7 @@ def test_grad(Nx, Ny):
 @pytest.mark.parametrize("Nx, Ny", (BIG_INPUT, SMALL_INPUT))
 def test_adjoint_grad(Nx, Ny):
     x = make_im(Nx, Ny)
-    A = AbelProjector(x.shape)
+    A = AbelTransform(x.shape)
     Ax = A @ x
     f = lambda y: jax.numpy.linalg.norm(A.T(y)) ** 2
     np.testing.assert_allclose(jax.grad(f)(Ax), 2 * A(A.adj(Ax)), rtol=5e-5)

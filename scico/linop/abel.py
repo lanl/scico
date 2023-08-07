@@ -27,7 +27,7 @@ from scico.typing import Shape
 from scipy.linalg import solve_triangular
 
 
-class AbelProjector(LinearOperator):
+class AbelTransform(LinearOperator):
     r"""Abel transform projector based on `PyAbel <https://github.com/PyAbel/PyAbel>`_.
 
     Perform Abel transform (parallel beam tomographic projection of
