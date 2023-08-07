@@ -75,7 +75,7 @@ def run(
     config: Optional[Dict[str, Any]] = None,
     hyperopt: bool = True,
     verbose: bool = True,
-    local_dir: Optional[str] = None,
+    storage_path: Optional[str] = None,
 ) -> ray.tune.ExperimentAnalysis:
     """Simplified wrapper for `ray.tune.run`_.
 
@@ -109,7 +109,7 @@ def run(
             running, and terminated trials are indicated by "P:", "R:",
             and "T:" respectively, followed by the current best metric
             value and the parameters at which it was reported.
-        local_dir: Directory in which to save tuning results. Defaults to
+        storage_path: Directory in which to save tuning results. Defaults to
             a subdirectory "<username>/ray_results" within the path returned by
             `tempfile.gettempdir()`, corresponding e.g. to
             "/tmp/<username>/ray_results" under Linux.
@@ -136,12 +136,12 @@ def run(
         name = run_or_experiment.__name__
     name += "_" + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-    if local_dir is None:
+    if storage_path is None:
         try:
             user = getpass.getuser()
         except Exception:  # pragma: no cover
             user = "NOUSER"
-        local_dir = os.path.join(tempfile.gettempdir(), user, "ray_results")
+        storage_path = os.path.join(tempfile.gettempdir(), user, "ray_results")
 
     # Record original logger.info
     logger_info = ray.tune.tune.logger.info
@@ -160,7 +160,7 @@ def run(
         name=name,
         time_budget_s=time_budget_s,
         num_samples=num_samples,
-        local_dir=local_dir,
+        storage_path=storage_path,
         resources_per_trial=resources_per_trial,
         max_concurrent_trials=max_concurrent_trials,
         reuse_actors=True,
@@ -193,7 +193,7 @@ class Tuner(ray.tune.Tuner):
         reuse_actors: bool = True,
         hyperopt: bool = True,
         verbose: bool = True,
-        local_dir: Optional[str] = None,
+        storage_path: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -226,7 +226,7 @@ class Tuner(ray.tune.Tuner):
               running, and terminated trials are indicated by "P:", "R:",
               and "T:" respectively, followed by the current best metric
               value and the parameters at which it was reported.
-           local_dir: Directory in which to save tuning results. Defaults
+           storage_path: Directory in which to save tuning results. Defaults
               to a subdirectory "<username>/ray_results" within the path
               returned by `tempfile.gettempdir()`, corresponding e.g. to
               "/tmp/<username>/ray_results" under Linux.
@@ -263,15 +263,15 @@ class Tuner(ray.tune.Tuner):
                 setattr(tune_config, k, v)
 
         name = trainable.__name__ + "_" + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        if local_dir is None:
+        if storage_path is None:
             try:
                 user = getpass.getuser()
             except Exception:  # pragma: no cover
                 user = "NOUSER"
-            local_dir = os.path.join(tempfile.gettempdir(), user, "ray_results")
+            storage_path = os.path.join(tempfile.gettempdir(), user, "ray_results")
 
         run_config = kwargs.pop("run_config", None)
-        run_config_kwargs = {"name": name, "local_dir": local_dir, "verbose": 0}
+        run_config_kwargs = {"name": name, "storage_path": storage_path, "verbose": 0}
         if verbose:
             run_config_kwargs.update({"verbose": 1, "progress_reporter": _CustomReporter()})
         if num_iterations is not None or time_budget is not None:

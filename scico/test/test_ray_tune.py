@@ -33,7 +33,7 @@ def test_random_run():
         resources_per_trial=resources,
         hyperopt=False,
         verbose=False,
-        local_dir=os.path.join(tempfile.gettempdir(), "ray_test"),
+        storage_path=os.path.join(tempfile.gettempdir(), "ray_test"),
     )
     best_config = analysis.get_best_config(metric="cost", mode="min")
     assert np.abs(best_config["x"]) < 0.25
@@ -58,7 +58,7 @@ def test_random_tune():
         num_samples=100,
         hyperopt=False,
         verbose=False,
-        local_dir=os.path.join(tempfile.gettempdir(), "ray_test"),
+        storage_path=os.path.join(tempfile.gettempdir(), "ray_test"),
     )
     results = tuner.fit()
     best_config = results.get_best_result().config
