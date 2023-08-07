@@ -14,10 +14,10 @@ from scico.test.linop.test_linop import adjoint_test
 try:
     import svmbir
 
-    from scico.linop.radon_svmbir import (
+    from scico.linop.xray_svmbir import (
         SVMBIRExtendedLoss,
         SVMBIRSquaredL2Loss,
-        TomographicProjector,
+        XRayTransform,
     )
 except ImportError as e:
     pytest.skip("svmbir not installed", allow_module_level=True)
@@ -90,7 +90,7 @@ def make_A(
 ):
 
     angles = make_angles(num_angles)
-    A = TomographicProjector(
+    A = XRayTransform(
         im.shape,
         angles,
         num_channels,

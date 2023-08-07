@@ -8,10 +8,10 @@ import scico
 import scico.numpy as snp
 from scico.linop import DiagonalStack
 from scico.test.linop.test_linop import adjoint_test
-from scico.test.linop.test_radon_svmbir import make_im
+from scico.test.linop.test_xray_svmbir import make_im
 
 try:
-    from scico.linop.radon_astra import TomographicProjector
+    from scico.linop.xray_astra import XRayTransform
 except ModuleNotFoundError as e:
     if e.name == "astra":
         pytest.skip("astra not installed", allow_module_level=True)
@@ -41,7 +41,7 @@ def get_tol_random_input():
     return rtol
 
 
-class TomographicProjectorTest:
+class XRayTransformTest:
     def __init__(self, volume_geometry):
         N_proj = 180  # number of projection angles
         N_det = 384
@@ -51,7 +51,7 @@ class TomographicProjectorTest:
         np.random.seed(1234)
         self.x = np.random.randn(N, N).astype(np.float32)
         self.y = np.random.randn(N_proj, N_det).astype(np.float32)
-        self.A = TomographicProjector(
+        self.A = XRayTransform(
             input_shape=(N, N),
             volume_geometry=volume_geometry,
             detector_spacing=detector_spacing,
@@ -62,7 +62,7 @@ class TomographicProjectorTest:
 
 @pytest.fixture(params=[None, [-N / 2, N / 2, -N / 2, N / 2]])
 def testobj(request):
-    yield TomographicProjectorTest(request.param)
+    yield XRayTransformTest(request.param)
 
 
 def test_ATA_call(testobj):
@@ -125,7 +125,7 @@ def test_adjoint_typical_input(testobj):
 def test_jit_in_DiagonalStack():
     """See https://github.com/lanl/scico/issues/331"""
     N = 10
-    H = DiagonalStack([TomographicProjector((N, N), 1.0, N, snp.linspace(0, snp.pi, N))])
+    H = DiagonalStack([XRayTransform((N, N), 1.0, N, snp.linspace(0, snp.pi, N))])
     H.T @ snp.zeros(H.output_shape, dtype=snp.float32)
 
 
@@ -133,13 +133,13 @@ def test_jit_in_DiagonalStack():
 def test_3D_on_CPU():
     x = snp.zeros((4, 5, 6))
     with pytest.raises(ValueError):
-        A = TomographicProjector(x.shape, [1.0, 1.0], [6, 6], snp.linspace(0, snp.pi, 10))
+        A = XRayTransform(x.shape, [1.0, 1.0], [6, 6], snp.linspace(0, snp.pi, 10))
 
 
 @pytest.mark.skipif(jax.devices()[0].platform != "gpu", reason="checking GPU behavior")
 def test_3D_on_GPU():
     x = snp.zeros((4, 5, 6))
-    A = TomographicProjector(x.shape, [1.0, 1.0], [6, 6], snp.linspace(0, snp.pi, 10))
+    A = XRayTransform(x.shape, [1.0, 1.0], [6, 6], snp.linspace(0, snp.pi, 10))
 
     assert A.num_dims == 3
     y = A @ x
