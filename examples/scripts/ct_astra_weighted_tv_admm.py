@@ -14,11 +14,11 @@ with isotropic total variation (TV) regularization
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
   \|_W^2 + \lambda \| C \mathbf{x} \|_{2,1} \;,$$
 
-where $A$ is the Radon transform, $\mathbf{y}$ is the sinogram, the norm
-weighting $W$ is chosen so that the weighted norm is an approximation to
-the Poisson negative log likelihood :cite:`sauer-1993-local`, $C$ is
-a 2D finite difference operator, and $\mathbf{x}$ is the desired
-image.
+where $A$ is the X-ray transform (the CT forward projection),
+$\mathbf{y}$ is the sinogram, the norm weighting $W$ is chosen so that
+the weighted norm is an approximation to the Poisson negative log
+likelihood :cite:`sauer-1993-local`, $C$ is a 2D finite difference
+operator, and $\mathbf{x}$ is the desired image.
 """
 
 import numpy as np
@@ -53,7 +53,7 @@ Io = 1e3  # source flux
 𝛼 = 1e-2  # attenuation coefficient
 
 angles = np.linspace(0, 2 * np.pi, n_projection)  # evenly spaced projection angles
-A = XRayTransform(x_gt.shape, 1.0, N, angles)  # Radon transform operator
+A = XRayTransform(x_gt.shape, 1.0, N, angles)  # CT projection operator
 y_c = A @ x_gt  # sinogram
 
 

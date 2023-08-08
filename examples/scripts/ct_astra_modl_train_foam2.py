@@ -86,7 +86,7 @@ A = XRayTransform(
     detector_spacing=1,
     det_count=N,
     angles=angles,
-)  # Radon transform operator
+)  # CT projection operator
 A = (1.0 / N) * A  # normalized
 
 

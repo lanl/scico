@@ -14,9 +14,9 @@ problem with isotropic total variation (TV) regularization
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
   \|_2^2 + \lambda \| C \mathbf{x} \|_{2,1} \;,$$
 
-where $A$ is the Radon transform, $\mathbf{y}$ is the sinogram, $C$ is
-a 2D finite difference operator, and $\mathbf{x}$ is the desired
-image.
+where $A$ is the X-ray transform (the CT forward projection operator),
+$\mathbf{y}$ is the sinogram, $C$ is a 2D finite difference operator, and
+$\mathbf{x}$ is the desired image.
 """
 
 import numpy as np
@@ -46,7 +46,7 @@ Configure CT projection operator and generate synthetic measurements.
 """
 n_projection = 45  # number of projections
 angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
-A = XRayTransform(x_gt.shape, 1, N, angles)  # Radon transform operator
+A = XRayTransform(x_gt.shape, 1, N, angles)  # CT projection operator
 y = A @ x_gt  # sinogram
 
 
