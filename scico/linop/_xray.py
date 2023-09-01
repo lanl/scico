@@ -5,10 +5,9 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
+"""X-ray transform classes."""
 
-"""
-X-ray projector classes.
-"""
+
 from functools import partial
 from typing import Optional
 
@@ -24,10 +23,9 @@ from ._linop import LinearOperator
 
 
 class XRayTransform(LinearOperator):
-    """X-ray projection operator.
+    """X-ray transform operator.
 
-    Wraps an X-ray projector object in a SCICO
-    :class:`LinearOperator`.
+    Wrap an X-ray projector object in a SCICO :class:`LinearOperator`.
     """
 
     def __init__(self, projector):
