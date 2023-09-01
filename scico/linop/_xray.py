@@ -23,7 +23,7 @@ from scico.typing import Shape
 from ._linop import LinearOperator
 
 
-class XRayProject(LinearOperator):
+class XRayTransform(LinearOperator):
     """X-ray projection operator.
 
     Wraps an X-ray projector object in a SCICO
