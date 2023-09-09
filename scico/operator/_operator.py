@@ -20,6 +20,8 @@ import jax
 import jax.numpy as jnp
 from jax.dtypes import result_type
 
+import jaxlib
+
 import scico.numpy as snp
 from scico.numpy import Array, BlockArray
 from scico.numpy.util import is_nested, shape_to_size
@@ -47,7 +49,11 @@ def _wrap_mul_div_scalar(func: Callable) -> Callable:
 
     @wraps(func)
     def wrapper(a, b):
-        if np.isscalar(b) or isinstance(b, jax.core.Tracer):
+        if (
+            snp.isscalar(b)
+            or isinstance(b, jax.core.Tracer)
+            or (isinstance(b, jaxlib.xla_extension.ArrayImpl) and b.size == 1)
+        ):
             return func(a, b)
 
         raise TypeError(f"Operation {func.__name__} not defined between {type(a)} and {type(b)}.")
