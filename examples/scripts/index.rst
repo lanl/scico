@@ -22,6 +22,7 @@ Computed Tomography
    - ct_astra_modl_train_foam2.py
    - ct_astra_odp_train_foam2.py
    - ct_astra_unet_train_foam2.py
+   - ct_projector_comparison.py
 
 
 Deconvolution
