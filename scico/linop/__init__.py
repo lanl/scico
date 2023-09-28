@@ -19,6 +19,7 @@ from ._linop import ComposedLinearOperator, LinearOperator
 from ._matrix import MatrixOperator
 from ._stack import DiagonalStack, VerticalStack
 from ._util import jacobian, operator_norm, power_iteration, valid_adjoint
+from ._xray import ParallelFixedAxis2dProjector, XRayProject
 
 __all__ = [
     "CircularConvolve",
@@ -38,6 +39,8 @@ __all__ = [
     "Sum",
     "Transpose",
     "LinearOperator",
+    "XRayProject",
+    "ParallelFixedAxis2dProjector",
     "ComposedLinearOperator",
     "linop_from_function",
     "operator_norm",
