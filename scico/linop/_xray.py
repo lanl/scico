@@ -51,7 +51,7 @@ class ParallelFixedAxis2dProjector:
         im_shape: Shape,
         angles: ArrayLike,
         det_length: Optional[int] = None,
-        do_dithering: bool = True,
+        dither: bool = True,
     ):
         r"""
         Args:
@@ -59,7 +59,7 @@ class ParallelFixedAxis2dProjector:
             angles: (num_angles,) array of angles in radians.
             det_length: Length of detector, in ``None``, defaults to the
                 length of diagonal of `im_shape`.
-            do_dither: If ``True`` randomly shift pixel locations to
+            dither: If ``True`` randomly shift pixel locations to
                 reduce projection artifacts caused by aliasing.
         """
         self.im_shape = im_shape
@@ -92,7 +92,7 @@ class ParallelFixedAxis2dProjector:
             )
 
             # dither
-            if do_dithering:
+            if dither:
                 key = jax.random.PRNGKey(0)
                 x = x + jax.random.uniform(key, shape=x.shape, minval=-0.5, maxval=0.5)
 
