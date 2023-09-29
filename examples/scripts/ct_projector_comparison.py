@@ -21,7 +21,7 @@ import jax.numpy as jnp
 from xdesign import Foam, discrete_phantom
 
 from scico import plot
-from scico.linop import ParallelFixedAxis2dProjector, XRayProject
+from scico.linop import ParallelFixedAxis2dProjector, XRayTransform
 from scico.linop.radon_astra import TomographicProjector
 from scico.util import Timer
 
@@ -49,7 +49,7 @@ timer = Timer()
 
 projectors = {}
 timer.start("scico_init")
-projectors["scico"] = XRayProject(ParallelFixedAxis2dProjector((N, N), angles))
+projectors["scico"] = XRayTransform(ParallelFixedAxis2dProjector((N, N), angles))
 timer.stop("scico_init")
 
 timer.start("astra_init")
@@ -93,7 +93,7 @@ as fast as ASTRA when both are run on the GPU, and about
 10% slower when both are run the CPU.
 
 On our server, using the GPU:
-```    
+```
 Label               Accum.       Current
 -------------------------------------------
 astra_avg_proj      4.62e-02 s   Stopped
