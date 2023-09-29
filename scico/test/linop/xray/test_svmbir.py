@@ -14,7 +14,7 @@ from scico.test.linop.test_linop import adjoint_test
 try:
     import svmbir
 
-    from scico.linop.xray_svmbir import (
+    from scico.linop.xray.svmbir import (
         SVMBIRExtendedLoss,
         SVMBIRSquaredL2Loss,
         XRayTransform,

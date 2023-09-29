@@ -5,9 +5,9 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Radon transform LinearOperator wrapping the ASTRA toolbox.
+"""X-ray transform LinearOperator wrapping the ASTRA toolbox.
 
-Radon transform :class:`.LinearOperator` wrapping the parallel beam
+X-ray transform :class:`.LinearOperator` wrapping the parallel beam
 projections in the
 `ASTRA toolbox <https://github.com/astra-toolbox/astra-toolbox>`_.
 This package provides both C and CUDA implementations of core
@@ -37,11 +37,11 @@ except ModuleNotFoundError as e:
 
 from scico.typing import Shape
 
-from ._linop import LinearOperator
+from .._linop import LinearOperator
 
 
 class XRayTransform(LinearOperator):
-    r"""Parallel beam Radon transform based on the ASTRA toolbox.
+    r"""Parallel beam X-ray transform based on the ASTRA toolbox.
 
     Perform tomographic projection (also called X-ray projection) of an
     image or volume at specified angles, using the

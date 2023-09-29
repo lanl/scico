@@ -6,10 +6,10 @@
 
 
 r"""
-X-ray Projector Comparison
+X-ray Transform Comparison
 ==========================
 
-This example compares SCICO's native X-ray projection algorithm
+This example compares SCICO's native X-ray transform algorithm
 to that of the ASTRA Toolbox.
 """
 
@@ -20,9 +20,9 @@ import jax.numpy as jnp
 
 from xdesign import Foam, discrete_phantom
 
+import scico.linop.xray.astra as astra
 from scico import plot
 from scico.linop import ParallelFixedAxis2dProjector, XRayTransform
-from scico.linop.radon_astra import TomographicProjector
 from scico.util import Timer
 
 """
@@ -30,7 +30,6 @@ Create a ground truth image.
 """
 
 N = 512
-
 
 det_count = int(jnp.ceil(jnp.sqrt(2 * N**2)))
 
@@ -53,7 +52,7 @@ projectors["scico"] = XRayTransform(ParallelFixedAxis2dProjector((N, N), angles)
 timer.stop("scico_init")
 
 timer.start("astra_init")
-projectors["astra"] = TomographicProjector(
+projectors["astra"] = astra.XRayTransform(
     (N, N), detector_spacing=1.0, det_count=det_count, angles=angles
 )
 timer.stop("astra_init")
@@ -193,8 +192,7 @@ scico_first_BP    1.00e+01 s   Stopped
 print(timer)
 
 """
-Show back projections of a single detector element,
-i.e., a line.
+Show back projections of a single detector element, i.e., a line.
 """
 
 fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(7, 3))

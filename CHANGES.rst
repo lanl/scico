@@ -6,8 +6,9 @@ SCICO Release Notes
 Version 0.0.5   (unreleased)
 ----------------------------
 
-• Rename modules ``radon_astra`` and ``radon_svmbir`` to ``xray_astra`` and
-  ``xray_svmbir`` respectively, and rename ``TomographicProjector`` classes
+• New integrated Radon/X-ray transform ``linop.XRayTransform``.
+• Rename modules ``radon_astra`` and ``radon_svmbir`` to ``xray.astra`` and
+  ``xray.svmbir`` respectively, and rename ``TomographicProjector`` classes
   to ``XRayTransform``.
 
 

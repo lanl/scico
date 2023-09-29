@@ -54,7 +54,7 @@ from scico import flax as sflax
 from scico import metric, plot
 from scico.flax.examples import load_ct_data
 from scico.flax.train.traversals import clip_positive, construct_traversal
-from scico.linop.xray_astra import XRayTransform
+from scico.linop.xray.astra import XRayTransform
 
 """
 Prepare parallel processing. Set an arbitrary processor count (only

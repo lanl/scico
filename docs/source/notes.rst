@@ -111,13 +111,25 @@ via interfaces to the `bm3d <https://pypi.org/project/bm3d/>`__ and
 when the full benefits of JAX-based code are required.
 
 
-Tomographic Projectors
-----------------------
+Tomographic Projectors/Radon Transforms
+---------------------------------------
 
-The :class:`.xray_svmbir.XRayTransform` class is implemented
+Note that the tomographic projections that are frequently referred
+to as Radon transforms are referred to as X-ray transforms in SCICO.
+While the Radon transform is far more well-known than the X-ray
+transform, which is the same as the Radon transform for projections
+in two dimensions, these two transform differ in higher numbers of
+dimensions, and it is the X-ray transform that is the appropriate
+mathematical model for beam attenuation based imaging in three or
+more dimensions.
+
+SCICO includes three different implementations of X-ray transforms.
+Of these, :class:`.linop.XRayTransform` is an integral component of
+SCICO, while the other two depend on external packages.
+The :class:`.xray.svmbir.XRayTransform` class is implemented
 via an interface to the `svmbir
 <https://svmbir.readthedocs.io/en/latest/>`__ package. The
-:class:`.xray_astra.XRayTransform` class is implemented via an
+:class:`.xray.astra.XRayTransform` class is implemented via an
 interface to the `ASTRA toolbox
 <https://www.astra-toolbox.com/>`__. This toolbox does provide some
 GPU acceleration support, but efficiency is expected to be lower than

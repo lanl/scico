@@ -19,7 +19,7 @@ from jax.typing import ArrayLike
 
 from scico.typing import Shape
 
-from ._linop import LinearOperator
+from .._linop import LinearOperator
 
 
 class XRayTransform(LinearOperator):

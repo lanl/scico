@@ -22,5 +22,5 @@ def test_apply():
     assert y.shape[1] == det_length
 
     # dither off
-    H = XRayTransform(ParallelFixedAxis2dProjector(x.shape, angles, do_dithering=False))
+    H = XRayTransform(ParallelFixedAxis2dProjector(x.shape, angles, dither=False))
     y = H @ x

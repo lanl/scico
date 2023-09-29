@@ -8,10 +8,10 @@ import scico
 import scico.numpy as snp
 from scico.linop import DiagonalStack
 from scico.test.linop.test_linop import adjoint_test
-from scico.test.linop.test_xray_svmbir import make_im
+from scico.test.linop.xray.test_svmbir import make_im
 
 try:
-    from scico.linop.xray_astra import XRayTransform
+    from scico.linop.xray.astra import XRayTransform
 except ModuleNotFoundError as e:
     if e.name == "astra":
         pytest.skip("astra not installed", allow_module_level=True)

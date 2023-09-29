@@ -48,7 +48,7 @@ else:
     have_astra = True
 
 if have_astra:
-    from scico.linop.xray_astra import XRayTransform
+    from scico.linop.xray.astra import XRayTransform
 
 
 # Arbitrary process count: only applies if GPU is not available.

@@ -16,7 +16,7 @@ from scico.flax.train.traversals import clip_positive, clip_range, construct_tra
 from scico.linop import CircularConvolve, Identity
 
 if have_astra:
-    from scico.linop.xray_astra import XRayTransform
+    from scico.linop.xray.astra import XRayTransform
 
 
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
