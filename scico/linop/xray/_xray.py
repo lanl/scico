@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2023 by SCICO Developers
+# Copyright (C) 2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -57,7 +57,7 @@ class ParallelFixedAxis2dProjector:
         Args:
             im_shape: Shape of input array.
             angles: (num_angles,) array of angles in radians.
-            det_length: Length of detector, in ``None``, defaults to the
+            det_length: Length of detector. If ``None``, defaults to the
                 length of diagonal of `im_shape`.
             dither: If ``True`` randomly shift pixel locations to
                 reduce projection artifacts caused by aliasing.
