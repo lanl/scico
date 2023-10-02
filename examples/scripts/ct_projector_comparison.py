@@ -10,7 +10,7 @@ X-ray Transform Comparison
 ==========================
 
 This example compares SCICO's native X-ray transform algorithm
-to that of the ASTRA Toolbox.
+to that of the ASTRA toolbox.
 """
 
 import numpy as np
@@ -36,6 +36,7 @@ det_count = int(jnp.ceil(jnp.sqrt(2 * N**2)))
 x_gt = discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=N)
 x_gt = jax.device_put(x_gt)
 
+
 """
 Time projector instantiation.
 """
@@ -53,9 +54,10 @@ timer.stop("scico_init")
 
 timer.start("astra_init")
 projectors["astra"] = astra.XRayTransform(
-    (N, N), detector_spacing=1.0, det_count=det_count, angles=angles
+    (N, N), detector_spacing=1.0, det_count=det_count, angles=angles - jnp.pi / 2.0
 )
 timer.stop("astra_init")
+
 
 """
 Time first projector application, which might include JIT overhead.
@@ -83,6 +85,7 @@ for name, H in projectors.items():
         jax.block_until_ready(ys[name])
     timer.stop(timer_label)
     timer.td[timer_label] /= num_repeats
+
 
 """
 Display timing results.
@@ -117,6 +120,7 @@ scico_init          1.00e+01 s   Stopped
 """
 
 print(timer)
+
 
 """
 Show projections.
@@ -159,6 +163,7 @@ for name, H in projectors.items():
     timer.stop(timer_label)
     timer.td[timer_label] /= num_repeats
 
+
 """
 Display back projection timing results.
 
@@ -190,6 +195,7 @@ scico_first_BP    1.00e+01 s   Stopped
 """
 
 print(timer)
+
 
 """
 Show back projections of a single detector element, i.e., a line.
