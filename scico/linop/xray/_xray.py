@@ -33,7 +33,7 @@ class XRayTransform(LinearOperator):
         Args:
             projector: instance of an X-ray projector object to wrap,
                 currently the only option is
-                :class:`ParallelFixedAxis2dProjector`
+                :class:`Parallel2dProjector`
         """
         self._eval = projector.project
 
@@ -43,7 +43,7 @@ class XRayTransform(LinearOperator):
         )
 
 
-class ParallelFixedAxis2dProjector:
+class Parallel2dProjector:
     """Parallel ray, single axis, 2D X-ray projector."""
 
     def __init__(

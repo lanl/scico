@@ -18,9 +18,9 @@ based imaging in three or more dimensions.
 
 import sys
 
-from ._xray import ParallelFixedAxis2dProjector, XRayTransform
+from ._xray import Parallel2dProjector, XRayTransform
 
 __all__ = [
     "XRayTransform",
-    "ParallelFixedAxis2dProjector",
+    "Parallel2dProjector",
 ]

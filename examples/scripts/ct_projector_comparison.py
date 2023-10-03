@@ -22,7 +22,7 @@ from xdesign import Foam, discrete_phantom
 
 import scico.linop.xray.astra as astra
 from scico import plot
-from scico.linop import ParallelFixedAxis2dProjector, XRayTransform
+from scico.linop import Parallel2dProjector, XRayTransform
 from scico.util import Timer
 
 """
@@ -49,7 +49,7 @@ timer = Timer()
 
 projectors = {}
 timer.start("scico_init")
-projectors["scico"] = XRayTransform(ParallelFixedAxis2dProjector((N, N), angles))
+projectors["scico"] = XRayTransform(Parallel2dProjector((N, N), angles))
 timer.stop("scico_init")
 
 timer.start("astra_init")
