@@ -56,7 +56,11 @@ class Parallel2dProjector:
         r"""
         Args:
             im_shape: Shape of input array.
-            angles: (num_angles,) array of angles in radians.
+            angles: (num_angles,) array of angles in radians. Viewing an
+                (M, N) array as a matrix with M rows and N columns, an
+                angle of 0 corresponds to summing rows, an angle of pi/2
+                corresponds to summing columns, and an angle of pi/4
+                corresponds to summing along antidiagonals.
             det_length: Length of detector. If ``None``, defaults to the
                 length of diagonal of `im_shape`.
             dither: If ``True`` randomly shift pixel locations to
