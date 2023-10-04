@@ -18,6 +18,8 @@ import ray
 
 try:
     import ray.tune
+
+    os.environ["RAY_AIR_NEW_OUTPUT"] = "0"
 except ImportError:
     raise ImportError("Could not import ray.tune; please install it.")
 import ray.air
