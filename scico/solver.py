@@ -715,14 +715,27 @@ class MatrixATADSolver:
         """
         if isinstance(A, MatrixOperator):
             A = A.to_array()
+        elif not isinstance(A, Array):
+            raise TypeError(
+                f"Operator A is required to be a MatrixOperator or an array; got a {type(A)}."
+            )
         if isinstance(D, MatrixOperator):
             D = D.to_array()
         elif isinstance(D, Diagonal):
             D = D.diagonal
+        elif not isinstance(D, Array):
+            raise TypeError(
+                "Operator D is required to be a MatrixOperator, Diagonal, or an array; "
+                f"got a {type(D)}."
+            )
         if W is None:
             W = snp.ones(A.shape[0], dtype=A.dtype)
         elif isinstance(W, Diagonal):
             W = W.diagonal
+        elif not isinstance(W, Array):
+            raise TypeError(
+                f"Operator W is required to be None, a Diagonal, or an array; got a {type(W)}."
+            )
         self.A = A
         self.D = D
         self.W = W
