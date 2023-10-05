@@ -501,7 +501,7 @@ class TV2DNorm(Functional):
     has_eval = True
     has_prox = True
 
-    def __init__(self, dims: Tuple[int, int] = (1,1), tau: float = 1.0):
+    def __init__(self, dims: Tuple[int, int] = (1, 1), tau: float = 1.0):
         r"""
         Args:
             tau: Parameter :math:`\tau` in the norm definition.
@@ -543,15 +543,14 @@ class TV2DNorm(Functional):
             y = y.at[:].add(
                 self.iht2(
                     self.shrink(self.ht2(v, axis=ax, shift=False), thresh), axis=ax, shift=False
-                    )
                 )
+            )
             y = y.at[:].add(
                 self.iht2(
                     self.shrink(self.ht2(v, axis=ax, shift=True), thresh), axis=ax, shift=True
-                    )
                 )
+            )
         y = y.at[:].divide(K)
-
         return y
 
     def ht2(self, x, axis, shift):
@@ -569,7 +568,6 @@ class TV2DNorm(Functional):
         else:
             w = w.at[:, :m].set(C * (x[:, 1::2] + x[:, ::2]))
             w = w.at[:, m:].set(C * (x[:, 1::2] - x[:, ::2]))
-
         return w
 
     def iht2(self, w, axis, shift):
@@ -587,7 +585,6 @@ class TV2DNorm(Functional):
 
         if shift:
             y = snp.roll(y, 1, axis)
-
         return y
 
     def shrink(self, x, tau):
@@ -595,4 +592,3 @@ class TV2DNorm(Functional):
         threshed = snp.maximum(snp.abs(x) - tau, 0)
         threshed = threshed.at[:].multiply(snp.sign(x))
         return threshed
-    
