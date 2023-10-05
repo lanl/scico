@@ -490,7 +490,7 @@ class TV2DNorm(Functional):
            \abs{\nabla{A}_{m,n}} \;.
 
     This norm currently only has proximal operator defined only for
-    2 dimensional data. 
+    2 dimensional data.
 
     For `BlockArray` inputs, the :math:`\ell_{TV}` norm follows the
     reduction rules described in :class:`BlockArray`.
@@ -523,10 +523,10 @@ class TV2DNorm(Functional):
         self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[Array, BlockArray]:
         r"""Proximal operator of the :math:`\ell_{TV}` norm.
-        
+
         Evaluate proximal operator of the TV norm
                 :cite:`tip-2016-kamilov`.
-        
+
         Args:
             v: Input array :math:`\mb{v}`.
             lam: Proximal parameter :math:`\lam`.
@@ -535,15 +535,23 @@ class TV2DNorm(Functional):
         """
         assert v.shape == self.dims
         D = 2
-        K = 2*D
+        K = 2 * D
         thresh = snp.sqrt(2) * K * self.tau * lam
 
         y = snp.zeros_like(v)
         for ax in range(2):
-            y = y.at[:].add(self.iht2(self.shrink(self.ht2(v, axis=ax, shift=False), thresh), axis=ax, shift=False))
-            y = y.at[:].add(self.iht2(self.shrink(self.ht2(v, axis=ax, shift=True), thresh), axis=ax, shift=True))
+            y = y.at[:].add(
+                self.iht2(
+                    self.shrink(self.ht2(v, axis=ax, shift=False), thresh), axis=ax, shift=False
+                    )
+                )
+            y = y.at[:].add(
+                self.iht2(
+                    self.shrink(self.ht2(v, axis=ax, shift=True), thresh), axis=ax, shift=True
+                    )
+                )
         y = y.at[:].divide(K)
-        
+
         return y
 
     def ht2(self, x, axis, shift):
@@ -554,13 +562,14 @@ class TV2DNorm(Functional):
         if shift:
             x = snp.roll(x, -1, axis=axis)
 
-        m = s[axis] // 2 
+        m = s[axis] // 2
         if not axis:
             w = w.at[:m, :].set(C * (x[1::2, :] + x[::2, :]))
             w = w.at[m:, :].set(C * (x[1::2, :] - x[::2, :]))
         else:
             w = w.at[:, :m].set(C * (x[:, 1::2] + x[:, ::2]))
             w = w.at[:, m:].set(C * (x[:, 1::2] - x[:, ::2]))
+
         return w
 
     def iht2(self, w, axis, shift):
@@ -568,7 +577,7 @@ class TV2DNorm(Functional):
         s = snp.shape(w)
         y = snp.zeros(s)
         C = 1 / snp.sqrt(2)
-        m = s[axis] // 2 
+        m = s[axis] // 2
         if not axis:
             y = y.at[::2, :].set(C * (w[:m, :] - w[m:, :]))
             y = y.at[1::2, :].set(C * (w[:m, :] + w[m:, :]))
@@ -583,6 +592,7 @@ class TV2DNorm(Functional):
 
     def shrink(self, x, tau):
         r"""Wavelet shrinkage operator"""
-        threshed = snp.maximum(snp.abs(x)-tau, 0)
+        threshed = snp.maximum(snp.abs(x) - tau, 0)
         threshed = threshed.at[:].multiply(snp.sign(x))
         return threshed
+    
