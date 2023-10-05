@@ -12,10 +12,10 @@ from typing import Optional, Tuple, Union
 from jax import jit, lax
 
 from scico import numpy as snp
+from scico.linop import FiniteDifference
 from scico.numpy import Array, BlockArray, count_nonzero
 from scico.numpy.linalg import norm
 from scico.numpy.util import no_nan_divide
-from scico.linop import FiniteDifference
 
 from ._functional import Functional
 
