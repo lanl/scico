@@ -595,12 +595,18 @@ class MatrixATADSolver:
 
     where :math:`A \in \mbb{R}^{M \times N}`,
     :math:`W \in \mbb{R}^{M \times M}` and
-    :math:`D \in \mbb{R}^{N \times N}`. The solution is computed by
-    factorization of matrix :math:`A^T W A + D` and solution via Gaussian
-    elimination. If :math:`D` is diagonal and :math:`N < M` (i.e.
-    :math:`A W A^T` is smaller than :math:`A^T W A`), then
-    :math:`A W A^T + D` is factorized and the original problem is solved
-    via the Woodbury matrix identity
+    :math:`D \in \mbb{R}^{N \times N}`. :math:`A` must be an instance of
+    :class:`.MatrixOperator` or an array; :math:`D` must be an instance
+    of :class:`.MatrixOperator`, :class:`.Diagonal`, or an array, and
+    :math:`W`, if specified, must be an instance of :class:`.Diagonal`
+    or an array.
+
+
+    The solution is computed by factorization of matrix
+    :math:`A^T W A + D` and solution via Gaussian elimination. If
+    :math:`D` is diagonal and :math:`N < M` (i.e. :math:`A W A^T` is
+    smaller than :math:`A^T W A`), then :math:`A W A^T + D` is factorized
+    and the original problem is solved via the Woodbury matrix identity
 
     .. math::
 
