@@ -20,6 +20,7 @@ from ._norm import (
     L21Norm,
     NuclearNorm,
     L1MinusL2Norm,
+    TV2DNorm,
 )
 from ._indicator import NonNegativeIndicator, L2BallIndicator
 from ._denoiser import BM3D, BM4D, DnCNN
@@ -46,6 +47,7 @@ __all__ = [
     "BM3D",
     "BM4D",
     "DnCNN",
+    "TV2DNorm",
 ]
 
 # Imported items in __all__ appear to originate in top-level functional module
