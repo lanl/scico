@@ -267,7 +267,6 @@ def minimize_scalar(
     tol: Optional[float] = None,
     options: Optional[dict] = None,
 ) -> spopt.OptimizeResult:
-
     """Minimization of scalar function of one variable.
 
     Wrapper around :func:`scipy.optimize.minimize_scalar`.
@@ -579,7 +578,7 @@ def golden(
     return r
 
 
-class ATADSolver:
+class MatrixATADSolver:
     r"""Solver for linear system involving a symmetric product plus a diagonal.
 
     Solve a linear system of the form

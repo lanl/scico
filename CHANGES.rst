@@ -6,7 +6,8 @@ SCICO Release Notes
 Version 0.0.5   (unreleased)
 ----------------------------
 
-• No significant changes yet.
+• Rename ``solver.ATADSolver`` to ``solver.MatrixATADSolver``.
+• Support ``jaxlib`` and ``jax`` versions 0.4.3 to 0.4.16.
 
 
 
