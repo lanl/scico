@@ -501,7 +501,7 @@ class TV2DNorm(Functional):
     has_eval = True
     has_prox = True
 
-    def __init__(self, dims: Tuple[int, int], tau: float = 1.0):
+    def __init__(self, dims: Tuple[int, int] = (1,1), tau: float = 1.0):
         r"""
         Args:
             tau: Parameter :math:`\tau` in the norm definition.
@@ -520,7 +520,7 @@ class TV2DNorm(Functional):
         return self.tau * snp.sum(y)
 
     def prox(
-        self, x: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[Array, BlockArray]:
         r"""Proximal operator of the :math:`\ell_{TV}` norm.
         
@@ -533,20 +533,21 @@ class TV2DNorm(Functional):
             kwargs: Additional arguments that may be used by derived
                 classes.
         """
-        assert x.shape == self.dims
+        assert v.shape == self.dims
         D = 2
         K = 2*D
         thresh = snp.sqrt(2) * K * self.tau * lam
 
-        y = snp.zeros_like(x)
+        y = snp.zeros_like(v)
         for ax in range(2):
-            y = y.at[:].add(self.iht2(self.shrink(self.ht2(x, axis=ax, shift=False), thresh), axis=ax, shift=False))
-            y = y.at[:].add(self.iht2(self.shrink(self.ht2(x, axis=ax, shift=True), thresh), axis=ax, shift=True))
+            y = y.at[:].add(self.iht2(self.shrink(self.ht2(v, axis=ax, shift=False), thresh), axis=ax, shift=False))
+            y = y.at[:].add(self.iht2(self.shrink(self.ht2(v, axis=ax, shift=True), thresh), axis=ax, shift=True))
         y = y.at[:].divide(K)
         
         return y
 
     def ht2(self, x, axis, shift):
+        r"""Forward Discrete Haar Wavelet transform in 2D"""
         s = x.shape
         w = snp.zeros(s)
         C = 1 / snp.sqrt(2)
@@ -563,6 +564,7 @@ class TV2DNorm(Functional):
         return w
 
     def iht2(self, w, axis, shift):
+        r"""Inverse Discrete Haar Wavelet transform in 2D"""
         s = snp.shape(w)
         y = snp.zeros(s)
         C = 1 / snp.sqrt(2)
@@ -580,6 +582,7 @@ class TV2DNorm(Functional):
         return y
 
     def shrink(self, x, tau):
+        r"""Wavelet shrinkage operator"""
         threshed = snp.maximum(snp.abs(x)-tau, 0)
         threshed = threshed.at[:].multiply(snp.sign(x))
         return threshed
