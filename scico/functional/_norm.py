@@ -501,7 +501,7 @@ class TV2DNorm(Functional):
     has_eval = True
     has_prox = True
 
-    def __init__(self, dims, tau: float = 1.0):
+    def __init__(self, dims: Tuple[int, int], tau: float = 1.0):
         r"""
         Args:
             tau: Parameter :math:`\tau` in the norm definition.
@@ -511,6 +511,7 @@ class TV2DNorm(Functional):
 
     def __call__(self, x: Union[Array, BlockArray]) -> float:
         r"""Return the :math:`\ell_{TV}` norm of an array."""
+        assert x.shape == self.dims
         y = 0
         gradOp = FiniteDifference(self.dims, input_dtype=x.dtype, circular=True)
         grads = gradOp @ x
@@ -532,6 +533,7 @@ class TV2DNorm(Functional):
             kwargs: Additional arguments that may be used by derived
                 classes.
         """
+        assert x.shape == self.dims
         D = 2
         K = 2*D
         thresh = snp.sqrt(2) * K * self.tau * lam
