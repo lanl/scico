@@ -7,6 +7,7 @@
 
 """Functionals that are norms."""
 
+import warnings
 from typing import Optional, Tuple, Union
 
 from jax import jit, lax
@@ -501,19 +502,17 @@ class TV2DNorm(Functional):
     has_eval = True
     has_prox = True
 
-    def __init__(self, dims: Tuple[int, int] = (1, 1), tau: float = 1.0):
+    def __init__(self, tau: float = 1.0):
         r"""
         Args:
             tau: Parameter :math:`\tau` in the norm definition.
         """
-        self.dims = dims
         self.tau = tau
 
     def __call__(self, x: Union[Array, BlockArray]) -> float:
         r"""Return the :math:`\ell_{TV}` norm of an array."""
-        assert x.shape == self.dims
         y = 0
-        gradOp = FiniteDifference(self.dims, input_dtype=x.dtype, circular=True)
+        gradOp = FiniteDifference(x.shape, input_dtype=x.dtype, circular=True)
         grads = gradOp @ x
         for g in grads:
             y += snp.abs(g)
@@ -533,7 +532,6 @@ class TV2DNorm(Functional):
             kwargs: Additional arguments that may be used by derived
                 classes.
         """
-        assert v.shape == self.dims
         D = 2
         K = 2 * D
         thresh = snp.sqrt(2) * K * self.tau * lam
