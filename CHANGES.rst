@@ -7,7 +7,7 @@ Version 0.0.5   (unreleased)
 ----------------------------
 
 • Rename ``solver.ATADSolver`` to ``solver.MatrixATADSolver``.
-• Support ``jaxlib`` and ``jax`` versions 0.4.3 to 0.4.16.
+• Support ``jaxlib`` and ``jax`` versions 0.4.3 to 0.4.17.
 
 
 
