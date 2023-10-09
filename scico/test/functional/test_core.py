@@ -16,7 +16,12 @@ import scico.numpy as snp
 from scico import functional
 from scico.random import randn
 
-NO_BLOCK_ARRAY = [functional.L21Norm, functional.L1MinusL2Norm, functional.NuclearNorm, functional.TV2DNorm]
+NO_BLOCK_ARRAY = [
+    functional.L21Norm,
+    functional.L1MinusL2Norm,
+    functional.NuclearNorm,
+    functional.TV2DNorm,
+]
 NO_COMPLEX = [functional.NonNegativeIndicator]
 
 
