@@ -482,21 +482,19 @@ class NuclearNorm(Functional):
 
 
 class TV2DNorm(Functional):
-    r"""The :math:`\ell_{TV}` norm.
+    r"""The anisotropic total variation (TV) norm.
 
     For a :math:`M \times N` matrix, :math:`\mb{A}`, by default,
 
     .. math::
-           \norm{\mb{A}}_{TV} = \sum_{n=1}^N \sum_{m=1}^M
+           \norm{\mb{A}}_{\text{TV}} = \sum_{n=1}^N \sum_{m=1}^M
            \abs{\nabla{A}_{m,n}} \;.
 
-    This norm currently only has proximal operator defined only for
-    2 dimensional data.
+    The proximal operator of this norm is currently only defined for 2
+    dimensional data.
 
-    For `BlockArray` inputs, the :math:`\ell_{TV}` norm follows the
-    reduction rules described in :class:`BlockArray`.
-
-    A typical use case is computing the anisotropic total variation norm.
+    For `BlockArray` inputs, the TV norm follows the reduction rules
+    described in :class:`BlockArray`.
     """
 
     has_eval = True
@@ -510,7 +508,7 @@ class TV2DNorm(Functional):
         self.tau = tau
 
     def __call__(self, x: Union[Array, BlockArray]) -> float:
-        r"""Return the :math:`\ell_{TV}` norm of an array."""
+        r"""Return the TV norm of an array."""
         y = 0
         gradOp = FiniteDifference(x.shape, input_dtype=x.dtype, circular=True)
         grads = gradOp @ x
@@ -521,10 +519,10 @@ class TV2DNorm(Functional):
     def prox(
         self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[Array, BlockArray]:
-        r"""Proximal operator of the :math:`\ell_{TV}` norm.
+        r"""Proximal operator of the TV norm.
 
-        Evaluate proximal operator of the TV norm
-                :cite:`tip-2016-kamilov`.
+        Approximate the proximal operator of the anisotropic TV norm via
+        the method described in :cite:`kamilov-2016-parallel`.
 
         Args:
             v: Input array :math:`\mb{v}`.
