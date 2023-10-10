@@ -50,7 +50,7 @@ class Parallel2dProjector:
         self,
         im_shape: Shape,
         angles: ArrayLike,
-        det_length: Optional[int] = None,
+        det_count: Optional[int] = None,
         dither: bool = True,
     ):
         r"""
@@ -61,7 +61,7 @@ class Parallel2dProjector:
                 angle of 0 corresponds to summing rows, an angle of pi/2
                 corresponds to summing columns, and an angle of pi/4
                 corresponds to summing along antidiagonals.
-            det_length: Length of detector. If ``None``, defaults to the
+            det_count: Length of detector. If ``None``, defaults to the
                 length of diagonal of `im_shape`.
             dither: If ``True`` randomly shift pixel locations to
                 reduce projection artifacts caused by aliasing.
@@ -73,11 +73,11 @@ class Parallel2dProjector:
 
         x0 = -(im_shape - 1) / 2
 
-        if det_length is None:
-            det_length = int(np.ceil(np.linalg.norm(im_shape)))
-        self.det_shape = (det_length,)
+        if det_count is None:
+            det_count = int(np.ceil(np.linalg.norm(im_shape)))
+        self.det_shape = (det_count,)
 
-        y0 = -det_length / 2
+        y0 = -det_count / 2
 
         @jax.vmap
         def compute_inds(angle: float) -> ArrayLike:
@@ -108,7 +108,7 @@ class Parallel2dProjector:
 
             # map negative inds to y_size, which is out of bounds and will be ignored
             # otherwise they index from the end like x[-1]
-            inds = jnp.where(inds < 0, det_length, inds)
+            inds = jnp.where(inds < 0, det_count, inds)
 
             return inds
 
@@ -117,7 +117,7 @@ class Parallel2dProjector:
         @partial(jax.vmap, in_axes=(None, 0))
         def project_inds(im: ArrayLike, inds: ArrayLike) -> ArrayLike:
             """Compute the projection at a single angle."""
-            return jnp.zeros(det_length).at[inds].add(im)
+            return jnp.zeros(det_count).at[inds].add(im)
 
         @jax.jit
         def project(im: ArrayLike) -> ArrayLike:

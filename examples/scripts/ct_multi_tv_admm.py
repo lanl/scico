@@ -49,7 +49,7 @@ angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
 projectors = {
     "astra": astra.XRayTransform(x_gt.shape, 1, N, angles - np.pi / 2.0),  # astra
     "svmbir": svmbir.XRayTransform(x_gt.shape, 2 * np.pi - angles, N),  # svmbir
-    "scico": XRayTransform(Parallel2dProjector((N, N), angles, det_length=N)),  # scico
+    "scico": XRayTransform(Parallel2dProjector((N, N), angles, det_count=N)),  # scico
 }
 
 

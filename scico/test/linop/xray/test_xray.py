@@ -15,11 +15,11 @@ def test_apply():
     y = H @ x
     assert y.shape[0] == (num_angles)
 
-    # fixed det_length
-    det_length = 14
-    H = XRayTransform(Parallel2dProjector(x.shape, angles, det_length=det_length))
+    # fixed det_count
+    det_count = 14
+    H = XRayTransform(Parallel2dProjector(x.shape, angles, det_count=det_count))
     y = H @ x
-    assert y.shape[1] == det_length
+    assert y.shape[1] == det_count
 
     # dither off
     H = XRayTransform(Parallel2dProjector(x.shape, angles, dither=False))
