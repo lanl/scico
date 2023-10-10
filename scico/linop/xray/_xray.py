@@ -61,8 +61,8 @@ class Parallel2dProjector:
                 angle of 0 corresponds to summing rows, an angle of pi/2
                 corresponds to summing columns, and an angle of pi/4
                 corresponds to summing along antidiagonals.
-            det_count: Length of detector. If ``None``, defaults to the
-                length of diagonal of `im_shape`.
+            det_count: Number of elements in detector. If ``None``,
+                defaults to the size of the diagonal of `im_shape`.
             dither: If ``True`` randomly shift pixel locations to
                 reduce projection artifacts caused by aliasing.
         """
