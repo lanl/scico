@@ -61,24 +61,28 @@ class XRayTransform(LinearOperator):
         Args:
             input_shape: Shape of the input array. Determines whether 2D
                or 3D algorithm is used.
-            detector_spacing: Spacing between detector elements. See
-               https://www.astra-toolbox.com/docs/geom2d.html#projection-geometries
+            detector_spacing: Spacing between detector elements. See the
+               astra documentation for more information for
+               `2d <https://www.astra-toolbox.com/docs/geom2d.html#projection-geometries>`__
                or
-               https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries
-               for more information.
-            det_count: Number of detector elements. See
-               https://www.astra-toolbox.com/docs/geom2d.html#projection-geometries
+               `3d <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
+               geometries.
+            det_count: Number of detector elements. See the astra
+               documentation for more information for
+               `2d <https://www.astra-toolbox.com/docs/geom2d.html#projection-geometries>`__
                or
-               https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries
-               for more information.
+               `3d <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
+               geometries.
             angles: Array of projection angles in radians.
             volume_geometry: Specification of the shape of the
                discretized reconstruction volume. Must either ``None``,
                in which case it is inferred from `input_shape`, or
-               follow the astra syntax described in
-               https://www.astra-toolbox.com/docs/geom2d.html#volume-geometries
+               follow the astra syntax described in the astra
+               documentation for
+               `2d <https://www.astra-toolbox.com/docs/geom2d.html#volume-geometries>`__
                or
-               https://www.astra-toolbox.com/docs/geom3d.html#d-geometries.
+               `3d <https://www.astra-toolbox.com/docs/geom3d.html#d-geometries>`__
+               geometries.
             device: Specifies device for projection operation.
                One of ["auto", "gpu", "cpu"]. If "auto", a GPU is used if
                available, otherwise, the CPU is used.
