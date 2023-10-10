@@ -3,3 +3,5 @@ colour_demosaicing
 xdesign>=0.5.5
 ray[tune]>=2.0.0
 hyperopt
+bm3d>=4.0.0
+bm4d>=4.2.2
