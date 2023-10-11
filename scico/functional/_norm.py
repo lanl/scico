@@ -538,40 +538,38 @@ class TV2DNorm(Functional):
         for ax in range(2):
             y = y.at[:].add(
                 self.iht2(
-                    self.shrink(self.ht2(v, axis=ax, shift=False), thresh), axis=ax, shift=False
+                    self.ht2_shrink(v, axis=ax, shift=False, thresh=thresh), axis=ax, shift=False
                 )
             )
             y = y.at[:].add(
                 self.iht2(
-                    self.shrink(self.ht2(v, axis=ax, shift=True), thresh), axis=ax, shift=True
+                    self.ht2_shrink(v, axis=ax, shift=True, thresh=thresh), axis=ax, shift=True
                 )
             )
         y = y.at[:].divide(K)
         return y
 
-    def ht2(self, x, axis, shift):
+    def ht2_shrink(self, x, axis, shift, thresh):
         r"""Forward Discrete Haar Wavelet transform in 2D"""
-        s = x.shape
-        w = snp.zeros(s)
+        w = snp.zeros_like(x)
         C = 1 / snp.sqrt(2)
         if shift:
             x = snp.roll(x, -1, axis=axis)
 
-        m = s[axis] // 2
+        m = x.shape[axis] // 2
         if not axis:
             w = w.at[:m, :].set(C * (x[1::2, :] + x[::2, :]))
-            w = w.at[m:, :].set(C * (x[1::2, :] - x[::2, :]))
+            w = w.at[m:, :].set(self.shrink(C * (x[1::2, :] - x[::2, :]), thresh))
         else:
             w = w.at[:, :m].set(C * (x[:, 1::2] + x[:, ::2]))
-            w = w.at[:, m:].set(C * (x[:, 1::2] - x[:, ::2]))
+            w = w.at[:, m:].set(self.shrink(C * (x[:, 1::2] - x[:, ::2]), thresh))
         return w
 
     def iht2(self, w, axis, shift):
         r"""Inverse Discrete Haar Wavelet transform in 2D"""
-        s = snp.shape(w)
-        y = snp.zeros(s)
+        y = snp.zeros_like(w)
         C = 1 / snp.sqrt(2)
-        m = s[axis] // 2
+        m = w.shape[axis] // 2
         if not axis:
             y = y.at[::2, :].set(C * (w[:m, :] - w[m:, :]))
             y = y.at[1::2, :].set(C * (w[:m, :] + w[m:, :]))
