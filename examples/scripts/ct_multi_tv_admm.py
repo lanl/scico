@@ -58,10 +58,11 @@ Solve the same problem using the different projectors.
 """
 print(f"Solving on {device_info()}")
 y, x_rec, hist = {}, {}, {}
+noise = np.random.normal(size=(n_projection, N)).astype(np.float32)
 for p in ("astra", "svmbir", "scico"):
     print(f"\nSolving with {p} projector")
     A = projectors[p]
-    y[p] = A @ x_gt  # sinogram
+    y[p] = A @ x_gt + 3e0 * noise  # sinogram
 
     # Set up ADMM solver object.
     λ = 2e0  # L1 norm regularization parameter
