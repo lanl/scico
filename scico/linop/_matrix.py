@@ -76,7 +76,7 @@ class MatrixOperator(LinearOperator):
                 (two-dimensional array), this parameter should specify
                 number of columns in the matrix.
         """
-        self.A: snp.Array  #: Dense array implementing this matrix
+        self.A: snp.Array  # dense array implementing this matrix
 
         # if A is an ndarray, convert it to a jax array
         if isinstance(A, jnp.ndarray):
