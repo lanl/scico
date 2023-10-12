@@ -20,7 +20,6 @@ where $R$ is the isotropic TV: the sum of the norms of the gradient
 vectors at each point in the image $\mathbf{x}$.
 """
 
-import jax
 
 from xdesign import SiemensStar, discrete_phantom
 
@@ -37,7 +36,6 @@ Create a ground truth image.
 phantom = SiemensStar(32)
 N = 256  # image size
 x_gt = snp.pad(discrete_phantom(phantom, N - 16), 8)
-x_gt = jax.device_put(x_gt)  # convert to jax type, push to GPU
 
 
 """

@@ -52,7 +52,6 @@ psf = downsample_volume(psf, downsampling_rate)
 
 y -= y.min()
 y /= y.max()
-
 psf /= psf.sum()
 
 

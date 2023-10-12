@@ -36,8 +36,6 @@ using the frequency-domain approach proposed in
 
 import numpy as np
 
-import jax
-
 import scico.numpy as snp
 from scico import plot
 from scico.examples import create_conv_sparse_phantom
@@ -67,8 +65,8 @@ x0 *= hnorm
 """
 Convert numpy arrays to jax arrays.
 """
-h = jax.device_put(h)
-x0 = jax.device_put(x0)
+h = snp.array(h)
+x0 = snp.array(x0)
 
 
 """

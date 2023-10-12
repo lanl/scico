@@ -34,7 +34,6 @@ os.environ["JAX_PLATFORMS"] = "cpu"
 
 import numpy as np
 
-import jax
 
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot
@@ -82,8 +81,8 @@ class Trainable(tune.Trainable):
         this case). The remaining parameters are objects that are passed
         to the evaluation function via the ray object store.
         """
-        # Put main arrays on jax device.
-        self.x_gt, self.x0, self.y = jax.device_put([x_gt, x0, y])
+        # Get arrays passed by tune call.
+        self.x_gt, self.x0, self.y = x_gt, x0, y
         # Set up problem to be solved.
         self.A = AbelProjector(self.x_gt.shape)
         self.f = loss.SquaredL2Loss(y=self.y, A=self.A)
