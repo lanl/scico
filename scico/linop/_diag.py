@@ -17,7 +17,7 @@ from typing import Optional, Union
 
 import scico.numpy as snp
 from scico.numpy import Array, BlockArray
-from scico.numpy.util import broadcast_nested_shapes, ensure_on_device, is_nested
+from scico.numpy.util import broadcast_nested_shapes, is_nested
 from scico.operator._operator import _wrap_mul_div_scalar
 from scico.typing import BlockShape, DType, Shape
 
@@ -48,8 +48,7 @@ class Diagonal(LinearOperator):
             input_dtype: `dtype` of input argument. The default,
                ``None``, means `diagonal.dtype`.
         """
-
-        self.diagonal = ensure_on_device(diagonal)
+        self.diagonal = diagonal
 
         if input_shape is None:
             input_shape = self.diagonal.shape

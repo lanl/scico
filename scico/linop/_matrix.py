@@ -17,7 +17,6 @@ from functools import partial, wraps
 
 import numpy as np
 
-import jax
 import jax.numpy as jnp
 from jax.dtypes import result_type
 
@@ -79,11 +78,11 @@ class MatrixOperator(LinearOperator):
         """
         self.A: snp.Array  #: Dense array implementing this matrix
 
-        # if A is an ndarray, make sure it gets converted to a jax array
+        # if A is an ndarray, convert it to a jax array
         if isinstance(A, jnp.ndarray):
             self.A = A
         elif isinstance(A, np.ndarray):
-            self.A = jax.device_put(A)  # TODO: ensure_on_device?
+            self.A = jnp.array(A)
         else:
             raise TypeError(f"Expected numpy or jax array, got {type(A)}.")
 

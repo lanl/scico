@@ -19,7 +19,6 @@ import scico.numpy as snp
 from scico.functional import Functional
 from scico.loss import Loss
 from scico.numpy import Array, BlockArray
-from scico.numpy.util import ensure_on_device
 
 from ._common import Optimizer
 from ._pgmaux import (
@@ -84,7 +83,7 @@ class PGM(Optimizer):
 
         self.x_step = jax.jit(x_step)
 
-        self.x: Union[Array, BlockArray] = ensure_on_device(x0)  # current estimate of solution
+        self.x: Union[Array, BlockArray] = x0  # current estimate of solution
 
         super().__init__(**kwargs)
 
@@ -183,7 +182,6 @@ class AcceleratedPGM(PGM):
             **kwargs: Additional optional parameters handled by
                 initializer of base class :class:`.Optimizer`.
         """
-        x0 = ensure_on_device(x0)
         super().__init__(f=f, g=g, L0=L0, x0=x0, step_size=step_size, **kwargs)
 
         self.v = x0
