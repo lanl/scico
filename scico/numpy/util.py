@@ -18,8 +18,6 @@ import numpy as np
 
 import jax
 
-import jaxlib
-
 import scico.numpy as snp
 from scico.typing import ArrayIndex, Axes, AxisIndex, BlockShape, DType, Shape
 
@@ -339,5 +337,5 @@ def is_scalar_equiv(s: Any) -> bool:
     return (
         snp.isscalar(s)
         or isinstance(s, jax.core.Tracer)
-        or (isinstance(s, jaxlib.xla_extension.ArrayImpl) and s.size == 1)
+        or (isinstance(s, jax.Array) and s.ndim == 0)
     )
