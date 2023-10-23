@@ -579,7 +579,7 @@ def golden(
 
 
 class MatrixATADSolver:
-    r"""Solver for linear system involving a symmetric product plus a diagonal.
+    r"""Solver for linear system involving a symmetric product.
 
     Solve a linear system of the form
 
