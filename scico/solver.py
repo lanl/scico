@@ -814,7 +814,7 @@ class MatrixATADSolver:
 
 
 class ConvATADSolver:
-    r"""Solver for sum of convolutions plus diagonal linear system.
+    r"""Solver for a linear system involving a sum of convolutions.
 
     Solve a linear system of the form
 
