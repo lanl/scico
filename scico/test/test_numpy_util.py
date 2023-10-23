@@ -15,6 +15,7 @@ from scico.numpy.util import (
     is_complex_dtype,
     is_nested,
     is_real_dtype,
+    is_scalar_equiv,
     no_nan_divide,
     parse_axes,
     real_dtype,
@@ -192,3 +193,10 @@ def test_broadcast_nested_shapes():
         (1, 2, 3),
         (1, 7, 4, 3),
     )
+
+
+def test_is_scalar_equiv():
+    assert is_scalar_equiv(1e0)
+    assert is_scalar_equiv(snp.array(1e0))
+    assert is_scalar_equiv(snp.array([1e0]))
+    assert not is_scalar_equiv(snp.array([1e0, 2e0]))

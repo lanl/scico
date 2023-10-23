@@ -18,6 +18,8 @@ import numpy as np
 
 import jax
 
+import jaxlib
+
 import scico.numpy as snp
 from scico.typing import ArrayIndex, Axes, AxisIndex, BlockShape, DType, Shape
 
@@ -320,3 +322,22 @@ def complex_dtype(dtype: DType) -> DType:
     """
 
     return (snp.zeros(1, dtype) + 1j).dtype
+
+
+def is_scalar_equiv(s: Any) -> bool:
+    """Determine whether an object is a scalar or is scalar-equivalent.
+
+    Determine whether an object is a scalar or a singleton array.
+
+    Args:
+        s: Object to be tested.
+
+    Returns:
+        ``True`` if the object is a scalar or a singleton array,
+        otherwise ``False``.
+    """
+    return (
+        snp.isscalar(s)
+        or isinstance(s, jax.core.Tracer)
+        or (isinstance(s, jaxlib.xla_extension.ArrayImpl) and s.size == 1)
+    )
