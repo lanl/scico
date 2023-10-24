@@ -198,5 +198,6 @@ def test_broadcast_nested_shapes():
 def test_is_scalar_equiv():
     assert is_scalar_equiv(1e0)
     assert is_scalar_equiv(snp.array(1e0))
+    assert is_scalar_equiv(snp.sum(snp.zeros(1)))
     assert not is_scalar_equiv(snp.array([1e0]))
     assert not is_scalar_equiv(snp.array([1e0, 2e0]))
