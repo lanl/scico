@@ -334,8 +334,4 @@ def is_scalar_equiv(s: Any) -> bool:
         ``True`` if the object is a scalar or a singleton array,
         otherwise ``False``.
     """
-    return (
-        snp.isscalar(s)
-        or isinstance(s, jax.core.Tracer)
-        or (isinstance(s, jax.Array) and s.ndim == 0)
-    )
+    return snp.isscalar(s) or (isinstance(s, jax.Array) and s.ndim == 0)
