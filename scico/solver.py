@@ -54,6 +54,7 @@ import numpy as np
 
 import jax
 import jax.experimental.host_callback as hcb
+import jax.numpy as jnp
 import jax.scipy.linalg as jsl
 
 import scico.numpy as snp
@@ -260,7 +261,7 @@ def minimize(
 
 def minimize_scalar(
     func: Callable,
-    bracket: Optional[Union[Sequence[float]]] = None,
+    bracket: Optional[Sequence[float]] = None,
     bounds: Optional[Sequence[float]] = None,
     args: Union[Tuple, Tuple[Any]] = (),
     method: str = "brent",
@@ -703,8 +704,12 @@ class MatrixATADSolver:
         r"""
         Args:
             A: Matrix :math:`A`.
-            D: Matrix :math:`D`.
-            W: Matrix :math:`W`.
+            D: Matrix :math:`D`. If a 2D array or :class:`MatrixOperator`,
+                specifies the 2D matrix :math:`D`. If 1D array or
+                :class:`Diagonal`, specifies the diagonal elements
+                of :math:`D`.
+            W: Matrix :math:`W`. Specifies the diagonal elements of
+                :math:`W`. Defaults to ones.
             cho_factor: Flag indicating whether to use Cholesky
                 (``True``) or LU (``False``) factorization.
             lower: Flag indicating whether lower (``True``) or upper
@@ -713,29 +718,28 @@ class MatrixATADSolver:
             check_finite: Flag indicating whether the input array should
                 be checked for ``Inf`` and ``NaN`` values.
         """
-        if isinstance(A, MatrixOperator):
-            A = A.to_array()
-        elif not isinstance(A, Array):
-            raise TypeError(
-                f"Operator A is required to be a MatrixOperator or an array; got a {type(A)}."
-            )
-        if isinstance(D, MatrixOperator):
-            D = D.to_array()
-        elif isinstance(D, Diagonal):
+        A = jnp.array(A)
+
+        if isinstance(D, Diagonal):
             D = D.diagonal
-        elif not isinstance(D, Array):
-            raise TypeError(
-                "Operator D is required to be a MatrixOperator, Diagonal, or an array; "
-                f"got a {type(D)}."
-            )
+            if not D.ndim == 1:
+                raise ValueError("If Diagonal, D should have a 1D diagonal.")
+        else:
+            D = jnp.array(D)
+            if not D.ndim in [1, 2]:
+                raise ValueError("If matrix, D should be 1D or 2D.")
+
         if W is None:
             W = snp.ones(A.shape[0], dtype=A.dtype)
         elif isinstance(W, Diagonal):
             W = W.diagonal
+            if not W.ndim == 1:
+                raise ValueError("If Diagonal, W should have a 1D diagonal.")
         elif not isinstance(W, Array):
             raise TypeError(
                 f"Operator W is required to be None, a Diagonal, or an array; got a {type(W)}."
             )
+
         self.A = A
         self.D = D
         self.W = W
