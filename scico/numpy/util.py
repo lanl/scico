@@ -320,3 +320,18 @@ def complex_dtype(dtype: DType) -> DType:
     """
 
     return (snp.zeros(1, dtype) + 1j).dtype
+
+
+def is_scalar_equiv(s: Any) -> bool:
+    """Determine whether an object is a scalar or is scalar-equivalent.
+
+    Determine whether an object is a scalar or a singleton array.
+
+    Args:
+        s: Object to be tested.
+
+    Returns:
+        ``True`` if the object is a scalar or a singleton array,
+        otherwise ``False``.
+    """
+    return snp.isscalar(s) or (isinstance(s, jax.Array) and s.ndim == 0)

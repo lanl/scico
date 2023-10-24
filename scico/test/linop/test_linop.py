@@ -17,6 +17,8 @@ from scico import linop
 from scico.random import randn
 from scico.typing import PRNGKey
 
+SCALARS = (2, 1e0, snp.array(1.0))
+
 
 def adjoint_test(
     A: linop.LinearOperator,
@@ -67,8 +69,7 @@ class LinearOperatorTestObj:
 
         self.x, key = randn((N,), dtype=dtype, key=key)
         self.y, key = randn((M,), dtype=dtype, key=key)
-        scalar, key = randn((1,), dtype=dtype, key=key)
-        self.scalar = scalar.item()
+
         self.Ao = AbsMatOp(self.A)
         self.Bo = AbsMatOp(self.B)
         self.Co = AbsMatOp(self.C)
@@ -101,9 +102,10 @@ def test_binary_op(testobj, operator):
 
 
 @pytest.mark.parametrize("operator", [op.mul, op.truediv])
-def test_scalar_left(testobj, operator):
-    comp_mat = operator(testobj.A, testobj.scalar)
-    comp_op = operator(testobj.Ao, testobj.scalar)
+@pytest.mark.parametrize("scalar", SCALARS)
+def test_scalar_left(testobj, operator, scalar):
+    comp_mat = operator(testobj.A, scalar)
+    comp_op = operator(testobj.Ao, scalar)
     assert isinstance(comp_op, linop.LinearOperator)  # Ensure we don't get a Map
     assert comp_op.input_dtype == testobj.A.dtype
     np.testing.assert_allclose(comp_mat @ testobj.x, comp_op @ testobj.x, rtol=5e-5)
@@ -112,11 +114,12 @@ def test_scalar_left(testobj, operator):
 
 
 @pytest.mark.parametrize("operator", [op.mul, op.truediv])
-def test_scalar_right(testobj, operator):
+@pytest.mark.parametrize("scalar", SCALARS)
+def test_scalar_right(testobj, operator, scalar):
     if operator == op.truediv:
         pytest.xfail("scalar / LinearOperator is not supported")
-    comp_mat = operator(testobj.scalar, testobj.A)
-    comp_op = operator(testobj.scalar, testobj.Ao)
+    comp_mat = operator(scalar, testobj.A)
+    comp_op = operator(scalar, testobj.Ao)
     assert comp_op.input_dtype == testobj.A.dtype
     np.testing.assert_allclose(comp_mat @ testobj.x, comp_op @ testobj.x, rtol=5e-5)
 
