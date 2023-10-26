@@ -727,7 +727,7 @@ class MatrixATADSolver:
         else:
             D = jnp.array(D)
             if not D.ndim in [1, 2]:
-                raise ValueError("If MatrixOperator, D should be 1D or 2D.")
+                raise ValueError("If array or MatrixOperator, D should be 1D or 2D.")
 
         if W is None:
             W = snp.ones(A.shape[0], dtype=A.dtype)
