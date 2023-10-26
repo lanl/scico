@@ -47,7 +47,7 @@ def _wrap_mul_div_scalar(func: Callable) -> Callable:
 
     @wraps(func)
     def wrapper(a, b):
-        if np.isscalar(b) or isinstance(b, jax.core.Tracer):
+        if snp.util.is_scalar_equiv(b):
             return func(a, b)
 
         raise TypeError(f"Operation {func.__name__} not defined between {type(a)} and {type(b)}.")

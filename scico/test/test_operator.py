@@ -15,6 +15,8 @@ import scico.numpy as snp
 from scico.operator import Abs, Angle, Exp, Operator, operator_from_function
 from scico.random import randn
 
+SCALARS = (2, 1e0, snp.array(1.0))
+
 
 class AbsOperator(Operator):
     def _eval(self, x):
@@ -43,8 +45,6 @@ class OperatorTestObj:
 
         self.mat = randn(self.A.input_shape, dtype=dtype, key=key)
         self.x, key = randn((N,), dtype=dtype, key=key)
-        scalar, key = randn((1,), dtype=dtype, key=key)
-        self.scalar = scalar.item()  # jax array -> actual scalar
 
         self.z, key = randn((2 * N,), dtype=dtype, key=key)
 
@@ -85,21 +85,23 @@ def test_binary_op_same(testobj, operator):
 
 
 @pytest.mark.parametrize("operator", [op.mul, op.truediv])
-def test_scalar_left(testobj, operator):
+@pytest.mark.parametrize("scalar", SCALARS)
+def test_scalar_left(testobj, operator, scalar):
     x = testobj.x
-    comp_op = operator(testobj.A, testobj.scalar)
-    res = operator(testobj.A(x), testobj.scalar)
+    comp_op = operator(testobj.A, scalar)
+    res = operator(testobj.A(x), scalar)
     assert comp_op.output_dtype == res.dtype
     np.testing.assert_allclose(comp_op(x), res, rtol=5e-5)
 
 
 @pytest.mark.parametrize("operator", [op.mul, op.truediv])
-def test_scalar_right(testobj, operator):
+@pytest.mark.parametrize("scalar", SCALARS)
+def test_scalar_right(testobj, operator, scalar):
     if operator == op.truediv:
         pytest.xfail("scalar / Operator is not supported")
     x = testobj.x
-    comp_op = operator(testobj.scalar, testobj.A)
-    res = operator(testobj.scalar, testobj.A(x))
+    comp_op = operator(scalar, testobj.A)
+    res = operator(scalar, testobj.A(x))
     assert comp_op.output_dtype == res.dtype
     np.testing.assert_allclose(comp_op(x), res, rtol=5e-5)
 
