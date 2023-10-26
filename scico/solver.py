@@ -709,7 +709,7 @@ class MatrixATADSolver:
                 :class:`Diagonal`, specifies the diagonal elements
                 of :math:`D`.
             W: Matrix :math:`W`. Specifies the diagonal elements of
-                :math:`W`. Defaults to ones.
+                :math:`W`. Defaults to an array with unit entries.
             cho_factor: Flag indicating whether to use Cholesky
                 (``True``) or LU (``False``) factorization.
             lower: Flag indicating whether lower (``True``) or upper
@@ -727,7 +727,7 @@ class MatrixATADSolver:
         else:
             D = jnp.array(D)
             if not D.ndim in [1, 2]:
-                raise ValueError("If matrix, D should be 1D or 2D.")
+                raise ValueError("If MatrixOperator, D should be 1D or 2D.")
 
         if W is None:
             W = snp.ones(A.shape[0], dtype=A.dtype)
