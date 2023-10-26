@@ -204,6 +204,21 @@ def shape_to_size(shape: Union[Shape, BlockShape]) -> int:
     return prod(shape)
 
 
+def is_arraylike(x: Any) -> bool:
+    """Check if input is of type :class:`jax.ArrayLike`.
+
+    `isinstance(x, jax.typing.ArrayLike)` does not work in Python < 3.10,
+    see https://jax.readthedocs.io/en/latest/jax.typing.html#jax-typing-best-practices.
+
+    Args:
+        x: Object to be tested.
+
+    Returns:
+        ``True`` if `x` is an ArrayLike, ``False`` otherwise.
+    """
+    return isinstance(x, (np.ndarray, jax.Array)) or np.isscalar(x)
+
+
 def is_nested(x: Any) -> bool:
     """Check if input is a list/tuple containing at least one list/tuple.
 

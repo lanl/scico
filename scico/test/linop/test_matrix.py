@@ -22,7 +22,6 @@ class TestMatrix:
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
     @pytest.mark.parametrize("matrix_shape", [(3, 3), (3, 4)])
     def test_eval(self, matrix_shape, input_dtype, input_cols):
-
         A, key = randn(matrix_shape, dtype=input_dtype, key=self.key)
         Ao = MatrixOperator(A, input_cols=input_cols)
 
@@ -38,7 +37,6 @@ class TestMatrix:
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
     @pytest.mark.parametrize("matrix_shape", [(3, 3), (3, 4)])
     def test_adjoint(self, matrix_shape, input_dtype, input_cols):
-
         A, key = randn(matrix_shape, dtype=input_dtype, key=self.key)
         Ao = MatrixOperator(A, input_cols=input_cols)
 
@@ -260,6 +258,10 @@ class TestMatrix:
         Ao = MatrixOperator(A)
         A_array = Ao.to_array()
         assert isinstance(A_array, np.ndarray)
+        np.testing.assert_allclose(A_array, A)
+
+        A_array = jnp.array(Ao)
+        assert isinstance(A_array, jax.Array)
         np.testing.assert_allclose(A_array, A)
 
     @pytest.mark.parametrize("ord", ["fro", 2])
