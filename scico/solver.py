@@ -54,6 +54,7 @@ import numpy as np
 
 import jax
 import jax.experimental.host_callback as hcb
+import jax.numpy as jnp
 import jax.scipy.linalg as jsl
 
 import scico.numpy as snp
@@ -260,14 +261,13 @@ def minimize(
 
 def minimize_scalar(
     func: Callable,
-    bracket: Optional[Union[Sequence[float]]] = None,
+    bracket: Optional[Sequence[float]] = None,
     bounds: Optional[Sequence[float]] = None,
     args: Union[Tuple, Tuple[Any]] = (),
     method: str = "brent",
     tol: Optional[float] = None,
     options: Optional[dict] = None,
 ) -> spopt.OptimizeResult:
-
     """Minimization of scalar function of one variable.
 
     Wrapper around :func:`scipy.optimize.minimize_scalar`.
@@ -579,8 +579,8 @@ def golden(
     return r
 
 
-class ATADSolver:
-    r"""Solver for linear system involving a symmetric product plus a diagonal.
+class MatrixATADSolver:
+    r"""Solver for linear system involving a symmetric product.
 
     Solve a linear system of the form
 
@@ -596,12 +596,18 @@ class ATADSolver:
 
     where :math:`A \in \mbb{R}^{M \times N}`,
     :math:`W \in \mbb{R}^{M \times M}` and
-    :math:`D \in \mbb{R}^{N \times N}`. The solution is computed by
-    factorization of matrix :math:`A^T W A + D` and solution via Gaussian
-    elimination. If :math:`D` is diagonal and :math:`N < M` (i.e.
-    :math:`A W A^T` is smaller than :math:`A^T W A`), then
-    :math:`A W A^T + D` is factorized and the original problem is solved
-    via the Woodbury matrix identity
+    :math:`D \in \mbb{R}^{N \times N}`. :math:`A` must be an instance of
+    :class:`.MatrixOperator` or an array; :math:`D` must be an instance
+    of :class:`.MatrixOperator`, :class:`.Diagonal`, or an array, and
+    :math:`W`, if specified, must be an instance of :class:`.Diagonal`
+    or an array.
+
+
+    The solution is computed by factorization of matrix
+    :math:`A^T W A + D` and solution via Gaussian elimination. If
+    :math:`D` is diagonal and :math:`N < M` (i.e. :math:`A W A^T` is
+    smaller than :math:`A^T W A`), then :math:`A W A^T + D` is factorized
+    and the original problem is solved via the Woodbury matrix identity
 
     .. math::
 
@@ -698,8 +704,12 @@ class ATADSolver:
         r"""
         Args:
             A: Matrix :math:`A`.
-            D: Matrix :math:`D`.
-            W: Matrix :math:`W`.
+            D: Matrix :math:`D`. If a 2D array or :class:`MatrixOperator`,
+                specifies the 2D matrix :math:`D`. If 1D array or
+                :class:`Diagonal`, specifies the diagonal elements
+                of :math:`D`.
+            W: Matrix :math:`W`. Specifies the diagonal elements of
+                :math:`W`. Defaults to an array with unit entries.
             cho_factor: Flag indicating whether to use Cholesky
                 (``True``) or LU (``False``) factorization.
             lower: Flag indicating whether lower (``True``) or upper
@@ -708,16 +718,28 @@ class ATADSolver:
             check_finite: Flag indicating whether the input array should
                 be checked for ``Inf`` and ``NaN`` values.
         """
-        if isinstance(A, MatrixOperator):
-            A = A.to_array()
-        if isinstance(D, MatrixOperator):
-            D = D.to_array()
-        elif isinstance(D, Diagonal):
+        A = jnp.array(A)
+
+        if isinstance(D, Diagonal):
             D = D.diagonal
+            if not D.ndim == 1:
+                raise ValueError("If Diagonal, D should have a 1D diagonal.")
+        else:
+            D = jnp.array(D)
+            if not D.ndim in [1, 2]:
+                raise ValueError("If array or MatrixOperator, D should be 1D or 2D.")
+
         if W is None:
             W = snp.ones(A.shape[0], dtype=A.dtype)
         elif isinstance(W, Diagonal):
             W = W.diagonal
+            if not W.ndim == 1:
+                raise ValueError("If Diagonal, W should have a 1D diagonal.")
+        elif not isinstance(W, Array):
+            raise TypeError(
+                f"Operator W is required to be None, a Diagonal, or an array; got a {type(W)}."
+            )
+
         self.A = A
         self.D = D
         self.W = W
@@ -796,7 +818,7 @@ class ATADSolver:
 
 
 class ConvATADSolver:
-    r"""Solver for sum of convolutions plus diagonal linear system.
+    r"""Solver for a linear system involving a sum of convolutions.
 
     Solve a linear system of the form
 
