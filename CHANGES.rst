@@ -10,6 +10,7 @@ Version 0.0.5   (unreleased)
 • Rename modules ``radon_astra`` and ``radon_svmbir`` to ``xray.astra`` and
   ``xray.svmbir`` respectively, and rename ``TomographicProjector`` classes
   to ``XRayTransform``.
+• Rename ``AbelProjector`` to ``AbelTransform``.
 • Rename ``solver.ATADSolver`` to ``solver.MatrixATADSolver``.
 • Support ``jaxlib`` and ``jax`` versions 0.4.3 to 0.4.19.
 
