@@ -47,15 +47,15 @@ SCICO provides the :class:`.Operator` and :class:`.LinearOperator`
 classes, which may be subclassed by users, in order to implement the
 forward operator, :math:`A`. It also has several built-in operators,
 most of which are linear, e.g., finite convolutions, discrete Fourier
-transforms, optical propagators, Abel transforms, and Radon
-transforms. For example,
+transforms, optical propagators, Abel transforms, and X-ray transforms
+(the same as Radon transforms in 2D). For example,
 
 .. code:: python
 
        input_shape = (512, 512)
        angles = np.linspace(0, 2 * np.pi, 180, endpoint=False)
        channels = 512
-       A = scico.linop.xray_svmbir.XRayTransform(input_shape, angles, channels)
+       A = scico.linop.xray.svmbir.XRayTransform(input_shape, angles, channels)
 
 defines a tomographic projection operator.
 
