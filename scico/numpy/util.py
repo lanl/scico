@@ -204,6 +204,21 @@ def shape_to_size(shape: Union[Shape, BlockShape]) -> int:
     return prod(shape)
 
 
+def is_arraylike(x: Any) -> bool:
+    """Check if input is of type :class:`jax.ArrayLike`.
+
+    `isinstance(x, jax.typing.ArrayLike)` does not work in Python < 3.10,
+    see https://jax.readthedocs.io/en/latest/jax.typing.html#jax-typing-best-practices.
+
+    Args:
+        x: Object to be tested.
+
+    Returns:
+        ``True`` if `x` is an ArrayLike, ``False`` otherwise.
+    """
+    return isinstance(x, (np.ndarray, jax.Array)) or np.isscalar(x)
+
+
 def is_nested(x: Any) -> bool:
     """Check if input is a list/tuple containing at least one list/tuple.
 
@@ -320,3 +335,18 @@ def complex_dtype(dtype: DType) -> DType:
     """
 
     return (snp.zeros(1, dtype) + 1j).dtype
+
+
+def is_scalar_equiv(s: Any) -> bool:
+    """Determine whether an object is a scalar or is scalar-equivalent.
+
+    Determine whether an object is a scalar or a singleton array.
+
+    Args:
+        s: Object to be tested.
+
+    Returns:
+        ``True`` if the object is a scalar or a singleton array,
+        otherwise ``False``.
+    """
+    return snp.isscalar(s) or (isinstance(s, jax.Array) and s.ndim == 0)
