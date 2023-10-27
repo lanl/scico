@@ -19,6 +19,7 @@ import numpy as np
 
 import jax.numpy as jnp
 from jax.dtypes import result_type
+from jax.typing import ArrayLike
 
 import scico.numpy as snp
 
@@ -64,7 +65,7 @@ def _wrap_add_sub_matrix(func, op):
 class MatrixOperator(LinearOperator):
     """Linear operator implementing matrix multiplication."""
 
-    def __init__(self, A: snp.Array, input_cols: int = 0):
+    def __init__(self, A: ArrayLike, input_cols: int = 0):
         """
         Args:
             A: Dense array. The action of the created
@@ -76,19 +77,18 @@ class MatrixOperator(LinearOperator):
                 (two-dimensional array), this parameter should specify
                 number of columns in the matrix.
         """
-        self.A: snp.Array  # dense array implementing this matrix
+        self.A: snp.Array  #: Dense array implementing this matrix
 
-        # if A is an ndarray, convert it to a jax array
-        if isinstance(A, jnp.ndarray):
-            self.A = A
-        elif isinstance(A, np.ndarray):
-            self.A = jnp.array(A)
-        else:
+        # if A is an ndarray, make sure it gets converted to a jax array
+        if not snp.util.is_arraylike(A):
             raise TypeError(f"Expected numpy or jax array, got {type(A)}.")
+        self.A = jnp.array(A)
 
         # Can only do rank-2 arrays
         if A.ndim != 2:
             raise TypeError(f"Expected a two-dimensional array, got array of shape {A.shape}.")
+
+        self.__array__ = A.__array__  # enables jnp.array(H)
 
         if input_cols == 0:
             input_shape = A.shape[1]
