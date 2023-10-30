@@ -26,7 +26,7 @@ from scico.numpy import Array
 from .typed_dict import DataSetDict
 
 DType = Any
-KeyArray = Union[Array, jax.random.PRNGKeyArray]
+KeyArray = Union[Array, jax.Array]
 
 
 class IterateData:
