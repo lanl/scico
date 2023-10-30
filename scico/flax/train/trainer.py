@@ -47,9 +47,10 @@ from .steps import eval_step, train_step, train_step_post
 from .typed_dict import ConfigDict, DataSetDict, MetricsDict, ModelVarDict
 
 ModuleDef = Any
-KeyArray = Union[Array, jax.random.PRNGKeyArray]
+KeyArray = Union[Array, jax.Array]
 PyTree = Any
 DType = Any
+
 
 # sync across replicas
 def sync_batch_stats(state: TrainState) -> TrainState:
