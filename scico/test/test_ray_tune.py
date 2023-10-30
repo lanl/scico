@@ -7,7 +7,7 @@ import pytest
 
 try:
     import ray
-    from scico.ray import train, tune
+    from scico.ray import report, tune
 
     ray.init(num_cpus=1)
 except ImportError as e:
@@ -18,7 +18,7 @@ def test_random_run():
     def eval_params(config):
         x, y = config["x"], config["y"]
         cost = x**2 + (y - 0.5) ** 2
-        train.report({"cost": cost})
+        report({"cost": cost})
 
     config = {"x": tune.uniform(-1, 1), "y": tune.uniform(-1, 1)}
     resources = {"gpu": 0, "cpu": 1}
@@ -43,7 +43,7 @@ def test_random_tune():
     def eval_params(config):
         x, y = config["x"], config["y"]
         cost = x**2 + (y - 0.5) ** 2
-        train.report({"cost": cost})
+        report({"cost": cost})
 
     config = {"x": tune.uniform(-1, 1), "y": tune.uniform(-1, 1)}
     resources = {"gpu": 0, "cpu": 1}
@@ -68,7 +68,7 @@ def test_hyperopt_run():
     def eval_params(config):
         x, y = config["x"], config["y"]
         cost = x**2 + (y - 0.5) ** 2
-        train.report({"cost": cost})
+        report({"cost": cost})
 
     config = {"x": tune.uniform(-1, 1), "y": tune.uniform(-1, 1)}
     resources = {"gpu": 0, "cpu": 1}
@@ -91,7 +91,7 @@ def test_hyperopt_tune():
     def eval_params(config):
         x, y = config["x"], config["y"]
         cost = x**2 + (y - 0.5) ** 2
-        train.report({"cost": cost})
+        report({"cost": cost})
 
     config = {"x": tune.uniform(-1, 1), "y": tune.uniform(-1, 1)}
     resources = {"gpu": 0, "cpu": 1}
@@ -115,7 +115,7 @@ def test_hyperopt_tune_alt_init():
     def eval_params(config):
         x, y = config["x"], config["y"]
         cost = x**2 + (y - 0.5) ** 2
-        train.report({"cost": cost})
+        report({"cost": cost})
 
     config = {"x": tune.uniform(-1, 1), "y": tune.uniform(-1, 1)}
     tuner = tune.Tuner(
