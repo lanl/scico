@@ -239,10 +239,14 @@ class TestMatrix:
         I = linop.Identity(input_shape=(6,))
         assert Ao == Ao @ I
 
-    def test_init_devicearray(self):
-        A = np.random.randn(4, 6)
-        Ao = MatrixOperator(A)
-        assert isinstance(Ao.A, jnp.ndarray)
+    def test_init_array(self):
+        Am = np.random.randn(4, 6)
+        A = MatrixOperator(Am)
+        assert isinstance(A.A, np.ndarray)
+
+        A = MatrixOperator(jnp.array(Am))
+        assert isinstance(A.A, jnp.ndarray)
+        np.testing.assert_array_equal(A.A, jnp.array(A))
 
         with pytest.raises(TypeError):
             MatrixOperator([1.0, 3.0])
