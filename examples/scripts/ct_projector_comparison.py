@@ -133,7 +133,7 @@ timer = Timer()
 
 y = np.zeros(H.output_shape, dtype=np.float32)
 y[num_angles // 3, det_count // 2] = 1.0
-y = jax.array(y)
+y = jnp.array(y)
 
 HTys = {}
 for name, H in projectors.items():
