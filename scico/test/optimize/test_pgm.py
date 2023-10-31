@@ -4,6 +4,7 @@ import jax
 
 import pytest
 
+import scico.numpy as snp
 from scico import functional, linop, loss, random
 from scico.optimize import PGM, AcceleratedPGM
 from scico.optimize.pgm import (
@@ -20,9 +21,9 @@ class TestSet:
         M = 5
         N = 4
         # Set up arrays for problem argmin (1/2) ||A x - y||_2^2 + (λ/2) ||B x||_2^2
-        Amx = np.random.randn(M, N)
+        Amx = np.random.randn(M, N).astype(np.float32)
         Bmx = np.identity(N)
-        y = jax.device_put(np.random.randn(M))
+        y = snp.array(np.random.randn(M).astype(np.float32))
         λ = 1e0
         self.Amx = Amx
         self.y = y
@@ -196,7 +197,7 @@ class TestComplex:
         # Set up arrays for problem argmin (1/2) ||A x - y||_2^2 + (λ/2) ||x||_2^2
         Amx, key = random.randn((M, N), dtype=np.complex64, key=None)
         Bmx = np.identity(N)
-        y = jax.device_put(np.random.randn(M))
+        y = snp.array(np.random.randn(M))
         λ = 1e0
         self.Amx = Amx
         self.Bmx = Bmx

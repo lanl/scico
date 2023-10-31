@@ -1,7 +1,5 @@
 import numpy as np
 
-import jax
-
 import pytest
 
 import scico.numpy as snp
@@ -13,7 +11,7 @@ from scico.optimize import LinearizedADMM
 class TestMisc:
     def setup_method(self, method):
         np.random.seed(12345)
-        self.y = jax.device_put(np.random.randn(32, 33).astype(np.float32))
+        self.y = snp.array(np.random.randn(32, 33).astype(np.float32))
         self.maxiter = 2
         self.μ = 1e-1
         self.ν = 1e-1
@@ -122,7 +120,7 @@ class TestReal:
         λ = 1e0
         self.Amx = Amx
         self.Bmx = Bmx
-        self.y = jax.device_put(y)
+        self.y = snp.array(y)
         self.λ = λ
         # Solution of problem is given by linear system (A^T A + λ B^T B) x = A^T y
         self.grdA = lambda x: (Amx.T @ Amx + λ * Bmx.T @ Bmx) @ x
@@ -161,7 +159,7 @@ class TestComplex:
         λ = 1e0
         self.Amx = Amx
         self.Bmx = Bmx
-        self.y = jax.device_put(y)
+        self.y = snp.array(y)
         self.λ = λ
         # Solution of problem is given by linear system (A^T A + λ B^T B) x = A^T y
         self.grdA = lambda x: (Amx.conj().T @ Amx + λ * Bmx.conj().T @ Bmx) @ x
