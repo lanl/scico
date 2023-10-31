@@ -17,8 +17,6 @@ from functools import partial
 
 import numpy as np
 
-import jax
-import jax.numpy as jnp
 from jax.dtypes import result_type
 from jax.scipy.signal import convolve
 
@@ -192,12 +190,10 @@ class ConvolveByX(LinearOperator):
         if x.ndim != len(input_shape):
             raise ValueError(f"x.ndim = {x.ndim} must equal len(input_shape) = {len(input_shape)}.")
 
-        if isinstance(x, jnp.ndarray):
-            self.x = x
-        elif isinstance(x, np.ndarray):  # TODO: this should not be handled at the LinOp level
-            self.x = jax.device_put(x)
-        else:
+        # Ensure that x is a numpy or jax array.
+        if not snp.util.is_arraylike(x):
             raise TypeError(f"Expected numpy or jax array, got {type(x)}.")
+        self.x = x
 
         if mode not in ["full", "valid", "same"]:
             raise ValueError(f"Invalid mode={mode}; must be one of 'full', 'valid', 'same'.")
