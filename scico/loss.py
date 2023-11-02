@@ -18,7 +18,7 @@ import jax
 import scico.numpy as snp
 from scico import functional, linop, operator
 from scico.numpy import Array, BlockArray
-from scico.numpy.util import ensure_on_device, no_nan_divide
+from scico.numpy.util import no_nan_divide
 from scico.scipy.special import gammaln  # type: ignore
 from scico.solver import cg
 
@@ -67,7 +67,7 @@ class Loss(functional.Functional):
                be defined in a derived class.
             scale: Scaling parameter. Default: 1.0.
         """
-        self.y = ensure_on_device(y)
+        self.y = y
         if A is None:
             # y and x must have same shape
             A = linop.Identity(input_shape=self.y.shape, input_dtype=self.y.dtype)  # type: ignore
@@ -166,7 +166,6 @@ class SquaredL2Loss(Loss):
         W: Optional[linop.Diagonal] = None,
         prox_kwargs: Optional[dict] = None,
     ):
-
         r"""
         Args:
             y: Measurement.
@@ -175,8 +174,6 @@ class SquaredL2Loss(Loss):
             W: Weighting diagonal operator. Must be non-negative.
                 If ``None``, defaults to :class:`.Identity`.
         """
-        y = ensure_on_device(y)
-
         self.W: linop.Diagonal
 
         if W is None:
@@ -289,7 +286,6 @@ class PoissonLoss(Loss):
                 `self.A` is a :class:`.Identity`.
             scale: Scaling parameter. Default: 0.5.
         """
-        y = ensure_on_device(y)
         super().__init__(y=y, A=A, scale=scale)
 
         #: Constant term, :math:`\ln(y!)`, in Poisson log likehood.
@@ -326,7 +322,6 @@ class SquaredL2AbsLoss(Loss):
         scale: float = 0.5,
         W: Optional[linop.Diagonal] = None,
     ):
-
         r"""
         Args:
             y: Measurement.
@@ -335,8 +330,6 @@ class SquaredL2AbsLoss(Loss):
             W: Weighting diagonal operator. Must be non-negative.
                 If ``None``, defaults to :class:`.Identity`.
         """
-        y = ensure_on_device(y)
-
         if W is None:
             self.W: Union[linop.Diagonal, linop.Identity] = linop.Identity(y.shape)
         elif isinstance(W, linop.Diagonal):
@@ -533,7 +526,6 @@ class SquaredL2SquaredAbsLoss(Loss):
         scale: float = 0.5,
         W: Optional[linop.Diagonal] = None,
     ):
-
         r"""
         Args:
             y: Measurement.
@@ -542,8 +534,6 @@ class SquaredL2SquaredAbsLoss(Loss):
             W: Weighting diagonal operator. Must be non-negative.
                 If ``None``, defaults to :class:`.Identity`.
         """
-        y = ensure_on_device(y)
-
         if W is None:
             self.W: Union[linop.Diagonal, linop.Identity] = linop.Identity(y.shape)
         elif isinstance(W, linop.Diagonal):

@@ -23,10 +23,9 @@ and $\mathbf{x}$ is the desired image.
 
 import numpy as np
 
-import jax
-
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
+import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot
 from scico.examples import create_tangle_phantom
 from scico.linop.xray.astra import XRayTransform
@@ -36,13 +35,11 @@ from scico.util import device_info
 """
 Create a ground truth image and projector.
 """
-
 Nx = 128
 Ny = 256
 Nz = 64
 
-tangle = create_tangle_phantom(Nx, Ny, Nz)
-tangle = jax.device_put(tangle)
+tangle = snp.array(create_tangle_phantom(Nx, Ny, Nz))
 
 n_projection = 10  # number of projections
 angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
@@ -53,7 +50,7 @@ y = A @ tangle  # sinogram
 """
 Set up ADMM solver object.
 """
-λ = 2e0  # L1 norm regularization parameter
+λ = 2e0  # ℓ2,1 norm regularization parameter
 ρ = 5e0  # ADMM penalty parameter
 maxiter = 25  # number of ADMM iterations
 cg_tol = 1e-4  # CG relative tolerance
@@ -80,6 +77,7 @@ solver = ADMM(
     itstat_options={"display": True, "period": 5},
 )
 
+
 """
 Run the solver.
 """
@@ -92,6 +90,7 @@ print(
     "TV Restruction\nSNR: %.2f (dB), MAE: %.3f"
     % (metric.snr(tangle, tangle_recon), metric.mae(tangle, tangle_recon))
 )
+
 
 """
 Show the recovered image.

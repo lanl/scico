@@ -214,7 +214,7 @@ class XRayTransform(LinearOperator):
         delta_channel: Optional[float] = None,
         delta_pixel: Optional[float] = None,
     ) -> snp.Array:
-        return jax.device_put(
+        return snp.array(
             svmbir.project(
                 np.array(x),
                 np.array(angles),
@@ -264,8 +264,8 @@ class XRayTransform(LinearOperator):
         magnification: Optional[float] = None,
         delta_channel: Optional[float] = None,
         delta_pixel: Optional[float] = None,
-    ):
-        return jax.device_put(
+    ) -> snp.Array:
+        return snp.array(
             svmbir.backproject(
                 np.array(y),
                 np.array(angles),
@@ -432,7 +432,7 @@ class SVMBIRExtendedLoss(Loss):
         if np.sum(np.isnan(result)):
             raise ValueError("Result contains NaNs.")
 
-        return jax.device_put(result.reshape(self.A.input_shape))
+        return snp.array(result.reshape(self.A.input_shape))
 
 
 class SVMBIRSquaredL2Loss(SVMBIRExtendedLoss, SquaredL2Loss):

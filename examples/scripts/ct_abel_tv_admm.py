@@ -57,7 +57,7 @@ Set up the problem to be solved. Anisotropic TV, which gives slightly
 better performance than isotropic TV for this problem, is used here.
 """
 f = loss.SquaredL2Loss(y=y, A=A)
-λ = 2.35e1  # L1 norm regularization parameter
+λ = 2.35e1  # ℓ1 norm regularization parameter
 g = λ * functional.L1Norm()  # Note the use of anisotropic TV
 C = linop.FiniteDifference(input_shape=x_gt.shape)
 

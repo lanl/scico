@@ -34,7 +34,7 @@ N = 512
 det_count = int(jnp.ceil(jnp.sqrt(2 * N**2)))
 
 x_gt = discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=N)
-x_gt = jax.device_put(x_gt)
+x_gt = jnp.array(x_gt)
 
 
 """
@@ -43,7 +43,6 @@ Time projector instantiation.
 
 num_angles = 500
 angles = jnp.linspace(0, jnp.pi, num=num_angles, endpoint=False)
-
 
 timer = Timer()
 
@@ -92,7 +91,7 @@ Time first back projection, which might include JIT overhead.
 """
 y = np.zeros(H.output_shape, dtype=np.float32)
 y[num_angles // 3, det_count // 2] = 1.0
-y = jax.device_put(y)
+y = jnp.array(y)
 
 HTys = {}
 for name, H in projectors.items():

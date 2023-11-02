@@ -127,7 +127,7 @@ def _pyabel_daun_get_proj_matrix(img_shape: Shape) -> jax.Array:
         direction="forward",
         verbose=False,
     )
-    return jax.device_put(proj_matrix)
+    return jnp.array(proj_matrix)
 
 
 # Read abel.tools.symmetry module into a string.

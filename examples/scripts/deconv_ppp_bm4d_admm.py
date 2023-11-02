@@ -17,8 +17,6 @@ algorithm :cite:`venkatakrishnan-2013-plugandplay2`, with the BM4D
 
 import numpy as np
 
-import jax
-
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot, random
 from scico.examples import create_3d_foam_phantom, downsample_volume, tile_volume_slices
@@ -34,7 +32,7 @@ Nx, Ny, Nz = N, N, N // 4
 upsamp = 2
 x_gt_hires = create_3d_foam_phantom((upsamp * Nz, upsamp * Ny, upsamp * Nx), N_sphere=100)
 x_gt = downsample_volume(x_gt_hires, upsamp)
-x_gt = jax.device_put(x_gt)  # convert to jax array, push to GPU
+x_gt = snp.array(x_gt)  # convert to jax array
 
 
 """

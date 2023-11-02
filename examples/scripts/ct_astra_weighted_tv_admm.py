@@ -23,8 +23,6 @@ operator, and $\mathbf{x}$ is the desired image.
 
 import numpy as np
 
-import jax
-
 from xdesign import Soil, discrete_phantom
 
 import scico.numpy as snp
@@ -42,7 +40,7 @@ np.random.seed(0)
 x_gt = discrete_phantom(Soil(porosity=0.80), size=384)
 x_gt = np.ascontiguousarray(np.pad(x_gt, (64, 64)))
 x_gt = np.clip(x_gt, 0, np.inf)  # clip to positive values
-x_gt = jax.device_put(x_gt)  # convert to jax type, push to GPU
+x_gt = snp.array(x_gt)  # convert to jax type
 
 
 """
@@ -72,7 +70,7 @@ numbers.
 counts = np.random.poisson(Io * snp.exp(-𝛼 * A @ x_gt))
 counts = np.clip(counts, a_min=1, a_max=np.inf)  # replace any 0s count with 1
 y = -1 / 𝛼 * np.log(counts / Io)
-y = jax.device_put(y)  # convert back to float32
+y = snp.array(y)  # convert back to float32 as a jax array
 
 
 """
@@ -140,7 +138,7 @@ $I_0$ changes.
 """
 lambda_weighted = 5e1
 
-weights = jax.device_put(counts / Io)
+weights = snp.array(counts / Io)
 f = loss.SquaredL2Loss(y=y, A=A, W=linop.Diagonal(weights))
 
 admm_weighted = ADMM(

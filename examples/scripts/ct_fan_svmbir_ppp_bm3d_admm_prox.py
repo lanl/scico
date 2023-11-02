@@ -26,8 +26,6 @@ We solve the problem in two different ways:
 
 import numpy as np
 
-import jax
-
 import matplotlib.pyplot as plt
 import svmbir
 from matplotlib.ticker import MaxNLocator
@@ -137,10 +135,12 @@ x_mrf_parallel = svmbir.recon(
 
 
 """
-Push arrays to device.
+Convert numpy arrays to jax arrays.
 """
-y_fan, x0_fan, weights_fan = jax.device_put([y_fan, x_mrf_fan, weights_fan])
-x0_parallel = jax.device_put(x_mrf_parallel)
+y_fan = snp.array(y_fan)
+x0_fan = snp.array(x_mrf_fan)
+weights_fan = snp.array(weights_fan)
+x0_parallel = snp.array(x_mrf_parallel)
 
 
 """
@@ -179,7 +179,7 @@ solver_extloss_fan = ADMM(
     x0=x0_fan,
     maxiter=20,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-3, "maxiter": 100}),
-    itstat_options={"display": True},
+    itstat_options={"display": True, "period": 5},
 )
 solver_extloss_parallel = ADMM(
     f=None,
@@ -189,7 +189,7 @@ solver_extloss_parallel = ADMM(
     x0=x0_parallel,
     maxiter=20,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-3, "maxiter": 100}),
-    itstat_options={"display": True},
+    itstat_options={"display": True, "period": 5},
 )
 
 
@@ -267,7 +267,7 @@ plot.plot(
     fig=fig,
     ax=ax[0],
 )
-ax[0].set_ylim([5e-3, 1e0])
+ax[0].set_ylim([5e-3, 5e0])
 ax[0].xaxis.set_major_locator(MaxNLocator(integer=True))
 plot.plot(
     snp.vstack((hist_extloss_fan.Prml_Rsdl, hist_extloss_fan.Dual_Rsdl)).T,
@@ -278,7 +278,7 @@ plot.plot(
     fig=fig,
     ax=ax[1],
 )
-ax[1].set_ylim([5e-3, 1e0])
+ax[1].set_ylim([5e-3, 5e0])
 ax[1].xaxis.set_major_locator(MaxNLocator(integer=True))
 fig.show()
 
