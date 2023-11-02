@@ -29,7 +29,7 @@ class XRayTransform(LinearOperator):
     **Warning:**  Note that the only X-ray projector object currently
     supported, :class:`.Parallel2dProjector`, is not a very accurate
     approximation of the integral transform representing real projection
-    imaging, and may therefore not suitable for real imaging
+    imaging, and may therefore not be suitable for real imaging
     applications.
     """
 
