@@ -23,10 +23,9 @@ layers.
 
 import numpy as np
 
-import jax
-
 from xdesign import Foam, discrete_phantom
 
+import scico.numpy as snp
 import scico.random
 from scico import metric, plot
 from scico.denoiser import DnCNN
@@ -37,7 +36,7 @@ Create a ground truth image.
 np.random.seed(1234)
 N = 512  # image size
 x_gt = discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=N)
-x_gt = jax.device_put(x_gt)  # convert to jax array, push to GPU
+x_gt = snp.array(x_gt)  # convert to jax array
 
 
 """
@@ -47,7 +46,6 @@ print("  σ   | variant | noisy image PSNR (dB)   | denoised image PSNR (dB)")
 for σ in [0.06, 0.10, 0.20]:
     print("------+---------+-------------------------+-------------------------")
     for variant in ["17L", "17M", "17H", "17N", "6L", "6M", "6H", "6N"]:
-
         # Instantiate a DnCNN.
         denoiser = DnCNN(variant=variant)
 

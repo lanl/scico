@@ -22,8 +22,6 @@ image.
 
 import numpy as np
 
-import jax
-
 import matplotlib.pyplot as plt
 import svmbir
 from xdesign import Foam, discrete_phantom
@@ -65,7 +63,7 @@ max_intensity = 2000
 expected_counts = max_intensity * np.exp(-sino)
 noisy_counts = np.random.poisson(expected_counts).astype(np.float32)
 noisy_counts[noisy_counts == 0] = 1  # deal with 0s
-y = -np.log(noisy_counts / max_intensity)
+y = -snp.log(noisy_counts / max_intensity)
 
 
 """
@@ -87,9 +85,10 @@ x_mrf = svmbir.recon(
 """
 Set up problem.
 """
-y, x0, weights = jax.device_put([y, x_mrf, weights])
+x0 = snp.array(x_mrf)
+weights = snp.array(weights)
 
-λ = 1e-1  # L1 norm regularization parameter
+λ = 1e-1  # ℓ1 norm regularization parameter
 
 f = SVMBIRSquaredL2Loss(y=y, A=A, W=Diagonal(weights), scale=0.5)
 g = λ * functional.L21Norm()  # regularization functional

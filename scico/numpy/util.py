@@ -10,7 +10,6 @@
 
 from __future__ import annotations
 
-import warnings
 from math import prod
 from typing import Any, List, Optional, Tuple, Union
 
@@ -22,45 +21,6 @@ import scico.numpy as snp
 from scico.typing import ArrayIndex, Axes, AxisIndex, BlockShape, DType, Shape
 
 from ._blockarray import BlockArray
-
-
-def ensure_on_device(
-    *arrays: Union[np.ndarray, snp.Array, BlockArray]
-) -> Union[snp.Array, BlockArray]:
-    """Cast numpy arrays to jax arrays.
-
-    Cast numpy arrays to jax arrays and leave jax arrays and BlockArrays,
-    as they are. This is intended to be used when initializing optimizers
-    and functionals so that all arrays are either jax arrays or
-    BlockArrays.
-
-    Args:
-        *arrays: One or more input arrays (numpy array, jax array, or
-            BlockArray).
-
-    Returns:
-        Array or arrays, modified where appropriate.
-
-    Raises:
-        TypeError: If the arrays contain anything that is neither
-           numpy array, jax array, nor BlockArray.
-    """
-    arrays = list(arrays)
-
-    for i, array in enumerate(arrays):
-        if isinstance(array, np.ndarray):
-            warnings.warn(
-                f"Argument {i+1} of {len(arrays)} is a numpy array. "
-                "Will cast it to a jax array. "
-                f"To suppress this warning cast all numpy arrays to jax arrays.",
-                stacklevel=2,
-            )
-
-        arrays[i] = jax.device_put(arrays[i])
-
-    if len(arrays) == 1:
-        return arrays[0]
-    return arrays
 
 
 def parse_axes(

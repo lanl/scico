@@ -32,8 +32,6 @@ example:
 
 import numpy as np
 
-import jax
-
 import matplotlib.pyplot as plt
 import svmbir
 from matplotlib.ticker import MaxNLocator
@@ -100,9 +98,11 @@ x_mrf = svmbir.recon(
 
 
 """
-Push arrays to device.
+Convert numpy arrays to jax arrays.
 """
-y, x0, weights = jax.device_put([y, x_mrf, weights])
+y = snp.array(y)
+x0 = snp.array(x_mrf)
+weights = snp.array(weights)
 
 
 """
@@ -129,7 +129,7 @@ solver_l2loss = ADMM(
     x0=x0,
     maxiter=20,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-3, "maxiter": 100}),
-    itstat_options={"display": True},
+    itstat_options={"display": True, "period": 5},
 )
 
 
@@ -161,7 +161,7 @@ solver_extloss = ADMM(
     x0=x0,
     maxiter=20,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-3, "maxiter": 100}),
-    itstat_options={"display": True},
+    itstat_options={"display": True, "period": 5},
 )
 
 
@@ -219,7 +219,7 @@ plot.plot(
     fig=fig,
     ax=ax[0],
 )
-ax[0].set_ylim([5e-3, 1e0])
+ax[0].set_ylim([5e-3, 5e0])
 ax[0].xaxis.set_major_locator(MaxNLocator(integer=True))
 plot.plot(
     snp.vstack((hist_extloss.Prml_Rsdl, hist_extloss.Dual_Rsdl)).T,
@@ -230,7 +230,7 @@ plot.plot(
     fig=fig,
     ax=ax[1],
 )
-ax[1].set_ylim([5e-3, 1e0])
+ax[1].set_ylim([5e-3, 5e0])
 ax[1].xaxis.set_major_locator(MaxNLocator(integer=True))
 fig.show()
 

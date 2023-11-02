@@ -9,8 +9,8 @@ r"""
 X-ray Projector Comparison
 ==========================
 
-This example compares SCICO's native X-ray projection algorithm
-to that of the ASTRA Toolbox.
+This example compares SCICO's native X-ray projection algorithm to that
+of the ASTRA Toolbox.
 """
 
 import numpy as np
@@ -30,12 +30,10 @@ Create a ground truth image.
 """
 
 N = 512
-
-
 det_count = int(jnp.ceil(jnp.sqrt(2 * N**2)))
-
 x_gt = discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=N)
-x_gt = jax.device_put(x_gt)
+x_gt = jnp.array(x_gt)
+
 
 """
 Time projector instantiation.
@@ -43,7 +41,6 @@ Time projector instantiation.
 
 num_angles = 500
 angles = jnp.linspace(0, jnp.pi, num=num_angles, endpoint=False)
-
 
 timer = Timer()
 
@@ -58,10 +55,10 @@ projectors["astra"] = TomographicProjector(
 )
 timer.stop("astra_init")
 
+
 """
 Time first projector application, which might include JIT overhead.
 """
-
 ys = {}
 for name, H in projectors.items():
     timer_label = f"{name}_first_proj"
@@ -74,7 +71,6 @@ for name, H in projectors.items():
 """
 Compute average time for a projector application.
 """
-
 num_repeats = 3
 for name, H in projectors.items():
     timer_label = f"{name}_avg_proj"
@@ -85,6 +81,7 @@ for name, H in projectors.items():
     timer.stop(timer_label)
     timer.td[timer_label] /= num_repeats
 
+
 """
 Display timing results.
 
@@ -93,7 +90,7 @@ as fast as ASTRA when both are run on the GPU, and about
 10% slower when both are run the CPU.
 
 On our server, using the GPU:
-```    
+```
 Label               Accum.       Current
 -------------------------------------------
 astra_avg_proj      4.62e-02 s   Stopped
@@ -119,10 +116,10 @@ scico_init          1.00e+01 s   Stopped
 
 print(timer)
 
+
 """
 Show projections.
 """
-
 fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(7, 3))
 plot.imview(ys["scico"], title="SCICO projection", cbar=None, fig=fig, ax=ax[0])
 plot.imview(ys["astra"], title="ASTRA projection", cbar=None, fig=fig, ax=ax[1])
@@ -136,7 +133,7 @@ timer = Timer()
 
 y = np.zeros(H.output_shape, dtype=np.float32)
 y[num_angles // 3, det_count // 2] = 1.0
-y = jax.device_put(y)
+y = jnp.array(y)
 
 HTys = {}
 for name, H in projectors.items():
@@ -160,14 +157,14 @@ for name, H in projectors.items():
     timer.stop(timer_label)
     timer.td[timer_label] /= num_repeats
 
+
 """
 Display back projection timing results.
 
-On our server, the SCICO back projection is slow
-the first time it is run, probably due to JIT overhead.
-After the first run, it is an order of magnitude
-faster than ASTRA when both are run on the GPU,
-and about three times faster when both are run on the CPU.
+On our server, the SCICO back projection is slow the first time it is
+run, probably due to JIT overhead. After the first run, it is an order of
+magnitude faster than ASTRA when both are run on the GPU, and about three
+times faster when both are run on the CPU.
 
 On our server, using the GPU:
 ```
@@ -192,11 +189,10 @@ scico_first_BP    1.00e+01 s   Stopped
 
 print(timer)
 
-"""
-Show back projections of a single detector element,
-i.e., a line.
-"""
 
+"""
+Show back projections of a single detector element, i.e., a line.
+"""
 fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(7, 3))
 plot.imview(HTys["scico"], title="SCICO back projection (zoom)", cbar=None, fig=fig, ax=ax[0])
 plot.imview(HTys["astra"], title="ASTRA back projection (zoom)", cbar=None, fig=fig, ax=ax[1])

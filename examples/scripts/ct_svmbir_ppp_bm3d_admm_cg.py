@@ -23,8 +23,6 @@ than the prox of the `SVMBIRSquaredL2Loss` functional, as in the
 
 import numpy as np
 
-import jax
-
 import matplotlib.pyplot as plt
 import svmbir
 from xdesign import Foam, discrete_phantom
@@ -88,7 +86,9 @@ x_mrf = svmbir.recon(
 """
 Set up an ADMM solver.
 """
-y, x0, weights = jax.device_put([y, x_mrf, weights])
+y = snp.array(y)
+x0 = snp.array(x_mrf)
+weights = snp.array(weights)
 
 ρ = 15  # ADMM penalty parameter
 σ = density * 0.18  # denoiser sigma

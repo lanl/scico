@@ -249,7 +249,7 @@ def test_prox_cg(
         mask = np.ones(im.shape) > 0
 
     W = svmbir.calc_weights(y, weight_type=weight_type).astype("float32")
-    W = jax.device_put(W)
+    W = snp.array(W)
     λ = 0.01
 
     if is_masked:
@@ -297,7 +297,7 @@ def test_approx_prox(
 
     y = A @ im
     W = svmbir.calc_weights(y, weight_type=weight_type).astype("float32")
-    W = jax.device_put(W)
+    W = snp.array(W)
     λ = 0.01
 
     v, _ = scico.random.normal(im.shape, dtype=im.dtype)
