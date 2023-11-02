@@ -29,7 +29,8 @@ class XRayTransform(LinearOperator):
     **Warning:**  Note that the only X-ray projector object currently
     supported, :class:`.Parallel2dProjector`, is not a very accurate
     approximation of the integral transform representing real projection
-    imaging, and is therefore not suitable for real imaging applications.
+    imaging, and may therefore not suitable for real imaging
+    applications.
     """
 
     def __init__(self, projector):
