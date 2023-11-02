@@ -15,9 +15,9 @@ regularization
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
   \|_2^2 + \lambda \| C \mathbf{x} \|_{2,1} \;,$$
 
-where $A$ is the Radon transform, $\mathbf{y}$ is the sinogram, $C$ is
-a 3D finite difference operator, and $\mathbf{x}$ is the desired
-image.
+where $A$ is the X-ray transform (the CT forward projection operator),
+$\mathbf{y}$ is the sinogram, $C$ is a 3D finite difference operator,
+and $\mathbf{x}$ is the desired image.
 """
 
 
@@ -28,7 +28,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot
 from scico.examples import create_tangle_phantom
-from scico.linop.radon_astra import TomographicProjector
+from scico.linop.xray.astra import XRayTransform
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
@@ -43,9 +43,7 @@ tangle = snp.array(create_tangle_phantom(Nx, Ny, Nz))
 
 n_projection = 10  # number of projections
 angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
-A = TomographicProjector(
-    tangle.shape, [1.0, 1.0], [Nz, max(Nx, Ny)], angles
-)  # Radon transform operator
+A = XRayTransform(tangle.shape, [1.0, 1.0], [Nz, max(Nx, Ny)], angles)  # CT projection operator
 y = A @ tangle  # sinogram
 
 

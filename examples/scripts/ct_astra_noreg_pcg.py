@@ -15,8 +15,8 @@ algorithms to solve the problem
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
   \|_2^2 \;,$$
 
-where $A$ is the Radon transform, $\mathbf{y}$ is the sinogram, and
-$\mathbf{x}$ is the reconstructed image.
+where $A$ is the X-ray transform (the CT forward projection operator),
+$\mathbf{y}$ is the sinogram, and $\mathbf{x}$ is the reconstructed image.
 """
 
 from time import time
@@ -29,7 +29,7 @@ from xdesign import Foam, discrete_phantom
 
 from scico import loss, plot
 from scico.linop import CircularConvolve
-from scico.linop.radon_astra import TomographicProjector
+from scico.linop.xray.astra import XRayTransform
 from scico.solver import cg
 
 """
@@ -45,7 +45,7 @@ Configure a CT projection operator and generate synthetic measurements.
 """
 n_projection = N  # matches the phantom size so this is not few-view CT
 angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
-A = 1 / N * TomographicProjector(x_gt.shape, 1, N, angles)  # Radon transform operator
+A = 1 / N * XRayTransform(x_gt.shape, 1, N, angles)  # CT projection operator
 y = A @ x_gt  # sinogram
 
 

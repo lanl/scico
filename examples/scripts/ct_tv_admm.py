@@ -5,8 +5,8 @@
 # with the package.
 
 r"""
-TV-Regularized Sparse-View CT Reconstruction
-============================================
+TV-Regularized Sparse-View CT Reconstruction (Integrated Projector)
+===================================================================
 
 This example demonstrates solution of a sparse-view CT reconstruction
 problem with isotropic total variation (TV) regularization
@@ -16,17 +16,22 @@ problem with isotropic total variation (TV) regularization
 
 where $A$ is the X-ray transform (the CT forward projection operator),
 $\mathbf{y}$ is the sinogram, $C$ is a 2D finite difference operator, and
-$\mathbf{x}$ is the desired image.
+$\mathbf{x}$ is the desired image. This example uses the CT projector
+integrated into scico, while the companion
+[example script](ct_astra_tv_admm.rst) uses the projector provided by
+the astra package.
 """
 
 import numpy as np
+
+import jax
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from xdesign import Foam, discrete_phantom
 
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot
-from scico.linop.xray.astra import XRayTransform
+from scico.linop.xray import Parallel2dProjector, XRayTransform
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
@@ -36,22 +41,22 @@ Create a ground truth image.
 N = 512  # phantom size
 np.random.seed(1234)
 x_gt = discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=N)
-x_gt = snp.array(x_gt)  # convert to jax type
+x_gt = jax.device_put(x_gt)  # convert to jax type, push to GPU
 
 
 """
 Configure CT projection operator and generate synthetic measurements.
 """
 n_projection = 45  # number of projections
-angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
-A = XRayTransform(x_gt.shape, 1, N, angles)  # CT projection operator
+angles = np.linspace(0, np.pi, n_projection) + np.pi / 2.0  # evenly spaced projection angles
+A = XRayTransform(Parallel2dProjector((N, N), angles))  # CT projection operator
 y = A @ x_gt  # sinogram
 
 
 """
 Set up ADMM solver object.
 """
-λ = 2e0  # ℓ1 norm regularization parameter
+λ = 2e0  # L1 norm regularization parameter
 ρ = 5e0  # ADMM penalty parameter
 maxiter = 25  # number of ADMM iterations
 cg_tol = 1e-4  # CG relative tolerance
@@ -65,7 +70,7 @@ g = λ * functional.L21Norm()
 
 f = loss.SquaredL2Loss(y=y, A=A)
 
-x0 = snp.clip(A.fbp(y), 0, 1.0)
+x0 = snp.clip(A.T(y), 0, 1.0)
 
 solver = ADMM(
     f=f,
@@ -92,26 +97,18 @@ x_reconstruction = snp.clip(solver.x, 0, 1.0)
 Show the recovered image.
 """
 
-fig, ax = plot.subplots(nrows=1, ncols=3, figsize=(15, 5))
+fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(15, 5))
 plot.imview(x_gt, title="Ground truth", cbar=None, fig=fig, ax=ax[0])
-plot.imview(
-    x0,
-    title="FBP Reconstruction: \nSNR: %.2f (dB), MAE: %.3f"
-    % (metric.snr(x_gt, x0), metric.mae(x_gt, x0)),
-    cbar=None,
-    fig=fig,
-    ax=ax[1],
-)
 plot.imview(
     x_reconstruction,
     title="TV Reconstruction\nSNR: %.2f (dB), MAE: %.3f"
     % (metric.snr(x_gt, x_reconstruction), metric.mae(x_gt, x_reconstruction)),
     fig=fig,
-    ax=ax[2],
+    ax=ax[1],
 )
-divider = make_axes_locatable(ax[2])
+divider = make_axes_locatable(ax[1])
 cax = divider.append_axes("right", size="5%", pad=0.2)
-fig.colorbar(ax[2].get_images()[0], cax=cax, label="arbitrary units")
+fig.colorbar(ax[1].get_images()[0], cax=cax, label="arbitrary units")
 fig.show()
 
 

@@ -220,7 +220,6 @@ class LinearSubproblemSolver(SubproblemSolver):
             # hessian = A.T @ W @ A; W may be identity
             lhs_op += admm.f.hessian
 
-        lhs_op.jit()
         self.lhs_op = lhs_op
 
     def compute_rhs(self) -> Union[Array, BlockArray]:
