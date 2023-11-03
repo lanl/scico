@@ -18,10 +18,10 @@ def test_tvnorm():
     y = x_gt + σ * noise
 
     λ = 5e-2
-
     f = loss.SquaredL2Loss(y=y)
-    g = λ * functional.L1Norm()
+
     C = linop.FiniteDifference(input_shape=x_gt.shape, circular=True)
+    g = λ * functional.L1Norm()
     solver = ADMM(
         f=f,
         g_list=[g],
