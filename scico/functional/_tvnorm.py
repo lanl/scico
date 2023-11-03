@@ -86,7 +86,7 @@ class AnisotropicTVNorm(Functional):
         return (1,) * idx + (-1,) + (1,) * (ndims - idx - 1)
 
     def prox(self, v: Array, lam: float = 1.0, **kwargs) -> Array:
-        r"""Approximate proximal operator of the anisotripic  TV norm.
+        r"""Approximate proximal operator of the isotropic  TV norm.
 
         Approximation of the proximal operator of the anisotropic TV norm,
         computed via the method described in :cite:`kamilov-2016-parallel`.
