@@ -20,7 +20,6 @@ where $\mathbf{y}$ is the noisy image, $C$ is a 2D finite difference
 operator, and $\mathbf{x}$ is the denoised image.
 """
 
-import jax
 
 from xdesign import SiemensStar, discrete_phantom
 
@@ -39,7 +38,6 @@ N = 256  # image size
 phantom = SiemensStar(16)
 x_gt = snp.pad(discrete_phantom(phantom, N - 16), 8)
 x_gt = 0.5 * x_gt / x_gt.max()
-x_gt = jax.device_put(x_gt)  # convert to jax type, push to GPU
 y = spnoise(x_gt, 0.5)
 
 

@@ -20,7 +20,6 @@ from scico.functional import Functional
 from scico.linop import Identity, LinearOperator, operator_norm
 from scico.numpy import Array, BlockArray
 from scico.numpy.linalg import norm
-from scico.numpy.util import ensure_on_device
 from scico.typing import BlockShape, DType, PRNGKey, Shape
 
 from ._common import Optimizer
@@ -104,14 +103,14 @@ class ProximalADMMBase(Optimizer):
 
         if x0 is None:
             x0 = snp.zeros(xshape, dtype=xdtype)
-        self.x = ensure_on_device(x0)
+        self.x = x0
         if z0 is None:
             z0 = snp.zeros(zshape, dtype=zdtype)
-        self.z = ensure_on_device(z0)
+        self.z = z0
         self.z_old = self.z
         if u0 is None:
             u0 = snp.zeros(ushape, dtype=udtype)
-        self.u = ensure_on_device(u0)
+        self.u = u0
         self.u_old = self.u
 
         super().__init__(**kwargs)

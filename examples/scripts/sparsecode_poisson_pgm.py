@@ -32,7 +32,6 @@ and the selective non-negativity constraint that only applies to
 $\mathbf{x}^{(0)}$.
 """
 
-import jax
 
 import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
@@ -68,6 +67,7 @@ D = ((snp.real(dft(m))[1 : n + 1, :m]) ** 12).T
 D0 = D[:, :n0]
 D1 = D[:, n0:]
 
+
 # Define composed operator.
 class ForwardOperator(Operator):
 
@@ -80,7 +80,6 @@ class ForwardOperator(Operator):
     """
 
     def __init__(self, input_shape: Shape, D0, D1, jit: bool = True):
-
         self.D0 = D0
         self.D1 = D1
 
@@ -105,9 +104,6 @@ A = ForwardOperator(x_gt.shape, D0, D1)
 lam = A(x_gt)
 y, key = scico.random.poisson(lam, shape=lam.shape, key=key)  # synthetic signal
 
-x_gt = jax.device_put(x_gt)  # convert to jax array, push to GPU
-y = jax.device_put(y)  # convert to jax array, push to GPU
-
 
 """
 Set up the loss function and the regularization.
@@ -120,11 +116,10 @@ g = functional.SeparableFunctional([g0, g1])
 
 
 """
-Define common setup: maximum of iterations and initial estimation of solution.
+Define common setup: maximum of iterations and initial estimate of solution.
 """
 maxiter = 50
 x0, key = scico.random.uniform(((n0,), (n1,)), key=key)
-x0 = jax.device_put(x0)  # Initial solution estimate
 
 
 """
@@ -329,7 +324,7 @@ print("=================================================================")
 print("Running solver with step size of class: ", str_ss)
 print("L0 " + str_L0 + ": ", L0, "\n")
 
-x = solver.solve()  # Run the solver.
+x = solver.solve()  # run the solver
 hist = solver.itstat_object.history(transpose=True)
 plot_results(hist, str_ss, L0, x, x_gt, A)
 

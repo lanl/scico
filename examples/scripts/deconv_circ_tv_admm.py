@@ -20,8 +20,6 @@ deconvolved image.
 """
 
 
-import jax
-
 from xdesign import SiemensStar, discrete_phantom
 
 import scico.numpy as snp
@@ -36,7 +34,6 @@ Create a ground truth image.
 phantom = SiemensStar(32)
 N = 256  # image size
 x_gt = snp.pad(discrete_phantom(phantom, N - 16), 8)
-x_gt = jax.device_put(x_gt)  # convert to jax type, push to GPU
 
 
 """

@@ -27,8 +27,8 @@ class TestVerticalStack:
             H = VerticalStack([A, B], jit=jit)
 
         # in general, returns a BlockArray
-        A = Convolve(jax.device_put(np.ones((3, 3))), (7, 11))
-        B = Convolve(jax.device_put(np.ones((2, 2))), (7, 11))
+        A = Convolve(snp.ones((3, 3)), (7, 11))
+        B = Convolve(snp.ones((2, 2)), (7, 11))
         H = VerticalStack([A, B], jit=jit)
         x = np.ones((7, 11))
         y = H @ x
@@ -39,8 +39,8 @@ class TestVerticalStack:
         assert np.allclose(y[1], B @ x)
 
         # by default, collapse to jax array when possible
-        A = Convolve(jax.device_put(np.ones((2, 2))), (7, 11))
-        B = Convolve(jax.device_put(np.ones((2, 2))), (7, 11))
+        A = Convolve(snp.ones((2, 2)), (7, 11))
+        B = Convolve(snp.ones((2, 2)), (7, 11))
         H = VerticalStack([A, B], jit=jit)
         x = np.ones((7, 11))
         y = H @ x
@@ -51,8 +51,8 @@ class TestVerticalStack:
         assert np.allclose(y[1], B @ x)
 
         # let user turn off collapsing
-        A = Convolve(jax.device_put(np.ones((2, 2))), (7, 11))
-        B = Convolve(jax.device_put(np.ones((2, 2))), (7, 11))
+        A = Convolve(snp.ones((2, 2)), (7, 11))
+        B = Convolve(snp.ones((2, 2)), (7, 11))
         H = VerticalStack([A, B], collapse=False, jit=jit)
         x = np.ones((7, 11))
         y = H @ x
@@ -62,14 +62,14 @@ class TestVerticalStack:
     @pytest.mark.parametrize("jit", [False, True])
     def test_adjoint(self, collapse, jit):
         # general case
-        A = Convolve(jax.device_put(np.ones((3, 3))), (7, 11))
-        B = Convolve(jax.device_put(np.ones((2, 2))), (7, 11))
+        A = Convolve(snp.ones((3, 3)), (7, 11))
+        B = Convolve(snp.ones((2, 2)), (7, 11))
         H = VerticalStack([A, B], collapse=collapse, jit=jit)
         adjoint_test(H, self.key)
 
         # collapsable case
-        A = Convolve(jax.device_put(np.ones((2, 2))), (7, 11))
-        B = Convolve(jax.device_put(np.ones((2, 2))), (7, 11))
+        A = Convolve(snp.ones((2, 2)), (7, 11))
+        B = Convolve(snp.ones((2, 2)), (7, 11))
         H = VerticalStack([A, B], collapse=collapse, jit=jit)
         adjoint_test(H, self.key)
 
@@ -77,12 +77,12 @@ class TestVerticalStack:
     @pytest.mark.parametrize("jit", [False, True])
     def test_algebra(self, collapse, jit):
         # adding
-        A = Convolve(jax.device_put(np.ones((2, 2))), (7, 11))
-        B = Convolve(jax.device_put(np.ones((2, 2))), (7, 11))
+        A = Convolve(snp.ones((2, 2)), (7, 11))
+        B = Convolve(snp.ones((2, 2)), (7, 11))
         H = VerticalStack([A, B], collapse=collapse, jit=jit)
 
-        A = Convolve(jax.device_put(np.random.rand(2, 2)), (7, 11))
-        B = Convolve(jax.device_put(np.random.rand(2, 2)), (7, 11))
+        A = Convolve(snp.array(np.random.rand(2, 2)), (7, 11))
+        B = Convolve(snp.array(np.random.rand(2, 2)), (7, 11))
         G = VerticalStack([A, B], collapse=collapse, jit=jit)
 
         x = np.ones((7, 11))
