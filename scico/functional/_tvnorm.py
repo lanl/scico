@@ -7,16 +7,11 @@
 
 """Anisotropic total variation norm."""
 
-import warnings
-from typing import Optional, Tuple, Union
-
-from jax import jit, lax
+from typing import Optional, Tuple
 
 from scico import numpy as snp
-from scico.linop import FiniteDifference, VerticalStack, CircularConvolve
-from scico.numpy import Array, BlockArray, count_nonzero
-from scico.numpy.linalg import norm
-from scico.numpy.util import no_nan_divide
+from scico.linop import CircularConvolve, FiniteDifference, VerticalStack
+from scico.numpy import Array
 
 from ._functional import Functional
 from ._norm import L1Norm
@@ -64,7 +59,7 @@ class AnisotropicTVNorm(Functional):
                 ``None``, differences are evaluated along all axes.
         """
         self.ndims = ndims
-        self.h0 = snp.array([1.0, 1.0]) / snp.sqrt(2.0)   # lowpass filter
+        self.h0 = snp.array([1.0, 1.0]) / snp.sqrt(2.0)  # lowpass filter
         self.h1 = snp.array([1.0, -1.0]) / snp.sqrt(2.0)  # highpass filter
         self.l1norm = L1Norm()
         self.G = None
