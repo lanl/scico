@@ -30,7 +30,7 @@ from scico.linop import (
 )
 from scico.loss import SquaredL2Loss
 from scico.numpy import Array, BlockArray
-from scico.numpy.util import ensure_on_device, is_real_dtype
+from scico.numpy.util import is_real_dtype
 from scico.solver import ConvATADSolver, MatrixATADSolver
 from scico.solver import cg as scico_cg
 from scico.solver import minimize
@@ -98,8 +98,6 @@ class GenericSubproblemSolver(SubproblemSolver):
         Returns:
             Computed solution.
         """
-
-        x0 = ensure_on_device(x0)
 
         @jax.jit
         def obj(x):
@@ -222,7 +220,6 @@ class LinearSubproblemSolver(SubproblemSolver):
             # hessian = A.T @ W @ A; W may be identity
             lhs_op += admm.f.hessian
 
-        lhs_op.jit()
         self.lhs_op = lhs_op
 
     def compute_rhs(self) -> Union[Array, BlockArray]:
@@ -261,7 +258,6 @@ class LinearSubproblemSolver(SubproblemSolver):
         Returns:
             Computed solution.
         """
-        x0 = ensure_on_device(x0)
         rhs = self.compute_rhs()
         x, self.info = self.cg(self.lhs_op, rhs, x0, **self.cg_kwargs)  # type: ignore
         return x

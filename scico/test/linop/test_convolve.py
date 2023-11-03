@@ -1,10 +1,8 @@
 import operator as op
-import warnings
 
 import numpy as np
 
 import jax
-import jax.numpy as jnp
 import jax.scipy.signal as signal
 
 import pytest
@@ -39,7 +37,6 @@ class TestConvolve:
     @pytest.mark.parametrize("mode", ["full", "valid", "same"])
     @pytest.mark.parametrize("jit", [False, True])
     def test_adjoint(self, input_shape, mode, jit, input_dtype):
-
         ndim = len(input_shape)
         filter_shape = (3, 4)[:ndim]
         x, key = randn(input_shape, dtype=input_dtype, key=self.key)
@@ -167,17 +164,6 @@ def test_dimension_mismatch(testobj):
         Convolve(input_shape=(16, 16), h=testobj.psf_A)
 
 
-def test_ndarray_h():
-    # Used to restore the warnings after the context is used
-    with warnings.catch_warnings():
-        # Ignores warning raised by ensure_on_device
-        warnings.filterwarnings(action="ignore", category=UserWarning)
-
-        h = np.random.randn(3, 3).astype(np.float32)
-        A = Convolve(input_shape=(16, 16), h=h)
-        assert isinstance(A.h, jnp.ndarray)
-
-
 class TestConvolveByX:
     def setup_method(self, method):
         self.key = jax.random.PRNGKey(12345)
@@ -204,7 +190,6 @@ class TestConvolveByX:
     @pytest.mark.parametrize("mode", ["full", "valid", "same"])
     @pytest.mark.parametrize("jit", [False, True])
     def test_adjoint(self, input_shape, mode, jit, input_dtype):
-
         ndim = len(input_shape)
         x_shape = (3, 4)[:ndim]
         x, key = randn(input_shape, dtype=input_dtype, key=self.key)
@@ -330,14 +315,3 @@ def test_dimension_mismatch(cbx_testobj):
     with pytest.raises(ValueError):
         # 2-dim input shape, 1-dim xer
         ConvolveByX(input_shape=(16, 16), x=cbx_testobj.x_A)
-
-
-def test_ndarray_x():
-    # Used to restore the warnings after the context is used
-    with warnings.catch_warnings():
-        # Ignores warning raised by ensure_on_device
-        warnings.filterwarnings(action="ignore", category=UserWarning)
-
-        x = np.random.randn(3, 3).astype(np.float32)
-        A = ConvolveByX(input_shape=(16, 16), x=x)
-        assert isinstance(A.x, jnp.ndarray)

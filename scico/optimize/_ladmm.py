@@ -18,7 +18,6 @@ from scico.functional import Functional
 from scico.linop import LinearOperator
 from scico.numpy import Array, BlockArray
 from scico.numpy.linalg import norm
-from scico.numpy.util import ensure_on_device
 
 from ._common import Optimizer
 
@@ -115,7 +114,7 @@ class LinearizedADMM(Optimizer):
             input_shape = C.input_shape
             dtype = C.input_dtype
             x0 = snp.zeros(input_shape, dtype=dtype)
-        self.x = ensure_on_device(x0)
+        self.x = x0
         self.z, self.z_old = self.z_init(self.x)
         self.u = self.u_init(self.x)
 

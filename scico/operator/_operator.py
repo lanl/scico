@@ -383,7 +383,7 @@ output_dtype : {self.output_dtype}
             # concat_args(args) = snp.blockarray([args, val]) if argnum = 1
 
             if isinstance(args, (jnp.ndarray, np.ndarray)):
-                # In the case that the original operator takes a blockkarray with two
+                # In the case that the original operator takes a blockarray with two
                 # blocks, wrap in a list so we can use the same indexing as >2 block case
                 args = [args]
 

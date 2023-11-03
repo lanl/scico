@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2022 by SCICO Developers
+# Copyright (C) 2021-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -19,7 +19,7 @@ from ._linop import ComposedLinearOperator, LinearOperator
 from ._matrix import MatrixOperator
 from ._stack import DiagonalStack, VerticalStack
 from ._util import jacobian, operator_norm, power_iteration, valid_adjoint
-from ._xray import ParallelFixedAxis2dProjector, XRayProject
+from .xray import Parallel2dProjector, XRayTransform
 
 __all__ = [
     "CircularConvolve",
@@ -39,8 +39,8 @@ __all__ = [
     "Sum",
     "Transpose",
     "LinearOperator",
-    "XRayProject",
-    "ParallelFixedAxis2dProjector",
+    "XRayTransform",
+    "Parallel2dProjector",
     "ComposedLinearOperator",
     "linop_from_function",
     "operator_norm",

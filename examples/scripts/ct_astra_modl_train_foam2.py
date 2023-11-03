@@ -54,7 +54,7 @@ from scico import flax as sflax
 from scico import metric, plot
 from scico.flax.examples import load_ct_data
 from scico.flax.train.traversals import clip_positive, construct_traversal
-from scico.linop.radon_astra import TomographicProjector
+from scico.linop.xray.astra import XRayTransform
 
 """
 Prepare parallel processing. Set an arbitrary processor count (only
@@ -81,12 +81,12 @@ trdt, ttdt = load_ct_data(train_nimg, test_nimg, N, n_projection, verbose=True)
 Build CT projection operator.
 """
 angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
-A = TomographicProjector(
+A = XRayTransform(
     input_shape=(N, N),
     detector_spacing=1,
     det_count=N,
     angles=angles,
-)  # Radon transform operator
+)  # CT projection operator
 A = (1.0 / N) * A  # normalized
 
 
@@ -168,7 +168,7 @@ workdir2 = os.path.join(
 stats_object_ini = None
 
 checkpoint_files = []
-for (dirpath, dirnames, filenames) in os.walk(workdir2):
+for dirpath, dirnames, filenames in os.walk(workdir2):
     checkpoint_files = [fn for fn in filenames if str.split(fn, "_")[0] == "checkpoint"]
 
 if len(checkpoint_files) > 0:

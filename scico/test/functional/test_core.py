@@ -94,9 +94,6 @@ def test_separable_prox(test_separable_obj):
 def test_separable_grad(test_separable_obj):
     # Used to restore the warnings after the context is used
     with warnings.catch_warnings():
-        # Ignores warning raised by ensure_on_device
-        warnings.filterwarnings(action="ignore", category=UserWarning)
-
         # Verifies that there is a warning on f.grad and fg.grad
         np.testing.assert_warns(test_separable_obj.f.grad(test_separable_obj.v1))
         np.testing.assert_warns(test_separable_obj.fg.grad(test_separable_obj.vb))
@@ -120,7 +117,6 @@ class HuberNormNonSep(functional.HuberNorm):
 
 
 class TestNormProx:
-
     normlist = [
         functional.L0Norm,
         functional.L1Norm,
@@ -184,7 +180,6 @@ class TestNormProx:
 
     @pytest.mark.parametrize("norm", normlist)
     def test_scaled_eval(self, norm, alpha, test_prox_obj):
-
         unscaled = norm()
         scaled = test_prox_obj.scalar * norm()
 
@@ -247,7 +242,6 @@ def test_proj_obj(request):
 
 
 class TestProj:
-
     cnstrlist = [functional.NonNegativeIndicator, functional.L2BallIndicator]
     sdistlist = [functional.SetDistance, functional.SquaredSetDistance]
 

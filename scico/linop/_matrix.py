@@ -79,10 +79,10 @@ class MatrixOperator(LinearOperator):
         """
         self.A: snp.Array  #: Dense array implementing this matrix
 
-        # if A is an ndarray, make sure it gets converted to a jax array
+        # Ensure that A is a numpy or jax array.
         if not snp.util.is_arraylike(A):
             raise TypeError(f"Expected numpy or jax array, got {type(A)}.")
-        self.A = jnp.array(A)
+        self.A = A
 
         # Can only do rank-2 arrays
         if A.ndim != 2:

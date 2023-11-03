@@ -1,7 +1,5 @@
 import numpy as np
 
-import jax
-
 import pytest
 
 import scico.numpy as snp
@@ -20,7 +18,7 @@ from scico.optimize.admm import (
 class TestMisc:
     def setup_method(self, method):
         np.random.seed(12345)
-        self.y = jax.device_put(np.random.randn(16, 17).astype(np.float32))
+        self.y = snp.array(np.random.randn(16, 17).astype(np.float32))
 
     def test_admm(self):
         maxiter = 2
@@ -112,14 +110,14 @@ class TestReal:
         MB = 5
         N = 6
         # Set up arrays for problem argmin (𝛼/2) ||A x - y||_2^2 + (λ/2) ||B x||_2^2
-        Amx = np.random.randn(MA, N)
-        Bmx = np.random.randn(MB, N)
-        y = np.random.randn(MA)
+        Amx = np.random.randn(MA, N).astype(np.float32)
+        Bmx = np.random.randn(MB, N).astype(np.float32)
+        y = np.random.randn(MA).astype(np.float32)
         𝛼 = np.pi  # sort of random number chosen to test non-default scale factor
         λ = 1e0
         self.Amx = Amx
         self.Bmx = Bmx
-        self.y = jax.device_put(y)
+        self.y = snp.array(y)
         self.𝛼 = 𝛼
         self.λ = λ
         # Solution of problem is given by linear system (𝛼 A^T A + λ B^T B) x = 𝛼 A^T y
@@ -219,16 +217,16 @@ class TestRealWeighted:
         MB = 5
         N = 6
         # Set up arrays for problem argmin (𝛼/2) ||A x - y||_W^2 + (λ/2) ||B x||_2^2
-        Amx = np.random.randn(MA, N)
-        W = np.abs(np.random.randn(MA, 1))
-        Bmx = np.random.randn(MB, N)
-        y = np.random.randn(MA)
+        Amx = np.random.randn(MA, N).astype(np.float32)
+        W = np.abs(np.random.randn(MA, 1).astype(np.float32))
+        Bmx = np.random.randn(MB, N).astype(np.float32)
+        y = np.random.randn(MA).astype(np.float32)
         𝛼 = np.pi  # sort of random number chosen to test non-default scale factor
         λ = np.e
         self.Amx = Amx
-        self.W = jax.device_put(W)
+        self.W = snp.array(W)
         self.Bmx = Bmx
-        self.y = jax.device_put(y)
+        self.y = snp.array(y)
         self.𝛼 = 𝛼
         self.λ = λ
         # Solution of problem is given by linear system

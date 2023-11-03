@@ -17,13 +17,10 @@ from functools import partial
 
 import numpy as np
 
-import jax
-import jax.numpy as jnp
 from jax.dtypes import result_type
 from jax.scipy.signal import convolve
 
 import scico.numpy as snp
-from scico.numpy.util import ensure_on_device
 from scico.typing import DType, Shape
 
 from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
@@ -65,7 +62,7 @@ class Convolve(LinearOperator):
 
         if h.ndim != len(input_shape):
             raise ValueError(f"h.ndim = {h.ndim} must equal len(input_shape) = {len(input_shape)}.")
-        self.h = ensure_on_device(h)
+        self.h = h
 
         if mode not in ["full", "valid", "same"]:
             raise ValueError(f"Invalid mode={mode}; must be one of 'full', 'valid', 'same'.")
@@ -193,12 +190,10 @@ class ConvolveByX(LinearOperator):
         if x.ndim != len(input_shape):
             raise ValueError(f"x.ndim = {x.ndim} must equal len(input_shape) = {len(input_shape)}.")
 
-        if isinstance(x, jnp.ndarray):
-            self.x = x
-        elif isinstance(x, np.ndarray):  # TODO: this should not be handled at the LinOp level
-            self.x = jax.device_put(x)
-        else:
+        # Ensure that x is a numpy or jax array.
+        if not snp.util.is_arraylike(x):
             raise TypeError(f"Expected numpy or jax array, got {type(x)}.")
+        self.x = x
 
         if mode not in ["full", "valid", "same"]:
             raise ValueError(f"Invalid mode={mode}; must be one of 'full', 'valid', 'same'.")
