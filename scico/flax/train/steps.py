@@ -19,7 +19,7 @@ from scico.numpy import Array
 from .state import TrainState
 from .typed_dict import DataSetDict, MetricsDict
 
-KeyArray = Union[Array, jax.random.PRNGKeyArray]
+KeyArray = Union[Array, jax.Array]
 PyTree = Any
 
 

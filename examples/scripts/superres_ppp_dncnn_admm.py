@@ -14,7 +14,6 @@ This example demonstrates the use of the ADMM Plug and Play Priors
 superresolution problem.
 """
 
-import jax
 
 import scico
 import scico.numpy as snp
@@ -39,8 +38,7 @@ def downsample_image(img, rate):
 """
 Read a ground truth image.
 """
-img = kodim23(asfloat=True)[160:416, 60:316]
-img = jax.device_put(img)
+img = snp.array(kodim23(asfloat=True)[160:416, 60:316])
 
 
 """

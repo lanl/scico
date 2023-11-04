@@ -15,8 +15,8 @@ class TestSet:
 
     def test_wrap_func_and_grad(self):
         N = 8
-        A = jax.device_put(np.random.randn(N, N))
-        x = jax.device_put(np.random.randn(N))
+        A = snp.array(np.random.randn(N, N))
+        x = snp.array(np.random.randn(N))
 
         f = lambda x: 0.5 * snp.linalg.norm(A @ x) ** 2
 
@@ -117,10 +117,10 @@ class TestSet:
     def test_lstsq_func(self):
         N = 24
         M = 32
-        Ac = jax.device_put(np.random.randn(N, M).astype(np.float32))
+        Ac = snp.array(np.random.randn(N, M).astype(np.float32))
         Am = Ac.dot(Ac.T)
         A = Am.dot
-        x = jax.device_put(np.random.randn(N).astype(np.float32))
+        x = snp.array(np.random.randn(N).astype(np.float32))
         b = Am.dot(x)
         x0 = snp.zeros((N,), dtype=np.float32)
         tol = 1e-6
@@ -134,9 +134,9 @@ class TestSet:
     def test_lstsq_op(self):
         N = 32
         M = 24
-        Ac = jax.device_put(np.random.randn(N, M).astype(np.float32))
+        Ac = snp.array(np.random.randn(N, M).astype(np.float32))
         A = linop.MatrixOperator(Ac)
-        x = jax.device_put(np.random.randn(M).astype(np.float32))
+        x = snp.array(np.random.randn(M).astype(np.float32))
         b = Ac.dot(x)
         tol = 1e-7
         try:
@@ -319,7 +319,7 @@ def test_solve_atai(cho_factor, wide, weighted, alpha):
     D = alpha * snp.ones((A.shape[1],))
     ATAD = A.T @ (Wa * A) + alpha * snp.identity(A.shape[1])
     b = ATAD @ x0
-    slv = solver.ATADSolver(A, D, W=W, cho_factor=cho_factor)
+    slv = solver.MatrixATADSolver(A, D, W=W, cho_factor=cho_factor)
     x1 = slv.solve(b)
     assert metric.rel_res(x0, x1) < 5e-5
 
@@ -338,7 +338,7 @@ def test_solve_aati(cho_factor, wide, alpha):
     D = alpha * snp.ones((A.shape[0],))
     AATD = A @ A.T + alpha * snp.identity(A.shape[0])
     b = AATD @ x0
-    slv = solver.ATADSolver(A.T, D)
+    slv = solver.MatrixATADSolver(A.T, D)
     x1 = slv.solve(b)
     assert metric.rel_res(x0, x1) < 5e-5
 
@@ -365,7 +365,7 @@ def test_solve_atad(cho_factor, wide, vector):
     D = snp.abs(D)  # only required for Cholesky, but improved accuracy for LU
     ATAD = A.T @ A + snp.diag(D)
     b = ATAD @ x0
-    slv = solver.ATADSolver(A, D, cho_factor=cho_factor)
+    slv = solver.MatrixATADSolver(A, D, cho_factor=cho_factor)
     x1 = slv.solve(b)
     assert metric.rel_res(x0, x1) < 5e-5
     assert slv.accuracy(x1, b) < 5e-5

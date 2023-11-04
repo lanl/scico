@@ -5,9 +5,9 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Radon transform LinearOperator wrapping the ASTRA toolbox.
+"""X-ray transform LinearOperator wrapping the ASTRA toolbox.
 
-Radon transform :class:`.LinearOperator` wrapping the parallel beam
+X-ray transform :class:`.LinearOperator` wrapping the parallel beam
 projections in the
 `ASTRA toolbox <https://github.com/astra-toolbox/astra-toolbox>`_.
 This package provides both C and CUDA implementations of core
@@ -37,11 +37,11 @@ except ModuleNotFoundError as e:
 
 from scico.typing import Shape
 
-from ._linop import LinearOperator
+from .._linop import LinearOperator
 
 
-class TomographicProjector(LinearOperator):
-    r"""Parallel beam Radon transform based on the ASTRA toolbox.
+class XRayTransform(LinearOperator):
+    r"""Parallel beam X-ray transform based on the ASTRA toolbox.
 
     Perform tomographic projection (also called X-ray projection) of an
     image or volume at specified angles, using the
@@ -61,24 +61,28 @@ class TomographicProjector(LinearOperator):
         Args:
             input_shape: Shape of the input array. Determines whether 2D
                or 3D algorithm is used.
-            detector_spacing: Spacing between detector elements. See
-               https://www.astra-toolbox.com/docs/geom2d.html#projection-geometries
+            detector_spacing: Spacing between detector elements. See the
+               astra documentation for more information for
+               `2d <https://www.astra-toolbox.com/docs/geom2d.html#projection-geometries>`__
                or
-               https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries
-               for more information.
-            det_count: Number of detector elements. See
-               https://www.astra-toolbox.com/docs/geom2d.html#projection-geometries
+               `3d <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
+               geometries.
+            det_count: Number of detector elements. See the astra
+               documentation for more information for
+               `2d <https://www.astra-toolbox.com/docs/geom2d.html#projection-geometries>`__
                or
-               https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries
-               for more information.
+               `3d <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
+               geometries.
             angles: Array of projection angles in radians.
             volume_geometry: Specification of the shape of the
                discretized reconstruction volume. Must either ``None``,
                in which case it is inferred from `input_shape`, or
-               follow the astra syntax described in
-               https://www.astra-toolbox.com/docs/geom2d.html#volume-geometries
+               follow the astra syntax described in the astra
+               documentation for
+               `2d <https://www.astra-toolbox.com/docs/geom2d.html#volume-geometries>`__
                or
-               https://www.astra-toolbox.com/docs/geom3d.html#d-geometries.
+               `3d <https://www.astra-toolbox.com/docs/geom3d.html#d-geometries>`__
+               geometries.
             device: Specifies device for projection operation.
                One of ["auto", "gpu", "cpu"]. If "auto", a GPU is used if
                available, otherwise, the CPU is used.
@@ -87,7 +91,7 @@ class TomographicProjector(LinearOperator):
         self.num_dims = len(input_shape)
         if self.num_dims not in [2, 3]:
             raise ValueError(
-                f"Only 2D and 3D projections are supported, but `input_shape` is {input_shape}."
+                f"Only 2D and 3D projections are supported, but input_shape is {input_shape}."
             )
 
         output_shape: Shape
@@ -96,7 +100,7 @@ class TomographicProjector(LinearOperator):
         elif self.num_dims == 3:
             assert isinstance(det_count, (list, tuple))
             if len(det_count) != 2:
-                raise ValueError("Expected `det_count` to have 2 elements")
+                raise ValueError("Expected det_count to have 2 elements")
             output_shape = (det_count[0], len(angles), det_count[1])
 
         # Set up all the ASTRA config
@@ -112,7 +116,7 @@ class TomographicProjector(LinearOperator):
             assert isinstance(detector_spacing, (list, tuple))
             assert isinstance(det_count, (list, tuple))
             if len(detector_spacing) != 2:
-                raise ValueError("Expected `detector_spacing` to have 2 elements")
+                raise ValueError("Expected detector_spacing to have 2 elements")
             self.proj_geom = astra.create_proj_geom(
                 "parallel3d",
                 detector_spacing[0],
@@ -132,7 +136,7 @@ class TomographicProjector(LinearOperator):
                 self.vol_geom: dict = astra.create_vol_geom(*input_shape, *volume_geometry)
             else:
                 raise ValueError(
-                    "`volume_geometry` must be a tuple of len 4 (2D) or 6 (3D)."
+                    "volume_geometry must be a tuple of len 4 (2D) or 6 (3D)."
                     "Please see the astra documentation for details."
                 )
         else:
@@ -152,7 +156,7 @@ class TomographicProjector(LinearOperator):
             raise ValueError(f"Invalid device specified; got {device}.")
 
         if self.num_dims == 3 and self.device == "cpu":
-            raise ValueError("No CPU algorithm exists for 3D tomography.")
+            raise ValueError("No CPU algorithm for 3D projection.")
 
         if self.num_dims == 3:
             # not needed for astra's 3D algorithm
@@ -227,7 +231,7 @@ class TomographicProjector(LinearOperator):
         """
 
         if self.num_dims == 3:
-            raise NotImplementedError("3D FBP is not implemented")
+            raise NotImplementedError("3D FBP is not implemented.")
 
         # Just use the CPU FBP alg for now; hitting memory issues with GPU one.
         def f(sino):

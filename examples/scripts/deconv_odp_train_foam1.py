@@ -108,10 +108,10 @@ train_ds, test_ds = load_foam1_blur_data(
 """
 Define configuration dictionary for model and training loop.
 
-Parameters have been selected for demonstration purposes and
-relatively short training. The model depth is akin to the number of
-unrolled iterations in the ODP model. The block depth controls the number
-of layers at each unrolled iteration. The number of filters is uniform
+Parameters have been selected for demonstration purposes and relatively
+short training. The model depth is akin to the number of unrolled
+iterations in the ODP model. The block depth controls the number of
+layers at each unrolled iteration. The number of filters is uniform
 throughout the iterations. Better performance may be obtained by
 increasing depth, block depth, number of filters or training epochs, but
 may require longer training times.

@@ -54,9 +54,6 @@ def test_separable_prox(test_separable_obj):
 def test_separable_grad(test_separable_obj):
     # Used to restore the warnings after the context is used
     with warnings.catch_warnings():
-        # Ignores warning raised by ensure_on_device
-        warnings.filterwarnings(action="ignore", category=UserWarning)
-
         # Verifies that there is a warning on f.grad and fg.grad
         np.testing.assert_warns(test_separable_obj.f.grad(test_separable_obj.v1))
         np.testing.assert_warns(test_separable_obj.fg.grad(test_separable_obj.vb))

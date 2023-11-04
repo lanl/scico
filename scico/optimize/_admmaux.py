@@ -30,8 +30,8 @@ from scico.linop import (
 )
 from scico.loss import SquaredL2Loss
 from scico.numpy import Array, BlockArray
-from scico.numpy.util import ensure_on_device, is_real_dtype
-from scico.solver import ATADSolver, ConvATADSolver
+from scico.numpy.util import is_real_dtype
+from scico.solver import ConvATADSolver, MatrixATADSolver
 from scico.solver import cg as scico_cg
 from scico.solver import minimize
 
@@ -98,8 +98,6 @@ class GenericSubproblemSolver(SubproblemSolver):
         Returns:
             Computed solution.
         """
-
-        x0 = ensure_on_device(x0)
 
         @jax.jit
         def obj(x):
@@ -222,7 +220,6 @@ class LinearSubproblemSolver(SubproblemSolver):
             # hessian = A.T @ W @ A; W may be identity
             lhs_op += admm.f.hessian
 
-        lhs_op.jit()
         self.lhs_op = lhs_op
 
     def compute_rhs(self) -> Union[Array, BlockArray]:
@@ -261,7 +258,6 @@ class LinearSubproblemSolver(SubproblemSolver):
         Returns:
             Computed solution.
         """
-        x0 = ensure_on_device(x0)
         rhs = self.compute_rhs()
         x, self.info = self.cg(self.lhs_op, rhs, x0, **self.cg_kwargs)  # type: ignore
         return x
@@ -296,14 +292,14 @@ class MatrixSubproblemSolver(LinearSubproblemSolver):
         \mb{u}^{(k)}_i) \;,
 
     which is solved by factorization of the left hand side of the
-    equation, using :class:`.ATADSolver`.
+    equation, using :class:`.MatrixATADSolver`.
 
 
     Attributes:
         admm (:class:`.ADMM`): ADMM solver object to which the solver is
             attached.
         solve_kwargs (dict): Dictionary of arguments for solver
-            :class:`.ATADSolver` initialization.
+            :class:`.MatrixATADSolver` initialization.
     """
 
     def __init__(self, check_solve: bool = False, solve_kwargs: Optional[dict[str, Any]] = None):
@@ -313,7 +309,7 @@ class MatrixSubproblemSolver(LinearSubproblemSolver):
             check_solve: If ``True``, compute solver accuracy after each
                 solve.
             solve_kwargs: Dictionary of arguments for solver
-                :class:`.ATADSolver` initialization.
+                :class:`.MatrixATADSolver` initialization.
         """
         self.check_solve = check_solve
         default_solve_kwargs = {"cho_factor": False}
@@ -352,7 +348,7 @@ class MatrixSubproblemSolver(LinearSubproblemSolver):
         Csum = reduce(
             lambda a, b: a + b, [rhoi * Ci.gram_op for rhoi, Ci in zip(admm.rho_list, admm.C_list)]
         )
-        self.solver = ATADSolver(A, Csum, W, **self.solve_kwargs)
+        self.solver = MatrixATADSolver(A, Csum, W, **self.solve_kwargs)
 
     def solve(self, x0: Array) -> Array:
         """Solve the ADMM step.

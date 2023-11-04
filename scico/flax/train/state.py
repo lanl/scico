@@ -21,7 +21,7 @@ from scico.typing import Shape
 from .typed_dict import ConfigDict, ModelVarDict
 
 ModuleDef = Any
-KeyArray = Union[Array, jax.random.PRNGKeyArray]
+KeyArray = Union[Array, jax.Array]
 PyTree = Any
 ArrayTree = optax.Params
 

@@ -14,12 +14,11 @@ except ImportError as e:
     pytest.skip("ray.tune not installed", allow_module_level=True)
 
 
-@pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_random_run():
-    def eval_params(config, reporter):
+    def eval_params(config):
         x, y = config["x"], config["y"]
         cost = x**2 + (y - 0.5) ** 2
-        reporter(cost=cost)
+        report({"cost": cost})
 
     config = {"x": tune.uniform(-1, 1), "y": tune.uniform(-1, 1)}
     resources = {"gpu": 0, "cpu": 1}
@@ -33,14 +32,13 @@ def test_random_run():
         resources_per_trial=resources,
         hyperopt=False,
         verbose=False,
-        local_dir=os.path.join(tempfile.gettempdir(), "ray_test"),
+        storage_path=os.path.join(tempfile.gettempdir(), "ray_test"),
     )
     best_config = analysis.get_best_config(metric="cost", mode="min")
     assert np.abs(best_config["x"]) < 0.25
     assert np.abs(best_config["y"] - 0.5) < 0.25
 
 
-@pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_random_tune():
     def eval_params(config):
         x, y = config["x"], config["y"]
@@ -58,7 +56,7 @@ def test_random_tune():
         num_samples=100,
         hyperopt=False,
         verbose=False,
-        local_dir=os.path.join(tempfile.gettempdir(), "ray_test"),
+        storage_path=os.path.join(tempfile.gettempdir(), "ray_test"),
     )
     results = tuner.fit()
     best_config = results.get_best_result().config
@@ -66,12 +64,11 @@ def test_random_tune():
     assert np.abs(best_config["y"] - 0.5) < 0.25
 
 
-@pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_hyperopt_run():
-    def eval_params(config, reporter):
+    def eval_params(config):
         x, y = config["x"], config["y"]
         cost = x**2 + (y - 0.5) ** 2
-        reporter(cost=cost)
+        report({"cost": cost})
 
     config = {"x": tune.uniform(-1, 1), "y": tune.uniform(-1, 1)}
     resources = {"gpu": 0, "cpu": 1}
@@ -90,7 +87,6 @@ def test_hyperopt_run():
     assert np.abs(best_config["y"] - 0.5) < 0.25
 
 
-@pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_hyperopt_tune():
     def eval_params(config):
         x, y = config["x"], config["y"]
@@ -115,7 +111,6 @@ def test_hyperopt_tune():
     assert np.abs(best_config["y"] - 0.5) < 0.25
 
 
-@pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_hyperopt_tune_alt_init():
     def eval_params(config):
         x, y = config["x"], config["y"]

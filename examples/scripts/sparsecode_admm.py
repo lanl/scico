@@ -21,8 +21,7 @@ is the non-negative indicator.
 
 import numpy as np
 
-import jax
-
+import scico.numpy as snp
 from scico import functional, linop, loss, plot
 from scico.optimize.admm import ADMM, MatrixSubproblemSolver
 from scico.util import device_info
@@ -45,8 +44,8 @@ idx = np.random.randint(low=0, high=n, size=s)  # support of xt
 xt[idx] = np.random.rand(s)
 y = D @ xt + 5e-2 * np.random.randn(m)  # synthetic signal
 
-xt = jax.device_put(xt)  # convert to jax array, push to GPU
-y = jax.device_put(y)  # convert to jax array, push to GPU
+xt = snp.array(xt)  # convert to jax array
+y = snp.array(y)  # convert to jax array
 
 
 """
