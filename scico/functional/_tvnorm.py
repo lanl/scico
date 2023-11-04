@@ -73,7 +73,9 @@ class AnisotropicTVNorm(Functional):
             else:
                 ndims = self.ndims
             axes = tuple(range(ndims))
-            self.G = FiniteDifference(x.shape, input_dtype=x.dtype, axes=axes, circular=True)
+            self.G = FiniteDifference(
+                x.shape, input_dtype=x.dtype, axes=axes, circular=True, jit=True
+            )
         return snp.sum(snp.abs(self.G @ x))
 
     @staticmethod
