@@ -106,10 +106,12 @@ class AnisotropicTVNorm(Functional):
         K = 2 * ndims
 
         if self.W is None or self.W.shape[1] != v.shape:
+            h0 = self.h0.astype(v.dtype)
+            h1 = self.h1.astype(v.dtype)
             C0 = VerticalStack(  # Stack of lowpass filter operators for each axis
                 [
                     CircularConvolve(
-                        self.h0.reshape(AnisotropicTVNorm._shape(k, ndims)),
+                        h0.reshape(AnisotropicTVNorm._shape(k, ndims)),
                         v.shape,
                         ndims=self.ndims,
                     )
@@ -119,7 +121,7 @@ class AnisotropicTVNorm(Functional):
             C1 = VerticalStack(  # Stack of highpass filter operators for each axis
                 [
                     CircularConvolve(
-                        self.h1.reshape(AnisotropicTVNorm._shape(k, ndims)),
+                        h1.reshape(AnisotropicTVNorm._shape(k, ndims)),
                         v.shape,
                         ndims=self.ndims,
                     )
