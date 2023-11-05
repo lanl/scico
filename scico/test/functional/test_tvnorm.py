@@ -29,14 +29,12 @@ def test_tvnorm():
         rho_list=[1e1],
         x0=y,
         maxiter=50,
-        subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-3, "maxiter": 20})
+        subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-3, "maxiter": 20}),
     )
     x_tvdn = solver.solve()
 
     h = λ * functional.AnisotropicTVNorm()
-    solver = AcceleratedPGM(
-        f=f, g=h, L0=2e2, x0=y, maxiter=50
-    )
+    solver = AcceleratedPGM(f=f, g=h, L0=2e2, x0=y, maxiter=50)
     x_approx = solver.solve()
 
     assert metric.snr(x_tvdn, x_approx) > 45
