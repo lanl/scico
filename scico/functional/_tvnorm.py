@@ -10,7 +10,12 @@
 from typing import Optional, Tuple
 
 from scico import numpy as snp
-from scico.linop import LinearOperator, CircularConvolve, FiniteDifference, VerticalStack
+from scico.linop import (
+    CircularConvolve,
+    FiniteDifference,
+    LinearOperator,
+    VerticalStack,
+)
 from scico.numpy import Array
 
 from ._functional import Functional
