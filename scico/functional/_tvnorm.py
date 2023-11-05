@@ -10,7 +10,7 @@
 from typing import Optional, Tuple
 
 from scico import numpy as snp
-from scico.linop import CircularConvolve, FiniteDifference, VerticalStack
+from scico.linop import LinearOperator, CircularConvolve, FiniteDifference, VerticalStack
 from scico.numpy import Array
 
 from ._functional import Functional
@@ -62,8 +62,8 @@ class AnisotropicTVNorm(Functional):
         self.h0 = snp.array([1.0, 1.0]) / snp.sqrt(2.0)  # lowpass filter
         self.h1 = snp.array([1.0, -1.0]) / snp.sqrt(2.0)  # highpass filter
         self.l1norm = L1Norm()
-        self.G = None
-        self.W = None
+        self.G: Optional[LinearOperator] = None
+        self.W: Optional[LinearOperator] = None
 
     def __call__(self, x: Array) -> float:
         r"""Compute the anisotropic TV norm of an array."""
@@ -127,7 +127,7 @@ class AnisotropicTVNorm(Functional):
                 ]
             )
             # single-level shift-invariant Haar transform
-            self.W = VerticalStack((C0, C1), jit=True)
+            self.W = VerticalStack([C0, C1], jit=True)
 
         Wv = self.W @ v
         # Apply 𝑙1 shrinkage to highpass component of shift-invariant Haar transform
