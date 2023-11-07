@@ -39,7 +39,7 @@ Create a ground truth image.
 N = 512  # phantom size
 np.random.seed(1234)
 x_gt = discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=N)
-x_gt = jax.device_put(x_gt)  # convert to jax type, push to GPU
+x_gt = snp.array(x_gt)  # convert to jax type
 
 
 """
@@ -54,7 +54,7 @@ y = A @ x_gt  # sinogram
 """
 Set up ADMM solver object.
 """
-λ = 2e0  # L1 norm regularization parameter
+λ = 2e0  # ℓ1 norm regularization parameter
 ρ = 5e0  # ADMM penalty parameter
 maxiter = 25  # number of ADMM iterations
 cg_tol = 1e-4  # CG relative tolerance
