@@ -5,8 +5,8 @@
 # with the package.
 
 r"""
-TV-Regularized Sparse-View CT Reconstruction
-============================================
+TV-Regularized Sparse-View CT Reconstruction (ASTRA Projector)
+==============================================================
 
 This example demonstrates solution of a sparse-view CT reconstruction
 problem with isotropic total variation (TV) regularization
@@ -16,7 +16,10 @@ problem with isotropic total variation (TV) regularization
 
 where $A$ is the X-ray transform (the CT forward projection operator),
 $\mathbf{y}$ is the sinogram, $C$ is a 2D finite difference operator, and
-$\mathbf{x}$ is the desired image.
+$\mathbf{x}$ is the desired image. This example uses the CT projector
+provided by the astra package, while the companion
+[example script](ct_tv_admm.rst) uses the projector integrated into
+scico.
 """
 
 import numpy as np
@@ -36,7 +39,7 @@ Create a ground truth image.
 N = 512  # phantom size
 np.random.seed(1234)
 x_gt = discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=N)
-x_gt = snp.array(x_gt)  # convert to jax type
+x_gt = jax.device_put(x_gt)  # convert to jax type, push to GPU
 
 
 """
@@ -51,7 +54,7 @@ y = A @ x_gt  # sinogram
 """
 Set up ADMM solver object.
 """
-λ = 2e0  # ℓ1 norm regularization parameter
+λ = 2e0  # L1 norm regularization parameter
 ρ = 5e0  # ADMM penalty parameter
 maxiter = 25  # number of ADMM iterations
 cg_tol = 1e-4  # CG relative tolerance
