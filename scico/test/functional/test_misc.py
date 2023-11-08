@@ -30,6 +30,38 @@ class TestCheckAttrs:
         assert isinstance(cls.has_prox, bool)
 
 
+class TestJit:
+    # Test whether functionals can be jitted.
+
+    # Generate a list of all functionals in scico.functionals that we will check
+    ignore = [functional.Functional, functional.ScaledFunctional, functional.SeparableFunctional]
+    to_check = []
+    for name, cls in functional.__dict__.items():
+        if isinstance(cls, type):
+            if issubclass(cls, functional.Functional):
+                if cls not in ignore:
+                    to_check.append(cls)
+
+    @pytest.mark.parametrize("cls", to_check)
+    def test_jit(self, cls):
+        # Only test functionals that have no required __init__ parameters.
+        try:
+            f = cls()
+        except TypeError:
+            pass
+        else:
+            v = snp.arange(4.0)
+            # Only test functionals that can take 1D input.
+            try:
+                u0 = f.prox(v)
+            except ValueError:
+                pass
+            else:
+                fprox = jax.jit(f.prox)
+                u1 = fprox(v)
+                assert np.allclose(u0, u1)
+
+
 def test_functional_sum():
     x = np.random.randn(4, 4)
     f0 = functional.L1Norm()
