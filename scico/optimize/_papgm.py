@@ -3,9 +3,9 @@
 from typing import List, Optional, Tuple, Union
 
 import scico.numpy as snp
-from scico.numpy import Array, BlockArray
 from scico.functional import Functional
 from scico.loss import Loss
+from scico.numpy import Array, BlockArray
 
 from ._common import Optimizer
 
