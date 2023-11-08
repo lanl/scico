@@ -13,7 +13,12 @@ class TestCheckAttrs:
     # and set to True/False in the Functional subclasses.
 
     # Generate a list of all functionals in scico.functionals that we will check
-    ignore = [functional.Functional, functional.ScaledFunctional, functional.SeparableFunctional]
+    ignore = [
+        functional.Functional,
+        functional.ScaledFunctional,
+        functional.SeparableFunctional,
+        functional.ProximalAverage,
+    ]
     to_check = []
     for name, cls in functional.__dict__.items():
         if isinstance(cls, type):
