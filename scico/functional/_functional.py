@@ -39,7 +39,7 @@ class Functional:
         return f"""{type(self)}
 has_eval = {self.has_eval}
 has_prox = {self.has_prox}
-        """
+"""
 
     def __mul__(self, other):
         if snp.isscalar(other) or isinstance(other, jax.core.Tracer):
