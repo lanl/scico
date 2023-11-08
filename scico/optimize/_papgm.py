@@ -4,17 +4,19 @@ from typing import List, Optional, Tuple, Union
 
 import scico.numpy as snp
 from scico.numpy import Array, BlockArray
-from scico.functional import Loss, Functional
+from scico.functional import Functional
+from scico.loss import Loss
 
 from ._common import Optimizer
+
 
 class AcceleratedPAPGM(Optimizer):
     r"""Accelerated Proximal Averaged Projected Gradient Method (AcceleratedPAPGM) base class.
 
-    Minimize a function of the form :math:`f(\mb{x}) + \sum_{i=1}^N \rho_i g_i(\mb{x})`, 
+    Minimize a function of the form :math:`f(\mb{x}) + \sum_{i=1}^N \rho_i g_i(\mb{x})`,
 
-    where :math:`f` and the :math:`g` are instances of :class:`.Functional`, 
-    `rho_i` are positive and non-zero and sum upto 1. 
+    where :math:`f` and the :math:`g` are instances of :class:`.Functional`,
+    `rho_i` are positive and non-zero and sum upto 1.
     This modifies FISTA to handle the case of composite prior minimization.
     :cite:`yaoliang-2013-nips`.
 
@@ -56,7 +58,7 @@ class AcceleratedPAPGM(Optimizer):
     def step(self):
         """Take a single AcceleratedPAPGM step."""
         assert snp.sum(snp.array(self.rho_list)) == 1
-        assert snp.all(snp.array([rho>=0 for rho in self.rho_list]))
+        assert snp.all(snp.array([rho >= 0 for rho in self.rho_list]))
 
         x_old = self.x
         z = self.v - 1.0 / self.L * self.f.grad(self.v)
@@ -82,7 +84,7 @@ class AcceleratedPAPGM(Optimizer):
     def minimizer(self):
         """Return current estimate of the functional mimimizer."""
         return self.x
-    
+
     def objective(self, x: Optional[Union[Array, BlockArray]] = None) -> float:
         r"""Evaluate the objective function
 
