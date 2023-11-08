@@ -27,6 +27,13 @@ class ProximalAverage(Functional):
         self.has_eval = all([f.has_eval for f in func_list])
         self.func_list = func_list
 
+    def __repr__(self):
+        return (
+            Functional.__repr__(self)
+            + "Components:\n"
+            + "\n".join(["  " + repr(f) for f in self.func_list])
+        )
+
     def __call__(self, x: Union[Array, BlockArray]) -> float:
         if self.has_eval:
             return sum([f(x) for f in self.func_list])
