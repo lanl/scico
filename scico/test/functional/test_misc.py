@@ -17,8 +17,6 @@ class TestCheckAttrs:
         functional.Functional,
         functional.ScaledFunctional,
         functional.SeparableFunctional,
-        functional.BM3D,
-        functional.BM4D,
     ]
     to_check = []
     for name, cls in functional.__dict__.items():
@@ -40,7 +38,13 @@ class TestJit:
     # Test whether functionals can be jitted.
 
     # Generate a list of all functionals in scico.functionals that we will check
-    ignore = [functional.Functional, functional.ScaledFunctional, functional.SeparableFunctional]
+    ignore = [
+        functional.Functional,
+        functional.ScaledFunctional,
+        functional.SeparableFunctional,
+        functional.BM3D,
+        functional.BM4D,
+    ]
     to_check = []
     for name, cls in functional.__dict__.items():
         if isinstance(cls, type):
