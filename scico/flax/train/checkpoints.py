@@ -6,58 +6,75 @@
 # package.
 
 """Utilities for checkpointing Flax models."""
-import os
-from typing import Union
+from pathlib import Path
+from typing import Dict, Union
 
 import jax
 
-try:
-    from tensorflow.io import gfile  # noqa: F401
-except ImportError:
-    have_tf = False
-else:
-    have_tf = True
+import orbax
 
-if have_tf:  # Flax checkpoints require tensorflow
-    from flax.training import checkpoints
+from flax.training import orbax_utils
 
 from .state import TrainState
 
 
-# Flax checkpoints
-def checkpoint_restore(state: TrainState, workdir: Union[str, os.PathLike]) -> TrainState:
+def checkpoint_restore(workdir: Union[str, Path]) -> TrainState:
     """Load model and optimiser state.
 
-    Note that naming is slightly different to distinguish from Flax
-    functions.
-
     Args:
-        state: Flax train state which includes model and optimiser
-            parameters.
         workdir: checkpoint file or directory of checkpoints to restore
             from.
 
     Returns:
         Restored `state` updated from checkpoint file, or if no
-        checkpoint files present, returns the passed-in `state`
-        unchanged.
+        checkpoint files present, returns None.
     """
-    return checkpoints.restore_checkpoint(workdir, state)
+    state = None
+    # Check if workdir is Path or convert to Path
+    # workdir_ = workdir
+    # if isinstance(workdir_, str):
+    #    workdir_ = Path(workdir_)
+    # if workdir_.exists():
+    #    orbax_checkpointer = orbax.checkpoint.PyTreeCheckpointer()
+    #    checkpoint_manager = orbax.checkpoint.CheckpointManager(
+    #                                       workdir_, orbax_checkpointer)
+    #    step = checkpoint_manager.latest_step()
+    #    ckpt = checkpoint_manager.restore(step)
+    #    state = ckpt["state"]
+    # else:
+    #    message = (
+    #        "Specified directory does not exist: "
+    #        + str(workdir)
+    #    )
+    #    warnings.warn(message, RuntimeWarning)
+
+    orbax_checkpointer = orbax.checkpoint.PyTreeCheckpointer()
+    checkpoint_manager = orbax.checkpoint.CheckpointManager(workdir, orbax_checkpointer)
+    step = checkpoint_manager.latest_step()
+    ckpt = checkpoint_manager.restore(step)
+    state = ckpt["state"]
+
+    return state
 
 
-def checkpoint_save(state: TrainState, workdir: Union[str, os.PathLike]):
-    """Store model and optimiser state.
+def checkpoint_save(ckpt: Dict, workdir: Union[str, Path]):
+    """Store model, model configuration and optimiser state.
 
     Note that naming is slightly different to distinguish from Flax
     functions.
 
     Args:
-        state: Flax train state which includes model and optimiser
-            parameters.
+        ckpt: Python dictionary Flax train state which includes Flax
+              train state (model and optimiser parameters) and model
+              configuration.
         workdir: str or pathlib-like path to store checkpoint files in.
     """
     if jax.process_index() == 0:
-        # get train state from first replica
-        state = jax.device_get(jax.tree_util.tree_map(lambda x: x[0], state))
-        step = int(state.step)
-        checkpoints.save_checkpoint(workdir, state, step, keep=3)
+        orbax_checkpointer = orbax.checkpoint.PyTreeCheckpointer()
+        save_args = orbax_utils.save_args_from_target(ckpt)
+        options = orbax.checkpoint.CheckpointManagerOptions(max_to_keep=3, create=True)
+        checkpoint_manager = orbax.checkpoint.CheckpointManager(
+            workdir, orbax_checkpointer, options
+        )
+        step = int(ckpt["state"].step)
+        checkpoint_manager.save(step, ckpt, save_kwargs={"save_args": save_args})

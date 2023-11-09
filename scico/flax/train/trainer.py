@@ -23,20 +23,10 @@ from jax import lax
 
 from flax import jax_utils
 from flax.training import common_utils
-
-try:
-    from tensorflow.io import gfile  # noqa: F401
-except ImportError:
-    have_tf = False
-else:
-    have_tf = True
-
-if have_tf:
-    from .checkpoints import checkpoint_restore, checkpoint_save
-
 from scico.diagnostics import IterationStats
 from scico.numpy import Array
 
+from .checkpoints import checkpoint_restore, checkpoint_save
 from .clu_utils import get_parameter_overview
 from .diagnostics import ArgumentStruct, compute_metrics, stats_obj
 from .input_pipeline import create_input_iter
@@ -114,6 +104,9 @@ class BasicFlaxTrainer:
         self.define_parallel_training_functions()
 
         self.initialize_training_state(config, key2, model, variables0)
+
+        # Store configuration
+        self.config = config
 
     def set_training_parameters(
         self,
@@ -409,14 +402,14 @@ class BasicFlaxTrainer:
         )
         if self.checkpointing and variables0 is None:
             # Only restore if no initialization is provided
-            if have_tf:  # Flax checkpointing requires tensorflow
-                state = checkpoint_restore(state, self.workdir)
-            else:
-                raise RuntimeError(
-                    "Tensorflow not available and it is required for Flax checkpointing."
-                )
+            aux = checkpoint_restore(self.workdir)
+            # Check if restore function returns a state
+            if aux is not None:
+                state = aux
+
         self.log(get_parameter_overview(state.params))
-        self.log(get_parameter_overview(state.batch_stats))
+        if hasattr(state, "batch_stats"):
+            self.log(get_parameter_overview(state.batch_stats))
 
         self.state = state
 
@@ -466,6 +459,8 @@ class BasicFlaxTrainer:
             self.itstat_object.end()
 
         state = sync_batch_stats(state)
+        # Final checkpointing
+        self.checkpoint(state)
         # Extract one copy of state
         state = jax_utils.unreplicate(state)
         if self.return_state:
@@ -532,11 +527,9 @@ class BasicFlaxTrainer:
             state: Flax train state.
         """
         if self.checkpointing:
-            if not have_tf:  # Flax checkpointing requires tensorflow
-                raise RuntimeError(
-                    "Tensorflow not available and it is" " required for Flax checkpointing."
-                )
-            checkpoint_save(state, self.workdir)
+            # Bundle config and model parameters together
+            ckpt = {"state": jax_utils.unreplicate(state), "config": self.config}
+            checkpoint_save(ckpt, self.workdir)
 
     def log(self, logstr: str):
         """Print stats to output terminal if logging is enabled.
