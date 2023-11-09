@@ -36,10 +36,7 @@ class Functional:
         self._grad = scico.grad(self.__call__)
 
     def __repr__(self):
-        return f"""{type(self)}
-has_eval = {self.has_eval}
-has_prox = {self.has_prox}
-"""
+        return f"""{type(self)} (has_eval = {self.has_eval}, has_prox = {self.has_prox})"""
 
     def __mul__(self, other):
         if snp.isscalar(other) or isinstance(other, jax.core.Tracer):
@@ -151,7 +148,9 @@ class ScaledFunctional(Functional):
     r"""A functional multiplied by a scalar."""
 
     def __repr__(self):
-        return "Scaled functional of type " + str(type(self.functional))
+        return (
+            "Scaled functional of type " + str(type(self.functional)) + f" (scale = {self.scale})"
+        )
 
     def __init__(self, functional: Functional, scale: float):
         self.functional = functional

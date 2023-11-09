@@ -64,8 +64,10 @@ class ProximalAverage(Functional):
     def __repr__(self):
         return (
             Functional.__repr__(self)
-            + "Components:\n"
-            + "\n".join(["  " + repr(f) for f in self.func_list])
+            + "\n  Weights: "
+            + ", ".join([str(alpha) for alpha in self.alpha_list])
+            + "\n  Components:\n"
+            + "\n".join(["    " + repr(f) for f in self.func_list])
         )
 
     def __call__(self, x: Union[Array, BlockArray]) -> float:
