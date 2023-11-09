@@ -5,7 +5,7 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Proximal average."""
+"""Implementation of the proximal average method."""
 
 from typing import List, Optional, Union
 
@@ -15,12 +15,36 @@ from ._functional import Functional
 
 
 class ProximalAverage(Functional):
-    """
-    See :cite:`yu-2013-better`.
+    """Weighted average of functionals.
 
+    A functional that is composed of a weighted average of functionals.
+    All of the component functionals are required to have proximal
+    operators. The proximal operator of the composite functional is
+    approximated via the proximal average method :cite:`yu-2013-better`,
+    which holds for small scaling parameters. This does not imply that it
+    can only be applied to problems requiring a small regularization
+    parameter since most proximal algorithms include an additional
+    algorithm parameter that also plays a role in the parameter of the
+    proximal operator. For example, in :class:`.PGM` and
+    :class:`.AcceleratedPGM`, the scaled proximal operator parameter
+    is the regularization parameter divided by the `L0` algorithm
+    parameter, and for :class:`.ADMM`, the scaled proximal operator
+    parameters are the regularization parameters divided by the entries
+    in the `rho_list` algorithm parameter.
     """
 
     def __init__(self, func_list: List[Functional], alpha_list: Optional[List[float]] = None):
+        """
+        Args:
+            func_list: List of component :class:`.Functional` objects,
+                all of which must have a proximal operator.
+            alpha_list: List of scalar weights for each
+                :class:`.Functional`. If not specified, defaults to equal
+                weights. If specified, the list of weights must have the
+                same length as the :class:`.Functional` list. If the
+                weights do not sum to unity, they are scaled to ensure
+                that they do.
+        """
         self.has_prox = all([f.has_prox for f in func_list])
         if not self.has_prox:
             raise ValueError("All functionals in func_list must have has_prox == True.")
@@ -45,6 +69,7 @@ class ProximalAverage(Functional):
         )
 
     def __call__(self, x: Union[Array, BlockArray]) -> float:
+        """Evaluate the weighted average of component functionals."""
         if self.has_eval:
             return sum([alpha * f(x) for (alpha, f) in zip(self.alpha_list, self.func_list)])
         else:
@@ -53,7 +78,18 @@ class ProximalAverage(Functional):
     def prox(
         self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[Array, BlockArray]:
-        """ """
+        r"""Approximate proximal operator of the average of functionals.
+
+        Approximation of the proximal operator of a weighted average of
+        functionals computed via the proximal average method
+        :cite:`yu-2013-better`.
+
+        Args:
+            v: Input array :math:`\mb{v}`.
+            lam: Proximal parameter :math:`\lam`.
+            kwargs: Additional arguments that may be used by derived
+                classes.
+        """
         return sum(
             [
                 alpha * f.prox(v, lam, **kwargs)
