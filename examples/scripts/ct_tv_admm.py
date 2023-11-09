@@ -24,8 +24,6 @@ the astra package.
 
 import numpy as np
 
-import jax
-
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from xdesign import Foam, discrete_phantom
 
@@ -40,8 +38,7 @@ Create a ground truth image.
 """
 N = 512  # phantom size
 np.random.seed(1234)
-x_gt = discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=N)
-x_gt = jax.device_put(x_gt)  # convert to jax type, push to GPU
+x_gt = snp.array(discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=N))
 
 
 """
