@@ -16,20 +16,10 @@ import jax
 import jax.numpy as jnp
 
 from flax import jax_utils
-
-try:
-    from tensorflow.io import gfile  # noqa: F401
-except ImportError:
-    have_tf = False
-else:
-    have_tf = True
-
-if have_tf:
-    from flax.training import checkpoints
-
 from scico.flax import create_input_iter
 from scico.numpy import Array
 
+from .checkpoints import checkpoint_restore
 from .clu_utils import get_parameter_overview
 from .typed_dict import ConfigDict, DataSetDict, ModelVarDict
 
@@ -96,17 +86,22 @@ def only_apply(
 
     if variables is None:
         if checkpointing:  # pragma: no cover
-            if not have_tf:
-                raise RuntimeError(
-                    "Tensorflow not available but is required for Flax checkpointing."
-                )
-            state = checkpoints.restore_checkpoint(workdir, model)
-            variables = {
-                "params": state["params"],
-                "batch_stats": state["batch_stats"],
-            }
-            print(get_parameter_overview(variables["params"]))
-            print(get_parameter_overview(variables["batch_stats"]))
+            aux = checkpoint_restore(self.workdir)
+            # Check if restore function returns a state
+            if aux is not None:
+                state = aux
+                if "batch_stats" in state:
+                    variables = {
+                        "params": state["params"],
+                        "batch_stats": state["batch_stats"],
+                    }
+                    print(get_parameter_overview(variables["params"]))
+                    print(get_parameter_overview(variables["batch_stats"]))
+                else:
+                    variables = {
+                        "params": state["params"],
+                    }
+                    print(get_parameter_overview(variables["params"]))
         else:
             raise RuntimeError("No variables or checkpoint provided.")
 
