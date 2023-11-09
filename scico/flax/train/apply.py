@@ -84,32 +84,23 @@ def only_apply(
     else:
         checkpointing = False
 
+    # Configure seed.
+    key = jax.random.PRNGKey(config["seed"])
+
     if variables is None:
         if checkpointing:  # pragma: no cover
-            aux = checkpoint_restore(self.workdir)
-            # Check if restore function returns a state
-            if aux is not None:
-                state = aux
-                if "batch_stats" in state:
-                    variables = {
-                        "params": state["params"],
-                        "batch_stats": state["batch_stats"],
-                    }
-                    print(get_parameter_overview(variables["params"]))
-                    print(get_parameter_overview(variables["batch_stats"]))
-                else:
-                    variables = {
-                        "params": state["params"],
-                    }
-                    print(get_parameter_overview(variables["params"]))
+            variables = checkpoint_restore(model, workdir)
+            if "batch_stats" in variables:
+                print(get_parameter_overview(variables["params"]))
+                print(get_parameter_overview(variables["batch_stats"]))
+            else:
+                print(get_parameter_overview(variables["params"]))
         else:
             raise RuntimeError("No variables or checkpoint provided.")
 
     # For distributed testing
     local_batch_size = config["batch_size"] // jax.process_count()
     size_device_prefetch = 2  # Set for GPU
-    # Configure seed.
-    key = jax.random.PRNGKey(config["seed"])
     # Set data iterator
     eval_dt_iter = create_input_iter(
         key,  # eval: no permutation
