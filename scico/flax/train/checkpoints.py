@@ -18,41 +18,36 @@ from flax.training import orbax_utils
 from .state import TrainState
 
 
-def checkpoint_restore(workdir: Union[str, Path]) -> TrainState:
+def checkpoint_restore(workdir: Union[str, Path], ok_no_ckpt: bool = False) -> TrainState:
     """Load model and optimiser state.
 
     Args:
-        workdir: checkpoint file or directory of checkpoints to restore
+        workdir: Checkpoint file or directory of checkpoints to restore
             from.
+        ok_no_ckpt: Flag to indicate if a checkpoint is expected. Default:
+                    False, a checkpoint is expected and an error is generated.
 
     Returns:
-        Restored `state` updated from checkpoint file, or if no
-        checkpoint files present, returns None.
+        Restored `state` updated from checkpoint file. If no
+        checkpoint files are present and checkpoints are not strictly
+        expected it returns None.
+
+    Raises:
+        FileNotFoundError: If a checkpoint is expected and is not found.
     """
     state = None
     # Check if workdir is Path or convert to Path
-    # workdir_ = workdir
-    # if isinstance(workdir_, str):
-    #    workdir_ = Path(workdir_)
-    # if workdir_.exists():
-    #    orbax_checkpointer = orbax.checkpoint.PyTreeCheckpointer()
-    #    checkpoint_manager = orbax.checkpoint.CheckpointManager(
-    #                                       workdir_, orbax_checkpointer)
-    #    step = checkpoint_manager.latest_step()
-    #    ckpt = checkpoint_manager.restore(step)
-    #    state = ckpt["state"]
-    # else:
-    #    message = (
-    #        "Specified directory does not exist: "
-    #        + str(workdir)
-    #    )
-    #    warnings.warn(message, RuntimeWarning)
-
-    orbax_checkpointer = orbax.checkpoint.PyTreeCheckpointer()
-    checkpoint_manager = orbax.checkpoint.CheckpointManager(workdir, orbax_checkpointer)
-    step = checkpoint_manager.latest_step()
-    ckpt = checkpoint_manager.restore(step)
-    state = ckpt["state"]
+    workdir_ = workdir
+    if isinstance(workdir_, str):
+        workdir_ = Path(workdir_)
+    if workdir_.exists():
+        orbax_checkpointer = orbax.checkpoint.PyTreeCheckpointer()
+        checkpoint_manager = orbax.checkpoint.CheckpointManager(workdir_, orbax_checkpointer)
+        step = checkpoint_manager.latest_step()
+        ckpt = checkpoint_manager.restore(step)
+        state = ckpt["state"]
+    elif not ok_no_ckpt:
+        raise FileNotFoundError("Could not read from checkpoint: " + workdir)
 
     return state
 

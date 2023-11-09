@@ -400,9 +400,10 @@ class BasicFlaxTrainer:
         state = self.create_train_state(
             key, config, model, self.ishape, self.lr_schedule, variables0
         )
+        # Only restore if no initialization is provided
         if self.checkpointing and variables0 is None:
-            # Only restore if no initialization is provided
-            aux = checkpoint_restore(self.workdir)
+            ok_no_ckpt = True  # It is ok if no checkpoint is found
+            aux = checkpoint_restore(self.workdir, ok_no_ckpt)
             # Check if restore function returns a state
             if aux is not None:
                 state = aux
