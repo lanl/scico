@@ -98,7 +98,6 @@ def test_apply_from_checkpoint(testobj):
     state = create_basic_train_state(
         key, testobj.train_conf, model, (testobj.N, testobj.N), learning_rate
     )
-    print("state type: ", type(state))
     flat_params1 = flatten_dict(state.params)
     flat_bstats1 = flatten_dict(state.batch_stats)
     params1 = [t[1] for t in sorted(flat_params1.items())]
