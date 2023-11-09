@@ -402,10 +402,7 @@ class BasicFlaxTrainer:
         # Only restore if no initialization is provided
         if self.checkpointing and variables0 is None:
             ok_no_ckpt = True  # It is ok if no checkpoint is found
-            aux = checkpoint_restore(self.workdir, ok_no_ckpt)
-            # Check if restore function returns a state
-            if aux is not None:
-                state = aux
+            state = checkpoint_restore(state, self.workdir, ok_no_ckpt)
 
         self.log(get_parameter_overview(state.params))
         if hasattr(state, "batch_stats"):
@@ -527,9 +524,7 @@ class BasicFlaxTrainer:
             state: Flax train state.
         """
         if self.checkpointing:
-            # Bundle config and model parameters together
-            ckpt = {"state": jax_utils.unreplicate(state), "config": self.config}
-            checkpoint_save(ckpt, self.workdir)
+            checkpoint_save(jax_utils.unreplicate(state), self.config, self.workdir)
 
     def log(self, logstr: str):
         """Print stats to output terminal if logging is enabled.

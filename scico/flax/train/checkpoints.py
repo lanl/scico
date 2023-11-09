@@ -18,10 +18,14 @@ from flax.training import orbax_utils
 from .state import TrainState
 
 
-def checkpoint_restore(workdir: Union[str, Path], ok_no_ckpt: bool = False) -> TrainState:
+def checkpoint_restore(
+    state: TrainState, workdir: Union[str, Path], ok_no_ckpt: bool = False
+) -> TrainState:
     """Load model and optimiser state.
 
     Args:
+        state: Flax train state which includes model and optimiser
+            parameters.
         workdir: Checkpoint file or directory of checkpoints to restore
             from.
         ok_no_ckpt: Flag to indicate if a checkpoint is expected. Default:
@@ -30,12 +34,11 @@ def checkpoint_restore(workdir: Union[str, Path], ok_no_ckpt: bool = False) -> T
     Returns:
         Restored `state` updated from checkpoint file. If no
         checkpoint files are present and checkpoints are not strictly
-        expected it returns None.
+        expected it returns the passed-in `state` unchanged.
 
     Raises:
         FileNotFoundError: If a checkpoint is expected and is not found.
     """
-    state = None
     # Check if workdir is Path or convert to Path
     workdir_ = workdir
     if isinstance(workdir_, str):
@@ -44,7 +47,8 @@ def checkpoint_restore(workdir: Union[str, Path], ok_no_ckpt: bool = False) -> T
         orbax_checkpointer = orbax.checkpoint.PyTreeCheckpointer()
         checkpoint_manager = orbax.checkpoint.CheckpointManager(workdir_, orbax_checkpointer)
         step = checkpoint_manager.latest_step()
-        ckpt = checkpoint_manager.restore(step)
+        target = {"state": state, "config": {}}
+        ckpt = checkpoint_manager.restore(step, items=target)
         state = ckpt["state"]
     elif not ok_no_ckpt:
         raise FileNotFoundError("Could not read from checkpoint: " + workdir)
@@ -52,24 +56,26 @@ def checkpoint_restore(workdir: Union[str, Path], ok_no_ckpt: bool = False) -> T
     return state
 
 
-def checkpoint_save(ckpt: Dict, workdir: Union[str, Path]):
+def checkpoint_save(state: TrainState, config: Dict, workdir: Union[str, Path]):
     """Store model, model configuration and optimiser state.
 
     Note that naming is slightly different to distinguish from Flax
     functions.
 
     Args:
-        ckpt: Python dictionary Flax train state which includes Flax
-              train state (model and optimiser parameters) and model
-              configuration.
+        state: Flax train state which includes model and optimiser
+            parameters.
+        config: Python dictionary including model train configuration.
         workdir: str or pathlib-like path to store checkpoint files in.
     """
     if jax.process_index() == 0:
         orbax_checkpointer = orbax.checkpoint.PyTreeCheckpointer()
+        # Bundle config and model parameters together
+        ckpt = {"state": state, "config": config}
         save_args = orbax_utils.save_args_from_target(ckpt)
         options = orbax.checkpoint.CheckpointManagerOptions(max_to_keep=3, create=True)
         checkpoint_manager = orbax.checkpoint.CheckpointManager(
             workdir, orbax_checkpointer, options
         )
-        step = int(ckpt["state"].step)
+        step = int(state.step)
         checkpoint_manager.save(step, ckpt, save_kwargs={"save_args": save_args})
