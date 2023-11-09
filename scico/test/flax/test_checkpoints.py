@@ -110,3 +110,11 @@ def test_checkpointing_from_trainer(testobj, model_cls):
             bstats2 = [t[1] for t in sorted(flat_bstats2.items())]
             for i in range(len(bstats1)):
                 np.testing.assert_allclose(bstats1[i], bstats2[i], rtol=1e-5)
+
+
+def test_checkpoint_exception():
+    temp_dir = tempfile.TemporaryDirectory()
+    workdir = os.path.join(temp_dir.name, "temp_ckp")
+
+    with pytest.raises(FileNotFoundError):
+        state_in = checkpoint_restore(workdir)
