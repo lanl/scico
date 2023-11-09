@@ -190,8 +190,7 @@ class BasicFlaxTrainer:
         - **workdir**: Directory to write checkpoints. Default: execution
               directory.
         - **checkpointing**: A flag for checkpointing model state.
-              Default: ``False``. `RunTimeError` is generated if ``True``
-              and tensorflow is not available.
+              Default: ``False``.
         - **return_state**: A flag for returning the train state instead
               of the model variables. Default: ``False``, i.e. return
               model variables.
@@ -522,7 +521,7 @@ class BasicFlaxTrainer:
         self.itstat_object.insert(self.itstat_insert_func(ArgumentStruct(**summary)))
 
     def checkpoint(self, state: TrainState):  # pragma: no cover
-        """Checkpoint training state if enabled (and Tensorflow available).
+        """Checkpoint training state if enabled.
 
         Args:
             state: Flax train state.
