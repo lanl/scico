@@ -53,7 +53,7 @@ Deconvolution
    examples/deconv_microscopy_tv_admm
    examples/deconv_microscopy_allchn_tv_admm
    examples/deconv_ppp_bm3d_admm
-   examples/deconv_ppp_bm3d_pgm
+   examples/deconv_ppp_bm3d_apgm
    examples/deconv_ppp_dncnn_admm
    examples/deconv_ppp_dncnn_padmm
    examples/deconv_ppp_bm4d_admm
@@ -72,7 +72,7 @@ Sparse Coding
    examples/sparsecode_conv_admm
    examples/sparsecode_conv_md_admm
    examples/sparsecode_apgm
-   examples/sparsecode_poisson_pgm
+   examples/sparsecode_poisson_apgm
 
 
 Miscellaneous
@@ -85,7 +85,7 @@ Miscellaneous
    examples/superres_ppp_dncnn_admm
    examples/denoise_l1tv_admm
    examples/denoise_tv_admm
-   examples/denoise_tv_pgm
+   examples/denoise_tv_apgm
    examples/denoise_tv_multi
    examples/denoise_cplx_tv_nlpadmm
    examples/denoise_cplx_tv_pdhg
@@ -114,7 +114,7 @@ Plug and Play Priors
    examples/ct_svmbir_ppp_bm3d_admm_prox
    examples/ct_fan_svmbir_ppp_bm3d_admm_prox
    examples/deconv_ppp_bm3d_admm
-   examples/deconv_ppp_bm3d_pgm
+   examples/deconv_ppp_bm3d_apgm
    examples/deconv_ppp_dncnn_admm
    examples/deconv_ppp_dncnn_padmm
    examples/deconv_ppp_bm4d_admm
@@ -143,7 +143,7 @@ Total Variation
    examples/deconv_microscopy_allchn_tv_admm
    examples/denoise_l1tv_admm
    examples/denoise_tv_admm
-   examples/denoise_tv_pgm
+   examples/denoise_tv_apgm
    examples/denoise_tv_multi
    examples/denoise_cplx_tv_nlpadmm
    examples/denoise_cplx_tv_pdhg
@@ -163,7 +163,7 @@ Sparsity
    examples/sparsecode_conv_admm
    examples/sparsecode_conv_md_admm
    examples/sparsecode_apgm
-   examples/sparsecode_poisson_pgm
+   examples/sparsecode_poisson_apgm
    examples/video_rpca_admm
 
 
@@ -276,11 +276,11 @@ PGM
 .. toctree::
    :maxdepth: 1
 
-   examples/deconv_ppp_bm3d_pgm
+   examples/deconv_ppp_bm3d_apgm
    examples/sparsecode_apgm
    examples/sparsecode_nn_apgm
-   examples/sparsecode_poisson_pgm
-   examples/denoise_tv_pgm
+   examples/sparsecode_poisson_apgm
+   examples/denoise_tv_apgm
 
 
 PCG
