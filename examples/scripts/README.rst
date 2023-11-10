@@ -18,7 +18,9 @@ Computed Tomography
    `ct_astra_3d_tv_admm.py <ct_astra_3d_tv_admm.py>`_
       3D TV-Regularized Sparse-View CT Reconstruction
    `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
-      TV-Regularized Sparse-View CT Reconstruction
+      TV-Regularized Sparse-View CT Reconstruction (ASTRA Projector)
+   `ct_tv_admm.py <ct_tv_admm.py>`_
+      TV-Regularized Sparse-View CT Reconstruction (Integrated Projector)
    `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
       TV-Regularized Low-Dose CT Reconstruction
    `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
@@ -159,7 +161,9 @@ Total Variation
    `ct_abel_tv_admm_tune.py <ct_abel_tv_admm_tune.py>`_
       Parameter Tuning for TV-Regularized Abel Inversion
    `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
-      TV-Regularized Sparse-View CT Reconstruction
+      TV-Regularized Sparse-View CT Reconstruction (ASTRA Projector)
+   `ct_tv_admm.py <ct_tv_admm.py>`_
+      TV-Regularized Sparse-View CT Reconstruction (Integrated Projector)
    `ct_astra_3d_tv_admm.py <ct_astra_3d_tv_admm.py>`_
       3D TV-Regularized Sparse-View CT Reconstruction
    `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
@@ -252,7 +256,9 @@ ADMM
    `ct_abel_tv_admm_tune.py <ct_abel_tv_admm_tune.py>`_
       Parameter Tuning for TV-Regularized Abel Inversion
    `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
-      TV-Regularized Sparse-View CT Reconstruction
+      TV-Regularized Sparse-View CT Reconstruction (ASTRA Projector)
+   `ct_tv_admm.py <ct_tv_admm.py>`_
+      TV-Regularized Sparse-View CT Reconstruction (Integrated Projector)
    `ct_astra_3d_tv_admm.py <ct_astra_3d_tv_admm.py>`_
       3D TV-Regularized Sparse-View CT Reconstruction
    `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
