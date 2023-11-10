@@ -48,10 +48,11 @@ Deconvolution
 Sparse Coding
 ^^^^^^^^^^^^^
 
-   - sparsecode_admm.py
+   - sparsecode_nn_admm.py
+   - sparsecode_nn_apgm.py
    - sparsecode_conv_admm.py
    - sparsecode_conv_md_admm.py
-   - sparsecode_pgm.py
+   - sparsecode_apgm.py
    - sparsecode_poisson_pgm.py
 
 
@@ -123,10 +124,11 @@ Sparsity
 ^^^^^^^^
 
    - diffusercam_tv_admm.py
-   - sparsecode_admm.py
+   - sparsecode_nn_admm.py
+   - sparsecode_nn_apgm.py
    - sparsecode_conv_admm.py
    - sparsecode_conv_md_admm.py
-   - sparsecode_pgm.py
+   - sparsecode_apgm.py
    - sparsecode_poisson_pgm.py
    - video_rpca_admm.py
 
@@ -172,7 +174,7 @@ ADMM
    - deconv_ppp_dncnn_admm.py
    - deconv_ppp_bm4d_admm.py
    - diffusercam_tv_admm.py
-   - sparsecode_admm.py
+   - sparsecode_nn_admm.py
    - sparsecode_conv_admm.py
    - sparsecode_conv_md_admm.py
    - demosaic_ppp_bm3d_admm.py
@@ -217,7 +219,8 @@ PGM
 ^^^
 
    - deconv_ppp_bm3d_pgm.py
-   - sparsecode_pgm.py
+   - sparsecode_apgm.py
+   - sparsecode_nn_apgm.py
    - sparsecode_poisson_pgm.py
    - denoise_tv_pgm.py
 

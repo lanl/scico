@@ -67,10 +67,11 @@ Sparse Coding
 .. toctree::
    :maxdepth: 1
 
-   examples/sparsecode_admm
+   examples/sparsecode_nn_admm
+   examples/sparsecode_nn_apgm
    examples/sparsecode_conv_admm
    examples/sparsecode_conv_md_admm
-   examples/sparsecode_pgm
+   examples/sparsecode_apgm
    examples/sparsecode_poisson_pgm
 
 
@@ -157,10 +158,11 @@ Sparsity
    :maxdepth: 1
 
    examples/diffusercam_tv_admm
-   examples/sparsecode_admm
+   examples/sparsecode_nn_admm
+   examples/sparsecode_nn_apgm
    examples/sparsecode_conv_admm
    examples/sparsecode_conv_md_admm
-   examples/sparsecode_pgm
+   examples/sparsecode_apgm
    examples/sparsecode_poisson_pgm
    examples/video_rpca_admm
 
@@ -215,7 +217,7 @@ ADMM
    examples/deconv_ppp_dncnn_admm
    examples/deconv_ppp_bm4d_admm
    examples/diffusercam_tv_admm
-   examples/sparsecode_admm
+   examples/sparsecode_nn_admm
    examples/sparsecode_conv_admm
    examples/sparsecode_conv_md_admm
    examples/demosaic_ppp_bm3d_admm
@@ -275,7 +277,8 @@ PGM
    :maxdepth: 1
 
    examples/deconv_ppp_bm3d_pgm
-   examples/sparsecode_pgm
+   examples/sparsecode_apgm
+   examples/sparsecode_nn_apgm
    examples/sparsecode_poisson_pgm
    examples/denoise_tv_pgm
 
