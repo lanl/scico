@@ -1,9 +1,31 @@
 import numpy as np
 
+import pytest
+
 import scico.numpy as snp
 from scico import functional, linop, loss, metric
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.optimize.pgm import AcceleratedPGM
+
+
+def test_proxavg_init():
+    g0 = functional.L1Norm()
+    g1 = functional.L2Norm()
+
+    with pytest.raises(ValueError):
+        h = functional.ProximalAverage(
+            [g0, g1],
+            alpha_list=[
+                0.1,
+            ],
+        )
+
+    h = functional.ProximalAverage([g0, g1], alpha_list=[0.1, 0.1])
+    assert sum(h.alpha_list) == 1.0
+
+    g1.has_prox = False
+    with pytest.raises(ValueError):
+        h = functional.ProximalAverage([g0, g1])
 
 
 def test_proxavg():
