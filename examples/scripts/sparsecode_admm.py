@@ -36,10 +36,10 @@ n = 128  # dictionary size
 s = 10  # sparsity level
 
 np.random.seed(1)
-D = np.random.randn(m, n)
+D = np.random.randn(m, n).astype(np.float32)
 D = D / np.linalg.norm(D, axis=0, keepdims=True)  # normalize dictionary
 
-xt = np.zeros(n)  # true signal
+xt = np.zeros(n, dtype=np.float32)  # true signal
 idx = np.random.randint(low=0, high=n, size=s)  # support of xt
 xt[idx] = np.random.rand(s)
 y = D @ xt + 5e-2 * np.random.randn(m)  # synthetic signal
