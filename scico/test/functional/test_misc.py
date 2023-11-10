@@ -17,6 +17,7 @@ class TestCheckAttrs:
         functional.Functional,
         functional.ScaledFunctional,
         functional.SeparableFunctional,
+        functional.ProximalAverage,
     ]
     to_check = []
     for name, cls in functional.__dict__.items():
