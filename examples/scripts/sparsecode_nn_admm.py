@@ -17,6 +17,9 @@ problem
 where $D$ the dictionary, $\mathbf{y}$ the signal to be represented,
 $\mathbf{x}$ is the sparse representation, and $I(\mathbf{x} \geq 0)$
 is the non-negative indicator.
+
+In this example the problem is solved via ADMM, while Accelerated PGM is
+used in a [companion example](sparsecode_nn_apgm.rst).
 """
 
 import numpy as np
