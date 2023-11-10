@@ -18,8 +18,11 @@ where $D$ the dictionary, $\mathbf{y}$ the signal to be represented,
 $\mathbf{x}$ is the sparse representation, and $I(\mathbf{x} \geq 0)$
 is the non-negative indicator.
 
-In this example the problem is solved via Accelerated PGM, while ADMM is
-used in a [companion example](sparsecode_nn_admm.rst).
+In this example the problem is solved via Accelerated PGM, using the
+proximal averaging method :cite:`yu-2013-better` to approximate the
+proximal operator of the sum of the $\ell_1$ norm and an indicator
+function, while ADMM is used in a
+[companion example](sparsecode_nn_admm.rst).
 """
 
 import numpy as np
