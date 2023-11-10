@@ -9,7 +9,7 @@
 
 from typing import List, Optional, Union
 
-from scico.numpy import Array, BlockArray
+from scico.numpy import Array, BlockArray, isinf
 
 from ._functional import Functional
 
@@ -33,7 +33,12 @@ class ProximalAverage(Functional):
     in the `rho_list` algorithm parameter.
     """
 
-    def __init__(self, func_list: List[Functional], alpha_list: Optional[List[float]] = None):
+    def __init__(
+        self,
+        func_list: List[Functional],
+        alpha_list: Optional[List[float]] = None,
+        no_inf_eval=True,
+    ):
         """
         Args:
             func_list: List of component :class:`.Functional` objects,
@@ -44,11 +49,16 @@ class ProximalAverage(Functional):
                 same length as the :class:`.Functional` list. If the
                 weights do not sum to unity, they are scaled to ensure
                 that they do.
+            no_inf_eval: If ``True``, exclude infinite values (typically
+                associated with a functional that is an indicator
+                function) from the evaluation of the sum of component
+                functionals.
         """
         self.has_prox = all([f.has_prox for f in func_list])
         if not self.has_prox:
             raise ValueError("All functionals in func_list must have has_prox == True.")
         self.has_eval = all([f.has_eval for f in func_list])
+        self.no_inf_eval = no_inf_eval
         self.func_list = func_list
         N = len(func_list)
         if alpha_list is None:
@@ -73,7 +83,10 @@ class ProximalAverage(Functional):
     def __call__(self, x: Union[Array, BlockArray]) -> float:
         """Evaluate the weighted average of component functionals."""
         if self.has_eval:
-            return sum([alpha * f(x) for (alpha, f) in zip(self.alpha_list, self.func_list)])
+            weight_func_vals = [alpha * f(x) for (alpha, f) in zip(self.alpha_list, self.func_list)]
+            if self.no_inf_eval:
+                weight_func_vals = list(filter(lambda x: not isinf(x), weight_func_vals))
+            return sum(weight_func_vals)
         else:
             raise ValueError("At least one functional in func_list has has_eval == False.")
 
