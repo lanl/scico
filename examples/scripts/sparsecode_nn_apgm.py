@@ -44,7 +44,7 @@ s = 10  # sparsity level
 np.random.seed(1)
 D = np.random.randn(m, n).astype(np.float32)
 D = D / np.linalg.norm(D, axis=0, keepdims=True)  # normalize dictionary
-L0 = np.linalg.norm(D, 2) ** 2
+L0 = max(np.linalg.norm(D, 2) ** 2, 5e1)
 
 xt = np.zeros(n, dtype=np.float32)  # true signal
 idx = np.random.randint(low=0, high=n, size=s)  # support of xt
@@ -58,13 +58,13 @@ y = snp.array(y)  # convert to jax array
 """
 Set up the forward operator and APGM solver object.
 """
-lmbda = 1e-1
+lmbda = 2e-1
 A = linop.MatrixOperator(D)
 f = loss.SquaredL2Loss(y=y, A=A)
 g = functional.ProximalAverage([lmbda * functional.L1Norm(), functional.NonNegativeIndicator()])
 maxiter = 250  # number of APGM iterations
 solver = AcceleratedPGM(
-    f=f, g=g, L0=L0, x0=A.adj(y), maxiter=maxiter, itstat_options={"display": True, "period": 10}
+    f=f, g=g, L0=L0, x0=A.adj(y), maxiter=maxiter, itstat_options={"display": True, "period": 20}
 )
 
 
