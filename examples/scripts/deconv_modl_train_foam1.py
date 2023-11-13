@@ -164,7 +164,7 @@ stats_object_ini = None
 
 checkpoint_files = []
 for dirpath, dirnames, filenames in os.walk(workdir2):
-    checkpoint_files = [fn for fn in filenames if str.split(fn, "_")[0] == "checkpoint"]
+    checkpoint_files = [fn for fn in filenames]
 
 if len(checkpoint_files) > 0:
     model = sflax.MoDLNet(
