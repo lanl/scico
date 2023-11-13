@@ -32,8 +32,8 @@ def checkpoint_restore(
                     False, a checkpoint is expected and an error is generated.
 
     Returns:
-        Restored `state` updated from checkpoint file. If no
-        checkpoint files are present and checkpoints are not strictly
+        A restored Flax train state updated from checkpoint file is returned.
+        If no checkpoint files are present and checkpoints are not strictly
         expected it returns the passed-in `state` unchanged.
 
     Raises:

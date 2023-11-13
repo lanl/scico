@@ -21,6 +21,8 @@ from scico.numpy import Array
 
 from .checkpoints import checkpoint_restore
 from .clu_utils import get_parameter_overview
+from .learning_rate import create_cnst_lr_schedule
+from .state import create_basic_train_state
 from .typed_dict import ConfigDict, DataSetDict, ModelVarDict
 
 ModuleDef = Any
@@ -89,11 +91,16 @@ def only_apply(
 
     if variables is None:
         if checkpointing:  # pragma: no cover
-            variables = checkpoint_restore(model, workdir)
-            if "batch_stats" in variables:
+            ishape = test_ds["image"].shape[1:3]
+            lr_ = create_cnst_lr_schedule(config)
+            empty_state = create_basic_train_state(key, config, model, ishape, lr_)
+            state = checkpoint_restore(empty_state, workdir)
+            if hasattr(state, "batch_stats"):
+                variables = {"params": state.params, "batch_stats": state.batch_stats}
                 print(get_parameter_overview(variables["params"]))
                 print(get_parameter_overview(variables["batch_stats"]))
             else:
+                variables = {"params": state.params}
                 print(get_parameter_overview(variables["params"]))
         else:
             raise RuntimeError("No variables or checkpoint provided.")

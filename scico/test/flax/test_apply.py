@@ -114,6 +114,7 @@ def test_apply_from_checkpoint(testobj):
             model,
             testobj.test_ds,
         )
+        print("variables: ", variables)
     except Exception as e:
         print(e)
         assert 0
