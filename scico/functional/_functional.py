@@ -7,6 +7,11 @@
 
 """Functional base class."""
 
+
+# Needed to annotate a class method that returns the encapsulating class;
+# see https://www.python.org/dev/peps/pep-0563/
+from __future__ import annotations
+
 from typing import List, Optional, Union
 
 import jax
@@ -38,15 +43,15 @@ class Functional:
     def __repr__(self):
         return f"""{type(self)} (has_eval = {self.has_eval}, has_prox = {self.has_prox})"""
 
-    def __mul__(self, other):
+    def __mul__(self, other: Union[float, int]) -> ScaledFunctional:
         if snp.isscalar(other) or isinstance(other, jax.core.Tracer):
             return ScaledFunctional(self, other)
         return NotImplemented
 
-    def __rmul__(self, other):
+    def __rmul__(self, other: Union[float, int]) -> ScaledFunctional:
         return self.__mul__(other)
 
-    def __add__(self, other):
+    def __add__(self, other: Functional) -> FunctionalSum:
         if isinstance(other, Functional):
             return FunctionalSum(self, other)
         return NotImplemented
@@ -122,35 +127,8 @@ class Functional:
         return self._grad(x)
 
 
-class FunctionalSum(Functional):
-    r"""A sum of two functionals."""
-
-    def __repr__(self):
-        return (
-            "Sum of functionals of types "
-            + str(type(self.functional1))
-            + " and "
-            + str(type(self.functional2))
-        )
-
-    def __init__(self, functional1: Functional, functional2: Functional):
-        self.functional1 = functional1
-        self.functional2 = functional2
-        self.has_eval = functional1.has_eval and functional2.has_eval
-        self.has_prox = False
-        super().__init__()
-
-    def __call__(self, x: Union[Array, BlockArray]) -> float:
-        return self.functional1(x) + self.functional2(x)
-
-
 class ScaledFunctional(Functional):
     r"""A functional multiplied by a scalar."""
-
-    def __repr__(self):
-        return (
-            "Scaled functional of type " + str(type(self.functional)) + f" (scale = {self.scale})"
-        )
 
     def __init__(self, functional: Functional, scale: float):
         self.functional = functional
@@ -159,8 +137,18 @@ class ScaledFunctional(Functional):
         self.has_prox = functional.has_prox
         super().__init__()
 
+    def __repr__(self):
+        return (
+            "Scaled functional of type " + str(type(self.functional)) + f" (scale = {self.scale})"
+        )
+
     def __call__(self, x: Union[Array, BlockArray]) -> float:
         return self.scale * self.functional(x)
+
+    def __mul__(self, other: Union[float, int]) -> ScaledFunctional:
+        if snp.isscalar(other) or isinstance(other, jax.core.Tracer):
+            return ScaledFunctional(self.functional, other * self.scale)
+        return NotImplemented
 
     def prox(
         self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
@@ -252,6 +240,28 @@ class SeparableFunctional(Functional):
             f"Number of blocks in v, {len(v.shape)}, and length of functional_list, "
             f"{len(self.functional_list)}, do not match."
         )
+
+
+class FunctionalSum(Functional):
+    r"""A sum of two functionals."""
+
+    def __init__(self, functional1: Functional, functional2: Functional):
+        self.functional1 = functional1
+        self.functional2 = functional2
+        self.has_eval = functional1.has_eval and functional2.has_eval
+        self.has_prox = False
+        super().__init__()
+
+    def __repr__(self):
+        return (
+            "Sum of functionals of types "
+            + str(type(self.functional1))
+            + " and "
+            + str(type(self.functional2))
+        )
+
+    def __call__(self, x: Union[Array, BlockArray]) -> float:
+        return self.functional1(x) + self.functional2(x)
 
 
 class ZeroFunctional(Functional):
