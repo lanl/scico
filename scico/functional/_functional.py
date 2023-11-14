@@ -173,10 +173,10 @@ class ScaledFunctional(Functional):
         proximal operator of the unscaled functional with the proximal
         operator scaling consisting of the product of the two scaling
         factors, i.e., for functional :math:`f` and scaling factors
-        :math:`\alpha` and :math:`\beta`, the proximal operator with scaling
-        parameter :math:`\alpha` of scaled functional :math:`\beta f` is
-        the proximal operator with scaling parameter :math:`\alpha \beta`
-        of functional :math:`f`,
+        :math:`\alpha` and :math:`\beta`, the proximal operator with
+        scaling parameter :math:`\alpha` of scaled functional
+        :math:`\beta f` is the proximal operator with scaling parameter
+        :math:`\alpha \beta` of functional :math:`f`,
 
         .. math::
            \prox_{\alpha (\beta f)}(\mb{v}) =
