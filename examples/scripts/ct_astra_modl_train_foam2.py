@@ -132,6 +132,7 @@ train_conf: sflax.ConfigDict = {
     "warmup_epochs": 0,
     "log_every_steps": 40,
     "log": True,
+    "checkpointing": True,
 }
 
 
@@ -366,4 +367,4 @@ if stats_object_ini is not None:
     fig.show()
 
 
-input("\nWaiting for input to close figures and exit")
+# input("\nWaiting for input to close figures and exit")
