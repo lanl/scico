@@ -47,9 +47,10 @@ def checkpoint_restore(
         orbax_checkpointer = orbax.checkpoint.PyTreeCheckpointer()
         checkpoint_manager = orbax.checkpoint.CheckpointManager(workdir_, orbax_checkpointer)
         step = checkpoint_manager.latest_step()
-        target = {"state": state, "config": {}}
-        ckpt = checkpoint_manager.restore(step, items=target)
-        state = ckpt["state"]
+        if step is not None:
+            target = {"state": state, "config": {}}
+            ckpt = checkpoint_manager.restore(step, items=target)
+            state = ckpt["state"]
     elif not ok_no_ckpt:
         raise FileNotFoundError("Could not read from checkpoint: " + workdir)
 
