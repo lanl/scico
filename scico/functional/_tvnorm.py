@@ -57,7 +57,7 @@ class AnisotropicTVNorm(Functional):
     has_prox = True
 
     def __init__(self, ndims: Optional[int] = None):
-        r"""
+        """
         Args:
             ndims: Number of (trailing) dimensions of the input over
                 which to apply the finite difference operator. If
@@ -71,7 +71,7 @@ class AnisotropicTVNorm(Functional):
         self.W: Optional[LinearOperator] = None
 
     def __call__(self, x: Array) -> float:
-        r"""Compute the anisotropic TV norm of an array."""
+        """Compute the anisotropic TV norm of an array."""
         if self.G is None or self.G.shape[1] != x.shape:
             if self.ndims is None:
                 ndims = x.ndim
