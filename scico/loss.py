@@ -15,6 +15,7 @@ from typing import Callable, Optional, Union
 
 import jax
 
+import scico
 import scico.numpy as snp
 from scico import functional, linop, operator
 from scico.numpy import Array, BlockArray
@@ -125,6 +126,7 @@ class Loss(functional.Functional):
     @_loss_mul_div_wrapper
     def __mul__(self, other):
         new_loss = copy(self)
+        new_loss._grad = scico.grad(new_loss.__call__)
         new_loss.set_scale(self.scale * other)
         return new_loss
 
@@ -134,6 +136,7 @@ class Loss(functional.Functional):
     @_loss_mul_div_wrapper
     def __truediv__(self, other):
         new_loss = copy(self)
+        new_loss._grad = scico.grad(new_loss.__call__)
         new_loss.set_scale(self.scale / other)
         return new_loss
 
