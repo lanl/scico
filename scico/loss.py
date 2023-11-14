@@ -219,12 +219,9 @@ class SquaredL2Loss(Loss):
             ATWA = c * A.conj() * W * A  # type: ignore
             return lhs / (ATWA + 1.0)
 
-        #   prox_{f}(v) = arg min  1/2 || v - x ||_2^2 + λ 𝛼 || A x - y ||^2_W
-        #                    x
-        # solution at:
-        #
-        #   (I + λ 2𝛼 A^T W A) x = v + λ 2𝛼 A^T W y
-        #
+        #   prox_f(v) = arg min  1/2 || v - x ||_2^2 + λ 𝛼 || A x - y ||^2_W
+        #                  x
+        #   with solution: (I + λ 2𝛼 A^T W A) x = v + λ 2𝛼 A^T W y
         W = self.W
         A = self.A
         𝛼 = self.scale
