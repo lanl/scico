@@ -183,7 +183,7 @@ class ScaledFunctional(Functional):
            \prox_{(\alpha \beta) f}(\mb{v}) \;.
 
         """
-        return self.functional.prox(v, lam * self.scale)
+        return self.functional.prox(v, lam * self.scale, **kwargs)
 
 
 class SeparableFunctional(Functional):
@@ -245,7 +245,9 @@ class SeparableFunctional(Functional):
 
         """
         if len(v.shape) == len(self.functional_list):
-            return snp.blockarray([fi.prox(vi, lam) for fi, vi in zip(self.functional_list, v)])
+            return snp.blockarray(
+                [fi.prox(vi, lam, **kwargs) for fi, vi in zip(self.functional_list, v)]
+            )
         raise ValueError(
             f"Number of blocks in v, {len(v.shape)}, and length of functional_list, "
             f"{len(self.functional_list)}, do not match."
