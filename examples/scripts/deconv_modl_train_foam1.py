@@ -45,8 +45,9 @@ import os
 from functools import partial
 from time import time
 
+import numpy as np
+
 import jax
-import jax.numpy as jnp
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
@@ -72,7 +73,7 @@ output_size = 256  # image size
 
 n = 3  # convolution kernel size
 σ = 20.0 / 255  # noise level
-psf = jnp.ones((n, n)) / (n * n)  # blur kernel
+psf = np.ones((n, n)) / (n * n)  # blur kernel
 
 ishape = (output_size, output_size)
 opBlur = CircularConvolve(h=psf, input_shape=ishape)
@@ -127,6 +128,7 @@ train_conf: sflax.ConfigDict = {
     "warmup_epochs": 0,
     "log_every_steps": 100,
     "log": True,
+    "checkpointing": True,
 }
 
 
@@ -161,6 +163,7 @@ workdir2 = os.path.join(
 )
 
 stats_object_ini = None
+stats_object = None
 
 checkpoint_files = []
 for dirpath, dirnames, filenames in os.walk(workdir2):
@@ -245,11 +248,15 @@ Evaluate on testing data.
 """
 del train_ds["image"]
 del train_ds["label"]
-start_time = time()
+
 fmap = sflax.FlaxMap(model, modvar)
-output = fmap(test_ds["image"])
+del model, modvar
+
+maxn = test_nimg // 4
+start_time = time()
+output = fmap(test_ds["image"][:maxn])
 time_eval = time() - start_time
-output = jnp.clip(output, a_min=0, a_max=1.0)
+output = np.clip(output, a_min=0, a_max=1.0)
 
 
 """
@@ -258,8 +265,8 @@ and data fidelity.
 """
 total_epochs = epochs_init + train_conf["num_epochs"]
 total_time_train = time_init + time_train
-snr_eval = metric.snr(test_ds["label"], output)
-psnr_eval = metric.psnr(test_ds["label"], output)
+snr_eval = metric.snr(test_ds["label"][:maxn], output)
+psnr_eval = metric.psnr(test_ds["label"][:maxn], output)
 print(
     f"{'MoDLNet training':18s}{'epochs:':2s}{total_epochs:>5d}{'':21s}"
     f"{'time[s]:':10s}{total_time_train:>7.2f}"
@@ -273,8 +280,8 @@ print(
 """
 Plot comparison.
 """
-key = jax.random.PRNGKey(54321)
-indx = jax.random.randint(key, (1,), 0, test_nimg)[0]
+np.random.seed(123)
+indx = np.random.randint(0, high=maxn)
 
 fig, ax = plot.subplots(nrows=1, ncols=3, figsize=(15, 5))
 plot.imview(test_ds["label"][indx, ..., 0], title="Ground truth", cbar=None, fig=fig, ax=ax[0])
@@ -306,14 +313,14 @@ fig.show()
 
 
 """
-Plot convergence statistics. Statistics only generated if a training
-cycle was done (i.e. not reading final epoch results from checkpoint).
+Plot convergence statistics. Statistics are generated only if a training
+cycle was done (i.e. if not reading final epoch results from checkpoint).
 """
-if stats_object is not None:
+if stats_object is not None and len(stats_object.iterations) > 0:
     hist = stats_object.history(transpose=True)
     fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
     plot.plot(
-        jnp.vstack((hist.Train_Loss, hist.Eval_Loss)).T,
+        np.vstack((hist.Train_Loss, hist.Eval_Loss)).T,
         x=hist.Epoch,
         ptyp="semilogy",
         title="Loss function",
@@ -324,7 +331,7 @@ if stats_object is not None:
         ax=ax[0],
     )
     plot.plot(
-        jnp.vstack((hist.Train_SNR, hist.Eval_SNR)).T,
+        np.vstack((hist.Train_SNR, hist.Eval_SNR)).T,
         x=hist.Epoch,
         title="Metric",
         xlbl="Epoch",
@@ -336,11 +343,11 @@ if stats_object is not None:
     fig.show()
 
 # Stats for initialization loop
-if stats_object_ini is not None:
+if stats_object_ini is not None and len(stats_object_ini.iterations) > 0:
     hist = stats_object_ini.history(transpose=True)
     fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
     plot.plot(
-        jnp.vstack((hist.Train_Loss, hist.Eval_Loss)).T,
+        np.vstack((hist.Train_Loss, hist.Eval_Loss)).T,
         x=hist.Epoch,
         ptyp="semilogy",
         title="Loss function - Initialization",
@@ -351,7 +358,7 @@ if stats_object_ini is not None:
         ax=ax[0],
     )
     plot.plot(
-        jnp.vstack((hist.Train_SNR, hist.Eval_SNR)).T,
+        np.vstack((hist.Train_SNR, hist.Eval_SNR)).T,
         x=hist.Epoch,
         title="Metric - Initialization",
         xlbl="Epoch",
