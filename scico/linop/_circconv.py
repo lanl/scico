@@ -140,8 +140,7 @@ class CircularConvolve(LinearOperator):
                 shifts: Tuple[np.ndarray, ...] = np.ix_(
                     *tuple(
                         np.select(
-                            #  see "Closed Form Variable Fractional Time Delay Using FFT" or
-                            #  "Comments on 'Sinc Interpolation of Discrete Periodic Signals'"
+                            # see doi:10.1109/78.700979 and doi:10.1109/LSP.2012.2191280
                             [np.arange(s) < s / 2, np.arange(s) == s / 2, np.arange(s) > s / 2],
                             [
                                 np.exp(-1j * k * 2 * np.pi * np.arange(s) / s),
