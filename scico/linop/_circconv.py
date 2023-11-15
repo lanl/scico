@@ -120,7 +120,6 @@ class CircularConvolve(LinearOperator):
             output_dtype = snp.dtype(input_dtype)  # cannot infer from h_dft because it is complex
         else:
             fft_shape = input_shape[-self.ndims :]
-            pad = ()
             fft_axes = list(range(h.ndim - self.ndims, h.ndim))
             self.h_dft = snp.fft.fftn(h, s=fft_shape, axes=fft_axes)
             output_dtype = result_type(h.dtype, input_dtype)
@@ -140,7 +139,16 @@ class CircularConvolve(LinearOperator):
                         offset = -snp.array(self.h_center)
                 shifts: Tuple[np.ndarray, ...] = np.ix_(
                     *tuple(
-                        np.exp(-1j * k * 2 * np.pi * np.fft.fftfreq(s))  # type: ignore
+                        np.select(
+                            #  see "Closed Form Variable Fractional Time Delay Using FFT" or
+                            #  "Comments on 'Sinc Interpolation of Discrete Periodic Signals'"
+                            [np.arange(s) < s / 2, np.arange(s) == s / 2, np.arange(s) > s / 2],
+                            [
+                                np.exp(-1j * k * 2 * np.pi * np.arange(s) / s),
+                                np.cos(k * np.pi),
+                                np.exp(1j * k * 2 * np.pi * (s - np.arange(s)) / s),
+                            ],  # type: ignore
+                        )
                         for k, s in zip(offset, input_shape[-self.ndims :])
                     )
                 )

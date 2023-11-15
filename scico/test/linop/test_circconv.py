@@ -160,10 +160,11 @@ class TestCircularConvolve:
 
     def test_fractional_center(self):
         """A fractional center should keep outputs real"""
-        x, _ = uniform(minval=-1, maxval=1, shape=(3, 4), key=self.key)
+        x, _ = uniform(minval=-1, maxval=1, shape=(4, 5), key=self.key)
         h, _ = uniform(minval=-1, maxval=1, shape=(2, 2), key=self.key)
         A = CircularConvolve(h=h, input_shape=x.shape, h_center=[0.1, 2.7])
 
+        # taken from CircularConvolve._eval
         x_dft = snp.fft.fftn(x, axes=A.x_fft_axes)
         hx = snp.fft.ifftn(
             A.h_dft * x_dft,
