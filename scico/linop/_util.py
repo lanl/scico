@@ -47,12 +47,8 @@ def power_iteration(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey
     for i in range(maxiter):
         Av = A @ v
         normAv = snp.linalg.norm(Av)
-        if normAv == 0.0:  # Assume that ||Av|| == 0 implies A is a zero operator
-            mu = 0.0
-            v = Av
-            break
-        mu = snp.sum(v.conj() * Av) / snp.linalg.norm(v) ** 2
-        v = Av / normAv
+        mu = snp.where(normAv > 0.0, snp.sum(v.conj() * Av) / snp.linalg.norm(v) ** 2, 0.0)
+        v = snp.where(normAv > 0.0, Av / normAv, Av)
     return mu, v
 
 
