@@ -159,9 +159,9 @@ class TestCircularConvolve:
         np.testing.assert_allclose(A @ x, snp.roll(B @ x, shift), atol=1e-5)
 
     def test_fractional_center(self):
-        """A fractional center should keep outputs real"""
-        x, _ = uniform(minval=-1, maxval=1, shape=(4, 5), key=self.key)
-        h, _ = uniform(minval=-1, maxval=1, shape=(2, 2), key=self.key)
+        """A fractional center should keep outputs real."""
+        x, key = uniform(minval=-1, maxval=1, shape=(4, 5), key=self.key)
+        h, _ = uniform(minval=-1, maxval=1, shape=(2, 2), key=key)
         A = CircularConvolve(h=h, input_shape=x.shape, h_center=[0.1, 2.7])
 
         # taken from CircularConvolve._eval
