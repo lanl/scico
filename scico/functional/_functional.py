@@ -14,8 +14,6 @@ from __future__ import annotations
 
 from typing import List, Optional, Union
 
-import jax
-
 import scico
 from scico import numpy as snp
 from scico.numpy import Array, BlockArray
@@ -44,7 +42,7 @@ class Functional:
         return f"""{type(self)} (has_eval = {self.has_eval}, has_prox = {self.has_prox})"""
 
     def __mul__(self, other: Union[float, int]) -> ScaledFunctional:
-        if snp.isscalar(other) or isinstance(other, jax.core.Tracer):
+        if snp.util.is_scalar_equiv(other):
             return ScaledFunctional(self, other)
         return NotImplemented
 
@@ -146,7 +144,7 @@ class ScaledFunctional(Functional):
         return self.scale * self.functional(x)
 
     def __mul__(self, other: Union[float, int]) -> ScaledFunctional:
-        if snp.isscalar(other) or isinstance(other, jax.core.Tracer):
+        if snp.util.is_scalar_equiv(other):
             return ScaledFunctional(self.functional, other * self.scale)
         return NotImplemented
 
