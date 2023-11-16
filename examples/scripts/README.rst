@@ -61,7 +61,7 @@ Deconvolution
       Deconvolution Microscopy (All Channels)
    `deconv_ppp_bm3d_admm.py <deconv_ppp_bm3d_admm.py>`_
       PPP (with BM3D) Image Deconvolution (ADMM Solver)
-   `deconv_ppp_bm3d_pgm.py <deconv_ppp_bm3d_pgm.py>`_
+   `deconv_ppp_bm3d_apgm.py <deconv_ppp_bm3d_apgm.py>`_
       PPP (with BM3D) Image Deconvolution (APGM Solver)
    `deconv_ppp_dncnn_admm.py <deconv_ppp_dncnn_admm.py>`_
       PPP (with DnCNN) Image Deconvolution (ADMM Solver)
@@ -78,15 +78,17 @@ Deconvolution
 Sparse Coding
 ^^^^^^^^^^^^^
 
-   `sparsecode_admm.py <sparsecode_admm.py>`_
+   `sparsecode_nn_admm.py <sparsecode_nn_admm.py>`_
       Non-Negative Basis Pursuit DeNoising (ADMM)
+   `sparsecode_nn_apgm.py <sparsecode_nn_apgm.py>`_
+      Non-Negative Basis Pursuit DeNoising (APGM)
    `sparsecode_conv_admm.py <sparsecode_conv_admm.py>`_
       Convolutional Sparse Coding (ADMM)
    `sparsecode_conv_md_admm.py <sparsecode_conv_md_admm.py>`_
       Convolutional Sparse Coding with Mask Decoupling (ADMM)
-   `sparsecode_pgm.py <sparsecode_pgm.py>`_
+   `sparsecode_apgm.py <sparsecode_apgm.py>`_
       Basis Pursuit DeNoising (APGM)
-   `sparsecode_poisson_pgm.py <sparsecode_poisson_pgm.py>`_
+   `sparsecode_poisson_apgm.py <sparsecode_poisson_apgm.py>`_
       Non-negative Poisson Loss Reconstruction (APGM)
 
 
@@ -101,7 +103,7 @@ Miscellaneous
       ℓ1 Total Variation Denoising
    `denoise_tv_admm.py <denoise_tv_admm.py>`_
       Total Variation Denoising (ADMM)
-   `denoise_tv_pgm.py <denoise_tv_pgm.py>`_
+   `denoise_tv_apgm.py <denoise_tv_apgm.py>`_
       Total Variation Denoising with Constraint (APGM)
    `denoise_tv_multi.py <denoise_tv_multi.py>`_
       Comparison of Optimization Algorithms for Total Variation Denoising
@@ -139,7 +141,7 @@ Plug and Play Priors
       PPP (with BM3D) Fan-Beam CT Reconstruction
    `deconv_ppp_bm3d_admm.py <deconv_ppp_bm3d_admm.py>`_
       PPP (with BM3D) Image Deconvolution (ADMM Solver)
-   `deconv_ppp_bm3d_pgm.py <deconv_ppp_bm3d_pgm.py>`_
+   `deconv_ppp_bm3d_apgm.py <deconv_ppp_bm3d_apgm.py>`_
       PPP (with BM3D) Image Deconvolution (APGM Solver)
    `deconv_ppp_dncnn_admm.py <deconv_ppp_dncnn_admm.py>`_
       PPP (with DnCNN) Image Deconvolution (ADMM Solver)
@@ -186,7 +188,7 @@ Total Variation
       ℓ1 Total Variation Denoising
    `denoise_tv_admm.py <denoise_tv_admm.py>`_
       Total Variation Denoising (ADMM)
-   `denoise_tv_pgm.py <denoise_tv_pgm.py>`_
+   `denoise_tv_apgm.py <denoise_tv_apgm.py>`_
       Total Variation Denoising with Constraint (APGM)
    `denoise_tv_multi.py <denoise_tv_multi.py>`_
       Comparison of Optimization Algorithms for Total Variation Denoising
@@ -204,15 +206,17 @@ Sparsity
 
    `diffusercam_tv_admm.py <diffusercam_tv_admm.py>`_
       TV-Regularized 3D DiffuserCam Reconstruction
-   `sparsecode_admm.py <sparsecode_admm.py>`_
+   `sparsecode_nn_admm.py <sparsecode_nn_admm.py>`_
       Non-Negative Basis Pursuit DeNoising (ADMM)
+   `sparsecode_nn_apgm.py <sparsecode_nn_apgm.py>`_
+      Non-Negative Basis Pursuit DeNoising (APGM)
    `sparsecode_conv_admm.py <sparsecode_conv_admm.py>`_
       Convolutional Sparse Coding (ADMM)
    `sparsecode_conv_md_admm.py <sparsecode_conv_md_admm.py>`_
       Convolutional Sparse Coding with Mask Decoupling (ADMM)
-   `sparsecode_pgm.py <sparsecode_pgm.py>`_
+   `sparsecode_apgm.py <sparsecode_apgm.py>`_
       Basis Pursuit DeNoising (APGM)
-   `sparsecode_poisson_pgm.py <sparsecode_poisson_pgm.py>`_
+   `sparsecode_poisson_apgm.py <sparsecode_poisson_apgm.py>`_
       Non-negative Poisson Loss Reconstruction (APGM)
    `video_rpca_admm.py <video_rpca_admm.py>`_
       Video Decomposition via Robust PCA
@@ -289,7 +293,7 @@ ADMM
       PPP (with BM4D) Volume Deconvolution
    `diffusercam_tv_admm.py <diffusercam_tv_admm.py>`_
       TV-Regularized 3D DiffuserCam Reconstruction
-   `sparsecode_admm.py <sparsecode_admm.py>`_
+   `sparsecode_nn_admm.py <sparsecode_nn_admm.py>`_
       Non-Negative Basis Pursuit DeNoising (ADMM)
    `sparsecode_conv_admm.py <sparsecode_conv_admm.py>`_
       Convolutional Sparse Coding (ADMM)
@@ -352,13 +356,15 @@ PDHG
 PGM
 ^^^
 
-   `deconv_ppp_bm3d_pgm.py <deconv_ppp_bm3d_pgm.py>`_
+   `deconv_ppp_bm3d_apgm.py <deconv_ppp_bm3d_apgm.py>`_
       PPP (with BM3D) Image Deconvolution (APGM Solver)
-   `sparsecode_pgm.py <sparsecode_pgm.py>`_
+   `sparsecode_apgm.py <sparsecode_apgm.py>`_
       Basis Pursuit DeNoising (APGM)
-   `sparsecode_poisson_pgm.py <sparsecode_poisson_pgm.py>`_
+   `sparsecode_nn_apgm.py <sparsecode_nn_apgm.py>`_
+      Non-Negative Basis Pursuit DeNoising (APGM)
+   `sparsecode_poisson_apgm.py <sparsecode_poisson_apgm.py>`_
       Non-negative Poisson Loss Reconstruction (APGM)
-   `denoise_tv_pgm.py <denoise_tv_pgm.py>`_
+   `denoise_tv_apgm.py <denoise_tv_apgm.py>`_
       Total Variation Denoising with Constraint (APGM)
 
 

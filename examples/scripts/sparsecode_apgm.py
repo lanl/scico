@@ -35,10 +35,10 @@ s = 32  # Sparsity level (number of non-zeros)
 σ = 0.5  # Noise level
 
 np.random.seed(12345)
-D = np.random.randn(m, n)
+D = np.random.randn(m, n).astype(np.float32)
 L0 = np.linalg.norm(D, 2) ** 2
 
-x_gt = np.zeros(n)  # true signal
+x_gt = np.zeros(n, dtype=np.float32)  # true signal
 idx = np.random.permutation(list(range(0, n - 1)))
 x_gt[idx[0:s]] = np.random.randn(s)
 y = D @ x_gt + σ * np.random.randn(m)  # synthetic signal

@@ -17,6 +17,7 @@ class TestCheckAttrs:
         functional.Functional,
         functional.ScaledFunctional,
         functional.SeparableFunctional,
+        functional.ProximalAverage,
     ]
     to_check = []
     for name, cls in functional.__dict__.items():
@@ -129,3 +130,15 @@ def test_l21norm(axis):
     prxana = (l2ana - 1.0) / l2ana * x
     prxnum = F.prox(x, 1.0)
     np.testing.assert_allclose(prxana, prxnum, rtol=1e-5)
+
+
+def test_scalar_aggregation():
+    f = functional.L2Norm()
+    g = 2.0 * f
+    h = 5.0 * g
+    assert isinstance(g, functional.ScaledFunctional)
+    assert isinstance(g.functional, functional.L2Norm)
+    assert g.scale == 2.0
+    assert isinstance(h, functional.ScaledFunctional)
+    assert isinstance(h.functional, functional.L2Norm)
+    assert h.scale == 10.0
