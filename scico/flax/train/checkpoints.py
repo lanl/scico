@@ -7,7 +7,7 @@
 
 """Utilities for checkpointing Flax models."""
 from pathlib import Path
-from typing import Dict, Union
+from typing import Union
 
 import jax
 
@@ -16,6 +16,7 @@ import orbax
 from flax.training import orbax_utils
 
 from .state import TrainState
+from .typed_dict import ConfigDict
 
 
 def checkpoint_restore(
@@ -52,12 +53,12 @@ def checkpoint_restore(
             ckpt = checkpoint_manager.restore(step, items=target)
             state = ckpt["state"]
     elif not ok_no_ckpt:
-        raise FileNotFoundError("Could not read from checkpoint: " + workdir)
+        raise FileNotFoundError("Could not read from checkpoint: " + str(workdir))
 
     return state
 
 
-def checkpoint_save(state: TrainState, config: Dict, workdir: Union[str, Path]):
+def checkpoint_save(state: TrainState, config: ConfigDict, workdir: Union[str, Path]):
     """Store model, model configuration and optimiser state.
 
     Note that naming is slightly different to distinguish from Flax

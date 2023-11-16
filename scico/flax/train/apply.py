@@ -96,11 +96,14 @@ def only_apply(
             empty_state = create_basic_train_state(key, config, model, ishape, lr_)
             state = checkpoint_restore(empty_state, workdir)
             if hasattr(state, "batch_stats"):
-                variables = {"params": state.params, "batch_stats": state.batch_stats}
+                variables = {
+                    "params": state.params,
+                    "batch_stats": state.batch_stats,
+                }  # type: ignore
                 print(get_parameter_overview(variables["params"]))
                 print(get_parameter_overview(variables["batch_stats"]))
             else:
-                variables = {"params": state.params}
+                variables = {"params": state.params, "batch_stats": {}}
                 print(get_parameter_overview(variables["params"]))
         else:
             raise RuntimeError("No variables or checkpoint provided.")
