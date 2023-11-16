@@ -6,15 +6,15 @@ SCICO Release Notes
 Version 0.0.5   (unreleased)
 ----------------------------
 
-• New functional ``functional.AnisotropicTVNorm`` with proximal operator
-  approximation.
+• New functionals ``functional.AnisotropicTVNorm`` and
+  ``functional.ProximalAverage`` with proximal operator approximations.
 • New integrated Radon/X-ray transform ``linop.XRayTransform``.
 • Rename modules ``radon_astra`` and ``radon_svmbir`` to ``xray.astra`` and
   ``xray.svmbir`` respectively, and rename ``TomographicProjector`` classes
   to ``XRayTransform``.
 • Rename ``AbelProjector`` to ``AbelTransform``.
 • Rename ``solver.ATADSolver`` to ``solver.MatrixATADSolver``.
-• Support ``jaxlib`` and ``jax`` versions 0.4.3 to 0.4.19.
+• Support ``jaxlib`` and ``jax`` versions 0.4.3 to 0.4.20.
 
 
 
