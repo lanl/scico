@@ -119,47 +119,46 @@ for name, H in projectors.items():
 """
 Display timing results.
 
-On our server, the SCICO projection is more than twice as fast as ASTRA
-when both are run on the GPU, and about 10% slower when both are run the
-CPU. The SCICO back projection is slow the first time it is run, probably
-due to JIT overhead. After the first run, it is an order of magnitude
-faster than ASTRA when both are run on the GPU, and about three times
-faster when both are run on the CPU.
+On our server, when using the GPU, the SCICO projector (both forward
+and backward) is faster than ASTRA. When using the CPU, it is slower
+for forward projection and faster for back projection. The SCICO object
+initialization and first back projection are slow due to JIT
+overhead.
 
 On our server, using the GPU:
 ```
-init         astra    1.36e-03 s
-init         scico    1.37e+01 s
+init         astra    4.81e-02 s
+init         scico    2.53e-01 s
 
-first  fwd   astra    6.92e-02 s
-first  fwd   scico    2.95e-02 s
+first  fwd   astra    4.44e-02 s
+first  fwd   scico    2.82e-02 s
 
-first  back  astra    4.20e-02 s
-first  back  scico    7.63e+00 s
+first  back  astra    3.31e-02 s
+first  back  scico    2.80e-01 s
 
-avg    fwd   astra    4.62e-02 s
-avg    fwd   scico    1.61e-02 s
+avg    fwd   astra    4.76e-02 s
+avg    fwd   scico    2.83e-02 s
 
-avg    back  astra    3.71e-02 s
-avg    back  scico    1.05e-03 s
+avg    back  astra    3.96e-02 s
+avg    back  scico    6.80e-04 s
 ```
 
 Using the CPU:
 ```
-init         astra    1.06e-03 s
-init         scico    1.00e+01 s
+init         astra    1.72e-02 s
+init         scico    2.88e+00 s
 
-first  fwd   astra    9.16e-01 s
-first  fwd   scico    1.04e+00 s
+first  fwd   astra    1.02e+00 s
+first  fwd   scico    2.40e+00 s
 
-first  back  astra    9.39e-01 s
-first  back  scico    1.00e+01 s
+first  back  astra    1.03e+00 s
+first  back  scico    3.53e+00 s
 
-avg    fwd   astra    9.11e-01 s
-avg    fwd   scico    1.03e+00 s
+avg    fwd   astra    1.03e+00 s
+avg    fwd   scico    2.54e+00 s
 
-avg    back  astra    9.34e-01 s
-avg    back  scico    2.62e-01 s
+avg    back  astra    1.01e+00 s
+avg    back  scico    5.98e-01 s
 ```
 """
 
