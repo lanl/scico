@@ -44,7 +44,7 @@ class XRayTransform(LinearOperator):
 
         super().__init__(
             input_shape=projector.im_shape,
-            output_shape=(len(projector.angles), *projector.det_shape),
+            output_shape=(len(projector.angles), projector.det_count),
         )
 
 
@@ -56,7 +56,6 @@ class Parallel2dProjector:
         im_shape: Shape,
         angles: ArrayLike,
         det_count: Optional[int] = None,
-        dither: bool = True,
     ):
         r"""
         Args:
@@ -68,65 +67,100 @@ class Parallel2dProjector:
                 corresponds to summing along antidiagonals.
             det_count: Number of elements in detector. If ``None``,
                 defaults to the size of the diagonal of `im_shape`.
-            dither: If ``True`` randomly shift pixel locations to
-                reduce projection artifacts caused by aliasing.
         """
         self.im_shape = im_shape
         self.angles = angles
 
-        im_shape = np.array(im_shape)
-
-        x0 = -(im_shape - 1) / 2
+        self.nx = np.array(im_shape)
+        self.x0 = np.array([-1, -1])
+        self.dx = 2 / self.nx
 
         if det_count is None:
             det_count = int(np.ceil(np.linalg.norm(im_shape)))
-        self.det_shape = (det_count,)
+        self.det_count = det_count
+        self.ny = det_count
 
-        y0 = -det_count / 2
+        self.y0 = -np.sqrt(2)
+        self.dy = 2 * np.sqrt(2) / det_count
 
-        @jax.vmap
-        def compute_inds(angle: float) -> ArrayLike:
-            """Project pixel positions on to a detector at the given
-            angle, determine which detector element they contribute to.
-            """
-            x = jnp.stack(
-                jnp.meshgrid(
-                    *(
-                        jnp.arange(shape_i) * step_i + start_i
-                        for start_i, step_i, shape_i in zip(x0, [1, 1], im_shape)
-                    ),
-                    indexing="ij",
-                ),
-                axis=-1,
-            )
+        # scale so dy is 1.0
+        self.x0 = self.x0 / self.dy
+        self.dx = self.dx / self.dy
+        self.y0 = self.y0 / self.dy
+        self.dy = self.dy / self.dy
 
-            # dither
-            if dither:
-                key = jax.random.PRNGKey(0)
-                x = x + jax.random.uniform(key, shape=x.shape, minval=-0.5, maxval=0.5)
+    def project(self, im):
+        """Compute X-ray projection."""
+        return _project(im, self.x0, self.dx, self.y0, self.ny, self.angles)
 
-            # project
-            Px = x[..., 0] * jnp.cos(angle) + x[..., 1] * jnp.sin(angle)
 
-            # quantize
-            inds = jnp.floor((Px - y0)).astype(int)
+@partial(jax.jit, static_argnames=["ny"])
+def _project(im, x0, dx, y0, ny, angles):
+    r"""
+    Args:
+        im: Input array, (M, N).
+        x0: Location of the corner of the pixel im[0,0].
+        dx: Pixel side length in x- and y-direction. Units are such
+            that the detector bins have length 1.0.
+        y0: Location of the edge of the first detector bin.
+        ny: Number of detector bins.
+        angles: (num_angles,) array of angles in radians. Pixels are
+            projected onto units vectors pointing in these directions.
+    """
+    nx = im.shape
+    inds, weights = _calc_weights(x0, dx, nx, angles, y0)
 
-            # map negative inds to y_size, which is out of bounds and will be ignored
-            # otherwise they index from the end like x[-1]
-            inds = jnp.where(inds < 0, det_count, inds)
+    y = (
+        jnp.zeros((len(angles), ny))
+        .at[jnp.arange(len(angles)).reshape(-1, 1, 1), inds]
+        .add(im * weights)
+    )
 
-            return inds
+    y = y.at[jnp.arange(len(angles)).reshape(-1, 1, 1), inds + 1].add(im * (1 - weights))
 
-        inds = compute_inds(angles)  # (len(angles), *im_shape)
+    return y
 
-        @partial(jax.vmap, in_axes=(None, 0))
-        def project_inds(im: ArrayLike, inds: ArrayLike) -> ArrayLike:
-            """Compute the projection at a single angle."""
-            return jnp.zeros(det_count).at[inds].add(im)
 
-        @jax.jit
-        def project(im: ArrayLike) -> ArrayLike:
-            """Compute the projection for all angles."""
-            return project_inds(im, inds)
+@partial(jax.jit, static_argnames=["nx", "y0"])
+@partial(jax.vmap, in_axes=(None, None, None, 0, None))
+def _calc_weights(x0, dx, nx, angle, y0):
+    """
 
-        self.project = project
+    Args:
+        x0: Location of the corner of the pixel im[0,0].
+        dx: Pixel side length in x- and y-direction. Units are such
+            that the detector bins have length 1.0.
+        nx: Input image shape.
+        angle: (num_angles,) array of angles in radians. Pixels are
+            projected onto units vectors pointing in these directions.
+            (The argument is `vmap`ed.)
+        y0: Location of the edge of the first detector bin.
+    """
+    u = [jnp.cos(angle), jnp.sin(angle)]
+    Px0 = x0[0] * u[0] + x0[1] * u[1] - y0
+    Pdx = [dx[0] * u[0], dx[1] * u[1]]
+    Pxmin = jnp.min(jnp.array([Px0, Px0 + Pdx[0], Px0 + Pdx[1], Px0 + Pdx[0] + Pdx[1]]))
+
+    Px = (
+        Pxmin
+        + Pdx[0] * jnp.arange(nx[0]).reshape(-1, 1)
+        + Pdx[1] * jnp.arange(nx[1]).reshape(1, -1)
+    )
+
+    # detector bin inds
+    inds = jnp.floor(Px).astype(int)
+
+    # weights
+    Pdx = jnp.array(u) * jnp.array(dx)
+    diag1 = jnp.abs(Pdx[0] + Pdx[1])
+    diag2 = jnp.abs(Pdx[0] - Pdx[1])
+    w = jnp.max(jnp.array([diag1, diag2]))
+    f = jnp.min(jnp.array([diag1, diag2]))
+
+    width = (w + f) / 2
+
+    distance_to_next = 1 - (Px - inds)  # always in (0, 1]
+
+    weights = jnp.minimum(distance_to_next, width) / width
+
+    return inds, weights
