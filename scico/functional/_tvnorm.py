@@ -81,7 +81,7 @@ class AnisotropicTVNorm(Functional):
             self.G = FiniteDifference(
                 x.shape, input_dtype=x.dtype, axes=axes, circular=True, jit=True
             )
-        return snp.sum(snp.abs(self.G @ x))
+        return self.l1norm(self.G @ x)
 
     @staticmethod
     def _shape(idx: int, ndims: int) -> Tuple:
@@ -191,7 +191,7 @@ class IsotropicTVNorm(Functional):
         self.W = None
 
     def __call__(self, x: Array) -> float:
-        r"""Compute the anisotropic TV norm of an array."""
+        r"""Compute the isotropic TV norm of an array."""
         if self.G is None or self.G.shape[1] != x.shape:
             if self.ndims is None:
                 ndims = x.ndim
@@ -201,7 +201,7 @@ class IsotropicTVNorm(Functional):
             self.G = FiniteDifference(
                 x.shape, input_dtype=x.dtype, axes=axes, circular=True, jit=True
             )
-        return snp.sum(snp.abs(self.G @ x))
+        return self.l21norm(self.G @ x)
 
     @staticmethod
     def _shape(idx: int, ndims: int) -> Tuple:
