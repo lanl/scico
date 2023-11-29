@@ -50,12 +50,19 @@ class XRayTransform(LinearOperator):
 
 
 class Parallel2dProjector:
-    """Parallel ray, single axis, 2D X-ray projector."""
+    """Parallel ray, single axis, 2D X-ray projector.
+
+    `x0`, `dx`, and `y0` should be expressed in units such that the
+    detector spacing `dy` is 1.0.
+    """
 
     def __init__(
         self,
         im_shape: Shape,
         angles: ArrayLike,
+        x0: Optional[ArrayLike] = None,
+        dx: Optional[ArrayLike] = None,
+        y0: Optional[int] = None,
         det_count: Optional[int] = None,
     ):
         r"""
@@ -66,6 +73,12 @@ class Parallel2dProjector:
                 angle of 0 corresponds to summing rows, an angle of pi/2
                 corresponds to summing columns, and an angle of pi/4
                 corresponds to summing along antidiagonals.
+            x0: (x, y) position of the corner of the pixel `im[0,0]`. By
+                default, `-im_shape / 2`.
+            dx: Image pixel side length in x- and y-direction. Should be
+                <= 1.0 in each dimension. By default, [1.0, 1.0].
+            y0: Location of the edge of the first detector bin. By
+                default, `-det_count / 2`
             det_count: Number of elements in detector. If ``None``,
                 defaults to the size of the diagonal of `im_shape`.
         """
@@ -73,16 +86,28 @@ class Parallel2dProjector:
         self.angles = angles
 
         self.nx = np.array(im_shape)
-        self.x0 = -self.nx / 2
-        self.dx = np.ones(2)
+
+        if x0 is None:
+            x0 = -self.nx / 2
+        self.x0 = x0
+        if dx is None:
+            dx = np.ones(2)
+        self.dx = dx
 
         if det_count is None:
             det_count = int(np.ceil(np.linalg.norm(im_shape)))
         self.det_count = det_count
         self.ny = det_count
 
-        self.y0 = -self.ny / 2
+        if y0 is None:
+            y0 = -self.ny / 2
+        self.y0 = y0
         self.dy = 1.0
+
+        if self.dx > self.dy:
+            raise ValueError(
+                f"This projector assumes dx <= dy, but dx was {self.dx} and dy was {self.dy}."
+            )
 
     def project(self, im):
         """Compute X-ray projection."""
@@ -94,7 +119,7 @@ def _project(im, x0, dx, y0, ny, angles):
     r"""
     Args:
         im: Input array, (M, N).
-        x0: Location of the corner of the pixel im[0,0].
+        x0: (x, y) position of the corner of the pixel im[0,0].
         dx: Pixel side length in x- and y-direction. Units are such
             that the detector bins have length 1.0.
         y0: Location of the edge of the first detector bin.
@@ -128,7 +153,7 @@ def _calc_weights(x0, dx, nx, angle, y0):
         nx: Input image shape.
         angle: (num_angles,) array of angles in radians. Pixels are
             projected onto units vectors pointing in these directions.
-            (The argument is `vmap`ed.)
+            (This argument is `vmap`ed.)
         y0: Location of the edge of the first detector bin.
     """
     u = [jnp.cos(angle), jnp.sin(angle)]
@@ -153,9 +178,7 @@ def _calc_weights(x0, dx, nx, angle, y0):
     f = jnp.min(jnp.array([diag1, diag2]))
 
     width = (w + f) / 2
-
     distance_to_next = 1 - (Px - inds)  # always in (0, 1]
-
     weights = jnp.minimum(distance_to_next, width) / width
 
     return inds, weights
