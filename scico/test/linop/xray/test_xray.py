@@ -22,10 +22,6 @@ def test_apply():
     y = H @ x
     assert y.shape[1] == det_count
 
-    # dither off
-    H = XRayTransform(Parallel2dProjector(x.shape, angles, dither=False))
-    y = H @ x
-
 
 def test_apply_adjoint():
     im_shape = (12, 13)
