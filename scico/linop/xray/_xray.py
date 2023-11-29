@@ -62,7 +62,7 @@ class Parallel2dProjector:
         angles: ArrayLike,
         x0: Optional[ArrayLike] = None,
         dx: Optional[ArrayLike] = None,
-        y0: Optional[int] = None,
+        y0: Optional[float] = None,
         det_count: Optional[int] = None,
     ):
         r"""
@@ -104,7 +104,7 @@ class Parallel2dProjector:
         self.y0 = y0
         self.dy = 1.0
 
-        if self.dx > self.dy:
+        if any(self.dx > self.dy):
             raise ValueError(
                 f"This projector assumes dx <= dy, but dx was {self.dx} and dy was {self.dy}."
             )
@@ -129,6 +129,9 @@ def _project(im, x0, dx, y0, ny, angles):
     """
     nx = im.shape
     inds, weights = _calc_weights(x0, dx, nx, angles, y0)
+    # Handle out of bounds indices. In the .at call, inds >= y0 are
+    # ignored, while inds < 0 wrap around. So we set inds < 0 to y0.
+    inds = jnp.where(inds > 0, inds, ny)
 
     y = (
         jnp.zeros((len(angles), ny))
