@@ -25,7 +25,7 @@ Note that the isotropic version exhibits fewer block-like artifacts on
 edges that are not vertical or horizontal.
 """
 
-
+import matplotlib
 from xdesign import SiemensStar, discrete_phantom
 
 import scico.numpy as snp
@@ -59,9 +59,7 @@ Denoise with isotropic total variation.
 f = loss.SquaredL2Loss(y=y)
 g_iso = λ_iso * functional.L21Norm()
 
-# The append=0 option makes the results of horizontal and vertical finite
-# differences the same shape, which is required for the L21Norm.
-C = linop.FiniteDifference(input_shape=x_gt.shape, append=0)
+C = linop.FiniteDifference(input_shape=x_gt.shape, circular=True)
 solver = ADMM(
     f=f,
     g_list=[g_iso],
@@ -81,7 +79,7 @@ print()
 """
 Denoise with anisotropic total variation for comparison.
 """
-# Tune the weight to give the same data fidelty as the isotropic case.
+# Tune the weight to give the same data fidelity as the isotropic case.
 λ_aniso = 8.7e-1
 g_aniso = λ_aniso * functional.L1Norm()
 
@@ -133,52 +131,39 @@ for x, name in zip((x_iso_aprx, x_aniso_aprx), ("Approx. Isotropic", "Approx. An
 """
 Plot results.
 """
+matplotlib.rc("font", size=9)
 plt_args = dict(norm=plot.matplotlib.colors.Normalize(vmin=0, vmax=1.5))
-fig, ax = plot.subplots(nrows=2, ncols=2, sharex=True, sharey=True, figsize=(9, 8))
+fig, ax = plot.subplots(nrows=2, ncols=3, sharex=True, sharey=True, figsize=(15, 8))
 plot.imview(x_gt, title="Ground truth", fig=fig, ax=ax[0, 0], **plt_args)
 plot.imview(
-    y, title=f"Noisy version SNR: {metric.snr(x_gt, y):.2f} dB", fig=fig, ax=ax[0, 1], **plt_args
+    y, title=f"Noisy version SNR: {metric.snr(x_gt, y):.2f} dB", fig=fig, ax=ax[1, 0], **plt_args
 )
 plot.imview(
     x_iso,
-    title=f"Iso TV denoising SNR: {metric.snr(x_gt, x_iso):.2f} dB",
+    title=f"Iso. TV denoising SNR: {metric.snr(x_gt, x_iso):.2f} dB",
     fig=fig,
-    ax=ax[1, 0],
+    ax=ax[0, 1],
     **plt_args,
 )
 plot.imview(
     x_aniso,
-    title=f"Aniso TV denoising SNR: {metric.snr(x_gt, x_aniso):.2f} dB",
+    title=f"Aniso. TV denoising SNR: {metric.snr(x_gt, x_aniso):.2f} dB",
     fig=fig,
     ax=ax[1, 1],
     **plt_args,
 )
-fig.subplots_adjust(left=0.1, right=0.99, top=0.95, bottom=0.05, wspace=0.2, hspace=0.01)
-fig.colorbar(
-    ax[0, 0].get_images()[0], ax=ax, location="right", shrink=0.9, pad=0.05, label="Arbitrary Units"
-)
-fig.suptitle("Denoising comparison")
-fig.show()
-
-
-plt_args = dict(norm=plot.matplotlib.colors.Normalize(vmin=0, vmax=1.5))
-fig, ax = plot.subplots(nrows=2, ncols=2, sharex=True, sharey=True, figsize=(9, 8))
-plot.imview(x_gt, title="Ground truth", fig=fig, ax=ax[0, 0], **plt_args)
-plot.imview(
-    y, title=f"Noisy version SNR: {metric.snr(x_gt, y):.2f} dB", fig=fig, ax=ax[0, 1], **plt_args
-)
 plot.imview(
     x_iso_aprx,
-    title=f"Aprx Iso TV denoising SNR: {metric.snr(x_gt, x_iso_aprx):.2f} dB",
+    title=f"Approx. Iso. TV denoising SNR: {metric.snr(x_gt, x_iso_aprx):.2f} dB",
     fig=fig,
-    ax=ax[1, 0],
+    ax=ax[0, 2],
     **plt_args,
 )
 plot.imview(
     x_aniso_aprx,
-    title=f"Aprx Aniso TV denoising SNR: {metric.snr(x_gt, x_aniso_aprx):.2f} dB",
+    title=f"Approx. Aniso. TV denoising SNR: {metric.snr(x_gt, x_aniso_aprx):.2f} dB",
     fig=fig,
-    ax=ax[1, 1],
+    ax=ax[1, 2],
     **plt_args,
 )
 fig.subplots_adjust(left=0.1, right=0.99, top=0.95, bottom=0.05, wspace=0.2, hspace=0.01)
