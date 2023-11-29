@@ -10,7 +10,12 @@
 from typing import Optional, Tuple
 
 from scico import numpy as snp
-from scico.linop import CircularConvolve, FiniteDifference, VerticalStack
+from scico.linop import (
+    CircularConvolve,
+    FiniteDifference,
+    LinearOperator,
+    VerticalStack,
+)
 from scico.numpy import Array
 
 from ._functional import Functional
@@ -52,7 +57,7 @@ class AnisotropicTVNorm(Functional):
     has_prox = True
 
     def __init__(self, ndims: Optional[int] = None):
-        r"""
+        """
         Args:
             ndims: Number of (trailing) dimensions of the input over
                 which to apply the finite difference operator. If
@@ -62,11 +67,11 @@ class AnisotropicTVNorm(Functional):
         self.h0 = snp.array([1.0, 1.0]) / snp.sqrt(2.0)  # lowpass filter
         self.h1 = snp.array([1.0, -1.0]) / snp.sqrt(2.0)  # highpass filter
         self.l1norm = L1Norm()
-        self.G = None
-        self.W = None
+        self.G: Optional[LinearOperator] = None
+        self.W: Optional[LinearOperator] = None
 
     def __call__(self, x: Array) -> float:
-        r"""Compute the anisotropic TV norm of an array."""
+        """Compute the anisotropic TV norm of an array."""
         if self.G is None or self.G.shape[1] != x.shape:
             if self.ndims is None:
                 ndims = x.ndim
@@ -106,10 +111,12 @@ class AnisotropicTVNorm(Functional):
         K = 2 * ndims
 
         if self.W is None or self.W.shape[1] != v.shape:
+            h0 = self.h0.astype(v.dtype)
+            h1 = self.h1.astype(v.dtype)
             C0 = VerticalStack(  # Stack of lowpass filter operators for each axis
                 [
                     CircularConvolve(
-                        self.h0.reshape(AnisotropicTVNorm._shape(k, ndims)),
+                        h0.reshape(AnisotropicTVNorm._shape(k, ndims)),
                         v.shape,
                         ndims=self.ndims,
                     )
@@ -119,7 +126,7 @@ class AnisotropicTVNorm(Functional):
             C1 = VerticalStack(  # Stack of highpass filter operators for each axis
                 [
                     CircularConvolve(
-                        self.h1.reshape(AnisotropicTVNorm._shape(k, ndims)),
+                        h1.reshape(AnisotropicTVNorm._shape(k, ndims)),
                         v.shape,
                         ndims=self.ndims,
                     )
@@ -127,7 +134,7 @@ class AnisotropicTVNorm(Functional):
                 ]
             )
             # single-level shift-invariant Haar transform
-            self.W = VerticalStack((C0, C1), jit=True)
+            self.W = VerticalStack([C0, C1], jit=True)
 
         Wv = self.W @ v
         # Apply 𝑙1 shrinkage to highpass component of shift-invariant Haar transform

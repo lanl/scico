@@ -9,7 +9,7 @@ from scico.optimize.pgm import AcceleratedPGM
 def test_tvnorm():
 
     N = 128
-    g = np.linspace(0, 2 * np.pi, N)
+    g = np.linspace(0, 2 * np.pi, N, dtype=np.float32)
     x_gt = np.sin(2 * g)
     x_gt[x_gt > 0.5] = 0.5
     x_gt[x_gt < -0.5] = -0.5
@@ -30,14 +30,11 @@ def test_tvnorm():
         x0=y,
         maxiter=50,
         subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-3, "maxiter": 20}),
-        itstat_options={"display": True, "period": 10},
     )
     x_tvdn = solver.solve()
 
     h = λ * functional.AnisotropicTVNorm()
-    solver = AcceleratedPGM(
-        f=f, g=h, L0=2e2, x0=y, maxiter=50, itstat_options={"display": True, "period": 10}
-    )
+    solver = AcceleratedPGM(f=f, g=h, L0=2e2, x0=y, maxiter=50)
     x_approx = solver.solve()
 
     assert metric.snr(x_tvdn, x_approx) > 45
