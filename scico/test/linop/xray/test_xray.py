@@ -42,7 +42,7 @@ def test_apply_adjoint():
     )  # associative reductions might cause small errors, hence 1e-5
 
     # fixed det_length
-    det_length = 14
-    H = XRayTransform(Parallel2dProjector(x.shape, angles, det_length=det_length))
+    det_count = 14
+    H = XRayTransform(Parallel2dProjector(x.shape, angles, det_count=det_count))
     y = H @ x
-    assert y.shape[1] == det_length
+    assert y.shape[1] == det_count
