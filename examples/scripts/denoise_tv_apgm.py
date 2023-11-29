@@ -166,7 +166,7 @@ class AnisoProjector(functional.Functional):
 
 """
 Use RobustLineSearchStepSize object and set up AcceleratedPGM solver
-object. Weight was tuned to give the same data fidelty as the
+object. Weight was tuned to give the same data fidelity as the
 isotropic case. Run the solver.
 """
 
