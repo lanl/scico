@@ -6,7 +6,7 @@ from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.optimize.pgm import AcceleratedPGM
 
 
-def test_tvnorm():
+def test_aniso_tvnorm():
 
     N = 128
     g = np.linspace(0, 2 * np.pi, N, dtype=np.float32)
