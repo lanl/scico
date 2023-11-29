@@ -143,9 +143,9 @@ class AnisotropicTVNorm(Functional):
 
 
 class IsotropicTVNorm(Functional):
-    r"""The Isotropic total variation (TV) norm.
+    r"""The isotropic total variation (TV) norm.
 
-    The Isotropic total variation (TV) norm computed by
+    The isotropic total variation (TV) norm computed by
 
     .. code-block:: python
 
@@ -161,7 +161,7 @@ class IsotropicTVNorm(Functional):
        x_norm = L21(C @ x)
 
     The scaled proximal operator is computed using an approximation that
-    holds for small scaling parameters :cite:`kamilov-2016-parallel`.
+    holds for small scaling parameters :cite:`kamilov-2016-minimizing`.
     This does not imply that it can only be applied to problems requiring
     a small regularization parameter since most proximal algorithms
     include an additional algorithm parameter that also plays a role in
