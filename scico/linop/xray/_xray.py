@@ -40,6 +40,7 @@ class XRayTransform(LinearOperator):
                 currently the only option is
                 :class:`Parallel2dProjector`
         """
+        self.projector = projector
         self._eval = projector.project
 
         super().__init__(
@@ -72,22 +73,16 @@ class Parallel2dProjector:
         self.angles = angles
 
         self.nx = np.array(im_shape)
-        self.x0 = np.array([-1, -1])
-        self.dx = 2 / self.nx
+        self.x0 = -self.nx / 2
+        self.dx = np.ones(2)
 
         if det_count is None:
             det_count = int(np.ceil(np.linalg.norm(im_shape)))
         self.det_count = det_count
         self.ny = det_count
 
-        self.y0 = -np.sqrt(2)
-        self.dy = 2 * np.sqrt(2) / det_count
-
-        # scale so dy is 1.0
-        self.x0 = self.x0 / self.dy
-        self.dx = self.dx / self.dy
-        self.y0 = self.y0 / self.dy
-        self.dy = self.dy / self.dy
+        self.y0 = -self.ny / 2
+        self.dy = 1.0
 
     def project(self, im):
         """Compute X-ray projection."""
