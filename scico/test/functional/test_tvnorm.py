@@ -87,8 +87,46 @@ class Test2D:
 
         h = λ * functional.AnisotropicTVNorm()
         solver = AcceleratedPGM(
-            f=f, g=h, L0=1e3, x0=y, maxiter=300, itstat_options={"display": True, "period": 20}
+            f=f,
+            g=h,
+            L0=1e3,
+            x0=y,
+            maxiter=300,
         )
         x_aprx = solver.solve()
 
         assert metric.snr(x, x_aprx) > 30.0
+
+    def test_iso(self):
+        x_gt = self.x_gt
+        y = self.y
+
+        λ = 2e-1
+        f = loss.SquaredL2Loss(y=y)
+        g = λ * functional.L21Norm()
+        C = linop.FiniteDifference(input_shape=x_gt.shape, circular=True)
+
+        mu, nu = ProximalADMM.estimate_parameters(C)
+        solver = ProximalADMM(
+            f=f,
+            g=g,
+            A=C,
+            rho=1e0,
+            mu=mu,
+            nu=nu,
+            x0=y,
+            maxiter=200,
+        )
+        x = solver.solve()
+
+        h = λ * functional.IsotropicTVNorm()
+        solver = AcceleratedPGM(
+            f=f,
+            g=h,
+            L0=1e3,
+            x0=y,
+            maxiter=300,
+        )
+        x_aprx = solver.solve()
+
+        assert metric.snr(x, x_aprx) > 20.0
