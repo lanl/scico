@@ -26,6 +26,7 @@ class IterationStats:
         ident: Optional[dict] = None,
         display: bool = False,
         period: int = 1,
+        shift_cycles: bool = True,
         overwrite: bool = True,
         colsep: int = 2,
     ):
@@ -48,14 +49,17 @@ class IterationStats:
             fields: A dictionary associating field names with format
                 strings for displaying the corresponding values.
             ident: A dictionary associating field names.
-               with corresponding valid identifiers for use within the
-               namedtuple used to record results. Defaults to ``None``.
+                with corresponding valid identifiers for use within the
+                namedtuple used to record results. Defaults to ``None``.
             display: Flag indicating whether results should be printed
                 to stdout. Defaults to ``False``.
             period: Only display one result in every cycle of length
                 `period`.
+            shift_cycles: If ``True``, apply an offset to the iteration
+                count so that display cycles end at 0, `period` - 1, etc.
+                Otherwise, cycles end at `period`, 2 * `period`, etc.
             overwrite: If ``True``, display all results, but each one
-                 overwrites the next, except for one result per cycle.
+                overwrites the next, except for one result per cycle.
             colsep: Number of spaces seperating fields in displayed
                 tables. Defaults to 2.
 
@@ -69,6 +73,8 @@ class IterationStats:
             raise TypeError("Parameter fields must be an instance of dict.")
         # Subsampling rate of results that are to be displayed
         self.period: int = period
+        # Offset to iteration count for determining start of period
+        self.period_offset = 1 if shift_cycles else 0
         # Flag indicating whether to display and overwrite, or not display at all
         self.overwrite: bool = overwrite
         # Number of spaces seperating fields in displayed tables
@@ -159,13 +165,13 @@ class IterationStats:
                 print(self.disphdr)
                 self.disphdr = None
             if self.overwrite:
-                if (len(self.iterations) - 1) % self.period == 0:
+                if (len(self.iterations) - self.period_offset) % self.period == 0:
                     end = "\n"
                 else:
                     end = "\r"
                 print((" " * self.colsep).join(self.fieldformat) % values, end=end)
             else:
-                if (len(self.iterations) - 1) % self.period == 0:
+                if (len(self.iterations) - self.period_offset) % self.period == 0:
                     print((" " * self.colsep).join(self.fieldformat) % values)
 
     def end(self):
@@ -180,7 +186,7 @@ class IterationStats:
             self.display
             and self.overwrite
             and self.period > 1
-            and (len(self.iterations) - 1) % self.period
+            and (len(self.iterations) - self.period_offset) % self.period
         ):
             print()
 
