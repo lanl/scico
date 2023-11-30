@@ -75,11 +75,10 @@ solver = ProximalADMM(
     maxiter=200,
     itstat_options={"display": True, "period": 20},
 )
-
 print(f"Solving on {device_info()}\n")
-solver.solve()
-x_iso = solver.x
+x_iso = solver.solve()
 print()
+
 
 """
 Denoise with anisotropic total variation, solved via Proximal ADMM.
@@ -99,9 +98,7 @@ solver = ProximalADMM(
     maxiter=200,
     itstat_options={"display": True, "period": 20},
 )
-
-solver.solve()
-x_aniso = solver.x
+x_aniso = solver.solve()
 print()
 
 
