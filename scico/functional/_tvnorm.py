@@ -225,7 +225,7 @@ class IsotropicTVNorm(AbstractTVNorm):
     def prox(self, v: Array, lam: float = 1.0, **kwargs) -> Array:
         r"""Approximate proximal operator of the isotropic  TV norm.
 
-        Approximation of the proximal operator of the anisotropic TV norm,
+        Approximation of the proximal operator of the isotropic TV norm,
         computed via the method described in :cite:`kamilov-2016-parallel`.
 
         Args:
