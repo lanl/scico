@@ -31,8 +31,7 @@ from xdesign import SiemensStar, discrete_phantom
 import scico.numpy as snp
 import scico.random
 from scico import functional, linop, loss, metric, plot
-from scico.optimize import AcceleratedPGM
-from scico.optimize.admm import ADMM, LinearSubproblemSolver
+from scico.optimize import AcceleratedPGM, ProximalADMM
 from scico.util import device_info
 
 """
@@ -58,17 +57,19 @@ Denoise with isotropic total variation.
 λ_iso = 1.0e0
 f = loss.SquaredL2Loss(y=y)
 g_iso = λ_iso * functional.L21Norm()
-
 C = linop.FiniteDifference(input_shape=x_gt.shape, circular=True)
-solver = ADMM(
+mu, nu = ProximalADMM.estimate_parameters(C)
+
+solver = ProximalADMM(
     f=f,
-    g_list=[g_iso],
-    C_list=[C],
-    rho_list=[1e1],
+    g=g_iso,
+    A=C,
+    rho=1e0,
+    mu=mu,
+    nu=nu,
     x0=y,
-    maxiter=150,
-    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-3, "maxiter": 20}),
-    itstat_options={"display": True, "period": 10},
+    maxiter=200,
+    itstat_options={"display": True, "period": 20},
 )
 
 print(f"Solving on {device_info()}\n")
@@ -80,31 +81,23 @@ print()
 Denoise with anisotropic total variation for comparison.
 """
 # Tune the weight to give the same data fidelity as the isotropic case.
-λ_aniso = 8.7e-1
+λ_aniso = 8.68e-1
 g_aniso = λ_aniso * functional.L1Norm()
 
-solver = ADMM(
+solver = ProximalADMM(
     f=f,
-    g_list=[g_aniso],
-    C_list=[C],
-    rho_list=[1e1],
+    g=g_aniso,
+    A=C,
+    rho=1e0,
+    mu=mu,
+    nu=nu,
     x0=y,
-    maxiter=150,
-    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-3, "maxiter": 20}),
-    itstat_options={"display": True, "period": 10},
+    maxiter=200,
+    itstat_options={"display": True, "period": 20},
 )
 
 solver.solve()
 x_aniso = solver.x
-print()
-
-
-"""
-Compute and print the data fidelity.
-"""
-for x, name in zip((x_iso, x_aniso), ("Isotropic", "Anisotropic")):
-    df = f(x)
-    print(f"Data fidelity for {name} TV was {df:.2e}")
 print()
 
 
@@ -123,9 +116,15 @@ x_iso_aprx = solver.solve()
 print()
 
 
-for x, name in zip((x_iso_aprx, x_aniso_aprx), ("Approx. Isotropic", "Approx. Anisotropic")):
+"""
+Compute and print the data fidelity.
+"""
+for x, name in zip(
+    (x_iso, x_aniso, x_iso_aprx, x_aniso_aprx),
+    ("Isotropic", "Anisotropic", "Approx. Isotropic", "Approx. Anisotropic"),
+):
     df = f(x)
-    print(f"Data fidelity for {name} TV was {df:.2e}")
+    print(f"Data fidelity for {name} TV: {' ' * (20 - len(name))} {df:.2e}")
 
 
 """
