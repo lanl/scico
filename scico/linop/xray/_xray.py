@@ -52,6 +52,19 @@ class XRayTransform(LinearOperator):
 class Parallel2dProjector:
     """Parallel ray, single axis, 2D X-ray projector.
 
+    This implementation approximates the projection of each rectangular
+    pixel as a boxcar function (whereas the exact projection is a
+    trapezoid). Detector pixels are modeled as bins (rather than points)
+    and this approximation allows fast calculation of the contribution
+    of each pixel to each bin because the integral of the boxcar is
+    simple.
+
+    By requiring the side length of the pixels to be less than or equal
+    to the bin width (which is assumed to be 1.0), we ensure that each
+    pixel contributes to at most two bins, which accelerates the
+    accumulation of pixel values into bins (equivalently, makes the
+    linear operator sparse).
+
     `x0`, `dx`, and `y0` should be expressed in units such that the
     detector spacing `dy` is 1.0.
     """
