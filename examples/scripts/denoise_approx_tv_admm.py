@@ -5,25 +5,29 @@
 # with the package.
 
 r"""
-Total Variation Denoising (ADMM)
-================================
+Total Variation Denoising with Approximate Proximal Operator
+============================================================
 
 This example compares denoising via isotropic and anisotropic total
 variation (TV) regularization :cite:`rudin-1992-nonlinear`
-:cite:`goldstein-2009-split`. It solves the denoising problem
+:cite:`goldstein-2009-split` via the optimization problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - \mathbf{x}
   \|_2^2 + \lambda R(\mathbf{x}) \;,$$
 
 where $R$ is either the isotropic or anisotropic TV regularizer.
-In SCICO, switching between these two regularizers is a one-line
-change: replacing an
-[L1Norm](../_autosummary/scico.functional.rst#scico.functional.L1Norm)
-with a
-[L21Norm](../_autosummary/scico.functional.rst#scico.functional.L21Norm).
-Note that the isotropic version exhibits fewer block-like artifacts on
-edges that are not vertical or horizontal.
+Two different algorithms are used to solve these problems: the most
+common approach, making use of variable splitting (e.g. see examples
+using [ADMM](denoise_tv_admm.rst) and
+[Proximal ADMM](denoise_tv_multi.rst)), and via use of an approximatation
+to the proximal operator of the TV norm, as implemented in
+[IsotropicTVNorm](../_autosummary/scico.functional.rst#scico.functional.IsotropicTVNorm)
+and
+[AnisotropicTVNorm](../_autosummary/scico.functional.rst#scico.functional.AnisotropicTVNorm),
+allowing the use of the proximal gradient method, which does not support
+variable splitting.
 """
+
 
 import matplotlib
 from xdesign import SiemensStar, discrete_phantom
@@ -52,7 +56,7 @@ y = x_gt + σ * noise
 
 
 """
-Denoise with isotropic total variation.
+Denoise with isotropic total variation, solved via Proximal ADMM.
 """
 λ_iso = 1.0e0
 f = loss.SquaredL2Loss(y=y)
@@ -78,7 +82,7 @@ x_iso = solver.x
 print()
 
 """
-Denoise with anisotropic total variation for comparison.
+Denoise with anisotropic total variation, solved via Proximal ADMM.
 """
 # Tune the weight to give the same data fidelity as the isotropic case.
 λ_aniso = 8.68e-1
@@ -101,18 +105,27 @@ x_aniso = solver.x
 print()
 
 
-h = λ_aniso * functional.AnisotropicTVNorm()
-solver = AcceleratedPGM(
-    f=f, g=h, L0=3e2, x0=y, maxiter=250, itstat_options={"display": True, "period": 20}
-)
-x_aniso_aprx = solver.solve()
-print()
-
+"""
+Denoise with isotropic total variation, solved using an approximation of
+the TV norm proximal operator.
+"""
 h = λ_iso * functional.IsotropicTVNorm()
 solver = AcceleratedPGM(
     f=f, g=h, L0=3e2, x0=y, maxiter=250, itstat_options={"display": True, "period": 20}
 )
 x_iso_aprx = solver.solve()
+print()
+
+
+"""
+Denoise with anisotropic total variation, solved using an approximation
+of the TV norm proximal operator.
+"""
+h = λ_aniso * functional.AnisotropicTVNorm()
+solver = AcceleratedPGM(
+    f=f, g=h, L0=3e2, x0=y, maxiter=250, itstat_options={"display": True, "period": 20}
+)
+x_aniso_aprx = solver.solve()
 print()
 
 
