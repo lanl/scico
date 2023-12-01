@@ -80,7 +80,7 @@ print()
 """
 Denoise with anisotropic total variation for comparison.
 """
-# Tune the weight to give the same data fidelty as the isotropic case.
+# Tune the weight to give the same data fidelity as the isotropic case.
 λ_aniso = 1.2e0
 g_aniso = λ_aniso * functional.L1Norm()
 

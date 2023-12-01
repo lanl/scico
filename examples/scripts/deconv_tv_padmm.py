@@ -101,9 +101,9 @@ A = linop.VerticalStack((C, D))
 """
 Set up a proximal ADMM solver object.
 """
-ρ = 1.0e-1  # ADMM penalty parameter
+ρ = 5.0e-2  # ADMM penalty parameter
 maxiter = 50  # number of ADMM iterations
-mu, nu = ProximalADMM.estimate_parameters(D)
+mu, nu = ProximalADMM.estimate_parameters(A)
 
 solver = ProximalADMM(
     f=f,

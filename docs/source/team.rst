@@ -27,3 +27,5 @@ Contributors
 - `Saurav Maheshkar <https://github.com/SauravMaheshkar>`_ (Improvements to pre-commit configuration)
 - `Yanpeng Yuan <https://github.com/yanpeng7>`_ (ASTRA interface improvements)
 - `Li-Ta (Ollie) Lo <https://github.com/ollielo>`_ (ASTRA interface improvements)
+- `Renat Sibgatulin <https://github.com/Sibgatulin>`_ (Docs corrections)
+- `Salman Naqvi <https://github.com/shnaqvi>`_ (Contributions to approximate TV norm prox and proximal average implementation)
