@@ -59,7 +59,7 @@ def checkpoint_restore(
 
 
 def checkpoint_save(state: TrainState, config: ConfigDict, workdir: Union[str, Path]):
-    """Store model, model configuration and optimiser state.
+    """Store model, model configuration, and optimiser state.
 
     Note that naming is slightly different to distinguish from Flax
     functions.
