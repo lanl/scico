@@ -5,7 +5,7 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Functionality to traverse, select and update model parameters."""
+"""Functionality to traverse, select, and update model parameters."""
 
 from typing import Any
 
