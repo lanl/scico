@@ -472,6 +472,8 @@ def power_iteration(A: LinearOperator, maxiter: int = 100):
 
     Compute largest eigenvalue of a diagonalizable
     :class:`LinearOperator` using power iteration.
+    The function makes use of lax functionality to
+    allow jitting and general jax function composition.
 
     Args:
         A: :class:`LinearOperator` used for computation. Must be
