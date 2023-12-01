@@ -203,7 +203,7 @@ output = np.clip(output, a_min=0, a_max=1.0)
 
 
 """
-Compare trained model in terms of reconstruction time and data
+Evaluate trained model in terms of reconstruction time and data
 fidelity.
 """
 snr_eval = metric.snr(test_ds["label"][:maxn], output)

@@ -119,8 +119,8 @@ model_conf = {
     "depth": 10,
     "num_filters": 64,
     "block_depth": 4,
-    "cg_iter": 3,
-    "cg_iter_2nd": 8,
+    "cg_iter_1": 3,
+    "cg_iter_2": 8,
 }
 # training configuration
 train_conf: sflax.ConfigDict = {
@@ -181,7 +181,7 @@ if len(checkpoint_files) > 0:
         channels=channels,
         num_filters=model_conf["num_filters"],
         block_depth=model_conf["block_depth"],
-        cg_iter=model_conf["cg_iter_2nd"],
+        cg_iter=model_conf["cg_iter_2"],
     )
 
     train_conf["post_lst"] = [lmbdapos]
@@ -209,7 +209,7 @@ else:
         channels=channels,
         num_filters=model_conf["num_filters"],
         block_depth=model_conf["block_depth"],
-        cg_iter=model_conf["cg_iter"],
+        cg_iter=model_conf["cg_iter_1"],
     )
     # First stage: initialization training loop.
     workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "modl_ct_out")
@@ -236,7 +236,7 @@ else:
 
     # Second stage: depth iterations training loop.
     model.depth = model_conf["depth"]
-    model.cg_iter = model_conf["cg_iter_2nd"]
+    model.cg_iter = model_conf["cg_iter_2"]
     train_conf["opt_type"] = "ADAM"
     train_conf["num_epochs"] = 150
     train_conf["workdir"] = workdir2
@@ -270,7 +270,7 @@ output = np.clip(output, a_min=0, a_max=1.0)
 
 
 """
-Compare trained model in terms of reconstruction time
+Evaluate trained model in terms of reconstruction time
 and data fidelity.
 """
 total_epochs = epochs_init + train_conf["num_epochs"]

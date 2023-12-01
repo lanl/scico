@@ -209,7 +209,7 @@ epochs = train_conf["num_epochs"]
 
 
 """
-Compare trained model in terms of reconstruction time and data fidelity.
+Evaluate trained model in terms of reconstruction time and data fidelity.
 """
 snr_eval = metric.snr(test_ds["label"][:maxn], output)
 psnr_eval = metric.psnr(test_ds["label"][:maxn], output)
