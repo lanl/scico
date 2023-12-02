@@ -10,7 +10,6 @@
 
 from __future__ import annotations
 
-import warnings
 from math import prod
 from typing import Any, List, Optional, Tuple, Union
 
@@ -22,45 +21,6 @@ import scico.numpy as snp
 from scico.typing import ArrayIndex, Axes, AxisIndex, BlockShape, DType, Shape
 
 from ._blockarray import BlockArray
-
-
-def ensure_on_device(
-    *arrays: Union[np.ndarray, snp.Array, BlockArray]
-) -> Union[snp.Array, BlockArray]:
-    """Cast numpy arrays to jax arrays.
-
-    Cast numpy arrays to jax arrays and leave jax arrays and BlockArrays,
-    as they are. This is intended to be used when initializing optimizers
-    and functionals so that all arrays are either jax arrays or
-    BlockArrays.
-
-    Args:
-        *arrays: One or more input arrays (numpy array, jax array, or
-            BlockArray).
-
-    Returns:
-        Array or arrays, modified where appropriate.
-
-    Raises:
-        TypeError: If the arrays contain anything that is neither
-           numpy array, jax array, nor BlockArray.
-    """
-    arrays = list(arrays)
-
-    for i, array in enumerate(arrays):
-        if isinstance(array, np.ndarray):
-            warnings.warn(
-                f"Argument {i+1} of {len(arrays)} is a numpy array. "
-                "Will cast it to a jax array. "
-                f"To suppress this warning cast all numpy arrays to jax arrays.",
-                stacklevel=2,
-            )
-
-        arrays[i] = jax.device_put(arrays[i])
-
-    if len(arrays) == 1:
-        return arrays[0]
-    return arrays
 
 
 def parse_axes(
@@ -204,6 +164,21 @@ def shape_to_size(shape: Union[Shape, BlockShape]) -> int:
     return prod(shape)
 
 
+def is_arraylike(x: Any) -> bool:
+    """Check if input is of type :class:`jax.ArrayLike`.
+
+    `isinstance(x, jax.typing.ArrayLike)` does not work in Python < 3.10,
+    see https://jax.readthedocs.io/en/latest/jax.typing.html#jax-typing-best-practices.
+
+    Args:
+        x: Object to be tested.
+
+    Returns:
+        ``True`` if `x` is an ArrayLike, ``False`` otherwise.
+    """
+    return isinstance(x, (np.ndarray, jax.Array)) or np.isscalar(x)
+
+
 def is_nested(x: Any) -> bool:
     """Check if input is a list/tuple containing at least one list/tuple.
 
@@ -320,3 +295,18 @@ def complex_dtype(dtype: DType) -> DType:
     """
 
     return (snp.zeros(1, dtype) + 1j).dtype
+
+
+def is_scalar_equiv(s: Any) -> bool:
+    """Determine whether an object is a scalar or is scalar-equivalent.
+
+    Determine whether an object is a scalar or a singleton array.
+
+    Args:
+        s: Object to be tested.
+
+    Returns:
+        ``True`` if the object is a scalar or a singleton array,
+        otherwise ``False``.
+    """
+    return snp.isscalar(s) or (isinstance(s, jax.Array) and s.ndim == 0)

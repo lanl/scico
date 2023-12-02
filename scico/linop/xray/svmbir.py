@@ -5,9 +5,9 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Tomographic projector LinearOperator wrapping the svmbir package.
+"""X-ray transform LinearOperator wrapping the svmbir package.
 
-Tomographic projector :class:`.LinearOperator` wrapping the
+X-ray transform :class:`.LinearOperator` wrapping the
 `svmbir <https://github.com/cabouman/svmbir>`_ package. Since this
 package is an interface to compiled C code, JAX features such as
 automatic differentiation and support for GPU devices are not available.
@@ -24,8 +24,8 @@ import scico.numpy as snp
 from scico.loss import Loss, SquaredL2Loss
 from scico.typing import Shape
 
-from ._diag import Diagonal, Identity
-from ._linop import LinearOperator
+from .._diag import Diagonal, Identity
+from .._linop import LinearOperator
 
 try:
     import svmbir
@@ -33,8 +33,8 @@ except ImportError:
     raise ImportError("Could not import svmbir; please install it.")
 
 
-class TomographicProjector(LinearOperator):
-    r"""Tomographic projector based on svmbir.
+class XRayTransform(LinearOperator):
+    r"""X-ray transform based on svmbir.
 
     Perform tomographic projection of an image at specified angles, using
     the `svmbir <https://github.com/cabouman/svmbir>`_ package. The
@@ -42,7 +42,7 @@ class TomographicProjector(LinearOperator):
     (pixels outside this region are ignored when performing the
     projection) is active. This region of validity is also respected by
     :meth:`.SVMBIRSquaredL2Loss.prox` when :class:`.SVMBIRSquaredL2Loss`
-    is initialized with a :class:`TomographicProjector` with this option
+    is initialized with a :class:`XRayTransform` with this option
     enabled.
 
     A brief description of the supported scanner geometries can be found
@@ -214,7 +214,7 @@ class TomographicProjector(LinearOperator):
         delta_channel: Optional[float] = None,
         delta_pixel: Optional[float] = None,
     ) -> snp.Array:
-        return jax.device_put(
+        return snp.array(
             svmbir.project(
                 np.array(x),
                 np.array(angles),
@@ -264,8 +264,8 @@ class TomographicProjector(LinearOperator):
         magnification: Optional[float] = None,
         delta_channel: Optional[float] = None,
         delta_pixel: Optional[float] = None,
-    ):
-        return jax.device_put(
+    ) -> snp.Array:
+        return snp.array(
             svmbir.backproject(
                 np.array(y),
                 np.array(angles),
@@ -316,7 +316,7 @@ class SVMBIRExtendedLoss(Loss):
         \alpha \left(\mb{y} - A(\mb{x})\right)^T W \left(\mb{y} -
         A(\mb{x})\right) \;,
 
-    where :math:`A` is a :class:`.TomographicProjector`,
+    where :math:`A` is a :class:`.XRayTransform`,
     :math:`\alpha` is the scaling parameter and :math:`W` is an instance
     of :class:`scico.linop.Diagonal`. If :math:`W` is ``None``, it is set
     to :class:`scico.linop.Identity`.
@@ -325,12 +325,12 @@ class SVMBIRExtendedLoss(Loss):
     :math:`\ell_2` loss as follows. When `positivity=True`, the prox
     projects onto the non-negative orthant and the loss is infinite if
     any element of the input is negative. When the `is_masked` option
-    of the associated :class:`.TomographicProjector` is ``True``, the
+    of the associated :class:`.XRayTransform` is ``True``, the
     reconstruction is computed over a masked region of the image as
-    described in class :class:`.TomographicProjector`.
+    described in class :class:`.XRayTransform`.
     """
 
-    A: TomographicProjector
+    A: XRayTransform
     W: Union[Identity, Diagonal]
 
     def __init__(
@@ -358,8 +358,8 @@ class SVMBIRExtendedLoss(Loss):
         """
         super().__init__(*args, scale=scale, **kwargs)  # type: ignore
 
-        if not isinstance(self.A, TomographicProjector):
-            raise ValueError("LinearOperator A must be a radon_svmbir.TomographicProjector.")
+        if not isinstance(self.A, XRayTransform):
+            raise ValueError("LinearOperator A must be a radon_svmbir.XRayTransform.")
 
         self.has_prox = True
 
@@ -432,7 +432,7 @@ class SVMBIRExtendedLoss(Loss):
         if np.sum(np.isnan(result)):
             raise ValueError("Result contains NaNs.")
 
-        return jax.device_put(result.reshape(self.A.input_shape))
+        return snp.array(result.reshape(self.A.input_shape))
 
 
 class SVMBIRSquaredL2Loss(SVMBIRExtendedLoss, SquaredL2Loss):
@@ -445,7 +445,7 @@ class SVMBIRSquaredL2Loss(SVMBIRExtendedLoss, SquaredL2Loss):
         \alpha \left(\mb{y} - A(\mb{x})\right)^T W \left(\mb{y} -
         A(\mb{x})\right) \;,
 
-    where :math:`A` is a :class:`.TomographicProjector`, :math:`\alpha`
+    where :math:`A` is a :class:`.XRayTransform`, :math:`\alpha`
     is the scaling parameter and :math:`W` is an instance
     of :class:`scico.linop.Diagonal`. If :math:`W` is ``None``, it is set
     to :class:`scico.linop.Identity`.
@@ -473,12 +473,5 @@ class SVMBIRSquaredL2Loss(SVMBIRExtendedLoss, SquaredL2Loss):
 
         if self.A.is_masked:
             raise ValueError(
-                "Parameter is_masked must be False for the TomographicProjector in SVMBIRSquaredL2Loss."
+                "Parameter is_masked must be False for the XRayTransform in SVMBIRSquaredL2Loss."
             )
-
-
-def _unsqueeze(x: snp.Array, input_shape: Shape) -> snp.Array:
-    """If x is 2D, make it 3D according to the SVMBIR convention."""
-    if len(input_shape) == 2:
-        x = x[snp.newaxis, :, :]
-    return x

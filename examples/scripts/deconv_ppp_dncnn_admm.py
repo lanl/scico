@@ -16,8 +16,6 @@ using the ADMM Plug-and-Play Priors (PPP) algorithm
 
 import numpy as np
 
-import jax
-
 from xdesign import Foam, discrete_phantom
 
 import scico.numpy as snp
@@ -31,7 +29,7 @@ Create a ground truth image.
 np.random.seed(1234)
 N = 512  # image size
 x_gt = discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=N)
-x_gt = jax.device_put(x_gt)  # convert to jax array, push to GPU
+x_gt = snp.array(x_gt)  # convert to jax array
 
 
 """

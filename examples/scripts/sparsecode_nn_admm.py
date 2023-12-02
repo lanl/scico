@@ -17,14 +17,16 @@ problem
 where $D$ the dictionary, $\mathbf{y}$ the signal to be represented,
 $\mathbf{x}$ is the sparse representation, and $I(\mathbf{x} \geq 0)$
 is the non-negative indicator.
+
+In this example the problem is solved via ADMM, while Accelerated PGM is
+used in a [companion example](sparsecode_nn_apgm.rst).
 """
 
 import numpy as np
 
-import jax
-
+import scico.numpy as snp
 from scico import functional, linop, loss, plot
-from scico.optimize.admm import ADMM, LinearSubproblemSolver
+from scico.optimize.admm import ADMM, MatrixSubproblemSolver
 from scico.util import device_info
 
 """
@@ -37,16 +39,16 @@ n = 128  # dictionary size
 s = 10  # sparsity level
 
 np.random.seed(1)
-D = np.random.randn(m, n)
+D = np.random.randn(m, n).astype(np.float32)
 D = D / np.linalg.norm(D, axis=0, keepdims=True)  # normalize dictionary
 
-xt = np.zeros(n)  # true signal
+xt = np.zeros(n, dtype=np.float32)  # true signal
 idx = np.random.randint(low=0, high=n, size=s)  # support of xt
 xt[idx] = np.random.rand(s)
 y = D @ xt + 5e-2 * np.random.randn(m)  # synthetic signal
 
-xt = jax.device_put(xt)  # convert to jax array, push to GPU
-y = jax.device_put(y)  # convert to jax array, push to GPU
+xt = snp.array(xt)  # convert to jax array
+y = snp.array(y)  # convert to jax array
 
 
 """
@@ -67,7 +69,7 @@ solver = ADMM(
     rho_list=rho_list,
     x0=A.adj(y),
     maxiter=maxiter,
-    subproblem_solver=LinearSubproblemSolver(),
+    subproblem_solver=MatrixSubproblemSolver(),
     itstat_options={"display": True, "period": 10},
 )
 

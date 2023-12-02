@@ -16,8 +16,6 @@ problem.
 
 import numpy as np
 
-import jax
-
 from bm3d import bm3d_rgb
 from colour_demosaicing import demosaicing_CFA_Bayer_Menon2007
 
@@ -32,8 +30,7 @@ from scico.util import device_info
 """
 Read a ground truth image.
 """
-img = kodim23(asfloat=True)[160:416, 60:316]
-img = jax.device_put(img)  # convert to jax type, push to GPU
+img = snp.array(kodim23(asfloat=True)[160:416, 60:316])
 
 
 """
@@ -93,7 +90,7 @@ sn = s + σ * noise
 """
 Compute a baseline demosaicing solution.
 """
-imgb = jax.device_put(bm3d_rgb(demosaic(sn), 3 * σ).astype(np.float32))
+imgb = snp.array(bm3d_rgb(demosaic(sn), 3 * σ).astype(np.float32))
 
 
 """

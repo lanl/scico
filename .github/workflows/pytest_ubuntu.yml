@@ -65,7 +65,8 @@ jobs:
           mamba install -c astra-toolbox astra-toolbox
           mamba install -c conda-forge pyyaml
           pip install --upgrade --force-reinstall scipy>=1.6.0  # Temporary fix for GLIBCXX_3.4.30 not found in conda forge version
-          pip install bm4d>=4.0.0
+          pip install bm3d>=4.0.0
+          pip install bm4d>=4.2.2
           pip install "ray[tune]>=2.0.0"
           pip install hyperopt
       # Install package to be tested
@@ -73,7 +74,10 @@ jobs:
         run: pip install -e .
       # Run unit tests
       - name: Run main unit tests
-        run: pytest -x --cov --splits 5 --group ${{ matrix.group }}
+        run: |
+          DURATIONS_FILE=$(mktemp)
+          bzcat data/pytest/durations_ubuntu.bz2 > $DURATIONS_FILE
+          pytest -x --cov --durations-path $DURATIONS_FILE --splits 5 --group ${{ matrix.group }} --level 2
       # Upload coverage data
       - name: Upload coverage
         uses: actions/upload-artifact@v3

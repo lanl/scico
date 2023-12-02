@@ -22,7 +22,6 @@ In this example the problem is solved via proximal ADMM, while standard
 ADMM is used in a [companion example](deconv_tv_admm.rst).
 """
 
-import jax
 
 from xdesign import SiemensStar, discrete_phantom
 
@@ -38,7 +37,6 @@ Create a ground truth image.
 phantom = SiemensStar(32)
 N = 256  # image size
 x_gt = snp.pad(discrete_phantom(phantom, N - 16), 8)
-x_gt = jax.device_put(x_gt)  # convert to jax type, push to GPU
 
 
 """
@@ -92,7 +90,7 @@ gradient sub-iterations used by the ADMM solver in the
 """
 f = functional.ZeroFunctional()
 g0 = loss.SquaredL2Loss(y=y)
-λ = 2.0e-2  # L1 norm regularization parameter
+λ = 2.0e-2  # ℓ2,1 norm regularization parameter
 g1 = λ * functional.L21Norm()
 g = functional.SeparableFunctional((g0, g1))
 
@@ -103,9 +101,9 @@ A = linop.VerticalStack((C, D))
 """
 Set up a proximal ADMM solver object.
 """
-ρ = 1.0e-1  # ADMM penalty parameter
+ρ = 5.0e-2  # ADMM penalty parameter
 maxiter = 50  # number of ADMM iterations
-mu, nu = ProximalADMM.estimate_parameters(D)
+mu, nu = ProximalADMM.estimate_parameters(A)
 
 solver = ProximalADMM(
     f=f,

@@ -18,7 +18,6 @@ from scico.functional import Functional
 from scico.linop import LinearOperator, jacobian, operator_norm
 from scico.numpy import Array, BlockArray
 from scico.numpy.linalg import norm
-from scico.numpy.util import ensure_on_device
 from scico.operator import Operator
 from scico.typing import PRNGKey
 
@@ -132,13 +131,13 @@ class PDHG(Optimizer):
             input_shape = C.input_shape
             dtype = C.input_dtype
             x0 = snp.zeros(input_shape, dtype=dtype)
-        self.x = ensure_on_device(x0)
+        self.x = x0
         self.x_old = self.x
         if z0 is None:
             input_shape = C.output_shape
             dtype = C.output_dtype
             z0 = snp.zeros(input_shape, dtype=dtype)
-        self.z = ensure_on_device(z0)
+        self.z = z0
         self.z_old = self.z
 
         super().__init__(**kwargs)

@@ -29,7 +29,6 @@ different projectors.
 
 from typing import Callable, Optional, Union
 
-import jax
 import jax.numpy as jnp
 
 from xdesign import SiemensStar, discrete_phantom
@@ -38,7 +37,6 @@ import scico.numpy as snp
 import scico.random
 from scico import functional, linop, loss, operator, plot
 from scico.numpy import Array, BlockArray
-from scico.numpy.util import ensure_on_device
 from scico.optimize.pgm import AcceleratedPGM, RobustLineSearchStepSize
 from scico.util import device_info
 
@@ -48,7 +46,6 @@ Create a ground truth image.
 N = 256  # image size
 phantom = SiemensStar(16)
 x_gt = snp.pad(discrete_phantom(phantom, N - 16), 8)
-x_gt = jax.device_put(x_gt)  # convert to jax type, push to GPU
 x_gt = x_gt / x_gt.max()
 
 
@@ -88,13 +85,11 @@ class DualTVLoss(loss.Loss):
         A: Optional[Union[Callable, operator.Operator]] = None,
         lmbda: float = 0.5,
     ):
-        y = ensure_on_device(y)
         self.functional = functional.SquaredL2Norm()
         super().__init__(y=y, A=A, scale=1.0)
         self.lmbda = lmbda
 
     def __call__(self, x: Union[Array, BlockArray]) -> float:
-
         xint = self.y - self.lmbda * self.A(x)
         return -1.0 * self.functional(xint - jnp.clip(xint, 0.0, 1.0)) + self.functional(xint)
 
@@ -107,7 +102,6 @@ total variation.
 
 # Evaluation of functional set to zero.
 class IsoProjector(functional.Functional):
-
     has_eval = True
     has_prox = True
 
@@ -160,7 +154,6 @@ projector for anisotropic total variation.
 
 # Evaluation of functional set to zero.
 class AnisoProjector(functional.Functional):
-
     has_eval = True
     has_prox = True
 
@@ -168,13 +161,12 @@ class AnisoProjector(functional.Functional):
         return 0.0
 
     def prox(self, v: Array, lam: float, **kwargs) -> Array:
-
         return v / jnp.maximum(jnp.ones(v.shape), jnp.abs(v))
 
 
 """
 Use RobustLineSearchStepSize object and set up AcceleratedPGM solver
-object. Weight was tuned to give the same data fidelty as the
+object. Weight was tuned to give the same data fidelity as the
 isotropic case. Run the solver.
 """
 

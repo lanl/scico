@@ -47,7 +47,7 @@ def _wrap_mul_div_scalar(func: Callable) -> Callable:
 
     @wraps(func)
     def wrapper(a, b):
-        if np.isscalar(b) or isinstance(b, jax.core.Tracer):
+        if snp.util.is_scalar_equiv(b):
             return func(a, b)
 
         raise TypeError(f"Operation {func.__name__} not defined between {type(a)} and {type(b)}.")
@@ -383,7 +383,7 @@ output_dtype : {self.output_dtype}
             # concat_args(args) = snp.blockarray([args, val]) if argnum = 1
 
             if isinstance(args, (jnp.ndarray, np.ndarray)):
-                # In the case that the original operator takes a blockkarray with two
+                # In the case that the original operator takes a blockarray with two
                 # blocks, wrap in a list so we can use the same indexing as >2 block case
                 args = [args]
 

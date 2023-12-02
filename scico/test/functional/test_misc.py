@@ -13,7 +13,12 @@ class TestCheckAttrs:
     # and set to True/False in the Functional subclasses.
 
     # Generate a list of all functionals in scico.functionals that we will check
-    ignore = [functional.Functional, functional.ScaledFunctional, functional.SeparableFunctional]
+    ignore = [
+        functional.Functional,
+        functional.ScaledFunctional,
+        functional.SeparableFunctional,
+        functional.ProximalAverage,
+    ]
     to_check = []
     for name, cls in functional.__dict__.items():
         if isinstance(cls, type):
@@ -28,6 +33,44 @@ class TestCheckAttrs:
     @pytest.mark.parametrize("cls", to_check)
     def test_has_prox(self, cls):
         assert isinstance(cls.has_prox, bool)
+
+
+class TestJit:
+    # Test whether functionals can be jitted.
+
+    # Generate a list of all functionals in scico.functionals that we will check
+    ignore = [
+        functional.Functional,
+        functional.ScaledFunctional,
+        functional.SeparableFunctional,
+        functional.BM3D,
+        functional.BM4D,
+    ]
+    to_check = []
+    for name, cls in functional.__dict__.items():
+        if isinstance(cls, type):
+            if issubclass(cls, functional.Functional):
+                if cls not in ignore:
+                    to_check.append(cls)
+
+    @pytest.mark.parametrize("cls", to_check)
+    def test_jit(self, cls):
+        # Only test functionals that have no required __init__ parameters.
+        try:
+            f = cls()
+        except TypeError:
+            pass
+        else:
+            v = snp.arange(4.0)
+            # Only test functionals that can take 1D input.
+            try:
+                u0 = f.prox(v)
+            except ValueError:
+                pass
+            else:
+                fprox = jax.jit(f.prox)
+                u1 = fprox(v)
+                assert np.allclose(u0, u1)
 
 
 def test_functional_sum():
@@ -87,3 +130,15 @@ def test_l21norm(axis):
     prxana = (l2ana - 1.0) / l2ana * x
     prxnum = F.prox(x, 1.0)
     np.testing.assert_allclose(prxana, prxnum, rtol=1e-5)
+
+
+def test_scalar_aggregation():
+    f = functional.L2Norm()
+    g = 2.0 * f
+    h = 5.0 * g
+    assert isinstance(g, functional.ScaledFunctional)
+    assert isinstance(g.functional, functional.L2Norm)
+    assert g.scale == 2.0
+    assert isinstance(h, functional.ScaledFunctional)
+    assert isinstance(h.functional, functional.L2Norm)
+    assert h.scale == 10.0

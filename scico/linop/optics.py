@@ -56,8 +56,6 @@ from typing import Any, Tuple, Union
 import numpy as np
 from numpy.lib.scimath import sqrt  # complex sqrt
 
-import jax
-
 from typing_extensions import TypeGuard
 
 import scico.numpy as snp
@@ -289,9 +287,7 @@ class AngularSpectrumPropagator(Propagator):
             input_shape=input_shape, dx=dx, k0=k0, z=z, pad_factor=pad_factor, **kwargs
         )
 
-        self.phase = jax.device_put(
-            np.exp(1j * z * sqrt(self.k0**2 - self.kp**2)).astype(np.complex64)
-        )
+        self.phase = snp.exp(1j * z * sqrt(self.k0**2 - self.kp**2)).astype(np.complex64)
         self.D = Diagonal(self.phase)
         self._set_adjoint()
 
@@ -386,9 +382,7 @@ class FresnelPropagator(Propagator):
             input_shape=input_shape, dx=dx, k0=k0, z=z, pad_factor=pad_factor, **kwargs
         )
 
-        self.phase = jax.device_put(
-            np.exp(1j * z * (self.k0 - self.kp**2 / (2 * self.k0))).astype(np.complex64)
-        )
+        self.phase = snp.exp(1j * z * (self.k0 - self.kp**2 / (2 * self.k0))).astype(np.complex64)
         self.D = Diagonal(self.phase)
 
         self._set_adjoint()

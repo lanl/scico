@@ -5,24 +5,14 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""SciPy optimization algorithms.
+"""Solver and optimization algorithms.
 
-.. raw:: html
+This module provides a number of functions for solving linear systems and
+optimization problems, some of which are used as subproblem solvers
+within the iterations of the proximal algorithms in the
+:mod:`scico.optimize` subpackage.
 
-    <style type='text/css'>
-    div.document li {
-      list-style: square outside !important;
-      margin-left: 1em !important;
-    }
-    div.document li > p {
-       margin-bottom: 4px !important;
-    }
-    ul {
-      margin-bottom: 1em;
-    }
-    </style>
-
-This module provides scico interface wrappers for functions
+This module also provides scico interface wrappers for functions
 from :mod:`scipy.optimize` since jax directly implements only a very
 limited subset of these functions (there is limited, experimental support
 for `L-BFGS-B <https://github.com/google/jax/pull/6053>`_), but only CG
@@ -39,8 +29,8 @@ arrays. These limitations are addressed by:
 
 The wrapper also JIT compiles the function and gradient evaluations.
 
-The functions provided in this module have a number of advantages and
-disadvantages with respect to those in :mod:`jax.scipy.optimize`:
+These wrapper functions have a number of advantages and disadvantages
+with respect to those in :mod:`jax.scipy.optimize`:
 
 - This module provides many more algorithms than
   :mod:`jax.scipy.optimize`.
@@ -52,7 +42,7 @@ disadvantages with respect to those in :mod:`jax.scipy.optimize`:
 - The solvers in this module can't be JIT compiled, and gradients cannot
   be taken through them.
 
-In the future, this module may be replaced with a dependency on
+In the future, these wrapper functions may be replaced with a dependency on
 `JAXopt <https://github.com/google/jaxopt>`__.
 """
 
@@ -64,10 +54,21 @@ import numpy as np
 
 import jax
 import jax.experimental.host_callback as hcb
+import jax.numpy as jnp
+import jax.scipy.linalg as jsl
 
-import scico.linop
 import scico.numpy as snp
+from scico.linop import (
+    CircularConvolve,
+    ComposedLinearOperator,
+    Diagonal,
+    LinearOperator,
+    MatrixOperator,
+    Sum,
+)
+from scico.metric import rel_res
 from scico.numpy import Array, BlockArray
+from scico.numpy.util import is_real_dtype
 from scico.typing import BlockShape, DType, Shape
 from scipy import optimize as spopt
 
@@ -260,14 +261,13 @@ def minimize(
 
 def minimize_scalar(
     func: Callable,
-    bracket: Optional[Union[Sequence[float]]] = None,
+    bracket: Optional[Sequence[float]] = None,
     bounds: Optional[Sequence[float]] = None,
     args: Union[Tuple, Tuple[Any]] = (),
     method: str = "brent",
     tol: Optional[float] = None,
     options: Optional[dict] = None,
 ) -> spopt.OptimizeResult:
-
     """Minimization of scalar function of one variable.
 
     Wrapper around :func:`scipy.optimize.minimize_scalar`.
@@ -336,7 +336,7 @@ def cg(
             - **info**: Dictionary containing diagnostic information.
     """
     if x0 is None:
-        if isinstance(A, scico.linop.LinearOperator):
+        if isinstance(A, LinearOperator):
             x0 = snp.zeros(A.input_shape, b.dtype)
         else:
             raise ValueError("Parameter x0 must be specified if A is not a LinearOperator")
@@ -418,11 +418,11 @@ def lstsq(
             - **x** : Solution array.
             - **info**: Dictionary containing diagnostic information.
     """
-    if isinstance(A, scico.linop.LinearOperator):
+    if isinstance(A, LinearOperator):
         Aop = A
     else:
         assert x0 is not None
-        Aop = scico.linop.LinearOperator(
+        Aop = LinearOperator(
             input_shape=x0.shape,
             output_shape=b.shape,
             eval_fn=A,
@@ -577,3 +577,393 @@ def golden(
     else:
         r = x
     return r
+
+
+class MatrixATADSolver:
+    r"""Solver for linear system involving a symmetric product.
+
+    Solve a linear system of the form
+
+    .. math::
+
+       (A^T W A + D) \mb{x} = \mb{b}
+
+    or
+
+    .. math::
+
+       (A^T W A + D) X = B \;,
+
+    where :math:`A \in \mbb{R}^{M \times N}`,
+    :math:`W \in \mbb{R}^{M \times M}` and
+    :math:`D \in \mbb{R}^{N \times N}`. :math:`A` must be an instance of
+    :class:`.MatrixOperator` or an array; :math:`D` must be an instance
+    of :class:`.MatrixOperator`, :class:`.Diagonal`, or an array, and
+    :math:`W`, if specified, must be an instance of :class:`.Diagonal`
+    or an array.
+
+
+    The solution is computed by factorization of matrix
+    :math:`A^T W A + D` and solution via Gaussian elimination. If
+    :math:`D` is diagonal and :math:`N < M` (i.e. :math:`A W A^T` is
+    smaller than :math:`A^T W A`), then :math:`A W A^T + D` is factorized
+    and the original problem is solved via the Woodbury matrix identity
+
+    .. math::
+
+       (E + U C V)^{-1} = E^{-1} - E^{-1} U (C^{-1} + V E^{-1} U)^{-1}
+       V E^{-1} \;.
+
+    Setting
+
+    .. math::
+
+       E &= D \\
+       U &= A^T \\
+       C &= W \\
+       V &= A
+
+    we have
+
+    .. math::
+
+       (D + A^T W A)^{-1} = D^{-1} - D^{-1} A^T (W^{-1} + A D^{-1} A^T)^{-1} A
+       D^{-1}
+
+    which can be simplified to
+
+    .. math::
+
+       (D + A^T W A)^{-1} = D^{-1} (I - A^T G^{-1} A D^{-1})
+
+    by defining :math:`G = W^{-1} + A D^{-1} A^T`. We therefore have that
+
+    .. math::
+
+       \mb{x} = (D + A^T W A)^{-1} \mb{b} = D^{-1} (I - A^T G^{-1} A
+       D^{-1}) \mb{b} \;.
+
+    If we have a Cholesky factorization of :math:`G`, e.g.
+    :math:`G = L L^T`, we can define
+
+    .. math::
+
+       \mb{w} = G^{-1} A D^{-1} \mb{b}
+
+    so that
+
+    .. math::
+
+       G \mb{w} &= A D^{-1} \mb{b} \\
+       L L^T \mb{w} &= A D^{-1} \mb{b} \;.
+
+    The Cholesky factorization can be exploited by solving for
+    :math:`\mb{z}` in
+
+    .. math::
+
+       L \mb{z} = A D^{-1} \mb{b}
+
+    and then for :math:`\mb{w}` in
+
+    .. math::
+
+       L^T \mb{w} = \mb{z} \;,
+
+    so that
+
+    .. math::
+
+       \mb{x} = D^{-1} \mb{b} - D^{-1} A^T \mb{w} \;.
+
+    (Functions :func:`~jax.scipy.linalg.cho_solve` and
+    :func:`~jax.scipy.linalg.lu_solve` allow direct solution for
+    :math:`\mb{w}` without the two-step procedure described here.) A
+    Cholesky factorization should only be used when :math:`G` is
+    positive-definite (e.g. :math:`D` is diagonal and positive); if not,
+    an LU factorization should be used.
+
+    Complex-valued problems are also supported, in which case the
+    transpose :math:`\cdot^T` in the equations above should be taken to
+    represent the conjugate transpose.
+
+    To solve problems directly involving a matrix of the form
+    :math:`A W A^T + D`, initialize with :code:`A.T` (or
+    :code:`A.T.conj()` for complex problems) instead of :code:`A`.
+    """
+
+    def __init__(
+        self,
+        A: Union[MatrixOperator, Array],
+        D: Union[MatrixOperator, Diagonal, Array],
+        W: Optional[Union[Diagonal, Array]] = None,
+        cho_factor: bool = False,
+        lower: bool = False,
+        check_finite: bool = True,
+    ):
+        r"""
+        Args:
+            A: Matrix :math:`A`.
+            D: Matrix :math:`D`. If a 2D array or :class:`MatrixOperator`,
+                specifies the 2D matrix :math:`D`. If 1D array or
+                :class:`Diagonal`, specifies the diagonal elements
+                of :math:`D`.
+            W: Matrix :math:`W`. Specifies the diagonal elements of
+                :math:`W`. Defaults to an array with unit entries.
+            cho_factor: Flag indicating whether to use Cholesky
+                (``True``) or LU (``False``) factorization.
+            lower: Flag indicating whether lower (``True``) or upper
+                (``False``) triangular factorization should be computed.
+                Only relevant to Cholesky factorization.
+            check_finite: Flag indicating whether the input array should
+                be checked for ``Inf`` and ``NaN`` values.
+        """
+        A = jnp.array(A)
+
+        if isinstance(D, Diagonal):
+            D = D.diagonal
+            if not D.ndim == 1:
+                raise ValueError("If Diagonal, D should have a 1D diagonal.")
+        else:
+            D = jnp.array(D)
+            if not D.ndim in [1, 2]:
+                raise ValueError("If array or MatrixOperator, D should be 1D or 2D.")
+
+        if W is None:
+            W = snp.ones(A.shape[0], dtype=A.dtype)
+        elif isinstance(W, Diagonal):
+            W = W.diagonal
+            if not W.ndim == 1:
+                raise ValueError("If Diagonal, W should have a 1D diagonal.")
+        elif not isinstance(W, Array):
+            raise TypeError(
+                f"Operator W is required to be None, a Diagonal, or an array; got a {type(W)}."
+            )
+
+        self.A = A
+        self.D = D
+        self.W = W
+        self.cho_factor = cho_factor
+        self.lower = lower
+        self.check_finite = check_finite
+
+        assert isinstance(W, Array)
+        N, M = A.shape
+        if N < M and D.ndim == 1:
+            G = snp.diag(1.0 / W) + A @ (A.T.conj() / D[:, snp.newaxis])
+        else:
+            if D.ndim == 1:
+                G = A.T.conj() @ (W[:, snp.newaxis] * A) + snp.diag(D)
+            else:
+                G = A.T.conj() @ (W[:, snp.newaxis] * A) + D
+
+        if cho_factor:
+            c, lower = jsl.cho_factor(G, lower=lower, check_finite=check_finite)
+            self.factor = (c, lower)
+        else:
+            lu, piv = jsl.lu_factor(G, check_finite=check_finite)
+            self.factor = (lu, piv)
+
+    def solve(self, b: Array, check_finite: Optional[bool] = None) -> Array:
+        r"""Solve the linear system.
+
+        Solve the linear system with right hand side :math:`\mb{b}` (`b`
+        is a vector) or :math:`B` (`b` is a 2d array).
+
+        Args:
+           b: Vector :math:`\mathbf{b}` or matrix :math:`B`.
+           check_finite: Flag indicating whether the input array should
+               be checked for ``Inf`` and ``NaN`` values. If ``None``,
+               use the value selected on initialization.
+
+        Returns:
+          Solution to the linear system.
+        """
+        if check_finite is None:
+            check_finite = self.check_finite
+        if self.cho_factor:
+            fact_solve = lambda x: jsl.cho_solve(self.factor, x, check_finite=check_finite)
+        else:
+            fact_solve = lambda x: jsl.lu_solve(self.factor, x, trans=0, check_finite=check_finite)
+
+        if b.ndim == 1:
+            D = self.D
+        else:
+            D = self.D[:, snp.newaxis]
+        N, M = self.A.shape
+        if N < M and self.D.ndim == 1:
+            w = fact_solve(self.A @ (b / D))
+            x = (b - (self.A.T.conj() @ w)) / D
+        else:
+            x = fact_solve(b)
+
+        return x
+
+    def accuracy(self, x: Array, b: Array) -> float:
+        r"""Compute solution relative residual.
+
+        Args:
+           x: Array :math:`\mathbf{x}` (solution).
+           b: Array :math:`\mathbf{b}` (right hand side of linear system).
+
+        Returns:
+           Relative residual of solution.
+        """
+        if b.ndim == 1:
+            D = self.D
+        else:
+            D = self.D[:, snp.newaxis]
+        assert isinstance(self.W, Array)
+        return rel_res(self.A.T.conj() @ (self.W[:, snp.newaxis] * self.A) @ x + D * x, b)
+
+
+class ConvATADSolver:
+    r"""Solver for a linear system involving a sum of convolutions.
+
+    Solve a linear system of the form
+
+    .. math::
+
+       (A^H A + D) \mb{x} = \mb{b}
+
+    where :math:`A` is a block-row operator with circulant blocks, i.e. it
+    can be written as
+
+    .. math::
+
+       A = \left( \begin{array}{cccc} A_1 & A_2 & \ldots & A_{K}
+           \end{array} \right) \;,
+
+    where all of the :math:`A_k` are circular convolution operators, and
+    :math:`D` is a circular convolution operator. This problem is most
+    easily solved in the DFT transform domain, where the circular
+    convolutions become diagonal operators. Denoting the frequency-domain
+    versions of variables with a circumflex (e.g. :math:`\hat{\mb{x}}` is
+    the frequency-domain version of :math:`\mb{x}`), the the problem can
+    be written as
+
+    .. math::
+
+       (\hat{A}^H \hat{A} + \hat{D}) \hat{\mb{x}} = \hat{\mb{b}} \;,
+
+    where
+
+    .. math::
+
+       \hat{A} = \left( \begin{array}{cccc} \hat{A}_1 & \hat{A}_2 &
+       \ldots & \hat{A}_{K} \end{array} \right) \;,
+
+    and :math:`\hat{D}` and all the :math:`\hat{A}_k` are diagonal
+    operators.
+
+    This linear equation is computational expensive to solve because
+    the left hand side includes the term :math:`\hat{A}^H \hat{A}`,
+    which corresponds to the outer product of :math:`\hat{A}^H`
+    and :math:`\hat{A}`. A computationally efficient solution is possible,
+    however, by exploiting the Woodbury matrix identity
+    :cite:`wohlberg-2014-efficient`
+
+    .. math::
+
+       (B + U C V)^{-1} = B^{-1} - B^{-1} U (C^{-1} + V B^{-1} U)^{-1}
+       V B^{-1} \;.
+
+    Setting
+
+    .. math::
+
+       B &= \hat{D} \\
+       U &= \hat{A}^H \\
+       C &= I \\
+       V &= \hat{A}
+
+    we have
+
+    .. math::
+
+       (\hat{D} + \hat{A}^H \hat{A})^{-1} = \hat{D}^{-1} - \hat{D}^{-1}
+       \hat{A}^H (I + \hat{A} \hat{D}^{-1} \hat{A}^H)^{-1} \hat{A}
+       \hat{D}^{-1}
+
+    which can be simplified to
+
+    .. math::
+
+       (\hat{D} + \hat{A}^H \hat{A})^{-1} = \hat{D}^{-1} (I - \hat{A}^H
+       \hat{E}^{-1} \hat{A} \hat{D}^{-1})
+
+    by defining :math:`\hat{E} = I + \hat{A} \hat{D}^{-1} \hat{A}^H`. The
+    right hand side is much cheaper to compute because the only matrix
+    inversions involve :math:`\hat{D}`, which is diagonal, and
+    :math:`\hat{E}`, which is a weighted inner product of
+    :math:`\hat{A}^H` and :math:`\hat{A}`.
+    """
+
+    def __init__(self, A: ComposedLinearOperator, D: CircularConvolve):
+        r"""
+        Args:
+            A: Operator :math:`A`.
+            D: Operator :math:`D`.
+        """
+        if not isinstance(A, ComposedLinearOperator):
+            raise TypeError(
+                f"Operator A is required to be a ComposedLinearOperator; got a {type(A)}."
+            )
+        if not isinstance(A.A, Sum) or not isinstance(A.B, CircularConvolve):
+            raise TypeError(
+                "Operator A is required to be a composition of Sum and CircularConvolve"
+                f"linear operators; got a composition of {type(A.A)} and {type(A.B)}."
+            )
+
+        self.A = A
+        self.D = D
+        self.sum_axis = A.A.kwargs["axis"]
+        if not isinstance(self.sum_axis, int):
+            raise ValueError(
+                "Sum component of operator A must sum over a single axis of its input."
+            )
+        self.fft_axes = A.B.x_fft_axes
+        self.real_result = is_real_dtype(D.input_dtype)
+
+        Ahat = A.B.h_dft
+        Dhat = D.h_dft
+        self.AHEinv = Ahat.conj() / (
+            1.0 + snp.sum(Ahat * (Ahat.conj() / Dhat), axis=self.sum_axis, keepdims=True)
+        )
+
+    def solve(self, b: Array) -> Array:
+        r"""Solve the linear system.
+
+        Solve the linear system with right hand side :math:`\mb{b}`.
+
+        Args:
+           b: Array :math:`\mathbf{b}`.
+
+        Returns:
+          Solution to the linear system.
+        """
+        assert isinstance(self.A.B, CircularConvolve)
+
+        Ahat = self.A.B.h_dft
+        Dhat = self.D.h_dft
+        bhat = snp.fft.fftn(b, axes=self.fft_axes)
+        xhat = (
+            bhat - (self.AHEinv * (snp.sum(Ahat * bhat / Dhat, axis=self.sum_axis, keepdims=True)))
+        ) / Dhat
+        x = snp.fft.ifftn(xhat, axes=self.fft_axes)
+        if self.real_result:
+            x = x.real
+
+        return x
+
+    def accuracy(self, x: Array, b: Array) -> float:
+        r"""Compute solution relative residual.
+
+        Args:
+           x: Array :math:`\mathbf{x}` (solution).
+           b: Array :math:`\mathbf{b}` (right hand side of linear system).
+
+        Returns:
+           Relative residual of solution.
+        """
+        return rel_res(self.A.gram_op(x) + self.D(x), b)

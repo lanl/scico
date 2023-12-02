@@ -48,7 +48,7 @@ else:
     have_astra = True
 
 if have_astra:
-    from scico.linop.radon_astra import TomographicProjector
+    from scico.linop.xray.astra import XRayTransform
 
 
 # Arbitrary process count: only applies if GPU is not available.
@@ -120,7 +120,7 @@ def generate_foam2_images(seed: float, size: int, ndata: int) -> Array:
         foam = Foam2(size_range=[0.075, 0.0025], gap=1e-3, porosity=1)
         saux[i, ..., 0] = discrete_phantom(foam, size=size)
 
-    # Normalize
+    # normalize
     saux = saux / np.max(saux, axis=(1, 2), keepdims=True)
 
     return saux
@@ -210,7 +210,7 @@ def generate_ct_data(
     angles = np.linspace(0, jnp.pi, nproj)  # evenly spaced projection angles
     gt_sh = (size, size)
     detector_spacing = 1
-    A = TomographicProjector(gt_sh, detector_spacing, size, angles)  # Radon transform operator
+    A = XRayTransform(gt_sh, detector_spacing, size, angles)  # Radon transform operator
 
     # Compute sinograms in parallel.
     a_map = lambda v: jnp.atleast_3d(A @ v.squeeze())

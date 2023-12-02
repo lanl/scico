@@ -19,8 +19,7 @@ and $\mathbf{x}$ is the sparse representation.
 
 import numpy as np
 
-import jax
-
+import scico.numpy as snp
 from scico import functional, linop, loss, plot
 from scico.optimize.pgm import AcceleratedPGM
 from scico.util import device_info
@@ -36,16 +35,16 @@ s = 32  # Sparsity level (number of non-zeros)
 σ = 0.5  # Noise level
 
 np.random.seed(12345)
-D = np.random.randn(m, n)
+D = np.random.randn(m, n).astype(np.float32)
 L0 = np.linalg.norm(D, 2) ** 2
 
-x_gt = np.zeros(n)  # true signal
+x_gt = np.zeros(n, dtype=np.float32)  # true signal
 idx = np.random.permutation(list(range(0, n - 1)))
 x_gt[idx[0:s]] = np.random.randn(s)
 y = D @ x_gt + σ * np.random.randn(m)  # synthetic signal
 
-x_gt = jax.device_put(x_gt)  # convert to jax array, push to GPU
-y = jax.device_put(y)  # convert to jax array, push to GPU
+x_gt = snp.array(x_gt)  # convert to jax array
+y = snp.array(y)  # convert to jax array
 
 
 """

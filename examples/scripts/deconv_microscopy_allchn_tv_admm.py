@@ -30,8 +30,6 @@ non-negativity constraint, and $\mathbf{x}$ is the desired image.
 
 import numpy as np
 
-import jax
-
 import ray
 import scico.numpy as snp
 from scico import functional, linop, loss, plot
@@ -108,9 +106,9 @@ Define ray remote function for parallel solves.
 @ray.remote(num_cpus=ncpu, num_gpus=ngpu)
 def deconvolve_channel(channel):
     """Deconvolve a single channel."""
-    y_pad = jax.device_put(ray.get(y_pad_list)[channel])
-    psf = jax.device_put(ray.get(psf_list)[channel])
-    mask = jax.device_put(ray.get(mask_store))
+    y_pad = ray.get(y_pad_list)[channel]
+    psf = ray.get(psf_list)[channel]
+    mask = ray.get(mask_store)
     M = linop.Diagonal(mask)
     C0 = linop.CircularConvolve(
         h=psf, input_shape=mask.shape, h_center=snp.array(psf.shape) / 2 - 0.5  # forward operator

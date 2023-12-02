@@ -25,7 +25,6 @@ Note that the isotropic version exhibits fewer block-like artifacts on
 edges that are not vertical or horizontal.
 """
 
-import jax
 
 from xdesign import SiemensStar, discrete_phantom
 
@@ -41,7 +40,6 @@ Create a ground truth image.
 N = 256  # image size
 phantom = SiemensStar(16)
 x_gt = snp.pad(discrete_phantom(phantom, N - 16), 8)
-x_gt = jax.device_put(x_gt)  # convert to jax type, push to GPU
 x_gt = x_gt / x_gt.max()
 
 
@@ -82,7 +80,7 @@ print()
 """
 Denoise with anisotropic total variation for comparison.
 """
-# Tune the weight to give the same data fidelty as the isotropic case.
+# Tune the weight to give the same data fidelity as the isotropic case.
 λ_aniso = 1.2e0
 g_aniso = λ_aniso * functional.L1Norm()
 

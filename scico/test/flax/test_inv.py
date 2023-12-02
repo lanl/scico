@@ -16,7 +16,7 @@ from scico.flax.train.traversals import clip_positive, clip_range, construct_tra
 from scico.linop import CircularConvolve, Identity
 
 if have_astra:
-    from scico.linop.radon_astra import TomographicProjector
+    from scico.linop.xray.astra import XRayTransform
 
 
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
@@ -65,7 +65,7 @@ class TestSet:
             channels=self.chn,
             num_filters=self.num_filters,
             block_depth=self.block_depth,
-            odp_block=sflax.ODPProxDcnvBlock,
+            odp_block=sflax.inverse.ODPProxDcnvBlock,
         )
 
         variables = odpdb.init(key, y)
@@ -87,7 +87,7 @@ class TestSet:
             channels=self.chn,
             num_filters=self.num_filters,
             block_depth=self.block_depth,
-            odp_block=sflax.ODPProxDcnvBlock,
+            odp_block=sflax.inverse.ODPProxDcnvBlock,
         )
 
         variables = odpdb.init(key, y)
@@ -107,7 +107,7 @@ class TestCT:
 
         self.nproj = 60  # number of projections
         angles = np.linspace(0, np.pi, self.nproj)  # evenly spaced projection angles
-        self.opCT = TomographicProjector(
+        self.opCT = XRayTransform(
             input_shape=(self.N, self.N),
             detector_spacing=1,
             det_count=self.N,
@@ -149,7 +149,7 @@ class TestCT:
             channels=self.chn,
             num_filters=self.model_conf["num_filters"],
             block_depth=self.model_conf["block_depth"],
-            odp_block=sflax.ODPGrDescBlock,
+            odp_block=sflax.inverse.ODPGrDescBlock,
         )
 
         variables = model.init(key, y)
@@ -212,7 +212,7 @@ class TestCT:
             channels=self.chn,
             num_filters=self.model_conf["num_filters"],
             block_depth=self.model_conf["block_depth"],
-            odp_block=sflax.ODPGrDescBlock,
+            odp_block=sflax.inverse.ODPGrDescBlock,
         )
 
         try:

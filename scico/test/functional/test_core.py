@@ -16,10 +16,29 @@ import scico.numpy as snp
 from scico import functional
 from scico.random import randn
 
-NO_BLOCK_ARRAY = [functional.L21Norm, functional.L1MinusL2Norm, functional.NuclearNorm]
-NO_COMPLEX = [
-    functional.NonNegativeIndicator,
+NO_BLOCK_ARRAY = [
+    functional.L21Norm,
+    functional.L1MinusL2Norm,
+    functional.NuclearNorm,
+    functional.AnisotropicTVNorm,
 ]
+NO_COMPLEX = [functional.NonNegativeIndicator]
+
+
+def pytest_generate_tests(metafunc):
+    level = int(metafunc.config.getoption("--level"))
+    alpha_range = [1e-2, 1e-1, 1e0, 1e1]
+    dtype_range = [np.float32, np.complex64, np.float64, np.complex128]
+    if level == 2:
+        alpha_range = [1e-2, 1e1]
+        dtype_range = [np.float32, np.complex64, np.float64]
+    elif level < 2:
+        alpha_range = [1e-2]
+        dtype_range = [np.float32, np.complex64]
+    if "alpha" in metafunc.fixturenames:
+        metafunc.parametrize("alpha", alpha_range)
+    if "test_dtype" in metafunc.fixturenames:
+        metafunc.parametrize("test_dtype", dtype_range)
 
 
 class ProxTestObj:
@@ -31,9 +50,9 @@ class ProxTestObj:
         self.vz = snp.zeros((3, 4), dtype=dtype)
 
 
-@pytest.fixture(params=[np.float32, np.complex64, np.float64, np.complex128])
-def test_prox_obj(request):
-    return ProxTestObj(request.param)
+@pytest.fixture
+def test_prox_obj(test_dtype):
+    return ProxTestObj(test_dtype)
 
 
 class SeparableTestObject:
@@ -51,9 +70,9 @@ class SeparableTestObject:
         self.vb = snp.blockarray([self.v1, self.v2])
 
 
-@pytest.fixture(params=[np.float32, np.complex64, np.float64, np.complex128])
-def test_separable_obj(request):
-    return SeparableTestObject(request.param)
+@pytest.fixture
+def test_separable_obj(test_dtype):
+    return SeparableTestObject(test_dtype)
 
 
 def test_separable_eval(test_separable_obj):
@@ -75,9 +94,6 @@ def test_separable_prox(test_separable_obj):
 def test_separable_grad(test_separable_obj):
     # Used to restore the warnings after the context is used
     with warnings.catch_warnings():
-        # Ignores warning raised by ensure_on_device
-        warnings.filterwarnings(action="ignore", category=UserWarning)
-
         # Verifies that there is a warning on f.grad and fg.grad
         np.testing.assert_warns(test_separable_obj.f.grad(test_separable_obj.v1))
         np.testing.assert_warns(test_separable_obj.fg.grad(test_separable_obj.vb))
@@ -101,8 +117,6 @@ class HuberNormNonSep(functional.HuberNorm):
 
 
 class TestNormProx:
-
-    alphalist = [1e-2, 1e-1, 1e0, 1e1]
     normlist = [
         functional.L0Norm,
         functional.L1Norm,
@@ -119,7 +133,6 @@ class TestNormProx:
     normlist_blockarray_ready = set(normlist.copy()) - set(NO_BLOCK_ARRAY)
 
     @pytest.mark.parametrize("norm", normlist)
-    @pytest.mark.parametrize("alpha", alphalist)
     def test_prox(self, norm, alpha, test_prox_obj):
         nrmobj = norm()
         nrm = nrmobj.__call__
@@ -127,7 +140,6 @@ class TestNormProx:
         pf = prox_test(test_prox_obj.v, nrm, prx, alpha)
 
     @pytest.mark.parametrize("norm", normlist)
-    @pytest.mark.parametrize("alpha", alphalist)
     def test_conj_prox(self, norm, alpha, test_prox_obj):
         nrmobj = norm()
         v = test_prox_obj.v
@@ -137,7 +149,6 @@ class TestNormProx:
         np.testing.assert_allclose(lhs, rhs, rtol=1e-6, atol=0.0)
 
     @pytest.mark.parametrize("norm", normlist_blockarray_ready)
-    @pytest.mark.parametrize("alpha", alphalist)
     def test_prox_blockarray(self, norm, alpha, test_prox_obj):
         nrmobj = norm()
         nrm = nrmobj.__call__
@@ -168,9 +179,7 @@ class TestNormProx:
         assert scaled.scale == test_prox_obj.scalar
 
     @pytest.mark.parametrize("norm", normlist)
-    @pytest.mark.parametrize("alpha", alphalist)
     def test_scaled_eval(self, norm, alpha, test_prox_obj):
-
         unscaled = norm()
         scaled = test_prox_obj.scalar * norm()
 
@@ -179,7 +188,6 @@ class TestNormProx:
         np.testing.assert_allclose(a, b)
 
     @pytest.mark.parametrize("norm", normlist)
-    @pytest.mark.parametrize("alpha", alphalist)
     def test_scaled_prox(self, norm, alpha, test_prox_obj):
         # Test prox
         unscaled = norm()
@@ -234,10 +242,8 @@ def test_proj_obj(request):
 
 
 class TestProj:
-
     cnstrlist = [functional.NonNegativeIndicator, functional.L2BallIndicator]
     sdistlist = [functional.SetDistance, functional.SquaredSetDistance]
-    alphalist = [1e-2, 1e-1, 1e0, 1e1]
 
     @pytest.mark.parametrize("cnstr", cnstrlist)
     def test_prox(self, cnstr, test_proj_obj):
@@ -264,7 +270,6 @@ class TestProj:
 
     @pytest.mark.parametrize("sdist", sdistlist)
     @pytest.mark.parametrize("cnstr", cnstrlist)
-    @pytest.mark.parametrize("alpha", alphalist)
     def test_setdistance(self, sdist, cnstr, alpha, test_proj_obj):
         if cnstr in NO_COMPLEX and snp.util.is_complex_dtype(test_proj_obj.v.dtype):
             return

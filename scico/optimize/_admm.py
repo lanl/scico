@@ -18,13 +18,13 @@ from scico.functional import Functional
 from scico.linop import LinearOperator
 from scico.numpy import Array, BlockArray
 from scico.numpy.linalg import norm
-from scico.numpy.util import ensure_on_device
 
 from ._admmaux import (
     FBlockCircularConvolveSolver,
     G0BlockCircularConvolveSolver,
     GenericSubproblemSolver,
     LinearSubproblemSolver,
+    MatrixSubproblemSolver,
     SubproblemSolver,
 )
 from ._common import Optimizer
@@ -141,7 +141,7 @@ class ADMM(Optimizer):
             input_shape = C_list[0].input_shape
             dtype = C_list[0].input_dtype
             x0 = snp.zeros(input_shape, dtype=dtype)
-        self.x = ensure_on_device(x0)
+        self.x = x0
         self.z_list, self.z_list_old = self.z_init(self.x)
         self.u_list = self.u_init(self.x)
 
@@ -189,7 +189,7 @@ class ADMM(Optimizer):
             )
         elif (
             type(self.subproblem_solver)
-            in [FBlockCircularConvolveSolver, G0BlockCircularConvolveSolver]
+            in [MatrixSubproblemSolver, FBlockCircularConvolveSolver, G0BlockCircularConvolveSolver]
             and self.subproblem_solver.check_solve
         ):
             itstat_fields.update({"Slv Res": "%9.3e"})
