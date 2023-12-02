@@ -55,7 +55,28 @@ def is_blockable(shapes: Sequence[Union[Shape, BlockShape]]) -> TypeGuard[Union[
 
 
 class VerticalStack(LinearOperator):
-    """A vertical stack of LinearOperators."""
+    r"""A vertical stack of LinearOperators.
+
+    Given operators :math:`A_1, A_2, \dots, A_N`, create the operator
+
+    .. math::
+       H =
+       \begin{pmatrix}
+            A_1 \\
+            A_2 \\
+            \vdots \\
+            A_N \\
+       \end{pmatrix} \qquad
+       \text{such that} \qquad
+       H \mb{x}
+       =
+       \begin{pmatrix}
+            A_1(\mb{x}) \\
+            A_2(\mb{x}) \\
+            \vdots \\
+            A_N(\mb{x}) \\
+       \end{pmatrix} \;.
+    """
 
     def __init__(
         self,
@@ -175,22 +196,30 @@ class VerticalStack(LinearOperator):
 class DiagonalStack(LinearOperator):
     r"""A diagonal stack of LinearOperators.
 
-    Given operators :math:`A_1, A_2, \dots, A_N`, creates the operator
-    :math:`H` such that
+    Given operators :math:`A_1, A_2, \dots, A_N`, create the operator
 
     .. math::
+       H =
        \begin{pmatrix}
-            A_1(\mb{x}_1) \\
-            A_2(\mb{x}_2) \\
-            \vdots \\
-            A_N(\mb{x}_N) \\
-       \end{pmatrix}
-       = H
+            A_1 & 0   & \ldots & 0\\
+            0   & A_2 & \ldots & 0\\
+            \vdots & \vdots & \ddots & \vdots\\
+            0   & 0 & \ldots & A_N \\
+       \end{pmatrix} \qquad
+       \text{such that} \qquad
+       H
        \begin{pmatrix}
             \mb{x}_1 \\
             \mb{x}_2 \\
             \vdots \\
             \mb{x}_N \\
+       \end{pmatrix}
+       =
+       \begin{pmatrix}
+            A_1(\mb{x}_1) \\
+            A_2(\mb{x}_2) \\
+            \vdots \\
+            A_N(\mb{x}_N) \\
        \end{pmatrix} \;.
 
     By default, if the inputs :math:`\mb{x}_1, \mb{x}_2, \dots,
@@ -212,7 +241,7 @@ class DiagonalStack(LinearOperator):
     ):
         """
         Args:
-            op: Operators to form into a block matrix.
+            ops: Operators to form into a block matrix.
             allow_input_collapse: If ``True``, inputs are expected to be
                 stacked along the first dimension when possible.
             allow_output_collapse: If ``True``, the output will be
