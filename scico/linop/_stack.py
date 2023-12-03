@@ -238,17 +238,17 @@ class DiagonalStack(LinearOperator):
     def __init__(
         self,
         ops: List[LinearOperator],
-        allow_input_collapse: Optional[bool] = True,
-        allow_output_collapse: Optional[bool] = True,
+        collapse_input: Optional[bool] = True,
+        collapse_output: Optional[bool] = True,
         jit: bool = True,
         **kwargs,
     ):
         """
         Args:
             ops: Operators to form into a block matrix.
-            allow_input_collapse: If ``True``, inputs are expected to be
+            collapse_input: If ``True``, inputs are expected to be
                 stacked along the first dimension when possible.
-            allow_output_collapse: If ``True``, the output will be
+            collapse_output: If ``True``, the output will be
                 stacked along the first dimension when possible.
             jit: See `jit` in :class:`LinearOperator`.
 
@@ -257,12 +257,11 @@ class DiagonalStack(LinearOperator):
 
         input_shape, self.collapse_input = collapse_shapes(
             tuple(op.input_shape for op in ops),
-            allow_input_collapse,
+            collapse_input,
         )
-
         output_shape, self.collapse_output = collapse_shapes(
             tuple(op.output_shape for op in ops),
-            allow_output_collapse,
+            collapse_output,
         )
 
         super().__init__(

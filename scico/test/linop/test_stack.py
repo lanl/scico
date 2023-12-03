@@ -155,7 +155,7 @@ class TestBlockDiagonalLinearOperator:
         H = DiagonalStack((A1, A2))
         assert H.input_shape == (2, *S)
 
-        H = DiagonalStack((A1, A2), allow_input_collapse=False)
+        H = DiagonalStack((A1, A2), collapse_input=False)
         assert H.input_shape == (S, S)
 
     def test_output_collapse(self):
@@ -167,5 +167,5 @@ class TestBlockDiagonalLinearOperator:
         H = DiagonalStack((A1, A2))
         assert H.output_shape == (2, *S1)
 
-        H = DiagonalStack((A1, A2), allow_output_collapse=False)
+        H = DiagonalStack((A1, A2), collapse_output=False)
         assert H.output_shape == (S1, S1)
