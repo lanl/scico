@@ -31,7 +31,7 @@ def collapse_shapes(
     """Decides whether to collapse a sequence of shapes and returns the collapsed
     shape and a boolean indicating whether the shape was collapsed."""
 
-    if is_collapsible(shapes) and allow_collapse:
+    if is_output_collapsible(shapes) and allow_collapse:
         return (len(shapes), *shapes[0]), True
 
     if is_blockable(shapes):
@@ -42,7 +42,7 @@ def collapse_shapes(
     )
 
 
-def is_collapsible(shapes: Sequence[Union[Shape, BlockShape]]) -> bool:
+def is_output_collapsible(shapes: Sequence[Union[Shape, BlockShape]]) -> bool:
     """Return ``True`` if the a list of shapes represent arrays that can
     be stacked, i.e., they are all the same."""
     return all(s == shapes[0] for s in shapes)
@@ -81,14 +81,14 @@ class VerticalStack(LinearOperator):
     def __init__(
         self,
         ops: List[LinearOperator],
-        collapse: Optional[bool] = True,
+        collapse_output: Optional[bool] = True,
         jit: bool = True,
         **kwargs,
     ):
         r"""
         Args:
             ops: Operators to stack.
-            collapse: If ``True`` and the output would be a
+            collapse_output: If ``True`` and the output would be a
                 :class:`BlockArray` with shape ((m, n, ...), (m, n, ...),
                 ...), the output is instead a :class:`jax.Array` with
                 shape (S, m, n, ...) where S is the length of `ops`.
@@ -98,12 +98,12 @@ class VerticalStack(LinearOperator):
         VerticalStack.check_if_stackable(ops)
 
         self.ops = ops
-        self.collapse = collapse
+        self.collapse_output = collapse_output
 
         output_shapes = tuple(op.output_shape for op in ops)
-        self.collapsible = is_collapsible(output_shapes)
+        self.output_collapsible = is_output_collapsible(output_shapes)
 
-        if self.collapsible and self.collapse:
+        if self.output_collapsible and self.collapse_output:
             output_shape = (len(ops),) + output_shapes[0]  # collapse to jax array
         else:
             output_shape = output_shapes
@@ -145,7 +145,7 @@ class VerticalStack(LinearOperator):
             raise ValueError("Expected all LinearOperators to have the same output dtype.")
 
     def _eval(self, x: Array) -> Union[Array, BlockArray]:
-        if self.collapsible and self.collapse:
+        if self.output_collapsible and self.collapse_output:
             return snp.stack([op @ x for op in self.ops])
         return BlockArray([op @ x for op in self.ops])
 
@@ -164,33 +164,37 @@ class VerticalStack(LinearOperator):
         if len(scalars) != len(self.ops):
             raise ValueError("Expected `scalars` to be the same length as self.ops.")
 
-        return VerticalStack([a * op for a, op in zip(scalars, self.ops)], collapse=self.collapse)
+        return VerticalStack(
+            [a * op for a, op in zip(scalars, self.ops)], collapse_output=self.collapse_output
+        )
 
     @partial(_wrap_add_sub, op=operator.add)
     def __add__(self, other):
         # add another VerticalStack of the same shape
         return VerticalStack(
-            [op1 + op2 for op1, op2 in zip(self.ops, other.ops)], collapse=self.collapse
+            [op1 + op2 for op1, op2 in zip(self.ops, other.ops)],
+            collapse_output=self.collapse_output,
         )
 
     @partial(_wrap_add_sub, op=operator.sub)
     def __sub__(self, other):
         # subtract another VerticalStack of the same shape
         return VerticalStack(
-            [op1 - op2 for op1, op2 in zip(self.ops, other.ops)], collapse=self.collapse
+            [op1 - op2 for op1, op2 in zip(self.ops, other.ops)],
+            collapse_output=self.collapse_output,
         )
 
     @_wrap_mul_div_scalar
     def __mul__(self, scalar):
-        return VerticalStack([scalar * op for op in self.ops], collapse=self.collapse)
+        return VerticalStack([scalar * op for op in self.ops], collapse_output=self.collapse_output)
 
     @_wrap_mul_div_scalar
     def __rmul__(self, scalar):
-        return VerticalStack([scalar * op for op in self.ops], collapse=self.collapse)
+        return VerticalStack([scalar * op for op in self.ops], collapse_output=self.collapse_output)
 
     @_wrap_mul_div_scalar
     def __truediv__(self, scalar):
-        return VerticalStack([op / scalar for op in self.ops], collapse=self.collapse)
+        return VerticalStack([op / scalar for op in self.ops], collapse_output=self.collapse_output)
 
 
 class DiagonalStack(LinearOperator):

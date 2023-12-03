@@ -38,7 +38,7 @@ class TestVerticalStack:
         assert np.allclose(y[0], A @ x)
         assert np.allclose(y[1], B @ x)
 
-        # by default, collapse to jax array when possible
+        # by default, collapse_output to jax array when possible
         A = Convolve(snp.ones((2, 2)), (7, 11))
         B = Convolve(snp.ones((2, 2)), (7, 11))
         H = VerticalStack([A, B], jit=jit)
@@ -53,37 +53,37 @@ class TestVerticalStack:
         # let user turn off collapsing
         A = Convolve(snp.ones((2, 2)), (7, 11))
         B = Convolve(snp.ones((2, 2)), (7, 11))
-        H = VerticalStack([A, B], collapse=False, jit=jit)
+        H = VerticalStack([A, B], collapse_output=False, jit=jit)
         x = np.ones((7, 11))
         y = H @ x
         assert y.shape == ((8, 12), (8, 12))
 
-    @pytest.mark.parametrize("collapse", [False, True])
+    @pytest.mark.parametrize("collapse_output", [False, True])
     @pytest.mark.parametrize("jit", [False, True])
-    def test_adjoint(self, collapse, jit):
+    def test_adjoint(self, collapse_output, jit):
         # general case
         A = Convolve(snp.ones((3, 3)), (7, 11))
         B = Convolve(snp.ones((2, 2)), (7, 11))
-        H = VerticalStack([A, B], collapse=collapse, jit=jit)
+        H = VerticalStack([A, B], collapse_output=collapse_output, jit=jit)
         adjoint_test(H, self.key)
 
         # collapsable case
         A = Convolve(snp.ones((2, 2)), (7, 11))
         B = Convolve(snp.ones((2, 2)), (7, 11))
-        H = VerticalStack([A, B], collapse=collapse, jit=jit)
+        H = VerticalStack([A, B], collapse_output=collapse_output, jit=jit)
         adjoint_test(H, self.key)
 
-    @pytest.mark.parametrize("collapse", [False, True])
+    @pytest.mark.parametrize("collapse_output", [False, True])
     @pytest.mark.parametrize("jit", [False, True])
-    def test_algebra(self, collapse, jit):
+    def test_algebra(self, collapse_output, jit):
         # adding
         A = Convolve(snp.ones((2, 2)), (7, 11))
         B = Convolve(snp.ones((2, 2)), (7, 11))
-        H = VerticalStack([A, B], collapse=collapse, jit=jit)
+        H = VerticalStack([A, B], collapse_output=collapse_output, jit=jit)
 
         A = Convolve(snp.array(np.random.rand(2, 2)), (7, 11))
         B = Convolve(snp.array(np.random.rand(2, 2)), (7, 11))
-        G = VerticalStack([A, B], collapse=collapse, jit=jit)
+        G = VerticalStack([A, B], collapse_output=collapse_output, jit=jit)
 
         x = np.ones((7, 11))
         S = H + G
