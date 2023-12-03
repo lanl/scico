@@ -42,7 +42,7 @@ def collapse_shapes(
     )
 
 
-def is_output_collapsible(shapes: Sequence[Union[Shape, BlockShape]]) -> bool:
+def is_collapsible(shapes: Sequence[Union[Shape, BlockShape]]) -> bool:
     """Return ``True`` if the a list of shapes represent arrays that can
     be stacked, i.e., they are all the same."""
     return all(s == shapes[0] for s in shapes)
@@ -101,7 +101,7 @@ class VerticalStack(LinearOperator):
         self.collapse_output = collapse_output
 
         output_shapes = tuple(op.output_shape for op in ops)
-        self.output_collapsible = is_output_collapsible(output_shapes)
+        self.output_collapsible = is_collapsible(output_shapes)
 
         if self.output_collapsible and self.collapse_output:
             output_shape = (len(ops),) + output_shapes[0]  # collapse to jax array
@@ -162,7 +162,7 @@ class VerticalStack(LinearOperator):
             scalars: List or array of scalars to use.
         """
         if len(scalars) != len(self.ops):
-            raise ValueError("Expected `scalars` to be the same length as self.ops.")
+            raise ValueError("Expected scalars to be the same length as self.ops.")
 
         return VerticalStack(
             [a * op for a, op in zip(scalars, self.ops)], collapse_output=self.collapse_output
