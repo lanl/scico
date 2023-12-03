@@ -14,6 +14,8 @@ Version 0.0.5   (unreleased)
   to ``XRayTransform``.
 • Rename ``AbelProjector`` to ``AbelTransform``.
 • Rename ``solver.ATADSolver`` to ``solver.MatrixATADSolver``.
+• Rename some ``__init__`` parameters of ``DiagonalStack`` and
+  ``VerticalStack``.
 • Support ``jaxlib`` and ``jax`` versions 0.4.3 to 0.4.20.
 
 
