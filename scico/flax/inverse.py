@@ -470,14 +470,13 @@ class ODPNet(Module):
 def power_iteration(A: LinearOperator, maxiter: int = 100):
     """Compute largest eigenvalue of a diagonalizable :class:`.LinearOperator`.
 
-    Compute largest eigenvalue of a diagonalizable
-    :class:`LinearOperator` using power iteration.
-    The function makes use of lax functionality to
+    Compute largest eigenvalue of a diagonalizable :class:`LinearOperator`
+    using power iteration. This function has the same functionality as
+    :class:`.linop.power_iteration` but is implemented using lax operations to
     allow jitting and general jax function composition.
 
     Args:
-        A: :class:`LinearOperator` used for computation. Must be
-            diagonalizable.
+        A: :class:`LinearOperator` used for computation. Must be diagonalizable.
         maxiter: Maximum number of power iterations to use.
 
     Returns:
