@@ -11,51 +11,17 @@ from __future__ import annotations
 
 import operator
 from functools import partial
-from typing import List, Optional, Sequence, Tuple, Union
-
-import numpy as np
-
-from typing_extensions import TypeGuard
+from typing import List, Optional, Union
 
 import scico.numpy as snp
+import scico.operator
 from scico.numpy import Array, BlockArray
-from scico.numpy.util import is_nested
-from scico.typing import BlockShape, Shape
 
-from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
+from ._linop import LinearOperator, _wrap_add_sub
 
 
-def collapse_shapes(
-    shapes: Sequence[Union[Shape, BlockShape]], allow_collapse=True
-) -> Tuple[Union[Shape, BlockShape], bool]:
-    """Decides whether to collapse a sequence of shapes and returns the collapsed
-    shape and a boolean indicating whether the shape was collapsed."""
-
-    if is_collapsible(shapes) and allow_collapse:
-        return (len(shapes), *shapes[0]), True
-
-    if is_blockable(shapes):
-        return shapes, False
-
-    raise ValueError(
-        "Combining these shapes would result in a twice-nested BlockArray, which is not supported."
-    )
-
-
-def is_collapsible(shapes: Sequence[Union[Shape, BlockShape]]) -> bool:
-    """Return ``True`` if the a list of shapes represent arrays that can
-    be stacked, i.e., they are all the same."""
-    return all(s == shapes[0] for s in shapes)
-
-
-def is_blockable(shapes: Sequence[Union[Shape, BlockShape]]) -> TypeGuard[Union[Shape, BlockShape]]:
-    """Return ``True`` if the list of shapes represent arrays that can be
-    combined into a :class:`BlockArray`, i.e., none are nested."""
-    return not any(is_nested(s) for s in shapes)
-
-
-class VerticalStack(LinearOperator):
-    r"""A vertical stack of LinearOperators.
+class VerticalStack(scico.operator.VerticalStack, LinearOperator):
+    r"""A vertical stack of linear operators.
 
     Given linear operators :math:`A_1, A_2, \dots, A_N`, create the
     linear operator
@@ -88,7 +54,7 @@ class VerticalStack(LinearOperator):
     ):
         r"""
         Args:
-            ops: Operators to stack.
+            ops: Linear operators to stack.
             collapse_output: If ``True`` and the output would be a
                 :class:`BlockArray` with shape ((m, n, ...), (m, n, ...),
                 ...), the output is instead a :class:`jax.Array` with
@@ -96,78 +62,10 @@ class VerticalStack(LinearOperator):
                 Defaults to ``True``.
             jit: See `jit` in :class:`LinearOperator`.
         """
-        VerticalStack.check_if_stackable(ops)
-
-        self.ops = ops
-        self.collapse_output = collapse_output
-
-        output_shapes = tuple(op.output_shape for op in ops)
-        self.output_collapsible = is_collapsible(output_shapes)
-
-        if self.output_collapsible and self.collapse_output:
-            output_shape = (len(ops),) + output_shapes[0]  # collapse to jax array
-        else:
-            output_shape = output_shapes
-
-        super().__init__(
-            input_shape=ops[0].input_shape,
-            output_shape=output_shape,  # type: ignore
-            input_dtype=ops[0].input_dtype,
-            output_dtype=ops[0].output_dtype,
-            jit=jit,
-            **kwargs,
-        )
-
-    @staticmethod
-    def check_if_stackable(ops: List[LinearOperator]):
-        """Check that input ops are suitable for stack creation."""
-        if not isinstance(ops, (list, tuple)):
-            raise ValueError("Expected a list of LinearOperator.")
-
-        input_shapes = [op.shape[1] for op in ops]
-        if not all(input_shapes[0] == s for s in input_shapes):
-            raise ValueError(
-                "Expected all LinearOperators to have the same input shapes, "
-                f"but got {input_shapes}."
-            )
-
-        input_dtypes = [op.input_dtype for op in ops]
-        if not all(input_dtypes[0] == s for s in input_dtypes):
-            raise ValueError(
-                "Expected all LinearOperators to have the same input dtype, "
-                f"but got {input_dtypes}."
-            )
-
-        if any([is_nested(op.shape[0]) for op in ops]):
-            raise ValueError("Cannot stack LinearOperators with nested output shapes.")
-
-        output_dtypes = [op.output_dtype for op in ops]
-        if not np.all(output_dtypes[0] == s for s in output_dtypes):
-            raise ValueError("Expected all LinearOperators to have the same output dtype.")
-
-    def _eval(self, x: Array) -> Union[Array, BlockArray]:
-        if self.output_collapsible and self.collapse_output:
-            return snp.stack([op @ x for op in self.ops])
-        return BlockArray([op @ x for op in self.ops])
+        super().__init__(ops=ops, collapse_output=collapse_output, jit=jit, **kwargs)
 
     def _adj(self, y: Union[Array, BlockArray]) -> Array:  # type: ignore
         return sum([op.adj(y_block) for y_block, op in zip(y, self.ops)])
-
-    def scale_ops(self, scalars: Array):
-        """Scale component linear operators.
-
-        Return a copy of `self` with each operator scaled by the
-        corresponding entry in `scalars`.
-
-        Args:
-            scalars: List or array of scalars to use.
-        """
-        if len(scalars) != len(self.ops):
-            raise ValueError("Expected scalars to be the same length as self.ops.")
-
-        return VerticalStack(
-            [a * op for a, op in zip(scalars, self.ops)], collapse_output=self.collapse_output
-        )
 
     @partial(_wrap_add_sub, op=operator.add)
     def __add__(self, other):
@@ -185,21 +83,9 @@ class VerticalStack(LinearOperator):
             collapse_output=self.collapse_output,
         )
 
-    @_wrap_mul_div_scalar
-    def __mul__(self, scalar):
-        return VerticalStack([scalar * op for op in self.ops], collapse_output=self.collapse_output)
 
-    @_wrap_mul_div_scalar
-    def __rmul__(self, scalar):
-        return VerticalStack([scalar * op for op in self.ops], collapse_output=self.collapse_output)
-
-    @_wrap_mul_div_scalar
-    def __truediv__(self, scalar):
-        return VerticalStack([op / scalar for op in self.ops], collapse_output=self.collapse_output)
-
-
-class DiagonalStack(LinearOperator):
-    r"""A diagonal stack of LinearOperators.
+class DiagonalStack(scico.operator.DiagonalStack, LinearOperator):
+    r"""A diagonal stack of linear operators.
 
     Given linear operators :math:`A_1, A_2, \dots, A_N`, create the
     linear operator
@@ -255,31 +141,13 @@ class DiagonalStack(LinearOperator):
             jit: See `jit` in :class:`LinearOperator`.
 
         """
-        self.ops = ops
-
-        input_shape, self.collapse_input = collapse_shapes(
-            tuple(op.input_shape for op in ops),
-            collapse_input,
-        )
-        output_shape, self.collapse_output = collapse_shapes(
-            tuple(op.output_shape for op in ops),
-            collapse_output,
-        )
-
         super().__init__(
-            input_shape=input_shape,
-            output_shape=output_shape,
-            input_dtype=ops[0].input_dtype,
-            output_dtype=ops[0].output_dtype,
+            ops=ops,
+            collapse_input=collapse_input,
+            collapse_output=collapse_output,
             jit=jit,
             **kwargs,
         )
-
-    def _eval(self, x: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
-        result = tuple(op @ x_n for op, x_n in zip(self.ops, x))
-        if self.collapse_output:
-            return snp.stack(result)
-        return snp.blockarray(result)
 
     def _adj(self, y: Union[Array, BlockArray]) -> Union[Array, BlockArray]:  # type: ignore
         result = tuple(op.T @ y_n for op, y_n in zip(self.ops, y))

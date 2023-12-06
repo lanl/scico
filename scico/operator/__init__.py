@@ -11,13 +11,14 @@ import sys
 
 # isort: off
 from ._operator import Operator
-from .biconvolve import BiConvolve
+
+# from .biconvolve import BiConvolve
 from ._func import operator_from_function, Abs, Angle, Exp
-from ._stack import DiagonalStack, VerticalStack, AbstractDiagonalStack, AbstractVerticalStack
+from ._stack import DiagonalStack, VerticalStack
 
 __all__ = [
     "Operator",
-    "BiConvolve",
+    # "BiConvolve",
     "DiagonalStack",
     "VerticalStack",
     "operator_from_function",
@@ -27,6 +28,5 @@ __all__ = [
 ]
 
 # Imported items in __all__ and other appear to originate in top-level linop module
-other = ["AbstractDiagonalStack", "AbstractVerticalStack"]
-for name in __all__ + other:
+for name in __all__:
     getattr(sys.modules[__name__], name).__module__ = __name__

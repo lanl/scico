@@ -9,7 +9,7 @@
 
 from __future__ import annotations
 
-from typing import List, Optional, Sequence, Tuple, Type, Union
+from typing import List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -59,68 +59,86 @@ def is_blockable(shapes: Sequence[Union[Shape, BlockShape]]) -> TypeGuard[Union[
     return not any(is_nested(s) for s in shapes)
 
 
-class AbstractVerticalStack:
-    r"""A vertical stack of operator-like objects."""
+class VerticalStack(Operator):
+    r"""A vertical stack of operators.
+
+    Given operators :math:`A_1, A_2, \dots, A_N`, create the operator
+    :math:`H` such that
+
+    .. math::
+       H \mb{x}
+       =
+       \begin{pmatrix}
+            A_1(\mb{x}) \\
+            A_2(\mb{x}) \\
+            \vdots \\
+            A_N(\mb{x}) \\
+       \end{pmatrix} \;.
+    """
 
     def __init__(
         self,
         ops: List[Operator],
-        op_type: Type[Operator] = Operator,
         collapse_output: Optional[bool] = True,
         jit: bool = True,
         **kwargs,
     ):
         r"""
         Args:
-            ops: Operator-like objects to stack.
-            op_type: Type name of operator-like objects to stack.
+            ops: Operators to stack.
             collapse_output: If ``True`` and the output would be a
                 :class:`BlockArray` with shape ((m, n, ...), (m, n, ...),
                 ...), the output is instead a :class:`jax.Array` with
                 shape (S, m, n, ...) where S is the length of `ops`.
+                Defaults to ``True``.
             jit: See `jit` in :class:`Operator`.
         """
-        self.op_type = op_type
-        self.check_if_stackable(ops)
+        VerticalStack.check_if_stackable(ops)
+
         self.ops = ops
         self.collapse_output = collapse_output
 
         output_shapes = tuple(op.output_shape for op in ops)
         self.output_collapsible = is_collapsible(output_shapes)
 
-        self.output_shape: Union[Shape, BlockShape]
         if self.output_collapsible and self.collapse_output:
-            self.output_shape = (len(ops),) + output_shapes[0]  # collapse to jax array
+            output_shape = (len(ops),) + output_shapes[0]  # collapse to jax array
         else:
-            self.output_shape = output_shapes
+            output_shape = output_shapes
 
-    def check_if_stackable(self, ops: List[Operator]):
+        super().__init__(
+            input_shape=ops[0].input_shape,
+            output_shape=output_shape,  # type: ignore
+            input_dtype=ops[0].input_dtype,
+            output_dtype=ops[0].output_dtype,
+            jit=jit,
+            **kwargs,
+        )
+
+    @staticmethod
+    def check_if_stackable(ops: List[Operator]):
         """Check that input ops are suitable for stack creation."""
         if not isinstance(ops, (list, tuple)):
-            raise ValueError(f"Expected a list of {self.op_type.__name__}.")
+            raise ValueError("Expected a list of Operator.")
 
         input_shapes = [op.shape[1] for op in ops]
         if not all(input_shapes[0] == s for s in input_shapes):
             raise ValueError(
-                f"Expected all {self.op_type.__name__}s to have the same input shapes, "
-                f"but got {input_shapes}."
+                "Expected all Operators to have the same input shapes, " f"but got {input_shapes}."
             )
 
         input_dtypes = [op.input_dtype for op in ops]
         if not all(input_dtypes[0] == s for s in input_dtypes):
             raise ValueError(
-                f"Expected all {self.op_type.__name__}s to have the same input dtype, "
-                f"but got {input_dtypes}."
+                "Expected all Operators to have the same input dtype, " f"but got {input_dtypes}."
             )
 
         if any([is_nested(op.shape[0]) for op in ops]):
-            raise ValueError(f"Cannot stack {self.op_type.__name__}s with nested output shapes.")
+            raise ValueError("Cannot stack Operators with nested output shapes.")
 
         output_dtypes = [op.output_dtype for op in ops]
         if not np.all(output_dtypes[0] == s for s in output_dtypes):
-            raise ValueError(
-                f"Expected all {self.op_type.__name__}s to have the same output dtype."
-            )
+            raise ValueError("Expected all Operators to have the same output dtype.")
 
     def _eval(self, x: Array) -> Union[Array, BlockArray]:
         if self.output_collapsible and self.collapse_output:
@@ -128,7 +146,7 @@ class AbstractVerticalStack:
         return BlockArray([op(x) for op in self.ops])
 
     def scale_ops(self, scalars: Array):
-        """Scale component operators.
+        """Scale component linear operators.
 
         Return a copy of `self` with each operator scaled by the
         corresponding entry in `scalars`.
@@ -144,12 +162,14 @@ class AbstractVerticalStack:
         )
 
     def __add__(self, other):
+        # add another VerticalStack of the same shape
         return self.__class__(
             [op1 + op2 for op1, op2 in zip(self.ops, other.ops)],
             collapse_output=self.collapse_output,
         )
 
     def __sub__(self, other):
+        # subtract another VerticalStack of the same shape
         return self.__class__(
             [op1 - op2 for op1, op2 in zip(self.ops, other.ops)],
             collapse_output=self.collapse_output,
@@ -174,95 +194,8 @@ class AbstractVerticalStack:
         )
 
 
-class VerticalStack(AbstractVerticalStack, Operator):
-    r"""A vertical stack of operators.
-
-    Given operators :math:`A_1, A_2, \dots, A_N`, create the operator
-    :math:`H` such that
-
-    .. math::
-       H(\mb{x})
-       =
-       \begin{pmatrix}
-            A_1(\mb{x}) \\
-            A_2(\mb{x}) \\
-            \vdots \\
-            A_N(\mb{x}) \\
-       \end{pmatrix} \;.
-    """
-
-    def __init__(
-        self,
-        ops: List[Operator],
-        collapse_output: Optional[bool] = True,
-        jit: bool = True,
-        **kwargs,
-    ):
-        r"""
-        Args:
-            ops: Operators to stack.
-            collapse_output: If ``True`` and the output would be a
-                :class:`BlockArray` with shape ((m, n, ...), (m, n, ...),
-                ...), the output is instead a :class:`jax.Array` with
-                shape (S, m, n, ...) where S is the length of `ops`.
-            jit: See `jit` in :class:`Operator`.
-        """
-        AbstractVerticalStack.__init__(
-            self, ops=ops, op_type=Operator, collapse_output=collapse_output, jit=jit
-        )
-        Operator.__init__(
-            self,
-            input_shape=ops[0].input_shape,
-            output_shape=self.output_shape,  # type: ignore
-            input_dtype=ops[0].input_dtype,
-            output_dtype=ops[0].output_dtype,
-            jit=jit,
-            **kwargs,
-        )
-
-
-class AbstractDiagonalStack:
-    r"""A diagonal stack of operator-like objects."""
-
-    def __init__(
-        self,
-        ops: List[Operator],
-        collapse_input: Optional[bool] = True,
-        collapse_output: Optional[bool] = True,
-        jit: bool = True,
-        **kwargs,
-    ):
-        """
-        Args:
-            ops: Operators to form into a block matrix.
-            collapse_input: If ``True``, inputs are expected to be
-                stacked along the first dimension when possible.
-            collapse_output: If ``True``, the output will be
-                stacked along the first dimension when possible.
-            jit: See `jit` in :class:`Operator`.
-        """
-        self.ops = ops
-
-        self.input_shape: Union[Shape, BlockShape]
-        self.input_shape, self.collapse_input = collapse_shapes(
-            tuple(op.input_shape for op in ops),
-            collapse_input,
-        )
-        self.output_shape: Union[Shape, BlockShape]
-        self.output_shape, self.collapse_output = collapse_shapes(
-            tuple(op.output_shape for op in ops),
-            collapse_output,
-        )
-
-    def _eval(self, x: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
-        result = tuple(op(x_n) for op, x_n in zip(self.ops, x))
-        if self.collapse_output:
-            return snp.stack(result)
-        return snp.blockarray(result)
-
-
-class DiagonalStack(AbstractDiagonalStack, Operator):
-    r"""A diagonal stack of operators.
+class DiagonalStack(Operator):
+    r"""A diagonal stack of Operators.
 
     Given operators :math:`A_1, A_2, \dots, A_N`, create the operator
     :math:`H` such that
@@ -321,11 +254,7 @@ class DiagonalStack(AbstractDiagonalStack, Operator):
             collapse_output,
         )
 
-        AbstractDiagonalStack.__init__(
-            self, ops=ops, collapse_input=collapse_input, collapse_output=collapse_output, jit=jit
-        )
-        Operator.__init__(
-            self,
+        super().__init__(
             input_shape=input_shape,
             output_shape=output_shape,
             input_dtype=ops[0].input_dtype,
@@ -333,3 +262,9 @@ class DiagonalStack(AbstractDiagonalStack, Operator):
             jit=jit,
             **kwargs,
         )
+
+    def _eval(self, x: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
+        result = tuple(op(x_n) for op, x_n in zip(self.ops, x))
+        if self.collapse_output:
+            return snp.stack(result)
+        return snp.blockarray(result)
