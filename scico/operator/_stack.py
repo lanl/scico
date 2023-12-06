@@ -26,8 +26,11 @@ from ._operator import Operator, _wrap_mul_div_scalar
 def collapse_shapes(
     shapes: Sequence[Union[Shape, BlockShape]], allow_collapse=True
 ) -> Tuple[Union[Shape, BlockShape], bool]:
-    """Decides whether to collapse a sequence of shapes and returns the collapsed
-    shape and a boolean indicating whether the shape was collapsed."""
+    """Compute the collapsed representation of a sequence of shapes.
+
+    Decide whether to collapse a sequence of shapes, returning either
+    the sequence of shapes or a collapsed shape, and a boolean indicating
+    whether the shape was collapsed."""
 
     if is_collapsible(shapes) and allow_collapse:
         return (len(shapes), *shapes[0]), True
@@ -41,13 +44,17 @@ def collapse_shapes(
 
 
 def is_collapsible(shapes: Sequence[Union[Shape, BlockShape]]) -> bool:
-    """Return ``True`` if the a list of shapes represent arrays that can
+    """Determine whether a sequence of shapes can be collapsed.
+
+    Return ``True`` if the a list of shapes represent arrays that can
     be stacked, i.e., they are all the same."""
     return all(s == shapes[0] for s in shapes)
 
 
 def is_blockable(shapes: Sequence[Union[Shape, BlockShape]]) -> TypeGuard[Union[Shape, BlockShape]]:
-    """Return ``True`` if the list of shapes represent arrays that can be
+    """Determine whether a sequence of shapes could be a valid :class:`BlockArray` shape.
+
+    Return ``True`` if the sequence of shapes represent arrays that can be
     combined into a :class:`BlockArray`, i.e., none are nested."""
     return not any(is_nested(s) for s in shapes)
 
