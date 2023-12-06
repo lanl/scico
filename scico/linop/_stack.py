@@ -5,7 +5,7 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Stack of linear operators class."""
+"""Stack of linear operators classes."""
 
 from __future__ import annotations
 
@@ -31,7 +31,7 @@ def collapse_shapes(
     """Decides whether to collapse a sequence of shapes and returns the collapsed
     shape and a boolean indicating whether the shape was collapsed."""
 
-    if is_output_collapsible(shapes) and allow_collapse:
+    if is_collapsible(shapes) and allow_collapse:
         return (len(shapes), *shapes[0]), True
 
     if is_blockable(shapes):
