@@ -57,7 +57,8 @@ def is_blockable(shapes: Sequence[Union[Shape, BlockShape]]) -> TypeGuard[Union[
 class VerticalStack(LinearOperator):
     r"""A vertical stack of LinearOperators.
 
-    Given operators :math:`A_1, A_2, \dots, A_N`, create the operator
+    Given linear operators :math:`A_1, A_2, \dots, A_N`, create the
+    linear operator
 
     .. math::
        H =
@@ -200,7 +201,8 @@ class VerticalStack(LinearOperator):
 class DiagonalStack(LinearOperator):
     r"""A diagonal stack of LinearOperators.
 
-    Given operators :math:`A_1, A_2, \dots, A_N`, create the operator
+    Given linear operators :math:`A_1, A_2, \dots, A_N`, create the
+    linear operator
 
     .. math::
        H =
