@@ -13,6 +13,7 @@ import sys
 from ._operator import Operator
 from .biconvolve import BiConvolve
 from ._func import operator_from_function, Abs, Angle, Exp
+from ._stack import DiagonalStack, VerticalStack
 
 __all__ = [
     "Operator",
