@@ -14,13 +14,14 @@ from functools import partial
 from typing import List, Optional, Union
 
 import scico.numpy as snp
-import scico.operator
 from scico.numpy import Array, BlockArray
+from scico.operator._stack import DiagonalStack as DStack
+from scico.operator._stack import VerticalStack as VStack
 
 from ._linop import LinearOperator, _wrap_add_sub
 
 
-class VerticalStack(scico.operator.VerticalStack, LinearOperator):
+class VerticalStack(VStack, LinearOperator):
     r"""A vertical stack of linear operators.
 
     Given linear operators :math:`A_1, A_2, \dots, A_N`, create the
@@ -84,7 +85,7 @@ class VerticalStack(scico.operator.VerticalStack, LinearOperator):
         )
 
 
-class DiagonalStack(scico.operator.DiagonalStack, LinearOperator):
+class DiagonalStack(DStack, LinearOperator):
     r"""A diagonal stack of linear operators.
 
     Given linear operators :math:`A_1, A_2, \dots, A_N`, create the
