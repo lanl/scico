@@ -52,10 +52,10 @@ def is_collapsible(shapes: Sequence[Union[Shape, BlockShape]]) -> bool:
 
 
 def is_blockable(shapes: Sequence[Union[Shape, BlockShape]]) -> TypeGuard[Union[Shape, BlockShape]]:
-    """Determine whether a sequence of shapes could be a valid :class:`BlockArray` shape.
+    """Determine whether a sequence of shapes could be a :class:`BlockArray` shape.
 
-    Return ``True`` if the sequence of shapes represent arrays that can be
-    combined into a :class:`BlockArray`, i.e., none are nested."""
+    Return ``True`` if the sequence of shapes represent arrays that can
+    be combined into a :class:`BlockArray`, i.e., none are nested."""
     return not any(is_nested(s) for s in shapes)
 
 
