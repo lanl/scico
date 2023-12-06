@@ -15,6 +15,8 @@ Version 0.0.5   (unreleased)
 • Rename ``AbelProjector`` to ``AbelTransform``.
 • Rename ``solver.ATADSolver`` to ``solver.MatrixATADSolver``.
 • Support ``jaxlib`` and ``jax`` versions 0.4.3 to 0.4.20.
+• Support ``flax`` versions up to 0.7.5.
+• Use ``orbax`` for checkpointing ``flax`` models.
 
 
 
