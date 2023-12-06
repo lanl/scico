@@ -88,7 +88,7 @@ class TestVerticalStack:
         x = np.ones((7, 11))
         S = H + G
 
-        # test correctness of adding
+        # test correctness of addition
         assert S.output_shape == H.output_shape
         assert S.input_shape == H.input_shape
         np.testing.assert_allclose((S @ x)[0], (H @ x + G @ x)[0])
@@ -124,7 +124,7 @@ class TestBlockDiagonalLinearOperator:
         y = H @ x
         y_expected = snp.blockarray((snp.ones(S1), 2 * snp.ones(S2), snp.sum(snp.ones(S3))))
 
-        assert y == y_expected
+        np.testing.assert_equal(y, y_expected)
 
     def test_adjoint(self):
         S1 = (3, 4)
