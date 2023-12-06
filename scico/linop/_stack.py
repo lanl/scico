@@ -60,7 +60,6 @@ class VerticalStack(VStack, LinearOperator):
                 :class:`BlockArray` with shape ((m, n, ...), (m, n, ...),
                 ...), the output is instead a :class:`jax.Array` with
                 shape (S, m, n, ...) where S is the length of `ops`.
-                Defaults to ``True``.
             jit: See `jit` in :class:`LinearOperator`.
         """
         super().__init__(ops=ops, collapse_output=collapse_output, jit=jit, **kwargs)

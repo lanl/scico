@@ -90,7 +90,6 @@ class VerticalStack(Operator):
                 :class:`BlockArray` with shape ((m, n, ...), (m, n, ...),
                 ...), the output is instead a :class:`jax.Array` with
                 shape (S, m, n, ...) where S is the length of `ops`.
-                Defaults to ``True``.
             jit: See `jit` in :class:`Operator`.
         """
         VerticalStack.check_if_stackable(ops)
@@ -146,7 +145,7 @@ class VerticalStack(Operator):
         return BlockArray([op(x) for op in self.ops])
 
     def scale_ops(self, scalars: Array):
-        """Scale component linear operators.
+        """Scale component operators.
 
         Return a copy of `self` with each operator scaled by the
         corresponding entry in `scalars`.
