@@ -16,21 +16,13 @@ import jax
 import jax.numpy as jnp
 
 from flax import jax_utils
-
-try:
-    from tensorflow.io import gfile  # noqa: F401
-except ImportError:
-    have_tf = False
-else:
-    have_tf = True
-
-if have_tf:
-    from flax.training import checkpoints
-
 from scico.flax import create_input_iter
 from scico.numpy import Array
 
+from .checkpoints import checkpoint_restore
 from .clu_utils import get_parameter_overview
+from .learning_rate import create_cnst_lr_schedule
+from .state import create_basic_train_state
 from .typed_dict import ConfigDict, DataSetDict, ModelVarDict
 
 ModuleDef = Any
@@ -94,27 +86,31 @@ def only_apply(
     else:
         checkpointing = False
 
+    # Configure seed.
+    key = jax.random.PRNGKey(config["seed"])
+
     if variables is None:
         if checkpointing:  # pragma: no cover
-            if not have_tf:
-                raise RuntimeError(
-                    "Tensorflow not available but is required for Flax checkpointing."
-                )
-            state = checkpoints.restore_checkpoint(workdir, model)
-            variables = {
-                "params": state["params"],
-                "batch_stats": state["batch_stats"],
-            }
-            print(get_parameter_overview(variables["params"]))
-            print(get_parameter_overview(variables["batch_stats"]))
+            ishape = test_ds["image"].shape[1:3]
+            lr_ = create_cnst_lr_schedule(config)
+            empty_state = create_basic_train_state(key, config, model, ishape, lr_)
+            state = checkpoint_restore(empty_state, workdir)
+            if hasattr(state, "batch_stats"):
+                variables = {
+                    "params": state.params,
+                    "batch_stats": state.batch_stats,
+                }  # type: ignore
+                print(get_parameter_overview(variables["params"]))
+                print(get_parameter_overview(variables["batch_stats"]))
+            else:
+                variables = {"params": state.params, "batch_stats": {}}
+                print(get_parameter_overview(variables["params"]))
         else:
             raise RuntimeError("No variables or checkpoint provided.")
 
     # For distributed testing
     local_batch_size = config["batch_size"] // jax.process_count()
     size_device_prefetch = 2  # Set for GPU
-    # Configure seed.
-    key = jax.random.PRNGKey(config["seed"])
     # Set data iterator
     eval_dt_iter = create_input_iter(
         key,  # eval: no permutation

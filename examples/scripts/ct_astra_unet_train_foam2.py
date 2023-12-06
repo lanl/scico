@@ -37,8 +37,8 @@ print("Platform: ", platform)
 Read data from cache or generate if not available.
 """
 N = 256  # phantom size
-train_nimg = 536  # number of training images
-test_nimg = 64  # number of testing images
+train_nimg = 498  # number of training images
+test_nimg = 32  # number of testing images
 nimg = train_nimg + test_nimg
 n_projection = 45  # CT views
 
@@ -83,6 +83,7 @@ train_conf: sflax.ConfigDict = {
     "warmup_epochs": 0,
     "log_every_steps": 1000,
     "log": True,
+    "checkpointing": True,
 }
 
 
@@ -123,18 +124,24 @@ time_train = time() - start_time
 """
 Evaluate on testing data.
 """
-start_time = time()
+del train_ds["image"]
+del train_ds["label"]
+
 fmap = sflax.FlaxMap(model, modvar)
-output = fmap(test_ds["image"])
+del model, modvar
+
+maxn = test_nimg // 2
+start_time = time()
+output = fmap(test_ds["image"][:maxn])
 time_eval = time() - start_time
 output = jax.numpy.clip(output, a_min=0, a_max=1.0)
 
 
 """
-Compare trained model in terms of reconstruction time and data fidelity.
+Evaluate trained model in terms of reconstruction time and data fidelity.
 """
-snr_eval = metric.snr(test_ds["label"], output)
-psnr_eval = metric.psnr(test_ds["label"], output)
+snr_eval = metric.snr(test_ds["label"][:maxn], output)
+psnr_eval = metric.psnr(test_ds["label"][:maxn], output)
 print(
     f"{'UNet training':15s}{'epochs:':2s}{train_conf['num_epochs']:>5d}"
     f"{'':21s}{'time[s]:':10s}{time_train:>7.2f}"
@@ -181,10 +188,10 @@ fig.show()
 
 
 """
-Plot convergence statistics. Statistics only generated if a training
-cycle was done (i.e. not reading final epoch results from checkpoint).
+Plot convergence statistics. Statistics are generated only if a training
+cycle was done (i.e. if not reading final epoch results from checkpoint).
 """
-if stats_object is not None:
+if stats_object is not None and len(stats_object.iterations) > 0:
     hist = stats_object.history(transpose=True)
     fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
     plot.plot(
