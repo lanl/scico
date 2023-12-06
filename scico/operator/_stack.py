@@ -9,7 +9,7 @@
 
 from __future__ import annotations
 
-from typing import List, Optional, Sequence, Tuple, Union
+from typing import Optional, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -78,7 +78,7 @@ class VerticalStack(Operator):
 
     def __init__(
         self,
-        ops: List[Operator],
+        ops: Sequence[Operator],
         collapse_output: Optional[bool] = True,
         jit: bool = True,
         **kwargs,
@@ -116,7 +116,7 @@ class VerticalStack(Operator):
         )
 
     @staticmethod
-    def check_if_stackable(ops: List[Operator]):
+    def check_if_stackable(ops: Sequence[Operator]):
         """Check that input ops are suitable for stack creation."""
         if not isinstance(ops, (list, tuple)):
             raise ValueError("Expected a list of Operator.")
@@ -227,7 +227,7 @@ class DiagonalStack(Operator):
 
     def __init__(
         self,
-        ops: List[Operator],
+        ops: Sequence[Operator],
         collapse_input: Optional[bool] = True,
         collapse_output: Optional[bool] = True,
         jit: bool = True,

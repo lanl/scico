@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import operator
 from functools import partial
-from typing import List, Optional, Union
+from typing import Optional, Sequence, Union
 
 import scico.numpy as snp
 from scico.numpy import Array, BlockArray
@@ -48,7 +48,7 @@ class VerticalStack(VStack, LinearOperator):
 
     def __init__(
         self,
-        ops: List[LinearOperator],
+        ops: Sequence[LinearOperator],
         collapse_output: Optional[bool] = True,
         jit: bool = True,
         **kwargs,
@@ -66,7 +66,7 @@ class VerticalStack(VStack, LinearOperator):
         super().__init__(ops=ops, collapse_output=collapse_output, jit=jit, **kwargs)
 
     def _adj(self, y: Union[Array, BlockArray]) -> Array:  # type: ignore
-        return sum([op.adj(y_block) for y_block, op in zip(y, self.ops)])
+        return sum([op.adj(y_block) for y_block, op in zip(y, self.ops)])  # type: ignore
 
     @partial(_wrap_add_sub, op=operator.add)
     def __add__(self, other):
@@ -126,7 +126,7 @@ class DiagonalStack(DStack, LinearOperator):
 
     def __init__(
         self,
-        ops: List[LinearOperator],
+        ops: Sequence[LinearOperator],
         collapse_input: Optional[bool] = True,
         collapse_output: Optional[bool] = True,
         jit: bool = True,
@@ -151,7 +151,7 @@ class DiagonalStack(DStack, LinearOperator):
         )
 
     def _adj(self, y: Union[Array, BlockArray]) -> Union[Array, BlockArray]:  # type: ignore
-        result = tuple(op.T @ y_n for op, y_n in zip(self.ops, y))
+        result = tuple(op.T @ y_n for op, y_n in zip(self.ops, y))  # type: ignore
         if self.collapse_input:
             return snp.stack(result)
         return snp.blockarray(result)
