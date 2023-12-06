@@ -9,13 +9,14 @@ Version 0.0.5   (unreleased)
 • New functionals ``functional.AnisotropicTVNorm`` and
   ``functional.ProximalAverage`` with proximal operator approximations.
 • New integrated Radon/X-ray transform ``linop.XRayTransform``.
+• New operators ``operator.DiagonalStack`` and ``operator.VerticalStack``.
 • Rename modules ``radon_astra`` and ``radon_svmbir`` to ``xray.astra`` and
   ``xray.svmbir`` respectively, and rename ``TomographicProjector`` classes
   to ``XRayTransform``.
 • Rename ``AbelProjector`` to ``AbelTransform``.
 • Rename ``solver.ATADSolver`` to ``solver.MatrixATADSolver``.
-• Rename some ``__init__`` parameters of ``DiagonalStack`` and
-  ``VerticalStack``.
+• Rename some ``__init__`` parameters of ``linop.DiagonalStack`` and
+  ``linop.VerticalStack``.
 • Support ``jaxlib`` and ``jax`` versions 0.4.3 to 0.4.20.
 • Support ``flax`` versions up to 0.7.5.
 • Use ``orbax`` for checkpointing ``flax`` models.
