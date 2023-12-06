@@ -25,10 +25,10 @@ Version 0.0.5   (unreleased)
 Version 0.0.4   (2023-08-03)
 ----------------------------
 
-• Add new `Function` class for representing array-to-array mappings with more
+• Add new ``Function`` class for representing array-to-array mappings with more
   than one input.
 • Add new methods and a function for computing Jacobian-vector products for
-  `Operator` objects.
+  ``Operator`` objects.
 • Add new proximal ADMM solvers.
 • Add new ADMM subproblem solvers for problems involving a sum-of-convolutions
   operator.
@@ -37,7 +37,7 @@ Version 0.0.4   (2023-08-03)
 • Enable diagnostics for ML training loops.
 • Support ``jaxlib`` and ``jax`` versions 0.4.3 to 0.4.14.
 • Change required packages and version numbers, including more recent version
-  for `flax`.
+  for ``flax``.
 • Drop support for Python 3.7.
 • Add support for 3D tomographic projection with the ASTRA Toolbox.
 
@@ -47,8 +47,8 @@ Version 0.0.3   (2022-09-21)
 ----------------------------
 
 • Change required packages and version numbers, including more recent version
-  requirements for `numpy`, `scipy`, `svmbir`, and `ray`.
-• Package `bm4d` removed from main requirements list due to issue #342.
+  requirements for ``numpy``, ``scipy``, ``svmbir``, and ``ray``.
+• Package ``bm4d`` removed from main requirements list due to issue #342.
 • Support ``jaxlib`` versions 0.3.0 to 0.3.15 and ``jax`` versions
   0.3.0 to 0.3.17.
 • Rename linear operators in ``radon_astra`` and ``radon_svmbir`` modules
