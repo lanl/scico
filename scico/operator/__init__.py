@@ -18,7 +18,8 @@ from ._stack import DiagonalStack, VerticalStack
 __all__ = [
     "Operator",
     "BiConvolve",
-    "operator_from_function",
+    "DiagonalStack",
+    "VerticalStack" "operator_from_function",
     "Abs",
     "Angle",
     "Exp",
