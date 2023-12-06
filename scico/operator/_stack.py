@@ -195,7 +195,7 @@ class VerticalStack(Operator):
 
 
 class DiagonalStack(Operator):
-    r"""A diagonal stack of Operators.
+    r"""A diagonal stack of operators.
 
     Given operators :math:`A_1, A_2, \dots, A_N`, create the operator
     :math:`H` such that
