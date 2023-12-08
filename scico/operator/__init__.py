@@ -26,6 +26,6 @@ __all__ = [
     "Exp",
 ]
 
-# Imported items in __all__ and other appear to originate in top-level linop module
+# Imported items in __all__ appear to originate in top-level linop module
 for name in __all__:
     getattr(sys.modules[__name__], name).__module__ = __name__
