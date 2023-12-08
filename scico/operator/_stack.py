@@ -118,7 +118,7 @@ class VerticalStack(Operator):
     def check_if_stackable(ops: Sequence[Operator]):
         """Check that input ops are suitable for stack creation."""
         if not isinstance(ops, (list, tuple)):
-            raise ValueError("Expected a list of Operator.")
+            raise TypeError("Expected a list of Operator.")
 
         input_shapes = [op.shape[1] for op in ops]
         if not all(input_shapes[0] == s for s in input_shapes):
