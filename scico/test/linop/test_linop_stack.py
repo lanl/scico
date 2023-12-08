@@ -17,14 +17,14 @@ class TestVerticalStack:
     @pytest.mark.parametrize("jit", [False, True])
     def test_construct(self, jit):
         # requires a list of LinearOperators
-        I = Identity((42,))
+        Id = Identity((42,))
         with pytest.raises(TypeError):
-            H = VerticalStack(I, jit=jit)
+            H = VerticalStack(Id, jit=jit)
 
         # requires all list elements to be LinearOperators
         A = Abs((42,))
         with pytest.raises(TypeError):
-            H = VerticalStack((A, I), jit=jit)
+            H = VerticalStack((A, Id), jit=jit)
 
         # checks input sizes
         A = Identity((3, 2))
