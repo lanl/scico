@@ -91,11 +91,11 @@ in terms of the proximal operators of the :math:`f_i`
 .. math::
     \mathrm{prox}_f(\mb{x}, \lambda)
     =
-    \begin{bmatrix}
+    \begin{pmatrix}
       \mathrm{prox}_{f_1}(\mb{x}_1, \lambda) \\
       \vdots \\
       \mathrm{prox}_{f_N}(\mb{x}_N, \lambda) \\
-    \end{bmatrix} \;.
+    \end{pmatrix} \;.
 
 Separable Functionals are implemented in the :class:`.SeparableFunctional` class. Separable functionals naturally accept :class:`.BlockArray` inputs and return the prox as a :class:`.BlockArray`.
 
