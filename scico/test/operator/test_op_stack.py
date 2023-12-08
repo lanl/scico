@@ -22,9 +22,9 @@ class TestVerticalStack:
 
     @pytest.mark.parametrize("jit", [False, True])
     def test_construct(self, jit):
-        # requires a list of LinearOperators
+        # requires a list of Operators
         A = Abs((42,))
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             H = VerticalStack(A, jit=jit)
 
         # checks input sizes
@@ -102,7 +102,7 @@ class TestVerticalStack:
         np.testing.assert_allclose(scalars[0] * y1[0], y2[0])
 
 
-class TestBlockDiagonalLinearOperator:
+class TestBlockDiagonalOperator:
     def test_apply(self):
         S1 = (3, 4)
         S2 = (3, 5)
