@@ -118,10 +118,10 @@ class TestVerticalStack:
 
 class TestBlockDiagonalLinearOperator:
     def test_construct(self):
-        I = Identity((42,))
+        Id = Identity((42,))
         A = Abs((42,))
         with pytest.raises(TypeError):
-            H = DiagonalStack((A, I))
+            H = DiagonalStack((A, Id))
 
     def test_apply(self):
         S1 = (3, 4)
