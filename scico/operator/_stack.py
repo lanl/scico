@@ -66,7 +66,7 @@ class VerticalStack(Operator):
     :math:`H` such that
 
     .. math::
-       H \mb{x}
+       H(\mb{x})
        =
        \begin{pmatrix}
             A_1(\mb{x}) \\
@@ -200,13 +200,13 @@ class DiagonalStack(Operator):
     :math:`H` such that
 
     .. math::
-       H
+       H \left(
        \begin{pmatrix}
             \mb{x}_1 \\
             \mb{x}_2 \\
             \vdots \\
             \mb{x}_N \\
-       \end{pmatrix}
+       \end{pmatrix} \right)
        =
        \begin{pmatrix}
             A_1(\mb{x}_1) \\
