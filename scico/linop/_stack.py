@@ -62,6 +62,9 @@ class VerticalStack(VStack, LinearOperator):
                 shape (S, m, n, ...) where S is the length of `ops`.
             jit: See `jit` in :class:`LinearOperator`.
         """
+        if not all(isinstance(op, LinearOperator) for op in ops):
+            raise TypeError("All elements of ops must be of type LinearOperator.")
+
         super().__init__(ops=ops, collapse_output=collapse_output, jit=jit, **kwargs)
 
     def _adj(self, y: Union[Array, BlockArray]) -> Array:  # type: ignore
@@ -141,6 +144,9 @@ class DiagonalStack(DStack, LinearOperator):
             jit: See `jit` in :class:`LinearOperator`.
 
         """
+        if not all(isinstance(op, LinearOperator) for op in ops):
+            raise TypeError("All elements of ops must be of type LinearOperator.")
+
         super().__init__(
             ops=ops,
             collapse_input=collapse_input,
