@@ -20,7 +20,7 @@ from scico.numpy import Array, BlockArray
 from scico.numpy.util import is_nested
 from scico.typing import BlockShape, Shape
 
-from ._operator import Operator, _wrap_mul_div_scalar
+from ._operator import Operator
 
 
 def collapse_shapes(
@@ -143,54 +143,6 @@ class VerticalStack(Operator):
         if self.output_collapsible and self.collapse_output:
             return snp.stack([op(x) for op in self.ops])
         return BlockArray([op(x) for op in self.ops])
-
-    def scale_ops(self, scalars: Array):
-        """Scale component operators.
-
-        Return a copy of `self` with each operator scaled by the
-        corresponding entry in `scalars`.
-
-        Args:
-            scalars: List or array of scalars to use.
-        """
-        if len(scalars) != len(self.ops):
-            raise ValueError("Expected scalars to be the same length as self.ops.")
-
-        return self.__class__(
-            [a * op for a, op in zip(scalars, self.ops)], collapse_output=self.collapse_output
-        )
-
-    def __add__(self, other):
-        # add another VerticalStack of the same shape
-        return self.__class__(
-            [op1 + op2 for op1, op2 in zip(self.ops, other.ops)],
-            collapse_output=self.collapse_output,
-        )
-
-    def __sub__(self, other):
-        # subtract another VerticalStack of the same shape
-        return self.__class__(
-            [op1 - op2 for op1, op2 in zip(self.ops, other.ops)],
-            collapse_output=self.collapse_output,
-        )
-
-    @_wrap_mul_div_scalar
-    def __mul__(self, scalar):
-        return self.__class__(
-            [scalar * op for op in self.ops], collapse_output=self.collapse_output
-        )
-
-    @_wrap_mul_div_scalar
-    def __rmul__(self, scalar):
-        return self.__class__(
-            [scalar * op for op in self.ops], collapse_output=self.collapse_output
-        )
-
-    @_wrap_mul_div_scalar
-    def __truediv__(self, scalar):
-        return self.__class__(
-            [op / scalar for op in self.ops], collapse_output=self.collapse_output
-        )
 
 
 class DiagonalStack(Operator):

@@ -9,8 +9,6 @@
 
 from __future__ import annotations
 
-import operator
-from functools import partial
 from typing import Optional, Sequence, Union
 
 import scico.numpy as snp
@@ -18,7 +16,7 @@ from scico.numpy import Array, BlockArray
 from scico.operator._stack import DiagonalStack as DStack
 from scico.operator._stack import VerticalStack as VStack
 
-from ._linop import LinearOperator, _wrap_add_sub
+from ._linop import LinearOperator
 
 
 class VerticalStack(VStack, LinearOperator):
@@ -69,22 +67,6 @@ class VerticalStack(VStack, LinearOperator):
 
     def _adj(self, y: Union[Array, BlockArray]) -> Array:  # type: ignore
         return sum([op.adj(y_block) for y_block, op in zip(y, self.ops)])  # type: ignore
-
-    @partial(_wrap_add_sub, op=operator.add)
-    def __add__(self, other):
-        # add another VerticalStack of the same shape
-        return VerticalStack(
-            [op1 + op2 for op1, op2 in zip(self.ops, other.ops)],
-            collapse_output=self.collapse_output,
-        )
-
-    @partial(_wrap_add_sub, op=operator.sub)
-    def __sub__(self, other):
-        # subtract another VerticalStack of the same shape
-        return VerticalStack(
-            [op1 - op2 for op1, op2 in zip(self.ops, other.ops)],
-            collapse_output=self.collapse_output,
-        )
 
 
 class DiagonalStack(DStack, LinearOperator):
