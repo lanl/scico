@@ -136,7 +136,7 @@ class DiagonalStack(DStack, LinearOperator):
     ):
         """
         Args:
-            ops: Operators to form into a block matrix.
+            ops: Operators to stack.
             collapse_input: If ``True``, inputs are expected to be
                 stacked along the first dimension when possible.
             collapse_output: If ``True``, the output will be

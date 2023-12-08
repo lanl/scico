@@ -103,6 +103,23 @@ class TestVerticalStack:
 
 
 class TestBlockDiagonalOperator:
+    def test_construct(self):
+        # requires a list of Operators
+        A = Abs((8,))
+        with pytest.raises(TypeError):
+            H = VerticalStack(A)
+
+        # no nested output shapes
+        A = Abs(((8,), (10,)))
+        with pytest.raises(ValueError):
+            H = VerticalStack((A, A))
+
+        # output dtypes must be the same
+        A = Abs(input_shape=(8,), input_dtype=snp.float32)
+        B = Abs(input_shape=(8,), input_dtype=snp.int32)
+        with pytest.raises(ValueError):
+            H = VerticalStack((A, B))
+
     def test_apply(self):
         S1 = (3, 4)
         S2 = (3, 5)

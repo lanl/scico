@@ -234,7 +234,7 @@ class DiagonalStack(Operator):
     ):
         """
         Args:
-            ops: Operators to form into a block matrix.
+            ops: Operators to stack.
             collapse_input: If ``True``, inputs are expected to be
                 stacked along the first dimension when possible.
             collapse_output: If ``True``, the output will be
@@ -242,6 +242,8 @@ class DiagonalStack(Operator):
             jit: See `jit` in :class:`Operator`.
 
         """
+        DiagonalStack.check_if_stackable(ops)
+
         self.ops = ops
 
         input_shape, self.collapse_input = collapse_shapes(
@@ -261,6 +263,19 @@ class DiagonalStack(Operator):
             jit=jit,
             **kwargs,
         )
+
+    @staticmethod
+    def check_if_stackable(ops: Sequence[Operator]):
+        """Check that input ops are suitable for stack creation."""
+        if not isinstance(ops, (list, tuple)):
+            raise TypeError("Expected a list of Operator.")
+
+        if any([is_nested(op.shape[0]) for op in ops]):
+            raise ValueError("Cannot stack Operators with nested output shapes.")
+
+        output_dtypes = [op.output_dtype for op in ops]
+        if not np.all(output_dtypes[0] == s for s in output_dtypes):
+            raise ValueError("Expected all Operators to have the same output dtype.")
 
     def _eval(self, x: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         result = tuple(op(x_n) for op, x_n in zip(self.ops, x))
