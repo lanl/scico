@@ -6,6 +6,7 @@ import pytest
 
 import scico.numpy as snp
 from scico.linop import Convolve, DiagonalStack, Identity, Sum, VerticalStack
+from scico.operator import Abs
 from scico.test.linop.test_linop import adjoint_test
 
 
@@ -17,8 +18,13 @@ class TestVerticalStack:
     def test_construct(self, jit):
         # requires a list of LinearOperators
         I = Identity((42,))
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             H = VerticalStack(I, jit=jit)
+
+        # requires all list elements to be LinearOperators
+        A = Abs((42,))
+        with pytest.raises(TypeError):
+            H = VerticalStack((A, I), jit=jit)
 
         # checks input sizes
         A = Identity((3, 2))
@@ -111,6 +117,12 @@ class TestVerticalStack:
 
 
 class TestBlockDiagonalLinearOperator:
+    def test_construct(self):
+        I = Identity((42,))
+        A = Abs((42,))
+        with pytest.raises(TypeError):
+            H = DiagonalStack((A, I))
+
     def test_apply(self):
         S1 = (3, 4)
         S2 = (3, 5)
