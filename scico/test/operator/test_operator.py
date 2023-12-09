@@ -233,6 +233,16 @@ def test_make_func_op():
     np.testing.assert_array_equal(H(x), snp.abs(x))
 
 
+def test_make_func_op_ext_init():
+    AbsVal = operator_from_function(snp.abs, "AbsVal")
+    shape = (2,)
+    x, _ = randn(shape, dtype=np.float32)
+    H = AbsVal(
+        input_shape=shape, output_shape=shape, input_dtype=np.float32, output_dtype=np.float32
+    )
+    np.testing.assert_array_equal(H(x), snp.abs(x))
+
+
 class TestJacobianProdReal:
     def setup_method(self):
         N = 7
