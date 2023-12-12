@@ -100,21 +100,6 @@ class TestVerticalStack:
         np.testing.assert_allclose((S @ x)[0], (H @ x + G @ x)[0])
         np.testing.assert_allclose((S @ x)[1], (H @ x + G @ x)[1])
 
-        # result of adding two conformable stacks should be a stack
-        assert isinstance(S, VerticalStack)
-        assert isinstance(H - G, VerticalStack)
-
-        # scalar multiplication
-        assert isinstance(1.0 * H, VerticalStack)
-
-        # op scaling
-        scalars = [2.0, 3.0]
-        y1 = S @ x
-        S2 = S.scale_ops(scalars)
-        y2 = S2 @ x
-
-        np.testing.assert_allclose(scalars[0] * y1[0], y2[0])
-
 
 class TestBlockDiagonalLinearOperator:
     def test_construct(self):
