@@ -19,6 +19,16 @@ def test_transpose():
     np.testing.assert_array_equal(H.T @ H @ x, x)
 
 
+def test_transpose_ext_init():
+    shape = (1, 2, 3, 4)
+    perm = (1, 0, 3, 2)
+    x, _ = randn(shape)
+    H = linop.Transpose(
+        shape, perm, input_dtype=snp.float32, output_shape=shape, output_dtype=snp.float32
+    )
+    np.testing.assert_array_equal(H @ x, x.transpose(perm))
+
+
 def test_reshape():
     shape = (1, 2, 3, 4)
     newshape = (2, 12)

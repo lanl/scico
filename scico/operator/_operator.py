@@ -66,7 +66,7 @@ input_dtype : {self.input_dtype}
 output_dtype : {self.output_dtype}
         """
 
-    # See https://docs.scipy.org/doc/numpy-1.10.1/user/c-info.beyond-basics.html#ndarray.__array_priority__
+    # See https://numpy.org/doc/stable/user/c-info.beyond-basics.html#ndarray.__array_priority__
     __array_priority__ = 1
 
     def __init__(
