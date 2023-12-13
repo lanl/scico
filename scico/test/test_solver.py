@@ -208,7 +208,7 @@ class TestOptimizeScalar:
 def test_minimize_vector(dtype, method):
     B, M, N = (4, 3, 2)
 
-    # Models a 12x8 block-diagonal matrix with 4x3 blocks
+    # model a 12x8 block-diagonal matrix with 4x3 blocks
     A, key = random.randn((B, M, N), dtype=dtype)
     x, key = random.randn((B, N), dtype=dtype, key=key)
     y = snp.sum(A * x[:, None], axis=2)  # contract along the N axis
@@ -225,17 +225,17 @@ def test_minimize_vector(dtype, method):
     assert out.x.shape == x.shape
     np.testing.assert_allclose(out.x.ravel(), expected, rtol=5e-4)
 
-    # Check if minimize returns the object to the proper device
+    # check if minimize returns the object to the proper device
     devices = jax.devices()
 
-    # For default device:
+    # for default device
     x0 = jax.device_put(snp.zeros_like(x), devices[0])
     out = solver.minimize(f, x0=x0, method=method)
     assert out.x.device() == devices[0]
     assert out.x.shape == x0.shape
     np.testing.assert_allclose(out.x.ravel(), expected, rtol=5e-4)
 
-    # If more than one device is present:
+    # if more than one device is present
     if len(devices) > 1:
         x0 = jax.device_put(snp.zeros_like(x), devices[1])
         out = solver.minimize(f, x0=x0, method=method)
