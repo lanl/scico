@@ -93,9 +93,10 @@ def _wrap_func(func: Callable, shape: Union[Shape, BlockShape], dtype: DType) ->
         # apply val_grad_func to un-vectorized input
         val = val_func(snp.reshape(x, shape).astype(dtype), *args)
 
-        # Convert val into numpy array, then cast to float
-        # Convert 'val' into a scalar, rather than ndarray of shape (1,)
-        val = np.array(val).astype(float)[0].item()
+        # Convert val into numpy array, cast to float, convert to scalar
+        val = np.array(val).astype(float)
+        val = val.item() if val.ndim == 0 else val[0].item()
+
         return val
 
     return wrapper
