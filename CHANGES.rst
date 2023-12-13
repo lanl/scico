@@ -17,7 +17,7 @@ Version 0.0.5   (unreleased)
 • Rename ``solver.ATADSolver`` to ``solver.MatrixATADSolver``.
 • Rename some ``__init__`` parameters of ``linop.DiagonalStack`` and
   ``linop.VerticalStack``.
-• Support ``jaxlib`` and ``jax`` versions 0.4.3 to 0.4.20.
+• Support ``jaxlib`` and ``jax`` versions 0.4.3 to 0.4.21.
 • Support ``flax`` versions up to 0.7.5.
 • Use ``orbax`` for checkpointing ``flax`` models.
 
