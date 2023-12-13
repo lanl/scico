@@ -1,6 +1,6 @@
 import numpy as np
 
-from jax.config import config
+from jax import config
 
 import pytest
 
