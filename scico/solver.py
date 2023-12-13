@@ -95,7 +95,7 @@ def _wrap_func(func: Callable, shape: Union[Shape, BlockShape], dtype: DType) ->
 
         # Convert val into numpy array, then cast to float
         # Convert 'val' into a scalar, rather than ndarray of shape (1,)
-        val = np.array(val).astype(float).item()
+        val = np.array(val).astype(float)[0].item()
         return val
 
     return wrapper
@@ -280,7 +280,8 @@ def minimize_scalar(
     def f(x, *args):
         # Wrap jax-based function `func` to return a numpy float rather
         # than a jax array of size (1,)
-        return func(x, *args).item()
+        y = func(x, *args)
+        return y.item() if y.ndim == 0 else y[0].item()
 
     res = spopt.minimize_scalar(
         fun=f,
