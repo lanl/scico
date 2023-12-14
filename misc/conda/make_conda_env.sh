@@ -181,7 +181,7 @@ if [ "$TEST" == "yes" ]; then
     echo "    $CONDAREQ" | fmt -w 79
     echo "Packages to be installed via pip:"
     PIPREQSED=$(echo $PIPREQ | $SED 's/\\//g')
-    echo "    jaxlib==$JLVER jax==$JXVER ($PIPREQSED" | fmt -w 79
+    echo "    jaxlib==$JLVER jax==$JXVER $PIPREQSED" | fmt -w 79
     exit 0
 fi
 
