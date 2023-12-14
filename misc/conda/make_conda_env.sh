@@ -25,14 +25,16 @@ REPOPATH=$(realpath $(dirname $0))
 USAGE=$(cat <<-EOF
 Usage: $SCRIPT [-h] [-y] [-g] [-p python_version] [-e env_name]
           [-h] Display usage information
-          [-y] Do not ask for confirmation
+          [-v] Verbose operation
           [-t] Display actions that would be taken but do nothing
+          [-y] Do not ask for confirmation
           [-p python_version] Specify Python version (e.g. 3.9)
           [-e env_name] Specify conda environment name
 EOF
 )
 
 AGREE=no
+VERBOSE=no
 TEST=no
 PYVER="3.9"
 ENVNM=py$(echo $PYVER | sed -e 's/\.//g')
@@ -54,7 +56,7 @@ EOF
 
 
 OPTIND=1
-while getopts ":hytp:e:" opt; do
+while getopts ":hvtyp:e:" opt; do
     case $opt in
 	p|e) if [ -z "$OPTARG" ] || [ "${OPTARG:0:1}" = "-" ] ; then
 		     echo "Error: option -$opt requires an argument" >&2
@@ -63,8 +65,9 @@ while getopts ":hytp:e:" opt; do
 		 fi
 		 ;;&
 	h) echo "$USAGE"; exit 0;;
+	t) VERBOSE=yes;TEST=yes;;
+	v) VERBOSE=yes;;
 	y) AGREE=yes;;
-	t) TEST=yes;;
 	p) PYVER=$OPTARG;;
 	e) ENVNM=$OPTARG;;
 	:) echo "Error: option -$OPTARG requires an argument" >&2
@@ -128,13 +131,6 @@ JLVER=$($SED -n 's/^jaxlib>=.*<=\([0-9\.]*\).*/\1/p' \
 JXVER=$($SED -n 's/^jax>=.*<=\([0-9\.]*\).*/\1/p' \
 	     $REPOPATH/../../requirements.txt)
 
-CONDAHOME=$(conda info --base)
-ENVDIR=$CONDAHOME/envs/$ENVNM
-if [ -d "$ENVDIR" ]; then
-    echo "Error: environment $ENVNM already exists"
-    exit 9
-fi
-
 # Construct merged list of all requirements
 if [ "$OS" == "Darwin" ]; then
     ALLREQUIRE=$(/usr/bin/mktemp -t condaenv)
@@ -174,7 +170,7 @@ done
 # Get list of requirements to be installed via conda
 CONDAREQ=$(cat $FLTREQUIRE | xargs)
 
-if [ "$TEST" == "yes" ]; then
+if [ "$VERBOSE" == "yes" ]; then
     echo "Create python $PYVER environment $ENVNM in conda installation"
     echo "    $CONDAHOME"
     echo "Packages to be installed via conda:"
@@ -182,7 +178,16 @@ if [ "$TEST" == "yes" ]; then
     echo "Packages to be installed via pip:"
     PIPREQSED=$(echo $PIPREQ | $SED 's/\\//g')
     echo "    jaxlib==$JLVER jax==$JXVER $PIPREQSED" | fmt -w 79
-    exit 0
+    if [ "$TEST" == "yes" ]; then
+	exit 0
+    fi
+fi
+
+CONDAHOME=$(conda info --base)
+ENVDIR=$CONDAHOME/envs/$ENVNM
+if [ -d "$ENVDIR" ]; then
+    echo "Error: environment $ENVNM already exists"
+    exit 9
 fi
 
 if [ "$AGREE" == "no" ]; then
