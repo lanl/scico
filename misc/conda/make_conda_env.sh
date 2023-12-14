@@ -167,7 +167,7 @@ for nc in $NOCONDA; do
     # Escape [ and ] for use in regex
     nc=$(echo $nc | sed -E 's/(\[|\])/\\\1/g')
     # Add package to pip package list
-    PIPREQ="$PIPREQ "$(grep "$nc" $FLTREQUIRE | $SED 's/\\//g')
+    PIPREQ="$PIPREQ "$(grep "$nc" $FLTREQUIRE)
     # Remove package $nc from conda package list
     $SED -i "/^$nc.*\$/d" $FLTREQUIRE
 done
@@ -180,7 +180,8 @@ if [ "$TEST" == "yes" ]; then
     echo "Packages to be installed via conda:"
     echo "    $CONDAREQ" | fmt -w 79
     echo "Packages to be installed via pip:"
-    echo "    jaxlib==$JLVER jax==$JXVER $PIPREQ" | fmt -w 79
+    PIPREQSED=$(echo $PIPREQ | $SED 's/\\//g')
+    echo "    jaxlib==$JLVER jax==$JXVER ($PIPREQSED" | fmt -w 79
     exit 0
 fi
 
