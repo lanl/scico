@@ -9,8 +9,10 @@ import pytest
 
 import scico.numpy as snp
 from scico.numpy import BlockArray
+from scico.numpy._wrapped_function_lists import testing_functions
 from scico.numpy.testing import assert_array_equal
 from scico.random import randn
+from scico.util import rgetattr
 
 math_ops = [op.add, op.sub, op.mul, op.truediv, op.pow]  # op.floordiv doesn't work on complex
 comp_ops = [op.le, op.lt, op.ge, op.gt, op.eq]
@@ -86,7 +88,8 @@ def test_ba_ba_operator(test_operator_obj, operator):
     snp.testing.assert_allclose(x, y)
 
 
-# Testing the @ interface for blockarrays of same size, and a blockarray and flattened ndarray/devicearray
+# Testing the @ interface for blockarrays of same size, and a blockarray and flattened
+# ndarray/devicearray
 def test_ba_ba_matmul(test_operator_obj):
     a = test_operator_obj.a
     b = test_operator_obj.d
@@ -135,20 +138,20 @@ def test_ndim(test_operator_obj):
 
 
 def test_getitem(test_operator_obj):
-    # Make a length-4 blockarray
+    # make a length-4 blockarray
     a0 = test_operator_obj.a0
     a1 = test_operator_obj.a1
     b0 = test_operator_obj.b0
     b1 = test_operator_obj.b1
     x = BlockArray([a0, a1, b0, b1])
 
-    # Positive indexing
+    # positive indexing
     np.testing.assert_allclose(x[0], a0)
     np.testing.assert_allclose(x[1], a1)
     np.testing.assert_allclose(x[2], b0)
     np.testing.assert_allclose(x[3], b1)
 
-    # Negative indexing
+    # negative indexing
     np.testing.assert_allclose(x[-4], a0)
     np.testing.assert_allclose(x[-3], a1)
     np.testing.assert_allclose(x[-2], b0)
@@ -193,9 +196,7 @@ def test_ba_ba_dot(test_operator_obj, operator):
     snp.testing.assert_allclose(x, y)
 
 
-###############################################################################
-# Reduction tests
-###############################################################################
+# reduction tests
 reduction_funcs = [
     snp.sum,
     snp.linalg.norm,
@@ -313,6 +314,16 @@ class TestCreators:
         assert x.shape == self.shape
         assert x.dtype == fill_value.dtype
         assert snp.all(x == fill_value)
+
+
+# testing function tests
+@pytest.mark.parametrize("func", testing_functions)
+def test_test_func(func):
+    a = snp.array([1.0, 2.0])
+    b = snp.blockarray((a, a))
+    f = rgetattr(snp, func)
+    retval = f(b, b)
+    assert retval is None
 
 
 # tests added for the BlockArray refactor
