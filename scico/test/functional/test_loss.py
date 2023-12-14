@@ -1,6 +1,6 @@
 import numpy as np
 
-from jax.config import config
+from jax import config
 
 import pytest
 
@@ -31,7 +31,7 @@ class TestLoss:
         self.v, key = randn((n,), key=key, dtype=dtype)  # point for prox eval
         scalar, key = randn((1,), key=key, dtype=dtype)
         self.key = key
-        self.scalar = scalar.item()
+        self.scalar = scalar[0].item()
 
     def test_generic_squared_l2(self):
         A = linop.Identity(input_shape=self.y.shape)
@@ -146,7 +146,7 @@ class TestAbsLoss:
         self.x, key = randn((n,), key=key, dtype=complex_dtype(dtype))
         self.v, key = randn((n,), key=key, dtype=complex_dtype(dtype))  # point for prox eval
         scalar, key = randn((1,), key=key, dtype=dtype)
-        self.scalar = scalar.item()
+        self.scalar = scalar[0].item()
 
     @pytest.mark.parametrize("loss_tuple", abs_loss)
     def test_properties(self, loss_tuple):

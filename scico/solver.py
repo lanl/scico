@@ -93,9 +93,10 @@ def _wrap_func(func: Callable, shape: Union[Shape, BlockShape], dtype: DType) ->
         # apply val_grad_func to un-vectorized input
         val = val_func(snp.reshape(x, shape).astype(dtype), *args)
 
-        # Convert val into numpy array, then cast to float
-        # Convert 'val' into a scalar, rather than ndarray of shape (1,)
-        val = np.array(val).astype(float).item()
+        # Convert val into numpy array, cast to float, convert to scalar
+        val = np.array(val).astype(float)
+        val = val.item() if val.ndim == 0 else val[0].item()
+
         return val
 
     return wrapper
@@ -280,7 +281,8 @@ def minimize_scalar(
     def f(x, *args):
         # Wrap jax-based function `func` to return a numpy float rather
         # than a jax array of size (1,)
-        return func(x, *args).item()
+        y = func(x, *args)
+        return y.item() if y.ndim == 0 else y[0].item()
 
     res = spopt.minimize_scalar(
         fun=f,

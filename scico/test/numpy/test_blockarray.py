@@ -24,7 +24,7 @@ class OperatorsTestObj:
     def __init__(self, dtype):
         key = None
         scalar, key = randn(shape=(1,), dtype=dtype, key=key)
-        self.scalar = scalar.item()  # convert to float
+        self.scalar = scalar[0].item()  # convert to float
 
         self.a0, key = randn(shape=(2, 3), dtype=dtype, key=key)
         self.a1, key = randn(shape=(2, 3, 4), dtype=dtype, key=key)
