@@ -114,12 +114,10 @@ def test_apply_from_checkpoint(testobj):
             model,
             testobj.test_ds,
         )
-        print("variables: ", variables)
     except Exception as e:
         print(e)
         assert 0
     else:
-
         flat_params2 = flatten_dict(variables["params"])
         flat_bstats2 = flatten_dict(variables["batch_stats"])
         params2 = [t[1] for t in sorted(flat_params2.items())]
