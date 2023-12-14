@@ -26,12 +26,14 @@ USAGE=$(cat <<-EOF
 Usage: $SCRIPT [-h] [-y] [-g] [-p python_version] [-e env_name]
           [-h] Display usage information
           [-y] Do not ask for confirmation
+          [-t] Display actions that would be taken but do nothing
           [-p python_version] Specify Python version (e.g. 3.9)
           [-e env_name] Specify conda environment name
 EOF
 )
 
 AGREE=no
+TEST=no
 PYVER="3.9"
 ENVNM=py$(echo $PYVER | sed -e 's/\.//g')
 
@@ -46,13 +48,13 @@ EOF
 )
 # Requirements that cannot be installed via conda (i.e. have to use pip)
 NOCONDA=$(cat <<-EOF
-flax bm3d bm4d faculty-sphinx-theme py2jn colour_demosaicing ray[tune]
+flax bm3d bm4d py2jn colour_demosaicing ray[tune,train]
 EOF
 )
 
 
 OPTIND=1
-while getopts ":hyp:e:" opt; do
+while getopts ":hytp:e:" opt; do
     case $opt in
 	p|e) if [ -z "$OPTARG" ] || [ "${OPTARG:0:1}" = "-" ] ; then
 		     echo "Error: option -$opt requires an argument" >&2
@@ -62,6 +64,7 @@ while getopts ":hyp:e:" opt; do
 		 ;;&
 	h) echo "$USAGE"; exit 0;;
 	y) AGREE=yes;;
+	t) TEST=yes;;
 	p) PYVER=$OPTARG;;
 	e) ENVNM=$OPTARG;;
 	:) echo "Error: option -$OPTARG requires an argument" >&2
@@ -132,24 +135,6 @@ if [ -d "$ENVDIR" ]; then
     exit 9
 fi
 
-if [ "$AGREE" == "no" ]; then
-    RSTR="Confirm creation of conda environment $ENVNM with Python $PYVER"
-    RSTR="$RSTR [y/N] "
-    read -r -p "$RSTR" CNFRM
-    if [ "$CNFRM" != 'y' ] && [ "$CNFRM" != 'Y' ]; then
-	echo "Cancelling environment creation"
-	exit 10
-    fi
-else
-    echo "Creating conda environment $ENVNM with Python $PYVER"
-fi
-
-if [ "$AGREE" == "yes" ]; then
-    CONDA_FLAGS="-y"
-else
-    CONDA_FLAGS=""
-fi
-
 # Construct merged list of all requirements
 if [ "$OS" == "Darwin" ]; then
     ALLREQUIRE=$(/usr/bin/mktemp -t condaenv)
@@ -177,14 +162,46 @@ sort $ALLREQUIRE | uniq | $SED -E 's/(>|<|\|)/\\\1/g' \
     | $SED -E 's/\#.*$//g' \
     | $SED -E '/^-r.*|^jaxlib.*|^jax.*/d' > $FLTREQUIRE
 # Remove requirements that cannot be installed via conda
+PIPREQ=""
 for nc in $NOCONDA; do
     # Escape [ and ] for use in regex
     nc=$(echo $nc | sed -E 's/(\[|\])/\\\1/g')
+    # Add package to pip package list
+    PIPREQ="$PIPREQ "$(grep "$nc" $FLTREQUIRE | $SED 's/\\//g')
     # Remove package $nc from conda package list
     $SED -i "/^$nc.*\$/d" $FLTREQUIRE
 done
 # Get list of requirements to be installed via conda
 CONDAREQ=$(cat $FLTREQUIRE | xargs)
+
+if [ "$TEST" == "yes" ]; then
+    echo "Create python $PYVER environment $ENVNM in conda installation"
+    echo "    $CONDAHOME"
+    echo "Packages to be installed via conda:"
+    echo "    $CONDAREQ" | fmt -w 79
+    echo "Packages to be installed via pip:"
+    echo "    jaxlib==$JLVER jax==$JXVER $PIPREQ" | fmt -w 79
+    exit 0
+fi
+
+if [ "$AGREE" == "no" ]; then
+    RSTR="Confirm creation of conda environment $ENVNM with Python $PYVER"
+    RSTR="$RSTR [y/N] "
+    read -r -p "$RSTR" CNFRM
+    if [ "$CNFRM" != 'y' ] && [ "$CNFRM" != 'Y' ]; then
+	echo "Cancelling environment creation"
+	exit 10
+    fi
+else
+    echo "Creating conda environment $ENVNM with Python $PYVER"
+fi
+
+if [ "$AGREE" == "yes" ]; then
+    CONDA_FLAGS="-y"
+else
+    CONDA_FLAGS=""
+fi
+
 
 # Update conda, create new environment, and activate it
 conda update $CONDA_FLAGS -n base conda
@@ -215,7 +232,7 @@ fi
 pip install --upgrade jaxlib==$JLVER jax==$JXVER
 
 # Install other packages that require installation via pip
-pip install $NOCONDA
+pip install $PIPREQ
 
 # Warn if libopenblas-dev not installed on debian/ubuntu
 if [ "$(which dpkg 2>/dev/null)" ]; then
