@@ -111,7 +111,7 @@ def _num_blocks_in_args(*args, **kwargs):
 
 
 def _block_args_kwargs(num_blocks, *args, **kwargs):
-    """Construct nested args/kwargs for each BlockArrays block."""
+    """Construct nested args/kwargs for each BlockArray block."""
     new_args = []
     new_kwargs = []
     for i in range(num_blocks):
@@ -133,7 +133,6 @@ def map_func_over_blocks(func):
         if num_blocks == 0:
             return func(*args, **kwargs)  # no BlockArray arguments, so no mapping
         new_args, new_kwargs = _block_args_kwargs(num_blocks, *args, **kwargs)
-
         # run the function num_blocks times, return results in a BlockArray
         return BlockArray(func(*new_args[i], **new_kwargs[i]) for i in range(num_blocks))
 
@@ -150,10 +149,10 @@ def map_void_func_over_blocks(func):
         num_blocks = _num_blocks_in_args(*args, **kwargs)
         if num_blocks == 0:
             func(*args, **kwargs)  # no BlockArray arguments, so no mapping
-        new_args, new_kwargs = _block_args_kwargs(num_blocks, *args, **kwargs)
-
-        # run the function num_blocks times
-        [func(*new_args[i], **new_kwargs[i]) for i in range(num_blocks)]
+        else:
+            new_args, new_kwargs = _block_args_kwargs(num_blocks, *args, **kwargs)
+            # run the function num_blocks times
+            [func(*new_args[i], **new_kwargs[i]) for i in range(num_blocks)]
 
     return mapped
 
