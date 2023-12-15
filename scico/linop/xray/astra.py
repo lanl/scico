@@ -186,7 +186,7 @@ class XRayTransform(LinearOperator):
 
         def f(x):
             if x.flags.writeable == False:
-                x.flags.writeable = True
+                x = x.copy()
             if self.num_dims == 2:
                 proj_id, result = astra.create_sino(x, self.proj_id)
                 astra.data2d.delete(proj_id)
@@ -201,7 +201,7 @@ class XRayTransform(LinearOperator):
         # apply backprojector
         def f(y):
             if y.flags.writeable == False:
-                y.flags.writeable = True
+                y = y.copy()
             if self.num_dims == 2:
                 proj_id, result = astra.create_backprojection(y, self.proj_id)
                 astra.data2d.delete(proj_id)
@@ -233,7 +233,7 @@ class XRayTransform(LinearOperator):
         # Just use the CPU FBP alg for now; hitting memory issues with GPU one.
         def f(sino):
             if sino.flags.writeable == False:
-                sino.flags.writeable = True
+                sino = sino.copy()
             sino_id = astra.data2d.create("-sino", self.proj_geom, sino)
 
             # create memory for result
