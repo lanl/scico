@@ -26,8 +26,6 @@ except ImportError as e:
 BIG_INPUT = (32, 33, 50, 51, 125, 1.2)
 SMALL_INPUT = (4, 5, 7, 8, 16, 1.2)
 
-device = jax.devices()[0]
-
 
 def pytest_generate_tests(metafunc):
     param_ranges = {
@@ -154,7 +152,6 @@ def test_adjoint(
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(device.platform != "cpu", reason="test hangs on gpu")
 def test_prox(
     is_3d,
     center_offset_small,
@@ -186,7 +183,6 @@ def test_prox(
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(device.platform != "cpu", reason="test hangs on gpu")
 def test_prox_weights(
     is_3d,
     center_offset_small,
