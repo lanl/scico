@@ -185,8 +185,7 @@ class XRayTransform(LinearOperator):
         # apply the forward projector and generate a sinogram
 
         def f(x):
-            if x.flags.writeable == False:
-                x = x.copy()
+            x.setflags(write=True)
             if self.num_dims == 2:
                 proj_id, result = astra.create_sino(x, self.proj_id)
                 astra.data2d.delete(proj_id)
@@ -200,8 +199,7 @@ class XRayTransform(LinearOperator):
     def _bproj(self, y: jax.Array) -> jax.Array:
         # apply backprojector
         def f(y):
-            if y.flags.writeable == False:
-                y = y.copy()
+            y.setflags(write=True)
             if self.num_dims == 2:
                 proj_id, result = astra.create_backprojection(y, self.proj_id)
                 astra.data2d.delete(proj_id)
