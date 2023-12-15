@@ -258,7 +258,7 @@ echo
 echo "Jax installed without GPU support. To include GPU support,"
 echo "reinstall the astra-toolbox conda package on a host with GPUs,"
 echo "and see the instructions at"
-echo "   https://github.com/google/jax#pip-installation-gpu-cuda"
+echo "   https://jax.readthedocs.io/en/latest/installation.html#nvidia-gpu"
 echo "for additional steps required after running this script and"
 echo "activating the environment created by it."
 
