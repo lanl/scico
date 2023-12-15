@@ -182,7 +182,7 @@ class XRayTransform(LinearOperator):
         )
 
     def _proj(self, x: jax.Array) -> jax.Array:
-        # Applies the forward projector and generates a sinogram
+        # apply the forward projector and generate a sinogram
 
         def f(x):
             if x.flags.writeable == False:
@@ -198,7 +198,7 @@ class XRayTransform(LinearOperator):
         return jax.pure_callback(f, jax.ShapeDtypeStruct(self.output_shape, self.output_dtype), x)
 
     def _bproj(self, y: jax.Array) -> jax.Array:
-        # applies backprojector
+        # apply backprojector
         def f(y):
             if y.flags.writeable == False:
                 y.flags.writeable = True
