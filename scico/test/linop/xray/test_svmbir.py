@@ -88,7 +88,6 @@ def make_A(
     delta_channel=None,
     delta_pixel=None,
 ):
-
     angles = make_angles(num_angles)
     A = XRayTransform(
         im.shape,
@@ -154,6 +153,7 @@ def test_adjoint(
     adjoint_test(A)
 
 
+@pytest.mark.slow
 @pytest.mark.skipif(device.platform != "cpu", reason="test hangs on gpu")
 def test_prox(
     is_3d,
@@ -185,6 +185,7 @@ def test_prox(
     prox_test(v, f, f.prox, alpha=0.25, rtol=5e-4)
 
 
+@pytest.mark.slow
 @pytest.mark.skipif(device.platform != "cpu", reason="test hangs on gpu")
 def test_prox_weights(
     is_3d,
