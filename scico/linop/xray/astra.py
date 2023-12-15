@@ -22,7 +22,6 @@ from typing import List, Optional, Tuple, Union
 import numpy as np
 
 import jax
-import jax.experimental.host_callback as hcb
 
 try:
     import astra
@@ -196,9 +195,7 @@ class XRayTransform(LinearOperator):
                 astra.data3d.delete(proj_id)
             return result
 
-        return hcb.call(
-            f, x, result_shape=jax.ShapeDtypeStruct(self.output_shape, self.output_dtype)
-        )
+        return jax.pure_callback(f, jax.ShapeDtypeStruct(self.output_shape, self.output_dtype), x)
 
     def _bproj(self, y: jax.Array) -> jax.Array:
         # applies backprojector
@@ -215,7 +212,7 @@ class XRayTransform(LinearOperator):
                 astra.data3d.delete(proj_id)
             return result
 
-        return hcb.call(f, y, result_shape=jax.ShapeDtypeStruct(self.input_shape, self.input_dtype))
+        return jax.pure_callback(f, jax.ShapeDtypeStruct(self.input_shape, self.input_dtype), y)
 
     def fbp(self, sino: jax.Array, filter_type: str = "Ram-Lak") -> jax.Array:
         """Filtered back projection (FBP) reconstruction.
@@ -262,6 +259,4 @@ class XRayTransform(LinearOperator):
             astra.data2d.delete(sino_id)
             return out
 
-        return hcb.call(
-            f, sino, result_shape=jax.ShapeDtypeStruct(self.input_shape, self.input_dtype)
-        )
+        return jax.pure_callback(f, jax.ShapeDtypeStruct(self.input_shape, self.input_dtype), sino)
