@@ -161,7 +161,7 @@ sort $ALLREQUIRE | uniq | $SED -E 's/(>|<|\|)/\\\1/g' \
 PIPREQ=""
 for nc in $NOCONDA; do
     # Escape [ and ] for use in regex
-    nc=$(echo $nc | sed -E 's/(\[|\])/\\\1/g')
+    nc=$(echo $nc | $SED -E 's/(\[|\])/\\\1/g')
     # Add package to pip package list
     PIPREQ="$PIPREQ "$(grep "$nc" $FLTREQUIRE)
     # Remove package $nc from conda package list
