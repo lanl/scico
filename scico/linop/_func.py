@@ -49,6 +49,12 @@ def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = Non
                 implements complex-valued operations, this must be a
                 complex dtype (typically :attr:`~numpy.complex64`) for
                 correct adjoint and gradient calculation.
+            output_shape: Shape of output array. Defaults to ``None``.
+                If ``None``, `output_shape` is determined by evaluating
+                `self.__call__` on an input array of zeros.
+            output_dtype: `dtype` for output argument. Defaults to
+                ``None``. If ``None``, `output_dtype` is determined by
+                evaluating `self.__call__` on an input array of zeros.
             jit: If ``True``, call :meth:`~.LinearOperator.jit` on this
                 :class:`LinearOperator` to jit the forward, adjoint, and
                 gram functions. Same as calling
@@ -62,12 +68,14 @@ def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = Non
         input_shape: Union[Shape, BlockShape],
         *args: Any,
         input_dtype: DType = snp.float32,
+        output_shape: Optional[Union[Shape, BlockShape]] = None,
+        output_dtype: Optional[DType] = None,
         jit: bool = True,
         **kwargs: Any,
     ):
         self._eval = lambda x: f(x, *args, **kwargs)
         self.kwargs = kwargs
-        super().__init__(input_shape, input_dtype=input_dtype, jit=jit)  # type: ignore
+        super().__init__(input_shape, input_dtype=input_dtype, output_shape=output_shape, output_dtype=output_dtype, jit=jit)  # type: ignore
 
     OpClass = type(classname, (LinearOperator,), {"__init__": __init__})
     __class__ = OpClass  # needed for super() to work

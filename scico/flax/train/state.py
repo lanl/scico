@@ -55,7 +55,9 @@ def initialize(key: KeyArray, model: ModuleDef, ishape: Shape) -> Tuple[PyTree, 
         return model.init(*args)
 
     variables = init({"params": key}, jnp.ones(input_shape, model.dtype))
-    return variables["params"], variables["batch_stats"]
+    if "batch_stats" in variables:
+        return variables["params"], variables["batch_stats"]
+    return variables["params"]
 
 
 def create_basic_train_state(
@@ -84,11 +86,17 @@ def create_basic_train_state(
         state: Flax train state which includes the model apply function,
            the model parameters and an Optax optimizer.
     """
+    batch_stats = None
     if variables0 is None:
-        params, batch_stats = initialize(key, model, ishape)
+        aux = initialize(key, model, ishape)
+        if len(aux) > 1:
+            params, batch_stats = aux
+        else:
+            params = aux
     else:
         params = variables0["params"]
-        batch_stats = variables0["batch_stats"]
+        if "batch_stats" in variables0:
+            batch_stats = variables0["batch_stats"]
 
     if config["opt_type"] == "SGD":
         # Stochastic Gradient Descent optimiser
@@ -113,11 +121,18 @@ def create_basic_train_state(
             f"Optimizer specified {config['opt_type']} has not been included in SCICO."
         )
 
-    state = TrainState.create(
-        apply_fn=model.apply,
-        params=params,
-        tx=tx,
-        batch_stats=batch_stats,
-    )
+    if batch_stats is None:
+        state = TrainState.create(
+            apply_fn=model.apply,
+            params=params,
+            tx=tx,
+        )
+    else:
+        state = TrainState.create(
+            apply_fn=model.apply,
+            params=params,
+            tx=tx,
+            batch_stats=batch_stats,
+        )
 
     return state

@@ -2,7 +2,7 @@ import operator as op
 
 import numpy as np
 
-from jax.config import config
+from jax import config
 
 import pytest
 
@@ -75,7 +75,6 @@ class TestDiagonal:
     @pytest.mark.parametrize("input_shape1", input_shapes)
     @pytest.mark.parametrize("input_shape2", input_shapes)
     def test_binary_op(self, input_shape1, input_shape2, diagonal_dtype, operator):
-
         diagonal1, key = randn(input_shape1, dtype=diagonal_dtype, key=self.key)
         diagonal2, key = randn(input_shape2, dtype=diagonal_dtype, key=key)
         x, key = randn(input_shape1, dtype=diagonal_dtype, key=key)
@@ -96,7 +95,6 @@ class TestDiagonal:
     @pytest.mark.parametrize("input_shape1", input_shapes)
     @pytest.mark.parametrize("input_shape2", input_shapes)
     def test_matmul(self, input_shape1, input_shape2, diagonal_dtype):
-
         diagonal1, key = randn(input_shape1, dtype=diagonal_dtype, key=self.key)
         diagonal2, key = randn(input_shape2, dtype=diagonal_dtype, key=key)
         x, key = randn(input_shape1, dtype=diagonal_dtype, key=key)
@@ -161,7 +159,6 @@ class TestDiagonal:
 
     @pytest.mark.parametrize("diagonal_dtype", [np.float32, np.complex64])
     def test_gram_op(self, diagonal_dtype):
-
         input_shape = (7,)
         diagonal, key = randn(input_shape, dtype=diagonal_dtype, key=self.key)
 
@@ -174,7 +171,6 @@ class TestDiagonal:
     @pytest.mark.parametrize("diagonal_dtype", [np.float32, np.complex64])
     @pytest.mark.parametrize("ord", [None, "fro", "nuc", -np.inf, np.inf, 1, -1, 2, -2])
     def test_norm(self, diagonal_dtype, ord):
-
         input_shape = (5,)
         diagonal, key = randn(input_shape, dtype=diagonal_dtype, key=self.key)
 
@@ -185,7 +181,6 @@ class TestDiagonal:
         snp.testing.assert_allclose(n1, n2, rtol=1e-6)
 
     def test_norm_except(self):
-
         input_shape = (5,)
         diagonal, key = randn(input_shape, dtype=np.float32, key=self.key)
 

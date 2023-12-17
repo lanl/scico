@@ -82,12 +82,17 @@ class Optimizer:
         Args:
             **kwargs: Optional parameter dict. Valid keys are:
 
+                iter0:
+                  Initial value of iteration counter. Default value is 0.
+
                 maxiter:
-                  Maximum iterations on call to :meth:`solve`.
+                  Maximum iterations on call to :meth:`solve`. Default
+                  value is 100.
 
                 nanstop:
                   If ``True``, stop iterations if a ``NaN`` or ``Inf``
                   value is encountered in a solver working variable.
+                  Default value is ``False``.
 
                 itstat_options:
                   A dict of named parameters to be passed to
@@ -102,6 +107,7 @@ class Optimizer:
                   otherwise the default dict is updated with the dict
                   specified by this parameter.
         """
+        iter0 = kwargs.pop("iter0", 0)
         self.maxiter: int = kwargs.pop("maxiter", 100)
         self.nanstop: bool = kwargs.pop("nanstop", False)
         itstat_options = kwargs.pop("itstat_options", None)
@@ -109,7 +115,7 @@ class Optimizer:
         if kwargs:
             raise TypeError(f"Unrecognized keyword argument(s) {', '.join([k for k in kwargs])}")
 
-        self.itnum: int = 0
+        self.itnum: int = iter0
         self.timer: Timer = Timer()
 
         itstat_fields, itstat_attrib = self._itstat_default_fields()

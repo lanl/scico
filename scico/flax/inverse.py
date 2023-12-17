@@ -14,13 +14,13 @@ from functools import partial
 from typing import Any, Callable, Tuple
 
 import jax.numpy as jnp
-from jax import lax
+from jax import jit, lax, random
 
 from flax.core import Scope  # noqa
 from flax.linen.module import _Sentinel  # noqa
 from flax.linen.module import Module, compact
 from scico.flax import ResNet
-from scico.linop import operator_norm
+from scico.linop import LinearOperator
 from scico.numpy import Array
 from scico.typing import DType, PRNGKey, Shape
 
@@ -262,7 +262,8 @@ class ODPProxDcnvBlock(Module):
     def setup(self):
         """Computing operator norm and setting operator for batch
         evaluation and defining network layers."""
-        self.operator_norm = operator_norm(self.operator)
+        self.operator_norm = jnp.sqrt(power_iteration(self.operator.H @ self.operator)[0].real)
+
         self.ah_f = lambda v: jnp.atleast_3d(
             self.operator.adj(v.reshape(self.operator.output_shape))
         )
@@ -463,3 +464,52 @@ class ODPNet(Module):
             x = block(alpha_ini=alpha0_i)(x, y, train)
             alpha0_i /= 2.0
         return x
+
+
+@partial(jit, static_argnums=0)
+def power_iteration(A: LinearOperator, maxiter: int = 100):
+    """Compute largest eigenvalue of a diagonalizable :class:`.LinearOperator`.
+
+    Compute largest eigenvalue of a diagonalizable :class:`LinearOperator`
+    using power iteration. This function has the same functionality as
+    :class:`.linop.power_iteration` but is implemented using lax operations to
+    allow jitting and general jax function composition.
+
+    Args:
+        A: :class:`LinearOperator` used for computation. Must be diagonalizable.
+        maxiter: Maximum number of power iterations to use.
+
+    Returns:
+        tuple: A tuple (`mu`, `v`) containing:
+
+            - **mu**: Estimate of largest eigenvalue of `A`.
+            - **v**: Eigenvector of `A` with eigenvalue `mu`.
+
+    """
+    key = random.PRNGKey(0)
+    v = random.normal(key, shape=A.input_shape, dtype=A.input_dtype)
+
+    v = v / jnp.linalg.norm(v)
+
+    init_val = (0, v, v, 1.0)
+
+    def cond_fun(val):
+        return jnp.logical_and(val[0] <= maxiter, val[3] > 0.0)
+
+    def body_fun(val):
+        i, v, Av, normAv = val
+        v = Av / normAv
+        i = i + 1
+        Av = A @ v
+        normAv = jnp.linalg.norm(Av)
+        return (i, v, Av, normAv)
+
+    def true_fun(v, Av, normAv):
+        return jnp.sum(v.conj() * Av) / jnp.linalg.norm(v) ** 2, Av / normAv
+
+    def false_fun(v, Av, normAv):
+        return 0.0 * normAv, Av  # Multiplication by zero used to preserve data type
+
+    i, v, Av, normAv = lax.while_loop(cond_fun, body_fun, init_val)
+    mu, v = lax.cond(normAv > 0.0, true_fun, false_fun, v, Av, normAv)
+    return mu, v

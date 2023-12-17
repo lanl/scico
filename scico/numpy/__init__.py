@@ -42,7 +42,7 @@ _wrappers.wrap_recursively(vars(), mathematical_functions, _wrappers.map_func_ov
 _wrappers.wrap_recursively(vars(), reduction_functions, _wrappers.add_full_reduction)
 
 # wrap testing funcs
-_wrappers.wrap_recursively(vars(), testing_functions, _wrappers.map_func_over_blocks)
+_wrappers.wrap_recursively(vars(), testing_functions, _wrappers.map_void_func_over_blocks)
 
 # clean up
 del np, jnp, _wrappers
