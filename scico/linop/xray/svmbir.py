@@ -18,7 +18,6 @@ from typing import Optional, Tuple, Union
 import numpy as np
 
 import jax
-import jax.experimental.host_callback
 
 import scico.numpy as snp
 from scico.loss import Loss, SquaredL2Loss
@@ -175,7 +174,6 @@ class XRayTransform(LinearOperator):
                 self.delta_pixel = delta_pixel
 
         elif self.geometry == "parallel":
-
             self.magnification = 1.0
             if delta_pixel is None:
                 self.delta_pixel = self.delta_channel
@@ -232,8 +230,8 @@ class XRayTransform(LinearOperator):
 
     def _proj_hcb(self, x):
         x = x.reshape(self.svmbir_input_shape)
-        # host callback wrapper for _proj
-        y = jax.experimental.host_callback.call(
+        # callback wrapper for _proj
+        y = jax.pure_callback(
             lambda x: self._proj(
                 x,
                 self.angles,
@@ -246,8 +244,8 @@ class XRayTransform(LinearOperator):
                 delta_channel=self.delta_channel,
                 delta_pixel=self.delta_pixel,
             ),
+            jax.ShapeDtypeStruct(self.svmbir_output_shape, self.output_dtype),
             x,
-            result_shape=jax.ShapeDtypeStruct(self.svmbir_output_shape, self.output_dtype),
         )
         return y.reshape(self.output_shape)
 
@@ -284,8 +282,8 @@ class XRayTransform(LinearOperator):
 
     def _bproj_hcb(self, y):
         y = y.reshape(self.svmbir_output_shape)
-        # host callback wrapper for _bproj
-        x = jax.experimental.host_callback.call(
+        # callback wrapper for _bproj
+        x = jax.pure_callback(
             lambda y: self._bproj(
                 y,
                 self.angles,
@@ -299,8 +297,8 @@ class XRayTransform(LinearOperator):
                 delta_channel=self.delta_channel,
                 delta_pixel=self.delta_pixel,
             ),
+            jax.ShapeDtypeStruct(self.svmbir_input_shape, self.input_dtype),
             y,
-            result_shape=jax.ShapeDtypeStruct(self.svmbir_input_shape, self.input_dtype),
         )
         return x.reshape(self.input_shape)
 
@@ -389,7 +387,6 @@ class SVMBIRExtendedLoss(Loss):
             raise TypeError(f"Parameter W must be None or a linop.Diagonal, got {type(W)}.")
 
     def __call__(self, x: snp.Array) -> float:
-
         if self.positivity and snp.sum(x < 0) > 0:
             return snp.inf
         else:

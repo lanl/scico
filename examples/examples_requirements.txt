@@ -1,3 +1,4 @@
+-r ../requirements.txt
 astra-toolbox
 colour_demosaicing
 xdesign>=0.5.5

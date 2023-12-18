@@ -22,7 +22,6 @@ from typing import List, Optional, Tuple, Union
 import numpy as np
 
 import jax
-import jax.experimental.host_callback as hcb
 
 try:
     import astra
@@ -183,11 +182,10 @@ class XRayTransform(LinearOperator):
         )
 
     def _proj(self, x: jax.Array) -> jax.Array:
-        # Applies the forward projector and generates a sinogram
+        # apply the forward projector and generate a sinogram
 
         def f(x):
-            if x.flags.writeable == False:
-                x.flags.writeable = True
+            x = ensure_writeable(x)
             if self.num_dims == 2:
                 proj_id, result = astra.create_sino(x, self.proj_id)
                 astra.data2d.delete(proj_id)
@@ -196,15 +194,12 @@ class XRayTransform(LinearOperator):
                 astra.data3d.delete(proj_id)
             return result
 
-        return hcb.call(
-            f, x, result_shape=jax.ShapeDtypeStruct(self.output_shape, self.output_dtype)
-        )
+        return jax.pure_callback(f, jax.ShapeDtypeStruct(self.output_shape, self.output_dtype), x)
 
     def _bproj(self, y: jax.Array) -> jax.Array:
-        # applies backprojector
+        # apply backprojector
         def f(y):
-            if y.flags.writeable == False:
-                y.flags.writeable = True
+            y = ensure_writeable(y)
             if self.num_dims == 2:
                 proj_id, result = astra.create_backprojection(y, self.proj_id)
                 astra.data2d.delete(proj_id)
@@ -215,7 +210,7 @@ class XRayTransform(LinearOperator):
                 astra.data3d.delete(proj_id)
             return result
 
-        return hcb.call(f, y, result_shape=jax.ShapeDtypeStruct(self.input_shape, self.input_dtype))
+        return jax.pure_callback(f, jax.ShapeDtypeStruct(self.input_shape, self.input_dtype), y)
 
     def fbp(self, sino: jax.Array, filter_type: str = "Ram-Lak") -> jax.Array:
         """Filtered back projection (FBP) reconstruction.
@@ -235,8 +230,7 @@ class XRayTransform(LinearOperator):
 
         # Just use the CPU FBP alg for now; hitting memory issues with GPU one.
         def f(sino):
-            if sino.flags.writeable == False:
-                sino.flags.writeable = True
+            sino = ensure_writeable(sino)
             sino_id = astra.data2d.create("-sino", self.proj_geom, sino)
 
             # create memory for result
@@ -262,6 +256,15 @@ class XRayTransform(LinearOperator):
             astra.data2d.delete(sino_id)
             return out
 
-        return hcb.call(
-            f, sino, result_shape=jax.ShapeDtypeStruct(self.input_shape, self.input_dtype)
-        )
+        return jax.pure_callback(f, jax.ShapeDtypeStruct(self.input_shape, self.input_dtype), sino)
+
+
+def ensure_writeable(x):
+    """Ensure that `x.flags.writeable` is ``True``, copying if needed."""
+
+    if not x.flags.writeable:
+        try:
+            x.setflags(write=True)
+        except ValueError:
+            x = x.copy()
+    return x

@@ -120,11 +120,11 @@ def cg_solver(A: Callable, b: Array, x0: Array = None, maxiter: int = 50) -> Arr
     version constructed to be differentiable with the autograd
     functionality from jax. Therefore, (i) it uses :meth:`jax.lax.scan`
     to execute a fixed number of iterations and (ii) it assumes that the
-    linear operator may use :meth:`jax.experimental.host_callback`. Due
-    to the utilization of a while cycle, :meth:`scico.cg` is not
-    differentiable by jax and :meth:`jax.scipy.sparse.linalg.cg` does not
-    support functions using :meth:`jax.experimental.host_callback`
-    explaining why an additional conjugate gradient function is implemented.
+    linear operator may use :meth:`jax.pure_callback`. Due to the
+    utilization of a while cycle, :meth:`scico.cg` is not differentiable
+    by jax and :meth:`jax.scipy.sparse.linalg.cg` does not support
+    functions using :meth:`jax.pure_callback`, which is why an additional
+    conjugate gradient function has been implemented.
 
     Args:
         A: Function implementing linear operator :math:`A`, should be

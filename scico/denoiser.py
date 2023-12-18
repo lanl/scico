@@ -12,7 +12,7 @@ from typing import Any, Optional, Union
 
 import numpy as np
 
-from jax.experimental import host_callback as hcb
+import jax
 
 try:
     import bm3d as tubm3d
@@ -84,7 +84,7 @@ def bm3d(x: snp.Array, sigma: float, is_rgb: bool = False, profile: Union[BM3DPr
             "BM3D requires two-dimensional or three dimensional inputs; got ndim = {x.ndim}."
         )
 
-    # This check is also performed inside the BM3D call, but due to the host_callback,
+    # This check is also performed inside the BM3D call, but due to the callback,
     # no exception is raised and the program will crash with no traceback.
     # NOTE: if BM3D is extended to allow for different profiles, the block size must be
     #       updated; this presumes 'np' profile (bs=8)
@@ -103,7 +103,11 @@ def bm3d(x: snp.Array, sigma: float, is_rgb: bool = False, profile: Union[BM3DPr
                 " the additional axes are singletons."
             )
 
-    y = hcb.call(lambda args: bm3d_eval(*args).astype(x.dtype), (x, sigma), result_shape=x)
+    y = jax.pure_callback(
+        lambda args: bm3d_eval(*args).astype(x.dtype),
+        jax.ShapeDtypeStruct(x.shape, x.dtype),
+        (x, sigma),
+    )
 
     # undo squeezing, if neccessary
     y = y.reshape(x_in_shape)
@@ -145,7 +149,7 @@ def bm4d(x: snp.Array, sigma: float, profile: Union[BM4DProfile, str] = "np"):
     if isinstance(x.ndim, tuple) or x.ndim < 3:
         raise ValueError(f"BM4D requires three-dimensional inputs; got ndim = {x.ndim}.")
 
-    # This check is also performed inside the BM4D call, but due to the host_callback,
+    # This check is also performed inside the BM4D call, but due to the callback,
     # no exception is raised and the program will crash with no traceback.
     # NOTE: if BM4D is extended to allow for different profiles, the block size must be
     #       updated; this presumes 'np' profile (bs=8)
@@ -164,7 +168,11 @@ def bm4d(x: snp.Array, sigma: float, profile: Union[BM4DProfile, str] = "np"):
                 " the additional axes are singletons."
             )
 
-    y = hcb.call(lambda args: bm4d_eval(*args).astype(x.dtype), (x, sigma), result_shape=x)
+    y = jax.pure_callback(
+        lambda args: bm4d_eval(*args).astype(x.dtype),
+        jax.ShapeDtypeStruct(x.shape, x.dtype),
+        (x, sigma),
+    )
 
     # undo squeezing, if neccessary
     y = y.reshape(x_in_shape)

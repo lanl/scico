@@ -53,7 +53,6 @@ from typing import Any, Callable, Optional, Sequence, Tuple, Union
 import numpy as np
 
 import jax
-import jax.experimental.host_callback as hcb
 import jax.numpy as jnp
 import jax.scipy.linalg as jsl
 
@@ -239,14 +238,14 @@ def minimize(
             jac=jac,
             method=method,
             options=options,
-        )  # Returns OptimizeResult with x0 as ndarray
+        )  # Return OptimizeResult with x0 as ndarray
         return res.x.astype(x0_dtype)
 
-    # HCB call with side effects to get the OptimizeResult on the same device it was called
-    res.x = hcb.call(
+    # callback with side effects to get the OptimizeResult on the same device it was called
+    res.x = jax.pure_callback(
         fun,
-        arg=x0,
-        result_shape=x0,  # From Jax-docs: This can be an object that has .shape and .dtype attributes
+        jax.ShapeDtypeStruct(x0.shape, x0_dtype),
+        x0,
     )
 
     # un-vectorize the output array from spopt.minimize
