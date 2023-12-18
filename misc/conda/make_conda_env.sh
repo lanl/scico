@@ -255,11 +255,12 @@ echo "  conda activate $ENVNM"
 echo "The environment can be deactivated with the command"
 echo "  conda deactivate"
 echo
-echo "Jax installed without GPU support. To include GPU support,"
-echo "reinstall the astra-toolbox conda package on a host with GPUs,"
-echo "and see the instructions at"
+echo "JAX installed without GPU support. To enable GPU support, install a"
+echo "version of jaxlib with CUDA support following the instructions at"
 echo "   https://jax.readthedocs.io/en/latest/installation.html#nvidia-gpu"
-echo "for additional steps required after running this script and"
-echo "activating the environment created by it."
+echo "ASTRA Toolbox installed without GPU support if this script was"
+echo "run on a host without CUDA drivers installed. To enable GPU support,"
+echo "uninstall and then reinstall the astra-toolbox conda package on a"
+echo "host with CUDA drivers installed."
 
 exit 0
