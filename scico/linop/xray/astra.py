@@ -185,7 +185,7 @@ class XRayTransform(LinearOperator):
         # apply the forward projector and generate a sinogram
 
         def f(x):
-            x.setflags(write=True)
+            x = ensure_writeable(x)
             if self.num_dims == 2:
                 proj_id, result = astra.create_sino(x, self.proj_id)
                 astra.data2d.delete(proj_id)
@@ -199,7 +199,7 @@ class XRayTransform(LinearOperator):
     def _bproj(self, y: jax.Array) -> jax.Array:
         # apply backprojector
         def f(y):
-            y.setflags(write=True)
+            y = ensure_writeable(y)
             if self.num_dims == 2:
                 proj_id, result = astra.create_backprojection(y, self.proj_id)
                 astra.data2d.delete(proj_id)
@@ -230,8 +230,7 @@ class XRayTransform(LinearOperator):
 
         # Just use the CPU FBP alg for now; hitting memory issues with GPU one.
         def f(sino):
-            if sino.flags.writeable == False:
-                sino = sino.copy()
+            sino = ensure_writeable(sino)
             sino_id = astra.data2d.create("-sino", self.proj_geom, sino)
 
             # create memory for result
@@ -258,3 +257,14 @@ class XRayTransform(LinearOperator):
             return out
 
         return jax.pure_callback(f, jax.ShapeDtypeStruct(self.input_shape, self.input_dtype), sino)
+
+
+def ensure_writeable(x):
+    """Ensure that `x.flags.writeable` is ``True``, copying if needed."""
+
+    if not x.flags.writeable:
+        try:
+            x.setflags(write=True)
+        except ValueError:
+            x = x.copy()
+    return x
