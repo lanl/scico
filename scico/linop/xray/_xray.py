@@ -26,11 +26,6 @@ class XRayTransform(LinearOperator):
     """X-ray transform operator.
 
     Wrap an X-ray projector object in a SCICO :class:`LinearOperator`.
-    **Warning:**  Note that the only X-ray projector object currently
-    supported, :class:`.Parallel2dProjector`, is not a very accurate
-    approximation of the integral transform representing real projection
-    imaging, and may therefore not be suitable for real imaging
-    applications.
     """
 
     def __init__(self, projector):

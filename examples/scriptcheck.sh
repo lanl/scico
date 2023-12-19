@@ -97,7 +97,7 @@ for f in $SCRIPTPATH/scripts/*.py; do
     sed -E -e "$re1$re2$re3$re4$re5$re6$re7$re8" $f > $g
 
     # Run temporary script and print status message.
-    if output=$(timeout 60s python $g 2>&1); then
+    if output=$(timeout 180s python $g 2>&1); then
         printf "%s\n" succeeded
     else
         printf "%s\n" FAILED

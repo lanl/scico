@@ -3,7 +3,7 @@ SCICO Release Notes
 ===================
 
 
-Version 0.0.5   (unreleased)
+Version 0.0.5   (2023-12-18)
 ----------------------------
 
 • New functionals ``functional.AnisotropicTVNorm`` and
