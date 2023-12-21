@@ -20,7 +20,8 @@ from _version import package_version
 
 name = "scico"
 version = package_version()
-packages = find_namespace_packages(where="scico", exclude=["test", "test.*"])
+# Add argument exclude=["test", "test.*"] to exclude test subpackage
+packages = find_namespace_packages(where="scico")
 packages = [f"scico.{m}" for m in packages]
 
 
