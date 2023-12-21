@@ -1,6 +1,7 @@
 -r ../requirements.txt
-astra-toolbox
+tifffile
 colour_demosaicing
+astra-toolbox
 xdesign>=0.5.5
 ray[tune,train]>=2.5.0
 hyperopt
