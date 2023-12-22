@@ -96,7 +96,8 @@ def package_version(split: bool = False) -> Union[str, Tuple[str, str]]:  # prag
         Package version string or tuple of strings.
     """
     version = init_variable_assign_value("__version_")
-    if re.match(r"^[0-9\.]+$", version):  # don't extend purely numeric version numbers
+    # don't extend purely numeric version numbers, possibly ending with post<n>
+    if re.match(r"^[0-9\.]+(post[0-9]+)?$", version):
         git_hash = None
     else:
         git_hash = current_git_hash()

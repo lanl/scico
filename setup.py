@@ -22,7 +22,7 @@ name = "scico"
 version = package_version()
 # Add argument exclude=["test", "test.*"] to exclude test subpackage
 packages = find_namespace_packages(where="scico")
-packages = [f"scico.{m}" for m in packages]
+packages = ["scico"] + [f"scico.{m}" for m in packages]
 
 
 longdesc = """
