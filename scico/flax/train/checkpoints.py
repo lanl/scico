@@ -36,9 +36,9 @@ def checkpoint_restore(
             found.
 
     Returns:
-        A restored Flax train state updated from checkpoint file is returned.
-        If no checkpoint files are present and checkpoints are not strictly
-        expected it returns the passed-in `state` unchanged.
+        A restored Flax train state updated from checkpoint file is
+        returned. If no checkpoint files are present and checkpoints are
+        not strictly expected it returns the passed-in `state` unchanged.
 
     Raises:
         FileNotFoundError: If a checkpoint is expected and is not found.
@@ -71,7 +71,7 @@ def checkpoint_save(state: TrainState, config: ConfigDict, workdir: Union[str, P
         state: Flax train state which includes model and optimiser
             parameters.
         config: Python dictionary including model train configuration.
-        workdir: str or pathlib-like path to store checkpoint files in.
+        workdir: Path in which to store checkpoint files.
     """
     if jax.process_index() == 0:
         orbax_checkpointer = orbax.checkpoint.PyTreeCheckpointer()
