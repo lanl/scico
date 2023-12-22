@@ -7,5 +7,4 @@ jaxlib>=0.4.3,<=0.4.23
 jax>=0.4.3,<=0.4.23
 orbax-checkpoint
 flax>=0.6.1,<=0.7.5
-svmbir>=0.3.3
 pyabel>=0.9.0
