@@ -6,6 +6,8 @@
 # package.
 
 """Utilities for checkpointing Flax models."""
+
+
 from pathlib import Path
 from typing import Union
 
@@ -29,8 +31,9 @@ def checkpoint_restore(
             parameters.
         workdir: Checkpoint file or directory of checkpoints to restore
             from.
-        ok_no_ckpt: Flag to indicate if a checkpoint is expected. Default:
-                    False, a checkpoint is expected and an error is generated.
+        ok_no_ckpt: Flag to indicate if a checkpoint is expected. If
+            ``False``, an error is generated if a checkpoint is not
+            found.
 
     Returns:
         A restored Flax train state updated from checkpoint file is returned.
