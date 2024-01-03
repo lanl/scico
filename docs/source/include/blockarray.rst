@@ -5,11 +5,12 @@ BlockArray
 
 .. testsetup::
 
+   >>> import numpy as np
    >>> import scico
+   >>> import scico.random
+   >>> import scico.linop
    >>> import scico.numpy as snp
    >>> from scico.numpy import BlockArray
-   >>> import numpy as np
-   >>> import jax.numpy
 
 The class :class:`.BlockArray` provides a way to combine arrays of
 different shapes into a single object for use with other SCICO classes.
