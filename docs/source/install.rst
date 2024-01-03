@@ -3,7 +3,7 @@
 Installing SCICO
 ================
 
-SCICO requires Python version 3.8 or later. (Version 3.9 is
+SCICO requires Python version 3.8 or later. (Version 3.10 is
 recommended as it is the version under which SCICO has been most
 thoroughly tested.) It is supported on both Linux and macOS, but is
 not currently supported on Windows due to the limited support for
