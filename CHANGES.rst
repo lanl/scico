@@ -3,7 +3,14 @@ SCICO Release Notes
 ===================
 
 
-Version 0.0.5   (unreleased)
+Version 0.0.6   (unreleased)
+----------------------------
+
+• No significant changes.
+
+
+
+Version 0.0.5   (2023-12-18)
 ----------------------------
 
 • New functionals ``functional.AnisotropicTVNorm``,
@@ -18,7 +25,7 @@ Version 0.0.5   (unreleased)
 • Rename ``solver.ATADSolver`` to ``solver.MatrixATADSolver``.
 • Rename some ``__init__`` parameters of ``linop.DiagonalStack`` and
   ``linop.VerticalStack``.
-• Support ``jaxlib`` and ``jax`` versions 0.4.3 to 0.4.21.
+• Support ``jaxlib`` and ``jax`` versions 0.4.3 to 0.4.23.
 • Support ``flax`` versions up to 0.7.5.
 • Use ``orbax`` for checkpointing ``flax`` models.
 

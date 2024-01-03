@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022 by SCICO Developers
+# Copyright (C) 2022-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
 """Utilities for checkpointing Flax models."""
+
+
 from pathlib import Path
 from typing import Union
 
 import jax
 
-import orbax
+import orbax.checkpoint
 
 from flax.training import orbax_utils
 
@@ -29,13 +31,14 @@ def checkpoint_restore(
             parameters.
         workdir: Checkpoint file or directory of checkpoints to restore
             from.
-        ok_no_ckpt: Flag to indicate if a checkpoint is expected. Default:
-                    False, a checkpoint is expected and an error is generated.
+        ok_no_ckpt: Flag to indicate if a checkpoint is expected. If
+            ``False``, an error is generated if a checkpoint is not
+            found.
 
     Returns:
-        A restored Flax train state updated from checkpoint file is returned.
-        If no checkpoint files are present and checkpoints are not strictly
-        expected it returns the passed-in `state` unchanged.
+        A restored Flax train state updated from checkpoint file is
+        returned. If no checkpoint files are present and checkpoints are
+        not strictly expected it returns the passed-in `state` unchanged.
 
     Raises:
         FileNotFoundError: If a checkpoint is expected and is not found.
@@ -68,7 +71,7 @@ def checkpoint_save(state: TrainState, config: ConfigDict, workdir: Union[str, P
         state: Flax train state which includes model and optimiser
             parameters.
         config: Python dictionary including model train configuration.
-        workdir: str or pathlib-like path to store checkpoint files in.
+        workdir: Path in which to store checkpoint files.
     """
     if jax.process_index() == 0:
         orbax_checkpointer = orbax.checkpoint.PyTreeCheckpointer()
