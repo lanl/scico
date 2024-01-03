@@ -27,6 +27,30 @@ The simplest way to install the most recent release of SCICO from
    pip install scico
 
 
+From conda-forge
+----------------
+
+SCICO can also be installed from `conda-forge <https://anaconda.org/conda-forge/scico>`_
+
+::
+
+  conda install -c conda-forge scico
+
+Note, however, that some additional action will typically be required to address problems in the conda packages for secondary dependencies. For example, on Linux x64 and Python 3.10,
+
+::
+
+  conda install "chex>=0.1.7" "optax>=0.1.5"
+
+is required to avoid bugs in the earlier versions that are installed by default, and Python 3.9 also requires
+
+::
+
+  conda install etils==1.5.1
+
+since some more recent versions are not compatible with Python versions earlier than 3.10.
+
+
 From GitHub
 -----------
 

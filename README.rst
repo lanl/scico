@@ -38,6 +38,10 @@
    :target: https://pepy.tech/project/scico
    :alt: PyPI download statistics
 
+.. image:: https://img.shields.io/conda/vn/conda-forge/scico.svg
+    :target: https://anaconda.org/conda-forge/scico
+    :alt: Conda Forge Release
+
 .. image:: https://raw.githubusercontent.com/jupyter/design/master/logos/Badges/nbviewer_badge.svg
    :target: https://nbviewer.jupyter.org/github/lanl/scico-data/tree/main/notebooks/index.ipynb
    :alt: View notebooks at nbviewer
