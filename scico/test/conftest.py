@@ -10,7 +10,7 @@ def pytest_addoption(parser, pluginmanager):
 
     Level definitions:
       1  Critical tests only
-      2  Skip tests that do have a significant impact on coverage
+      2  Skip tests that have a significant impact on coverage
       3  All standard tests
       4  Run all tests, including those marked as slow to run
     """
