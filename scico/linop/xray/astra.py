@@ -95,11 +95,13 @@ class XRayTransform(LinearOperator):
 
         output_shape: Shape
         if self.num_dims == 2:
+            if not isinstance(det_count, int):
+                raise ValueError("Expected det_count to be an int.")
             output_shape = (len(angles), det_count)
         elif self.num_dims == 3:
             assert isinstance(det_count, (list, tuple))
             if len(det_count) != 2:
-                raise ValueError("Expected det_count to have 2 elements")
+                raise ValueError("Expected det_count to have 2 elements.")
             output_shape = (det_count[0], len(angles), det_count[1])
 
         # Set up all the ASTRA config
@@ -115,7 +117,7 @@ class XRayTransform(LinearOperator):
             assert isinstance(detector_spacing, (list, tuple))
             assert isinstance(det_count, (list, tuple))
             if len(detector_spacing) != 2:
-                raise ValueError("Expected detector_spacing to have 2 elements")
+                raise ValueError("Expected detector_spacing to have 2 elements.")
             self.proj_geom = astra.create_proj_geom(
                 "parallel3d",
                 detector_spacing[0],
