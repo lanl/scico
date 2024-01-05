@@ -35,7 +35,7 @@ jobs:
             miniforge-version: latest
             activate-environment: test-env
             use-mamba: true
-            python-version: "3.9"
+            python-version: "3.10"
       # Configure conda environment cache
       - name: Set up conda environment cache
         uses: actions/cache@v3
@@ -75,9 +75,4 @@ jobs:
         run: |
           DURATIONS_FILE=$(mktemp)
           bzcat data/pytest/durations_macos.bz2 > $DURATIONS_FILE
-          pytest -x --durations-path $DURATIONS_FILE --splits 5 --group ${{ matrix.group }} --level 1
-      # Run doc tests
-      - name: Run doc tests
-        if: matrix.group == 1
-        run: |
-          pytest --ignore-glob="*test_*.py" --doctest-modules scico
+          pytest -x --level=1 --durations-path=$DURATIONS_FILE --splits=5 --group=${{ matrix.group }} --pyargs scico
