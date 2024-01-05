@@ -35,6 +35,7 @@ def rgb2gray(rgb: snp.Array) -> snp.Array:
         Grayscale image as Nr x Nc or Nr x Nc x K array.
     """
 
+    shape: Union[Tuple[int, int, int], Tuple[int, int, int, int]]
     if rgb.ndim == 3:
         shape = (1, 1, 3)
     else:
