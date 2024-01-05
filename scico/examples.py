@@ -163,13 +163,14 @@ def epfl_deconv_data(
 
 
 def get_ucb_diffusercam_data(path: str, verbose: bool = False):  # pragma: no cover
-    """Download example data from UC Berkeley Waller Lab diffusercam project.
+    """Download data from UC Berkeley Waller Lab diffusercam project.
 
     Download deconvolution problem data from UC Berkeley Waller Lab
     diffusercam project.  The downloaded data is converted to `.npz`
     format for convenient access via :func:`numpy.load`.  The
     converted data is saved in a file `ucb_diffcam_data.npz.npz` in
     the directory specified by `path`.
+
     Args:
         path: Directory in which converted data is saved.
         verbose: Flag indicating whether to print status messages.
