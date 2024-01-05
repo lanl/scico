@@ -16,7 +16,7 @@ from typing import List, Optional, Tuple, Union
 
 import numpy as np
 
-import imageio.v2 as iio
+import imageio.v3 as iio
 
 import scico.numpy as snp
 from scico import random, util
