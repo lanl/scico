@@ -35,7 +35,11 @@ def rgb2gray(rgb: snp.Array) -> snp.Array:
         Grayscale image as Nr x Nc or Nr x Nc x K array.
     """
 
-    w = snp.array([0.299, 0.587, 0.114], dtype=rgb.dtype)[np.newaxis, np.newaxis]
+    if rgb.ndim == 3:
+        shape = (1, 1, 3)
+    else:
+        shape = (1, 1, 3, 1)
+    w = snp.array([0.299, 0.587, 0.114], dtype=rgb.dtype).reshape(shape)
     return snp.sum(w * rgb, axis=2)
 
 
