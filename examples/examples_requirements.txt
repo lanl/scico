@@ -1,5 +1,4 @@
 -r ../requirements.txt
-tifffile
 colour_demosaicing
 svmbir>=0.3.3
 astra-toolbox
