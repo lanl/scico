@@ -56,23 +56,17 @@ SCICO can also be installed from `conda-forge <https://anaconda.org/conda-forge/
   conda install -c conda-forge "scico>0.0.5"
 
 where the version constraint is required to avoid installation of an old
-package with broken dependencies. Note, however, that installation from conda forge is only straightforward for a Python 3.10 environment on Linux x64, due
-to limitations of conda packages for some of the SCICO dependencies:
+package with broken dependencies.
 
-* There is no conda package for the secondary dependency ``tensorstore``
-  under MacOS.
-* In a Python 3.9 environment, a version of secondary dependency ``etils``
-  that does not support Python 3.9 will be installed. This can be rectified
-  by
-  ::
+Note, however, that installation from conda forge is only possible on a Linux
+platform since there is no conda package for the secondary dependency
+``tensorstore`` under MacOS. There are also complications on Linux platforms
+with Python versions 3.9 or earlier due to the automatic installation of a
+version of secondary dependency ``etils`` that does not support Python versions
+earlier than 3.10. This can be rectified by
+::
 
-     conda install etils=1.5.1
-* Conda packages for dependency ``svmbir`` are not currently available for
-  Python versions greater than 3.10. If an attempt is made to install SCICO
-  via conda forge, an older package with some missing dependencies for the
-  example scripts will be installed. If required, these dependencies
-  (including ``svmbir``, which can be installed using ``pip``) will have to
-  be manually installed.
+  conda install etils=1.5.1
 
 The most recent SCICO conda forge package also includes dependencies for
 the example scripts, except for ``bm3d``, ``bm4d``, and
