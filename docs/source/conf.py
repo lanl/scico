@@ -5,7 +5,7 @@ import sys
 
 confpath = os.path.dirname(__file__)
 sys.path.append(confpath)
-rootpath = os.path.join(confpath, "..", "..")
+rootpath = os.path.realpath(os.path.join(confpath, "..", ".."))
 sys.path.append(rootpath)
 
 from docsutil import insert_inheritance_diagram, package_classes, run_conf_files
