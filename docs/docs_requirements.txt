@@ -11,5 +11,5 @@ ipython
 ipython_genutils
 py2jn
 pygraphviz>=1.7
-pandoc
+pandoc>=2.14.2,<4.0.0
 docutils>=0.18
