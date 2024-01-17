@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2023 by SCICO Developers
+# Copyright (C) 2020-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -259,6 +259,94 @@ class XRayTransform(LinearOperator):
             return out
 
         return jax.pure_callback(f, jax.ShapeDtypeStruct(self.input_shape, self.input_dtype), sino)
+
+
+class FlexibleXRayTransform(LinearOperator):
+    r"""Parallel beam X-ray transform based on the ASTRA toolbox.
+
+    Perform tomographic projection (also called X-ray projection) of an
+    image or volume at specified angles, using the
+    `ASTRA toolbox <https://github.com/astra-toolbox/astra-toolbox>`_.
+    """
+
+    def __init__(
+        self,
+        input_shape: Shape,
+        det_count: Tuple[int, int],
+        vectors: np.ndarray,
+    ):
+        """
+        Args:
+            input_shape: Shape of the input array.
+            det_count: Number of detector elements. See the
+               `astra documentation <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
+               for more information.
+            vectors: Array of geometry specification vectors.
+        """
+
+        self.num_dims = len(input_shape)
+        if self.num_dims != 3:
+            raise ValueError(
+                f"Only 3D projections are supported, but input_shape is {input_shape}."
+            )
+
+        output_shape: Shape
+        assert isinstance(det_count, (list, tuple))
+        if len(det_count) != 2:
+            raise ValueError("Expected det_count to have 2 elements.")
+        output_shape = (det_count[0], vectors.shape[0], det_count[1])
+
+        # Set up all the ASTRA config
+        self.det_count = det_count
+        self.vectors: np.ndarray = np.array(vectors)
+
+        assert isinstance(det_count, (list, tuple))
+        self.proj_geom = astra.create_proj_geom(
+            "parallel3d_vec", det_count[0], det_count[1], vectors
+        )
+
+        self.input_shape: tuple = input_shape
+        self.vol_geom = astra.create_vol_geom(input_shape[1], input_shape[2], input_shape[0])
+
+        dev0 = jax.devices()[0]
+        if dev0.platform == "cpu":
+            raise ValueError("No CPU algorithm for 3D projection and GPU not available.")
+
+        # Wrap our non-jax function to indicate we will supply fwd/rev mode functions
+        self._eval = jax.custom_vjp(self._proj)
+        self._eval.defvjp(lambda x: (self._proj(x), None), lambda _, y: (self._bproj(y),))  # type: ignore
+        self._adj = jax.custom_vjp(self._bproj)
+        self._adj.defvjp(lambda y: (self._bproj(y), None), lambda _, x: (self._proj(x),))  # type: ignore
+
+        super().__init__(
+            input_shape=self.input_shape,
+            output_shape=output_shape,
+            input_dtype=np.float32,
+            output_dtype=np.float32,
+            adj_fn=self._adj,
+            jit=False,
+        )
+
+    def _proj(self, x: jax.Array) -> jax.Array:
+        # apply the forward projector and generate a sinogram
+
+        def f(x):
+            x = ensure_writeable(x)
+            proj_id, result = astra.create_sino3d_gpu(x, self.proj_geom, self.vol_geom)
+            astra.data3d.delete(proj_id)
+            return result
+
+        return jax.pure_callback(f, jax.ShapeDtypeStruct(self.output_shape, self.output_dtype), x)
+
+    def _bproj(self, y: jax.Array) -> jax.Array:
+        # apply backprojector
+        def f(y):
+            y = ensure_writeable(y)
+            proj_id, result = astra.create_backprojection3d_gpu(y, self.proj_geom, self.vol_geom)
+            astra.data3d.delete(proj_id)
+            return result
+
+        return jax.pure_callback(f, jax.ShapeDtypeStruct(self.input_shape, self.input_dtype), y)
 
 
 def ensure_writeable(x):
