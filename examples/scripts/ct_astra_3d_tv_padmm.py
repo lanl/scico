@@ -59,9 +59,9 @@ y = C @ tangle  # sinogram
 """
 Set up ADMM solver object.
 """
-𝛼 = 5e1
+𝛼 = 1e2
 λ = 2e0 / 𝛼  # ℓ2,1 norm regularization parameter
-ρ = 1e-1  # ADMM penalty parameter
+ρ = 1e-2  # ADMM penalty parameter
 maxiter = 1000  # number of ADMM iterations
 
 f = functional.ZeroFunctional()
