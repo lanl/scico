@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2023 by SCICO Developers
+# Copyright (C) 2021-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -16,7 +16,7 @@ from typing import List, Optional, Tuple, Union
 
 import numpy as np
 
-import imageio.v2 as iio
+import imageio.v3 as iio
 
 import scico.numpy as snp
 from scico import random, util
@@ -35,7 +35,12 @@ def rgb2gray(rgb: snp.Array) -> snp.Array:
         Grayscale image as Nr x Nc or Nr x Nc x K array.
     """
 
-    w = snp.array([0.299, 0.587, 0.114], dtype=rgb.dtype)[np.newaxis, np.newaxis]
+    shape: Union[Tuple[int, int, int], Tuple[int, int, int, int]]
+    if rgb.ndim == 3:
+        shape = (1, 1, 3)
+    else:
+        shape = (1, 1, 3, 1)
+    w = snp.array([0.299, 0.587, 0.114], dtype=rgb.dtype).reshape(shape)
     return snp.sum(w * rgb, axis=2)
 
 
@@ -159,13 +164,14 @@ def epfl_deconv_data(
 
 
 def get_ucb_diffusercam_data(path: str, verbose: bool = False):  # pragma: no cover
-    """Download example data from UC Berkeley Waller Lab diffusercam project.
+    """Download data from UC Berkeley Waller Lab diffusercam project.
 
     Download deconvolution problem data from UC Berkeley Waller Lab
     diffusercam project.  The downloaded data is converted to `.npz`
     format for convenient access via :func:`numpy.load`.  The
     converted data is saved in a file `ucb_diffcam_data.npz.npz` in
     the directory specified by `path`.
+
     Args:
         path: Directory in which converted data is saved.
         verbose: Flag indicating whether to print status messages.

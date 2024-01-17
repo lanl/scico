@@ -3,7 +3,7 @@ import tempfile
 
 import numpy as np
 
-import imageio.v2 as iio
+import imageio.v3 as iio
 import pytest
 
 import scico.numpy as snp
