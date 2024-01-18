@@ -140,7 +140,7 @@ class XRayTransform2D(LinearOperator):
         # apply the forward projector and generate a sinogram
 
         def f(x):
-            x = ensure_writeable(x)
+            x = _ensure_writeable(x)
             proj_id, result = astra.create_sino(x, self.proj_id)
             astra.data2d.delete(proj_id)
             return result
@@ -150,7 +150,7 @@ class XRayTransform2D(LinearOperator):
     def _bproj(self, y: jax.Array) -> jax.Array:
         # apply backprojector
         def f(y):
-            y = ensure_writeable(y)
+            y = _ensure_writeable(y)
             proj_id, result = astra.create_backprojection(y, self.proj_id)
             astra.data2d.delete(proj_id)
             return result
@@ -171,7 +171,7 @@ class XRayTransform2D(LinearOperator):
         """
         # Just use the CPU FBP alg for now; hitting memory issues with GPU one.
         def f(sino):
-            sino = ensure_writeable(sino)
+            sino = _ensure_writeable(sino)
             sino_id = astra.data2d.create("-sino", self.proj_geom, sino)
 
             # create memory for result
@@ -296,7 +296,7 @@ class XRayTransform3D(LinearOperator):
         # apply the forward projector and generate a sinogram
 
         def f(x):
-            x = ensure_writeable(x)
+            x = _ensure_writeable(x)
             proj_id, result = astra.create_sino3d_gpu(x, self.proj_geom, self.vol_geom)
             astra.data3d.delete(proj_id)
             return result
@@ -306,7 +306,7 @@ class XRayTransform3D(LinearOperator):
     def _bproj(self, y: jax.Array) -> jax.Array:
         # apply backprojector
         def f(y):
-            y = ensure_writeable(y)
+            y = _ensure_writeable(y)
             proj_id, result = astra.create_backprojection3d_gpu(y, self.proj_geom, self.vol_geom)
             astra.data3d.delete(proj_id)
             return result
@@ -314,7 +314,28 @@ class XRayTransform3D(LinearOperator):
         return jax.pure_callback(f, jax.ShapeDtypeStruct(self.input_shape, self.input_dtype), y)
 
 
-def ensure_writeable(x):
+def angle_to_vector(det_spacing: Tuple[float, float], angles: np.ndarray) -> np.ndarray:
+    """Convert det_spacing and angles to vector geometry specification.
+
+    Args:
+        det_spacing: Spacing between detector elements. See the
+            `astra documentation <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
+            for more information.
+        angles: Array of projection angles in radians.
+
+    Returns:
+        Array of geometry specification vectors.
+    """
+    vectors = np.zeros((angles.size, 12))
+    vectors[:, 0] = np.sin(angles)
+    vectors[:, 1] = -np.cos(angles)
+    vectors[:, 6] = np.cos(angles) * det_spacing[0]
+    vectors[:, 7] = np.sin(angles) * det_spacing[0]
+    vectors[:, 11] = det_spacing[1]
+    return vectors
+
+
+def _ensure_writeable(x):
     """Ensure that `x.flags.writeable` is ``True``, copying if needed."""
 
     if not x.flags.writeable:

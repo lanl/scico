@@ -28,7 +28,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot
 from scico.examples import create_tangle_phantom
-from scico.linop.xray.astra import FlexibleXRayTransform
+from scico.linop.xray.astra import XRayTransform3D, angle_to_vector
 from scico.optimize import ProximalADMM
 from scico.util import device_info
 
@@ -45,14 +45,9 @@ n_projection = 10  # number of projections
 angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
 det_spacing = [1.0, 1.0]
 det_count = [Nz, max(Nx, Ny)]
-vectors = np.zeros((n_projection, 12))
-vectors[:, 0] = np.sin(angles)
-vectors[:, 1] = -np.cos(angles)
-vectors[:, 6] = np.cos(angles) * det_spacing[0]
-vectors[:, 7] = np.sin(angles) * det_spacing[0]
-vectors[:, 11] = det_spacing[1]
+vectors = angle_to_vector(det_count, angles)
 
-C = FlexibleXRayTransform(tangle.shape, det_count, vectors)  # CT projection operator
+C = XRayTransform3D(tangle.shape, det_count=det_count, vectors=vectors)  # CT projection operator
 y = C @ tangle  # sinogram
 
 
@@ -72,7 +67,6 @@ D = linop.FiniteDifference(input_shape=tangle.shape, append=0)
 
 A = linop.VerticalStack((C, 𝛼 * D))
 mu, nu = ProximalADMM.estimate_parameters(A)
-# print(mu, nu)
 
 solver = ProximalADMM(
     f=f,
