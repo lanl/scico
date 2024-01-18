@@ -147,8 +147,8 @@ print(
 
 
 """
-Plot comparison. Note that patches have small sizes, thus, plots may
-correspond to unidentifiable fragments.
+Plot comparison. Note that plots may display unidentifiable image
+fragments due to the small patch size.
 """
 np.random.seed(123)
 indx = np.random.randint(0, high=test_patches)
