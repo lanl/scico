@@ -247,14 +247,13 @@ class XRayTransform3D(LinearOperator):
             raise ValueError("Expected det_count to be a tuple with 2 elements.")
         if angles is not None:
             Nview = angles.size
+            self.angles: np.ndarray = np.array(angles)
         else:
             Nview = vectors.shape[0]
+            self.vectors: np.ndarray = np.array(vectors)
         output_shape: Shape = (det_count[0], Nview, det_count[1])
 
-        # Set up all the ASTRA config
         self.det_count = det_count
-        self.vectors: np.ndarray = np.array(vectors)
-
         assert isinstance(det_count, (list, tuple))
         if angles is not None:
             self.proj_geom = astra.create_proj_geom(
@@ -263,11 +262,11 @@ class XRayTransform3D(LinearOperator):
                 det_spacing[1],
                 det_count[0],
                 det_count[1],
-                angles,
+                self.angles,
             )
         else:
             self.proj_geom = astra.create_proj_geom(
-                "parallel3d_vec", det_count[0], det_count[1], vectors
+                "parallel3d_vec", det_count[0], det_count[1], self.vectors
             )
 
         self.input_shape: tuple = input_shape
