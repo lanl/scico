@@ -28,7 +28,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot
 from scico.examples import create_tangle_phantom
-from scico.linop.xray.astra import XRayTransform
+from scico.linop.xray.astra import XRayTransform3D
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
@@ -43,7 +43,9 @@ tangle = snp.array(create_tangle_phantom(Nx, Ny, Nz))
 
 n_projection = 10  # number of projections
 angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
-A = XRayTransform(tangle.shape, [1.0, 1.0], [Nz, max(Nx, Ny)], angles)  # CT projection operator
+A = XRayTransform3D(
+    tangle.shape, det_count=[Nz, max(Nx, Ny)], det_spacing=[1.0, 1.0], angles=angles
+)  # CT projection operator
 y = A @ tangle  # sinogram
 
 

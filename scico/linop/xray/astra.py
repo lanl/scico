@@ -5,7 +5,7 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""X-ray transform LinearOperator wrapping the ASTRA toolbox.
+"""X-ray transform LinearOperators wrapping the ASTRA toolbox.
 
 X-ray transform :class:`.LinearOperator` wrapping the parallel beam
 projections in the
@@ -17,7 +17,7 @@ JAX arrays. Other JAX features such as automatic differentiation are
 not available.
 """
 
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple
 
 import numpy as np
 
@@ -39,8 +39,8 @@ from scico.typing import Shape
 from .._linop import LinearOperator
 
 
-class XRayTransform(LinearOperator):
-    r"""Parallel beam X-ray transform based on the ASTRA toolbox.
+class XRayTransform2D(LinearOperator):
+    r"""2D parallel beam X-ray transform based on the ASTRA toolbox.
 
     Perform tomographic projection (also called X-ray projection) of an
     image or volume at specified angles, using the
@@ -50,102 +50,62 @@ class XRayTransform(LinearOperator):
     def __init__(
         self,
         input_shape: Shape,
-        detector_spacing: Union[float, Tuple[float, float]],
-        det_count: Union[int, Tuple[int, int]],
+        det_count: int,
+        det_spacing: float,
         angles: np.ndarray,
         volume_geometry: Optional[List[float]] = None,
         device: str = "auto",
     ):
         """
         Args:
-            input_shape: Shape of the input array. Determines whether 2D
-               or 3D algorithm is used.
-            detector_spacing: Spacing between detector elements. See the
-               astra documentation for more information for
-               `2d <https://www.astra-toolbox.com/docs/geom2d.html#projection-geometries>`__
-               or
-               `3d <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
-               geometries.
-            det_count: Number of detector elements. See the astra
-               documentation for more information for
-               `2d <https://www.astra-toolbox.com/docs/geom2d.html#projection-geometries>`__
-               or
-               `3d <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
-               geometries.
+            input_shape: Shape of the input array.
+            det_spacing: Spacing between detector elements. See the
+               `astra documentation <https://www.astra-toolbox.com/docs/geom2d.html#projection-geometries>`__
+               for more information..
+            det_count: Number of detector elements. See the
+               `astra documentation <https://www.astra-toolbox.com/docs/geom2d.html#projection-geometries>`__
+               for more information.
             angles: Array of projection angles in radians.
             volume_geometry: Specification of the shape of the
                discretized reconstruction volume. Must either ``None``,
                in which case it is inferred from `input_shape`, or
-               follow the astra syntax described in the astra
-               documentation for
-               `2d <https://www.astra-toolbox.com/docs/geom2d.html#volume-geometries>`__
-               or
-               `3d <https://www.astra-toolbox.com/docs/geom3d.html#d-geometries>`__
-               geometries.
+               follow the astra syntax described in the
+               `astra documentation <https://www.astra-toolbox.com/docs/geom2d.html#volume-geometries>`__.
             device: Specifies device for projection operation.
                One of ["auto", "gpu", "cpu"]. If "auto", a GPU is used if
                available, otherwise, the CPU is used.
         """
 
         self.num_dims = len(input_shape)
-        if self.num_dims not in [2, 3]:
+        if self.num_dims != 2:
             raise ValueError(
-                f"Only 2D and 3D projections are supported, but input_shape is {input_shape}."
+                f"Only 2D projections are supported, but input_shape is {input_shape}."
             )
-
-        output_shape: Shape
-        if self.num_dims == 2:
-            if not isinstance(det_count, int):
-                raise ValueError("Expected det_count to be an int.")
-            output_shape = (len(angles), det_count)
-        elif self.num_dims == 3:
-            assert isinstance(det_count, (list, tuple))
-            if len(det_count) != 2:
-                raise ValueError("Expected det_count to have 2 elements.")
-            output_shape = (det_count[0], len(angles), det_count[1])
+        if not isinstance(det_count, int):
+            raise ValueError("Expected det_count to be an int.")
+        output_shape: Shape = (len(angles), det_count)
 
         # Set up all the ASTRA config
-        self.detector_spacing = detector_spacing
+        self.det_spacing = det_spacing
         self.det_count = det_count
         self.angles: np.ndarray = np.array(angles)
 
-        if self.num_dims == 2:
-            self.proj_geom: dict = astra.create_proj_geom(
-                "parallel", detector_spacing, det_count, self.angles
-            )
-        elif self.num_dims == 3:
-            assert isinstance(detector_spacing, (list, tuple))
-            assert isinstance(det_count, (list, tuple))
-            if len(detector_spacing) != 2:
-                raise ValueError("Expected detector_spacing to have 2 elements.")
-            self.proj_geom = astra.create_proj_geom(
-                "parallel3d",
-                detector_spacing[0],
-                detector_spacing[1],
-                det_count[0],
-                det_count[1],
-                self.angles,
-            )
+        self.proj_geom: dict = astra.create_proj_geom(
+            "parallel", det_spacing, det_count, self.angles
+        )
 
         self.proj_id: Optional[int]
         self.input_shape: tuple = input_shape
 
-        if volume_geometry is not None:
-            if (self.num_dims == 2 and len(volume_geometry) == 4) or (
-                self.num_dims == 3 and len(volume_geometry) == 6
-            ):
+        if volume_geometry is None:
+            self.vol_geom = astra.create_vol_geom(*input_shape)
+        else:
+            if len(volume_geometry) == 4:
                 self.vol_geom: dict = astra.create_vol_geom(*input_shape, *volume_geometry)
             else:
                 raise ValueError(
-                    "volume_geometry must be a tuple of len 4 (2D) or 6 (3D)."
+                    "volume_geometry must be a tuple of len 4."
                     "Please see the astra documentation for details."
-                )
-        else:
-            if self.num_dims == 2:
-                self.vol_geom = astra.create_vol_geom(*input_shape)
-            elif self.num_dims == 3:
-                self.vol_geom = astra.create_vol_geom(
-                    input_shape[1], input_shape[2], input_shape[0]
                 )
 
         dev0 = jax.devices()[0]
@@ -156,17 +116,10 @@ class XRayTransform(LinearOperator):
         else:
             raise ValueError(f"Invalid device specified; got {device}.")
 
-        if self.num_dims == 3 and self.device == "cpu":
-            raise ValueError("No CPU algorithm for 3D projection.")
-
-        if self.num_dims == 3:
-            # not needed for astra's 3D algorithm
-            self.proj_id = None
-        elif self.num_dims == 2:
-            if self.device == "cpu":
-                self.proj_id = astra.create_projector("line", self.proj_geom, self.vol_geom)
-            elif self.device == "gpu":
-                self.proj_id = astra.create_projector("cuda", self.proj_geom, self.vol_geom)
+        if self.device == "cpu":
+            self.proj_id = astra.create_projector("line", self.proj_geom, self.vol_geom)
+        elif self.device == "gpu":
+            self.proj_id = astra.create_projector("cuda", self.proj_geom, self.vol_geom)
 
         # Wrap our non-jax function to indicate we will supply fwd/rev mode functions
         self._eval = jax.custom_vjp(self._proj)
@@ -188,12 +141,8 @@ class XRayTransform(LinearOperator):
 
         def f(x):
             x = ensure_writeable(x)
-            if self.num_dims == 2:
-                proj_id, result = astra.create_sino(x, self.proj_id)
-                astra.data2d.delete(proj_id)
-            elif self.num_dims == 3:
-                proj_id, result = astra.create_sino3d_gpu(x, self.proj_geom, self.vol_geom)
-                astra.data3d.delete(proj_id)
+            proj_id, result = astra.create_sino(x, self.proj_id)
+            astra.data2d.delete(proj_id)
             return result
 
         return jax.pure_callback(f, jax.ShapeDtypeStruct(self.output_shape, self.output_dtype), x)
@@ -202,14 +151,8 @@ class XRayTransform(LinearOperator):
         # apply backprojector
         def f(y):
             y = ensure_writeable(y)
-            if self.num_dims == 2:
-                proj_id, result = astra.create_backprojection(y, self.proj_id)
-                astra.data2d.delete(proj_id)
-            elif self.num_dims == 3:
-                proj_id, result = astra.create_backprojection3d_gpu(
-                    y, self.proj_geom, self.vol_geom
-                )
-                astra.data3d.delete(proj_id)
+            proj_id, result = astra.create_backprojection(y, self.proj_id)
+            astra.data2d.delete(proj_id)
             return result
 
         return jax.pure_callback(f, jax.ShapeDtypeStruct(self.input_shape, self.input_dtype), y)
@@ -226,10 +169,6 @@ class XRayTransform(LinearOperator):
                see `cfg.FilterType` in the `ASTRA documentation
                <https://www.astra-toolbox.com/docs/algs/FBP_CUDA.html>`__.
         """
-
-        if self.num_dims == 3:
-            raise NotImplementedError("3D FBP is not implemented.")
-
         # Just use the CPU FBP alg for now; hitting memory issues with GPU one.
         def f(sino):
             sino = ensure_writeable(sino)
@@ -261,7 +200,7 @@ class XRayTransform(LinearOperator):
         return jax.pure_callback(f, jax.ShapeDtypeStruct(self.input_shape, self.input_dtype), sino)
 
 
-class FlexibleXRayTransform(LinearOperator):
+class XRayTransform3D(LinearOperator):
     r"""Parallel beam X-ray transform based on the ASTRA toolbox.
 
     Perform tomographic projection (also called X-ray projection) of an
@@ -273,7 +212,9 @@ class FlexibleXRayTransform(LinearOperator):
         self,
         input_shape: Shape,
         det_count: Tuple[int, int],
-        vectors: np.ndarray,
+        det_spacing: Optional[Tuple[float, float]] = None,
+        angles: Optional[np.ndarray] = None,
+        vectors: Optional[np.ndarray] = None,
     ):
         """
         Args:
@@ -281,8 +222,20 @@ class FlexibleXRayTransform(LinearOperator):
             det_count: Number of detector elements. See the
                `astra documentation <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
                for more information.
+            det_spacing: Spacing between detector elements. See the
+               `astra documentation <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
+               for more information.
+            angles: Array of projection angles in radians.
             vectors: Array of geometry specification vectors.
         """
+        if not (
+            (det_spacing is not None and angles is not None and vectors is None)
+            or (vectors is not None and det_spacing is None and angles is None)
+        ):
+            raise ValueError(
+                "Keyword arguments det_spacing and angles, or keyword argument "
+                "vectors must be specified, but not both."
+            )
 
         self.num_dims = len(input_shape)
         if self.num_dims != 3:
@@ -290,20 +243,32 @@ class FlexibleXRayTransform(LinearOperator):
                 f"Only 3D projections are supported, but input_shape is {input_shape}."
             )
 
-        output_shape: Shape
-        assert isinstance(det_count, (list, tuple))
-        if len(det_count) != 2:
-            raise ValueError("Expected det_count to have 2 elements.")
-        output_shape = (det_count[0], vectors.shape[0], det_count[1])
+        if not isinstance(det_count, (list, tuple)) or len(det_count) != 2:
+            raise ValueError("Expected det_count to be a tuple with 2 elements.")
+        if angles is not None:
+            Nview = angles.size
+        else:
+            Nview = vectors.shape[0]
+        output_shape: Shape = (det_count[0], Nview, det_count[1])
 
         # Set up all the ASTRA config
         self.det_count = det_count
         self.vectors: np.ndarray = np.array(vectors)
 
         assert isinstance(det_count, (list, tuple))
-        self.proj_geom = astra.create_proj_geom(
-            "parallel3d_vec", det_count[0], det_count[1], vectors
-        )
+        if angles is not None:
+            self.proj_geom = astra.create_proj_geom(
+                "parallel3d",
+                det_spacing[0],
+                det_spacing[1],
+                det_count[0],
+                det_count[1],
+                angles,
+            )
+        else:
+            self.proj_geom = astra.create_proj_geom(
+                "parallel3d_vec", det_count[0], det_count[1], vectors
+            )
 
         self.input_shape: tuple = input_shape
         self.vol_geom = astra.create_vol_geom(input_shape[1], input_shape[2], input_shape[0])

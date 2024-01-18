@@ -27,7 +27,7 @@ from xdesign import Soil, discrete_phantom
 
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot
-from scico.linop.xray.astra import XRayTransform
+from scico.linop.xray.astra import XRayTransform2D
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
@@ -51,7 +51,7 @@ Io = 1e3  # source flux
 𝛼 = 1e-2  # attenuation coefficient
 
 angles = np.linspace(0, 2 * np.pi, n_projection)  # evenly spaced projection angles
-A = XRayTransform(x_gt.shape, 1.0, N, angles)  # CT projection operator
+A = XRayTransform2D(x_gt.shape, N, 1.0, angles)  # CT projection operator
 y_c = A @ x_gt  # sinogram
 
 

@@ -11,7 +11,7 @@ from scico.test.linop.test_linop import adjoint_test
 from scico.test.linop.xray.test_svmbir import make_im
 
 try:
-    from scico.linop.xray.astra import XRayTransform
+    from scico.linop.xray.astra import XRayTransform2D, XRayTransform3D
 except ModuleNotFoundError as e:
     if e.name == "astra":
         pytest.skip("astra not installed", allow_module_level=True)
@@ -41,28 +41,28 @@ def get_tol_random_input():
     return rtol
 
 
-class XRayTransformTest:
+class XRayTransform2DTest:
     def __init__(self, volume_geometry):
         N_proj = 180  # number of projection angles
         N_det = 384
-        detector_spacing = 1
+        det_spacing = 1
         angles = np.linspace(0, np.pi, N_proj, False)
 
         np.random.seed(1234)
         self.x = np.random.randn(N, N).astype(np.float32)
         self.y = np.random.randn(N_proj, N_det).astype(np.float32)
-        self.A = XRayTransform(
+        self.A = XRayTransform2D(
             input_shape=(N, N),
-            volume_geometry=volume_geometry,
-            detector_spacing=detector_spacing,
             det_count=N_det,
+            det_spacing=det_spacing,
             angles=angles,
+            volume_geometry=volume_geometry,
         )
 
 
 @pytest.fixture(params=[None, [-N / 2, N / 2, -N / 2, N / 2]])
 def testobj(request):
-    yield XRayTransformTest(request.param)
+    yield XRayTransform2DTest(request.param)
 
 
 def test_ATA_call(testobj):
@@ -125,7 +125,7 @@ def test_adjoint_typical_input(testobj):
 def test_jit_in_DiagonalStack():
     """See https://github.com/lanl/scico/issues/331"""
     N = 10
-    H = DiagonalStack([XRayTransform((N, N), 1.0, N, snp.linspace(0, snp.pi, N))])
+    H = DiagonalStack([XRayTransform2D((N, N), N, 1.0, snp.linspace(0, snp.pi, N))])
     H.T @ snp.zeros(H.output_shape, dtype=snp.float32)
 
 
@@ -133,13 +133,17 @@ def test_jit_in_DiagonalStack():
 def test_3D_on_CPU():
     x = snp.zeros((4, 5, 6))
     with pytest.raises(ValueError):
-        A = XRayTransform(x.shape, [1.0, 1.0], [6, 6], snp.linspace(0, snp.pi, 10))
+        A = XRayTransform3D(
+            x.shape, det_count=[6, 6], det_spacing=[1.0, 1.0], angles=snp.linspace(0, snp.pi, 10)
+        )
 
 
 @pytest.mark.skipif(jax.devices()[0].platform != "gpu", reason="checking GPU behavior")
 def test_3D_on_GPU():
     x = snp.zeros((4, 5, 6))
-    A = XRayTransform(x.shape, [1.0, 1.0], [6, 6], snp.linspace(0, snp.pi, 10))
+    A = XRayTransform3D(
+        x.shape, det_count=[6, 6], det_spacing=[1.0, 1.0], angles=snp.linspace(0, snp.pi, 10)
+    )
 
     assert A.num_dims == 3
     y = A @ x
