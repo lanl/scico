@@ -63,17 +63,14 @@ cg_maxiter = 25  # maximum CG iterations per ADMM iteration
 # which is used so that g(Cx) corresponds to isotropic TV.
 C = linop.FiniteDifference(input_shape=tangle.shape, append=0)
 g = λ * functional.L21Norm()
-
 f = loss.SquaredL2Loss(y=y, A=A)
-
-x0 = A.T(y)
 
 solver = ADMM(
     f=f,
     g_list=[g],
     C_list=[C],
     rho_list=[ρ],
-    x0=x0,
+    x0=A.T(y),
     maxiter=maxiter,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": cg_tol, "maxiter": cg_maxiter}),
     itstat_options={"display": True, "period": 5},
