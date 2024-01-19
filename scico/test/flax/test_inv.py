@@ -16,7 +16,7 @@ from scico.flax.train.traversals import clip_positive, clip_range, construct_tra
 from scico.linop import CircularConvolve, Identity
 
 if have_astra:
-    from scico.linop.xray.astra import XRayTransform
+    from scico.linop.xray.astra import XRayTransform2D
 
 
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
@@ -163,10 +163,10 @@ class TestCT:
 
         self.nproj = 60  # number of projections
         angles = np.linspace(0, np.pi, self.nproj)  # evenly spaced projection angles
-        self.opCT = XRayTransform(
+        self.opCT = XRayTransform2D(
             input_shape=(self.N, self.N),
-            detector_spacing=1,
             det_count=self.N,
+            det_spacing=1.0,
             angles=angles,
         )  # Radon transform operator
         a_f = lambda v: jnp.atleast_3d(self.opCT(v.squeeze()))

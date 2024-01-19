@@ -52,8 +52,8 @@ projectors["scico"] = XRayTransform(Parallel2dProjector((N, N), angles))
 timer.stop("scico_init")
 
 timer.start("astra_init")
-projectors["astra"] = astra.XRayTransform(
-    (N, N), detector_spacing=1.0, det_count=det_count, angles=angles - jnp.pi / 2.0
+projectors["astra"] = astra.XRayTransform2D(
+    (N, N), det_count=det_count, det_spacing=1.0, angles=angles - jnp.pi / 2.0
 )
 timer.stop("astra_init")
 
