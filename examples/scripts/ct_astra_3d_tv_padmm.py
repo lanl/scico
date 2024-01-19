@@ -45,7 +45,7 @@ n_projection = 10  # number of projections
 angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
 det_spacing = [1.0, 1.0]
 det_count = [Nz, max(Nx, Ny)]
-vectors = angle_to_vector(det_count, angles)
+vectors = angle_to_vector(det_spacing, angles)
 
 C = XRayTransform3D(tangle.shape, det_count=det_count, vectors=vectors)  # CT projection operator
 y = C @ tangle  # sinogram
