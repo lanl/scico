@@ -200,7 +200,7 @@ class XRayTransform2D(LinearOperator):
         return jax.pure_callback(f, jax.ShapeDtypeStruct(self.input_shape, self.input_dtype), sino)
 
 
-class XRayTransform3D(LinearOperator):
+class XRayTransform3D(LinearOperator):  # pragma: no cover
     r"""3D parallel beam X-ray transform based on the ASTRA toolbox.
 
     Perform tomographic projection (also called X-ray projection) of a
