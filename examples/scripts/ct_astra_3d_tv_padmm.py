@@ -49,6 +49,9 @@ det_spacing = [1.0, 1.0]
 det_count = [Nz, max(Nx, Ny)]
 vectors = angle_to_vector(det_spacing, angles)
 
+# It would have been more straightforward to use the det_spacing and angles keywords
+# in this case (since vectors is just computed directly from these two quantities), but
+# the more general form is used here as a demonstration.
 C = XRayTransform3D(tangle.shape, det_count=det_count, vectors=vectors)  # CT projection operator
 y = C @ tangle  # sinogram
 
