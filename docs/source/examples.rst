@@ -26,6 +26,7 @@ Computed Tomography
    examples/ct_abel_tv_admm_tune
    examples/ct_astra_noreg_pcg
    examples/ct_astra_3d_tv_admm
+   examples/ct_astra_3d_tv_padmm
    examples/ct_astra_tv_admm
    examples/ct_tv_admm
    examples/ct_astra_weighted_tv_admm
@@ -133,6 +134,7 @@ Total Variation
    examples/ct_astra_tv_admm
    examples/ct_tv_admm
    examples/ct_astra_3d_tv_admm
+   examples/ct_astra_3d_tv_padmm
    examples/ct_astra_weighted_tv_admm
    examples/ct_svmbir_tv_multi
    examples/deconv_circ_tv_admm
@@ -244,9 +246,9 @@ Proximal ADMM
 .. toctree::
    :maxdepth: 1
 
+   examples/ct_astra_3d_tv_padmm
    examples/deconv_tv_padmm
    examples/denoise_tv_multi
-   examples/denoise_cplx_tv_nlpadmm
    examples/deconv_ppp_dncnn_padmm
 
 
