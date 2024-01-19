@@ -5,8 +5,8 @@
 # with the package.
 
 r"""
-3D TV-Regularized Sparse-View CT Reconstruction
-===============================================
+3D TV-Regularized Sparse-View CT Reconstruction (ADMM Solver)
+=============================================================
 
 This example demonstrates solution of a sparse-view, 3D CT
 reconstruction problem with isotropic total variation (TV)
@@ -18,6 +18,9 @@ regularization
 where $A$ is the X-ray transform (the CT forward projection operator),
 $\mathbf{y}$ is the sinogram, $C$ is a 3D finite difference operator,
 and $\mathbf{x}$ is the desired image.
+
+In this example the problem is solved via ADMM, while proximal
+ADMM is used in a [companion example](ct_astra_3d_tv_padmm.rst).
 """
 
 
@@ -50,7 +53,7 @@ y = A @ tangle  # sinogram
 
 
 """
-Set up ADMM solver object.
+Set up problem and solver.
 """
 λ = 2e0  # ℓ2,1 norm regularization parameter
 ρ = 5e0  # ADMM penalty parameter
@@ -60,7 +63,7 @@ cg_maxiter = 25  # maximum CG iterations per ADMM iteration
 
 # The append=0 option makes the results of horizontal and vertical
 # finite differences the same shape, which is required for the L21Norm,
-# which is used so that g(Cx) corresponds to isotropic TV.
+# which is used so that g(Ax) corresponds to isotropic TV.
 C = linop.FiniteDifference(input_shape=tangle.shape, append=0)
 g = λ * functional.L21Norm()
 f = loss.SquaredL2Loss(y=y, A=A)
@@ -81,9 +84,8 @@ solver = ADMM(
 Run the solver.
 """
 print(f"Solving on {device_info()}\n")
-solver.solve()
+tangle_recon = solver.solve()
 hist = solver.itstat_object.history(transpose=True)
-tangle_recon = solver.x
 
 print(
     "TV Restruction\nSNR: %.2f (dB), MAE: %.3f"

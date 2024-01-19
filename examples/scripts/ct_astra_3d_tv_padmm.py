@@ -5,8 +5,8 @@
 # with the package.
 
 r"""
-3D TV-Regularized Sparse-View CT Reconstruction (PADMM)
-=======================================================
+3D TV-Regularized Sparse-View CT Reconstruction (Proximal ADMM Solver)
+======================================================================
 
 This example demonstrates solution of a sparse-view, 3D CT
 reconstruction problem with isotropic total variation (TV)
@@ -18,6 +18,9 @@ regularization
 where $A$ is the X-ray transform (the CT forward projection operator),
 $\mathbf{y}$ is the sinogram, $C$ is a 3D finite difference operator,
 and $\mathbf{x}$ is the desired image.
+
+In this example the problem is solved via proximal ADMM, while standard
+ADMM is used in a [companion example](ct_astra_3d_tv_admm.rst).
 """
 
 
@@ -52,9 +55,40 @@ y = C @ tangle  # sinogram
 
 
 """
-Set up ADMM solver object.
+Set up problem and solver. We want to minimize the functional
+
+  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - C \mathbf{x}
+  \|_2^2 + \lambda \| D \mathbf{x} \|_{2,1} \;,$$
+
+where $C$ is the convolution operator and $D$ is a finite difference
+operator. This problem can be expressed as
+
+  $$\mathrm{argmin}_{\mathbf{x}, \mathbf{z}} \; (1/2) \| \mathbf{y} -
+  \mathbf{z}_0 \|_2^2 + \lambda \| \mathbf{z}_1 \|_{2,1} \;\;
+  \text{such that} \;\; \mathbf{z}_0 = C \mathbf{x} \;\; \text{and} \;\;
+  \mathbf{z}_1 = D \mathbf{x} \;,$$
+
+which can be written in the form of a standard ADMM problem
+
+  $$\mathrm{argmin}_{\mathbf{x}, \mathbf{z}} \; f(\mathbf{x}) + g(\mathbf{z})
+  \;\; \text{such that} \;\; A \mathbf{x} + B \mathbf{z} = \mathbf{c}$$
+
+with
+
+  $$f = 0 \quad g = g_0 + g_1$$
+  $$g_0(\mathbf{z}_0) = (1/2) \| \mathbf{y} - \mathbf{z}_0 \|_2^2 \quad
+  g_1(\mathbf{z}_1) = \lambda \| \mathbf{z}_1 \|_{2,1}$$
+  $$A = \left( \begin{array}{c} C \\ D \end{array} \right) \quad
+  B = \left( \begin{array}{cc} -I & 0 \\ 0 & -I \end{array} \right) \quad
+  \mathbf{c} = \left( \begin{array}{c} 0 \\ 0 \end{array} \right) \;.$$
+
+This is a more complex splitting than that used in the
+[companion example](ct_astra_3d_tv_admm.rst), but it allows the use of a
+proximal ADMM solver in a way that avoids the need for the conjugate
+gradient sub-iterations used by the ADMM solver in the
+[companion example](ct_astra_3d_tv_admm.rst).
 """
-𝛼 = 1e2
+𝛼 = 1e2  # improve problem conditioning by balancing C and D components of A
 λ = 2e0 / 𝛼  # ℓ2,1 norm regularization parameter
 ρ = 5e-3  # ADMM penalty parameter
 maxiter = 1000  # number of ADMM iterations
@@ -76,7 +110,6 @@ solver = ProximalADMM(
     rho=ρ,
     mu=mu,
     nu=nu,
-    # x0=C.adj(y),
     maxiter=maxiter,
     itstat_options={"display": True, "period": 50},
 )
@@ -85,9 +118,8 @@ solver = ProximalADMM(
 Run the solver.
 """
 print(f"Solving on {device_info()}\n")
-solver.solve()
+tangle_recon = solver.solve()
 hist = solver.itstat_object.history(transpose=True)
-tangle_recon = solver.x
 
 print(
     "TV Restruction\nSNR: %.2f (dB), MAE: %.3f"
