@@ -162,3 +162,10 @@ def test_3D_api_equiv():
     ya = A @ x
     yb = B @ x
     np.testing.assert_allclose(ya, yb, rtol=get_tol())
+
+
+def test_angle_to_vector():
+    angles = snp.linspace(0, snp.pi, 5)
+    det_spacing = [0.9, 1.5]
+    vectors = angle_to_vector(det_spacing, angles)
+    assert vectors.shape == (angles.size, 12)
