@@ -12,17 +12,16 @@ This example demonstrates solution of a sparse-view, 3D CT
 reconstruction problem with isotropic total variation (TV)
 regularization
 
-  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
-  \|_2^2 + \lambda \| C \mathbf{x} \|_{2,1} \;,$$
+  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - C \mathbf{x}
+  \|_2^2 + \lambda \| D \mathbf{x} \|_{2,1} \;,$$
 
-where $A$ is the X-ray transform (the CT forward projection operator),
-$\mathbf{y}$ is the sinogram, $C$ is a 3D finite difference operator,
+where $C$ is the X-ray transform (the CT forward projection operator),
+$\mathbf{y}$ is the sinogram, $D$ is a 3D finite difference operator,
 and $\mathbf{x}$ is the desired image.
 
 In this example the problem is solved via proximal ADMM, while standard
 ADMM is used in a [companion example](ct_astra_3d_tv_admm.rst).
 """
-
 
 import numpy as np
 
