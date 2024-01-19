@@ -69,7 +69,7 @@ class XRayTransform2D(LinearOperator):
             volume_geometry: Specification of the shape of the
                discretized reconstruction volume. Must either ``None``,
                in which case it is inferred from `input_shape`, or
-               follow the astra syntax described in the
+               follow the syntax described in the
                `astra documentation <https://www.astra-toolbox.com/docs/geom2d.html#volume-geometries>`__.
             device: Specifies device for projection operation.
                One of ["auto", "gpu", "cpu"]. If "auto", a GPU is used if
@@ -101,7 +101,7 @@ class XRayTransform2D(LinearOperator):
             self.vol_geom = astra.create_vol_geom(*input_shape)
         else:
             if len(volume_geometry) == 4:
-                self.vol_geom: dict = astra.create_vol_geom(*input_shape, *volume_geometry)
+                self.vol_geom = astra.create_vol_geom(*input_shape, *volume_geometry)
             else:
                 raise ValueError(
                     "volume_geometry must be a tuple of len 4."
@@ -249,6 +249,7 @@ class XRayTransform3D(LinearOperator):
             Nview = angles.size
             self.angles: np.ndarray = np.array(angles)
         else:
+            assert vectors is not None
             Nview = vectors.shape[0]
             self.vectors: np.ndarray = np.array(vectors)
         output_shape: Shape = (det_count[0], Nview, det_count[1])
@@ -256,6 +257,7 @@ class XRayTransform3D(LinearOperator):
         self.det_count = det_count
         assert isinstance(det_count, (list, tuple))
         if angles is not None:
+            assert det_spacing is not None
             self.proj_geom = astra.create_proj_geom(
                 "parallel3d",
                 det_spacing[0],
