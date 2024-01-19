@@ -43,7 +43,7 @@ class XRayTransform2D(LinearOperator):
     r"""2D parallel beam X-ray transform based on the ASTRA toolbox.
 
     Perform tomographic projection (also called X-ray projection) of an
-    image or volume at specified angles, using the
+    image at specified angles, using the
     `ASTRA toolbox <https://github.com/astra-toolbox/astra-toolbox>`_.
     """
 
@@ -201,10 +201,10 @@ class XRayTransform2D(LinearOperator):
 
 
 class XRayTransform3D(LinearOperator):
-    r"""Parallel beam X-ray transform based on the ASTRA toolbox.
+    r"""3D parallel beam X-ray transform based on the ASTRA toolbox.
 
-    Perform tomographic projection (also called X-ray projection) of an
-    image or volume at specified angles, using the
+    Perform tomographic projection (also called X-ray projection) of a
+    volume at specified angles, using the
     `ASTRA toolbox <https://github.com/astra-toolbox/astra-toolbox>`_.
     """
 
@@ -217,6 +217,12 @@ class XRayTransform3D(LinearOperator):
         vectors: Optional[np.ndarray] = None,
     ):
         """
+        This class supports both "parallel3d" and "parallel3d_vec" astra
+        `projection geometries <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__.
+        Keyword arguments `det_spacing` and `angles` should be specified
+        to use the former, and keyword argument `vectors` should be
+        specified to use the latter. These options are mutually exclusive.
+
         Args:
             input_shape: Shape of the input array.
             det_count: Number of detector elements. See the
