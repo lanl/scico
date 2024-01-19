@@ -12,11 +12,11 @@ This example demonstrates solution of a sparse-view, 3D CT
 reconstruction problem with isotropic total variation (TV)
 regularization
 
-  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
-  \|_2^2 + \lambda \| C \mathbf{x} \|_{2,1} \;,$$
+  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - C \mathbf{x}
+  \|_2^2 + \lambda \| D \mathbf{x} \|_{2,1} \;,$$
 
-where $A$ is the X-ray transform (the CT forward projection operator),
-$\mathbf{y}$ is the sinogram, $C$ is a 3D finite difference operator,
+where $C$ is the X-ray transform (the CT forward projection operator),
+$\mathbf{y}$ is the sinogram, $D$ is a 3D finite difference operator,
 and $\mathbf{x}$ is the desired image.
 
 In this example the problem is solved via ADMM, while proximal
@@ -46,10 +46,10 @@ tangle = snp.array(create_tangle_phantom(Nx, Ny, Nz))
 
 n_projection = 10  # number of projections
 angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
-A = XRayTransform3D(
+C = XRayTransform3D(
     tangle.shape, det_count=[Nz, max(Nx, Ny)], det_spacing=[1.0, 1.0], angles=angles
 )  # CT projection operator
-y = A @ tangle  # sinogram
+y = C @ tangle  # sinogram
 
 
 """
@@ -64,16 +64,16 @@ cg_maxiter = 25  # maximum CG iterations per ADMM iteration
 # The append=0 option makes the results of horizontal and vertical
 # finite differences the same shape, which is required for the L21Norm,
 # which is used so that g(Ax) corresponds to isotropic TV.
-C = linop.FiniteDifference(input_shape=tangle.shape, append=0)
+D = linop.FiniteDifference(input_shape=tangle.shape, append=0)
 g = λ * functional.L21Norm()
-f = loss.SquaredL2Loss(y=y, A=A)
+f = loss.SquaredL2Loss(y=y, A=C)
 
 solver = ADMM(
     f=f,
     g_list=[g],
     C_list=[C],
     rho_list=[ρ],
-    x0=A.T(y),
+    x0=C.T(y),
     maxiter=maxiter,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": cg_tol, "maxiter": cg_maxiter}),
     itstat_options={"display": True, "period": 5},
