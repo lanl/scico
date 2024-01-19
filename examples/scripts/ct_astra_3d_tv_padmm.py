@@ -129,13 +129,20 @@ print(
 """
 Show the recovered image.
 """
-fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(7, 5))
-plot.imview(tangle[32], title="Ground truth (central slice)", cbar=None, fig=fig, ax=ax[0])
-
+fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(7, 6))
+plot.imview(
+    tangle[32],
+    title="Ground truth (central slice)",
+    cmap=plot.cm.Blues,
+    cbar=None,
+    fig=fig,
+    ax=ax[0],
+)
 plot.imview(
     tangle_recon[32],
     title="TV Reconstruction (central slice)\nSNR: %.2f (dB), MAE: %.3f"
     % (metric.snr(tangle, tangle_recon), metric.mae(tangle, tangle_recon)),
+    cmap=plot.cm.Blues,
     fig=fig,
     ax=ax[1],
 )
