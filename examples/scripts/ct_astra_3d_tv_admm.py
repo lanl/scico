@@ -70,7 +70,7 @@ f = loss.SquaredL2Loss(y=y, A=C)
 solver = ADMM(
     f=f,
     g_list=[g],
-    C_list=[C],
+    C_list=[D],
     rho_list=[ρ],
     x0=C.T(y),
     maxiter=maxiter,
