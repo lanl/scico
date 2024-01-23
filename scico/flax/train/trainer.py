@@ -468,6 +468,8 @@ class BasicFlaxTrainer:
             "batch_stats": state.batch_stats,
         }
 
+        self.train_time = time.time() - t0
+
         return dvar, self.itstat_object  # type: ignore
 
     def update_metrics(self, state: TrainState, step: int, train_metrics: List[MetricsDict], t0):
