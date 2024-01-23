@@ -404,9 +404,9 @@ class BasicFlaxTrainer:
             ok_no_ckpt = True  # It is ok if no checkpoint is found
             state = checkpoint_restore(state, self.workdir, ok_no_ckpt)
 
-        self.log(get_parameter_overview(state.params))
+        self.log(get_parameter_overview(state.params) + "\n")
         if hasattr(state, "batch_stats"):
-            self.log(get_parameter_overview(state.batch_stats))
+            self.log(get_parameter_overview(state.batch_stats) + "\n")
 
         self.state = state
 
@@ -437,7 +437,7 @@ class BasicFlaxTrainer:
             # Training metrics computed in step
             train_metrics.append(metrics)
             if step == step_offset:
-                self.log("Initial compilation completed.")
+                self.log("Initial compilation completed.\n")
             if (step + 1) % self.log_every_steps == 0:
                 # sync batch statistics across replicas
                 state = sync_batch_stats(state)
