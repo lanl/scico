@@ -331,8 +331,8 @@ class BasicFlaxTrainer:
 
         self.ishape = train_ds["image"].shape[1:3]
         self.log(
-            "Channels: %d, training signals: %d, testing"
-            " signals: %d, signal size: %d"
+            "channels: %d   training signals: %d   testing"
+            " signals: %d   signal size: %d"
             % (
                 train_ds["label"].shape[-1],
                 train_ds["label"].shape[0],
