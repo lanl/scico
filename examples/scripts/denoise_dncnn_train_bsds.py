@@ -105,8 +105,7 @@ Run training loop.
 """
 workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "dncnn_out")
 train_conf["workdir"] = workdir
-print(f"{'JAX process: '}{jax.process_index()}{' / '}{jax.process_count()}")
-print(f"{'JAX local devices: '}{jax.local_devices()}")
+print(f"{'JAX local devices: '}{jax.local_devices()}\n")
 
 trainer = sflax.BasicFlaxTrainer(
     train_conf,
@@ -114,10 +113,7 @@ trainer = sflax.BasicFlaxTrainer(
     train_ds,
     test_ds,
 )
-
-start_time = time()
 modvar, stats_object = trainer.train()
-time_train = time() - start_time
 
 
 """
@@ -138,7 +134,7 @@ snr_eval = metric.snr(test_ds["label"][:test_patches], output)
 psnr_eval = metric.psnr(test_ds["label"][:test_patches], output)
 print(
     f"{'DnCNNNet training':18s}{'epochs:':2s}{train_conf['num_epochs']:>5d}"
-    f"{'':21s}{'time[s]:':10s}{time_train:>7.2f}"
+    f"{'':21s}{'time[s]:':10s}{trainer.train_time:>7.2f}"
 )
 print(
     f"{'DnCNNNet testing':18s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}"
