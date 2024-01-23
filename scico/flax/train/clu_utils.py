@@ -232,8 +232,7 @@ def get_parameter_overview(
           | FC_2/weights:0 |    (1024, 32) |     32,768 |
           | FC_2/biases:0  |         (32,) |         32 |
           +----------------+---------------+------------+
-
-          Total: 65,172,512
+          Total weights: 65,172,512
     """
     if isinstance(params, (dict, flax.core.FrozenDict)):
         params = jax.tree_util.tree_map(np.asarray, params)
@@ -243,4 +242,4 @@ def get_parameter_overview(
     # Pass in `column_names` to enable rendering empty tables.
     column_names = [field.name for field in dataclasses.fields(RowType)]
     table = make_table(rows, max_lines=max_lines, column_names=column_names)
-    return table + f"\nTotal: {total_weights:,}"
+    return table + f"\nTotal weights: {total_weights:,}"
