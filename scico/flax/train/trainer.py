@@ -404,8 +404,10 @@ class BasicFlaxTrainer:
             ok_no_ckpt = True  # It is ok if no checkpoint is found
             state = checkpoint_restore(state, self.workdir, ok_no_ckpt)
 
+        self.log("Network Structure:")
         self.log(get_parameter_overview(state.params) + "\n")
         if hasattr(state, "batch_stats"):
+            self.log("Batch Normalization:")
             self.log(get_parameter_overview(state.batch_stats) + "\n")
 
         self.state = state
