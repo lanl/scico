@@ -415,7 +415,7 @@ class ODPNet(Module):
             Default: 0.5.
         dtype: Output dtype. Default: :attr:`~numpy.float32`.
         odp_block: processing block to apply. Default
-            :class:`ODPProxDnBlock`.
+            :class:`.ODPProxDnBlock`.
     """
 
     operator: ModuleDef

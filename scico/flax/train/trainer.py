@@ -82,7 +82,6 @@ class BasicFlaxTrainer:
             test_ds: Dictionary of testing data (includes images and
                 labels).
             variables0: Optional initial state of model parameters.
-                Default: ``None``.
         """
         # Configure seed
         if "seed" not in config:
@@ -393,7 +392,6 @@ class BasicFlaxTrainer:
             key: A PRNGKey used as the random key.
             model: Flax model to train.
             variables0: Optional initial state of model parameters.
-                Default: ``None``.
         """
         # Create Flax training state
         state = self.create_train_state(

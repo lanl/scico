@@ -51,7 +51,8 @@ class DnCNNNet(Module):
         kernel_size: Size of the convolution filters. Default: (3, 3).
         strides: Convolution strides. Default: (1, 1).
         dtype: Output dtype. Default: :attr:`~numpy.float32`.
-        act: Class of activation function to apply. Default: `nn.relu`.
+        act: Class of activation function to apply. Default:
+            :func:`~flax.linen.activation.relu`.
     """
 
     depth: int
