@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2023 by SCICO Developers
+# Copyright (C) 2022-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -40,18 +40,17 @@ class MoDLNet(Module):
 
     Args:
         operator: Operator for computing forward and adjoint mappings.
-        depth: Depth of MoDL net. Default: 1.
+        depth: Depth of MoDL net.
         channels: Number of channels of input tensor.
         num_filters: Number of filters in the convolutional layer of the
             block. Corresponds to the number of channels in the output
             tensor.
         block_depth: Number of layers in the computational block.
-        kernel_size: Size of the convolution filters. Default: (3, 3).
-        strides: Convolution strides. Default: (1, 1).
+        kernel_size: Size of the convolution filters.
+        strides: Convolution strides.
         lmbda_ini: Initial value of the regularization weight `lambda`.
-            Default: 0.5.
         dtype: Output dtype. Default: :attr:`~numpy.float32`.
-        cg_iter: Number of iterations for cg solver. Default: 10.
+        cg_iter: Number of iterations for cg solver.
     """
 
     operator: ModuleDef
@@ -130,8 +129,8 @@ def cg_solver(A: Callable, b: Array, x0: Array = None, maxiter: int = 50) -> Arr
         A: Function implementing linear operator :math:`A`, should be
             positive definite.
         b: Input array :math:`\mb{b}`.
-        x0: Initial solution. Default: ``None``.
-        maxiter: Maximum iterations. Default: 50.
+        x0: Initial solution.
+        maxiter: Maximum iterations.
 
     Returns:
         x: Solution array.
@@ -175,10 +174,9 @@ class ODPProxDnBlock(Module):
         num_filters: Number of filters in the convolutional layer of the
             block. Corresponds to the number of channels in the output
             tensor.
-        kernel_size: Size of the convolution filters. Default: (3, 3).
-        strides: Convolution strides. Default: (1, 1).
+        kernel_size: Size of the convolution filters.
+        strides: Convolution strides.
         alpha_ini: Initial value of the fidelity weight `alpha`.
-            Default: 0.2.
         dtype: Output dtype. Default: :attr:`~numpy.float32`.
     """
 
@@ -243,10 +241,9 @@ class ODPProxDcnvBlock(Module):
         num_filters: Number of filters in the convolutional layer of the
             block. Corresponds to the number of channels in the output
             tensor.
-        kernel_size: Size of the convolution filters. Default: (3, 3).
-        strides: Convolution strides. Default: (1, 1).
+        kernel_size: Size of the convolution filters.
+        strides: Convolution strides.
         alpha_ini: Initial value of the fidelity weight `alpha`.
-            Default: 0.99.
         dtype: Output dtype. Default: :attr:`~numpy.float32`.
     """
 
@@ -335,10 +332,9 @@ class ODPGrDescBlock(Module):
         num_filters: Number of filters in the convolutional layer of the
             block. Corresponds to the number of channels in the output
             tensor.
-        kernel_size: Size of the convolution filters. Default: (3, 3).
-        strides: Convolution strides. Default: (1, 1).
+        kernel_size: Size of the convolution filters.
+        strides: Convolution strides.
         alpha_ini: Initial value of the fidelity weight `alpha`.
-            Default: 0.2.
         dtype: Output dtype. Default: :attr:`~numpy.float32`.
     """
     operator: ModuleDef
@@ -403,16 +399,15 @@ class ODPNet(Module):
 
     Args:
         operator: Operator for computing forward and adjoint mappings.
-        depth: Depth of MoDL net. Default: 1.
+        depth: Depth of MoDL net.
         channels: Number of channels of input tensor.
         num_filters: Number of filters in the convolutional layer of the
             block. Corresponds to the number of channels in the output
             tensor.
         block_depth: Number of layers in the computational block.
-        kernel_size: Size of the convolution filters. Default: (3, 3).
-        strides: Convolution strides. Default: (1, 1).
+        kernel_size: Size of the convolution filters.
+        strides: Convolution strides.
         alpha_ini: Initial value of the fidelity weight `alpha`.
-            Default: 0.5.
         dtype: Output dtype. Default: :attr:`~numpy.float32`.
         odp_block: processing block to apply. Default
             :class:`.ODPProxDnBlock`.
