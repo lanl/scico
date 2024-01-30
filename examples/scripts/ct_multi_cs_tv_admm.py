@@ -45,7 +45,7 @@ Define CT geometry and construct array of (approximately) equivalent projectors.
 n_projection = 45  # number of projections
 angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
 projectors = {
-    "astra": astra.XRayTransform(x_gt.shape, 1, N, angles - np.pi / 2.0),  # astra
+    "astra": astra.XRayTransform2D(x_gt.shape, N, 1.0, angles - np.pi / 2.0),  # astra
     "svmbir": svmbir.XRayTransform(x_gt.shape, 2 * np.pi - angles, N),  # svmbir
     "scico": XRayTransform(Parallel2dProjector((N, N), angles, det_count=N)),  # scico
 }
