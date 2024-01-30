@@ -28,7 +28,6 @@ from scico.util import Timer
 """
 Create a ground truth image.
 """
-
 N = 512
 
 det_count = int(jnp.ceil(jnp.sqrt(2 * N**2)))
@@ -40,7 +39,6 @@ x_gt = jnp.array(x_gt)
 """
 Time projector instantiation.
 """
-
 num_angles = 500
 angles = jnp.linspace(0, jnp.pi, num=num_angles, endpoint=False)
 
@@ -52,8 +50,8 @@ projectors["scico"] = XRayTransform(Parallel2dProjector((N, N), angles))
 timer.stop("scico_init")
 
 timer.start("astra_init")
-projectors["astra"] = astra.XRayTransform(
-    (N, N), detector_spacing=1.0, det_count=det_count, angles=angles - jnp.pi / 2.0
+projectors["astra"] = astra.XRayTransform2D(
+    (N, N), det_count=det_count, det_spacing=1.0, angles=angles - jnp.pi / 2.0
 )
 timer.stop("astra_init")
 
@@ -61,7 +59,6 @@ timer.stop("astra_init")
 """
 Time first projector application, which might include JIT overhead.
 """
-
 ys = {}
 for name, H in projectors.items():
     timer_label = f"{name}_first_fwd"
@@ -74,7 +71,6 @@ for name, H in projectors.items():
 """
 Compute average time for a projector application.
 """
-
 num_repeats = 3
 for name, H in projectors.items():
     timer_label = f"{name}_avg_fwd"
@@ -161,7 +157,6 @@ avg    back  astra    1.01e+00 s
 avg    back  scico    5.98e-01 s
 ```
 """
-
 print(f"init         astra    {timer.td['astra_init']:.2e} s")
 print(f"init         scico    {timer.td['scico_init']:.2e} s")
 print("")
@@ -177,7 +172,6 @@ for tstr in ("first", "avg"):
 """
 Show projections.
 """
-
 fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 6))
 plot.imview(ys["scico"], title="SCICO projection", cbar=None, fig=fig, ax=ax[0])
 plot.imview(ys["astra"], title="ASTRA projection", cbar=None, fig=fig, ax=ax[1])
@@ -187,7 +181,6 @@ fig.show()
 """
 Show back projections of a single detector element, i.e., a line.
 """
-
 fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 6))
 plot.imview(HTys["scico"], title="SCICO back projection (zoom)", cbar=None, fig=fig, ax=ax[0])
 plot.imview(HTys["astra"], title="ASTRA back projection (zoom)", cbar=None, fig=fig, ax=ax[1])
