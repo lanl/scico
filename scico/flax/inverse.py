@@ -104,8 +104,7 @@ class MoDLNet(Module):
 
         for i in range(self.depth):
             z = resnet(x, train)
-            # Solve:
-            # (AH A + lmbda I) x = Ahb + lmbda * z
+            # Solve: (AH A + lmbda I) x = Ahb + lmbda * z
             b = Ahb + lmbda * z
             x = lax.map(cgsol, b)
         return x
