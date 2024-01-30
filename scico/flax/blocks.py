@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2023 by SCICO Developers
+# Copyright (C) 2021-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -39,9 +39,9 @@ class ConvBNBlock(Module):
             apply.
         act: Flax function defining the activation operation to apply.
         kernel_size: A shape tuple defining the size of the convolution
-            filters. Default: (3, 3).
+            filters.
         strides: A shape tuple defining the size of strides in
-            convolution. Default: (1, 1).
+            convolution.
     """
 
     num_filters: int
@@ -83,9 +83,9 @@ class ConvBlock(Module):
         conv: Flax module implementing the convolution layer to apply.
         act: Flax function defining the activation operation to apply.
         kernel_size: A shape tuple defining the size of the convolution
-            filters. Default: (3, 3).
+            filters.
         strides: A shape tuple defining the size of strides in
-            convolution. Default: (1, 1).
+            convolution.
     """
 
     num_filters: int
@@ -230,9 +230,9 @@ class ConvBNMultiBlock(Module):
             apply.
         act: Flax function defining the activation operation to apply.
         kernel_size: A shape tuple defining the size of the convolution
-            filters. Default: (3, 3).
+            filters.
         strides: A shape tuple defining the size of strides in
-            convolution. Default: (1, 1).
+            convolution.
     """
 
     num_blocks: int
