@@ -29,7 +29,7 @@ from xdesign import Foam, discrete_phantom
 
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot
-from scico.linop.xray.astra import XRayTransform
+from scico.linop.xray.astra import XRayTransform2D
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
@@ -47,7 +47,7 @@ Configure CT projection operator and generate synthetic measurements.
 """
 n_projection = 45  # number of projections
 angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
-A = XRayTransform(x_gt.shape, 1, N, angles)  # CT projection operator
+A = XRayTransform2D(x_gt.shape, N, 1.0, angles)  # CT projection operator
 y = A @ x_gt  # sinogram
 
 
