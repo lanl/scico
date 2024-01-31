@@ -36,7 +36,7 @@ components:
 import sys
 
 # isort: off
-from ._flax import FlaxMap, load_weights, save_weights
+from ._flax import FlaxMap, load_variables, save_variables
 from ._models import ConvBNNet, DnCNNNet, ResNet, UNet
 from .inverse import MoDLNet, ODPNet
 from .train.input_pipeline import create_input_iter
@@ -47,8 +47,8 @@ from .train.clu_utils import count_parameters
 
 __all__ = [
     "FlaxMap",
-    "load_weights",
-    "save_weights",
+    "load_variables",
+    "save_variables",
     "ConvBNNet",
     "DnCNNNet",
     "ResNet",

@@ -310,7 +310,7 @@ def test_variable_load(variant):
 
     model = sflax.DnCNNNet(depth=nlayer, channels=chn, num_filters=64, dtype=np.float32)
     # Load weights for DnCNN.
-    variables = sflax.load_weights(_flax_data_path("dncnn%s.npz" % variant))
+    variables = sflax.load_variables(_flax_data_path("dncnn%s.npz" % variant))
 
     try:
         fmap = sflax.FlaxMap(model, variables)
@@ -328,7 +328,7 @@ def test_variable_load_mismatch():
     nlayer = 6
     model = sflax.ResNet(depth=nlayer, channels=chn, num_filters=64, dtype=np.float32)
     # Load weights for DnCNN.
-    variables = sflax.load_weights(_flax_data_path("dncnn6L.npz"))
+    variables = sflax.load_variables(_flax_data_path("dncnn6L.npz"))
 
     # created with mismatched parameters
     fmap = sflax.FlaxMap(model, variables)
@@ -350,7 +350,7 @@ def test_variable_save():
 
     try:
         temp_dir = tempfile.TemporaryDirectory()
-        sflax.save_weights(unfreeze(variables), os.path.join(temp_dir.name, "vres6.npz"))
+        sflax.save_variables(unfreeze(variables), os.path.join(temp_dir.name, "vres6.npz"))
     except Exception as e:
         print(e)
         assert 0

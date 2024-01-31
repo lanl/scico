@@ -20,7 +20,7 @@ from scico.typing import Shape
 PyTree = Any
 
 
-def load_weights(filename: str) -> PyTree:
+def load_variables(filename: str) -> PyTree:
     """Load trained model weights.
 
     Args:
@@ -40,7 +40,7 @@ def load_weights(filename: str) -> PyTree:
     return var_in
 
 
-def save_weights(variables: PyTree, filename: str):
+def save_variables(variables: PyTree, filename: str):
     """Save trained model weights.
 
     Args:

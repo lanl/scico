@@ -34,7 +34,7 @@ else:
 
 import scico.numpy as snp
 from scico.data import _flax_data_path
-from scico.flax import DnCNNNet, FlaxMap, load_weights
+from scico.flax import DnCNNNet, FlaxMap, load_variables
 
 
 def bm3d(x: snp.Array, sigma: float, is_rgb: bool = False, profile: Union[BM3DProfile, str] = "np"):
@@ -234,7 +234,7 @@ class DnCNN(FlaxMap):
             self.is_blind = True
 
         model = DnCNNNet(depth=nlayer, channels=channels, num_filters=64, dtype=np.float32)
-        variables = load_weights(_flax_data_path("dncnn%s.mpk" % variant))
+        variables = load_variables(_flax_data_path("dncnn%s.mpk" % variant))
         super().__init__(model, variables)
 
     def __call__(self, x: snp.Array, sigma: Optional[float] = None) -> snp.Array:
