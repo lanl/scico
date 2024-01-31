@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2022 by SCICO Developers
+# Copyright (C) 2021-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Neural network models implemented in Flax and utility functions."""
+"""Neural network models implemented in `Flax <https://flax.readthedocs.io/en/latest/>`_ and utility functions."""
 
 import sys
 
