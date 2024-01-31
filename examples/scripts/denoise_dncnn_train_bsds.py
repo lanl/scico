@@ -105,7 +105,7 @@ Run training loop.
 """
 workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "dncnn_out")
 train_conf["workdir"] = workdir
-print(f"{'JAX local devices: '}{jax.local_devices()}\n")
+print(f"\nJAX local devices: {jax.local_devices()}\n")
 
 trainer = sflax.BasicFlaxTrainer(
     train_conf,
