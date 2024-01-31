@@ -5,7 +5,33 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Neural network models implemented in `Flax <https://flax.readthedocs.io/en/latest/>`_ and utility functions."""
+"""Neural network models implemented in `Flax <https://flax.readthedocs.io/en/latest/>`_ and utility functions.
+
+Many of the function and parameter names used in this sub-package are
+based on the somewhat non-standard Flax terminology for neural network
+components:
+
+`model`
+    The model is an abstract representation of the network structure that
+    does not include specific weight values.
+
+`parameters`
+    The parameters of a model are the weights of the network represented
+    by the model.
+
+`variables`
+    The variables encompass both the parameters (i.e. network weights)
+    and secondary values that are set from training data, such as
+    layer-dependent statistics used in batch normalization.
+
+`state`
+    The state encompasses both a set of model parameters as well as
+    optimizer parameters involved in training of that model. Storing the
+    state rather than just the variables enables a warm start for
+    additional training.
+
+|
+"""
 
 import sys
 
