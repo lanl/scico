@@ -21,14 +21,14 @@ PyTree = Any
 
 
 def load_variables(filename: str) -> PyTree:
-    """Load trained model weights.
+    """Load trained model variables.
 
     Args:
-        filename: Name of file containing parameters for trained model.
+        filename: Name of file containing trained model variables.
 
     Returns:
-        A tree-like structure containing the values of the parameters of
-        the model.
+        A tree-like structure containing the values of the model
+        variables.
     """
     with open(filename, "rb") as data_file:
         bytes_input = data_file.read()
@@ -44,8 +44,9 @@ def save_variables(variables: PyTree, filename: str):
     """Save trained model weights.
 
     Args:
-        filename: Name of file to save parameters of trained model.
-        variables: Parameters of model to save.
+        filename: Name of file to to which model variables should be
+            saved.
+        variables: Model variables to save.
     """
     bytes_output = serialization.msgpack_serialize(variables)
 
