@@ -58,7 +58,7 @@ from scico import flax as sflax
 from scico import metric, plot
 from scico.flax.examples import load_ct_data
 from scico.flax.train.traversals import clip_positive, construct_traversal
-from scico.linop.xray.astra import XRayTransform
+from scico.linop.xray.astra import XRayTransform2D
 
 """
 Prepare parallel processing. Set an arbitrary processor count (only
@@ -85,9 +85,9 @@ trdt, ttdt = load_ct_data(train_nimg, test_nimg, N, n_projection, verbose=True)
 Build CT projection operator.
 """
 angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
-A = XRayTransform(
+A = XRayTransform2D(
     input_shape=(N, N),
-    detector_spacing=1,
+    det_spacing=1,
     det_count=N,
     angles=angles,
 )  # CT projection operator
