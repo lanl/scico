@@ -104,21 +104,16 @@ Run training loop.
 """
 workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "unet_ct_out")
 train_conf["workdir"] = workdir
-print(f"{'JAX process: '}{jax.process_index()}{' / '}{jax.process_count()}")
-print(f"{'JAX local devices: '}{jax.local_devices()}")
+print(f"\nJAX process: {jax.process_index()}{' / '}{jax.process_count()}")
+print(f"JAX local devices: {jax.local_devices()}\n")
 
-
-# Construct training object
 trainer = sflax.BasicFlaxTrainer(
     train_conf,
     model,
     train_ds,
     test_ds,
 )
-
-start_time = time()
 modvar, stats_object = trainer.train()
-time_train = time() - start_time
 
 
 """
@@ -144,7 +139,7 @@ snr_eval = metric.snr(test_ds["label"][:maxn], output)
 psnr_eval = metric.psnr(test_ds["label"][:maxn], output)
 print(
     f"{'UNet training':15s}{'epochs:':2s}{train_conf['num_epochs']:>5d}"
-    f"{'':21s}{'time[s]:':10s}{time_train:>7.2f}"
+    f"{'':21s}{'time[s]:':10s}{trainer.train_time:>7.2f}"
 )
 print(
     f"{'UNet testing':15s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}"

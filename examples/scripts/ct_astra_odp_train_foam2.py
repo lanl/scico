@@ -138,7 +138,7 @@ train_conf: sflax.ConfigDict = {
 
 
 """
-Construct functionality for making sure that the learned fidelity weight
+Construct functionality for ensuring that the learned fidelity weight
 parameter is always positive.
 """
 alphatrav = construct_traversal("alpha")  # select alpha parameters in model
@@ -152,8 +152,8 @@ alphapost = partial(
 """
 Print configuration of distributed run.
 """
-print(f"{'JAX process: '}{jax.process_index()}{' / '}{jax.process_count()}")
-print(f"{'JAX local devices: '}{jax.local_devices()}")
+print(f"\nJAX process: {jax.process_index()}{' / '}{jax.process_count()}")
+print(f"JAX local devices: {jax.local_devices()}\n")
 
 
 """
@@ -185,10 +185,7 @@ trainer = sflax.BasicFlaxTrainer(
     train_ds,
     test_ds,
 )
-
-start_time = time()
 modvar, stats_object = trainer.train()
-time_train = time() - start_time
 
 
 """
@@ -215,12 +212,13 @@ snr_eval = metric.snr(test_ds["label"][:maxn], output)
 psnr_eval = metric.psnr(test_ds["label"][:maxn], output)
 print(
     f"{'ODPNet training':18s}{'epochs:':2s}{epochs:>5d}{'':21s}"
-    f"{'time[s]:':10s}{time_train:>7.2f}"
+    f"{'time[s]:':10s}{trainer.train_time:>7.2f}"
 )
 print(
     f"{'ODPNet testing':18s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}"
     f"{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}{'':3s}{'time[s]:':10s}{time_eval:>7.2f}"
 )
+
 
 """
 Plot comparison.

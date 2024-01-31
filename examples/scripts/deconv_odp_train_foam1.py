@@ -85,7 +85,6 @@ psf = np.ones((n, n)) / (n * n)  # blur kernel
 
 ishape = (output_size, output_size)
 opBlur = CircularConvolve(h=psf, input_shape=ishape)
-
 opBlur_vmap = jax.vmap(opBlur)  # for batch processing in data generation
 
 
@@ -153,7 +152,7 @@ model = sflax.ODPNet(
 
 
 """
-Construct functionality for making sure that the learned fidelity weight
+Construct functionality for ensuring that the learned fidelity weight
 parameter is always positive.
 """
 alphatrav = construct_traversal("alpha")  # select alpha parameters in model
@@ -167,10 +166,10 @@ alphapos = partial(
 """
 Run training loop.
 """
-workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "odp_dcnv_out")
-print(f"{'JAX process: '}{jax.process_index()}{' / '}{jax.process_count()}")
-print(f"{'JAX local devices: '}{jax.local_devices()}")
+print(f"\nJAX process: {jax.process_index()}{' / '}{jax.process_count()}")
+print(f"JAX local devices: {jax.local_devices()}\n")
 
+workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "odp_dcnv_out")
 train_conf["workdir"] = workdir
 train_conf["post_lst"] = [alphapos]
 # Construct training object
@@ -180,10 +179,7 @@ trainer = sflax.BasicFlaxTrainer(
     train_ds,
     test_ds,
 )
-
-start_time = time()
 modvar, stats_object = trainer.train()
-time_train = time() - start_time
 
 
 """
@@ -210,7 +206,7 @@ snr_eval = metric.snr(test_ds["label"][:maxn], output)
 psnr_eval = metric.psnr(test_ds["label"][:maxn], output)
 print(
     f"{'ODPNet training':18s}{'epochs:':2s}{train_conf['num_epochs']:>5d}"
-    f"{'':21s}{'time[s]:':10s}{time_train:>7.2f}"
+    f"{'':21s}{'time[s]:':10s}{trainer.train_time:>7.2f}"
 )
 print(
     f"{'ODPNet testing':18s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}"

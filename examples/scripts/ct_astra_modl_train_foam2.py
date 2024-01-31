@@ -138,7 +138,7 @@ train_conf: sflax.ConfigDict = {
 
 
 """
-Construct functionality for making sure that the learned
+Construct functionality for ensuring that the learned
 regularization parameter is always positive.
 """
 lmbdatrav = construct_traversal("lmbda")  # select lmbda parameters in model
@@ -152,8 +152,8 @@ lmbdapos = partial(
 """
 Print configuration of distributed run.
 """
-print(f"{'JAX process: '}{jax.process_index()}{' / '}{jax.process_count()}")
-print(f"{'JAX local devices: '}{jax.local_devices()}")
+print(f"\nJAX process: {jax.process_index()}{' / '}{jax.process_count()}")
+print(f"JAX local devices: {jax.local_devices()}\n")
 
 
 """
@@ -212,9 +212,8 @@ else:
         cg_iter=model_conf["cg_iter_1"],
     )
     # First stage: initialization training loop.
-    workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "modl_ct_out")
-
-    train_conf["workdir"] = workdir
+    workdir1 = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "modl_ct_out")
+    train_conf["workdir"] = workdir1
     train_conf["post_lst"] = [lmbdapos]
     # Construct training object
     trainer = sflax.BasicFlaxTrainer(
