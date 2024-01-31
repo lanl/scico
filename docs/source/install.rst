@@ -130,6 +130,11 @@ a version with GPU support:
    numbers.
 
 
+The script `misc/envinfo.py <https://github.com/lanl/scico/blob/main/misc/envinfo.py>`_
+in the source distribution is provided as an aid to debugging GPU support
+issues.
+
+
 
 Additional Dependencies
 -----------------------
