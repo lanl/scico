@@ -418,7 +418,7 @@ def get_bsds_data(path: str, verbose: bool = False):  # pragma: no cover
         verbose: Flag indicating whether to print status messages.
     """
     # data source URL and filenames
-    data_base_url = "http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/BSR/"
+    data_base_url = "https://www2.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/BSR/"
     data_tar_file = "BSR_bsds500.tgz"
     # ensure path directory exists
     if not os.path.isdir(path):
