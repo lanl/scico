@@ -44,7 +44,7 @@ def py_file_to_string(src):
             else:
                 # Set flag indicating that an import statement has been seen once one has
                 # been encountered
-                if re.match("^(import|from)", line):
+                if re.match("^import|^from .* import", line):
                     import_seen = True
             lines.append(line)
         # Backtrack through list of lines to find last import statement
