@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2023 by SCICO Developers
+# Copyright (C) 2022-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -56,7 +56,7 @@ cross_replica_mean = jax.pmap(lambda x: lax.pmean(x, "x"), "x")
 
 
 class BasicFlaxTrainer:
-    """Class for encapsulating Flax training configuration and execution."""
+    """Class encapsulating Flax training configuration and execution."""
 
     def __init__(
         self,
@@ -82,7 +82,6 @@ class BasicFlaxTrainer:
             test_ds: Dictionary of testing data (includes images and
                 labels).
             variables0: Optional initial state of model parameters.
-                Default: ``None``.
         """
         # Configure seed
         if "seed" not in config:
@@ -331,8 +330,8 @@ class BasicFlaxTrainer:
 
         self.ishape = train_ds["image"].shape[1:3]
         self.log(
-            "Channels: %d, training signals: %d, testing"
-            " signals: %d, signal size: %d"
+            "channels: %d   training signals: %d   testing"
+            " signals: %d   signal size: %d\n"
             % (
                 train_ds["label"].shape[-1],
                 train_ds["label"].shape[0],
@@ -393,7 +392,6 @@ class BasicFlaxTrainer:
             key: A PRNGKey used as the random key.
             model: Flax model to train.
             variables0: Optional initial state of model parameters.
-                Default: ``None``.
         """
         # Create Flax training state
         state = self.create_train_state(
@@ -404,9 +402,11 @@ class BasicFlaxTrainer:
             ok_no_ckpt = True  # It is ok if no checkpoint is found
             state = checkpoint_restore(state, self.workdir, ok_no_ckpt)
 
-        self.log(get_parameter_overview(state.params))
+        self.log("Network Structure:")
+        self.log(get_parameter_overview(state.params) + "\n")
         if hasattr(state, "batch_stats"):
-            self.log(get_parameter_overview(state.batch_stats))
+            self.log("Batch Normalization:")
+            self.log(get_parameter_overview(state.batch_stats) + "\n")
 
         self.state = state
 
@@ -414,12 +414,12 @@ class BasicFlaxTrainer:
         """Execute training loop.
 
         Returns:
-            Model variables extracted from TrainState and iteration
-            stats object obtained after executing the training loop.
-            Alternatively the TrainState can be returned directly instead
-            of the model variables. Note that the iteration stats object
-            is not ``None`` only if log is enabled when configuring the
-            training loop.
+            Model variables extracted from :class:`.TrainState` and
+            iteration stats object obtained after executing the training
+            loop. Alternatively the :class:`.TrainState` can be returned
+            directly instead of the model variables. Note that the
+            iteration stats object is not ``None`` only if log is enabled
+            when configuring the training loop.
         """
         state = self.state
         step_offset = int(state.step)  # > 0 if restarting from checkpoint
@@ -428,7 +428,7 @@ class BasicFlaxTrainer:
         state = jax_utils.replicate(state)
         # Execute training loop and register stats
         t0 = time.time()
-        self.log("Initial compilation, this might take some minutes...")
+        self.log("Initial compilation, which might take some time ...")
 
         train_metrics: List[Any] = []
 
@@ -437,7 +437,7 @@ class BasicFlaxTrainer:
             # Training metrics computed in step
             train_metrics.append(metrics)
             if step == step_offset:
-                self.log("Initial compilation completed.")
+                self.log("Initial compilation completed.\n")
             if (step + 1) % self.log_every_steps == 0:
                 # sync batch statistics across replicas
                 state = sync_batch_stats(state)
@@ -467,6 +467,8 @@ class BasicFlaxTrainer:
             "params": state.params,
             "batch_stats": state.batch_stats,
         }
+
+        self.train_time = time.time() - t0
 
         return dvar, self.itstat_object  # type: ignore
 

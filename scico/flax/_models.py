@@ -48,10 +48,11 @@ class DnCNNNet(Module):
         depth: Number of layers in the neural network.
         channels: Number of channels of input tensor.
         num_filters: Number of filters in the convolutional layers.
-        kernel_size: Size of the convolution filters. Default: (3, 3).
-        strides: Convolution strides. Default: (1, 1).
+        kernel_size: Size of the convolution filters.
+        strides: Convolution strides.
         dtype: Output dtype. Default: :attr:`~numpy.float32`.
-        act: Class of activation function to apply. Default: `nn.relu`.
+        act: Class of activation function to apply. Default:
+            :func:`~flax.linen.activation.relu`.
     """
 
     depth: int
@@ -130,8 +131,8 @@ class ResNet(Module):
         num_filters: Number of filters in the layers of the block.
             Corresponds to the number of channels in the network
             processing.
-        kernel_size: Size of the convolution filters. Default: 3x3.
-        strides: Convolution strides. Default: 1x1.
+        kernel_size: Size of the convolution filters.
+        strides: Convolution strides.
         dtype: Output dtype. Default: :attr:`~numpy.float32`.
     """
 
@@ -204,8 +205,8 @@ class ConvBNNet(Module):
         num_filters: Number of filters in the layers of the block.
             Corresponds to the number of channels in the network
             processing.
-        kernel_size: Size of the convolution filters. Default: 3x3.
-        strides: Convolution strides. Default: 1x1.
+        kernel_size: Size of the convolution filters.
+        strides: Convolution strides.
         dtype: Output dtype. Default: :attr:`~numpy.float32`.
     """
 
@@ -272,12 +273,11 @@ class UNet(Module):
         num_filters: Number of filters in the convolutional layer of the
             block. Corresponds to the number of channels in the network
             processing.
-        kernel_size: Size of the convolution filters. Default: 3x3.
-        strides: Convolution strides. Default: 1x1.
-        block_depth: Number of processing layers per block. Default: 2.
+        kernel_size: Size of the convolution filters.
+        strides: Convolution strides.
+        block_depth: Number of processing layers per block.
         window_shape: Window for reduction for pooling and downsampling.
-            Default: 2x2.
-        upsampling: Factor for expanding. Default: 2.
+        upsampling: Factor for expanding.
         dtype: Output dtype. Default: :attr:`~numpy.float32`.
     """
 

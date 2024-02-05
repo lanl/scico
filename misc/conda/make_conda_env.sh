@@ -216,9 +216,8 @@ conda create $CONDA_FLAGS -n $ENVNM python=$PYVER
 eval "$(conda shell.bash hook)"  # required to avoid errors re: `conda init`
 conda activate $ENVNM  # Q: why not `source activate`? A: not always in the path
 
-# Add conda-forge and astra-toolbox channels
+# Add conda-forge channel
 conda config --env --append channels conda-forge
-conda config --env --append channels astra-toolbox
 
 # Install mamba
 conda install mamba -n base -c conda-forge

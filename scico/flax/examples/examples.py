@@ -452,9 +452,9 @@ def load_image_data(
                 )
 
                 print(
-                    "NOTE: If blur kernel or noise parameter are changed, the cache"
-                    " must be manually deleted to ensure that the training data "
-                    " is regenerated with these new parameters."
+                    "NOTE: If blur kernel or noise parameter are changed, the cache "
+                    "must be manually\n      deleted to ensure that the training data"
+                    " is regenerated with the new\n      parameters."
                 )
 
             return train_ds, test_ds
