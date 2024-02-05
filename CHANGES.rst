@@ -7,6 +7,9 @@ Version 0.0.6   (unreleased)
 ----------------------------
 
 • Significant changes to ``linop.xray.astra`` API.
+• Rename ``scico.flax.save_weights`` and ``scico.flax.load_weights`` to
+  ``scico.flax.save_variables`` and ``scico.flax.load_variables``
+  respectively.
 
 
 
