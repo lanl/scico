@@ -204,6 +204,45 @@ class TestIdentity:
         assert (Id @ x).shape == Id.output_shape
         snp.testing.assert_allclose(x, Id @ x, rtol=1e-5)
 
+    @pytest.mark.parametrize("operator", [op.add, op.sub])
+    @pytest.mark.parametrize("input_shape", input_shapes)
+    def test_binary_op(self, input_shape, operator):
+        input_dtype = np.float32
+        diagonal, key = randn(input_shape, dtype=input_dtype, key=self.key)
+        x, key = randn(input_shape, dtype=input_dtype, key=key)
+
+        Id = linop.Identity(input_shape)
+        D = linop.Diagonal(diagonal=diagonal)
+
+        # Would reasonably be expected to work, but currently doesn't
+        # IdD = operator(Id, D)
+        # assert isinstance(IdD, linop.Diagonal)
+        # snp.testing.assert_allclose(IdD @ x, operator(1.0, diagonal) * x, rtol=1e-6)
+
+        DId = operator(D, Id)
+        assert isinstance(DId, linop.Diagonal)
+        snp.testing.assert_allclose(DId @ x, operator(diagonal, 1.0) * x, rtol=1e-6)
+
+    def test_scale(self):
+        input_shape = (5,)
+        input_dtype = np.float32
+        scalar = 2.7
+
+        x, key = randn(input_shape, dtype=input_dtype, key=self.key)
+        Id = linop.Identity(input_shape=input_shape, input_dtype=input_dtype)
+
+        sId = scalar * Id
+        assert not isinstance(sId, linop.Diagonal)
+        snp.testing.assert_allclose(sId @ x, scalar * x, rtol=1e-6)
+
+        Ids = Id * scalar
+        assert not isinstance(Ids, linop.Diagonal)
+        snp.testing.assert_allclose(Ids @ x, scalar * x, rtol=1e-6)
+
+        Idds = Id / scalar
+        assert not isinstance(Idds, linop.Diagonal)
+        snp.testing.assert_allclose(Idds @ x, x / scalar, rtol=1e-6)
+
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
     @pytest.mark.parametrize("ord", [None, "fro", "nuc", -np.inf, np.inf, 1, -1, 2, -2])
     def test_norm(self, input_dtype, ord):
