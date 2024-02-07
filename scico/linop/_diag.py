@@ -23,10 +23,7 @@ from scico.typing import BlockShape, DType, Shape
 
 from ._linop import LinearOperator, _wrap_add_sub
 
-__all__ = [
-    "Diagonal",
-    "Identity",
-]
+__all__ = ["Diagonal", "Identity", "ScaledIdentity"]
 
 
 class Diagonal(LinearOperator):
@@ -107,7 +104,7 @@ class Diagonal(LinearOperator):
     @partial(_wrap_add_sub, op=operator.add)
     def __add__(self, other):
         if self.diagonal.shape == other.diagonal.shape:
-            return Diagonal(diagonal=self._diagonal + other.diagonal)
+            return Diagonal(diagonal=self.diagonal + other.diagonal)
         raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}.")
 
     @partial(_wrap_add_sub, op=operator.sub)
@@ -162,21 +159,26 @@ class Diagonal(LinearOperator):
         return ordfunc[mord](self._diagonal)
 
 
-class Identity(Diagonal):
-    """Identity operator."""
+class ScaledIdentity(Diagonal):
+    """Scaled identity operator."""
 
     def __init__(
-        self, input_shape: Union[Shape, BlockShape], input_dtype: DType = snp.float32, **kwargs
+        self,
+        scalar: float,
+        input_shape: Union[Shape, BlockShape],
+        input_dtype: DType = snp.float32,
+        **kwargs,
     ):
         """
         Args:
+            scalar: Scaling of the identity.
             input_shape: Shape of input array.
             input_dtype: `dtype` of input argument.
         """
         if is_nested(input_shape):
-            diagonal = snp.ones(((),) * len(input_shape), dtype=input_dtype)
+            diagonal = scalar * snp.ones(((),) * len(input_shape), dtype=input_dtype)
         else:
-            diagonal = snp.ones((), dtype=input_dtype)
+            diagonal = scalar * snp.ones((), dtype=input_dtype)
         super().__init__(
             diagonal=diagonal,
             input_shape=input_shape,
@@ -185,42 +187,86 @@ class Identity(Diagonal):
         )
 
     def _eval(self, x: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
-        return x
-
-    @_wrap_mul_div_scalar
-    def __mul__(self, scalar):
-        # Avoid creating a Diagonal when scaling an Identity
-        return LinearOperator.__mul__._unwrapped(self, scalar)
-
-    @_wrap_mul_div_scalar
-    def __rmul__(self, scalar):
-        # Avoid creating a Diagonal when scaling an Identity
-        return LinearOperator.__rmul__._unwrapped(self, scalar)
-
-    @_wrap_mul_div_scalar
-    def __truediv__(self, scalar):
-        # Avoid creating a Diagonal when scaling an Identity
-        return LinearOperator.__truediv__._unwrapped(self, scalar)
-
-    def __matmul__(self, other):
-        return other
-
-    def __rmatmul__(self, x: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
-        return x
+        return self._diagonal * x
 
     @property
     def diagonal(self) -> Union[Array, BlockArray]:
-        return snp.ones(self.input_shape, dtype=self.input_dtype)
+        return self._diagonal * snp.ones(self.input_shape, dtype=self.input_dtype)
+
+    def conj(self) -> ScaledIdentity:
+        """Complex conjugate of this :class:`ScaledIdentity`."""
+        return ScaledIdentity(
+            scalar=self._diagonal.conj(), input_shape=self.input_shape, input_dtype=self.input_dtype
+        )
 
     @property
-    def H(self) -> Diagonal:
-        """Hermitian transpose of this :class:`Identity`."""
-        return self
+    def gram_op(self) -> ScaledIdentity:
+        """Gram operator of this :class:`ScaledIdentity`."""
+        return ScaledIdentity(
+            scalar=self._diagonal * self._diagonal.conj(),
+            input_shape=self.input_shape,
+            input_dtype=self.input_dtype,
+        )
 
-    @property
-    def gram_op(self) -> Diagonal:
-        """Gram operator of this :class:`Identity`."""
-        return self
+    @partial(_wrap_add_sub, op=operator.add)
+    def __add__(self, other):
+        if self.input_shape == other.input_shape:
+            return ScaledIdentity(
+                scalar=self._diagonal + other._diagonal,
+                input_shape=self.input_shape,
+                input_dtype=self.input_dtype,
+            )
+        raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}.")
+
+    @partial(_wrap_add_sub, op=operator.sub)
+    def __sub__(self, other):
+        if self.input_shape == other.input_shape:
+            return ScaledIdentity(
+                scalar=self._diagonal - other._diagonal,
+                input_shape=self.input_shape,
+                input_dtype=self.input_dtype,
+            )
+        raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}.")
+
+    @_wrap_mul_div_scalar
+    def __mul__(self, scalar):
+        return ScaledIdentity(
+            scalar=self._diagonal * scalar,
+            input_shape=self.input_shape,
+            input_dtype=self.input_dtype,
+        )
+
+    @_wrap_mul_div_scalar
+    def __rmul__(self, scalar):
+        return ScaledIdentity(
+            scalar=self._diagonal * scalar,
+            input_shape=self.input_shape,
+            input_dtype=self.input_dtype,
+        )
+
+    @_wrap_mul_div_scalar
+    def __truediv__(self, scalar):
+        return ScaledIdentity(
+            scalar=self._diagonal / scalar,
+            input_shape=self.input_shape,
+            input_dtype=self.input_dtype,
+        )
+
+    def __matmul__(self, other):
+        # self @ other
+        if isinstance(other, Diagonal):
+            if self.shape != other.shape:
+                raise ValueError(f"Shapes {self.shape} and {other.shape} do not match.")
+            if isinstance(other, ScaledIdentity):
+                return ScaledIdentity(
+                    scalar=self._diagonal * other._diagonal,
+                    input_shape=self.input_shape,
+                    input_dtype=self.input_dtype,
+                )
+            else:
+                return Diagonal(diagonal=self._diagonal * other.diagonal)
+        else:
+            return self(other)
 
     def norm(self, ord=None):  # pylint: disable=W0622
         """Compute the matrix norm of the identity operator.
@@ -231,10 +277,51 @@ class Identity(Diagonal):
         """
         N = self.input_size
         if ord is None or ord == "fro":
-            return snp.sqrt(N)
+            return snp.abs(self._diagonal) * snp.sqrt(N)
         elif ord == "nuc":
-            return N * snp.ones(())
+            return snp.abs(self._diagonal) * N
         elif ord in (-snp.inf, -1, -2, 1, 2, snp.inf):
-            return snp.ones(())
+            return snp.abs(self._diagonal)
         else:
             raise ValueError(f"Invalid value {ord} for parameter ord.")
+
+
+class Identity(ScaledIdentity):
+    """Identity operator."""
+
+    def __init__(
+        self, input_shape: Union[Shape, BlockShape], input_dtype: DType = snp.float32, **kwargs
+    ):
+        """
+        Args:
+            input_shape: Shape of input array.
+            input_dtype: `dtype` of input argument.
+        """
+        super().__init__(
+            scalar=1.0,
+            input_shape=input_shape,
+            input_dtype=input_dtype,
+            **kwargs,
+        )
+
+    def _eval(self, x: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
+        return x
+
+    @property
+    def diagonal(self) -> Union[Array, BlockArray]:
+        return snp.ones(self.input_shape, dtype=self.input_dtype)
+
+    def conj(self) -> Diagonal:
+        """Complex conjugate of this :class:`Diagonal`."""
+        return self
+
+    @property
+    def gram_op(self) -> Diagonal:
+        """Gram operator of this :class:`Identity`."""
+        return self
+
+    def __matmul__(self, other):
+        return other
+
+    def __rmatmul__(self, x: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
+        return x
