@@ -177,10 +177,8 @@ class Identity(Diagonal):
         """
         if is_nested(input_shape):
             diagonal = snp.ones(((),) * len(input_shape), dtype=input_dtype)
-            # diagonal = snp.ones(tuple((1,) * len(s) for s in input_shape), dtype=input_dtype)
         else:
             diagonal = snp.ones((), dtype=input_dtype)
-            # diagonal = snp.ones((1,) * len(input_shape), dtype=input_dtype)
         super().__init__(
             diagonal=diagonal,
             input_shape=input_shape,
