@@ -216,10 +216,9 @@ class TestScaledIdentity:
         Id = linop.ScaledIdentity(scalar, input_shape=input_shape)
         D = linop.Diagonal(diagonal=diagonal)
 
-        # Would reasonably be expected to work, but currently doesn't
-        # IdD = operator(Id, D)
-        # assert isinstance(IdD, linop.Diagonal)
-        # snp.testing.assert_allclose(IdD @ x, operator(1.0, diagonal) * x, rtol=1e-6)
+        IdD = operator(Id, D)
+        assert isinstance(IdD, linop.Diagonal)
+        snp.testing.assert_allclose(IdD @ x, operator(scalar, diagonal) * x, rtol=1e-6)
 
         DId = operator(D, Id)
         assert isinstance(DId, linop.Diagonal)
@@ -290,19 +289,28 @@ class TestIdentity:
     def test_binary_op(self, input_shape, operator):
         input_dtype = np.float32
         diagonal, key = randn(input_shape, dtype=input_dtype, key=self.key)
+        scalar, key = randn((), dtype=input_dtype, key=key)
         x, key = randn(input_shape, dtype=input_dtype, key=key)
 
-        Id = linop.Identity(input_shape)
+        Id = linop.Identity(input_shape=input_shape)
+        Ids = linop.ScaledIdentity(scalar=scalar, input_shape=input_shape)
         D = linop.Diagonal(diagonal=diagonal)
 
-        # Would reasonably be expected to work, but currently doesn't
-        # IdD = operator(Id, D)
-        # assert isinstance(IdD, linop.Diagonal)
-        # snp.testing.assert_allclose(IdD @ x, operator(1.0, diagonal) * x, rtol=1e-6)
+        IdD = operator(Id, D)
+        assert isinstance(IdD, linop.Diagonal)
+        snp.testing.assert_allclose(IdD @ x, operator(1.0, diagonal) * x, rtol=1e-6)
 
         DId = operator(D, Id)
         assert isinstance(DId, linop.Diagonal)
         snp.testing.assert_allclose(DId @ x, operator(diagonal, 1.0) * x, rtol=1e-6)
+
+        IdIds = operator(Id, Ids)
+        assert isinstance(IdIds, linop.ScaledIdentity)
+        snp.testing.assert_allclose(IdIds @ x, operator(1.0, scalar) * x, rtol=1e-6)
+
+        IdsId = operator(Ids, Id)
+        assert isinstance(IdsId, linop.ScaledIdentity)
+        snp.testing.assert_allclose(IdsId @ x, operator(scalar, 1.0) * x, rtol=1e-6)
 
     def test_scale(self):
         input_shape = (5,)
