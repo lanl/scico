@@ -248,9 +248,17 @@ def test_ufunc_conj():
 def test_create_zeros():
     A = snp.zeros(2)
     assert np.all(A == 0)
+    assert isinstance(A, jax.Array)
+
+    A = snp.zeros((2,))
+    assert isinstance(A, jax.Array)
 
     A = snp.zeros(((2,), (2,)))
     assert all(snp.all(A == 0))
+    assert isinstance(A, snp.BlockArray)
+
+    A = snp.zeros(())
+    assert isinstance(A, jax.Array)  # from issue 499
 
 
 def test_create_ones():
@@ -261,7 +269,7 @@ def test_create_ones():
     assert all(snp.all(A == 1))
 
 
-def test_create_zeros():
+def test_create_empty():
     A = snp.empty(2)
     assert np.all(A == 0)
 
