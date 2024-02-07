@@ -1,4 +1,4 @@
-# Copyright (C) 2020-2023 by SCICO Developers
+# Copyright (C) 2020-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -14,6 +14,8 @@ from __future__ import annotations
 import operator
 from functools import partial
 from typing import Optional, Union
+
+import jax.numpy as jnp
 
 import scico.numpy as snp
 from scico.numpy import Array, BlockArray
@@ -169,10 +171,38 @@ class Identity(Diagonal):
         Args:
             input_shape: Shape of input array.
         """
-        super().__init__(diagonal=snp.ones(input_shape, dtype=input_dtype), **kwargs)
+        if is_nested(input_shape):
+            # diagonal = snp.ones(((),) * len(input_shape), dtype=input_dtype)
+            diagonal = snp.ones(tuple((1,) * len(s) for s in input_shape), dtype=input_dtype)
+        else:
+            # diagonal = jnp.ones((), dtype=input_dtype)
+            diagonal = snp.ones((1,) * len(input_shape), dtype=input_dtype)
+        super().__init__(
+            diagonal=diagonal,
+            input_shape=input_shape,
+            input_dtype=input_dtype,
+            **kwargs,
+        )
 
     def _eval(self, x: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         return x
 
     def __rmatmul__(self, x: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         return x
+
+    def norm(self, ord=None):  # pylint: disable=W0622
+        """Compute the matrix norm of the identity operator.
+
+        Valid values of `ord` and the corresponding norm definition
+        are those listed under "norm for matrices" in the
+        :func:`scico.numpy.linalg.norm` documentation.
+        """
+        N = self.input_size
+        if ord is None or ord == "fro":
+            return jnp.sqrt(N)
+        elif ord == "nuc":
+            return N * jnp.ones(())
+        elif ord in (-snp.inf, -1, -2, 1, 2, snp.inf):
+            return jnp.ones(())
+        else:
+            raise ValueError(f"Invalid value {ord} for parameter ord.")

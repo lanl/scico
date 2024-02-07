@@ -187,3 +187,39 @@ class TestDiagonal:
         D = linop.Diagonal(diagonal=diagonal)
         with pytest.raises(ValueError):
             n = D.norm(ord=3)
+
+
+class TestIdentity:
+    def setup_method(self, method):
+        self.key = jax.random.PRNGKey(12345)
+
+    input_shapes = [(8,), (8, 12), ((3,), (4, 5))]
+
+    @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
+    @pytest.mark.parametrize("input_shape", input_shapes)
+    def test_eval(self, input_shape, input_dtype):
+        x, key = randn(input_shape, dtype=input_dtype, key=self.key)
+
+        Id = linop.Identity(input_shape=input_shape, input_dtype=input_dtype)
+        assert (Id @ x).shape == Id.output_shape
+        snp.testing.assert_allclose(x, Id @ x, rtol=1e-5)
+
+    @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
+    @pytest.mark.parametrize("ord", [None, "fro", "nuc", -np.inf, np.inf, 1, -1, 2, -2])
+    def test_norm(self, input_dtype, ord):
+        input_shape = (5,)
+
+        Id = linop.Identity(input_shape=input_shape, input_dtype=input_dtype)
+        D = linop.Diagonal(
+            diagonal=snp.ones(input_shape), input_shape=input_shape, input_dtype=input_dtype
+        )
+        n1 = Id.norm(ord=ord)
+        n2 = D.norm(ord=ord)
+        snp.testing.assert_allclose(n1, n2, rtol=1e-6)
+
+    def test_norm_except(self):
+        input_shape = (5,)
+
+        Id = linop.Identity(input_shape=input_shape, input_dtype=np.float32)
+        with pytest.raises(ValueError):
+            n = Id.norm(ord=3)
