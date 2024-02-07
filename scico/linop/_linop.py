@@ -65,9 +65,6 @@ def _wrap_add_sub(func: Callable, op: Callable) -> Callable:
                     # same type of linop, e.g. convolution can have special
                     # behavior (see Conv2d.__add__)
                     return func(a, b)
-                if isinstance(a, type(b)):
-                    # same type of linop, but with operands reversed from case above
-                    return func(b, a)  # assume func is commutative
                 if isinstance(
                     b, LinearOperator
                 ):  # LinearOperator + LinearOperator -> LinearOperator
