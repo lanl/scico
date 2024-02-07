@@ -50,18 +50,18 @@ class Diagonal(LinearOperator):
             input_dtype: `dtype` of input argument. The default,
                ``None``, means `diagonal.dtype`.
         """
-        self.diagonal = diagonal
+        self._diagonal = diagonal
 
         if input_shape is None:
-            input_shape = self.diagonal.shape
+            input_shape = self._diagonal.shape
 
         if input_dtype is None:
-            input_dtype = self.diagonal.dtype
+            input_dtype = self._diagonal.dtype
 
         if isinstance(diagonal, BlockArray) and is_nested(input_shape):
-            output_shape = broadcast_nested_shapes(input_shape, self.diagonal.shape)
+            output_shape = broadcast_nested_shapes(input_shape, self._diagonal.shape)
         elif not isinstance(diagonal, BlockArray) and not is_nested(input_shape):
-            output_shape = snp.broadcast_shapes(input_shape, self.diagonal.shape)
+            output_shape = snp.broadcast_shapes(input_shape, self._diagonal.shape)
         elif isinstance(diagonal, BlockArray):
             raise ValueError("Parameter diagonal was a BlockArray but input_shape was not nested.")
         else:
@@ -76,7 +76,12 @@ class Diagonal(LinearOperator):
         )
 
     def _eval(self, x):
-        return x * self.diagonal
+        return x * self._diagonal
+
+    @property
+    def diagonal(self) -> Union[Array, BlockArray]:
+        """Return an array representing the diagonal component."""
+        return self._diagonal
 
     @property
     def T(self) -> Diagonal:
@@ -104,7 +109,7 @@ class Diagonal(LinearOperator):
     @partial(_wrap_add_sub, op=operator.add)
     def __add__(self, other):
         if self.diagonal.shape == other.diagonal.shape:
-            return Diagonal(diagonal=self.diagonal + other.diagonal)
+            return Diagonal(diagonal=self._diagonal + other.diagonal)
         raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}.")
 
     @partial(_wrap_add_sub, op=operator.sub)
@@ -158,7 +163,7 @@ class Diagonal(LinearOperator):
             mord = snp.inf
         if mord not in ordfunc:
             raise ValueError(f"Invalid value {ord} for parameter ord.")
-        return ordfunc[mord](self.diagonal)
+        return ordfunc[mord](self._diagonal)
 
 
 class Identity(Diagonal):
@@ -170,13 +175,14 @@ class Identity(Diagonal):
         """
         Args:
             input_shape: Shape of input array.
+            input_dtype: `dtype` of input argument.
         """
         if is_nested(input_shape):
-            # diagonal = snp.ones(((),) * len(input_shape), dtype=input_dtype)
-            diagonal = snp.ones(tuple((1,) * len(s) for s in input_shape), dtype=input_dtype)
+            diagonal = snp.ones(((),) * len(input_shape), dtype=input_dtype)
+            # diagonal = snp.ones(tuple((1,) * len(s) for s in input_shape), dtype=input_dtype)
         else:
-            # diagonal = jnp.ones((), dtype=input_dtype)
-            diagonal = snp.ones((1,) * len(input_shape), dtype=input_dtype)
+            diagonal = jnp.ones((), dtype=input_dtype)
+            # diagonal = snp.ones((1,) * len(input_shape), dtype=input_dtype)
         super().__init__(
             diagonal=diagonal,
             input_shape=input_shape,
@@ -189,6 +195,20 @@ class Identity(Diagonal):
 
     def __rmatmul__(self, x: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         return x
+
+    @property
+    def diagonal(self) -> Union[Array, BlockArray]:
+        return snp.ones(self.input_shape, dtype=self.input_dtype)
+
+    @property
+    def H(self) -> Diagonal:
+        """Hermitian transpose of this :class:`Identity`."""
+        return self
+
+    @property
+    def gram_op(self) -> Diagonal:
+        """Gram operator of this :class:`Identity`."""
+        return self
 
     def norm(self, ord=None):  # pylint: disable=W0622
         """Compute the matrix norm of the identity operator.
