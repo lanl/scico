@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2023 by SCICO Developers
+# Copyright (C) 2020-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SPORCO package. Details of the copyright
 # and user license can be found in the 'LICENSE.txt' file distributed
@@ -61,7 +61,7 @@ class BlockArray:
         """Return the dtype of the blocks, which must currently be homogeneous.
 
         This allows `snp.zeros(x.shape, x.dtype)` to work without a mechanism
-        to handle to lists of dtypes.
+        to handle lists of dtypes.
         """
         return self.arrays[0].dtype
 
