@@ -32,7 +32,7 @@ class Diagonal(LinearOperator):
     def __init__(
         self,
         diagonal: Union[Array, BlockArray],
-        input_shape: Optional[Shape] = None,
+        input_shape: Optional[Union[Shape, BlockShape]] = None,
         input_dtype: Optional[DType] = None,
         **kwargs,
     ):
@@ -311,12 +311,12 @@ class Identity(ScaledIdentity):
     def diagonal(self) -> Union[Array, BlockArray]:
         return snp.ones(self.input_shape, dtype=self.input_dtype)
 
-    def conj(self) -> Diagonal:
+    def conj(self) -> Identity:
         """Complex conjugate of this :class:`Diagonal`."""
         return self
 
     @property
-    def gram_op(self) -> Diagonal:
+    def gram_op(self) -> Identity:
         """Gram operator of this :class:`Identity`."""
         return self
 

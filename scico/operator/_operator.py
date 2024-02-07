@@ -52,7 +52,7 @@ def _wrap_mul_div_scalar(func: Callable) -> Callable:
 
         raise TypeError(f"Operation {func.__name__} not defined between {type(a)} and {type(b)}.")
 
-    wrapper._unwrapped = func
+    wrapper._unwrapped = func  # type: ignore
 
     return wrapper
 
