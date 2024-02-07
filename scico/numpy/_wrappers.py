@@ -17,6 +17,8 @@ from typing import Callable, Iterable, Optional
 
 import jax.numpy as jnp
 
+import scico.numpy as snp
+
 from ._blockarray import BlockArray
 
 
@@ -83,9 +85,7 @@ def map_func_over_tuple_of_tuples(func: Callable, map_arg_name: Optional[str] = 
 
         map_arg_val = bound_args.arguments.pop(map_arg_name)
 
-        if not isinstance(map_arg_val, tuple) or not all(
-            isinstance(x, tuple) for x in map_arg_val
-        ):  # not nested tuple
+        if not snp.util.is_nested(map_arg_val):  # not nested tuple
             return func(*args, **kwargs)  # no mapping
 
         # map
