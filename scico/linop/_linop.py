@@ -87,6 +87,8 @@ def _wrap_add_sub(func: Callable, op: Callable) -> Callable:
             raise ValueError(f"Shapes {a.shape} and {b.shape} do not match.")
         raise TypeError(f"Operation {func.__name__} not defined between {type(a)} and {type(b)}.")
 
+    wrapper._unwrapped = func
+
     return wrapper
 
 

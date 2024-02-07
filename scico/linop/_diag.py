@@ -133,9 +133,7 @@ class Diagonal(LinearOperator):
         if isinstance(other, Diagonal):
             if self.shape == other.shape:
                 return Diagonal(diagonal=self.diagonal * other.diagonal)
-
             raise ValueError(f"Shapes {self.shape} and {other.shape} do not match.")
-
         else:
             return self(other)
 
@@ -188,6 +186,24 @@ class Identity(Diagonal):
 
     def _eval(self, x: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         return x
+
+    @_wrap_mul_div_scalar
+    def __mul__(self, scalar):
+        # Avoid creating a Diagonal when scaling an Identity
+        return LinearOperator.__mul__._unwrapped(self, scalar)
+
+    @_wrap_mul_div_scalar
+    def __rmul__(self, scalar):
+        # Avoid creating a Diagonal when scaling an Identity
+        return LinearOperator.__rmul__._unwrapped(self, scalar)
+
+    @_wrap_mul_div_scalar
+    def __truediv__(self, scalar):
+        # Avoid creating a Diagonal when scaling an Identity
+        return LinearOperator.__truediv__._unwrapped(self, scalar)
+
+    def __matmul__(self, other):
+        return other
 
     def __rmatmul__(self, x: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         return x
