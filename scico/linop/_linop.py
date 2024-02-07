@@ -69,9 +69,8 @@ def _wrap_add_sub(func: Callable, op: Callable) -> Callable:
                     # same type of linop, but with operands reversed from case above
                     bfunc = getattr(type(b), func.__name__)._unwrapped
                     return bfunc(a, b)
-                if isinstance(
-                    b, LinearOperator
-                ):  # LinearOperator + LinearOperator -> LinearOperator
+                if isinstance(b, LinearOperator):
+                    # LinearOperator + LinearOperator -> LinearOperator
                     return LinearOperator(
                         input_shape=a.input_shape,
                         output_shape=a.output_shape,
