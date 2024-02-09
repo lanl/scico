@@ -18,10 +18,10 @@ class TestBinaryOp:
         )
         B = linop.Identity(input_shape=self.input_shape, input_dtype=self.input_dtype)
 
-        assert type(A + B) == linop.LinearOperator
-        assert type(B + A) == linop.LinearOperator
-        assert type(2.0 * A + 3.0 * B) == linop.LinearOperator
-        assert type(2.0 * B + 3.0 * A) == linop.LinearOperator
+        assert type(operator(A, B)) == linop.LinearOperator
+        assert type(operator(B, A)) == linop.LinearOperator
+        assert type(operator(2.0 * A, 3.0 * B)) == linop.LinearOperator
+        assert type(operator(2.0 * B, 3.0 * A)) == linop.LinearOperator
 
     @pytest.mark.parametrize("operator", [op.add, op.sub])
     def test_case2(self, operator):
@@ -30,10 +30,10 @@ class TestBinaryOp:
         )
         B = linop.Identity(input_shape=self.input_shape, input_dtype=self.input_dtype)
 
-        assert type(A + B) == linop.LinearOperator
-        assert type(B + A) == linop.LinearOperator
-        assert type(2.0 * A + 3.0 * B) == linop.LinearOperator
-        assert type(2.0 * B + 3.0 * A) == linop.LinearOperator
+        assert type(operator(A, B)) == linop.LinearOperator
+        assert type(operator(B, A)) == linop.LinearOperator
+        assert type(operator(2.0 * A, 3.0 * B)) == linop.LinearOperator
+        assert type(operator(2.0 * B, 3.0 * A)) == linop.LinearOperator
 
     @pytest.mark.parametrize("operator", [op.add, op.sub])
     def test_case3(self, operator):
@@ -42,7 +42,7 @@ class TestBinaryOp:
         )
         B = linop.Identity(input_shape=self.input_shape, input_dtype=self.input_dtype)
 
-        assert type(A + B) == linop.ScaledIdentity
-        assert type(B + A) == linop.ScaledIdentity
-        assert type(2.0 * A + 3.0 * B) == linop.ScaledIdentity
-        assert type(2.0 * B + 3.0 * A) == linop.ScaledIdentity
+        assert type(operator(A, B)) == linop.ScaledIdentity
+        assert type(operator(B, A)) == linop.ScaledIdentity
+        assert type(operator(2.0 * A, 3.0 * B)) == linop.ScaledIdentity
+        assert type(operator(2.0 * B, 3.0 * A)) == linop.ScaledIdentity
