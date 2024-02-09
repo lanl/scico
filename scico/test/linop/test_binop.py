@@ -4,6 +4,7 @@ import pytest
 
 import scico.numpy as snp
 from scico import linop
+from scico.operator import Abs, Operator
 
 
 class TestBinaryOp:
@@ -16,6 +17,18 @@ class TestBinaryOp:
         A = linop.Convolve(
             snp.ones((2,)), input_shape=self.input_shape, input_dtype=self.input_dtype, mode="same"
         )
+        B = Abs(input_shape=self.input_shape, input_dtype=self.input_dtype)
+
+        assert type(operator(A, B)) == Operator
+        assert type(operator(B, A)) == Operator
+        assert type(operator(2.0 * A, 3.0 * B)) == Operator
+        assert type(operator(2.0 * B, 3.0 * A)) == Operator
+
+    @pytest.mark.parametrize("operator", [op.add, op.sub])
+    def test_case2(self, operator):
+        A = linop.Convolve(
+            snp.ones((2,)), input_shape=self.input_shape, input_dtype=self.input_dtype, mode="same"
+        )
         B = linop.Identity(input_shape=self.input_shape, input_dtype=self.input_dtype)
 
         assert type(operator(A, B)) == linop.LinearOperator
@@ -24,7 +37,7 @@ class TestBinaryOp:
         assert type(operator(2.0 * B, 3.0 * A)) == linop.LinearOperator
 
     @pytest.mark.parametrize("operator", [op.add, op.sub])
-    def test_case2(self, operator):
+    def test_case3(self, operator):
         A = linop.SingleAxisFiniteDifference(
             input_shape=self.input_shape, input_dtype=self.input_dtype, circular=True
         )
@@ -36,7 +49,7 @@ class TestBinaryOp:
         assert type(operator(2.0 * B, 3.0 * A)) == linop.LinearOperator
 
     @pytest.mark.parametrize("operator", [op.add, op.sub])
-    def test_case3(self, operator):
+    def test_case4(self, operator):
         A = linop.ScaledIdentity(
             scalar=0.5, input_shape=self.input_shape, input_dtype=self.input_dtype
         )
