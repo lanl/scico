@@ -70,8 +70,8 @@ class Diagonal(LinearOperator):
             **kwargs,
         )
 
-    def _eval(self, x):
-        return x * self._diagonal
+    def _eval(self, x: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
+        return self._diagonal * x
 
     @property
     def diagonal(self) -> Union[Array, BlockArray]:
@@ -185,9 +185,6 @@ class ScaledIdentity(Diagonal):
             input_dtype=input_dtype,
             **kwargs,
         )
-
-    def _eval(self, x: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
-        return self._diagonal * x
 
     @property
     def diagonal(self) -> Union[Array, BlockArray]:
