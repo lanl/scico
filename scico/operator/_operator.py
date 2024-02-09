@@ -40,6 +40,9 @@ def _wrap_mul_div_scalar(func: Callable) -> Callable:
         func: should be either `.__mul__()`, `.__rmul__()`,
            or `.__truediv__()`.
 
+    Returns:
+       Wrapped version of `func`.
+
     Raises:
         TypeError: If a binop with the form `binop(Operator, other)` is
         called and `other` is not a scalar.

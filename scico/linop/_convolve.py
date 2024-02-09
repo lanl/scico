@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2023 by SCICO Developers
+# Copyright (C) 2020-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -11,9 +11,6 @@
 # Needed to annotate a class method that returns the encapsulating class;
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
-
-import operator
-from functools import partial
 
 import numpy as np
 
@@ -85,7 +82,7 @@ class Convolve(LinearOperator):
     def _eval(self, x: snp.Array) -> snp.Array:
         return convolve(x, self.h, mode=self.mode)
 
-    @partial(_wrap_add_sub, op=operator.add)
+    @_wrap_add_sub
     def __add__(self, other):
         if self.mode != other.mode:
             raise ValueError(f"Incompatible modes:  {self.mode} != {other.mode}.")
@@ -102,7 +99,7 @@ class Convolve(LinearOperator):
 
         raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}.")
 
-    @partial(_wrap_add_sub, op=operator.sub)
+    @_wrap_add_sub
     def __sub__(self, other):
         if self.mode != other.mode:
             raise ValueError(f"Incompatible modes:  {self.mode} != {other.mode}.")
@@ -216,7 +213,7 @@ class ConvolveByX(LinearOperator):
     def _eval(self, h: snp.Array) -> snp.Array:
         return convolve(self.x, h, mode=self.mode)
 
-    @partial(_wrap_add_sub, op=operator.add)
+    @_wrap_add_sub
     def __add__(self, other):
         if self.mode != other.mode:
             raise ValueError(f"Incompatible modes:  {self.mode} != {other.mode}.")
@@ -231,7 +228,7 @@ class ConvolveByX(LinearOperator):
             )
         raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}.")
 
-    @partial(_wrap_add_sub, op=operator.sub)
+    @_wrap_add_sub
     def __sub__(self, other):
         if self.mode != other.mode:
             raise ValueError(f"Incompatible modes:  {self.mode} != {other.mode}.")

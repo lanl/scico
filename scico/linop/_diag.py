@@ -11,8 +11,6 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-import operator
-from functools import partial
 from typing import Optional, Union
 
 import scico.numpy as snp
@@ -101,13 +99,13 @@ class Diagonal(LinearOperator):
         """
         return Diagonal(diagonal=self.diagonal.conj() * self.diagonal)
 
-    @partial(_wrap_add_sub, op=operator.add)
+    @_wrap_add_sub
     def __add__(self, other):
         if self.diagonal.shape == other.diagonal.shape:
             return Diagonal(diagonal=self.diagonal + other.diagonal)
         raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}.")
 
-    @partial(_wrap_add_sub, op=operator.sub)
+    @_wrap_add_sub
     def __sub__(self, other):
         if self.diagonal.shape == other.diagonal.shape:
             return Diagonal(diagonal=self.diagonal - other.diagonal)
@@ -205,7 +203,7 @@ class ScaledIdentity(Diagonal):
             input_dtype=self.input_dtype,
         )
 
-    @partial(_wrap_add_sub, op=operator.add)
+    @_wrap_add_sub
     def __add__(self, other):
         if self.input_shape == other.input_shape:
             return ScaledIdentity(
@@ -215,7 +213,7 @@ class ScaledIdentity(Diagonal):
             )
         raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}.")
 
-    @partial(_wrap_add_sub, op=operator.sub)
+    @_wrap_add_sub
     def __sub__(self, other):
         if self.input_shape == other.input_shape:
             return ScaledIdentity(

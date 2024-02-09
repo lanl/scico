@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2023 by SCICO Developers
+# Copyright (C) 2021-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -8,8 +8,6 @@
 """Circular convolution linear operators."""
 
 import math
-import operator
-from functools import partial
 from typing import Optional, Sequence, Tuple, Union
 
 import numpy as np
@@ -205,7 +203,7 @@ class CircularConvolve(LinearOperator):
             H_adj_x = H_adj_x.real
         return H_adj_x
 
-    @partial(_wrap_add_sub, op=operator.add)
+    @_wrap_add_sub
     def __add__(self, other):
         if self.ndims != other.ndims:
             raise ValueError(f"Incompatible ndims: {self.ndims} != {other.ndims}.")
@@ -218,7 +216,7 @@ class CircularConvolve(LinearOperator):
             h_is_dft=True,
         )
 
-    @partial(_wrap_add_sub, op=operator.sub)
+    @_wrap_add_sub
     def __sub__(self, other):
         if self.ndims != other.ndims:
             raise ValueError(f"Incompatible ndims: {self.ndims} != {other.ndims}.")
