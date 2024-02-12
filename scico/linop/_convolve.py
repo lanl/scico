@@ -127,17 +127,6 @@ class Convolve(LinearOperator):
         )
 
     @_wrap_mul_div_scalar
-    def __rmul__(self, scalar):
-        return Convolve(
-            h=self.h * scalar,
-            input_shape=self.input_shape,
-            input_dtype=result_type(self.input_dtype, type(scalar)),
-            mode=self.mode,
-            output_shape=self.output_shape,
-            adj_fn=lambda x: snp.conj(scalar) * self.adj(x),
-        )
-
-    @_wrap_mul_div_scalar
     def __truediv__(self, scalar):
         return Convolve(
             h=self.h / scalar,
@@ -247,17 +236,6 @@ class ConvolveByX(LinearOperator):
 
     @_wrap_mul_div_scalar
     def __mul__(self, scalar):
-        return ConvolveByX(
-            x=self.x * scalar,
-            input_shape=self.input_shape,
-            input_dtype=result_type(self.input_dtype, type(scalar)),
-            mode=self.mode,
-            output_shape=self.output_shape,
-            adj_fn=lambda x: snp.conj(scalar) * self.adj(x),
-        )
-
-    @_wrap_mul_div_scalar
-    def __rmul__(self, scalar):
         return ConvolveByX(
             x=self.x * scalar,
             input_shape=self.input_shape,

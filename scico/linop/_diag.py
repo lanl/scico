@@ -116,10 +116,6 @@ class Diagonal(LinearOperator):
         return Diagonal(diagonal=self.diagonal * scalar)
 
     @_wrap_mul_div_scalar
-    def __rmul__(self, scalar):
-        return Diagonal(diagonal=self.diagonal * scalar)
-
-    @_wrap_mul_div_scalar
     def __truediv__(self, scalar):
         return Diagonal(diagonal=self.diagonal / scalar)
 
@@ -225,14 +221,6 @@ class ScaledIdentity(Diagonal):
 
     @_wrap_mul_div_scalar
     def __mul__(self, scalar):
-        return ScaledIdentity(
-            scalar=self._diagonal * scalar,
-            input_shape=self.input_shape,
-            input_dtype=self.input_dtype,
-        )
-
-    @_wrap_mul_div_scalar
-    def __rmul__(self, scalar):
         return ScaledIdentity(
             scalar=self._diagonal * scalar,
             input_shape=self.input_shape,

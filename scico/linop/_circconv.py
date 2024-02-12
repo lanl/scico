@@ -240,10 +240,6 @@ class CircularConvolve(LinearOperator):
         )
 
     @_wrap_mul_div_scalar
-    def __rmul__(self, scalar):
-        return self * scalar
-
-    @_wrap_mul_div_scalar
     def __truediv__(self, scalar):
         return CircularConvolve(
             h=self.h_dft / scalar,
