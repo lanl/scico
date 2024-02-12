@@ -243,14 +243,7 @@ class LinearOperator(Operator):
 
     @_wrap_mul_div_scalar
     def __rmul__(self, other):
-        return LinearOperator(
-            input_shape=self.input_shape,
-            output_shape=self.output_shape,
-            eval_fn=lambda x: other * self(x),
-            adj_fn=lambda x: snp.conj(other) * self.adj(x),
-            input_dtype=self.input_dtype,
-            output_dtype=result_type(self.output_dtype, other),
-        )
+        return self.__mul__(other)  # scalar multiplication is commutative
 
     @_wrap_mul_div_scalar
     def __truediv__(self, other):
