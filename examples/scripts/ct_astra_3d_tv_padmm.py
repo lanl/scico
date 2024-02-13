@@ -62,7 +62,7 @@ Set up problem and solver. We want to minimize the functional
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - C \mathbf{x}
   \|_2^2 + \lambda \| D \mathbf{x} \|_{2,1} \;,$$
 
-where $C$ is the convolution operator and $D$ is a finite difference
+where $C$ is the X-ray transform and $D$ is a finite difference
 operator. This problem can be expressed as
 
   $$\mathrm{argmin}_{\mathbf{x}, \mathbf{z}} \; (1/2) \| \mathbf{y} -
