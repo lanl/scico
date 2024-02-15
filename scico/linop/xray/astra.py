@@ -17,7 +17,7 @@ JAX arrays. Other JAX features such as automatic differentiation are
 not available.
 """
 
-from typing import List, Optional, Tuple
+from typing import List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -33,10 +33,26 @@ except ModuleNotFoundError as e:
     else:
         raise e
 
+try:
+    from collections import Iterable  # type: ignore
+except ImportError:
+    import collections
+
+    # Monkey patching required because latest astra release uses old module path for Iterable
+    collections.Iterable = collections.abc.Iterable  # type: ignore
 
 from scico.typing import Shape
 
 from .._linop import LinearOperator
+
+
+def set_astra_gpu_index(idx: Union[int, Sequence[int]]):
+    """Set the index/indices of GPU(s) to be used by astra.
+
+    Args:
+        idx: Index or indices of GPU(s).
+    """
+    astra.set_gpu_index(idx)
 
 
 class XRayTransform2D(LinearOperator):
