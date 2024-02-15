@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2023 by SCICO Developers
+# Copyright (C) 2020-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -18,10 +18,10 @@ from functools import partial, wraps
 import numpy as np
 
 import jax.numpy as jnp
-from jax.dtypes import result_type
 from jax.typing import ArrayLike
 
 import scico.numpy as snp
+from scico.operator._operator import Operator
 
 from ._diag import Identity
 from ._linop import LinearOperator
@@ -45,17 +45,17 @@ def _wrap_add_sub_matrix(func, op):
 
             raise ValueError(f"Shapes {a.matrix_shape} and {b.shape} do not match.")
 
-        if isinstance(b, LinearOperator):
-            if a.shape == b.shape:
-                return LinearOperator(
-                    input_shape=a.input_shape,
-                    output_shape=a.output_shape,
-                    eval_fn=lambda x: op(a(x), b(x)),
-                    input_dtype=a.input_dtype,
-                    output_dtype=result_type(a.output_dtype, b.output_dtype),
-                )
+        if isinstance(b, Operator):
+            if a.shape != b.shape:
+                raise ValueError(f"Shapes {a.shape} and {b.shape} do not match.")
 
-            raise ValueError(f"Shapes {a.shape} and {b.shape} do not match.")
+        if isinstance(b, LinearOperator):
+            uwfunc = getattr(LinearOperator, func.__name__)._unwrapped
+            return uwfunc(a, b)
+
+        if isinstance(b, Operator):
+            uwfunc = getattr(Operator, func.__name__)
+            return uwfunc(a, b)
 
         raise TypeError(f"Operation {func.__name__} not defined between {type(a)} and {type(b)}.")
 
