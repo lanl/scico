@@ -1,4 +1,4 @@
-# Copyright (C) 2020-2023 by SCICO Developers
+# Copyright (C) 2020-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -11,8 +11,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-import operator
-from functools import partial, wraps
+from functools import wraps
 from typing import Callable, Optional, Union
 
 import numpy as np
@@ -29,28 +28,51 @@ from scico.operator._operator import Operator, _wrap_mul_div_scalar
 from scico.typing import BlockShape, DType, Shape
 
 
-def _wrap_add_sub(func: Callable, op: Callable) -> Callable:
-    r"""Wrapper function for defining `__add__`, `__sub__`.
+def _wrap_add_sub(func: Callable) -> Callable:
+    r"""Wrapper function for defining `__add__` and `__sub__`.
 
-    Wrapper function for defining `__add__`,` __sub__` between
-    :class:`LinearOperator` and other objects.
+    Wrapper function for defining `__add__` and ` __sub__` between
+    :class:`LinearOperator` and derived classes. Operations
+    between :class:`LinearOperator` and :class:`.Operator`
+    types are also supported.
 
-    Handles shape checking and dispatching based on operand types:
+    Handles shape checking and function dispatch based on types of
+    operands `a` and `b` in the call `func(a, b)`. Note that `func`
+    will always be a method of the type of `a`, and since this wrapper
+    should only be applied within :class:`LinearOperator` or derived
+    classes, we can assume that `a` is always an instance of
+    :class:`LinearOperator`. The general rule for dispatch is that the
+    `__add__` or `__sub__` operator of the nearest common base class
+    of `a` and `b` should be called. If `b` is derived from `a`, this
+    entails using the operator defined in the class of `a`, and
+    vice-versa. If one of the operands is not a descendant of the other
+    in the class hierarchy, then it is assumed that their common base
+    class is either :class:`.Operator` or :class:`LinearOperator`,
+    depending on the type of `b`.
 
-    - If one of the two operands is an :class:`.Operator`, an
-      :class:`.Operator` is returned.
-    - If both operands are :class:`LinearOperator` of different types,
-      a generic :class:`LinearOperator` is returned.
-    - If both operands are :class:`LinearOperator` of the same type, a
-      special constructor can be called
+    - If `b` is not an instance of :class:`.Operator`, a :exc:`TypeError`
+      is raised.
+    - If the shapes of `a` and `b` do not match, a :exc:`ValueError` is
+      raised.
+    - If `b` is an instance of the type of `a` then `func(a, b)` is
+      called where `func` is the argument of this wrapper, i.e.
+      the unwrapped function defined in the class of `a`.
+    - If `a` is an instance of the type of `b` then `func(a, b)` is
+      called where `func` is the unwrapped function defined in the class
+      of `b`.
+    - If `b` is a :class:`LinearOperator` then `func(a, b)` is called
+      where `func` is the operator defined in :class:`LinearOperator`.
+    - Othwerwise, `func(a, b)` is called where `func` is the operator
+      defined in :class:`.Operator`.
 
     Args:
         func: should be either `.__add__` or `.__sub__`.
-        op: functional equivalent of func, ex. op.add for func =
-           `__add__`.
+
+    Returns:
+       Wrapped version of `func`.
 
     Raises:
-        ValueError: If the shape of both operators does not match.
+        ValueError: If the shapes of two operators do not match.
         TypeError: If one of the two operands is not an
             :class:`.Operator` or :class:`LinearOperator`.
     """
@@ -62,30 +84,39 @@ def _wrap_add_sub(func: Callable, op: Callable) -> Callable:
         if isinstance(b, Operator):
             if a.shape == b.shape:
                 if isinstance(b, type(a)):
-                    # same type of linop, eg convolution can have special
-                    # behavior (see Conv2d.__add__)
+                    # b is an instance of the class of a: call the unwrapped operator
+                    # defined in the class of a, which is the func argument of this
+                    # wrapper
                     return func(a, b)
-                if isinstance(
-                    b, LinearOperator
-                ):  # LinearOperator + LinearOperator -> LinearOperator
-                    return LinearOperator(
-                        input_shape=a.input_shape,
-                        output_shape=a.output_shape,
-                        eval_fn=lambda x: op(a(x), b(x)),
-                        adj_fn=lambda x: op(a(x), b(x)),
-                        input_dtype=a.input_dtype,
-                        output_dtype=result_type(a.output_dtype, b.output_dtype),
-                    )
-                # LinearOperator + Operator -> Operator
-                return Operator(
-                    input_shape=a.input_shape,
-                    output_shape=a.output_shape,
-                    eval_fn=lambda x: op(a(x), b(x)),
-                    input_dtype=a.input_dtype,
-                    output_dtype=result_type(a.output_dtype, b.output_dtype),
-                )
+                if isinstance(a, type(b)):
+                    # a is an instance of class b: call the unwrapped operator
+                    # defined in the class of b. A test is required because
+                    # the operators defined in Operator and non-LinearOperator
+                    # derived classes are not wrapped.
+                    if hasattr(getattr(type(b), func.__name__), "_unwrapped"):
+                        uwfunc = getattr(type(b), func.__name__)._unwrapped
+                    else:
+                        uwfunc = getattr(type(b), func.__name__)
+                    return uwfunc(a, b)
+                # The most general approach here would be to automatically determine
+                # the nearest common ancestor of the classes of a and b (e.g. as
+                # discussed in https://stackoverflow.com/a/58290475 ), but the
+                # simpler approach adopted here is to just assume that the common
+                # base of two classes that do not have an ancestor-descendant
+                # relationship is either Operator or LinearOperator.
+                if isinstance(b, LinearOperator):
+                    # LinearOperator + LinearOperator -> LinearOperator
+                    uwfunc = getattr(LinearOperator, func.__name__)._unwrapped
+                    return uwfunc(a, b)
+                # LinearOperator + Operator -> Operator (access to the function
+                # definition differs from that for LinearOperator because
+                # Operator __add__ and __sub__ are not wrapped)
+                uwfunc = getattr(Operator, func.__name__)
+                return uwfunc(a, b)
             raise ValueError(f"Shapes {a.shape} and {b.shape} do not match.")
         raise TypeError(f"Operation {func.__name__} not defined between {type(a)} and {type(b)}.")
+
+    wrapper._unwrapped = func  # type: ignore
 
     return wrapper
 
@@ -177,7 +208,7 @@ class LinearOperator(Operator):
         self._adj = jax.jit(self._adj)
         self._gram = jax.jit(self._gram)
 
-    @partial(_wrap_add_sub, op=operator.add)
+    @_wrap_add_sub
     def __add__(self, other):
         return LinearOperator(
             input_shape=self.input_shape,
@@ -188,7 +219,7 @@ class LinearOperator(Operator):
             output_dtype=result_type(self.output_dtype, other.output_dtype),
         )
 
-    @partial(_wrap_add_sub, op=operator.sub)
+    @_wrap_add_sub
     def __sub__(self, other):
         return LinearOperator(
             input_shape=self.input_shape,
@@ -212,14 +243,7 @@ class LinearOperator(Operator):
 
     @_wrap_mul_div_scalar
     def __rmul__(self, other):
-        return LinearOperator(
-            input_shape=self.input_shape,
-            output_shape=self.output_shape,
-            eval_fn=lambda x: other * self(x),
-            adj_fn=lambda x: snp.conj(other) * self.adj(x),
-            input_dtype=self.input_dtype,
-            output_dtype=result_type(self.output_dtype, other),
-        )
+        return self.__mul__(other)  # scalar multiplication is commutative
 
     @_wrap_mul_div_scalar
     def __truediv__(self, other):

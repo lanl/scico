@@ -1,4 +1,4 @@
-# Copyright (C) 2020-2023 by SCICO Developers
+# Copyright (C) 2020-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -40,6 +40,9 @@ def _wrap_mul_div_scalar(func: Callable) -> Callable:
         func: should be either `.__mul__()`, `.__rmul__()`,
            or `.__truediv__()`.
 
+    Returns:
+       Wrapped version of `func`.
+
     Raises:
         TypeError: If a binop with the form `binop(Operator, other)` is
         called and `other` is not a scalar.
@@ -51,6 +54,8 @@ def _wrap_mul_div_scalar(func: Callable) -> Callable:
             return func(a, b)
 
         raise TypeError(f"Operation {func.__name__} not defined between {type(a)} and {type(b)}.")
+
+    wrapper._unwrapped = func  # type: ignore
 
     return wrapper
 
