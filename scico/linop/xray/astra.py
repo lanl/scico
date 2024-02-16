@@ -124,11 +124,16 @@ class XRayTransform2D(LinearOperator):
                     "Please see the astra documentation for details."
                 )
 
-        dev0 = jax.devices()[0]
-        if dev0.platform == "cpu" or device == "cpu":
-            self.device = "cpu"
-        elif dev0.platform == "gpu" and device in ["gpu", "auto"]:
-            self.device = "gpu"
+        if device in ["cpu", "gpu"]:
+            # If cpu or gpu selected, attempt to comply (no checking to
+            # confirm that a gpu is available to astra).
+            self.device = device
+        elif device == "auto":
+            # If auto selected, use cpu or gpu depending on the default
+            # jax device (for simplicity, no checking whether gpu is
+            # available to astra when one is not available to jax).
+            dev0 = jax.devices()[0]
+            self.device = dev0.platform
         else:
             raise ValueError(f"Invalid device specified; got {device}.")
 
