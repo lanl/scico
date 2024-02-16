@@ -296,10 +296,6 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
         self.input_shape: tuple = input_shape
         self.vol_geom = astra.create_vol_geom(input_shape[1], input_shape[2], input_shape[0])
 
-        dev0 = jax.devices()[0]
-        if dev0.platform == "cpu":
-            raise ValueError("No CPU algorithm for 3D projection and GPU not available.")
-
         # Wrap our non-jax function to indicate we will supply fwd/rev mode functions
         self._eval = jax.custom_vjp(self._proj)
         self._eval.defvjp(lambda x: (self._proj(x), None), lambda _, y: (self._bproj(y),))  # type: ignore
