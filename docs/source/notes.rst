@@ -2,15 +2,6 @@
 Notes
 *****
 
-No GPU/TPU Warning
-==================
-
-JAX currently issues a warning when used on a platform without a
-GPU. To disable this warning, set the environment variable
-``JAX_PLATFORM_NAME=cpu`` before running Python. This warning is
-suppressed by SCICO for JAX versions after 0.3.23, making use of
-the environment variable unnecessary.
-
 
 Debugging
 =========
@@ -43,6 +34,26 @@ can be enabled in one of two ways:
 
 
 For more information, see the `JAX notes on double precision <https://jax.readthedocs.io/en/latest/notebooks/Common_Gotchas_in_JAX.html#double-64bit-precision>`_.
+
+Device Control
+==============
+
+Use of the CPU device can be forced even when GPUs are present by setting the
+environment variable ``JAX_PLATFORM_NAME=cpu`` before running Python. This also
+serves to disable the warning that older versions of JAX issued when running
+on a platform without a GPU, but this should no longer be necessary for any
+JAX versions supported by SCICO.
+
+By default, JAX views a multi-core CPU as a single device. Primarily for testing
+purposes, it may be useful to instruct JAX to emulate multiple CPU devices, by
+setting the environment variable ``XLA_FLAGS='--xla_force_host_platform_device_count=<n>'``,
+where ``<n>`` is an integer number of devices. For more detail see the relevant
+`section of the JAX docs <https://jax.readthedocs.io/en/latest/jax-101/06-parallelism.html#aside-hosts-and-devices-in-jax>`__.
+
+By default, JAX will preallocate a large chunk of GPU memory on startup. This
+behavior can be controlled using environment variables ``XLA_PYTHON_CLIENT_PREALLOCATE``,
+``XLA_PYTHON_CLIENT_MEM_FRACTION``, and ``XLA_PYTHON_CLIENT_ALLOCATOR``, as described in
+the relevant `section of the JAX docs <https://jax.readthedocs.io/en/latest/gpu_memory_allocation.html>`__.
 
 
 Random Number Generation
@@ -129,7 +140,8 @@ SCICO, while the other two depend on external packages.
 The :class:`.xray.svmbir.XRayTransform` class is implemented
 via an interface to the `svmbir
 <https://svmbir.readthedocs.io/en/latest/>`__ package. The
-:class:`.xray.astra.XRayTransform` class is implemented via an
+:class:`.xray.astra.XRayTransform2D` and
+:class:`.xray.astra.XRayTransform3D` classes are implemented via an
 interface to the `ASTRA toolbox
 <https://www.astra-toolbox.com/>`__. This toolbox does provide some
 GPU acceleration support, but efficiency is expected to be lower than
