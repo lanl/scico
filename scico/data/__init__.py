@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2023 by SCICO Developers
+# Copyright (C) 2021-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -10,7 +10,7 @@
 import os.path
 from typing import Optional
 
-from imageio.v2 import imread
+from imageio.v3 import imread
 
 import scico.numpy as snp
 

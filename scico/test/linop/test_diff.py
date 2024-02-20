@@ -24,6 +24,16 @@ def test_eval():
     )
     snp.testing.assert_allclose(Ax[1], snp.array([[-1, 1, -1], [0, -1, 0]]))  # along rows
 
+    # test scale
+    B = 2.0 * A
+    Bx = B @ x
+
+    snp.testing.assert_allclose(
+        Bx[0],  # down columns x[1] - x[0], ..., append - x[N-1]
+        2.0 * snp.array([[0, 1, -1], [-1, -1, 0]]),
+    )
+    snp.testing.assert_allclose(Bx[1], 2.0 * snp.array([[-1, 1, -1], [0, -1, 0]]))  # along rows
+
 
 def test_except():
     with pytest.raises(TypeError):  # axis is not an int

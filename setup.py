@@ -9,7 +9,7 @@ import os.path
 import site
 import sys
 
-from setuptools import find_packages, setup
+from setuptools import find_namespace_packages, setup
 
 # Import module scico._version without executing __init__.py
 spec = importlib.util.spec_from_file_location("_version", os.path.join("scico", "_version.py"))
@@ -20,7 +20,10 @@ from _version import package_version
 
 name = "scico"
 version = package_version()
-packages = find_packages()
+# Add argument exclude=["test", "test.*"] to exclude test subpackage
+packages = find_namespace_packages(where="scico")
+packages = ["scico"] + [f"scico.{m}" for m in packages]
+
 
 longdesc = """
 SCICO is a Python package for solving the inverse problems that arise in scientific imaging applications. Its primary focus is providing methods for solving ill-posed inverse problems by using an appropriate prior model of the reconstruction space. SCICO includes a growing suite of operators, cost functionals, regularizers, and optimization routines that may be combined to solve a wide range of problems, and is designed so that it is easy to add new building blocks. SCICO is built on top of JAX, which provides features such as automatic gradient calculation and GPU acceleration.

@@ -16,7 +16,7 @@ from scico.flax.train.traversals import clip_positive, clip_range, construct_tra
 from scico.linop import CircularConvolve, Identity
 
 if have_astra:
-    from scico.linop.xray.astra import XRayTransform
+    from scico.linop.xray.astra import XRayTransform2D
 
 
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
@@ -96,6 +96,62 @@ class TestSet:
         assert y.dtype == mny.dtype
         assert y.shape == mny.shape
 
+    def test_train_odpdcnv_default(self):
+        xt, key = random.randn((10, self.N, self.N, self.chn), seed=4444)
+
+        blur_shape = (7, 7)
+        blur_sigma = 3.3
+        kernel = build_blur_kernel(blur_shape, blur_sigma)
+
+        ishape = (self.N, self.N)
+        opBlur = CircularConvolve(h=kernel, input_shape=ishape)
+
+        model = sflax.ODPNet(
+            operator=opBlur,
+            depth=self.depth,
+            channels=self.chn,
+            num_filters=self.num_filters,
+            block_depth=self.block_depth,
+            odp_block=sflax.inverse.ODPProxDcnvBlock,
+        )
+
+        train_conf: sflax.ConfigDict = {
+            "seed": 0,
+            "opt_type": "ADAM",
+            "batch_size": 8,
+            "num_epochs": 2,
+            "base_learning_rate": 1e-3,
+            "warmup_epochs": 0,
+            "num_train_steps": -1,
+            "steps_per_eval": -1,
+            "steps_per_epoch": 1,
+            "log_every_steps": 1000,
+        }
+
+        a_f = lambda v: jnp.atleast_3d(opBlur(v.reshape(opBlur.input_shape)))
+        y = lax.map(a_f, xt)
+
+        train_ds = {"image": y, "label": xt}
+        test_ds = {"image": y, "label": xt}
+
+        try:
+            alphatrav = construct_traversal("alpha")
+            alphapos = partial(clip_positive, traversal=alphatrav, minval=1e-3)
+            train_conf["post_lst"] = [alphapos]
+            trainer = sflax.BasicFlaxTrainer(
+                train_conf,
+                model,
+                train_ds,
+                test_ds,
+            )
+            modvar, _ = trainer.train()
+        except Exception as e:
+            print(e)
+            assert 0
+        else:
+            alphaval = np.array([alpha for alpha in alphatrav.iterate(modvar["params"])])
+            np.testing.assert_array_less(1e-2 * np.ones(alphaval.shape), alphaval)
+
 
 @pytest.mark.skipif(not have_astra, reason="astra package not installed")
 class TestCT:
@@ -107,10 +163,10 @@ class TestCT:
 
         self.nproj = 60  # number of projections
         angles = np.linspace(0, np.pi, self.nproj)  # evenly spaced projection angles
-        self.opCT = XRayTransform(
+        self.opCT = XRayTransform2D(
             input_shape=(self.N, self.N),
-            detector_spacing=1,
             det_count=self.N,
+            det_spacing=1.0,
             angles=angles,
         )  # Radon transform operator
         a_f = lambda v: jnp.atleast_3d(self.opCT(v.squeeze()))

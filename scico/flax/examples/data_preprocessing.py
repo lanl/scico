@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2023 by SCICO Developers
+# Copyright (C) 2022-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -18,7 +18,7 @@ import numpy as np
 
 import jax.numpy as jnp
 
-import imageio
+import imageio.v3 as iio
 
 from scico import util
 from scico.examples import rgb2gray
@@ -389,7 +389,7 @@ def images_read(path: str, ext: str = "jpg") -> Array:  # pragma: no cover
     slices = []
     shape = None
     for file in sorted(glob.glob(os.path.join(path, "*." + ext))):
-        image = imageio.imread(file)
+        image = iio.imread(file)
         if shape is None:
             shape = image.shape[:2]
         if shape != image.shape[:2]:
@@ -418,7 +418,7 @@ def get_bsds_data(path: str, verbose: bool = False):  # pragma: no cover
         verbose: Flag indicating whether to print status messages.
     """
     # data source URL and filenames
-    data_base_url = "http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/BSR/"
+    data_base_url = "https://www2.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/BSR/"
     data_tar_file = "BSR_bsds500.tgz"
     # ensure path directory exists
     if not os.path.isdir(path):

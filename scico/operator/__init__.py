@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2022 by SCICO Developers
+# Copyright (C) 2021-2023 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -13,10 +13,13 @@ import sys
 from ._operator import Operator
 from .biconvolve import BiConvolve
 from ._func import operator_from_function, Abs, Angle, Exp
+from ._stack import DiagonalStack, VerticalStack
 
 __all__ = [
     "Operator",
     "BiConvolve",
+    "DiagonalStack",
+    "VerticalStack",
     "operator_from_function",
     "Abs",
     "Angle",

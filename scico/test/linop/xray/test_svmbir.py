@@ -26,8 +26,6 @@ except ImportError as e:
 BIG_INPUT = (32, 33, 50, 51, 125, 1.2)
 SMALL_INPUT = (4, 5, 7, 8, 16, 1.2)
 
-device = jax.devices()[0]
-
 
 def pytest_generate_tests(metafunc):
     param_ranges = {
@@ -88,7 +86,6 @@ def make_A(
     delta_channel=None,
     delta_pixel=None,
 ):
-
     angles = make_angles(num_angles)
     A = XRayTransform(
         im.shape,
@@ -154,7 +151,7 @@ def test_adjoint(
     adjoint_test(A)
 
 
-@pytest.mark.skipif(device.platform != "cpu", reason="test hangs on gpu")
+@pytest.mark.slow
 def test_prox(
     is_3d,
     center_offset_small,
@@ -185,7 +182,7 @@ def test_prox(
     prox_test(v, f, f.prox, alpha=0.25, rtol=5e-4)
 
 
-@pytest.mark.skipif(device.platform != "cpu", reason="test hangs on gpu")
+@pytest.mark.slow
 def test_prox_weights(
     is_3d,
     center_offset_small,

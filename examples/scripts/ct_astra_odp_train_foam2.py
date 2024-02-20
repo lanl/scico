@@ -58,7 +58,7 @@ from scico import flax as sflax
 from scico import metric, plot
 from scico.flax.examples import load_ct_data
 from scico.flax.train.traversals import clip_positive, construct_traversal
-from scico.linop.xray.astra import XRayTransform
+from scico.linop.xray.astra import XRayTransform2D
 
 """
 Prepare parallel processing. Set an arbitrary processor count (only
@@ -85,9 +85,9 @@ trdt, ttdt = load_ct_data(train_nimg, test_nimg, N, n_projection, verbose=True)
 Build CT projection operator.
 """
 angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
-A = XRayTransform(
+A = XRayTransform2D(
     input_shape=(N, N),
-    detector_spacing=1,
+    det_spacing=1,
     det_count=N,
     angles=angles,
 )  # CT projection operator
@@ -133,11 +133,12 @@ train_conf: sflax.ConfigDict = {
     "warmup_epochs": 0,
     "log_every_steps": 160,
     "log": True,
+    "checkpointing": True,
 }
 
 
 """
-Construct functionality for making sure that the learned fidelity weight
+Construct functionality for ensuring that the learned fidelity weight
 parameter is always positive.
 """
 alphatrav = construct_traversal("alpha")  # select alpha parameters in model
@@ -151,8 +152,8 @@ alphapost = partial(
 """
 Print configuration of distributed run.
 """
-print(f"{'JAX process: '}{jax.process_index()}{' / '}{jax.process_count()}")
-print(f"{'JAX local devices: '}{jax.local_devices()}")
+print(f"\nJAX process: {jax.process_index()}{' / '}{jax.process_count()}")
+print(f"JAX local devices: {jax.local_devices()}\n")
 
 
 """
@@ -184,10 +185,7 @@ trainer = sflax.BasicFlaxTrainer(
     train_ds,
     test_ds,
 )
-
-start_time = time()
 modvar, stats_object = trainer.train()
-time_train = time() - start_time
 
 
 """
@@ -208,20 +206,23 @@ epochs = train_conf["num_epochs"]
 
 
 """
-Compare trained model in terms of reconstruction time and data fidelity.
+Evaluate trained model in terms of reconstruction time and data fidelity.
 """
 snr_eval = metric.snr(test_ds["label"][:maxn], output)
 psnr_eval = metric.psnr(test_ds["label"][:maxn], output)
 print(
     f"{'ODPNet training':18s}{'epochs:':2s}{epochs:>5d}{'':21s}"
-    f"{'time[s]:':10s}{time_train:>7.2f}"
+    f"{'time[s]:':10s}{trainer.train_time:>7.2f}"
 )
 print(
     f"{'ODPNet testing':18s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}"
     f"{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}{'':3s}{'time[s]:':10s}{time_eval:>7.2f}"
 )
 
-# Plot comparison
+
+"""
+Plot comparison.
+"""
 np.random.seed(123)
 indx = np.random.randint(0, high=maxn)
 
@@ -251,10 +252,10 @@ fig.show()
 
 
 """
-Plot convergence statistics. Statistics only generated if a training
-cycle was done (i.e. not reading final epoch results from checkpoint).
+Plot convergence statistics. Statistics are generated only if a training
+cycle was done (i.e. if not reading final epoch results from checkpoint).
 """
-if stats_object is not None:
+if stats_object is not None and len(stats_object.iterations) > 0:
     hist = stats_object.history(transpose=True)
     fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
     plot.plot(

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2023 by SCICO Developers
+# Copyright (C) 2020-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -53,7 +53,6 @@ from typing import Any, Callable, Optional, Sequence, Tuple, Union
 import numpy as np
 
 import jax
-import jax.experimental.host_callback as hcb
 import jax.numpy as jnp
 import jax.scipy.linalg as jsl
 
@@ -93,9 +92,10 @@ def _wrap_func(func: Callable, shape: Union[Shape, BlockShape], dtype: DType) ->
         # apply val_grad_func to un-vectorized input
         val = val_func(snp.reshape(x, shape).astype(dtype), *args)
 
-        # Convert val into numpy array, then cast to float
-        # Convert 'val' into a scalar, rather than ndarray of shape (1,)
-        val = np.array(val).astype(float).item()
+        # Convert val into numpy array, cast to float, convert to scalar
+        val = np.array(val).astype(float)
+        val = val.item() if val.ndim == 0 else val[0].item()
+
         return val
 
     return wrapper
@@ -238,14 +238,14 @@ def minimize(
             jac=jac,
             method=method,
             options=options,
-        )  # Returns OptimizeResult with x0 as ndarray
+        )  # Return OptimizeResult with x0 as ndarray
         return res.x.astype(x0_dtype)
 
-    # HCB call with side effects to get the OptimizeResult on the same device it was called
-    res.x = hcb.call(
+    # callback with side effects to get the OptimizeResult on the same device it was called
+    res.x = jax.pure_callback(
         fun,
-        arg=x0,
-        result_shape=x0,  # From Jax-docs: This can be an object that has .shape and .dtype attributes
+        jax.ShapeDtypeStruct(x0.shape, x0_dtype),
+        x0,
     )
 
     # un-vectorize the output array from spopt.minimize
@@ -280,7 +280,8 @@ def minimize_scalar(
     def f(x, *args):
         # Wrap jax-based function `func` to return a numpy float rather
         # than a jax array of size (1,)
-        return func(x, *args).item()
+        y = func(x, *args)
+        return y.item() if y.ndim == 0 else y[0].item()
 
     res = spopt.minimize_scalar(
         fun=f,
@@ -722,7 +723,7 @@ class MatrixATADSolver:
 
         if isinstance(D, Diagonal):
             D = D.diagonal
-            if not D.ndim == 1:
+            if D.ndim != 1:
                 raise ValueError("If Diagonal, D should have a 1D diagonal.")
         else:
             D = jnp.array(D)
@@ -733,7 +734,7 @@ class MatrixATADSolver:
             W = snp.ones(A.shape[0], dtype=A.dtype)
         elif isinstance(W, Diagonal):
             W = W.diagonal
-            if not W.ndim == 1:
+            if W.ndim != 1:
                 raise ValueError("If Diagonal, W should have a 1D diagonal.")
         elif not isinstance(W, Array):
             raise TypeError(

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2023 by SCICO Developers
+# Copyright (C) 2022-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -14,13 +14,13 @@ from functools import partial
 from typing import Any, Callable, Tuple
 
 import jax.numpy as jnp
-from jax import lax
+from jax import jit, lax, random
 
 from flax.core import Scope  # noqa
 from flax.linen.module import _Sentinel  # noqa
 from flax.linen.module import Module, compact
 from scico.flax import ResNet
-from scico.linop import operator_norm
+from scico.linop import LinearOperator
 from scico.numpy import Array
 from scico.typing import DType, PRNGKey, Shape
 
@@ -40,18 +40,17 @@ class MoDLNet(Module):
 
     Args:
         operator: Operator for computing forward and adjoint mappings.
-        depth: Depth of MoDL net. Default: 1.
+        depth: Depth of MoDL net.
         channels: Number of channels of input tensor.
         num_filters: Number of filters in the convolutional layer of the
             block. Corresponds to the number of channels in the output
             tensor.
         block_depth: Number of layers in the computational block.
-        kernel_size: Size of the convolution filters. Default: (3, 3).
-        strides: Convolution strides. Default: (1, 1).
+        kernel_size: Size of the convolution filters.
+        strides: Convolution strides.
         lmbda_ini: Initial value of the regularization weight `lambda`.
-            Default: 0.5.
         dtype: Output dtype. Default: :attr:`~numpy.float32`.
-        cg_iter: Number of iterations for cg solver. Default: 10.
+        cg_iter: Number of iterations for cg solver.
     """
 
     operator: ModuleDef
@@ -105,8 +104,7 @@ class MoDLNet(Module):
 
         for i in range(self.depth):
             z = resnet(x, train)
-            # Solve:
-            # (AH A + lmbda I) x = Ahb + lmbda * z
+            # Solve: (AH A + lmbda I) x = Ahb + lmbda * z
             b = Ahb + lmbda * z
             x = lax.map(cgsol, b)
         return x
@@ -120,18 +118,18 @@ def cg_solver(A: Callable, b: Array, x0: Array = None, maxiter: int = 50) -> Arr
     version constructed to be differentiable with the autograd
     functionality from jax. Therefore, (i) it uses :meth:`jax.lax.scan`
     to execute a fixed number of iterations and (ii) it assumes that the
-    linear operator may use :meth:`jax.experimental.host_callback`. Due
-    to the utilization of a while cycle, :meth:`scico.cg` is not
-    differentiable by jax and :meth:`jax.scipy.sparse.linalg.cg` does not
-    support functions using :meth:`jax.experimental.host_callback`
-    explaining why an additional conjugate gradient function is implemented.
+    linear operator may use :meth:`jax.pure_callback`. Due to the
+    utilization of a while cycle, :meth:`scico.cg` is not differentiable
+    by jax and :meth:`jax.scipy.sparse.linalg.cg` does not support
+    functions using :meth:`jax.pure_callback`, which is why an additional
+    conjugate gradient function has been implemented.
 
     Args:
         A: Function implementing linear operator :math:`A`, should be
             positive definite.
         b: Input array :math:`\mb{b}`.
-        x0: Initial solution. Default: ``None``.
-        maxiter: Maximum iterations. Default: 50.
+        x0: Initial solution.
+        maxiter: Maximum iterations.
 
     Returns:
         x: Solution array.
@@ -175,10 +173,9 @@ class ODPProxDnBlock(Module):
         num_filters: Number of filters in the convolutional layer of the
             block. Corresponds to the number of channels in the output
             tensor.
-        kernel_size: Size of the convolution filters. Default: (3, 3).
-        strides: Convolution strides. Default: (1, 1).
+        kernel_size: Size of the convolution filters.
+        strides: Convolution strides.
         alpha_ini: Initial value of the fidelity weight `alpha`.
-            Default: 0.2.
         dtype: Output dtype. Default: :attr:`~numpy.float32`.
     """
 
@@ -243,10 +240,9 @@ class ODPProxDcnvBlock(Module):
         num_filters: Number of filters in the convolutional layer of the
             block. Corresponds to the number of channels in the output
             tensor.
-        kernel_size: Size of the convolution filters. Default: (3, 3).
-        strides: Convolution strides. Default: (1, 1).
+        kernel_size: Size of the convolution filters.
+        strides: Convolution strides.
         alpha_ini: Initial value of the fidelity weight `alpha`.
-            Default: 0.99.
         dtype: Output dtype. Default: :attr:`~numpy.float32`.
     """
 
@@ -262,7 +258,8 @@ class ODPProxDcnvBlock(Module):
     def setup(self):
         """Computing operator norm and setting operator for batch
         evaluation and defining network layers."""
-        self.operator_norm = operator_norm(self.operator)
+        self.operator_norm = jnp.sqrt(power_iteration(self.operator.H @ self.operator)[0].real)
+
         self.ah_f = lambda v: jnp.atleast_3d(
             self.operator.adj(v.reshape(self.operator.output_shape))
         )
@@ -334,10 +331,9 @@ class ODPGrDescBlock(Module):
         num_filters: Number of filters in the convolutional layer of the
             block. Corresponds to the number of channels in the output
             tensor.
-        kernel_size: Size of the convolution filters. Default: (3, 3).
-        strides: Convolution strides. Default: (1, 1).
+        kernel_size: Size of the convolution filters.
+        strides: Convolution strides.
         alpha_ini: Initial value of the fidelity weight `alpha`.
-            Default: 0.2.
         dtype: Output dtype. Default: :attr:`~numpy.float32`.
     """
     operator: ModuleDef
@@ -402,19 +398,18 @@ class ODPNet(Module):
 
     Args:
         operator: Operator for computing forward and adjoint mappings.
-        depth: Depth of MoDL net. Default: 1.
+        depth: Depth of MoDL net.
         channels: Number of channels of input tensor.
         num_filters: Number of filters in the convolutional layer of the
             block. Corresponds to the number of channels in the output
             tensor.
         block_depth: Number of layers in the computational block.
-        kernel_size: Size of the convolution filters. Default: (3, 3).
-        strides: Convolution strides. Default: (1, 1).
+        kernel_size: Size of the convolution filters.
+        strides: Convolution strides.
         alpha_ini: Initial value of the fidelity weight `alpha`.
-            Default: 0.5.
         dtype: Output dtype. Default: :attr:`~numpy.float32`.
         odp_block: processing block to apply. Default
-            :class:`ODPProxDnBlock`.
+            :class:`.ODPProxDnBlock`.
     """
 
     operator: ModuleDef
@@ -463,3 +458,52 @@ class ODPNet(Module):
             x = block(alpha_ini=alpha0_i)(x, y, train)
             alpha0_i /= 2.0
         return x
+
+
+@partial(jit, static_argnums=0)
+def power_iteration(A: LinearOperator, maxiter: int = 100):
+    """Compute largest eigenvalue of a diagonalizable :class:`.LinearOperator`.
+
+    Compute largest eigenvalue of a diagonalizable :class:`LinearOperator`
+    using power iteration. This function has the same functionality as
+    :class:`.linop.power_iteration` but is implemented using lax operations to
+    allow jitting and general jax function composition.
+
+    Args:
+        A: :class:`LinearOperator` used for computation. Must be diagonalizable.
+        maxiter: Maximum number of power iterations to use.
+
+    Returns:
+        tuple: A tuple (`mu`, `v`) containing:
+
+            - **mu**: Estimate of largest eigenvalue of `A`.
+            - **v**: Eigenvector of `A` with eigenvalue `mu`.
+
+    """
+    key = random.PRNGKey(0)
+    v = random.normal(key, shape=A.input_shape, dtype=A.input_dtype)
+
+    v = v / jnp.linalg.norm(v)
+
+    init_val = (0, v, v, 1.0)
+
+    def cond_fun(val):
+        return jnp.logical_and(val[0] <= maxiter, val[3] > 0.0)
+
+    def body_fun(val):
+        i, v, Av, normAv = val
+        v = Av / normAv
+        i = i + 1
+        Av = A @ v
+        normAv = jnp.linalg.norm(Av)
+        return (i, v, Av, normAv)
+
+    def true_fun(v, Av, normAv):
+        return jnp.sum(v.conj() * Av) / jnp.linalg.norm(v) ** 2, Av / normAv
+
+    def false_fun(v, Av, normAv):
+        return 0.0 * normAv, Av  # Multiplication by zero used to preserve data type
+
+    i, v, Av, normAv = lax.while_loop(cond_fun, body_fun, init_val)
+    mu, v = lax.cond(normAv > 0.0, true_fun, false_fun, v, Av, normAv)
+    return mu, v

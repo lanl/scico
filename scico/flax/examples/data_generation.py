@@ -48,7 +48,7 @@ else:
     have_astra = True
 
 if have_astra:
-    from scico.linop.xray.astra import XRayTransform
+    from scico.linop.xray.astra import XRayTransform2D
 
 
 # Arbitrary process count: only applies if GPU is not available.
@@ -210,7 +210,7 @@ def generate_ct_data(
     angles = np.linspace(0, jnp.pi, nproj)  # evenly spaced projection angles
     gt_sh = (size, size)
     detector_spacing = 1
-    A = XRayTransform(gt_sh, detector_spacing, size, angles)  # Radon transform operator
+    A = XRayTransform2D(gt_sh, size, detector_spacing, angles)  # Radon transform operator
 
     # Compute sinograms in parallel.
     a_map = lambda v: jnp.atleast_3d(A @ v.squeeze())

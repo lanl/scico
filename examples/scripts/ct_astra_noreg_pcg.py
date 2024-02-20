@@ -29,7 +29,7 @@ from xdesign import Foam, discrete_phantom
 
 from scico import loss, plot
 from scico.linop import CircularConvolve
-from scico.linop.xray.astra import XRayTransform
+from scico.linop.xray.astra import XRayTransform2D
 from scico.solver import cg
 
 """
@@ -45,7 +45,7 @@ Configure a CT projection operator and generate synthetic measurements.
 """
 n_projection = N  # matches the phantom size so this is not few-view CT
 angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
-A = 1 / N * XRayTransform(x_gt.shape, 1, N, angles)  # CT projection operator
+A = 1 / N * XRayTransform2D(x_gt.shape, N, 1.0, angles)  # CT projection operator
 y = A @ x_gt  # sinogram
 
 

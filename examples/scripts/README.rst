@@ -16,7 +16,9 @@ Computed Tomography
    `ct_astra_noreg_pcg.py <ct_astra_noreg_pcg.py>`_
       CT Reconstruction with CG and PCG
    `ct_astra_3d_tv_admm.py <ct_astra_3d_tv_admm.py>`_
-      3D TV-Regularized Sparse-View CT Reconstruction
+      3D TV-Regularized Sparse-View CT Reconstruction (ADMM Solver)
+   `ct_astra_3d_tv_padmm.py <ct_astra_3d_tv_padmm.py>`_
+      3D TV-Regularized Sparse-View CT Reconstruction (Proximal ADMM Solver)
    `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
       TV-Regularized Sparse-View CT Reconstruction (ASTRA Projector)
    `ct_tv_admm.py <ct_tv_admm.py>`_
@@ -167,7 +169,9 @@ Total Variation
    `ct_tv_admm.py <ct_tv_admm.py>`_
       TV-Regularized Sparse-View CT Reconstruction (Integrated Projector)
    `ct_astra_3d_tv_admm.py <ct_astra_3d_tv_admm.py>`_
-      3D TV-Regularized Sparse-View CT Reconstruction
+      3D TV-Regularized Sparse-View CT Reconstruction (ADMM Solver)
+   `ct_astra_3d_tv_padmm.py <ct_astra_3d_tv_padmm.py>`_
+      3D TV-Regularized Sparse-View CT Reconstruction (Proximal ADMM Solver)
    `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
       TV-Regularized Low-Dose CT Reconstruction
    `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
@@ -264,7 +268,7 @@ ADMM
    `ct_tv_admm.py <ct_tv_admm.py>`_
       TV-Regularized Sparse-View CT Reconstruction (Integrated Projector)
    `ct_astra_3d_tv_admm.py <ct_astra_3d_tv_admm.py>`_
-      3D TV-Regularized Sparse-View CT Reconstruction
+      3D TV-Regularized Sparse-View CT Reconstruction (ADMM Solver)
    `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
       TV-Regularized Low-Dose CT Reconstruction
    `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
@@ -325,12 +329,12 @@ Linearized ADMM
 Proximal ADMM
 ^^^^^^^^^^^^^
 
+    `ct_astra_3d_tv_padmm.py <ct_astra_3d_tv_padmm.py>`_
+       3D TV-Regularized Sparse-View CT Reconstruction (Proximal ADMM Solver)
     `deconv_tv_padmm.py <deconv_tv_padmm.py>`_
        Image Deconvolution with TV Regularization (Proximal ADMM Solver)
     `denoise_tv_multi.py <denoise_tv_multi.py>`_
        Comparison of Optimization Algorithms for Total Variation Denoising
-    `denoise_cplx_tv_nlpadmm.py <denoise_cplx_tv_nlpadmm.py>`_
-       Complex Total Variation Denoising with NLPADMM Solver
     `deconv_ppp_dncnn_padmm.py <deconv_ppp_dncnn_padmm.py>`_
        PPP (with DnCNN) Image Deconvolution (Proximal ADMM Solver)
 

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2023 by SCICO Developers
+# Copyright (C) 2022-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -44,7 +44,7 @@ def py_file_to_string(src):
             else:
                 # Set flag indicating that an import statement has been seen once one has
                 # been encountered
-                if re.match("^(import|from)", line):
+                if re.match("^import|^from .* import", line):
                     import_seen = True
             lines.append(line)
         # Backtrack through list of lines to find last import statement
@@ -221,3 +221,25 @@ def replace_markdown_cells(src, dst):
         # the dst cell
         if srccell[n]["cell_type"] == "markdown":
             dstcell[n]["source"] = srccell[n]["source"]
+
+
+def remove_error_output(src):
+    """Remove output to stderr from all cells in `src`."""
+
+    if "cells" in src:
+        cells = src["cells"]
+    else:
+        cells = src["worksheets"][0]["cells"]
+
+    modified = False
+    for c in cells:
+        if "outputs" in c:
+            dellist = []
+            for n, out in enumerate(c["outputs"]):
+                if "name" in out and out["name"] == "stderr":
+                    dellist.append(n)
+                    modified = True
+            for n in dellist[::-1]:
+                del c["outputs"][n]
+
+    return modified

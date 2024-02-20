@@ -5,21 +5,23 @@
 # with the package.
 
 r"""
-3D TV-Regularized Sparse-View CT Reconstruction
-===============================================
+3D TV-Regularized Sparse-View CT Reconstruction (ADMM Solver)
+=============================================================
 
 This example demonstrates solution of a sparse-view, 3D CT
 reconstruction problem with isotropic total variation (TV)
 regularization
 
-  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
-  \|_2^2 + \lambda \| C \mathbf{x} \|_{2,1} \;,$$
+  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - C \mathbf{x}
+  \|_2^2 + \lambda \| D \mathbf{x} \|_{2,1} \;,$$
 
-where $A$ is the X-ray transform (the CT forward projection operator),
-$\mathbf{y}$ is the sinogram, $C$ is a 3D finite difference operator,
+where $C$ is the X-ray transform (the CT forward projection operator),
+$\mathbf{y}$ is the sinogram, $D$ is a 3D finite difference operator,
 and $\mathbf{x}$ is the desired image.
-"""
 
+In this example the problem is solved via ADMM, while proximal
+ADMM is used in a [companion example](ct_astra_3d_tv_padmm.rst).
+"""
 
 import numpy as np
 
@@ -28,7 +30,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot
 from scico.examples import create_tangle_phantom
-from scico.linop.xray.astra import XRayTransform
+from scico.linop.xray.astra import XRayTransform3D
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
@@ -43,12 +45,14 @@ tangle = snp.array(create_tangle_phantom(Nx, Ny, Nz))
 
 n_projection = 10  # number of projections
 angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
-A = XRayTransform(tangle.shape, [1.0, 1.0], [Nz, max(Nx, Ny)], angles)  # CT projection operator
-y = A @ tangle  # sinogram
+C = XRayTransform3D(
+    tangle.shape, det_count=[Nz, max(Nx, Ny)], det_spacing=[1.0, 1.0], angles=angles
+)  # CT projection operator
+y = C @ tangle  # sinogram
 
 
 """
-Set up ADMM solver object.
+Set up problem and solver.
 """
 λ = 2e0  # ℓ2,1 norm regularization parameter
 ρ = 5e0  # ADMM penalty parameter
@@ -58,20 +62,17 @@ cg_maxiter = 25  # maximum CG iterations per ADMM iteration
 
 # The append=0 option makes the results of horizontal and vertical
 # finite differences the same shape, which is required for the L21Norm,
-# which is used so that g(Cx) corresponds to isotropic TV.
-C = linop.FiniteDifference(input_shape=tangle.shape, append=0)
+# which is used so that g(Ax) corresponds to isotropic TV.
+D = linop.FiniteDifference(input_shape=tangle.shape, append=0)
 g = λ * functional.L21Norm()
-
-f = loss.SquaredL2Loss(y=y, A=A)
-
-x0 = A.T(y)
+f = loss.SquaredL2Loss(y=y, A=C)
 
 solver = ADMM(
     f=f,
     g_list=[g],
-    C_list=[C],
+    C_list=[D],
     rho_list=[ρ],
-    x0=x0,
+    x0=C.T(y),
     maxiter=maxiter,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": cg_tol, "maxiter": cg_maxiter}),
     itstat_options={"display": True, "period": 5},
@@ -82,9 +83,8 @@ solver = ADMM(
 Run the solver.
 """
 print(f"Solving on {device_info()}\n")
-solver.solve()
+tangle_recon = solver.solve()
 hist = solver.itstat_object.history(transpose=True)
-tangle_recon = solver.x
 
 print(
     "TV Restruction\nSNR: %.2f (dB), MAE: %.3f"
@@ -95,13 +95,20 @@ print(
 """
 Show the recovered image.
 """
-fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(7, 5))
-plot.imview(tangle[32], title="Ground truth (central slice)", cbar=None, fig=fig, ax=ax[0])
-
+fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(7, 6))
+plot.imview(
+    tangle[32],
+    title="Ground truth (central slice)",
+    cmap=plot.cm.Blues,
+    cbar=None,
+    fig=fig,
+    ax=ax[0],
+)
 plot.imview(
     tangle_recon[32],
     title="TV Reconstruction (central slice)\nSNR: %.2f (dB), MAE: %.3f"
     % (metric.snr(tangle, tangle_recon), metric.mae(tangle, tangle_recon)),
+    cmap=plot.cm.Blues,
     fig=fig,
     ax=ax[1],
 )

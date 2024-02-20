@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2023 by SCICO Developers
+# Copyright (C) 2022-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SPORCO package. Details of the copyright
 # and user license can be found in the 'LICENSE.txt' file distributed
@@ -16,6 +16,8 @@ from types import ModuleType
 from typing import Callable, Iterable, Optional
 
 import jax.numpy as jnp
+
+import scico.numpy as snp
 
 from ._blockarray import BlockArray
 
@@ -83,9 +85,7 @@ def map_func_over_tuple_of_tuples(func: Callable, map_arg_name: Optional[str] = 
 
         map_arg_val = bound_args.arguments.pop(map_arg_name)
 
-        if not isinstance(map_arg_val, tuple) or not all(
-            isinstance(x, tuple) for x in map_arg_val
-        ):  # not nested tuple
+        if not snp.util.is_nested(map_arg_val):  # not nested tuple
             return func(*args, **kwargs)  # no mapping
 
         # map
@@ -96,6 +96,32 @@ def map_func_over_tuple_of_tuples(func: Callable, map_arg_name: Optional[str] = 
     return mapped
 
 
+def _num_blocks_in_args(*args, **kwargs):
+    """Count the number of BlockArray arguments."""
+    first_ba_arg = next((arg for arg in args if isinstance(arg, BlockArray)), None)
+    if first_ba_arg is None:
+        first_ba_kwarg = next((v for k, v in kwargs.items() if isinstance(v, BlockArray)), None)
+        if first_ba_kwarg is None:
+            num_blocks = 0
+        else:
+            num_blocks = len(first_ba_kwarg)
+    else:
+        num_blocks = len(first_ba_arg)
+    return num_blocks
+
+
+def _block_args_kwargs(num_blocks, *args, **kwargs):
+    """Construct nested args/kwargs for each BlockArray block."""
+    new_args = []
+    new_kwargs = []
+    for i in range(num_blocks):
+        new_args.append([arg[i] if isinstance(arg, BlockArray) else arg for arg in args])
+        new_kwargs.append(
+            {k: (v[i] if isinstance(v, BlockArray) else v) for k, v in kwargs.items()}
+        )
+    return new_args, new_kwargs
+
+
 def map_func_over_blocks(func):
     """Wrap a function so that it maps over all of its BlockArray
     arguments.
@@ -103,27 +129,30 @@ def map_func_over_blocks(func):
 
     @wraps(func)
     def mapped(*args, **kwargs):
-
-        first_ba_arg = next((arg for arg in args if isinstance(arg, BlockArray)), None)
-        if first_ba_arg is None:
-            first_ba_kwarg = next((v for k, v in kwargs.items() if isinstance(v, BlockArray)), None)
-            if first_ba_kwarg is None:
-                return func(*args, **kwargs)  # no BlockArray arguments, so no mapping
-            num_blocks = len(first_ba_kwarg)
-        else:
-            num_blocks = len(first_ba_arg)
-
-        # build a list of new args and kwargs, one for each block
-        new_args_list = []
-        new_kwargs_list = []
-        for i in range(num_blocks):
-            new_args_list.append([arg[i] if isinstance(arg, BlockArray) else arg for arg in args])
-            new_kwargs_list.append(
-                {k: (v[i] if isinstance(v, BlockArray) else v) for k, v in kwargs.items()}
-            )
-
+        num_blocks = _num_blocks_in_args(*args, **kwargs)
+        if num_blocks == 0:
+            return func(*args, **kwargs)  # no BlockArray arguments, so no mapping
+        new_args, new_kwargs = _block_args_kwargs(num_blocks, *args, **kwargs)
         # run the function num_blocks times, return results in a BlockArray
-        return BlockArray(func(*new_args_list[i], **new_kwargs_list[i]) for i in range(num_blocks))
+        return BlockArray(func(*new_args[i], **new_kwargs[i]) for i in range(num_blocks))
+
+    return mapped
+
+
+def map_void_func_over_blocks(func):
+    """Wrap a function without a return value so that it maps over all
+    of its BlockArray arguments.
+    """
+
+    @wraps(func)
+    def mapped(*args, **kwargs):
+        num_blocks = _num_blocks_in_args(*args, **kwargs)
+        if num_blocks == 0:
+            func(*args, **kwargs)  # no BlockArray arguments, so no mapping
+        else:
+            new_args, new_kwargs = _block_args_kwargs(num_blocks, *args, **kwargs)
+            # run the function num_blocks times
+            [func(*new_args[i], **new_kwargs[i]) for i in range(num_blocks)]
 
     return mapped
 
