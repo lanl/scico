@@ -5,27 +5,13 @@
 # with the package.
 
 r"""
-Total Variation Denoising with Approximate Proximal Operator
+Denoising with Approximate Total Variation Proximal Operator
 ============================================================
 
-This example compares denoising via isotropic and anisotropic total
-variation (TV) regularization :cite:`rudin-1992-nonlinear`
-:cite:`goldstein-2009-split` via the optimization problem
-
-  $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - \mathbf{x}
-  \|_2^2 + \lambda R(\mathbf{x}) \;,$$
-
-where $R$ is either the isotropic or anisotropic TV regularizer.
-Two different algorithms are used to solve these problems: the most
-common approach, making use of variable splitting (e.g. see examples
-using [ADMM](denoise_tv_admm.rst) and
-[Proximal ADMM](denoise_tv_multi.rst)), and via use of an approximatation
-to the proximal operator of the TV norm, as implemented in
-[IsotropicTVNorm](../_autosummary/scico.functional.rst#scico.functional.IsotropicTVNorm)
-and
-[AnisotropicTVNorm](../_autosummary/scico.functional.rst#scico.functional.AnisotropicTVNorm),
-allowing the use of the proximal gradient method, which does not support
-variable splitting.
+This example demonstrates use of approximations to the proximal
+operators of isotropic :cite:`kamilov-2016-minimizing` and anisotropic
+:cite:`kamilov-2016-parallel` total variation norms for solving
+denoising problems using proximal algorithms.
 """
 
 
@@ -108,7 +94,7 @@ the TV norm proximal operator.
 """
 h = λ_iso * functional.IsotropicTVNorm()
 solver = AcceleratedPGM(
-    f=f, g=h, L0=3e2, x0=y, maxiter=250, itstat_options={"display": True, "period": 20}
+    f=f, g=h, L0=1e3, x0=y, maxiter=500, itstat_options={"display": True, "period": 50}
 )
 x_iso_aprx = solver.solve()
 print()
@@ -120,7 +106,7 @@ of the TV norm proximal operator.
 """
 h = λ_aniso * functional.AnisotropicTVNorm()
 solver = AcceleratedPGM(
-    f=f, g=h, L0=3e2, x0=y, maxiter=250, itstat_options={"display": True, "period": 20}
+    f=f, g=h, L0=1e3, x0=y, maxiter=500, itstat_options={"display": True, "period": 50}
 )
 x_aniso_aprx = solver.solve()
 print()

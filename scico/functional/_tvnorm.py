@@ -1,50 +1,82 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2023 by SCICO Developers
+# Copyright (C) 2023-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Anisotropic total variation norm."""
+"""Total variation norms."""
 
 from typing import Optional, Tuple
 
 from scico import numpy as snp
 from scico.linop import (
     CircularConvolve,
+    Convolve,
     FiniteDifference,
     LinearOperator,
+    Pad,
     VerticalStack,
 )
 from scico.numpy import Array
-from scico.typing import DType
 
 from ._functional import Functional
 from ._norm import L1Norm, L21Norm
 
 
-class AbstractTVNorm(Functional):
-    """Abstract base class for total variation (TV) norms.
+class TVNorm(Functional):
+    r"""Generic total variation (TV) norm.
 
-    Abstract base class for total variation (TV) norms with
-    proximal operators approximations.
+    Generic total variation (TV) norm with approximation of the scaled
+    proximal operator :cite:`kamilov-2016-parallel`
+    :cite:`kamilov-2016-minimizing`.
     """
 
     has_eval = True
     has_prox = True
 
-    def __init__(self, ndims: Optional[int] = None):
+    def __init__(self, norm: Functional, circular: bool = False, ndims: Optional[int] = None):
         """
         Args:
+            norm: Norm functional from which the TV norm is composed.
+            circular: Flag indicating use of circular boundary conditions.
             ndims: Number of (trailing) dimensions of the input over
                 which to apply the finite difference operator. If
                 ``None``, differences are evaluated along all axes.
         """
+        self.norm = norm
+        self.circular = circular
         self.ndims = ndims
         self.h0 = snp.array([1.0, 1.0]) / snp.sqrt(2.0)  # lowpass filter
         self.h1 = snp.array([1.0, -1.0]) / snp.sqrt(2.0)  # highpass filter
         self.G: Optional[LinearOperator] = None
         self.W: Optional[LinearOperator] = None
+
+    def __call__(self, x: Array) -> float:
+        r"""Compute the TV norm of an array.
+
+        Args:
+            x: Array for which the TV norm should be computed.
+
+        Returns:
+              TV norm of `x`.
+        """
+        if self.G is None or self.G.shape[1] != x.shape:
+            if self.ndims is None:
+                ndims = x.ndim
+            else:
+                ndims = self.ndims
+            axes = tuple(range(ndims))
+            append = None if self.circular else 0
+            self.G = FiniteDifference(
+                x.shape,
+                input_dtype=x.dtype,
+                axes=axes,
+                circular=self.circular,
+                append=append,
+                jit=True,
+            )
+        return self.norm(self.G @ x)
 
     @staticmethod
     def _shape(idx: int, ndims: int) -> Tuple:
@@ -55,39 +87,79 @@ class AbstractTVNorm(Functional):
         """
         return (1,) * idx + (-1,) + (1,) * (ndims - idx - 1)
 
-    def _construct_W(self, shape: Tuple, dtype: DType, ndims: int) -> VerticalStack:
-        """Construct a partial shift-invariant Haar transform operator.
+    @staticmethod
+    def _center(idx: int, ndims: int) -> Tuple:
+        """Construct a center tuple.
 
-        Construct a single-level shift-invariant Haar transform operator.
+        Construct a tuple of size `ndims` with all zero entries except
+        for index `idx`, which has a unit entry.
         """
-        h0 = self.h0.astype(dtype)
-        h1 = self.h1.astype(dtype)
-        C0 = VerticalStack(  # Stack of lowpass filter operators for each axis
-            [
-                CircularConvolve(
-                    h0.reshape(AbstractTVNorm._shape(k, ndims)),
-                    shape,
-                    ndims=self.ndims,
-                )
-                for k in range(ndims)
-            ]
-        )
-        C1 = VerticalStack(  # Stack of highpass filter operators for each axis
-            [
-                CircularConvolve(
-                    h1.reshape(AbstractTVNorm._shape(k, ndims)),
-                    shape,
-                    ndims=self.ndims,
-                )
-                for k in range(ndims)
-            ]
-        )
-        # single-level shift-invariant Haar transform
-        W = VerticalStack([C0, C1], jit=True)
-        return W
+        return (0,) * idx + (1,) + (0,) * (ndims - idx - 1)
+
+    @staticmethod
+    def _pad(idx: int, ndims: int) -> Tuple:
+        """Construct a padding specification tuple.
+
+        Construct a tuple of size `ndims` with all (0, 0) entries except
+        for index `idx`, which has a (0, 1) entry.
+        """
+        return ((0, 0),) * idx + ((0, 1),) + ((0, 0),) * (ndims - idx - 1)
+
+    def prox(self, v: Array, lam: float = 1.0, **kwargs) -> Array:
+        r"""Approximate proximal operator of the TV norm.
+
+        Approximation of the proximal operator of the TV norm, computed
+        via the methods described in :cite:`kamilov-2016-parallel`
+        :cite:`kamilov-2016-minimizing`.
+
+        Args:
+            v: Input array :math:`\mb{v}`.
+            lam: Proximal parameter :math:`\lam`.
+            kwargs: Additional arguments that may be used by derived
+                classes.
+        """
+        if self.ndims is None:
+            ndims = v.ndim
+        else:
+            ndims = self.ndims
+        K = 2 * ndims
+
+        if self.W is None or self.W.shape[1] != v.shape:
+            h0 = self.h0.astype(v.dtype)
+            h1 = self.h1.astype(v.dtype)
+            if self.circular:
+
+                def ConvOp(h, k):
+                    return CircularConvolve(
+                        h.reshape(TVNorm._shape(k, ndims)),
+                        v.shape,
+                        ndims=ndims,
+                        h_center=TVNorm._center(k, ndims),
+                    )
+
+            else:
+
+                def ConvOp(h, k):
+                    C = Convolve(h.reshape(TVNorm._shape(k, ndims)), v.shape, mode="valid")
+                    P = Pad(C.output_shape, TVNorm._pad(k, ndims))
+                    return P @ C
+
+            C0 = VerticalStack(  # stack of lowpass filter operators for each axis
+                [ConvOp(h0, k) for k in range(ndims)]
+            )
+            C1 = VerticalStack(  # stack of highpass filter operators for each axis
+                [ConvOp(h1, k) for k in range(ndims)]
+            )
+            # single-level shift-invariant Haar transform
+            self.W = VerticalStack([C0, C1], jit=True)
+
+        Wv = self.W @ v
+        # Apply appropriate shrinkage to highpass component of shift-invariant Haar transform
+        Wv = Wv.at[1].set(self.norm.prox(Wv[1], snp.sqrt(2) * K * lam))
+        return (1.0 / K) * self.W.T @ Wv
 
 
-class AnisotropicTVNorm(AbstractTVNorm):
+class AnisotropicTVNorm(TVNorm):
     r"""The anisotropic total variation (TV) norm.
 
     The anisotropic total variation (TV) norm computed by
@@ -118,57 +190,18 @@ class AnisotropicTVNorm(AbstractTVNorm):
     in the `rho_list` algorithm parameter.
     """
 
-    def __init__(self, ndims: Optional[int] = None):
+    def __init__(self, circular: bool = False, ndims: Optional[int] = None):
         """
         Args:
+            circular: Flag indicating use of circular boundary conditions.
             ndims: Number of (trailing) dimensions of the input over
                 which to apply the finite difference operator. If
                 ``None``, differences are evaluated along all axes.
         """
-        super().__init__(ndims=ndims)
-        self.l1norm = L1Norm()
-
-    def __call__(self, x: Array) -> float:
-        """Compute the anisotropic TV norm of an array."""
-        if self.G is None or self.G.shape[1] != x.shape:
-            if self.ndims is None:
-                ndims = x.ndim
-            else:
-                ndims = self.ndims
-            axes = tuple(range(ndims))
-            self.G = FiniteDifference(
-                x.shape, input_dtype=x.dtype, axes=axes, circular=True, jit=True
-            )
-        return self.l1norm(self.G @ x)
-
-    def prox(self, v: Array, lam: float = 1.0, **kwargs) -> Array:
-        r"""Approximate proximal operator of the isotropic  TV norm.
-
-        Approximation of the proximal operator of the anisotropic TV norm,
-        computed via the method described in :cite:`kamilov-2016-parallel`.
-
-        Args:
-            v: Input array :math:`\mb{v}`.
-            lam: Proximal parameter :math:`\lam`.
-            kwargs: Additional arguments that may be used by derived
-                classes.
-        """
-        if self.ndims is None:
-            ndims = v.ndim
-        else:
-            ndims = self.ndims
-        K = 2 * ndims
-
-        if self.W is None or self.W.shape[1] != v.shape:
-            self.W = self._construct_W(v.shape, v.dtype, ndims)
-
-        Wv = self.W @ v
-        # Apply 𝑙1 shrinkage to highpass component of shift-invariant Haar transform
-        Wv = Wv.at[1].set(self.l1norm.prox(Wv[1], snp.sqrt(2) * K * lam))
-        return (1.0 / K) * self.W.T @ Wv
+        super().__init__(L1Norm(), circular=circular, ndims=ndims)
 
 
-class IsotropicTVNorm(AbstractTVNorm):
+class IsotropicTVNorm(TVNorm):
     r"""The isotropic total variation (TV) norm.
 
     The isotropic total variation (TV) norm computed by
@@ -199,51 +232,12 @@ class IsotropicTVNorm(AbstractTVNorm):
     in the `rho_list` algorithm parameter.
     """
 
-    def __init__(self, ndims: Optional[int] = None):
+    def __init__(self, circular: bool = False, ndims: Optional[int] = None):
         r"""
         Args:
+            circular: Flag indicating use of circular boundary conditions.
             ndims: Number of (trailing) dimensions of the input over
                 which to apply the finite difference operator. If
                 ``None``, differences are evaluated along all axes.
         """
-        super().__init__(ndims=ndims)
-        self.l21norm = L21Norm()
-
-    def __call__(self, x: Array) -> float:
-        r"""Compute the isotropic TV norm of an array."""
-        if self.G is None or self.G.shape[1] != x.shape:
-            if self.ndims is None:
-                ndims = x.ndim
-            else:
-                ndims = self.ndims
-            axes = tuple(range(ndims))
-            self.G = FiniteDifference(
-                x.shape, input_dtype=x.dtype, axes=axes, circular=True, jit=True
-            )
-        return self.l21norm(self.G @ x)
-
-    def prox(self, v: Array, lam: float = 1.0, **kwargs) -> Array:
-        r"""Approximate proximal operator of the isotropic  TV norm.
-
-        Approximation of the proximal operator of the isotropic TV norm,
-        computed via the method described in :cite:`kamilov-2016-parallel`.
-
-        Args:
-            v: Input array :math:`\mb{v}`.
-            lam: Proximal parameter :math:`\lam`.
-            kwargs: Additional arguments that may be used by derived
-                classes.
-        """
-        if self.ndims is None:
-            ndims = v.ndim
-        else:
-            ndims = self.ndims
-        K = 2 * ndims
-
-        if self.W is None or self.W.shape[1] != v.shape:
-            self.W = self._construct_W(v.shape, v.dtype, ndims)
-
-        Wv = self.W @ v
-        # Apply 𝑙21 shrinkage to highpass component of shift-invariant Haar transform
-        Wv = Wv.at[1].set(self.l21norm.prox(Wv[1], snp.sqrt(2) * K * lam))
-        return (1.0 / K) * self.W.T @ Wv
+        super().__init__(L21Norm(), circular=circular, ndims=ndims)
