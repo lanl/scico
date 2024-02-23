@@ -21,7 +21,8 @@ from xdesign import SiemensStar, discrete_phantom
 import scico.numpy as snp
 import scico.random
 from scico import functional, linop, loss, metric, plot
-from scico.optimize import AcceleratedPGM, ProximalADMM
+from scico.optimize import AcceleratedPGM
+from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
 """
@@ -42,24 +43,22 @@ y = x_gt + σ * noise
 
 
 """
-Denoise with isotropic total variation, solved via Proximal ADMM.
+Denoise with isotropic total variation, solved via ADMM.
 """
 λ_iso = 1.0e0
 f = loss.SquaredL2Loss(y=y)
 g_iso = λ_iso * functional.L21Norm()
 C = linop.FiniteDifference(input_shape=x_gt.shape, circular=True)
-mu, nu = ProximalADMM.estimate_parameters(C)
 
-solver = ProximalADMM(
+solver = ADMM(
     f=f,
-    g=g_iso,
-    A=C,
-    rho=8e0,
-    mu=mu,
-    nu=nu,
+    g_list=[g_iso],
+    C_list=[C],
+    rho_list=[1e1],
     x0=y,
-    maxiter=500,
-    itstat_options={"display": True, "period": 50},
+    maxiter=200,
+    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-4, "maxiter": 25}),
+    itstat_options={"display": True, "period": 25},
 )
 print(f"Solving on {device_info()}\n")
 x_iso = solver.solve()
@@ -67,22 +66,21 @@ print()
 
 
 """
-Denoise with anisotropic total variation, solved via Proximal ADMM.
+Denoise with anisotropic total variation, solved via ADMM.
 """
 # Tune the weight to give the same data fidelity as the isotropic case.
 λ_aniso = 8.68e-1
 g_aniso = λ_aniso * functional.L1Norm()
 
-solver = ProximalADMM(
+solver = ADMM(
     f=f,
-    g=g_aniso,
-    A=C,
-    rho=8e0,
-    mu=mu,
-    nu=nu,
+    g_list=[g_aniso],
+    C_list=[C],
+    rho_list=[1e1],
     x0=y,
-    maxiter=500,
-    itstat_options={"display": True, "period": 50},
+    maxiter=200,
+    subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-4, "maxiter": 25}),
+    itstat_options={"display": True, "period": 25},
 )
 x_aniso = solver.solve()
 print()
