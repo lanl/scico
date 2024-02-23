@@ -1,19 +1,10 @@
 import numpy as np
 
-import pytest
-
-try:
-    from xdesign import SiemensStar, discrete_phantom
-
-    have_xdesign = True
-except ImportError:
-    have_xdesign = False
-
-import scico.numpy as snp
 import scico.random
 from scico import functional, linop, loss, metric
-from scico.optimize import AcceleratedPGM, ProximalADMM
+from scico.examples import create_circular_phantom
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
+from scico.optimize.pgm import AcceleratedPGM
 
 
 def test_aniso_1d():
@@ -46,20 +37,17 @@ def test_aniso_1d():
     solver = AcceleratedPGM(f=f, g=h, L0=2e2, x0=y, maxiter=50)
     x_approx = solver.solve()
 
-    assert metric.snr(x_tvdn, x_approx) > 45
+    assert metric.snr(x_tvdn, x_approx) > 50
+    assert metric.rel_res(g(C(x_tvdn)), h(x_tvdn)) < 1e-6
 
 
-@pytest.mark.skipif(not have_xdesign, reason="xdesign package not installed")
 class Test2D:
     def setup_method(self):
-        N = 128
-        σ = 0.25
-        phantom = SiemensStar(16)
-        x_gt = snp.pad(discrete_phantom(phantom, N - 16), 8)
-        x_gt = x_gt / x_gt.max()
+        N = 32
+        x_gt = create_circular_phantom((N, N), [0.4 * N, 0.2 * N, 0.1 * N], [1, 0, 0.5])
+        σ = 0.02
         noise, key = scico.random.randn(x_gt.shape, seed=0)
         y = x_gt + σ * noise
-
         self.x_gt = x_gt
         self.y = y
 
@@ -67,25 +55,23 @@ class Test2D:
         x_gt = self.x_gt
         y = self.y
 
-        λ = 2e-1
+        λ = 5e-2
         f = loss.SquaredL2Loss(y=y)
         g = λ * functional.L1Norm()
         C = linop.FiniteDifference(input_shape=x_gt.shape, circular=True)
 
-        mu, nu = ProximalADMM.estimate_parameters(C)
-        solver = ProximalADMM(
+        solver = ADMM(
             f=f,
-            g=g,
-            A=C,
-            rho=1e0,
-            mu=mu,
-            nu=nu,
+            g_list=[g],
+            C_list=[C],
+            rho_list=[1e1],
             x0=y,
-            maxiter=200,
+            maxiter=100,
+            subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-4, "maxiter": 25}),
         )
-        x = solver.solve()
+        x_tvdn = solver.solve()
 
-        h = λ * functional.AnisotropicTVNorm()
+        h = λ * functional.AnisotropicTVNorm(circular=True)
         solver = AcceleratedPGM(
             f=f,
             g=h,
@@ -95,31 +81,30 @@ class Test2D:
         )
         x_aprx = solver.solve()
 
-        assert metric.snr(x, x_aprx) > 30.0
+        assert metric.snr(x_tvdn, x_aprx) > 50
+        assert metric.rel_res(g(C(x_tvdn)), h(x_tvdn)) < 1e-6
 
     def test_iso(self):
         x_gt = self.x_gt
         y = self.y
 
-        λ = 2e-1
+        λ = 5e-2
         f = loss.SquaredL2Loss(y=y)
         g = λ * functional.L21Norm()
         C = linop.FiniteDifference(input_shape=x_gt.shape, circular=True)
 
-        mu, nu = ProximalADMM.estimate_parameters(C)
-        solver = ProximalADMM(
+        solver = ADMM(
             f=f,
-            g=g,
-            A=C,
-            rho=1e0,
-            mu=mu,
-            nu=nu,
+            g_list=[g],
+            C_list=[C],
+            rho_list=[1e1],
             x0=y,
-            maxiter=200,
+            maxiter=100,
+            subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-4, "maxiter": 25}),
         )
-        x = solver.solve()
+        x_tvdn = solver.solve()
 
-        h = λ * functional.IsotropicTVNorm()
+        h = λ * functional.IsotropicTVNorm(circular=True)
         solver = AcceleratedPGM(
             f=f,
             g=h,
@@ -129,4 +114,5 @@ class Test2D:
         )
         x_aprx = solver.solve()
 
-        assert metric.snr(x, x_aprx) > 20.0
+        assert metric.snr(x_tvdn, x_aprx) > 50
+        assert metric.rel_res(g(C(x_tvdn)), h(x_tvdn)) < 1e-6
