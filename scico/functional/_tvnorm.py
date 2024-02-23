@@ -12,10 +12,8 @@ from typing import Optional, Tuple
 from scico import numpy as snp
 from scico.linop import (
     CircularConvolve,
-    Convolve,
     FiniteDifference,
     LinearOperator,
-    Pad,
     VerticalStack,
 )
 from scico.numpy import Array
@@ -35,7 +33,7 @@ class TVNorm(Functional):
     has_eval = True
     has_prox = True
 
-    def __init__(self, norm: Functional, circular: bool = False, ndims: Optional[int] = None):
+    def __init__(self, norm: Functional, circular: bool = True, ndims: Optional[int] = None):
         """
         Args:
             norm: Norm functional from which the TV norm is composed.
@@ -67,13 +65,11 @@ class TVNorm(Functional):
             else:
                 ndims = self.ndims
             axes = tuple(range(ndims))
-            append = None if self.circular else 0
             self.G = FiniteDifference(
                 x.shape,
                 input_dtype=x.dtype,
                 axes=axes,
                 circular=self.circular,
-                append=append,
                 jit=True,
             )
         return self.norm(self.G @ x)
@@ -95,15 +91,6 @@ class TVNorm(Functional):
         for index `idx`, which has a unit entry.
         """
         return (0,) * idx + (1,) + (0,) * (ndims - idx - 1)
-
-    @staticmethod
-    def _pad(idx: int, ndims: int) -> Tuple:
-        """Construct a padding specification tuple.
-
-        Construct a tuple of size `ndims` with all (0, 0) entries except
-        for index `idx`, which has a (0, 1) entry.
-        """
-        return ((0, 0),) * idx + ((0, 1),) + ((0, 0),) * (ndims - idx - 1)
 
     def prox(self, v: Array, lam: float = 1.0, **kwargs) -> Array:
         r"""Approximate proximal operator of the TV norm.
@@ -127,22 +114,13 @@ class TVNorm(Functional):
         if self.W is None or self.W.shape[1] != v.shape:
             h0 = self.h0.astype(v.dtype)
             h1 = self.h1.astype(v.dtype)
-            if self.circular:
 
-                def ConvOp(h, k):
-                    return CircularConvolve(
-                        h.reshape(TVNorm._shape(k, ndims)),
-                        v.shape,
-                        ndims=ndims,
-                        h_center=TVNorm._center(k, ndims),
-                    )
-
-            else:
-
-                def ConvOp(h, k):
-                    C = Convolve(h.reshape(TVNorm._shape(k, ndims)), v.shape, mode="valid")
-                    P = Pad(C.output_shape, TVNorm._pad(k, ndims))
-                    return P @ C
+            ConvOp = lambda h, k: CircularConvolve(
+                h.reshape(TVNorm._shape(k, ndims)),
+                v.shape,
+                ndims=ndims,
+                h_center=TVNorm._center(k, ndims),
+            )
 
             C0 = VerticalStack(  # stack of lowpass filter operators for each axis
                 [ConvOp(h0, k) for k in range(ndims)]
@@ -154,8 +132,14 @@ class TVNorm(Functional):
             self.W = VerticalStack([C0, C1], jit=True)
 
         Wv = self.W @ v
-        # Apply appropriate shrinkage to highpass component of shift-invariant Haar transform
-        Wv = Wv.at[1].set(self.norm.prox(Wv[1], snp.sqrt(2) * K * lam))
+
+        if self.circular:
+            slce = snp.s_[1]  # restrict to highpass component of shift-invariant Haar transform
+        else:
+            slce = (snp.s_[1], snp.s_[:],) + (
+                snp.s_[:-1],
+            ) * ndims  # also omit boundary samples
+        Wv = Wv.at[slce].set(self.norm.prox(Wv[slce], snp.sqrt(2) * K * lam))  # apply shrinkage
         return (1.0 / K) * self.W.T @ Wv
 
 
