@@ -134,12 +134,21 @@ class TVNorm(Functional):
         Wv = self.W @ v
 
         if self.circular:
-            slce = snp.s_[1]  # restrict to highpass component of shift-invariant Haar transform
+            # Apply shrinkage to highpass component of shift-invariant Haar transform
+            Wv = Wv.at[1].set(self.norm.prox(Wv[1], snp.sqrt(2) * K * lam))  # apply shrinkage
         else:
-            slce = (snp.s_[1], snp.s_[:],) + (
-                snp.s_[:-1],
-            ) * ndims  # also omit boundary samples
-        Wv = Wv.at[slce].set(self.norm.prox(Wv[slce], snp.sqrt(2) * K * lam))  # apply shrinkage
+            for k in range(ndims):
+                # Omit boundary-crossing differences for each axis
+                slce = (
+                    (
+                        1,
+                        k,
+                    )
+                    + (snp.s_[:],) * k
+                    + (snp.s_[:-1],)
+                    + (snp.s_[:],) * (ndims - k - 1)
+                )
+                Wv = Wv.at[slce].set(self.norm.prox(Wv[slce], snp.sqrt(2) * K * lam))
         return (1.0 / K) * self.W.T @ Wv
 
 

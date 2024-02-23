@@ -78,7 +78,7 @@ class Test2D:
             C_list=[C],
             rho_list=[1e1],
             x0=y,
-            maxiter=100,
+            maxiter=150,
             subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-4, "maxiter": 25}),
         )
         x_tvdn = solver.solve()
@@ -92,7 +92,7 @@ class Test2D:
             g=h,
             L0=1e3,
             x0=y,
-            maxiter=300,
+            maxiter=400,
         )
         x_aprx = solver.solve()
 
