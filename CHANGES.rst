@@ -7,6 +7,7 @@ Version 0.0.6   (unreleased)
 ----------------------------
 
 • Significant changes to ``linop.xray.astra`` API.
+• New functional ``functional.IsotropicTVNorm``.
 • Rename ``scico.flax.save_weights`` and ``scico.flax.load_weights`` to
   ``scico.flax.save_variables`` and ``scico.flax.load_variables``
   respectively.
@@ -16,9 +17,8 @@ Version 0.0.6   (unreleased)
 Version 0.0.5   (2023-12-18)
 ----------------------------
 
-• New functionals ``functional.AnisotropicTVNorm``,
-  ``functional.IsotropicTVNorm`` and ``functional.ProximalAverage`` with
-  proximal operator approximations.
+• New functionals ``functional.AnisotropicTVNorm`` and
+  ``functional.ProximalAverage`` with proximal operator approximations.
 • New integrated Radon/X-ray transform ``linop.XRayTransform``.
 • New operators ``operator.DiagonalStack`` and ``operator.VerticalStack``.
 • Rename modules ``radon_astra`` and ``radon_svmbir`` to ``xray.astra`` and
