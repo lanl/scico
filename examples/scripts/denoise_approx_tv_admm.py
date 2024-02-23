@@ -54,12 +54,12 @@ solver = ProximalADMM(
     f=f,
     g=g_iso,
     A=C,
-    rho=1e0,
+    rho=8e0,
     mu=mu,
     nu=nu,
     x0=y,
-    maxiter=200,
-    itstat_options={"display": True, "period": 20},
+    maxiter=500,
+    itstat_options={"display": True, "period": 50},
 )
 print(f"Solving on {device_info()}\n")
 x_iso = solver.solve()
@@ -77,12 +77,12 @@ solver = ProximalADMM(
     f=f,
     g=g_aniso,
     A=C,
-    rho=1e0,
+    rho=8e0,
     mu=mu,
     nu=nu,
     x0=y,
-    maxiter=200,
-    itstat_options={"display": True, "period": 20},
+    maxiter=500,
+    itstat_options={"display": True, "period": 50},
 )
 x_aniso = solver.solve()
 print()
