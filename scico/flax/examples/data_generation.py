@@ -221,7 +221,7 @@ def generate_ct_data(
     # Normalize sinogram
     sino = sino / size
 
-    # Compute filter back-project in parallel.
+    # Compute filtered back projection in parallel.
     afbp_map = lambda v: jnp.atleast_3d(A.fbp(v.squeeze()))
     start_time = time()
     fbpshd = jax.pmap(lambda i: jax.lax.map(afbp_map, sinoshd[i]))(jnp.arange(nproc))
