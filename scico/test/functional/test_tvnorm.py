@@ -1,5 +1,7 @@
 import numpy as np
 
+import pytest
+
 import scico.random
 from scico import functional, linop, loss, metric
 from scico.examples import create_circular_phantom
@@ -51,13 +53,17 @@ class Test2D:
         self.x_gt = x_gt
         self.y = y
 
-    def test_aniso(self):
+    @pytest.mark.parametrize("tvtype", ["aniso", "iso"])
+    def test_2d(self, tvtype):
         x_gt = self.x_gt
         y = self.y
 
         λ = 5e-2
         f = loss.SquaredL2Loss(y=y)
-        g = λ * functional.L1Norm()
+        if tvtype == "aniso":
+            g = λ * functional.L1Norm()
+        else:
+            g = λ * functional.L21Norm()
         C = linop.FiniteDifference(input_shape=x_gt.shape, circular=True)
 
         solver = ADMM(
@@ -71,40 +77,10 @@ class Test2D:
         )
         x_tvdn = solver.solve()
 
-        h = λ * functional.AnisotropicTVNorm(circular=True)
-        solver = AcceleratedPGM(
-            f=f,
-            g=h,
-            L0=1e3,
-            x0=y,
-            maxiter=300,
-        )
-        x_aprx = solver.solve()
-
-        assert metric.snr(x_tvdn, x_aprx) > 50
-        assert metric.rel_res(g(C(x_tvdn)), h(x_tvdn)) < 1e-6
-
-    def test_iso(self):
-        x_gt = self.x_gt
-        y = self.y
-
-        λ = 5e-2
-        f = loss.SquaredL2Loss(y=y)
-        g = λ * functional.L21Norm()
-        C = linop.FiniteDifference(input_shape=x_gt.shape, circular=True)
-
-        solver = ADMM(
-            f=f,
-            g_list=[g],
-            C_list=[C],
-            rho_list=[1e1],
-            x0=y,
-            maxiter=100,
-            subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-4, "maxiter": 25}),
-        )
-        x_tvdn = solver.solve()
-
-        h = λ * functional.IsotropicTVNorm(circular=True)
+        if tvtype == "aniso":
+            h = λ * functional.AnisotropicTVNorm(circular=True)
+        else:
+            h = λ * functional.IsotropicTVNorm(circular=True)
         solver = AcceleratedPGM(
             f=f,
             g=h,
