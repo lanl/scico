@@ -136,6 +136,11 @@ class TVNorm(Functional):
         w_input_shape = v.shape if self.circular else tuple([n + 1 for n in v.shape])
         if self.W is None or self.W.shape[1] != w_input_shape:
             self.W = self._haar_operator(ndims, w_input_shape, v.dtype)
+            if not self.circular:
+                P = Pad(v.shape, pad_width=(((0, 1),) * ndims), mode="edge")
+                self.WP = self.W @ P
+                C = Crop(crop_width=(((0, 1),) * ndims), input_shape=w_input_shape)
+                self.CWT = C @ self.W.T
 
         if self.circular:
             # Apply shrinkage to highpass component of shift-invariant Haar transform
@@ -145,15 +150,13 @@ class TVNorm(Functional):
         else:
             # Apply shrinkage to non-boundary region of highpass component of shift-invariant
             # Haar transform of padded input
-            P = Pad(v.shape, pad_width=(((0, 1),) * ndims), mode="edge")
-            C = Crop(crop_width=(((0, 1),) * ndims), input_shape=w_input_shape)
-            WPv = self.W(P(v))
+            WPv = self.WP(v)
             slce = (
                 1,
                 snp.s_[:],
             ) + (snp.s_[:-1],) * ndims
             WPv = WPv.at[slce].set(self.norm.prox(WPv[slce], snp.sqrt(2) * K * lam))
-            u = (1.0 / K) * C(self.W.T(WPv))
+            u = (1.0 / K) * self.CWT(WPv)
 
         return u
 
