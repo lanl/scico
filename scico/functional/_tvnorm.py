@@ -137,9 +137,9 @@ class TVNorm(Functional):
         if self.W is None or self.W.shape[1] != w_input_shape:
             self.W = self._haar_operator(ndims, w_input_shape, v.dtype)
             if not self.circular:
-                P = Pad(v.shape, pad_width=(((0, 1),) * ndims), mode="edge")
+                P = Pad(v.shape, pad_width=(((0, 1),) * ndims), mode="edge", jit=True)
                 self.WP = self.W @ P
-                C = Crop(crop_width=(((0, 1),) * ndims), input_shape=w_input_shape)
+                C = Crop(crop_width=(((0, 1),) * ndims), input_shape=w_input_shape, jit=True)
                 self.CWT = C @ self.W.T
 
         if self.circular:
