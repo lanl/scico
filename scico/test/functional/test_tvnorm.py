@@ -23,7 +23,9 @@ def test_aniso_1d(circular):
     λ = 5e-2
     f = loss.SquaredL2Loss(y=y)
 
-    C = linop.FiniteDifference(input_shape=x_gt.shape, circular=circular)
+    C = linop.FiniteDifference(
+        input_shape=x_gt.shape, circular=circular, append=None if circular else 0
+    )
     g = λ * functional.L1Norm()
     solver = ADMM(
         f=f,
@@ -70,7 +72,9 @@ class Test2D:
             g = λ * functional.L1Norm()
         else:
             g = λ * functional.L21Norm()
-        C = linop.FiniteDifference(input_shape=x_gt.shape, circular=circular)
+        C = linop.FiniteDifference(
+            input_shape=x_gt.shape, circular=circular, append=None if circular else 0
+        )
 
         solver = ADMM(
             f=f,
@@ -87,6 +91,7 @@ class Test2D:
             h = λ * functional.AnisotropicTVNorm(circular=circular)
         else:
             h = λ * functional.IsotropicTVNorm(circular=circular)
+
         solver = AcceleratedPGM(
             f=f,
             g=h,

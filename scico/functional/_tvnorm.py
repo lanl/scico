@@ -12,8 +12,10 @@ from typing import Optional, Tuple
 from scico import numpy as snp
 from scico.linop import (
     CircularConvolve,
+    Crop,
     FiniteDifference,
     LinearOperator,
+    Pad,
     VerticalStack,
 )
 from scico.numpy import Array
@@ -70,6 +72,7 @@ class TVNorm(Functional):
                 input_dtype=x.dtype,
                 axes=axes,
                 circular=self.circular,
+                append=None if self.circular else 0,
                 jit=True,
             )
         return self.norm(self.G @ x)
@@ -92,6 +95,25 @@ class TVNorm(Functional):
         """
         return (0,) * idx + (1,) + (0,) * (ndims - idx - 1)
 
+    def _haar_operator(self, ndims, input_shape, input_dtype):
+        """Construct single-level shift-invariant Haar transform."""
+        h0 = self.h0.astype(input_dtype)
+        h1 = self.h1.astype(input_dtype)
+        ConvOp = lambda h, k: CircularConvolve(
+            h.reshape(TVNorm._shape(k, ndims)),
+            input_shape,
+            ndims=ndims,
+            h_center=TVNorm._center(k, ndims),
+        )
+        L = VerticalStack(  # stack of lowpass filter operators for each axis
+            [ConvOp(h0, k) for k in range(ndims)]
+        )
+        H = VerticalStack(  # stack of highpass filter operators for each axis
+            [ConvOp(h1, k) for k in range(ndims)]
+        )
+        # single-level shift-invariant Haar transform
+        return VerticalStack([L, H], jit=True)
+
     def prox(self, v: Array, lam: float = 1.0, **kwargs) -> Array:
         r"""Approximate proximal operator of the TV norm.
 
@@ -111,45 +133,29 @@ class TVNorm(Functional):
             ndims = self.ndims
         K = 2 * ndims
 
-        if self.W is None or self.W.shape[1] != v.shape:
-            h0 = self.h0.astype(v.dtype)
-            h1 = self.h1.astype(v.dtype)
-
-            ConvOp = lambda h, k: CircularConvolve(
-                h.reshape(TVNorm._shape(k, ndims)),
-                v.shape,
-                ndims=ndims,
-                h_center=TVNorm._center(k, ndims),
-            )
-
-            C0 = VerticalStack(  # stack of lowpass filter operators for each axis
-                [ConvOp(h0, k) for k in range(ndims)]
-            )
-            C1 = VerticalStack(  # stack of highpass filter operators for each axis
-                [ConvOp(h1, k) for k in range(ndims)]
-            )
-            # single-level shift-invariant Haar transform
-            self.W = VerticalStack([C0, C1], jit=True)
-
-        Wv = self.W @ v
+        w_input_shape = v.shape if self.circular else tuple([n + 1 for n in v.shape])
+        if self.W is None or self.W.shape[1] != w_input_shape:
+            self.W = self._haar_operator(ndims, w_input_shape, v.dtype)
 
         if self.circular:
             # Apply shrinkage to highpass component of shift-invariant Haar transform
-            Wv = Wv.at[1].set(self.norm.prox(Wv[1], snp.sqrt(2) * K * lam))  # apply shrinkage
+            Wv = self.W(v)
+            Wv = Wv.at[1].set(self.norm.prox(Wv[1], snp.sqrt(2) * K * lam))
+            u = (1.0 / K) * self.W.T(Wv)
         else:
-            for k in range(ndims):
-                # Omit boundary-crossing differences for each axis
-                slce = (
-                    (
-                        1,
-                        k,
-                    )
-                    + (snp.s_[:],) * k
-                    + (snp.s_[:-1],)
-                    + (snp.s_[:],) * (ndims - k - 1)
-                )
-                Wv = Wv.at[slce].set(self.norm.prox(Wv[slce], snp.sqrt(2) * K * lam))
-        return (1.0 / K) * self.W.T @ Wv
+            # Apply shrinkage to non-boundary region of highpass component of shift-invariant
+            # Haar transform of padded input
+            P = Pad(v.shape, pad_width=(((0, 1),) * ndims), mode="edge")
+            C = Crop(crop_width=(((0, 1),) * ndims), input_shape=w_input_shape)
+            WPv = self.W(P(v))
+            slce = (
+                1,
+                snp.s_[:],
+            ) + (snp.s_[:-1],) * ndims
+            WPv = WPv.at[slce].set(self.norm.prox(WPv[slce], snp.sqrt(2) * K * lam))
+            u = (1.0 / K) * C(self.W.T(WPv))
+
+        return u
 
 
 class AnisotropicTVNorm(TVNorm):
