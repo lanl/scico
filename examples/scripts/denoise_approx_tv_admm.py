@@ -90,7 +90,7 @@ print()
 Denoise with isotropic total variation, solved using an approximation of
 the TV norm proximal operator.
 """
-h = λ_iso * functional.IsotropicTVNorm()
+h = λ_iso * functional.IsotropicTVNorm(circular=True, input_shape=y.shape)
 solver = AcceleratedPGM(
     f=f, g=h, L0=1e3, x0=y, maxiter=500, itstat_options={"display": True, "period": 50}
 )
@@ -102,7 +102,7 @@ print()
 Denoise with anisotropic total variation, solved using an approximation
 of the TV norm proximal operator.
 """
-h = λ_aniso * functional.AnisotropicTVNorm()
+h = λ_aniso * functional.AnisotropicTVNorm(circular=True, input_shape=y.shape)
 solver = AcceleratedPGM(
     f=f, g=h, L0=1e3, x0=y, maxiter=500, itstat_options={"display": True, "period": 50}
 )

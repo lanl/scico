@@ -38,7 +38,7 @@ def test_aniso_1d(circular):
     )
     x_tvdn = solver.solve()
 
-    h = λ * functional.AnisotropicTVNorm(circular=circular)
+    h = λ * functional.AnisotropicTVNorm(circular=circular, input_shape=y.shape)
     solver = AcceleratedPGM(f=f, g=h, L0=5e2, x0=y, maxiter=100)
     x_approx = solver.solve()
 
@@ -88,9 +88,9 @@ class Test2D:
         x_tvdn = solver.solve()
 
         if tvtype == "aniso":
-            h = λ * functional.AnisotropicTVNorm(circular=circular)
+            h = λ * functional.AnisotropicTVNorm(circular=circular, input_shape=y.shape)
         else:
-            h = λ * functional.IsotropicTVNorm(circular=circular)
+            h = λ * functional.IsotropicTVNorm(circular=circular, input_shape=y.shape)
 
         solver = AcceleratedPGM(
             f=f,
@@ -148,9 +148,9 @@ class Test3D:
         x_tvdn = solver.solve()
 
         if tvtype == "aniso":
-            h = λ * functional.AnisotropicTVNorm(circular=circular, ndims=2)
+            h = λ * functional.AnisotropicTVNorm(circular=circular, ndims=2, input_shape=y.shape)
         else:
-            h = λ * functional.IsotropicTVNorm(circular=circular, ndims=2)
+            h = λ * functional.IsotropicTVNorm(circular=circular, ndims=2, input_shape=y.shape)
 
         solver = AcceleratedPGM(
             f=f,

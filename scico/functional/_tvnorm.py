@@ -19,6 +19,7 @@ from scico.linop import (
     VerticalStack,
 )
 from scico.numpy import Array
+from scico.typing import DType, Shape
 
 from ._functional import Functional
 from ._norm import L1Norm, L21Norm
@@ -35,14 +36,36 @@ class TVNorm(Functional):
     has_eval = True
     has_prox = True
 
-    def __init__(self, norm: Functional, circular: bool = True, ndims: Optional[int] = None):
+    def __init__(
+        self,
+        norm: Functional,
+        circular: bool = True,
+        ndims: Optional[int] = None,
+        input_shape: Optional[Shape] = None,
+        input_dtype: DType = snp.float32,
+    ):
         """
+        While initializers for :class:`.Functional` objects typically do
+        not take `input_shape` and `input_dtype` parameters, they are
+        included here because methods :meth:`__call__` and :meth:`prox`
+        require instantiation of some :class:`.LinearOperator` objects,
+        which do take these parameters. If these parameters are not
+        provided on intialization of a :class:`TVNorm` object, then
+        creation of the required :class:`.LinearOperator` objects is
+        deferred until these methods are called, which can result in
+        `JAX tracer <https://jax.readthedocs.io/en/latest/notebooks/thinking_in_jax.html#jit-mechanics-tracing-and-static-variables>`__
+        errors when they are components of a jitted function.
+
         Args:
             norm: Norm functional from which the TV norm is composed.
             circular: Flag indicating use of circular boundary conditions.
             ndims: Number of (trailing) dimensions of the input over
                 which to apply the finite difference operator. If
                 ``None``, differences are evaluated along all axes.
+            input_shape: Shape of input arrays of :meth:`__call__` and
+                :meth:`prox`.
+            input_dtype: `dtype` of input arrays of :meth:`__call__` and
+                :meth:`prox`.
         """
         self.norm = norm
         self.circular = circular
@@ -51,6 +74,11 @@ class TVNorm(Functional):
         self.h1 = snp.array([1.0, -1.0]) / snp.sqrt(2.0)  # highpass filter
         self.G: Optional[LinearOperator] = None
         self.WP: Optional[LinearOperator] = None
+
+        if input_shape is not None:
+            if ndims is None:
+                ndims = len(input_shape)
+            self.WP, self.CWT = self._prox_operators(ndims, input_shape, input_dtype)
 
     def __call__(self, x: Array) -> float:
         r"""Compute the TV norm of an array.
@@ -171,7 +199,7 @@ class TVNorm(Functional):
             )
         # Apply shrinkage to highpass component of shift-invariant Haar transform
         # of padded input (or to non-boundary region thereof for non-circular
-        # boundary conditions)
+        # boundary conditions).
         WPv = self.WP(v)
         WPv = WPv.at[slce].set(self.norm.prox(WPv[slce], snp.sqrt(2) * K * lam))
         u = (1.0 / K) * self.CWT(WPv)
@@ -210,15 +238,31 @@ class AnisotropicTVNorm(TVNorm):
     in the `rho_list` algorithm parameter.
     """
 
-    def __init__(self, circular: bool = False, ndims: Optional[int] = None):
+    def __init__(
+        self,
+        circular: bool = False,
+        ndims: Optional[int] = None,
+        input_shape: Optional[Shape] = None,
+        input_dtype: DType = snp.float32,
+    ):
         """
         Args:
             circular: Flag indicating use of circular boundary conditions.
             ndims: Number of (trailing) dimensions of the input over
                 which to apply the finite difference operator. If
                 ``None``, differences are evaluated along all axes.
+            input_shape: Shape of input arrays of :meth:`~.TVNorm.__call__` and
+                :meth:`~.TVNorm.prox`.
+            input_dtype: `dtype` of input arrays of :meth:`~.TVNorm.__call__` and
+                :meth:`~.TVNorm.prox`.
         """
-        super().__init__(L1Norm(), circular=circular, ndims=ndims)
+        super().__init__(
+            L1Norm(),
+            circular=circular,
+            ndims=ndims,
+            input_shape=input_shape,
+            input_dtype=input_dtype,
+        )
 
 
 class IsotropicTVNorm(TVNorm):
@@ -252,12 +296,28 @@ class IsotropicTVNorm(TVNorm):
     in the `rho_list` algorithm parameter.
     """
 
-    def __init__(self, circular: bool = False, ndims: Optional[int] = None):
+    def __init__(
+        self,
+        circular: bool = False,
+        ndims: Optional[int] = None,
+        input_shape: Optional[Shape] = None,
+        input_dtype: DType = snp.float32,
+    ):
         r"""
         Args:
             circular: Flag indicating use of circular boundary conditions.
             ndims: Number of (trailing) dimensions of the input over
                 which to apply the finite difference operator. If
                 ``None``, differences are evaluated along all axes.
+            input_shape: Shape of input arrays of :meth:`~.TVNorm.__call__` and
+                :meth:`~.TVNorm.prox`.
+            input_dtype: `dtype` of input arrays of :meth:`~.TVNorm.__call__` and
+                :meth:`~.TVNorm.prox`.
         """
-        super().__init__(L21Norm(), circular=circular, ndims=ndims)
+        super().__init__(
+            L21Norm(),
+            circular=circular,
+            ndims=ndims,
+            input_shape=input_shape,
+            input_dtype=input_dtype,
+        )
