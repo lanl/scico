@@ -66,7 +66,7 @@ class TVNorm(Functional):
                 ndims = x.ndim
             else:
                 ndims = self.ndims
-            axes = tuple(range(ndims))
+            axes = tuple(range(x.ndim - ndims, x.ndim))
             self.G = FiniteDifference(
                 x.shape,
                 input_dtype=x.dtype,
@@ -133,13 +133,18 @@ class TVNorm(Functional):
             ndims = self.ndims
         K = 2 * ndims
 
-        w_input_shape = v.shape if self.circular else tuple([n + 1 for n in v.shape])
+        w_input_shape = (
+            v.shape
+            if self.circular
+            else v.shape[0 : (v.ndim - ndims)] + tuple([n + 1 for n in v.shape[-ndims:]])
+        )
         if self.W is None or self.W.shape[1] != w_input_shape:
             self.W = self._haar_operator(ndims, w_input_shape, v.dtype)
             if not self.circular:
-                P = Pad(v.shape, pad_width=(((0, 1),) * ndims), mode="edge", jit=True)
+                pad_width = ((0, 0),) * (v.ndim - ndims) + ((0, 1),) * ndims
+                P = Pad(v.shape, pad_width=pad_width, mode="edge", jit=True)
                 self.WP = self.W @ P
-                C = Crop(crop_width=(((0, 1),) * ndims), input_shape=w_input_shape, jit=True)
+                C = Crop(crop_width=pad_width, input_shape=w_input_shape, jit=True)
                 self.CWT = C @ self.W.T
 
         if self.circular:
@@ -152,9 +157,13 @@ class TVNorm(Functional):
             # Haar transform of padded input
             WPv = self.WP(v)
             slce = (
-                1,
-                snp.s_[:],
-            ) + (snp.s_[:-1],) * ndims
+                (
+                    1,
+                    snp.s_[:],
+                )
+                + (snp.s_[:],) * (v.ndim - ndims)
+                + (snp.s_[:-1],) * ndims
+            )
             WPv = WPv.at[slce].set(self.norm.prox(WPv[slce], snp.sqrt(2) * K * lam))
             u = (1.0 / K) * self.CWT(WPv)
 

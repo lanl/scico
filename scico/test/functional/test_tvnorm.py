@@ -103,3 +103,63 @@ class Test2D:
 
         assert metric.snr(x_tvdn, x_aprx) > 50
         assert metric.rel_res(g(C(x_tvdn)), h(x_tvdn)) < 1e-6
+
+
+class Test3D:
+    def setup_method(self):
+        N = 32
+        x2d = create_circular_phantom(
+            (N, N), [0.6 * N, 0.4 * N, 0.2 * N, 0.1 * N], [0.25, 1, 0, 0.5]
+        )
+        gr, gc = np.ogrid[0:N, 0:N]
+        x2d += (gr + gc) / (4 * N)
+        x_gt = np.stack((0.9 * x2d, np.zeros(x2d.shape), 1.1 * x2d))
+        σ = 0.02
+        noise, key = scico.random.randn(x_gt.shape, seed=0)
+        y = x_gt + σ * noise
+        self.x_gt = x_gt
+        self.y = y
+
+    @pytest.mark.parametrize("circular", [False])
+    @pytest.mark.parametrize("tvtype", ["iso"])
+    def test_3d(self, tvtype, circular):
+        x_gt = self.x_gt
+        y = self.y
+
+        λ = 5e-2
+        f = loss.SquaredL2Loss(y=y)
+        if tvtype == "aniso":
+            g = λ * functional.L1Norm()
+        else:
+            g = λ * functional.L21Norm()
+        C = linop.FiniteDifference(
+            input_shape=x_gt.shape, axes=(1, 2), circular=circular, append=None if circular else 0
+        )
+
+        solver = ADMM(
+            f=f,
+            g_list=[g],
+            C_list=[C],
+            rho_list=[5e0],
+            x0=y,
+            maxiter=150,
+            subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-4, "maxiter": 25}),
+        )
+        x_tvdn = solver.solve()
+
+        if tvtype == "aniso":
+            h = λ * functional.AnisotropicTVNorm(circular=circular, ndims=2)
+        else:
+            h = λ * functional.IsotropicTVNorm(circular=circular, ndims=2)
+
+        solver = AcceleratedPGM(
+            f=f,
+            g=h,
+            L0=1e3,
+            x0=y,
+            maxiter=400,
+        )
+        x_aprx = solver.solve()
+
+        assert metric.snr(x_tvdn, x_aprx) > 50
+        assert metric.rel_res(g(C(x_tvdn)), h(x_tvdn)) < 1e-6
