@@ -194,7 +194,7 @@ class L21Norm(Functional):
 
     The norm generalizes to more dimensions by first computing the
     :math:`\ell_2` norm along one or more (user-specified) axes,
-    followed by a sum over all remaining axes. :class:`BlockArray` inputs
+    followed by a sum over all remaining axes. :class:`.BlockArray` inputs
     require parameter `l2_axis` to be  ``None``, in which case the
     :math:`\ell_2` norm is computed over each block.
 
@@ -208,7 +208,7 @@ class L21Norm(Functional):
         r"""
         Args:
             l2_axis: Axis/axes over which to take the l2 norm. Required
-               to be ``None`` for :class:`BlockArray` inputs to be
+               to be ``None`` for :class:`.BlockArray` inputs to be
                supported.
         """
         self.l2_axis = l2_axis
