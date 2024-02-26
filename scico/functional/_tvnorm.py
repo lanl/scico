@@ -117,8 +117,11 @@ class TVNorm(Functional):
     def _prox_operators(self, ndims, input_shape, input_dtype):
         """Construct operators required by prox method."""
         w_input_shape = (
+            # circular boundary: shape of input array
             input_shape
             if self.circular
+            # non-circular boundary: shape of input array on non-differenced
+            #    axes and one greater for axes that are differenced
             else input_shape[0 : (len(input_shape) - ndims)]
             + tuple([n + 1 for n in input_shape[-ndims:]])
         )
