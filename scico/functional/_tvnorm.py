@@ -50,7 +50,7 @@ class TVNorm(Functional):
         self.h0 = snp.array([1.0, 1.0]) / snp.sqrt(2.0)  # lowpass filter
         self.h1 = snp.array([1.0, -1.0]) / snp.sqrt(2.0)  # highpass filter
         self.G: Optional[LinearOperator] = None
-        self.W: Optional[LinearOperator] = None
+        self.WP: Optional[LinearOperator] = None
 
     def __call__(self, x: Array) -> float:
         r"""Compute the TV norm of an array.
@@ -114,6 +114,25 @@ class TVNorm(Functional):
         # single-level shift-invariant Haar transform
         return VerticalStack([L, H], jit=True)
 
+    def _prox_operators(self, ndims, input_shape, input_dtype):
+        """Construct operators required by prox method."""
+        w_input_shape = (
+            input_shape
+            if self.circular
+            else input_shape[0 : (len(input_shape) - ndims)]
+            + tuple([n + 1 for n in input_shape[-ndims:]])
+        )
+        W = self._haar_operator(ndims, w_input_shape, input_dtype)
+        if self.circular:
+            WP, CWT = W, W.T
+        else:
+            pad_width = ((0, 0),) * (len(input_shape) - ndims) + ((0, 1),) * ndims
+            P = Pad(input_shape, pad_width=pad_width, mode="edge", jit=True)
+            WP = W @ P
+            C = Crop(crop_width=pad_width, input_shape=w_input_shape, jit=True)
+            CWT = C @ W.T
+        return WP, CWT
+
     def prox(self, v: Array, lam: float = 1.0, **kwargs) -> Array:
         r"""Approximate proximal operator of the TV norm.
 
@@ -133,29 +152,12 @@ class TVNorm(Functional):
             ndims = self.ndims
         K = 2 * ndims
 
-        w_input_shape = (
-            v.shape
-            if self.circular
-            else v.shape[0 : (v.ndim - ndims)] + tuple([n + 1 for n in v.shape[-ndims:]])
-        )
-        if self.W is None or self.W.shape[1] != w_input_shape:
-            self.W = self._haar_operator(ndims, w_input_shape, v.dtype)
-            if not self.circular:
-                pad_width = ((0, 0),) * (v.ndim - ndims) + ((0, 1),) * ndims
-                P = Pad(v.shape, pad_width=pad_width, mode="edge", jit=True)
-                self.WP = self.W @ P
-                C = Crop(crop_width=pad_width, input_shape=w_input_shape, jit=True)
-                self.CWT = C @ self.W.T
+        if self.WP is None or self.WP.shape[1] != v.shape:
+            self.WP, self.CWT = self._prox_operators(ndims, v.shape, v.dtype)
 
         if self.circular:
-            # Apply shrinkage to highpass component of shift-invariant Haar transform
-            Wv = self.W(v)
-            Wv = Wv.at[1].set(self.norm.prox(Wv[1], snp.sqrt(2) * K * lam))
-            u = (1.0 / K) * self.W.T(Wv)
+            slce = snp.s_[1]
         else:
-            # Apply shrinkage to non-boundary region of highpass component of shift-invariant
-            # Haar transform of padded input
-            WPv = self.WP(v)
             slce = (
                 (
                     1,
@@ -164,8 +166,12 @@ class TVNorm(Functional):
                 + (snp.s_[:],) * (v.ndim - ndims)
                 + (snp.s_[:-1],) * ndims
             )
-            WPv = WPv.at[slce].set(self.norm.prox(WPv[slce], snp.sqrt(2) * K * lam))
-            u = (1.0 / K) * self.CWT(WPv)
+        # Apply shrinkage to highpass component of shift-invariant Haar transform
+        # of padded input (or to non-boundary region thereof for non-circular
+        # boundary conditions)
+        WPv = self.WP(v)
+        WPv = WPv.at[slce].set(self.norm.prox(WPv[slce], snp.sqrt(2) * K * lam))
+        u = (1.0 / K) * self.CWT(WPv)
 
         return u
 
