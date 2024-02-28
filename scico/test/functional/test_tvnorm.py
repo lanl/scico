@@ -51,11 +51,11 @@ class Test2D:
         N = 32
         x_gt = create_circular_phantom(
             (N, N), [0.6 * N, 0.4 * N, 0.2 * N, 0.1 * N], [0.25, 1, 0, 0.5]
-        )
+        ).astype(np.float32)
         gr, gc = np.ogrid[0:N, 0:N]
-        x_gt += (gr + gc) / (4 * N)
+        x_gt += ((gr + gc) / (4 * N)).astype(np.float32)
         σ = 0.02
-        noise, key = scico.random.randn(x_gt.shape, seed=0)
+        noise, key = scico.random.randn(x_gt.shape, seed=0, dtype=np.float32)
         y = x_gt + σ * noise
         self.x_gt = x_gt
         self.y = y
@@ -110,12 +110,12 @@ class Test3D:
         N = 32
         x2d = create_circular_phantom(
             (N, N), [0.6 * N, 0.4 * N, 0.2 * N, 0.1 * N], [0.25, 1, 0, 0.5]
-        )
+        ).astype(np.float32)
         gr, gc = np.ogrid[0:N, 0:N]
-        x2d += (gr + gc) / (4 * N)
-        x_gt = np.stack((0.9 * x2d, np.zeros(x2d.shape), 1.1 * x2d))
+        x2d += ((gr + gc) / (4 * N)).astype(np.float32)
+        x_gt = np.stack((0.9 * x2d, np.zeros(x2d.shape), 1.1 * x2d), dtype=np.float32)
         σ = 0.02
-        noise, key = scico.random.randn(x_gt.shape, seed=0)
+        noise, key = scico.random.randn(x_gt.shape, seed=0, dtype=np.float32)
         y = x_gt + σ * noise
         self.x_gt = x_gt
         self.y = y
