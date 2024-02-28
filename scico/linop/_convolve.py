@@ -35,10 +35,7 @@ class Convolve(LinearOperator):
         jit: bool = True,
         **kwargs,
     ):
-        r"""Wrap :func:`jax.scipy.signal.convolve` as a LinearOperator.
-
-        Wrap :func:`jax.scipy.signal.convolve` as a
-        :class:`.LinearOperator`.
+        r"""Wrap :func:`jax.scipy.signal.convolve` as a :class:`.LinearOperator`.
 
         Args:
             h: Convolutional filter. Must have same number of dimensions

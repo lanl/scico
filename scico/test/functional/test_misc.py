@@ -43,6 +43,9 @@ class TestJit:
         functional.Functional,
         functional.ScaledFunctional,
         functional.SeparableFunctional,
+        functional.AnisotropicTVNorm,  # requires input_shape parameter in order to be jittable
+        functional.IsotropicTVNorm,  # requires input_shape parameter in order to be jittable
+        functional.TVNorm,  # requires input_shape parameter in order to be jittable
         functional.BM3D,
         functional.BM4D,
     ]

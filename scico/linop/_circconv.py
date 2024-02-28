@@ -12,7 +12,6 @@ from typing import Optional, Sequence, Tuple, Union
 
 import numpy as np
 
-import jax
 from jax.dtypes import result_type
 
 import scico.numpy as snp
@@ -82,7 +81,7 @@ class CircularConvolve(LinearOperator):
         ndims: Optional[int] = None,
         input_dtype: DType = snp.float32,
         h_is_dft: bool = False,
-        h_center: Optional[Union[snp.Array, Sequence, float, int]] = None,
+        h_center: Optional[Union[snp.Array, np.ndarray, Sequence, float, int]] = None,
         jit: bool = True,
         **kwargs,
     ):
@@ -123,18 +122,14 @@ class CircularConvolve(LinearOperator):
             output_dtype = result_type(h.dtype, input_dtype)
 
             if self.h_center is not None:
-                if isinstance(self.h_center, jax.Array):
-                    offset = -self.h_center  # type: ignore
-                else:
-                    # support float or int values for h_center
-                    if isinstance(self.h_center, (float, int)):
-                        offset = -snp.array(
-                            [
-                                self.h_center,
-                            ]
-                        )
-                    else:  # support list/tuple values for h_center
-                        offset = -snp.array(self.h_center)
+                if isinstance(self.h_center, (float, int)):  # support float/int h_center
+                    offset = -np.array(
+                        [
+                            self.h_center,
+                        ]
+                    )
+                else:  # support array/list/tuple h_center
+                    offset = -np.array(self.h_center)
                 shifts: Tuple[np.ndarray, ...] = np.ix_(
                     *tuple(
                         np.select(

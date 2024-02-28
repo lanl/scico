@@ -29,3 +29,4 @@ Contributors
 - `Li-Ta (Ollie) Lo <https://github.com/ollielo>`_ (ASTRA interface improvements)
 - `Renat Sibgatulin <https://github.com/Sibgatulin>`_ (Docs corrections)
 - `Salman Naqvi <https://github.com/shnaqvi>`_ (Contributions to approximate TV norm prox and proximal average implementation)
+- `Eddie Chandler <https://github.com/edchandler00>`_ (Contributions to approximate isotropic TV norm prox)
