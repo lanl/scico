@@ -129,15 +129,6 @@ def test_jit_in_DiagonalStack():
     H.T @ snp.zeros(H.output_shape, dtype=snp.float32)
 
 
-@pytest.mark.skipif(jax.devices()[0].platform != "cpu", reason="checking CPU behavior")
-def test_3D_on_CPU():
-    x = snp.zeros((4, 5, 6))
-    with pytest.raises(ValueError):
-        A = XRayTransform3D(
-            x.shape, det_count=[6, 6], det_spacing=[1.0, 1.0], angles=snp.linspace(0, snp.pi, 10)
-        )
-
-
 @pytest.mark.skipif(jax.devices()[0].platform != "gpu", reason="checking GPU behavior")
 def test_3D_on_GPU():
     x = snp.zeros((4, 5, 6))

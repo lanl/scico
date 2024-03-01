@@ -9,7 +9,7 @@ which should be installed via conda:
 
 ::
 
-   conda install -c astra-toolbox astra-toolbox
+   conda install astra-toolbox
    pip install -r examples/examples_requirements.txt  # Installs other example requirements
 
 The dependencies can also be installed individually as required.
