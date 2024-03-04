@@ -409,7 +409,9 @@ class HuberNorm(Functional):
 
     def _call_sep(self, x: Union[Array, BlockArray]) -> float:
         xabs = snp.abs(x)
-        hx = snp.where(xabs <= self.delta, 0.5 * xabs**2, self.delta * (xabs - (self.delta / 2.0)))
+        hx = snp.where(
+            xabs <= self.delta, 0.5 * xabs**2, self.delta * (xabs - (self.delta / 2.0))
+        )
         return snp.sum(hx)
 
     def _call_nonsep(self, x: Union[Array, BlockArray]) -> float:
