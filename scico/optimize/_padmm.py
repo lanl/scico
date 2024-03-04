@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2023 by SCICO Developers
+# Copyright (C) 2022-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -11,7 +11,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Tuple, Union
 
 import scico.numpy as snp
 from scico import cvjp, jvp
@@ -144,7 +144,7 @@ class ProximalADMMBase(Optimizer):
     def objective(
         self,
         x: Optional[Union[Array, BlockArray]] = None,
-        z: Optional[List[Union[Array, BlockArray]]] = None,
+        z: Optional[Union[Array, BlockArray]] = None,
     ) -> float:
         r"""Evaluate the objective function.
 
@@ -289,7 +289,7 @@ class ProximalADMM(ProximalADMMBase):
     def norm_primal_residual(
         self,
         x: Optional[Union[Array, BlockArray]] = None,
-        z: Optional[List[Union[Array, BlockArray]]] = None,
+        z: Optional[Union[Array, BlockArray]] = None,
     ) -> float:
         r"""Compute the :math:`\ell_2` norm of the primal residual.
 
@@ -507,7 +507,7 @@ class NonLinearPADMM(ProximalADMMBase):
     def norm_primal_residual(
         self,
         x: Optional[Union[Array, BlockArray]] = None,
-        z: Optional[List[Union[Array, BlockArray]]] = None,
+        z: Optional[Union[Array, BlockArray]] = None,
     ) -> float:
         r"""Compute the :math:`\ell_2` norm of the primal residual.
 

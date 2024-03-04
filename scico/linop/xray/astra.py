@@ -17,7 +17,7 @@ JAX arrays. Other JAX features such as automatic differentiation are
 not available.
 """
 
-from typing import List, Optional, Tuple
+from typing import List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -33,10 +33,26 @@ except ModuleNotFoundError as e:
     else:
         raise e
 
+try:
+    from collections import Iterable  # type: ignore
+except ImportError:
+    import collections
+
+    # Monkey patching required because latest astra release uses old module path for Iterable
+    collections.Iterable = collections.abc.Iterable  # type: ignore
 
 from scico.typing import Shape
 
 from .._linop import LinearOperator
+
+
+def set_astra_gpu_index(idx: Union[int, Sequence[int]]):
+    """Set the index/indices of GPU(s) to be used by astra.
+
+    Args:
+        idx: Index or indices of GPU(s).
+    """
+    astra.set_gpu_index(idx)
 
 
 class XRayTransform2D(LinearOperator):
@@ -108,11 +124,16 @@ class XRayTransform2D(LinearOperator):
                     "Please see the astra documentation for details."
                 )
 
-        dev0 = jax.devices()[0]
-        if dev0.platform == "cpu" or device == "cpu":
-            self.device = "cpu"
-        elif dev0.platform == "gpu" and device in ["gpu", "auto"]:
-            self.device = "gpu"
+        if device in ["cpu", "gpu"]:
+            # If cpu or gpu selected, attempt to comply (no checking to
+            # confirm that a gpu is available to astra).
+            self.device = device
+        elif device == "auto":
+            # If auto selected, use cpu or gpu depending on the default
+            # jax device (for simplicity, no checking whether gpu is
+            # available to astra when one is not available to jax).
+            dev0 = jax.devices()[0]
+            self.device = dev0.platform
         else:
             raise ValueError(f"Invalid device specified; got {device}.")
 
@@ -279,10 +300,6 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
 
         self.input_shape: tuple = input_shape
         self.vol_geom = astra.create_vol_geom(input_shape[1], input_shape[2], input_shape[0])
-
-        dev0 = jax.devices()[0]
-        if dev0.platform == "cpu":
-            raise ValueError("No CPU algorithm for 3D projection and GPU not available.")
 
         # Wrap our non-jax function to indicate we will supply fwd/rev mode functions
         self._eval = jax.custom_vjp(self._proj)

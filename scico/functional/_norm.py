@@ -194,10 +194,9 @@ class L21Norm(Functional):
 
     The norm generalizes to more dimensions by first computing the
     :math:`\ell_2` norm along one or more (user-specified) axes,
-    followed by a sum over all remaining axes.
-
-    For `BlockArray` inputs, the :math:`\ell_2` norm follows the
-    reduction rules described in :class:`BlockArray`.
+    followed by a sum over all remaining axes. :class:`.BlockArray` inputs
+    require parameter `l2_axis` to be  ``None``, in which case the
+    :math:`\ell_2` norm is computed over each block.
 
     A typical use case is computing the isotropic total variation norm.
     """
@@ -205,23 +204,27 @@ class L21Norm(Functional):
     has_eval = True
     has_prox = True
 
-    def __init__(self, l2_axis: Union[int, Tuple] = 0):
+    def __init__(self, l2_axis: Union[None, int, Tuple] = 0):
         r"""
         Args:
-            l2_axis: Axis/axes over which to take the l2 norm. Default: 0.
+            l2_axis: Axis/axes over which to take the l2 norm. Required
+               to be ``None`` for :class:`.BlockArray` inputs to be
+               supported.
         """
         self.l2_axis = l2_axis
 
     @staticmethod
     def _l2norm(
-        x: Union[Array, BlockArray], axis: Union[int, Tuple], keepdims: Optional[bool] = False
+        x: Union[Array, BlockArray], axis: Union[None, int, Tuple], keepdims: Optional[bool] = False
     ):
         r"""Return the :math:`\ell_2` norm of an array."""
-        return snp.sqrt(snp.sum(snp.abs(x) ** 2, axis=axis, keepdims=keepdims))
+        return snp.sqrt((snp.abs(x) ** 2).sum(axis=axis, keepdims=keepdims))
 
     def __call__(self, x: Union[Array, BlockArray]) -> float:
+        if isinstance(x, snp.BlockArray) and self.l2_axis is not None:
+            raise ValueError("Initializer parameter l2_axis must be None for BlockArray input.")
         l2 = L21Norm._l2norm(x, axis=self.l2_axis)
-        return snp.abs(l2).sum()
+        return snp.sum(snp.abs(l2))
 
     def prox(
         self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
@@ -249,6 +252,8 @@ class L21Norm(Functional):
             kwargs: Additional arguments that may be used by derived
                 classes.
         """
+        if isinstance(v, snp.BlockArray) and self.l2_axis is not None:
+            raise ValueError("Initializer parameter l2_axis must be None for BlockArray input.")
         length = L21Norm._l2norm(v, axis=self.l2_axis, keepdims=True)
         direction = no_nan_divide(v, length)
 
