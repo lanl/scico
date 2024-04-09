@@ -1,51 +1,39 @@
 .. image:: https://img.shields.io/badge/python-3.8+-green.svg
     :target: https://www.python.org/
     :alt: Python >= 3.8
-
 .. image:: https://img.shields.io/github/license/lanl/scico.svg
     :target: https://github.com/lanl/scico/blob/main/LICENSE
     :alt: Package License
-
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/psf/black
     :alt: Code style
-
 .. image:: https://readthedocs.org/projects/scico/badge/?version=latest
     :target: http://scico.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
-
 .. image:: https://github.com/lanl/scico/actions/workflows/lint.yml/badge.svg
    :target: https://github.com/lanl/scico/actions/workflows/lint.yml
    :alt: Lint status
-
 .. image:: https://github.com/lanl/scico/actions/workflows/pytest_ubuntu.yml/badge.svg
    :target: https://github.com/lanl/scico/actions/workflows/pytest_ubuntu.yml
    :alt: Test status
-
 .. image:: https://codecov.io/gh/lanl/scico/branch/main/graph/badge.svg?token=wQimmjnzFf
    :target: https://codecov.io/gh/lanl/scico
    :alt: Test coverage
-
 .. image:: https://www.codefactor.io/repository/github/lanl/scico/badge/main
    :target: https://www.codefactor.io/repository/github/lanl/scico/overview/main
    :alt: CodeFactor
-
 .. image:: https://badge.fury.io/py/scico.svg
    :target: https://badge.fury.io/py/scico
    :alt: PyPI package version
-
 .. image:: https://static.pepy.tech/personalized-badge/scico?period=month&left_color=grey&right_color=brightgreen
    :target: https://pepy.tech/project/scico
    :alt: PyPI download statistics
-
 .. image:: https://img.shields.io/conda/vn/conda-forge/scico.svg
     :target: https://anaconda.org/conda-forge/scico
     :alt: Conda Forge Release
-
 .. image:: https://raw.githubusercontent.com/jupyter/design/master/logos/Badges/nbviewer_badge.svg
    :target: https://nbviewer.jupyter.org/github/lanl/scico-data/tree/main/notebooks/index.ipynb
    :alt: View notebooks at nbviewer
-
 .. image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/lanl/scico-data/binder?labpath=notebooks%2Findex.ipynb
    :alt: Run notebooks on binder
