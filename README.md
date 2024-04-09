@@ -1,31 +1,17 @@
 [![Python \>= 3.8](https://img.shields.io/badge/python-3.8+-green.svg)](https://www.python.org/)
-
 [![Package License](https://img.shields.io/github/license/lanl/scico.svg)](https://github.com/lanl/scico/blob/main/LICENSE)
-
 [![Code style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-
 [![Documentation Status](https://readthedocs.org/projects/scico/badge/?version=latest)](http://scico.readthedocs.io/en/latest/?badge=latest)
-
 [![Lint status](https://github.com/lanl/scico/actions/workflows/lint.yml/badge.svg)](https://github.com/lanl/scico/actions/workflows/lint.yml)
-
 [![Test status](https://github.com/lanl/scico/actions/workflows/pytest_ubuntu.yml/badge.svg)](https://github.com/lanl/scico/actions/workflows/pytest_ubuntu.yml)
-
 [![Test coverage](https://codecov.io/gh/lanl/scico/branch/main/graph/badge.svg?token=wQimmjnzFf)](https://codecov.io/gh/lanl/scico)
-
 [![CodeFactor](https://www.codefactor.io/repository/github/lanl/scico/badge/main)](https://www.codefactor.io/repository/github/lanl/scico/overview/main)
-
 [![PyPI package version](https://badge.fury.io/py/scico.svg)](https://badge.fury.io/py/scico)
-
 [![PyPI download statistics](https://static.pepy.tech/personalized-badge/scico?period=month&left_color=grey&right_color=brightgreen)](https://pepy.tech/project/scico)
-
 [![Conda Forge Release](https://img.shields.io/conda/vn/conda-forge/scico.svg)](https://anaconda.org/conda-forge/scico)
-
 [![View notebooks at nbviewer](https://raw.githubusercontent.com/jupyter/design/master/logos/Badges/nbviewer_badge.svg)](https://nbviewer.jupyter.org/github/lanl/scico-data/tree/main/notebooks/index.ipynb)
-
 [![Run notebooks on binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/lanl/scico-data/binder?labpath=notebooks%2Findex.ipynb)
-
 [![Run notebooks on google colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/lanl/scico-data/blob/colab/notebooks/index.ipynb)
-
 [![JOSS paper](https://joss.theoj.org/papers/10.21105/joss.04722/status.svg)](https://doi.org/10.21105/joss.04722)
 
 # Scientific Computational Imaging Code (SCICO)
