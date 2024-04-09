@@ -6,6 +6,7 @@
 [![Test status](https://github.com/lanl/scico/actions/workflows/pytest_ubuntu.yml/badge.svg)](https://github.com/lanl/scico/actions/workflows/pytest_ubuntu.yml)
 [![Test coverage](https://codecov.io/gh/lanl/scico/branch/main/graph/badge.svg?token=wQimmjnzFf)](https://codecov.io/gh/lanl/scico)
 [![CodeFactor](https://www.codefactor.io/repository/github/lanl/scico/badge/main)](https://www.codefactor.io/repository/github/lanl/scico/overview/main)
+
 [![PyPI package version](https://badge.fury.io/py/scico.svg)](https://badge.fury.io/py/scico)
 [![PyPI download statistics](https://static.pepy.tech/personalized-badge/scico?period=month&left_color=grey&right_color=brightgreen)](https://pepy.tech/project/scico)
 [![Conda Forge Release](https://img.shields.io/conda/vn/conda-forge/scico.svg)](https://anaconda.org/conda-forge/scico)
