@@ -199,7 +199,7 @@ class ProximalADMM(ProximalADMMBase):
          \mb{u}^{(k-1)} \right) \right) \\
        \mb{z}^{(k+1)} &= \mathrm{prox}_{\rho^{-1} \nu^{-1} g} \left(
          \mb{z}^{(k)} - \nu^{-1} B^T \left(
-         B \mb{x}^{(k+1)} + A \mb{z}^{(k)} - \mb{c} + \mb{u}^{(k)}
+         A \mb{x}^{(k+1)} + B \mb{z}^{(k)} - \mb{c} + \mb{u}^{(k)}
          \right) \right) \\
        \mb{u}^{(k+1)} &=  \mb{u}^{(k)} + A \mb{x}^{(k+1)} + B
          \mb{z}^{(k+1)} - \mb{c}  \;.

@@ -21,6 +21,8 @@ NO_BLOCK_ARRAY = [
     functional.L1MinusL2Norm,
     functional.NuclearNorm,
     functional.AnisotropicTVNorm,
+    functional.IsotropicTVNorm,
+    functional.TVNorm,
 ]
 NO_COMPLEX = [functional.NonNegativeIndicator]
 

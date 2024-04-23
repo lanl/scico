@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2023 by SCICO Developers
+# Copyright (C) 2021-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -23,7 +23,7 @@ try:
 except ImportError:
     raise ImportError("Could not import ray.tune; please install it.")
 import ray.air
-from ray.tune import Trainable, loguniform, report, uniform, with_parameters  # noqa
+from ray.tune import Trainable, loguniform, uniform, with_parameters  # noqa
 from ray.tune.experiment.trial import Trial
 from ray.tune.progress_reporter import TuneReporterBase, _get_trials_by_state
 from ray.tune.result_grid import ResultGrid
