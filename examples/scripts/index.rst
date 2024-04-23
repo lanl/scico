@@ -66,7 +66,7 @@ Miscellaneous
    - denoise_tv_admm.py
    - denoise_tv_apgm.py
    - denoise_tv_multi.py
-   - denoise_approx_tv_admm.py
+   - denoise_approx_tv_multi.py
    - denoise_cplx_tv_nlpadmm.py
    - denoise_cplx_tv_pdhg.py
    - denoise_dncnn_universal.py
@@ -117,7 +117,7 @@ Total Variation
    - denoise_tv_admm.py
    - denoise_tv_apgm.py
    - denoise_tv_multi.py
-   - denoise_approx_tv_admm.py
+   - denoise_approx_tv_multi.py
    - denoise_cplx_tv_nlpadmm.py
    - denoise_cplx_tv_pdhg.py
    - diffusercam_tv_admm.py
@@ -186,7 +186,7 @@ ADMM
    - denoise_l1tv_admm.py
    - denoise_tv_admm.py
    - denoise_tv_multi.py
-   - denoise_approx_tv_admm.py
+   - denoise_approx_tv_multi.py
    - video_rpca_admm.py
 
 
@@ -228,6 +228,7 @@ PGM
    - sparsecode_nn_apgm.py
    - sparsecode_poisson_apgm.py
    - denoise_tv_apgm.py
+   - denoise_approx_tv_multi.py
 
 
 PCG

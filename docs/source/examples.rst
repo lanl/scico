@@ -88,7 +88,7 @@ Miscellaneous
    examples/denoise_tv_admm
    examples/denoise_tv_apgm
    examples/denoise_tv_multi
-   examples/denoise_approx_tv_admm
+   examples/denoise_approx_tv_multi
    examples/denoise_cplx_tv_nlpadmm
    examples/denoise_cplx_tv_pdhg
    examples/denoise_dncnn_universal
@@ -148,7 +148,7 @@ Total Variation
    examples/denoise_tv_admm
    examples/denoise_tv_apgm
    examples/denoise_tv_multi
-   examples/denoise_approx_tv_admm
+   examples/denoise_approx_tv_multi
    examples/denoise_cplx_tv_nlpadmm
    examples/denoise_cplx_tv_pdhg
    examples/diffusercam_tv_admm
@@ -229,7 +229,7 @@ ADMM
    examples/denoise_l1tv_admm
    examples/denoise_tv_admm
    examples/denoise_tv_multi
-   examples/denoise_approx_tv_admm
+   examples/denoise_approx_tv_multi
    examples/video_rpca_admm
 
 
@@ -286,6 +286,7 @@ PGM
    examples/sparsecode_nn_apgm
    examples/sparsecode_poisson_apgm
    examples/denoise_tv_apgm
+   examples/denoise_approx_tv_multi
 
 
 PCG

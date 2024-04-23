@@ -109,7 +109,7 @@ Miscellaneous
       Total Variation Denoising with Constraint (APGM)
    `denoise_tv_multi.py <denoise_tv_multi.py>`_
       Comparison of Optimization Algorithms for Total Variation Denoising
-   `denoise_approx_tv_admm.py <denoise_approx_tv_admm.py>`_
+   `denoise_approx_tv_multi.py <denoise_approx_tv_multi.py>`_
       Denoising with Approximate Total Variation Proximal Operator
    `denoise_cplx_tv_nlpadmm.py <denoise_cplx_tv_nlpadmm.py>`_
       Complex Total Variation Denoising with NLPADMM Solver
@@ -198,7 +198,7 @@ Total Variation
       Total Variation Denoising with Constraint (APGM)
    `denoise_tv_multi.py <denoise_tv_multi.py>`_
       Comparison of Optimization Algorithms for Total Variation Denoising
-   `denoise_approx_tv_admm.py <denoise_approx_tv_admm.py>`_
+   `denoise_approx_tv_multi.py <denoise_approx_tv_multi.py>`_
       Denoising with Approximate Total Variation Proximal Operator
    `denoise_cplx_tv_nlpadmm.py <denoise_cplx_tv_nlpadmm.py>`_
       Complex Total Variation Denoising with NLPADMM Solver
@@ -317,7 +317,7 @@ ADMM
       Total Variation Denoising (ADMM)
    `denoise_tv_multi.py <denoise_tv_multi.py>`_
       Comparison of Optimization Algorithms for Total Variation Denoising
-   `denoise_approx_tv_admm.py <denoise_approx_tv_admm.py>`_
+   `denoise_approx_tv_multi.py <denoise_approx_tv_multi.py>`_
       Denoising with Approximate Total Variation Proximal Operator
    `video_rpca_admm.py <video_rpca_admm.py>`_
       Video Decomposition via Robust PCA
@@ -376,6 +376,8 @@ PGM
       Non-negative Poisson Loss Reconstruction (APGM)
    `denoise_tv_apgm.py <denoise_tv_apgm.py>`_
       Total Variation Denoising with Constraint (APGM)
+   `denoise_approx_tv_multi.py <denoise_approx_tv_multi.py>`_
+      Denoising with Approximate Total Variation Proximal Operator
 
 
 PCG
