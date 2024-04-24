@@ -114,14 +114,13 @@ def generate_foam2_images(seed: float, size: int, ndata: int) -> Array:
     if not have_xdesign:
         raise RuntimeError("Package xdesign is required for use of this function.")
 
-    np.random.seed(seed)
-    saux = np.zeros((ndata, size, size, 1))
+    # np.random.seed(seed)
+    saux = jnp.zeros((ndata, size, size, 1))
     for i in range(ndata):
         foam = Foam2(size_range=[0.075, 0.0025], gap=1e-3, porosity=1)
-        saux[i, ..., 0] = discrete_phantom(foam, size=size)
-
+        saux = saux.at[i, ..., 0].set(discrete_phantom(foam, size=size))
     # normalize
-    saux = saux / np.max(saux, axis=(1, 2), keepdims=True)
+    saux = saux / jnp.max(saux, axis=(1, 2), keepdims=True)
 
     return saux
 
@@ -143,13 +142,45 @@ def generate_foam1_images(seed: float, size: int, ndata: int) -> Array:
     if not have_xdesign:
         raise RuntimeError("Package xdesign is required for use of this function.")
 
-    np.random.seed(seed)
-    saux = np.zeros((ndata, size, size, 1))
+    # np.random.seed(seed)
+    saux = jnp.zeros((ndata, size, size, 1))
     for i in range(ndata):
         foam = Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1)
-        saux[i, ..., 0] = discrete_phantom(foam, size=size)
+        saux = saux.at[i, ..., 0].set(discrete_phantom(foam, size=size))
 
     return saux
+
+
+def vector_f(f_: Callable, v: Array) -> Array:
+    """Vectorize application of operator.
+
+    Args:
+        f_: Operator to apply.
+        v:  Array to evaluate.
+
+    Returns:
+       Result of evaluating operator over given arrays.
+    """
+    lf = lambda x: jnp.atleast_3d(f_(x.squeeze()))
+    auto_batch = jax.vmap(lf)
+    return auto_batch(v)
+
+
+def batched_f(f_: Callable, vr: Array) -> Array:
+    """Distribute application of operator over a batch of vectors
+       among available processes.
+
+    Args:
+        f_: Operator to apply.
+        vr: Batch of arrays to evaluate.
+
+    Returns:
+       Result of evaluating operator over given batch of arrays. This
+       evaluation preserves the batch axis.
+    """
+    nproc = jax.device_count()
+    res = jax.pmap(lambda i: vector_f(f_, vr[i]))(jnp.arange(nproc))
+    return res
 
 
 def generate_ct_data(
@@ -198,13 +229,12 @@ def generate_ct_data(
         time_dtgen = time() - start_time
     else:
         start_time = time()
-        img = imgfunc(seed, size, nimg)
+        img = distributed_data_generation(imgfunc, size, nimg, False)
         time_dtgen = time() - start_time
     # Clip to [0,1] range.
     img = jnp.clip(img, a_min=0, a_max=1)
-    # Shard array
+
     nproc = jax.device_count()
-    imgshd = img.reshape((nproc, -1, size, size, 1))
 
     # Configure a CT projection operator to generate synthetic measurements.
     angles = np.linspace(0, jnp.pi, nproj)  # evenly spaced projection angles
@@ -213,22 +243,30 @@ def generate_ct_data(
     A = XRayTransform2D(gt_sh, size, detector_spacing, angles)  # Radon transform operator
 
     # Compute sinograms in parallel.
-    a_map = lambda v: jnp.atleast_3d(A @ v.squeeze())
     start_time = time()
-    sinoshd = jax.pmap(lambda i: jax.lax.map(a_map, imgshd[i]))(jnp.arange(nproc))
-    time_sino = time() - start_time
-    sino = sinoshd.reshape((-1, nproj, size, 1))
-    # Normalize sinogram
-    sino = sino / size
+    if nproc > 1:
+        # Shard array
+        imgshd = img.reshape((nproc, -1, size, size, 1))
+        sinoshd = batched_f(A, imgshd)
+        sino = sinoshd.reshape((-1, nproj, size, 1))
+    else:
+        sino = vector_f(A, img)
 
-    # Compute filtered back projection in parallel.
-    afbp_map = lambda v: jnp.atleast_3d(A.fbp(v.squeeze()))
+    time_sino = time() - start_time
+
+    # Compute filter back-project in parallel.
     start_time = time()
-    fbpshd = jax.pmap(lambda i: jax.lax.map(afbp_map, sinoshd[i]))(jnp.arange(nproc))
+    if nproc > 1:
+        fbpshd = batched_f(A.fbp, sinoshd)
+        fbp = fbpshd.reshape((-1, size, size, 1))
+    else:
+        fbp = vector_f(A.fbp, sino)
     time_fbp = time() - start_time
-    # Clip to [0,1] range.
-    fbpshd = jnp.clip(fbpshd, a_min=0, a_max=1)
-    fbp = fbpshd.reshape((-1, size, size, 1))
+
+    # Normalize sinogram.
+    sino = sino / size
+    # Shift FBP to [0,1] range.
+    fbp = (fbp - fbp.min()) / (fbp.max() - fbp.min())
 
     if verbose:  # pragma: no cover
         platform = jax.lib.xla_bridge.get_backend().platform
@@ -284,24 +322,27 @@ def generate_blur_data(
         time_dtgen = time() - start_time
     else:
         start_time = time()
-        img = imgfunc(seed, size, nimg)
+        img = distributed_data_generation(imgfunc, size, nimg, False)
         time_dtgen = time() - start_time
+
     # Clip to [0,1] range.
     img = jnp.clip(img, a_min=0, a_max=1)
-    # Shard array
     nproc = jax.device_count()
-    imgshd = img.reshape((nproc, -1, size, size, 1))
 
     # Configure blur operator
     ishape = (size, size)
     A = CircularConvolve(h=blur_kernel, input_shape=ishape)
 
     # Compute blurred images in parallel
-    a_map = lambda v: jnp.atleast_3d(A @ v.squeeze())
     start_time = time()
-    blurshd = jax.pmap(lambda i: jax.lax.map(a_map, imgshd[i]))(jnp.arange(nproc))
+    if nproc > 1:
+        # Shard array
+        imgshd = img.reshape((nproc, -1, size, size, 1))
+        blurshd = batched_f(A, imgshd)
+        blur = blurshd.reshape((-1, size, size, 1))
+    else:
+        blur = vector_f(A, img)
     time_blur = time() - start_time
-    blur = blurshd.reshape((-1, size, size, 1))
     # Normalize blurred images
     blur = blur / jnp.max(blur, axis=(1, 2), keepdims=True)
     # Add Gaussian noise
@@ -344,7 +385,10 @@ def distributed_data_generation(
 
     ndata_per_proc = int(nimg // nproc)
 
-    imgs = jax.pmap(imgenf, static_broadcasted_argnums=(1, 2))(seeds, size, ndata_per_proc)
+    idx = np.arange(nproc)
+    imgs = jax.vmap(imgenf, (0, None, None))(idx, size, ndata_per_proc)
+
+    # imgs = jax.pmap(imgenf, static_broadcasted_argnums=(1, 2))(seeds, size, ndata_per_proc)
 
     if not sharded:
         imgs = imgs.reshape((-1, size, size, 1))
