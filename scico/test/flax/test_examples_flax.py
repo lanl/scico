@@ -3,7 +3,7 @@ import tempfile
 
 import numpy as np
 
-from jax import device_count
+import jax
 
 import pytest
 
@@ -85,7 +85,7 @@ def test_distdatagen_flag():
 
 
 @pytest.mark.skipif(
-    device_count() == 1, reason="no processes for checking failure of distributed computing"
+    jax.device_count() == 1, reason="no processes for checking failure of distributed computing"
 )
 def test_distdatagen_exception():
     N = 16
@@ -98,7 +98,12 @@ def test_distdatagen_exception():
 def test_ray_distdatagen():
     N = 16
     nimg = 8
-    dt = ray_distributed_data_generation(fake_data_gen, N, nimg, test_flag=True)
+
+    def random_data_gen(seed, N, ndata):
+        dt, key = random.randn((ndata, N, N, 1), seed=seed)
+        return dt
+
+    dt = ray_distributed_data_generation(random_data_gen, N, nimg, test_flag=True)
     assert dt.ndim == 4
     assert dt.shape == (nimg, N, N, 1)
 
@@ -110,8 +115,10 @@ def test_ct_data_generation():
     nproj = 45
 
     def random_img_gen(seed, size, ndata):
-        np.random.seed(seed)
-        return np.random.randn(ndata, size, size, 1)
+        key = jax.random.PRNGKey(seed)
+        key, subkey = jax.random.split(key)
+        shape = (ndata, size, size, 1)
+        return jax.random.normal(subkey, shape)
 
     try:
         img, sino, fbp = generate_ct_data(nimg, N, nproj, imgfunc=random_img_gen, test_flag=True)
@@ -131,8 +138,10 @@ def test_ct_data_generation_jax():
     nproj = 45
 
     def random_img_gen(seed, size, ndata):
-        np.random.seed(seed)
-        return np.random.randn(ndata, size, size, 1)
+        key = jax.random.PRNGKey(seed)
+        key, subkey = jax.random.split(key)
+        shape = (ndata, size, size, 1)
+        return jax.random.normal(subkey, shape)
 
     try:
         img, sino, fbp = generate_ct_data(nimg, N, nproj, imgfunc=random_img_gen, prefer_ray=False)
@@ -174,8 +183,10 @@ def test_blur_data_generation_jax():
     blur_kernel = np.ones((n, n)) / (n * n)
 
     def random_img_gen(seed, size, ndata):
-        np.random.seed(seed)
-        return np.random.randn(ndata, size, size, 1)
+        key = jax.random.PRNGKey(seed)
+        key, subkey = jax.random.split(key)
+        shape = (ndata, size, size, 1)
+        return jax.random.normal(subkey, shape)
 
     try:
         img, blurn = generate_blur_data(
