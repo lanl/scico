@@ -32,8 +32,12 @@ import os
 os.environ["JAX_PLATFORM_NAME"] = "cpu"
 os.environ["JAX_PLATFORMS"] = "cpu"
 
-
 from xdesign import SiemensStar, discrete_phantom
+
+import logging
+import ray
+
+ray.init(logging_level=logging.ERROR)  # need to call init before jax import: ray-project/ray#44087
 
 import scico.numpy as snp
 import scico.random
@@ -119,6 +123,7 @@ tuner = tune.Tuner(
     num_samples=100,  # perform 100 parameter evaluations
 )
 results = tuner.fit()
+ray.shutdown()
 
 
 """
