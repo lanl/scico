@@ -70,7 +70,6 @@ D1 = D[:, n0:]
 
 # Define composed operator.
 class ForwardOperator(Operator):
-
     """Toy problem non-linear forward operator with different treatment
        of x[0] and x[1].
 

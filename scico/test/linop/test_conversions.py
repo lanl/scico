@@ -1,6 +1,7 @@
 """
 Test methods that make one kind of Operator out of another.
 """
+
 import numpy as np
 
 import pytest
