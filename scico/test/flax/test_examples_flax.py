@@ -99,7 +99,7 @@ def test_distdatagen_exception():
 def test_ray_distdatagen():
     N = 16
     nimg = 8
-    dt = ray_distributed_data_generation(fake_data_gen, N, nimg, test_flag=True)
+    dt = ray_distributed_data_generation(fake_data_gen, N, nimg)
     assert dt.ndim == 4
     assert dt.shape == (nimg, N, N, 1)
 
@@ -115,7 +115,7 @@ def test_ct_data_generation():
         return np.random.randn(ndata, size, size, 1)
 
     try:
-        img, sino, fbp = generate_ct_data(nimg, N, nproj, imgfunc=random_img_gen, test_flag=True)
+        img, sino, fbp = generate_ct_data(nimg, N, nproj, imgfunc=random_img_gen)
     except Exception as e:
         print(e)
         assert 0
@@ -158,7 +158,11 @@ def test_blur_data_generation():
 
     try:
         img, blurn = generate_blur_data(
-            nimg, N, blur_kernel, noise_sigma=0.01, imgfunc=random_img_gen, test_flag=True
+            nimg,
+            N,
+            blur_kernel,
+            noise_sigma=0.01,
+            imgfunc=random_img_gen,
         )
     except Exception as e:
         print(e)
