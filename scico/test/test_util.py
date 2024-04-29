@@ -78,13 +78,13 @@ def _internet_connected(host="8.8.8.8", port=53, timeout=3):
 
 @pytest.mark.skipif(not _internet_connected(), reason="No internet connection")
 def test_url_get():
-    url = "https://github.com/lanl/scico/blob/main/README.rst"
+    url = "https://github.com/lanl/scico/blob/main/README.md"
     assert not url_get(url).getvalue().find(b"SCICO") == -1
 
     url = "about:blank"
     np.testing.assert_raises(urlerror.URLError, url_get, url)
 
-    url = "https://github.com/lanl/scico/blob/main/README.rst"
+    url = "https://github.com/lanl/scico/blob/main/README.md"
     np.testing.assert_raises(ValueError, url_get, url, -1)
 
 
