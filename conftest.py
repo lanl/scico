@@ -12,7 +12,7 @@ except ImportError:
     have_ray = False
 else:
     have_ray = True
-    ray.init(num_cpus=1)  # required to be here: see ray-project/ray#44087
+    ray.init(num_cpus=1)  # call required to be here: see ray-project/ray#44087
 
 import scico.numpy as snp
 
