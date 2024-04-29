@@ -27,7 +27,7 @@ jobs:
           submodules: recursive
       # Set up conda/mamba environment
       - name: Set up mambaforge
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
             miniforge-variant: Mambaforge
             miniforge-version: latest
