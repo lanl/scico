@@ -19,7 +19,7 @@ jobs:
       - name: Black code formatter
         uses: psf/black@stable
         with:
-          version: "22.3"
+          version: ">=24.3.0"
       - name: Isort import sorter
         uses: isort/isort-action@v1
       - name: Pylint code analysis
