@@ -2,8 +2,7 @@
 [![Package License](https://img.shields.io/github/license/lanl/scico.svg)](https://github.com/lanl/scico/blob/main/LICENSE)
 [![Code style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Documentation Status](https://readthedocs.org/projects/scico/badge/?version=latest)](http://scico.readthedocs.io/en/latest/?badge=latest)
-[![JOSS paper](https://joss.theoj.org/papers/10.21105/joss.04722/status.svg)](https://doi.org/10.21105/joss.04722)
-
+[![JOSS paper](https://joss.theoj.org/papers/10.21105/joss.04722/status.svg)](https://doi.org/10.21105/joss.04722)\
 [![Lint status](https://github.com/lanl/scico/actions/workflows/lint.yml/badge.svg)](https://github.com/lanl/scico/actions/workflows/lint.yml)
 [![Test status](https://github.com/lanl/scico/actions/workflows/pytest_ubuntu.yml/badge.svg)](https://github.com/lanl/scico/actions/workflows/pytest_ubuntu.yml)
 [![Test coverage](https://codecov.io/gh/lanl/scico/branch/main/graph/badge.svg?token=wQimmjnzFf)](https://codecov.io/gh/lanl/scico)
