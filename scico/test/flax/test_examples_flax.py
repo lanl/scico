@@ -103,7 +103,7 @@ def test_ray_distdatagen():
         dt, key = random.randn((ndata, N, N, 1), seed=seed)
         return dt
 
-    dt = ray_distributed_data_generation(random_data_gen, N, nimg, test_flag=True)
+    dt = ray_distributed_data_generation(random_data_gen, N, nimg)
     assert dt.ndim == 4
     assert dt.shape == (nimg, N, N, 1)
 
@@ -121,7 +121,7 @@ def test_ct_data_generation():
         return jax.random.normal(subkey, shape)
 
     try:
-        img, sino, fbp = generate_ct_data(nimg, N, nproj, imgfunc=random_img_gen, test_flag=True)
+        img, sino, fbp = generate_ct_data(nimg, N, nproj, imgfunc=random_img_gen)
     except Exception as e:
         print(e)
         assert 0
@@ -166,7 +166,7 @@ def test_blur_data_generation():
 
     try:
         img, blurn = generate_blur_data(
-            nimg, N, blur_kernel, noise_sigma=0.01, imgfunc=random_img_gen, test_flag=True
+            nimg, N, blur_kernel, noise_sigma=0.01, imgfunc=random_img_gen
         )
     except Exception as e:
         print(e)
