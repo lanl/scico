@@ -479,6 +479,8 @@ class NuclearNorm(Functional):
     has_prox = True
 
     def __call__(self, x: Union[Array, BlockArray]) -> float:
+        if x.ndim != 2:
+            raise ValueError("Input array must be two dimensional.")
         return snp.sum(snp.linalg.svd(x, full_matrices=False, compute_uv=False))
 
     def prox(
@@ -490,12 +492,13 @@ class NuclearNorm(Functional):
         :cite:`cai-2010-singular`.
 
         Args:
-            v: Input array :math:`\mb{v}`.
+            v: Input array :math:`\mb{v}`. Required to be two-dimensional.
             lam: Proximal parameter :math:`\lambda`.
             kwargs: Additional arguments that may be used by derived
                 classes.
         """
-
+        if v.ndim != 2:
+            raise ValueError("Input array must be two dimensional.")
         svdU, svdS, svdV = snp.linalg.svd(v, full_matrices=False)
         svdS = snp.maximum(0, svdS - lam)
         return svdU @ snp.diag(svdS) @ svdV

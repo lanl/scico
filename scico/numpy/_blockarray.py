@@ -174,6 +174,9 @@ for prop_name in da_props:
 def _da_method_wrapper(method_name):
     method = getattr(Array, method_name)
 
+    if method.__name__ is None:
+        return method
+
     @wraps(method)
     def method_ba(self, *args, **kwargs):
         result = tuple(getattr(x, method_name)(*args, **kwargs) for x in self)

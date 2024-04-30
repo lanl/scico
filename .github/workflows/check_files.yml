@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - id: files
       uses: Ana06/get-changed-files@v2.2.0
       continue-on-error: true
