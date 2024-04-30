@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2023 by SCICO Developers
+# Copyright (C) 2022-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -7,7 +7,7 @@
 
 """Functionality to generate training data for Flax example scripts.
 
-Computation is distributed via ray (if available) or jax or to reduce
+Computation is distributed via ray (if available) or JAX or to reduce
 processing time.
 """
 
@@ -17,8 +17,12 @@ from typing import Callable, List, Tuple, Union
 
 import numpy as np
 
-import jax
-import jax.numpy as jnp
+try:
+    import ray  # noqa: F401
+except ImportError:
+    have_ray = False
+else:
+    have_ray = True
 
 try:
     import xdesign  # noqa: F401
@@ -27,15 +31,11 @@ except ImportError:
 else:
     have_xdesign = True
 
-try:
-    import ray  # noqa: F401
-except ImportError:
-    have_ray = False
-else:
-    have_ray = True
-
 if have_xdesign:
     from xdesign import Foam, SimpleMaterial, UnitCircle, discrete_phantom
+
+import jax
+import jax.numpy as jnp
 
 from scico.linop import CircularConvolve
 from scico.numpy import Array
@@ -190,7 +190,6 @@ def generate_ct_data(
     imgfunc: Callable = generate_foam2_images,
     seed: int = 1234,
     verbose: bool = False,
-    test_flag: bool = False,
     prefer_ray: bool = True,
 ) -> Tuple[Array, ...]:
     """Generate batch of computed tomography (CT) data.
@@ -206,9 +205,6 @@ def generate_ct_data(
         seed: Seed for data generation.
         verbose: Flag indicating whether to print status messages.
             Default: ``False``.
-        test_flag: Flag to indicate if running in testing mode. Testing
-            mode requires a different initialization of ray. Default:
-            ``False``.
         prefer_ray: Use ray for distributed processing if available.
             Default: ``True``.
 
@@ -225,7 +221,7 @@ def generate_ct_data(
     # Generate input data.
     if have_ray and prefer_ray:
         start_time = time()
-        img = ray_distributed_data_generation(imgfunc, size, nimg, seed, test_flag)
+        img = ray_distributed_data_generation(imgfunc, size, nimg, seed)
         time_dtgen = time() - start_time
     else:
         start_time = time()
@@ -287,7 +283,6 @@ def generate_blur_data(
     imgfunc: Callable,
     seed: int = 4321,
     verbose: bool = False,
-    test_flag: bool = False,
     prefer_ray: bool = True,
 ) -> Tuple[Array, ...]:
     """Generate batch of blurred data.
@@ -304,9 +299,6 @@ def generate_blur_data(
         seed: Seed for data generation.
         verbose: Flag indicating whether to print status messages.
             Default: ``False``.
-        test_flag: Flag to indicate if running in testing mode. Testing
-            mode requires a different initialization of ray.
-            Default: ``False``.
         prefer_ray: Use ray for distributed processing if available.
             Default: ``True``.
 
@@ -318,7 +310,7 @@ def generate_blur_data(
     """
     if have_ray and prefer_ray:
         start_time = time()
-        img = ray_distributed_data_generation(imgfunc, size, nimg, seed, test_flag)
+        img = ray_distributed_data_generation(imgfunc, size, nimg, seed)
         time_dtgen = time() - start_time
     else:
         start_time = time()
@@ -397,7 +389,7 @@ def distributed_data_generation(
 
 
 def ray_distributed_data_generation(
-    imgenf: Callable, size: int, nimg: int, seedg: float = 123, test_flag: bool = False
+    imgenf: Callable, size: int, nimg: int, seedg: float = 123
 ) -> Array:
     """Data generation distributed among processes using ray.
 
@@ -406,20 +398,12 @@ def ray_distributed_data_generation(
         size: Size of image to generate.
         ndata: Number of images to generate.
         seedg: Base seed for data generation. Default: 123.
-        test_flag: Flag to indicate if running in testing mode. Testing
-            mode requires a different initialization of ray. Default:
-            ``False``.
 
     Returns:
         Array of generated data.
     """
     if not have_ray:
         raise RuntimeError("Package ray is required for use of this function.")
-
-    if test_flag:
-        ray.init(ignore_reinit_error=True)
-    else:
-        ray.init()
 
     @ray.remote
     def data_gen(seed, size, ndata, imgf):
@@ -442,6 +426,5 @@ def ray_distributed_data_generation(
         [data_gen.remote(seed + seedg, size, ndata_per_proc, imgenf) for seed in range(nproc)]
     )
     imgs = np.vstack([t for t in ray_return])
-    ray.shutdown()
 
     return imgs
