@@ -12,6 +12,7 @@ processing time.
 """
 
 import os
+import warnings
 from time import time
 from typing import Callable, List, Tuple, Union
 
@@ -236,7 +237,7 @@ def generate_ct_data(
     angles = np.linspace(0, jnp.pi, nproj)  # evenly spaced projection angles
     gt_sh = (size, size)
     detector_spacing = 1
-    A = XRayTransform2D(gt_sh, size, detector_spacing, angles)  # Radon transform operator
+    A = XRayTransform2D(gt_sh, size, detector_spacing, angles)  # X-ray transform operator
 
     # Compute sinograms in parallel.
     start_time = time()
@@ -250,7 +251,7 @@ def generate_ct_data(
 
     time_sino = time() - start_time
 
-    # Compute filter back-project in parallel.
+    # Compute filtered back-projection in parallel.
     start_time = time()
     if nproc > 1:
         fbpshd = batched_f(A.fbp, sinoshd)
@@ -409,9 +410,12 @@ def ray_distributed_data_generation(
     def data_gen(seed, size, ndata, imgf):
         return imgf(seed, size, ndata)
 
+    # Use half of available CPU resources.
     ar = ray.available_resources()
-    # Usage of half available CPU resources.
-    nproc = max(int(ar["CPU"]) // 2, 1)
+    if "CPU" not in ar:
+        warnings.warn("No CPU key in ray.available_resources() output")
+    nproc = max(int(ar.get("CPU", "1")) // 2, 1)
+    # nproc = max(int(ar["CPU"]) // 2, 1)
     if nproc > nimg:
         nproc = nimg
     if nproc > 1 and nimg % nproc > 0:
