@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2023 by SCICO Developers
+# Copyright (C) 2022-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -7,25 +7,16 @@
 
 """Functionality to generate training data for Flax example scripts.
 
-Computation is distributed via ray (if available) or jax or to reduce
+Computation is distributed via ray (if available) or JAX or to reduce
 processing time.
 """
 
 import os
+import warnings
 from time import time
 from typing import Callable, List, Tuple, Union
 
 import numpy as np
-
-import jax
-import jax.numpy as jnp
-
-try:
-    import xdesign  # noqa: F401
-except ImportError:
-    have_xdesign = False
-else:
-    have_xdesign = True
 
 try:
     import ray  # noqa: F401
@@ -34,8 +25,18 @@ except ImportError:
 else:
     have_ray = True
 
+try:
+    import xdesign  # noqa: F401
+except ImportError:
+    have_xdesign = False
+else:
+    have_xdesign = True
+
 if have_xdesign:
     from xdesign import Foam, SimpleMaterial, UnitCircle, discrete_phantom
+
+import jax
+import jax.numpy as jnp
 
 from scico.linop import CircularConvolve
 from scico.numpy import Array
@@ -114,14 +115,13 @@ def generate_foam2_images(seed: float, size: int, ndata: int) -> Array:
     if not have_xdesign:
         raise RuntimeError("Package xdesign is required for use of this function.")
 
-    np.random.seed(seed)
-    saux = np.zeros((ndata, size, size, 1))
+    # np.random.seed(seed)
+    saux = jnp.zeros((ndata, size, size, 1))
     for i in range(ndata):
         foam = Foam2(size_range=[0.075, 0.0025], gap=1e-3, porosity=1)
-        saux[i, ..., 0] = discrete_phantom(foam, size=size)
-
+        saux = saux.at[i, ..., 0].set(discrete_phantom(foam, size=size))
     # normalize
-    saux = saux / np.max(saux, axis=(1, 2), keepdims=True)
+    saux = saux / jnp.max(saux, axis=(1, 2), keepdims=True)
 
     return saux
 
@@ -143,13 +143,45 @@ def generate_foam1_images(seed: float, size: int, ndata: int) -> Array:
     if not have_xdesign:
         raise RuntimeError("Package xdesign is required for use of this function.")
 
-    np.random.seed(seed)
-    saux = np.zeros((ndata, size, size, 1))
+    # np.random.seed(seed)
+    saux = jnp.zeros((ndata, size, size, 1))
     for i in range(ndata):
         foam = Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1)
-        saux[i, ..., 0] = discrete_phantom(foam, size=size)
+        saux = saux.at[i, ..., 0].set(discrete_phantom(foam, size=size))
 
     return saux
+
+
+def vector_f(f_: Callable, v: Array) -> Array:
+    """Vectorize application of operator.
+
+    Args:
+        f_: Operator to apply.
+        v:  Array to evaluate.
+
+    Returns:
+       Result of evaluating operator over given arrays.
+    """
+    lf = lambda x: jnp.atleast_3d(f_(x.squeeze()))
+    auto_batch = jax.vmap(lf)
+    return auto_batch(v)
+
+
+def batched_f(f_: Callable, vr: Array) -> Array:
+    """Distribute application of operator over a batch of vectors
+       among available processes.
+
+    Args:
+        f_: Operator to apply.
+        vr: Batch of arrays to evaluate.
+
+    Returns:
+       Result of evaluating operator over given batch of arrays. This
+       evaluation preserves the batch axis.
+    """
+    nproc = jax.device_count()
+    res = jax.pmap(lambda i: vector_f(f_, vr[i]))(jnp.arange(nproc))
+    return res
 
 
 def generate_ct_data(
@@ -159,7 +191,6 @@ def generate_ct_data(
     imgfunc: Callable = generate_foam2_images,
     seed: int = 1234,
     verbose: bool = False,
-    test_flag: bool = False,
     prefer_ray: bool = True,
 ) -> Tuple[Array, ...]:
     """Generate batch of computed tomography (CT) data.
@@ -175,9 +206,6 @@ def generate_ct_data(
         seed: Seed for data generation.
         verbose: Flag indicating whether to print status messages.
             Default: ``False``.
-        test_flag: Flag to indicate if running in testing mode. Testing
-            mode requires a different initialization of ray. Default:
-            ``False``.
         prefer_ray: Use ray for distributed processing if available.
             Default: ``True``.
 
@@ -194,41 +222,48 @@ def generate_ct_data(
     # Generate input data.
     if have_ray and prefer_ray:
         start_time = time()
-        img = ray_distributed_data_generation(imgfunc, size, nimg, seed, test_flag)
+        img = ray_distributed_data_generation(imgfunc, size, nimg, seed)
         time_dtgen = time() - start_time
     else:
         start_time = time()
-        img = imgfunc(seed, size, nimg)
+        img = distributed_data_generation(imgfunc, size, nimg, False)
         time_dtgen = time() - start_time
     # Clip to [0,1] range.
     img = jnp.clip(img, a_min=0, a_max=1)
-    # Shard array
+
     nproc = jax.device_count()
-    imgshd = img.reshape((nproc, -1, size, size, 1))
 
     # Configure a CT projection operator to generate synthetic measurements.
     angles = np.linspace(0, jnp.pi, nproj)  # evenly spaced projection angles
     gt_sh = (size, size)
     detector_spacing = 1
-    A = XRayTransform2D(gt_sh, size, detector_spacing, angles)  # Radon transform operator
+    A = XRayTransform2D(gt_sh, size, detector_spacing, angles)  # X-ray transform operator
 
     # Compute sinograms in parallel.
-    a_map = lambda v: jnp.atleast_3d(A @ v.squeeze())
     start_time = time()
-    sinoshd = jax.pmap(lambda i: jax.lax.map(a_map, imgshd[i]))(jnp.arange(nproc))
-    time_sino = time() - start_time
-    sino = sinoshd.reshape((-1, nproj, size, 1))
-    # Normalize sinogram
-    sino = sino / size
+    if nproc > 1:
+        # Shard array
+        imgshd = img.reshape((nproc, -1, size, size, 1))
+        sinoshd = batched_f(A, imgshd)
+        sino = sinoshd.reshape((-1, nproj, size, 1))
+    else:
+        sino = vector_f(A, img)
 
-    # Compute filtered back projection in parallel.
-    afbp_map = lambda v: jnp.atleast_3d(A.fbp(v.squeeze()))
+    time_sino = time() - start_time
+
+    # Compute filtered back-projection in parallel.
     start_time = time()
-    fbpshd = jax.pmap(lambda i: jax.lax.map(afbp_map, sinoshd[i]))(jnp.arange(nproc))
+    if nproc > 1:
+        fbpshd = batched_f(A.fbp, sinoshd)
+        fbp = fbpshd.reshape((-1, size, size, 1))
+    else:
+        fbp = vector_f(A.fbp, sino)
     time_fbp = time() - start_time
-    # Clip to [0,1] range.
-    fbpshd = jnp.clip(fbpshd, a_min=0, a_max=1)
-    fbp = fbpshd.reshape((-1, size, size, 1))
+
+    # Normalize sinogram.
+    sino = sino / size
+    # Shift FBP to [0,1] range.
+    fbp = (fbp - fbp.min()) / (fbp.max() - fbp.min())
 
     if verbose:  # pragma: no cover
         platform = jax.lib.xla_bridge.get_backend().platform
@@ -249,7 +284,6 @@ def generate_blur_data(
     imgfunc: Callable,
     seed: int = 4321,
     verbose: bool = False,
-    test_flag: bool = False,
     prefer_ray: bool = True,
 ) -> Tuple[Array, ...]:
     """Generate batch of blurred data.
@@ -266,9 +300,6 @@ def generate_blur_data(
         seed: Seed for data generation.
         verbose: Flag indicating whether to print status messages.
             Default: ``False``.
-        test_flag: Flag to indicate if running in testing mode. Testing
-            mode requires a different initialization of ray.
-            Default: ``False``.
         prefer_ray: Use ray for distributed processing if available.
             Default: ``True``.
 
@@ -280,28 +311,31 @@ def generate_blur_data(
     """
     if have_ray and prefer_ray:
         start_time = time()
-        img = ray_distributed_data_generation(imgfunc, size, nimg, seed, test_flag)
+        img = ray_distributed_data_generation(imgfunc, size, nimg, seed)
         time_dtgen = time() - start_time
     else:
         start_time = time()
-        img = imgfunc(seed, size, nimg)
+        img = distributed_data_generation(imgfunc, size, nimg, False)
         time_dtgen = time() - start_time
+
     # Clip to [0,1] range.
     img = jnp.clip(img, a_min=0, a_max=1)
-    # Shard array
     nproc = jax.device_count()
-    imgshd = img.reshape((nproc, -1, size, size, 1))
 
     # Configure blur operator
     ishape = (size, size)
     A = CircularConvolve(h=blur_kernel, input_shape=ishape)
 
     # Compute blurred images in parallel
-    a_map = lambda v: jnp.atleast_3d(A @ v.squeeze())
     start_time = time()
-    blurshd = jax.pmap(lambda i: jax.lax.map(a_map, imgshd[i]))(jnp.arange(nproc))
+    if nproc > 1:
+        # Shard array
+        imgshd = img.reshape((nproc, -1, size, size, 1))
+        blurshd = batched_f(A, imgshd)
+        blur = blurshd.reshape((-1, size, size, 1))
+    else:
+        blur = vector_f(A, img)
     time_blur = time() - start_time
-    blur = blurshd.reshape((-1, size, size, 1))
     # Normalize blurred images
     blur = blur / jnp.max(blur, axis=(1, 2), keepdims=True)
     # Add Gaussian noise
@@ -344,7 +378,10 @@ def distributed_data_generation(
 
     ndata_per_proc = int(nimg // nproc)
 
-    imgs = jax.pmap(imgenf, static_broadcasted_argnums=(1, 2))(seeds, size, ndata_per_proc)
+    idx = np.arange(nproc)
+    imgs = jax.vmap(imgenf, (0, None, None))(idx, size, ndata_per_proc)
+
+    # imgs = jax.pmap(imgenf, static_broadcasted_argnums=(1, 2))(seeds, size, ndata_per_proc)
 
     if not sharded:
         imgs = imgs.reshape((-1, size, size, 1))
@@ -353,7 +390,7 @@ def distributed_data_generation(
 
 
 def ray_distributed_data_generation(
-    imgenf: Callable, size: int, nimg: int, seedg: float = 123, test_flag: bool = False
+    imgenf: Callable, size: int, nimg: int, seedg: float = 123
 ) -> Array:
     """Data generation distributed among processes using ray.
 
@@ -362,9 +399,6 @@ def ray_distributed_data_generation(
         size: Size of image to generate.
         ndata: Number of images to generate.
         seedg: Base seed for data generation. Default: 123.
-        test_flag: Flag to indicate if running in testing mode. Testing
-            mode requires a different initialization of ray. Default:
-            ``False``.
 
     Returns:
         Array of generated data.
@@ -372,18 +406,16 @@ def ray_distributed_data_generation(
     if not have_ray:
         raise RuntimeError("Package ray is required for use of this function.")
 
-    if test_flag:
-        ray.init(ignore_reinit_error=True)
-    else:
-        ray.init()
-
     @ray.remote
     def data_gen(seed, size, ndata, imgf):
         return imgf(seed, size, ndata)
 
+    # Use half of available CPU resources.
     ar = ray.available_resources()
-    # Usage of half available CPU resources.
-    nproc = max(int(ar["CPU"]) // 2, 1)
+    if "CPU" not in ar:
+        warnings.warn("No CPU key in ray.available_resources() output")
+    nproc = max(int(ar.get("CPU", "1")) // 2, 1)
+    # nproc = max(int(ar["CPU"]) // 2, 1)
     if nproc > nimg:
         nproc = nimg
     if nproc > 1 and nimg % nproc > 0:
@@ -398,6 +430,5 @@ def ray_distributed_data_generation(
         [data_gen.remote(seed + seedg, size, ndata_per_proc, imgenf) for seed in range(nproc)]
     )
     imgs = np.vstack([t for t in ray_return])
-    ray.shutdown()
 
     return imgs

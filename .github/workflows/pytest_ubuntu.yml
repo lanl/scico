@@ -24,12 +24,12 @@ jobs:
         shell: bash -l {0}
     steps:
       # Check-out the repository under $GITHUB_WORKSPACE
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
       # Set up conda/mamba environment
       - name: Set up mambaforge
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
             miniforge-variant: Mambaforge
             miniforge-version: latest
@@ -63,7 +63,7 @@ jobs:
           pip install -r requirements.txt
           pip install -r dev_requirements.txt
           mamba install -c conda-forge svmbir>=0.3.3
-          mamba install -c astra-toolbox astra-toolbox
+          mamba install -c conda-forge astra-toolbox
           mamba install -c conda-forge pyyaml
           pip install --upgrade --force-reinstall scipy>=1.6.0  # Temporary fix for GLIBCXX_3.4.30 not found in conda forge version
           pip install bm3d>=4.0.0
@@ -96,9 +96,9 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python 3.10
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
       - name: Install deps

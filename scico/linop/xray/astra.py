@@ -190,6 +190,7 @@ class XRayTransform2D(LinearOperator):
                see `cfg.FilterType` in the `ASTRA documentation
                <https://www.astra-toolbox.com/docs/algs/FBP_CUDA.html>`__.
         """
+
         # Just use the CPU FBP alg for now; hitting memory issues with GPU one.
         def f(sino):
             sino = _ensure_writeable(sino)

@@ -86,6 +86,7 @@ FLAX_CONV2D_MAPPING_PARAMETER_OVERVIEW_WITH_STATS = """+--------------------+---
 +--------------------+--------------+------+------+-----+
 Total weights: 56"""
 
+
 # From https://github.com/google/CommonLoopUtils/blob/main/clu/parameter_overview_test.py
 def test_get_parameter_overview_empty():
     assert get_parameter_overview({}) == EMPTY_PARAMETER_OVERVIEW

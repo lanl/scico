@@ -336,6 +336,7 @@ class ODPGrDescBlock(Module):
         alpha_ini: Initial value of the fidelity weight `alpha`.
         dtype: Output dtype. Default: :attr:`~numpy.float32`.
     """
+
     operator: ModuleDef
     depth: int
     channels: int

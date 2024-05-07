@@ -8,8 +8,6 @@ import pytest
 try:
     import ray
     from scico.ray import report, tune
-
-    ray.init(num_cpus=1)
 except ImportError as e:
     pytest.skip("ray.tune not installed", allow_module_level=True)
 

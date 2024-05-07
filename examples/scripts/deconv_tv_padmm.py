@@ -75,11 +75,11 @@ which can be written in the form of a standard ADMM problem
 
 with
 
-  $$f = 0 \quad g = g_0 + g_1$$
-  $$g_0(\mathbf{z}_0) = (1/2) \| \mathbf{y} - \mathbf{z}_0 \|_2^2 \quad
+  $$f = 0 \qquad g = g_0 + g_1$$
+  $$g_0(\mathbf{z}_0) = (1/2) \| \mathbf{y} - \mathbf{z}_0 \|_2^2 \qquad
   g_1(\mathbf{z}_1) = \lambda \| \mathbf{z}_1 \|_{2,1}$$
-  $$A = \left( \begin{array}{c} C \\ D \end{array} \right) \quad
-  B = \left( \begin{array}{cc} -I & 0 \\ 0 & -I \end{array} \right) \quad
+  $$A = \left( \begin{array}{c} C \\ D \end{array} \right) \qquad
+  B = \left( \begin{array}{cc} -I & 0 \\ 0 & -I \end{array} \right) \qquad
   \mathbf{c} = \left( \begin{array}{c} 0 \\ 0 \end{array} \right) \;.$$
 
 This is a more complex splitting than that used in the

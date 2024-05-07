@@ -169,9 +169,13 @@ da_props = [
 for prop_name in da_props:
     setattr(BlockArray, prop_name, _da_prop_wrapper(prop_name))
 
+
 # Wrap jax array methods.
 def _da_method_wrapper(method_name):
     method = getattr(Array, method_name)
+
+    if method.__name__ is None:
+        return method
 
     @wraps(method)
     def method_ba(self, *args, **kwargs):

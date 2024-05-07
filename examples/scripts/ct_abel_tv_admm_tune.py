@@ -34,6 +34,10 @@ os.environ["JAX_PLATFORMS"] = "cpu"
 
 import numpy as np
 
+import logging
+import ray
+
+ray.init(logging_level=logging.ERROR)  # need to call init before jax import: ray-project/ray#44087
 
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot
@@ -151,6 +155,7 @@ tuner = tune.Tuner(
     num_iterations=10,  # perform at most 10 steps for each parameter evaluation
 )
 results = tuner.fit()
+ray.shutdown()
 
 
 """

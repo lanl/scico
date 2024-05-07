@@ -26,6 +26,7 @@ def parse_class_attributes_section(self, section):
 
 GoogleDocstring._parse_class_attributes_section = parse_class_attributes_section
 
+
 # we now patch the parse method to guarantee that the the above methods are
 # assigned to the _section dict
 def patched_parse(self):
