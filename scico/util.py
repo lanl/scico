@@ -16,6 +16,7 @@ import sys
 import types
 import urllib.error as urlerror
 import urllib.request as urlrequest
+import warnings
 from collections import defaultdict
 from functools import reduce, wraps
 from timeit import default_timer as timer
@@ -180,7 +181,7 @@ def call_trace(func: Callable) -> Callable:
         else:
             pre, pst = "", ""
         print(
-            f"{pre}>> {' ' * 4 * call_trace.trace_level}{func.__module__}.{func.__qualname__}{pst}",
+            f"{pre}>> {' ' * 3 * call_trace.trace_level}{func.__module__}.{func.__qualname__}{pst}",
             file=sys.stderr,
         )
         call_trace.trace_level += 1
@@ -206,7 +207,7 @@ def apply_decorator(
     decorator: Callable,
     recursive: bool = True,
     seen: Optional[defaultdict[str, int]] = None,
-    verbose: bool = True,
+    verbose: bool = False,
     level: int = 0,
 ) -> defaultdict[str, int]:
     """Apply a decorator function to all functions in a scico module.
@@ -260,8 +261,19 @@ def apply_decorator(
                         if verbose:
                             print(f"{indent + '    '}Method: {qualname}")
         elif isinstance(obj, types.ModuleType):
-            short_name = obj.__name__[len(module.__name__) + 1 :]
-            if obj.__name__[0:5] == "scico" and short_name[0] != "_":
+            if (
+                len(obj.__name__) > len(module.__name__)
+                and obj.__name__[0 : len(module.__name__)] == module.__name__
+            ):
+                short_name = obj.__name__[len(module.__name__) + 1 :]
+            else:
+                short_name = ""
+            if (
+                len(obj.__name__) >= 5
+                and obj.__name__[0:5] == "scico"
+                and len(short_name) > 0
+                and short_name[0] != "_"
+            ):
                 if verbose:
                     print(f"{indent}Module: {obj.__name__}")
                 if recursive:
@@ -274,6 +286,34 @@ def apply_decorator(
                         level=level + 1,
                     )
     return seen
+
+
+def trace_scico_calls():
+    """Enable tracing of calls to all significant scico functions/methods.
+
+    Enable tracing of calls to all significant scico functions and
+    methods. Note that JIT should be disabled to ensure correct
+    functioning of the tracing mechanism.
+    """
+    if not jax.config.jax_disable_jit:
+        warnings.warn(
+            "Call tracing requested but jit is not disabled. Disable jit"
+            " by setting the environment variable JAX_DISABLE_JIT=1, or use"
+            " jax.config.update('jax_disable_jit', True)."
+        )
+    from scico import (
+        function,
+        functional,
+        linop,
+        loss,
+        metric,
+        operator,
+        optimize,
+        solver,
+    )
+
+    for module in (functional, linop, loss, operator, optimize, function, metric, solver):
+        apply_decorator(module, call_trace)
 
 
 def url_get(url: str, maxtry: int = 3, timeout: int = 10) -> io.BytesIO:  # pragma: no cover
