@@ -235,12 +235,13 @@ def apply_decorator(
     indent = " " * 4 * level
     if seen is None:
         seen = defaultdict(int)
+    # Iterate over objects in module
     for obj_name in dir(module):
         obj = getattr(module, obj_name)
         if hasattr(obj, "__module__") and obj.__module__[0:5] == "scico":
             qualname = obj.__module__ + "." + obj.__qualname__
             if isinstance(obj, (types.FunctionType, PjitFunction)):
-                if not seen[qualname]:
+                if not seen[qualname]:  # avoid multiple applications of decorator
                     setattr(module, obj_name, decorator(obj))
                 seen[qualname] += 1
                 if verbose:
@@ -248,11 +249,12 @@ def apply_decorator(
             elif isinstance(obj, type):
                 if verbose:
                     print(f"{indent}Class: {qualname}")
+                # Iterate over class attributes
                 for attr_name in dir(obj):
                     attr = getattr(obj, attr_name)
                     if isinstance(attr, types.FunctionType):
                         qualname = attr.__module__ + "." + attr.__qualname__
-                        if not seen[qualname]:
+                        if not seen[qualname]:  # avoid multiple applications of decorator
                             setattr(obj, attr_name, decorator(attr))
                         seen[qualname] += 1
                         if verbose:
