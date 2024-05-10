@@ -12,8 +12,11 @@ from __future__ import annotations
 
 import io
 import socket
+import sys
+import types
 import urllib.error as urlerror
 import urllib.request as urlrequest
+from collections import defaultdict
 from functools import reduce, wraps
 from timeit import default_timer as timer
 from typing import Any, Callable, Dict, List, Optional, Sequence, Union
@@ -21,6 +24,8 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, Union
 import jax
 from jax.interpreters.batching import BatchTracer
 from jax.interpreters.partial_eval import DynamicJaxprTracer
+
+from jaxlib.xla_extension import PjitFunction
 
 try:
     import colorama
@@ -183,7 +188,7 @@ def call_trace(func: Callable) -> Callable:
         call_trace.trace_level -= 1
         return ret
 
-    # Set flag indicating that funcction is already wrapped
+    # Set flag indicating that function is already wrapped
     wrapper._call_trace_wrap = True  # type: ignore
     # Avoid multiple wrapper layers
     if hasattr(func, "_call_trace_wrap"):
@@ -194,6 +199,79 @@ def call_trace(func: Callable) -> Callable:
 
 # Call level counter for call_trace decorator
 call_trace.trace_level = 0  # type: ignore
+
+
+def apply_decorator(
+    module: types.ModuleType,
+    decorator: Callable,
+    recursive: bool = True,
+    seen: Optional[defaultdict[str, int]] = None,
+    verbose: bool = True,
+    level: int = 0,
+) -> defaultdict[str, int]:
+    """Apply a decorator function to all functions in a scico module.
+
+    Apply a decorator function to all functions in a scico module,
+    including methods of classes in that module.
+
+    Args:
+        module: The module containing the functions/methods to be
+          decorated.
+        decorator: The decorator function to apply to each module
+          function/method.
+        recursive: Flag indicating whether to recurse into submodules
+          of the specified module. (Hidden modules with a name starting
+          with an underscore are ignored.)
+        seen: A :class:`defaultdict` providing a count of the number of
+          times each function/method was seen.
+        verbose: Flag indicating whether to print a log of functions
+          as they are encountered.
+        level: Counter for recursive call levels.
+
+    Returns:
+        A :class:`defaultdict` providing a count of the number of times
+        each function/method was seen.
+    """
+    indent = " " * 4 * level
+    if seen is None:
+        seen = defaultdict(int)
+    for obj_name in dir(module):
+        obj = getattr(module, obj_name)
+        if hasattr(obj, "__module__") and obj.__module__[0:5] == "scico":
+            qualname = obj.__module__ + "." + obj.__qualname__
+            if isinstance(obj, (types.FunctionType, PjitFunction)):
+                if not seen[qualname]:
+                    setattr(module, obj_name, decorator(obj))
+                seen[qualname] += 1
+                if verbose:
+                    print(f"{indent}Function: {qualname}")
+            elif isinstance(obj, type):
+                if verbose:
+                    print(f"{indent}Class: {qualname}")
+                for attr_name in dir(obj):
+                    attr = getattr(obj, attr_name)
+                    if isinstance(attr, types.FunctionType):
+                        qualname = attr.__module__ + "." + attr.__qualname__
+                        if not seen[qualname]:
+                            setattr(obj, attr_name, decorator(attr))
+                        seen[qualname] += 1
+                        if verbose:
+                            print(f"{indent + '    '}Method: {qualname}")
+        elif isinstance(obj, types.ModuleType):
+            short_name = obj.__name__[len(module.__name__) + 1 :]
+            if obj.__name__[0:5] == "scico" and short_name[0] != "_":
+                if verbose:
+                    print(f"{indent}Module: {obj.__name__}")
+                if recursive:
+                    seen = apply_decorator(
+                        obj,
+                        decorator,
+                        recursive=recursive,
+                        seen=seen,
+                        verbose=verbose,
+                        level=level + 1,
+                    )
+    return seen
 
 
 def url_get(url: str, maxtry: int = 3, timeout: int = 10) -> io.BytesIO:  # pragma: no cover
