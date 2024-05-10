@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2023 by SCICO Developers
+# Copyright (C) 2020-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -21,6 +21,13 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, Union
 import jax
 from jax.interpreters.batching import BatchTracer
 from jax.interpreters.partial_eval import DynamicJaxprTracer
+
+try:
+    import colorama
+
+    have_colorama = True
+except ImportError:
+    have_colorama = False
 
 
 def rgetattr(obj: object, name: str, default: Optional[Any] = None) -> Any:
@@ -151,6 +158,42 @@ def check_for_tracer(func: Callable) -> Callable:
         return func(*args, **kwargs)
 
     return wrapper
+
+
+def call_trace(func: Callable) -> Callable:
+    """Print log of calls to `func`.
+
+    Decorator for printing a log of calls to the wrapped function. A
+    record of call levels is maintained so that call nesting is indicated
+    by call log indentation.
+    """
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if have_colorama:
+            pre, pst = colorama.Fore.LIGHTRED_EX, colorama.Fore.RESET
+        else:
+            pre, pst = "", ""
+        print(
+            f"{pre}>> {' ' * 4 * call_trace.trace_level}{func.__module__}.{func.__qualname__}{pst}",
+            file=sys.stderr,
+        )
+        call_trace.trace_level += 1
+        ret = func(*args, **kwargs)
+        call_trace.trace_level -= 1
+        return ret
+
+    # Set flag indicating that funcction is already wrapped
+    wrapper._call_trace_wrap = True  # type: ignore
+    # Avoid multiple wrapper layers
+    if hasattr(func, "_call_trace_wrap"):
+        return func
+    else:
+        return wrapper
+
+
+# Call level counter for call_trace decorator
+call_trace.trace_level = 0  # type: ignore
 
 
 def url_get(url: str, maxtry: int = 3, timeout: int = 10) -> io.BytesIO:  # pragma: no cover
