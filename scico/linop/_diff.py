@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2023 by SCICO Developers
+# Copyright (C) 2020-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -17,11 +17,10 @@ from typing import Literal, Optional, Union
 import numpy as np
 
 import scico.numpy as snp
-from scico.numpy.util import parse_axes
 from scico.typing import Axes, DType, Shape
 
 from ._linop import LinearOperator
-from ._stack import VerticalStack
+from ._stack import VerticalStack, linop_over_axes
 
 
 class FiniteDifference(VerticalStack):
@@ -81,22 +80,16 @@ class FiniteDifference(VerticalStack):
             jit: If ``True``, jit the evaluation, adjoint, and gram
                 functions of the :class:`LinearOperator`.
         """
-
-        if axes is None:
-            axes_list = tuple(range(len(input_shape)))
-        elif isinstance(axes, (list, tuple)):
-            axes_list = axes  # type: ignore
-        else:
-            axes_list = (axes,)
-        self.axes = parse_axes(axes_list, input_shape)
-        single_kwargs = dict(
-            input_dtype=input_dtype, prepend=prepend, append=append, circular=circular, jit=False
+        self.axes, ops = linop_over_axes(
+            SingleAxisFiniteDifference,
+            input_shape,
+            axes=axes,
+            input_dtype=input_dtype,
+            prepend=prepend,
+            append=append,
+            circular=circular,
+            jit=False,
         )
-        ops = [
-            SingleAxisFiniteDifference(input_shape, axis=axis, **single_kwargs)  # type: ignore
-            for axis in axes_list
-        ]
-
         super().__init__(
             ops,  # type: ignore
             jit=jit,
