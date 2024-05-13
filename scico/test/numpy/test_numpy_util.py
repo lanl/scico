@@ -99,6 +99,10 @@ def test_slice_length_other(length, slc):
         np.s_[..., 2:],
         np.s_[..., 2:, :],
         np.s_[1:, ..., 2:],
+        np.s_[np.newaxis],
+        np.s_[:, np.newaxis],
+        np.s_[np.newaxis, :, np.newaxis],
+        np.s_[np.newaxis, ..., 0:2, :],
     ),
 )
 def test_indexed_shape(shape, slc):
