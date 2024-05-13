@@ -224,11 +224,15 @@ def call_trace(func: Callable) -> Callable:  # pragma: no cover
             argidx = 1
             if args[0].__hash__() in call_trace.instance_hash:
                 name = f"{call_trace.instance_hash[args[0].__hash__()]}.{func.__name__}"
+            elif hasattr(args[0], "__class__"):
+                name = (
+                    f"{args[0].__class__.__module__}.{args[0].__class__.__name__}.{func.__name__}"
+                )
         argsrep = [_val_repr(val) for val in args[argidx:]]
         kwargrep = [f"{key}={_val_repr(val)}" for key, val in kwargs.items()]
         argstr = ", ".join(argsrep + kwargrep)
         print(
-            f"{pre}>> {' ' * 3 * call_trace.trace_level}{name}({argstr}){pst}",
+            f"{pre}>> {' ' * 2 * call_trace.trace_level}{name}({argstr}){pst}",
             file=sys.stderr,
         )
         call_trace.trace_level += 1
@@ -255,6 +259,7 @@ def apply_decorator(
     module: types.ModuleType,
     decorator: Callable,
     recursive: bool = True,
+    skip: Optional[Sequence] = None,
     seen: Optional[defaultdict[str, int]] = None,
     verbose: bool = False,
     level: int = 0,
@@ -272,6 +277,7 @@ def apply_decorator(
         recursive: Flag indicating whether to recurse into submodules
           of the specified module. (Hidden modules with a name starting
           with an underscore are ignored.)
+        skip: A list of class/function/method names to be skipped.
         seen: A :class:`defaultdict` providing a count of the number of
           times each function/method was seen.
         verbose: Flag indicating whether to print a log of functions
@@ -283,10 +289,14 @@ def apply_decorator(
         each function/method was seen.
     """
     indent = " " * 4 * level
+    if skip is None:
+        skip = []
     if seen is None:
         seen = defaultdict(int)
     # Iterate over objects in module
     for obj_name in dir(module):
+        if obj_name in skip:
+            continue
         obj = getattr(module, obj_name)
         if hasattr(obj, "__module__") and obj.__module__[0:5] == "scico":
             qualname = obj.__module__ + "." + obj.__qualname__
@@ -301,6 +311,8 @@ def apply_decorator(
                     print(f"{indent}Class: {qualname}")
                 # Iterate over class attributes
                 for attr_name in dir(obj):
+                    if attr_name in skip:
+                        continue
                     attr = getattr(obj, attr_name)
                     if isinstance(attr, (types.FunctionType, PjitFunction)):
                         qualname = attr.__module__ + "." + attr.__qualname__  # type: ignore
@@ -330,6 +342,7 @@ def apply_decorator(
                         obj,
                         decorator,
                         recursive=recursive,
+                        skip=skip,
                         seen=seen,
                         verbose=verbose,
                         level=level + 1,
@@ -362,7 +375,7 @@ def trace_scico_calls():  # pragma: no cover
     )
 
     for module in (functional, linop, loss, operator, optimize, function, metric, solver):
-        apply_decorator(module, call_trace)
+        apply_decorator(module, call_trace, skip=["__repr__"])
     # Currently unclear why applying this separately is required
     optimize.Optimizer.solve = call_trace(optimize.Optimizer.solve)
 
