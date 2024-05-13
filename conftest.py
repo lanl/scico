@@ -24,7 +24,8 @@ def pytest_sessionstart(session):
 
 def pytest_sessionfinish(session, exitstatus):
     """Clean up after end of test session."""
-    ray.shutdown()
+    if have_ray:
+        ray.shutdown()
 
 
 @pytest.fixture(autouse=True)
