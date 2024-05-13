@@ -78,14 +78,14 @@ class PGM(Optimizer):
         self.L: float = L0  # reciprocal of step size (estimate of Lipschitz constant of f)
         self.fixed_point_residual = snp.inf
 
-        def x_step(v: Union[Array, BlockArray], L: float) -> Union[Array, BlockArray]:
-            return self.g.prox(v - 1.0 / L * self.f.grad(v), 1.0 / L)
-
-        self.x_step = jax.jit(x_step)
-
         self.x: Union[Array, BlockArray] = x0  # current estimate of solution
 
         super().__init__(**kwargs)
+
+    @jax.jit
+    def x_step(self, v: Union[Array, BlockArray], L: float) -> Union[Array, BlockArray]:
+        """Compute update for variable `x`."""
+        return self.g.prox(v - 1.0 / L * self.f.grad(v), 1.0 / L)
 
     def _working_vars_finite(self) -> bool:
         """Determine where ``NaN`` of ``Inf`` encountered in solve.
