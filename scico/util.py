@@ -10,6 +10,7 @@
 
 from __future__ import annotations
 
+import inspect
 import io
 import socket
 import sys
@@ -21,6 +22,8 @@ from collections import defaultdict
 from functools import reduce, wraps
 from timeit import default_timer as timer
 from typing import Any, Callable, Dict, List, Optional, Sequence, Union
+
+import numpy as np
 
 import jax
 from jax.interpreters.batching import BatchTracer
@@ -166,6 +169,30 @@ def check_for_tracer(func: Callable) -> Callable:
     return wrapper
 
 
+def _val_repr(val):
+    if val is None:
+        return "None"
+    elif np.isscalar(val):
+        return str(val)
+    elif isinstance(val, np.dtype):
+        return f"numpy.{val}"
+    elif isinstance(val, tuple) and len(val) < 6:
+        return f"{val}"
+    elif isinstance(val, type):
+        return f"{val.__module__}.{val.__qualname__}"
+    elif isinstance(val, (np.ndarray, jax.Array)):
+        return f"Array{val.shape}"
+    else:
+        if (
+            hasattr(val, "__hash__")
+            and callable(val.__hash__)
+            and val.__hash__() in call_trace.instance_hash
+        ):
+            return f"{call_trace.instance_hash[val.__hash__()]}"
+        else:
+            return f"[{type(val).__name__}]"
+
+
 def call_trace(func: Callable) -> Callable:
     """Print log of calls to `func`.
 
@@ -173,15 +200,35 @@ def call_trace(func: Callable) -> Callable:
     record of call levels is maintained so that call nesting is indicated
     by call log indentation.
     """
+    if have_colorama:
+        pre, pst = colorama.Fore.LIGHTRED_EX, colorama.Fore.RESET
+    else:
+        pre, pst = "", ""
+
+    try:
+        method_class = inspect._findclass(func)
+    except AttributeError:
+        method_class = None
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if have_colorama:
-            pre, pst = colorama.Fore.LIGHTRED_EX, colorama.Fore.RESET
-        else:
-            pre, pst = "", ""
+        name = f"{func.__module__}.{func.__qualname__}"
+        argidx = 0
+        if (
+            args
+            and hasattr(args[0], "__hash__")
+            and callable(args[0].__hash__)
+            and method_class
+            and isinstance(args[0], method_class)
+        ):
+            argidx = 1
+            if args[0].__hash__() in call_trace.instance_hash:
+                name = f"{call_trace.instance_hash[args[0].__hash__()]}.{func.__name__}"
+        argsrep = [_val_repr(val) for val in args[argidx:]]
+        kwargrep = [f"{key}={_val_repr(val)}" for key, val in kwargs.items()]
+        argstr = ", ".join(argsrep + kwargrep)
         print(
-            f"{pre}>> {' ' * 3 * call_trace.trace_level}{func.__module__}.{func.__qualname__}{pst}",
+            f"{pre}>> {' ' * 3 * call_trace.trace_level}{name}({argstr}){pst}",
             file=sys.stderr,
         )
         call_trace.trace_level += 1
@@ -200,6 +247,8 @@ def call_trace(func: Callable) -> Callable:
 
 # Call level counter for call_trace decorator
 call_trace.trace_level = 0  # type: ignore
+
+call_trace.instance_hash = {}
 
 
 def apply_decorator(
@@ -314,6 +363,8 @@ def trace_scico_calls():
 
     for module in (functional, linop, loss, operator, optimize, function, metric, solver):
         apply_decorator(module, call_trace)
+    # Currently unclear why applying this separately is required
+    optimize.Optimizer.solve = call_trace(optimize.Optimizer.solve)
 
 
 def url_get(url: str, maxtry: int = 3, timeout: int = 10) -> io.BytesIO:  # pragma: no cover
