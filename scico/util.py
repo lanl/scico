@@ -302,8 +302,8 @@ def apply_decorator(
                 # Iterate over class attributes
                 for attr_name in dir(obj):
                     attr = getattr(obj, attr_name)
-                    if isinstance(attr, types.FunctionType):
-                        qualname = attr.__module__ + "." + attr.__qualname__
+                    if isinstance(attr, (types.FunctionType, PjitFunction)):
+                        qualname = attr.__module__ + "." + attr.__qualname__  # type: ignore
                         if not seen[qualname]:  # avoid multiple applications of decorator
                             setattr(obj, attr_name, decorator(attr))
                         seen[qualname] += 1
