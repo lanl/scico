@@ -193,7 +193,7 @@ def _val_repr(val):
             return f"[{type(val).__name__}]"
 
 
-def call_trace(func: Callable) -> Callable:
+def call_trace(func: Callable) -> Callable:  # pragma: no cover
     """Print log of calls to `func`.
 
     Decorator for printing a log of calls to the wrapped function. A
@@ -206,7 +206,7 @@ def call_trace(func: Callable) -> Callable:
         pre, pst = "", ""
 
     try:
-        method_class = inspect._findclass(func)
+        method_class = inspect._findclass(func)  # type: ignore
     except AttributeError:
         method_class = None
 
@@ -248,7 +248,7 @@ def call_trace(func: Callable) -> Callable:
 # Call level counter for call_trace decorator
 call_trace.trace_level = 0  # type: ignore
 
-call_trace.instance_hash = {}
+call_trace.instance_hash = {}  # type: ignore
 
 
 def apply_decorator(
@@ -337,7 +337,7 @@ def apply_decorator(
     return seen
 
 
-def trace_scico_calls():
+def trace_scico_calls():  # pragma: no cover
     """Enable tracing of calls to all significant scico functions/methods.
 
     Enable tracing of calls to all significant scico functions and
