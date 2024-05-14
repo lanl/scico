@@ -36,7 +36,7 @@ def add_modules(doctest_namespace):
 
     Necessary because `np` is used in doc strings for jax functions
     (e.g. `linear_transpose`) that get pulled into `scico/__init__.py`.
-    Also allow `snp` to be used without explicitly importing.
+    Also allow `snp` and `jnp` to be used without explicitly importing.
     """
     doctest_namespace["np"] = np
     doctest_namespace["snp"] = snp
