@@ -14,6 +14,8 @@ else:
     have_ray = True
     ray.init(num_cpus=1)  # call required to be here: see ray-project/ray#44087
 
+import jax.numpy as jnp
+
 import scico.numpy as snp
 
 
@@ -38,3 +40,4 @@ def add_modules(doctest_namespace):
     """
     doctest_namespace["np"] = np
     doctest_namespace["snp"] = snp
+    doctest_namespace["jnp"] = jnp
