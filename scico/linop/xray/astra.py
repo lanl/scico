@@ -362,10 +362,12 @@ def angle_to_vector(det_spacing: Tuple[float, float], angles: np.ndarray) -> np.
 
 def _ensure_writeable(x):
     """Ensure that `x.flags.writeable` is ``True``, copying if needed."""
-
-    if not x.flags.writeable:
-        try:
-            x.setflags(write=True)
-        except ValueError:
-            x = x.copy()
+    if hasattr(x, "flags"):  # x is a numpy array
+        if not x.flags.writeable:
+            try:
+                x.setflags(write=True)
+            except ValueError:
+                x = x.copy()
+    else:  # x is a jax array (which is immutable)
+        x = np.array(x)
     return x
