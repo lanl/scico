@@ -13,7 +13,6 @@ from scico.numpy.util import (
     no_nan_divide,
     parse_axes,
     real_dtype,
-    slice_length,
 )
 from scico.random import randn
 
@@ -66,26 +65,6 @@ def test_parse_axes():
 
     axes = (1, 2, 2)
     np.testing.assert_raises(ValueError, parse_axes, axes)
-
-
-@pytest.mark.parametrize("length", (4, 5, 8, 16, 17))
-@pytest.mark.parametrize("start", (None, 0, 1, 2, 3))
-@pytest.mark.parametrize("stop", (None, 0, 1, 2, -2, -1))
-@pytest.mark.parametrize("stride", (None, 1, 2, 3))
-def test_slice_length(length, start, stop, stride):
-    x = np.zeros(length)
-    slc = slice(start, stop, stride)
-    assert x[slc].size == slice_length(length, slc)
-
-
-@pytest.mark.parametrize("length", (4, 5))
-@pytest.mark.parametrize("slc", (0, 1, -4, Ellipsis))
-def test_slice_length_other(length, slc):
-    x = np.zeros(length)
-    if isinstance(slc, int):
-        assert slice_length(length, slc) is None
-    else:
-        assert x[slc].size == slice_length(length, slc)
 
 
 @pytest.mark.parametrize("shape", ((8, 8, 1), (7, 1, 6, 5)))
