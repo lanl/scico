@@ -239,7 +239,36 @@ class DiagonalStack(Operator):
 
 
 class DiagonalReplicated(Operator):
-    """ """
+    r"""A diagonal stack constructed from a single operator.
+
+    Given operator :math:`A`, create the operator :math:`H` such that
+
+    .. math::
+       H \left(
+       \begin{pmatrix}
+            \mb{x}_1 \\
+            \mb{x}_2 \\
+            \vdots \\
+            \mb{x}_N \\
+       \end{pmatrix} \right)
+       =
+       \begin{pmatrix}
+            A(\mb{x}_1) \\
+            A(\mb{x}_2) \\
+            \vdots \\
+            A(\mb{x}_N) \\
+       \end{pmatrix} \;.
+
+    The application of :math:`A` to each component :math:`\mb{x}_k` is
+    computed using :func:`jax.pmap` or :func:`jax.vmap`. The input shape
+    for operator :math:`A` should exclude the array axis on which
+    :math:`A` is replicated to form :math:`H`. For example, if :math:`A`
+    has input shape `(3, 4)` and :math:`H` is constructed to replicate
+    on axis 0 with 2 replicates, the input shape of :math:`H` will be
+    `(2, 3, 4)`.
+
+    Operators taking :class:`.BlockArray` input are not supported.
+    """
 
     def __init__(
         self,
@@ -250,7 +279,19 @@ class DiagonalReplicated(Operator):
         map_type: str = "auto",
         **kwargs,
     ):
-        """ """
+        """
+        Args:
+            op: Operator to replicate.
+            replicates: Number of replicates of `op`.
+            input_axis: Input axis over which `op` should be replicated.
+            output_axis: Index of replication axis in output array.
+               If ``None``, the input replication axis is used.
+            map_type: If "pmap" or "vmap", apply replicated mapping using
+               :func:`jax.pmap` or :func:`jax.vmap` respectively. If
+               "auto", use :func:`jax.pmap` if sufficient devices are
+               available for the number of replicates, otherwise use
+               :func:`jax.vmap`.
+        """
         if map_type not in ["auto", "pmap", "vmap"]:
             raise ValueError("Argument map_type must be one of 'auto', 'pmap, or 'vmap'.")
         if input_axis < 0 or input_axis >= len(op.input_shape):

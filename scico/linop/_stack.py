@@ -146,7 +146,44 @@ class DiagonalStack(DStack, LinearOperator):
 
 
 class DiagonalReplicated(DReplicated, LinearOperator):
-    """ """
+    r"""A diagonal stack constructed from a single linear operator.
+
+    Given linear operator :math:`A`, create the linear operator
+
+    .. math::
+       H =
+       \begin{pmatrix}
+            A & 0   & \ldots & 0\\
+            0   & A & \ldots & 0\\
+            \vdots & \vdots & \ddots & \vdots\\
+            0   & 0 & \ldots & A \\
+       \end{pmatrix} \qquad
+       \text{such that} \qquad
+       H
+       \begin{pmatrix}
+            \mb{x}_1 \\
+            \mb{x}_2 \\
+            \vdots \\
+            \mb{x}_N \\
+       \end{pmatrix}
+       =
+       \begin{pmatrix}
+            A(\mb{x}_1) \\
+            A(\mb{x}_2) \\
+            \vdots \\
+            A(\mb{x}_N) \\
+       \end{pmatrix} \;.
+
+    The application of :math:`A` to each component :math:`\mb{x}_k` is
+    computed using :func:`jax.pmap` or :func:`jax.vmap`. The input shape
+    for linear operator :math:`A` should exclude the array axis on which
+    :math:`A` is replicated to form :math:`H`. For example, if :math:`A`
+    has input shape `(3, 4)` and :math:`H` is constructed to replicate
+    on axis 0 with 2 replicates, the input shape of :math:`H` will be
+    `(2, 3, 4)`.
+
+    Linear operators taking :class:`.BlockArray` input are not supported.
+    """
 
     def __init__(
         self,
@@ -157,7 +194,19 @@ class DiagonalReplicated(DReplicated, LinearOperator):
         map_type: str = "auto",
         **kwargs,
     ):
-
+        """
+        Args:
+            op: Linear operator to replicate.
+            replicates: Number of replicates of `op`.
+            input_axis: Input axis over which `op` should be replicated.
+            output_axis: Index of replication axis in output array.
+               If ``None``, the input replication axis is used.
+            map_type: If "pmap" or "vmap", apply replicated mapping using
+               :func:`jax.pmap` or :func:`jax.vmap` respectively. If
+               "auto", use :func:`jax.pmap` if sufficient devices are
+               available for the number of replicates, otherwise use
+               :func:`jax.vmap`.
+        """
         if not isinstance(op, LinearOperator):
             raise TypeError("Argument op must be of type LinearOperator.")
 
