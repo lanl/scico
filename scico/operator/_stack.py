@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2023 by SCICO Developers
+# Copyright (C) 2023-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -12,6 +12,8 @@ from __future__ import annotations
 from typing import Optional, Sequence, Tuple, Union
 
 import numpy as np
+
+import jax
 
 from typing_extensions import TypeGuard
 
@@ -234,3 +236,62 @@ class DiagonalStack(Operator):
         if self.collapse_output:
             return snp.stack(result)
         return snp.blockarray(result)
+
+
+class DiagonalReplicated(Operator):
+    """ """
+
+    def __init__(
+        self,
+        op: Operator,
+        replicates: int,
+        input_axis: int = 0,
+        output_axis: Optional[int] = None,
+        map_type: str = "auto",
+        **kwargs,
+    ):
+        """ """
+        if map_type not in ["auto", "pmap", "vmap"]:
+            raise ValueError("Argument map_type must be one of 'auto', 'pmap, or 'vmap'.")
+        if input_axis < 0 or input_axis >= len(op.input_shape):
+            raise ValueError(
+                "Argument input_axis must be positive and less than the number of axes "
+                "in the input shape of op."
+            )
+        if is_nested(op.input_shape):
+            raise ValueError("Argument op may not be an Operator taking BlockArray input.")
+        self.op = op
+        self.replicates = replicates
+        self.input_axis = input_axis
+        self.output_axis = self.input_axis if output_axis is None else output_axis
+
+        if map_type == "auto":
+            self.jaxmap = jax.pmap if replicates <= jax.device_count() else jax.vmap
+        else:
+            if map_type == "pmap" and replicates > jax.device_count():
+                raise ValueError(
+                    "Requested pmap mapping but number of replicates exceeds device count."
+                )
+            else:
+                self.jaxmap = jax.pmap if map_type == "pmap" else jax.vmap
+
+        eval_fn = self.jaxmap(op.__call__, in_axes=self.input_axis, out_axes=self.output_axis)
+
+        input_shape = (
+            op.input_shape[0 : self.input_axis] + (replicates,) + op.input_shape[self.input_axis :]
+        )
+        output_shape = (
+            op.output_shape[0 : self.output_axis]
+            + (replicates,)
+            + op.output_shape[self.output_axis :]
+        )
+
+        super().__init__(
+            input_shape=input_shape,  # type: ignore
+            output_shape=output_shape,  # type: ignore
+            eval_fn=eval_fn,
+            input_dtype=op.input_dtype,
+            output_dtype=op.output_dtype,
+            jit=False,
+            **kwargs,
+        )

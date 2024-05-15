@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2023 by SCICO Developers
+# Copyright (C) 2022-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -13,6 +13,7 @@ from typing import Optional, Sequence, Union
 
 import scico.numpy as snp
 from scico.numpy import Array, BlockArray
+from scico.operator._stack import DiagonalReplicated as DReplicated
 from scico.operator._stack import DiagonalStack as DStack
 from scico.operator._stack import VerticalStack as VStack
 
@@ -142,3 +143,31 @@ class DiagonalStack(DStack, LinearOperator):
         if self.collapse_input:
             return snp.stack(result)
         return snp.blockarray(result)
+
+
+class DiagonalReplicated(DReplicated, LinearOperator):
+    """ """
+
+    def __init__(
+        self,
+        op: LinearOperator,
+        replicates: int,
+        input_axis: int = 0,
+        output_axis: Optional[int] = None,
+        map_type: str = "auto",
+        **kwargs,
+    ):
+
+        if not isinstance(op, LinearOperator):
+            raise TypeError("Argument op must be of type LinearOperator.")
+
+        super().__init__(
+            op,
+            replicates,
+            input_axis=input_axis,
+            output_axis=output_axis,
+            map_type=map_type,
+            **kwargs,
+        )
+
+        self._adj = self.jaxmap(op.adj, in_axes=self.input_axis, out_axes=self.output_axis)
