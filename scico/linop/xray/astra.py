@@ -75,12 +75,12 @@ class XRayTransform2D(LinearOperator):
         """
         Args:
             input_shape: Shape of the input array.
-            det_spacing: Spacing between detector elements. See the
-               `astra documentation <https://www.astra-toolbox.com/docs/geom2d.html#projection-geometries>`__
-               for more information..
             det_count: Number of detector elements. See the
                `astra documentation <https://www.astra-toolbox.com/docs/geom2d.html#projection-geometries>`__
                for more information.
+            det_spacing: Spacing between detector elements. See the
+               `astra documentation <https://www.astra-toolbox.com/docs/geom2d.html#projection-geometries>`__
+               for more information..
             angles: Array of projection angles in radians.
             volume_geometry: Specification of the shape of the
                discretized reconstruction volume. Must either ``None``,
