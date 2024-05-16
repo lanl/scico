@@ -62,7 +62,7 @@ summarizes the available operations.
 +----------------+-----------------+
 
 
-Defining A New Operator
+Defining a New Operator
 -----------------------
 
 To define a new operator, pass a callable to the :class:`.Operator`
@@ -108,7 +108,7 @@ operators are implemented matrix-free.
 
 
 
-Using A LinearOperator
+Using a LinearOperator
 ----------------------
 
 We implement two ways to evaluate a :class:`.LinearOperator`. The
@@ -197,7 +197,7 @@ we have
 
 
 
-Defining A New Linear Operator
+Defining a New Linear Operator
 ------------------------------
 
 To define a new linear operator, pass a callable to the
@@ -237,7 +237,7 @@ application, but enforces strict type checking in the adjoint.  This
 is due to the strict type-safe nature of jax adjoints.
 
 
-LinearOperators From External Code
+LinearOperators from External Code
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 External code may be wrapped as a subclass of :class:`.Operator` or
