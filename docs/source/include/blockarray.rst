@@ -182,7 +182,7 @@ Indexing
 :class:`.BlockArray` indexing works just like indexing a list.
 
 
-Multiplication Between BlockArray and LinearOperator
+Multiplication between BlockArray and LinearOperator
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The :class:`.Operator` and :class:`.LinearOperator` classes are designed
