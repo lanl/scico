@@ -89,7 +89,9 @@ class PGM(Optimizer):
 
     @staticmethod
     @partial(jax.jit, static_argnums=(0, 1))
-    def _x_step(f, g, v: Union[Array, BlockArray], L: float) -> Union[Array, BlockArray]:
+    def _x_step(
+        f: Functional, g: Functional, v: Union[Array, BlockArray], L: float
+    ) -> Union[Array, BlockArray]:
         """Jit-able static method for computing update for variable `x`."""
         return g.prox(v - 1.0 / L * f.grad(v), 1.0 / L)
 
