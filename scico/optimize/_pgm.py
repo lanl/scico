@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2023 by SCICO Developers
+# Copyright (C) 2020-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -11,6 +11,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
+from functools import partial
 from typing import Optional, Union
 
 import jax
@@ -82,10 +83,15 @@ class PGM(Optimizer):
 
         super().__init__(**kwargs)
 
-    @jax.jit
     def x_step(self, v: Union[Array, BlockArray], L: float) -> Union[Array, BlockArray]:
         """Compute update for variable `x`."""
-        return self.g.prox(v - 1.0 / L * self.f.grad(v), 1.0 / L)
+        return PGM._x_step(self.f, self.g, v, L)
+
+    @staticmethod
+    @partial(jax.jit, static_argnums=(0, 1))
+    def _x_step(f, g, v: Union[Array, BlockArray], L: float) -> Union[Array, BlockArray]:
+        """Jit-able static method for computing update for variable `x`."""
+        return g.prox(v - 1.0 / L * f.grad(v), 1.0 / L)
 
     def _working_vars_finite(self) -> bool:
         """Determine where ``NaN`` of ``Inf`` encountered in solve.
