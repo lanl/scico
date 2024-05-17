@@ -37,7 +37,7 @@ def clip_positive(params: PyTree, traversal: ModelParamTraversal, minval: float 
         minval: Minimum value to clip selected model parameters and keep
             them in a positive range. Default: 1e-4.
     """
-    params_out = traversal.update(lambda x: jnp.clip(x, min=minval), params)
+    params_out = traversal.update(lambda x: jnp.clip(x, minval), params)
 
     return params_out
 
@@ -55,6 +55,6 @@ def clip_range(
         maxval: Maximum value to clip selected model parameters.
             Default: 1.
     """
-    params_out = traversal.update(lambda x: jnp.clip(x, min=minval, max=maxval), params)
+    params_out = traversal.update(lambda x: jnp.clip(x, minval, maxval), params)
 
     return params_out
