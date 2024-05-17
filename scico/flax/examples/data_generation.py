@@ -229,7 +229,7 @@ def generate_ct_data(
         img = distributed_data_generation(imgfunc, size, nimg, False)
         time_dtgen = time() - start_time
     # Clip to [0,1] range.
-    img = jnp.clip(img, a_min=0, a_max=1)
+    img = jnp.clip(img, min=0, max=1)
 
     nproc = jax.device_count()
 
@@ -319,7 +319,7 @@ def generate_blur_data(
         time_dtgen = time() - start_time
 
     # Clip to [0,1] range.
-    img = jnp.clip(img, a_min=0, a_max=1)
+    img = jnp.clip(img, min=0, max=1)
     nproc = jax.device_count()
 
     # Configure blur operator
@@ -343,7 +343,7 @@ def generate_blur_data(
     noise = jax.random.normal(key, blur.shape)
     blurn = blur + noise_sigma * noise
     # Clip to [0,1] range.
-    blurn = jnp.clip(blurn, a_min=0, a_max=1)
+    blurn = jnp.clip(blurn, min=0, max=1)
 
     if verbose:  # pragma: no cover
         platform = jax.lib.xla_bridge.get_backend().platform

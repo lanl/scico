@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022 by SCICO Developers
+# Copyright (C) 2022-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -37,7 +37,7 @@ def clip_positive(params: PyTree, traversal: ModelParamTraversal, minval: float 
         minval: Minimum value to clip selected model parameters and keep
             them in a positive range. Default: 1e-4.
     """
-    params_out = traversal.update(lambda x: jnp.clip(x, a_min=minval), params)
+    params_out = traversal.update(lambda x: jnp.clip(x, min=minval), params)
 
     return params_out
 
@@ -55,6 +55,6 @@ def clip_range(
         maxval: Maximum value to clip selected model parameters.
             Default: 1.
     """
-    params_out = traversal.update(lambda x: jnp.clip(x, a_min=minval, a_max=maxval), params)
+    params_out = traversal.update(lambda x: jnp.clip(x, min=minval, max=maxval), params)
 
     return params_out
