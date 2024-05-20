@@ -236,3 +236,92 @@ def _calc_weights(x0, dx, nx, angle, y0):
     weights = jnp.minimum(distance_to_next, width) / width
 
     return inds, weights
+
+
+class Parallel3dProjector:
+    """General-purpose, 3D, parallel ray X-ray projector."""
+
+    def __init__(
+        self,
+        im_shape: Shape,
+        P: ArrayLike,
+        y0: ArrayLike,
+        det_shape: Shape,
+    ):
+        r"""
+        Args:
+            im_shape: Shape of input image.
+            P: (num_angles, 2, 4) array of homogeneous projection matrices.
+            det_shape: Shape of detector.
+        """
+
+        self.im_shape = im_shape
+        self.P = P
+        self.y0 = y0
+        self.det_shape = det_shape
+
+    def project(self, im):
+        """Compute X-ray projection."""
+        return Parallel3dProjector._project(im, self.P, self.y0, self.det_shape)
+
+    @staticmethod
+    @partial(jax.jit, static_argnames="det_shape")
+    def _project(im: ArrayLike, P: ArrayLike, det_shape: Shape) -> ArrayLike:
+        r"""
+        Args:
+            im: Input image.
+            P: (num_angles, 2, 4) array of homogeneous projection matrices.
+            det_shape: Shape of detector.
+        """
+
+        x = jnp.mgrid[: im.shape[0], : im.shape[1], : im.shape[2]]
+        # (v, 2, 3) X (3, x0, x1, x2) + (v, 2) -> (v, 2, x0, x1, x2)
+        Px = (
+            jnp.tensordot(P[..., :3], x, axes=[2, 0])
+            + P[..., 3, np.newaxis, np.newaxis, np.newaxis]
+        )
+
+        # calculate weight on 4 intersecting pixels
+        w = 0.5  # assumed <= 1.0
+        left_edge = Px - w / 2
+        to_next = jnp.minimum(jnp.ceil(left_edge) - left_edge, w)
+        ul_ind = jnp.floor(left_edge).astype("int32")
+        ul_ind = jnp.where(ul_ind < 0, max(det_shape), ul_ind)  # otherwise negative values wrap
+
+        ul_weight = to_next[:, 0] * to_next[:, 1] * (1 / w**2)
+        ur_weight = (w - to_next[:, 0]) * to_next[:, 1] * (1 / w**2)
+        ll_weight = to_next[:, 0] * (w - to_next[:, 1]) * (1 / w**2)
+        lr_weight = (w - to_next[:, 0]) * (w - to_next[:, 1]) * (1 / w**2)
+
+        num_views = len(P)
+        proj = jnp.zeros((num_views,) + det_shape, dtype=im.dtype)
+        view_ind = jnp.expand_dims(jnp.arange(num_views), range(1, 4))
+        proj = proj.at[view_ind, ul_ind[:, 0], ul_ind[:, 1]].add(ul_weight * im, mode="drop")
+        proj = proj.at[view_ind, ul_ind[:, 0] + 1, ul_ind[:, 1]].add(ur_weight * im, mode="drop")
+        proj = proj.at[view_ind, ul_ind[:, 0], ul_ind[:, 1] + 1].add(ll_weight * im, mode="drop")
+        proj = proj.at[view_ind, ul_ind[:, 0] + 1, ul_ind[:, 1] + 1].add(
+            lr_weight * im, mode="drop"
+        )
+        return proj
+
+
+from scico.examples import create_tangle_phantom
+from scipy.spatial.transform import Rotation
+
+Nx, Ny, Nz = 64, 65, 67
+im = jnp.array(create_tangle_phantom(Nx, Ny, Nz))
+
+det_shape = (68, 69)
+
+# projection matrix: rotation matrix, chop off last row...
+rot_X = 90.0 - 16.0
+rot_Y = np.linspace(0, 180, 7, endpoint=False)
+P = jnp.stack([Rotation.from_euler("XY", [rot_X, y], degrees=True).as_matrix() for y in rot_Y])
+P = P[:, :2, :]
+
+# add translation
+x0 = jnp.array(im.shape) / 2
+t = -jnp.tensordot(P, x0, axes=[2, 0]) + jnp.array(det_shape) / 2
+P = jnp.concatenate((P, t[..., np.newaxis]), axis=2)
+
+proj = Parallel3dProjector._project(im, P, det_shape)
