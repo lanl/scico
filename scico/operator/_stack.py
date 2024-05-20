@@ -301,6 +301,8 @@ class DiagonalReplicated(Operator):
             )
         if is_nested(op.input_shape):
             raise ValueError("Argument op may not be an Operator taking BlockArray input.")
+        if is_nested(op.output_shape):
+            raise ValueError("Argument op may not be an Operator with BlockArray output.")
         self.op = op
         self.replicates = replicates
         self.input_axis = input_axis
