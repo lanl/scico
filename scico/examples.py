@@ -518,7 +518,7 @@ def create_conv_sparse_phantom(Nx: int, Nnz: int) -> Tuple[np.ndarray, np.ndarra
 
 
 def create_tangle_phantom(nx: int, ny: int, nz: int) -> snp.Array:
-    """Construct a volume phantom.
+    """Construct a 3D phantom using the tangle function.
 
     Args:
         nx: x-size of output.
@@ -549,6 +549,43 @@ def create_tangle_phantom(nx: int, ny: int, nz: int) -> snp.Array:
         + 11.8
     ) * 0.2 + 0.5
     return (values < 2.0).astype(float)
+
+
+def create_block_phantom(out_shape: Shape) -> snp.Array:
+    """Construct a blocky 3D phantom.
+
+    Args:
+        out_shape: desired phantom shape.
+
+    Returns:
+        Phantom.
+
+    """
+    # make the phantom at a low resolution
+    low_res = np.array(
+        [
+            [
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+            ],
+            [
+                [0.0, 1.0, 0.0],
+                [0.0, 1.0, 0.0],
+                [1.0, 1.0, 0.0],
+            ],
+            [
+                [0.0, 1.0, 0.0],
+                [0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+            ],
+        ]
+    )
+    low_res = np.pad(low_res, 1)
+
+    # upsample it to the requested resolution
+    full_res = zoom(low_res, np.array(out_shape) / low_res.shape, order=0)
+    return full_res
 
 
 def spnoise(

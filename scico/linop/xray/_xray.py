@@ -23,7 +23,7 @@ from .._linop import LinearOperator
 
 
 class XRayTransform(LinearOperator):
-    """X-ray transform operator.
+    """X-ray transform linear operator.
 
     Wrap an X-ray projector object in a SCICO :class:`LinearOperator`.
     """
@@ -39,8 +39,8 @@ class XRayTransform(LinearOperator):
         self._eval = projector.project
 
         super().__init__(
-            input_shape=projector.im_shape,
-            output_shape=(len(projector.angles), projector.det_count),
+            input_shape=projector.input_shape,
+            output_shape=projector.output_shape,
         )
 
 
@@ -66,7 +66,7 @@ class Parallel2dProjector:
 
     def __init__(
         self,
-        im_shape: Shape,
+        input_shape: Shape,
         angles: ArrayLike,
         x0: Optional[ArrayLike] = None,
         dx: Optional[ArrayLike] = None,
@@ -75,25 +75,25 @@ class Parallel2dProjector:
     ):
         r"""
         Args:
-            im_shape: Shape of input array.
+            input_shape: Shape of input array.
             angles: (num_angles,) array of angles in radians. Viewing an
                 (M, N) array as a matrix with M rows and N columns, an
                 angle of 0 corresponds to summing rows, an angle of pi/2
                 corresponds to summing columns, and an angle of pi/4
                 corresponds to summing along antidiagonals.
             x0: (x, y) position of the corner of the pixel `im[0,0]`. By
-                default, `-im_shape / 2`.
+                default, `-input_shape / 2`.
             dx: Image pixel side length in x- and y-direction. Should be
                 <= 1.0 in each dimension. By default, [1.0, 1.0].
             y0: Location of the edge of the first detector bin. By
                 default, `-det_count / 2`
             det_count: Number of elements in detector. If ``None``,
-                defaults to the size of the diagonal of `im_shape`.
+                defaults to the size of the diagonal of `input_shape`.
         """
-        self.im_shape = im_shape
+        self.input_shape = input_shape
         self.angles = angles
 
-        self.nx = np.array(im_shape)
+        self.nx = np.array(input_shape)
 
         if x0 is None:
             x0 = -self.nx / 2
@@ -103,9 +103,10 @@ class Parallel2dProjector:
         self.dx = dx
 
         if det_count is None:
-            det_count = int(np.ceil(np.linalg.norm(im_shape)))
+            det_count = int(np.ceil(np.linalg.norm(input_shape)))
         self.det_count = det_count
         self.ny = det_count
+        self.output_shape = (len(angles), det_count)
 
         if y0 is None:
             y0 = -self.ny / 2
@@ -200,26 +201,25 @@ class Parallel3dProjector:
 
     def __init__(
         self,
-        im_shape: Shape,
+        input_shape: Shape,
         P: ArrayLike,
-        y0: ArrayLike,
         det_shape: Shape,
     ):
         r"""
         Args:
-            im_shape: Shape of input image.
+            input_shape: Shape of input image.
             P: (num_angles, 2, 4) array of homogeneous projection matrices.
             det_shape: Shape of detector.
         """
 
-        self.im_shape = im_shape
+        self.input_shape = input_shape
         self.P = P
-        self.y0 = y0
         self.det_shape = det_shape
+        self.output_shape = (len(P), *det_shape)
 
     def project(self, im):
         """Compute X-ray projection."""
-        return Parallel3dProjector._project(im, self.P, self.y0, self.det_shape)
+        return Parallel3dProjector._project(im, self.P, self.det_shape)
 
     @staticmethod
     @partial(jax.jit, static_argnames="det_shape")
