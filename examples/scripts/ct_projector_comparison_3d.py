@@ -17,21 +17,24 @@ import numpy as np
 
 import jax
 import jax.numpy as jnp
+from jax.typing import ArrayLike
 
 import scico.linop.xray.astra as astra
 from scico import plot
 from scico.examples import create_block_phantom
 from scico.linop import Parallel3dProjector, XRayTransform
+from scico.typing import Shape
 from scico.util import Timer
 
 """
 Create a ground truth image.
 """
 N = 64
-in_shape = (N, N + 1, N + 2)
+in_shape = (N // 2, N + 1, N + 2)
 
 det_count = int(jnp.ceil(jnp.sqrt(3) * N))
-out_shape = (det_count, det_count + 1)
+# out_shape = (det_count, det_count + 1)
+out_shape = (det_count, det_count * 2)
 
 x_gt = create_block_phantom(in_shape)
 x_gt = jnp.array(x_gt)
@@ -55,12 +58,89 @@ x0 = jnp.array(in_shape) / 2
 t = -jnp.tensordot(P, x0, axes=[2, 0]) + jnp.array(out_shape) / 2
 P = jnp.concatenate((P, t[..., np.newaxis]), axis=2)
 
+
+def P_to_vectors(in_shape: Shape, P: ArrayLike, det_shape: Shape) -> ArrayLike:
+    """
+    For 3D arrays,
+    in Astra, the dimensions go (slices, rows, columns) and (z, y, x);
+    in SCICO, the dimensions go (x, y, z).
+
+    For 2D arrays,
+    in Astra, the dimensions go (rows, columns) and (y, x);
+    in SCICO, the dimensions go (x, y).
+
+    In Astra, the x-grid (recon) is centered on the origin and the y-grid (projection) can move.
+    In SCICO, the x-grid origin is x[0, 0, 0], the y-grid origin is y[0, 0].
+
+    See https://astra-toolbox.com/docs/geom3d.html#projection-geometries parallel3d_vec.
+    """
+    # TODO add tests
+    # ray is perpendicular to projection axes
+    ray = np.cross(P[:, 0, :3], P[:, 1, :3])
+    # detector center comes from lifting the center index to 3D
+    y_center = np.array(det_shape) / 2
+    x_center = np.einsum("...mn,n->...m", P[..., :3], np.array(in_shape) / 2) + P[..., 3]
+    d = np.einsum("...mn,...m->...n", P[..., :3], y_center - x_center)  # (V, 2, 3) x (V, 2)
+    u = P[:, 1, :3]
+    v = P[:, 0, :3]
+    vectors = np.concatenate((ray, d, u, v), axis=1)  # (v, 12)
+    return vectors
+
+
+def astra_to_scico(vol_geom, proj_geom):
+    # TODO add tests
+    in_shape = (vol_geom["GridColCount"], vol_geom["GridRowCount"], vol_geom["GridSliceCount"])
+    det_shape = (proj_geom["DetectorRowCount"], proj_geom["DetectorColCount"])
+    vectors = proj_geom["Vectors"]
+    _, d, u, v = vectors[:, 0:3], vectors[:, 3:6], vectors[:, 6:9], vectors[:, 9:12]
+    P = np.stack((v, u), axis=1)
+    center_diff = np.einsum("...mn,...n->...m", P, d)  # y_center - x_center
+    y_center = np.array(det_shape) / 2
+    Px_center_t = -(center_diff - y_center)
+    Px_center = np.einsum("...mn,n->...m", P, np.array(in_shape) / 2)
+    t = Px_center_t - Px_center
+    P = np.concatenate((P, t[..., np.newaxis]), axis=2)
+    return P
+
+
+P_to_astra_vectors = P_to_vectors(in_shape, P, out_shape)
+nx, ny, nz = in_shape
+n_rows = ny
+n_cols = nx
+n_slices = nz
+
+vol_geom = astra.create_vol_geom(n_rows, n_cols, n_slices)
+proj_geom = astra.create_proj_geom("parallel3d_vec", out_shape[0], out_shape[1], P_to_astra_vectors)
+
+P_from_astra = astra_to_scico(vol_geom, proj_geom)
+
+
+import astra
+
+proj_id, proj_data = astra.create_sino3d_gpu(
+    np.array(x_gt).transpose(2, 1, 0), proj_geom, vol_geom
+)  # [row, view, col]
+np.save("astra.npy", proj_data.transpose(1, 0, 2))
+
+
 timer = Timer()
 
 projectors = {}
 timer.start("scico_init")
 projectors["scico"] = XRayTransform(Parallel3dProjector(in_shape, P, out_shape))
 timer.stop("scico_init")
+
+
+proj = projectors["scico"] @ x_gt
+np.save("scico.npy", proj)
+
+viewer.layers.clear()
+proj_scico = np.load("temp/scico.npy")
+proj_astra = np.load("temp/astra.npy")
+viewer.add_image(proj_astra)
+viewer.add_image(proj_scico, opacity=0.5, colormap="blue")
+
+exit
 
 timer.start("astra_init")
 projectors["astra"] = astra.XRayTransform2D(
