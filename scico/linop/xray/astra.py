@@ -41,9 +41,8 @@ except ImportError:
     # Monkey patching required because latest astra release uses old module path for Iterable
     collections.Iterable = collections.abc.Iterable  # type: ignore
 
+from scico.linop import LinearOperator
 from scico.typing import Shape
-
-from .._linop import LinearOperator
 
 
 def set_astra_gpu_index(idx: Union[int, Sequence[int]]):

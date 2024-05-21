@@ -19,7 +19,7 @@ from ._linop import ComposedLinearOperator, LinearOperator
 from ._matrix import MatrixOperator
 from ._stack import DiagonalReplicated, DiagonalStack, VerticalStack, linop_over_axes
 from ._util import jacobian, operator_norm, power_iteration, valid_adjoint
-from .xray import Parallel2dProjector, XRayTransform
+from .xray import Parallel2dProjector, Parallel3dProjector, XRayTransform
 
 __all__ = [
     "CircularConvolve",
