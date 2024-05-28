@@ -91,6 +91,8 @@ slice_examples = [
     np.s_[1:, :-3],
     np.s_[1:, :, :3],
     np.s_[1:, ..., 2:],
+    np.s_[np.newaxis],
+    np.s_[:, np.newaxis],
 ]
 
 

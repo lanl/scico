@@ -4,8 +4,8 @@ scipy>=1.6.0
 imageio>=2.17
 tifffile
 matplotlib
-jaxlib>=0.4.3,<=0.4.26
-jax>=0.4.3,<=0.4.26
+jaxlib>=0.4.3,<=0.4.28
+jax>=0.4.3,<=0.4.28
 orbax-checkpoint<=0.5.7
-flax>=0.8.0,<=0.8.2
+flax>=0.8.0,<=0.8.3
 pyabel>=0.9.0

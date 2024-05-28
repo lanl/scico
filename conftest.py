@@ -14,6 +14,8 @@ else:
     have_ray = True
     ray.init(num_cpus=1)  # call required to be here: see ray-project/ray#44087
 
+import jax.numpy as jnp
+
 import scico.numpy as snp
 
 
@@ -24,7 +26,8 @@ def pytest_sessionstart(session):
 
 def pytest_sessionfinish(session, exitstatus):
     """Clean up after end of test session."""
-    ray.shutdown()
+    if have_ray:
+        ray.shutdown()
 
 
 @pytest.fixture(autouse=True)
@@ -33,7 +36,8 @@ def add_modules(doctest_namespace):
 
     Necessary because `np` is used in doc strings for jax functions
     (e.g. `linear_transpose`) that get pulled into `scico/__init__.py`.
-    Also allow `snp` to be used without explicitly importing.
+    Also allow `snp` and `jnp` to be used without explicitly importing.
     """
     doctest_namespace["np"] = np
     doctest_namespace["snp"] = snp
+    doctest_namespace["jnp"] = jnp
