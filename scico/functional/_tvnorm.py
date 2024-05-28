@@ -16,10 +16,12 @@ from scico.linop import (
     FiniteDifference,
     LinearOperator,
     Pad,
+    SingleAxisFiniteDifference,
     VerticalStack,
+    linop_over_axes,
 )
 from scico.numpy import Array
-from scico.typing import DType, Shape
+from scico.typing import Axes, DType, Shape
 
 from ._functional import Functional
 from ._norm import L1Norm, L21Norm
@@ -328,4 +330,196 @@ class IsotropicTVNorm(TVNorm):
             ndims=ndims,
             input_shape=input_shape,
             input_dtype=input_dtype,
+        )
+
+
+class SingleAxisFiniteSum(LinearOperator):
+    r"""Two-point sum operator acting along a single axis.
+
+    Left and right hand boundaries are handled via symmetric extension
+    so that the sum operator corresponds to the matrix
+
+    .. math::
+
+       \left(\begin{array}{rrrrr}
+        1 & 0 & 0 & \ldots & 0\\
+       1 & 1 & 0 & \ldots & 0\\
+       0 & 1 & 1 & \ldots & 0\\
+       \vdots & \vdots & \ddots & \ddots & \vdots\\
+       0 & 0 & \ldots & 1 & 1\\
+       0 & 0 & \dots & 0 & 1
+       \end{array}\right) \;.
+    """
+
+    def __init__(
+        self,
+        input_shape: Shape,
+        input_dtype: DType = snp.float32,
+        axis: int = -1,
+        jit: bool = True,
+        **kwargs,
+    ):
+        r"""
+        Args:
+            input_shape: Shape of input array.
+            input_dtype: `dtype` for input argument. Defaults to
+                :attr:`~numpy.float32`.
+            axis: Axis over which to apply finite sum operator.
+            jit: If ``True``, jit the evaluation, adjoint, and gram
+                functions of the :class:`LinearOperator`.
+        """
+
+        if not isinstance(axis, int):
+            raise TypeError(f"Expected axis to be of type int, got {type(axis)} instead.")
+
+        if axis < 0:
+            axis = len(input_shape) + axis
+        if axis >= len(input_shape):
+            raise ValueError(
+                f"Invalid axis {axis} specified; axis must be less than "
+                f"len(input_shape)={len(input_shape)}."
+            )
+
+        self.axis = axis
+
+        ndims = len(input_shape)
+        self.left_pad = ((0, 0),) * axis + ((1, 0),) + ((0, 0),) * (ndims - axis - 1)
+        self.right_pad = ((0, 0),) * axis + ((0, 1),) + ((0, 0),) * (ndims - axis - 1)
+
+        output_shape = tuple(x + (i == axis) for i, x in enumerate(input_shape))
+
+        super().__init__(
+            input_shape=input_shape,
+            output_shape=output_shape,
+            input_dtype=input_dtype,
+            output_dtype=input_dtype,
+            jit=jit,
+            **kwargs,
+        )
+
+    def _eval(self, x: snp.Array) -> snp.Array:
+        return snp.pad(x, self.left_pad) + snp.pad(x, self.right_pad)
+
+
+class FiniteSum(VerticalStack):
+    """Two-point sum operator.
+
+    Compute two-point sums along the specified axes, returning the
+    results in a :class:`jax.Array` (when possible) or :class:`BlockArray`.
+    See :class:`VerticalStack` for details on how this choice is made.
+    See :class:`SingleAxisFiniteSum` for boundary handling details.
+    """
+
+    def __init__(
+        self,
+        input_shape: Shape,
+        input_dtype: DType = snp.float32,
+        axes: Optional[Axes] = None,
+        jit: bool = True,
+        **kwargs,
+    ):
+        r"""
+        Args:
+            input_shape: Shape of input array.
+            input_dtype: `dtype` for input argument. Defaults to
+                :attr:`~numpy.float32`.
+            axes: Axis or axes over which to apply sum operator. If not
+                specified, or ``None``, sums are evaluated along all axes.
+            jit: If ``True``, jit the evaluation, adjoint, and gram
+                functions of the :class:`LinearOperator`.
+        """
+        self.axes, ops = linop_over_axes(
+            SingleAxisFiniteSum,
+            input_shape,
+            axes=axes,
+            input_dtype=input_dtype,
+            jit=False,
+        )
+        super().__init__(
+            ops,  # type: ignore
+            jit=jit,
+            **kwargs,
+        )
+
+
+class SingleAxisHaarTransform(VerticalStack):
+    """Single-level shift-invariant Haar transform along a single axis.
+
+    Compute one level of a shift-invariant Haar transform along the
+    specified axis, returning the results in a :class:`jax.Array`
+    consisting of sum and difference components (corresponding to lowpass
+    and highpass filtered components respectively) on axis 0.
+    See :class:`SingleAxisFiniteSum` for boundary handling details.
+    """
+
+    def __init__(
+        self,
+        input_shape: Shape,
+        input_dtype: DType = snp.float32,
+        axis: int = -1,
+        jit: bool = True,
+        **kwargs,
+    ):
+        r"""
+        Args:
+            input_shape: Shape of input array.
+            input_dtype: `dtype` for input argument. Defaults to
+                :attr:`~numpy.float32`.
+            axis: Axis over which to apply Haar transform.
+            jit: If ``True``, jit the evaluation, adjoint, and gram
+                functions of the :class:`LinearOperator`.
+        """
+        self.axis = axis
+        self.HaarL = (1.0 / 2.0) * SingleAxisFiniteSum(
+            input_shape, input_dtype=input_dtype, axis=axis, jit=jit, **kwargs
+        )
+        self.HaarH = (1.0 / 2.0) * SingleAxisFiniteDifference(
+            input_shape, input_dtype=input_dtype, axis=axis, prepend=1, append=1, jit=jit, **kwargs
+        )
+        super().__init__(
+            (self.HaarL, self.HaarH),
+            jit=jit,
+            **kwargs,
+        )
+
+
+class HaarTransform(VerticalStack):
+    """Single-level shift-invariant Haar transform.
+
+    Compute one level of a shift-invariant Haar transform along the
+    specified axes, returning the results in a :class:`jax.Array`.
+    See :class:`SingleAxisHaarTransform` for details of the transform
+    along each axis.
+    """
+
+    def __init__(
+        self,
+        input_shape: Shape,
+        input_dtype: DType = snp.float32,
+        axes: Optional[Axes] = None,
+        jit: bool = True,
+        **kwargs,
+    ):
+        r"""
+        Args:
+            input_shape: Shape of input array.
+            input_dtype: `dtype` for input argument. Defaults to
+                :attr:`~numpy.float32`.
+            axes: Axis or axes over which to apply Haar transform. If not
+                specified, or ``None``, the transform is evaluated along
+                all axes.
+            jit: If ``True``, jit the evaluation, adjoint, and gram
+                functions of the :class:`LinearOperator`.
+        """
+        self.axes, ops = linop_over_axes(
+            SingleAxisHaarTransform,
+            input_shape,
+            axes=axes,
+            input_dtype=input_dtype,
+            jit=False,
+        )
+        super().__init__(
+            ops,  # type: ignore
+            jit=jit,
+            **kwargs,
         )
