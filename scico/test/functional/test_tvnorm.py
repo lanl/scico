@@ -5,8 +5,22 @@ import pytest
 import scico.random
 from scico import functional, linop, loss, metric
 from scico.examples import create_circular_phantom
+from scico.functional._tvnorm import HaarTransform, SingleAxisHaarTransform
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.optimize.pgm import AcceleratedPGM
+
+
+@pytest.mark.parametrize("axis", [0, 1])
+def test_single_axis_haar_transform(axis):
+    x, key = scico.random.randn((3, 4), seed=1234)
+    HT = SingleAxisHaarTransform(x.shape, axis=axis)
+    np.testing.assert_allclose(x, HT.T(HT(x)), rtol=1e-6)
+
+
+def test_haar_transform():
+    x, key = scico.random.randn((3, 4), seed=1234)
+    HT = HaarTransform(x.shape)
+    np.testing.assert_allclose(2 * x, HT.T(HT(x)), rtol=1e-6)
 
 
 @pytest.mark.parametrize("circular", [True, False])
