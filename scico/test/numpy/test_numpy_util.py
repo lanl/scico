@@ -47,7 +47,7 @@ def test_parse_axes():
     np.testing.assert_raises(ValueError, parse_axes, axes)
 
     axes = None
-    assert parse_axes(axes, np.shape([[1, 1], [1, 1]])) == [0, 1]
+    assert parse_axes(axes, np.shape([[1, 1], [1, 1]])) == (0, 1)
 
     axes = None
     assert parse_axes(axes, np.shape([[1, 1], [1, 1]]), default=[0]) == [0]

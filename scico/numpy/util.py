@@ -25,11 +25,11 @@ from ._blockarray import BlockArray
 
 def parse_axes(
     axes: Axes, shape: Optional[Shape] = None, default: Optional[List[int]] = None
-) -> List[int]:
-    """Normalize `axes` to a list and optionally ensure correctness.
+) -> Sequence[int]:
+    """Normalize `axes` to a sequence and optionally ensure correctness.
 
-    Normalize `axes` to a list and (optionally) ensure that entries refer
-    to axes that exist in `shape`.
+    Normalize `axes` to a tupe or list and (optionally) ensure that
+    entries refer to axes that exist in `shape`.
 
     Args:
         axes: User specification of one or more axes: int, list, tuple,
@@ -38,10 +38,12 @@ def parse_axes(
            If not ``None``, `axes` is checked to make sure its entries
            refer to axes that exist in `shape`.
         default: Default value to return if `axes` is ``None``. By
-           default, `list(range(len(shape)))`.
+           default, `tuple(range(len(shape)))`.
 
     Returns:
-        List of axes (never an int, never ``None``).
+        Tuple or list of axes (never an int, never ``None``). The output
+        will only be a list if the input is a list or if the input is
+        ``None`` and `defaults` is a list.
     """
 
     if axes is None:
@@ -50,7 +52,7 @@ def parse_axes(
                 raise ValueError(
                     "Parameter axes cannot be None without a default or shape specified."
                 )
-            axes = list(range(len(shape)))
+            axes = tuple(range(len(shape)))
         else:
             axes = default
     elif isinstance(axes, (list, tuple)):
