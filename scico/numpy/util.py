@@ -23,7 +23,7 @@ from scico.typing import ArrayIndex, Axes, AxisIndex, BlockShape, DType, Shape
 from ._blockarray import BlockArray
 
 
-def parse_axes(
+def normalize_axes(
     axes: Axes,
     shape: Optional[Shape] = None,
     default: Optional[List[int]] = None,

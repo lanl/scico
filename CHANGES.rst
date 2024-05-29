@@ -9,6 +9,8 @@ Version 0.0.6   (unreleased)
 • Significant changes to ``linop.xray.astra`` API.
 • New functional ``functional.IsotropicTVNorm`` and faster implementation
   of ``functional.AnisotropicTVNorm``.
+• Rename ``scico.numpy.util.parse_axes`` to
+  ``scico.numpy.util.normalize_axes``.
 • Rename ``scico.flax.save_weights`` and ``scico.flax.load_weights`` to
   ``scico.flax.save_variables`` and ``scico.flax.load_variables``
   respectively.
@@ -40,8 +42,8 @@ Version 0.0.5   (2023-12-18)
 Version 0.0.4   (2023-08-03)
 ----------------------------
 
-• Add new ``Function`` class for representing array-to-array mappings with more
-  than one input.
+• Add new ``Function`` class for representing array-to-array mappings with
+  more than one input.
 • Add new methods and a function for computing Jacobian-vector products for
   ``Operator`` objects.
 • Add new proximal ADMM solvers.

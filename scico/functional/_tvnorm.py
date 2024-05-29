@@ -23,7 +23,7 @@ from scico.linop import (
     linop_over_axes,
 )
 from scico.numpy import Array
-from scico.numpy.util import parse_axes
+from scico.numpy.util import normalize_axes
 from scico.typing import Axes, DType, Shape
 
 from ._functional import Functional
@@ -118,7 +118,7 @@ class TVNorm(Functional):
         self, input_shape: Shape, input_dtype: DType
     ) -> Tuple[LinearOperator, LinearOperator, int, Tuple]:
         """Construct operators required by prox method."""
-        axes = parse_axes(self.axes, input_shape)
+        axes = normalize_axes(self.axes, input_shape)
         ndims = len(axes)
         w_input_shape = (
             # circular boundary: shape of input array

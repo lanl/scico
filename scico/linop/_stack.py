@@ -13,7 +13,7 @@ from typing import Any, List, Optional, Sequence, Union
 
 import scico.numpy as snp
 from scico.numpy import Array, BlockArray
-from scico.numpy.util import parse_axes
+from scico.numpy.util import normalize_axes
 from scico.operator._stack import DiagonalStack as DStack
 from scico.operator._stack import VerticalStack as VStack
 from scico.typing import Axes, Shape
@@ -175,5 +175,5 @@ def linop_over_axes(
         to construct that list of list of :class:`LinearOperator`, and
         `ops` is the list itself.
     """
-    axes = parse_axes(axes, input_shape)
+    axes = normalize_axes(axes, input_shape)
     return axes, [linop(input_shape, *args, axis=axis, **kwargs) for axis in axes]  # type: ignore
