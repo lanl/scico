@@ -286,7 +286,7 @@ class IsotropicTVNorm(TVNorm):
 class SingleAxisFiniteSum(LinearOperator):
     r"""Two-point sum operator acting along a single axis.
 
-    Boundary handling is circular,  so that the sum operator corresponds
+    Boundary handling is circular, so that the sum operator corresponds
     to the matrix
 
     .. math::
@@ -314,7 +314,7 @@ class SingleAxisFiniteSum(LinearOperator):
             input_shape: Shape of input array.
             input_dtype: `dtype` for input argument. Defaults to
                 :attr:`~numpy.float32`.
-            axis: Axis over which to apply finite sum operator.
+            axis: Axis over which to apply sum operator.
             jit: If ``True``, jit the evaluation, adjoint, and gram
                 functions of the :class:`LinearOperator`.
         """
@@ -348,8 +348,7 @@ class FiniteSum(VerticalStack):
     """Two-point sum operator.
 
     Compute two-point sums along the specified axes, returning the
-    results in a :class:`jax.Array` (when possible) or :class:`BlockArray`.
-    See :class:`VerticalStack` for details on how this choice is made.
+    results stacked on axis 0 of a :class:`jax.Array`.
     See :class:`SingleAxisFiniteSum` for boundary handling details.
     """
 
@@ -391,7 +390,7 @@ class SingleAxisHaarTransform(VerticalStack):
     Compute one level of a shift-invariant Haar transform along the
     specified axis, returning the results in a :class:`jax.Array`
     consisting of sum and difference components (corresponding to lowpass
-    and highpass filtered components respectively) on axis 0.
+    and highpass filtered components respectively) stacked on axis 0.
     See :class:`SingleAxisFiniteSum` for boundary handling details.
     """
 
