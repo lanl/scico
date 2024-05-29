@@ -93,6 +93,9 @@ class TVNorm(Functional):
             input_dtype=input_dtype,
             axes=self.axes,
             circular=self.circular,
+            # For non-circular boundary conditions, zero-pad to the right
+            # for equivalence with boundary conditions implemented in the
+            # prox calculation.
             append=None if self.circular else 0,
             jit=True,
         )
@@ -127,19 +130,29 @@ class TVNorm(Functional):
         )
         W = HaarTransform(w_input_shape, input_dtype=input_dtype, axes=axes, jit=True)
         if self.circular:
+            # slice selecting highpass component of shift-invariant Haar transform
             slce = snp.s_[:, 1]
+            # No boundary extension, so fused extend and forward transform, and fused
+            # adjoint transform and crop are just forward and adjoint respectively.
             WP, CWT = W, W.T
         else:
+            # slice selecting non-boundary region of highpass component of
+            # shift-invariant Haar transform
             slce = (
                 snp.s_[:],
                 snp.s_[1],
             ) + tuple(
                 [snp.s_[:-1] if i in axes else snp.s_[:] for i, s in enumerate(input_shape)]
             )  # type: ignore
+            # Replicate-pad to the right (resulting in a zero after finite differencing)
+            # on all axes subject to finite differencing.
             pad_width = [(0, 1) if i in axes else (0, 0) for i, s in enumerate(input_shape)]  # type: ignore
             P = Pad(input_shape, pad_width=pad_width, mode="edge", jit=True)
+            # fused boundary extend and forward transform linop
             WP = W @ P
+            # crop operation that is inverse of the padding operation
             C = Crop(crop_width=pad_width, input_shape=w_input_shape, jit=True)
+            # fused adjoint transform and crop linop
             CWT = C @ W.T
         return WP, CWT, ndims, slce
 
@@ -175,12 +188,17 @@ class TVNorm(Functional):
         lam: float = 1.0,
     ) -> Array:
         """Core component of prox calculation."""
-        # Apply shrinkage to highpass component of shift-invariant Haar transform
-        # of padded input (or to non-boundary region thereof for non-circular
-        # boundary conditions).
+        # Apply boundary extension (when circular==False) and single-level Haar
+        # transform to input array.
         WPv: Array = WP(v)
+        # Convert tuple of slices/ints to tuple of tuples/ints to avoid jax.jit
+        # complaints about unhashability of slices.
         slce = TVNorm._slice_tuple_from_tuple(slce_rep)
+        # Apply shrinkage to highpass component of shift-invariant Haar transform
+        # of padded input (or to non-boundary region thereof when circular==False).
         WPv = WPv.at[slce].set(norm.prox(WPv[slce], snp.sqrt(2) * K * lam))
+        # Apply adjoint of single-level Haar transform and crop extended
+        # part of array (when circular==False).
         return (1.0 / K) * CWT(WPv)
 
     def prox(self, v: Array, lam: float = 1.0, **kwargs) -> Array:
