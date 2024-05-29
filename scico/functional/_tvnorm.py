@@ -336,8 +336,8 @@ class IsotropicTVNorm(TVNorm):
 class SingleAxisFiniteSum(LinearOperator):
     r"""Two-point sum operator acting along a single axis.
 
-    Left and right hand boundaries are handled via symmetric extension
-    so that the sum operator corresponds to the matrix
+    Boundary handling is circular,  so that the sum operator corresponds
+    to the matrix
 
     .. math::
 
@@ -347,7 +347,7 @@ class SingleAxisFiniteSum(LinearOperator):
        0 & 1 & 1 & \ldots & 0\\
        \vdots & \vdots & \ddots & \ddots & \vdots\\
        0 & 0 & \ldots & 1 & 1\\
-       0 & 0 & \dots & 0 & 1
+       1 & 0 & \dots & 0 & 1
        \end{array}\right) \;.
     """
 
@@ -379,18 +379,11 @@ class SingleAxisFiniteSum(LinearOperator):
                 f"Invalid axis {axis} specified; axis must be less than "
                 f"len(input_shape)={len(input_shape)}."
             )
-
         self.axis = axis
-
-        ndims = len(input_shape)
-        self.left_pad = ((0, 0),) * axis + ((1, 0),) + ((0, 0),) * (ndims - axis - 1)
-        self.right_pad = ((0, 0),) * axis + ((0, 1),) + ((0, 0),) * (ndims - axis - 1)
-
-        output_shape = tuple(x + (i == axis) for i, x in enumerate(input_shape))
 
         super().__init__(
             input_shape=input_shape,
-            output_shape=output_shape,
+            output_shape=input_shape,
             input_dtype=input_dtype,
             output_dtype=input_dtype,
             jit=jit,
@@ -398,7 +391,7 @@ class SingleAxisFiniteSum(LinearOperator):
         )
 
     def _eval(self, x: snp.Array) -> snp.Array:
-        return snp.pad(x, self.left_pad) + snp.pad(x, self.right_pad)
+        return x + snp.roll(x, -1, self.axis)
 
 
 class FiniteSum(VerticalStack):
@@ -474,7 +467,7 @@ class SingleAxisHaarTransform(VerticalStack):
             input_shape, input_dtype=input_dtype, axis=axis, jit=jit, **kwargs
         )
         self.HaarH = (1.0 / 2.0) * SingleAxisFiniteDifference(
-            input_shape, input_dtype=input_dtype, axis=axis, prepend=1, append=1, jit=jit, **kwargs
+            input_shape, input_dtype=input_dtype, axis=axis, circular=True, jit=jit, **kwargs
         )
         super().__init__(
             (self.HaarL, self.HaarH),
