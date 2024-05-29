@@ -175,15 +175,5 @@ def linop_over_axes(
         to construct that list of list of :class:`LinearOperator`, and
         `ops` is the list itself.
     """
-    if axes is None:
-        axes = tuple(range(len(input_shape)))
-    elif not isinstance(axes, (list, tuple)):
-        axes = (axes,)
-    if axes is None:
-        axis_list = tuple(range(len(input_shape)))
-    elif isinstance(axes, (list, tuple)):
-        axis_list = axes  # type: ignore
-    else:
-        axis_list = (axes,)
     axes = parse_axes(axes, input_shape)
     return axes, [linop(input_shape, *args, axis=axis, **kwargs) for axis in axes]  # type: ignore
