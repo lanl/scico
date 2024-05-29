@@ -11,7 +11,6 @@ from typing import Optional, Tuple
 
 from scico import numpy as snp
 from scico.linop import (
-    CircularConvolve,
     Crop,
     FiniteDifference,
     LinearOperator,
@@ -21,6 +20,7 @@ from scico.linop import (
     linop_over_axes,
 )
 from scico.numpy import Array
+from scico.numpy.util import parse_axes
 from scico.typing import Axes, DType, Shape
 
 from ._functional import Functional
@@ -42,7 +42,7 @@ class TVNorm(Functional):
         self,
         norm: Functional,
         circular: bool = True,
-        ndims: Optional[int] = None,
+        axes: Optional[Axes] = None,
         input_shape: Optional[Shape] = None,
         input_dtype: DType = snp.float32,
     ):
@@ -61,9 +61,9 @@ class TVNorm(Functional):
         Args:
             norm: Norm functional from which the TV norm is composed.
             circular: Flag indicating use of circular boundary conditions.
-            ndims: Number of (trailing) dimensions of the input over
-                which to apply the finite difference operator. If
-                ``None``, differences are evaluated along all axes.
+            axes: Axis or axes over which to apply finite difference
+                operator. If not specified, or ``None``, differences are
+                evaluated along all axes.
             input_shape: Shape of input arrays of :meth:`__call__` and
                 :meth:`prox`.
             input_dtype: `dtype` of input arrays of :meth:`__call__` and
@@ -71,21 +71,18 @@ class TVNorm(Functional):
         """
         self.norm = norm
         self.circular = circular
-        self.ndims = ndims
-        self.h0 = snp.array([1.0, 1.0]) / snp.sqrt(2.0)  # lowpass filter
-        self.h1 = snp.array([1.0, -1.0]) / snp.sqrt(2.0)  # highpass filter
+        self.axes = axes
         self.G: Optional[LinearOperator] = None
         self.WP: Optional[LinearOperator] = None
 
         if input_shape is not None:
-            if ndims is None:
-                ndims = len(input_shape)
-            self.G = self._call_operator(ndims, input_shape, input_dtype)
-            self.WP, self.CWT = self._prox_operators(ndims, input_shape, input_dtype)
+            self.G = self._call_operator(input_shape, input_dtype, axes)
+            self.WP, self.CWT = self._prox_operators(input_shape, input_dtype, axes)
 
-    def _call_operator(self, ndims: int, input_shape: Shape, input_dtype: DType) -> LinearOperator:
+    def _call_operator(
+        self, input_shape: Shape, input_dtype: DType, axes: Optional[Axes]
+    ) -> LinearOperator:
         """Construct operator required by __call__ method."""
-        axes = tuple(range(len(input_shape) - ndims, len(input_shape)))
         G = FiniteDifference(
             input_shape,
             input_dtype=input_dtype,
@@ -106,11 +103,7 @@ class TVNorm(Functional):
               TV norm of `x`.
         """
         if self.G is None or self.G.shape[1] != x.shape:
-            if self.ndims is None:
-                ndims = x.ndim
-            else:
-                ndims = self.ndims
-            self.G = self._call_operator(ndims, x.shape, x.dtype)
+            self.G = self._call_operator(x.shape, x.dtype, self.axes)
         return self.norm(self.G @ x)
 
     @staticmethod
@@ -122,52 +115,24 @@ class TVNorm(Functional):
         """
         return (1,) * idx + (-1,) + (1,) * (ndims - idx - 1)
 
-    @staticmethod
-    def _center(idx: int, ndims: int) -> Tuple:
-        """Construct a center tuple.
-
-        Construct a tuple of size `ndims` with all zero entries except
-        for index `idx`, which has a unit entry.
-        """
-        return (0,) * idx + (1,) + (0,) * (ndims - idx - 1)
-
-    def _haar_operator(self, ndims: int, input_shape: Shape, input_dtype: DType) -> LinearOperator:
-        """Construct single-level shift-invariant Haar transform."""
-        h0 = self.h0.astype(input_dtype)
-        h1 = self.h1.astype(input_dtype)
-        ConvOp = lambda h, k: CircularConvolve(
-            h.reshape(TVNorm._shape(k, ndims)),
-            input_shape,
-            ndims=ndims,
-            h_center=TVNorm._center(k, ndims),
-        )
-        L = VerticalStack(  # stack of lowpass filter operators for each axis
-            [ConvOp(h0, k) for k in range(ndims)]
-        )
-        H = VerticalStack(  # stack of highpass filter operators for each axis
-            [ConvOp(h1, k) for k in range(ndims)]
-        )
-        # single-level shift-invariant Haar transform
-        return VerticalStack([L, H], jit=True)
-
     def _prox_operators(
-        self, ndims: int, input_shape: Shape, input_dtype: DType
+        self, input_shape: Shape, input_dtype: DType, axes: Optional[Axes]
     ) -> Tuple[LinearOperator, LinearOperator]:
         """Construct operators required by prox method."""
+        axes = parse_axes(self.axes, input_shape)
         w_input_shape = (
             # circular boundary: shape of input array
             input_shape
             if self.circular
             # non-circular boundary: shape of input array on non-differenced
             #    axes and one greater for axes that are differenced
-            else input_shape[0 : (len(input_shape) - ndims)]
-            + tuple([n + 1 for n in input_shape[-ndims:]])
+            else tuple([s + 1 if i in axes else s for i, s in enumerate(input_shape)])  # type: ignore
         )
-        W = self._haar_operator(ndims, w_input_shape, input_dtype)
+        W = HaarTransform(w_input_shape, input_dtype=input_dtype, axes=axes, jit=True)
         if self.circular:
             WP, CWT = W, W.T
         else:
-            pad_width = ((0, 0),) * (len(input_shape) - ndims) + ((0, 1),) * ndims
+            pad_width = [(0, 1) if i in axes else (0, 0) for i, s in enumerate(input_shape)]  # type: ignore
             P = Pad(input_shape, pad_width=pad_width, mode="edge", jit=True)
             WP = W @ P
             C = Crop(crop_width=pad_width, input_shape=w_input_shape, jit=True)
@@ -187,14 +152,12 @@ class TVNorm(Functional):
             kwargs: Additional arguments that may be used by derived
                 classes.
         """
-        if self.ndims is None:
-            ndims = v.ndim
-        else:
-            ndims = self.ndims
+        axes = parse_axes(self.axes, v.shape)
+        ndims = len(axes)
         K = 2 * ndims
 
         if self.WP is None or self.WP.shape[1] != v.shape:
-            self.WP, self.CWT = self._prox_operators(ndims, v.shape, v.dtype)
+            self.WP, self.CWT = self._prox_operators(v.shape, v.dtype, self.axes)
 
         if self.circular:
             slce = snp.s_[1]
@@ -251,16 +214,16 @@ class AnisotropicTVNorm(TVNorm):
     def __init__(
         self,
         circular: bool = False,
-        ndims: Optional[int] = None,
+        axes: Optional[Axes] = None,
         input_shape: Optional[Shape] = None,
         input_dtype: DType = snp.float32,
     ):
         """
         Args:
             circular: Flag indicating use of circular boundary conditions.
-            ndims: Number of (trailing) dimensions of the input over
-                which to apply the finite difference operator. If
-                ``None``, differences are evaluated along all axes.
+            axes: Axis or axes over which to apply finite difference
+                operator. If not specified, or ``None``, differences are
+                evaluated along all axes.
             input_shape: Shape of input arrays of :meth:`~.TVNorm.__call__` and
                 :meth:`~.TVNorm.prox`.
             input_dtype: `dtype` of input arrays of :meth:`~.TVNorm.__call__` and
@@ -269,7 +232,7 @@ class AnisotropicTVNorm(TVNorm):
         super().__init__(
             L1Norm(),
             circular=circular,
-            ndims=ndims,
+            axes=axes,
             input_shape=input_shape,
             input_dtype=input_dtype,
         )
@@ -309,16 +272,16 @@ class IsotropicTVNorm(TVNorm):
     def __init__(
         self,
         circular: bool = False,
-        ndims: Optional[int] = None,
+        axes: Optional[Axes] = None,
         input_shape: Optional[Shape] = None,
         input_dtype: DType = snp.float32,
     ):
         r"""
         Args:
             circular: Flag indicating use of circular boundary conditions.
-            ndims: Number of (trailing) dimensions of the input over
-                which to apply the finite difference operator. If
-                ``None``, differences are evaluated along all axes.
+            axes: Axis or axes over which to apply finite difference
+                operator. If not specified, or ``None``, differences are
+                evaluated along all axes.
             input_shape: Shape of input arrays of :meth:`~.TVNorm.__call__` and
                 :meth:`~.TVNorm.prox`.
             input_dtype: `dtype` of input arrays of :meth:`~.TVNorm.__call__` and
@@ -327,7 +290,7 @@ class IsotropicTVNorm(TVNorm):
         super().__init__(
             L21Norm(),
             circular=circular,
-            ndims=ndims,
+            axes=axes,
             input_shape=input_shape,
             input_dtype=input_dtype,
         )
