@@ -162,9 +162,11 @@ class Test3D:
         x_tvdn = solver.solve()
 
         if tvtype == "aniso":
-            h = λ * functional.AnisotropicTVNorm(circular=circular, ndims=2, input_shape=y.shape)
+            h = λ * functional.AnisotropicTVNorm(
+                circular=circular, axes=(1, 2), input_shape=y.shape
+            )
         else:
-            h = λ * functional.IsotropicTVNorm(circular=circular, ndims=2, input_shape=y.shape)
+            h = λ * functional.IsotropicTVNorm(circular=circular, axes=(1, 2), input_shape=y.shape)
 
         solver = AcceleratedPGM(
             f=f,
