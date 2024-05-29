@@ -74,10 +74,14 @@ class TVNorm(Functional):
         self.axes = axes
         self.G: Optional[LinearOperator] = None
         self.WP: Optional[LinearOperator] = None
+        self.prox_ndims: Optional[int] = None
+        self.prox_slice: Optional[Tuple] = None
 
         if input_shape is not None:
             self.G = self._call_operator(input_shape, input_dtype, axes)
-            self.WP, self.CWT = self._prox_operators(input_shape, input_dtype, axes)
+            self.WP, self.CWT, self.prox_ndims, self.prox_slice = self._prox_operators(
+                input_shape, input_dtype, axes
+            )
 
     def _call_operator(
         self, input_shape: Shape, input_dtype: DType, axes: Optional[Axes]
@@ -111,6 +115,7 @@ class TVNorm(Functional):
     ) -> Tuple[LinearOperator, LinearOperator]:
         """Construct operators required by prox method."""
         axes = parse_axes(self.axes, input_shape)
+        ndims = len(axes)
         w_input_shape = (
             # circular boundary: shape of input array
             input_shape
@@ -121,14 +126,19 @@ class TVNorm(Functional):
         )
         W = HaarTransform(w_input_shape, input_dtype=input_dtype, axes=axes, jit=True)
         if self.circular:
+            slce = snp.s_[:, 1]
             WP, CWT = W, W.T
         else:
+            slce = (
+                snp.s_[:],
+                snp.s_[1],
+            ) + tuple([snp.s_[:-1] if i in axes else snp.s_[:] for i, s in enumerate(input_shape)])
             pad_width = [(0, 1) if i in axes else (0, 0) for i, s in enumerate(input_shape)]  # type: ignore
             P = Pad(input_shape, pad_width=pad_width, mode="edge", jit=True)
             WP = W @ P
             C = Crop(crop_width=pad_width, input_shape=w_input_shape, jit=True)
             CWT = C @ W.T
-        return WP, CWT
+        return WP, CWT, ndims, slce
 
     def prox(self, v: Array, lam: float = 1.0, **kwargs) -> Array:
         r"""Approximate proximal operator of the TV norm.
@@ -143,25 +153,19 @@ class TVNorm(Functional):
             kwargs: Additional arguments that may be used by derived
                 classes.
         """
-        axes = parse_axes(self.axes, v.shape)
-        ndims = len(axes)
-        K = 2 * ndims
-
         if self.WP is None or self.WP.shape[1] != v.shape:
-            self.WP, self.CWT = self._prox_operators(v.shape, v.dtype, self.axes)
+            self.WP, self.CWT, self.prox_ndims, self.prox_slice = self._prox_operators(
+                v.shape, v.dtype, self.axes
+            )
+        K = 2 * self.prox_ndims
 
-        if self.circular:
-            slce = snp.s_[:, 1]
-        else:
-            slce = (
-                snp.s_[:],
-                snp.s_[1],
-            ) + tuple([snp.s_[:-1] if i in axes else snp.s_[:] for i, s in enumerate(v.shape)])
         # Apply shrinkage to highpass component of shift-invariant Haar transform
         # of padded input (or to non-boundary region thereof for non-circular
         # boundary conditions).
         WPv: Array = self.WP(v)
-        WPv = WPv.at[slce].set(self.norm.prox(WPv[slce], snp.sqrt(2) * K * lam))
+        WPv = WPv.at[self.prox_slice].set(
+            self.norm.prox(WPv[self.prox_slice], snp.sqrt(2) * K * lam)
+        )
         u = (1.0 / K) * self.CWT(WPv)
 
         return u
