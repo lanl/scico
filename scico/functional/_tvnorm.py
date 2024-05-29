@@ -7,7 +7,10 @@
 
 """Total variation norms."""
 
+from functools import partial
 from typing import Optional, Tuple
+
+import jax
 
 from scico import numpy as snp
 from scico.linop import (
@@ -78,19 +81,17 @@ class TVNorm(Functional):
         self.prox_slice: Optional[Tuple] = None
 
         if input_shape is not None:
-            self.G = self._call_operator(input_shape, input_dtype, axes)
+            self.G = self._call_operator(input_shape, input_dtype)
             self.WP, self.CWT, self.prox_ndims, self.prox_slice = self._prox_operators(
-                input_shape, input_dtype, axes
+                input_shape, input_dtype
             )
 
-    def _call_operator(
-        self, input_shape: Shape, input_dtype: DType, axes: Optional[Axes]
-    ) -> LinearOperator:
+    def _call_operator(self, input_shape: Shape, input_dtype: DType) -> LinearOperator:
         """Construct operator required by __call__ method."""
         G = FiniteDifference(
             input_shape,
             input_dtype=input_dtype,
-            axes=axes,
+            axes=self.axes,
             circular=self.circular,
             append=None if self.circular else 0,
             jit=True,
@@ -107,12 +108,12 @@ class TVNorm(Functional):
               TV norm of `x`.
         """
         if self.G is None or self.G.shape[1] != x.shape:
-            self.G = self._call_operator(x.shape, x.dtype, self.axes)
+            self.G = self._call_operator(x.shape, x.dtype)
         return self.norm(self.G @ x)
 
     def _prox_operators(
-        self, input_shape: Shape, input_dtype: DType, axes: Optional[Axes]
-    ) -> Tuple[LinearOperator, LinearOperator]:
+        self, input_shape: Shape, input_dtype: DType
+    ) -> Tuple[LinearOperator, LinearOperator, int, Tuple]:
         """Construct operators required by prox method."""
         axes = parse_axes(self.axes, input_shape)
         ndims = len(axes)
@@ -132,13 +133,33 @@ class TVNorm(Functional):
             slce = (
                 snp.s_[:],
                 snp.s_[1],
-            ) + tuple([snp.s_[:-1] if i in axes else snp.s_[:] for i, s in enumerate(input_shape)])
+            ) + tuple(
+                [snp.s_[:-1] if i in axes else snp.s_[:] for i, s in enumerate(input_shape)]
+            )  # type: ignore
             pad_width = [(0, 1) if i in axes else (0, 0) for i, s in enumerate(input_shape)]  # type: ignore
             P = Pad(input_shape, pad_width=pad_width, mode="edge", jit=True)
             WP = W @ P
             C = Crop(crop_width=pad_width, input_shape=w_input_shape, jit=True)
             CWT = C @ W.T
         return WP, CWT, ndims, slce
+
+    @staticmethod
+    @partial(jax.jit, static_argnums=(0, 1, 2, 3, 4))
+    def _prox_core(
+        WP: LinearOperator,
+        CWT: LinearOperator,
+        norm: Functional,
+        K: int,
+        slce: Tuple,
+        v: Array,
+        lam: float = 1.0,
+    ) -> Array:
+        # Apply shrinkage to highpass component of shift-invariant Haar transform
+        # of padded input (or to non-boundary region thereof for non-circular
+        # boundary conditions).
+        WPv: Array = WP(v)
+        WPv = WPv.at[slce].set(norm.prox(WPv[slce], snp.sqrt(2) * K * lam))
+        return (1.0 / K) * CWT(WPv)
 
     def prox(self, v: Array, lam: float = 1.0, **kwargs) -> Array:
         r"""Approximate proximal operator of the TV norm.
@@ -155,18 +176,20 @@ class TVNorm(Functional):
         """
         if self.WP is None or self.WP.shape[1] != v.shape:
             self.WP, self.CWT, self.prox_ndims, self.prox_slice = self._prox_operators(
-                v.shape, v.dtype, self.axes
+                v.shape, v.dtype
             )
+        assert self.prox_ndims is not None
         K = 2 * self.prox_ndims
 
         # Apply shrinkage to highpass component of shift-invariant Haar transform
         # of padded input (or to non-boundary region thereof for non-circular
         # boundary conditions).
-        WPv: Array = self.WP(v)
-        WPv = WPv.at[self.prox_slice].set(
-            self.norm.prox(WPv[self.prox_slice], snp.sqrt(2) * K * lam)
-        )
-        u = (1.0 / K) * self.CWT(WPv)
+        # WPv: Array = self.WP(v)
+        # WPv = WPv.at[self.prox_slice].set(
+        #    self.norm.prox(WPv[self.prox_slice], snp.sqrt(2) * K * lam)
+        # )
+        # u = (1.0 / K) * self.CWT(WPv)
+        u = TVNorm._prox_core(self.WP, self.CWT, self.norm, K, self.prox_slice, v, lam)
 
         return u
 
