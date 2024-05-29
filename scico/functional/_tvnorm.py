@@ -144,20 +144,42 @@ class TVNorm(Functional):
         return WP, CWT, ndims, slce
 
     @staticmethod
-    @partial(jax.jit, static_argnums=(0, 1, 2, 3, 4))
+    def _slice_tuple_to_tuple(st: Tuple) -> Tuple:
+        """Convert a tuple of slice or int to a tuple of tuple or int.
+
+        Required here as a workaround for the unhashability of slices in
+        Python < 3.12, since jax.jit requires static arguments to be
+        hashable.
+        """
+        return tuple([(s.start, s.stop, s.step) if isinstance(s, slice) else s for s in st])
+
+    @staticmethod
+    def _slice_tuple_from_tuple(st: Tuple) -> Tuple:
+        """Convert a tuple of tuple or int to a tuple of slice or int.
+
+        Required here as a workaround for the unhashability of slices in
+        Python < 3.12, since jax.jit requires static arguments to be
+        hashable.
+        """
+        return tuple([slice(*s) if isinstance(s, tuple) else s for s in st])
+
+    @staticmethod
+    @partial(jax.jit, static_argnums=(0, 1, 2, 4))
     def _prox_core(
         WP: LinearOperator,
         CWT: LinearOperator,
         norm: Functional,
         K: int,
-        slce: Tuple,
+        slce_rep: Tuple,
         v: Array,
         lam: float = 1.0,
     ) -> Array:
+        """Core component of prox calculation."""
         # Apply shrinkage to highpass component of shift-invariant Haar transform
         # of padded input (or to non-boundary region thereof for non-circular
         # boundary conditions).
         WPv: Array = WP(v)
+        slce = TVNorm._slice_tuple_from_tuple(slce_rep)
         WPv = WPv.at[slce].set(norm.prox(WPv[slce], snp.sqrt(2) * K * lam))
         return (1.0 / K) * CWT(WPv)
 
@@ -179,17 +201,11 @@ class TVNorm(Functional):
                 v.shape, v.dtype
             )
         assert self.prox_ndims is not None
+        assert self.prox_slice is not None
         K = 2 * self.prox_ndims
-
-        # Apply shrinkage to highpass component of shift-invariant Haar transform
-        # of padded input (or to non-boundary region thereof for non-circular
-        # boundary conditions).
-        # WPv: Array = self.WP(v)
-        # WPv = WPv.at[self.prox_slice].set(
-        #    self.norm.prox(WPv[self.prox_slice], snp.sqrt(2) * K * lam)
-        # )
-        # u = (1.0 / K) * self.CWT(WPv)
-        u = TVNorm._prox_core(self.WP, self.CWT, self.norm, K, self.prox_slice, v, lam)
+        u = TVNorm._prox_core(
+            self.WP, self.CWT, self.norm, K, TVNorm._slice_tuple_to_tuple(self.prox_slice), v, lam
+        )
 
         return u
 
