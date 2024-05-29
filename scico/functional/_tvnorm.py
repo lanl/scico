@@ -151,16 +151,12 @@ class TVNorm(Functional):
             self.WP, self.CWT = self._prox_operators(v.shape, v.dtype, self.axes)
 
         if self.circular:
-            slce = snp.s_[1]
+            slce = snp.s_[:, 1]
         else:
             slce = (
-                (
-                    1,
-                    snp.s_[:],
-                )
-                + (snp.s_[:],) * (v.ndim - ndims)
-                + (snp.s_[:-1],) * ndims
-            )
+                snp.s_[:],
+                snp.s_[1],
+            ) + tuple([snp.s_[:-1] if i in axes else snp.s_[:] for i, s in enumerate(input_shape)])
         # Apply shrinkage to highpass component of shift-invariant Haar transform
         # of padded input (or to non-boundary region thereof for non-circular
         # boundary conditions).
