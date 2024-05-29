@@ -106,15 +106,6 @@ class TVNorm(Functional):
             self.G = self._call_operator(x.shape, x.dtype, self.axes)
         return self.norm(self.G @ x)
 
-    @staticmethod
-    def _shape(idx: int, ndims: int) -> Tuple:
-        """Construct a shape tuple.
-
-        Construct a tuple of size `ndims` with all unit entries except
-        for index `idx`, which has a -1 entry.
-        """
-        return (1,) * idx + (-1,) + (1,) * (ndims - idx - 1)
-
     def _prox_operators(
         self, input_shape: Shape, input_dtype: DType, axes: Optional[Axes]
     ) -> Tuple[LinearOperator, LinearOperator]:
