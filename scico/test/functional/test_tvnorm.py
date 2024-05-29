@@ -14,13 +14,13 @@ from scico.optimize.pgm import AcceleratedPGM
 def test_single_axis_haar_transform(axis):
     x, key = scico.random.randn((3, 4), seed=1234)
     HT = SingleAxisHaarTransform(x.shape, axis=axis)
-    np.testing.assert_allclose(x, HT.T(HT(x)), rtol=1e-6)
+    np.testing.assert_allclose(2 * x, HT.T(HT(x)), rtol=1e-6)
 
 
 def test_haar_transform():
     x, key = scico.random.randn((3, 4), seed=1234)
     HT = HaarTransform(x.shape)
-    np.testing.assert_allclose(2 * x, HT.T(HT(x)), rtol=1e-6)
+    np.testing.assert_allclose(4 * x, HT.T(HT(x)), rtol=1e-6)
 
 
 @pytest.mark.parametrize("circular", [True, False])

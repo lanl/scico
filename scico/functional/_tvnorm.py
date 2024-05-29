@@ -413,10 +413,10 @@ class SingleAxisHaarTransform(VerticalStack):
                 functions of the :class:`LinearOperator`.
         """
         self.axis = axis
-        self.HaarL = (1.0 / 2.0) * SingleAxisFiniteSum(
+        self.HaarL = (1.0 / snp.sqrt(2.0)) * SingleAxisFiniteSum(
             input_shape, input_dtype=input_dtype, axis=axis, jit=jit, **kwargs
         )
-        self.HaarH = (1.0 / 2.0) * SingleAxisFiniteDifference(
+        self.HaarH = (1.0 / snp.sqrt(2.0)) * SingleAxisFiniteDifference(
             input_shape, input_dtype=input_dtype, axis=axis, circular=True, jit=jit, **kwargs
         )
         super().__init__(
