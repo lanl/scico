@@ -24,7 +24,10 @@ from ._blockarray import BlockArray
 
 
 def parse_axes(
-    axes: Axes, shape: Optional[Shape] = None, default: Optional[List[int]] = None
+    axes: Axes,
+    shape: Optional[Shape] = None,
+    default: Optional[List[int]] = None,
+    sort: bool = False,
 ) -> Sequence[int]:
     """Normalize `axes` to a sequence and optionally ensure correctness.
 
@@ -33,12 +36,14 @@ def parse_axes(
 
     Args:
         axes: User specification of one or more axes: int, list, tuple,
-           or ``None``.
+           or ``None``. Negative values count from the last to the first
+           axis.
         shape: The shape of the array of which axes are being specified.
            If not ``None``, `axes` is checked to make sure its entries
            refer to axes that exist in `shape`.
         default: Default value to return if `axes` is ``None``. By
            default, `tuple(range(len(shape)))`.
+        sort: If ``True``, sort the returned axis indices.
 
     Returns:
         Tuple or list of axes (never an int, never ``None``). The output
@@ -61,12 +66,17 @@ def parse_axes(
         axes = (axes,)
     else:
         raise ValueError(f"Could not understand axes {axes} as a list of axes.")
-    if shape is not None and max(axes) >= len(shape):
-        raise ValueError(
-            f"Invalid axes {axes} specified; each axis must be less than `len(shape)`={len(shape)}."
-        )
+    if shape is not None:
+        if min(axes) < 0:
+            axes = tuple([len(shape) + a if a < 0 else a for a in axes])
+        if max(axes) >= len(shape):
+            raise ValueError(
+                f"Invalid axes {axes} specified; each axis must be less than `len(shape)`={len(shape)}."
+            )
     if len(set(axes)) != len(axes):
         raise ValueError(f"Duplicate value in axes {axes}; each axis must be unique.")
+    if sort:
+        axes = tuple(sorted(axes))
     return axes
 
 
