@@ -28,7 +28,7 @@ def parse_axes(
 ) -> Sequence[int]:
     """Normalize `axes` to a sequence and optionally ensure correctness.
 
-    Normalize `axes` to a tupe or list and (optionally) ensure that
+    Normalize `axes` to a tuple or list and (optionally) ensure that
     entries refer to axes that exist in `shape`.
 
     Args:
