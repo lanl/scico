@@ -156,7 +156,7 @@ class TVNorm(Functional):
             slce = (
                 snp.s_[:],
                 snp.s_[1],
-            ) + tuple([snp.s_[:-1] if i in axes else snp.s_[:] for i, s in enumerate(input_shape)])
+            ) + tuple([snp.s_[:-1] if i in axes else snp.s_[:] for i, s in enumerate(v.shape)])
         # Apply shrinkage to highpass component of shift-invariant Haar transform
         # of padded input (or to non-boundary region thereof for non-circular
         # boundary conditions).
