@@ -9,13 +9,15 @@
 
 from __future__ import annotations
 
-from typing import Optional, Sequence, Union
+from typing import Any, List, Optional, Sequence, Union
 
 import scico.numpy as snp
 from scico.numpy import Array, BlockArray
+from scico.numpy.util import normalize_axes
 from scico.operator._stack import DiagonalReplicated as DReplicated
 from scico.operator._stack import DiagonalStack as DStack
 from scico.operator._stack import VerticalStack as VStack
+from scico.typing import Axes, Shape
 
 from ._linop import LinearOperator
 
@@ -220,3 +222,36 @@ class DiagonalReplicated(DReplicated, LinearOperator):
         )
 
         self._adj = self.jaxmap(op.adj, in_axes=self.input_axis, out_axes=self.output_axis)
+
+
+def linop_over_axes(
+    linop: type[LinearOperator],
+    input_shape: Shape,
+    *args: Any,
+    axes: Optional[Axes] = None,
+    **kwargs: Any,
+) -> List[LinearOperator]:
+    """Construct a list of :class:`LinearOperator` by iterating over axes.
+
+    Construct a list of :class:`LinearOperator` by iterating over a
+    specified sequence of axes, passing each value in sequence to the
+    `axis` keyword argument of the :class:`LinearOperator` initializer.
+
+    Args:
+        linop: Type of :class:`LinearOperator` to construct for each axis.
+        input_shape: Shape of input array.
+        *args: Positional arguments for the :class:`LinearOperator`
+            initializer.
+        axes: Axis or axes over which to construct the list. If not
+            specified, or ``None``, use all axes corresponding to
+            `input_shape`.
+        **kwargs: Keyword arguments for the :class:`LinearOperator`
+            initializer.
+
+    Returns:
+        A tuple (`axes`, `ops`) where `axes` is a tuple of the axes used
+        to construct that list of list of :class:`LinearOperator`, and
+        `ops` is the list itself.
+    """
+    axes = normalize_axes(axes, input_shape)
+    return axes, [linop(input_shape, *args, axis=axis, **kwargs) for axis in axes]  # type: ignore

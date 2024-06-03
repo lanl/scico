@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2023 by SCICO Developers
+# Copyright (C) 2021-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SPORCO package. Details of the copyright
 # and user license can be found in the 'LICENSE.txt' file distributed
@@ -7,7 +7,7 @@
 
 """Type definitions."""
 
-from typing import Any, Tuple, Union
+from typing import Any, List, Tuple, Union
 
 try:
     # available in python 3.10
@@ -48,7 +48,7 @@ Shape: TypeAlias = Tuple[int, ...]
 BlockShape: TypeAlias = Tuple[Tuple[int, ...], ...]
 """A shape of a :class:`.BlockArray`."""
 
-Axes: TypeAlias = Union[int, Tuple[int, ...]]
+Axes: TypeAlias = Union[int, Tuple[int, ...], List[int]]
 """Specification of one or more array axes."""
 
 AxisIndex: TypeAlias = Union[slice, EllipsisType, int]
