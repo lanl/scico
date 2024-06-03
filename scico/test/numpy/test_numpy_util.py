@@ -10,6 +10,7 @@ from scico.numpy.util import (
     is_nested,
     is_real_dtype,
     is_scalar_equiv,
+    jax_indexed_shape,
     no_nan_divide,
     normalize_axes,
     real_dtype,
@@ -114,6 +115,7 @@ def test_slice_length_other(length, slc):
 def test_indexed_shape(shape, slc):
     x = np.zeros(shape)
     assert x[slc].shape == indexed_shape(shape, slc)
+    assert x[slc].shape == jax_indexed_shape(shape, slc)
 
 
 def test_is_nested():
