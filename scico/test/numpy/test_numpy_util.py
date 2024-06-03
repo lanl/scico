@@ -12,7 +12,7 @@ from scico.numpy.util import (
     is_scalar_equiv,
     jax_indexed_shape,
     no_nan_divide,
-    parse_axes,
+    normalize_axes,
     real_dtype,
     slice_length,
 )
@@ -43,30 +43,36 @@ def test_no_nan_divide_blockarray():
     np.testing.assert_allclose(res[0], x[0] / y[0])
 
 
-def test_parse_axes():
+def test_normalize_axes():
     axes = None
-    np.testing.assert_raises(ValueError, parse_axes, axes)
+    np.testing.assert_raises(ValueError, normalize_axes, axes)
 
     axes = None
-    assert parse_axes(axes, np.shape([[1, 1], [1, 1]])) == [0, 1]
+    assert normalize_axes(axes, np.shape([[1, 1], [1, 1]])) == (0, 1)
 
     axes = None
-    assert parse_axes(axes, np.shape([[1, 1], [1, 1]]), default=[0]) == [0]
+    assert normalize_axes(axes, np.shape([[1, 1], [1, 1]]), default=[0]) == [0]
 
     axes = [1, 2]
-    assert parse_axes(axes) == axes
+    assert normalize_axes(axes) == axes
 
     axes = 1
-    assert parse_axes(axes) == (1,)
+    assert normalize_axes(axes) == (1,)
+
+    axes = (-1,)
+    assert normalize_axes(axes, shape=(1, 2)) == (1,)
+
+    axes = (0, 2, 1)
+    assert normalize_axes(axes, shape=(2, 3, 4), sort=True) == (0, 1, 2)
 
     axes = "axes"
-    np.testing.assert_raises(ValueError, parse_axes, axes)
+    np.testing.assert_raises(ValueError, normalize_axes, axes)
 
     axes = 2
-    np.testing.assert_raises(ValueError, parse_axes, axes, np.shape([1]))
+    np.testing.assert_raises(ValueError, normalize_axes, axes, np.shape([1]))
 
     axes = (1, 2, 2)
-    np.testing.assert_raises(ValueError, parse_axes, axes)
+    np.testing.assert_raises(ValueError, normalize_axes, axes)
 
 
 @pytest.mark.parametrize("length", (4, 5, 8, 16, 17))
