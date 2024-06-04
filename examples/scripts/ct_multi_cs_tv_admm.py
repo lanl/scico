@@ -68,7 +68,7 @@ for p in ("astra", "svmbir", "scico"):
     print(f"\nSolving with {p} projector")
 
     # Set up ADMM solver object.
-    λ = 2e0  # L1 norm regularization parameter
+    λ = 2e0  # ℓ2,1 norm regularization parameter
     ρ = 5e0  # ADMM penalty parameter
     maxiter = 25  # number of ADMM iterations
     cg_tol = 1e-4  # CG relative tolerance
