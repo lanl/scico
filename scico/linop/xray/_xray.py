@@ -305,23 +305,48 @@ class Parallel3dProjector:
         return proj
 
 
-from scico.examples import create_tangle_phantom
-from scipy.spatial.transform import Rotation
+def P_to_vectors(in_shape: Shape, P: ArrayLike, det_shape: Shape) -> ArrayLike:
+    """
+    Convert SCICO projection matrix into ASTRA vectors.
 
-Nx, Ny, Nz = 64, 65, 67
-im = jnp.array(create_tangle_phantom(Nx, Ny, Nz))
+    For 3D arrays,
+    in Astra, the dimensions go (slices, rows, columns) and (z, y, x);
+    in SCICO, the dimensions go (x, y, z).
 
-det_shape = (68, 69)
+    For 2D arrays,
+    in Astra, the dimensions go (rows, columns) and (y, x);
+    in SCICO, the dimensions go (x, y).
 
-# projection matrix: rotation matrix, chop off last row...
-rot_X = 90.0 - 16.0
-rot_Y = np.linspace(0, 180, 7, endpoint=False)
-P = jnp.stack([Rotation.from_euler("XY", [rot_X, y], degrees=True).as_matrix() for y in rot_Y])
-P = P[:, :2, :]
+    In Astra, the x-grid (recon) is centered on the origin and the y-grid (projection) can move.
+    In SCICO, the x-grid origin is x[0, 0, 0], the y-grid origin is y[0, 0].
 
-# add translation
-x0 = jnp.array(im.shape) / 2
-t = -jnp.tensordot(P, x0, axes=[2, 0]) + jnp.array(det_shape) / 2
-P = jnp.concatenate((P, t[..., np.newaxis]), axis=2)
+    See https://astra-toolbox.com/docs/geom3d.html#projection-geometries parallel3d_vec.
+    """
+    # ray is perpendicular to projection axes
+    ray = np.cross(P[:, 0, :3], P[:, 1, :3])
+    # detector center comes from lifting the center index to 3D
+    y_center = np.array(det_shape) / 2
+    x_center = np.einsum("...mn,n->...m", P[..., :3], np.array(in_shape) / 2) + P[..., 3]
+    d = np.einsum("...mn,...m->...n", P[..., :3], y_center - x_center)  # (V, 2, 3) x (V, 2)
+    u = P[:, 1, :3]
+    v = P[:, 0, :3]
+    vectors = np.concatenate((ray, d, u, v), axis=1)  # (v, 12)
+    return vectors
 
-proj = Parallel3dProjector._project(im, P, det_shape)
+
+def astra_to_scico(vol_geom, proj_geom):
+    """
+    Convert ASTRA volume and projection geometry into a SCICO X-ray projection matrix.
+    """
+    in_shape = (vol_geom["GridColCount"], vol_geom["GridRowCount"], vol_geom["GridSliceCount"])
+    det_shape = (proj_geom["DetectorRowCount"], proj_geom["DetectorColCount"])
+    vectors = proj_geom["Vectors"]
+    _, d, u, v = vectors[:, 0:3], vectors[:, 3:6], vectors[:, 6:9], vectors[:, 9:12]
+    P = np.stack((v, u), axis=1)
+    center_diff = np.einsum("...mn,...n->...m", P, d)  # y_center - x_center
+    y_center = np.array(det_shape) / 2
+    Px_center_t = -(center_diff - y_center)
+    Px_center = np.einsum("...mn,n->...m", P, np.array(in_shape) / 2)
+    t = Px_center_t - Px_center
+    P = np.concatenate((P, t[..., np.newaxis]), axis=2)
+    return P
