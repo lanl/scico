@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2023 by SCICO Developers
+# Copyright (C) 2020-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -35,9 +35,9 @@ class PGM(Optimizer):
     Minimize a function of the form :math:`f(\mb{x}) + g(\mb{x})`, where
     :math:`f` and the :math:`g` are instances of :class:`.Functional`.
 
-    Uses helper :class:`StepSize` to provide an estimate of the Lipschitz
+    Uses :class:`.PGMStepSize` helper classes to estimate the Lipschitz
     constant :math:`L` of :math:`f`. The step size :math:`\alpha` is the
-    reciprocal of :math:`L`, i.e.: :math:`\alpha = 1 / L`.
+    reciprocal of :math:`L`, i.e. :math:`\alpha = 1 / L`.
     """
 
     def __init__(
@@ -52,12 +52,13 @@ class PGM(Optimizer):
         r"""
 
         Args:
-            f: Loss or Functional object with `grad` defined.
-            g: Instance of Functional with defined prox method.
+            f: Instance of :class:`.Loss` or :class:`.Functional` with
+               defined `grad` method.
+            g: Instance of :class:`.Functional` with defined prox method.
             L0: Initial estimate of Lipschitz constant of f.
             x0: Starting point for :math:`\mb{x}`.
-            step_size: helper :class:`StepSize` to estimate the Lipschitz
-                constant of f.
+            step_size: helper :class:`.PGMStepSize` to estimate the
+                Lipschitz constant of f.
             **kwargs: Additional optional parameters handled by
                 initializer of base class :class:`.Optimizer`.
         """
@@ -173,11 +174,12 @@ class AcceleratedPGM(PGM):
     ):
         r"""
         Args:
-            f: Loss or Functional object with `grad` defined.
-            g: Instance of Functional with defined prox method.
+            f: Instance of :class:`.Loss` or :class:`.Functional` with
+               defined `grad` method.
+            g: Instance of :class:`.Functional` with defined prox method.
             L0: Initial estimate of Lipschitz constant of f.
             x0: Starting point for :math:`\mb{x}`.
-            step_size: helper :class:`StepSize` to estimate the Lipschitz
+            step_size: helper :class:`.PGMStepSize` to estimate the Lipschitz
                 constant of f.
             **kwargs: Additional optional parameters handled by
                 initializer of base class :class:`.Optimizer`.
