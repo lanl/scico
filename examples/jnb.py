@@ -33,11 +33,12 @@ def py_file_to_string(src):
             if import_seen:
                 # Once an import statement has been seen, break on encountering a line that
                 # is neither an import statement nor a newline, nor a component of an import
-                # statement extended over multiple lines, nor an os.environ statement, nor
-                # components of a try/except construction (note that handling of these final
-                # two cases is probably not very robust).
+                # statement extended over multiple lines, nor an os.environ statement, nor a
+                # ray.init statement, nor components of a try/except construction (note that
+                # handling of these final two cases is probably not very robust).
                 if not re.match(
-                    r"(^import|^from|^\n$|^\W+[^\W]|^\)$|^os.environ|^try:$|^except)", line
+                    r"(^import|^from|^\n$|^\W+[^\W]|^\)$|^os.environ|^ray.init|^try:$|^except)",
+                    line,
                 ):
                     lines.append(line)
                     break
