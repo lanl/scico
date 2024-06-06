@@ -76,10 +76,11 @@ class PGM(Optimizer):
             f: Instance of :class:`.Loss` or :class:`.Functional` with
                defined `grad` method.
             g: Instance of :class:`.Functional` with defined prox method.
-            L0: Initial estimate of Lipschitz constant of f.
+            L0: Initial estimate of Lipschitz constant of gradient of `f`.
             x0: Starting point for :math:`\mb{x}`.
-            step_size: helper :class:`.PGMStepSize` to estimate the
-                Lipschitz constant of f.
+            step_size: Instance of an auxiliary class of type
+                :class:`.PGMStepSize` determining the evolution of the
+                algorithm step size.
             **kwargs: Additional optional parameters handled by
                 initializer of base class :class:`.Optimizer`.
         """
@@ -97,7 +98,7 @@ class PGM(Optimizer):
             step_size = PGMStepSize()
         self.step_size: PGMStepSize = step_size
         self.step_size.internal_init(self)
-        self.L: float = L0  # reciprocal of step size (estimate of Lipschitz constant of f)
+        self.L: float = L0  # reciprocal of step size (estimate of Lipschitz constant of ∇f)
         self.fixed_point_residual = snp.inf
 
         def x_step(v: Union[Array, BlockArray], L: float) -> Union[Array, BlockArray]:
@@ -196,10 +197,11 @@ class AcceleratedPGM(PGM):
             f: Instance of :class:`.Loss` or :class:`.Functional` with
                defined `grad` method.
             g: Instance of :class:`.Functional` with defined prox method.
-            L0: Initial estimate of Lipschitz constant of f.
+            L0: Initial estimate of Lipschitz constant of gradient of `f`.
             x0: Starting point for :math:`\mb{x}`.
-            step_size: helper :class:`.PGMStepSize` to estimate the Lipschitz
-                constant of f.
+            step_size: Instance of an auxiliary class of type
+                :class:`.PGMStepSize` determining the evolution of the
+                algorithm step size.
             **kwargs: Additional optional parameters handled by
                 initializer of base class :class:`.Optimizer`.
         """
