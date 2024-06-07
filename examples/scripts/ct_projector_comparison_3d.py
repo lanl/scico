@@ -62,28 +62,26 @@ Specify geometry using SCICO conventions and project
 """
 num_repeats = 3
 
-timer = Timer()
-
-timer.start("scico_init")
+timer_scico = Timer()
+timer_scico.start("init")
 H_scico = XRayTransform(Parallel3dProjector(in_shape, P, out_shape))
-timer.stop("scico_init")
+timer_scico.stop("init")
 
-
-timer.start("scico_first_fwd")
+timer_scico.start("first_fwd")
 y_scico = H_scico @ x
 jax.block_until_ready(y_scico)
-timer.stop("scico_first_fwd")
+timer_scico.stop("first_fwd")
 
-timer.start("scico_first_fwd")
+timer_scico.start("first_fwd")
 y_scico = H_scico @ x
-timer.stop("scico_first_fwd")
+timer_scico.stop("first_fwd")
 
-timer.start("scico_avg_fwd")
+timer_scico.start("avg_fwd")
 for _ in range(num_repeats):
     y_scico = H_scico @ x
     jax.block_until_ready(y_scico)
-timer.stop("scico_avg_fwd")
-timer.td["scico_avg_fwd"] /= num_repeats
+timer_scico.stop("avg_fwd")
+timer_scico.td["avg_fwd"] /= num_repeats
 
 
 """
@@ -92,11 +90,28 @@ Convert SCICO geometry to ASTRA and project
 
 P_to_astra_vectors = scico.linop.xray.P_to_vectors(in_shape, P, out_shape)
 
-timer.start("astra_init")
+timer_astra = Timer()
+timer_astra.start("astra_init")
 H_astra_from_scico = astra.XRayTransform3D(
     input_shape=in_shape, det_count=out_shape, vectors=P_to_astra_vectors
 )
-timer.stop("astra_init")
+timer_astra.stop("astra_init")
+
+timer_astra.start("first_fwd")
+y_astra_from_scico = H_astra_from_scico @ x
+jax.block_until_ready(y_scico)
+timer_astra.stop("first_fwd")
+
+timer_astra.start("first_fwd")
+y_astra_from_scico = H_scico @ x
+timer_astra.stop("first_fwd")
+
+timer_astra.start("avg_fwd")
+for _ in range(num_repeats):
+    y_astra_from_scico = H_scico @ x
+    jax.block_until_ready(y_astra_from_scico)
+timer_astra.stop("avg_fwd")
+timer_astra.td["avg_fwd"] /= num_repeats
 
 
 """
@@ -109,6 +124,8 @@ vectors = astra.angle_to_vector(det_spacing, angles)
 
 H_astra = astra.XRayTransform3D(input_shape=in_shape, det_count=out_shape, vectors=vectors)
 
+y_astra = H_astra @ x
+
 """
 Convert ASTRA geometry to SCICO and project
 """
@@ -116,93 +133,7 @@ Convert ASTRA geometry to SCICO and project
 P_from_astra = scico.linop.xray.astra_to_scico(H_astra.vol_geom, H_astra.proj_geom)
 H_scico_from_astra = XRayTransform(Parallel3dProjector(in_shape, P_from_astra, out_shape))
 
-
-# """
-# Time first back projection, which might include JIT overhead.
-# """
-# y = np.zeros(H.output_shape, dtype=np.float32)
-# y[num_angles // 3, det_count // 2] = 1.0
-# y = jnp.array(y)
-
-# HTys = {}
-# for name, H in projectors.items():
-#     timer_label = f"{name}_first_back"
-#     timer.start(timer_label)
-#     HTys[name] = H.T @ y
-#     jax.block_until_ready(ys[name])
-#     timer.stop(timer_label)
-
-
-# """
-# Compute average time for back projection.
-# """
-# num_repeats = 3
-# for name, H in projectors.items():
-#     timer_label = f"{name}_avg_back"
-#     timer.start(timer_label)
-#     for _ in range(num_repeats):
-#         HTys[name] = H.T @ y
-#         jax.block_until_ready(ys[name])
-#     timer.stop(timer_label)
-#     timer.td[timer_label] /= num_repeats
-
-
-# """
-# Display timing results.
-
-# On our server, when using the GPU, the SCICO projector (both forward
-# and backward) is faster than ASTRA. When using the CPU, it is slower
-# for forward projection and faster for back projection. The SCICO object
-# initialization and first back projection are slow due to JIT
-# overhead.
-
-# On our server, using the GPU:
-# ```
-# init         astra    4.81e-02 s
-# init         scico    2.53e-01 s
-
-# first  fwd   astra    4.44e-02 s
-# first  fwd   scico    2.82e-02 s
-
-# first  back  astra    3.31e-02 s
-# first  back  scico    2.80e-01 s
-
-# avg    fwd   astra    4.76e-02 s
-# avg    fwd   scico    2.83e-02 s
-
-# avg    back  astra    3.96e-02 s
-# avg    back  scico    6.80e-04 s
-# ```
-
-# Using the CPU:
-# ```
-# init         astra    1.72e-02 s
-# init         scico    2.88e+00 s
-
-# first  fwd   astra    1.02e+00 s
-# first  fwd   scico    2.40e+00 s
-
-# first  back  astra    1.03e+00 s
-# first  back  scico    3.53e+00 s
-
-# avg    fwd   astra    1.03e+00 s
-# avg    fwd   scico    2.54e+00 s
-
-# avg    back  astra    1.01e+00 s
-# avg    back  scico    5.98e-01 s
-# ```
-# """
-# print(f"init         astra    {timer.td['astra_init']:.2e} s")
-# print(f"init         scico    {timer.td['scico_init']:.2e} s")
-# print("")
-# for tstr in ("first", "avg"):
-#     for dstr in ("fwd", "back"):
-#         for pstr in ("astra", "scico"):
-#             print(
-#                 f"{tstr:5s}  {dstr:4s}  {pstr}    {timer.td[pstr + '_' + tstr + '_' + dstr]:.2e} s"
-#             )
-#         print()
-
+y_scico_from_astra = H_scico_from_astra @ x
 
 """
 Show projections.
@@ -211,20 +142,20 @@ fig, ax = plot.subplots(nrows=3, ncols=2, figsize=(8, 6))
 plot.imview(y_scico[0], title="SCICO projections", cbar=None, fig=fig, ax=ax[0, 0])
 plot.imview(y_scico[2], cbar=None, fig=fig, ax=ax[1, 0])
 plot.imview(y_scico[4], cbar=None, fig=fig, ax=ax[2, 0])
-plot.imview(y_scico[0], title="ASTRA projections", cbar=None, fig=fig, ax=ax[0, 1])  # TODO fix
-plot.imview(y_scico[1], cbar=None, fig=fig, ax=ax[1, 1])
-plot.imview(y_scico[2], cbar=None, fig=fig, ax=ax[2, 1])
+plot.imview(y_astra_from_scico[0], title="ASTRA projections", cbar=None, fig=fig, ax=ax[0, 1])
+plot.imview(y_astra_from_scico[2], cbar=None, fig=fig, ax=ax[1, 1])
+plot.imview(y_astra_from_scico[4], cbar=None, fig=fig, ax=ax[2, 1])
 fig.suptitle("Using SCICO conventions")
 fig.tight_layout()
 fig.show()
 
 fig, ax = plot.subplots(nrows=3, ncols=2, figsize=(8, 6))
-plot.imview(y_scico[0], title="SCICO projections", cbar=None, fig=fig, ax=ax[0, 0])
-plot.imview(y_scico[1], cbar=None, fig=fig, ax=ax[1, 0])
-plot.imview(y_scico[2], cbar=None, fig=fig, ax=ax[2, 0])
-plot.imview(y_scico[0], title="ASTRA projections", cbar=None, fig=fig, ax=ax[0, 1])  # TODO fix
-plot.imview(y_scico[1], cbar=None, fig=fig, ax=ax[1, 1])
-plot.imview(y_scico[2], cbar=None, fig=fig, ax=ax[2, 1])
+plot.imview(y_scico_from_astra[0], title="SCICO projections", cbar=None, fig=fig, ax=ax[0, 0])
+plot.imview(y_scico_from_astra[2], cbar=None, fig=fig, ax=ax[1, 0])
+plot.imview(y_scico_from_astra[4], cbar=None, fig=fig, ax=ax[2, 0])
+plot.imview(y_astra[0], title="ASTRA projections", cbar=None, fig=fig, ax=ax[0, 1])
+plot.imview(y_astra[2], cbar=None, fig=fig, ax=ax[1, 1])
+plot.imview(y_astra[4], cbar=None, fig=fig, ax=ax[2, 1])
 fig.suptitle("Using ASTRA conventions")
 fig.tight_layout()
 fig.show()
