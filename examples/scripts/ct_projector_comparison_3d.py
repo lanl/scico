@@ -42,11 +42,11 @@ out_shape = (N, N + 1)
 """
 Set up SCICO projection.
 """
-num_angles = 7
+num_angles = 3
 
 # make projection matrix: form a rotation matrix and chop off the last row
 rot_X = 90.0 - 16.0
-rot_Y = np.linspace(0, 180, num_angles, endpoint=False)
+rot_Y = np.random.rand(num_angles) * 180
 P = jnp.stack([Rotation.from_euler("XY", [rot_X, y], degrees=True).as_matrix() for y in rot_Y])
 P = P[:, :2, :]
 
@@ -139,7 +139,7 @@ timer_astra.td["avg_back"] /= num_repeats
 Specify geometry with ASTRA conventions and project.
 """
 
-angles = np.linspace(0, np.pi, num_angles)  # evenly spaced projection angles
+angles = np.random.rand(num_angles) * 180  # random projection angles
 det_spacing = [1.0, 1.0]
 vectors = astra.angle_to_vector(det_spacing, angles)
 
@@ -176,24 +176,24 @@ for tstr in ("first", "avg"):
 """
 Show projections.
 """
-fig, ax = plot.subplots(nrows=3, ncols=2, figsize=(8, 6))
+fig, ax = plot.subplots(nrows=3, ncols=2, figsize=(8, 10))
 plot.imview(y_scico[0], title="SCICO projections", cbar=None, fig=fig, ax=ax[0, 0])
-plot.imview(y_scico[2], cbar=None, fig=fig, ax=ax[1, 0])
-plot.imview(y_scico[4], cbar=None, fig=fig, ax=ax[2, 0])
+plot.imview(y_scico[1], cbar=None, fig=fig, ax=ax[1, 0])
+plot.imview(y_scico[2], cbar=None, fig=fig, ax=ax[2, 0])
 plot.imview(y_astra_from_scico[:, 0], title="ASTRA projections", cbar=None, fig=fig, ax=ax[0, 1])
-plot.imview(y_astra_from_scico[:, 2], cbar=None, fig=fig, ax=ax[1, 1])
-plot.imview(y_astra_from_scico[:, 4], cbar=None, fig=fig, ax=ax[2, 1])
+plot.imview(y_astra_from_scico[:, 1], cbar=None, fig=fig, ax=ax[1, 1])
+plot.imview(y_astra_from_scico[:, 2], cbar=None, fig=fig, ax=ax[2, 1])
 fig.suptitle("Using SCICO conventions")
 fig.tight_layout()
 fig.show()
 
-fig, ax = plot.subplots(nrows=3, ncols=2, figsize=(8, 6))
+fig, ax = plot.subplots(nrows=3, ncols=2, figsize=(8, 10))
 plot.imview(y_scico_from_astra[0], title="SCICO projections", cbar=None, fig=fig, ax=ax[0, 0])
-plot.imview(y_scico_from_astra[2], cbar=None, fig=fig, ax=ax[1, 0])
-plot.imview(y_scico_from_astra[4], cbar=None, fig=fig, ax=ax[2, 0])
+plot.imview(y_scico_from_astra[1], cbar=None, fig=fig, ax=ax[1, 0])
+plot.imview(y_scico_from_astra[2], cbar=None, fig=fig, ax=ax[2, 0])
 plot.imview(y_astra[:, 0], title="ASTRA projections", cbar=None, fig=fig, ax=ax[0, 1])
-plot.imview(y_astra[:, 2], cbar=None, fig=fig, ax=ax[1, 1])
-plot.imview(y_astra[:, 4], cbar=None, fig=fig, ax=ax[2, 1])
+plot.imview(y_astra[:, 1], cbar=None, fig=fig, ax=ax[1, 1])
+plot.imview(y_astra[:, 2], cbar=None, fig=fig, ax=ax[2, 1])
 fig.suptitle("Using ASTRA conventions")
 fig.tight_layout()
 fig.show()
@@ -201,7 +201,7 @@ fig.show()
 """
 Show back projections.
 """
-fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(8, 6))
+fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(8, 5))
 plot.imview(HTy_scico[N // 2], title="SCICO back projection", cbar=None, fig=fig, ax=ax[0])
 plot.imview(
     HTy_astra_from_scico[N // 2], title="ASTRA back projection", cbar=None, fig=fig, ax=ax[1]
@@ -210,7 +210,7 @@ fig.suptitle("Using SCICO conventions")
 fig.tight_layout()
 fig.show()
 
-fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(8, 6))
+fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(8, 5))
 plot.imview(
     HTy_scico_from_astra[N // 2], title="SCICO back projection", cbar=None, fig=fig, ax=ax[0]
 )
