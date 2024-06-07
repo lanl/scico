@@ -38,6 +38,7 @@ Computed Tomography
    examples/ct_astra_odp_train_foam2
    examples/ct_astra_unet_train_foam2
    examples/ct_projector_comparison
+   examples/ct_projector_comparison_3d
    examples/ct_multi_cs_tv_admm
    examples/ct_multi_tv_admm
 
