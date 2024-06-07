@@ -23,25 +23,32 @@ from scico.typing import ArrayIndex, Axes, AxisIndex, BlockShape, DType, Shape
 from ._blockarray import BlockArray
 
 
-def parse_axes(
-    axes: Axes, shape: Optional[Shape] = None, default: Optional[List[int]] = None
-) -> List[int]:
-    """Normalize `axes` to a list and optionally ensure correctness.
+def normalize_axes(
+    axes: Axes,
+    shape: Optional[Shape] = None,
+    default: Optional[List[int]] = None,
+    sort: bool = False,
+) -> Sequence[int]:
+    """Normalize `axes` to a sequence and optionally ensure correctness.
 
-    Normalize `axes` to a list and (optionally) ensure that entries refer
-    to axes that exist in `shape`.
+    Normalize `axes` to a tuple or list and (optionally) ensure that
+    entries refer to axes that exist in `shape`.
 
     Args:
         axes: User specification of one or more axes: int, list, tuple,
-           or ``None``.
+           or ``None``. Negative values count from the last to the first
+           axis.
         shape: The shape of the array of which axes are being specified.
            If not ``None``, `axes` is checked to make sure its entries
            refer to axes that exist in `shape`.
         default: Default value to return if `axes` is ``None``. By
-           default, `list(range(len(shape)))`.
+           default, `tuple(range(len(shape)))`.
+        sort: If ``True``, sort the returned axis indices.
 
     Returns:
-        List of axes (never an int, never ``None``).
+        Tuple or list of axes (never an int, never ``None``). The output
+        will only be a list if the input is a list or if the input is
+        ``None`` and `defaults` is a list.
     """
 
     if axes is None:
@@ -50,7 +57,7 @@ def parse_axes(
                 raise ValueError(
                     "Parameter axes cannot be None without a default or shape specified."
                 )
-            axes = list(range(len(shape)))
+            axes = tuple(range(len(shape)))
         else:
             axes = default
     elif isinstance(axes, (list, tuple)):
@@ -59,12 +66,17 @@ def parse_axes(
         axes = (axes,)
     else:
         raise ValueError(f"Could not understand axes {axes} as a list of axes.")
-    if shape is not None and max(axes) >= len(shape):
-        raise ValueError(
-            f"Invalid axes {axes} specified; each axis must be less than `len(shape)`={len(shape)}."
-        )
+    if shape is not None:
+        if min(axes) < 0:
+            axes = tuple([len(shape) + a if a < 0 else a for a in axes])
+        if max(axes) >= len(shape):
+            raise ValueError(
+                f"Invalid axes {axes} specified; each axis must be less than `len(shape)`={len(shape)}."
+            )
     if len(set(axes)) != len(axes):
         raise ValueError(f"Duplicate value in axes {axes}; each axis must be unique.")
+    if sort:
+        axes = tuple(sorted(axes))
     return axes
 
 
@@ -107,9 +119,15 @@ def slice_length(length: int, idx: AxisIndex) -> Optional[int]:
 def indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int, ...]:
     """Determine the shape of an array after indexing/slicing.
 
+    The indexed shape is determined by replicating the observed effects
+    of NumPy/JAX array indexing/slicing syntax. It is significantly
+    faster than :func:`.jax_indexed_shape`, and has a minimal memory
+    footprint in all circumstances.
+
     Args:
         shape: Shape of array.
-        idx: Indexing expression.
+        idx: Indexing expression (singleton or tuple of `Ellipsis`,
+           `int`, `slice`, or ``None`` (`np.newaxis`)).
 
     Returns:
         Shape of indexed/sliced array.
@@ -134,6 +152,46 @@ def indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int, ...]:
             continue
         idx_shape[axis + offset + newaxis] = slice_length(shape[axis + offset], ax_idx)
     return tuple(filter(lambda x: x is not None, idx_shape))  # type: ignore
+
+
+def jax_indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int, ...]:
+    """Determine the shape of an array after indexing/slicing.
+
+    The indexed shape is determined by constructing and indexing an array
+    of the appropriate shape, relying on :func:`jax.jit` to avoid memory
+    allocation. It is potentially more reliable than
+    :func:`.indexed_shape` because the indexing/slicing calculations are
+    referred to JAX, but is significantly slower, and will involved
+    potentially significant memory allocations if JIT is disabled, e.g.
+    for debugging purposes.
+
+    Args:
+        shape: Shape of array.
+        idx: Indexing expression (singleton or tuple of `Ellipsis`,
+           `int`, `slice`, or ``None`` (`np.newaxis`)).
+
+    Returns:
+        Shape of indexed/sliced array.
+    """
+    if not isinstance(idx, tuple):
+        idx = (idx,)
+
+    # Convert any slices to its representation (slice, (start, stop, step))
+    # allowing hashing, needed for jax.jit
+    idx = tuple(exp.__reduce__() if isinstance(exp, slice) else exp for exp in idx)
+
+    def get_shape(in_shape, ind_expr):
+        # convert slices representations back to slices
+        ind_expr = tuple(
+            (slice(*exp[1]) if isinstance(exp, tuple) and len(exp) > 0 and exp[0] == slice else exp)
+            for exp in ind_expr
+        )
+        return jax.numpy.empty(in_shape)[ind_expr].shape
+
+    # This compiles each time it gets new arguments because all arguments are static.
+    f = jax.jit(get_shape, static_argnums=(0, 1))
+
+    return tuple(t.item() for t in f(shape, idx))  # type: ignore
 
 
 def no_nan_divide(
