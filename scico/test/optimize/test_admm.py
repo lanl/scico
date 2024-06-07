@@ -364,10 +364,11 @@ class TestComplex:
 
 
 @pytest.mark.parametrize("extra_axis", (False, True))
+@pytest.mark.parametrize("center", (None, [-1.0, 2.5]))
 class TestCircularConvolveSolve:
 
     @pytest.fixture(scope="function", autouse=True)
-    def setup_and_teardown(self, extra_axis):
+    def setup_and_teardown(self, extra_axis, center):
         np.random.seed(12345)
         Nx = 8
         x = snp.pad(snp.ones((Nx, Nx), dtype=np.float32), Nx)
@@ -377,10 +378,7 @@ class TestCircularConvolveSolve:
             x = x[np.newaxis]
             psf = psf[np.newaxis]
         self.A = linop.CircularConvolve(
-            h=psf,
-            input_shape=x.shape,
-            ndims=2,
-            input_dtype=np.float32,
+            h=psf, input_shape=x.shape, ndims=2, input_dtype=np.float32, h_center=center
         )
         self.y = self.A(x)
         λ = 1e-2
