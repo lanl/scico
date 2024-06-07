@@ -404,6 +404,7 @@ class CircularConvolveSolver(LinearSubproblemSolver):
                     f"or scico.linop.Identity; got {type(admm.f.A)}."
                 )
 
+        self.ndims = admm.f.A.ndims if isinstance(admm.f.A, CircularConvolve) else None
         super().internal_init(admm)
 
         self.real_result = is_real_dtype(admm.C_list[0].input_dtype)
@@ -411,12 +412,16 @@ class CircularConvolveSolver(LinearSubproblemSolver):
         # All of the C operators are assumed to be linear and shift invariant
         # but this is not checked.
         lhs_op_list = [
-            rho * CircularConvolve.from_operator(C.gram_op)
+            rho * CircularConvolve.from_operator(C.gram_op, ndims=self.ndims)
             for rho, C in zip(admm.rho_list, admm.C_list)
         ]
         A_lhs = reduce(lambda a, b: a + b, lhs_op_list)
         if self.admm.f is not None:
-            A_lhs += 2.0 * admm.f.scale * CircularConvolve.from_operator(admm.f.A.gram_op)
+            A_lhs += (
+                2.0
+                * admm.f.scale
+                * CircularConvolve.from_operator(admm.f.A.gram_op, ndims=self.ndims)
+            )
 
         self.A_lhs = A_lhs
 

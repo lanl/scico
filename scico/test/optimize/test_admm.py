@@ -363,16 +363,23 @@ class TestComplex:
         assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-5
 
 
+@pytest.mark.parametrize("extra_axis", (False, True))
 class TestCircularConvolveSolve:
-    def setup_method(self, method):
+
+    @pytest.fixture(scope="function", autouse=True)
+    def setup_and_teardown(self, extra_axis):
         np.random.seed(12345)
         Nx = 8
-        x = np.pad(np.ones((Nx, Nx), dtype=np.float32), Nx)
+        x = snp.pad(snp.ones((Nx, Nx), dtype=np.float32), Nx)
         Npsf = 3
         psf = snp.ones((Npsf, Npsf), dtype=np.float32) / (Npsf**2)
+        if extra_axis:
+            x = x[np.newaxis]
+            psf = psf[np.newaxis]
         self.A = linop.CircularConvolve(
             h=psf,
             input_shape=x.shape,
+            ndims=2,
             input_dtype=np.float32,
         )
         self.y = self.A(x)
@@ -380,6 +387,7 @@ class TestCircularConvolveSolve:
         self.f = loss.SquaredL2Loss(y=self.y, A=self.A)
         self.g_list = [λ * functional.L1Norm()]
         self.C_list = [linop.FiniteDifference(input_shape=x.shape, circular=True)]
+        yield
 
     def test_admm(self):
         maxiter = 50
@@ -406,6 +414,7 @@ class TestCircularConvolveSolve:
             x0=self.A.adj(self.y),
             subproblem_solver=CircularConvolveSolver(),
         )
+        assert admm_dft.subproblem_solver.A_lhs.ndims == 2
         x_dft = admm_dft.solve()
         np.testing.assert_allclose(x_dft, x_lin, atol=1e-4, rtol=0)
         assert metric.mse(x_lin, x_dft) < 1e-9
