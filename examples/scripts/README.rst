@@ -41,6 +41,8 @@ Computed Tomography
       CT Training and Reconstructions with UNet
    `ct_projector_comparison.py <ct_projector_comparison.py>`_
       X-ray Transform Comparison
+   `ct_projector_comparison_3d.py <ct_projector_comparison_3d.py>`_
+      X-ray Transform Comparison in 3D
    `ct_multi_cs_tv_admm.py <ct_multi_cs_tv_admm.py>`_
       TV-Regularized Sparse-View CT Reconstruction (Multiple Projectors, Common Sinogram)
    `ct_multi_tv_admm.py <ct_multi_tv_admm.py>`_

@@ -328,8 +328,8 @@ def P_to_vectors(in_shape: Shape, P: ArrayLike, det_shape: Shape) -> ArrayLike:
     y_center = np.array(det_shape) / 2
     x_center = np.einsum("...mn,n->...m", P[..., :3], np.array(in_shape) / 2) + P[..., 3]
     d = np.einsum("...mn,...m->...n", P[..., :3], y_center - x_center)  # (V, 2, 3) x (V, 2)
-    u = P[:, 1, :3]
-    v = P[:, 0, :3]
+    u = -P[:, 1, :3]
+    v = -P[:, 0, :3]
     vectors = np.concatenate((ray, d, u, v), axis=1)  # (v, 12)
     return vectors
 
@@ -338,11 +338,11 @@ def astra_to_scico(vol_geom, proj_geom):
     """
     Convert ASTRA volume and projection geometry into a SCICO X-ray projection matrix.
     """
-    in_shape = (vol_geom["GridColCount"], vol_geom["GridRowCount"], vol_geom["GridSliceCount"])
+    in_shape = (vol_geom["GridSliceCount"], vol_geom["GridRowCount"], vol_geom["GridColCount"])
     det_shape = (proj_geom["DetectorRowCount"], proj_geom["DetectorColCount"])
     vectors = proj_geom["Vectors"]
     _, d, u, v = vectors[:, 0:3], vectors[:, 3:6], vectors[:, 6:9], vectors[:, 9:12]
-    P = np.stack((v, u), axis=1)
+    P = -np.stack((v, u), axis=1)
     center_diff = np.einsum("...mn,...n->...m", P, d)  # y_center - x_center
     y_center = np.array(det_shape) / 2
     Px_center_t = -(center_diff - y_center)
