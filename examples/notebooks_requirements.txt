@@ -1,5 +1,6 @@
 -r examples-requirements.txt
 ipykernel
+ipywidgets
 nbformat
 nbconvert
 nb_conda_kernels
