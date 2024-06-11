@@ -62,35 +62,29 @@ Specify geometry using SCICO conventions and project.
 num_repeats = 3
 
 timer_scico = Timer()
-timer_scico.start("init")
-H_scico = XRayTransform(Parallel3dProjector(in_shape, P, out_shape))
-timer_scico.stop("init")
+with ContextTimer(timer_scico, "init"):
+    H_scico = XRayTransform(Parallel3dProjector(in_shape, P, out_shape))
 
-timer_scico.start("first_fwd")
-y_scico = H_scico @ x
-jax.block_until_ready(y_scico)
-timer_scico.stop("first_fwd")
-
-timer_scico.start("first_fwd")
-y_scico = H_scico @ x
-timer_scico.stop("first_fwd")
-
-timer_scico.start("avg_fwd")
-for _ in range(num_repeats):
+with ContextTimer(timer_scico, "first_fwd"):
     y_scico = H_scico @ x
     jax.block_until_ready(y_scico)
-timer_scico.stop("avg_fwd")
+
+with ContextTimer(timer_scico, "first_fwd"):
+    y_scico = H_scico @ x
+
+with ContextTimer(timer_scico, "avg_fwd"):
+    for _ in range(num_repeats):
+        y_scico = H_scico @ x
+        jax.block_until_ready(y_scico)
 timer_scico.td["avg_fwd"] /= num_repeats
 
-timer_scico.start("first_back")
-HTy_scico = H_scico.T @ y_scico
-timer_scico.stop("first_back")
-
-timer_scico.start("avg_back")
-for _ in range(num_repeats):
+with ContextTimer(timer_scico, "first_back"):
     HTy_scico = H_scico.T @ y_scico
-    jax.block_until_ready(HTy_scico)
-timer_scico.stop("avg_back")
+
+with ContextTimer(timer_scico, "avg_back"):
+    for _ in range(num_repeats):
+        HTy_scico = H_scico.T @ y_scico
+        jax.block_until_ready(HTy_scico)
 timer_scico.td["avg_back"] /= num_repeats
 
 
@@ -101,37 +95,31 @@ Convert SCICO geometry to ASTRA and project.
 P_to_astra_vectors = scico.linop.xray.P_to_vectors(in_shape, P, out_shape)
 
 timer_astra = Timer()
-timer_astra.start("init")
-H_astra_from_scico = astra.XRayTransform3D(
-    input_shape=in_shape, det_count=out_shape, vectors=P_to_astra_vectors
-)
-timer_astra.stop("init")
+with ContextTimer(timer_astra, "init"):
+    H_astra_from_scico = astra.XRayTransform3D(
+        input_shape=in_shape, det_count=out_shape, vectors=P_to_astra_vectors
+    )
 
-timer_astra.start("first_fwd")
-y_astra_from_scico = H_astra_from_scico @ x
-jax.block_until_ready(y_scico)
-timer_astra.stop("first_fwd")
-
-timer_astra.start("first_fwd")
-y_astra_from_scico = H_astra_from_scico @ x
-timer_astra.stop("first_fwd")
-
-timer_astra.start("avg_fwd")
-for _ in range(num_repeats):
+with ContextTimer(timer_astra, "first_fwd"):
     y_astra_from_scico = H_astra_from_scico @ x
-    jax.block_until_ready(y_astra_from_scico)
-timer_astra.stop("avg_fwd")
+    jax.block_until_ready(y_scico)
+
+with ContextTimer(timer_astra, "first_fwd"):
+    y_astra_from_scico = H_astra_from_scico @ x
+
+with ContextTimer(timer_astra, "avg_fwd"):
+    for _ in range(num_repeats):
+        y_astra_from_scico = H_astra_from_scico @ x
+        jax.block_until_ready(y_astra_from_scico)
 timer_astra.td["avg_fwd"] /= num_repeats
 
-timer_astra.start("first_back")
-HTy_astra_from_scico = H_astra_from_scico.T @ y_astra_from_scico
-timer_astra.stop("first_back")
-
-timer_astra.start("avg_back")
-for _ in range(num_repeats):
+with ContextTimer(timer_astra, "first_back"):
     HTy_astra_from_scico = H_astra_from_scico.T @ y_astra_from_scico
-    jax.block_until_ready(HTy_astra_from_scico)
-timer_astra.stop("avg_back")
+
+with ContextTimer(timer_astra, "avg_back"):
+    for _ in range(num_repeats):
+        HTy_astra_from_scico = H_astra_from_scico.T @ y_astra_from_scico
+        jax.block_until_ready(HTy_astra_from_scico)
 timer_astra.td["avg_back"] /= num_repeats
 
 
@@ -146,8 +134,8 @@ vectors = astra.angle_to_vector(det_spacing, angles)
 H_astra = astra.XRayTransform3D(input_shape=in_shape, det_count=out_shape, vectors=vectors)
 
 y_astra = H_astra @ x
-
 HTy_astra = H_astra.T @ y_astra
+
 
 """
 Convert ASTRA geometry to SCICO and project.
@@ -157,8 +145,8 @@ P_from_astra = scico.linop.xray.astra_to_scico(H_astra.vol_geom, H_astra.proj_ge
 H_scico_from_astra = XRayTransform(Parallel3dProjector(in_shape, P_from_astra, out_shape))
 
 y_scico_from_astra = H_scico_from_astra @ x
-
 HTy_scico_from_astra = H_scico_from_astra.T @ y_scico_from_astra
+
 
 """
 Print timing results.
@@ -198,6 +186,7 @@ fig.suptitle("Using ASTRA conventions")
 fig.tight_layout()
 fig.show()
 
+
 """
 Show back projections.
 """
@@ -218,5 +207,6 @@ plot.imview(HTy_astra[N // 2], title="ASTRA back projection", cbar=None, fig=fig
 fig.suptitle("Using ASTRA conventions")
 fig.tight_layout()
 fig.show()
+
 
 input("\nWaiting for input to close figures and exit")
