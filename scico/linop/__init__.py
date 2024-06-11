@@ -43,6 +43,7 @@ __all__ = [
     "LinearOperator",
     "XRayTransform",
     "Parallel2dProjector",
+    "Parallel3dProjector",
     "ComposedLinearOperator",
     "linop_from_function",
     "linop_over_axes",
