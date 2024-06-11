@@ -39,7 +39,7 @@ Computed Tomography
       CT Training and Reconstructions with ODP
    `ct_astra_unet_train_foam2.py <ct_astra_unet_train_foam2.py>`_
       CT Training and Reconstructions with UNet
-   `ct_projector_comparison.py <ct_projector_comparison.py>`_
+   `ct_projector_comparison_2d.py <ct_projector_comparison_2d.py>`_
       2D X-ray Transform Comparison
    `ct_projector_comparison_3d.py <ct_projector_comparison_3d.py>`_
       3D X-ray Transform Comparison
