@@ -6,10 +6,10 @@
 
 
 r"""
-X-ray Transform Comparison
-==========================
+2D X-ray Transform Comparison
+=============================
 
-This example compares SCICO's native X-ray transform algorithm
+This example compares SCICO's native 2D X-ray transform algorithm
 to that of the ASTRA toolbox.
 """
 

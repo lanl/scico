@@ -6,8 +6,8 @@
 
 
 r"""
-X-ray Transform Comparison in 3D
-================================
+3D X-ray Transform Comparison
+=============================
 
 This example shows how to define a SCICO native 3D X-ray transform using
 ASTRA toolbox conventions and vice versa.
