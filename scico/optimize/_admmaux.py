@@ -390,6 +390,7 @@ class CircularConvolveSolver(LinearSubproblemSolver):
 
     def __init__(self, ndims: Optional[int] = None):
         """Initialize a :class:`CircularConvolveSolver` object.
+
         Args:
             ndims: Number of trailing dimensions of the input and kernel
                 involved in the :class:`.CircularConvolve` convolutions.
