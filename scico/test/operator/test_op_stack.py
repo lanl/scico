@@ -173,6 +173,18 @@ class TestDiagonalReplicated:
         y = D(x)
         assert y.shape[0] == replicates
 
+    def test_input_axis(self):
+        # Ensure that operators can be stacked on final axis
+        x, key = randn((2, 3, 4), key=self.key)
+        A = Abs(x.shape[0:2])
+        replicates = x.shape[2]
+        D = DiagonalReplicated(A, replicates, input_axis=2)
+        y = D(x)
+        assert y.shape == (2, 3, 4)
+        D = DiagonalReplicated(A, replicates, input_axis=-1)
+        y = D(x)
+        assert y.shape == (2, 3, 4)
+
     def test_output_axis(self):
         x, key = randn((2, 3, 4), key=self.key)
         A = Abs(x.shape[1:])

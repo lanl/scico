@@ -294,7 +294,9 @@ class DiagonalReplicated(Operator):
         """
         if map_type not in ["auto", "pmap", "vmap"]:
             raise ValueError("Argument map_type must be one of 'auto', 'pmap, or 'vmap'.")
-        if input_axis < 0 or input_axis >= len(op.input_shape):
+        if input_axis < 0:
+            input_axis = len(op.input_shape) + 1 + input_axis
+        if input_axis < 0 or input_axis > len(op.input_shape):
             raise ValueError(
                 "Argument input_axis must be positive and less than the number of axes "
                 "in the input shape of op."
