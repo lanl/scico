@@ -371,15 +371,15 @@ class CircularConvolveSolver(LinearSubproblemSolver):
     r"""Solver for linear operators diagonalized in the DFT domain.
 
     Specialization of :class:`.LinearSubproblemSolver` for the case
-    where :code:`f` is an instance of :class:`.SquaredL2Loss`, the
-    forward operator :code:`f.A` is either an instance of
-    :class:`.Identity` or :class:`.CircularConvolve`, and the
-    :code:`C_i` are all shift invariant linear operators, examples of
-    which include instances of :class:`.Identity` as well as some
-    instances (depending on initializer parameters) of
-    :class:`.CircularConvolve` and :class:`.FiniteDifference`.
-    None of the instances of :class:`.CircularConvolve` may sum over any
-    of their axes.
+    where :code:`f` is ``None``, or an instance of
+    :class:`.SquaredL2Loss` with a forward operator :code:`f.A` that is
+    either an instance of :class:`.Identity` or
+    :class:`.CircularConvolve`, and the :code:`C_i` are all shift
+    invariant linear operators, examples of which include instances of
+    :class:`.Identity` as well as some instances (depending on
+    initializer parameters) of :class:`.CircularConvolve` and
+    :class:`.FiniteDifference`. None of the instances of
+    :class:`.CircularConvolve` may sum over any of their axes.
 
     Attributes:
         admm (:class:`.ADMM`): ADMM solver object to which the solver is
@@ -388,11 +388,28 @@ class CircularConvolveSolver(LinearSubproblemSolver):
             equation to be solved.
     """
 
-    def __init__(self):
-        """Initialize a :class:`CircularConvolveSolver` object."""
+    def __init__(self, ndims: Optional[int] = None):
+        """Initialize a :class:`CircularConvolveSolver` object.
+        Args:
+            ndims: Number of trailing dimensions of the input and kernel
+                involved in the :class:`.CircularConvolve` convolutions.
+                In most cases this value is automatically determined from
+                the optimization problem specification, but this is not
+                possible when :code:`f` is ``None`` and none of the
+                :code:`C_i` are of type :class:`.CircularConvolve`. When
+                not ``None``, this parameter overrides the automatic
+                mechanism.
+        """
+        self.ndims = ndims
 
     def internal_init(self, admm: soa.ADMM):
-        if admm.f is not None:
+        if admm.f is None:
+            is_cc = [isinstance(C, CircularConvolve) for C in admm.C_list]
+            if any(is_cc):
+                auto_ndims = admm.C_list[is_cc.index(True)].ndims
+            else:
+                auto_ndims = None
+        else:
             if not isinstance(admm.f, SquaredL2Loss):
                 raise TypeError(
                     "CircularConvolveSolver requires f to be a scico.loss.SquaredL2Loss; "
@@ -403,8 +420,10 @@ class CircularConvolveSolver(LinearSubproblemSolver):
                     "CircularConvolveSolver requires f.A to be a scico.linop.CircularConvolve "
                     f"or scico.linop.Identity; got {type(admm.f.A)}."
                 )
+            auto_ndims = admm.f.A.ndims if isinstance(admm.f.A, CircularConvolve) else None
 
-        self.ndims = admm.f.A.ndims if isinstance(admm.f.A, CircularConvolve) else None
+        if self.ndims is None:
+            self.ndims = auto_ndims
         super().internal_init(admm)
 
         self.real_result = is_real_dtype(admm.C_list[0].input_dtype)

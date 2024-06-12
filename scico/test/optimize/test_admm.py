@@ -418,6 +418,59 @@ class TestCircularConvolveSolve:
         assert metric.mse(x_lin, x_dft) < 1e-9
 
 
+@pytest.mark.parametrize("with_cconv", (False, True))
+class TestSpecialCaseCircularConvolveSolve:
+
+    @pytest.fixture(scope="function", autouse=True)
+    def setup_and_teardown(self, with_cconv):
+        np.random.seed(12345)
+        Nx = 8
+        x = snp.pad(snp.ones((1, Nx, Nx), dtype=np.float32), Nx)
+        if with_cconv:
+            Npsf = 3
+            psf = snp.ones((1, Npsf, Npsf), dtype=np.float32) / (Npsf**2)
+            C0 = linop.CircularConvolve(h=psf, input_shape=x.shape, ndims=2, input_dtype=np.float32)
+        else:
+            C0 = linop.FiniteDifference(input_shape=x.shape, axes=(1, 2), circular=True)
+        C1 = linop.Identity(input_shape=x.shape)
+        self.y = C0(x)
+        self.g_list = [loss.SquaredL2Loss(y=self.y), functional.L2Norm()]
+        self.C_list = [C0, C1]
+        self.with_cconv = with_cconv
+        yield
+
+    def test_admm(self):
+        maxiter = 50
+        ρ = 1e-1
+        rho_list = [ρ, ρ]
+        admm_lin = ADMM(
+            f=None,
+            g_list=self.g_list,
+            C_list=self.C_list,
+            rho_list=rho_list,
+            maxiter=maxiter,
+            itstat_options={"display": False},
+            x0=self.C_list[0].adj(self.y),
+            subproblem_solver=LinearSubproblemSolver(),
+        )
+        x_lin = admm_lin.solve()
+        ndims = None if self.with_cconv else 2
+        admm_dft = ADMM(
+            f=None,
+            g_list=self.g_list,
+            C_list=self.C_list,
+            rho_list=rho_list,
+            maxiter=maxiter,
+            itstat_options={"display": False},
+            x0=self.C_list[0].adj(self.y),
+            subproblem_solver=CircularConvolveSolver(ndims=ndims),
+        )
+        assert admm_dft.subproblem_solver.A_lhs.ndims == 2
+        x_dft = admm_dft.solve()
+        np.testing.assert_allclose(x_dft, x_lin, atol=1e-4, rtol=0)
+        assert metric.mse(x_lin, x_dft) < 1e-9
+
+
 class TestBlockCircularConvolveSolve:
     def setup_method(self, method):
         np.random.seed(12345)
