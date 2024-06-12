@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2023 by SCICO Developers
+# Copyright (C) 2021-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -186,6 +186,7 @@ class PolarGradient(ProjectedGradient):
     .. plot:: figurestmp/polargrad.py
        :align: center
        :include-source: False
+       :show-source-link: False
 
     |
 
@@ -279,6 +280,7 @@ class CylindricalGradient(ProjectedGradient):
     .. plot:: figurestmp/cylindgrad.py
        :align: center
        :include-source: False
+       :show-source-link: False
 
     |
 
@@ -402,6 +404,7 @@ class SphericalGradient(ProjectedGradient):
     .. plot:: figurestmp/spheregrad.py
        :align: center
        :include-source: False
+       :show-source-link: False
 
     |
 
