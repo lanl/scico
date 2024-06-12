@@ -15,7 +15,7 @@ pol = sg.coord[1]
 rad = sg.coord[2]
 
 theta = np.arctan2(g0, g1)
-phi = np.arctan2(np.sqrt(g0 ** 2 + g1 ** 2), g2)
+phi = np.arctan2(np.sqrt(g0**2 + g1**2), g2)
 clr = theta * phi
 # See https://stackoverflow.com/a/49888126
 clr = (clr.ravel() - clr.min()) / clr.ptp()
@@ -44,4 +44,4 @@ ax.set_xlabel("$x$")
 ax.set_ylabel("$y$")
 ax.set_zlabel("$z$")
 fig.tight_layout()
-plot.plt.show()
+fig.show()

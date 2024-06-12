@@ -43,6 +43,4 @@ ax.set_xlabel("$x$")
 ax.set_ylabel("$y$")
 ax.set_zlabel("$z$")
 fig.tight_layout()
-plot.plt.show()
-
-input()
+fig.show()
