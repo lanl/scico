@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2023 by SCICO Developers
+# Copyright (C) 2023-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -14,6 +14,16 @@ same as the Radon transform for projections in two dimensions, these two
 transform differ in higher numbers of dimensions, and it is the X-ray
 transform that is the appropriate mathematical model for beam attenuation
 based imaging in three or more dimensions.
+
+|
+
+.. plot:: figures/xray_2d_geom.py
+   :align: center
+   :include-source: False
+   :show-source-link: False
+   :caption: Comparison of 2D X-ray projector geometries
+
+|
 """
 
 import sys
