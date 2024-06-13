@@ -28,9 +28,14 @@ operator, $\iota_{\mathrm{NN}}$ is the indicator function of the
 non-negativity constraint, and $\mathbf{x}$ is the desired image.
 """
 
+# isort: off
 import numpy as np
 
+import logging
 import ray
+
+ray.init(logging_level=logging.ERROR)  # need to call init before jax import: ray-project/ray#44087
+
 import scico.numpy as snp
 from scico import functional, linop, loss, plot
 from scico.examples import downsample_volume, epfl_deconv_data, tile_volume_slices
