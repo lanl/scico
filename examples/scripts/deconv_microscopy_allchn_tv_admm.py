@@ -86,11 +86,9 @@ maxiter = 100  # number of ADMM iterations
 
 
 """
-Initialize ray, determine available computing resources, and put large arrays
-in object store.
+Determine available computing resources, and put large arrays in ray
+object store.
 """
-ray.init()
-
 ngpu = 0
 ar = ray.available_resources()
 ncpu = max(int(ar["CPU"]) // 3, 1)
