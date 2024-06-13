@@ -191,7 +191,6 @@ class XRayTransform2D(LinearOperator):
                <https://www.astra-toolbox.com/docs/algs/FBP_CUDA.html>`__.
         """
 
-        # Just use the CPU FBP alg for now; hitting memory issues with GPU one.
         def f(sino):
             sino = _ensure_writeable(sino)
             sino_id = astra.data2d.create("-sino", self.proj_geom, sino)
@@ -200,7 +199,7 @@ class XRayTransform2D(LinearOperator):
             rec_id = astra.data2d.create("-vol", self.vol_geom)
 
             # start to populate config
-            cfg = astra.astra_dict("FBP")
+            cfg = astra.astra_dict("FBP_CUDA" if self.device == "gpu" else "FBP")
             cfg["ReconstructionDataId"] = rec_id
             cfg["ProjectorId"] = self.proj_id
             cfg["ProjectionDataId"] = sino_id
