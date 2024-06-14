@@ -51,18 +51,10 @@ other two transforms is
 
 import sys
 
-from ._xray import (
-    P_to_vectors,
-    Parallel2dProjector,
-    Parallel3dProjector,
-    XRayTransform,
-    astra_to_scico,
-)
+from ._xray import Parallel2dProjector, Parallel3dProjector, XRayTransform
 
 __all__ = [
-    "XRayTransform",
     "Parallel2dProjector",
     "Parallel3dProjector",
-    "P_to_vectors",
-    "astra_to_scico",
+    "XRayTransform",
 ]

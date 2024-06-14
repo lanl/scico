@@ -20,6 +20,7 @@ from jax.typing import ArrayLike
 
 from scico.numpy.util import is_scalar_equiv
 from scico.typing import Shape
+from scipy.spatial.transform import Rotation
 
 from .._linop import LinearOperator
 
@@ -245,40 +246,40 @@ class Parallel3dProjector:
     def __init__(
         self,
         input_shape: Shape,
-        P: ArrayLike,
+        matrices: ArrayLike,
         det_shape: Shape,
     ):
         r"""
         Args:
             input_shape: Shape of input image.
-            P: (num_angles, 2, 4) array of homogeneous projection matrices.
+            matrices: (num_angles, 2, 4) array of homogeneous projection matrices.
             det_shape: Shape of detector.
         """
 
         self.input_shape = input_shape
-        self.P = P
+        self.matrices = matrices
         self.det_shape = det_shape
-        self.output_shape = (len(P), *det_shape)
+        self.output_shape = (len(matrices), *det_shape)
 
     def project(self, im):
         """Compute X-ray projection."""
-        return Parallel3dProjector._project(im, self.P, self.det_shape)
+        return Parallel3dProjector._project(im, self.matrices, self.det_shape)
 
     @staticmethod
     @partial(jax.jit, static_argnames="det_shape")
-    def _project(im: ArrayLike, P: ArrayLike, det_shape: Shape) -> ArrayLike:
+    def _project(im: ArrayLike, matrices: ArrayLike, det_shape: Shape) -> ArrayLike:
         r"""
         Args:
             im: Input image.
-            P: (num_angles, 2, 4) array of homogeneous projection matrices.
+            matrices: (num_angles, 2, 4) array of homogeneous projection matrices.
             det_shape: Shape of detector.
         """
 
         x = jnp.mgrid[: im.shape[0], : im.shape[1], : im.shape[2]]
         # (v, 2, 3) X (3, x0, x1, x2) + (v, 2) -> (v, 2, x0, x1, x2)
         Px = (
-            jnp.tensordot(P[..., :3], x, axes=[2, 0])
-            + P[..., 3, np.newaxis, np.newaxis, np.newaxis]
+            jnp.tensordot(matrices[..., :3], x, axes=[2, 0])
+            + matrices[..., 3, np.newaxis, np.newaxis, np.newaxis]
         )
 
         # calculate weight on 4 intersecting pixels
@@ -293,7 +294,7 @@ class Parallel3dProjector:
         ll_weight = to_next[:, 0] * (w - to_next[:, 1]) * (1 / w**2)
         lr_weight = (w - to_next[:, 0]) * (w - to_next[:, 1]) * (1 / w**2)
 
-        num_views = len(P)
+        num_views = len(matrices)
         proj = jnp.zeros((num_views,) + det_shape, dtype=im.dtype)
         view_ind = jnp.expand_dims(jnp.arange(num_views), range(1, 4))
         proj = proj.at[view_ind, ul_ind[:, 0], ul_ind[:, 1]].add(ul_weight * im, mode="drop")
@@ -304,49 +305,35 @@ class Parallel3dProjector:
         )
         return proj
 
+    @staticmethod
+    def matrices_from_euler_angles(
+        input_shape: Shape, output_shape: Shape, seq: str, angles: ArrayLike, degrees: bool = False
+    ):
+        """
+        Create a set of projection matrices from Euler angles.
 
-def P_to_vectors(in_shape: Shape, P: ArrayLike, det_shape: Shape) -> ArrayLike:
-    """
-    Convert SCICO projection matrix into ASTRA vectors.
+        Args:
+            input_shape: Shape of input image.
+            output_shape: Shape of output (detector).
+            str: Sequence of axes for rotation. Up to 3 characters belonging to the set {'X', 'Y', 'Z'}
+                for intrinsic rotations, or {'x', 'y', 'z'} for extrinsic rotations. Extrinsic and
+                intrinsic rotations cannot be mixed in one function call.
+            angles: (num_angles, N), N = 1, 2, or 3 Euler angles.
+            degrees: If ``True``, angles are in degrees, otherwise radians. Default: ``True``, radians.
 
-    For 3D arrays,
-    in Astra, the dimensions go (slices, rows, columns) and (z, y, x);
-    in SCICO, the dimensions go (x, y, z).
+        Returns:
+            (num_angles, 2, 4) array of homogeneous projection matrices.
+        """
 
-    For 2D arrays,
-    in Astra, the dimensions go (rows, columns) and (y, x);
-    in SCICO, the dimensions go (x, y).
+        # make projection matrix: form a rotation matrix and chop off the last row
+        matrices = jnp.stack(
+            [Rotation.from_euler(seq, angles_i, degrees=degrees).as_matrix() for angles_i in angles]
+        )
+        matrices = matrices[:, :2, :]
 
-    In Astra, the x-grid (recon) is centered on the origin and the y-grid (projection) can move.
-    In SCICO, the x-grid origin is x[0, 0, 0], the y-grid origin is y[0, 0].
+        # add translation
+        x0 = jnp.array(input_shape) / 2
+        t = -jnp.tensordot(matrices, x0, axes=[2, 0]) + jnp.array(output_shape) / 2
+        matrices = jnp.concatenate((matrices, t[..., np.newaxis]), axis=2)
 
-    See https://astra-toolbox.com/docs/geom3d.html#projection-geometries parallel3d_vec.
-    """
-    # ray is perpendicular to projection axes
-    ray = np.cross(P[:, 0, :3], P[:, 1, :3])
-    # detector center comes from lifting the center index to 3D
-    y_center = np.array(det_shape) / 2
-    x_center = np.einsum("...mn,n->...m", P[..., :3], np.array(in_shape) / 2) + P[..., 3]
-    d = np.einsum("...mn,...m->...n", P[..., :3], y_center - x_center)  # (V, 2, 3) x (V, 2)
-    u = -P[:, 1, :3]
-    v = -P[:, 0, :3]
-    vectors = np.concatenate((ray, d, u, v), axis=1)  # (v, 12)
-    return vectors
-
-
-def astra_to_scico(vol_geom, proj_geom):
-    """
-    Convert ASTRA volume and projection geometry into a SCICO X-ray projection matrix.
-    """
-    in_shape = (vol_geom["GridSliceCount"], vol_geom["GridRowCount"], vol_geom["GridColCount"])
-    det_shape = (proj_geom["DetectorRowCount"], proj_geom["DetectorColCount"])
-    vectors = proj_geom["Vectors"]
-    _, d, u, v = vectors[:, 0:3], vectors[:, 3:6], vectors[:, 6:9], vectors[:, 9:12]
-    P = -np.stack((v, u), axis=1)
-    center_diff = np.einsum("...mn,...n->...m", P, d)  # y_center - x_center
-    y_center = np.array(det_shape) / 2
-    Px_center_t = -(center_diff - y_center)
-    Px_center = np.einsum("...mn,n->...m", P, np.array(in_shape) / 2)
-    t = Px_center_t - Px_center
-    P = np.concatenate((P, t[..., np.newaxis]), axis=2)
-    return P
+        return matrices

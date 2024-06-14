@@ -23,19 +23,18 @@ import scico.linop.xray.astra as astra
 from scico import plot
 from scico.examples import create_block_phantom
 from scico.linop import Parallel3dProjector, XRayTransform
-from scico.util import Timer
-from scipy.spatial.transform import Rotation
+from scico.util import ContextTimer, Timer
 
 """
 Create a ground truth image and set detector dimensions.
 """
 N = 64
-# use rectangular volume to check whether it is handled correctly
+# use rectangular volume to check whether axes are handled correctly
 in_shape = (N + 1, N + 2, N + 3)
 x = create_block_phantom(in_shape)
 x = jnp.array(x)
 
-# use rectangular detector to check whether it is handled correctly
+# use rectangular detector to check whether axes are handled correctly
 out_shape = (N, N + 1)
 
 
@@ -44,17 +43,13 @@ Set up SCICO projection.
 """
 num_angles = 3
 
-# make projection matrix: form a rotation matrix and chop off the last row
+
 rot_X = 90.0 - 16.0
-rot_Y = np.random.rand(num_angles) * 180
-P = jnp.stack([Rotation.from_euler("XY", [rot_X, y], degrees=True).as_matrix() for y in rot_Y])
-P = P[:, :2, :]
-
-# add translation
-x0 = jnp.array(in_shape) / 2
-t = -jnp.tensordot(P, x0, axes=[2, 0]) + jnp.array(out_shape) / 2
-P = jnp.concatenate((P, t[..., np.newaxis]), axis=2)
-
+rot_Y = np.linspace(0, 180, num_angles, endpoint=False)
+angles = np.stack(np.broadcast_arrays(rot_X, rot_Y), axis=-1)
+matrices = Parallel3dProjector.matrices_from_euler_angles(
+    in_shape, out_shape, "XY", angles, degrees=True
+)
 
 """
 Specify geometry using SCICO conventions and project.
@@ -63,7 +58,7 @@ num_repeats = 3
 
 timer_scico = Timer()
 with ContextTimer(timer_scico, "init"):
-    H_scico = XRayTransform(Parallel3dProjector(in_shape, P, out_shape))
+    H_scico = XRayTransform(Parallel3dProjector(in_shape, matrices, out_shape))
 
 with ContextTimer(timer_scico, "first_fwd"):
     y_scico = H_scico @ x
@@ -92,12 +87,14 @@ timer_scico.td["avg_back"] /= num_repeats
 Convert SCICO geometry to ASTRA and project.
 """
 
-P_to_astra_vectors = scico.linop.xray.P_to_vectors(in_shape, P, out_shape)
+vectors_from_scico = scico.linop.xray.astra.convert_from_scico_geometry(
+    in_shape, matrices, out_shape
+)
 
 timer_astra = Timer()
 with ContextTimer(timer_astra, "init"):
     H_astra_from_scico = astra.XRayTransform3D(
-        input_shape=in_shape, det_count=out_shape, vectors=P_to_astra_vectors
+        input_shape=in_shape, det_count=out_shape, vectors=vectors_from_scico
     )
 
 with ContextTimer(timer_astra, "first_fwd"):
@@ -141,7 +138,7 @@ HTy_astra = H_astra.T @ y_astra
 Convert ASTRA geometry to SCICO and project.
 """
 
-P_from_astra = scico.linop.xray.astra_to_scico(H_astra.vol_geom, H_astra.proj_geom)
+P_from_astra = scico.linop.xray.astra.convert_to_scico_geometry(H_astra.vol_geom, H_astra.proj_geom)
 H_scico_from_astra = XRayTransform(Parallel3dProjector(in_shape, P_from_astra, out_shape))
 
 y_scico_from_astra = H_scico_from_astra @ x

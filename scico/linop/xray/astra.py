@@ -22,6 +22,7 @@ from typing import List, Optional, Sequence, Tuple, Union
 import numpy as np
 
 import jax
+from jax.typing import ArrayLike
 
 try:
     import astra
@@ -52,6 +53,73 @@ def set_astra_gpu_index(idx: Union[int, Sequence[int]]):
         idx: Index or indices of GPU(s).
     """
     astra.set_gpu_index(idx)
+
+
+def convert_from_scico_geometry(
+    in_shape: Shape, matrices: ArrayLike, det_shape: Shape
+) -> ArrayLike:
+    """
+    Convert SCICO projection matrices into ASTRA "parallel3d_vec" vectors.
+
+    For 3D arrays,
+    in Astra, the dimensions go (slices, rows, columns) and (z, y, x);
+    in SCICO, the dimensions go (x, y, z).
+
+    In Astra, the x-grid (recon) is centered on the origin and the y-grid (projection) can move.
+    In SCICO, the x-grid origin is the center of x[0, 0, 0], the y-grid origin is the center
+    of y[0, 0].
+
+    See https://astra-toolbox.com/docs/geom3d.html#projection-geometries parallel3d_vec.
+
+    Args:
+        in_shape: Shape of input image.
+        matrices: (num_angles, 2, 4) array of homogeneous projection matrices.
+        det_shape: Shape of detector.
+
+    Returns:
+        (num_angles, 12) vector array in the ASTRA "parallel3d_vec" convention.
+
+    """
+    # ray is perpendicular to projection axes
+    ray = np.cross(matrices[:, 0, :3], matrices[:, 1, :3])
+    # detector center comes from lifting the center index to 3D
+    y_center = np.array(det_shape) / 2
+    x_center = (
+        np.einsum("...mn,n->...m", matrices[..., :3], np.array(in_shape) / 2) + matrices[..., 3]
+    )
+    d = np.einsum("...mn,...m->...n", matrices[..., :3], y_center - x_center)  # (V, 2, 3) x (V, 2)
+    u = -matrices[:, 1, :3]
+    v = -matrices[:, 0, :3]
+    vectors = np.concatenate((ray, d, u, v), axis=1)  # (v, 12)
+    return vectors
+
+
+def convert_to_scico_geometry(vol_geom, proj_geom):
+    """
+    Convert ASTRA volume and projection geometry into a SCICO X-ray projection matrix, assuming
+    "parallel3d_vec" format.
+
+    Args:
+        vol_geom: ASTRA volume geometry object.
+        proj_geom: ASTRA projection geometry object.
+
+    Returns:
+        (num_angles, 2, 4) array of homogeneous projection matrices.
+
+    """
+    in_shape = (vol_geom["GridSliceCount"], vol_geom["GridRowCount"], vol_geom["GridColCount"])
+    det_shape = (proj_geom["DetectorRowCount"], proj_geom["DetectorColCount"])
+    vectors = proj_geom["Vectors"]
+    _, d, u, v = vectors[:, 0:3], vectors[:, 3:6], vectors[:, 6:9], vectors[:, 9:12]
+    matrices = -np.stack((v, u), axis=1)
+    center_diff = np.einsum("...mn,...n->...m", matrices, d)  # y_center - x_center
+    y_center = np.array(det_shape) / 2
+    Px_center_t = -(center_diff - y_center)
+    Px_center = np.einsum("...mn,n->...m", matrices, np.array(in_shape) / 2)
+    t = Px_center_t - Px_center
+    matrices = np.concatenate((matrices, t[..., np.newaxis]), axis=2)
+
+    return matrices
 
 
 class XRayTransform2D(LinearOperator):
