@@ -11,7 +11,7 @@
 from __future__ import annotations
 
 from math import prod
-from typing import Any, List, Optional, Tuple, Union
+from typing import Any, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
