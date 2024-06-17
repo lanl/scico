@@ -11,6 +11,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinxcontrib.bibtex",
     "sphinx.ext.inheritance_diagram",
+    "matplotlib.sphinxext.plot_directive",
     "sphinx.ext.todo",
     "nbsphinx",
 ]
