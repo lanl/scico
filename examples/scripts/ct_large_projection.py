@@ -20,8 +20,8 @@ import jax
 from scico.examples import create_block_phantom
 from scico.linop import Parallel3dProjector, XRayTransform
 
-N = 256
-num_views = 3
+N = 1000
+num_views = 10
 
 in_shape = (N, N, N)
 x = create_block_phantom(in_shape)
