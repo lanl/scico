@@ -266,7 +266,6 @@ class Parallel3dProjector:
         return Parallel3dProjector._project(im, self.matrices, self.det_shape)
 
     @staticmethod
-    @partial(jax.jit, static_argnames="det_shape")
     def _project(im: ArrayLike, matrices: ArrayLike, det_shape: Shape) -> ArrayLike:
         r"""
         Args:
@@ -274,17 +273,28 @@ class Parallel3dProjector:
             matrix: (num_views, 2, 4) array of homogeneous projection matrices.
             det_shape: Shape of detector.
         """
+        MAX_SLICE_LEN = 10
+        slice_offsets = list(range(0, im.shape[0], MAX_SLICE_LEN))
+
         num_views = len(matrices)
         proj = jnp.zeros((num_views,) + det_shape, dtype=im.dtype)
         for view_ind, matrix in enumerate(matrices):
-            proj = proj.at[view_ind].set(
-                Parallel3dProjector._project_single(im, matrix, proj[view_ind])
-            )
+            for slice_offset in slice_offsets:
+                proj = proj.at[view_ind].set(
+                    Parallel3dProjector._project_single(
+                        im[slice_offset : slice_offset + MAX_SLICE_LEN],
+                        matrix,
+                        proj[view_ind],
+                        slice_offset=slice_offset,
+                    )
+                )
         return proj
 
     @staticmethod
     @partial(jax.jit, donate_argnames="proj")
-    def _project_single(im: ArrayLike, matrix: ArrayLike, proj: ArrayLike) -> ArrayLike:
+    def _project_single(
+        im: ArrayLike, matrix: ArrayLike, proj: ArrayLike, slice_offset: int = 0
+    ) -> ArrayLike:
         r"""
         Args:
             im: Input image.
@@ -293,6 +303,7 @@ class Parallel3dProjector:
         """
 
         x = jnp.mgrid[: im.shape[0], : im.shape[1], : im.shape[2]]  # (3, ...)
+        x = x.at[0].add(slice_offset)
 
         Px = jnp.stack(
             (
