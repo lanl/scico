@@ -12,9 +12,13 @@ import glob
 import os
 import tempfile
 import zipfile
+from functools import partial
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
+
+import jax
+import jax.numpy as jnp
 
 import imageio.v3 as iio
 
@@ -551,6 +555,7 @@ def create_tangle_phantom(nx: int, ny: int, nz: int) -> snp.Array:
     return (values < 2.0).astype(float)
 
 
+@partial(jax.jit, static_argnums=0)
 def create_block_phantom(out_shape: Shape) -> snp.Array:
     """Construct a blocky 3D phantom.
 
@@ -562,7 +567,7 @@ def create_block_phantom(out_shape: Shape) -> snp.Array:
 
     """
     # make the phantom at a low resolution
-    low_res = np.array(
+    low_res = jnp.array(
         [
             [
                 [0.0, 0.0, 0.0],
@@ -581,11 +586,11 @@ def create_block_phantom(out_shape: Shape) -> snp.Array:
             ],
         ]
     )
-    low_res = np.pad(low_res, 1)
-
-    # upsample it to the requested resolution
-    full_res = zoom(low_res, np.array(out_shape) / low_res.shape, order=0)
-    return full_res
+    positions = jnp.stack(
+        jnp.meshgrid(*[jnp.linspace(-0.5, 2.5, s) for s in out_shape], indexing="ij")
+    )
+    indices = jnp.round(positions).astype(int)
+    return low_res[indices[0], indices[1], indices[2]]
 
 
 def spnoise(

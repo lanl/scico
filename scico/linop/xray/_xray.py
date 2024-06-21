@@ -150,7 +150,7 @@ def _project(im, x0, dx, y0, ny, angles):
         y0: Location of the edge of the first detector bin.
         ny: Number of detector bins.
         angles: (num_angles,) array of angles in radians. Pixels are
-            projected onto units vectors pointing in these directions.
+            projected onto unit vectors pointing in these directions.
     """
     nx = im.shape
     inds, weights = _calc_weights(x0, dx, nx, angles, y0)
@@ -271,38 +271,53 @@ class Parallel3dProjector:
         r"""
         Args:
             im: Input image.
-            matrices: (num_angles, 2, 4) array of homogeneous projection matrices.
+            matrix: (num_views, 2, 4) array of homogeneous projection matrices.
+            det_shape: Shape of detector.
+        """
+        num_views = len(matrices)
+        proj = jnp.zeros((num_views,) + det_shape, dtype=im.dtype)
+        for view_ind, matrix in enumerate(matrices):
+            proj = proj.at[view_ind].set(
+                Parallel3dProjector._project_single(im, matrix, proj[view_ind])
+            )
+        return proj
+
+    @staticmethod
+    @partial(jax.jit, donate_argnames="proj")
+    def _project_single(im: ArrayLike, matrix: ArrayLike, proj: ArrayLike) -> ArrayLike:
+        r"""
+        Args:
+            im: Input image.
+            matrix: (2, 4) homogeneous projection matrix.
             det_shape: Shape of detector.
         """
 
-        x = jnp.mgrid[: im.shape[0], : im.shape[1], : im.shape[2]]
-        # (v, 2, 3) X (3, x0, x1, x2) + (v, 2) -> (v, 2, x0, x1, x2)
-        Px = (
-            jnp.tensordot(matrices[..., :3], x, axes=[2, 0])
-            + matrices[..., 3, np.newaxis, np.newaxis, np.newaxis]
-        )
+        x = jnp.mgrid[: im.shape[0], : im.shape[1], : im.shape[2]]  # (3, ...)
+
+        Px = jnp.stack(
+            (
+                matrix[0, 0] * x[0] + matrix[0, 1] * x[1] + matrix[0, 2] * x[2] + matrix[0, 3],
+                matrix[1, 0] * x[0] + matrix[1, 1] * x[1] + matrix[1, 2] * x[2] + matrix[1, 3],
+            )
+        )  # (2, ...)
 
         # calculate weight on 4 intersecting pixels
         w = 0.5  # assumed <= 1.0
         left_edge = Px - w / 2
         to_next = jnp.minimum(jnp.ceil(left_edge) - left_edge, w)
         ul_ind = jnp.floor(left_edge).astype("int32")
+        det_shape = proj.shape
         ul_ind = jnp.where(ul_ind < 0, max(det_shape), ul_ind)  # otherwise negative values wrap
 
-        ul_weight = to_next[:, 0] * to_next[:, 1] * (1 / w**2)
-        ur_weight = (w - to_next[:, 0]) * to_next[:, 1] * (1 / w**2)
-        ll_weight = to_next[:, 0] * (w - to_next[:, 1]) * (1 / w**2)
-        lr_weight = (w - to_next[:, 0]) * (w - to_next[:, 1]) * (1 / w**2)
+        ul_weight = to_next[0] * to_next[1] * (1 / w**2)
+        ur_weight = (w - to_next[0]) * to_next[1] * (1 / w**2)
+        ll_weight = to_next[0] * (w - to_next[1]) * (1 / w**2)
+        lr_weight = (w - to_next[0]) * (w - to_next[1]) * (1 / w**2)
 
-        num_views = len(matrices)
-        proj = jnp.zeros((num_views,) + det_shape, dtype=im.dtype)
-        view_ind = jnp.expand_dims(jnp.arange(num_views), range(1, 4))
-        proj = proj.at[view_ind, ul_ind[:, 0], ul_ind[:, 1]].add(ul_weight * im, mode="drop")
-        proj = proj.at[view_ind, ul_ind[:, 0] + 1, ul_ind[:, 1]].add(ur_weight * im, mode="drop")
-        proj = proj.at[view_ind, ul_ind[:, 0], ul_ind[:, 1] + 1].add(ll_weight * im, mode="drop")
-        proj = proj.at[view_ind, ul_ind[:, 0] + 1, ul_ind[:, 1] + 1].add(
-            lr_weight * im, mode="drop"
-        )
+        proj = proj.at[ul_ind[0], ul_ind[1]].add(ul_weight * im, mode="drop")
+        proj = proj.at[ul_ind[0] + 1, ul_ind[1]].add(ur_weight * im, mode="drop")
+        proj = proj.at[ul_ind[0], ul_ind[1] + 1].add(ll_weight * im, mode="drop")
+        proj = proj.at[ul_ind[0] + 1, ul_ind[1] + 1].add(lr_weight * im, mode="drop")
         return proj
 
     @staticmethod
