@@ -7,6 +7,8 @@ Version 0.0.6   (unreleased)
 ----------------------------
 
 • Significant changes to ``linop.xray.astra`` API.
+• New integrated 3D X-ray transform via ``linop.XRayTransform`` and
+  ``linop.Parallel3dProjector``.
 • New functional ``functional.IsotropicTVNorm`` and faster implementation
   of ``functional.AnisotropicTVNorm``.
 • Rename ``scico.numpy.util.parse_axes`` to

@@ -90,6 +90,10 @@ for f in $SCRIPTPATH/scripts/*.py; do
         printf "%s\n" skipped
         continue
     fi
+    if [ $SKIP_GPU -eq 1 ] && grep -q 'ct_projector_comparison_3d' <<< $f; then
+        printf "%s\n" skipped
+        continue
+    fi
 
     # Create temporary copy of script with all algorithm maxiter values set
     # to small number and final input statements commented out.
