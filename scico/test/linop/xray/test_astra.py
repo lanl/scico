@@ -122,6 +122,13 @@ def test_adjoint_typical_input(testobj):
     adjoint_test(A, x=x, rtol=get_tol())
 
 
+def test_fbp(testobj):
+    x = testobj.A.fbp(testobj.y)
+    # Test for a bug (related to calling the Astra CPU FBP implementation
+    # when using a FPU device) that resulted in a constant zero output.
+    assert np.sum(np.abs(x)) > 0.0
+
+
 def test_jit_in_DiagonalStack():
     """See https://github.com/lanl/scico/issues/331"""
     N = 10

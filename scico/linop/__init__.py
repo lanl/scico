@@ -23,7 +23,7 @@ from ._grad import (
 )
 from ._linop import ComposedLinearOperator, LinearOperator
 from ._matrix import MatrixOperator
-from ._stack import DiagonalStack, VerticalStack, linop_over_axes
+from ._stack import DiagonalReplicated, DiagonalStack, VerticalStack, linop_over_axes
 from ._util import jacobian, operator_norm, power_iteration, valid_adjoint
 from .xray import Parallel2dProjector, XRayTransform
 
@@ -39,6 +39,7 @@ __all__ = [
     "SphericalGradient",
     "SingleAxisFiniteDifference",
     "Identity",
+    "DiagonalReplicated",
     "VerticalStack",
     "DiagonalStack",
     "MatrixOperator",
