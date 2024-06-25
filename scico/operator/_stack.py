@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2023 by SCICO Developers
+# Copyright (C) 2023-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -12,6 +12,8 @@ from __future__ import annotations
 from typing import Optional, Sequence, Tuple, Union
 
 import numpy as np
+
+import jax
 
 from typing_extensions import TypeGuard
 
@@ -234,3 +236,107 @@ class DiagonalStack(Operator):
         if self.collapse_output:
             return snp.stack(result)
         return snp.blockarray(result)
+
+
+class DiagonalReplicated(Operator):
+    r"""A diagonal stack constructed from a single operator.
+
+    Given operator :math:`A`, create the operator :math:`H` such that
+
+    .. math::
+       H \left(
+       \begin{pmatrix}
+            \mb{x}_1 \\
+            \mb{x}_2 \\
+            \vdots \\
+            \mb{x}_N \\
+       \end{pmatrix} \right)
+       =
+       \begin{pmatrix}
+            A(\mb{x}_1) \\
+            A(\mb{x}_2) \\
+            \vdots \\
+            A(\mb{x}_N) \\
+       \end{pmatrix} \;.
+
+    The application of :math:`A` to each component :math:`\mb{x}_k` is
+    computed using :func:`jax.pmap` or :func:`jax.vmap`. The input shape
+    for operator :math:`A` should exclude the array axis on which
+    :math:`A` is replicated to form :math:`H`. For example, if :math:`A`
+    has input shape `(3, 4)` and :math:`H` is constructed to replicate
+    on axis 0 with 2 replicates, the input shape of :math:`H` will be
+    `(2, 3, 4)`.
+
+    Operators taking :class:`.BlockArray` input are not supported.
+    """
+
+    def __init__(
+        self,
+        op: Operator,
+        replicates: int,
+        input_axis: int = 0,
+        output_axis: Optional[int] = None,
+        map_type: str = "auto",
+        **kwargs,
+    ):
+        """
+        Args:
+            op: Operator to replicate.
+            replicates: Number of replicates of `op`.
+            input_axis: Input axis over which `op` should be replicated.
+            output_axis: Index of replication axis in output array.
+               If ``None``, the input replication axis is used.
+            map_type: If "pmap" or "vmap", apply replicated mapping using
+               :func:`jax.pmap` or :func:`jax.vmap` respectively. If
+               "auto", use :func:`jax.pmap` if sufficient devices are
+               available for the number of replicates, otherwise use
+               :func:`jax.vmap`.
+        """
+        if map_type not in ["auto", "pmap", "vmap"]:
+            raise ValueError("Argument map_type must be one of 'auto', 'pmap, or 'vmap'.")
+        if input_axis < 0:
+            input_axis = len(op.input_shape) + 1 + input_axis
+        if input_axis < 0 or input_axis > len(op.input_shape):
+            raise ValueError(
+                "Argument input_axis must be positive and less than the number of axes "
+                "in the input shape of op."
+            )
+        if is_nested(op.input_shape):
+            raise ValueError("Argument op may not be an Operator taking BlockArray input.")
+        if is_nested(op.output_shape):
+            raise ValueError("Argument op may not be an Operator with BlockArray output.")
+        self.op = op
+        self.replicates = replicates
+        self.input_axis = input_axis
+        self.output_axis = self.input_axis if output_axis is None else output_axis
+
+        if map_type == "auto":
+            self.jaxmap = jax.pmap if replicates <= jax.device_count() else jax.vmap
+        else:
+            if map_type == "pmap" and replicates > jax.device_count():
+                raise ValueError(
+                    "Requested pmap mapping but number of replicates exceeds device count."
+                )
+            else:
+                self.jaxmap = jax.pmap if map_type == "pmap" else jax.vmap
+
+        eval_fn = self.jaxmap(op.__call__, in_axes=self.input_axis, out_axes=self.output_axis)
+
+        input_shape = (
+            op.input_shape[0 : self.input_axis] + (replicates,) + op.input_shape[self.input_axis :]
+        )
+        output_shape = (
+            op.output_shape[0 : self.output_axis]
+            + (replicates,)
+            + op.output_shape[self.output_axis :]
+        )
+
+        super().__init__(
+            input_shape=input_shape,  # type: ignore
+            output_shape=output_shape,  # type: ignore
+            eval_fn=eval_fn,
+            input_dtype=op.input_dtype,
+            output_dtype=op.output_dtype,
+            jit=False,
+            **kwargs,
+        )

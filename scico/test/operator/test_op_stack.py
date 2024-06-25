@@ -5,7 +5,14 @@ import jax
 import pytest
 
 import scico.numpy as snp
-from scico.operator import Abs, DiagonalStack, Operator, VerticalStack
+from scico.operator import (
+    Abs,
+    DiagonalReplicated,
+    DiagonalStack,
+    Operator,
+    VerticalStack,
+)
+from scico.random import randn
 
 TestOpA = Operator(input_shape=(3, 4), output_shape=(2, 3, 4), eval_fn=lambda x: snp.stack((x, x)))
 TestOpB = Operator(
@@ -140,3 +147,48 @@ class TestBlockDiagonalOperator:
 
         H = DiagonalStack((A1, A2), collapse_output=False)
         assert H.output_shape == (A1.output_shape, A1.output_shape)
+
+
+class TestDiagonalReplicated:
+    def setup_method(self, method):
+        self.key = jax.random.PRNGKey(12345)
+
+    @pytest.mark.parametrize("map_type", ["auto", "vmap"])
+    @pytest.mark.parametrize("input_axis", [0, 1])
+    def test_map_auto_vmap(self, input_axis, map_type):
+        x, key = randn((2, 3, 4), key=self.key)
+        mapshape = (3, 4) if input_axis == 0 else (2, 4)
+        replicates = x.shape[input_axis]
+        A = Abs(mapshape)
+        D = DiagonalReplicated(A, replicates, input_axis=input_axis, map_type=map_type)
+        y = D(x)
+        assert y.shape[input_axis] == replicates
+
+    @pytest.mark.skipif(jax.device_count() < 2, reason="multiple devices required for test")
+    def test_map_auto_pmap(self):
+        x, key = randn((2, 3, 4), key=self.key)
+        A = Abs(x.shape[1:])
+        replicates = x.shape[0]
+        D = DiagonalReplicated(A, replicates, map_type="pmap")
+        y = D(x)
+        assert y.shape[0] == replicates
+
+    def test_input_axis(self):
+        # Ensure that operators can be stacked on final axis
+        x, key = randn((2, 3, 4), key=self.key)
+        A = Abs(x.shape[0:2])
+        replicates = x.shape[2]
+        D = DiagonalReplicated(A, replicates, input_axis=2)
+        y = D(x)
+        assert y.shape == (2, 3, 4)
+        D = DiagonalReplicated(A, replicates, input_axis=-1)
+        y = D(x)
+        assert y.shape == (2, 3, 4)
+
+    def test_output_axis(self):
+        x, key = randn((2, 3, 4), key=self.key)
+        A = Abs(x.shape[1:])
+        replicates = x.shape[0]
+        D = DiagonalReplicated(A, replicates, output_axis=1)
+        y = D(x)
+        assert y.shape == (3, 2, 4)

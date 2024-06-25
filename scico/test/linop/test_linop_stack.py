@@ -5,8 +5,16 @@ import jax
 import pytest
 
 import scico.numpy as snp
-from scico.linop import Convolve, DiagonalStack, Identity, Sum, VerticalStack
+from scico.linop import (
+    Convolve,
+    DiagonalReplicated,
+    DiagonalStack,
+    Identity,
+    Sum,
+    VerticalStack,
+)
 from scico.operator import Abs
+from scico.random import randn
 from scico.test.linop.test_linop import adjoint_test
 
 
@@ -166,3 +174,16 @@ class TestBlockDiagonalLinearOperator:
 
         H = DiagonalStack((A1, A2), collapse_output=False)
         assert H.output_shape == (S1, S1)
+
+
+class TestDiagonalReplicated:
+    def setup_method(self, method):
+        self.key = jax.random.PRNGKey(12345)
+
+    def test_adjoint(self):
+        x, key = randn((2, 3, 4), key=self.key)
+        A = Sum(x.shape[1:], axis=-1)
+        D = DiagonalReplicated(A, x.shape[0])
+        y = D.T(D(x))
+        np.testing.assert_allclose(y[0], A.T(A(x[0])))
+        np.testing.assert_allclose(y[1], A.T(A(x[1])))

@@ -14,14 +14,15 @@ from typing import Any, List, Optional, Sequence, Union
 import scico.numpy as snp
 from scico.numpy import Array, BlockArray
 from scico.numpy.util import normalize_axes
-from scico.operator._stack import DiagonalStack as DStack
-from scico.operator._stack import VerticalStack as VStack
+from scico.operator._stack import DiagonalReplicated as DiagonalReplicatedOperator
+from scico.operator._stack import DiagonalStack as DiagonalStackOperator
+from scico.operator._stack import VerticalStack as VerticalStackOperator
 from scico.typing import Axes, Shape
 
 from ._linop import LinearOperator
 
 
-class VerticalStack(VStack, LinearOperator):
+class VerticalStack(VerticalStackOperator, LinearOperator):
     r"""A vertical stack of linear operators.
 
     Given linear operators :math:`A_1, A_2, \dots, A_N`, create the
@@ -71,7 +72,7 @@ class VerticalStack(VStack, LinearOperator):
         return sum([op.adj(y_block) for y_block, op in zip(y, self.ops)])  # type: ignore
 
 
-class DiagonalStack(DStack, LinearOperator):
+class DiagonalStack(DiagonalStackOperator, LinearOperator):
     r"""A diagonal stack of linear operators.
 
     Given linear operators :math:`A_1, A_2, \dots, A_N`, create the
@@ -144,6 +145,83 @@ class DiagonalStack(DStack, LinearOperator):
         if self.collapse_input:
             return snp.stack(result)
         return snp.blockarray(result)
+
+
+class DiagonalReplicated(DiagonalReplicatedOperator, LinearOperator):
+    r"""A diagonal stack constructed from a single linear operator.
+
+    Given linear operator :math:`A`, create the linear operator
+
+    .. math::
+       H =
+       \begin{pmatrix}
+            A & 0   & \ldots & 0\\
+            0   & A & \ldots & 0\\
+            \vdots & \vdots & \ddots & \vdots\\
+            0   & 0 & \ldots & A \\
+       \end{pmatrix} \qquad
+       \text{such that} \qquad
+       H
+       \begin{pmatrix}
+            \mb{x}_1 \\
+            \mb{x}_2 \\
+            \vdots \\
+            \mb{x}_N \\
+       \end{pmatrix}
+       =
+       \begin{pmatrix}
+            A(\mb{x}_1) \\
+            A(\mb{x}_2) \\
+            \vdots \\
+            A(\mb{x}_N) \\
+       \end{pmatrix} \;.
+
+    The application of :math:`A` to each component :math:`\mb{x}_k` is
+    computed using :func:`jax.pmap` or :func:`jax.vmap`. The input shape
+    for linear operator :math:`A` should exclude the array axis on which
+    :math:`A` is replicated to form :math:`H`. For example, if :math:`A`
+    has input shape `(3, 4)` and :math:`H` is constructed to replicate
+    on axis 0 with 2 replicates, the input shape of :math:`H` will be
+    `(2, 3, 4)`.
+
+    Linear operators taking :class:`.BlockArray` input are not supported.
+    """
+
+    def __init__(
+        self,
+        op: LinearOperator,
+        replicates: int,
+        input_axis: int = 0,
+        output_axis: Optional[int] = None,
+        map_type: str = "auto",
+        **kwargs,
+    ):
+        """
+        Args:
+            op: Linear operator to replicate.
+            replicates: Number of replicates of `op`.
+            input_axis: Input axis over which `op` should be replicated.
+            output_axis: Index of replication axis in output array.
+               If ``None``, the input replication axis is used.
+            map_type: If "pmap" or "vmap", apply replicated mapping using
+               :func:`jax.pmap` or :func:`jax.vmap` respectively. If
+               "auto", use :func:`jax.pmap` if sufficient devices are
+               available for the number of replicates, otherwise use
+               :func:`jax.vmap`.
+        """
+        if not isinstance(op, LinearOperator):
+            raise TypeError("Argument op must be of type LinearOperator.")
+
+        super().__init__(
+            op,
+            replicates,
+            input_axis=input_axis,
+            output_axis=output_axis,
+            map_type=map_type,
+            **kwargs,
+        )
+
+        self._adj = self.jaxmap(op.adj, in_axes=self.input_axis, out_axes=self.output_axis)
 
 
 def linop_over_axes(
