@@ -14,15 +14,15 @@ from typing import Any, List, Optional, Sequence, Union
 import scico.numpy as snp
 from scico.numpy import Array, BlockArray
 from scico.numpy.util import normalize_axes
-from scico.operator._stack import DiagonalReplicated as DReplicated
-from scico.operator._stack import DiagonalStack as DStack
-from scico.operator._stack import VerticalStack as VStack
+from scico.operator._stack import DiagonalReplicated as DiagonalReplicatedOperator
+from scico.operator._stack import DiagonalStack as DiagonalStackOperator
+from scico.operator._stack import VerticalStack as VerticalStackOperator
 from scico.typing import Axes, Shape
 
 from ._linop import LinearOperator
 
 
-class VerticalStack(VStack, LinearOperator):
+class VerticalStack(VerticalStackOperator, LinearOperator):
     r"""A vertical stack of linear operators.
 
     Given linear operators :math:`A_1, A_2, \dots, A_N`, create the
@@ -72,7 +72,7 @@ class VerticalStack(VStack, LinearOperator):
         return sum([op.adj(y_block) for y_block, op in zip(y, self.ops)])  # type: ignore
 
 
-class DiagonalStack(DStack, LinearOperator):
+class DiagonalStack(DiagonalStackOperator, LinearOperator):
     r"""A diagonal stack of linear operators.
 
     Given linear operators :math:`A_1, A_2, \dots, A_N`, create the
@@ -147,7 +147,7 @@ class DiagonalStack(DStack, LinearOperator):
         return snp.blockarray(result)
 
 
-class DiagonalReplicated(DReplicated, LinearOperator):
+class DiagonalReplicated(DiagonalReplicatedOperator, LinearOperator):
     r"""A diagonal stack constructed from a single linear operator.
 
     Given linear operator :math:`A`, create the linear operator
