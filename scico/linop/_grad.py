@@ -54,7 +54,8 @@ class ProjectedGradient(LinearOperator):
 
     This class represents a linear operator that computes gradients of
     arrays projected onto a local coordinate system that may differ at
-    every position in the array. In the 2D illustration below :math:`x`
+    every position in the array, as described in
+    :cite:`hossein-2024-total`. In the 2D illustration below :math:`x`
     and :math:`y` represent the standard coordinate system defined by the
     array axes, :math:`(g_x, g_y)` is the gradient vector within that
     coordinate system, :math:`x'` and :math:`y'` are the local coordinate
@@ -117,7 +118,7 @@ class ProjectedGradient(LinearOperator):
                 otherwise use the first order asymmetric difference
                 returned by :func:`snp.diff`.
             input_dtype: `dtype` for input argument. Default is
-                ``float32``.
+                :attr:`~numpy.float32`.
             jit: If ``True``, jit the evaluation, adjoint, and gram
                 functions of the LinearOperator.
         """
@@ -180,8 +181,8 @@ class PolarGradient(ProjectedGradient):
     """Gradient projected into polar coordinates.
 
     Compute gradients projected onto angular and/or radial axis
-    directions. Local coordinate axes are illustrated in the figure
-    below.
+    directions, as described in :cite:`hossein-2024-total`. Local
+    coordinate axes are illustrated in the figure below.
 
     .. plot:: figures/polargrad.py
        :align: center
@@ -225,7 +226,8 @@ class PolarGradient(ProjectedGradient):
                 central different returned by :func:`snp.gradient`,
                 otherwise use the first order asymmetric difference
                 returned by :func:`snp.diff`.
-            input_dtype: `dtype` for input argument. Default is ``float32``.
+            input_dtype: `dtype` for input argument. Default is
+                :attr:`~numpy.float32`.
             jit: If ``True``, jit the evaluation, adjoint, and gram
                 functions of the LinearOperator.
         """
@@ -274,8 +276,9 @@ class PolarGradient(ProjectedGradient):
 class CylindricalGradient(ProjectedGradient):
     """Gradient projected into cylindrical coordinates.
 
-    Compute gradients projected onto cylindrical coordinate axes. The
-    local coordinate axes are illustrated in the figure below.
+    Compute gradients projected onto cylindrical coordinate axes, as
+    described in :cite:`hossein-2024-total`. The local coordinate axes
+    are illustrated in the figure below.
 
     .. plot:: figures/cylindgrad.py
        :align: center
@@ -328,7 +331,7 @@ class CylindricalGradient(ProjectedGradient):
                 otherwise use the first order asymmetric difference
                 returned by :func:`snp.diff`.
             input_dtype: `dtype` for input argument. Default is
-                ``float32``.
+                :attr:`~numpy.float32`.
             jit: If ``True``, jit the evaluation, adjoint, and gram
                 functions of the LinearOperator.
         """
@@ -398,7 +401,8 @@ class CylindricalGradient(ProjectedGradient):
 class SphericalGradient(ProjectedGradient):
     """Gradient projected into spherical coordinates.
 
-    Compute gradients projected onto spherical coordinate axes. The local
+    Compute gradients projected onto spherical coordinate axes, based on
+    the approach described in :cite:`hossein-2024-total`. The local
     coordinate axes are illustrated in the figure below.
 
     .. plot:: figures/spheregrad.py
@@ -451,7 +455,7 @@ class SphericalGradient(ProjectedGradient):
                 otherwise use the first order asymmetric difference
                 returned by :func:`snp.diff`.
             input_dtype: `dtype` for input argument. Default is
-                ``float32``.
+                :attr:`~numpy.float32`.
             jit: If ``True``, jit the evaluation, adjoint, and gram
                 functions of the LinearOperator.
         """
