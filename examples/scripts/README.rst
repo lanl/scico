@@ -103,6 +103,8 @@ Miscellaneous
       PPP (with DnCNN) Image Superresolution
    `denoise_l1tv_admm.py <denoise_l1tv_admm.py>`_
       ℓ1 Total Variation Denoising
+   `denoise_ptv_pdhg.py <denoise_ptv_pdhg.py>`_
+      Polar Total Variation Denoising (PDHG)
    `denoise_tv_admm.py <denoise_tv_admm.py>`_
       Total Variation Denoising (ADMM)
    `denoise_tv_apgm.py <denoise_tv_apgm.py>`_
@@ -192,6 +194,8 @@ Total Variation
       Deconvolution Microscopy (All Channels)
    `denoise_l1tv_admm.py <denoise_l1tv_admm.py>`_
       ℓ1 Total Variation Denoising
+   `denoise_ptv_pdhg.py <denoise_ptv_pdhg.py>`_
+      Polar Total Variation Denoising (PDHG)
    `denoise_tv_admm.py <denoise_tv_admm.py>`_
       Total Variation Denoising (ADMM)
    `denoise_tv_apgm.py <denoise_tv_apgm.py>`_
@@ -357,6 +361,8 @@ PDHG
 
     `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
        TV-Regularized CT Reconstruction (Multiple Algorithms)
+    `denoise_ptv_pdhg.py <denoise_ptv_pdhg.py>`_
+       Polar Total Variation Denoising (PDHG)
     `denoise_tv_multi.py <denoise_tv_multi.py>`_
        Comparison of Optimization Algorithms for Total Variation Denoising
     `denoise_cplx_tv_pdhg.py <denoise_cplx_tv_pdhg.py>`_
