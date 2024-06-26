@@ -5,35 +5,28 @@
 # with the package.
 
 r"""
-Polar Total Variation Denoising (ADMM)
+Polar Total Variation Denoising (PDHG)
 ======================================
 
-This example compares denoising via isotropic and polar total
+This example compares denoising via standard isotropic total
 variation (TV) regularization :cite:`rudin-1992-nonlinear`
-:cite:`goldstein-2009-split`. It solves the denoising problem
+:cite:`goldstein-2009-split` and a variant based on local polar
+coordinates, as described in :cite:`hossein-2024-total`. It solves the
+denoising problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - \mathbf{x}
   \|_2^2 + \lambda R(\mathbf{x}) \;,$$
 
-where $R$ is either the isotropic or polar TV regularizer.
-In SCICO, switching between these two regularizers is a one-line
-change: replacing an
-[L1Norm](../_autosummary/scico.functional.rst#scico.functional.L1Norm)
-with a
-[L21Norm](../_autosummary/scico.functional.rst#scico.functional.L21Norm).
-Note that the isotropic version exhibits fewer block-like artifacts on
-edges that are not vertical or horizontal.
+where $R$ is either the isotropic or polar TV regularizer, via the
+primal–dual hybrid gradient (PDHG) algorithm.
 """
 
-import jax
 
 from xdesign import SiemensStar, discrete_phantom
 
 import scico.numpy as snp
 import scico.random
 from scico import functional, linop, loss, metric, plot
-
-# from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.optimize import PDHG
 from scico.util import device_info
 
@@ -43,7 +36,6 @@ Create a ground truth image.
 N = 256  # image size
 phantom = SiemensStar(16)
 x_gt = snp.pad(discrete_phantom(phantom, N - 16), 8)
-x_gt = jax.device_put(x_gt)  # convert to jax type, push to GPU
 x_gt = x_gt / x_gt.max()
 
 
@@ -81,6 +73,7 @@ hist_std = solver.itstat_object.history(transpose=True)
 x_std = solver.x
 print()
 
+
 """
 Denoise with polar total variation for comparison.
 """
@@ -113,7 +106,7 @@ Compute and print the data fidelity.
 """
 for x, name in zip((x_std, x_plr), ("Isotropic", "Polar")):
     df = f(x)
-    print(f"Data fidelity for {name} TV was {df:.2e}   SNR: {metric.snr(x_gt, x):.2e} dB")
+    print(f"Data fidelity for {(name + ' TV'):12}: {df:.2e}   SNR: {metric.snr(x_gt, x):5.2f} dB")
 
 
 """
@@ -148,7 +141,7 @@ fig.suptitle("Denoising comparison (zoomed)")
 fig.show()
 
 
-fig, ax = plot.subplots(nrows=1, ncols=3, sharex=True, sharey=False, figsize=(27, 6))
+fig, ax = plot.subplots(nrows=1, ncols=3, sharex=True, sharey=False, figsize=(20, 5))
 plot.plot(
     snp.vstack((hist_std.Objective, hist_plr.Objective)).T,
     ptyp="semilogy",
