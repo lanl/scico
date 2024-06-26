@@ -61,7 +61,7 @@ class ProjectedGradient(LinearOperator):
     axes, and :math:`(g_x', g_y')` is the gradient vector within the
     local coordinate system.
 
-    .. image:: /figurestmp/projgrad.svg
+    .. image:: /figures/projgrad.svg
          :align: center
          :alt: Figure illustrating projection of gradient onto local
                coordinate system.
@@ -183,7 +183,7 @@ class PolarGradient(ProjectedGradient):
     directions. Local coordinate axes are illustrated in the figure
     below.
 
-    .. plot:: figurestmp/polargrad.py
+    .. plot:: figures/polargrad.py
        :align: center
        :include-source: False
        :show-source-link: False
@@ -277,7 +277,7 @@ class CylindricalGradient(ProjectedGradient):
     Compute gradients projected onto cylindrical coordinate axes. The
     local coordinate axes are illustrated in the figure below.
 
-    .. plot:: figurestmp/cylindgrad.py
+    .. plot:: figures/cylindgrad.py
        :align: center
        :include-source: False
        :show-source-link: False
@@ -401,7 +401,7 @@ class SphericalGradient(ProjectedGradient):
     Compute gradients projected onto spherical coordinate axes. The local
     coordinate axes are illustrated in the figure below.
 
-    .. plot:: figurestmp/spheregrad.py
+    .. plot:: figures/spheregrad.py
        :align: center
        :include-source: False
        :show-source-link: False
