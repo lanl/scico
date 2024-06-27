@@ -139,7 +139,7 @@ def _project(im, x0, dx, y0, ny, angles):
     inds, weights = _calc_weights(x0, dx, nx, angles, y0)
     # Handle out of bounds indices. In the .at call, inds >= y0 are
     # ignored, while inds < 0 wrap around. So we set inds < 0 to y0.
-    inds = jnp.where(inds > 0, inds, ny)
+    inds = jnp.where(inds >= 0, inds, ny)
 
     y = (
         jnp.zeros((len(angles), ny))
