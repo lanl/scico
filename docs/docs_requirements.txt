@@ -10,6 +10,6 @@ nbsphinx
 ipython
 ipython_genutils
 py2jn
-pygraphviz>=2
+pygraphviz>=1.9
 pandoc
 docutils>=0.18
