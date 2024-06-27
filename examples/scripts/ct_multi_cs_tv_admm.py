@@ -54,9 +54,15 @@ projectors = {
 """
 Compute common sinogram using svmbir projector.
 """
-A = projectors["svmbir"]
+A = projectors["astra"]
 noise = np.random.normal(size=(n_projection, N)).astype(np.float32)
 y = A @ x_gt + 2.0 * noise
+
+
+"""
+Construct initial solution for regularized problem.
+"""
+x0 = A.fbp(y)
 
 
 """
@@ -64,15 +70,15 @@ Solve the same problem using the different projectors.
 """
 print(f"Solving on {device_info()}")
 x_rec, hist = {}, {}
-for p in ("astra", "svmbir", "scico"):
+for p in projectors.keys():
     print(f"\nSolving with {p} projector")
 
     # Set up ADMM solver object.
-    λ = 2e0  # L1 norm regularization parameter
-    ρ = 5e0  # ADMM penalty parameter
-    maxiter = 25  # number of ADMM iterations
+    λ = 2e1  # L1 norm regularization parameter
+    ρ = 1e3  # ADMM penalty parameter
+    maxiter = 100  # number of ADMM iterations
     cg_tol = 1e-4  # CG relative tolerance
-    cg_maxiter = 25  # maximum CG iterations per ADMM iteration
+    cg_maxiter = 50  # maximum CG iterations per ADMM iteration
 
     # The append=0 option makes the results of horizontal and vertical
     # finite differences the same shape, which is required for the L21Norm,
@@ -81,7 +87,6 @@ for p in ("astra", "svmbir", "scico"):
     g = λ * functional.L21Norm()
     A = projectors[p]
     f = loss.SquaredL2Loss(y=y, A=A)
-    x0 = snp.clip(A.T(y), 0, 1.0)
 
     # Set up the solver.
     solver = ADMM(
@@ -99,6 +104,14 @@ for p in ("astra", "svmbir", "scico"):
     solver.solve()
     hist[p] = solver.itstat_object.history(transpose=True)
     x_rec[p] = snp.clip(solver.x, 0, 1.0)
+
+
+"""
+Compare reconstruction results.
+"""
+print("Reconstruction SNR:")
+for p in projectors.keys():
+    print(f"  {(p + ':'):7s}  {metric.snr(x_gt, x_rec[p]):5.2f} dB")
 
 
 """
