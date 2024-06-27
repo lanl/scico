@@ -15,6 +15,12 @@ from ._dft import DFT
 from ._diag import Diagonal, Identity, ScaledIdentity
 from ._diff import FiniteDifference, SingleAxisFiniteDifference
 from ._func import Crop, Pad, Reshape, Slice, Sum, Transpose, linop_from_function
+from ._grad import (
+    CylindricalGradient,
+    PolarGradient,
+    ProjectedGradient,
+    SphericalGradient,
+)
 from ._linop import ComposedLinearOperator, LinearOperator
 from ._matrix import MatrixOperator
 from ._stack import DiagonalReplicated, DiagonalStack, VerticalStack, linop_over_axes
@@ -27,6 +33,10 @@ __all__ = [
     "DFT",
     "Diagonal",
     "FiniteDifference",
+    "ProjectedGradient",
+    "PolarGradient",
+    "CylindricalGradient",
+    "SphericalGradient",
     "SingleAxisFiniteDifference",
     "Identity",
     "DiagonalReplicated",
