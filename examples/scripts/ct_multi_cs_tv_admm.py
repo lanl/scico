@@ -176,6 +176,8 @@ for n, p in enumerate(projectors.keys()):
         fig=fig,
         ax=ax[n + 1],
     )
+for ax in ax:
+    ax.get_images()[0].set_clim(-0.1, 1.1)
 fig.show()
 
 
