@@ -17,6 +17,7 @@ import jax
 import jax.numpy as jnp
 from jax.typing import ArrayLike
 
+from scico.numpy.util import is_scalar_equiv
 from scico.typing import Shape
 
 from .._linop import LinearOperator
@@ -82,7 +83,7 @@ class Parallel2dProjector:
                 corresponds to summing columns, and an angle of pi/4
                 corresponds to summing along antidiagonals.
             x0: (x, y) position of the corner of the pixel `im[0,0]`. By
-                default, `-im_shape / 2`.
+                default, `(-im_shape / 2, -im_shape / 2)`.
             dx: Image pixel side length in x- and y-direction. Should be
                 <= 1.0 in each dimension. By default, [1.0, 1.0].
             y0: Location of the edge of the first detector bin. By
@@ -94,13 +95,21 @@ class Parallel2dProjector:
         self.angles = angles
 
         self.nx = np.array(im_shape)
-
-        if x0 is None:
-            x0 = -self.nx / 2
-        self.x0 = x0
         if dx is None:
             dx = np.ones(2)
+        if is_scalar_equiv(dx):
+            dx = dx * np.ones(2)
         self.dx = dx
+
+        if np.sqrt(np.sum(dx**2)) > 2:
+            Warning(
+                "The pixel diagonal is longer than two detector bins."
+                "This will reduce projector accuracy."
+            )
+
+        if x0 is None:
+            x0 = -(self.nx * self.dx) / 2
+        self.x0 = x0
 
         if det_count is None:
             det_count = int(np.ceil(np.linalg.norm(im_shape)))
