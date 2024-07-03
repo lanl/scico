@@ -390,7 +390,7 @@ def lstsq(
     Solve the least squares problem
 
     .. math::
-        \argmin_{\mb{x}} \; (1/2) \norm{ A \mb{x} - \mb{b}) }_2^2 \;,
+        \argmin_{\mb{x}} \; (1/2) \norm{ A \mb{x} - \mb{b} }_2^2 \;,
 
     where :math:`A` is a linear operator and :math:`\mb{b}` is a vector.
     The problem is solved using :func:`cg`.
