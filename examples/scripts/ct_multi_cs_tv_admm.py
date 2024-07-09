@@ -41,6 +41,7 @@ x_gt = snp.array(discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, por
 det_count = N
 det_spacing = np.sqrt(2)
 
+
 """
 Define CT geometry and construct array of (approximately) equivalent projectors.
 """
@@ -57,6 +58,7 @@ projectors = {
         Parallel2dProjector((N, N), angles, det_count=det_count, dx=1 / det_spacing)
     ),  # scico
 }
+
 
 """
 Compute common sinogram using svmbir projector.

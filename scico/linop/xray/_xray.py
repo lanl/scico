@@ -10,6 +10,7 @@
 
 from functools import partial
 from typing import Optional
+from warnings import warn
 
 import numpy as np
 
@@ -55,9 +56,9 @@ class Parallel2dProjector:
     of each pixel to each bin because the integral of the boxcar is
     simple.
 
-    By requiring the side length of the pixels to be less than or equal
-    to the bin width (which is assumed to be 1.0), we ensure that each
-    pixel contributes to at most two bins, which accelerates the
+    By requiring the width of a projected pixel to be less than or equal
+    to the bin width (which is defined to be 1.0), we ensure that
+    each pixel contributes to at most two bins, which accelerates the
     accumulation of pixel values into bins (equivalently, makes the
     linear operator sparse).
 
@@ -96,15 +97,21 @@ class Parallel2dProjector:
 
         self.nx = np.array(im_shape)
         if dx is None:
-            dx = np.ones(2)
+            dx = np.full((2,), np.sqrt(2) / 2)
         if is_scalar_equiv(dx):
             dx = dx * np.ones(2)
         self.dx = dx
 
-        if np.sqrt(np.sum(dx**2)) > 2:
-            Warning(
-                "The pixel diagonal is longer than two detector bins."
-                "This will reduce projector accuracy."
+        # check projected pixel width assumption
+        Pdx = np.stack((dx[0] * jnp.cos(angles), dx[1] * jnp.sin(angles)))
+        Pdiag1 = np.abs(Pdx[0] + Pdx[1])
+        Pdiag2 = np.abs(Pdx[0] - Pdx[1])
+        max_width = np.max(np.maximum(Pdiag1, Pdiag2))
+
+        if max_width > 1:
+            warn(
+                f"A projected pixel has width {max_width} > 1.0, "
+                "which will reduce projector accuracy."
             )
 
         if x0 is None:
@@ -121,14 +128,13 @@ class Parallel2dProjector:
         self.y0 = y0
         self.dy = 1.0
 
-        if any(self.dx > self.dy):
-            raise ValueError(
-                f"This projector assumes dx <= dy, but dx was {self.dx} and dy was {self.dy}."
-            )
-
     def project(self, im):
         """Compute X-ray projection."""
         return _project(im, self.x0, self.dx, self.y0, self.ny, self.angles)
+
+    def back_project(self, y):
+        """Compute X-ray back projection"""
+        return _back_project(y, self.x0, self.dx, tuple(self.nx), self.y0, self.angles)
 
 
 @partial(jax.jit, static_argnames=["ny"])
@@ -147,7 +153,7 @@ def _project(im, x0, dx, y0, ny, angles):
     nx = im.shape
     inds, weights = _calc_weights(x0, dx, nx, angles, y0)
     # Handle out of bounds indices. In the .at call, inds >= y0 are
-    # ignored, while inds < 0 wrap around. So we set inds < 0 to y0.
+    # ignored, while inds < 0 wrap around. So we set inds < 0 to ny.
     inds = jnp.where(inds >= 0, inds, ny)
 
     y = (
@@ -159,6 +165,34 @@ def _project(im, x0, dx, y0, ny, angles):
     y = y.at[jnp.arange(len(angles)).reshape(-1, 1, 1), inds + 1].add(im * (1 - weights))
 
     return y
+
+
+@partial(jax.jit, static_argnames=["nx"])
+def _back_project(y, x0, dx, nx, y0, angles):
+    r"""
+    Args:
+        y: Input projection, (num_angles, N).
+        x0: (x, y) position of the corner of the pixel im[0,0].
+        dx: Pixel side length in x- and y-direction. Units are such
+            that the detector bins have length 1.0.
+        nx: Shape of back projection.
+        y0: Location of the edge of the first detector bin.
+        angles: (num_angles,) array of angles in radians. Pixels are
+            projected onto units vectors pointing in these directions.
+    """
+    ny = y.shape[1]
+    inds, weights = _calc_weights(x0, dx, nx, angles, y0)
+    # Handle out of bounds indices. In the .at call, inds >= y0 are
+    # ignored, while inds < 0 wrap around. So we set inds < 0 to ny.
+    inds = jnp.where(inds >= 0, inds, ny)
+
+    # the idea: [y[0, inds[0]], y[1, inds[1]], ...]
+    HTy = jnp.sum(y[jnp.arange(len(angles)).reshape(-1, 1, 1), inds] * weights, axis=0)
+    HTy = HTy + jnp.sum(
+        y[jnp.arange(len(angles)).reshape(-1, 1, 1), inds + 1] * (1 - weights), axis=0
+    )
+
+    return HTy
 
 
 @partial(jax.jit, static_argnames=["nx", "y0"])
