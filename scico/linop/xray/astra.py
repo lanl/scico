@@ -96,8 +96,12 @@ def convert_from_scico_geometry(
 
 def convert_to_scico_geometry(vol_geom, proj_geom):
     """
-    Convert ASTRA volume and projection geometry into a SCICO X-ray projection matrix, assuming
-    "parallel3d_vec" format.
+    Convert ASTRA volume and projection geometry into a SCICO X-ray
+    projection matrix, assuming "parallel3d_vec" format.
+
+    The approach is to find locate 3 points in the volume domain,
+    deduce the corresponding projection locations, and, then, solve a
+    linear system to determine the affine relationship between them.
 
     Args:
         vol_geom: ASTRA volume geometry object.
@@ -107,19 +111,117 @@ def convert_to_scico_geometry(vol_geom, proj_geom):
         (num_angles, 2, 4) array of homogeneous projection matrices.
 
     """
-    in_shape = (vol_geom["GridSliceCount"], vol_geom["GridRowCount"], vol_geom["GridColCount"])
-    det_shape = (proj_geom["DetectorRowCount"], proj_geom["DetectorColCount"])
-    vectors = proj_geom["Vectors"]
-    _, d, u, v = vectors[:, 0:3], vectors[:, 3:6], vectors[:, 6:9], vectors[:, 9:12]
-    matrices = -np.stack((v, u), axis=1)
-    center_diff = np.einsum("...mn,...n->...m", matrices, d)  # y_center - x_center
-    y_center = np.array(det_shape) / 2
-    Px_center_t = -(center_diff - y_center)
-    Px_center = np.einsum("...mn,n->...m", matrices, np.array(in_shape) / 2)
-    t = Px_center_t - Px_center
-    matrices = np.concatenate((matrices, t[..., np.newaxis]), axis=2)
+    x_volume = np.concatenate((np.zeros((1, 3)), np.eye(3)), axis=0)  # (4, 3)
+    x_dets = _project_coords(x_volume, vol_geom, proj_geom)  # (1, 4, 2)
 
-    return matrices
+    x_volume_aug = np.concatenate((x_volume, np.ones((4, 1))), axis=1)  # (4, 4)
+    matrices = []
+    for x_det in x_dets:
+        M = np.linalg.solve(x_volume_aug, x_det).T
+        np.testing.assert_allclose(M @ x_volume_aug[0], x_det[0])
+        matrices.append(M)
+
+    return np.stack(matrices)
+
+
+def _project_coords(x_volume, vol_geom, proj_geom) -> ArrayLike:
+    det_shape = (proj_geom["DetectorRowCount"], proj_geom["DetectorColCount"])
+    x_world = volume_coords_to_world_coords(x_volume, vol_geom=vol_geom)
+    x_dets = []
+    for vec in proj_geom["Vectors"]:
+        ray, d, u, v = vec[0:3], vec[3:6], vec[6:9], vec[9:12]
+        x_det = project_world_coordinates(x_world, ray, d, u, v, det_shape)
+        x_dets.append(x_det)
+
+    return np.stack(x_dets)
+
+
+def project_world_coordinates(x, ray, d, u, v, det_shape):
+    """
+    Project world coordinates along ray into the basis described by u
+    and v with center d.
+
+    Args:
+        x: (..., 3) vector(s) of world coordinates.
+        ray: (3,) ray direction
+        d: (3,) center of the detector
+        u: (3,) vector from detector pixel (0,0) to (0,1), columns, x
+        v: (3,) vector from detector pixel (0,0) to (1,0), rows, y
+
+    Returns:
+        (..., 2) vector(s) in the detector coordinates
+
+    """
+    Phi = np.stack((ray, u, v), axis=1)
+    alpha = np.linalg.pinv(Phi) @ x[..., :, np.newaxis]  # (3,3) times <stack of> (3,1)
+    alpha = alpha[..., 0]  # squash to (..., 3)
+    offset_from_center = alpha - d
+    projected_offset = offset_from_center[..., 1:]  # throw away ray coordinate
+    det_center_idx = (
+        np.array(det_shape)[::-1] / 2 - 0.5
+    )  # center of length-2 is index 0.5, length-3 -> index 1
+    ind_xy = projected_offset + det_center_idx
+    ind_ij = ind_xy[..., ::-1]
+    return ind_ij
+
+
+def volume_coords_to_world_coords(idx, vol_geom):
+    """
+    Convert a volume coordinate into a world coordinate using ASTRA
+    conventions.
+
+    Args:
+        idx: (..., 2) or (..., 3) vector(s) of index coordinates.
+        vol_geom: ASTRA volume geometry object.
+
+    Returns:
+        (..., 2) or (..., 3) vector(s) of world coordinates.
+
+    """
+    if "GridSliceCount" not in vol_geom:
+        return _volume_index_to_astra_world_2d(idx, vol_geom)
+
+    return _volume_index_to_astra_world_3d(idx, vol_geom)
+
+
+def _volume_index_to_astra_world_2d(idx, vol_geom):
+    coord = idx[..., [2, 1]]  # x:col, y:row,
+    nx = np.array(  # (x, y) order
+        (
+            vol_geom["GridColCount"],
+            vol_geom["GridRowCount"],
+        )
+    )
+    opt = vol_geom["option"]
+    dx = np.array(
+        (
+            (opt["WindowMaxX"] - opt["WindowMinX"]) / nx[0],
+            (opt["WindowMaxY"] - opt["WindowMinY"]) / nx[1],
+        )
+    )
+    center_coord = nx / 2 - 0.5  # center of length-2 is index 0.5, center of length-3 is index 1
+    return (coord - center_coord) * dx
+
+
+def _volume_index_to_astra_world_3d(idx, vol_geom):
+    coord = idx[..., [2, 1, 0]]  # x:col, y:row, z:slice
+    nx = np.array(  # (x, y, z) order
+        (
+            vol_geom["GridColCount"],
+            vol_geom["GridRowCount"],
+            vol_geom["GridSliceCount"],
+        )
+    )
+    opt = vol_geom["option"]
+    dx = np.array(
+        (
+            (opt["WindowMaxX"] - opt["WindowMinX"]) / nx[0],
+            (opt["WindowMaxY"] - opt["WindowMinY"]) / nx[1],
+            (opt["WindowMaxZ"] - opt["WindowMinZ"]) / nx[2],
+        )
+    )
+    center_coord = nx / 2 - 0.5  # center of length-2 is index 0.5, center of length-3 is index 1
+    return (coord - center_coord) * dx
 
 
 class XRayTransform2D(LinearOperator):

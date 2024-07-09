@@ -302,7 +302,8 @@ class Parallel3dProjector:
             det_shape: Shape of detector.
         """
 
-        x = jnp.mgrid[: im.shape[0], : im.shape[1], : im.shape[2]]  # (3, ...)
+        # pixel (0, 0, 0) has its center at (0.5, 0.5, 0.5)
+        x = jnp.mgrid[: im.shape[0], : im.shape[1], : im.shape[2]] + 0.5  # (3, ...)
         x = x.at[0].add(slice_offset)
 
         Px = jnp.stack(
