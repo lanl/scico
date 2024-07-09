@@ -39,7 +39,6 @@ Computed Tomography
    examples/ct_astra_unet_train_foam2
    examples/ct_projector_comparison
    examples/ct_multi_cs_tv_admm
-   examples/ct_multi_tv_admm
 
 Deconvolution
 ^^^^^^^^^^^^^
@@ -137,6 +136,7 @@ Total Variation
    examples/ct_astra_3d_tv_admm
    examples/ct_astra_3d_tv_padmm
    examples/ct_astra_weighted_tv_admm
+   examples/ct_multi_cs_tv_admm
    examples/ct_svmbir_tv_multi
    examples/deconv_circ_tv_admm
    examples/deconv_tv_admm
@@ -208,6 +208,7 @@ ADMM
    examples/ct_tv_admm
    examples/ct_astra_3d_tv_admm
    examples/ct_astra_weighted_tv_admm
+   examples/ct_multi_cs_tv_admm
    examples/ct_svmbir_tv_multi
    examples/ct_svmbir_ppp_bm3d_admm_cg
    examples/ct_svmbir_ppp_bm3d_admm_prox
