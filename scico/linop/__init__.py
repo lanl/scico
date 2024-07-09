@@ -17,7 +17,7 @@ from ._diff import FiniteDifference, SingleAxisFiniteDifference
 from ._func import Crop, Pad, Reshape, Slice, Sum, Transpose, linop_from_function
 from ._linop import ComposedLinearOperator, LinearOperator
 from ._matrix import MatrixOperator
-from ._stack import DiagonalStack, VerticalStack, linop_over_axes
+from ._stack import DiagonalReplicated, DiagonalStack, VerticalStack, linop_over_axes
 from ._util import jacobian, operator_norm, power_iteration, valid_adjoint
 from .xray import Parallel2dProjector, XRayTransform
 
@@ -29,6 +29,7 @@ __all__ = [
     "FiniteDifference",
     "SingleAxisFiniteDifference",
     "Identity",
+    "DiagonalReplicated",
     "VerticalStack",
     "DiagonalStack",
     "MatrixOperator",
