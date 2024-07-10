@@ -14,7 +14,7 @@ Version 0.0.6   (unreleased)
 • Rename ``scico.flax.save_weights`` and ``scico.flax.load_weights`` to
   ``scico.flax.save_variables`` and ``scico.flax.load_variables``
   respectively.
-• Support ``jaxlib`` and ``jax`` versions 0.4.3 to 0.4.28.
+• Support ``jaxlib`` and ``jax`` versions 0.4.3 to 0.4.30.
 • Support ``flax`` versions between 0.8.0 and 0.8.3 (inclusive).
 
 
