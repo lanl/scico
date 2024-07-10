@@ -153,14 +153,14 @@ def project_world_coordinates(x, ray, d, u, v, det_shape):
 
     """
     Phi = np.stack((ray, u, v), axis=1)
+    x = x - d  # express with respect to detector center
     alpha = np.linalg.pinv(Phi) @ x[..., :, np.newaxis]  # (3,3) times <stack of> (3,1)
-    alpha = alpha[..., 0]  # squash to (..., 3)
-    offset_from_center = alpha - d
-    projected_offset = offset_from_center[..., 1:]  # throw away ray coordinate
+    alpha = alpha[..., 0]  # squash from (..., 3, 1) to (..., 3)
+    Palpha = alpha[..., 1:]  # throw away ray coordinate
     det_center_idx = (
         np.array(det_shape)[::-1] / 2 - 0.5
     )  # center of length-2 is index 0.5, length-3 -> index 1
-    ind_xy = projected_offset + det_center_idx
+    ind_xy = Palpha + det_center_idx
     ind_ij = ind_xy[..., ::-1]
     return ind_ij
 
