@@ -151,8 +151,10 @@ def test_blur_data_generation():
     blur_kernel = np.ones((n, n)) / (n * n)
 
     def random_img_gen(seed, size, ndata):
-        np.random.seed(seed)
-        return np.random.randn(ndata, size, size, 1)
+        key = jax.random.PRNGKey(seed)
+        key, subkey = jax.random.split(key)
+        shape = (ndata, size, size, 1)
+        return jax.random.normal(subkey, shape)
 
     img, blurn = generate_blur_data(nimg, N, blur_kernel, noise_sigma=0.01, imgfunc=random_img_gen)
     assert img.shape == (nimg, N, N, 1)
