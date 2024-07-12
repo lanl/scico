@@ -227,6 +227,18 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
     Perform tomographic projection (also called X-ray projection) of a
     volume at specified angles, using the
     `ASTRA toolbox <https://github.com/astra-toolbox/astra-toolbox>`_.
+    The `3D geometries <https://astra-toolbox.com/docs/geom3d.html>`__
+    "parallel3d" and "parallel3d_vec" are supported by this interface.
+
+    The reconstruction volume is fixed with respect to the coordinate
+    system, with the volume centred at the origin, and the unit length
+    (in arbitrary units) of the sides of the voxels define the scale
+    for all other dimensions in the source-volume-detector configuration.
+    Geometry axes x, y, and z correspond to volume array axes 0, 1, and 2
+    respectively
+
+    In the "parallel3d" case, the source and detector rotate clockwise
+    about the z axis in the x-y plane.
     """
 
     def __init__(
