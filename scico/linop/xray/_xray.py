@@ -97,9 +97,9 @@ class Parallel2dProjector:
 
         self.nx = np.array(im_shape)
         if dx is None:
-            dx = np.full((2,), np.sqrt(2) / 2)
+            dx = np.full(2, np.sqrt(2) / 2)
         if is_scalar_equiv(dx):
-            dx = dx * np.ones(2)
+            dx = np.full(2, dx)
         self.dx = dx
 
         # check projected pixel width assumption
@@ -134,7 +134,7 @@ class Parallel2dProjector:
 
     def back_project(self, y):
         """Compute X-ray back projection"""
-        return _back_project(y, self.x0, self.dx, tuple(self.nx), self.y0, self.angles)
+        return _back_project(y, self.x0, self.dx, self.nx, self.y0, self.angles)
 
 
 @partial(jax.jit, static_argnames=["ny"])
@@ -195,7 +195,7 @@ def _back_project(y, x0, dx, nx, y0, angles):
     return HTy
 
 
-@partial(jax.jit, static_argnames=["nx", "y0"])
+@partial(jax.jit, static_argnames=["nx"])
 @partial(jax.vmap, in_axes=(None, None, None, 0, None))
 def _calc_weights(x0, dx, nx, angle, y0):
     """
