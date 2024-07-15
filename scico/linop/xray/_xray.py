@@ -265,6 +265,9 @@ class Parallel3dProjector:
         """Compute X-ray projection."""
         return Parallel3dProjector._project(im, self.matrices, self.det_shape)
 
+    def back_project(self, proj):
+        """Compute X-ray back projection"""
+
     @staticmethod
     def _project(im: ArrayLike, matrices: ArrayLike, det_shape: Shape) -> ArrayLike:
         r"""
@@ -302,8 +305,19 @@ class Parallel3dProjector:
             det_shape: Shape of detector.
         """
 
+        ul_ind, ul_weight, ur_weight, ll_weight, lr_weight = _calc_weights(
+            im.shape, matrix, proj.shape, slice_offset
+        )
+        proj = proj.at[ul_ind[0], ul_ind[1]].add(ul_weight * im, mode="drop")
+        proj = proj.at[ul_ind[0] + 1, ul_ind[1]].add(ur_weight * im, mode="drop")
+        proj = proj.at[ul_ind[0], ul_ind[1] + 1].add(ll_weight * im, mode="drop")
+        proj = proj.at[ul_ind[0] + 1, ul_ind[1] + 1].add(lr_weight * im, mode="drop")
+        return proj
+
+    @staticmethod
+    def _calc_weights(input_shape, matrix, output_shape, slice_offset: int = 0):
         # pixel (0, 0, 0) has its center at (0.5, 0.5, 0.5)
-        x = jnp.mgrid[: im.shape[0], : im.shape[1], : im.shape[2]] + 0.5  # (3, ...)
+        x = jnp.mgrid[: input_shape[0], : input_shape[1], : input_shape[2]] + 0.5  # (3, ...)
         x = x.at[0].add(slice_offset)
 
         Px = jnp.stack(
@@ -318,19 +332,14 @@ class Parallel3dProjector:
         left_edge = Px - w / 2
         to_next = jnp.minimum(jnp.ceil(left_edge) - left_edge, w)
         ul_ind = jnp.floor(left_edge).astype("int32")
-        det_shape = proj.shape
-        ul_ind = jnp.where(ul_ind < 0, max(det_shape), ul_ind)  # otherwise negative values wrap
+        ul_ind = jnp.where(ul_ind < 0, max(output_shape), ul_ind)  # otherwise negative values wrap
 
         ul_weight = to_next[0] * to_next[1] * (1 / w**2)
         ur_weight = (w - to_next[0]) * to_next[1] * (1 / w**2)
         ll_weight = to_next[0] * (w - to_next[1]) * (1 / w**2)
         lr_weight = (w - to_next[0]) * (w - to_next[1]) * (1 / w**2)
 
-        proj = proj.at[ul_ind[0], ul_ind[1]].add(ul_weight * im, mode="drop")
-        proj = proj.at[ul_ind[0] + 1, ul_ind[1]].add(ur_weight * im, mode="drop")
-        proj = proj.at[ul_ind[0], ul_ind[1] + 1].add(ll_weight * im, mode="drop")
-        proj = proj.at[ul_ind[0] + 1, ul_ind[1] + 1].add(lr_weight * im, mode="drop")
-        return proj
+        return ul_ind, ul_weight, ur_weight, ll_weight, lr_weight
 
     @staticmethod
     def matrices_from_euler_angles(
