@@ -230,8 +230,8 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
     The `3D geometries <https://astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
     "parallel3d" and "parallel3d_vec" are supported by this interface.
 
-    The reconstruction volume is fixed with respect to the coordinate
-    system, with the volume centred at the origin, as illustrated below:
+    The volume is fixed with respect to the coordinate system, centered
+    at the origin, as illustrated below:
 
     .. plot:: pyfigures/xray_3d_vol.py
        :align: center
@@ -241,7 +241,9 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
     The voxels sides have unit length (in arbitrary units), which defines
     the scale for all other dimensions in the source-volume-detector
     configuration. Geometry axes `x`, `y`, and `z` correspond to volume
-    array axes 0, 1, and 2 respectively.
+    array axes 0, 1, and 2 respectively. The projected array axes 0, 1,
+    and 2 correspond respectively to detector rows, views, and detector
+    columns.
 
     In the "parallel3d" case, the source and detector rotate clockwise
     about the `z` axis in the `x`-`y` plane, as illustrated below:
@@ -250,12 +252,21 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
        :align: center
        :include-source: False
        :show-source-link: False
-       :caption: The red arrows indicate the direction of the beam towards
+       :caption: Red arrows indicate the direction of the beam towards
           the detector (orange) and the arrows parallel to the detector
           indicate the direction of increasing pixel indices.
 
+    In this case the `z` axis is in the same direction as the
+    vertical/row axis of the detector and its projection corresponds to
+    a vertical line in the center of the horizontal/column detector axis.
+    Note that the view images must be displayed with the origin at the
+    bottom left (i.e. vertically inverted from the top left origin image
+    indexing convention) in order for the projections to correspond to
+    the positive up/negative down orientation of the `z` axis in the
+    figures here.
+
     In the "parallel3d_vec" case, each view is determined by the following
-    vectors
+    vectors:
 
     .. list-table:: View definition vectors
        :widths: 10 90
@@ -265,18 +276,30 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
        * - :math:`\mb{d}`
          - Center of the detector
        * - :math:`\mb{u}`
-         - Vector from detector pixel (0,0) to (0,1)
+         - Vector from detector pixel (0,0) to (0,1) (direction of
+           increasing detector column index)
        * - :math:`\mb{v}`
-         - Vector from detector pixel (0,0) to (1,0)
+         - Vector from detector pixel (0,0) to (1,0) (direction of
+           increasing detector row index)
 
     .. plot:: pyfigures/xray_3d_vec.py
        :align: center
        :include-source: False
        :show-source-link: False
 
-    which are concatenated into a single row vector
+    Vector :math:`\mb{r}` is not illustrated to avoid cluttering the
+    figure, but will typically be directed toward the center of the
+    detector. In practice, since the volume-detector distance does not
+    have a geometric effect for a parallel-beam configuration,
+    :math:`\mb{d}` may be set to the zero vector. Note that the view
+    images must be displayed with the origin at the bottom left (i.e.
+    vertically inverted from the top left origin image indexing
+    convention) in order for the row indexing of the projections to
+    correspond to the direction of :math:`\mb{v}` in the figure.
+
+    These vectors are concatenated into a single row vector
     :math:`(\mb{r}, \mb{d}, \mb{u}, \mb{v})` to form the full
-    geometry specification for a single view. Multiple such
+    geometry specification for a single view, and multiple such
     row vectors are stacked to specify the geometry for a set
     of views.
     """
