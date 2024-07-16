@@ -289,13 +289,14 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
 
     Vector :math:`\mb{r}` is not illustrated to avoid cluttering the
     figure, but will typically be directed toward the center of the
-    detector. In practice, since the volume-detector distance does not
-    have a geometric effect for a parallel-beam configuration,
-    :math:`\mb{d}` may be set to the zero vector. Note that the view
-    images must be displayed with the origin at the bottom left (i.e.
-    vertically inverted from the top left origin image indexing
-    convention) in order for the row indexing of the projections to
-    correspond to the direction of :math:`\mb{v}` in the figure.
+    detector (i.e. in the direction of :math:`\mb{d}` in the figure.) In
+    practice, since the volume-detector distance does not have a
+    geometric effect for a parallel-beam configuration, :math:`\mb{d}`
+    may be set to the zero vector. Note that the view images must be
+    displayed with the origin at the bottom left (i.e. vertically
+    inverted from the top left origin image indexing convention) in order
+    for the row indexing of the projections to correspond to the
+    direction of :math:`\mb{v}` in the figure.
 
     These vectors are concatenated into a single row vector
     :math:`(\mb{r}, \mb{d}, \mb{u}, \mb{v})` to form the full
