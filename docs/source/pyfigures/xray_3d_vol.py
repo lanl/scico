@@ -90,4 +90,5 @@ bz = np.array([-wz, wz])
 ax.plot(bx, by, bz, lw=2, ls="--", color="blue")
 
 fig.tight_layout()
+fig.subplots_adjust(-0.1, -0.1, 1, 1.07)
 fig.show()

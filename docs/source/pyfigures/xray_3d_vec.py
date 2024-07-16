@@ -77,4 +77,5 @@ ax.text(*u_txtpos, r"$\mathbf{u}$", fontsize=12)
 ax.text(*v_txtpos, r"$\mathbf{v}$", fontsize=12)
 
 fig.tight_layout()
+fig.subplots_adjust(-0.1, -0.06, 1, 1)
 fig.show()
