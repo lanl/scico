@@ -103,3 +103,15 @@ div.doctest.highlight-default {
 [data-theme=light] dl.py.property > dt {
   border-radius: 4px;
 }
+
+
+/* Style for figure captions */
+
+div.figure p.caption span.caption-text,
+figcaption span.caption-text {
+  font-size: var(--font-size--small);
+  margin-left: 5%;
+  margin-right: 5%;
+  display: inline-block;
+  text-align: justify;
+}
