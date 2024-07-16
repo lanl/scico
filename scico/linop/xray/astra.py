@@ -282,6 +282,9 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
          - Vector from detector pixel (0,0) to (1,0) (direction of
            increasing detector row index)
 
+    Note that the components of these vectors are in `x`, `y`, `z` order,
+    not the `z`, `y`, `x` order of the volume axes.
+
     .. plot:: pyfigures/xray_3d_vec.py
        :align: center
        :include-source: False
