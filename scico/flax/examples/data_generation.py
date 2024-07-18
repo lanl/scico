@@ -217,7 +217,7 @@ def generate_ct_data(
     start_time = time()
     img = distributed_data_generation(imgfunc, size, nimg, seed)
     time_dtgen = time() - start_time
-    # Clip to [0,1] range.
+    # clip to [0,1] range
     img = jnp.clip(img, 0, 1)
 
     nproc = jax.device_count()
@@ -231,7 +231,7 @@ def generate_ct_data(
     # Compute sinograms in parallel.
     start_time = time()
     if nproc > 1:
-        # Shard array
+        # shard array
         imgshd = img.reshape((nproc, -1, size, size, 1))
         sinoshd = batched_f(A, imgshd)
         sino = sinoshd.reshape((-1, nproj, size, 1))
