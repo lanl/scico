@@ -13,6 +13,7 @@ processing time.
 
 import os
 import warnings
+from functools import partial
 from time import time
 from typing import Callable, List, Tuple, Union
 
