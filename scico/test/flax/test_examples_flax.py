@@ -3,8 +3,6 @@ import tempfile
 
 import numpy as np
 
-import jax
-
 import pytest
 
 from scico import random
@@ -15,7 +13,6 @@ from scico.flax.examples.data_generation import (
     have_astra,
     have_ray,
     have_xdesign,
-    ray_distributed_data_generation,
 )
 from scico.flax.examples.data_preprocessing import (
     CenterCrop,
@@ -67,43 +64,17 @@ def fake_data_gen(seed, N, ndata):
     return dt
 
 
-def test_distdatagen():
-    N = 16
-    nimg = 8
-    dt = distributed_data_generation(fake_data_gen, N, nimg)
-    assert dt.ndim == 5
-    assert dt.shape[0] * dt.shape[1] == nimg
-    assert dt.shape[2:] == (N, N, 1)
-
-
-def test_distdatagen_flag():
-    N = 16
-    nimg = 8
-    dt = distributed_data_generation(fake_data_gen, N, nimg, False)
-    assert dt.ndim == 4
-    assert dt.shape == (nimg, N, N, 1)
-
-
-@pytest.mark.skipif(
-    jax.device_count() == 1, reason="no processes for checking failure of distributed computing"
-)
-def test_distdatagen_exception():
-    N = 16
-    nimg = 15
-    with pytest.raises(ValueError):
-        distributed_data_generation(fake_data_gen, N, nimg)
-
-
 @pytest.mark.skipif(not have_ray, reason="ray package not installed")
-def test_ray_distdatagen():
+def test_distdatagen():
     N = 16
     nimg = 8
 
     def random_data_gen(seed, N, ndata):
-        dt, key = random.randn((ndata, N, N, 1), seed=seed)
+        np.random.seed(seed)
+        dt = np.random.randn(ndata, N, N, 1)
         return dt
 
-    dt = ray_distributed_data_generation(random_data_gen, N, nimg)
+    dt = distributed_data_generation(random_data_gen, N, nimg)
     assert dt.ndim == 4
     assert dt.shape == (nimg, N, N, 1)
 
@@ -115,30 +86,11 @@ def test_ct_data_generation():
     nproj = 45
 
     def random_img_gen(seed, size, ndata):
-        key = jax.random.PRNGKey(seed)
-        key, subkey = jax.random.split(key)
+        np.random.seed(seed)
         shape = (ndata, size, size, 1)
-        return jax.random.normal(subkey, shape)
+        return np.random.randn(*shape)
 
     img, sino, fbp = generate_ct_data(nimg, N, nproj, imgfunc=random_img_gen)
-    assert img.shape == (nimg, N, N, 1)
-    assert sino.shape == (nimg, nproj, N, 1)
-    assert fbp.shape == (nimg, N, N, 1)
-
-
-@pytest.mark.skipif(not have_astra, reason="astra package not installed")
-def test_ct_data_generation_jax():
-    N = 32
-    nimg = 8
-    nproj = 45
-
-    def random_img_gen(seed, size, ndata):
-        key = jax.random.PRNGKey(seed)
-        key, subkey = jax.random.split(key)
-        shape = (ndata, size, size, 1)
-        return jax.random.normal(subkey, shape)
-
-    img, sino, fbp = generate_ct_data(nimg, N, nproj, imgfunc=random_img_gen, prefer_ray=False)
     assert img.shape == (nimg, N, N, 1)
     assert sino.shape == (nimg, nproj, N, 1)
     assert fbp.shape == (nimg, N, N, 1)
@@ -151,31 +103,11 @@ def test_blur_data_generation():
     blur_kernel = np.ones((n, n)) / (n * n)
 
     def random_img_gen(seed, size, ndata):
-        key = jax.random.PRNGKey(seed)
-        key, subkey = jax.random.split(key)
+        np.random.seed(seed)
         shape = (ndata, size, size, 1)
-        return jax.random.normal(subkey, shape)
+        return np.random.randn(*shape)
 
     img, blurn = generate_blur_data(nimg, N, blur_kernel, noise_sigma=0.01, imgfunc=random_img_gen)
-    assert img.shape == (nimg, N, N, 1)
-    assert blurn.shape == (nimg, N, N, 1)
-
-
-def test_blur_data_generation_jax():
-    N = 32
-    nimg = 8
-    n = 3  # convolution kernel size
-    blur_kernel = np.ones((n, n)) / (n * n)
-
-    def random_img_gen(seed, size, ndata):
-        key = jax.random.PRNGKey(seed)
-        key, subkey = jax.random.split(key)
-        shape = (ndata, size, size, 1)
-        return jax.random.normal(subkey, shape)
-
-    img, blurn = generate_blur_data(
-        nimg, N, blur_kernel, noise_sigma=0.01, imgfunc=random_img_gen, prefer_ray=False
-    )
     assert img.shape == (nimg, N, N, 1)
     assert blurn.shape == (nimg, N, N, 1)
 
