@@ -357,9 +357,12 @@ def distributed_data_generation(
     """
     if not have_ray:
         raise RuntimeError("Package ray is required for use of this function.")
+    if not ray.is_initialized():
+        raise RuntimeError("Ray must be initialized via ray.init() before using this function.")
 
     # Use half of available CPU resources
     ar = ray.available_resources()
+    print(ar)
     if "CPU" not in ar:
         warnings.warn("No CPU key in ray.available_resources() output.")
     nproc = max(int(ar.get("CPU", 1)) // 2, 1)
