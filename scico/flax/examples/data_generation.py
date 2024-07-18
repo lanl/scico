@@ -367,7 +367,6 @@ def distributed_data_generation(
 
     # Use half of available CPU resources
     ar = ray.available_resources()
-    print(ar)
     if "CPU" not in ar:
         warnings.warn("No CPU key in ray.available_resources() output.")
     nproc = max(int(ar.get("CPU", 1)) // 2, 1)
