@@ -49,7 +49,6 @@ def load_ct_data(
     nproj: int,
     cache_path: Optional[str] = None,
     verbose: bool = False,
-    prefer_ray: bool = True,
 ) -> Tuple[CTDataSetDict, ...]:  # pragma: no cover
     """
     Load or generate CT data.
@@ -77,8 +76,6 @@ def load_ct_data(
             Default: ``None``.
         verbose: Flag indicating whether to print status messages.
             Default: ``False``.
-        prefer_ray: Use ray for distributed processing if available.
-            Default: ``True``.
 
     Returns:
        tuple: A tuple (trdt, ttdt) containing:
@@ -146,7 +143,6 @@ def load_ct_data(
         size,
         nproj,
         verbose=verbose,
-        prefer_ray=prefer_ray,
     )
     # Separate training and testing partitions.
     trdt = {"img": img[:train_nimg], "sino": sino[:train_nimg], "fbp": fbp[:train_nimg]}
@@ -186,7 +182,6 @@ def load_foam1_blur_data(
     noise_sigma: float,
     cache_path: Optional[str] = None,
     verbose: bool = False,
-    prefer_ray: bool = True,
 ) -> Tuple[DataSetDict, ...]:  # pragma: no cover
     """Load or generate blurred data based on xdesign foam structures.
 
@@ -214,8 +209,6 @@ def load_foam1_blur_data(
             Default: ``None``.
         verbose: Flag indicating whether to print status messages.
             Default: ``False``.
-        prefer_ray: Use ray for distributed processing if available.
-            Default: ``True``.
 
     Returns:
        tuple: A tuple (train_ds, test_ds) containing:
@@ -297,7 +290,6 @@ def load_foam1_blur_data(
         noise_sigma,
         imgfunc=generate_foam1_images,
         verbose=verbose,
-        prefer_ray=prefer_ray,
     )
     # Separate training and testing partitions.
     train_ds = {"image": blrn[:train_nimg], "label": img[:train_nimg]}

@@ -47,8 +47,6 @@ except ImportError:
     have_astra = False
 else:
     have_astra = True
-
-if have_astra:
     from scico.linop.xray.astra import XRayTransform2D
 
 
@@ -98,35 +96,7 @@ if have_xdesign:
             )
 
 
-def generate_foam2_images(seed: float, size: int, ndata: int) -> Array:
-    """Generate batch of foam2 structures.
-
-    Generate batch of images with :class:`Foam2` structure
-    (foam-like material with two different attenuations).
-
-    Args:
-        seed: Seed for data generation.
-        size: Size of image to generate.
-        ndata: Number of images to generate.
-
-    Returns:
-        Array of generated data.
-    """
-    if not have_xdesign:
-        raise RuntimeError("Package xdesign is required for use of this function.")
-
-    # np.random.seed(seed)
-    saux = jnp.zeros((ndata, size, size, 1))
-    for i in range(ndata):
-        foam = Foam2(size_range=[0.075, 0.0025], gap=1e-3, porosity=1)
-        saux = saux.at[i, ..., 0].set(discrete_phantom(foam, size=size))
-    # normalize
-    saux = saux / jnp.max(saux, axis=(1, 2), keepdims=True)
-
-    return saux
-
-
-def generate_foam1_images(seed: float, size: int, ndata: int) -> Array:
+def generate_foam1_images(seed: float, size: int, ndata: int) -> np.ndarray:
     """Generate batch of xdesign foam-like structures.
 
     Generate batch of images with `xdesign` foam-like structure, which
@@ -143,11 +113,39 @@ def generate_foam1_images(seed: float, size: int, ndata: int) -> Array:
     if not have_xdesign:
         raise RuntimeError("Package xdesign is required for use of this function.")
 
-    # np.random.seed(seed)
-    saux = jnp.zeros((ndata, size, size, 1))
+    np.random.seed(seed)
+    saux = np.zeros((ndata, size, size, 1))
     for i in range(ndata):
         foam = Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1)
-        saux = saux.at[i, ..., 0].set(discrete_phantom(foam, size=size))
+        saux[i, ..., 0] = discrete_phantom(foam, size=size)
+
+    return saux
+
+
+def generate_foam2_images(seed: float, size: int, ndata: int) -> np.ndarray:
+    """Generate batch of foam2 structures.
+
+    Generate batch of images with :class:`Foam2` structure
+    (foam-like material with two different attenuations).
+
+    Args:
+        seed: Seed for data generation.
+        size: Size of image to generate.
+        ndata: Number of images to generate.
+
+    Returns:
+        Array of generated data.
+    """
+    if not have_xdesign:
+        raise RuntimeError("Package xdesign is required for use of this function.")
+
+    np.random.seed(seed)
+    saux = np.zeros((ndata, size, size, 1))
+    for i in range(ndata):
+        foam = Foam2(size_range=[0.075, 0.0025], gap=1e-3, porosity=1)
+        saux[i, ..., 0] = discrete_phantom(foam, size=size)
+    # normalize
+    saux /= np.max(saux, axis=(1, 2), keepdims=True)
 
     return saux
 
@@ -191,8 +189,7 @@ def generate_ct_data(
     imgfunc: Callable = generate_foam2_images,
     seed: int = 1234,
     verbose: bool = False,
-    prefer_ray: bool = True,
-) -> Tuple[Array, ...]:
+) -> Tuple[Array, Array, Array]:
     """Generate batch of computed tomography (CT) data.
 
     Generate batch of CT data for training of machine learning network
@@ -205,9 +202,6 @@ def generate_ct_data(
         imgfunc: Function for generating input images (e.g. foams).
         seed: Seed for data generation.
         verbose: Flag indicating whether to print status messages.
-            Default: ``False``.
-        prefer_ray: Use ray for distributed processing if available.
-            Default: ``True``.
 
     Returns:
        tuple: A tuple (img, sino, fbp) containing:
@@ -220,14 +214,9 @@ def generate_ct_data(
         raise RuntimeError("Package astra is required for use of this function.")
 
     # Generate input data.
-    if have_ray and prefer_ray:
-        start_time = time()
-        img = ray_distributed_data_generation(imgfunc, size, nimg, seed)
-        time_dtgen = time() - start_time
-    else:
-        start_time = time()
-        img = distributed_data_generation(imgfunc, size, nimg, False)
-        time_dtgen = time() - start_time
+    start_time = time()
+    img = distributed_data_generation(imgfunc, size, nimg, seed)
+    time_dtgen = time() - start_time
     # Clip to [0,1] range.
     img = jnp.clip(img, 0, 1)
 
@@ -236,7 +225,7 @@ def generate_ct_data(
     # Configure a CT projection operator to generate synthetic measurements.
     angles = np.linspace(0, jnp.pi, nproj)  # evenly spaced projection angles
     gt_sh = (size, size)
-    detector_spacing = 1
+    detector_spacing = 1.0
     A = XRayTransform2D(gt_sh, size, detector_spacing, angles)  # X-ray transform operator
 
     # Compute sinograms in parallel.
@@ -284,8 +273,7 @@ def generate_blur_data(
     imgfunc: Callable,
     seed: int = 4321,
     verbose: bool = False,
-    prefer_ray: bool = True,
-) -> Tuple[Array, ...]:
+) -> Tuple[Array, Array]:
     """Generate batch of blurred data.
 
     Generate batch of blurred data for training of machine learning
@@ -299,9 +287,6 @@ def generate_blur_data(
         imgfunc: Function to generate foams.
         seed: Seed for data generation.
         verbose: Flag indicating whether to print status messages.
-            Default: ``False``.
-        prefer_ray: Use ray for distributed processing if available.
-            Default: ``True``.
 
     Returns:
        tuple: A tuple (img, blurn) containing:
@@ -309,14 +294,9 @@ def generate_blur_data(
            - **img** : Generated foam images.
            - **blurn** : Corresponding blurred and noisy images.
     """
-    if have_ray and prefer_ray:
-        start_time = time()
-        img = ray_distributed_data_generation(imgfunc, size, nimg, seed)
-        time_dtgen = time() - start_time
-    else:
-        start_time = time()
-        img = distributed_data_generation(imgfunc, size, nimg, False)
-        time_dtgen = time() - start_time
+    start_time = time()
+    img = distributed_data_generation(imgfunc, size, nimg, seed)
+    time_dtgen = time() - start_time
 
     # Clip to [0,1] range.
     img = jnp.clip(img, 0, 1)
@@ -356,43 +336,11 @@ def generate_blur_data(
 
 
 def distributed_data_generation(
-    imgenf: Callable, size: int, nimg: int, sharded: bool = True
-) -> Array:
-    """Data generation distributed among processes using jax.
-
-    Args:
-        imagenf: Function for batch-data generation.
-        size: Size of image to generate.
-        ndata: Number of images to generate.
-        sharded: Flag to indicate if data is to be returned as the
-            chunks generated by each process or consolidated.
-            Default: ``True``.
-
-    Returns:
-        Array of generated data.
-    """
-    nproc = jax.device_count()
-    seeds = jnp.arange(nproc)
-    if nproc > 1 and nimg % nproc > 0:
-        raise ValueError("Number of images to generate must be divisible by the number of devices")
-
-    ndata_per_proc = int(nimg // nproc)
-
-    idx = np.arange(nproc)
-    imgs = jax.vmap(imgenf, (0, None, None))(idx, size, ndata_per_proc)
-
-    # imgs = jax.pmap(imgenf, static_broadcasted_argnums=(1, 2))(seeds, size, ndata_per_proc)
-
-    if not sharded:
-        imgs = imgs.reshape((-1, size, size, 1))
-
-    return imgs
-
-
-def ray_distributed_data_generation(
     imgenf: Callable, size: int, nimg: int, seedg: float = 123
-) -> Array:
+) -> np.ndarray:
     """Data generation distributed among processes using ray.
+
+    *Warning:*
 
     Args:
         imagenf: Function for batch-data generation.
@@ -406,25 +354,24 @@ def ray_distributed_data_generation(
     if not have_ray:
         raise RuntimeError("Package ray is required for use of this function.")
 
-    @ray.remote
-    def data_gen(seed, size, ndata, imgf):
-        return imgf(seed, size, ndata)
-
-    # Use half of available CPU resources.
+    # Use half of available CPU resources
     ar = ray.available_resources()
     if "CPU" not in ar:
-        warnings.warn("No CPU key in ray.available_resources() output")
-    nproc = max(int(ar.get("CPU", "1")) // 2, 1)
-    # nproc = max(int(ar["CPU"]) // 2, 1)
+        warnings.warn("No CPU key in ray.available_resources() output.")
+    nproc = max(int(ar.get("CPU", 1)) // 2, 1)
     if nproc > nimg:
         nproc = nimg
     if nproc > 1 and nimg % nproc > 0:
         raise ValueError(
-            f"Number of images to generate ({nimg}) "
-            f"must be divisible by the number of available devices ({nproc})"
+            f"Number of images to generate ({nimg}) must be divisible by "
+            f"the number of available devices ({nproc})."
         )
 
     ndata_per_proc = int(nimg // nproc)
+
+    @ray.remote
+    def data_gen(seed, size, ndata, imgf):
+        return imgf(seed, size, ndata)
 
     ray_return = ray.get(
         [data_gen.remote(seed + seedg, size, ndata_per_proc, imgenf) for seed in range(nproc)]
