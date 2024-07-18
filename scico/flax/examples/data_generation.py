@@ -340,7 +340,11 @@ def distributed_data_generation(
 ) -> np.ndarray:
     """Data generation distributed among processes using ray.
 
-    *Warning:*
+    *Warning:* callable `imgenf` should not make use of any jax functions
+    to avoid the risk of errors when running with GPU devices, in which
+    case jax is initialized to expect the availability of GPUs, which are
+    then not available within the `ray.remote` function due to the absence
+    of any declared GPUs as a `num_gpus` parameter of `@ray.remote`.
 
     Args:
         imagenf: Function for batch-data generation.
