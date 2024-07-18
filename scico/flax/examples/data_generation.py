@@ -86,7 +86,7 @@ if have_xdesign:
                 attn2: Mass attenuation parameter for material 2.
                     Default: 10.
             """
-            super(Foam2, self).__init__(radius=0.5, material=SimpleMaterial(attn1))
+            super().__init__(radius=0.5, material=SimpleMaterial(attn1))
             if porosity < 0 or porosity > 1:
                 raise ValueError("Porosity must be in the range [0,1).")
             self.sprinkle(

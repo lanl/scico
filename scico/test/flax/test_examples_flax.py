@@ -38,18 +38,7 @@ os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 
 
 @pytest.mark.skipif(not have_xdesign, reason="xdesign package not installed")
-def test_foam2_gen():
-    seed = 4321
-    N = 32
-    ndata = 2
-    from scico.flax.examples.data_generation import generate_foam2_images
-
-    dt = generate_foam2_images(seed, N, ndata)
-    assert dt.shape == (ndata, N, N, 1)
-
-
-@pytest.mark.skipif(not have_xdesign, reason="xdesign package not installed")
-def test_foam_gen():
+def test_foam1_gen():
     seed = 4444
     N = 32
     ndata = 2
@@ -59,9 +48,15 @@ def test_foam_gen():
     assert dt.shape == (ndata, N, N, 1)
 
 
-def fake_data_gen(seed, N, ndata):
-    dt, key = random.randn((ndata, N, N, 1), seed=seed)
-    return dt
+@pytest.mark.skipif(not have_xdesign, reason="xdesign package not installed")
+def test_foam2_gen():
+    seed = 4321
+    N = 32
+    ndata = 2
+    from scico.flax.examples.data_generation import generate_foam2_images
+
+    dt = generate_foam2_images(seed, N, ndata)
+    assert dt.shape == (ndata, N, N, 1)
 
 
 @pytest.mark.skipif(not have_ray, reason="ray package not installed")
