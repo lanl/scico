@@ -13,6 +13,7 @@ processing time.
 
 import os
 import warnings
+from functools import partial
 from time import time
 from typing import Callable, List, Tuple, Union
 
@@ -180,7 +181,12 @@ def batched_f(f_: Callable, vr: Array) -> Array:
        evaluation preserves the batch axis.
     """
     nproc = jax.device_count()
-    res = jax.pmap(lambda i: vector_f(f_, vr[i]))(jnp.arange(nproc))
+    # res = jax.pmap(lambda i: vector_f(f_, vr[i]))(jnp.arange(nproc))
+    if vr.shape[0] != nproc:
+        vrr = vr.reshape((nproc, -1, *vr.shape[:1]))
+    else:
+        vrr = vr
+    res = jax.pmap(partial(vector_f, f_))(vrr)
     return res
 
 

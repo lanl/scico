@@ -151,8 +151,10 @@ def test_blur_data_generation():
     blur_kernel = np.ones((n, n)) / (n * n)
 
     def random_img_gen(seed, size, ndata):
-        np.random.seed(seed)
-        return np.random.randn(ndata, size, size, 1)
+        key = jax.random.PRNGKey(seed)
+        key, subkey = jax.random.split(key)
+        shape = (ndata, size, size, 1)
+        return jax.random.normal(subkey, shape)
 
     img, blurn = generate_blur_data(nimg, N, blur_kernel, noise_sigma=0.01, imgfunc=random_img_gen)
     assert img.shape == (nimg, N, N, 1)
@@ -260,7 +262,6 @@ def test_random_noise2(shape):
 @pytest.mark.parametrize("gray_flag", [False, True])
 @pytest.mark.parametrize("num_img_req", [None, 4])
 def test_preprocess_images(output_size, gray_flag, num_img_req):
-
     num_img = 10
     N = 128
     C = 3
