@@ -17,7 +17,8 @@ problem with isotropic total variation (TV) regularization
 where $A$ is the X-ray transform (the CT forward projection operator),
 $\mathbf{y}$ is the sinogram, $C$ is a 2D finite difference operator, and
 $\mathbf{x}$ is the desired image. The solution is computed and compared
-for all three 2D CT projectors available in scico.
+for all three 2D CT projectors available in scico, using a sinogram
+computed with the astra projector.
 """
 
 import numpy as np
@@ -37,6 +38,9 @@ N = 512  # phantom size
 np.random.seed(1234)
 x_gt = snp.array(discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=N))
 
+det_count = N
+det_spacing = np.sqrt(2)
+
 
 """
 Define CT geometry and construct array of (approximately) equivalent projectors.
@@ -44,37 +48,54 @@ Define CT geometry and construct array of (approximately) equivalent projectors.
 n_projection = 45  # number of projections
 angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
 projectors = {
-    "astra": astra.XRayTransform2D(x_gt.shape, N, 1.0, angles - np.pi / 2.0),  # astra
-    "svmbir": svmbir.XRayTransform(x_gt.shape, 2 * np.pi - angles, N),  # svmbir
-    "scico": XRayTransform(Parallel2dProjector((N, N), angles, det_count=N)),  # scico
+    "astra": astra.XRayTransform2D(
+        x_gt.shape, det_count, det_spacing, angles - np.pi / 2.0
+    ),  # astra
+    "svmbir": svmbir.XRayTransform(
+        x_gt.shape, 2 * np.pi - angles, det_count, delta_pixel=1.0, delta_channel=det_spacing
+    ),  # svmbir
+    "scico": XRayTransform(
+        Parallel2dProjector((N, N), angles, det_count=det_count, dx=1 / det_spacing)
+    ),  # scico
 }
+
+
+"""
+Compute common sinogram using astra projector.
+"""
+A = projectors["astra"]
+noise = np.random.normal(size=(n_projection, det_count)).astype(np.float32)
+y = A @ x_gt + 2.0 * noise
+
+
+"""
+Construct initial solution for regularized problem.
+"""
+x0 = A.fbp(y)
 
 
 """
 Solve the same problem using the different projectors.
 """
 print(f"Solving on {device_info()}")
-y, x_rec, hist = {}, {}, {}
-noise = np.random.normal(size=(n_projection, N)).astype(np.float32)
-for p in ("astra", "svmbir", "scico"):
+x_rec, hist = {}, {}
+for p in projectors.keys():
     print(f"\nSolving with {p} projector")
-    A = projectors[p]
-    y[p] = A @ x_gt + 2.0 * noise  # sinogram
 
     # Set up ADMM solver object.
-    λ = 2e0  # L1 norm regularization parameter
-    ρ = 5e0  # ADMM penalty parameter
-    maxiter = 25  # number of ADMM iterations
+    λ = 2e1  # L1 norm regularization parameter
+    ρ = 1e3  # ADMM penalty parameter
+    maxiter = 100  # number of ADMM iterations
     cg_tol = 1e-4  # CG relative tolerance
-    cg_maxiter = 25  # maximum CG iterations per ADMM iteration
+    cg_maxiter = 50  # maximum CG iterations per ADMM iteration
 
     # The append=0 option makes the results of horizontal and vertical
     # finite differences the same shape, which is required for the L21Norm,
     # which is used so that g(Cx) corresponds to isotropic TV.
     C = linop.FiniteDifference(input_shape=x_gt.shape, append=0)
     g = λ * functional.L21Norm()
-    f = loss.SquaredL2Loss(y=y[p], A=A)
-    x0 = snp.clip(A.T(y[p]), 0, 1.0)
+    A = projectors[p]
+    f = loss.SquaredL2Loss(y=y, A=A)
 
     # Set up the solver.
     solver = ADMM(
@@ -91,15 +112,25 @@ for p in ("astra", "svmbir", "scico"):
     # Run the solver.
     solver.solve()
     hist[p] = solver.itstat_object.history(transpose=True)
-    x_rec[p] = snp.clip(solver.x, 0, 1.0)
+    x_rec[p] = solver.x
+
+    if p == "scico":
+        x_rec[p] = x_rec[p] * det_spacing  # to match ASTRA's scaling
 
 
 """
-Compare sinograms.
+Compare reconstruction results.
 """
-fig, ax = plot.subplots(nrows=3, ncols=1, figsize=(15, 10))
-for idx, name in enumerate(projectors.keys()):
-    plot.imview(y[name], title=f"{name} sinogram", cbar=None, fig=fig, ax=ax[idx])
+print("Reconstruction SNR:")
+for p in projectors.keys():
+    print(f"  {(p + ':'):7s}  {metric.snr(x_gt, x_rec[p]):5.2f} dB")
+
+
+"""
+Display sinogram.
+"""
+fig, ax = plot.subplots(nrows=1, ncols=1, figsize=(15, 3))
+plot.imview(y, title="sinogram", fig=fig, ax=ax)
 fig.show()
 
 
@@ -147,6 +178,8 @@ for n, p in enumerate(projectors.keys()):
         fig=fig,
         ax=ax[n + 1],
     )
+for ax in ax:
+    ax.get_images()[0].set_clim(-0.1, 1.1)
 fig.show()
 
 

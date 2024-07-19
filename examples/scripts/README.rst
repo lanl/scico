@@ -41,8 +41,6 @@ Computed Tomography
       CT Training and Reconstructions with UNet
    `ct_projector_comparison.py <ct_projector_comparison.py>`_
       X-ray Transform Comparison
-   `ct_multi_cs_tv_admm.py <ct_multi_cs_tv_admm.py>`_
-      TV-Regularized Sparse-View CT Reconstruction (Multiple Projectors, Common Sinogram)
    `ct_multi_tv_admm.py <ct_multi_tv_admm.py>`_
       TV-Regularized Sparse-View CT Reconstruction (Multiple Projectors)
 
@@ -103,6 +101,8 @@ Miscellaneous
       PPP (with DnCNN) Image Superresolution
    `denoise_l1tv_admm.py <denoise_l1tv_admm.py>`_
       ℓ1 Total Variation Denoising
+   `denoise_ptv_pdhg.py <denoise_ptv_pdhg.py>`_
+      Polar Total Variation Denoising (PDHG)
    `denoise_tv_admm.py <denoise_tv_admm.py>`_
       Total Variation Denoising (ADMM)
    `denoise_tv_apgm.py <denoise_tv_apgm.py>`_
@@ -176,6 +176,8 @@ Total Variation
       3D TV-Regularized Sparse-View CT Reconstruction (Proximal ADMM Solver)
    `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
       TV-Regularized Low-Dose CT Reconstruction
+   `ct_multi_tv_admm.py <ct_multi_tv_admm.py>`_
+      TV-Regularized Sparse-View CT Reconstruction (Multiple Projectors)
    `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
       TV-Regularized CT Reconstruction (Multiple Algorithms)
    `deconv_circ_tv_admm.py <deconv_circ_tv_admm.py>`_
@@ -192,6 +194,8 @@ Total Variation
       Deconvolution Microscopy (All Channels)
    `denoise_l1tv_admm.py <denoise_l1tv_admm.py>`_
       ℓ1 Total Variation Denoising
+   `denoise_ptv_pdhg.py <denoise_ptv_pdhg.py>`_
+      Polar Total Variation Denoising (PDHG)
    `denoise_tv_admm.py <denoise_tv_admm.py>`_
       Total Variation Denoising (ADMM)
    `denoise_tv_apgm.py <denoise_tv_apgm.py>`_
@@ -275,6 +279,8 @@ ADMM
       3D TV-Regularized Sparse-View CT Reconstruction (ADMM Solver)
    `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
       TV-Regularized Low-Dose CT Reconstruction
+   `ct_multi_tv_admm.py <ct_multi_tv_admm.py>`_
+      TV-Regularized Sparse-View CT Reconstruction (Multiple Projectors)
    `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
       TV-Regularized CT Reconstruction (Multiple Algorithms)
    `ct_svmbir_ppp_bm3d_admm_cg.py <ct_svmbir_ppp_bm3d_admm_cg.py>`_
@@ -357,6 +363,8 @@ PDHG
 
     `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
        TV-Regularized CT Reconstruction (Multiple Algorithms)
+    `denoise_ptv_pdhg.py <denoise_ptv_pdhg.py>`_
+       Polar Total Variation Denoising (PDHG)
     `denoise_tv_multi.py <denoise_tv_multi.py>`_
        Comparison of Optimization Algorithms for Total Variation Denoising
     `denoise_cplx_tv_pdhg.py <denoise_cplx_tv_pdhg.py>`_
