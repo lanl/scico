@@ -439,7 +439,7 @@ classes, or method definitions.
 
        Comment explaining example 1.
 
-       >>> np.add(1, 2)
+       >>> int(np.add(1, 2))
        3
 
        Comment explaining a new example.

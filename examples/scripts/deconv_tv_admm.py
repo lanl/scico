@@ -77,7 +77,7 @@ the data fidelity term.
 f = loss.SquaredL2Loss(y=y, A=C)
 # Penalty parameters must be accounted for in the gi functions, not as
 # additional inputs.
-λ = 2.1e-2  # L21 norm regularization parameter
+λ = 2.1e-2  # ℓ2,1 norm regularization parameter
 g = λ * functional.L21Norm()
 # The append=0 option makes the results of horizontal and vertical
 # finite differences the same shape, which is required for the L21Norm,
