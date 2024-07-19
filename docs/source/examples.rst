@@ -84,6 +84,7 @@ Miscellaneous
    examples/demosaic_ppp_bm3d_admm
    examples/superres_ppp_dncnn_admm
    examples/denoise_l1tv_admm
+   examples/denoise_ptv_pdhg
    examples/denoise_tv_admm
    examples/denoise_tv_apgm
    examples/denoise_tv_multi
@@ -145,6 +146,7 @@ Total Variation
    examples/deconv_microscopy_tv_admm
    examples/deconv_microscopy_allchn_tv_admm
    examples/denoise_l1tv_admm
+   examples/denoise_ptv_pdhg
    examples/denoise_tv_admm
    examples/denoise_tv_apgm
    examples/denoise_tv_multi
@@ -272,6 +274,7 @@ PDHG
    :maxdepth: 1
 
    examples/ct_svmbir_tv_multi
+   examples/denoise_ptv_pdhg
    examples/denoise_tv_multi
    examples/denoise_cplx_tv_pdhg
 
