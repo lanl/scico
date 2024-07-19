@@ -9,6 +9,8 @@ Version 0.0.6   (unreleased)
 • Significant changes to ``linop.xray.astra`` API.
 • New functional ``functional.IsotropicTVNorm`` and faster implementation
   of ``functional.AnisotropicTVNorm``.
+• New linear operators ``linop.ProjectedGradient``, ``linop.PolarGradient``,
+  ``linop.CylindricalGradient``, and ``linop.SphericalGradient``.
 • Rename ``scico.numpy.util.parse_axes`` to
   ``scico.numpy.util.normalize_axes``.
 • Rename ``scico.flax.save_weights`` and ``scico.flax.load_weights`` to

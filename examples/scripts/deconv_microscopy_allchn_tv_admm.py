@@ -28,19 +28,24 @@ operator, $\iota_{\mathrm{NN}}$ is the indicator function of the
 non-negativity constraint, and $\mathbf{x}$ is the desired image.
 """
 
+# isort: off
 import numpy as np
 
+import logging
 import ray
+
+ray.init(logging_level=logging.ERROR)  # need to call init before jax import: ray-project/ray#44087
+
 import scico.numpy as snp
 from scico import functional, linop, loss, plot
 from scico.examples import downsample_volume, epfl_deconv_data, tile_volume_slices
 from scico.optimize.admm import ADMM, CircularConvolveSolver
 
 """
-Get and preprocess data. We downsample the data for the for purposes of
-the example. Reducing the downsampling rate will make the example slower
-and more memory-intensive. To run this example on a GPU it may be
-necessary to set environment variables
+Get and preprocess data. The data is downsampled to limit the memory
+requirements and run time of the example. Reducing the downsampling rate
+will make the example slower and more memory-intensive. To run this
+example on a GPU it may be necessary to set environment variables
 `XLA_PYTHON_CLIENT_ALLOCATOR=platform` and
 `XLA_PYTHON_CLIENT_PREALLOCATE=false`. If your GPU does not have enough
 memory, you can try setting the environment variable
@@ -81,11 +86,9 @@ maxiter = 100  # number of ADMM iterations
 
 
 """
-Initialize ray, determine available computing resources, and put large arrays
-in object store.
+Determine available computing resources, and put large arrays in ray
+object store.
 """
-ray.init()
-
 ngpu = 0
 ar = ray.available_resources()
 ncpu = max(int(ar["CPU"]) // 3, 1)
