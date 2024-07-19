@@ -38,7 +38,6 @@ Computed Tomography
    examples/ct_astra_odp_train_foam2
    examples/ct_astra_unet_train_foam2
    examples/ct_projector_comparison
-   examples/ct_multi_cs_tv_admm
    examples/ct_multi_tv_admm
 
 Deconvolution
@@ -85,6 +84,7 @@ Miscellaneous
    examples/demosaic_ppp_bm3d_admm
    examples/superres_ppp_dncnn_admm
    examples/denoise_l1tv_admm
+   examples/denoise_ptv_pdhg
    examples/denoise_tv_admm
    examples/denoise_tv_apgm
    examples/denoise_tv_multi
@@ -137,6 +137,7 @@ Total Variation
    examples/ct_astra_3d_tv_admm
    examples/ct_astra_3d_tv_padmm
    examples/ct_astra_weighted_tv_admm
+   examples/ct_multi_tv_admm
    examples/ct_svmbir_tv_multi
    examples/deconv_circ_tv_admm
    examples/deconv_tv_admm
@@ -145,6 +146,7 @@ Total Variation
    examples/deconv_microscopy_tv_admm
    examples/deconv_microscopy_allchn_tv_admm
    examples/denoise_l1tv_admm
+   examples/denoise_ptv_pdhg
    examples/denoise_tv_admm
    examples/denoise_tv_apgm
    examples/denoise_tv_multi
@@ -208,6 +210,7 @@ ADMM
    examples/ct_tv_admm
    examples/ct_astra_3d_tv_admm
    examples/ct_astra_weighted_tv_admm
+   examples/ct_multi_tv_admm
    examples/ct_svmbir_tv_multi
    examples/ct_svmbir_ppp_bm3d_admm_cg
    examples/ct_svmbir_ppp_bm3d_admm_prox
@@ -271,6 +274,7 @@ PDHG
    :maxdepth: 1
 
    examples/ct_svmbir_tv_multi
+   examples/denoise_ptv_pdhg
    examples/denoise_tv_multi
    examples/denoise_cplx_tv_pdhg
 
