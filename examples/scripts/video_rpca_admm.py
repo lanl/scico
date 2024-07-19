@@ -62,7 +62,7 @@ g1 = functional.L1Norm()
 Set up an ADMM solver object.
 """
 λ0 = 1e1  # nuclear norm regularization parameter
-λ1 = 3e1  # l1 norm regularization parameter
+λ1 = 3e1  # ℓ1 norm regularization parameter
 ρ0 = 2e1  # ADMM penalty parameter
 ρ1 = 2e1  # ADMM penalty parameter
 maxiter = 50  # number of ADMM iterations

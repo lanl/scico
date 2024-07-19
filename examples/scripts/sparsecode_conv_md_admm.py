@@ -96,7 +96,7 @@ y = B(A(x0p))
 """
 Set functional and solver parameters.
 """
-λ = 1e0  # l1-l2 norm regularization parameter
+λ = 1e0  # ℓ1-ℓ2 norm regularization parameter
 ρ0 = 1e0  # ADMM penalty parameters
 ρ1 = 3e0
 maxiter = 200  # number of ADMM iterations
