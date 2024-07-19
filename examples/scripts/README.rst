@@ -41,8 +41,6 @@ Computed Tomography
       CT Training and Reconstructions with UNet
    `ct_projector_comparison.py <ct_projector_comparison.py>`_
       X-ray Transform Comparison
-   `ct_multi_cs_tv_admm.py <ct_multi_cs_tv_admm.py>`_
-      TV-Regularized Sparse-View CT Reconstruction (Multiple Projectors, Common Sinogram)
    `ct_multi_tv_admm.py <ct_multi_tv_admm.py>`_
       TV-Regularized Sparse-View CT Reconstruction (Multiple Projectors)
 
@@ -178,6 +176,8 @@ Total Variation
       3D TV-Regularized Sparse-View CT Reconstruction (Proximal ADMM Solver)
    `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
       TV-Regularized Low-Dose CT Reconstruction
+   `ct_multi_tv_admm.py <ct_multi_tv_admm.py>`_
+      TV-Regularized Sparse-View CT Reconstruction (Multiple Projectors)
    `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
       TV-Regularized CT Reconstruction (Multiple Algorithms)
    `deconv_circ_tv_admm.py <deconv_circ_tv_admm.py>`_
@@ -279,6 +279,8 @@ ADMM
       3D TV-Regularized Sparse-View CT Reconstruction (ADMM Solver)
    `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
       TV-Regularized Low-Dose CT Reconstruction
+   `ct_multi_tv_admm.py <ct_multi_tv_admm.py>`_
+      TV-Regularized Sparse-View CT Reconstruction (Multiple Projectors)
    `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
       TV-Regularized CT Reconstruction (Multiple Algorithms)
    `ct_svmbir_ppp_bm3d_admm_cg.py <ct_svmbir_ppp_bm3d_admm_cg.py>`_
