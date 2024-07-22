@@ -167,3 +167,8 @@ def test_angle_to_vector():
     det_spacing = [0.9, 1.5]
     vectors = angle_to_vector(det_spacing, angles)
     assert vectors.shape == (angles.size, 12)
+
+
+def test_ensure_writeable():
+    assert isinstance(_ensure_writeable(np.ones((2, 1))), np.ndarray)
+    assert isinstance(_ensure_writeable(snp.ones((2, 1))), np.ndarray)

@@ -22,12 +22,12 @@ and the `svmbir <https://github.com/cabouman/svmbir>`_ package. Each of
 these transforms uses a different convention for view angle directions,
 as illustrated in the figure below.
 
-.. plot:: figures/xray_2d_geom.py
+.. plot:: pyfigures/xray_2d_geom.py
    :align: center
    :include-source: False
    :show-source-link: False
    :caption: Comparison of 2D X-ray projector geometries. The red arrows
-      are are directed towards the detector, which is oriented with pixel
+      are directed towards the detector, which is oriented with pixel
       indices ordered in the same direction as clockwise rotation (e.g.
       in the "scico" geometry, the :math:`\theta=0` projection
       corresponds to row sums ordered from the top to the bottom of the

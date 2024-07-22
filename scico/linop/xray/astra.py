@@ -227,6 +227,86 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
     Perform tomographic projection (also called X-ray projection) of a
     volume at specified angles, using the
     `ASTRA toolbox <https://github.com/astra-toolbox/astra-toolbox>`_.
+    The `3D geometries <https://astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
+    "parallel3d" and "parallel3d_vec" are supported by this interface.
+
+    The volume is fixed with respect to the coordinate system, centered
+    at the origin, as illustrated below:
+
+    .. plot:: pyfigures/xray_3d_vol.py
+       :align: center
+       :include-source: False
+       :show-source-link: False
+
+    The voxels sides have unit length (in arbitrary units), which defines
+    the scale for all other dimensions in the source-volume-detector
+    configuration. Geometry axes `z`, `y`, and `x` correspond to volume
+    array axes 0, 1, and 2 respectively. The projected array axes 0, 1,
+    and 2 correspond respectively to detector rows, views, and detector
+    columns.
+
+    In the "parallel3d" case, the source and detector rotate clockwise
+    about the `z` axis in the `x`-`y` plane, as illustrated below:
+
+    .. plot:: pyfigures/xray_3d_ang.py
+       :align: center
+       :include-source: False
+       :show-source-link: False
+       :caption: Red arrows indicate the direction of the beam towards
+          the detector (orange) and the arrows parallel to the detector
+          indicate the direction of increasing pixel indices.
+
+    In this case the `z` axis is in the same direction as the
+    vertical/row axis of the detector and its projection corresponds to
+    a vertical line in the center of the horizontal/column detector axis.
+    Note that the view images must be displayed with the origin at the
+    bottom left (i.e. vertically inverted from the top left origin image
+    indexing convention) in order for the projections to correspond to
+    the positive up/negative down orientation of the `z` axis in the
+    figures here.
+
+    In the "parallel3d_vec" case, each view is determined by the following
+    vectors:
+
+    .. list-table:: View definition vectors
+       :widths: 10 90
+
+       * - :math:`\mb{r}`
+         - Direction of the parallel beam
+       * - :math:`\mb{d}`
+         - Center of the detector
+       * - :math:`\mb{u}`
+         - Vector from detector pixel (0,0) to (0,1) (direction of
+           increasing detector column index)
+       * - :math:`\mb{v}`
+         - Vector from detector pixel (0,0) to (1,0) (direction of
+           increasing detector row index)
+
+    Note that the components of these vectors are in `x`, `y`, `z` order,
+    not the `z`, `y`, `x` order of the volume axes.
+
+    .. plot:: pyfigures/xray_3d_vec.py
+       :align: center
+       :include-source: False
+       :show-source-link: False
+
+    Vector :math:`\mb{r}` is not illustrated to avoid cluttering the
+    figure, but will typically be directed toward the center of the
+    detector (i.e. in the direction of :math:`\mb{d}` in the figure.)
+    Since the volume-detector distance does not have a geometric effect
+    for a parallel-beam configuration, :math:`\mb{d}` may be set to the
+    zero vector when the detector and beam centers coincide (e.g., as in
+    the case of the "parallel3d" geometry). Note that the view images
+    must be displayed with the origin at the bottom left (i.e. vertically
+    inverted from the top left origin image indexing convention) in order
+    for the row indexing of the projections to correspond to the
+    direction of :math:`\mb{v}` in the figure.
+
+    These vectors are concatenated into a single row vector
+    :math:`(\mb{r}, \mb{d}, \mb{u}, \mb{v})` to form the full
+    geometry specification for a single view, and multiple such
+    row vectors are stacked to specify the geometry for a set
+    of views.
     """
 
     def __init__(
@@ -238,11 +318,10 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
         vectors: Optional[np.ndarray] = None,
     ):
         """
-        This class supports both "parallel3d" and "parallel3d_vec" astra
-        `projection geometries <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__.
         Keyword arguments `det_spacing` and `angles` should be specified
-        to use the former, and keyword argument `vectors` should be
-        specified to use the latter. These options are mutually exclusive.
+        to use the "parallel3d" geometry, and keyword argument `vectors`
+        should be specified to use the "parallel3d_vec" geometry. These
+        options are mutually exclusive.
 
         Args:
             input_shape: Shape of the input array.
