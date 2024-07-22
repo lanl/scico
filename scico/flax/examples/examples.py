@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2023 by SCICO Developers
+# Copyright (C) 2022-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -580,7 +580,7 @@ def print_input_path(path_display: str):  # pragma: no cover
     Args:
         path_display: Path for loading data.
     """
-    print(f"{'Data read from path':26s}{':':4s}{path_display}")
+    print(f"Data read from path: {path_display}")
 
 
 def print_output_path(path_display: str):  # pragma: no cover
@@ -589,7 +589,7 @@ def print_output_path(path_display: str):  # pragma: no cover
     Args:
         path_display: Path for storing data.
     """
-    print(f"{'Storing data in path':26s}{':':4s}{path_display}")
+    print(f"Storing data in path: {path_display}")
 
 
 def print_data_range(idstring: str, data: Array):  # pragma: no cover
@@ -599,11 +599,7 @@ def print_data_range(idstring: str, data: Array):  # pragma: no cover
         idstring: Data descriptive string.
         data: Array to compute min and max.
     """
-    print(
-        f"{'Data range --':10s}{idstring}{'--':5s}{':':5s}"
-        f"{'Min:':6s}{data.min():>5.2f}"
-        f"{', Max:':6s}{data.max():>5.2f}"
-    )
+    print(f"Data range --{idstring}--  Min: {data.min():>5.2f}  " f"Max: {data.max():>5.2f}")
 
 
 def print_data_size(idstring: str, size: int):  # pragma: no cover
@@ -613,7 +609,7 @@ def print_data_size(idstring: str, size: int):  # pragma: no cover
         idstring: Data descriptive string.
         size: Integer representing size of a set.
     """
-    print(f"{'Set --':3s}{idstring}{'--':12s}{':':4s}{'Size:':8s}{size}")
+    print(f"Set --{idstring}-- size: {size}")
 
 
 def print_info(
@@ -648,9 +644,8 @@ def print_data_warning(idstring: str, requested: int, available: int):  # pragma
         available: Size of data set available.
     """
     print(
-        f"{'Not enough images sampled in ':10s}{idstring}"
-        f"{' file':6s}{'Requested :':14s}{requested}"
-        f"{' Available :':14s}{available}"
+        f"Not enough images sampled in {idstring} file. "
+        f"Requested: {requested}  Available: {available}"
     )
 
 
@@ -669,10 +664,9 @@ def runtime_error_scalar(
         available: Parameter value available in data.
     """
     raise RuntimeError(
-        f"{'Requested parameter --':15s}{type}{'-- :':7s}{requested}"
-        f"{' does not match parameter read from '}"
-        f"{idstring}{' file :':10s}{available}."
-        f"\nDelete cache and check data source."
+        f"Requested value of parameter --{type}-- does not match value "
+        f"read from {idstring} file. Requested: {requested}  Available: "
+        f"{available}.\nDelete cache and check data source."
     )
 
 
@@ -689,8 +683,7 @@ def runtime_error_array(type: str, idstring: str, maxdiff: float):
            entries.
     """
     raise RuntimeError(
-        f"{'Requested parameter --':15s}{type}{'--'}"
-        f"{' does not match parameter read from '}"
-        f"{idstring}{' file'}. Maximum array difference: {maxdiff:>5.3f}."
-        f"\nDelete cache and check data source."
+        f"Requested value of parameter --{type}-- does not match value "
+        f"read from {idstring} file. Maximum array difference: "
+        f"{maxdiff:>5.3f}.\nDelete cache and check data source."
     )
