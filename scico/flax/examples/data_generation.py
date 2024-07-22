@@ -100,16 +100,16 @@ if have_xdesign:
 def generate_foam1_images(seed: float, size: int, ndata: int) -> np.ndarray:
     """Generate batch of xdesign foam-like structures.
 
-        Generate batch of images with `xdesign` foam-like structure, which
-        uses one attenuation.
+    Generate batch of images with `xdesign` foam-like structure, which
+    uses one attenuation.
 
     Args:
-            seed: Seed for data generation.
-            size: Size of image to generate.
-            ndata: Number of images to generate.
+        seed: Seed for data generation.
+        size: Size of image to generate.
+        ndata: Number of images to generate.
 
-        Returns:
-            Array of generated data.
+    Returns:
+        Array of generated data.
     """
     if not have_xdesign:
         raise RuntimeError("Package xdesign is required for use of this function.")
