@@ -185,7 +185,7 @@ class PolarGradient(ProjectedGradient):
     directions, as described in :cite:`hossein-2024-total`. Local
     coordinate axes are illustrated in the figure below.
 
-    .. plot:: figures/polargrad.py
+    .. plot:: pyfigures/polargrad.py
        :align: center
        :include-source: False
        :show-source-link: False
@@ -283,7 +283,7 @@ class CylindricalGradient(ProjectedGradient):
     described in :cite:`hossein-2024-total`. The local coordinate axes
     are illustrated in the figure below.
 
-    .. plot:: figures/cylindgrad.py
+    .. plot:: pyfigures/cylindgrad.py
        :align: center
        :include-source: False
        :show-source-link: False
@@ -410,7 +410,7 @@ class SphericalGradient(ProjectedGradient):
     the approach described in :cite:`hossein-2024-total`. The local
     coordinate axes are illustrated in the figure below.
 
-    .. plot:: figures/spheregrad.py
+    .. plot:: pyfigures/spheregrad.py
        :align: center
        :include-source: False
        :show-source-link: False

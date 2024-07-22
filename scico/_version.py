@@ -95,7 +95,7 @@ def package_version(split: bool = False) -> Union[str, Tuple[str, str]]:  # prag
     Returns:
         Package version string or tuple of strings.
     """
-    version = init_variable_assign_value("__version_")
+    version = init_variable_assign_value("__version__")
     # don't extend purely numeric version numbers, possibly ending with post<n>
     if re.match(r"^[0-9\.]+(post[0-9]+)?$", version):
         git_hash = None
