@@ -240,7 +240,7 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
 
     The voxels sides have unit length (in arbitrary units), which defines
     the scale for all other dimensions in the source-volume-detector
-    configuration. Geometry axes `x`, `y`, and `z` correspond to volume
+    configuration. Geometry axes `z`, `y`, and `x` correspond to volume
     array axes 0, 1, and 2 respectively. The projected array axes 0, 1,
     and 2 correspond respectively to detector rows, views, and detector
     columns.
@@ -292,11 +292,12 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
 
     Vector :math:`\mb{r}` is not illustrated to avoid cluttering the
     figure, but will typically be directed toward the center of the
-    detector (i.e. in the direction of :math:`\mb{d}` in the figure.) In
-    practice, since the volume-detector distance does not have a
-    geometric effect for a parallel-beam configuration, :math:`\mb{d}`
-    may be set to the zero vector. Note that the view images must be
-    displayed with the origin at the bottom left (i.e. vertically
+    detector (i.e. in the direction of :math:`\mb{d}` in the figure.)
+    Since the volume-detector distance does not have a geometric effect
+    for a parallel-beam configuration, :math:`\mb{d}` may be set to the
+    zero vector when the detector and beam centers coincide (e.g., as in
+    the case of the "parallel3d" geometry). Note that the view images
+    must be displayed with the origin at the bottom left (i.e. vertically
     inverted from the top left origin image indexing convention) in order
     for the row indexing of the projections to correspond to the
     direction of :math:`\mb{v}` in the figure.
