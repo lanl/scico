@@ -13,8 +13,14 @@ previously filtered back projections (FBP) for CT reconstruction inspired
 by :cite:`jin-2017-unet`.
 """
 
+# isort: off
 import os
 from time import time
+
+import logging
+import ray
+
+ray.init(logging_level=logging.ERROR)  # need to call init before jax import: ray-project/ray#44087
 
 import jax
 

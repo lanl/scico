@@ -41,11 +41,17 @@ identity operator. The output of the final stage is the set of deblurred
 images.
 """
 
+# isort: off
 import os
 from functools import partial
 from time import time
 
 import numpy as np
+
+import logging
+import ray
+
+ray.init(logging_level=logging.ERROR)  # need to call init before jax import: ray-project/ray#44087
 
 import jax
 
