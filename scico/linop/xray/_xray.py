@@ -39,11 +39,12 @@ class XRayTransform(LinearOperator):
                 :class:`Parallel2dProjector`
         """
         self.projector = projector
-        self._eval = projector.project
 
         super().__init__(
             input_shape=projector.input_shape,
             output_shape=projector.output_shape,
+            eval_fn=projector.project,
+            adj_fn=projector.back_project,
         )
 
 
@@ -265,9 +266,6 @@ class Parallel3dProjector:
         """Compute X-ray projection."""
         return Parallel3dProjector._project(im, self.matrices, self.det_shape)
 
-    def back_project(self, proj):
-        """Compute X-ray back projection"""
-
     @staticmethod
     def _project(im: ArrayLike, matrices: ArrayLike, det_shape: Shape) -> ArrayLike:
         r"""
@@ -305,7 +303,7 @@ class Parallel3dProjector:
             det_shape: Shape of detector.
         """
 
-        ul_ind, ul_weight, ur_weight, ll_weight, lr_weight = _calc_weights(
+        ul_ind, ul_weight, ur_weight, ll_weight, lr_weight = Parallel3dProjector._calc_weights(
             im.shape, matrix, proj.shape, slice_offset
         )
         proj = proj.at[ul_ind[0], ul_ind[1]].add(ul_weight * im, mode="drop")
@@ -313,6 +311,50 @@ class Parallel3dProjector:
         proj = proj.at[ul_ind[0], ul_ind[1] + 1].add(ll_weight * im, mode="drop")
         proj = proj.at[ul_ind[0] + 1, ul_ind[1] + 1].add(lr_weight * im, mode="drop")
         return proj
+
+    def back_project(self, proj):
+        """Compute X-ray back projection"""
+        return Parallel3dProjector._back_project(proj, self.matrices, self.input_shape)
+
+    @staticmethod
+    def _back_project(proj: ArrayLike, matrices: ArrayLike, input_shape: Shape) -> ArrayLike:
+        r"""
+        Args:
+            proj: Input (set of) projection(s).
+            matrix: (num_views, 2, 4) array of homogeneous projection matrices.
+            input_shape: Shape of desired back projection.
+        """
+        MAX_SLICE_LEN = 10
+        slice_offsets = list(range(0, input_shape[0], MAX_SLICE_LEN))
+
+        HTy = jnp.zeros(input_shape, dtype=proj.dtype)
+        for view_ind, matrix in enumerate(matrices):
+            for slice_offset in slice_offsets:
+                HTy = HTy.at[slice_offset : slice_offset + MAX_SLICE_LEN].set(
+                    Parallel3dProjector._back_project_single(
+                        proj[view_ind],
+                        matrix,
+                        HTy[slice_offset : slice_offset + MAX_SLICE_LEN],
+                        slice_offset=slice_offset,
+                    )
+                )
+                HTy.block_until_ready()  # prevent OOM
+
+        return HTy
+
+    @staticmethod
+    @partial(jax.jit, donate_argnames="HTy")
+    def _back_project_single(
+        y: ArrayLike, matrix: ArrayLike, HTy: ArrayLike, slice_offset: int = 0
+    ) -> ArrayLike:
+        ul_ind, ul_weight, ur_weight, ll_weight, lr_weight = Parallel3dProjector._calc_weights(
+            HTy.shape, matrix, y.shape, slice_offset
+        )
+        HTy = HTy + y[ul_ind[0], ul_ind[1]] * ul_weight
+        HTy = HTy + y[ul_ind[0] + 1, ul_ind[1]] * ur_weight
+        HTy = HTy + y[ul_ind[0], ul_ind[1] + 1] * ll_weight
+        HTy = HTy + y[ul_ind[0] + 1, ul_ind[1] + 1] * lr_weight
+        return HTy
 
     @staticmethod
     def _calc_weights(input_shape, matrix, output_shape, slice_offset: int = 0):
