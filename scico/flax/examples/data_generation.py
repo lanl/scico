@@ -100,22 +100,22 @@ if have_xdesign:
 def generate_foam1_images(seed: float, size: int, ndata: int) -> np.ndarray:
     """Generate batch of xdesign foam-like structures.
 
-    Generate batch of images with `xdesign` foam-like structure, which
-    uses one attenuation.
+        Generate batch of images with `xdesign` foam-like structure, which
+        uses one attenuation.
 
     Args:
-        seed: Seed for data generation.
-        size: Size of image to generate.
-        ndata: Number of images to generate.
+            seed: Seed for data generation.
+            size: Size of image to generate.
+            ndata: Number of images to generate.
 
-    Returns:
-        Array of generated data.
+        Returns:
+            Array of generated data.
     """
     if not have_xdesign:
         raise RuntimeError("Package xdesign is required for use of this function.")
 
     np.random.seed(seed)
-    saux = np.zeros((ndata, size, size, 1))
+    saux = np.zeros((ndata, size, size, 1), dtype=np.float32)
     for i in range(ndata):
         foam = Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1)
         saux[i, ..., 0] = discrete_phantom(foam, size=size)
@@ -141,7 +141,7 @@ def generate_foam2_images(seed: float, size: int, ndata: int) -> np.ndarray:
         raise RuntimeError("Package xdesign is required for use of this function.")
 
     np.random.seed(seed)
-    saux = np.zeros((ndata, size, size, 1))
+    saux = np.zeros((ndata, size, size, 1), dtype=np.float32)
     for i in range(ndata):
         foam = Foam2(size_range=[0.075, 0.0025], gap=1e-3, porosity=1)
         saux[i, ..., 0] = discrete_phantom(foam, size=size)
