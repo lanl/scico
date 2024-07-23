@@ -157,7 +157,7 @@ def distributed_data_generation(
         ray_noset_cuda = None
     os.environ["RAY_EXPERIMENTAL_NOSET_CUDA_VISIBLE_DEVICES"] = "1"
 
-    @ray.remote
+    @ray.remote(num_gpus=0.001)
     def data_gen(seed, size, ndata, imgf):
         import os
 
