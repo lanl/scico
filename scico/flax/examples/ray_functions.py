@@ -12,7 +12,6 @@ using ray.
 """
 
 
-import warnings
 from typing import Callable, List, Union
 
 import numpy as np
@@ -140,8 +139,6 @@ def distributed_data_generation(
 
     # Use half of available CPU resources
     ar = ray.available_resources()
-    if "CPU" not in ar:
-        warnings.warn("No CPU key in ray.available_resources() output.")
     nproc = max(int(ar.get("CPU", 1)) // 2, 1)
     if nproc > nimg:
         nproc = nimg
@@ -153,7 +150,11 @@ def distributed_data_generation(
 
     ndata_per_proc = int(nimg // nproc)
 
-    @ray.remote
+    # Attempt to avoid ray/jax conflicts. This solution is a nasty hack that
+    # is expected to be quite brittle.
+    num_gpus = 0.0001 if "GPU" in ar else 0
+
+    @ray.remote(num_gpus=num_gpus)
     def data_gen(seed, size, ndata, imgf):
         return imgf(seed, size, ndata)
 
