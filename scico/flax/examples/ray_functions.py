@@ -11,7 +11,6 @@ Functions for generating xdesign foam phantoms and generation in parallel
 using ray.
 """
 
-import os
 from typing import Callable, List, Union
 
 import numpy as np
@@ -80,15 +79,6 @@ def generate_foam1_images(seed: float, size: int, ndata: int) -> np.ndarray:
     Returns:
         Array of generated data.
     """
-    import os
-    import sys
-
-    if "jax" in sys.modules:
-        print("jax loaded")
-        sys.modules.pop("jax")
-    os.environ["JAX_PLATFORMS"] = "cpu"
-    os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"
-    os.environ["XLA_PYTHON_CLIENT_ALLOCATOR"] = "platform"
     np.random.seed(seed)
     saux = np.zeros((ndata, size, size, 1), dtype=np.float32)
     for i in range(ndata):
@@ -159,34 +149,17 @@ def distributed_data_generation(
 
     ndata_per_proc = int(nimg // nproc)
 
-    # Attempt to avoid ray/jax conflicts.
-    if "RAY_EXPERIMENTAL_NOSET_CUDA_VISIBLE_DEVICES" in os.environ:
-        ray_noset_cuda = os.environ["RAY_EXPERIMENTAL_NOSET_CUDA_VISIBLE_DEVICES"]
-    else:
-        ray_noset_cuda = None
-    os.environ["RAY_EXPERIMENTAL_NOSET_CUDA_VISIBLE_DEVICES"] = "1"
-    os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"
-    os.environ["XLA_PYTHON_CLIENT_ALLOCATOR"] = "platform"
-    os.environ["JAX_PLATFORMS"] = "cpu"
+    # Attempt to avoid ray/jax conflicts. This solution is a nasty hack that
+    # is expected to be rather brittle.
+    num_gpus = 1 if "GPU" in ar else 0
 
-    @ray.remote(num_gpus=0.001)
+    @ray.remote(num_gpus=num_gpus)
     def data_gen(seed, size, ndata, imgf):
-        import os
-
-        os.environ["JAX_PLATFORMS"] = "cpu"
-        os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"
-        os.environ["XLA_PYTHON_CLIENT_ALLOCATOR"] = "platform"
-        if "CUDA_VISIBLE_DEVICES" in os.environ:
-            print(f"CUDA_VISIBLE_DEVICES: {os.environ['CUDA_VISIBLE_DEVICES']}")
-            del os.environ["CUDA_VISIBLE_DEVICES"]
         return imgf(seed, size, ndata)
 
     ray_return = ray.get(
         [data_gen.remote(seed + seedg, size, ndata_per_proc, imgenf) for seed in range(nproc)]
     )
     imgs = np.vstack([t for t in ray_return])
-
-    if ray_noset_cuda is not None:
-        os.environ["RAY_EXPERIMENTAL_NOSET_CUDA_VISIBLE_DEVICES"] = ray_noset_cuda
 
     return imgs
