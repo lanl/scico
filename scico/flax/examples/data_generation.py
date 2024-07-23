@@ -10,7 +10,6 @@
 Computation is distributed via ray to reduce processing time.
 """
 
-import os
 from functools import partial
 from time import time
 from typing import Callable, Tuple
@@ -44,10 +43,6 @@ except ImportError:
 else:
     have_astra = True
     from scico.linop.xray.astra import XRayTransform2D
-
-
-# Arbitrary process count: only applies if GPU is not available.
-os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 
 
 def vector_f(f_: Callable, v: Array) -> Array:

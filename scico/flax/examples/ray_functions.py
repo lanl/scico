@@ -139,21 +139,24 @@ def distributed_data_generation(
     # Use half of available CPU resources
     ar = ray.available_resources()
     nproc = max(int(ar.get("CPU", 1)) // 2, 1)
-    if nproc > nimg:
-        nproc = nimg
-    if nproc > 1 and nimg % nproc > 0:
-        raise ValueError(
-            f"Number of images to generate ({nimg}) must be divisible by "
-            f"the number of available devices ({nproc})."
-        )
-
-    ndata_per_proc = int(nimg // nproc)
 
     # Attempt to avoid ray/jax conflicts. This solution is a nasty hack that
     # can severely limit parallel execution (since ray will ensure that only
-    # as many actors as availble GPUs are created), and is expected to be rather
-    # brittle.
-    num_gpus = 1 if "GPU" in ar else 0
+    # as many actors as available GPUs are created), and is expected to be
+    # rather brittle.
+    if "GPU" in ar:
+        num_gpus = 1
+        nproc = min(nproc, int(ar.get("GPU")))
+    else:
+        num_gpus = 0
+
+    if nproc > nimg:
+        nproc = nimg
+    if nimg % nproc > 0:
+        # Increase nimg to be a multiple of nproc if it isn't already
+        nimg = (nimg // nproc + 1) * nproc
+
+    ndata_per_proc = int(nimg // nproc)
 
     @ray.remote(num_gpus=num_gpus)
     def data_gen(seed, size, ndata, imgf):
