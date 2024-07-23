@@ -5,11 +5,12 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Functionality to generate training data for Flax example scripts.
+"""Generate training data for Flax example scripts using ray.
 
-Computation is distributed via ray (if available) or JAX or to reduce
-processing time.
+Functions for generating xdesign foam phantoms and generation in parallel
+using ray.
 """
+
 
 import warnings
 from typing import Callable, List, Union
