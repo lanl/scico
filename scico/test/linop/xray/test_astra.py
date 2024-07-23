@@ -11,7 +11,12 @@ from scico.test.linop.test_linop import adjoint_test
 from scico.test.linop.xray.test_svmbir import make_im
 
 try:
-    from scico.linop.xray.astra import XRayTransform2D, XRayTransform3D, angle_to_vector
+    from scico.linop.xray.astra import (
+        XRayTransform2D,
+        XRayTransform3D,
+        _ensure_writeable,
+        angle_to_vector,
+    )
 except ModuleNotFoundError as e:
     if e.name == "astra":
         pytest.skip("astra not installed", allow_module_level=True)
