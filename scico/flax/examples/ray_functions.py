@@ -11,7 +11,7 @@ Functions for generating xdesign foam phantoms and generation in parallel
 using ray.
 """
 
-
+import os
 from typing import Callable, List, Union
 
 import numpy as np
@@ -150,22 +150,23 @@ def distributed_data_generation(
 
     ndata_per_proc = int(nimg // nproc)
 
-    # Attempt to avoid ray/jax conflicts. This solution is a nasty hack that
-    # is expected to be quite brittle.
-    # num_gpus = 0.0001 if "GPU" in ar else 0
-    num_gpus = 0.1 if "GPU" in ar else 0
-    print(num_gpus)
+    # Attempt to avoid ray/jax conflicts.
+    if "RAY_EXPERIMENTAL_NOSET_CUDA_VISIBLE_DEVICES" in os.environ:
+        ray_noset_cuda = os.environ["RAY_EXPERIMENTAL_NOSET_CUDA_VISIBLE_DEVICES"]
+    else:
+        ray_noset_cuda = None
+    os.environ["RAY_EXPERIMENTAL_NOSET_CUDA_VISIBLE_DEVICES"] = "1"
 
-    @ray.remote(num_gpus=num_gpus)
+    @ray.remote
     def data_gen(seed, size, ndata, imgf):
-        import os
-
-        print(f"CUDA_VISIBLE_DEVICES: {os.environ['CUDA_VISIBLE_DEVICES']}")
         return imgf(seed, size, ndata)
 
     ray_return = ray.get(
         [data_gen.remote(seed + seedg, size, ndata_per_proc, imgenf) for seed in range(nproc)]
     )
     imgs = np.vstack([t for t in ray_return])
+
+    if ray_noset_cuda is not None:
+        os.environ["RAY_EXPERIMENTAL_NOSET_CUDA_VISIBLE_DEVICES"] = ray_noset_cuda
 
     return imgs
