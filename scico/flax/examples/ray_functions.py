@@ -163,6 +163,7 @@ def distributed_data_generation(
 
         if "CUDA_VISIBLE_DEVICES" in os.environ:
             print(f"CUDA_VISIBLE_DEVICES: {os.environ['CUDA_VISIBLE_DEVICES']}")
+            del os.environ["CUDA_VISIBLE_DEVICES"]
         return imgf(seed, size, ndata)
 
     ray_return = ray.get(
