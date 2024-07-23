@@ -22,7 +22,12 @@ import ray
 
 ray.init(logging_level=logging.ERROR)  # need to call init before jax import: ray-project/ray#44087
 
+# Set an arbitrary processor count (only applies if GPU is not available).
+os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
+
 import jax
+
+import numpy as np
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
@@ -30,11 +35,7 @@ from scico import flax as sflax
 from scico import metric, plot
 from scico.flax.examples import load_ct_data
 
-"""
-Prepare parallel processing. Set an arbitrary processor count (only
-applies if GPU is not available).
-"""
-os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
+
 platform = jax.lib.xla_bridge.get_backend().platform
 print("Platform: ", platform)
 
@@ -196,7 +197,7 @@ if stats_object is not None and len(stats_object.iterations) > 0:
     hist = stats_object.history(transpose=True)
     fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
     plot.plot(
-        jax.numpy.vstack((hist.Train_Loss, hist.Eval_Loss)).T,
+        np.vstack((hist.Train_Loss, hist.Eval_Loss)).T,
         x=hist.Epoch,
         ptyp="semilogy",
         title="Loss function",
@@ -207,7 +208,7 @@ if stats_object is not None and len(stats_object.iterations) > 0:
         ax=ax[0],
     )
     plot.plot(
-        jax.numpy.vstack((hist.Train_SNR, hist.Eval_SNR)).T,
+        np.vstack((hist.Train_SNR, hist.Eval_SNR)).T,
         x=hist.Epoch,
         title="Metric",
         xlbl="Epoch",
