@@ -163,8 +163,11 @@ def distributed_data_generation(
     @ray.remote(num_gpus=0.001)
     def data_gen(seed, size, ndata, imgf):
         import os
+        import sys
 
         os.environ["JAX_PLATFORMS"] = "cpu"
+        sys.modules.pop("jax")
+        sys.modules.pop("scico")
         os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"
         os.environ["XLA_PYTHON_CLIENT_ALLOCATOR"] = "platform"
         if "CUDA_VISIBLE_DEVICES" in os.environ:
