@@ -56,6 +56,9 @@ import ray
 
 ray.init(logging_level=logging.ERROR)  # need to call init before jax import: ray-project/ray#44087
 
+# Set an arbitrary processor count (only applies if GPU is not available).
+os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
+
 import jax
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -66,11 +69,7 @@ from scico.flax.examples import load_ct_data
 from scico.flax.train.traversals import clip_positive, construct_traversal
 from scico.linop.xray.astra import XRayTransform2D
 
-"""
-Prepare parallel processing. Set an arbitrary processor count (only
-applies if GPU is not available).
-"""
-os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
+
 platform = jax.lib.xla_bridge.get_backend().platform
 print("Platform: ", platform)
 
