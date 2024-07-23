@@ -129,7 +129,7 @@ def distributed_data_generation(
         imagenf: Function for batch-data generation.
         size: Size of image to generate.
         ndata: Number of images to generate.
-        seedg: Base seed for data generation. Default: 123.
+        seedg: Base seed for data generation.
 
     Returns:
         Array of generated data.
@@ -153,7 +153,7 @@ def distributed_data_generation(
     # Attempt to avoid ray/jax conflicts. This solution is a nasty hack that
     # is expected to be quite brittle.
     # num_gpus = 0.0001 if "GPU" in ar else 0
-    num_gpus = 0.0001 if "GPU" in ar else 0
+    num_gpus = 0.1 if "GPU" in ar else 0
     print(num_gpus)
 
     @ray.remote(num_gpus=num_gpus)
