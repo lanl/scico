@@ -11,8 +11,7 @@ from scico.flax.examples.data_generation import (
     generate_blur_data,
     generate_ct_data,
     have_astra,
-    have_ray,
-    have_xdesign,
+    have_ray_and_xdesign,
 )
 from scico.flax.examples.data_preprocessing import (
     CenterCrop,
@@ -37,7 +36,7 @@ os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 # These tests are for the scico.flax.examples module, NOT the example scripts
 
 
-@pytest.mark.skipif(not have_xdesign, reason="xdesign package not installed")
+@pytest.mark.skipif(not have_ray_and_xdesign, reason="ray or xdesign package not installed")
 def test_foam1_gen():
     seed = 4444
     N = 32
@@ -48,7 +47,7 @@ def test_foam1_gen():
     assert dt.shape == (ndata, N, N, 1)
 
 
-@pytest.mark.skipif(not have_xdesign, reason="xdesign package not installed")
+@pytest.mark.skipif(not have_ray_and_xdesign, reason="ray or xdesign package not installed")
 def test_foam2_gen():
     seed = 4321
     N = 32
@@ -59,7 +58,7 @@ def test_foam2_gen():
     assert dt.shape == (ndata, N, N, 1)
 
 
-@pytest.mark.skipif(not have_ray, reason="ray package not installed")
+@pytest.mark.skipif(not have_ray_and_xdesign, reason="ray or xdesign package not installed")
 def test_distdatagen():
     N = 16
     nimg = 8
