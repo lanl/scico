@@ -174,7 +174,7 @@ def load_ct_data(
     return trdt, ttdt
 
 
-def load_foam1_blur_data(
+def load_blur_data(
     train_nimg: int,
     test_nimg: int,
     size: int,

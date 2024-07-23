@@ -22,7 +22,7 @@ import ray
 ray.init(logging_level=logging.ERROR)  # need to call init before jax import: ray-project/ray#44087
 
 from scico import plot
-from scico.flax.examples import load_foam1_blur_data
+from scico.flax.examples import load_blur_data
 
 """
 Read data from cache or generate if not available.
@@ -36,7 +36,7 @@ test_nimg = 64  # number of testing images
 nimg = train_nimg + test_nimg
 output_size = 256  # image size
 
-train_ds, test_ds = load_foam1_blur_data(
+train_ds, test_ds = load_blur_data(
     train_nimg,
     test_nimg,
     output_size,
