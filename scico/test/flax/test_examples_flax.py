@@ -10,8 +10,11 @@ from scico.flax.examples.data_generation import (
     distributed_data_generation,
     generate_blur_data,
     generate_ct_data,
+    generate_foam1_images,
+    generate_foam2_images,
     have_astra,
-    have_ray_and_xdesign,
+    have_ray,
+    have_xdesign,
 )
 from scico.flax.examples.data_preprocessing import (
     CenterCrop,
@@ -36,29 +39,27 @@ os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 # These tests are for the scico.flax.examples module, NOT the example scripts
 
 
-@pytest.mark.skipif(not have_ray_and_xdesign, reason="ray or xdesign package not installed")
+@pytest.mark.skipif(not have_xdesign, reason="xdesign package not installed")
 def test_foam1_gen():
     seed = 4444
     N = 32
     ndata = 2
-    from scico.flax.examples.data_generation import generate_foam1_images
 
     dt = generate_foam1_images(seed, N, ndata)
     assert dt.shape == (ndata, N, N, 1)
 
 
-@pytest.mark.skipif(not have_ray_and_xdesign, reason="ray or xdesign package not installed")
+@pytest.mark.skipif(not have_xdesign, reason="xdesign package not installed")
 def test_foam2_gen():
     seed = 4321
     N = 32
     ndata = 2
-    from scico.flax.examples.data_generation import generate_foam2_images
 
     dt = generate_foam2_images(seed, N, ndata)
     assert dt.shape == (ndata, N, N, 1)
 
 
-@pytest.mark.skipif(not have_ray_and_xdesign, reason="ray or xdesign package not installed")
+@pytest.mark.skipif(not have_ray, reason="ray package not installed")
 def test_distdatagen():
     N = 16
     nimg = 8
@@ -73,7 +74,10 @@ def test_distdatagen():
     assert dt.shape == (nimg, N, N, 1)
 
 
-@pytest.mark.skipif(not have_astra, reason="astra package not installed")
+@pytest.mark.skipif(
+    not have_astra or not have_ray or not have_xdesign,
+    reason="astra, ray, or xdesign package not installed",
+)
 def test_ct_data_generation():
     N = 32
     nimg = 8
@@ -90,6 +94,7 @@ def test_ct_data_generation():
     assert fbp.shape == (nimg, N, N, 1)
 
 
+@pytest.mark.skipif(not have_ray or not have_xdesign, reason="ray or xdesign package not installed")
 def test_blur_data_generation():
     N = 32
     nimg = 8

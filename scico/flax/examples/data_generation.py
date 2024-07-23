@@ -18,17 +18,25 @@ import numpy as np
 
 try:
     import xdesign  # noqa: F401
+except ImportError:
+    have_xdesign = False
 
+    def generate_foam1_images():
+        raise RunTimeError("xdesign package required.")
+
+    def generate_foam2_images():
+        raise RunTimeError("xdesign package required.")
+
+else:
+    have_xdesign = True
+    from .xdesign_func import generate_foam1_images, generate_foam2_images
+
+try:
     import ray  # noqa: F401
 except ImportError:
-    have_ray_and_xdesign = False
+    have_ray = False
 else:
-    have_ray_and_xdesign = True
-    from .ray_functions import (
-        generate_foam1_images,
-        generate_foam2_images,
-        distributed_data_generation,
-    )
+    have_ray = True
 
 import jax
 import jax.numpy as jnp
@@ -109,7 +117,7 @@ def generate_ct_data(
            - **sino** : (:class:`jax.Array`): Corresponding sinograms.
            - **fbp** : (:class:`jax.Array`) Corresponding filtered back projections.
     """
-    if not have_ray_and_xdesign and have_astra:
+    if not (have_ray and have_xdesign and have_astra):
         raise RuntimeError(
             "Packages ray, xdesign, and astra are required for use of this function."
         )
@@ -195,7 +203,7 @@ def generate_blur_data(
            - **img** : Generated foam images.
            - **blurn** : Corresponding blurred and noisy images.
     """
-    if not have_ray_and_xdesign:
+    if not (have_ray and have_xdesign):
         raise RuntimeError("Packages ray and xdesign are required for use of this function.")
     start_time = time()
     img = distributed_data_generation(imgfunc, size, nimg, seed)
@@ -236,3 +244,62 @@ def generate_blur_data(
         print(f"{'Blur generation':19s}{'time[s]:':10s}{time_blur:>7.2f}")
 
     return img, blurn
+
+
+def distributed_data_generation(
+    imgenf: Callable, size: int, nimg: int, seedg: float = 123
+) -> np.ndarray:
+    """Data generation distributed among processes using ray.
+
+    *Warning:* callable `imgenf` should not make use of any jax functions
+    to avoid the risk of errors when running with GPU devices, in which
+    case jax is initialized to expect the availability of GPUs, which are
+    then not available within the `ray.remote` function due to the absence
+    of any declared GPUs as a `num_gpus` parameter of `@ray.remote`.
+
+    Args:
+        imagenf: Function for batch-data generation.
+        size: Size of image to generate.
+        ndata: Number of images to generate.
+        seedg: Base seed for data generation.
+
+    Returns:
+        Array of generated data.
+    """
+    if not have_ray:
+        raise RuntimeError("Package ray is required for use of this function.")
+    if not ray.is_initialized():
+        raise RuntimeError("Ray must be initialized via ray.init() before calling this function.")
+
+    # Use half of available CPU resources
+    ar = ray.available_resources()
+    nproc = max(int(ar.get("CPU", 1)) // 2, 1)
+
+    # Attempt to avoid ray/jax conflicts. This solution is a nasty hack that
+    # can severely limit parallel execution (since ray will ensure that only
+    # as many actors as available GPUs are created), and is expected to be
+    # rather brittle.
+    if "GPU" in ar:
+        num_gpus = 1
+        nproc = min(nproc, int(ar.get("GPU")))
+    else:
+        num_gpus = 0
+
+    if nproc > nimg:
+        nproc = nimg
+    if nimg % nproc > 0:
+        # Increase nimg to be a multiple of nproc if it isn't already
+        nimg = (nimg // nproc + 1) * nproc
+
+    ndata_per_proc = int(nimg // nproc)
+
+    @ray.remote(num_gpus=num_gpus)
+    def data_gen(seed, size, ndata, imgf):
+        return imgf(seed, size, ndata)
+
+    ray_return = ray.get(
+        [data_gen.remote(seed + seedg, size, ndata_per_proc, imgenf) for seed in range(nproc)]
+    )
+    imgs = np.vstack([t for t in ray_return])
+
+    return imgs
