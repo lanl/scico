@@ -81,7 +81,11 @@ def generate_foam1_images(seed: float, size: int, ndata: int) -> np.ndarray:
         Array of generated data.
     """
     import os
+    import sys
 
+    if "jax" in sys.modules:
+        print("jax loaded")
+        sys.modules.pop("jax")
     os.environ["JAX_PLATFORMS"] = "cpu"
     os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"
     os.environ["XLA_PYTHON_CLIENT_ALLOCATOR"] = "platform"
