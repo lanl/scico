@@ -20,6 +20,7 @@ try:
     import xdesign  # noqa: F401
 except ImportError:
     have_xdesign = False
+    # pylint: disable=missing-function-docstring
 
     def generate_foam1_images():
         raise RunTimeError("xdesign package required.")
@@ -27,6 +28,7 @@ except ImportError:
     def generate_foam2_images():
         raise RunTimeError("xdesign package required.")
 
+    # pylint: enable=missing-function-docstring
 else:
     have_xdesign = True
     from .xdesign_func import generate_foam1_images, generate_foam2_images
