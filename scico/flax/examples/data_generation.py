@@ -7,8 +7,7 @@
 
 """Functionality to generate training data for Flax example scripts.
 
-Computation is distributed via ray (if available) or JAX or to reduce
-processing time.
+Computation is distributed via ray to reduce processing time.
 """
 
 import os
