@@ -11,29 +11,24 @@ Computation is distributed via ray to reduce processing time.
 """
 
 import os
-import warnings
 from functools import partial
 from time import time
-from typing import Callable, List, Tuple, Union
+from typing import Callable, Tuple
 
 import numpy as np
 
 try:
+    import xdesign  # noqa: F401
+
     import ray  # noqa: F401
 except ImportError:
-    have_ray = False
+    have_ray_and_xdesign = False
 else:
-    have_ray = True
-
-try:
-    import xdesign  # noqa: F401
-except ImportError:
-    have_xdesign = False
-else:
-    have_xdesign = True
-
-if have_xdesign:
-    from xdesign import Foam, SimpleMaterial, UnitCircle, discrete_phantom
+    have_ray_and_xdesign = True
+    from .ray_functions import (
+        generate_foam2_images,
+        distributed_data_generation,
+    )
 
 import jax
 import jax.numpy as jnp
@@ -52,102 +47,6 @@ else:
 
 # Arbitrary process count: only applies if GPU is not available.
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
-
-
-if have_xdesign:
-
-    class Foam2(UnitCircle):
-        """Foam-like material with two attenuations.
-
-        Define functionality to generate phantom with structure similar
-        to foam with two different attenuation properties."""
-
-        def __init__(
-            self,
-            size_range: Union[float, List[float]] = [0.05, 0.01],
-            gap: float = 0,
-            porosity: float = 1,
-            attn1: float = 1.0,
-            attn2: float = 10.0,
-        ):
-            """Foam-like structure with two different attenuations.
-            Circles for material 1 are more sparse than for material 2
-            by design.
-
-            Args:
-                size_range: The radius, or range of radius, of the
-                    circles to be added. Default: [0.05, 0.01].
-                gap: Minimum distance between circle boundaries.
-                    Default: 0.
-                porosity: Target porosity. Must be a value between
-                    [0, 1]. Default: 1.
-                attn1: Mass attenuation parameter for material 1.
-                    Default: 1.
-                attn2: Mass attenuation parameter for material 2.
-                    Default: 10.
-            """
-            super().__init__(radius=0.5, material=SimpleMaterial(attn1))
-            if porosity < 0 or porosity > 1:
-                raise ValueError("Porosity must be in the range [0,1).")
-            self.sprinkle(
-                300, size_range, gap, material=SimpleMaterial(attn2), max_density=porosity / 2.0
-            ) + self.sprinkle(
-                300, size_range, gap, material=SimpleMaterial(20), max_density=porosity
-            )
-
-
-def generate_foam1_images(seed: float, size: int, ndata: int) -> np.ndarray:
-    """Generate batch of xdesign foam-like structures.
-
-    Generate batch of images with `xdesign` foam-like structure, which
-    uses one attenuation.
-
-    Args:
-        seed: Seed for data generation.
-        size: Size of image to generate.
-        ndata: Number of images to generate.
-
-    Returns:
-        Array of generated data.
-    """
-    if not have_xdesign:
-        raise RuntimeError("Package xdesign is required for use of this function.")
-
-    np.random.seed(seed)
-    saux = np.zeros((ndata, size, size, 1), dtype=np.float32)
-    for i in range(ndata):
-        foam = Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1)
-        saux[i, ..., 0] = discrete_phantom(foam, size=size)
-
-    return saux
-
-
-def generate_foam2_images(seed: float, size: int, ndata: int) -> np.ndarray:
-    """Generate batch of foam2 structures.
-
-    Generate batch of images with :class:`Foam2` structure
-    (foam-like material with two different attenuations).
-
-    Args:
-        seed: Seed for data generation.
-        size: Size of image to generate.
-        ndata: Number of images to generate.
-
-    Returns:
-        Array of generated data.
-    """
-    if not have_xdesign:
-        raise RuntimeError("Package xdesign is required for use of this function.")
-
-    np.random.seed(seed)
-    saux = np.zeros((ndata, size, size, 1), dtype=np.float32)
-    for i in range(ndata):
-        foam = Foam2(size_range=[0.075, 0.0025], gap=1e-3, porosity=1)
-        saux[i, ..., 0] = discrete_phantom(foam, size=size)
-    # normalize
-    saux /= np.max(saux, axis=(1, 2), keepdims=True)
-
-    return saux
 
 
 def vector_f(f_: Callable, v: Array) -> Array:
@@ -214,8 +113,10 @@ def generate_ct_data(
            - **sino** : (:class:`jax.Array`): Corresponding sinograms.
            - **fbp** : (:class:`jax.Array`) Corresponding filtered back projections.
     """
-    if not have_astra:
-        raise RuntimeError("Package astra is required for use of this function.")
+    if not have_ray_and_xdesign and have_astra:
+        raise RuntimeError(
+            "Packages ray, xdesign, and astra are required for use of this function."
+        )
 
     # Generate input data.
     start_time = time()
@@ -298,6 +199,8 @@ def generate_blur_data(
            - **img** : Generated foam images.
            - **blurn** : Corresponding blurred and noisy images.
     """
+    if not have_ray_and_xdesign:
+        raise RuntimeError("Packages ray and xdesign are required for use of this function.")
     start_time = time()
     img = distributed_data_generation(imgfunc, size, nimg, seed)
     time_dtgen = time() - start_time
@@ -337,55 +240,3 @@ def generate_blur_data(
         print(f"{'Blur generation':19s}{'time[s]:':10s}{time_blur:>7.2f}")
 
     return img, blurn
-
-
-def distributed_data_generation(
-    imgenf: Callable, size: int, nimg: int, seedg: float = 123
-) -> np.ndarray:
-    """Data generation distributed among processes using ray.
-
-    *Warning:* callable `imgenf` should not make use of any jax functions
-    to avoid the risk of errors when running with GPU devices, in which
-    case jax is initialized to expect the availability of GPUs, which are
-    then not available within the `ray.remote` function due to the absence
-    of any declared GPUs as a `num_gpus` parameter of `@ray.remote`.
-
-    Args:
-        imagenf: Function for batch-data generation.
-        size: Size of image to generate.
-        ndata: Number of images to generate.
-        seedg: Base seed for data generation. Default: 123.
-
-    Returns:
-        Array of generated data.
-    """
-    if not have_ray:
-        raise RuntimeError("Package ray is required for use of this function.")
-    if not ray.is_initialized():
-        raise RuntimeError("Ray must be initialized via ray.init() before using this function.")
-
-    # Use half of available CPU resources
-    ar = ray.available_resources()
-    if "CPU" not in ar:
-        warnings.warn("No CPU key in ray.available_resources() output.")
-    nproc = max(int(ar.get("CPU", 1)) // 2, 1)
-    if nproc > nimg:
-        nproc = nimg
-    if nproc > 1 and nimg % nproc > 0:
-        raise ValueError(
-            f"Number of images to generate ({nimg}) must be divisible by "
-            f"the number of available devices ({nproc})."
-        )
-
-    ndata_per_proc = int(nimg // nproc)
-
-    @ray.remote
-    def data_gen(seed, size, ndata, imgf):
-        return imgf(seed, size, ndata)
-
-    ray_return = ray.get(
-        [data_gen.remote(seed + seedg, size, ndata_per_proc, imgenf) for seed in range(nproc)]
-    )
-    imgs = np.vstack([t for t in ray_return])
-
-    return imgs
