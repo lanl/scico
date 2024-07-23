@@ -26,6 +26,7 @@ except ImportError:
 else:
     have_ray_and_xdesign = True
     from .ray_functions import (
+        generate_foam1_images,  # noqa
         generate_foam2_images,
         distributed_data_generation,
     )
