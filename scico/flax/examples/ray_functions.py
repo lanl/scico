@@ -158,6 +158,9 @@ def distributed_data_generation(
 
     @ray.remote(num_gpus=num_gpus)
     def data_gen(seed, size, ndata, imgf):
+        import os
+
+        print(f"CUDA_VISIBLE_DEVICES: {os.environ['CUDA_VISIBLE_DEVICES']}")
         return imgf(seed, size, ndata)
 
     ray_return = ray.get(
