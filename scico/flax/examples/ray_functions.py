@@ -80,6 +80,11 @@ def generate_foam1_images(seed: float, size: int, ndata: int) -> np.ndarray:
     Returns:
         Array of generated data.
     """
+    import os
+
+    os.environ["JAX_PLATFORMS"] = "cpu"
+    os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"
+    os.environ["XLA_PYTHON_CLIENT_ALLOCATOR"] = "platform"
     np.random.seed(seed)
     saux = np.zeros((ndata, size, size, 1), dtype=np.float32)
     for i in range(ndata):
@@ -163,11 +168,8 @@ def distributed_data_generation(
     @ray.remote(num_gpus=0.001)
     def data_gen(seed, size, ndata, imgf):
         import os
-        import sys
 
         os.environ["JAX_PLATFORMS"] = "cpu"
-        sys.modules.pop("jax")
-        sys.modules.pop("scico")
         os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"
         os.environ["XLA_PYTHON_CLIENT_ALLOCATOR"] = "platform"
         if "CUDA_VISIBLE_DEVICES" in os.environ:
