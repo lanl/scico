@@ -150,7 +150,9 @@ def distributed_data_generation(
     ndata_per_proc = int(nimg // nproc)
 
     # Attempt to avoid ray/jax conflicts. This solution is a nasty hack that
-    # is expected to be rather brittle.
+    # can severely limit parallel execution (since ray will ensure that only
+    # as many actors as availble GPUs are created), and is expected to be rather
+    # brittle.
     num_gpus = 1 if "GPU" in ar else 0
 
     @ray.remote(num_gpus=num_gpus)
