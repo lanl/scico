@@ -157,12 +157,14 @@ def distributed_data_generation(
         ray_noset_cuda = None
     os.environ["RAY_EXPERIMENTAL_NOSET_CUDA_VISIBLE_DEVICES"] = "1"
     os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"
+    os.environ["XLA_PYTHON_CLIENT_ALLOCATOR"] = "platform"
 
     @ray.remote(num_gpus=0.001)
     def data_gen(seed, size, ndata, imgf):
         import os
 
         os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"
+        os.environ["XLA_PYTHON_CLIENT_ALLOCATOR"] = "platform"
         if "CUDA_VISIBLE_DEVICES" in os.environ:
             print(f"CUDA_VISIBLE_DEVICES: {os.environ['CUDA_VISIBLE_DEVICES']}")
             del os.environ["CUDA_VISIBLE_DEVICES"]
