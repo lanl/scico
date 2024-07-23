@@ -162,6 +162,7 @@ def distributed_data_generation(
     def data_gen(seed, size, ndata, imgf):
         import os
 
+        os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"
         if "CUDA_VISIBLE_DEVICES" in os.environ:
             print(f"CUDA_VISIBLE_DEVICES: {os.environ['CUDA_VISIBLE_DEVICES']}")
             del os.environ["CUDA_VISIBLE_DEVICES"]
