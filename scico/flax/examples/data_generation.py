@@ -25,7 +25,7 @@ except ImportError:
 else:
     have_ray_and_xdesign = True
     from .ray_functions import (
-        generate_foam1_images,  # noqa
+        generate_foam1_images,
         generate_foam2_images,
         distributed_data_generation,
     )
@@ -171,7 +171,7 @@ def generate_blur_data(
     size: int,
     blur_kernel: Array,
     noise_sigma: float,
-    imgfunc: Callable,
+    imgfunc: Callable = generate_foam1_images,
     seed: int = 4321,
     verbose: bool = False,
 ) -> Tuple[Array, Array]:

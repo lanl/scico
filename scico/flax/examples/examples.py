@@ -16,7 +16,7 @@ from scico.flax.train.typed_dict import DataSetDict
 from scico.numpy import Array
 from scico.typing import Shape
 
-from .data_generation import generate_blur_data, generate_ct_data, generate_foam1_images
+from .data_generation import generate_blur_data, generate_ct_data
 from .data_preprocessing import ConfigImageSetDict, build_image_dataset, get_bsds_data
 from .typed_dict import CTDataSetDict
 
@@ -288,7 +288,6 @@ def load_blur_data(
         size,
         blur_kernel,
         noise_sigma,
-        imgfunc=generate_foam1_images,
         verbose=verbose,
     )
     # Separate training and testing partitions.
