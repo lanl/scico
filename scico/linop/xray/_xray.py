@@ -97,11 +97,11 @@ class Parallel2dProjector:
         self.input_shape = input_shape
         self.angles = angles
 
-        self.nx = np.array(input_shape)
+        self.nx = tuple(input_shape)
         if dx is None:
-            dx = np.full(2, np.sqrt(2) / 2)
+            dx = 2 * (np.sqrt(2) / 2,)
         if is_scalar_equiv(dx):
-            dx = np.full(2, dx)
+            dx = 2 * (dx,)
         self.dx = dx
 
         # check projected pixel width assumption
@@ -117,7 +117,7 @@ class Parallel2dProjector:
             )
 
         if x0 is None:
-            x0 = -(self.nx * self.dx) / 2
+            x0 = -(np.array(self.nx) * self.dx) / 2
         self.x0 = x0
 
         if det_count is None:
