@@ -105,7 +105,7 @@ def generate_foam1_images(seed: float, size: int, ndata: int) -> np.ndarray:
         Array of generated data.
     """
     if not have_xdesign:
-        raise RuntimeError("Package xdesign is required for use of this module.")
+        raise RuntimeError("Package xdesign is required for use of this function.")
     np.random.seed(seed)
     saux = np.zeros((ndata, size, size, 1), dtype=np.float32)
     for i in range(ndata):
@@ -130,7 +130,7 @@ def generate_foam2_images(seed: float, size: int, ndata: int) -> np.ndarray:
         Array of generated data.
     """
     if not have_xdesign:
-        raise RuntimeError("Package xdesign is required for use of this module.")
+        raise RuntimeError("Package xdesign is required for use of this function.")
     np.random.seed(seed)
     saux = np.zeros((ndata, size, size, 1), dtype=np.float32)
     for i in range(ndata):
