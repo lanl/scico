@@ -106,7 +106,7 @@ class Parallel2dProjector:
         Pdx = np.stack((dx[0] * jnp.cos(angles), dx[1] * jnp.sin(angles)))
         Pdiag1 = np.abs(Pdx[0] + Pdx[1])
         Pdiag2 = np.abs(Pdx[0] - Pdx[1])
-        max_width = np.max(np.maximum(Pdiag1, Pdiag2))
+        max_width: float = np.max(np.maximum(Pdiag1, Pdiag2))
 
         if max_width > 1:
             warn(
