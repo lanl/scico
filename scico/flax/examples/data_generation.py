@@ -28,7 +28,12 @@ except ImportError:
     # pylint: enable=missing-class-docstring
 else:
     have_xdesign = True
-    from xdesign import Foam, SimpleMaterial, UnitCircle, discrete_phantom
+    from xdesign import (  # type: ignore
+        Foam,
+        SimpleMaterial,
+        UnitCircle,
+        discrete_phantom,
+    )
 
 try:
     import ray  # noqa: F401
@@ -82,12 +87,14 @@ class Foam2(UnitCircle):
             attn2: Mass attenuation parameter for material 2.
                 Default: 10.
         """
-        super().__init__(radius=0.5, material=SimpleMaterial(attn1))
         if porosity < 0 or porosity > 1:
             raise ValueError("Porosity must be in the range [0,1).")
-        self.sprinkle(
+        super().__init__(radius=0.5, material=SimpleMaterial(attn1))  # type: ignore
+        self.sprinkle(  # type: ignore
             300, size_range, gap, material=SimpleMaterial(attn2), max_density=porosity / 2.0
-        ) + self.sprinkle(300, size_range, gap, material=SimpleMaterial(20), max_density=porosity)
+        ) + self.sprinkle(  # type: ignore
+            300, size_range, gap, material=SimpleMaterial(20), max_density=porosity
+        )
 
 
 def generate_foam1_images(seed: float, size: int, ndata: int) -> np.ndarray:
