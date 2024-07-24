@@ -11,7 +11,12 @@ from scico.test.linop.test_linop import adjoint_test
 from scico.test.linop.xray.test_svmbir import make_im
 
 try:
-    from scico.linop.xray.astra import XRayTransform2D, XRayTransform3D, angle_to_vector
+    from scico.linop.xray.astra import (
+        XRayTransform2D,
+        XRayTransform3D,
+        _ensure_writeable,
+        angle_to_vector,
+    )
 except ModuleNotFoundError as e:
     if e.name == "astra":
         pytest.skip("astra not installed", allow_module_level=True)
@@ -246,3 +251,8 @@ def test_project_coords(test_geometry):
     )  # projection along slices removes first index
     x_proj = scico.linop.xray.astra._project_coords(x_vol, vol_geom, proj_geom)
     np.testing.assert_array_equal(x_proj_gt, x_proj)
+
+
+def test_ensure_writeable():
+    assert isinstance(_ensure_writeable(np.ones((2, 1))), np.ndarray)
+    assert isinstance(_ensure_writeable(snp.ones((2, 1))), np.ndarray)
