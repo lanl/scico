@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2023 by SCICO Developers
+# Copyright (C) 2022-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SPORCO package. Details of the copyright
 # and user license can be found in the 'LICENSE.txt' file distributed
@@ -17,8 +17,9 @@ from typing import Callable, Iterable, Optional
 
 import jax.numpy as jnp
 
+import scico.numpy as snp
+
 from ._blockarray import BlockArray
-from .util import is_nested
 
 
 def add_attributes(
@@ -39,13 +40,15 @@ def add_attributes(
     for name, obj in from_dict.items():
         if name[0] == "_":
             continue
-        if isinstance(obj, ModuleType) and name in modules_to_recurse:
-            to_dict[name] = ModuleType(name)
-            to_dict[name].__package__ = to_dict["__name__"]
-            to_dict[name].__doc__ = obj.__doc__
-            # enable `import scico.numpy.linalg` and `from scico.numpy.linalg import norm`
-            sys.modules[to_dict["__name__"] + "." + name] = to_dict[name]
-            add_attributes(to_dict[name].__dict__, obj.__dict__)
+        if isinstance(obj, ModuleType):
+            if name in modules_to_recurse:
+                qualname = to_dict["__name__"] + "." + name
+                to_dict[name] = ModuleType(name, doc=obj.__doc__)
+                to_dict[name].__package__ = to_dict["__name__"]
+                # enable `import scico.numpy.linalg` and `from scico.numpy.linalg import norm`
+                sys.modules[qualname] = to_dict[name]
+                sys.modules[qualname].__name__ = qualname
+                add_attributes(to_dict[name].__dict__, obj.__dict__)
         else:
             to_dict[name] = obj
 
@@ -70,7 +73,7 @@ def wrap_recursively(
 
 def map_func_over_tuple_of_tuples(func: Callable, map_arg_name: Optional[str] = "shape"):
     """Wrap a function so that it automatically maps over a tuple of tuples
-    argument, returning a `BlockArray`.
+    argument, returning a BlockArray.
     """
 
     @wraps(func)
@@ -82,7 +85,7 @@ def map_func_over_tuple_of_tuples(func: Callable, map_arg_name: Optional[str] = 
 
         map_arg_val = bound_args.arguments.pop(map_arg_name)
 
-        if not is_nested(map_arg_val):
+        if not snp.util.is_nested(map_arg_val):  # not nested tuple
             return func(*args, **kwargs)  # no mapping
 
         # map
@@ -93,45 +96,76 @@ def map_func_over_tuple_of_tuples(func: Callable, map_arg_name: Optional[str] = 
     return mapped
 
 
+def _num_blocks_in_args(*args, **kwargs):
+    """Count the number of BlockArray arguments."""
+    first_ba_arg = next((arg for arg in args if isinstance(arg, BlockArray)), None)
+    if first_ba_arg is None:
+        first_ba_kwarg = next((v for k, v in kwargs.items() if isinstance(v, BlockArray)), None)
+        if first_ba_kwarg is None:
+            num_blocks = 0
+        else:
+            num_blocks = len(first_ba_kwarg)
+    else:
+        num_blocks = len(first_ba_arg)
+    return num_blocks
+
+
+def _block_args_kwargs(num_blocks, *args, **kwargs):
+    """Construct nested args/kwargs for each BlockArray block."""
+    new_args = []
+    new_kwargs = []
+    for i in range(num_blocks):
+        new_args.append([arg[i] if isinstance(arg, BlockArray) else arg for arg in args])
+        new_kwargs.append(
+            {k: (v[i] if isinstance(v, BlockArray) else v) for k, v in kwargs.items()}
+        )
+    return new_args, new_kwargs
+
+
 def map_func_over_blocks(func):
-    """Wrap a function so that it maps over all of its `BlockArray`
+    """Wrap a function so that it maps over all of its BlockArray
     arguments.
     """
 
     @wraps(func)
     def mapped(*args, **kwargs):
-
-        first_ba_arg = next((arg for arg in args if isinstance(arg, BlockArray)), None)
-        if first_ba_arg is None:
-            first_ba_kwarg = next((v for k, v in kwargs.items() if isinstance(v, BlockArray)), None)
-            if first_ba_kwarg is None:
-                return func(*args, **kwargs)  # no BlockArray arguments, so no mapping
-            num_blocks = len(first_ba_kwarg)
-        else:
-            num_blocks = len(first_ba_arg)
-
-        # build a list of new args and kwargs, one for each block
-        new_args_list = []
-        new_kwargs_list = []
-        for i in range(num_blocks):
-            new_args_list.append([arg[i] if isinstance(arg, BlockArray) else arg for arg in args])
-            new_kwargs_list.append(
-                {k: (v[i] if isinstance(v, BlockArray) else v) for k, v in kwargs.items()}
-            )
-
+        num_blocks = _num_blocks_in_args(*args, **kwargs)
+        if num_blocks == 0:
+            return func(*args, **kwargs)  # no BlockArray arguments, so no mapping
+        new_args, new_kwargs = _block_args_kwargs(num_blocks, *args, **kwargs)
         # run the function num_blocks times, return results in a BlockArray
-        return BlockArray(func(*new_args_list[i], **new_kwargs_list[i]) for i in range(num_blocks))
+        return BlockArray(func(*new_args[i], **new_kwargs[i]) for i in range(num_blocks))
+
+    return mapped
+
+
+def map_void_func_over_blocks(func):
+    """Wrap a function without a return value so that it maps over all
+    of its BlockArray arguments.
+    """
+
+    @wraps(func)
+    def mapped(*args, **kwargs):
+        num_blocks = _num_blocks_in_args(*args, **kwargs)
+        if num_blocks == 0:
+            func(*args, **kwargs)  # no BlockArray arguments, so no mapping
+        else:
+            new_args, new_kwargs = _block_args_kwargs(num_blocks, *args, **kwargs)
+            # run the function num_blocks times
+            [func(*new_args[i], **new_kwargs[i]) for i in range(num_blocks)]
 
     return mapped
 
 
 def add_full_reduction(func: Callable, axis_arg_name: Optional[str] = "axis"):
-    """Wrap a function so that it can fully reduce a `BlockArray`. If
+    """Wrap a function so that it can fully reduce a BlockArray.
+
+    Wrap a function so that it can fully reduce a :class:`.BlockArray`. If
     nothing is passed for the axis argument and the function is called
-    on a `BlockArray`, it is fully ravelled before the function is
+    on a :class:`.BlockArray`, it is fully ravelled before the function is
     called.
 
-    Should be outside `map_func_over_blocks`.
+    Should be outside :func:`map_func_over_blocks`.
     """
     sig = signature(func)
     if axis_arg_name not in sig.parameters:

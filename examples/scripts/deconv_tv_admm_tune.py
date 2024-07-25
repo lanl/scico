@@ -32,9 +32,12 @@ import os
 os.environ["JAX_PLATFORM_NAME"] = "cpu"
 os.environ["JAX_PLATFORMS"] = "cpu"
 
-import jax
-
 from xdesign import SiemensStar, discrete_phantom
+
+import logging
+import ray
+
+ray.init(logging_level=logging.ERROR)  # need to call init before jax import: ray-project/ray#44087
 
 import scico.numpy as snp
 import scico.random
@@ -80,8 +83,6 @@ def eval_params(config, x_gt, psf, y):
     """
     # Extract solver parameters from config dict.
     λ, ρ = config["lambda"], config["rho"]
-    # Put main arrays on jax device.
-    x_gt, psf, y = jax.device_put([x_gt, psf, y])
     # Set up problem to be solved.
     A = linop.Convolve(h=psf, input_shape=x_gt.shape)
     f = loss.SquaredL2Loss(y=y, A=A)
@@ -122,6 +123,7 @@ tuner = tune.Tuner(
     num_samples=100,  # perform 100 parameter evaluations
 )
 results = tuner.fit()
+ray.shutdown()
 
 
 """

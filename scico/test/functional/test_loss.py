@@ -1,6 +1,6 @@
 import numpy as np
 
-from jax.config import config
+from jax import config
 
 import pytest
 
@@ -31,7 +31,7 @@ class TestLoss:
         self.v, key = randn((n,), key=key, dtype=dtype)  # point for prox eval
         scalar, key = randn((1,), key=key, dtype=dtype)
         self.key = key
-        self.scalar = scalar.item()
+        self.scalar = scalar[0].item()
 
     def test_generic_squared_l2(self):
         A = linop.Identity(input_shape=self.y.shape)
@@ -84,6 +84,16 @@ class TestLoss:
         pf = prox_test(self.v, L_d, L_d.prox, 0.75)
         pf = prox_test(self.v, L, L.prox, 0.75)
 
+    def test_squared_l2_grad(self):
+        La = loss.SquaredL2Loss(y=self.y)
+        Lb = loss.SquaredL2Loss(y=self.y, scale=5e0)
+        Lc = 1e1 * La
+        ga = La.grad(self.v)
+        gb = Lb.grad(self.v)
+        gc = Lc.grad(self.v)
+        np.testing.assert_allclose(1e1 * ga, gb)
+        np.testing.assert_allclose(gb, gc)
+
     def test_weighted_squared_l2(self):
         L = loss.SquaredL2Loss(y=self.y, A=self.Ao, W=self.W)
         assert L.has_eval
@@ -119,7 +129,6 @@ class TestLoss:
 
 
 class TestAbsLoss:
-
     abs_loss = (
         (loss.SquaredL2AbsLoss, snp.abs),
         (loss.SquaredL2SquaredAbsLoss, lambda x: snp.abs(x) ** 2),
@@ -137,7 +146,7 @@ class TestAbsLoss:
         self.x, key = randn((n,), key=key, dtype=complex_dtype(dtype))
         self.v, key = randn((n,), key=key, dtype=complex_dtype(dtype))  # point for prox eval
         scalar, key = randn((1,), key=key, dtype=dtype)
-        self.scalar = scalar.item()
+        self.scalar = scalar[0].item()
 
     @pytest.mark.parametrize("loss_tuple", abs_loss)
     def test_properties(self, loss_tuple):
@@ -218,7 +227,7 @@ def test_cubic_root():
     r = loss._dep_cubic_root(p, q)
     err = snp.abs(r**3 + p * r + q)
     assert err.max() < 2e-4
-    # Test
+    # Test loss of precision warning
     p = snp.array(1e-4, dtype=snp.float32)
     q = snp.array(1e1, dtype=snp.float32)
     with pytest.warns(UserWarning):

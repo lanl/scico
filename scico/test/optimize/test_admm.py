@@ -1,11 +1,9 @@
 import numpy as np
 
-import jax
-
 import pytest
 
 import scico.numpy as snp
-from scico import functional, linop, loss, metric, random
+from scico import functional, linop, loss, metric, operator, random
 from scico.optimize import ADMM
 from scico.optimize.admm import (
     CircularConvolveSolver,
@@ -13,13 +11,14 @@ from scico.optimize.admm import (
     G0BlockCircularConvolveSolver,
     GenericSubproblemSolver,
     LinearSubproblemSolver,
+    MatrixSubproblemSolver,
 )
 
 
 class TestMisc:
     def setup_method(self, method):
         np.random.seed(12345)
-        self.y = jax.device_put(np.random.randn(16, 17).astype(np.float32))
+        self.y = snp.array(np.random.randn(16, 17).astype(np.float32))
 
     def test_admm(self):
         maxiter = 2
@@ -72,6 +71,37 @@ class TestMisc:
         with pytest.raises(ValueError):
             admm_.solve()
 
+    @pytest.mark.parametrize(
+        "solver", [LinearSubproblemSolver, MatrixSubproblemSolver, CircularConvolveSolver]
+    )
+    def test_admm_aux(self, solver):
+        maxiter = 2
+        ρ = 1e-1
+        A = operator.Abs(self.y.shape)
+        f = loss.SquaredL2Loss(y=self.y, A=A)
+        g = functional.DnCNN()
+        C = linop.Identity(self.y.shape)
+
+        with pytest.raises(TypeError):
+            admm_ = ADMM(
+                f=f,
+                g_list=[g],
+                C_list=[C],
+                rho_list=[ρ],
+                maxiter=maxiter,
+                subproblem_solver=solver(),
+            )
+
+        with pytest.raises(TypeError):
+            admm_ = ADMM(
+                f=g,
+                g_list=[g],
+                C_list=[C],
+                rho_list=[ρ],
+                maxiter=maxiter,
+                subproblem_solver=solver(),
+            )
+
 
 class TestReal:
     def setup_method(self, method):
@@ -80,14 +110,14 @@ class TestReal:
         MB = 5
         N = 6
         # Set up arrays for problem argmin (𝛼/2) ||A x - y||_2^2 + (λ/2) ||B x||_2^2
-        Amx = np.random.randn(MA, N)
-        Bmx = np.random.randn(MB, N)
-        y = np.random.randn(MA)
+        Amx = np.random.randn(MA, N).astype(np.float32)
+        Bmx = np.random.randn(MB, N).astype(np.float32)
+        y = np.random.randn(MA).astype(np.float32)
         𝛼 = np.pi  # sort of random number chosen to test non-default scale factor
         λ = 1e0
         self.Amx = Amx
         self.Bmx = Bmx
-        self.y = jax.device_put(y)
+        self.y = snp.array(y)
         self.𝛼 = 𝛼
         self.λ = λ
         # Solution of problem is given by linear system (𝛼 A^T A + λ B^T B) x = 𝛼 A^T y
@@ -187,16 +217,16 @@ class TestRealWeighted:
         MB = 5
         N = 6
         # Set up arrays for problem argmin (𝛼/2) ||A x - y||_W^2 + (λ/2) ||B x||_2^2
-        Amx = np.random.randn(MA, N)
-        W = np.abs(np.random.randn(MA, 1))
-        Bmx = np.random.randn(MB, N)
-        y = np.random.randn(MA)
+        Amx = np.random.randn(MA, N).astype(np.float32)
+        W = np.abs(np.random.randn(MA, 1).astype(np.float32))
+        Bmx = np.random.randn(MB, N).astype(np.float32)
+        y = np.random.randn(MA).astype(np.float32)
         𝛼 = np.pi  # sort of random number chosen to test non-default scale factor
         λ = np.e
         self.Amx = Amx
-        self.W = jax.device_put(W)
+        self.W = snp.array(W)
         self.Bmx = Bmx
-        self.y = jax.device_put(y)
+        self.y = snp.array(y)
         self.𝛼 = 𝛼
         self.λ = λ
         # Solution of problem is given by linear system
@@ -204,7 +234,7 @@ class TestRealWeighted:
         self.grdA = lambda x: (𝛼 * Amx.T @ (W * Amx) + λ * Bmx.T @ Bmx) @ x
         self.grdb = 𝛼 * Amx.T @ (W[:, 0] * y)
 
-    def test_admm_quadratic(self):
+    def test_admm_quadratic_linear(self):
         maxiter = 100
         ρ = 1e0
         A = linop.MatrixOperator(self.Amx)
@@ -225,6 +255,27 @@ class TestRealWeighted:
         x = admm_.solve()
         assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-4
 
+    def test_admm_quadratic_matrix(self):
+        maxiter = 50
+        ρ = 1e0
+        A = linop.MatrixOperator(self.Amx)
+        f = loss.SquaredL2Loss(y=self.y, A=A, W=linop.Diagonal(self.W[:, 0]), scale=self.𝛼 / 2.0)
+        g_list = [(self.λ / 2) * functional.SquaredL2Norm()]
+        C_list = [linop.MatrixOperator(self.Bmx)]
+        rho_list = [ρ]
+        admm_ = ADMM(
+            f=f,
+            g_list=g_list,
+            C_list=C_list,
+            rho_list=rho_list,
+            maxiter=maxiter,
+            itstat_options={"display": False},
+            x0=A.adj(self.y),
+            subproblem_solver=MatrixSubproblemSolver(),
+        )
+        x = admm_.solve()
+        assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-5
+
 
 class TestComplex:
     def setup_method(self, method):
@@ -234,12 +285,12 @@ class TestComplex:
         # Set up arrays for problem argmin (𝛼/2) ||A x - y||_2^2 + (λ/2) ||B x||_2^2
         Amx, key = random.randn((MA, N), dtype=np.complex64, key=None)
         Bmx, key = random.randn((MB, N), dtype=np.complex64, key=key)
-        y = np.random.randn(MA)
+        y, key = random.randn((MA,), dtype=np.complex64, key=key)
         𝛼 = 1.0 / 3.0
         λ = 1e0
         self.Amx = Amx
         self.Bmx = Bmx
-        self.y = jax.device_put(y)
+        self.y = y
         self.𝛼 = 𝛼
         self.λ = λ
         # Solution of problem is given by linear system (𝛼 A^T A + λ B^T B) x = A^T y
@@ -267,7 +318,7 @@ class TestComplex:
         x = admm_.solve()
         assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-3
 
-    def test_admm_quadratic(self):
+    def test_admm_quadratic_linear(self):
         maxiter = 50
         ρ = 1e0
         A = linop.MatrixOperator(self.Amx)
@@ -290,24 +341,51 @@ class TestComplex:
         x = admm_.solve()
         assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-4
 
+    def test_admm_quadratic_matrix(self):
+        maxiter = 50
+        ρ = 1e0
+        A = linop.MatrixOperator(self.Amx)
+        f = loss.SquaredL2Loss(y=self.y, A=A, scale=self.𝛼 / 2.0)
+        g_list = [(self.λ / 2) * functional.SquaredL2Norm()]
+        C_list = [linop.MatrixOperator(self.Bmx)]
+        rho_list = [ρ]
+        admm_ = ADMM(
+            f=f,
+            g_list=g_list,
+            C_list=C_list,
+            rho_list=rho_list,
+            maxiter=maxiter,
+            itstat_options={"display": False},
+            x0=A.adj(self.y),
+            subproblem_solver=MatrixSubproblemSolver(),
+        )
+        x = admm_.solve()
+        assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-5
 
+
+@pytest.mark.parametrize("extra_axis", (False, True))
+@pytest.mark.parametrize("center", (None, [-1.0, 2.5]))
 class TestCircularConvolveSolve:
-    def setup_method(self, method):
+
+    @pytest.fixture(scope="function", autouse=True)
+    def setup_and_teardown(self, extra_axis, center):
         np.random.seed(12345)
         Nx = 8
-        x = np.pad(np.ones((Nx, Nx), dtype=np.float32), Nx)
+        x = snp.pad(snp.ones((Nx, Nx), dtype=np.float32), Nx)
         Npsf = 3
         psf = snp.ones((Npsf, Npsf), dtype=np.float32) / (Npsf**2)
+        if extra_axis:
+            x = x[np.newaxis]
+            psf = psf[np.newaxis]
         self.A = linop.CircularConvolve(
-            h=psf,
-            input_shape=x.shape,
-            input_dtype=np.float32,
+            h=psf, input_shape=x.shape, ndims=2, input_dtype=np.float32, h_center=center
         )
         self.y = self.A(x)
         λ = 1e-2
         self.f = loss.SquaredL2Loss(y=self.y, A=self.A)
         self.g_list = [λ * functional.L1Norm()]
         self.C_list = [linop.FiniteDifference(input_shape=x.shape, circular=True)]
+        yield
 
     def test_admm(self):
         maxiter = 50
@@ -334,6 +412,60 @@ class TestCircularConvolveSolve:
             x0=self.A.adj(self.y),
             subproblem_solver=CircularConvolveSolver(),
         )
+        assert admm_dft.subproblem_solver.A_lhs.ndims == 2
+        x_dft = admm_dft.solve()
+        np.testing.assert_allclose(x_dft, x_lin, atol=1e-4, rtol=0)
+        assert metric.mse(x_lin, x_dft) < 1e-9
+
+
+@pytest.mark.parametrize("with_cconv", (False, True))
+class TestSpecialCaseCircularConvolveSolve:
+
+    @pytest.fixture(scope="function", autouse=True)
+    def setup_and_teardown(self, with_cconv):
+        np.random.seed(12345)
+        Nx = 8
+        x = snp.pad(snp.ones((1, Nx, Nx), dtype=np.float32), Nx)
+        if with_cconv:
+            Npsf = 3
+            psf = snp.ones((1, Npsf, Npsf), dtype=np.float32) / (Npsf**2)
+            C0 = linop.CircularConvolve(h=psf, input_shape=x.shape, ndims=2, input_dtype=np.float32)
+        else:
+            C0 = linop.FiniteDifference(input_shape=x.shape, axes=(1, 2), circular=True)
+        C1 = linop.Identity(input_shape=x.shape)
+        self.y = C0(x)
+        self.g_list = [loss.SquaredL2Loss(y=self.y), functional.L2Norm()]
+        self.C_list = [C0, C1]
+        self.with_cconv = with_cconv
+        yield
+
+    def test_admm(self):
+        maxiter = 50
+        ρ = 1e-1
+        rho_list = [ρ, ρ]
+        admm_lin = ADMM(
+            f=None,
+            g_list=self.g_list,
+            C_list=self.C_list,
+            rho_list=rho_list,
+            maxiter=maxiter,
+            itstat_options={"display": False},
+            x0=self.C_list[0].adj(self.y),
+            subproblem_solver=LinearSubproblemSolver(),
+        )
+        x_lin = admm_lin.solve()
+        ndims = None if self.with_cconv else 2
+        admm_dft = ADMM(
+            f=None,
+            g_list=self.g_list,
+            C_list=self.C_list,
+            rho_list=rho_list,
+            maxiter=maxiter,
+            itstat_options={"display": False},
+            x0=self.C_list[0].adj(self.y),
+            subproblem_solver=CircularConvolveSolver(ndims=ndims),
+        )
+        assert admm_dft.subproblem_solver.A_lhs.ndims == 2
         x_dft = admm_dft.solve()
         np.testing.assert_allclose(x_dft, x_lin, atol=1e-4, rtol=0)
         assert metric.mse(x_lin, x_dft) < 1e-9
@@ -369,7 +501,7 @@ class TestBlockCircularConvolveSolve:
                 itstat_options={"display": False},
                 subproblem_solver=FBlockCircularConvolveSolver(),
             )
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             slvr = ADMM(
                 f=loss.PoissonLoss(y=self.y),
                 g_list=self.g_list,
@@ -378,7 +510,7 @@ class TestBlockCircularConvolveSolve:
                 itstat_options={"display": False},
                 subproblem_solver=FBlockCircularConvolveSolver(),
             )
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             slvr = ADMM(
                 f=loss.SquaredL2Loss(y=self.y, A=self.A.A),
                 g_list=self.g_list,
@@ -398,7 +530,7 @@ class TestBlockCircularConvolveSolve:
                 itstat_options={"display": False},
                 subproblem_solver=G0BlockCircularConvolveSolver(),
             )
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             slvr = ADMM(
                 f=functional.ZeroFunctional(),
                 g_list=[loss.PoissonLoss(y=self.y)],
@@ -407,7 +539,7 @@ class TestBlockCircularConvolveSolve:
                 itstat_options={"display": False},
                 subproblem_solver=G0BlockCircularConvolveSolver(),
             )
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             slvr = ADMM(
                 f=functional.ZeroFunctional(),
                 g_list=[loss.SquaredL2Loss(y=self.y)] + self.g_list,

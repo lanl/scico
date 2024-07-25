@@ -48,10 +48,17 @@ def operator_from_function(f: Callable, classname: str, f_name: Optional[str] = 
         Args:
             input_shape: Shape of input array.
             args: Positional arguments passed to :func:`{f_name}`.
-            input_dtype: `dtype` for input argument.
-                Defaults to ``float32``. If :class:`.Operator` implements
-                complex-valued operations, this must be ``complex64`` for
-                proper adjoint and gradient calculation.
+            input_dtype: `dtype` for input argument. Defaults to
+                :attr:`~numpy.float32`. If the :class:`.Operator`
+                implements complex-valued operations, this must be a
+                complex dtype (typically :attr:`~numpy.complex64`) for
+                correct adjoint and gradient calculation.
+            output_shape: Shape of output array. Defaults to ``None``.
+                If ``None``, `output_shape` is determined by evaluating
+                `self.__call__` on an input array of zeros.
+            output_dtype: `dtype` for output argument. Defaults to
+                ``None``. If ``None``, `output_dtype` is determined by
+                evaluating `self.__call__` on an input array of zeros.
             jit: If ``True``, call :meth:`.Operator.jit` on this
                 `Operator` to jit the forward, adjoint, and gram
                 functions. Same as calling :meth:`.Operator.jit` after
@@ -64,11 +71,13 @@ def operator_from_function(f: Callable, classname: str, f_name: Optional[str] = 
         input_shape: Union[Shape, BlockShape],
         *args: Any,
         input_dtype: DType = snp.float32,
+        output_shape: Optional[Union[Shape, BlockShape]] = None,
+        output_dtype: Optional[DType] = None,
         jit: bool = True,
         **kwargs: Any,
     ):
         self._eval = lambda x: f(x, *args, **kwargs)
-        super().__init__(input_shape, input_dtype=input_dtype, jit=jit)  # type: ignore
+        super().__init__(input_shape, input_dtype=input_dtype, output_shape=output_shape, output_dtype=output_dtype, jit=jit)  # type: ignore
 
     OpClass = type(classname, (Operator,), {"__init__": __init__})
     __class__ = OpClass  # needed for super() to work

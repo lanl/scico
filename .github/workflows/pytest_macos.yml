@@ -13,7 +13,7 @@ on:
 jobs:
 
   test:
-    runs-on: macos-latest
+    runs-on: macos-13
     strategy:
       fail-fast: false
       matrix:
@@ -24,18 +24,18 @@ jobs:
         shell: bash -l {0}
     steps:
       # Check-out the repository under $GITHUB_WORKSPACE
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
       # Set up conda/mamba environment
       - name: Set up mambaforge
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
             miniforge-variant: Mambaforge
             miniforge-version: latest
             activate-environment: test-env
             use-mamba: true
-            python-version: "3.9"
+            python-version: "3.10"
       # Configure conda environment cache
       - name: Set up conda environment cache
         uses: actions/cache@v3
@@ -59,20 +59,20 @@ jobs:
           pip install pytest-split
           pip install -r requirements.txt
           pip install -r dev_requirements.txt
+          mamba install -c conda-forge svmbir>=0.3.3
           mamba install -c astra-toolbox astra-toolbox
           mamba install -c conda-forge pyyaml
           pip install --upgrade --force-reinstall scipy>=1.6.0  # Temporary fix for GLIBCXX_3.4.30 not found in conda forge version
+          pip install bm3d>=4.0.0
           pip install bm4d>=4.0.0
-          pip install "ray[tune]>=2.0.0"
+          pip install "ray[tune]>=2.5.0"
           pip install hyperopt
       # Install package to be tested
       - name: Install package to be tested
         run: pip install -e .
       # Run unit tests
       - name: Run main unit tests
-        run: pytest -x --splits 5 --group ${{ matrix.group }}
-      # Run doc tests
-      - name: Run doc tests
-        if: matrix.group == 1
         run: |
-          pytest --ignore-glob="*test_*.py" --doctest-modules scico
+          DURATIONS_FILE=$(mktemp)
+          bzcat data/pytest/durations_macos.bz2 > $DURATIONS_FILE
+          pytest -x --level=1 --durations-path=$DURATIONS_FILE --splits=5 --group=${{ matrix.group }} --pyargs scico

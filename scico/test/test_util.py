@@ -8,7 +8,32 @@ import jax
 import pytest
 
 import scico.numpy as snp
-from scico.util import ContextTimer, Timer, check_for_tracer, partial, url_get
+from scico.util import (
+    ContextTimer,
+    Timer,
+    check_for_tracer,
+    partial,
+    rgetattr,
+    rsetattr,
+    url_get,
+)
+
+
+def test_rattr():
+    class A:
+        class B:
+            c = 0
+
+        b = B()
+
+    a = A()
+    rsetattr(a, "b.c", 1)
+    assert rgetattr(a, "b.c") == 1
+
+    assert rgetattr(a, "c.d", 10) == 10
+
+    with pytest.raises(AttributeError):
+        assert rgetattr(a, "c.d")
 
 
 def test_partial_pos():
@@ -53,13 +78,13 @@ def _internet_connected(host="8.8.8.8", port=53, timeout=3):
 
 @pytest.mark.skipif(not _internet_connected(), reason="No internet connection")
 def test_url_get():
-    url = "https://github.com/lanl/scico/blob/main/README.rst"
+    url = "https://github.com/lanl/scico/blob/main/README.md"
     assert not url_get(url).getvalue().find(b"SCICO") == -1
 
     url = "about:blank"
     np.testing.assert_raises(urlerror.URLError, url_get, url)
 
-    url = "https://github.com/lanl/scico/blob/main/README.rst"
+    url = "https://github.com/lanl/scico/blob/main/README.md"
     np.testing.assert_raises(ValueError, url_get, url, -1)
 
 

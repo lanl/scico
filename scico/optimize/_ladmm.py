@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2023 by SCICO Developers
+# Copyright (C) 2021-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -11,14 +11,13 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Tuple, Union
 
 import scico.numpy as snp
 from scico.functional import Functional
 from scico.linop import LinearOperator
 from scico.numpy import Array, BlockArray
 from scico.numpy.linalg import norm
-from scico.numpy.util import ensure_on_device
 
 from ._common import Optimizer
 
@@ -115,7 +114,7 @@ class LinearizedADMM(Optimizer):
             input_shape = C.input_shape
             dtype = C.input_dtype
             x0 = snp.zeros(input_shape, dtype=dtype)
-        self.x = ensure_on_device(x0)
+        self.x = x0
         self.z, self.z_old = self.z_init(self.x)
         self.u = self.u_init(self.x)
 
@@ -150,7 +149,7 @@ class LinearizedADMM(Optimizer):
     def objective(
         self,
         x: Optional[Union[Array, BlockArray]] = None,
-        z: Optional[List[Union[Array, BlockArray]]] = None,
+        z: Optional[Union[Array, BlockArray]] = None,
     ) -> float:
         r"""Evaluate the objective function.
 

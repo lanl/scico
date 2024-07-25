@@ -22,7 +22,6 @@ In this example the problem is solved via standard ADMM, while proximal
 ADMM is used in a [companion example](deconv_tv_padmm.rst).
 """
 
-import jax
 
 from xdesign import SiemensStar, discrete_phantom
 
@@ -38,7 +37,6 @@ Create a ground truth image.
 phantom = SiemensStar(32)
 N = 256  # image size
 x_gt = snp.pad(discrete_phantom(phantom, N - 16), 8)
-x_gt = jax.device_put(x_gt)  # convert to jax type, push to GPU
 
 
 """
@@ -79,7 +77,7 @@ the data fidelity term.
 f = loss.SquaredL2Loss(y=y, A=C)
 # Penalty parameters must be accounted for in the gi functions, not as
 # additional inputs.
-λ = 2.1e-2  # L21 norm regularization parameter
+λ = 2.1e-2  # ℓ2,1 norm regularization parameter
 g = λ * functional.L21Norm()
 # The append=0 option makes the results of horizontal and vertical
 # finite differences the same shape, which is required for the L21Norm,

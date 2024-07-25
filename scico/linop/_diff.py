@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2023 by SCICO Developers
+# Copyright (C) 2020-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -17,17 +17,16 @@ from typing import Literal, Optional, Union
 import numpy as np
 
 import scico.numpy as snp
-from scico.numpy.util import parse_axes
 from scico.typing import Axes, DType, Shape
 
 from ._linop import LinearOperator
-from ._stack import VerticalStack
+from ._stack import VerticalStack, linop_over_axes
 
 
 class FiniteDifference(VerticalStack):
     """Finite difference operator.
 
-    Computes finite differences along the specified axes, returning the
+    Compute finite differences along the specified axes, returning the
     results in a :class:`jax.Array` (when possible) or :class:`BlockArray`.
     See :class:`VerticalStack` for details on how this choice is made.
     See :class:`SingleAxisFiniteDifference` for the mathematical
@@ -61,9 +60,7 @@ class FiniteDifference(VerticalStack):
         Args:
             input_shape: Shape of input array.
             input_dtype: `dtype` for input argument. Defaults to
-                ``float32``. If :class:`LinearOperator` implements
-                complex-valued operations, this must be ``complex64`` for
-                proper adjoint and gradient calculation.
+                :attr:`~numpy.float32`.
             axes: Axis or axes over which to apply finite difference
                 operator. If not specified, or ``None``, differences are
                 evaluated along all axes.
@@ -78,27 +75,21 @@ class FiniteDifference(VerticalStack):
                 -1 times the final value in the array are appended to the
                 difference array.
             circular: If ``True``, perform circular differences, i.e.,
-                include x[-1] - x[0]. If ``True``, `prepend` and `append
+                include x[-1] - x[0]. If ``True``, `prepend` and `append`
                 must both be ``None``.
             jit: If ``True``, jit the evaluation, adjoint, and gram
                 functions of the :class:`LinearOperator`.
         """
-
-        if axes is None:
-            axes_list = tuple(range(len(input_shape)))
-        elif isinstance(axes, (list, tuple)):
-            axes_list = axes
-        else:
-            axes_list = (axes,)
-        self.axes = parse_axes(axes_list, input_shape)
-        single_kwargs = dict(
-            input_dtype=input_dtype, prepend=prepend, append=append, circular=circular, jit=False
+        self.axes, ops = linop_over_axes(
+            SingleAxisFiniteDifference,
+            input_shape,
+            axes=axes,
+            input_dtype=input_dtype,
+            prepend=prepend,
+            append=append,
+            circular=circular,
+            jit=False,
         )
-        ops = [
-            SingleAxisFiniteDifference(input_shape, axis=axis, **single_kwargs)
-            for axis in axes_list
-        ]
-
         super().__init__(
             ops,  # type: ignore
             jit=jit,
@@ -179,9 +170,7 @@ class SingleAxisFiniteDifference(LinearOperator):
         Args:
             input_shape: Shape of input array.
             input_dtype: `dtype` for input argument. Defaults to
-                ``float32``. If :class:`LinearOperator` implements
-                complex-valued operations, this must be ``complex64`` for
-                proper adjoint and gradient calculation.
+                :attr:`~numpy.float32`.
             axis: Axis over which to apply finite difference operator.
             prepend: Flag indicating handling of the left/top/etc.
                 boundary. If ``None``, there is no boundary extension.
@@ -194,7 +183,7 @@ class SingleAxisFiniteDifference(LinearOperator):
                 -1 times the final value in the array are appended to the
                 difference array.
             circular: If ``True``, perform circular differences, i.e.,
-                include x[-1] - x[0]. If ``True``, `prepend` and `append
+                include x[-1] - x[0]. If ``True``, `prepend` and `append`
                 must both be ``None``.
             jit: If ``True``, jit the evaluation, adjoint, and gram
                 functions of the :class:`LinearOperator`.

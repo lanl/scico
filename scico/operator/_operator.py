@@ -1,4 +1,4 @@
-# Copyright (C) 2020-2023 by SCICO Developers
+# Copyright (C) 2020-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -40,6 +40,9 @@ def _wrap_mul_div_scalar(func: Callable) -> Callable:
         func: should be either `.__mul__()`, `.__rmul__()`,
            or `.__truediv__()`.
 
+    Returns:
+       Wrapped version of `func`.
+
     Raises:
         TypeError: If a binop with the form `binop(Operator, other)` is
         called and `other` is not a scalar.
@@ -47,10 +50,12 @@ def _wrap_mul_div_scalar(func: Callable) -> Callable:
 
     @wraps(func)
     def wrapper(a, b):
-        if np.isscalar(b) or isinstance(b, jax.core.Tracer):
+        if snp.util.is_scalar_equiv(b):
             return func(a, b)
 
         raise TypeError(f"Operation {func.__name__} not defined between {type(a)} and {type(b)}.")
+
+    wrapper._unwrapped = func  # type: ignore
 
     return wrapper
 
@@ -66,7 +71,7 @@ input_dtype : {self.input_dtype}
 output_dtype : {self.output_dtype}
         """
 
-    # See https://docs.scipy.org/doc/numpy-1.10.1/user/c-info.beyond-basics.html#ndarray.__array_priority__
+    # See https://numpy.org/doc/stable/user/c-info.beyond-basics.html#ndarray.__array_priority__
     __array_priority__ = 1
 
     def __init__(
@@ -88,9 +93,10 @@ output_dtype : {self.output_dtype}
                 Defaults to ``None``. Required unless `__init__` is being
                 called from a derived class with an `_eval` method.
             input_dtype: `dtype` for input argument. Defaults to
-                ``float32``. If :class:`.Operator` implements
-                complex-valued operations, this must be ``complex64`` for
-                proper adjoint and gradient calculation.
+                :attr:`~numpy.float32`. If the :class:`.Operator`
+                implements complex-valued operations, this must be a
+                complex dtype (typically :attr:`~numpy.complex64`) for
+                correct adjoint and gradient calculation.
             output_dtype: `dtype` for output argument. Defaults to
                 ``None``. If ``None``, `output_dtype` is determined by
                 evaluating `self.__call__` on an input array of zeros.
@@ -382,7 +388,7 @@ output_dtype : {self.output_dtype}
             # concat_args(args) = snp.blockarray([args, val]) if argnum = 1
 
             if isinstance(args, (jnp.ndarray, np.ndarray)):
-                # In the case that the original operator takes a blockkarray with two
+                # In the case that the original operator takes a blockarray with two
                 # blocks, wrap in a list so we can use the same indexing as >2 block case
                 args = [args]
 

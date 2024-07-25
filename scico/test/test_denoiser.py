@@ -8,6 +8,14 @@ from scico.denoiser import DnCNN, bm3d, bm4d, have_bm3d, have_bm4d
 from scico.random import randn
 from scico.test.osver import osx_ver_geq_than
 
+level = 3
+
+
+@pytest.fixture(autouse=True, scope="module")
+def module_setup_teardown(request):
+    global level
+    level = int(request.config.getoption("--level"))
+
 
 # bm3d is known to be broken on OSX 11.6.5. It may be broken on earlier versions too,
 # but this has not been confirmed
@@ -25,17 +33,19 @@ class TestBM3D:
 
     def test_gry(self):
         no_jit = bm3d(self.x_gry, 1.0)
-        jitted = jax.jit(bm3d)(self.x_gry, 1.0)
-        assert np.linalg.norm(no_jit - jitted) < 1e-3
         assert no_jit.dtype == np.float32
-        assert jitted.dtype == np.float32
+        if level > 2:
+            jitted = jax.jit(bm3d)(self.x_gry, 1.0)
+            assert np.linalg.norm(no_jit - jitted) < 1e-3
+            assert jitted.dtype == np.float32
 
     def test_rgb(self):
         no_jit = bm3d(self.x_rgb, 1.0)
-        jitted = jax.jit(bm3d)(self.x_rgb, 1.0, is_rgb=True)
-        assert np.linalg.norm(no_jit - jitted) < 1e-3
         assert no_jit.dtype == np.float32
-        assert jitted.dtype == np.float32
+        if level > 2:
+            jitted = jax.jit(bm3d)(self.x_rgb, 1.0, is_rgb=True)
+            assert np.linalg.norm(no_jit - jitted) < 1e-3
+            assert jitted.dtype == np.float32
 
     def test_bad_inputs(self):
         x, key = randn((32,), key=None, dtype=np.float32)
@@ -67,22 +77,26 @@ class TestBM4D:
         self.x3, key = randn((16, 17, 9, 1, 1), key=key, dtype=np.float32)
 
     def test_shape(self):
-        assert bm4d(self.x1, 1.0).shape == self.x1.shape
+        if level > 2:
+            assert bm4d(self.x1, 1.0).shape == self.x1.shape
         assert bm4d(self.x2, 1.0).shape == self.x2.shape
-        assert bm4d(self.x3, 1.0).shape == self.x3.shape
+        if level > 1:
+            assert bm4d(self.x3, 1.0).shape == self.x3.shape
 
     def test_jit(self):
-        no_jit = bm4d(self.x1, 1.0)
-        jitted = jax.jit(bm4d)(self.x1, 1.0)
-        assert np.linalg.norm(no_jit - jitted) < 2e-3
-        assert no_jit.dtype == np.float32
-        assert jitted.dtype == np.float32
+        if level > 2:
+            no_jit = bm4d(self.x1, 1.0)
+            jitted = jax.jit(bm4d)(self.x1, 1.0)
+            assert np.linalg.norm(no_jit - jitted) < 2e-3
+            assert no_jit.dtype == np.float32
+            assert jitted.dtype == np.float32
 
         no_jit = bm4d(self.x2, 1.0)
-        jitted = jax.jit(bm4d)(self.x2, 1.0)
-        assert np.linalg.norm(no_jit - jitted) < 2e-3
         assert no_jit.dtype == np.float32
-        assert jitted.dtype == np.float32
+        if level > 1:
+            jitted = jax.jit(bm4d)(self.x2, 1.0)
+            assert np.linalg.norm(no_jit - jitted) < 2e-3
+            assert jitted.dtype == np.float32
 
     def test_bad_inputs(self):
         x, key = randn((32,), key=None, dtype=np.float32)

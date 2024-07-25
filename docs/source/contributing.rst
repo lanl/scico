@@ -3,34 +3,6 @@
 Contributing
 ============
 
-.. raw:: html
-
-    <style type='text/css'>
-    div.document ul blockquote {
-       margin-bottom: 8px !important;
-    }
-    div.document li > p {
-       margin-bottom: 4px !important;
-    }
-    div.document ul > li {
-      list-style: square outside !important;
-      margin-left: 1em !important;
-    }
-    div.highlight-default.notranslate {
-      margin-bottom: 8px !important;
-    }
-    section {
-      padding-bottom: 1em;
-    }
-    ul {
-      margin-bottom: 1em;
-    }
-    p {
-      margin-bottom: 8px !important;
-    }
-    </style>
-
-
 Contributions to SCICO are welcome. Before starting work, please
 contact the maintainers, either via email or the GitHub issue system,
 to discuss the relevance of your contribution and the most appropriate
@@ -120,7 +92,7 @@ specific dependencies by running
 
 ::
 
-   pip install -r docs_requirements.txt
+   pip install -r docs/docs_requirements.txt
 
 Then, a local copy of the documentation can be built from the
 respository root directory by running
@@ -318,14 +290,20 @@ version of ``scico`` by
    pytest --pyargs scico
 
 When any significant changes are made to the test suite, the ``pytest-split`` test
-time database file ``.test_durations`` in the repository root directory should be
-updated
+time database files in ``data/pytest`` should be updated using
 
 ::
 
-   pytest --store-durations
+   pytest --store-durations --durations-path data/pytest/durations_ubuntu --level 2
 
-and the changes should be committed into the repository.
+(for Ubuntu CI), and
+
+::
+
+   pytest --store-durations --durations-path data/pytest/durations_macos --level 1
+
+(for MacOS CI). These updated files should be bzipped and committed into the
+``scico-data`` repository, replacing the current versions.
 
 
 Test Coverage

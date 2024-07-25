@@ -41,8 +41,6 @@ using the frequency-domain approach proposed in
 
 import numpy as np
 
-import jax
-
 import scico.numpy as snp
 from scico import plot
 from scico.examples import ucb_diffusercam_data
@@ -88,8 +86,8 @@ effect of higher numerical precision, set the environment variable
 `JAX_ENABLE_X64=True` and change `dtype` below to `np.float64`.
 """
 dtype = np.float32
-y = jax.device_put(y.astype(dtype))
-psf = jax.device_put(psf.astype(dtype))
+y = snp.array(y.astype(dtype))
+psf = snp.array(psf.astype(dtype))
 
 
 """

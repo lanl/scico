@@ -14,22 +14,20 @@ with isotropic total variation (TV) regularization
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
   \|_W^2 + \lambda \| C \mathbf{x} \|_{2,1} \;,$$
 
-where $A$ is the Radon transform, $\mathbf{y}$ is the sinogram, the norm
-weighting $W$ is chosen so that the weighted norm is an approximation to
-the Poisson negative log likelihood :cite:`sauer-1993-local`, $C$ is
-a 2D finite difference operator, and $\mathbf{x}$ is the desired
-image.
+where $A$ is the X-ray transform (the CT forward projection),
+$\mathbf{y}$ is the sinogram, the norm weighting $W$ is chosen so that
+the weighted norm is an approximation to the Poisson negative log
+likelihood :cite:`sauer-1993-local`, $C$ is a 2D finite difference
+operator, and $\mathbf{x}$ is the desired image.
 """
 
 import numpy as np
-
-import jax
 
 from xdesign import Soil, discrete_phantom
 
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot
-from scico.linop.radon_astra import TomographicProjector
+from scico.linop.xray.astra import XRayTransform2D
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
@@ -42,7 +40,7 @@ np.random.seed(0)
 x_gt = discrete_phantom(Soil(porosity=0.80), size=384)
 x_gt = np.ascontiguousarray(np.pad(x_gt, (64, 64)))
 x_gt = np.clip(x_gt, 0, np.inf)  # clip to positive values
-x_gt = jax.device_put(x_gt)  # convert to jax type, push to GPU
+x_gt = snp.array(x_gt)  # convert to jax type
 
 
 """
@@ -53,7 +51,7 @@ Io = 1e3  # source flux
 𝛼 = 1e-2  # attenuation coefficient
 
 angles = np.linspace(0, 2 * np.pi, n_projection)  # evenly spaced projection angles
-A = TomographicProjector(x_gt.shape, 1.0, N, angles)  # Radon transform operator
+A = XRayTransform2D(x_gt.shape, N, 1.0, angles)  # CT projection operator
 y_c = A @ x_gt  # sinogram
 
 
@@ -72,7 +70,7 @@ numbers.
 counts = np.random.poisson(Io * snp.exp(-𝛼 * A @ x_gt))
 counts = np.clip(counts, a_min=1, a_max=np.inf)  # replace any 0s count with 1
 y = -1 / 𝛼 * np.log(counts / Io)
-y = jax.device_put(y)  # convert back to float32
+y = snp.array(y)  # convert back to float32 as a jax array
 
 
 """
@@ -140,7 +138,7 @@ $I_0$ changes.
 """
 lambda_weighted = 5e1
 
-weights = jax.device_put(counts / Io)
+weights = snp.array(counts / Io)
 f = loss.SquaredL2Loss(y=y, A=A, W=linop.Diagonal(weights))
 
 admm_weighted = ADMM(

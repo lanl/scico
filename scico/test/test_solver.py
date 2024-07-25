@@ -1,12 +1,11 @@
 import numpy as np
 
-import jax
 from jax.scipy.linalg import block_diag
 
 import pytest
 
 import scico.numpy as snp
-from scico import linop, random, solver
+from scico import linop, metric, random, solver
 
 
 class TestSet:
@@ -15,8 +14,8 @@ class TestSet:
 
     def test_wrap_func_and_grad(self):
         N = 8
-        A = jax.device_put(np.random.randn(N, N))
-        x = jax.device_put(np.random.randn(N))
+        A = snp.array(np.random.randn(N, N))
+        x = snp.array(np.random.randn(N))
 
         f = lambda x: 0.5 * snp.linalg.norm(A @ x) ** 2
 
@@ -117,10 +116,10 @@ class TestSet:
     def test_lstsq_func(self):
         N = 24
         M = 32
-        Ac = jax.device_put(np.random.randn(N, M).astype(np.float32))
+        Ac = snp.array(np.random.randn(N, M).astype(np.float32))
         Am = Ac.dot(Ac.T)
         A = Am.dot
-        x = jax.device_put(np.random.randn(N).astype(np.float32))
+        x = snp.array(np.random.randn(N).astype(np.float32))
         b = Am.dot(x)
         x0 = snp.zeros((N,), dtype=np.float32)
         tol = 1e-6
@@ -134,9 +133,9 @@ class TestSet:
     def test_lstsq_op(self):
         N = 32
         M = 24
-        Ac = jax.device_put(np.random.randn(N, M).astype(np.float32))
+        Ac = snp.array(np.random.randn(N, M).astype(np.float32))
         A = linop.MatrixOperator(Ac)
-        x = jax.device_put(np.random.randn(M).astype(np.float32))
+        x = snp.array(np.random.randn(M).astype(np.float32))
         b = Ac.dot(x)
         tol = 1e-7
         try:
@@ -208,7 +207,7 @@ class TestOptimizeScalar:
 def test_minimize_vector(dtype, method):
     B, M, N = (4, 3, 2)
 
-    # Models a 12x8 block-diagonal matrix with 4x3 blocks
+    # model a 12x8 block-diagonal matrix with 4x3 blocks
     A, key = random.randn((B, M, N), dtype=dtype)
     x, key = random.randn((B, N), dtype=dtype, key=key)
     y = snp.sum(A * x[:, None], axis=2)  # contract along the N axis
@@ -224,24 +223,6 @@ def test_minimize_vector(dtype, method):
 
     assert out.x.shape == x.shape
     np.testing.assert_allclose(out.x.ravel(), expected, rtol=5e-4)
-
-    # Check if minimize returns the object to the proper device
-    devices = jax.devices()
-
-    # For default device:
-    x0 = jax.device_put(snp.zeros_like(x), devices[0])
-    out = solver.minimize(f, x0=x0, method=method)
-    assert out.x.device() == devices[0]
-    assert out.x.shape == x0.shape
-    np.testing.assert_allclose(out.x.ravel(), expected, rtol=5e-4)
-
-    # If more than one device is present:
-    if len(devices) > 1:
-        x0 = jax.device_put(snp.zeros_like(x), devices[1])
-        out = solver.minimize(f, x0=x0, method=method)
-        assert out.x.device() == devices[1]
-        assert out.x.shape == x0.shape
-        np.testing.assert_allclose(out.x.ravel(), expected, rtol=5e-4)
 
 
 def test_split_join_array():
@@ -294,3 +275,78 @@ def test_golden():
     f = lambda x, c: (x - c) ** 2
     x = solver.golden(f, -snp.abs(c) - 1, snp.abs(c) + 1, args=(c,), xtol=1e-5)
     assert snp.max(snp.abs(x - c)) <= 1e-5
+
+
+@pytest.mark.parametrize("cho_factor", [True, False])
+@pytest.mark.parametrize("wide", [True, False])
+@pytest.mark.parametrize("weighted", [True, False])
+@pytest.mark.parametrize("alpha", [1e-1, 1e1])
+def test_solve_atai(cho_factor, wide, weighted, alpha):
+    A, key = random.randn((5, 8), dtype=snp.float32)
+    if wide:
+        x0, key = random.randn((8,), key=key)
+    else:
+        A = A.T
+        x0, key = random.randn((5,), key=key)
+
+    if weighted:
+        W, key = random.randn((A.shape[0],), key=key)
+        W = snp.abs(W)
+        Wa = W[:, snp.newaxis]
+    else:
+        W = None
+        Wa = snp.array([1.0])[:, snp.newaxis]
+
+    D = alpha * snp.ones((A.shape[1],))
+    ATAD = A.T @ (Wa * A) + alpha * snp.identity(A.shape[1])
+    b = ATAD @ x0
+    slv = solver.MatrixATADSolver(A, D, W=W, cho_factor=cho_factor)
+    x1 = slv.solve(b)
+    assert metric.rel_res(x0, x1) < 5e-5
+
+
+@pytest.mark.parametrize("cho_factor", [True, False])
+@pytest.mark.parametrize("wide", [True, False])
+@pytest.mark.parametrize("alpha", [1e-1, 1e1])
+def test_solve_aati(cho_factor, wide, alpha):
+    A, key = random.randn((5, 8), dtype=snp.float32)
+    if wide:
+        x0, key = random.randn((5,), key=key)
+    else:
+        A = A.T
+        x0, key = random.randn((8,), key=key)
+
+    D = alpha * snp.ones((A.shape[0],))
+    AATD = A @ A.T + alpha * snp.identity(A.shape[0])
+    b = AATD @ x0
+    slv = solver.MatrixATADSolver(A.T, D)
+    x1 = slv.solve(b)
+    assert metric.rel_res(x0, x1) < 5e-5
+
+
+@pytest.mark.parametrize("cho_factor", [True, False])
+@pytest.mark.parametrize("wide", [True, False])
+@pytest.mark.parametrize("vector", [True, False])
+def test_solve_atad(cho_factor, wide, vector):
+    A, key = random.randn((5, 8), dtype=snp.float32)
+    if wide:
+        D, key = random.randn((8,), key=key)
+        if vector:
+            x0, key = random.randn((8,), key=key)
+        else:
+            x0, key = random.randn((8, 3), key=key)
+    else:
+        A = A.T
+        D, key = random.randn((5,), key=key)
+        if vector:
+            x0, key = random.randn((5,), key=key)
+        else:
+            x0, key = random.randn((5, 3), key=key)
+
+    D = snp.abs(D)  # only required for Cholesky, but improved accuracy for LU
+    ATAD = A.T @ A + snp.diag(D)
+    b = ATAD @ x0
+    slv = solver.MatrixATADSolver(A, D, cho_factor=cho_factor)
+    x1 = slv.solve(b)
+    assert metric.rel_res(x0, x1) < 5e-5
+    assert slv.accuracy(x1, b) < 5e-5

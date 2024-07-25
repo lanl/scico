@@ -1,8 +1,9 @@
+-r requirements.txt
 pylint
-pytest
-pytest-runner
+pytest>=7.3.0
+pytest-split
 packaging
 pre-commit
-black>=22.3,<23
+black>=24.3.0
 isort
 autoflake

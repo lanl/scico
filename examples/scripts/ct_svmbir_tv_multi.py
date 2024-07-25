@@ -14,15 +14,13 @@ solve the TV-regularized CT problem
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
   \|_2^2 + \lambda \| C \mathbf{x} \|_{2,1} \;,$$
 
-where $A$ is the Radon transform (implemented using the SVMBIR
+where $A$ is the X-ray transform (implemented using the SVMBIR
 :cite:`svmbir-2020` tomographic projection), $\mathbf{y}$ is the sinogram,
 $C$ is a 2D finite difference operator, and $\mathbf{x}$ is the desired
 image.
 """
 
 import numpy as np
-
-import jax
 
 import matplotlib.pyplot as plt
 import svmbir
@@ -31,7 +29,7 @@ from xdesign import Foam, discrete_phantom
 import scico.numpy as snp
 from scico import functional, linop, metric, plot
 from scico.linop import Diagonal
-from scico.linop.radon_svmbir import SVMBIRSquaredL2Loss, TomographicProjector
+from scico.linop.xray.svmbir import SVMBIRSquaredL2Loss, XRayTransform
 from scico.optimize import PDHG, LinearizedADMM
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
@@ -54,7 +52,7 @@ Generate tomographic projector and sinogram.
 num_angles = int(N / 2)
 num_channels = N
 angles = snp.linspace(0, snp.pi, num_angles, dtype=snp.float32)
-A = TomographicProjector(x_gt.shape, angles, num_channels)
+A = XRayTransform(x_gt.shape, angles, num_channels)
 sino = A @ x_gt
 
 
@@ -65,7 +63,7 @@ max_intensity = 2000
 expected_counts = max_intensity * np.exp(-sino)
 noisy_counts = np.random.poisson(expected_counts).astype(np.float32)
 noisy_counts[noisy_counts == 0] = 1  # deal with 0s
-y = -np.log(noisy_counts / max_intensity)
+y = -snp.log(noisy_counts / max_intensity)
 
 
 """
@@ -87,9 +85,10 @@ x_mrf = svmbir.recon(
 """
 Set up problem.
 """
-y, x0, weights = jax.device_put([y, x_mrf, weights])
+x0 = snp.array(x_mrf)
+weights = snp.array(weights)
 
-λ = 1e-1  # L1 norm regularization parameter
+λ = 1e-1  # ℓ1 norm regularization parameter
 
 f = SVMBIRSquaredL2Loss(y=y, A=A, W=Diagonal(weights), scale=0.5)
 g = λ * functional.L21Norm()  # regularization functional

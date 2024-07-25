@@ -26,7 +26,7 @@ import numpy as np
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot
 from scico.examples import create_circular_phantom
-from scico.linop.abel import AbelProjector
+from scico.linop.abel import AbelTransform
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
@@ -40,7 +40,7 @@ x_gt = create_circular_phantom((N, N), [0.4 * N, 0.2 * N, 0.1 * N], [1, 0, 0.5])
 """
 Set up the forward operator and create a test measurement.
 """
-A = AbelProjector(x_gt.shape)
+A = AbelTransform(x_gt.shape)
 y = A @ x_gt
 np.random.seed(12345)
 y = y + np.random.normal(size=y.shape).astype(np.float32)
@@ -57,7 +57,7 @@ Set up the problem to be solved. Anisotropic TV, which gives slightly
 better performance than isotropic TV for this problem, is used here.
 """
 f = loss.SquaredL2Loss(y=y, A=A)
-λ = 2.35e1  # L1 norm regularization parameter
+λ = 2.35e1  # ℓ1 norm regularization parameter
 g = λ * functional.L1Norm()  # Note the use of anisotropic TV
 C = linop.FiniteDifference(input_shape=x_gt.shape)
 

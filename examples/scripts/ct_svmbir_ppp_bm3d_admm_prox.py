@@ -32,8 +32,6 @@ example:
 
 import numpy as np
 
-import jax
-
 import matplotlib.pyplot as plt
 import svmbir
 from matplotlib.ticker import MaxNLocator
@@ -43,10 +41,10 @@ import scico.numpy as snp
 from scico import metric, plot
 from scico.functional import BM3D, NonNegativeIndicator
 from scico.linop import Diagonal, Identity
-from scico.linop.radon_svmbir import (
+from scico.linop.xray.svmbir import (
     SVMBIRExtendedLoss,
     SVMBIRSquaredL2Loss,
-    TomographicProjector,
+    XRayTransform,
 )
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
@@ -69,7 +67,7 @@ Generate tomographic projector and sinogram.
 num_angles = int(N / 2)
 num_channels = N
 angles = snp.linspace(0, snp.pi, num_angles, endpoint=False, dtype=snp.float32)
-A = TomographicProjector(x_gt.shape, angles, num_channels)
+A = XRayTransform(x_gt.shape, angles, num_channels)
 sino = A @ x_gt
 
 
@@ -100,9 +98,11 @@ x_mrf = svmbir.recon(
 
 
 """
-Push arrays to device.
+Convert numpy arrays to jax arrays.
 """
-y, x0, weights = jax.device_put([y, x_mrf, weights])
+y = snp.array(y)
+x0 = snp.array(x_mrf)
+weights = snp.array(weights)
 
 
 """
@@ -129,7 +129,7 @@ solver_l2loss = ADMM(
     x0=x0,
     maxiter=20,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-3, "maxiter": 100}),
-    itstat_options={"display": True},
+    itstat_options={"display": True, "period": 5},
 )
 
 
@@ -161,7 +161,7 @@ solver_extloss = ADMM(
     x0=x0,
     maxiter=20,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-3, "maxiter": 100}),
-    itstat_options={"display": True},
+    itstat_options={"display": True, "period": 5},
 )
 
 
@@ -219,7 +219,7 @@ plot.plot(
     fig=fig,
     ax=ax[0],
 )
-ax[0].set_ylim([5e-3, 1e0])
+ax[0].set_ylim([5e-3, 5e0])
 ax[0].xaxis.set_major_locator(MaxNLocator(integer=True))
 plot.plot(
     snp.vstack((hist_extloss.Prml_Rsdl, hist_extloss.Dual_Rsdl)).T,
@@ -230,7 +230,7 @@ plot.plot(
     fig=fig,
     ax=ax[1],
 )
-ax[1].set_ylim([5e-3, 1e0])
+ax[1].set_ylim([5e-3, 5e0])
 ax[1].xaxis.set_major_locator(MaxNLocator(integer=True))
 fig.show()
 

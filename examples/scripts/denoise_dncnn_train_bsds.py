@@ -13,10 +13,14 @@ from :cite:`zhang-2017-dncnn` to denoise images that have been corrupted
 with additive Gaussian noise.
 """
 
+# isort: off
 import os
 from time import time
 
 import numpy as np
+
+# Set an arbitrary processor count (only applies if GPU is not available).
+os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 
 import jax
 
@@ -26,11 +30,7 @@ from scico import flax as sflax
 from scico import metric, plot
 from scico.flax.examples import load_image_data
 
-"""
-Prepare parallel processing. Set an arbitrary processor count (only
-applies if GPU is not available).
-"""
-os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
+
 platform = jax.lib.xla_bridge.get_backend().platform
 print("Platform: ", platform)
 
@@ -47,7 +47,6 @@ data_mode = "dn"  # Denoising problem
 noise_level = 0.1  # Standard deviation of noise
 noise_range = False  # Use fixed noise level
 stride = 23  # Stride to sample multiple patches from each image
-
 
 train_ds, test_ds = load_image_data(
     train_nimg,
@@ -85,6 +84,7 @@ train_conf: sflax.ConfigDict = {
     "warmup_epochs": 0,
     "log_every_steps": 5000,
     "log": True,
+    "checkpointing": True,
 }
 
 
@@ -104,8 +104,7 @@ Run training loop.
 """
 workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "dncnn_out")
 train_conf["workdir"] = workdir
-print(f"{'JAX process: '}{jax.process_index()}{' / '}{jax.process_count()}")
-print(f"{'JAX local devices: '}{jax.local_devices()}")
+print(f"\nJAX local devices: {jax.local_devices()}\n")
 
 trainer = sflax.BasicFlaxTrainer(
     train_conf,
@@ -113,10 +112,7 @@ trainer = sflax.BasicFlaxTrainer(
     train_ds,
     test_ds,
 )
-
-start_time = time()
 modvar, stats_object = trainer.train()
-time_train = time() - start_time
 
 
 """
@@ -129,14 +125,15 @@ output = fmap(test_ds["image"][:test_patches])
 time_eval = time() - start_time
 output = np.clip(output, a_min=0, a_max=1.0)
 
+
 """
-Compare trained model in terms of reconstruction time and data fidelity.
+Evaluate trained model in terms of reconstruction time and data fidelity.
 """
 snr_eval = metric.snr(test_ds["label"][:test_patches], output)
 psnr_eval = metric.psnr(test_ds["label"][:test_patches], output)
 print(
     f"{'DnCNNNet training':18s}{'epochs:':2s}{train_conf['num_epochs']:>5d}"
-    f"{'':21s}{'time[s]:':10s}{time_train:>7.2f}"
+    f"{'':21s}{'time[s]:':10s}{trainer.train_time:>7.2f}"
 )
 print(
     f"{'DnCNNNet testing':18s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}"
@@ -145,8 +142,8 @@ print(
 
 
 """
-Plot comparison. Note that patches have small sizes, thus, plots may
-correspond to unidentifiable fragments.
+Plot comparison. Note that plots may display unidentifiable image
+fragments due to the small patch size.
 """
 np.random.seed(123)
 indx = np.random.randint(0, high=test_patches)
@@ -181,10 +178,10 @@ fig.show()
 
 
 """
-Plot convergence statistics. Statistics only generated if a training
-cycle was done (i.e. not reading final epoch results from checkpoint).
+Plot convergence statistics. Statistics are generated only if a training
+cycle was done (i.e. if not reading final epoch results from checkpoint).
 """
-if stats_object is not None:
+if stats_object is not None and len(stats_object.iterations) > 0:
     hist = stats_object.history(transpose=True)
     fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
     plot.plot(

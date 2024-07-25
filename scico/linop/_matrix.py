@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2023 by SCICO Developers
+# Copyright (C) 2020-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -17,11 +17,11 @@ from functools import partial, wraps
 
 import numpy as np
 
-import jax
 import jax.numpy as jnp
-from jax.dtypes import result_type
+from jax.typing import ArrayLike
 
 import scico.numpy as snp
+from scico.operator._operator import Operator
 
 from ._diag import Identity
 from ._linop import LinearOperator
@@ -45,17 +45,17 @@ def _wrap_add_sub_matrix(func, op):
 
             raise ValueError(f"Shapes {a.matrix_shape} and {b.shape} do not match.")
 
-        if isinstance(b, LinearOperator):
-            if a.shape == b.shape:
-                return LinearOperator(
-                    input_shape=a.input_shape,
-                    output_shape=a.output_shape,
-                    eval_fn=lambda x: op(a(x), b(x)),
-                    input_dtype=a.input_dtype,
-                    output_dtype=result_type(a.output_dtype, b.output_dtype),
-                )
+        if isinstance(b, Operator):
+            if a.shape != b.shape:
+                raise ValueError(f"Shapes {a.shape} and {b.shape} do not match.")
 
-            raise ValueError(f"Shapes {a.shape} and {b.shape} do not match.")
+        if isinstance(b, LinearOperator):
+            uwfunc = getattr(LinearOperator, func.__name__)._unwrapped
+            return uwfunc(a, b)
+
+        if isinstance(b, Operator):
+            uwfunc = getattr(Operator, func.__name__)
+            return uwfunc(a, b)
 
         raise TypeError(f"Operation {func.__name__} not defined between {type(a)} and {type(b)}.")
 
@@ -65,7 +65,7 @@ def _wrap_add_sub_matrix(func, op):
 class MatrixOperator(LinearOperator):
     """Linear operator implementing matrix multiplication."""
 
-    def __init__(self, A: snp.Array, input_cols: int = 0):
+    def __init__(self, A: ArrayLike, input_cols: int = 0):
         """
         Args:
             A: Dense array. The action of the created
@@ -79,17 +79,16 @@ class MatrixOperator(LinearOperator):
         """
         self.A: snp.Array  #: Dense array implementing this matrix
 
-        # if A is an ndarray, make sure it gets converted to a jax array
-        if isinstance(A, jnp.ndarray):
-            self.A = A
-        elif isinstance(A, np.ndarray):
-            self.A = jax.device_put(A)  # TODO: ensure_on_device?
-        else:
+        # Ensure that A is a numpy or jax array.
+        if not snp.util.is_arraylike(A):
             raise TypeError(f"Expected numpy or jax array, got {type(A)}.")
+        self.A = A
 
         # Can only do rank-2 arrays
         if A.ndim != 2:
             raise TypeError(f"Expected a two-dimensional array, got array of shape {A.shape}.")
+
+        self.__array__ = A.__array__  # enables jnp.array(H)
 
         if input_cols == 0:
             input_shape = A.shape[1]
@@ -172,7 +171,7 @@ class MatrixOperator(LinearOperator):
         raise TypeError(f"Operation __mul__ not defined between {type(self)} and {type(other)}.")
 
     def __rmul__(self, other):
-        # Multiplication is commutative
+        # multiplication is commutative
         return self * other
 
     def __truediv__(self, other):
@@ -252,5 +251,13 @@ class MatrixOperator(LinearOperator):
         `G(x) = A.adj(A(x)))`."""
         return MatrixOperator(A=self.A.conj().T @ self.A)
 
-    def _norm(self):
-        return snp.linalg.norm(self.A, ord=2)
+    def norm(self, ord=None, axis=None, keepdims=False):  # pylint: disable=W0622
+        """Compute the norm of the dense matrix `self.A`.
+
+        Call :func:`scico.numpy.linalg.norm` on the dense matrix `self.A`.
+        """
+        return snp.linalg.norm(self.A, ord=ord, axis=axis, keepdims=keepdims)
+
+
+def _norm(self):
+    return snp.linalg.norm(self.A, ord=2)

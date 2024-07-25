@@ -13,10 +13,21 @@ previously filtered back projections (FBP) for CT reconstruction inspired
 by :cite:`jin-2017-unet`.
 """
 
+# isort: off
 import os
 from time import time
 
+import logging
+import ray
+
+ray.init(logging_level=logging.ERROR)  # need to call init before jax import: ray-project/ray#44087
+
+# Set an arbitrary processor count (only applies if GPU is not available).
+os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
+
 import jax
+
+import numpy as np
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
@@ -24,11 +35,7 @@ from scico import flax as sflax
 from scico import metric, plot
 from scico.flax.examples import load_ct_data
 
-"""
-Prepare parallel processing. Set an arbitrary processor count (only
-applies if GPU is not available).
-"""
-os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
+
 platform = jax.lib.xla_bridge.get_backend().platform
 print("Platform: ", platform)
 
@@ -37,8 +44,8 @@ print("Platform: ", platform)
 Read data from cache or generate if not available.
 """
 N = 256  # phantom size
-train_nimg = 536  # number of training images
-test_nimg = 64  # number of testing images
+train_nimg = 498  # number of training images
+test_nimg = 32  # number of testing images
 nimg = train_nimg + test_nimg
 n_projection = 45  # CT views
 
@@ -83,6 +90,7 @@ train_conf: sflax.ConfigDict = {
     "warmup_epochs": 0,
     "log_every_steps": 1000,
     "log": True,
+    "checkpointing": True,
 }
 
 
@@ -103,41 +111,42 @@ Run training loop.
 """
 workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "unet_ct_out")
 train_conf["workdir"] = workdir
-print(f"{'JAX process: '}{jax.process_index()}{' / '}{jax.process_count()}")
-print(f"{'JAX local devices: '}{jax.local_devices()}")
+print(f"\nJAX process: {jax.process_index()}{' / '}{jax.process_count()}")
+print(f"JAX local devices: {jax.local_devices()}\n")
 
-
-# Construct training object
 trainer = sflax.BasicFlaxTrainer(
     train_conf,
     model,
     train_ds,
     test_ds,
 )
-
-start_time = time()
 modvar, stats_object = trainer.train()
-time_train = time() - start_time
 
 
 """
 Evaluate on testing data.
 """
-start_time = time()
+del train_ds["image"]
+del train_ds["label"]
+
 fmap = sflax.FlaxMap(model, modvar)
-output = fmap(test_ds["image"])
+del model, modvar
+
+maxn = test_nimg // 2
+start_time = time()
+output = fmap(test_ds["image"][:maxn])
 time_eval = time() - start_time
 output = jax.numpy.clip(output, a_min=0, a_max=1.0)
 
 
 """
-Compare trained model in terms of reconstruction time and data fidelity.
+Evaluate trained model in terms of reconstruction time and data fidelity.
 """
-snr_eval = metric.snr(test_ds["label"], output)
-psnr_eval = metric.psnr(test_ds["label"], output)
+snr_eval = metric.snr(test_ds["label"][:maxn], output)
+psnr_eval = metric.psnr(test_ds["label"][:maxn], output)
 print(
     f"{'UNet training':15s}{'epochs:':2s}{train_conf['num_epochs']:>5d}"
-    f"{'':21s}{'time[s]:':10s}{time_train:>7.2f}"
+    f"{'':21s}{'time[s]:':10s}{trainer.train_time:>7.2f}"
 )
 print(
     f"{'UNet testing':15s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}"
@@ -181,14 +190,14 @@ fig.show()
 
 
 """
-Plot convergence statistics. Statistics only generated if a training
-cycle was done (i.e. not reading final epoch results from checkpoint).
+Plot convergence statistics. Statistics are generated only if a training
+cycle was done (i.e. if not reading final epoch results from checkpoint).
 """
-if stats_object is not None:
+if stats_object is not None and len(stats_object.iterations) > 0:
     hist = stats_object.history(transpose=True)
     fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
     plot.plot(
-        jax.numpy.vstack((hist.Train_Loss, hist.Eval_Loss)).T,
+        np.vstack((hist.Train_Loss, hist.Eval_Loss)).T,
         x=hist.Epoch,
         ptyp="semilogy",
         title="Loss function",
@@ -199,7 +208,7 @@ if stats_object is not None:
         ax=ax[0],
     )
     plot.plot(
-        jax.numpy.vstack((hist.Train_SNR, hist.Eval_SNR)).T,
+        np.vstack((hist.Train_SNR, hist.Eval_SNR)).T,
         x=hist.Epoch,
         title="Metric",
         xlbl="Epoch",

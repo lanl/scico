@@ -49,26 +49,32 @@ $\mathcal{K}$ is the DFT of $K$. The output of the final stage is the
 set of deblurred images.
 """
 
+# isort: off
 import os
 from functools import partial
 from time import time
 
+import numpy as np
+
+import logging
+import ray
+
+ray.init(logging_level=logging.ERROR)  # need to call init before jax import: ray-project/ray#44087
+
+# Set an arbitrary processor count (only applies if GPU is not available).
+os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
+
 import jax
-import jax.numpy as jnp
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from scico import flax as sflax
 from scico import metric, plot
-from scico.flax.examples import load_foam1_blur_data
+from scico.flax.examples import load_blur_data
 from scico.flax.train.traversals import clip_positive, construct_traversal
 from scico.linop import CircularConvolve
 
-"""
-Prepare parallel processing. Set an arbitrary processor count (only
-applies if GPU is not available).
-"""
-os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
+
 platform = jax.lib.xla_bridge.get_backend().platform
 print("Platform: ", platform)
 
@@ -80,11 +86,10 @@ output_size = 256  # patch size
 
 n = 3  # convolution kernel size
 σ = 20.0 / 255  # noise level
-psf = jnp.ones((n, n)) / (n * n)  # blur kernel
+psf = np.ones((n, n)) / (n * n)  # blur kernel
 
 ishape = (output_size, output_size)
 opBlur = CircularConvolve(h=psf, input_shape=ishape)
-
 opBlur_vmap = jax.vmap(opBlur)  # for batch processing in data generation
 
 
@@ -95,7 +100,7 @@ train_nimg = 416  # number of training images
 test_nimg = 64  # number of testing images
 nimg = train_nimg + test_nimg
 
-train_ds, test_ds = load_foam1_blur_data(
+train_ds, test_ds = load_blur_data(
     train_nimg,
     test_nimg,
     output_size,
@@ -108,10 +113,10 @@ train_ds, test_ds = load_foam1_blur_data(
 """
 Define configuration dictionary for model and training loop.
 
-Parameters have been selected for demonstration purposes and
-relatively short training. The model depth is akin to the number of
-unrolled iterations in the ODP model. The block depth controls the number
-of layers at each unrolled iteration. The number of filters is uniform
+Parameters have been selected for demonstration purposes and relatively
+short training. The model depth is akin to the number of unrolled
+iterations in the ODP model. The block depth controls the number of
+layers at each unrolled iteration. The number of filters is uniform
 throughout the iterations. Better performance may be obtained by
 increasing depth, block depth, number of filters or training epochs, but
 may require longer training times.
@@ -133,6 +138,7 @@ train_conf: sflax.ConfigDict = {
     "warmup_epochs": 0,
     "log_every_steps": 100,
     "log": True,
+    "checkpointing": True,
 }
 
 
@@ -146,12 +152,12 @@ model = sflax.ODPNet(
     channels=channels,
     num_filters=model_conf["num_filters"],
     block_depth=model_conf["block_depth"],
-    odp_block=sflax.ODPProxDcnvBlock,
+    odp_block=sflax.inverse.ODPProxDcnvBlock,
 )
 
 
 """
-Construct functionality for making sure that the learned fidelity weight
+Construct functionality for ensuring that the learned fidelity weight
 parameter is always positive.
 """
 alphatrav = construct_traversal("alpha")  # select alpha parameters in model
@@ -165,10 +171,10 @@ alphapos = partial(
 """
 Run training loop.
 """
-workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "odp_dcnv_out")
-print(f"{'JAX process: '}{jax.process_index()}{' / '}{jax.process_count()}")
-print(f"{'JAX local devices: '}{jax.local_devices()}")
+print(f"\nJAX process: {jax.process_index()}{' / '}{jax.process_count()}")
+print(f"JAX local devices: {jax.local_devices()}\n")
 
+workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "odp_dcnv_out")
 train_conf["workdir"] = workdir
 train_conf["post_lst"] = [alphapos]
 # Construct training object
@@ -178,10 +184,7 @@ trainer = sflax.BasicFlaxTrainer(
     train_ds,
     test_ds,
 )
-
-start_time = time()
 modvar, stats_object = trainer.train()
-time_train = time() - start_time
 
 
 """
@@ -189,22 +192,26 @@ Evaluate on testing data.
 """
 del train_ds["image"]
 del train_ds["label"]
-start_time = time()
+
 fmap = sflax.FlaxMap(model, modvar)
-output = fmap(test_ds["image"])
+del model, modvar
+
+maxn = test_nimg // 4
+start_time = time()
+output = fmap(test_ds["image"][:maxn])
 time_eval = time() - start_time
-output = jnp.clip(output, a_min=0, a_max=1.0)
+output = np.clip(output, a_min=0, a_max=1.0)
 
 
 """
-Compare trained model in terms of reconstruction time and data
+Evaluate trained model in terms of reconstruction time and data
 fidelity.
 """
-snr_eval = metric.snr(test_ds["label"], output)
-psnr_eval = metric.psnr(test_ds["label"], output)
+snr_eval = metric.snr(test_ds["label"][:maxn], output)
+psnr_eval = metric.psnr(test_ds["label"][:maxn], output)
 print(
     f"{'ODPNet training':18s}{'epochs:':2s}{train_conf['num_epochs']:>5d}"
-    f"{'':21s}{'time[s]:':10s}{time_train:>7.2f}"
+    f"{'':21s}{'time[s]:':10s}{trainer.train_time:>7.2f}"
 )
 print(
     f"{'ODPNet testing':18s}{'SNR:':5s}{snr_eval:>5.2f}{' dB'}{'':3s}"
@@ -215,8 +222,8 @@ print(
 """
 Plot comparison.
 """
-key = jax.random.PRNGKey(54321)
-indx = jax.random.randint(key, (1,), 0, test_nimg)[0]
+np.random.seed(123)
+indx = np.random.randint(0, high=maxn)
 
 fig, ax = plot.subplots(nrows=1, ncols=3, figsize=(15, 5))
 plot.imview(test_ds["label"][indx, ..., 0], title="Ground truth", cbar=None, fig=fig, ax=ax[0])
@@ -248,14 +255,14 @@ fig.show()
 
 
 """
-Plot convergence statistics. Statistics only generated if a training
-cycle was done (i.e. not reading final epoch results from checkpoint).
+Plot convergence statistics. Statistics are generated only if a training
+cycle was done (i.e. if not reading final epoch results from checkpoint).
 """
-if stats_object is not None:
+if stats_object is not None and len(stats_object.iterations) > 0:
     hist = stats_object.history(transpose=True)
     fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
     plot.plot(
-        jnp.vstack((hist.Train_Loss, hist.Eval_Loss)).T,
+        np.vstack((hist.Train_Loss, hist.Eval_Loss)).T,
         x=hist.Epoch,
         ptyp="semilogy",
         title="Loss function",
@@ -266,7 +273,7 @@ if stats_object is not None:
         ax=ax[0],
     )
     plot.plot(
-        jnp.vstack((hist.Train_SNR, hist.Eval_SNR)).T,
+        np.vstack((hist.Train_SNR, hist.Eval_SNR)).T,
         x=hist.Epoch,
         title="Metric",
         xlbl="Epoch",

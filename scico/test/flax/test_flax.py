@@ -19,7 +19,7 @@ class TestSet:
         nflt = 16  # number of filters
         conv = partial(Conv, dtype=np.float32)
         norm = partial(BatchNorm, dtype=np.float32)
-        flxm = sflax.ConvBNBlock(
+        flxm = sflax.blocks.ConvBNBlock(
             num_filters=nflt,
             conv=conv,
             norm=norm,
@@ -34,7 +34,7 @@ class TestSet:
         strd = (2, 2)  # stride of convolution
         conv = partial(Conv, dtype=np.float32)
         norm = partial(BatchNorm, dtype=np.float32)
-        flxm = sflax.ConvBNBlock(
+        flxm = sflax.blocks.ConvBNBlock(
             num_filters=nflt,
             conv=conv,
             norm=norm,
@@ -49,7 +49,7 @@ class TestSet:
     def test_convblock_default(self):
         nflt = 16  # number of filters
         conv = partial(Conv, dtype=np.float32)
-        flxm = sflax.ConvBlock(
+        flxm = sflax.blocks.ConvBlock(
             num_filters=nflt,
             conv=conv,
             act=relu,
@@ -62,7 +62,7 @@ class TestSet:
         ksz = (5, 5)  # size of kernel
         strd = (2, 2)  # stride of convolution
         conv = partial(Conv, dtype=np.float32)
-        flxm = sflax.ConvBlock(
+        flxm = sflax.blocks.ConvBlock(
             num_filters=nflt,
             conv=conv,
             act=elu,
@@ -78,7 +78,7 @@ class TestSet:
         ksz = (5, 5)  # size of kernel
         strd = (2, 2)  # stride of convolution
         conv = partial(Conv, dtype=np.float32)
-        flxb = sflax.ConvBlock(
+        flxb = sflax.blocks.ConvBlock(
             num_filters=nflt,
             conv=conv,
             act=elu,
@@ -100,7 +100,7 @@ class TestSet:
         wnd = (2, 2)  # window for pooling
         conv = partial(Conv, dtype=np.float32)
         norm = partial(BatchNorm, dtype=np.float32)
-        flxm = sflax.ConvBNPoolBlock(
+        flxm = sflax.blocks.ConvBNPoolBlock(
             num_filters=nflt,
             conv=conv,
             norm=norm,
@@ -121,8 +121,8 @@ class TestSet:
         upsampling = 2  # upsampling factor
         conv = partial(Conv, dtype=np.float32)
         norm = partial(BatchNorm, dtype=np.float32)
-        upfn = partial(sflax.upscale_nn, scale=upsampling)
-        flxm = sflax.ConvBNUpsampleBlock(
+        upfn = partial(sflax.blocks.upscale_nn, scale=upsampling)
+        flxm = sflax.blocks.ConvBNUpsampleBlock(
             num_filters=nflt,
             conv=conv,
             norm=norm,
@@ -140,7 +140,7 @@ class TestSet:
         nflt = 16  # number of filters
         conv = partial(Conv, dtype=np.float32)
         norm = partial(BatchNorm, dtype=np.float32)
-        flxm = sflax.ConvBNMultiBlock(
+        flxm = sflax.blocks.ConvBNMultiBlock(
             num_blocks=nblck,
             num_filters=nflt,
             conv=conv,
@@ -155,7 +155,7 @@ class TestSet:
         chn = 3  # channels
         x, key = randn((10, N, N, chn), seed=1234)
 
-        xups = sflax.upscale_nn(x)
+        xups = sflax.blocks.upscale_nn(x)
         assert xups.shape == (10, 2 * N, 2 * N, chn)
 
     def test_resnet_default(self):
@@ -310,7 +310,7 @@ def test_variable_load(variant):
 
     model = sflax.DnCNNNet(depth=nlayer, channels=chn, num_filters=64, dtype=np.float32)
     # Load weights for DnCNN.
-    variables = sflax.load_weights(_flax_data_path("dncnn%s.npz" % variant))
+    variables = sflax.load_variables(_flax_data_path("dncnn%s.mpk" % variant))
 
     try:
         fmap = sflax.FlaxMap(model, variables)
@@ -328,7 +328,7 @@ def test_variable_load_mismatch():
     nlayer = 6
     model = sflax.ResNet(depth=nlayer, channels=chn, num_filters=64, dtype=np.float32)
     # Load weights for DnCNN.
-    variables = sflax.load_weights(_flax_data_path("dncnn6L.npz"))
+    variables = sflax.load_variables(_flax_data_path("dncnn6L.mpk"))
 
     # created with mismatched parameters
     fmap = sflax.FlaxMap(model, variables)
@@ -350,7 +350,7 @@ def test_variable_save():
 
     try:
         temp_dir = tempfile.TemporaryDirectory()
-        sflax.save_weights(unfreeze(variables), os.path.join(temp_dir.name, "vres6.npz"))
+        sflax.save_variables(unfreeze(variables), os.path.join(temp_dir.name, "vres6.mpk"))
     except Exception as e:
         print(e)
         assert 0

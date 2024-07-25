@@ -3,7 +3,7 @@ import tempfile
 
 import numpy as np
 
-import imageio.v2 as iio
+import imageio.v3 as iio
 import pytest
 
 import scico.numpy as snp
@@ -12,8 +12,10 @@ from scico.examples import (
     create_circular_phantom,
     create_cone,
     create_conv_sparse_phantom,
+    create_tangle_phantom,
     downsample_volume,
     epfl_deconv_data,
+    gaussian,
     phase_diff,
     rgb2gray,
     spnoise,
@@ -80,6 +82,15 @@ def test_tile_volume_slices():
     assert tvs.ndim == 3 and tvs.shape[-1] == 3
 
 
+def test_gaussian():
+    g0 = gaussian((5, 5))
+    assert g0.shape == (5, 5)
+    g1 = gaussian((5, 5), sigma=np.array([[3, 0], [0, 2]]))
+    assert np.sum(g1 / g1.max()) > np.sum(g0 / g0.max())
+    with pytest.raises(ValueError):
+        g2 = gaussian((5, 5), sigma=np.array([[2, 2], [2, 2]]))
+
+
 def test_create_circular_phantom():
     img_shape = (32, 32)
     radius_list = [2, 4, 8]
@@ -125,6 +136,11 @@ def test_conv_sparse_phantom():
     assert h.shape == (3, 15, 15)
     assert x.shape == (3, 64, 64)
     assert np.sum(x > 0) == 32
+
+
+def test_tangle_phantom():
+    v = create_tangle_phantom(3, 4, 5)
+    assert v.shape == (5, 4, 3)
 
 
 def test_spnoise():

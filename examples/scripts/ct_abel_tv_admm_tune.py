@@ -14,14 +14,14 @@ parameters for the companion [example script](ct_abel_tv_admm.rst). The
 `ray.tune` class API is used in this example.
 
 This script is hard-coded to run on CPU only to avoid the large number of
-warnings that are emitted when GPU resources are requested but not available,
-and due to the difficulty of supressing these warnings in a way that does
-not force use of the CPU only. To enable GPU usage, comment out the
-`os.environ` statements near the beginning of the script, and change the
-value of the "gpu" entry in the `resources` dict from 0 to 1. Note that
-two environment variables are set to suppress the warnings because
-`JAX_PLATFORMS` was intended to replace `JAX_PLATFORM_NAME` but this change
-has yet to be correctly implemented
+warnings that are emitted when GPU resources are requested but not
+available, and due to the difficulty of supressing these warnings in a
+way that does not force use of the CPU only. To enable GPU usage, comment
+out the `os.environ` statements near the beginning of the script, and
+change the value of the "gpu" entry in the `resources` dict from 0 to 1.
+Note that two environment variables are set to suppress the warnings
+because `JAX_PLATFORMS` was intended to replace `JAX_PLATFORM_NAME` but
+this change has yet to be correctly implemented
 (see [google/jax#6805](https://github.com/google/jax/issues/6805) and
 [google/jax#10272](https://github.com/google/jax/pull/10272).
 """
@@ -34,12 +34,15 @@ os.environ["JAX_PLATFORMS"] = "cpu"
 
 import numpy as np
 
-import jax
+import logging
+import ray
+
+ray.init(logging_level=logging.ERROR)  # need to call init before jax import: ray-project/ray#44087
 
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot
 from scico.examples import create_circular_phantom
-from scico.linop.abel import AbelProjector
+from scico.linop.abel import AbelTransform
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.ray import tune
 
@@ -53,7 +56,7 @@ x_gt = create_circular_phantom((N, N), [0.4 * N, 0.2 * N, 0.1 * N], [1, 0, 0.5])
 """
 Set up the forward operator and create a test measurement.
 """
-A = AbelProjector(x_gt.shape)
+A = AbelTransform(x_gt.shape)
 y = A @ x_gt
 np.random.seed(12345)
 y = y + np.random.normal(size=y.shape).astype(np.float32)
@@ -82,10 +85,10 @@ class Trainable(tune.Trainable):
         this case). The remaining parameters are objects that are passed
         to the evaluation function via the ray object store.
         """
-        # Put main arrays on jax device.
-        self.x_gt, self.x0, self.y = jax.device_put([x_gt, x0, y])
+        # Get arrays passed by tune call.
+        self.x_gt, self.x0, self.y = snp.array(x_gt), snp.array(x0), snp.array(y)
         # Set up problem to be solved.
-        self.A = AbelProjector(self.x_gt.shape)
+        self.A = AbelTransform(self.x_gt.shape)
         self.f = loss.SquaredL2Loss(y=self.y, A=self.A)
         self.C = linop.FiniteDifference(input_shape=self.x_gt.shape)
         self.reset_config(config)
@@ -152,6 +155,7 @@ tuner = tune.Tuner(
     num_iterations=10,  # perform at most 10 steps for each parameter evaluation
 )
 results = tuner.fit()
+ray.shutdown()
 
 
 """

@@ -60,7 +60,7 @@ EMPTY_PARAMETER_OVERVIEW = """+------+-------+------+------+-----+
 | Name | Shape | Size | Mean | Std |
 +------+-------+------+------+-----+
 +------+-------+------+------+-----+
-Total: 0"""
+Total weights: 0"""
 
 FLAX_CONV2D_PARAMETER_OVERVIEW = """+-------------+--------------+------+
 | Name        | Shape        | Size |
@@ -68,7 +68,7 @@ FLAX_CONV2D_PARAMETER_OVERVIEW = """+-------------+--------------+------+
 | conv/bias   | (2,)         | 2    |
 | conv/kernel | (3, 3, 3, 2) | 54   |
 +-------------+--------------+------+
-Total: 56"""
+Total weights: 56"""
 
 FLAX_CONV2D_PARAMETER_OVERVIEW_WITH_STATS = """+-------------+--------------+------+------+-----+
 | Name        | Shape        | Size | Mean | Std |
@@ -76,7 +76,7 @@ FLAX_CONV2D_PARAMETER_OVERVIEW_WITH_STATS = """+-------------+--------------+---
 | conv/bias   | (2,)         | 2    | 1.0  | 0.0 |
 | conv/kernel | (3, 3, 3, 2) | 54   | 1.0  | 0.0 |
 +-------------+--------------+------+------+-----+
-Total: 56"""
+Total weights: 56"""
 
 FLAX_CONV2D_MAPPING_PARAMETER_OVERVIEW_WITH_STATS = """+--------------------+--------------+------+------+-----+
 | Name               | Shape        | Size | Mean | Std |
@@ -84,7 +84,8 @@ FLAX_CONV2D_MAPPING_PARAMETER_OVERVIEW_WITH_STATS = """+--------------------+---
 | params/conv/bias   | (2,)         | 2    | 1.0  | 0.0 |
 | params/conv/kernel | (3, 3, 3, 2) | 54   | 1.0  | 0.0 |
 +--------------------+--------------+------+------+-----+
-Total: 56"""
+Total weights: 56"""
+
 
 # From https://github.com/google/CommonLoopUtils/blob/main/clu/parameter_overview_test.py
 def test_get_parameter_overview_empty():

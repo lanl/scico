@@ -8,7 +8,7 @@
 solving the inverse problems that arise in scientific imaging applications.
 """
 
-__version__ = "0.0.4.dev0"
+__version__ = "0.0.6.dev0"
 
 import logging
 import sys
@@ -36,6 +36,9 @@ import jaxlib
 
 from . import numpy
 from ._autograd import cvjp, grad, jacrev, linear_adjoint, value_and_grad
+
+# See https://github.com/google/jax/issues/19444
+jax.config.update("jax_default_matmul_precision", "highest")
 
 __all__ = [
     "grad",

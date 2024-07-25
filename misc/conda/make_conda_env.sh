@@ -25,6 +25,8 @@ REPOPATH=$(realpath $(dirname $0))
 USAGE=$(cat <<-EOF
 Usage: $SCRIPT [-h] [-y] [-g] [-p python_version] [-e env_name]
           [-h] Display usage information
+          [-v] Verbose operation
+          [-t] Display actions that would be taken but do nothing
           [-y] Do not ask for confirmation
           [-p python_version] Specify Python version (e.g. 3.9)
           [-e env_name] Specify conda environment name
@@ -32,6 +34,8 @@ EOF
 )
 
 AGREE=no
+VERBOSE=no
+TEST=no
 PYVER="3.9"
 ENVNM=py$(echo $PYVER | sed -e 's/\.//g')
 
@@ -46,13 +50,13 @@ EOF
 )
 # Requirements that cannot be installed via conda (i.e. have to use pip)
 NOCONDA=$(cat <<-EOF
-flax bm3d bm4d faculty-sphinx-theme py2jn colour_demosaicing ray[tune]
+flax bm3d bm4d py2jn colour_demosaicing ray[tune,train]
 EOF
 )
 
 
 OPTIND=1
-while getopts ":hyp:e:" opt; do
+while getopts ":hvtyp:e:" opt; do
     case $opt in
 	p|e) if [ -z "$OPTARG" ] || [ "${OPTARG:0:1}" = "-" ] ; then
 		     echo "Error: option -$opt requires an argument" >&2
@@ -61,6 +65,8 @@ while getopts ":hyp:e:" opt; do
 		 fi
 		 ;;&
 	h) echo "$USAGE"; exit 0;;
+	t) VERBOSE=yes;TEST=yes;;
+	v) VERBOSE=yes;;
 	y) AGREE=yes;;
 	p) PYVER=$OPTARG;;
 	e) ENVNM=$OPTARG;;
@@ -125,31 +131,6 @@ JLVER=$($SED -n 's/^jaxlib>=.*<=\([0-9\.]*\).*/\1/p' \
 JXVER=$($SED -n 's/^jax>=.*<=\([0-9\.]*\).*/\1/p' \
 	     $REPOPATH/../../requirements.txt)
 
-CONDAHOME=$(conda info --base)
-ENVDIR=$CONDAHOME/envs/$ENVNM
-if [ -d "$ENVDIR" ]; then
-    echo "Error: environment $ENVNM already exists"
-    exit 9
-fi
-
-if [ "$AGREE" == "no" ]; then
-    RSTR="Confirm creation of conda environment $ENVNM with Python $PYVER"
-    RSTR="$RSTR [y/N] "
-    read -r -p "$RSTR" CNFRM
-    if [ "$CNFRM" != 'y' ] && [ "$CNFRM" != 'Y' ]; then
-	echo "Cancelling environment creation"
-	exit 10
-    fi
-else
-    echo "Creating conda environment $ENVNM with Python $PYVER"
-fi
-
-if [ "$AGREE" == "yes" ]; then
-    CONDA_FLAGS="-y"
-else
-    CONDA_FLAGS=""
-fi
-
 # Construct merged list of all requirements
 if [ "$OS" == "Darwin" ]; then
     ALLREQUIRE=$(/usr/bin/mktemp -t condaenv)
@@ -177,14 +158,55 @@ sort $ALLREQUIRE | uniq | $SED -E 's/(>|<|\|)/\\\1/g' \
     | $SED -E 's/\#.*$//g' \
     | $SED -E '/^-r.*|^jaxlib.*|^jax.*/d' > $FLTREQUIRE
 # Remove requirements that cannot be installed via conda
+PIPREQ=""
 for nc in $NOCONDA; do
     # Escape [ and ] for use in regex
-    nc=$(echo $nc | sed -E 's/(\[|\])/\\\1/g')
+    nc=$(echo $nc | $SED -E 's/(\[|\])/\\\1/g')
+    # Add package to pip package list
+    PIPREQ="$PIPREQ "$(grep "$nc" $FLTREQUIRE | $SED 's/\\//g')
     # Remove package $nc from conda package list
     $SED -i "/^$nc.*\$/d" $FLTREQUIRE
 done
 # Get list of requirements to be installed via conda
 CONDAREQ=$(cat $FLTREQUIRE | xargs)
+
+if [ "$VERBOSE" == "yes" ]; then
+    echo "Create python $PYVER environment $ENVNM in conda installation"
+    echo "    $CONDAHOME"
+    echo "Packages to be installed via conda:"
+    echo "    $CONDAREQ" | fmt -w 79
+    echo "Packages to be installed via pip:"
+    echo "    jaxlib==$JLVER jax==$JXVER $PIPREQ" | fmt -w 79
+    if [ "$TEST" == "yes" ]; then
+	exit 0
+    fi
+fi
+
+CONDAHOME=$(conda info --base)
+ENVDIR=$CONDAHOME/envs/$ENVNM
+if [ -d "$ENVDIR" ]; then
+    echo "Error: environment $ENVNM already exists"
+    exit 9
+fi
+
+if [ "$AGREE" == "no" ]; then
+    RSTR="Confirm creation of conda environment $ENVNM with Python $PYVER"
+    RSTR="$RSTR [y/N] "
+    read -r -p "$RSTR" CNFRM
+    if [ "$CNFRM" != 'y' ] && [ "$CNFRM" != 'Y' ]; then
+	echo "Cancelling environment creation"
+	exit 10
+    fi
+else
+    echo "Creating conda environment $ENVNM with Python $PYVER"
+fi
+
+if [ "$AGREE" == "yes" ]; then
+    CONDA_FLAGS="-y"
+else
+    CONDA_FLAGS=""
+fi
+
 
 # Update conda, create new environment, and activate it
 conda update $CONDA_FLAGS -n base conda
@@ -194,9 +216,8 @@ conda create $CONDA_FLAGS -n $ENVNM python=$PYVER
 eval "$(conda shell.bash hook)"  # required to avoid errors re: `conda init`
 conda activate $ENVNM  # Q: why not `source activate`? A: not always in the path
 
-# Add conda-forge and astra-toolbox channels
+# Add conda-forge channel
 conda config --env --append channels conda-forge
-conda config --env --append channels astra-toolbox
 
 # Install mamba
 conda install mamba -n base -c conda-forge
@@ -215,7 +236,7 @@ fi
 pip install --upgrade jaxlib==$JLVER jax==$JXVER
 
 # Install other packages that require installation via pip
-pip install $NOCONDA
+pip install $PIPREQ
 
 # Warn if libopenblas-dev not installed on debian/ubuntu
 if [ "$(which dpkg 2>/dev/null)" ]; then
@@ -233,13 +254,12 @@ echo "  conda activate $ENVNM"
 echo "The environment can be deactivated with the command"
 echo "  conda deactivate"
 echo
-echo "Jax installed without GPU support. To avoid warning messages,"
-echo "add the following to your .bashrc or .bash_aliases file"
-echo "  export JAX_PLATFORM_NAME=cpu"
-echo "To include GPU support, reinstall the astra-toolbox conda"
-echo "package on a host with GPUs, and see the instructions at"
-echo "   https://github.com/google/jax#pip-installation-gpu-cuda"
-echo "for additional steps required after running this script and"
-echo "activating the environment created by it."
+echo "JAX installed without GPU support. To enable GPU support, install a"
+echo "version of jaxlib with CUDA support following the instructions at"
+echo "   https://jax.readthedocs.io/en/latest/installation.html#nvidia-gpu"
+echo "ASTRA Toolbox installed without GPU support if this script was"
+echo "run on a host without CUDA drivers installed. To enable GPU support,"
+echo "uninstall and then reinstall the astra-toolbox conda package on a"
+echo "host with CUDA drivers installed."
 
 exit 0

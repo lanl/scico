@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2023 by SCICO Developers
+# Copyright (C) 2022-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -11,7 +11,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Tuple, Union
 
 import scico.numpy as snp
 from scico import cvjp, jvp
@@ -20,7 +20,6 @@ from scico.functional import Functional
 from scico.linop import Identity, LinearOperator, operator_norm
 from scico.numpy import Array, BlockArray
 from scico.numpy.linalg import norm
-from scico.numpy.util import ensure_on_device
 from scico.typing import BlockShape, DType, PRNGKey, Shape
 
 from ._common import Optimizer
@@ -104,14 +103,14 @@ class ProximalADMMBase(Optimizer):
 
         if x0 is None:
             x0 = snp.zeros(xshape, dtype=xdtype)
-        self.x = ensure_on_device(x0)
+        self.x = x0
         if z0 is None:
             z0 = snp.zeros(zshape, dtype=zdtype)
-        self.z = ensure_on_device(z0)
+        self.z = z0
         self.z_old = self.z
         if u0 is None:
             u0 = snp.zeros(ushape, dtype=udtype)
-        self.u = ensure_on_device(u0)
+        self.u = u0
         self.u_old = self.u
 
         super().__init__(**kwargs)
@@ -145,7 +144,7 @@ class ProximalADMMBase(Optimizer):
     def objective(
         self,
         x: Optional[Union[Array, BlockArray]] = None,
-        z: Optional[List[Union[Array, BlockArray]]] = None,
+        z: Optional[Union[Array, BlockArray]] = None,
     ) -> float:
         r"""Evaluate the objective function.
 
@@ -200,7 +199,7 @@ class ProximalADMM(ProximalADMMBase):
          \mb{u}^{(k-1)} \right) \right) \\
        \mb{z}^{(k+1)} &= \mathrm{prox}_{\rho^{-1} \nu^{-1} g} \left(
          \mb{z}^{(k)} - \nu^{-1} B^T \left(
-         B \mb{x}^{(k+1)} + A \mb{z}^{(k)} - \mb{c} + \mb{u}^{(k)}
+         A \mb{x}^{(k+1)} + B \mb{z}^{(k)} - \mb{c} + \mb{u}^{(k)}
          \right) \right) \\
        \mb{u}^{(k+1)} &=  \mb{u}^{(k)} + A \mb{x}^{(k+1)} + B
          \mb{z}^{(k+1)} - \mb{c}  \;.
@@ -290,7 +289,7 @@ class ProximalADMM(ProximalADMMBase):
     def norm_primal_residual(
         self,
         x: Optional[Union[Array, BlockArray]] = None,
-        z: Optional[List[Union[Array, BlockArray]]] = None,
+        z: Optional[Union[Array, BlockArray]] = None,
     ) -> float:
         r"""Compute the :math:`\ell_2` norm of the primal residual.
 
@@ -508,7 +507,7 @@ class NonLinearPADMM(ProximalADMMBase):
     def norm_primal_residual(
         self,
         x: Optional[Union[Array, BlockArray]] = None,
-        z: Optional[List[Union[Array, BlockArray]]] = None,
+        z: Optional[Union[Array, BlockArray]] = None,
     ) -> float:
         r"""Compute the :math:`\ell_2` norm of the primal residual.
 

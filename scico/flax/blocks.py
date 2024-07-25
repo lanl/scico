@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2023 by SCICO Developers
+# Copyright (C) 2021-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -39,9 +39,9 @@ class ConvBNBlock(Module):
             apply.
         act: Flax function defining the activation operation to apply.
         kernel_size: A shape tuple defining the size of the convolution
-            filters. Default: (3, 3).
+            filters.
         strides: A shape tuple defining the size of strides in
-            convolution. Default: (1, 1).
+            convolution.
     """
 
     num_filters: int
@@ -59,7 +59,7 @@ class ConvBNBlock(Module):
         """Apply convolution followed by normalization and activation.
 
         Args:
-            inputs: The nd-array to be transformed.
+            inputs: The array to be transformed.
 
         Returns:
             The transformed input.
@@ -83,9 +83,9 @@ class ConvBlock(Module):
         conv: Flax module implementing the convolution layer to apply.
         act: Flax function defining the activation operation to apply.
         kernel_size: A shape tuple defining the size of the convolution
-            filters. Default: (3, 3).
+            filters.
         strides: A shape tuple defining the size of strides in
-            convolution. Default: (1, 1).
+            convolution.
     """
 
     num_filters: int
@@ -102,7 +102,7 @@ class ConvBlock(Module):
         """Apply convolution followed by activation.
 
         Args:
-            inputs: The nd-array to be transformed.
+            inputs: The array to be transformed.
 
         Returns:
             The transformed input.
@@ -151,7 +151,7 @@ class ConvBNPoolBlock(Module):
         """Apply convolution followed by normalization, activation and pooling.
 
         Args:
-            inputs: The nd-array to be transformed.
+            inputs: The array to be transformed.
 
         Returns:
             The transformed input.
@@ -200,7 +200,7 @@ class ConvBNUpsampleBlock(Module):
         """Apply convolution followed by normalization, activation and upsampling.
 
         Args:
-            inputs: The nd-array to be transformed.
+            inputs: The array to be transformed.
 
         Returns:
             The transformed input.
@@ -230,9 +230,9 @@ class ConvBNMultiBlock(Module):
             apply.
         act: Flax function defining the activation operation to apply.
         kernel_size: A shape tuple defining the size of the convolution
-            filters. Default: (3, 3).
+            filters.
         strides: A shape tuple defining the size of strides in
-            convolution. Default: (1, 1).
+            convolution.
     """
 
     num_blocks: int
@@ -254,7 +254,7 @@ class ConvBNMultiBlock(Module):
         normalization and activation.
 
         Args:
-            x: The nd-array to be transformed.
+            x: The array to be transformed.
 
         Returns:
             The transformed input.

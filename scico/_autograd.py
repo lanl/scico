@@ -1,4 +1,4 @@
-# Copyright (C) 2020-2022 by SCICO Developers
+# Copyright (C) 2020-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -191,6 +191,6 @@ def cvjp(fun: Callable, *primals, jidx: Optional[int] = None) -> Tuple[Tuple[Any
         primals_out, fun_vjp = jax.vjp(pfun, primals[jidx])
 
     def conj_vjp(tangent):
-        return jax.tree_map(jax.numpy.conj, fun_vjp(tangent.conj()))
+        return jax.tree_util.tree_map(jax.numpy.conj, fun_vjp(tangent.conj()))
 
     return primals_out, conj_vjp

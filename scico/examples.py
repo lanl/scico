@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2023 by SCICO Developers
+# Copyright (C) 2021-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -16,7 +16,7 @@ from typing import List, Optional, Tuple, Union
 
 import numpy as np
 
-import imageio.v2 as iio
+import imageio.v3 as iio
 
 import scico.numpy as snp
 from scico import random, util
@@ -35,7 +35,12 @@ def rgb2gray(rgb: snp.Array) -> snp.Array:
         Grayscale image as Nr x Nc or Nr x Nc x K array.
     """
 
-    w = snp.array([0.299, 0.587, 0.114], dtype=rgb.dtype)[np.newaxis, np.newaxis]
+    shape: Union[Tuple[int, int, int], Tuple[int, int, int, int]]
+    if rgb.ndim == 3:
+        shape = (1, 1, 3)
+    else:
+        shape = (1, 1, 3, 1)
+    w = snp.array([0.299, 0.587, 0.114], dtype=rgb.dtype).reshape(shape)
     return snp.sum(w * rgb, axis=2)
 
 
@@ -159,13 +164,14 @@ def epfl_deconv_data(
 
 
 def get_ucb_diffusercam_data(path: str, verbose: bool = False):  # pragma: no cover
-    """Download example data from UC Berkeley Waller Lab diffusercam project.
+    """Download data from UC Berkeley Waller Lab diffusercam project.
 
     Download deconvolution problem data from UC Berkeley Waller Lab
     diffusercam project.  The downloaded data is converted to `.npz`
     format for convenient access via :func:`numpy.load`.  The
     converted data is saved in a file `ucb_diffcam_data.npz.npz` in
     the directory specified by `path`.
+
     Args:
         path: Directory in which converted data is saved.
         verbose: Flag indicating whether to print status messages.
@@ -360,6 +366,43 @@ def create_cone(img_shape: Shape, center: Optional[List[float]] = None) -> snp.A
     return dist_map
 
 
+def gaussian(shape: Shape, sigma: Optional[np.ndarray] = None) -> np.ndarray:
+    r"""Construct a multivariate Gaussian distribution function.
+
+    Construct a zero-mean multivariate Gaussian distribution function
+
+    .. math::
+        f(\mb{x}) = (2 \pi)^{-N/2} \, \det(\Sigma)^{-1/2} \, \exp \left(
+        -\frac{\mb{x}^T \, \Sigma^{-1} \, \mb{x}}{2} \right) \;,
+
+    where :math:`\Sigma` is the covariance matrix of the distribution.
+
+    Args:
+        shape: Shape of output array.
+        sigma: Covariance matrix.
+
+    Returns:
+        Sampled function.
+
+    Raises:
+        ValueError: If the array `sigma` cannot be inverted.
+    """
+
+    if sigma is None:
+        sigma = np.diag(np.array(shape) / 7) ** 2
+    N = len(shape)
+    try:
+        sigmainv = np.linalg.inv(sigma)
+        sigmadet = np.linalg.det(sigma)
+    except np.linalg.LinAlgError as e:
+        raise ValueError(f"Invalid covariance matrix {sigma}.") from e
+    grd = np.stack(np.mgrid[[slice(-(n - 1) / 2, (n + 1) / 2) for n in shape]], axis=-1)
+    sigmax = np.dot(grd, sigmainv)
+    xtsigmax = np.sum(grd * np.dot(grd, sigmainv), axis=-1)
+    const = ((2.0 * np.pi) ** (-N / 2.0)) * (sigmadet ** (-1.0 / 2.0))
+    return const * np.exp(-xtsigmax / 2.0)
+
+
 def create_circular_phantom(
     img_shape: Shape, radius_list: list, val_list: list, center: Optional[list] = None
 ) -> snp.Array:
@@ -472,6 +515,40 @@ def create_conv_sparse_phantom(Nx: int, Nnz: int) -> Tuple[np.ndarray, np.ndarra
     x[idx0, idx1[0], idx1[1]] = val
 
     return h, x
+
+
+def create_tangle_phantom(nx: int, ny: int, nz: int) -> snp.Array:
+    """Construct a volume phantom.
+
+    Args:
+        nx: x-size of output.
+        ny: y-size of output.
+        nz: z-size of output.
+
+    Returns:
+        An array with shape (nz, ny, nx).
+
+    """
+    xs = 1.0 * np.linspace(-1.0, 1.0, nx)
+    ys = 1.0 * np.linspace(-1.0, 1.0, ny)
+    zs = 1.0 * np.linspace(-1.0, 1.0, nz)
+
+    # default ordering for meshgrid is `xy`, this makes inputs of length
+    # M, N, P will create a mesh of N, M, P. Thus we want ys, zs and xs.
+    xx, yy, zz = np.meshgrid(ys, zs, xs, copy=True)
+    xx = 3.0 * xx
+    yy = 3.0 * yy
+    zz = 3.0 * zz
+    values = (
+        xx * xx * xx * xx
+        - 5.0 * xx * xx
+        + yy * yy * yy * yy
+        - 5.0 * yy * yy
+        + zz * zz * zz * zz
+        - 5.0 * zz * zz
+        + 11.8
+    ) * 0.2 + 0.5
+    return (values < 2.0).astype(float)
 
 
 def spnoise(

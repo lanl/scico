@@ -26,7 +26,7 @@ from scico.numpy import Array
 from .typed_dict import DataSetDict
 
 DType = Any
-KeyArray = Union[Array, jax.random.PRNGKeyArray]
+KeyArray = Union[Array, jax.Array]
 
 
 class IterateData:
@@ -118,7 +118,7 @@ def create_input_iter(
             images and labels.
         batch_size: Size of batch for iterating through the data.
         size_device_prefetch: Size of prefetch buffer. Default: 2.
-        dtype: Type of data to handle. Default: ``jnp.float32``.
+        dtype: Type of data to handle. Default: :attr:`~numpy.float32`.
         train: Flag indicating the type of iterator to construct and use.
             The iterator for training permutes data on each epoch while
             the iterator for testing passes through the data without

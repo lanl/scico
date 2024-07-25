@@ -5,8 +5,8 @@
 # with the package.
 
 r"""
-TV-Regularized Sparse-View CT Reconstruction
-============================================
+TV-Regularized Sparse-View CT Reconstruction (ASTRA Projector)
+==============================================================
 
 This example demonstrates solution of a sparse-view CT reconstruction
 problem with isotropic total variation (TV) regularization
@@ -14,21 +14,22 @@ problem with isotropic total variation (TV) regularization
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
   \|_2^2 + \lambda \| C \mathbf{x} \|_{2,1} \;,$$
 
-where $A$ is the Radon transform, $\mathbf{y}$ is the sinogram, $C$ is
-a 2D finite difference operator, and $\mathbf{x}$ is the desired
-image.
+where $A$ is the X-ray transform (the CT forward projection operator),
+$\mathbf{y}$ is the sinogram, $C$ is a 2D finite difference operator, and
+$\mathbf{x}$ is the desired image. This example uses the CT projector
+provided by the astra package, while the companion
+[example script](ct_tv_admm.rst) uses the projector integrated into
+scico.
 """
 
 import numpy as np
-
-import jax
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from xdesign import Foam, discrete_phantom
 
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot
-from scico.linop.radon_astra import TomographicProjector
+from scico.linop.xray.astra import XRayTransform2D
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
@@ -38,7 +39,7 @@ Create a ground truth image.
 N = 512  # phantom size
 np.random.seed(1234)
 x_gt = discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=N)
-x_gt = jax.device_put(x_gt)  # convert to jax type, push to GPU
+x_gt = snp.array(x_gt)  # convert to jax type
 
 
 """
@@ -46,14 +47,14 @@ Configure CT projection operator and generate synthetic measurements.
 """
 n_projection = 45  # number of projections
 angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
-A = TomographicProjector(x_gt.shape, 1, N, angles)  # Radon transform operator
+A = XRayTransform2D(x_gt.shape, N, 1.0, angles)  # CT projection operator
 y = A @ x_gt  # sinogram
 
 
 """
 Set up ADMM solver object.
 """
-λ = 2e0  # L1 norm regularization parameter
+λ = 2e0  # ℓ1 norm regularization parameter
 ρ = 5e0  # ADMM penalty parameter
 maxiter = 25  # number of ADMM iterations
 cg_tol = 1e-4  # CG relative tolerance

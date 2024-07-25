@@ -30,7 +30,6 @@ blur_shape = (9, 9)  # shape of blur kernel
 blur_sigma = 5  # Gaussian blur kernel parameter
 
 opBlur = PaddedCircularConvolve(output_size, channels, blur_shape, blur_sigma)
-
 opBlur_vmap = vmap(opBlur)  # for batch processing
 
 
@@ -46,7 +45,6 @@ noise_level = 0.005  # standard deviation of noise
 noise_range = False  # use fixed noise level
 stride = 100  # stride to sample multiple patches from each image
 augment = True  # augment data via rotations and flips
-
 
 train_ds, test_ds = load_image_data(
     train_nimg,

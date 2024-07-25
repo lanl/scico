@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2023 by SCICO Developers
+# Copyright (C) 2022-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -18,7 +18,7 @@ import numpy as np
 
 import jax.numpy as jnp
 
-import imageio
+import imageio.v3 as iio
 
 from scico import util
 from scico.examples import rgb2gray
@@ -34,12 +34,12 @@ def rotation90(img: Array) -> Array:
     """Rotate an image, or a batch of images, by 90 degrees.
 
     Rotate an image or a batch of images by 90 degrees counterclockwise.
-    An image is an nd-array with size H x W x C with H and W spatial
+    An image is an array with size H x W x C with H and W spatial
     dimensions and C number of channels. A batch of images is an
-    nd-array with size N x H x W x C with N number of images.
+    array with size N x H x W x C with N number of images.
 
     Args:
-        img: The nd-array to be rotated.
+        img: The array to be rotated.
 
     Returns:
        An image, or batch of images, rotated by 90 degrees
@@ -55,12 +55,12 @@ def flip(img: Array) -> Array:
     """Horizontal flip of an image or a batch of images.
 
     Horizontally flip an image or a batch of images. An image is an
-    nd-array with size H x W x C with H and W spatial dimensions and C
-    number of channels. A batch of images is an nd-array with size
+    array with size H x W x C with H and W spatial dimensions and C
+    number of channels. A batch of images is an array with size
     N x H x W x C with N number of images.
 
     Args:
-        img: The nd-array to be flipped.
+        img: The array to be flipped.
 
     Returns:
        An image, or batch of images, flipped horizontally.
@@ -74,7 +74,7 @@ def flip(img: Array) -> Array:
 class CenterCrop:
     """Crop central part of an image to a specified size.
 
-    Crop central part of an image. An image is an nd-array with size
+    Crop central part of an image. An image is an array with size
     H x W x C with H and W spatial dimensions and C number of channels.
     """
 
@@ -95,7 +95,7 @@ class CenterCrop:
         """Apply center crop.
 
         Args:
-            image: The nd-array to be cropped.
+            image: The array to be cropped.
 
         Returns:
             The cropped image.
@@ -114,7 +114,7 @@ class CenterCrop:
 class PositionalCrop:
     """Crop an image from a given corner to a specified size.
 
-    Crop an image from a given corner. An image is an nd-array with size
+    Crop an image from a given corner. An image is an array with size
     H x W x C with H and W spatial dimensions and C number of channels.
     """
 
@@ -135,7 +135,7 @@ class PositionalCrop:
         """Apply positional crop.
 
         Args:
-            image: The nd-array to be cropped.
+            image: The array to be cropped.
             top: Vertical top coordinate of corner to start cropping.
             left: Horizontal left coordinate of corner to start
                 cropping.
@@ -156,8 +156,8 @@ class RandomNoise:
     """Add Gaussian noise to an image or a batch of images.
 
     Add Gaussian noise to an image or a batch of images. An image is
-    an nd-array with size H x W x C with H and W spatial dimensions
-    and C number of channels. A batch of images is an nd-array with
+    an array with size H x W x C with H and W spatial dimensions
+    and C number of channels. A batch of images is an array with
     size N x H x W x C with N number of images. The Gaussian noise is
     a Gaussian random variable with mean zero and given standard
     deviation. The standard deviation can be a fix value corresponding
@@ -182,7 +182,7 @@ class RandomNoise:
         """Add Gaussian noise.
 
         Args:
-            image: The nd-array to add noise to.
+            image: The array to add noise to.
 
         Returns:
             The noisy image.
@@ -231,10 +231,10 @@ def preprocess_images(
             size in each image.
         stride: Stride between patch origins (indexed from left-top
             corner). If int, the same stride is used in h and w.
-        dtype: type of array. Default: ``np.float32``.
+        dtype: dtype of array. Default: :attr:`~numpy.float32`.
 
     Returns:
-        Preprocessed nd-array.
+        Preprocessed array.
     """
 
     # Get number of images to use.
@@ -296,7 +296,7 @@ def build_image_dataset(
     Preprocess images according to the specified configuration and
     assemble a dataset into a structure that can be used for training
     machine learning models. Keep training and testing partitions.
-    Each dictionary returned has images and labels, which are nd-arrays
+    Each dictionary returned has images and labels, which are arrays
     of dimensions (N, H, W, C) with N: number of images; H,
     W: spatial dimensions and C: number of channels.
 
@@ -389,7 +389,7 @@ def images_read(path: str, ext: str = "jpg") -> Array:  # pragma: no cover
     slices = []
     shape = None
     for file in sorted(glob.glob(os.path.join(path, "*." + ext))):
-        image = imageio.imread(file)
+        image = iio.imread(file)
         if shape is None:
             shape = image.shape[:2]
         if shape != image.shape[:2]:
@@ -418,7 +418,7 @@ def get_bsds_data(path: str, verbose: bool = False):  # pragma: no cover
         verbose: Flag indicating whether to print status messages.
     """
     # data source URL and filenames
-    data_base_url = "http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/BSR/"
+    data_base_url = "https://www2.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/BSR/"
     data_tar_file = "BSR_bsds500.tgz"
     # ensure path directory exists
     if not os.path.isdir(path):
@@ -475,7 +475,7 @@ def build_blur_kernel(
     Args:
         kernel_size: Size of the blur kernel.
         blur_sigma: Standard deviation of the blur kernel.
-        dtype: Output data type. Default: ``np.float32``.
+        dtype: Output dtype. Default: :attr:`~numpy.float32`.
     """
     kernel = 1.0
     meshgrids = np.meshgrid(*[np.arange(size, dtype=dtype) for size in kernel_size])
@@ -512,7 +512,7 @@ class PaddedCircularConvolve(LinearOperator):
             channels: Number of channels in image to blur.
             kernel_size: Size of the blur kernel.
             blur_sigma: Standard deviation of the blur kernel.
-            dtype: Output data type. Default: ``np.float32``.
+            dtype: Output dtype. Default: :attr:`~numpy.float32`.
         """
         if isinstance(output_size, int):
             output_size = (output_size, output_size)
@@ -561,7 +561,7 @@ class PaddedCircularConvolve(LinearOperator):
         """Apply operator.
 
         Args:
-            x: The nd-array with input signal. The input to the
+            x: The array with input signal. The input to the
                 constructed operator should be HWC with H and W spatial
                 dimensions given by `output_size` and C the given
                 `channels`.

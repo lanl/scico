@@ -22,18 +22,18 @@ jobs:
         shell: bash -l {0}
     steps:
       # Check-out the repository under $GITHUB_WORKSPACE
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
       # Set up conda/mamba environment
       - name: Set up mambaforge
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
             miniforge-variant: Mambaforge
             miniforge-version: latest
             activate-environment: test-env
             use-mamba: true
-            python-version: "3.9"
+            python-version: "3.10"
       # Configure conda environment cache
       - name: Set up conda environment cache
         uses: actions/cache@v3
@@ -59,7 +59,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -r dev_requirements.txt
-          mamba install -c astra-toolbox astra-toolbox
+          mamba install -c conda-forge astra-toolbox
           mamba install -c conda-forge pyyaml
           pip install --upgrade --force-reinstall scipy>=1.6.0  # Temporary fix for GLIBCXX_3.4.30 not found in conda forge version
           pip install -r examples/examples_requirements.txt
@@ -69,4 +69,4 @@ jobs:
       # Run example test
       - name: Run example test
         run: |
-          ${GITHUB_WORKSPACE}/examples/scriptcheck.sh -e -d -t
+          ${GITHUB_WORKSPACE}/examples/scriptcheck.sh -e -d -t -g

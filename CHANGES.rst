@@ -3,24 +3,62 @@ SCICO Release Notes
 ===================
 
 
-Version 0.0.4   (unreleased)
+Version 0.0.6   (unreleased)
 ----------------------------
 
-• New `Function` class for representing array-to-array mappings with more than
-  one input.
-• New methods and a function for computing Jacobian-vector products for `Operator`
-  objects.
-• New proximal ADMM solvers.
-• New ADMM subproblem solvers for problems involving a sum-of-convolutions
+• Significant changes to ``linop.xray.astra`` API.
+• New functional ``functional.IsotropicTVNorm`` and faster implementation
+  of ``functional.AnisotropicTVNorm``.
+• New linear operators ``linop.ProjectedGradient``, ``linop.PolarGradient``,
+  ``linop.CylindricalGradient``, and ``linop.SphericalGradient``.
+• Rename ``scico.numpy.util.parse_axes`` to
+  ``scico.numpy.util.normalize_axes``.
+• Rename ``scico.flax.save_weights`` and ``scico.flax.load_weights`` to
+  ``scico.flax.save_variables`` and ``scico.flax.load_variables``
+  respectively.
+• Support ``jaxlib`` and ``jax`` versions 0.4.3 to 0.4.30.
+• Support ``flax`` versions 0.8.0 to 0.8.3.
+
+
+
+Version 0.0.5   (2023-12-18)
+----------------------------
+
+• New functionals ``functional.AnisotropicTVNorm`` and
+  ``functional.ProximalAverage`` with proximal operator approximations.
+• New integrated Radon/X-ray transform ``linop.XRayTransform``.
+• New operators ``operator.DiagonalStack`` and ``operator.VerticalStack``.
+• Rename modules ``radon_astra`` and ``radon_svmbir`` to ``xray.astra`` and
+  ``xray.svmbir`` respectively, and rename ``TomographicProjector`` classes
+  to ``XRayTransform``.
+• Rename ``AbelProjector`` to ``AbelTransform``.
+• Rename ``solver.ATADSolver`` to ``solver.MatrixATADSolver``.
+• Rename some ``__init__`` parameters of ``linop.DiagonalStack`` and
+  ``linop.VerticalStack``.
+• Support ``jaxlib`` and ``jax`` versions 0.4.3 to 0.4.23.
+• Support ``flax`` versions up to 0.7.5.
+• Use ``orbax`` for checkpointing ``flax`` models.
+
+
+
+Version 0.0.4   (2023-08-03)
+----------------------------
+
+• Add new ``Function`` class for representing array-to-array mappings with
+  more than one input.
+• Add new methods and a function for computing Jacobian-vector products for
+  ``Operator`` objects.
+• Add new proximal ADMM solvers.
+• Add new ADMM subproblem solvers for problems involving a sum-of-convolutions
   operator.
 • Extend support for other ML models including UNet, ODP and MoDL.
 • Add functionality for training Flax-based ML models and for data generation.
 • Enable diagnostics for ML training loops.
+• Support ``jaxlib`` and ``jax`` versions 0.4.3 to 0.4.14.
 • Change required packages and version numbers, including more recent version
-  for `flax`.
-• New methods and a function for computing Jacobian-vector products for
-  `Operator` objects.
+  for ``flax``.
 • Drop support for Python 3.7.
+• Add support for 3D tomographic projection with the ASTRA Toolbox.
 
 
 
@@ -28,8 +66,8 @@ Version 0.0.3   (2022-09-21)
 ----------------------------
 
 • Change required packages and version numbers, including more recent version
-  requirements for `numpy`, `scipy`, `svmbir`, and `ray`.
-• Package `bm4d` removed from main requirements list due to issue #342.
+  requirements for ``numpy``, ``scipy``, ``svmbir``, and ``ray``.
+• Package ``bm4d`` removed from main requirements list due to issue #342.
 • Support ``jaxlib`` versions 0.3.0 to 0.3.15 and ``jax`` versions
   0.3.0 to 0.3.17.
 • Rename linear operators in ``radon_astra`` and ``radon_svmbir`` modules

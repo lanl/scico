@@ -33,7 +33,6 @@ class TestCircularConvolve:
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
     @pytest.mark.parametrize("axes_shape_spec", SHAPE_SPECS)
     def test_eval(self, axes_shape_spec, input_dtype, jit):
-
         x_shape, ndims, h_shape = axes_shape_spec
 
         h, key = randn(tuple(h_shape), dtype=input_dtype, key=self.key)
@@ -62,7 +61,6 @@ class TestCircularConvolve:
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
     @pytest.mark.parametrize("axes_shape_spec", SHAPE_SPECS)
     def test_adjoint(self, axes_shape_spec, input_dtype, jit):
-
         x_shape, ndims, h_shape = axes_shape_spec
 
         h, key = randn(tuple(h_shape), dtype=input_dtype, key=self.key)
@@ -149,16 +147,33 @@ class TestCircularConvolve:
             snp.array([2]),
         ],
     )
-    def test_center(self, center):
+    @pytest.mark.parametrize("jit", [True, False])
+    def test_center(self, center, jit):
         x, key = uniform(minval=-1, maxval=1, shape=(16,), key=self.key)
         h = snp.array([0.5, 1.0, 0.25])
-        A = CircularConvolve(h=h, input_shape=x.shape, h_center=center)
-        B = CircularConvolve(h=h, input_shape=x.shape)
+        A = CircularConvolve(h=h, input_shape=x.shape, h_center=center, jit=jit)
+        B = CircularConvolve(h=h, input_shape=x.shape, jit=jit)
         if isinstance(center, int):
             shift = -center
         else:
             shift = -center[0]
         np.testing.assert_allclose(A @ x, snp.roll(B @ x, shift), atol=1e-5)
+
+    @pytest.mark.parametrize("jit", [True, False])
+    def test_fractional_center(self, jit):
+        """A fractional center should keep outputs real."""
+        x, key = uniform(minval=-1, maxval=1, shape=(4, 5), key=self.key)
+        h, _ = uniform(minval=-1, maxval=1, shape=(2, 2), key=key)
+        A = CircularConvolve(h=h, input_shape=x.shape, h_center=[0.1, 2.7], jit=jit)
+
+        # taken from CircularConvolve._eval
+        x_dft = snp.fft.fftn(x, axes=A.x_fft_axes)
+        hx = snp.fft.ifftn(
+            A.h_dft * x_dft,
+            axes=A.ifft_axes,
+        )
+
+        np.testing.assert_allclose(hx, snp.real(hx))
 
     @pytest.mark.parametrize("axes_shape_spec", SHAPE_SPECS)
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])

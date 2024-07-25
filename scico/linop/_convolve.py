@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2023 by SCICO Developers
+# Copyright (C) 2020-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -12,18 +12,12 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-import operator
-from functools import partial
-
 import numpy as np
 
-import jax
-import jax.numpy as jnp
 from jax.dtypes import result_type
 from jax.scipy.signal import convolve
 
 import scico.numpy as snp
-from scico.numpy.util import ensure_on_device
 from scico.typing import DType, Shape
 
 from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
@@ -41,22 +35,17 @@ class Convolve(LinearOperator):
         jit: bool = True,
         **kwargs,
     ):
-        r"""Wrap :func:`jax.scipy.signal.convolve` as a LinearOperator.
-
-        Wrap :func:`jax.scipy.signal.convolve` as a
-        :class:`.LinearOperator`.
+        r"""Wrap :func:`jax.scipy.signal.convolve` as a :class:`.LinearOperator`.
 
         Args:
             h: Convolutional filter. Must have same number of dimensions
                 as `len(input_shape)`.
             input_shape: Shape of input array.
             input_dtype: `dtype` for input argument. Defaults to
-                ``float32``. If :class:`LinearOperator` implements
-                complex-valued operations, this must be ``complex64`` for
-                proper adjoint and gradient calculation.
+                :attr:`~numpy.float32`.
             mode: A string indicating the size of the output. One of
                 "full", "valid", "same". Defaults to "full".
-            jit:  If ``True``, jit the evaluation, adjoint, and gram
+            jit: If ``True``, jit the evaluation, adjoint, and gram
                 functions of the :class:`LinearOperator`.
 
         For more details on `mode`, see :func:`jax.scipy.signal.convolve`.
@@ -67,7 +56,7 @@ class Convolve(LinearOperator):
 
         if h.ndim != len(input_shape):
             raise ValueError(f"h.ndim = {h.ndim} must equal len(input_shape) = {len(input_shape)}.")
-        self.h = ensure_on_device(h)
+        self.h = h
 
         if mode not in ["full", "valid", "same"]:
             raise ValueError(f"Invalid mode={mode}; must be one of 'full', 'valid', 'same'.")
@@ -90,7 +79,7 @@ class Convolve(LinearOperator):
     def _eval(self, x: snp.Array) -> snp.Array:
         return convolve(x, self.h, mode=self.mode)
 
-    @partial(_wrap_add_sub, op=operator.add)
+    @_wrap_add_sub
     def __add__(self, other):
         if self.mode != other.mode:
             raise ValueError(f"Incompatible modes:  {self.mode} != {other.mode}.")
@@ -107,7 +96,7 @@ class Convolve(LinearOperator):
 
         raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}.")
 
-    @partial(_wrap_add_sub, op=operator.sub)
+    @_wrap_add_sub
     def __sub__(self, other):
         if self.mode != other.mode:
             raise ValueError(f"Incompatible modes:  {self.mode} != {other.mode}.")
@@ -125,17 +114,6 @@ class Convolve(LinearOperator):
 
     @_wrap_mul_div_scalar
     def __mul__(self, scalar):
-        return Convolve(
-            h=self.h * scalar,
-            input_shape=self.input_shape,
-            input_dtype=result_type(self.input_dtype, type(scalar)),
-            mode=self.mode,
-            output_shape=self.output_shape,
-            adj_fn=lambda x: snp.conj(scalar) * self.adj(x),
-        )
-
-    @_wrap_mul_div_scalar
-    def __rmul__(self, scalar):
         return Convolve(
             h=self.h * scalar,
             input_shape=self.input_shape,
@@ -180,9 +158,7 @@ class ConvolveByX(LinearOperator):
                 as `len(input_shape)`.
             input_shape: Shape of input array.
             input_dtype: `dtype` for input argument. Defaults to
-                ``float32``. If :class:`.LinearOperator` implements
-                complex-valued operations, this must be ``complex64`` for
-                proper adjoint and gradient calculation.
+                :attr:`~numpy.float32`.
             mode: A string indicating the size of the output. One of
                 "full", "valid", "same". Defaults to "full".
             jit: If ``True``, jit the evaluation, adjoint, and gram
@@ -197,12 +173,10 @@ class ConvolveByX(LinearOperator):
         if x.ndim != len(input_shape):
             raise ValueError(f"x.ndim = {x.ndim} must equal len(input_shape) = {len(input_shape)}.")
 
-        if isinstance(x, jnp.ndarray):
-            self.x = x
-        elif isinstance(x, np.ndarray):  # TODO: this should not be handled at the LinOp level
-            self.x = jax.device_put(x)
-        else:
+        # Ensure that x is a numpy or jax array.
+        if not snp.util.is_arraylike(x):
             raise TypeError(f"Expected numpy or jax array, got {type(x)}.")
+        self.x = x
 
         if mode not in ["full", "valid", "same"]:
             raise ValueError(f"Invalid mode={mode}; must be one of 'full', 'valid', 'same'.")
@@ -225,7 +199,7 @@ class ConvolveByX(LinearOperator):
     def _eval(self, h: snp.Array) -> snp.Array:
         return convolve(self.x, h, mode=self.mode)
 
-    @partial(_wrap_add_sub, op=operator.add)
+    @_wrap_add_sub
     def __add__(self, other):
         if self.mode != other.mode:
             raise ValueError(f"Incompatible modes:  {self.mode} != {other.mode}.")
@@ -240,7 +214,7 @@ class ConvolveByX(LinearOperator):
             )
         raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}.")
 
-    @partial(_wrap_add_sub, op=operator.sub)
+    @_wrap_add_sub
     def __sub__(self, other):
         if self.mode != other.mode:
             raise ValueError(f"Incompatible modes:  {self.mode} != {other.mode}.")
@@ -259,17 +233,6 @@ class ConvolveByX(LinearOperator):
 
     @_wrap_mul_div_scalar
     def __mul__(self, scalar):
-        return ConvolveByX(
-            x=self.x * scalar,
-            input_shape=self.input_shape,
-            input_dtype=result_type(self.input_dtype, type(scalar)),
-            mode=self.mode,
-            output_shape=self.output_shape,
-            adj_fn=lambda x: snp.conj(scalar) * self.adj(x),
-        )
-
-    @_wrap_mul_div_scalar
-    def __rmul__(self, scalar):
         return ConvolveByX(
             x=self.x * scalar,
             input_shape=self.input_shape,

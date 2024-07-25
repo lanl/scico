@@ -20,8 +20,6 @@ deconvolved image.
 """
 
 
-import jax
-
 from xdesign import SiemensStar, discrete_phantom
 
 import scico.numpy as snp
@@ -36,7 +34,6 @@ Create a ground truth image.
 phantom = SiemensStar(32)
 N = 256  # image size
 x_gt = snp.pad(discrete_phantom(phantom, N - 16), 8)
-x_gt = jax.device_put(x_gt)  # convert to jax type, push to GPU
 
 
 """
@@ -57,7 +54,7 @@ y = Ax + σ * noise
 """
 Set up an ADMM solver object.
 """
-λ = 2e-2  # L21 norm regularization parameter
+λ = 2e-2  # ℓ2,1 norm regularization parameter
 ρ = 5e-1  # ADMM penalty parameter
 maxiter = 50  # number of ADMM iterations
 

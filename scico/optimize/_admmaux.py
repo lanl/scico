@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2023 by SCICO Developers
+# Copyright (C) 2020-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -23,14 +23,15 @@ from scico.functional import ZeroFunctional
 from scico.linop import (
     CircularConvolve,
     ComposedLinearOperator,
+    Diagonal,
     Identity,
     LinearOperator,
-    Sum,
+    MatrixOperator,
 )
 from scico.loss import SquaredL2Loss
-from scico.metric import rel_res
 from scico.numpy import Array, BlockArray
-from scico.numpy.util import ensure_on_device, is_real_dtype
+from scico.numpy.util import is_real_dtype
+from scico.solver import ConvATADSolver, MatrixATADSolver
 from scico.solver import cg as scico_cg
 from scico.solver import minimize
 
@@ -98,8 +99,6 @@ class GenericSubproblemSolver(SubproblemSolver):
             Computed solution.
         """
 
-        x0 = ensure_on_device(x0)
-
         @jax.jit
         def obj(x):
             out = 0.0
@@ -126,8 +125,8 @@ class LinearSubproblemSolver(SubproblemSolver):
     for the case where :code:`f` is an :math:`\ell_2` or weighted
     :math:`\ell_2` norm, and :code:`f.A` is a linear operator, so that
     the subproblem involves solving a linear equation. This requires that
-    `f.functional` be an instance of :class:`.SquaredL2Loss` and for
-    the forward operator :code:`f.A` to be an instance of
+    :code:`f.functional` be an instance of :class:`.SquaredL2Loss` and
+    for the forward operator :code:`f.A` to be an instance of
     :class:`.LinearOperator`.
 
     The :math:`\mb{x}`-update step is
@@ -139,7 +138,7 @@ class LinearSubproblemSolver(SubproblemSolver):
         \norm{\mb{z}^{(k)}_i - \mb{u}^{(k)}_i - C_i \mb{x}}_2^2 \;,
 
     where :math:`W` a weighting :class:`.Diagonal` operator
-    or an :class:`.Identity` operator (i.e. no weighting).
+    or an :class:`.Identity` operator (i.e., no weighting).
     This update step reduces to the solution of the linear system
 
     ..  math::
@@ -200,19 +199,19 @@ class LinearSubproblemSolver(SubproblemSolver):
     def internal_init(self, admm: soa.ADMM):
         if admm.f is not None:
             if not isinstance(admm.f, SquaredL2Loss):
-                raise ValueError(
+                raise TypeError(
                     "LinearSubproblemSolver requires f to be a scico.loss.SquaredL2Loss; "
                     f"got {type(admm.f)}."
                 )
             if not isinstance(admm.f.A, LinearOperator):
-                raise ValueError(
+                raise TypeError(
                     "LinearSubproblemSolver requires f.A to be a scico.linop.LinearOperator; "
                     f"got {type(admm.f.A)}."
                 )
 
         super().internal_init(admm)
 
-        # Set lhs_op =  \sum_i rho_i * Ci.H @ CircularConvolve
+        # Set lhs_op =  \sum_i rho_i * Ci.H @ Ci
         # Use reduce as the initialization of this sum is messy otherwise
         lhs_op = reduce(
             lambda a, b: a + b, [rhoi * Ci.gram_op for rhoi, Ci in zip(admm.rho_list, admm.C_list)]
@@ -221,7 +220,6 @@ class LinearSubproblemSolver(SubproblemSolver):
             # hessian = A.T @ W @ A; W may be identity
             lhs_op += admm.f.hessian
 
-        lhs_op.jit()
         self.lhs_op = lhs_op
 
     def compute_rhs(self) -> Union[Array, BlockArray]:
@@ -260,9 +258,112 @@ class LinearSubproblemSolver(SubproblemSolver):
         Returns:
             Computed solution.
         """
-        x0 = ensure_on_device(x0)
         rhs = self.compute_rhs()
         x, self.info = self.cg(self.lhs_op, rhs, x0, **self.cg_kwargs)  # type: ignore
+        return x
+
+
+class MatrixSubproblemSolver(LinearSubproblemSolver):
+    r"""Solver for quadratic functionals involving matrix operators.
+
+    Solver for the case in which :math:`f` is a quadratic function of
+    :math:`\mb{x}`, and :math:`A` and all the :math:`C_i` are diagonal
+    or matrix operators. It is a specialization of
+    :class:`.LinearSubproblemSolver`.
+
+    As for :class:`.LinearSubproblemSolver`, the :math:`\mb{x}`-update
+    step is
+
+    ..  math::
+
+        \mb{x}^{(k+1)} = \argmin_{\mb{x}} \; \frac{1}{2}
+        \norm{\mb{y} - A \mb{x}}_W^2 + \sum_i \frac{\rho_i}{2}
+        \norm{\mb{z}^{(k)}_i - \mb{u}^{(k)}_i - C_i \mb{x}}_2^2 \;,
+
+    where :math:`W` is a weighting :class:`.Diagonal` operator
+    or an :class:`.Identity` operator (i.e., no weighting).
+    This update step reduces to the solution of the linear system
+
+    ..  math::
+
+        \left(A^H W A + \sum_{i=1}^N \rho_i C_i^H C_i \right)
+        \mb{x}^{(k+1)} = \;
+        A^H W \mb{y} + \sum_{i=1}^N \rho_i C_i^H ( \mb{z}^{(k)}_i -
+        \mb{u}^{(k)}_i) \;,
+
+    which is solved by factorization of the left hand side of the
+    equation, using :class:`.MatrixATADSolver`.
+
+
+    Attributes:
+        admm (:class:`.ADMM`): ADMM solver object to which the solver is
+            attached.
+        solve_kwargs (dict): Dictionary of arguments for solver
+            :class:`.MatrixATADSolver` initialization.
+    """
+
+    def __init__(self, check_solve: bool = False, solve_kwargs: Optional[dict[str, Any]] = None):
+        """Initialize a :class:`MatrixSubproblemSolver` object.
+
+        Args:
+            check_solve: If ``True``, compute solver accuracy after each
+                solve.
+            solve_kwargs: Dictionary of arguments for solver
+                :class:`.MatrixATADSolver` initialization.
+        """
+        self.check_solve = check_solve
+        default_solve_kwargs = {"cho_factor": False}
+        if solve_kwargs:
+            default_solve_kwargs.update(solve_kwargs)
+        self.solve_kwargs = default_solve_kwargs
+
+    def internal_init(self, admm: soa.ADMM):
+        if admm.f is not None:
+            if not isinstance(admm.f, SquaredL2Loss):
+                raise TypeError(
+                    "MatrixSubproblemSolver requires f to be a scico.loss.SquaredL2Loss; "
+                    f"got {type(admm.f)}."
+                )
+            if not isinstance(admm.f.A, (Diagonal, MatrixOperator)):
+                raise TypeError(
+                    "MatrixSubproblemSolver requires f.A to be a Diagonal or MatrixOperator; "
+                    f"got {type(admm.f.A)}."
+                )
+        for i, Ci in enumerate(admm.C_list):
+            if not isinstance(Ci, (Diagonal, MatrixOperator)):
+                raise TypeError(
+                    "MatrixSubproblemSolver requires C[{i}] to be a Diagonal or MatrixOperator; "
+                    f"got {type(Ci)}."
+                )
+
+        super().internal_init(admm)
+
+        if admm.f is None:
+            A = snp.zeros(admm.C_list[0].input_shape[0], dtype=admm.C_list[0].input_dtype)
+            W = None
+        else:
+            A = admm.f.A
+            W = 2.0 * self.admm.f.scale * admm.f.W  # type: ignore
+
+        Csum = reduce(
+            lambda a, b: a + b, [rhoi * Ci.gram_op for rhoi, Ci in zip(admm.rho_list, admm.C_list)]
+        )
+        self.solver = MatrixATADSolver(A, Csum, W, **self.solve_kwargs)
+
+    def solve(self, x0: Array) -> Array:
+        """Solve the ADMM step.
+
+        Args:
+            x0: Initial value (ignored).
+
+        Returns:
+            Computed solution.
+        """
+        rhs = self.compute_rhs()
+        x = self.solver.solve(rhs)
+        if self.check_solve:
+            self.accuracy = self.solver.accuracy(x, rhs)
+
         return x
 
 
@@ -270,15 +371,15 @@ class CircularConvolveSolver(LinearSubproblemSolver):
     r"""Solver for linear operators diagonalized in the DFT domain.
 
     Specialization of :class:`.LinearSubproblemSolver` for the case
-    where :code:`f` is an instance of :class:`.SquaredL2Loss`, the
-    forward operator :code:`f.A` is either an instance of
-    :class:`.Identity` or :class:`.CircularConvolve`, and the
-    :code:`C_i` are all shift invariant linear operators, examples of
-    which include instances of :class:`.Identity` as well as some
-    instances (depending on initializer parameters) of
-    :class:`.CircularConvolve` and :class:`.FiniteDifference`.
-    None of the instances of :class:`.CircularConvolve` may sum over any
-    of their axes.
+    where :code:`f` is ``None``, or an instance of
+    :class:`.SquaredL2Loss` with a forward operator :code:`f.A` that is
+    either an instance of :class:`.Identity` or
+    :class:`.CircularConvolve`, and the :code:`C_i` are all shift
+    invariant linear operators, examples of which include instances of
+    :class:`.Identity` as well as some instances (depending on
+    initializer parameters) of :class:`.CircularConvolve` and
+    :class:`.FiniteDifference`. None of the instances of
+    :class:`.CircularConvolve` may sum over any of their axes.
 
     Attributes:
         admm (:class:`.ADMM`): ADMM solver object to which the solver is
@@ -287,22 +388,43 @@ class CircularConvolveSolver(LinearSubproblemSolver):
             equation to be solved.
     """
 
-    def __init__(self):
-        """Initialize a :class:`CircularConvolveSolver` object."""
+    def __init__(self, ndims: Optional[int] = None):
+        """Initialize a :class:`CircularConvolveSolver` object.
+
+        Args:
+            ndims: Number of trailing dimensions of the input and kernel
+                involved in the :class:`.CircularConvolve` convolutions.
+                In most cases this value is automatically determined from
+                the optimization problem specification, but this is not
+                possible when :code:`f` is ``None`` and none of the
+                :code:`C_i` are of type :class:`.CircularConvolve`. When
+                not ``None``, this parameter overrides the automatic
+                mechanism.
+        """
+        self.ndims = ndims
 
     def internal_init(self, admm: soa.ADMM):
-        if admm.f is not None:
+        if admm.f is None:
+            is_cc = [isinstance(C, CircularConvolve) for C in admm.C_list]
+            if any(is_cc):
+                auto_ndims = admm.C_list[is_cc.index(True)].ndims
+            else:
+                auto_ndims = None
+        else:
             if not isinstance(admm.f, SquaredL2Loss):
-                raise ValueError(
+                raise TypeError(
                     "CircularConvolveSolver requires f to be a scico.loss.SquaredL2Loss; "
                     f"got {type(admm.f)}."
                 )
             if not isinstance(admm.f.A, (CircularConvolve, Identity)):
-                raise ValueError(
+                raise TypeError(
                     "CircularConvolveSolver requires f.A to be a scico.linop.CircularConvolve "
                     f"or scico.linop.Identity; got {type(admm.f.A)}."
                 )
+            auto_ndims = admm.f.A.ndims if isinstance(admm.f.A, CircularConvolve) else None
 
+        if self.ndims is None:
+            self.ndims = auto_ndims
         super().internal_init(admm)
 
         self.real_result = is_real_dtype(admm.C_list[0].input_dtype)
@@ -310,12 +432,16 @@ class CircularConvolveSolver(LinearSubproblemSolver):
         # All of the C operators are assumed to be linear and shift invariant
         # but this is not checked.
         lhs_op_list = [
-            rho * CircularConvolve.from_operator(C.gram_op)
+            rho * CircularConvolve.from_operator(C.gram_op, ndims=self.ndims)
             for rho, C in zip(admm.rho_list, admm.C_list)
         ]
         A_lhs = reduce(lambda a, b: a + b, lhs_op_list)
         if self.admm.f is not None:
-            A_lhs += 2.0 * admm.f.scale * CircularConvolve.from_operator(admm.f.A.gram_op)
+            A_lhs += (
+                2.0
+                * admm.f.scale
+                * CircularConvolve.from_operator(admm.f.A.gram_op, ndims=self.ndims)
+            )
 
         self.A_lhs = A_lhs
 
@@ -454,35 +580,19 @@ class FBlockCircularConvolveSolver(LinearSubproblemSolver):
             raise ValueError("FBlockCircularConvolveSolver does not allow f to be None.")
         else:
             if not isinstance(admm.f, SquaredL2Loss):
-                raise ValueError(
+                raise TypeError(
                     "FBlockCircularConvolveSolver requires f to be a scico.loss.SquaredL2Loss; "
                     f"got {type(admm.f)}."
                 )
             if not isinstance(admm.f.A, ComposedLinearOperator):
-                raise ValueError(
+                raise TypeError(
                     "FBlockCircularConvolveSolver requires f.A to be a composition of Sum "
                     f"and CircularConvolve linear operators; got {type(admm.f.A)}."
                 )
-            if not isinstance(admm.f.A.A, Sum) or not isinstance(admm.f.A.B, CircularConvolve):
-                raise ValueError(
-                    "FBlockCircularConvolveSolver requires f.A to be a composition of Sum "
-                    "and CircularConvolve linear operators; got a composition of "
-                    f"{type(admm.f.A.A)} and {type(admm.f.A.B)}."
-                )
-            self.sum_axis = admm.f.A.A.kwargs["axis"]
-            if not isinstance(self.sum_axis, int):
-                raise ValueError(
-                    "FBlockCircularConvolveSolver requires the Sum operator component "
-                    "of f.A to sum over a single axis of its input."
-                )
-
         super().internal_init(admm)
 
         assert isinstance(self.admm.f, SquaredL2Loss)
         assert isinstance(self.admm.f.A, ComposedLinearOperator)
-        assert isinstance(self.admm.f.A.B, CircularConvolve)
-
-        self.real_result = is_real_dtype(admm.C_list[0].input_dtype)
 
         # All of the C operators are assumed to be linear and shift invariant
         # but this is not checked.
@@ -490,12 +600,8 @@ class FBlockCircularConvolveSolver(LinearSubproblemSolver):
             rho * CircularConvolve.from_operator(C.gram_op, ndims=self.ndims)
             for rho, C in zip(admm.rho_list, admm.C_list)
         ]
-        self.D = reduce(lambda a, b: a + b, c_gram_list) / (2.0 * self.admm.f.scale)
-        A = self.admm.f.A.B
-        self.AHEinv = A.h_dft.conj() / (
-            1.0
-            + snp.sum(A.h_dft * (A.h_dft.conj() / self.D.h_dft), axis=self.sum_axis, keepdims=True)
-        )
+        D = reduce(lambda a, b: a + b, c_gram_list) / (2.0 * self.admm.f.scale)
+        self.solver = ConvATADSolver(self.admm.f.A, D)
 
     def solve(self, x0: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         """Solve the ADMM step.
@@ -507,27 +613,11 @@ class FBlockCircularConvolveSolver(LinearSubproblemSolver):
             Computed solution.
         """
         assert isinstance(self.admm.f, SquaredL2Loss)
-        assert isinstance(self.admm.f.A, ComposedLinearOperator)
-        assert isinstance(self.admm.f.A.B, CircularConvolve)
 
         rhs = self.compute_rhs() / (2.0 * self.admm.f.scale)
-        fft_axes = self.admm.f.A.B.x_fft_axes
-        rhs_dft = snp.fft.fftn(rhs, axes=fft_axes)
-        A = self.admm.f.A.B
-        x_dft = (
-            rhs_dft
-            - (
-                self.AHEinv
-                * (snp.sum(A.h_dft * rhs_dft / self.D.h_dft, axis=self.sum_axis, keepdims=True))
-            )
-        ) / self.D.h_dft
-        x = snp.fft.ifftn(x_dft, axes=fft_axes)
-        if self.real_result:
-            x = x.real
-
+        x = self.solver.solve(rhs)
         if self.check_solve:
-            lhs = self.admm.f.A.gram_op(x) + self.D(x)
-            self.accuracy = rel_res(lhs, rhs)
+            self.accuracy = self.solver.accuracy(x, rhs)
 
         return x
 
@@ -537,7 +627,7 @@ class G0BlockCircularConvolveSolver(SubproblemSolver):
     domain.
 
     Specialization of :class:`.LinearSubproblemSolver` for the case
-    where :math:`f = 0` (i.e. :code:`f` is a :class:`.ZeroFunctional`),
+    where :math:`f = 0` (i.e, :code:`f` is a :class:`.ZeroFunctional`),
     :math:`g_1` is an instance of :class:`.SquaredL2Loss`, :math:`C_1`
     is a composition of a :class:`.Sum` operator an a
     :class:`.CircularConvolve` operator.  The former must sum over the
@@ -661,37 +751,20 @@ class G0BlockCircularConvolveSolver(SubproblemSolver):
                 "G0BlockCircularConvolveSolver requires f to be None or a ZeroFunctional"
             )
         if not isinstance(admm.g_list[0], SquaredL2Loss):
-            raise ValueError(
+            raise TypeError(
                 "G0BlockCircularConvolveSolver requires g_1 to be a scico.loss.SquaredL2Loss; "
                 f"got {type(admm.g_list[0])}."
             )
         if not isinstance(admm.C_list[0], ComposedLinearOperator):
-            raise ValueError(
+            raise TypeError(
                 "G0BlockCircularConvolveSolver requires C_1 to be a composition of Sum "
                 f"and CircularConvolve linear operators; got {type(admm.C_list[0])}."
-            )
-        if not isinstance(admm.C_list[0].A, Sum) or not isinstance(
-            admm.C_list[0].B, CircularConvolve
-        ):
-            raise ValueError(
-                "G0BlockCircularConvolveSolver requires C_1 to be a composition of Sum "
-                "and CircularConvolve linear operators; got a composition of "
-                f"{type(admm.C_list[0].A)} and {type(admm.C_list[0].B)}."
-            )
-        self.sum_axis = admm.C_list[0].A.kwargs["axis"]
-        if not isinstance(self.sum_axis, int):
-            raise ValueError(
-                "G0BlockCircularConvolveSolver requires the Sum operator component "
-                "of C_1 to sum over a single axis of its input."
             )
 
         super().internal_init(admm)
 
         assert isinstance(self.admm.g_list[0], SquaredL2Loss)
         assert isinstance(self.admm.C_list[0], ComposedLinearOperator)
-        assert isinstance(self.admm.C_list[0].B, CircularConvolve)
-
-        self.real_result = is_real_dtype(admm.C_list[0].input_dtype)
 
         # All of the C operators are assumed to be linear and shift invariant
         # but this is not checked.
@@ -699,14 +772,10 @@ class G0BlockCircularConvolveSolver(SubproblemSolver):
             rho * CircularConvolve.from_operator(C.gram_op, ndims=self.ndims)
             for rho, C in zip(admm.rho_list[1:], admm.C_list[1:])
         ]
-        self.D = reduce(lambda a, b: a + b, c_gram_list) / (
+        D = reduce(lambda a, b: a + b, c_gram_list) / (
             2.0 * self.admm.g_list[0].scale * admm.rho_list[0]
         )
-        A = self.admm.C_list[0].B
-        self.AHEinv = A.h_dft.conj() / (
-            1.0
-            + snp.sum(A.h_dft * (A.h_dft.conj() / self.D.h_dft), axis=self.sum_axis, keepdims=True)
-        )
+        self.solver = ConvATADSolver(self.admm.C_list[0], D)
 
     def compute_rhs(self) -> Union[Array, BlockArray]:
         r"""Compute the right hand side of the linear equation to be solved.
@@ -720,14 +789,16 @@ class G0BlockCircularConvolveSolver(SubproblemSolver):
             ( \mb{z}^{(k)}_i - \mb{u}^{(k)}_i) \;.
 
         Returns:
-            Computed solution.
+            Right hand side of the linear equation.
         """
         assert isinstance(self.admm.g_list[0], SquaredL2Loss)
 
         C0 = self.admm.C_list[0]
         rhs = snp.zeros(C0.input_shape, C0.input_dtype)
         omega = self.admm.g_list[0].scale
-        omega_list = [2.0 * omega,] + [
+        omega_list = [
+            2.0 * omega,
+        ] + [
             1.0,
         ] * (len(self.admm.C_list) - 1)
         for omegai, rhoi, Ci, zi, ui in zip(
@@ -746,26 +817,10 @@ class G0BlockCircularConvolveSolver(SubproblemSolver):
             Computed solution.
         """
         assert isinstance(self.admm.g_list[0], SquaredL2Loss)
-        assert isinstance(self.admm.C_list[0], ComposedLinearOperator)
-        assert isinstance(self.admm.C_list[0].B, CircularConvolve)
 
         rhs = self.compute_rhs() / (2.0 * self.admm.g_list[0].scale * self.admm.rho_list[0])
-        fft_axes = self.admm.C_list[0].B.x_fft_axes
-        rhs_dft = snp.fft.fftn(rhs, axes=fft_axes)
-        A = self.admm.C_list[0].B
-        x_dft = (
-            rhs_dft
-            - (
-                self.AHEinv
-                * (snp.sum(A.h_dft * rhs_dft / self.D.h_dft, axis=self.sum_axis, keepdims=True))
-            )
-        ) / self.D.h_dft
-        x = snp.fft.ifftn(x_dft, axes=fft_axes)
-        if self.real_result:
-            x = x.real
-
+        x = self.solver.solve(rhs)
         if self.check_solve:
-            lhs = self.admm.C_list[0].gram_op(x) + self.D(x)
-            self.accuracy = rel_res(lhs, rhs)
+            self.accuracy = self.solver.accuracy(x, rhs)
 
         return x

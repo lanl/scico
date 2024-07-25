@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2023 by SCICO Developers
+# Copyright (C) 2021-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -21,12 +21,17 @@ from ._norm import (
     NuclearNorm,
     L1MinusL2Norm,
 )
+from ._tvnorm import AnisotropicTVNorm, IsotropicTVNorm, TVNorm
+from ._proxavg import ProximalAverage
 from ._indicator import NonNegativeIndicator, L2BallIndicator
 from ._denoiser import BM3D, BM4D, DnCNN
 from ._dist import SetDistance, SquaredSetDistance
 
 
 __all__ = [
+    "AnisotropicTVNorm",
+    "IsotropicTVNorm",
+    "TVNorm",
     "Functional",
     "ScaledFunctional",
     "SeparableFunctional",
@@ -41,6 +46,7 @@ __all__ = [
     "NonNegativeIndicator",
     "NuclearNorm",
     "L2BallIndicator",
+    "ProximalAverage",
     "SetDistance",
     "SquaredSetDistance",
     "BM3D",

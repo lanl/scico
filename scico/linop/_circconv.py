@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2023 by SCICO Developers
+# Copyright (C) 2021-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -8,13 +8,10 @@
 """Circular convolution linear operators."""
 
 import math
-import operator
-from functools import partial
 from typing import Optional, Sequence, Tuple, Union
 
 import numpy as np
 
-import jax
 from jax.dtypes import result_type
 
 import scico.numpy as snp
@@ -84,7 +81,7 @@ class CircularConvolve(LinearOperator):
         ndims: Optional[int] = None,
         input_dtype: DType = snp.float32,
         h_is_dft: bool = False,
-        h_center: Optional[Union[snp.Array, Sequence, float, int]] = None,
+        h_center: Optional[Union[snp.Array, np.ndarray, Sequence, float, int]] = None,
         jit: bool = True,
         **kwargs,
     ):
@@ -93,17 +90,17 @@ class CircularConvolve(LinearOperator):
             h: Array of filters.
             input_shape: Shape of input array.
             ndims: Number of (trailing) dimensions of the input and `h`
-               involved in the convolution. Defaults to the number of
-               dimensions in the input.
+                involved in the convolution. Defaults to the number of
+                dimensions in the input.
             input_dtype: `dtype` for input argument. Defaults to
-               ``float32``.
+                :attr:`~numpy.float32`.
             h_is_dft: Flag indicating whether `h` is in the DFT domain.
             h_center: Array of length `ndims` specifying the center of
-               the filter. Defaults to the upper left corner, i.e.,
-               `h_center = [0, 0, ..., 0]`, may be noninteger. May be a
-               ``float`` or ``int`` if `h` is one-dimensional.
+                the filter. Defaults to the upper left corner, i.e.,
+                `h_center = [0, 0, ..., 0]`, may be noninteger. May be a
+                ``float`` or ``int`` if `h` is one-dimensional.
             jit:  If ``True``, jit the evaluation, adjoint, and gram
-               functions of the LinearOperator.
+                functions of the :class:`LinearOperator`.
         """
 
         if ndims is None:
@@ -120,27 +117,30 @@ class CircularConvolve(LinearOperator):
             output_dtype = snp.dtype(input_dtype)  # cannot infer from h_dft because it is complex
         else:
             fft_shape = input_shape[-self.ndims :]
-            pad = ()
             fft_axes = list(range(h.ndim - self.ndims, h.ndim))
             self.h_dft = snp.fft.fftn(h, s=fft_shape, axes=fft_axes)
             output_dtype = result_type(h.dtype, input_dtype)
 
             if self.h_center is not None:
-                if isinstance(self.h_center, jax.Array):
-                    offset = -self.h_center  # type: ignore
-                else:
-                    # support float or int values for h_center
-                    if isinstance(self.h_center, (float, int)):
-                        offset = -snp.array(
-                            [
-                                self.h_center,
-                            ]
-                        )
-                    else:  # support list/tuple values for h_center
-                        offset = -snp.array(self.h_center)
+                if isinstance(self.h_center, (float, int)):  # support float/int h_center
+                    offset = -np.array(
+                        [
+                            self.h_center,
+                        ]
+                    )
+                else:  # support array/list/tuple h_center
+                    offset = -np.array(self.h_center)
                 shifts: Tuple[np.ndarray, ...] = np.ix_(
                     *tuple(
-                        np.exp(-1j * k * 2 * np.pi * np.fft.fftfreq(s))  # type: ignore
+                        np.select(
+                            # see doi:10.1109/78.700979 and doi:10.1109/LSP.2012.2191280
+                            [np.arange(s) < s / 2, np.arange(s) == s / 2, np.arange(s) > s / 2],
+                            [
+                                np.exp(-1j * k * 2 * np.pi * np.arange(s) / s),
+                                np.cos(k * np.pi),
+                                np.exp(1j * k * 2 * np.pi * (s - np.arange(s)) / s),
+                            ],  # type: ignore
+                        )
                         for k, s in zip(offset, input_shape[-self.ndims :])
                     )
                 )
@@ -198,7 +198,7 @@ class CircularConvolve(LinearOperator):
             H_adj_x = H_adj_x.real
         return H_adj_x
 
-    @partial(_wrap_add_sub, op=operator.add)
+    @_wrap_add_sub
     def __add__(self, other):
         if self.ndims != other.ndims:
             raise ValueError(f"Incompatible ndims: {self.ndims} != {other.ndims}.")
@@ -211,7 +211,7 @@ class CircularConvolve(LinearOperator):
             h_is_dft=True,
         )
 
-    @partial(_wrap_add_sub, op=operator.sub)
+    @_wrap_add_sub
     def __sub__(self, other):
         if self.ndims != other.ndims:
             raise ValueError(f"Incompatible ndims: {self.ndims} != {other.ndims}.")
@@ -233,10 +233,6 @@ class CircularConvolve(LinearOperator):
             input_dtype=self.input_dtype,
             h_is_dft=True,
         )
-
-    @_wrap_mul_div_scalar
-    def __rmul__(self, scalar):
-        return self * scalar
 
     @_wrap_mul_div_scalar
     def __truediv__(self, scalar):

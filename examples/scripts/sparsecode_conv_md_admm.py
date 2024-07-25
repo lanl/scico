@@ -36,8 +36,6 @@ using the frequency-domain approach proposed in
 
 import numpy as np
 
-import jax
-
 import scico.numpy as snp
 from scico import plot
 from scico.examples import create_conv_sparse_phantom
@@ -67,8 +65,8 @@ x0 *= hnorm
 """
 Convert numpy arrays to jax arrays.
 """
-h = jax.device_put(h)
-x0 = jax.device_put(x0)
+h = snp.array(h)
+x0 = snp.array(x0)
 
 
 """
@@ -98,7 +96,7 @@ y = B(A(x0p))
 """
 Set functional and solver parameters.
 """
-λ = 1e0  # l1-l2 norm regularization parameter
+λ = 1e0  # ℓ1-ℓ2 norm regularization parameter
 ρ0 = 1e0  # ADMM penalty parameters
 ρ1 = 3e0
 maxiter = 200  # number of ADMM iterations

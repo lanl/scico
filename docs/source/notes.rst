@@ -2,15 +2,6 @@
 Notes
 *****
 
-No GPU/TPU Warning
-==================
-
-JAX currently issues a warning when used on a platform without a
-GPU. To disable this warning, set the environment variable
-``JAX_PLATFORM_NAME=cpu`` before running Python. This warning is
-suppressed by SCICO for JAX versions after 0.3.23, making use of
-the environment variable unnecessary.
-
 
 Debugging
 =========
@@ -43,6 +34,26 @@ can be enabled in one of two ways:
 
 
 For more information, see the `JAX notes on double precision <https://jax.readthedocs.io/en/latest/notebooks/Common_Gotchas_in_JAX.html#double-64bit-precision>`_.
+
+Device Control
+==============
+
+Use of the CPU device can be forced even when GPUs are present by setting the
+environment variable ``JAX_PLATFORM_NAME=cpu`` before running Python. This also
+serves to disable the warning that older versions of JAX issued when running
+on a platform without a GPU, but this should no longer be necessary for any
+JAX versions supported by SCICO.
+
+By default, JAX views a multi-core CPU as a single device. Primarily for testing
+purposes, it may be useful to instruct JAX to emulate multiple CPU devices, by
+setting the environment variable ``XLA_FLAGS='--xla_force_host_platform_device_count=<n>'``,
+where ``<n>`` is an integer number of devices. For more detail see the relevant
+`section of the JAX docs <https://jax.readthedocs.io/en/latest/jax-101/06-parallelism.html#aside-hosts-and-devices-in-jax>`__.
+
+By default, JAX will preallocate a large chunk of GPU memory on startup. This
+behavior can be controlled using environment variables ``XLA_PYTHON_CLIENT_PREALLOCATE``,
+``XLA_PYTHON_CLIENT_MEM_FRACTION``, and ``XLA_PYTHON_CLIENT_ALLOCATOR``, as described in
+the relevant `section of the JAX docs <https://jax.readthedocs.io/en/latest/gpu_memory_allocation.html>`__.
 
 
 Random Number Generation
@@ -103,7 +114,7 @@ Denoisers
 ---------
 
 The :func:`.bm3d` and :func:`.bm4d` denoisers (and the corresponding
-:class:`.BM3D` and :class:`.BM4d` pseudo-functionals) are implemented
+:class:`.BM3D` and :class:`.BM4D` pseudo-functionals) are implemented
 via interfaces to the `bm3d <https://pypi.org/project/bm3d/>`__ and
 `bm4d <https://pypi.org/project/bm4d/>`__ packages respectively. The
 :class:`~.denoiser.DnCNN` denoiser (and the corresponding
@@ -111,13 +122,26 @@ via interfaces to the `bm3d <https://pypi.org/project/bm3d/>`__ and
 when the full benefits of JAX-based code are required.
 
 
-Tomographic Projectors
-----------------------
+Tomographic Projectors/Radon Transforms
+---------------------------------------
 
-The :class:`.radon_svmbir.TomographicProjector` class is implemented
+Note that the tomographic projections that are frequently referred
+to as Radon transforms are referred to as X-ray transforms in SCICO.
+While the Radon transform is far more well-known than the X-ray
+transform, which is the same as the Radon transform for projections
+in two dimensions, these two transform differ in higher numbers of
+dimensions, and it is the X-ray transform that is the appropriate
+mathematical model for beam attenuation based imaging in three or
+more dimensions.
+
+SCICO includes three different implementations of X-ray transforms.
+Of these, :class:`.linop.XRayTransform` is an integral component of
+SCICO, while the other two depend on external packages.
+The :class:`.xray.svmbir.XRayTransform` class is implemented
 via an interface to the `svmbir
 <https://svmbir.readthedocs.io/en/latest/>`__ package. The
-:class:`.radon_astra.TomographicProjector` class is implemented via an
+:class:`.xray.astra.XRayTransform2D` and
+:class:`.xray.astra.XRayTransform3D` classes are implemented via an
 interface to the `ASTRA toolbox
 <https://www.astra-toolbox.com/>`__. This toolbox does provide some
 GPU acceleration support, but efficiency is expected to be lower than
@@ -145,11 +169,12 @@ As a concrete example, consider the function :math:`f(x) =
 \frac{1}{2}\norm{\mb{A} \mb{x}}_2^2` where :math:`\mb{A}` is a complex
 matrix. The gradient of :math:`f` is usually given :math:`(\nabla
 f)(\mb{x}) = \mb{A}^H \mb{A} \mb{x}`, where :math:`\mb{A}^H` is the
-conjugate transpose of :math:`\mb{A}`. Applying ``jax.grad`` to
+conjugate transpose of :math:`\mb{A}`. Applying :func:`jax.grad` to
 :math:`f` will yield :math:`(\mb{A}^H \mb{A} \mb{x})^*`, where
 :math:`\cdot^*` denotes complex conjugation.
 
-The following code demonstrates the use of ``jax.grad`` and :func:`scico.grad`:
+The following code demonstrates the use of :func:`jax.grad` and
+:func:`scico.grad`:
 
 
 ::
@@ -183,7 +208,7 @@ an example, :math:`f(x) = \norm{x}_2^2` can be implemented in as ``f =
 lambda x: snp.linalg.norm(x)**2``. This involves first calculating the
 non-squared :math:`\ell_2` norm, then squaring it. The un-squared
 :math:`\ell_2` norm is not differentiable at zero. When evaluating
-the gradient of ``f`` at 0, :func:`scico.grad` returns ``nan``:
+the gradient of ``f`` at 0, :func:`scico.grad` returns :data:`~numpy.NaN`:
 
 ::
 
@@ -259,9 +284,9 @@ JAX arrays:
 
 
 We recommend that input data be converted to JAX arrays via
-``jax.device_put`` before calling any SCICO optimizers.
+:func:`jax.device_put` before calling any SCICO optimizers.
 
-On a multi-GPU system, ``jax.device_put`` can place data on a specific
+On a multi-GPU system, :func:`jax.device_put` can place data on a specific
 GPU. See the `JAX notes on data placement
 <https://jax.readthedocs.io/en/latest/faq.html?highlight=data%20placement#controlling-data-and-computation-placement-on-devices>`_.
 

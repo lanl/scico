@@ -25,7 +25,7 @@ SCICO, it provides a convenient demonstration of Robust PCA, which does
 have potential application in scientific imaging problems.
 """
 
-import imageio
+import imageio.v3 as iio
 
 import scico.numpy as snp
 from scico import functional, linop, loss, plot
@@ -36,12 +36,9 @@ from scico.util import device_info
 """
 Load example video.
 """
-reader = imageio.get_reader("imageio:newtonscradle.gif")
-nfrm = reader.get_length()
-frmlst = []
-for i, frm in enumerate(reader):
-    frmlst.append(rgb2gray(frm[..., 0:3].astype(snp.float32) / 255.0))
-vid = snp.stack(frmlst, axis=2)
+vid = rgb2gray(
+    iio.imread("imageio:newtonscradle.gif").transpose((1, 2, 3, 0)).astype(snp.float32) / 255.0
+)
 
 
 """
@@ -65,7 +62,7 @@ g1 = functional.L1Norm()
 Set up an ADMM solver object.
 """
 λ0 = 1e1  # nuclear norm regularization parameter
-λ1 = 3e1  # l1 norm regularization parameter
+λ1 = 3e1  # ℓ1 norm regularization parameter
 ρ0 = 2e1  # ADMM penalty parameter
 ρ1 = 2e1  # ADMM penalty parameter
 maxiter = 50  # number of ADMM iterations

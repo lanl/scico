@@ -40,11 +40,17 @@ identity operator. The output of the final stage is the set of
 reconstructed images.
 """
 
+# isort: off
 import os
 from functools import partial
 from time import time
 
 import numpy as np
+
+import logging
+import ray
+
+ray.init(logging_level=logging.ERROR)  # need to call init before jax import: ray-project/ray#44087
 
 import jax
 
@@ -54,7 +60,7 @@ from scico import flax as sflax
 from scico import metric, plot
 from scico.flax.examples import load_ct_data
 from scico.flax.train.traversals import clip_positive, construct_traversal
-from scico.linop.radon_astra import TomographicProjector
+from scico.linop.xray.astra import XRayTransform2D
 
 """
 Prepare parallel processing. Set an arbitrary processor count (only
@@ -81,12 +87,12 @@ trdt, ttdt = load_ct_data(train_nimg, test_nimg, N, n_projection, verbose=True)
 Build CT projection operator.
 """
 angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
-A = TomographicProjector(
+A = XRayTransform2D(
     input_shape=(N, N),
-    detector_spacing=1,
+    det_spacing=1,
     det_count=N,
     angles=angles,
-)  # Radon transform operator
+)  # CT projection operator
 A = (1.0 / N) * A  # normalized
 
 
@@ -119,7 +125,8 @@ model_conf = {
     "depth": 10,
     "num_filters": 64,
     "block_depth": 4,
-    "cg_iter": 3,
+    "cg_iter_1": 3,
+    "cg_iter_2": 8,
 }
 # training configuration
 train_conf: sflax.ConfigDict = {
@@ -132,11 +139,12 @@ train_conf: sflax.ConfigDict = {
     "warmup_epochs": 0,
     "log_every_steps": 40,
     "log": True,
+    "checkpointing": True,
 }
 
 
 """
-Construct functionality for making sure that the learned
+Construct functionality for ensuring that the learned
 regularization parameter is always positive.
 """
 lmbdatrav = construct_traversal("lmbda")  # select lmbda parameters in model
@@ -150,8 +158,8 @@ lmbdapos = partial(
 """
 Print configuration of distributed run.
 """
-print(f"{'JAX process: '}{jax.process_index()}{' / '}{jax.process_count()}")
-print(f"{'JAX local devices: '}{jax.local_devices()}")
+print(f"\nJAX process: {jax.process_index()}{' / '}{jax.process_count()}")
+print(f"JAX local devices: {jax.local_devices()}\n")
 
 
 """
@@ -166,10 +174,11 @@ workdir2 = os.path.join(
 )
 
 stats_object_ini = None
+stats_object = None
 
 checkpoint_files = []
-for (dirpath, dirnames, filenames) in os.walk(workdir2):
-    checkpoint_files = [fn for fn in filenames if str.split(fn, "_")[0] == "checkpoint"]
+for dirpath, dirnames, filenames in os.walk(workdir2):
+    checkpoint_files = [fn for fn in filenames]
 
 if len(checkpoint_files) > 0:
     model = sflax.MoDLNet(
@@ -178,11 +187,14 @@ if len(checkpoint_files) > 0:
         channels=channels,
         num_filters=model_conf["num_filters"],
         block_depth=model_conf["block_depth"],
-        cg_iter=model_conf["cg_iter"],
+        cg_iter=model_conf["cg_iter_2"],
     )
 
-    train_conf["workdir"] = workdir2
     train_conf["post_lst"] = [lmbdapos]
+    # Parameters for 2nd stage
+    train_conf["workdir"] = workdir2
+    train_conf["opt_type"] = "ADAM"
+    train_conf["num_epochs"] = 150
     # Construct training object
     trainer = sflax.BasicFlaxTrainer(
         train_conf,
@@ -203,12 +215,11 @@ else:
         channels=channels,
         num_filters=model_conf["num_filters"],
         block_depth=model_conf["block_depth"],
-        cg_iter=model_conf["cg_iter"],
+        cg_iter=model_conf["cg_iter_1"],
     )
     # First stage: initialization training loop.
-    workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "modl_ct_out")
-
-    train_conf["workdir"] = workdir
+    workdir1 = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "modl_ct_out")
+    train_conf["workdir"] = workdir1
     train_conf["post_lst"] = [lmbdapos]
     # Construct training object
     trainer = sflax.BasicFlaxTrainer(
@@ -230,8 +241,7 @@ else:
 
     # Second stage: depth iterations training loop.
     model.depth = model_conf["depth"]
-    model.cg_iter = 8
-    train_conf["base_learning_rate"] = 1e-2
+    model.cg_iter = model_conf["cg_iter_2"]
     train_conf["opt_type"] = "ADAM"
     train_conf["num_epochs"] = 150
     train_conf["workdir"] = workdir2
@@ -265,7 +275,7 @@ output = np.clip(output, a_min=0, a_max=1.0)
 
 
 """
-Compare trained model in terms of reconstruction time
+Evaluate trained model in terms of reconstruction time
 and data fidelity.
 """
 total_epochs = epochs_init + train_conf["num_epochs"]
@@ -281,7 +291,9 @@ print(
     f"{'PSNR:':6s}{psnr_eval:>5.2f}{' dB'}{'':3s}{'time[s]:':10s}{time_eval:>7.2f}"
 )
 
-# Plot comparison
+"""
+Plot comparison.
+"""
 np.random.seed(123)
 indx = np.random.randint(0, high=maxn)
 
@@ -311,10 +323,10 @@ fig.show()
 
 
 """
-Plot convergence statistics. Statistics only generated if a training
-cycle was done (i.e. not reading final epoch results from checkpoint).
+Plot convergence statistics. Statistics are generated only if a training
+cycle was done (i.e. if not reading final epoch results from checkpoint).
 """
-if stats_object is not None:
+if stats_object is not None and len(stats_object.iterations) > 0:
     hist = stats_object.history(transpose=True)
     fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
     plot.plot(
@@ -341,7 +353,7 @@ if stats_object is not None:
     fig.show()
 
 # Stats for initialization loop
-if stats_object_ini is not None:
+if stats_object_ini is not None and len(stats_object_ini.iterations) > 0:
     hist = stats_object_ini.history(transpose=True)
     fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
     plot.plot(

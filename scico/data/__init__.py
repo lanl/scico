@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2023 by SCICO Developers
+# Copyright (C) 2021-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -10,7 +10,7 @@
 import os.path
 from typing import Optional
 
-from imageio.v2 import imread
+from imageio.v3 import imread
 
 import scico.numpy as snp
 
@@ -24,7 +24,7 @@ def _imread(filename: str, path: Optional[str] = None, asfloat: bool = False) ->
         filename: Base filename (i.e. without path) of image file.
         path: Path to directory containing the image file.
         asfloat: Flag indicating whether the returned image should be
-          converted to float32 dtype with a range [0, 1].
+          converted to :attr:`~numpy.float32` dtype with a range [0, 1].
 
     Returns:
        Image data array.
@@ -43,7 +43,7 @@ def kodim23(asfloat: bool = False) -> snp.Array:
 
     Args:
         asfloat: Flag indicating whether the returned image should be
-          converted to float32 dtype with a range [0, 1].
+          converted to :attr:`~numpy.float32` dtype with a range [0, 1].
 
     Returns:
        Image data array.

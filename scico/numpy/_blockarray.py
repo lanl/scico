@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2023 by SCICO Developers
+# Copyright (C) 2020-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SPORCO package. Details of the copyright
 # and user license can be found in the 'LICENSE.txt' file distributed
 # with the package.
 
-r"""Block array class."""
+"""Block array class."""
 
 import inspect
 from functools import wraps
@@ -22,13 +22,16 @@ Array = type(jnp.array([0]))
 
 
 class BlockArray:
-    """Block array class, which provides a way to combine arrays of
-    different shapes into a single object for use with other SCICO classes.
+    """Block array class.
 
-    For detailed documentation, see the :ref:`detailed BlockArray documentation <blockarray_class>`.
+    A block array provides a way to combine arrays of different shapes
+    into a single object for use with other SCICO classes. For further
+    information, see the
+    :ref:`detailed BlockArray documentation <blockarray_class>`.
 
     Example
     -------
+
     >>> x = snp.blockarray((
     ...     [[1, 3, 7],
     ...      [2, 2, 1]],
@@ -38,7 +41,6 @@ class BlockArray:
     ((2, 3), (3,))
     >>> snp.sum(x)
     Array(30, dtype=int32)
-
     """
 
     # Ensure we use BlockArray.__radd__, __rmul__, etc for binary
@@ -59,7 +61,7 @@ class BlockArray:
         """Return the dtype of the blocks, which must currently be homogeneous.
 
         This allows `snp.zeros(x.shape, x.dtype)` to work without a mechanism
-        to handle to lists of dtypes.
+        to handle lists of dtypes.
         """
         return self.arrays[0].dtype
 
@@ -167,9 +169,13 @@ da_props = [
 for prop_name in da_props:
     setattr(BlockArray, prop_name, _da_prop_wrapper(prop_name))
 
+
 # Wrap jax array methods.
 def _da_method_wrapper(method_name):
     method = getattr(Array, method_name)
+
+    if method.__name__ is None:
+        return method
 
     @wraps(method)
     def method_ba(self, *args, **kwargs):

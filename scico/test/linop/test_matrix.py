@@ -7,6 +7,7 @@ import jax.numpy as jnp
 
 import pytest
 
+import scico.numpy as snp
 from scico import linop
 from scico.linop import MatrixOperator
 from scico.random import randn
@@ -21,7 +22,6 @@ class TestMatrix:
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
     @pytest.mark.parametrize("matrix_shape", [(3, 3), (3, 4)])
     def test_eval(self, matrix_shape, input_dtype, input_cols):
-
         A, key = randn(matrix_shape, dtype=input_dtype, key=self.key)
         Ao = MatrixOperator(A, input_cols=input_cols)
 
@@ -37,7 +37,6 @@ class TestMatrix:
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
     @pytest.mark.parametrize("matrix_shape", [(3, 3), (3, 4)])
     def test_adjoint(self, matrix_shape, input_dtype, input_cols):
-
         A, key = randn(matrix_shape, dtype=input_dtype, key=self.key)
         Ao = MatrixOperator(A, input_cols=input_cols)
 
@@ -240,10 +239,14 @@ class TestMatrix:
         I = linop.Identity(input_shape=(6,))
         assert Ao == Ao @ I
 
-    def test_init_devicearray(self):
-        A = np.random.randn(4, 6)
-        Ao = MatrixOperator(A)
-        assert isinstance(Ao.A, jnp.ndarray)
+    def test_init_array(self):
+        Am = np.random.randn(4, 6)
+        A = MatrixOperator(Am)
+        assert isinstance(A.A, np.ndarray)
+
+        A = MatrixOperator(jnp.array(Am))
+        assert isinstance(A.A, jnp.ndarray)
+        np.testing.assert_array_equal(A.A, jnp.array(A))
 
         with pytest.raises(TypeError):
             MatrixOperator([1.0, 3.0])
@@ -260,3 +263,23 @@ class TestMatrix:
         A_array = Ao.to_array()
         assert isinstance(A_array, np.ndarray)
         np.testing.assert_allclose(A_array, A)
+
+        A_array = jnp.array(Ao)
+        assert isinstance(A_array, jax.Array)
+        np.testing.assert_allclose(A_array, A)
+
+    @pytest.mark.parametrize("ord", ["fro", 2])
+    @pytest.mark.parametrize("axis", [None, 0, 1])
+    @pytest.mark.parametrize("keepdims", [True, False])
+    @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
+    def test_norm(self, ord, axis, keepdims, input_dtype):  # pylint: disable=W0622
+        A, key = randn((4, 6), dtype=input_dtype, key=self.key)
+        Ao = MatrixOperator(A)
+
+        if ord == "fro" and axis is not None:
+            # Not defined;
+            pass
+        else:
+            x = Ao.norm(ord=ord, axis=axis, keepdims=keepdims)
+            y = snp.linalg.norm(A, ord=ord, axis=axis, keepdims=keepdims)
+            np.testing.assert_allclose(x, y, rtol=5e-5)

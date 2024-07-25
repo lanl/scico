@@ -34,10 +34,10 @@ from scico.examples import downsample_volume, epfl_deconv_data, tile_volume_slic
 from scico.optimize.admm import ADMM, CircularConvolveSolver
 
 """
-Get and preprocess data. We downsample the data for the for purposes of
-the example. Reducing the downsampling rate will make the example slower
-and more memory-intensive. To run this example on a GPU it may be
-necessary to set environment variables
+Get and preprocess data. The data is downsampled to limit the memory
+requirements and run time of the example. Reducing the downsampling rate
+will make the example slower and more memory-intensive. To run this
+example on a GPU it may be necessary to set environment variables
 `XLA_PYTHON_CLIENT_ALLOCATOR=platform` and
 `XLA_PYTHON_CLIENT_PREALLOCATE=false`. If your GPU does not have enough
 memory, you can try setting the environment variable
@@ -52,7 +52,6 @@ psf = downsample_volume(psf, downsampling_rate)
 
 y -= y.min()
 y /= y.max()
-
 psf /= psf.sum()
 
 

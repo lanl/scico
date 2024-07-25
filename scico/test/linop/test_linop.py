@@ -2,7 +2,7 @@ import operator as op
 
 import numpy as np
 
-from jax.config import config
+from jax import config
 
 import pytest
 
@@ -16,6 +16,8 @@ import scico.numpy as snp
 from scico import linop
 from scico.random import randn
 from scico.typing import PRNGKey
+
+SCALARS = (2, 1e0, snp.array(1.0))
 
 
 def adjoint_test(
@@ -67,8 +69,7 @@ class LinearOperatorTestObj:
 
         self.x, key = randn((N,), dtype=dtype, key=key)
         self.y, key = randn((M,), dtype=dtype, key=key)
-        scalar, key = randn((1,), dtype=dtype, key=key)
-        self.scalar = scalar.item()
+
         self.Ao = AbsMatOp(self.A)
         self.Bo = AbsMatOp(self.B)
         self.Co = AbsMatOp(self.C)
@@ -101,9 +102,10 @@ def test_binary_op(testobj, operator):
 
 
 @pytest.mark.parametrize("operator", [op.mul, op.truediv])
-def test_scalar_left(testobj, operator):
-    comp_mat = operator(testobj.A, testobj.scalar)
-    comp_op = operator(testobj.Ao, testobj.scalar)
+@pytest.mark.parametrize("scalar", SCALARS)
+def test_scalar_left(testobj, operator, scalar):
+    comp_mat = operator(testobj.A, scalar)
+    comp_op = operator(testobj.Ao, scalar)
     assert isinstance(comp_op, linop.LinearOperator)  # Ensure we don't get a Map
     assert comp_op.input_dtype == testobj.A.dtype
     np.testing.assert_allclose(comp_mat @ testobj.x, comp_op @ testobj.x, rtol=5e-5)
@@ -112,11 +114,12 @@ def test_scalar_left(testobj, operator):
 
 
 @pytest.mark.parametrize("operator", [op.mul, op.truediv])
-def test_scalar_right(testobj, operator):
+@pytest.mark.parametrize("scalar", SCALARS)
+def test_scalar_right(testobj, operator, scalar):
     if operator == op.truediv:
         pytest.xfail("scalar / LinearOperator is not supported")
-    comp_mat = operator(testobj.scalar, testobj.A)
-    comp_op = operator(testobj.scalar, testobj.Ao)
+    comp_mat = operator(scalar, testobj.A)
+    comp_op = operator(scalar, testobj.Ao)
     assert comp_op.input_dtype == testobj.A.dtype
     np.testing.assert_allclose(comp_mat @ testobj.x, comp_op @ testobj.x, rtol=5e-5)
 
@@ -298,125 +301,6 @@ def test_shape(testobj):
 
     with pytest.raises(ValueError):
         _ = Ao.adj(x)
-
-
-class TestDiagonal:
-    def setup_method(self, method):
-        self.key = jax.random.PRNGKey(12345)
-
-    input_shapes = [(8,), (8, 12), ((3,), (4, 5))]
-
-    @pytest.mark.parametrize("diagonal_dtype", [np.float32, np.complex64])
-    @pytest.mark.parametrize("input_shape", input_shapes)
-    def test_eval(self, input_shape, diagonal_dtype):
-        diagonal, key = randn(input_shape, dtype=diagonal_dtype, key=self.key)
-        x, key = randn(input_shape, dtype=diagonal_dtype, key=key)
-
-        D = linop.Diagonal(diagonal=diagonal)
-        assert (D @ x).shape == D.output_shape
-        snp.testing.assert_allclose((diagonal * x), (D @ x), rtol=1e-5)
-
-    @pytest.mark.parametrize("diagonal_dtype", [np.float32, np.complex64])
-    def test_eval_broadcasting(self, diagonal_dtype):
-        # array broadcast
-        diagonal, key = randn((3, 1, 4), dtype=diagonal_dtype, key=self.key)
-        x, key = randn((5, 1), dtype=diagonal_dtype, key=key)
-        D = linop.Diagonal(diagonal, x.shape)
-        assert (D @ x).shape == (3, 5, 4)
-        np.testing.assert_allclose((diagonal * x).ravel(), (D @ x).ravel(), rtol=1e-5)
-
-        # blockarray broadcast
-        diagonal, key = randn(((3, 1, 4), (5, 5)), dtype=diagonal_dtype, key=self.key)
-        x, key = randn(((5, 1), (1,)), dtype=diagonal_dtype, key=key)
-        D = linop.Diagonal(diagonal, x.shape)
-        assert (D @ x).shape == ((3, 5, 4), (5, 5))
-        snp.testing.assert_allclose((diagonal * x), (D @ x), rtol=1e-5)
-
-        # blockarray x array -> error
-        diagonal, key = randn(((3, 1, 4), (5, 5)), dtype=diagonal_dtype, key=self.key)
-        x, key = randn((5, 1), dtype=diagonal_dtype, key=key)
-        with pytest.raises(ValueError):
-            D = linop.Diagonal(diagonal, x.shape)
-
-        # array x blockarray -> error
-        diagonal, key = randn((3, 1, 4), dtype=diagonal_dtype, key=self.key)
-        x, key = randn(((5, 1), (1,)), dtype=diagonal_dtype, key=key)
-        with pytest.raises(ValueError):
-            D = linop.Diagonal(diagonal, x.shape)
-
-    @pytest.mark.parametrize("diagonal_dtype", [np.float32, np.complex64])
-    @pytest.mark.parametrize("input_shape", input_shapes)
-    def test_adjoint(self, input_shape, diagonal_dtype):
-        diagonal, key = randn(input_shape, dtype=diagonal_dtype, key=self.key)
-        D = linop.Diagonal(diagonal=diagonal)
-
-        adjoint_test(D)
-
-    @pytest.mark.parametrize("operator", [op.add, op.sub])
-    @pytest.mark.parametrize("diagonal_dtype", [np.float32, np.complex64])
-    @pytest.mark.parametrize("input_shape1", input_shapes)
-    @pytest.mark.parametrize("input_shape2", input_shapes)
-    def test_binary_op(self, input_shape1, input_shape2, diagonal_dtype, operator):
-
-        diagonal1, key = randn(input_shape1, dtype=diagonal_dtype, key=self.key)
-        diagonal2, key = randn(input_shape2, dtype=diagonal_dtype, key=key)
-        x, key = randn(input_shape1, dtype=diagonal_dtype, key=key)
-
-        D1 = linop.Diagonal(diagonal=diagonal1)
-        D2 = linop.Diagonal(diagonal=diagonal2)
-
-        if input_shape1 != input_shape2:
-            with pytest.raises(ValueError):
-                a = operator(D1, D2) @ x
-        else:
-            a = operator(D1, D2) @ x
-            Dnew = linop.Diagonal(operator(diagonal1, diagonal2))
-            b = Dnew @ x
-            snp.testing.assert_allclose(a, b, rtol=1e-5)
-
-    @pytest.mark.parametrize("operator", [op.add, op.sub])
-    def test_binary_op_mismatch(self, operator):
-        diagonal_dtype = np.float32
-        input_shape1 = (8,)
-        input_shape2 = (12,)
-        diagonal1, key = randn(input_shape1, dtype=diagonal_dtype, key=self.key)
-        diagonal2, key = randn(input_shape2, dtype=diagonal_dtype, key=key)
-
-        D1 = linop.Diagonal(diagonal=diagonal1)
-        D2 = linop.Diagonal(diagonal=diagonal2)
-        with pytest.raises(ValueError):
-            operator(D1, D2)
-
-    @pytest.mark.parametrize("operator", [op.mul, op.truediv])
-    def test_scalar_right(self, operator):
-        if operator == op.truediv:
-            pytest.xfail("scalar / LinearOperator is not supported")
-
-        diagonal_dtype = np.float32
-        input_shape = (8,)
-
-        diagonal1, key = randn(input_shape, dtype=diagonal_dtype, key=self.key)
-        scalar = np.random.randn()
-        x, key = randn(input_shape, dtype=diagonal_dtype, key=key)
-
-        D = linop.Diagonal(diagonal=diagonal1)
-        scaled_D = operator(scalar, D)
-
-        np.testing.assert_allclose(scaled_D @ x, operator(scalar, D @ x), rtol=5e-5)
-
-    @pytest.mark.parametrize("operator", [op.mul, op.truediv])
-    def test_scalar_left(self, operator):
-        diagonal_dtype = np.float32
-        input_shape = (8,)
-
-        diagonal1, key = randn(input_shape, dtype=diagonal_dtype, key=self.key)
-        scalar = np.random.randn()
-        x, key = randn(input_shape, dtype=diagonal_dtype, key=key)
-
-        D = linop.Diagonal(diagonal=diagonal1)
-        scaled_D = operator(D, scalar)
-
-        np.testing.assert_allclose(scaled_D @ x, operator(D @ x, scalar), rtol=5e-5)
 
 
 def test_adj_lazy():

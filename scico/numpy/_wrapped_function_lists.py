@@ -102,7 +102,6 @@ mathematical_functions = (
     "ediff1d",
     "gradient",
     "cross",
-    "trapz",
     "exp",
     "expm1",
     "exp2",
@@ -165,7 +164,6 @@ mathematical_functions = (
     "sort",  # https://numpy.org/doc/stable/reference/routines.sort.html
     "lexsort",
     "argsort",
-    "msort",
     "sort_complex",
     "partition",
     "argmax",
@@ -228,7 +226,6 @@ mathematical_functions = (
     "hstack",
     "dstack",
     "column_stack",
-    "row_stack",
     "split",
     "array_split",
     "dsplit",

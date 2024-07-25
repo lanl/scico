@@ -3,8 +3,6 @@ import tempfile
 
 import numpy as np
 
-from jax import device_count
-
 import pytest
 
 from scico import random
@@ -12,10 +10,11 @@ from scico.flax.examples.data_generation import (
     distributed_data_generation,
     generate_blur_data,
     generate_ct_data,
+    generate_foam1_images,
+    generate_foam2_images,
     have_astra,
     have_ray,
     have_xdesign,
-    ray_distributed_data_generation,
 )
 from scico.flax.examples.data_preprocessing import (
     CenterCrop,
@@ -41,70 +40,44 @@ os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 
 
 @pytest.mark.skipif(not have_xdesign, reason="xdesign package not installed")
-def test_foam2_gen():
-    seed = 4321
-    N = 32
-    ndata = 2
-    from scico.flax.examples.data_generation import generate_foam2_images
-
-    dt = generate_foam2_images(seed, N, ndata)
-    assert dt.shape == (ndata, N, N, 1)
-
-
-@pytest.mark.skipif(not have_xdesign, reason="xdesign package not installed")
-def test_foam_gen():
+def test_foam1_gen():
     seed = 4444
     N = 32
     ndata = 2
-    from scico.flax.examples.data_generation import generate_foam1_images
 
     dt = generate_foam1_images(seed, N, ndata)
     assert dt.shape == (ndata, N, N, 1)
 
 
-def fake_data_gen(seed, N, ndata):
-    dt, key = random.randn((ndata, N, N, 1), seed=seed)
-    return dt
+@pytest.mark.skipif(not have_xdesign, reason="xdesign package not installed")
+def test_foam2_gen():
+    seed = 4321
+    N = 32
+    ndata = 2
+
+    dt = generate_foam2_images(seed, N, ndata)
+    assert dt.shape == (ndata, N, N, 1)
 
 
+@pytest.mark.skipif(not have_ray, reason="ray package not installed")
 def test_distdatagen():
     N = 16
     nimg = 8
-    dt = distributed_data_generation(fake_data_gen, N, nimg)
-    assert dt.ndim == 5
-    assert dt.shape[0] * dt.shape[1] == nimg
-    assert dt.shape[2:] == (N, N, 1)
 
+    def random_data_gen(seed, N, ndata):
+        np.random.seed(seed)
+        dt = np.random.randn(ndata, N, N, 1)
+        return dt
 
-def test_distdatagen_flag():
-    N = 16
-    nimg = 8
-    dt = distributed_data_generation(fake_data_gen, N, nimg, False)
+    dt = distributed_data_generation(random_data_gen, N, nimg)
     assert dt.ndim == 4
     assert dt.shape == (nimg, N, N, 1)
 
 
 @pytest.mark.skipif(
-    device_count() == 1, reason="no processes for checking failure of distributed computing"
+    not have_astra or not have_ray or not have_xdesign,
+    reason="astra, ray, or xdesign package not installed",
 )
-def test_distdatagen_exception():
-    N = 16
-    nimg = 15
-    with pytest.raises(ValueError):
-        distributed_data_generation(fake_data_gen, N, nimg)
-
-
-@pytest.mark.skipif(not have_ray, reason="ray package not installed")
-@pytest.fixture(scope="module")
-def test_ray_distdatagen():
-    N = 16
-    nimg = 8
-    dt = ray_distributed_data_generation(fake_data_gen, N, nimg, test_flag=True)
-    assert dt.ndim == 4
-    assert dt.shape == (nimg, N, N, 1)
-
-
-@pytest.mark.skipif(not have_astra, reason="astra package not installed")
 def test_ct_data_generation():
     N = 32
     nimg = 8
@@ -112,40 +85,16 @@ def test_ct_data_generation():
 
     def random_img_gen(seed, size, ndata):
         np.random.seed(seed)
-        return np.random.randn(ndata, size, size, 1)
+        shape = (ndata, size, size, 1)
+        return np.random.randn(*shape)
 
-    try:
-        img, sino, fbp = generate_ct_data(nimg, N, nproj, imgfunc=random_img_gen, test_flag=True)
-    except Exception as e:
-        print(e)
-        assert 0
-    else:
-        assert img.shape == (nimg, N, N, 1)
-        assert sino.shape == (nimg, nproj, N, 1)
-        assert fbp.shape == (nimg, N, N, 1)
+    img, sino, fbp = generate_ct_data(nimg, N, nproj, imgfunc=random_img_gen)
+    assert img.shape == (nimg, N, N, 1)
+    assert sino.shape == (nimg, nproj, N, 1)
+    assert fbp.shape == (nimg, N, N, 1)
 
 
-@pytest.mark.skipif(not have_astra, reason="astra package not installed")
-def test_ct_data_generation_jax():
-    N = 32
-    nimg = 8
-    nproj = 45
-
-    def random_img_gen(seed, size, ndata):
-        np.random.seed(seed)
-        return np.random.randn(ndata, size, size, 1)
-
-    try:
-        img, sino, fbp = generate_ct_data(nimg, N, nproj, imgfunc=random_img_gen, prefer_ray=False)
-    except Exception as e:
-        print(e)
-        assert 0
-    else:
-        assert img.shape == (nimg, N, N, 1)
-        assert sino.shape == (nimg, nproj, N, 1)
-        assert fbp.shape == (nimg, N, N, 1)
-
-
+@pytest.mark.skipif(not have_ray or not have_xdesign, reason="ray or xdesign package not installed")
 def test_blur_data_generation():
     N = 32
     nimg = 8
@@ -154,40 +103,12 @@ def test_blur_data_generation():
 
     def random_img_gen(seed, size, ndata):
         np.random.seed(seed)
-        return np.random.randn(ndata, size, size, 1)
+        shape = (ndata, size, size, 1)
+        return np.random.randn(*shape)
 
-    try:
-        img, blurn = generate_blur_data(
-            nimg, N, blur_kernel, noise_sigma=0.01, imgfunc=random_img_gen, test_flag=True
-        )
-    except Exception as e:
-        print(e)
-        assert 0
-    else:
-        assert img.shape == (nimg, N, N, 1)
-        assert blurn.shape == (nimg, N, N, 1)
-
-
-def test_blur_data_generation_jax():
-    N = 32
-    nimg = 8
-    n = 3  # convolution kernel size
-    blur_kernel = np.ones((n, n)) / (n * n)
-
-    def random_img_gen(seed, size, ndata):
-        np.random.seed(seed)
-        return np.random.randn(ndata, size, size, 1)
-
-    try:
-        img, blurn = generate_blur_data(
-            nimg, N, blur_kernel, noise_sigma=0.01, imgfunc=random_img_gen, prefer_ray=False
-        )
-    except Exception as e:
-        print(e)
-        assert 0
-    else:
-        assert img.shape == (nimg, N, N, 1)
-        assert blurn.shape == (nimg, N, N, 1)
+    img, blurn = generate_blur_data(nimg, N, blur_kernel, noise_sigma=0.01, imgfunc=random_img_gen)
+    assert img.shape == (nimg, N, N, 1)
+    assert blurn.shape == (nimg, N, N, 1)
 
 
 def test_rotation90():
@@ -365,19 +286,14 @@ def test_build_image_dataset(testobj, augment):
     dtconf = dict(testobj.dtconf)
     dtconf["augment"] = augment
 
-    try:
-        train_ds, test_ds = build_image_dataset(img_train, img_test, dtconf)
-    except Exception as e:
-        print(e)
-        assert 0
+    train_ds, test_ds = build_image_dataset(img_train, img_test, dtconf)
+    assert train_ds["image"].shape == train_ds["label"].shape
+    assert test_ds["image"].shape == test_ds["label"].shape
+    assert test_ds["label"].shape[0] == num_test
+    if augment:
+        assert train_ds["label"].shape[0] == num_train * 3
     else:
-        assert train_ds["image"].shape == train_ds["label"].shape
-        assert test_ds["image"].shape == test_ds["label"].shape
-        assert test_ds["label"].shape[0] == num_test
-        if augment:
-            assert train_ds["label"].shape[0] == num_train * 3
-        else:
-            assert train_ds["label"].shape[0] == num_train
+        assert train_ds["label"].shape[0] == num_train
 
 
 def test_padded_circular_convolve():
@@ -388,14 +304,9 @@ def test_padded_circular_convolve():
 
     x, key = random.randn((N, N, C), seed=2468)
 
-    try:
-        pcc_op = PaddedCircularConvolve(N, C, kernel_size, blur_sigma)
-        xblur = pcc_op(x)
-    except Exception as e:
-        print(e)
-        assert 0
-    else:
-        assert xblur.shape == x.shape
+    pcc_op = PaddedCircularConvolve(N, C, kernel_size, blur_sigma)
+    xblur = pcc_op(x)
+    assert xblur.shape == x.shape
 
 
 def test_runtime_error_scalar():

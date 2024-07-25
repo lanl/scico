@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2023 by SCICO Developers
+# Copyright (C) 2022-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -23,20 +23,10 @@ from jax import lax
 
 from flax import jax_utils
 from flax.training import common_utils
-
-try:
-    from tensorflow.io import gfile  # noqa: F401
-except ImportError:
-    have_tf = False
-else:
-    have_tf = True
-
-if have_tf:
-    from .checkpoints import checkpoint_restore, checkpoint_save
-
 from scico.diagnostics import IterationStats
 from scico.numpy import Array
 
+from .checkpoints import checkpoint_restore, checkpoint_save
 from .clu_utils import get_parameter_overview
 from .diagnostics import ArgumentStruct, compute_metrics, stats_obj
 from .input_pipeline import create_input_iter
@@ -47,9 +37,10 @@ from .steps import eval_step, train_step, train_step_post
 from .typed_dict import ConfigDict, DataSetDict, MetricsDict, ModelVarDict
 
 ModuleDef = Any
-KeyArray = Union[Array, jax.random.PRNGKeyArray]
+KeyArray = Union[Array, jax.Array]
 PyTree = Any
 DType = Any
+
 
 # sync across replicas
 def sync_batch_stats(state: TrainState) -> TrainState:
@@ -65,7 +56,7 @@ cross_replica_mean = jax.pmap(lambda x: lax.pmean(x, "x"), "x")
 
 
 class BasicFlaxTrainer:
-    """Class for encapsulating Flax training configuration and execution."""
+    """Class encapsulating Flax training configuration and execution."""
 
     def __init__(
         self,
@@ -91,7 +82,6 @@ class BasicFlaxTrainer:
             test_ds: Dictionary of testing data (includes images and
                 labels).
             variables0: Optional initial state of model parameters.
-                Default: ``None``.
         """
         # Configure seed
         if "seed" not in config:
@@ -113,6 +103,9 @@ class BasicFlaxTrainer:
         self.define_parallel_training_functions()
 
         self.initialize_training_state(config, key2, model, variables0)
+
+        # Store configuration
+        self.config = config
 
     def set_training_parameters(
         self,
@@ -191,10 +184,15 @@ class BasicFlaxTrainer:
 
         The parameters configured correspond to
 
-        - **logflag**: A flag for logging to the output terminal the evolution of results. Default: ``False``.
-        - **workdir**: Directory to write checkpoints. Default: execution directory.
-        - **checkpointing**: A flag for checkpointing model state. Default: ``False``. `RunTimeError` is generated if ``True`` and tensorflow is not available.
-        - **return_state**: A flag for returning the train state instead of the model variables. Default: ``False``, i.e. return model variables.
+        - **logflag**: A flag for logging to the output terminal the
+              evolution of results. Default: ``False``.
+        - **workdir**: Directory to write checkpoints. Default: execution
+              directory.
+        - **checkpointing**: A flag for checkpointing model state.
+              Default: ``False``.
+        - **return_state**: A flag for returning the train state instead
+              of the model variables. Default: ``False``, i.e. return
+              model variables.
 
         Args:
             config: Hyperparameter configuration.
@@ -234,13 +232,26 @@ class BasicFlaxTrainer:
 
         The parameters configured correspond to
 
-        - **lr_schedule**: A function that creates an Optax learning rate schedule. Default: :meth:`~scico.flax.train.learning_rate.create_cnst_lr_schedule`.
-        - **criterion**: A function that specifies the loss being minimized in training. Default: :meth:`~scico.flax.train.losses.mse_loss`.
-        - **create_train_state**: A function that creates a Flax train state and initializes it. A train state object helps to keep optimizer and module functionality grouped for training. Default: :meth:`~scico.flax.train.state.create_basic_train_state`.
-        - **train_step_fn**: A function that executes a training step. Default: :meth:`~scico.flax.train.steps.train_step`, i.e. use the standard train step.
-        - **eval_step_fn**: A function that executes an eval step. Default: :meth:`~scico.flax.train.steps.eval_step`, i.e. use the standard eval step.
-        - **metrics_fn**: A function that computes metrics. Default: :meth:`~scico.flax.train.diagnostics.compute_metrics`, i.e. use the standard compute metrics function.
-        - **post_lst**: List of postprocessing functions to apply to parameter set after optimizer step (e.g. clip to a specified range, normalize, etc.).
+        - **lr_schedule**: A function that creates an Optax learning rate
+              schedule. Default: :meth:`~scico.flax.train.learning_rate.create_cnst_lr_schedule`.
+        - **criterion**: A function that specifies the loss being minimized
+              in training. Default: :meth:`~scico.flax.train.losses.mse_loss`.
+        - **create_train_state**: A function that creates a Flax train state
+              and initializes it. A train state object helps to keep optimizer
+              and module functionality grouped for training. Default:
+              :meth:`~scico.flax.train.state.create_basic_train_state`.
+        - **train_step_fn**: A function that executes a training step.
+              Default: :meth:`~scico.flax.train.steps.train_step`, i.e.
+              use the standard train step.
+        - **eval_step_fn**: A function that executes an eval step. Default:
+              :meth:`~scico.flax.train.steps.eval_step`, i.e. use the
+              standard eval step.
+        - **metrics_fn**: A function that computes metrics. Default:
+              :meth:`~scico.flax.train.diagnostics.compute_metrics`, i.e.
+              use the standard compute metrics function.
+        - **post_lst**: List of postprocessing functions to apply to
+              parameter set after optimizer step (e.g. clip to a specified
+              range, normalize, etc.).
 
         Args:
             config: Hyperparameter configuration.
@@ -319,8 +330,8 @@ class BasicFlaxTrainer:
 
         self.ishape = train_ds["image"].shape[1:3]
         self.log(
-            "Channels: %d, training signals: %d, testing"
-            " signals: %d, signal size: %d"
+            "channels: %d   training signals: %d   testing"
+            " signals: %d   signal size: %d\n"
             % (
                 train_ds["label"].shape[-1],
                 train_ds["label"].shape[0],
@@ -330,8 +341,11 @@ class BasicFlaxTrainer:
         )
 
     def define_parallel_training_functions(self):
-        """Construct parallel versions of training functions via
-        `jax.pmap`."""
+        """Construct parallel versions of training functions.
+
+        Construct parallel versions of training functions via
+        :func:`jax.pmap`.
+        """
         if self.post_lst is not None:
             self.p_train_step = jax.pmap(
                 functools.partial(
@@ -378,22 +392,21 @@ class BasicFlaxTrainer:
             key: A PRNGKey used as the random key.
             model: Flax model to train.
             variables0: Optional initial state of model parameters.
-                Default: ``None``.
         """
         # Create Flax training state
         state = self.create_train_state(
             key, config, model, self.ishape, self.lr_schedule, variables0
         )
+        # Only restore if no initialization is provided
         if self.checkpointing and variables0 is None:
-            # Only restore if no initialization is provided
-            if have_tf:  # Flax checkpointing requires tensorflow
-                state = checkpoint_restore(state, self.workdir)
-            else:
-                raise RuntimeError(
-                    "Tensorflow not available and it is required for Flax checkpointing."
-                )
-        self.log(get_parameter_overview(state.params))
-        self.log(get_parameter_overview(state.batch_stats))
+            ok_no_ckpt = True  # It is ok if no checkpoint is found
+            state = checkpoint_restore(state, self.workdir, ok_no_ckpt)
+
+        self.log("Network Structure:")
+        self.log(get_parameter_overview(state.params) + "\n")
+        if hasattr(state, "batch_stats"):
+            self.log("Batch Normalization:")
+            self.log(get_parameter_overview(state.batch_stats) + "\n")
 
         self.state = state
 
@@ -401,12 +414,12 @@ class BasicFlaxTrainer:
         """Execute training loop.
 
         Returns:
-            Model variables extracted from TrainState and iteration
-            stats object obtained after executing the training loop.
-            Alternatively the TrainState can be returned directly instead
-            of the model variables. Note that the iteration stats object
-            is not ``None`` only if log is enabled when configuring the
-            training loop.
+            Model variables extracted from :class:`.TrainState` and
+            iteration stats object obtained after executing the training
+            loop. Alternatively the :class:`.TrainState` can be returned
+            directly instead of the model variables. Note that the
+            iteration stats object is not ``None`` only if log is enabled
+            when configuring the training loop.
         """
         state = self.state
         step_offset = int(state.step)  # > 0 if restarting from checkpoint
@@ -415,7 +428,7 @@ class BasicFlaxTrainer:
         state = jax_utils.replicate(state)
         # Execute training loop and register stats
         t0 = time.time()
-        self.log("Initial compilation, this might take some minutes...")
+        self.log("Initial compilation, which might take some time ...")
 
         train_metrics: List[Any] = []
 
@@ -424,7 +437,7 @@ class BasicFlaxTrainer:
             # Training metrics computed in step
             train_metrics.append(metrics)
             if step == step_offset:
-                self.log("Initial compilation completed.")
+                self.log("Initial compilation completed.\n")
             if (step + 1) % self.log_every_steps == 0:
                 # sync batch statistics across replicas
                 state = sync_batch_stats(state)
@@ -443,6 +456,8 @@ class BasicFlaxTrainer:
             self.itstat_object.end()
 
         state = sync_batch_stats(state)
+        # Final checkpointing
+        self.checkpoint(state)
         # Extract one copy of state
         state = jax_utils.unreplicate(state)
         if self.return_state:
@@ -452,6 +467,8 @@ class BasicFlaxTrainer:
             "params": state.params,
             "batch_stats": state.batch_stats,
         }
+
+        self.train_time = time.time() - t0
 
         return dvar, self.itstat_object  # type: ignore
 
@@ -503,17 +520,13 @@ class BasicFlaxTrainer:
         self.itstat_object.insert(self.itstat_insert_func(ArgumentStruct(**summary)))
 
     def checkpoint(self, state: TrainState):  # pragma: no cover
-        """Checkpoint training state if enabled (and Tensorflow available).
+        """Checkpoint training state if enabled.
 
         Args:
             state: Flax train state.
         """
         if self.checkpointing:
-            if not have_tf:  # Flax checkpointing requires tensorflow
-                raise RuntimeError(
-                    "Tensorflow not available and it is" " required for Flax checkpointing."
-                )
-            checkpoint_save(state, self.workdir)
+            checkpoint_save(jax_utils.unreplicate(state), self.config, self.workdir)
 
     def log(self, logstr: str):
         """Print stats to output terminal if logging is enabled.

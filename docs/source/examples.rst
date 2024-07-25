@@ -25,7 +25,10 @@ Computed Tomography
    examples/ct_abel_tv_admm
    examples/ct_abel_tv_admm_tune
    examples/ct_astra_noreg_pcg
+   examples/ct_astra_3d_tv_admm
+   examples/ct_astra_3d_tv_padmm
    examples/ct_astra_tv_admm
+   examples/ct_tv_admm
    examples/ct_astra_weighted_tv_admm
    examples/ct_svmbir_tv_multi
    examples/ct_svmbir_ppp_bm3d_admm_cg
@@ -34,7 +37,8 @@ Computed Tomography
    examples/ct_astra_modl_train_foam2
    examples/ct_astra_odp_train_foam2
    examples/ct_astra_unet_train_foam2
-
+   examples/ct_projector_comparison
+   examples/ct_multi_tv_admm
 
 Deconvolution
 ^^^^^^^^^^^^^
@@ -49,7 +53,7 @@ Deconvolution
    examples/deconv_microscopy_tv_admm
    examples/deconv_microscopy_allchn_tv_admm
    examples/deconv_ppp_bm3d_admm
-   examples/deconv_ppp_bm3d_pgm
+   examples/deconv_ppp_bm3d_apgm
    examples/deconv_ppp_dncnn_admm
    examples/deconv_ppp_dncnn_padmm
    examples/deconv_ppp_bm4d_admm
@@ -63,11 +67,12 @@ Sparse Coding
 .. toctree::
    :maxdepth: 1
 
-   examples/sparsecode_admm
+   examples/sparsecode_nn_admm
+   examples/sparsecode_nn_apgm
    examples/sparsecode_conv_admm
    examples/sparsecode_conv_md_admm
-   examples/sparsecode_pgm
-   examples/sparsecode_poisson_pgm
+   examples/sparsecode_apgm
+   examples/sparsecode_poisson_apgm
 
 
 Miscellaneous
@@ -79,9 +84,11 @@ Miscellaneous
    examples/demosaic_ppp_bm3d_admm
    examples/superres_ppp_dncnn_admm
    examples/denoise_l1tv_admm
+   examples/denoise_ptv_pdhg
    examples/denoise_tv_admm
-   examples/denoise_tv_pgm
+   examples/denoise_tv_apgm
    examples/denoise_tv_multi
+   examples/denoise_approx_tv_multi
    examples/denoise_cplx_tv_nlpadmm
    examples/denoise_cplx_tv_pdhg
    examples/denoise_dncnn_universal
@@ -109,7 +116,7 @@ Plug and Play Priors
    examples/ct_svmbir_ppp_bm3d_admm_prox
    examples/ct_fan_svmbir_ppp_bm3d_admm_prox
    examples/deconv_ppp_bm3d_admm
-   examples/deconv_ppp_bm3d_pgm
+   examples/deconv_ppp_bm3d_apgm
    examples/deconv_ppp_dncnn_admm
    examples/deconv_ppp_dncnn_padmm
    examples/deconv_ppp_bm4d_admm
@@ -126,7 +133,11 @@ Total Variation
    examples/ct_abel_tv_admm
    examples/ct_abel_tv_admm_tune
    examples/ct_astra_tv_admm
+   examples/ct_tv_admm
+   examples/ct_astra_3d_tv_admm
+   examples/ct_astra_3d_tv_padmm
    examples/ct_astra_weighted_tv_admm
+   examples/ct_multi_tv_admm
    examples/ct_svmbir_tv_multi
    examples/deconv_circ_tv_admm
    examples/deconv_tv_admm
@@ -135,9 +146,11 @@ Total Variation
    examples/deconv_microscopy_tv_admm
    examples/deconv_microscopy_allchn_tv_admm
    examples/denoise_l1tv_admm
+   examples/denoise_ptv_pdhg
    examples/denoise_tv_admm
-   examples/denoise_tv_pgm
+   examples/denoise_tv_apgm
    examples/denoise_tv_multi
+   examples/denoise_approx_tv_multi
    examples/denoise_cplx_tv_nlpadmm
    examples/denoise_cplx_tv_pdhg
    examples/diffusercam_tv_admm
@@ -151,11 +164,12 @@ Sparsity
    :maxdepth: 1
 
    examples/diffusercam_tv_admm
-   examples/sparsecode_admm
+   examples/sparsecode_nn_admm
+   examples/sparsecode_nn_apgm
    examples/sparsecode_conv_admm
    examples/sparsecode_conv_md_admm
-   examples/sparsecode_pgm
-   examples/sparsecode_poisson_pgm
+   examples/sparsecode_apgm
+   examples/sparsecode_poisson_apgm
    examples/video_rpca_admm
 
 
@@ -193,7 +207,10 @@ ADMM
    examples/ct_abel_tv_admm
    examples/ct_abel_tv_admm_tune
    examples/ct_astra_tv_admm
+   examples/ct_tv_admm
+   examples/ct_astra_3d_tv_admm
    examples/ct_astra_weighted_tv_admm
+   examples/ct_multi_tv_admm
    examples/ct_svmbir_tv_multi
    examples/ct_svmbir_ppp_bm3d_admm_cg
    examples/ct_svmbir_ppp_bm3d_admm_prox
@@ -207,7 +224,7 @@ ADMM
    examples/deconv_ppp_dncnn_admm
    examples/deconv_ppp_bm4d_admm
    examples/diffusercam_tv_admm
-   examples/sparsecode_admm
+   examples/sparsecode_nn_admm
    examples/sparsecode_conv_admm
    examples/sparsecode_conv_md_admm
    examples/demosaic_ppp_bm3d_admm
@@ -215,6 +232,7 @@ ADMM
    examples/denoise_l1tv_admm
    examples/denoise_tv_admm
    examples/denoise_tv_multi
+   examples/denoise_approx_tv_multi
    examples/video_rpca_admm
 
 
@@ -234,9 +252,9 @@ Proximal ADMM
 .. toctree::
    :maxdepth: 1
 
+   examples/ct_astra_3d_tv_padmm
    examples/deconv_tv_padmm
    examples/denoise_tv_multi
-   examples/denoise_cplx_tv_nlpadmm
    examples/deconv_ppp_dncnn_padmm
 
 
@@ -256,6 +274,7 @@ PDHG
    :maxdepth: 1
 
    examples/ct_svmbir_tv_multi
+   examples/denoise_ptv_pdhg
    examples/denoise_tv_multi
    examples/denoise_cplx_tv_pdhg
 
@@ -266,10 +285,12 @@ PGM
 .. toctree::
    :maxdepth: 1
 
-   examples/deconv_ppp_bm3d_pgm
-   examples/sparsecode_pgm
-   examples/sparsecode_poisson_pgm
-   examples/denoise_tv_pgm
+   examples/deconv_ppp_bm3d_apgm
+   examples/sparsecode_apgm
+   examples/sparsecode_nn_apgm
+   examples/sparsecode_poisson_apgm
+   examples/denoise_tv_apgm
+   examples/denoise_approx_tv_multi
 
 
 PCG

@@ -1,47 +1,23 @@
-/* Left hand navigation bar colours */
+/* furo theme customization */
 
-nav.wy-nav-side, nav.wy-nav-top {
-  background: #323232;
+.sidebar-drawer {
+  width: fit-content !important;
 }
 
-div.wy-side-nav-search a.heading:hover {
-  background-color: #575757;
+.main > .content {
+  min-width: 75%;
+  width: fit-content !important;
+  max-width: 80em;
 }
 
-
-/* Allow larger maximum width of main content */
-
-.wy-nav-content {
-  max-width: 1200px !important;
+.highlight {
+  background: #f0ffe8;
 }
 
-
-/* Footer */
-
-footer  {
-  font-size: 70%;
-}
-
-footer > div.rst-footer-buttons {
-  font-size: 125%;
-}
-
-
-/* Fix indices and tables spacing */
-
-#indices-and-tables p {
-  margin-bottom: 0;
-}
-
-
-/* Literal sections */
-
-div.highlight-default {
-  border: 0 !important;
-}
-
-div.highlight {
-  background-color: inherit;
+.sidebar-brand-text {
+  font-size: 1.0rem !important;
+  text-align: center;
+  padding-top: 0.5em;
 }
 
 
@@ -52,163 +28,90 @@ div.doctest.highlight-default {
 }
 
 
-/* Improve references layout */
-
-div.citation {
-  display: flex;
-}
-
-div.citation > span.label {
-  float: left;
-  padding-right: 0.8em;
-  padding-top: 0.1em;
-}
-
-
-/* Todo note */
-
-div.admonition-todo {
-  background-color: #f0c0b0 !important;
-}
-
-div.admonition-todo > p.admonition-title {
-  background-color: #ff2020 !important;
-}
-
-
-/* References layout and appearance */
-
-dl.citation {
-  display: grid;
-  grid-template-columns: max-content auto;
-}
-
-dl.citation > dt {
-  background-color: #ffffff !important;
-  border-top: 0 !important;
-  margin: 0 !important;
-  grid-column-start: 1;
-  width: 2em;
-}
-
-dl.citation > dd {
-  padding-bottom: 0 !important;
-  margin-bottom: 0 !important;
-  margin-left: 5px !important;
-  grid-column-start: 2;
-}
-
-
-/* Fix equation number location */
-
-.math {
-  text-align: left;
-}
-
-.eqno {
-  float: right;
-}
-
-
 /* Style for autosummary API docs */
 
-dl.field-list.simple {
+[data-theme=light] dl.field-list.simple {
   background-color: #f5f5f5;
   border-radius: 4px;
 }
 
-dl.field-list.simple > dt.field-odd {
+[data-theme=light] dl.field-list.simple > dt.field-odd {
   background-color: #f2f2f2;
-  border-bottom: solid 3px #c0c0c0;
   border-radius: 4px;
 }
 
-dl.field-list.simple > dt.field-even {
+[data-theme=light] dl.field-list.simple > dt.field-even {
   background-color: #f2f2f2;
-  border-bottom: solid 3px #c0c0c0;
   border-radius: 4px;
 }
 
-dl.py.data {
+[data-theme=light] dl.py.data {
   background-color: #fdfafa;
   border-radius: 4px;
 }
 
-dl.py.data > dt {
+[data-theme=light] dl.py.data > dt {
   border-radius: 4px;
 }
 
-dl.py.attribute {
+[data-theme=light] dl.py.attribute {
   background-color: #fdfafa;
   border-radius: 4px;
 }
 
-dl.py.attribute > dt {
+[data-theme=light] dl.py.attribute > dt {
   border-radius: 4px;
 }
 
-dl.py.function {
+[data-theme=light] dl.py.function {
   background-color: #fdfafa;
   border-radius: 4px;
 }
 
-dl.py.function > dt {
+[data-theme=light] dl.py.function > dt {
   border-radius: 4px;
 }
 
-dl.py.class {
+[data-theme=light] dl.py.function blockquote {
+  background-color: #f5f5f5;
+  border-left: 0px;
+}
+
+[data-theme=light] dl.py.class {
   background-color: #fdfafa;
   border-radius: 4px;
 }
 
-dl.py.class > dt {
+[data-theme=light] dl.py.class > dt {
   border-radius: 4px;
 }
 
-dl.py.method {
+[data-theme=light] dl.py.method {
   background-color: #f6f6f6;
   border-radius: 4px;
 }
 
-dl.py.method > dt {
-  border-top: solid 3px #c0c0c0 !important;
+[data-theme=light] dl.py.method > dt {
   border-radius: 4px;
 }
 
-dl.py.property {
+[data-theme=light] dl.py.property {
   background-color: #f6f6f6;
   border-radius: 4px;
 }
 
-dl.py.property > dt {
-  border-top: solid 3px #c0c0c0 !important;
+[data-theme=light] dl.py.property > dt {
   border-radius: 4px;
 }
 
 
-/* Temporary hack to improve autodoc class attribute layout */
+/* Style for figure captions */
 
-.py.class dl:not(.py.attribute) + .py.attribute::before {
-    content: "Attributes";
-    font-weight: bold;
-    font-size: 90%;
-    display: inline-block;
-    color: #555;
-    background-color: #f5f5f5;
-    padding: 4px;
-    margin-left: -3em;
-    margin-bottom: 15px;
-    border-radius: 4px;
-    border-bottom: solid 3px #c0c0c0;
-    border-left: solid 3px #c0c0c0;
-}
-
-.py.class dl.py.attribute {
-    padding-left: 3em;
-}
-
-.py.class dl.py.attribute > dt {
-    border-bottom: solid 3px #c0c0c0 !important;
-    border-left: solid 3px #c0c0c0 !important;
-    border-radius: 4px;
+div.figure p.caption span.caption-text,
+figcaption span.caption-text {
+  font-size: var(--font-size--small);
+  margin-left: 5%;
+  margin-right: 5%;
+  display: inline-block;
+  text-align: justify;
 }

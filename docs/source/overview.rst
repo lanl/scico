@@ -1,30 +1,6 @@
 Overview
 ========
 
-
-.. raw:: html
-
-    <style type='text/css'>
-    div.document ul blockquote {
-       margin-bottom: 8px !important;
-    }
-    div.document li > p {
-       margin-bottom: 4px !important;
-    }
-    div.document ul > li {
-      list-style: square outside !important;
-      margin-left: 1em !important;
-    }
-    section {
-      padding-bottom: 1em;
-    }
-    ul {
-      margin-bottom: 1em;
-    }
-    </style>
-
-
-
 `Scientific Computational Imaging Code (SCICO)
 <https://github.com/lanl/scico>`__ is a Python package for solving the
 inverse problems that arise in scientific imaging applications. Its
@@ -90,7 +66,7 @@ License (see the `LICENSE
 <https://github.com/lanl/scico/blob/master/LICENSE>`__ file for
 details). LANL open source approval reference C20091.
 
-© 2020-2022. Triad National Security, LLC. All rights reserved.
+© 2020-2023. Triad National Security, LLC. All rights reserved.
 This program was produced under U.S. Government contract
 89233218CNA000001 for Los Alamos National Laboratory (LANL), which is
 operated by Triad National Security, LLC for the U.S. Department of
