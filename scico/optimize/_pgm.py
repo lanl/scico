@@ -31,14 +31,35 @@ from ._pgmaux import (
 
 
 class PGM(Optimizer):
-    r"""Proximal Gradient Method (PGM) base class.
+    r"""Proximal gradient method (PGM) algorithm.
 
-    Minimize a function of the form :math:`f(\mb{x}) + g(\mb{x})`, where
-    :math:`f` and the :math:`g` are instances of :class:`.Functional`.
+    Minimize a functional of the form :math:`f(\mb{x}) + g(\mb{x})`,
+    where :math:`f` and the :math:`g` are instances of
+    :class:`.Functional`. Functional :math:`f` should be differentiable
+    and have a Lipschitz continuous derivative, and functional :math:`g`
+    should have a proximal operator defined.
 
-    Uses helper :class:`StepSize` to provide an estimate of the Lipschitz
-    constant :math:`L` of :math:`f`. The step size :math:`\alpha` is the
-    reciprocal of :math:`L`, i.e.: :math:`\alpha = 1 / L`.
+    The step size :math:`\alpha` of the algorithm is defined in terms of
+    its reciprocal :math:`L`, i.e. :math:`\alpha = 1 / L`. The initial
+    value for this parameter, `L0`, is required to satisfy
+
+    .. math::
+       L_0 \geq K(\nabla f) \;,
+
+    where :math:`K(\nabla f)` denotes the Lipschitz constant of the
+    gradient of :math:`f`. When `f` is an instance of
+    :class:`.SquaredL2Loss` with a :class:`.LinearOperator` `A`,
+
+    .. math::
+       K(\nabla f) = \lambda_{ \mathrm{max} }( A^H A ) = \| A \|_2^2 \;,
+
+    where :math:`\lambda_{\mathrm{max}}(B)` denotes the largest
+    eigenvalue of :math:`B`.
+
+    The evolution of the step size is controlled by auxiliary class
+    :class:`.PGMStepSize` and derived classes. The default
+    :class:`.PGMStepSize` simply sets :math:`L = L_0`, while the derived
+    classes implement a variety of adaptive strategies.
     """
 
     def __init__(
@@ -53,12 +74,14 @@ class PGM(Optimizer):
         r"""
 
         Args:
-            f: Loss or Functional object with `grad` defined.
-            g: Instance of Functional with defined prox method.
-            L0: Initial estimate of Lipschitz constant of f.
+            f: Instance of :class:`.Loss` or :class:`.Functional` with
+               defined `grad` method.
+            g: Instance of :class:`.Functional` with defined prox method.
+            L0: Initial estimate of Lipschitz constant of gradient of `f`.
             x0: Starting point for :math:`\mb{x}`.
-            step_size: helper :class:`StepSize` to estimate the Lipschitz
-                constant of f.
+            step_size: Instance of an auxiliary class of type
+                :class:`.PGMStepSize` determining the evolution of the
+                algorithm step size.
             **kwargs: Additional optional parameters handled by
                 initializer of base class :class:`.Optimizer`.
         """
@@ -76,7 +99,7 @@ class PGM(Optimizer):
             step_size = PGMStepSize()
         self.step_size: PGMStepSize = step_size
         self.step_size.internal_init(self)
-        self.L: float = L0  # reciprocal of step size (estimate of Lipschitz constant of f)
+        self.L: float = L0  # reciprocal of step size (estimate of Lipschitz constant of ∇f)
         self.fixed_point_residual = snp.inf
 
         self.x: Union[Array, BlockArray] = x0  # current estimate of solution
@@ -158,16 +181,14 @@ class PGM(Optimizer):
 
 
 class AcceleratedPGM(PGM):
-    r"""Accelerated Proximal Gradient Method (AcceleratedPGM) base class.
-
-    Minimize a function of the form :math:`f(\mb{x}) + g(\mb{x})`.
+    r"""Accelerated proximal gradient method (APGM) algorithm.
 
     Minimize a function of the form :math:`f(\mb{x}) + g(\mb{x})`, where
     :math:`f` and the :math:`g` are instances of :class:`.Functional`.
     The accelerated form of PGM is also known as FISTA
     :cite:`beck-2009-fast`.
 
-    For documentation on inherited attributes, see :class:`.PGM`.
+    See :class:`.PGM` for more detailed documentation.
     """
 
     def __init__(
@@ -181,12 +202,14 @@ class AcceleratedPGM(PGM):
     ):
         r"""
         Args:
-            f: Loss or Functional object with `grad` defined.
-            g: Instance of Functional with defined prox method.
-            L0: Initial estimate of Lipschitz constant of f.
+            f: Instance of :class:`.Loss` or :class:`.Functional` with
+               defined `grad` method.
+            g: Instance of :class:`.Functional` with defined prox method.
+            L0: Initial estimate of Lipschitz constant of gradient of `f`.
             x0: Starting point for :math:`\mb{x}`.
-            step_size: helper :class:`StepSize` to estimate the Lipschitz
-                constant of f.
+            step_size: Instance of an auxiliary class of type
+                :class:`.PGMStepSize` determining the evolution of the
+                algorithm step size.
             **kwargs: Additional optional parameters handled by
                 initializer of base class :class:`.Optimizer`.
         """

@@ -13,7 +13,13 @@ neural network models. If desired, a basic reconstruction can be
 generated using filtered back projection (FBP).
 """
 
+# isort: off
 import numpy as np
+
+import logging
+import ray
+
+ray.init(logging_level=logging.ERROR)  # need to call init before jax import: ray-project/ray#44087
 
 from scico import plot
 from scico.flax.examples import load_ct_data

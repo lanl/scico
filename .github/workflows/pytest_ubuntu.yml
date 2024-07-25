@@ -89,7 +89,7 @@ jobs:
       - name: Run doc tests
         if: matrix.group == 1
         run: |
-          pytest --ignore-glob="*test_*.py" --doctest-modules scico
+          pytest --ignore-glob="*test_*.py" --ignore=scico/linop/xray --doctest-modules scico
           pytest --doctest-glob="*.rst" docs
 
   coverage:

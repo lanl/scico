@@ -13,10 +13,14 @@ from :cite:`zhang-2017-dncnn` to denoise images that have been corrupted
 with additive Gaussian noise.
 """
 
+# isort: off
 import os
 from time import time
 
 import numpy as np
+
+# Set an arbitrary processor count (only applies if GPU is not available).
+os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 
 import jax
 
@@ -26,11 +30,7 @@ from scico import flax as sflax
 from scico import metric, plot
 from scico.flax.examples import load_image_data
 
-"""
-Prepare parallel processing. Set an arbitrary processor count (only
-applies if GPU is not available).
-"""
-os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
+
 platform = jax.lib.xla_bridge.get_backend().platform
 print("Platform: ", platform)
 

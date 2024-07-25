@@ -11,7 +11,12 @@ from scico.test.linop.test_linop import adjoint_test
 from scico.test.linop.xray.test_svmbir import make_im
 
 try:
-    from scico.linop.xray.astra import XRayTransform2D, XRayTransform3D, angle_to_vector
+    from scico.linop.xray.astra import (
+        XRayTransform2D,
+        XRayTransform3D,
+        _ensure_writeable,
+        angle_to_vector,
+    )
 except ModuleNotFoundError as e:
     if e.name == "astra":
         pytest.skip("astra not installed", allow_module_level=True)
@@ -167,3 +172,8 @@ def test_angle_to_vector():
     det_spacing = [0.9, 1.5]
     vectors = angle_to_vector(det_spacing, angles)
     assert vectors.shape == (angles.size, 12)
+
+
+def test_ensure_writeable():
+    assert isinstance(_ensure_writeable(np.ones((2, 1))), np.ndarray)
+    assert isinstance(_ensure_writeable(snp.ones((2, 1))), np.ndarray)

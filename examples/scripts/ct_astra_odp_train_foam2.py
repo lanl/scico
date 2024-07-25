@@ -44,11 +44,20 @@ a learned stage-wise parameter weighting the contribution of the fidelity
 term. The output of the final stage is the set of reconstructed images.
 """
 
+# isort: off
 import os
 from functools import partial
 from time import time
 
 import numpy as np
+
+import logging
+import ray
+
+ray.init(logging_level=logging.ERROR)  # need to call init before jax import: ray-project/ray#44087
+
+# Set an arbitrary processor count (only applies if GPU is not available).
+os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 
 import jax
 
@@ -60,11 +69,7 @@ from scico.flax.examples import load_ct_data
 from scico.flax.train.traversals import clip_positive, construct_traversal
 from scico.linop.xray.astra import XRayTransform2D
 
-"""
-Prepare parallel processing. Set an arbitrary processor count (only
-applies if GPU is not available).
-"""
-os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
+
 platform = jax.lib.xla_bridge.get_backend().platform
 print("Platform: ", platform)
 

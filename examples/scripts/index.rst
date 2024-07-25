@@ -25,7 +25,6 @@ Computed Tomography
    - ct_astra_odp_train_foam2.py
    - ct_astra_unet_train_foam2.py
    - ct_projector_comparison.py
-   - ct_multi_cs_tv_admm.py
    - ct_multi_tv_admm.py
 
 Deconvolution
@@ -63,6 +62,7 @@ Miscellaneous
    - demosaic_ppp_bm3d_admm.py
    - superres_ppp_dncnn_admm.py
    - denoise_l1tv_admm.py
+   - denoise_ptv_pdhg.py
    - denoise_tv_admm.py
    - denoise_tv_apgm.py
    - denoise_tv_multi.py
@@ -106,6 +106,7 @@ Total Variation
    - ct_astra_3d_tv_admm.py
    - ct_astra_3d_tv_padmm.py
    - ct_astra_weighted_tv_admm.py
+   - ct_multi_tv_admm.py
    - ct_svmbir_tv_multi.py
    - deconv_circ_tv_admm.py
    - deconv_tv_admm.py
@@ -114,6 +115,7 @@ Total Variation
    - deconv_microscopy_tv_admm.py
    - deconv_microscopy_allchn_tv_admm.py
    - denoise_l1tv_admm.py
+   - denoise_ptv_pdhg.py
    - denoise_tv_admm.py
    - denoise_tv_apgm.py
    - denoise_tv_multi.py
@@ -165,6 +167,7 @@ ADMM
    - ct_tv_admm.py
    - ct_astra_3d_tv_admm.py
    - ct_astra_weighted_tv_admm.py
+   - ct_multi_tv_admm.py
    - ct_svmbir_tv_multi.py
    - ct_svmbir_ppp_bm3d_admm_cg.py
    - ct_svmbir_ppp_bm3d_admm_prox.py
@@ -216,6 +219,7 @@ PDHG
 ^^^^
 
     - ct_svmbir_tv_multi.py
+    - denoise_ptv_pdhg.py
     - denoise_tv_multi.py
     - denoise_cplx_tv_pdhg.py
 
