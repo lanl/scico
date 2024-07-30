@@ -174,6 +174,85 @@ def test_angle_to_vector():
     assert vectors.shape == (angles.size, 12)
 
 
+## conversion functions
+@pytest.fixture(scope="module")
+def test_geometry():
+    """
+    In this geometry, if vol[i, j, k]==1, we expect proj[j-2, k-1]==1.
+
+    Because:
+    - We project along z, i.e. `ray=(0,0,1)`, i.e., we remove axis=0.
+    - We set `v=(0, 1, 0)`, so detector rows go with y axis, axis=1.
+    - We set `u=(1, 0, 0)`, so detector columns go with x axis, axis=2.
+    - We shift the detector by (x=1, y=2, z=3) <-> i-3, j-2, k-1
+    """
+    in_shape = (30, 31, 32)
+    # in ASTRA terminology:
+    n_rows = in_shape[1]  # y
+    n_cols = in_shape[2]  # x
+    n_slices = in_shape[0]  # z
+    vol_geom = scico.linop.xray.astra.astra.create_vol_geom(n_rows, n_cols, n_slices)
+
+    assert vol_geom["option"]["WindowMinX"] == -n_cols / 2
+    assert vol_geom["option"]["WindowMinY"] == -n_rows / 2
+    assert vol_geom["option"]["WindowMinZ"] == -n_slices / 2
+
+    # project along z, axis=0
+    det_row_count = n_rows
+    det_col_count = n_cols
+    ray = (0, 0, 1)
+    d = (1, 2, 3)  # axis=2 offset by 1, axis=1 offset by 2, axis=0 offset by 3
+    u = (1, 0, 0)  # increments columns, goes with X
+    v = (0, 1, 0)  # increments rows, goes with Y
+    vectors = np.array(ray + d + u + v)[np.newaxis, :]
+    proj_geom = scico.linop.xray.astra.astra.create_proj_geom(
+        "parallel3d_vec", det_row_count, det_col_count, vectors
+    )
+
+    return vol_geom, proj_geom
+
+
+@pytest.mark.skipif(jax.devices()[0].platform != "gpu", reason="GPU required for test")
+def test_projection_convention(test_geometry):
+    """
+    If vol[i, j, k]==1, test that astra puts proj[j-2, k-1]==1.
+
+    See `test_geometry` for the setup.
+    """
+    vol_geom, proj_geom = test_geometry
+    in_shape = scico.linop.xray.astra.astra.functions.geom_size(vol_geom)
+    vol = np.zeros(in_shape)
+
+    i, j, k = [np.random.randint(0, s) for s in in_shape]
+    vol[i, j, k] = 1.0
+
+    proj_id, proj = scico.linop.xray.astra.astra.create_sino3d_gpu(vol, proj_geom, vol_geom)
+    scico.linop.xray.astra.astra.data3d.delete(proj_id)
+    proj = proj[:, 0, :]  # get first view
+    assert len(np.unique(proj) == 2)
+
+    idx_proj_i, idx_proj_j = np.nonzero(proj)
+    np.testing.assert_array_equal(idx_proj_i, j - 2)
+    np.testing.assert_array_equal(idx_proj_j, k - 1)
+
+
+def test_project_coords(test_geometry):
+    """
+    If vol[i, j, k]==1, test that we predict proj[j-2, k-1]==1.
+
+    See `test_geometry` for the setup and `test_projection_convention`
+    for proof ASTRA works this way.
+    """
+    vol_geom, proj_geom = test_geometry
+    in_shape = scico.linop.xray.astra.astra.functions.geom_size(vol_geom)
+    x_vol = np.array([np.random.randint(0, s) for s in in_shape])
+    x_proj_gt = np.array(
+        [[x_vol[1] - 2, x_vol[2] - 1]]
+    )  # projection along slices removes first index
+    x_proj = scico.linop.xray.astra._project_coords(x_vol, vol_geom, proj_geom)
+    np.testing.assert_array_equal(x_proj_gt, x_proj)
+
+
 def test_ensure_writeable():
     assert isinstance(_ensure_writeable(np.ones((2, 1))), np.ndarray)
     assert isinstance(_ensure_writeable(snp.ones((2, 1))), np.ndarray)

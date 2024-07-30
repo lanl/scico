@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2023 by SCICO Developers
+# Copyright (C) 2023-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -20,12 +20,13 @@ from jax.typing import ArrayLike
 
 from scico.numpy.util import is_scalar_equiv
 from scico.typing import Shape
+from scipy.spatial.transform import Rotation
 
 from .._linop import LinearOperator
 
 
 class XRayTransform(LinearOperator):
-    """X-ray transform operator.
+    """X-ray transform linear operator.
 
     Wrap an X-ray projector object in a SCICO :class:`LinearOperator`.
     """
@@ -38,11 +39,12 @@ class XRayTransform(LinearOperator):
                 :class:`Parallel2dProjector`
         """
         self.projector = projector
-        self._eval = projector.project
 
         super().__init__(
-            input_shape=projector.im_shape,
-            output_shape=(len(projector.angles), projector.det_count),
+            input_shape=projector.input_shape,
+            output_shape=projector.output_shape,
+            eval_fn=projector.project,
+            adj_fn=projector.back_project,
         )
 
 
@@ -68,7 +70,7 @@ class Parallel2dProjector:
 
     def __init__(
         self,
-        im_shape: Shape,
+        input_shape: Shape,
         angles: ArrayLike,
         x0: Optional[ArrayLike] = None,
         dx: Optional[ArrayLike] = None,
@@ -77,29 +79,29 @@ class Parallel2dProjector:
     ):
         r"""
         Args:
-            im_shape: Shape of input array.
+            input_shape: Shape of input array.
             angles: (num_angles,) array of angles in radians. Viewing an
                 (M, N) array as a matrix with M rows and N columns, an
                 angle of 0 corresponds to summing rows, an angle of pi/2
                 corresponds to summing columns, and an angle of pi/4
                 corresponds to summing along antidiagonals.
             x0: (x, y) position of the corner of the pixel `im[0,0]`. By
-                default, `(-im_shape / 2, -im_shape / 2)`.
+                default, `(-input_shape / 2, -input_shape / 2)`.
             dx: Image pixel side length in x- and y-direction. Should be
                 <= 1.0 in each dimension. By default, [1.0, 1.0].
             y0: Location of the edge of the first detector bin. By
                 default, `-det_count / 2`
             det_count: Number of elements in detector. If ``None``,
-                defaults to the size of the diagonal of `im_shape`.
+                defaults to the size of the diagonal of `input_shape`.
         """
-        self.im_shape = im_shape
+        self.input_shape = input_shape
         self.angles = angles
 
-        self.nx = np.array(im_shape)
+        self.nx = tuple(input_shape)
         if dx is None:
-            dx = np.full(2, np.sqrt(2) / 2)
+            dx = 2 * (np.sqrt(2) / 2,)
         if is_scalar_equiv(dx):
-            dx = np.full(2, dx)
+            dx = 2 * (dx,)
         self.dx = dx
 
         # check projected pixel width assumption
@@ -115,13 +117,14 @@ class Parallel2dProjector:
             )
 
         if x0 is None:
-            x0 = -(self.nx * self.dx) / 2
+            x0 = -(np.array(self.nx) * self.dx) / 2
         self.x0 = x0
 
         if det_count is None:
-            det_count = int(np.ceil(np.linalg.norm(im_shape)))
+            det_count = int(np.ceil(np.linalg.norm(input_shape)))
         self.det_count = det_count
         self.ny = det_count
+        self.output_shape = (len(angles), det_count)
 
         if y0 is None:
             y0 = -self.ny / 2
@@ -148,7 +151,7 @@ def _project(im, x0, dx, y0, ny, angles):
         y0: Location of the edge of the first detector bin.
         ny: Number of detector bins.
         angles: (num_angles,) array of angles in radians. Pixels are
-            projected onto units vectors pointing in these directions.
+            projected onto unit vectors pointing in these directions.
     """
     nx = im.shape
     inds, weights = _calc_weights(x0, dx, nx, angles, y0)
@@ -236,3 +239,179 @@ def _calc_weights(x0, dx, nx, angle, y0):
     weights = jnp.minimum(distance_to_next, width) / width
 
     return inds, weights
+
+
+class Parallel3dProjector:
+    """General-purpose, 3D, parallel ray X-ray projector."""
+
+    def __init__(
+        self,
+        input_shape: Shape,
+        matrices: ArrayLike,
+        det_shape: Shape,
+    ):
+        r"""
+        Args:
+            input_shape: Shape of input image.
+            matrices: (num_angles, 2, 4) array of homogeneous projection matrices.
+            det_shape: Shape of detector.
+        """
+
+        self.input_shape = input_shape
+        self.matrices = matrices
+        self.det_shape = det_shape
+        self.output_shape = (len(matrices), *det_shape)
+
+    def project(self, im):
+        """Compute X-ray projection."""
+        return Parallel3dProjector._project(im, self.matrices, self.det_shape)
+
+    @staticmethod
+    def _project(im: ArrayLike, matrices: ArrayLike, det_shape: Shape) -> ArrayLike:
+        r"""
+        Args:
+            im: Input image.
+            matrix: (num_views, 2, 4) array of homogeneous projection matrices.
+            det_shape: Shape of detector.
+        """
+        MAX_SLICE_LEN = 10
+        slice_offsets = list(range(0, im.shape[0], MAX_SLICE_LEN))
+
+        num_views = len(matrices)
+        proj = jnp.zeros((num_views,) + det_shape, dtype=im.dtype)
+        for view_ind, matrix in enumerate(matrices):
+            for slice_offset in slice_offsets:
+                proj = proj.at[view_ind].set(
+                    Parallel3dProjector._project_single(
+                        im[slice_offset : slice_offset + MAX_SLICE_LEN],
+                        matrix,
+                        proj[view_ind],
+                        slice_offset=slice_offset,
+                    )
+                )
+        return proj
+
+    @staticmethod
+    @partial(jax.jit, donate_argnames="proj")
+    def _project_single(
+        im: ArrayLike, matrix: ArrayLike, proj: ArrayLike, slice_offset: int = 0
+    ) -> ArrayLike:
+        r"""
+        Args:
+            im: Input image.
+            matrix: (2, 4) homogeneous projection matrix.
+            det_shape: Shape of detector.
+        """
+
+        ul_ind, ul_weight, ur_weight, ll_weight, lr_weight = Parallel3dProjector._calc_weights(
+            im.shape, matrix, proj.shape, slice_offset
+        )
+        proj = proj.at[ul_ind[0], ul_ind[1]].add(ul_weight * im, mode="drop")
+        proj = proj.at[ul_ind[0] + 1, ul_ind[1]].add(ur_weight * im, mode="drop")
+        proj = proj.at[ul_ind[0], ul_ind[1] + 1].add(ll_weight * im, mode="drop")
+        proj = proj.at[ul_ind[0] + 1, ul_ind[1] + 1].add(lr_weight * im, mode="drop")
+        return proj
+
+    def back_project(self, proj):
+        """Compute X-ray back projection"""
+        return Parallel3dProjector._back_project(proj, self.matrices, self.input_shape)
+
+    @staticmethod
+    def _back_project(proj: ArrayLike, matrices: ArrayLike, input_shape: Shape) -> ArrayLike:
+        r"""
+        Args:
+            proj: Input (set of) projection(s).
+            matrix: (num_views, 2, 4) array of homogeneous projection matrices.
+            input_shape: Shape of desired back projection.
+        """
+        MAX_SLICE_LEN = 10
+        slice_offsets = list(range(0, input_shape[0], MAX_SLICE_LEN))
+
+        HTy = jnp.zeros(input_shape, dtype=proj.dtype)
+        for view_ind, matrix in enumerate(matrices):
+            for slice_offset in slice_offsets:
+                HTy = HTy.at[slice_offset : slice_offset + MAX_SLICE_LEN].set(
+                    Parallel3dProjector._back_project_single(
+                        proj[view_ind],
+                        matrix,
+                        HTy[slice_offset : slice_offset + MAX_SLICE_LEN],
+                        slice_offset=slice_offset,
+                    )
+                )
+                HTy.block_until_ready()  # prevent OOM
+
+        return HTy
+
+    @staticmethod
+    @partial(jax.jit, donate_argnames="HTy")
+    def _back_project_single(
+        y: ArrayLike, matrix: ArrayLike, HTy: ArrayLike, slice_offset: int = 0
+    ) -> ArrayLike:
+        ul_ind, ul_weight, ur_weight, ll_weight, lr_weight = Parallel3dProjector._calc_weights(
+            HTy.shape, matrix, y.shape, slice_offset
+        )
+        HTy = HTy + y[ul_ind[0], ul_ind[1]] * ul_weight
+        HTy = HTy + y[ul_ind[0] + 1, ul_ind[1]] * ur_weight
+        HTy = HTy + y[ul_ind[0], ul_ind[1] + 1] * ll_weight
+        HTy = HTy + y[ul_ind[0] + 1, ul_ind[1] + 1] * lr_weight
+        return HTy
+
+    @staticmethod
+    def _calc_weights(input_shape, matrix, output_shape, slice_offset: int = 0):
+        # pixel (0, 0, 0) has its center at (0.5, 0.5, 0.5)
+        x = jnp.mgrid[: input_shape[0], : input_shape[1], : input_shape[2]] + 0.5  # (3, ...)
+        x = x.at[0].add(slice_offset)
+
+        Px = jnp.stack(
+            (
+                matrix[0, 0] * x[0] + matrix[0, 1] * x[1] + matrix[0, 2] * x[2] + matrix[0, 3],
+                matrix[1, 0] * x[0] + matrix[1, 1] * x[1] + matrix[1, 2] * x[2] + matrix[1, 3],
+            )
+        )  # (2, ...)
+
+        # calculate weight on 4 intersecting pixels
+        w = 0.5  # assumed <= 1.0
+        left_edge = Px - w / 2
+        to_next = jnp.minimum(jnp.ceil(left_edge) - left_edge, w)
+        ul_ind = jnp.floor(left_edge).astype("int32")
+        ul_ind = jnp.where(ul_ind < 0, max(output_shape), ul_ind)  # otherwise negative values wrap
+
+        ul_weight = to_next[0] * to_next[1] * (1 / w**2)
+        ur_weight = (w - to_next[0]) * to_next[1] * (1 / w**2)
+        ll_weight = to_next[0] * (w - to_next[1]) * (1 / w**2)
+        lr_weight = (w - to_next[0]) * (w - to_next[1]) * (1 / w**2)
+
+        return ul_ind, ul_weight, ur_weight, ll_weight, lr_weight
+
+    @staticmethod
+    def matrices_from_euler_angles(
+        input_shape: Shape, output_shape: Shape, seq: str, angles: ArrayLike, degrees: bool = False
+    ):
+        """
+        Create a set of projection matrices from Euler angles.
+
+        Args:
+            input_shape: Shape of input image.
+            output_shape: Shape of output (detector).
+            str: Sequence of axes for rotation. Up to 3 characters belonging to the set {'X', 'Y', 'Z'}
+                for intrinsic rotations, or {'x', 'y', 'z'} for extrinsic rotations. Extrinsic and
+                intrinsic rotations cannot be mixed in one function call.
+            angles: (num_angles, N), N = 1, 2, or 3 Euler angles.
+            degrees: If ``True``, angles are in degrees, otherwise radians. Default: ``True``, radians.
+
+        Returns:
+            (num_angles, 2, 4) array of homogeneous projection matrices.
+        """
+
+        # make projection matrix: form a rotation matrix and chop off the last row
+        matrices = jnp.stack(
+            [Rotation.from_euler(seq, angles_i, degrees=degrees).as_matrix() for angles_i in angles]
+        )
+        matrices = matrices[:, :2, :]
+
+        # add translation
+        x0 = jnp.array(input_shape) / 2
+        t = -jnp.tensordot(matrices, x0, axes=[2, 0]) + jnp.array(output_shape) / 2
+        matrices = jnp.concatenate((matrices, t[..., np.newaxis]), axis=2)
+
+        return matrices
