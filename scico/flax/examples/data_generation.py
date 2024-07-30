@@ -10,6 +10,7 @@
 Computation is distributed via ray to reduce processing time.
 """
 
+import os
 from functools import partial
 from time import time
 from typing import Callable, List, Tuple, Union
@@ -371,16 +372,6 @@ def distributed_data_generation(
     ar = ray.available_resources()
     nproc = max(int(ar.get("CPU", 1)) // 2, 1)
 
-    # Attempt to avoid ray/jax conflicts. This solution is a nasty hack that
-    # can severely limit parallel execution (since ray will ensure that only
-    # as many actors as available GPUs are created), and is expected to be
-    # rather brittle.
-    if "GPU" in ar:
-        num_gpus = 1
-        nproc = min(nproc, int(ar.get("GPU")))
-    else:
-        num_gpus = 0
-
     if nproc > nimg:
         nproc = nimg
     if nimg % nproc > 0:
@@ -389,8 +380,10 @@ def distributed_data_generation(
 
     ndata_per_proc = int(nimg // nproc)
 
-    @ray.remote(num_gpus=num_gpus)
+    @ray.remote
     def data_gen(seed, size, ndata, imgf):
+        os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"
+        os.environ["CUDA_VISIBLE_DEVICES"] = "0"
         return imgf(seed, size, ndata)
 
     ray_return = ray.get(
