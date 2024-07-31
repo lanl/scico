@@ -252,9 +252,10 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
        :align: center
        :include-source: False
        :show-source-link: False
-       :caption: Red arrows indicate the direction of the beam towards
-          the detector (orange) and the arrows parallel to the detector
-          indicate the direction of increasing pixel indices.
+       :caption: Each radial arrow indicates the direction of the beam
+          towards the detector (indicated in orange in the "light"
+          display mode) and the arrow parallel to the detector indicates
+          the direction of increasing pixel indices.
 
     In this case the `z` axis is in the same direction as the
     vertical/row axis of the detector and its projection corresponds to
