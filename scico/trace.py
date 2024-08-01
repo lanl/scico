@@ -34,7 +34,7 @@ except ImportError:
 
 if have_colorama:
     clr_main = colorama.Fore.LIGHTRED_EX
-    clr_array = colorama.Fore.LIGHTBLUE_EX
+    clr_args = colorama.Fore.LIGHTBLUE_EX
     clr_reset = colorama.Fore.RESET
 else:
     clr_main, clr_array, clr_reset = "", "", ""
@@ -79,7 +79,7 @@ def _trace_arg_repr(val: Any) -> str:
     elif isinstance(val, type):  # a class name
         return f"{val.__module__}.{val.__qualname__}"
     elif isinstance(val, (np.ndarray, jax.Array)):  # a jax or numpy array
-        return f"{clr_array}Array{val.shape}{clr_main}"
+        return f"Array{val.shape}"
     else:
         if _get_hash(val) in call_trace.instance_hash:
             return f"{call_trace.instance_hash[val.__hash__()]}"
@@ -132,7 +132,7 @@ def call_trace(func: Callable) -> Callable:  # pragma: no cover
                 )
         argsrep = [_trace_arg_repr(val) for val in args[argidx:]]
         kwargrep = [f"{key}={_trace_arg_repr(val)}" for key, val in kwargs.items()]
-        argstr = ", ".join(argsrep + kwargrep)
+        argstr = clr_args + ", ".join(argsrep + kwargrep) + clr_main
         print(
             f"{clr_main}>> {' ' * 2 * call_trace.trace_level}{name}({argstr}){clr_reset}",
             file=sys.stderr,
