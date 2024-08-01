@@ -70,15 +70,15 @@ def _trace_arg_repr(val: Any) -> str:
     """
     if val is None:
         return "None"
-    elif np.isscalar(val):
+    elif np.isscalar(val):  # a scalar value
         return str(val)
-    elif isinstance(val, np.dtype):
-        return f"numpy.{val}"
     elif isinstance(val, tuple) and len(val) < 6 and all([np.isscalar(s) for s in val]):
-        return f"{val}"
-    elif isinstance(val, type):
+        return f"{val}"  # a short sequence of scalars
+    elif isinstance(val, np.dtype):  # a numpy dtype
+        return f"numpy.{val}"
+    elif isinstance(val, type):  # a class name
         return f"{val.__module__}.{val.__qualname__}"
-    elif isinstance(val, (np.ndarray, jax.Array)):
+    elif isinstance(val, (np.ndarray, jax.Array)):  # a jax or numpy array
         return f"{clr_array}Array{val.shape}{clr_main}"
     else:
         if _get_hash(val) in call_trace.instance_hash:
