@@ -100,6 +100,29 @@ def register_variable(var: Any, name: str):
     call_trace.instance_hash[hash] = name
 
 
+def _call_wrapped_function(func: Callable, *args, **kwargs) -> Any:
+    """Call a wrapped function within the wrapper.
+
+    Handle different call mechanisms required for static and class
+    methods.
+
+    Args:
+        func: Wrapped function
+        *args: Positional arguments
+        **kwargs: Named arguments
+
+    Returns:
+        Return value of wrapped function.
+    """
+    if isinstance(func, staticmethod):
+        ret = func(*args[1:], **kwargs)
+    elif isinstance(func, classmethod):
+        ret = func.__func__(*args, **kwargs)
+    else:
+        ret = func(*args, **kwargs)
+    return ret
+
+
 def call_trace(func: Callable) -> Callable:  # pragma: no cover
     """Print log of calls to `func`.
 
@@ -138,7 +161,7 @@ def call_trace(func: Callable) -> Callable:  # pragma: no cover
             file=sys.stderr,
         )
         call_trace.trace_level += 1
-        ret = func(*args, **kwargs)
+        ret = _call_wrapped_function(func, *args, **kwargs)
         call_trace.trace_level -= 1
         return ret
 
@@ -215,7 +238,9 @@ def apply_decorator(
                 for attr_name in dir(obj):
                     if attr_name in skip:
                         continue
-                    attr = getattr(obj, attr_name)
+                    # can't use plain getattr here since it interferes with identification of
+                    # static methods
+                    attr = inspect.getattr_static(obj, attr_name)
                     if isinstance(attr, (types.FunctionType, PjitFunction)):
                         qualname = attr.__module__ + "." + attr.__qualname__  # type: ignore
                         if not seen[qualname]:  # avoid multiple applications of decorator
