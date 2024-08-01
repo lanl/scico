@@ -34,6 +34,7 @@ except ImportError:
 
 if have_colorama:
     clr_main = colorama.Fore.LIGHTRED_EX
+    clr_func = colorama.Fore.RED
     clr_args = colorama.Fore.LIGHTBLUE_EX
     clr_reset = colorama.Fore.RESET
 else:
@@ -148,16 +149,18 @@ def call_trace(func: Callable) -> Callable:  # pragma: no cover
         ):
             argidx = 1
             if args[0].__hash__() in call_trace.instance_hash:
-                name = f"{call_trace.instance_hash[args[0].__hash__()]}.{func.__name__}"
+                name = f"{call_trace.instance_hash[args[0].__hash__()]}.{clr_func}{func.__name__}"
             elif hasattr(args[0], "__class__"):
                 name = (
-                    f"{args[0].__class__.__module__}.{args[0].__class__.__name__}.{func.__name__}"
+                    f"{args[0].__class__.__module__}.{args[0].__class__.__name__}."
+                    f"{clr_func}{func.__name__}"
                 )
         argsrep = [_trace_arg_repr(val) for val in args[argidx:]]
         kwargrep = [f"{key}={_trace_arg_repr(val)}" for key, val in kwargs.items()]
         argstr = clr_args + ", ".join(argsrep + kwargrep) + clr_main
         print(
-            f"{clr_main}>> {' ' * 2 * call_trace.trace_level}{name}({argstr}){clr_reset}",
+            f"{clr_main}>> {' ' * 2 * call_trace.trace_level}{name}"
+            f"({argstr}{clr_func}){clr_reset}",
             file=sys.stderr,
         )
         call_trace.trace_level += 1
