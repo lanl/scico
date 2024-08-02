@@ -13,6 +13,7 @@ This example demonstates the call tracing functionality provided by the
 [non-negative BPDN example](sparsecode_nn_admm.rst).
 """
 
+
 import numpy as np
 
 import jax
