@@ -51,17 +51,26 @@ y = D @ xt + 5e-2 * np.random.randn(m)  # synthetic signal
 xt = snp.array(xt)  # convert to jax array
 y = snp.array(y)  # convert to jax array
 
+register_variable(D, "D")
+
 
 """
 Set up the forward operator and ADMM solver object.
 """
 lmbda = 1e-1
 A = linop.MatrixOperator(D)
+register_variable(A, "A")
 f = loss.SquaredL2Loss(y=y, A=A)
 g_list = [lmbda * functional.L1Norm(), functional.NonNegativeIndicator()]
 C_list = [linop.Identity((n)), linop.Identity((n))]
 rho_list = [1.0, 1.0]
 maxiter = 10  # number of ADMM iterations
+
+register_variable(f, "f")
+register_variable(g_list[0], "g_list[0]")
+register_variable(g_list[1], "g_list[1]")
+register_variable(C_list[0], "C_list[0]")
+register_variable(C_list[1], "C_list[1]")
 
 solver = ADMM(
     f=f,
@@ -74,13 +83,6 @@ solver = ADMM(
     itstat_options={"display": True, "period": 5},
 )
 
-
-register_variable(A, "A")
-register_variable(f, "f")
-register_variable(g_list[0], "g_list[0]")
-register_variable(g_list[1], "g_list[1]")
-register_variable(C_list[0], "C_list[0]")
-register_variable(C_list[1], "C_list[1]")
 register_variable(solver, "solver")
 
 
