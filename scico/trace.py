@@ -36,9 +36,10 @@ if have_colorama:
     clr_main = colorama.Fore.LIGHTRED_EX
     clr_func = colorama.Fore.RED
     clr_args = colorama.Fore.LIGHTBLUE_EX
+    clr_retv = colorama.Fore.LIGHTBLUE_EX
     clr_reset = colorama.Fore.RESET
 else:
-    clr_main, clr_array, clr_reset = "", "", ""
+    clr_main, clr_array, clr_retv, clr_reset = "", "", "", ""
 
 
 def _get_hash(val: Any) -> Optional[int]:
@@ -50,7 +51,9 @@ def _get_hash(val: Any) -> Optional[int]:
     Returns:
         A hash value of ``None`` if a hash cannot be computed.
     """
-    if hasattr(val, "__hash__") and callable(val.__hash__):
+    if isinstance(val, np.ndarray):
+        hash = val.ctypes.data  # for an ndarray, hash is the memory address
+    elif hasattr(val, "__hash__") and callable(val.__hash__):
         try:
             hash = val.__hash__()
         except TypeError:
@@ -79,8 +82,13 @@ def _trace_arg_repr(val: Any) -> str:
         return f"numpy.{val}"
     elif isinstance(val, type):  # a class name
         return f"{val.__module__}.{val.__qualname__}"
+    elif isinstance(val, np.ndarray) and _get_hash(val) in call_trace.instance_hash:
+        return f"{call_trace.instance_hash[_get_hash(val)]}"
     elif isinstance(val, (np.ndarray, jax.Array)):  # a jax or numpy array
-        return f"Array{val.shape}"
+        if val.shape == ():
+            return str(val)
+        else:
+            return f"Array{val.shape}"
     else:
         if _get_hash(val) in call_trace.instance_hash:
             return f"{call_trace.instance_hash[val.__hash__()]}"
@@ -91,13 +99,18 @@ def _trace_arg_repr(val: Any) -> str:
 def register_variable(var: Any, name: str):
     """Register a variable name for call tracing.
 
+    Any hashable object (or numpy arrays, with the memory address
+    used as a hash) may be registered. JAX arrays may not be registered
+    since they are not hashable and there is no clear mechanism for
+    associating them with a unique memory address.
+
     Args:
         var: The variable to be registered.
         name: The name to be associated with the variable.
     """
     hash = _get_hash(var)
     if hash is None:
-        raise ValueError(f"Can't get hash for variable {var}.")
+        raise ValueError(f"Can't get hash for variable {name}.")
     call_trace.instance_hash[hash] = name
 
 
@@ -166,6 +179,12 @@ def call_trace(func: Callable) -> Callable:  # pragma: no cover
         call_trace.trace_level += 1
         ret = _call_wrapped_function(func, *args, **kwargs)
         call_trace.trace_level -= 1
+        if ret is not None and call_trace.show_return_value:
+            print(
+                f"{clr_main}>> {' ' * 2 * call_trace.trace_level}{clr_retv}"
+                f"{_trace_arg_repr(ret)}{clr_reset}",
+                file=sys.stderr,
+            )
         return ret
 
     # Set flag indicating that function is already wrapped
@@ -181,6 +200,8 @@ def call_trace(func: Callable) -> Callable:  # pragma: no cover
 call_trace.trace_level = 0  # type: ignore
 # hash dict allowing association of objects with variable names
 call_trace.instance_hash = {}  # type: ignore
+# flag indicating whether to show function return value
+call_trace.show_return_value = True
 
 
 def apply_decorator(
