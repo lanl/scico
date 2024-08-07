@@ -152,33 +152,37 @@ def call_trace(func: Callable) -> Callable:  # pragma: no cover
     @wraps(func)
     def wrapper(*args, **kwargs):
         name = f"{func.__module__}.{func.__qualname__}"
-        argidx = 0
+        arg_idx = 0
         if (
             args
             and hasattr(args[0], "__hash__")
             and callable(args[0].__hash__)
             and method_class
             and isinstance(args[0], method_class)
-        ):
-            argidx = 1
+        ):  # first argument is self for a method call
+            arg_idx = 1  # skip self in handling arguments
             if args[0].__hash__() in call_trace.instance_hash:
+                # self object registered using register_variable
                 name = f"{call_trace.instance_hash[args[0].__hash__()]}.{clr_func}{func.__name__}"
             elif hasattr(args[0], "__class__"):
+                # func is being called as an inherited method of a derived class
                 name = (
                     f"{args[0].__class__.__module__}.{args[0].__class__.__name__}."
                     f"{clr_func}{func.__name__}"
                 )
-        argsrep = [_trace_arg_repr(val) for val in args[argidx:]]
-        kwargrep = [f"{key}={_trace_arg_repr(val)}" for key, val in kwargs.items()]
-        argstr = clr_args + ", ".join(argsrep + kwargrep) + clr_main
+        args_repr = [_trace_arg_repr(val) for val in args[arg_idx:]]
+        kwargs_repr = [f"{key}={_trace_arg_repr(val)}" for key, val in kwargs.items()]
+        args_str = clr_args + ", ".join(args_repr + kwargs_repr) + clr_main
         print(
             f"{clr_main}>> {' ' * 2 * call_trace.trace_level}{name}"
-            f"({argstr}{clr_func}){clr_reset}",
+            f"({args_str}{clr_func}){clr_reset}",
             file=sys.stderr,
         )
+        # call wrapped function
         call_trace.trace_level += 1
         ret = _call_wrapped_function(func, *args, **kwargs)
         call_trace.trace_level -= 1
+        # print representation of return value
         if ret is not None and call_trace.show_return_value:
             print(
                 f"{clr_main}>> {' ' * 2 * call_trace.trace_level}{clr_retv}"
