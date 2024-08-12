@@ -27,10 +27,9 @@ as illustrated in the figure below.
    :include-source: False
    :show-source-link: False
    :caption: Comparison of 2D X-ray projector geometries. The radial
-      arrow are directed towards the locations of the corresponding
-      detectors (indicated in orange in the "light" display mode), with
-      the direction of increasing pixel indices indicated by the arrows
-      of the same color.
+      arrows are directed towards the locations of the corresponding
+      detectors, with the direction of increasing pixel indices indicated
+      by the arrows on the dotted lines parallel to the detectors.
 
 |
 
