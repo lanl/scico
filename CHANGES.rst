@@ -11,6 +11,7 @@ Version 0.0.6   (unreleased)
   of ``functional.AnisotropicTVNorm``.
 • New linear operators ``linop.ProjectedGradient``, ``linop.PolarGradient``,
   ``linop.CylindricalGradient``, and ``linop.SphericalGradient``.
+• New module ``scico.trace`` for tracing function/method calls.
 • Rename ``scico.numpy.util.parse_axes`` to
   ``scico.numpy.util.normalize_axes``.
 • Rename ``scico.flax.save_weights`` and ``scico.flax.load_weights`` to
