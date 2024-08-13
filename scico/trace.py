@@ -310,15 +310,54 @@ def OLD_apply_decorator(
     return seen
 
 
+def _is_scico_object(obj: Any) -> bool:
+    """Determine whether an object is defined in a scico submodule.
 
-def _is_scico_object(obj):
+    Args:
+        obj: Object to check.
+
+    Returns:
+        A boolean value indicating whether `obj` is defined in a scico
+        submodule.
+    """
     return hasattr(obj, "__module__") and obj.__module__[0:5] == "scico"
 
 
-def _is_scico_module(mod):
+def _is_scico_module(mod: types.ModuleType) -> bool:
+    """Determine whether a module is a scico submodule.
+
+    Args:
+        mod: Module to check.
+
+    Returns:
+        A boolean value indicating whether `mod` is a scico submodule.
+    """
     return hasattr(mod, "__name__") and mod.__name__[0:5] == "scico"
 
-def _is_submodule(mod, submod):
+
+def _in_module(mod: types.ModuleType, obj: Any) -> bool:
+    """Determine whether an object is defined in a module.
+
+    Args:
+        mod: Module of interest.
+        obj: Object to check.
+
+    Returns:
+        A boolean value indicating whether `obj` is defined in `mod`.
+    """
+    return obj.__module__ == mod.__name__
+
+
+def _is_submodule(mod: types.ModuleType, submod: types.ModuleType) -> bool:
+    """Determine whether a module is a submodule of another module.
+
+    Args:
+        mod: Parent module of interest.
+        submod: Possible submodule to check.
+
+    Returns:
+        A boolean value indicating whether `submod` is defined in `mod`.
+    """
     return submod.__name__[0 : len(mod.__name__)] == mod.__name__
 
 
@@ -360,16 +399,14 @@ def apply_decorator(
         skip = []
     if seen is None:
         seen = defaultdict(int)
-
     if verbose:
         print(f"{indent}Module: {module.__name__}")
-
     indent += " " * 4
 
     # Iterate over functions in module
     for name, func in inspect.getmembers(
         module,
-        lambda obj: isinstance(obj, (types.FunctionType, PjitFunction)) and _is_scico_object(obj),
+        lambda obj: isinstance(obj, (types.FunctionType, PjitFunction)) and _in_module(module, obj),
     ):
         if name in skip:
             continue
@@ -382,7 +419,7 @@ def apply_decorator(
 
     # Iterate over classes in module
     for name, cls in inspect.getmembers(
-        module, lambda obj: inspect.isclass(obj) and _is_scico_object(obj)
+        module, lambda obj: inspect.isclass(obj) and _in_module(module, obj)
     ):
         qualname = cls.__module__ + "." + cls.__qualname__  # type: ignore
         if verbose:
@@ -390,8 +427,7 @@ def apply_decorator(
 
         # Iterate over methods in class
         for name, func in inspect.getmembers(
-            cls,
-            lambda obj: isinstance(obj, (types.FunctionType, PjitFunction))
+            cls, lambda obj: isinstance(obj, (types.FunctionType, PjitFunction))
         ):
             if name in skip:
                 continue
@@ -411,7 +447,7 @@ def apply_decorator(
     # Iterate over submodules of module
     if recursive:
         for name, mod in inspect.getmembers(
-                module, lambda obj: inspect.ismodule(obj) and _is_submodule(module, obj)
+            module, lambda obj: inspect.ismodule(obj) and _is_submodule(module, obj)
         ):
             if name[0:1] == "_":
                 continue
@@ -455,5 +491,3 @@ def trace_scico_calls():  # pragma: no cover
     seen = None
     for module in (functional, linop, loss, operator, optimize, function, metric, solver):
         seen = apply_decorator(module, call_trace, skip=["__repr__"], seen=seen, verbose=True)
-    # unclear why applying this separately is required
-    optimize.Optimizer.solve = call_trace(optimize.Optimizer.solve)
