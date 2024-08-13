@@ -34,6 +34,7 @@ except ImportError:
 
 if have_colorama:
     clr_main = colorama.Fore.LIGHTRED_EX
+    clr_self = colorama.Fore.LIGHTMAGENTA_EX
     clr_func = colorama.Fore.RED
     clr_args = colorama.Fore.LIGHTBLUE_EX
     clr_retv = colorama.Fore.LIGHTBLUE_EX
@@ -164,12 +165,20 @@ def call_trace(func: Callable) -> Callable:  # pragma: no cover
             if args[0].__hash__() in call_trace.instance_hash:
                 # self object registered using register_variable
                 name = f"{call_trace.instance_hash[args[0].__hash__()]}.{clr_func}{func.__name__}"
-            elif hasattr(args[0], "__class__"):
-                # func is being called as an inherited method of a derived class
-                name = (
-                    f"{args[0].__class__.__module__}.{args[0].__class__.__name__}."
-                    f"{clr_func}{func.__name__}"
-                )
+            else:
+                # self object not registered
+                func_class = method_class.__name__
+                self_class = args[0].__class__.__name__
+                # If the class in which this method is defined is same as that
+                # of the self object for which it's called, just display the
+                # class name. Otherwise, display the name of the name defining
+                # class followed by the name of the self object class in
+                # square brackets.
+                if func_class == self_class:
+                    class_name = func_class
+                else:
+                    class_name = f"{func_class}{clr_self}[{self_class}]{clr_main}"
+                name = f"{func.__module__}.{class_name}.{clr_func}{func.__name__}"
         args_repr = [_trace_arg_repr(val) for val in args[arg_idx:]]
         kwargs_repr = [f"{key}={_trace_arg_repr(val)}" for key, val in kwargs.items()]
         args_str = clr_args + ", ".join(args_repr + kwargs_repr) + clr_main
@@ -373,7 +382,7 @@ def apply_decorator(
     return seen
 
 
-def trace_scico_calls():  # pragma: no cover
+def trace_scico_calls(verbose: bool = False):  # pragma: no cover
     """Enable tracing of calls to all significant scico functions/methods.
 
     Enable tracing of calls to all significant scico functions and
@@ -399,4 +408,4 @@ def trace_scico_calls():  # pragma: no cover
 
     seen = None
     for module in (functional, linop, loss, operator, optimize, function, metric, solver):
-        seen = apply_decorator(module, call_trace, skip=["__repr__"], seen=seen, verbose=True)
+        seen = apply_decorator(module, call_trace, skip=["__repr__"], seen=seen, verbose=verbose)
