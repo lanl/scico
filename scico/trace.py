@@ -82,8 +82,8 @@ def _trace_arg_repr(val: Any) -> str:
         return f"numpy.{val}"
     elif isinstance(val, type):  # a class name
         return f"{val.__module__}.{val.__qualname__}"
-    elif isinstance(val, np.ndarray) and _get_hash(val) in call_trace.instance_hash:
-        return f"{call_trace.instance_hash[_get_hash(val)]}"
+    elif isinstance(val, np.ndarray) and _get_hash(val) in call_trace.instance_hash:  # type: ignore
+        return f"{call_trace.instance_hash[_get_hash(val)]}"  # type: ignore
     elif isinstance(val, (np.ndarray, jax.Array)):  # a jax or numpy array
         if val.shape == ():
             return str(val)
@@ -111,7 +111,7 @@ def register_variable(var: Any, name: str):
     hash = _get_hash(var)
     if hash is None:
         raise ValueError(f"Can't get hash for variable {name}.")
-    call_trace.instance_hash[hash] = name
+    call_trace.instance_hash[hash] = name  # type: ignore
 
 
 def _call_wrapped_function(func: Callable, *args, **kwargs) -> Any:
@@ -205,7 +205,7 @@ call_trace.trace_level = 0  # type: ignore
 # hash dict allowing association of objects with variable names
 call_trace.instance_hash = {}  # type: ignore
 # flag indicating whether to show function return value
-call_trace.show_return_value = True
+call_trace.show_return_value = True  # type: ignore
 
 
 def _submodule_name(module, obj):
