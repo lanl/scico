@@ -361,6 +361,11 @@ def apply_decorator(
     if seen is None:
         seen = defaultdict(int)
 
+    if verbose:
+        print(f"{indent}Module: {module.__name__}")
+
+    indent += " " * 4
+
     # Iterate over functions in module
     for name, func in inspect.getmembers(
         module,
@@ -410,10 +415,6 @@ def apply_decorator(
         ):
             if name[0:1] == "_":
                 continue
-            qualname = mod.__name__
-            if verbose:
-                qualname = mod.__name__
-                print(f"{indent}Module: {qualname}")
             seen = apply_decorator(
                 mod,
                 decorator,
