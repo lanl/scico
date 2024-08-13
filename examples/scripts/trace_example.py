@@ -19,7 +19,7 @@ import numpy as np
 import jax
 
 import scico.numpy as snp
-from scico import functional, linop, loss
+from scico import functional, linop, loss, metric
 from scico.optimize.admm import ADMM, MatrixSubproblemSolver
 from scico.trace import register_variable, trace_scico_calls
 from scico.util import device_info
@@ -92,3 +92,4 @@ Run the solver.
 """
 print(f"Solving on {device_info()}\n")
 x = solver.solve()
+mse = metric.mse(xt, x)

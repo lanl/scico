@@ -151,7 +151,7 @@ def call_trace(func: Callable) -> Callable:  # pragma: no cover
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        name = f"{func.__module__}.{func.__qualname__}"
+        name = f"{func.__module__}.{clr_func}{func.__qualname__}"
         arg_idx = 0
         if (
             args
