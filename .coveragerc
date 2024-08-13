@@ -1,9 +1,10 @@
 [run]
 source = scico
 command_line = -m pytest
-omit = 
+omit =
     scico/test/*
     scico/plot.py
+    scico/trace.py
 
 [report]
 # Regexes for lines to exclude from consideration

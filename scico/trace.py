@@ -102,7 +102,7 @@ def _trace_arg_repr(val: Any) -> str:
 def register_variable(var: Any, name: str):
     """Register a variable name for call tracing.
 
-    Any hashable object (or numpy arrays, with the memory address
+    Any hashable object (or numpy array, with the memory address
     used as a hash) may be registered. JAX arrays may not be registered
     since they are not hashable and there is no clear mechanism for
     associating them with a unique memory address.
@@ -140,7 +140,7 @@ def _call_wrapped_function(func: Callable, *args, **kwargs) -> Any:
     return ret
 
 
-def call_trace(func: Callable) -> Callable:  # pragma: no cover
+def call_trace(func: Callable) -> Callable:
     """Print log of calls to `func`.
 
     Decorator for printing a log of calls to the wrapped function. A
@@ -387,7 +387,7 @@ def apply_decorator(
     return seen
 
 
-def trace_scico_calls(verbose: bool = False):  # pragma: no cover
+def trace_scico_calls(verbose: bool = False):
     """Enable tracing of calls to all significant scico functions/methods.
 
     Enable tracing of calls to all significant scico functions and
