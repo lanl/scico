@@ -208,7 +208,18 @@ call_trace.instance_hash = {}  # type: ignore
 call_trace.show_return_value = True
 
 
-def apply_decorator(
+def _submodule_name(module, obj):
+    if (
+        len(obj.__name__) > len(module.__name__)
+        and obj.__name__[0 : len(module.__name__)] == module.__name__
+    ):
+        short_name = obj.__name__[len(module.__name__) + 1 :]
+    else:
+        short_name = ""
+    return short_name
+
+
+def OLD_apply_decorator(
     module: types.ModuleType,
     decorator: Callable,
     recursive: bool = True,
@@ -277,13 +288,7 @@ def apply_decorator(
                         if verbose:
                             print(f"{indent + '    '}Method: {qualname}")
         elif isinstance(obj, types.ModuleType):
-            if (
-                len(obj.__name__) > len(module.__name__)
-                and obj.__name__[0 : len(module.__name__)] == module.__name__
-            ):
-                short_name = obj.__name__[len(module.__name__) + 1 :]
-            else:
-                short_name = ""
+            short_name = _submodule_name(module, obj)
             if (
                 len(obj.__name__) >= 5
                 and obj.__name__[0:5] == "scico"
@@ -302,6 +307,123 @@ def apply_decorator(
                         verbose=verbose,
                         level=level + 1,
                     )
+    return seen
+
+
+
+def _is_scico_object(obj):
+    return hasattr(obj, "__module__") and obj.__module__[0:5] == "scico"
+
+
+def _is_scico_module(mod):
+    return hasattr(mod, "__name__") and mod.__name__[0:5] == "scico"
+
+def _is_submodule(mod, submod):
+    return submod.__name__[0 : len(mod.__name__)] == mod.__name__
+
+
+def apply_decorator(
+    module: types.ModuleType,
+    decorator: Callable,
+    recursive: bool = True,
+    skip: Optional[Sequence] = None,
+    seen: Optional[defaultdict[str, int]] = None,
+    verbose: bool = False,
+    level: int = 0,
+) -> defaultdict[str, int]:
+    """Apply a decorator function to all functions in a scico module.
+
+    Apply a decorator function to all functions in a scico module,
+    including methods of classes in that module.
+
+    Args:
+        module: The module containing the functions/methods to be
+          decorated.
+        decorator: The decorator function to apply to each module
+          function/method.
+        recursive: Flag indicating whether to recurse into submodules
+          of the specified module. (Hidden modules with a name starting
+          with an underscore are ignored.)
+        skip: A list of class/function/method names to be skipped.
+        seen: A :class:`defaultdict` providing a count of the number of
+          times each function/method was seen.
+        verbose: Flag indicating whether to print a log of functions
+          as they are encountered.
+        level: Counter for recursive call levels.
+
+    Returns:
+        A :class:`defaultdict` providing a count of the number of times
+        each function/method was seen.
+    """
+    indent = " " * 4 * level
+    if skip is None:
+        skip = []
+    if seen is None:
+        seen = defaultdict(int)
+
+    # Iterate over functions in module
+    for name, func in inspect.getmembers(
+        module,
+        lambda obj: isinstance(obj, (types.FunctionType, PjitFunction)) and _is_scico_object(obj),
+    ):
+        if name in skip:
+            continue
+        qualname = func.__module__ + "." + func.__qualname__
+        if not seen[qualname]:  # avoid multiple applications of decorator
+            setattr(module, name, decorator(func))
+            seen[qualname] += 1
+            if verbose:
+                print(f"{indent}Function: {qualname}")
+
+    # Iterate over classes in module
+    for name, cls in inspect.getmembers(
+        module, lambda obj: inspect.isclass(obj) and _is_scico_object(obj)
+    ):
+        qualname = cls.__module__ + "." + cls.__qualname__  # type: ignore
+        if verbose:
+            print(f"{indent}Class: {qualname}")
+
+        # Iterate over methods in class
+        for name, func in inspect.getmembers(
+            cls,
+            lambda obj: isinstance(obj, (types.FunctionType, PjitFunction))
+        ):
+            if name in skip:
+                continue
+            qualname = func.__module__ + "." + func.__qualname__  # type: ignore
+            if not seen[qualname]:  # avoid multiple applications of decorator
+                # Can't use cls returned by inspect.getmembers because it uses plain
+                # getattr internally, which interferes with identification of static
+                # methods. From Python 3.11 onwards one could use
+                # inspect.getmembers_static instead of inspect.getmembers, but that
+                # would imply incompatibility with earlier Python versions.
+                func = inspect.getattr_static(cls, name)
+                setattr(cls, name, decorator(func))
+                seen[qualname] += 1
+                if verbose:
+                    print(f"{indent + '    '}Method: {qualname}")
+
+    # Iterate over submodules of module
+    if recursive:
+        for name, mod in inspect.getmembers(
+                module, lambda obj: inspect.ismodule(obj) and _is_submodule(module, obj)
+        ):
+            if name[0:1] == "_":
+                continue
+            qualname = mod.__name__
+            if verbose:
+                qualname = mod.__name__
+                print(f"{indent}Module: {qualname}")
+            seen = apply_decorator(
+                mod,
+                decorator,
+                recursive=recursive,
+                skip=skip,
+                seen=seen,
+                verbose=verbose,
+                level=level + 1,
+            )
+
     return seen
 
 
@@ -329,7 +451,8 @@ def trace_scico_calls():  # pragma: no cover
         solver,
     )
 
+    seen = None
     for module in (functional, linop, loss, operator, optimize, function, metric, solver):
-        apply_decorator(module, call_trace, skip=["__repr__"])
-    # Currently unclear why applying this separately is required
+        seen = apply_decorator(module, call_trace, skip=["__repr__"], seen=seen, verbose=True)
+    # unclear why applying this separately is required
     optimize.Optimizer.solve = call_trace(optimize.Optimizer.solve)
