@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2024 by SCICO Developers
+# Copyright (C) 2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -33,14 +33,16 @@ except ImportError:
 
 
 if have_colorama:
-    clr_main = colorama.Fore.LIGHTRED_EX
-    clr_self = colorama.Fore.LIGHTMAGENTA_EX
-    clr_func = colorama.Fore.RED
-    clr_args = colorama.Fore.LIGHTBLUE_EX
-    clr_retv = colorama.Fore.LIGHTBLUE_EX
-    clr_reset = colorama.Fore.RESET
+    clr_main = colorama.Fore.LIGHTRED_EX  # main trace information
+    clr_rvar = colorama.Fore.LIGHTYELLOW_EX  # registered variable names
+    clr_self = colorama.Fore.LIGHTMAGENTA_EX  # type of object for which method is called
+    clr_func = colorama.Fore.RED  # function/method name
+    clr_args = colorama.Fore.LIGHTBLUE_EX  # function/method arguments
+    clr_retv = colorama.Fore.LIGHTBLUE_EX  # function/method return values
+    clr_reset = colorama.Fore.RESET  # reset color
 else:
-    clr_main, clr_array, clr_retv, clr_reset = "", "", "", ""
+    clr_main, clr_rvar, clr_self, clr_func = "", "", "", ""
+    clr_args, clr_retv, clr_reset = "", "", ""
 
 
 def _get_hash(val: Any) -> Optional[int]:
@@ -84,7 +86,7 @@ def _trace_arg_repr(val: Any) -> str:
     elif isinstance(val, type):  # a class name
         return f"{val.__module__}.{val.__qualname__}"
     elif isinstance(val, np.ndarray) and _get_hash(val) in call_trace.instance_hash:  # type: ignore
-        return f"{call_trace.instance_hash[_get_hash(val)]}"  # type: ignore
+        return f"{clr_rvar}{call_trace.instance_hash[_get_hash(val)]}{clr_args}"  # type: ignore
     elif isinstance(val, (np.ndarray, jax.Array)):  # a jax or numpy array
         if val.shape == ():
             return str(val)
@@ -92,7 +94,7 @@ def _trace_arg_repr(val: Any) -> str:
             return f"Array{val.shape}"
     else:
         if _get_hash(val) in call_trace.instance_hash:
-            return f"{call_trace.instance_hash[val.__hash__()]}"
+            return f"{clr_rvar}{call_trace.instance_hash[val.__hash__()]}{clr_args}"
         else:
             return f"[{type(val).__name__}]"
 
@@ -164,7 +166,10 @@ def call_trace(func: Callable) -> Callable:  # pragma: no cover
             arg_idx = 1  # skip self in handling arguments
             if args[0].__hash__() in call_trace.instance_hash:
                 # self object registered using register_variable
-                name = f"{call_trace.instance_hash[args[0].__hash__()]}.{clr_func}{func.__name__}"
+                name = (
+                    f"{clr_rvar}{call_trace.instance_hash[args[0].__hash__()]}."
+                    f"{clr_func}{func.__name__}"
+                )
             else:
                 # self object not registered
                 func_class = method_class.__name__
