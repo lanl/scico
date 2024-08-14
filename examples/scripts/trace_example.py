@@ -33,7 +33,7 @@ names are printed in light red, function and method names in dark
 red, arguments and return values in light blue, and the names of
 registered variables in light yellow. When a method defined in a
 class is called for an object of a derived class type, the class
-of that object is printed in magenta, in square brackets.
+of that object is printed in light magenta, in square brackets.
 """
 jax.config.update("jax_disable_jit", True)
 trace_scico_calls()
