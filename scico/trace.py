@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2024 by SCICO Developers
+# Copyright (C) 2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -33,13 +33,16 @@ except ImportError:
 
 
 if have_colorama:
-    clr_main = colorama.Fore.LIGHTRED_EX
-    clr_func = colorama.Fore.RED
-    clr_args = colorama.Fore.LIGHTBLUE_EX
-    clr_retv = colorama.Fore.LIGHTBLUE_EX
-    clr_reset = colorama.Fore.RESET
+    clr_main = colorama.Fore.LIGHTRED_EX  # main trace information
+    clr_rvar = colorama.Fore.LIGHTYELLOW_EX  # registered variable names
+    clr_self = colorama.Fore.LIGHTMAGENTA_EX  # type of object for which method is called
+    clr_func = colorama.Fore.RED  # function/method name
+    clr_args = colorama.Fore.LIGHTBLUE_EX  # function/method arguments
+    clr_retv = colorama.Fore.LIGHTBLUE_EX  # function/method return values
+    clr_reset = colorama.Fore.RESET  # reset color
 else:
-    clr_main, clr_array, clr_retv, clr_reset = "", "", "", ""
+    clr_main, clr_rvar, clr_self, clr_func = "", "", "", ""
+    clr_args, clr_retv, clr_reset = "", "", ""
 
 
 def _get_hash(val: Any) -> Optional[int]:
@@ -82,8 +85,8 @@ def _trace_arg_repr(val: Any) -> str:
         return f"numpy.{val}"
     elif isinstance(val, type):  # a class name
         return f"{val.__module__}.{val.__qualname__}"
-    elif isinstance(val, np.ndarray) and _get_hash(val) in call_trace.instance_hash:
-        return f"{call_trace.instance_hash[_get_hash(val)]}"
+    elif isinstance(val, np.ndarray) and _get_hash(val) in call_trace.instance_hash:  # type: ignore
+        return f"{clr_rvar}{call_trace.instance_hash[_get_hash(val)]}{clr_args}"  # type: ignore
     elif isinstance(val, (np.ndarray, jax.Array)):  # a jax or numpy array
         if val.shape == ():
             return str(val)
@@ -91,7 +94,7 @@ def _trace_arg_repr(val: Any) -> str:
             return f"Array{val.shape}"
     else:
         if _get_hash(val) in call_trace.instance_hash:
-            return f"{call_trace.instance_hash[val.__hash__()]}"
+            return f"{clr_rvar}{call_trace.instance_hash[val.__hash__()]}{clr_args}"
         else:
             return f"[{type(val).__name__}]"
 
@@ -99,7 +102,7 @@ def _trace_arg_repr(val: Any) -> str:
 def register_variable(var: Any, name: str):
     """Register a variable name for call tracing.
 
-    Any hashable object (or numpy arrays, with the memory address
+    Any hashable object (or numpy array, with the memory address
     used as a hash) may be registered. JAX arrays may not be registered
     since they are not hashable and there is no clear mechanism for
     associating them with a unique memory address.
@@ -111,7 +114,7 @@ def register_variable(var: Any, name: str):
     hash = _get_hash(var)
     if hash is None:
         raise ValueError(f"Can't get hash for variable {name}.")
-    call_trace.instance_hash[hash] = name
+    call_trace.instance_hash[hash] = name  # type: ignore
 
 
 def _call_wrapped_function(func: Callable, *args, **kwargs) -> Any:
@@ -137,7 +140,7 @@ def _call_wrapped_function(func: Callable, *args, **kwargs) -> Any:
     return ret
 
 
-def call_trace(func: Callable) -> Callable:  # pragma: no cover
+def call_trace(func: Callable) -> Callable:
     """Print log of calls to `func`.
 
     Decorator for printing a log of calls to the wrapped function. A
@@ -151,7 +154,7 @@ def call_trace(func: Callable) -> Callable:  # pragma: no cover
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        name = f"{func.__module__}.{func.__qualname__}"
+        name = f"{func.__module__}.{clr_func}{func.__qualname__}"
         arg_idx = 0
         if (
             args
@@ -163,13 +166,24 @@ def call_trace(func: Callable) -> Callable:  # pragma: no cover
             arg_idx = 1  # skip self in handling arguments
             if args[0].__hash__() in call_trace.instance_hash:
                 # self object registered using register_variable
-                name = f"{call_trace.instance_hash[args[0].__hash__()]}.{clr_func}{func.__name__}"
-            elif hasattr(args[0], "__class__"):
-                # func is being called as an inherited method of a derived class
                 name = (
-                    f"{args[0].__class__.__module__}.{args[0].__class__.__name__}."
+                    f"{clr_rvar}{call_trace.instance_hash[args[0].__hash__()]}."
                     f"{clr_func}{func.__name__}"
                 )
+            else:
+                # self object not registered
+                func_class = method_class.__name__
+                self_class = args[0].__class__.__name__
+                # If the class in which this method is defined is same as that
+                # of the self object for which it's called, just display the
+                # class name. Otherwise, display the name of the name defining
+                # class followed by the name of the self object class in
+                # square brackets.
+                if func_class == self_class:
+                    class_name = func_class
+                else:
+                    class_name = f"{func_class}{clr_self}[{self_class}]{clr_main}"
+                name = f"{func.__module__}.{class_name}.{clr_func}{func.__name__}"
         args_repr = [_trace_arg_repr(val) for val in args[arg_idx:]]
         kwargs_repr = [f"{key}={_trace_arg_repr(val)}" for key, val in kwargs.items()]
         args_str = clr_args + ", ".join(args_repr + kwargs_repr) + clr_main
@@ -205,7 +219,69 @@ call_trace.trace_level = 0  # type: ignore
 # hash dict allowing association of objects with variable names
 call_trace.instance_hash = {}  # type: ignore
 # flag indicating whether to show function return value
-call_trace.show_return_value = True
+call_trace.show_return_value = True  # type: ignore
+
+
+def _submodule_name(module, obj):
+    if (
+        len(obj.__name__) > len(module.__name__)
+        and obj.__name__[0 : len(module.__name__)] == module.__name__
+    ):
+        short_name = obj.__name__[len(module.__name__) + 1 :]
+    else:
+        short_name = ""
+    return short_name
+
+
+def _is_scico_object(obj: Any) -> bool:
+    """Determine whether an object is defined in a scico submodule.
+
+    Args:
+        obj: Object to check.
+
+    Returns:
+        A boolean value indicating whether `obj` is defined in a scico
+        submodule.
+    """
+    return hasattr(obj, "__module__") and obj.__module__[0:5] == "scico"
+
+
+def _is_scico_module(mod: types.ModuleType) -> bool:
+    """Determine whether a module is a scico submodule.
+
+    Args:
+        mod: Module to check.
+
+    Returns:
+        A boolean value indicating whether `mod` is a scico submodule.
+    """
+    return hasattr(mod, "__name__") and mod.__name__[0:5] == "scico"
+
+
+def _in_module(mod: types.ModuleType, obj: Any) -> bool:
+    """Determine whether an object is defined in a module.
+
+    Args:
+        mod: Module of interest.
+        obj: Object to check.
+
+    Returns:
+        A boolean value indicating whether `obj` is defined in `mod`.
+    """
+    return obj.__module__ == mod.__name__
+
+
+def _is_submodule(mod: types.ModuleType, submod: types.ModuleType) -> bool:
+    """Determine whether a module is a submodule of another module.
+
+    Args:
+        mod: Parent module of interest.
+        submod: Possible submodule to check.
+
+    Returns:
+        A boolean value indicating whether `submod` is defined in `mod`.
+    """
+    return submod.__name__[0 : len(mod.__name__)] == mod.__name__
 
 
 def apply_decorator(
@@ -246,66 +322,72 @@ def apply_decorator(
         skip = []
     if seen is None:
         seen = defaultdict(int)
-    # Iterate over objects in module
-    for obj_name in dir(module):
-        if obj_name in skip:
+    if verbose:
+        print(f"{indent}Module: {module.__name__}")
+    indent += " " * 4
+
+    # Iterate over functions in module
+    for name, func in inspect.getmembers(
+        module,
+        lambda obj: isinstance(obj, (types.FunctionType, PjitFunction)) and _in_module(module, obj),
+    ):
+        if name in skip:
             continue
-        obj = getattr(module, obj_name)
-        if hasattr(obj, "__module__") and obj.__module__[0:5] == "scico":
-            qualname = obj.__module__ + "." + obj.__qualname__
-            if isinstance(obj, (types.FunctionType, PjitFunction)):
-                if not seen[qualname]:  # avoid multiple applications of decorator
-                    setattr(module, obj_name, decorator(obj))
+        qualname = func.__module__ + "." + func.__qualname__
+        if not seen[qualname]:  # avoid multiple applications of decorator
+            setattr(module, name, decorator(func))
+            seen[qualname] += 1
+            if verbose:
+                print(f"{indent}Function: {qualname}")
+
+    # Iterate over classes in module
+    for name, cls in inspect.getmembers(
+        module, lambda obj: inspect.isclass(obj) and _in_module(module, obj)
+    ):
+        qualname = cls.__module__ + "." + cls.__qualname__  # type: ignore
+        if verbose:
+            print(f"{indent}Class: {qualname}")
+
+        # Iterate over methods in class
+        for name, func in inspect.getmembers(
+            cls, lambda obj: isinstance(obj, (types.FunctionType, PjitFunction))
+        ):
+            if name in skip:
+                continue
+            qualname = func.__module__ + "." + func.__qualname__  # type: ignore
+            if not seen[qualname]:  # avoid multiple applications of decorator
+                # Can't use cls returned by inspect.getmembers because it uses plain
+                # getattr internally, which interferes with identification of static
+                # methods. From Python 3.11 onwards one could use
+                # inspect.getmembers_static instead of inspect.getmembers, but that
+                # would imply incompatibility with earlier Python versions.
+                func = inspect.getattr_static(cls, name)
+                setattr(cls, name, decorator(func))
                 seen[qualname] += 1
                 if verbose:
-                    print(f"{indent}Function: {qualname}")
-            elif isinstance(obj, type):
-                if verbose:
-                    print(f"{indent}Class: {qualname}")
-                # Iterate over class attributes
-                for attr_name in dir(obj):
-                    if attr_name in skip:
-                        continue
-                    # can't use plain getattr here since it interferes with identification of
-                    # static methods
-                    attr = inspect.getattr_static(obj, attr_name)
-                    if isinstance(attr, (types.FunctionType, PjitFunction)):
-                        qualname = attr.__module__ + "." + attr.__qualname__  # type: ignore
-                        if not seen[qualname]:  # avoid multiple applications of decorator
-                            setattr(obj, attr_name, decorator(attr))
-                        seen[qualname] += 1
-                        if verbose:
-                            print(f"{indent + '    '}Method: {qualname}")
-        elif isinstance(obj, types.ModuleType):
-            if (
-                len(obj.__name__) > len(module.__name__)
-                and obj.__name__[0 : len(module.__name__)] == module.__name__
-            ):
-                short_name = obj.__name__[len(module.__name__) + 1 :]
-            else:
-                short_name = ""
-            if (
-                len(obj.__name__) >= 5
-                and obj.__name__[0:5] == "scico"
-                and len(short_name) > 0
-                and short_name[0] != "_"
-            ):
-                if verbose:
-                    print(f"{indent}Module: {obj.__name__}")
-                if recursive:
-                    seen = apply_decorator(
-                        obj,
-                        decorator,
-                        recursive=recursive,
-                        skip=skip,
-                        seen=seen,
-                        verbose=verbose,
-                        level=level + 1,
-                    )
+                    print(f"{indent + '    '}Method: {qualname}")
+
+    # Iterate over submodules of module
+    if recursive:
+        for name, mod in inspect.getmembers(
+            module, lambda obj: inspect.ismodule(obj) and _is_submodule(module, obj)
+        ):
+            if name[0:1] == "_":
+                continue
+            seen = apply_decorator(
+                mod,
+                decorator,
+                recursive=recursive,
+                skip=skip,
+                seen=seen,
+                verbose=verbose,
+                level=level + 1,
+            )
+
     return seen
 
 
-def trace_scico_calls():  # pragma: no cover
+def trace_scico_calls(verbose: bool = False):
     """Enable tracing of calls to all significant scico functions/methods.
 
     Enable tracing of calls to all significant scico functions and
@@ -329,7 +411,6 @@ def trace_scico_calls():  # pragma: no cover
         solver,
     )
 
+    seen = None
     for module in (functional, linop, loss, operator, optimize, function, metric, solver):
-        apply_decorator(module, call_trace, skip=["__repr__"])
-    # Currently unclear why applying this separately is required
-    optimize.Optimizer.solve = call_trace(optimize.Optimizer.solve)
+        seen = apply_decorator(module, call_trace, skip=["__repr__"], seen=seen, verbose=verbose)

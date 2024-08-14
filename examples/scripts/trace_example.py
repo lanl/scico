@@ -19,13 +19,21 @@ import numpy as np
 import jax
 
 import scico.numpy as snp
-from scico import functional, linop, loss
+from scico import functional, linop, loss, metric
 from scico.optimize.admm import ADMM, MatrixSubproblemSolver
 from scico.trace import register_variable, trace_scico_calls
 from scico.util import device_info
 
 """
 Initialize tracing. JIT must be disabled for correct tracing.
+
+The call tracing mechanism prints the name, arguments, and return
+values of functions/methods as they are called. Module and class
+names are printed in light red, function and method names in dark
+red, arguments and return values in light blue, and the names of
+registered variables in light yellow. When a method defined in a
+class is called for an object of a derived class type, the class
+of that object is printed in light magenta, in square brackets.
 """
 jax.config.update("jax_disable_jit", True)
 trace_scico_calls()
@@ -52,6 +60,12 @@ y = D @ xt + 5e-2 * np.random.randn(m)  # synthetic signal
 xt = snp.array(xt)  # convert to jax array
 y = snp.array(y)  # convert to jax array
 
+
+"""
+Register a variable so that it can be referenced by name in the call trace.
+Any hashable object and numpy arrays may be registered, but JAX arrays
+cannot.
+"""
 register_variable(D, "D")
 
 
@@ -92,3 +106,4 @@ Run the solver.
 """
 print(f"Solving on {device_info()}\n")
 x = solver.solve()
+mse = metric.mse(xt, x)
