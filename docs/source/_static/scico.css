@@ -1,5 +1,9 @@
 /* furo theme customization */
 
+body[data-theme="dark"] figure img {
+  filter: invert(100%);
+}
+
 .sidebar-drawer {
   width: fit-content !important;
 }
