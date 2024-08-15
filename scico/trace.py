@@ -39,10 +39,11 @@ if have_colorama:
     clr_func = colorama.Fore.RED  # function/method name
     clr_args = colorama.Fore.LIGHTBLUE_EX  # function/method arguments
     clr_retv = colorama.Fore.LIGHTBLUE_EX  # function/method return values
+    clr_devc = colorama.Fore.CYAN  # JAX array device and sharding
     clr_reset = colorama.Fore.RESET  # reset color
 else:
     clr_main, clr_rvar, clr_self, clr_func = "", "", "", ""
-    clr_args, clr_retv, clr_reset = "", "", ""
+    clr_args, clr_retv, clr_devc, clr_reset = "", "", "", ""
 
 
 def _get_hash(val: Any) -> Optional[int]:
@@ -91,7 +92,19 @@ def _trace_arg_repr(val: Any) -> str:
         if val.shape == ():
             return str(val)
         else:
-            return f"Array{val.shape}"
+            dev_str, shard_str = "", ""
+            if isinstance(val, jax.Array) and not isinstance(
+                val, jax._src.interpreters.partial_eval.JaxprTracer
+            ):
+                if call_trace.show_jax_device:
+                    platform = list(val.devices())[0].platform  # assume all of same type
+                    devices = ",".join(map(str, sorted([d.id for d in val.devices()])))
+                    dev_str = f"{clr_devc}{{dev={platform}({devices})}}{clr_args}"
+                if call_trace.show_jax_sharding and isinstance(
+                    val.sharding, jax._src.sharding_impls.PositionalSharding
+                ):
+                    shard_str = f"{clr_devc}{{shard={val.sharding.shape}}}{clr_args}"
+            return f"Array{val.shape}{dev_str}{shard_str}"
     else:
         if _get_hash(val) in call_trace.instance_hash:
             return f"{clr_rvar}{call_trace.instance_hash[val.__hash__()]}{clr_args}"
@@ -220,6 +233,10 @@ call_trace.trace_level = 0  # type: ignore
 call_trace.instance_hash = {}  # type: ignore
 # flag indicating whether to show function return value
 call_trace.show_return_value = True  # type: ignore
+# flag indicating whether to show JAX array devices
+call_trace.show_jax_device = False  # type: ignore
+# flag indicating whether to show JAX array sharding shape
+call_trace.show_jax_sharding = False  # type: ignore
 
 
 def _submodule_name(module, obj):
