@@ -147,11 +147,15 @@ class TVNorm(Functional):
             # Replicate-pad to the right (resulting in a zero after finite differencing)
             # on all axes subject to finite differencing.
             pad_width = [(0, 1) if i in axes else (0, 0) for i, s in enumerate(input_shape)]  # type: ignore
-            P = Pad(input_shape, pad_width=pad_width, mode="edge", jit=True)
+            P = Pad(
+                input_shape, input_dtype=input_dtype, pad_width=pad_width, mode="edge", jit=True
+            )
             # fused boundary extend and forward transform linop
             WP = W @ P
             # crop operation that is inverse of the padding operation
-            C = Crop(crop_width=pad_width, input_shape=w_input_shape, jit=True)
+            C = Crop(
+                crop_width=pad_width, input_shape=w_input_shape, input_dtype=input_dtype, jit=True
+            )
             # fused adjoint transform and crop linop
             CWT = C @ W.T
         return WP, CWT, ndims, slce
