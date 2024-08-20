@@ -125,7 +125,9 @@ a version with GPU support:
 
 The script `misc/envinfo.py <https://github.com/lanl/scico/blob/main/misc/envinfo.py>`_
 in the source distribution is provided as an aid to debugging GPU support
-issues.
+issues. The script `misc/availgpu.py <https://github.com/lanl/scico/blob/main/misc/availgpu.py>`_
+can be used to automatically recommend a setting of the CUDA_VISIBLE_DEVICES
+environment variable that excludes GPUs that are already in use.
 
 
 
