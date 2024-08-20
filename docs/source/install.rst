@@ -123,9 +123,11 @@ a version with GPU support:
    by SCICO (as specified in the ``requirements.txt`` file).
 
 
-The script `misc/envinfo.py <https://github.com/lanl/scico/blob/main/misc/envinfo.py>`_
+The script
+`misc/gpu/envinfo.py <https://github.com/lanl/scico/blob/main/misc/gpu/envinfo.py>`_
 in the source distribution is provided as an aid to debugging GPU support
-issues. The script `misc/availgpu.py <https://github.com/lanl/scico/blob/main/misc/availgpu.py>`_
+issues. The script
+`misc/gpu/availgpu.py <https://github.com/lanl/scico/blob/main/misc/gpu/availgpu.py>`_
 can be used to automatically recommend a setting of the CUDA_VISIBLE_DEVICES
 environment variable that excludes GPUs that are already in use.
 
