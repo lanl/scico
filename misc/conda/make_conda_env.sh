@@ -50,7 +50,7 @@ EOF
 )
 # Requirements that cannot be installed via conda (i.e. have to use pip)
 NOCONDA=$(cat <<-EOF
-flax bm3d bm4d py2jn colour_demosaicing ray[tune,train]
+flax bm3d bm4d py2jn colour_demosaicing hyperopt ray[tune,train]
 EOF
 )
 
