@@ -257,6 +257,9 @@ echo
 echo "JAX installed without GPU support. To enable GPU support, install a"
 echo "version of jaxlib with CUDA support following the instructions at"
 echo "   https://jax.readthedocs.io/en/latest/installation.html#nvidia-gpu"
+echo "In most cases this just requires the command"
+echo "   pip install -U \"jax[cuda12]\""
+echo
 echo "ASTRA Toolbox installed without GPU support if this script was"
 echo "run on a host without CUDA drivers installed. To enable GPU support,"
 echo "uninstall and then reinstall the astra-toolbox conda package on a"
