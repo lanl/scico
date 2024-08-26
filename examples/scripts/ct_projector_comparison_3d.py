@@ -64,9 +64,6 @@ with ContextTimer(timer_scico, "first_fwd"):
     y_scico = H_scico @ x
     jax.block_until_ready(y_scico)
 
-with ContextTimer(timer_scico, "first_fwd"):
-    y_scico = H_scico @ x
-
 with ContextTimer(timer_scico, "avg_fwd"):
     for _ in range(num_repeats):
         y_scico = H_scico @ x
@@ -99,10 +96,7 @@ with ContextTimer(timer_astra, "init"):
 
 with ContextTimer(timer_astra, "first_fwd"):
     y_astra_from_scico = H_astra_from_scico @ x
-    jax.block_until_ready(y_scico)
-
-with ContextTimer(timer_astra, "first_fwd"):
-    y_astra_from_scico = H_astra_from_scico @ x
+    jax.block_until_ready(y_astra_from_scico)
 
 with ContextTimer(timer_astra, "avg_fwd"):
     for _ in range(num_repeats):

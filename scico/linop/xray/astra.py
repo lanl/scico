@@ -83,13 +83,21 @@ def convert_from_scico_geometry(
     # ray is perpendicular to projection axes
     ray = np.cross(matrices[:, 0, :3], matrices[:, 1, :3])
     # detector center comes from lifting the center index to 3D
-    y_center = np.array(det_shape) / 2
+    y_center = (np.array(det_shape) - 1) / 2
     x_center = (
-        np.einsum("...mn,n->...m", matrices[..., :3], np.array(in_shape) / 2) + matrices[..., 3]
+        np.einsum("...mn,n->...m", matrices[..., :3], (np.array(in_shape) - 1) / 2)
+        + matrices[..., 3]
     )
     d = np.einsum("...mn,...m->...n", matrices[..., :3], y_center - x_center)  # (V, 2, 3) x (V, 2)
-    u = -matrices[:, 1, :3]
-    v = -matrices[:, 0, :3]
+    u = matrices[:, 1, :3]
+    v = matrices[:, 0, :3]
+
+    # handle different axis conventions
+    ray = ray[:, [2, 1, 0]]
+    d = d[:, [2, 1, 0]]
+    u = u[:, [2, 1, 0]]
+    v = v[:, [2, 1, 0]]
+
     vectors = np.concatenate((ray, d, u, v), axis=1)  # (v, 12)
     return vectors
 

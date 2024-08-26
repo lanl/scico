@@ -25,30 +25,7 @@ from scipy.spatial.transform import Rotation
 from .._linop import LinearOperator
 
 
-class XRayTransform(LinearOperator):
-    """X-ray transform linear operator.
-
-    Wrap an X-ray projector object in a SCICO :class:`LinearOperator`.
-    """
-
-    def __init__(self, projector):
-        r"""
-        Args:
-            projector: instance of an X-ray projector object to wrap,
-                currently the only option is
-                :class:`Parallel2dProjector`
-        """
-        self.projector = projector
-
-        super().__init__(
-            input_shape=projector.input_shape,
-            output_shape=projector.output_shape,
-            eval_fn=projector.project,
-            adj_fn=projector.back_project,
-        )
-
-
-class Parallel2dProjector:
+class Parallel2dProjector(LinearOperator):
     """Parallel ray, single axis, 2D X-ray projector.
 
     This implementation approximates the projection of each rectangular
@@ -131,118 +108,147 @@ class Parallel2dProjector:
         self.y0 = y0
         self.dy = 1.0
 
+        super().__init__(
+            input_shape=self.input_shape,
+            output_shape=self.output_shape,
+            eval_fn=self.project,
+            adj_fn=self.back_project,
+        )
+
     def project(self, im):
         """Compute X-ray projection."""
-        return _project(im, self.x0, self.dx, self.y0, self.ny, self.angles)
+        return Parallel2dProjector._project(im, self.x0, self.dx, self.y0, self.ny, self.angles)
 
     def back_project(self, y):
         """Compute X-ray back projection"""
-        return _back_project(y, self.x0, self.dx, self.nx, self.y0, self.angles)
+        return Parallel2dProjector._back_project(y, self.x0, self.dx, self.nx, self.y0, self.angles)
+
+    @staticmethod
+    @partial(jax.jit, static_argnames=["ny"])
+    def _project(im, x0, dx, y0, ny, angles):
+        r"""
+        Args:
+            im: Input array, (M, N).
+            x0: (x, y) position of the corner of the pixel im[0,0].
+            dx: Pixel side length in x- and y-direction. Units are such
+                that the detector bins have length 1.0.
+            y0: Location of the edge of the first detector bin.
+            ny: Number of detector bins.
+            angles: (num_angles,) array of angles in radians. Pixels are
+                projected onto unit vectors pointing in these directions.
+        """
+        nx = im.shape
+        inds, weights = Parallel2dProjector._calc_weights(x0, dx, nx, angles, y0)
+        # Handle out of bounds indices. In the .at call, inds >= y0 are
+        # ignored, while inds < 0 wrap around. So we set inds < 0 to ny.
+        inds = jnp.where(inds >= 0, inds, ny)
+
+        y = (
+            jnp.zeros((len(angles), ny))
+            .at[jnp.arange(len(angles)).reshape(-1, 1, 1), inds]
+            .add(im * weights)
+        )
+
+        y = y.at[jnp.arange(len(angles)).reshape(-1, 1, 1), inds + 1].add(im * (1 - weights))
+
+        return y
+
+    @staticmethod
+    @partial(jax.jit, static_argnames=["nx"])
+    def _back_project(y, x0, dx, nx, y0, angles):
+        r"""
+        Args:
+            y: Input projection, (num_angles, N).
+            x0: (x, y) position of the corner of the pixel im[0,0].
+            dx: Pixel side length in x- and y-direction. Units are such
+                that the detector bins have length 1.0.
+            nx: Shape of back projection.
+            y0: Location of the edge of the first detector bin.
+            angles: (num_angles,) array of angles in radians. Pixels are
+                projected onto units vectors pointing in these directions.
+        """
+        ny = y.shape[1]
+        inds, weights = Parallel2dProjector._calc_weights(x0, dx, nx, angles, y0)
+        # Handle out of bounds indices. In the .at call, inds >= y0 are
+        # ignored, while inds < 0 wrap around. So we set inds < 0 to ny.
+        inds = jnp.where(inds >= 0, inds, ny)
+
+        # the idea: [y[0, inds[0]], y[1, inds[1]], ...]
+        HTy = jnp.sum(y[jnp.arange(len(angles)).reshape(-1, 1, 1), inds] * weights, axis=0)
+        HTy = HTy + jnp.sum(
+            y[jnp.arange(len(angles)).reshape(-1, 1, 1), inds + 1] * (1 - weights), axis=0
+        )
+
+        return HTy
+
+    @staticmethod
+    @partial(jax.jit, static_argnames=["nx"])
+    @partial(jax.vmap, in_axes=(None, None, None, 0, None))
+    def _calc_weights(x0, dx, nx, angle, y0):
+        """
+
+        Args:
+            x0: Location of the corner of the pixel im[0,0].
+            dx: Pixel side length in x- and y-direction. Units are such
+                that the detector bins have length 1.0.
+            nx: Input image shape.
+            angle: (num_angles,) array of angles in radians. Pixels are
+                projected onto units vectors pointing in these directions.
+                (This argument is `vmap`ed.)
+            y0: Location of the edge of the first detector bin.
+        """
+        u = [jnp.cos(angle), jnp.sin(angle)]
+        Px0 = x0[0] * u[0] + x0[1] * u[1] - y0
+        Pdx = [dx[0] * u[0], dx[1] * u[1]]
+        Pxmin = jnp.min(jnp.array([Px0, Px0 + Pdx[0], Px0 + Pdx[1], Px0 + Pdx[0] + Pdx[1]]))
+
+        Px = (
+            Pxmin
+            + Pdx[0] * jnp.arange(nx[0]).reshape(-1, 1)
+            + Pdx[1] * jnp.arange(nx[1]).reshape(1, -1)
+        )
+
+        # detector bin inds
+        inds = jnp.floor(Px).astype(int)
+
+        # weights
+        Pdx = jnp.array(u) * jnp.array(dx)
+        diag1 = jnp.abs(Pdx[0] + Pdx[1])
+        diag2 = jnp.abs(Pdx[0] - Pdx[1])
+        w = jnp.max(jnp.array([diag1, diag2]))
+        f = jnp.min(jnp.array([diag1, diag2]))
+
+        width = (w + f) / 2
+        distance_to_next = 1 - (Px - inds)  # always in (0, 1]
+        weights = jnp.minimum(distance_to_next, width) / width
+
+        return inds, weights
 
 
-@partial(jax.jit, static_argnames=["ny"])
-def _project(im, x0, dx, y0, ny, angles):
-    r"""
-    Args:
-        im: Input array, (M, N).
-        x0: (x, y) position of the corner of the pixel im[0,0].
-        dx: Pixel side length in x- and y-direction. Units are such
-            that the detector bins have length 1.0.
-        y0: Location of the edge of the first detector bin.
-        ny: Number of detector bins.
-        angles: (num_angles,) array of angles in radians. Pixels are
-            projected onto unit vectors pointing in these directions.
+class Parallel3dProjector(LinearOperator):
+    r"""General-purpose, 3D, parallel ray X-ray projector.
+
+    For each view, the projection geometry is specified by an array
+    with shape (2, 4) that specifies a :math:`2 \times 3` projection
+    matrix and a :math:`2 \times 1` offset vector. Denoting the matrix
+    by :math:`\mathbf{M}` and the offset by :math:`\mathbf{t}`, a voxel at array
+    index `(i, j, k)` has its center projected to the detector coordinates
+
+    .. math::
+        \mathbf{M} \begin{bmatrix}
+        i + \frac{1}{2} \\ j + \frac{1}{2} \\ k + \frac{1}{2}
+        \end{bmatrix} + \mathbf{t} \,.
+
+    The detector pixel at index `(i, j)` covers detector coordinates
+    :math:`[i+1) \times [j+1)`.
+
+    :meth:`Parallel3dProjector.matrices_from_euler_angles` can help to
+    make these geometry arrays.
+
+
+
+
     """
-    nx = im.shape
-    inds, weights = _calc_weights(x0, dx, nx, angles, y0)
-    # Handle out of bounds indices. In the .at call, inds >= y0 are
-    # ignored, while inds < 0 wrap around. So we set inds < 0 to ny.
-    inds = jnp.where(inds >= 0, inds, ny)
-
-    y = (
-        jnp.zeros((len(angles), ny))
-        .at[jnp.arange(len(angles)).reshape(-1, 1, 1), inds]
-        .add(im * weights)
-    )
-
-    y = y.at[jnp.arange(len(angles)).reshape(-1, 1, 1), inds + 1].add(im * (1 - weights))
-
-    return y
-
-
-@partial(jax.jit, static_argnames=["nx"])
-def _back_project(y, x0, dx, nx, y0, angles):
-    r"""
-    Args:
-        y: Input projection, (num_angles, N).
-        x0: (x, y) position of the corner of the pixel im[0,0].
-        dx: Pixel side length in x- and y-direction. Units are such
-            that the detector bins have length 1.0.
-        nx: Shape of back projection.
-        y0: Location of the edge of the first detector bin.
-        angles: (num_angles,) array of angles in radians. Pixels are
-            projected onto units vectors pointing in these directions.
-    """
-    ny = y.shape[1]
-    inds, weights = _calc_weights(x0, dx, nx, angles, y0)
-    # Handle out of bounds indices. In the .at call, inds >= y0 are
-    # ignored, while inds < 0 wrap around. So we set inds < 0 to ny.
-    inds = jnp.where(inds >= 0, inds, ny)
-
-    # the idea: [y[0, inds[0]], y[1, inds[1]], ...]
-    HTy = jnp.sum(y[jnp.arange(len(angles)).reshape(-1, 1, 1), inds] * weights, axis=0)
-    HTy = HTy + jnp.sum(
-        y[jnp.arange(len(angles)).reshape(-1, 1, 1), inds + 1] * (1 - weights), axis=0
-    )
-
-    return HTy
-
-
-@partial(jax.jit, static_argnames=["nx"])
-@partial(jax.vmap, in_axes=(None, None, None, 0, None))
-def _calc_weights(x0, dx, nx, angle, y0):
-    """
-
-    Args:
-        x0: Location of the corner of the pixel im[0,0].
-        dx: Pixel side length in x- and y-direction. Units are such
-            that the detector bins have length 1.0.
-        nx: Input image shape.
-        angle: (num_angles,) array of angles in radians. Pixels are
-            projected onto units vectors pointing in these directions.
-            (This argument is `vmap`ed.)
-        y0: Location of the edge of the first detector bin.
-    """
-    u = [jnp.cos(angle), jnp.sin(angle)]
-    Px0 = x0[0] * u[0] + x0[1] * u[1] - y0
-    Pdx = [dx[0] * u[0], dx[1] * u[1]]
-    Pxmin = jnp.min(jnp.array([Px0, Px0 + Pdx[0], Px0 + Pdx[1], Px0 + Pdx[0] + Pdx[1]]))
-
-    Px = (
-        Pxmin
-        + Pdx[0] * jnp.arange(nx[0]).reshape(-1, 1)
-        + Pdx[1] * jnp.arange(nx[1]).reshape(1, -1)
-    )
-
-    # detector bin inds
-    inds = jnp.floor(Px).astype(int)
-
-    # weights
-    Pdx = jnp.array(u) * jnp.array(dx)
-    diag1 = jnp.abs(Pdx[0] + Pdx[1])
-    diag2 = jnp.abs(Pdx[0] - Pdx[1])
-    w = jnp.max(jnp.array([diag1, diag2]))
-    f = jnp.min(jnp.array([diag1, diag2]))
-
-    width = (w + f) / 2
-    distance_to_next = 1 - (Px - inds)  # always in (0, 1]
-    weights = jnp.minimum(distance_to_next, width) / width
-
-    return inds, weights
-
-
-class Parallel3dProjector:
-    """General-purpose, 3D, parallel ray X-ray projector."""
 
     def __init__(
         self,
@@ -253,7 +259,7 @@ class Parallel3dProjector:
         r"""
         Args:
             input_shape: Shape of input image.
-            matrices: (num_angles, 2, 4) array of homogeneous projection matrices.
+            matrices: (num_views, 2, 4) array of homogeneous projection matrices.
             det_shape: Shape of detector.
         """
 
@@ -262,9 +268,20 @@ class Parallel3dProjector:
         self.det_shape = det_shape
         self.output_shape = (len(matrices), *det_shape)
 
+        super().__init__(
+            input_shape=self.input_shape,
+            output_shape=self.output_shape,
+            eval_fn=self.project,
+            adj_fn=self.back_project,
+        )
+
     def project(self, im):
         """Compute X-ray projection."""
         return Parallel3dProjector._project(im, self.matrices, self.det_shape)
+
+    def back_project(self, proj):
+        """Compute X-ray back projection"""
+        return Parallel3dProjector._back_project(proj, self.matrices, self.input_shape)
 
     @staticmethod
     def _project(im: ArrayLike, matrices: ArrayLike, det_shape: Shape) -> ArrayLike:
@@ -311,10 +328,6 @@ class Parallel3dProjector:
         proj = proj.at[ul_ind[0], ul_ind[1] + 1].add(ll_weight * im, mode="drop")
         proj = proj.at[ul_ind[0] + 1, ul_ind[1] + 1].add(lr_weight * im, mode="drop")
         return proj
-
-    def back_project(self, proj):
-        """Compute X-ray back projection"""
-        return Parallel3dProjector._back_project(proj, self.matrices, self.input_shape)
 
     @staticmethod
     def _back_project(proj: ArrayLike, matrices: ArrayLike, input_shape: Shape) -> ArrayLike:
@@ -385,10 +398,18 @@ class Parallel3dProjector:
 
     @staticmethod
     def matrices_from_euler_angles(
-        input_shape: Shape, output_shape: Shape, seq: str, angles: ArrayLike, degrees: bool = False
+        input_shape: Shape,
+        output_shape: Shape,
+        seq: str,
+        angles: ArrayLike,
+        degrees: bool = False,
+        voxel_spacing: ArrayLike = None,
+        det_spacing: ArrayLike = None,
     ):
         """
-        Create a set of projection matrices from Euler angles.
+        Create a set of projection matrices from Euler angles. The
+        input voxels will undergo the specified rotation and then be
+        projected onto the global xy-plane.
 
         Args:
             input_shape: Shape of input image.
@@ -396,22 +417,39 @@ class Parallel3dProjector:
             str: Sequence of axes for rotation. Up to 3 characters belonging to the set {'X', 'Y', 'Z'}
                 for intrinsic rotations, or {'x', 'y', 'z'} for extrinsic rotations. Extrinsic and
                 intrinsic rotations cannot be mixed in one function call.
-            angles: (num_angles, N), N = 1, 2, or 3 Euler angles.
+            angles: (num_views, N), N = 1, 2, or 3 Euler angles.
             degrees: If ``True``, angles are in degrees, otherwise radians. Default: ``True``, radians.
+            voxel_spacing: (3,) array giving the spacing of image
+                voxels.  Default: `[1.0, 1.0, 1.0]`. Experimental.
+            det_spacing: (2,) array giving the spacing of detector
+                pixels.  Default: `[1.0, 1.0]`. Experimental.
+
 
         Returns:
-            (num_angles, 2, 4) array of homogeneous projection matrices.
+            (num_views, 2, 4) array of homogeneous projection matrices.
         """
 
-        # make projection matrix: form a rotation matrix and chop off the last row
-        matrices = jnp.stack(
-            [Rotation.from_euler(seq, angles_i, degrees=degrees).as_matrix() for angles_i in angles]
-        )
-        matrices = matrices[:, :2, :]
+        if voxel_spacing is None:
+            voxel_spacing = np.ones(3)
 
-        # add translation
-        x0 = jnp.array(input_shape) / 2
-        t = -jnp.tensordot(matrices, x0, axes=[2, 0]) + jnp.array(output_shape) / 2
-        matrices = jnp.concatenate((matrices, t[..., np.newaxis]), axis=2)
+        if det_spacing is None:
+            det_spacing = np.ones(2)
+
+        # make projection matrix: form a rotation matrix and chop off the last row
+        matrices = Rotation.from_euler(seq, angles, degrees=degrees).as_matrix()
+        matrices = matrices[:, :2, :]  # (num_views, 2, 3)
+
+        # handle scaling
+        M_voxel = np.diag(voxel_spacing)  # (3, 3)
+        M_det = np.diag(1 / np.array(det_spacing))  # (2, 2)
+
+        # idea: M_det * M * M_voxel, but with a leading batch dimension
+        matrices = np.einsum("vmn,nn->vmn", matrices, M_voxel)
+        matrices = np.einsum("mm,vmn->vmn", M_det, matrices)
+
+        # add translation to line up the centers
+        x0 = np.array(input_shape) / 2
+        t = -np.einsum("vmn,n->vm", matrices, x0) + np.array(output_shape) / 2
+        matrices = np.concatenate((matrices, t[..., np.newaxis]), axis=2)
 
         return matrices

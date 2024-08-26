@@ -18,7 +18,7 @@ import numpy as np
 import jax
 
 from scico.examples import create_block_phantom
-from scico.linop import Parallel3dProjector, XRayTransform
+from scico.linop import Parallel3dProjector
 
 N = 1000
 num_views = 10
@@ -36,7 +36,7 @@ matrices = Parallel3dProjector.matrices_from_euler_angles(
 )
 
 
-H = XRayTransform(Parallel3dProjector(in_shape, matrices, det_shape))
+H = Parallel3dProjector(in_shape, matrices, det_shape)
 
 proj = H @ x
 jax.block_until_ready(proj)

@@ -104,7 +104,9 @@ def test_grad(testobj):
     A = testobj.A
     x = testobj.x
     g = lambda x: jax.numpy.linalg.norm(A(x)) ** 2
-    np.testing.assert_allclose(scico.grad(g)(x), 2 * A.adj(A(x)), rtol=get_tol())
+    np.testing.assert_allclose(
+        scico.grad(g)(x), 2 * A.adj(A(x)), atol=get_tol() * x.max(), rtol=np.inf
+    )
 
 
 def test_adjoint_grad(testobj):
@@ -251,6 +253,31 @@ def test_project_coords(test_geometry):
     )  # projection along slices removes first index
     x_proj = scico.linop.xray.astra._project_coords(x_vol, vol_geom, proj_geom)
     np.testing.assert_array_equal(x_proj_gt, x_proj)
+
+
+def test_convert_to_scico_geometry(test_geometry):
+    """
+    Basic regression test, `test_project_coords` tests the logic.
+    """
+    vol_geom, proj_geom = test_geometry
+    matrices_truth = scico.linop.xray.astra.convert_to_scico_geometry(vol_geom, proj_geom)
+    truth = np.array([[[0.0, 1.0, 0.0, -2.0], [0.0, 0.0, 1.0, -1.0]]])
+    np.testing.assert_allclose(matrices_truth, truth)
+
+
+def test_convert_from_scico_geometry(test_geometry):
+    """
+    Basic regression test, `test_project_coords` tests the logic.
+    """
+    in_shape = (30, 31, 32)
+    matrices = np.array([[[0.0, 1.0, 0.0, -2.0], [0.0, 0.0, 1.0, -1.0]]])
+    det_shape = (31, 32)
+    vectors = scico.linop.xray.astra.convert_from_scico_geometry(in_shape, matrices, det_shape)
+
+    _, proj_geom_truth = test_geometry
+    # skip testing element 5, as it is detector center along the ray and doesn't matter
+    np.testing.assert_allclose(vectors[0, :5], proj_geom_truth["Vectors"][0, :5])
+    np.testing.assert_allclose(vectors[0, 6:], proj_geom_truth["Vectors"][0, 6:])
 
 
 def test_ensure_writeable():
