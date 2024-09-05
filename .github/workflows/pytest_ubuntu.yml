@@ -81,7 +81,7 @@ jobs:
           pytest -x --cov --level=2 --durations-path=$DURATIONS_FILE --splits=5 --group=${{ matrix.group }} --pyargs scico
       # Upload coverage data
       - name: Upload coverage
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage${{ matrix.group }}
           path: .coverage
@@ -107,9 +107,10 @@ jobs:
           pip install coverage
       - name: Download all artifacts
         # Downloads coverage1, coverage2, etc.
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
       - name: Run coverage
         run: |
+          ls -R
           coverage combine coverage*/.coverage*
           coverage report
           coverage xml
