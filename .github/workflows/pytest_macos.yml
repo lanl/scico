@@ -38,7 +38,7 @@ jobs:
             python-version: "3.12"
       # Configure conda environment cache
       - name: Set up conda environment cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ env.CONDA }}/envs
           key: conda-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('dev_requirements.txt') }}-${{ env.CACHE_NUMBER }}
