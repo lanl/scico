@@ -90,7 +90,7 @@ jobs:
           name: coverage${{ matrix.group }}
           path: ${{ github.workspace }}/.coverage
       # Temporary
-      - name Temporary
+      - name: Temporary
         run: |
           echo Workspace: ${{ github.workspace }}
           ls -a ${{ github.workspace }}
