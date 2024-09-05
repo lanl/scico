@@ -30,7 +30,7 @@ Installing a Development Version
 
    ::
 
-      conda create -n scico python=3.11
+      conda create -n scico python=3.12
 
 5. Activate the created conda virtual environment:
 

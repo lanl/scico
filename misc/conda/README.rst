@@ -19,11 +19,11 @@ To install miniconda in ``/opt/conda`` do
    ./install_conda.sh -y /opt/conda
 
 
-To create a conda environment called ``py310`` with default Python version (3.10) and without GPU support
+To create a conda environment called ``scico`` with Python version 3.12 and without GPU support
 
 ::
 
-   ./make_conda_env.sh -y -e py310
+   ./make_conda_env.sh -y -p 3.12 -e scico
 
 
 To include GPU support, follow the `jax installation instructions <https://github.com/google/jax#pip-installation-gpu-cuda>`__ after

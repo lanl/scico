@@ -28,7 +28,7 @@ Usage: $SCRIPT [-h] [-y] [-g] [-p python_version] [-e env_name]
           [-v] Verbose operation
           [-t] Display actions that would be taken but do nothing
           [-y] Do not ask for confirmation
-          [-p python_version] Specify Python version (e.g. 3.10)
+          [-p python_version] Specify Python version (e.g. 3.12)
           [-e env_name] Specify conda environment name
 EOF
 )
@@ -36,7 +36,7 @@ EOF
 AGREE=no
 VERBOSE=no
 TEST=no
-PYVER="3.10"
+PYVER="3.12"
 ENVNM=py$(echo $PYVER | sed -e 's/\.//g')
 
 # Project requirements files
