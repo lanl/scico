@@ -39,7 +39,7 @@ def variable_assign_value(path: str, var: str) -> Any:
     """
     with open(path) as f:
         try:
-            # See http://stackoverflow.com/questions/2058802
+            # See https://stackoverflow.com/a/30471662
             value_obj = parse(next(filter(lambda line: line.startswith(var), f))).body[0].value  # type: ignore
             value = value_obj.value  # type: ignore
         except StopIteration:
