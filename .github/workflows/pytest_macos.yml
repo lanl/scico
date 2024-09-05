@@ -59,6 +59,7 @@ jobs:
           pip install pytest-split
           pip install -r requirements.txt
           pip install -r dev_requirements.txt
+          # Temporarily disabled due to svmbir failure with numpy 2.x under Python 3.12
           # mamba install -c conda-forge svmbir>=0.3.3
           mamba install -c astra-toolbox astra-toolbox
           mamba install -c conda-forge pyyaml
