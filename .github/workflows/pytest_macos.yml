@@ -35,7 +35,7 @@ jobs:
             miniforge-version: latest
             activate-environment: test-env
             use-mamba: true
-            python-version: "3.10"
+            python-version: "3.12"
       # Configure conda environment cache
       - name: Set up conda environment cache
         uses: actions/cache@v3
