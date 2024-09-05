@@ -86,6 +86,7 @@ jobs:
       - name: Upload coverage
         uses: actions/upload-artifact@v4
         with:
+          include-hidden-files: true
           name: coverage${{ matrix.group }}
           path: ${{ github.workspace }}/.coverage
       # Temporary
