@@ -132,7 +132,7 @@ HTy_astra = H_astra.T @ y_astra
 Convert ASTRA geometry to SCICO and project.
 """
 
-P_from_astra = scico.linop.xray.astra.convert_to_scico_geometry(H_astra.vol_geom, H_astra.proj_geom)
+P_from_astra = scico.linop.xray.astra._astra_to_scico_geometry(H_astra.vol_geom, H_astra.proj_geom)
 H_scico_from_astra = XRayTransform(Parallel3dProjector(in_shape, P_from_astra, out_shape))
 
 y_scico_from_astra = H_scico_from_astra @ x
