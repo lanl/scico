@@ -46,9 +46,9 @@ other two transforms is
 """
 
 
-from ._xray import Parallel2dProjector, Parallel3dProjector
+from ._xray import XRayTransform2D, XRayTransform3D
 
 __all__ = [
-    "Parallel2dProjector",
-    "Parallel3dProjector",
+    "XRayTransform2D",
+    "XRayTransform3D",
 ]

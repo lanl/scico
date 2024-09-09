@@ -25,7 +25,7 @@ from scipy.spatial.transform import Rotation
 from .._linop import LinearOperator
 
 
-class Parallel2dProjector(LinearOperator):
+class XRayTransform2D(LinearOperator):
     """Parallel ray, single axis, 2D X-ray projector.
 
     This implementation approximates the projection of each rectangular
@@ -117,11 +117,11 @@ class Parallel2dProjector(LinearOperator):
 
     def project(self, im):
         """Compute X-ray projection."""
-        return Parallel2dProjector._project(im, self.x0, self.dx, self.y0, self.ny, self.angles)
+        return XRayTransform2D._project(im, self.x0, self.dx, self.y0, self.ny, self.angles)
 
     def back_project(self, y):
         """Compute X-ray back projection"""
-        return Parallel2dProjector._back_project(y, self.x0, self.dx, self.nx, self.y0, self.angles)
+        return XRayTransform2D._back_project(y, self.x0, self.dx, self.nx, self.y0, self.angles)
 
     @staticmethod
     @partial(jax.jit, static_argnames=["ny"])
@@ -138,7 +138,7 @@ class Parallel2dProjector(LinearOperator):
                 projected onto unit vectors pointing in these directions.
         """
         nx = im.shape
-        inds, weights = Parallel2dProjector._calc_weights(x0, dx, nx, angles, y0)
+        inds, weights = XRayTransform2D._calc_weights(x0, dx, nx, angles, y0)
         # Handle out of bounds indices. In the .at call, inds >= y0 are
         # ignored, while inds < 0 wrap around. So we set inds < 0 to ny.
         inds = jnp.where(inds >= 0, inds, ny)
@@ -168,7 +168,7 @@ class Parallel2dProjector(LinearOperator):
                 projected onto units vectors pointing in these directions.
         """
         ny = y.shape[1]
-        inds, weights = Parallel2dProjector._calc_weights(x0, dx, nx, angles, y0)
+        inds, weights = XRayTransform2D._calc_weights(x0, dx, nx, angles, y0)
         # Handle out of bounds indices. In the .at call, inds >= y0 are
         # ignored, while inds < 0 wrap around. So we set inds < 0 to ny.
         inds = jnp.where(inds >= 0, inds, ny)
@@ -225,7 +225,7 @@ class Parallel2dProjector(LinearOperator):
         return inds, weights
 
 
-class Parallel3dProjector(LinearOperator):
+class XRayTransform3D(LinearOperator):
     r"""General-purpose, 3D, parallel ray X-ray projector.
 
     For each view, the projection geometry is specified by an array
@@ -242,7 +242,7 @@ class Parallel3dProjector(LinearOperator):
     The detector pixel at index `(i, j)` covers detector coordinates
     :math:`[i+1) \times [j+1)`.
 
-    :meth:`Parallel3dProjector.matrices_from_euler_angles` can help to
+    :meth:`XRayTransform3D.matrices_from_euler_angles` can help to
     make these geometry arrays.
 
 
@@ -277,11 +277,11 @@ class Parallel3dProjector(LinearOperator):
 
     def project(self, im):
         """Compute X-ray projection."""
-        return Parallel3dProjector._project(im, self.matrices, self.det_shape)
+        return XRayTransform3D._project(im, self.matrices, self.det_shape)
 
     def back_project(self, proj):
         """Compute X-ray back projection"""
-        return Parallel3dProjector._back_project(proj, self.matrices, self.input_shape)
+        return XRayTransform3D._back_project(proj, self.matrices, self.input_shape)
 
     @staticmethod
     def _project(im: ArrayLike, matrices: ArrayLike, det_shape: Shape) -> ArrayLike:
@@ -299,7 +299,7 @@ class Parallel3dProjector(LinearOperator):
         for view_ind, matrix in enumerate(matrices):
             for slice_offset in slice_offsets:
                 proj = proj.at[view_ind].set(
-                    Parallel3dProjector._project_single(
+                    XRayTransform3D._project_single(
                         im[slice_offset : slice_offset + MAX_SLICE_LEN],
                         matrix,
                         proj[view_ind],
@@ -320,7 +320,7 @@ class Parallel3dProjector(LinearOperator):
             det_shape: Shape of detector.
         """
 
-        ul_ind, ul_weight, ur_weight, ll_weight, lr_weight = Parallel3dProjector._calc_weights(
+        ul_ind, ul_weight, ur_weight, ll_weight, lr_weight = XRayTransform3D._calc_weights(
             im.shape, matrix, proj.shape, slice_offset
         )
         proj = proj.at[ul_ind[0], ul_ind[1]].add(ul_weight * im, mode="drop")
@@ -344,7 +344,7 @@ class Parallel3dProjector(LinearOperator):
         for view_ind, matrix in enumerate(matrices):
             for slice_offset in slice_offsets:
                 HTy = HTy.at[slice_offset : slice_offset + MAX_SLICE_LEN].set(
-                    Parallel3dProjector._back_project_single(
+                    XRayTransform3D._back_project_single(
                         proj[view_ind],
                         matrix,
                         HTy[slice_offset : slice_offset + MAX_SLICE_LEN],
@@ -360,7 +360,7 @@ class Parallel3dProjector(LinearOperator):
     def _back_project_single(
         y: ArrayLike, matrix: ArrayLike, HTy: ArrayLike, slice_offset: int = 0
     ) -> ArrayLike:
-        ul_ind, ul_weight, ur_weight, ll_weight, lr_weight = Parallel3dProjector._calc_weights(
+        ul_ind, ul_weight, ur_weight, ll_weight, lr_weight = XRayTransform3D._calc_weights(
             HTy.shape, matrix, y.shape, slice_offset
         )
         HTy = HTy + y[ul_ind[0], ul_ind[1]] * ul_weight

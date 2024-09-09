@@ -22,7 +22,7 @@ import scico.linop.xray
 import scico.linop.xray.astra as astra
 from scico import plot
 from scico.examples import create_block_phantom
-from scico.linop import Parallel3dProjector, XRayTransform
+from scico.linop import XRayTransform, XRayTransform3D
 from scico.util import ContextTimer, Timer
 
 """
@@ -47,7 +47,7 @@ num_angles = 3
 rot_X = 90.0 - 16.0
 rot_Y = np.linspace(0, 180, num_angles, endpoint=False)
 angles = np.stack(np.broadcast_arrays(rot_X, rot_Y), axis=-1)
-matrices = Parallel3dProjector.matrices_from_euler_angles(
+matrices = XRayTransform3D.matrices_from_euler_angles(
     in_shape, out_shape, "XY", angles, degrees=True
 )
 
@@ -58,7 +58,7 @@ num_repeats = 3
 
 timer_scico = Timer()
 with ContextTimer(timer_scico, "init"):
-    H_scico = XRayTransform(Parallel3dProjector(in_shape, matrices, out_shape))
+    H_scico = XRayTransform(XRayTransform3D(in_shape, matrices, out_shape))
 
 with ContextTimer(timer_scico, "first_fwd"):
     y_scico = H_scico @ x
@@ -133,7 +133,7 @@ Convert ASTRA geometry to SCICO and project.
 """
 
 P_from_astra = scico.linop.xray.astra._astra_to_scico_geometry(H_astra.vol_geom, H_astra.proj_geom)
-H_scico_from_astra = XRayTransform(Parallel3dProjector(in_shape, P_from_astra, out_shape))
+H_scico_from_astra = XRayTransform3D(in_shape, P_from_astra, out_shape)
 
 y_scico_from_astra = H_scico_from_astra @ x
 HTy_scico_from_astra = H_scico_from_astra.T @ y_scico_from_astra

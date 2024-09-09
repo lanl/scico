@@ -5,7 +5,7 @@ import jax.numpy as jnp
 import pytest
 
 import scico
-from scico.linop import Parallel2dProjector, Parallel3dProjector
+from scico.linop.xray import XRayTransform2D, XRayTransform3D
 
 
 @pytest.mark.filterwarnings("error")
@@ -13,18 +13,18 @@ def test_init():
     input_shape = (3, 3)
 
     # no warning with default settings, even at 45 degrees
-    H = Parallel2dProjector(input_shape, jnp.array([jnp.pi / 4]))
+    H = XRayTransform2D(input_shape, jnp.array([jnp.pi / 4]))
 
     # no warning if we project orthogonally with oversized pixels
-    H = Parallel2dProjector(input_shape, jnp.array([0]), dx=jnp.array([1, 1]))
+    H = XRayTransform2D(input_shape, jnp.array([0]), dx=jnp.array([1, 1]))
 
     # warning if the projection angle changes
     with pytest.warns(UserWarning):
-        H = Parallel2dProjector(input_shape, jnp.array([0.1]), dx=jnp.array([1.1, 1.1]))
+        H = XRayTransform2D(input_shape, jnp.array([0.1]), dx=jnp.array([1.1, 1.1]))
 
     # warning if the pixels get any larger
     with pytest.warns(UserWarning):
-        H = Parallel2dProjector(input_shape, jnp.array([0]), dx=jnp.array([1.1, 1.1]))
+        H = XRayTransform2D(input_shape, jnp.array([0]), dx=jnp.array([1.1, 1.1]))
 
 
 def test_apply():
@@ -35,13 +35,13 @@ def test_apply():
     angles = jnp.linspace(0, jnp.pi, num=num_angles, endpoint=False)
 
     # general projection
-    H = Parallel2dProjector(x.shape, angles)
+    H = XRayTransform2D(x.shape, angles)
     y = H @ x
     assert y.shape[0] == (num_angles)
 
     # fixed det_count
     det_count = 14
-    H = Parallel2dProjector(x.shape, angles, det_count=det_count)
+    H = XRayTransform2D(x.shape, angles, det_count=det_count)
     y = H @ x
     assert y.shape[1] == det_count
 
@@ -54,7 +54,7 @@ def test_apply_adjoint():
     angles = jnp.linspace(0, jnp.pi, num=num_angles, endpoint=False)
 
     # general projection
-    H = Parallel2dProjector(x.shape, angles)
+    H = XRayTransform2D(x.shape, angles)
     y = H @ x
     assert y.shape[0] == (num_angles)
 
@@ -66,7 +66,7 @@ def test_apply_adjoint():
 
     # fixed det_length
     det_count = 14
-    H = Parallel2dProjector(x.shape, angles, det_count=det_count)
+    H = XRayTransform2D(x.shape, angles, det_count=det_count)
     y = H @ x
     assert y.shape[1] == det_count
 
@@ -79,8 +79,8 @@ def test_3d_scaling():
     output_shape = x.shape[:2]
 
     # default spacing
-    M = Parallel3dProjector.matrices_from_euler_angles(input_shape, output_shape, "X", [0.0])
-    H = Parallel3dProjector(input_shape, matrices=M, det_shape=output_shape)
+    M = XRayTransform3D.matrices_from_euler_angles(input_shape, output_shape, "X", [0.0])
+    H = XRayTransform3D(input_shape, matrices=M, det_shape=output_shape)
     # fmt: off
     truth = jnp.array(
         [[[0.0, 0.0, 0.0, 0.0],
@@ -91,10 +91,10 @@ def test_3d_scaling():
     np.testing.assert_allclose(H @ x, truth)
 
     # bigger voxels in the x (first index) direction
-    M = Parallel3dProjector.matrices_from_euler_angles(
+    M = XRayTransform3D.matrices_from_euler_angles(
         input_shape, output_shape, "X", [0.0], voxel_spacing=[2.0, 1.0, 1.0]
     )
-    H = Parallel3dProjector(input_shape, matrices=M, det_shape=output_shape)
+    H = XRayTransform3D(input_shape, matrices=M, det_shape=output_shape)
     # fmt: off
     truth = jnp.array(
         [[[0. , 0.5, 0.5, 0. ],
@@ -105,10 +105,10 @@ def test_3d_scaling():
     np.testing.assert_allclose(H @ x, truth)
 
     # bigger detector pixels in the x (first index) direction
-    M = Parallel3dProjector.matrices_from_euler_angles(
+    M = XRayTransform3D.matrices_from_euler_angles(
         input_shape, output_shape, "X", [0.0], det_spacing=[2.0, 1.0]
     )
-    H = Parallel3dProjector(input_shape, matrices=M, det_shape=output_shape)
+    H = XRayTransform3D(input_shape, matrices=M, det_shape=output_shape)
     # fmt: off
     truth = None  # fmt: on  # TODO: Check this case more closely.
     # np.testing.assert_allclose(H @ x, truth)
