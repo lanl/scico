@@ -576,11 +576,13 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
             raise ValueError("Expected det_count to be a tuple with 2 elements.")
         if angles is not None:
             Nview = angles.size
-            self.angles: np.ndarray = np.array(angles)
+            self.angles: Optional[np.ndarray] = np.array(angles)
+            self.vectors: Optional[np.ndarray] = None
         else:
             assert vectors is not None
             Nview = vectors.shape[0]
-            self.vectors: np.ndarray = np.array(vectors)
+            self.vectors = np.array(vectors)
+            self.angles = None
         output_shape: Shape = (det_count[0], Nview, det_count[1])
 
         self.det_count = det_count
