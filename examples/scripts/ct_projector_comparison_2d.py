@@ -22,7 +22,7 @@ from xdesign import Foam, discrete_phantom
 
 import scico.linop.xray.astra as astra
 from scico import plot
-from scico.linop import XRayTransform2D
+from scico.linop.xray import XRayTransform2D
 from scico.util import Timer
 
 """

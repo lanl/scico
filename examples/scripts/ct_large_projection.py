@@ -18,7 +18,7 @@ import numpy as np
 import jax
 
 from scico.examples import create_block_phantom
-from scico.linop import XRayTransform3D
+from scico.linop.xray import XRayTransform3D
 
 N = 1000
 num_views = 10
