@@ -260,7 +260,7 @@ def test_convert_to_scico_geometry(test_geometry):
     Basic regression test, `test_project_coords` tests the logic.
     """
     vol_geom, proj_geom = test_geometry
-    matrices_truth = scico.linop.xray.astra.convert_to_scico_geometry(vol_geom, proj_geom)
+    matrices_truth = scico.linop.xray.astra._astra_to_scico_geometry(vol_geom, proj_geom)
     truth = np.array([[[0.0, 1.0, 0.0, -2.0], [0.0, 0.0, 1.0, -1.0]]])
     np.testing.assert_allclose(matrices_truth, truth)
 
