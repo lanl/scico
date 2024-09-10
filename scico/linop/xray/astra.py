@@ -587,7 +587,11 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
         assert isinstance(det_count, (list, tuple))
         self.input_shape: tuple = input_shape
         self.vol_geom, self.proj_geom = self.create_astra_geometry(
-            input_shape, det_count, det_spacing=det_spacing, angles=angles, vectors=vectors
+            input_shape,
+            det_count,
+            det_spacing=det_spacing,
+            angles=self.angles,
+            vectors=self.vectors,
         )
 
         # Wrap our non-jax function to indicate we will supply fwd/rev mode functions
