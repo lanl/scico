@@ -62,6 +62,15 @@ def set_astra_gpu_index(idx: Union[int, Sequence[int]]):
 def _project_coords(
     x_volume: np.ndarray, vol_geom: VolumeGeometry, proj_geom: ProjectionGeometry
 ) -> np.ndarray:
+    """
+    Transform volume (logical) coordinates into world coordinates based
+    on ASTRA geometry objects.
+
+    Args:
+        x_volume: (..., 3) vector(s) of volume (AKA logical) coordinates
+        vol_geom: ASTRA volume geometry object.
+        proj_geom: ASTRA projection geometry object.
+    """
     det_shape = (proj_geom["DetectorRowCount"], proj_geom["DetectorColCount"])
     x_world = volume_coords_to_world_coords(x_volume, vol_geom=vol_geom)
     x_dets = []
@@ -110,7 +119,7 @@ def project_world_coordinates(
     return ind_ij
 
 
-def volume_coords_to_world_coords(idx: np.ndarray, vol_geom: VolumeGeometry):
+def volume_coords_to_world_coords(idx: np.ndarray, vol_geom: VolumeGeometry) -> np.ndarray:
     """Convert a volume coordinate into a world coordinate.
 
     Convert a volume coordinate into a world coordinate using ASTRA
@@ -131,6 +140,7 @@ def volume_coords_to_world_coords(idx: np.ndarray, vol_geom: VolumeGeometry):
 
 
 def _volume_index_to_astra_world_2d(idx: np.ndarray, vol_geom: VolumeGeometry) -> np.ndarray:
+    """Convert a 2D volume coordinate into a 2D world coordinate."""
     coord = idx[..., [2, 1]]  # x:col, y:row,
     nx = np.array(  # (x, y) order
         (
@@ -150,6 +160,7 @@ def _volume_index_to_astra_world_2d(idx: np.ndarray, vol_geom: VolumeGeometry) -
 
 
 def _volume_index_to_astra_world_3d(idx: np.ndarray, vol_geom: VolumeGeometry) -> np.ndarray:
+    """Convert a 3D volume coordinate into a 3D world coordinate."""
     coord = idx[..., [2, 1, 0]]  # x:col, y:row, z:slice
     nx = np.array(  # (x, y, z) order
         (
