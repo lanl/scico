@@ -18,11 +18,10 @@ import numpy as np
 import jax
 import jax.numpy as jnp
 
-import scico.linop.xray
 import scico.linop.xray.astra as astra
 from scico import plot
 from scico.examples import create_block_phantom
-from scico.linop import XRayTransform, XRayTransform3D
+from scico.linop.xray import XRayTransform3D
 from scico.util import ContextTimer, Timer
 
 """
@@ -58,7 +57,7 @@ num_repeats = 3
 
 timer_scico = Timer()
 with ContextTimer(timer_scico, "init"):
-    H_scico = XRayTransform(XRayTransform3D(in_shape, matrices, out_shape))
+    H_scico = XRayTransform3D(in_shape, matrices, out_shape)
 
 with ContextTimer(timer_scico, "first_fwd"):
     y_scico = H_scico @ x
@@ -84,9 +83,7 @@ timer_scico.td["avg_back"] /= num_repeats
 Convert SCICO geometry to ASTRA and project.
 """
 
-vectors_from_scico = scico.linop.xray.astra.convert_from_scico_geometry(
-    in_shape, matrices, out_shape
-)
+vectors_from_scico = astra.convert_from_scico_geometry(in_shape, matrices, out_shape)
 
 timer_astra = Timer()
 with ContextTimer(timer_astra, "init"):
@@ -132,7 +129,7 @@ HTy_astra = H_astra.T @ y_astra
 Convert ASTRA geometry to SCICO and project.
 """
 
-P_from_astra = scico.linop.xray.astra._astra_to_scico_geometry(H_astra.vol_geom, H_astra.proj_geom)
+P_from_astra = astra._astra_to_scico_geometry(H_astra.vol_geom, H_astra.proj_geom)
 H_scico_from_astra = XRayTransform3D(in_shape, P_from_astra, out_shape)
 
 y_scico_from_astra = H_scico_from_astra @ x
