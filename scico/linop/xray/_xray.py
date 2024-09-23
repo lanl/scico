@@ -235,8 +235,8 @@ class XRayTransform2D(LinearOperator):
 class XRayTransform3D(LinearOperator):
     r"""General-purpose, 3D, parallel ray X-ray projector.
 
-    This projector approximates cubical voxels projecting onto
-    rectangular pixels and provides a back projector that is the true
+    This projector approximates cubic voxels projecting onto
+    rectangular pixels and provides a back projector that is the exact
     adjoint of the forward projector. It is written purely in JAX,
     allowing it to run on either CPU or GPU and minimizing host copies.
 
