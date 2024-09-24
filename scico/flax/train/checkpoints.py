@@ -13,9 +13,7 @@ from typing import Union
 
 import jax
 
-import orbax.checkpoint
-
-from flax.training import orbax_utils
+import orbax.checkpoint as ocp
 
 from .state import TrainState
 from .typed_dict import ConfigDict
@@ -48,13 +46,20 @@ def checkpoint_restore(
     if isinstance(workdir_, str):
         workdir_ = Path(workdir_)
     if workdir_.exists():
-        orbax_checkpointer = orbax.checkpoint.PyTreeCheckpointer()
-        checkpoint_manager = orbax.checkpoint.CheckpointManager(workdir_, orbax_checkpointer)
-        step = checkpoint_manager.latest_step()
+        options = ocp.CheckpointManagerOptions()
+        mngr = ocp.CheckpointManager(
+            workdir_,
+            item_names=("state", "config"),
+            options=options,
+        )
+        step = mngr.latest_step()
         if step is not None:
-            target = {"state": state, "config": {}}
-            ckpt = checkpoint_manager.restore(step, items=target)
-            state = ckpt["state"]
+            restored = mngr.restore(
+                step, args=ocp.args.Composite(state=ocp.args.StandardRestore(state))
+            )
+            mngr.wait_until_finished()
+            mngr.close()
+            state = restored.state
     elif not ok_no_ckpt:
         raise FileNotFoundError("Could not read from checkpoint: " + str(workdir))
 
@@ -74,13 +79,22 @@ def checkpoint_save(state: TrainState, config: ConfigDict, workdir: Union[str, P
         workdir: Path in which to store checkpoint files.
     """
     if jax.process_index() == 0:
-        orbax_checkpointer = orbax.checkpoint.PyTreeCheckpointer()
-        # Bundle config and model parameters together
-        ckpt = {"state": state, "config": config}
-        save_args = orbax_utils.save_args_from_target(ckpt)
-        options = orbax.checkpoint.CheckpointManagerOptions(max_to_keep=3, create=True)
-        checkpoint_manager = orbax.checkpoint.CheckpointManager(
-            workdir, orbax_checkpointer, options
+        options = ocp.CheckpointManagerOptions(max_to_keep=3, create=True)
+        mngr = ocp.CheckpointManager(
+            workdir,
+            item_names=("state", "config"),
+            options=options,
         )
         step = int(state.step)
-        checkpoint_manager.save(step, ckpt, save_kwargs={"save_args": save_args})
+        print(f"step: {step}")
+        print(f"state: {state}")
+        print(f"config: {config}")
+        mngr.save(
+            step,
+            args=ocp.args.Composite(
+                state=ocp.args.StandardSave(state),
+                config=ocp.args.JsonSave(config),
+            ),
+        )
+        mngr.wait_until_finished()
+        mngr.close()
