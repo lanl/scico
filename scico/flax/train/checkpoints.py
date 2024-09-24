@@ -86,14 +86,15 @@ def checkpoint_save(state: TrainState, config: ConfigDict, workdir: Union[str, P
             options=options,
         )
         step = int(state.step)
-        print(f"step: {step}")
-        print(f"state: {state}")
-        print(f"config: {config}")
+        # Remove non-serializable partial functools in post_lst if it exists
+        config_ = config.copy()
+        if "post_lst" in config_:
+            config_.pop("post_lst", None)
         mngr.save(
             step,
             args=ocp.args.Composite(
                 state=ocp.args.StandardSave(state),
-                config=ocp.args.JsonSave(config),
+                config=ocp.args.JsonSave(config_),
             ),
         )
         mngr.wait_until_finished()
