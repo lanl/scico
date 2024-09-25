@@ -94,9 +94,8 @@ Build CT projection operator.
 angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
 A = XRayTransform2D(
     input_shape=(N, N),
-    det_spacing=1,
-    det_count=N,
     angles=angles,
+    det_count=N,
 )  # CT projection operator
 A = (1.0 / N) * A  # normalized
 
