@@ -5,8 +5,8 @@
 # with the package.
 
 r"""
-CT Training and Reconstructions with MoDL
-=========================================
+CT Training and Reconstruction with MoDL
+========================================
 
 This example demonstrates the training and application of a
 model-based deep learning (MoDL) architecture described in
