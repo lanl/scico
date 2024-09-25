@@ -235,6 +235,14 @@ class XRayTransform2D(LinearOperator):
 class XRayTransform3D(LinearOperator):
     r"""General-purpose, 3D, parallel ray X-ray projector.
 
+    This projector approximates cubic voxels projecting onto
+    rectangular pixels and provides a back projector that is the exact
+    adjoint of the forward projector. It is written purely in JAX,
+    allowing it to run on either CPU or GPU and minimizing host copies.
+
+    Warning: This class is experimental and may be up to ten times slower
+    than :class:`scico.linop.xray.astra.XRayTransform3D`.
+
     For each view, the projection geometry is specified by an array
     with shape (2, 4) that specifies a :math:`2 \times 3` projection
     matrix and a :math:`2 \times 1` offset vector. Denoting the matrix
