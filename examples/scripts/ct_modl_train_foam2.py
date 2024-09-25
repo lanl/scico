@@ -89,15 +89,17 @@ trdt, ttdt = load_ct_data(train_nimg, test_nimg, N, n_projection, verbose=True)
 
 
 """
-Build CT projection operator.
+Build CT projection operator. Parameters are chosen so that the operator
+is equivalent to the one used to generate the training data.
 """
 angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
 A = XRayTransform2D(
     input_shape=(N, N),
-    angles=angles,
-    det_count=N,
-)  # CT projection operator
-A = (1.0 / N) * A  # normalized
+    angles=angles + np.pi / 2.0,
+    det_count=int(N * 1.05 / np.sqrt(2.0)),
+    dx=1.0 / np.sqrt(2),
+)
+A = (1.0 / N) * A  # normalize projection operator
 
 
 """

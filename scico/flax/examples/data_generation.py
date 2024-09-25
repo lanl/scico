@@ -234,9 +234,10 @@ def generate_ct_data(
 
     # Configure a CT projection operator to generate synthetic measurements.
     angles = np.linspace(0, jnp.pi, nproj)  # evenly spaced projection angles
-    gt_sh = (size, size)
-    detector_spacing = 1.0
-    A = XRayTransform2D(gt_sh, size, detector_spacing, angles)  # X-ray transform operator
+    gt_shape = (size, size)
+    det_spacing = np.sqrt(2)
+    det_count = int(size * 1.05 / np.sqrt(2.0))
+    A = XRayTransform2D(gt_shape, det_count, det_spacing, angles)  # X-ray transform operator
 
     # Compute sinograms in parallel.
     start_time = time()
