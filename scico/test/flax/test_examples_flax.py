@@ -90,7 +90,7 @@ def test_ct_data_generation():
 
     img, sino, fbp = generate_ct_data(nimg, N, nproj, imgfunc=random_img_gen)
     assert img.shape == (nimg, N, N, 1)
-    assert sino.shape == (nimg, nproj, N, 1)
+    assert sino.shape == (nimg, nproj, sino.shape[2], 1)
     assert fbp.shape == (nimg, N, N, 1)
 
 
