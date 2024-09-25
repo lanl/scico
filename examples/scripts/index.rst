@@ -21,8 +21,8 @@ Computed Tomography
    - ct_svmbir_ppp_bm3d_admm_cg.py
    - ct_svmbir_ppp_bm3d_admm_prox.py
    - ct_fan_svmbir_ppp_bm3d_admm_prox.py
-   - ct_astra_modl_train_foam2.py
-   - ct_astra_odp_train_foam2.py
+   - ct_modl_train_foam2.py
+   - ct_odp_train_foam2.py
    - ct_astra_unet_train_foam2.py
    - ct_projector_comparison_2d.py
    - ct_projector_comparison_3d.py
@@ -144,8 +144,8 @@ Machine Learning
 ^^^^^^^^^^^^^^^^
 
    - ct_astra_datagen_foam2.py
-   - ct_astra_modl_train_foam2.py
-   - ct_astra_odp_train_foam2.py
+   - ct_modl_train_foam2.py
+   - ct_odp_train_foam2.py
    - ct_astra_unet_train_foam2.py
    - deconv_datagen_bsds.py
    - deconv_datagen_foam1.py
