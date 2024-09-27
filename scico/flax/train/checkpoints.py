@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2023 by SCICO Developers
+# Copyright (C) 2022-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -89,7 +89,7 @@ def checkpoint_save(state: TrainState, config: ConfigDict, workdir: Union[str, P
         # Remove non-serializable partial functools in post_lst if it exists
         config_ = config.copy()
         if "post_lst" in config_:
-            config_.pop("post_lst", None)
+            config_.pop("post_lst", None)  # type: ignore
         mngr.save(
             step,
             args=ocp.args.Composite(
