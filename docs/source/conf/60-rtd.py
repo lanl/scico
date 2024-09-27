@@ -9,15 +9,20 @@ if on_rtd:
     print("  rootpath: %s" % rootpath)
     print("  confpath: %s" % confpath)
 
+    html_static_path = []
+
+    # See https://about.readthedocs.com/blog/2024/07/addons-by-default/#how-to-opt-in-to-addons-now
+    html_baseurl = os.environ.get("READTHEDOCS_CANONICAL_URL", "")
+    if "html_context" not in globals():
+        html_context = {}
+    html_context["READTHEDOCS"] = True
+
     import matplotlib
 
     matplotlib.use("agg")
 
-
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
-if on_rtd:
-    html_static_path = []
 else:
+    # Add any paths that contain custom static files (such as style sheets) here,
+    # relative to this directory. They are copied after the builtin static files,
+    # so a file named "default.css" will overwrite the builtin "default.css".
     html_static_path = ["_static"]
