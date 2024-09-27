@@ -87,7 +87,7 @@ can be installed from PyPI
 From GitHub
 -----------
 
-SCICO can be downloaded from the `GitHub repo
+The development version SCICO can be downloaded from the `GitHub repo
 <https://github.com/lanl/scico>`_. Note that, since the SCICO repo has
 a submodule, it should be cloned via the command
 ::
@@ -100,6 +100,13 @@ Install using the commands
    cd scico
    pip install -r requirements.txt
    pip install -e .
+
+
+If a clone of the SCICO repository is not needed, it is simpler to
+install directly using ``pip``
+::
+
+   pip install git+https://github.com/lanl/scico
 
 
 
