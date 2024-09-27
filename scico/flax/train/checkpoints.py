@@ -89,7 +89,7 @@ def checkpoint_save(state: TrainState, config: ConfigDict, workdir: Union[str, P
         # Remove non-serializable partial functools in post_lst if it exists
         config_ = config.copy()
         if "post_lst" in config_:
-            config_.pop("post_lst", None)
+            config_.pop("post_lst", None)  # type: ignore
         mngr.save(
             step,
             args=ocp.args.Composite(
