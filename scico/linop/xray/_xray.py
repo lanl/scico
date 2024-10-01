@@ -42,6 +42,9 @@ class XRayTransform2D(LinearOperator):
     accumulation of pixel values into bins (equivalently, makes the
     linear operator sparse).
 
+    Warning: The default pixel spacing is :math:`\sqrt{2}/2` (rather
+    than 1) in order to satisfy the aforementioned spacing requirement.
+
     `x0`, `dx`, and `y0` should be expressed in units such that the
     detector spacing `dy` is 1.0.
     """
@@ -64,9 +67,11 @@ class XRayTransform2D(LinearOperator):
                 corresponds to summing columns, and an angle of pi/4
                 corresponds to summing along antidiagonals.
             x0: (x, y) position of the corner of the pixel `im[0,0]`. By
-                default, `(-input_shape / 2, -input_shape / 2)`.
-            dx: Image pixel side length in x- and y-direction. Should be
-                <= 1.0 in each dimension. By default, [1.0, 1.0].
+                default, `(-input_shape * dx[0] / 2, -input_shape * dx[1] / 2)`.
+            dx: Image pixel side length in x- and y-direction. Must be
+                set so that the width of a projected pixel is never
+                larger than 1.0. By default, [:math:`\sqrt{2}/2`,
+                :math:`\sqrt{2}/2`].
             y0: Location of the edge of the first detector bin. By
                 default, `-det_count / 2`
             det_count: Number of elements in detector. If ``None``,
@@ -146,8 +151,11 @@ class XRayTransform2D(LinearOperator):
         # ignored, while inds < 0 wrap around. So we set inds < 0 to ny.
         inds = jnp.where(inds >= 0, inds, ny)
 
+        # avoid incompatible types in the .add (scatter operation)
+        weights = weights.astype(im.dtype)
+
         y = (
-            jnp.zeros((len(angles), ny))
+            jnp.zeros((len(angles), ny), dtype=im.dtype)
             .at[jnp.arange(len(angles)).reshape(-1, 1, 1), inds]
             .add(im * weights)
         )
