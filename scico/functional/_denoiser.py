@@ -128,7 +128,8 @@ class DnCNN(Functional):
         r"""Apply DnCNN denoiser.
 
         *Warning*: The `lam` parameter is ignored, and has no effect on
-        the output.
+        the output for :class:`.DnCNN` objects initialized with
+        :code:`variant` parameter values other than `6N` and `17N`.
 
         Args:
             x: Input array.

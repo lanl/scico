@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2023 by SCICO Developers
+# Copyright (C) 2022-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SPORCO package. Details of the copyright
 # and user license can be found in the 'LICENSE.txt' file distributed
@@ -84,7 +84,7 @@ mathematical_functions = (
     "arccosh",
     "arctanh",
     "around",
-    "round_",
+    "round",
     "rint",
     "fix",
     "floor",
