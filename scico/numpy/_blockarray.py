@@ -174,9 +174,6 @@ for prop_name in da_props:
 def _da_method_wrapper(method_name):
     method = getattr(Array, method_name)
 
-    if method.__name__ is None or method.__qualname__ is None:
-        return method
-
     # Don't try to set attributes that are None. Not clear why some
     # functions/methods (e.g. block_until_ready) have None values
     # for these attributes.
