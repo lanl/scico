@@ -27,7 +27,7 @@ from .._linop import LinearOperator
 
 
 class XRayTransform2D(LinearOperator):
-    """Parallel ray, single axis, 2D X-ray projector.
+    r"""Parallel ray, single axis, 2D X-ray projector.
 
     This implementation approximates the projection of each rectangular
     pixel as a boxcar function (whereas the exact projection is a
