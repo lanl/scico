@@ -267,10 +267,6 @@ class XRayTransform3D(LinearOperator):
 
     :meth:`XRayTransform3D.matrices_from_euler_angles` can help to
     make these geometry arrays.
-
-
-
-
     """
 
     def __init__(
