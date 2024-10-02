@@ -116,7 +116,9 @@ class XRayTransform2D(LinearOperator):
 
         super().__init__(
             input_shape=self.input_shape,
+            input_dtype=np.float32,
             output_shape=self.output_shape,
+            output_dtype=np.float32,
             eval_fn=self.project,
             adj_fn=self.back_project,
         )
@@ -283,7 +285,7 @@ class XRayTransform3D(LinearOperator):
         """
 
         self.input_shape: Shape = input_shape
-        self.matrices = matrices
+        self.matrices = jnp.asarray(matrices, dtype=np.float32)
         self.det_shape = det_shape
         self.output_shape = (len(matrices), *det_shape)
         super().__init__(

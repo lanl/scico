@@ -81,6 +81,7 @@ def test_3d_scaling():
     # default spacing
     M = XRayTransform3D.matrices_from_euler_angles(input_shape, output_shape, "X", [0.0])
     H = XRayTransform3D(input_shape, matrices=M, det_shape=output_shape)
+
     # fmt: off
     truth = jnp.array(
         [[[0.0, 0.0, 0.0, 0.0],
