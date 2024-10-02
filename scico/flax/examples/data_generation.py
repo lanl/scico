@@ -45,6 +45,11 @@ else:
 import jax
 import jax.numpy as jnp
 
+try:
+    from jax.extend.backend import get_backend  # introduced in jax 0.4.33
+except ImportError:
+    from jax.lib.xla_bridge import get_backend
+
 from scico.linop import CircularConvolve
 from scico.numpy import Array
 
@@ -260,7 +265,7 @@ def generate_ct_data(
     fbp = (fbp - fbp.min()) / (fbp.max() - fbp.min())
 
     if verbose:  # pragma: no cover
-        platform = jax.lib.xla_bridge.get_backend().platform
+        platform = get_backend().platform
         print(f"{'Platform':26s}{':':4s}{platform}")
         print(f"{'Device count':26s}{':':4s}{jax.device_count()}")
         print(f"{'Data generation':19s}{'time[s]:':10s}{time_dtgen:>7.2f}")
@@ -333,7 +338,7 @@ def generate_blur_data(
     blurn = jnp.clip(blurn, 0, 1)
 
     if verbose:  # pragma: no cover
-        platform = jax.lib.xla_bridge.get_backend().platform
+        platform = get_backend().platform
         print(f"{'Platform':26s}{':':4s}{platform}")
         print(f"{'Device count':26s}{':':4s}{jax.device_count()}")
         print(f"{'Data generation':19s}{'time[s]:':10s}{time_dtgen:>7.2f}")

@@ -7,6 +7,7 @@ Version 0.0.6   (unreleased)
 ----------------------------
 
 • Significant changes to ``linop.xray.astra`` API.
+• New integrated 3D X-ray transform via ``linop.xray.XRayTransform3D``.
 • New functional ``functional.IsotropicTVNorm`` and faster implementation
   of ``functional.AnisotropicTVNorm``.
 • New linear operators ``linop.ProjectedGradient``, ``linop.PolarGradient``,

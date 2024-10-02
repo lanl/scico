@@ -264,19 +264,19 @@ class TestJacobianProdReal:
     def test_jvp(self):
         Fu, JFuv = self.F.jvp(self.u, self.v)
         np.testing.assert_allclose(Fu, self.F(self.u))
-        np.testing.assert_allclose(JFuv, self.fmx @ self.v, rtol=1e-6)
+        np.testing.assert_allclose(JFuv, self.fmx @ self.v, atol=1e-6, rtol=0.0)
 
     def test_vjp_conj(self):
         Fu, G = self.F.vjp(self.u, conjugate=True)
         JFTw = G(self.w)
         np.testing.assert_allclose(Fu, self.F(self.u))
-        np.testing.assert_allclose(JFTw, self.fmx.T @ self.w, rtol=1e-6)
+        np.testing.assert_allclose(JFTw, self.fmx.T @ self.w, atol=1e-6, rtol=0.0)
 
     def test_vjp_noconj(self):
         Fu, G = self.F.vjp(self.u, conjugate=False)
         JFTw = G(self.w)
         np.testing.assert_allclose(Fu, self.F(self.u))
-        np.testing.assert_allclose(JFTw, self.fmx.T @ self.w, rtol=1e-6)
+        np.testing.assert_allclose(JFTw, self.fmx.T @ self.w, atol=1e-6, rtol=0.0)
 
 
 class TestJacobianProdComplex:

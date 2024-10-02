@@ -15,12 +15,16 @@ transform differ in higher numbers of dimensions, and it is the X-ray
 transform that is the appropriate mathematical model for beam attenuation
 based imaging in three or more dimensions.
 
-SCICO includes its own integrated 2D X-ray transform, and also provides
-interfaces to those implemented in the
+SCICO includes its own integrated 2D and 3D X-ray transforms, and also
+provides interfaces to those implemented in the
 `ASTRA toolbox <https://github.com/astra-toolbox/astra-toolbox>`_
-and the `svmbir <https://github.com/cabouman/svmbir>`_ package. Each of
-these transforms uses a different convention for view angle directions,
-as illustrated in the figure below.
+and the `svmbir <https://github.com/cabouman/svmbir>`_ package.
+
+
+**2D Transforms**
+
+The SCICO, ASTRA, and svmbir transforms use different conventions for
+view angle directions, as illustrated in the figure below.
 
 .. plot:: pyfigures/xray_2d_geom.py
    :align: center
@@ -43,13 +47,33 @@ other two transforms is
    \theta_{\text{svmbir}} &= 2 \pi - \theta_{\text{scico}} \;.
    \end{aligned}
 
+
+**3D Transforms**
+
+There are more significant differences in the interfaces for the 3D SCICO
+and ASTRA transforms. The SCICO 3D transform :class:`.xray.XRayTransform3D`
+defines the projection geometry in terms of a set of projection matrices,
+while the geometry for the ASTRA 3D transform
+:class:`.astra.XRayTransform3D` may either be specified in terms of a set
+of view angles, or via a more general set of vectors specifying projection
+direction and detector orientation. A number of support functions are
+provided for convering between these conventions.
+
+Note that the SCICO transform is implemented in JAX and can be run on
+both CPU and GPU devices, while the ASTRA transform is implemented in
+CUDA, and can only be run on GPU devices.
 """
 
 import sys
 
-from ._xray import Parallel2dProjector, XRayTransform
+from ._xray import XRayTransform2D, XRayTransform3D
 
 __all__ = [
-    "XRayTransform",
-    "Parallel2dProjector",
+    "XRayTransform2D",
+    "XRayTransform3D",
 ]
+
+
+# Imported items in __all__ appear to originate in top-level xray module
+for name in __all__:
+    getattr(sys.modules[__name__], name).__module__ = __name__

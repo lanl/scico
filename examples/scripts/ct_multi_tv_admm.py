@@ -27,7 +27,7 @@ from xdesign import Foam, discrete_phantom
 
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot
-from scico.linop.xray import Parallel2dProjector, XRayTransform, astra, svmbir
+from scico.linop.xray import XRayTransform2D, astra, svmbir
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
@@ -54,9 +54,7 @@ projectors = {
     "svmbir": svmbir.XRayTransform(
         x_gt.shape, 2 * np.pi - angles, det_count, delta_pixel=1.0, delta_channel=det_spacing
     ),  # svmbir
-    "scico": XRayTransform(
-        Parallel2dProjector((N, N), angles, det_count=det_count, dx=1 / det_spacing)
-    ),  # scico
+    "scico": XRayTransform2D((N, N), angles, det_count=det_count, dx=1 / det_spacing),  # scico
 }
 
 
