@@ -49,7 +49,7 @@ def test_apply():
 def test_apply_adjoint():
     im_shape = (12, 13)
     num_angles = 10
-    x = jnp.ones(im_shape)
+    x = jnp.ones(im_shape, dtype=jnp.float32)
 
     angles = jnp.linspace(0, jnp.pi, num=num_angles, endpoint=False)
 
