@@ -125,10 +125,10 @@ class XRayTransform2D(LinearOperator):
         return XRayTransform2D._back_project(y, self.x0, self.dx, self.nx, self.y0, self.angles)
 
     def fbp(self, y: ArrayLike) -> snp.Array:
-        """Compute Filter Back Projection inverse of projection.
+        """Compute filtered back projection (FBP) inverse of projection.
 
-        Compute the Filter Back Projection inverse by filtering each row
-        of the sinogram with the filter defined in (61) in
+        Compute the filtered back projection inverse by filtering each
+        row of the sinogram with the filter defined in (61) in
         :cite:`kak-1988-principles` and then back projecting. The
         projection angles are assumed to be evenly spaced: poor results
         may be obtained if this assumption is violated.
@@ -137,7 +137,7 @@ class XRayTransform2D(LinearOperator):
             y: Input projection, (num_angles, N).
 
         Returns:
-            Filtered Back Projection inverse of projection.
+            FBP inverse of projection.
         """
 
         N = y.shape[1]
