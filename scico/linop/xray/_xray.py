@@ -141,8 +141,8 @@ class XRayTransform2D(LinearOperator):
         """
 
         N = y.shape[1]
-        nvec = np.arange(N) - (N - 1) // 2
-        dx = np.sqrt(self.dx[0] * self.dx[1])  # type: ignore
+        nvec = snp.arange(N) - (N - 1) // 2
+        dx = snp.sqrt(self.dx[0] * self.dx[1])  # type: ignore
         h = XRayTransform2D._ramp_filter(nvec, 1.0 / dx)
 
         # Apply ramp filter in the frequency domain, padding to avoid
