@@ -159,7 +159,6 @@ class TestCT:
         self.opCT = XRayTransform2D(
             input_shape=(self.N, self.N),
             det_count=self.N,
-            det_spacing=1.0,
             angles=angles,
         )  # Radon transform operator
         a_f = lambda v: jnp.atleast_3d(self.opCT(v.squeeze()))
