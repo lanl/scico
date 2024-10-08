@@ -235,7 +235,7 @@ def generate_ct_data(
         # shard array
         imgshd = img.reshape((nproc, -1, size, size, 1))
         sinoshd = batched_f(A, imgshd)
-        sino = sinoshd.reshape((-1, nproj, sinoshd.shape[-1], 1))
+        sino = sinoshd.reshape((-1, nproj, sinoshd.shape[-2], 1))
     else:
         sino = vector_f(A, img)
 
