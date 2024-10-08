@@ -6,18 +6,12 @@ import numpy as np
 import jax.numpy as jnp
 from jax import lax
 
-import pytest
-
 from scico import flax as sflax
 from scico import random
 from scico.flax.examples import PaddedCircularConvolve, build_blur_kernel
-from scico.flax.examples.data_generation import have_astra
 from scico.flax.train.traversals import clip_positive, clip_range, construct_traversal
 from scico.linop import CircularConvolve, Identity
-
-if have_astra:
-    from scico.linop.xray.astra import XRayTransform2D
-
+from scico.linop.xray import XRayTransform2D
 
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 
@@ -153,7 +147,6 @@ class TestSet:
             np.testing.assert_array_less(1e-2 * np.ones(alphaval.shape), alphaval)
 
 
-@pytest.mark.skipif(not have_astra, reason="astra package not installed")
 class TestCT:
     def setup_method(self, method):
         self.N = 32  # signal size
