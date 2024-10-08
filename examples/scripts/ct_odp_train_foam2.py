@@ -98,7 +98,7 @@ is equivalent to the one used to generate the training data.
 angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
 A = XRayTransform2D(
     input_shape=(N, N),
-    angles=angles + np.pi / 2.0,
+    angles=angles,
     det_count=int(N * 1.05 / np.sqrt(2.0)),
     dx=1.0 / np.sqrt(2),
 )

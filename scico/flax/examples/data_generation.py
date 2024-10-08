@@ -51,15 +51,8 @@ except ImportError:
     from jax.lib.xla_bridge import get_backend
 
 from scico.linop import CircularConvolve
+from scico.linop.xray import XRayTransform2D
 from scico.numpy import Array
-
-try:
-    import astra  # noqa: F401
-except ImportError:
-    have_astra = False
-else:
-    have_astra = True
-    from scico.linop.xray.astra import XRayTransform2D
 
 
 class Foam2(UnitCircle):
@@ -218,10 +211,8 @@ def generate_ct_data(
            - **sino** : (:class:`jax.Array`): Corresponding sinograms.
            - **fbp** : (:class:`jax.Array`) Corresponding filtered back projections.
     """
-    if not (have_ray and have_xdesign and have_astra):
-        raise RuntimeError(
-            "Packages ray, xdesign, and astra are required for use of this function."
-        )
+    if not (have_ray and have_xdesign):
+        raise RuntimeError("Packages ray and xdesign are required for use of this function.")
 
     # Generate input data.
     start_time = time()
@@ -235,10 +226,9 @@ def generate_ct_data(
     # Configure a CT projection operator to generate synthetic measurements.
     angles = np.linspace(0, jnp.pi, nproj)  # evenly spaced projection angles
     gt_shape = (size, size)
-    det_spacing = np.sqrt(2)
+    dx = 1.0 / np.sqrt(2)
     det_count = int(size * 1.05 / np.sqrt(2.0))
-    A = XRayTransform2D(gt_shape, det_count, det_spacing, angles)  # X-ray transform operator
-
+    A = XRayTransform2D(gt_shape, angles, dx, det_count)
     # Compute sinograms in parallel.
     start_time = time()
     if nproc > 1:
