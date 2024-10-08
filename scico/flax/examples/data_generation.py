@@ -235,7 +235,7 @@ def generate_ct_data(
         # shard array
         imgshd = img.reshape((nproc, -1, size, size, 1))
         sinoshd = batched_f(A, imgshd)
-        sino = sinoshd.reshape((-1, nproj, size, 1))
+        sino = sinoshd.reshape((-1, nproj, sinoshd.shape[-1], 1))
     else:
         sino = vector_f(A, img)
 
@@ -252,8 +252,8 @@ def generate_ct_data(
 
     # Normalize sinogram.
     sino = sino / size
-    # Shift FBP to [0,1] range.
-    fbp = (fbp - fbp.min()) / (fbp.max() - fbp.min())
+    # Clip FBP to [0,1] range.
+    fbp = np.clip(fbp, 0, 1)
 
     if verbose:  # pragma: no cover
         platform = get_backend().platform
