@@ -139,7 +139,6 @@ class XRayTransform2D(LinearOperator):
         Returns:
             FBP inverse of projection.
         """
-
         N = y.shape[1]
         nvec = snp.arange(N) - (N - 1) // 2
         dx = snp.sqrt(self.dx[0] * self.dx[1])  # type: ignore
