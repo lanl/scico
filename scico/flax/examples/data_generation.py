@@ -228,7 +228,7 @@ def generate_ct_data(
     gt_shape = (size, size)
     dx = 1.0 / np.sqrt(2)
     det_count = int(size * 1.05 / np.sqrt(2.0))
-    A = XRayTransform2D(gt_shape, angles, dx, det_count)
+    A = XRayTransform2D(gt_shape, angles, dx=dx, det_count=det_count)
     # Compute sinograms in parallel.
     start_time = time()
     if nproc > 1:
