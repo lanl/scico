@@ -6,6 +6,7 @@ import pytest
 
 import scico
 from scico.linop.xray import XRayTransform2D, XRayTransform3D
+from scico.metric import psnr
 
 
 @pytest.mark.filterwarnings("error")
@@ -69,6 +70,22 @@ def test_apply_adjoint():
     H = XRayTransform2D(x.shape, angles, det_count=det_count)
     y = H @ x
     assert y.shape[1] == det_count
+
+
+@pytest.mark.parametrize("dx", [0.5, 1.0 / np.sqrt(2)])
+@pytest.mark.parametrize("det_count_factor", [1.02 / np.sqrt(2.0), 1.0])
+def test_fbp(dx, det_count_factor):
+    N = 256
+    x_gt = np.zeros((256, 256), dtype=np.float32)
+    x_gt[64:-64, 64:-64] = 1.0
+
+    det_count = int(det_count_factor * N)
+    n_proj = 360
+    angles = np.linspace(0, np.pi, n_proj)
+    A = XRayTransform2D(x_gt.shape, angles, det_count=det_count, dx=dx)
+    y = A(x_gt)
+    x_fbp = A.fbp(y)
+    assert psnr(x_gt, x_fbp) > 28
 
 
 def test_3d_scaling():

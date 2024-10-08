@@ -124,6 +124,69 @@ class XRayTransform2D(LinearOperator):
         """Compute X-ray back projection"""
         return XRayTransform2D._back_project(y, self.x0, self.dx, self.nx, self.y0, self.angles)
 
+    def fbp(self, y: ArrayLike) -> snp.Array:
+        """Compute filtered back projection (FBP) inverse of projection.
+
+        Compute the filtered back projection inverse by filtering each
+        row of the sinogram with the filter defined in (61) in
+        :cite:`kak-1988-principles` and then back projecting. The
+        projection angles are assumed to be evenly spaced: poor results
+        may be obtained if this assumption is violated.
+
+        Args:
+            y: Input projection, (num_angles, N).
+
+        Returns:
+            FBP inverse of projection.
+        """
+
+        N = y.shape[1]
+        nvec = snp.arange(N) - (N - 1) // 2
+        dx = snp.sqrt(self.dx[0] * self.dx[1])  # type: ignore
+        h = XRayTransform2D._ramp_filter(nvec, 1.0 / dx)
+
+        # Apply ramp filter in the frequency domain, padding to avoid
+        # boundary effects
+        hf = snp.fft.fft(h.reshape(1, -1), n=2 * N - 1, axis=1)
+        yf = snp.fft.fft(y, n=2 * N - 1, axis=1)
+        hy = snp.fft.ifft(hf * yf, n=2 * N - 1, axis=1)[
+            :, (N - 1) // 2 : -(N - 1) // 2
+        ].real.astype(snp.float32)
+
+        x = (snp.pi / y.shape[0]) * self.back_project(hy)
+        # Mask out the invalid region of the reconstruction
+        gi, gj = snp.mgrid[: x.shape[0], : x.shape[1]]
+        x = snp.where(
+            snp.sqrt((gi - x.shape[0] / 2) ** 2 + (gj - x.shape[1] / 2) ** 2) < min(x.shape) / 2,
+            x,
+            0.0,
+        )
+        return x
+
+    @staticmethod
+    def _ramp_filter(x: ArrayLike, tau: float) -> snp.Array:
+        """Compute coefficients of ramp filter used in FBP.
+
+        Compute coefficients of ramp filter used in FBP, as defined in
+        (61) in :cite:`kak-1988-principles`.
+
+        Args:
+            x: Sampling locations at which to compute filter coefficients.
+            tau: Sampling rate.
+
+        Returns:
+            Spatial-domain coefficients of ramp filter.
+        """
+        # The (x == 0) term in x**2 * np.pi**2 * tau**2 + (x == 0)
+        # is included to avoid division by zero warnings when x == 1
+        # since np.where evaluates all values for both True and False
+        # branches.
+        return snp.where(
+            x == 0,
+            1.0 / (4.0 * tau**2),
+            snp.where(x % 2, -1.0 / (x**2 * np.pi**2 * tau**2 + (x == 0)), 0),
+        )
+
     @staticmethod
     @partial(jax.jit, static_argnames=["ny"])
     def _project(
