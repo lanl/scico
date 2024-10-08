@@ -107,7 +107,7 @@ A = (1.0 / N) * A  # normalize projection operator
 
 """
 Build training and testing structures. Inputs are the sinograms and
-outpus are the original generated foams. Keep training and testing
+outputs are the original generated foams. Keep training and testing
 partitions.
 """
 numtr = 320
