@@ -81,7 +81,7 @@ def test_fbp(dx, det_count_factor):
 
     det_count = int(det_count_factor * N)
     n_proj = 360
-    angles = np.linspace(0, np.pi, n_proj)
+    angles = np.linspace(0, np.pi, n_proj, endpoint=False)
     A = XRayTransform2D(x_gt.shape, angles, det_count=det_count, dx=dx)
     y = A(x_gt)
     x_fbp = A.fbp(y)
