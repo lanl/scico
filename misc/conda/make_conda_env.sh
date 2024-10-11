@@ -219,17 +219,14 @@ conda activate $ENVNM  # Q: why not `source activate`? A: not always in the path
 # Add conda-forge channel
 conda config --env --append channels conda-forge
 
-# Install mamba
-conda install mamba -n base -c conda-forge
-
 # Install required conda packages (and extra useful packages)
-mamba install $CONDA_FLAGS $CONDAREQ ipython
+conda install $CONDA_FLAGS $CONDAREQ ipython
 
 # Utility ffmpeg is required by imageio for reading mp4 video files
 # it can also be installed via the system package manager, .e.g.
 #    sudo apt install ffmpeg
 if [ "$(which ffmpeg)" = '' ]; then
-    mamba install $CONDA_FLAGS ffmpeg
+    conda install $CONDA_FLAGS ffmpeg
 fi
 
 # Install jaxlib and jax
