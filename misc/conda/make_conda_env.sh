@@ -217,7 +217,7 @@ eval "$(conda shell.bash hook)"  # required to avoid errors re: `conda init`
 conda activate $ENVNM  # Q: why not `source activate`? A: not always in the path
 
 # Add conda-forge channel
-conda config --env --append channels conda-forge
+conda config --append channels conda-forge
 
 # Install required conda packages (and extra useful packages)
 conda install $CONDA_FLAGS $CONDAREQ ipython
