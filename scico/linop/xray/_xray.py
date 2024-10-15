@@ -68,10 +68,10 @@ class XRayTransform2D(LinearOperator):
                 corresponds to summing along antidiagonals.
             x0: (x, y) position of the corner of the pixel `im[0,0]`. By
                 default, `(-input_shape * dx[0] / 2, -input_shape * dx[1] / 2)`.
-            dx: Image pixel side length in x- and y-direction. Must be
-                set so that the width of a projected pixel is never
-                larger than 1.0. By default, [:math:`\sqrt{2}/2`,
-                :math:`\sqrt{2}/2`].
+            dx: Image pixel side length in x- and y-direction (axis 0 and
+                1 respectively). Must be set so that the width of a
+                projected pixel is never larger than 1.0. By default,
+                [:math:`\sqrt{2}/2`, :math:`\sqrt{2}/2`].
             y0: Location of the edge of the first detector bin. By
                 default, `-det_count / 2`
             det_count: Number of elements in detector. If ``None``,
@@ -150,7 +150,8 @@ class XRayTransform2D(LinearOperator):
         :cite:`kak-1988-principles` and then back projecting. The
         projection angles are assumed to be evenly spaced in
         :math:`[0, \pi)`; reconstruction quality may be poor if
-        this assumption is violated.
+        this assumption is violated. Poor quality reconstructions should
+        also be expected when `dx[0]` and `dx[1]` are not equal.
 
         Args:
             y: Input projection, (num_angles, N).
