@@ -124,11 +124,19 @@ class XRayTransform2D(LinearOperator):
         )
 
     def project(self, im: ArrayLike) -> snp.Array:
-        """Compute X-ray projection."""
+        """Compute X-ray projection, equivalent to `H @ im`.
+
+        Args:
+            im: Input array representing the image to project.
+        """
         return XRayTransform2D._project(im, self.x0, self.dx, self.y0, self.ny, self.angles)
 
     def back_project(self, y: ArrayLike) -> snp.Array:
-        """Compute X-ray back projection"""
+        """Compute X-ray back projection, equivalent to `H.T @ y`.
+
+        Args:
+            y: Input array representing the sinogram to back project.
+        """
         return XRayTransform2D._back_project(y, self.x0, self.dx, self.nx, self.y0, self.angles)
 
     @staticmethod
@@ -136,7 +144,8 @@ class XRayTransform2D(LinearOperator):
     def _project(
         im: ArrayLike, x0: ArrayLike, dx: ArrayLike, y0: float, ny: int, angles: ArrayLike
     ) -> snp.Array:
-        r"""
+        r"""Compute X-ray projection.
+
         Args:
             im: Input array, (M, N).
             x0: (x, y) position of the corner of the pixel im[0,0].
@@ -171,7 +180,8 @@ class XRayTransform2D(LinearOperator):
     def _back_project(
         y: ArrayLike, x0: ArrayLike, dx: ArrayLike, nx: Shape, y0: float, angles: ArrayLike
     ) -> ArrayLike:
-        r"""
+        r"""Compute X-ray back projection.
+
         Args:
             y: Input projection, (num_angles, N).
             x0: (x, y) position of the corner of the pixel im[0,0].
