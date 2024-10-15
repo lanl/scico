@@ -68,10 +68,10 @@ class XRayTransform2D(LinearOperator):
                 corresponds to summing along antidiagonals.
             x0: (x, y) position of the corner of the pixel `im[0,0]`. By
                 default, `(-input_shape * dx[0] / 2, -input_shape * dx[1] / 2)`.
-            dx: Image pixel side length in x- and y-direction. Must be
-                set so that the width of a projected pixel is never
-                larger than 1.0. By default, [:math:`\sqrt{2}/2`,
-                :math:`\sqrt{2}/2`].
+            dx: Image pixel side length in x- and y-direction (axis 0 and
+                1 respectively). Must be set so that the width of a
+                projected pixel is never larger than 1.0. By default,
+                [:math:`\sqrt{2}/2`, :math:`\sqrt{2}/2`].
             y0: Location of the edge of the first detector bin. By
                 default, `-det_count / 2`
             det_count: Number of elements in detector. If ``None``,
@@ -114,6 +114,9 @@ class XRayTransform2D(LinearOperator):
         self.y0 = y0
         self.dy = 1.0
 
+        self.fbp_filter: Optional[snp.Array] = None
+        self.fbp_mask: Optional[snp.Array] = None
+
         super().__init__(
             input_shape=self.input_shape,
             input_dtype=np.float32,
@@ -147,7 +150,8 @@ class XRayTransform2D(LinearOperator):
         :cite:`kak-1988-principles` and then back projecting. The
         projection angles are assumed to be evenly spaced in
         :math:`[0, \pi)`; reconstruction quality may be poor if
-        this assumption is violated.
+        this assumption is violated. Poor quality reconstructions should
+        also be expected when `dx[0]` and `dx[1]` are not equal.
 
         Args:
             y: Input projection, (num_angles, N).
@@ -156,26 +160,27 @@ class XRayTransform2D(LinearOperator):
             FBP inverse of projection.
         """
         N = y.shape[1]
-        nvec = snp.arange(N) - (N - 1) // 2
-        dx = snp.sqrt(self.dx[0] * self.dx[1])  # type: ignore
-        h = XRayTransform2D._ramp_filter(nvec, 1.0 / dx)
+
+        if self.fbp_filter is None:
+            nvec = jnp.arange(N) - (N - 1) // 2
+            self.fbp_filter = XRayTransform2D._ramp_filter(nvec, 1.0).reshape(1, -1)
+
+        if self.fbp_mask is None:
+            unit_sino = jnp.ones(self.output_shape, dtype=np.float32)
+            # Threshold is multiplied by 0.99... fudge factor to account for numerical errors
+            # in back projection.
+            self.fbp_mask = self.back_project(unit_sino) >= (self.output_shape[0] * (1.0 - 1e-5))  # type: ignore
 
         # Apply ramp filter in the frequency domain, padding to avoid
         # boundary effects
-        hf = snp.fft.fft(h.reshape(1, -1), n=2 * N - 1, axis=1)
-        yf = snp.fft.fft(y, n=2 * N - 1, axis=1)
-        hy = snp.fft.ifft(hf * yf, n=2 * N - 1, axis=1)[
+        h = self.fbp_filter
+        hf = jnp.fft.fft(h, n=2 * N - 1, axis=1)
+        yf = jnp.fft.fft(y, n=2 * N - 1, axis=1)
+        hy = jnp.fft.ifft(hf * yf, n=2 * N - 1, axis=1)[
             :, (N - 1) // 2 : -(N - 1) // 2
-        ].real.astype(snp.float32)
+        ].real.astype(jnp.float32)
 
-        x = (snp.pi / y.shape[0]) * self.back_project(hy)
-        # Mask out the invalid region of the reconstruction
-        gi, gj = snp.mgrid[: x.shape[0], : x.shape[1]]
-        x = snp.where(
-            snp.sqrt((gi - x.shape[0] / 2) ** 2 + (gj - x.shape[1] / 2) ** 2) < min(x.shape) / 2,
-            x,
-            0.0,
-        )
+        x = (jnp.pi * self.dx[0] * self.dx[1] / y.shape[0]) * self.fbp_mask * self.back_project(hy)  # type: ignore
         return x
 
     @staticmethod
@@ -196,10 +201,10 @@ class XRayTransform2D(LinearOperator):
         # is included to avoid division by zero warnings when x == 1
         # since np.where evaluates all values for both True and False
         # branches.
-        return snp.where(
+        return jnp.where(
             x == 0,
             1.0 / (4.0 * tau**2),
-            snp.where(x % 2, -1.0 / (x**2 * np.pi**2 * tau**2 + (x == 0)), 0),
+            jnp.where(x % 2, -1.0 / (x**2 * np.pi**2 * tau**2 + (x == 0)), 0),
         )
 
     @staticmethod
@@ -221,20 +226,20 @@ class XRayTransform2D(LinearOperator):
         """
         nx = im.shape
         inds, weights = XRayTransform2D._calc_weights(x0, dx, nx, angles, y0)
-        # Handle out of bounds indices. In the .at call, inds >= y0 are
-        # ignored, while inds < 0 wrap around. So we set inds < 0 to ny.
-        inds = jnp.where(inds >= 0, inds, ny)
 
         # avoid incompatible types in the .add (scatter operation)
         weights = weights.astype(im.dtype)
 
+        # Handle out of bounds indices by setting weight to zero
+        weights_valid = jnp.where((inds >= 0) * (inds < ny), weights, 0.0)
         y = (
             jnp.zeros((len(angles), ny), dtype=im.dtype)
             .at[jnp.arange(len(angles)).reshape(-1, 1, 1), inds]
-            .add(im * weights)
+            .add(im * weights_valid)
         )
 
-        y = y.at[jnp.arange(len(angles)).reshape(-1, 1, 1), inds + 1].add(im * (1 - weights))
+        weights_valid = jnp.where((inds + 1 >= 0) * (inds + 1 < ny), 1 - weights, 0.0)
+        y = y.at[jnp.arange(len(angles)).reshape(-1, 1, 1), inds + 1].add(im * weights_valid)
 
         return y
 
@@ -242,7 +247,7 @@ class XRayTransform2D(LinearOperator):
     @partial(jax.jit, static_argnames=["nx"])
     def _back_project(
         y: ArrayLike, x0: ArrayLike, dx: ArrayLike, nx: Shape, y0: float, angles: ArrayLike
-    ) -> ArrayLike:
+    ) -> snp.Array:
         r"""Compute X-ray back projection.
 
         Args:
@@ -257,14 +262,15 @@ class XRayTransform2D(LinearOperator):
         """
         ny = y.shape[1]
         inds, weights = XRayTransform2D._calc_weights(x0, dx, nx, angles, y0)
-        # Handle out of bounds indices. In the .at call, inds >= y0 are
-        # ignored, while inds < 0 wrap around. So we set inds < 0 to ny.
-        inds = jnp.where(inds >= 0, inds, ny)
+        # Handle out of bounds indices by setting weight to zero
+        weights_valid = jnp.where((inds >= 0) * (inds < ny), weights, 0.0)
 
         # the idea: [y[0, inds[0]], y[1, inds[1]], ...]
-        HTy = jnp.sum(y[jnp.arange(len(angles)).reshape(-1, 1, 1), inds] * weights, axis=0)
+        HTy = jnp.sum(y[jnp.arange(len(angles)).reshape(-1, 1, 1), inds] * weights_valid, axis=0)
+
+        weights_valid = jnp.where((inds + 1 >= 0) * (inds + 1 < ny), 1 - weights, 0.0)
         HTy = HTy + jnp.sum(
-            y[jnp.arange(len(angles)).reshape(-1, 1, 1), inds + 1] * (1 - weights), axis=0
+            y[jnp.arange(len(angles)).reshape(-1, 1, 1), inds + 1] * weights_valid, axis=0
         )
 
         return HTy
@@ -423,7 +429,7 @@ class XRayTransform3D(LinearOperator):
         return proj
 
     @staticmethod
-    def _back_project(proj: ArrayLike, matrices: ArrayLike, input_shape: Shape) -> ArrayLike:
+    def _back_project(proj: ArrayLike, matrices: ArrayLike, input_shape: Shape) -> snp.Array:
         r"""
         Args:
             proj: Input (set of) projection(s).
@@ -464,7 +470,7 @@ class XRayTransform3D(LinearOperator):
 
     @staticmethod
     def _calc_weights(
-        input_shape: Shape, matrix: snp.Array, output_shape: Shape, slice_offset: int = 0
+        input_shape: Shape, matrix: snp.Array, det_shape: Shape, slice_offset: int = 0
     ) -> snp.Array:
         # pixel (0, 0, 0) has its center at (0.5, 0.5, 0.5)
         x = jnp.mgrid[: input_shape[0], : input_shape[1], : input_shape[2]] + 0.5  # (3, ...)
@@ -482,12 +488,45 @@ class XRayTransform3D(LinearOperator):
         left_edge = Px - w / 2
         to_next = jnp.minimum(jnp.ceil(left_edge) - left_edge, w)
         ul_ind = jnp.floor(left_edge).astype("int32")
-        ul_ind = jnp.where(ul_ind < 0, max(output_shape), ul_ind)  # otherwise negative values wrap
 
         ul_weight = to_next[0] * to_next[1] * (1 / w**2)
         ur_weight = (w - to_next[0]) * to_next[1] * (1 / w**2)
         ll_weight = to_next[0] * (w - to_next[1]) * (1 / w**2)
         lr_weight = (w - to_next[0]) * (w - to_next[1]) * (1 / w**2)
+
+        # set weights to zero out of bounds
+        ul_weight = jnp.where(
+            (ul_ind[0] >= 0)
+            * (ul_ind[0] < det_shape[0])
+            * (ul_ind[1] >= 0)
+            * (ul_ind[1] < det_shape[1]),
+            ul_weight,
+            0.0,
+        )
+        ur_weight = jnp.where(
+            (ul_ind[0] + 1 >= 0)
+            * (ul_ind[0] + 1 < det_shape[0])
+            * (ul_ind[1] >= 0)
+            * (ul_ind[1] < det_shape[1]),
+            ur_weight,
+            0.0,
+        )
+        ll_weight = jnp.where(
+            (ul_ind[0] >= 0)
+            * (ul_ind[0] < det_shape[0])
+            * (ul_ind[1] + 1 >= 0)
+            * (ul_ind[1] + 1 < det_shape[1]),
+            ll_weight,
+            0.0,
+        )
+        lr_weight = jnp.where(
+            (ul_ind[0] + 1 >= 0)
+            * (ul_ind[0] + 1 < det_shape[0])
+            * (ul_ind[1] + 1 >= 0)
+            * (ul_ind[1] + 1 < det_shape[1]),
+            lr_weight,
+            0.0,
+        )
 
         return ul_ind, ul_weight, ur_weight, ll_weight, lr_weight
 
