@@ -50,7 +50,7 @@ def test_apply():
 def test_apply_adjoint():
     im_shape = (12, 13)
     num_angles = 10
-    x = jnp.ones(im_shape)
+    x = jnp.ones(im_shape, dtype=jnp.float32)
 
     angles = jnp.linspace(0, jnp.pi, num=num_angles, endpoint=False)
 
@@ -98,6 +98,7 @@ def test_3d_scaling():
     # default spacing
     M = XRayTransform3D.matrices_from_euler_angles(input_shape, output_shape, "X", [0.0])
     H = XRayTransform3D(input_shape, matrices=M, det_shape=output_shape)
+
     # fmt: off
     truth = jnp.array(
         [[[0.0, 0.0, 0.0, 0.0],
