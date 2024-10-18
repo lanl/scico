@@ -9,7 +9,7 @@
 
 
 from functools import partial
-from typing import Optional
+from typing import Optional, Tuple
 from warnings import warn
 
 import numpy as np
@@ -279,8 +279,8 @@ class XRayTransform2D(LinearOperator):
     @partial(jax.jit, static_argnames=["nx"])
     @partial(jax.vmap, in_axes=(None, None, None, 0, None))
     def _calc_weights(
-        x0: ArrayLike, dx: ArrayLike, nx: Shape, angle: float, y0: float
-    ) -> snp.Array:
+        x0: ArrayLike, dx: ArrayLike, nx: Shape, angles: ArrayLike, y0: float
+    ) -> Tuple[snp.Array, snp.Array]:
         """
 
         Args:
@@ -288,12 +288,12 @@ class XRayTransform2D(LinearOperator):
             dx: Pixel side length in x- and y-direction. Units are such
                 that the detector bins have length 1.0.
             nx: Input image shape.
-            angle: (num_angles,) array of angles in radians. Pixels are
+            angles: (num_angless,) array of angless in radians. Pixels are
                 projected onto units vectors pointing in these directions.
                 (This argument is `vmap`ed.)
             y0: Location of the edge of the first detector bin.
         """
-        u = [jnp.cos(angle), jnp.sin(angle)]
+        u = [jnp.cos(angles), jnp.sin(angles)]
         Px0 = x0[0] * u[0] + x0[1] * u[1] - y0
         Pdx = [dx[0] * u[0], dx[1] * u[1]]
         Pxmin = jnp.min(jnp.array([Px0, Px0 + Pdx[0], Px0 + Pdx[1], Px0 + Pdx[0] + Pdx[1]]))
