@@ -68,10 +68,10 @@ class XRayTransform2D(LinearOperator):
                 corresponds to summing along antidiagonals.
             x0: (x, y) position of the corner of the pixel `im[0,0]`. By
                 default, `(-input_shape * dx[0] / 2, -input_shape * dx[1] / 2)`.
-            dx: Image pixel side length in x- and y-direction. Must be
-                set so that the width of a projected pixel is never
-                larger than 1.0. By default, [:math:`\sqrt{2}/2`,
-                :math:`\sqrt{2}/2`].
+            dx: Image pixel side length in x- and y-direction (axis 0 and
+                1 respectively). Must be set so that the width of a
+                projected pixel is never larger than 1.0. By default,
+                [:math:`\sqrt{2}/2`, :math:`\sqrt{2}/2`].
             y0: Location of the edge of the first detector bin. By
                 default, `-det_count / 2`
             det_count: Number of elements in detector. If ``None``,
@@ -114,6 +114,9 @@ class XRayTransform2D(LinearOperator):
         self.y0 = y0
         self.dy = 1.0
 
+        self.fbp_filter: Optional[snp.Array] = None
+        self.fbp_mask: Optional[snp.Array] = None
+
         super().__init__(
             input_shape=self.input_shape,
             input_dtype=np.float32,
@@ -138,6 +141,71 @@ class XRayTransform2D(LinearOperator):
             y: Input array representing the sinogram to back project.
         """
         return XRayTransform2D._back_project(y, self.x0, self.dx, self.nx, self.y0, self.angles)
+
+    def fbp(self, y: ArrayLike) -> snp.Array:
+        r"""Compute filtered back projection (FBP) inverse of projection.
+
+        Compute the filtered back projection inverse by filtering each
+        row of the sinogram with the filter defined in (61) in
+        :cite:`kak-1988-principles` and then back projecting. The
+        projection angles are assumed to be evenly spaced in
+        :math:`[0, \pi)`; reconstruction quality may be poor if
+        this assumption is violated. Poor quality reconstructions should
+        also be expected when `dx[0]` and `dx[1]` are not equal.
+
+        Args:
+            y: Input projection, (num_angles, N).
+
+        Returns:
+            FBP inverse of projection.
+        """
+        N = y.shape[1]
+
+        if self.fbp_filter is None:
+            nvec = jnp.arange(N) - (N - 1) // 2
+            self.fbp_filter = XRayTransform2D._ramp_filter(nvec, 1.0).reshape(1, -1)
+
+        if self.fbp_mask is None:
+            unit_sino = jnp.ones(self.output_shape, dtype=np.float32)
+            # Threshold is multiplied by 0.99... fudge factor to account for numerical errors
+            # in back projection.
+            self.fbp_mask = self.back_project(unit_sino) >= (self.output_shape[0] * (1.0 - 1e-5))  # type: ignore
+
+        # Apply ramp filter in the frequency domain, padding to avoid
+        # boundary effects
+        h = self.fbp_filter
+        hf = jnp.fft.fft(h, n=2 * N - 1, axis=1)
+        yf = jnp.fft.fft(y, n=2 * N - 1, axis=1)
+        hy = jnp.fft.ifft(hf * yf, n=2 * N - 1, axis=1)[
+            :, (N - 1) // 2 : -(N - 1) // 2
+        ].real.astype(jnp.float32)
+
+        x = (jnp.pi * self.dx[0] * self.dx[1] / y.shape[0]) * self.fbp_mask * self.back_project(hy)  # type: ignore
+        return x
+
+    @staticmethod
+    def _ramp_filter(x: ArrayLike, tau: float) -> snp.Array:
+        """Compute coefficients of ramp filter used in FBP.
+
+        Compute coefficients of ramp filter used in FBP, as defined in
+        (61) in :cite:`kak-1988-principles`.
+
+        Args:
+            x: Sampling locations at which to compute filter coefficients.
+            tau: Sampling rate.
+
+        Returns:
+            Spatial-domain coefficients of ramp filter.
+        """
+        # The (x == 0) term in x**2 * np.pi**2 * tau**2 + (x == 0)
+        # is included to avoid division by zero warnings when x == 1
+        # since np.where evaluates all values for both True and False
+        # branches.
+        return jnp.where(
+            x == 0,
+            1.0 / (4.0 * tau**2),
+            jnp.where(x % 2, -1.0 / (x**2 * np.pi**2 * tau**2 + (x == 0)), 0),
+        )
 
     @staticmethod
     @partial(jax.jit, static_argnames=["ny"])
@@ -179,7 +247,7 @@ class XRayTransform2D(LinearOperator):
     @partial(jax.jit, static_argnames=["nx"])
     def _back_project(
         y: ArrayLike, x0: ArrayLike, dx: ArrayLike, nx: Shape, y0: float, angles: ArrayLike
-    ) -> ArrayLike:
+    ) -> snp.Array:
         r"""Compute X-ray back projection.
 
         Args:
@@ -361,7 +429,7 @@ class XRayTransform3D(LinearOperator):
         return proj
 
     @staticmethod
-    def _back_project(proj: ArrayLike, matrices: ArrayLike, input_shape: Shape) -> ArrayLike:
+    def _back_project(proj: ArrayLike, matrices: ArrayLike, input_shape: Shape) -> snp.Array:
         r"""
         Args:
             proj: Input (set of) projection(s).
