@@ -273,7 +273,7 @@ class XRayTransform2D(LinearOperator):
             y[jnp.arange(len(angles)).reshape(-1, 1, 1), inds + 1] * weights_valid, axis=0
         )
 
-        return HTy
+        return HTy.astype(jnp.float32)
 
     @staticmethod
     @partial(jax.jit, static_argnames=["nx"])

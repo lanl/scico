@@ -155,7 +155,7 @@ class TestCT:
         xt, key = random.randn((2 * self.bsize, self.N, self.N, self.chn), seed=4321)
 
         self.nproj = 60  # number of projections
-        angles = np.linspace(0, np.pi, self.nproj)  # evenly spaced projection angles
+        angles = np.linspace(0, np.pi, self.nproj, endpoint=False, dtype=np.float32)
         self.opCT = XRayTransform2D(
             input_shape=(self.N, self.N),
             det_count=self.N,
