@@ -38,7 +38,7 @@ N = 512  # phantom size
 np.random.seed(1234)
 x_gt = snp.array(discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=N))
 
-det_count = N
+det_count = int(N * 1.05 / np.sqrt(2.0))
 det_spacing = np.sqrt(2)
 
 

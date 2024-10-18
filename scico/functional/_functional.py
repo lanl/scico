@@ -117,7 +117,7 @@ class Functional:
         return v - lam * self.prox(v / lam, 1.0 / lam, **kwargs)
 
     def grad(self, x: Union[Array, BlockArray]):
-        r"""Evaluates the gradient of this functional at :math:`\mb{x}`.
+        r"""Evaluate the gradient of this functional at :math:`\mb{x}`.
 
         Args:
             x: Point at which to evaluate gradient.

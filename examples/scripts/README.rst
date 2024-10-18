@@ -33,11 +33,11 @@ Computed Tomography
       PPP (with BM3D) CT Reconstruction (ADMM with Fast SVMBIR Prox)
    `ct_fan_svmbir_ppp_bm3d_admm_prox.py <ct_fan_svmbir_ppp_bm3d_admm_prox.py>`_
       PPP (with BM3D) Fan-Beam CT Reconstruction
-   `ct_astra_modl_train_foam2.py <ct_astra_modl_train_foam2.py>`_
-      CT Training and Reconstructions with MoDL
-   `ct_astra_odp_train_foam2.py <ct_astra_odp_train_foam2.py>`_
-      CT Training and Reconstructions with ODP
-   `ct_astra_unet_train_foam2.py <ct_astra_unet_train_foam2.py>`_
+   `ct_modl_train_foam2.py <ct_modl_train_foam2.py>`_
+      CT Training and Reconstruction with MoDL
+   `ct_odp_train_foam2.py <ct_odp_train_foam2.py>`_
+      CT Training and Reconstruction with ODP
+   `ct_unet_train_foam2.py <ct_unet_train_foam2.py>`_
       CT Training and Reconstructions with UNet
    `ct_projector_comparison_2d.py <ct_projector_comparison_2d.py>`_
       2D X-ray Transform Comparison
@@ -123,7 +123,7 @@ Miscellaneous
       TV-Regularized 3D DiffuserCam Reconstruction
    `video_rpca_admm.py <video_rpca_admm.py>`_
       Video Decomposition via Robust PCA
-   `ct_astra_datagen_foam2.py <ct_astra_datagen_foam2.py>`_
+   `ct_datagen_foam2.py <ct_datagen_foam2.py>`_
       CT Data Generation for NN Training
    `deconv_datagen_bsds.py <deconv_datagen_bsds.py>`_
       Blurred Data Generation (Natural Images) for NN Training
@@ -239,13 +239,13 @@ Sparsity
 Machine Learning
 ^^^^^^^^^^^^^^^^
 
-   `ct_astra_datagen_foam2.py <ct_astra_datagen_foam2.py>`_
+   `ct_datagen_foam2.py <ct_datagen_foam2.py>`_
       CT Data Generation for NN Training
-   `ct_astra_modl_train_foam2.py <ct_astra_modl_train_foam2.py>`_
-      CT Training and Reconstructions with MoDL
-   `ct_astra_odp_train_foam2.py <ct_astra_odp_train_foam2.py>`_
-      CT Training and Reconstructions with ODP
-   `ct_astra_unet_train_foam2.py <ct_astra_unet_train_foam2.py>`_
+   `ct_modl_train_foam2.py <ct_modl_train_foam2.py>`_
+      CT Training and Reconstruction with MoDL
+   `ct_odp_train_foam2.py <ct_odp_train_foam2.py>`_
+      CT Training and Reconstruction with ODP
+   `ct_unet_train_foam2.py <ct_unet_train_foam2.py>`_
       CT Training and Reconstructions with UNet
    `deconv_datagen_bsds.py <deconv_datagen_bsds.py>`_
       Blurred Data Generation (Natural Images) for NN Training

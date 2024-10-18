@@ -13,6 +13,7 @@ plotting functions.
 
 # This module is copied from https://github.com/bwohlberg/sporco
 
+import os
 import sys
 
 import numpy as np
@@ -820,7 +821,8 @@ def config_notebook_plotting():
     Configure plotting functions for inline plotting within a Jupyter
     Notebook shell. This function has no effect when not within a
     notebook shell, and may therefore be used within a normal python
-    script.
+    script. If environment variable ``MATPLOTLIB_IPYNB_BACKEND`` is set,
+    the matplotlib backend is explicitly set to the specified value.
     """
 
     # Check whether running within a notebook shell and have
@@ -828,8 +830,9 @@ def config_notebook_plotting():
     module = sys.modules[__name__]
     if _in_notebook() and module.plot.__name__ == "plot":
 
-        # Set inline backend (i.e. %matplotlib inline) if in a notebook shell
-        set_notebook_plot_backend()
+        # Set backend if specified by environment variable
+        if "MATPLOTLIB_IPYNB_BACKEND" in os.environ:
+            set_notebook_plot_backend(os.environ["MATPLOTLIB_IPYNB_BACKEND"])
 
         # Replace plot function with a wrapper function that discards
         # its return value (within a notebook with inline plotting, plots

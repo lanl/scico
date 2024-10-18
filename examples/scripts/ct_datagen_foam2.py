@@ -14,12 +14,16 @@ generated using filtered back projection (FBP).
 """
 
 # isort: off
+import os
 import numpy as np
 
 import logging
 import ray
 
 ray.init(logging_level=logging.ERROR)  # need to call init before jax import: ray-project/ray#44087
+
+# Set an arbitrary processor count (only applies if GPU is not available).
+os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 
 from scico import plot
 from scico.flax.examples import load_ct_data
