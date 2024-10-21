@@ -288,7 +288,7 @@ class XRayTransform2D(LinearOperator):
             dx: Pixel side length in x- and y-direction. Units are such
                 that the detector bins have length 1.0.
             nx: Input image shape.
-            angles: (num_angless,) array of angless in radians. Pixels are
+            angles: (num_angles,) array of angless in radians. Pixels are
                 projected onto units vectors pointing in these directions.
                 (This argument is `vmap`ed.)
             y0: Location of the edge of the first detector bin.
