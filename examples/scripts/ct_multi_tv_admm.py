@@ -38,15 +38,14 @@ N = 512  # phantom size
 np.random.seed(1234)
 x_gt = snp.array(discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=N))
 
-det_count = int(N * 1.05 / np.sqrt(2.0))
-det_spacing = np.sqrt(2)
-
 
 """
 Define CT geometry and construct array of (approximately) equivalent projectors.
 """
 n_projection = 45  # number of projections
 angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
+det_count = int(N * 1.05 / np.sqrt(2.0))
+det_spacing = np.sqrt(2)
 projectors = {
     "astra": astra.XRayTransform2D(
         x_gt.shape, det_count, det_spacing, angles - np.pi / 2.0
