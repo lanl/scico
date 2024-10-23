@@ -157,9 +157,7 @@ class TestCT:
         self.nproj = 60  # number of projections
         angles = np.linspace(0, np.pi, self.nproj, endpoint=False, dtype=np.float32)
         self.opCT = XRayTransform2D(
-            input_shape=(self.N, self.N),
-            det_count=self.N,
-            angles=angles,
+            input_shape=(self.N, self.N), det_count=self.N, angles=angles, dx=0.9999 / np.sqrt(2.0)
         )  # Radon transform operator
         a_f = lambda v: jnp.atleast_3d(self.opCT(v.squeeze()))
         y = lax.map(a_f, xt)
