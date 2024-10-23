@@ -43,7 +43,7 @@ x_gt = snp.array(discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, por
 Define CT geometry and construct array of (approximately) equivalent projectors.
 """
 n_projection = 45  # number of projections
-angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
+angles = np.linspace(0, np.pi, n_projection, endpoint=False)  # evenly spaced projection angles
 det_count = int(N * 1.05 / np.sqrt(2.0))
 det_spacing = np.sqrt(2)
 projectors = {

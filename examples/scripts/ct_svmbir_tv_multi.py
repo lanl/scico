@@ -51,7 +51,7 @@ Generate tomographic projector and sinogram.
 """
 num_angles = int(N / 2)
 num_channels = N
-angles = snp.linspace(0, snp.pi, num_angles, dtype=snp.float32)
+angles = snp.linspace(0, snp.pi, num_angles, endpoint=False, dtype=snp.float32)
 A = XRayTransform(x_gt.shape, angles, num_channels)
 sino = A @ x_gt
 

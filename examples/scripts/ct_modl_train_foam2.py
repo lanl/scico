@@ -92,7 +92,7 @@ trdt, ttdt = load_ct_data(train_nimg, test_nimg, N, n_projection, verbose=True)
 Build CT projection operator. Parameters are chosen so that the operator
 is equivalent to the one used to generate the training data.
 """
-angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
+angles = np.linspace(0, np.pi, n_projection, endpoint=False)  # evenly spaced projection angles
 A = XRayTransform2D(
     input_shape=(N, N),
     angles=angles,

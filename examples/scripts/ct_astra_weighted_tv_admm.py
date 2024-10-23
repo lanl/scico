@@ -48,7 +48,7 @@ Configure CT projection operator and generate synthetic measurements.
 n_projection = 360  # number of projections
 Io = 1e3  # source flux
 𝛼 = 1e-2  # attenuation coefficient
-angles = np.linspace(0, 2 * np.pi, n_projection)  # evenly spaced projection angles
+angles = np.linspace(0, 2 * np.pi, n_projection, endpoint=False)  # evenly spaced projection angles
 A = XRayTransform2D(x_gt.shape, N, 1.0, angles)  # CT projection operator
 y_c = A @ x_gt  # sinogram
 
