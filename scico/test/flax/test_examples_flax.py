@@ -12,7 +12,6 @@ from scico.flax.examples.data_generation import (
     generate_ct_data,
     generate_foam1_images,
     generate_foam2_images,
-    have_astra,
     have_ray,
     have_xdesign,
 )
@@ -75,8 +74,8 @@ def test_distdatagen():
 
 
 @pytest.mark.skipif(
-    not have_astra or not have_ray or not have_xdesign,
-    reason="astra, ray, or xdesign package not installed",
+    not have_ray or not have_xdesign,
+    reason="ray or xdesign package not installed",
 )
 def test_ct_data_generation():
     N = 32
@@ -90,7 +89,7 @@ def test_ct_data_generation():
 
     img, sino, fbp = generate_ct_data(nimg, N, nproj, imgfunc=random_img_gen)
     assert img.shape == (nimg, N, N, 1)
-    assert sino.shape == (nimg, nproj, N, 1)
+    assert sino.shape == (nimg, nproj, sino.shape[2], 1)
     assert fbp.shape == (nimg, N, N, 1)
 
 

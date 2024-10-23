@@ -5,8 +5,8 @@
 # with the package.
 
 r"""
-CT Training and Reconstructions with MoDL
-=========================================
+CT Training and Reconstruction with MoDL
+========================================
 
 This example demonstrates the training and application of a
 model-based deep learning (MoDL) architecture described in
@@ -65,7 +65,7 @@ from scico import flax as sflax
 from scico import metric, plot
 from scico.flax.examples import load_ct_data
 from scico.flax.train.traversals import clip_positive, construct_traversal
-from scico.linop.xray.astra import XRayTransform2D
+from scico.linop.xray import XRayTransform2D
 
 """
 Prepare parallel processing. Set an arbitrary processor count (only
@@ -89,16 +89,17 @@ trdt, ttdt = load_ct_data(train_nimg, test_nimg, N, n_projection, verbose=True)
 
 
 """
-Build CT projection operator.
+Build CT projection operator. Parameters are chosen so that the operator
+is equivalent to the one used to generate the training data.
 """
 angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
 A = XRayTransform2D(
     input_shape=(N, N),
-    det_spacing=1,
-    det_count=N,
     angles=angles,
-)  # CT projection operator
-A = (1.0 / N) * A  # normalized
+    det_count=int(N * 1.05 / np.sqrt(2.0)),
+    dx=1.0 / np.sqrt(2),
+)
+A = (1.0 / N) * A  # normalize projection operator
 
 
 """

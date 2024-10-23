@@ -50,7 +50,7 @@ EOF
 )
 # Requirements that cannot be installed via conda (i.e. have to use pip)
 NOCONDA=$(cat <<-EOF
-flax bm3d bm4d py2jn colour_demosaicing hyperopt ray[tune,train]
+flax orbax-checkpoint bm3d bm4d py2jn colour_demosaicing hyperopt ray[tune,train]
 EOF
 )
 
@@ -217,19 +217,16 @@ eval "$(conda shell.bash hook)"  # required to avoid errors re: `conda init`
 conda activate $ENVNM  # Q: why not `source activate`? A: not always in the path
 
 # Add conda-forge channel
-conda config --env --append channels conda-forge
-
-# Install mamba
-conda install mamba -n base -c conda-forge
+conda config --append channels conda-forge
 
 # Install required conda packages (and extra useful packages)
-mamba install $CONDA_FLAGS $CONDAREQ ipython
+conda install $CONDA_FLAGS $CONDAREQ ipython
 
 # Utility ffmpeg is required by imageio for reading mp4 video files
 # it can also be installed via the system package manager, .e.g.
 #    sudo apt install ffmpeg
 if [ "$(which ffmpeg)" = '' ]; then
-    mamba install $CONDA_FLAGS ffmpeg
+    conda install $CONDA_FLAGS ffmpeg
 fi
 
 # Install jaxlib and jax
