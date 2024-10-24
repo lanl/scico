@@ -35,9 +35,8 @@ Paper](https://doi.org/10.21105/joss.04722) (see bibtex entry
 
 # Installation
 
-See the [online
-documentation](https://scico.rtfd.io/en/latest/install.html) for
-installation instructions.
+The online documentation includes detailed
+[installation instructions](https://scico.rtfd.io/en/latest/install.html).
 
 
 # Usage Examples
