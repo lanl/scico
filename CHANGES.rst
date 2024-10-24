@@ -21,7 +21,7 @@ Version 0.0.6   (unreleased)
   ``scico.flax.save_variables`` and ``scico.flax.load_variables``
   respectively.
 • Support ``jaxlib`` and ``jax`` versions 0.4.13 to 0.4.35.
-• Support ``flax`` versions 0.8.0 to 0.9.0.
+• Support ``flax`` versions 0.8.0 to 0.10.0.
 
 
 
