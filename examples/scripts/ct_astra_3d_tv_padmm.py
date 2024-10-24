@@ -44,7 +44,7 @@ Nz = 64
 tangle = snp.array(create_tangle_phantom(Nx, Ny, Nz))
 
 n_projection = 10  # number of projections
-angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
+angles = np.linspace(0, np.pi, n_projection, endpoint=False)  # evenly spaced projection angles
 det_spacing = [1.0, 1.0]
 det_count = [Nz, max(Nx, Ny)]
 vectors = angle_to_vector(det_spacing, angles)
