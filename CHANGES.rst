@@ -3,7 +3,7 @@ SCICO Release Notes
 ===================
 
 
-Version 0.0.6   (unreleased)
+Version 0.0.6   (2024-10-25)
 ----------------------------
 
 • Significant changes to ``linop.xray.astra`` API.
