@@ -3,7 +3,7 @@ SCICO Release Notes
 ===================
 
 
-Version 0.0.6   (unreleased)
+Version 0.0.6   (2024-10-25)
 ----------------------------
 
 • Significant changes to ``linop.xray.astra`` API.
@@ -20,8 +20,8 @@ Version 0.0.6   (unreleased)
 • Rename ``scico.flax.save_weights`` and ``scico.flax.load_weights`` to
   ``scico.flax.save_variables`` and ``scico.flax.load_variables``
   respectively.
-• Support ``jaxlib`` and ``jax`` versions 0.4.3 to 0.4.34.
-• Support ``flax`` versions 0.8.0 to 0.9.0.
+• Support ``jaxlib`` and ``jax`` versions 0.4.13 to 0.4.35.
+• Support ``flax`` versions 0.8.0 to 0.10.0.
 
 
 

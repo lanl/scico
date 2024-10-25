@@ -462,6 +462,9 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
     `ASTRA toolbox <https://github.com/astra-toolbox/astra-toolbox>`_.
     The `3D geometries <https://astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
     "parallel3d" and "parallel3d_vec" are supported by this interface.
+    **NB:** A GPU is required for the primary functionality of this
+    class; if no GPU is available, projections and back projections will
+    fail with an "Unknown algorithm type" error.
 
     The volume is fixed with respect to the coordinate system, centered
     at the origin, as illustrated below:

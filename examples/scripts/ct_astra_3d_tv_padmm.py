@@ -56,7 +56,7 @@ C = XRayTransform3D(tangle.shape, det_count=det_count, vectors=vectors)  # CT pr
 y = C @ tangle  # sinogram
 
 
-"""
+r"""
 Set up problem and solver. We want to minimize the functional
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - C \mathbf{x}
