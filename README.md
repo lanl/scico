@@ -32,11 +32,12 @@ this software for published work, please cite the corresponding [JOSS
 Paper](https://doi.org/10.21105/joss.04722) (see bibtex entry
 `balke-2022-scico` in `docs/source/references.bib`).
 
+
 # Installation
 
-See the [online
-documentation](https://scico.rtfd.io/en/latest/install.html) for
-installation instructions.
+The online documentation includes detailed
+[installation instructions](https://scico.rtfd.io/en/latest/install.html).
+
 
 # Usage Examples
 
@@ -47,8 +48,11 @@ Jupyter Notebooks are provided in the
 to `examples/notebooks`. They are also viewable on
 [GitHub](https://github.com/lanl/scico-data/tree/main/notebooks) or
 [nbviewer](https://nbviewer.jupyter.org/github/lanl/scico-data/tree/main/notebooks/index.ipynb),
-or can be run online by
-[binder](https://mybinder.org/v2/gh/lanl/scico-data/binder?labpath=notebooks%2Findex.ipynb).
+and can be run online on
+[binder](https://mybinder.org/v2/gh/lanl/scico-data/binder?labpath=notebooks%2Findex.ipynb)
+or
+[google colab](https://colab.research.google.com/github/lanl/scico-data/blob/colab/notebooks/index.ipynb).
+
 
 # License
 

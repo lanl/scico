@@ -35,7 +35,6 @@ from scico.util import device_info
 Create a ground truth image.
 """
 N = 512  # phantom size
-
 np.random.seed(0)
 x_gt = discrete_phantom(Soil(porosity=0.80), size=384)
 x_gt = np.ascontiguousarray(np.pad(x_gt, (64, 64)))
@@ -49,8 +48,7 @@ Configure CT projection operator and generate synthetic measurements.
 n_projection = 360  # number of projections
 Io = 1e3  # source flux
 𝛼 = 1e-2  # attenuation coefficient
-
-angles = np.linspace(0, 2 * np.pi, n_projection)  # evenly spaced projection angles
+angles = np.linspace(0, 2 * np.pi, n_projection, endpoint=False)  # evenly spaced projection angles
 A = XRayTransform2D(x_gt.shape, N, 1.0, angles)  # CT projection operator
 y_c = A @ x_gt  # sinogram
 
@@ -99,13 +97,10 @@ Set up and solve the un-weighted reconstruction problem
 # shown here).
 ρ = 2.5e3  # ADMM penalty parameter
 lambda_unweighted = 3e2  # regularization strength
-
 maxiter = 100  # number of ADMM iterations
 cg_tol = 1e-5  # CG relative tolerance
 cg_maxiter = 10  # maximum CG iterations per ADMM iteration
-
 f = loss.SquaredL2Loss(y=y, A=A)
-
 admm_unweighted = ADMM(
     f=f,
     g_list=[lambda_unweighted * functional.L21Norm()],
@@ -137,10 +132,8 @@ use to maintain balance between the data and regularization terms if
 $I_0$ changes.
 """
 lambda_weighted = 5e1
-
 weights = snp.array(counts / Io)
 f = loss.SquaredL2Loss(y=y, A=A, W=linop.Diagonal(weights))
-
 admm_weighted = ADMM(
     f=f,
     g_list=[lambda_weighted * functional.L21Norm()],
@@ -151,6 +144,7 @@ admm_weighted = ADMM(
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": cg_tol, "maxiter": cg_maxiter}),
     itstat_options={"display": True, "period": 10},
 )
+print()
 admm_weighted.solve()
 x_weighted = postprocess(admm_weighted.x)
 

@@ -51,15 +51,8 @@ except ImportError:
     from jax.lib.xla_bridge import get_backend
 
 from scico.linop import CircularConvolve
+from scico.linop.xray import XRayTransform2D
 from scico.numpy import Array
-
-try:
-    import astra  # noqa: F401
-except ImportError:
-    have_astra = False
-else:
-    have_astra = True
-    from scico.linop.xray.astra import XRayTransform2D
 
 
 class Foam2(UnitCircle):
@@ -218,10 +211,8 @@ def generate_ct_data(
            - **sino** : (:class:`jax.Array`): Corresponding sinograms.
            - **fbp** : (:class:`jax.Array`) Corresponding filtered back projections.
     """
-    if not (have_ray and have_xdesign and have_astra):
-        raise RuntimeError(
-            "Packages ray, xdesign, and astra are required for use of this function."
-        )
+    if not (have_ray and have_xdesign):
+        raise RuntimeError("Packages ray and xdesign are required for use of this function.")
 
     # Generate input data.
     start_time = time()
@@ -234,17 +225,17 @@ def generate_ct_data(
 
     # Configure a CT projection operator to generate synthetic measurements.
     angles = np.linspace(0, jnp.pi, nproj)  # evenly spaced projection angles
-    gt_sh = (size, size)
-    detector_spacing = 1.0
-    A = XRayTransform2D(gt_sh, size, detector_spacing, angles)  # X-ray transform operator
-
+    gt_shape = (size, size)
+    dx = 1.0 / np.sqrt(2)
+    det_count = int(size * 1.05 / np.sqrt(2.0))
+    A = XRayTransform2D(gt_shape, angles, dx=dx, det_count=det_count)
     # Compute sinograms in parallel.
     start_time = time()
     if nproc > 1:
         # shard array
         imgshd = img.reshape((nproc, -1, size, size, 1))
         sinoshd = batched_f(A, imgshd)
-        sino = sinoshd.reshape((-1, nproj, size, 1))
+        sino = sinoshd.reshape((-1, nproj, sinoshd.shape[-2], 1))
     else:
         sino = vector_f(A, img)
 
@@ -261,8 +252,8 @@ def generate_ct_data(
 
     # Normalize sinogram.
     sino = sino / size
-    # Shift FBP to [0,1] range.
-    fbp = (fbp - fbp.min()) / (fbp.max() - fbp.min())
+    # Clip FBP to [0,1] range.
+    fbp = np.clip(fbp, 0, 1)
 
     if verbose:  # pragma: no cover
         platform = get_backend().platform

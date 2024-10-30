@@ -8,10 +8,10 @@ include pyproject.toml
 include pytest.ini
 include requirements.txt
 include dev_requirements.txt
-include examples/scriptcheck.sh
 include docs/docs_requirements.txt
 
 recursive-include scico *.py
-recursive-include scico/data *.png *.npz
-recursive-include docs Makefile *.py *.ipynb *.rst *.bib *.css *.svg *.ico
-recursive-include examples *_requirements.txt *.txt *.rst *.py
+recursive-include scico/data *.png *.mpk *.rst
+recursive-include docs Makefile *.py *.ipynb *.rst *.bib *.css *.svg *.png *.ico
+recursive-include examples *_requirements.txt *.txt *.rst *.py *.sh
+recursive-include misc *.py *.sh *.rst

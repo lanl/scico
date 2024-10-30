@@ -44,7 +44,7 @@ x_gt = jnp.array(x_gt)  # convert to jax type
 Configure a CT projection operator and generate synthetic measurements.
 """
 n_projection = N  # matches the phantom size so this is not few-view CT
-angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
+angles = np.linspace(0, np.pi, n_projection, endpoint=False)  # evenly spaced projection angles
 A = 1 / N * XRayTransform2D(x_gt.shape, N, 1.0, angles)  # CT projection operator
 y = A @ x_gt  # sinogram
 
