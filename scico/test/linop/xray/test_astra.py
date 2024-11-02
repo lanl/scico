@@ -8,7 +8,6 @@ import scico
 import scico.numpy as snp
 from scico.linop import DiagonalStack
 from scico.test.linop.test_linop import adjoint_test
-from scico.test.linop.xray.test_svmbir import make_im
 
 try:
     from scico.linop.xray.astra import (
@@ -28,6 +27,17 @@ N = 128
 RTOL_CPU = 5e-5
 RTOL_GPU = 7e-2
 RTOL_GPU_RANDOM_INPUT = 1.0
+
+
+def make_im(Nx, Ny, is_3d=True):
+    x, y = snp.meshgrid(snp.linspace(-1, 1, Nx), snp.linspace(-1, 1, Ny))
+
+    im = snp.where((x - 0.25) ** 2 / 3 + y**2 < 0.1, 1.0, 0.0)
+    if is_3d:
+        im = im[snp.newaxis, :, :]
+    im = im.astype(snp.float32)
+
+    return im
 
 
 def get_tol():
