@@ -113,7 +113,7 @@ jobs:
           coverage combine coverage?/.coverage
           coverage report
           coverage xml
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
         with:
           env_vars: OS,PYTHON
           fail_ci_if_error: false
