@@ -317,7 +317,7 @@ def test_convert_from_scico_geometry(test_geometry):
 
 def test_vol_coord_to_world_coord():
     vol_geom = scico.linop.xray.astra.astra.create_vol_geom(16, 16)
-    vc = np.array([[0.0, 0.0, 0.0], [1.0, 1.0, 0.0]])
+    vc = np.array([[0.0, 0.0], [1.0, 1.0]])
     wc = scico.linop.xray.astra.volume_coords_to_world_coords(vc, vol_geom)
     assert wc.shape == (2, 2)
 
