@@ -141,7 +141,7 @@ def volume_coords_to_world_coords(idx: np.ndarray, vol_geom: VolumeGeometry) -> 
 
 def _volume_index_to_astra_world_2d(idx: np.ndarray, vol_geom: VolumeGeometry) -> np.ndarray:
     """Convert a 2D volume coordinate into a 2D world coordinate."""
-    coord = idx[..., [2, 1]]  # x:col, y:row,
+    coord = idx[..., [1, 0]]  # x:col, y:row,
     nx = np.array(  # (x, y) order
         (
             vol_geom["GridColCount"],

@@ -60,7 +60,7 @@ def pytest_generate_tests(metafunc):
 
 
 def make_im(Nx, Ny, is_3d=True):
-    x, y = snp.meshgrid(snp.linspace(-1, 1, Nx), snp.linspace(-1, 1, Ny))
+    x, y = snp.meshgrid(snp.linspace(-1, 1, Nx), snp.linspace(-1, 1, Ny), indexing="ij")
 
     im = snp.where((x - 0.25) ** 2 / 3 + y**2 < 0.1, 1.0, 0.0)
     if is_3d:

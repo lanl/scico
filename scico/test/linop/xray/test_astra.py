@@ -8,7 +8,6 @@ import scico
 import scico.numpy as snp
 from scico.linop import DiagonalStack
 from scico.test.linop.test_linop import adjoint_test
-from scico.test.linop.xray.test_svmbir import make_im
 
 try:
     from scico.linop.xray.astra import (
@@ -28,6 +27,17 @@ N = 128
 RTOL_CPU = 5e-5
 RTOL_GPU = 7e-2
 RTOL_GPU_RANDOM_INPUT = 1.0
+
+
+def make_im(Nx, Ny, is_3d=True):
+    x, y = snp.meshgrid(snp.linspace(-1, 1, Nx), snp.linspace(-1, 1, Ny), indexing="ij")
+
+    im = snp.where((x - 0.25) ** 2 / 3 + y**2 < 0.1, 1.0, 0.0)
+    if is_3d:
+        im = im[snp.newaxis, :, :]
+    im = im.astype(snp.float32)
+
+    return im
 
 
 def get_tol():
@@ -68,6 +78,31 @@ class XRayTransform2DTest:
 @pytest.fixture(params=[None, [-N / 2, N / 2, -N / 2, N / 2]])
 def testobj(request):
     yield XRayTransform2DTest(request.param)
+
+
+def test_init(testobj):
+    with pytest.raises(ValueError):
+        A = XRayTransform2D(
+            input_shape=(16, 16, 16),
+            det_count=16,
+            det_spacing=1.0,
+            angles=np.linspace(0, np.pi, 32, False),
+        )
+    with pytest.raises(ValueError):
+        A = XRayTransform2D(
+            input_shape=(16, 16),
+            det_count=16.3,
+            det_spacing=1.0,
+            angles=np.linspace(0, np.pi, 32, False),
+        )
+    with pytest.raises(ValueError):
+        A = XRayTransform2D(
+            input_shape=(16, 16),
+            det_count=16,
+            det_spacing=1.0,
+            angles=np.linspace(0, np.pi, 32, False),
+            device="invalid",
+        )
 
 
 def test_ATA_call(testobj):
@@ -278,6 +313,13 @@ def test_convert_from_scico_geometry(test_geometry):
     # skip testing element 5, as it is detector center along the ray and doesn't matter
     np.testing.assert_allclose(vectors[0, :5], proj_geom_truth["Vectors"][0, :5])
     np.testing.assert_allclose(vectors[0, 6:], proj_geom_truth["Vectors"][0, 6:])
+
+
+def test_vol_coord_to_world_coord():
+    vol_geom = scico.linop.xray.astra.astra.create_vol_geom(16, 16)
+    vc = np.array([[0.0, 0.0], [1.0, 1.0]])
+    wc = scico.linop.xray.astra.volume_coords_to_world_coords(vc, vol_geom)
+    assert wc.shape == (2, 2)
 
 
 def test_ensure_writeable():
