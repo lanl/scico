@@ -462,9 +462,9 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
     `ASTRA toolbox <https://github.com/astra-toolbox/astra-toolbox>`_.
     The `3D geometries <https://astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
     "parallel3d" and "parallel3d_vec" are supported by this interface.
-    **NB:** A GPU is required for the primary functionality of this
-    class; if no GPU is available, projections and back projections will
-    fail with an "Unknown algorithm type" error.
+    Note that a CUDA GPU is required for the primary functionality of
+    this class; if no GPU is available, initialization will fail with a
+    :exc:`RuntimeError`.
 
     The volume is fixed with respect to the coordinate system, centered
     at the origin, as illustrated below:
@@ -570,7 +570,14 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
                for more information.
             angles: Array of projection angles in radians.
             vectors: Array of geometry specification vectors.
+
+        Raises:
+            RuntimeError: If a CUDA GPU is not available to the ASTRA
+                toolbox.
         """
+        if not astra.use_cuda():
+            raise RuntimeError("CUDA GPU required but not available or not enabled.")
+
         if not (
             (det_spacing is not None and angles is not None and vectors is None)
             or (vectors is not None and det_spacing is None and angles is None)
