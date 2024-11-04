@@ -8,7 +8,7 @@ r"""
 SCICO Call Tracing
 ==================
 
-This example demonstates the call tracing functionality provided by the
+This example demonstrates the call tracing functionality provided by the
 [trace](../_autosummary/scico.trace.rst) module. It is based on the
 [non-negative BPDN example](sparsecode_nn_admm.rst).
 """
