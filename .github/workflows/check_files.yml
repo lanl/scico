@@ -11,7 +11,7 @@ jobs:
     - name: checkout
       uses: actions/checkout@v4
     - id: files
-      uses: Ana06/get-changed-files@v2.2.0
+      uses: Ana06/get-changed-files@v2.3.0
       continue-on-error: true
     - run: |
        for f in ${{ steps.files.outputs.added }}; do
