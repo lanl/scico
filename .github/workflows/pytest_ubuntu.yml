@@ -60,11 +60,10 @@ jobs:
           pip install pytest-split
           pip install -r requirements.txt
           pip install -r dev_requirements.txt
-          # svmbir install temporarily disabled due to import errors
-          #conda install -c conda-forge svmbir>=0.3.3
+          conda install -c conda-forge svmbir>=0.4.0
           conda install -c conda-forge astra-toolbox
           conda install -c conda-forge pyyaml
-          pip install --upgrade --force-reinstall scipy>=1.6.0  # Temporary fix for GLIBCXX_3.4.30 not found in conda forge version
+          # pip install --upgrade --force-reinstall scipy>=1.6.0  # Temporary fix for GLIBCXX_3.4.30 not found in conda forge version
           pip install bm3d>=4.0.0
           pip install bm4d>=4.2.2
           pip install "ray[tune]>=2.5.0"
