@@ -126,8 +126,8 @@ def _trace_arg_repr(val: Any) -> str:
                     shard_str = f"{clr_devc}{{shard={val.sharding.shape}}}{clr_args}"
             return f"Array{val.shape}{dev_str}{shard_str}"
     else:
-        if _get_hash(val) in call_trace.instance_hash:
-            return f"{clr_rvar}{call_trace.instance_hash[val.__hash__()]}{clr_args}"
+        if _get_hash(val) in call_trace.instance_hash:  # type: ignore
+            return f"{clr_rvar}{call_trace.instance_hash[val.__hash__()]}{clr_args}"  # type: ignore
         else:
             return f"[{type(val).__name__}]"
 
