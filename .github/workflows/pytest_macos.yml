@@ -57,13 +57,14 @@ jobs:
           pip install pytest-split
           pip install -r requirements.txt
           pip install -r dev_requirements.txt
-          conda install -c conda-forge svmbir>=0.4.0
-          conda install -c astra-toolbox astra-toolbox
-          conda install -c conda-forge pyyaml
           pip install bm3d>=4.0.0
           pip install bm4d>=4.0.0
           pip install "ray[tune]>=2.5.0"
           pip install hyperopt
+          pip install svmbir>=0.4.0
+          #conda install -c conda-forge svmbir>=0.4.0
+          conda install -c astra-toolbox astra-toolbox
+          conda install -c conda-forge pyyaml
       # Install package to be tested
       - name: Install package to be tested
         run: pip install -e .
