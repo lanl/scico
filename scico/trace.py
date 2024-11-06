@@ -5,7 +5,27 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Call tracing of scico functions and methods."""
+"""Call tracing of scico functions and methods.
+
+JIT must be disabled for tracing to function correctly (set environment
+variable :code:`JAX_DISABLE_JIT=1`, or call
+:code:`jax.config.update('jax_disable_jit', True)` before importing `jax`
+or `scico`). Call :code:`trace_scico_calls` to initialize tracing, and
+call :code:`register_variable` to associate a name with a variable so
+that it can be referenced by name in the call trace.
+
+The call trace is color-code as follows if
+`colorama <https://github.com/tartley/colorama>`_ is installed:
+
+- `module and class names`: light red
+- `function and method names`: dark red
+- `arguments and return values`: light blue
+- `names of registered variables`: light yellow
+
+When a method defined in a class is called for an object of a derived
+class type, the class of that object is displayed in light magenta, in
+square brackets.
+"""
 
 
 from __future__ import annotations
