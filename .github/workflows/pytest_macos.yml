@@ -41,7 +41,7 @@ jobs:
           path: ${{ env.CONDA }}/envs
           key: conda-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('dev_requirements.txt') }}-${{ env.CACHE_NUMBER }}
         env:
-          CACHE_NUMBER: 1  # Increase this value to force cache reset
+          CACHE_NUMBER: 0  # Increase this value to force cache reset
         id: cache
       # Display environment details
       - name: Display environment details
@@ -57,15 +57,13 @@ jobs:
           pip install pytest-split
           pip install -r requirements.txt
           pip install -r dev_requirements.txt
-          # Temporarily disabled due to svmbir failure with numpy 2.x under Python 3.12
-          # conda install -c conda-forge svmbir>=0.3.3
-          conda install -c astra-toolbox astra-toolbox
-          conda install -c conda-forge pyyaml
-          pip install --upgrade --force-reinstall scipy>=1.6.0  # Temporary fix for GLIBCXX_3.4.30 not found in conda forge version
           pip install bm3d>=4.0.0
           pip install bm4d>=4.0.0
           pip install "ray[tune]>=2.5.0"
           pip install hyperopt
+          conda install -c conda-forge svmbir>=0.4.0
+          conda install -c astra-toolbox astra-toolbox
+          conda install -c conda-forge pyyaml
       # Install package to be tested
       - name: Install package to be tested
         run: pip install -e .
