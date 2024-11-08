@@ -27,13 +27,14 @@ from scico.util import device_info
 """
 Initialize tracing. JIT must be disabled for correct tracing.
 
-The call tracing mechanism prints the name, arguments, and return
-values of functions/methods as they are called. Module and class
-names are printed in light red, function and method names in dark
-red, arguments and return values in light blue, and the names of
-registered variables in light yellow. When a method defined in a
-class is called for an object of a derived class type, the class
-of that object is printed in light magenta, in square brackets.
+The call tracing mechanism prints the name, arguments, and return values
+of functions/methods as they are called. Module and class names are
+printed in light red, function and method names in dark red, arguments
+and return values in light blue, and the names of registered variables
+in light yellow. When a method defined in a class is called for an object
+of a derived class type, the class of that object is printed in light
+magenta, in square brackets. Function names and return values are
+distinguished by initial ">>" and "<<" characters respectively.
 """
 jax.config.update("jax_disable_jit", True)
 trace_scico_calls()
@@ -79,7 +80,7 @@ f = loss.SquaredL2Loss(y=y, A=A)
 g_list = [lmbda * functional.L1Norm(), functional.NonNegativeIndicator()]
 C_list = [linop.Identity((n)), linop.Identity((n))]
 rho_list = [1.0, 1.0]
-maxiter = 10  # number of ADMM iterations
+maxiter = 1  # number of ADMM iterations (set to small value to simplify trace output)
 
 register_variable(f, "f")
 register_variable(g_list[0], "g_list[0]")

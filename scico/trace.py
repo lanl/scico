@@ -24,7 +24,10 @@ The call trace is color-code as follows if
 
 When a method defined in a class is called for an object of a derived
 class type, the class of that object is displayed in light magenta, in
-square brackets.
+square brackets. Function names and return values are distinguished by
+initial ``>>`` and ``<<`` characters respectively.
+
+A usage example is provided in the script :code:`trace_example.py`.
 """
 
 
@@ -232,7 +235,7 @@ def call_trace(func: Callable) -> Callable:
         # print representation of return value
         if ret is not None and call_trace.show_return_value:
             print(
-                f"{clr_main}>> {' ' * 2 * call_trace.trace_level}{clr_retv}"
+                f"{clr_main}<< {' ' * 2 * call_trace.trace_level}{clr_retv}"
                 f"{_trace_arg_repr(ret)}{clr_reset}",
                 file=sys.stderr,
             )
