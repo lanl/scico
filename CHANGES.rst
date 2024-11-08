@@ -6,7 +6,7 @@ SCICO Release Notes
 Version 0.0.7   (unreleased)
 ----------------------------
 
-• No changes yet.
+• New module ``scico.trace`` for tracing function/method calls.
 
 
 
