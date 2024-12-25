@@ -28,8 +28,7 @@ def rotate_volume(
     Rotate a 3D array as specified by an instance of
     :class:`~jax.scipy.spatial.transform.Rotation`. Any axis coordinates
     that are not specified default to a range corresponding to the size
-    of the array on that axis, shifted so that 0 is at the center of the
-    array.
+    of the array on that axis, starting at zero.
 
     Args:
         vol: Array to be rotated.
