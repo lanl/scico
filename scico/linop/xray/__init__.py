@@ -66,12 +66,10 @@ CUDA, and can only be run on GPU devices.
 
 import sys
 
+from ._util import rotate_volume
 from ._xray import XRayTransform2D, XRayTransform3D
 
-__all__ = [
-    "XRayTransform2D",
-    "XRayTransform3D",
-]
+__all__ = ["XRayTransform2D", "XRayTransform3D", "rotate_volume"]
 
 
 # Imported items in __all__ appear to originate in top-level xray module
