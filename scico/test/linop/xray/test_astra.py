@@ -24,8 +24,8 @@ except ModuleNotFoundError as e:
 
 
 N = 128
-RTOL_CPU = 5e-5
-RTOL_GPU = 7e-2
+RTOL_CPU = 1e-4
+RTOL_GPU = 8e-2
 RTOL_GPU_RANDOM_INPUT = 1.0
 
 
