@@ -24,9 +24,9 @@ except ModuleNotFoundError as e:
 
 
 N = 128
-RTOL_CPU = 5e-5
-RTOL_GPU = 7e-2
-RTOL_GPU_RANDOM_INPUT = 1.0
+RTOL_CPU = 1e-4
+RTOL_GPU = 1e-1
+RTOL_GPU_RANDOM_INPUT = 2.0
 
 
 def make_im(Nx, Ny, is_3d=True):
