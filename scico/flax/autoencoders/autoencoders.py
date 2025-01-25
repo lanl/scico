@@ -15,6 +15,7 @@ from typing import Any, Callable, Sequence, Tuple
 
 from numpy import prod
 
+import jax.numpy as jnp
 from jax.typing import ArrayLike
 
 import flax.linen as nn
