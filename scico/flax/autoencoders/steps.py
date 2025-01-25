@@ -248,3 +248,45 @@ def eval_step_vae(
     loss = mse_loss + kl_weight * kl_loss
     metrics: VAEMetricsDict = {"loss": loss, "mse": mse_loss, "kl": kl_loss}
     return metrics
+
+
+def build_sample_fn(model: Callable, params: PyTree):
+    """Function to generate samples from model.
+
+    Args:
+        model: Variational autoencoder model to generate samples from.
+        params: Parameters of trained model.
+    """
+
+    @jax.jit
+    def sample_fn(z: ArrayLike) -> ArrayLike:
+        """Generate samples from latent representation.
+
+        Args:
+            z: Representation in latent space.
+        """
+        return model.apply(params, z, method=model.decode)
+
+    return sample_fn
+
+
+def build_sample_conditional_fn(model: Callable, params: PyTree):
+    """Function to generate samples from model.
+
+    Args:
+        model: Variational autoencoder model to generate samples from.
+        params: Parameters of trained model.
+    """
+
+    @jax.jit
+    def sample_fn(z: ArrayLike, c: ArrayLike) -> ArrayLike:
+        """Generate samples from latent representation conditioned
+        on sample class.
+
+        Args:
+            z: Representation in latent space.
+            c: Class to generate samples from.
+        """
+        return model.apply(params, z, c, method=model.decode_cond)
+
+    return sample_fn
