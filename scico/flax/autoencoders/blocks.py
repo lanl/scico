@@ -41,6 +41,7 @@ class MLP(nn.Module):
     layer_widths: Sequence[int]
     activation_fn: Callable = nn.relu
     activate_final: bool = False
+    flatten_first: bool = False
 
     @nn.compact
     def __call__(self, x: ArrayLike) -> ArrayLike:
@@ -53,6 +54,9 @@ class MLP(nn.Module):
             The input after being transformed by the multiple layers
             of the MLP.
         """
+        if self.flatten_first:
+            # Flatten input (e.g. for latent representation).
+            x = x.reshape((x.shape[0], -1))
         for layer_width in self.layer_widths[:-1]:
             x = self.activation_fn(nn.Dense(layer_width)(x))
         x = nn.Dense(self.layer_widths[-1])(x)

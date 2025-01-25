@@ -8,6 +8,7 @@
 """Definition of steps to iterate during training or evaluation of
 variational autoencoders."""
 
+import sys
 from typing import Any, Callable, Tuple
 
 import jax
@@ -17,14 +18,14 @@ from jax.typing import ArrayLike
 
 import optax
 
-from .state import TrainState
-
 PyTree = Any
 
 if sys.version_info >= (3, 8):
     from typing import TypedDict  # pylint: disable=no-name-in-module
 else:
     from typing_extensions import TypedDict
+
+from flax.training.train_state import TrainState
 
 
 class VAEMetricsDict(TypedDict, total=False):
@@ -43,11 +44,12 @@ class VAEMetricsDict(TypedDict, total=False):
 
 def train_step_vae(
     state: TrainState,
-    batch_x: ArrayLike,
+    batch: ArrayLike,
     key: ArrayLike,
     kl_weight: float,
     learning_rate_fn: optax._src.base.Schedule,
     criterion: Callable,
+    **kwargs,
 ) -> Tuple[TrainState, VAEMetricsDict]:
     """Perform a single data parallel training step.
 
@@ -57,9 +59,9 @@ def train_step_vae(
     Args:
         state: Flax train state which includes the model apply function,
             the model parameters and an Optax optimizer.
-        batch_x: Sharded and batched training data. Only input required
-            (i.e. no label is passed since the goal is to recover the
-            input).
+        batch: Sharded and batched training data. Only input data is
+            passed (i.e. no label is passed since the prediction must
+            correspond to the input).
         key: Key for random generation.
         kl_weight: Weight of the KL divergence term in the total training loss.
         learning_rate_fn: A function to map step
@@ -81,23 +83,22 @@ def train_step_vae(
     def loss_fn(params: PyTree, x: ArrayLike, key: ArrayLike):
         """Loss function used for training."""
         reduce_dims = list(range(1, len(x.shape)))
-        output, new_model_state = state.apply_fn(
+        output, mean, logvar = state.apply_fn(
             {
                 "params": params,
             },
             x,
             key,
         )
-        recon, mean, logvar = output
-        loss = criterion(recon, x).sum(axis=reduce_dims).mean()
+
+        mse_loss = criterion(output, x).sum(axis=reduce_dims).mean()
         # KL loss term to keep encoder output close to standard
         # normal distribution.
-        kl_loss = jnp.mean(
-            -0.5 * jnp.sum(1 + logvar - mean**2 - jnp.exp(logvar), axis=reduce_dims)
-        )
+        reduce_dims = list(range(1, len(mean.shape)))
+        kl_loss = jnp.mean(-0.5 * jnp.sum(1 + logvar - mean**2 - jnp.exp(logvar), axis=reduce_dims))
         loss = mse_loss + kl_weight * kl_loss
         losses = (loss, mse_loss, kl_loss)
-        return loss, (new_model_state, losses)
+        return loss, losses
 
     step = state.step
     # Only to figure out current learning rate, which cannot be stored in stateless optax.
@@ -106,10 +107,10 @@ def train_step_vae(
     lr = learning_rate_fn(step)
 
     grad_fn = jax.value_and_grad(loss_fn, has_aux=True)
-    aux, grads = grad_fn(state.params, batch_x, key)
+    aux, grads = grad_fn(state.params, batch["image"], step_key)
+    losses = aux[1]
     # Re-use same axis_name as in call to pmap
     grads = lax.pmean(grads, axis_name="batch")
-    new_model_state, losses = aux[1]
     metrics: VAEMetricsDict = {"loss": losses[0], "mse": losses[1], "kl": losses[2]}
     metrics = lax.pmean(metrics, axis_name="batch")
     metrics["learning_rate"] = lr
@@ -124,13 +125,14 @@ def train_step_vae(
 
 def train_step_vae_class_conditional(
     state: TrainState,
-    batch_x: ArrayLike,
+    batch: ArrayLike,
     batch_c: ArrayLike,
     num_classes: int,
     key: ArrayLike,
     kl_weight: float,
     learning_rate_fn: optax._src.base.Schedule,
     criterion: Callable,
+    **kwargs,
 ) -> Tuple[TrainState, VAEMetricsDict]:
     """Perform a single data parallel training step using class
     conditional information.
@@ -141,9 +143,8 @@ def train_step_vae_class_conditional(
     Args:
         state: Flax train state which includes the model apply function,
             the model parameters and an Optax optimizer.
-        batch_x: Sharded and batched training data. Only input required
-            (i.e. no label is passed since the goal is to recover the
-            input).
+        batch: Sharded and batched training data. Only output data is
+            passed.
         batch_c: Sharded and batched training conditional data associated
             to class of samples.
         num_classes: Number of classes in dataset.
@@ -169,7 +170,7 @@ def train_step_vae_class_conditional(
         """Loss function used for training."""
         reduce_dims = list(range(1, len(x.shape)))
         c = jax.nn.one_hot(c, num_classes).squeeze()  # one hot encode the class index
-        output, new_model_state = state.apply_fn(
+        output, mean, logvar = state.apply_fn(
             {
                 "params": params,
             },
@@ -177,16 +178,15 @@ def train_step_vae_class_conditional(
             key,
             c,
         )
-        recon, mean, logvar = output
-        loss = criterion(recon, x).sum(axis=reduce_dims).mean()
+
+        mse_loss = criterion(output, x).sum(axis=reduce_dims).mean()
         # KL loss term to keep encoder output close to standard
         # normal distribution.
-        kl_loss = jnp.mean(
-            -0.5 * jnp.sum(1 + logvar - mean**2 - jnp.exp(logvar), axis=reduce_dims)
-        )
+        reduce_dims = list(range(1, len(mean.shape)))
+        kl_loss = jnp.mean(-0.5 * jnp.sum(1 + logvar - mean**2 - jnp.exp(logvar), axis=reduce_dims))
         loss = mse_loss + kl_weight * kl_loss
         losses = (loss, mse_loss, kl_loss)
-        return loss, (new_model_state, losses)
+        return loss, losses
 
     step = state.step
     # Only to figure out current learning rate, which cannot be stored in stateless optax.
@@ -195,10 +195,10 @@ def train_step_vae_class_conditional(
     lr = learning_rate_fn(step)
 
     grad_fn = jax.value_and_grad(loss_fn, has_aux=True)
-    aux, grads = grad_fn(state.params, batch_x, batch_c, key)
+    aux, grads = grad_fn(state.params, batch_["image"], batch_c, step_key)
+    losses = aux[1]
     # Re-use same axis_name as in call to pmap
     grads = lax.pmean(grads, axis_name="batch")
-    new_model_state, losses = aux[1]
     metrics: VAEMetricsDict = {"loss": losses[0], "mse": losses[1], "kl": losses[2]}
     metrics = lax.pmean(metrics, axis_name="batch")
     metrics["learning_rate"] = lr
@@ -209,3 +209,42 @@ def train_step_vae_class_conditional(
     )
 
     return new_state, metrics
+
+
+def eval_step_vae(
+    state: TrainState,
+    batch: ArrayLike,
+    criterion: Callable,
+    key: ArrayLike,
+    kl_weight: float,
+    **kwargs,
+) -> VAEMetricsDict:
+    """Evaluate current model state.
+
+    Assumes sharded batched data. This function is intended to be used
+    via :class:`~scico.flax.BasicFlaxTrainer` or
+    :meth:`~scico.flax.only_evaluate`, not directly.
+
+    Args:
+        state: Flax train state which includes the model apply function
+            and the model parameters.
+        batch: Sharded and batched training data.
+        criterion: Loss function.
+
+    Returns:
+        Current diagnostic statistics.
+    """
+    variables = {
+        "params": state.params,
+    }
+    key, step_key = jax.random.split(key)
+    output, mean, logvar = state.apply_fn(variables, batch["image"], step_key)
+    reduce_dims = list(range(1, len(batch["image"].shape)))
+    mse_loss = criterion(output, batch["image"]).sum(axis=reduce_dims).mean()
+    # KL loss term to keep encoder output close to standard
+    # normal distribution.
+    reduce_dims = list(range(1, len(mean.shape)))
+    kl_loss = jnp.mean(-0.5 * jnp.sum(1 + logvar - mean**2 - jnp.exp(logvar), axis=reduce_dims))
+    loss = mse_loss + kl_weight * kl_loss
+    metrics: VAEMetricsDict = {"loss": loss, "mse": mse_loss, "kl": kl_loss}
+    return metrics

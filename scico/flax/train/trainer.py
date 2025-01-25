@@ -19,6 +19,7 @@ import time
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import jax
+import jax.numpy as jnp
 from jax import lax
 
 from flax import jax_utils
@@ -63,7 +64,7 @@ class BasicFlaxTrainer:
         config: ConfigDict,
         model: ModuleDef,
         train_ds: DataSetDict,
-        test_ds: DataSetDict,
+        test_ds: Optional[DataSetDict] = None,
         variables0: Optional[ModelVarDict] = None,
     ):
         """Initializer for :class:`BasicFlaxTrainer`.
@@ -80,7 +81,8 @@ class BasicFlaxTrainer:
             train_ds: Dictionary of training data (includes images and
                 labels).
             test_ds: Dictionary of testing data (includes images and
-                labels).
+                labels). No eval function is run if no test data
+                is provided.
             variables0: Optional initial state of model parameters.
         """
         # Configure seed
@@ -96,7 +98,11 @@ class BasicFlaxTrainer:
 
         # Configure training loop
         len_train = train_ds["image"].shape[0]
-        len_test = test_ds["image"].shape[0]
+        if test_ds is not None:
+            len_test = test_ds["image"].shape[0]
+        else:
+            len_test = 0
+        self.len_test = len_test
         self.set_training_parameters(config, len_train, len_test)
         self.construct_data_iterators(train_ds, test_ds, key1, model.dtype)
 
@@ -202,7 +208,10 @@ class BasicFlaxTrainer:
         if "log" in config:
             self.logflag: bool = config["log"]
             if self.logflag:
-                self.itstat_object, self.itstat_insert_func = stats_obj()
+                if "stats_obj" in config:
+                    self.itstat_object, self.itstat_insert_func = config["stats_obj"]
+                else:
+                    self.itstat_object, self.itstat_insert_func = stats_obj()
         else:
             self.logflag = False
 
@@ -280,6 +289,8 @@ class BasicFlaxTrainer:
 
         if "eval_step_fn" in config:
             self.eval_step_fn: Callable = config["eval_step_fn"]
+        elif self.len_test == 0:
+            self.eval_step_fn = None
         else:
             self.eval_step_fn = eval_step
 
@@ -319,24 +330,30 @@ class BasicFlaxTrainer:
             mdtype,
             train=True,
         )
-        self.eval_dt_iter = create_input_iter(
-            key,  # eval: no permutation
-            test_ds,
-            self.local_batch_size,
-            size_device_prefetch,
-            mdtype,
-            train=False,
-        )
+        if self.len_test > 0:  # Test data available
+            self.eval_dt_iter = create_input_iter(
+                key,  # eval: no permutation
+                test_ds,
+                self.local_batch_size,
+                size_device_prefetch,
+                mdtype,
+                train=False,
+            )
 
         self.ishape = train_ds["image"].shape[1:3]
+        key = "label"
+        # Autoencoder data may only include input (a.k.a. image)
+        if key not in train_ds.keys():
+            key = "image"
+
         self.log(
             "channels: %d   training signals: %d   testing"
             " signals: %d   signal size: %d\n"
             % (
-                train_ds["label"].shape[-1],
-                train_ds["label"].shape[0],
-                test_ds["label"].shape[0],
-                train_ds["label"].shape[1],
+                train_ds[key].shape[-1],
+                train_ds[key].shape[0],
+                self.len_test,
+                train_ds[key].shape[1],
             )
         )
 
@@ -368,12 +385,14 @@ class BasicFlaxTrainer:
                 ),
                 axis_name="batch",
             )
-        self.p_eval_step = jax.pmap(
-            functools.partial(
-                self.eval_step_fn, criterion=self.criterion, metrics_fn=self.metrics_fn
-            ),
-            axis_name="batch",
-        )
+
+        if self.len_test > 0:
+            self.p_eval_step = jax.pmap(
+                functools.partial(
+                    self.eval_step_fn, criterion=self.criterion, metrics_fn=self.metrics_fn
+                ),
+                axis_name="batch",
+            )
 
     def initialize_training_state(
         self,
@@ -410,8 +429,13 @@ class BasicFlaxTrainer:
 
         self.state = state
 
-    def train(self) -> Tuple[Dict[str, Any], Optional[IterationStats]]:
+    def train(
+        self, key: Optional[KeyArray] = None
+    ) -> Tuple[Dict[str, Any], Optional[IterationStats]]:
         """Execute training loop.
+        Args:
+            key: Key for random generation for models that require
+                randomness while training (e.g. autoencoders).
 
         Returns:
             Model variables extracted from :class:`.TrainState` and
@@ -433,19 +457,26 @@ class BasicFlaxTrainer:
         train_metrics: List[Any] = []
 
         for step, batch in zip(range(step_offset, self.num_steps), self.train_dt_iter):
-            state, metrics = self.p_train_step(state, batch)
+            if key is None:
+                state, metrics = self.p_train_step(state, batch)
+            else:
+                key, *step_rng = jax.random.split(key, jax.local_device_count() + 1)
+                step_rng = jnp.asarray(step_rng)
+                state, metrics = self.p_train_step(state, batch, key=step_rng)
             # Training metrics computed in step
             train_metrics.append(metrics)
             if step == step_offset:
                 self.log("Initial compilation completed.\n")
             if (step + 1) % self.log_every_steps == 0:
-                # sync batch statistics across replicas
-                state = sync_batch_stats(state)
-                self.update_metrics(state, step, train_metrics, t0)
+                if hasattr(state, "batch_stats"):
+                    # sync batch statistics across replicas
+                    state = sync_batch_stats(state)
+                self.update_metrics(state, step, train_metrics, t0, key)
                 train_metrics = []
             if (step + 1) % self.steps_per_checkpoint == 0 or step + 1 == self.num_steps:
-                # sync batch statistics across replicas
-                state = sync_batch_stats(state)
+                if hasattr(state, "batch_stats"):
+                    # sync batch statistics across replicas
+                    state = sync_batch_stats(state)
                 self.checkpoint(state)
 
         # Wait for finishing asynchronous execution
@@ -455,7 +486,8 @@ class BasicFlaxTrainer:
             assert self.itstat_object is not None
             self.itstat_object.end()
 
-        state = sync_batch_stats(state)
+        if hasattr(state, "batch_stats"):
+            state = sync_batch_stats(state)
         # Final checkpointing
         self.checkpoint(state)
         # Extract one copy of state
@@ -463,16 +495,28 @@ class BasicFlaxTrainer:
         if self.return_state:
             return state, self.itstat_object  # type: ignore
 
-        dvar: ModelVarDict = {
-            "params": state.params,
-            "batch_stats": state.batch_stats,
-        }
+        if hasattr(state, "batch_stats"):
+            dvar: ModelVarDict = {
+                "params": state.params,
+                "batch_stats": state.batch_stats,
+            }
+        else:
+            dvar: ModelVarDict = {
+                "params": state.params,
+            }
 
         self.train_time = time.time() - t0
 
         return dvar, self.itstat_object  # type: ignore
 
-    def update_metrics(self, state: TrainState, step: int, train_metrics: List[MetricsDict], t0):
+    def update_metrics(
+        self,
+        state: TrainState,
+        step: int,
+        train_metrics: List[MetricsDict],
+        t0,
+        key: Optional[KeyArray] = None,
+    ):
         """Compute metrics for current model state.
 
         Metrics for training and testing (eval) sets are computed and
@@ -506,7 +550,12 @@ class BasicFlaxTrainer:
         # Eval over testing set
         for _ in range(self.steps_per_eval):
             eval_batch = next(self.eval_dt_iter)
-            metrics = self.p_eval_step(state, eval_batch)
+            if key is None:
+                metrics = self.p_eval_step(state, eval_batch)
+            else:
+                key, *step_rng = jax.random.split(key, jax.local_device_count() + 1)
+                step_rng = jnp.asarray(step_rng)
+                metrics = self.p_eval_step(state, eval_batch, key=step_rng)
             eval_metrics.append(metrics)
         # Compute testing metrics
         eval_metrics = common_utils.get_metrics(eval_metrics)

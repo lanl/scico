@@ -38,6 +38,11 @@ class AE(nn.Module):
     encoder: Callable
     decoder: Callable
 
+    def setup(self):
+        """Setup of encoder and decoder modules for autoencoder (AE)."""
+        nn.share_scope(self, self.encoder)
+        nn.share_scope(self, self.decoder)
+
     def encode(self, x: ArrayLike) -> ArrayLike:
         """Apply encoder module.
 
@@ -178,8 +183,17 @@ class DenseAE(AE):
     decoder_widths: Tuple[int]
     activation_fn: Callable = nn.leaky_relu
 
-    def setup(self):
-        """Setup of encoder and decoder modules for autoencoder (AE)."""
+    @nn.compact
+    def __call__(self, x: ArrayLike) -> Tuple[ArrayLike, ArrayLike]:
+        """Apply sequence of encoder and decoder modules.
+
+        Args:
+            x: The array to be autoencoded.
+
+        Returns:
+            The output of the autoencoder module and the encoded
+            representation.
+        """
         encoder = DenseEncoder(
             self.encoder_widths,
             self.latent_dim,
@@ -192,7 +206,7 @@ class DenseAE(AE):
             self.activation_fn,
             reshape_final=True,
         )
-        super().setup(encoder, decoder)
+        return AE(encoder, decoder)(x)
 
 
 class ConvEncoder(nn.Module):
@@ -269,7 +283,6 @@ class ConvDecoder(nn.Module):
         Returns:
             The decoded array.
         """
-
         x = nn.Dense(prod(self.out_shape) * self.channels)(x)
         x = x.reshape((x.shape[0],) + self.out_shape + (self.channels,))
 
@@ -331,8 +344,17 @@ class ConvAE(AE):
     decoder_strides: Tuple[int, int] = (1, 1)
     decoder_activation_fn: Callable = nn.leaky_relu
 
-    def setup(self):
-        """Setup of encoder and decoder modules for autoencoder (AE)."""
+    @nn.compact
+    def __call__(self, x: ArrayLike) -> Tuple[ArrayLike, ArrayLike]:
+        """Apply sequence of encoder and decoder modules.
+
+        Args:
+            x: The array to be autoencoded.
+
+        Returns:
+            The output of the autoencoder module and the encoded
+            representation.
+        """
         encoder = ConvEncoder(
             self.encoder_filters,
             self.latent_dim,
@@ -349,4 +371,4 @@ class ConvAE(AE):
             self.decoder_strides,
             activation_fn=self.decoder_activation_fn,
         )
-        super().setup(encoder, decoder)
+        return AE(encoder, decoder)(x)

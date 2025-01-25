@@ -11,7 +11,7 @@ import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
-from typing import Callable, Optional, Sequence, Tuple
+from typing import Any, Callable, Optional, Sequence, Tuple
 
 import jax.numpy as jnp
 from jax.random import PRNGKey, normal
@@ -79,6 +79,9 @@ class VAE(nn.Module):
     def setup(self):
         """Setup of encoder and decoder modules for variational
         autoencoder (VAE)."""
+        nn.share_scope(self, self.encoder)
+        nn.share_scope(self, self.decoder)
+
         if self.cond_width > 0:
             # For Conditional decoding.
             self.post_latent_proj = nn.Dense(self.cond_width)
@@ -119,7 +122,6 @@ class VAE(nn.Module):
         epsilon = normal(key, std.shape)
         return mean + epsilon * std
 
-    @nn.compact
     def __call__(
         self, x: ArrayLike, key: PRNGKey, c: Optional[ArrayLike] = None
     ) -> Tuple[ArrayLike, ArrayLike, ArrayLike]:
@@ -143,7 +145,7 @@ class VAE(nn.Module):
         return y, mean, logvar
 
 
-class DenseVAE(VAE):
+class DenseVAE(nn.Module):
     """Definition of variational autoencoder network using multi layer
     perceptron (MLP), i.e. dense layers.
 
@@ -151,8 +153,8 @@ class DenseVAE(VAE):
     automatically to the tuple of the decoder widths.
 
     Args:
-        out_shape: Tuple (height, width, channels) of signal to decode
-            (if reshape requested).
+        out_shape: Tuple (height, width) of signal to decode.
+        channels: Number of channels of signal to decode.
         encoder_widths: Sequential list with number of neurons per layer
             in the MLP encoder.
         latent_dim: Latent dimension of encoder.
@@ -160,19 +162,38 @@ class DenseVAE(VAE):
             in the MLP decoder.
         activation_fn: Flax function defining the activation operation
             to apply after each layer (except output layer).
+        class_conditional: Flag to specify if decoding will be
+            conditioned on a sample class.
+        dtype: Output dtype. Default: :attr:`~numpy.float32`.
     """
 
     out_shape: Tuple[int]
+    channels: int
     encoder_widths: Sequence[int]
     latent_dim: int
     decoder_widths: Sequence[int]
     activation_fn: Callable = nn.relu
+    class_conditional: bool = False
+    dtype: Any = jnp.float32
 
-    def setup(self):
-        """Setup of encoder and decoder modules for variational
-        autoencoder (VAE) with dense layers."""
-        mean_block = MLP(self.encoder_widths, self.activation_fn)
-        logvar_block = MLP(self.encoder_widths, self.activation_fn)
+    @nn.compact
+    def __call__(
+        self, x: ArrayLike, key: PRNGKey, c: Optional[ArrayLike] = None
+    ) -> Tuple[ArrayLike, ArrayLike, ArrayLike]:
+        """Apply sequence of variational encoder and decoder modules.
+
+        Args:
+            x: The array to be processed via the variational autoencoder.
+            key: The key for the random generation of sample.
+            c: The array with the class for conditional generation.
+
+        Returns:
+            The generated sample, the mean and log variance used in the
+            generation.
+        """
+        mean_block = MLP(self.encoder_widths, self.activation_fn, flatten_first=True)
+        logvar_block = MLP(self.encoder_widths, self.activation_fn, flatten_first=True)
+
         encoder = VarEncoder(
             mean_block,
             logvar_block,
@@ -180,15 +201,21 @@ class DenseVAE(VAE):
         )
 
         decoder = DenseDecoder(
-            self.out_shape,
+            self.out_shape + (self.channels,),
             self.decoder_widths,
             self.activation_fn,
             reshape_final=True,
         )
-        super().setup(encoder, decoder, self.encoder_widths[-1])
+
+        if self.class_conditional:
+            cond_width = encoder_widths[-1]
+        else:
+            cond_width = 0
+
+        return VAE(encoder, decoder, cond_width)(x, key, c)
 
 
-class ConvVAE(VAE):
+class ConvVAE(nn.Module):
     """Definition of variational autoencoder network using convolutional
     layers.
 
@@ -214,6 +241,9 @@ class ConvVAE(VAE):
         decoder_activation_fn: Flax function defining the activation
             operation to apply after each layer in decoder (except
             output layer).
+        class_conditional: Flag to specify if decoding will be
+            conditioned on a sample class.
+        dtype: Output dtype. Default: :attr:`~numpy.float32`.
     """
 
     out_shape: Tuple[int]
@@ -227,10 +257,24 @@ class ConvVAE(VAE):
     decoder_kernel_size: Tuple[int, int] = (3, 3)
     decoder_strides: Tuple[int, int] = (1, 1)
     decoder_activation_fn: Callable = nn.leaky_relu
+    class_conditional: bool = False
+    dtype: Any = jnp.float32
 
-    def setup(self):
-        """Setup of encoder and decoder modules for variational
-        autoencoder (VAE) with convolutional layers."""
+    @nn.compact
+    def __call__(
+        self, x: ArrayLike, key: PRNGKey, c: Optional[ArrayLike] = None
+    ) -> Tuple[ArrayLike, ArrayLike, ArrayLike]:
+        """Apply sequence of variational encoder and decoder modules.
+
+        Args:
+            x: The array to be processed via the variational autoencoder.
+            key: The key for the random generation of sample.
+            c: The array with the class for conditional generation.
+
+        Returns:
+            The generated sample, the mean and log variance used in the
+            generation.
+        """
         mean_block = CNN(
             self.encoder_filters,
             self.encoder_kernel_size,
@@ -250,7 +294,6 @@ class ConvVAE(VAE):
             logvar_block,
             self.latent_dim,
         )
-
         decoder = ConvDecoder(
             self.out_shape,
             self.channels,
@@ -260,4 +303,9 @@ class ConvVAE(VAE):
             activation_fn=self.decoder_activation_fn,
         )
 
-        super().setup(encoder, decoder, self.encoder_filters[-1])
+        if self.class_conditional:
+            cond_width = encoder_filters[-1]
+        else:
+            cond_width = 0
+
+        return VAE(encoder, decoder, cond_width)(x, key, c)
