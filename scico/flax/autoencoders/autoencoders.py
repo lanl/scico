@@ -11,7 +11,7 @@ import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
-from typing import Callable, Sequence, Tuple
+from typing import Any, Callable, Sequence, Tuple
 
 from numpy import prod
 
@@ -175,6 +175,7 @@ class DenseAE(AE):
             MLP decoder.
         activation_fn: Flax function defining the activation operation
             to apply after each layer (except output layer).
+        dtype: Output dtype. Default: :attr:`~numpy.float32`.
     """
 
     out_shape: Tuple[int]
@@ -182,6 +183,7 @@ class DenseAE(AE):
     latent_dim: int
     decoder_widths: Tuple[int]
     activation_fn: Callable = nn.leaky_relu
+    dtype: Any = jnp.float32
 
     @nn.compact
     def __call__(self, x: ArrayLike) -> Tuple[ArrayLike, ArrayLike]:
@@ -330,6 +332,7 @@ class ConvAE(AE):
         decoder_activation_fn: Flax function defining the activation
             operation to apply after each layer in decoder (except
             output layer).
+        dtype: Output dtype. Default: :attr:`~numpy.float32`.
     """
 
     out_shape: Tuple[int]
@@ -343,6 +346,7 @@ class ConvAE(AE):
     decoder_kernel_size: Tuple[int, int] = (3, 3)
     decoder_strides: Tuple[int, int] = (1, 1)
     decoder_activation_fn: Callable = nn.leaky_relu
+    dtype: Any = jnp.float32
 
     @nn.compact
     def __call__(self, x: ArrayLike) -> Tuple[ArrayLike, ArrayLike]:
