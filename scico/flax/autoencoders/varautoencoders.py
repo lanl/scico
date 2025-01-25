@@ -176,6 +176,30 @@ class DenseVAE(nn.Module):
     class_conditional: bool = False
     dtype: Any = jnp.float32
 
+    def setup(self):
+        """Setup of encoder and decoder modules for variational
+        autoencoder (VAE)."""
+        mean_block = MLP(self.encoder_widths, self.activation_fn, flatten_first=True)
+        logvar_block = MLP(self.encoder_widths, self.activation_fn, flatten_first=True)
+
+        self.encoder = VarEncoder(
+            mean_block,
+            logvar_block,
+            self.latent_dim,
+        )
+
+        self.decoder = DenseDecoder(
+            self.out_shape + (self.channels,),
+            self.decoder_widths,
+            self.activation_fn,
+            reshape_final=True,
+        )
+
+        if self.class_conditional:
+            self.cond_width = encoder_widths[-1]
+        else:
+            self.cond_width = 0
+
     @nn.compact
     def __call__(
         self, x: ArrayLike, key: PRNGKey, c: Optional[ArrayLike] = None
@@ -191,28 +215,12 @@ class DenseVAE(nn.Module):
             The generated sample, the mean and log variance used in the
             generation.
         """
-        mean_block = MLP(self.encoder_widths, self.activation_fn, flatten_first=True)
-        logvar_block = MLP(self.encoder_widths, self.activation_fn, flatten_first=True)
+        return VAE(self.encoder, self.decoder, self.cond_width)(x, key, c)
 
-        encoder = VarEncoder(
-            mean_block,
-            logvar_block,
-            self.latent_dim,
-        )
-
-        decoder = DenseDecoder(
-            self.out_shape + (self.channels,),
-            self.decoder_widths,
-            self.activation_fn,
-            reshape_final=True,
-        )
-
-        if self.class_conditional:
-            cond_width = encoder_widths[-1]
-        else:
-            cond_width = 0
-
-        return VAE(encoder, decoder, cond_width)(x, key, c)
+    @nn.compact
+    def decode(self, x: ArrayLike):
+        """Class-independent decoding."""
+        return VAE(self.encoder, self.decoder, self.cond_width).decode(x)
 
 
 class ConvVAE(nn.Module):
@@ -260,6 +268,42 @@ class ConvVAE(nn.Module):
     class_conditional: bool = False
     dtype: Any = jnp.float32
 
+    def setup(self):
+        """Setup of encoder and decoder modules for variational
+        autoencoder (VAE)."""
+        mean_block = CNN(
+            self.encoder_filters,
+            self.encoder_kernel_size,
+            self.encoder_strides,
+            activation_fn=self.encoder_activation_fn,
+            flatten_final=True,
+        )
+        logvar_block = CNN(
+            self.encoder_filters,
+            self.encoder_kernel_size,
+            self.encoder_strides,
+            activation_fn=self.encoder_activation_fn,
+            flatten_final=True,
+        )
+        self.encoder = VarEncoder(
+            mean_block,
+            logvar_block,
+            self.latent_dim,
+        )
+        self.decoder = ConvDecoder(
+            self.out_shape,
+            self.channels,
+            self.decoder_filters,
+            self.decoder_kernel_size,
+            self.decoder_strides,
+            activation_fn=self.decoder_activation_fn,
+        )
+
+        if self.class_conditional:
+            self.cond_width = encoder_filters[-1]
+        else:
+            self.cond_width = 0
+
     @nn.compact
     def __call__(
         self, x: ArrayLike, key: PRNGKey, c: Optional[ArrayLike] = None
@@ -275,37 +319,10 @@ class ConvVAE(nn.Module):
             The generated sample, the mean and log variance used in the
             generation.
         """
-        mean_block = CNN(
-            self.encoder_filters,
-            self.encoder_kernel_size,
-            self.encoder_strides,
-            activation_fn=self.encoder_activation_fn,
-            flatten_final=True,
-        )
-        logvar_block = CNN(
-            self.encoder_filters,
-            self.encoder_kernel_size,
-            self.encoder_strides,
-            activation_fn=self.encoder_activation_fn,
-            flatten_final=True,
-        )
-        encoder = VarEncoder(
-            mean_block,
-            logvar_block,
-            self.latent_dim,
-        )
-        decoder = ConvDecoder(
-            self.out_shape,
-            self.channels,
-            self.decoder_filters,
-            self.decoder_kernel_size,
-            self.decoder_strides,
-            activation_fn=self.decoder_activation_fn,
-        )
 
-        if self.class_conditional:
-            cond_width = encoder_filters[-1]
-        else:
-            cond_width = 0
+        return VAE(self.encoder, self.decoder, self.cond_width)(x, key, c)
 
-        return VAE(encoder, decoder, cond_width)(x, key, c)
+    @nn.compact
+    def decode(self, x: ArrayLike):
+        """Class-independent decoding."""
+        return VAE(self.encoder, self.decoder, self.cond_width).decode(x)
