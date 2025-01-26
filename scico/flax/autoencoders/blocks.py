@@ -134,8 +134,8 @@ class ConvPoolBlock(nn.Module):
         kernel_size: A shape tuple defining the size of the convolution
             filters.
         strides: A shape tuple defining the size of strides in convolution.
-        activation: Flax function defining the activation operation to apply.
-        pooling: Flax function defining the pooling operation to apply.
+        activation_fn: Flax function defining the activation operation to apply.
+        pooling_fn: Flax function defining the pooling operation to apply.
         window_shape: A shape tuple defining the window to reduce over in
             the pooling operation.
     """
@@ -143,8 +143,8 @@ class ConvPoolBlock(nn.Module):
     num_filters: int
     kernel_size: Tuple[int, int] = (3, 3)
     strides: Tuple[int, int] = (1, 1)
-    activation: Callable = nn.leaky_relu
-    pooling: Callable = nn.max_pool
+    activation_fn: Callable = nn.leaky_relu
+    pooling_fn: Callable = nn.max_pool
     window_shape: Tuple[int, int] = (2, 2)
 
     @nn.compact
@@ -164,8 +164,8 @@ class ConvPoolBlock(nn.Module):
             use_bias=False,
             padding="CIRCULAR",
         )(x)
-        x = self.activation(x)
-        x = self.pooling(x, self.window_shape, strides=self.window_shape, padding="SAME")
+        x = self.activation_fn(x)
+        x = self.pooling_fn(x, self.window_shape, strides=self.window_shape, padding="SAME")
 
         return x
 
@@ -180,14 +180,14 @@ class ConvUpsampleBlock(nn.Module):
         kernel_size: A shape tuple defining the size of the convolution
             filters.
         strides: A shape tuple defining the size of strides in convolution.
-        activation: Flax function defining the activation operation to apply.
+        activation_fn: Flax function defining the activation operation to apply.
         upsampling_scale: Integer scaling factor.
     """
 
     num_filters: int
     kernel_size: Tuple[int, int] = (3, 3)
     strides: Tuple[int, int] = (1, 1)
-    activation: Callable = nn.leaky_relu
+    activation_fn: Callable = nn.leaky_relu
     upsampling_scale: int = 2
 
     @nn.compact
@@ -199,7 +199,7 @@ class ConvUpsampleBlock(nn.Module):
             use_bias=False,
             padding="CIRCULAR",
         )(x)
-        x = self.activation(x)
+        x = self.activation_fn(x)
         x = upscale_nn(x, self.upsampling_scale)
 
         return x

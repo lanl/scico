@@ -26,7 +26,7 @@ def stats_obj() -> Tuple[IterationStats, Callable]:
     :class:`~.diagnostics.IterationStats` object takes care of both
     printing stats to command line and storing them for further analysis.
     """
-    # epoch, time learning rate loss and snr (train and
+    # epoch, time learning rate loss and kl-loss (train and
     # eval) fields
     itstat_fields = {
         "Epoch": "%d",

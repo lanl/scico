@@ -42,6 +42,29 @@ class VAEMetricsDict(TypedDict, total=False):
     learning_rate: float
 
 
+def kl_loss_fn(mean, logvar):
+    """Compute KL divergence loss from given mean and log variance.
+
+    Args:
+        mean: Mean in latent space. For multi-level VAE this is a list
+            of means for each latent level.
+        logvar: Log variances in latent space. For multi-level VAE
+            this is a list of log variances for each latent level.
+    """
+    if isinstance(mean, list):  # For multi-level VAE
+        kl_loss = 0.0
+        for j, m in enumerate(mean):
+            reduce_dims = list(range(1, len(m.shape)))
+            kl_loss = kl_loss + jnp.mean(
+                -0.5 * jnp.sum(1 + logvar[j] - m**2 - jnp.exp(logvar[j]), axis=reduce_dims)
+            )
+    else:  # For regular VAE
+        reduce_dims = list(range(1, len(mean.shape)))
+        kl_loss = jnp.mean(-0.5 * jnp.sum(1 + logvar - mean**2 - jnp.exp(logvar), axis=reduce_dims))
+
+    return kl_loss
+
+
 def train_step_vae(
     state: TrainState,
     batch: ArrayLike,
@@ -94,8 +117,7 @@ def train_step_vae(
         mse_loss = criterion(output, x).sum(axis=reduce_dims).mean()
         # KL loss term to keep encoder output close to standard
         # normal distribution.
-        reduce_dims = list(range(1, len(mean.shape)))
-        kl_loss = jnp.mean(-0.5 * jnp.sum(1 + logvar - mean**2 - jnp.exp(logvar), axis=reduce_dims))
+        kl_loss = kl_loss_fn(mean, logvar)
         loss = mse_loss + kl_weight * kl_loss
         losses = (loss, mse_loss, kl_loss)
         return loss, losses
@@ -178,8 +200,7 @@ def train_step_vae_class_conditional(
         mse_loss = criterion(output, x).sum(axis=reduce_dims).mean()
         # KL loss term to keep encoder output close to standard
         # normal distribution.
-        reduce_dims = list(range(1, len(mean.shape)))
-        kl_loss = jnp.mean(-0.5 * jnp.sum(1 + logvar - mean**2 - jnp.exp(logvar), axis=reduce_dims))
+        kl_loss = kl_loss_fn(mean, logvar)
         loss = mse_loss + kl_weight * kl_loss
         losses = (loss, mse_loss, kl_loss)
         return loss, losses
@@ -241,8 +262,7 @@ def eval_step_vae(
     mse_loss = criterion(output, batch["image"]).sum(axis=reduce_dims).mean()
     # KL loss term to keep encoder output close to standard
     # normal distribution.
-    reduce_dims = list(range(1, len(mean.shape)))
-    kl_loss = jnp.mean(-0.5 * jnp.sum(1 + logvar - mean**2 - jnp.exp(logvar), axis=reduce_dims))
+    kl_loss = kl_loss_fn(mean, logvar)
     loss = mse_loss + kl_weight * kl_loss
     metrics: VAEMetricsDict = {"loss": loss, "mse": mse_loss, "kl": kl_loss}
     return metrics
@@ -286,8 +306,7 @@ def eval_step_vae_class_conditional(
     mse_loss = criterion(output, batch["image"]).sum(axis=reduce_dims).mean()
     # KL loss term to keep encoder output close to standard
     # normal distribution.
-    reduce_dims = list(range(1, len(mean.shape)))
-    kl_loss = jnp.mean(-0.5 * jnp.sum(1 + logvar - mean**2 - jnp.exp(logvar), axis=reduce_dims))
+    kl_loss = kl_loss_fn(mean, logvar)
     loss = mse_loss + kl_weight * kl_loss
     metrics: VAEMetricsDict = {"loss": loss, "mse": mse_loss, "kl": kl_loss}
     return metrics
