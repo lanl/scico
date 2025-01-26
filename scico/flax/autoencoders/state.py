@@ -35,7 +35,7 @@ def initialize(key: KeyArray, model: ModuleDef, ishape: Shape) -> Tuple[PyTree, 
             that no batch dimension is included.
 
     Returns:
-        Initial model parameters (including `batch_stats`).
+        Initial model parameters (including `batch_stats` if applicable).
     """
     input_shape = (1, ishape[0], ishape[1], model.channels)
     key, model_key = jax.random.split(key)
@@ -46,6 +46,35 @@ def initialize(key: KeyArray, model: ModuleDef, ishape: Shape) -> Tuple[PyTree, 
         return model.init(*args)
 
     variables = init({"params": model_key}, jnp.ones(input_shape, model.dtype), call_key)
+    return variables["params"]
+
+
+def initialize_class_conditional(
+    key: KeyArray, model: ModuleDef, ishape: Shape, num_classes: int
+) -> Tuple[PyTree, ...]:
+    """Initialize Flax model conditioned on class labels.
+
+    Args:
+        key: A PRNGKey used as the random key.
+        model: Flax model to train.
+        ishape: Shape of signal (image) to process by `model`. Make sure
+            that no batch dimension is included.
+        num_classes: Number of classes in the dataset.
+
+    Returns:
+        Initial model parameters (including `batch_stats` if applicable).
+    """
+    input_shape = (1, ishape[0], ishape[1], model.channels)
+    key, model_key = jax.random.split(key)
+    key, call_key = jax.random.split(key)
+
+    @jax.jit
+    def init(*args):
+        return model.init(*args)
+
+    fakex = jnp.ones(input_shape, model.dtype)  # Expected input shape
+    fakec = jnp.zeros((1, num_classes))  # Expected class specification
+    variables = init({"params": model_key}, fakex, call_key, fakec)
     return variables["params"]
 
 
@@ -77,7 +106,10 @@ def create_vae_train_state(
     """
     batch_stats = None
     if variables0 is None:
-        aux = initialize(key, model, ishape)
+        if model.cond_width > 0:  # Class conditional model constructed
+            aux = initialize_class_conditional(key, model, ishape, config["num_classes"])
+        else:
+            aux = initialize(key, model, ishape)
         if isinstance(aux, tuple):
             params, batch_stats = aux
         else:

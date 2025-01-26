@@ -126,7 +126,6 @@ def train_step_vae(
 def train_step_vae_class_conditional(
     state: TrainState,
     batch: ArrayLike,
-    batch_c: ArrayLike,
     num_classes: int,
     key: ArrayLike,
     kl_weight: float,
@@ -143,10 +142,8 @@ def train_step_vae_class_conditional(
     Args:
         state: Flax train state which includes the model apply function,
             the model parameters and an Optax optimizer.
-        batch: Sharded and batched training data. Only output data is
-            passed.
-        batch_c: Sharded and batched training conditional data associated
-            to class of samples.
+        batch: Sharded and batched training data. Data as well as class
+            labels are passed.
         num_classes: Number of classes in dataset.
         key: Key for random generation.
         kl_weight: Weight of the KL divergence term in the total training loss.
@@ -168,7 +165,6 @@ def train_step_vae_class_conditional(
 
     def loss_fn(params: PyTree, x: ArrayLike, c: ArrayLike, key: ArrayLike):
         """Loss function used for training."""
-        reduce_dims = list(range(1, len(x.shape)))
         c = jax.nn.one_hot(c, num_classes).squeeze()  # one hot encode the class index
         output, mean, logvar = state.apply_fn(
             {
@@ -178,7 +174,7 @@ def train_step_vae_class_conditional(
             key,
             c,
         )
-
+        reduce_dims = list(range(1, len(x.shape)))
         mse_loss = criterion(output, x).sum(axis=reduce_dims).mean()
         # KL loss term to keep encoder output close to standard
         # normal distribution.
@@ -195,7 +191,7 @@ def train_step_vae_class_conditional(
     lr = learning_rate_fn(step)
 
     grad_fn = jax.value_and_grad(loss_fn, has_aux=True)
-    aux, grads = grad_fn(state.params, batch_["image"], batch_c, step_key)
+    aux, grads = grad_fn(state.params, batch["image"], batch["label"], step_key)
     losses = aux[1]
     # Re-use same axis_name as in call to pmap
     grads = lax.pmean(grads, axis_name="batch")
@@ -230,6 +226,8 @@ def eval_step_vae(
             and the model parameters.
         batch: Sharded and batched training data.
         criterion: Loss function.
+        key: Key for random generation.
+        kl_weight: Weight of the KL divergence term in the total training loss.
 
     Returns:
         Current diagnostic statistics.
@@ -239,6 +237,51 @@ def eval_step_vae(
     }
     key, step_key = jax.random.split(key)
     output, mean, logvar = state.apply_fn(variables, batch["image"], step_key)
+    reduce_dims = list(range(1, len(batch["image"].shape)))
+    mse_loss = criterion(output, batch["image"]).sum(axis=reduce_dims).mean()
+    # KL loss term to keep encoder output close to standard
+    # normal distribution.
+    reduce_dims = list(range(1, len(mean.shape)))
+    kl_loss = jnp.mean(-0.5 * jnp.sum(1 + logvar - mean**2 - jnp.exp(logvar), axis=reduce_dims))
+    loss = mse_loss + kl_weight * kl_loss
+    metrics: VAEMetricsDict = {"loss": loss, "mse": mse_loss, "kl": kl_loss}
+    return metrics
+
+
+def eval_step_vae_class_conditional(
+    state: TrainState,
+    batch: ArrayLike,
+    num_classes: int,
+    criterion: Callable,
+    key: ArrayLike,
+    kl_weight: float,
+    **kwargs,
+) -> VAEMetricsDict:
+    """Evaluate current model state using class
+    conditional information.
+
+    Assumes sharded batched data. This function is intended to be used
+    via :class:`~scico.flax.BasicFlaxTrainer` or
+    :meth:`~scico.flax.only_evaluate`, not directly.
+
+    Args:
+        state: Flax train state which includes the model apply function
+            and the model parameters.
+        batch: Sharded and batched training data.
+        num_classes: Number of classes in dataset.
+        criterion: Loss function.
+        key: Key for random generation.
+        kl_weight: Weight of the KL divergence term in the total training loss.
+
+    Returns:
+        Current diagnostic statistics.
+    """
+    variables = {
+        "params": state.params,
+    }
+    key, step_key = jax.random.split(key)
+    c = jax.nn.one_hot(batch["label"], num_classes).squeeze()  # one hot encode the class index
+    output, mean, logvar = state.apply_fn(variables, batch["image"], step_key, c)
     reduce_dims = list(range(1, len(batch["image"].shape)))
     mse_loss = criterion(output, batch["image"]).sum(axis=reduce_dims).mean()
     # KL loss term to keep encoder output close to standard

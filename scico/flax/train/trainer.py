@@ -345,6 +345,8 @@ class BasicFlaxTrainer:
         # Autoencoder data may only include input (a.k.a. image)
         if key not in train_ds.keys():
             key = "image"
+        elif len(train_ds["label"].shape) < 3:  # Label is class index (not an image)
+            key = "image"
 
         self.log(
             "channels: %d   training signals: %d   testing"

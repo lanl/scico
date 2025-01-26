@@ -11,6 +11,7 @@ import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
+
 from typing import Any, Callable, Optional, Sequence, Tuple
 
 import jax.numpy as jnp
@@ -26,6 +27,24 @@ from scico.flax.autoencoders.blocks import CNN, MLP
 # The imports of Scope and _Sentinel (above) are required to silence
 # "cannot resolve forward reference" warnings when building sphinx api
 # docs.
+
+
+def reparameterize(mean: ArrayLike, logvar: ArrayLike, key: PRNGKey) -> ArrayLike:
+    """Reparametrization trick for sample generation.
+
+    Args:
+        mean: Array with means for generation of normally
+            distributed random samples.
+        logvar: Array with log variances for generation of normally
+            distributed random samples.
+        key: The key for the random generation.
+
+    Returns:
+        The generated normally distributed random samples.
+    """
+    std = jnp.exp(0.5 * logvar)
+    epsilon = normal(key, std.shape)
+    return mean + epsilon * std
 
 
 class VarEncoder(nn.Module):
@@ -68,19 +87,23 @@ class VAE(nn.Module):
     Args:
         encoder: Variational encoder module in Flax.
         decoder: Decoder module in Flax.
-        cond_width: Widht of layer for class conditional decoding. If
-        zero, no class-conditional decoding is learned.
+        latent_dim: Latent dimension of encoder.
+        channels: Number of channels of signal to decode.
+        cond_width: Width of layer for class conditional decoding. If
+            zero, no class-conditional decoding is learned.
+        dtype: Output dtype. Default: :attr:`~numpy.float32`.
     """
 
     encoder: Callable
     decoder: Callable
+    latent_dim: int
+    channels: int
     cond_width: int = 0
+    dtype: Any = jnp.float32
 
     def setup(self):
         """Setup of encoder and decoder modules for variational
         autoencoder (VAE)."""
-        nn.share_scope(self, self.encoder)
-        nn.share_scope(self, self.decoder)
 
         if self.cond_width > 0:
             # For Conditional decoding.
@@ -105,23 +128,6 @@ class VAE(nn.Module):
         x = self.decoder(x)
         return x
 
-    def reparameterize(self, mean: ArrayLike, logvar: ArrayLike, key: PRNGKey) -> ArrayLike:
-        """Reparametrization trick for sample generation.
-
-        Args:
-            mean: Array with means for generation of normally
-                distributed random samples.
-            logvar: Array with log variances for generation of normally
-                distributed random samples.
-            key: The key for the random generation.
-
-        Returns:
-            The generated normally distributed random samples.
-        """
-        std = jnp.exp(0.5 * logvar)
-        epsilon = normal(key, std.shape)
-        return mean + epsilon * std
-
     def __call__(
         self, x: ArrayLike, key: PRNGKey, c: Optional[ArrayLike] = None
     ) -> Tuple[ArrayLike, ArrayLike, ArrayLike]:
@@ -137,7 +143,7 @@ class VAE(nn.Module):
             generation.
         """
         mean, logvar = self.encode(x)
-        z = self.reparameterize(mean, logvar, key)
+        z = reparameterize(mean, logvar, key)
         if c is None:
             y = self.decoder(z)
         else:
@@ -145,9 +151,17 @@ class VAE(nn.Module):
         return y, mean, logvar
 
 
-class DenseVAE(nn.Module):
-    """Definition of variational autoencoder network using multi layer
-    perceptron (MLP), i.e. dense layers.
+def DenseVAE(
+    out_shape: Tuple[int],
+    channels: int,
+    encoder_widths: Sequence[int],
+    latent_dim: int,
+    decoder_widths: Sequence[int],
+    activation_fn: Callable = nn.relu,
+    class_conditional: bool = False,
+):
+    """Function to construct variational autoencoder network using multi
+    layer perceptron (MLP), i.e. dense layers.
 
     Output is reshaped to given shape via a properly sized layer added
     automatically to the tuple of the decoder widths.
@@ -164,67 +178,49 @@ class DenseVAE(nn.Module):
             to apply after each layer (except output layer).
         class_conditional: Flag to specify if decoding will be
             conditioned on a sample class.
-        dtype: Output dtype. Default: :attr:`~numpy.float32`.
+
+    Returns:
+        Variational autoencoder model with the specified architecture.
     """
+    mean_block = MLP(encoder_widths, activation_fn, flatten_first=True)
+    logvar_block = MLP(encoder_widths, activation_fn, flatten_first=True)
 
-    out_shape: Tuple[int]
-    channels: int
-    encoder_widths: Sequence[int]
-    latent_dim: int
-    decoder_widths: Sequence[int]
-    activation_fn: Callable = nn.relu
-    class_conditional: bool = False
-    dtype: Any = jnp.float32
+    encoder = VarEncoder(
+        mean_block,
+        logvar_block,
+        latent_dim,
+    )
 
-    def setup(self):
-        """Setup of encoder and decoder modules for variational
-        autoencoder (VAE)."""
-        mean_block = MLP(self.encoder_widths, self.activation_fn, flatten_first=True)
-        logvar_block = MLP(self.encoder_widths, self.activation_fn, flatten_first=True)
+    decoder = DenseDecoder(
+        out_shape + (channels,),
+        decoder_widths,
+        activation_fn,
+        reshape_final=True,
+    )
 
-        self.encoder = VarEncoder(
-            mean_block,
-            logvar_block,
-            self.latent_dim,
-        )
+    if class_conditional:
+        cond_width = encoder_widths[-1]
+    else:
+        cond_width = 0
 
-        self.decoder = DenseDecoder(
-            self.out_shape + (self.channels,),
-            self.decoder_widths,
-            self.activation_fn,
-            reshape_final=True,
-        )
-
-        if self.class_conditional:
-            self.cond_width = encoder_widths[-1]
-        else:
-            self.cond_width = 0
-
-    @nn.compact
-    def __call__(
-        self, x: ArrayLike, key: PRNGKey, c: Optional[ArrayLike] = None
-    ) -> Tuple[ArrayLike, ArrayLike, ArrayLike]:
-        """Apply sequence of variational encoder and decoder modules.
-
-        Args:
-            x: The array to be processed via the variational autoencoder.
-            key: The key for the random generation of sample.
-            c: The array with the class for conditional generation.
-
-        Returns:
-            The generated sample, the mean and log variance used in the
-            generation.
-        """
-        return VAE(self.encoder, self.decoder, self.cond_width)(x, key, c)
-
-    @nn.compact
-    def decode(self, x: ArrayLike):
-        """Class-independent decoding."""
-        return VAE(self.encoder, self.decoder, self.cond_width).decode(x)
+    return VAE(encoder, decoder, latent_dim, channels, cond_width)
 
 
-class ConvVAE(nn.Module):
-    """Definition of variational autoencoder network using convolutional
+def ConvVAE(
+    out_shape: Tuple[int],
+    channels: int,
+    encoder_filters: Sequence[int],
+    latent_dim: int,
+    decoder_filters: Sequence[int],
+    encoder_kernel_size: Tuple[int, int] = (3, 3),
+    encoder_strides: Tuple[int, int] = (1, 1),
+    encoder_activation_fn: Callable = nn.leaky_relu,
+    decoder_kernel_size: Tuple[int, int] = (3, 3),
+    decoder_strides: Tuple[int, int] = (1, 1),
+    decoder_activation_fn: Callable = nn.leaky_relu,
+    class_conditional: bool = False,
+):
+    """Function to construct variational autoencoder network using convolutional
     layers.
 
     Args:
@@ -251,78 +247,41 @@ class ConvVAE(nn.Module):
             output layer).
         class_conditional: Flag to specify if decoding will be
             conditioned on a sample class.
-        dtype: Output dtype. Default: :attr:`~numpy.float32`.
+
+    Returns:
+        Variational autoencoder model with the specified architecture.
     """
+    mean_block = CNN(
+        encoder_filters,
+        encoder_kernel_size,
+        encoder_strides,
+        activation_fn=encoder_activation_fn,
+        flatten_final=True,
+    )
+    logvar_block = CNN(
+        encoder_filters,
+        encoder_kernel_size,
+        encoder_strides,
+        activation_fn=encoder_activation_fn,
+        flatten_final=True,
+    )
+    encoder = VarEncoder(
+        mean_block,
+        logvar_block,
+        latent_dim,
+    )
+    decoder = ConvDecoder(
+        out_shape,
+        channels,
+        decoder_filters,
+        decoder_kernel_size,
+        decoder_strides,
+        activation_fn=decoder_activation_fn,
+    )
 
-    out_shape: Tuple[int]
-    channels: int
-    encoder_filters: Sequence[int]
-    latent_dim: int
-    decoder_filters: Sequence[int]
-    encoder_kernel_size: Tuple[int, int] = (3, 3)
-    encoder_strides: Tuple[int, int] = (1, 1)
-    encoder_activation_fn: Callable = nn.leaky_relu
-    decoder_kernel_size: Tuple[int, int] = (3, 3)
-    decoder_strides: Tuple[int, int] = (1, 1)
-    decoder_activation_fn: Callable = nn.leaky_relu
-    class_conditional: bool = False
-    dtype: Any = jnp.float32
+    if class_conditional:
+        cond_width = encoder_filters[-1]
+    else:
+        cond_width = 0
 
-    def setup(self):
-        """Setup of encoder and decoder modules for variational
-        autoencoder (VAE)."""
-        mean_block = CNN(
-            self.encoder_filters,
-            self.encoder_kernel_size,
-            self.encoder_strides,
-            activation_fn=self.encoder_activation_fn,
-            flatten_final=True,
-        )
-        logvar_block = CNN(
-            self.encoder_filters,
-            self.encoder_kernel_size,
-            self.encoder_strides,
-            activation_fn=self.encoder_activation_fn,
-            flatten_final=True,
-        )
-        self.encoder = VarEncoder(
-            mean_block,
-            logvar_block,
-            self.latent_dim,
-        )
-        self.decoder = ConvDecoder(
-            self.out_shape,
-            self.channels,
-            self.decoder_filters,
-            self.decoder_kernel_size,
-            self.decoder_strides,
-            activation_fn=self.decoder_activation_fn,
-        )
-
-        if self.class_conditional:
-            self.cond_width = encoder_filters[-1]
-        else:
-            self.cond_width = 0
-
-    @nn.compact
-    def __call__(
-        self, x: ArrayLike, key: PRNGKey, c: Optional[ArrayLike] = None
-    ) -> Tuple[ArrayLike, ArrayLike, ArrayLike]:
-        """Apply sequence of variational encoder and decoder modules.
-
-        Args:
-            x: The array to be processed via the variational autoencoder.
-            key: The key for the random generation of sample.
-            c: The array with the class for conditional generation.
-
-        Returns:
-            The generated sample, the mean and log variance used in the
-            generation.
-        """
-
-        return VAE(self.encoder, self.decoder, self.cond_width)(x, key, c)
-
-    @nn.compact
-    def decode(self, x: ArrayLike):
-        """Class-independent decoding."""
-        return VAE(self.encoder, self.decoder, self.cond_width).decode(x)
+    return VAE(encoder, decoder, latent_dim, channels, cond_width)
