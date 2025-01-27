@@ -7,7 +7,7 @@ Version 0.0.7   (unreleased)
 ----------------------------
 
 • New module ``scico.trace`` for tracing function/method calls.
-• Support ``jaxlib`` and ``jax`` versions 0.4.13 to 0.4.37.
+• Support ``jaxlib`` and ``jax`` versions 0.4.13 to 0.5.0.
 • Support ``flax`` versions 0.8.0 to 0.10.2.
 
 
