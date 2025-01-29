@@ -441,8 +441,15 @@ def convert_to_scico_geometry(
     linear system to determine the affine relationship between them.
 
     Args:
-        vol_geom: ASTRA volume geometry object.
-        proj_geom: ASTRA projection geometry object.
+        input_shape: Shape of the input array.
+        det_count: Number of detector elements. See the
+           `astra documentation <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
+           for more information.
+        det_spacing: Spacing between detector elements. See the
+           `astra documentation <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
+           for more information.
+        angles: Array of projection angles in radians.
+        vectors: Array of geometry specification vectors.
 
     Returns:
         (num_angles, 2, 4) array of homogeneous projection matrices.
