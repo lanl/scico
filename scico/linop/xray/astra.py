@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2024 by SCICO Developers
+# Copyright (C) 2020-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -24,6 +24,8 @@ import numpy.typing
 
 import jax
 from jax.typing import ArrayLike
+
+from scipy.spatial.transform import Rotation
 
 try:
     import astra
@@ -727,6 +729,24 @@ def angle_to_vector(det_spacing: Tuple[float, float], angles: np.ndarray) -> np.
     vectors[:, 7] = np.sin(angles) * det_spacing[0]
     vectors[:, 11] = det_spacing[1]
     return vectors
+
+
+def rotate_vectors(vectors: np.ndarray, rot: Rotation) -> np.ndarray:
+    """Rotate geometry specification vectors.
+
+    Rotate ASTRA "parallel3d_vec" geometry specification vectors.
+
+    Args:
+        vectors: Array of geometry specification vectors.
+        rot: Rotation.
+
+    Returns:
+        Rotated geometry specification vectors.
+    """
+    rot_vecs = vectors.copy()
+    for k in range(0, 12, 3):
+        rot_vecs[:, k : k + 3] = rot.apply(rot_vecs[:, k : k + 3])
+    return rot_vecs
 
 
 def _ensure_writeable(x):
