@@ -352,3 +352,26 @@ def build_sample_conditional_fn(model: Callable, params: PyTree):
         return model.apply(params, z, c, method=model.decode_cond)
 
     return sample_fn
+
+
+def build_sample_conditional_return_latent_fn(model, params):
+    """Function to generate samples from model and return intermediate
+    decodings too.
+
+    Args:
+        model: Variational autoencoder model to generate samples from.
+        params: Parameters of trained model.
+    """
+
+    @jax.jit
+    def sample_fn(z, c):
+        """Generate samples from latent representation conditioned
+        on sample class and return intermediate representations too.
+
+        Args:
+            z: Representation in latent space.
+            c: Class to generate samples from.
+        """
+        return model.apply(params, z, c, method=model.decode_cond_return_latent)
+
+    return sample_fn
