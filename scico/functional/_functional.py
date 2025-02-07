@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2023 by SCICO Developers
+# Copyright (C) 2020-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -16,6 +16,7 @@ from typing import List, Optional, Union
 
 import scico
 from scico import numpy as snp
+from scico.linop import LinearOperator
 from scico.numpy import Array, BlockArray
 
 
@@ -238,6 +239,65 @@ class SeparableFunctional(Functional):
             f"Number of blocks in v, {len(v.shape)}, and length of functional_list, "
             f"{len(self.functional_list)}, do not match."
         )
+
+
+class ComposedFunctional(Functional):
+    r"""A functional constructed by composition.
+
+    A functional constructed by composition of a functional with an
+    orthogonal linear operator, i.e.
+
+    .. math::
+       f(\mb{x}) = g(A \mb{x})
+
+    where :math:`f` is the composed functional, :math:`g` is the
+    functional from which it is composed, and :math:`A` is an orthogonal
+    linear operator.
+    """
+
+    def __init__(self, functional: Functional, linop: LinearOperator):
+        r"""
+        Args:
+            functional: The functional :math:`g` to be composed.
+            linop: The linear operator :math:`A` to be composed. Note
+              that it is the user's responsibility to confirm that
+              the linear operator is orthogonal. If it is not, the
+              result of :meth:`prox` will be incorrect.
+        """
+        self.functional = functional
+        self.linop = linop
+
+        self.has_eval: bool = functional.has_eval
+        self.has_prox: bool = functional.has_prox
+
+        super().__init__()
+
+    def __call__(self, x: BlockArray) -> float:
+        return self.functional(self.linop(x))
+
+    def prox(
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[Array, BlockArray]:
+        r"""Evaluate proximal operator of a composed functional.
+
+        Evaluate proximal operator :math:`f(\mb{x}) = g(A \mb{x})`, where
+        :math:`A` is an orthogonal linear operator, via a special case of
+        Theorem 6.15 of :cite:`beck-2017-first`
+
+        .. math::
+           \prox_{\lambda f}(\mb{v}) = A^T \prox_{\lambda g}(A \mb{v}) \;.
+
+        Examples of orthogonal linear operator in SCICO include
+        :class:`.linop.Reshape` and :class:`.linop.Transpose`.
+
+        Args:
+            v: Input array :math:`\mb{v}`.
+            lam: Proximal parameter :math:`\lambda`.
+            kwargs: Additional arguments that may be used by derived
+                classes.
+
+        """
+        return self.linop.T(self.functional.prox(self.linop(v), lam=lam, **kwargs))
 
 
 class FunctionalSum(Functional):
