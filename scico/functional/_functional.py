@@ -202,6 +202,13 @@ class SeparableFunctional(Functional):
 
         super().__init__()
 
+    def __repr__(self):
+        return (
+            Functional.__repr__(self)
+            + "\nComponents:\n"
+            + "\n".join(["  " + repr(f) for f in self.functional_list])
+        )
+
     def __call__(self, x: BlockArray) -> float:
         if len(x.shape) == len(self.functional_list):
             return snp.sum(snp.array([fi(xi) for fi, xi in zip(self.functional_list, x)]))
@@ -252,6 +259,9 @@ class ComposedFunctional(Functional):
 
     where :math:`f` is the composed functional, :math:`g` is the
     functional from which it is composed, and :math:`A` is an orthogonal
+    linear operator. Note that the resulting :class:`Functional` can only
+    be applied (either via evaluation or :method:`prox` calls) to inputs
+    of shape and dtype corresponding to the input specification of the
     linear operator.
     """
 
@@ -271,6 +281,15 @@ class ComposedFunctional(Functional):
         self.has_prox: bool = functional.has_prox
 
         super().__init__()
+
+    def __repr__(self):
+        return (
+            Functional.__repr__(self)
+            + "\nComposition of:\n"
+            + self.functional.__repr__()
+            + "\n"
+            + self.linop.__repr__()
+        )
 
     def __call__(self, x: BlockArray) -> float:
         return self.functional(self.linop(x))
