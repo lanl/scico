@@ -277,8 +277,8 @@ class ComposedFunctional(Functional):
         self.functional = functional
         self.linop = linop
 
-        self.has_eval: bool = functional.has_eval
-        self.has_prox: bool = functional.has_prox
+        self.has_eval = functional.has_eval
+        self.has_prox = functional.has_prox
 
         super().__init__()
 
