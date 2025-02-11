@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2023-2024 by SCICO Developers
+# Copyright (C) 2023-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -66,12 +66,10 @@ CUDA, and can only be run on GPU devices.
 
 import sys
 
+from ._util import rotate_volume
 from ._xray import XRayTransform2D, XRayTransform3D
 
-__all__ = [
-    "XRayTransform2D",
-    "XRayTransform3D",
-]
+__all__ = ["XRayTransform2D", "XRayTransform3D", "rotate_volume"]
 
 
 # Imported items in __all__ appear to originate in top-level xray module

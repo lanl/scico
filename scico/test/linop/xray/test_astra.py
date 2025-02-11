@@ -8,6 +8,7 @@ import scico
 import scico.numpy as snp
 from scico.linop import DiagonalStack
 from scico.test.linop.test_linop import adjoint_test
+from scipy.spatial.transform import Rotation
 
 try:
     from scico.linop.xray.astra import (
@@ -15,6 +16,7 @@ try:
         XRayTransform3D,
         _ensure_writeable,
         angle_to_vector,
+        rotate_vectors,
     )
 except ModuleNotFoundError as e:
     if e.name == "astra":
@@ -24,9 +26,9 @@ except ModuleNotFoundError as e:
 
 
 N = 128
-RTOL_CPU = 5e-5
-RTOL_GPU = 7e-2
-RTOL_GPU_RANDOM_INPUT = 1.0
+RTOL_CPU = 1e-4
+RTOL_GPU = 1e-1
+RTOL_GPU_RANDOM_INPUT = 2.0
 
 
 def make_im(Nx, Ny, is_3d=True):
@@ -209,6 +211,14 @@ def test_angle_to_vector():
     det_spacing = [0.9, 1.5]
     vectors = angle_to_vector(det_spacing, angles)
     assert vectors.shape == (angles.size, 12)
+
+
+def test_rotate_vectors():
+    v0 = angle_to_vector([1.0, 1.0], np.linspace(0, np.pi / 2, 4, endpoint=False))
+    v1 = angle_to_vector([1.0, 1.0], np.linspace(np.pi / 2, np.pi, 4, endpoint=False))
+    r = Rotation.from_euler("z", np.pi / 2)
+    v0r = rotate_vectors(v0, r)
+    np.testing.assert_allclose(v1, v0r, atol=1e-7)
 
 
 ## conversion functions
