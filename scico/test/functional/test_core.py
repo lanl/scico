@@ -100,7 +100,7 @@ def test_separable_grad(test_separable_obj):
         np.testing.assert_warns(test_separable_obj.f.grad(test_separable_obj.v1))
         np.testing.assert_warns(test_separable_obj.fg.grad(test_separable_obj.vb))
 
-        # Tests the separable grad with warnings being supressed
+        # Test the separable grad with warnings being suppressed
         fv1 = test_separable_obj.f.grad(test_separable_obj.v1)
         gv2 = test_separable_obj.g.grad(test_separable_obj.v2)
         fgv = test_separable_obj.fg.grad(test_separable_obj.vb)
