@@ -1,4 +1,4 @@
-# Copyright (C) 2020-2023 by SCICO Developers
+# Copyright (C) 2020-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -167,7 +167,7 @@ class Slice(LinearOperator):
         if is_nested(input_shape):
             output_shape = input_shape[idx]  # type: ignore
         else:
-            output_shape = indexed_shape(input_shape, idx)
+            output_shape = indexed_shape(input_shape, idx)  # type: ignore
 
         self.idx: ArrayIndex = idx
         super().__init__(
