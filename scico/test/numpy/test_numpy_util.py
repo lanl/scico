@@ -19,8 +19,19 @@ from scico.numpy.util import (
     normalize_axes,
     real_dtype,
     slice_length,
+    transpose_list_of_ntpl,
+    transpose_ntpl_of_list,
 )
 from scico.random import randn
+
+
+def test_ntpl_list_transpose():
+    nt = collections.namedtuple("NT", ("a", "b", "c"))
+    ntlist0 = [nt(0, 1, 2), nt(3, 4, 5)]
+    listnt = transpose_list_of_ntpl(ntlist0)
+    ntlist1 = transpose_ntpl_of_list(listnt)
+    assert ntlist0[0] == ntlist1[0]
+    assert ntlist0[1] == ntlist1[1]
 
 
 def test_namedtuple_to_array():
