@@ -61,6 +61,8 @@ class Functional:
         Args:
            x: Point at which to evaluate this functional.
 
+        Returns:
+           Result of evaluating the functional at `x`.
         """
         # Functionals that can be evaluated should override this method.
         raise NotImplementedError(f"Functional {type(self)} cannot be evaluated.")
@@ -85,9 +87,12 @@ class Functional:
         Args:
             v: Point at which to evaluate prox function.
             lam: Proximal parameter :math:`\lambda`.
-            kwargs: Additional arguments that may be used by derived
+            **kwargs: Additional arguments that may be used by derived
                 classes. These include `x0`, an initial guess for the
                 minimizer in the definition of :math:`\prox`.
+
+        Returns:
+            Result of evaluating the scaled proximal operator at `v`.
         """
         # Functionals that have a prox should override this method.
         raise NotImplementedError(f"Functional {type(self)} does not have a prox.")
@@ -112,8 +117,11 @@ class Functional:
         Args:
             v: Point at which to evaluate prox function.
             lam: Proximal parameter :math:`\lambda`.
-            kwargs: Additional keyword args, passed directly to
+            **kwargs: Additional keyword args, passed directly to
                `self.prox`.
+
+        Returns:
+            Result of evaluating the scaled proximal operator at `v`.
         """
         return v - lam * self.prox(v / lam, 1.0 / lam, **kwargs)
 
@@ -122,6 +130,9 @@ class Functional:
 
         Args:
             x: Point at which to evaluate gradient.
+
+        Returns:
+            The gradient at `x`.
         """
         return self._grad(x)
 
@@ -169,6 +180,16 @@ class ScaledFunctional(Functional):
            \prox_{\alpha (\beta f)}(\mb{v}) =
            \prox_{(\alpha \beta) f}(\mb{v}) \;.
 
+
+        Args:
+            v: Point at which to evaluate prox function.
+            lam: Proximal parameter :math:`\lambda`.
+            **kwargs: Additional arguments that may be used by derived
+                classes. These include `x0`, an initial guess for the
+                minimizer in the definition of :math:`\prox`.
+
+        Returns:
+            Result of evaluating the scaled proximal operator at `v`.
         """
         return self.functional.prox(v, lam * self.scale, **kwargs)
 
@@ -234,9 +255,11 @@ class SeparableFunctional(Functional):
         Args:
             v: Input array :math:`\mb{v}`.
             lam: Proximal parameter :math:`\lambda`.
-            kwargs: Additional arguments that may be used by derived
+            **kwargs: Additional arguments that may be used by derived
                 classes.
 
+        Returns:
+            Result of evaluating the scaled proximal operator at `v`.
         """
         if len(v.shape) == len(self.functional_list):
             return snp.blockarray(
@@ -260,7 +283,7 @@ class ComposedFunctional(Functional):
     where :math:`f` is the composed functional, :math:`g` is the
     functional from which it is composed, and :math:`A` is an orthogonal
     linear operator. Note that the resulting :class:`Functional` can only
-    be applied (either via evaluation or :method:`prox` calls) to inputs
+    be applied (either via evaluation or :meth:`prox` calls) to inputs
     of shape and dtype corresponding to the input specification of the
     linear operator.
     """
@@ -312,9 +335,11 @@ class ComposedFunctional(Functional):
         Args:
             v: Input array :math:`\mb{v}`.
             lam: Proximal parameter :math:`\lambda`.
-            kwargs: Additional arguments that may be used by derived
+            **kwargs: Additional arguments that may be used by derived
                 classes.
 
+        Returns:
+            Result of evaluating the scaled proximal operator at `v`.
         """
         return self.linop.T(self.functional.prox(self.linop(v), lam=lam, **kwargs))
 

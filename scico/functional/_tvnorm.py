@@ -35,7 +35,7 @@ class TVNorm(Functional):
 
     Generic total variation (TV) norm with approximation of the scaled
     proximal operator :cite:`kamilov-2016-parallel`
-    :cite:`kamilov-2016-minimizing`.
+    :cite:`kamilov-2016-minimizing` :cite:`chandler-2024-closedform`.
     """
 
     has_eval = True
@@ -206,17 +206,21 @@ class TVNorm(Functional):
         return (1.0 / K) * CWT(WPv)
 
     def prox(self, v: Array, lam: float = 1.0, **kwargs) -> Array:
-        r"""Approximate proximal operator of the TV norm.
+        r"""Approximate scaled proximal operator of the TV norm.
 
-        Approximation of the proximal operator of the TV norm, computed
-        via the methods described in :cite:`kamilov-2016-parallel`
-        :cite:`kamilov-2016-minimizing`.
+        Approximation of the scaled proximal operator of the TV norm,
+        computed via the methods described in
+        :cite:`kamilov-2016-parallel` :cite:`kamilov-2016-minimizing`
+        :cite:`chandler-2024-closedform`.
 
         Args:
             v: Input array :math:`\mb{v}`.
             lam: Proximal parameter :math:`\lam`.
-            kwargs: Additional arguments that may be used by derived
+            **kwargs: Additional arguments that may be used by derived
                 classes.
+
+        Returns:
+            Result of evaluating the scaled proximal operator at `v`.
         """
         if self.WP is None or self.WP.shape[1] != v.shape:
             self.WP, self.CWT, self.prox_ndims, self.prox_slice = self._prox_operators(
