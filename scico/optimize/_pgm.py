@@ -137,11 +137,9 @@ class PGM(Optimizer):
         return itstat_fields, itstat_attrib
 
     def _state_variable_names(self) -> List[str]:
-        """Get optimizer state variable names."""
         return ["x", "L"]
 
-    def minimizer(self):
-        """Return current estimate of the functional mimimizer."""
+    def minimizer(self) -> Union[Array, BlockArray]:
         return self.x
 
     def objective(self, x: Optional[Union[Array, BlockArray]] = None) -> float:

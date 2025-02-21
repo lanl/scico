@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2024 by SCICO Developers
+# Copyright (C) 2022-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -137,8 +137,10 @@ class ProximalADMMBase(Optimizer):
         itstat_attrib = ["norm_primal_residual()", "norm_dual_residual()"]
         return itstat_fields, itstat_attrib
 
-    def minimizer(self):
-        """Return current estimate of the functional mimimizer."""
+    def _state_variable_names(self) -> List[str]:
+        return ["x", "z", "z_old", "u", "u_old"]
+
+    def minimizer(self) -> Union[Array, BlockArray]:
         return self.x
 
     def objective(

@@ -1,3 +1,6 @@
+import os
+import tempfile
+
 import numpy as np
 
 import pytest
@@ -144,6 +147,25 @@ class TestReal:
         )
         x = admm_.solve()
         assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-3
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "admm.npz")
+            admm_.save_state(path)
+            admm2 = ADMM(
+                f=f,
+                g_list=g_list,
+                C_list=C_list,
+                rho_list=rho_list,
+                maxiter=maxiter,
+                itstat_options={"display": False},
+                x0=A.adj(self.y),
+                subproblem_solver=GenericSubproblemSolver(
+                    minimize_kwargs={"options": {"maxiter": 50}}
+                ),
+            )
+            admm2.load_state(path)
+            np.testing.assert_allclose(admm_.z_list[0], admm2.z_list[0], rtol=1e-7)
+            np.testing.assert_allclose(admm_.u_list[0], admm2.u_list[0], rtol=1e-7)
 
     def test_admm_quadratic_scico(self):
         maxiter = 25
