@@ -11,7 +11,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 import scico.numpy as snp
 from scico.functional import Functional
