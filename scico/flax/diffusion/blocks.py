@@ -16,6 +16,7 @@ import math
 from typing import Callable, Optional
 
 import jax
+import jax.numpy as jnp
 from jax.typing import ArrayLike
 
 from einops import rearrange
@@ -43,6 +44,7 @@ class Residual(nn.Module):
     @nn.compact
     def __call__(self, x: ArrayLike, *args, **kwargs) -> ArrayLike:
         """Apply residual block, i.e. add input to block output.
+
         Args:
             x: The array to be transformed.
             args: Arguments of given processing block.
@@ -52,7 +54,12 @@ class Residual(nn.Module):
 
 
 class Upsample(nn.Module):
-    """Upsample Flax block."""
+    """Upsample Flax block.
+
+    Args:
+        dim: Dimension to upsample to.
+        dim_out: Optional dimension to upsample to.
+    """
 
     dim: int
     dim_out: Optional[int] = None

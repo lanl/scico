@@ -26,3 +26,17 @@ def mse_loss(output: Array, labels: Array) -> float:
     """
     mse = optax.l2_loss(output, labels)
     return jnp.mean(mse)
+
+
+def hubber_loss(output: Array, labels: Array) -> float:
+    """Compute Hubber loss for training via Optax.
+
+    Args:
+        output: Comparison signal.
+        labels: Reference signal.
+
+    Returns:
+        MSE between `output` and `labels`.
+    """
+    hbl = optax.huber_loss(output, labels)
+    return jnp.mean(hbl)
