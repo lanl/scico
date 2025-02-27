@@ -129,7 +129,7 @@ class MultiLevelDecoder(nn.Module):
     upsampling_scale: int = 2
 
     @nn.compact
-    def __call__(self, xlist) -> ArrayLike:
+    def __call__(self, xlist, lat=False) -> ArrayLike:
         """Apply multi-level decoder.
 
         Args:
@@ -139,6 +139,7 @@ class MultiLevelDecoder(nn.Module):
         Returns:
             The reconstructed signal.
         """
+        xlup = []
         h, w = self.platent_shape
         x = None
         for j, nfilters in enumerate(self.num_filters):
@@ -149,9 +150,11 @@ class MultiLevelDecoder(nn.Module):
                 x = xl
             else:
                 x = x + xl
+            xlup.append(x)
             x = ConvUpsampleBlock(
                 nfilters, self.kernel_size, self.strides, self.activation_fn, self.upsampling_scale
             )(x)
+            xlup.append(x)
             h = h * self.upsampling_scale
             w = w * self.upsampling_scale
 
@@ -163,6 +166,9 @@ class MultiLevelDecoder(nn.Module):
             use_bias=False,
             padding="CIRCULAR",
         )(x)
+
+        if lat:
+            return x, xlup
 
         return x
 
@@ -268,6 +274,16 @@ class UNetVAE(nn.Module):
             xl.append(x)
         x = self.decoder(xl)
         return x
+
+    def decode_cond_plot(self, xlist: ArrayLike, c: ArrayLike):
+        """Class-conditional decoding using multiple latent representations."""
+        xl = []
+        for j, z_ in enumerate(xlist):
+            x = self.post_latent_proj[j](z_)
+            x = x + self.class_proj[j](c)
+            xl.append(x)
+        x, xlup = self.decoder(xl, lat=True)
+        return x, xlup
 
     def decode(self, xlist: ArrayLike):
         """Class-independent decoding using multiple latent representations."""

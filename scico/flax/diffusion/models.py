@@ -30,7 +30,7 @@ from scico.flax.diffusion.blocks import (
 from scico.flax.diffusion.helpers import default
 
 
-class Unet(nn.Module):
+class ConditionalUnet(nn.Module):
     """Conditional U Net model.
 
     Args:
