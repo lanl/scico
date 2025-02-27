@@ -198,7 +198,11 @@ class ADMM(Optimizer):
         return itstat_fields, itstat_attrib
 
     def _state_variable_names(self) -> List[str]:
-        return ["z_list", "z_list_old", "u_list"]
+        # While x is in the most abstract sense not part of the algorithm
+        # state, it does form part of the state in pratice due to its use
+        # as an initializer for iterative solvers for the x step of the
+        # ADMM algorithm.
+        return ["x", "z_list", "z_list_old", "u_list"]
 
     def minimizer(self) -> Union[Array, BlockArray]:
         return self.x

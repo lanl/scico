@@ -148,10 +148,31 @@ class TestReal:
         x = admm_.solve()
         assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-3
 
+    def test_admm_saveload(self):
+        maxiter = 5
+        ρ = 2e-1
+        A = linop.MatrixOperator(self.Amx)
+        f = loss.SquaredL2Loss(y=self.y, A=A, scale=self.𝛼 / 2.0)
+        g_list = [(self.λ / 2) * functional.SquaredL2Norm()]
+        C_list = [linop.MatrixOperator(self.Bmx)]
+        rho_list = [ρ]
+        admm0 = ADMM(
+            f=f,
+            g_list=g_list,
+            C_list=C_list,
+            rho_list=rho_list,
+            maxiter=maxiter,
+            itstat_options={"display": False},
+            x0=A.adj(self.y),
+            subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-4}, cg_function="scico"),
+        )
+        admm0.solve()
         with tempfile.TemporaryDirectory() as tmpdir:
             path = os.path.join(tmpdir, "admm.npz")
-            admm_.save_state(path)
-            admm2 = ADMM(
+            admm0.save_state(path)
+            admm0.solve()
+            h0 = admm0.history()
+            admm1 = ADMM(
                 f=f,
                 g_list=g_list,
                 C_list=C_list,
@@ -159,13 +180,15 @@ class TestReal:
                 maxiter=maxiter,
                 itstat_options={"display": False},
                 x0=A.adj(self.y),
-                subproblem_solver=GenericSubproblemSolver(
-                    minimize_kwargs={"options": {"maxiter": 50}}
+                subproblem_solver=LinearSubproblemSolver(
+                    cg_kwargs={"tol": 1e-4}, cg_function="scico"
                 ),
             )
-            admm2.load_state(path)
-            np.testing.assert_allclose(admm_.z_list[0], admm2.z_list[0], rtol=1e-7)
-            np.testing.assert_allclose(admm_.u_list[0], admm2.u_list[0], rtol=1e-7)
+            admm1.load_state(path)
+            admm1.solve()
+            h1 = admm1.history()
+            np.testing.assert_allclose(admm0.minimizer(), admm1.minimizer(), atol=1e-5)
+            assert np.abs(h0[-1].Objective - h1[-1].Objective) < 1e-6
 
     def test_admm_quadratic_scico(self):
         maxiter = 25
