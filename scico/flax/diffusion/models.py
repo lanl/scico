@@ -18,6 +18,7 @@ import jax.numpy as jnp
 from jax.typing import ArrayLike
 
 import flax.linen as nn
+from scico.flax.autoencoders.blocks import MLP
 from scico.flax.diffusion.blocks import (
     Attention,
     Downsample,
@@ -27,8 +28,72 @@ from scico.flax.diffusion.blocks import (
     ResnetBlock,
     SinusoidalPositionEmbeddings,
     Upsample,
+    get_timestep_embedding,
 )
 from scico.flax.diffusion.helpers import default
+
+
+class MLPScore(nn.Module):
+    """Score network using a multi-layer perceptron (MLP) (i.e. dense
+    layers).
+
+    Args:
+        in_dim: Dimension of input signals.
+        pos_dim: Dimension of positional embedding.
+        encoder_layers: Sequential list with number of neurons per layer
+            in the MLP for the encoding part of the model.
+        decoder_layers: Sequential list with number of neurons per layer
+            in the MLP for the decoding part of the model.
+        activation_fn: Flax function defining the activation operation
+            to apply after each layer.
+    """
+
+    in_dim: int = 2
+    pos_dim: int = 16
+    encoder_layers: Tuple[int] = (16,)
+    decoder_layers: Tuple[int] = (128, 128)
+    activation_fn: Callable = nn.leaky_relu
+
+    @nn.compact
+    def __call__(self, x: ArrayLike, t: ArrayLike):
+        """Apply the score MLP model.
+
+        Args:
+            x: The array to process.
+            t: The array with the time component.
+
+        Returns:
+            The processed array.
+        """
+        if len(x.shape) == 1:
+            x = x[None, :]
+
+        t_enc_dim = self.pos_dim * 2
+
+        temb = get_timestep_embedding(t, self.pos_dim)
+        # t_encoder
+        temb = MLP(
+            self.pos_dim,
+            layer_widths=self.encoder_layers + (t_enc_dim,),
+            activate_final=False,
+            activation_fn=self.activation_fn,
+        )(temb)
+        # x_encoder
+        xemb = MLP(
+            self.in_dim,
+            layer_widths=self.encoder_layers + (t_enc_dim,),
+            activate_final=False,
+            activation_fn=self.activation_fn,
+        )(x)
+
+        h = jnp.concatenate([xemb, temb], axis=-1)
+        out = MLP(
+            2 * t_enc_dim,
+            layer_widths=self.decoder_layers + (self.in_dim,),
+            activate_final=False,
+            activation_fn=nn.leaky_relu,
+        )(h)
+        return out
 
 
 class ConditionalUnet(nn.Module):
