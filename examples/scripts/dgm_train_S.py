@@ -97,10 +97,7 @@ print(f"JAX local devices: {jax.local_devices()}\n")
 
 
 """
-Construct MLP VAE model.
-model, using only one iteration (depth) in model and few CG iterations
-for faster intialization. Run first stage (initialization) training
-loop followed by a second stage (depth iterations) training loop.
+Construct score model.
 """
 dim = train_ds["image"].shape[1]  # signal dimension
 pos_dim = 16  # positional embedding dimension
