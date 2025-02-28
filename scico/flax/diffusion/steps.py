@@ -45,7 +45,7 @@ def train_step_diffusion(
     state: TrainState,
     batch: ArrayLike,
     key: ArrayLike,
-    sigma: float,
+    stddev_prior: float,
     learning_rate_fn: optax._src.base.Schedule,
     criterion: Callable,
     **kwargs,
@@ -62,7 +62,7 @@ def train_step_diffusion(
             passed (i.e. no label is passed since the prediction must
             correspond to data similar to the input).
         key: Key for random generation.
-        sigma: Standard deviation of prior noise.
+        stddev_prior: Standard deviation of prior noise.
         learning_rate_fn: A function to map step
             counts to values. This is only used for display purposes
             (optax optimizers are stateless, so the current learning rate
@@ -83,7 +83,7 @@ def train_step_diffusion(
     t = batch_t.reshape(tshp)
     key, step_key = jax.random.split(key)
     z = jax.random.normal(step_key, batch["image"].shape)
-    std = jnp.sqrt((sigma ** (2 * t) - 1.0) / 2.0 / jnp.log(sigma))
+    std = jnp.sqrt((stddev_prior ** (2 * t) - 1.0) / 2.0 / jnp.log(stddev_prior))
     batch_x = batch["image"] + z * std
 
     def loss_fn(params):
@@ -118,7 +118,7 @@ def eval_step_diffusion(
     batch: ArrayLike,
     criterion: Callable,
     key: ArrayLike,
-    sigma: float,
+    stddev_prior: float,
     **kwargs,
 ) -> Tuple[TrainState, DiffusionMetricsDict]:
     """Evaluate current model state.
@@ -133,7 +133,7 @@ def eval_step_diffusion(
         batch: Sharded and batched training data.
         criterion: Loss function.
         key: Key for random generation.
-        sigma: Standard deviation of prior noise.
+        stddev_prior: Standard deviation of prior noise.
 
     Returns:
         Current diagnostic statistics.
@@ -145,7 +145,7 @@ def eval_step_diffusion(
     t = batch_t.reshape(tshp)
     key, step_key = jax.random.split(key)
     z = jax.random.normal(step_key, batch["image"].shape)
-    std = jnp.sqrt((sigma ** (2 * t) - 1.0) / 2.0 / jnp.log(sigma))
+    std = jnp.sqrt((stddev_prior ** (2 * t) - 1.0) / 2.0 / jnp.log(stddev_prior))
     batch_x = batch["image"] + z * std
     output = state.apply_fn({"params": state.params}, batch_x, batch_t)
     loss = criterion(output * std, -z)
