@@ -11,9 +11,10 @@ import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
+from functools import partial
+from typing import Any, Optional, Tuple
 
-from typing import Optional, Tuple
-
+import jax.numpy as jnp
 from jax.typing import ArrayLike
 
 import flax.linen as nn
@@ -58,6 +59,8 @@ class ConditionalUnet(nn.Module):
     resnet_block_groups: int = 4
     kernel_size: Tuple[int, int] = (7, 7)
     padding: int = 3
+    dtype: Any = jnp.float32
+    time_embed: bool = True
 
     def setup(self):
         """Setup of layers in conditional Unet model."""

@@ -60,7 +60,9 @@ def kl_loss_fn(mean, logvar):
             )
     else:  # For regular VAE
         reduce_dims = list(range(1, len(mean.shape)))
-        kl_loss = jnp.mean(-0.5 * jnp.sum(1 + logvar - mean**2 - jnp.exp(logvar), axis=reduce_dims))
+        kl_loss = jnp.mean(
+            -0.5 * jnp.sum(1 + logvar - mean**2 - jnp.exp(logvar), axis=reduce_dims)
+        )
 
     return kl_loss
 
@@ -265,6 +267,7 @@ def eval_step_vae(
     kl_loss = kl_loss_fn(mean, logvar)
     loss = mse_loss + kl_weight * kl_loss
     metrics: VAEMetricsDict = {"loss": loss, "mse": mse_loss, "kl": kl_loss}
+    metrics = lax.pmean(metrics, axis_name="batch")
     return metrics
 
 

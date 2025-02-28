@@ -32,6 +32,45 @@ from scico.flax.diffusion.helpers import default, exists
 # docs.
 
 
+def get_timestep_embedding(timesteps: ArrayLike, embedding_dim: int = 128):
+    """Construct an embedding for a sequence of time steps.
+
+    Args:
+        timesteps: Sequence of time steps to embed.
+        embedding_dim: Embedding dimension.
+
+    Returns:
+        Time steps as an embedded sequence with specified dimension.
+    """
+    half_dim = embedding_dim // 2
+    emb = math.log(10000) / (half_dim - 1)
+    emb = jnp.exp(jnp.arange(half_dim, dtype=jnp.float32) * -emb)
+
+    emb = jnp.asarray(timesteps, dtype=jnp.float32) * emb[None, :]
+    emb = jnp.concatenate([jnp.sin(emb), jnp.cos(emb)], axis=-1)
+    if embedding_dim % 2 == 1:  # zero pad
+        emb = jnp.pad(emb, [0, 1], mode="constant")
+
+    return emb
+
+
+class SinusoidalPositionEmbeddings(nn.Module):
+    """Definition of sinusoilda positional embeddings."""
+
+    dim: int
+
+    @nn.compact
+    def __call__(self, time):
+        """Compute embeddings."""
+        half_dim = self.dim // 2
+        embeddings = math.log(10000) / (half_dim - 1)
+        embeddings = jnp.exp(jnp.arange(half_dim, dtype=jnp.float32) * -embeddings)
+        # Next, alternatively
+        embeddings = jnp.asarray(time, dtype=jnp.float32) * embeddings[None, :]
+        embeddings = jnp.concatenate([jnp.sin(embeddings), jnp.cos(embeddings)], axis=-1)
+        return embeddings
+
+
 class Residual(nn.Module):
     """Residual block.
 
@@ -89,23 +128,6 @@ class Downsample(nn.Module):
                 nn.Conv(default(self.dim_out, self.dim), kernel_size=(1, 1)),
             ]
         )(x)
-
-
-class SinusoidalPositionEmbeddings(nn.Module):
-    """Definition of sinusoilda positional embeddings."""
-
-    dim: int
-
-    @nn.compact
-    def __call__(self, time):
-        """Compute embeddings."""
-        half_dim = self.dim // 2
-        embeddings = math.log(10000) / (half_dim - 1)
-        embeddings = jnp.exp(jnp.arange(half_dim, dtype=jnp.float32) * -embeddings)
-        # Next, alternatively
-        embeddings = jnp.asarray(time, dtype=jnp.float32) * embeddings[None, :]
-        embeddings = jnp.concatenate([jnp.sin(embeddings), jnp.cos(embeddings)], axis=-1)
-        return embeddings
 
 
 class ConvGroupNBlock(nn.Module):
