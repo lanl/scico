@@ -12,7 +12,7 @@ import warnings
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
 from functools import partial
-from typing import Any, Optional, Tuple
+from typing import Any, Callable, Optional, Tuple
 
 import jax.numpy as jnp
 from jax.typing import ArrayLike
@@ -46,6 +46,10 @@ class MLPScore(nn.Module):
             in the MLP for the decoding part of the model.
         activation_fn: Flax function defining the activation operation
             to apply after each layer.
+        time_embed: Flag to indicate that the model uses a time embedding
+            component. This is used when initializing model parameters
+            and should not be changed.
+        dtype: Output dtype. Default: :attr:`~numpy.float32`.
     """
 
     in_dim: int = 2
@@ -53,6 +57,8 @@ class MLPScore(nn.Module):
     encoder_layers: Tuple[int] = (16,)
     decoder_layers: Tuple[int] = (128, 128)
     activation_fn: Callable = nn.leaky_relu
+    time_embed: bool = True
+    dtype: Any = jnp.float32
 
     @nn.compact
     def __call__(self, x: ArrayLike, t: ArrayLike):
@@ -73,25 +79,25 @@ class MLPScore(nn.Module):
         temb = get_timestep_embedding(t, self.pos_dim)
         # t_encoder
         temb = MLP(
-            self.pos_dim,
             layer_widths=self.encoder_layers + (t_enc_dim,),
-            activate_final=False,
             activation_fn=self.activation_fn,
+            activate_final=False,
+            flatten_first=False,
         )(temb)
         # x_encoder
         xemb = MLP(
-            self.in_dim,
             layer_widths=self.encoder_layers + (t_enc_dim,),
-            activate_final=False,
             activation_fn=self.activation_fn,
+            activate_final=False,
+            flatten_first=False,
         )(x)
 
         h = jnp.concatenate([xemb, temb], axis=-1)
         out = MLP(
-            2 * t_enc_dim,
             layer_widths=self.decoder_layers + (self.in_dim,),
-            activate_final=False,
             activation_fn=nn.leaky_relu,
+            activate_final=False,
+            flatten_first=False,
         )(h)
         return out
 
@@ -113,6 +119,10 @@ class ConditionalUnet(nn.Module):
             convolution filters.
         padding: An integer defining the size of the padding for the
             convolution filters.
+        time_embed: Flag to indicate that the model uses a time embedding
+            component. This is used when initializing model parameters
+            and should not be changed.
+        dtype: Output dtype. Default: :attr:`~numpy.float32`.
     """
 
     dim: int
@@ -124,8 +134,8 @@ class ConditionalUnet(nn.Module):
     resnet_block_groups: int = 4
     kernel_size: Tuple[int, int] = (7, 7)
     padding: int = 3
-    dtype: Any = jnp.float32
     time_embed: bool = True
+    dtype: Any = jnp.float32
 
     def setup(self):
         """Setup of layers in conditional Unet model."""
