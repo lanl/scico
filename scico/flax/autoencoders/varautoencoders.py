@@ -111,12 +111,27 @@ class VAE(nn.Module):
             self.class_proj = nn.Dense(self.cond_width)
 
     def encode(self, x: ArrayLike) -> Tuple[ArrayLike, ArrayLike]:
-        """Variational encoding."""
+        """Variational encoding.
+
+        Args:
+            x: Signals to encode.
+
+        Returns:
+            The mean and log variances of the encoded signals.
+        """
         mean, logvar = self.encoder(x)
         return mean, logvar
 
     def decode_cond(self, x: ArrayLike, c: ArrayLike):
-        """Class-conditional decoding."""
+        """Class-conditional decoding.
+
+        Args:
+            x: Random generation in latent space to decode.
+            c: Classes to generate samples from.
+
+        Returns:
+            The generated samples.
+        """
         assert self.cond_width > 0
         x = self.post_latent_proj(x)
         x = x + self.class_proj(c)
@@ -124,7 +139,14 @@ class VAE(nn.Module):
         return x
 
     def decode(self, x: ArrayLike):
-        """Class-independent decoding."""
+        """Class-independent decoding.
+
+        Args:
+            x: Random generation in latent space to decode.
+
+        Returns:
+            The generated samples.
+        """
         x = self.decoder(x)
         return x
 

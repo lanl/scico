@@ -133,11 +133,14 @@ class MultiLevelDecoder(nn.Module):
         """Apply multi-level decoder.
 
         Args:
-            x: The array with multi-level latent representations to be
+            xlist: The list with multi-level latent representations to be
                 decoded.
+            lat: Flag to indicate if the latent representations are to be
+                returned.
 
         Returns:
-            The reconstructed signal.
+            The reconstructed signal and, if requested, the intermediate
+            representations.
         """
         xlup = []
         h, w = self.platent_shape
@@ -261,12 +264,27 @@ class UNetVAE(nn.Module):
             self.class_proj = [nn.Dense(self.cond_width) for _ in range(len(self.encoder_filters))]
 
     def encode(self, x: ArrayLike) -> Tuple[ArrayLike, ArrayLike]:
-        """Encode using multiple latent representations."""
+        """Encode using multiple latent representations.
+
+        Args:
+            x: Signals to encode.
+
+        Returns:
+            The mean and log variances of the encoded signals.
+        """
         mean, logvar = self.encoder(x)
         return mean, logvar
 
     def decode_cond(self, xlist: ArrayLike, c: ArrayLike):
-        """Class-conditional decoding using multiple latent representations."""
+        """Class-conditional decoding using multiple latent representations.
+
+        Args:
+            xlist: List of random generations in latent spaces.
+            c: Classes to generate samples from.
+
+        Returns:
+            The generated samples.
+        """
         xl = []
         for j, z_ in enumerate(xlist):
             x = self.post_latent_proj[j](z_)
@@ -275,8 +293,17 @@ class UNetVAE(nn.Module):
         x = self.decoder(xl)
         return x
 
-    def decode_cond_plot(self, xlist: ArrayLike, c: ArrayLike):
-        """Class-conditional decoding using multiple latent representations."""
+    def decode_cond_return_latent(self, xlist: ArrayLike, c: ArrayLike):
+        """Class-conditional decoding using multiple latent representations.
+        The different latent representations are returned also.
+
+        Args:
+            xlist: List of random generations in latent spaces.
+            c: Classes to generate samples from.
+
+        Returns:
+            The generated samples as well as the intermediate representations.
+        """
         xl = []
         for j, z_ in enumerate(xlist):
             x = self.post_latent_proj[j](z_)
@@ -286,7 +313,14 @@ class UNetVAE(nn.Module):
         return x, xlup
 
     def decode(self, xlist: ArrayLike):
-        """Class-independent decoding using multiple latent representations."""
+        """Class-independent decoding using multiple latent representations.
+
+        Args:
+            xlist: List of random generations in latent spaces.
+
+        Returns:
+            The generated samples.
+        """
         x = self.decoder(xlist)
         return x
 
