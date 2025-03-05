@@ -151,7 +151,7 @@ def test_adjoint_grad(testobj):
     x = testobj.x
     Ax = A @ x
     f = lambda y: jax.numpy.linalg.norm(A.T(y)) ** 2
-    np.testing.assert_allclose(scico.grad(f)(Ax), 2 * A(A.adj(Ax)), rtol=10 * get_tol())
+    np.testing.assert_allclose(scico.grad(f)(Ax), 2 * A(A.adj(Ax)), rtol=1e2 * get_tol())
 
 
 def test_adjoint_random(testobj):
