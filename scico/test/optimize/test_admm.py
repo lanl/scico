@@ -150,10 +150,10 @@ class TestReal:
 
     def test_admm_saveload(self):
         maxiter = 5
-        x_ref = np.ones((16, 16))
+        x_ref = np.ones((16, 16), dtype=np.float32)
         x_ref[4:-4, 4:-4] = 1.0
         n = 3
-        psf = snp.ones((n, n)) / (n * n)
+        psf = snp.ones((n, n), dtype=np.float32) / (n * n)
         A = linop.CircularConvolve(h=psf, input_shape=x_ref.shape)
         y = A(x_ref)
         λ = 2e-2
