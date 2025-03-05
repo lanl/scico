@@ -150,21 +150,25 @@ class TestReal:
 
     def test_admm_saveload(self):
         maxiter = 5
-        ρ = 2e-1
-        A = linop.MatrixOperator(self.Amx)
-        f = loss.SquaredL2Loss(y=self.y, A=A, scale=self.𝛼 / 2.0)
-        g_list = [(self.λ / 2) * functional.SquaredL2Norm()]
-        C_list = [linop.MatrixOperator(self.Bmx)]
-        rho_list = [ρ]
+        x_ref = np.ones((16, 16))
+        x_ref[4:-4, 4:-4] = 1.0
+        n = 3
+        psf = snp.ones((n, n)) / (n * n)
+        A = linop.CircularConvolve(h=psf, input_shape=x_ref.shape)
+        y = A(x_ref)
+        λ = 2e-2
+        ρ = 5e-1
+        f = loss.SquaredL2Loss(y=y, A=A)
+        g = λ * functional.L21Norm()
+        C = linop.FiniteDifference(x_ref.shape, circular=True)
         admm0 = ADMM(
             f=f,
-            g_list=g_list,
-            C_list=C_list,
-            rho_list=rho_list,
+            g_list=[g],
+            C_list=[C],
+            rho_list=[ρ],
+            x0=A.adj(y),
             maxiter=maxiter,
-            itstat_options={"display": False},
-            x0=A.adj(self.y),
-            subproblem_solver=MatrixSubproblemSolver(),
+            subproblem_solver=CircularConvolveSolver(),
         )
         admm0.solve()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -174,18 +178,17 @@ class TestReal:
             h0 = admm0.history()
             admm1 = ADMM(
                 f=f,
-                g_list=g_list,
-                C_list=C_list,
-                rho_list=rho_list,
+                g_list=[g],
+                C_list=[C],
+                rho_list=[ρ],
+                x0=A.adj(y),
                 maxiter=maxiter,
-                itstat_options={"display": False},
-                x0=A.adj(self.y),
-                subproblem_solver=MatrixSubproblemSolver(),
+                subproblem_solver=CircularConvolveSolver(),
             )
             admm1.load_state(path)
             admm1.solve()
             h1 = admm1.history()
-            np.testing.assert_allclose(admm0.minimizer(), admm1.minimizer(), atol=5e-6)
+            np.testing.assert_allclose(admm0.minimizer(), admm1.minimizer(), atol=1e-7)
             assert np.abs(h0[-1].Objective - h1[-1].Objective) < 1e-6
 
     def test_admm_quadratic_scico(self):
