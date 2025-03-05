@@ -164,7 +164,7 @@ class TestReal:
             maxiter=maxiter,
             itstat_options={"display": False},
             x0=A.adj(self.y),
-            subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-4}, cg_function="scico"),
+            subproblem_solver=MatrixSubproblemSolver(),
         )
         admm0.solve()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -180,14 +180,12 @@ class TestReal:
                 maxiter=maxiter,
                 itstat_options={"display": False},
                 x0=A.adj(self.y),
-                subproblem_solver=LinearSubproblemSolver(
-                    cg_kwargs={"tol": 1e-4}, cg_function="scico"
-                ),
+                subproblem_solver=MatrixSubproblemSolver(),
             )
             admm1.load_state(path)
             admm1.solve()
             h1 = admm1.history()
-            np.testing.assert_allclose(admm0.minimizer(), admm1.minimizer(), atol=1e-5)
+            np.testing.assert_allclose(admm0.minimizer(), admm1.minimizer(), atol=5e-6)
             assert np.abs(h0[-1].Objective - h1[-1].Objective) < 1e-6
 
     def test_admm_quadratic_scico(self):
