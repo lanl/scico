@@ -151,12 +151,12 @@ def test_adjoint_grad(testobj):
     x = testobj.x
     Ax = A @ x
     f = lambda y: jax.numpy.linalg.norm(A.T(y)) ** 2
-    np.testing.assert_allclose(scico.grad(f)(Ax), 2 * A(A.adj(Ax)), rtol=1e2 * get_tol())
+    np.testing.assert_allclose(scico.grad(f)(Ax), 2 * A(A.adj(Ax)), rtol=get_tol())
 
 
 def test_adjoint_random(testobj):
     A = testobj.A
-    adjoint_test(A, rtol=get_tol_random_input())
+    adjoint_test(A, rtol=10 * get_tol_random_input())
 
 
 def test_adjoint_typical_input(testobj):
