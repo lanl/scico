@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2024 by SCICO Developers
+# Copyright (C) 2024-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -168,7 +168,18 @@ def _call_wrapped_function(func: Callable, *args, **kwargs) -> Any:
         Return value of wrapped function.
     """
     if isinstance(func, staticmethod):
-        ret = func(*args[1:], **kwargs)
+        # If the type of the first argument is the same as the class to
+        # which the static method belongs, assume that it was called as
+        # <object>.<staticmethod>(<args>), which requires that the first
+        # argument be stripped before calling the method. This is
+        # somewhat heuristic, and may fail, but there is no obvious
+        # mechanism for reliably determining how the method was called in
+        # the calling scope.
+        if inspect._findclass(func) == type(args[0]):
+            call_args = args[1:]
+        else:
+            call_args = args
+        ret = func(*call_args, **kwargs)
     elif isinstance(func, classmethod):
         ret = func.__func__(*args, **kwargs)
     else:
