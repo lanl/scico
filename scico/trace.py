@@ -175,7 +175,7 @@ def _call_wrapped_function(func: Callable, *args, **kwargs) -> Any:
         # somewhat heuristic, and may fail, but there is no obvious
         # mechanism for reliably determining how the method was called in
         # the calling scope.
-        if inspect._findclass(func) == type(args[0]):
+        if inspect._findclass(func) == type(args[0]):  # type: ignore
             call_args = args[1:]
         else:
             call_args = args
