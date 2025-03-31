@@ -65,11 +65,11 @@ def _project_coords(
     x_volume: np.ndarray, vol_geom: VolumeGeometry, proj_geom: ProjectionGeometry
 ) -> np.ndarray:
     """
-    Project volume (logical) coordinates into detector coordinates based
-    on ASTRA geometry objects.
+    Project volume coordinates into detector coordinates based on ASTRA
+    geometry objects.
 
     Args:
-        x_volume: (..., 3) vector(s) of volume (AKA logical) coordinates
+        x_volume: (..., 3) vector(s) of volume coordinates.
         vol_geom: ASTRA volume geometry object.
         proj_geom: ASTRA projection geometry object.
 
@@ -102,8 +102,8 @@ def project_world_coordinates(
     Project world coordinates along `ray` into the basis described by `u`
     and `v` with center `d`. The term ""world"" emphasizes that the
     function is intended to be used on 3D coordinates representing a
-    point in physical space, rather than a logical index into the volume
-    or detector arrays.
+    point in physical space, rather than an index into the volume or
+    detector arrays.
 
     Args:
         x: (..., 3) vector(s) of world coordinates.
