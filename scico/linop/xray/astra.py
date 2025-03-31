@@ -74,7 +74,7 @@ def _project_coords(
         proj_geom: ASTRA projection geometry object.
 
     Returns:
-        (num_angles, ..., 3) array of detector coordinates corresponding
+        (num_angles, ..., 2) array of detector coordinates corresponding
         to projections of the points in `x_volume`.
 
     """
@@ -231,10 +231,10 @@ class XRayTransform2D(LinearOperator):
         self.num_dims = len(input_shape)
         if self.num_dims != 2:
             raise ValueError(
-                f"Only 2D projections are supported, but input_shape is {input_shape}."
+                f"Only 2D projections are supported, but 'input_shape' is {input_shape}."
             )
         if not isinstance(det_count, int):
-            raise ValueError("Expected det_count to be an int.")
+            raise ValueError("Expected 'det_count' to be an int.")
         output_shape: Shape = (len(angles), det_count)
 
         # Set up all the ASTRA config
@@ -256,7 +256,7 @@ class XRayTransform2D(LinearOperator):
                 self.vol_geom = astra.create_vol_geom(*input_shape, *volume_geometry)
             else:
                 raise ValueError(
-                    "volume_geometry must be a tuple of len 4."
+                    "Parameter 'volume_geometry' must be a tuple of len 4."
                     "Please see the astra documentation for details."
                 )
 
@@ -271,7 +271,7 @@ class XRayTransform2D(LinearOperator):
             dev0 = jax.devices()[0]
             self.device = dev0.platform
         else:
-            raise ValueError(f"Invalid device specified; got {device}.")
+            raise ValueError(f"Invalid 'device' specified; got {device}.")
 
         if self.device == "cpu":
             self.proj_id = astra.create_projector("line", self.proj_geom, self.vol_geom)
@@ -458,19 +458,19 @@ def convert_to_scico_geometry(
         det_spacing: Spacing between detector elements. See the
            `astra documentation <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
            for more information.
-        angles: Array of projection angles in radians, mutually
-            exclusive with `vectors`.
-        vectors: Array of ASTRA geometry specification vectors, mutually
-            exclusive with `angles`.
+        angles: Array of projection angles in radians. This parameter is
+            mutually exclusive with `vectors`.
+        vectors: Array of ASTRA geometry specification vectors. This
+            parameter is mutually exclusive with `angles`.
 
     Returns:
         (num_angles, 2, 4) array of homogeneous projection matrices.
 
     """
     if angles is not None and vectors is not None:
-        raise ValueError("`angles` and `vectors` are mutually exclusive.")
+        raise ValueError("Parameters 'angles' and 'vectors' are mutually exclusive.")
     if angles is None and vectors is None:
-        raise ValueError("One of `angles` and `vectors` must be provided.")
+        raise ValueError("Exactly one of parameters 'angles' and 'vectors' must be provided.")
     vol_geom, proj_geom = XRayTransform3D.create_astra_geometry(
         input_shape, det_count, det_spacing=det_spacing, angles=angles, vectors=vectors
     )
@@ -581,7 +581,7 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
         Keyword arguments `det_spacing` and `angles` should be specified
         to use the "parallel3d" geometry, and keyword argument `vectors`
         should be specified to use the "parallel3d_vec" geometry. These
-        options are mutually exclusive.
+        parameters are mutually exclusive.
 
         Args:
             input_shape: Shape of the input array.
@@ -591,10 +591,10 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
             det_spacing: Spacing between detector elements. See the
                `astra documentation <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
                for more information.
-            angles: Array of projection angles in radians, mutually
-                exclusive with `vectors`.
-            vectors: Array of ASTRA geometry specification vectors, mutually
-                exclusive with `angles`.
+            angles: Array of projection angles in radians. This
+                parameter is  mutually exclusive with `vectors`.
+            vectors: Array of ASTRA geometry specification vectors. This
+                parameter is mutually exclusive with `angles`.
 
         Raises:
             RuntimeError: If a CUDA GPU is not available to the ASTRA
@@ -608,22 +608,24 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
             or (vectors is not None and det_spacing is None and angles is None)
         ):
             raise ValueError(
-                "Keyword arguments det_spacing and angles, or keyword argument "
-                "vectors must be specified, but not both."
+                "Keyword arguments 'det_spacing' and 'angles', or keyword argument "
+                "'vectors' must be specified, but not both."
             )
 
         self.num_dims = len(input_shape)
         if self.num_dims != 3:
             raise ValueError(
-                f"Only 3D projections are supported, but input_shape is {input_shape}."
+                f"Only 3D projections are supported, but 'input_shape' is {input_shape}."
             )
 
         if not isinstance(det_count, (list, tuple)) or len(det_count) != 2:
-            raise ValueError("Expected det_count to be a tuple with 2 elements.")
+            raise ValueError("Expected parameter 'det_count' to be a tuple with 2 elements.")
         if angles is not None and vectors is not None:
-            raise ValueError("`angles` and `vectors` are mutually exclusive.")
+            raise ValueError("Parameters 'angles' and 'vectors' are mutually exclusive.")
         if angles is None and vectors is None:
-            raise ValueError("One of `angles` and `vectors` must be provided.")
+            raise ValueError(
+                "Exactly one of the parameters 'angles' and 'vectors' must be provided."
+            )
         if angles is not None:
             Nview = angles.size
             self.angles: Optional[np.ndarray] = np.array(angles)
@@ -673,7 +675,7 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
         Keyword arguments `det_spacing` and `angles` should be specified
         to use the "parallel3d" geometry, and keyword argument `vectors`
         should be specified to use the "parallel3d_vec" geometry. These
-        options are mutually exclusive.
+        parameters are mutually exclusive.
 
         Args:
             input_shape: Shape of the input array.
