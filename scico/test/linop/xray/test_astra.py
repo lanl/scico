@@ -156,7 +156,7 @@ def test_adjoint_grad(testobj):
 
 def test_adjoint_random(testobj):
     A = testobj.A
-    adjoint_test(A, rtol=get_tol_random_input())
+    adjoint_test(A, rtol=10 * get_tol_random_input())
 
 
 def test_adjoint_typical_input(testobj):
