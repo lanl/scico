@@ -1,3 +1,6 @@
+import os
+import tempfile
+
 import numpy as np
 
 import pytest
@@ -151,6 +154,44 @@ class TestReal:
         )
         x = pdhg_.solve()
         assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-4
+
+    def test_pdhg_saveload(self):
+        maxiter = 5
+        τ = 2e-1
+        σ = 2e-1
+        A = linop.Diagonal(snp.diag(self.Amx))
+        f = loss.SquaredL2Loss(y=self.y, A=A)
+        g = (self.λ / 2) * functional.SquaredL2Norm()
+        C = linop.MatrixOperator(self.Bmx)
+        pdhg0 = PDHG(
+            f=f,
+            g=g,
+            C=C,
+            tau=τ,
+            sigma=σ,
+            maxiter=maxiter,
+            x0=A.adj(self.y),
+        )
+        pdhg0.solve()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "pdhg.npz")
+            pdhg0.save_state(path)
+            pdhg0.solve()
+            h0 = pdhg0.history()
+            pdhg1 = PDHG(
+                f=f,
+                g=g,
+                C=C,
+                tau=τ,
+                sigma=σ,
+                maxiter=maxiter,
+                x0=A.adj(self.y),
+            )
+            pdhg1.load_state(path)
+            pdhg1.solve()
+            h1 = pdhg1.history()
+            np.testing.assert_allclose(pdhg0.minimizer(), pdhg1.minimizer(), atol=1e-7)
+            assert np.abs(h0[-1].Objective - h1[-1].Objective) < 1e-6
 
     def test_nlpdhg(self):
         maxiter = 300

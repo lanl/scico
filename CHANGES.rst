@@ -9,7 +9,9 @@ Version 0.0.7   (unreleased)
 • New module ``scico.trace`` for tracing function/method calls.
 • New generic functional ``functional.ComposedFunctional`` representing
   a functional composed with an orthogonal linear operator.
-• Support ``jaxlib`` and ``jax`` versions 0.4.13 to 0.5.0.
+• New optimizer methods ``save_state`` and ``load_state`` supporting
+  algorithm state checkpointing.
+• Support ``jaxlib`` and ``jax`` versions 0.4.13 to 0.5.3.
 • Support ``flax`` versions 0.8.0 to 0.10.2.
 
 
