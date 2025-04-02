@@ -15,6 +15,17 @@ functionality, but note that use of the CUDA/GPU implementation is
 expected to result in GPU-host-GPU memory copies when transferring
 JAX arrays. Other JAX features such as automatic differentiation are
 not available.
+
+Functions here refer to three coordinate systems: world coordinates,
+volume coordinates, and detector coordinates. World coordinates are 3D
+coordinates representing a point in physical space. Volume coordinates
+refer to a position in the reconstruction volume, where the voxel with
+its intensity value stored at `vol[i, j, k]` has its center at volume
+coordinate (i+0.5, j+0.5, k+0.5) and side lengths of 1. Detector
+coordinates refer to a position on the detector array, and the pixel at
+`det[i, j]` has its center at detector coordinates (i+0.5, j+0.5) and
+side lengths of one.
+
 """
 
 from typing import List, Optional, Sequence, Tuple, Union
@@ -100,10 +111,7 @@ def project_world_coordinates(
     """Project world coordinates along ray into the specified basis.
 
     Project world coordinates along `ray` into the basis described by `u`
-    and `v` with center `d`. The term ""world"" emphasizes that the
-    function is intended to be used on 3D coordinates representing a
-    point in physical space, rather than an index into the volume or
-    detector arrays.
+    and `v` with center `d`.
 
     Args:
         x: (..., 3) vector(s) of world coordinates.
