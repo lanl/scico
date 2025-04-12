@@ -1,3 +1,6 @@
+import os
+import tempfile
+
 import numpy as np
 
 import pytest
@@ -223,6 +226,45 @@ class TestReal:
         )
         x = padmm_.solve()
         assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-4
+
+    def test_padmm_saveload(self):
+        maxiter = 5
+        ρ = 1e0
+        μ = 5e1
+        ν = 1e0
+        A = linop.Diagonal(snp.diag(self.Amx))
+        f = loss.SquaredL2Loss(y=self.y, A=A)
+        g = (self.λ / 2) * functional.SquaredL2Norm()
+        C = linop.MatrixOperator(self.Bmx)
+        padmm0 = ProximalADMM(
+            f=f,
+            g=g,
+            A=C,
+            rho=ρ,
+            mu=μ,
+            nu=ν,
+            maxiter=maxiter,
+        )
+        padmm0.solve()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "padmm.npz")
+            padmm0.save_state(path)
+            padmm0.solve()
+            h0 = padmm0.history()
+            padmm1 = ProximalADMM(
+                f=f,
+                g=g,
+                A=C,
+                rho=ρ,
+                mu=μ,
+                nu=ν,
+                maxiter=maxiter,
+            )
+            padmm1.load_state(path)
+            padmm1.solve()
+            h1 = padmm1.history()
+            np.testing.assert_allclose(padmm0.minimizer(), padmm1.minimizer(), rtol=1e-6)
+            assert np.abs(h0[-1].Objective - h1[-1].Objective) < 1e-6
 
     def test_nlpadmm(self):
         maxiter = 200

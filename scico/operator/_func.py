@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2023 by SCICO Developers
+# Copyright (C) 2022-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -63,7 +63,7 @@ def operator_from_function(f: Callable, classname: str, f_name: Optional[str] = 
                 `Operator` to jit the forward, adjoint, and gram
                 functions. Same as calling :meth:`.Operator.jit` after
                 the :class:`.Operator` is created.
-            kwargs: Keyword arguments passed to :func:`{f_name}`.
+            **kwargs: Keyword arguments passed to :func:`{f_name}`.
         """
 
     def __init__(
