@@ -56,11 +56,11 @@ y_c = A @ x_gt  # sinogram
 r"""
 Add Poisson noise to projections according to
 
-$$\mathrm{counts} \sim \mathrm{Poi}\left(I_0 exp\left\{- \alpha A
+$$\mathrm{counts} \sim \mathrm{Poi}\left(I_0 \exp\left\{- \alpha A
 \mathbf{x} \right\}\right)$$
 
 $$\mathbf{y} = - \frac{1}{\alpha} \log\left(\mathrm{counts} /
-I_0\right).$$
+I_0\right) \;.$$
 
 We use the NumPy random functionality so we can generate using 64-bit
 numbers.
