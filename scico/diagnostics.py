@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2023 by SCICO Developers
+# Copyright (C) 2020-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -10,7 +10,7 @@
 import re
 import warnings
 from collections import OrderedDict, namedtuple
-from typing import List, Optional, Tuple, Union
+from typing import List, NamedTuple, Optional, Tuple, Union
 
 
 class IterationStats:
@@ -190,13 +190,13 @@ class IterationStats:
         ):
             print()
 
-    def history(self, transpose: bool = False):
+    def history(self, transpose: bool = False) -> Union[List[NamedTuple], Tuple[List]]:
         """Retrieve record of all inserted iterations.
 
         Args:
             transpose: Flag indicating whether results should be returned
                 in "transposed" form, i.e. as a namedtuple of lists
-                rather than a list of namedtuples. Default: False.
+                rather than a list of namedtuples.
 
         Returns:
             list of namedtuple or namedtuple of lists: Record of all

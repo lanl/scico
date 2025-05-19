@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2023 by SCICO Developers
+# Copyright (C) 2020-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -197,8 +197,14 @@ class ADMM(Optimizer):
 
         return itstat_fields, itstat_attrib
 
-    def minimizer(self):
-        """Return current estimate of the functional mimimizer."""
+    def _state_variable_names(self) -> List[str]:
+        # While x is in the most abstract sense not part of the algorithm
+        # state, it does form part of the state in pratice due to its use
+        # as an initializer for iterative solvers for the x step of the
+        # ADMM algorithm.
+        return ["x", "z_list", "z_list_old", "u_list"]
+
+    def minimizer(self) -> Union[Array, BlockArray]:
         return self.x
 
     def objective(

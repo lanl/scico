@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2024 by SCICO Developers
+# Copyright (C) 2022-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -250,8 +250,8 @@ def linop_over_axes(
 
     Returns:
         A tuple (`axes`, `ops`) where `axes` is a tuple of the axes used
-        to construct that list of list of :class:`LinearOperator`, and
-        `ops` is the list itself.
+        to construct the list of :class:`LinearOperator`, and `ops` is
+        the list itself.
     """
-    axes = normalize_axes(axes, input_shape)
+    axes = normalize_axes(axes, input_shape)  # type: ignore
     return axes, [linop(input_shape, *args, axis=axis, **kwargs) for axis in axes]  # type: ignore
