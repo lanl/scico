@@ -269,7 +269,7 @@ plot.plot(
     fig=fig,
     ax=ax[0],
 )
-ax[0].set_ylim([5e-3, 5e0])
+ax[0].set_ylim([1e-1, 1e1])
 ax[0].xaxis.set_major_locator(MaxNLocator(integer=True))
 plot.plot(
     snp.vstack((hist_extloss_fan.Prml_Rsdl, hist_extloss_fan.Dual_Rsdl)).T,
@@ -280,7 +280,7 @@ plot.plot(
     fig=fig,
     ax=ax[1],
 )
-ax[1].set_ylim([5e-3, 5e0])
+ax[1].set_ylim([1e-1, 1e1])
 ax[1].xaxis.set_major_locator(MaxNLocator(integer=True))
 fig.show()
 
