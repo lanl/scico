@@ -189,7 +189,7 @@ def plot_results(hist, str_ss, L0, xsol, xgt, Aop):
 
 
 """
-Use default `PGMStepSize object`, set L0 based on norm of forward
+Use default `PGMStepSize` object, set L0 based on norm of forward
 operator and set up `AcceleratedPGM` solver object. Run the solver and
 plot the recontructed signal and convergence statistics.
 """
