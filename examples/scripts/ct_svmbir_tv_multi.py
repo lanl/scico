@@ -16,8 +16,8 @@ solve the TV-regularized CT problem
 
 where $A$ is the X-ray transform (implemented using the SVMBIR
 :cite:`svmbir-2020` tomographic projection), $\mathbf{y}$ is the sinogram,
-$C$ is a 2D finite difference operator, and $\mathbf{x}$ is the desired
-image.
+$C$ is a 2D finite difference operator, and $\mathbf{x}$ is the
+reconstructed image.
 """
 
 import numpy as np

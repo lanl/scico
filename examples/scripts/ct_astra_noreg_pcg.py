@@ -58,8 +58,8 @@ H = CircularConvolve.from_operator(A.T @ A)
 
 r"""
 Invert in the Fourier domain to form a preconditioner $\mathbf{M}
-\approx (\mathbf{A}^T \mathbf{A})^{-1}$. See
-:cite:`clinthorne-1993-preconditioning` Section V.A. for more details.
+\approx (\mathbf{A}^T \mathbf{A})^{-1}$ (see
+:cite:`clinthorne-1993-preconditioning` Section V.A. for more details).
 """
 # γ limits the gain of the preconditioner; higher gives a weaker filter.
 γ = 1e-2

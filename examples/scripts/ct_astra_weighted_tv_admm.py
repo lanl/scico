@@ -8,8 +8,8 @@ r"""
 TV-Regularized Low-Dose CT Reconstruction
 =========================================
 
-This example demonstrates solution of a low-dose CT reconstruction problem
-with isotropic total variation (TV) regularization
+This example demonstrates solution of a low-dose CT reconstruction
+problem with isotropic total variation (TV) regularization
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
   \|_W^2 + \lambda \| C \mathbf{x} \|_{2,1} \;,$$
@@ -18,7 +18,7 @@ where $A$ is the X-ray transform (the CT forward projection),
 $\mathbf{y}$ is the sinogram, the norm weighting $W$ is chosen so that
 the weighted norm is an approximation to the Poisson negative log
 likelihood :cite:`sauer-1993-local`, $C$ is a 2D finite difference
-operator, and $\mathbf{x}$ is the desired image.
+operator, and $\mathbf{x}$ is the reconstructed image.
 """
 
 import numpy as np
@@ -56,8 +56,8 @@ y_c = A @ x_gt  # sinogram
 r"""
 Add Poisson noise to projections according to
 
-$$\mathrm{counts} \sim \mathrm{Poi}\left(I_0 \exp\left\{- \alpha A
-\mathbf{x} \right\}\right)$$
+$$\mathrm{counts} \sim \mathrm{Poi}\left(I_0 \exp (- \alpha A
+\mathbf{x} ) \right)$$
 
 $$\mathbf{y} = - \frac{1}{\alpha} \log\left(\mathrm{counts} /
 I_0\right) \;.$$
@@ -124,7 +124,7 @@ Set up and solve the weighted reconstruction problem
 
 where
 
-  $$W = \mathrm{diag}\left\{ \mathrm{counts} / I_0 \right\} \;.$$
+  $$W = \mathrm{diag}( \mathrm{counts} / I_0 ) \;.$$
 
 The data fidelity term in this formulation follows
 :cite:`sauer-1993-local` (9) except for the scaling by $I_0$, which we
