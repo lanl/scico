@@ -16,7 +16,7 @@ variation (TV) regularization :cite:`rudin-1992-nonlinear`
   \|_2^2 + \lambda R(\mathbf{x}) \;,$$
 
 where $R$ is either the isotropic or anisotropic TV regularizer.
-In SCICO, switching between these two regularizers is a one-line
+In SCICO, switching between these two regularizers involves a one-line
 change: replacing an
 [L1Norm](../_autosummary/scico.functional.rst#scico.functional.L1Norm)
 with a
