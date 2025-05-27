@@ -16,9 +16,9 @@ problem with isotropic total variation (TV) regularization
 
 where $A$ is the X-ray transform (the CT forward projection operator),
 $\mathbf{y}$ is the sinogram, $C$ is a 2D finite difference operator, and
-$\mathbf{x}$ is the desired image. The solution is computed and compared
-for all three 2D CT projectors available in scico, using a sinogram
-computed with the astra projector.
+$\mathbf{x}$ is the reconstructed image. The solution is computed and
+compared for all three 2D CT projectors available in scico, using a
+sinogram computed with the astra projector.
 """
 
 import numpy as np
