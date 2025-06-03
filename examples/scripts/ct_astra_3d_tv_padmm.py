@@ -17,7 +17,7 @@ regularization
 
 where $C$ is the X-ray transform (the CT forward projection operator),
 $\mathbf{y}$ is the sinogram, $D$ is a 3D finite difference operator,
-and $\mathbf{x}$ is the desired image.
+and $\mathbf{x}$ is the reconstructed image.
 
 In this example the problem is solved via proximal ADMM, while standard
 ADMM is used in a [companion example](ct_astra_3d_tv_admm.rst).

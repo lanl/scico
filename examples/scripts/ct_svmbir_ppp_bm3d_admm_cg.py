@@ -41,7 +41,7 @@ Generate a ground truth image.
 N = 256  # image size
 density = 0.025  # attenuation density of the image
 np.random.seed(1234)
-x_gt = discrete_phantom(Foam(size_range=[0.05, 0.02], gap=0.02, porosity=0.3), size=N - 10)
+x_gt = discrete_phantom(Foam(size_range=[0.075, 0.005], gap=2e-3, porosity=1.0), size=N - 10)
 x_gt = x_gt / np.max(x_gt) * density
 x_gt = np.pad(x_gt, 5)
 x_gt[x_gt < 0] = 0
@@ -105,7 +105,7 @@ solver = ADMM(
     x0=x0,
     maxiter=20,
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": 1e-4, "maxiter": 100}),
-    itstat_options={"display": True, "period": 1},
+    itstat_options={"display": True, "period": 5},
 )
 
 

@@ -16,8 +16,8 @@ problem with isotropic total variation (TV) regularization
 
 where $A$ is the X-ray transform (the CT forward projection operator),
 $\mathbf{y}$ is the sinogram, $C$ is a 2D finite difference operator, and
-$\mathbf{x}$ is the desired image. This example uses the CT projector
-integrated into scico, while the companion
+$\mathbf{x}$ is the reconstructed image. This example uses the CT
+projector integrated into scico, while the companion
 [example script](ct_astra_tv_admm.rst) uses the projector provided by
 the astra package.
 """

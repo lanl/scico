@@ -12,11 +12,11 @@ This example demonstrates the solution of a non-negative sparse coding
 problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - D \mathbf{x} \|_2^2
-  + \lambda \| \mathbf{x} \|_1 + I(\mathbf{x} \geq 0) \;,$$
+  + \lambda \| \mathbf{x} \|_1 + \iota_{\mathrm{NN}}(\mathbf{x}) \;,$$
 
 where $D$ the dictionary, $\mathbf{y}$ the signal to be represented,
-$\mathbf{x}$ is the sparse representation, and $I(\mathbf{x} \geq 0)$
-is the non-negative indicator.
+$\mathbf{x}$ is the sparse representation, and $\iota_{\mathrm{NN}}$ is
+the indicator function of the non-negativity constraint.
 
 In this example the problem is solved via ADMM, while Accelerated PGM is
 used in a [companion example](sparsecode_nn_apgm.rst).
