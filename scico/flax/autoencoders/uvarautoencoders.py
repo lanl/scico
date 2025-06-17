@@ -63,7 +63,7 @@ class MultiLevelVarEncoder(nn.Module):
     window_shape: Tuple[int, int] = (2, 2)
 
     @nn.compact
-    def __call__(self, x: ArrayLike) -> Tuple[ArrayLike]:
+    def __call__(self, x: ArrayLike) -> Tuple[ArrayLike, ArrayLike]:
         """Apply multi-level variational encoder.
 
         Args:
