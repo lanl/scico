@@ -6,7 +6,7 @@
 # package.
 
 """Flax implementation of different neural network blocks for
-   diffusion generative models."""
+diffusion generative models."""
 
 import warnings
 
