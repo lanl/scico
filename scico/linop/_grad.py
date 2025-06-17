@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2024 by SCICO Developers
+# Copyright (C) 2021-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -249,6 +249,7 @@ class PolarGradient(ProjectedGradient):
         else:
             if isinstance(center, (tuple, list)):
                 center = snp.array(center)
+            assert isinstance(center, Array)
             center = center.astype(real_input_dtype)
         end = snp.array(axes_shape, dtype=real_input_dtype) - center
         g0, g1 = snp.ogrid[-center[0] : end[0], -center[1] : end[1]]
@@ -356,6 +357,7 @@ class CylindricalGradient(ProjectedGradient):
         else:
             if isinstance(center, (tuple, list)):
                 center = snp.array(center)
+            assert isinstance(center, Array)
             center = center.astype(real_input_dtype)
         end = snp.array(axes_shape, dtype=real_input_dtype) - center
         g0, g1 = snp.ogrid[-center[0] : end[0], -center[1] : end[1]]
@@ -481,6 +483,7 @@ class SphericalGradient(ProjectedGradient):
         else:
             if isinstance(center, (tuple, list)):
                 center = snp.array(center)
+            assert isinstance(center, Array)
             center = center.astype(real_input_dtype)
         end = snp.array(axes_shape, dtype=real_input_dtype) - center
         g0, g1, g2 = snp.ogrid[-center[0] : end[0], -center[1] : end[1], -center[2] : end[2]]
