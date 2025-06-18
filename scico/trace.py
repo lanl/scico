@@ -45,7 +45,11 @@ import numpy as np
 
 import jax
 
-from jaxlib.xla_extension import PjitFunction
+try:
+    from jaxlib.xla_extension import PjitFunction
+except ImportError:
+    from jaxlib._jax import PjitFunction  # jax >= 0.6.1
+
 
 try:
     import colorama
