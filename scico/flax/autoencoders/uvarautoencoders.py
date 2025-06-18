@@ -120,7 +120,7 @@ class MultiLevelDecoder(nn.Module):
         upsampling_scale: Integer scaling factor.
     """
 
-    platent_shape: Tuple[int]
+    platent_shape: Tuple[int, int]
     channels: int
     num_filters: Sequence[int]
     kernel_size: Tuple[int, int] = (3, 3)
