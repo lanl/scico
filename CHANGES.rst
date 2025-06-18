@@ -11,7 +11,7 @@ Version 0.0.7   (unreleased)
   a functional composed with an orthogonal linear operator.
 • New optimizer methods ``save_state`` and ``load_state`` supporting
   algorithm state checkpointing.
-• Support ``jaxlib`` and ``jax`` versions 0.4.13 to 0.6.0.
+• Support ``jaxlib`` and ``jax`` versions 0.4.13 to 0.6.1.
 • Support ``flax`` versions 0.8.0 to 0.10.2.
 
 
