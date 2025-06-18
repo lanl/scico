@@ -9,7 +9,7 @@
 diffusion models."""
 
 import sys
-from typing import Callable, Tuple
+from typing import Callable, Optional, Tuple
 
 import jax
 import jax.numpy as jnp
@@ -41,6 +41,29 @@ class DiffusionMetricsDict(TypedDict, total=False):
     learning_rate: float
 
 
+def _step_t(batch: ArrayLike, key: ArrayLike, **kwargs) -> Tuple[ArrayLike, ArrayLike]:
+    """Default t computation for diffusion step."""
+    tshp = (batch["image"].shape[0],) + (1,) * len(batch["image"].shape[1:])
+    batch_t = jax.random.uniform(key, (batch["image"].shape[0], 1), minval=eps, maxval=1.0)
+    t = batch_t.reshape(tshp)
+    return t, batch_t
+
+
+def _step_x(
+    batch: ArrayLike, key: ArrayLike, stddev_prior, **kwargs
+) -> Tuple[ArrayLike, ArrayLike, ArrayLike]:
+    """Default x computation for diffusion step."""
+    z = jax.random.normal(key, batch["image"].shape)
+    std = jnp.sqrt((stddev_prior ** (2 * t) - 1.0) / 2.0 / jnp.log(stddev_prior))
+    batch_x = batch["image"] + z * std
+    return z, std, batch_x
+
+
+def _step_loss(criterion: Callable, z: ArrayLike, std: ArrayLike, output: ArrayLike) -> ArrayLike:
+    """Default loss computation for diffusion step."""
+    return criterion(output * std, -z)
+
+
 def train_step_diffusion(
     state: TrainState,
     batch: ArrayLike,
@@ -48,6 +71,9 @@ def train_step_diffusion(
     stddev_prior: float,
     learning_rate_fn: optax._src.base.Schedule,
     criterion: Callable,
+    step_t: Optional[Callable] = None,
+    step_x: Optional[Callable] = None,
+    step_loss: Optional[Callable] = None,
     **kwargs,
 ) -> Tuple[TrainState, DiffusionMetricsDict]:
     """Perform a single data parallel training step.
@@ -76,19 +102,21 @@ def train_step_diffusion(
     Returns:
         Updated parameters and diagnostic statistics.
     """
+    if step_t is None:
+        step_t = _step_t
+    if step_x is None:
+        step_x = _step_x
+    if step_loss is None:
+        step_loss = _step_loss
 
     key, step_key = jax.random.split(key)
-    tshp = (batch["image"].shape[0],) + (1,) * len(batch["image"].shape[1:])
-    batch_t = jax.random.uniform(step_key, (batch["image"].shape[0], 1), minval=eps, maxval=1.0)
-    t = batch_t.reshape(tshp)
+    t, batch_t = _step_t(batch, step_key, kwargs)
     key, step_key = jax.random.split(key)
-    z = jax.random.normal(step_key, batch["image"].shape)
-    std = jnp.sqrt((stddev_prior ** (2 * t) - 1.0) / 2.0 / jnp.log(stddev_prior))
-    batch_x = batch["image"] + z * std
+    z, std, batch_x = _step_x(batch, step_key, stddev_prior, kwargs)
 
     def loss_fn(params):
         output = state.apply_fn({"params": params}, batch_x, batch_t)
-        loss = criterion(output * std, -z)
+        loss = _step_loss(criterion, z, std, output)
         return loss
 
     step = state.step
@@ -99,16 +127,14 @@ def train_step_diffusion(
 
     grad_fn = jax.value_and_grad(loss_fn)
     loss, grads = grad_fn(state.params)
-    # Re-use same axis_name as in call to pmap
-    grads = lax.pmean(grads, axis_name="batch")
+    grads = lax.pmean(grads, axis_name="batch")  # re-use same axis_name as in call to pmap
+    new_state = state.apply_gradients(grads=grads)  # update parameters
+
     loss = lax.pmean(loss, axis_name="batch")
     metrics: DiffusionMetricsDict = {"loss": loss}
     metrics = lax.pmean(metrics, axis_name="batch")
     metrics["std"] = std[0]
     metrics["learning_rate"] = lr
-
-    # Update parameters
-    new_state = state.apply_gradients(grads=grads)
 
     return new_state, metrics
 
@@ -116,9 +142,12 @@ def train_step_diffusion(
 def eval_step_diffusion(
     state: TrainState,
     batch: ArrayLike,
-    criterion: Callable,
     key: ArrayLike,
     stddev_prior: float,
+    criterion: Callable,
+    step_t: Optional[Callable] = None,
+    step_x: Optional[Callable] = None,
+    step_loss: Optional[Callable] = None,
     **kwargs,
 ) -> Tuple[TrainState, DiffusionMetricsDict]:
     """Evaluate current model state.
@@ -138,17 +167,21 @@ def eval_step_diffusion(
     Returns:
         Current diagnostic statistics.
     """
+    if step_t is None:
+        step_t = _step_t
+    if step_x is None:
+        step_x = _step_x
+    if step_loss is None:
+        step_loss = _step_loss
 
     key, step_key = jax.random.split(key)
-    tshp = (batch["image"].shape[0],) + (1,) * len(batch["image"].shape[1:])
-    batch_t = jax.random.uniform(step_key, (batch["image"].shape[0], 1), minval=eps, maxval=1.0)
-    t = batch_t.reshape(tshp)
+    t, batch_t = _step_t(batch, step_key, kwargs)
     key, step_key = jax.random.split(key)
-    z = jax.random.normal(step_key, batch["image"].shape)
-    std = jnp.sqrt((stddev_prior ** (2 * t) - 1.0) / 2.0 / jnp.log(stddev_prior))
-    batch_x = batch["image"] + z * std
+    z, std, batch_x = _step_x(batch, step_key, stddev_prior, kwargs)
+
     output = state.apply_fn({"params": state.params}, batch_x, batch_t)
-    loss = criterion(output * std, -z)
+    loss = _step_loss(criterion, z, std, output)
+
     metrics: DiffusionMetricsDict = {"loss": loss}
     metrics = lax.pmean(metrics, axis_name="batch")
     metrics["std"] = std[0]
