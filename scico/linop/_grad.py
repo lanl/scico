@@ -247,10 +247,7 @@ class PolarGradient(ProjectedGradient):
         if center is None:
             center = (snp.array(axes_shape, dtype=real_input_dtype) - 1) / 2
         else:
-            if isinstance(center, (tuple, list)):
-                center = snp.array(center)
-            assert isinstance(center, Array)
-            center = center.astype(real_input_dtype)
+            center = snp.array(center, dtype=real_input_dtype)
         end = snp.array(axes_shape, dtype=real_input_dtype) - center
         g0, g1 = snp.ogrid[-center[0] : end[0], -center[1] : end[1]]
         theta = snp.arctan2(g0, g1)
@@ -355,10 +352,7 @@ class CylindricalGradient(ProjectedGradient):
             center = (snp.array(axes_shape, dtype=real_input_dtype) - 1) / 2
             center = center.at[-1].set(0)  # type: ignore
         else:
-            if isinstance(center, (tuple, list)):
-                center = snp.array(center)
-            assert isinstance(center, Array)
-            center = center.astype(real_input_dtype)
+            center = snp.array(center, dtype=real_input_dtype)
         end = snp.array(axes_shape, dtype=real_input_dtype) - center
         g0, g1 = snp.ogrid[-center[0] : end[0], -center[1] : end[1]]
         g0 = g0[..., np.newaxis]
@@ -481,10 +475,7 @@ class SphericalGradient(ProjectedGradient):
         if center is None:
             center = (snp.array(axes_shape, dtype=real_input_dtype) - 1) / 2
         else:
-            if isinstance(center, (tuple, list)):
-                center = snp.array(center)
-            assert isinstance(center, Array)
-            center = center.astype(real_input_dtype)
+            center = snp.array(center, dtype=real_input_dtype)
         end = snp.array(axes_shape, dtype=real_input_dtype) - center
         g0, g1, g2 = snp.ogrid[-center[0] : end[0], -center[1] : end[1], -center[2] : end[2]]
         theta = snp.arctan2(g1, g0)
