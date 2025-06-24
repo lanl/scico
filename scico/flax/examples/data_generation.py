@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2024 by SCICO Developers
+# Copyright (C) 2022-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -112,7 +112,7 @@ def generate_foam1_images(seed: float, size: int, ndata: int) -> np.ndarray:
     if not have_xdesign:
         raise RuntimeError("Package xdesign is required for use of this function.")
     np.random.seed(seed)
-    saux = np.zeros((ndata, size, size, 1), dtype=np.float32)
+    saux: np.ndarray = np.zeros((ndata, size, size, 1), dtype=np.float32)
     for i in range(ndata):
         foam = Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1)
         saux[i, ..., 0] = discrete_phantom(foam, size=size)
@@ -137,7 +137,7 @@ def generate_foam2_images(seed: float, size: int, ndata: int) -> np.ndarray:
     if not have_xdesign:
         raise RuntimeError("Package xdesign is required for use of this function.")
     np.random.seed(seed)
-    saux = np.zeros((ndata, size, size, 1), dtype=np.float32)
+    saux: np.ndarray = np.zeros((ndata, size, size, 1), dtype=np.float32)
     for i in range(ndata):
         foam = Foam2(size_range=[0.075, 0.0025], gap=1e-3, porosity=1)
         saux[i, ..., 0] = discrete_phantom(foam, size=size)
