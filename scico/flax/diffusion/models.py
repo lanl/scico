@@ -102,8 +102,8 @@ class MLPScore(nn.Module):
         return out
 
 
-class ConditionalUnet(nn.Module):
-    """Conditional U Net model.
+class ConditionalUNet(nn.Module):
+    """Conditional U-Net model.
 
     Args:
         dim: Dimension of signal.

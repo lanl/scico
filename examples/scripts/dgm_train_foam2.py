@@ -35,7 +35,7 @@ print("Platform: ", platform)
 from scico import plot
 from scico import flax as sflax
 from scico.flax.train.losses import huber_loss
-from scico.flax.diffusion.models import ConditionalUnet
+from scico.flax.diffusion.models import ConditionalUNet
 from scico.flax.diffusion.sampling import Euler_Maruyama_sampler as sampler
 from scico.flax.diffusion.state import create_train_state
 from scico.flax.diffusion.steps import eval_step_diffusion, train_step_diffusion
@@ -106,7 +106,7 @@ Construct diffusion model.
 size = train_ds["image"].shape[1]
 channels = train_ds["image"].shape[-1]
 
-model = ConditionalUnet(
+model = ConditionalUNet(
     dim=size,
     channels=channels,
     dim_mults=(
