@@ -34,7 +34,7 @@ from sklearn.datasets import make_s_curve
 
 from scico import plot
 from scico import flax as sflax
-from scico.flax.train.losses import hubber_loss
+from scico.flax.train.losses import huber_loss
 from scico.flax.diffusion.models import MLPScore
 from scico.flax.diffusion.sampling import Euler_Maruyama_sampler as sampler
 from scico.flax.diffusion.state import create_train_state
@@ -116,7 +116,7 @@ workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "
 train_conf["workdir"] = workdir
 train_conf["create_train_state"] = create_train_state
 train_conf["train_step_fn"] = partial(train_step_diffusion, stddev_prior=stddev_prior)
-train_conf["criterion"] = hubber_loss
+train_conf["criterion"] = huber_loss
 train_conf["eval_step_fn"] = partial(eval_step_diffusion, stddev_prior=stddev_prior)
 train_conf["stats_obj"] = stats_obj()
 

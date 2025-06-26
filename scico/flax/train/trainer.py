@@ -330,7 +330,7 @@ class BasicFlaxTrainer:
             mdtype,
             train=True,
         )
-        if self.len_test > 0:  # Test data available
+        if self.len_test > 0:  # test data available
             self.eval_dt_iter = create_input_iter(
                 key,  # eval: no permutation
                 test_ds,
@@ -345,17 +345,17 @@ class BasicFlaxTrainer:
         # Autoencoder data may only include input (a.k.a. image)
         if key not in train_ds.keys():
             key = "image"
-        elif len(train_ds["label"].shape) < 3:  # Label is class index (not an image)
+        elif len(train_ds["label"].shape) < 3:  # label is class index (not an image)
             key = "image"
 
         self.log(
             "channels: %d   training signals: %d   testing"
             " signals: %d   signal size: %d\n"
             % (
-                train_ds[key].shape[-1],
-                train_ds[key].shape[0],
+                train_ds[key].shape[-1],  # type: ignore
+                train_ds[key].shape[0],  # type: ignore
                 self.len_test,
-                train_ds[key].shape[1],
+                train_ds[key].shape[1],  # type: ignore
             )
         )
 
@@ -497,13 +497,14 @@ class BasicFlaxTrainer:
         if self.return_state:
             return state, self.itstat_object  # type: ignore
 
+        dvar: ModelVarDict
         if hasattr(state, "batch_stats"):
-            dvar: ModelVarDict = {
+            dvar = {
                 "params": state.params,
                 "batch_stats": state.batch_stats,
             }
         else:
-            dvar: ModelVarDict = {
+            dvar = {
                 "params": state.params,
             }
 

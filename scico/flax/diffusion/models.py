@@ -54,8 +54,8 @@ class MLPScore(nn.Module):
 
     in_dim: int = 2
     pos_dim: int = 16
-    encoder_layers: Tuple[int] = (16,)
-    decoder_layers: Tuple[int] = (128, 128)
+    encoder_layers: Tuple[int, ...] = (16,)
+    decoder_layers: Tuple[int, ...] = (128, 128)
     activation_fn: Callable = nn.leaky_relu
     time_embed: bool = True
     dtype: Any = jnp.float32
@@ -102,8 +102,8 @@ class MLPScore(nn.Module):
         return out
 
 
-class ConditionalUnet(nn.Module):
-    """Conditional U Net model.
+class ConditionalUNet(nn.Module):
+    """Conditional U-Net model.
 
     Args:
         dim: Dimension of signal.
@@ -128,7 +128,7 @@ class ConditionalUnet(nn.Module):
     dim: int
     init_dim: Optional[int] = None
     out_dim: Optional[int] = None
-    dim_mults: Tuple[int] = (1, 2, 4, 8)
+    dim_mults: Tuple[int, ...] = (1, 2, 4, 8)
     channels: int = 3
     self_condition: bool = False
     resnet_block_groups: int = 4
@@ -178,9 +178,11 @@ class ConditionalUnet(nn.Module):
                     block_klass(dim_in, dim_in, time_emb_dim=time_dim),
                     block_klass(dim_in, dim_in, time_emb_dim=time_dim),
                     Residual(PreNorm(dim_in, LinearAttention(dim_in))),
-                    Downsample(dim_in, dim_out)
-                    if not is_last
-                    else nn.Conv(dim_out, kernel_size=(3, 3), padding=1),
+                    (
+                        Downsample(dim_in, dim_out)
+                        if not is_last
+                        else nn.Conv(dim_out, kernel_size=(3, 3), padding=1)
+                    ),
                 ]
             )
 
@@ -199,9 +201,11 @@ class ConditionalUnet(nn.Module):
                     block_klass(dim_out + dim_in, dim_out, time_emb_dim=time_dim),
                     block_klass(dim_out + dim_in, dim_out, time_emb_dim=time_dim),
                     Residual(PreNorm(dim_out, LinearAttention(dim_out))),
-                    Upsample(dim_out, dim_in)
-                    if not is_last
-                    else nn.Conv(dim_in, kernel_size=(3, 3), padding=1),
+                    (
+                        Upsample(dim_out, dim_in)
+                        if not is_last
+                        else nn.Conv(dim_in, kernel_size=(3, 3), padding=1)
+                    ),
                 ]
             )
 

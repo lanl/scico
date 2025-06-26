@@ -37,6 +37,7 @@ def initialize(key: KeyArray, model: ModuleDef, ishape: Shape) -> Tuple[PyTree, 
     Returns:
         Initial model parameters (including `batch_stats` if applicable).
     """
+    input_shape: tuple[int, ...]
     if hasattr(model, "channels"):
         input_shape = (1, ishape[0], ishape[1], model.channels)
     else:
@@ -66,6 +67,7 @@ def initialize_with_time_embedding(
     Returns:
         Initial model parameters.
     """
+    input_shape: tuple[int, ...]
     if hasattr(model, "channels"):
         input_shape = (1, ishape[0], ishape[1], model.channels)
     else:
