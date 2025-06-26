@@ -60,9 +60,7 @@ def kl_loss_fn(mean, logvar):
             )
     else:  # For regular VAE
         reduce_dims = list(range(1, len(mean.shape)))
-        kl_loss = jnp.mean(
-            -0.5 * jnp.sum(1 + logvar - mean**2 - jnp.exp(logvar), axis=reduce_dims)
-        )
+        kl_loss = jnp.mean(-0.5 * jnp.sum(1 + logvar - mean**2 - jnp.exp(logvar), axis=reduce_dims))
 
     return kl_loss
 

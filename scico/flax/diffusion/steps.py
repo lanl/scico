@@ -149,7 +149,7 @@ def eval_step_diffusion(
     step_x: Optional[Callable] = None,
     step_loss: Optional[Callable] = None,
     **kwargs,
-) -> Tuple[TrainState, DiffusionMetricsDict]:
+) -> DiffusionMetricsDict:
     """Evaluate current model state.
 
     Assumes sharded batched data. This function is intended to be used

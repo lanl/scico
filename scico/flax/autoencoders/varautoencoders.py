@@ -63,7 +63,7 @@ class VarEncoder(nn.Module):
     latent_dim: int
 
     @nn.compact
-    def __call__(self, x: ArrayLike) -> Tuple[ArrayLike]:
+    def __call__(self, x: ArrayLike) -> Tuple[ArrayLike, ArrayLike]:
         """Apply variational encoder.
 
         Args:

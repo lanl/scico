@@ -6,7 +6,7 @@
 # package.
 
 """Flax implementation of different neural network blocks for
-   autoencoders."""
+autoencoders."""
 
 import warnings
 
