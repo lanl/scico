@@ -54,7 +54,7 @@ def transpose_list_of_ntpl(ntlist: List[NamedTuple]) -> NamedTuple:
     return cls(*[[ntlist[m][n] for m in range(numentry)] for n in range(nfields)])  # type: ignore
 
 
-def namedtuple_to_array(ntpl: NamedTuple) -> Array:
+def namedtuple_to_array(ntpl: NamedTuple) -> snp.Array:
     """Convert a namedtuple to an array.
 
     Convert a :func:`collections.namedtuple` object to a
@@ -76,7 +76,7 @@ def namedtuple_to_array(ntpl: NamedTuple) -> Array:
     )
 
 
-def array_to_namedtuple(array: Array) -> NamedTuple:
+def array_to_namedtuple(array: snp.Array) -> NamedTuple:
     """Convert an array representation of a namedtuple back to a namedtuple.
 
     Convert a :class:`numpy.ndarray` object constructed by
