@@ -54,13 +54,11 @@ class TestPolarGradient:
             jit=jit,
         )
         Ax = A @ x
+        assert isinstance(Ax, Array)
         if angular and radial:
-            assert isinstance(Ax, BlockArray)
-            assert len(Ax.shape) == 2
-            assert Ax[0].shape == input_shape
-            assert Ax[1].shape == input_shape
+            assert Ax.shape[0] == 2
+            assert Ax.shape[1:] == input_shape
         else:
-            assert isinstance(Ax, Array)
             assert Ax.shape == input_shape
         assert Ax.dtype == input_dtype
 
@@ -125,14 +123,12 @@ class TestCylindricalGradient:
             jit=jit,
         )
         Ax = A @ x
+        assert isinstance(Ax, Array)
         Nc = sum([angular, radial, axial])
         if Nc > 1:
-            assert isinstance(Ax, BlockArray)
-            assert len(Ax) == Nc
-            for n in range(Nc):
-                assert Ax[n].shape == input_shape
+            assert Ax.shape[0] == Nc
+            assert Ax.shape[1:] == input_shape
         else:
-            assert isinstance(Ax, Array)
             assert Ax.shape == input_shape
         assert Ax.dtype == input_dtype
 
@@ -198,14 +194,12 @@ class TestSphericalGradient:
             jit=jit,
         )
         Ax = A @ x
+        assert isinstance(Ax, Array)
         Nc = sum([azimuthal, polar, radial])
         if Nc > 1:
-            assert isinstance(Ax, BlockArray)
-            assert len(Ax) == Nc
-            for n in range(Nc):
-                assert Ax[n].shape == input_shape
+            assert Ax.shape[0] == Nc
+            assert Ax.shape[1:] == input_shape
         else:
-            assert isinstance(Ax, Array)
             assert Ax.shape == input_shape
         assert Ax.dtype == input_dtype
 
