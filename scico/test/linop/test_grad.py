@@ -7,9 +7,34 @@ import jax
 import pytest
 
 import scico.numpy as snp
-from scico.linop import CylindricalGradient, PolarGradient, SphericalGradient
-from scico.numpy import Array, BlockArray
+from scico.linop import (
+    CylindricalGradient,
+    PolarGradient,
+    ProjectedGradient,
+    SphericalGradient,
+)
+from scico.numpy import Array
 from scico.random import randn
+
+
+def test_proj_grad():
+    x = snp.ones((4, 5))
+
+    P = ProjectedGradient(x.shape, axes=(0,))
+    assert P(x).shape == (4, 5)
+
+    P = ProjectedGradient(x.shape)
+    assert P(x).shape == (2, 4, 5)
+
+    P = ProjectedGradient(x.shape, coord=(np.arange(0, 4)[:, np.newaxis],))
+    assert P(x).shape == (4, 5)
+
+    coord = (
+        snp.blockarray([snp.array([0.0]), snp.array([1.0])]),
+        snp.blockarray([snp.array([1.0]), snp.array([0.0])]),
+    )
+    P = ProjectedGradient(x.shape, coord=coord)
+    assert P(x).shape == (2, 4, 5)
 
 
 class TestPolarGradient:
