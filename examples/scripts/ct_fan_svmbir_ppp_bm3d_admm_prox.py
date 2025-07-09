@@ -46,7 +46,9 @@ N = 256  # image size
 density = 0.025  # attenuation density of the image
 np.random.seed(1234)
 pad_len = 5
-x_gt = discrete_phantom(Foam(size_range=[0.05, 0.02], gap=0.02, porosity=0.3), size=N - 2 * pad_len)
+x_gt = discrete_phantom(
+    Foam(size_range=[0.075, 0.005], gap=2e-3, porosity=1.0), size=N - 2 * pad_len
+)
 x_gt = x_gt / np.max(x_gt) * density
 x_gt = np.pad(x_gt, pad_len)
 x_gt[x_gt < 0] = 0
@@ -267,7 +269,7 @@ plot.plot(
     fig=fig,
     ax=ax[0],
 )
-ax[0].set_ylim([5e-3, 5e0])
+ax[0].set_ylim([1e-1, 1e1])
 ax[0].xaxis.set_major_locator(MaxNLocator(integer=True))
 plot.plot(
     snp.vstack((hist_extloss_fan.Prml_Rsdl, hist_extloss_fan.Dual_Rsdl)).T,
@@ -278,7 +280,7 @@ plot.plot(
     fig=fig,
     ax=ax[1],
 )
-ax[1].set_ylim([5e-3, 5e0])
+ax[1].set_ylim([1e-1, 1e1])
 ax[1].xaxis.set_major_locator(MaxNLocator(integer=True))
 fig.show()
 

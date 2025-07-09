@@ -1,9 +1,12 @@
+import collections
+
 import numpy as np
 
 import pytest
 
 import scico.numpy as snp
 from scico.numpy.util import (
+    array_to_namedtuple,
     complex_dtype,
     indexed_shape,
     is_complex_dtype,
@@ -11,12 +14,32 @@ from scico.numpy.util import (
     is_real_dtype,
     is_scalar_equiv,
     jax_indexed_shape,
+    namedtuple_to_array,
     no_nan_divide,
     normalize_axes,
     real_dtype,
     slice_length,
+    transpose_list_of_ntpl,
+    transpose_ntpl_of_list,
 )
 from scico.random import randn
+
+
+def test_ntpl_list_transpose():
+    nt = collections.namedtuple("NT", ("a", "b", "c"))
+    ntlist0 = [nt(0, 1, 2), nt(3, 4, 5)]
+    listnt = transpose_list_of_ntpl(ntlist0)
+    ntlist1 = transpose_ntpl_of_list(listnt)
+    assert ntlist0[0] == ntlist1[0]
+    assert ntlist0[1] == ntlist1[1]
+
+
+def test_namedtuple_to_array():
+    nt = collections.namedtuple("NT", ("A", "B", "C"))
+    t0 = nt(0, 1, 2)
+    t0a = namedtuple_to_array(t0)
+    t1 = array_to_namedtuple(t0a)
+    assert t0 == t1
 
 
 def test_no_nan_divide_array():

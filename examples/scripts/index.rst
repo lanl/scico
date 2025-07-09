@@ -14,8 +14,9 @@ Computed Tomography
    - ct_astra_noreg_pcg.py
    - ct_astra_3d_tv_admm.py
    - ct_astra_3d_tv_padmm.py
-   - ct_astra_tv_admm.py
    - ct_tv_admm.py
+   - ct_astra_tv_admm.py
+   - ct_multi_tv_admm.py
    - ct_astra_weighted_tv_admm.py
    - ct_svmbir_tv_multi.py
    - ct_svmbir_ppp_bm3d_admm_cg.py
@@ -26,7 +27,6 @@ Computed Tomography
    - ct_unet_train_foam2.py
    - ct_projector_comparison_2d.py
    - ct_projector_comparison_3d.py
-   - ct_multi_tv_admm.py
 
 Deconvolution
 ^^^^^^^^^^^^^
@@ -102,12 +102,12 @@ Total Variation
 
    - ct_abel_tv_admm.py
    - ct_abel_tv_admm_tune.py
-   - ct_astra_tv_admm.py
    - ct_tv_admm.py
+   - ct_multi_tv_admm.py
+   - ct_astra_tv_admm.py
    - ct_astra_3d_tv_admm.py
    - ct_astra_3d_tv_padmm.py
    - ct_astra_weighted_tv_admm.py
-   - ct_multi_tv_admm.py
    - ct_svmbir_tv_multi.py
    - deconv_circ_tv_admm.py
    - deconv_tv_admm.py

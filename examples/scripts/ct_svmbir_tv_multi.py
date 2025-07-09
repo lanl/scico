@@ -16,8 +16,8 @@ solve the TV-regularized CT problem
 
 where $A$ is the X-ray transform (implemented using the SVMBIR
 :cite:`svmbir-2020` tomographic projection), $\mathbf{y}$ is the sinogram,
-$C$ is a 2D finite difference operator, and $\mathbf{x}$ is the desired
-image.
+$C$ is a 2D finite difference operator, and $\mathbf{x}$ is the
+reconstructed image.
 """
 
 import numpy as np
@@ -40,7 +40,7 @@ Generate a ground truth image.
 N = 256  # image size
 density = 0.025  # attenuation density of the image
 np.random.seed(1234)
-x_gt = discrete_phantom(Foam(size_range=[0.05, 0.02], gap=0.02, porosity=0.3), size=N - 10)
+x_gt = discrete_phantom(Foam(size_range=[0.075, 0.005], gap=2e-3, porosity=1.0), size=N - 10)
 x_gt = x_gt / np.max(x_gt) * density
 x_gt = np.pad(x_gt, 5)
 x_gt[x_gt < 0] = 0

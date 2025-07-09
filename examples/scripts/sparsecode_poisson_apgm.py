@@ -13,13 +13,13 @@ This example demonstrates the use of class
 to solve the non-negative reconstruction problem with Poisson negative
 log likelihood loss
 
-  $$\mathrm{argmin}_{\mathbf{x}} \; \frac{1}{2} \left ( A(\mathbf{x}) -
-  \mathbf{y} \log\left( A(\mathbf{x}) \right) + \log(\mathbf{y}!) \right
-  ) + I(\mathbf{x}^{(0)} \geq 0) \;,$$
+  $$\mathrm{argmin}_{\mathbf{x}} \; \frac{1}{2} \left( A(\mathbf{x}) -
+  \mathbf{y} \log\left( A(\mathbf{x}) \right) + \log(\mathbf{y}!) \right) +
+  \iota_{\mathrm{NN}}(\mathbf{x}_0) \;,$$
 
-where $A$ is the forward operator, $\mathbf{y}$ is the
-measurement, $\mathbf{x}$ is the signal reconstruction, and
-$I(\mathbf{x}^{(0)} \geq 0)$ is the non-negative indicator.
+where $A$ is the forward operator, $\mathbf{y}$ is the measurement,
+$\mathbf{x}$ is the signal reconstruction, and $\iota_{\mathrm{NN}}$ is
+the indicator function of the non-negativity constraint.
 
 This example also demonstrates the application of
 [numpy.BlockArray](../_autosummary/scico.numpy.rst#scico.numpy.BlockArray),
@@ -27,9 +27,9 @@ This example also demonstrates the application of
 and
 [functional.ZeroFunctional](../_autosummary/scico.functional.rst#scico.functional.ZeroFunctional)
 to implement the forward operator
-$A(\mathbf{x}) = A_0(\mathbf{x}^{(0)}) + A_1(\mathbf{x}^{(1)})$
+$A(\mathbf{x}) = A_0(\mathbf{x}_0) + A_1(\mathbf{x}_1)$
 and the selective non-negativity constraint that only applies to
-$\mathbf{x}^{(0)}$.
+$\mathbf{x}_0$.
 """
 
 
@@ -136,7 +136,7 @@ def plot_results(hist, str_ss, L0, xsol, xgt, Aop):
 
     fig.suptitle(
         "Results for PGM Solver and " + str_ss + r" ($L_0$: " + "{:4.2f}".format(L0) + ")",
-        fontsize=16,
+        fontsize=14,
     )
 
     ax0 = fig.add_subplot(gs[0, 0])
@@ -189,8 +189,8 @@ def plot_results(hist, str_ss, L0, xsol, xgt, Aop):
 
 
 """
-Use default PGMStepSize object, set L0 based on norm of Forward
-operator and set up AcceleratedPGM solver object. Run the solver and
+Use default `PGMStepSize` object, set L0 based on norm of forward
+operator and set up `AcceleratedPGM` solver object. Run the solver and
 plot the recontructed signal and convergence statistics.
 """
 L0 = 1e3
@@ -211,14 +211,14 @@ print("============================================================")
 print("Running solver with step size of class: ", str_ss)
 print("L0 " + str_L0 + ": ", L0, "\n")
 
-x = solver.solve()  # Run the solver.
+x = solver.solve()  # run the solver
 hist = solver.itstat_object.history(transpose=True)
 plot_results(hist, str_ss, L0, x, x_gt, A)
 
 
 """
-Use BBStepSize object, set L0 with arbitary initial value and set up
-AcceleratedPGM solver object. Run the solver and plot the
+Use `BBStepSize` object, set L0 with arbitary initial value and set up
+`AcceleratedPGM` solver object. Run the solver and plot the
 recontructed signal and convergence statistics.
 """
 L0 = 90.0  # initial reciprocal of gradient descent step size
@@ -239,14 +239,14 @@ print("===================================================")
 print("Running solver with step size of class: ", str_ss)
 print("L0 " + str_L0 + ": ", L0, "\n")
 
-x = solver.solve()  # Run the solver.
+x = solver.solve()  # run the solver
 hist = solver.itstat_object.history(transpose=True)
 plot_results(hist, str_ss, L0, x, x_gt, A)
 
 
 """
-Use AdaptiveBBStepSize object, set L0 with arbitary initial value and
-set up AcceleratedPGM solver object. Run the solver and plot the
+Use `AdaptiveBBStepSize` object, set L0 with arbitary initial value and
+set up `AcceleratedPGM` solver object. Run the solver and plot the
 recontructed signal and convergence statistics.
 """
 L0 = 90.0  # initial reciprocal of gradient descent step size
@@ -267,14 +267,14 @@ print("===========================================================")
 print("Running solver with step size of class: ", str_ss)
 print("L0 " + str_L0 + ": ", L0, "\n")
 
-x = solver.solve()  # Run the solver.
+x = solver.solve()  # run the solver
 hist = solver.itstat_object.history(transpose=True)
 plot_results(hist, str_ss, L0, x, x_gt, A)
 
 
 """
-Use LineSearchStepSize object, set L0 with arbitary initial value and
-set up AcceleratedPGM solver object. Run the solver and plot the
+Use `LineSearchStepSize` object, set L0 with arbitary initial value and
+set up `AcceleratedPGM` solver object. Run the solver and plot the
 recontructed signal and convergence statistics.
 """
 L0 = 90.0  # initial reciprocal of gradient descent step size
@@ -295,14 +295,14 @@ print("===========================================================")
 print("Running solver with step size of class: ", str_ss)
 print("L0 " + str_L0 + ": ", L0, "\n")
 
-x = solver.solve()  # Run the solver.
+x = solver.solve()  # run the solver
 hist = solver.itstat_object.history(transpose=True)
 plot_results(hist, str_ss, L0, x, x_gt, A)
 
 
 """
-Use RobustLineSearchStepSize object, set L0 with arbitary initial
-value and set up AcceleratedPGM solver object. Run the solver and
+Use `RobustLineSearchStepSize` object, set L0 with arbitary initial
+value and set up `AcceleratedPGM` solver object. Run the solver and
 plot the recontructed signal and convergence statistics.
 """
 L0 = 90.0  # initial reciprocal of gradient descent step size
