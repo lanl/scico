@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2024 by SCICO Developers
+# Copyright (C) 2020-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SPORCO package. Details of the copyright
 # and user license can be found in the 'LICENSE.txt' file distributed
@@ -15,6 +15,7 @@ import jax
 import jax.numpy as jnp
 
 from ._wrapped_function_lists import binary_ops, unary_ops
+from .util import is_collapsible
 
 # Determine type of "standard" jax array since jax.Array is an abstract
 # base class type that is not suitable for use here.
@@ -89,6 +90,29 @@ class BlockArray:
 
     def __repr__(self):
         return f"BlockArray({repr(self.arrays)})"
+
+    def stack(self, axis=0):
+        """Collapse a :class:`.BlockArray` to :class:`jax.Array`.
+
+        Collapse a :class:`.BlockArray` to :class:`jax.Array` by stacking
+        the blocks on axis `axis`.
+
+        Args:
+            axis: Index of new axis on which blocks are to be stacked.
+
+        Returns:
+            A :class:`jax.Array` obtained by stacking.
+
+        Raises:
+            ValueError: When called on a :class:`.BlockArray` that is not
+               stackable.
+        """
+        if is_collapsible(self.shape):
+            return jnp.stack(self.arrays, axis=axis)
+        else:
+            raise ValueError(
+                f"BlockArray of shape {self.shape} cannot be " "collapsed to an Array."
+            )
 
 
 # Register BlockArray as a jax pytree, without this, jax autograd won't work.

@@ -9,6 +9,8 @@ from scico.numpy.util import (
     array_to_namedtuple,
     complex_dtype,
     indexed_shape,
+    is_blockable,
+    is_collapsible,
     is_complex_dtype,
     is_nested,
     is_real_dtype,
@@ -162,6 +164,20 @@ def test_is_nested():
 
     # tuple of lists + scalar
     assert is_nested(([1, 2], 3)) == True
+
+
+def test_is_collapsible():
+    shape1 = ((1, 2, 3), (1, 2, 3), (1, 3, 3))
+    shape2 = ((1, 2, 3), (1, 2, 3), (1, 2, 3))
+    assert not is_collapsible(shape1)
+    assert is_collapsible(shape2)
+
+
+def test_is_blockable():
+    shape1 = ((1, 2, 3), (1, 2, 3), (1, 2, 3))
+    shape2 = ((1, 2, 3), ((1, 2, 3), (1, 2, 3)))
+    assert is_blockable(shape1)
+    assert not is_blockable(shape2)
 
 
 def test_is_real_dtype():

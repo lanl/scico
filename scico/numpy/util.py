@@ -18,11 +18,10 @@ import numpy as np
 
 import jax
 
-import scico.numpy as snp
-from scico.numpy import Array
-from scico.typing import ArrayIndex, Axes, AxisIndex, BlockShape, DType, Shape
+from typing_extensions import TypeGuard
 
-from ._blockarray import BlockArray
+import scico.numpy as snp
+from scico.typing import ArrayIndex, Axes, AxisIndex, BlockShape, DType, Shape
 
 
 def transpose_ntpl_of_list(ntpl: NamedTuple) -> List[NamedTuple]:
@@ -55,7 +54,7 @@ def transpose_list_of_ntpl(ntlist: List[NamedTuple]) -> NamedTuple:
     return cls(*[[ntlist[m][n] for m in range(numentry)] for n in range(nfields)])  # type: ignore
 
 
-def namedtuple_to_array(ntpl: NamedTuple) -> Array:
+def namedtuple_to_array(ntpl: NamedTuple) -> snp.Array:
     """Convert a namedtuple to an array.
 
     Convert a :func:`collections.namedtuple` object to a
@@ -77,7 +76,7 @@ def namedtuple_to_array(ntpl: NamedTuple) -> Array:
     )
 
 
-def array_to_namedtuple(array: Array) -> NamedTuple:
+def array_to_namedtuple(array: snp.Array) -> NamedTuple:
     """Convert an array representation of a namedtuple back to a namedtuple.
 
     Convert a :class:`numpy.ndarray` object constructed by
@@ -268,8 +267,8 @@ def jax_indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int, ...]:
 
 
 def no_nan_divide(
-    x: Union[BlockArray, snp.Array], y: Union[BlockArray, snp.Array]
-) -> Union[BlockArray, snp.Array]:
+    x: Union[snp.BlockArray, snp.Array], y: Union[snp.BlockArray, snp.Array]
+) -> Union[snp.BlockArray, snp.Array]:
     """Return `x/y`, with 0 instead of :data:`~numpy.NaN` where `y` is 0.
 
     Args:
@@ -287,13 +286,13 @@ def shape_to_size(shape: Union[Shape, BlockShape]) -> int:
     r"""Compute array size corresponding to a specified shape.
 
     Compute array size corresponding to a specified shape, which may be
-    nested, i.e. corresponding to a :class:`.BlockArray`.
+    nested, i.e. corresponding to a :class:`BlockArray`.
 
     Args:
         shape: A shape tuple.
 
     Returns:
-        The number of elements in an array or :class:`.BlockArray` with
+        The number of elements in an array or :class:`BlockArray` with
         shape `shape`.
     """
 
@@ -340,6 +339,22 @@ def is_nested(x: Any) -> bool:
     return isinstance(x, (list, tuple)) and any([isinstance(_, (list, tuple)) for _ in x])
 
 
+def is_collapsible(shapes: Sequence[Union[Shape, BlockShape]]) -> bool:
+    """Determine whether a sequence of shapes can be collapsed.
+
+    Return ``True`` if the a list of shapes represent arrays that can
+    be stacked, i.e., they are all the same."""
+    return all(s == shapes[0] for s in shapes)
+
+
+def is_blockable(shapes: Sequence[Union[Shape, BlockShape]]) -> TypeGuard[Union[Shape, BlockShape]]:
+    """Determine whether a sequence of shapes could be a :class:`BlockArray` shape.
+
+    Return ``True`` if the sequence of shapes represent arrays that can
+    be combined into a :class:`BlockArray`, i.e., none are nested."""
+    return not any(is_nested(s) for s in shapes)
+
+
 def broadcast_nested_shapes(
     shape_a: Union[Shape, BlockShape], shape_b: Union[Shape, BlockShape]
 ) -> Union[Shape, BlockShape]:
@@ -348,7 +363,7 @@ def broadcast_nested_shapes(
     Compute the result of applying a broadcasting binary operator to
     (block) arrays with (possibly nested) shapes `shape_a` and `shape_b`.
     Extends :func:`numpy.broadcast_shapes` to also support the nested
-    tuple shapes of :class:`.BlockArray`\ s.
+    tuple shapes of :class:`BlockArray`\ s.
 
     Args:
         shape_a: First array shape.

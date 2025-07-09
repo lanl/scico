@@ -399,3 +399,12 @@ def test_method():
     expected = BlockArray([[3.0], [42.0]])
     assert_array_equal(actual, expected)
     assert actual.dtype == expected.dtype
+
+
+def test_stack():
+    x = BlockArray(([[1.0, 2.0, 3.0], [0.0, 0.0, 0.0]]))
+    assert x.stack().shape == (2, 3)
+    assert x.stack(axis=1).shape == (3, 2)
+    y = BlockArray(([[1.0, 2.0, 3.0], [0.0, 0.0]]))
+    with pytest.raises(ValueError):
+        z = y.stack()

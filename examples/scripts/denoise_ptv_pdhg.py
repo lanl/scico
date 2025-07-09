@@ -82,7 +82,7 @@ Denoise with polar total variation for comparison.
 g_plr = λ_plr * functional.L1Norm()
 
 G = linop.PolarGradient(input_shape=x_gt.shape)
-D = linop.Diagonal(snp.blockarray([0.3, 1.0]), input_shape=G.shape[0])
+D = linop.Diagonal(snp.array([0.3, 1.0]).reshape((2, 1, 1)), input_shape=G.shape[0])
 C = D @ G
 
 tau, sigma = PDHG.estimate_parameters(C, ratio=20.0)
