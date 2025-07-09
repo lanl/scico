@@ -3,7 +3,6 @@ ipykernel
 ipywidgets
 nbformat
 nbconvert
-nb_conda_kernels
 psutil
 py2jn
 pypandoc
