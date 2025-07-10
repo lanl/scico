@@ -6,13 +6,12 @@
 # package.
 
 """Flax NNX implementation of different neural network blocks for
-   diffusion generative models."""
+diffusion generative models."""
+# https://huggingface.co/blog/annotated-diffusion
 
 import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
-
-from functools import partial
 
 import math
 from typing import Callable, Optional
@@ -20,16 +19,21 @@ from typing import Callable, Optional
 import jax
 import jax.numpy as jnp
 from jax.typing import ArrayLike
-from jax.nn.initializers import variance_scaling
+
+from einops import rearrange
+from einops.layers.flax import Rearrange
 
 from flax import nnx
-from flax.nnx import initializers
+from flax.core import Scope  # noqa
+from scico.flax.diffusion.helpers import default, exists
 
-def init_variance_scaling():
-    return partial(variance_scaling, mode="fan_in", distribution="uniform")
+# The imports of Scope and _Sentinel (above) are required to silence
+# "cannot resolve forward reference" warnings when building sphinx api
+# docs.
 
-def get_sinusoidal_positional_embedding(timesteps: ArrayLike, embedding_dim: int = 128):
-    """Construct a sinusoidal position embedding for a sequence of time steps.
+
+def get_timestep_embedding(timesteps: ArrayLike, embedding_dim: int = 128):
+    """Construct an embedding for a sequence of time steps.
 
     Args:
         timesteps: Sequence of time steps to embed.
@@ -50,53 +54,129 @@ def get_sinusoidal_positional_embedding(timesteps: ArrayLike, embedding_dim: int
     return emb
 
 
-class TimestepEmbedding(nnx.Module):
-    """Class to construct a timestep embedding.
-    
-    Modified from: https://github.com/annegnx/PnP-Flow/blob/main/pnpflow/models.py
-    """
-    def __init__(self, embedding_dim: int, hidden_dim: int, output_dim: int, act_fun: Callable = nnx.swish, rngs: nnx.Rngs = nnx.Rngs(0),):
-        """Initialize timestep embedding class.
+class SinusoidalPositionEmbeddings(nnx.Module):
+    """Define sinusoidal positional embeddings class."""
+    def __init__(self, dim: int):
+        """Initialize sinusoidal position embeddings class.
 
         Args:
-            embedding_dim: Embedding dimension.
-            hidden_dim: Hidden layer dimension.
-            output_dim: Output layer dimension.
-            act_fun: Activation function.
+            dim: Embedding dimension.
+        """
+        super().__init__()
+        self.dim = dim
+
+    def __call__(self, time):
+        """Compute embeddings."""
+        half_dim = self.dim // 2
+        embeddings = math.log(10000) / (half_dim - 1)
+        embeddings = jnp.exp(jnp.arange(half_dim, dtype=jnp.float32) * -embeddings)
+        # Next, alternatively
+        embeddings = jnp.asarray(time, dtype=jnp.float32) * embeddings[None, :]
+        embeddings = jnp.concatenate([jnp.sin(embeddings), jnp.cos(embeddings)], axis=-1)
+        return embeddings
+
+
+class Residual(nnx.Module):
+    """Define residual block.
+    """
+    def __init__(self, fn: Callable):
+        """Initialize residual block.
+
+        Args:
+            fn: Given processing block.
+        """
+        super().__init__()
+        self.fn = fn
+
+    def __call__(self, x: ArrayLike, *args, **kwargs) -> ArrayLike:
+        """Apply residual block, i.e. add input to block output.
+
+        Args:
+            x: The array to be transformed.
+            args: Arguments of given processing block.
+            kwargs: Keyword arguments of given processing block.
+        """
+        return self.fn(x, *args, **kwargs) + x
+
+
+class Upsample(nnx.Module):
+    """Define upsample Flax block."""
+    
+    def __init__(self, dim: int, factor: int = 2, method: str = "bilinear", dim_out: Optional[int] = None, rngs: nnx.Rngs = nnx.Rngs(0)):
+        """Initialize upsample Flax block.
+
+        Args:
+            dim: Dimension to upsample to.
+            factor: Factor to use in upsample.
+            method: Method for upsampling. Could be: nearest, linear, bilinear, trilinear
+                triangle, cubic, bicubic, tricubic, lanczos3, lanczos5.
+            dim_out: Optional dimension to upsample to.
             rngs: Random generation key.
         """
-        self.embedding_dim = embedding_dim
-        self.output_dim = output_dim
-        self.hidden_dim = hidden_dim
-        
-        linear1 = nnx.Linear(in_features = embedding_dim,
-                             out_features = hidden_dim,
-                             kernel_init = init_variance_scaling(scale=1.),
-                             bias_init = initializers.zeros_init(),
-                             rngs=rngs
-                             )
 
-        linear2 = nnx.Linear(in_features = hidden_dim,
-                             out_features = output_dim,
-                             kernel_init = init_variance_scaling(scale=1.),
-                             bias_init = initializers.zeros_init(),
-                             rngs=rngs
-                             )
+        super().__init__()
+        self.factor = factor
+        self.method = method
+        self.out_ = nnx.Conv(dim, default(dim_out, dim), kernel_size=(3, 3), padding=1, rngs=rngs)
 
-        self.block = nnx.Sequential([linear1, act_fun, linear2])
-        
-    
-    def __call__(self, tstep: ArrayLike) -> ArrayLike:
-        """Compute time step embedding for a sequence of timesteps.
+    def __call__(self, x: ArrayLike) -> ArrayLike:
+        """Apply upsample."""
+        B, H, W, C = x.shape
+        out = jax.image.resize(x, shape=(B, H * self.factor, W * self.factor, C), method=self.method)
+        out = self.out_(out)
+        return out
+
+
+class Downsample(nnx.Module):
+    """Define downsample Flax block."""
+
+    def __init__(self, dim: int, factor: int = 2, dim_out: Optional[int] = None, rngs: nnx.Rngs = nnx.Rngs(0)):
+        """Initialize downsample Flax block.
 
         Args:
-            tstep: Timesteps to embed.
-            
-        Returns:
-            Embeded sequence of timesteps.
+            dim: Dimension to downsample to.
+            factor: Factor to use in downsample.
+            dim_out: Optional dimension to downsample to.
+            rngs: Random generation key.
         """
-        temb = get_sinusoidal_positional_embedding(tstep, self.embedding_dim)
-        return self.block(temb)
+
+        super().__init__()
+        self.factor = factor
+        self.out_ = nnx.Conv(dim * 4, default(dim_out, dim), kernel_size=(1, 1), rngs=rngs)
+
+    def __call__(self, x):
+        """Apply downsample."""
+        out = Rearrange("b (h p1) (w p2) c -> b h w (c p1 p2)", {"p1": self.factor, "p2": self.factor})(x)
+        return self.out_(out)
+
+
+class ConvGroupNBlock(nnx.Module):
+    """Define group normalization for convolution layer."""
+    def __init__(self, dim: int, dim_out: int, groups: int = 8, act: Callable[..., ArrayLike] = nn.silu, rngs: nnx.Rngs = nnx.Rngs(0),):
+        """Initialize group normalization for convolution block.
+
+        Args:
+            dim: Dimensionality of input signal.
+            dim_out: Dimensionality of output signal.
+            groups: Number of groups.
+            act: Activation function.
+            rngs: Random generation key.
+        """
+        super().__init__()
+        self.proj = nnx.Conv(dim, dim_out, kernel_size=(3, 3), padding=1, rngs=rngs)
+        self.norm = nnx.GroupNorm(num_groups=groups)
+        self.act = act()
+
+    def __call__(self, x, scale_shift=None):
+        """Apply group normalization."""
+        x = self.proj(x)
+        x = self.norm(x)
+        if exists(scale_shift):
+            scale, shift = scale_shift
+            x = x * (scale + 1) + shift
+
+        x = self.act(x)
+        return x
 
 
 class IdentityLayer(nnx.Module):
@@ -108,159 +188,127 @@ class IdentityLayer(nnx.Module):
         return x
 
 
-class ResidualBlock(nnx.Module):
-    def __init__(self,
-                 in_ch: int,
-                 temb_ch: int,
-                 out_ch: Optional[int] = None,
-                 conv_shortcut: bool = False,
-                 dropout: float = 0.,
-                 normalize: Callable = nnx.GroupNorm,
-                 act_fun: Callable = nnx.swish,
-                 rngs: nnx.Rngs = nnx.Rngs(0),
-                 ):
-        """Initialization of residual block.
+# https://arxiv.org/abs/1512.03385
+class ResnetBlock(nnx.Module):
+    """Define resnet block."""
+    def __init__(self, dim: int, dim_out: int, time_emb_dim: Optional[int] = None, groups: int = 8, rngs: nnx.Rngs = nnx.Rngs(0),):
+        """Initialize resnet block.
 
         Args:
-            in_ch: Number of input channels.
-            temb_ch: Number of timestep embedding channels.
-            out_ch: Number of output channels.
-            conv_shortcut: Flag to indicate if a residual connection passed
-                through a convolution layer is to be used (``True``) or not (``False``).
-            dropout: Dropout factor to apply per layer (if any).
-            normalize: Normalization function.
-            act_fun: Activation function.
+            dim: Dimensionality of input signal.
+            dim_out: Dimensionality of output signal.
+            time_emb_dim: Dimensionality of time embedding.
+            groups: Number of groups.
             rngs: Random generation key.
         """
         super().__init__()
-        self.in_ch = in_ch
-        self.temb_ch = temb_ch
-        self.out_ch = out_ch if out_ch is not None else in_ch
-        self.conv_shortcut = conv_shortcut
-        self.dropout = dropout
-        self.act = act
-
-        self.temb_proj = nnx.Linear(in_features = temb_ch,
-                             out_features = out_ch,
-                             kernel_init = init_variance_scaling(scale=1.),
-                             bias_init = initializers.zeros_init(),
-                             rngs=rngs
-                             )
-                                     
-        self.norm1 = IdentityLayer()
-        self.norm2 = IdentityLayer()
-        if isinstance(normalize, nnx.GroupNorm):
-            self.norm1 = nnx.GroupNorm(num_features=in_ch, num_groups=32, rngs=rngs)
-            self.norm2 = nnx.GroupNorm(num_features=out_ch, num_groups=32, rngs=rngs)
-            
-        self.conv1 = nnx.Conv(in_ch, out_ch, kernel_size=(3, 3), padding=1, kernel_init=                   init_variance_scaling(scale=1.), bias_init =
-                             initializers.zeros_init(), rngs=rngs)
-        self.conv2 = nnx.Conv(out_ch, out_ch, kernel_size=(3, 3), padding=1, kernel_init=                   init_variance_scaling(scale=0.), bias_init =
-                              initializers.zeros_init(), rngs=rngs)
         
-        
-        if dropout > 0.:
-            self.dropout = nnx.Dropout(dropout, rngs=rngs)
-        else:
-            self.dropout = IdentityLayer()
-
-        if in_ch != out_ch:
-            if conv_shortcut:
-                self.shortcut = nnx.Conv(in_ch, out_ch, kernel_size=(3, 3), padding=1,
-                                         kernel_init=init_variance_scaling(scale=1.),
-                                         bias_init=initializers.zeros_init(), rngs=rngs)
-            else:
-                self.shortcut = nnx.Conv(in_ch, out_ch, kernel_size=(1, 1), padding=0,
-                                         kernel_init=init_variance_scaling(scale=1.),
-                                         bias_init=initializers.zeros_init(), rngs=rngs)
-        else:
-            self.shortcut = IdentityLayer()
+        self.mlp = nnx.Sequential([nnx.silu(), nnx.Linear(time_emb_dim, dim_out * 2,        rngs=rngs)]) if exists(time_emb_dim) else None
             
-    def __call__(self, x: ArrayLike, temb: ArrayLike) -> ArrayLike:
-        # call conv1
-        h = x
-        h = self.act(self.norm1(h))
-        h = self.conv1(h)
+        self.block1 = ConvGroupNBlock(dim, dim_out, groups=groups, rngs=rngs)
+        self.block2 = ConvGroupNBlock(dim_out, dim_out, groups=groups, rngs=rngs)
+        self.res_conv = nnx.Conv(dim, dim_out, kernel_size=(1, 1), rngs=rngs) if dim != dim_out else IdentityLayer()
+        
+    def __call__(self, x: ArrayLike, time_emb=None) -> ArrayLike:
+        """Apply block."""
+        scale_shift = None
+        if exists(self.mlp) and exists(time_emb):
+            time_emb = self.mlp(time_emb)
+            time_emb = rearrange(time_emb, "b c -> b 1 1 c")  # channel last in flax
+            scale_shift = jnp.split(time_emb, 2, axis=-1)
 
-        # add in timestep embedding
-        h = h + self.temb_proj(self.act(temb))[:, :, None, None]
-
-        # call conv2
-        h = self.act(self.norm2(h))
-        h = self.dropout(h)
-        h = self.conv2(h)
-
-        # apply shortcut
-        x = self.shortcut(x)
-
-        # combine and return
-        assert x.shape == h.shape
-        return x + h
+        h = self.block1(x, scale_shift=scale_shift)
+        h = self.block2(h)
+        return h + self.res_conv(x)
 
 
-class SelfAttention(nnx.Module):
-    """Implementation of self attention layer.
-    
-    Copied and modified from: https://github.com/annegnx/PnP-Flow/blob/main/pnpflow/models.py
-    """
-
-    def __init__(self, in_channels: int, normalize: Callable = nnx.GroupNorm, rngs: nnx.Rngs = nnx.Rngs(0),):
-        """Initialization of self attention block.
+class Attention(nn.Module):
+    """Define attention block."""
+    def __init__(self, dim: int, heads: int = 4, dim_head: int = 32, rngs: nnx.Rngs = nnx.Rngs(0),):
+        """Initialize attention block.
 
         Args:
-            in_channels: Number of input channels.
-            normalize: Normalization function.
+            dim: Dimensionality of signal.
+            heads: Number of heads for attention layer.
+            dim_head: Dimension per head.
             rngs: Random generation key.
         """
         super().__init__()
-        self.in_channels = in_channels
-        self.attn_q = nnx.Conv(in_channels, in_channels, kernel_size=(1, 1), padding=0,
-                               kernel_init = init_variance_scaling(scale=1.),
-                               bias_init = initializers.zeros_init(), rngs=rngs)
-        self.attn_k = nnx.Conv(in_channels, in_channels, kernel_size=(1, 1), padding=0,
-                               kernel_init = init_variance_scaling(scale=1.),
-                               bias_init = initializers.zeros_init(), rngs=rngs)
-        self.attn_v = nnx.Conv(in_channels, in_channels, kernel_size=(1, 1), padding=0,
-                               kernel_init = init_variance_scaling(scale=1.),
-                               bias_init = initializers.zeros_init(), rngs=rngs)
+        self.scale = dim_head**-0.5
+        self.heads = heads
+        hidden_dim = dim_head * self.heads
         
-        self.proj_out = nnx.Conv(in_channels, in_channels, kernel_size=(1, 1), padding=0,
-                                 kernel_init = init_variance_scaling(scale=0.),
-                                 bias_init = initializers.zeros_init(), rngs=rngs)
+        self.qkv_ = nnx.Conv(dim, hidden_dim * 3, kernel_size=(1, 1), use_bias=False, rngs=rngs)
+        self.out_ = nnx.Conv(hidden_dim, dim, kernel_size=(1, 1), rngs=rngs)
         
-        self.softmax = nnx.Softmax(axis=-1)
-        if normalize is not None:
-            self.norm = normalize(num_features=in_channels, num_groups=32, rngs=rngs)
-        else:
-            self.norm = IdentityLayer()
+    def __call__(self, x: ArrayLike) -> ArrayLike:
+        """Apply attention block."""
+        b, h, w, c = x.shape  # channel last in flax
+        qkv = self.qkv_(x)
+        qkv = jnp.split(qkv, 3, axis=-1)  # channel last in flax
+        q, k, v = map(lambda t: rearrange(t, "b x y (h c)  -> b (x y) h c", h=self.heads), qkv)
+        q = q * self.scale
 
-    def __call__(self, x: ArrayLike, temp=None) -> ArrayLike:
-        """Apply self attention block.
-        
+        sim = jnp.einsum("b d h i, b d h j -> b i h j", q, k)
+        sim = sim - jnp.amax(sim, axis=-1, keepdims=True)
+        attn = nnx.softmax(sim, axis=-1)
+        out = jnp.einsum("b i h j, b d h j -> b d h i", attn, v)
+        out = rearrange(out, "b (x y) h c  -> b x y (h c)", x=h, y=w)
+        return self.out_(out)
+
+
+class LinearAttention(nn.Module):
+    """Define linear attention block."""
+    def __init__(self, dim: int, heads: int = 4, dim_head: int = 32, rngs: nnx.Rngs = nnx.Rngs(0),):
+        """Initialize linear attention block.
+
         Args:
-            x: Array for self attention.
-            temp: not used. 
-            
-        Returns:
-            Processed array.
+            dim: Dimensionality of signal.
+            heads: Number of heads for attention layer.
+            dim_head: Dimension per head.
+            rngs: Random generation key.
         """
-        _, H, W, C = x.shape # Flax is channel last
+        super().__init__()
+        self.scale = self.dim_head**-0.5
+        self.heads = heads
+        hidden_dim = dim_head * self.heads
+ 
+        self.qkv_ = nnx.Conv(dim, hidden_dim * 3, kernel_size=(1, 1), use_bias=False, rngs=rngs)
+        self.out_ = nnx.Sequential([nnx.Conv(hidden_dim, dim, kernel_size=(1, 1), rngs=rngs), nnx.GroupNorm(dim)])
+        
+    def __call__(self, x: ArrayLike) -> ArrayLike:
+        """Apply linear attention block."""
+        
+        b, h, w, c = x.shape  # channel last in flax
+        qkv = self.qkv_(x)
+        qkv = jnp.split(qkv, 3, axis=-1)  # channel last in flax
+        q, k, v = map(lambda t: rearrange(t, "b x y (h c)  -> b (x y) h c", h=self.heads), qkv)
+        q = nnx.softmax(q, axis=-2)
+        k = nnx.softmax(k, axis=-1)
 
-        h = self.norm(x)
-        q = self.attn_q(h).reshape((-1, H * W, C))
-        k = self.attn_k(h).reshape((-1, H * W, C))
-        v = self.attn_v(h).reshape((-1, H * W, C))
+        q = q * scale
+        context = jnp.einsum("b n h d, b n h e -> b d h e", k, v)
+        out = jnp.einsum("b d h e, b n h d -> b n h e", context, q)
+        out = rearrange(out, "b (x y) h c  -> b x y (h c)", h=self.heads, x=h, y=w)
 
-        #attn = torch.bmm(q.permute(0, 2, 1), k) * (int(C) ** (-0.5))
-        attn = jnp.einsum("b j i, b j k -> b i k", q, k)
-        attn = self.softmax(attn)
-
-        #h = torch.bmm(v, attn.permute(0, 2, 1))
-        h = jno.einsum("b i j, b k j -> b i k", v, attn)
-        h = h.reshape((-1, H, W, C))
-        h = self.proj_out(h)
-
-        assert h.shape == x.shape
-        return x + h
+        return self.out_(out)
 
 
+class PreNorm(nnx.Module):
+    """Define pre-normalization block."""
+    def __init__(self, dim: int, fn: Callable):
+        """Initialize pre-normalization block.
+
+        Args:
+            dim: Dimensionality for group normalization.
+            fn: Given processing block.
+        """
+        # (pre or post in transformers is still in debate)
+        super().__init__()
+        self.fn = fn
+        self.norm = nnx.GroupNorm(num_groups=dim)
+
+    def __call__(self, x: ArrayLike) -> ArrayLike:
+        """Apply group norm before block."""
+        x = self.norm(x)
+        return self.fn(x)

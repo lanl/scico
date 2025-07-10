@@ -18,117 +18,177 @@ import jax.numpy as jnp
 from jax.typing import ArrayLike
 
 from flax import nnx
-
-from scico.flax_nnx.autoencoders.blocks import MLP
 from scico.flax_nnx.diffusion.blocks import (
-    TimestepEmbedding,
+    Attention,
+    Downsample,
+    LinearAttention,
+    PreNorm,
+    Residual,
+    ResnetBlock,
+    SinusoidalPositionEmbeddings,
+    Upsample,
 )
+from scico.flax_nnx.diffusion.helpers import default
 
-
-class AttnUnet(nnx.Module):
-    """Unet model with attention layers."""
-    
-    def __init__(self,
-                 input_channels: int,
-                 input_dim: int,
-                 channels: int,
-                 output_channels: Optional[int] = None,
-                 ch_mult: Tuple[int] = (1, 2, 4, 8),
-                 kernel_size: Tuple[int, int] = (3, 3),
-                 num_res_blocks: int = 2,
-                 attn_resolutions: Tuple[int] = (16,),
-                 dropout: float = 0.,
-                 normalize: Callable = group_norm,
-                 act_fun: Callable = nnx.swish,
-                 resample_with_conv: bool = True,
-                 rngs: nnx.Rngs = nnx.Rngs(0),
-                 ):
-        """Initialization of Unet model with attention.
+class ConditionalUNet(nnx.Module):
+    """Define Flax conditional U-Net model."""
+    def __init__(self, dim: int, init_dim: Optional[int] = None, out_dim: Optional[int] = None,
+                 dim_mults: Tuple[int, ...] = (1, 2, 4, 8), channels: int = 3,
+                 self_condition: bool = False, resnet_block_groups: int = 4,
+                 kernel_size: Tuple[int, int] = (7, 7), padding: int = 3, time_embed: bool = True
+                 dtype: Any = jnp.float32, rngs: nnx.Rngs = nnx.Rngs(0)):
+        """Initialize Flax conditional U-Net model.
 
         Args:
-            input_channels: Number of channels of signal to process.
-            input_dim: Dimension of signal.
+            dim: Dimension of signal.
+            init_dim: Optional dimension of first convolution layer.
+            out_dim: Optional dimension of output convolution layer.
+            dim_mults: Dimension multipliers at each level of the Unet.
             channels: Number of channels of signal to process.
-            output_channels: Number of channels of output signal.
-            ch_mults: Channel multipliers at each level of the Unet.
+            self_condition: Flag to include additional processing channel
+                if building conditional model.
+            resnet_block_groups: Number of groups in the residual network
+                blocks.
             kernel_size: A shape tuple defining the size of the
                 convolution filters.
-            num_res_blocks: Number of residual blocks.
-            attn_resolutions: Number of levels in Unet.
-            dropout: Dropout factor to apply per layer (if any).
-            normalize: Normalization function.
-            act_fun: Activation function.
-            resample_with_conv: Perform resampling with convolution layer.
+            padding: An integer defining the size of the padding for the
+                convolution filters.
+            time_embed: Flag to indicate that the model uses a time embedding
+                component. This is used when initializing model parameters
+                and should not be changed.
+            dtype: Output dtype. Default: :attr:`~numpy.float32`.
             rngs: Random generation key.
         """
+
         super().__init__()
-        # store model parameters
-        self.input_channels = input_channels
-        self.input_dim = input_dim
+
+        # determine dimensions
         self.channels = channels
-        self.output_channels = input_channels if output_channels is None else output_channels
-        self.ch_mult = ch_mult
-        self.num_res_blocks = num_res_blocks
-        self.attn_resolutions = attn_resolutions
-        self.dropout = dropout
-        self.resample_with_conv = resample_with_conv
-        self.act_fun = act_fun
-        self.normalize = normalize
+        self.self_condition = self_condition
+        input_channels = channels * (2 if self_condition else 1)
 
-        # Initialize
-        self.num_resolutions = len(ch_mult)
-        in_dim = input_dim
-        in_ch = input_channels
-        temb_ch = ch * 4
-        assert in_dim % 2 ** (self.num_resolutions - 1) == 0, "input_height doesn't satisfy the condition"
-        padding = kernel_size[0] // 2
-        
-        # Timestep embedding
-        self.temb_block = TimestepEmbedding(
-            embedding_dim = ch,
-            hidden_dim = temb_ch,
-            output_dim = temb_ch,
-            act_fun = act_fun,
-        )
+        init_dim = default(init_dim, dim)
+        self.init_conv = nnx.Conv(input_channels, init_dim, kernel_size=(1, 1), padding=0, rngs=rngs)
 
-        self.init_conv = nnx.Conv(input_channels, channels, kernel_size=kernel_size, padding=padding, rngs=rngs)
-        unet_chs = [ch]
-        in_ch = ch
-        down_modules = []
-        for i_level in range(self.num_resolutions):
-            # Residual blocks for this resolution
-            block_modules = {}
-            out_ch = ch * ch_mult[i_level]
-            for i_block in range(num_res_blocks):
-                block_modules['{}a_{}a_block'.format(i_level, i_block)] = \
-                    ResidualBlock(
-                        in_ch=in_ch,
-                        temb_ch=temb_ch,
-                        out_ch=out_ch,
-                        dropout=dropout,
-                        act=act,
-                        normalize=normalize,
-                )
-                if in_ht in attn_resolutions:
-                    block_modules['{}a_{}b_attn'.format(i_level, i_block)] = SelfAttention(
-                        out_ch, normalize=normalize)
-                unet_chs += [out_ch]
-                in_ch = out_ch
-            # Downsample
-            if i_level != num_resolutions - 1:
-                block_modules['{}b_downsample'.format(i_level)] = downsample(
-                    out_ch, with_conv=resamp_with_conv)
-                in_ht //= 2
-                unet_chs += [out_ch]
-            # convert list of modules to a module list, and append to a list
-            down_modules += [nn.ModuleDict(block_modules)]
-        # conver to a module list
-        self.down_modules = nn.ModuleList(down_modules)
-
-
-
-
-        dims = [init_dim, *map(lambda m: self.dim * m, self.dim_mults)]
+        dims = [init_dim, *map(lambda m: dim * m, self.dim_mults)]
         in_out = list(zip(dims[:-1], dims[1:]))
 
-        block_klass = partial(ResnetBlock, groups=self.resnet_block_groups)
+        block_klass = partial(ResnetBlock, groups=resnet_block_groups)
+
+        # time embeddings
+        time_dim = dim * 4
+
+        self.time_mlp = nnx.Sequential(
+            [
+                SinusoidalPositionEmbeddings(dim),
+                nnx.Linear(dim, time_dim, rngs=rngs),
+                nnx.gelu,
+                nnx.Linear(time_dim, time_dim, rngs=rngs),
+            ]
+        )
+
+        # layers
+        downs = []
+        ups = []
+        num_resolutions = len(in_out)
+
+        # Configure down path of Unet
+        for ind, (dim_in, dim_out) in enumerate(in_out):
+            is_last = ind >= (num_resolutions - 1)
+
+            downs.append(
+                [
+                    block_klass(dim_in, dim_in, time_emb_dim=time_dim, rngs=rngs),
+                    block_klass(dim_in, dim_in, time_emb_dim=time_dim, rngs=rngs),
+                    Residual(PreNorm(dim_in, LinearAttention(dim_in, rngs=rngs))),
+                    (
+                        Downsample(dim_in, dim_out, rngs=rngs)
+                        if not is_last
+                        else nnx.Conv(dim_in, dim_out, kernel_size=(3, 3), padding=1, rngs=rngs)
+                    ),
+                ]
+            )
+
+        # Configure bottleneck of Unet
+        mid_dim = dims[-1]
+        self.mid_block1 = block_klass(mid_dim, mid_dim, time_emb_dim=time_dim, rngs=rngs)
+        self.mid_attn = Residual(PreNorm(mid_dim, Attention(mid_dim, rngs=rngs)))
+        self.mid_block2 = block_klass(mid_dim, mid_dim, time_emb_dim=time_dim, rngs=rngs)
+
+        # Configure up path of Unet
+        for ind, (dim_in, dim_out) in enumerate(reversed(in_out)):
+            is_last = ind == (len(in_out) - 1)
+
+            ups.append(
+                [
+                    block_klass(dim_out + dim_in, dim_out, time_emb_dim=time_dim, rngs=rngs),
+                    block_klass(dim_out + dim_in, dim_out, time_emb_dim=time_dim, rngs=rngs),
+                    Residual(PreNorm(dim_out, LinearAttention(dim_out, rngs=rngs))),
+                    (
+                        Upsample(dim_out, dim_in, rngs=rngs)
+                        if not is_last
+                        else nnx.Conv(dim_out, dim_in, kernel_size=(3, 3), padding=1, rngs=rngs)
+                    ),
+                ]
+            )
+
+        self.downs = downs
+        self.ups = ups
+
+        self.out_dim = default(out_dim, channels)
+
+        self.final_res_block = block_klass(dim * 2, self.dim, time_emb_dim=time_dim, rngs=rngs)
+        self.final_conv = nnx.Conv(dim, self.out_dim, kernel_size=(1, 1), rngs=rngs)
+
+
+    def __call__(self, x: ArrayLike, time: ArrayLike, x_self_cond: ArrayLike = None) -> ArrayLike:
+        """Apply conditional Unet model.
+
+        Args:
+            x: The array to process.
+            time: The array with the time embedding component.
+            x_self_cond: The array for conditional processing.
+
+        Returns:
+            The processed array.
+        """
+
+        if self.self_condition:
+            x_self_cond = default(x_self_cond, lambda: jnp.zeros_like(x))
+            x = jnp.concatenate([x_self_cond, x], axis=-1)
+
+        x = self.init_conv(x)
+        r = x.copy()
+
+        t = self.time_mlp(time)
+
+        h = []
+
+        for block1, block2, attn, downsample in self.downs:
+            x = block1(x, t)
+            h.append(x)
+
+            x = block2(x, t)
+            x = attn(x)
+            h.append(x)
+
+            x = downsample(x)
+
+        x = self.mid_block1(x, t)
+        x = self.mid_attn(x)
+        x = self.mid_block2(x, t)
+
+        for block1, block2, attn, upsample in self.ups:
+            x = jnp.concatenate([x, h.pop()], axis=-1)
+            x = block1(x, t)
+
+            x = jnp.concatenate([x, h.pop()], axis=-1)
+            x = block2(x, t)
+            x = attn(x)
+
+            x = upsample(x)
+
+        x = jnp.concatenate([x, r], axis=-1)
+
+        x = self.final_res_block(x, t)
+        return self.final_conv(x)
