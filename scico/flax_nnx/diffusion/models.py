@@ -28,7 +28,7 @@ from scico.flax_nnx.diffusion.blocks import (
     SinusoidalPositionEmbeddings,
     Upsample,
 )
-from scico.flax_nnx.diffusion.helpers import default
+from scico.flax.diffusion.helpers import default
 
 class ConditionalUNet(nnx.Module):
     """Define Flax conditional U-Net model."""
