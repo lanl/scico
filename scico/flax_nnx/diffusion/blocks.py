@@ -102,15 +102,15 @@ class Residual(nnx.Module):
 class Upsample(nnx.Module):
     """Define upsample Flax block."""
     
-    def __init__(self, dim: int, factor: int = 2, method: str = "bilinear", dim_out: Optional[int] = None, rngs: nnx.Rngs = nnx.Rngs(0)):
+    def __init__(self, dim: int, dim_out: Optional[int] = None, factor: int = 2, method: str = "bilinear", rngs: nnx.Rngs = nnx.Rngs(0)):
         """Initialize upsample Flax block.
 
         Args:
             dim: Dimension to upsample to.
+            dim_out: Optional dimension to upsample to.
             factor: Factor to use in upsample.
             method: Method for upsampling. Could be: nearest, linear, bilinear, trilinear
                 triangle, cubic, bicubic, tricubic, lanczos3, lanczos5.
-            dim_out: Optional dimension to upsample to.
             rngs: Random generation key.
         """
 
@@ -130,13 +130,13 @@ class Upsample(nnx.Module):
 class Downsample(nnx.Module):
     """Define downsample Flax block."""
 
-    def __init__(self, dim: int, factor: int = 2, dim_out: Optional[int] = None, rngs: nnx.Rngs = nnx.Rngs(0)):
+    def __init__(self, dim: int, dim_out: Optional[int] = None, factor: int = 2, rngs: nnx.Rngs = nnx.Rngs(0)):
         """Initialize downsample Flax block.
 
         Args:
             dim: Dimension to downsample to.
-            factor: Factor to use in downsample.
             dim_out: Optional dimension to downsample to.
+            factor: Factor to use in downsample.
             rngs: Random generation key.
         """
 
@@ -146,13 +146,18 @@ class Downsample(nnx.Module):
 
     def __call__(self, x):
         """Apply downsample."""
-        out = Rearrange("b (h p1) (w p2) c -> b h w (c p1 p2)", {"p1": self.factor, "p2": self.factor})(x)
+        #out = Rearrange("b (h p1) (w p2) c -> b h w (c p1 p2)", {"p1": self.factor, "p2": self.factor})(x)
+        B, H, W, C = x.shape
+        hnew = H // self.factor
+        wnew = W // self.factor
+        cnew = C * self.factor * self.factor
+        out = jax.image.resize(x, shape=(B, hnew, wnew, cnew), method="bilinear")
         return self.out_(out)
 
 
 class ConvGroupNBlock(nnx.Module):
     """Define group normalization for convolution layer."""
-    def __init__(self, dim: int, dim_out: int, groups: int = 8, act: Callable[..., ArrayLike] = nn.silu, rngs: nnx.Rngs = nnx.Rngs(0),):
+    def __init__(self, dim: int, dim_out: int, groups: int = 8, act: Callable[..., ArrayLike] = nnx.silu, rngs: nnx.Rngs = nnx.Rngs(0),):
         """Initialize group normalization for convolution block.
 
         Args:
@@ -164,8 +169,8 @@ class ConvGroupNBlock(nnx.Module):
         """
         super().__init__()
         self.proj = nnx.Conv(dim, dim_out, kernel_size=(3, 3), padding=1, rngs=rngs)
-        self.norm = nnx.GroupNorm(num_groups=groups)
-        self.act = act()
+        self.norm = nnx.GroupNorm(num_features=dim_out, num_groups=groups, rngs=rngs)
+        self.act = act
 
     def __call__(self, x, scale_shift=None):
         """Apply group normalization."""
@@ -203,7 +208,7 @@ class ResnetBlock(nnx.Module):
         """
         super().__init__()
         
-        self.mlp = nnx.Sequential([nnx.silu(), nnx.Linear(time_emb_dim, dim_out * 2,        rngs=rngs)]) if exists(time_emb_dim) else None
+        self.mlp = nnx.Sequential(*[nnx.silu, nnx.Linear(time_emb_dim, dim_out * 2,        rngs=rngs)]) if exists(time_emb_dim) else None
             
         self.block1 = ConvGroupNBlock(dim, dim_out, groups=groups, rngs=rngs)
         self.block2 = ConvGroupNBlock(dim_out, dim_out, groups=groups, rngs=rngs)
@@ -222,7 +227,7 @@ class ResnetBlock(nnx.Module):
         return h + self.res_conv(x)
 
 
-class Attention(nn.Module):
+class Attention(nnx.Module):
     """Define attention block."""
     def __init__(self, dim: int, heads: int = 4, dim_head: int = 32, rngs: nnx.Rngs = nnx.Rngs(0),):
         """Initialize attention block.
@@ -257,7 +262,7 @@ class Attention(nn.Module):
         return self.out_(out)
 
 
-class LinearAttention(nn.Module):
+class LinearAttention(nnx.Module):
     """Define linear attention block."""
     def __init__(self, dim: int, heads: int = 4, dim_head: int = 32, rngs: nnx.Rngs = nnx.Rngs(0),):
         """Initialize linear attention block.
@@ -269,12 +274,12 @@ class LinearAttention(nn.Module):
             rngs: Random generation key.
         """
         super().__init__()
-        self.scale = self.dim_head**-0.5
+        self.scale = dim_head**-0.5
         self.heads = heads
         hidden_dim = dim_head * self.heads
  
         self.qkv_ = nnx.Conv(dim, hidden_dim * 3, kernel_size=(1, 1), use_bias=False, rngs=rngs)
-        self.out_ = nnx.Sequential([nnx.Conv(hidden_dim, dim, kernel_size=(1, 1), rngs=rngs), nnx.GroupNorm(dim)])
+        self.out_ = nnx.Sequential(*[nnx.Conv(hidden_dim, dim, kernel_size=(1, 1), rngs=rngs), nnx.GroupNorm(num_features=dim, num_groups=1, rngs=rngs)])
         
     def __call__(self, x: ArrayLike) -> ArrayLike:
         """Apply linear attention block."""
@@ -286,7 +291,7 @@ class LinearAttention(nn.Module):
         q = nnx.softmax(q, axis=-2)
         k = nnx.softmax(k, axis=-1)
 
-        q = q * scale
+        q = q * self.scale
         context = jnp.einsum("b n h d, b n h e -> b d h e", k, v)
         out = jnp.einsum("b d h e, b n h d -> b n h e", context, q)
         out = rearrange(out, "b (x y) h c  -> b x y (h c)", h=self.heads, x=h, y=w)
@@ -296,17 +301,18 @@ class LinearAttention(nn.Module):
 
 class PreNorm(nnx.Module):
     """Define pre-normalization block."""
-    def __init__(self, dim: int, fn: Callable):
+    def __init__(self, dim: int, fn: Callable, rngs: nnx.Rngs = nnx.Rngs(0)):
         """Initialize pre-normalization block.
 
         Args:
             dim: Dimensionality for group normalization.
             fn: Given processing block.
+            rngs: Random generation key.
         """
         # (pre or post in transformers is still in debate)
         super().__init__()
         self.fn = fn
-        self.norm = nnx.GroupNorm(num_groups=dim)
+        self.norm = nnx.GroupNorm(num_features=dim, num_groups=1, rngs=rngs)
 
     def __call__(self, x: ArrayLike) -> ArrayLike:
         """Apply group norm before block."""

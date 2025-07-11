@@ -50,7 +50,7 @@ def _step_t(batch: ArrayLike, key: ArrayLike, **kwargs) -> Tuple[ArrayLike, Arra
 
 
 def _step_x(
-    batch: ArrayLike, key: ArrayLike, stddev_prior, **kwargs
+    batch: ArrayLike, key: ArrayLike, t: ArrayLike, stddev_prior, **kwargs
 ) -> Tuple[ArrayLike, ArrayLike, ArrayLike]:
     """Default x computation for diffusion step."""
     z = jax.random.normal(key, batch["image"].shape)
@@ -110,13 +110,13 @@ def train_step_diffusion(
         step_loss = _step_loss
 
     key, step_key = jax.random.split(key)
-    t, batch_t = _step_t(batch, step_key, kwargs)
+    t, batch_t = step_t(batch, step_key, **kwargs)
     key, step_key = jax.random.split(key)
-    z, std, batch_x = _step_x(batch, step_key, stddev_prior, kwargs)
+    z, std, batch_x = step_x(batch, step_key, t, stddev_prior, **kwargs)
 
     def loss_fn(params):
-        output = state.apply_fn({"params": params}, batch_x, batch_t)
-        loss = _step_loss(criterion, z, std, output)
+        output, (graphdef, new_state) = state.apply_fn(params)(batch_x, batch_t)
+        loss = step_loss(criterion, z, std, output)
         return loss
 
     step = state.step
@@ -175,12 +175,12 @@ def eval_step_diffusion(
         step_loss = _step_loss
 
     key, step_key = jax.random.split(key)
-    t, batch_t = _step_t(batch, step_key, kwargs)
+    t, batch_t = step_t(batch, step_key, **kwargs)
     key, step_key = jax.random.split(key)
-    z, std, batch_x = _step_x(batch, step_key, stddev_prior, kwargs)
+    z, std, batch_x = step_x(batch, step_key, t, stddev_prior, **kwargs)
 
-    output = state.apply_fn({"params": state.params}, batch_x, batch_t)
-    loss = _step_loss(criterion, z, std, output)
+    output, (graphdef, new_state) = state.apply_fn(state.params)(batch_x, batch_t)
+    loss = step_loss(criterion, z, std, output)
 
     metrics: DiffusionMetricsDict = {"loss": loss}
     metrics = lax.pmean(metrics, axis_name="batch")

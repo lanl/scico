@@ -35,8 +35,9 @@ class ConditionalUNet(nnx.Module):
     def __init__(self, dim: int, init_dim: Optional[int] = None, out_dim: Optional[int] = None,
                  dim_mults: Tuple[int, ...] = (1, 2, 4, 8), channels: int = 3,
                  self_condition: bool = False, resnet_block_groups: int = 4,
-                 kernel_size: Tuple[int, int] = (7, 7), padding: int = 3, time_embed: bool = True
-                 dtype: Any = jnp.float32, rngs: nnx.Rngs = nnx.Rngs(0)):
+                 kernel_size: Tuple[int, int] = (7, 7), padding: int = 3,
+                 time_embed: bool = True, dtype: Any = jnp.float32,
+                 rngs: nnx.Rngs = nnx.Rngs(0)):
         """Initialize Flax conditional U-Net model.
 
         Args:
@@ -61,6 +62,9 @@ class ConditionalUNet(nnx.Module):
         """
 
         super().__init__()
+        
+        self.dtype = dtype
+        self.time_embed = time_embed
 
         # determine dimensions
         self.channels = channels
@@ -70,7 +74,7 @@ class ConditionalUNet(nnx.Module):
         init_dim = default(init_dim, dim)
         self.init_conv = nnx.Conv(input_channels, init_dim, kernel_size=(1, 1), padding=0, rngs=rngs)
 
-        dims = [init_dim, *map(lambda m: dim * m, self.dim_mults)]
+        dims = [init_dim, *map(lambda m: dim * m, dim_mults)]
         in_out = list(zip(dims[:-1], dims[1:]))
 
         block_klass = partial(ResnetBlock, groups=resnet_block_groups)
@@ -79,14 +83,14 @@ class ConditionalUNet(nnx.Module):
         time_dim = dim * 4
 
         self.time_mlp = nnx.Sequential(
-            [
+            *[
                 SinusoidalPositionEmbeddings(dim),
                 nnx.Linear(dim, time_dim, rngs=rngs),
                 nnx.gelu,
                 nnx.Linear(time_dim, time_dim, rngs=rngs),
             ]
         )
-
+        
         # layers
         downs = []
         ups = []
@@ -100,7 +104,7 @@ class ConditionalUNet(nnx.Module):
                 [
                     block_klass(dim_in, dim_in, time_emb_dim=time_dim, rngs=rngs),
                     block_klass(dim_in, dim_in, time_emb_dim=time_dim, rngs=rngs),
-                    Residual(PreNorm(dim_in, LinearAttention(dim_in, rngs=rngs))),
+                    Residual(PreNorm(dim_in, LinearAttention(dim_in, rngs=rngs), rngs=rngs)),
                     (
                         Downsample(dim_in, dim_out, rngs=rngs)
                         if not is_last
@@ -112,7 +116,7 @@ class ConditionalUNet(nnx.Module):
         # Configure bottleneck of Unet
         mid_dim = dims[-1]
         self.mid_block1 = block_klass(mid_dim, mid_dim, time_emb_dim=time_dim, rngs=rngs)
-        self.mid_attn = Residual(PreNorm(mid_dim, Attention(mid_dim, rngs=rngs)))
+        self.mid_attn = Residual(PreNorm(mid_dim, Attention(mid_dim, rngs=rngs), rngs=rngs))
         self.mid_block2 = block_klass(mid_dim, mid_dim, time_emb_dim=time_dim, rngs=rngs)
 
         # Configure up path of Unet
@@ -123,7 +127,7 @@ class ConditionalUNet(nnx.Module):
                 [
                     block_klass(dim_out + dim_in, dim_out, time_emb_dim=time_dim, rngs=rngs),
                     block_klass(dim_out + dim_in, dim_out, time_emb_dim=time_dim, rngs=rngs),
-                    Residual(PreNorm(dim_out, LinearAttention(dim_out, rngs=rngs))),
+                    Residual(PreNorm(dim_out, LinearAttention(dim_out, rngs=rngs), rngs=rngs)),
                     (
                         Upsample(dim_out, dim_in, rngs=rngs)
                         if not is_last
@@ -137,7 +141,7 @@ class ConditionalUNet(nnx.Module):
 
         self.out_dim = default(out_dim, channels)
 
-        self.final_res_block = block_klass(dim * 2, self.dim, time_emb_dim=time_dim, rngs=rngs)
+        self.final_res_block = block_klass(dim * 2, dim, time_emb_dim=time_dim, rngs=rngs)
         self.final_conv = nnx.Conv(dim, self.out_dim, kernel_size=(1, 1), rngs=rngs)
 
 
