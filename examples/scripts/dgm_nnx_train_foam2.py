@@ -37,7 +37,7 @@ from scico import plot
 from scico import flax as sflax
 from scico.flax.train.losses import huber_loss
 from scico.flax_nnx.diffusion.models import ConditionalUNet
-from scico.flax.diffusion.sampling import Euler_Maruyama_sampler as sampler
+from scico.flax_nnx.diffusion.sampling import Euler_Maruyama_sampler as sampler
 from scico.flax_nnx.diffusion.state import create_train_state
 from scico.flax_nnx.diffusion.steps import eval_step_diffusion, train_step_diffusion
 from scico.flax.diffusion.diagnostics import stats_obj
@@ -154,7 +154,7 @@ num_samples = 16
 h = 4
 w = 4
 num_steps = 300
-sample, sample_path = sampler(key, model, modvar, stddev_prior, xshape, num_steps, num_samples)
+sample, sample_path = sampler(key, model, stddev_prior, xshape, num_steps, num_samples)
 print("sample shape: ", sample.shape)
 
 
