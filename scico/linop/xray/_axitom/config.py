@@ -5,6 +5,8 @@ This module contains the Config class which has all the settings that are
 used during the reconstruction of the tomogram.
 """
 
+import numpy as np
+
 
 class Config:
     """Configuration object for the forward projection."""
@@ -43,7 +45,6 @@ class Config:
         self.detector_size_v = detector_size_v
         self.source_to_detector_dist = source_to_detector_dist
         self.source_to_object_dist = source_to_object_dist
-        self.angular_inc = angular_inc
 
         self.center_of_rot_u = center_of_rot
 
@@ -73,20 +74,20 @@ class Config:
         )
 
         self.object_ys = (
-            jnp.arange(self.n_pixels_u, dtype=jnp.float32) - self.n_pixels_u / 2.0
+            np.arange(self.n_pixels_u, dtype=np.float32) - self.n_pixels_u / 2.0
         ) * self.voxel_size_y
         self.object_xs = (
-            jnp.arange(self.n_pixels_u, dtype=jnp.float32) - self.n_pixels_u / 2.0
+            np.arange(self.n_pixels_u, dtype=np.float32) - self.n_pixels_u / 2.0
         ) * self.voxel_size_x
         self.object_zs = (
-            jnp.arange(self.n_pixels_v, dtype=jnp.float32) - self.n_pixels_v / 2.0
+            np.arange(self.n_pixels_v, dtype=np.float32) - self.n_pixels_v / 2.0
         ) * self.voxel_size_z
 
         self.detector_us = (
-            jnp.arange(self.n_pixels_u, dtype=jnp.float32) - self.n_pixels_u / 2.0
+            np.arange(self.n_pixels_u, dtype=np.float32) - self.n_pixels_u / 2.0
         ) * self.pixel_size_u
         self.detector_vs = (
-            jnp.arange(self.n_pixels_v, dtype=jnp.float32) - self.n_pixels_v / 2.0
+            np.arange(self.n_pixels_v, dtype=np.float32) - self.n_pixels_v / 2.0
         ) * self.pixel_size_v
 
     def with_param(self, **kwargs):
