@@ -11,21 +11,22 @@ X-ray transform :class:`.LinearOperator` wrapping the
 `mbirjax <https://github.com/cabouman/mbirjax>`_ package..
 """
 
-from typing import Optional, Tuple, Union
 
 import numpy as np
 
-import jax
-
 import scico.numpy as snp
-from scico.loss import Loss, SquaredL2Loss
 from scico.typing import Shape
 
-from .._diag import Diagonal, Identity
 from .._linop import LinearOperator
 
 try:
+    # Attempt to undo mbirjax interference in matplotlib backend
+    import matplotlib
+
+    mpl_backend = matplotlib.get_backend()
     import mbirjax
+
+    matplotlib.use(mpl_backend)
 except ImportError:
     raise ImportError("Could not import mbirjax; please install it.")
 
