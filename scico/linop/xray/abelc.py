@@ -53,18 +53,17 @@ def _volume_by_axial_symmetry(x: Array, axis: int = 0, center: Optional[int] = N
         offset = 0
     else:
         offset = center - half_shape[1 - axis]
-        g1d[1 - axis] += offset
 
     g0, g1, g2 = np.meshgrid(*g1d, indexing="ij")
     grids = (g0, g1, g2)
     r = np.hypot(grids[1 - axis], g2)
     sym_ax_crd = np.where(
-        grids[1 - axis] >= offset, half_shape[1 - axis] + r, half_shape[1 - axis] - r
+        grids[1 - axis] >= 0, half_shape[1 - axis] + offset + r, half_shape[1 - axis] + offset - r
     )
     if axis == 0:
         coords = [grids[axis], sym_ax_crd]
     else:
-        coords = [sym_ax_crds, grids[axis]]
+        coords = [sym_ax_crd, grids[axis]]
     v = map_coordinates(x, coords, cval=0.0, order=1)
 
     return v
