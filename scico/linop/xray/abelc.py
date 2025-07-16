@@ -33,31 +33,39 @@ def _volume_by_axial_symmetry(x: Array, axis: int = 0, center: Optional[int] = N
     Args:
         x: 2D array that is rotated about an axis to generate a volume.
         axis: Index of axis of symmetry (must be 0 or 1).
-        center: If ``None``, defaults to the center of the image on the
-          specified axis. Otherwise identifies the center coordinate on
-          that axis.
+        center: Location of the axis of symmetry on the other axis. If
+          ``None``, defaults to center of that axis. Otherwise identifies
+          the center coordinate on that axis.
 
     Returns:
         Volume as a 3D array.
     """
     N0, N1 = x.shape
-    N2 = x.shape[axis]
+    N2 = x.shape[1 - axis]
     N0h, N1h, N2h = (N0 + 1) / 2 - 1, (N1 + 1) / 2 - 1, (N2 + 1) / 2 - 1
     half_shape = (N0h, N1h, N2h)
     if axis == 0:
-        g1d = [np.arange(-N0h, N0h + 1), np.arange(0, N1), np.arange(-N2h, N2h + 1)]
-    else:
         g1d = [np.arange(0, N0), np.arange(-N1h, N1h + 1), np.arange(-N2h, N2h + 1)]
+    else:
+        g1d = [np.arange(-N0h, N0h + 1), np.arange(0, N1), np.arange(-N2h, N2h + 1)]
 
-    if center is not None:
-        offset = center - half_shape[axis]
-        g1d[axis] += offset
+    if center is None:
+        offset = 0
+    else:
+        offset = center - half_shape[1 - axis]
+        g1d[1 - axis] += offset
 
     g0, g1, g2 = np.meshgrid(*g1d, indexing="ij")
     grids = (g0, g1, g2)
-    r = np.hypot(grids[axis], g2)
-    z = np.where(grids[1 - axis] >= 0, half_shape[axis] + r, half_shape[axis] - r)
-    v = map_coordinates(x, [z, grids[1 - axis]], cval=0.0, order=1)
+    r = np.hypot(grids[1 - axis], g2)
+    sym_ax_crd = np.where(
+        grids[1 - axis] >= offset, half_shape[1 - axis] + r, half_shape[1 - axis] - r
+    )
+    if axis == 0:
+        coords = [grids[axis], sym_ax_crd]
+    else:
+        coords = [sym_ax_crds, grids[axis]]
+    v = map_coordinates(x, coords, cval=0.0, order=1)
 
     return v
 
