@@ -122,6 +122,7 @@ def _cone_project_symmetric(
          Projected volume.
     """
     vol = _volume_by_axial_symmetry(x, axis=axis, center=center)
+    vol = vol.transpose((1 - axis, axis, 2))
     prj = project._forward_project(vol, conf)
     return prj
 
