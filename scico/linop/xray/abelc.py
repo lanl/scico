@@ -125,8 +125,9 @@ class AbelTransformCone(LinearOperator):
             det_size: Tuple of detector size values in mm.
             obj_dist: Source-object distance in mm.
             det_dist: Source-detector distance in mm.
-            sym_center: Position of the rotation axis in pixels, with 0
-              corresponding to the center of the image.
+            input_2d: Flag indicating whether the input is a 3D volume,
+              or a 2D image from which a volume is constructed by
+              rotation about axis 1 of the array.
         """
         self.config = config.Config(*output_shape, *det_size, det_dist, obj_dist)
         self.input_2d = input_2d
