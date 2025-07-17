@@ -20,7 +20,7 @@ import numpy as np
 from jax import Array, jit
 from jax.scipy.ndimage import map_coordinates
 
-from scico.typing import Shape
+from scico.typing import DType, Shape
 
 from .._linop import LinearOperator
 from ._axitom import config, project
@@ -72,7 +72,13 @@ def _volume_by_axial_symmetry(x: Array, axis: int = 0, center: Optional[int] = N
 class AxiallySymmetricVolume(LinearOperator):
     """Create a volume by axial rotation of a plane."""
 
-    def __init__(self, input_shape, input_dtype=np.float32, axis=0, center=None):
+    def __init__(
+        self,
+        input_shape: Shape,
+        input_dtype: DType = np.float32,
+        axis: int = 0,
+        center: Optional[int] = None,
+    ):
         """
         Args:
             input_shape: Shape of the input image.
@@ -95,6 +101,31 @@ class AxiallySymmetricVolume(LinearOperator):
         )
 
 
+@partial(jit, static_argnames=["conf", "axis", "center"])
+def _cone_project_symmetric(
+    x: Array, conf: config.Config, axis: int = 0, center: Optional[int] = None
+) -> Array:
+    """Cone beam Abel transform.
+
+    The volume to be projected is constructed by axial rotation of
+    :code:`x`.
+
+    Args:
+        x: Central slice through volume to be projected.
+        conf: Projection configuration object.
+        axis: Index of axis of symmetry (must be 0 or 1).
+        center: Location of the axis of symmetry on the other axis. If
+          ``None``, defaults to center of that axis. Otherwise identifies
+          the center coordinate on that axis.
+
+    Returns:
+         Projected volume.
+    """
+    vol = _volume_by_axial_symmetry(x, axis=axis, center=center)
+    prj = project._forward_project(vol, conf)
+    return prj
+
+
 class AbelTransformCone(LinearOperator):
     """Cone beam Abel transform.
 
@@ -111,7 +142,8 @@ class AbelTransformCone(LinearOperator):
         det_size: Tuple[float, float],
         obj_dist: float,
         det_dist: float,
-        sym_center: float = 0,
+        axis: int = 0,
+        center: Optional[int] = None,
     ):
         """
         Args:
@@ -122,13 +154,17 @@ class AbelTransformCone(LinearOperator):
             sym_center: Position of the rotation axis in pixels, with 0
               corresponding to the center of the image.
         """
-        self.config = config.Config(*output_shape, *det_size, det_dist, obj_dist, sym_center)
+        self.config = config.Config(*output_shape, *det_size, det_dist, obj_dist)
+        self.axis = axis
+        self.center = center
         input_shape = (self.config.detector_us.size, self.config.detector_vs.size)
         super().__init__(
             input_shape=input_shape,
             output_shape=output_shape,
             input_dtype=np.float32,
             output_dtype=np.float32,
-            eval_fn=lambda x: project._forward_project(x, self.config),
+            eval_fn=lambda x: _cone_project_symmetric(
+                x, self.config, axis=self.axis, center=self.center
+            ),
             jit=True,
         )

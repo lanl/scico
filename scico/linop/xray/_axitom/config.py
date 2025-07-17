@@ -29,7 +29,7 @@ class Config:
             n_pixels_u: Number of pixels in the u direction of the sensor.
             n_pixels_v: Number of pixels in the u direction of the sensor.
             detector_size_u: Detector size in the u direction [mm].
-            detector_size_v: Detector size in the u direction [mm].
+            detector_size_v: Detector size in the v direction [mm].
             source_to_detector_dist: Distance between source and
               detector [mm].
             source_to_object_dist: Distance between source and object
@@ -66,12 +66,6 @@ class Config:
 
         self.pixel_size_u = self.detector_size_u / self.n_pixels_u
         self.pixel_size_v = self.detector_size_v / self.n_pixels_v
-
-        self.center_of_rot_y = (
-            self.center_of_rot_u
-            * (self.source_to_object_dist / self.source_to_detector_dist)
-            * self.pixel_size_u
-        )
 
         self.object_ys = (
             np.arange(self.n_pixels_u, dtype=np.float32) - self.n_pixels_u / 2.0
