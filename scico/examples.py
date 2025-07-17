@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2024 by SCICO Developers
+# Copyright (C) 2021-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -345,31 +345,6 @@ def tile_volume_slices(x: snp.Array, sep_width: int = 10) -> snp.Array:
     return out
 
 
-def create_cone(img_shape: Shape, center: Optional[List[float]] = None) -> snp.Array:
-    """Compute a 2D map of the distance from a center pixel.
-
-    Args:
-        img_shape: Shape of the image for which the distance map is being
-            computed.
-        center: Tuple of center pixel coordinates. If ``None``, this is
-            set to the center of the image.
-
-    Returns:
-        An image containing a 2D map of the distances.
-    """
-
-    if center is None:
-        center = [(img_dim - 1) / 2 for img_dim in img_shape]
-
-    coords = [snp.arange(0, img_dim) for img_dim in img_shape]
-    coord_mesh = snp.meshgrid(*coords, sparse=True, indexing="ij")
-
-    dist_map = sum([(coord_mesh[i] - center[i]) ** 2 for i in range(len(coord_mesh))])
-    dist_map = snp.sqrt(dist_map)
-
-    return dist_map
-
-
 def gaussian(shape: Shape, sigma: Optional[np.ndarray] = None) -> np.ndarray:
     r"""Construct a multivariate Gaussian distribution function.
 
@@ -407,25 +382,53 @@ def gaussian(shape: Shape, sigma: Optional[np.ndarray] = None) -> np.ndarray:
     return const * np.exp(-xtsigmax / 2.0)
 
 
+def create_cone(shape: Shape, center: Optional[List[float]] = None) -> snp.Array:
+    """Compute a map of distances from a center pixel.
+
+    Args:
+        shape: Shape of the array for which the distance map is to be
+            computed.
+        center: Tuple of center coordinates. If ``None``, it is set to
+            the center of the array.
+
+    Returns:
+        An array containing a map of the distances.
+    """
+
+    if center is None:
+        center = [(dim - 1) / 2 for dim in shape]
+
+    coords = [snp.arange(0, dim) for dim in shape]
+    coord_mesh = snp.meshgrid(*coords, sparse=True, indexing="ij")
+
+    dist_map = sum([(coord_mesh[i] - center[i]) ** 2 for i in range(len(coord_mesh))])
+    dist_map = snp.sqrt(dist_map)
+
+    return dist_map
+
+
 def create_circular_phantom(
-    img_shape: Shape, radius_list: list, val_list: list, center: Optional[list] = None
+    shape: Shape, radius_list: list, val_list: list, center: Optional[list] = None
 ) -> snp.Array:
     """Construct a circular phantom with given radii and intensities.
 
+    This functions supports both circular (``shape`` is 2D) and spherical
+    (``shape`` is 3D) phantoms.
+
     Args:
-        img_shape: Shape of the phantom to be created.
+        shape: Shape of the phantom to be created.
         radius_list: List of radii of the rings in the phantom.
         val_list: List of intensity values of the rings in the phantom.
-        center: Tuple of center pixel coordinates. If ``None``, this is
-           set to the center of the image.
+        center: Tuple of center coordinates. If ``None``, it is set to
+           the center of the array.
 
     Returns:
-        The computed circular phantom.
+        The computed phantom.
     """
 
-    dist_map = create_cone(img_shape, center)
+    dist_map = create_cone(shape, center)
 
-    img = snp.zeros(img_shape)
+    img = snp.zeros(shape)
     for r, val in zip(radius_list, val_list):
         # In numpy: img[dist_map < r] = val
         img = img.at[dist_map < r].set(val)
