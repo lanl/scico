@@ -7,6 +7,8 @@ a sensor plane.
 
 from functools import partial
 
+import numpy as np
+
 import jax.numpy as jnp
 from jax import Array, jit
 from jax.scipy.ndimage import map_coordinates
@@ -14,8 +16,8 @@ from jax.scipy.ndimage import map_coordinates
 from .config import Config
 
 
-@partial(jit, static_argnames=["config"])
-def _forward_project(volume: Array, config: Config) -> Array:
+@partial(jit, static_argnames=["config", "input_2d"])
+def _forward_project(volume: Array, config: Config, input_2d: bool = False) -> Array:
     """Projection of a volume onto a sensor plane.
 
     Projection of a cylindrically symmetric volume onto a sensor plane
@@ -24,6 +26,9 @@ def _forward_project(volume: Array, config: Config) -> Array:
     Args:
       volume: The volume that will be projected onto the sensor.
       config: The settings object.
+      input_2d: If ``True``, the input is a 2D image from which a 3D
+        volume is constructed by rotation about the center of axis 1
+        of the image.
 
     Returns:
         The projection.
@@ -42,7 +47,13 @@ def _forward_project(volume: Array, config: Config) -> Array:
     ) / config.voxel_size_z
     pys = jnp.arange(pus.shape[1])[jnp.newaxis, :, jnp.newaxis] * jnp.ones_like(pvs)
 
-    proj2d = jnp.sum(map_coordinates(volume, [pvs, pys, pus], cval=0.0, order=1), axis=1)
+    if input_2d:
+        ax0c, ax1c, ax2c = ((np.array(pvs.shape) + 1) / 2 - 1).tolist()
+        r = jnp.hypot(pvs - ax0c, pus - ax2c)
+        ax0 = jnp.where(pvs >= ax0c, ax0c + r, ax0c - r)
+        proj2d = jnp.sum(map_coordinates(volume, [ax0, pys], cval=0.0, order=1), axis=1)
+    else:
+        proj2d = jnp.sum(map_coordinates(volume, [pvs, pys, pus], cval=0.0, order=1), axis=1)
 
     dist = (
         jnp.sqrt(config.source_to_detector_dist**2.0 + uu**2.0 + vv**2.0)
