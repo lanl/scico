@@ -39,13 +39,13 @@ def _forward_project(volume: Array, config: Config, input_2d: bool = False) -> A
 
     ratios = (config.object_ys + config.source_to_object_dist) / config.source_to_detector_dist
 
-    pus = (
-        uu[:, jnp.newaxis, :] * ratios[jnp.newaxis, :, jnp.newaxis] - config.object_xs[0]
-    ) / config.voxel_size_x
     pvs = (
         vv[:, jnp.newaxis, :] * ratios[jnp.newaxis, :, jnp.newaxis] - config.object_zs[0]
     ) / config.voxel_size_z
-    pys = jnp.arange(pus.shape[1])[jnp.newaxis, :, jnp.newaxis] * jnp.ones_like(pvs)
+    pys = jnp.arange(pvs.shape[1])[jnp.newaxis, :, jnp.newaxis] * jnp.ones_like(pvs)
+    pus = (
+        uu[:, jnp.newaxis, :] * ratios[jnp.newaxis, :, jnp.newaxis] - config.object_xs[0]
+    ) / config.voxel_size_x
 
     if input_2d:
         ax0c, ax1c, ax2c = ((np.array(pvs.shape) + 1) / 2 - 1).tolist()
