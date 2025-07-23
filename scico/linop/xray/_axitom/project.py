@@ -49,9 +49,9 @@ def _forward_project(volume: Array, config: Config, input_2d: bool = False) -> A
 
     if input_2d:
         ax0c, ax1c, ax2c = ((np.array(pvs.shape) + 1) / 2 - 1).tolist()
-        r = jnp.hypot(pvs - ax0c, pus - ax2c)
-        ax0 = jnp.where(pvs >= ax0c, ax0c + r, ax0c - r)
-        proj2d = jnp.sum(map_coordinates(volume, [ax0, pys], cval=0.0, order=1), axis=1)
+        r = jnp.hypot(pus - ax2c, pys - ax1c)
+        ax1 = jnp.where(pys >= ax1c, ax1c + r, ax1c - r)
+        proj2d = jnp.sum(map_coordinates(volume, [pvs, ax1], cval=0.0, order=1), axis=1)
     else:
         proj2d = jnp.sum(map_coordinates(volume, [pvs, pys, pus], cval=0.0, order=1), axis=1)
 
