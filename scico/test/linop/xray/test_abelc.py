@@ -22,12 +22,16 @@ class TestAxialSymm:
         v0 = _volume_by_axial_symmetry(self.x2d, axis=axis)
         assert metric.rel_res(self.x3d, v0) < 5e-2
 
-        A = AxiallySymmetricVolume((self.N, self.N), axis=axis)
-        vl = A(self.x2d)
-        assert metric.rel_res(v0, vl) < 1e-7
-
         offset = -3
         x2dr = np.roll(self.x2d, offset, axis=1 - axis)
         Nh = (self.N + 1) / 2 - 1
         v1 = _volume_by_axial_symmetry(x2dr, axis=axis, center=Nh + offset)
         assert metric.rel_res(v0, v1) < 1e-5
+
+        zrange = np.arange(-Nh, 0)
+        v2 = _volume_by_axial_symmetry(self.x2d, axis=axis, zrange=zrange)
+        assert metric.rel_res(self.x3d[..., 0 : self.N // 2], v2) < 5e-2
+
+        A = AxiallySymmetricVolume((self.N, self.N), axis=axis)
+        vl = A(self.x2d)
+        assert metric.rel_res(v0, vl) < 1e-7
