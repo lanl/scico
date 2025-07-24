@@ -17,6 +17,7 @@ from typing import Optional, Tuple
 
 import numpy as np
 
+import jax.numpy as jnp
 from jax import Array, jit
 from jax.scipy.ndimage import map_coordinates
 
@@ -45,19 +46,19 @@ def _volume_by_axial_symmetry(x: Array, axis: int = 0, center: Optional[int] = N
     N0h, N1h, N2h = (N0 + 1) / 2 - 1, (N1 + 1) / 2 - 1, (N2 + 1) / 2 - 1
     half_shape = (N0h, N1h, N2h)
     if axis == 0:
-        g1d = [np.arange(0, N0), np.arange(-N1h, N1h + 1), np.arange(-N2h, N2h + 1)]
+        g1d = [np.arange(0, N0), jnp.arange(-N1h, N1h + 1), jnp.arange(-N2h, N2h + 1)]
     else:
-        g1d = [np.arange(-N0h, N0h + 1), np.arange(0, N1), np.arange(-N2h, N2h + 1)]
+        g1d = [np.arange(-N0h, N0h + 1), jnp.arange(0, N1), jnp.arange(-N2h, N2h + 1)]
 
     if center is None:
         offset = 0
     else:
         offset = center - half_shape[1 - axis]
 
-    g0, g1, g2 = np.meshgrid(*g1d, indexing="ij")
+    g0, g1, g2 = jnp.meshgrid(*g1d, indexing="ij")
     grids = (g0, g1, g2)
-    r = np.hypot(grids[1 - axis], g2)
-    sym_ax_crd = np.where(
+    r = jnp.hypot(grids[1 - axis], g2)
+    sym_ax_crd = jnp.where(
         grids[1 - axis] >= 0, half_shape[1 - axis] + offset + r, half_shape[1 - axis] + offset - r
     )
     if axis == 0:
