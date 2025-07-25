@@ -41,6 +41,7 @@ from scico.flax_nnx.diffusion.sampling import Euler_Maruyama_sampler as sampler
 from scico.flax_nnx.diffusion.state import create_train_state
 from scico.flax_nnx.diffusion.steps import eval_step_diffusion, train_step_diffusion
 from scico.flax.diffusion.diagnostics import stats_obj
+from scico.flax_nnx.utils import save_model
 
 """
 Prepare parallel processing. Set an arbitrary processor count (only
@@ -157,6 +158,12 @@ num_steps = 300
 sample, sample_path = sampler(key, model, stddev_prior, xshape, num_steps, num_samples)
 print("sample shape: ", sample.shape)
 
+"""
+Save model.
+"""
+save_model(model, workdir)
+# to load:
+# model = load_model(workdir, model)
 
 """
 Evaluate trained model in terms of reconstruction time
