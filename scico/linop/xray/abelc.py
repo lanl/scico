@@ -121,33 +121,35 @@ class AbelTransformCone(LinearOperator):
 
     def __init__(
         self,
-        output_shape: Shape,
+        input_shape: Shape,
         det_size: Tuple[float, float],
         obj_dist: float,
         det_dist: float,
         num_blocks: int = 1,
-        input_2d: bool = True,
     ):
         """
         Args:
-            output_shape: Shape of the output array (projection).
+            input_shape: Shape of the input array. If 2D, it is extended
+              to 3D (onto axis 1) by cylindrical symmetry.
             det_size: Tuple of detector size values in mm.
             obj_dist: Source-object distance in mm.
             det_dist: Source-detector distance in mm.
-            input_2d: Flag indicating whether the input is a 3D volume,
-              or a 2D image from which a volume is constructed by
-              rotation about axis 1 of the array.
+            num_blocks: Number of blocks into which the volume should be
+              divided (for serial processing, to limit memory usage) in
+              the imaging direction.
         """
+        if len(input_shape) == 2:
+            self.input_2d = True
+            output_shape = input_shape
+        else:
+            self.input_2d = False
+            output_shape = (input_shape[0], input_shape[2])
         self.config = config.Config(*output_shape, *det_size, det_dist, obj_dist)
         self.num_blocks = num_blocks
-        self.input_2d = input_2d
-        input_shape = (self.config.detector_us.size, self.config.detector_vs.size)
-
         eval_fn = lambda x: project._forward_project(
             x, self.config, num_blocks=self.num_blocks, input_2d=self.input_2d
         )
         adj_fn = vjp(eval_fn, jnp.zeros(output_shape))[1]
-
         super().__init__(
             input_shape=input_shape,
             output_shape=output_shape,
