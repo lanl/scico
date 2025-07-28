@@ -18,7 +18,7 @@ from typing import Optional, Tuple
 import numpy as np
 
 import jax.numpy as jnp
-from jax import Array, jit
+from jax import Array, jit, vjp
 from jax.scipy.ndimage import map_coordinates
 
 from scico.typing import DType, Shape
@@ -142,13 +142,18 @@ class AbelTransformCone(LinearOperator):
         self.num_blocks = num_blocks
         self.input_2d = input_2d
         input_shape = (self.config.detector_us.size, self.config.detector_vs.size)
+
+        eval_fn = lambda x: project._forward_project(
+            x, self.config, num_blocks=self.num_blocks, input_2d=self.input_2d
+        )
+        adj_fn = vjp(eval_fn, jnp.zeros(output_shape))[1]
+
         super().__init__(
             input_shape=input_shape,
             output_shape=output_shape,
             input_dtype=np.float32,
             output_dtype=np.float32,
-            eval_fn=lambda x: project._forward_project(
-                x, self.config, num_blocks=self.num_blocks, input_2d=self.input_2d
-            ),
+            eval_fn=eval_fn,
+            adj_fn=lambda x: adj_fn(x)[0],
             jit=True,
         )
