@@ -125,6 +125,7 @@ class AbelTransformCone(LinearOperator):
         det_size: Tuple[float, float],
         obj_dist: float,
         det_dist: float,
+        num_blocks: int = 1,
         input_2d: bool = True,
     ):
         """
@@ -138,6 +139,7 @@ class AbelTransformCone(LinearOperator):
               rotation about axis 1 of the array.
         """
         self.config = config.Config(*output_shape, *det_size, det_dist, obj_dist)
+        self.num_blocks = num_blocks
         self.input_2d = input_2d
         input_shape = (self.config.detector_us.size, self.config.detector_vs.size)
         super().__init__(
@@ -145,6 +147,8 @@ class AbelTransformCone(LinearOperator):
             output_shape=output_shape,
             input_dtype=np.float32,
             output_dtype=np.float32,
-            eval_fn=lambda x: project._forward_project(x, self.config, input_2d=self.input_2d),
+            eval_fn=lambda x: project._forward_project(
+                x, self.config, num_blocks=self.num_blocks, input_2d=self.input_2d
+            ),
             jit=True,
         )
