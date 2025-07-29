@@ -12,6 +12,9 @@ This modules is a wrapper for :mod:`jax.scipy.special` where some
 functions have been extended to automatically map over block array
 blocks as described in :ref:`numpy_functions_blockarray`.
 """
+
+from typing import Tuple
+
 import jax.scipy.special as js
 
 from scico.numpy import _wrappers
@@ -23,7 +26,7 @@ _wrappers.add_attributes(
 )
 
 # wrap select functions
-functions = (
+functions: Tuple[str, ...] = (
     "betainc",
     "entr",
     "erf",
