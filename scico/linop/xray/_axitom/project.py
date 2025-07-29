@@ -114,7 +114,7 @@ def _forward_project(
         volume, uu, vv, irblock, config, input_2d=input_2d
     )
 
-    proj = jnp.sum(jax.lax.map(func, irblocks), axis=0)
+    proj = jnp.sum(jax.lax.map(jax.checkpoint(func), irblocks), axis=0)
 
     if remainder:
         irblock = jnp.stack((jnp.arange(block_size * num_blocks, N), ratios[-remainder:]))
