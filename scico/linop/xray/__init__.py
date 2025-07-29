@@ -66,7 +66,7 @@ CUDA, and can only be run on GPU devices.
 
 import sys
 
-from ._util import rotate_volume
+from ._util import center_image, image_centroid, rotate_volume
 from ._xray import XRayTransform2D, XRayTransform3D
 
 __all__ = ["XRayTransform2D", "XRayTransform3D", "rotate_volume"]
