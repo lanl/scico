@@ -44,12 +44,15 @@ functions = (
     "ndtr",
     "ndtri",
     "polygamma",
-    "sph_harm_y",
     "xlog1py",
     "xlogy",
     "zeta",
     "digamma",
 )
+if hasattr(js, "sph_harm_y"):  # not available in all supported jax versions
+    functions += ("sph_harm_y",)
+else:
+    functions += ("sph_harm",)
 _wrappers.wrap_recursively(vars(), functions, _wrappers.map_func_over_blocks)
 
 # clean up
