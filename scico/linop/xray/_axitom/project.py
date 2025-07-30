@@ -100,7 +100,7 @@ def forward_project(
     Returns:
         The projection.
     """
-    uu, vv = jnp.meshgrid(config.detector_us, config.detector_vs)
+    uu, vv = jnp.meshgrid(config.detector_vs, config.detector_us)
     ratios = (config.object_ys + config.source_to_object_dist) / config.source_to_detector_dist
     N = ratios.size
     block_size = N // num_blocks
