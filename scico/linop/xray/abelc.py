@@ -150,7 +150,7 @@ class AbelTransformCone(LinearOperator):
             x, self.config, num_blocks=self.num_blocks, input_2d=self.input_2d
         )
         # use vjp rather than linear_transpose due to jax-ml/jax#30552
-        adj_fn = vjp(eval_fn, jnp.zeros(output_shape))[1]
+        adj_fn = vjp(eval_fn, jnp.zeros(input_shape))[1]
         super().__init__(
             input_shape=input_shape,
             output_shape=output_shape,
