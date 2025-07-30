@@ -4,7 +4,11 @@ import pytest
 
 from scico import metric
 from scico.examples import create_circular_phantom
-from scico.linop.xray.abelc import AxiallySymmetricVolume, _volume_by_axial_symmetry
+from scico.linop.xray.abelc import (
+    AbelTransformCone,
+    AxiallySymmetricVolume,
+    _volume_by_axial_symmetry,
+)
 from scipy.ndimage import gaussian_filter
 
 
@@ -35,3 +39,27 @@ class TestAxialSymm:
         A = AxiallySymmetricVolume((self.N, self.N), axis=axis)
         vl = A(self.x2d)
         assert metric.rel_res(v0, vl) < 1e-7
+
+
+class TestAbelCone:
+    def setup_method(self, method):
+        N = 64
+        self.N = N
+        self.x2d = create_circular_phantom((N, N), [0.4 * N, 0.2 * N, 0.1 * N], [1, 0, 0.5])
+        self.x3d = create_circular_phantom((N, N, N), [0.4 * N, 0.2 * N, 0.1 * N], [1, 0, 0.5])
+        self.x2d = gaussian_filter(self.x2d, 1.0)
+        self.x3d = gaussian_filter(self.x3d, 1.0)
+
+    @pytest.mark.parametrize("num_blocks", [1, 2, 3])
+    def test_2d(self, num_blocks):
+        A = AbelTransformCone(self.x2d.shape, (1.0, 1.0), 1e6, 1e6 + 1, num_blocks=num_blocks)
+        ya = A(self.x2d) / A.config.voxel_size_x
+        ys = np.sum(self.x3d, axis=1)
+        assert metric.rel_res(ys, ya) < 5e-2
+
+    @pytest.mark.parametrize("num_blocks", [1, 2, 3])
+    def test_3d(self, num_blocks):
+        A = AbelTransformCone(self.x3d.shape, (1.0, 1.0), 1e6, 1e6 + 1, num_blocks=num_blocks)
+        ya = A(self.x3d) / A.config.voxel_size_x
+        ys = np.sum(self.x3d, axis=1)
+        assert metric.rel_res(ys, ya) < 1e-6
