@@ -22,7 +22,6 @@ class Config:
         detector_size_v: float,
         source_to_detector_dist: float,
         source_to_object_dist: float,
-        center_of_rot: float = 0,
         **kwargs,
     ):
         """
@@ -37,8 +36,6 @@ class Config:
               detector [mm].
             source_to_object_dist: Distance between source and object
               [mm].
-            center_of_rot: Position of the rotation axis in pixels.
-              0 corresponds to the center of the image.
         """
 
         self.n_pixels_u = n_pixels_u
@@ -48,8 +45,6 @@ class Config:
         self.detector_size_v = detector_size_v
         self.source_to_detector_dist = source_to_detector_dist
         self.source_to_object_dist = source_to_object_dist
-
-        self.center_of_rot_u = center_of_rot
 
         # All values below are calculated
 
