@@ -54,8 +54,9 @@ class TestAbelCone:
     def test_2d(self, num_blocks):
         A = AbelTransformCone(self.x2d.shape, (1.0, 1.0), 1e6, 1e6 + 1, num_blocks=num_blocks)
         ya = A(self.x2d) / A.config.voxel_size_x
-        ys = np.sum(self.x3d, axis=1)
-        assert metric.rel_res(ys, ya) < 5e-2
+        x2ds = _volume_by_axial_symmetry(self.x2d, axis=0)
+        ys = np.sum(x2ds, axis=1)
+        assert metric.rel_res(ys, ya) < 1e-6
 
     @pytest.mark.parametrize("num_blocks", [1, 2, 3])
     def test_3d(self, num_blocks):
