@@ -44,7 +44,6 @@ def _partial_forward_project(
 
     Returns:
         The projection.
-
     """
     iblock = irblock[0]
     rblock = irblock[1]
@@ -97,12 +96,9 @@ def _forward_project(
 
     Returns:
         The projection.
-
     """
     uu, vv = jnp.meshgrid(config.detector_us, config.detector_vs)
-
     ratios = (config.object_ys + config.source_to_object_dist) / config.source_to_detector_dist
-
     N = ratios.size
     block_size = N // num_blocks
     remainder = N % num_blocks
@@ -113,11 +109,10 @@ def _forward_project(
     func = lambda irblock: _partial_forward_project(
         volume, uu, vv, irblock, config, input_2d=input_2d
     )
-
     proj = jnp.sum(jax.lax.map(jax.checkpoint(func), irblocks), axis=0)
 
     if remainder:
         irblock = jnp.stack((jnp.arange(block_size * num_blocks, N), ratios[-remainder:]))
-        proj += func(irblock)
+        proj += jax.checkpoint(func)(irblock)
 
     return proj
