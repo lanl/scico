@@ -1,4 +1,7 @@
 """
+This file is a modified version of "config.py" from the
+[AXITOM](https://github.com/PolymerGuy/AXITOM) package.
+
 Config object and factory.
 
 This module contains the Config class which has all the settings that are

@@ -89,8 +89,8 @@ class AxiallySymmetricVolume(LinearOperator):
     ):
         """
         Args:
-            input_shape: Shape of the input image.
-            input_dtype: Dtype of the input image.
+            input_shape: Input image shape.
+            input_dtype: Input image dtype.
             axis: Index of axis of symmetry (must be 0 or 1).
             center: If ``None``, defaults to the center of the image on
               the specified axis. Otherwise identifies the center
@@ -112,7 +112,7 @@ class AxiallySymmetricVolume(LinearOperator):
 class AbelTransformCone(LinearOperator):
     """Cone beam Abel transform.
 
-    Compute cone beam Abel transform of a cylindricaly symmetric volume
+    Compute cone beam Abel transform of a cylindrically symmetric volume
     represented by a 2D central slice, which is rotated about axis 1 to
     generate a 3D volume for projection. The implementation is based on
     code modified from the `axitom <https://github.com/PolymerGuy/AXITOM>`_
@@ -146,9 +146,10 @@ class AbelTransformCone(LinearOperator):
             output_shape = (input_shape[0], input_shape[2])
         self.config = config.Config(*output_shape, *det_size, det_dist, obj_dist)
         self.num_blocks = num_blocks
-        eval_fn = lambda x: project._forward_project(
+        eval_fn = lambda x: project.forward_project(
             x, self.config, num_blocks=self.num_blocks, input_2d=self.input_2d
         )
+        # use vjp rather than linear_transpose due to jax-ml/jax#30552
         adj_fn = vjp(eval_fn, jnp.zeros(output_shape))[1]
         super().__init__(
             input_shape=input_shape,

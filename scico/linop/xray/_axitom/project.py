@@ -1,4 +1,7 @@
 """
+This file is a modified version of "projection.py" from the
+[AXITOM](https://github.com/PolymerGuy/AXITOM) package.
+
 Forward projection routines.
 
 This module contains the functions used to forward project a volume onto
@@ -76,7 +79,7 @@ def _partial_forward_project(
 
 
 @partial(jit, static_argnames=["config", "num_blocks", "input_2d"])
-def _forward_project(
+def forward_project(
     volume: Array, config: Config, num_blocks: int = 8, input_2d: bool = False
 ) -> Array:
     """Projection of a volume onto a sensor plane.
