@@ -140,10 +140,10 @@ class AbelTransformCone(LinearOperator):
         """
         if len(input_shape) == 2:
             self.input_2d = True
-            output_shape = input_shape
+            output_shape = input_shape[::-1]
         else:
             self.input_2d = False
-            output_shape = (input_shape[0], input_shape[2])
+            output_shape = (input_shape[2], input_shape[0])
         self.config = config.Config(*output_shape, *det_size, det_dist, obj_dist)
         self.num_blocks = num_blocks
         eval_fn = lambda x: project.forward_project(
