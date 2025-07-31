@@ -81,3 +81,17 @@ class TestAbelCone:
         ya = A(x3dc)
         ys = np.sum(x3dc, axis=1)
         assert metric.rel_res(ys, ya) < 1e-6
+
+    @pytest.mark.parametrize("num_blocks", [1, 2, 3])
+    def test_2d3d_unequal(self, num_blocks):
+        A2d = AbelTransformCone(self.x2d.shape, 5e1, 6e1, num_blocks=num_blocks)
+        A3d = AbelTransformCone(self.x3d.shape, 5e1, 6e1, num_blocks=num_blocks)
+        y2d = A2d(self.x2d)
+        y3d = A3d(self.x3d)
+        assert metric.rel_res(y3d, y2d) < 2e-2
+
+    def test_fdk(self):
+        A = AbelTransformCone(self.x3d.shape, 1e2, 2e2, num_blocks=1)
+        y = A(self.x3d)
+        z = A.fdk(y)
+        assert metric.rel_res(self.x2d, z) < 0.2
