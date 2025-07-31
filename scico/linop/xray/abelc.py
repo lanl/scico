@@ -20,11 +20,12 @@ import numpy as np
 import jax.numpy as jnp
 from jax import Array, jit, vjp
 from jax.scipy.ndimage import map_coordinates
+from jax.typing import ArrayLike
 
 from scico.typing import DType, Shape
 
 from .._linop import LinearOperator
-from ._axitom import config, project
+from ._axitom import backprojection, config, projection
 
 
 @partial(jit, static_argnames=["axis", "center"])
@@ -148,7 +149,7 @@ class AbelTransformCone(LinearOperator):
             pixel_size = (1.0, 1.0)
         self.config = config.Config(*output_shape, *pixel_size, det_dist, obj_dist)
         self.num_blocks = num_blocks
-        eval_fn = lambda x: project.forward_project(
+        eval_fn = lambda x: projection.forward_project(
             x, self.config, num_blocks=self.num_blocks, input_2d=self.input_2d
         )
         # use vjp rather than linear_transpose due to jax-ml/jax#30552
@@ -162,3 +163,22 @@ class AbelTransformCone(LinearOperator):
             adj_fn=lambda x: adj_fn(x)[0],
             jit=True,
         )
+
+    def fdk(self, y: ArrayLike, num_angles: int = 360):
+        """Reconstruct central slice from projection.
+
+        Reconstruct the central slice of the cylindrically symmetric
+        volume from a projection. The reconstruction makes use of the
+        Feldkamp David Kress (FDK) algorithm implemented in the
+        `axitom <https://github.com/PolymerGuy/AXITOM>`_ package.
+
+        Args:
+          y: The projection to be reconstructed.
+          num_angles: Number of angles to be averaged in the
+            reconstruction.
+
+        Returns:
+          Reconstruction of the central slice of the volume.
+        """
+        angles = jnp.linspace(0, 360, num_angles, endpoint=False)
+        return backprojection.fdk(y, self.config, angles)
