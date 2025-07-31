@@ -15,7 +15,7 @@ Abel inversion by solving the problem
   \|_2^2 + \lambda \| C \mathbf{x} \|_1 \;,$$
 
 where $A$ is the Abel projector (with an implementation based on a
-projector from (axitom)[https://github.com/PolymerGuy/AXITOM],
+projector from the AXITOM package :cite:`olufsen-2019-axitom`),
 $\mathbf{y}$ is the measured data, $C$ is a 2D finite difference
 operator, and $\mathbf{x}$ is the solution.
 """
