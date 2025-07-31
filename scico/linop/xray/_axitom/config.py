@@ -18,8 +18,8 @@ class Config:
         self,
         n_pixels_u: int,
         n_pixels_v: int,
-        detector_size_u: float,
-        detector_size_v: float,
+        pixel_size_u: float,
+        pixel_size_v: float,
         source_to_detector_dist: float,
         source_to_object_dist: float,
         **kwargs,
@@ -30,8 +30,8 @@ class Config:
         Args:
             n_pixels_u: Number of pixels in the u direction of the sensor.
             n_pixels_v: Number of pixels in the u direction of the sensor.
-            detector_size_u: Detector size in the u direction [mm].
-            detector_size_v: Detector size in the v direction [mm].
+            pixel_size_u: Pixel size in the u direction [mm].
+            pixel_size_v: Pixel size in the v direction [mm].
             source_to_detector_dist: Distance between source and
               detector [mm].
             source_to_object_dist: Distance between source and object
@@ -41,8 +41,12 @@ class Config:
         self.n_pixels_u = n_pixels_u
         self.n_pixels_v = n_pixels_v
 
-        self.detector_size_u = detector_size_u
-        self.detector_size_v = detector_size_v
+        self.pixel_size_u = pixel_size_u
+        self.pixel_size_v = pixel_size_v
+
+        self.detector_size_u = self.pixel_size_u * self.n_pixels_u
+        self.detector_size_v = self.pixel_size_v * self.n_pixels_v
+
         self.source_to_detector_dist = source_to_detector_dist
         self.source_to_object_dist = source_to_object_dist
 
@@ -61,9 +65,6 @@ class Config:
         self.voxel_size_x = self.object_size_x / self.n_pixels_u
         self.voxel_size_y = self.object_size_y / self.n_pixels_u
         self.voxel_size_z = self.object_size_z / self.n_pixels_v
-
-        self.pixel_size_u = self.detector_size_u / self.n_pixels_u
-        self.pixel_size_v = self.detector_size_v / self.n_pixels_v
 
         self.object_ys = (
             np.arange(self.n_pixels_u, dtype=np.float32) - self.n_pixels_u / 2.0

@@ -122,18 +122,18 @@ class AbelTransformCone(LinearOperator):
     def __init__(
         self,
         input_shape: Shape,
-        det_size: Tuple[float, float],
         obj_dist: float,
         det_dist: float,
+        pixel_size: Optional[Tuple[float, float]] = None,
         num_blocks: int = 1,
     ):
         """
         Args:
             input_shape: Shape of the input array. If 2D, it is extended
               to 3D (onto axis 1) by cylindrical symmetry.
-            det_size: Tuple of detector size values in mm.
-            obj_dist: Source-object distance in mm.
-            det_dist: Source-detector distance in mm.
+            obj_dist: Source-object distance in arbitary length units (ALU).
+            det_dist: Source-detector distance in ALU.
+            pixel_size: Tuple of pixel size values in ALU.
             num_blocks: Number of blocks into which the volume should be
               divided (for serial processing, to limit memory usage) in
               the imaging direction.
@@ -144,7 +144,9 @@ class AbelTransformCone(LinearOperator):
         else:
             self.input_2d = False
             output_shape = (input_shape[2], input_shape[0])
-        self.config = config.Config(*output_shape, *det_size, det_dist, obj_dist)
+        if pixel_size is None:
+            pixel_size = (1.0, 1.0)
+        self.config = config.Config(*output_shape, *pixel_size, det_dist, obj_dist)
         self.num_blocks = num_blocks
         eval_fn = lambda x: project.forward_project(
             x, self.config, num_blocks=self.num_blocks, input_2d=self.input_2d
