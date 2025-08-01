@@ -2,7 +2,23 @@ import numpy as np
 
 from jax.scipy.spatial.transform import Rotation
 
-from scico.linop.xray import rotate_volume
+from scico.linop.xray import center_image, image_centroid, rotate_volume
+
+
+def test_image_centroid():
+    v = np.zeros((4, 5))
+    v[1:-1, 1:-1] = 1
+    assert image_centroid(v) == (1.5, 2.0)
+    image_centroid(v, center_offset=True) == (0.0, 0.0)
+
+
+def test_center_image():
+    u = np.zeros((4, 5))
+    u[0:-2, 0:-2] = 1
+    v = center_image(u)
+    np.testing.assert_allclose(image_centroid(v, center_offset=True), (0.0, 0.0), atol=1e-7)
+    v = center_image(u, axes=(0,))
+    np.testing.assert_allclose(image_centroid(v, center_offset=True), (0.0, -1.0), atol=1e-7)
 
 
 def test_rotate_volume():

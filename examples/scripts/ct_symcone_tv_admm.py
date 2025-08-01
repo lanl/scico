@@ -5,19 +5,20 @@
 # with the package.
 
 r"""
-TV-Regularized Abel Inversion
-=============================
+TV-Regularized Cone Beam CT for Symmetric Objects
+=================================================
 
-This example demonstrates a total variation (TV) regularized Abel
-inversion by solving the problem
+This example demonstrates a total variation (TV) regularized
+reconstruction for cone beam CT of a cylindrically symmetric object,
+by solving the problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
   \|_2^2 + \lambda \| C \mathbf{x} \|_1 \;,$$
 
-where $A$ is the Abel projector (with an implementation based on a
-projector from PyAbel :cite:`pyabel-2022`), $\mathbf{y}$ is the measured
-data, $C$ is a 2D finite difference operator, and $\mathbf{x}$ is the
-solution.
+where $A$ is a single-view X-ray transform (with an implementation based
+on a projector from the AXITOM package :cite:`olufsen-2019-axitom`),
+$\mathbf{y}$ is the measured data, $C$ is a 2D finite difference
+operator, and $\mathbf{x}$ is the solution.
 """
 
 
@@ -26,7 +27,7 @@ import numpy as np
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot
 from scico.examples import create_circular_phantom
-from scico.linop.xray.abel import AbelTransform
+from scico.linop.xray.symcone import SymConeXRayTransform
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
@@ -40,16 +41,16 @@ x_gt = create_circular_phantom((N, N), [0.4 * N, 0.2 * N, 0.1 * N], [1, 0, 0.5])
 """
 Set up the forward operator and create a test measurement.
 """
-A = AbelTransform(x_gt.shape)
+A = SymConeXRayTransform(x_gt.shape, 5e2 * N, 6e2 * N)
 y = A @ x_gt
 np.random.seed(12345)
 y = y + np.random.normal(size=y.shape).astype(np.float32)
 
 
 """
-Compute inverse Abel transform solution.
+Compute FDK reconstruction.
 """
-x_inv = A.inverse(y)
+x_inv = A.fdk(y)
 
 
 """
@@ -100,7 +101,7 @@ plot.imview(x_gt, title="Ground Truth", cmap=plot.cm.Blues, fig=fig, ax=ax[0, 0]
 plot.imview(y, title="Measurement", cmap=plot.cm.Blues, fig=fig, ax=ax[0, 1])
 plot.imview(
     x_inv,
-    title="Inverse Abel: %.2f (dB)" % metric.psnr(x_gt, x_inv),
+    title="FDK: %.2f (dB)" % metric.psnr(x_gt, x_inv),
     cmap=plot.cm.Blues,
     fig=fig,
     ax=ax[1, 0],
