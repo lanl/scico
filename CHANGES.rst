@@ -14,7 +14,7 @@ Version 0.0.7   (unreleased)
 • New classes for creating a volume from an image by symmetry, and
   for cone beam X-ray transform of a cylindrically symmetric object
   in module ``linop.xray.symcone``.
-• Moved ``linop.abel`` module to ``linop.xray.able``.
+• Moved ``linop.abel`` module to ``linop.xray.abel``.
 • Support ``jaxlib`` and ``jax`` versions 0.4.13 to 0.7.0.
 • Support ``flax`` versions 0.8.0 to 0.10.7.
 
