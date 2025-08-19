@@ -13,7 +13,7 @@ Computed Tomography
       TV-Regularized Abel Inversion
    `ct_abel_tv_admm_tune.py <ct_abel_tv_admm_tune.py>`_
       Parameter Tuning for TV-Regularized Abel Inversion
-   `ct_symcone_tv_admm.py <ct_symcone_tv_admm.py>`_
+   `ct_symcone_tv_padmm.py <ct_symcone_tv_padmm.py>`_
       TV-Regularized Cone Beam CT for Symmetric Objects
    `ct_astra_noreg_pcg.py <ct_astra_noreg_pcg.py>`_
       CT Reconstruction with CG and PCG
@@ -170,7 +170,7 @@ Total Variation
       TV-Regularized Abel Inversion
    `ct_abel_tv_admm_tune.py <ct_abel_tv_admm_tune.py>`_
       Parameter Tuning for TV-Regularized Abel Inversion
-   `ct_symcone_tv_admm.py <ct_symcone_tv_admm.py>`_
+   `ct_symcone_tv_padmm.py <ct_symcone_tv_padmm.py>`_
       TV-Regularized Cone Beam CT for Symmetric Objects
    `ct_tv_admm.py <ct_tv_admm.py>`_
       TV-Regularized Sparse-View CT Reconstruction (Integrated Projector)
@@ -277,7 +277,7 @@ ADMM
       TV-Regularized Abel Inversion
    `ct_abel_tv_admm_tune.py <ct_abel_tv_admm_tune.py>`_
       Parameter Tuning for TV-Regularized Abel Inversion
-   `ct_symcone_tv_admm.py <ct_symcone_tv_admm.py>`_
+   `ct_symcone_tv_padmm.py <ct_symcone_tv_padmm.py>`_
       TV-Regularized Cone Beam CT for Symmetric Objects
    `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
       TV-Regularized Sparse-View CT Reconstruction (ASTRA Projector)
