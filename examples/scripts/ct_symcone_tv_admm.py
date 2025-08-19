@@ -41,7 +41,7 @@ x_gt = create_circular_phantom((N, N), [0.4 * N, 0.2 * N, 0.1 * N], [1, 0, 0.5])
 """
 Set up the forward operator and create a test measurement.
 """
-A = SymConeXRayTransform(x_gt.shape, 5e2 * N, 6e2 * N)
+A = SymConeXRayTransform(x_gt.shape, 5e2 * N, 6e2 * N, num_blocks=4)
 y = A @ x_gt
 np.random.seed(12345)
 y = y + np.random.normal(size=y.shape).astype(np.float32)
@@ -58,7 +58,7 @@ Set up the problem to be solved. Anisotropic TV, which gives slightly
 better performance than isotropic TV for this problem, is used here.
 """
 f = loss.SquaredL2Loss(y=y, A=A)
-λ = 2.35e1  # ℓ1 norm regularization parameter
+λ = 2e0  # ℓ1 norm regularization parameter
 g = λ * functional.L1Norm()  # Note the use of anisotropic TV
 C = linop.FiniteDifference(input_shape=x_gt.shape)
 
@@ -66,7 +66,7 @@ C = linop.FiniteDifference(input_shape=x_gt.shape)
 """
 Set up ADMM solver object.
 """
-ρ = 1.03e2  # ADMM penalty parameter
+ρ = 1e2  # ADMM penalty parameter
 maxiter = 100  # number of ADMM iterations
 cg_tol = 1e-4  # CG relative tolerance
 cg_maxiter = 25  # maximum CG iterations per ADMM iteration
