@@ -117,8 +117,8 @@ class SymConeXRayTransform(LinearOperator):
 
     Cone beam X-ray transform of a cylindrically symmetric volume, which
     may be represented by a 2D central slice, which is rotated about
-    axis 1 to generate a 3D volume for projection. The implementation is
-    based on code modified from the AXITOM package
+    the specified axis to generate a 3D volume for projection.
+    The implementation is based on code modified from the AXITOM package
     :cite:`olufsen-2019-axitom`..
     """
 
@@ -127,15 +127,17 @@ class SymConeXRayTransform(LinearOperator):
         input_shape: Shape,
         obj_dist: float,
         det_dist: float,
+        axis: int = 0,
         pixel_size: Optional[Tuple[float, float]] = None,
         num_blocks: int = 1,
     ):
         """
         Args:
-            input_shape: Shape of the input array. If 2D, it is extended
-              to 3D (onto axis 1) by cylindrical symmetry.
+            input_shape: Shape of the input array. If 2D, the input is
+              extended to 3D (onto a new axis 1) by cylindrical symmetry.
             obj_dist: Source-object distance in arbitary length units (ALU).
             det_dist: Source-detector distance in ALU.
+            axis: Index of axis of symmetry (must be 0 or 1).
             pixel_size: Tuple of pixel size values in ALU.
             num_blocks: Number of blocks into which the volume should be
               divided (for serial processing, to limit memory usage) in
@@ -149,11 +151,17 @@ class SymConeXRayTransform(LinearOperator):
             output_shape = (input_shape[2], input_shape[0])
         if pixel_size is None:
             pixel_size = (1.0, 1.0)
+        self.axis = axis
         self.config = config.Config(*output_shape, *pixel_size, det_dist, obj_dist)
         self.num_blocks = num_blocks
-        eval_fn = lambda x: projection.forward_project(
-            x, self.config, num_blocks=self.num_blocks, input_2d=self.input_2d
-        )
+        if len(input_shape) == 2 and axis == 1:
+            eval_fn = lambda x: projection.forward_project(
+                x.T, self.config, num_blocks=self.num_blocks, input_2d=self.input_2d
+            ).T
+        else:
+            eval_fn = lambda x: projection.forward_project(
+                x, self.config, num_blocks=self.num_blocks, input_2d=self.input_2d
+            )
         # use vjp rather than linear_transpose due to jax-ml/jax#30552
         adj_fn = vjp(eval_fn, jnp.zeros(input_shape))[1]
         super().__init__(
@@ -183,4 +191,5 @@ class SymConeXRayTransform(LinearOperator):
           Reconstruction of the central slice of the volume.
         """
         angles = jnp.linspace(0, 360, num_angles, endpoint=False)
-        return backprojection.fdk(y, self.config, angles)
+        x = backprojection.fdk(y if self.axis == 1 else y.T, self.config, angles)
+        return x if self.axis == 1 else x.T

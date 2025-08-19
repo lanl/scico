@@ -90,8 +90,28 @@ class TestAbelCone:
         y3d = A3d(self.x3d)
         assert metric.rel_res(y3d, y2d) < 2e-2
 
-    def test_fdk(self):
-        A = SymConeXRayTransform(self.x3d.shape, 1e2, 2e2, num_blocks=1)
+    @pytest.mark.parametrize("axis", [0, 1])
+    def test_proj_axis(self, axis):
+        N = self.N
+        N2 = N // 2
+        N4 = N // 4
+        x = np.zeros((N, N))
+        if axis == 0:
+            x[N2 - 1 : N2 + 1, N4 - 1 : N4 + 1] = 1
+        else:
+            x[N4 - 1 : N4 + 1, N2 - 1 : N2 + 1] = 1
+        A = SymConeXRayTransform(x.shape, 1e2, 2e2, axis=axis, num_blocks=1)
+        y = A(x)
+        if axis == 0:
+            assert np.sum(np.sum(y, axis=1) > 0) <= 4
+            assert np.sum(np.sum(y, axis=0) > 0) >= N2
+        else:
+            assert np.sum(np.sum(y, axis=0) > 0) <= 4
+            assert np.sum(np.sum(y, axis=1) > 0) >= N2
+
+    @pytest.mark.parametrize("axis", [0, 1])
+    def test_fdk(self, axis):
+        A = SymConeXRayTransform(self.x3d.shape, 1e2, 2e2, axis=axis, num_blocks=1)
         y = A(self.x3d)
         z = A.fdk(y)
         assert metric.rel_res(self.x2d, z) < 0.2
