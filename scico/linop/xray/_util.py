@@ -34,9 +34,9 @@ def image_centroid(v: ArrayLike, center_offset: bool = False) -> Tuple[float, ..
         offset = (jnp.array(v.shape, dtype=jnp.float32) - 1.0) / 2.0
     else:
         offset = jnp.zeros((v.ndim,), dtype=jnp.float32)
-    g1d = [jnp.arange(size) - offset[idx] for idx, size in enumerate(v.shape)]
+    g1d = [jnp.arange(size, dtype=jnp.float32) - offset[idx] for idx, size in enumerate(v.shape)]
     g = jnp.meshgrid(*g1d, sparse=True, indexing="ij")
-    m00 = v.sum()
+    m00 = v.astype(jnp.float32).sum()
     if m00 == 0.0:
         c = (0.0,) * v.ndim
     else:
