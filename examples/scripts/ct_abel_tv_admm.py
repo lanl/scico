@@ -87,7 +87,6 @@ Run the solver.
 """
 print(f"Solving on {device_info()}\n")
 solver.solve()
-hist = solver.itstat_object.history(transpose=True)
 x_tv = snp.clip(solver.x, 0.0, 1.0)
 
 
