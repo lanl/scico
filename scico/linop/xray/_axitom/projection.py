@@ -112,6 +112,7 @@ def forward_project(
     func = lambda irblock: _partial_forward_project(
         volume, uu, vv, irblock, config, input_2d=input_2d
     )
+    # jax.checkpoint used to avoid excessive memory requirements
     proj = jnp.sum(jax.lax.map(jax.checkpoint(func), irblocks), axis=0)
 
     if remainder:
