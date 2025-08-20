@@ -50,42 +50,42 @@ class TestAbelCone:
         self.x2d = gaussian_filter(self.x2d, 1.0)
         self.x3d = gaussian_filter(self.x3d, 1.0)
 
-    @pytest.mark.parametrize("num_blocks", [1, 2, 3])
-    def test_2d(self, num_blocks):
-        A = SymConeXRayTransform(self.x2d.shape, 1e8, 1e8 + 1, num_blocks=num_blocks)
+    @pytest.mark.parametrize("num_slabs", [1, 2, 3])
+    def test_2d(self, num_slabs):
+        A = SymConeXRayTransform(self.x2d.shape, 1e8, 1e8 + 1, num_slabs=num_slabs)
         ya = A(self.x2d)
         x2ds = _volume_by_axial_symmetry(self.x2d, axis=0)
         ys = np.sum(x2ds, axis=1)
         assert metric.rel_res(ys, ya) < 1e-6
 
-    @pytest.mark.parametrize("num_blocks", [1, 2, 3])
-    def test_2d_unequal(self, num_blocks):
+    @pytest.mark.parametrize("num_slabs", [1, 2, 3])
+    def test_2d_unequal(self, num_slabs):
         x2dc = self.x2d[1:-1]
-        A = SymConeXRayTransform(x2dc.shape, 1e8, 1e8 + 1, num_blocks=num_blocks)
+        A = SymConeXRayTransform(x2dc.shape, 1e8, 1e8 + 1, num_slabs=num_slabs)
         ya = A(x2dc)
         x2ds = _volume_by_axial_symmetry(x2dc, axis=0)
         ys = np.sum(x2ds, axis=1)
         assert metric.rel_res(ys, ya) < 1e-6
 
-    @pytest.mark.parametrize("num_blocks", [1, 2, 3])
-    def test_3d(self, num_blocks):
-        A = SymConeXRayTransform(self.x3d.shape, 1e8, 1e8 + 1, num_blocks=num_blocks)
+    @pytest.mark.parametrize("num_slabs", [1, 2, 3])
+    def test_3d(self, num_slabs):
+        A = SymConeXRayTransform(self.x3d.shape, 1e8, 1e8 + 1, num_slabs=num_slabs)
         ya = A(self.x3d)
         ys = np.sum(self.x3d, axis=1)
         assert metric.rel_res(ys, ya) < 1e-6
 
-    @pytest.mark.parametrize("num_blocks", [1, 2, 3])
-    def test_3d_unequal(self, num_blocks):
+    @pytest.mark.parametrize("num_slabs", [1, 2, 3])
+    def test_3d_unequal(self, num_slabs):
         x3dc = self.x3d[1:-1, 2:-2]
-        A = SymConeXRayTransform(x3dc.shape, 1e8, 1e8 + 1, num_blocks=num_blocks)
+        A = SymConeXRayTransform(x3dc.shape, 1e8, 1e8 + 1, num_slabs=num_slabs)
         ya = A(x3dc)
         ys = np.sum(x3dc, axis=1)
         assert metric.rel_res(ys, ya) < 1e-6
 
-    @pytest.mark.parametrize("num_blocks", [1, 2, 3])
-    def test_2d3d_unequal(self, num_blocks):
-        A2d = SymConeXRayTransform(self.x2d.shape, 5e1, 6e1, num_blocks=num_blocks)
-        A3d = SymConeXRayTransform(self.x3d.shape, 5e1, 6e1, num_blocks=num_blocks)
+    @pytest.mark.parametrize("num_slabs", [1, 2, 3])
+    def test_2d3d_unequal(self, num_slabs):
+        A2d = SymConeXRayTransform(self.x2d.shape, 5e1, 6e1, num_slabs=num_slabs)
+        A3d = SymConeXRayTransform(self.x3d.shape, 5e1, 6e1, num_slabs=num_slabs)
         y2d = A2d(self.x2d)
         y3d = A3d(self.x3d)
         assert metric.rel_res(y3d, y2d) < 2e-2
@@ -100,7 +100,7 @@ class TestAbelCone:
             x[N2 - 1 : N2 + 1, N4 - 1 : N4 + 1] = 1
         else:
             x[N4 - 1 : N4 + 1, N2 - 1 : N2 + 1] = 1
-        A = SymConeXRayTransform(x.shape, 1e2, 2e2, axis=axis, num_blocks=1)
+        A = SymConeXRayTransform(x.shape, 1e2, 2e2, axis=axis, num_slabs=1)
         y = A(x)
         if axis == 0:
             assert np.sum(np.sum(y, axis=1) > 0) <= 4
@@ -111,7 +111,7 @@ class TestAbelCone:
 
     @pytest.mark.parametrize("axis", [0, 1])
     def test_fdk(self, axis):
-        A = SymConeXRayTransform(self.x3d.shape, 1e2, 2e2, axis=axis, num_blocks=1)
+        A = SymConeXRayTransform(self.x3d.shape, 1e2, 2e2, axis=axis, num_slabs=1)
         y = A(self.x3d)
         z = A.fdk(y)
         assert metric.rel_res(self.x2d, z) < 0.2

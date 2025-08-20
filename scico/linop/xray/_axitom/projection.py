@@ -25,7 +25,7 @@ def _partial_forward_project(
     volume: Array,
     uu: Array,
     vv: Array,
-    irblock,
+    irslab,
     config: Config,
     input_2d: bool = False,
 ) -> Array:
@@ -39,7 +39,7 @@ def _partial_forward_project(
       volume: The volume that will be projected onto the sensor.
       uu: Detector grid in axis 1 direction.
       vv: Detector grid in axis 0 direction.
-      irblock: Array of indices and ratios.
+      irslab: Array of indices and ratios.
       config: The settings object.
       input_2d: If ``True``, the input is a 2D image from which a 3D
         volume is constructed by rotation about the center of axis 1
@@ -48,16 +48,16 @@ def _partial_forward_project(
     Returns:
         The projection.
     """
-    iblock = irblock[0]
-    rblock = irblock[1]
+    islab = irslab[0]
+    rslab = irslab[1]
     N = config.object_ys.size
 
     pvs = (
-        vv[:, jnp.newaxis, :] * rblock[jnp.newaxis, :, jnp.newaxis] - config.object_zs[0]
+        vv[:, jnp.newaxis, :] * rslab[jnp.newaxis, :, jnp.newaxis] - config.object_zs[0]
     ) / config.voxel_size_z
-    pys = iblock[jnp.newaxis, :, jnp.newaxis] * jnp.ones_like(pvs)
+    pys = islab[jnp.newaxis, :, jnp.newaxis] * jnp.ones_like(pvs)
     pus = (
-        uu[:, jnp.newaxis, :] * rblock[jnp.newaxis, :, jnp.newaxis] - config.object_xs[0]
+        uu[:, jnp.newaxis, :] * rslab[jnp.newaxis, :, jnp.newaxis] - config.object_xs[0]
     ) / config.voxel_size_x
 
     if input_2d:
@@ -78,9 +78,9 @@ def _partial_forward_project(
     return proj2d * dist
 
 
-@partial(jit, static_argnames=["config", "num_blocks", "input_2d"])
+@partial(jit, static_argnames=["config", "num_slabs", "input_2d"])
 def forward_project(
-    volume: Array, config: Config, num_blocks: int = 8, input_2d: bool = False
+    volume: Array, config: Config, num_slabs: int = 8, input_2d: bool = False
 ) -> Array:
     """Projection of a volume onto a sensor plane.
 
@@ -90,7 +90,7 @@ def forward_project(
     Args:
       volume: The volume that will be projected onto the sensor.
       config: The settings object.
-      num_blocks: Number of blocks into which the volume should be
+      num_slabs: Number of slabs into which the volume should be
         divided (for serial processing, to limit memory usage) in
         the imaging direction.
       input_2d: If ``True``, the input is a 2D image from which a 3D
@@ -103,20 +103,20 @@ def forward_project(
     uu, vv = jnp.meshgrid(config.detector_us, config.detector_vs)
     ratios = (config.object_ys + config.source_to_object_dist) / config.source_to_detector_dist
     N = ratios.size
-    block_size = N // num_blocks
-    remainder = N % num_blocks
-    iblocks = jnp.stack(jnp.split(jnp.arange(0, block_size * num_blocks), num_blocks))
-    rblocks = jnp.stack(jnp.split(ratios[0 : block_size * num_blocks], num_blocks))
-    irblocks = jnp.stack((iblocks, rblocks), axis=1)
+    slab_size = N // num_slabs
+    remainder = N % num_slabs
+    islabs = jnp.stack(jnp.split(jnp.arange(0, slab_size * num_slabs), num_slabs))
+    rslabs = jnp.stack(jnp.split(ratios[0 : slab_size * num_slabs], num_slabs))
+    irslabs = jnp.stack((islabs, rslabs), axis=1)
 
-    func = lambda irblock: _partial_forward_project(
-        volume, uu, vv, irblock, config, input_2d=input_2d
+    func = lambda irslab: _partial_forward_project(
+        volume, uu, vv, irslab, config, input_2d=input_2d
     )
     # jax.checkpoint used to avoid excessive memory requirements
-    proj = jnp.sum(jax.lax.map(jax.checkpoint(func), irblocks), axis=0)
+    proj = jnp.sum(jax.lax.map(jax.checkpoint(func), irslabs), axis=0)
 
     if remainder:
-        irblock = jnp.stack((jnp.arange(block_size * num_blocks, N), ratios[-remainder:]))
-        proj += jax.checkpoint(func)(irblock)
+        irslab = jnp.stack((jnp.arange(slab_size * num_slabs, N), ratios[-remainder:]))
+        proj += jax.checkpoint(func)(irslab)
 
     return proj

@@ -129,7 +129,7 @@ class SymConeXRayTransform(LinearOperator):
         det_dist: float,
         axis: int = 0,
         pixel_size: Optional[Tuple[float, float]] = None,
-        num_blocks: int = 1,
+        num_slabs: int = 1,
     ):
         """
         Args:
@@ -139,7 +139,7 @@ class SymConeXRayTransform(LinearOperator):
             det_dist: Source-detector distance in ALU.
             axis: Index of axis of symmetry (must be 0 or 1).
             pixel_size: Tuple of pixel size values in ALU.
-            num_blocks: Number of blocks into which the volume should be
+            num_slabs: Number of slabs into which the volume should be
               divided (for serial processing, to limit memory usage) in
               the imaging direction.
         """
@@ -153,14 +153,14 @@ class SymConeXRayTransform(LinearOperator):
             pixel_size = (1.0, 1.0)
         self.axis = axis
         self.config = config.Config(*output_shape, *pixel_size, det_dist, obj_dist)
-        self.num_blocks = num_blocks
+        self.num_slabs = num_slabs
         if len(input_shape) == 2 and axis == 1:
             eval_fn = lambda x: projection.forward_project(
-                x.T, self.config, num_blocks=self.num_blocks, input_2d=self.input_2d
+                x.T, self.config, num_slabs=self.num_slabs, input_2d=self.input_2d
             ).T
         else:
             eval_fn = lambda x: projection.forward_project(
-                x, self.config, num_blocks=self.num_blocks, input_2d=self.input_2d
+                x, self.config, num_slabs=self.num_slabs, input_2d=self.input_2d
             )
         # use vjp rather than linear_transpose due to jax-ml/jax#30552
         adj_fn = vjp(eval_fn, jnp.zeros(input_shape))[1]
