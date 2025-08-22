@@ -234,7 +234,7 @@ class L21Norm(Functional):
 
     def __call__(self, x: Union[Array, BlockArray]) -> float:
         if isinstance(x, snp.BlockArray) and self.l2_axis is not None:
-            raise ValueError("Initializer parameter l2_axis must be None for BlockArray input.")
+            raise ValueError("Initializer argument 'l2_axis' must be None for BlockArray input.")
         l2 = L21Norm._l2norm(x, axis=self.l2_axis)
         return snp.sum(snp.abs(l2))
 
@@ -268,7 +268,7 @@ class L21Norm(Functional):
             Result of evaluating the scaled proximal operator at `v`.
         """
         if isinstance(v, snp.BlockArray) and self.l2_axis is not None:
-            raise ValueError("Initializer parameter l2_axis must be None for BlockArray input.")
+            raise ValueError("Initializer argument 'l2_axis' must be None for BlockArray input.")
         length = L21Norm._l2norm(v, axis=self.l2_axis, keepdims=True)
         direction = no_nan_divide(v, length)
 

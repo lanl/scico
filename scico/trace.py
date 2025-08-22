@@ -153,7 +153,7 @@ def register_variable(var: Any, name: str):
     """
     hash = _get_hash(var)
     if hash is None:
-        raise ValueError(f"Can't get hash for variable {name}.")
+        raise ValueError(f"Can't get hash for variable '{name}'.")
     call_trace.instance_hash[hash] = name  # type: ignore
 
 

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2023 by SCICO Developers
+# Copyright (C) 2021-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -163,10 +163,12 @@ class XRayTransform(LinearOperator):
         if self.geometry == "fan-curved" or self.geometry == "fan-flat":
             if self.dist_source_detector is None:
                 raise ValueError(
-                    "Parameter dist_source_detector must be specified for fan beam geometry."
+                    "Argument 'dist_source_detector' must be specified for fan beam geometry."
                 )
             if self.magnification is None:
-                raise ValueError("Parameter magnification must be specified for fan beam geometry.")
+                raise ValueError(
+                    "Argument 'magnification' must be specified for fan beam geometry."
+                )
 
             if delta_pixel is None:
                 self.delta_pixel = self.delta_channel / self.magnification
@@ -384,7 +386,7 @@ class SVMBIRExtendedLoss(Loss):
             else:
                 raise ValueError(f"The weights, W, must be non-negative.")
         else:
-            raise TypeError(f"Parameter W must be None or a linop.Diagonal, got {type(W)}.")
+            raise TypeError(f"Argument 'W' must be None or a linop.Diagonal, got {type(W)}.")
 
     def __call__(self, x: snp.Array) -> float:
         if self.positivity and snp.sum(x < 0) > 0:
@@ -470,5 +472,5 @@ class SVMBIRSquaredL2Loss(SVMBIRExtendedLoss, SquaredL2Loss):
 
         if self.A.is_masked:
             raise ValueError(
-                "Parameter is_masked must be False for the XRayTransform in SVMBIRSquaredL2Loss."
+                "Argument 'is_masked' must be False for the XRayTransform in SVMBIRSquaredL2Loss."
             )

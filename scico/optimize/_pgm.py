@@ -90,7 +90,7 @@ class PGM(Optimizer):
         self.f: Union[Loss, Functional] = f
 
         if g.has_prox is not True:
-            raise ValueError(f"The functional g ({type(g)}) must have a prox method.")
+            raise ValueError(f"Functional 'g' ({type(g)}) must have a prox method.")
 
         #: Functional to minimize; must have prox defined
         self.g: Functional = g

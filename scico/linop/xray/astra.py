@@ -242,7 +242,7 @@ class XRayTransform2D(LinearOperator):
                 f"Only 2D projections are supported, but 'input_shape' is {input_shape}."
             )
         if not isinstance(det_count, int):
-            raise ValueError("Expected 'det_count' to be an int.")
+            raise ValueError("Expected argument 'det_count' to be an int.")
         output_shape: Shape = (len(angles), det_count)
 
         # Set up all the ASTRA config
@@ -264,7 +264,7 @@ class XRayTransform2D(LinearOperator):
                 self.vol_geom = astra.create_vol_geom(*input_shape, *volume_geometry)
             else:
                 raise ValueError(
-                    "Parameter 'volume_geometry' must be a tuple of len 4."
+                    "Argument 'volume_geometry' must be a tuple of len 4."
                     "Please see the astra documentation for details."
                 )
 
@@ -476,9 +476,9 @@ def convert_to_scico_geometry(
 
     """
     if angles is not None and vectors is not None:
-        raise ValueError("Parameters 'angles' and 'vectors' are mutually exclusive.")
+        raise ValueError("Arguments 'angles' and 'vectors' are mutually exclusive.")
     if angles is None and vectors is None:
-        raise ValueError("Exactly one of parameters 'angles' and 'vectors' must be provided.")
+        raise ValueError("Exactly one of arguments 'angles' and 'vectors' must be provided.")
     vol_geom, proj_geom = XRayTransform3D.create_astra_geometry(
         input_shape, det_count, det_spacing=det_spacing, angles=angles, vectors=vectors
     )
@@ -627,12 +627,12 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
             )
 
         if not isinstance(det_count, (list, tuple)) or len(det_count) != 2:
-            raise ValueError("Expected parameter 'det_count' to be a tuple with 2 elements.")
+            raise ValueError("Expected argument 'det_count' to be a tuple with 2 elements.")
         if angles is not None and vectors is not None:
-            raise ValueError("Parameters 'angles' and 'vectors' are mutually exclusive.")
+            raise ValueError("Arguments 'angles' and 'vectors' are mutually exclusive.")
         if angles is None and vectors is None:
             raise ValueError(
-                "Exactly one of the parameters 'angles' and 'vectors' must be provided."
+                "Exactly one of the arguments 'angles' and 'vectors' must be provided."
             )
         if angles is not None:
             Nview = angles.size
