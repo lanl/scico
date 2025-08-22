@@ -63,7 +63,9 @@ class BiConvolve(Operator):
         if not is_nested(input_shape):
             raise ValueError("A BlockShape is expected; got {input_shape}.")
         if len(input_shape) != 2:
-            raise ValueError(f"input_shape must have two blocks; got {len(input_shape)}.")
+            raise ValueError(
+                f"Argument 'input_shape' must have two blocks; got {len(input_shape)}."
+            )
         if len(input_shape[0]) != len(input_shape[1]):
             raise ValueError(
                 f"Both input blocks must have same number of dimensions; got "
@@ -110,4 +112,4 @@ class BiConvolve(Operator):
                 output_shape=self.output_shape,
                 mode=self.mode,
             )
-        raise ValueError(f"Parameter argnum must be 0 or 1; got {argnum}.")
+        raise ValueError(f"Argument 'argnum' must be 0 or 1; got {argnum}.")

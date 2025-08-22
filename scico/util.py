@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2024 by SCICO Developers
+# Copyright (C) 2020-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -170,7 +170,7 @@ def url_get(url: str, maxtry: int = 3, timeout: int = 10) -> io.BytesIO:  # prag
     """
 
     if maxtry <= 0:
-        raise ValueError("Parameter maxtry should be greater than zero.")
+        raise ValueError("Argument 'maxtry' should be greater than zero.")
     for ntry in range(maxtry):
         try:
             rspns = urlrequest.urlopen(url, timeout=timeout)

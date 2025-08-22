@@ -174,7 +174,7 @@ class LinearizedADMM(Optimizer):
             scalar: Value of the objective function.
         """
         if (x is None) != (z is None):
-            raise ValueError("Both or neither of x and z must be supplied.")
+            raise ValueError("Both or neither of arguments 'x' and 'z' must be supplied.")
         if x is None:
             x = self.x
             z = self.z

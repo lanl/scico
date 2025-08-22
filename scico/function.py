@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2023 by SCICO Developers
+# Copyright (C) 2022-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -65,7 +65,7 @@ class Function:
             self._eval = jax.jit(eval_fn) if jit else eval_fn
         elif not hasattr(self, "_eval"):
             raise NotImplementedError(
-                "Function is an abstract base class when the eval_fn parameter is not specified."
+                "Function is an abstract base class when argument 'eval_fn' is not specified."
             )
 
         # If the output shape or dtype isn't specified, it can be
@@ -144,7 +144,7 @@ output_dtype   : {self.output_dtype}
             if dtype != self.input_dtypes[0]:
                 raise ValueError(
                     "The join method may only be applied to Functions that have "
-                    "homogenous input dtypes."
+                    "homogeneous input dtypes."
                 )
 
         def jfunc(blkarr):
