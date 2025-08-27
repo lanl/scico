@@ -133,8 +133,8 @@ class ProjectedGradient(LinearOperator):
             # Ensure no invalid axis indices specified.
             if snp.any(np.array(axes) >= len(input_shape)):
                 raise ValueError(
-                    "Invalid axes specified; all elements of `axes` must be less than "
-                    f"len(input_shape)={len(input_shape)}."
+                    "Invalid axes specified; all elements of argument 'axes' must "
+                    f"be less than len(input_shape)={len(input_shape)}."
                 )
             self.axes = axes
         output_shape: Shape

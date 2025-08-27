@@ -1,4 +1,4 @@
-# Copyright (C) 2020-2024 by SCICO Developers
+# Copyright (C) 2020-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -147,7 +147,7 @@ output_dtype : {self.output_dtype}
             self._eval = eval_fn  # type: ignore
         elif not hasattr(self, "_eval"):
             raise NotImplementedError(
-                "Operator is an abstract base class when the eval_fn parameter is not specified."
+                "Operator is an abstract base class when argument 'eval_fn' is not specified."
             )
 
         # If the shape isn't specified by user we can infer it using by invoking the function
@@ -365,7 +365,7 @@ output_dtype : {self.output_dtype}
         input_ndim = len(self.input_shape)
         if argnum > input_ndim - 1:
             raise ValueError(
-                f"Parameter argnum to freeze must be less than the number of input arguments to "
+                f"Argument 'argnum' must be fewer than the number of input arguments to "
                 f"this operator ({input_ndim}); got {argnum}."
             )
 
