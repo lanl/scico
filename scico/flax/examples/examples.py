@@ -682,7 +682,7 @@ def runtime_error_array(type: str, idstring: str, maxdiff: float):
            entries.
     """
     raise RuntimeError(
-        f"Requested value of parameter '{type}' does not match value "
+        f"Requested value of argument '{type}' does not match value "
         f"read from {idstring} file. Maximum array difference: "
         f"{maxdiff:>5.3f}.\nDelete cache and check data source."
     )
