@@ -2,7 +2,13 @@ import numpy as np
 
 from jax.scipy.spatial.transform import Rotation
 
-from scico.linop.xray import center_image, image_centroid, rotate_volume
+import scipy.ndimage
+from scico.linop.xray import (
+    center_image,
+    image_alignment_rotation,
+    image_centroid,
+    rotate_volume,
+)
 
 
 def test_image_centroid():
@@ -26,3 +32,14 @@ def test_rotate_volume():
     rot = Rotation.from_euler("XY", [90, 90], degrees=True)
     vol_rot = rotate_volume(vol, rot)
     np.testing.assert_allclose(vol.transpose((1, 2, 0)), vol_rot, rtol=1e-7)
+
+
+def test_image_alignment():
+    u = np.zeros((256, 256), dtype=np.float32)
+    u[:, 8::16] = 1
+    u[:, 9::16] = 1
+    angle = image_alignment_rotation(u)
+    assert np.abs(angle) < 1e-3
+    ur = scipy.ndimage.rotate(u, 0.75)
+    angle = image_alignment_rotation(ur)
+    assert np.abs(angle - 0.75) < 1e-3

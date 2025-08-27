@@ -9,12 +9,16 @@
 
 from typing import Optional, Tuple
 
+import numpy as np
+
 import jax.numpy as jnp
 from jax import Array
 from jax.image import ResizeMethod, scale_and_translate
 from jax.scipy.ndimage import map_coordinates
 from jax.scipy.spatial.transform import Rotation
 from jax.typing import ArrayLike
+
+import scico.linop.xray.astra
 
 
 def image_centroid(v: ArrayLike, center_offset: bool = False) -> Tuple[float, ...]:
@@ -114,3 +118,60 @@ def rotate_volume(
     rot_crd = rot.as_matrix() @ crd + center[:, jnp.newaxis]  # faster than rot.apply(crd.T)
     rot_vol = map_coordinates(vol, rot_crd.reshape((3,) + shape), order=1)
     return rot_vol
+
+
+def image_alignment_rotation(
+    img: ArrayLike, max_angle: float = 2.5, angle_step: float = 0.025, center_factor: float = 5e-3
+) -> float:
+    r"""Compute an image alignment rotation.
+
+    Compute the rotation that best aligns vertical straight lines in
+    the image with the vertical axis.
+
+    The approach is roughly based on that used in the
+    `find_img_rotation_2D` function in the `cSAXS base package` released
+    by the CXS group at the Paul Scherrer Institute, which selects the
+    rotation angle that results in the sparsest row sum according to the
+    sparsity measure proposed in Sec 3.1 of
+    :cite:`hoyer-2004-nonnegative`. (Note that an :math:`\ell_1` norm
+    sparsity measure is not suitable for this purpose since it is, in
+    typical cases, appropximately invariant to the rotation angle.) The
+    implementation here uses the plain ratio of :math:`\ell_1` and
+    :math:`\ell_2`norms as a sparsity measure, more efficiently computes
+    the column sums at different angles by exploiting the 2D X-ray
+    transform, and includes a small bias for smaller angle rotations that
+    improves performance when a range of rotation angles have the same
+    sparsity measure.
+
+    Args:
+        img: Array of pixel values.
+        max_angle: Maximum  angle (negative and positive) to test, in
+          degrees.
+        angle_step: Increment in angle values for range of angles to
+          test, in degrees.
+        center_factor: The angle multiplied by this scalar is added to
+          the sparsity measure to slightly prefer smaller-angle
+          solutions.
+
+    Returns:
+        Rotation angle (in degrees) providing best alignment with the
+        horizontal axis.
+    """
+    angles = np.arange(-max_angle, max_angle, angle_step)
+    max_angle_rad = max_angle * np.pi / 180
+    # choose det_count so that projected image is within the detector bounds
+    det_count = int(
+        1.05 * (img.shape[0] * np.sin(max_angle_rad) + img.shape[1] * np.cos(max_angle_rad))
+    )
+    A = scico.linop.xray.astra.XRayTransform2D(
+        img.shape,
+        det_count=det_count,
+        det_spacing=1.0,
+        angles=angles * np.pi / 180.0,
+    )
+    y = A @ jnp.abs(img)
+    # compute the ℓ1/ℓ2 norm of the projection for each view angle
+    cost = jnp.sum(jnp.abs(y), axis=1) / jnp.sqrt(jnp.sum(y**2, axis=1))
+    ext_cost = cost + center_factor * (cost.max() - cost.min()) * jnp.abs(angles)
+    idx = jnp.argmin(ext_cost)
+    return angles[idx]
