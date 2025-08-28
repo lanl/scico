@@ -25,7 +25,7 @@ import scipy.spatial.transform as sst
 def image_centroid(v: ArrayLike, center_offset: bool = False) -> Tuple[float, ...]:
     """Compute the centroid of an image.
 
-    Compute the centroid of an image or higher-dimentional array.
+    Compute the centroid of an image or higher-dimensional array.
 
     Args:
         v: Array for which centroid is to be computed.
@@ -57,7 +57,7 @@ def center_image(
 ) -> Array:
     """Translate an image to center the centroid.
 
-    Translate an image (or higher-dimentional array) so that the centroid
+    Translate an image (or higher-dimensional array) so that the centroid
     is at the spatial center of the image grid.
 
     Args:
@@ -130,15 +130,15 @@ def image_alignment_rotation(
     the image with the vertical axis.
 
     The approach is roughly based on that used in the
-    `find_img_rotation_2D` function in the `cSAXS base package` released
-    by the CXS group at the Paul Scherrer Institute, which selects the
-    rotation angle that results in the sparsest row sum according to the
-    sparsity measure proposed in Sec 3.1 of
+    :code:`find_img_rotation_2D` function in the `cSAXS base package`
+    released by the CXS group at the Paul Scherrer Institute, which
+    finds the rotation angle that results in the sparsest row sum
+    according to the sparsity measure proposed in Sec 3.1 of
     :cite:`hoyer-2004-nonnegative`. (Note that an :math:`\ell_1` norm
     sparsity measure is not suitable for this purpose since it is, in
     typical cases, appropximately invariant to the rotation angle.) The
     implementation here uses the plain ratio of :math:`\ell_1` and
-    :math:`\ell_2`norms as a sparsity measure, more efficiently computes
+    :math:`\ell_2` norms as a sparsity measure, more efficiently computes
     the column sums at different angles by exploiting the 2D X-ray
     transform, and includes a small bias for smaller angle rotations that
     improves performance when a range of rotation angles have the same
