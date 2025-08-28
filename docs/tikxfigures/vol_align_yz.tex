@@ -1,8 +1,4 @@
-%\documentclass{article}
 \documentclass{standalone}
-
-% https://tex.stackexchange.com/questions/452/how-can-i-create-a-pdf-document-exactly-as-big-as-my-tikz-picture
-
 
 \usepackage{tikz, tikz-3dplot}
 \begin{document}
@@ -11,38 +7,23 @@
 
 \begin{tikzpicture}[scale=3,tdplot_main_coords]
   \footnotesize
-  %\draw[thick,->] (0,0,0) -- (1,0,0) node[anchor=north east]{$x$};
   \draw[thick,->] (0,0,0) -- (0,1,0) node[anchor=north]{$y$};
   \draw[thick,->] (0,0,0) -- (0,0,1) node[anchor=south]{$z$};
 
-  %\tdplotsetcoord{O}{0}{0}{0}
   \coordinate (O) at (0,0,0);
   \tdplotsetcoord{P}{1}{30}{40}
 
-  % draw a vector from origin to point (P)
   \draw[-stealth,thick,color=red] (O) -- (P)  node[anchor=west]{$\!(y, z)$};
 
-  % draw projection on xy plane, and a connecting line
   \draw[dashed, color=blue] (P) -- (Pxz);
   \draw[dashed, color=blue] (P) -- (Py);
-  %\draw[dashed, color=blue] (P) -- (Pyz);
-  %\draw[dashed, color=blue] (O) -- (Pxz);
-  %\draw[dashed, color=blue] (O) -- (Pyz);
-  %\draw[dashed, color=blue] (Pz) -- (Pxz);
-  %\draw[dashed, color=blue] (Pz) -- (Pyz);
 
   \node[draw=none,color=blue] at (0.05,0.36,-0.09) {$r_y \cos (\theta_y)$};
   \node[draw=none,rotate=90,color=blue] at (0.05,-0.09,0.75) {$r_y \sin (\theta_y)$};
-  %\node[draw=none,color=red] at (0.05,0.09,0.05) {$\theta_y$};
-  \tdplotsetthetaplanecoords{70}
+  \tdplotsetthetaplanecoords{90}
   \tdplotdrawarc[tdplot_rotated_coords,red,dotted]{(O)}{.25}{23}{90}{anchor=north east}{$\theta_y$}
 
   \node[draw=none,color=red] at (0.05,0.11,0.5) {$r_y$};
-
-
-  %\draw[tdplot_rotated_coords,color=blue,thick,->] (0,0,0)-- (.2,0,0) node[anchor=east]{$x’$};
-  %\draw[tdplot_rotated_coords,color=blue,thick,->] (0,0,0)-- (0,.2,0) node[anchor=north]{$y’$};
-  %\draw[tdplot_rotated_coords,color=blue,thick,->] (0,0,0)-- (0,0,.2) node[anchor=west]{$z’$};
 
 \end{tikzpicture}
 

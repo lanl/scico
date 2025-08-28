@@ -1,8 +1,4 @@
-%\documentclass{article}
 \documentclass{standalone}
-
-% https://tex.stackexchange.com/questions/452/how-can-i-create-a-pdf-document-exactly-as-big-as-my-tikz-picture
-
 
 \usepackage{tikz, tikz-3dplot}
 \begin{document}
@@ -15,16 +11,11 @@
   \draw[thick,->] (0,0,0) -- (0,1,0) node[anchor=north west]{$y$};
   \draw[thick,->] (0,0,0) -- (0,0,1) node[anchor=south]{$z$};
 
-  %\tdplotsetcoord{O}{0}{0}{0}
   \coordinate (O) at (0,0,0);
   \tdplotsetcoord{P}{1}{30}{40}
 
-  % draw a vector from origin to point (P)
   \draw[-stealth,thick,color=red] (O) -- (P)  node[anchor=north west]{$\;(x, y, z)$};
 
-  % draw projection on xy plane, and a connecting line
-  %\draw[dashed, color=red] (O) -- (Pxy);
-  %\draw[dashed, color=red] (P) -- (Pxy);
   \draw[dashed, color=blue] (P) -- (Pxz);
   \draw[dashed, color=blue] (P) -- (Pyz);
   \draw[dashed, color=blue] (O) -- (Pxz);
@@ -32,13 +23,13 @@
   \draw[dashed, color=blue] (Pz) -- (Pxz);
   \draw[dashed, color=blue] (Pz) -- (Pyz);
 
-  \node[draw=none,color=red] at (0.14,0.0,0.5) {$r$};
+  \node[draw=none,color=blue] at (0.38,0.0,0.5) {$r_x$};
+  \node[draw=none,color=blue] at (0.0,0.24,0.4) {$r_y$};
 
-  \tdplotsetthetaplanecoords{70}
-
-  %\draw[tdplot_rotated_coords,color=blue,thick,->] (0,0,0)-- (.2,0,0) node[anchor=east]{$x’$};
-  %\draw[tdplot_rotated_coords,color=blue,thick,->] (0,0,0)-- (0,.2,0) node[anchor=north]{$y’$};
-  %\draw[tdplot_rotated_coords,color=blue,thick,->] (0,0,0)-- (0,0,.2) node[anchor=west]{$z’$};
+  \tdplotsetthetaplanecoords{0}
+  \tdplotdrawarc[tdplot_rotated_coords,blue,dotted]{(O)}{.25}{22.7}{90}{anchor=mid east}{$\theta_x$}
+  \tdplotsetthetaplanecoords{90}
+  \tdplotdrawarc[tdplot_rotated_coords,blue,dotted]{(O)}{.25}{23}{90}{anchor=mid west}{$\theta_y$}
 
 \end{tikzpicture}
 
