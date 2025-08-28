@@ -12,13 +12,14 @@ from typing import Optional, Tuple
 import numpy as np
 
 import jax.numpy as jnp
+import jax.scipy.spatial.transform as jsst
 from jax import Array
 from jax.image import ResizeMethod, scale_and_translate
 from jax.scipy.ndimage import map_coordinates
-from jax.scipy.spatial.transform import Rotation
 from jax.typing import ArrayLike
 
 import scico.linop.xray.astra
+import scipy.spatial.transform as sst
 
 
 def image_centroid(v: ArrayLike, center_offset: bool = False) -> Tuple[float, ...]:
@@ -79,7 +80,7 @@ def center_image(
 
 def rotate_volume(
     vol: ArrayLike,
-    rot: Rotation,
+    rot: jsst.Rotation,
     x: Optional[ArrayLike] = None,
     y: Optional[ArrayLike] = None,
     z: Optional[ArrayLike] = None,
@@ -123,9 +124,9 @@ def rotate_volume(
 def image_alignment_rotation(
     img: ArrayLike, max_angle: float = 2.5, angle_step: float = 0.025, center_factor: float = 5e-3
 ) -> float:
-    r"""Compute an image alignment rotation.
+    r"""Estimate an image alignment rotation.
 
-    Compute the rotation that best aligns vertical straight lines in
+    Estimate the rotation that best aligns vertical straight lines in
     the image with the vertical axis.
 
     The approach is roughly based on that used in the
@@ -175,3 +176,56 @@ def image_alignment_rotation(
     ext_cost = cost + center_factor * (cost.max() - cost.min()) * jnp.abs(angles)
     idx = jnp.argmin(ext_cost)
     return angles[idx]
+
+
+def volume_alignment_rotation(
+    vol: ArrayLike,
+    xslice: Optional[int] = None,
+    yslice: Optional[int] = None,
+    max_angle: float = 2.5,
+    angle_step: float = 0.025,
+    center_factor: float = 5e-3,
+) -> jsst.Rotation:
+    r"""Estimate a volume alignment rotation.
+
+    Estimate the 3D rotation that best aligns planar structures in a
+    volume with the x-y (0-1) plane.
+
+    Args:
+        vol: Array of voxel values.
+        xslice: Index of slice on axis 0.
+        yslice: Index of slice on axis 1.
+        max_angle: Maximum  angle (negative and positive) to test, in
+          degrees.
+        angle_step: Increment in angle values for range of angles to
+          test, in degrees.
+        center_factor: The angle multiplied by this scalar is added to
+          the sparsity measure to slightly prefer smaller-angle
+          solutions.
+
+    Returns:
+        Rotation object.
+    """
+    # x, y, z volume axes correspond to axes 0, 1, 2
+    if xslice is None:
+        xslice = vol.shape[0] // 2  # default to central slice
+    if yslice is None:
+        yslice = vol.shape[1] // 2  # default to central slice
+    # projected angles of normal to plane angles identified in yz and xz slices
+    angle_y = (
+        (90 - image_alignment_rotation(vol[xslice], max_angle=max_angle, angle_step=angle_step))
+        * np.pi
+        / 180
+    )
+    angle_x = (
+        (90 - image_alignment_rotation(vol[:, yslice], max_angle=max_angle, angle_step=angle_step))
+        * np.pi
+        / 180
+    )
+    # unit vector normal to plane
+    vec = np.array([1.0 / np.tan(angle_x), 1.0 / np.tan(angle_y), 1.0])
+    vec /= np.linalg.norm(vec)
+    # rotation required to align unit vector with z axis
+    r = sst.Rotation.align_vectors(vec, np.array([0, 0, 1]))[0]
+    # jax.scipy.spatial.transform.Rotation does not have align_vectors method
+    return jsst.Rotation.from_quat(r.as_quat())

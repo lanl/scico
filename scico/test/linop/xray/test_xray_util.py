@@ -8,6 +8,7 @@ from scico.linop.xray import (
     image_alignment_rotation,
     image_centroid,
     rotate_volume,
+    volume_alignment_rotation,
 )
 
 
@@ -43,3 +44,24 @@ def test_image_alignment():
     ur = scipy.ndimage.rotate(u, 0.75)
     angle = image_alignment_rotation(ur)
     assert np.abs(angle - 0.75) < 1e-3
+
+
+def test_volume_alignment():
+    u = np.zeros((256, 256, 32), dtype=np.float32)
+    u[8::16, :, 2::6] = 1
+    u[9::16, :, 2::6] = 1
+    u[:, 8::16, 2::6] = 1
+    u[:, 9::16, 2::6] = 1
+    u[8::16, :, 3::6] = 1
+    u[9::16, :, 3::6] = 1
+    u[:, 8::16, 3::6] = 1
+    u[:, 9::16, 3::6] = 1
+    rot = volume_alignment_rotation(u)
+    assert rot.magnitude() < 1e-5
+    ref_rot = Rotation.from_euler("XY", (1.6, -0.9), degrees=True)
+    ur = rotate_volume(u, ref_rot)
+    rot = volume_alignment_rotation(ur)
+    assert (
+        np.abs(ref_rot.as_euler("XYZ", degrees=True) - rot.as_euler("XYZ", degrees=True)).max()
+        < 1e-1
+    )
