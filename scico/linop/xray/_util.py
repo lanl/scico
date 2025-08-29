@@ -189,7 +189,12 @@ def volume_alignment_rotation(
     r"""Estimate a volume alignment rotation.
 
     Estimate the 3D rotation that best aligns planar structures in a
-    volume with the x-y (0-1) plane.
+    volume with the x-y (0-1) plane. The algorithm is based on
+    independent rotation angle estimates, obtained using
+    :func:`image_alignment_rotation`, within 2D slices in the x-z (0-2)
+    and y-z (1-2) planes. These estimates are integrated into a
+    combined 3D rotation specification as explained in the technical note
+    below.
 
     Args:
         vol: Array of voxel values.
@@ -205,6 +210,67 @@ def volume_alignment_rotation(
 
     Returns:
         Rotation object.
+
+    Notes:
+        The estimation of the 3D rotation required to align planar
+        structure in the volume with the x-y (0-1) plane is approached
+        by estimating the 3D normal vector to this structure, illustrated
+        in Fig. 1. The independent rotation angle estimates with the x-z
+        (0-2) and y-z (1-2) planes are exploited as estimates (after a
+        90° rotation of each) as estimates of the projections of this
+        normal vector into the x-z (0-2) and y-z (1-2) planes,
+        illustrated in Figs. 2 and 3 respectively.
+
+        .. figure:: /figures/vol_align_xyz.svg
+           :align: center
+           :width: 60%
+
+           Fig 1. 3D orientation of the normal to the y-z plane.
+
+
+        .. list-table::
+           :width: 100
+
+           * - .. figure:: /figures/vol_align_xz.svg
+                  :align: center
+                  :width: 100%
+
+                  Fig 2. Projection of the normal onto the x-z plane.
+
+             - .. figure:: /figures/vol_align_yz.svg
+                  :align: center
+                  :width: 100%
+
+                  Fig 3. Projection of the normal onto the y-z plane.
+
+        It can be observed from these figures that
+
+        .. math::
+
+           x &= r_x \cos (\theta_x) \\
+           y &= r_y \cos (\theta_y) \\
+           z &= r_x \sin (\theta_x) = r_y \sin (\theta_y) \;,
+
+        where :math:`(x, y, z)` are the coordinates of the normal
+        vector. We can write
+
+        .. math::
+
+           r_x = \frac{z}{\sin(\theta_x)} \quad \text{and} \quad
+           r_y = \frac{z}{\sin(\theta_y)} \;,
+
+        and therefore
+
+        .. math::
+           x = z \cot (\theta_x) \quad \text{and} \quad
+           y = z \cot (\theta_y) \;.
+
+        Since :math:`(x, y, z) = z (\cot (\theta_x), \cot (\theta_y), 1)`
+        it is clear that the choice of :math:`z` only affects the norm of
+        the vector, and can therefore be set to unity. The rotation of
+        this vector is then determined by computing the rotation required
+        to align it (after normalization) with the :math:`z` axis
+        :math:`(0, 0, 1)`.
     """
     # x, y, z volume axes correspond to axes 0, 1, 2
     if xslice is None:
