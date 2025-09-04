@@ -225,7 +225,8 @@ def volume_alignment_rotation(
            :align: center
            :width: 60%
 
-           Fig 1. 3D orientation of the normal to the y-z plane.
+           Fig 1. 3D orientation of the normal to the plane that is
+           desired to be aligned with the x-y plane.
 
 
         .. list-table::
