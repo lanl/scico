@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2022 by SCICO Developers
+# Copyright (C) 2021-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -103,7 +103,7 @@ def radial_transverse_frequency(
         assert isinstance(dx, tuple)
         if len(dx) != ndim:
             raise ValueError(
-                "Parameter dx must be a scalar or have len(dx) == len(input_shape); "
+                "Argument 'dx' must be a scalar or have len(dx) == len(input_shape); "
                 f"got len(dx)={len(dx)}, len(input_shape)={ndim}."
             )
     assert isinstance(dx, tuple)
@@ -157,7 +157,7 @@ class Propagator(LinearOperator):
             assert isinstance(dx, tuple)
             if len(dx) != ndim:
                 raise ValueError(
-                    "Parameter dx must be a scalar or have len(dx) == len(input_shape); "
+                    "Argument 'dx' must be a scalar or have len(dx) == len(input_shape); "
                     f"got len(dx)={len(dx)}, len(input_shape)={ndim}."
                 )
         assert isinstance(dx, tuple)
@@ -502,7 +502,7 @@ class FraunhoferPropagator(LinearOperator):
             assert isinstance(dx, tuple)
             if len(dx) != ndim:
                 raise ValueError(
-                    "Parameter dx must be a scalar or have len(dx) == len(input_shape); "
+                    "Argument 'dx' must be a scalar or have len(dx) == len(input_shape); "
                     f"got len(dx)={len(dx)}, len(input_shape)={ndim}."
                 )
         assert isinstance(dx, tuple)

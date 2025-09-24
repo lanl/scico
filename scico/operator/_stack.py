@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2023-2024 by SCICO Developers
+# Copyright (C) 2023-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -15,11 +15,9 @@ import numpy as np
 
 import jax
 
-from typing_extensions import TypeGuard
-
 import scico.numpy as snp
 from scico.numpy import Array, BlockArray
-from scico.numpy.util import is_nested
+from scico.numpy.util import is_blockable, is_collapsible, is_nested
 from scico.typing import BlockShape, Shape
 
 from ._operator import Operator
@@ -43,22 +41,6 @@ def collapse_shapes(
     raise ValueError(
         "Combining these shapes would result in a twice-nested BlockArray, which is not supported."
     )
-
-
-def is_collapsible(shapes: Sequence[Union[Shape, BlockShape]]) -> bool:
-    """Determine whether a sequence of shapes can be collapsed.
-
-    Return ``True`` if the a list of shapes represent arrays that can
-    be stacked, i.e., they are all the same."""
-    return all(s == shapes[0] for s in shapes)
-
-
-def is_blockable(shapes: Sequence[Union[Shape, BlockShape]]) -> TypeGuard[Union[Shape, BlockShape]]:
-    """Determine whether a sequence of shapes could be a :class:`BlockArray` shape.
-
-    Return ``True`` if the sequence of shapes represent arrays that can
-    be combined into a :class:`BlockArray`, i.e., none are nested."""
-    return not any(is_nested(s) for s in shapes)
 
 
 class VerticalStack(Operator):
@@ -293,18 +275,18 @@ class DiagonalReplicated(Operator):
                :func:`jax.vmap`.
         """
         if map_type not in ["auto", "pmap", "vmap"]:
-            raise ValueError("Argument map_type must be one of 'auto', 'pmap, or 'vmap'.")
+            raise ValueError("Argument 'map_type' must be one of 'auto', 'pmap, or 'vmap'.")
         if input_axis < 0:
             input_axis = len(op.input_shape) + 1 + input_axis
         if input_axis < 0 or input_axis > len(op.input_shape):
             raise ValueError(
-                "Argument input_axis must be positive and less than the number of axes "
-                "in the input shape of op."
+                "Argument 'input_axis' must be positive and less than the number of axes "
+                "in the input shape of argument 'op'."
             )
         if is_nested(op.input_shape):
-            raise ValueError("Argument op may not be an Operator taking BlockArray input.")
+            raise ValueError("Argument 'op' may not be an Operator taking BlockArray input.")
         if is_nested(op.output_shape):
-            raise ValueError("Argument op may not be an Operator with BlockArray output.")
+            raise ValueError("Argument 'op' may not be an Operator with BlockArray output.")
         self.op = op
         self.replicates = replicates
         self.input_axis = input_axis
