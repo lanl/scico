@@ -29,7 +29,7 @@ class DataSetDict(TypedDict):
 
     #: Input (Num. samples x Height x Width x Channels).
     image: Array
-    #: Output (Num. samples x Height x Width x Channels or Num. samples x Classes).
+    #: Output (Num. samples x Height x Width x Channels) or (Num. samples x Classes).
     label: Array
 
 
