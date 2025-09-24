@@ -75,7 +75,9 @@ class ConditionalUNet(nnx.Module):
         self.init_conv = nnx.Conv(input_channels, init_dim, kernel_size=(1, 1), padding=0, rngs=rngs)
 
         dims = [init_dim, *map(lambda m: dim * m, dim_mults)]
+        print(f"dims: {dims}")
         in_out = list(zip(dims[:-1], dims[1:]))
+        print(f"in_out: {in_out}")
 
         block_klass = partial(ResnetBlock, groups=resnet_block_groups)
 
@@ -176,8 +178,14 @@ class ConditionalUNet(nnx.Module):
             x = attn(x)
             h.append(x)
 
+            print(f"Shape before downsampling: {x.shape}")
             x = downsample(x)
+            print(f"Shape after downsampling: {x.shape}")
 
+        print("Shapes stored in h")
+        for hi in h:
+            print(f"{hi.shape}")
+            
         x = self.mid_block1(x, t)
         x = self.mid_attn(x)
         x = self.mid_block2(x, t)
@@ -190,7 +198,9 @@ class ConditionalUNet(nnx.Module):
             x = block2(x, t)
             x = attn(x)
 
+            print(f"Shape before upsampling: {x.shape}")
             x = upsample(x)
+            print(f"Shape after upsampling: {x.shape}")
 
         x = jnp.concatenate([x, r], axis=-1)
 
