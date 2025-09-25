@@ -132,7 +132,7 @@ def image_alignment_rotation(
     The approach is roughly based on that used in the
     :code:`find_img_rotation_2D` function in the `cSAXS base package`
     released by the CXS group at the Paul Scherrer Institute, which
-    finds the rotation angle that results in the sparsest row sum
+    finds the rotation angle that results in the sparsest column sum
     according to the sparsity measure proposed in Sec 3.1 of
     :cite:`hoyer-2004-nonnegative`. (Note that an :math:`\ell_1` norm
     sparsity measure is not suitable for this purpose since it is, in
@@ -156,7 +156,7 @@ def image_alignment_rotation(
 
     Returns:
         Rotation angle (in degrees) providing best alignment with the
-        horizontal axis.
+        vertical (0) axis.
     """
     angles = np.arange(-max_angle, max_angle, angle_step)
     max_angle_rad = max_angle * np.pi / 180
