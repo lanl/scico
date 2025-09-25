@@ -15,8 +15,6 @@ import numpy as np
 
 import jax
 
-from typing_extensions import TypeGuard
-
 import scico.numpy as snp
 from scico.numpy import Array, BlockArray
 from scico.numpy.util import is_blockable, is_collapsible, is_nested
@@ -277,18 +275,18 @@ class DiagonalReplicated(Operator):
                :func:`jax.vmap`.
         """
         if map_type not in ["auto", "pmap", "vmap"]:
-            raise ValueError("Argument map_type must be one of 'auto', 'pmap, or 'vmap'.")
+            raise ValueError("Argument 'map_type' must be one of 'auto', 'pmap, or 'vmap'.")
         if input_axis < 0:
             input_axis = len(op.input_shape) + 1 + input_axis
         if input_axis < 0 or input_axis > len(op.input_shape):
             raise ValueError(
-                "Argument input_axis must be positive and less than the number of axes "
-                "in the input shape of op."
+                "Argument 'input_axis' must be positive and less than the number of axes "
+                "in the input shape of argument 'op'."
             )
         if is_nested(op.input_shape):
-            raise ValueError("Argument op may not be an Operator taking BlockArray input.")
+            raise ValueError("Argument 'op' may not be an Operator taking BlockArray input.")
         if is_nested(op.output_shape):
-            raise ValueError("Argument op may not be an Operator with BlockArray output.")
+            raise ValueError("Argument 'op' may not be an Operator with BlockArray output.")
         self.op = op
         self.replicates = replicates
         self.input_axis = input_axis

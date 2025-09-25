@@ -127,7 +127,7 @@ def normalize_axes(
         if default is None:
             if shape is None:
                 raise ValueError(
-                    "Parameter axes cannot be None without a default or shape specified."
+                    "Argument 'axes' cannot be None without a default or shape specified."
                 )
             axes = tuple(range(len(shape)))
         else:
@@ -137,7 +137,7 @@ def normalize_axes(
     elif isinstance(axes, int):
         axes = (axes,)
     else:
-        raise ValueError(f"Could not understand axes {axes} as a list of axes.")
+        raise ValueError(f"Could not understand argument 'axes' {axes} as a list of axes.")
     if shape is not None:
         if min(axes) < 0:
             axes = tuple([len(shape) + a if a < 0 else a for a in axes])

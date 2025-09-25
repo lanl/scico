@@ -110,9 +110,7 @@ class BlockArray:
         if is_collapsible(self.shape):
             return jnp.stack(self.arrays, axis=axis)
         else:
-            raise ValueError(
-                f"BlockArray of shape {self.shape} cannot be " "collapsed to an Array."
-            )
+            raise ValueError(f"BlockArray of shape {self.shape} cannot be collapsed to an Array.")
 
 
 # Register BlockArray as a jax pytree, without this, jax autograd won't work.

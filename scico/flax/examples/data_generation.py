@@ -86,7 +86,7 @@ class Foam2(UnitCircle):
                 Default: 10.
         """
         if porosity < 0 or porosity > 1:
-            raise ValueError("Porosity must be in the range [0,1).")
+            raise ValueError("Argument 'porosity' must be in the range [0,1).")
         super().__init__(radius=0.5, material=SimpleMaterial(attn1))  # type: ignore
         self.sprinkle(  # type: ignore
             300, size_range, gap, material=SimpleMaterial(attn2), max_density=porosity / 2.0

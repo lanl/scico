@@ -61,7 +61,7 @@ def center_image(
     is at the spatial center of the image grid.
 
     Args:
-        vol: Array to be centered.
+        v: Array to be centered.
         axes: Array axes on which centering is to be applied. Defaults to
           all axes.
         method: Interpolation method for image translation.
