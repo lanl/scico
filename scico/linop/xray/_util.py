@@ -157,6 +157,21 @@ def image_alignment_rotation(
     Returns:
         Rotation angle (in degrees) providing best alignment with the
         vertical (0) axis.
+
+    Notes:
+        The number number of detector pixels for the 2D X-ray transform
+        is chosen based on the shape :math:`(N_0, N_1)` of :code:`img`
+        and the value :math:`\theta` of parameter :code:`max_angle`, as
+        indicated in Fig. 1.
+
+        .. figure:: /figures/img_align.svg
+           :align: center
+           :width: 40%
+
+           Fig 1. Calculation of the number of detector pixels for the 2D
+           X-ray transform.
+
+
     """
     angles = np.arange(-max_angle, max_angle, angle_step)
     max_angle_rad = max_angle * np.pi / 180
