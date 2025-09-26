@@ -10,7 +10,7 @@ from test_trainer import SetupTest
 
 from flax.traverse_util import flatten_dict
 from scico import flax as sflax
-from scico.flax.train.checkpoints import checkpoint_restore, checkpoint_save
+from scico.flax.train.checkpoints import checkpoint_restore, checkpoint_save, have_orbax
 from scico.flax.train.learning_rate import create_cnst_lr_schedule
 from scico.flax.train.state import create_basic_train_state
 
@@ -20,6 +20,7 @@ def testobj():
     yield SetupTest()
 
 
+@pytest.mark.skipif(not have_orbax, reason="orbax.checkpoint package not installed")
 def test_checkpoint(testobj):
     depth = 3
     model = sflax.DnCNNNet(depth, testobj.chn, testobj.model_conf["num_filters"])
@@ -60,6 +61,7 @@ def test_checkpoint(testobj):
             np.testing.assert_allclose(bstats1[i], bstats2[i], rtol=1e-5)
 
 
+@pytest.mark.skipif(not have_orbax, reason="orbax.checkpoint package not installed")
 @pytest.mark.parametrize("model_cls", [sflax.DnCNNNet, sflax.ResNet])
 def test_checkpointing_from_trainer(testobj, model_cls):
     depth = 3
@@ -109,6 +111,7 @@ def test_checkpointing_from_trainer(testobj, model_cls):
                 np.testing.assert_allclose(bstats1[i], bstats2[i], rtol=1e-5)
 
 
+@pytest.mark.skipif(not have_orbax, reason="orbax.checkpoint package not installed")
 def test_checkpoint_exception(testobj):
     depth = 3
     model = sflax.DnCNNNet(depth, testobj.chn, testobj.model_conf["num_filters"])

@@ -13,7 +13,14 @@ from typing import Union
 
 import jax
 
-import orbax.checkpoint as ocp
+try:
+    import orbax.checkpoint as ocp
+
+    have_orbax = True
+    if not hasattr(ocp, "CheckpointManager"):
+        have_orbax = False
+except ImportError:
+    have_orbax = False
 
 from .state import TrainState
 from .typed_dict import ConfigDict
@@ -41,6 +48,8 @@ def checkpoint_restore(
     Raises:
         FileNotFoundError: If a checkpoint is expected and is not found.
     """
+    if not have_orbax:
+        raise RuntimeError("Package orbax.checkpoint is required for use of this function.")
     # Check if workdir is Path or convert to Path
     workdir_ = workdir
     if isinstance(workdir_, str):
@@ -78,6 +87,8 @@ def checkpoint_save(state: TrainState, config: ConfigDict, workdir: Union[str, P
         config: Python dictionary including model train configuration.
         workdir: Path in which to store checkpoint files.
     """
+    if not have_orbax:
+        raise RuntimeError("Package orbax.checkpoint is required for use of this function.")
     if jax.process_index() == 0:
         options = ocp.CheckpointManagerOptions(max_to_keep=3, create=True)
         mngr = ocp.CheckpointManager(
