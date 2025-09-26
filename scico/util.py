@@ -19,8 +19,6 @@ from timeit import default_timer as timer
 from typing import Any, Callable, Dict, List, Optional, Sequence, Union
 
 import jax
-from jax.interpreters.batching import BatchTracer
-from jax.interpreters.partial_eval import DynamicJaxprTracer
 
 
 def rgetattr(obj: object, name: str, default: Optional[Any] = None) -> Any:
@@ -140,13 +138,9 @@ def check_for_tracer(func: Callable) -> Callable:
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if any([isinstance(x, DynamicJaxprTracer) for x in args]):
+        if any([isinstance(x, jax.core.Tracer) for x in args]):
             raise TypeError(
-                f"DynamicJaxprTracer found in {func.__name__};  did you jit this function?"
-            )
-        if any([isinstance(x, BatchTracer) for x in args]):
-            raise TypeError(
-                f"BatchTracer found in {func.__name__};  did you vmap/pmap this function?"
+                f"JAX tracer found in {func.__name__}; did you jit/vmap/pmap this function?"
             )
         return func(*args, **kwargs)
 
