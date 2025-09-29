@@ -14,6 +14,8 @@ Version 0.0.7   (unreleased)
 • New classes for creating a volume from an image by symmetry, and
   for cone beam X-ray transform of a cylindrically symmetric object
   in module ``linop.xray.symcone``.
+• New utility functions for CT reconstruction preprocessing added in
+  module ``linop.xray``.
 • Moved ``linop.abel`` module to ``linop.xray.abel``.
 • Make ``orbax-checkpoint`` dependency optional due to absence of recent
   conda-forge packages.
