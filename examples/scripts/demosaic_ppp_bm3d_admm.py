@@ -17,6 +17,8 @@ problem.
 import numpy as np
 
 from bm3d import bm3d_rgb
+
+np.float_ = np.float64
 from colour_demosaicing import demosaicing_CFA_Bayer_Menon2007
 
 import scico
