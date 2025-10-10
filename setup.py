@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """SCICO package configuration."""
 
 import importlib.util
@@ -72,7 +69,7 @@ setup(
         "PGM",
     ],
     platforms="Any",
-    license="BSD",
+    license="BSD-3-Clause",
     url="https://github.com/lanl/scico",
     author="SCICO Developers",
     author_email="brendt@ieee.org",  # Temporary
@@ -80,11 +77,9 @@ setup(
     package_data={"scico": ["data/*/*.png", "data/*/*.npz"]},
     include_package_data=True,
     python_requires=python_requires,
-    tests_require=tests_require,
     install_requires=install_requires,
     extras_require=extras_require,
     classifiers=[
-        "License :: OSI Approved :: BSD License",
         "Development Status :: 4 - Beta",
         "Intended Audience :: Education",
         "Intended Audience :: Science/Research",
