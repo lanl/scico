@@ -17,6 +17,15 @@ problem.
 import numpy as np
 
 from bm3d import bm3d_rgb
+
+# Workarounds for colour_demosaicing incompatibility with NumPy 2.x
+np.float_ = np.float64
+np.float = np.float64
+np.complex = np.complex128
+np.sctypes = {
+    "float": [np.float16, np.float32, np.float64, np.longdouble],
+    "int": [np.int8, np.int16, np.int32, np.int64],
+}
 from colour_demosaicing import demosaicing_CFA_Bayer_Menon2007
 
 import scico
