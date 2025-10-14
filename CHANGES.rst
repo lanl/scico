@@ -14,7 +14,11 @@ Version 0.0.7   (unreleased)
 • New classes for creating a volume from an image by symmetry, and
   for cone beam X-ray transform of a cylindrically symmetric object
   in module ``linop.xray.symcone``.
+• New utility functions for CT reconstruction preprocessing added in
+  module ``linop.xray``.
 • Moved ``linop.abel`` module to ``linop.xray.abel``.
+• Make ``orbax-checkpoint`` dependency optional due to absence of recent
+  conda-forge packages.
 • Support ``jaxlib`` and ``jax`` versions 0.4.13 to 0.7.2.
 • Support ``flax`` versions 0.8.0 to 0.11.2.
 

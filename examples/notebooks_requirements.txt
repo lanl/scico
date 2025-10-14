@@ -3,6 +3,7 @@ ipykernel
 ipywidgets
 nbformat
 nbconvert
+nb_conda_kernels<=2.5.1  # 2.5.2 broken: see anaconda/nb_conda_kernels#280
 psutil
 py2jn
 pypandoc
