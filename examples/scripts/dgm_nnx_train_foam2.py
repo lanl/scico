@@ -55,7 +55,7 @@ applies if GPU is not available).
 """
 Read data from specified path.
 """
-npy_train_file = ".cache/scico/examples/data/foam2_2400x64x64.npy"
+npy_train_file = "~/.cache/scico/examples/data/foam2_2400x64x64.npy"
 dt_in = np.load(npy_train_file)
 print("Read data shape: ", dt_in.shape)
 
@@ -64,7 +64,7 @@ Augment given data by reflection transformations.
 """
 data_all = np.vstack([dt_in, dt_in[:, ::-1, ...], dt_in[..., ::-1, :]])
 print("Augmented data shape: ", data_all.shape)
-init_sample = np.array(data_all)
+init_sample = np.array(data_all[:80])
 # Shift range to [-1, 1]
 init_sample = init_sample * 2.0 - 1.0
 
@@ -105,17 +105,19 @@ print(f"JAX local devices: {jax.local_devices()}\n")
 """
 Construct diffusion model.
 """
-size = train_ds["image"].shape[1]
+shape = train_ds["image"].shape[1:-1]
 channels = train_ds["image"].shape[-1]
 
 model = ConditionalUNet(
-    dim=size,
+    shape=shape,
     channels=channels,
+    init_channels=train_ds["image"].shape[1],
     dim_mults=(
-        1,
+        1.5,
         2,
-        4,
+        2.5,
     ),
+    kernel_size=(5, 5),
     rngs=nnx.Rngs(train_conf["seed"])
 )
 
@@ -125,7 +127,7 @@ model = ConditionalUNet(
 
 stddev_prior = 6.9
 
-workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "diff_out")
+workdir = os.path.join(os.path.expanduser("~"), ".cache", "scico", "examples", "diff_nnx_out")
 train_conf["workdir"] = workdir
 train_conf["create_train_state"] = create_train_state
 train_conf["train_step_fn"] = partial(train_step_diffusion, stddev_prior=stddev_prior)
@@ -163,7 +165,7 @@ Save model.
 """
 save_model(model, workdir)
 # to load:
-# model = load_model(workdir, model)
+#model = load_model(workdir, model)
 
 """
 Evaluate trained model in terms of reconstruction time
@@ -182,7 +184,7 @@ Plot samples.
 from numpy import einsum
 import numpy as np
 
-sample_ = einsum("ikjl", np.asarray(sample).reshape(h, w, size, size)).reshape(size * h, size * w)
+sample_ = einsum("ikjl", np.asarray(sample).reshape(h, w, shape[0], shape[1])).reshape(shape[0] * h, shape[1] * w)
 fig, ax = plot.subplots(nrows=1, ncols=1, figsize=(7, 7))
 plot.imview(sample_, title="Samples", cbar=None, fig=fig, ax=ax)
 fig.show()

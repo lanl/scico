@@ -14,7 +14,7 @@ import warnings
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
 import math
-from typing import Callable, Optional
+from typing import Callable, Optional, Tuple
 
 import jax
 import jax.numpy as jnp
@@ -102,27 +102,35 @@ class Residual(nnx.Module):
 class Upsample(nnx.Module):
     """Define upsample Flax block."""
     
-    def __init__(self, dim: int, dim_out: Optional[int] = None, factor: int = 2, method: str = "bilinear", rngs: nnx.Rngs = nnx.Rngs(0)):
+    def __init__(self, ftrs: int, ftrs_out: Optional[int] = None, factor: float = 2, shp_out: Optional[Tuple[int, int]] = None, method: str = "bilinear", rngs: nnx.Rngs = nnx.Rngs(0)):
         """Initialize upsample Flax block.
 
         Args:
-            dim: Dimension to upsample to.
-            dim_out: Optional dimension to upsample to.
-            factor: Factor to use in upsample.
-            method: Method for upsampling. Could be: nearest, linear, bilinear, trilinear
-                triangle, cubic, bicubic, tricubic, lanczos3, lanczos5.
+            ftrs: Number of features (a.k.a. channels).
+            ftrs_out: Optional number of output features (a.k.a. channels).
+            factor: Factor to use in the spatial upsample.
+            shp_out: Shape of output signal. If given, it is prioritized over 
+                the factor argument.
+            method: Method for upsampling. Options (strings): nearest, linear, bilinear, 
+                trilinear, triangle, cubic, bicubic, tricubic, lanczos3, lanczos5.
             rngs: Random generation key.
         """
 
         super().__init__()
         self.factor = factor
+        self.shp_out = shp_out
         self.method = method
-        self.out_ = nnx.Conv(dim, default(dim_out, dim), kernel_size=(3, 3), padding=1, rngs=rngs)
+        self.out_ = nnx.Conv(ftrs, default(ftrs_out, ftrs), kernel_size=(3, 3), padding=1, rngs=rngs)
 
     def __call__(self, x: ArrayLike) -> ArrayLike:
         """Apply upsample."""
         B, H, W, C = x.shape
-        out = jax.image.resize(x, shape=(B, H * self.factor, W * self.factor, C), method=self.method)
+        if self.shp_out is not None:
+            hnew, wnew = self.shp_out
+        else:
+            hnew = int(H * self.factor)
+            wnew = int(W * self.factor)
+        out = jax.image.resize(x, shape=(B, hnew, wnew, C), method=self.method)
         out = self.out_(out)
         return out
 
@@ -130,45 +138,56 @@ class Upsample(nnx.Module):
 class Downsample(nnx.Module):
     """Define downsample Flax block."""
 
-    def __init__(self, dim: int, dim_out: Optional[int] = None, factor: int = 2, rngs: nnx.Rngs = nnx.Rngs(0)):
+    def __init__(self, ftrs: int, ftrs_out: Optional[int] = None, factor: float = 2, shp_out: Optional[Tuple[int, int]] = None, method = "bilinear", rngs: nnx.Rngs = nnx.Rngs(0)):
         """Initialize downsample Flax block.
 
         Args:
-            dim: Dimension to downsample to.
-            dim_out: Optional dimension to downsample to.
-            factor: Factor to use in downsample.
+            ftrs: Number of features (a.k.a. channels).
+            ftrs_out: Optional number of output features (a.k.a. channels).
+            factor: Factor to use in the spatial downsample.
+            shp_out: Shape of output signal. If given, it is prioritized over 
+                the factor argument.
+            method: Method for downsampling. Options (strings): nearest, linear, bilinear, 
+                trilinear, triangle, cubic, bicubic, tricubic, lanczos3, lanczos5.
             rngs: Random generation key.
         """
 
         super().__init__()
         self.factor = factor
-        self.out_ = nnx.Conv(dim * 4, default(dim_out, dim), kernel_size=(1, 1), rngs=rngs)
+        self.shp_out = shp_out
+        self.method = method
+        in_features = int(ftrs * factor * factor)
+        self.out_ = nnx.Conv(in_features, default(ftrs_out, ftrs), kernel_size=(1, 1), rngs=rngs)
 
     def __call__(self, x):
         """Apply downsample."""
-        #out = Rearrange("b (h p1) (w p2) c -> b h w (c p1 p2)", {"p1": self.factor, "p2": self.factor})(x)
         B, H, W, C = x.shape
-        hnew = H // self.factor
-        wnew = W // self.factor
-        cnew = C * self.factor * self.factor
-        out = jax.image.resize(x, shape=(B, hnew, wnew, cnew), method="bilinear")
+        if self.shp_out is not None:
+            hnew, wnew = self.shp_out
+        else:
+            hnew = int(H // self.factor)
+            wnew = int(W // self.factor)
+        cnew = int(C * self.factor * self.factor)
+        out = jax.image.resize(x, shape=(B, hnew, wnew, cnew), method=self.method)
         return self.out_(out)
 
 
 class ConvGroupNBlock(nnx.Module):
     """Define group normalization for convolution layer."""
-    def __init__(self, dim: int, dim_out: int, groups: int = 8, act: Callable[..., ArrayLike] = nnx.silu, rngs: nnx.Rngs = nnx.Rngs(0),):
+    def __init__(self, dim: int, dim_out: int, groups: int = 8, kernel_size: Tuple[int, int] = (3, 3), act: Callable[..., ArrayLike] = nnx.silu, rngs: nnx.Rngs = nnx.Rngs(0),):
         """Initialize group normalization for convolution block.
 
         Args:
             dim: Dimensionality of input signal.
             dim_out: Dimensionality of output signal.
             groups: Number of groups.
+            kernel_size: Size of convolutional filter.
             act: Activation function.
             rngs: Random generation key.
         """
         super().__init__()
-        self.proj = nnx.Conv(dim, dim_out, kernel_size=(3, 3), padding=1, rngs=rngs)
+        padding = int(kernel_size[0] // 2)
+        self.proj = nnx.Conv(dim, dim_out, kernel_size=kernel_size, padding=padding, rngs=rngs)
         self.norm = nnx.GroupNorm(num_features=dim_out, num_groups=groups, rngs=rngs)
         self.act = act
 
@@ -183,20 +202,10 @@ class ConvGroupNBlock(nnx.Module):
         x = self.act(x)
         return x
 
-
-class IdentityLayer(nnx.Module):
-    """Class to apply an identity transform."""
-    def __init__(self,):
-        """Initialize identity."""
-        super().__init__()
-    def __call__(self, x: ArrayLike) -> ArrayLike:
-        return x
-
-
 # https://arxiv.org/abs/1512.03385
 class ResnetBlock(nnx.Module):
     """Define resnet block."""
-    def __init__(self, dim: int, dim_out: int, time_emb_dim: Optional[int] = None, groups: int = 8, rngs: nnx.Rngs = nnx.Rngs(0),):
+    def __init__(self, dim: int, dim_out: int, time_emb_dim: Optional[int] = None, groups: int = 8, kernel_size: Tuple[int, int] = (3, 3), act: Callable[..., ArrayLike] = nnx.silu, rngs: nnx.Rngs = nnx.Rngs(0),):
         """Initialize resnet block.
 
         Args:
@@ -204,15 +213,17 @@ class ResnetBlock(nnx.Module):
             dim_out: Dimensionality of output signal.
             time_emb_dim: Dimensionality of time embedding.
             groups: Number of groups.
+            kernel_size: Size of convolutional filter.
+            act: Activation function.            
             rngs: Random generation key.
         """
         super().__init__()
         
         self.mlp = nnx.Sequential(*[nnx.silu, nnx.Linear(time_emb_dim, dim_out * 2,        rngs=rngs)]) if exists(time_emb_dim) else None
             
-        self.block1 = ConvGroupNBlock(dim, dim_out, groups=groups, rngs=rngs)
-        self.block2 = ConvGroupNBlock(dim_out, dim_out, groups=groups, rngs=rngs)
-        self.res_conv = nnx.Conv(dim, dim_out, kernel_size=(1, 1), rngs=rngs) if dim != dim_out else IdentityLayer()
+        self.block1 = ConvGroupNBlock(dim, dim_out, groups=groups, kernel_size=kernel_size, act=act, rngs=rngs)
+        self.block2 = ConvGroupNBlock(dim_out, dim_out, groups=groups, kernel_size=kernel_size, act=act, rngs=rngs)
+        self.res_conv = nnx.Conv(dim, dim_out, kernel_size=(1, 1), rngs=rngs) if dim != dim_out else nnx.nn.activations.identity
         
     def __call__(self, x: ArrayLike, time_emb=None) -> ArrayLike:
         """Apply block."""
@@ -284,9 +295,9 @@ class LinearAttention(nnx.Module):
     def __call__(self, x: ArrayLike) -> ArrayLike:
         """Apply linear attention block."""
         
-        b, h, w, c = x.shape  # channel last in flax
+        b, h, w, c = x.shape  # channel last in Flax
         qkv = self.qkv_(x)
-        qkv = jnp.split(qkv, 3, axis=-1)  # channel last in flax
+        qkv = jnp.split(qkv, 3, axis=-1)  # channel last in Flax
         q, k, v = map(lambda t: rearrange(t, "b x y (h c)  -> b (x y) h c", h=self.heads), qkv)
         q = nnx.softmax(q, axis=-2)
         k = nnx.softmax(k, axis=-1)

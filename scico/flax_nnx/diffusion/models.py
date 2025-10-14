@@ -32,27 +32,26 @@ from scico.flax.diffusion.helpers import default
 
 class ConditionalUNet(nnx.Module):
     """Define Flax conditional U-Net model."""
-    def __init__(self, dim: int, init_dim: Optional[int] = None, out_dim: Optional[int] = None,
-                 dim_mults: Tuple[int, ...] = (1, 2, 4, 8), channels: int = 3,
+    def __init__(self, shape: Tuple[int, int], channels: int = 3, init_channels: Optional[int] = None,
+                 out_channels: Optional[int] = None,
+                 dim_mults: Tuple[int, ...] = (1, 2, 4, 8),
                  self_condition: bool = False, resnet_block_groups: int = 4,
-                 kernel_size: Tuple[int, int] = (7, 7), padding: int = 3,
+                 kernel_size: Tuple[int, int] = (7, 7),
                  time_embed: bool = True, dtype: Any = jnp.float32,
                  rngs: nnx.Rngs = nnx.Rngs(0)):
         """Initialize Flax conditional U-Net model.
 
         Args:
-            dim: Dimension of signal.
-            init_dim: Optional dimension of first convolution layer.
-            out_dim: Optional dimension of output convolution layer.
-            dim_mults: Dimension multipliers at each level of the Unet.
+            shape: Shape of signal.
             channels: Number of channels of signal to process.
+            init_channels: Optional features (a.k.a. output channels) of first convolution layer.
+            out_channels: Optional features (a.k.a. output channels) of output convolution layer.
+            dim_mults: Dimension multipliers at each level of the Unet.
             self_condition: Flag to include additional processing channel
                 if building conditional model.
             resnet_block_groups: Number of groups in the residual network
                 blocks.
             kernel_size: A shape tuple defining the size of the
-                convolution filters.
-            padding: An integer defining the size of the padding for the
                 convolution filters.
             time_embed: Flag to indicate that the model uses a time embedding
                 component. This is used when initializing model parameters
@@ -66,22 +65,25 @@ class ConditionalUNet(nnx.Module):
         self.dtype = dtype
         self.time_embed = time_embed
 
-        # determine dimensions
+        # Determine feature dimensions.
         self.channels = channels
         self.self_condition = self_condition
         input_channels = channels * (2 if self_condition else 1)
 
-        init_dim = default(init_dim, dim)
-        self.init_conv = nnx.Conv(input_channels, init_dim, kernel_size=(1, 1), padding=0, rngs=rngs)
+        init_channels = default(init_channels, channels)
+        self.init_conv = nnx.Conv(input_channels, init_channels, kernel_size=(1, 1), padding=0, rngs=rngs)
+        
+        self.dim_mults = dim_mults
 
-        dims = [init_dim, *map(lambda m: dim * m, dim_mults)]
-        print(f"dims: {dims}")
-        in_out = list(zip(dims[:-1], dims[1:]))
-        print(f"in_out: {in_out}")
+        features = [init_channels, *map(lambda m: int(init_channels * m), self.dim_mults)]
+        in_out_f = list(zip(features[:-1], features[1:]))
+        
+        padding = int(kernel_size[0] // 2) # padding for the convolution filters
 
-        block_klass = partial(ResnetBlock, groups=resnet_block_groups)
+        block_klass = partial(ResnetBlock, groups=resnet_block_groups, kernel_size=kernel_size)
 
-        # time embeddings
+        # Define time embeddings.
+        dim = max(shape)
         time_dim = dim * 4
 
         self.time_mlp = nnx.Sequential(
@@ -93,47 +95,45 @@ class ConditionalUNet(nnx.Module):
             ]
         )
         
-        # layers
+        # Define layer storage.
         downs = []
         ups = []
-        num_resolutions = len(in_out)
+        num_resolutions = len(in_out_f)
+        shps = [shape]
 
-        # Configure down path of Unet
-        for ind, (dim_in, dim_out) in enumerate(in_out):
-            is_last = ind >= (num_resolutions - 1)
-
+        # Configure down path of Unet.
+        for ind, (feat_in, feat_out) in enumerate(in_out_f):
+            shps.append((int(shape[0] // self.dim_mults[ind]), int(shape[1] // self.dim_mults[ind])))
+            
             downs.append(
                 [
-                    block_klass(dim_in, dim_in, time_emb_dim=time_dim, rngs=rngs),
-                    block_klass(dim_in, dim_in, time_emb_dim=time_dim, rngs=rngs),
-                    Residual(PreNorm(dim_in, LinearAttention(dim_in, rngs=rngs), rngs=rngs)),
+                    block_klass(feat_in, feat_in, time_emb_dim=time_dim, rngs=rngs),
+                    block_klass(feat_in, feat_in, time_emb_dim=time_dim, rngs=rngs),
+                    Residual(PreNorm(feat_in, LinearAttention(feat_in, rngs=rngs), rngs=rngs)),
                     (
-                        Downsample(dim_in, dim_out, rngs=rngs)
-                        if not is_last
-                        else nnx.Conv(dim_in, dim_out, kernel_size=(3, 3), padding=1, rngs=rngs)
+                        Downsample(feat_in, feat_out, factor=self.dim_mults[ind], shp_out=shps[-1], rngs=rngs)
                     ),
                 ]
             )
+            
 
-        # Configure bottleneck of Unet
-        mid_dim = dims[-1]
-        self.mid_block1 = block_klass(mid_dim, mid_dim, time_emb_dim=time_dim, rngs=rngs)
-        self.mid_attn = Residual(PreNorm(mid_dim, Attention(mid_dim, rngs=rngs), rngs=rngs))
-        self.mid_block2 = block_klass(mid_dim, mid_dim, time_emb_dim=time_dim, rngs=rngs)
-
-        # Configure up path of Unet
-        for ind, (dim_in, dim_out) in enumerate(reversed(in_out)):
-            is_last = ind == (len(in_out) - 1)
+        shps = shps[:-1]
+        # Configure bottleneck of Unet.
+        mid_feat = features[-1]
+        self.mid_block1 = block_klass(mid_feat, mid_feat, time_emb_dim=time_dim, rngs=rngs)
+        self.mid_attn = Residual(PreNorm(mid_feat, Attention(mid_feat, rngs=rngs), rngs=rngs))
+        self.mid_block2 = block_klass(mid_feat, mid_feat, time_emb_dim=time_dim, rngs=rngs)
+        
+        # Configure up path of Unet.
+        for ind, (feat_in, feat_out) in enumerate(reversed(in_out_f)):
 
             ups.append(
                 [
-                    block_klass(dim_out + dim_in, dim_out, time_emb_dim=time_dim, rngs=rngs),
-                    block_klass(dim_out + dim_in, dim_out, time_emb_dim=time_dim, rngs=rngs),
-                    Residual(PreNorm(dim_out, LinearAttention(dim_out, rngs=rngs), rngs=rngs)),
+                    block_klass(2*feat_in, feat_in, time_emb_dim=time_dim, rngs=rngs),
+                    block_klass(2*feat_in, feat_in, time_emb_dim=time_dim, rngs=rngs),
+                    Residual(PreNorm(feat_in, LinearAttention(feat_in, rngs=rngs), rngs=rngs)),
                     (
-                        Upsample(dim_out, dim_in, rngs=rngs)
-                        if not is_last
-                        else nnx.Conv(dim_out, dim_in, kernel_size=(3, 3), padding=1, rngs=rngs)
+                        Upsample(feat_out, feat_in, factor=self.dim_mults[-(ind+1)], shp_out=shps[-(ind+1)], rngs=rngs)
                     ),
                 ]
             )
@@ -141,10 +141,10 @@ class ConditionalUNet(nnx.Module):
         self.downs = downs
         self.ups = ups
 
-        self.out_dim = default(out_dim, channels)
+        self.out_channels = default(out_channels, channels)
 
         self.final_res_block = block_klass(dim * 2, dim, time_emb_dim=time_dim, rngs=rngs)
-        self.final_conv = nnx.Conv(dim, self.out_dim, kernel_size=(1, 1), rngs=rngs)
+        self.final_conv = nnx.Conv(dim, self.out_channels, kernel_size=(1, 1), rngs=rngs)
 
 
     def __call__(self, x: ArrayLike, time: ArrayLike, x_self_cond: ArrayLike = None) -> ArrayLike:
@@ -178,29 +178,21 @@ class ConditionalUNet(nnx.Module):
             x = attn(x)
             h.append(x)
 
-            print(f"Shape before downsampling: {x.shape}")
             x = downsample(x)
-            print(f"Shape after downsampling: {x.shape}")
-
-        print("Shapes stored in h")
-        for hi in h:
-            print(f"{hi.shape}")
-            
+                    
         x = self.mid_block1(x, t)
         x = self.mid_attn(x)
         x = self.mid_block2(x, t)
-
+        
         for block1, block2, attn, upsample in self.ups:
+        
+            x = upsample(x)
             x = jnp.concatenate([x, h.pop()], axis=-1)
             x = block1(x, t)
 
             x = jnp.concatenate([x, h.pop()], axis=-1)
             x = block2(x, t)
             x = attn(x)
-
-            print(f"Shape before upsampling: {x.shape}")
-            x = upsample(x)
-            print(f"Shape after upsampling: {x.shape}")
 
         x = jnp.concatenate([x, r], axis=-1)
 
