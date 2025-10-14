@@ -118,12 +118,12 @@ model = ConditionalUNet(
         2.5,
     ),
     kernel_size=(5, 5),
-    rngs=nnx.Rngs(train_conf["seed"])
+    rngs=nnx.Rngs(train_conf["seed"]),
 )
 
-#print("Model defined")
-#print(model)
-#nnx.display(model)
+# print("Model defined")
+# print(model)
+# nnx.display(model)
 
 stddev_prior = 6.9
 
@@ -165,7 +165,7 @@ Save model.
 """
 save_model(model, workdir)
 # to load:
-#model = load_model(workdir, model)
+# model = load_model(workdir, model)
 
 """
 Evaluate trained model in terms of reconstruction time
@@ -184,7 +184,9 @@ Plot samples.
 from numpy import einsum
 import numpy as np
 
-sample_ = einsum("ikjl", np.asarray(sample).reshape(h, w, shape[0], shape[1])).reshape(shape[0] * h, shape[1] * w)
+sample_ = einsum("ikjl", np.asarray(sample).reshape(h, w, shape[0], shape[1])).reshape(
+    shape[0] * h, shape[1] * w
+)
 fig, ax = plot.subplots(nrows=1, ncols=1, figsize=(7, 7))
 plot.imview(sample_, title="Samples", cbar=None, fig=fig, ax=ax)
 fig.show()
