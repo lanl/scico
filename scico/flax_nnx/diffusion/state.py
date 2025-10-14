@@ -7,10 +7,9 @@
 
 """Configuration of diffusion model Flax Train State."""
 
-from typing import Any, Optional, Tuple, Union
+from typing import Any, Optional, Union
 
 import jax
-import jax.numpy as jnp
 
 import optax
 
@@ -55,11 +54,11 @@ def create_train_state(
     batch_stats = None
     model.train()
     graphdef, params = nnx.split(model, nnx.Param)
-    #graphdef, params, batch_stats = nnx.split(node, nnx.Param, nnx.BatchStat)
+    # graphdef, params, batch_stats = nnx.split(node, nnx.Param, nnx.BatchStat)
     if variables0 is None:
-        #if isinstance(aux, tuple):
+        # if isinstance(aux, tuple):
         #    params, batch_stats = aux
-        #else:
+        # else:
         #    params = aux
         if isinstance(params, tuple):
             params, batch_stats = params

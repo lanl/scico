@@ -21,7 +21,6 @@ import jax.numpy as jnp
 from jax.typing import ArrayLike
 
 from einops import rearrange
-from einops.layers.flax import Rearrange
 
 from flax import nnx
 from flax.core import Scope  # noqa
@@ -56,6 +55,7 @@ def get_timestep_embedding(timesteps: ArrayLike, embedding_dim: int = 128):
 
 class SinusoidalPositionEmbeddings(nnx.Module):
     """Define sinusoidal positional embeddings class."""
+
     def __init__(self, dim: int):
         """Initialize sinusoidal position embeddings class.
 
@@ -77,8 +77,8 @@ class SinusoidalPositionEmbeddings(nnx.Module):
 
 
 class Residual(nnx.Module):
-    """Define residual block.
-    """
+    """Define residual block."""
+
     def __init__(self, fn: Callable):
         """Initialize residual block.
 
@@ -101,17 +101,25 @@ class Residual(nnx.Module):
 
 class Upsample(nnx.Module):
     """Define upsample Flax block."""
-    
-    def __init__(self, ftrs: int, ftrs_out: Optional[int] = None, factor: float = 2, shp_out: Optional[Tuple[int, int]] = None, method: str = "bilinear", rngs: nnx.Rngs = nnx.Rngs(0)):
+
+    def __init__(
+        self,
+        ftrs: int,
+        ftrs_out: Optional[int] = None,
+        factor: float = 2,
+        shp_out: Optional[Tuple[int, int]] = None,
+        method: str = "bilinear",
+        rngs: nnx.Rngs = nnx.Rngs(0),
+    ):
         """Initialize upsample Flax block.
 
         Args:
             ftrs: Number of features (a.k.a. channels).
             ftrs_out: Optional number of output features (a.k.a. channels).
             factor: Factor to use in the spatial upsample.
-            shp_out: Shape of output signal. If given, it is prioritized over 
+            shp_out: Shape of output signal. If given, it is prioritized over
                 the factor argument.
-            method: Method for upsampling. Options (strings): nearest, linear, bilinear, 
+            method: Method for upsampling. Options (strings): nearest, linear, bilinear,
                 trilinear, triangle, cubic, bicubic, tricubic, lanczos3, lanczos5.
             rngs: Random generation key.
         """
@@ -120,7 +128,9 @@ class Upsample(nnx.Module):
         self.factor = factor
         self.shp_out = shp_out
         self.method = method
-        self.out_ = nnx.Conv(ftrs, default(ftrs_out, ftrs), kernel_size=(3, 3), padding=1, rngs=rngs)
+        self.out_ = nnx.Conv(
+            ftrs, default(ftrs_out, ftrs), kernel_size=(3, 3), padding=1, rngs=rngs
+        )
 
     def __call__(self, x: ArrayLike) -> ArrayLike:
         """Apply upsample."""
@@ -138,16 +148,24 @@ class Upsample(nnx.Module):
 class Downsample(nnx.Module):
     """Define downsample Flax block."""
 
-    def __init__(self, ftrs: int, ftrs_out: Optional[int] = None, factor: float = 2, shp_out: Optional[Tuple[int, int]] = None, method = "bilinear", rngs: nnx.Rngs = nnx.Rngs(0)):
+    def __init__(
+        self,
+        ftrs: int,
+        ftrs_out: Optional[int] = None,
+        factor: float = 2,
+        shp_out: Optional[Tuple[int, int]] = None,
+        method="bilinear",
+        rngs: nnx.Rngs = nnx.Rngs(0),
+    ):
         """Initialize downsample Flax block.
 
         Args:
             ftrs: Number of features (a.k.a. channels).
             ftrs_out: Optional number of output features (a.k.a. channels).
             factor: Factor to use in the spatial downsample.
-            shp_out: Shape of output signal. If given, it is prioritized over 
+            shp_out: Shape of output signal. If given, it is prioritized over
                 the factor argument.
-            method: Method for downsampling. Options (strings): nearest, linear, bilinear, 
+            method: Method for downsampling. Options (strings): nearest, linear, bilinear,
                 trilinear, triangle, cubic, bicubic, tricubic, lanczos3, lanczos5.
             rngs: Random generation key.
         """
@@ -174,7 +192,16 @@ class Downsample(nnx.Module):
 
 class ConvGroupNBlock(nnx.Module):
     """Define group normalization for convolution layer."""
-    def __init__(self, dim: int, dim_out: int, groups: int = 8, kernel_size: Tuple[int, int] = (3, 3), act: Callable[..., ArrayLike] = nnx.silu, rngs: nnx.Rngs = nnx.Rngs(0),):
+
+    def __init__(
+        self,
+        dim: int,
+        dim_out: int,
+        groups: int = 8,
+        kernel_size: Tuple[int, int] = (3, 3),
+        act: Callable[..., ArrayLike] = nnx.silu,
+        rngs: nnx.Rngs = nnx.Rngs(0),
+    ):
         """Initialize group normalization for convolution block.
 
         Args:
@@ -202,10 +229,21 @@ class ConvGroupNBlock(nnx.Module):
         x = self.act(x)
         return x
 
+
 # https://arxiv.org/abs/1512.03385
 class ResnetBlock(nnx.Module):
     """Define resnet block."""
-    def __init__(self, dim: int, dim_out: int, time_emb_dim: Optional[int] = None, groups: int = 8, kernel_size: Tuple[int, int] = (3, 3), act: Callable[..., ArrayLike] = nnx.silu, rngs: nnx.Rngs = nnx.Rngs(0),):
+
+    def __init__(
+        self,
+        dim: int,
+        dim_out: int,
+        time_emb_dim: Optional[int] = None,
+        groups: int = 8,
+        kernel_size: Tuple[int, int] = (3, 3),
+        act: Callable[..., ArrayLike] = nnx.silu,
+        rngs: nnx.Rngs = nnx.Rngs(0),
+    ):
         """Initialize resnet block.
 
         Args:
@@ -214,17 +252,29 @@ class ResnetBlock(nnx.Module):
             time_emb_dim: Dimensionality of time embedding.
             groups: Number of groups.
             kernel_size: Size of convolutional filter.
-            act: Activation function.            
+            act: Activation function.
             rngs: Random generation key.
         """
         super().__init__()
-        
-        self.mlp = nnx.Sequential(*[nnx.silu, nnx.Linear(time_emb_dim, dim_out * 2,        rngs=rngs)]) if exists(time_emb_dim) else None
-            
-        self.block1 = ConvGroupNBlock(dim, dim_out, groups=groups, kernel_size=kernel_size, act=act, rngs=rngs)
-        self.block2 = ConvGroupNBlock(dim_out, dim_out, groups=groups, kernel_size=kernel_size, act=act, rngs=rngs)
-        self.res_conv = nnx.Conv(dim, dim_out, kernel_size=(1, 1), rngs=rngs) if dim != dim_out else nnx.nn.activations.identity
-        
+
+        self.mlp = (
+            nnx.Sequential(*[nnx.silu, nnx.Linear(time_emb_dim, dim_out * 2, rngs=rngs)])
+            if exists(time_emb_dim)
+            else None
+        )
+
+        self.block1 = ConvGroupNBlock(
+            dim, dim_out, groups=groups, kernel_size=kernel_size, act=act, rngs=rngs
+        )
+        self.block2 = ConvGroupNBlock(
+            dim_out, dim_out, groups=groups, kernel_size=kernel_size, act=act, rngs=rngs
+        )
+        self.res_conv = (
+            nnx.Conv(dim, dim_out, kernel_size=(1, 1), rngs=rngs)
+            if dim != dim_out
+            else nnx.nn.activations.identity
+        )
+
     def __call__(self, x: ArrayLike, time_emb=None) -> ArrayLike:
         """Apply block."""
         scale_shift = None
@@ -240,7 +290,14 @@ class ResnetBlock(nnx.Module):
 
 class Attention(nnx.Module):
     """Define attention block."""
-    def __init__(self, dim: int, heads: int = 4, dim_head: int = 32, rngs: nnx.Rngs = nnx.Rngs(0),):
+
+    def __init__(
+        self,
+        dim: int,
+        heads: int = 4,
+        dim_head: int = 32,
+        rngs: nnx.Rngs = nnx.Rngs(0),
+    ):
         """Initialize attention block.
 
         Args:
@@ -253,10 +310,10 @@ class Attention(nnx.Module):
         self.scale = dim_head**-0.5
         self.heads = heads
         hidden_dim = dim_head * self.heads
-        
+
         self.qkv_ = nnx.Conv(dim, hidden_dim * 3, kernel_size=(1, 1), use_bias=False, rngs=rngs)
         self.out_ = nnx.Conv(hidden_dim, dim, kernel_size=(1, 1), rngs=rngs)
-        
+
     def __call__(self, x: ArrayLike) -> ArrayLike:
         """Apply attention block."""
         b, h, w, c = x.shape  # channel last in flax
@@ -275,7 +332,14 @@ class Attention(nnx.Module):
 
 class LinearAttention(nnx.Module):
     """Define linear attention block."""
-    def __init__(self, dim: int, heads: int = 4, dim_head: int = 32, rngs: nnx.Rngs = nnx.Rngs(0),):
+
+    def __init__(
+        self,
+        dim: int,
+        heads: int = 4,
+        dim_head: int = 32,
+        rngs: nnx.Rngs = nnx.Rngs(0),
+    ):
         """Initialize linear attention block.
 
         Args:
@@ -288,13 +352,18 @@ class LinearAttention(nnx.Module):
         self.scale = dim_head**-0.5
         self.heads = heads
         hidden_dim = dim_head * self.heads
- 
+
         self.qkv_ = nnx.Conv(dim, hidden_dim * 3, kernel_size=(1, 1), use_bias=False, rngs=rngs)
-        self.out_ = nnx.Sequential(*[nnx.Conv(hidden_dim, dim, kernel_size=(1, 1), rngs=rngs), nnx.GroupNorm(num_features=dim, num_groups=1, rngs=rngs)])
-        
+        self.out_ = nnx.Sequential(
+            *[
+                nnx.Conv(hidden_dim, dim, kernel_size=(1, 1), rngs=rngs),
+                nnx.GroupNorm(num_features=dim, num_groups=1, rngs=rngs),
+            ]
+        )
+
     def __call__(self, x: ArrayLike) -> ArrayLike:
         """Apply linear attention block."""
-        
+
         b, h, w, c = x.shape  # channel last in Flax
         qkv = self.qkv_(x)
         qkv = jnp.split(qkv, 3, axis=-1)  # channel last in Flax
@@ -312,6 +381,7 @@ class LinearAttention(nnx.Module):
 
 class PreNorm(nnx.Module):
     """Define pre-normalization block."""
+
     def __init__(self, dim: int, fn: Callable, rngs: nnx.Rngs = nnx.Rngs(0)):
         """Initialize pre-normalization block.
 

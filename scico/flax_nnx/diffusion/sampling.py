@@ -14,8 +14,6 @@ import jax
 import jax.numpy as jnp
 from jax.typing import ArrayLike
 
-from flax import jax_utils
-
 PyTree = Any
 
 
@@ -60,7 +58,7 @@ def Euler_Maruyama_sampler(
         Samples.
     """
     score_model.eval()
-    
+
     time_shape = (jax.local_device_count(), batch_size // jax.local_device_count(), 1)
     sample_shape = (jax.local_device_count(), batch_size // jax.local_device_count(), *xshape)
     x_tot = jnp.zeros(

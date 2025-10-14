@@ -7,10 +7,12 @@
 
 """Utilities for loading and saving Flax models under NNX interface."""
 
+from typing import Callable
+
 import orbax.checkpoint as orbax
 
-from typing import Callable
 from flax import nnx
+
 
 def save_model(model: Callable, path: str):
     """Save Flax NNX model.
