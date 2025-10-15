@@ -26,9 +26,8 @@ from flax import nnx
 from flax.core import Scope  # noqa
 from scico.flax.diffusion.helpers import default, exists
 
-# The imports of Scope and _Sentinel (above) are required to silence
-# "cannot resolve forward reference" warnings when building sphinx api
-# docs.
+# The import of Scope above is required to silence "cannot resolve
+# forward reference" warnings when building sphinx api docs.
 
 
 def get_timestep_embedding(timesteps: ArrayLike, embedding_dim: int = 128):
