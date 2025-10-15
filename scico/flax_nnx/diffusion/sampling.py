@@ -5,8 +5,7 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Definition of functions to generate new samples from
-diffusion models."""
+"""Definition of functions to generate new samples from diffusion models."""
 
 from typing import Any, Callable, Tuple
 
