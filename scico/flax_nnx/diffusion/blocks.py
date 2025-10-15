@@ -229,9 +229,8 @@ class ConvGroupNBlock(nnx.Module):
         return x
 
 
-# https://arxiv.org/abs/1512.03385
 class ResnetBlock(nnx.Module):
-    """Define resnet block."""
+    """Define ResNet :cite:`he-2016-deep` block."""
 
     def __init__(
         self,
@@ -243,7 +242,7 @@ class ResnetBlock(nnx.Module):
         act: Callable[..., ArrayLike] = nnx.silu,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
-        """Initialize resnet block.
+        """Initialize ResNet block.
 
         Args:
             dim: Dimensionality of input signal.
