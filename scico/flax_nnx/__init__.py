@@ -4,3 +4,5 @@
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
+
+"""Neural network models implemented with Flax NNX."""
