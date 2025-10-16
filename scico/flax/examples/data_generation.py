@@ -222,6 +222,10 @@ def generate_ct_data(
     img = jnp.clip(img, 0, 1)
 
     nproc = jax.device_count()
+    if img.shape[0] % nproc > 0:
+        # Decrease nimg to be a multiple of nproc if it isn't already
+        nimg = (img.shape[0] // nproc) * nproc
+        img = img[:nimg]
 
     # Configure a CT projection operator to generate synthetic measurements.
     angles = np.linspace(0, jnp.pi, nproj)  # evenly spaced projection angles
@@ -303,7 +307,12 @@ def generate_blur_data(
 
     # Clip to [0,1] range.
     img = jnp.clip(img, 0, 1)
+    
     nproc = jax.device_count()
+    if img.shape[0] % nproc > 0:
+        # Decrease nimg to be a multiple of nproc if it isn't already
+        nimg = (img.shape[0] // nproc) * nproc
+        img = img[:nimg]
 
     # Configure blur operator
     ishape = (size, size)
