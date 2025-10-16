@@ -33,14 +33,17 @@ p_score_fn = jax.pmap(score_fn, static_broadcasted_argnums=(0,))
 
 def Euler_Maruyama_sampler(
     key: ArrayLike,
-    score_model: Callable,
+    score_model: flax.nnx.Module,
     stddev_prior: float,
     xshape: Tuple[int],
     num_steps: int,
     batch_size: int,
     eps: float = 1e-3,
 ):
-    """Generate samples from score-based models with the Euler-Maruyama solver.
+    """Euler-Maruyama sampling.
+
+    Generate samples from score-based models with the Euler-Maruyama
+    sampler.
 
     Args:
         key: A JAX random state.
