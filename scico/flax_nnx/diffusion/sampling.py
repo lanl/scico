@@ -13,6 +13,8 @@ import jax
 import jax.numpy as jnp
 from jax.typing import ArrayLike
 
+import flax.nnx
+
 PyTree = Any
 
 
