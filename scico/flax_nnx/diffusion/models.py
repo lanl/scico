@@ -96,10 +96,10 @@ class ConditionalUNet(nnx.Module):
         )
         
         # Define layer storage.
-        downs = []
-        ups = []
+        downs = nnx.List([])
+        ups = nnx.List([])
         num_resolutions = len(in_out_f)
-        shps = [shape]
+        shps = nnx.List([shape])
 
         # Configure down path of Unet.
         for ind, (feat_in, feat_out) in enumerate(in_out_f):
