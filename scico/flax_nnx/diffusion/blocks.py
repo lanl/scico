@@ -10,7 +10,19 @@ diffusion generative models.
 
 The form of these blocks is based on `PyTorch code for diffusion models
 <https://huggingface.co/blog/annotated-diffusion>`_, but with a number of
-differences.
+differences:
+
+- Modules have been edited to assume channel last which is the Flax
+  convention.
+- The :class:`Upsample` and :class:`Downsample` blocks use a different
+  interface that separates factors for channels than factors for resizing,
+  and provide a parameter for specifying resizing mode. This interface
+  affords more flexibility.
+- Some block names have been changed to provide a more specific
+  description (e.g. :class:`ConvGroupNBlock` instead of `Block`).
+- Block :class:`WeightStandardizedConv2d` has not been implemented.
+- The UNet specification has changed to use the custom :class:`Upsample`
+  and :class:`Downsample` blocks.
 """
 
 import warnings
