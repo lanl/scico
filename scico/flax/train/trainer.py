@@ -28,7 +28,6 @@ from scico.diagnostics import IterationStats
 from scico.numpy import Array
 
 from .checkpoints import checkpoint_restore, checkpoint_save
-from .clu_utils import get_parameter_overview
 from .diagnostics import ArgumentStruct, compute_metrics, stats_obj
 from .input_pipeline import create_input_iter
 from .learning_rate import create_cnst_lr_schedule
@@ -423,9 +422,9 @@ class BasicFlaxTrainer:
             ok_no_ckpt = True  # It is ok if no checkpoint is found
             state = checkpoint_restore(state, self.workdir, ok_no_ckpt)
 
-        #self.log("Network Structure:")
-        #self.log(get_parameter_overview(state.params) + "\n")
-        #if hasattr(state, "batch_stats"):
+        # self.log("Network Structure:")
+        # self.log(get_parameter_overview(state.params) + "\n")
+        # if hasattr(state, "batch_stats"):
         #    self.log("Batch Normalization:")
         #    self.log(get_parameter_overview(state.batch_stats) + "\n")
 

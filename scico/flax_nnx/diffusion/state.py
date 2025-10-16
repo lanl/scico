@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2023 by SCICO Developers
+# Copyright (C) 2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -7,10 +7,9 @@
 
 """Configuration of diffusion model Flax Train State."""
 
-from typing import Any, Optional, Tuple, Union
+from typing import Any, Optional, Union
 
 import jax
-import jax.numpy as jnp
 
 import optax
 
@@ -55,11 +54,11 @@ def create_train_state(
     batch_stats = None
     model.train()
     graphdef, params = nnx.split(model, nnx.Param)
-    #graphdef, params, batch_stats = nnx.split(node, nnx.Param, nnx.BatchStat)
+    # graphdef, params, batch_stats = nnx.split(node, nnx.Param, nnx.BatchStat)
     if variables0 is None:
-        #if isinstance(aux, tuple):
+        # if isinstance(aux, tuple):
         #    params, batch_stats = aux
-        #else:
+        # else:
         #    params = aux
         if isinstance(params, tuple):
             params, batch_stats = params

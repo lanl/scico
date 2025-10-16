@@ -5,4 +5,4 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Neural networks for diffusion generative models."""
+"""Neural network models implemented with Flax NNX."""

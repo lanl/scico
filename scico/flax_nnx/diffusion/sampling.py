@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2025 by SCICO Developers
+# Copyright (C) 2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Definition of functions to generate new samples from
-diffusion models."""
+"""Definition of functions to generate new samples from diffusion models."""
 
 from typing import Any, Callable, Tuple
 
@@ -14,7 +13,7 @@ import jax
 import jax.numpy as jnp
 from jax.typing import ArrayLike
 
-from flax import jax_utils
+import flax.nnx
 
 PyTree = Any
 
@@ -36,31 +35,35 @@ p_score_fn = jax.pmap(score_fn, static_broadcasted_argnums=(0,))
 
 def Euler_Maruyama_sampler(
     key: ArrayLike,
-    score_model: Callable,
+    score_model: flax.nnx.Module,
     stddev_prior: float,
     xshape: Tuple[int],
     num_steps: int,
     batch_size: int,
     eps: float = 1e-3,
 ):
-    """Generate samples from score-based models with the Euler-Maruyama solver.
+    """Euler-Maruyama sampling.
+
+    Generate samples from score-based models with the Euler-Maruyama
+    sampler.
 
     Args:
         key: A JAX random state.
-        score_model: A `flax.linen.Module` object that represents the architecture
-            of a score-based model.
+        score_model: A `flax.linen.Module` object that represents the
+            architecture of a score-based model.
         stddev_prior: Standard deviation of prior noise.
         xshape: Shape of signal to generate.
         num_steps: The number of sampling steps.
-          Equivalent to the number of discretized time steps.
-        batch_size: The number of samplers to generate by calling this function once.
+            Equivalent to the number of discretized time steps.
+        batch_size: The number of samplers to generate by calling this
+            function once.
         eps: The smallest time step for numerical stability.
 
     Returns:
         Samples.
     """
     score_model.eval()
-    
+
     time_shape = (jax.local_device_count(), batch_size // jax.local_device_count(), 1)
     sample_shape = (jax.local_device_count(), batch_size // jax.local_device_count(), *xshape)
     x_tot = jnp.zeros(
