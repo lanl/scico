@@ -44,13 +44,14 @@ def Euler_Maruyama_sampler(
 
     Args:
         key: A JAX random state.
-        score_model: A `flax.linen.Module` object that represents the architecture
-            of a score-based model.
+        score_model: A `flax.linen.Module` object that represents the
+            architecture of a score-based model.
         stddev_prior: Standard deviation of prior noise.
         xshape: Shape of signal to generate.
         num_steps: The number of sampling steps.
-          Equivalent to the number of discretized time steps.
-        batch_size: The number of samplers to generate by calling this function once.
+            Equivalent to the number of discretized time steps.
+        batch_size: The number of samplers to generate by calling this
+            function once.
         eps: The smallest time step for numerical stability.
 
     Returns:

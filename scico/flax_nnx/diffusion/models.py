@@ -53,8 +53,10 @@ class ConditionalUNet(nnx.Module):
         Args:
             shape: Shape of signal.
             channels: Number of channels of signal to process.
-            init_channels: Optional features (a.k.a. output channels) of first convolution layer.
-            out_channels: Optional features (a.k.a. output channels) of output convolution layer.
+            init_channels: Optional features (a.k.a. output channels) of
+                first convolution layer.
+            out_channels: Optional features (a.k.a. output channels) of
+                output convolution layer.
             dim_mults: Dimension multipliers at each level of the Unet.
             self_condition: Flag to include additional processing channel
                 if building conditional model.
@@ -62,9 +64,9 @@ class ConditionalUNet(nnx.Module):
                 blocks.
             kernel_size: A shape tuple defining the size of the
                 convolution filters.
-            time_embed: Flag to indicate that the model uses a time embedding
-                component. This is used when initializing model parameters
-                and should not be changed.
+            time_embed: Flag to indicate that the model uses a time
+                embedding component. This is used when initializing model
+                parameters and should not be changed.
             dtype: Output dtype. Default: :attr:`~numpy.float32`.
             rngs: Random generation key.
         """

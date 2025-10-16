@@ -120,10 +120,11 @@ class Upsample(nnx.Module):
             ftrs: Number of features (a.k.a. channels).
             ftrs_out: Optional number of output features (a.k.a. channels).
             factor: Factor to use in the spatial upsample.
-            shp_out: Shape of output signal. If given, it is prioritized over
-                the factor argument.
-            method: Method for upsampling. Options (strings): nearest, linear, bilinear,
-                trilinear, triangle, cubic, bicubic, tricubic, lanczos3, lanczos5.
+            shp_out: Shape of output signal. If given, it is prioritized
+                over the factor argument.
+            method: Method for upsampling. Options (strings): "nearest",
+                "linear", "bilinear", "trilinear", "triangle", "cubic",
+                "bicubic", "tricubic", "lanczos3", "lanczos5".
             rngs: Random generation key.
         """
 
@@ -166,10 +167,11 @@ class Downsample(nnx.Module):
             ftrs: Number of features (a.k.a. channels).
             ftrs_out: Optional number of output features (a.k.a. channels).
             factor: Factor to use in the spatial downsample.
-            shp_out: Shape of output signal. If given, it is prioritized over
-                the factor argument.
-            method: Method for downsampling. Options (strings): nearest, linear, bilinear,
-                trilinear, triangle, cubic, bicubic, tricubic, lanczos3, lanczos5.
+            shp_out: Shape of output signal. If given, it is prioritized
+                over the factor argument.
+            method: Method for downsampling. Options (strings): "nearest",
+                "linear", "bilinear", "trilinear", "triangle", "cubic",
+                "bicubic", "tricubic", "lanczos3", "lanczos5".
             rngs: Random generation key.
         """
 
