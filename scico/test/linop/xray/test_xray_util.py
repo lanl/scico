@@ -2,6 +2,8 @@ import numpy as np
 
 from jax.scipy.spatial.transform import Rotation
 
+import pytest
+
 import scipy.ndimage
 from scico.linop.xray import (
     center_image,
@@ -10,6 +12,14 @@ from scico.linop.xray import (
     rotate_volume,
     volume_alignment_rotation,
 )
+
+try:
+    have_astra = True
+except ModuleNotFoundError as e:
+    if e.name == "astra":
+        have_astra = False
+    else:
+        raise e
 
 
 def test_image_centroid():
@@ -35,6 +45,7 @@ def test_rotate_volume():
     np.testing.assert_allclose(vol.transpose((1, 2, 0)), vol_rot, rtol=1e-7)
 
 
+@pytest.mark.skipif(not have_astra, reason="astra not installed")
 def test_image_alignment():
     u = np.zeros((256, 256), dtype=np.float32)
     u[:, 8::16] = 1
@@ -46,6 +57,7 @@ def test_image_alignment():
     assert np.abs(angle - 0.75) < 1e-3
 
 
+@pytest.mark.skipif(not have_astra, reason="astra not installed")
 def test_volume_alignment():
     u = np.zeros((256, 256, 32), dtype=np.float32)
     u[8::16, :, 2::6] = 1
