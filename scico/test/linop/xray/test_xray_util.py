@@ -14,6 +14,8 @@ from scico.linop.xray import (
 )
 
 try:
+    import astra  # noqa
+
     have_astra = True
 except ModuleNotFoundError as e:
     if e.name == "astra":
