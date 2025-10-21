@@ -11,8 +11,6 @@
 from pathlib import Path
 from typing import Union
 
-import jax
-
 try:
     import orbax.checkpoint as ocp
 
@@ -21,6 +19,9 @@ try:
         have_orbax = False
 except ImportError:
     have_orbax = False
+
+if have_orbax:
+    from orbax.checkpoint.checkpoint_managers import LatestN
 
 from .state import TrainState
 from .typed_dict import ConfigDict
@@ -55,11 +56,8 @@ def checkpoint_restore(
     if isinstance(workdir_, str):
         workdir_ = Path(workdir_)
     if workdir_.exists():
-        options = ocp.CheckpointManagerOptions()
         mngr = ocp.CheckpointManager(
             workdir_,
-            item_names=("state", "config"),
-            options=options,
         )
         step = mngr.latest_step()
         if step is not None:
@@ -89,24 +87,26 @@ def checkpoint_save(state: TrainState, config: ConfigDict, workdir: Union[str, P
     """
     if not have_orbax:
         raise RuntimeError("Package orbax.checkpoint is required for use of this function.")
-    if jax.process_index() == 0:
-        options = ocp.CheckpointManagerOptions(max_to_keep=3, create=True)
-        mngr = ocp.CheckpointManager(
-            workdir,
-            item_names=("state", "config"),
-            options=options,
-        )
-        step = int(state.step)
-        # Remove non-serializable partial functools in post_lst if it exists
-        config_ = config.copy()
-        if "post_lst" in config_:
-            config_.pop("post_lst", None)  # type: ignore
-        mngr.save(
-            step,
-            args=ocp.args.Composite(
-                state=ocp.args.StandardSave(state),
-                config=ocp.args.JsonSave(config_),
-            ),
-        )
-        mngr.wait_until_finished()
-        mngr.close()
+    # Check if workdir is Path or convert to Path
+    workdir_ = workdir
+    if isinstance(workdir_, str):
+        workdir_ = Path(workdir_)
+    options = ocp.CheckpointManagerOptions(preservation_policy=LatestN(3), create=True)
+    mngr = ocp.CheckpointManager(
+        workdir_,
+        options=options,
+    )
+    step = int(state.step)
+    # Remove non-serializable partial functools in post_lst if it exists
+    config_ = config.copy()
+    if "post_lst" in config_:
+        config_.pop("post_lst", None)  # type: ignore
+    mngr.save(
+        step,
+        args=ocp.args.Composite(
+            state=ocp.args.StandardSave(state),
+            config=ocp.args.JsonSave(config_),
+        ),
+    )
+    mngr.wait_until_finished()
+    mngr.close()
