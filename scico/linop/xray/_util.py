@@ -25,8 +25,8 @@ try:
 except ModuleNotFoundError as e:
     if e.name == "astra":
         have_astra = False
-    else:
         new_e = ModuleNotFoundError("Could not import astra; please install the ASTRA toolbox.")
+    else:
         new_e.name = "astra"
         raise new_e from e
 import scipy.spatial.transform as sst
