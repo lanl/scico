@@ -24,7 +24,9 @@ except ImportError:
 if have_orbax:
     from orbax.checkpoint.checkpoint_managers import LatestN
 
-    warnings.filterwarnings("ignore", message=".*temporary checkpoint path.*")
+    warnings.filterwarnings(
+        "ignore", message="^Expected.*to end with", category=ocp.path.atomicity.ValidationError
+    )
 
 from .state import TrainState
 from .typed_dict import ConfigDict
