@@ -96,7 +96,7 @@ class ConditionalUNet(nnx.Module):
         block_klass = partial(ResnetBlock, groups=resnet_block_groups, kernel_size=kernel_size)
 
         # Define time embeddings.
-        dim = max(shape)
+        dim = (max(shape) // 2) * 2
         time_dim = dim * 4
 
         self.time_mlp = nnx.Sequential(
@@ -169,8 +169,8 @@ class ConditionalUNet(nnx.Module):
 
         self.out_channels = default(out_channels, channels)
 
-        self.final_res_block = block_klass(dim * 2, dim, time_emb_dim=time_dim, rngs=rngs)
-        self.final_conv = nnx.Conv(dim, self.out_channels, kernel_size=(1, 1), rngs=rngs)
+        self.final_res_block = block_klass(features[0] * 2, features[0], time_emb_dim=time_dim, rngs=rngs)
+        self.final_conv = nnx.Conv(features[0], self.out_channels, kernel_size=(1, 1), rngs=rngs)
 
     def __call__(self, x: ArrayLike, time: ArrayLike, x_self_cond: ArrayLike = None) -> ArrayLike:
         """Apply conditional Unet model.
