@@ -24,7 +24,7 @@ except ImportError:
 if have_orbax:
     from orbax.checkpoint.checkpoint_managers import LatestN
 
-    warnings.filterwarnings("ignore", message="^Path.*could not be identified as")
+    warnings.filterwarnings("ignore", message=".*Path.*could not be identified as")
 
 from .state import TrainState
 from .typed_dict import ConfigDict
