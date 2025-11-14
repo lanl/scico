@@ -24,7 +24,7 @@ except ImportError:
 if have_orbax:
     from orbax.checkpoint.checkpoint_managers import LatestN
 
-    warnings.filterwarnings("ignore", message=".*could not be identified as a temporary.*")
+    warnings.filterwarnings("ignore")
 
 from .state import TrainState
 from .typed_dict import ConfigDict
