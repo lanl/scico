@@ -8,7 +8,6 @@
 """Utilities for checkpointing Flax models."""
 
 
-import warnings
 from pathlib import Path
 from typing import Union
 
@@ -22,9 +21,10 @@ except ImportError:
     have_orbax = False
 
 if have_orbax:
+    import absl.logging
     from orbax.checkpoint.checkpoint_managers import LatestN
 
-    warnings.filterwarnings("ignore")
+    absl.logging.set_verbosity(absl.logging.ERROR)
 
 from .state import TrainState
 from .typed_dict import ConfigDict
