@@ -21,10 +21,13 @@ except ImportError:
     have_orbax = False
 
 if have_orbax:
-    import absl.logging
+    # import absl.logging
+    # absl.logging.set_verbosity(absl.logging.ERROR)
+    import logging
+
     from orbax.checkpoint.checkpoint_managers import LatestN
 
-    absl.logging.set_verbosity(absl.logging.ERROR)
+    logging.getLogger("absl").addFilter(logging.Filter("could not be identified as a temporary"))
 
 from .state import TrainState
 from .typed_dict import ConfigDict
