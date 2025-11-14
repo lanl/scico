@@ -21,8 +21,6 @@ except ImportError:
     have_orbax = False
 
 if have_orbax:
-    # import absl.logging
-    # absl.logging.set_verbosity(absl.logging.ERROR)
     import logging
 
     from orbax.checkpoint.checkpoint_managers import LatestN
