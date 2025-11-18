@@ -13,7 +13,7 @@ on:
 jobs:
 
   test:
-    runs-on: macos-15-intel
+    runs-on: macos-latest
     strategy:
       fail-fast: false
       matrix:
@@ -62,7 +62,7 @@ jobs:
           pip install "ray[tune]>=2.44"
           pip install hyperopt
           pip install "orbax-checkpoint>=0.5.0"
-          conda install -c conda-forge svmbir>=0.4.0
+          #conda install -c conda-forge svmbir>=0.4.0
           conda install -c astra-toolbox astra-toolbox
           conda install -c conda-forge pyyaml
       # Install package to be tested
