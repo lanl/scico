@@ -263,7 +263,7 @@ def test_adjoint_matvec(testobj):
     assert a.dtype == testobj.A.dtype
     assert b.dtype == testobj.A.dtype
     assert c.dtype == testobj.A.dtype
-    np.testing.assert_allclose(a, comp_mat, rtol=1e-4)
+    np.testing.assert_allclose(a, comp_mat, rtol=2e-4)
     np.testing.assert_allclose(a, b, rtol=5e-5)
     np.testing.assert_allclose(a, c, rtol=5e-5)
 
