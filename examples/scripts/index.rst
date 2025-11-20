@@ -11,21 +11,23 @@ Computed Tomography
 
    - ct_abel_tv_admm.py
    - ct_abel_tv_admm_tune.py
+   - ct_symcone_tv_padmm.py
    - ct_astra_noreg_pcg.py
    - ct_astra_3d_tv_admm.py
    - ct_astra_3d_tv_padmm.py
-   - ct_astra_tv_admm.py
    - ct_tv_admm.py
+   - ct_astra_tv_admm.py
+   - ct_multi_tv_admm.py
    - ct_astra_weighted_tv_admm.py
    - ct_svmbir_tv_multi.py
    - ct_svmbir_ppp_bm3d_admm_cg.py
    - ct_svmbir_ppp_bm3d_admm_prox.py
    - ct_fan_svmbir_ppp_bm3d_admm_prox.py
-   - ct_astra_modl_train_foam2.py
-   - ct_astra_odp_train_foam2.py
-   - ct_astra_unet_train_foam2.py
-   - ct_projector_comparison.py
-   - ct_multi_tv_admm.py
+   - ct_modl_train_foam2.py
+   - ct_odp_train_foam2.py
+   - ct_unet_train_foam2.py
+   - ct_projector_comparison_2d.py
+   - ct_projector_comparison_3d.py
 
 Deconvolution
 ^^^^^^^^^^^^^
@@ -72,7 +74,7 @@ Miscellaneous
    - denoise_dncnn_universal.py
    - diffusercam_tv_admm.py
    - video_rpca_admm.py
-   - ct_astra_datagen_foam2.py
+   - ct_datagen_foam2.py
    - deconv_datagen_bsds.py
    - deconv_datagen_foam1.py
    - denoise_datagen_bsds.py
@@ -101,12 +103,13 @@ Total Variation
 
    - ct_abel_tv_admm.py
    - ct_abel_tv_admm_tune.py
-   - ct_astra_tv_admm.py
+   - ct_symcone_tv_padmm.py
    - ct_tv_admm.py
+   - ct_multi_tv_admm.py
+   - ct_astra_tv_admm.py
    - ct_astra_3d_tv_admm.py
    - ct_astra_3d_tv_padmm.py
    - ct_astra_weighted_tv_admm.py
-   - ct_multi_tv_admm.py
    - ct_svmbir_tv_multi.py
    - deconv_circ_tv_admm.py
    - deconv_tv_admm.py
@@ -142,10 +145,10 @@ Sparsity
 Machine Learning
 ^^^^^^^^^^^^^^^^
 
-   - ct_astra_datagen_foam2.py
-   - ct_astra_modl_train_foam2.py
-   - ct_astra_odp_train_foam2.py
-   - ct_astra_unet_train_foam2.py
+   - ct_datagen_foam2.py
+   - ct_modl_train_foam2.py
+   - ct_odp_train_foam2.py
+   - ct_unet_train_foam2.py
    - deconv_datagen_bsds.py
    - deconv_datagen_foam1.py
    - deconv_modl_train_foam1.py
@@ -163,6 +166,7 @@ ADMM
 
    - ct_abel_tv_admm.py
    - ct_abel_tv_admm_tune.py
+   - ct_symcone_tv_padmm.py
    - ct_astra_tv_admm.py
    - ct_tv_admm.py
    - ct_astra_3d_tv_admm.py

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2023 by SCICO Developers
+# Copyright (C) 2020-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -80,8 +80,14 @@ def _add_seed(fun):
            are unchanged.
     """
 
-    # find number of arguments to fun
-    num_params = len(inspect.signature(fun).parameters)
+    # find number of non-keyword-only parameters of fun
+    num_params = len(
+        [
+            param
+            for param in inspect.signature(fun).parameters.values()
+            if param.kind != param.KEYWORD_ONLY
+        ]
+    )
 
     def fun_alt(*args, key=None, seed=None, **kwargs):
 
@@ -92,7 +98,7 @@ def _add_seed(fun):
             seed = args[num_params]
 
         if key is not None and seed is not None:
-            raise ValueError("Key and seed cannot both be specified.")
+            raise ValueError("Arguments 'key' and 'seed' may not both be specified.")
 
         if key is None:
             if seed is None:

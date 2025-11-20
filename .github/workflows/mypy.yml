@@ -20,10 +20,10 @@ jobs:
       - name: Install Python 3
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.12"
       - name: Install dependencies
         run: |
           pip install mypy
       - name: Run mypy
         run: |
-          mypy --follow-imports=skip --ignore-missing-imports  --exclude "(numpy|test)" scico/
+          mypy --follow-imports=skip --ignore-missing-imports  --exclude "(numpy|test)" scico/ scico/numpy/util.py

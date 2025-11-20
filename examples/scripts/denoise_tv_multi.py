@@ -65,7 +65,7 @@ solver step, the result of which is discarded, to reduce this bias in
 the timing results. The precise cause of the remaining differences in
 time required to compute the first step of each algorithm is unknown,
 but it is worth noting that this difference becomes negligible when
-just-in-time compilation is disabled (e.g. via the JAX_DISABLE_JIT
+just-in-time compilation is disabled (e.g. via the `JAX_DISABLE_JIT`
 environment variable).
 """
 solver_admm = ADMM(

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2024 by SCICO Developers
+# Copyright (C) 2021-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -18,7 +18,7 @@ import numpy as np
 
 import scico.numpy as snp
 from scico.numpy import Array, BlockArray
-from scico.typing import BlockShape, DType, Shape
+from scico.typing import DType, Shape
 
 from ._linop import LinearOperator
 
@@ -88,6 +88,19 @@ class ProjectedGradient(LinearOperator):
         jit: bool = True,
     ):
         r"""
+
+        The result of applying the operator is always a
+        :class:`jax.Array`. If `coord` is a singleton tuple, it has the
+        same shape as the input array. Otherwise, the gradients for each
+        of the local coordinate axes are stacked on an additional axis at
+        index 0.
+
+        If `coord` is ``None``, which is the default, gradients are
+        computed in the standard axis-aligned coordinate system, and the
+        shape of the returned array depends on the number of axes on
+        which the gradient is calculated, as specified explicitly or
+        implicitly via the `axes` parameter.
+
         Args:
             input_shape: Shape of input array.
             axes: Axes over which to compute the gradient. Defaults to
@@ -103,16 +116,7 @@ class ProjectedGradient(LinearOperator):
                 :math:`i^{\mrm{th}}` axis. If it is the latter, it should
                 consist of :math:`N` blocks, each of which has a shape
                 that is suitable for multiplication with an array of
-                shape :math:`M_0 \times M_1 \times \ldots`. If `coord` is
-                a singleton tuple, the result of applying the operator is
-                a :class:`jax.Array`; otherwise it consists of the
-                gradients for each of the local coordinate axes in
-                `coord` stacked into a :class:`.BlockArray`. If `coord`
-                is ``None``, which is the default, gradients are computed
-                in the standard axis-aligned coordinate system, and the
-                return type depends on the number of axes on which the
-                gradient is calculated, as specified explicitly or
-                implicitly via the `axes` parameter.
+                shape :math:`M_0 \times M_1 \times \ldots`.
             cdiff: If ``True``, estimate gradients using the second order
                 central different returned by :func:`snp.gradient`,
                 otherwise use the first order asymmetric difference
@@ -129,23 +133,23 @@ class ProjectedGradient(LinearOperator):
             # Ensure no invalid axis indices specified.
             if snp.any(np.array(axes) >= len(input_shape)):
                 raise ValueError(
-                    "Invalid axes specified; all elements of `axes` must be less than "
-                    f"len(input_shape)={len(input_shape)}."
+                    "Invalid axes specified; all elements of argument 'axes' must "
+                    f"be less than len(input_shape)={len(input_shape)}."
                 )
             self.axes = axes
-        output_shape: Union[Shape, BlockShape]
+        output_shape: Shape
         if coord is None:
             # If coord is None, output shape is determined by number of axes.
             if len(self.axes) == 1:
                 output_shape = input_shape
             else:
-                output_shape = (input_shape,) * len(self.axes)
+                output_shape = (len(self.axes),) + input_shape
         else:
             # If coord is not None, output shape is determined by number of coord arrays.
             if len(coord) == 1:
                 output_shape = input_shape
             else:
-                output_shape = (input_shape,) * len(coord)
+                output_shape = (len(coord),) + input_shape
         self.coord = coord
         self.cdiff = cdiff
         super().__init__(
@@ -159,23 +163,23 @@ class ProjectedGradient(LinearOperator):
     def _eval(self, x: Array) -> Union[Array, BlockArray]:
 
         if self.cdiff:
-            grad = snp.gradient(x, axis=self.axes)
+            grad = snp.stack(snp.gradient(x, axis=self.axes))
         else:
             grad = diffstack(x, axis=self.axes)
         if self.coord is None:
             # If coord attribute is None, just return gradients on specified axes.
             if len(self.axes) == 1:
-                return grad
+                return grad[0]
             else:
-                return snp.blockarray(grad)
+                return grad
         else:
             # If coord attribute is not None, return gradients projected onto specified local
             # coordinate systems.
-            projgrad = [sum([c[m] * grad[m] for m in range(len(grad))]) for c in self.coord]
+            projgrad = [sum([c[m] * grad[m] for m in range(len(self.axes))]) for c in self.coord]
             if len(self.coord) == 1:
                 return projgrad[0]
             else:
-                return snp.blockarray(projgrad)
+                return snp.stack(projgrad)
 
 
 class PolarGradient(ProjectedGradient):
@@ -193,8 +197,9 @@ class PolarGradient(ProjectedGradient):
     |
 
     If only one of `angular` and `radial` is ``True``, the operator
-    output is a :class:`jax.Array`, otherwise it is a
-    :class:`.BlockArray`.
+    output has the same shape as the input, otherwise the gradients for
+    the two local coordinate axes are stacked on an additional axis at
+    index 0.
     """
 
     def __init__(
@@ -247,9 +252,7 @@ class PolarGradient(ProjectedGradient):
         if center is None:
             center = (snp.array(axes_shape, dtype=real_input_dtype) - 1) / 2
         else:
-            if isinstance(center, (tuple, list)):
-                center = snp.array(center)
-            center = center.astype(real_input_dtype)
+            center = snp.array(center, dtype=real_input_dtype)
         end = snp.array(axes_shape, dtype=real_input_dtype) - center
         g0, g1 = snp.ogrid[-center[0] : end[0], -center[1] : end[1]]
         theta = snp.arctan2(g0, g1)
@@ -291,8 +294,9 @@ class CylindricalGradient(ProjectedGradient):
     |
 
     If only one of `angular`, `radial`, and `axial` is ``True``, the
-    operator output is a :class:`jax.Array`, otherwise it is a
-    :class:`.BlockArray`.
+    operator output has the same shape as the input, otherwise the
+    gradients for the selected local coordinate axes are stacked on an
+    additional axis at index 0.
     """
 
     def __init__(
@@ -354,9 +358,7 @@ class CylindricalGradient(ProjectedGradient):
             center = (snp.array(axes_shape, dtype=real_input_dtype) - 1) / 2
             center = center.at[-1].set(0)  # type: ignore
         else:
-            if isinstance(center, (tuple, list)):
-                center = snp.array(center)
-            center = center.astype(real_input_dtype)
+            center = snp.array(center, dtype=real_input_dtype)
         end = snp.array(axes_shape, dtype=real_input_dtype) - center
         g0, g1 = snp.ogrid[-center[0] : end[0], -center[1] : end[1]]
         g0 = g0[..., np.newaxis]
@@ -418,8 +420,9 @@ class SphericalGradient(ProjectedGradient):
     |
 
     If only one of `azimuthal`, `polar`, and `radial` is ``True``, the
-    operator output is a :class:`jax.Array`, otherwise it is a
-    :class:`.BlockArray`.
+    operator output has the same shape as the input, otherwise the
+    gradients for the selected local coordinate axes are stacked on an
+    additional axis at index 0.
     """
 
     def __init__(
@@ -479,9 +482,7 @@ class SphericalGradient(ProjectedGradient):
         if center is None:
             center = (snp.array(axes_shape, dtype=real_input_dtype) - 1) / 2
         else:
-            if isinstance(center, (tuple, list)):
-                center = snp.array(center)
-            center = center.astype(real_input_dtype)
+            center = snp.array(center, dtype=real_input_dtype)
         end = snp.array(axes_shape, dtype=real_input_dtype) - center
         g0, g1, g2 = snp.ogrid[-center[0] : end[0], -center[1] : end[1], -center[2] : end[2]]
         theta = snp.arctan2(g1, g0)

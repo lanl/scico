@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2023 by SCICO Developers
+# Copyright (C) 2020-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -50,8 +50,11 @@ class L0Norm(Functional):
         Args:
             v: Input array :math:`\mb{v}`.
             lam: Thresholding parameter :math:`\lambda`.
-            kwargs: Additional arguments that may be used by derived
+            **kwargs: Additional arguments that may be used by derived
                 classes.
+
+        Returns:
+            Result of evaluating the scaled proximal operator at `v`.
         """
         return snp.where(snp.abs(v) >= lam, v, 0)
 
@@ -92,8 +95,11 @@ class L1Norm(Functional):
         Args:
             v: Input array :math:`\mb{v}`.
             lam: Thresholding parameter :math:`\lambda`.
-            kwargs: Additional arguments that may be used by derived
+            **kwargs: Additional arguments that may be used by derived
                 classes.
+
+        Returns:
+            Result of evaluating the scaled proximal operator at `v`.
         """
         tmp = snp.abs(v) - lam
         tmp = 0.5 * (tmp + snp.abs(tmp))
@@ -135,8 +141,11 @@ class SquaredL2Norm(Functional):
         Args:
             v: Input array :math:`\mb{v}`.
             lam: Proximal parameter :math:`\lambda`.
-            kwargs: Additional arguments that may be used by derived
+            **kwargs: Additional arguments that may be used by derived
                 classes.
+
+        Returns:
+            Result of evaluating the scaled proximal operator at `v`.
         """
         return v / (1.0 + 2.0 * lam)
 
@@ -176,8 +185,11 @@ class L2Norm(Functional):
         Args:
             v: Input array :math:`\mb{v}`.
             lam: Proximal parameter :math:`\lambda`.
-            kwargs: Additional arguments that may be used by derived
+            **kwargs: Additional arguments that may be used by derived
                 classes.
+
+        Returns:
+            Result of evaluating the scaled proximal operator at `v`.
         """
         norm_v = norm(v)
         return snp.where(norm_v == 0, 0 * v, snp.maximum(1 - lam / norm_v, 0) * v)
@@ -222,7 +234,7 @@ class L21Norm(Functional):
 
     def __call__(self, x: Union[Array, BlockArray]) -> float:
         if isinstance(x, snp.BlockArray) and self.l2_axis is not None:
-            raise ValueError("Initializer parameter l2_axis must be None for BlockArray input.")
+            raise ValueError("Initializer argument 'l2_axis' must be None for BlockArray input.")
         l2 = L21Norm._l2norm(x, axis=self.l2_axis)
         return snp.sum(snp.abs(l2))
 
@@ -249,11 +261,14 @@ class L21Norm(Functional):
         Args:
             v: Input array :math:`\mb{v}`.
             lam: Proximal parameter :math:`\lambda`.
-            kwargs: Additional arguments that may be used by derived
+            **kwargs: Additional arguments that may be used by derived
                 classes.
+
+        Returns:
+            Result of evaluating the scaled proximal operator at `v`.
         """
         if isinstance(v, snp.BlockArray) and self.l2_axis is not None:
-            raise ValueError("Initializer parameter l2_axis must be None for BlockArray input.")
+            raise ValueError("Initializer argument 'l2_axis' must be None for BlockArray input.")
         length = L21Norm._l2norm(v, axis=self.l2_axis, keepdims=True)
         direction = no_nan_divide(v, length)
 
@@ -332,8 +347,11 @@ class L1MinusL2Norm(Functional):
         Args:
             v: Input array :math:`\mb{v}`.
             lam: Proximal parameter :math:`\lambda`.
-            kwargs: Additional arguments that may be used by derived
+            **kwargs: Additional arguments that may be used by derived
                 classes.
+
+        Returns:
+            Result of evaluating the scaled proximal operator at `v`.
         """
         alpha = lam
         beta = self.beta
@@ -454,12 +472,14 @@ class HuberNorm(Functional):
 
         in the separable case.
 
-
         Args:
             v: Input array :math:`\mb{v}`.
             lam: Proximal parameter :math:`\lambda`.
-            kwargs: Additional arguments that may be used by derived
+            **kwargs: Additional arguments that may be used by derived
                 classes.
+
+        Returns:
+            Result of evaluating the scaled proximal operator at `v`.
         """
         return self._prox(v, lam=lam, **kwargs)
 
@@ -494,8 +514,11 @@ class NuclearNorm(Functional):
         Args:
             v: Input array :math:`\mb{v}`. Required to be two-dimensional.
             lam: Proximal parameter :math:`\lambda`.
-            kwargs: Additional arguments that may be used by derived
+            **kwargs: Additional arguments that may be used by derived
                 classes.
+
+        Returns:
+            Result of evaluating the scaled proximal operator at `v`.
         """
         if v.ndim != 2:
             raise ValueError("Input array must be two dimensional.")

@@ -15,7 +15,7 @@ parameters for the companion [example script](ct_abel_tv_admm.rst). The
 
 This script is hard-coded to run on CPU only to avoid the large number of
 warnings that are emitted when GPU resources are requested but not
-available, and due to the difficulty of supressing these warnings in a
+available, and due to the difficulty of suppressing these warnings in a
 way that does not force use of the CPU only. To enable GPU usage, comment
 out the `os.environ` statements near the beginning of the script, and
 change the value of the "gpu" entry in the `resources` dict from 0 to 1.
@@ -23,7 +23,7 @@ Note that two environment variables are set to suppress the warnings
 because `JAX_PLATFORMS` was intended to replace `JAX_PLATFORM_NAME` but
 this change has yet to be correctly implemented
 (see [google/jax#6805](https://github.com/google/jax/issues/6805) and
-[google/jax#10272](https://github.com/google/jax/pull/10272).
+[google/jax#10272](https://github.com/google/jax/pull/10272)).
 """
 
 # isort: off
@@ -42,7 +42,7 @@ ray.init(logging_level=logging.ERROR)  # need to call init before jax import: ra
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot
 from scico.examples import create_circular_phantom
-from scico.linop.abel import AbelTransform
+from scico.linop.xray.abel import AbelTransform
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.ray import tune
 

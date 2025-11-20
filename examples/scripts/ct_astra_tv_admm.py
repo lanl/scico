@@ -16,8 +16,8 @@ problem with isotropic total variation (TV) regularization
 
 where $A$ is the X-ray transform (the CT forward projection operator),
 $\mathbf{y}$ is the sinogram, $C$ is a 2D finite difference operator, and
-$\mathbf{x}$ is the desired image. This example uses the CT projector
-provided by the astra package, while the companion
+$\mathbf{x}$ is the reconstructed image. This example uses the CT
+projector provided by the astra package, while the companion
 [example script](ct_tv_admm.rst) uses the projector integrated into
 scico.
 """
@@ -38,21 +38,22 @@ Create a ground truth image.
 """
 N = 512  # phantom size
 np.random.seed(1234)
-x_gt = discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=N)
-x_gt = snp.array(x_gt)  # convert to jax type
+x_gt = snp.array(discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=N))
 
 
 """
 Configure CT projection operator and generate synthetic measurements.
 """
 n_projection = 45  # number of projections
-angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
-A = XRayTransform2D(x_gt.shape, N, 1.0, angles)  # CT projection operator
+angles = np.linspace(0, np.pi, n_projection, endpoint=False)  # evenly spaced projection angles
+det_count = int(N * 1.05 / np.sqrt(2.0))
+det_spacing = np.sqrt(2)
+A = XRayTransform2D(x_gt.shape, det_count, det_spacing, angles)  # CT projection operator
 y = A @ x_gt  # sinogram
 
 
 """
-Set up ADMM solver object.
+Set up problem functional and ADMM solver object.
 """
 λ = 2e0  # ℓ1 norm regularization parameter
 ρ = 5e0  # ADMM penalty parameter
@@ -65,9 +66,7 @@ cg_maxiter = 25  # maximum CG iterations per ADMM iteration
 # which is used so that g(Cx) corresponds to isotropic TV.
 C = linop.FiniteDifference(input_shape=x_gt.shape, append=0)
 g = λ * functional.L21Norm()
-
 f = loss.SquaredL2Loss(y=y, A=A)
-
 x0 = snp.clip(A.fbp(y), 0, 1.0)
 
 solver = ADMM(

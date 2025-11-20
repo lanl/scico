@@ -76,6 +76,15 @@ def testobj(request):
     yield ConvolveTestObj()
 
 
+def test_init(testobj):
+    with pytest.raises(ValueError):
+        A = Convolve(input_shape=(16, 16), h=testobj.psf_A)
+    with pytest.raises(ValueError):
+        A = Convolve(input_shape=(16,), h=testobj.psf_A, mode="invalid")
+    A = Convolve(input_shape=(16,), input_dtype=None, h=testobj.psf_A)
+    assert A.input_dtype == testobj.psf_A.dtype
+
+
 @pytest.mark.parametrize("operator", [op.mul, op.truediv])
 def test_scalar_left(testobj, operator):
     A = operator(testobj.A, testobj.scalar)

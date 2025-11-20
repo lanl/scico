@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2023 by SCICO Developers
+# Copyright (C) 2020-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -48,7 +48,7 @@ class BM3D(Functional):
         Args:
             x: Input image.
             lam: Noise parameter.
-            kwargs: Additional arguments that may be used by derived
+            **kwargs: Additional arguments that may be used by derived
                 classes.
 
         Returns:
@@ -85,7 +85,7 @@ class BM4D(Functional):
         Args:
             x: Input image.
             lam: Noise parameter.
-            kwargs: Additional arguments that may be used by derived
+            **kwargs: Additional arguments that may be used by derived
                 classes.
 
         Returns:
@@ -128,12 +128,13 @@ class DnCNN(Functional):
         r"""Apply DnCNN denoiser.
 
         *Warning*: The `lam` parameter is ignored, and has no effect on
-        the output.
+        the output for :class:`.DnCNN` objects initialized with
+        :code:`variant` parameter values other than `6N` and `17N`.
 
         Args:
             x: Input array.
             lam: Noise parameter (ignored).
-            kwargs: Additional arguments that may be used by derived
+            **kwargs: Additional arguments that may be used by derived
                 classes.
 
         Returns:

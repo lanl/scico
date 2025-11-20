@@ -15,7 +15,7 @@ with isotropic total variation (TV) regularization
   \|_2^2 + \lambda \| D \mathbf{x} \|_{2,1} \;,$$
 
 where $C$ is a convolution operator, $\mathbf{y}$ is the blurred image,
-$D$ is a 2D finite fifference operator, and $\mathbf{x}$ is the
+$D$ is a 2D finite difference operator, and $\mathbf{x}$ is the
 deconvolved image.
 
 In this example the problem is solved via proximal ADMM, while standard

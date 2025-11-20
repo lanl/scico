@@ -48,7 +48,7 @@ y = snp.array(y)  # convert to jax array
 
 
 """
-Set up the forward operator and AcceleratedPGM solver object.
+Set up the forward operator and `AcceleratedPGM` solver object.
 """
 maxiter = 100
 λ = 2.98e1

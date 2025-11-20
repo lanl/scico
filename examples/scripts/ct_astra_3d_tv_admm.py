@@ -17,7 +17,7 @@ regularization
 
 where $C$ is the X-ray transform (the CT forward projection operator),
 $\mathbf{y}$ is the sinogram, $D$ is a 3D finite difference operator,
-and $\mathbf{x}$ is the desired image.
+and $\mathbf{x}$ is the reconstructed image.
 
 In this example the problem is solved via ADMM, while proximal
 ADMM is used in a [companion example](ct_astra_3d_tv_padmm.rst).
@@ -44,7 +44,7 @@ Nz = 64
 tangle = snp.array(create_tangle_phantom(Nx, Ny, Nz))
 
 n_projection = 10  # number of projections
-angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
+angles = np.linspace(0, np.pi, n_projection, endpoint=False)  # evenly spaced projection angles
 C = XRayTransform3D(
     tangle.shape, det_count=[Nz, max(Nx, Ny)], det_spacing=[1.0, 1.0], angles=angles
 )  # CT projection operator
@@ -84,7 +84,6 @@ Run the solver.
 """
 print(f"Solving on {device_info()}\n")
 tangle_recon = solver.solve()
-hist = solver.itstat_object.history(transpose=True)
 
 print(
     "TV Restruction\nSNR: %.2f (dB), MAE: %.3f"

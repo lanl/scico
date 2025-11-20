@@ -25,7 +25,7 @@ regularization
 where $M$ is a mask operator, $A$ is circular convolution,
 $\mathbf{y}$ is the blurred image, $C$ is a convolutional gradient
 operator, $\iota_{\mathrm{NN}}$ is the indicator function of the
-non-negativity constraint, and $\mathbf{x}$ is the desired image.
+non-negativity constraint, and $\mathbf{x}$ is the deconvolved image.
 """
 
 # isort: off
@@ -48,8 +48,8 @@ will make the example slower and more memory-intensive. To run this
 example on a GPU it may be necessary to set environment variables
 `XLA_PYTHON_CLIENT_ALLOCATOR=platform` and
 `XLA_PYTHON_CLIENT_PREALLOCATE=false`. If your GPU does not have enough
-memory, you can try setting the environment variable
-`JAX_PLATFORM_NAME=cpu` to run on CPU.
+memory, try setting the environment variable `JAX_PLATFORM_NAME=cpu` to
+run on CPU.
 """
 downsampling_rate = 2
 

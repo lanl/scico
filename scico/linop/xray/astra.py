@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2024 by SCICO Developers
+# Copyright (C) 2020-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -15,13 +15,28 @@ functionality, but note that use of the CUDA/GPU implementation is
 expected to result in GPU-host-GPU memory copies when transferring
 JAX arrays. Other JAX features such as automatic differentiation are
 not available.
+
+Functions here refer to three coordinate systems: world coordinates,
+volume coordinates, and detector coordinates. World coordinates are 3D
+coordinates representing a point in physical space. Volume coordinates
+refer to a position in the reconstruction volume, where the voxel with
+its intensity value stored at `vol[i, j, k]` has its center at volume
+coordinate (i+0.5, j+0.5, k+0.5) and side lengths of 1. Detector
+coordinates refer to a position on the detector array, and the pixel at
+`det[i, j]` has its center at detector coordinates (i+0.5, j+0.5) and
+side lengths of one.
+
 """
 
 from typing import List, Optional, Sequence, Tuple, Union
 
 import numpy as np
+import numpy.typing
 
 import jax
+from jax.typing import ArrayLike
+
+from scipy.spatial.transform import Rotation
 
 try:
     import astra
@@ -41,9 +56,11 @@ except ImportError:
     # Monkey patching required because latest astra release uses old module path for Iterable
     collections.Iterable = collections.abc.Iterable  # type: ignore
 
-from scico.typing import Shape
+from scico.linop import LinearOperator
+from scico.typing import Shape, TypeAlias
 
-from .._linop import LinearOperator
+VolumeGeometry: TypeAlias = dict
+ProjectionGeometry: TypeAlias = dict
 
 
 def set_astra_gpu_index(idx: Union[int, Sequence[int]]):
@@ -53,6 +70,133 @@ def set_astra_gpu_index(idx: Union[int, Sequence[int]]):
         idx: Index or indices of GPU(s).
     """
     astra.set_gpu_index(idx)
+
+
+def _project_coords(
+    x_volume: np.ndarray, vol_geom: VolumeGeometry, proj_geom: ProjectionGeometry
+) -> np.ndarray:
+    """
+    Project volume coordinates into detector coordinates based on ASTRA
+    geometry objects.
+
+    Args:
+        x_volume: (..., 3) vector(s) of volume coordinates.
+        vol_geom: ASTRA volume geometry object.
+        proj_geom: ASTRA projection geometry object.
+
+    Returns:
+        (num_angles, ..., 2) array of detector coordinates corresponding
+        to projections of the points in `x_volume`.
+
+    """
+    det_shape = (proj_geom["DetectorRowCount"], proj_geom["DetectorColCount"])
+    x_world = volume_coords_to_world_coords(x_volume, vol_geom=vol_geom)
+    x_dets = []
+    for vec in proj_geom["Vectors"]:
+        ray, d, u, v = vec[0:3], vec[3:6], vec[6:9], vec[9:12]
+        x_det = project_world_coordinates(x_world, ray, d, u, v, det_shape)
+        x_dets.append(x_det)
+
+    return np.stack(x_dets)
+
+
+def project_world_coordinates(
+    x: np.ndarray,
+    ray: np.typing.ArrayLike,
+    d: np.typing.ArrayLike,
+    u: np.typing.ArrayLike,
+    v: np.typing.ArrayLike,
+    det_shape: Sequence[int],
+) -> np.ndarray:
+    """Project world coordinates along ray into the specified basis.
+
+    Project world coordinates along `ray` into the basis described by `u`
+    and `v` with center `d`.
+
+    Args:
+        x: (..., 3) vector(s) of world coordinates.
+        ray: (3,) ray direction
+        d: (3,) center of the detector
+        u: (3,) vector from detector pixel (0,0) to (0,1), columns, x
+        v: (3,) vector from detector pixel (0,0) to (1,0), rows, y
+
+    Returns:
+        (..., 2) vector(s) in the detector coordinates
+
+    """
+    Phi = np.stack((ray, u, v), axis=1)
+    x = x - d  # express with respect to detector center
+    alpha = np.linalg.pinv(Phi) @ x[..., :, np.newaxis]  # (3,3) times <stack of> (3,1)
+    alpha = alpha[..., 0]  # squash from (..., 3, 1) to (..., 3)
+    Palpha = alpha[..., 1:]  # throw away ray coordinate
+    det_center_idx = (
+        np.array(det_shape)[::-1] / 2 - 0.5
+    )  # center of length-2 is index 0.5, length-3 -> index 1
+    ind_xy = Palpha + det_center_idx
+    ind_ij = ind_xy[..., ::-1]
+    return ind_ij
+
+
+def volume_coords_to_world_coords(idx: np.ndarray, vol_geom: VolumeGeometry) -> np.ndarray:
+    """Convert a volume coordinate into a world coordinate.
+
+    Convert a volume coordinate into a world coordinate using ASTRA
+    conventions.
+
+    Args:
+        idx: (..., 2) or (..., 3) vector(s) of index coordinates.
+        vol_geom: ASTRA volume geometry object.
+
+    Returns:
+        (..., 2) or (..., 3) vector(s) of world coordinates.
+
+    """
+    if "GridSliceCount" not in vol_geom:
+        return _volume_index_to_astra_world_2d(idx, vol_geom)
+
+    return _volume_index_to_astra_world_3d(idx, vol_geom)
+
+
+def _volume_index_to_astra_world_2d(idx: np.ndarray, vol_geom: VolumeGeometry) -> np.ndarray:
+    """Convert a 2D volume coordinate into a 2D world coordinate."""
+    coord = idx[..., [1, 0]]  # x:col, y:row,
+    nx = np.array(  # (x, y) order
+        (
+            vol_geom["GridColCount"],
+            vol_geom["GridRowCount"],
+        )
+    )
+    opt = vol_geom["option"]
+    dx = np.array(
+        (
+            (opt["WindowMaxX"] - opt["WindowMinX"]) / nx[0],
+            (opt["WindowMaxY"] - opt["WindowMinY"]) / nx[1],
+        )
+    )
+    center_coord = nx / 2 - 0.5  # center of length-2 is index 0.5, center of length-3 is index 1
+    return (coord - center_coord) * dx
+
+
+def _volume_index_to_astra_world_3d(idx: np.ndarray, vol_geom: VolumeGeometry) -> np.ndarray:
+    """Convert a 3D volume coordinate into a 3D world coordinate."""
+    coord = idx[..., [2, 1, 0]]  # x:col, y:row, z:slice
+    nx = np.array(  # (x, y, z) order
+        (
+            vol_geom["GridColCount"],
+            vol_geom["GridRowCount"],
+            vol_geom["GridSliceCount"],
+        )
+    )
+    opt = vol_geom["option"]
+    dx = np.array(
+        (
+            (opt["WindowMaxX"] - opt["WindowMinX"]) / nx[0],
+            (opt["WindowMaxY"] - opt["WindowMinY"]) / nx[1],
+            (opt["WindowMaxZ"] - opt["WindowMinZ"]) / nx[2],
+        )
+    )
+    center_coord = nx / 2 - 0.5  # center of length-2 is index 0.5, center of length-3 is index 1
+    return (coord - center_coord) * dx
 
 
 class XRayTransform2D(LinearOperator):
@@ -95,10 +239,10 @@ class XRayTransform2D(LinearOperator):
         self.num_dims = len(input_shape)
         if self.num_dims != 2:
             raise ValueError(
-                f"Only 2D projections are supported, but input_shape is {input_shape}."
+                f"Only 2D projections are supported, but 'input_shape' is {input_shape}."
             )
         if not isinstance(det_count, int):
-            raise ValueError("Expected det_count to be an int.")
+            raise ValueError("Expected argument 'det_count' to be an int.")
         output_shape: Shape = (len(angles), det_count)
 
         # Set up all the ASTRA config
@@ -120,7 +264,7 @@ class XRayTransform2D(LinearOperator):
                 self.vol_geom = astra.create_vol_geom(*input_shape, *volume_geometry)
             else:
                 raise ValueError(
-                    "volume_geometry must be a tuple of len 4."
+                    "Argument 'volume_geometry' must be a tuple of len 4."
                     "Please see the astra documentation for details."
                 )
 
@@ -135,7 +279,7 @@ class XRayTransform2D(LinearOperator):
             dev0 = jax.devices()[0]
             self.device = dev0.platform
         else:
-            raise ValueError(f"Invalid device specified; got {device}.")
+            raise ValueError(f"Invalid 'device' specified; got {device}.")
 
         if self.device == "cpu":
             self.proj_id = astra.create_projector("line", self.proj_geom, self.vol_geom)
@@ -189,6 +333,9 @@ class XRayTransform2D(LinearOperator):
             filter_type: Select the filter to use. For a list of options
                see `cfg.FilterType` in the `ASTRA documentation
                <https://www.astra-toolbox.com/docs/algs/FBP_CUDA.html>`__.
+
+        Returns:
+            Reconstructed volume.
         """
 
         def f(sino):
@@ -221,6 +368,123 @@ class XRayTransform2D(LinearOperator):
         return jax.pure_callback(f, jax.ShapeDtypeStruct(self.input_shape, self.input_dtype), sino)
 
 
+def convert_from_scico_geometry(
+    in_shape: Shape, matrices: ArrayLike, det_shape: Shape
+) -> np.ndarray:
+    """Convert SCICO projection matrices into ASTRA "parallel3d_vec" vectors.
+
+    For 3D arrays,
+    in ASTRA, the dimensions go (slices, rows, columns) and (z, y, x);
+    in SCICO, the dimensions go (x, y, z).
+
+    In ASTRA, the x-grid (recon) is centered on the origin and the y-grid (projection) can move.
+    In SCICO, the x-grid origin is the center of x[0, 0, 0], the y-grid origin is the center
+    of y[0, 0].
+
+    See section "parallel3d_vec" in the
+    `astra documentation <https://astra-toolbox.com/docs/geom3d.html#projection-geometries>`__.
+
+    Args:
+        in_shape: Shape of input image.
+        matrices: (num_angles, 2, 4) array of homogeneous projection matrices.
+        det_shape: Shape of detector.
+
+    Returns:
+        (num_angles, 12) vector array in the ASTRA "parallel3d_vec" convention.
+    """
+    # ray is perpendicular to projection axes
+    ray = np.cross(matrices[:, 0, :3], matrices[:, 1, :3])
+    # detector center comes from lifting the center index to 3D
+    y_center = (np.array(det_shape) - 1) / 2
+    x_center = (
+        np.einsum("...mn,n->...m", matrices[..., :3], (np.array(in_shape) - 1) / 2)
+        + matrices[..., 3]
+    )
+    d = np.einsum("...mn,...m->...n", matrices[..., :3], y_center - x_center)  # (V, 2, 3) x (V, 2)
+    u = matrices[:, 1, :3]
+    v = matrices[:, 0, :3]
+
+    # handle different axis conventions
+    ray = ray[:, [2, 1, 0]]
+    d = d[:, [2, 1, 0]]
+    u = u[:, [2, 1, 0]]
+    v = v[:, [2, 1, 0]]
+
+    vectors = np.concatenate((ray, d, u, v), axis=1)  # (v, 12)
+    return vectors
+
+
+def _astra_to_scico_geometry(vol_geom: VolumeGeometry, proj_geom: ProjectionGeometry) -> np.ndarray:
+    """Convert ASTRA geometry objects into a SCICO projection matrix.
+
+    Convert ASTRA volume and projection geometry into a SCICO X-ray
+    projection matrix, assuming "parallel3d_vec" format.
+
+    The approach is to locate 3 points in the volume domain,
+    deduce the corresponding projection locations, and, then, solve a
+    linear system to determine the affine relationship between them.
+
+    Args:
+        vol_geom: ASTRA volume geometry object.
+        proj_geom: ASTRA projection geometry object.
+
+    Returns:
+        (num_angles, 2, 4) array of homogeneous projection matrices.
+
+    """
+    x_volume = np.concatenate((np.zeros((1, 3)), np.eye(3)), axis=0)  # (4, 3)
+    x_dets = _project_coords(x_volume, vol_geom, proj_geom)  # (num_angles, 4, 2)
+
+    x_volume_aug = np.concatenate((x_volume, np.ones((4, 1))), axis=1)  # (4, 4)
+    matrices = []
+    for x_det in x_dets:
+        M = np.linalg.solve(x_volume_aug, x_det).T
+        np.testing.assert_allclose(M @ x_volume_aug[0], x_det[0])
+        matrices.append(M)
+
+    return np.stack(matrices)
+
+
+def convert_to_scico_geometry(
+    input_shape: Shape,
+    det_count: Tuple[int, int],
+    det_spacing: Optional[Tuple[float, float]] = None,
+    angles: Optional[np.ndarray] = None,
+    vectors: Optional[np.ndarray] = None,
+) -> np.ndarray:
+    """Convert X-ray geometry specification to a SCICO projection matrix.
+
+    The approach is to locate 3 points in the volume domain,
+    deduce the corresponding projection locations, and, then, solve a
+    linear system to determine the affine relationship between them.
+
+    Args:
+        input_shape: Shape of the input array.
+        det_count: Number of detector elements. See the
+           `astra documentation <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
+           for more information.
+        det_spacing: Spacing between detector elements. See the
+           `astra documentation <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
+           for more information.
+        angles: Array of projection angles in radians. This parameter is
+            mutually exclusive with `vectors`.
+        vectors: Array of ASTRA geometry specification vectors. This
+            parameter is mutually exclusive with `angles`.
+
+    Returns:
+        (num_angles, 2, 4) array of homogeneous projection matrices.
+
+    """
+    if angles is not None and vectors is not None:
+        raise ValueError("Arguments 'angles' and 'vectors' are mutually exclusive.")
+    if angles is None and vectors is None:
+        raise ValueError("Exactly one of arguments 'angles' and 'vectors' must be provided.")
+    vol_geom, proj_geom = XRayTransform3D.create_astra_geometry(
+        input_shape, det_count, det_spacing=det_spacing, angles=angles, vectors=vectors
+    )
+    return _astra_to_scico_geometry(vol_geom, proj_geom)
+
+
 class XRayTransform3D(LinearOperator):  # pragma: no cover
     r"""3D parallel beam X-ray transform based on the ASTRA toolbox.
 
@@ -229,6 +493,9 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
     `ASTRA toolbox <https://github.com/astra-toolbox/astra-toolbox>`_.
     The `3D geometries <https://astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
     "parallel3d" and "parallel3d_vec" are supported by this interface.
+    Note that a CUDA GPU is required for the primary functionality of
+    this class; if no GPU is available, initialization will fail with a
+    :exc:`RuntimeError`.
 
     The volume is fixed with respect to the coordinate system, centered
     at the origin, as illustrated below:
@@ -252,9 +519,10 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
        :align: center
        :include-source: False
        :show-source-link: False
-       :caption: Red arrows indicate the direction of the beam towards
-          the detector (orange) and the arrows parallel to the detector
-          indicate the direction of increasing pixel indices.
+       :caption: Each radial arrow indicates the direction of the beam
+          towards the detector (indicated in orange in the "light"
+          display mode) and the arrow parallel to the detector indicates
+          the direction of increasing pixel indices.
 
     In this case the `z` axis is in the same direction as the
     vertical/row axis of the detector and its projection corresponds to
@@ -321,7 +589,7 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
         Keyword arguments `det_spacing` and `angles` should be specified
         to use the "parallel3d" geometry, and keyword argument `vectors`
         should be specified to use the "parallel3d_vec" geometry. These
-        options are mutually exclusive.
+        parameters are mutually exclusive.
 
         Args:
             input_shape: Shape of the input array.
@@ -331,54 +599,61 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
             det_spacing: Spacing between detector elements. See the
                `astra documentation <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
                for more information.
-            angles: Array of projection angles in radians.
-            vectors: Array of geometry specification vectors.
+            angles: Array of projection angles in radians. This
+                parameter is  mutually exclusive with `vectors`.
+            vectors: Array of ASTRA geometry specification vectors. This
+                parameter is mutually exclusive with `angles`.
+
+        Raises:
+            RuntimeError: If a CUDA GPU is not available to the ASTRA
+                toolbox.
         """
+        if not astra.use_cuda():
+            raise RuntimeError("CUDA GPU required but not available or not enabled.")
+
         if not (
             (det_spacing is not None and angles is not None and vectors is None)
             or (vectors is not None and det_spacing is None and angles is None)
         ):
             raise ValueError(
-                "Keyword arguments det_spacing and angles, or keyword argument "
-                "vectors must be specified, but not both."
+                "Keyword arguments 'det_spacing' and 'angles', or keyword argument "
+                "'vectors' must be specified, but not both."
             )
 
         self.num_dims = len(input_shape)
         if self.num_dims != 3:
             raise ValueError(
-                f"Only 3D projections are supported, but input_shape is {input_shape}."
+                f"Only 3D projections are supported, but 'input_shape' is {input_shape}."
             )
 
         if not isinstance(det_count, (list, tuple)) or len(det_count) != 2:
-            raise ValueError("Expected det_count to be a tuple with 2 elements.")
+            raise ValueError("Expected argument 'det_count' to be a tuple with 2 elements.")
+        if angles is not None and vectors is not None:
+            raise ValueError("Arguments 'angles' and 'vectors' are mutually exclusive.")
+        if angles is None and vectors is None:
+            raise ValueError(
+                "Exactly one of the arguments 'angles' and 'vectors' must be provided."
+            )
         if angles is not None:
             Nview = angles.size
-            self.angles: np.ndarray = np.array(angles)
-        else:
-            assert vectors is not None
+            self.angles: Optional[np.ndarray] = np.array(angles)
+            self.vectors: Optional[np.ndarray] = None
+        if vectors is not None:
             Nview = vectors.shape[0]
-            self.vectors: np.ndarray = np.array(vectors)
+            self.vectors = np.array(vectors)
+            self.angles = None
         output_shape: Shape = (det_count[0], Nview, det_count[1])
 
         self.det_count = det_count
         assert isinstance(det_count, (list, tuple))
-        if angles is not None:
-            assert det_spacing is not None
-            self.proj_geom = astra.create_proj_geom(
-                "parallel3d",
-                det_spacing[0],
-                det_spacing[1],
-                det_count[0],
-                det_count[1],
-                self.angles,
-            )
-        else:
-            self.proj_geom = astra.create_proj_geom(
-                "parallel3d_vec", det_count[0], det_count[1], self.vectors
-            )
-
         self.input_shape: tuple = input_shape
-        self.vol_geom = astra.create_vol_geom(input_shape[1], input_shape[2], input_shape[0])
+        self.vol_geom, self.proj_geom = self.create_astra_geometry(
+            input_shape,
+            det_count,
+            det_spacing=det_spacing,
+            angles=self.angles,
+            vectors=self.vectors,
+        )
 
         # Wrap our non-jax function to indicate we will supply fwd/rev mode functions
         self._eval = jax.custom_vjp(self._proj)
@@ -394,6 +669,53 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
             adj_fn=self._adj,
             jit=False,
         )
+
+    @staticmethod
+    def create_astra_geometry(
+        input_shape: Shape,
+        det_count: Tuple[int, int],
+        det_spacing: Optional[Tuple[float, float]] = None,
+        angles: Optional[np.ndarray] = None,
+        vectors: Optional[np.ndarray] = None,
+    ) -> Tuple[VolumeGeometry, ProjectionGeometry]:
+        """Create ASTRA 3D geometry objects.
+
+        Keyword arguments `det_spacing` and `angles` should be specified
+        to use the "parallel3d" geometry, and keyword argument `vectors`
+        should be specified to use the "parallel3d_vec" geometry. These
+        parameters are mutually exclusive.
+
+        Args:
+            input_shape: Shape of the input array.
+            det_count: Number of detector elements. See the
+               `astra documentation <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
+               for more information.
+            det_spacing: Spacing between detector elements. See the
+               `astra documentation <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
+               for more information.
+            angles: Array of projection angles in radians.
+            vectors: Array of geometry specification vectors.
+
+        Returns:
+            A tuple `(vol_geom, proj_geom)` of ASTRA volume geometry and
+            projection geometry objects.
+        """
+        vol_geom = astra.create_vol_geom(input_shape[1], input_shape[2], input_shape[0])
+        if angles is not None:
+            assert det_spacing is not None
+            proj_geom = astra.create_proj_geom(
+                "parallel3d",
+                det_spacing[0],
+                det_spacing[1],
+                det_count[0],
+                det_count[1],
+                angles,
+            )
+        else:
+            proj_geom = astra.create_proj_geom(
+                "parallel3d_vec", det_count[0], det_count[1], vectors
+            )
+        return vol_geom, proj_geom
 
     def _proj(self, x: jax.Array) -> jax.Array:
         # apply the forward projector and generate a sinogram
@@ -436,6 +758,24 @@ def angle_to_vector(det_spacing: Tuple[float, float], angles: np.ndarray) -> np.
     vectors[:, 7] = np.sin(angles) * det_spacing[0]
     vectors[:, 11] = det_spacing[1]
     return vectors
+
+
+def rotate_vectors(vectors: np.ndarray, rot: Rotation) -> np.ndarray:
+    """Rotate geometry specification vectors.
+
+    Rotate ASTRA "parallel3d_vec" geometry specification vectors.
+
+    Args:
+        vectors: Array of geometry specification vectors.
+        rot: Rotation.
+
+    Returns:
+        Rotated geometry specification vectors.
+    """
+    rot_vecs = vectors.copy()
+    for k in range(0, 12, 3):
+        rot_vecs[:, k : k + 3] = rot.apply(rot_vecs[:, k : k + 3])
+    return rot_vecs
 
 
 def _ensure_writeable(x):

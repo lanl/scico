@@ -28,7 +28,7 @@ Usage: $SCRIPT [-h] [-y] [-g] [-p python_version] [-e env_name]
           [-v] Verbose operation
           [-t] Display actions that would be taken but do nothing
           [-y] Do not ask for confirmation
-          [-p python_version] Specify Python version (e.g. 3.9)
+          [-p python_version] Specify Python version (e.g. 3.12)
           [-e env_name] Specify conda environment name
 EOF
 )
@@ -36,7 +36,7 @@ EOF
 AGREE=no
 VERBOSE=no
 TEST=no
-PYVER="3.9"
+PYVER="3.12"
 ENVNM=py$(echo $PYVER | sed -e 's/\.//g')
 
 # Project requirements files
@@ -50,7 +50,7 @@ EOF
 )
 # Requirements that cannot be installed via conda (i.e. have to use pip)
 NOCONDA=$(cat <<-EOF
-flax bm3d bm4d py2jn colour_demosaicing ray[tune,train]
+flax orbax-checkpoint bm3d bm4d py2jn colour_demosaicing hyperopt ray[tune,train]
 EOF
 )
 
@@ -217,19 +217,16 @@ eval "$(conda shell.bash hook)"  # required to avoid errors re: `conda init`
 conda activate $ENVNM  # Q: why not `source activate`? A: not always in the path
 
 # Add conda-forge channel
-conda config --env --append channels conda-forge
-
-# Install mamba
-conda install mamba -n base -c conda-forge
+conda config --append channels conda-forge
 
 # Install required conda packages (and extra useful packages)
-mamba install $CONDA_FLAGS $CONDAREQ ipython
+conda install $CONDA_FLAGS $CONDAREQ ipython
 
 # Utility ffmpeg is required by imageio for reading mp4 video files
 # it can also be installed via the system package manager, .e.g.
 #    sudo apt install ffmpeg
 if [ "$(which ffmpeg)" = '' ]; then
-    mamba install $CONDA_FLAGS ffmpeg
+    conda install $CONDA_FLAGS ffmpeg
 fi
 
 # Install jaxlib and jax
@@ -257,6 +254,9 @@ echo
 echo "JAX installed without GPU support. To enable GPU support, install a"
 echo "version of jaxlib with CUDA support following the instructions at"
 echo "   https://jax.readthedocs.io/en/latest/installation.html#nvidia-gpu"
+echo "In most cases this just requires the command"
+echo "   pip install -U \"jax[cuda12]\""
+echo
 echo "ASTRA Toolbox installed without GPU support if this script was"
 echo "run on a host without CUDA drivers installed. To enable GPU support,"
 echo "uninstall and then reinstall the astra-toolbox conda package on a"

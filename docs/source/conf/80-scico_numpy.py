@@ -27,7 +27,7 @@ for module in (scico.numpy, scico.numpy.fft, scico.numpy.linalg, scico.numpy.tes
         # Improve formatting of jax.numpy warning
         f.__doc__ = re.sub(
             r"^\*\*\* This function is not yet implemented by jax.numpy, and will "
-            "raise NotImplementedError \*\*\*",
+            r"raise NotImplementedError \*\*\*",
             "**WARNING**: This function is not yet implemented by jax.numpy, "
             " and will raise :exc:`NotImplementedError`.",
             f.__doc__,
@@ -52,14 +52,14 @@ scico.numpy.testing.break_cycles.__doc__ = re.sub(
     flags=re.M,
 )
 scico.numpy.testing.break_cycles.__doc__ = re.sub(
-    " __del__\) inside", "__del__\) inside", scico.numpy.testing.break_cycles.__doc__, flags=re.M
+    r" __del__\) inside", r"__del__\) inside", scico.numpy.testing.break_cycles.__doc__, flags=re.M
 )
 scico.numpy.testing.assert_raises_regex.__doc__ = re.sub(
-    "\*args,\n.*\*\*kwargs",
+    r"\*args,\n.*\*\*kwargs",
     "*args, **kwargs",
     scico.numpy.testing.assert_raises_regex.__doc__,
     flags=re.M,
 )
 scico.numpy.BlockArray.global_shards.__doc__ = re.sub(
-    "`Shard`s", "`Shard`\ s", scico.numpy.BlockArray.global_shards.__doc__, flags=re.M
+    r"`Shard`s", r"`Shard`\ s", scico.numpy.BlockArray.global_shards.__doc__, flags=re.M
 )

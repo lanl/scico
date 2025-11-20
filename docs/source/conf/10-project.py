@@ -2,7 +2,7 @@ from scico._version import package_version
 
 # General information about the project.
 project = "SCICO"
-copyright = "2020-2024, SCICO Developers"
+copyright = "2020-2025, SCICO Developers"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

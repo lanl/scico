@@ -1,3 +1,6 @@
+import os
+import tempfile
+
 import numpy as np
 
 import pytest
@@ -145,6 +148,44 @@ class TestReal:
         )
         x = ladmm_.solve()
         assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-4
+
+    def test_ladmm_saveload(self):
+        maxiter = 5
+        μ = 1e-2
+        ν = 2e-1
+        A = linop.Diagonal(snp.diag(self.Amx))
+        f = loss.SquaredL2Loss(y=self.y, A=A)
+        g = (self.λ / 2) * functional.SquaredL2Norm()
+        C = linop.MatrixOperator(self.Bmx)
+        ladmm0 = LinearizedADMM(
+            f=f,
+            g=g,
+            C=C,
+            mu=μ,
+            nu=ν,
+            maxiter=maxiter,
+            x0=A.adj(self.y),
+        )
+        ladmm0.solve()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "ladmm.npz")
+            ladmm0.save_state(path)
+            ladmm0.solve()
+            h0 = ladmm0.history()
+            ladmm1 = LinearizedADMM(
+                f=f,
+                g=g,
+                C=C,
+                mu=μ,
+                nu=ν,
+                maxiter=maxiter,
+                x0=A.adj(self.y),
+            )
+            ladmm1.load_state(path)
+            ladmm1.solve()
+            h1 = ladmm1.history()
+            np.testing.assert_allclose(ladmm0.minimizer(), ladmm1.minimizer(), rtol=1e-6)
+            assert np.abs(h0[-1].Objective - h1[-1].Objective) < 1e-6
 
 
 class TestComplex:

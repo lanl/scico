@@ -127,7 +127,7 @@ def test_hyperopt_tune_alt_init():
         hyperopt=True,
         verbose=True,
         tune_config=ray.tune.TuneConfig(),
-        run_config=tune.ray.air.config.RunConfig(),
+        run_config=ray.tune.RunConfig(),
     )
     results = tuner.fit()
     best_config = results.get_best_result().config

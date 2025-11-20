@@ -16,9 +16,9 @@ problem with isotropic total variation (TV) regularization
 
 where $A$ is the X-ray transform (the CT forward projection operator),
 $\mathbf{y}$ is the sinogram, $C$ is a 2D finite difference operator, and
-$\mathbf{x}$ is the desired image. The solution is computed and compared
-for all three 2D CT projectors available in scico, using a sinogram
-computed with the astra projector.
+$\mathbf{x}$ is the reconstructed image. The solution is computed and
+compared for all three 2D CT projectors available in scico, using a
+sinogram computed with the astra projector.
 """
 
 import numpy as np
@@ -27,7 +27,7 @@ from xdesign import Foam, discrete_phantom
 
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot
-from scico.linop.xray import Parallel2dProjector, XRayTransform, astra, svmbir
+from scico.linop.xray import XRayTransform2D, astra, svmbir
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
@@ -38,15 +38,14 @@ N = 512  # phantom size
 np.random.seed(1234)
 x_gt = snp.array(discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=N))
 
-det_count = N
-det_spacing = np.sqrt(2)
-
 
 """
 Define CT geometry and construct array of (approximately) equivalent projectors.
 """
 n_projection = 45  # number of projections
-angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
+angles = np.linspace(0, np.pi, n_projection, endpoint=False)  # evenly spaced projection angles
+det_count = int(N * 1.05 / np.sqrt(2.0))
+det_spacing = np.sqrt(2)
 projectors = {
     "astra": astra.XRayTransform2D(
         x_gt.shape, det_count, det_spacing, angles - np.pi / 2.0
@@ -54,9 +53,7 @@ projectors = {
     "svmbir": svmbir.XRayTransform(
         x_gt.shape, 2 * np.pi - angles, det_count, delta_pixel=1.0, delta_channel=det_spacing
     ),  # svmbir
-    "scico": XRayTransform(
-        Parallel2dProjector((N, N), angles, det_count=det_count, dx=1 / det_spacing)
-    ),  # scico
+    "scico": XRayTransform2D((N, N), angles, det_count=det_count, dx=1 / det_spacing),  # scico
 }
 
 

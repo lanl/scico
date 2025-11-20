@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2024 by SCICO Developers
+# Copyright (C) 2021-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -11,7 +11,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import scico.numpy as snp
 from scico.functional import Functional
@@ -142,8 +142,10 @@ class LinearizedADMM(Optimizer):
         itstat_attrib = ["norm_primal_residual()", "norm_dual_residual()"]
         return itstat_fields, itstat_attrib
 
-    def minimizer(self):
-        """Return current estimate of the functional mimimizer."""
+    def _state_variable_names(self) -> List[str]:
+        return ["x", "z", "z_old", "u"]
+
+    def minimizer(self) -> Union[Array, BlockArray]:
         return self.x
 
     def objective(
@@ -172,7 +174,7 @@ class LinearizedADMM(Optimizer):
             scalar: Value of the objective function.
         """
         if (x is None) != (z is None):
-            raise ValueError("Both or neither of x and z must be supplied.")
+            raise ValueError("Both or neither of arguments 'x' and 'z' must be supplied.")
         if x is None:
             x = self.x
             z = self.z

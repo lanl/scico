@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2023 by SCICO Developers
+# Copyright (C) 2020-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -19,8 +19,6 @@ from timeit import default_timer as timer
 from typing import Any, Callable, Dict, List, Optional, Sequence, Union
 
 import jax
-from jax.interpreters.batching import BatchTracer
-from jax.interpreters.partial_eval import DynamicJaxprTracer
 
 
 def rgetattr(obj: object, name: str, default: Optional[Any] = None) -> Any:
@@ -140,13 +138,9 @@ def check_for_tracer(func: Callable) -> Callable:
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if any([isinstance(x, DynamicJaxprTracer) for x in args]):
+        if any([isinstance(x, jax.core.Tracer) for x in args]):
             raise TypeError(
-                f"DynamicJaxprTracer found in {func.__name__};  did you jit this function?"
-            )
-        if any([isinstance(x, BatchTracer) for x in args]):
-            raise TypeError(
-                f"BatchTracer found in {func.__name__};  did you vmap/pmap this function?"
+                f"JAX tracer found in {func.__name__}; did you jit/vmap/pmap this function?"
             )
         return func(*args, **kwargs)
 
@@ -170,7 +164,7 @@ def url_get(url: str, maxtry: int = 3, timeout: int = 10) -> io.BytesIO:  # prag
     """
 
     if maxtry <= 0:
-        raise ValueError("Parameter maxtry should be greater than zero.")
+        raise ValueError("Argument 'maxtry' should be greater than zero.")
     for ntry in range(maxtry):
         try:
             rspns = urlrequest.urlopen(url, timeout=timeout)

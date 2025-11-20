@@ -17,6 +17,7 @@ class TestCheckAttrs:
         functional.Functional,
         functional.ScaledFunctional,
         functional.SeparableFunctional,
+        functional.ComposedFunctional,
         functional.ProximalAverage,
     ]
     to_check = []

@@ -31,10 +31,10 @@ def typehints_formatter_function(annotation, config):
         DType: ":obj:`~scico.typing.DType`",
         # Compound types involving DType must be added here to avoid their DType
         # component being expanded in the docs.
-        Optional[DType]: ":obj:`~typing.Optional`\ [\ :obj:`~scico.typing.DType`\ ]",
+        Optional[DType]: r":obj:`~typing.Optional`\ [\ :obj:`~scico.typing.DType`\ ]",
         Union[DType, Sequence[DType]]: (
-            ":obj:`~typing.Union`\ [\ :obj:`~scico.typing.DType`\ , "
-            ":obj:`~typing.Sequence`\ [\ :obj:`~scico.typing.DType`\ ]]"
+            r":obj:`~typing.Union`\ [\ :obj:`~scico.typing.DType`\ , "
+            r":obj:`~typing.Sequence`\ [\ :obj:`~scico.typing.DType`\ ]]"
         ),
         AxisIndex: ":obj:`~scico.typing.AxisIndex`",
         ArrayIndex: ":obj:`~scico.typing.ArrayIndex`",

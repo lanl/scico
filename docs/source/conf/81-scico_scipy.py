@@ -28,10 +28,11 @@ for _, f in ssp_func:
         # Remove entire numpydoc references section
         f.__doc__ = re.sub(r"References\n----------\n.*\n", "", f.__doc__, flags=re.DOTALL)
         # Remove problematic citation
-        f.__doc__ = re.sub("See \[dlmf\]_ for details.", "", f.__doc__, re.M)
-        f.__doc__ = re.sub("\[dlmf\]_", "NIST DLMF", f.__doc__, re.M)
+        f.__doc__ = re.sub(r"See \[dlmf\]_ for details.", "", f.__doc__, re.M)
+        f.__doc__ = re.sub(r"\[dlmf\]_", "NIST DLMF", f.__doc__, re.M)
 
 # Fix indentation problems
-scico.scipy.special.sph_harm.__doc__ = re.sub(
-    "^Computes the", "  Computes the", scico.scipy.special.sph_harm.__doc__, flags=re.M
-)
+if hasattr(scico.scipy.special, "sph_harm"):
+    scico.scipy.special.sph_harm.__doc__ = re.sub(
+        "^Computes the", "  Computes the", scico.scipy.special.sph_harm.__doc__, flags=re.M
+    )

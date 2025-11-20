@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2023 by SCICO Developers
+# Copyright (C) 2020-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -89,6 +89,9 @@ class Loss(functional.Functional):
 
         Args:
             x: Point at which to evaluate loss.
+
+        Returns:
+            Result of evaluating the loss at `x`.
         """
         if self.f is None:
             raise NotImplementedError(
@@ -111,9 +114,12 @@ class Loss(functional.Functional):
         Args:
             v: Point at which to evaluate prox function.
             lam: Proximal parameter :math:`\lambda`.
-            kwargs: Additional arguments that may be used by derived
+            **kwargs: Additional arguments that may be used by derived
                classes. These include `x0`, an initial guess for the
                minimizer in the defintion of :math:`\mathrm{prox}`.
+
+        Returns:
+            Result of evaluating the scaled proximal operator at `v`.
         """
         if not self.has_prox:
             raise NotImplementedError(

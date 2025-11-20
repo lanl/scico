@@ -3,22 +3,28 @@
 Installing SCICO
 ================
 
-SCICO requires Python version 3.8 or later. (Version 3.10 is
-recommended as it is the version under which SCICO has been most
-thoroughly tested.) It is supported on both Linux and MacOS, but is
-not currently supported on Windows due to the limited support for
-``jaxlib`` on Windows. However, Windows users can use SCICO via the
-`Windows Subsystem for Linux
+SCICO requires Python version 3.8 or later. (Version 3.12 is
+recommended as it is the version under which SCICO is tested in GitHub
+continuous integration, and since the most recent versions of JAX require
+version 3.10 or later.) SCICO is supported on both Linux and
+MacOS, but is not currently supported on Windows due to the limited
+support for ``jaxlib`` on Windows. However, Windows users can use
+SCICO via the `Windows Subsystem for Linux
 <https://docs.microsoft.com/en-us/windows/wsl/about>`_ (WSL). Guides
-exist for using WSL with `CPU only
-<https://docs.microsoft.com/en-us/windows/wsl/install-win10>`_ and
-with `GPU support
-<https://docs.microsoft.com/en-us/windows/win32/direct3d12/gpu-cuda-in-wsl>`_.
+exist for using WSL with
+`CPU only <https://docs.microsoft.com/en-us/windows/wsl/install-win10>`_
+and with
+`GPU support <https://docs.microsoft.com/en-us/windows/win32/direct3d12/gpu-cuda-in-wsl>`_.
 
-While not required, installation of SCICO and its dependencies within a `Conda <https://conda.io/projects/conda/en/latest/user-guide/index.html>`_ environment
-is recommended. `Scripts <https://github.com/lanl/scico/tree/main/misc/conda>`_
-are provided for creating a `miniconda <https://docs.conda.io/en/latest/miniconda.html>`_ installation and an environment including all primary SCICO dependencies as well as dependencies
-for usage example, testing, and building the documentation.
+While not required, installation of SCICO and its dependencies within a
+`Conda <https://conda.io/projects/conda/en/latest/user-guide/index.html>`_
+environment is recommended.
+`Scripts <https://github.com/lanl/scico/tree/main/misc/conda>`_
+are provided for creating a
+`miniconda <https://docs.conda.io/en/latest/miniconda.html>`_
+installation and an environment including all primary SCICO dependencies
+as well as dependencies for usage example, testing, and building the
+documentation.
 
 
 From PyPI
@@ -81,7 +87,7 @@ can be installed from PyPI
 From GitHub
 -----------
 
-SCICO can be downloaded from the `GitHub repo
+The development version of SCICO can be downloaded from the `GitHub repo
 <https://github.com/lanl/scico>`_. Note that, since the SCICO repo has
 a submodule, it should be cloned via the command
 ::
@@ -94,6 +100,13 @@ Install using the commands
    cd scico
    pip install -r requirements.txt
    pip install -e .
+
+
+If a clone of the SCICO repository is not needed, it is simpler to
+install directly using ``pip``
+::
+
+   pip install git+https://github.com/lanl/scico
 
 
 
@@ -110,29 +123,20 @@ a version with GPU support:
    In the simplest case, the appropriate command is
    ::
 
-      pip install --upgrade "jax[cuda11]"
-
-   for CUDA 11, or
-   ::
-
       pip install --upgrade "jax[cuda12]"
 
    for CUDA 12, but it may be necessary to explicitly specify the
    ``jaxlib`` version if the most recent release is not yet supported
-   by SCICO (as specified in the ``requirements.txt`` file), or if
-   using a version of CUDA older than 11.4, or CuDNN older than 8.2,
-   in which case the command would be of the form
-   ::
-
-      pip install --upgrade "jaxlib==0.4.2+cuda11.cudnn82" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
-
-   with appropriate substitution of ``jaxlib``, CUDA, and CuDNN version
-   numbers.
+   by SCICO (as specified in the ``requirements.txt`` file).
 
 
-The script `misc/envinfo.py <https://github.com/lanl/scico/blob/main/misc/envinfo.py>`_
+The script
+`misc/gpu/envinfo.py <https://github.com/lanl/scico/blob/main/misc/gpu/envinfo.py>`_
 in the source distribution is provided as an aid to debugging GPU support
-issues.
+issues. The script
+`misc/gpu/availgpu.py <https://github.com/lanl/scico/blob/main/misc/gpu/availgpu.py>`_
+can be used to automatically recommend a setting of the CUDA_VISIBLE_DEVICES
+environment variable that excludes GPUs that are already in use.
 
 
 

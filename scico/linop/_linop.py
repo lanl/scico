@@ -1,4 +1,4 @@
-# Copyright (C) 2020-2024 by SCICO Developers
+# Copyright (C) 2020-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -180,7 +180,7 @@ class LinearOperator(Operator):
             self._adj = adj_fn
             self._gram = lambda x: self.adj(self(x))
         elif adj_fn is not None:
-            raise TypeError(f"Parameter adj_fn must be either a Callable or None; got {adj_fn}.")
+            raise TypeError(f"Argument 'adj_fn' must be either a Callable or None; got {adj_fn}.")
 
         if jit:
             self.jit()
