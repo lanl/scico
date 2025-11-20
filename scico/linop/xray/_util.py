@@ -18,7 +18,15 @@ from jax.image import ResizeMethod, scale_and_translate
 from jax.scipy.ndimage import map_coordinates
 from jax.typing import ArrayLike
 
-import scico.linop.xray.astra
+try:
+    import scico.linop.xray.astra
+
+    have_astra = True
+except ModuleNotFoundError as e:
+    if e.name == "astra":
+        have_astra = False
+    else:
+        raise e
 import scipy.spatial.transform as sst
 
 
@@ -173,6 +181,8 @@ def image_alignment_rotation(
 
 
     """
+    if not have_astra:
+        raise RuntimeError("Package astra is required for use of this function.")
     angles = np.arange(-max_angle, max_angle, angle_step)
     max_angle_rad = max_angle * np.pi / 180
     # choose det_count so that projected image is within the detector bounds
