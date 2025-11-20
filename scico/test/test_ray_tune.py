@@ -8,6 +8,8 @@ import pytest
 try:
     import ray
     from scico.ray import report, tune
+
+    os.environ["RAY_ACCEL_ENV_VAR_OVERRIDE_ON_ZERO"] = "0"  # suppress ray warning
 except ImportError as e:
     pytest.skip("ray.tune not installed", allow_module_level=True)
 
