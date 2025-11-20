@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2024 by SCICO Developers
+# Copyright (C) 2021-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -20,6 +20,7 @@ try:
     import ray.tune
 
     os.environ["RAY_AIR_NEW_OUTPUT"] = "0"
+    os.environ["RAY_ACCEL_ENV_VAR_OVERRIDE_ON_ZERO"] = "0"
 except ImportError:
     raise ImportError("Could not import ray.tune; please install it.")
 import ray.air
