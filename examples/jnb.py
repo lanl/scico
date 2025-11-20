@@ -48,22 +48,24 @@ def py_file_to_string(src):
                 if re.match("^import|^from .* import", line):
                     import_seen = True
             lines.append(line)
-        # Backtrack through list of lines to find last import statement
-        n = 1
-        for line in lines[-2::-1]:
-            if re.match("^(import|from)", line):
-                break
-            else:
-                n += 1
-        # Insert notebook plotting config directly after last import statement
-        lines.insert(-n, "plot.config_notebook_plotting()\n")
+
+        if "plot" in "".join(lines):
+            # Backtrack through list of lines to find last import statement
+            n = 1
+            for line in lines[-2::-1]:
+                if re.match("^(import|from)", line):
+                    break
+                else:
+                    n += 1
+            # Insert notebook plotting config directly after last import statement
+            lines.insert(-n, "plot.config_notebook_plotting()\n")
 
         # Process remainder of source file
         for line in srcfile:
-            if re.match("^input\(", line):  # end processing when input statement encountered
+            if re.match(r"^input\(", line):  # end processing when input statement encountered
                 break
             line = re.sub('^r"""', '"""', line)  # remove r from r"""
-            line = re.sub(":cite:\`([^`]+)\`", r'<cite data-cite="\1"/>', line)  # fix cite format
+            line = re.sub(r":cite:\`([^`]+)\`", r'<cite data-cite="\1"/>', line)  # fix cite format
             lines.append(line)
 
         # Backtrack through list of lines to remove trailing newlines
@@ -73,7 +75,8 @@ def py_file_to_string(src):
                 n += 1
             else:
                 break
-        lines = lines[0:-n]
+        if n > 0:
+            lines = lines[0:-n]
 
         return "".join(lines)
 

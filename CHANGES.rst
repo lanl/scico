@@ -3,10 +3,35 @@ SCICO Release Notes
 ===================
 
 
-Version 0.0.6   (unreleased)
+Version 0.0.7   (unreleased)
+----------------------------
+
+• New module ``scico.trace`` for tracing function/method calls.
+• New generic functional ``functional.ComposedFunctional`` representing
+  a functional composed with an orthogonal linear operator.
+• New optimizer methods ``save_state`` and ``load_state`` supporting
+  algorithm state checkpointing.
+• New classes for creating a volume from an image by symmetry, and
+  for cone beam X-ray transform of a cylindrically symmetric object
+  in module ``linop.xray.symcone``.
+• New utility functions for CT reconstruction preprocessing added in
+  module ``linop.xray``.
+• Moved ``linop.abel`` module to ``linop.xray.abel``.
+• Make ``orbax-checkpoint`` dependency optional due to absence of recent
+  conda-forge packages.
+• Support ``jaxlib`` and ``jax`` versions 0.4.13 to 0.7.2.
+• Support ``flax`` versions 0.8.0 to 0.11.2.
+
+
+
+Version 0.0.6   (2024-10-25)
 ----------------------------
 
 • Significant changes to ``linop.xray.astra`` API.
+• Rename integrated 2D X-ray transform class to
+  ``linop.xray.XRayTransform2D`` and add filtered back projection method
+  ``fbp``.
+• New integrated 3D X-ray transform via ``linop.xray.XRayTransform3D``.
 • New functional ``functional.IsotropicTVNorm`` and faster implementation
   of ``functional.AnisotropicTVNorm``.
 • New linear operators ``linop.ProjectedGradient``, ``linop.PolarGradient``,
@@ -16,8 +41,8 @@ Version 0.0.6   (unreleased)
 • Rename ``scico.flax.save_weights`` and ``scico.flax.load_weights`` to
   ``scico.flax.save_variables`` and ``scico.flax.load_variables``
   respectively.
-• Support ``jaxlib`` and ``jax`` versions 0.4.3 to 0.4.30.
-• Support ``flax`` versions 0.8.0 to 0.8.3.
+• Support ``jaxlib`` and ``jax`` versions 0.4.13 to 0.4.35.
+• Support ``flax`` versions 0.8.0 to 0.10.0.
 
 
 

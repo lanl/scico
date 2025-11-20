@@ -6,10 +6,10 @@
 
 
 r"""
-X-ray Transform Comparison
-==========================
+2D X-ray Transform Comparison
+=============================
 
-This example compares SCICO's native X-ray transform algorithm
+This example compares SCICO's native 2D X-ray transform algorithm
 to that of the ASTRA toolbox.
 """
 
@@ -22,16 +22,13 @@ from xdesign import Foam, discrete_phantom
 
 import scico.linop.xray.astra as astra
 from scico import plot
-from scico.linop import Parallel2dProjector, XRayTransform
+from scico.linop.xray import XRayTransform2D
 from scico.util import Timer
 
 """
 Create a ground truth image.
 """
 N = 512
-
-det_count = int(jnp.ceil(jnp.sqrt(2 * N**2)))
-
 x_gt = discrete_phantom(Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1), size=N)
 x_gt = jnp.array(x_gt)
 
@@ -41,17 +38,18 @@ Time projector instantiation.
 """
 num_angles = 500
 angles = jnp.linspace(0, jnp.pi, num=num_angles, endpoint=False)
+det_count = int(N * 1.02 / jnp.sqrt(2.0))
 
 timer = Timer()
 
 projectors = {}
 timer.start("scico_init")
-projectors["scico"] = XRayTransform(Parallel2dProjector((N, N), angles))
+projectors["scico"] = XRayTransform2D((N, N), angles, det_count=det_count)
 timer.stop("scico_init")
 
 timer.start("astra_init")
 projectors["astra"] = astra.XRayTransform2D(
-    (N, N), det_count=det_count, det_spacing=1.0, angles=angles - jnp.pi / 2.0
+    (N, N), det_count=det_count, det_spacing=np.sqrt(2), angles=angles - jnp.pi / 2.0
 )
 timer.stop("astra_init")
 

@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2023 by SCICO Developers
+# Copyright (C) 2021-2024 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -8,7 +8,7 @@
 solving the inverse problems that arise in scientific imaging applications.
 """
 
-__version__ = "0.0.6.dev0"
+__version__ = "0.0.7.dev0"
 
 import logging
 import sys
@@ -16,14 +16,7 @@ import sys
 # isort: off
 
 # Suppress jax device warning. See https://github.com/google/jax/issues/6805
-# This only works for jax>0.3.23; for earlier versions, the getLogger
-# argument should be "absl". Two filters are included here due to a change
-# in jax between versions 0.4.2 and 0.4.8, both of which are supported by
-# scico.
-logging.getLogger("jax._src.lib.xla_bridge").addFilter(  # jax 0.4.2
-    logging.Filter("No GPU/TPU found, falling back to CPU.")
-)
-logging.getLogger("jax._src.xla_bridge").addFilter(  # jax 0.4.8
+logging.getLogger("jax._src.xla_bridge").addFilter(  # jax 0.4.8 and later
     logging.Filter("No GPU/TPU found, falling back to CPU.")
 )
 

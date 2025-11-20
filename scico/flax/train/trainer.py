@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2024 by SCICO Developers
+# Copyright (C) 2022-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -153,7 +153,7 @@ class BasicFlaxTrainer:
 
         # Determine sharded vs. batch partition
         if batch_size % jax.device_count() > 0:
-            raise ValueError("Batch size must be divisible by the number of devices")
+            raise ValueError("Batch size must be divisible by the number of devices.")
         self.local_batch_size: int = batch_size // jax.process_count()
 
         # Training steps

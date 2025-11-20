@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2023 by SCICO Developers
+# Copyright (C) 2022-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -13,9 +13,14 @@ from typing import Union
 
 import jax
 
-import orbax.checkpoint
+try:
+    import orbax.checkpoint as ocp
 
-from flax.training import orbax_utils
+    have_orbax = True
+    if not hasattr(ocp, "CheckpointManager"):
+        have_orbax = False
+except ImportError:
+    have_orbax = False
 
 from .state import TrainState
 from .typed_dict import ConfigDict
@@ -43,20 +48,29 @@ def checkpoint_restore(
     Raises:
         FileNotFoundError: If a checkpoint is expected and is not found.
     """
+    if not have_orbax:
+        raise RuntimeError("Package orbax.checkpoint is required for use of this function.")
     # Check if workdir is Path or convert to Path
     workdir_ = workdir
     if isinstance(workdir_, str):
         workdir_ = Path(workdir_)
     if workdir_.exists():
-        orbax_checkpointer = orbax.checkpoint.PyTreeCheckpointer()
-        checkpoint_manager = orbax.checkpoint.CheckpointManager(workdir_, orbax_checkpointer)
-        step = checkpoint_manager.latest_step()
+        options = ocp.CheckpointManagerOptions()
+        mngr = ocp.CheckpointManager(
+            workdir_,
+            item_names=("state", "config"),
+            options=options,
+        )
+        step = mngr.latest_step()
         if step is not None:
-            target = {"state": state, "config": {}}
-            ckpt = checkpoint_manager.restore(step, items=target)
-            state = ckpt["state"]
+            restored = mngr.restore(
+                step, args=ocp.args.Composite(state=ocp.args.StandardRestore(state))
+            )
+            mngr.wait_until_finished()
+            mngr.close()
+            state = restored.state
     elif not ok_no_ckpt:
-        raise FileNotFoundError("Could not read from checkpoint: " + str(workdir))
+        raise FileNotFoundError("Could not read from checkpoint: " + str(workdir) + ".")
 
     return state
 
@@ -73,14 +87,26 @@ def checkpoint_save(state: TrainState, config: ConfigDict, workdir: Union[str, P
         config: Python dictionary including model train configuration.
         workdir: Path in which to store checkpoint files.
     """
+    if not have_orbax:
+        raise RuntimeError("Package orbax.checkpoint is required for use of this function.")
     if jax.process_index() == 0:
-        orbax_checkpointer = orbax.checkpoint.PyTreeCheckpointer()
-        # Bundle config and model parameters together
-        ckpt = {"state": state, "config": config}
-        save_args = orbax_utils.save_args_from_target(ckpt)
-        options = orbax.checkpoint.CheckpointManagerOptions(max_to_keep=3, create=True)
-        checkpoint_manager = orbax.checkpoint.CheckpointManager(
-            workdir, orbax_checkpointer, options
+        options = ocp.CheckpointManagerOptions(max_to_keep=3, create=True)
+        mngr = ocp.CheckpointManager(
+            workdir,
+            item_names=("state", "config"),
+            options=options,
         )
         step = int(state.step)
-        checkpoint_manager.save(step, ckpt, save_kwargs={"save_args": save_args})
+        # Remove non-serializable partial functools in post_lst if it exists
+        config_ = config.copy()
+        if "post_lst" in config_:
+            config_.pop("post_lst", None)  # type: ignore
+        mngr.save(
+            step,
+            args=ocp.args.Composite(
+                state=ocp.args.StandardSave(state),
+                config=ocp.args.JsonSave(config_),
+            ),
+        )
+        mngr.wait_until_finished()
+        mngr.close()

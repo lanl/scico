@@ -13,7 +13,7 @@ on:
 jobs:
 
   test:
-    runs-on: macos-13
+    runs-on: macos-latest
     strategy:
       fail-fast: false
       matrix:
@@ -27,23 +27,21 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      # Set up conda/mamba environment
-      - name: Set up mambaforge
+      # Set up conda environment
+      - name: Set up miniconda
         uses: conda-incubator/setup-miniconda@v3
         with:
-            miniforge-variant: Mambaforge
             miniforge-version: latest
             activate-environment: test-env
-            use-mamba: true
-            python-version: "3.10"
+            python-version: "3.12"
       # Configure conda environment cache
       - name: Set up conda environment cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ env.CONDA }}/envs
           key: conda-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('dev_requirements.txt') }}-${{ env.CACHE_NUMBER }}
         env:
-          CACHE_NUMBER: 1  # Increase this value to force cache reset
+          CACHE_NUMBER: 0  # Increase this value to force cache reset
         id: cache
       # Display environment details
       - name: Display environment details
@@ -54,19 +52,20 @@ jobs:
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
-          mamba install -c conda-forge pytest pytest-cov
+          conda install -c conda-forge pytest pytest-cov
           python -m pip install --upgrade pip
           pip install pytest-split
           pip install -r requirements.txt
           pip install -r dev_requirements.txt
-          mamba install -c conda-forge svmbir>=0.3.3
-          mamba install -c astra-toolbox astra-toolbox
-          mamba install -c conda-forge pyyaml
-          pip install --upgrade --force-reinstall scipy>=1.6.0  # Temporary fix for GLIBCXX_3.4.30 not found in conda forge version
           pip install bm3d>=4.0.0
           pip install bm4d>=4.0.0
-          pip install "ray[tune]>=2.5.0"
+          pip install "ray[tune]>=2.44"
           pip install hyperopt
+          pip install pydantic
+          pip install "orbax-checkpoint>=0.5.0"
+          #conda install -c conda-forge svmbir>=0.4.0
+          conda install -c astra-toolbox astra-toolbox
+          conda install -c conda-forge pyyaml
       # Install package to be tested
       - name: Install package to be tested
         run: pip install -e .

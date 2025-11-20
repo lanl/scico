@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2022 by SCICO Developers
+# Copyright (C) 2020-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -12,6 +12,9 @@ This modules is a wrapper for :mod:`jax.scipy.special` where some
 functions have been extended to automatically map over block array
 blocks as described in :ref:`numpy_functions_blockarray`.
 """
+
+from typing import Tuple
+
 import jax.scipy.special as js
 
 from scico.numpy import _wrappers
@@ -23,7 +26,7 @@ _wrappers.add_attributes(
 )
 
 # wrap select functions
-functions = (
+functions: Tuple[str, ...] = (
     "betainc",
     "entr",
     "erf",
@@ -44,12 +47,15 @@ functions = (
     "ndtr",
     "ndtri",
     "polygamma",
-    "sph_harm",
     "xlog1py",
     "xlogy",
     "zeta",
     "digamma",
 )
+if hasattr(js, "sph_harm_y"):  # not available in all supported jax versions
+    functions += ("sph_harm_y",)
+else:
+    functions += ("sph_harm",)
 _wrappers.wrap_recursively(vars(), functions, _wrappers.map_func_over_blocks)
 
 # clean up

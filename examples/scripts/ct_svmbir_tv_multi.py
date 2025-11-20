@@ -4,7 +4,7 @@
 # and user license can be found in the 'LICENSE.txt' file distributed
 # with the package.
 
-"""
+r"""
 TV-Regularized CT Reconstruction (Multiple Algorithms)
 ======================================================
 
@@ -16,8 +16,8 @@ solve the TV-regularized CT problem
 
 where $A$ is the X-ray transform (implemented using the SVMBIR
 :cite:`svmbir-2020` tomographic projection), $\mathbf{y}$ is the sinogram,
-$C$ is a 2D finite difference operator, and $\mathbf{x}$ is the desired
-image.
+$C$ is a 2D finite difference operator, and $\mathbf{x}$ is the
+reconstructed image.
 """
 
 import numpy as np
@@ -40,7 +40,7 @@ Generate a ground truth image.
 N = 256  # image size
 density = 0.025  # attenuation density of the image
 np.random.seed(1234)
-x_gt = discrete_phantom(Foam(size_range=[0.05, 0.02], gap=0.02, porosity=0.3), size=N - 10)
+x_gt = discrete_phantom(Foam(size_range=[0.075, 0.005], gap=2e-3, porosity=1.0), size=N - 10)
 x_gt = x_gt / np.max(x_gt) * density
 x_gt = np.pad(x_gt, 5)
 x_gt[x_gt < 0] = 0
@@ -51,7 +51,7 @@ Generate tomographic projector and sinogram.
 """
 num_angles = int(N / 2)
 num_channels = N
-angles = snp.linspace(0, snp.pi, num_angles, dtype=snp.float32)
+angles = snp.linspace(0, snp.pi, num_angles, endpoint=False, dtype=snp.float32)
 A = XRayTransform(x_gt.shape, angles, num_channels)
 sino = A @ x_gt
 
@@ -87,12 +87,9 @@ Set up problem.
 """
 x0 = snp.array(x_mrf)
 weights = snp.array(weights)
-
 λ = 1e-1  # ℓ1 norm regularization parameter
-
 f = SVMBIRSquaredL2Loss(y=y, A=A, W=Diagonal(weights), scale=0.5)
 g = λ * functional.L21Norm()  # regularization functional
-
 # The append=0 option makes the results of horizontal and vertical finite
 # differences the same shape, which is required for the L21Norm.
 C = linop.FiniteDifference(input_shape=x_gt.shape, append=0)
@@ -112,6 +109,7 @@ solve_admm = ADMM(
     itstat_options={"display": True, "period": 10},
 )
 print(f"Solving on {device_info()}\n")
+print("ADMM:")
 x_admm = solve_admm.solve()
 hist_admm = solve_admm.itstat_object.history(transpose=True)
 print(f"PSNR: {metric.psnr(x_gt, x_admm):.2f} dB\n")
@@ -130,6 +128,7 @@ solver_ladmm = LinearizedADMM(
     maxiter=50,
     itstat_options={"display": True, "period": 10},
 )
+print("Linearized ADMM:")
 x_ladmm = solver_ladmm.solve()
 hist_ladmm = solver_ladmm.itstat_object.history(transpose=True)
 print(f"PSNR: {metric.psnr(x_gt, x_ladmm):.2f} dB\n")
@@ -148,6 +147,7 @@ solver_pdhg = PDHG(
     maxiter=50,
     itstat_options={"display": True, "period": 10},
 )
+print("PDHG:")
 x_pdhg = solver_pdhg.solve()
 hist_pdhg = solver_pdhg.itstat_object.history(transpose=True)
 print(f"PSNR: {metric.psnr(x_gt, x_pdhg):.2f} dB\n")

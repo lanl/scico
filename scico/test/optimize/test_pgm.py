@@ -1,3 +1,6 @@
+import os
+import tempfile
+
 import numpy as np
 
 import jax
@@ -34,7 +37,6 @@ class TestSet:
 
     def test_pgm(self):
         maxiter = 100
-
         A = linop.MatrixOperator(self.Amx)
         L0 = 1.05 * linop.power_iteration(A.T @ A)[0]
         loss_ = loss.SquaredL2Loss(y=self.y, A=A)
@@ -42,6 +44,26 @@ class TestSet:
         pgm_ = PGM(f=loss_, g=g, L0=L0, maxiter=maxiter, x0=A.adj(self.y))
         x = pgm_.solve()
         np.testing.assert_allclose(self.grdA(x), self.grdb, rtol=5e-3)
+
+    def test_pgm_saveload(self):
+        maxiter = 5
+        A = linop.MatrixOperator(self.Amx)
+        L0 = 1.05 * linop.power_iteration(A.T @ A)[0]
+        loss_ = loss.SquaredL2Loss(y=self.y, A=A)
+        g = (self.λ / 2.0) * functional.SquaredL2Norm()
+        pgm0 = PGM(f=loss_, g=g, L0=L0, maxiter=maxiter, x0=A.adj(self.y))
+        pgm0.solve()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "pgm.npz")
+            pgm0.save_state(path)
+            pgm0.solve()
+            h0 = pgm0.history()
+            pgm1 = PGM(f=loss_, g=g, L0=L0, maxiter=maxiter, x0=A.adj(self.y))
+            pgm1.load_state(path)
+            pgm1.solve()
+            h1 = pgm1.history()
+            np.testing.assert_allclose(pgm0.minimizer(), pgm1.minimizer(), rtol=1e-6)
+            assert np.abs(h0[-1].Objective - h1[-1].Objective) < 1e-6
 
     def test_pgm_isfinite(self):
         maxiter = 5
@@ -57,7 +79,6 @@ class TestSet:
 
     def test_accelerated_pgm(self):
         maxiter = 100
-
         A = linop.MatrixOperator(self.Amx)
         L0 = 1.05 * linop.power_iteration(A.T @ A)[0]
         loss_ = loss.SquaredL2Loss(y=self.y, A=A)
@@ -65,6 +86,26 @@ class TestSet:
         apgm_ = AcceleratedPGM(f=loss_, g=g, L0=L0, maxiter=maxiter, x0=A.adj(self.y))
         x = apgm_.solve()
         np.testing.assert_allclose(self.grdA(x), self.grdb, rtol=5e-3)
+
+    def test_accelerated_pgm_saveload(self):
+        maxiter = 5
+        A = linop.MatrixOperator(self.Amx)
+        L0 = 1.05 * linop.power_iteration(A.T @ A)[0]
+        loss_ = loss.SquaredL2Loss(y=self.y, A=A)
+        g = (self.λ / 2.0) * functional.SquaredL2Norm()
+        apgm0 = AcceleratedPGM(f=loss_, g=g, L0=L0, maxiter=maxiter, x0=A.adj(self.y))
+        apgm0.solve()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "pgm.npz")
+            apgm0.save_state(path)
+            apgm0.solve()
+            h0 = apgm0.history()
+            apgm1 = AcceleratedPGM(f=loss_, g=g, L0=L0, maxiter=maxiter, x0=A.adj(self.y))
+            apgm1.load_state(path)
+            apgm1.solve()
+            h1 = apgm1.history()
+            np.testing.assert_allclose(apgm0.minimizer(), apgm1.minimizer(), rtol=1e-6)
+            assert np.abs(h0[-1].Objective - h1[-1].Objective) < 1e-6
 
     def test_accelerated_pgm_isfinite(self):
         maxiter = 5

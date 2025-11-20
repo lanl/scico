@@ -15,7 +15,7 @@ function API is used in this example.
 
 This script is hard-coded to run on CPU only to avoid the large number of
 warnings that are emitted when GPU resources are requested but not available,
-and due to the difficulty of supressing these warnings in a way that does
+and due to the difficulty of suppressing these warnings in a way that does
 not force use of the CPU only. To enable GPU usage, comment out the
 `os.environ` statements near the beginning of the script, and change the
 value of the "gpu" entry in the `resources` dict from 0 to 1. Note that

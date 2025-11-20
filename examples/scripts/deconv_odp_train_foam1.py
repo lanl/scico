@@ -66,6 +66,11 @@ os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 
 import jax
 
+try:
+    from jax.extend.backend import get_backend  # introduced in jax 0.4.33
+except ImportError:
+    from jax.lib.xla_bridge import get_backend
+
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from scico import flax as sflax
@@ -75,7 +80,7 @@ from scico.flax.train.traversals import clip_positive, construct_traversal
 from scico.linop import CircularConvolve
 
 
-platform = jax.lib.xla_bridge.get_backend().platform
+platform = get_backend().platform
 print("Platform: ", platform)
 
 

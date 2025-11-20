@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2024 by SCICO Developers
+# Copyright (C) 2022-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -45,16 +45,14 @@ else:
 import jax
 import jax.numpy as jnp
 
-from scico.linop import CircularConvolve
-from scico.numpy import Array
-
 try:
-    import astra  # noqa: F401
+    from jax.extend.backend import get_backend  # introduced in jax 0.4.33
 except ImportError:
-    have_astra = False
-else:
-    have_astra = True
-    from scico.linop.xray.astra import XRayTransform2D
+    from jax.lib.xla_bridge import get_backend
+
+from scico.linop import CircularConvolve
+from scico.linop.xray import XRayTransform2D
+from scico.numpy import Array
 
 
 class Foam2(UnitCircle):
@@ -88,7 +86,7 @@ class Foam2(UnitCircle):
                 Default: 10.
         """
         if porosity < 0 or porosity > 1:
-            raise ValueError("Porosity must be in the range [0,1).")
+            raise ValueError("Argument 'porosity' must be in the range [0,1).")
         super().__init__(radius=0.5, material=SimpleMaterial(attn1))  # type: ignore
         self.sprinkle(  # type: ignore
             300, size_range, gap, material=SimpleMaterial(attn2), max_density=porosity / 2.0
@@ -114,7 +112,7 @@ def generate_foam1_images(seed: float, size: int, ndata: int) -> np.ndarray:
     if not have_xdesign:
         raise RuntimeError("Package xdesign is required for use of this function.")
     np.random.seed(seed)
-    saux = np.zeros((ndata, size, size, 1), dtype=np.float32)
+    saux: np.ndarray = np.zeros((ndata, size, size, 1), dtype=np.float32)
     for i in range(ndata):
         foam = Foam(size_range=[0.075, 0.0025], gap=1e-3, porosity=1)
         saux[i, ..., 0] = discrete_phantom(foam, size=size)
@@ -139,7 +137,7 @@ def generate_foam2_images(seed: float, size: int, ndata: int) -> np.ndarray:
     if not have_xdesign:
         raise RuntimeError("Package xdesign is required for use of this function.")
     np.random.seed(seed)
-    saux = np.zeros((ndata, size, size, 1), dtype=np.float32)
+    saux: np.ndarray = np.zeros((ndata, size, size, 1), dtype=np.float32)
     for i in range(ndata):
         foam = Foam2(size_range=[0.075, 0.0025], gap=1e-3, porosity=1)
         saux[i, ..., 0] = discrete_phantom(foam, size=size)
@@ -213,10 +211,8 @@ def generate_ct_data(
            - **sino** : (:class:`jax.Array`): Corresponding sinograms.
            - **fbp** : (:class:`jax.Array`) Corresponding filtered back projections.
     """
-    if not (have_ray and have_xdesign and have_astra):
-        raise RuntimeError(
-            "Packages ray, xdesign, and astra are required for use of this function."
-        )
+    if not (have_ray and have_xdesign):
+        raise RuntimeError("Packages ray and xdesign are required for use of this function.")
 
     # Generate input data.
     start_time = time()
@@ -229,17 +225,17 @@ def generate_ct_data(
 
     # Configure a CT projection operator to generate synthetic measurements.
     angles = np.linspace(0, jnp.pi, nproj)  # evenly spaced projection angles
-    gt_sh = (size, size)
-    detector_spacing = 1.0
-    A = XRayTransform2D(gt_sh, size, detector_spacing, angles)  # X-ray transform operator
-
+    gt_shape = (size, size)
+    dx = 1.0 / np.sqrt(2)
+    det_count = int(size * 1.05 / np.sqrt(2.0))
+    A = XRayTransform2D(gt_shape, angles, dx=dx, det_count=det_count)
     # Compute sinograms in parallel.
     start_time = time()
     if nproc > 1:
         # shard array
         imgshd = img.reshape((nproc, -1, size, size, 1))
         sinoshd = batched_f(A, imgshd)
-        sino = sinoshd.reshape((-1, nproj, size, 1))
+        sino = sinoshd.reshape((-1, nproj, sinoshd.shape[-2], 1))
     else:
         sino = vector_f(A, img)
 
@@ -256,11 +252,11 @@ def generate_ct_data(
 
     # Normalize sinogram.
     sino = sino / size
-    # Shift FBP to [0,1] range.
-    fbp = (fbp - fbp.min()) / (fbp.max() - fbp.min())
+    # Clip FBP to [0,1] range.
+    fbp = np.clip(fbp, 0, 1)
 
     if verbose:  # pragma: no cover
-        platform = jax.lib.xla_bridge.get_backend().platform
+        platform = get_backend().platform
         print(f"{'Platform':26s}{':':4s}{platform}")
         print(f"{'Device count':26s}{':':4s}{jax.device_count()}")
         print(f"{'Data generation':19s}{'time[s]:':10s}{time_dtgen:>7.2f}")
@@ -333,7 +329,7 @@ def generate_blur_data(
     blurn = jnp.clip(blurn, 0, 1)
 
     if verbose:  # pragma: no cover
-        platform = jax.lib.xla_bridge.get_backend().platform
+        platform = get_backend().platform
         print(f"{'Platform':26s}{':':4s}{platform}")
         print(f"{'Device count':26s}{':':4s}{jax.device_count()}")
         print(f"{'Data generation':19s}{'time[s]:':10s}{time_dtgen:>7.2f}")

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2024 by SCICO Developers
+# Copyright (C) 2020-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -340,7 +340,9 @@ def cg(
         if isinstance(A, LinearOperator):
             x0 = snp.zeros(A.input_shape, b.dtype)
         else:
-            raise ValueError("Parameter x0 must be specified if A is not a LinearOperator")
+            raise ValueError(
+                "Argument 'x0' must be specified if argument 'A' is not a LinearOperator."
+            )
 
     if M is None:
         M = lambda x: x
@@ -724,21 +726,22 @@ class MatrixATADSolver:
         if isinstance(D, Diagonal):
             D = D.diagonal
             if D.ndim != 1:
-                raise ValueError("If Diagonal, D should have a 1D diagonal.")
+                raise ValueError("If Diagonal, 'D' should have a 1D diagonal.")
         else:
             D = jnp.array(D)
             if not D.ndim in [1, 2]:
-                raise ValueError("If array or MatrixOperator, D should be 1D or 2D.")
+                raise ValueError("If array or MatrixOperator, 'D' should be 1D or 2D.")
 
         if W is None:
             W = snp.ones(A.shape[0], dtype=A.dtype)
         elif isinstance(W, Diagonal):
             W = W.diagonal
+            assert hasattr(W, "ndim")
             if W.ndim != 1:
-                raise ValueError("If Diagonal, W should have a 1D diagonal.")
+                raise ValueError("If Diagonal, 'W' should have a 1D diagonal.")
         elif not isinstance(W, Array):
             raise TypeError(
-                f"Operator W is required to be None, a Diagonal, or an array; got a {type(W)}."
+                f"Operator 'W' is required to be None, a Diagonal, or an array; got a {type(W)}."
             )
 
         self.A = A
@@ -908,11 +911,11 @@ class ConvATADSolver:
         """
         if not isinstance(A, ComposedLinearOperator):
             raise TypeError(
-                f"Operator A is required to be a ComposedLinearOperator; got a {type(A)}."
+                f"Operator 'A' is required to be a ComposedLinearOperator; got a {type(A)}."
             )
         if not isinstance(A.A, Sum) or not isinstance(A.B, CircularConvolve):
             raise TypeError(
-                "Operator A is required to be a composition of Sum and CircularConvolve"
+                "Operator 'A' is required to be a composition of Sum and CircularConvolve"
                 f"linear operators; got a composition of {type(A.A)} and {type(A.B)}."
             )
 
@@ -921,7 +924,7 @@ class ConvATADSolver:
         self.sum_axis = A.A.kwargs["axis"]
         if not isinstance(self.sum_axis, int):
             raise ValueError(
-                "Sum component of operator A must sum over a single axis of its input."
+                "Sum component of operator 'A' must sum over a single axis of its input."
             )
         self.fft_axes = A.B.x_fft_axes
         self.real_result = is_real_dtype(D.input_dtype)

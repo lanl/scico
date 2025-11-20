@@ -8,8 +8,9 @@
 [![Test coverage](https://codecov.io/gh/lanl/scico/branch/main/graph/badge.svg?token=wQimmjnzFf)](https://codecov.io/gh/lanl/scico)
 [![CodeFactor](https://www.codefactor.io/repository/github/lanl/scico/badge/main)](https://www.codefactor.io/repository/github/lanl/scico/overview/main)\
 [![PyPI package version](https://badge.fury.io/py/scico.svg)](https://badge.fury.io/py/scico)
-[![PyPI download statistics](https://static.pepy.tech/personalized-badge/scico?period=month&left_color=grey&right_color=brightgreen)](https://pepy.tech/project/scico)
-[![Conda Forge Release](https://img.shields.io/conda/vn/conda-forge/scico.svg)](https://anaconda.org/conda-forge/scico)\
+[![PyPI download statistics](https://static.pepy.tech/personalized-badge/scico?period=total&left_color=grey&right_color=brightgreen&left_text=downloads)](https://pepy.tech/project/scico)
+[![Conda Forge Release](https://img.shields.io/conda/vn/conda-forge/scico.svg)](https://anaconda.org/conda-forge/scico)
+[![Conda Forge Downloads](https://img.shields.io/conda/dn/conda-forge/scico.svg)](https://anaconda.org/conda-forge/scico)\
 [![View notebooks at nbviewer](https://raw.githubusercontent.com/jupyter/design/master/logos/Badges/nbviewer_badge.svg)](https://nbviewer.jupyter.org/github/lanl/scico-data/tree/main/notebooks/index.ipynb)
 [![Run notebooks on binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/lanl/scico-data/binder?labpath=notebooks%2Findex.ipynb)
 [![Run notebooks on google colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/lanl/scico-data/blob/colab/notebooks/index.ipynb)
@@ -32,11 +33,12 @@ this software for published work, please cite the corresponding [JOSS
 Paper](https://doi.org/10.21105/joss.04722) (see bibtex entry
 `balke-2022-scico` in `docs/source/references.bib`).
 
+
 # Installation
 
-See the [online
-documentation](https://scico.rtfd.io/en/latest/install.html) for
-installation instructions.
+The online documentation includes detailed
+[installation instructions](https://scico.rtfd.io/en/latest/install.html).
+
 
 # Usage Examples
 
@@ -47,8 +49,11 @@ Jupyter Notebooks are provided in the
 to `examples/notebooks`. They are also viewable on
 [GitHub](https://github.com/lanl/scico-data/tree/main/notebooks) or
 [nbviewer](https://nbviewer.jupyter.org/github/lanl/scico-data/tree/main/notebooks/index.ipynb),
-or can be run online by
-[binder](https://mybinder.org/v2/gh/lanl/scico-data/binder?labpath=notebooks%2Findex.ipynb).
+and can be run online on
+[binder](https://mybinder.org/v2/gh/lanl/scico-data/binder?labpath=notebooks%2Findex.ipynb)
+or
+[google colab](https://colab.research.google.com/github/lanl/scico-data/blob/colab/notebooks/index.ipynb).
+
 
 # License
 
@@ -57,7 +62,7 @@ License (see the `LICENSE` file for details).
 
 LANL open source approval reference C20091.
 
-\(c\) 2020-2024. Triad National Security, LLC. All rights reserved. This
+\(c\) 2020-2025. Triad National Security, LLC. All rights reserved. This
 program was produced under U.S. Government contract 89233218CNA000001
 for Los Alamos National Laboratory (LANL), which is operated by Triad
 National Security, LLC for the U.S. Department of Energy/National

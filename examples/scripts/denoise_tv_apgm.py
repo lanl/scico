@@ -121,8 +121,8 @@ class IsoProjector(functional.Functional):
 
 
 """
-Use RobustLineSearchStepSize object and set up AcceleratedPGM solver
-object. Run the solver.
+Set up `AcceleratedPGM` solver object using `RobustLineSearchStepSize`
+step size policy. Run the solver.
 """
 reg_weight_iso = 1.4e0
 f_iso = DualTVLoss(y=y, A=A, lmbda=reg_weight_iso)
@@ -165,9 +165,9 @@ class AnisoProjector(functional.Functional):
 
 
 """
-Use RobustLineSearchStepSize object and set up AcceleratedPGM solver
-object. Weight was tuned to give the same data fidelity as the
-isotropic case. Run the solver.
+Set up `AcceleratedPGM` solver object using `RobustLineSearchStepSize`
+step size policy. (Weight was tuned to give the same data fidelity as the
+isotropic case.) Run the solver.
 """
 
 reg_weight_aniso = 1.2e0

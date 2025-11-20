@@ -97,7 +97,6 @@ rm -f /tmp/miniconda.sh
 export PATH="$CONDAHOME/bin:$PATH"
 hash -r
 conda config --set always_yes yes
-conda install mamba -n base -c conda-forge
 conda update -q conda
 conda info -a
 

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2024 by SCICO Developers
+# Copyright (C) 2020-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -190,7 +190,9 @@ class SingleAxisFiniteDifference(LinearOperator):
         """
 
         if not isinstance(axis, int):
-            raise TypeError(f"Expected axis to be of type int, got {type(axis)} instead.")
+            raise TypeError(
+                f"Expected argument 'axis' to be of type int, got {type(axis)} instead."
+            )
 
         if axis < 0:
             axis = len(input_shape) + axis
@@ -204,12 +206,12 @@ class SingleAxisFiniteDifference(LinearOperator):
 
         if circular and (prepend is not None or append is not None):
             raise ValueError(
-                "Parameter circular must be False if either prepend or append is not None."
+                "Argument 'circular' must be False if either prepend or append is not None."
             )
         if prepend not in [None, 0, 1]:
-            raise ValueError("Parameter prepend may only take values None, 0, or 1.")
+            raise ValueError("Argument 'prepend' may only take values None, 0, or 1.")
         if append not in [None, 0, 1]:
-            raise ValueError("Parameter append may only take values None, 0, or 1.")
+            raise ValueError("Argument 'append' may only take values None, 0, or 1.")
 
         self.prepend = prepend
         self.append = append

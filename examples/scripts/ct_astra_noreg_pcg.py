@@ -44,7 +44,7 @@ x_gt = jnp.array(x_gt)  # convert to jax type
 Configure a CT projection operator and generate synthetic measurements.
 """
 n_projection = N  # matches the phantom size so this is not few-view CT
-angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
+angles = np.linspace(0, np.pi, n_projection, endpoint=False)  # evenly spaced projection angles
 A = 1 / N * XRayTransform2D(x_gt.shape, N, 1.0, angles)  # CT projection operator
 y = A @ x_gt  # sinogram
 
@@ -58,8 +58,8 @@ H = CircularConvolve.from_operator(A.T @ A)
 
 r"""
 Invert in the Fourier domain to form a preconditioner $\mathbf{M}
-\approx (\mathbf{A}^T \mathbf{A})^{-1}$. See
-:cite:`clinthorne-1993-preconditioning` Section V.A. for more details.
+\approx (\mathbf{A}^T \mathbf{A})^{-1}$ (see
+:cite:`clinthorne-1993-preconditioning` Section V.A. for more details).
 """
 # γ limits the gain of the preconditioner; higher gives a weaker filter.
 γ = 1e-2
@@ -76,7 +76,9 @@ M = CircularConvolve(inv_frequency_response, x_gt.shape, h_is_dft=True)
 r"""
 Check that $\mathbf{M}$ does approximately invert $\mathbf{A}^T \mathbf{A}$.
 """
-plot_args = dict(norm=plot.matplotlib.colors.Normalize(vmin=0, vmax=1.5))
+plot_args = dict(
+    norm=plot.matplotlib.colors.Normalize(vmin=0, vmax=1.5), cmap=plot.matplotlib.cm.Blues_r
+)
 
 fig, axes = plot.subplots(nrows=1, ncols=3, figsize=(12, 4.5))
 plot.imview(x_gt, title="Ground truth, $x_{gt}$", fig=fig, ax=axes[0], **plot_args)
@@ -96,8 +98,8 @@ fig.colorbar(
     axes[2].get_images()[0],
     ax=axes,
     location="right",
-    shrink=1.0,
-    pad=0.05,
+    shrink=0.82,
+    pad=0.02,
     label="Arbitrary Units",
 )
 fig.show()
@@ -134,13 +136,13 @@ Compare CG and PCG in terms of reconstruction time and data fidelity.
 f_cg = loss.SquaredL2Loss(y=A.T @ y, A=A.T @ A)
 f_data = loss.SquaredL2Loss(y=y, A=A)
 print(
-    f"{'Method':10s}{'Iterations':>15s}{'Time (s)':>15s}{'||ATAx - ATy||':>15s}{'||Ax - y||':>15s}"
+    f"{'Method':8s}{'Iterations':>11s}{'Time (s)':>12s}{'||ATAx - ATy||':>17s}{'||Ax - y||':>15s}"
 )
 print(
-    f"{'CG':10s}{info_cg['num_iter']:>15d}{time_cg:>15.2f}{f_cg(x_cg):>15.2e}{f_data(x_cg):>15.2e}"
+    f"{'CG':8s}{info_cg['num_iter']:>11d}{time_cg:>12.2f}{f_cg(x_cg):>17.2e}{f_data(x_cg):>15.2e}"
 )
 print(
-    f"{'PCG':10s}{info_pcg['num_iter']:>15d}{time_pcg:>15.2f}{f_cg(x_pcg):>15.2e}"
+    f"{'PCG':8s}{info_pcg['num_iter']:>11d}{time_pcg:>12.2f}{f_cg(x_pcg):>17.2e}"
     f"{f_data(x_pcg):>15.2e}"
 )
 

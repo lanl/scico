@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2024 by SCICO Developers
+# Copyright (C) 2022-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SPORCO package. Details of the copyright
 # and user license can be found in the 'LICENSE.txt' file distributed
@@ -10,21 +10,93 @@
 
 from __future__ import annotations
 
+import collections
 from math import prod
-from typing import Any, List, Optional, Sequence, Tuple, Union
+from typing import Any, List, NamedTuple, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
 import jax
 
+from typing_extensions import TypeGuard
+
 import scico.numpy as snp
 from scico.typing import ArrayIndex, Axes, AxisIndex, BlockShape, DType, Shape
 
-from ._blockarray import BlockArray
+
+def transpose_ntpl_of_list(ntpl: NamedTuple) -> List[NamedTuple]:
+    """Convert a namedtuple of lists/arrays to a list of namedtuples.
+
+    Args:
+        ntpl: Named tuple object to be transposed.
+
+    Returns:
+        List of namedtuple objects.
+    """
+    cls = ntpl.__class__
+    numentry = len(ntpl[0]) if isinstance(ntpl[0], list) else ntpl[0].shape[0]
+    nfields = len(ntpl._fields)
+    return [cls(*[ntpl[m][n] for m in range(nfields)]) for n in range(numentry)]
+
+
+def transpose_list_of_ntpl(ntlist: List[NamedTuple]) -> NamedTuple:
+    """Convert a list of namedtuples to namedtuple of lists.
+
+    Args:
+        ntpl: List of namedtuple objects to be transposed.
+
+    Returns:
+        Named tuple of lists.
+    """
+    cls = ntlist[0].__class__
+    numentry = len(ntlist)
+    nfields = len(ntlist[0])
+    return cls(*[[ntlist[m][n] for m in range(numentry)] for n in range(nfields)])  # type: ignore
+
+
+def namedtuple_to_array(ntpl: NamedTuple) -> snp.Array:
+    """Convert a namedtuple to an array.
+
+    Convert a :func:`collections.namedtuple` object to a
+    :class:`numpy.ndarray` object that can be saved using
+    :func:`numpy.savez`.
+
+    Args:
+        ntpl: Named tuple object to be converted to ndarray.
+
+    Returns:
+      Array representation of input named tuple.
+    """
+    return np.asarray(
+        {
+            "name": ntpl.__class__.__name__,
+            "fields": ntpl._fields,
+            "data": {fname: fval for fname, fval in zip(ntpl._fields, ntpl)},
+        }
+    )
+
+
+def array_to_namedtuple(array: snp.Array) -> NamedTuple:
+    """Convert an array representation of a namedtuple back to a namedtuple.
+
+    Convert a :class:`numpy.ndarray` object constructed by
+    :func:`namedtuple_to_array` back to the original
+    :func:`collections.namedtuple` representation.
+
+    Args:
+      Array representation of named tuple constructed by
+        :func:`namedtuple_to_array`.
+
+    Returns:
+      Named tuple object with the same name and fields as the original
+      named tuple object provided to :func:`namedtuple_to_array`.
+    """
+    cls = collections.namedtuple(array.item()["name"], array.item()["fields"])  # type: ignore
+    return cls(**array.item()["data"])
 
 
 def normalize_axes(
-    axes: Axes,
+    axes: Optional[Axes],
     shape: Optional[Shape] = None,
     default: Optional[List[int]] = None,
     sort: bool = False,
@@ -55,7 +127,7 @@ def normalize_axes(
         if default is None:
             if shape is None:
                 raise ValueError(
-                    "Parameter axes cannot be None without a default or shape specified."
+                    "Argument 'axes' cannot be None without a default or shape specified."
                 )
             axes = tuple(range(len(shape)))
         else:
@@ -65,7 +137,7 @@ def normalize_axes(
     elif isinstance(axes, int):
         axes = (axes,)
     else:
-        raise ValueError(f"Could not understand axes {axes} as a list of axes.")
+        raise ValueError(f"Could not understand argument 'axes' {axes} as a list of axes.")
     if shape is not None:
         if min(axes) < 0:
             axes = tuple([len(shape) + a if a < 0 else a for a in axes])
@@ -178,7 +250,7 @@ def jax_indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int, ...]:
 
     # Convert any slices to its representation (slice, (start, stop, step))
     # allowing hashing, needed for jax.jit
-    idx = tuple(exp.__reduce__() if isinstance(exp, slice) else exp for exp in idx)
+    idx = tuple(exp.__reduce__() if isinstance(exp, slice) else exp for exp in idx)  # type: ignore
 
     def get_shape(in_shape, ind_expr):
         # convert slices representations back to slices
@@ -195,8 +267,8 @@ def jax_indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int, ...]:
 
 
 def no_nan_divide(
-    x: Union[BlockArray, snp.Array], y: Union[BlockArray, snp.Array]
-) -> Union[BlockArray, snp.Array]:
+    x: Union[snp.BlockArray, snp.Array], y: Union[snp.BlockArray, snp.Array]
+) -> Union[snp.BlockArray, snp.Array]:
     """Return `x/y`, with 0 instead of :data:`~numpy.NaN` where `y` is 0.
 
     Args:
@@ -214,20 +286,20 @@ def shape_to_size(shape: Union[Shape, BlockShape]) -> int:
     r"""Compute array size corresponding to a specified shape.
 
     Compute array size corresponding to a specified shape, which may be
-    nested, i.e. corresponding to a :class:`.BlockArray`.
+    nested, i.e. corresponding to a :class:`BlockArray`.
 
     Args:
         shape: A shape tuple.
 
     Returns:
-        The number of elements in an array or :class:`.BlockArray` with
+        The number of elements in an array or :class:`BlockArray` with
         shape `shape`.
     """
 
     if is_nested(shape):
-        return sum(prod(s) for s in shape)
+        return sum(prod(s) for s in shape)  # type: ignore
 
-    return prod(shape)
+    return prod(shape)  # type: ignore
 
 
 def is_arraylike(x: Any) -> bool:
@@ -267,6 +339,22 @@ def is_nested(x: Any) -> bool:
     return isinstance(x, (list, tuple)) and any([isinstance(_, (list, tuple)) for _ in x])
 
 
+def is_collapsible(shapes: Sequence[Union[Shape, BlockShape]]) -> bool:
+    """Determine whether a sequence of shapes can be collapsed.
+
+    Return ``True`` if the a list of shapes represent arrays that can
+    be stacked, i.e., they are all the same."""
+    return all(s == shapes[0] for s in shapes)
+
+
+def is_blockable(shapes: Sequence[Union[Shape, BlockShape]]) -> TypeGuard[Union[Shape, BlockShape]]:
+    """Determine whether a sequence of shapes could be a :class:`BlockArray` shape.
+
+    Return ``True`` if the sequence of shapes represent arrays that can
+    be combined into a :class:`BlockArray`, i.e., none are nested."""
+    return not any(is_nested(s) for s in shapes)
+
+
 def broadcast_nested_shapes(
     shape_a: Union[Shape, BlockShape], shape_b: Union[Shape, BlockShape]
 ) -> Union[Shape, BlockShape]:
@@ -275,7 +363,7 @@ def broadcast_nested_shapes(
     Compute the result of applying a broadcasting binary operator to
     (block) arrays with (possibly nested) shapes `shape_a` and `shape_b`.
     Extends :func:`numpy.broadcast_shapes` to also support the nested
-    tuple shapes of :class:`.BlockArray`\ s.
+    tuple shapes of :class:`BlockArray`\ s.
 
     Args:
         shape_a: First array shape.
@@ -299,6 +387,8 @@ def broadcast_nested_shapes(
 
     if is_nested(shape_a) and is_nested(shape_b):
         return tuple(snp.broadcast_shapes(s_a, s_b) for s_a, s_b in zip(shape_a, shape_b))
+
+    raise RuntimeError("Unexpected case encountered in broadcast_nested_shapes.")
 
 
 def is_real_dtype(dtype: DType) -> bool:

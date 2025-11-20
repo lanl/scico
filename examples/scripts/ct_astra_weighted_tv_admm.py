@@ -8,8 +8,8 @@ r"""
 TV-Regularized Low-Dose CT Reconstruction
 =========================================
 
-This example demonstrates solution of a low-dose CT reconstruction problem
-with isotropic total variation (TV) regularization
+This example demonstrates solution of a low-dose CT reconstruction
+problem with isotropic total variation (TV) regularization
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
   \|_W^2 + \lambda \| C \mathbf{x} \|_{2,1} \;,$$
@@ -18,7 +18,7 @@ where $A$ is the X-ray transform (the CT forward projection),
 $\mathbf{y}$ is the sinogram, the norm weighting $W$ is chosen so that
 the weighted norm is an approximation to the Poisson negative log
 likelihood :cite:`sauer-1993-local`, $C$ is a 2D finite difference
-operator, and $\mathbf{x}$ is the desired image.
+operator, and $\mathbf{x}$ is the reconstructed image.
 """
 
 import numpy as np
@@ -35,7 +35,6 @@ from scico.util import device_info
 Create a ground truth image.
 """
 N = 512  # phantom size
-
 np.random.seed(0)
 x_gt = discrete_phantom(Soil(porosity=0.80), size=384)
 x_gt = np.ascontiguousarray(np.pad(x_gt, (64, 64)))
@@ -49,8 +48,7 @@ Configure CT projection operator and generate synthetic measurements.
 n_projection = 360  # number of projections
 Io = 1e3  # source flux
 𝛼 = 1e-2  # attenuation coefficient
-
-angles = np.linspace(0, 2 * np.pi, n_projection)  # evenly spaced projection angles
+angles = np.linspace(0, 2 * np.pi, n_projection, endpoint=False)  # evenly spaced projection angles
 A = XRayTransform2D(x_gt.shape, N, 1.0, angles)  # CT projection operator
 y_c = A @ x_gt  # sinogram
 
@@ -58,11 +56,11 @@ y_c = A @ x_gt  # sinogram
 r"""
 Add Poisson noise to projections according to
 
-$$\mathrm{counts} \sim \mathrm{Poi}\left(I_0 exp\left\{- \alpha A
-\mathbf{x} \right\}\right)$$
+$$\mathrm{counts} \sim \mathrm{Poi}\left(I_0 \exp (- \alpha A
+\mathbf{x} ) \right)$$
 
 $$\mathbf{y} = - \frac{1}{\alpha} \log\left(\mathrm{counts} /
-I_0\right).$$
+I_0\right) \;.$$
 
 We use the NumPy random functionality so we can generate using 64-bit
 numbers.
@@ -99,13 +97,10 @@ Set up and solve the un-weighted reconstruction problem
 # shown here).
 ρ = 2.5e3  # ADMM penalty parameter
 lambda_unweighted = 3e2  # regularization strength
-
 maxiter = 100  # number of ADMM iterations
 cg_tol = 1e-5  # CG relative tolerance
 cg_maxiter = 10  # maximum CG iterations per ADMM iteration
-
 f = loss.SquaredL2Loss(y=y, A=A)
-
 admm_unweighted = ADMM(
     f=f,
     g_list=[lambda_unweighted * functional.L21Norm()],
@@ -129,7 +124,7 @@ Set up and solve the weighted reconstruction problem
 
 where
 
-  $$W = \mathrm{diag}\left\{ \mathrm{counts} / I_0 \right\} \;.$$
+  $$W = \mathrm{diag}( \mathrm{counts} / I_0 ) \;.$$
 
 The data fidelity term in this formulation follows
 :cite:`sauer-1993-local` (9) except for the scaling by $I_0$, which we
@@ -137,10 +132,8 @@ use to maintain balance between the data and regularization terms if
 $I_0$ changes.
 """
 lambda_weighted = 5e1
-
 weights = snp.array(counts / Io)
 f = loss.SquaredL2Loss(y=y, A=A, W=linop.Diagonal(weights))
-
 admm_weighted = ADMM(
     f=f,
     g_list=[lambda_weighted * functional.L21Norm()],
@@ -151,6 +144,7 @@ admm_weighted = ADMM(
     subproblem_solver=LinearSubproblemSolver(cg_kwargs={"tol": cg_tol, "maxiter": cg_maxiter}),
     itstat_options={"display": True, "period": 10},
 )
+print()
 admm_weighted.solve()
 x_weighted = postprocess(admm_weighted.x)
 

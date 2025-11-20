@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2024 by SCICO Developers
+# Copyright (C) 2020-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -13,6 +13,7 @@ plotting functions.
 
 # This module is copied from https://github.com/bwohlberg/sporco
 
+import os
 import sys
 
 import numpy as np
@@ -617,7 +618,7 @@ def imview(
     """
 
     if img.ndim > 2 and img.shape[2] != 3:
-        raise ValueError("Argument img must be an Nr x Nc array or an Nr x Nc x 3 array.")
+        raise ValueError("Argument 'img' must be an Nr x Nc array or an Nr x Nc x 3 array.")
 
     figp = fig
     if fig is None:
@@ -820,7 +821,8 @@ def config_notebook_plotting():
     Configure plotting functions for inline plotting within a Jupyter
     Notebook shell. This function has no effect when not within a
     notebook shell, and may therefore be used within a normal python
-    script.
+    script. If environment variable ``MATPLOTLIB_IPYNB_BACKEND`` is set,
+    the matplotlib backend is explicitly set to the specified value.
     """
 
     # Check whether running within a notebook shell and have
@@ -828,8 +830,9 @@ def config_notebook_plotting():
     module = sys.modules[__name__]
     if _in_notebook() and module.plot.__name__ == "plot":
 
-        # Set inline backend (i.e. %matplotlib inline) if in a notebook shell
-        set_notebook_plot_backend()
+        # Set backend if specified by environment variable
+        if "MATPLOTLIB_IPYNB_BACKEND" in os.environ:
+            set_notebook_plot_backend(os.environ["MATPLOTLIB_IPYNB_BACKEND"])
 
         # Replace plot function with a wrapper function that discards
         # its return value (within a notebook with inline plotting, plots

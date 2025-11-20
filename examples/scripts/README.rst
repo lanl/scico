@@ -13,16 +13,20 @@ Computed Tomography
       TV-Regularized Abel Inversion
    `ct_abel_tv_admm_tune.py <ct_abel_tv_admm_tune.py>`_
       Parameter Tuning for TV-Regularized Abel Inversion
+   `ct_symcone_tv_padmm.py <ct_symcone_tv_padmm.py>`_
+      TV-Regularized Cone Beam CT for Symmetric Objects
    `ct_astra_noreg_pcg.py <ct_astra_noreg_pcg.py>`_
       CT Reconstruction with CG and PCG
    `ct_astra_3d_tv_admm.py <ct_astra_3d_tv_admm.py>`_
       3D TV-Regularized Sparse-View CT Reconstruction (ADMM Solver)
    `ct_astra_3d_tv_padmm.py <ct_astra_3d_tv_padmm.py>`_
       3D TV-Regularized Sparse-View CT Reconstruction (Proximal ADMM Solver)
-   `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
-      TV-Regularized Sparse-View CT Reconstruction (ASTRA Projector)
    `ct_tv_admm.py <ct_tv_admm.py>`_
       TV-Regularized Sparse-View CT Reconstruction (Integrated Projector)
+   `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
+      TV-Regularized Sparse-View CT Reconstruction (ASTRA Projector)
+   `ct_multi_tv_admm.py <ct_multi_tv_admm.py>`_
+      TV-Regularized Sparse-View CT Reconstruction (Multiple Projectors)
    `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
       TV-Regularized Low-Dose CT Reconstruction
    `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
@@ -33,16 +37,16 @@ Computed Tomography
       PPP (with BM3D) CT Reconstruction (ADMM with Fast SVMBIR Prox)
    `ct_fan_svmbir_ppp_bm3d_admm_prox.py <ct_fan_svmbir_ppp_bm3d_admm_prox.py>`_
       PPP (with BM3D) Fan-Beam CT Reconstruction
-   `ct_astra_modl_train_foam2.py <ct_astra_modl_train_foam2.py>`_
-      CT Training and Reconstructions with MoDL
-   `ct_astra_odp_train_foam2.py <ct_astra_odp_train_foam2.py>`_
-      CT Training and Reconstructions with ODP
-   `ct_astra_unet_train_foam2.py <ct_astra_unet_train_foam2.py>`_
+   `ct_modl_train_foam2.py <ct_modl_train_foam2.py>`_
+      CT Training and Reconstruction with MoDL
+   `ct_odp_train_foam2.py <ct_odp_train_foam2.py>`_
+      CT Training and Reconstruction with ODP
+   `ct_unet_train_foam2.py <ct_unet_train_foam2.py>`_
       CT Training and Reconstructions with UNet
-   `ct_projector_comparison.py <ct_projector_comparison.py>`_
-      X-ray Transform Comparison
-   `ct_multi_tv_admm.py <ct_multi_tv_admm.py>`_
-      TV-Regularized Sparse-View CT Reconstruction (Multiple Projectors)
+   `ct_projector_comparison_2d.py <ct_projector_comparison_2d.py>`_
+      2D X-ray Transform Comparison
+   `ct_projector_comparison_3d.py <ct_projector_comparison_3d.py>`_
+      3D X-ray Transform Comparison
 
 Deconvolution
 ^^^^^^^^^^^^^
@@ -121,7 +125,7 @@ Miscellaneous
       TV-Regularized 3D DiffuserCam Reconstruction
    `video_rpca_admm.py <video_rpca_admm.py>`_
       Video Decomposition via Robust PCA
-   `ct_astra_datagen_foam2.py <ct_astra_datagen_foam2.py>`_
+   `ct_datagen_foam2.py <ct_datagen_foam2.py>`_
       CT Data Generation for NN Training
    `deconv_datagen_bsds.py <deconv_datagen_bsds.py>`_
       Blurred Data Generation (Natural Images) for NN Training
@@ -166,18 +170,20 @@ Total Variation
       TV-Regularized Abel Inversion
    `ct_abel_tv_admm_tune.py <ct_abel_tv_admm_tune.py>`_
       Parameter Tuning for TV-Regularized Abel Inversion
-   `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
-      TV-Regularized Sparse-View CT Reconstruction (ASTRA Projector)
+   `ct_symcone_tv_padmm.py <ct_symcone_tv_padmm.py>`_
+      TV-Regularized Cone Beam CT for Symmetric Objects
    `ct_tv_admm.py <ct_tv_admm.py>`_
       TV-Regularized Sparse-View CT Reconstruction (Integrated Projector)
+   `ct_multi_tv_admm.py <ct_multi_tv_admm.py>`_
+      TV-Regularized Sparse-View CT Reconstruction (Multiple Projectors)
+   `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
+      TV-Regularized Sparse-View CT Reconstruction (ASTRA Projector)
    `ct_astra_3d_tv_admm.py <ct_astra_3d_tv_admm.py>`_
       3D TV-Regularized Sparse-View CT Reconstruction (ADMM Solver)
    `ct_astra_3d_tv_padmm.py <ct_astra_3d_tv_padmm.py>`_
       3D TV-Regularized Sparse-View CT Reconstruction (Proximal ADMM Solver)
    `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
       TV-Regularized Low-Dose CT Reconstruction
-   `ct_multi_tv_admm.py <ct_multi_tv_admm.py>`_
-      TV-Regularized Sparse-View CT Reconstruction (Multiple Projectors)
    `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
       TV-Regularized CT Reconstruction (Multiple Algorithms)
    `deconv_circ_tv_admm.py <deconv_circ_tv_admm.py>`_
@@ -237,13 +243,13 @@ Sparsity
 Machine Learning
 ^^^^^^^^^^^^^^^^
 
-   `ct_astra_datagen_foam2.py <ct_astra_datagen_foam2.py>`_
+   `ct_datagen_foam2.py <ct_datagen_foam2.py>`_
       CT Data Generation for NN Training
-   `ct_astra_modl_train_foam2.py <ct_astra_modl_train_foam2.py>`_
-      CT Training and Reconstructions with MoDL
-   `ct_astra_odp_train_foam2.py <ct_astra_odp_train_foam2.py>`_
-      CT Training and Reconstructions with ODP
-   `ct_astra_unet_train_foam2.py <ct_astra_unet_train_foam2.py>`_
+   `ct_modl_train_foam2.py <ct_modl_train_foam2.py>`_
+      CT Training and Reconstruction with MoDL
+   `ct_odp_train_foam2.py <ct_odp_train_foam2.py>`_
+      CT Training and Reconstruction with ODP
+   `ct_unet_train_foam2.py <ct_unet_train_foam2.py>`_
       CT Training and Reconstructions with UNet
    `deconv_datagen_bsds.py <deconv_datagen_bsds.py>`_
       Blurred Data Generation (Natural Images) for NN Training
@@ -271,6 +277,8 @@ ADMM
       TV-Regularized Abel Inversion
    `ct_abel_tv_admm_tune.py <ct_abel_tv_admm_tune.py>`_
       Parameter Tuning for TV-Regularized Abel Inversion
+   `ct_symcone_tv_padmm.py <ct_symcone_tv_padmm.py>`_
+      TV-Regularized Cone Beam CT for Symmetric Objects
    `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
       TV-Regularized Sparse-View CT Reconstruction (ASTRA Projector)
    `ct_tv_admm.py <ct_tv_admm.py>`_

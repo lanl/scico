@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2024 by SCICO Developers
+# Copyright (C) 2020-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -11,7 +11,8 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import Optional, Union
+from functools import partial
+from typing import List, Optional, Union
 
 import jax
 
@@ -89,7 +90,7 @@ class PGM(Optimizer):
         self.f: Union[Loss, Functional] = f
 
         if g.has_prox is not True:
-            raise ValueError(f"The functional g ({type(g)}) must have a prox method.")
+            raise ValueError(f"Functional 'g' ({type(g)}) must have a prox method.")
 
         #: Functional to minimize; must have prox defined
         self.g: Functional = g
@@ -101,14 +102,21 @@ class PGM(Optimizer):
         self.L: float = L0  # reciprocal of step size (estimate of Lipschitz constant of ∇f)
         self.fixed_point_residual = snp.inf
 
-        def x_step(v: Union[Array, BlockArray], L: float) -> Union[Array, BlockArray]:
-            return self.g.prox(v - 1.0 / L * self.f.grad(v), 1.0 / L)
-
-        self.x_step = jax.jit(x_step)
-
         self.x: Union[Array, BlockArray] = x0  # current estimate of solution
 
         super().__init__(**kwargs)
+
+    def x_step(self, v: Union[Array, BlockArray], L: float) -> Union[Array, BlockArray]:
+        """Compute update for variable `x`."""
+        return PGM._x_step(self.f, self.g, v, L)
+
+    @staticmethod
+    @partial(jax.jit, static_argnums=(0, 1))
+    def _x_step(
+        f: Functional, g: Functional, v: Union[Array, BlockArray], L: float
+    ) -> Union[Array, BlockArray]:
+        """Jit-able static method for computing update for variable `x`."""
+        return g.prox(v - 1.0 / L * f.grad(v), 1.0 / L)
 
     def _working_vars_finite(self) -> bool:
         """Determine where ``NaN`` of ``Inf`` encountered in solve.
@@ -128,8 +136,10 @@ class PGM(Optimizer):
         itstat_attrib = ["L", "norm_residual()"]
         return itstat_fields, itstat_attrib
 
-    def minimizer(self):
-        """Return current estimate of the functional mimimizer."""
+    def _state_variable_names(self) -> List[str]:
+        return ["x", "L"]
+
+    def minimizer(self) -> Union[Array, BlockArray]:
         return self.x
 
     def objective(self, x: Optional[Union[Array, BlockArray]] = None) -> float:
@@ -238,3 +248,7 @@ class AcceleratedPGM(PGM):
         a solver working variable.
         """
         return snp.all(snp.isfinite(self.x)) and snp.all(snp.isfinite(self.v))
+
+    def _state_variable_names(self) -> List[str]:
+        """Get optimizer state variable names."""
+        return ["x", "v", "t", "L"]

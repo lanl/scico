@@ -8,8 +8,8 @@ r"""
 TV-Regularized Abel Inversion
 =============================
 
-This example demonstrates a TV-regularized Abel inversion by solving the
-problem
+This example demonstrates a total variation (TV) regularized Abel
+inversion by solving the problem
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
   \|_2^2 + \lambda \| C \mathbf{x} \|_1 \;,$$
@@ -17,7 +17,7 @@ problem
 where $A$ is the Abel projector (with an implementation based on a
 projector from PyAbel :cite:`pyabel-2022`), $\mathbf{y}$ is the measured
 data, $C$ is a 2D finite difference operator, and $\mathbf{x}$ is the
-desired image.
+solution.
 """
 
 
@@ -26,7 +26,7 @@ import numpy as np
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot
 from scico.examples import create_circular_phantom
-from scico.linop.abel import AbelTransform
+from scico.linop.xray.abel import AbelTransform
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
@@ -87,7 +87,6 @@ Run the solver.
 """
 print(f"Solving on {device_info()}\n")
 solver.solve()
-hist = solver.itstat_object.history(transpose=True)
 x_tv = snp.clip(solver.x, 0.0, 1.0)
 
 

@@ -5,8 +5,8 @@
 # with the package.
 
 r"""
-CT Training and Reconstructions with MoDL
-=========================================
+CT Training and Reconstruction with MoDL
+========================================
 
 This example demonstrates the training and application of a
 model-based deep learning (MoDL) architecture described in
@@ -54,20 +54,25 @@ ray.init(logging_level=logging.ERROR)  # need to call init before jax import: ra
 
 import jax
 
+try:
+    from jax.extend.backend import get_backend  # introduced in jax 0.4.33
+except ImportError:
+    from jax.lib.xla_bridge import get_backend
+
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from scico import flax as sflax
 from scico import metric, plot
 from scico.flax.examples import load_ct_data
 from scico.flax.train.traversals import clip_positive, construct_traversal
-from scico.linop.xray.astra import XRayTransform2D
+from scico.linop.xray import XRayTransform2D
 
 """
 Prepare parallel processing. Set an arbitrary processor count (only
 applies if GPU is not available).
 """
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
-platform = jax.lib.xla_bridge.get_backend().platform
+platform = get_backend().platform
 print("Platform: ", platform)
 
 
@@ -84,16 +89,17 @@ trdt, ttdt = load_ct_data(train_nimg, test_nimg, N, n_projection, verbose=True)
 
 
 """
-Build CT projection operator.
+Build CT projection operator. Parameters are chosen so that the operator
+is equivalent to the one used to generate the training data.
 """
-angles = np.linspace(0, np.pi, n_projection)  # evenly spaced projection angles
+angles = np.linspace(0, np.pi, n_projection, endpoint=False)  # evenly spaced projection angles
 A = XRayTransform2D(
     input_shape=(N, N),
-    det_spacing=1,
-    det_count=N,
     angles=angles,
-)  # CT projection operator
-A = (1.0 / N) * A  # normalized
+    det_count=int(N * 1.05 / np.sqrt(2.0)),
+    dx=1.0 / np.sqrt(2),
+)
+A = (1.0 / N) * A  # normalize projection operator
 
 
 """

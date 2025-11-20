@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2023-2024 by SCICO Developers
+# Copyright (C) 2023-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -35,7 +35,7 @@ class TVNorm(Functional):
 
     Generic total variation (TV) norm with approximation of the scaled
     proximal operator :cite:`kamilov-2016-parallel`
-    :cite:`kamilov-2016-minimizing`.
+    :cite:`kamilov-2016-minimizing` :cite:`chandler-2024-closedform`.
     """
 
     has_eval = True
@@ -128,7 +128,7 @@ class TVNorm(Functional):
             #    axes and one greater for axes that are differenced
             else tuple([s + 1 if i in axes else s for i, s in enumerate(input_shape)])  # type: ignore
         )
-        W = HaarTransform(w_input_shape, input_dtype=input_dtype, axes=axes, jit=True)
+        W = HaarTransform(w_input_shape, input_dtype=input_dtype, axes=axes, jit=True)  # type: ignore
         if self.circular:
             # slice selecting highpass component of shift-invariant Haar transform
             slce = snp.s_[:, 1]
@@ -147,11 +147,15 @@ class TVNorm(Functional):
             # Replicate-pad to the right (resulting in a zero after finite differencing)
             # on all axes subject to finite differencing.
             pad_width = [(0, 1) if i in axes else (0, 0) for i, s in enumerate(input_shape)]  # type: ignore
-            P = Pad(input_shape, pad_width=pad_width, mode="edge", jit=True)
+            P = Pad(
+                input_shape, input_dtype=input_dtype, pad_width=pad_width, mode="edge", jit=True
+            )
             # fused boundary extend and forward transform linop
             WP = W @ P
             # crop operation that is inverse of the padding operation
-            C = Crop(crop_width=pad_width, input_shape=w_input_shape, jit=True)
+            C = Crop(
+                crop_width=pad_width, input_shape=w_input_shape, input_dtype=input_dtype, jit=True
+            )
             # fused adjoint transform and crop linop
             CWT = C @ W.T
         return WP, CWT, ndims, slce
@@ -202,17 +206,21 @@ class TVNorm(Functional):
         return (1.0 / K) * CWT(WPv)
 
     def prox(self, v: Array, lam: float = 1.0, **kwargs) -> Array:
-        r"""Approximate proximal operator of the TV norm.
+        r"""Approximate scaled proximal operator of the TV norm.
 
-        Approximation of the proximal operator of the TV norm, computed
-        via the methods described in :cite:`kamilov-2016-parallel`
-        :cite:`kamilov-2016-minimizing`.
+        Approximation of the scaled proximal operator of the TV norm,
+        computed via the methods described in
+        :cite:`kamilov-2016-parallel` :cite:`kamilov-2016-minimizing`
+        :cite:`chandler-2024-closedform`.
 
         Args:
             v: Input array :math:`\mb{v}`.
             lam: Proximal parameter :math:`\lam`.
-            kwargs: Additional arguments that may be used by derived
+            **kwargs: Additional arguments that may be used by derived
                 classes.
+
+        Returns:
+            Result of evaluating the scaled proximal operator at `v`.
         """
         if self.WP is None or self.WP.shape[1] != v.shape:
             self.WP, self.CWT, self.prox_ndims, self.prox_slice = self._prox_operators(
@@ -381,13 +389,15 @@ class SingleAxisFiniteSum(LinearOperator):
         """
 
         if not isinstance(axis, int):
-            raise TypeError(f"Expected axis to be of type int, got {type(axis)} instead.")
+            raise TypeError(
+                f"Expected argument 'axis' to be of type int, got {type(axis)} instead."
+            )
 
         if axis < 0:
             axis = len(input_shape) + axis
         if axis >= len(input_shape):
             raise ValueError(
-                f"Invalid axis {axis} specified; axis must be less than "
+                f"Invalid argument 'axis' specified ({axis}); 'axis' must be less than "
                 f"len(input_shape)={len(input_shape)}."
             )
         self.axis = axis

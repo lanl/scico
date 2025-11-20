@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2023 by SCICO Developers
+# Copyright (C) 2023-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -11,10 +11,17 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, NamedTuple, Optional, Tuple, Union
+
+import numpy as np
 
 from scico.diagnostics import IterationStats
 from scico.numpy import Array, BlockArray
+from scico.numpy.util import (
+    array_to_namedtuple,
+    namedtuple_to_array,
+    transpose_ntpl_of_list,
+)
 from scico.util import Timer
 
 
@@ -176,11 +183,106 @@ class Optimizer:
         """
         return {}, []
 
+    def _state_variable_names(self) -> List[str]:
+        """Get optimizer state variable names.
+
+        Get optimizer state variable names.
+
+        Returns:
+            List of names of class attributes that represent algorithm
+            state variables.
+        """
+        raise NotImplementedError(f"Method _state_variables is not implemented for {type(self)}.")
+
+    def _get_state_variables(self) -> dict[str, Any]:
+        """Get optimizer state variables.
+
+        Get optimizer state variables.
+
+        Returns:
+            Dict of state variable names and corresponding values.
+        """
+        return {k: getattr(self, k) for k in self._state_variable_names()}
+
+    def _set_state_variables(self, **kwargs):
+        """Set optimizer state variables.
+
+        Set optimizer state variables.
+
+        Args:
+            **kwargs: State variables to be set, with parameter names
+                corresponding to their class attribute names.
+        """
+        valid_vars = self._state_variable_names()
+        for k, v in kwargs.items():
+            if k not in valid_vars:
+                raise RuntimeError(f"{k} is not a valid state variable for {type(self)}.")
+            setattr(self, k, v)
+
+    def save_state(self, path: str):
+        """Save optimizer state to a file.
+
+        Save optimizer state to a file.
+
+        Args:
+            path: Filename of file to which state should be saved.
+        """
+        state_vars = self._get_state_variables()
+        np.savez(
+            path,
+            opt_class=self.__class__,
+            itnum=self.itnum,
+            history=namedtuple_to_array(self.history(transpose=True)),  # type: ignore
+            **state_vars,
+        )
+
+    def load_state(self, path: str):
+        """Load optimizer state from a file.
+
+        Restore optimizer state from a file.
+
+        Args:
+            path: Filename of state file saved using :meth:`save_state`.
+        """
+        npz = np.load(path, allow_pickle=True)
+        if npz["opt_class"] != self.__class__:
+            raise TypeError(
+                f"Cannot load state for {npz['solver_class']} into optimizer "
+                f"of type {self.__class__}."
+            )
+        npzd = dict(npz)
+        npzd.pop("opt_class")
+        self.itnum = npzd.pop("itnum")
+        history = transpose_ntpl_of_list(array_to_namedtuple(npzd.pop("history")))
+        self.itstat_object.iterations = history
+        self._set_state_variables(**npzd)
+
+    def history(self, transpose: bool = False) -> Union[List[NamedTuple], Tuple[List]]:
+        """Retrieve record of algorithm iterations.
+
+        Retrieve record of algorithm iterations.
+
+        Args:
+            transpose: Flag indicating whether results should be returned
+                in "transposed" form, i.e. as a namedtuple of lists
+                rather than a list of namedtuples.
+
+        Returns:
+            Record of all iterations.
+        """
+        return self.itstat_object.history(transpose=transpose)
+
     def minimizer(self) -> Union[Array, BlockArray]:
-        """Return the current estimate of the functional mimimizer."""
+        """Return the current estimate of the functional mimimizer.
+
+        Returns:
+            Current estimate of the functional mimimizer.
+        """
+        raise NotImplementedError(f"Method minimizer is not implemented for {type(self)}.")
 
     def step(self):
         """Perform a single optimizer step."""
+        raise NotImplementedError(f"Method step is not implemented for {type(self)}.")
 
     def solve(
         self,

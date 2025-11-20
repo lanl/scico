@@ -24,21 +24,23 @@ Computed Tomography
 
    examples/ct_abel_tv_admm
    examples/ct_abel_tv_admm_tune
+   examples/ct_symcone_tv_padmm
    examples/ct_astra_noreg_pcg
    examples/ct_astra_3d_tv_admm
    examples/ct_astra_3d_tv_padmm
-   examples/ct_astra_tv_admm
    examples/ct_tv_admm
+   examples/ct_astra_tv_admm
+   examples/ct_multi_tv_admm
    examples/ct_astra_weighted_tv_admm
    examples/ct_svmbir_tv_multi
    examples/ct_svmbir_ppp_bm3d_admm_cg
    examples/ct_svmbir_ppp_bm3d_admm_prox
    examples/ct_fan_svmbir_ppp_bm3d_admm_prox
-   examples/ct_astra_modl_train_foam2
-   examples/ct_astra_odp_train_foam2
-   examples/ct_astra_unet_train_foam2
-   examples/ct_projector_comparison
-   examples/ct_multi_tv_admm
+   examples/ct_modl_train_foam2
+   examples/ct_odp_train_foam2
+   examples/ct_unet_train_foam2
+   examples/ct_projector_comparison_2d
+   examples/ct_projector_comparison_3d
 
 Deconvolution
 ^^^^^^^^^^^^^
@@ -94,7 +96,7 @@ Miscellaneous
    examples/denoise_dncnn_universal
    examples/diffusercam_tv_admm
    examples/video_rpca_admm
-   examples/ct_astra_datagen_foam2
+   examples/ct_datagen_foam2
    examples/deconv_datagen_bsds
    examples/deconv_datagen_foam1
    examples/denoise_datagen_bsds
@@ -132,12 +134,13 @@ Total Variation
 
    examples/ct_abel_tv_admm
    examples/ct_abel_tv_admm_tune
-   examples/ct_astra_tv_admm
+   examples/ct_symcone_tv_padmm
    examples/ct_tv_admm
+   examples/ct_multi_tv_admm
+   examples/ct_astra_tv_admm
    examples/ct_astra_3d_tv_admm
    examples/ct_astra_3d_tv_padmm
    examples/ct_astra_weighted_tv_admm
-   examples/ct_multi_tv_admm
    examples/ct_svmbir_tv_multi
    examples/deconv_circ_tv_admm
    examples/deconv_tv_admm
@@ -179,10 +182,10 @@ Machine Learning
 .. toctree::
    :maxdepth: 1
 
-   examples/ct_astra_datagen_foam2
-   examples/ct_astra_modl_train_foam2
-   examples/ct_astra_odp_train_foam2
-   examples/ct_astra_unet_train_foam2
+   examples/ct_datagen_foam2
+   examples/ct_modl_train_foam2
+   examples/ct_odp_train_foam2
+   examples/ct_unet_train_foam2
    examples/deconv_datagen_bsds
    examples/deconv_datagen_foam1
    examples/deconv_modl_train_foam1
@@ -206,6 +209,7 @@ ADMM
 
    examples/ct_abel_tv_admm
    examples/ct_abel_tv_admm_tune
+   examples/ct_symcone_tv_padmm
    examples/ct_astra_tv_admm
    examples/ct_tv_admm
    examples/ct_astra_3d_tv_admm

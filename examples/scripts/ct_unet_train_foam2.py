@@ -27,6 +27,11 @@ os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 
 import jax
 
+try:
+    from jax.extend.backend import get_backend  # introduced in jax 0.4.33
+except ImportError:
+    from jax.lib.xla_bridge import get_backend
+
 import numpy as np
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -36,7 +41,7 @@ from scico import metric, plot
 from scico.flax.examples import load_ct_data
 
 
-platform = jax.lib.xla_bridge.get_backend().platform
+platform = get_backend().platform
 print("Platform: ", platform)
 
 

@@ -1,3 +1,6 @@
+import os
+import tempfile
+
 import numpy as np
 
 import pytest
@@ -144,6 +147,49 @@ class TestReal:
         )
         x = admm_.solve()
         assert (snp.linalg.norm(self.grdA(x) - self.grdb) / snp.linalg.norm(self.grdb)) < 1e-3
+
+    def test_admm_saveload(self):
+        maxiter = 5
+        x_ref = np.ones((16, 16), dtype=np.float32)
+        x_ref[4:-4, 4:-4] = 1.0
+        n = 3
+        psf = snp.ones((n, n), dtype=np.float32) / (n * n)
+        A = linop.CircularConvolve(h=psf, input_shape=x_ref.shape)
+        y = A(x_ref)
+        λ = 2e-2
+        ρ = 5e-1
+        f = loss.SquaredL2Loss(y=y, A=A)
+        g = λ * functional.L21Norm()
+        C = linop.FiniteDifference(x_ref.shape, circular=True)
+        admm0 = ADMM(
+            f=f,
+            g_list=[g],
+            C_list=[C],
+            rho_list=[ρ],
+            x0=A.adj(y),
+            maxiter=maxiter,
+            subproblem_solver=CircularConvolveSolver(),
+        )
+        admm0.solve()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "admm.npz")
+            admm0.save_state(path)
+            admm0.solve()
+            h0 = admm0.history()
+            admm1 = ADMM(
+                f=f,
+                g_list=[g],
+                C_list=[C],
+                rho_list=[ρ],
+                x0=A.adj(y),
+                maxiter=maxiter,
+                subproblem_solver=CircularConvolveSolver(),
+            )
+            admm1.load_state(path)
+            admm1.solve()
+            h1 = admm1.history()
+            np.testing.assert_allclose(admm0.minimizer(), admm1.minimizer(), atol=1e-7)
+            assert np.abs(h0[-1].Objective - h1[-1].Objective) < 1e-6
 
     def test_admm_quadratic_scico(self):
         maxiter = 25
