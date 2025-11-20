@@ -41,7 +41,7 @@ jobs:
           path: ${{ env.CONDA }}/envs
           key: conda-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('dev_requirements.txt') }}-${{ env.CACHE_NUMBER }}
         env:
-          CACHE_NUMBER: 0  # Increase this value to force cache reset
+          CACHE_NUMBER: 1  # Increase this value to force cache reset
         id: cache
       # Display environment details
       - name: Display environment details
@@ -64,6 +64,7 @@ jobs:
           pip install bm3d>=4.0.0
           pip install "ray[tune]>=2.44"
           pip install hyperopt
+          pip install pydantic
           pip install "orbax-checkpoint>=0.5.0"
           conda install -c conda-forge svmbir>=0.4.0
           conda install -c conda-forge astra-toolbox
