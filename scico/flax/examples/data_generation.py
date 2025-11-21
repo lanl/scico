@@ -36,6 +36,9 @@ else:
     )
 
 try:
+    import os
+
+    os.environ["RAY_ACCEL_ENV_VAR_OVERRIDE_ON_ZERO"] = "0"  # suppress ray warning
     import ray  # noqa: F401
 except ImportError:
     have_ray = False
