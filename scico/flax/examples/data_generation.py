@@ -310,7 +310,7 @@ def generate_blur_data(
 
     # Clip to [0,1] range.
     img = jnp.clip(img, 0, 1)
-    
+
     nproc = jax.device_count()
     if img.shape[0] % nproc > 0:
         # Decrease nimg to be a multiple of nproc if it isn't already
