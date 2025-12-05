@@ -1,5 +1,6 @@
 import numpy as np
 
+import jax
 import jax.numpy as jnp
 from jax.scipy.spatial.transform import Rotation
 
@@ -48,6 +49,14 @@ def test_rotate_volume():
     np.testing.assert_allclose(vol.transpose((1, 2, 0)), vol_rot, rtol=1e-7)
 
 
+def align_test_tol():
+    if jax.devices()[0].device_kind == "cpu":
+        tol = 1e-3
+    else:
+        tol = 5e-2  # less accurate on gpu
+    return tol
+
+
 @pytest.mark.skipif(not have_astra, reason="astra not installed")
 def test_image_alignment():
     u = np.zeros((256, 256), dtype=np.float32)
@@ -57,7 +66,7 @@ def test_image_alignment():
     assert np.abs(angle) < 1e-3
     ur = scipy.ndimage.rotate(u, 0.75)
     angle = image_alignment_rotation(ur)
-    assert np.abs(angle - 0.75) < 1e-3
+    assert np.abs(angle - 0.75) < align_test_tol()
 
 
 @pytest.mark.skipif(not have_astra, reason="astra not installed")
