@@ -18,11 +18,12 @@ build:
   jobs:
     pre_build:
       - mkdir -p docs/source/examples
-      - for f in data/notebooks/*; do \
-          b=$(basename $f); \
-          if [ ! -f "docs/source/examples/$b" ]; then \
-            ln -s -t docs/source/examples "../../../$f"; \
-          fi; \
+      - |
+        for f in data/notebooks/*; do
+          b=$(basename $f)
+          if [ ! -f "docs/source/examples/$b" ]; then
+            ln -s -t docs/source/examples "../../../$f"
+          fi
         done
   apt_packages:
     - graphviz
