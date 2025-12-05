@@ -50,8 +50,17 @@ help:
 clean:
 	rm -f $(AUTOSUMMARYDIR)/*
 	rm -rf $(BUILDDIR)/*
+        rm -f source/examples/*
 
 html:
+	@mkdir -p source/examples; \
+	for f in ../data/notebooks/*; do \
+          b=$$(basename $$f) ; \
+	  if [ ! -f "source/examples/$$b" ]; then \
+              echo Creating soft link for notebook $$b
+	      ln -s -t source/examples "../../$$f" ; \
+	  fi \
+        done
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
