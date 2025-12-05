@@ -1,4 +1,3 @@
-nbsphinx_execute = "never"
 nbsphinx_prolog = """
 .. raw:: html
 
@@ -15,3 +14,5 @@ nbsphinx_prolog = """
     }
     </style>
 """
+
+nbsphinx_execute = "never"
