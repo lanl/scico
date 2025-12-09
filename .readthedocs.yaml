@@ -25,6 +25,9 @@ build:
             ln -s -t docs/source/examples "../../../$f"
           fi
         done
+    post_build:
+      - ls _build
+      - ls _build/_static
   apt_packages:
     - graphviz
     - libopenblas-dev
