@@ -2,6 +2,12 @@
 SCICO Release Notes
 ===================
 
+Version 0.0.8   (unreleased)
+----------------------------
+
+• No changes yet.
+
+
 
 Version 0.0.7   (2025-12-09)
 ----------------------------
