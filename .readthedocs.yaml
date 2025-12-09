@@ -26,9 +26,8 @@ build:
           fi
         done
     post_build:
-      - ls -l
-      - ls -l _readthedocs/html
-      - ls -l docs
+      - ls -l _readthedocs/html/_static
+      - ls -l docs/source/_static
   apt_packages:
     - graphviz
     - libopenblas-dev
