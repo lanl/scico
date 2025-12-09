@@ -25,6 +25,8 @@ build:
             ln -s -t docs/source/examples "../../../$f"
           fi
         done
+    post_build:  # unclear why this is necessary
+      - cp docs/source/_static/scico.css  _readthedocs/html/_static
   apt_packages:
     - graphviz
     - libopenblas-dev
