@@ -26,6 +26,7 @@ build:
           fi
         done
     post_build:
+      - cp docs/source/_static/scico.css  _readthedocs/html/_static
       - ls -l _readthedocs/html/_static
       - ls -l docs/source/_static
   apt_packages:
