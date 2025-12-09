@@ -8,7 +8,7 @@
 solving the inverse problems that arise in scientific imaging applications.
 """
 
-__version__ = "0.0.7"
+__version__ = "0.0.8.dev0"
 
 import logging
 import sys
