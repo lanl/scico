@@ -26,6 +26,7 @@ build:
           fi
         done
     post_build:
+      - ls -al
       - ls _build
       - ls _build/_static
   apt_packages:
