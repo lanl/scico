@@ -121,7 +121,6 @@ Run the solver.
 """
 print(f"Solving on {device_info()}\n")
 tangle_recon = solver.solve()
-hist = solver.itstat_object.history(transpose=True)
 
 print(
     "TV Restruction\nSNR: %.2f (dB), MAE: %.3f"

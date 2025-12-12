@@ -26,7 +26,7 @@ import numpy as np
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot
 from scico.examples import create_circular_phantom
-from scico.linop.abel import AbelTransform
+from scico.linop.xray.abel import AbelTransform
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
@@ -87,7 +87,6 @@ Run the solver.
 """
 print(f"Solving on {device_info()}\n")
 solver.solve()
-hist = solver.itstat_object.history(transpose=True)
 x_tv = snp.clip(solver.x, 0.0, 1.0)
 
 

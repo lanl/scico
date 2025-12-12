@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2024 by SCICO Developers
+# Copyright (C) 2021-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -109,7 +109,7 @@ class CircularConvolve(LinearOperator):
             self.ndims = ndims
 
         if h_is_dft and h_center is not None:
-            raise ValueError("Parameter h_center must be None when h_is_dft=True.")
+            raise ValueError("Argument 'h_center' must be None when h_is_dft=True.")
         self.h_center = h_center
 
         if h_is_dft:
@@ -155,7 +155,7 @@ class CircularConvolve(LinearOperator):
             output_shape = np.broadcast_shapes(self.h_dft.shape, input_shape)
         except ValueError:
             raise ValueError(
-                f"Shape of h after padding was {self.h_dft.shape}, needs to be compatible "
+                f"Shape of 'h' after padding was {self.h_dft.shape}, needs to be compatible "
                 f"for broadcasting with {input_shape}."
             )
 

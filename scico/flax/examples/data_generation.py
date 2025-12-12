@@ -36,6 +36,9 @@ else:
     )
 
 try:
+    import os
+
+    os.environ["RAY_ACCEL_ENV_VAR_OVERRIDE_ON_ZERO"] = "0"  # suppress ray warning
     import ray  # noqa: F401
 except ImportError:
     have_ray = False
@@ -86,7 +89,7 @@ class Foam2(UnitCircle):
                 Default: 10.
         """
         if porosity < 0 or porosity > 1:
-            raise ValueError("Porosity must be in the range [0,1).")
+            raise ValueError("Argument 'porosity' must be in the range [0,1).")
         super().__init__(radius=0.5, material=SimpleMaterial(attn1))  # type: ignore
         self.sprinkle(  # type: ignore
             300, size_range, gap, material=SimpleMaterial(attn2), max_density=porosity / 2.0
@@ -222,6 +225,10 @@ def generate_ct_data(
     img = jnp.clip(img, 0, 1)
 
     nproc = jax.device_count()
+    if img.shape[0] % nproc > 0:
+        # Decrease nimg to be a multiple of nproc if it isn't already
+        nimg = (img.shape[0] // nproc) * nproc
+        img = img[:nimg]
 
     # Configure a CT projection operator to generate synthetic measurements.
     angles = np.linspace(0, jnp.pi, nproj)  # evenly spaced projection angles
@@ -303,7 +310,12 @@ def generate_blur_data(
 
     # Clip to [0,1] range.
     img = jnp.clip(img, 0, 1)
+
     nproc = jax.device_count()
+    if img.shape[0] % nproc > 0:
+        # Decrease nimg to be a multiple of nproc if it isn't already
+        nimg = (img.shape[0] // nproc) * nproc
+        img = img[:nimg]
 
     # Configure blur operator
     ishape = (size, size)

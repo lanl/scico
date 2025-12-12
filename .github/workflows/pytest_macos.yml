@@ -13,7 +13,7 @@ on:
 jobs:
 
   test:
-    runs-on: macos-13
+    runs-on: macos-latest
     strategy:
       fail-fast: false
       matrix:
@@ -59,9 +59,11 @@ jobs:
           pip install -r dev_requirements.txt
           pip install bm3d>=4.0.0
           pip install bm4d>=4.0.0
-          pip install "ray[tune]>=2.5.0"
+          pip install "ray[tune]>=2.44"
           pip install hyperopt
-          conda install -c conda-forge svmbir>=0.4.0
+          pip install pydantic
+          pip install "orbax-checkpoint>=0.5.0"
+          #conda install -c conda-forge svmbir>=0.4.0
           conda install -c astra-toolbox astra-toolbox
           conda install -c conda-forge pyyaml
       # Install package to be tested

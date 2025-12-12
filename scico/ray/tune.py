@@ -23,7 +23,14 @@ try:
 except ImportError:
     raise ImportError("Could not import ray.tune; please install it.")
 import ray.air
-from ray.tune import Trainable, loguniform, uniform, with_parameters  # noqa
+from ray.tune import (  # noqa
+    CheckpointConfig,
+    RunConfig,
+    Trainable,
+    loguniform,
+    uniform,
+    with_parameters,
+)
 from ray.tune.experiment.trial import Trial
 from ray.tune.progress_reporter import TuneReporterBase, _get_trials_by_state
 from ray.tune.result_grid import ResultGrid
@@ -285,9 +292,9 @@ class Tuner(ray.tune.Tuner):
             run_config_kwargs.update({"stop": stop_criteria})
         if run_config is None:
             run_config_kwargs.update(
-                {"checkpoint_config": ray.air.CheckpointConfig(checkpoint_at_end=False)}
+                {"checkpoint_config": CheckpointConfig(checkpoint_at_end=False)}
             )
-            run_config = ray.air.config.RunConfig(**run_config_kwargs)
+            run_config = RunConfig(**run_config_kwargs)
         else:
             for k, v in run_config_kwargs.items():
                 setattr(run_config, k, v)

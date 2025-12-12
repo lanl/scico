@@ -19,7 +19,7 @@ from .util import is_collapsible
 
 # Determine type of "standard" jax array since jax.Array is an abstract
 # base class type that is not suitable for use here.
-Array = type(jnp.array([0]))
+JaxArray = type(jnp.array([0]))
 
 
 class BlockArray:
@@ -110,9 +110,7 @@ class BlockArray:
         if is_collapsible(self.shape):
             return jnp.stack(self.arrays, axis=axis)
         else:
-            raise ValueError(
-                f"BlockArray of shape {self.shape} cannot be " "collapsed to an Array."
-            )
+            raise ValueError(f"BlockArray of shape {self.shape} cannot be collapsed to an Array.")
 
 
 # Register BlockArray as a jax pytree, without this, jax autograd won't work.
@@ -126,13 +124,13 @@ jax.tree_util.register_pytree_node(
 
 # Wrap unary ops like -x.
 def _unary_op_wrapper(op_name):
-    op = getattr(Array, op_name)
+    op = getattr(JaxArray, op_name)
 
     @wraps(op)
-    def op_ba(self):
+    def op_block_array(self):
         return BlockArray(op(x) for x in self)
 
-    return op_ba
+    return op_block_array
 
 
 for op_name in unary_ops:
@@ -141,23 +139,23 @@ for op_name in unary_ops:
 
 # Wrap binary ops like x + y. """
 def _binary_op_wrapper(op_name):
-    op = getattr(Array, op_name)
+    op = getattr(JaxArray, op_name)
 
     @wraps(op)
-    def op_ba(self, other):
-        # If other is a BA, we can assume the operation is implemented
-        # (because BAs must contain jax arrays)
+    def op_block_array(self, other):
+        # If other is a block array, we can assume the operation is implemented
+        # (because block arrays must contain jax arrays)
         if isinstance(other, BlockArray):
             return BlockArray(op(x, y) for x, y in zip(self, other))
 
         # If not, need to handle possible NotImplemented
-        # without this, ba + 'hi' -> [NotImplemented, NotImplemented, ...]
+        # without this, block_array + 'hi' -> [NotImplemented, NotImplemented, ...]
         result = list(op(x, other) for x in self)
         if NotImplemented in result:
             return NotImplemented
         return BlockArray(result)
 
-    return op_ba
+    return op_block_array
 
 
 for op_name in binary_ops:
@@ -165,38 +163,39 @@ for op_name in binary_ops:
 
 
 # Wrap jax array properties.
-def _da_prop_wrapper(prop_name):
-    prop = getattr(Array, prop_name)
+def _jax_array_prop_wrapper(prop_name):
+    prop = getattr(JaxArray, prop_name)
 
     @property
     @wraps(prop)
-    def prop_ba(self):
+    def prop_block_array(self):
         result = tuple(getattr(x, prop_name) for x in self)
 
-        # if da.prop is a DA, return BA
-        if isinstance(result[0], jnp.ndarray):
+        # If each jax_array.prop is a jax array, ...
+        if all([isinstance(x, jnp.ndarray) for x in result]):
+            # ...return a block array...
             return BlockArray(result)
 
-        # otherwise, return tuple
+        # ...otherwise return a tuple.
         return result
 
-    return prop_ba
+    return prop_block_array
 
 
 skip_props = ("at",)
-da_props = [
+jax_array_props = [
     k
-    for k, v in dict(inspect.getmembers(Array)).items()  # (name, method) pairs
+    for k, v in dict(inspect.getmembers(JaxArray)).items()  # (name, method) pairs
     if isinstance(v, property) and k[0] != "_" and k not in dir(BlockArray) and k not in skip_props
 ]
 
-for prop_name in da_props:
-    setattr(BlockArray, prop_name, _da_prop_wrapper(prop_name))
+for prop_name in jax_array_props:
+    setattr(BlockArray, prop_name, _jax_array_prop_wrapper(prop_name))
 
 
 # Wrap jax array methods.
-def _da_method_wrapper(method_name):
-    method = getattr(Array, method_name)
+def _jax_array_method_wrapper(method_name):
+    method = getattr(JaxArray, method_name)
 
     # Don't try to set attributes that are None. Not clear why some
     # functions/methods (e.g. block_until_ready) have None values
@@ -207,28 +206,29 @@ def _da_method_wrapper(method_name):
             wrapper_assignments = tuple(x for x in wrapper_assignments if x != attr)
 
     @wraps(method, assigned=wrapper_assignments)
-    def method_ba(self, *args, **kwargs):
+    def method_block_array(self, *args, **kwargs):
         result = tuple(getattr(x, method_name)(*args, **kwargs) for x in self)
 
-        # if da.method(...) is a DA, return a BA
-        if isinstance(result[0], jnp.ndarray):
+        # If each jax_array.method(...) call returns a jax array, ...
+        if all([isinstance(x, jnp.ndarray) for x in result]):
+            # ...return a block array...
             return BlockArray(result)
 
-        # otherwise return a tuple
+        # ...otherwise return a tuple.
         return result
 
-    return method_ba
+    return method_block_array
 
 
 skip_methods = ()
-da_methods = [
+jax_array_methods = [
     k
-    for k, v in dict(inspect.getmembers(Array)).items()  # (name, method) pairs
+    for k, v in dict(inspect.getmembers(JaxArray)).items()  # (name, method) pairs
     if isinstance(v, Callable)
     and k[0] != "_"
     and k not in dir(BlockArray)
     and k not in skip_methods
 ]
 
-for method_name in da_methods:
-    setattr(BlockArray, method_name, _da_method_wrapper(method_name))
+for method_name in jax_array_methods:
+    setattr(BlockArray, method_name, _jax_array_method_wrapper(method_name))

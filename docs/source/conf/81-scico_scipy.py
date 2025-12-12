@@ -32,6 +32,7 @@ for _, f in ssp_func:
         f.__doc__ = re.sub(r"\[dlmf\]_", "NIST DLMF", f.__doc__, re.M)
 
 # Fix indentation problems
-scico.scipy.special.sph_harm.__doc__ = re.sub(
-    "^Computes the", "  Computes the", scico.scipy.special.sph_harm.__doc__, flags=re.M
-)
+if hasattr(scico.scipy.special, "sph_harm"):
+    scico.scipy.special.sph_harm.__doc__ = re.sub(
+        "^Computes the", "  Computes the", scico.scipy.special.sph_harm.__doc__, flags=re.M
+    )

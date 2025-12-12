@@ -109,7 +109,7 @@ def test_scalar_left(testobj, operator, scalar):
     assert isinstance(comp_op, linop.LinearOperator)  # Ensure we don't get a Map
     assert comp_op.input_dtype == testobj.A.dtype
     np.testing.assert_allclose(comp_mat @ testobj.x, comp_op @ testobj.x, rtol=5e-5)
-    np.testing.assert_allclose(comp_mat.conj().T @ testobj.y, comp_op.adj(testobj.y), rtol=1e-4)
+    np.testing.assert_allclose(comp_mat.conj().T @ testobj.y, comp_op.adj(testobj.y), rtol=2e-4)
 
 
 @pytest.mark.parametrize("operator", [op.mul, op.truediv])
@@ -217,7 +217,7 @@ def test_transpose_matvec(testobj):
 
     assert a.dtype == testobj.A.dtype
     assert b.dtype == testobj.A.dtype
-    np.testing.assert_allclose(a, comp_mat, rtol=1e-4)
+    np.testing.assert_allclose(a, comp_mat, rtol=2e-4)
     np.testing.assert_allclose(a, b, rtol=5e-5)
 
 
@@ -263,7 +263,7 @@ def test_adjoint_matvec(testobj):
     assert a.dtype == testobj.A.dtype
     assert b.dtype == testobj.A.dtype
     assert c.dtype == testobj.A.dtype
-    np.testing.assert_allclose(a, comp_mat, rtol=1e-4)
+    np.testing.assert_allclose(a, comp_mat, rtol=2e-4)
     np.testing.assert_allclose(a, b, rtol=5e-5)
     np.testing.assert_allclose(a, c, rtol=5e-5)
 

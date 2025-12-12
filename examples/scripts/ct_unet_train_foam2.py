@@ -163,7 +163,7 @@ print(
 Plot comparison.
 """
 key = jax.random.PRNGKey(123)
-indx = jax.random.randint(key, shape=(1,), minval=0, maxval=test_nimg)[0]
+indx = jax.random.randint(key, shape=(1,), minval=0, maxval=maxn)[0]
 
 fig, ax = plot.subplots(nrows=1, ncols=3, figsize=(15, 5))
 plot.imview(test_ds["label"][indx, ..., 0], title="Ground truth", cbar=None, fig=fig, ax=ax[0])
