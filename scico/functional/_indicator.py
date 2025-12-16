@@ -110,7 +110,7 @@ class L2BallIndicator(Functional):
 
         .. math::
             \mathrm{prox}_{\lambda I}(\mb{v}) = \begin{cases}
-            v  & \text{ if } \norm{\mb{v}}_2 \leq r \\
+            \mb{v}  & \text{ if } \norm{\mb{v}}_2 \leq r \\
             r \frac{\mb{v}}{\norm{\mb{v}}_2}  & \text{ otherwise} \;.
             \end{cases}
 
