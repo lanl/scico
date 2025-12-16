@@ -64,7 +64,7 @@ def test_add_seed_adapter():
     # get back the split key
     _, key_a = fun_alt(seed=42)
     key_b, _ = jax.random.split(jax.random.key(42), 2)
-    np.testing.assert_array_equal(key_a, key_b)
+    assert key_a == key_b
 
     # error when key and seed are specified
     with pytest.raises(ValueError):
