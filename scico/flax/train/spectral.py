@@ -60,7 +60,7 @@ def estimate_spectral_norm(
     Returns:
         Spectral norm.
     """
-    rng = jax.random.PRNGKey(seed)
+    rng = jax.random.key(seed)
     u0 = jax.random.normal(rng, input_shape)
     v0 = jnp.zeros_like(f(u0))
 
@@ -134,7 +134,7 @@ def conv(inputs: Array, kernel: Array) -> Array:
     inputs = jnp.asarray(inputs, dtype)
     kernel = jnp.asarray(kernel, dtype)
 
-    rng = jax.random.PRNGKey(0)  # not used
+    rng = jax.random.key(0)  # not used
     model = CNN(kernel_size=kernel.shape, kernel0=kernel, dtype=dtype)
     variables = model.init(rng, np.zeros(inputs.shape))
     y = model.apply(variables, inputs)

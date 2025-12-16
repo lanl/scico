@@ -73,7 +73,7 @@ def _add_seed(fun):
 
     Returns:
         fun_alt: a version of `fun` supporting an optional `seed`
-           argument that is used to create a :func:`jax.random.PRNGKey`
+           argument that is used to create a :func:`jax.random.key`
            that is passed along as the `key`. The `key` argument may
            still be used, but is moved to be second-to-last. By default,
            `seed=0`. The `seed` argument is added last. Other arguments
@@ -103,7 +103,7 @@ def _add_seed(fun):
         if key is None:
             if seed is None:
                 seed = 0
-            key = jax.random.PRNGKey(seed)
+            key = jax.random.key(seed)
 
         result = fun(key, *args[: num_params - 1], **kwargs)
 

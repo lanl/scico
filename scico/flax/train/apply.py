@@ -87,7 +87,7 @@ def only_apply(
         checkpointing = False
 
     # Configure seed.
-    key = jax.random.PRNGKey(config["seed"])
+    key = jax.random.key(config["seed"])
 
     if variables is None:
         if checkpointing:  # pragma: no cover
@@ -133,7 +133,7 @@ def only_apply(
         output_lst.append(output_batch.reshape((-1,) + output_batch.shape[-3:]))
 
     # Allow for completing the async run
-    jax.random.normal(jax.random.PRNGKey(0), ()).block_until_ready()
+    jax.random.normal(jax.random.key(0), ()).block_until_ready()
 
     # Extract one copy of variables
     variables = jax_utils.unreplicate(variables)

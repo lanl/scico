@@ -53,7 +53,7 @@ class IterateData:
         self.n = dt["image"].shape[0]
         self.key = key
         if key is None:
-            self.key = jax.random.PRNGKey(0)
+            self.key = jax.random.key(0)
         self.steps_per_epoch = self.n // batch_size
         self.reset()
 
