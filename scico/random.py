@@ -19,7 +19,7 @@ generation of random :class:`.BlockArray`:
    x, key = scico.random.randn((2,))
    print(x)   # [ 0.19307713 -0.52678305]
 
-   # scico.random functions automatically split the PRNGkey and return
+   # scico.random functions automatically split the PRNG key and return
    # an updated key
    y, key = scico.random.randn((2,), key=key)
    print(y) # [ 0.00870693 -0.04888531]
