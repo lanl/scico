@@ -86,18 +86,17 @@ class L2BallIndicator(Functional):
     has_eval = True
     has_prox = True
 
-    def __init__(self, radius: float = 1):
+    def __init__(self, radius: float = 1.0):
         r"""Initialize a :class:`L2BallIndicator` object.
 
         Args:
-            radius: Radius of :math:`\ell_2` ball. Default: 1.
+            radius: Radius of :math:`\ell_2` ball. Default: 1.0.
         """
         self.radius = radius
         super().__init__()
 
     def __call__(self, x: Union[Array, BlockArray]) -> float:
-        # Equivalent to
-        # snp.inf if norm(x) > self.radius else 0.0
+        # Equivalent to: snp.inf if norm(x) > self.radius else 0.0
         return jax.lax.cond(norm(x) > self.radius, lambda x: snp.inf, lambda x: 0.0, None)
 
     def prox(
@@ -110,7 +109,10 @@ class L2BallIndicator(Functional):
         of the :math:`\ell_2` ball with radius :math:`r`
 
         .. math::
-            \mathrm{prox}_{\lambda I}(\mb{v}) = r \frac{\mb{v}}{\norm{\mb{v}}_2}\;.
+            \mathrm{prox}_{\lambda I}(\mb{v}) = \begin{cases}
+            v  & \text{ if } \norm{\mb{v}}_2 \leq r \\
+            r \frac{\mb{v}}{\norm{\mb{v}}_2}  & \text{ otherwise} \;.
+            \end{cases}
 
         Args:
             v: Input array :math:`\mb{v}`.
@@ -121,4 +123,6 @@ class L2BallIndicator(Functional):
         Returns:
             Result of evaluating the scaled proximal operator at `v`.
         """
-        return self.radius * v / norm(v)
+        return jax.lax.cond(
+            norm(v) > self.radius, lambda v: self.radius * v / norm(v), lambda v: v, v
+        )
