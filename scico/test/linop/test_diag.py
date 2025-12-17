@@ -20,7 +20,7 @@ from scico.random import randn
 
 class TestDiagonal:
     def setup_method(self, method):
-        self.key = jax.random.PRNGKey(12345)
+        self.key = jax.random.key(12345)
 
     input_shapes = [(8,), (8, 12), ((3,), (4, 5))]
 
@@ -191,7 +191,7 @@ class TestDiagonal:
 
 class TestScaledIdentity:
     def setup_method(self, method):
-        self.key = jax.random.PRNGKey(12345)
+        self.key = jax.random.key(12345)
 
     input_shapes = [(8,), (8, 12), ((3,), (4, 5))]
 
@@ -271,7 +271,7 @@ class TestScaledIdentity:
 
 class TestIdentity:
     def setup_method(self, method):
-        self.key = jax.random.PRNGKey(12345)
+        self.key = jax.random.key(12345)
 
     input_shapes = [(8,), (8, 12), ((3,), (4, 5))]
 
