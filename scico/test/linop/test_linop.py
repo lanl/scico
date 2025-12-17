@@ -59,7 +59,7 @@ class AbsMatOp(linop.LinearOperator):
 class LinearOperatorTestObj:
     def __init__(self, dtype):
         M, N = (8, 16)
-        key = jax.random.PRNGKey(12345)
+        key = jax.random.key(12345)
         self.dtype = dtype
 
         self.A, key = randn((M, N), dtype=dtype, key=key)

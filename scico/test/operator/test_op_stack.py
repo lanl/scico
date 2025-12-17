@@ -25,7 +25,7 @@ TestOpC = Operator(
 
 class TestVerticalStack:
     def setup_method(self, method):
-        self.key = jax.random.PRNGKey(12345)
+        self.key = jax.random.key(12345)
 
     @pytest.mark.parametrize("jit", [False, True])
     def test_construct(self, jit):
@@ -151,7 +151,7 @@ class TestBlockDiagonalOperator:
 
 class TestDiagonalReplicated:
     def setup_method(self, method):
-        self.key = jax.random.PRNGKey(12345)
+        self.key = jax.random.key(12345)
 
     @pytest.mark.parametrize("map_type", ["auto", "vmap"])
     @pytest.mark.parametrize("input_axis", [0, 1])

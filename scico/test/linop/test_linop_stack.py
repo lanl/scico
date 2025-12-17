@@ -20,7 +20,7 @@ from scico.test.linop.test_linop import adjoint_test
 
 class TestVerticalStack:
     def setup_method(self, method):
-        self.key = jax.random.PRNGKey(12345)
+        self.key = jax.random.key(12345)
 
     @pytest.mark.parametrize("jit", [False, True])
     def test_construct(self, jit):
@@ -178,7 +178,7 @@ class TestBlockDiagonalLinearOperator:
 
 class TestDiagonalReplicated:
     def setup_method(self, method):
-        self.key = jax.random.PRNGKey(12345)
+        self.key = jax.random.key(12345)
 
     def test_adjoint(self):
         x, key = randn((2, 3, 4), key=self.key)

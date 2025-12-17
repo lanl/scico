@@ -39,7 +39,7 @@ def test_proj_grad():
 
 class TestPolarGradient:
     def setup_method(self, method):
-        self.key = jax.random.PRNGKey(12345)
+        self.key = jax.random.key(12345)
 
     @pytest.mark.parametrize("jit", [True, False])
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
@@ -97,7 +97,7 @@ class TestPolarGradient:
 
 class TestCylindricalGradient:
     def setup_method(self, method):
-        self.key = jax.random.PRNGKey(12345)
+        self.key = jax.random.key(12345)
 
     @pytest.mark.parametrize("jit", [True, False])
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
@@ -168,7 +168,7 @@ class TestCylindricalGradient:
 
 class TestSphericalGradient:
     def setup_method(self, method):
-        self.key = jax.random.PRNGKey(12345)
+        self.key = jax.random.key(12345)
 
     @pytest.mark.parametrize("jit", [True, False])
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])

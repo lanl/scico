@@ -35,7 +35,7 @@ def test_l2_normalize():
 
 @pytest.mark.parametrize("kernel_size", [(3, 3, 1, 1), (11, 11, 1, 1)])
 def test_conv(kernel_size):
-    key = jax.random.PRNGKey(97531)
+    key = jax.random.key(97531)
     kernel, key = randn(kernel_size, dtype=np.float32, key=key)
 
     input_size = (1, 128, 128, 1)
@@ -76,13 +76,13 @@ class CNN(Module):
 
 @pytest.mark.parametrize("kernel_size", [(3, 3, 1, 1), (11, 11, 1, 1)])
 def test_conv_layer(kernel_size):
-    key = jax.random.PRNGKey(12345)
+    key = jax.random.key(12345)
     kernel, key = randn(kernel_size, dtype=np.float32, key=key)
 
     input_size = (1, 128, 128, 1)
     x, key = randn(input_size, dtype=np.float32, key=key)
 
-    rng = jax.random.PRNGKey(42)
+    rng = jax.random.key(42)
     model = CNN(kernel_size=kernel_size[:2], kernel0=kernel)
     variables = model.init(rng, np.zeros(x.shape))
     prms = variables["params"]
@@ -96,7 +96,7 @@ def test_conv_layer(kernel_size):
 
 @pytest.mark.parametrize("input_shape", [(8,), (128,)])
 def test_spectral_norm(input_shape):
-    key = jax.random.PRNGKey(1357)
+    key = jax.random.key(1357)
     diagonal, key = randn(input_shape, dtype=np.float32, key=key)
 
     mu = np.linalg.norm(np.diag(diagonal), 2)
@@ -111,7 +111,7 @@ def test_spectral_norm(input_shape):
 @pytest.mark.parametrize("kernel_shape", [(3, 3, 1, 1), (7, 7, 1, 1)])
 def test_spectral_norm_conv(kernel_shape):
 
-    key = jax.random.PRNGKey(2468)
+    key = jax.random.key(2468)
     kernel, key = randn(kernel_shape, dtype=np.float32, key=key)
 
     input_shape = (1, 32, 32, 1)

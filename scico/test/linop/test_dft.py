@@ -12,7 +12,7 @@ from scico.test.linop.test_linop import adjoint_test
 
 class TestDFT:
     def setup_method(self, method):
-        self.key = jax.random.PRNGKey(12345)
+        self.key = jax.random.key(12345)
 
     @pytest.mark.parametrize("input_shape", [(16,), (16, 4), (16, 4, 7)])
     @pytest.mark.parametrize(
