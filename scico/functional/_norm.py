@@ -445,37 +445,45 @@ class HuberNorm(Functional):
             self._call = self._call_sep
             self._prox = self._prox_sep
         else:
-            self._call_lt_branch = lambda xl2: 0.5 * xl2**2
-            self._call_gt_branch = lambda xl2: self.delta * (xl2 - self.delta / 2.0)
             self._call = self._call_nonsep
             self._prox = self._prox_nonsep
 
         super().__init__()
 
-    def _call_sep(self, x: Union[Array, BlockArray]) -> float:
+    @staticmethod
+    @jit
+    def _call_sep(x: Union[Array, BlockArray], delta: float) -> float:
         xabs = snp.abs(x)
-        hx = snp.where(xabs <= self.delta, 0.5 * xabs**2, self.delta * (xabs - (self.delta / 2.0)))
+        hx = snp.where(xabs <= delta, 0.5 * xabs**2, delta * (xabs - (delta / 2.0)))
         return snp.sum(hx)
 
-    def _call_nonsep(self, x: Union[Array, BlockArray]) -> float:
+    @staticmethod
+    @jit
+    def _call_nonsep(x: Union[Array, BlockArray], delta: float) -> float:
         xl2 = snp.linalg.norm(x)
-        return lax.cond(xl2 <= self.delta, self._call_lt_branch, self._call_gt_branch, xl2)
+        return lax.cond(
+            xl2 <= delta, lambda xl2: 0.5 * xl2**2, lambda xl2: delta * (xl2 - delta / 2.0), xl2
+        )
 
     def __call__(self, x: Union[Array, BlockArray]) -> float:
-        return self._call(x)
+        return self._call(x, self.delta)
 
+    @staticmethod
+    @jit
     def _prox_sep(
-        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+        v: Union[Array, BlockArray], lam: float, delta: float
     ) -> Union[Array, BlockArray]:
-        den = snp.maximum(snp.abs(v), self.delta * (1.0 + lam))
-        return (1 - ((self.delta * lam) / den)) * v
+        den = snp.maximum(snp.abs(v), delta * (1.0 + lam))
+        return (1.0 - ((delta * lam) / den)) * v
 
+    @staticmethod
+    @jit
     def _prox_nonsep(
-        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+        v: Union[Array, BlockArray], lam: float, delta: float
     ) -> Union[Array, BlockArray]:
         vl2 = snp.linalg.norm(v)
-        den = snp.maximum(vl2, self.delta * (1.0 + lam))
-        return (1 - ((self.delta * lam) / den)) * v
+        den = snp.maximum(vl2, delta * (1.0 + lam))
+        return (1.0 - ((delta * lam) / den)) * v
 
     def prox(
         self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
@@ -508,7 +516,7 @@ class HuberNorm(Functional):
         Returns:
             Result of evaluating the scaled proximal operator at `v`.
         """
-        return self._prox(v, lam=lam, **kwargs)
+        return self._prox(v, lam=lam, delta=self.delta)
 
 
 class NuclearNorm(Functional):
@@ -525,14 +533,16 @@ class NuclearNorm(Functional):
     has_eval = True
     has_prox = True
 
-    def __call__(self, x: Union[Array, BlockArray]) -> float:
+    @staticmethod
+    @jit
+    def __call__(x: Union[Array, BlockArray]) -> float:
         if x.ndim != 2:
             raise ValueError("Input array must be two dimensional.")
         return snp.sum(snp.linalg.svd(x, full_matrices=False, compute_uv=False))
 
-    def prox(
-        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
-    ) -> Union[Array, BlockArray]:
+    @staticmethod
+    @jit
+    def prox(v: Union[Array, BlockArray], lam: float = 1.0, **kwargs) -> Union[Array, BlockArray]:
         r"""Evaluate proximal operator of the nuclear norm.
 
         Evaluate proximal operator of the nuclear norm
