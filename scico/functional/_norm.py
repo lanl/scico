@@ -169,7 +169,7 @@ class L2Norm(Functional):
 
     @staticmethod
     @jit
-    def __call__(self, x: Union[Array, BlockArray]) -> float:
+    def __call__(x: Union[Array, BlockArray]) -> float:
         return norm(x)
 
     @staticmethod
@@ -314,8 +314,14 @@ class L1MinusL2Norm(Functional):
         """
         self.beta = beta
 
+    @staticmethod
+    @jit
+    def _l1minusl2norm(x: Union[Array, BlockArray], beta: float) -> float:
+        r"""Return the :math:`\ell_1 - \ell_2` norm of an array."""
+        return snp.sum(snp.abs(x)) - beta * norm(x)
+
     def __call__(self, x: Union[Array, BlockArray]) -> float:
-        return snp.sum(snp.abs(x)) - self.beta * norm(x)
+        return L1MinusL2Norm._l1minusl2norm(x, self.beta)
 
     @staticmethod
     def _prox_vamx_ge_thresh(v, va, vs, alpha, beta):
@@ -349,6 +355,24 @@ class L1MinusL2Norm(Functional):
             L1MinusL2Norm._prox_vamx_le_alpha(v, va, vs, vamx, alpha, beta),
         )
 
+    @staticmethod
+    @jit
+    def _prox(v: Union[Array, BlockArray], lam: float, beta: float) -> Union[Array, BlockArray]:
+        r"""Proximal operator of :math:`\ell_1 - \ell_2` norm."""
+        alpha = lam
+        va = snp.abs(v)
+        vamx = snp.max(va)
+        if snp.util.is_complex_dtype(v.dtype):
+            vs = snp.exp(1j * snp.angle(v))
+        else:
+            vs = snp.sign(v)
+
+        return snp.where(
+            vamx > 0.0,
+            L1MinusL2Norm._prox_vamx_gt_0(v, va, vs, vamx, alpha, beta),
+            snp.zeros(v.shape, dtype=v.dtype),
+        )
+
     def prox(
         self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[Array, BlockArray]:
@@ -369,20 +393,7 @@ class L1MinusL2Norm(Functional):
         Returns:
             Result of evaluating the scaled proximal operator at `v`.
         """
-        alpha = lam
-        beta = self.beta
-        va = snp.abs(v)
-        vamx = snp.max(va)
-        if snp.util.is_complex_dtype(v.dtype):
-            vs = snp.exp(1j * snp.angle(v))
-        else:
-            vs = snp.sign(v)
-
-        return snp.where(
-            vamx > 0.0,
-            L1MinusL2Norm._prox_vamx_gt_0(v, va, vs, vamx, alpha, beta),
-            snp.zeros(v.shape, dtype=v.dtype),
-        )
+        return L1MinusL2Norm._prox(v, lam=lam, beta=self.beta)
 
 
 class HuberNorm(Functional):
