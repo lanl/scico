@@ -29,7 +29,9 @@ class L0Norm(Functional):
     has_eval = True
     has_prox = True
 
-    def __call__(self, x: Union[Array, BlockArray]) -> float:
+    @staticmethod
+    @jit
+    def __call__(x: Union[Array, BlockArray]) -> float:
         return count_nonzero(x)
 
     @staticmethod
@@ -71,10 +73,13 @@ class L1Norm(Functional):
     has_eval = True
     has_prox = True
 
-    def __call__(self, x: Union[Array, BlockArray]) -> float:
+    @staticmethod
+    @jit
+    def __call__(x: Union[Array, BlockArray]) -> float:
         return snp.sum(snp.abs(x))
 
     @staticmethod
+    @jit
     def prox(v: Union[Array, BlockArray], lam: float = 1.0, **kwargs) -> Array:
         r"""Evaluate scaled proximal operator of :math:`\ell_1` norm.
 
@@ -122,14 +127,16 @@ class SquaredL2Norm(Functional):
     has_eval = True
     has_prox = True
 
-    def __call__(self, x: Union[Array, BlockArray]) -> float:
+    @staticmethod
+    @jit
+    def __call__(x: Union[Array, BlockArray]) -> float:
         # Directly implement the squared l2 norm to avoid nondifferentiable
         # behavior of snp.norm(x) at 0.
         return snp.sum(snp.abs(x) ** 2)
 
-    def prox(
-        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
-    ) -> Union[Array, BlockArray]:
+    @staticmethod
+    @jit
+    def prox(v: Union[Array, BlockArray], lam: float = 1.0, **kwargs) -> Union[Array, BlockArray]:
         r"""Evaluate proximal operator of squared :math:`\ell_2` norm.
 
         Evaluate proximal operator of squared :math:`\ell_2` norm using
@@ -160,12 +167,14 @@ class L2Norm(Functional):
     has_eval = True
     has_prox = True
 
+    @staticmethod
+    @jit
     def __call__(self, x: Union[Array, BlockArray]) -> float:
         return norm(x)
 
-    def prox(
-        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
-    ) -> Union[Array, BlockArray]:
+    @staticmethod
+    @jit
+    def prox(v: Union[Array, BlockArray], lam: float = 1.0, **kwargs) -> Union[Array, BlockArray]:
         r"""Evaluate proximal operator of :math:`\ell_2` norm.
 
         Evaluate proximal operator of :math:`\ell_2` norm using
@@ -226,9 +235,10 @@ class L21Norm(Functional):
         self.l2_axis = l2_axis
 
     @staticmethod
+    @jit(static_argnames=("axis", "keepdims"))
     def _l2norm(
         x: Union[Array, BlockArray], axis: Union[None, int, Tuple], keepdims: Optional[bool] = False
-    ):
+    ) -> Union[Array, BlockArray]:
         r"""Return the :math:`\ell_2` norm of an array."""
         return snp.sqrt((snp.abs(x) ** 2).sum(axis=axis, keepdims=keepdims))
 
@@ -237,6 +247,19 @@ class L21Norm(Functional):
             raise ValueError("Initializer argument 'l2_axis' must be None for BlockArray input.")
         l2 = L21Norm._l2norm(x, axis=self.l2_axis)
         return snp.sum(snp.abs(l2))
+
+    @staticmethod
+    @jit(static_argnames=("axis"))
+    def _prox(
+        v: Union[Array, BlockArray], lam: float, axis: Union[None, int, Tuple]
+    ) -> Union[Array, BlockArray]:
+        r"""Evaluate proximal operator of the :math:`\ell_{2,1}` norm."""
+        length = L21Norm._l2norm(v, axis=axis, keepdims=True)
+        direction = no_nan_divide(v, length)
+        new_length = length - lam
+        # set negative values to zero without `if`
+        new_length = 0.5 * (new_length + snp.abs(new_length))
+        return new_length * direction
 
     def prox(
         self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
@@ -269,14 +292,7 @@ class L21Norm(Functional):
         """
         if isinstance(v, snp.BlockArray) and self.l2_axis is not None:
             raise ValueError("Initializer argument 'l2_axis' must be None for BlockArray input.")
-        length = L21Norm._l2norm(v, axis=self.l2_axis, keepdims=True)
-        direction = no_nan_divide(v, length)
-
-        new_length = length - lam
-        # set negative values to zero without `if`
-        new_length = 0.5 * (new_length + snp.abs(new_length))
-
-        return new_length * direction
+        return L21Norm._prox(v, lam=lam, axis=self.l2_axis)
 
 
 class L1MinusL2Norm(Functional):
