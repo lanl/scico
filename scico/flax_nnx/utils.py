@@ -9,39 +9,62 @@
 
 from typing import Callable
 
-import orbax.checkpoint as orbax
+from pathlib import Path
+import pickle
 
 from flax import nnx
+from flax.serialization import to_state_dict, from_state_dict
 
 
-def save_model(model: Callable, path: str):
-    """Save Flax NNX model.
-
-    Args:
-        model: Model to save.
-        path: Path to store model.
-    """
-    state = nnx.state(model)
-    # Save model parameters
-    checkpointer = orbax.PyTreeCheckpointer()
-    checkpointer.save(f"{path}/state", state)
-
-
-def load_model(path: str, model: Callable) -> Callable:
-    """Load stored Flax NNX model.
+def save_model(model: Callable, file_path: str, file_name: str):
+    """Save Flax model.
+    
+    Function for saving a Flax NNX neural network model. 
 
     Args:
-        path: Path to read model.
-        model: Model to load. The model structure is
-            needed to read its parameters.
-
-    Returns:
-        Model and its parameters read from given file.
+        model: Flax model to save.
+        file_path: Absolute path where model is to be saved.
+        file_name: Filename to save to.
     """
+    # Create path
+    path = Path(file_path + "/" + file_name + ".pkl")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    
+    # Get the model state (e.g. parameter values)
     state = nnx.state(model)
-    # Load the parameters
-    checkpointer = orbax.PyTreeCheckpointer()
-    state = checkpointer.restore(f"{path}/state", item=state)
+
+    # Convert to a pure dictionary
+    # This removes VariableState objects and leaves only Arrays
+    pure_dict = to_state_dict(state)
+
+    with open(path, "wb") as pickle_file:
+        pickle.dump(pure_dict, pickle_file)
+
+
+def load_model(model: Callable, file_path: str, file_name: str):
+    """Load Flax model.
+    
+    Function for loading a Flax NNX neural network model. 
+
+    Args:
+        model: Flax model to load.
+        file_path: Absolute path where model is saved.
+        file_name: Filename to load from.
+    """
+    # Use model instance to serve as the target structure
+    state_target = nnx.state(model)
+
+    # Load the saved pure dictionary
+    path = Path(file_path + "/" + file_name + ".pkl")
+    with open(path, "rb") as pickle_file:
+        loaded_pure_dict = pickle.load(pickle_file)
+
+    #print(f"Loaded dict: {loaded_pure_dict}")
+
+    # Restore the state into the target structure
+    restored_state = from_state_dict(state_target, loaded_pure_dict)
+
     # Update the model with the loaded state
-    nnx.update(model, state)
+    nnx.update(model, restored_state)
+    
     return model
