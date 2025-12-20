@@ -45,7 +45,7 @@ def test_data_iterator(testobj, batch_size):
 @pytest.mark.parametrize("local_batch", [8, 16, 24])
 def test_dstrain(testobj, local_batch):
 
-    key = jax.random.PRNGKey(seed=1234)
+    key = jax.random.key(seed=1234)
 
     train_iter = sflax.create_input_iter(
         key,
@@ -69,7 +69,7 @@ def test_dstrain(testobj, local_batch):
 @pytest.mark.parametrize("local_batch", [8, 16, 32])
 def test_dstest(testobj, local_batch):
 
-    key = jax.random.PRNGKey(seed=1234)
+    key = jax.random.key(seed=1234)
 
     train_iter = sflax.create_input_iter(key, testobj.test_ds_simple, local_batch, train=False)
 
@@ -145,7 +145,7 @@ def test_train_initialize_function(testobj):
         testobj.model_conf["depth"], testobj.chn, testobj.model_conf["num_filters"]
     )
 
-    key = jax.random.PRNGKey(seed=4444)
+    key = jax.random.key(seed=4444)
     input_shape = (1, testobj.N, testobj.N, testobj.chn)
 
     # Via initialize function
@@ -173,7 +173,7 @@ def test_create_basic_train_state_default(testobj):
         testobj.model_conf["depth"], testobj.chn, testobj.model_conf["num_filters"]
     )
 
-    key = jax.random.PRNGKey(seed=432)
+    key = jax.random.key(seed=432)
     input_shape = (1, testobj.N, testobj.N, testobj.chn)
 
     # Model initialization
@@ -210,7 +210,7 @@ def test_create_basic_train_state(testobj):
         testobj.model_conf["depth"], testobj.chn, testobj.model_conf["num_filters"]
     )
 
-    key = jax.random.PRNGKey(seed=432)
+    key = jax.random.key(seed=432)
     input_shape = (1, testobj.N, testobj.N, testobj.chn)
 
     # Model initialization
@@ -247,7 +247,7 @@ def test_sgd_train_state(testobj):
         testobj.model_conf["depth"], testobj.chn, testobj.model_conf["num_filters"]
     )
 
-    key = jax.random.PRNGKey(seed=432)
+    key = jax.random.key(seed=432)
     input_shape = (1, testobj.N, testobj.N, testobj.chn)
 
     # Model initialization
@@ -272,7 +272,7 @@ def test_sgd_no_momentum_train_state(testobj):
         testobj.model_conf["depth"], testobj.chn, testobj.model_conf["num_filters"]
     )
 
-    key = jax.random.PRNGKey(seed=432)
+    key = jax.random.key(seed=432)
     input_shape = (1, testobj.N, testobj.N, testobj.chn)
 
     # Model initialization

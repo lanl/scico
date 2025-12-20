@@ -334,7 +334,7 @@ def generate_blur_data(
     # Normalize blurred images
     blur = blur / jnp.max(blur, axis=(1, 2), keepdims=True)
     # Add Gaussian noise
-    key = jax.random.PRNGKey(seed)
+    key = jax.random.key(seed)
     noise = jax.random.normal(key, blur.shape)
     blurn = blur + noise_sigma * noise
     # Clip to [0,1] range.

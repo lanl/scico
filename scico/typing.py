@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2024 by SCICO Developers
+# Copyright (C) 2021-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SPORCO package. Details of the copyright
 # and user license can be found in the 'LICENSE.txt' file distributed
@@ -20,8 +20,9 @@ except ImportError:
 
 
 import jax.numpy as jnp
+from jax import Array
 
-PRNGKey: TypeAlias = jnp.ndarray
+PRNGKey: TypeAlias = Array
 """A key for jax random number generators (see :mod:`jax.random`)."""
 
 DType: TypeAlias = Union[

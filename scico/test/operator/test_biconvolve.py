@@ -13,7 +13,7 @@ from scico.random import randn
 
 class TestBiConvolve:
     def setup_method(self, method):
-        self.key = jax.random.PRNGKey(12345)
+        self.key = jax.random.key(12345)
 
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
     @pytest.mark.parametrize("mode", ["full", "valid", "same"])

@@ -2,8 +2,14 @@
 SCICO Release Notes
 ===================
 
+Version 0.0.8   (unreleased)
+----------------------------
 
-Version 0.0.7   (unreleased)
+• No changes yet.
+
+
+
+Version 0.0.7   (2025-12-09)
 ----------------------------
 
 • New module ``scico.trace`` for tracing function/method calls.
@@ -19,7 +25,7 @@ Version 0.0.7   (unreleased)
 • Moved ``linop.abel`` module to ``linop.xray.abel``.
 • Make ``orbax-checkpoint`` dependency optional due to absence of recent
   conda-forge packages.
-• Support ``jaxlib`` and ``jax`` versions 0.4.13 to 0.8.1.
+• Support ``jaxlib`` and ``jax`` versions 0.5.0 to 0.8.1.
 • Support ``flax`` versions 0.8.0 to 0.12.0
 
 

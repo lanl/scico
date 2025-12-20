@@ -15,6 +15,15 @@ if html_theme == "python_docs_theme":
         "**": ["globaltoc.html", "sourcelink.html", "searchbox.html"],
     }
 
+# These folders are copied to the documentation's HTML output
+html_static_path = ["_static"]
+
+# These paths are either relative to html_static_path or fully qualified
+# paths (eg. https://...)
+html_css_files = [
+    "scico.css",
+    "http://netdna.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css",
+]
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
