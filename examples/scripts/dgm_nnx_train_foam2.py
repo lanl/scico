@@ -55,7 +55,7 @@ applies if GPU is not available).
 """
 Read data from specified path.
 """
-npy_train_file = "~/.cache/scico/examples/data/foam2_2400x64x64.npy"
+npy_train_file = os.path.expanduser("~/.cache/scico/examples/data/foam2_2400x64x64.npy")
 dt_in = np.load(npy_train_file)
 print("Read data shape: ", dt_in.shape)
 

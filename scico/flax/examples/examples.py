@@ -371,7 +371,7 @@ def load_image_data(
         gray_flag: Flag to indicate if gray scale images or color
             images. When ``True`` gray scale images are used.
         data_mode: Type of image problem. Options are: `dn` for
-            denosing, `dcnv` for deconvolution.
+            denoising, `dcnv` for deconvolution.
         cache_path: Directory in which processed data is saved.
             Default: ``None``.
         verbose: Flag indicating whether to print status messages.

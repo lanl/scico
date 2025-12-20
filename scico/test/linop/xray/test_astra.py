@@ -142,7 +142,7 @@ def test_grad(testobj):
     x = testobj.x
     g = lambda x: jax.numpy.linalg.norm(A(x)) ** 2
     np.testing.assert_allclose(
-        scico.grad(g)(x), 2 * A.adj(A(x)), atol=get_tol() * x.max(), rtol=np.inf
+        scico.grad(g)(x), 2 * A.adj(A(x)), atol=get_tol() * x.max(), rtol=get_tol()
     )
 
 

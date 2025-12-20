@@ -1,6 +1,10 @@
 import numpy as np
 
+import jax
+import jax.numpy as jnp
 from jax.scipy.spatial.transform import Rotation
+
+import pytest
 
 import scipy.ndimage
 from scico.linop.xray import (
@@ -10,6 +14,16 @@ from scico.linop.xray import (
     rotate_volume,
     volume_alignment_rotation,
 )
+
+try:
+    import astra  # noqa
+
+    have_astra = True
+except ModuleNotFoundError as e:
+    if e.name == "astra":
+        have_astra = False
+    else:
+        raise e
 
 
 def test_image_centroid():
@@ -30,11 +44,20 @@ def test_center_image():
 
 def test_rotate_volume():
     vol = np.arange(27).reshape((3, 3, 3))
-    rot = Rotation.from_euler("XY", [90, 90], degrees=True)
+    rot = Rotation.from_euler("XY", jnp.array([90.0, 90.0]), degrees=True)
     vol_rot = rotate_volume(vol, rot)
     np.testing.assert_allclose(vol.transpose((1, 2, 0)), vol_rot, rtol=1e-7)
 
 
+def align_test_tol():
+    if jax.devices()[0].device_kind == "cpu":
+        tol = 1e-3
+    else:
+        tol = 5e-2  # less accurate on gpu
+    return tol
+
+
+@pytest.mark.skipif(not have_astra, reason="astra not installed")
 def test_image_alignment():
     u = np.zeros((256, 256), dtype=np.float32)
     u[:, 8::16] = 1
@@ -43,9 +66,10 @@ def test_image_alignment():
     assert np.abs(angle) < 1e-3
     ur = scipy.ndimage.rotate(u, 0.75)
     angle = image_alignment_rotation(ur)
-    assert np.abs(angle - 0.75) < 1e-3
+    assert np.abs(angle - 0.75) < align_test_tol()
 
 
+@pytest.mark.skipif(not have_astra, reason="astra not installed")
 def test_volume_alignment():
     u = np.zeros((256, 256, 32), dtype=np.float32)
     u[8::16, :, 2::6] = 1
@@ -58,7 +82,7 @@ def test_volume_alignment():
     u[:, 9::16, 3::6] = 1
     rot = volume_alignment_rotation(u)
     assert rot.magnitude() < 1e-5
-    ref_rot = Rotation.from_euler("XY", (1.6, -0.9), degrees=True)
+    ref_rot = Rotation.from_euler("XY", jnp.array([1.6, -0.9]), degrees=True)
     ur = rotate_volume(u, ref_rot)
     rot = volume_alignment_rotation(ur)
     assert (
