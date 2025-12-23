@@ -81,17 +81,17 @@ class ConditionalUNet(nnx.Module):
         self.self_condition = self_condition
         input_channels = channels * (2 if self_condition else 1)
 
+        padding = int(kernel_size[0] // 2)  # padding for the convolution filters
+
         init_channels = default(init_channels, channels)
         self.init_conv = nnx.Conv(
-            input_channels, init_channels, kernel_size=(1, 1), padding=0, rngs=rngs
+            input_channels, init_channels, kernel_size=kernel_size, padding=padding, rngs=rngs
         )
 
         self.dim_mults = dim_mults
 
         features = [init_channels, *map(lambda m: int(init_channels * m), self.dim_mults)]
         in_out_f = list(zip(features[:-1], features[1:]))
-
-        padding = int(kernel_size[0] // 2)  # padding for the convolution filters
 
         block_klass = partial(ResnetBlock, groups=resnet_block_groups, kernel_size=kernel_size)
 
@@ -169,7 +169,9 @@ class ConditionalUNet(nnx.Module):
 
         self.out_channels = default(out_channels, channels)
 
-        self.final_res_block = block_klass(features[0] * 2, features[0], time_emb_dim=time_dim, rngs=rngs)
+        self.final_res_block = block_klass(
+            features[0] * 2, features[0], time_emb_dim=time_dim, rngs=rngs
+        )
         self.final_conv = nnx.Conv(features[0], self.out_channels, kernel_size=(1, 1), rngs=rngs)
 
     def __call__(self, x: ArrayLike, time: ArrayLike, x_self_cond: ArrayLike = None) -> ArrayLike:
