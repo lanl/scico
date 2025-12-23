@@ -14,32 +14,24 @@ import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
-import functools
 import time
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
-from jax.typing import ArrayLike
-
-import pickle
+from typing import Any, Callable, Dict, Optional
 
 import jax
-import jax.numpy as jnp
-from jax import lax
 from jax.experimental import mesh_utils
+from jax.typing import ArrayLike
 
 import optax
-from flax import nnx
 
+from flax import nnx
 from scico.diagnostics import IterationStats
 
 from .checkpoints import checkpoint_restore, checkpoint_save
 from .diagnostics import ArgumentStruct, stats_obj
-from .input_pipeline import iterate_xy_dataset, iterate_x_dataset
+from .input_pipeline import iterate_xy_dataset
 from .optax_utils import build_optax_optimizer
-from .steps import eval_step, jax_train_step#, train_step_post
+from .steps import eval_step, jax_train_step  # , train_step_post
 from .typed_dict import ConfigDict, DataSetDict
-from scico.flax_nnx.diffusion.steps import _step_t as step_t
-from scico.flax_nnx.diffusion.steps import _step_x as step_x
-from scico.flax_nnx.diffusion.steps import _step_loss as step_loss
 
 
 class BasicFlaxNNXTrainer:
@@ -73,35 +65,28 @@ class BasicFlaxNNXTrainer:
 
         # Object for storing iteration stats
         self.itstat_object: Optional[IterationStats] = None
-        
+
         # Configure training loop
         self.set_training_parameters(config)
         self.construct_optimizer(config)
-        
+
         # Store datasets
         self.train_ds = train_ds
         self.test_ds = test_ds
-        self.configure_data_iterators(config)
-        
+        self.configure_data_iterators()
+
         # Create nnx metrics object for registering training stats
-        if self.only_x:
-            self.metrics = nnx.MultiMetric(
-                loss=nnx.metrics.Average('loss'),
-            )
-        else:
-            self.metrics = nnx.MultiMetric(
-                loss=nnx.metrics.Average('loss'),
-                snr=nnx.metrics.Average('snr'),
-            )
-                 
+        self.metrics = nnx.MultiMetric(
+            loss=nnx.metrics.Average("loss"),
+            snr=nnx.metrics.Average("snr"),
+        )
+
         # Create mesh + shardings
         num_devices = jax.local_device_count()
-        mesh = jax.sharding.Mesh(
-            mesh_utils.create_device_mesh((num_devices,)), ("data",)
-        )
+        mesh = jax.sharding.Mesh(mesh_utils.create_device_mesh((num_devices,)), ("data",))
         self.model_sharding = jax.NamedSharding(mesh, jax.sharding.PartitionSpec())
         self.data_sharding = jax.NamedSharding(mesh, jax.sharding.PartitionSpec("data"))
-        
+
         # Store configuration
         self.config = config
 
@@ -136,7 +121,7 @@ class BasicFlaxNNXTrainer:
             self.batch_size = 2 * jax.device_count()
         else:
             self.batch_size = config["batch_size"]
-            
+
         if "num_epochs" not in config:
             self.train_epochs = 10
         else:
@@ -232,43 +217,28 @@ class BasicFlaxNNXTrainer:
         else:
             self.eval_step_fn = eval_step
 
-        #if "metrics_fn" in config:
-        #    self.metrics_fn: Callable = config["metrics_fn"]
-        #else:
-        #    self.metrics_fn = compute_metrics
-
-        #self.post_lst: Optional[List[Callable]] = None
-        #if "post_lst" in config:
+        # self.post_lst: Optional[List[Callable]] = None
+        # if "post_lst" in config:
         #    self.post_lst = config["post_lst"]
- 
+
     def configure_data_iterators(
         self,
-        config: ConfigDict,
     ):
         """Configure data iterators.
 
         Choose between generating (input, label) pairs or only inputs.
-        
-        Args:
-            config: Hyperparameter configuration.
         """
-        if "only_x_data" in config:
-            self.dt_iterator_fn: Callable = iterate_x_dataset
-            self.only_x = True
-        else:
-            self.dt_iterator_fn: Callable = iterate_xy_dataset
-            self.only_x = False
-
+        self.dt_iterator_fn: Callable = iterate_xy_dataset
         # Estimate number of batches per epoch
         self.nbatches = self.train_ds["image"].shape[0] // self.batch_size
-        
+
         self.log_data_snapshot()
- 
+
     def log_data_snapshot(
         self,
     ):
         """Log datasets information.
-        
+
         Log information about the loaded training and testing datasets.
         """
         if self.test_ds is not None:
@@ -293,30 +263,26 @@ class BasicFlaxNNXTrainer:
                 self.train_ds[key].shape[1],  # type: ignore
             )
         )
-        
-    def construct_optimizer(self,
-                            config: ConfigDict
-    ):
+
+    def construct_optimizer(self, config: ConfigDict):
         """Construct Optax optimizer for model training.
-        
+
         Args:
             config: Hyperparameter configuration.
         """
         tx = build_optax_optimizer(config)
         self.optimizer = nnx.Optimizer(self.model, tx, wrt=nnx.Param)
 
-    def train(self,
-        key: Optional[ArrayLike] = None
-    ) -> Optional[IterationStats]:
+    def train(self, key: Optional[ArrayLike] = None) -> Optional[IterationStats]:
         """Execute training loop.
-        
+
         Args:
             key: Key for random generation for models that require
-                randomness for training/evaluation (e.g. score).        
+                randomness for training/evaluation (e.g. score).
 
         Returns:
             Iteration stats object obtained after executing the training
-            loop. Note that the iteration stats object is not ``None`` only 
+            loop. Note that the iteration stats object is not ``None`` only
             if log is enabled when configuring the training loop.
             The trained model is avaiable in the at
         """
@@ -336,30 +302,21 @@ class BasicFlaxNNXTrainer:
         # A functional training loop is implemented to reduce Python overhead
         # Split before training loop
         graphdef, state = nnx.split((self.model, self.optimizer, self.metrics))
-    
+
         # Execute training loop and register stats
         shuffle = True
         key = jax.random.PRNGKey(self.config["seed"])
         t0 = time.time()
         for epoch in range(epochs_offset, self.train_epochs):
             key, subkey1, subkey2, subkey3 = jax.random.split(key, 4)
-            for batch in self.dt_iterator_fn(self.train_ds, self.nbatches, self.batch_size, subkey1, shuffle):
-                if self.only_x:
-                    # Shard data
-                    x = jax.device_put(batch, self.data_sharding)
-                    # Train
-                    #self.model.train() # Switch to train mode
-                    subkey2, step_key1, step_key2 = jax.random.split(subkey2, 3)
-                    t, batch_t = step_t(x, step_key1)
-                    z, batch_std, batch_x = step_x(x, step_key2, t, self.config["stddev_prior"])
-
-                    loss, state = self.train_step_fn(graphdef, state, self.criterion, step_loss, batch_x, batch_t, z, batch_std)
-                else:
-                    # Shard data
-                    x, y = jax.device_put(batch, self.data_sharding)
-                    # Train
-                    #self.model.train() # Switch to train mode
-                    loss, state = self.train_step_fn(graphdef, state, self.criterion, x, y)
+            for batch in self.dt_iterator_fn(
+                self.train_ds, self.nbatches, self.batch_size, subkey1, shuffle
+            ):
+                # Shard data
+                x, y = jax.device_put(batch, self.data_sharding)
+                # Train
+                # self.model.train() # Switch to train mode
+                loss, state = self.train_step_fn(graphdef, state, self.criterion, x, y)
             # Update objects after training step
             nnx.update((self.model, self.optimizer, self.metrics), state)
             if (epoch + 1) % self.log_every_epochs == 0:
@@ -369,22 +326,22 @@ class BasicFlaxNNXTrainer:
 
         # Wait for finishing asynchronous execution --> check if this is needed
         jax.random.normal(jax.random.PRNGKey(0), ()).block_until_ready()
-        
+
         self.train_time = time.time() - t0
-        
+
         # Close object for iteration stats if logging
         if self.logflag:
             assert self.itstat_object is not None
             self.itstat_object.end()
-                    
+
         # Extract state from distributed process and update model attribute
         state = nnx.state((self.model, self.optimizer))
         state = jax.device_get(state)
         nnx.update((self.model, self.optimizer), state)
-        
+
         # Final checkpointing
         self.checkpoint(state, epoch + 1)
-            
+
         return self.itstat_object  # type: ignore
 
     def update_metrics(
@@ -406,55 +363,46 @@ class BasicFlaxNNXTrainer:
                 training set.
             t0: Time when training loop started.
             key: Key for random generation for models that require
-                randomness for training/evaluation (e.g. score).                    
+                randomness for training/evaluation (e.g. score).
         """
         if not self.logflag:
             return
 
         summary: Dict[Any] = {}
-        
+
         # Get current learning rate from optax optimizer (configured to store it).
         summary["train_learning_rate"] = self.optimizer.opt_state.hyperparams["learning_rate"]
-        
+
         # Log the training metrics
         for metric, value in metrics.compute().items():  # Compute the metrics
             summary[f"train_{metric}"] = value  # Record the metrics
-            summary[f"test_{metric}"] = 0.  # placeholder
+            summary[f"test_{metric}"] = 0.0  # placeholder
         metrics.reset()  # Reset the metrics for the test set
 
         # Record current epoch and execution time
         summary["epoch"] = epoch
         summary["time"] = time.time() - t0
-        
-        if self.test_ds is not None: # Test data available
+
+        if self.test_ds is not None:  # Test data available
             # Eval over testing set
-            self.model.eval() # Switch to eval mode
+            self.model.eval()  # Switch to eval mode
             shuffle = False
             ntestbatches = self.test_ds["image"].shape[0] // self.batch_size
             for batch in self.dt_iterator_fn(self.test_ds, ntestbatches, self.batch_size, shuffle):
-                if self.only_x:
-                    # Shard data
-                    x = jax.device_put(batch, self.data_sharding)
-                    key, step_key1, step_key2 = jax.random.split(key, 3)
-                    t, batch_t = step_t(x, step_key1)
-                    z, batch_std, batch_x = step_x(x, step_key2, t, self.config["stddev_prior"])
-                    # Evaluate
-                    loss = self.eval_step_fn(self.model, self.criterion, metrics, step_loss, batch_x, batch_t, z, batch_std)
-                else:
-                    # Shard data
-                    x, y = jax.device_put(batch, self.data_sharding)
-                    # Evaluate
-                    loss = self.eval_step_fn(self.model, self.criterion, metrics, x, y)
+                # Shard data
+                x, y = jax.device_put(batch, self.data_sharding)
+                # Evaluate
+                loss = self.eval_step_fn(self.model, self.criterion, metrics, x, y)
 
             # Log the test metrics
             for metric, value in metrics.compute().items():
                 summary[f"test_{metric}"] = value
             metrics.reset()  # Reset the metrics for the next training epoch
-            
+
         # Update iteration stats object
         assert isinstance(self.itstat_object, IterationStats)  # for mypy
         self.itstat_object.insert(self.itstat_insert_func(ArgumentStruct(**summary)))
-        
+
         return metrics
 
     def checkpoint(self, state, epoch: int):  # pragma: no cover
@@ -475,4 +423,3 @@ class BasicFlaxNNXTrainer:
         """
         if self.logflag:
             print(logstr)
-    

@@ -8,7 +8,7 @@
 """Definition of typed dictionaries for objects in training functionality."""
 
 import sys
-from typing import Any, Callable, List
+from typing import Callable, List
 
 if sys.version_info >= (3, 8):
     from typing import TypedDict  # pylint: disable=no-name-in-module
@@ -16,7 +16,6 @@ else:
     from typing_extensions import TypedDict
 
 from jax.typing import ArrayLike
-
 
 
 class DataSetDict(TypedDict):
@@ -70,15 +69,9 @@ class ConfigDict(TypedDict):
     lr_schedule: Callable
     #: Criterion to optimize during training.
     criterion: Callable
-    #: Function to create and initialize trainig state. Should include initialization
-    #: of optimizer and of batch_stats (if applicable).
-    create_train_state: Callable
     #: Function to execute each training step.
     train_step_fn: Callable
     #: Function to execute each evaluation step.
     eval_step_fn: Callable
-    #: Function to track metrics during training.
-    metrics_fn: Callable
     #: List of post-processing functions to apply after a train step (if any).
     post_lst: List[Callable]
-
