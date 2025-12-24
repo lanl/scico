@@ -5,7 +5,9 @@ SCICO Release Notes
 Version 0.0.8   (unreleased)
 ----------------------------
 
-• No changes yet.
+• Support ``jaxlib`` and ``jax`` versions 0.5.0 to 0.8.2.
+• Support ``flax`` versions 0.8.0 to 0.12.2.
+• Various bug fixes and minor improvements.
 
 
 
@@ -26,7 +28,7 @@ Version 0.0.7   (2025-12-09)
 • Make ``orbax-checkpoint`` dependency optional due to absence of recent
   conda-forge packages.
 • Support ``jaxlib`` and ``jax`` versions 0.5.0 to 0.8.1.
-• Support ``flax`` versions 0.8.0 to 0.12.0
+• Support ``flax`` versions 0.8.0 to 0.12.0.
 
 
 
