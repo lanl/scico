@@ -42,8 +42,8 @@ with respect to those in :mod:`jax.scipy.optimize`:
 - The solvers in this module can't be JIT compiled, and gradients cannot
   be taken through them.
 
-In the future, these wrapper functions may be replaced with a dependency on
-`JAXopt <https://github.com/google/jaxopt>`__.
+In the future, these wrapper functions may be replaced with a dependency
+on `JAXopt <https://github.com/google/jaxopt>`__.
 """
 
 
@@ -67,7 +67,7 @@ from scico.linop import (
 )
 from scico.metric import rel_res
 from scico.numpy import Array, BlockArray
-from scico.numpy.util import is_real_dtype
+from scico.numpy.util import is_complex_dtype, is_nested, is_real_dtype
 from scico.typing import BlockShape, DType, Shape
 from scipy import optimize as spopt
 
@@ -90,7 +90,7 @@ def _wrap_func(func: Callable, shape: Union[Shape, BlockShape], dtype: DType) ->
     @wraps(func)
     def wrapper(x, *args):
         # apply val_grad_func to un-vectorized input
-        val = val_func(snp.reshape(x, shape).astype(dtype), *args)
+        val = val_func(_unravel(x, shape).astype(dtype), *args)
 
         # Convert val into numpy array, cast to float, convert to scalar
         val = np.array(val).astype(float)
@@ -122,7 +122,7 @@ def _wrap_func_and_grad(func: Callable, shape: Union[Shape, BlockShape], dtype: 
     @wraps(func)
     def wrapper(x, *args):
         # apply val_grad_func to un-vectorized input
-        val, grad = val_grad_func(snp.reshape(x, shape).astype(dtype), *args)
+        val, grad = val_grad_func(_unravel(x, shape).astype(dtype), *args)
 
         # Convert val & grad into numpy arrays, then cast to float
         # Convert 'val' into a scalar, rather than ndarray of shape (1,)
@@ -170,6 +170,40 @@ def _join_real_imag(x: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
     return x[0] + 1j * x[1]
 
 
+def _ravel(x: Union[Array, BlockArray]) -> Array:
+    """Vectorize an array or blockarray to a 1d array.
+
+    Args:
+        x: Array or blockarray to be vectorized.
+
+    Returns:
+        Vectorized array.
+    """
+    if isinstance(x, snp.BlockArray):
+        return jnp.hstack(x.ravel().arrays)
+    else:
+        return x.ravel()
+
+
+def _unravel(x: Array, shape: Union[Shape, BlockShape]) -> Union[Array, BlockArray]:
+    """Return a vectorized array or blockarray to its original shape.
+
+    Args:
+        x: Vectorized array representation.
+        shape: Shape of original array or blockarray.
+
+    Returns:
+        Array or blockarray with original shape.
+    """
+    if is_nested(shape):
+        sizes = [np.prod(e).item() for e in shape]
+        indices = np.cumsum(sizes[:-1])
+        chunks = jnp.split(x, indices)
+        return snp.BlockArray([chunks[k].reshape(cs) for k, cs in enumerate(shape)])
+    else:
+        return x.reshape(shape)
+
+
 def minimize(
     func: Callable,
     x0: Union[Array, BlockArray],
@@ -189,7 +223,7 @@ def minimize(
     from :func:`scipy.optimize.minimize` in three ways:
 
         - The `jac` options of :func:`scipy.optimize.minimize` are not
-          supported. The gradient is calculated using `jax.grad`.
+          supported. The gradient is calculated using :func:`jax.grad`.
         - Functions mapping from N-dimensional arrays -> float are
           supported.
         - Functions mapping from complex arrays -> float are supported.
@@ -199,20 +233,20 @@ def minimize(
     :func:`scipy.optimize.minimize`.
     """
 
-    if snp.util.is_complex_dtype(x0.dtype):
+    if is_complex_dtype(x0.dtype):
         # scipy minimize function requires real-valued arrays, so
         # we split x0 into a vector with real/imaginary parts stacked
         # and compose `func` with a `_join_real_imag`
         iscomplex = True
-        func_ = lambda x: func(_join_real_imag(x))
+        func_real = lambda x: func(_join_real_imag(x))
         x0 = _split_real_imag(x0)
     else:
         iscomplex = False
-        func_ = func
+        func_real = func
 
     x0_shape = x0.shape
     x0_dtype = x0.dtype
-    x0 = x0.ravel()  # if x0 is a BlockArray it will become a jax array here
+    x0 = _ravel(x0)
 
     # Run the SciPy minimizer
     if method in (
@@ -221,16 +255,16 @@ def minimize(
     ).split(
         ", "
     ):  # uses gradient info
-        min_func = _wrap_func_and_grad(func_, x0_shape, x0_dtype)
+        min_func = _wrap_func_and_grad(func_real, x0_shape, x0_dtype)
         jac = True  # see scipy.minimize docs
     else:  # does not use gradient info
-        min_func = _wrap_func(func_, x0_shape, x0_dtype)
+        min_func = _wrap_func(func_real, x0_shape, x0_dtype)
         jac = False
 
     res = spopt.OptimizeResult({"x": None})
 
     def fun(x0):
-        nonlocal res  # To use the external res and update side effect
+        nonlocal res  # To use the external res
         res = spopt.minimize(
             min_func,
             x0=x0,
@@ -241,18 +275,13 @@ def minimize(
         )  # Return OptimizeResult with x0 as ndarray
         return res.x.astype(x0_dtype)
 
-    # callback with side effects to get the OptimizeResult on the same device it was called
     res.x = jax.pure_callback(
         fun,
         jax.ShapeDtypeStruct(x0.shape, x0_dtype),
         x0,
     )
 
-    # un-vectorize the output array from spopt.minimize
-    res.x = snp.reshape(
-        res.x, x0_shape
-    )  # if x0 was originally a BlockArray then res.x is converted back to one here
-
+    res.x = _unravel(res.x, x0_shape)  # un-vectorize the output array from spopt.minimize
     if iscomplex:
         res.x = _join_real_imag(res.x)
 
