@@ -15,7 +15,7 @@ try:
     import orbax.checkpoint as ocp
 
     have_orbax = True
-    if not hasattr(ocp, "CheckpointManager"):
+    if not hasattr(ocp, "CheckpointManager") or not hasattr(ocp, "checkpoint_managers"):
         have_orbax = False
 except ImportError:
     have_orbax = False
