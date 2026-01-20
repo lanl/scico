@@ -14,7 +14,6 @@ This example demonstrates the use of the ADMM Plug and Play Priors
 superresolution problem.
 """
 
-
 import scico
 import scico.numpy as snp
 import scico.random

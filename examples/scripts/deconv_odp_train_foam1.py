@@ -79,7 +79,6 @@ from scico.flax.examples import load_blur_data
 from scico.flax.train.traversals import clip_positive, construct_traversal
 from scico.linop import CircularConvolve
 
-
 platform = get_backend().platform
 print("Platform: ", platform)
 

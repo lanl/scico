@@ -33,7 +33,6 @@ from ._indicator import NonNegativeIndicator, L2BallIndicator
 from ._denoiser import BM3D, BM4D, DnCNN
 from ._dist import SetDistance, SquaredSetDistance
 
-
 __all__ = [
     "AnisotropicTVNorm",
     "IsotropicTVNorm",

@@ -14,7 +14,6 @@ operators of isotropic :cite:`kamilov-2016-minimizing` and anisotropic
 denoising problems using proximal algorithms.
 """
 
-
 import matplotlib
 from xdesign import SiemensStar, discrete_phantom
 

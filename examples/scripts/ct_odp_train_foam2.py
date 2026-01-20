@@ -74,7 +74,6 @@ from scico.flax.examples import load_ct_data
 from scico.flax.train.traversals import clip_positive, construct_traversal
 from scico.linop.xray import XRayTransform2D
 
-
 platform = get_backend().platform
 print("Platform: ", platform)
 

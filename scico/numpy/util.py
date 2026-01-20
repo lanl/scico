@@ -7,7 +7,6 @@
 
 """Utility functions for working with jax arrays and BlockArrays."""
 
-
 from __future__ import annotations
 
 import collections

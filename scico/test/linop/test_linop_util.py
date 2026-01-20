@@ -31,7 +31,7 @@ def test_valid_adjoint():
 class PowerIterTestObj:
     def __init__(self, dtype):
         M, N = (4, 4)
-        key = jax.random.PRNGKey(12345)
+        key = jax.random.key(12345)
         self.dtype = dtype
 
         A, key = randn((M, N), dtype=dtype, key=key)
@@ -68,7 +68,7 @@ def test_operator_norm():
     Iop = linop.Identity(8)
     Inorm = linop.operator_norm(Iop)
     assert np.abs(Inorm - 1.0) < 1e-5
-    key = jax.random.PRNGKey(12345)
+    key = jax.random.key(12345)
     for dtype in [np.float32, np.complex64]:
         d, key = randn((16,), dtype=dtype, key=key)
         D = linop.Diagonal(d)
