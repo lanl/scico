@@ -46,7 +46,6 @@ In the future, these wrapper functions may be replaced with a dependency
 on `JAXopt <https://github.com/google/jaxopt>`__.
 """
 
-
 from functools import wraps
 from typing import Any, Callable, Optional, Sequence, Tuple, Union
 

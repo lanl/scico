@@ -6,7 +6,6 @@
 
 """Automatic differentiation tools."""
 
-
 from typing import Any, Callable, Optional, Sequence, Tuple, Union
 
 import jax

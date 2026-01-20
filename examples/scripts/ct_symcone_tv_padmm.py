@@ -21,7 +21,6 @@ $\mathbf{y}$ is the measured data, $D$ is a 2D finite difference
 operator, and $\mathbf{x}$ is the solution.
 """
 
-
 import numpy as np
 
 import scico.numpy as snp

@@ -35,7 +35,6 @@ from scico import flax as sflax
 from scico import metric, plot
 from scico.flax.examples import load_image_data
 
-
 platform = get_backend().platform
 print("Platform: ", platform)
 
