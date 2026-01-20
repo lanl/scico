@@ -22,7 +22,6 @@ include extra functions that are not in :mod:`jax.numpy`, and that are
 therefore not listed here.
 """
 
-
 """ BlockArray """
 unary_ops = (  # found from dir() on jax array
     "__abs__",

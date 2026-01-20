@@ -30,7 +30,6 @@ initial ``>>`` and ``<<`` characters respectively.
 A usage example is provided in the script :code:`trace_example.py`.
 """
 
-
 from __future__ import annotations
 
 import inspect

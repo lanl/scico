@@ -7,7 +7,6 @@
 
 """Utility functions used by example scripts."""
 
-
 import glob
 import os
 import tempfile

@@ -25,7 +25,6 @@ Note that the isotropic version exhibits fewer block-like artifacts on
 edges that are not vertical or horizontal.
 """
 
-
 from xdesign import SiemensStar, discrete_phantom
 
 import scico.numpy as snp

@@ -20,7 +20,6 @@ where $R$ is the isotropic TV: the sum of the norms of the gradient
 vectors at each point in the image $\mathbf{x}$.
 """
 
-
 from xdesign import SiemensStar, discrete_phantom
 
 import scico.numpy as snp
