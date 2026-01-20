@@ -32,7 +32,6 @@ and the selective non-negativity constraint that only applies to
 $\mathbf{x}_0$.
 """
 
-
 import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 

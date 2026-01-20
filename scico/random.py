@@ -49,7 +49,6 @@ is returned:
 
 """
 
-
 import inspect
 import sys
 from typing import Optional, Tuple, Union

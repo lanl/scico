@@ -7,7 +7,6 @@
 
 """Support functions for manipulating Jupyter notebooks."""
 
-
 import re
 from timeit import default_timer as timer
 

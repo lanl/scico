@@ -22,7 +22,6 @@ In this example the problem is solved via proximal ADMM, while standard
 ADMM is used in a [companion example](deconv_tv_admm.rst).
 """
 
-
 from xdesign import SiemensStar, discrete_phantom
 
 import scico.numpy as snp

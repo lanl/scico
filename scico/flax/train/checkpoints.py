@@ -7,7 +7,6 @@
 
 """Utilities for checkpointing Flax models."""
 
-
 from pathlib import Path
 from typing import Union
 
