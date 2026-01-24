@@ -12,7 +12,7 @@ import warnings
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
 from functools import partial
-from typing import Any, Optional, Tuple
+from typing import Optional, Tuple
 
 import jax.numpy as jnp
 from jax.typing import ArrayLike
@@ -45,7 +45,6 @@ class ConditionalUNet(nnx.Module):
         resnet_block_groups: int = 4,
         kernel_size: Tuple[int, int] = (7, 7),
         time_embed: bool = True,
-        dtype: Any = jnp.float32,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
         """Initialize Flax conditional U-Net model.
@@ -67,13 +66,11 @@ class ConditionalUNet(nnx.Module):
             time_embed: Flag to indicate that the model uses a time
                 embedding component. This is used when initializing model
                 parameters and should not be changed.
-            dtype: Output dtype. Default: :attr:`~numpy.float32`.
             rngs: Random generation key.
         """
 
         super().__init__()
 
-        self.dtype = dtype
         self.time_embed = time_embed
 
         # Determine feature dimensions.
@@ -112,13 +109,9 @@ class ConditionalUNet(nnx.Module):
         downs = nnx.List([])
         ups = nnx.List([])
         num_resolutions = len(in_out_f)
-        shps = nnx.List([shape])
 
         # Configure down path of Unet.
         for ind, (feat_in, feat_out) in enumerate(in_out_f):
-            shps.append(
-                (int(shape[0] // self.dim_mults[ind]), int(shape[1] // self.dim_mults[ind]))
-            )
 
             downs.append(
                 [
@@ -130,14 +123,12 @@ class ConditionalUNet(nnx.Module):
                             feat_in,
                             feat_out,
                             factor=self.dim_mults[ind],
-                            shp_out=shps[-1],
                             rngs=rngs,
                         )
                     ),
                 ]
             )
 
-        shps = shps[:-1]
         # Configure bottleneck of Unet.
         mid_feat = features[-1]
         self.mid_block1 = block_klass(mid_feat, mid_feat, time_emb_dim=time_dim, rngs=rngs)
@@ -153,12 +144,10 @@ class ConditionalUNet(nnx.Module):
                     block_klass(2 * feat_in, feat_in, time_emb_dim=time_dim, rngs=rngs),
                     Residual(PreNorm(feat_in, LinearAttention(feat_in, rngs=rngs), rngs=rngs)),
                     (
-                        Upsample(
-                            feat_out,
-                            feat_in,
-                            factor=self.dim_mults[-(ind + 1)],
-                            shp_out=shps[-(ind + 1)],
-                            rngs=rngs,
+                        partial(
+                            Upsample,
+                            ftrs=feat_out,
+                            ftrs_out=feat_in,
                         )
                     ),
                 ]
@@ -185,6 +174,7 @@ class ConditionalUNet(nnx.Module):
         Returns:
             The processed array.
         """
+        rngs: nnx.Rngs = nnx.Rngs(0)  # Needs to be passed on construction of upsample module
 
         if self.self_condition:
             x_self_cond = default(x_self_cond, lambda: jnp.zeros_like(x))
@@ -211,8 +201,9 @@ class ConditionalUNet(nnx.Module):
         x = self.mid_attn(x)
         x = self.mid_block2(x, t)
 
-        for block1, block2, attn, upsample in self.ups:
-
+        for block1, block2, attn, upmodule in self.ups:
+            # Configure upsample to match shape of concatenating array
+            upsample = upmodule(shp_out=h[-1].shape[1:-1], rngs=rngs)
             x = upsample(x)
             x = jnp.concatenate([x, h.pop()], axis=-1)
             x = block1(x, t)
