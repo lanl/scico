@@ -145,7 +145,7 @@ class CircularConvolve(LinearOperator):
                     )
                 )
                 # prevent accidental promotion to double
-                shifts = tuple(s.astype(self.h_dft) for s in shifts)
+                shifts = tuple(s.astype(self.h_dft.dtype) for s in shifts)
                 shift = math.prod(shifts)  # np.prod warns
                 self.h_dft = self.h_dft * shift
 
