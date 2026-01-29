@@ -7,19 +7,18 @@
 
 """Utilities for loading and saving Flax models under NNX interface."""
 
+import pickle
+from pathlib import Path
 from typing import Callable
 
-from pathlib import Path
-import pickle
-
 from flax import nnx
-from flax.serialization import to_state_dict, from_state_dict
+from flax.serialization import from_state_dict, to_state_dict
 
 
 def save_model(model: Callable, file_path: str, file_name: str):
     """Save Flax model.
-    
-    Function for saving a Flax NNX neural network model. 
+
+    Function for saving a Flax NNX neural network model.
 
     Args:
         model: Flax model to save.
@@ -29,7 +28,7 @@ def save_model(model: Callable, file_path: str, file_name: str):
     # Create path
     path = Path(file_path + "/" + file_name + ".pkl")
     path.parent.mkdir(parents=True, exist_ok=True)
-    
+
     # Get the model state (e.g. parameter values)
     state = nnx.state(model)
 
@@ -43,8 +42,8 @@ def save_model(model: Callable, file_path: str, file_name: str):
 
 def load_model(model: Callable, file_path: str, file_name: str):
     """Load Flax model.
-    
-    Function for loading a Flax NNX neural network model. 
+
+    Function for loading a Flax NNX neural network model.
 
     Args:
         model: Flax model to load.
@@ -59,12 +58,12 @@ def load_model(model: Callable, file_path: str, file_name: str):
     with open(path, "rb") as pickle_file:
         loaded_pure_dict = pickle.load(pickle_file)
 
-    #print(f"Loaded dict: {loaded_pure_dict}")
+    # print(f"Loaded dict: {loaded_pure_dict}")
 
     # Restore the state into the target structure
     restored_state = from_state_dict(state_target, loaded_pure_dict)
 
     # Update the model with the loaded state
     nnx.update(model, restored_state)
-    
+
     return model
