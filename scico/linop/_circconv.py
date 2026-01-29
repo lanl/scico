@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2025 by SCICO Developers
+# Copyright (C) 2021-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -145,7 +145,7 @@ class CircularConvolve(LinearOperator):
                     )
                 )
                 # prevent accidental promotion to double
-                shifts = tuple(s.astype(self.h_dft) for s in shifts)
+                shifts = tuple(s.astype(self.h_dft.dtype) for s in shifts)
                 shift = math.prod(shifts)  # np.prod warns
                 self.h_dft = self.h_dft * shift
 
