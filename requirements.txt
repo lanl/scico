@@ -1,6 +1,6 @@
 typing_extensions
 numpy>=2.0
-scipy>=1.13,<1.17
+scipy>=1.13
 imageio>=2.17
 tifffile
 matplotlib
