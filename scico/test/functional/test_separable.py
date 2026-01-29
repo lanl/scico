@@ -5,7 +5,6 @@ from jax import config
 # enable 64-bit mode for output dtype checks
 config.update("jax_enable_x64", True)
 
-import warnings
 
 import pytest
 
@@ -52,11 +51,9 @@ def test_separable_prox(test_separable_obj):
 
 
 def test_separable_grad(test_separable_obj):
-    # Used to restore the warnings after the context is used
-    with warnings.catch_warnings():
-        # Tests the separable grad with warnings being suppressed
-        fv1 = test_separable_obj.f.grad(test_separable_obj.v1)
-        gv2 = test_separable_obj.g.grad(test_separable_obj.v2)
-        fgv = test_separable_obj.fg.grad(test_separable_obj.vb)
-        out = blockarray((fv1, gv2)).ravel()
-        assert_allclose(out, fgv.ravel(), rtol=5e-2)
+    # Tests the separable grad
+    fv1 = test_separable_obj.f.grad(test_separable_obj.v1)
+    gv2 = test_separable_obj.g.grad(test_separable_obj.v2)
+    fgv = test_separable_obj.fg.grad(test_separable_obj.vb)
+    out = blockarray((fv1, gv2)).ravel()
+    assert_allclose(out, fgv.ravel(), rtol=5e-2)
