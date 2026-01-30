@@ -4,7 +4,7 @@ import jax
 
 import pytest
 
-from scico.denoiser import DnCNN, bm3d, bm4d, have_bm3d, have_bm4d
+from scico.denoiser import CondUNetDenoiser, DnCNN, bm3d, bm4d, have_bm3d, have_bm4d
 from scico.metric import rel_res
 from scico.random import randn
 from scico.test.osver import osx_ver_geq_than
@@ -180,3 +180,37 @@ class TestNonBLindDnCNN:
     def test_bad_inputs(self):
         with pytest.raises(ValueError):
             rslt = self.dncnn(self.x_sngchn)
+
+
+class TestCondUNetDenoiser:
+    def setup_method(self):
+        key = None
+        self.x_sngchn, key = randn((32, 33), key=key, dtype=np.float32)
+        self.x_mltchn, key = randn((3, 33, 34), key=key, dtype=np.float32)
+        self.sigma = 0.05
+        self.cundn = CondUNetDenoiser()
+
+    def test_single_channel(self):
+        no_jit = self.cundn(self.x_sngchn, self.sigma)
+        jitted = jax.jit(self.cundn)(self.x_sngchn, self.sigma)
+        assert rel_res(no_jit, jitted) < 1e-6
+        assert no_jit.dtype == np.float32
+        assert jitted.dtype == np.float32
+
+    def test_multi_channel(self):
+        dn = self.cundn(self.x_mltchn, self.sigma)
+        assert dn.dtype == np.float32
+
+    def test_bad_inputs(self):
+        x, key = randn((32,), key=None, dtype=np.float32)
+        with pytest.raises(ValueError):
+            self.cundn(x, self.sigma)
+        x, key = randn((12, 12, 4, 3), key=None, dtype=np.float32)
+        with pytest.raises(ValueError):
+            self.cundn(x, self.sigma)
+        x, key = randn(((2, 3), (3, 4, 5)), key=None, dtype=np.float32)
+        with pytest.raises(ValueError):
+            self.cundn(x, self.sigma)
+        z, key = randn((32, 32), key=None, dtype=np.complex64)
+        with pytest.raises(TypeError):
+            self.cundn(z, self.sigma)
