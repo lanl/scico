@@ -341,7 +341,6 @@ class CondUNetDenoiser:
         """
         if snp.util.is_complex_dtype(x.dtype):
             raise TypeError(f"CondUNetDenoiser requries real-valued inputs, got {x.dtype}.")
-
         if isinstance(x.ndim, tuple) or x.ndim < 2:
             raise ValueError(
                 "CondUNetDenoiser requires two-dimensional (Nrow, Ncol) or "
@@ -358,8 +357,12 @@ class CondUNetDenoiser:
                     "Arrays with more than three axes are only supported when"
                     " the additional axes are singletons."
                 )
+        if x.ndim == 2:
+            x = x[np.newaxis, ..., np.newaxis]
+        else:
+            x = x[..., np.newaxis]
 
-        y = x + self.model(x[..., np.newaxis], sigma)[..., 0]
+        y = x + self.model(x, sigma)
         y = y.reshape(x_in_shape)
 
         return y
