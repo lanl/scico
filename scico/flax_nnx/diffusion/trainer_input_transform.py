@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2025 by SCICO Developers
+# Copyright (C) 2022-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -11,6 +11,7 @@
 
 Assumes sharded batched data and uses data parallel training.
 """
+
 import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
@@ -117,7 +118,7 @@ class FlaxNNXScoreTrainer(BasicFlaxNNXTrainer):
     ):
         """Configure data iterators.
 
-        Genearte training data set only from inputs.
+        Generate training data set only from inputs.
 
         """
         self.dt_iterator_fn: Callable = iterate_x_dataset
@@ -136,8 +137,8 @@ class FlaxNNXScoreTrainer(BasicFlaxNNXTrainer):
 
         Returns:
             Iteration stats object obtained after executing the training
-            loop. Note that the iteration stats object is not ``None`` only
-            if log is enabled when configuring the training loop.
+            loop. Note that the iteration stats object is not ``None``
+            only if log is enabled when configuring the training loop.
             The trained model is avaiable in the at
         """
         epochs_offset = 0
