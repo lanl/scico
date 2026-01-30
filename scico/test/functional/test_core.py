@@ -1,5 +1,3 @@
-import warnings
-
 import numpy as np
 
 import jax.numpy as jnp
@@ -94,18 +92,12 @@ def test_separable_prox(test_separable_obj):
 
 
 def test_separable_grad(test_separable_obj):
-    # Used to restore the warnings after the context is used
-    with warnings.catch_warnings():
-        # Verifies that there is a warning on f.grad and fg.grad
-        np.testing.assert_warns(test_separable_obj.f.grad(test_separable_obj.v1))
-        np.testing.assert_warns(test_separable_obj.fg.grad(test_separable_obj.vb))
-
-        # Test the separable grad with warnings being suppressed
-        fv1 = test_separable_obj.f.grad(test_separable_obj.v1)
-        gv2 = test_separable_obj.g.grad(test_separable_obj.v2)
-        fgv = test_separable_obj.fg.grad(test_separable_obj.vb)
-        out = snp.blockarray((fv1, gv2))
-        snp.testing.assert_allclose(out, fgv, rtol=5e-2)
+    # Test the separable grad
+    fv1 = test_separable_obj.f.grad(test_separable_obj.v1)
+    gv2 = test_separable_obj.g.grad(test_separable_obj.v2)
+    fgv = test_separable_obj.fg.grad(test_separable_obj.vb)
+    out = snp.blockarray((fv1, gv2))
+    snp.testing.assert_allclose(out, fgv, rtol=5e-2)
 
 
 class HuberNormSep(functional.HuberNorm):
