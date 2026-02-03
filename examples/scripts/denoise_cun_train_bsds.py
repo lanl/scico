@@ -159,4 +159,6 @@ time_train = time() - start_time
 """
 Save trained model. Model can be loaded using the `load_model` function.
 """
-save_model(model, os.path.join(workdir, "cun_bsds_model.pkl"))
+filename = os.path.join(workdir, "cun_bsds_model.pkl")
+save_model(model, filename)
+print(f"Trained model saved at {filename}")
