@@ -8,9 +8,7 @@
 """Utilities to configure Optax optimizer."""
 
 from functools import partial
-from typing import Callable, Tuple
-
-from jax.typing import ArrayLike
+from typing import Callable
 
 import optax
 
@@ -22,7 +20,7 @@ def build_optax_optimizer(config: ConfigDict):
 
     Args:
         opt_type: Type of optimizer to use. It can be: SGD, ADAM, ADAMW.
-        
+
     Returns:
         Optax optimizer object.
     """
@@ -50,14 +48,15 @@ def build_optax_optimizer(config: ConfigDict):
         raise NotImplementedError(
             f"Optimizer specified {config['opt_type']} has not been included."
         )
-        
+
     # Build optax optimizer to be able to get lr later
     tx = optax.inject_hyperparams(opt_core)(learning_rate=learning_rate_fn)
-    
+
     return tx
 
 
 # Learning rate schedulers in optax
+
 
 def create_cnst_lr_schedule(config: ConfigDict) -> optax._src.base.Schedule:
     """Create learning rate to be a constant specified
@@ -127,12 +126,14 @@ def create_cosine_lr_schedule(config: ConfigDict) -> optax._src.base.Schedule:
     return schedule
 
 
-def create_reduce_on_plateau_schedule(config: ConfigDict,
-                                      patience: int = 20,
-                                      cooldown: int = 5,
-                                      factor: float = 0.5,
-                                      rtol: float = 1e-4,
-                                      accumulation_size = 5):
+def create_reduce_on_plateau_schedule(
+    config: ConfigDict,
+    patience: int = 20,
+    cooldown: int = 5,
+    factor: float = 0.5,
+    rtol: float = 1e-4,
+    accumulation_size=5,
+):
     """Create scheduler to reduce learning rate if loss does not improve.
 
     Args:
@@ -156,12 +157,13 @@ def create_reduce_on_plateau_schedule(config: ConfigDict,
         factor = config["lr_decay_rate"]
     else:
         factor = factor
-        
-    schedule = optax.contrib.reduce_on_plateau(patience=patience,
-                                               cooldown=cooldown,
-                                               factor=factor,
-                                               rtol=rtol,
-                                               accumulation_size=accumulation_size
+
+    schedule = optax.contrib.reduce_on_plateau(
+        patience=patience,
+        cooldown=cooldown,
+        factor=factor,
+        rtol=rtol,
+        accumulation_size=accumulation_size,
     )
-    
+
     return schedule
