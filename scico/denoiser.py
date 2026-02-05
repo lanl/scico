@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2024 by SCICO Developers
+# Copyright (C) 2020-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -7,6 +7,7 @@
 
 """Interfaces to standard denoisers."""
 
+import lzma
 from typing import Any, Optional, Union
 
 import numpy as np
@@ -34,6 +35,8 @@ else:
 import scico.numpy as snp
 from scico.data import _flax_data_path
 from scico.flax import DnCNNNet, FlaxMap, load_variables
+from scico.flax_nnx.diffusion.models import ConditionalUNet
+from scico.flax_nnx.utils import load_model
 
 
 def bm3d(x: snp.Array, sigma: float, is_rgb: bool = False, profile: Union[BM3DProfile, str] = "np"):
@@ -301,6 +304,65 @@ class DnCNN(FlaxMap):
             if sigma is not None:
                 y = y[0, ..., 0]
 
+        y = y.reshape(x_in_shape)
+
+        return y
+
+
+class CondUNetDenoiser:
+    """Flax NNX implementation of a conditional UNet denoiser."""
+
+    def __init__(self):
+        model = ConditionalUNet(
+            shape=(64, 64),
+            channels=1,
+            init_channels=64,
+            dim_mults=(
+                1,
+                2,
+                4,
+            ),
+        )
+
+        filename = _flax_data_path("dncun.pkl.xz")
+        with lzma.open(filename, "rb") as f:
+            model = load_model(model, f)
+        self.model = model
+
+    def __call__(self, x: snp.Array, sigma: float) -> snp.Array:
+        r"""Apply conditional UNet denoiser.
+
+        Args:
+            x: Input array.
+            sigma: Noise standard deviation.
+
+        Returns:
+            Denoised output.
+        """
+        if snp.util.is_complex_dtype(x.dtype):
+            raise TypeError(f"CondUNetDenoiser requries real-valued inputs, got {x.dtype}.")
+        if isinstance(x.ndim, tuple) or x.ndim < 2:
+            raise ValueError(
+                "CondUNetDenoiser requires two-dimensional (Nrow, Ncol) or "
+                "three-dimensional (Nimage, Nrow, Ncol) inputs; got ndim = "
+                f"{x.ndim}."
+            )
+
+        x_in_shape = x.shape
+        if x.ndim > 3:
+            if all(k == 1 for k in x.shape[3:]):
+                x = x.squeeze()
+            else:
+                raise ValueError(
+                    "Arrays with more than three axes are only supported when"
+                    " the additional axes are singletons."
+                )
+        if x.ndim == 2:
+            x = x[np.newaxis, ..., np.newaxis]
+        else:
+            x = x[..., np.newaxis]
+
+        y = x + self.model(x, sigma)
         y = y.reshape(x_in_shape)
 
         return y

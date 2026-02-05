@@ -7,7 +7,6 @@
 
 """Utilities for checkpointing Flax models."""
 
-
 from pathlib import Path
 from typing import Union
 
@@ -32,9 +31,7 @@ if have_orbax:
 from .typed_dict import ConfigDict
 
 
-def checkpoint_restore(
-    state, workdir: Union[str, Path], ok_no_ckpt: bool = False
-):
+def checkpoint_restore(state, workdir: Union[str, Path], ok_no_ckpt: bool = False):
     """Load model and optimiser state.
 
     Args:

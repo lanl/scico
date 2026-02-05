@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2025 by SCICO Developers
+# Copyright (C) 2022-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -32,13 +32,14 @@ def iterate_xy_dataset(
     Yield a number of `steps` chunks of the dataset each of size `batch_size`.
 
     Args:
-        ds: Data set to iterate. It is a dictionary where `image` keyword defines the
-            input (feature) data and `label` keyword defines the output data.
+        ds: Data set to iterate. It is a dictionary where `image` keyword
+            defines the input (feature) data and `label` keyword defines
+            the output data.
         steps: Number of data chunks to collect.
         batch_size: Number of samples in each chunk.
         subkey: JAX random generation.
-        shuffle: If true, the data is randomly ordered. Otherwise, the data is
-            returned with the ordering of the original dataset.
+        shuffle: If ``True``, the data is randomly ordered. Otherwise,
+            the data is returned with the ordering of the original dataset.
 
     Returns:
         Input and output arrays.
@@ -68,17 +69,18 @@ def iterate_x_dataset(
 ) -> ArrayLike:
     """Yield chunks of dataset for training/evaluating ML model.
 
-    Yield a number of `steps` chunks of the dataset each of size `batch_size`. Only
-    input data (i.e. no labels) are yielded.
+    Yield a number of `steps` chunks of the dataset each of size `batch_size`.
+    Only input data (i.e. no labels) are yielded.
 
     Args:
-        ds: Data set to iterate. It is a dictionary where `image` keyword defines the
-            input (feature) data and `label` keyword defines the output data.
+        ds: Data set to iterate. It is a dictionary where `image` keyword
+            defines the input (feature) data and `label` keyword defines
+            the output data.
         steps: Number of data chunks to collect.
         batch_size: Number of samples in each chunk.
         subkey: JAX random generation.
-        shuffle: If true, the data is randomly ordered. Otherwise, the data is
-            returned with the ordering of the original dataset.
+        shuffle: If ``True``, the data is randomly ordered. Otherwise,
+            the data is returned with the ordering of the original dataset.
 
     Returns:
         Input arrays.
