@@ -68,13 +68,13 @@ class MLP(nnx.Module):
                 *[
                     nnx.Sequential(
                         nnx.BatchNorm(layer_widths[i], rngs=rngs),
-                        activation_func,
+                        activation_fn,
                         nnx.Linear(in_features=layer_widths[i], out_features=lyw, rngs=rngs),
                     )
                     for i, lyw in enumerate(layer_widths[1:])
                 ],
                 nnx.BatchNorm(layer_widths[-1], rngs=rngs),
-                activation_func,
+                activation_fn,
                 nnx.Linear(
                     in_features=layer_widths[-1],
                     out_features=dim_out,
@@ -87,12 +87,12 @@ class MLP(nnx.Module):
                 nnx.Linear(in_features=dim_in, out_features=layer_widths[0], rngs=rngs),
                 *[
                     nnx.Sequential(
-                        activation_func,
+                        activation_fn,
                         nnx.Linear(in_features=layer_widths[i], out_features=lyw, rngs=rngs),
                     )
                     for i, lyw in enumerate(layer_widths[1:])
                 ],
-                activation_func,
+                activation_fn,
                 nnx.Linear(in_features=layer_widths[-1], out_features=dim_out, rngs=rngs),
             )
 
