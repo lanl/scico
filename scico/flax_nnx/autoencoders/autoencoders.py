@@ -163,6 +163,7 @@ class MLPDecoder(nnx.Module):
             rngs: Random generation key.
         """
         super().__init__()
+        self.dim_latent = dim_latent
         self.reshape_final = reshape_final
         self.shape_out = shape_out
         dim_out = prod(shape_out)
@@ -283,6 +284,7 @@ class ConvEncoder(nnx.Module):
             rngs: Random generation key.
         """
         super().__init__()
+        self.dim_latent = dim_latent
         self.cnn = CNN(
             channels,
             filters_encoder,
@@ -343,6 +345,7 @@ class ConvDecoder(nnx.Module):
             rngs: Random generation key.
         """
         super().__init__()
+        self.dim_latent = dim_latent
         self.shape_pre_latent = shape_pre_latent
         len_latent = prod(self.shape_pre_latent)
         self.initial_layer = nnx.Linear(dim_latent, len_latent, rngs=rngs)
