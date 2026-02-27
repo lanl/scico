@@ -25,13 +25,49 @@ from scico.flax_nnx.autoencoders.blocks import CNN, MLP, CTpNN
 # forward reference" warnings when building sphinx api docs.
 
 
+class Encoder(nnx.Module):
+    """Generic encoder definition in Flax NNX."""
+
+    def __init__(
+        self,
+        **kwargs,
+    ):
+        """Initialize Encoder.
+
+        Args:
+            kwargs: Keyword arguments.
+        """
+        super().__init__()
+
+    @property
+    def latent_dim(self):
+        """Expose the latent dimension attribute as a property (getter)."""
+        return self.dim_latent
+
+    def __call__(self, x: ArrayLike, *args) -> ArrayLike:
+        """Apply encoder.
+
+        Args:
+            x: The array to be encoded.
+            args: Positional arguments.
+
+        Returns:
+            The encoded array.
+        """
+        raise NotImplementedError
+
+
+# Create an alias
+Decoder = Encoder
+
+
 class AutoEncoder(nnx.Module):
     """Basic definition of an autoencoder network as a Flax nnx model."""
 
     def __init__(
         self,
-        encoder: Callable,
-        decoder: Callable,
+        encoder: Encoder,
+        decoder: Decoder,
     ):
         """Initialization of autoencoder.
         Args:
@@ -82,7 +118,7 @@ class AutoEncoder(nnx.Module):
         return x, y
 
 
-class MLPEncoder(nnx.Module):
+class MLPEncoder(Encoder):
     """Encoder using multi-layer perceptron (MLP) submodule."""
 
     def __init__(
@@ -133,7 +169,7 @@ class MLPEncoder(nnx.Module):
         return self.mlp(x)
 
 
-class MLPDecoder(nnx.Module):
+class MLPDecoder(Decoder):
     """Decoder using multi-layer perceptron (MLP) submodule."""
 
     def __init__(
@@ -253,7 +289,7 @@ def MLPAutoEncoder(
     return AutoEncoder(encoder, decoder)
 
 
-class ConvEncoder(nnx.Module):
+class ConvEncoder(Encoder):
     """Encoder using convolutional neural network (CNN) submodule."""
 
     def __init__(
@@ -305,7 +341,7 @@ class ConvEncoder(nnx.Module):
         return self.linear_latent(self.cnn(x))
 
 
-class ConvDecoder(nnx.Module):
+class ConvDecoder(Decoder):
     """Decoder using convolutional layers.
 
     All the layers use the same specified kernel size and stride, use
