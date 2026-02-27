@@ -282,6 +282,7 @@ class ConvEncoder(nnx.Module):
                 to apply after each layer (except output layer).
             rngs: Random generation key.
         """
+        super().__init__()
         self.cnn = CNN(
             channels,
             filters_encoder,
@@ -341,6 +342,7 @@ class ConvDecoder(nnx.Module):
             batch_norm: Flag to indicate if batch norm is to be applied or not.
             rngs: Random generation key.
         """
+        super().__init__()
         self.shape_pre_latent = shape_pre_latent
         len_latent = prod(self.shape_pre_latent)
         self.initial_layer = nnx.Linear(dim_latent, len_latent, rngs=rngs)
