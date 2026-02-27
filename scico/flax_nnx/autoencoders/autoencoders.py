@@ -151,7 +151,7 @@ class MLPEncoder(Encoder):
             dim_latent,
             widths_encoder,
             activation_fn,
-            activate_final=True,
+            activate_final=False,
             flatten_first=True,
             batch_norm=batch_norm,
             rngs=rngs,
