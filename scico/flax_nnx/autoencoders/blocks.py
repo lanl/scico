@@ -126,7 +126,7 @@ class CNN(nnx.Module):
         kernel_size: Tuple[int, int] = (3, 3),
         strides: Tuple[int, int] = (1, 1),
         activation_fn: Callable = nnx.relu,
-        flatten_final: bool = True,
+        flatten_final: bool = False,
         kernel_init: Callable = nnx.initializers.kaiming_normal,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
@@ -167,8 +167,8 @@ class CNN(nnx.Module):
                 nnx.Sequential(
                     activation_fn,
                     nnx.Conv(
-                        num_filters[i - i],
                         num_filters[i],
+                        lyf,
                         kernel_size=kernel_size,
                         strides=strides,
                         padding="CIRCULAR",
@@ -197,8 +197,125 @@ class CNN(nnx.Module):
             channels as the given input.
         """
         x = self.layers(x)
-        x = self.final_conv(x)
+
         if self.flatten_final:
             # Flatten output (e.g. for latent representation).
             x = x.reshape((x.shape[0], -1))
+        else:
+            x = self.final_conv(x)
         return x
+
+
+class CTpNN(nnx.Module):
+    """Basic definition of a network with multiple convolutional transpose layers as a
+    Flax nnx block."""
+
+    def __init__(
+        self,
+        channels_in: int,
+        channels_out: int,
+        num_filters: Sequence[int],
+        kernel_size: Tuple[int, int] = (3, 3),
+        strides: Tuple[int, int] = (2, 2),
+        activation_fn: Callable = nnx.relu,
+        batch_norm: bool = False,
+        kernel_init: Callable = nnx.initializers.kaiming_normal,
+        rngs: nnx.Rngs = nnx.Rngs(0),
+    ):
+        """Initialization of CNN.
+
+        Args:
+            channels_in: Number of channels of signal at input.
+            channels_out: Number of channels of signal at output.
+            num_filters: Sequential list with number of filters in each
+                convolutional layer of the block.
+            kernel_size: A shape tuple defining the size of the convolution
+                filters.
+            strides: A shape tuple defining the size of strides in
+                convolution.
+            activation_fn: Flax function defining the activation operation
+                to apply after each layer.
+            batch_norm: Flag to indicate if batch norm is to be applied or not.
+            rngs: Random generation key.
+        """
+        super().__init__()
+
+        # Declare layers
+        if batch_norm:
+            self.layers = nnx.Sequential(
+                nnx.ConvTranspose(
+                    channels_in,
+                    num_filters[0],
+                    kernel_size=kernel_size,
+                    strides=strides,
+                    padding="CIRCULAR",
+                    use_bias=False,
+                    kernel_init=kernel_init(),
+                    rngs=rngs,
+                ),
+                *[
+                    nnx.Sequential(
+                        nnx.BatchNorm(num_filters[i], rngs=rngs),
+                        activation_fn,
+                        nnx.ConvTranspose(
+                            num_filters[i],
+                            lyf,
+                            kernel_size=kernel_size,
+                            strides=strides,
+                            padding="CIRCULAR",
+                            use_bias=False,
+                            kernel_init=kernel_init(),
+                            rngs=rngs,
+                        ),
+                    )
+                    for i, lyf in enumerate(num_filters[1:])
+                ],
+                nnx.BatchNorm(num_filters[-1], rngs=rngs),
+                activation_fn,
+            )
+        else:
+            self.layers = nnx.Sequential(
+                nnx.ConvTranspose(
+                    channels_in,
+                    num_filters[0],
+                    kernel_size=kernel_size,
+                    strides=strides,
+                    padding="CIRCULAR",
+                    use_bias=False,
+                    kernel_init=kernel_init(),
+                    rngs=rngs,
+                ),
+                *[
+                    nnx.Sequential(
+                        activation_fn,
+                        nnx.ConvTranspose(
+                            num_filters[i],
+                            lyf,
+                            kernel_size=kernel_size,
+                            strides=strides,
+                            padding="CIRCULAR",
+                            use_bias=False,
+                            kernel_init=kernel_init(),
+                            rngs=rngs,
+                        ),
+                    )
+                    for i, lyf in enumerate(num_filters[1:])
+                ],
+                activation_fn,
+            )
+        self.final_conv = nnx.ConvTranspose(
+            num_filters[-1], channels_out, kernel_size=(1, 1), use_bias=False, rngs=rngs
+        )
+
+    def __call__(self, x: ArrayLike) -> ArrayLike:
+        """Apply convolutional layer(s) and activation(s).
+
+        Args:
+            x: The array to be transformed.
+
+        Returns:
+            The input after being transformed by multiple convolutional
+            layers. It has been flatten or has the same number of
+            channels as the given input.
+        """
+        return self.final_conv(self.layers(x))
