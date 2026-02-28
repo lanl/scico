@@ -205,7 +205,8 @@ class MLPDecoder(Decoder):
         dim_out = prod(shape_out)
 
         if self.reshape_final:  # Restore specific shape
-            all_widths_decoder = widths_decoder + (dim_out,)
+            all_widths_decoder = list(widths_decoder)
+            all_widths_decoder.append(dim_out)
         else:
             all_widths_decoder = widths_decoder
 
