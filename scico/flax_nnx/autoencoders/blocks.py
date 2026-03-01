@@ -315,7 +315,7 @@ class CTpNN(nnx.Module):
 
         Returns:
             The input after being transformed by multiple convolutional
-            layers. It has been flatten or has the same number of
+            transpose layers. It has been flatten or has the same number of
             channels as the given input.
         """
         return self.final_conv(self.layers(x))

@@ -202,7 +202,7 @@ class MLPDecoder(Decoder):
         self.dim_latent = dim_latent
         self.reshape_final = reshape_final
         self.shape_out = shape_out
-        dim_out = prod(shape_out)
+        dim_out = int(prod(shape_out))
 
         if self.reshape_final:  # Restore specific shape
             all_widths_decoder = list(widths_decoder)
@@ -335,7 +335,7 @@ class ConvEncoder(Encoder):
         d0 = shape_in[0] // divisor
         d1 = shape_in[1] // divisor
         self.shape_pre_latent = (d0, d1, filters_encoder[-1])
-        size_latent = prod(self.shape_pre_latent)
+        size_latent = int(prod(self.shape_pre_latent))
         self.linear_latent = nnx.Linear(size_latent, dim_latent, rngs=rngs)
 
     def __call__(self, x: ArrayLike) -> ArrayLike:
@@ -384,7 +384,7 @@ class ConvDecoder(Decoder):
         super().__init__()
         self.dim_latent = dim_latent
         self.shape_pre_latent = shape_pre_latent
-        len_latent = prod(self.shape_pre_latent)
+        len_latent = int(prod(self.shape_pre_latent))
         self.initial_layer = nnx.Linear(dim_latent, len_latent, rngs=rngs)
         self.ctpnn = CTpNN(
             shape_pre_latent[-1],
