@@ -30,17 +30,18 @@ class ArgumentStruct:
 def create_itstat(
     itstat_fields: IterationStats, itstat_attrib: Callable
 ) -> Tuple[IterationStats, Callable]:
-    """Function to create object for logging iteration statistics.
+    """Function to create objects for logging training statistics.
 
-    This function initializes an object
-    :class:`~.diagnostics.IterationStats` to log and store iteration
-    statistics if logging is enabled during training. The
-    :class:`~.diagnostics.IterationStats` object takes care of both
-    printing stats to command line and storing them for further analysis.
+    These objects are created and used if logging is enabled during training.
 
     Args:
         itstat_fields: Dictionary with titles and printing format for selected statistics.
-        itstat_attrib: Dictionary with name of registered statistics.
+        itstat_attrib: List of names of registered statistics.
+
+    Returns:
+        An object :class:`~.diagnostics.IterationStats` to log and store iteration
+        statistics and an object :class:`~.diagnostics.IterationStats` to printing stats
+        to command line and storing them for further analysis.
     """
     # dynamically create itstat_func; see https://stackoverflow.com/questions/24733831
     itstat_return = "return(" + ", ".join(["obj." + attr for attr in itstat_attrib]) + ")"
