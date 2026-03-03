@@ -32,7 +32,7 @@ def save_model(model: Callable, file: Union[str, BufferedWriter]):
     pure_dict = to_state_dict(state)
 
     if isinstance(file, str):
-        with open(path, "wb") as f:
+        with open(file, "wb") as f:
             pickle.dump(pure_dict, f)
     else:
         pickle.dump(pure_dict, file)

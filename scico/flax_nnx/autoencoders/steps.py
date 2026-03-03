@@ -9,9 +9,10 @@
 autoencoder models."""
 
 from functools import partial
-from typing import Any, Callable, Tuple
+from typing import Any, Callable, Optional, Tuple
 
 import jax
+import jax.numpy as jnp
 from jax.typing import ArrayLike
 
 from flax import nnx
@@ -69,7 +70,7 @@ def loss_fn(
     """
     output, mean, logvar = model(x, key, y)
     reduce_dims = list(range(1, len(x.shape)))
-    reconstruction_loss_ = (1.0 - kl_weight) * criterion(output, x).sum(axis=reduce_dims).mean()
+    reconstruction_loss = (1.0 - kl_weight) * criterion(output, x).sum(axis=reduce_dims).mean()
     kl_loss = kl_weight * kl_loss_fn(mean, logvar)
     loss = reconstruction_loss + kl_loss
     return loss, (kl_loss, output)
@@ -156,3 +157,27 @@ def eval_step_vae(
     metrics.update(loss=loss, kl=aux[0], snr=snr)  # In-place updates.
 
     return loss
+
+
+@jax.jit(static_argnums=0)
+def generate_sample(
+    model, key: ArrayLike, num_samples: Optional[int] = None, c: Optional[ArrayLike] = None
+) -> ArrayLike:
+    """Generate samples from latent representation.
+
+    Args:
+        key: The jax key for the random generation of sample.
+        num_samples: Number of samples to generate. Applies if no conditioning is provided.
+        c: Conditioning signal.
+
+    Returns:
+        Generated samples.
+    """
+    if c is None:
+        assert num_samples is not None
+        z = jax.random.normal(key, (num_samples, model.encoder.latent_dim))
+        y = jax.jit(model.decode)(z)
+    else:
+        z = jax.random.normal(key, (c.shape[0], model.encoder.latent_dim))
+        y = jax.jit(model.decode_cond)(z, c)
+    return y

@@ -16,17 +16,13 @@ import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
-import time
 from functools import partial
-from typing import Any, Callable, Dict, Optional
+from typing import Callable, Optional
 
 import jax
 from jax.typing import ArrayLike
 
 from flax import nnx
-from scico.diagnostics import IterationStats
-from scico.flax_nnx.train.checkpoints import checkpoint_restore
-from scico.flax_nnx.train.diagnostics import ArgumentStruct
 from scico.flax_nnx.train.input_pipeline import iterate_x_dataset
 from scico.flax_nnx.train.trainer import BasicFlaxNNXTrainer
 from scico.flax_nnx.train.typed_dict import ConfigDict, DataSetDict
@@ -122,159 +118,70 @@ class FlaxNNXScoreTrainer(BasicFlaxNNXTrainer):
 
         """
         self.dt_iterator_fn: Callable = iterate_x_dataset
+        # Connect data iterators with train/eval steps (for data sharding)
+        self.one_train_epoch_fn: Callable = self.one_train_epoch_x
+        self.one_eval_epoch_fn: Callable = self.one_eval_epoch_x
 
         # Estimate number of batches per epoch
         self.nbatches = self.train_ds["image"].shape[0] // self.batch_size
 
         self.log_data_snapshot()
 
-    def train(self, key: Optional[ArrayLike] = None) -> Optional[IterationStats]:
-        """Execute training loop.
+    def one_train_epoch_x(self, graphdef, state, key: ArrayLike):
+        """Function that defines one epoch of training for a VAE that uses only input data.
+
+        This function iterates over the whole training set using randomly shuffled batches.
 
         Args:
-            key: Key for random generation for models that require
-                randomness for training/evaluation (e.g. score).
+            graphdef: Graph representation of model.
+            state: NNX state object including pytrees for all the
+                model and optimizer graph nodes.
+            key: Key for random generation in VAE forward pass.
 
         Returns:
-            Iteration stats object obtained after executing the training
-            loop. Note that the iteration stats object is not ``None``
-            only if log is enabled when configuring the training loop.
-            The trained model is avaiable in the at
+            Training loss and updated state and key.
         """
-        epochs_offset = 0
-        # Handle distributed training using nnx state
-        state = nnx.state((self.model, self.optimizer))
-        # Before distributing, try to restore if checkpointing is enabled
-        if self.checkpointing:
-            ok_no_ckpt = True  # It is ok if no checkpoint is found
-            state, step = checkpoint_restore(state, self.workdir, ok_no_ckpt)
-            if step is not None:
-                epochs_offset = step - 1  # > 0 if restarting from checkpoint
-        # Distribute state according to model sharding
-        state = jax.device_put(state, self.model_sharding)
-        nnx.update((self.model, self.optimizer), state)
-
-        # A functional training loop is implemented to reduce Python overhead
-        # Split before training loop
-        graphdef, state = nnx.split((self.model, self.optimizer, self.metrics))
-
-        # Execute training loop and register stats
         shuffle = True
-        key = jax.random.PRNGKey(self.config["seed"])
-        t0 = time.time()
-        for epoch in range(epochs_offset, self.train_epochs):
-            key, subkey1, subkey2, subkey3 = jax.random.split(key, 4)
-            for batch in self.dt_iterator_fn(
-                self.train_ds, self.nbatches, self.batch_size, subkey1, shuffle
-            ):
-                # Shard data
-                x = jax.device_put(batch, self.data_sharding)
-                # Train
-                # self.model.train() # Switch to train mode
-                subkey2, step_key1, step_key2 = jax.random.split(subkey2, 3)
-                t, batch_t = self.step_t(x, step_key1)
-                z, batch_std, batch_x = self.step_x(x, step_key2, t)
+        key, subkey1, subkey2 = jax.random.split(key, 3)
+        for batch in self.dt_iterator_fn(
+            self.train_ds, self.nbatches, self.batch_size, subkey1, shuffle
+        ):
+            # Shard data
+            x = jax.device_put(batch, self.data_sharding)
+            # Train
+            # self.model.train() # Switch to train mode
+            subkey2, step_key1, step_key2 = jax.random.split(subkey2, 3)
+            t, batch_t = self.step_t(x, step_key1)
+            z, batch_std, batch_x = self.step_x(x, step_key2, t)
 
-                loss, state = self.train_step_fn(
-                    graphdef, state, self.criterion, self.step_loss, batch_x, batch_t, z, batch_std
-                )
+            loss, state = self.train_step_fn(
+                graphdef, state, self.criterion, self.step_loss, batch_x, batch_t, z, batch_std
+            )
+        return loss, state, key
 
-            # Update objects after training step
-            nnx.update((self.model, self.optimizer, self.metrics), state)
-            if (epoch + 1) % self.log_every_epochs == 0:
-                self.metrics = self.update_metrics(epoch + 1, self.metrics, t0, subkey3)
-            if (epoch + 1) % self.checkpoint_every_epochs == 0:
-                self.checkpoint(nnx.state((self.model, self.optimizer)), epoch + 1)
+    def one_eval_epoch_x(self, metrics, key):
+        """Function that defines one epoch of evaluation for a VAE that uses only input data.
 
-        # Wait for finishing asynchronous execution --> check if this is needed
-        jax.random.normal(jax.random.PRNGKey(0), ()).block_until_ready()
-
-        self.train_time = time.time() - t0
-
-        # Close object for iteration stats if logging
-        if self.logflag:
-            assert self.itstat_object is not None
-            self.itstat_object.end()
-
-        # Extract state from distributed process and update model attribute
-        state = nnx.state((self.model, self.optimizer))
-        state = jax.device_get(state)
-        nnx.update((self.model, self.optimizer), state)
-
-        # Final checkpointing
-        self.checkpoint(state, epoch + 1)
-
-        return self.itstat_object  # type: ignore
-
-    def update_metrics(
-        self,
-        epoch: int,
-        metrics,
-        t0,
-        key: Optional[ArrayLike] = None,
-    ):
-        """Compute metrics for current model state.
-
-        Metrics for training and testing (eval) sets are computed and
-        stored in an iteration stats object. This is executed only if
-        logging is enabled.
+        This function iterates over the whole testing set using sequential batches.
 
         Args:
-            epoch: Current epoch in training.
-            metrics:  Diagnostic statistics computed from
-                training set.
-            t0: Time when training loop started.
-            key: Key for random generation for models that require
-                randomness for training/evaluation (e.g. score).
+            metrics: Dictionary of metrics to evaluate.
+            key: Key for random generation in VAE forward pass.
+
+        Returns:
+            Testing loss and updated metrics and key.
         """
-        if not self.logflag:
-            return
-
-        summary: Dict[Any] = {}
-
-        # Get current learning rate from optax optimizer (configured to store it).
-        summary["train_learning_rate"] = self.optimizer.opt_state.hyperparams["learning_rate"]
-
-        # Log the training metrics
-        for metric, value in metrics.compute().items():  # Compute the metrics
-            summary[f"train_{metric}"] = value  # Record the metrics
-            summary[f"test_{metric}"] = 0.0  # placeholder
-        metrics.reset()  # Reset the metrics for the test set
-
-        # Record current epoch and execution time
-        summary["epoch"] = epoch
-        summary["time"] = time.time() - t0
-
-        if self.test_ds is not None:  # Test data available
-            # Eval over testing set
-            self.model.eval()  # Switch to eval mode
-            shuffle = False
-            ntestbatches = self.test_ds["image"].shape[0] // self.batch_size
-            for batch in self.dt_iterator_fn(self.test_ds, ntestbatches, self.batch_size, shuffle):
-                # Shard data
-                x = jax.device_put(batch, self.data_sharding)
-                key, step_key1, step_key2 = jax.random.split(key, 3)
-                t, batch_t = self.step_t(x, step_key1)
-                z, batch_std, batch_x = self.step_x(x, step_key2, t)
-                # Evaluate
-                loss = self.eval_step_fn(
-                    self.model,
-                    self.criterion,
-                    metrics,
-                    self.step_loss,
-                    batch_x,
-                    batch_t,
-                    z,
-                    batch_std,
-                )
-
-            # Log the test metrics
-            for metric, value in metrics.compute().items():
-                summary[f"test_{metric}"] = value
-            metrics.reset()  # Reset the metrics for the next training epoch
-
-        # Update iteration stats object
-        assert isinstance(self.itstat_object, IterationStats)  # for mypy
-        self.itstat_object.insert(self.itstat_insert_func(ArgumentStruct(**summary)))
-
-        return metrics
+        self.model.eval()  # Switch to eval mode
+        shuffle = False
+        ntestbatches = self.test_ds["image"].shape[0] // self.batch_size
+        for batch in self.dt_iterator_fn(self.test_ds, ntestbatches, self.batch_size, shuffle):
+            # Shard data
+            x = jax.device_put(batch, self.data_sharding)
+            # Eval step
+            key, step_key1, step_key2 = jax.random.split(key, 3)
+            t, batch_t = self.step_t(x, step_key1)
+            z, batch_std, batch_x = self.step_x(x, step_key2, t)
+            loss = self.eval_step_fn(
+                self.model, self.criterion, self.step_loss, metrics, batch_x, batch_t, z, batch_std
+            )
+        return loss, metrics, key

@@ -75,45 +75,6 @@ def loss_fn(
     return loss
 
 
-@nnx.jit(static_argnums=(1, 3))
-def eval_step_diffusion(
-    model: Callable,
-    criterion: Callable,
-    metrics: nnx.MultiMetric,
-    step_loss: Callable,
-    batch_x: ArrayLike,
-    batch_t: ArrayLike,
-    batch_z: ArrayLike,
-    batch_std: ArrayLike,
-) -> ArrayLike:
-    """Evaluate for a single step.
-
-    This function uses data and a criterion to evaluate performance of current model.
-    It returns the current loss evaluated in the testing set.
-
-    Args:
-        model: Model to train.
-        criterion: Criterion to use for training.
-        metrics: Dictionary of metrics to evaluate.
-        step_loss: Function to evaluate difference between expected
-                    and produced outputs.
-        batch_x: Noisy image data array.
-        batch_t: Time embedding array.
-        batch_z: Standard Gaussian random variable array.
-        batch_std: Corresponding noise level array.
-
-    Returns:
-        Loss evaluated.
-    """
-
-    # with model.eval():
-    #    loss = loss_fn(model, criterion, step_loss, batch_x, batch_t, batch_z, batch_std)
-    loss = loss_fn(model, criterion, step_loss, batch_x, batch_t, batch_z, batch_std)
-    metrics.update(loss=loss)  # In-place updates.
-
-    return loss
-
-
 # @jax.jit(static_argnums=(2, 3))
 @partial(jax.jit, static_argnums=(2, 3))
 def jax_train_step_diffusion(
@@ -156,3 +117,42 @@ def jax_train_step_diffusion(
 
     state = nnx.state((model, optimizer, metrics))
     return loss, state
+
+
+@nnx.jit(static_argnums=(1, 2))
+def eval_step_diffusion(
+    model: Callable,
+    criterion: Callable,
+    step_loss: Callable,
+    metrics: nnx.MultiMetric,
+    batch_x: ArrayLike,
+    batch_t: ArrayLike,
+    batch_z: ArrayLike,
+    batch_std: ArrayLike,
+) -> ArrayLike:
+    """Evaluate for a single step.
+
+    This function uses data and a criterion to evaluate performance of current model.
+    It returns the current loss evaluated in the testing set.
+
+    Args:
+        model: Model to train.
+        criterion: Criterion to use for training.
+        step_loss: Function to evaluate difference between expected
+                    and produced outputs.
+        metrics: Dictionary of metrics to evaluate.
+        batch_x: Noisy image data array.
+        batch_t: Time embedding array.
+        batch_z: Standard Gaussian random variable array.
+        batch_std: Corresponding noise level array.
+
+    Returns:
+        Loss evaluated.
+    """
+
+    # with model.eval():
+    #    loss = loss_fn(model, criterion, step_loss, batch_x, batch_t, batch_z, batch_std)
+    loss = loss_fn(model, criterion, step_loss, batch_x, batch_t, batch_z, batch_std)
+    metrics.update(loss=loss)  # In-place updates.
+
+    return loss

@@ -17,6 +17,7 @@ import jax
 from jax.typing import ArrayLike
 
 from flax import nnx
+from scico.flax_nnx.train.input_pipeline import iterate_x_dataset, iterate_xy_dataset
 from scico.flax_nnx.train.trainer import BasicFlaxNNXTrainer
 from scico.flax_nnx.train.typed_dict import ConfigDict, DataSetDict
 
@@ -84,12 +85,14 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
         Generate training data set only from inputs.
 
         """
-        if model.conditioner is None:
+        if self.model.conditioner is None:
             self.dt_iterator_fn: Callable = iterate_x_dataset
+            # Connect data iterators with train/eval steps (for data sharding)
             self.one_train_epoch_fn: Callable = self.one_train_epoch_x
             self.one_eval_epoch_fn: Callable = self.one_eval_epoch_x
         else:
             self.dt_iterator_fn: Callable = iterate_xy_dataset
+            # Connect data iterators with train/eval steps (for data sharding)
             self.one_train_epoch_fn: Callable = self.one_train_epoch_xy
             self.one_eval_epoch_fn: Callable = self.one_eval_epoch_xy
 
@@ -113,7 +116,7 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
             Training loss and updated state and key.
         """
         shuffle = True
-        key, subkey1, subkey2, subkey3 = jax.random.split(key, 4)
+        key, subkey1, subkey2 = jax.random.split(key, 3)
         for batch in self.dt_iterator_fn(
             self.train_ds, self.nbatches, self.batch_size, subkey1, shuffle
         ):
@@ -141,7 +144,7 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
             Training loss and updated state and key.
         """
         shuffle = True
-        key, subkey1, subkey2, subkey3 = jax.random.split(key, 4)
+        key, subkey1, subkey2 = jax.random.split(key, 3)
         for batch in self.dt_iterator_fn(
             self.train_ds, self.nbatches, self.batch_size, subkey1, shuffle
         ):

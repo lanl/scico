@@ -232,6 +232,9 @@ class BasicFlaxNNXTrainer:
         self.dt_iterator_fn: Callable = iterate_xy_dataset
         # Estimate number of batches per epoch
         self.nbatches = self.train_ds["image"].shape[0] // self.batch_size
+        # Connect data iterators with train/eval steps (for data sharding)
+        self.one_train_epoch_fn = self.one_train_epoch_xy
+        self.one_eval_epoch_fn = self.one_eval_epoch_xy
 
         self.log_data_snapshot()
 
@@ -274,6 +277,55 @@ class BasicFlaxNNXTrainer:
         tx = build_optax_optimizer(config)
         self.optimizer = nnx.Optimizer(self.model, tx, wrt=nnx.Param)
 
+    def one_train_epoch_xy(self, graphdef, state, key):
+        """Function that defines one epoch of training for a VAE that uses input and conditioning data.
+
+        This function iterates over the whole training set using randomly shuffled batches.
+
+        Args:
+            graphdef: Graph representation of model.
+            state: NNX state object including pytrees for all the
+                model and optimizer graph nodes.
+            key: Key for random generation in VAE forward pass.
+
+        Returns:
+            Training loss and updated state and key.
+        """
+        shuffle = True
+        key, step_key = jax.random.split(key)
+        for batch in self.dt_iterator_fn(
+            self.train_ds, self.nbatches, self.batch_size, step_key, shuffle
+        ):
+            # Shard data
+            x, y = jax.device_put(batch, self.data_sharding)
+            # Train
+            # self.model.train() # Switch to train mode
+            loss, state = self.train_step_fn(graphdef, state, self.criterion, x, y)
+
+        return loss, state, key
+
+    def one_eval_epoch_xy(self, metrics, key):
+        """Function that defines one epoch of evaluation for a VAE that uses input and conditioning data.
+
+        This function iterates over the whole testing set using sequential batches.
+
+        Args:
+            metrics: Dictionary of metrics to evaluate.
+            key: Key for random generation in VAE forward pass.
+
+        Returns:
+            Testing loss and updated metrics and key.
+        """
+        self.model.eval()  # Switch to eval mode
+        shuffle = False
+        ntestbatches = self.test_ds["image"].shape[0] // self.batch_size
+        for batch in self.dt_iterator_fn(self.test_ds, ntestbatches, self.batch_size, shuffle):
+            # Shard data
+            x, y = jax.device_put(batch, self.data_sharding)
+            # Eval step
+            loss = self.eval_step_fn(self.model, self.criterion, metrics, x, y)
+        return loss, metrics, key
+
     def train(self, key: Optional[ArrayLike] = None) -> Optional[IterationStats]:
         """Execute training loop.
 
@@ -309,19 +361,12 @@ class BasicFlaxNNXTrainer:
         key = jax.random.PRNGKey(self.config["seed"])
         t0 = time.time()
         for epoch in range(epochs_offset, self.train_epochs):
-            key, subkey1, subkey2, subkey3 = jax.random.split(key, 4)
-            for batch in self.dt_iterator_fn(
-                self.train_ds, self.nbatches, self.batch_size, subkey1, shuffle
-            ):
-                # Shard data
-                x, y = jax.device_put(batch, self.data_sharding)
-                # Train
-                # self.model.train() # Switch to train mode
-                loss, state = self.train_step_fn(graphdef, state, self.criterion, x, y)
+            loss, state, key = self.one_train_epoch_fn(graphdef, state, key)
             # Update objects after training step
             nnx.update((self.model, self.optimizer, self.metrics), state)
             if (epoch + 1) % self.log_every_epochs == 0:
-                self.metrics = self.update_metrics(epoch + 1, self.metrics, t0, subkey3)
+                key, eval_key = jax.random.split(key)
+                self.metrics = self.update_metrics(epoch + 1, self.metrics, t0, eval_key)
             if (epoch + 1) % self.checkpoint_every_epochs == 0:
                 self.checkpoint(nnx.state((self.model, self.optimizer)), epoch + 1)
 
@@ -386,15 +431,7 @@ class BasicFlaxNNXTrainer:
 
         if self.test_ds is not None:  # Test data available
             # Eval over testing set
-            self.model.eval()  # Switch to eval mode
-            shuffle = False
-            ntestbatches = self.test_ds["image"].shape[0] // self.batch_size
-            for batch in self.dt_iterator_fn(self.test_ds, ntestbatches, self.batch_size, shuffle):
-                # Shard data
-                x, y = jax.device_put(batch, self.data_sharding)
-                # Evaluate
-                loss = self.eval_step_fn(self.model, self.criterion, metrics, x, y)
-
+            loss, metrics, key = self.one_eval_epoch_fn(metrics, key)
             # Log the test metrics
             for metric, value in metrics.compute().items():
                 summary[f"test_{metric}"] = value
