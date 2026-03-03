@@ -10,7 +10,7 @@ from scico import random
 
 # from scico.flax_nnx.train.clu_utils import flatten_dict
 from scico.flax_nnx._models import ConvBNNet, DnCNNNet, ResNet, UNet
-from scico.flax_nnx.train.steps import eval_step, train_step
+from scico.flax_nnx.train.steps import eval_step, jax_train_step
 from scico.flax_nnx.train.trainer import BasicFlaxNNXTrainer
 from scico.flax_nnx.train.typed_dict import ConfigDict
 
@@ -260,7 +260,7 @@ def test_class_train_set_functions(testobj):
 
     train_conf = dict(testobj.train_conf)
     train_conf["criterion"] = huber_loss
-    train_conf["train_step_fn"] = train_step
+    train_conf["train_step_fn"] = jax_train_step
     train_conf["eval_step_fn"] = eval_step
     try:
         trainer = BasicFlaxNNXTrainer(
