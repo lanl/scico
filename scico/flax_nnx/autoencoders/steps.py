@@ -85,7 +85,7 @@ def jax_train_step_vae(
     kl_weight: float,
     x: ArrayLike,
     key: ArrayLike,
-    y: ArrayLike,
+    y: Optional[ArrayLike] = None,
 ) -> Tuple[ArrayLike, Any]:
     """Train VAE for a single step.
 
@@ -102,7 +102,7 @@ def jax_train_step_vae(
             reconstruction and KL losses.
         x: Input data array.
         key: Key for random generation in VAE forward pass.
-        y: Conditioning data array.
+        y: Conditioning data array (if training model with conditioning).
 
     Returns:
         Loss evaluated.
@@ -129,7 +129,7 @@ def eval_step_vae(
     metrics: nnx.MultiMetric,
     x: ArrayLike,
     key: ArrayLike,
-    y: ArrayLike,
+    y: Optional[ArrayLike] = None,
 ) -> ArrayLike:
     """Evaluate VAE for a single step.
 
@@ -145,7 +145,7 @@ def eval_step_vae(
         metrics: Dictionary of metrics to evaluate.
         x: Input data array.
         key: Key for random generation in VAE forward pass.
-        y: Conditioning data array.
+        y: Conditioning data array (if training model with conditioning).
 
     Returns:
         Loss evaluated.

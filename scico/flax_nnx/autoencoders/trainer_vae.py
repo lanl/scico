@@ -21,6 +21,7 @@ from scico.flax_nnx.train.input_pipeline import iterate_x_dataset, iterate_xy_da
 from scico.flax_nnx.train.trainer import BasicFlaxNNXTrainer
 from scico.flax_nnx.train.typed_dict import ConfigDict, DataSetDict
 
+from .diagnostics import stats_obj
 from .steps import _kl_loss_fn, eval_step_vae, jax_train_step_vae
 
 
@@ -57,6 +58,9 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
 
         if "eval_step_fn" not in config:
             config["eval_step_fn"] = eval_step_vae
+
+        if "stats_obj" not in config:
+            config["stats_obj"] = stats_obj()
 
         super().__init__(config, model, train_ds, test_ds)
 
