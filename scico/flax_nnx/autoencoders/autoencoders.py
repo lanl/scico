@@ -103,19 +103,23 @@ class AutoEncoder(nnx.Module):
         x = self.decoder(x)
         return x
 
-    def __call__(self, x: ArrayLike) -> Tuple[ArrayLike, ArrayLike]:
+    def __call__(self, x: ArrayLike, latent_rep: bool = False) -> Tuple[ArrayLike, ArrayLike]:
         """Apply sequence of encoder and decoder modules.
 
         Args:
             x: The array to be autoencoded.
+            latent_rep: Flag to indicate if the latent representations is to be
+                returned.
 
         Returns:
             The output of the autoencoder module and the encoded
-            representation.
+            representation (if requested).
         """
         y = self.encode(x)
         x = self.decode(y)
-        return x, y
+        if latent_rep:
+            return x, y
+        return x
 
 
 class MLPEncoder(Encoder):
