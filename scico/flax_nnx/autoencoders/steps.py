@@ -159,7 +159,6 @@ def eval_step_vae(
     return loss
 
 
-@jax.jit(static_argnums=0)
 def generate_sample(
     model, key: ArrayLike, num_samples: Optional[int] = None, c: Optional[ArrayLike] = None
 ) -> ArrayLike:
