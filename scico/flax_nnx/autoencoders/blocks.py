@@ -127,6 +127,7 @@ class CNN(nnx.Module):
         strides: Tuple[int, int] = (1, 1),
         activation_fn: Callable = nnx.relu,
         flatten_final: bool = False,
+        conv_final: bool = True,
         kernel_init: Callable = nnx.initializers.kaiming_normal,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
@@ -144,12 +145,14 @@ class CNN(nnx.Module):
                 to apply after each layer.
             flatten_final: Flag to indicate if the output should be returned
                 as a flattened array (preserving batch dimension). If not,
-                the output is mapped back to the number of channels of the
-                input signal.
+                the output is returned as it is, or, if requested, mapped back to the
+                number of channels of the input signal.
+            conv_final: Flag to indicate if the output should be mapped back to the number of channels of the input signal.
             rngs: Random generation key.
         """
         super().__init__()
         self.flatten_final = flatten_final
+        self.conv_final = conv_final
 
         # Declare layers
         self.layers = nnx.Sequential(
@@ -201,7 +204,7 @@ class CNN(nnx.Module):
         if self.flatten_final:
             # Flatten output (e.g. for latent representation).
             x = x.reshape((x.shape[0], -1))
-        else:
+        elif self.conv_final:  # Map back to channels of input signal
             x = self.final_conv(x)
         return x
 

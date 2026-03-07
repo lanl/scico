@@ -159,24 +159,41 @@ def eval_step_vae(
     return loss
 
 
-def generate_sample(
-    model, key: ArrayLike, num_samples: Optional[int] = None, c: Optional[ArrayLike] = None
-) -> ArrayLike:
+def generate_sample(model: nnx.Module, key: ArrayLike, num_samples: int) -> ArrayLike:
     """Generate samples from latent representation.
 
     Args:
+        model: Model to generate samples from.
         key: The jax key for the random generation of sample.
-        num_samples: Number of samples to generate. Applies if no conditioning is provided.
-        c: Conditioning signal.
+        num_samples: Number of samples to generate.
 
     Returns:
         Generated samples.
     """
-    if c is None:
-        assert num_samples is not None
+    if model.encoder.flat_latent:
         z = jax.random.normal(key, (num_samples, model.encoder.latent_dim))
-        y = jax.jit(model.decode)(z)
     else:
+        z = jax.random.normal(key, (num_samples,) + model.encoder.shape_latent)
+    y = jax.jit(model.decode)(z)
+
+    return y
+
+
+def generate_conditioned_sample(model: nnx.Module, key: ArrayLike, c: ArrayLike) -> ArrayLike:
+    """Generate samples from latent representation using a conditioning property.
+
+    Args:
+        model: Model to generate samples from.
+        key: The jax key for the random generation of sample.
+        c: Conditioning property or signal.
+
+    Returns:
+        Generated samples.
+    """
+    if model.encoder.flat_latent:
         z = jax.random.normal(key, (c.shape[0], model.encoder.latent_dim))
-        y = jax.jit(model.decode_cond)(z, c)
+    else:
+        z = jax.random.normal(key, (c.shape[0],) + model.encoder.shape_latent)
+    y = jax.jit(model.decode_cond)(z, c)
+
     return y

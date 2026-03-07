@@ -11,7 +11,7 @@ import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
-from typing import Callable, Sequence, Tuple
+from typing import Callable, Optional, Sequence, Tuple
 
 from numpy import prod
 
@@ -149,6 +149,7 @@ class MLPEncoder(Encoder):
         super().__init__()
         self.dim_in = dim_in
         self.dim_latent = dim_latent
+        self.flat_latent = True  # For sample generation
 
         self.mlp = MLP(
             dim_in,
@@ -302,7 +303,8 @@ class ConvEncoder(Encoder):
         shape_in: Tuple[int],
         channels: int,
         filters_encoder: Sequence[int],
-        dim_latent: int,
+        flat_latent: bool = False,
+        dim_latent: Optional[int] = None,
         kernel_size: Tuple[int, int] = (3, 3),
         strides: Tuple[int, int] = (2, 2),
         activation_fn: Callable = nnx.leaky_relu,
@@ -315,32 +317,44 @@ class ConvEncoder(Encoder):
             channels: Number of channels of signal to encode.
             filters_encoder: List with number of filters per layer in the
                 CNN encoder.
+            flat_latent: Flag to specify if the latent representation should be flatten.
+            dim_latent: Latent dimension of encoder (only used if flag for flattening is
+                true and a meanigful value is provided).
             kernel_size: A shape tuple defining the size of the convolution
                 filters.
             strides: A shape tuple defining the size of strides in
                 convolution.
-            dim_latent: Latent dimension of encoder.
             activation_fn: Flax function defining the activation operation
                 to apply after each layer (except output layer).
             rngs: Random generation key.
         """
         super().__init__()
-        self.dim_latent = dim_latent
         self.cnn = CNN(
             channels,
             filters_encoder,
             kernel_size,
             strides,
             activation_fn,
-            flatten_final=True,
+            flatten_final=flat_latent,
+            conv_final=False,
             rngs=rngs,
         )
-        divisor = len(filters_encoder) ** 2
+        if strides[0] == 2:
+            divisor = len(filters_encoder) ** 2
+        elif strides[0] == 1:
+            divisor = 1
+
         d0 = shape_in[0] // divisor
         d1 = shape_in[1] // divisor
-        self.shape_pre_latent = (d0, d1, filters_encoder[-1])
-        size_latent = int(prod(self.shape_pre_latent))
-        self.linear_latent = nnx.Linear(size_latent, dim_latent, rngs=rngs)
+        self.shape_latent = (d0, d1, filters_encoder[-1])
+        self.flat_latent = flat_latent
+        if flat_latent and dim_latent is not None:
+            size_pre_latent = int(prod(self.shape_latent))
+            self.linear_latent = nnx.Linear(size_pre_latent, dim_latent, rngs=rngs)
+            self.dim_latent = dim_latent
+        else:
+            self.dim_latent = int(prod(self.shape_latent))
+            self.linear_latent = nnx.nn.activations.identity
 
     def __call__(self, x: ArrayLike) -> ArrayLike:
         return self.linear_latent(self.cnn(x))
@@ -355,11 +369,11 @@ class ConvDecoder(Decoder):
 
     def __init__(
         self,
-        dim_latent: int,
         filters_decoder: Sequence[int],
-        shape_pre_latent: Tuple[int],
-        shape_out: Tuple[int],
+        shape_latent: Tuple[int],
         channels: int,
+        flat_latent: bool = False,
+        dim_latent: Optional[int] = None,
         kernel_size: Tuple[int, int] = (3, 3),
         strides: Tuple[int, int] = (2, 2),
         activation_fn: Callable = nnx.leaky_relu,
@@ -369,13 +383,14 @@ class ConvDecoder(Decoder):
         """Initialize ConvDecoder model.
 
         Args:
-            dim_latent: Latent dimension to decode from.
             filters_decoder: List with number of filters per layer in the
                 convolutional decoder.
-            shape_pre_latent: Tuple (height, width, channels) of signal before flattening
+            shape_latent: Tuple (height, width, channels) of signal before flattening
                 for obtaining latent representation.
-            shape_out: Tuple (height, width) of signal to decode.
             channels: Number of channels of signal to decode.
+            flat_latent: Flag to specify if the latent representation is flat.
+            dim_latent: Latent dimension (only used if flag for flattening is
+                true and a meanigful value is provided).
             kernel_size: A shape tuple defining the size of the convolution
                 filters.
             strides: A shape tuple defining the size of strides in
@@ -386,12 +401,19 @@ class ConvDecoder(Decoder):
             rngs: Random generation key.
         """
         super().__init__()
-        self.dim_latent = dim_latent
-        self.shape_pre_latent = shape_pre_latent
-        len_latent = int(prod(self.shape_pre_latent))
-        self.initial_layer = nnx.Linear(dim_latent, len_latent, rngs=rngs)
+        self.shape_latent = shape_latent
+        self.flat_latent = flat_latent
+
+        if flat_latent and dim_latent is not None:
+            len_latent = int(prod(shape_latent))
+            self.initial_layer = nnx.Linear(dim_latent, len_latent, rngs=rngs)
+            self.dim_latent = dim_latent
+        else:
+            self.initial_layer = nnx.nn.activations.identity
+            self.dim_latent = int(prod(shape_latent))
+
         self.ctpnn = CTpNN(
-            shape_pre_latent[-1],
+            shape_latent[-1],
             channels,
             filters_decoder,
             kernel_size,
@@ -403,7 +425,8 @@ class ConvDecoder(Decoder):
 
     def __call__(self, x: ArrayLike) -> ArrayLike:
         x = self.initial_layer(x)
-        x = x.reshape((x.shape[0],) + self.shape_pre_latent)
+        if self.flat_latent:
+            x = x.reshape((x.shape[0],) + self.shape_latent)
         return self.ctpnn(x)
 
 
@@ -411,8 +434,9 @@ def ConvAutoEncoder(
     shape_in: Tuple[int],
     channels: int,
     filters_encoder: Sequence[int],
-    dim_latent: int,
     filters_decoder: Sequence[int],
+    flat_latent: bool = False,
+    dim_latent: Optional[int] = None,
     kernel_size_encoder: Tuple[int, int] = (3, 3),
     strides_encoder: Tuple[int, int] = (2, 2),
     activation_fn_encoder: Callable = nnx.leaky_relu,
@@ -429,9 +453,11 @@ def ConvAutoEncoder(
         channels: Number of channels of signal to encode.
         filters_encoder: List with number of filters per layer in the
                 CNN encoder.
-        dim_latent: Latent dimension of encoder.
         filters_decoder: List with number of filters per layer in the
                 convolutional decoder.
+        flat_latent: Flag to specify if the latent representation should be flatten.
+        dim_latent: Latent dimension of encoder (only used if flag for flattening is
+            true and a meanigful value is provided).
         kernel_size_encoder: A shape tuple defining the size of the convolution
                 filters for encoder.
         strides_encoder: A shape tuple defining the size of strides in
@@ -454,6 +480,7 @@ def ConvAutoEncoder(
         shape_in,
         channels,
         filters_encoder,
+        flat_latent,
         dim_latent,
         kernel_size_encoder,
         strides_encoder,
@@ -462,11 +489,11 @@ def ConvAutoEncoder(
     )
 
     decoder = ConvDecoder(
-        dim_latent,
         filters_decoder,
-        encoder.shape_pre_latent,
-        shape_in,
+        encoder.shape_latent,
         channels,
+        flat_latent,
+        dim_latent,
         kernel_size_decoder,
         strides_decoder,
         activation_fn=activation_fn_decoder,

@@ -23,7 +23,7 @@ class TestSet:
         self.widths_decoder = (10, 20)
         self.filters_encoder = (16, 8)
         self.filters_decoder = (8, 16)
-        self.shape_pre_latent = (4, 4, 4)
+        self.shape_latent = (4, 4, 4)
 
     def test_mlpencoder_default(self):
         try:
@@ -69,7 +69,6 @@ class TestSet:
                 shape_in=(self.N, self.N),
                 channels=self.chn,
                 filters_encoder=self.filters_encoder,
-                dim_latent=self.dim_latent,
                 rngs=nnx.Rngs(np.random.randint(10)),
             )
         except Exception as e:
@@ -79,10 +78,8 @@ class TestSet:
     def test_convdecoder_default(self):
         try:
             convdecoder = ConvDecoder(
-                dim_latent=self.dim_latent,
                 filters_decoder=self.filters_decoder,
-                shape_pre_latent=self.shape_pre_latent,
-                shape_out=(self.N, self.N),
+                shape_latent=self.shape_latent,
                 channels=self.chn,
                 rngs=nnx.Rngs(np.random.randint(10)),
             )
@@ -96,7 +93,6 @@ class TestSet:
                 shape_in=(self.N, self.N),
                 channels=self.chn,
                 filters_encoder=self.filters_encoder,
-                dim_latent=self.dim_latent,
                 filters_decoder=self.filters_decoder,
                 rngs=nnx.Rngs(np.random.randint(10)),
             )

@@ -26,7 +26,7 @@ class TestSet:
         self.widths_decoder = (10, 20)
         self.filters_encoder = (16, 8)
         self.filters_decoder = (8, 16)
-        self.shape_pre_latent = (4, 4, 4)
+        self.shape_latent = (4, 4, 4)
 
         self.mlpencoder1 = MLPEncoder(
             dim_in=self.N,
@@ -138,15 +138,16 @@ class TestSet:
                 rngs=nnx.Rngs(444),
             )
 
-    def test_convvae_default(self):
+    def test_convvae_flat_default(self):
         try:
             vae = ConvVarAutoEncoder(
                 shape_in=(self.N, self.N),
                 channels=self.chn,
                 filters_mean_encoder=self.filters_encoder,
                 filters_logvar_encoder=self.filters_encoder,
-                dim_latent=self.dim_latent,
                 filters_decoder=self.filters_decoder,
+                flat_latent=True,
+                dim_latent=self.dim_latent,
                 rngs=nnx.Rngs(4),
             )
         except Exception as e:
@@ -160,10 +161,11 @@ class TestSet:
                 channels=self.chn,
                 filters_mean_encoder=self.filters_encoder,
                 filters_logvar_encoder=self.filters_encoder,
-                dim_latent=self.dim_latent,
                 filters_decoder=self.filters_decoder,
+                flat_latent=True,
+                dim_latent=self.dim_latent,
                 conditional=True,
-                widths_condproc_encoder=self.widths_encoder,
+                filters_condproc_decoder=self.filters_encoder,
                 shape_cond_in=(self.N, self.N),
                 channels_cond=self.chn,
                 filters_cond_encoder=self.filters_encoder,
@@ -180,8 +182,9 @@ class TestSet:
                 channels=self.chn,
                 filters_mean_encoder=self.filters_encoder,
                 filters_logvar_encoder=self.filters_encoder,
-                dim_latent=self.dim_latent,
                 filters_decoder=self.filters_decoder,
+                flat_latent=True,
+                dim_latent=self.dim_latent,
                 conditional=True,
                 rngs=nnx.Rngs(444),
             )

@@ -13,6 +13,8 @@ warnings.simplefilter(action="ignore", category=FutureWarning)
 
 from typing import Callable, Optional, Sequence, Tuple
 
+from numpy import prod
+
 import jax.numpy as jnp
 from jax.random import PRNGKey, normal
 from jax.typing import ArrayLike
@@ -75,7 +77,13 @@ class VarEncoder(Encoder):
         # Store modules
         self.mean_block = mean_block
         self.logvar_block = logvar_block
+        # Store properties
         self.dim_latent = mean_block.latent_dim
+        self.flat_latent = mean_block.flat_latent
+        if self.flat_latent:
+            self.shape_latent = mean_block.latent_dim
+        else:
+            self.shape_latent = mean_block.shape_latent
 
     def __call__(self, x: ArrayLike) -> Tuple[ArrayLike, ArrayLike]:
         """Apply variational encoder.
@@ -178,8 +186,12 @@ class VAE(nnx.Module):
             The generated samples.
         """
         assert self.conditioner is not None
+        xshp = x.shape
         x = self.conditioner(x, c)
-        x = self.decoder(x)
+        if not self.decoder.flat_latent and x.shape != xshp:
+            x = self.decoder(x.reshape(xshp))
+        else:
+            x = self.decoder(x)
         return x
 
     def decode(self, x: ArrayLike):
@@ -327,21 +339,25 @@ def ConvVarAutoEncoder(
     channels: int,
     filters_mean_encoder: Sequence[int],
     filters_logvar_encoder: Sequence[int],
-    dim_latent: int,
     filters_decoder: Sequence[int],
     kernel_size_mean_encoder: Tuple[int, int] = (3, 3),
     kernel_size_logvar_encoder: Tuple[int, int] = (3, 3),
     kernel_size_decoder: Tuple[int, int] = (3, 3),
     activation_fn: Callable = nnx.leaky_relu,
     batch_norm: bool = False,
+    flat_latent: bool = False,
+    dim_latent: Optional[int] = None,
     conditional: bool = False,
-    widths_condproc_encoder: Optional[Tuple[int]] = None,
     mode_cond: str = "conv",
-    shape_cond_in: Tuple[int] = None,
-    channels_cond: int = None,
+    filters_condproc_decoder: Optional[Tuple[int]] = None,
+    kernel_size_condproc_decoder: Optional[Tuple[int, int]] = (3, 3),
+    strides_condproc_decoder: Optional[Tuple[int, int]] = (1, 1),
+    shape_cond_in: Optional[Tuple[int]] = None,
+    channels_cond: Optional[int] = None,
     filters_cond_encoder: Optional[Tuple[int]] = None,
-    kernel_size_cond_encoder: Tuple[int, int] = (3, 3),
-    dim_cond_in: int = None,
+    kernel_size_cond_encoder: Optional[Tuple[int, int]] = (3, 3),
+    widths_condproc_encoder: Optional[Tuple[int]] = None,
+    dim_cond_in: Optional[int] = None,
     widths_cond_encoder: Optional[Tuple[int]] = None,
     rngs: nnx.Rngs = nnx.Rngs(0),
 ):
@@ -354,7 +370,6 @@ def ConvVarAutoEncoder(
                 CNN mean encoder.
         filters_logvar_encoder: List with number of filters per layer in the
                 CNN logvar encoder.
-        dim_latent: Latent dimension of encoder.
         filters_decoder: List with number of filters per layer in the
                 convolutional decoder.
         kernel_size_mean_encoder: A shape tuple defining the size of the convolution
@@ -366,19 +381,28 @@ def ConvVarAutoEncoder(
         activation_fn: Flax function defining the activation operation
             to apply after each layer (except output layer) in encoder.
         batch_norm: Flag to indicate if batch norm is to be applied or not.
+        flat_latent: Flag to specify if the latent representation should be flatten.
+        dim_latent: Latent dimension of encoder (only used if flag for flattening is
+            true and a meanigful value is provided).
         conditional: Flag to specify if decoding will be
             conditioned on a given property (e.g. class membership).
-        widths_condproc_encoder: List with number of neurons per layer in the
-            MLP conditional processing encoder.
         mode_cond: Mode of model for conditional signal. It can be conv, requiring
             shape, channels, filters and kernel size. If MLP, it requires dim in and
             widths for layers.
+        filters_condproc_decoder: List with number of filters per layer in the
+            CNN conditional processing decoder (if using conv).
+        kernel_size_condproc_decoder: A shape tuple defining the size of the convolution
+            filters for the conditional processing decoder (if using conv).
+        strides_condproc_decoder: A shape tuple defining the size of strides in
+            convolution for the conditional processing decoder (if using conv).
         shape_cond_in: Tuple (height, width) of conditioning signal (if using conv).
         channels_cond: Number of channels of conditioning signal (if using conv).
         filters_cond_encoder: List with number of filters per layer in the
             CNN conditional property encoder (if using conv).
         kernel_size_cond_encoder: A shape tuple defining the size of the convolution
             filters for the conditional property encoder (if using conv).
+        widths_condproc_encoder: List with number of neurons per layer in the
+            MLP conditional processing encoder (if using MLP).
         dim_cond_in: Dimension of conditioning signal (if using MLP).
         widths_cond_encoder: List with number of neurons per layer in the
             MLP conditional property encoder (if using MLP).
@@ -394,6 +418,7 @@ def ConvVarAutoEncoder(
         shape_in,
         channels,
         filters_mean_encoder,
+        flat_latent,
         dim_latent,
         kernel_size_mean_encoder,
         strides,
@@ -404,6 +429,7 @@ def ConvVarAutoEncoder(
         shape_in,
         channels,
         filters_logvar_encoder,
+        flat_latent,
         dim_latent,
         kernel_size_logvar_encoder,
         strides,
@@ -418,11 +444,11 @@ def ConvVarAutoEncoder(
 
     # Build decoder
     decoder = ConvDecoder(
-        dim_latent,
         filters_decoder,
-        mean_block.shape_pre_latent,
-        shape_in,
+        mean_block.shape_latent,
         channels,
+        flat_latent,
+        dim_latent,
         kernel_size_decoder,
         strides,
         activation_fn=activation_fn,
@@ -432,28 +458,39 @@ def ConvVarAutoEncoder(
 
     conditioner = None
     if conditional:
-        assert widths_condproc_encoder is not None
+
         if mode_cond == "conv":
             assert shape_cond_in is not None
             assert channels_cond is not None
+            assert filters_condproc_decoder is not None
             assert filters_cond_encoder is not None
         else:
             assert dim_cond_in is not None
+            assert widths_condproc_encoder is not None
             assert widths_cond_encoder is not None
+
+        if dim_latent is None:
+            dim_latent = int(prod(mean_block.shape_latent))
+
         # Build components for conditioning
-        proc_block = MLPEncoder(
-            dim_latent,
-            widths_condproc_encoder,
-            dim_latent,
-            activation_fn,
-            batch_norm,
-            rngs=rngs,
-        )
         if mode_cond == "conv":
+            proc_block = ConvDecoder(
+                filters_condproc_decoder,
+                mean_block.shape_latent,
+                mean_block.shape_latent[-1],
+                flat_latent,
+                dim_latent,
+                kernel_size_condproc_decoder,
+                strides_condproc_decoder,
+                activation_fn=activation_fn,
+                batch_norm=batch_norm,
+                rngs=rngs,
+            )
             cond_block = ConvEncoder(
                 shape_cond_in,
                 channels_cond,
                 filters_cond_encoder,
+                flat_latent,
                 dim_latent,
                 kernel_size_cond_encoder,
                 strides,
@@ -461,6 +498,14 @@ def ConvVarAutoEncoder(
                 rngs=rngs,
             )
         else:
+            proc_block = MLPEncoder(
+                dim_latent,
+                widths_condproc_encoder,
+                dim_latent,
+                activation_fn,
+                batch_norm,
+                rngs=rngs,
+            )
             cond_block = MLPEncoder(
                 dim_cond_in,
                 widths_cond_encoder,
