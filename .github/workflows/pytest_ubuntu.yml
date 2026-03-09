@@ -9,7 +9,12 @@ on:
     branches: [ main ]
 
   workflow_dispatch:
-
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
+        required: false
+        default: false
 jobs:
 
   test:
@@ -72,6 +77,10 @@ jobs:
       # Install package to be tested
       - name: Install package to be tested
         run: pip install -e .
+      # Enable tmate debugging of manually-triggered workflows if the input option was provided
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
       # Run unit tests
       - name: Run main unit tests
         run: |
