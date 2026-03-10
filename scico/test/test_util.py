@@ -91,11 +91,10 @@ def test_url_get():
     else:
         assert not uget.getvalue().find(b"SCICO") == -1
 
+    np.testing.assert_raises(ValueError, url_get, url, maxtry=-1)
+
     url = "about:blank"
     np.testing.assert_raises(urlerror.URLError, url_get, url)
-
-    url = "https://github.com/lanl/scico/blob/main/README.md"
-    np.testing.assert_raises(ValueError, url_get, url, maxtry=-1)
 
 
 def test_check_for_tracer():
