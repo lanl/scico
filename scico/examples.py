@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2025 by SCICO Developers
+# Copyright (C) 2021-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -180,9 +180,10 @@ def get_ucb_diffusercam_data(path: str, verbose: bool = False):  # pragma: no co
         verbose: Flag indicating whether to print status messages.
     """
 
-    # data source URL and filenames
+    # data source URL, filenames, and request header
     data_base_url = "https://github.com/Waller-Lab/DiffuserCam/blob/master/example_data/"
     data_files = ["example_psfs.mat", "example_raw.png"]
+    headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64)", "Referer": data_base_url}
 
     # ensure path directory exists
     if not os.path.isdir(path):
@@ -194,7 +195,7 @@ def get_ucb_diffusercam_data(path: str, verbose: bool = False):  # pragma: no co
     for data_file in data_files:
         if verbose:
             print(f"Downloading {data_file} from {data_base_url}")
-        data = util.url_get(data_base_url + data_file + "?raw=true")
+        data = util.url_get(data_base_url + data_file + "?raw=true", headers=headers)
         f = open(os.path.join(temp_dir.name, data_file), "wb")
         f.write(data.read())
         f.close()
