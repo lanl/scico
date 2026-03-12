@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2025 by SCICO Developers
+# Copyright (C) 2020-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -146,11 +146,14 @@ def check_for_tracer(func: Callable) -> Callable:
     return wrapper
 
 
-def url_get(url: str, maxtry: int = 3, timeout: int = 10) -> io.BytesIO:  # pragma: no cover
+def url_get(
+    url: str, headers: Optional[dict] = None, maxtry: int = 3, timeout: int = 10
+) -> io.BytesIO:  # pragma: no cover
     """Get content of a file via a URL.
 
     Args:
         url: URL of the file to be downloaded.
+        headers: Dict of header strings for request.
         maxtry: Maximum number of download retries.
         timeout: Timeout in seconds for blocking operations.
 
@@ -161,12 +164,15 @@ def url_get(url: str, maxtry: int = 3, timeout: int = 10) -> io.BytesIO:  # prag
         ValueError: If the maxtry parameter is not greater than zero.
         urllib.error.URLError: If the file cannot be downloaded.
     """
-
     if maxtry <= 0:
         raise ValueError("Argument 'maxtry' should be greater than zero.")
+
+    if headers is None:
+        headers = {}
+    req = urlrequest.Request(url, headers=headers)
     for ntry in range(maxtry):
         try:
-            rspns = urlrequest.urlopen(url, timeout=timeout)
+            rspns = urlrequest.urlopen(req, timeout=timeout)
             cntnt = rspns.read()
             break
         except urlerror.URLError as e:
