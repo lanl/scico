@@ -79,13 +79,22 @@ def _internet_connected(host="8.8.8.8", port=53, timeout=3):
 @pytest.mark.skipif(not _internet_connected(), reason="No internet connection")
 def test_url_get():
     url = "https://github.com/lanl/scico/blob/main/README.md"
-    assert not url_get(url).getvalue().find(b"SCICO") == -1
+    headers = {
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64)",
+        "Referer": "https://github.com/lanl/scico/blob/main",
+    }
+    try:
+        uget = url_get(url, headers=headers)
+    except urlerror.HTTPError as e:
+        if e.code != 429:
+            raise
+    else:
+        assert not uget.getvalue().find(b"SCICO") == -1
+
+    np.testing.assert_raises(ValueError, url_get, url, maxtry=-1)
 
     url = "about:blank"
     np.testing.assert_raises(urlerror.URLError, url_get, url)
-
-    url = "https://github.com/lanl/scico/blob/main/README.md"
-    np.testing.assert_raises(ValueError, url_get, url, -1)
 
 
 def test_check_for_tracer():

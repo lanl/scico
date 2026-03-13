@@ -26,6 +26,12 @@ if have_orbax:
 
     logging.getLogger("absl").addFilter(logging.Filter("could not be identified as a temporary"))
 
+# remove the handler that orbax.checkpoint adds to the root logger.
+# see https://github.com/google/orbax/issues/1951
+for h in logging.root.handlers.copy():
+    h.close()
+    logging.root.removeHandler(h)
+
 from .state import TrainState
 from .typed_dict import ConfigDict
 
