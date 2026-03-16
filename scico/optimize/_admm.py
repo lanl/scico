@@ -328,7 +328,7 @@ class ADMM(Optimizer):
         Args:
             x0: Initial value of :math:`\mb{x}`.
         """
-        u_list = [snp.zeros(Ci.output_shape, dtype=Ci.output_dtype) for Ci in self.C_list]
+        u_list = [snp.zeros(zi.shape, dtype=zi.dtype, device=zi.sharding) for zi in self.z_list]
         return u_list
 
     def step(self):
