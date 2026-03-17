@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2025 by SCICO Developers
+# Copyright (C) 2020-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -209,7 +209,7 @@ class LinearSubproblemSolver(SubproblemSolver):
                     f"got {type(admm.f.A)}."
                 )
 
-        super().internal_init(admm)
+        super().internal_init(admm)  # call method of SubproblemSolver via GenericSubproblemSolver
 
         # Set lhs_op =  \sum_i rho_i * Ci.H @ Ci
         # Use reduce as the initialization of this sum is messy otherwise
@@ -336,7 +336,7 @@ class MatrixSubproblemSolver(LinearSubproblemSolver):
                     f"got {type(Ci)}."
                 )
 
-        super().internal_init(admm)
+        SubproblemSolver.internal_init(self, admm)
 
         if admm.f is None:
             A = snp.zeros(admm.C_list[0].input_shape[0], dtype=admm.C_list[0].input_dtype)
@@ -425,7 +425,8 @@ class CircularConvolveSolver(LinearSubproblemSolver):
 
         if self.ndims is None:
             self.ndims = auto_ndims
-        super().internal_init(admm)
+
+        SubproblemSolver.internal_init(self, admm)
 
         self.real_result = is_real_dtype(admm.C_list[0].input_dtype)
 
@@ -589,7 +590,8 @@ class FBlockCircularConvolveSolver(LinearSubproblemSolver):
                     "FBlockCircularConvolveSolver requires f.A to be a composition of Sum "
                     f"and CircularConvolve linear operators; got {type(admm.f.A)}."
                 )
-        super().internal_init(admm)
+
+        SubproblemSolver.internal_init(self, admm)
 
         assert isinstance(self.admm.f, SquaredL2Loss)
         assert isinstance(self.admm.f.A, ComposedLinearOperator)
@@ -761,7 +763,7 @@ class G0BlockCircularConvolveSolver(SubproblemSolver):
                 f"and CircularConvolve linear operators; got {type(admm.C_list[0])}."
             )
 
-        super().internal_init(admm)
+        SubproblemSolver.internal_init(self, admm)
 
         assert isinstance(self.admm.g_list[0], SquaredL2Loss)
         assert isinstance(self.admm.C_list[0], ComposedLinearOperator)
