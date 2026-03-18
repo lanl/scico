@@ -783,7 +783,11 @@ class MatrixATADSolver:
         N, M = A.shape
         if N < M and D.ndim <= 1:
             D2 = D if D.ndim == 0 else D[:, snp.newaxis]
-            G = snp.diag(1.0 / W) + A @ (A.T.conj() / D2)
+            if W.ndim == 1:
+                G = snp.diag(1.0 / W) + A @ (A.T.conj() / D2)
+            else:  # W is 0 dimensional (scalar equivalent)
+                G = A @ (A.T.conj() / D2)
+                G = jnp.fill_diagonal(G, G.diagonal() + (1.0 / W), inplace=False)
         else:
             W2 = W if W.ndim == 0 else W[:, snp.newaxis]
             if D.ndim == 1:
@@ -820,12 +824,12 @@ class MatrixATADSolver:
         else:
             fact_solve = lambda x: jsl.lu_solve(self.factor, x, trans=0, check_finite=check_finite)
 
-        if b.ndim == 1:
+        if b.ndim <= 1:
             D = self.D
         else:
             D = self.D[:, snp.newaxis]
         N, M = self.A.shape
-        if N < M and self.D.ndim == 1:
+        if N < M and self.D.ndim <= 1:
             w = fact_solve(self.A @ (b / D))
             x = (b - (self.A.T.conj() @ w)) / D
         else:
