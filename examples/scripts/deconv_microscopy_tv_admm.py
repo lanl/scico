@@ -28,10 +28,31 @@ operator, $\iota_{\mathrm{NN}}$ is the indicator function of the
 non-negativity constraint, and $\mathbf{x}$ is the deconvolved image.
 """
 
+# isort: off
+import os
+
+# Configure 4 devices if running on CPU (no effect if GPUs available).
+os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=4"
+# isort: on
+
+import numpy as np
+
+import jax
+from jax.sharding import AxisType, NamedSharding
+from jax.sharding import PartitionSpec as P
+
 import scico.numpy as snp
 from scico import functional, linop, loss, plot, util
 from scico.examples import downsample_volume, epfl_deconv_data, tile_volume_slices
-from scico.optimize.admm import ADMM, CircularConvolveSolver
+from scico.numpy.util import pad_to_divisible
+from scico.optimize.admm import ADMM, CircularConvolve3DSolver
+
+try:
+    import jax_smi
+
+    have_jax_smi = True
+except ImportError:
+    have_jax_smi = False
 
 """
 Get and preprocess data. The data is downsampled to limit the memory
@@ -56,11 +77,65 @@ psf /= psf.sum()
 
 
 """
-Pad data and create mask.
+Pad data to avoid boundary artifacts and create mask.
 """
-padding = [[0, p] for p in snp.array(psf.shape) - 1]
-y_pad = snp.pad(y, padding)
-mask = snp.pad(snp.ones_like(y), padding)
+padding = [[0, p] for p in np.array(psf.shape) - 1]
+y_pad = np.pad(y, padding)
+mask = np.pad(np.ones_like(y), padding)
+
+
+"""
+Further pad arrays to allow for sharding.
+"""
+num_dev = jax.device_count()
+y_pad, _ = pad_to_divisible(
+    y_pad,
+    (0, 2),
+    (
+        num_dev,
+        num_dev,
+    ),
+)
+mask, _ = pad_to_divisible(
+    mask,
+    (0, 2),
+    (
+        num_dev,
+        num_dev,
+    ),
+)
+psf, _ = pad_to_divisible(
+    psf,
+    (0, 2),
+    (
+        num_dev,
+        num_dev,
+    ),
+)
+
+
+"""
+Create mesh and sharding and sharded jax arrays.
+"""
+num_dev = jax.device_count()
+mesh = jax.make_mesh(
+    (num_dev, 1),
+    ("a", "b"),
+    axis_types=(
+        AxisType.Auto,
+        AxisType.Auto,
+    ),
+)
+shard = NamedSharding(mesh, P("a"))  # For most arrays
+
+# If jax_smi module installed, initialize it to allow memory usage tracking
+# using jax-smi
+if have_jax_smi:
+    jax_smi.initialise_tracking()
+
+y_pad = jax.device_put(y_pad, shard)
+mask = jax.device_put(mask, shard)
+psf = jax.device_put(psf, shard)
 
 
 """
@@ -77,7 +152,7 @@ maxiter = 100  # number of ADMM iterations
 Create operators.
 """
 M = linop.Diagonal(mask)
-C0 = linop.CircularConvolve(h=psf, input_shape=mask.shape, h_center=snp.array(psf.shape) / 2 - 0.5)
+C0 = linop.CircularConvolve3D(h=psf, input_shape=mask.shape, h_center=np.array(psf.shape) / 2 - 0.5)
 C1 = linop.FiniteDifference(input_shape=mask.shape, circular=True)
 C2 = linop.Identity(mask.shape)
 
@@ -101,14 +176,13 @@ solver = ADMM(
     maxiter=maxiter,
     itstat_options={"display": True, "period": 10},
     x0=y_pad,
-    subproblem_solver=CircularConvolveSolver(),
+    subproblem_solver=CircularConvolve3DSolver(shard),
 )
 
 print("Solving on %s\n" % util.device_info())
-solver.solve()
+x_pad = solver.solve()
 solve_stats = solver.itstat_object.history(transpose=True)
-x_pad = solver.x
-x = x_pad[: y.shape[0], : y.shape[1], : y.shape[2]]
+x = np.array(x_pad)[: y.shape[0], : y.shape[1], : y.shape[2]]
 
 
 """
