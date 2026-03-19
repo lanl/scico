@@ -265,7 +265,7 @@ def jax_indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int, ...]:
     return tuple(t.item() for t in f(shape, idx))  # type: ignore
 
 
-def _padding(n: int, shape: Shape, axes: Sequence[int], divisors: Sequence[float]) -> int:
+def _padding(n: int, shape: Shape, axes: Sequence[int], divisors: Sequence[int]) -> int:
     """Compute padding to make shape divisible by specified factors.
 
     Compute the padding necessary to make array axes divisible according
@@ -289,7 +289,7 @@ def _padding(n: int, shape: Shape, axes: Sequence[int], divisors: Sequence[float
 
 
 def pad_to_divisible(
-    x: np.ndarray, axes: Sequence[int], divisors: Sequence[float]
+    x: np.ndarray, axes: Sequence[int], divisors: Sequence[int]
 ) -> Tuple[np.ndarray, Tuple[slice]]:
     """Pad array to make shape divisible by specified factors.
 
