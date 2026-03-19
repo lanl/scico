@@ -51,9 +51,6 @@ class CircularConvolve3D(CircularConvolve):
         Args:
             h: Array of filters.
             input_shape: Shape of input array.
-            ndims: Number of (trailing) dimensions of the input and `h`
-                involved in the convolution. Defaults to the number of
-                dimensions in the input.
             input_dtype: `dtype` for input argument. Defaults to
                 :attr:`~numpy.float32`.
             h_is_dft: Flag indicating whether `h` is in the DFT domain.
@@ -65,7 +62,7 @@ class CircularConvolve3D(CircularConvolve):
                 functions of the :class:`LinearOperator`.
         """
         if not have_jaxdecomp:
-            raise RuntimeError("Package jaxdecomp is required for use of this function.")
+            raise RuntimeError("Package jaxdecomp is required for use of class CircularConvolve3D.")
 
         self.ndims = 3
 
@@ -102,7 +99,6 @@ class CircularConvolve3D(CircularConvolve):
             input_dtype=input_dtype,
             output_dtype=output_dtype,
             jit=jit,
-            **kwargs,
         )
 
     def _eval(self, x: snp.Array) -> snp.Array:
