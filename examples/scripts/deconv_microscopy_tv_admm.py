@@ -88,30 +88,11 @@ mask = np.pad(np.ones_like(y), padding)
 Further pad arrays to allow for sharding.
 """
 num_dev = jax.device_count()
-y_pad, _ = pad_to_divisible(
-    y_pad,
-    (0, 2),
-    (
-        num_dev,
-        num_dev,
-    ),
-)
-mask, _ = pad_to_divisible(
-    mask,
-    (0, 2),
-    (
-        num_dev,
-        num_dev,
-    ),
-)
-psf, _ = pad_to_divisible(
-    psf,
-    (0, 2),
-    (
-        num_dev,
-        num_dev,
-    ),
-)
+axes = (0, 2)  # Axis 2 inclued because the CircularConvolve3D FFT transposes arrays.
+divisors = (num_dev, num_dev)
+y_pad, _ = pad_to_divisible(y_pad, axes, divisors)
+mask, _ = pad_to_divisible(mask, axes, divisors)
+psf, _ = pad_to_divisible(psf, axes, divisors)
 
 
 """
@@ -129,7 +110,7 @@ mesh = jax.make_mesh(
 shard = NamedSharding(mesh, P("a"))  # For most arrays
 
 # If jax_smi module installed, initialize it to allow memory usage tracking
-# using jax-smi
+# using jax-smi.
 if have_jax_smi:
     jax_smi.initialise_tracking()
 
