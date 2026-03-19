@@ -12,7 +12,9 @@ from typing import Optional, Sequence, Tuple, Union
 
 import numpy as np
 
+from jax import Device
 from jax.dtypes import result_type
+from jax.sharding import Sharding
 
 import scico.numpy as snp
 from scico.numpy.util import is_nested
@@ -254,7 +256,11 @@ class CircularConvolve(LinearOperator):
 
     @staticmethod
     def from_operator(
-        H: Operator, ndims: Optional[int] = None, center: Optional[Shape] = None, jit: bool = True
+        H: Operator,
+        ndims: Optional[int] = None,
+        center: Optional[Shape] = None,
+        device: Optional[Union[Device, Sharding]] = None,
+        jit: bool = True,
     ):
         r"""Construct a CircularConvolve version of a given operator.
 
@@ -267,6 +273,8 @@ class CircularConvolve(LinearOperator):
             center: Location at which to place the Kronecker delta. For
               LSI inputs, this will not matter. Defaults to the center
               of H.input_shape, i.e., (n_1 // 2, n_2 // 2, ...).
+            device: Device or sharding for array used to construct the
+              filter impulse response.
             jit: If ``True``, jit the resulting `CircularConvolve`.
         """
 
