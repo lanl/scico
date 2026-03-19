@@ -11,3 +11,4 @@ pydantic
 orbax-checkpoint>=0.5.0
 bm3d>=4.0.0
 bm4d>=4.2.2
+jaxdecomp
