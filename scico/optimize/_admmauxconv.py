@@ -5,20 +5,29 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""ADMM auxiliary classes."""
+"""ADMM auxiliary classes (convolutional subproblem solvers)."""
 
 # Needed to annotate a class method that returns the encapsulating class;
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
 from functools import reduce
-from typing import Optional, Union
+from typing import Optional, Type, Union
+
+try:
+    from jaxdecomp.fft import pfft3d, pifft3d
+
+    have_jaxdecomp = True
+except ImportError:
+    have_jaxdecomp = False
+
 
 import scico.numpy as snp
 import scico.optimize.admm as soa
 from scico.functional import ZeroFunctional
 from scico.linop import (
     CircularConvolve,
+    CircularConvolve3D,
     ComposedLinearOperator,
     Identity,
 )
@@ -52,7 +61,10 @@ class CircularConvolveSolver(LinearSubproblemSolver):
     """
 
     def __init__(
-        self, ndims: Optional[int] = None, device: Optional[Union[Device, Sharding]] = None
+        self,
+        ndims: Optional[int] = None,
+        conv_class: Type[CircularConvolve] = CircularConvolve,
+        device: Optional[Union[Device, Sharding]] = None,
     ):
         """Initialize a :class:`CircularConvolveSolver` object.
 
@@ -65,14 +77,17 @@ class CircularConvolveSolver(LinearSubproblemSolver):
                 :code:`C_i` are of type :class:`.CircularConvolve`. When
                 not ``None``, this parameter overrides the automatic
                 mechanism.
+            conv_class: Circular convolution linear operator class for
+                convolution operations.
             device: Device or sharding for new arrays.
         """
         self.ndims = ndims
+        self.conv_class = conv_class
         self.device = device
 
     def internal_init(self, admm: soa.ADMM):
         if admm.f is None:
-            is_cc = [isinstance(C, CircularConvolve) for C in admm.C_list]
+            is_cc = [isinstance(C, self.conv_class) for C in admm.C_list]
             if any(is_cc):
                 auto_ndims = admm.C_list[is_cc.index(True)].ndims
             else:
@@ -83,12 +98,12 @@ class CircularConvolveSolver(LinearSubproblemSolver):
                     "CircularConvolveSolver requires f to be a scico.loss.SquaredL2Loss; "
                     f"got {type(admm.f)}."
                 )
-            if not isinstance(admm.f.A, (CircularConvolve, Identity)):
+            if not isinstance(admm.f.A, (self.conv_class, Identity)):
                 raise TypeError(
-                    "CircularConvolveSolver requires f.A to be a scico.linop.CircularConvolve "
+                    "CircularConvoleSolver requires f.A to be a scico.linop.self.conv_class "
                     f"or scico.linop.Identity; got {type(admm.f.A)}."
                 )
-            auto_ndims = admm.f.A.ndims if isinstance(admm.f.A, CircularConvolve) else None
+            auto_ndims = admm.f.A.ndims if isinstance(admm.f.A, self.conv_class) else None
 
         if self.ndims is None:
             self.ndims = auto_ndims
@@ -100,7 +115,7 @@ class CircularConvolveSolver(LinearSubproblemSolver):
         # All of the C operators are assumed to be linear and shift invariant
         # but this is not checked.
         lhs_op_list = [
-            rho * CircularConvolve.from_operator(C.gram_op, ndims=self.ndims, device=self.device)
+            rho * self.conv_class.from_operator(C.gram_op, ndims=self.ndims, device=self.device)
             for rho, C in zip(admm.rho_list, admm.C_list)
         ]
         A_lhs = reduce(lambda a, b: a + b, lhs_op_list)
@@ -108,7 +123,7 @@ class CircularConvolveSolver(LinearSubproblemSolver):
             A_lhs += (
                 2.0
                 * admm.f.scale
-                * CircularConvolve.from_operator(
+                * self.conv_class.from_operator(
                     admm.f.A.gram_op, ndims=self.ndims, device=self.device
                 )
             )
@@ -128,6 +143,50 @@ class CircularConvolveSolver(LinearSubproblemSolver):
         rhs_dft = snp.fft.fftn(rhs, axes=self.A_lhs.x_fft_axes)
         x_dft = rhs_dft / self.A_lhs.h_dft
         x = snp.fft.ifftn(x_dft, axes=self.A_lhs.x_fft_axes)
+        if self.real_result:
+            x = x.real
+
+        return x
+
+
+class CircularConvolve3DSolver(CircularConvolveSolver):
+    """Solver for 3D linear operators diagonalized in the DFT domain.
+
+    This class specializes :class:`CircularConvolveSolver` for
+    three-dimensional arrays, with the advantage of making use of
+    sharding-efficient FFT operations (including via use of
+    :class:`CircularConvolve3D` rather than :class:`CircularConvolve`.
+    """
+
+    def __init__(
+        self,
+        device: Optional[Union[Device, Sharding]] = None,
+    ):
+        """Initialize a :class:`CircularConvolve3DSolver` object.
+
+        Args:
+            device: Device or sharding for new arrays.
+        """
+        if not have_jaxdecomp:
+            raise RuntimeError(
+                "Package jaxdecomp is required for use of class CircularConvolve3DSolver."
+            )
+
+        super().__init__(ndims=3, conv_class=CircularConvolve3D, device=device)
+
+    def solve(self, x0: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
+        """Solve the ADMM step.
+
+        Args:
+            x0: Initial value (unused, has no effect).
+
+        Returns:
+            Computed solution.
+        """
+        rhs = self.compute_rhs()
+        rhs_dft = pfft3d(rhs)
+        x_dft = rhs_dft / self.A_lhs.h_dft
+        x = pifft3d(x_dft)
         if self.real_result:
             x = x.real
 

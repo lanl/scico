@@ -5,7 +5,8 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""ADMM auxiliary classes."""
+"""ADMM auxiliary classes (base class, generic, linear, and matrix
+subproblem solvers)."""
 
 # Needed to annotate a class method that returns the encapsulating class;
 # see https://www.python.org/dev/peps/pep-0563/
