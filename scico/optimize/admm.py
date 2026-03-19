@@ -18,6 +18,7 @@ from ._admmaux import (
 )
 from ._admmauxconv import (
     CircularConvolveSolver,
+    CircularConvolve3DSolver,
     FBlockCircularConvolveSolver,
     G0BlockCircularConvolveSolver,
 )
@@ -29,6 +30,7 @@ __all__ = [
     "LinearSubproblemSolver",
     "MatrixSubproblemSolver",
     "CircularConvolveSolver",
+    "CircularConvolve3DSolver",
     "FBlockCircularConvolveSolver",
     "G0BlockCircularConvolveSolver",
     "ADMM",
