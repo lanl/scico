@@ -15,7 +15,9 @@ from functools import reduce
 from typing import Any, Optional, Union
 
 import jax
+from jax import Device
 from jax.scipy.sparse.linalg import cg as jax_cg
+from jax.sharding import Sharding
 
 import scico.numpy as snp
 import scico.optimize.admm as soa
@@ -154,7 +156,12 @@ class LinearSubproblemSolver(SubproblemSolver):
             :math:`\mb{x}` update step.
     """
 
-    def __init__(self, cg_kwargs: Optional[dict[str, Any]] = None, cg_function: str = "scico"):
+    def __init__(
+        self,
+        cg_kwargs: Optional[dict[str, Any]] = None,
+        cg_function: str = "scico",
+        device: Optional[Union[Device, Sharding]] = None,
+    ):
         """Initialize a :class:`LinearSubproblemSolver` object.
 
         Args:
@@ -174,6 +181,8 @@ class LinearSubproblemSolver(SubproblemSolver):
                 The "scico" option is faster on small-scale problems, but
                 slower on large-scale problems where the forward
                 operator is written entirely in jax.
+           device: Device or sharding for array constructed in
+                :func:`compute_rhs`.
         """
 
         default_cg_kwargs = {"tol": 1e-4, "maxiter": 100}
@@ -190,6 +199,7 @@ class LinearSubproblemSolver(SubproblemSolver):
                 f"Argument 'cg_function' must be one of 'jax', 'scico'; got {cg_function}."
             )
         self.info = None
+        self.device = device
 
     def internal_init(self, admm: soa.ADMM):
         if admm.f is not None:
@@ -232,7 +242,7 @@ class LinearSubproblemSolver(SubproblemSolver):
         """
 
         C0 = self.admm.C_list[0]
-        rhs = snp.zeros(C0.input_shape, C0.input_dtype)
+        rhs = snp.zeros(C0.input_shape, C0.input_dtype, device=self.device)
 
         if self.admm.f is not None:
             ATWy = self.admm.f.A.adj(self.admm.f.W.diagonal * self.admm.f.y)  # type: ignore
@@ -297,7 +307,12 @@ class MatrixSubproblemSolver(LinearSubproblemSolver):
             :class:`.MatrixATADSolver` initialization.
     """
 
-    def __init__(self, check_solve: bool = False, solve_kwargs: Optional[dict[str, Any]] = None):
+    def __init__(
+        self,
+        check_solve: bool = False,
+        solve_kwargs: Optional[dict[str, Any]] = None,
+        device: Optional[Union[Device, Sharding]] = None,
+    ):
         """Initialize a :class:`MatrixSubproblemSolver` object.
 
         Args:
@@ -305,12 +320,15 @@ class MatrixSubproblemSolver(LinearSubproblemSolver):
                 solve.
             solve_kwargs: Dictionary of arguments for solver
                 :class:`.MatrixATADSolver` initialization.
+            device: Device or sharding for array constructed in
+                :func:`compute_rhs`.
         """
         self.check_solve = check_solve
         default_solve_kwargs = {"cho_factor": False}
         if solve_kwargs:
             default_solve_kwargs.update(solve_kwargs)
         self.solve_kwargs = default_solve_kwargs
+        self.device = device
 
     def internal_init(self, admm: soa.ADMM):
         if admm.f is not None:

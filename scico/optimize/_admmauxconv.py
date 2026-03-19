@@ -51,7 +51,9 @@ class CircularConvolveSolver(LinearSubproblemSolver):
             equation to be solved.
     """
 
-    def __init__(self, ndims: Optional[int] = None):
+    def __init__(
+        self, ndims: Optional[int] = None, device: Optional[Union[Device, Sharding]] = None
+    ):
         """Initialize a :class:`CircularConvolveSolver` object.
 
         Args:
@@ -63,8 +65,10 @@ class CircularConvolveSolver(LinearSubproblemSolver):
                 :code:`C_i` are of type :class:`.CircularConvolve`. When
                 not ``None``, this parameter overrides the automatic
                 mechanism.
+            device: Device or sharding for new arrays.
         """
         self.ndims = ndims
+        self.device = device
 
     def internal_init(self, admm: soa.ADMM):
         if admm.f is None:
@@ -96,7 +100,7 @@ class CircularConvolveSolver(LinearSubproblemSolver):
         # All of the C operators are assumed to be linear and shift invariant
         # but this is not checked.
         lhs_op_list = [
-            rho * CircularConvolve.from_operator(C.gram_op, ndims=self.ndims)
+            rho * CircularConvolve.from_operator(C.gram_op, ndims=self.ndims, device=self.device)
             for rho, C in zip(admm.rho_list, admm.C_list)
         ]
         A_lhs = reduce(lambda a, b: a + b, lhs_op_list)
@@ -104,7 +108,9 @@ class CircularConvolveSolver(LinearSubproblemSolver):
             A_lhs += (
                 2.0
                 * admm.f.scale
-                * CircularConvolve.from_operator(admm.f.A.gram_op, ndims=self.ndims)
+                * CircularConvolve.from_operator(
+                    admm.f.A.gram_op, ndims=self.ndims, device=self.device
+                )
             )
 
         self.A_lhs = A_lhs
@@ -228,16 +234,23 @@ class FBlockCircularConvolveSolver(LinearSubproblemSolver):
     :math:`\hat{A}`.
     """
 
-    def __init__(self, ndims: Optional[int] = None, check_solve: bool = False):
+    def __init__(
+        self,
+        ndims: Optional[int] = None,
+        check_solve: bool = False,
+        device: Optional[Union[Device, Sharding]] = None,
+    ):
         """Initialize a :class:`FBlockCircularConvolveSolver` object.
 
         Args:
             check_solve: If ``True``, compute solver accuracy after each
                 solve.
+            device: Device or sharding for new arrays.
         """
         self.ndims = ndims
         self.check_solve = check_solve
         self.accuracy: Optional[float] = None
+        self.device = device
 
     def internal_init(self, admm: soa.ADMM):
         if admm.f is None:
@@ -262,7 +275,7 @@ class FBlockCircularConvolveSolver(LinearSubproblemSolver):
         # All of the C operators are assumed to be linear and shift invariant
         # but this is not checked.
         c_gram_list = [
-            rho * CircularConvolve.from_operator(C.gram_op, ndims=self.ndims)
+            rho * CircularConvolve.from_operator(C.gram_op, ndims=self.ndims, device=self.device)
             for rho, C in zip(admm.rho_list, admm.C_list)
         ]
         D = reduce(lambda a, b: a + b, c_gram_list) / (2.0 * self.admm.f.scale)
@@ -399,16 +412,23 @@ class G0BlockCircularConvolveSolver(SubproblemSolver):
     :math:`\hat{A}`.
     """
 
-    def __init__(self, ndims: Optional[int] = None, check_solve: bool = False):
+    def __init__(
+        self,
+        ndims: Optional[int] = None,
+        check_solve: bool = False,
+        device: Optional[Union[Device, Sharding]] = None,
+    ):
         """Initialize a :class:`G0BlockCircularConvolveSolver` object.
 
         Args:
             check_solve: If ``True``, compute solver accuracy after each
                 solve.
+            device: Device or sharding for new arrays.
         """
         self.ndims = ndims
         self.check_solve = check_solve
         self.accuracy: Optional[float] = None
+        self.device = device
 
     def internal_init(self, admm: soa.ADMM):
         if admm.f is not None and not isinstance(admm.f, ZeroFunctional):
@@ -434,7 +454,7 @@ class G0BlockCircularConvolveSolver(SubproblemSolver):
         # All of the C operators are assumed to be linear and shift invariant
         # but this is not checked.
         c_gram_list = [
-            rho * CircularConvolve.from_operator(C.gram_op, ndims=self.ndims)
+            rho * CircularConvolve.from_operator(C.gram_op, ndims=self.ndims, device=self.device)
             for rho, C in zip(admm.rho_list[1:], admm.C_list[1:])
         ]
         D = reduce(lambda a, b: a + b, c_gram_list) / (
@@ -459,7 +479,7 @@ class G0BlockCircularConvolveSolver(SubproblemSolver):
         assert isinstance(self.admm.g_list[0], SquaredL2Loss)
 
         C0 = self.admm.C_list[0]
-        rhs = snp.zeros(C0.input_shape, C0.input_dtype)
+        rhs = snp.zeros(C0.input_shape, C0.input_dtype, device=self.device)
         omega = self.admm.g_list[0].scale
         omega_list = [
             2.0 * omega,

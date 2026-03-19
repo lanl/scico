@@ -294,7 +294,7 @@ class CircularConvolve(LinearOperator):
             center = tuple(d // 2 for d in H.input_shape[-ndims:])  # type: ignore
 
         # compute impulse response
-        d = snp.zeros(H.input_shape, H.input_dtype)
+        d = snp.zeros(H.input_shape, H.input_dtype, device=device)
         d = d.at[(Ellipsis,) + center].set(1.0)
         Hd = H @ d
 
