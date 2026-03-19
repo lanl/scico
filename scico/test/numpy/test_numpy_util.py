@@ -19,6 +19,7 @@ from scico.numpy.util import (
     namedtuple_to_array,
     no_nan_divide,
     normalize_axes,
+    pad_to_divisible,
     real_dtype,
     slice_length,
     transpose_list_of_ntpl,
@@ -138,9 +139,19 @@ def test_slice_length_other(length, slc):
     ),
 )
 def test_indexed_shape(shape, slc):
-    x = np.zeros(shape)
+    x = np.zeros(shape, dtype=np.float32)
     assert x[slc].shape == indexed_shape(shape, slc)
     assert x[slc].shape == jax_indexed_shape(shape, slc)
+
+
+def test_pad_to_divisible():
+    shape = (2, 3, 4, 5)
+    x = np.zeros(shape, dtype=np.float32)
+    axes = (0, 2, 3)
+    divisors = (4, 5, 5)
+    x_pad, crop_spec = pad_to_divisible(x, axes, divisors)
+    assert x_pad.shape == (4, 3, 5, 5)
+    assert x_pad[crop_spec].shape == shape
 
 
 def test_is_nested():

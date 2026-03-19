@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2025 by SCICO Developers
+# Copyright (C) 2022-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SPORCO package. Details of the copyright
 # and user license can be found in the 'LICENSE.txt' file distributed
@@ -263,6 +263,57 @@ def jax_indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int, ...]:
     f = jax.jit(get_shape, static_argnums=(0, 1))
 
     return tuple(t.item() for t in f(shape, idx))  # type: ignore
+
+
+def _padding(n: int, shape: Shape, axes: Sequence[int], divisors: Sequence[float]) -> int:
+    """Compute padding to make shape divisible by specified factors.
+
+    Compute the padding necessary to make array axes divisible according
+    to the specified list of axes and divisors.
+
+    Args:
+        n: Axis index for which padding is to be computed. Padding is
+           0 if this index is not in `axes`.
+        shape: Shape of array.
+        axes: List of axis indices.
+        divisors: List of factors corresponding to the axis indices.
+
+    Returns:
+        Padding size for axis `n`.
+    """
+    if n in axes:
+        idx = axes.index(n)
+        d = divisors[idx]
+        return int(np.ceil(shape[n] / d) * d) - shape[n]
+    return 0
+
+
+def pad_to_divisible(
+    x: np.ndarray, axes: Sequence[int], divisors: Sequence[float]
+) -> Tuple[np.ndarray, Tuple[slice]]:
+    """Pad array to make shape divisible by specified factors.
+
+    Pad array so that the specified axes are divisible by the
+    specified divisors.
+
+    Args:
+        x: Array to be padded.
+        axes: List of axis indices. Axes not in this list are not padded.
+        divisors: List of factors corresponding to the axis indices.
+
+    Returns:
+        Padded array and a tuple of slices that can be used to crop the
+        array back to its original shape.
+    """
+    if isinstance(axes, int) != isinstance(divisors, int):
+        raise ValueError("axes and divisors must be of the same type.")
+    if isinstance(axes, int):
+        axes = (axes,)
+        factors = (factors,)
+    pad_spec = [(0, _padding(n, x.shape, axes, divisors)) for n in range(x.ndim)]
+    x_pad = np.pad(x, pad_spec)
+    crop_slice = tuple([slice(None, None if p[1] == 0 else -p[1], None) for p in pad_spec])
+    return x_pad, crop_slice
 
 
 def no_nan_divide(
