@@ -7,6 +7,7 @@ Version 0.0.8   (unreleased)
 
 • Support ``jaxlib`` and ``jax`` versions 0.5.0 to 0.9.1.
 • Support ``flax`` versions 0.8.0 to 0.12.5.
+• Add limited support for sharded arrays.
 • Various bug fixes and minor improvements.
 
 
