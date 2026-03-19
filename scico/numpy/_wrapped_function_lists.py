@@ -274,8 +274,9 @@ mathematical_functions = (
     "full_like",
 )
 
+# these may also appear in the mathematical function list
 reduction_functions = ("sum", "linalg.norm", "count_nonzero", "any")
 
-""" "testing", """
+""" testing """
 
 testing_functions = ("testing.assert_allclose", "testing.assert_array_equal")

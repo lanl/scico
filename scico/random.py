@@ -58,7 +58,7 @@ import numpy as np
 import jax
 
 from scico.numpy import Array, BlockArray
-from scico.numpy._wrappers import map_func_over_tuple_of_tuples
+from scico.numpy._wrappers import map_func_over_args
 from scico.typing import BlockShape, DType, PRNGKey, Shape
 
 
@@ -127,7 +127,7 @@ def _add_seed(fun):
 
 
 def _wrap(fun):
-    fun_wrapped = _add_seed(map_func_over_tuple_of_tuples(fun))
+    fun_wrapped = _add_seed(map_func_over_args(fun, map_if_nested_args=["shape"]))
     fun_wrapped.__module__ = __name__  # so it appears in docs
     return fun_wrapped
 

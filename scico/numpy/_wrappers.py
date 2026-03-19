@@ -71,90 +71,61 @@ def wrap_recursively(
                 warnings.warn(f"In call to wrap_recursively, name {name} is not in target_dict")
 
 
-def map_func_over_tuple_of_tuples(func: Callable, map_arg_name: Optional[str] = "shape"):
-    """Wrap a function so that it automatically maps over a tuple of tuples
-    argument, returning a BlockArray.
+def map_func_over_args(
+    func: Callable,
+    map_if_nested_args: Optional[list[str]] = [],
+    map_if_list_args: Optional[list[str]] = [],
+    is_void: Optional[bool] = False,
+):
     """
+    Wrap a function so that it automatically maps over its arguments,
+    returning a BlockArray.
+
+    BlockArray arguments always trigger mapping. Other arguments trigger
+    mapping if they meet specified criteria.
+    """
+    # check inputs
+    func_signature = signature(func)
+    for arg in map_if_nested_args + map_if_list_args:
+        if arg not in func_signature.parameters:
+            raise ValueError(f"`{arg}` is not an argument of {func.__name__}")
 
     @wraps(func)
-    def mapped(*args, **kwargs):
-        bound_args = signature(func).bind(*args, **kwargs)
+    def wrapped(*args, **kwargs):
+        # find arguments that trigger mapping
+        bound_args = func_signature.bind(*args, **kwargs)
+        mapping_args = {}
+        other_args = {}
+        for arg_name, arg_val in bound_args.arguments.items():
+            if (
+                isinstance(arg_val, BlockArray)
+                or (arg_name in map_if_nested_args and snp.util.is_nested(arg_val))
+                or (arg_name in map_if_list_args and isinstance(arg_val, (list, tuple)))
+            ):
+                mapping_args[arg_name] = arg_val
+            else:
+                other_args[arg_name] = arg_val
 
-        if map_arg_name not in bound_args.arguments:  # no shape arg
-            return func(*args, **kwargs)  # no mapping
+        # no arguments that trigger mapping? call as usual
+        if len(mapping_args) == 0:
+            return func(*args, **kwargs)
 
-        map_arg_val = bound_args.arguments.pop(map_arg_name)
+        # otherwise, map func over the mapping args
+        num_blocks = len(next(iter(mapping_args.values())))
+        results = []
+        for block_ind in range(num_blocks):
+            results.append(
+                func(
+                    **other_args,
+                    **{k: v[block_ind] for k, v in mapping_args.items()},
+                )
+            )
+        if is_void:
+            return
 
-        if not snp.util.is_nested(map_arg_val):  # not nested tuple
-            return func(*args, **kwargs)  # no mapping
+        return BlockArray(results)
 
-        # map
-        return BlockArray(
-            func(*bound_args.args, **bound_args.kwargs, **{map_arg_name: x}) for x in map_arg_val
-        )
-
-    return mapped
-
-
-def _num_blocks_in_args(*args, **kwargs):
-    """Count the number of BlockArray arguments."""
-    first_ba_arg = next((arg for arg in args if isinstance(arg, BlockArray)), None)
-    if first_ba_arg is None:
-        first_ba_kwarg = next((v for k, v in kwargs.items() if isinstance(v, BlockArray)), None)
-        if first_ba_kwarg is None:
-            num_blocks = 0
-        else:
-            num_blocks = len(first_ba_kwarg)
-    else:
-        num_blocks = len(first_ba_arg)
-    return num_blocks
-
-
-def _block_args_kwargs(num_blocks, *args, **kwargs):
-    """Construct nested args/kwargs for each BlockArray block."""
-    new_args = []
-    new_kwargs = []
-    for i in range(num_blocks):
-        new_args.append([arg[i] if isinstance(arg, BlockArray) else arg for arg in args])
-        new_kwargs.append(
-            {k: (v[i] if isinstance(v, BlockArray) else v) for k, v in kwargs.items()}
-        )
-    return new_args, new_kwargs
-
-
-def map_func_over_blocks(func):
-    """Wrap a function so that it maps over all of its BlockArray
-    arguments.
-    """
-
-    @wraps(func)
-    def mapped(*args, **kwargs):
-        num_blocks = _num_blocks_in_args(*args, **kwargs)
-        if num_blocks == 0:
-            return func(*args, **kwargs)  # no BlockArray arguments, so no mapping
-        new_args, new_kwargs = _block_args_kwargs(num_blocks, *args, **kwargs)
-        # run the function num_blocks times, return results in a BlockArray
-        return BlockArray(func(*new_args[i], **new_kwargs[i]) for i in range(num_blocks))
-
-    return mapped
-
-
-def map_void_func_over_blocks(func):
-    """Wrap a function without a return value so that it maps over all
-    of its BlockArray arguments.
-    """
-
-    @wraps(func)
-    def mapped(*args, **kwargs):
-        num_blocks = _num_blocks_in_args(*args, **kwargs)
-        if num_blocks == 0:
-            func(*args, **kwargs)  # no BlockArray arguments, so no mapping
-        else:
-            new_args, new_kwargs = _block_args_kwargs(num_blocks, *args, **kwargs)
-            # run the function num_blocks times
-            [func(*new_args[i], **new_kwargs[i]) for i in range(num_blocks)]
-
-    return mapped
+    return wrapped
 
 
 def add_full_reduction(func: Callable, axis_arg_name: Optional[str] = "axis"):
