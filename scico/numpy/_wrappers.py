@@ -90,9 +90,9 @@ def map_func_over_args(
         if arg not in func_signature.parameters:
             raise ValueError(f"`{arg}` is not an argument of {func.__name__}")
 
+    # define wrapped function
     @wraps(func)
     def wrapped(*args, **kwargs):
-
         arg_names = [
             k
             for k, v in func_signature.parameters.items()
@@ -103,15 +103,8 @@ def map_func_over_args(
             )
         ]
 
-        print()
-        print(func.__name__)
-        print(f"{args=}")
-        print(f"{kwargs}")
-        print(f"{arg_names=}")
-
-        # look in (named) args for mapping triggers
-        mapping_args = []
-        other_args = []
+        # look in args for mapping triggers
+        arg_is_mapping = []
         for arg_num, arg_val in enumerate(args):
             if (
                 isinstance(arg_val, BlockArray)
@@ -126,48 +119,53 @@ def map_func_over_args(
                     and arg_names[arg_num] in map_if_list_args
                 )
             ):
-                mapping_args.append(arg_val)
+                arg_is_mapping.append(True)
             else:
-                other_args.append(arg_val)
-
-        # look in the rest of args for mapping triggers
-        for arg_val in args[len(arg_names) :]:
-            if isinstance(arg_val, BlockArray):
-                mapping_args.append(arg_val)
-            else:
-                other_args.append(arg_val)
+                arg_is_mapping.append(False)
 
         # look in kwargs for mapping triggers
-        mapping_kwargs = {}
-        other_kwargs = {}
+        kwarg_is_mapping = {}
         for arg_name, arg_val in kwargs.items():
             if (
                 isinstance(arg_val, BlockArray)
                 or (arg_name in map_if_nested_args and snp.util.is_nested(arg_val))
                 or (arg_name in map_if_list_args and isinstance(arg_val, (list, tuple)))
             ):
-                mapping_kwargs[arg_name] = arg_val
+                kwarg_is_mapping[arg_name] = True
             else:
-                other_kwargs[arg_name] = arg_val
+                kwarg_is_mapping[arg_name] = False
 
         # no arguments that trigger mapping? call as usual
-        if len(mapping_args) == 0 and len(mapping_kwargs) == 0:
+        if sum(arg_is_mapping) == 0 and sum(kwarg_is_mapping.values()) == 0:
             return func(*args, **kwargs)
 
-        # otherwise, map func over the mapping args
+        # count number of blocks
         num_blocks = (
-            len(mapping_args[0]) if mapping_args else len(next(iter(mapping_kwargs.values())))
+            len(
+                args[
+                    [index for index, mapping_flag in enumerate(arg_is_mapping) if mapping_flag][0]
+                ]
+            )  # first mapping arg
+            if sum(arg_is_mapping)
+            else len(
+                kwargs[[k for k, mapping_flag in kwarg_is_mapping.items() if mapping_flag][0]]
+            )  # first mapping kwarg
         )
+
+        # map func over the mapping args
         results = []
         for block_ind in range(num_blocks):
-            results.append(
-                func(
-                    *other_args,
-                    *[arg[block_ind] for arg in mapping_args],
-                    **other_kwargs,
-                    **{k: v[block_ind] for k, v in mapping_kwargs.items()},
-                )
+            result = func(
+                *[
+                    arg[block_ind] if is_mapping else arg
+                    for arg, is_mapping in zip(args, arg_is_mapping)
+                ],
+                **{
+                    k: kwargs[k][block_ind] if is_mapping else kwargs[k]
+                    for k, is_mapping in kwarg_is_mapping.items()
+                },
             )
+            results.append(result)
         if is_void:
             return
 

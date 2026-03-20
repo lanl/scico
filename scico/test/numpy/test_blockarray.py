@@ -316,6 +316,13 @@ class TestCreators:
         assert snp.all(x == fill_value)
 
 
+def test_list_triggering():
+    device_list = 4 * [jax.devices()[0]]
+    ba = snp.ones((3, 3), device=device_list)
+    assert isinstance(ba, BlockArray)
+    assert ba.shape == 4 * ((3, 3),)
+
+
 # testing function tests
 @pytest.mark.parametrize("func", testing_functions)
 def test_test_func(func):
