@@ -77,9 +77,7 @@ def _step_x(
     return z, batch_std, batch_x
 
 
-def _step_loss(
-    criterion: Callable, z: ArrayLike, std: ArrayLike, output: ArrayLike, **kwargs
-) -> ArrayLike:
+def _step_loss(criterion: Callable, z: ArrayLike, output: ArrayLike, **kwargs) -> ArrayLike:
     """Loss computation for diffusion step in DDPM formulation."""
     return criterion(output, z)
 
