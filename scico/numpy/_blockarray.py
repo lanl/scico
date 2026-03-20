@@ -6,8 +6,8 @@
 # with the package.
 
 """Block array class."""
+
 import inspect
-from collections import UserList
 from functools import WRAPPER_ASSIGNMENTS, wraps
 from typing import Callable
 
@@ -22,7 +22,7 @@ from .util import is_collapsible
 JaxArray = type(jnp.array([0]))
 
 
-class BlockArray(UserList):
+class BlockArray:
     """Block array class.
 
     A block array provides a way to combine arrays of different shapes
