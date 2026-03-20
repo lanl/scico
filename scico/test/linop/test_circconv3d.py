@@ -8,6 +8,7 @@ import pytest
 
 import scico.numpy as snp
 from scico.linop import CircularConvolve3D, Convolve, Diagonal
+from scico.linop._circconv3d import have_jaxdecomp
 from scico.random import randint, randn, uniform
 from scico.test.linop.test_linop import adjoint_test
 
@@ -16,6 +17,7 @@ SHAPE_SPECS = [
 ]
 
 
+@pytest.mark.skipif(not have_jaxdecomp, reason="jaxdecomp package not installed")
 class TestCircularConvolve3D:
     def setup_method(self, method):
         self.key = jax.random.key(12345)
