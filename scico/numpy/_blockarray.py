@@ -177,7 +177,7 @@ def _jax_array_prop_wrapper(prop_name):
             return BlockArray(result)
 
         # ...otherwise return a tuple.
-        return tuple(result)
+        return result
 
     return prop_block_array
 
