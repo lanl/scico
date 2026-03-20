@@ -11,6 +11,7 @@ from typing import Any, Callable, Tuple
 
 import jax
 import jax.numpy as jnp
+from jax.random import PRNGKey
 from jax.typing import ArrayLike
 
 import flax.nnx
@@ -84,3 +85,57 @@ def Euler_Maruyama_sampler(
         x = mean_x + jnp.sqrt(step_size) * g * jax.random.normal(step_key, x.shape)
     # Do not include any noise in the last sampling step.
     return mean_x, x_tot
+
+
+def sampling_ddpm(
+    batch_size: int,
+    xshape: Tuple[int],
+    maxsteps: int,
+    alpha_schedule: ArrayLike,
+    alpha_bar_schedule: ArrayLike,
+    sigma: ArrayLike,
+    model: Callable,
+    key: PRNGKey,
+    return_path: bool = False,
+):
+    """Function to sample using Denoising Diffusion Probabilistic Models
+    (DDPM) formulation.
+
+    Args:
+        batch_size: Size of sample to generate.
+        xshape: Shape of signal to generate.
+        maxsteps: Maximum steps to use in DDPM. Allows for different range than
+            the one used in training.
+        alpha_schedule: Function of variance (beta) schedule. Allows for different schedule
+            than the one used in training.
+        alpha_bar_schedule: Function of alpha schedule. Allows for different schedule
+            than the one used in training.
+        sigma: Noise schedule, usually function of beta schedule. Allows for different
+            schedule than the one used in training.
+        model: Trained model to sample from.
+        key: Key for jax random generation.
+        return_path: Flag to indicate if generation path is to be returned.
+
+    Returns:
+        Array with generated samples, generation path (optional) and key.
+    """
+    key, subkey = jax.random.split(key)
+    x = jax.random.normal(subkey, (batch_size,) + xshape)
+    if return_path:
+        xpath = jnp.zeros((maxsteps + 1,) + x.shape)
+        xpath = xpath.at[0].set(x)
+    scale = (1.0 - alpha_schedule) / jnp.sqrt(1.0 - alpha_bar_schedule)
+    t_int = maxsteps
+    while t_int > 0:
+        t = float(t_int) / maxsteps
+        x = (x - model(x, t) * scale[t_int - 1]) / jnp.sqrt(alpha_schedule[t_int - 1])
+        if t_int > 1:
+            key, subkey = jax.random.split(key)
+            z = jax.random.normal(subkey, x.shape)
+            x = x + sigma[t_int - 1] * z
+        if return_path:
+            xpath = xpath.at[t_int].set(x)
+        t_int = t_int - 1
+    if return_path:
+        return x, xpath, key
+    return x, key
