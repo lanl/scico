@@ -9,6 +9,7 @@ import scico.numpy as snp
 from scico import functional, linop, loss, metric, operator, random
 from scico.optimize import ADMM
 from scico.optimize.admm import (
+    CircularConvolve3DSolver,
     CircularConvolveSolver,
     FBlockCircularConvolveSolver,
     G0BlockCircularConvolveSolver,
@@ -461,6 +462,57 @@ class TestCircularConvolveSolve:
         assert admm_dft.subproblem_solver.A_lhs.ndims == 2
         x_dft = admm_dft.solve()
         np.testing.assert_allclose(x_dft, x_lin, atol=1e-4, rtol=0)
+        assert metric.mse(x_lin, x_dft) < 1e-9
+
+
+@pytest.mark.parametrize("center", (None, [-1.0, 2.5, 0.0]))
+class TestCircularConvolve3DSolve:
+
+    @pytest.fixture(scope="function", autouse=True)
+    def setup_and_teardown(self, center):
+        np.random.seed(12345)
+        Nx = 8
+        x = snp.pad(snp.ones((Nx, Nx, 1), dtype=np.float32), Nx)
+        Npsf = 3
+        psf = snp.ones((Npsf, Npsf, 1), dtype=np.float32) / (Npsf**2)
+        self.A = linop.CircularConvolve3D(
+            h=psf, input_shape=x.shape, input_dtype=np.float32, h_center=center
+        )
+        self.y = self.A(x)
+        λ = 1e-2
+        self.f = loss.SquaredL2Loss(y=self.y, A=self.A)
+        self.g_list = [λ * functional.L1Norm()]
+        self.C_list = [linop.FiniteDifference(input_shape=x.shape, circular=True)]
+        yield
+
+    def test_admm(self):
+        maxiter = 100
+        ρ = 8e-2
+        rho_list = [ρ]
+        admm_lin = ADMM(
+            f=self.f,
+            g_list=self.g_list,
+            C_list=self.C_list,
+            rho_list=rho_list,
+            maxiter=maxiter,
+            itstat_options={"display": False},
+            x0=self.A.adj(self.y),
+            subproblem_solver=LinearSubproblemSolver(),
+        )
+        x_lin = admm_lin.solve()
+        admm_dft = ADMM(
+            f=self.f,
+            g_list=self.g_list,
+            C_list=self.C_list,
+            rho_list=rho_list,
+            maxiter=maxiter,
+            itstat_options={"display": False},
+            x0=self.A.adj(self.y),
+            subproblem_solver=CircularConvolve3DSolver(),
+        )
+        assert admm_dft.subproblem_solver.A_lhs.ndims == 3
+        x_dft = admm_dft.solve()
+        np.testing.assert_allclose(x_dft, x_lin, atol=5e-4, rtol=0)
         assert metric.mse(x_lin, x_dft) < 1e-9
 
 
