@@ -11,7 +11,7 @@
 import sys
 import warnings
 from functools import wraps
-from inspect import signature
+from inspect import Parameter, signature
 from types import ModuleType
 from typing import Callable, Iterable, Optional
 
@@ -92,32 +92,80 @@ def map_func_over_args(
 
     @wraps(func)
     def wrapped(*args, **kwargs):
-        # find arguments that trigger mapping
-        bound_args = func_signature.bind(*args, **kwargs)
-        mapping_args = {}
-        other_args = {}
-        for arg_name, arg_val in bound_args.arguments.items():
+
+        arg_names = [
+            k
+            for k, v in func_signature.parameters.items()
+            if v.kind
+            in (
+                Parameter.POSITIONAL_ONLY,
+                Parameter.POSITIONAL_OR_KEYWORD,
+            )
+        ]
+
+        print()
+        print(func.__name__)
+        print(f"{args=}")
+        print(f"{kwargs}")
+        print(f"{arg_names=}")
+
+        # look in (named) args for mapping triggers
+        mapping_args = []
+        other_args = []
+        for arg_num, arg_val in enumerate(args):
+            if (
+                isinstance(arg_val, BlockArray)
+                or (
+                    snp.util.is_nested(arg_val)
+                    and arg_num < len(arg_names)
+                    and arg_names[arg_num] in map_if_nested_args
+                )
+                or (
+                    isinstance(arg_val, (list, tuple))
+                    and arg_num < len(arg_names)
+                    and arg_names[arg_num] in map_if_list_args
+                )
+            ):
+                mapping_args.append(arg_val)
+            else:
+                other_args.append(arg_val)
+
+        # look in the rest of args for mapping triggers
+        for arg_val in args[len(arg_names) :]:
+            if isinstance(arg_val, BlockArray):
+                mapping_args.append(arg_val)
+            else:
+                other_args.append(arg_val)
+
+        # look in kwargs for mapping triggers
+        mapping_kwargs = {}
+        other_kwargs = {}
+        for arg_name, arg_val in kwargs.items():
             if (
                 isinstance(arg_val, BlockArray)
                 or (arg_name in map_if_nested_args and snp.util.is_nested(arg_val))
                 or (arg_name in map_if_list_args and isinstance(arg_val, (list, tuple)))
             ):
-                mapping_args[arg_name] = arg_val
+                mapping_kwargs[arg_name] = arg_val
             else:
-                other_args[arg_name] = arg_val
+                other_kwargs[arg_name] = arg_val
 
         # no arguments that trigger mapping? call as usual
-        if len(mapping_args) == 0:
+        if len(mapping_args) == 0 and len(mapping_kwargs) == 0:
             return func(*args, **kwargs)
 
         # otherwise, map func over the mapping args
-        num_blocks = len(next(iter(mapping_args.values())))
+        num_blocks = (
+            len(mapping_args[0]) if mapping_args else len(next(iter(mapping_kwargs.values())))
+        )
         results = []
         for block_ind in range(num_blocks):
             results.append(
                 func(
-                    **other_args,
-                    **{k: v[block_ind] for k, v in mapping_args.items()},
+                    *other_args,
+                    *[arg[block_ind] for arg in mapping_args],
+                    **other_kwargs,
+                    **{k: v[block_ind] for k, v in mapping_kwargs.items()},
                 )
             )
         if is_void:
@@ -136,7 +184,7 @@ def add_full_reduction(func: Callable, axis_arg_name: Optional[str] = "axis"):
     on a :class:`.BlockArray`, it is fully ravelled before the function is
     called.
 
-    Should be outside :func:`map_func_over_blocks`.
+    Should be outside :func:`map_func_over_args`.
     """
     sig = signature(func)
     if axis_arg_name not in sig.parameters:
