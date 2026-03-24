@@ -21,6 +21,8 @@ try:
 except ImportError:
     have_jaxdecomp = False
 
+from jax import Device
+from jax.sharding import Sharding
 
 import scico.numpy as snp
 import scico.optimize.admm as soa
