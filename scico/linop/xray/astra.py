@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2025 by SCICO Developers
+# Copyright (C) 2020-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -34,6 +34,7 @@ import numpy as np
 import numpy.typing
 
 import jax
+from jax.sharding import Sharding
 from jax.typing import ArrayLike
 
 from scipy.spatial.transform import Rotation
@@ -584,6 +585,8 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
         det_spacing: Optional[Tuple[float, float]] = None,
         angles: Optional[np.ndarray] = None,
         vectors: Optional[np.ndarray] = None,
+        input_sharding: Optional[Sharding] = None,
+        output_sharding: Optional[Sharding] = None,
     ):
         """
         Keyword arguments `det_spacing` and `angles` should be specified
@@ -603,6 +606,8 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
                 parameter is  mutually exclusive with `vectors`.
             vectors: Array of ASTRA geometry specification vectors. This
                 parameter is mutually exclusive with `angles`.
+            input_sharding: Sharding for operator input (output of adjoint).
+            input_sharding: Sharding for operator output (input of adjoint).
 
         Raises:
             RuntimeError: If a CUDA GPU is not available to the ASTRA
@@ -642,8 +647,11 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
             Nview = vectors.shape[0]
             self.vectors = np.array(vectors)
             self.angles = None
-        output_shape: Shape = (det_count[0], Nview, det_count[1])
 
+        self.input_sharding = input_sharding
+        self.output_sharding = output_sharding
+
+        output_shape: Shape = (det_count[0], Nview, det_count[1])
         self.det_count = det_count
         assert isinstance(det_count, (list, tuple))
         self.input_shape: tuple = input_shape
@@ -726,7 +734,13 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
             astra.data3d.delete(proj_id)
             return result
 
-        return jax.pure_callback(f, jax.ShapeDtypeStruct(self.output_shape, self.output_dtype), x)
+        return jax.pure_callback(
+            f,
+            jax.ShapeDtypeStruct(
+                self.output_shape, self.output_dtype, sharding=self.output_sharding
+            ),
+            x,
+        )
 
     def _bproj(self, y: jax.Array) -> jax.Array:
         # apply backprojector
@@ -736,7 +750,11 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
             astra.data3d.delete(proj_id)
             return result
 
-        return jax.pure_callback(f, jax.ShapeDtypeStruct(self.input_shape, self.input_dtype), y)
+        return jax.pure_callback(
+            f,
+            jax.ShapeDtypeStruct(self.input_shape, self.input_dtype, sharding=self.input_sharding),
+            y,
+        )
 
 
 def angle_to_vector(det_spacing: Tuple[float, float], angles: np.ndarray) -> np.ndarray:
