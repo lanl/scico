@@ -82,18 +82,18 @@ with
   \mathbf{c} = \left( \begin{array}{c} 0 \\ 0 \end{array} \right) \;.$$
 """
 𝛼 = 7e1  # improve problem conditioning by balancing C and D components of A
-λ = 8e0 / 𝛼  # ℓ1 norm regularization parameter
+λ = 8e0  # ℓ1 norm regularization parameter
 ρ = 1e-2  # ADMM penalty parameter
 maxiter = 250  # number of ADMM iterations
 
 f = functional.ZeroFunctional()
 g0 = loss.SquaredL2Loss(y=y)
-g1 = λ * functional.L1Norm()
+g1 = (λ / 𝛼) * functional.L1Norm()
 g = functional.SeparableFunctional((g0, g1))
 D = linop.FiniteDifference(input_shape=x_gt.shape, append=0)
 
 A = linop.VerticalStack((C, 𝛼 * D))
-mu, nu = ProximalADMM.estimate_parameters(A)
+mu, nu = ProximalADMM.estimate_parameters(A, maxiter=20)
 
 solver = ProximalADMM(
     f=f,
