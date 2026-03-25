@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2025 by SCICO Developers
+# Copyright (C) 2022-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -12,6 +12,9 @@
 from __future__ import annotations
 
 from typing import List, Optional, Tuple, Union
+
+from jax import Device
+from jax.sharding import Sharding
 
 import scico.numpy as snp
 from scico import cvjp, jvp
@@ -365,6 +368,7 @@ class ProximalADMM(ProximalADMMBase):
         factor: Optional[float] = 1.01,
         maxiter: int = 100,
         key: Optional[PRNGKey] = None,
+        device: Optional[Union[Device, Sharding]] = None,
     ) -> Tuple[float, float]:
         r"""Estimate `mu` and `nu` parameters of :class:`ProximalADMM`.
 
@@ -387,6 +391,7 @@ class ProximalADMM(ProximalADMMBase):
             key: Jax PRNG key to use in operator norm estimation (see
                :func:`.operator_norm`). Defaults to ``None``, in which
                case a new key is created.
+            device: Device or sharding for working arrays.
 
         Returns:
             A tuple (`mu`, `nu`) representing the estimated parameter
@@ -396,8 +401,8 @@ class ProximalADMM(ProximalADMMBase):
         if B is None:
             B = -Identity(A.output_shape, A.output_dtype)  # type: ignore
         assert isinstance(B, LinearOperator)
-        mu = operator_norm(A, maxiter=maxiter, key=key) ** 2
-        nu = operator_norm(B, maxiter=maxiter, key=key) ** 2
+        mu = operator_norm(A, maxiter=maxiter, key=key, device=device) ** 2
+        nu = operator_norm(B, maxiter=maxiter, key=key, device=device) ** 2
         if factor is None:
             return (mu, nu)
         else:
