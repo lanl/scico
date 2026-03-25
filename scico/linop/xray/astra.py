@@ -650,6 +650,7 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
 
         self.input_sharding = input_sharding
         self.output_sharding = output_sharding
+        self.cpu_dev = jax.devices("cpu")[0]
 
         output_shape: Shape = (det_count[0], Nview, det_count[1])
         self.det_count = det_count
@@ -734,13 +735,16 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
             astra.data3d.delete(proj_id)
             return result
 
-        return jax.pure_callback(
+        y = jax.pure_callback(
             f,
             jax.ShapeDtypeStruct(
-                self.output_shape, self.output_dtype, sharding=self.output_sharding
+                self.output_shape, self.output_dtype, sharding=SingleDeviceSharding(self.cpu_dev)
             ),
-            x,
+            jax.device_put(x, device=self.cpu_dev),
         )
+        if self.output_sharding is not None:
+            y = jax.device_put(y, device=self.output_sharding)
+        return y
 
     def _bproj(self, y: jax.Array) -> jax.Array:
         # apply backprojector
@@ -750,11 +754,16 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
             astra.data3d.delete(proj_id)
             return result
 
-        return jax.pure_callback(
+        x = jax.pure_callback(
             f,
-            jax.ShapeDtypeStruct(self.input_shape, self.input_dtype, sharding=self.input_sharding),
-            y,
+            jax.ShapeDtypeStruct(
+                self.input_shape, self.input_dtype, sharding=SingleDeviceSharding(self.cpu_dev)
+            ),
+            jax.device_put(y, device=self.cpu_dev),
         )
+        if self.output_sharding is not None:
+            x = jax.device_put(x, device=self.input_sharding)
+        return x
 
 
 def angle_to_vector(det_spacing: Tuple[float, float], angles: np.ndarray) -> np.ndarray:
