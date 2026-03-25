@@ -4,7 +4,8 @@ SCICO Release Notes
 
 Version 0.0.8   (unreleased)
 ----------------------------
-
+• Enable certain parameters of array creation functions to trigger
+ ``BlockArray`` creation when they receive lists (currently ``device``).
 • Support ``jaxlib`` and ``jax`` versions 0.5.0 to 0.9.1.
 • Support ``flax`` versions 0.8.0 to 0.12.5.
 • Various bug fixes and minor improvements.
