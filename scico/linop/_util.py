@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from typing import Optional, Union
 
+import jax
 from jax import Device
 from jax.sharding import Sharding
 
