@@ -34,7 +34,7 @@ import numpy as np
 import numpy.typing
 
 import jax
-from jax.sharding import Sharding
+from jax.sharding import Sharding, SingleDeviceSharding
 from jax.typing import ArrayLike
 
 from scipy.spatial.transform import Rotation
