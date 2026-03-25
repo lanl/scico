@@ -16,6 +16,7 @@ functions unique to SCICO in :mod:`.util`.
 """
 
 import sys
+from functools import partial
 
 import numpy as np
 
@@ -24,7 +25,12 @@ from jax import Array
 
 from . import _wrappers, fft, linalg, testing, util
 from ._blockarray import BlockArray
-from ._wrapped_function_lists import *
+from ._wrapped_function_lists import (
+    creation_routines,
+    mathematical_functions,
+    reduction_functions,
+    testing_functions,
+)
 
 # allow snp.blockarray(...) to create BlockArrays
 blockarray = BlockArray.blockarray
@@ -37,12 +43,22 @@ sys.modules[__name__].BlockArray.__module__ = __name__
 _wrappers.add_attributes(to_dict=vars(), from_dict=jnp.__dict__)
 
 # wrap jnp funcs
-_wrappers.wrap_recursively(vars(), creation_routines, _wrappers.map_func_over_tuple_of_tuples)
-_wrappers.wrap_recursively(vars(), mathematical_functions, _wrappers.map_func_over_blocks)
+_wrappers.wrap_recursively(
+    vars(),
+    creation_routines,
+    partial(
+        _wrappers.map_func_over_args,
+        map_if_nested_args=["shape"],
+        map_if_list_args=["device"],
+    ),
+)
+_wrappers.wrap_recursively(vars(), mathematical_functions, _wrappers.map_func_over_args)
 _wrappers.wrap_recursively(vars(), reduction_functions, _wrappers.add_full_reduction)
 
 # wrap testing funcs
-_wrappers.wrap_recursively(vars(), testing_functions, _wrappers.map_void_func_over_blocks)
+_wrappers.wrap_recursively(
+    vars(), testing_functions, partial(_wrappers.map_func_over_args, is_void=True)
+)
 
 # clean up
 del np, jnp, _wrappers
