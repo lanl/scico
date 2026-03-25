@@ -1,4 +1,4 @@
-# Copyright (C) 2020-2025 by SCICO Developers
+# Copyright (C) 2020-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -12,6 +12,9 @@ from __future__ import annotations
 
 from typing import Optional, Union
 
+from jax import Device
+from jax.sharding import Sharding
+
 import scico.numpy as snp
 from scico.operator._operator import Operator
 from scico.random import randn
@@ -20,7 +23,12 @@ from scico.typing import PRNGKey
 from ._linop import LinearOperator
 
 
-def power_iteration(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey] = None):
+def power_iteration(
+    A: LinearOperator,
+    maxiter: int = 100,
+    key: Optional[PRNGKey] = None,
+    device: Optional[Union[Device, Sharding]] = None,
+):
     """Compute largest eigenvalue of a diagonalizable :class:`.LinearOperator`.
 
     Compute largest eigenvalue of a diagonalizable
@@ -32,15 +40,23 @@ def power_iteration(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey
         maxiter: Maximum number of power iterations to use.
         key: Jax PRNG key. Defaults to ``None``, in which case a new key
             is created.
+        device: Device or sharding for working array.
 
     Returns:
         tuple: A tuple (`mu`, `v`) containing:
 
             - **mu**: Estimate of largest eigenvalue of `A`.
             - **v**: Eigenvector of `A` with eigenvalue `mu`.
-
     """
-    v, key = randn(shape=A.input_shape, key=key, dtype=A.input_dtype)
+    if device is None:
+        v, key = randn(shape=A.input_shape, key=key, dtype=A.input_dtype)
+    else:
+        # create on CPU device if the final destination is a sharding
+        create_device = device if isinstance(device, Device) else jax.devices("cpu")[0]
+        with jax.default_device(create_device):
+            v, key = randn(shape=A.input_shape, key=key, dtype=A.input_dtype)
+        if isinstance(device, Sharding):
+            v = jax.device_put(v, device=device)
     v = v / snp.linalg.norm(v)
 
     for i in range(maxiter):
@@ -55,7 +71,12 @@ def power_iteration(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey
     return mu, v
 
 
-def operator_norm(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey] = None):
+def operator_norm(
+    A: LinearOperator,
+    maxiter: int = 100,
+    key: Optional[PRNGKey] = None,
+    device: Optional[Union[Device, Sharding]] = None,
+):
     r"""Estimate the norm of a :class:`.LinearOperator`.
 
     Estimate the operator norm
@@ -80,12 +101,12 @@ def operator_norm(A: LinearOperator, maxiter: int = 100, key: Optional[PRNGKey] 
         maxiter: Maximum number of power iterations to use. Default: 100
         key: Jax PRNG key. Defaults to ``None``, in which case a new key
             is created.
+        device: Device or sharding for working array.
 
     Returns:
         float: Norm of operator :math:`A`.
-
     """
-    return snp.sqrt(power_iteration(A.H @ A, maxiter, key)[0].real)
+    return snp.sqrt(power_iteration(A.H @ A, maxiter=maxiter, key=key, device=device)[0].real)
 
 
 def valid_adjoint(
