@@ -56,7 +56,7 @@ if hasattr(js, "sph_harm_y"):  # not available in all supported jax versions
     functions += ("sph_harm_y",)
 else:
     functions += ("sph_harm",)
-_wrappers.wrap_recursively(vars(), functions, _wrappers.map_func_over_blocks)
+_wrappers.wrap_recursively(vars(), functions, _wrappers.map_func_over_args)
 
 # clean up
 del js, _wrappers
