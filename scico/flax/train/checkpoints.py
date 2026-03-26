@@ -9,6 +9,7 @@
 
 from pathlib import Path
 from typing import Union
+import logging
 
 try:
     import orbax.checkpoint as ocp
@@ -20,8 +21,6 @@ except ImportError:
     have_orbax = False
 
 if have_orbax:
-    import logging
-
     from orbax.checkpoint.checkpoint_managers import LatestN
 
     logging.getLogger("absl").addFilter(logging.Filter("could not be identified as a temporary"))
