@@ -31,26 +31,26 @@ unary_ops = (  # found from dir() on jax array
 
 binary_ops = (  # found from dir() on jax array
     "__add__",
-    "__radd__",
-    "__sub__",
-    "__rsub__",
-    "__mul__",
-    "__mod__",
-    "__rmul__",
-    "__matmul__",
-    "__rmatmul__",
-    "__truediv__",
-    "__rtruediv__",
-    "__floordiv__",
-    "__rfloordiv__",
-    "__pow__",
-    "__rpow__",
-    "__gt__",
-    "__ge__",
-    "__lt__",
-    "__le__",
     "__eq__",
+    "__floordiv__",
+    "__ge__",
+    "__gt__",
+    "__le__",
+    "__lt__",
+    "__matmul__",
+    "__mod__",
+    "__mul__",
     "__ne__",
+    "__pow__",
+    "__radd__",
+    "__rfloordiv__",
+    "__rmatmul__",
+    "__rmul__",
+    "__rpow__",
+    "__rsub__",
+    "__rtruediv__",
+    "__sub__",
+    "__truediv__",
 )
 
 """ jax.numpy """
@@ -274,8 +274,9 @@ mathematical_functions = (
     "full_like",
 )
 
+# these may also appear in the mathematical function list
 reduction_functions = ("sum", "linalg.norm", "count_nonzero", "any")
 
-""" "testing", """
+""" testing """
 
 testing_functions = ("testing.assert_allclose", "testing.assert_array_equal")
