@@ -368,7 +368,8 @@ class ProximalADMM(ProximalADMMBase):
         factor: Optional[float] = 1.01,
         maxiter: int = 100,
         key: Optional[PRNGKey] = None,
-        device: Optional[Union[Device, Sharding]] = None,
+        xdevice: Optional[Union[Device, Sharding]] = None,
+        zdevice: Optional[Union[Device, Sharding]] = None,
     ) -> Tuple[float, float]:
         r"""Estimate `mu` and `nu` parameters of :class:`ProximalADMM`.
 
@@ -391,7 +392,8 @@ class ProximalADMM(ProximalADMMBase):
             key: Jax PRNG key to use in operator norm estimation (see
                :func:`.operator_norm`). Defaults to ``None``, in which
                case a new key is created.
-            device: Device or sharding for working arrays.
+            xdevice: Device or sharding for x variable array.
+            zdevice: Device or sharding for z variable array.
 
         Returns:
             A tuple (`mu`, `nu`) representing the estimated parameter
@@ -401,8 +403,8 @@ class ProximalADMM(ProximalADMMBase):
         if B is None:
             B = -Identity(A.output_shape, A.output_dtype)  # type: ignore
         assert isinstance(B, LinearOperator)
-        mu = operator_norm(A, maxiter=maxiter, key=key, device=device) ** 2
-        nu = operator_norm(B, maxiter=maxiter, key=key, device=device) ** 2
+        mu = operator_norm(A, maxiter=maxiter, key=key, device=xdevice) ** 2
+        nu = operator_norm(B, maxiter=maxiter, key=key, device=zdevice) ** 2
         if factor is None:
             return (mu, nu)
         else:
