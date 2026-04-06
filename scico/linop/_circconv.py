@@ -181,6 +181,7 @@ class CircularConvolve(LinearOperator):
         # prevent accidental promotion to double
         shifts = tuple(s.astype(self.h_dft.dtype) for s in shifts)
         shift = math.prod(shifts)  # np.prod warns
+        assert isinstance(shift, np.ndarray)
         return shift
 
     def _eval(self, x: snp.Array) -> snp.Array:
