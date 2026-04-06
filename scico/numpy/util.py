@@ -289,7 +289,7 @@ def _padding(n: int, shape: Shape, axes: Sequence[int], divisors: Sequence[int])
 
 
 def pad_to_divisible(
-    x: np.ndarray, axes: Sequence[int], divisors: Sequence[int]
+    x: np.ndarray, axes: Union[Sequence[int], int], divisors: Union[Sequence[int], int]
 ) -> Tuple[np.ndarray, Tuple[slice]]:
     """Pad array to make shape divisible by specified factors.
 
@@ -307,13 +307,15 @@ def pad_to_divisible(
     """
     if isinstance(axes, int) != isinstance(divisors, int):
         raise ValueError("axes and divisors must be of the same type.")
-    if isinstance(axes, int):
+    if isinstance(axes, int) and isinstance(divisors, int):
         axes = (axes,)
-        factors = (factors,)
+        divisors = (divisors,)
+    assert isinstance(axes, (list, tuple)) and isinstance(divisors, (list, tuple))
     pad_spec = [(0, _padding(n, x.shape, axes, divisors)) for n in range(x.ndim)]
     x_pad = np.pad(x, pad_spec)
+    assert isinstance(x_pad, np.ndarray)
     crop_slice = tuple([slice(None, None if p[1] == 0 else -p[1], None) for p in pad_spec])
-    return x_pad, crop_slice
+    return x_pad, crop_slice  # type: ignore
 
 
 def no_nan_divide(
