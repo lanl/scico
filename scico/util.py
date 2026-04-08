@@ -18,6 +18,8 @@ from timeit import default_timer as timer
 from typing import Any, Callable, Dict, List, Optional, Sequence, Union
 
 import jax
+from jax import Device
+from jax.sharding import Sharding
 
 
 def rgetattr(obj: object, name: str, default: Optional[Any] = None) -> Any:
@@ -106,7 +108,38 @@ def partial(func: Callable, indices: Sequence, *fixargs: Any, **fixkwargs: Any) 
     return pfunc
 
 
-def device_info(devid: int = 0) -> str:  # pragma: no cover
+def _dev_info_device(dev: Device) -> str:
+    """Get a string describing the specified device.
+
+    Args:
+        dev: Device object.
+
+    Returns:
+        Device description string.
+    """
+    if dev.platform == "cpu":
+        info = f"CPU {dev.id:2}"
+    else:
+        info = f"{dev.platform.upper()} {dev.id:2}  {dev.device_kind}"
+    return info
+
+
+def _dev_info_shard(shard: Sharding) -> str:
+    """Get a string describing the devices in the specified sharding.
+
+    Args:
+        shard: Sharding object.
+
+    Returns:
+        Device description string.
+    """
+    info = ""
+    for dev in sorted(shard.device_set, key=lambda d: d.id):
+        info += _dev_info_device(dev) + "\n"
+    return info
+
+
+def _dev_info_int(devid: int) -> str:
     """Get a string describing the specified device.
 
     Args:
@@ -119,11 +152,26 @@ def device_info(devid: int = 0) -> str:  # pragma: no cover
     if devid >= numdev:
         raise RuntimeError(f"Requested information for device {devid} but only {numdev} present.")
     dev = jax.devices()[devid]
-    if dev.platform == "cpu":
-        info = "CPU"
+    return _dev_info_device(dev)
+
+
+def device_info(dev: Union[int, Device, Sharding] = 0) -> str:  # pragma: no cover
+    """Get a string describing the specified device(s).
+
+    Args:
+        devid: ID number of device.
+
+    Returns:
+        Device description string.
+    """
+    if isinstance(dev, int):
+        return _dev_info_int(dev)
+    elif isinstance(dev, Device):
+        return _dev_info_device(dev)
+    elif isinstance(dev, Sharding):
+        return _dev_info_shard(dev)
     else:
-        info = f"{dev.platform.upper()} ({dev.device_kind})"
-    return info
+        raise TypeError("Argument dev must be of type Device, Sharding, or int, got {type(dev)}.")
 
 
 def check_for_tracer(func: Callable) -> Callable:
