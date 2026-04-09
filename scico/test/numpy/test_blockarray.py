@@ -415,3 +415,19 @@ def test_stack():
     y = BlockArray(([[1.0, 2.0, 3.0], [0.0, 0.0]]))
     with pytest.raises(ValueError):
         z = y.stack()
+
+
+def test_ravel():
+    # snp.ravel completely flattens a BlockArray
+    ba = snp.ones([[2, 3], [3, 4]])
+    assert snp.ravel(ba).shape == (2 * 3 + 3 * 4,)
+
+    # snp.ravel also flattens an Array
+    arr = snp.ones((2, 3))
+    assert snp.ravel(arr).shape == (2 * 3,)
+
+    # ba.flatten maps over BlockArray blocks
+    assert ba.flatten().shape == ((2 * 3,), (3 * 4,))
+
+    # ba.ravel also maps over BlockArray blocks
+    assert ba.ravel().shape == ((2 * 3,), (3 * 4,))

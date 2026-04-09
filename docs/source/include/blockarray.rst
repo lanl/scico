@@ -96,9 +96,9 @@ For lists of the remaining wrapped functions, see
 
 Note that:
 
-* Both :func:`scico.numpy.ravel` and :meth:`.BlockArray.ravel` return a
-  :class:`.BlockArray` with ravelled blocks rather than the concatenation
-  of these blocks as a single array.
+* :func:`scico.numpy.ravel` returns a fully flattened, single
+  :class:`jax.Array`, while :meth:`.BlockArray.ravel` returns a
+  :class:`.BlockArray` with ravelled blocks.
 * The functional and method versions of the "same" function differ in their
   behavior, with the method version only applying the reduction within each
   block, and the function version applying the reduction across all blocks.
