@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2025 by SCICO Developers
+# Copyright (C) 2020-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -103,7 +103,6 @@ class L2BallIndicator(Functional):
         self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[Array, BlockArray]:
         r"""The scaled proximal operator of the :math:`\ell_2` ball indicator.
-        a :math:`\ell_2` ball
 
         Evaluate the scaled proximal operator of the indicator, :math:`I`,
         of the :math:`\ell_2` ball with radius :math:`r`
@@ -126,3 +125,50 @@ class L2BallIndicator(Functional):
         return jax.lax.cond(
             norm(v) > self.radius, lambda v: self.radius * v / norm(v), lambda v: v, v
         )
+
+
+class BoxIndicator(Functional):
+    r"""Box indicator function..
+
+    Indicator function of the constraint set :math:`a \leq x \leq b` for
+    lower and upper bounds :math:`a` and :math:`b` respectively.
+    """
+
+    has_eval = True
+    has_prox = True
+
+    def __init__(self, lb: float = 0.0, ub: float = 1.0):
+        r"""Initialize a :class:`BoxIndicator` object.
+
+        Args:
+            lb: Lower bound.
+            ub: Upper bound.
+        """
+        self.lb = lb
+        self.ub = ub
+
+    def __call__(self, x: Union[Array, BlockArray]) -> float:
+        if snp.util.is_complex_dtype(x.dtype):
+            raise ValueError("Not defined for complex input.")
+        constr = snp.logical_and(self.lb <= x, x <= self.ub)
+        return jax.lax.cond(snp.all(constr), lambda x: snp.inf, lambda x: 0.0, None)
+
+    def prox(
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[Array, BlockArray]:
+        r"""The scaled proximal operator of the box indicator.
+
+        Evaluate the scaled proximal operator of the constraint set
+        :math:`a \leq x \leq b` for lower and upper bounds :math:`a` and
+        :math:`b` respectively.
+
+        Args:
+            v: Input array :math:`\mb{v}`.
+            lam: Proximal parameter :math:`\lambda` (has no effect).
+            **kwargs: Additional arguments that may be used by derived
+                classes.
+
+        Returns:
+            Result of evaluating the scaled proximal operator at `v`.
+        """
+        return snp.clip(v, self.lb, self.ub)

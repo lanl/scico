@@ -275,7 +275,7 @@ mathematical_functions = (
 )
 
 # these may also appear in the mathematical function list
-reduction_functions = ("sum", "linalg.norm", "count_nonzero", "any")
+reduction_functions = ("sum", "linalg.norm", "count_nonzero", "all", "any")
 
 """ testing """
 

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2025 by SCICO Developers
+# Copyright (C) 2020-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -7,6 +7,7 @@
 
 """Functionals that are norms."""
 
+from functools import partial
 from typing import Optional, Tuple, Union
 
 from jax import jit, lax
@@ -235,7 +236,7 @@ class L21Norm(Functional):
         self.l2_axis = l2_axis
 
     @staticmethod
-    @jit(static_argnames=("axis", "keepdims"))
+    @partial(jit, static_argnames=("axis", "keepdims"))
     def _l2norm(
         x: Union[Array, BlockArray], axis: Union[None, int, Tuple], keepdims: Optional[bool] = False
     ) -> Union[Array, BlockArray]:
@@ -249,7 +250,7 @@ class L21Norm(Functional):
         return snp.sum(snp.abs(l2))
 
     @staticmethod
-    @jit(static_argnames=("axis"))
+    @partial(jit, static_argnames=("axis"))
     def _prox(
         v: Union[Array, BlockArray], lam: float, axis: Union[None, int, Tuple]
     ) -> Union[Array, BlockArray]:

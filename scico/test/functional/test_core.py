@@ -22,7 +22,7 @@ NO_BLOCK_ARRAY = [
     functional.IsotropicTVNorm,
     functional.TVNorm,
 ]
-NO_COMPLEX = [functional.NonNegativeIndicator]
+NO_COMPLEX = [functional.NonNegativeIndicator, functional.BoxIndicator]
 
 
 def pytest_generate_tests(metafunc):

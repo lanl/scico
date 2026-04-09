@@ -47,7 +47,7 @@ noise, key = random.randn(Ax.shape)
 y = Ax + σ * noise
 
 
-"""
+r"""
 Set up the problem to be solved. We want to minimize the functional
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}

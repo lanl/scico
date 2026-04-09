@@ -24,7 +24,7 @@ jobs:
         shell: bash -l {0}
     steps:
       # Check-out the repository under $GITHUB_WORKSPACE
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           submodules: recursive
       # Set up conda environment
