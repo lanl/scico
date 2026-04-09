@@ -607,7 +607,7 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
             vectors: Array of ASTRA geometry specification vectors. This
                 parameter is mutually exclusive with `angles`.
             input_sharding: Sharding for operator input (output of adjoint).
-            input_sharding: Sharding for operator output (input of adjoint).
+            output_sharding: Sharding for operator output (input of adjoint).
 
         Raises:
             RuntimeError: If a CUDA GPU is not available to the ASTRA
