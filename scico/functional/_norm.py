@@ -7,8 +7,8 @@
 
 """Functionals that are norms."""
 
-from typing import Optional, Tuple, Union
 from functools import partial
+from typing import Optional, Tuple, Union
 
 from jax import jit, lax
 

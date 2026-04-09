@@ -7,9 +7,9 @@
 
 """Utilities for checkpointing Flax models."""
 
+import logging
 from pathlib import Path
 from typing import Union
-import logging
 
 try:
     import orbax.checkpoint as ocp
