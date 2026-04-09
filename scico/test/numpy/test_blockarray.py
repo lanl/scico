@@ -241,7 +241,7 @@ REDUCTION_PARAMS = dict(
 def test_reduce(reduction_obj, func):
     x = func(reduction_obj.a)
     x_jit = jax.jit(func)(reduction_obj.a)
-    y = func(snp.concatenate(snp.ravel(reduction_obj.a)))
+    y = func(snp.ravel(reduction_obj.a))
     np.testing.assert_allclose(x, x_jit, rtol=1e-6)  # test jitted function
     np.testing.assert_allclose(x, y, rtol=1e-6)  # test for correctness
 
@@ -431,3 +431,14 @@ def test_ravel():
 
     # ba.ravel also maps over BlockArray blocks
     assert ba.ravel().shape == ((2 * 3,), (3 * 4,))
+
+    # snp.ravel works with scalar blocks
+    # fmt: off
+    scalar_ba = snp.ones(
+        [
+            [],
+            [1,],
+            [1, 1],
+        ]
+    )  # fmt: on
+    assert_array_equal(snp.ravel(scalar_ba), [1, 1, 1])
