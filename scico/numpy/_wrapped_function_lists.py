@@ -207,7 +207,6 @@ mathematical_functions = (
     "linalg.tensorinv",
     "shape",  # https://numpy.org/doc/stable/reference/routines.array-manipulation.html
     "reshape",
-    "ravel",
     "moveaxis",
     "rollaxis",
     "swapaxes",
@@ -275,7 +274,7 @@ mathematical_functions = (
 )
 
 # these may also appear in the mathematical function list
-reduction_functions = ("sum", "linalg.norm", "count_nonzero", "any")
+reduction_functions = ("sum", "linalg.norm", "count_nonzero", "all", "any")
 
 """ testing """
 
