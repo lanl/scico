@@ -66,8 +66,7 @@ def ravel(ba: Union[Array | BlockArray]) -> Array:
     When called on an ``Array``, flattens the array.
 
     Args:
-        ba:
-           The :class:`BlockArray` to flatten.
+        ba: The :class:`BlockArray` to flatten.
 
     Returns:
         `ba` flattened into a single ``Array.``
