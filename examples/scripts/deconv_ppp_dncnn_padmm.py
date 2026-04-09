@@ -69,7 +69,7 @@ Set up proximal ADMM solver.
 """
 ρ = 0.2  # ADMM penalty parameter
 maxiter = 10  # number of proximal ADMM iterations
-mu, nu = ProximalADMM.estimate_parameters(A)
+mu, nu = ProximalADMM.estimate_parameters(A, maxiter=20)
 
 solver = ProximalADMM(
     f=f,
