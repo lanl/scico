@@ -254,7 +254,7 @@ def test_create_zeros():
     assert isinstance(A, jax.Array)
 
     A = snp.zeros(((2,), (2,)))
-    assert all(snp.all(A == 0))
+    assert snp.all(A == 0)
     assert isinstance(A, snp.BlockArray)
 
     A = snp.zeros(())
@@ -266,7 +266,7 @@ def test_create_ones():
     assert np.all(A == 1)
 
     A = snp.ones(((2,), (2,)))
-    assert all(snp.all(A == 1))
+    assert snp.all(A == 1)
 
 
 def test_create_empty():
@@ -274,7 +274,7 @@ def test_create_empty():
     assert np.all(A == 0)
 
     A = snp.empty(((2,), (2,)))
-    assert all(snp.all(A == 0))
+    assert snp.all(A == 0)
 
 
 def test_create_full():
@@ -285,7 +285,7 @@ def test_create_full():
     assert np.all(A == 1)
 
     A = snp.full(((2,), (2,)), 1)
-    assert all(snp.all(A == 1))
+    assert snp.all(A == 1)
 
 
 def test_create_zeros_like():
@@ -299,7 +299,7 @@ def test_create_zeros_like():
 
     A = snp.ones(((2,), (2,)), dtype=np.float32)
     B = snp.zeros_like(A)
-    assert all(snp.all(B == 0))
+    assert snp.all(B == 0)
     assert A.shape == B.shape
     assert A.dtype == B.dtype
 
@@ -315,7 +315,7 @@ def test_create_empty_like():
 
     A = snp.ones(((2,), (2,)), dtype=np.float32)
     B = snp.empty_like(A)
-    assert all(snp.all(B == 0)) and A.shape == B.shape and A.dtype == B.dtype
+    assert snp.all(B == 0) and A.shape == B.shape and A.dtype == B.dtype
 
 
 def test_create_ones_like():
@@ -329,7 +329,7 @@ def test_create_ones_like():
 
     A = snp.zeros(((2,), (2,)), dtype=np.float32)
     B = snp.ones_like(A)
-    assert all(snp.all(B == 1)) and A.shape == B.shape and A.dtype == B.dtype
+    assert snp.all(B == 1) and A.shape == B.shape and A.dtype == B.dtype
 
 
 def test_create_full_like():
@@ -343,7 +343,7 @@ def test_create_full_like():
 
     A = snp.zeros(((2,), (2,)), dtype=np.float32)
     B = snp.full_like(A, 1)
-    assert all(snp.all(B == 1)) and (A.shape == B.shape) and (A.dtype == B.dtype)
+    assert snp.all(B == 1) and (A.shape == B.shape) and (A.dtype == B.dtype)
 
 
 def test_wrap_recursively():
