@@ -17,9 +17,11 @@ functions unique to SCICO in :mod:`.util`.
 
 import sys
 from functools import partial
+from typing import Union
 
 import numpy as np
 
+import jax
 import jax.numpy as jnp
 from jax import Array
 
@@ -31,6 +33,8 @@ from ._wrapped_function_lists import (
     reduction_functions,
     testing_functions,
 )
+
+__all__ = ["fft", "linalg", "testing", "util"]
 
 # allow snp.blockarray(...) to create BlockArrays
 blockarray = BlockArray.blockarray
@@ -54,6 +58,24 @@ _wrappers.wrap_recursively(
 )
 _wrappers.wrap_recursively(vars(), mathematical_functions, _wrappers.map_func_over_args)
 _wrappers.wrap_recursively(vars(), reduction_functions, _wrappers.add_full_reduction)
+
+
+def ravel(ba: Union[Array | BlockArray]) -> Array:
+    """Completely flatten a :class:`BlockArray` into a single ``Array``.
+
+    When called on an ``Array``, flattens the array.
+
+    Args:
+        ba: The :class:`BlockArray` to flatten.
+
+    Returns:
+        `ba` flattened into a single ``Array.``
+    """
+    if isinstance(ba, BlockArray):
+        return jax.numpy.concatenate([arr.flatten() for arr in ba])
+
+    return ba.ravel()
+
 
 # wrap testing funcs
 _wrappers.wrap_recursively(

@@ -207,7 +207,6 @@ mathematical_functions = (
     "linalg.tensorinv",
     "shape",  # https://numpy.org/doc/stable/reference/routines.array-manipulation.html
     "reshape",
-    "ravel",
     "moveaxis",
     "rollaxis",
     "swapaxes",
