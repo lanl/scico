@@ -151,7 +151,7 @@ class BoxIndicator(Functional):
         if snp.util.is_complex_dtype(x.dtype):
             raise ValueError("Not defined for complex input.")
         constr = snp.logical_and(self.lb <= x, x <= self.ub)
-        return jax.lax.cond(snp.all(constr), lambda x: snp.inf, lambda x: 0.0, None)
+        return jax.lax.cond(snp.all(constr), lambda x: 0.0, lambda x: snp.inf, None)
 
     def prox(
         self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
