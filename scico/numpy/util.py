@@ -452,6 +452,20 @@ def complex_dtype(dtype: DType) -> DType:
     return (snp.zeros(1, dtype) + 1j).dtype
 
 
+def dtype_name(dtype: DType) -> str:
+    """Return the name of a dtype.
+
+    Construct a string representation of a dtype name.
+
+    Args:
+        dtype: The dtype for which the name is required.
+
+    Returns:
+        The name of the dtype.
+    """
+    return f"""{dtype.__module__}.{dtype.__qualname__}"""
+
+
 def is_scalar_equiv(s: Any) -> bool:
     """Determine whether an object is a scalar or is scalar-equivalent.
 
