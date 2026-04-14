@@ -463,6 +463,8 @@ def dtype_name(dtype: DType) -> str:
     Returns:
         The name of the dtype.
     """
+    if type(dtype).__module__ == "numpy.dtypes":
+        return f"""numpy.{dtype.name}"""
     return f"""{dtype.__module__}.{dtype.__qualname__}"""
 
 
