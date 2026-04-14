@@ -8,6 +8,7 @@ import scico.numpy as snp
 from scico.numpy.util import (
     array_to_namedtuple,
     complex_dtype,
+    dtype_name,
     indexed_shape,
     is_blockable,
     is_collapsible,
@@ -196,6 +197,11 @@ def test_real_dtype():
 
 def test_complex_dtype():
     assert complex_dtype(snp.float32) == snp.complex64
+
+
+def test_dtype_name():
+    assert dtype_name(np.float32) == "numpy.float32"
+    assert dtype_name(snp.float32) == "jax.numpy.float32"
 
 
 def test_broadcast_nested_shapes():
