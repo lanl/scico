@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2025 by SCICO Developers
+# Copyright (C) 2020-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -38,8 +38,11 @@ class Functional:
     def __init__(self):
         self._grad = scico.grad(self.__call__)
 
+    def __str__(self):
+        return f"""{self.__module__}.{self.__class__.__qualname__}"""
+
     def __repr__(self):
-        return f"""{type(self)} (has_eval = {self.has_eval}, has_prox = {self.has_prox})"""
+        return self.__str__() + f"""\n  has_eval: {self.has_eval}\n  has_prox: {self.has_prox}\n"""
 
     def __mul__(self, other: Union[float, int]) -> ScaledFunctional:
         if snp.util.is_scalar_equiv(other):
@@ -148,7 +151,9 @@ class ScaledFunctional(Functional):
 
     def __repr__(self):
         return (
-            "Scaled functional of type " + str(type(self.functional)) + f" (scale = {self.scale})"
+            f"""{Functional.__repr__(self)}"""
+            f"""  functional: {Functional.__str__(self.functional)}\n"""
+            f"""  scale:      {self.scale}\n"""
         )
 
     def __call__(self, x: Union[Array, BlockArray]) -> float:
@@ -216,17 +221,16 @@ class SeparableFunctional(Functional):
                `num_blocks == len(functional_list)`.
         """
         self.functional_list: List[Functional] = functional_list
-
         self.has_eval: bool = all(fi.has_eval for fi in functional_list)
         self.has_prox: bool = all(fi.has_prox for fi in functional_list)
-
         super().__init__()
 
     def __repr__(self):
         return (
             Functional.__repr__(self)
-            + "\nComponents:\n"
-            + "\n".join(["  " + repr(f) for f in self.functional_list])
+            + "  components: "
+            + ", ".join([str(f) for f in self.functional_list])
+            + "\n"
         )
 
     def __call__(self, x: BlockArray) -> float:
@@ -307,10 +311,7 @@ class ComposedFunctional(Functional):
     def __repr__(self):
         return (
             Functional.__repr__(self)
-            + "\nComposition of:\n"
-            + self.functional.__repr__()
-            + "\n"
-            + self.linop.__repr__()
+            + f"""  composition of: {self.functional.__str__()} and {self.linop.__str__()}\n"""
         )
 
     def __call__(self, x: BlockArray) -> float:
@@ -355,10 +356,9 @@ class FunctionalSum(Functional):
 
     def __repr__(self):
         return (
-            "Sum of functionals of types "
-            + str(type(self.functional1))
-            + " and "
-            + str(type(self.functional2))
+            Functional.__repr__(self)
+            + f"""  sum of functionals: {Functional.__str__(self.functional1)} and """
+            + f"""{Functional.__str__(self.functional2)}\n"""
         )
 
     def __call__(self, x: Union[Array, BlockArray]) -> float:

@@ -1,4 +1,4 @@
-# Copyright (C) 2020-2025 by SCICO Developers
+# Copyright (C) 2020-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -21,7 +21,7 @@ from jax.dtypes import result_type
 
 import scico.numpy as snp
 from scico.numpy import Array, BlockArray
-from scico.numpy.util import is_nested, shape_to_size
+from scico.numpy.util import dtype_name, is_nested, shape_to_size
 from scico.typing import BlockShape, DType, Shape
 
 
@@ -61,14 +61,6 @@ def _wrap_mul_div_scalar(func: Callable) -> Callable:
 
 class Operator:
     """Generic operator class."""
-
-    def __repr__(self):
-        return f"""{type(self)}
-shape       : {self.shape}
-matrix_shape : {self.matrix_shape}
-input_dtype : {self.input_dtype}
-output_dtype : {self.output_dtype}
-        """
 
     # See https://numpy.org/doc/stable/user/c-info.beyond-basics.html#ndarray.__array_priority__
     __array_priority__ = 1
@@ -177,6 +169,17 @@ output_dtype : {self.output_dtype}
     def jit(self):
         """Activate just-in-time compilation for the `_eval` method."""
         self._eval = jax.jit(self._eval)
+
+    def __str__(self):
+        return f"""{self.__module__}.{self.__class__.__qualname__}"""
+
+    def __repr__(self):
+        return f"""{str(self)}
+  input_shape:  {self.input_shape}
+  output_shape: {self.output_shape}
+  input_dtype:  {dtype_name(self.input_dtype)}
+  output_dtype: {dtype_name(self.output_dtype)}
+"""
 
     def __call__(self, x: Union[Operator, Array, BlockArray]) -> Union[Operator, Array, BlockArray]:
         r"""Evaluate this :class:`Operator` at the point :math:`\mb{x}`.
