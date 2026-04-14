@@ -314,7 +314,7 @@ def array_info(x: Union[snp.BlockArray, snp.Array]) -> str:
         + (f"  device:   {x.device}\n" if hasattr(x, "device") else "")
         + f"""  dtype:    {dtype_name(x.dtype)}
   id:       {id(x)}
-  min, max: {x.min()}, {x.max()}
+  min, max: {snp.ravel(x).min()}, {snp.ravel(x).max()}
 """
     )
 
