@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2025 by SCICO Developers
+# Copyright (C) 2022-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SPORCO package. Details of the copyright
 # and user license can be found in the 'LICENSE.txt' file distributed
@@ -279,6 +279,44 @@ def no_nan_divide(
     """
 
     return snp.where(y != 0, snp.divide(x, snp.where(y != 0, y, 1)), 0)
+
+
+def _readable_size(size: int) -> str:
+    """ """
+    factor = [1, 1024, 1024**2, 1024**3, 1024**4]
+    units = ["B", "KB", "MB", "GB", "TB"]
+    idx = np.nonzero([size // f for f in factor[::-1]])
+    if idx[0].size == 0:
+        idx = len(factor) - 1
+    else:
+        idx = idx[0][0]
+    val = size // factor[::-1][idx]
+    ustr = units[::-1][idx]
+    return f"{val} {ustr}"
+
+
+def array_info(x: Union[snp.BlockArray, snp.Array]) -> str:
+    """ """
+    if isinstance(x, np.ndarray):
+        array_type = "numpy.ndarray"
+    elif isinstance(x, jax.Array):
+        array_type = "jax.Array"
+    elif isinstance(x, snp.BlockArray):
+        array_type = "scico.numpy.BlockArray"
+    else:
+        raise TypeError("Unrecognized array type {type(x)}.")
+    return (
+        f"""{array_type}
+  shape:    {x.shape}
+  size:     {x.size}
+  bytes:    {np.sum(x.nbytes).item()} ({_readable_size(np.sum(x.nbytes))})
+"""
+        + (f"  device:   {x.device}\n" if hasattr(x, "device") else "")
+        + f"""  dtype:    {dtype_name(x.dtype)}
+  id:       {id(x)}
+  min, max: {x.min()}, {x.max()}
+"""
+    )
 
 
 def shape_to_size(shape: Union[Shape, BlockShape]) -> int:

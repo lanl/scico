@@ -2,10 +2,13 @@ import collections
 
 import numpy as np
 
+import jax.numpy as jnp
+
 import pytest
 
 import scico.numpy as snp
 from scico.numpy.util import (
+    array_info,
     array_to_namedtuple,
     complex_dtype,
     dtype_name,
@@ -67,6 +70,15 @@ def test_no_nan_divide_blockarray():
 
     assert snp.all(res[1] == 0.0)
     np.testing.assert_allclose(res[0], x[0] / y[0])
+
+
+def test_array_info():
+    x = np.array([0.0, 0.1])
+    xinfo = array_info(x)
+    assert "numpy.ndarray" in xinfo
+    x = jnp.array([0.0, 0.1])
+    xinfo = array_info(x)
+    assert "jax.Array" in xinfo
 
 
 def test_normalize_axes():
