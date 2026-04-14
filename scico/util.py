@@ -124,21 +124,6 @@ def _dev_info_device(dev: Device) -> str:
     return info
 
 
-def _dev_info_shard(shard: Sharding) -> str:
-    """Get a string describing the devices in the specified sharding.
-
-    Args:
-        shard: Sharding object.
-
-    Returns:
-        Device description string.
-    """
-    info = ""
-    for dev in sorted(shard.device_set, key=lambda d: d.id):
-        info += _dev_info_device(dev) + "\n"
-    return info
-
-
 def _dev_info_int(devid: int) -> str:
     """Get a string describing the specified device.
 
@@ -155,23 +140,47 @@ def _dev_info_int(devid: int) -> str:
     return _dev_info_device(dev)
 
 
-def device_info(dev: Union[int, Device, Sharding] = 0) -> str:  # pragma: no cover
-    """Get a string describing the specified device(s).
+def _dev_info_shard(shard: Sharding) -> str:
+    """Get a string describing the devices in the specified sharding.
 
     Args:
-        devid: ID number of device.
+        shard: Sharding object.
 
     Returns:
         Device description string.
     """
+    info = []
+    for dev in sorted(shard.device_set, key=lambda d: d.id):
+        info.append(_dev_info_device(dev))
+    return info
+
+
+def device_info(
+    dev: Union[int, Device, Sharding] = 0, string: bool = True
+) -> str:  # pragma: no cover
+    """Get a string describing the specified device(s).
+
+    Args:
+        devid: ID number of device.
+        string: If ``True`` return as a string, otherwise return as a list.
+
+    Returns:
+        Device description string or list.
+    """
     if isinstance(dev, int):
-        return _dev_info_int(dev)
+        info = [_dev_info_int(dev)]
     elif isinstance(dev, Device):
-        return _dev_info_device(dev)
+        info = [_dev_info_device(dev)]
     elif isinstance(dev, Sharding):
-        return _dev_info_shard(dev)
+        info = _dev_info_shard(dev)
     else:
         raise TypeError("Argument dev must be of type Device, Sharding, or int, got {type(dev)}.")
+    if string:
+        if len(info) == 1:
+            return info[0]
+        else:
+            return "\n" + "\n".join(info)
+    return info
 
 
 def check_for_tracer(func: Callable) -> Callable:
