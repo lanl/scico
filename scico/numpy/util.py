@@ -285,11 +285,12 @@ def _readable_size(size: int) -> str:
     """ """
     factor = [1, 1024, 1024**2, 1024**3, 1024**4]
     units = ["B", "KB", "MB", "GB", "TB"]
-    idx = np.nonzero([size // f for f in factor[::-1]])
-    if idx[0].size == 0:
+    idx_tuple = np.nonzero([size // f for f in factor[::-1]])
+    if idx_tuple[0].size == 0:
         idx = len(factor) - 1
     else:
-        idx = idx[0][0]
+        assert isinstance(idx_tuple[0][0], int)
+        idx = idx_tuple[0][0]
     val = size // factor[::-1][idx]
     ustr = units[::-1][idx]
     return f"{val} {ustr}"
@@ -305,11 +306,12 @@ def array_info(x: Union[snp.BlockArray, snp.Array]) -> str:
         array_type = "scico.numpy.BlockArray"
     else:
         raise TypeError("Unrecognized array type {type(x)}.")
+    totalbytes = np.sum(x.nbytes).item()  # type: ignore
     return (
         f"""{array_type}
   shape:    {x.shape}
   size:     {x.size}
-  bytes:    {np.sum(x.nbytes).item()} ({_readable_size(np.sum(x.nbytes))})
+  bytes:    {totalbytes} ({_readable_size(totalbytes)})
 """
         + (f"  device:   {x.device}\n" if hasattr(x, "device") else "")
         + f"""  dtype:    {dtype_name(x.dtype)}
@@ -502,8 +504,8 @@ def dtype_name(dtype: DType) -> str:
         The name of the dtype.
     """
     if type(dtype).__module__ == "numpy.dtypes":
-        return f"""numpy.{dtype.name}"""
-    return f"""{dtype.__module__}.{dtype.__qualname__}"""
+        return f"""numpy.{dtype.name}"""  # type: ignore
+    return f"""{dtype.__module__}.{dtype.__qualname__}"""  # type: ignore
 
 
 def is_scalar_equiv(s: Any) -> bool:

@@ -524,7 +524,7 @@ def create_conv_sparse_phantom(Nx: int, Nnz: int) -> Tuple[np.ndarray, np.ndarra
     return h, x
 
 
-def create_tangle_phantom(nx: int, ny: int, nz: int) -> snp.Array:
+def create_tangle_phantom(nx: int, ny: int, nz: int) -> np.ndarray:
     """Construct a 3D phantom using the tangle function.
 
     Args:
@@ -542,6 +542,9 @@ def create_tangle_phantom(nx: int, ny: int, nz: int) -> snp.Array:
 
     # default ordering for meshgrid is `xy`, this makes inputs of length
     # M, N, P will create a mesh of N, M, P. Thus we want ys, zs and xs.
+    xx: np.ndarray
+    yy: np.ndarray
+    zz: np.ndarray
     xx, yy, zz = np.meshgrid(ys, zs, xs, copy=True)
     xx = 3.0 * xx
     yy = 3.0 * yy
