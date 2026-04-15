@@ -289,8 +289,7 @@ def _readable_size(size: int) -> str:
     if idx_tuple[0].size == 0:
         idx = len(factor) - 1
     else:
-        assert isinstance(idx_tuple[0][0], int)
-        idx = idx_tuple[0][0]
+        idx = int(idx_tuple[0][0])
     val = size // factor[::-1][idx]
     ustr = units[::-1][idx]
     return f"{val} {ustr}"
