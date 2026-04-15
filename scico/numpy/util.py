@@ -282,7 +282,14 @@ def no_nan_divide(
 
 
 def _readable_size(size: int) -> str:
-    """ """
+    """Return a human-readable representation of an array size.
+
+    Args:
+        size: A positive integer array size.
+
+    Returns:
+        A string representation of the size.
+    """
     factor = [1, 1024, 1024**2, 1024**3, 1024**4]
     units = ["B", "KB", "MB", "GB", "TB"]
     idx_tuple = np.nonzero([size // f for f in factor[::-1]])
@@ -296,7 +303,17 @@ def _readable_size(size: int) -> str:
 
 
 def array_info(x: Union[snp.BlockArray, snp.Array]) -> str:
-    """ """
+    """Return a string providing information about an array.
+
+    Args:
+        x: A numpy or jax array or scico :class:`BlockArray`.
+
+    Returns:
+        A string containing information on the array.
+
+    Raises:
+       TypeError: If the array is not of a recognized type.
+    """
     if isinstance(x, np.ndarray):
         array_type = "numpy.ndarray"
     elif isinstance(x, jax.Array):
