@@ -8,11 +8,12 @@ This module contains the Feldkamp David Kress filtered back projection
 routines.
 """
 
-from typing import Optional
+from typing import Optional, Union
 
 import jax.numpy as jnp
-from jax import Array
+from jax import Array, Device
 from jax.scipy.ndimage import map_coordinates
+from jax.sharding import Sharding
 
 from .config import Config
 from .filtering import ramp_filter_and_weight
@@ -73,7 +74,7 @@ def map_object_to_detector_coords(object_xs, object_ys, object_zs, config):
     return detector_cords_a, detector_cords_b
 
 
-def _fdk_axisym(projection_filtered, config, angles):
+def _fdk_axisym(projection_filtered, config, angles, device=None):
     """Filtered back projection algorithm as proposed by Feldkamp David
     Kress, adapted for axisymmetry.
 
@@ -106,7 +107,7 @@ def _fdk_axisym(projection_filtered, config, angles):
     proj_center = int(proj_width / 2)
 
     # Allocate an empty array
-    recon_slice = jnp.zeros((proj_width, proj_height), dtype=jnp.float32)
+    recon_slice = jnp.zeros((proj_width, proj_height), dtype=jnp.float32, device=device)
 
     for frame_nr, angle in enumerate(angles):
         x_rotated, y_rotated = rotate_coordinates(
@@ -130,7 +131,12 @@ def _fdk_axisym(projection_filtered, config, angles):
     return recon_slice / angles.size
 
 
-def fdk(projection: Array, config: Config, angles: Optional[Array] = None) -> Array:
+def fdk(
+    projection: Array,
+    config: Config,
+    angles: Optional[Array] = None,
+    device: Optional[Union[Device, Sharding]] = None,
+) -> Array:
     """Filtered back projection algorithm as proposed by Feldkamp David
     Kress, adapted for axisymmetry.
 
@@ -151,6 +157,7 @@ def fdk(projection: Array, config: Config, angles: Optional[Array] = None) -> Ar
         reconstruction.
       angles: Array of angles at which reconstruction should be computed.
         Defaults to 0 to 359 degrees with a 1 degree step.
+      device: Device or sharding for output array.
 
     Returns:
         The reconstructed slice is a R-Z plane of a axis-symmetric
@@ -167,5 +174,5 @@ def fdk(projection: Array, config: Config, angles: Optional[Array] = None) -> Ar
     else:
         raise ValueError("The projection has to be a 2D array")
 
-    tomo = _fdk_axisym(projection_filtered, config, angles)
+    tomo = _fdk_axisym(projection_filtered, config, angles, device=device)
     return tomo
