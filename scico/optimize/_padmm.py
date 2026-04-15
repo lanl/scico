@@ -601,6 +601,8 @@ class NonLinearPADMM(ProximalADMMBase):
         factor: Optional[float] = 1.01,
         maxiter: int = 100,
         key: Optional[PRNGKey] = None,
+        xdevice: Optional[Union[Device, Sharding]] = None,
+        zdevice: Optional[Union[Device, Sharding]] = None,
     ) -> Tuple[float, float]:
         r"""Estimate `mu` and `nu` parameters of :class:`NonLinearPADMM`.
 
@@ -625,6 +627,8 @@ class NonLinearPADMM(ProximalADMMBase):
             key: Jax PRNG key to use in operator norm estimation (see
                :func:`.operator_norm`). Defaults to ``None``, in which
                case a new key is created.
+            xdevice: Device or sharding for x variable array.
+            zdevice: Device or sharding for z variable array.
 
         Returns:
             A tuple (`mu`, `nu`) representing the estimated parameter
@@ -632,13 +636,13 @@ class NonLinearPADMM(ProximalADMMBase):
             depending on the value of the `factor` parameter.
         """
         if x is None:
-            x = snp.zeros(H.input_shapes[0], dtype=H.input_dtypes[0])
+            x = snp.zeros(H.input_shapes[0], dtype=H.input_dtypes[0], device=xdevice)
         if z is None:
-            z = snp.zeros(H.input_shapes[1], dtype=H.input_dtypes[1])
+            z = snp.zeros(H.input_shapes[1], dtype=H.input_dtypes[1], device=zdevice)
         Jx = H.jacobian(0, x, z)
         Jz = H.jacobian(1, x, z)
-        mu = operator_norm(Jx, maxiter=maxiter, key=key) ** 2
-        nu = operator_norm(Jz, maxiter=maxiter, key=key) ** 2
+        mu = operator_norm(Jx, maxiter=maxiter, key=key, device=xdevice) ** 2
+        nu = operator_norm(Jz, maxiter=maxiter, key=key, device=zdevice) ** 2
         if factor is None:
             return (mu, nu)
         else:

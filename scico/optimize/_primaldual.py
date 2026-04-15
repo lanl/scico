@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2025 by SCICO Developers
+# Copyright (C) 2021-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -128,15 +128,11 @@ class PDHG(Optimizer):
         self.alpha: float = alpha
 
         if x0 is None:
-            input_shape = C.input_shape
-            dtype = C.input_dtype
-            x0 = snp.zeros(input_shape, dtype=dtype)
+            x0 = snp.zeros(C.input_shape, dtype=C.input_dtype)
         self.x = x0
         self.x_old = self.x
         if z0 is None:
-            input_shape = C.output_shape
-            dtype = C.output_dtype
-            z0 = snp.zeros(input_shape, dtype=dtype)
+            z0 = snp.zeros(C.output_shape, dtype=C.output_dtype)
         self.z = z0
         self.z_old = self.z
 
@@ -239,6 +235,7 @@ class PDHG(Optimizer):
         factor: Optional[float] = 1.01,
         maxiter: int = 100,
         key: Optional[PRNGKey] = None,
+        device: Optional[Union[Device, Sharding]] = None,
     ):
         r"""Estimate `tau` and `sigma` parameters of :class:`PDHG`.
 
@@ -268,20 +265,21 @@ class PDHG(Optimizer):
             key: Jax PRNG key to use in operator norm estimation (see
                :func:`.operator_norm`). Defaults to ``None``, in which
                case a new key is created.
+            device: Device or sharding for x variable array.
 
         Returns:
             A tuple (`tau`, `sigma`) representing the estimated parameter
             values.
         """
         if x is None:
-            x = snp.zeros(C.input_shape, dtype=C.input_dtype)
+            x = snp.zeros(C.input_shape, dtype=C.input_dtype, device=device)
         if factor is None:
             factor = 1.0
         if isinstance(C, LinearOperator):
             J = C
         else:
             J = jacobian(C, x)
-        Cnrm = operator_norm(J, maxiter=maxiter, key=key)
+        Cnrm = operator_norm(J, maxiter=maxiter, key=key, device=device)
         tau = snp.sqrt(factor / ratio) / Cnrm
         sigma = ratio * tau
         return (tau, sigma)

@@ -140,9 +140,7 @@ class ADMM(Optimizer):
         self.subproblem_solver.internal_init(self)
 
         if x0 is None:
-            input_shape = C_list[0].input_shape
-            dtype = C_list[0].input_dtype
-            x0 = snp.zeros(input_shape, dtype=dtype)
+            x0 = snp.zeros(C_list[0].input_shape, dtype=C_list[0].input_dtype)
         self.x = x0
         self.z_list, self.z_list_old = self.z_init(self.x)
         self.u_list = self.u_init(self.x)

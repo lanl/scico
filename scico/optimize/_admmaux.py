@@ -183,7 +183,7 @@ class LinearSubproblemSolver(SubproblemSolver):
                 slower on large-scale problems where the forward
                 operator is written entirely in jax.
            device: Device or sharding for array constructed in
-                :func:`compute_rhs`.
+                :meth:`compute_rhs`.
         """
 
         default_cg_kwargs = {"tol": 1e-4, "maxiter": 100}
@@ -321,8 +321,8 @@ class MatrixSubproblemSolver(LinearSubproblemSolver):
                 solve.
             solve_kwargs: Dictionary of arguments for solver
                 :class:`.MatrixATADSolver` initialization.
-            device: Device or sharding for array constructed in
-                :func:`compute_rhs`.
+            device: Device or sharding for arrays constructed in
+                :meth:`internal_init` and :meth:`compute_rhs`.
         """
         self.check_solve = check_solve
         default_solve_kwargs = {"cho_factor": False}
@@ -353,7 +353,8 @@ class MatrixSubproblemSolver(LinearSubproblemSolver):
         SubproblemSolver.internal_init(self, admm)
 
         if admm.f is None:
-            A = snp.zeros(admm.C_list[0].input_shape[0], dtype=admm.C_list[0].input_dtype)
+            C0 = self.admm.C_list[0]
+            A = snp.zeros(C0.input_shape[0], dtype=C0.input_dtype, device=self.device)
             W = None
         else:
             A = admm.f.A
