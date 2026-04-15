@@ -1,4 +1,4 @@
-# Copyright (C) 2020-2025 by SCICO Developers
+# Copyright (C) 2020-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -8,8 +8,9 @@
 
 from typing import Any, Callable, Optional, Sequence, Union
 
+import jax
+
 import scico.numpy as snp
-from scico._autograd import linear_adjoint
 from scico.numpy.util import indexed_shape, is_nested
 from scico.typing import ArrayIndex, BlockShape, DType, Shape
 
@@ -122,9 +123,11 @@ class Crop(LinearOperator):
         # shape, we assume that it can be computed by subtracting the difference in
         # output and input shapes resulting from applying the pad operator to the
         # input shape of this operator.
-        tmp = pad(snp.zeros(input_shape, dtype=input_dtype))
-        output_shape = tuple(2 * snp.array(input_shape) - snp.array(tmp.shape))
-        pad_adjoint = linear_adjoint(pad, snp.zeros(output_shape, dtype=input_dtype))
+        pad_shape = jax.eval_shape(pad, jax.ShapeDtypeStruct(input_shape, dtype=input_dtype)).shape
+        output_shape = tuple((2 * snp.array(input_shape) - snp.array(pad_shape)).tolist())
+        pad_adjoint = jax.linear_transpose(
+            pad, jax.ShapeDtypeStruct(output_shape, dtype=input_dtype)
+        )
         super().__init__(
             input_shape=input_shape,
             input_dtype=input_dtype,
