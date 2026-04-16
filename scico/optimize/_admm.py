@@ -328,15 +328,7 @@ class ADMM(Optimizer):
         Args:
             x0: Initial value of :math:`\mb{x}`.
         """
-        u_list = [
-            snp.zeros(
-                zi.shape,
-                dtype=zi.dtype,
-                # Test required due to currently broken BlockArray sharding support
-                device=zi.sharding if not isinstance(zi.sharding, tuple) else None,
-            )
-            for zi in self.z_list
-        ]
+        u_list = [snp.zeros(zi.shape, dtype=zi.dtype, device=zi.sharding) for zi in self.z_list]
         return u_list
 
     def step(self):
