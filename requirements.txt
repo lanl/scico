@@ -6,5 +6,5 @@ tifffile
 matplotlib
 jaxlib>=0.5.0,<=0.10.0
 jax>=0.5.0,<=0.10.0
-flax>=0.8.0,<=0.12.6
+flax>=0.8.0,<=0.12.7
 pyabel>=0.9.1
