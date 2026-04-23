@@ -29,7 +29,8 @@ unary_ops = (  # found from dir() on jax array
     "__pos__",
 )
 
-binary_ops = (  # found from dir() on jax array
+
+BINARY_OPS = (  # found from dir() on jax array
     "__add__",
     "__eq__",
     "__floordiv__",
@@ -51,6 +52,15 @@ binary_ops = (  # found from dir() on jax array
     "__rtruediv__",
     "__sub__",
     "__truediv__",
+)
+
+REDUCTIONS = (
+    "sum",
+    "linalg.norm",
+    "mean",
+    "count_nonzero",
+    "all",
+    "any",
 )
 
 """ jax.numpy """
@@ -273,8 +283,6 @@ mathematical_functions = (
     "full_like",
 )
 
-# these may also appear in the mathematical function list
-reduction_functions = ("sum", "linalg.norm", "count_nonzero", "all", "any")
 
 """ testing """
 

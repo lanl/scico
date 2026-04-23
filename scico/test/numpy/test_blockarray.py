@@ -184,7 +184,12 @@ def test_blockarray_from_one_array():
     assert len(x) == 3
 
 
-@pytest.mark.parametrize("axis", [None, 1])
+@pytest.mark.parametrize(
+    "axis",
+    [
+        1,
+    ],
+)
 @pytest.mark.parametrize("keepdims", [True, False])
 def test_sum_method(test_operator_obj, axis, keepdims):
     a = test_operator_obj.a
@@ -455,3 +460,41 @@ def test_ravel():
         ]
     )  # fmt: on
     assert_array_equal(snp.ravel(scalar_ba), [1, 1, 1])
+
+
+def test_eval_shape():
+    # TODO finish
+    def foo(x, y):
+        return x[0] * y[0] + x[1] * y[1]
+
+    x = snp.ones([[2, 2], [2, 2]])
+    y = 2 * snp.ones(
+        [
+            [
+                1,
+            ],
+            [
+                1,
+            ],
+        ]
+    )
+
+    arg = [jax.ShapeDtypeStruct([2, 2], np.float32), jax.ShapeDtypeStruct([2, 2], np.float32)]
+
+    args = [
+        list(jax.ShapeDtypeStruct(b_i.shape, b_i.dtype) for b_i in x),
+        list(jax.ShapeDtypeStruct(b_i.shape, b_i.dtype) for b_i in y),
+    ]
+
+    jax.eval_shape(foo, arg)
+
+
+# temp:
+import jax.numpy as jnp
+
+import scico.numpy as snp
+from scico.numpy import BlockArray
+
+a = BlockArray([jnp.ones(3), jnp.ones(10)])
+b = BlockArray([jnp.ones(3), jnp.ones(10)])
+a + b

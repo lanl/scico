@@ -7,228 +7,301 @@
 
 """Block array class."""
 
-import inspect
-from functools import WRAPPER_ASSIGNMENTS, wraps
-from typing import Callable
-
 import jax
 import jax.numpy as jnp
-
-from ._wrapped_function_lists import binary_ops, unary_ops
-from .util import is_collapsible
 
 # Determine type of "standard" jax array since jax.Array is an abstract
 # base class type that is not suitable for use here.
 JaxArray = type(jnp.array([0]))
 
 
-class BlockArray:
-    """Block array class.
+class TransparentTuple(tuple):
+    """Transparent tuple class.
 
-    A block array provides a way to combine arrays of different shapes
-    into a single object for use with other SCICO classes. For further
-    information, see the
-    :ref:`detailed BlockArray documentation <blockarray_class>`.
-
-    Example
-    -------
-
-    >>> x = snp.blockarray((
-    ...     [[1, 3, 7],
-    ...      [2, 2, 1]],
-    ...     [2, 4, 8]
-    ... ))
-    >>> x.shape
-    ((2, 3), (3,))
-    >>> snp.sum(x)
-    Array(30, dtype=int32)
+    When a method of a transparent tuple is called, the corresponding
+    method is called on its items and the results are returned in a new
+    transparent tuple.
     """
 
-    # Ensure we use BlockArray.__radd__, __rmul__, etc for binary
-    # operations of the form op(np.ndarray, BlockArray) See
-    # https://docs.scipy.org/doc/numpy-1.10.1/user/c-info.beyond-basics.html#ndarray.__array_priority__
-    __array_priority__ = 1
+    def __getattribute__(self, name):
+        attrs = [getattr(x_i, name) for x_i in self]
+        if callable(attrs[0]):
+            if not all([callable(attr) for attr in attrs]):
+                raise ValueError("If one attribute is callable, they all must be.")
 
-    def __init__(self, inputs):
-        # convert inputs to jax arrays
-        self.arrays = [x if isinstance(x, jnp.ndarray) else jnp.array(x) for x in inputs]
+            def mapping_func(*args, **kwargs):
+                return TransparentTuple([attr(*args, **kwargs) for attr in attrs])
 
-        # check that dtypes match
-        if not all(a.dtype == self.arrays[0].dtype for a in self.arrays):
-            raise ValueError("Heterogeneous dtypes not supported.")
+            return mapping_func
 
-    @property
-    def dtype(self):
-        """Return the dtype of the blocks, which must currently be homogeneous.
-
-        This allows `snp.zeros(x.shape, x.dtype)` to work without a mechanism
-        to handle lists of dtypes.
-        """
-        return self.arrays[0].dtype
-
-    def __len__(self):
-        return self.arrays.__len__()
-
-    def __getitem__(self, key):
-        """Indexing method equivalent to x[key].
-
-        This is overridden to make, e.g., x[:2] return a BlockArray
-        rather than a list.
-        """
-        result = self.arrays[key]
-        if not isinstance(result, jnp.ndarray):
-            return BlockArray(result)  # x[k:k+1] returns a BlockArray
-        return result  # x[k] returns a jax array
-
-    def __setitem__(self, key, value):
-        self.arrays[key] = value
-
-    @staticmethod
-    def blockarray(iterable):
-        """Construct a :class:`.BlockArray` from a list or tuple of existing array-like."""
-        return BlockArray(iterable)
+        return TransparentTuple(attrs)
 
     def __repr__(self):
-        return f"BlockArray({repr(self.arrays)})"
+        return "<" + super().__repr__() + ">"
 
-    def stack(self, axis=0):
-        """Collapse a :class:`.BlockArray` to :class:`jax.Array`.
+    # unary operations
 
-        Collapse a :class:`.BlockArray` to :class:`jax.Array` by stacking
-        the blocks on axis `axis`.
+    # binary operations
 
-        Args:
-            axis: Index of new axis on which blocks are to be stacked.
+    @staticmethod
+    def apply_binary_op(a, b, op):
+        if isinstance(b, TransparentTuple):
+            return TransparentTuple([getattr(a_i, op)(b_i) for a_i, b_i in zip(a, b)])
+        return TransparentTuple([getattr(a_i, op)(b) for a_i in a])
 
-        Returns:
-            A :class:`jax.Array` obtained by stacking.
+    # for op in BINARY_OPS:
+    #     print(
+    #         f'def {op}(self, other): return TransparentTuple.apply_binary_op(self, other, "{op}")'
+    #     )
 
-        Raises:
-            ValueError: When called on a :class:`.BlockArray` that is not
-               stackable.
-        """
-        if is_collapsible(self.shape):
-            return jnp.stack(self.arrays, axis=axis)
-        else:
-            raise ValueError(f"BlockArray of shape {self.shape} cannot be collapsed to an Array.")
+    # fmt: off
+    def __add__(self, other): return TransparentTuple.apply_binary_op(self, other, "__add__")
+    def __eq__(self, other): return TransparentTuple.apply_binary_op(self, other, "__eq__")
+    def __floordiv__(self, other): return TransparentTuple.apply_binary_op(self, other, "__floordiv__")
+    def __ge__(self, other): return TransparentTuple.apply_binary_op(self, other, "__ge__")
+    def __gt__(self, other): return TransparentTuple.apply_binary_op(self, other, "__gt__")
+    def __le__(self, other): return TransparentTuple.apply_binary_op(self, other, "__le__")
+    def __lt__(self, other): return TransparentTuple.apply_binary_op(self, other, "__lt__")
+    def __matmul__(self, other): return TransparentTuple.apply_binary_op(self, other, "__matmul__")
+    def __mod__(self, other): return TransparentTuple.apply_binary_op(self, other, "__mod__")
+    def __mul__(self, other): return TransparentTuple.apply_binary_op(self, other, "__mul__")
+    def __ne__(self, other): return TransparentTuple.apply_binary_op(self, other, "__ne__")
+    def __pow__(self, other): return TransparentTuple.apply_binary_op(self, other, "__pow__")
+    def __radd__(self, other): return TransparentTuple.apply_binary_op(self, other, "__radd__")
+    def __rfloordiv__(self, other): return TransparentTuple.apply_binary_op(self, other, "__rfloordiv__")
+    def __rmatmul__(self, other): return TransparentTuple.apply_binary_op(self, other, "__rmatmul__")
+    def __rmul__(self, other): return TransparentTuple.apply_binary_op(self, other, "__rmul__")
+    def __rpow__(self, other): return TransparentTuple.apply_binary_op(self, other, "__rpow__")
+    def __rsub__(self, other): return TransparentTuple.apply_binary_op(self, other, "__rsub__")
+    def __rtruediv__(self, other): return TransparentTuple.apply_binary_op(self, other, "__rtruediv__")
+    def __sub__(self, other): return TransparentTuple.apply_binary_op(self, other, "__sub__")
+    def __truediv__(self, other): return TransparentTuple.apply_binary_op(self, other, "__truediv__")
+    # fmt: on
 
 
-# Register BlockArray as a jax pytree; without this, jax autograd won't work.
+# Register TransparentTuple as a jax pytree; without this, jax autograd won't work.
 # Taken from what is done with tuples in jax._src.tree_util
 jax.tree_util.register_pytree_node(
-    BlockArray,
+    TransparentTuple,
     lambda xs: (xs, None),  # to iter
-    lambda _, xs: BlockArray(xs),  # from iter
+    lambda _, xs: TransparentTuple(xs),  # from iter
 )
 
 
-# Wrap unary ops like -x.
-def _unary_op_wrapper(op_name):
-    op = getattr(JaxArray, op_name)
-
-    @wraps(op)
-    def op_block_array(self):
-        return BlockArray(op(x) for x in self)
-
-    return op_block_array
+def BlockArray(inputs):
+    return TransparentTuple([jax.numpy.array(x) for x in inputs])
 
 
-for op_name in unary_ops:
-    setattr(BlockArray, op_name, _unary_op_wrapper(op_name))
+blockarray = BlockArray
 
 
-# Wrap binary ops like x + y. """
-def _binary_op_wrapper(op_name):
-    op = getattr(JaxArray, op_name)
+# class BlockArray:
+#     """Block array class.
 
-    @wraps(op)
-    def op_block_array(self, other):
-        # If other is a block array, we can assume the operation is
-        # implemented (because block arrays must contain jax arrays)
-        if isinstance(other, BlockArray):
-            return BlockArray(op(x, y) for x, y in zip(self, other))
+#     A block array provides a way to combine arrays of different shapes
+#     into a single object for use with other SCICO classes. For further
+#     information, see the
+#     :ref:`detailed BlockArray documentation <blockarray_class>`.
 
-        # If not, need to handle possible NotImplemented. Without this,
-        # block_array + 'hi' -> [NotImplemented, NotImplemented, ...]
-        result = list(op(x, other) for x in self)
-        if NotImplemented in result:
-            return NotImplemented
-        return BlockArray(result)
+#     Example
+#     -------
 
-    return op_block_array
+#     >>> x = snp.blockarray((
+#     ...     [[1, 3, 7],
+#     ...      [2, 2, 1]],
+#     ...     [2, 4, 8]
+#     ... ))
+#     >>> x.shape
+#     ((2, 3), (3,))
+#     >>> snp.sum(x)
+#     Array(30, dtype=int32)
+#     """
+
+#     # Ensure we use BlockArray.__radd__, __rmul__, etc for binary
+#     # operations of the form op(np.ndarray, BlockArray) See
+#     # https://docs.scipy.org/doc/numpy-1.10.1/user/c-info.beyond-basics.html#ndarray.__array_priority__
+#     __array_priority__ = 1
+
+#     def __init__(self, inputs):
+#         # convert inputs to jax arrays
+#         self.arrays = [x if isinstance(x, jnp.ndarray) else jnp.array(x) for x in inputs]
+
+#         # check that dtypes match
+#         if not all(a.dtype == self.arrays[0].dtype for a in self.arrays):
+#             raise ValueError("Heterogeneous dtypes not supported.")
+
+#     @property
+#     def dtype(self):
+#         """Return the dtype of the blocks, which must currently be homogeneous.
+
+#         This allows `snp.zeros(x.shape, x.dtype)` to work without a mechanism
+#         to handle lists of dtypes.
+#         """
+#         return self.arrays[0].dtype
+
+#     def __len__(self):
+#         return self.arrays.__len__()
+
+#     def __getitem__(self, key):
+#         """Indexing method equivalent to x[key].
+
+#         This is overridden to make, e.g., x[:2] return a BlockArray
+#         rather than a list.
+#         """
+#         result = self.arrays[key]
+#         if not isinstance(result, jnp.ndarray):
+#             return BlockArray(result)  # x[k:k+1] returns a BlockArray
+#         return result  # x[k] returns a jax array
+
+#     def __setitem__(self, key, value):
+#         self.arrays[key] = value
+
+#     @staticmethod
+#     def blockarray(iterable):
+#         """Construct a :class:`.BlockArray` from a list or tuple of existing array-like."""
+#         return BlockArray(iterable)
+
+#     def __repr__(self):
+#         return f"BlockArray({repr(self.arrays)})"
+
+#     def stack(self, axis=0):
+#         """Collapse a :class:`.BlockArray` to :class:`jax.Array`.
+
+#         Collapse a :class:`.BlockArray` to :class:`jax.Array` by stacking
+#         the blocks on axis `axis`.
+
+#         Args:
+#             axis: Index of new axis on which blocks are to be stacked.
+
+#         Returns:
+#             A :class:`jax.Array` obtained by stacking.
+
+#         Raises:
+#             ValueError: When called on a :class:`.BlockArray` that is not
+#                stackable.
+#         """
+#         if is_collapsible(self.shape):
+#             return jnp.stack(self.arrays, axis=axis)
+#         else:
+#             raise ValueError(f"BlockArray of shape {self.shape} cannot be collapsed to an Array.")
 
 
-for op_name in binary_ops:
-    setattr(BlockArray, op_name, _binary_op_wrapper(op_name))
+# # Register BlockArray as a jax pytree; without this, jax autograd won't work.
+# # Taken from what is done with tuples in jax._src.tree_util
+# jax.tree_util.register_pytree_node(
+#     BlockArray,
+#     lambda xs: (xs, None),  # to iter
+#     lambda _, xs: BlockArray(xs),  # from iter
+# )
 
 
-# Wrap jax array properties.
-def _jax_array_prop_wrapper(prop_name):
-    prop = getattr(JaxArray, prop_name)
+# # Wrap unary ops like -x.
+# def _unary_op_wrapper(op_name):
+#     op = getattr(JaxArray, op_name)
 
-    @property
-    @wraps(prop)
-    def prop_block_array(self):
-        result = tuple(getattr(x, prop_name) for x in self)
+#     @wraps(op)
+#     def op_block_array(self):
+#         return BlockArray(op(x) for x in self)
 
-        # If each jax_array.prop is a jax array, ...
-        if all([isinstance(x, jnp.ndarray) for x in result]):
-            # ...return a block array...
-            return BlockArray(result)
-
-        # ... otherwise return a tuple.
-        return result
-
-    return prop_block_array
+#     return op_block_array
 
 
-skip_props = ("at",)
-jax_array_props = [
-    k
-    for k, v in dict(inspect.getmembers(JaxArray)).items()  # (name, method) pairs
-    if isinstance(v, property) and k[0] != "_" and k not in dir(BlockArray) and k not in skip_props
-]
-
-for prop_name in jax_array_props:
-    setattr(BlockArray, prop_name, _jax_array_prop_wrapper(prop_name))
+# for op_name in unary_ops:
+#     setattr(BlockArray, op_name, _unary_op_wrapper(op_name))
 
 
-# Wrap jax array methods.
-def _jax_array_method_wrapper(method_name):
-    method = getattr(JaxArray, method_name)
+# # Wrap binary ops like x + y. """
+# def _binary_op_wrapper(op_name):
+#     op = getattr(JaxArray, op_name)
 
-    # Don't try to set attributes that are None. Not clear why some
-    # functions/methods (e.g. block_until_ready) have None values
-    # for these attributes.
-    wrapper_assignments = WRAPPER_ASSIGNMENTS
-    for attr in ("__name__", "__qualname__"):
-        if getattr(method, attr) is None:
-            wrapper_assignments = tuple(x for x in wrapper_assignments if x != attr)
+#     @wraps(op)
+#     def op_block_array(self, other):
+#         # If other is a block array, we can assume the operation is
+#         # implemented (because block arrays must contain jax arrays)
+#         if isinstance(other, BlockArray):
+#             return BlockArray(op(x, y) for x, y in zip(self, other))
 
-    @wraps(method, assigned=wrapper_assignments)
-    def method_block_array(self, *args, **kwargs):
-        result = tuple(getattr(x, method_name)(*args, **kwargs) for x in self)
+#         # If not, need to handle possible NotImplemented. Without this,
+#         # block_array + 'hi' -> [NotImplemented, NotImplemented, ...]
+#         result = list(op(x, other) for x in self)
+#         if NotImplemented in result:
+#             return NotImplemented
+#         return BlockArray(result)
 
-        # If each jax_array.method(...) call returns a jax array, ...
-        if all([isinstance(x, jnp.ndarray) for x in result]):
-            # ... return a block array...
-            return BlockArray(result)
-
-        # ... otherwise return a tuple.
-        return result
-
-    return method_block_array
+#     return op_block_array
 
 
-skip_methods = ()
-jax_array_methods = [
-    k
-    for k, v in dict(inspect.getmembers(JaxArray)).items()  # (name, method) pairs
-    if isinstance(v, Callable)
-    and k[0] != "_"
-    and k not in dir(BlockArray)
-    and k not in skip_methods
-]
+# for op_name in binary_ops:
+#     setattr(BlockArray, op_name, _binary_op_wrapper(op_name))
 
-for method_name in jax_array_methods:
-    setattr(BlockArray, method_name, _jax_array_method_wrapper(method_name))
+
+# # Wrap jax array properties.
+# def _jax_array_prop_wrapper(prop_name):
+#     prop = getattr(JaxArray, prop_name)
+
+#     @property
+#     @wraps(prop)
+#     def prop_block_array(self):
+#         result = tuple(getattr(x, prop_name) for x in self)
+
+#         # If each jax_array.prop is a jax array, ...
+#         if all([isinstance(x, jnp.ndarray) for x in result]):
+#             # ...return a block array...
+#             return BlockArray(result)
+
+#         # ... otherwise return a tuple.
+#         return result
+
+#     return prop_block_array
+
+
+# skip_props = ("at",)
+# jax_array_props = [
+#     k
+#     for k, v in dict(inspect.getmembers(JaxArray)).items()  # (name, method) pairs
+#     if isinstance(v, property) and k[0] != "_" and k not in dir(BlockArray) and k not in skip_props
+# ]
+
+# for prop_name in jax_array_props:
+#     setattr(BlockArray, prop_name, _jax_array_prop_wrapper(prop_name))
+
+
+# # Wrap jax array methods.
+# def _jax_array_method_wrapper(method_name):
+#     method = getattr(JaxArray, method_name)
+
+#     # Don't try to set attributes that are None. Not clear why some
+#     # functions/methods (e.g. block_until_ready) have None values
+#     # for these attributes.
+#     wrapper_assignments = WRAPPER_ASSIGNMENTS
+#     for attr in ("__name__", "__qualname__"):
+#         if getattr(method, attr) is None:
+#             wrapper_assignments = tuple(x for x in wrapper_assignments if x != attr)
+
+#     @wraps(method, assigned=wrapper_assignments)
+#     def method_block_array(self, *args, **kwargs):
+#         result = tuple(getattr(x, method_name)(*args, **kwargs) for x in self)
+
+#         # If each jax_array.method(...) call returns a jax array, ...
+#         if all([isinstance(x, jnp.ndarray) for x in result]):
+#             # ... return a block array...
+#             return BlockArray(result)
+
+#         # ... otherwise return a tuple.
+#         return result
+
+#     return method_block_array
+
+
+# skip_methods = ()
+# jax_array_methods = [
+#     k
+#     for k, v in dict(inspect.getmembers(JaxArray)).items()  # (name, method) pairs
+#     if isinstance(v, Callable)
+#     and k[0] != "_"
+#     and k not in dir(BlockArray)
+#     and k not in skip_methods
+# ]
+
+# for method_name in jax_array_methods:
+#     setattr(BlockArray, method_name, _jax_array_method_wrapper(method_name))

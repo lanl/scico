@@ -22,29 +22,27 @@ from typing import Union
 import numpy as np
 
 import jax
-import jax.numpy as jnp
+import jax.numpy
 from jax import Array
 
 from . import _wrappers, fft, linalg, testing, util
-from ._blockarray import BlockArray
+from ._blockarray import BlockArray, TransparentTuple, blockarray
 from ._wrapped_function_lists import (
+    BINARY_OPS,
+    REDUCTIONS,
     creation_routines,
     mathematical_functions,
-    reduction_functions,
     testing_functions,
 )
 
 __all__ = ["fft", "linalg", "testing", "util"]
 
-# allow snp.blockarray(...) to create BlockArrays
-blockarray = BlockArray.blockarray
-blockarray.__module__ = __name__  # so that blockarray can be referenced in docs
 
 # BlockArray appears to originate in this module
 sys.modules[__name__].BlockArray.__module__ = __name__
 
 # copy most of jnp without wrapping
-_wrappers.add_attributes(to_dict=vars(), from_dict=jnp.__dict__)
+_wrappers.add_attributes(to_dict=vars(), from_dict=jax.numpy.__dict__)
 
 # wrap jnp funcs
 _wrappers.wrap_recursively(
@@ -57,10 +55,18 @@ _wrappers.wrap_recursively(
     ),
 )
 _wrappers.wrap_recursively(vars(), mathematical_functions, _wrappers.map_func_over_args)
-_wrappers.wrap_recursively(vars(), reduction_functions, _wrappers.add_full_reduction)
+
+# _wrappers.wrap_recursively(vars(), reduction_functions, _wrappers.add_full_reduction)
 
 
-def ravel(ba: Union[Array | BlockArray]) -> Array:
+def sum(a, axis=None, *args, **kwargs):
+    if axis is not None:
+        return jax.numpy.sum(a, axis, *args, **kwargs)
+
+    return jax.numpy.sum(ravel(a), axis, *args, **kwargs)
+
+
+def ravel(ba: Union[Array | TransparentTuple]) -> Array:
     """Completely flatten a :class:`BlockArray` into a single ``Array``.
 
     When called on an ``Array``, flattens the array.
@@ -71,8 +77,8 @@ def ravel(ba: Union[Array | BlockArray]) -> Array:
     Returns:
         `ba` flattened into a single ``Array.``
     """
-    if isinstance(ba, BlockArray):
-        return jax.numpy.concatenate([arr.flatten() for arr in ba])
+    if isinstance(ba, TransparentTuple):
+        return jax.numpy.concatenate([arr.ravel() for arr in ba])
 
     return ba.ravel()
 
@@ -83,4 +89,4 @@ _wrappers.wrap_recursively(
 )
 
 # clean up
-del np, jnp, _wrappers
+del np, _wrappers

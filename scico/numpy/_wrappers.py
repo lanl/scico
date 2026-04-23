@@ -19,7 +19,7 @@ import jax.numpy as jnp
 
 import scico.numpy as snp
 
-from ._blockarray import BlockArray
+from ._blockarray import TransparentTuple
 
 
 def add_attributes(
@@ -107,7 +107,7 @@ def map_func_over_args(
         arg_is_mapping = []
         for arg_num, arg_val in enumerate(args):
             if (
-                isinstance(arg_val, BlockArray)
+                isinstance(arg_val, TransparentTuple)
                 or (
                     snp.util.is_nested(arg_val)
                     and arg_num < len(arg_names)
@@ -127,7 +127,7 @@ def map_func_over_args(
         kwarg_is_mapping = {}
         for arg_name, arg_val in kwargs.items():
             if (
-                isinstance(arg_val, BlockArray)
+                isinstance(arg_val, TransparentTuple)
                 or (arg_name in map_if_nested_args and snp.util.is_nested(arg_val))
                 or (arg_name in map_if_list_args and isinstance(arg_val, (list, tuple)))
             ):
@@ -169,7 +169,7 @@ def map_func_over_args(
         if is_void:
             return
 
-        return BlockArray(results)
+        return TransparentTuple(results)
 
     return wrapped
 
@@ -196,7 +196,7 @@ def add_full_reduction(func: Callable, axis_arg_name: Optional[str] = "axis"):
 
         ba_args = {}
         for k, v in list(bound_args.arguments.items()):
-            if isinstance(v, BlockArray):
+            if isinstance(v, TransparentTuple):
                 ba_args[k] = bound_args.arguments.pop(k)
 
         if "axis" in bound_args.arguments:
