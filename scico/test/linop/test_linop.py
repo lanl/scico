@@ -237,7 +237,7 @@ def test_conj_transpose_matmul(testobj):
     x = testobj.x
     comp_op = Ao.conj().T @ Bo
     comp_mat = testobj.A.conj().T @ testobj.B
-    assert comp_mat == testobj.A.dtype
+    assert comp_mat.dtype == testobj.A.dtype
     np.testing.assert_allclose(comp_mat @ x, comp_op @ x, rtol=5e-5)
 
 
