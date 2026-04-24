@@ -302,10 +302,8 @@ class ComposedFunctional(Functional):
         """
         self.functional = functional
         self.linop = linop
-
         self.has_eval = functional.has_eval
         self.has_prox = functional.has_prox
-
         super().__init__()
 
     def __repr__(self):
