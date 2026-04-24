@@ -17,6 +17,7 @@ functions unique to SCICO in :mod:`.util`.
 
 import sys
 from functools import partial, wraps
+from types import ModuleType
 from typing import Union
 
 import numpy as np
@@ -25,24 +26,21 @@ import jax
 import jax.numpy as jnp
 from jax import Array
 
-from . import _wrappers, testing, util
-from ._blockarray import TransparentTuple
+from . import _wrappers, util
+from ._blockarray import BlockArray, TransparentTuple
 from ._wrapped_function_lists import (
-    BINARY_OPS,
     CREATION_ROUTINES,
     MATHEMATICAL_FUNCTIONS,
     REDUCTIONS,
+    TESTING_FUNCTIONS,
 )
 
 __all__ = ["fft", "linalg", "testing", "util", "BlockArray", "blockarray"]
 
 
-#
-def BlockArray(inputs):
-    return TransparentTuple([jax.numpy.array(x) for x in inputs])
-
-
-blockarray = BlockArray
+def blockarray(a):
+    """Construct a :class:`.BlockArray` from a list or tuple of existing array-like."""
+    return BlockArray(a)
 
 
 # copy most of jnp without wrapping
@@ -68,7 +66,7 @@ def ravel(ba: Union[Array | TransparentTuple]) -> Array:
     return ba.ravel()
 
 
-def stack(ba, axis=0):
+def stack(ba, *args, **kwargs):
     """Collapse a block array to :class:`jax.Array`.
 
     Collapse a block array to :class:`jax.Array` by stacking
@@ -84,14 +82,13 @@ def stack(ba, axis=0):
         ValueError: When called on a :class:`.BlockArray` that is not
             stackable.
     """
+    if not isinstance(ba, TransparentTuple):
+        return jnp.stack(ba, *args, **kwargs)
+
     if util.is_collapsible(ba.shape):
-        return jnp.stack(ba, axis=axis)
+        return jnp.stack(ba, *args, **kwargs)
     else:
         raise ValueError(f"BlockArray of shape {ba.shape} cannot be collapsed to an Array.")
-
-
-# BlockArray appears to originate in this module
-# sys.modules[__name__].BlockArray.__module__ = __name__
 
 
 # wrap jnp funcs
@@ -111,6 +108,7 @@ _wrappers.wrap_recursively(vars(), REDUCTIONS, _wrappers.add_full_reduction)
 
 @wraps(jnp.linalg.norm)
 def norm(x, ord=None, axis=np._NoValue, *args, **kwargs):
+    """Wrapper or jnp.linalg.norm"""
     if not isinstance(x, TransparentTuple):
         if axis is np._NoValue:
             # jnp funcs can't accept axis=np._NoValue

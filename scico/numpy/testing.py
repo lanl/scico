@@ -7,14 +7,20 @@
 
 """Test support functions."""
 
-import numpy as np
+from functools import partial
+
+import numpy
 
 from . import _wrappers
+from ._wrapped_function_lists import TESTING_FUNCTIONS
 
+# copy most of np testing functions
 _wrappers.add_attributes(
     to_dict=vars(),
-    from_dict=np.testing.__dict__,
+    from_dict=numpy.testing.__dict__,
 )
 
-# clean up
-del np, _wrappers
+# wrap testing funcs
+_wrappers.wrap_recursively(
+    vars(), TESTING_FUNCTIONS, partial(_wrappers.map_func_over_args, is_void=True)
+)

@@ -8,6 +8,7 @@
 """Block array class."""
 
 import jax
+import jax.numpy as jnp
 
 from ._wrapped_function_lists import BINARY_OPS, UNARY_OPS
 
@@ -38,7 +39,8 @@ class TransparentTuple(tuple):
 
 
 # add unary operations
-def create_mapping_version_unary(op_name):
+def _create_mapping_version_unary(op_name):
+
     def mapping_version(self):
         return TransparentTuple([getattr(self_i, op_name)() for self_i in self])
 
@@ -47,13 +49,14 @@ def create_mapping_version_unary(op_name):
 
 
 for op_name in UNARY_OPS:
-    setattr(TransparentTuple, op_name, create_mapping_version_unary(op_name))
+    setattr(TransparentTuple, op_name, _create_mapping_version_unary(op_name))
 
 
 # add binary operations
-def create_mapping_version_binary(op_name):
+def _create_mapping_version_binary(op_name):
     def mapping_version(self, other):
         if isinstance(other, TransparentTuple):
+            assert len(self) == len(other)
             result = TransparentTuple(
                 [getattr(self_i, op_name)(other_i) for self_i, other_i in zip(self, other)]
             )
@@ -69,7 +72,7 @@ def create_mapping_version_binary(op_name):
 
 
 for op_name in BINARY_OPS:
-    setattr(TransparentTuple, op_name, create_mapping_version_binary(op_name))
+    setattr(TransparentTuple, op_name, _create_mapping_version_binary(op_name))
 
 # Register TransparentTuple as a jax pytree; without this, jax autograd won't work.
 # Taken from what is done with tuples in jax._src.tree_util
@@ -77,6 +80,41 @@ jax.tree_util.register_pytree_node(
     TransparentTuple,
     lambda xs: (xs, None),  # to iter
     lambda _, xs: TransparentTuple(xs),  # from iter
+)
+
+
+class BlockArray(TransparentTuple):
+    """Block array class.
+
+    A block array provides a way to combine arrays of different shapes
+    into a single object for use with other SCICO classes. For further
+    information, see the
+    :ref:`detailed BlockArray documentation <blockarray_class>`.
+
+    Example
+    -------
+
+    >>> x = snp.blockarray((
+    ...     [[1, 3, 7],
+    ...      [2, 2, 1]],
+    ...     [2, 4, 8]
+    ... ))
+    >>> x.shape
+    ((2, 3), (3,))
+    >>> snp.sum(x)
+    Array(30, dtype=int32)
+    """
+
+    def __new__(self, iterable):
+        return super().__new__(self, (jnp.array(x) for x in iterable))
+
+
+# Register BlockArray as a jax pytree; without this, jax autograd won't work.
+# Taken from what is done with tuples in jax._src.tree_util
+jax.tree_util.register_pytree_node(
+    BlockArray,
+    lambda xs: (xs, None),  # to iter
+    lambda _, xs: BlockArray(xs),  # from iter
 )
 
 

@@ -32,7 +32,6 @@ UNARY_OPS = (  # found from dir() on jax array
 
 BINARY_OPS = (  # found from dir() on jax array
     "__add__",
-    "__eq__",
     "__floordiv__",
     "__ge__",
     "__gt__",
@@ -281,3 +280,7 @@ MATHEMATICAL_FUNCTIONS = (
     "zeros_like",
     "full_like",
 )
+
+# these are in numpy.testing, but the prefix is dropped because they are wrapped in
+# scico.numpy.testing
+TESTING_FUNCTIONS = ("assert_allclose", "assert_array_equal")

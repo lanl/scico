@@ -54,10 +54,11 @@ class Diagonal(LinearOperator):
             output_shape = broadcast_nested_shapes(input_shape, self._diagonal.shape)
         elif not isinstance(diagonal, BlockArray) and not is_nested(input_shape):
             output_shape = snp.broadcast_shapes(input_shape, self._diagonal.shape)
-        elif isinstance(diagonal, BlockArray):
-            raise ValueError("Argument 'diagonal' was a BlockArray but input_shape was not nested.")
-        else:
-            raise ValueError("Argument 'diagonal' was not a BlockArray but input_shape was nested.")
+
+        if self._diagonal.shape != input_shape:
+            raise ValueError(
+                f"Diagonal shape {self._diagonal.shape} does not match input_shape {input_shape}"
+            )
 
         super().__init__(
             input_shape=input_shape,

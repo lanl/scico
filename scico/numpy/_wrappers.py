@@ -19,7 +19,7 @@ import numpy as np
 
 import scico.numpy as snp
 
-from ._blockarray import TransparentTuple
+from ._blockarray import BlockArray, TransparentTuple
 
 
 def add_attributes(
@@ -169,7 +169,7 @@ def map_func_over_args(
         if is_void:
             return
 
-        return TransparentTuple(results)
+        return BlockArray(results)
 
     return wrapped
 
