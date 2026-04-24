@@ -129,7 +129,7 @@ Plot results.
 """
 fig, ax = plot.subplots(nrows=1, ncols=3, sharex=True, sharey=False, figsize=(27, 6))
 plot.plot(
-    snp.vstack((hist_tv.Objective, hist_nltv.Objective)).T,
+    snp.array((hist_tv.Objective, hist_nltv.Objective)).T,
     ptyp="semilogy",
     title="Objective function",
     xlbl="Iteration",
@@ -138,7 +138,7 @@ plot.plot(
     ax=ax[0],
 )
 plot.plot(
-    snp.vstack((hist_tv.Prml_Rsdl, hist_nltv.Prml_Rsdl)).T,
+    snp.array((hist_tv.Prml_Rsdl, hist_nltv.Prml_Rsdl)).T,
     ptyp="semilogy",
     title="Primal residual",
     xlbl="Iteration",
@@ -147,7 +147,7 @@ plot.plot(
     ax=ax[1],
 )
 plot.plot(
-    snp.vstack((hist_tv.Dual_Rsdl, hist_nltv.Dual_Rsdl)).T,
+    snp.array((hist_tv.Dual_Rsdl, hist_nltv.Dual_Rsdl)).T,
     ptyp="semilogy",
     title="Dual residual",
     xlbl="Iteration",

@@ -7,8 +7,8 @@ Version 0.0.8   (unreleased)
 • Enable certain parameters of array creation functions to trigger
  ``BlockArray`` creation when they receive lists (currently ``device``).
 • New functional ``functional.BoxIndicator``.
-• Support ``jaxlib`` and ``jax`` versions 0.5.0 to 0.9.2.
-• Support ``flax`` versions 0.8.0 to 0.12.6.
+• Support ``jaxlib`` and ``jax`` versions 0.5.0 to 0.10.0.
+• Support ``flax`` versions 0.8.0 to 0.12.7.
 • Add limited support for sharded arrays.
 • Various bug fixes and minor improvements.
 

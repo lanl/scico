@@ -354,8 +354,23 @@ def shape_to_size(shape: Union[Shape, BlockShape]) -> int:
     return prod(shape)  # type: ignore
 
 
+def is_array(x: Any) -> bool:
+    """Check if input is of type :class:`jax.Array` or :class:`numpy.ndarray`.
+
+    Check if input is an array, of type :class:`jax.Array` or
+    :class:`numpy.ndarray`.
+
+    Args:
+        x: Object to be tested.
+
+    Returns:
+        ``True`` if `x` is an array, ``False`` otherwise.
+    """
+    return isinstance(x, (np.ndarray, jax.Array))
+
+
 def is_arraylike(x: Any) -> bool:
-    """Check if input is of type :class:`jax.ArrayLike`.
+    """Check if input is of type :class:`jax.typing.ArrayLike`.
 
     `isinstance(x, jax.typing.ArrayLike)` does not work in Python < 3.10,
     see https://jax.readthedocs.io/en/latest/jax.typing.html#jax-typing-best-practices.
