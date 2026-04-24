@@ -22,6 +22,11 @@ class TransparentTuple(tuple):
     """
 
     def __getattribute__(self, name):
+        # bypass getattribute for dtype
+        if name == "dtype":
+            return object.__getattribute__(self, "dtype")
+
+        # for all others...
         attrs = [getattr(x_i, name) for x_i in self]
         if callable(attrs[0]):
             if not all([callable(attr) for attr in attrs]):
@@ -34,8 +39,26 @@ class TransparentTuple(tuple):
 
         return TransparentTuple(attrs)
 
+    @property
+    def dtype(self):
+        """Return the dtype of the blocks, which must currently be homogeneous.
+
+        This allows `snp.zeros(x.shape, x.dtype)` to work without a mechanism
+        to handle lists of dtypes.
+        """
+        return self[0].dtype
+
     def __repr__(self):
         return "<" + super().__repr__() + ">"
+
+    def __eq__(self, other):
+        # """Make TransparentTuples and tuples compare based on contents"""
+        if isinstance(other, TransparentTuple):
+            return tuple(self).__eq__(tuple(other))
+        return tuple(self).__eq__(other)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 
 # add unary operations
@@ -56,7 +79,8 @@ for op_name in UNARY_OPS:
 def _create_mapping_version_binary(op_name):
     def mapping_version(self, other):
         if isinstance(other, TransparentTuple):
-            assert len(self) == len(other)
+            if not len(self) == len(other):
+                raise TypeError("Incompatible lengths.")
             result = TransparentTuple(
                 [getattr(self_i, op_name)(other_i) for self_i, other_i in zip(self, other)]
             )
@@ -108,6 +132,21 @@ class BlockArray(TransparentTuple):
     def __new__(self, iterable):
         return super().__new__(self, (jnp.array(x) for x in iterable))
 
+    def __getitem__(self, key):
+        """Indexing method equivalent to x[key].
+
+        This is overridden to make, e.g., x[:2] return a BlockArray
+        rather than a list.
+        """
+        result = super().__getitem__(key)
+        if not isinstance(result, jnp.ndarray):
+            return BlockArray(result)  # x[k:k+1] returns a BlockArray
+        return result  # x[k] returns a jax array
+
+
+# for blockarray, these should map and not reduce
+BlockArray.__eq__ = _create_mapping_version_binary("__eq__")
+BlockArray.__ne__ = _create_mapping_version_binary("__ne__")
 
 # Register BlockArray as a jax pytree; without this, jax autograd won't work.
 # Taken from what is done with tuples in jax._src.tree_util

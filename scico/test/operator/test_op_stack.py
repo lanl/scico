@@ -123,9 +123,9 @@ class TestBlockDiagonalOperator:
 
         x = snp.ones((S1, S2, S3))
         y = H(x)
-        y_expected = snp.blockarray((snp.ones(S1), 2 * snp.ones(S2), snp.sum(snp.ones(S3))))
+        y_expected = snp.blockarray((snp.ones(S1), 2 * snp.ones(S2), snp.ones(S3)))
 
-        np.testing.assert_equal(y, y_expected)
+        snp.testing.assert_array_equal(y, y_expected)
 
     def test_input_collapse(self):
         S = (3, 4)

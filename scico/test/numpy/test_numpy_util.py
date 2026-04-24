@@ -59,8 +59,9 @@ def test_no_nan_divide_array():
 def test_no_nan_divide_blockarray():
     x, key = randn(((3, 3), (4,)), dtype=np.float32)
 
-    y, key = randn(x.shape, dtype=np.float32, key=key)
-    y[1] = y[1].at[:].set(0 * y[1])
+    y0, key = randn(x.shape[0], dtype=np.float32, key=key)
+    y1 = snp.zeros(x.shape[1])
+    y = snp.blockarray((y0, y1))
 
     res = no_nan_divide(x, y)
 

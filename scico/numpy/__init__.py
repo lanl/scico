@@ -26,7 +26,7 @@ import jax
 import jax.numpy as jnp
 from jax import Array
 
-from . import _wrappers, util
+from . import _wrappers, testing, util
 from ._blockarray import BlockArray, TransparentTuple
 from ._wrapped_function_lists import (
     CREATION_ROUTINES,

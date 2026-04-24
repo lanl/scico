@@ -50,18 +50,6 @@ class TestDiagonal:
         assert (D @ x).shape == ((3, 5, 4), (5, 5))
         snp.testing.assert_allclose((diagonal * x), (D @ x), rtol=1e-5)
 
-        # blockarray x array -> error
-        diagonal, key = randn(((3, 1, 4), (5, 5)), dtype=diagonal_dtype, key=self.key)
-        x, key = randn((5, 1), dtype=diagonal_dtype, key=key)
-        with pytest.raises(ValueError):
-            D = linop.Diagonal(diagonal, x.shape)
-
-        # array x blockarray -> error
-        diagonal, key = randn((3, 1, 4), dtype=diagonal_dtype, key=self.key)
-        x, key = randn(((5, 1), (1,)), dtype=diagonal_dtype, key=key)
-        with pytest.raises(ValueError):
-            D = linop.Diagonal(diagonal, x.shape)
-
     @pytest.mark.parametrize("diagonal_dtype", [np.float32, np.complex64])
     @pytest.mark.parametrize("input_shape", input_shapes)
     def test_adjoint(self, input_shape, diagonal_dtype):

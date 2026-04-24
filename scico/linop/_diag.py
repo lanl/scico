@@ -50,15 +50,7 @@ class Diagonal(LinearOperator):
         if input_dtype is None:
             input_dtype = self._diagonal.dtype
 
-        if isinstance(diagonal, BlockArray) and is_nested(input_shape):
-            output_shape = broadcast_nested_shapes(input_shape, self._diagonal.shape)
-        elif not isinstance(diagonal, BlockArray) and not is_nested(input_shape):
-            output_shape = snp.broadcast_shapes(input_shape, self._diagonal.shape)
-
-        if self._diagonal.shape != input_shape:
-            raise ValueError(
-                f"Diagonal shape {self._diagonal.shape} does not match input_shape {input_shape}"
-            )
+        output_shape = broadcast_nested_shapes(input_shape, self._diagonal.shape)
 
         super().__init__(
             input_shape=input_shape,

@@ -387,7 +387,7 @@ def broadcast_nested_shapes(
     if is_nested(shape_a) and is_nested(shape_b):
         return tuple(snp.broadcast_shapes(s_a, s_b) for s_a, s_b in zip(shape_a, shape_b))
 
-    raise RuntimeError("Unexpected case encountered in broadcast_nested_shapes.")
+    raise ValueError("Unexpected case encountered in broadcast_nested_shapes.")
 
 
 def is_real_dtype(dtype: DType) -> bool:

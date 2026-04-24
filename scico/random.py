@@ -59,6 +59,7 @@ import jax
 
 from scico.numpy import Array, BlockArray
 from scico.numpy._wrappers import map_func_over_args
+from scico.numpy.util import is_nested
 from scico.typing import BlockShape, DType, PRNGKey, Shape
 
 
@@ -173,4 +174,15 @@ def randn(
            - **x** : (:class:`jax.Array`):  Generated random array.
            - **key** : Updated random PRNGKey.
     """
+
+    if is_nested(shape):
+        arrs = []
+        arr, key = normal(shape[0], dtype, key, seed)
+        arrs.append(arr)
+        for shape_i in shape[1:]:
+            key, subkey = jax.random.split(key, 2)
+            arr, _ = normal(shape_i, dtype, subkey)
+            arrs.append(arr)
+        return BlockArray(arrs), key
+
     return normal(shape, dtype, key, seed)  # type: ignore

@@ -31,6 +31,8 @@ UNARY_OPS = (  # found from dir() on jax array
 
 
 BINARY_OPS = (  # found from dir() on jax array
+    # "__eq__",
+    # "__ne__",
     "__add__",
     "__floordiv__",
     "__ge__",
@@ -40,7 +42,6 @@ BINARY_OPS = (  # found from dir() on jax array
     "__matmul__",
     "__mod__",
     "__mul__",
-    "__ne__",
     "__pow__",
     "__radd__",
     "__rfloordiv__",

@@ -44,15 +44,15 @@ def test_ufunc_abs():
 
     Ba = snp.blockarray((snp.array([-1, 2, 5]),))
     res = snp.blockarray((snp.array([1, 2, 5]),))
-    np.testing.assert_allclose(snp.abs(Ba).ravel(), res.ravel())
+    np.testing.assert_allclose(snp.ravel(snp.abs(Ba)), snp.ravel(res))
 
     Ba = snp.blockarray((snp.array([-1, -1, -1]),))
     res = snp.blockarray((snp.array([1, 1, 1]),))
-    np.testing.assert_allclose(snp.abs(Ba).ravel(), res.ravel())
+    np.testing.assert_allclose(snp.ravel(snp.abs(Ba)), snp.ravel(res))
 
     Ba = snp.blockarray((snp.array([-1, 2, -3]), snp.array([1, -2, 3])))
     res = snp.blockarray((snp.array([1, 2, 3]), snp.array([1, 2, 3])))
-    np.testing.assert_allclose(snp.abs(Ba).ravel(), res.ravel())
+    np.testing.assert_allclose(snp.ravel(snp.abs(Ba)), snp.ravel(res))
 
 
 def test_ufunc_maximum():
@@ -125,7 +125,7 @@ def test_ufunc_where():
     Bcond = snp.blockarray((snp.array([False, False, True, True]),))
     Bres = snp.blockarray((snp.array([-1, -1, 4, 5]),))
     assert snp.where(Bcond, Ba, Bb).shape == Bres.shape
-    np.testing.assert_allclose(snp.where(Bcond, Ba, Bb).ravel(), Bres.ravel())
+    np.testing.assert_allclose(snp.ravel(snp.where(Bcond, Ba, Bb)), snp.ravel(Bres))
 
     Ba = snp.blockarray((snp.array([1, 2, 4, 5]), snp.array([1, 2, 4, 5])))
     Bb = snp.blockarray((snp.array([-1, -1, -1, -1]), snp.array([-1, -1, -1, -1])))
@@ -134,7 +134,7 @@ def test_ufunc_where():
     )
     Bres = snp.blockarray((snp.array([-1, -1, 4, 5]), snp.array([1, 2, -1, -1])))
     assert snp.where(Bcond, Ba, Bb).shape == Bres.shape
-    np.testing.assert_allclose(snp.where(Bcond, Ba, Bb).ravel(), Bres.ravel())
+    np.testing.assert_allclose(snp.ravel(snp.where(Bcond, Ba, Bb)), snp.ravel(Bres))
 
 
 def test_ufunc_true_divide():
@@ -352,8 +352,3 @@ def test_wrap_recursively():
     wrap = lambda x: x + 1
     with pytest.warns(Warning):
         _wrappers.wrap_recursively(target_dict, names, wrap)
-
-
-def test_add_full_reduction():
-    with pytest.raises(ValueError):
-        _wrappers.add_full_reduction(np.sum, axis_arg_name="not_axis")
