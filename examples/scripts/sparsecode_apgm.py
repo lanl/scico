@@ -80,7 +80,7 @@ plot.plot(
     ax=ax[0],
 )
 plot.plot(
-    np.vstack((hist.Objective, hist.Residual)).T,
+    np.array((hist.Objective, hist.Residual)).T,
     ptyp="semilogy",
     title="Convergence",
     xlbl="Iteration",
