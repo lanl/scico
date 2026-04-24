@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2025 by SCICO Developers
+# Copyright (C) 2021-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
 """Utility functions used by example scripts."""
-
 
 import glob
 import os
@@ -181,9 +180,10 @@ def get_ucb_diffusercam_data(path: str, verbose: bool = False):  # pragma: no co
         verbose: Flag indicating whether to print status messages.
     """
 
-    # data source URL and filenames
+    # data source URL, filenames, and request header
     data_base_url = "https://github.com/Waller-Lab/DiffuserCam/blob/master/example_data/"
     data_files = ["example_psfs.mat", "example_raw.png"]
+    headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64)", "Referer": data_base_url}
 
     # ensure path directory exists
     if not os.path.isdir(path):
@@ -195,7 +195,7 @@ def get_ucb_diffusercam_data(path: str, verbose: bool = False):  # pragma: no co
     for data_file in data_files:
         if verbose:
             print(f"Downloading {data_file} from {data_base_url}")
-        data = util.url_get(data_base_url + data_file + "?raw=true")
+        data = util.url_get(data_base_url + data_file + "?raw=true", headers=headers)
         f = open(os.path.join(temp_dir.name, data_file), "wb")
         f.write(data.read())
         f.close()
@@ -258,7 +258,7 @@ def ucb_diffusercam_data(
     return y, psf
 
 
-def downsample_volume(vol: snp.Array, rate: int) -> snp.Array:
+def downsample_volume(vol: np.ndarray, rate: int) -> np.ndarray:
     """Downsample a 3D array.
 
     Downsample a 3D array. If the volume dimensions can be divided by
@@ -278,16 +278,16 @@ def downsample_volume(vol: snp.Array, rate: int) -> snp.Array:
         return vol
 
     if np.all([n % rate == 0 for n in vol.shape]):
-        vol = snp.mean(snp.reshape(vol, (-1, rate, vol.shape[1], vol.shape[2])), axis=1)
-        vol = snp.mean(snp.reshape(vol, (vol.shape[0], -1, rate, vol.shape[2])), axis=2)
-        vol = snp.mean(snp.reshape(vol, (vol.shape[0], vol.shape[1], -1, rate)), axis=3)
+        vol = np.mean(np.reshape(vol, (-1, rate, vol.shape[1], vol.shape[2])), axis=1)
+        vol = np.mean(np.reshape(vol, (vol.shape[0], -1, rate, vol.shape[2])), axis=2)
+        vol = np.mean(np.reshape(vol, (vol.shape[0], vol.shape[1], -1, rate)), axis=3)
     else:
         vol = zoom(vol, 1.0 / rate)
 
     return vol
 
 
-def tile_volume_slices(x: snp.Array, sep_width: int = 10) -> snp.Array:
+def tile_volume_slices(x: np.ndarray, sep_width: int = 10) -> np.ndarray:
     """Make an image with tiled slices from an input volume.
 
     Make an image with tiled `xy`, `xz`, and `yz` slices from an input
@@ -307,10 +307,10 @@ def tile_volume_slices(x: snp.Array, sep_width: int = 10) -> snp.Array:
         fshape: Tuple[int, ...] = (x.shape[0], sep_width)
     else:
         fshape = (x.shape[0], sep_width, 3)
-    out = snp.concatenate(
+    out = np.concatenate(
         (
             x[:, :, x.shape[2] // 2],
-            snp.full(fshape, snp.nan),
+            np.full(fshape, np.nan),
             x[:, x.shape[1] // 2, :],
         ),
         axis=1,
@@ -325,14 +325,14 @@ def tile_volume_slices(x: snp.Array, sep_width: int = 10) -> snp.Array:
         fshape0 = (sep_width, out.shape[1], 3)
         fshape1 = (x.shape[2], x.shape[2] + sep_width, 3)
         trans = (1, 0, 2)
-    out = snp.concatenate(
+    out = np.concatenate(
         (
             out,
-            snp.full(fshape0, snp.nan),
-            snp.concatenate(
+            np.full(fshape0, np.nan),
+            np.concatenate(
                 (
                     x[x.shape[0] // 2, :, :].transpose(trans),
-                    snp.full(fshape1, snp.nan),
+                    np.full(fshape1, np.nan),
                 ),
                 axis=1,
             ),
@@ -340,7 +340,7 @@ def tile_volume_slices(x: snp.Array, sep_width: int = 10) -> snp.Array:
         axis=0,
     )
 
-    out = snp.where(snp.isnan(out), snp.nanmax(out), out)
+    out = np.where(np.isnan(out), np.nanmax(out), out)
 
     return out
 

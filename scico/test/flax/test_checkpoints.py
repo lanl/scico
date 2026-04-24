@@ -25,7 +25,7 @@ def test_checkpoint(testobj):
     depth = 3
     model = sflax.DnCNNNet(depth, testobj.chn, testobj.model_conf["num_filters"])
 
-    key = jax.random.PRNGKey(123)
+    key = jax.random.key(123)
     variables = model.init(key, testobj.train_ds["image"])
 
     temp_dir = tempfile.TemporaryDirectory()
@@ -116,7 +116,7 @@ def test_checkpoint_exception(testobj):
     depth = 3
     model = sflax.DnCNNNet(depth, testobj.chn, testobj.model_conf["num_filters"])
 
-    key = jax.random.PRNGKey(123)
+    key = jax.random.key(123)
     variables = model.init(key, testobj.train_ds["image"])
 
     temp_dir = tempfile.TemporaryDirectory()

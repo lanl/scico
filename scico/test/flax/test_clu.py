@@ -23,7 +23,7 @@ def test_count_parameters():
 
     model = sflax.ResNet(mconf["depth"], chn, mconf["num_filters"])
 
-    key = jax.random.PRNGKey(seed=1234)
+    key = jax.random.key(seed=1234)
     input_shape = (1, N, N, chn)
     variables = model.init({"params": key}, np.ones(input_shape, model.dtype))
 
@@ -100,7 +100,7 @@ class CNN(Module):
 
 # From https://github.com/google/CommonLoopUtils/blob/main/clu/parameter_overview_test.py
 def test_get_parameter_overview():
-    rng = jax.random.PRNGKey(42)
+    rng = jax.random.key(42)
     # Weights of a 2D convolution with 2 filters..
     variables = CNN().init(rng, np.zeros((2, 5, 5, 3)))
     variables = jax.tree_util.tree_map(jax.numpy.ones_like, variables)

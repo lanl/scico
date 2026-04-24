@@ -14,16 +14,16 @@ def test_wrapped_funcs(seed):
 
     # test seed argument
     if seed is None:
-        key = jax.random.PRNGKey(0)
+        key = jax.random.key(0)
     else:
-        key = jax.random.PRNGKey(seed)
+        key = jax.random.key(seed)
 
     np.testing.assert_array_equal(fun(key), fun_wrapped(seed=seed)[0])
 
     # test blockarray
     shape = ((7,), (3, 2), (2, 4, 1))
     seed = 42
-    key = jax.random.PRNGKey(seed)
+    key = jax.random.key(seed)
 
     result, _ = fun_wrapped(shape, seed=seed)
 
@@ -34,13 +34,13 @@ def test_add_seed_adapter():
     fun_alt = scico.random._add_seed(fun)
 
     # specify a seed instead of a key
-    assert fun(jax.random.PRNGKey(42)) == fun_alt(seed=42)[0]
+    assert fun(jax.random.key(42)) == fun_alt(seed=42)[0]
 
     # seed defaults to zero
-    assert fun(jax.random.PRNGKey(0)) == fun_alt()[0]
+    assert fun(jax.random.key(0)) == fun_alt()[0]
 
     # other parameters still work ...
-    key = jax.random.PRNGKey(0)
+    key = jax.random.key(0)
     sz = (10, 3)
     dtype = np.float64
 
@@ -63,9 +63,9 @@ def test_add_seed_adapter():
 
     # get back the split key
     _, key_a = fun_alt(seed=42)
-    key_b, _ = jax.random.split(jax.random.PRNGKey(42), 2)
-    np.testing.assert_array_equal(key_a, key_b)
+    key_b, _ = jax.random.split(jax.random.key(42), 2)
+    assert key_a == key_b
 
     # error when key and seed are specified
     with pytest.raises(ValueError):
-        _ = fun_alt(key=jax.random.PRNGKey(0), seed=42)[0]
+        _ = fun_alt(key=jax.random.key(0), seed=42)[0]

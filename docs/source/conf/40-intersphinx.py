@@ -4,7 +4,7 @@ intersphinx_mapping = {
     "numpy": ("https://numpy.org/doc/stable/", None),
     "scipy": ("https://docs.scipy.org/doc/scipy/", None),
     "matplotlib": ("https://matplotlib.org/stable/", None),
-    "jax": ("https://jax.readthedocs.io/en/latest/", None),
+    "jax": ("https://docs.jax.dev/en/latest/", None),
     "flax": ("https://flax.readthedocs.io/en/latest/", None),
     "ray": ("https://docs.ray.io/en/latest/", None),
     "svmbir": ("https://svmbir.readthedocs.io/en/latest/", None),

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2024 by SCICO Developers
+# Copyright (C) 2022-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SPORCO package. Details of the copyright
 # and user license can be found in the 'LICENSE.txt' file distributed
@@ -22,7 +22,6 @@ include extra functions that are not in :mod:`jax.numpy`, and that are
 therefore not listed here.
 """
 
-
 """ BlockArray """
 unary_ops = (  # found from dir() on jax array
     "__abs__",
@@ -32,26 +31,26 @@ unary_ops = (  # found from dir() on jax array
 
 binary_ops = (  # found from dir() on jax array
     "__add__",
-    "__radd__",
-    "__sub__",
-    "__rsub__",
-    "__mul__",
-    "__mod__",
-    "__rmul__",
-    "__matmul__",
-    "__rmatmul__",
-    "__truediv__",
-    "__rtruediv__",
-    "__floordiv__",
-    "__rfloordiv__",
-    "__pow__",
-    "__rpow__",
-    "__gt__",
-    "__ge__",
-    "__lt__",
-    "__le__",
     "__eq__",
+    "__floordiv__",
+    "__ge__",
+    "__gt__",
+    "__le__",
+    "__lt__",
+    "__matmul__",
+    "__mod__",
+    "__mul__",
     "__ne__",
+    "__pow__",
+    "__radd__",
+    "__rfloordiv__",
+    "__rmatmul__",
+    "__rmul__",
+    "__rpow__",
+    "__rsub__",
+    "__rtruediv__",
+    "__sub__",
+    "__truediv__",
 )
 
 """ jax.numpy """
@@ -86,7 +85,6 @@ mathematical_functions = (
     "around",
     "round",
     "rint",
-    "fix",
     "floor",
     "ceil",
     "trunc",
@@ -209,7 +207,6 @@ mathematical_functions = (
     "linalg.tensorinv",
     "shape",  # https://numpy.org/doc/stable/reference/routines.array-manipulation.html
     "reshape",
-    "ravel",
     "moveaxis",
     "rollaxis",
     "swapaxes",
@@ -276,8 +273,9 @@ mathematical_functions = (
     "full_like",
 )
 
-reduction_functions = ("sum", "linalg.norm", "count_nonzero", "any")
+# these may also appear in the mathematical function list
+reduction_functions = ("sum", "linalg.norm", "count_nonzero", "all", "any")
 
-""" "testing", """
+""" testing """
 
 testing_functions = ("testing.assert_allclose", "testing.assert_array_equal")

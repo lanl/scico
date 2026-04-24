@@ -6,7 +6,6 @@
 
 """Miscellaneous linear operator definitions."""
 
-
 # Needed to annotate a class method that returns the encapsulating class;
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
@@ -104,13 +103,13 @@ class Diagonal(LinearOperator):
 
     @_wrap_add_sub
     def __add__(self, other):
-        if self.diagonal.shape == other.diagonal.shape:
+        if self.shape == other.shape:
             return Diagonal(diagonal=self.diagonal + other.diagonal)
         raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}.")
 
     @_wrap_add_sub
     def __sub__(self, other):
-        if self.diagonal.shape == other.diagonal.shape:
+        if self.shape == other.shape:
             return Diagonal(diagonal=self.diagonal - other.diagonal)
         raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}.")
 
@@ -185,7 +184,7 @@ class ScaledIdentity(Diagonal):
 
     @property
     def diagonal(self) -> Union[Array, BlockArray]:
-        return self._diagonal * snp.ones(self.input_shape, dtype=self.input_dtype)
+        return self._diagonal
 
     def conj(self) -> ScaledIdentity:
         """Complex conjugate of this :class:`ScaledIdentity`."""
@@ -293,12 +292,8 @@ class Identity(ScaledIdentity):
     def _eval(self, x: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         return x
 
-    @property
-    def diagonal(self) -> Union[Array, BlockArray]:
-        return snp.ones(self.input_shape, dtype=self.input_dtype)
-
     def conj(self) -> Identity:
-        """Complex conjugate of this :class:`Diagonal`."""
+        """Complex conjugate of this :class:`Identity`."""
         return self
 
     @property

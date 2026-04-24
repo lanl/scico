@@ -40,7 +40,7 @@ and `binder
 <https://mybinder.org/v2/gh/lanl/scico-data/binder?labpath=notebooks%2Findex.ipynb>`__.
 
 
-If you use this library for published work, please cite
+If you use this package for published work, please cite
 :cite:`balke-2022-scico` (see bibtex entry ``balke-2022-scico`` in
 `docs/source/references.bib
 <https://github.com/lanl/scico/blob/main/docs/source/references.bib>`_
@@ -66,7 +66,7 @@ License (see the `LICENSE
 <https://github.com/lanl/scico/blob/master/LICENSE>`__ file for
 details). LANL open source approval reference C20091.
 
-© 2020-2023. Triad National Security, LLC. All rights reserved.
+© 2020-2025. Triad National Security, LLC. All rights reserved.
 This program was produced under U.S. Government contract
 89233218CNA000001 for Los Alamos National Laboratory (LANL), which is
 operated by Triad National Security, LLC for the U.S. Department of

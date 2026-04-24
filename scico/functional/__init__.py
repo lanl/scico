@@ -29,10 +29,9 @@ from ._norm import (
 )
 from ._tvnorm import AnisotropicTVNorm, IsotropicTVNorm, TVNorm
 from ._proxavg import ProximalAverage
-from ._indicator import NonNegativeIndicator, L2BallIndicator
+from ._indicator import NonNegativeIndicator, L2BallIndicator, BoxIndicator
 from ._denoiser import BM3D, BM4D, DnCNN
 from ._dist import SetDistance, SquaredSetDistance
-
 
 __all__ = [
     "AnisotropicTVNorm",
@@ -51,6 +50,7 @@ __all__ = [
     "L21Norm",
     "L1MinusL2Norm",
     "NonNegativeIndicator",
+    "BoxIndicator",
     "NuclearNorm",
     "L2BallIndicator",
     "ProximalAverage",

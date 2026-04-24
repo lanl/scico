@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2025 by SCICO Developers
+# Copyright (C) 2021-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Circular convolution linear operators."""
+"""Circular convolution linear operator."""
 
 import math
 from typing import Optional, Sequence, Tuple, Union
@@ -122,31 +122,7 @@ class CircularConvolve(LinearOperator):
             output_dtype = result_type(h.dtype, input_dtype)
 
             if self.h_center is not None:
-                if isinstance(self.h_center, (float, int)):  # support float/int h_center
-                    offset = -np.array(
-                        [
-                            self.h_center,
-                        ]
-                    )
-                else:  # support array/list/tuple h_center
-                    offset = -np.array(self.h_center)
-                shifts: Tuple[np.ndarray, ...] = np.ix_(
-                    *tuple(
-                        np.select(
-                            # see doi:10.1109/78.700979 and doi:10.1109/LSP.2012.2191280
-                            [np.arange(s) < s / 2, np.arange(s) == s / 2, np.arange(s) > s / 2],
-                            [
-                                np.exp(-1j * k * 2 * np.pi * np.arange(s) / s),
-                                np.cos(k * np.pi),
-                                np.exp(1j * k * 2 * np.pi * (s - np.arange(s)) / s),
-                            ],  # type: ignore
-                        )
-                        for k, s in zip(offset, input_shape[-self.ndims :])
-                    )
-                )
-                # prevent accidental promotion to double
-                shifts = tuple(s.astype(self.h_dft) for s in shifts)
-                shift = math.prod(shifts)  # np.prod warns
+                shift = self._dft_center_shift(input_shape)
                 self.h_dft = self.h_dft * shift
 
         self.real = output_dtype.kind != "c"
@@ -174,6 +150,39 @@ class CircularConvolve(LinearOperator):
             jit=jit,
             **kwargs,
         )
+
+    def _dft_center_shift(self, input_shape) -> np.ndarray:
+        """Compute DFT domain shift required for centering.
+
+        See doi:10.1109/78.700979 and doi:10.1109/LSP.2012.2191280 for
+        details of the shift computation.
+        """
+        if isinstance(self.h_center, (float, int)):  # support float/int h_center
+            offset = -np.array(
+                [
+                    self.h_center,
+                ]
+            )
+        else:  # support array/list/tuple h_center
+            offset = -np.array(self.h_center)
+        shifts: Tuple[np.ndarray, ...] = np.ix_(
+            *tuple(
+                np.select(
+                    [np.arange(s) < s / 2, np.arange(s) == s / 2, np.arange(s) > s / 2],
+                    [
+                        np.exp(-1j * k * 2 * np.pi * np.arange(s) / s),
+                        np.cos(k * np.pi),
+                        np.exp(1j * k * 2 * np.pi * (s - np.arange(s)) / s),
+                    ],  # type: ignore
+                )
+                for k, s in zip(offset, input_shape[-self.ndims :])
+            )
+        )
+        # prevent accidental promotion to double
+        shifts = tuple(s.astype(self.h_dft.dtype) for s in shifts)
+        shift = math.prod(shifts)  # np.prod warns
+        assert isinstance(shift, np.ndarray)
+        return shift
 
     def _eval(self, x: snp.Array) -> snp.Array:
         x = x.astype(self.input_dtype)
@@ -291,44 +300,3 @@ class CircularConvolve(LinearOperator):
             h_center=snp.array(center),
             jit=jit,
         )
-
-
-def _gradient_filters(
-    ndim: int, axes: Shape, shape: Shape, dtype: DType = snp.float32
-) -> snp.Array:
-    r"""Construct filters for computing gradients in the frequency domain.
-
-    Construct a set of filters for computing gradients in the frequency
-    domain.
-
-    Args:
-        ndim: Total number of dimensions in array in which gradients are
-           to be computed.
-        axes: Axes on which gradients are to be computed.
-        shape: Shape of axes on which gradients are to be computed.
-        dtype: Data type of output arrays.
-
-    Returns:
-        An array of frequency domain gradient operators
-        :math:`\hat{G}_i`.
-    """
-    g = snp.zeros(
-        [
-            len(axes),
-        ]
-        + [2 if k in axes else 1 for k in range(ndim)],
-        dtype,
-    )
-
-    # put a finite difference along each axis in axes
-    for layer, axis in enumerate(axes):
-        idx = tuple(slice(None) if k == axis else 0 for k in range(0, g.ndim - 1))
-        idx = (layer,) + idx
-        ref = g.at[idx]
-        g = ref.set([1, -1])
-
-    fft_axes = [ax + 1 for ax in axes]  # first axis is batch
-
-    Gf = snp.fft.fftn(g, shape, axes=fft_axes)
-
-    return Gf

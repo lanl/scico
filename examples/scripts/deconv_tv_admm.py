@@ -22,7 +22,6 @@ In this example the problem is solved via standard ADMM, while proximal
 ADMM is used in a [companion example](deconv_tv_padmm.rst).
 """
 
-
 from xdesign import SiemensStar, discrete_phantom
 
 import scico.numpy as snp
@@ -138,7 +137,7 @@ plot.plot(
     ax=ax[0],
 )
 plot.plot(
-    snp.vstack((hist.Prml_Rsdl, hist.Dual_Rsdl)).T,
+    snp.array((hist.Prml_Rsdl, hist.Dual_Rsdl)).T,
     ptyp="semilogy",
     title="Residuals",
     xlbl="Iteration",

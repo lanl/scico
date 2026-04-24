@@ -47,7 +47,7 @@ noise, key = random.randn(Ax.shape)
 y = Ax + σ * noise
 
 
-"""
+r"""
 Set up the problem to be solved. We want to minimize the functional
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
@@ -109,7 +109,7 @@ fig.show()
 Plot convergence statistics.
 """
 plot.plot(
-    snp.vstack((hist.Prml_Rsdl, hist.Dual_Rsdl)).T,
+    snp.array((hist.Prml_Rsdl, hist.Dual_Rsdl)).T,
     ptyp="semilogy",
     title="Residuals",
     xlbl="Iteration",

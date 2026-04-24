@@ -12,7 +12,7 @@ from scico.random import randn
 class GradTestObj:
     def __init__(self, dtype):
         M, N = (3, 4)
-        key = jax.random.PRNGKey(12345)
+        key = jax.random.key(12345)
         self.dtype = dtype
 
         self.A, key = randn((M, N), dtype=dtype, key=key)

@@ -16,7 +16,7 @@ from scico.test.linop.test_linop import AbsMatOp
 
 class TestMatrix:
     def setup_method(self, method):
-        self.key = jax.random.PRNGKey(12345)
+        self.key = jax.random.key(12345)
 
     @pytest.mark.parametrize("input_cols", [0, 2])
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])

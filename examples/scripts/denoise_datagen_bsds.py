@@ -14,6 +14,7 @@ part of the
 [BSDS500 dataset](http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/BSR/)
 provided by the Berkeley Segmentation Dataset and Benchmark project.
 """
+
 import numpy as np
 
 from scico import plot

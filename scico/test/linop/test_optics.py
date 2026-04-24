@@ -18,7 +18,7 @@ prop_list = [AngularSpectrumPropagator, FresnelPropagator, FraunhoferPropagator]
 
 class TestPropagator:
     def setup_method(self, method):
-        key = jax.random.PRNGKey(12345)
+        key = jax.random.key(12345)
         self.N = 128
         self.dx = 1
         self.k0 = 1

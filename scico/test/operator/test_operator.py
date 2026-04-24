@@ -36,7 +36,7 @@ class SumSquareOperator(Operator):
 class OperatorTestObj:
     def __init__(self, dtype):
         M, N = (32, 64)
-        key = jax.random.PRNGKey(12345)
+        key = jax.random.key(12345)
         self.dtype = dtype
 
         self.A = AbsOperator(input_shape=(N,), input_dtype=dtype)

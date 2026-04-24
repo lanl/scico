@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2025 by SCICO Developers
+# Copyright (C) 2022-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -7,20 +7,29 @@
 
 """Utilities for checkpointing Flax models."""
 
-
+import logging
 from pathlib import Path
 from typing import Union
-
-import jax
 
 try:
     import orbax.checkpoint as ocp
 
     have_orbax = True
-    if not hasattr(ocp, "CheckpointManager"):
+    if not hasattr(ocp, "CheckpointManager") or not hasattr(ocp, "checkpoint_managers"):
         have_orbax = False
 except ImportError:
     have_orbax = False
+
+if have_orbax:
+    from orbax.checkpoint.checkpoint_managers import LatestN
+
+    logging.getLogger("absl").addFilter(logging.Filter("could not be identified as a temporary"))
+
+# remove the handler that orbax.checkpoint adds to the root logger.
+# see https://github.com/google/orbax/issues/1951
+for h in logging.root.handlers.copy():
+    h.close()
+    logging.root.removeHandler(h)
 
 from .state import TrainState
 from .typed_dict import ConfigDict
@@ -55,11 +64,8 @@ def checkpoint_restore(
     if isinstance(workdir_, str):
         workdir_ = Path(workdir_)
     if workdir_.exists():
-        options = ocp.CheckpointManagerOptions()
         mngr = ocp.CheckpointManager(
             workdir_,
-            item_names=("state", "config"),
-            options=options,
         )
         step = mngr.latest_step()
         if step is not None:
@@ -89,24 +95,26 @@ def checkpoint_save(state: TrainState, config: ConfigDict, workdir: Union[str, P
     """
     if not have_orbax:
         raise RuntimeError("Package orbax.checkpoint is required for use of this function.")
-    if jax.process_index() == 0:
-        options = ocp.CheckpointManagerOptions(max_to_keep=3, create=True)
-        mngr = ocp.CheckpointManager(
-            workdir,
-            item_names=("state", "config"),
-            options=options,
-        )
-        step = int(state.step)
-        # Remove non-serializable partial functools in post_lst if it exists
-        config_ = config.copy()
-        if "post_lst" in config_:
-            config_.pop("post_lst", None)  # type: ignore
-        mngr.save(
-            step,
-            args=ocp.args.Composite(
-                state=ocp.args.StandardSave(state),
-                config=ocp.args.JsonSave(config_),
-            ),
-        )
-        mngr.wait_until_finished()
-        mngr.close()
+    # Check if workdir is Path or convert to Path
+    workdir_ = workdir
+    if isinstance(workdir_, str):
+        workdir_ = Path(workdir_)
+    options = ocp.CheckpointManagerOptions(preservation_policy=LatestN(3), create=True)
+    mngr = ocp.CheckpointManager(
+        workdir_,
+        options=options,
+    )
+    step = int(state.step)
+    # Remove non-serializable partial functools in post_lst if it exists
+    config_ = config.copy()
+    if "post_lst" in config_:
+        config_.pop("post_lst", None)  # type: ignore
+    mngr.save(
+        step,
+        args=ocp.args.Composite(
+            state=ocp.args.StandardSave(state),
+            config=ocp.args.JsonSave(config_),
+        ),
+    )
+    mngr.wait_until_finished()
+    mngr.close()

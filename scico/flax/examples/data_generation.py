@@ -36,6 +36,9 @@ else:
     )
 
 try:
+    import os
+
+    os.environ["RAY_ACCEL_ENV_VAR_OVERRIDE_ON_ZERO"] = "0"  # suppress ray warning
     import ray  # noqa: F401
 except ImportError:
     have_ray = False
@@ -222,6 +225,10 @@ def generate_ct_data(
     img = jnp.clip(img, 0, 1)
 
     nproc = jax.device_count()
+    if img.shape[0] % nproc > 0:
+        # Decrease nimg to be a multiple of nproc if it isn't already
+        nimg = (img.shape[0] // nproc) * nproc
+        img = img[:nimg]
 
     # Configure a CT projection operator to generate synthetic measurements.
     angles = np.linspace(0, jnp.pi, nproj)  # evenly spaced projection angles
@@ -303,7 +310,12 @@ def generate_blur_data(
 
     # Clip to [0,1] range.
     img = jnp.clip(img, 0, 1)
+
     nproc = jax.device_count()
+    if img.shape[0] % nproc > 0:
+        # Decrease nimg to be a multiple of nproc if it isn't already
+        nimg = (img.shape[0] // nproc) * nproc
+        img = img[:nimg]
 
     # Configure blur operator
     ishape = (size, size)
@@ -322,7 +334,7 @@ def generate_blur_data(
     # Normalize blurred images
     blur = blur / jnp.max(blur, axis=(1, 2), keepdims=True)
     # Add Gaussian noise
-    key = jax.random.PRNGKey(seed)
+    key = jax.random.key(seed)
     noise = jax.random.normal(key, blur.shape)
     blurn = blur + noise_sigma * noise
     # Clip to [0,1] range.

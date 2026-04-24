@@ -21,7 +21,6 @@ where $R$ is either the isotropic or polar TV regularizer, via the
 primal–dual hybrid gradient (PDHG) algorithm.
 """
 
-
 from xdesign import SiemensStar, discrete_phantom
 
 import scico.numpy as snp
@@ -143,7 +142,7 @@ fig.show()
 
 fig, ax = plot.subplots(nrows=1, ncols=3, sharex=True, sharey=False, figsize=(20, 5))
 plot.plot(
-    snp.vstack((hist_std.Objective, hist_plr.Objective)).T,
+    snp.array((hist_std.Objective, hist_plr.Objective)).T,
     ptyp="semilogy",
     title="Objective function",
     xlbl="Iteration",
@@ -152,7 +151,7 @@ plot.plot(
     ax=ax[0],
 )
 plot.plot(
-    snp.vstack((hist_std.Prml_Rsdl, hist_plr.Prml_Rsdl)).T,
+    snp.array((hist_std.Prml_Rsdl, hist_plr.Prml_Rsdl)).T,
     ptyp="semilogy",
     title="Primal residual",
     xlbl="Iteration",
@@ -161,7 +160,7 @@ plot.plot(
     ax=ax[1],
 )
 plot.plot(
-    snp.vstack((hist_std.Dual_Rsdl, hist_plr.Dual_Rsdl)).T,
+    snp.array((hist_std.Dual_Rsdl, hist_plr.Dual_Rsdl)).T,
     ptyp="semilogy",
     title="Dual residual",
     xlbl="Iteration",

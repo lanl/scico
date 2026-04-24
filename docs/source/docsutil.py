@@ -8,7 +8,6 @@
 
 """Utilities for building docs."""
 
-
 import importlib
 import inspect
 import os

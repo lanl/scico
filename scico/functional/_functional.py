@@ -7,7 +7,6 @@
 
 """Functional base class."""
 
-
 # Needed to annotate a class method that returns the encapsulating class;
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
@@ -341,7 +340,7 @@ class ComposedFunctional(Functional):
         Returns:
             Result of evaluating the scaled proximal operator at `v`.
         """
-        return self.linop.T(self.functional.prox(self.linop(v), lam=lam, **kwargs))
+        return self.linop.H(self.functional.prox(self.linop(v), lam=lam, **kwargs))
 
 
 class FunctionalSum(Functional):

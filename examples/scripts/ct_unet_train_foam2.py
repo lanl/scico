@@ -40,7 +40,6 @@ from scico import flax as sflax
 from scico import metric, plot
 from scico.flax.examples import load_ct_data
 
-
 platform = get_backend().platform
 print("Platform: ", platform)
 
@@ -162,8 +161,8 @@ print(
 """
 Plot comparison.
 """
-key = jax.random.PRNGKey(123)
-indx = jax.random.randint(key, shape=(1,), minval=0, maxval=test_nimg)[0]
+key = jax.random.key(123)
+indx = jax.random.randint(key, shape=(1,), minval=0, maxval=maxn)[0]
 
 fig, ax = plot.subplots(nrows=1, ncols=3, figsize=(15, 5))
 plot.imview(test_ds["label"][indx, ..., 0], title="Ground truth", cbar=None, fig=fig, ax=ax[0])
@@ -202,7 +201,7 @@ if stats_object is not None and len(stats_object.iterations) > 0:
     hist = stats_object.history(transpose=True)
     fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
     plot.plot(
-        np.vstack((hist.Train_Loss, hist.Eval_Loss)).T,
+        np.array((hist.Train_Loss, hist.Eval_Loss)).T,
         x=hist.Epoch,
         ptyp="semilogy",
         title="Loss function",
@@ -213,7 +212,7 @@ if stats_object is not None and len(stats_object.iterations) > 0:
         ax=ax[0],
     )
     plot.plot(
-        np.vstack((hist.Train_SNR, hist.Eval_SNR)).T,
+        np.array((hist.Train_SNR, hist.Eval_SNR)).T,
         x=hist.Epoch,
         title="Metric",
         xlbl="Epoch",

@@ -59,7 +59,7 @@ class AbsMatOp(linop.LinearOperator):
 class LinearOperatorTestObj:
     def __init__(self, dtype):
         M, N = (8, 16)
-        key = jax.random.PRNGKey(12345)
+        key = jax.random.key(12345)
         self.dtype = dtype
 
         self.A, key = randn((M, N), dtype=dtype, key=key)
@@ -237,7 +237,7 @@ def test_conj_transpose_matmul(testobj):
     x = testobj.x
     comp_op = Ao.conj().T @ Bo
     comp_mat = testobj.A.conj().T @ testobj.B
-    assert comp_mat == testobj.A.dtype
+    assert comp_mat.dtype == testobj.A.dtype
     np.testing.assert_allclose(comp_mat @ x, comp_op @ x, rtol=5e-5)
 
 
