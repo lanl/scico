@@ -202,7 +202,7 @@ Plot convergence statistics.
 """
 fig, ax = plot.subplots(nrows=1, ncols=3, sharex=True, sharey=False, figsize=(27, 6))
 plot.plot(
-    snp.vstack((hist_admm.Objective, hist_ladmm.Objective, hist_pdhg.Objective)).T,
+    snp.array((hist_admm.Objective, hist_ladmm.Objective, hist_pdhg.Objective)).T,
     ptyp="semilogy",
     title="Objective function",
     xlbl="Iteration",
@@ -211,7 +211,7 @@ plot.plot(
     ax=ax[0],
 )
 plot.plot(
-    snp.vstack((hist_admm.Prml_Rsdl, hist_ladmm.Prml_Rsdl, hist_pdhg.Prml_Rsdl)).T,
+    snp.array((hist_admm.Prml_Rsdl, hist_ladmm.Prml_Rsdl, hist_pdhg.Prml_Rsdl)).T,
     ptyp="semilogy",
     title="Primal residual",
     xlbl="Iteration",
@@ -220,7 +220,7 @@ plot.plot(
     ax=ax[1],
 )
 plot.plot(
-    snp.vstack((hist_admm.Dual_Rsdl, hist_ladmm.Dual_Rsdl, hist_pdhg.Dual_Rsdl)).T,
+    snp.array((hist_admm.Dual_Rsdl, hist_ladmm.Dual_Rsdl, hist_pdhg.Dual_Rsdl)).T,
     ptyp="semilogy",
     title="Dual residual",
     xlbl="Iteration",
@@ -232,8 +232,8 @@ fig.show()
 
 fig, ax = plot.subplots(nrows=1, ncols=3, sharex=True, sharey=False, figsize=(27, 6))
 plot.plot(
-    snp.vstack((hist_admm.Objective, hist_ladmm.Objective, hist_pdhg.Objective)).T,
-    snp.vstack((hist_admm.Time, hist_ladmm.Time, hist_pdhg.Time)).T,
+    snp.array((hist_admm.Objective, hist_ladmm.Objective, hist_pdhg.Objective)).T,
+    snp.array((hist_admm.Time, hist_ladmm.Time, hist_pdhg.Time)).T,
     ptyp="semilogy",
     title="Objective function",
     xlbl="Time (s)",
@@ -242,8 +242,8 @@ plot.plot(
     ax=ax[0],
 )
 plot.plot(
-    snp.vstack((hist_admm.Prml_Rsdl, hist_ladmm.Prml_Rsdl, hist_pdhg.Prml_Rsdl)).T,
-    snp.vstack((hist_admm.Time, hist_ladmm.Time, hist_pdhg.Time)).T,
+    snp.array((hist_admm.Prml_Rsdl, hist_ladmm.Prml_Rsdl, hist_pdhg.Prml_Rsdl)).T,
+    snp.array((hist_admm.Time, hist_ladmm.Time, hist_pdhg.Time)).T,
     ptyp="semilogy",
     title="Primal residual",
     xlbl="Time (s)",
@@ -252,8 +252,8 @@ plot.plot(
     ax=ax[1],
 )
 plot.plot(
-    snp.vstack((hist_admm.Dual_Rsdl, hist_ladmm.Dual_Rsdl, hist_pdhg.Dual_Rsdl)).T,
-    snp.vstack((hist_admm.Time, hist_ladmm.Time, hist_pdhg.Time)).T,
+    snp.array((hist_admm.Dual_Rsdl, hist_ladmm.Dual_Rsdl, hist_pdhg.Dual_Rsdl)).T,
+    snp.array((hist_admm.Time, hist_ladmm.Time, hist_pdhg.Time)).T,
     ptyp="semilogy",
     title="Dual residual",
     xlbl="Time (s)",
