@@ -18,7 +18,7 @@ algorithm :cite:`venkatakrishnan-2013-plugandplay2`, with the BM4D
 import numpy as np
 
 import scico.numpy as snp
-from scico import functional, linop, loss, metric, plot, random
+from scico import functional, linop, loss, metric, random
 from scico.examples import create_3d_foam_phantom, downsample_volume, tile_volume_slices
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
@@ -87,21 +87,19 @@ hist = solver.itstat_object.history(transpose=True)
 Show slices of the recovered 3D volume.
 """
 show_id = Nz // 2
-fig, ax = plot.subplots(nrows=1, ncols=3, figsize=(15, 5))
-plot.imview(tile_volume_slices(x_gt), title="Ground truth", fig=fig, ax=ax[0])
+fig, ax = kplt.subplots(nrows=1, ncols=3, figsize=(15, 5))
+kplt.imview(tile_volume_slices(x_gt), title="Ground truth", ax=ax[0])
 nc = n // 2
 yc = y[nc:-nc, nc:-nc, nc:-nc]
 yc = snp.clip(yc, 0, 1)
-plot.imview(
+kplt.imview(
     tile_volume_slices(yc),
     title="Slices of blurred, noisy volume: %.2f (dB)" % metric.psnr(x_gt, yc),
-    fig=fig,
     ax=ax[1],
 )
-plot.imview(
+kplt.imview(
     tile_volume_slices(x),
     title="Slices of deconvolved volume: %.2f (dB)" % metric.psnr(x_gt, x),
-    fig=fig,
     ax=ax[2],
 )
 fig.show()
@@ -110,12 +108,12 @@ fig.show()
 """
 Plot convergence statistics.
 """
-plot.plot(
+kplt.plot(
     snp.array((hist.Prml_Rsdl, hist.Dual_Rsdl)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Residuals",
-    xlbl="Iteration",
-    lgnd=("Primal", "Dual"),
+    xlabel="Iteration",
+    legend=("Primal", "Dual"),
 )
 
 

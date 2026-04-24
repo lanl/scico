@@ -19,7 +19,7 @@ from xdesign import SiemensStar, discrete_phantom
 
 import scico.numpy as snp
 import scico.random
-from scico import functional, linop, loss, metric, plot
+from scico import functional, linop, loss, metric
 from scico.optimize import AcceleratedPGM
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
@@ -124,37 +124,31 @@ for x, name in zip(
 Plot results.
 """
 matplotlib.rc("font", size=9)
-plt_args = dict(norm=plot.matplotlib.colors.Normalize(vmin=0, vmax=1.5))
-fig, ax = plot.subplots(nrows=2, ncols=3, sharex=True, sharey=True, figsize=(15, 8))
-plot.imview(x_gt, title="Ground truth", fig=fig, ax=ax[0, 0], **plt_args)
-plot.imview(
-    y, title=f"Noisy version SNR: {metric.snr(x_gt, y):.2f} dB", fig=fig, ax=ax[1, 0], **plt_args
-)
-plot.imview(
+plt_args = dict(norm=kplt.matplotlib.colors.Normalize(vmin=0, vmax=1.5))
+fig, ax = kplt.subplots(nrows=2, ncols=3, sharex=True, sharey=True, figsize=(15, 8))
+kplt.imview(x_gt, title="Ground truth", ax=ax[0, 0], **plt_args)
+kplt.imview(y, title=f"Noisy version SNR: {metric.snr(x_gt, y):.2f} dB", ax=ax[1, 0], **plt_args)
+kplt.imview(
     x_iso,
     title=f"Iso. TV denoising SNR: {metric.snr(x_gt, x_iso):.2f} dB",
-    fig=fig,
     ax=ax[0, 1],
     **plt_args,
 )
-plot.imview(
+kplt.imview(
     x_aniso,
     title=f"Aniso. TV denoising SNR: {metric.snr(x_gt, x_aniso):.2f} dB",
-    fig=fig,
     ax=ax[1, 1],
     **plt_args,
 )
-plot.imview(
+kplt.imview(
     x_iso_aprx,
     title=f"Approx. Iso. TV denoising SNR: {metric.snr(x_gt, x_iso_aprx):.2f} dB",
-    fig=fig,
     ax=ax[0, 2],
     **plt_args,
 )
-plot.imview(
+kplt.imview(
     x_aniso_aprx,
     title=f"Approx. Aniso. TV denoising SNR: {metric.snr(x_gt, x_aniso_aprx):.2f} dB",
-    fig=fig,
     ax=ax[1, 2],
     **plt_args,
 )

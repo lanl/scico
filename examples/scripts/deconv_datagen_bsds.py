@@ -19,7 +19,6 @@ import numpy as np
 
 from jax import vmap
 
-from scico import plot
 from scico.flax.examples import PaddedCircularConvolve, load_image_data
 
 """
@@ -67,29 +66,25 @@ Plot randomly selected sample.
 """
 indx_tr = np.random.randint(0, train_nimg)
 indx_te = np.random.randint(0, test_nimg)
-fig, axes = plot.subplots(nrows=2, ncols=2, figsize=(7, 7))
-plot.imview(
+fig, axes = kplt.subplots(nrows=2, ncols=2, figsize=(7, 7))
+kplt.imview(
     train_ds["label"][indx_tr, ..., 0],
     title="Ground truth - Training Sample",
-    fig=fig,
     ax=axes[0, 0],
 )
-plot.imview(
+kplt.imview(
     train_ds["image"][indx_tr, ..., 0],
     title="Blurred Image - Training Sample",
-    fig=fig,
     ax=axes[0, 1],
 )
-plot.imview(
+kplt.imview(
     test_ds["label"][indx_te, ..., 0],
     title="Ground truth - Testing Sample",
-    fig=fig,
     ax=axes[1, 0],
 )
-plot.imview(
+kplt.imview(
     test_ds["image"][indx_te, ..., 0],
     title="Blurred Image - Testing Sample",
-    fig=fig,
     ax=axes[1, 1],
 )
 fig.suptitle(r"Training and Testing samples")

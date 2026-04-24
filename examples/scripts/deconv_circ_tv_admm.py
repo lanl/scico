@@ -23,7 +23,7 @@ from xdesign import SiemensStar, discrete_phantom
 
 import scico.numpy as snp
 import scico.random
-from scico import functional, linop, loss, metric, plot
+from scico import functional, linop, loss, metric
 from scico.optimize.admm import ADMM, CircularConvolveSolver
 from scico.util import device_info
 
@@ -85,32 +85,30 @@ hist = solver.itstat_object.history(transpose=True)
 """
 Show the recovered image.
 """
-fig, ax = plot.subplots(nrows=1, ncols=3, figsize=(15, 5))
-plot.imview(x_gt, title="Ground truth", fig=fig, ax=ax[0])
-plot.imview(y, title="Blurred, noisy image: %.2f (dB)" % metric.psnr(x_gt, y), fig=fig, ax=ax[1])
-plot.imview(x, title="Deconvolved image: %.2f (dB)" % metric.psnr(x_gt, x), fig=fig, ax=ax[2])
+fig, ax = kplt.subplots(nrows=1, ncols=3, figsize=(15, 5))
+kplt.imview(x_gt, title="Ground truth", ax=ax[0])
+kplt.imview(y, title="Blurred, noisy image: %.2f (dB)" % metric.psnr(x_gt, y), ax=ax[1])
+kplt.imview(x, title="Deconvolved image: %.2f (dB)" % metric.psnr(x_gt, x), ax=ax[2])
 fig.show()
 
 
 """
 Plot convergence statistics.
 """
-fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
-plot.plot(
+fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(12, 5))
+kplt.plot(
     hist.Objective,
     title="Objective function",
-    xlbl="Iteration",
-    ylbl="Functional value",
-    fig=fig,
+    xlabel="Iteration",
+    ylabel="Functional value",
     ax=ax[0],
 )
-plot.plot(
+kplt.plot(
     snp.array((hist.Prml_Rsdl, hist.Dual_Rsdl)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Residuals",
-    xlbl="Iteration",
-    lgnd=("Primal", "Dual"),
-    fig=fig,
+    xlabel="Iteration",
+    legend=("Primal", "Dual"),
     ax=ax[1],
 )
 fig.show()

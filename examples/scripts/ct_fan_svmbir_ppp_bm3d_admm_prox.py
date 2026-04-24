@@ -32,7 +32,7 @@ from matplotlib.ticker import MaxNLocator
 from xdesign import Foam, discrete_phantom
 
 import scico.numpy as snp
-from scico import metric, plot
+from scico import metric
 from scico.functional import BM3D
 from scico.linop import Diagonal, Identity
 from scico.linop.xray.svmbir import SVMBIRExtendedLoss, XRayTransform
@@ -212,23 +212,21 @@ Show the recovered images. The parallel beam reconstruction is poor because
 the parallel beam is a poor approximation of the specific fan beam geometry
 used here.
 """
-norm = plot.matplotlib.colors.Normalize(vmin=-0.1 * density, vmax=1.2 * density)
+norm = kplt.matplotlib.colors.Normalize(vmin=-0.1 * density, vmax=1.2 * density)
 
 fig, ax = plt.subplots(1, 3, figsize=(20, 7))
-plot.imview(img=x_gt, title="Ground Truth Image", cbar=True, fig=fig, ax=ax[0], norm=norm)
-plot.imview(
+kplt.imview(img=x_gt, title="Ground Truth Image", show_cbar=True, ax=ax[0], norm=norm)
+kplt.imview(
     img=x_mrf_parallel,
     title=f"Parallel-beam MRF (PSNR: {metric.psnr(x_gt, x_mrf_parallel):.2f} dB)",
-    cbar=True,
-    fig=fig,
+    show_cbar=True,
     ax=ax[1],
     norm=norm,
 )
-plot.imview(
+kplt.imview(
     img=x_extloss_parallel,
     title=f"Parallel-beam Extended Loss (PSNR: {metric.psnr(x_gt, x_extloss_parallel):.2f} dB)",
-    cbar=True,
-    fig=fig,
+    show_cbar=True,
     ax=ax[2],
     norm=norm,
 )
@@ -236,20 +234,18 @@ fig.show()
 
 
 fig, ax = plt.subplots(1, 3, figsize=(20, 7))
-plot.imview(img=x_gt, title="Ground Truth Image", cbar=True, fig=fig, ax=ax[0], norm=norm)
-plot.imview(
+kplt.imview(img=x_gt, title="Ground Truth Image", show_cbar=True, ax=ax[0], norm=norm)
+kplt.imview(
     img=x_mrf_fan,
     title=f"Fan-beam MRF (PSNR: {metric.psnr(x_gt, x_mrf_fan):.2f} dB)",
-    cbar=True,
-    fig=fig,
+    show_cbar=True,
     ax=ax[1],
     norm=norm,
 )
-plot.imview(
+kplt.imview(
     img=x_extloss_fan,
     title=f"Fan-beam Extended Loss (PSNR: {metric.psnr(x_gt, x_extloss_fan):.2f} dB)",
-    cbar=True,
-    fig=fig,
+    show_cbar=True,
     ax=ax[2],
     norm=norm,
 )
@@ -260,24 +256,22 @@ fig.show()
 Plot convergence statistics.
 """
 fig, ax = plt.subplots(1, 2, figsize=(15, 6))
-plot.plot(
+kplt.plot(
     snp.array((hist_extloss_parallel.Prml_Rsdl, hist_extloss_parallel.Dual_Rsdl)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Residuals for parallel-beam reconstruction",
-    xlbl="Iteration",
-    lgnd=("Primal", "Dual"),
-    fig=fig,
+    xlabel="Iteration",
+    legend=("Primal", "Dual"),
     ax=ax[0],
 )
 ax[0].set_ylim([1e-1, 1e1])
 ax[0].xaxis.set_major_locator(MaxNLocator(integer=True))
-plot.plot(
+kplt.plot(
     snp.array((hist_extloss_fan.Prml_Rsdl, hist_extloss_fan.Dual_Rsdl)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Residuals for fan-beam reconstruction",
-    xlbl="Iteration",
-    lgnd=("Primal", "Dual"),
-    fig=fig,
+    xlabel="Iteration",
+    legend=("Primal", "Dual"),
     ax=ax[1],
 )
 ax[1].set_ylim([1e-1, 1e1])

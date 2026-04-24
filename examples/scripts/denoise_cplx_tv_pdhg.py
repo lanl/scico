@@ -34,7 +34,7 @@ from xdesign import SiemensStar, discrete_phantom
 
 import scico.numpy as snp
 import scico.random
-from scico import functional, linop, loss, metric, operator, plot
+from scico import functional, linop, loss, metric, operator
 from scico.examples import phase_diff
 from scico.optimize import PDHG
 from scico.util import device_info
@@ -106,103 +106,93 @@ hist_nltv = solver_nltv.itstat_object.history(transpose=True)
 """
 Plot results.
 """
-fig, ax = plot.subplots(nrows=1, ncols=3, sharex=True, sharey=False, figsize=(27, 6))
-plot.plot(
+fig, ax = kplt.subplots(nrows=1, ncols=3, sharex=True, sharey=False, figsize=(27, 6))
+kplt.plot(
     snp.array((hist_tv.Objective, hist_nltv.Objective)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Objective function",
-    xlbl="Iteration",
-    lgnd=("PDHG", "NL-PDHG"),
-    fig=fig,
+    xlabel="Iteration",
+    legend=("PDHG", "NL-PDHG"),
     ax=ax[0],
 )
-plot.plot(
+kplt.plot(
     snp.array((hist_tv.Prml_Rsdl, hist_nltv.Prml_Rsdl)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Primal residual",
-    xlbl="Iteration",
-    lgnd=("PDHG", "NL-PDHG"),
-    fig=fig,
+    xlabel="Iteration",
+    legend=("PDHG", "NL-PDHG"),
     ax=ax[1],
 )
-plot.plot(
+kplt.plot(
     snp.array((hist_tv.Dual_Rsdl, hist_nltv.Dual_Rsdl)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Dual residual",
-    xlbl="Iteration",
-    lgnd=("PDHG", "NL-PDHG"),
-    fig=fig,
+    xlabel="Iteration",
+    legend=("PDHG", "NL-PDHG"),
     ax=ax[2],
 )
 fig.show()
 
 
-fig, ax = plot.subplots(nrows=2, ncols=4, figsize=(20, 10))
-norm = plot.matplotlib.colors.Normalize(
+fig, ax = kplt.subplots(nrows=2, ncols=4, figsize=(20, 10))
+norm = kplt.matplotlib.colors.Normalize(
     vmin=min(snp.abs(x_gt).min(), snp.abs(y).min(), snp.abs(x_tv).min(), snp.abs(x_nltv).min()),
     vmax=max(snp.abs(x_gt).max(), snp.abs(y).max(), snp.abs(x_tv).max(), snp.abs(x_nltv).max()),
 )
-plot.imview(snp.abs(x_gt), title="Ground truth", cbar=None, fig=fig, ax=ax[0, 0], norm=norm)
-plot.imview(
+kplt.imview(snp.abs(x_gt), title="Ground truth", show_cbar=None, ax=ax[0, 0], norm=norm)
+kplt.imview(
     snp.abs(y),
     title="Measured: PSNR %.2f (dB)" % metric.psnr(snp.abs(x_gt), snp.abs(y)),
-    cbar=None,
-    fig=fig,
+    show_cbar=None,
     ax=ax[0, 1],
     norm=norm,
 )
-plot.imview(
+kplt.imview(
     snp.abs(x_tv),
     title="TV: PSNR %.2f (dB)" % metric.psnr(snp.abs(x_gt), snp.abs(x_tv)),
-    cbar=None,
-    fig=fig,
+    show_cbar=None,
     ax=ax[0, 2],
     norm=norm,
 )
-plot.imview(
+kplt.imview(
     snp.abs(x_nltv),
     title="NL-TV: PSNR %.2f (dB)" % metric.psnr(snp.abs(x_gt), snp.abs(x_nltv)),
-    cbar=None,
-    fig=fig,
+    show_cbar=None,
     ax=ax[0, 3],
     norm=norm,
 )
 divider = make_axes_locatable(ax[0, 3])
 cax = divider.append_axes("right", size="5%", pad=0.2)
 fig.colorbar(ax[0, 3].get_images()[0], cax=cax)
-norm = plot.matplotlib.colors.Normalize(
+norm = kplt.matplotlib.colors.Normalize(
     vmin=min(snp.angle(x_gt).min(), snp.angle(x_tv).min(), snp.angle(x_nltv).min()),
     vmax=max(snp.angle(x_gt).max(), snp.angle(x_tv).max(), snp.angle(x_nltv).max()),
 )
-plot.imview(
+kplt.imview(
     snp.angle(x_gt),
     title="Ground truth",
-    cbar=None,
-    fig=fig,
+    show_cbar=None,
     ax=ax[1, 0],
     norm=norm,
 )
-plot.imview(
+kplt.imview(
     snp.angle(y),
     title="Measured: Mean phase diff. %.2f" % phase_diff(snp.angle(x_gt), snp.angle(y)).mean(),
-    cbar=None,
-    fig=fig,
+    show_cbar=None,
     ax=ax[1, 1],
     norm=norm,
 )
-plot.imview(
+kplt.imview(
     snp.angle(x_tv),
     title="TV: Mean phase diff. %.2f" % phase_diff(snp.angle(x_gt), snp.angle(x_tv)).mean(),
-    cbar=None,
-    fig=fig,
+    show_cbar=None,
     ax=ax[1, 2],
     norm=norm,
 )
-plot.imview(
+kplt.imview(
     snp.angle(x_nltv),
     title="NL-TV: Mean phase diff. %.2f" % phase_diff(snp.angle(x_gt), snp.angle(x_nltv)).mean(),
-    cbar=None,
-    fig=fig,
+    show_cbar=None,
     ax=ax[1, 3],
     norm=norm,
 )

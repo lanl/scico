@@ -143,11 +143,11 @@ hist = solver.itstat_object.history(transpose=True)
 """
 Show the measured image and samples from PDF stack
 """
-plot.imview(y, cmap=plot.plt.cm.Blues, cbar=True, title="Measured Image")
+kplt.imview(y, cmap=plot.plt.cm.Blues, show_cbar=True, title="Measured Image")
 
-fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(14, 7))
-plot.imview(psf[0], title="Nearest PSF", cmap=plot.plt.cm.Blues, fig=fig, ax=ax[0])
-plot.imview(psf[-1], title="Furthest PSF", cmap=plot.plt.cm.Blues, fig=fig, ax=ax[1])
+fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(14, 7))
+kplt.imview(psf[0], title="Nearest PSF", cmap=plot.plt.cm.Blues, ax=ax[0])
+kplt.imview(psf[-1], title="Furthest PSF", cmap=plot.plt.cm.Blues, ax=ax[1])
 fig.show()
 
 
@@ -157,32 +157,30 @@ Show the recovered volume with depth indicated by color.
 XCrop = Crop(((0, 0),) + pad_spec, input_shape=x_shape, input_dtype=dtype)
 xm = np.array(XCrop(x[..., ::-1]))
 xmr = xm.transpose((1, 2, 0))[..., np.newaxis] / xm.max()
-cmap = plot.plt.cm.viridis_r
+cmap = kplt.plt.cm.viridis_r
 cmval = cmap(np.arange(0, xm.shape[0]).reshape(1, 1, -1) / (xm.shape[0] - 1))
 xms = np.sum(cmval * xmr, axis=2)[..., 0:3]
 
-plot.imview(xms, cmap=cmap, cbar=True, title="Recovered Volume")
+kplt.imview(xms, cmap=cmap, show_cbar=True, title="Recovered Volume")
 
 
 """
 Plot convergence statistics.
 """
-fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
-plot.plot(
+fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(12, 5))
+kplt.plot(
     hist.Objective,
     title="Objective function",
-    xlbl="Iteration",
-    ylbl="Functional value",
-    fig=fig,
+    xlabel="Iteration",
+    ylabel="Functional value",
     ax=ax[0],
 )
-plot.plot(
+kplt.plot(
     snp.array((hist.Prml_Rsdl, hist.Dual_Rsdl)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Residuals",
-    xlbl="Iteration",
-    lgnd=("Primal", "Dual"),
-    fig=fig,
+    xlabel="Iteration",
+    legend=("Primal", "Dual"),
     ax=ax[1],
 )
 fig.show()

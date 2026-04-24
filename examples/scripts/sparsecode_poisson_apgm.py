@@ -37,7 +37,7 @@ import matplotlib.pyplot as plt
 
 import scico.numpy as snp
 import scico.random
-from scico import functional, loss, plot
+from scico import functional, loss
 from scico.numpy import BlockArray
 from scico.operator import Operator
 from scico.optimize.pgm import (
@@ -127,7 +127,7 @@ Define plotting functionality.
 
 def plot_results(hist, str_ss, L0, xsol, xgt, Aop):
     # Plot signal, coefficients and convergence statistics.
-    fig = plot.figure(
+    fig = kplt.figure(
         figsize=(12, 6),
         tight_layout=True,
     )
@@ -139,32 +139,29 @@ def plot_results(hist, str_ss, L0, xsol, xgt, Aop):
     )
 
     ax0 = fig.add_subplot(gs[0, 0])
-    plot.plot(
+    kplt.plot(
         hist.Objective,
-        ptyp="semilogy",
+        ylog=True,
         title="Objective",
-        xlbl="Iteration",
-        fig=fig,
+        xlabel="Iteration",
         ax=ax0,
     )
 
     ax1 = fig.add_subplot(gs[0, 1])
-    plot.plot(
+    kplt.plot(
         hist.Residual,
-        ptyp="semilogy",
+        ylog=True,
         title="Residual",
-        xlbl="Iteration",
-        fig=fig,
+        xlabel="Iteration",
         ax=ax1,
     )
 
     ax2 = fig.add_subplot(gs[0, 2])
-    plot.plot(
+    kplt.plot(
         hist.L,
-        ptyp="semilogy",
+        ylog=True,
         title="L",
-        xlbl="Iteration",
-        fig=fig,
+        xlabel="Iteration",
         ax=ax2,
     )
 
@@ -176,12 +173,11 @@ def plot_results(hist, str_ss, L0, xsol, xgt, Aop):
     plt.title("Coefficients")
 
     ax4 = fig.add_subplot(gs[1, 1:])
-    plot.plot(
+    kplt.plot(
         snp.vstack((y, Aop(xgt), Aop(xsol))).T,
         title="Fit",
-        xlbl="Index",
-        lgnd=("y", "A(x_gt)", "A(x)"),
-        fig=fig,
+        xlabel="Index",
+        legend=("y", "A(x_gt)", "A(x)"),
         ax=ax4,
     )
     fig.show()

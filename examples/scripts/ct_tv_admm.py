@@ -24,11 +24,12 @@ the astra package.
 
 import numpy as np
 
+import komplot as kplt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from xdesign import Foam, discrete_phantom
 
 import scico.numpy as snp
-from scico import functional, linop, loss, metric, plot
+from scico import functional, linop, loss, metric
 from scico.linop.xray import XRayTransform2D
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
@@ -95,22 +96,19 @@ x_reconstruction = snp.clip(solver.x, 0, 1.0)
 """
 Show the recovered image.
 """
-
-fig, ax = plot.subplots(nrows=1, ncols=3, figsize=(15, 5))
-plot.imview(x_gt, title="Ground truth", cbar=None, fig=fig, ax=ax[0])
-plot.imview(
+fig, ax = kplt.subplots(nrows=1, ncols=3, figsize=(15, 5))
+kplt.imview(x_gt, title="Ground truth", show_cbar=None, ax=ax[0])
+kplt.imview(
     x0,
     title="FBP Reconstruction: \nSNR: %.2f (dB), MAE: %.3f"
     % (metric.snr(x_gt, x0), metric.mae(x_gt, x0)),
-    cbar=None,
-    fig=fig,
+    show_cbar=None,
     ax=ax[1],
 )
-plot.imview(
+kplt.imview(
     x_reconstruction,
     title="TV Reconstruction\nSNR: %.2f (dB), MAE: %.3f"
     % (metric.snr(x_gt, x_reconstruction), metric.mae(x_gt, x_reconstruction)),
-    fig=fig,
     ax=ax[2],
 )
 divider = make_axes_locatable(ax[2])
@@ -122,22 +120,20 @@ fig.show()
 """
 Plot convergence statistics.
 """
-fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
-plot.plot(
+fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(12, 5))
+kplt.plot(
     hist.Objective,
     title="Objective function",
-    xlbl="Iteration",
-    ylbl="Functional value",
-    fig=fig,
+    xlabel="Iteration",
+    ylabel="Functional value",
     ax=ax[0],
 )
-plot.plot(
+kplt.plot(
     snp.array((hist.Prml_Rsdl, hist.Dual_Rsdl)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Residuals",
-    xlbl="Iteration",
-    lgnd=("Primal", "Dual"),
-    fig=fig,
+    xlabel="Iteration",
+    legend=("Primal", "Dual"),
     ax=ax[1],
 )
 fig.show()

@@ -27,7 +27,7 @@ from xdesign import Foam, discrete_phantom
 
 import scico.numpy as snp
 import scico.random
-from scico import metric, plot
+from scico import metric
 from scico.denoiser import DnCNN
 
 """
@@ -72,10 +72,10 @@ for σ in [0.06, 0.10, 0.20]:
 """
 Show reference and denoised images for σ=0.2 and variant=6N.
 """
-fig, ax = plot.subplots(nrows=1, ncols=3, sharex=True, sharey=True, figsize=(21, 7))
-plot.imview(x_gt, title="Reference", fig=fig, ax=ax[0])
-plot.imview(y, title="Noisy image: %.2f (dB)" % metric.psnr(x_gt, y), fig=fig, ax=ax[1])
-plot.imview(x_hat, title="Denoised image: %.2f (dB)" % metric.psnr(x_gt, x_hat), fig=fig, ax=ax[2])
+fig, ax = kplt.subplots(nrows=1, ncols=3, sharex=True, sharey=True, figsize=(21, 7))
+kplt.imview(x_gt, title="Reference", ax=ax[0])
+kplt.imview(y, title="Noisy image: %.2f (dB)" % metric.psnr(x_gt, y), ax=ax[1])
+kplt.imview(x_hat, title="Denoised image: %.2f (dB)" % metric.psnr(x_gt, x_hat), ax=ax[2])
 fig.show()
 
 

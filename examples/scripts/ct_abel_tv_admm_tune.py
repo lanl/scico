@@ -40,7 +40,7 @@ import ray
 ray.init(logging_level=logging.ERROR)  # need to call init before jax import: ray-project/ray#44087
 
 import scico.numpy as snp
-from scico import functional, linop, loss, metric, plot
+from scico import functional, linop, loss, metric
 from scico.examples import create_circular_phantom
 from scico.linop.xray.abel import AbelTransform
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
@@ -172,11 +172,11 @@ Plot parameter values visited during parameter search. Marker sizes are
 proportional to number of iterations run at each parameter pair. The best
 point in the parameter space is indicated in red.
 """
-fig = plot.figure(figsize=(8, 8))
+fig = kplt.figure(figsize=(8, 8))
 trials = results.get_dataframe()
 for t in trials.iloc:
     n = t["training_iteration"]
-    plot.plot(
+    kplt.plot(
         t["config/lambda"],
         t["config/rho"],
         ptyp="loglog",
@@ -185,21 +185,19 @@ for t in trials.iloc:
         marker="o",
         mfc="blue",
         mec="blue",
-        fig=fig,
     )
-plot.plot(
+kplt.plot(
     best_config["lambda"],
     best_config["rho"],
     ptyp="loglog",
     title="Parameter search sampling locations\n(marker size proportional to number of iterations)",
-    xlbl=r"$\rho$",
-    ylbl=r"$\lambda$",
+    xlabel=r"$\rho$",
+    ylabel=r"$\lambda$",
     lw=0,
     ms=5.0,
     marker="o",
     mfc="red",
     mec="red",
-    fig=fig,
 )
 ax = fig.axes[0]
 ax.set_xlim([config["rho"].lower, config["rho"].upper])
@@ -217,10 +215,10 @@ in red.
 psnr = [t["psnr"] for t in trials.iloc]
 minpsnr = min(max(psnr), 20.0)
 𝜌, 𝜆, psnr = zip(*filter(lambda x: x[2] >= minpsnr, zip(𝜌, 𝜆, psnr)))
-fig, ax = plot.subplots(figsize=(10, 8))
-sc = ax.scatter(𝜌, 𝜆, c=psnr, cmap=plot.cm.plasma_r)
+fig, ax = kplt.subplots(figsize=(10, 8))
+sc = ax.scatter(𝜌, 𝜆, c=psnr, cmap=kplt.cm.plasma_r)
 fig.colorbar(sc)
-plot.plot(
+kplt.plot(
     best_config["lambda"],
     best_config["rho"],
     ptyp="loglog",
@@ -229,7 +227,6 @@ plot.plot(
     marker="2",
     mfc="red",
     mec="red",
-    fig=fig,
     ax=ax,
 )
 ax.set_xscale("log")

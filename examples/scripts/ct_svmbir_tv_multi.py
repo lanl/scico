@@ -22,12 +22,13 @@ reconstructed image.
 
 import numpy as np
 
-import matplotlib.pyplot as plt
+import komplot as kplt
+import matplotlib
 import svmbir
 from xdesign import Foam, discrete_phantom
 
 import scico.numpy as snp
-from scico import functional, linop, metric, plot
+from scico import functional, linop, metric
 from scico.linop import Diagonal
 from scico.linop.xray.svmbir import SVMBIRSquaredL2Loss, XRayTransform
 from scico.optimize import PDHG, LinearizedADMM
@@ -156,41 +157,37 @@ print(f"PSNR: {metric.psnr(x_gt, x_pdhg):.2f} dB\n")
 """
 Show the recovered images.
 """
-norm = plot.matplotlib.colors.Normalize(vmin=-0.1 * density, vmax=1.2 * density)
-fig, ax = plt.subplots(1, 2, figsize=[10, 5])
-plot.imview(img=x_gt, title="Ground Truth Image", cbar=True, fig=fig, ax=ax[0], norm=norm)
-plot.imview(
+norm = matplotlib.colors.Normalize(vmin=-0.1 * density, vmax=1.2 * density)
+fig, ax = kplt.subplots(1, 2, figsize=[10, 5])
+kplt.imview(img=x_gt, title="Ground Truth Image", show_cbar=True, ax=ax[0], norm=norm)
+kplt.imview(
     img=x_mrf,
     title=f"MRF (PSNR: {metric.psnr(x_gt, x_mrf):.2f} dB)",
-    cbar=True,
-    fig=fig,
+    show_cbar=True,
     ax=ax[1],
     norm=norm,
 )
 fig.show()
 
-fig, ax = plt.subplots(1, 3, figsize=[15, 5])
-plot.imview(
+fig, ax = kplt.subplots(1, 3, figsize=[15, 5])
+kplt.imview(
     img=x_admm,
     title=f"TV ADMM (PSNR: {metric.psnr(x_gt, x_admm):.2f} dB)",
-    cbar=True,
-    fig=fig,
+    show_cbar=True,
     ax=ax[0],
     norm=norm,
 )
-plot.imview(
+kplt.imview(
     img=x_ladmm,
     title=f"TV LinADMM (PSNR: {metric.psnr(x_gt, x_ladmm):.2f} dB)",
-    cbar=True,
-    fig=fig,
+    show_cbar=True,
     ax=ax[1],
     norm=norm,
 )
-plot.imview(
+kplt.imview(
     img=x_pdhg,
     title=f"TV PDHG (PSNR: {metric.psnr(x_gt, x_pdhg):.2f} dB)",
-    cbar=True,
-    fig=fig,
+    show_cbar=True,
     ax=ax[2],
     norm=norm,
 )
@@ -200,65 +197,59 @@ fig.show()
 """
 Plot convergence statistics.
 """
-fig, ax = plot.subplots(nrows=1, ncols=3, sharex=True, sharey=False, figsize=(27, 6))
-plot.plot(
+fig, ax = kplt.subplots(nrows=1, ncols=3, sharex=True, sharey=False, figsize=(27, 6))
+kplt.plot(
     snp.array((hist_admm.Objective, hist_ladmm.Objective, hist_pdhg.Objective)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Objective function",
-    xlbl="Iteration",
-    lgnd=("ADMM", "LinADMM", "PDHG"),
-    fig=fig,
+    xlabel="Iteration",
+    legend=("ADMM", "LinADMM", "PDHG"),
     ax=ax[0],
 )
-plot.plot(
+kplt.plot(
     snp.array((hist_admm.Prml_Rsdl, hist_ladmm.Prml_Rsdl, hist_pdhg.Prml_Rsdl)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Primal residual",
-    xlbl="Iteration",
-    lgnd=("ADMM", "LinADMM", "PDHG"),
-    fig=fig,
+    xlabel="Iteration",
+    legend=("ADMM", "LinADMM", "PDHG"),
     ax=ax[1],
 )
-plot.plot(
+kplt.plot(
     snp.array((hist_admm.Dual_Rsdl, hist_ladmm.Dual_Rsdl, hist_pdhg.Dual_Rsdl)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Dual residual",
-    xlbl="Iteration",
-    lgnd=("ADMM", "LinADMM", "PDHG"),
-    fig=fig,
+    xlabel="Iteration",
+    legend=("ADMM", "LinADMM", "PDHG"),
     ax=ax[2],
 )
 fig.show()
 
-fig, ax = plot.subplots(nrows=1, ncols=3, sharex=True, sharey=False, figsize=(27, 6))
-plot.plot(
+fig, ax = kplt.subplots(nrows=1, ncols=3, sharex=True, sharey=False, figsize=(27, 6))
+kplt.plot(
     snp.array((hist_admm.Objective, hist_ladmm.Objective, hist_pdhg.Objective)).T,
     snp.array((hist_admm.Time, hist_ladmm.Time, hist_pdhg.Time)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Objective function",
-    xlbl="Time (s)",
-    lgnd=("ADMM", "LinADMM", "PDHG"),
-    fig=fig,
+    xlabel="Time (s)",
+    legend=("ADMM", "LinADMM", "PDHG"),
     ax=ax[0],
 )
-plot.plot(
+kplt.plot(
     snp.array((hist_admm.Prml_Rsdl, hist_ladmm.Prml_Rsdl, hist_pdhg.Prml_Rsdl)).T,
     snp.array((hist_admm.Time, hist_ladmm.Time, hist_pdhg.Time)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Primal residual",
-    xlbl="Time (s)",
-    lgnd=("ADMM", "LinADMM", "PDHG"),
-    fig=fig,
+    xlabel="Time (s)",
+    legend=("ADMM", "LinADMM", "PDHG"),
     ax=ax[1],
 )
-plot.plot(
+kplt.plot(
     snp.array((hist_admm.Dual_Rsdl, hist_ladmm.Dual_Rsdl, hist_pdhg.Dual_Rsdl)).T,
     snp.array((hist_admm.Time, hist_ladmm.Time, hist_pdhg.Time)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Dual residual",
-    xlbl="Time (s)",
-    lgnd=("ADMM", "LinADMM", "PDHG"),
-    fig=fig,
+    xlabel="Time (s)",
+    legend=("ADMM", "LinADMM", "PDHG"),
     ax=ax[2],
 )
 fig.show()

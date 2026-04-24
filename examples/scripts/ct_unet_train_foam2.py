@@ -35,9 +35,10 @@ except ImportError:
 import numpy as np
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+import komplot as kplt
 
 from scico import flax as sflax
-from scico import metric, plot
+from scico import metric
 from scico.flax.examples import load_ct_data
 
 platform = get_backend().platform
@@ -164,27 +165,25 @@ Plot comparison.
 key = jax.random.key(123)
 indx = jax.random.randint(key, shape=(1,), minval=0, maxval=maxn)[0]
 
-fig, ax = plot.subplots(nrows=1, ncols=3, figsize=(15, 5))
-plot.imview(test_ds["label"][indx, ..., 0], title="Ground truth", cbar=None, fig=fig, ax=ax[0])
-plot.imview(
+fig, ax = kplt.subplots(nrows=1, ncols=3, figsize=(15, 5))
+kplt.imview(test_ds["label"][indx, ..., 0], title="Ground truth", show_cbar=None, ax=ax[0])
+kplt.imview(
     test_ds["image"][indx, ..., 0],
     title="FBP Reconstruction: \nSNR: %.2f (dB), MAE: %.3f"
     % (
         metric.snr(test_ds["label"][indx, ..., 0], test_ds["image"][indx, ..., 0]),
         metric.mae(test_ds["label"][indx, ..., 0], test_ds["image"][indx, ..., 0]),
     ),
-    cbar=None,
-    fig=fig,
+    show_cbar=None,
     ax=ax[1],
 )
-plot.imview(
+kplt.imview(
     output[indx, ..., 0],
     title="UNet Reconstruction\nSNR: %.2f (dB), MAE: %.3f"
     % (
         metric.snr(test_ds["label"][indx, ..., 0], output[indx, ..., 0]),
         metric.mae(test_ds["label"][indx, ..., 0], output[indx, ..., 0]),
     ),
-    fig=fig,
     ax=ax[2],
 )
 divider = make_axes_locatable(ax[2])
@@ -199,26 +198,24 @@ cycle was done (i.e. if not reading final epoch results from checkpoint).
 """
 if stats_object is not None and len(stats_object.iterations) > 0:
     hist = stats_object.history(transpose=True)
-    fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
-    plot.plot(
+    fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(12, 5))
+    kplt.plot(
         np.array((hist.Train_Loss, hist.Eval_Loss)).T,
         x=hist.Epoch,
-        ptyp="semilogy",
+        ylog=True,
         title="Loss function",
-        xlbl="Epoch",
-        ylbl="Loss value",
-        lgnd=("Train", "Test"),
-        fig=fig,
+        xlabel="Epoch",
+        ylabel="Loss value",
+        legend=("Train", "Test"),
         ax=ax[0],
     )
-    plot.plot(
+    kplt.plot(
         np.array((hist.Train_SNR, hist.Eval_SNR)).T,
         x=hist.Epoch,
         title="Metric",
-        xlbl="Epoch",
-        ylbl="SNR (dB)",
-        lgnd=("Train", "Test"),
-        fig=fig,
+        xlabel="Epoch",
+        ylabel="SNR (dB)",
+        legend=("Train", "Test"),
         ax=ax[1],
     )
     fig.show()

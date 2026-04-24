@@ -29,7 +29,7 @@ non-negativity constraint, and $\mathbf{x}$ is the deconvolved image.
 """
 
 import scico.numpy as snp
-from scico import functional, linop, loss, plot, util
+from scico import functional, linop, loss, util
 from scico.examples import downsample_volume, epfl_deconv_data, tile_volume_slices
 from scico.optimize.admm import ADMM, CircularConvolveSolver
 
@@ -114,31 +114,29 @@ x = x_pad[: y.shape[0], : y.shape[1], : y.shape[2]]
 """
 Show the recovered image.
 """
-fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(14, 7))
-plot.imview(tile_volume_slices(y), title="Blurred measurements", fig=fig, ax=ax[0])
-plot.imview(tile_volume_slices(x), title="Deconvolved image", fig=fig, ax=ax[1])
+fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(14, 7))
+kplt.imview(tile_volume_slices(y), title="Blurred measurements", ax=ax[0])
+kplt.imview(tile_volume_slices(x), title="Deconvolved image", ax=ax[1])
 fig.show()
 
 
 """
 Plot convergence statistics.
 """
-fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
-plot.plot(
+fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(12, 5))
+kplt.plot(
     solve_stats.Objective,
     title="Objective function",
-    xlbl="Iteration",
-    ylbl="Functional value",
-    fig=fig,
+    xlabel="Iteration",
+    ylabel="Functional value",
     ax=ax[0],
 )
-plot.plot(
+kplt.plot(
     snp.array((solve_stats.Prml_Rsdl, solve_stats.Dual_Rsdl)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Residuals",
-    xlbl="Iteration",
-    lgnd=("Primal", "Dual"),
-    fig=fig,
+    xlabel="Iteration",
+    legend=("Primal", "Dual"),
     ax=ax[1],
 )
 fig.show()

@@ -23,10 +23,11 @@ sinogram computed with the astra projector.
 
 import numpy as np
 
+import komplot as kplt
 from xdesign import Foam, discrete_phantom
 
 import scico.numpy as snp
-from scico import functional, linop, loss, metric, plot
+from scico import functional, linop, loss, metric
 from scico.linop.xray import XRayTransform2D, astra, svmbir
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
@@ -126,38 +127,35 @@ for p in projectors.keys():
 """
 Display sinogram.
 """
-fig, ax = plot.subplots(nrows=1, ncols=1, figsize=(15, 3))
-plot.imview(y, title="sinogram", fig=fig, ax=ax)
+fig, ax = kplt.subplots(nrows=1, ncols=1, figsize=(15, 3))
+kplt.imview(y, title="sinogram", ax=ax)
 fig.show()
 
 
 """
 Plot convergence statistics.
 """
-fig, ax = plot.subplots(nrows=1, ncols=3, figsize=(12, 5))
-plot.plot(
+fig, ax = kplt.subplots(nrows=1, ncols=3, figsize=(12, 5))
+kplt.plot(
     np.array([hist[p].Objective for p in projectors.keys()]).T,
     title="Objective function",
-    xlbl="Iteration",
-    ylbl="Functional value",
-    lgnd=projectors.keys(),
-    fig=fig,
+    xlabel="Iteration",
+    ylabel="Functional value",
+    legend=projectors.keys(),
     ax=ax[0],
 )
-plot.plot(
+kplt.plot(
     np.array([hist[p].Prml_Rsdl for p in projectors.keys()]).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Primal Residual",
-    xlbl="Iteration",
-    fig=fig,
+    xlabel="Iteration",
     ax=ax[1],
 )
-plot.plot(
+kplt.plot(
     np.array([hist[p].Dual_Rsdl for p in projectors.keys()]).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Dual Residual",
-    xlbl="Iteration",
-    fig=fig,
+    xlabel="Iteration",
     ax=ax[2],
 )
 fig.show()
@@ -166,13 +164,12 @@ fig.show()
 """
 Show the recovered images.
 """
-fig, ax = plot.subplots(nrows=1, ncols=4, figsize=(15, 5))
-plot.imview(x_gt, title="Ground truth", fig=fig, ax=ax[0])
+fig, ax = kplt.subplots(nrows=1, ncols=4, figsize=(15, 5))
+kplt.imview(x_gt, title="Ground truth", ax=ax[0])
 for n, p in enumerate(projectors.keys()):
-    plot.imview(
+    kplt.imview(
         x_rec[p],
         title="%s  SNR: %.2f (dB)" % (p, metric.snr(x_gt, x_rec[p])),
-        fig=fig,
         ax=ax[n + 1],
     )
 for ax in ax:

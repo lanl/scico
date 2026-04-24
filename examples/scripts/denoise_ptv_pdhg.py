@@ -25,7 +25,7 @@ from xdesign import SiemensStar, discrete_phantom
 
 import scico.numpy as snp
 import scico.random
-from scico import functional, linop, loss, metric, plot
+from scico import functional, linop, loss, metric
 from scico.optimize import PDHG
 from scico.util import device_info
 
@@ -111,12 +111,12 @@ for x, name in zip((x_std, x_plr), ("Isotropic", "Polar")):
 """
 Plot results.
 """
-plt_args = dict(norm=plot.matplotlib.colors.Normalize(vmin=0, vmax=1.5))
-fig, ax = plot.subplots(nrows=2, ncols=2, sharex=True, sharey=True, figsize=(11, 10))
-plot.imview(x_gt, title="Ground truth", fig=fig, ax=ax[0, 0], **plt_args)
-plot.imview(y, title="Noisy version", fig=fig, ax=ax[0, 1], **plt_args)
-plot.imview(x_std, title="Isotropic TV denoising", fig=fig, ax=ax[1, 0], **plt_args)
-plot.imview(x_plr, title="Polar TV denoising", fig=fig, ax=ax[1, 1], **plt_args)
+plt_args = dict(norm=kplt.matplotlib.colors.Normalize(vmin=0, vmax=1.5))
+fig, ax = kplt.subplots(nrows=2, ncols=2, sharex=True, sharey=True, figsize=(11, 10))
+kplt.imview(x_gt, title="Ground truth", ax=ax[0, 0], **plt_args)
+kplt.imview(y, title="Noisy version", ax=ax[0, 1], **plt_args)
+kplt.imview(x_std, title="Isotropic TV denoising", ax=ax[1, 0], **plt_args)
+kplt.imview(x_plr, title="Polar TV denoising", ax=ax[1, 1], **plt_args)
 fig.subplots_adjust(left=0.1, right=0.99, top=0.95, bottom=0.05, wspace=0.2, hspace=0.01)
 fig.colorbar(
     ax[0, 0].get_images()[0], ax=ax, location="right", shrink=0.9, pad=0.05, label="Arbitrary Units"
@@ -125,11 +125,11 @@ fig.suptitle("Denoising comparison")
 fig.show()
 
 # zoomed version
-fig, ax = plot.subplots(nrows=2, ncols=2, sharex=True, sharey=True, figsize=(11, 10))
-plot.imview(x_gt, title="Ground truth", fig=fig, ax=ax[0, 0], **plt_args)
-plot.imview(y, title="Noisy version", fig=fig, ax=ax[0, 1], **plt_args)
-plot.imview(x_std, title="Isotropic TV denoising", fig=fig, ax=ax[1, 0], **plt_args)
-plot.imview(x_plr, title="Polar TV denoising", fig=fig, ax=ax[1, 1], **plt_args)
+fig, ax = kplt.subplots(nrows=2, ncols=2, sharex=True, sharey=True, figsize=(11, 10))
+kplt.imview(x_gt, title="Ground truth", ax=ax[0, 0], **plt_args)
+kplt.imview(y, title="Noisy version", ax=ax[0, 1], **plt_args)
+kplt.imview(x_std, title="Isotropic TV denoising", ax=ax[1, 0], **plt_args)
+kplt.imview(x_plr, title="Polar TV denoising", ax=ax[1, 1], **plt_args)
 ax[0, 0].set_xlim(N // 4, N // 4 + N // 2)
 ax[0, 0].set_ylim(N // 4, N // 4 + N // 2)
 fig.subplots_adjust(left=0.1, right=0.99, top=0.95, bottom=0.05, wspace=0.2, hspace=0.01)
@@ -140,32 +140,29 @@ fig.suptitle("Denoising comparison (zoomed)")
 fig.show()
 
 
-fig, ax = plot.subplots(nrows=1, ncols=3, sharex=True, sharey=False, figsize=(20, 5))
-plot.plot(
+fig, ax = kplt.subplots(nrows=1, ncols=3, sharex=True, sharey=False, figsize=(20, 5))
+kplt.plot(
     snp.array((hist_std.Objective, hist_plr.Objective)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Objective function",
-    xlbl="Iteration",
-    lgnd=("Standard", "Polar"),
-    fig=fig,
+    xlabel="Iteration",
+    legend=("Standard", "Polar"),
     ax=ax[0],
 )
-plot.plot(
+kplt.plot(
     snp.array((hist_std.Prml_Rsdl, hist_plr.Prml_Rsdl)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Primal residual",
-    xlbl="Iteration",
-    lgnd=("Standard", "Polar"),
-    fig=fig,
+    xlabel="Iteration",
+    legend=("Standard", "Polar"),
     ax=ax[1],
 )
-plot.plot(
+kplt.plot(
     snp.array((hist_std.Dual_Rsdl, hist_plr.Dual_Rsdl)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Dual residual",
-    xlbl="Iteration",
-    lgnd=("Standard", "Polar"),
-    fig=fig,
+    xlabel="Iteration",
+    legend=("Standard", "Polar"),
     ax=ax[2],
 )
 fig.show()

@@ -32,13 +32,14 @@ example:
 
 import numpy as np
 
-import matplotlib.pyplot as plt
+import komplot as kplt
+import matplotlib
 import svmbir
 from matplotlib.ticker import MaxNLocator
 from xdesign import Foam, discrete_phantom
 
 import scico.numpy as snp
-from scico import metric, plot
+from scico import metric
 from scico.functional import BM3D, NonNegativeIndicator
 from scico.linop import Diagonal, Identity
 from scico.linop.xray.svmbir import (
@@ -176,30 +177,27 @@ hist_extloss = solver_extloss.itstat_object.history(transpose=True)
 """
 Show the recovered images.
 """
-norm = plot.matplotlib.colors.Normalize(vmin=-0.1 * density, vmax=1.2 * density)
-fig, ax = plt.subplots(2, 2, figsize=(15, 15))
-plot.imview(img=x_gt, title="Ground Truth Image", cbar=True, fig=fig, ax=ax[0, 0], norm=norm)
-plot.imview(
+norm = matplotlib.colors.Normalize(vmin=-0.1 * density, vmax=1.2 * density)
+fig, ax = kplt.subplots(2, 2, figsize=(15, 15))
+kplt.imview(img=x_gt, title="Ground Truth Image", show_cbar=True, ax=ax[0, 0], norm=norm)
+kplt.imview(
     img=x_mrf,
     title=f"MRF (PSNR: {metric.psnr(x_gt, x_mrf):.2f} dB)",
-    cbar=True,
-    fig=fig,
+    show_cbar=True,
     ax=ax[0, 1],
     norm=norm,
 )
-plot.imview(
+kplt.imview(
     img=x_l2loss,
     title=f"SquaredL2Loss + non-negativity (PSNR: {metric.psnr(x_gt, x_l2loss):.2f} dB)",
-    cbar=True,
-    fig=fig,
+    show_cbar=True,
     ax=ax[1, 0],
     norm=norm,
 )
-plot.imview(
+kplt.imview(
     img=x_extloss,
     title=f"ExtendedLoss (PSNR: {metric.psnr(x_gt, x_extloss):.2f} dB)",
-    cbar=True,
-    fig=fig,
+    show_cbar=True,
     ax=ax[1, 1],
     norm=norm,
 )
@@ -209,25 +207,23 @@ fig.show()
 """
 Plot convergence statistics.
 """
-fig, ax = plt.subplots(1, 2, figsize=(15, 5))
-plot.plot(
+fig, ax = kplt.subplots(1, 2, figsize=(15, 5))
+kplt.plot(
     snp.array((hist_l2loss.Prml_Rsdl, hist_l2loss.Dual_Rsdl)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Residuals (SquaredL2Loss + non-negativity)",
-    xlbl="Iteration",
-    lgnd=("Primal", "Dual"),
-    fig=fig,
+    xlabel="Iteration",
+    legend=("Primal", "Dual"),
     ax=ax[0],
 )
 ax[0].set_ylim([1e-1, 5e0])
 ax[0].xaxis.set_major_locator(MaxNLocator(integer=True))
-plot.plot(
+kplt.plot(
     snp.array((hist_extloss.Prml_Rsdl, hist_extloss.Dual_Rsdl)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Residuals (ExtendedLoss)",
-    xlbl="Iteration",
-    lgnd=("Primal", "Dual"),
-    fig=fig,
+    xlabel="Iteration",
+    legend=("Primal", "Dual"),
     ax=ax[1],
 )
 ax[1].set_ylim([1e-1, 5e0])

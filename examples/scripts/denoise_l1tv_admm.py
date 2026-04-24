@@ -23,7 +23,7 @@ operator, and $\mathbf{x}$ is the denoised image.
 from xdesign import SiemensStar, discrete_phantom
 
 import scico.numpy as snp
-from scico import functional, linop, loss, metric, plot
+from scico import functional, linop, loss, metric
 from scico.examples import spnoise
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
@@ -75,21 +75,19 @@ hist = solver.itstat_object.history(transpose=True)
 """
 Plot results.
 """
-plt_args = dict(norm=plot.matplotlib.colors.Normalize(vmin=0, vmax=1.0))
-fig, ax = plot.subplots(nrows=2, ncols=2, sharex=True, sharey=True, figsize=(13, 12))
-plot.imview(x_gt, title="Ground truth", fig=fig, ax=ax[0, 0], **plt_args)
-plot.imview(y, title="Noisy image", fig=fig, ax=ax[0, 1], **plt_args)
-plot.imview(
+plt_args = dict(norm=kplt.matplotlib.colors.Normalize(vmin=0, vmax=1.0))
+fig, ax = kplt.subplots(nrows=2, ncols=2, sharex=True, sharey=True, figsize=(13, 12))
+kplt.imview(x_gt, title="Ground truth", ax=ax[0, 0], **plt_args)
+kplt.imview(y, title="Noisy image", ax=ax[0, 1], **plt_args)
+kplt.imview(
     x_med,
     title=f"Median filtering: {metric.psnr(x_gt, x_med):.2f} (dB)",
-    fig=fig,
     ax=ax[1, 0],
     **plt_args,
 )
-plot.imview(
+kplt.imview(
     x_tv,
     title=f"ℓ1-TV denoising: {metric.psnr(x_gt, x_tv):.2f} (dB)",
-    fig=fig,
     ax=ax[1, 1],
     **plt_args,
 )
@@ -99,22 +97,20 @@ fig.show()
 """
 Plot convergence statistics.
 """
-fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
-plot.plot(
+fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(12, 5))
+kplt.plot(
     hist.Objective,
     title="Objective function",
-    xlbl="Iteration",
-    ylbl="Functional value",
-    fig=fig,
+    xlabel="Iteration",
+    ylabel="Functional value",
     ax=ax[0],
 )
-plot.plot(
+kplt.plot(
     snp.array((hist.Prml_Rsdl, hist.Dual_Rsdl)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Residuals",
-    xlbl="Iteration",
-    lgnd=("Primal", "Dual"),
-    fig=fig,
+    xlabel="Iteration",
+    legend=("Primal", "Dual"),
     ax=ax[1],
 )
 fig.show()

@@ -25,7 +25,6 @@ ray.init(logging_level=logging.ERROR)  # need to call init before jax import: ra
 # Set an arbitrary processor count (only applies if GPU is not available).
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 
-from scico import plot
 from scico.flax.examples import load_ct_data
 
 """
@@ -45,32 +44,23 @@ Plot randomly selected sample.
 """
 indx_tr = np.random.randint(0, train_nimg)
 indx_te = np.random.randint(0, test_nimg)
-fig, axes = plot.subplots(nrows=2, ncols=3, figsize=(9, 9))
-plot.imview(
-    trdt["img"][indx_tr, ..., 0], title="Ground truth - Training Sample", fig=fig, ax=axes[0, 0]
-)
-plot.imview(
-    trdt["sino"][indx_tr, ..., 0], title="Sinogram - Training Sample", fig=fig, ax=axes[0, 1]
-)
-plot.imview(
+fig, axes = kplt.subplots(nrows=2, ncols=3, figsize=(9, 9))
+kplt.imview(trdt["img"][indx_tr, ..., 0], title="Ground truth - Training Sample", ax=axes[0, 0])
+kplt.imview(trdt["sino"][indx_tr, ..., 0], title="Sinogram - Training Sample", ax=axes[0, 1])
+kplt.imview(
     trdt["fbp"][indx_tr, ..., 0],
     title="FBP - Training Sample",
-    fig=fig,
     ax=axes[0, 2],
 )
-plot.imview(
+kplt.imview(
     ttdt["img"][indx_te, ..., 0],
     title="Ground truth - Testing Sample",
-    fig=fig,
     ax=axes[1, 0],
 )
-plot.imview(
-    ttdt["sino"][indx_te, ..., 0], title="Sinogram - Testing Sample", fig=fig, ax=axes[1, 1]
-)
-plot.imview(
+kplt.imview(ttdt["sino"][indx_te, ..., 0], title="Sinogram - Testing Sample", ax=axes[1, 1])
+kplt.imview(
     ttdt["fbp"][indx_te, ..., 0],
     title="FBP - Testing Sample",
-    fig=fig,
     ax=axes[1, 2],
 )
 fig.suptitle(r"Training and Testing samples")

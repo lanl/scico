@@ -23,12 +23,13 @@ than the prox of the `SVMBIRSquaredL2Loss` functional, as in the
 
 import numpy as np
 
-import matplotlib.pyplot as plt
+import komplot as kplt
+import matplotlib
 import svmbir
 from xdesign import Foam, discrete_phantom
 
 import scico.numpy as snp
-from scico import metric, plot
+from scico import metric
 from scico.functional import BM3D, NonNegativeIndicator
 from scico.linop import Diagonal, Identity
 from scico.linop.xray.svmbir import SVMBIRSquaredL2Loss, XRayTransform
@@ -120,22 +121,20 @@ hist = solver.itstat_object.history(transpose=True)
 """
 Show the recovered image.
 """
-norm = plot.matplotlib.colors.Normalize(vmin=-0.1 * density, vmax=1.2 * density)
-fig, ax = plt.subplots(1, 3, figsize=[15, 5])
-plot.imview(img=x_gt, title="Ground Truth Image", cbar=True, fig=fig, ax=ax[0], norm=norm)
-plot.imview(
+norm = matplotlib.colors.Normalize(vmin=-0.1 * density, vmax=1.2 * density)
+fig, ax = kplt.subplots(1, 3, figsize=[15, 5])
+kplt.imview(img=x_gt, title="Ground Truth Image", show_cbar=True, ax=ax[0], norm=norm)
+kplt.imview(
     img=x_mrf,
     title=f"MRF (PSNR: {metric.psnr(x_gt, x_mrf):.2f} dB)",
-    cbar=True,
-    fig=fig,
+    show_cbar=True,
     ax=ax[1],
     norm=norm,
 )
-plot.imview(
+kplt.imview(
     img=x_bm3d,
     title=f"BM3D (PSNR: {metric.psnr(x_gt, x_bm3d):.2f} dB)",
-    cbar=True,
-    fig=fig,
+    show_cbar=True,
     ax=ax[2],
     norm=norm,
 )
@@ -145,12 +144,12 @@ fig.show()
 """
 Plot convergence statistics.
 """
-plot.plot(
+kplt.plot(
     snp.array((hist.Prml_Rsdl, hist.Dual_Rsdl)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Residuals",
-    xlbl="Iteration",
-    lgnd=("Primal", "Dual"),
+    xlabel="Iteration",
+    legend=("Primal", "Dual"),
 )
 
 

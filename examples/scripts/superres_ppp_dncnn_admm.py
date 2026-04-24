@@ -17,7 +17,7 @@ superresolution problem.
 import scico
 import scico.numpy as snp
 import scico.random
-from scico import denoiser, functional, linop, loss, metric, plot
+from scico import denoiser, functional, linop, loss, metric
 from scico.data import kodim23
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.solver import cg
@@ -98,35 +98,33 @@ hist = solver.itstat_object.history(transpose=True)
 """
 Plot convergence statistics.
 """
-plot.plot(
+kplt.plot(
     snp.array((hist.Prml_Rsdl, hist.Dual_Rsdl)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Residuals",
-    xlbl="Iteration",
-    lgnd=("Primal", "Dual"),
+    xlabel="Iteration",
+    legend=("Primal", "Dual"),
 )
 
 
 """
 Show reference and test images.
 """
-fig = plot.figure(figsize=(8, 6))
-ax0 = plot.plt.subplot2grid((1, rate + 1), (0, 0), colspan=rate)
-plot.imview(img, title="Reference", fig=fig, ax=ax0)
-ax1 = plot.plt.subplot2grid((1, rate + 1), (0, rate))
-plot.imview(sn, title="Downsampled", fig=fig, ax=ax1)
+fig = kplt.figure(figsize=(8, 6))
+ax0 = kplt.plt.subplot2grid((1, rate + 1), (0, 0), colspan=rate)
+kplt.imview(img, title="Reference", ax=ax0)
+ax1 = kplt.plt.subplot2grid((1, rate + 1), (0, rate))
+kplt.imview(sn, title="Downsampled", ax=ax1)
 fig.show()
 
 
 """
 Show recovered full-resolution images.
 """
-fig, ax = plot.subplots(nrows=1, ncols=3, sharex=True, sharey=True, figsize=(21, 7))
-plot.imview(xpinv, title="Pseudo-inverse: %.2f (dB)" % metric.psnr(img, xpinv), fig=fig, ax=ax[0])
-plot.imview(
-    xden, title="Denoised pseudo-inverse: %.2f (dB)" % metric.psnr(img, xden), fig=fig, ax=ax[1]
-)
-plot.imview(xppp, title="PPP solution: %.2f (dB)" % metric.psnr(img, xppp), fig=fig, ax=ax[2])
+fig, ax = kplt.subplots(nrows=1, ncols=3, sharex=True, sharey=True, figsize=(21, 7))
+kplt.imview(xpinv, title="Pseudo-inverse: %.2f (dB)" % metric.psnr(img, xpinv), ax=ax[0])
+kplt.imview(xden, title="Denoised pseudo-inverse: %.2f (dB)" % metric.psnr(img, xden), ax=ax[1])
+kplt.imview(xppp, title="PPP solution: %.2f (dB)" % metric.psnr(img, xppp), ax=ax[2])
 fig.show()
 
 

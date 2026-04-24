@@ -28,7 +28,7 @@ function, while ADMM is used in a
 import numpy as np
 
 import scico.numpy as snp
-from scico import functional, linop, loss, plot
+from scico import functional, linop, loss
 from scico.optimize.pgm import AcceleratedPGM
 from scico.util import device_info
 
@@ -78,19 +78,17 @@ x = solver.solve()
 """
 Plot the recovered coefficients and signal.
 """
-fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
-plot.plot(
+fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(12, 5))
+kplt.plot(
     np.vstack((xt, solver.x)).T,
     title="Coefficients",
-    lgnd=("Ground Truth", "Recovered"),
-    fig=fig,
+    legend=("Ground Truth", "Recovered"),
     ax=ax[0],
 )
-plot.plot(
+kplt.plot(
     np.vstack((D @ xt, y, D @ solver.x)).T,
     title="Signal",
-    lgnd=("Ground Truth", "Noisy", "Recovered"),
-    fig=fig,
+    legend=("Ground Truth", "Noisy", "Recovered"),
     ax=ax[1],
 )
 fig.show()

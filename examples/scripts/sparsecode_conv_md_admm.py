@@ -141,15 +141,15 @@ hist = solver.itstat_object.history(transpose=True)
 """
 Show the recovered coefficient maps.
 """
-fig, ax = plot.subplots(nrows=2, ncols=3, figsize=(12, 8.6))
-plot.imview(x0[0], title="Coef. map 0", cmap=plot.cm.Blues, fig=fig, ax=ax[0, 0])
+fig, ax = kplt.subplots(nrows=2, ncols=3, figsize=(12, 8.6))
+kplt.imview(x0[0], title="Coef. map 0", cmap=plot.cm.Blues, ax=ax[0, 0])
 ax[0, 0].set_ylabel("Ground truth")
-plot.imview(x0[1], title="Coef. map 1", cmap=plot.cm.Blues, fig=fig, ax=ax[0, 1])
-plot.imview(x0[2], title="Coef. map 2", cmap=plot.cm.Blues, fig=fig, ax=ax[0, 2])
-plot.imview(x1[0], cmap=plot.cm.Blues, fig=fig, ax=ax[1, 0])
+kplt.imview(x0[1], title="Coef. map 1", cmap=plot.cm.Blues, ax=ax[0, 1])
+kplt.imview(x0[2], title="Coef. map 2", cmap=plot.cm.Blues, ax=ax[0, 2])
+kplt.imview(x1[0], cmap=plot.cm.Blues, ax=ax[1, 0])
 ax[1, 0].set_ylabel("Recovered")
-plot.imview(x1[1], cmap=plot.cm.Blues, fig=fig, ax=ax[1, 1])
-plot.imview(x1[2], cmap=plot.cm.Blues, fig=fig, ax=ax[1, 2])
+kplt.imview(x1[1], cmap=plot.cm.Blues, ax=ax[1, 1])
+kplt.imview(x1[2], cmap=plot.cm.Blues, ax=ax[1, 2])
 fig.tight_layout()
 fig.show()
 
@@ -159,31 +159,29 @@ Show test image and reconstruction from recovered coefficient maps. Note
 the absence of the wrap-around effects at the boundary that can be seen
 in the corresponding images in the [related example](sparsecode_conv_admm.rst).
 """
-fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 6))
-plot.imview(y, title="Test image", cmap=plot.cm.gist_heat_r, fig=fig, ax=ax[0])
-plot.imview(B(A(x1)), title="Reconstructed image", cmap=plot.cm.gist_heat_r, fig=fig, ax=ax[1])
+fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(12, 6))
+kplt.imview(y, title="Test image", cmap=plot.cm.gist_heat_r, ax=ax[0])
+kplt.imview(B(A(x1)), title="Reconstructed image", cmap=plot.cm.gist_heat_r, ax=ax[1])
 fig.show()
 
 
 """
 Plot convergence statistics.
 """
-fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
-plot.plot(
+fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(12, 5))
+kplt.plot(
     hist.Objective,
     title="Objective function",
-    xlbl="Iteration",
-    ylbl="Functional value",
-    fig=fig,
+    xlabel="Iteration",
+    ylabel="Functional value",
     ax=ax[0],
 )
-plot.plot(
+kplt.plot(
     snp.array((hist.Prml_Rsdl, hist.Dual_Rsdl)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Residuals",
-    xlbl="Iteration",
-    lgnd=("Primal", "Dual"),
-    fig=fig,
+    xlabel="Iteration",
+    legend=("Primal", "Dual"),
     ax=ax[1],
 )
 fig.show()

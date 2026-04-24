@@ -37,7 +37,7 @@ import ray
 ray.init(logging_level=logging.ERROR)  # need to call init before jax import: ray-project/ray#44087
 
 import scico.numpy as snp
-from scico import functional, linop, loss, plot
+from scico import functional, linop, loss
 from scico.examples import downsample_volume, epfl_deconv_data, tile_volume_slices
 from scico.optimize.admm import ADMM, CircularConvolveSolver
 
@@ -152,41 +152,38 @@ solve_stats = [t[1] for t in ray_return]
 """
 Show the recovered image.
 """
-fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(14, 7))
-plot.imview(tile_volume_slices(y), title="Blurred measurements", fig=fig, ax=ax[0])
-plot.imview(tile_volume_slices(x), title="Deconvolved image", fig=fig, ax=ax[1])
+fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(14, 7))
+kplt.imview(tile_volume_slices(y), title="Blurred measurements", ax=ax[0])
+kplt.imview(tile_volume_slices(x), title="Deconvolved image", ax=ax[1])
 fig.show()
 
 
 """
 Plot convergence statistics.
 """
-fig, ax = plot.subplots(nrows=1, ncols=3, figsize=(18, 5))
-plot.plot(
+fig, ax = kplt.subplots(nrows=1, ncols=3, figsize=(18, 5))
+kplt.plot(
     np.stack([s.Objective for s in solve_stats]).T,
     title="Objective function",
-    xlbl="Iteration",
-    ylbl="Functional value",
-    lgnd=("CY3", "DAPI", "FITC"),
-    fig=fig,
+    xlabel="Iteration",
+    ylabel="Functional value",
+    legend=("CY3", "DAPI", "FITC"),
     ax=ax[0],
 )
-plot.plot(
+kplt.plot(
     np.stack([s.Prml_Rsdl for s in solve_stats]).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Primal Residual",
-    xlbl="Iteration",
-    lgnd=("CY3", "DAPI", "FITC"),
-    fig=fig,
+    xlabel="Iteration",
+    legend=("CY3", "DAPI", "FITC"),
     ax=ax[1],
 )
-plot.plot(
+kplt.plot(
     np.stack([s.Dual_Rsdl for s in solve_stats]).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Dual Residual",
-    xlbl="Iteration",
-    lgnd=("CY3", "DAPI", "FITC"),
-    fig=fig,
+    xlabel="Iteration",
+    legend=("CY3", "DAPI", "FITC"),
     ax=ax[2],
 )
 fig.show()

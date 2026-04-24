@@ -28,7 +28,7 @@ have potential application in scientific imaging problems.
 import imageio.v3 as iio
 
 import scico.numpy as snp
-from scico import functional, linop, loss, plot
+from scico import functional, linop, loss
 from scico.examples import rgb2gray
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
@@ -90,22 +90,20 @@ hist = solver.itstat_object.history(transpose=True)
 """
 Plot convergence statistics.
 """
-fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
-plot.plot(
+fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(12, 5))
+kplt.plot(
     hist.Objective,
     title="Objective function",
-    xlbl="Iteration",
-    ylbl="Functional value",
-    fig=fig,
+    xlabel="Iteration",
+    ylabel="Functional value",
     ax=ax[0],
 )
-plot.plot(
+kplt.plot(
     snp.array((hist.Prml_Rsdl, hist.Dual_Rsdl)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Residuals",
-    xlbl="Iteration",
-    lgnd=("Primal", "Dual"),
-    fig=fig,
+    xlabel="Iteration",
+    legend=("Primal", "Dual"),
     ax=ax[1],
 )
 fig.show()
@@ -124,14 +122,14 @@ vfg = xsp.reshape(vid.shape)
 """
 Display original video frames and corresponding background and foreground frames.
 """
-fig, ax = plot.subplots(nrows=4, ncols=3, figsize=(10, 10))
+fig, ax = kplt.subplots(nrows=4, ncols=3, figsize=(10, 10))
 ax[0][0].set_title("Original")
 ax[0][1].set_title("Background")
 ax[0][2].set_title("Foreground")
 for n, fn in enumerate(range(1, 9, 2)):
-    plot.imview(vid[..., fn], fig=fig, ax=ax[n][0])
-    plot.imview(vbg[..., fn], fig=fig, ax=ax[n][1])
-    plot.imview(vfg[..., fn], fig=fig, ax=ax[n][2])
+    kplt.imview(vid[..., fn], ax=ax[n][0])
+    kplt.imview(vbg[..., fn], ax=ax[n][1])
+    kplt.imview(vfg[..., fn], ax=ax[n][2])
     ax[n][0].set_ylabel("Frame %d" % fn, labelpad=5, rotation=90, size="large")
 fig.tight_layout()
 fig.show()

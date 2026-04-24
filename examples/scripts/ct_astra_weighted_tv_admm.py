@@ -26,7 +26,7 @@ import numpy as np
 from xdesign import Soil, discrete_phantom
 
 import scico.numpy as snp
-from scico import functional, linop, loss, metric, plot
+from scico import functional, linop, loss, metric
 from scico.linop.xray.astra import XRayTransform2D
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
@@ -156,16 +156,15 @@ Show recovered images.
 
 def plot_recon(x, title, ax):
     """Plot an image with title indicating error metrics."""
-    plot.imview(
+    kplt.imview(
         x,
         title=f"{title}\nSNR: {metric.snr(x_gt, x):.2f} (dB), MAE: {metric.mae(x_gt, x):.3f}",
-        fig=fig,
         ax=ax,
     )
 
 
-fig, ax = plot.subplots(nrows=2, ncols=2, figsize=(11, 10))
-plot.imview(x_gt, title="Ground truth", fig=fig, ax=ax[0, 0])
+fig, ax = kplt.subplots(nrows=2, ncols=2, figsize=(11, 10))
+kplt.imview(x_gt, title="Ground truth", ax=ax[0, 0])
 plot_recon(x0, "FBP Reconstruction", ax=ax[0, 1])
 plot_recon(x_unweighted, "Unweighted TV Reconstruction", ax=ax[1, 0])
 plot_recon(x_weighted, "Weighted TV Reconstruction", ax=ax[1, 1])

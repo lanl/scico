@@ -28,7 +28,7 @@ import numpy as np
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 import scico.numpy as snp
-from scico import functional, linop, loss, metric, plot
+from scico import functional, linop, loss, metric
 from scico.examples import create_tangle_phantom
 from scico.linop.xray.astra import XRayTransform3D
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
@@ -94,21 +94,19 @@ print(
 """
 Show the recovered image.
 """
-fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(7, 6))
-plot.imview(
+fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(7, 6))
+kplt.imview(
     tangle[32],
     title="Ground truth (central slice)",
-    cmap=plot.cm.Blues,
-    cbar=None,
-    fig=fig,
+    cmap=kplt.cm.Blues,
+    show_cbar=None,
     ax=ax[0],
 )
-plot.imview(
+kplt.imview(
     tangle_recon[32],
     title="TV Reconstruction (central slice)\nSNR: %.2f (dB), MAE: %.3f"
     % (metric.snr(tangle, tangle_recon), metric.mae(tangle, tangle_recon)),
-    cmap=plot.cm.Blues,
-    fig=fig,
+    cmap=kplt.cm.Blues,
     ax=ax[1],
 )
 divider = make_axes_locatable(ax[1])
