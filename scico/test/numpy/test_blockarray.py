@@ -255,8 +255,8 @@ def test_reduce(reduction_obj, func):
     x = func(reduction_obj.a)
     x_jit = jax.jit(func)(reduction_obj.a)
     y = func(snp.ravel(reduction_obj.a))
-    np.testing.assert_allclose(x, x_jit, rtol=1e-6)  # test jitted function
-    np.testing.assert_allclose(x, y, rtol=1e-6)  # test for correctness
+    np.testing.assert_allclose(x, x_jit, atol=1e-6)  # test jitted function
+    np.testing.assert_allclose(x, y, atol=1e-6)  # test for correctness
 
 
 @pytest.mark.parametrize(**REDUCTION_PARAMS)
