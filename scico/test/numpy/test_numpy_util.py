@@ -79,6 +79,9 @@ def test_array_info():
     x = jnp.array([0.0, 0.1])
     xinfo = array_info(x)
     assert "jax.Array" in xinfo
+    x = snp.ones(((2, 3), (2,)))
+    xinfo = array_info(x)
+    assert "scico.numpy.BlockArray" in xinfo
 
 
 def test_normalize_axes():
