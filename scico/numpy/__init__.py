@@ -16,54 +16,39 @@ functions unique to SCICO in :mod:`.util`.
 """
 
 import sys
-from functools import partial
+from functools import partial, wraps
 from typing import Union
 
 import numpy as np
 
 import jax
-import jax.numpy
+import jax.numpy as jnp
 from jax import Array
 
-from . import _wrappers, fft, linalg, testing, util
-from ._blockarray import BlockArray, TransparentTuple, blockarray
+from . import _wrappers, testing, util
+from ._blockarray import TransparentTuple
 from ._wrapped_function_lists import (
     BINARY_OPS,
+    CREATION_ROUTINES,
+    MATHEMATICAL_FUNCTIONS,
     REDUCTIONS,
-    creation_routines,
-    mathematical_functions,
-    testing_functions,
 )
 
-__all__ = ["fft", "linalg", "testing", "util"]
+__all__ = ["fft", "linalg", "testing", "util", "BlockArray", "blockarray"]
 
 
-# BlockArray appears to originate in this module
-sys.modules[__name__].BlockArray.__module__ = __name__
+#
+def BlockArray(inputs):
+    return TransparentTuple([jax.numpy.array(x) for x in inputs])
+
+
+blockarray = BlockArray
+
 
 # copy most of jnp without wrapping
-_wrappers.add_attributes(to_dict=vars(), from_dict=jax.numpy.__dict__)
-
-# wrap jnp funcs
-_wrappers.wrap_recursively(
-    vars(),
-    creation_routines,
-    partial(
-        _wrappers.map_func_over_args,
-        map_if_nested_args=["shape"],
-        map_if_list_args=["device"],
-    ),
+_wrappers.add_attributes(
+    to_dict=vars(), from_dict=jax.numpy.__dict__, modules_to_recurse=["linalg", "fft"]
 )
-_wrappers.wrap_recursively(vars(), mathematical_functions, _wrappers.map_func_over_args)
-
-# _wrappers.wrap_recursively(vars(), reduction_functions, _wrappers.add_full_reduction)
-
-
-def sum(a, axis=None, *args, **kwargs):
-    if axis is not None:
-        return jax.numpy.sum(a, axis, *args, **kwargs)
-
-    return jax.numpy.sum(ravel(a), axis, *args, **kwargs)
 
 
 def ravel(ba: Union[Array | TransparentTuple]) -> Array:
@@ -78,15 +63,65 @@ def ravel(ba: Union[Array | TransparentTuple]) -> Array:
         `ba` flattened into a single ``Array.``
     """
     if isinstance(ba, TransparentTuple):
-        return jax.numpy.concatenate([arr.ravel() for arr in ba])
+        return jnp.concatenate(ba.ravel())
 
     return ba.ravel()
 
 
-# wrap testing funcs
-_wrappers.wrap_recursively(
-    vars(), testing_functions, partial(_wrappers.map_func_over_args, is_void=True)
-)
+def stack(ba, axis=0):
+    """Collapse a block array to :class:`jax.Array`.
 
-# clean up
-del np, _wrappers
+    Collapse a block array to :class:`jax.Array` by stacking
+    the blocks on axis `axis`.
+
+    Args:
+        axis: Index of new axis on which blocks are to be stacked.
+
+    Returns:
+        A :class:`jax.Array` obtained by stacking.
+
+    Raises:
+        ValueError: When called on a :class:`.BlockArray` that is not
+            stackable.
+    """
+    if util.is_collapsible(ba.shape):
+        return jnp.stack(ba, axis=axis)
+    else:
+        raise ValueError(f"BlockArray of shape {ba.shape} cannot be collapsed to an Array.")
+
+
+# BlockArray appears to originate in this module
+# sys.modules[__name__].BlockArray.__module__ = __name__
+
+
+# wrap jnp funcs
+_wrappers.wrap_recursively(
+    vars(),
+    CREATION_ROUTINES,
+    partial(
+        _wrappers.map_func_over_args,
+        map_if_nested_args=["shape"],
+        map_if_list_args=["device"],
+    ),
+)
+_wrappers.wrap_recursively(vars(), MATHEMATICAL_FUNCTIONS, _wrappers.map_func_over_args)
+
+_wrappers.wrap_recursively(vars(), REDUCTIONS, _wrappers.add_full_reduction)
+
+
+@wraps(jnp.linalg.norm)
+def norm(x, ord=None, axis=np._NoValue, *args, **kwargs):
+    if not isinstance(x, TransparentTuple):
+        if axis is np._NoValue:
+            # jnp funcs can't accept axis=np._NoValue
+            return jnp.linalg.norm(x, ord, *args, **kwargs)
+        else:
+            return jnp.linalg.norm(x, ord, *args, **kwargs)
+
+    if axis is np._NoValue:
+        return jnp.linalg.norm(ravel(x), ord, *args, **kwargs)
+
+    return TransparentTuple(norm(x_i, ord, axis, *args, **kwargs) for x_i in x)
+
+
+linalg.norm = norm

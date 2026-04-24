@@ -15,7 +15,7 @@ from inspect import Parameter, signature
 from types import ModuleType
 from typing import Callable, Iterable, Optional
 
-import jax.numpy as jnp
+import numpy as np
 
 import scico.numpy as snp
 
@@ -174,7 +174,7 @@ def map_func_over_args(
     return wrapped
 
 
-def add_full_reduction(func: Callable, axis_arg_name: Optional[str] = "axis"):
+def add_full_reduction(func: Callable):
     """Wrap a function so that it can fully reduce a BlockArray.
 
     Wrap a function so that it can fully reduce a :class:`.BlockArray`. If
@@ -183,30 +183,22 @@ def add_full_reduction(func: Callable, axis_arg_name: Optional[str] = "axis"):
     called.
 
     Should be outside :func:`map_func_over_args`.
+
+    `func` must have signature func(a, axis, ...).
     """
-    sig = signature(func)
-    if axis_arg_name not in sig.parameters:
-        raise ValueError(
-            f"Cannot wrap {func} as a reduction because it has no {axis_arg_name} argument."
-        )
 
     @wraps(func)
-    def wrapped(*args, **kwargs):
-        bound_args = sig.bind(*args, **kwargs)
+    def wrapped(a, axis=np._NoValue, *args, **kwargs):
+        if not isinstance(a, TransparentTuple):
+            if axis is np._NoValue:
+                # jnp funcs can't accept axis=np._NoValue
+                return func(a, *args, **kwargs)
+            else:
+                return func(a, axis, *args, **kwargs)
 
-        ba_args = {}
-        for k, v in list(bound_args.arguments.items()):
-            if isinstance(v, TransparentTuple):
-                ba_args[k] = bound_args.arguments.pop(k)
+        if axis is np._NoValue:
+            return func(snp.ravel(a), *args, **kwargs)
 
-        if "axis" in bound_args.arguments:
-            return func(*bound_args.args, **bound_args.kwargs, **ba_args)  # call func as normal
-
-        if len(ba_args) > 1:
-            raise ValueError("Cannot perform a full reduction with multiple BlockArray arguments.")
-
-        # fully ravel the ba argument
-        ba_args = {k: jnp.concatenate(v.ravel()) for k, v in ba_args.items()}
-        return func(*bound_args.args, **bound_args.kwargs, **ba_args)
+        return TransparentTuple(func(a_i, axis, *args, **kwargs) for a_i in a)
 
     return wrapped

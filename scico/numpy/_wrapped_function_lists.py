@@ -22,8 +22,8 @@ include extra functions that are not in :mod:`jax.numpy`, and that are
 therefore not listed here.
 """
 
-""" BlockArray """
-unary_ops = (  # found from dir() on jax array
+""" Jax Array magic methods """
+UNARY_OPS = (  # found from dir() on jax array
     "__abs__",
     "__neg__",
     "__pos__",
@@ -54,25 +54,25 @@ BINARY_OPS = (  # found from dir() on jax array
     "__truediv__",
 )
 
-REDUCTIONS = (
-    "sum",
-    "linalg.norm",
-    "mean",
-    "count_nonzero",
-    "all",
-    "any",
-)
 
-""" jax.numpy """
+""" jax.numpy functions """
 
-creation_routines = (
+CREATION_ROUTINES = (
     "empty",
     "ones",
     "zeros",
     "full",
 )
 
-mathematical_functions = (
+REDUCTIONS = (  # must have signature func(a, axis, ...)
+    "sum",
+    "mean",
+    "count_nonzero",
+    "all",
+    "any",
+)
+
+MATHEMATICAL_FUNCTIONS = (
     "sin",  # https://numpy.org/doc/stable/reference/routines.math.html
     "cos",
     "tan",
@@ -227,7 +227,6 @@ mathematical_functions = (
     "expand_dims",
     "squeeze",
     "asarray",
-    "stack",
     "block",
     "vstack",
     "hstack",
@@ -282,8 +281,3 @@ mathematical_functions = (
     "zeros_like",
     "full_like",
 )
-
-
-""" testing """
-
-testing_functions = ("testing.assert_allclose", "testing.assert_array_equal")

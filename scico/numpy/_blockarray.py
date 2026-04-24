@@ -8,11 +8,8 @@
 """Block array class."""
 
 import jax
-import jax.numpy as jnp
 
-# Determine type of "standard" jax array since jax.Array is an abstract
-# base class type that is not suitable for use here.
-JaxArray = type(jnp.array([0]))
+from ._wrapped_function_lists import BINARY_OPS, UNARY_OPS
 
 
 class TransparentTuple(tuple):
@@ -39,45 +36,40 @@ class TransparentTuple(tuple):
     def __repr__(self):
         return "<" + super().__repr__() + ">"
 
-    # unary operations
 
-    # binary operations
+# add unary operations
+def create_mapping_version_unary(op_name):
+    def mapping_version(self):
+        return TransparentTuple([getattr(self_i, op_name)() for self_i in self])
 
-    @staticmethod
-    def apply_binary_op(a, b, op):
-        if isinstance(b, TransparentTuple):
-            return TransparentTuple([getattr(a_i, op)(b_i) for a_i, b_i in zip(a, b)])
-        return TransparentTuple([getattr(a_i, op)(b) for a_i in a])
+    mapping_version.__name__ = op_name
+    return mapping_version
 
-    # for op in BINARY_OPS:
-    #     print(
-    #         f'def {op}(self, other): return TransparentTuple.apply_binary_op(self, other, "{op}")'
-    #     )
 
-    # fmt: off
-    def __add__(self, other): return TransparentTuple.apply_binary_op(self, other, "__add__")
-    def __eq__(self, other): return TransparentTuple.apply_binary_op(self, other, "__eq__")
-    def __floordiv__(self, other): return TransparentTuple.apply_binary_op(self, other, "__floordiv__")
-    def __ge__(self, other): return TransparentTuple.apply_binary_op(self, other, "__ge__")
-    def __gt__(self, other): return TransparentTuple.apply_binary_op(self, other, "__gt__")
-    def __le__(self, other): return TransparentTuple.apply_binary_op(self, other, "__le__")
-    def __lt__(self, other): return TransparentTuple.apply_binary_op(self, other, "__lt__")
-    def __matmul__(self, other): return TransparentTuple.apply_binary_op(self, other, "__matmul__")
-    def __mod__(self, other): return TransparentTuple.apply_binary_op(self, other, "__mod__")
-    def __mul__(self, other): return TransparentTuple.apply_binary_op(self, other, "__mul__")
-    def __ne__(self, other): return TransparentTuple.apply_binary_op(self, other, "__ne__")
-    def __pow__(self, other): return TransparentTuple.apply_binary_op(self, other, "__pow__")
-    def __radd__(self, other): return TransparentTuple.apply_binary_op(self, other, "__radd__")
-    def __rfloordiv__(self, other): return TransparentTuple.apply_binary_op(self, other, "__rfloordiv__")
-    def __rmatmul__(self, other): return TransparentTuple.apply_binary_op(self, other, "__rmatmul__")
-    def __rmul__(self, other): return TransparentTuple.apply_binary_op(self, other, "__rmul__")
-    def __rpow__(self, other): return TransparentTuple.apply_binary_op(self, other, "__rpow__")
-    def __rsub__(self, other): return TransparentTuple.apply_binary_op(self, other, "__rsub__")
-    def __rtruediv__(self, other): return TransparentTuple.apply_binary_op(self, other, "__rtruediv__")
-    def __sub__(self, other): return TransparentTuple.apply_binary_op(self, other, "__sub__")
-    def __truediv__(self, other): return TransparentTuple.apply_binary_op(self, other, "__truediv__")
-    # fmt: on
+for op_name in UNARY_OPS:
+    setattr(TransparentTuple, op_name, create_mapping_version_unary(op_name))
 
+
+# add binary operations
+def create_mapping_version_binary(op_name):
+    def mapping_version(self, other):
+        if isinstance(other, TransparentTuple):
+            result = TransparentTuple(
+                [getattr(self_i, op_name)(other_i) for self_i, other_i in zip(self, other)]
+            )
+        else:
+            result = TransparentTuple([getattr(self_i, op_name)(other) for self_i in self])
+
+        if NotImplemented in result:
+            return NotImplemented
+        return result
+
+    mapping_version.__name__ = op_name
+    return mapping_version
+
+
+for op_name in BINARY_OPS:
+    setattr(TransparentTuple, op_name, create_mapping_version_binary(op_name))
 
 # Register TransparentTuple as a jax pytree; without this, jax autograd won't work.
 # Taken from what is done with tuples in jax._src.tree_util
@@ -86,13 +78,6 @@ jax.tree_util.register_pytree_node(
     lambda xs: (xs, None),  # to iter
     lambda _, xs: TransparentTuple(xs),  # from iter
 )
-
-
-def BlockArray(inputs):
-    return TransparentTuple([jax.numpy.array(x) for x in inputs])
-
-
-blockarray = BlockArray
 
 
 # class BlockArray:

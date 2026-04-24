@@ -9,10 +9,7 @@ import jax.numpy as jnp
 import pytest
 
 import scico.numpy as snp
-from scico.numpy import BlockArray
-from scico.numpy._wrapped_function_lists import testing_functions
-from scico.numpy.testing import assert_array_equal
-from scico.util import rgetattr
+from scico.numpy import BlockArray, TransparentTuple
 
 math_ops = [op.add, op.sub, op.mul, op.truediv, op.pow]  # op.floordiv doesn't work on complex
 comp_ops = [op.le, op.lt, op.ge, op.gt, op.eq]
@@ -184,12 +181,7 @@ def test_blockarray_from_one_array():
     assert len(x) == 3
 
 
-@pytest.mark.parametrize(
-    "axis",
-    [
-        1,
-    ],
-)
+@pytest.mark.parametrize("axis", [1, None])
 @pytest.mark.parametrize("keepdims", [True, False])
 def test_sum_method(test_operator_obj, axis, keepdims):
     a = test_operator_obj.a
@@ -212,6 +204,21 @@ def test_ba_ba_dot(test_operator_obj, operator):
     x = operator(a, d)
     y = BlockArray([operator(a0, d0), operator(a1, d1)])
     sequence_assert_allclose(x, y)
+
+
+def test_eval_shape(test_operator_obj):
+    def foo(x, y):
+        return x * y
+
+    x = test_operator_obj.a
+    y = test_operator_obj.b
+
+    args = [
+        TransparentTuple(jax.ShapeDtypeStruct(b_i.shape, b_i.dtype) for b_i in x),
+        TransparentTuple(jax.ShapeDtypeStruct(b_i.shape, b_i.dtype) for b_i in y),
+    ]
+
+    jax.eval_shape(foo, *args)
 
 
 # reduction tests
@@ -337,18 +344,8 @@ class TestCreators:
 def test_list_triggering():
     device_list = 4 * [jax.devices()[0]]
     ba = snp.ones((3, 3), device=device_list)
-    assert isinstance(ba, BlockArray)
+    assert isinstance(ba, TransparentTuple)
     assert ba.shape == 4 * ((3, 3),)
-
-
-# testing function tests
-@pytest.mark.parametrize("func", testing_functions)
-def test_test_func(func):
-    a = snp.array([1.0, 2.0])
-    b = snp.blockarray((a, a))
-    f = rgetattr(snp, func)
-    retval = f(b, b)
-    assert retval is None
 
 
 # tests added for the BlockArray refactor
@@ -368,7 +365,7 @@ def y():
 def test_unary(op, x):
     actual = op(x)
     expected = BlockArray(op(x_i) for x_i in x)
-    assert_array_equal(actual, expected)
+    sequence_assert_allclose(actual, expected)
     assert actual.dtype == expected.dtype
 
 
@@ -392,7 +389,7 @@ def test_unary(op, x):
 def test_elementwise_binary(op, x, y):
     actual = op(x, y)
     expected = BlockArray(op(x_i, y_i) for x_i, y_i in zip(x, y))
-    assert_array_equal(actual, expected)
+    sequence_assert_allclose(actual, expected)
     assert actual.dtype == expected.dtype
 
 
@@ -407,7 +404,7 @@ def test_matmul(x):
     y = BlockArray([[[1.0], [2.0], [3.0]], [[0.0, 1.0]]])
     actual = x @ y
     expected = BlockArray([[[14.0], [0.0]], [0.0, 42.0]])
-    assert_array_equal(actual, expected)
+    sequence_assert_allclose(actual, expected)
     assert actual.dtype == expected.dtype
 
 
@@ -422,17 +419,17 @@ def test_method():
     x = BlockArray(([[1.0, 2.0, 3.0], [0.0, 0.0, 0.0]], [42.0]))
     actual = x.max()
     expected = BlockArray([[3.0], [42.0]])
-    assert_array_equal(actual, expected)
+    sequence_assert_allclose(actual, expected)
     assert actual.dtype == expected.dtype
 
 
 def test_stack():
     x = BlockArray(([[1.0, 2.0, 3.0], [0.0, 0.0, 0.0]]))
-    assert x.stack().shape == (2, 3)
-    assert x.stack(axis=1).shape == (3, 2)
+    assert snp.stack(x).shape == (2, 3)
+    assert snp.stack(x, axis=1).shape == (3, 2)
     y = BlockArray(([[1.0, 2.0, 3.0], [0.0, 0.0]]))
     with pytest.raises(ValueError):
-        z = y.stack()
+        z = snp.stack(y)
 
 
 def test_ravel():
@@ -459,42 +456,4 @@ def test_ravel():
             [1, 1],
         ]
     )  # fmt: on
-    assert_array_equal(snp.ravel(scalar_ba), [1, 1, 1])
-
-
-def test_eval_shape():
-    # TODO finish
-    def foo(x, y):
-        return x[0] * y[0] + x[1] * y[1]
-
-    x = snp.ones([[2, 2], [2, 2]])
-    y = 2 * snp.ones(
-        [
-            [
-                1,
-            ],
-            [
-                1,
-            ],
-        ]
-    )
-
-    arg = [jax.ShapeDtypeStruct([2, 2], np.float32), jax.ShapeDtypeStruct([2, 2], np.float32)]
-
-    args = [
-        list(jax.ShapeDtypeStruct(b_i.shape, b_i.dtype) for b_i in x),
-        list(jax.ShapeDtypeStruct(b_i.shape, b_i.dtype) for b_i in y),
-    ]
-
-    jax.eval_shape(foo, arg)
-
-
-# temp:
-import jax.numpy as jnp
-
-import scico.numpy as snp
-from scico.numpy import BlockArray
-
-a = BlockArray([jnp.ones(3), jnp.ones(10)])
-b = BlockArray([jnp.ones(3), jnp.ones(10)])
-a + b
+    np.testing.assert_array_equal(snp.ravel(scalar_ba), [1, 1, 1])
