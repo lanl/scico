@@ -476,7 +476,8 @@ def create_3d_foam_phantom(
     im = np.zeros(im_shape) + c_lo
     for c, r in zip(centers, radii):  # type: ignore
         dist = np.sum((x - c) ** 2, axis=-1)
-        if np.mean(im[dist < r**2] - c_lo) < 0.01 * c_hi:
+        select = im[dist < r**2]
+        if select.size > 0 and np.mean(select - c_lo) < 0.01 * c_hi:
             # In numpy: im[dist < r**2] = c_hi
             # In jax.numpy: im = im.at[dist < r**2].set(c_hi)
             im[dist < r**2] = c_hi
