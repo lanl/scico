@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2025 by SCICO Developers
+# Copyright (C) 2022-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SPORCO package. Details of the copyright
 # and user license can be found in the 'LICENSE.txt' file distributed
@@ -301,8 +301,23 @@ def shape_to_size(shape: Union[Shape, BlockShape]) -> int:
     return prod(shape)  # type: ignore
 
 
+def is_array(x: Any) -> bool:
+    """Check if input is of type :class:`jax.Array` or :class:`numpy.ndarray`.
+
+    Check if input is an array, of type :class:`jax.Array` or
+    :class:`numpy.ndarray`.
+
+    Args:
+        x: Object to be tested.
+
+    Returns:
+        ``True`` if `x` is an array, ``False`` otherwise.
+    """
+    return isinstance(x, (np.ndarray, jax.Array))
+
+
 def is_arraylike(x: Any) -> bool:
-    """Check if input is of type :class:`jax.ArrayLike`.
+    """Check if input is of type :class:`jax.typing.ArrayLike`.
 
     `isinstance(x, jax.typing.ArrayLike)` does not work in Python < 3.10,
     see https://jax.readthedocs.io/en/latest/jax.typing.html#jax-typing-best-practices.
