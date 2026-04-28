@@ -195,7 +195,23 @@ def test_sum_method(test_operator_obj, axis, keepdims):
     sequence_assert_allclose(method_result, snp_result)
 
 
-def test_eval_shape(test_operator_obj):
+def test_eval_shape_1arg(test_operator_obj):
+    def foo(x):
+        return snp.atleast_3d(x)
+
+    x = test_operator_obj.a
+
+    args = [
+        BlockArray([jax.ShapeDtypeStruct(b_i.shape, b_i.dtype) for b_i in x]),
+    ]
+
+    es = jax.eval_shape(foo, *args)
+    ba = foo(x)
+    assert es.shape == ba.shape
+    assert es.dtype == ba.dtype
+
+
+def test_eval_shape_2arg(test_operator_obj):
     def foo(x, y):
         return x * y
 
