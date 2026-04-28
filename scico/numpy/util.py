@@ -281,6 +281,62 @@ def no_nan_divide(
     return snp.where(y != 0, snp.divide(x, snp.where(y != 0, y, 1)), 0)
 
 
+def _readable_size(size: int) -> str:
+    """Return a human-readable representation of an array size.
+
+    Args:
+        size: A positive integer array size.
+
+    Returns:
+        A string representation of the size.
+    """
+    factor = [1, 1024, 1024**2, 1024**3, 1024**4]
+    units = ["B", "KB", "MB", "GB", "TB"]
+    idx_tuple = np.nonzero([size // f for f in factor[::-1]])
+    if idx_tuple[0].size == 0:
+        idx = len(factor) - 1
+    else:
+        idx = int(idx_tuple[0][0])
+    val = size // factor[::-1][idx]
+    ustr = units[::-1][idx]
+    return f"{val} {ustr}"
+
+
+def array_info(x: Union[snp.BlockArray, snp.Array]) -> str:
+    """Return a string providing information about an array.
+
+    Args:
+        x: A numpy or jax array or scico :class:`BlockArray`.
+
+    Returns:
+        A string containing information on the array.
+
+    Raises:
+       TypeError: If the array is not of a recognized type.
+    """
+    if isinstance(x, np.ndarray):
+        array_type = "numpy.ndarray"
+    elif isinstance(x, jax.Array):
+        array_type = "jax.Array"
+    elif isinstance(x, snp.BlockArray):
+        array_type = "scico.numpy.BlockArray"
+    else:
+        raise TypeError("Unrecognized array type {type(x)}.")
+    totalbytes = np.sum(x.nbytes).item()  # type: ignore
+    return (
+        f"""{array_type}
+  shape:    {x.shape}
+  size:     {x.size}
+  bytes:    {totalbytes} ({_readable_size(totalbytes)})
+"""
+        + (f"  device:   {x.device}\n" if hasattr(x, "device") else "")
+        + f"""  dtype:    {dtype_name(x.dtype)}
+  id:       {id(x)}
+  min, max: {snp.ravel(x).min()}, {snp.ravel(x).max()}
+"""
+    )
+
+
 def shape_to_size(shape: Union[Shape, BlockShape]) -> int:
     r"""Compute array size corresponding to a specified shape.
 
@@ -465,6 +521,22 @@ def complex_dtype(dtype: DType) -> DType:
     """
 
     return (snp.zeros(1, dtype) + 1j).dtype
+
+
+def dtype_name(dtype: DType) -> str:
+    """Return the name of a dtype.
+
+    Construct a string representation of a dtype name.
+
+    Args:
+        dtype: The dtype for which the name is required.
+
+    Returns:
+        The name of the dtype.
+    """
+    if type(dtype).__module__ == "numpy.dtypes":
+        return f"""numpy.{dtype.name}"""  # type: ignore
+    return f"""{dtype.__module__}.{dtype.__qualname__}"""  # type: ignore
 
 
 def is_scalar_equiv(s: Any) -> bool:

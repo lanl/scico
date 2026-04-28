@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2025 by SCICO Developers
+# Copyright (C) 2021-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -92,7 +92,6 @@ def radial_transverse_frequency(
         returns an ndarray containing the radial Fourier coordinates
         :math:`\sqrt{k_x^2 + k_y^2}\,`.
     """
-
     ndim: int = len(input_shape)  # 1 or 2 dimensions
     if ndim not in (1, 2):
         raise ValueError("Invalid input dimensions; must be 1 or 2.")
@@ -146,7 +145,6 @@ class Propagator(LinearOperator):
             pad_factor: The padded input shape is the input shape
                multiplied by this integer factor.
         """
-
         ndim = len(input_shape)  # 1 or 2 dimensions
         if ndim not in (1, 2):
             raise ValueError("Invalid input dimensions; must be 1 or 2.")
@@ -193,13 +191,12 @@ class Propagator(LinearOperator):
         )
 
     def __repr__(self):
-        extra_repr = f"""
-k0          : {self.k0}
-λ           : {2*np.pi/self.k0}
-z           : {self.z}
-dx          : {self.dx}
-L           : {self.L}
-        """
+        extra_repr = f"""  k0:  {self.k0}
+  λ:   {2*np.pi/self.k0}
+  z:   {self.z}
+  dx:  {self.dx}
+  L:   {self.L}
+"""
         return LinearOperator.__repr__(self) + extra_repr
 
     def _eval(self, x):
@@ -281,7 +278,6 @@ class AngularSpectrumPropagator(Propagator):
                gram functions. Same as calling :meth:`~.Operator.jit`
                after the :class:`LinearOperator` is created.
         """
-
         # Diagonal operator; phase shifting
         super().__init__(
             input_shape=input_shape, dx=dx, k0=k0, z=z, pad_factor=pad_factor, **kwargs
@@ -491,7 +487,6 @@ class FraunhoferPropagator(LinearOperator):
                functions of this :class:`LinearOperator`. Default:
                ``True``.
         """
-
         ndim = len(input_shape)  # 1 or 2 dimensions
         if ndim not in (1, 2):
             raise ValueError("Invalid input dimensions; must be 1 or 2.")
@@ -519,9 +514,9 @@ class FraunhoferPropagator(LinearOperator):
         self.dx: Tuple[float, ...] = dx
 
         #: Destination plane sampling interval
-        self.dx_D: Tuple[float, ...] = tuple(np.abs(2 * np.pi * z / (k0 * l)) for l in L)
+        self.dx_D: Tuple[float, ...] = tuple(np.abs(2 * np.pi * z / (k0 * l)).item() for l in L)
         #: Destination plane side length
-        self.L_D: Tuple[float, ...] = tuple(np.abs(2 * np.pi * z / (k0 * d)) for d in dx)
+        self.L_D: Tuple[float, ...] = tuple(np.abs(2 * np.pi * z / (k0 * d)).item() for d in dx)
         x_D = tuple(np.r_[-l / 2 : l / 2 : d] for l, d in zip(self.L_D, self.dx_D))  # type: ignore
 
         # set up radial coordinate system; either x^2 or (x^2 + y^2)
@@ -549,15 +544,14 @@ class FraunhoferPropagator(LinearOperator):
             self.jit()
 
     def __repr__(self):
-        extra_repr = f"""
-k0          : {self.k0}
-λ           : {2*np.pi/self.k0}
-z           : {self.z}
-dx          : {self.dx}
-L           : {self.L}
-dx_D        : {self.dx_D}
-L_D         : {self.L_D}
-        """
+        extra_repr = f"""  k0:   {self.k0}
+  λ:    {2*np.pi/self.k0}
+  z:    {self.z}
+  dx:   {self.dx}
+  L:    {self.L}
+  dx_D: {self.dx_D}
+  L_D:  {self.L_D}
+"""
         return LinearOperator.__repr__(self) + extra_repr
 
     def _eval(self, x):
