@@ -182,6 +182,21 @@ def test_sum_method(test_operator_obj, axis, keepdims):
     snp.testing.assert_allclose(method_result, snp_result)
 
 
+def test_eval_shape(test_operator_obj):
+    def foo(x, y):
+        return x * y
+
+    x = test_operator_obj.a
+    y = test_operator_obj.b
+
+    args = [
+        BlockArray([jax.ShapeDtypeStruct(b_i.shape, b_i.dtype) for b_i in x]),
+        BlockArray([jax.ShapeDtypeStruct(b_i.shape, b_i.dtype) for b_i in y]),
+    ]
+
+    jax.eval_shape(foo, *args)
+
+
 @pytest.mark.parametrize("operator", [snp.dot, snp.matmul])
 def test_ba_ba_dot(test_operator_obj, operator):
     a = test_operator_obj.a
