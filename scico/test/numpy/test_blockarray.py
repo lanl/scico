@@ -224,6 +224,14 @@ def test_eval_shape_2arg(test_operator_obj):
     assert es.dtype == x.dtype
 
 
+def test_linear_transpose(test_operator_obj):
+    fun = lambda x: 2 * x
+    x = test_operator_obj.a
+    tfun_ba = jax.linear_transpose(fun, x)
+    tfun_dts = jax.linear_transpose(fun, shape_dtype_rep(x.shape, x.dtype))
+    assert tfun_ba.args == tfun_dts.args
+
+
 @pytest.mark.parametrize("operator", [snp.dot, snp.matmul])
 def test_ba_ba_dot(test_operator_obj, operator):
     a = test_operator_obj.a
