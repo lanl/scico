@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2023-2025 by SCICO Developers
+# Copyright (C) 2023-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -76,10 +76,11 @@ class ProximalAverage(Functional):
     def __repr__(self):
         return (
             Functional.__repr__(self)
-            + "\n  Weights: "
+            + "  components: "
+            + ", ".join([str(f) for f in self.func_list])
+            + "\n  weights:    "
             + ", ".join([str(alpha) for alpha in self.alpha_list])
-            + "\n  Components:\n"
-            + "\n".join(["    " + repr(f) for f in self.func_list])
+            + "\n"
         )
 
     def __call__(self, x: Union[Array, BlockArray]) -> float:
