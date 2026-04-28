@@ -413,7 +413,14 @@ def is_collapsible(shapes: Sequence[Union[Shape, BlockShape]]) -> bool:
     """Determine whether a sequence of shapes can be collapsed.
 
     Return ``True`` if the a list of shapes represent arrays that can
-    be stacked, i.e., they are all the same."""
+    be stacked, i.e., they are all the same.
+
+    Args:
+        shapes: A sequence of shapes.
+
+    Returns:
+        A boolean value indicating whether the shapes are all the same.
+    """
     return all(s == shapes[0] for s in shapes)
 
 
@@ -421,7 +428,14 @@ def is_blockable(shapes: Sequence[Union[Shape, BlockShape]]) -> TypeGuard[Union[
     """Determine whether a sequence of shapes could be a :class:`BlockArray` shape.
 
     Return ``True`` if the sequence of shapes represent arrays that can
-    be combined into a :class:`BlockArray`, i.e., none are nested."""
+    be combined into a :class:`BlockArray`, i.e., none are nested.
+
+    Args:
+        shapes: A sequence of shapes.
+
+    Returns:
+        A boolean value indicating whether any of the shapes are nested.
+    """
     return not any(is_nested(s) for s in shapes)
 
 
