@@ -51,7 +51,7 @@ class BlockArray:
 
     def __init__(self, inputs):
         # convert inputs to jax arrays
-        self.arrays = [x if isinstance(x, jnp.ndarray) else jnp.array(x) for x in inputs]
+        self.arrays = [x if isinstance(x, jax.ShapeDtypeStruct) else jnp.array(x) for x in inputs]
 
         # check that dtypes match
         if not all(a.dtype == self.arrays[0].dtype for a in self.arrays):
@@ -76,7 +76,7 @@ class BlockArray:
         rather than a list.
         """
         result = self.arrays[key]
-        if not isinstance(result, jnp.ndarray):
+        if isinstance(result, list):
             return BlockArray(result)  # x[k:k+1] returns a BlockArray
         return result  # x[k] returns a jax array
 
