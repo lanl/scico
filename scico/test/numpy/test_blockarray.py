@@ -207,7 +207,9 @@ def test_eval_shape(test_operator_obj):
         BlockArray([jax.ShapeDtypeStruct(b_i.shape, b_i.dtype) for b_i in y]),
     ]
 
-    jax.eval_shape(foo, *args)
+    es = jax.eval_shape(foo, *args)
+    assert es.shape == x.shape
+    assert es.dtype == x.dtype
 
 
 @pytest.mark.parametrize("operator", [snp.dot, snp.matmul])
