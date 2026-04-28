@@ -12,6 +12,7 @@ import scico.numpy as snp
 from scico.numpy import BlockArray
 from scico.numpy._wrapped_function_lists import testing_functions
 from scico.numpy.testing import assert_array_equal
+from scico.numpy.util import shape_dtype_rep
 from scico.util import rgetattr
 
 math_ops = [op.add, op.sub, op.mul, op.truediv, op.pow]  # op.floordiv doesn't work on complex
@@ -200,12 +201,7 @@ def test_eval_shape_1arg(test_operator_obj):
         return snp.atleast_3d(x)
 
     x = test_operator_obj.a
-
-    args = [
-        BlockArray([jax.ShapeDtypeStruct(b_i.shape, b_i.dtype) for b_i in x]),
-    ]
-
-    es = jax.eval_shape(foo, *args)
+    es = jax.eval_shape(foo, shape_dtype_rep(x.shape, x.dtype))
     ba = foo(x)
     assert es.shape == ba.shape
     assert es.dtype == ba.dtype

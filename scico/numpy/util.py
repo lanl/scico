@@ -425,6 +425,28 @@ def is_blockable(shapes: Sequence[Union[Shape, BlockShape]]) -> TypeGuard[Union[
     return not any(is_nested(s) for s in shapes)
 
 
+def shape_dtype_rep(
+    shape: Union[Shape, BlockShape], dtype: DType
+) -> Union[jax.ShapeDtypeStruct, snp.BlockArray]:
+    """Construct a representation of array or blockarray shape and dtype.
+
+    Construct a representation of array or block array shape and dtype
+    that is suitable for both jax arrays and scico blockarrays.
+
+    Args:
+       shape: Array or blockarray shape.
+       dtype: Array or blockarray dtype.
+
+    Returns:
+       A :class:`jax.ShapeDtypeStruct` or a :class:`.BlockArray`
+       containing :class:`jax.ShapeDtypeStruct`s.
+    """
+    if is_nested(shape):  # block array
+        return snp.BlockArray([jax.ShapeDtypeStruct(blk_shape, dtype=dtype) for blk_shape in shape])
+    else:  # standard array
+        return jax.ShapeDtypeStruct(shape, dtype=dtype)
+
+
 def broadcast_nested_shapes(
     shape_a: Union[Shape, BlockShape], shape_b: Union[Shape, BlockShape]
 ) -> Union[Shape, BlockShape]:
