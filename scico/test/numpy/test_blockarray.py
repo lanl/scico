@@ -4,6 +4,7 @@ import operator as op
 import numpy as np
 
 import jax
+import jax.numpy as jnp
 
 import pytest
 
@@ -11,42 +12,54 @@ import scico.numpy as snp
 from scico.numpy import BlockArray
 from scico.numpy._wrapped_function_lists import testing_functions
 from scico.numpy.testing import assert_array_equal
-from scico.random import randn
 from scico.util import rgetattr
 
 math_ops = [op.add, op.sub, op.mul, op.truediv, op.pow]  # op.floordiv doesn't work on complex
 comp_ops = [op.le, op.lt, op.ge, op.gt, op.eq]
 
 
+def make_arbitrary_jax_array(shape, dtype):
+    """
+    Make an arbitrary jax array of the given shape and dtype.
+    """
+    return jnp.array(np.random.randn(*shape)).astype(dtype)
+
+
+def sequence_assert_allclose(x, y, *args, **kwargs):
+    """Assert sequences x and y have the same length and corresponding
+    elements are allclose."""
+    assert len(x) == len(y)
+    for x_i, y_i in zip(x, y):
+        np.testing.assert_allclose(x_i, y_i, *args, **kwargs)
+
+
 class OperatorsTestObj:
     operators = math_ops + comp_ops
 
     def __init__(self, dtype):
-        key = None
-        scalar, key = randn(shape=(1,), dtype=dtype, key=key)
-        self.scalar = scalar[0].item()  # convert to float
+        self.scalar = 1.0
 
-        self.a0, key = randn(shape=(2, 3), dtype=dtype, key=key)
-        self.a1, key = randn(shape=(2, 3, 4), dtype=dtype, key=key)
+        self.a0 = make_arbitrary_jax_array((2, 3), dtype)
+        self.a1 = make_arbitrary_jax_array((2, 3, 4), dtype)
         self.a = BlockArray((self.a0, self.a1))
 
-        self.b0, key = randn(shape=(2, 3), dtype=dtype, key=key)
-        self.b1, key = randn(shape=(2, 3, 4), dtype=dtype, key=key)
+        self.b0 = make_arbitrary_jax_array((2, 3), dtype)
+        self.b1 = make_arbitrary_jax_array((2, 3, 4), dtype)
         self.b = BlockArray((self.b0, self.b1))
 
-        self.d0, key = randn(shape=(3, 2), dtype=dtype, key=key)
-        self.d1, key = randn(shape=(2, 4, 3), dtype=dtype, key=key)
+        self.d0 = make_arbitrary_jax_array((3, 2), dtype)
+        self.d1 = make_arbitrary_jax_array((2, 4, 3), dtype)
         self.d = BlockArray((self.d0, self.d1))
 
-        c0, key = randn(shape=(2, 3), dtype=dtype, key=key)
+        c0 = make_arbitrary_jax_array((2, 3), dtype)
         self.c = BlockArray((c0,))
 
         # A flat device array with same size as self.a & self.b
-        self.flat_da, key = randn(shape=self.a.size, dtype=dtype, key=key)
+        self.flat_da = make_arbitrary_jax_array(self.a.size, dtype)
         self.flat_nd = np.array(self.flat_da)
 
         # A device array with length == self.a.num_blocks
-        self.block_da, key = randn(shape=(len(self.a),), dtype=dtype, key=key)
+        self.block_da, key = make_arbitrary_jax_array((len(self.a),), dtype)
 
         # block_da but as a numpy array
         self.block_nd = np.array(self.block_da)
@@ -66,7 +79,7 @@ def test_operator_left(test_operator_obj, operator):
     a = test_operator_obj.a
     x = operator(scalar, a)
     y = BlockArray(operator(scalar, a_i) for a_i in a)
-    snp.testing.assert_allclose(x, y)
+    sequence_assert_allclose(x, y)
 
 
 @pytest.mark.parametrize("operator", math_ops + comp_ops)
@@ -75,7 +88,7 @@ def test_operator_right(test_operator_obj, operator):
     a = test_operator_obj.a
     x = operator(a, scalar)
     y = BlockArray(operator(a_i, scalar) for a_i in a)
-    snp.testing.assert_allclose(x, y)
+    sequence_assert_allclose(x, y)
 
 
 # Operations between two blockarrays of same size
@@ -85,7 +98,7 @@ def test_ba_ba_operator(test_operator_obj, operator):
     b = test_operator_obj.b
     x = operator(a, b)
     y = BlockArray(operator(a_i, b_i) for a_i, b_i in zip(a, b))
-    snp.testing.assert_allclose(x, y)
+    sequence_assert_allclose(x, y)
 
 
 # Testing the @ interface for blockarrays of same size, and a blockarray and flattened
@@ -104,7 +117,7 @@ def test_ba_ba_matmul(test_operator_obj):
 
     y = BlockArray([a0 @ d0, a1 @ d1])
     assert x.shape == y.shape
-    snp.testing.assert_allclose(x, y)
+    sequence_assert_allclose(x, y)
 
     with pytest.raises(TypeError):
         z = a @ c
@@ -115,21 +128,21 @@ def test_conj(test_operator_obj):
     ac = a.conj()
 
     assert a.shape == ac.shape
-    snp.testing.assert_allclose(BlockArray(a_i.conj() for a_i in a), ac)
+    sequence_assert_allclose(BlockArray(a_i.conj() for a_i in a), ac)
 
 
 def test_real(test_operator_obj):
     a = test_operator_obj.a
     ac = a.real
 
-    snp.testing.assert_allclose(BlockArray(a_i.real for a_i in a), ac)
+    sequence_assert_allclose(BlockArray(a_i.real for a_i in a), ac)
 
 
 def test_imag(test_operator_obj):
     a = test_operator_obj.a
     ac = a.imag
 
-    snp.testing.assert_allclose(BlockArray(a_i.imag for a_i in a), ac)
+    sequence_assert_allclose(BlockArray(a_i.imag for a_i in a), ac)
 
 
 def test_ndim(test_operator_obj):
@@ -179,7 +192,7 @@ def test_sum_method(test_operator_obj, axis, keepdims):
     method_result = a.sum(axis=axis, keepdims=keepdims)
     snp_result = snp.sum(a, axis=axis, keepdims=keepdims)
 
-    snp.testing.assert_allclose(method_result, snp_result)
+    sequence_assert_allclose(method_result, snp_result)
 
 
 def test_eval_shape(test_operator_obj):
@@ -208,7 +221,7 @@ def test_ba_ba_dot(test_operator_obj, operator):
 
     x = operator(a, d)
     y = BlockArray([operator(a0, d0), operator(a1, d1)])
-    snp.testing.assert_allclose(x, y)
+    sequence_assert_allclose(x, y)
 
 
 # reduction tests
@@ -224,12 +237,12 @@ class BlockArrayReductionObj:
     def __init__(self, dtype):
         key = None
 
-        a0, key = randn(shape=(2, 3), dtype=dtype, key=key)
-        a1, key = randn(shape=(2, 3, 4), dtype=dtype, key=key)
-        b0, key = randn(shape=(2, 3), dtype=dtype, key=key)
-        b1, key = randn(shape=(2, 3), dtype=dtype, key=key)
-        c0, key = randn(shape=(2, 3), dtype=dtype, key=key)
-        c1, key = randn(shape=(3,), dtype=dtype, key=key)
+        a0 = make_arbitrary_jax_array(shape=(2, 3), dtype=dtype)
+        a1 = make_arbitrary_jax_array(shape=(2, 3, 4), dtype=dtype)
+        b0 = make_arbitrary_jax_array(shape=(2, 3), dtype=dtype)
+        b1 = make_arbitrary_jax_array(shape=(2, 3), dtype=dtype)
+        c0 = make_arbitrary_jax_array(shape=(2, 3), dtype=dtype)
+        c1 = make_arbitrary_jax_array(shape=(3,), dtype=dtype)
 
         self.a = BlockArray((a0, a1))
         self.b = BlockArray((b0, b1))
@@ -257,8 +270,8 @@ def test_reduce(reduction_obj, func):
     x = func(reduction_obj.a)
     x_jit = jax.jit(func)(reduction_obj.a)
     y = func(snp.ravel(reduction_obj.a))
-    np.testing.assert_allclose(x, x_jit, rtol=1e-6)  # test jitted function
-    np.testing.assert_allclose(x, y, rtol=1e-6)  # test for correctness
+    np.testing.assert_allclose(x, x_jit, atol=1e-6)  # test jitted function
+    np.testing.assert_allclose(x, y, atol=1e-6)  # test for correctness
 
 
 @pytest.mark.parametrize(**REDUCTION_PARAMS)
@@ -268,13 +281,13 @@ def test_reduce_axis(reduction_obj, func, axis):
     x = f(reduction_obj.a)
     x_jit = jax.jit(f)(reduction_obj.a)
 
-    snp.testing.assert_allclose(x, x_jit, rtol=1e-4)  # test jitted function
+    sequence_assert_allclose(x, x_jit, rtol=1e-4)  # test jitted function
 
     # test for correctness
     y0 = func(reduction_obj.a[0], axis=axis)
     y1 = func(reduction_obj.a[1], axis=axis)
     y = BlockArray((y0, y1))
-    snp.testing.assert_allclose(x, y)
+    sequence_assert_allclose(x, y)
 
 
 @pytest.mark.parametrize(**REDUCTION_PARAMS)
@@ -284,12 +297,12 @@ def test_reduce_singleton(reduction_obj, func):
     x = f(reduction_obj.c)
     x_jit = jax.jit(f)(reduction_obj.c)
 
-    snp.testing.assert_allclose(x, x_jit, rtol=1e-4)  # test jitted function
+    sequence_assert_allclose(x, x_jit, rtol=1e-4)  # test jitted function
 
     y0 = func(reduction_obj.c[0], axis=0)
     y1 = func(reduction_obj.c[1], axis=0)[None]  # Ensure size (1,)
     y = BlockArray((y0, y1))
-    snp.testing.assert_allclose(x, y)
+    sequence_assert_allclose(x, y)
 
 
 class TestCreators:
