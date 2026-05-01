@@ -12,6 +12,7 @@ import scico.numpy as snp
 from scico.numpy import BlockArray
 from scico.numpy._wrapped_function_lists import testing_functions
 from scico.numpy.testing import assert_array_equal
+from scico.numpy.util import shape_dtype_rep
 from scico.util import rgetattr
 
 math_ops = [op.add, op.sub, op.mul, op.truediv, op.pow]  # op.floordiv doesn't work on complex
@@ -193,6 +194,42 @@ def test_sum_method(test_operator_obj, axis, keepdims):
     snp_result = snp.sum(a, axis=axis, keepdims=keepdims)
 
     sequence_assert_allclose(method_result, snp_result)
+
+
+def test_eval_shape_1arg(test_operator_obj):
+    def foo(x):
+        return snp.atleast_3d(x)
+
+    x = test_operator_obj.a
+    es = jax.eval_shape(foo, shape_dtype_rep(x.shape, x.dtype))
+    ba = foo(x)
+    assert es.shape == ba.shape
+    assert es.dtype == ba.dtype
+
+
+def test_eval_shape_2arg(test_operator_obj):
+    def foo(x, y):
+        return x * y
+
+    x = test_operator_obj.a
+    y = test_operator_obj.b
+
+    args = [
+        BlockArray([jax.ShapeDtypeStruct(b_i.shape, b_i.dtype) for b_i in x]),
+        BlockArray([jax.ShapeDtypeStruct(b_i.shape, b_i.dtype) for b_i in y]),
+    ]
+
+    es = jax.eval_shape(foo, *args)
+    assert es.shape == x.shape
+    assert es.dtype == x.dtype
+
+
+def test_linear_transpose(test_operator_obj):
+    fun = lambda x: 2 * x
+    x = test_operator_obj.a
+    tfun_ba = jax.linear_transpose(fun, x)
+    tfun_dts = jax.linear_transpose(fun, shape_dtype_rep(x.shape, x.dtype))
+    assert tfun_ba.args == tfun_dts.args
 
 
 @pytest.mark.parametrize("operator", [snp.dot, snp.matmul])
