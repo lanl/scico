@@ -27,6 +27,8 @@ function, while ADMM is used in a
 
 import numpy as np
 
+import komplot as kplt
+
 import scico.numpy as snp
 from scico import functional, linop, loss
 from scico.optimize.pgm import AcceleratedPGM

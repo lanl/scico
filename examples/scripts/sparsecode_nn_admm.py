@@ -24,6 +24,8 @@ used in a [companion example](sparsecode_nn_apgm.rst).
 
 import numpy as np
 
+import komplot as kplt
+
 import scico.numpy as snp
 from scico import functional, linop, loss
 from scico.optimize.admm import ADMM, MatrixSubproblemSolver

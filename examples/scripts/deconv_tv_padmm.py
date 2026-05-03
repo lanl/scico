@@ -22,6 +22,7 @@ In this example the problem is solved via proximal ADMM, while standard
 ADMM is used in a [companion example](deconv_tv_admm.rst).
 """
 
+import komplot as kplt
 from xdesign import SiemensStar, discrete_phantom
 
 import scico.numpy as snp

@@ -39,6 +39,7 @@ import ray
 
 ray.init(logging_level=logging.ERROR)  # need to call init before jax import: ray-project/ray#44087
 
+import komplot as kplt
 import scico.numpy as snp
 from scico import functional, linop, loss, metric
 from scico.examples import create_circular_phantom

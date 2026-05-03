@@ -19,6 +19,7 @@ image, $C$ is a 2D finite difference operator, and $\mathbf{x}$ is the
 deconvolved image.
 """
 
+import komplot as kplt
 from xdesign import SiemensStar, discrete_phantom
 
 import scico.numpy as snp

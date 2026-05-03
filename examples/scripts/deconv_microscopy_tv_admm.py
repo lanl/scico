@@ -28,6 +28,8 @@ operator, $\iota_{\mathrm{NN}}$ is the indicator function of the
 non-negativity constraint, and $\mathbf{x}$ is the deconvolved image.
 """
 
+import komplot as kplt
+
 import scico.numpy as snp
 from scico import functional, linop, loss, util
 from scico.examples import downsample_volume, epfl_deconv_data, tile_volume_slices

@@ -23,6 +23,7 @@ layers.
 
 import numpy as np
 
+import komplot as kplt
 from xdesign import Foam, discrete_phantom
 
 import scico.numpy as snp

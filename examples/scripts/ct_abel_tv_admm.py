@@ -22,8 +22,10 @@ solution.
 
 import numpy as np
 
+import komplot as kplt
+
 import scico.numpy as snp
-from scico import functional, linop, loss, metric, plot
+from scico import functional, linop, loss, metric
 from scico.examples import create_circular_phantom
 from scico.linop.xray.abel import AbelTransform
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
@@ -94,8 +96,8 @@ Show results.
 """
 norm = kplt.matplotlib.colors.Normalize(vmin=-0.1, vmax=1.2)
 fig, ax = kplt.subplots(nrows=2, ncols=2, figsize=(12, 12))
-kplt.imview(x_gt, title="Ground Truth", cmap=plot.cm.Blues, ax=ax[0, 0], norm=norm)
-kplt.imview(y, title="Measurement", cmap=plot.cm.Blues, ax=ax[0, 1])
+kplt.imview(x_gt, title="Ground Truth", cmap=kplt.matplotlib.cm.Blues, ax=ax[0, 0], norm=norm)
+kplt.imview(y, title="Measurement", cmap=kplt.matplotlib.cm.Blues, ax=ax[0, 1])
 kplt.imview(
     x_inv,
     title="Inverse Abel: %.2f (dB)" % metric.psnr(x_gt, x_inv),

@@ -17,6 +17,8 @@ algorithm :cite:`venkatakrishnan-2013-plugandplay2`, with the BM4D
 
 import numpy as np
 
+import komplot as kplt
+
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, random
 from scico.examples import create_3d_foam_phantom, downsample_volume, tile_volume_slices

@@ -21,6 +21,7 @@ where $R$ is either the isotropic or polar TV regularizer, via the
 primal–dual hybrid gradient (PDHG) algorithm.
 """
 
+import komplot as kplt
 from xdesign import SiemensStar, discrete_phantom
 
 import scico.numpy as snp

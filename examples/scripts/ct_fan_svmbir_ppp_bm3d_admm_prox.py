@@ -26,6 +26,7 @@ We solve the problem in two different ways:
 
 import numpy as np
 
+import komplot as kplt
 import matplotlib.pyplot as plt
 import svmbir
 from matplotlib.ticker import MaxNLocator

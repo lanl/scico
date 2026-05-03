@@ -21,6 +21,7 @@ import ray
 
 ray.init(logging_level=logging.ERROR)  # need to call init before jax import: ray-project/ray#44087
 
+import komplot as kplt
 from scico.flax.examples import load_blur_data
 
 """

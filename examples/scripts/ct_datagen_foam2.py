@@ -25,6 +25,7 @@ ray.init(logging_level=logging.ERROR)  # need to call init before jax import: ra
 # Set an arbitrary processor count (only applies if GPU is not available).
 os.environ["XLA_FLAGS"] = "--xla_force_host_platform_device_count=8"
 
+import komplot as kplt
 from scico.flax.examples import load_ct_data
 
 """

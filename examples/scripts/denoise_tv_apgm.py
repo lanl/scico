@@ -31,6 +31,7 @@ from typing import Callable, Optional, Union
 
 import jax.numpy as jnp
 
+import komplot as kplt
 from xdesign import SiemensStar, discrete_phantom
 
 import scico.numpy as snp

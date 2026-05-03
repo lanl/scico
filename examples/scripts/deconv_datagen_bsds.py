@@ -19,6 +19,8 @@ import numpy as np
 
 from jax import vmap
 
+import komplot as kplt
+
 from scico.flax.examples import PaddedCircularConvolve, load_image_data
 
 """

@@ -26,6 +26,7 @@ np.sctypes = {
     "float": [np.float16, np.float32, np.float64, np.longdouble],
     "int": [np.int8, np.int16, np.int32, np.int64],
 }
+import komplot as kplt
 from colour_demosaicing import demosaicing_CFA_Bayer_Menon2007
 
 import scico

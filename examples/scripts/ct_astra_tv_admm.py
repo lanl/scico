@@ -24,6 +24,7 @@ scico.
 
 import numpy as np
 
+import komplot as kplt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from xdesign import Foam, discrete_phantom
 

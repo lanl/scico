@@ -29,6 +29,7 @@ gives very poor results since the difference is applied independently to
 real and imaginary components of the complex image.
 """
 
+import komplot as kplt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from xdesign import SiemensStar, discrete_phantom
 

@@ -25,6 +25,7 @@ ADMM is used in a [companion example](ct_astra_3d_tv_padmm.rst).
 
 import numpy as np
 
+import komplot as kplt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 import scico.numpy as snp

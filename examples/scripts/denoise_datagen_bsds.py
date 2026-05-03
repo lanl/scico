@@ -17,6 +17,8 @@ provided by the Berkeley Segmentation Dataset and Benchmark project.
 
 import numpy as np
 
+import komplot as kplt
+
 from scico.flax.examples import load_image_data
 
 """

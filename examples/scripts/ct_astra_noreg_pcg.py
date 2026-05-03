@@ -25,9 +25,10 @@ import numpy as np
 
 import jax.numpy as jnp
 
+import komplot as kplt
 from xdesign import Foam, discrete_phantom
 
-from scico import loss, plot
+from scico import loss
 from scico.linop import CircularConvolve
 from scico.linop.xray.astra import XRayTransform2D
 from scico.solver import cg
@@ -77,7 +78,7 @@ r"""
 Check that $\mathbf{M}$ does approximately invert $\mathbf{A}^T \mathbf{A}$.
 """
 plot_args = dict(
-    norm=kplt.matplotlib.colors.Normalize(vmin=0, vmax=1.5), cmap=plot.matplotlib.cm.Blues_r
+    norm=kplt.matplotlib.colors.Normalize(vmin=0, vmax=1.5), cmap=kplt.matplotlib.cm.Blues_r
 )
 
 fig, axes = kplt.subplots(nrows=1, ncols=3, figsize=(12, 4.5))

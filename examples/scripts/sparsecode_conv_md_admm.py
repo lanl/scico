@@ -36,8 +36,9 @@ using the frequency-domain approach proposed in
 
 import numpy as np
 
+import komplot as kplt
+
 import scico.numpy as snp
-from scico import plot
 from scico.examples import create_conv_sparse_phantom
 from scico.functional import L1MinusL2Norm, ZeroFunctional
 from scico.linop import CircularConvolve, Crop, Identity, Sum
@@ -142,14 +143,14 @@ hist = solver.itstat_object.history(transpose=True)
 Show the recovered coefficient maps.
 """
 fig, ax = kplt.subplots(nrows=2, ncols=3, figsize=(12, 8.6))
-kplt.imview(x0[0], title="Coef. map 0", cmap=plot.cm.Blues, ax=ax[0, 0])
+kplt.imview(x0[0], title="Coef. map 0", cmap=kplt.matplotlib.cm.Blues, ax=ax[0, 0])
 ax[0, 0].set_ylabel("Ground truth")
-kplt.imview(x0[1], title="Coef. map 1", cmap=plot.cm.Blues, ax=ax[0, 1])
-kplt.imview(x0[2], title="Coef. map 2", cmap=plot.cm.Blues, ax=ax[0, 2])
-kplt.imview(x1[0], cmap=plot.cm.Blues, ax=ax[1, 0])
+kplt.imview(x0[1], title="Coef. map 1", cmap=kplt.matplotlib.cm.Blues, ax=ax[0, 1])
+kplt.imview(x0[2], title="Coef. map 2", cmap=kplt.matplotlib.cm.Blues, ax=ax[0, 2])
+kplt.imview(x1[0], cmap=kplt.matplotlib.cm.Blues, ax=ax[1, 0])
 ax[1, 0].set_ylabel("Recovered")
-kplt.imview(x1[1], cmap=plot.cm.Blues, ax=ax[1, 1])
-kplt.imview(x1[2], cmap=plot.cm.Blues, ax=ax[1, 2])
+kplt.imview(x1[1], cmap=kplt.matplotlib.cm.Blues, ax=ax[1, 1])
+kplt.imview(x1[2], cmap=kplt.matplotlib.cm.Blues, ax=ax[1, 2])
 fig.tight_layout()
 fig.show()
 
@@ -160,8 +161,8 @@ the absence of the wrap-around effects at the boundary that can be seen
 in the corresponding images in the [related example](sparsecode_conv_admm.rst).
 """
 fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(12, 6))
-kplt.imview(y, title="Test image", cmap=plot.cm.gist_heat_r, ax=ax[0])
-kplt.imview(B(A(x1)), title="Reconstructed image", cmap=plot.cm.gist_heat_r, ax=ax[1])
+kplt.imview(y, title="Test image", cmap=kplt.matplotlib.cm.gist_heat_r, ax=ax[0])
+kplt.imview(B(A(x1)), title="Reconstructed image", cmap=kplt.matplotlib.cm.gist_heat_r, ax=ax[1])
 fig.show()
 
 

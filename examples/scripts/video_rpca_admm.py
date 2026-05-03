@@ -26,6 +26,7 @@ have potential application in scientific imaging problems.
 """
 
 import imageio.v3 as iio
+import komplot as kplt
 
 import scico.numpy as snp
 from scico import functional, linop, loss

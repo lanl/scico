@@ -23,6 +23,7 @@ operator, and $\mathbf{x}$ is the reconstructed image.
 
 import numpy as np
 
+import komplot as kplt
 from xdesign import Soil, discrete_phantom
 
 import scico.numpy as snp

@@ -41,8 +41,9 @@ using the frequency-domain approach proposed in
 
 import numpy as np
 
+import komplot as kplt
+
 import scico.numpy as snp
-from scico import plot
 from scico.examples import ucb_diffusercam_data
 from scico.functional import L1Norm, L21Norm, ZeroFunctional
 from scico.linop import CircularConvolve, Crop, FiniteDifference, Identity, Sum
@@ -143,11 +144,11 @@ hist = solver.itstat_object.history(transpose=True)
 """
 Show the measured image and samples from PDF stack
 """
-kplt.imview(y, cmap=plot.plt.cm.Blues, show_cbar=True, title="Measured Image")
+kplt.imview(y, cmap=kplt.matplotlib.cm.Blues, show_cbar=True, title="Measured Image")
 
 fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(14, 7))
-kplt.imview(psf[0], title="Nearest PSF", cmap=plot.plt.cm.Blues, ax=ax[0])
-kplt.imview(psf[-1], title="Furthest PSF", cmap=plot.plt.cm.Blues, ax=ax[1])
+kplt.imview(psf[0], title="Nearest PSF", cmap=kplt.matplotlib.cm.Blues, ax=ax[0])
+kplt.imview(psf[-1], title="Furthest PSF", cmap=kplt.matplotlib.cm.Blues, ax=ax[1])
 fig.show()
 
 

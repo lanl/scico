@@ -31,6 +31,7 @@ except ImportError:
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
+import komplot as kplt
 from scico import flax as sflax
 from scico import metric
 from scico.flax.examples import load_image_data
