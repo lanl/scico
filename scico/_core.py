@@ -13,6 +13,7 @@ import jax
 import jax.numpy as jnp
 from jax.tree_util import tree_map
 
+import scico.numpy.util
 import scico.util
 
 
@@ -194,3 +195,13 @@ def cvjp(fun: Callable, *primals, jidx: Optional[int] = None) -> Tuple[Tuple[Any
         return jax.tree_util.tree_map(jax.numpy.conj, fun_vjp(tangent.conj()))
 
     return primals_out, conj_vjp
+
+
+def eval_shape(fun: Callable, *args, **kwargs):
+    """Docstring here."""
+
+    def _expand_ba_shape(arg):
+        if isinstance(arg, jax.ShapeDtypeStruct) and scico.numpy.util.is_nested(arg.shape):
+            dts_list = [jax.ShapeDtypeStruct(blk_shape, dtype=arg.dtype) for blk_shape in arg.shape]
+        else:
+            return arg
