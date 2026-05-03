@@ -25,6 +25,7 @@ from scico.numpy.util import (
     normalize_axes,
     pad_to_divisible,
     real_dtype,
+    shape_dtype_rep,
     slice_length,
     transpose_list_of_ntpl,
     transpose_ntpl_of_list,
@@ -205,6 +206,12 @@ def test_is_blockable():
     shape2 = ((1, 2, 3), ((1, 2, 3), (1, 2, 3)))
     assert is_blockable(shape1)
     assert not is_blockable(shape2)
+
+
+@pytest.mark.parametrize("shape", [(3, 4), ((3, 4), (5,))])
+def test_shape_dtype_rep(shape):
+    dtype = np.float32
+    assert shape_dtype_rep(shape, dtype).shape == shape
 
 
 def test_is_real_dtype():
