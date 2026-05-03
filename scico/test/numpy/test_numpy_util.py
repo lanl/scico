@@ -2,12 +2,16 @@ import collections
 
 import numpy as np
 
+import jax.numpy as jnp
+
 import pytest
 
 import scico.numpy as snp
 from scico.numpy.util import (
+    array_info,
     array_to_namedtuple,
     complex_dtype,
+    dtype_name,
     indexed_shape,
     is_blockable,
     is_collapsible,
@@ -20,6 +24,7 @@ from scico.numpy.util import (
     no_nan_divide,
     normalize_axes,
     real_dtype,
+    shape_dtype_rep,
     slice_length,
     transpose_list_of_ntpl,
     transpose_ntpl_of_list,
@@ -66,6 +71,18 @@ def test_no_nan_divide_blockarray():
 
     assert snp.all(res[1] == 0.0)
     np.testing.assert_allclose(res[0], x[0] / y[0])
+
+
+def test_array_info():
+    x = np.array([0.0, 0.1])
+    xinfo = array_info(x)
+    assert "numpy.ndarray" in xinfo
+    x = jnp.array([0.0, 0.1])
+    xinfo = array_info(x)
+    assert "jax.Array" in xinfo
+    x = snp.ones(((2, 3), (2,)))
+    xinfo = array_info(x)
+    assert "scico.numpy.BlockArray" in xinfo
 
 
 def test_normalize_axes():
@@ -180,6 +197,12 @@ def test_is_blockable():
     assert not is_blockable(shape2)
 
 
+@pytest.mark.parametrize("shape", [(3, 4), ((3, 4), (5,))])
+def test_shape_dtype_rep(shape):
+    dtype = np.float32
+    assert shape_dtype_rep(shape, dtype).shape == shape
+
+
 def test_is_real_dtype():
     assert not is_real_dtype(snp.complex64)
     assert is_real_dtype(snp.float32)
@@ -196,6 +219,11 @@ def test_real_dtype():
 
 def test_complex_dtype():
     assert complex_dtype(snp.float32) == snp.complex64
+
+
+def test_dtype_name():
+    assert dtype_name(np.float32) == "numpy.float32"
+    assert dtype_name(snp.float32) == "jax.numpy.float32"
 
 
 def test_broadcast_nested_shapes():

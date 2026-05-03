@@ -211,7 +211,7 @@ Plot convergence statistics.
 """
 fig, ax = plt.subplots(1, 2, figsize=(15, 5))
 plot.plot(
-    snp.vstack((hist_l2loss.Prml_Rsdl, hist_l2loss.Dual_Rsdl)).T,
+    snp.array((hist_l2loss.Prml_Rsdl, hist_l2loss.Dual_Rsdl)).T,
     ptyp="semilogy",
     title="Residuals (SquaredL2Loss + non-negativity)",
     xlbl="Iteration",
@@ -222,7 +222,7 @@ plot.plot(
 ax[0].set_ylim([1e-1, 5e0])
 ax[0].xaxis.set_major_locator(MaxNLocator(integer=True))
 plot.plot(
-    snp.vstack((hist_extloss.Prml_Rsdl, hist_extloss.Dual_Rsdl)).T,
+    snp.array((hist_extloss.Prml_Rsdl, hist_extloss.Dual_Rsdl)).T,
     ptyp="semilogy",
     title="Residuals (ExtendedLoss)",
     xlbl="Iteration",

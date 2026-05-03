@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2025 by SCICO Developers
+# Copyright (C) 2022-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -14,6 +14,7 @@ import jax
 import scico.numpy as snp
 from scico.linop import LinearOperator, jacobian
 from scico.numpy import Array, BlockArray
+from scico.numpy.util import dtype_name
 from scico.operator import Operator
 from scico.typing import BlockShape, DType, Shape
 
@@ -86,12 +87,12 @@ class Function:
             self.output_dtype = output_dtype
 
     def __repr__(self):
-        return f"""{type(self)}
-input_shapes   : {self.input_shapes}
-input_dtypes   : {self.input_dtypes}
-output_shape   : {self.output_shape}
-output_dtype   : {self.output_dtype}
-        """
+        return f"""{self.__module__}.{self.__class__.__qualname__}
+  input_shapes: {self.input_shapes}
+  output_shape: {self.output_shape}
+  input_dtypes: {", ".join([dtype_name(dt) for dt in self.input_dtypes])}
+  output_dtype: {dtype_name(self.output_dtype)}
+"""
 
     def __call__(self, *args: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         """Evaluate this function with the specified parameters.

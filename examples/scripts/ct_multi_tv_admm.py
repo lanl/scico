@@ -136,7 +136,7 @@ Plot convergence statistics.
 """
 fig, ax = plot.subplots(nrows=1, ncols=3, figsize=(12, 5))
 plot.plot(
-    np.vstack([hist[p].Objective for p in projectors.keys()]).T,
+    np.array([hist[p].Objective for p in projectors.keys()]).T,
     title="Objective function",
     xlbl="Iteration",
     ylbl="Functional value",
@@ -145,7 +145,7 @@ plot.plot(
     ax=ax[0],
 )
 plot.plot(
-    np.vstack([hist[p].Prml_Rsdl for p in projectors.keys()]).T,
+    np.array([hist[p].Prml_Rsdl for p in projectors.keys()]).T,
     ptyp="semilogy",
     title="Primal Residual",
     xlbl="Iteration",
@@ -153,7 +153,7 @@ plot.plot(
     ax=ax[1],
 )
 plot.plot(
-    np.vstack([hist[p].Dual_Rsdl for p in projectors.keys()]).T,
+    np.array([hist[p].Dual_Rsdl for p in projectors.keys()]).T,
     ptyp="semilogy",
     title="Dual Residual",
     xlbl="Iteration",
