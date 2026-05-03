@@ -77,9 +77,7 @@ M = CircularConvolve(inv_frequency_response, x_gt.shape, h_is_dft=True)
 r"""
 Check that $\mathbf{M}$ does approximately invert $\mathbf{A}^T \mathbf{A}$.
 """
-plot_args = dict(
-    norm=kplt.matplotlib.colors.Normalize(vmin=0, vmax=1.5), cmap=kplt.matplotlib.cm.Blues_r
-)
+plot_args = dict(norm=kplt.matplotlib.colors.Normalize(vmin=0, vmax=1.5), cmap=kplt.cm.Blues_r)
 
 fig, axes = kplt.subplots(nrows=1, ncols=3, figsize=(12, 4.5))
 kplt.imview(x_gt, title="Ground truth, $x_{gt}$", ax=axes[0], **plot_args)

@@ -96,8 +96,8 @@ Show results.
 """
 norm = kplt.matplotlib.colors.Normalize(vmin=-0.1, vmax=1.2)
 fig, ax = kplt.subplots(nrows=2, ncols=2, figsize=(12, 12))
-kplt.imview(x_gt, title="Ground Truth", cmap=kplt.matplotlib.cm.Blues, ax=ax[0, 0], norm=norm)
-kplt.imview(y, title="Measurement", cmap=kplt.matplotlib.cm.Blues, ax=ax[0, 1])
+kplt.imview(x_gt, title="Ground Truth", cmap=kplt.cm.Blues, ax=ax[0, 0], norm=norm)
+kplt.imview(y, title="Measurement", cmap=kplt.cm.Blues, ax=ax[0, 1])
 kplt.imview(
     x_inv,
     title="Inverse Abel: %.2f (dB)" % metric.psnr(x_gt, x_inv),

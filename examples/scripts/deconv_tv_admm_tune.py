@@ -145,8 +145,8 @@ trials = results.get_dataframe()
 for t in trials.iloc:
     n = t["training_iteration"]
     kplt.plot(
-        t["config/lambda"],
         t["config/rho"],
+        t["config/lambda"],
         ptyp="loglog",
         lw=0,
         ms=(0.5 + 1.5 * n),
@@ -155,8 +155,8 @@ for t in trials.iloc:
         mec="blue",
     )
 kplt.plot(
-    best_config["lambda"],
     best_config["rho"],
+    best_config["lambda"],
     ptyp="loglog",
     title="Parameter search sampling locations\n(marker size proportional to number of iterations)",
     xlabel=r"$\rho$",
@@ -187,8 +187,8 @@ fig, ax = kplt.subplots(figsize=(10, 8))
 sc = ax.scatter(𝜌, 𝜆, c=psnr, cmap=kplt.cm.plasma_r)
 fig.colorbar(sc)
 kplt.plot(
-    best_config["lambda"],
     best_config["rho"],
+    best_config["lambda"],
     ptyp="loglog",
     lw=0,
     ms=12.0,

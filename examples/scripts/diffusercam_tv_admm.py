@@ -144,11 +144,11 @@ hist = solver.itstat_object.history(transpose=True)
 """
 Show the measured image and samples from PDF stack
 """
-kplt.imview(y, cmap=kplt.matplotlib.cm.Blues, show_cbar=True, title="Measured Image")
+kplt.imview(y, cmap=kplt.cm.Blues, show_cbar=True, title="Measured Image")
 
 fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(14, 7))
-kplt.imview(psf[0], title="Nearest PSF", cmap=kplt.matplotlib.cm.Blues, ax=ax[0])
-kplt.imview(psf[-1], title="Furthest PSF", cmap=kplt.matplotlib.cm.Blues, ax=ax[1])
+kplt.imview(psf[0], title="Nearest PSF", cmap=kplt.cm.Blues, ax=ax[0])
+kplt.imview(psf[-1], title="Furthest PSF", cmap=kplt.cm.Blues, ax=ax[1])
 fig.show()
 
 
