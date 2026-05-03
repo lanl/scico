@@ -235,6 +235,7 @@ mathematical_functions = (
     "resize",
     "trim_zeros",
     "unique",
+    "pad",
     "flip",
     "fliplr",
     "flipud",
