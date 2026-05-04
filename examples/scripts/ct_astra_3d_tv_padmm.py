@@ -91,13 +91,13 @@ gradient sub-iterations used by the ADMM solver in the
 [companion example](ct_astra_3d_tv_admm.rst).
 """
 𝛼 = 1e2  # improve problem conditioning by balancing C and D components of A
-λ = 2e0 / 𝛼  # ℓ2,1 norm regularization parameter
+λ = 2e0  # ℓ2,1 norm regularization parameter
 ρ = 5e-3  # ADMM penalty parameter
 maxiter = 1000  # number of ADMM iterations
 
 f = functional.ZeroFunctional()
 g0 = loss.SquaredL2Loss(y=y)
-g1 = λ * functional.L21Norm()
+g1 = (λ / 𝛼) * functional.L21Norm()
 g = functional.SeparableFunctional((g0, g1))
 D = linop.FiniteDifference(input_shape=tangle.shape, append=0)
 

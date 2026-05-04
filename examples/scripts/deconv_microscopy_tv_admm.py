@@ -133,7 +133,7 @@ plot.plot(
     ax=ax[0],
 )
 plot.plot(
-    snp.vstack((solve_stats.Prml_Rsdl, solve_stats.Dual_Rsdl)).T,
+    snp.array((solve_stats.Prml_Rsdl, solve_stats.Dual_Rsdl)).T,
     ptyp="semilogy",
     title="Residuals",
     xlbl="Iteration",

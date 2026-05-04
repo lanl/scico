@@ -22,7 +22,7 @@ NO_BLOCK_ARRAY = [
     functional.IsotropicTVNorm,
     functional.TVNorm,
 ]
-NO_COMPLEX = [functional.NonNegativeIndicator]
+NO_COMPLEX = [functional.NonNegativeIndicator, functional.BoxIndicator]
 
 
 def pytest_generate_tests(metafunc):
@@ -147,13 +147,13 @@ class TestNormProx:
         nrmobj = norm()
         nrm = nrmobj.__call__
         prx = nrmobj.prox
-        pf = nrmobj.prox(snp.concatenate(snp.ravel(test_prox_obj.vb)), alpha)
+        pf = nrmobj.prox(snp.ravel(test_prox_obj.vb), alpha)
         pf_b = nrmobj.prox(test_prox_obj.vb, alpha)
 
         assert pf.dtype == test_prox_obj.vb.dtype
         assert pf_b.dtype == test_prox_obj.vb.dtype
 
-        snp.testing.assert_allclose(pf, snp.concatenate(snp.ravel(pf_b)), rtol=1e-6)
+        snp.testing.assert_allclose(pf, snp.ravel(pf_b), rtol=1e-6)
 
     @pytest.mark.parametrize("norm", normlist)
     def test_prox_zeros(self, norm, test_prox_obj):

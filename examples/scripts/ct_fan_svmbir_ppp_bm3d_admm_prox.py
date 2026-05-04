@@ -261,7 +261,7 @@ Plot convergence statistics.
 """
 fig, ax = plt.subplots(1, 2, figsize=(15, 6))
 plot.plot(
-    snp.vstack((hist_extloss_parallel.Prml_Rsdl, hist_extloss_parallel.Dual_Rsdl)).T,
+    snp.array((hist_extloss_parallel.Prml_Rsdl, hist_extloss_parallel.Dual_Rsdl)).T,
     ptyp="semilogy",
     title="Residuals for parallel-beam reconstruction",
     xlbl="Iteration",
@@ -272,7 +272,7 @@ plot.plot(
 ax[0].set_ylim([1e-1, 1e1])
 ax[0].xaxis.set_major_locator(MaxNLocator(integer=True))
 plot.plot(
-    snp.vstack((hist_extloss_fan.Prml_Rsdl, hist_extloss_fan.Dual_Rsdl)).T,
+    snp.array((hist_extloss_fan.Prml_Rsdl, hist_extloss_fan.Dual_Rsdl)).T,
     ptyp="semilogy",
     title="Residuals for fan-beam reconstruction",
     xlbl="Iteration",

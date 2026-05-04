@@ -336,7 +336,7 @@ if stats_object is not None and len(stats_object.iterations) > 0:
     hist = stats_object.history(transpose=True)
     fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
     plot.plot(
-        np.vstack((hist.Train_Loss, hist.Eval_Loss)).T,
+        np.array((hist.Train_Loss, hist.Eval_Loss)).T,
         x=hist.Epoch,
         ptyp="semilogy",
         title="Loss function",
@@ -347,7 +347,7 @@ if stats_object is not None and len(stats_object.iterations) > 0:
         ax=ax[0],
     )
     plot.plot(
-        np.vstack((hist.Train_SNR, hist.Eval_SNR)).T,
+        np.array((hist.Train_SNR, hist.Eval_SNR)).T,
         x=hist.Epoch,
         title="Metric",
         xlbl="Epoch",
@@ -363,7 +363,7 @@ if stats_object_ini is not None and len(stats_object_ini.iterations) > 0:
     hist = stats_object_ini.history(transpose=True)
     fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
     plot.plot(
-        np.vstack((hist.Train_Loss, hist.Eval_Loss)).T,
+        np.array((hist.Train_Loss, hist.Eval_Loss)).T,
         ptyp="semilogy",
         title="Loss function - Initialization",
         xlbl="Epoch",
@@ -373,7 +373,7 @@ if stats_object_ini is not None and len(stats_object_ini.iterations) > 0:
         ax=ax[0],
     )
     plot.plot(
-        np.vstack((hist.Train_SNR, hist.Eval_SNR)).T,
+        np.array((hist.Train_SNR, hist.Eval_SNR)).T,
         title="Metric - Initialization",
         xlbl="Epoch",
         ylbl="SNR (dB)",

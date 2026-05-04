@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2025 by SCICO Developers
+# Copyright (C) 2020-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SPORCO package. Details of the copyright
 # and user license can be found in the 'LICENSE.txt' file distributed
@@ -51,7 +51,7 @@ class BlockArray:
 
     def __init__(self, inputs):
         # convert inputs to jax arrays
-        self.arrays = [x if isinstance(x, jnp.ndarray) else jnp.array(x) for x in inputs]
+        self.arrays = [x if isinstance(x, jax.ShapeDtypeStruct) else jnp.array(x) for x in inputs]
 
         # check that dtypes match
         if not all(a.dtype == self.arrays[0].dtype for a in self.arrays):
@@ -76,7 +76,7 @@ class BlockArray:
         rather than a list.
         """
         result = self.arrays[key]
-        if not isinstance(result, jnp.ndarray):
+        if isinstance(result, list):
             return BlockArray(result)  # x[k:k+1] returns a BlockArray
         return result  # x[k] returns a jax array
 
@@ -113,8 +113,8 @@ class BlockArray:
             raise ValueError(f"BlockArray of shape {self.shape} cannot be collapsed to an Array.")
 
 
-# Register BlockArray as a jax pytree, without this, jax autograd won't work.
-# taken from what is done with tuples in jax._src.tree_util
+# Register BlockArray as a jax pytree; without this, jax autograd won't work.
+# Taken from what is done with tuples in jax._src.tree_util
 jax.tree_util.register_pytree_node(
     BlockArray,
     lambda xs: (xs, None),  # to iter
@@ -143,13 +143,13 @@ def _binary_op_wrapper(op_name):
 
     @wraps(op)
     def op_block_array(self, other):
-        # If other is a block array, we can assume the operation is implemented
-        # (because block arrays must contain jax arrays)
+        # If other is a block array, we can assume the operation is
+        # implemented (because block arrays must contain jax arrays)
         if isinstance(other, BlockArray):
             return BlockArray(op(x, y) for x, y in zip(self, other))
 
-        # If not, need to handle possible NotImplemented
-        # without this, block_array + 'hi' -> [NotImplemented, NotImplemented, ...]
+        # If not, need to handle possible NotImplemented. Without this,
+        # block_array + 'hi' -> [NotImplemented, NotImplemented, ...]
         result = list(op(x, other) for x in self)
         if NotImplemented in result:
             return NotImplemented
@@ -176,7 +176,7 @@ def _jax_array_prop_wrapper(prop_name):
             # ...return a block array...
             return BlockArray(result)
 
-        # ...otherwise return a tuple.
+        # ... otherwise return a tuple.
         return result
 
     return prop_block_array
@@ -211,10 +211,10 @@ def _jax_array_method_wrapper(method_name):
 
         # If each jax_array.method(...) call returns a jax array, ...
         if all([isinstance(x, jnp.ndarray) for x in result]):
-            # ...return a block array...
+            # ... return a block array...
             return BlockArray(result)
 
-        # ...otherwise return a tuple.
+        # ... otherwise return a tuple.
         return result
 
     return method_block_array

@@ -753,8 +753,8 @@ class MatrixATADSolver:
 
         if isinstance(D, Diagonal):
             D = D.diagonal
-            if D.ndim != 1:
-                raise ValueError("If Diagonal, 'D' should have a 1D diagonal.")
+            if D.ndim > 1:  # Identity operator has 0D diagonal
+                raise ValueError("If Diagonal, 'D' should have a 0D or 1D diagonal.")
         else:
             D = jnp.array(D)
             if not D.ndim in [1, 2]:
@@ -765,8 +765,8 @@ class MatrixATADSolver:
         elif isinstance(W, Diagonal):
             W = W.diagonal
             assert hasattr(W, "ndim")
-            if W.ndim != 1:
-                raise ValueError("If Diagonal, 'W' should have a 1D diagonal.")
+            if W.ndim > 1:  # Identity operator has 0D diagonal
+                raise ValueError("If Diagonal, 'W' should have a 0D or 1D diagonal.")
         elif not isinstance(W, Array):
             raise TypeError(
                 f"Operator 'W' is required to be None, a Diagonal, or an array; got a {type(W)}."
@@ -781,13 +781,19 @@ class MatrixATADSolver:
 
         assert isinstance(W, Array)
         N, M = A.shape
-        if N < M and D.ndim == 1:
-            G = snp.diag(1.0 / W) + A @ (A.T.conj() / D[:, snp.newaxis])
+        if N < M and D.ndim <= 1:
+            D2 = D if D.ndim == 0 else D[:, snp.newaxis]
+            if W.ndim == 1:
+                G = snp.diag(1.0 / W) + A @ (A.T.conj() / D2)
+            else:  # W is 0 dimensional (scalar equivalent)
+                G = A @ (A.T.conj() / D2)
+                G = jnp.fill_diagonal(G, G.diagonal() + (1.0 / W), inplace=False)
         else:
+            W2 = W if W.ndim == 0 else W[:, snp.newaxis]
             if D.ndim == 1:
-                G = A.T.conj() @ (W[:, snp.newaxis] * A) + snp.diag(D)
+                G = A.T.conj() @ (W2 * A) + snp.diag(D)
             else:
-                G = A.T.conj() @ (W[:, snp.newaxis] * A) + D
+                G = A.T.conj() @ (W2 * A) + D
 
         if cho_factor:
             c, lower = jsl.cho_factor(G, lower=lower, check_finite=check_finite)
@@ -818,12 +824,12 @@ class MatrixATADSolver:
         else:
             fact_solve = lambda x: jsl.lu_solve(self.factor, x, trans=0, check_finite=check_finite)
 
-        if b.ndim == 1:
+        if b.ndim <= 1:
             D = self.D
         else:
             D = self.D[:, snp.newaxis]
         N, M = self.A.shape
-        if N < M and self.D.ndim == 1:
+        if N < M and self.D.ndim <= 1:
             w = fact_solve(self.A @ (b / D))
             x = (b - (self.A.T.conj() @ w)) / D
         else:

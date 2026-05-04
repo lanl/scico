@@ -5,7 +5,7 @@ import jax
 import pytest
 
 import scico.numpy as snp
-from scico import functional
+from scico import functional, linop
 
 
 class TestCheckAttrs:
@@ -15,6 +15,7 @@ class TestCheckAttrs:
     # Generate a list of all functionals in scico.functionals that we will check
     ignore = [
         functional.Functional,
+        functional.FunctionalSum,
         functional.ScaledFunctional,
         functional.SeparableFunctional,
         functional.ComposedFunctional,
@@ -124,3 +125,20 @@ def test_scalar_aggregation():
     assert isinstance(h, functional.ScaledFunctional)
     assert isinstance(h.functional, functional.L2Norm)
     assert h.scale == 10.0
+
+
+@pytest.mark.parametrize(
+    "func",
+    [
+        functional.ZeroFunctional(),
+        functional.SeparableFunctional((functional.ZeroFunctional(), functional.ZeroFunctional())),
+        functional.ComposedFunctional(functional.ZeroFunctional(), linop.Identity((4,))),
+        functional.FunctionalSum(functional.ZeroFunctional(), functional.ZeroFunctional()),
+    ],
+)
+def test_repr_str(func):
+    fname = str(func)
+    frepr = repr(func)
+    assert fname in frepr
+    assert "has_eval:" in frepr
+    assert "has_prox:" in frepr

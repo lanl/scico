@@ -361,8 +361,13 @@ class TestEstimateParameters:
             output_dtype=np.complex64,
         )
 
-    def test_padmm(self):
+    def test_padmm_a(self):
         mu, nu = ProximalADMM.estimate_parameters(self.A, factor=1.0)
+        assert snp.abs(mu - 1.0) < 1e-6
+        assert snp.abs(nu - 1.0) < 1e-6
+
+    def test_padmm_ab(self):
+        mu, nu = ProximalADMM.estimate_parameters(self.A, self.A, factor=1.0)
         assert snp.abs(mu - 1.0) < 1e-6
         assert snp.abs(nu - 1.0) < 1e-6
 
