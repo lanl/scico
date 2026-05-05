@@ -1,4 +1,4 @@
-# Copyright (C) 2020-2025 by SCICO Developers
+# Copyright (C) 2020-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -9,7 +9,7 @@
 from typing import Any, Callable, Optional, Sequence, Union
 
 import scico.numpy as snp
-from scico._autograd import linear_adjoint
+from scico._core import linear_adjoint
 from scico.numpy.util import indexed_shape, is_nested
 from scico.typing import ArrayIndex, BlockShape, DType, Shape
 
