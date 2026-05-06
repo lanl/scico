@@ -202,9 +202,9 @@ def eval_shape(fun: Callable, *args, **kwargs) -> Any:
     """Compute the shape and dtype of a function without executing it.
 
     Compute the shape and dtype of a function without executing it, via
-    a call to :fun:`jax.eval_shape`, with ``args`` and ``kwargs`` mapped
+    a call to :func:`jax.eval_shape`, with ``args`` and ``kwargs`` mapped
     to handle :class:`jax.ShapeDtypeStruct` objects with nested shapes
-    corresponding to :class:`scico.numpy.BlockArrays`s.
+    corresponding to :class:`.BlockArray` objects.
 
     Args:
         fun: The function for which the output shape/dtype are to be
