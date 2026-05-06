@@ -198,7 +198,7 @@ def cvjp(fun: Callable, *primals, jidx: Optional[int] = None) -> Tuple[Tuple[Any
     return primals_out, conj_vjp
 
 
-def eval_shape(fun: Callable, *args, **kwargs):
+def eval_shape(fun: Callable, *args, **kwargs) -> Any:
     """Compute the shape and dtype of a function without executing it.
 
     Compute the shape and dtype of a function without executing it, via
