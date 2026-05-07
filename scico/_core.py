@@ -218,7 +218,7 @@ def eval_shape(fun: Callable, *args, **kwargs) -> Any:
     """
 
     def _convert_ba_shape(arg):
-        """Convert a ShapeDtypeStruct with nested shape intp a BlockArray
+        """Convert a ShapeDtypeStruct with nested shape into a BlockArray
         of ShapeDtypeStruct.
         """
         if isinstance(arg, jax.ShapeDtypeStruct) and scico.numpy.util.is_nested(arg.shape):
