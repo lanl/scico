@@ -10,7 +10,6 @@ and shape evaluation."""
 from typing import Any, Callable, Optional, Sequence, Tuple, Union
 
 import jax
-import jax.numpy as jnp
 from jax.tree_util import tree_map
 
 import scico.numpy
@@ -31,6 +30,45 @@ def _append_jax_docs(fn, jaxfn=None):
     doc = "  " + fn.__doc__.replace("\n    ", "\n  ")  # deal with indentation differences
     jaxdoc = "\n".join(jaxfn.__doc__.split("\n")[2:])  # strip initial lines
     return doc + f"\n  Docstring for :func:`jax.{name}`:\n\n" + jaxdoc
+
+
+def _convert_ba_dts(arg: Any) -> Any:
+    """Convert a ShapeDtypeStruct with nested shape into a BlockArray
+    of ShapeDtypeStruct.
+    """
+    if isinstance(arg, jax.ShapeDtypeStruct) and scico.numpy.util.is_nested(arg.shape):
+        return scico.numpy.BlockArray(
+            [jax.ShapeDtypeStruct(blk_shape, dtype=arg.dtype) for blk_shape in arg.shape]
+        )
+    else:
+        return arg
+
+
+def eval_shape(fun: Callable, *args, **kwargs) -> Any:
+    """Compute the shape and dtype of a function without executing it.
+
+    Compute the shape and dtype of a function without executing it, via
+    a call to :func:`jax.eval_shape`, with ``args`` and ``kwargs`` mapped
+    to handle :class:`jax.ShapeDtypeStruct` objects with nested shapes
+    corresponding to :class:`.BlockArray` objects.
+
+    Args:
+        fun: The function for which the output shape/dtype are to be
+          evaluated.
+        *args: Positional arguments.
+        **kwargs: Keyword Arguments.
+
+    Returns:
+        A nested PyTree containing :class:`jax.ShapeDtypeStruct` objects
+        as leaves.
+    """
+    mapped_args = jax.tree_util.tree_map(_convert_ba_dts, args)
+    mapped_kwargs = jax.tree_util.tree_map(_convert_ba_dts, kwargs)
+    return jax.eval_shape(fun, *mapped_args, **mapped_kwargs)
+
+
+# Append docstring from original jax function
+eval_shape.__doc__ = _append_jax_docs(eval_shape)
 
 
 def grad(
@@ -98,6 +136,22 @@ def value_and_grad(
 value_and_grad.__doc__ = _append_jax_docs(value_and_grad)
 
 
+def linear_transpose(fun: Callable, *primals) -> Callable:
+    """Transpose a function that is guaranteed to be linear.
+
+    :func:`scico.linear_adjoint` differs from :func:`jax.linear_transpose`
+    in that it correctly handles primals consisting of
+    :class:`jax.ShapeDtypeStruct` objects with nested shapes, i.e.
+    corresponding to :class:`.BlockArray` shapes.
+    """
+    mapped_primals = jax.tree_util.tree_map(_convert_ba_dts, primals)
+    return jax.linear_transpose(fun, *mapped_primals)
+
+
+# Append docstring from original jax function
+linear_transpose.__doc__ = _append_jax_docs(linear_transpose, jaxfn=jax.linear_transpose)
+
+
 def linear_adjoint(fun: Callable, *primals) -> Callable:
     """Conjugate transpose a function that is guaranteed to be linear.
 
@@ -111,19 +165,7 @@ def linear_adjoint(fun: Callable, *primals) -> Callable:
         conj_primals = tree_map(jax.numpy.conj, primals)
         return tree_map(jax.numpy.conj, fun(*(conj_primals)))
 
-    if any([jnp.iscomplexobj(_) for _ in primals]):
-        # fun is C->R or C->C
-        _primals = tree_map(jax.numpy.conj, primals)
-        _fun = conj_fun
-    elif jnp.iscomplexobj(fun(*primals)):
-        # fun is from R -> C
-        _primals = primals
-        _fun = conj_fun
-    else:
-        # fun is R->R
-        _fun = fun
-        _primals = primals
-    return jax.linear_transpose(_fun, *_primals)
+    return linear_transpose(conj_fun, *primals)
 
 
 # Append docstring from original jax function
@@ -196,38 +238,3 @@ def cvjp(fun: Callable, *primals, jidx: Optional[int] = None) -> Tuple[Tuple[Any
         return jax.tree_util.tree_map(jax.numpy.conj, fun_vjp(tangent.conj()))
 
     return primals_out, conj_vjp
-
-
-def eval_shape(fun: Callable, *args, **kwargs) -> Any:
-    """Compute the shape and dtype of a function without executing it.
-
-    Compute the shape and dtype of a function without executing it, via
-    a call to :func:`jax.eval_shape`, with ``args`` and ``kwargs`` mapped
-    to handle :class:`jax.ShapeDtypeStruct` objects with nested shapes
-    corresponding to :class:`.BlockArray` objects.
-
-    Args:
-        fun: The function for which the output shape/dtype are to be
-          evaluated.
-        *args: Positional arguments.
-        **kwargs: Keyword Arguments.
-
-    Returns:
-        A nested PyTree containing :class:`jax.ShapeDtypeStruct` objects
-        as leaves.
-    """
-
-    def _convert_ba_shape(arg):
-        """Convert a ShapeDtypeStruct with nested shape intp a BlockArray
-        of ShapeDtypeStruct.
-        """
-        if isinstance(arg, jax.ShapeDtypeStruct) and scico.numpy.util.is_nested(arg.shape):
-            return scico.numpy.BlockArray(
-                [jax.ShapeDtypeStruct(blk_shape, dtype=arg.dtype) for blk_shape in arg.shape]
-            )
-        else:
-            return arg
-
-    mapped_args = jax.tree_util.tree_map(_convert_ba_shape, args)
-    mapped_kwargs = jax.tree_util.tree_map(_convert_ba_shape, kwargs)
-    return jax.eval_shape(fun, *mapped_args, **mapped_kwargs)

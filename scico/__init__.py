@@ -28,15 +28,24 @@ from jax import custom_jvp, custom_vjp, hessian, jacfwd, jvp, linearize, vjp
 import jaxlib
 
 from . import numpy
-from ._core import cvjp, eval_shape, grad, jacrev, linear_adjoint, value_and_grad
+from ._core import (
+    cvjp,
+    eval_shape,
+    grad,
+    jacrev,
+    linear_adjoint,
+    linear_transpose,
+    value_and_grad,
+)
 
 # See https://github.com/google/jax/issues/19444
 jax.config.update("jax_default_matmul_precision", "highest")
 
 __all__ = [
+    "eval_shape",
     "grad",
     "value_and_grad",
-    "eval_shape",
+    "linear_transpose",
     "linear_adjoint",
     "vjp",
     "cvjp",
