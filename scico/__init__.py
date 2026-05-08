@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2025 by SCICO Developers
+# Copyright (C) 2021-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -28,7 +28,7 @@ from jax import custom_jvp, custom_vjp, hessian, jacfwd, jvp, linearize, vjp
 import jaxlib
 
 from . import numpy
-from ._autograd import cvjp, grad, jacrev, linear_adjoint, value_and_grad
+from ._core import cvjp, eval_shape, grad, jacrev, linear_adjoint, value_and_grad
 
 # See https://github.com/google/jax/issues/19444
 jax.config.update("jax_default_matmul_precision", "highest")
@@ -36,6 +36,7 @@ jax.config.update("jax_default_matmul_precision", "highest")
 __all__ = [
     "grad",
     "value_and_grad",
+    "eval_shape",
     "linear_adjoint",
     "vjp",
     "cvjp",

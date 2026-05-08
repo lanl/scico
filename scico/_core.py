@@ -1,10 +1,11 @@
-# Copyright (C) 2020-2024 by SCICO Developers
+# Copyright (C) 2020-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Automatic differentiation tools."""
+"""Extensions of core jax functions, including tools for automatic differentiation
+and shape evaluation."""
 
 from typing import Any, Callable, Optional, Sequence, Tuple, Union
 
@@ -12,6 +13,8 @@ import jax
 import jax.numpy as jnp
 from jax.tree_util import tree_map
 
+import scico.numpy
+import scico.numpy.util
 import scico.util
 
 
@@ -193,3 +196,38 @@ def cvjp(fun: Callable, *primals, jidx: Optional[int] = None) -> Tuple[Tuple[Any
         return jax.tree_util.tree_map(jax.numpy.conj, fun_vjp(tangent.conj()))
 
     return primals_out, conj_vjp
+
+
+def eval_shape(fun: Callable, *args, **kwargs) -> Any:
+    """Compute the shape and dtype of a function without executing it.
+
+    Compute the shape and dtype of a function without executing it, via
+    a call to :func:`jax.eval_shape`, with ``args`` and ``kwargs`` mapped
+    to handle :class:`jax.ShapeDtypeStruct` objects with nested shapes
+    corresponding to :class:`.BlockArray` objects.
+
+    Args:
+        fun: The function for which the output shape/dtype are to be
+          evaluated.
+        *args: Positional arguments.
+        **kwargs: Keyword Arguments.
+
+    Returns:
+        A nested PyTree containing :class:`jax.ShapeDtypeStruct` objects
+        as leaves.
+    """
+
+    def _convert_ba_shape(arg):
+        """Convert a ShapeDtypeStruct with nested shape into a BlockArray
+        of ShapeDtypeStruct.
+        """
+        if isinstance(arg, jax.ShapeDtypeStruct) and scico.numpy.util.is_nested(arg.shape):
+            return scico.numpy.BlockArray(
+                [jax.ShapeDtypeStruct(blk_shape, dtype=arg.dtype) for blk_shape in arg.shape]
+            )
+        else:
+            return arg
+
+    mapped_args = jax.tree_util.tree_map(_convert_ba_shape, args)
+    mapped_kwargs = jax.tree_util.tree_map(_convert_ba_shape, kwargs)
+    return jax.eval_shape(fun, *mapped_args, **mapped_kwargs)
