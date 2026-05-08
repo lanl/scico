@@ -11,6 +11,7 @@ from typing import Any, Callable, Optional, Sequence, Union
 import jax
 
 import scico.numpy as snp
+from scico._core import linear_transpose
 from scico.numpy.util import indexed_shape, is_nested
 from scico.typing import ArrayIndex, BlockShape, DType, Shape
 
@@ -125,9 +126,7 @@ class Crop(LinearOperator):
         # input shape of this operator.
         pad_shape = jax.eval_shape(pad, jax.ShapeDtypeStruct(input_shape, dtype=input_dtype)).shape
         output_shape = tuple((2 * snp.array(input_shape) - snp.array(pad_shape)).tolist())
-        pad_adjoint = jax.linear_transpose(
-            pad, jax.ShapeDtypeStruct(output_shape, dtype=input_dtype)
-        )
+        pad_adjoint = linear_transpose(pad, jax.ShapeDtypeStruct(output_shape, dtype=input_dtype))
         super().__init__(
             input_shape=input_shape,
             input_dtype=input_dtype,
