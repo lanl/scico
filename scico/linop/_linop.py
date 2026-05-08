@@ -186,7 +186,9 @@ class LinearOperator(Operator):
 
     def _set_adjoint(self):
         """Automatically create adjoint method."""
-        adj_fun = linear_adjoint(self.__call__, snp.zeros(self.input_shape, dtype=self.input_dtype))
+        adj_fun = linear_adjoint(
+            self._eval, jax.ShapeDtypeStruct(self.input_shape, dtype=self.input_dtype)
+        )
         self._adj = lambda x: adj_fun(x)[0]
 
     def _set_gram(self):
