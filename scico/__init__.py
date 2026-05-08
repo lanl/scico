@@ -28,25 +28,20 @@ from jax import custom_jvp, custom_vjp, hessian, jacfwd, jvp, linearize, vjp
 import jaxlib
 
 from . import numpy
-from ._core import cvjp, eval_shape, grad, jacrev, linear_adjoint, value_and_grad
+from ._core import *
+from ._core import __all__ as _core_all
 
 # See https://github.com/google/jax/issues/19444
 jax.config.update("jax_default_matmul_precision", "highest")
 
-__all__ = [
-    "grad",
-    "value_and_grad",
-    "eval_shape",
-    "linear_adjoint",
-    "vjp",
-    "cvjp",
-    "jvp",
-    "jacfwd",
-    "jacrev",
-    "linearize",
-    "hessian",
+__all__ = _core_all + [
     "custom_jvp",
     "custom_vjp",
+    "hessian",
+    "jacfwd",
+    "jvp",
+    "linearize",
+    "vjp",
 ]
 
 # Imported items in __all__ appear to originate in top-level functional module

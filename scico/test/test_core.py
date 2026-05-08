@@ -87,6 +87,34 @@ def test_value_and_grad_aux(testobj):
     np.testing.assert_allclose(sgrad, an_grad, rtol=1e-4)
 
 
+@pytest.mark.parametrize("shape", [(2, 3), ((2, 3), (4,))])
+def test_linear_transpose(shape):
+    fun = lambda x: snp.pad(x, 2)
+    za = snp.zeros(shape, dtype=snp.float32)
+    fza = fun(za)
+    dts = jax.ShapeDtypeStruct(shape, dtype=snp.float32)
+    lt_za = scico.linear_transpose(fun, za)
+    lt_dts = scico.linear_transpose(fun, dts)
+    lt_za_fza = lt_za(fza)[0]
+    lt_dts_fza = lt_dts(fza)[0]
+    assert lt_za_fza.shape == lt_dts_fza.shape
+    assert lt_za_fza.dtype == lt_dts_fza.dtype
+
+
+@pytest.mark.parametrize("shape", [(2, 3), ((2, 3), (4,))])
+def test_linear_adjoint_shape(shape):
+    fun = lambda x: snp.pad(x, 2)
+    za = snp.zeros(shape, dtype=snp.float32)
+    fza = fun(za)
+    dts = jax.ShapeDtypeStruct(shape, dtype=snp.float32)
+    lt_za = scico.linear_adjoint(fun, za)
+    lt_dts = scico.linear_adjoint(fun, dts)
+    lt_za_fza = lt_za(fza)[0]
+    lt_dts_fza = lt_dts(fza)[0]
+    assert lt_za_fza.shape == lt_dts_fza.shape
+    assert lt_za_fza.dtype == lt_dts_fza.dtype
+
+
 def test_linear_adjoint(testobj):
     # Verify that linear_adjoint returns a function that
     # implements f(y) = A.conj().T @ y
