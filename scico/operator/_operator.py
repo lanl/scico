@@ -19,6 +19,7 @@ import jax
 import jax.numpy as jnp
 from jax.dtypes import result_type
 
+import scico
 import scico.numpy as snp
 from scico.numpy import Array, BlockArray
 from scico.numpy.util import dtype_name, is_nested, shape_to_size
@@ -141,16 +142,18 @@ class Operator:
                 "Operator is an abstract base class when argument 'eval_fn' is not specified."
             )
 
-        # If the shape isn't specified by user we can infer it using by invoking the function
+        # If the output shape/dtype aren't specified, they can be inferred
+        # using scico.eval_shape
         if output_shape is None or output_dtype is None:
-            tmp = self(snp.zeros(self.input_shape, dtype=input_dtype))
+            dts = scico.eval_shape(
+                self._eval, jax.ShapeDtypeStruct(self.input_shape, dtype=input_dtype)
+            )
         if output_shape is None:
-            self.output_shape = tmp.shape  # type: ignore
+            self.output_shape = dts.shape  # type: ignore
         else:
             self.output_shape = (output_shape,) if isinstance(output_shape, int) else output_shape
-
         if output_dtype is None:
-            self.output_dtype = tmp.dtype
+            self.output_dtype = dts.dtype
         else:
             self.output_dtype = output_dtype
 
