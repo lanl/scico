@@ -1,18 +1,31 @@
-# Copyright (C) 2020-2024 by SCICO Developers
+# Copyright (C) 2020-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Automatic differentiation tools."""
+"""Extensions of core jax functions, including tools for automatic differentiation
+and shape evaluation."""
 
+import sys
 from typing import Any, Callable, Optional, Sequence, Tuple, Union
 
 import jax
-import jax.numpy as jnp
 from jax.tree_util import tree_map
 
+import scico.numpy
+import scico.numpy.util
 import scico.util
+
+__all__ = [
+    "cvjp",
+    "eval_shape",
+    "grad",
+    "jacrev",
+    "linear_adjoint",
+    "linear_transpose",
+    "value_and_grad",
+]
 
 
 def _append_jax_docs(fn, jaxfn=None):
@@ -28,6 +41,31 @@ def _append_jax_docs(fn, jaxfn=None):
     doc = "  " + fn.__doc__.replace("\n    ", "\n  ")  # deal with indentation differences
     jaxdoc = "\n".join(jaxfn.__doc__.split("\n")[2:])  # strip initial lines
     return doc + f"\n  Docstring for :func:`jax.{name}`:\n\n" + jaxdoc
+
+
+def _convert_ba_dts(arg: Any) -> Any:
+    """Convert a ShapeDtypeStruct with nested shape into a BlockArray
+    of ShapeDtypeStruct.
+    """
+    if isinstance(arg, jax.ShapeDtypeStruct) and scico.numpy.util.is_nested(arg.shape):
+        return scico.numpy.BlockArray(
+            [jax.ShapeDtypeStruct(blk_shape, dtype=arg.dtype) for blk_shape in arg.shape]
+        )
+    else:
+        return arg
+
+
+def eval_shape(fun: Callable, *args, **kwargs) -> Any:
+    """Compute the shape and dtype of a function without executing it.
+
+    Compute the shape and dtype of a function without executing it, via
+    a call to :func:`jax.eval_shape`, with ``args`` and ``kwargs`` mapped
+    to handle :class:`jax.ShapeDtypeStruct` objects with nested shapes
+    corresponding to :class:`.BlockArray` objects.
+    """
+    mapped_args = jax.tree_util.tree_map(_convert_ba_dts, args)
+    mapped_kwargs = jax.tree_util.tree_map(_convert_ba_dts, kwargs)
+    return jax.eval_shape(fun, *mapped_args, **mapped_kwargs)
 
 
 def grad(
@@ -56,10 +94,6 @@ def grad(
         return tree_map(jax.numpy.conj, jg)
 
     return conjugated_grad_aux if has_aux else conjugated_grad
-
-
-# Append docstring from original jax function
-grad.__doc__ = _append_jax_docs(grad)
 
 
 def value_and_grad(
@@ -91,8 +125,16 @@ def value_and_grad(
     return conjugated_value_and_grad_aux if has_aux else conjugated_value_and_grad
 
 
-# Append docstring from original jax function
-value_and_grad.__doc__ = _append_jax_docs(value_and_grad)
+def linear_transpose(fun: Callable, *primals) -> Callable:
+    """Transpose a function that is guaranteed to be linear.
+
+    :func:`scico.linear_adjoint` differs from :func:`jax.linear_transpose`
+    in that it correctly handles primals consisting of
+    :class:`jax.ShapeDtypeStruct` objects with nested shapes, i.e.
+    corresponding to :class:`.BlockArray` shapes.
+    """
+    mapped_primals = jax.tree_util.tree_map(_convert_ba_dts, primals)
+    return jax.linear_transpose(fun, *mapped_primals)
 
 
 def linear_adjoint(fun: Callable, *primals) -> Callable:
@@ -108,23 +150,7 @@ def linear_adjoint(fun: Callable, *primals) -> Callable:
         conj_primals = tree_map(jax.numpy.conj, primals)
         return tree_map(jax.numpy.conj, fun(*(conj_primals)))
 
-    if any([jnp.iscomplexobj(_) for _ in primals]):
-        # fun is C->R or C->C
-        _primals = tree_map(jax.numpy.conj, primals)
-        _fun = conj_fun
-    elif jnp.iscomplexobj(fun(*primals)):
-        # fun is from R -> C
-        _primals = primals
-        _fun = conj_fun
-    else:
-        # fun is R->R
-        _fun = fun
-        _primals = primals
-    return jax.linear_transpose(_fun, *_primals)
-
-
-# Append docstring from original jax function
-linear_adjoint.__doc__ = _append_jax_docs(linear_adjoint, jaxfn=jax.linear_transpose)
+    return linear_transpose(conj_fun, *primals)
 
 
 def jacrev(
@@ -146,10 +172,6 @@ def jacrev(
         return tree_map(jax.numpy.conj, tmp)
 
     return conjugated_jacrev
-
-
-# Append docstring from original jax function
-jacrev.__doc__ = _append_jax_docs(jacrev)
 
 
 def cvjp(fun: Callable, *primals, jidx: Optional[int] = None) -> Tuple[Tuple[Any, ...], Callable]:
@@ -193,3 +215,12 @@ def cvjp(fun: Callable, *primals, jidx: Optional[int] = None) -> Tuple[Tuple[Any
         return jax.tree_util.tree_map(jax.numpy.conj, fun_vjp(tangent.conj()))
 
     return primals_out, conj_vjp
+
+
+# Append docstring from original jax function
+for name in __all__:
+    if name == "cvjp":
+        continue
+    func = getattr(sys.modules[__name__], name)
+    jaxfn = jax.linear_transpose if name == "linear_adjoint" else None
+    func.__doc__ = _append_jax_docs(func, jaxfn=jaxfn)

@@ -17,7 +17,6 @@ from typing import List, Optional, Tuple, Union
 import numpy as np
 
 import jax
-import jax.numpy as jnp
 
 import imageio.v3 as iio
 
@@ -28,7 +27,7 @@ from scipy.io import loadmat
 from scipy.ndimage import zoom
 
 
-def rgb2gray(rgb: snp.Array) -> snp.Array:
+def rgb2gray(rgb: np.ndarray) -> np.ndarray:
     """Convert an RGB image (or images) to grayscale.
 
     Args:
@@ -43,8 +42,8 @@ def rgb2gray(rgb: snp.Array) -> snp.Array:
         shape = (1, 1, 3)
     else:
         shape = (1, 1, 3, 1)
-    w = snp.array([0.299, 0.587, 0.114], dtype=rgb.dtype).reshape(shape)
-    return snp.sum(w * rgb, axis=2)
+    w = np.array([0.299, 0.587, 0.114], dtype=rgb.dtype).reshape(shape)
+    return np.sum(w * rgb, axis=2)
 
 
 def volume_read(path: str, ext: str = "tif") -> np.ndarray:
@@ -382,7 +381,7 @@ def gaussian(shape: Shape, sigma: Optional[np.ndarray] = None) -> np.ndarray:
     return const * np.exp(-xtsigmax / 2.0)
 
 
-def create_cone(shape: Shape, center: Optional[List[float]] = None) -> snp.Array:
+def create_cone(shape: Shape, center: Optional[List[float]] = None) -> np.ndarray:
     """Compute a map of distances from a center pixel.
 
     Args:
@@ -398,18 +397,18 @@ def create_cone(shape: Shape, center: Optional[List[float]] = None) -> snp.Array
     if center is None:
         center = [(dim - 1) / 2 for dim in shape]
 
-    coords = [snp.arange(0, dim) for dim in shape]
-    coord_mesh = snp.meshgrid(*coords, sparse=True, indexing="ij")
+    coords = [np.arange(0, dim) for dim in shape]
+    coord_mesh = np.meshgrid(*coords, sparse=True, indexing="ij")
 
     dist_map = sum([(coord_mesh[i] - center[i]) ** 2 for i in range(len(coord_mesh))])
-    dist_map = snp.sqrt(dist_map)
+    dist_map = np.sqrt(dist_map)
 
     return dist_map
 
 
 def create_circular_phantom(
     shape: Shape, radius_list: list, val_list: list, center: Optional[list] = None
-) -> snp.Array:
+) -> np.ndarray:
     """Construct a circular phantom with given radii and intensities.
 
     This functions supports both circular (``shape`` is 2D) and spherical
@@ -428,10 +427,11 @@ def create_circular_phantom(
 
     dist_map = create_cone(shape, center)
 
-    img = snp.zeros(shape)
+    img = np.zeros(shape)
     for r, val in zip(radius_list, val_list):
         # In numpy: img[dist_map < r] = val
-        img = img.at[dist_map < r].set(val)
+        # In jax.numpy: img = img.at[dist_map < r].set(val)
+        img[dist_map < r] = val
 
     return img
 
@@ -443,7 +443,7 @@ def create_3d_foam_phantom(
     r_std: float = 0.001,
     pad: float = 0.01,
     is_random: bool = False,
-) -> snp.Array:
+) -> np.ndarray:
     """Construct a 3D phantom with random radii and centers.
 
     Args:
@@ -467,18 +467,20 @@ def create_3d_foam_phantom(
     if not is_random:
         np.random.seed(1)
 
-    coord_list = [snp.linspace(0, 1, N) for N in im_shape]
-    x = snp.stack(snp.meshgrid(*coord_list, indexing="ij"), axis=-1)
+    coord_list = [np.linspace(0, 1, N) for N in im_shape]
+    x = np.stack(np.meshgrid(*coord_list, indexing="ij"), axis=-1)
 
     centers = np.random.uniform(low=r_mean + pad, high=1 - r_mean - pad, size=(N_sphere, 3))
     radii = r_std * np.random.randn(N_sphere) + r_mean
 
-    im = snp.zeros(im_shape) + c_lo
+    im = np.zeros(im_shape) + c_lo
     for c, r in zip(centers, radii):  # type: ignore
-        dist = snp.sum((x - c) ** 2, axis=-1)
-        if snp.mean(im[dist < r**2] - c_lo) < 0.01 * c_hi:
-            # equivalent to im[dist < r**2] = c_hi in numpy
-            im = im.at[dist < r**2].set(c_hi)
+        dist = np.sum((x - c) ** 2, axis=-1)
+        select = im[dist < r**2]
+        if select.size > 0 and np.mean(select - c_lo) < 0.01 * c_hi:
+            # In numpy: im[dist < r**2] = c_hi
+            # In jax.numpy: im = im.at[dist < r**2].set(c_hi)
+            im[dist < r**2] = c_hi
 
     return im
 
@@ -524,7 +526,7 @@ def create_conv_sparse_phantom(Nx: int, Nnz: int) -> Tuple[np.ndarray, np.ndarra
     return h, x
 
 
-def create_tangle_phantom(nx: int, ny: int, nz: int) -> snp.Array:
+def create_tangle_phantom(nx: int, ny: int, nz: int) -> np.ndarray:
     """Construct a 3D phantom using the tangle function.
 
     Args:
@@ -542,6 +544,9 @@ def create_tangle_phantom(nx: int, ny: int, nz: int) -> snp.Array:
 
     # default ordering for meshgrid is `xy`, this makes inputs of length
     # M, N, P will create a mesh of N, M, P. Thus we want ys, zs and xs.
+    xx: np.ndarray
+    yy: np.ndarray
+    zz: np.ndarray
     xx, yy, zz = np.meshgrid(ys, zs, xs, copy=True)
     xx = 3.0 * xx
     yy = 3.0 * yy
@@ -559,7 +564,7 @@ def create_tangle_phantom(nx: int, ny: int, nz: int) -> snp.Array:
 
 
 @partial(jax.jit, static_argnums=0)
-def create_block_phantom(out_shape: Shape) -> snp.Array:
+def create_block_phantom(out_shape: Shape) -> np.ndarray:
     """Construct a blocky 3D phantom.
 
     Args:
@@ -570,7 +575,7 @@ def create_block_phantom(out_shape: Shape) -> snp.Array:
 
     """
     # make the phantom at a low resolution
-    low_res = jnp.array(
+    low_res = np.array(
         [
             [
                 [0.0, 0.0, 0.0],
@@ -589,10 +594,10 @@ def create_block_phantom(out_shape: Shape) -> snp.Array:
             ],
         ]
     )
-    positions = jnp.stack(
-        jnp.meshgrid(*[jnp.linspace(-0.5, 2.5, s) for s in out_shape], indexing="ij")
+    positions = np.stack(
+        np.meshgrid(*[np.linspace(-0.5, 2.5, s) for s in out_shape], indexing="ij")
     )
-    indices = jnp.round(positions).astype(int)
+    indices = np.round(positions).astype(int)
     return low_res[indices[0], indices[1], indices[2]]
 
 
@@ -637,6 +642,5 @@ def phase_diff(x: snp.Array, y: snp.Array) -> snp.Array:
     Returns:
         Array of angular distances.
     """
-
     mod = snp.mod(snp.abs(x - y), 2 * snp.pi)
     return snp.minimum(mod, 2 * snp.pi - mod)
