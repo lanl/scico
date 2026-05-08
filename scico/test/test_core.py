@@ -87,6 +87,34 @@ def test_value_and_grad_aux(testobj):
     np.testing.assert_allclose(sgrad, an_grad, rtol=1e-4)
 
 
+@pytest.mark.parametrize("shape", [(2, 3), ((2, 3), (4,))])
+def test_linear_transpose(shape):
+    fun = lambda x: snp.pad(x, 2)
+    za = snp.zeros(shape, dtype=snp.float32)
+    fza = fun(za)
+    dts = jax.ShapeDtypeStruct(shape, dtype=snp.float32)
+    lt_za = scico.linear_transpose(fun, za)
+    lt_dts = scico.linear_transpose(fun, dts)
+    lt_za_fza = lt_za(fza)[0]
+    lt_dts_fza = lt_dts(fza)[0]
+    assert lt_za_fza.shape == lt_dts_fza.shape
+    assert lt_za_fza.dtype == lt_dts_fza.dtype
+
+
+@pytest.mark.parametrize("shape", [(2, 3), ((2, 3), (4,))])
+def test_linear_adjoint_shape(shape):
+    fun = lambda x: snp.pad(x, 2)
+    za = snp.zeros(shape, dtype=snp.float32)
+    fza = fun(za)
+    dts = jax.ShapeDtypeStruct(shape, dtype=snp.float32)
+    lt_za = scico.linear_adjoint(fun, za)
+    lt_dts = scico.linear_adjoint(fun, dts)
+    lt_za_fza = lt_za(fza)[0]
+    lt_dts_fza = lt_dts(fza)[0]
+    assert lt_za_fza.shape == lt_dts_fza.shape
+    assert lt_za_fza.dtype == lt_dts_fza.dtype
+
+
 def test_linear_adjoint(testobj):
     # Verify that linear_adjoint returns a function that
     # implements f(y) = A.conj().T @ y
@@ -150,3 +178,57 @@ def test_cvjp(dtype):
         v[k] = 1.0
         np.testing.assert_allclose(jfnx(v)[0], A[k].conj())
         np.testing.assert_allclose(jfny(v)[0], B[k].conj())
+
+
+@pytest.mark.parametrize(
+    "argskwargs",
+    [
+        [(snp.ones((3,)), snp.ones((3,)), 1.0), {}],
+        [(1.1 * snp.ones((3,)), snp.ones((3,))), {"z": snp.zeros((3,))}],
+        [(snp.ones(((2,), (3, 2))), 1.0, 1.0), {}],
+        [
+            (snp.ones(((2,), (3, 2))), snp.blockarray(((2,), (3, 2)))),
+            {"z": 2.0 * snp.ones(((2,), (3, 2)))},
+        ],
+    ],
+)
+def test_eval_shape_1(argskwargs):
+    def _fun(x, y, z):
+        """Test function"""
+        return x + y * z
+
+    def _conv(arg):
+        """Convert array to jax.ShapeDtypeStruct."""
+        if hasattr(arg, "shape"):
+            return jax.ShapeDtypeStruct(arg.shape, dtype=arg.dtype)
+        else:
+            return arg
+
+    args, kwargs = argskwargs
+    # Reference shape computed for array objects
+    ref_shape = jax.eval_shape(_fun, *args, **kwargs)
+    map_args = [_conv(v) for v in args]
+    map_kwargs = {k: _conv(v) for k, v in kwargs.items()}
+    # Test shape computed for jax.ShapeDtypeStruct objects
+    tst_shape = scico.eval_shape(_fun, *map_args, **map_kwargs)
+    assert tst_shape.shape == ref_shape.shape
+
+
+@pytest.mark.parametrize(
+    "arrdts",
+    [
+        [snp.ones((3, 2), dtype=snp.float32), jax.ShapeDtypeStruct((3, 2), dtype=snp.float32)],
+        [
+            snp.ones(((3,), (2, 3)), dtype=snp.float32),
+            jax.ShapeDtypeStruct(((3,), (2, 3)), dtype=snp.float32),
+        ],
+    ],
+)
+def test_eval_shape_2(arrdts):
+    _fun = lambda x: snp.pad(x, 2)
+    arr, dts = arrdts
+    # Reference shape computed for array
+    ref_shape = jax.eval_shape(_fun, arr)
+    # Test shape computed for jax.ShapeDtypeStruct
+    tst_shape = scico.eval_shape(_fun, dts)
+    assert tst_shape.shape == ref_shape.shape

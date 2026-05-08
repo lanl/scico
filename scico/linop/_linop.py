@@ -1,4 +1,4 @@
-# Copyright (C) 2020-2025 by SCICO Developers
+# Copyright (C) 2020-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -20,7 +20,7 @@ import jax.numpy as jnp
 from jax.dtypes import result_type
 
 import scico.numpy as snp
-from scico._autograd import linear_adjoint
+from scico._core import linear_adjoint
 from scico.numpy import Array, BlockArray
 from scico.numpy.util import is_complex_dtype
 from scico.operator._operator import Operator, _wrap_mul_div_scalar
@@ -186,7 +186,9 @@ class LinearOperator(Operator):
 
     def _set_adjoint(self):
         """Automatically create adjoint method."""
-        adj_fun = linear_adjoint(self.__call__, snp.zeros(self.input_shape, dtype=self.input_dtype))
+        adj_fun = linear_adjoint(
+            self._eval, jax.ShapeDtypeStruct(self.input_shape, dtype=self.input_dtype)
+        )
         self._adj = lambda x: adj_fun(x)[0]
 
     def _set_gram(self):

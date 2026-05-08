@@ -413,7 +413,14 @@ def is_collapsible(shapes: Sequence[Union[Shape, BlockShape]]) -> bool:
     """Determine whether a sequence of shapes can be collapsed.
 
     Return ``True`` if the a list of shapes represent arrays that can
-    be stacked, i.e., they are all the same."""
+    be stacked, i.e., they are all the same.
+
+    Args:
+        shapes: A sequence of shapes.
+
+    Returns:
+        A boolean value indicating whether the shapes are all the same.
+    """
     return all(s == shapes[0] for s in shapes)
 
 
@@ -421,8 +428,37 @@ def is_blockable(shapes: Sequence[Union[Shape, BlockShape]]) -> TypeGuard[Union[
     """Determine whether a sequence of shapes could be a :class:`BlockArray` shape.
 
     Return ``True`` if the sequence of shapes represent arrays that can
-    be combined into a :class:`BlockArray`, i.e., none are nested."""
+    be combined into a :class:`BlockArray`, i.e., none are nested.
+
+    Args:
+        shapes: A sequence of shapes.
+
+    Returns:
+        A boolean value indicating whether any of the shapes are nested.
+    """
     return not any(is_nested(s) for s in shapes)
+
+
+def shape_dtype_rep(
+    shape: Union[Shape, BlockShape], dtype: DType
+) -> Union[jax.ShapeDtypeStruct, snp.BlockArray]:
+    """Construct a representation of array or blockarray shape and dtype.
+
+    Construct a representation of array or block array shape and dtype
+    that is suitable for both jax arrays and scico blockarrays.
+
+    Args:
+       shape: Array or blockarray shape.
+       dtype: Array or blockarray dtype.
+
+    Returns:
+       A :class:`jax.ShapeDtypeStruct` or a :class:`.BlockArray`
+       containing :class:`jax.ShapeDtypeStruct`s.
+    """
+    if is_nested(shape):  # block array
+        return snp.BlockArray([jax.ShapeDtypeStruct(blk_shape, dtype=dtype) for blk_shape in shape])
+    else:  # standard array
+        return jax.ShapeDtypeStruct(shape, dtype=dtype)
 
 
 def broadcast_nested_shapes(

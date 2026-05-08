@@ -11,6 +11,7 @@ from typing import Any, Callable, Optional, Sequence, Tuple, Union
 
 import jax
 
+import scico
 import scico.numpy as snp
 from scico.linop import LinearOperator, jacobian
 from scico.numpy import Array, BlockArray
@@ -69,20 +70,20 @@ class Function:
                 "Function is an abstract base class when argument 'eval_fn' is not specified."
             )
 
-        # If the output shape or dtype isn't specified, it can be
-        # inferred by calling the evaluation function.
+        # If the output shape/dtype aren't specified, they can be inferred
+        # using scico.eval_shape
         if output_shape is None or output_dtype is None:
-            zeros = [
-                snp.zeros(shape, dtype=dtype)
+            dts_in = [
+                jax.ShapeDtypeStruct(shape, dtype=dtype)
                 for (shape, dtype) in zip(self.input_shapes, self.input_dtypes)
             ]
-            tmp = self._eval(*zeros)
+            dts_out = scico.eval_shape(self._eval, *dts_in)
         if output_shape is None:
-            self.output_shape = tmp.shape  # type: ignore
+            self.output_shape = dts_out.shape  # type: ignore
         else:
             self.output_shape = output_shape
         if output_dtype is None:
-            self.output_dtype = tmp.dtype
+            self.output_dtype = dts_out.dtype
         else:
             self.output_dtype = output_dtype
 
