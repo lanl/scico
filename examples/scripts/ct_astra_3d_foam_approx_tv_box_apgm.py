@@ -45,6 +45,13 @@ from scico.linop.xray.astra import XRayTransform3D, angle_to_vector
 from scico.optimize import AcceleratedPGM
 from scico.util import device_info
 
+try:
+    import jax_smi
+
+    have_jax_smi = True
+except ImportError:
+    have_jax_smi = False
+
 """
 Create a ground truth image and projector.
 """
@@ -65,6 +72,12 @@ mesh = jax.make_mesh(
     axis_types=(AxisType.Auto,),
 )
 xshard = NamedSharding(mesh, P("a"))
+
+
+# If jax_smi module installed, initialize it to allow memory usage tracking
+# using jax-smi.
+if have_jax_smi:
+    jax_smi.initialise_tracking()
 
 
 # It would have been more straightforward to use the det_spacing and angles keywords
