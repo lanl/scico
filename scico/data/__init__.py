@@ -70,18 +70,26 @@ def _npzread(filename: str, array: str, path: Optional[str] = None) -> np.ndarra
     return npz[array]
 
 
-def foam_phantom(size: int = 512):
+def foam_phantom(size: int = 512, asfloat: bool = True):
     """Return a 3D foam phantom.
 
     Args:
         size: Size of cubic volume. Default value is `512`, selecting the
            512 x 512 x 512 voxel version. Other valid options are `1024`
            and `2048`.
+        asfloat: Flag indicating whether the returned image should be
+          converted to :attr:`~numpy.float32` dtype with a range [0, 1]
+          from the original :attr:`~numpy.uint8` dtype with a range
+          [0, 255].
 
     Returns:
         Foam phantom as 3D array.
     """
-    return _npzread(f"foam_3d_{size:04d}.npz", "volume")
+    vol = _npzread(f"foam_3d_{size:04d}.npz", "volume")
+    if asfloat:
+        return vol.astype(np.float32) / 255.0
+    else:
+        return vol
 
 
 def _flax_data_path(filename: str) -> str:
