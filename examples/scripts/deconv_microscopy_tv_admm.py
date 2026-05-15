@@ -159,7 +159,7 @@ solver = ADMM(
     subproblem_solver=CircularConvolve3DSolver(shard),
 )
 
-print("Solving on %s\n" % util.device_info())
+print("Solving on %s\n" % util.device_info(shard))
 x_pad = solver.solve()
 solve_stats = solver.itstat_object.history(transpose=True)
 x = np.array(x_pad)[: y.shape[0], : y.shape[1], : y.shape[2]]
