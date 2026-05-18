@@ -66,7 +66,7 @@ def _npzread(filename: str, array: str, path: Optional[str] = None) -> np.ndarra
 
     if path is None:
         path = os.path.join(os.path.dirname(__file__), "examples")
-    npz = np.load(os.path.join(path, filename))
+    npz = np.load(os.path.join(path, filename), allow_pickle=True)
     return npz[array]
 
 
