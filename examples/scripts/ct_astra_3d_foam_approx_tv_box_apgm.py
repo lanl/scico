@@ -32,16 +32,13 @@ import jax
 from jax.sharding import AxisType, NamedSharding
 from jax.sharding import PartitionSpec as P
 
-from jax_smi import initialise_tracking
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-
-initialise_tracking()
-
 
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot
 from scico.data import foam_phantom
 from scico.linop.xray.astra import XRayTransform3D, angle_to_vector
+from scico.numpy.util import pad_to_divisible
 from scico.optimize import AcceleratedPGM
 from scico.util import device_info
 
@@ -80,13 +77,23 @@ if have_jax_smi:
     jax_smi.initialise_tracking()
 
 
+"""
+Pad volume to allow for sharding.
+"""
+vol_pad, vol_slice = pad_to_divisible(vol, axes=(0,), divisors=(num_dev,))
+
+
 # It would have been more straightforward to use the det_spacing and angles keywords
 # in this case (since vectors is just computed directly from these two quantities), but
 # the more general form is used here as a demonstration.
 C = XRayTransform3D(
-    vol.shape, det_count=det_count, vectors=vectors, input_sharding=xshard, output_sharding=xshard
+    vol_pad.shape,
+    det_count=det_count,
+    vectors=vectors,
+    input_sharding=xshard,
+    output_sharding=xshard,
 )  # CT projection operator
-y = C @ vol  # sinogram
+y = C @ vol_pad  # sinogram
 
 
 r"""
@@ -117,7 +124,7 @@ solver = AcceleratedPGM(
 Run the solver.
 """
 print(f"Solving on {device_info(xshard)}\n")
-vol_recon = solver.solve()
+vol_recon = solver.solve()[vol_slice]
 
 print(
     "TV Restruction\nSNR: %.2f (dB), MAE: %.3f"
