@@ -616,7 +616,7 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
                for more information.
             det_offset: Offset of the the detector center as a tuple
                (horizontal shift, vertical shift). Positive/negative
-               values correspond to a left/right and down/up shifts
+               values correspond to a left/right and up/down shifts
                respectively.
             angles: Array of projection angles in radians. This
                 parameter is  mutually exclusive with `vectors`.
