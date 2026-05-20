@@ -229,7 +229,7 @@ class XRayTransform2D(LinearOperator):
             angles: Array of projection angles in radians.
             det_offset: Offset of the rotation axis from the detector center.
                Positive/negative values correspond to a left/right shifts
-               respectively. Note that :meth`fbp` cannot be used when
+               respectively. Note that :meth:`.fbp` cannot be used when
                this offset is non-zero.
             volume_geometry: Specification of the shape of the
                discretized reconstruction volume. Must either be ``None``,
@@ -340,7 +340,7 @@ class XRayTransform2D(LinearOperator):
         Args:
             sino: Sinogram to reconstruct.
             filter_type: Select the filter to use. For a list of options
-               see `cfg.FilterType` in the `ASTRA documentation
+               see ``cfg.FilterType`` in the `ASTRA documentation
                <https://www.astra-toolbox.com/docs/algs/FBP_CUDA.html>`__.
 
         Returns:
