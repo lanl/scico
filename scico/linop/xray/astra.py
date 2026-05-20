@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2025 by SCICO Developers
+# Copyright (C) 2020-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -213,6 +213,7 @@ class XRayTransform2D(LinearOperator):
         det_count: int,
         det_spacing: float,
         angles: np.ndarray,
+        det_offset: float = 0.0,
         volume_geometry: Optional[List[float]] = None,
         device: str = "auto",
     ):
@@ -226,11 +227,16 @@ class XRayTransform2D(LinearOperator):
                `astra documentation <https://www.astra-toolbox.com/docs/geom2d.html#projection-geometries>`__
                for more information..
             angles: Array of projection angles in radians.
+            det_offset: Offset of the rotation axis from the detector center.
+               Positive/negative values correspond to a left/right shifts
+               respectively. Note that :meth`fbp` cannot be used when
+               this offset is non-zero.
             volume_geometry: Specification of the shape of the
-               discretized reconstruction volume. Must either ``None``,
-               in which case it is inferred from `input_shape`, or
-               follow the syntax described in the
-               `astra documentation <https://www.astra-toolbox.com/docs/geom2d.html#volume-geometries>`__.
+               discretized reconstruction volume. Must either be ``None``,
+               in which case it is inferred from `input_shape`, or be a
+               list of ``int`` or ``float`` scalars corresponding to the
+               valid parameters of function
+               `astra.create_vol_geom <https://www.astra-toolbox.com/docs/geom2d.html#volume-geometries>`__.
             device: Specifies device for projection operation.
                One of ["auto", "gpu", "cpu"]. If "auto", a GPU is used if
                available, otherwise, the CPU is used.
@@ -248,11 +254,14 @@ class XRayTransform2D(LinearOperator):
         # Set up all the ASTRA config
         self.det_spacing = det_spacing
         self.det_count = det_count
+        self.det_offset = det_offset
         self.angles: np.ndarray = np.array(angles)
 
         self.proj_geom: dict = astra.create_proj_geom(
             "parallel", det_spacing, det_count, self.angles
         )
+        if det_offset != 0.0:
+            self.proj_geom = astra.functions.geom_postalignment(self.proj_geom, det_offset)
 
         self.proj_id: Optional[int]
         self.input_shape: tuple = input_shape
@@ -338,6 +347,11 @@ class XRayTransform2D(LinearOperator):
             Reconstructed volume.
         """
 
+        if self.det_offset != 0.0:
+            raise ValueError(
+                "The fbp method may not be called when the detector offset" " is non-zero."
+            )
+
         def f(sino):
             sino = _ensure_writeable(sino)
             sino_id = astra.data2d.create("-sino", self.proj_geom, sino)
@@ -359,7 +373,7 @@ class XRayTransform2D(LinearOperator):
             # get the result
             out = astra.data2d.get(rec_id)
 
-            # cleanup FBP-specific arra
+            # cleanup FBP-specific array
             astra.algorithm.delete(alg_id)
             astra.data2d.delete(rec_id)
             astra.data2d.delete(sino_id)
