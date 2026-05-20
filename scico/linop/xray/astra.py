@@ -596,6 +596,7 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
         input_shape: Shape,
         det_count: Tuple[int, int],
         det_spacing: Optional[Tuple[float, float]] = None,
+        det_offset: Optional[Tuple[float, float]] = None,
         angles: Optional[np.ndarray] = None,
         vectors: Optional[np.ndarray] = None,
     ):
@@ -613,6 +614,10 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
             det_spacing: Spacing between detector elements. See the
                `astra documentation <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
                for more information.
+            det_offset: Offset of the the detector center as a tuple
+               (horizontal shift, vertical shift). Positive/negative
+               values correspond to a left/right and down/up shifts
+               respectively.
             angles: Array of projection angles in radians. This
                 parameter is  mutually exclusive with `vectors`.
             vectors: Array of ASTRA geometry specification vectors. This
@@ -659,6 +664,7 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
         output_shape: Shape = (det_count[0], Nview, det_count[1])
 
         self.det_count = det_count
+        self.det_offset = det_offset
         assert isinstance(det_count, (list, tuple))
         self.input_shape: tuple = input_shape
         self.vol_geom, self.proj_geom = self.create_astra_geometry(
@@ -668,6 +674,8 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
             angles=self.angles,
             vectors=self.vectors,
         )
+        if det_offset is not None:
+            self.proj_geom = astra.functions.geom_postalignment(self.proj_geom, det_offset)
 
         # Wrap our non-jax function to indicate we will supply fwd/rev mode functions
         self._eval = jax.custom_vjp(self._proj)
