@@ -107,6 +107,18 @@ def test_init(testobj):
         )
 
 
+def test_det_offset():
+    x = np.zeros((32, 32), dtype=np.float32)
+    x[8:-8, 8:-8] = 1.0
+    A = XRayTransform2D(x.shape, 40, 1.0, np.linspace(0, np.pi, 90))
+    shift = 4
+    As = XRayTransform2D(x.shape, 40, 1.0, np.linspace(0, np.pi, 90), shift)
+    y = A(x)
+    ys = As(x)
+    yss = np.roll(ys, shift, axis=1)
+    np.testing.assert_almost_equal(yss, y, decimal=4)
+
+
 def test_ATA_call(testobj):
     # Test for the call-based interface
     Ax = testobj.A(testobj.x)
