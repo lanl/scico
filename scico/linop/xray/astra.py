@@ -227,10 +227,11 @@ class XRayTransform2D(LinearOperator):
             det_spacing: Spacing between detector elements in the
                `projection geometry <astra-proj-geom2_>`__.
             angles: Array of projection angles in radians.
-            det_offset: Offset of the detector center. Positive/negative
-               values correspond to a left/right shifts respectively.
-               Note that :meth:`.fbp` cannot be used when this offset is
-               non-zero.
+            det_offset: Offset of the detector center. Negative/positive
+               values correspond to left/right detector shifts (i.e.
+               right/left shifts of the projection within the image)
+               respectively. Note that :meth:`.fbp` cannot be used when
+               this offset is non-zero.
             volume_geometry: Specification of the shape of the
                discretized reconstruction volume. Must either be ``None``,
                in which case it is inferred from `input_shape`, or be a
@@ -614,9 +615,10 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
             det_spacing: Spacing between detector elements in the
                `projection geometry <astra-proj-geom3_>`__.
             det_offset: Offset of the the detector center as a tuple
-               (horizontal shift, vertical shift). Positive/negative
-               values correspond to left/right and up/down shifts
-               respectively.
+               (horizontal shift, vertical shift). Negative/positive
+               values correspond to left/right and up/down detector
+               shifts (i.e. right/left and down/up shifts of the
+               projection within the image) respectively.
             angles: Array of projection angles in radians. This
                 parameter is  mutually exclusive with `vectors`.
             vectors: Array of ASTRA geometry specification vectors. This
