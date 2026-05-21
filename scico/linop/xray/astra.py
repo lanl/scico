@@ -227,10 +227,10 @@ class XRayTransform2D(LinearOperator):
                `astra documentation <https://www.astra-toolbox.com/docs/geom2d.html#projection-geometries>`__
                for more information..
             angles: Array of projection angles in radians.
-            det_offset: Offset of the rotation axis from the detector center.
-               Positive/negative values correspond to a left/right shifts
-               respectively. Note that :meth:`.fbp` cannot be used when
-               this offset is non-zero.
+            det_offset: Offset of the detector center. Positive/negative
+               values correspond to a left/right shifts respectively.
+               Note that :meth:`.fbp` cannot be used when this offset is
+               non-zero.
             volume_geometry: Specification of the shape of the
                discretized reconstruction volume. Must either be ``None``,
                in which case it is inferred from `input_shape`, or be a
@@ -616,7 +616,7 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
                for more information.
             det_offset: Offset of the the detector center as a tuple
                (horizontal shift, vertical shift). Positive/negative
-               values correspond to a left/right and up/down shifts
+               values correspond to left/right and up/down shifts
                respectively.
             angles: Array of projection angles in radians. This
                 parameter is  mutually exclusive with `vectors`.
