@@ -218,14 +218,14 @@ class XRayTransform2D(LinearOperator):
         device: str = "auto",
     ):
         """
+        .. _astra-proj-geom2: https://www.astra-toolbox.com/docs/geom2d.html#projection-geometries
+
         Args:
             input_shape: Shape of the input array.
-            det_count: Number of detector elements. See the
-               `astra documentation <https://www.astra-toolbox.com/docs/geom2d.html#projection-geometries>`__
-               for more information.
-            det_spacing: Spacing between detector elements. See the
-               `astra documentation <https://www.astra-toolbox.com/docs/geom2d.html#projection-geometries>`__
-               for more information..
+            det_count: Number of detector elements in the
+               `projection geometry <astra-proj-geom2_>`__.
+            det_spacing: Spacing between detector elements in the
+               `projection geometry <astra-proj-geom2_>`__.
             angles: Array of projection angles in radians.
             det_offset: Offset of the detector center. Positive/negative
                values correspond to a left/right shifts respectively.
@@ -235,8 +235,7 @@ class XRayTransform2D(LinearOperator):
                discretized reconstruction volume. Must either be ``None``,
                in which case it is inferred from `input_shape`, or be a
                list of ``int`` or ``float`` scalars corresponding to the
-               valid parameters of function
-               `astra.create_vol_geom <https://www.astra-toolbox.com/docs/geom2d.html#volume-geometries>`__.
+               valid parameters of :func:`astra.creators.create_vol_geom`.
             device: Specifies device for projection operation.
                One of ["auto", "gpu", "cpu"]. If "auto", a GPU is used if
                available, otherwise, the CPU is used.
@@ -601,6 +600,8 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
         vectors: Optional[np.ndarray] = None,
     ):
         """
+        .. _astra-proj-geom3: https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries
+
         Keyword arguments `det_spacing` and `angles` should be specified
         to use the "parallel3d" geometry, and keyword argument `vectors`
         should be specified to use the "parallel3d_vec" geometry. These
@@ -608,12 +609,10 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
 
         Args:
             input_shape: Shape of the input array.
-            det_count: Number of detector elements. See the
-               `astra documentation <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
-               for more information.
-            det_spacing: Spacing between detector elements. See the
-               `astra documentation <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
-               for more information.
+            det_count: Number of detector elements in the
+               `projection geometry <astra-proj-geom3_>`__.
+            det_spacing: Spacing between detector elements in the
+               `projection geometry <astra-proj-geom3_>`__.
             det_offset: Offset of the the detector center as a tuple
                (horizontal shift, vertical shift). Positive/negative
                values correspond to left/right and up/down shifts
@@ -709,12 +708,10 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
 
         Args:
             input_shape: Shape of the input array.
-            det_count: Number of detector elements. See the
-               `astra documentation <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
-               for more information.
-            det_spacing: Spacing between detector elements. See the
-               `astra documentation <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
-               for more information.
+            det_count: Number of detector elements in the
+               `projection geometry <astra-proj-geom3_>`__.
+            det_spacing: Spacing between detector elements in the
+               `projection geometry <astra-proj-geom3_>`__.
             angles: Array of projection angles in radians.
             vectors: Array of geometry specification vectors.
 
