@@ -47,6 +47,20 @@ Deconvolution
    - deconv_odp_train_foam1.py
 
 
+Denoising
+^^^^^^^^^
+
+   - denoise_l1tv_admm.py
+   - denoise_ptv_pdhg.py
+   - denoise_tv_admm.py
+   - denoise_tv_apgm.py
+   - denoise_tv_multi.py
+   - denoise_approx_tv_multi.py
+   - denoise_cplx_tv_nlpadmm.py
+   - denoise_cplx_tv_pdhg.py
+   - denoise_dncnn_universal.py
+
+
 Sparse Coding
 ^^^^^^^^^^^^^
 
@@ -63,15 +77,6 @@ Miscellaneous
 
    - demosaic_ppp_bm3d_admm.py
    - superres_ppp_dncnn_admm.py
-   - denoise_l1tv_admm.py
-   - denoise_ptv_pdhg.py
-   - denoise_tv_admm.py
-   - denoise_tv_apgm.py
-   - denoise_tv_multi.py
-   - denoise_approx_tv_multi.py
-   - denoise_cplx_tv_nlpadmm.py
-   - denoise_cplx_tv_pdhg.py
-   - denoise_dncnn_universal.py
    - diffusercam_tv_admm.py
    - video_rpca_admm.py
    - ct_datagen_foam2.py
