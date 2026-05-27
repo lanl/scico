@@ -453,7 +453,7 @@ def shape_dtype_rep(
 
     Returns:
        A :class:`jax.ShapeDtypeStruct` or a :class:`.BlockArray`
-       containing :class:`jax.ShapeDtypeStruct`s.
+       containing objects of type :class:`jax.ShapeDtypeStruct`.
     """
     if is_nested(shape):  # block array
         return snp.BlockArray([jax.ShapeDtypeStruct(blk_shape, dtype=dtype) for blk_shape in shape])
