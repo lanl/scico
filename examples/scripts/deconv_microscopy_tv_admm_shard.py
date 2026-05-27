@@ -5,8 +5,8 @@
 # with the package.
 
 r"""
-Deconvolution Microscopy (Single Channel)
-=========================================
+Deconvolution Microscopy (Single Channel, Sharded)
+==================================================
 
 This example partially replicates a [GlobalBioIm
 example](https://biomedical-imaging-group.github.io/GlobalBioIm/examples.html)
@@ -26,6 +26,11 @@ where $M$ is a mask operator, $A$ is circular convolution,
 $\mathbf{y}$ is the blurred image, $C$ is a convolutional gradient
 operator, $\iota_{\mathrm{NN}}$ is the indicator function of the
 non-negativity constraint, and $\mathbf{x}$ is the deconvolved image.
+
+This example uses array sharding to allow spreading the memory footprint
+and computation across multiple GPUs, as opposed to the related
+[example script](deconv_microscopy_tv_admm.rst) that does not used array
+sharding.
 """
 
 # isort: off
@@ -55,17 +60,17 @@ except ImportError:
     have_jax_smi = False
 
 """
-Get and preprocess data. The data is downsampled to limit the memory
+Get and preprocess data. The data may be downsampled to limit the memory
 requirements and run time of the example. Reducing the downsampling rate
 will make the example slower and more memory-intensive. To run this
 example on a GPU it may be necessary to set environment variables
 `XLA_PYTHON_CLIENT_ALLOCATOR=platform` and
-`XLA_PYTHON_CLIENT_PREALLOCATE=false`. If your GPU does not have enough
+`XLA_PYTHON_CLIENT_PREALLOCATE=false`. If your GPUs do not have enough
 memory, try setting the environment variable `JAX_PLATFORM_NAME=cpu` to
 run on CPU.
 """
 channel = 0
-downsampling_rate = 2
+downsampling_rate = 1
 
 y, psf = epfl_deconv_data(channel, verbose=True)
 y = downsample_volume(y, downsampling_rate)
