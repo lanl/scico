@@ -5,8 +5,8 @@
 # with the package.
 
 r"""
-3D TV-Regularized Sparse-View CT Reconstruction (APGM Solver)
-=============================================================
+3D TV-Regularized Sparse-View CT Reconstruction (APGM Solver, Sharded)
+======================================================================
 
 This example demonstrates solution of a sparse-view, 3D CT
 reconstruction problem with isotropic total variation (TV)
@@ -23,7 +23,8 @@ on the the range $[0,1]$, and $\mathbf{x}$ is the reconstructed image.
 
 The problem is solved using an approximation of the proximal operator of
 the TV norm and the proximal average to combine it with the proximal
-operator of the box constraint.
+operator of the box constraint. Array sharding is used to allow spreading
+the memory footprint and computation across multiple GPUs
 """
 
 import numpy as np
@@ -49,6 +50,7 @@ try:
 except ImportError:
     have_jax_smi = False
 
+
 """
 Create a ground truth image and projector.
 """
@@ -62,6 +64,9 @@ det_count = [Nz, max(Nx, Ny)]
 vectors = angle_to_vector(det_spacing, angles)
 
 
+"""
+Create mesh and sharding.
+"""
 num_dev = jax.device_count()
 mesh = jax.make_mesh(
     (num_dev,),
@@ -120,6 +125,7 @@ solver = AcceleratedPGM(
     f=f, g=g, L0=L0, x0=x0, maxiter=maxiter, itstat_options={"display": True, "period": 50}
 )
 
+
 """
 Run the solver.
 """
@@ -156,5 +162,6 @@ divider = make_axes_locatable(ax[1])
 cax = divider.append_axes("right", size="5%", pad=0.2)
 fig.colorbar(ax[1].get_images()[0], cax=cax, label="arbitrary units")
 fig.show()
+
 
 input("\nWaiting for input to close figures and exit")
