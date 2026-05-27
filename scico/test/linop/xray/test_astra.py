@@ -107,6 +107,18 @@ def test_init(testobj):
         )
 
 
+def test_2d_det_offset():
+    x = np.zeros((32, 32), dtype=np.float32)
+    x[8:-8, 8:-8] = 1.0
+    A = XRayTransform2D(x.shape, 40, 1.0, np.linspace(0, np.pi, 90))
+    shift = 4
+    As = XRayTransform2D(x.shape, 40, 1.0, np.linspace(0, np.pi, 90), shift)
+    y = A(x)
+    ys = As(x)
+    yss = np.roll(ys, shift, axis=1)
+    np.testing.assert_almost_equal(yss, y, decimal=4)
+
+
 def test_ATA_call(testobj):
     # Test for the call-based interface
     Ax = testobj.A(testobj.x)
@@ -204,6 +216,25 @@ def test_3D_api_equiv():
     ya = A @ x
     yb = B @ x
     np.testing.assert_allclose(ya, yb, rtol=get_tol())
+
+
+@pytest.mark.skipif(jax.devices()[0].platform != "gpu", reason="GPU required for test")
+def test_3d_det_offset():
+    x = np.zeros((32, 32, 32), dtype=np.float32)
+    x[8:-8, 8:-8, 8:-8] = 1.0
+    A = XRayTransform3D(x.shape, (40, 40), det_spacing=(1.0, 1.0), angles=np.linspace(0, np.pi, 90))
+    shift = (4, -8)
+    As = XRayTransform3D(
+        x.shape,
+        (40, 40),
+        det_spacing=(1.0, 1.0),
+        det_offset=shift,
+        angles=np.linspace(0, np.pi, 90),
+    )
+    y = A(x)
+    ys = As(x)
+    yss = np.roll(ys, shift, axis=(2, 0))
+    np.testing.assert_almost_equal(yss, y, decimal=2)
 
 
 def test_angle_to_vector():
