@@ -23,7 +23,6 @@ Computed Tomography
    - ct_svmbir_tv_multi.py
    - ct_svmbir_ppp_bm3d_admm_cg.py
    - ct_svmbir_ppp_bm3d_admm_prox.py
-   - ct_fan_svmbir_ppp_bm3d_admm_prox.py
    - ct_modl_train_foam2.py
    - ct_odp_train_foam2.py
    - ct_unet_train_foam2.py
@@ -95,7 +94,6 @@ Plug and Play Priors
 
    - ct_svmbir_ppp_bm3d_admm_cg.py
    - ct_svmbir_ppp_bm3d_admm_prox.py
-   - ct_fan_svmbir_ppp_bm3d_admm_prox.py
    - deconv_ppp_bm3d_admm.py
    - deconv_ppp_bm3d_apgm.py
    - deconv_ppp_dncnn_admm.py
@@ -184,7 +182,6 @@ ADMM
    - ct_svmbir_tv_multi.py
    - ct_svmbir_ppp_bm3d_admm_cg.py
    - ct_svmbir_ppp_bm3d_admm_prox.py
-   - ct_fan_svmbir_ppp_bm3d_admm_prox.py
    - deconv_circ_tv_admm.py
    - deconv_tv_admm.py
    - deconv_tv_admm_tune.py

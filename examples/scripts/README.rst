@@ -35,8 +35,6 @@ Computed Tomography
       PPP (with BM3D) CT Reconstruction (ADMM with CG Subproblem Solver)
    `ct_svmbir_ppp_bm3d_admm_prox.py <ct_svmbir_ppp_bm3d_admm_prox.py>`_
       PPP (with BM3D) CT Reconstruction (ADMM with Fast SVMBIR Prox)
-   `ct_fan_svmbir_ppp_bm3d_admm_prox.py <ct_fan_svmbir_ppp_bm3d_admm_prox.py>`_
-      PPP (with BM3D) Fan-Beam CT Reconstruction
    `ct_modl_train_foam2.py <ct_modl_train_foam2.py>`_
       CT Training and Reconstruction with MoDL
    `ct_odp_train_foam2.py <ct_odp_train_foam2.py>`_
@@ -150,8 +148,6 @@ Plug and Play Priors
       PPP (with BM3D) CT Reconstruction (ADMM with CG Subproblem Solver)
    `ct_svmbir_ppp_bm3d_admm_prox.py <ct_svmbir_ppp_bm3d_admm_prox.py>`_
       PPP (with BM3D) CT Reconstruction (ADMM with Fast SVMBIR Prox)
-   `ct_fan_svmbir_ppp_bm3d_admm_prox.py <ct_fan_svmbir_ppp_bm3d_admm_prox.py>`_
-      PPP (with BM3D) Fan-Beam CT Reconstruction
    `deconv_ppp_bm3d_admm.py <deconv_ppp_bm3d_admm.py>`_
       PPP (with BM3D) Image Deconvolution (ADMM Solver)
    `deconv_ppp_bm3d_apgm.py <deconv_ppp_bm3d_apgm.py>`_
@@ -300,8 +296,6 @@ ADMM
       PPP (with BM3D) CT Reconstruction (ADMM with CG Subproblem Solver)
    `ct_svmbir_ppp_bm3d_admm_prox.py <ct_svmbir_ppp_bm3d_admm_prox.py>`_
       PPP (with BM3D) CT Reconstruction (ADMM with Fast SVMBIR Prox)
-   `ct_fan_svmbir_ppp_bm3d_admm_prox.py <ct_fan_svmbir_ppp_bm3d_admm_prox.py>`_
-      PPP (with BM3D) Fan-Beam CT Reconstruction
    `deconv_circ_tv_admm.py <deconv_circ_tv_admm.py>`_
       Circulant Blur Image Deconvolution with TV Regularization
    `deconv_tv_admm.py <deconv_tv_admm.py>`_
