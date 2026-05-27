@@ -35,7 +35,6 @@ Computed Tomography
    examples/ct_svmbir_tv_multi
    examples/ct_svmbir_ppp_bm3d_admm_cg
    examples/ct_svmbir_ppp_bm3d_admm_prox
-   examples/ct_fan_svmbir_ppp_bm3d_admm_prox
    examples/ct_modl_train_foam2
    examples/ct_odp_train_foam2
    examples/ct_unet_train_foam2
@@ -124,7 +123,6 @@ Plug and Play Priors
 
    examples/ct_svmbir_ppp_bm3d_admm_cg
    examples/ct_svmbir_ppp_bm3d_admm_prox
-   examples/ct_fan_svmbir_ppp_bm3d_admm_prox
    examples/deconv_ppp_bm3d_admm
    examples/deconv_ppp_bm3d_apgm
    examples/deconv_ppp_dncnn_admm
@@ -226,7 +224,6 @@ ADMM
    examples/ct_svmbir_tv_multi
    examples/ct_svmbir_ppp_bm3d_admm_cg
    examples/ct_svmbir_ppp_bm3d_admm_prox
-   examples/ct_fan_svmbir_ppp_bm3d_admm_prox
    examples/deconv_circ_tv_admm
    examples/deconv_tv_admm
    examples/deconv_tv_admm_tune
