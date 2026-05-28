@@ -15,7 +15,7 @@ Computed Tomography
    - ct_astra_noreg_pcg.py
    - ct_astra_3d_tv_admm.py
    - ct_astra_3d_tv_padmm.py
-   - ct_astra_3d_foam_approx_tv_box_apgm.py
+   - ct_astra_3d_approx_tv_box_apgm.py
    - ct_tv_admm.py
    - ct_astra_tv_admm.py
    - ct_multi_tv_admm.py
@@ -114,7 +114,7 @@ Total Variation
    - ct_astra_tv_admm.py
    - ct_astra_3d_tv_admm.py
    - ct_astra_3d_tv_padmm.py
-   - ct_astra_3d_foam_approx_tv_box_apgm.py
+   - ct_astra_3d_approx_tv_box_apgm.py
    - ct_astra_weighted_tv_admm.py
    - ct_svmbir_tv_multi.py
    - deconv_circ_tv_admm.py
@@ -238,7 +238,7 @@ PDHG
 PGM
 ^^^
 
-   - ct_astra_3d_foam_approx_tv_box_apgm.py
+   - ct_astra_3d_approx_tv_box_apgm.py
    - deconv_ppp_bm3d_apgm.py
    - sparsecode_apgm.py
    - sparsecode_nn_apgm.py
