@@ -11,10 +11,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from functools import partial
 from typing import List, Optional, Union
-
-import jax
 
 import scico.numpy as snp
 from scico.functional import Functional
@@ -111,7 +108,8 @@ class PGM(Optimizer):
         return PGM._x_step(self.f, self.g, v, L)
 
     @staticmethod
-    @partial(jax.jit, static_argnums=(0, 1))
+    # Jit temporarily disabled due to issues with sharded arrays
+    # @partial(jax.jit, static_argnums=(0, 1))
     def _x_step(
         f: Functional, g: Functional, v: Union[Array, BlockArray], L: float
     ) -> Union[Array, BlockArray]:
