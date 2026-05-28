@@ -538,9 +538,9 @@ def create_tangle_phantom(nx: int, ny: int, nz: int) -> np.ndarray:
         An array with shape (nz, ny, nx).
 
     """
-    xs = 1.0 * np.linspace(-1.0, 1.0, nx)
-    ys = 1.0 * np.linspace(-1.0, 1.0, ny)
-    zs = 1.0 * np.linspace(-1.0, 1.0, nz)
+    xs = 1.0 * np.linspace(-1.0, 1.0, nx, dtype=np.float32)
+    ys = 1.0 * np.linspace(-1.0, 1.0, ny, dtype=np.float32)
+    zs = 1.0 * np.linspace(-1.0, 1.0, nz, dtype=np.float32)
 
     # default ordering for meshgrid is `xy`, this makes inputs of length
     # M, N, P will create a mesh of N, M, P. Thus we want ys, zs and xs.
@@ -560,7 +560,10 @@ def create_tangle_phantom(nx: int, ny: int, nz: int) -> np.ndarray:
         - 5.0 * zz * zz
         + 11.8
     ) * 0.2 + 0.5
-    return (values < 2.0).astype(float)
+    values[values <= 2.0] = 2.0 - values[values <= 2.0]
+    values[values > 2.0] = 0.0
+    values[values < 0.0] = 0.0
+    return values
 
 
 @partial(jax.jit, static_argnums=0)
