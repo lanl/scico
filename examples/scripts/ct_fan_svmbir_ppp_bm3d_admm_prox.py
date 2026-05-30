@@ -213,7 +213,7 @@ Show the recovered images. The parallel beam reconstruction is poor because
 the parallel beam is a poor approximation of the specific fan beam geometry
 used here.
 """
-norm = kplt.matplotlib.colors.Normalize(vmin=-0.1 * density, vmax=1.2 * density)
+norm = kplt.colors.Normalize(vmin=-0.1 * density, vmax=1.2 * density)
 
 fig, ax = plt.subplots(1, 3, figsize=(20, 7))
 kplt.imview(img=x_gt, title="Ground Truth Image", show_cbar=True, ax=ax[0], norm=norm)

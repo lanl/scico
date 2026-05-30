@@ -111,7 +111,7 @@ for x, name in zip((x_iso, x_aniso), ("Isotropic", "Anisotropic")):
 """
 Plot results.
 """
-plt_args = dict(norm=kplt.matplotlib.colors.Normalize(vmin=0, vmax=1.5))
+plt_args = dict(norm=kplt.colors.Normalize(vmin=0, vmax=1.5))
 fig, ax = kplt.subplots(nrows=2, ncols=2, sharex=True, sharey=True, figsize=(11, 10))
 kplt.imview(x_gt, title="Ground truth", ax=ax[0, 0], **plt_args)
 kplt.imview(y, title="Noisy version", ax=ax[0, 1], **plt_args)

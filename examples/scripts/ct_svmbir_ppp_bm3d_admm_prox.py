@@ -33,7 +33,6 @@ example:
 import numpy as np
 
 import komplot as kplt
-import matplotlib
 import svmbir
 from matplotlib.ticker import MaxNLocator
 from xdesign import Foam, discrete_phantom
@@ -177,7 +176,7 @@ hist_extloss = solver_extloss.itstat_object.history(transpose=True)
 """
 Show the recovered images.
 """
-norm = matplotlib.colors.Normalize(vmin=-0.1 * density, vmax=1.2 * density)
+norm = kplt.colors.Normalize(vmin=-0.1 * density, vmax=1.2 * density)
 fig, ax = kplt.subplots(2, 2, figsize=(15, 15))
 kplt.imview(img=x_gt, title="Ground Truth Image", show_cbar=True, ax=ax[0, 0], norm=norm)
 kplt.imview(

@@ -125,7 +125,7 @@ for x, name in zip(
 Plot results.
 """
 matplotlib.rc("font", size=9)
-plt_args = dict(norm=kplt.matplotlib.colors.Normalize(vmin=0, vmax=1.5))
+plt_args = dict(norm=kplt.colors.Normalize(vmin=0, vmax=1.5))
 fig, ax = kplt.subplots(nrows=2, ncols=3, sharex=True, sharey=True, figsize=(15, 8))
 kplt.imview(x_gt, title="Ground truth", ax=ax[0, 0], **plt_args)
 kplt.imview(y, title=f"Noisy version SNR: {metric.snr(x_gt, y):.2f} dB", ax=ax[1, 0], **plt_args)

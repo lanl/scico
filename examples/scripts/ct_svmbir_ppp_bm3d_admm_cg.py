@@ -24,7 +24,6 @@ than the prox of the `SVMBIRSquaredL2Loss` functional, as in the
 import numpy as np
 
 import komplot as kplt
-import matplotlib
 import svmbir
 from xdesign import Foam, discrete_phantom
 
@@ -121,7 +120,7 @@ hist = solver.itstat_object.history(transpose=True)
 """
 Show the recovered image.
 """
-norm = matplotlib.colors.Normalize(vmin=-0.1 * density, vmax=1.2 * density)
+norm = kplt.colors.Normalize(vmin=-0.1 * density, vmax=1.2 * density)
 fig, ax = kplt.subplots(1, 3, figsize=[15, 5])
 kplt.imview(img=x_gt, title="Ground Truth Image", show_cbar=True, ax=ax[0], norm=norm)
 kplt.imview(

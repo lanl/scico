@@ -94,7 +94,7 @@ x_tv = snp.clip(solver.x, 0.0, 1.0)
 """
 Show results.
 """
-norm = kplt.matplotlib.colors.Normalize(vmin=-0.1, vmax=1.2)
+norm = kplt.colors.Normalize(vmin=-0.1, vmax=1.2)
 fig, ax = kplt.subplots(nrows=2, ncols=2, figsize=(12, 12))
 kplt.imview(x_gt, title="Ground Truth", cmap=kplt.cm.Blues, ax=ax[0, 0], norm=norm)
 kplt.imview(y, title="Measurement", cmap=kplt.cm.Blues, ax=ax[0, 1])

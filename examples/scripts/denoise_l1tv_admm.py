@@ -76,7 +76,7 @@ hist = solver.itstat_object.history(transpose=True)
 """
 Plot results.
 """
-plt_args = dict(norm=kplt.matplotlib.colors.Normalize(vmin=0, vmax=1.0))
+plt_args = dict(norm=kplt.colors.Normalize(vmin=0, vmax=1.0))
 fig, ax = kplt.subplots(nrows=2, ncols=2, sharex=True, sharey=True, figsize=(13, 12))
 kplt.imview(x_gt, title="Ground truth", ax=ax[0, 0], **plt_args)
 kplt.imview(y, title="Noisy image", ax=ax[0, 1], **plt_args)
