@@ -173,24 +173,27 @@ Plot parameter values visited during parameter search. Marker sizes are
 proportional to number of iterations run at each parameter pair. The best
 point in the parameter space is indicated in red.
 """
-fig = kplt.figure(figsize=(8, 8))
+fig, ax = kplt.subplots(figsize=(8, 8))
 trials = results.get_dataframe()
 for t in trials.iloc:
     n = t["training_iteration"]
     kplt.plot(
         t["config/rho"],
         t["config/lambda"],
-        ptyp="loglog",
+        xlog=True,
+        ylog=True,
         lw=0,
         ms=(0.5 + 1.5 * n),
         marker="o",
         mfc="blue",
         mec="blue",
+        ax=ax,
     )
 kplt.plot(
     best_config["rho"],
     best_config["lambda"],
-    ptyp="loglog",
+    xlog=True,
+    ylog=True,
     title="Parameter search sampling locations\n(marker size proportional to number of iterations)",
     xlabel=r"$\rho$",
     ylabel=r"$\lambda$",
@@ -199,8 +202,8 @@ kplt.plot(
     marker="o",
     mfc="red",
     mec="red",
+    ax=ax,
 )
-ax = fig.axes[0]
 ax.set_xlim([config["rho"].lower, config["rho"].upper])
 ax.set_ylim([config["lambda"].lower, config["lambda"].upper])
 fig.show()
@@ -222,7 +225,8 @@ fig.colorbar(sc)
 kplt.plot(
     best_config["rho"],
     best_config["lambda"],
-    ptyp="loglog",
+    xlog=True,
+    ylog=True,
     lw=0,
     ms=12.0,
     marker="2",

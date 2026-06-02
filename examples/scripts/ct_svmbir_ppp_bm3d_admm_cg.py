@@ -122,16 +122,16 @@ Show the recovered image.
 """
 norm = kplt.colors.Normalize(vmin=-0.1 * density, vmax=1.2 * density)
 fig, ax = kplt.subplots(1, 3, figsize=[15, 5])
-kplt.imview(img=x_gt, title="Ground Truth Image", show_cbar=True, ax=ax[0], norm=norm)
+kplt.imview(x_gt, title="Ground Truth Image", show_cbar=True, ax=ax[0], norm=norm)
 kplt.imview(
-    img=x_mrf,
+    x_mrf,
     title=f"MRF (PSNR: {metric.psnr(x_gt, x_mrf):.2f} dB)",
     show_cbar=True,
     ax=ax[1],
     norm=norm,
 )
 kplt.imview(
-    img=x_bm3d,
+    x_bm3d,
     title=f"BM3D (PSNR: {metric.psnr(x_gt, x_bm3d):.2f} dB)",
     show_cbar=True,
     ax=ax[2],

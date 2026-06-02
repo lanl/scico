@@ -178,23 +178,23 @@ Show the recovered images.
 """
 norm = kplt.colors.Normalize(vmin=-0.1 * density, vmax=1.2 * density)
 fig, ax = kplt.subplots(2, 2, figsize=(15, 15))
-kplt.imview(img=x_gt, title="Ground Truth Image", show_cbar=True, ax=ax[0, 0], norm=norm)
+kplt.imview(x_gt, title="Ground Truth Image", show_cbar=True, ax=ax[0, 0], norm=norm)
 kplt.imview(
-    img=x_mrf,
+    x_mrf,
     title=f"MRF (PSNR: {metric.psnr(x_gt, x_mrf):.2f} dB)",
     show_cbar=True,
     ax=ax[0, 1],
     norm=norm,
 )
 kplt.imview(
-    img=x_l2loss,
+    x_l2loss,
     title=f"SquaredL2Loss + non-negativity (PSNR: {metric.psnr(x_gt, x_l2loss):.2f} dB)",
     show_cbar=True,
     ax=ax[1, 0],
     norm=norm,
 )
 kplt.imview(
-    img=x_extloss,
+    x_extloss,
     title=f"ExtendedLoss (PSNR: {metric.psnr(x_gt, x_extloss):.2f} dB)",
     show_cbar=True,
     ax=ax[1, 1],
