@@ -279,6 +279,7 @@ class AnisotropicTVNorm(TVNorm):
         self,
         circular: bool = False,
         axes: Optional[Axes] = None,
+        pad_size: int = 1,
         input_shape: Optional[Shape] = None,
         input_dtype: DType = snp.float32,
     ):
@@ -288,6 +289,12 @@ class AnisotropicTVNorm(TVNorm):
             axes: Axis or axes over which to apply finite difference
                 operator. If not specified, or ``None``, differences are
                 evaluated along all axes.
+            pad_size: Amount by which arrays are padded where required
+                for non-circular boundary conditions. The default of 1
+                is sufficient mathematically, but larger values may be
+                desirable when working with sharded arrays to ensure
+                that the padded arrays remain compatible with the
+                sharding scheme.
             input_shape: Shape of input arrays of :meth:`~.TVNorm.__call__` and
                 :meth:`~.TVNorm.prox`.
             input_dtype: `dtype` of input arrays of :meth:`~.TVNorm.__call__` and
@@ -297,6 +304,7 @@ class AnisotropicTVNorm(TVNorm):
             L1Norm(),
             circular=circular,
             axes=axes,
+            pad_size=pad_size,
             input_shape=input_shape,
             input_dtype=input_dtype,
         )
@@ -337,6 +345,7 @@ class IsotropicTVNorm(TVNorm):
         self,
         circular: bool = False,
         axes: Optional[Axes] = None,
+        pad_size: int = 1,
         input_shape: Optional[Shape] = None,
         input_dtype: DType = snp.float32,
     ):
@@ -346,6 +355,12 @@ class IsotropicTVNorm(TVNorm):
             axes: Axis or axes over which to apply finite difference
                 operator. If not specified, or ``None``, differences are
                 evaluated along all axes.
+            pad_size: Amount by which arrays are padded where required
+                for non-circular boundary conditions. The default of 1
+                is sufficient mathematically, but larger values may be
+                desirable when working with sharded arrays to ensure
+                that the padded arrays remain compatible with the
+                sharding scheme.
             input_shape: Shape of input arrays of :meth:`~.TVNorm.__call__` and
                 :meth:`~.TVNorm.prox`.
             input_dtype: `dtype` of input arrays of :meth:`~.TVNorm.__call__` and
@@ -355,6 +370,7 @@ class IsotropicTVNorm(TVNorm):
             L21Norm(),
             circular=circular,
             axes=axes,
+            pad_size=pad_size,
             input_shape=input_shape,
             input_dtype=input_dtype,
         )
