@@ -15,6 +15,7 @@ superresolution problem.
 """
 
 import komplot as kplt
+from matplotlib.pyplot import subplot2grid
 
 import scico
 import scico.numpy as snp
@@ -113,9 +114,9 @@ kplt.plot(
 Show reference and test images.
 """
 fig = kplt.figure(figsize=(8, 6))
-ax0 = kplt.plt.subplot2grid((1, rate + 1), (0, 0), colspan=rate)
+ax0 = subplot2grid((1, rate + 1), (0, 0), colspan=rate)
 kplt.imview(img, title="Reference", ax=ax0)
-ax1 = kplt.plt.subplot2grid((1, rate + 1), (0, rate))
+ax1 = subplot2grid((1, rate + 1), (0, rate))
 kplt.imview(sn, title="Downsampled", ax=ax1)
 fig.show()
 
