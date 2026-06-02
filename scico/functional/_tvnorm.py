@@ -46,6 +46,7 @@ class TVNorm(Functional):
         norm: Functional,
         circular: bool = True,
         axes: Optional[Axes] = None,
+        pad_size: int = 1,
         input_shape: Optional[Shape] = None,
         input_dtype: DType = snp.float32,
     ):
@@ -67,6 +68,12 @@ class TVNorm(Functional):
             axes: Axis or axes over which to apply finite difference
                 operator. If not specified, or ``None``, differences are
                 evaluated along all axes.
+            pad_size: Amount by which arrays are padded where required
+                for non-circular boundary conditions. The default of 1
+                is sufficient mathematically, but larger values may be
+                desirable when working with sharded arrays to ensure
+                that the padded arrays remain compatible with the
+                sharding scheme.
             input_shape: Shape of input arrays of :meth:`__call__` and
                 :meth:`prox`.
             input_dtype: `dtype` of input arrays of :meth:`__call__` and
@@ -75,6 +82,7 @@ class TVNorm(Functional):
         self.norm = norm
         self.circular = circular
         self.axes = axes
+        self.pad_size = pad_size
         self.G: Optional[LinearOperator] = None
         self.WP: Optional[LinearOperator] = None
         self.prox_ndims: Optional[int] = None
@@ -83,7 +91,7 @@ class TVNorm(Functional):
         if input_shape is not None:
             self.G = self._call_operator(input_shape, input_dtype)
             self.WP, self.CWT, self.prox_ndims, self.prox_slice = self._prox_operators(
-                input_shape, input_dtype
+                input_shape, input_dtype, pad_size
             )
 
     def _call_operator(self, input_shape: Shape, input_dtype: DType) -> LinearOperator:
@@ -115,7 +123,7 @@ class TVNorm(Functional):
         return self.norm(self.G @ x)
 
     def _prox_operators(
-        self, input_shape: Shape, input_dtype: DType
+        self, input_shape: Shape, input_dtype: DType, pad_size: int
     ) -> Tuple[LinearOperator, LinearOperator, int, Tuple]:
         """Construct operators required by prox method."""
         axes = normalize_axes(self.axes, input_shape)
@@ -126,7 +134,7 @@ class TVNorm(Functional):
             if self.circular
             # non-circular boundary: shape of input array on non-differenced
             #    axes and one greater for axes that are differenced
-            else tuple([s + 1 if i in axes else s for i, s in enumerate(input_shape)])  # type: ignore
+            else tuple([s + pad_size if i in axes else s for i, s in enumerate(input_shape)])  # type: ignore
         )
         W = HaarTransform(w_input_shape, input_dtype=input_dtype, axes=axes, jit=True)  # type: ignore
         if self.circular:
@@ -146,7 +154,7 @@ class TVNorm(Functional):
             )  # type: ignore
             # Replicate-pad to the right (resulting in a zero after finite differencing)
             # on all axes subject to finite differencing.
-            pad_width = [(0, 1) if i in axes else (0, 0) for i, s in enumerate(input_shape)]  # type: ignore
+            pad_width = [(0, pad_size) if i in axes else (0, 0) for i, s in enumerate(input_shape)]  # type: ignore
             P = Pad(
                 input_shape, input_dtype=input_dtype, pad_width=pad_width, mode="edge", jit=True
             )
@@ -224,7 +232,7 @@ class TVNorm(Functional):
         """
         if self.WP is None or self.WP.shape[1] != v.shape:
             self.WP, self.CWT, self.prox_ndims, self.prox_slice = self._prox_operators(
-                v.shape, v.dtype
+                v.shape, v.dtype, self.pad_size
             )
         assert self.prox_ndims is not None
         assert self.prox_slice is not None
