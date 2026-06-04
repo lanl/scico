@@ -820,16 +820,3 @@ def rotate_vectors(vectors: np.ndarray, rot: Rotation) -> np.ndarray:
     for k in range(0, 12, 3):
         rot_vecs[:, k : k + 3] = rot.apply(rot_vecs[:, k : k + 3])
     return rot_vecs
-
-
-def _ensure_writeable(x):
-    """Ensure that `x.flags.writeable` is ``True``, copying if needed."""
-    if hasattr(x, "flags"):  # x is a numpy array
-        if not x.flags.writeable:
-            try:
-                x.setflags(write=True)
-            except ValueError:
-                x = x.copy()
-    else:  # x is a jax array (which is immutable)
-        x = np.array(x)
-    return x
