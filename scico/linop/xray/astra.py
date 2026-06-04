@@ -315,7 +315,7 @@ class XRayTransform2D(LinearOperator):
         # apply the forward projector and generate a sinogram
 
         def f(x):
-            x = np.asarray(x)
+            x = np.array(x)
             proj_id, result = astra.create_sino(x, self.proj_id)
             astra.data2d.delete(proj_id)
             return result
@@ -325,7 +325,7 @@ class XRayTransform2D(LinearOperator):
     def _bproj(self, y: jax.Array) -> jax.Array:
         # apply backprojector
         def f(y):
-            y = np.asarray(y)
+            y = np.array(y)
             proj_id, result = astra.create_backprojection(y, self.proj_id)
             astra.data2d.delete(proj_id)
             return result
@@ -354,7 +354,7 @@ class XRayTransform2D(LinearOperator):
             )
 
         def f(sino):
-            sino = np.asarray(sino)
+            sino = np.array(sino)
             sino_id = astra.data2d.create("-sino", self.proj_geom, sino)
 
             # create memory for result
@@ -751,7 +751,7 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
         # apply the forward projector and generate a sinogram
 
         def f(x):
-            x = np.asarray(x)
+            x = np.array(x)
             proj_id, result = astra.create_sino3d_gpu(x, self.proj_geom, self.vol_geom)
             astra.data3d.delete(proj_id)
             return result
@@ -768,7 +768,7 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
     def _bproj(self, y: jax.Array) -> jax.Array:
         # apply backprojector
         def f(y):
-            y = np.asarray(y)
+            y = np.array(y)
             proj_id, result = astra.create_backprojection3d_gpu(y, self.proj_geom, self.vol_geom)
             astra.data3d.delete(proj_id)
             return result
