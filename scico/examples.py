@@ -527,7 +527,23 @@ def create_conv_sparse_phantom(Nx: int, Nnz: int) -> Tuple[np.ndarray, np.ndarra
 
 
 def create_tangle_phantom(nx: int, ny: int, nz: int) -> np.ndarray:
-    """Construct a 3D phantom using the tangle function.
+    r"""Construct a 3D phantom based on the tanglecube function.
+
+    Construct a 3D phantom based on the
+    `tanglecube <https://mathworld.wolfram.com/Tanglecube.html>`__
+    function:
+
+    .. math::
+       t(x, y, z) = 0.2 (x^4 - 5x^2 + y^4 - 5y^2 + z^4 - 5z^2 + 11.8)
+       + 0.5 \;.
+
+    The phantom is computed as
+
+    .. math::
+       p(x, y, z) = \begin{cases}
+                       2 - t(x, y, z) & \text{if } t(x, y, z) \le 2 \\
+                       0 & \text{otherwise} \;.
+                    \end{cases}
 
     Args:
         nx: x-size of output.
@@ -536,11 +552,10 @@ def create_tangle_phantom(nx: int, ny: int, nz: int) -> np.ndarray:
 
     Returns:
         An array with shape (nz, ny, nx).
-
     """
-    xs = 1.0 * np.linspace(-1.0, 1.0, nx)
-    ys = 1.0 * np.linspace(-1.0, 1.0, ny)
-    zs = 1.0 * np.linspace(-1.0, 1.0, nz)
+    xs = 1.0 * np.linspace(-1.0, 1.0, nx, dtype=np.float32)
+    ys = 1.0 * np.linspace(-1.0, 1.0, ny, dtype=np.float32)
+    zs = 1.0 * np.linspace(-1.0, 1.0, nz, dtype=np.float32)
 
     # default ordering for meshgrid is `xy`, this makes inputs of length
     # M, N, P will create a mesh of N, M, P. Thus we want ys, zs and xs.
@@ -560,7 +575,10 @@ def create_tangle_phantom(nx: int, ny: int, nz: int) -> np.ndarray:
         - 5.0 * zz * zz
         + 11.8
     ) * 0.2 + 0.5
-    return (values < 2.0).astype(float)
+    values[values <= 2.0] = 2.0 - values[values <= 2.0]
+    values[values > 2.0] = 0.0
+    values[values < 0.0] = 0.0
+    return values
 
 
 @partial(jax.jit, static_argnums=0)
