@@ -91,7 +91,8 @@ def cl_fbp(
 ) -> jax.Array:
     r"""Compute FBP reconstruction for CL geometry.
 
-    Compute FBP reconstruction for CL geometry.
+    Compute FBP reconstruction for CL geometry, based on the approach
+    proposed in :cite:`myagotin-2013-efficient`.
 
     Args:
         y: Projection array of shape (Nrow, Nview, Ncol) where Nview is
