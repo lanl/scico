@@ -66,6 +66,7 @@ CUDA, and can only be run on GPU devices.
 
 import sys
 
+from ._cl import cl_angles_to_vecs, cl_fbp
 from ._util import (
     center_image,
     image_alignment_rotation,
@@ -83,6 +84,8 @@ __all__ = [
     "rotate_volume",
     "image_alignment_rotation",
     "volume_alignment_rotation",
+    "cl_angles_to_vecs",
+    "cl_fbp",
 ]
 
 
