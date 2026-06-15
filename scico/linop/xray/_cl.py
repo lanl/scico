@@ -7,16 +7,19 @@
 
 """Computed laminography functions."""
 
+from typing import Union
+
 import numpy as np
 
 import jax
 import jax.numpy as jnp
 from jax.scipy.signal import convolve
 
-from .astra import XRayTransform3D
+from ._xray import XRayTransform3D as scicoXRayTransform3D
+from .astra import XRayTransform3D as astraXRayTransform3D
 
 
-def cl_angles_to_vecs(theta: np.ndarray, alpha: float = 60.0 * (np.pi / 180.0)):
+def cl_angles_to_vecs(theta: np.ndarray, alpha: float = 60.0 * (np.pi / 180.0)) -> np.ndarray:
     r"""Construct astra geometry vectors from laminography view angles.
 
     Construct parallel beam astra geometry vectors from laminography
@@ -54,7 +57,7 @@ def cl_angles_to_vecs(theta: np.ndarray, alpha: float = 60.0 * (np.pi / 180.0)):
 
 
 @jax.jit
-def _filter_projection(y: jax.Array, alpha: float):
+def _filter_projection(y: jax.Array, alpha: float) -> jax.Array:
     r"""Apply filter appropriate for CL FBP.
 
     Apply filter appropriate for CL FBP (see (13) in
@@ -83,7 +86,9 @@ def _filter_projection(y: jax.Array, alpha: float):
 
 
 @jax.jit(static_argnums=(2,))
-def cl_fbp(y: jax.Array, alpha: float, X: XRayTransform3D):
+def cl_fbp(
+    y: jax.Array, alpha: float, X: Union[scicoXRayTransform3D, astraXRayTransform3D]
+) -> jax.Array:
     r"""Compute FBP reconstruction for CL geometry.
 
     Compute FBP reconstruction for CL geometry.
@@ -94,8 +99,8 @@ def cl_fbp(y: jax.Array, alpha: float, X: XRayTransform3D):
            :math:`\times` Ncol pixiels.
         alpha: Laminography tilt angle (see angle :math:`\alpha` in Fig.
            3(a) in :cite:`aarle-2016-fast`) in radians.
-        X: :class:`.astra.XRayTransform3D` linear operator corresponding
-           to the imaging geometry.
+        X: :class:`.xray.XRayTransform3D` or :class:`.astra.XRayTransform3D`
+           linear operator corresponding to the imaging geometry.
 
     Returns:
         FBP reconstruction.
