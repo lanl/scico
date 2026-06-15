@@ -11,12 +11,10 @@ import glob
 import os
 import tempfile
 import zipfile
-from functools import partial
+from itertools import zip_longest
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
-
-import jax
 
 import imageio.v3 as iio
 
@@ -581,7 +579,6 @@ def create_tangle_phantom(nx: int, ny: int, nz: int) -> np.ndarray:
     return values
 
 
-@partial(jax.jit, static_argnums=0)
 def create_block_phantom(out_shape: Shape) -> np.ndarray:
     """Construct a blocky 3D phantom.
 
@@ -617,6 +614,139 @@ def create_block_phantom(out_shape: Shape) -> np.ndarray:
     )
     indices = np.round(positions).astype(int)
     return low_res[indices[0], indices[1], indices[2]]
+
+
+def _extract_blocks(
+    img: np.ndarray, blksz: Tuple[int, int], stpsz: Optional[Tuple[int, int]] = None
+) -> np.ndarray:
+    """Extract blocks from an ndarray image into an ndarray.
+
+    Args:
+        img: 2D array from which blocks are to be extracted.
+        blksz: Tuple specifying block size.
+        stpsz: Tuple specifying step between blocks.
+
+    Returns:
+        A 3D array with the first two dimensions corresponding
+        to the block size and the final dimension corresponding
+        to the number of blocks.
+    """
+    # This function copied from the sporco.array module.
+
+    # See http://stackoverflow.com/questions/16774148 and
+    # sklearn.feature_extraction.image.extract_patches_2d
+    if isinstance(img, tuple):
+        img = np.stack(img, axis=-1)
+
+    if stpsz is None:
+        stpsz = (1,) * len(blksz)
+
+    imgsz = img.shape
+
+    # Calculate the number of blocks that can fit in each dimension of
+    # the images
+    numblocks = tuple(
+        int(np.floor((a - b) / c) + 1) for a, b, c in zip_longest(imgsz, blksz, stpsz, fillvalue=1)
+    )
+
+    # Calculate the strides for blocks
+    blockstrides = tuple(a * b for a, b in zip_longest(img.strides, stpsz, fillvalue=1))
+
+    new_shape = blksz + numblocks
+    new_strides = img.strides[: len(blksz)] + blockstrides
+    blks = np.lib.stride_tricks.as_strided(img, new_shape, new_strides)
+    return blks
+
+
+def create_laminar_phantom() -> np.ndarray:
+    """Construct a :math:`64 \times 256 \times 256` laminar phantom`.
+
+    Construct a :math:`64 \times 256 \times 256` laminar phantom`.
+
+    Returns:
+        Laminar phantom.
+    """
+    vol = np.zeros((64, 256, 256))
+
+    layer1 = np.zeros(vol.shape[1:])
+    layer1blks = _extract_blocks(layer1, (48, 48), (64, 64))
+    layer1blks[:] = 1
+    layer1 = np.roll(layer1, (8, 8), (0, 1))
+    vol[0:8] = layer1
+
+    layer2 = np.zeros(vol.shape[1:])
+    layer2blks = _extract_blocks(layer2, (16, 16), (64, 64))
+    layer2blks[:] = 1
+    layer2 = np.roll(layer2, (24, 24), (0, 1))
+    vol[16:24] = layer2
+
+    layer3 = np.zeros(vol.shape[1:])
+    layer3[24:40, 24:-24] = 1
+    layer3[24 + 64 : 40 + 64, 24:-24] = 1
+    layer3[24 + 128 : 40 + 128, 24:-24] = 1
+    layer3[24 + 192 : 40 + 192, 24:-24] = 1
+    vol[24:32] = layer3
+
+    layer4 = layer2
+    vol[32:40] = layer4
+
+    layer5 = layer3.copy()
+    layer5[30 + 32 : 34 + 32, 24:-24] = 1
+    layer5[30 + 96 : 34 + 96, 24:-24] = 1
+    layer5[30 + 160 : 34 + 160, 24:-24] = 1
+    vol[40:44] = layer5.T
+
+    layer6 = np.zeros(vol.shape[1:])
+    layer6blks = _extract_blocks(layer6, (4, 4), (32, 32))
+    layer6blks[:] = 1
+    layer6 = np.roll(layer6, (30, 30), (0, 1))
+    layer6[0:4] = 0
+    layer6[-4:] = 0
+    layer6[:, 0:4] = 0
+    layer6[:, -4:] = 0
+    vol[44:48] = layer6
+
+    vol[8:16] = layer6
+    vol[0:40, 30:-30, 62:66] = layer6[30:-30, 62:66]
+    vol[0:40, 30:-30, 126:130] = layer6[30:-30, 126:130]
+    vol[0:40, 30:-30, 190:194] = layer6[30:-30, 190:194]
+
+    layer1b = np.zeros(vol.shape[1:])
+    for k in range(0, 224, 32):
+        layer1b[24:-24, 30 + k : 34 + k] = 1
+    vol[3:5, 30:-30, 62:66] = layer1b[30:-30, 62:66]
+    vol[3:5, 30:-30, 126:130] = layer1b[30:-30, 126:130]
+    vol[3:5, 30:-30, 190:194] = layer1b[30:-30, 190:194]
+
+    vol[27:29, 30:-30, 62:66] = layer1b[30:-30, 62:66]
+    vol[27:29, 30:-30, 126:130] = layer1b[30:-30, 126:130]
+    vol[27:29, 30:-30, 190:194] = layer1b[30:-30, 190:194]
+
+    vol[11:13, 62:66, 30:-30] = layer1b[30:-30, 62:66].T
+    vol[11:13, 126:130, 30:-30] = layer1b[30:-30, 126:130].T
+    vol[11:13, 190:194, 30:-30] = layer1b[30:-30, 190:194].T
+
+    layer7 = np.zeros(vol.shape[1:])
+    for k in range(0, 224, 32):
+        layer7[24:-24, 30 + k : 34 + k] = 1
+    vol[48:52] = layer7.T
+
+    layer8 = layer6.copy()
+    vol[52:56] = layer8
+
+    layer9 = layer7.copy()
+    vol[56:60] = layer9
+
+    layer10 = np.zeros(vol.shape[1:])
+    layer10blks = _extract_blocks(layer10, (4, 4), (12, 12))
+    layer10blks[:] = 1
+    layer10[0:8] = 0
+    layer10[-8:] = 0
+    layer10[:, 0:8] = 0
+    layer10[:, -8:] = 0
+    vol[60:64] = layer10
+
+    return vol
 
 
 def spnoise(
