@@ -16,7 +16,11 @@ import jax.numpy as jnp
 from jax.scipy.signal import convolve
 
 from ._xray import XRayTransform3D as scicoXRayTransform3D
-from .astra import XRayTransform3D as astraXRayTransform3D
+
+try:  # scico.astra cannot be imported if astra is not installed
+    from .astra import XRayTransform3D as astraXRayTransform3D
+except ModuleNotFoundError:
+    pass
 
 
 def cl_angles_to_vecs(theta: np.ndarray, alpha: float = 60.0 * (np.pi / 180.0)) -> np.ndarray:
@@ -97,7 +101,7 @@ def cl_fbp(
     Args:
         y: Projection array of shape (Nrow, Nview, Ncol) where Nview is
            the number of views, and the sensor consists of Nrow
-           :math:`\times` Ncol pixiels.
+           :math:`\times` Ncol pixels.
         alpha: Laminography tilt angle (see angle :math:`\alpha` in Fig.
            3(a) in :cite:`aarle-2016-fast`) in radians.
         X: :class:`.xray.XRayTransform3D` or :class:`.astra.XRayTransform3D`
