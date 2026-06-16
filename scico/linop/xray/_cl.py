@@ -57,7 +57,7 @@ def cl_angles_to_vecs(theta: np.ndarray, alpha: float = 60.0 * (np.pi / 180.0)) 
         𝛥t * np.sin(alpha) * ones,
     )
     vectors = np.stack((ray + d + u + v)).T
-    return vectors
+    return vectors.astype(np.float32)
 
 
 @jax.jit
