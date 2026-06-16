@@ -111,6 +111,8 @@ def cl_fbp(
         FBP reconstruction.
     """
     yf = _filter_projection(y, alpha)
-    n_proj = y.shape[1]
-    x = (2 * np.pi / n_proj) * X.T @ yf
+    # scico projector order is (Nview, Nrow, Ncol) while astra order is
+    # (Nrows, Nview, Ncol).
+    n_proj = y.shape[0] if isinstance(X, scicoXRayTransform3D) else y.shape[1]
+    x = (2 * np.pi / n_proj) * (X.T @ yf)
     return x
