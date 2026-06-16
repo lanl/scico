@@ -80,7 +80,7 @@ y = X @ x_gt
 yn = y + 0.05 * np.random.rand(*y.shape).astype(np.float32)
 
 
-x_fbp = cl_fbp(y, alpha, X)
+x_fbp = snp.clip(cl_fbp(y, alpha, X), 0.0, 1.0)
 
 
 """
@@ -118,12 +118,13 @@ Show the recovered image.
 
 slice_index = 32
 fig, ax = plot.subplots(nrows=1, ncols=3, figsize=(15, 5))
-plot.imview(x_gt[slice_index], title="Ground truth", cbar=None, fig=fig, ax=ax[0])
+plot.imview(x_gt[slice_index], title="Ground truth", cbar=None, cmap="viridis", fig=fig, ax=ax[0])
 plot.imview(
     x_fbp[slice_index],
     title="FBP Reconstruction: \nSNR: %.2f (dB), MAE: %.3f"
     % (metric.snr(x_gt, x_fbp), metric.mae(x_gt, x_fbp)),
     cbar=None,
+    cmap="viridis",
     fig=fig,
     ax=ax[1],
 )
@@ -131,6 +132,7 @@ plot.imview(
     x_rec[slice_index],
     title="TV Reconstruction\nSNR: %.2f (dB), MAE: %.3f"
     % (metric.snr(x_gt, x_rec), metric.mae(x_gt, x_rec)),
+    cmap="viridis",
     fig=fig,
     ax=ax[2],
 )
