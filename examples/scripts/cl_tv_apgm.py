@@ -33,16 +33,8 @@ from scico import functional, linop, loss, metric, optimize, plot
 from scico.examples import create_laminar_phantom
 from scico.linop.xray import XRayTransform3D as scicoXRayTransform3D
 from scico.linop.xray import cl_angles_to_vecs, cl_fbp
+from scico.linop.xray.astra import XRayTransform3D as astraXRayTransform3D
 from scico.util import device_info
-
-try:
-    import astra
-
-    from scico.linop.xray.astra import XRayTransform3D as astraXRayTransform3D
-except ImportError:
-    have_astra = True
-else:
-    have_astra = False
 
 have_gpu = True if jax.devices()[0].platform == "gpu" else False
 
@@ -63,7 +55,7 @@ alpha = 61.0 * np.pi / 180.0
 theta = np.linspace(0, 2 * np.pi, num_views, endpoint=False)
 vectors = cl_angles_to_vecs(theta, alpha)
 
-if have_astra and have_gpu:
+if have_gpu:
     X = astraXRayTransform3D(
         vol_shape,
         det_count=det_shape,
