@@ -34,6 +34,7 @@ from scico.examples import create_laminar_phantom
 from scico.linop.xray import XRayTransform3D as scicoXRayTransform3D
 from scico.linop.xray import cl_angles_to_vecs, cl_fbp
 from scico.linop.xray.astra import XRayTransform3D as astraXRayTransform3D
+from scico.linop.xray.astra import convert_to_scico_geometry
 from scico.util import device_info
 
 have_gpu = True if jax.devices()[0].platform == "gpu" else False
@@ -62,7 +63,7 @@ if have_gpu:
         vectors=vectors,
     )
 else:
-    matrices = astra.convert_to_scico_geometry(
+    matrices = convert_to_scico_geometry(
         input_shape=vol_shape, det_count=det_shape, vectors=vectors
     )
     X = scicoXRayTransform3D(vol_shape, matrices, det_shape)
