@@ -24,18 +24,21 @@ the astra package.
 
 import numpy as np
 
+import jax
+
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 import scico.numpy as snp
-from linop.xray import XRayTransform3D as scicoXRayTransform3D
 from scico import functional, linop, loss, metric, optimize, plot
 from scico.examples import create_laminar_phantom
+from scico.linop.xray import XRayTransform3D as scicoXRayTransform3D
+from scico.linop.xray import cl_angles_to_vecs, cl_fbp
 from scico.util import device_info
 
 try:
     import astra
 
-    from linop.xray.astra import XRayTransform3D as astraXRayTransform3D
+    from scico.linop.xray.astra import XRayTransform3D as astraXRayTransform3D
 except ImportError:
     have_astra = True
 else:
@@ -90,7 +93,6 @@ g = λ * functional.IsotropicTVNorm(circular=False, input_shape=vol_shape)
 maxiter = 200
 print("Estimating L0")
 L0 = linop.operator_norm(X, maxiter=10) ** 2
-x0 = snp.zeros(vol_shape, dtype=np.float32)
 
 solver = optimize.AcceleratedPGM(
     f=f,
@@ -114,18 +116,19 @@ hist = solver.itstat_object.history(transpose=True)
 Show the recovered image.
 """
 
+slice_index = 32
 fig, ax = plot.subplots(nrows=1, ncols=3, figsize=(15, 5))
-plot.imview(x_gt, title="Ground truth", cbar=None, fig=fig, ax=ax[0])
+plot.imview(x_gt[slice_index], title="Ground truth", cbar=None, fig=fig, ax=ax[0])
 plot.imview(
-    x0,
+    x_fbp[slice_index],
     title="FBP Reconstruction: \nSNR: %.2f (dB), MAE: %.3f"
-    % (metric.snr(x_gt, x0), metric.mae(x_gt, x0)),
+    % (metric.snr(x_gt, x_fbp), metric.mae(x_gt, x_fbp)),
     cbar=None,
     fig=fig,
     ax=ax[1],
 )
 plot.imview(
-    x_rec,
+    x_rec[slice_index],
     title="TV Reconstruction\nSNR: %.2f (dB), MAE: %.3f"
     % (metric.snr(x_gt, x_rec), metric.mae(x_gt, x_rec)),
     fig=fig,
@@ -150,11 +153,10 @@ plot.plot(
     ax=ax[0],
 )
 plot.plot(
-    snp.array((hist.Prml_Rsdl, hist.Dual_Rsdl)).T,
+    hist.Residual,
     ptyp="semilogy",
-    title="Residuals",
+    title="Residual",
     xlbl="Iteration",
-    lgnd=("Primal", "Dual"),
     fig=fig,
     ax=ax[1],
 )
