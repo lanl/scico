@@ -772,7 +772,7 @@ def angle_to_vector(det_spacing: Tuple[float, float], angles: np.ndarray) -> np.
     Returns:
         Array of geometry specification vectors.
     """
-    vectors = np.zeros((angles.size, 12))
+    vectors = np.zeros((angles.size, 12), dtype=angles.dtype)
     vectors[:, 0] = np.sin(angles)
     vectors[:, 1] = -np.cos(angles)
     vectors[:, 6] = np.cos(angles) * det_spacing[0]
