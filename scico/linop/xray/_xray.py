@@ -400,7 +400,7 @@ class XRayTransform3D(LinearOperator):
         MAX_SLICE_LEN = 10
         slice_offsets = list(range(0, im.shape[0], MAX_SLICE_LEN))
 
-        blank_view_plane = jnp.zeros(det_shape, dtype=im.dtype)
+        view_plane = jnp.zeros(det_shape, dtype=im.dtype)
 
         def project_single_matrix(matrix, init_plane):
             proj_plane = init_plane
@@ -415,10 +415,9 @@ class XRayTransform3D(LinearOperator):
 
         mapped_project = jax.vmap(project_single_matrix, in_axes=(0, None))
 
-        return mapped_project(matrices, blank_view_plane)
+        return mapped_project(matrices, view_plane)
 
     @staticmethod
-    # @partial(jax.jit, donate_argnames="proj")
     def _project_single(
         im: ArrayLike, matrix: ArrayLike, proj: ArrayLike, slice_offset: int = 0
     ) -> snp.Array:
@@ -450,14 +449,14 @@ class XRayTransform3D(LinearOperator):
         MAX_SLICE_LEN = 10
         slice_offsets = list(range(0, input_shape[0], MAX_SLICE_LEN))
 
-        # 1. Provide an accumulator buffer matching the inner target slice size
+        # Provide an accumulator buffer matching the inner target slice size
         # This acts as the tracer buffer, preventing 'donated buffer' mismatches.
-        blank_im_slice_buffer = jnp.zeros((MAX_SLICE_LEN,) + input_shape[1:], dtype=proj.dtype)
+        im_slice_buffer = jnp.zeros((MAX_SLICE_LEN,) + input_shape[1:], dtype=proj.dtype)
 
-        # 2. Extract specific image slices across ALL views simultaneously
+        # Extract specific image slices across ALL views simultaneously
         def back_project_single_slice(slice_offset):
             # We start with our empty, statically shaped sub-slice buffer
-            im_slice = blank_im_slice_buffer
+            im_slice = im_slice_buffer
 
             # Sequentially accumulate contributions from all projection views into this slice
             for view_ind, matrix in enumerate(matrices):
@@ -469,19 +468,18 @@ class XRayTransform3D(LinearOperator):
                 )
             return im_slice
 
-        # 3. Use vmap to calculate all slice blocks in parallel
+        # Use vmap to calculate all slice blocks in parallel.
         mapped_back_project = jax.vmap(back_project_single_slice)
         all_slices = mapped_back_project(jnp.array(slice_offsets))
 
-        # 4. Reshape the stacked vmap output back into a continuous 3D image array
-        # vmap gives (num_slices, MAX_SLICE_LEN, Y, Z), we flatten the first two axes
+        # Reshape the stacked vmap output back into a continuous 3D image array
+        # vmap gives (num_slices, MAX_SLICE_LEN, Y, Z), we flatten the first two axes.
         im = all_slices.reshape((-1,) + input_shape[1:])
 
-        # Trim any padding if the image size isn't perfectly divisible by MAX_SLICE_LEN
+        # Trim any padding if the image size isn't perfectly divisible by MAX_SLICE_LEN.
         return im[: input_shape[0]]
 
     @staticmethod
-    # @partial(jax.jit, donate_argnames="HTy")
     def _back_project_single(
         y: ArrayLike, matrix: ArrayLike, HTy: ArrayLike, slice_offset: int = 0
     ) -> snp.Array:
