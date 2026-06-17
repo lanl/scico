@@ -400,8 +400,12 @@ class XRayTransform3D(LinearOperator):
         MAX_SLICE_LEN = 10
         slice_offsets = list(range(0, im.shape[0], MAX_SLICE_LEN))
 
+        # Provide an accumulator buffer matching the inner target detector size
+        # to avoid tracer buffer mismatch warnings during vmap tracing.
         view_plane = jnp.zeros(det_shape, dtype=im.dtype)
 
+        # Compute complete projections across all slice blocks for a single view
+        # matrix.
         def project_single_matrix(matrix, init_plane):
             proj_plane = init_plane
             for slice_offset in slice_offsets:
@@ -413,6 +417,7 @@ class XRayTransform3D(LinearOperator):
                 )
             return proj_plane
 
+        # Use vmap to process all projection views in parallel
         mapped_project = jax.vmap(project_single_matrix, in_axes=(0, None))
 
         return mapped_project(matrices, view_plane)
