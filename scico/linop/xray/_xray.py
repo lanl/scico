@@ -458,7 +458,7 @@ class XRayTransform3D(LinearOperator):
         # This acts as the tracer buffer, preventing 'donated buffer' mismatches.
         im_slice_buffer = jnp.zeros((MAX_SLICE_LEN,) + input_shape[1:], dtype=proj.dtype)
 
-        # Extract specific image slices across ALL views simultaneously
+        # Extract specific image slices across all views simultaneously
         def back_project_single_slice(slice_offset):
             # We start with our empty, statically shaped sub-slice buffer
             im_slice = im_slice_buffer
