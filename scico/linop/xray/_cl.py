@@ -33,7 +33,12 @@ def cl_angles_to_vecs(theta: np.ndarray, alpha: float = 60.0 * (np.pi / 180.0)) 
     Args:
         theta: View angles in radians around laminography rotation axis.
         alpha: Laminography tilt angle (see angle :math:`\alpha` in Fig.
-            3(a) in :cite:`aarle-2016-fast`) in radians.
+            3(a) in :cite:`aarle-2016-fast`) in radians. Zero corresponds
+            to a 90° tilt from the plane of rotation (i.e. the view is
+            orthogonal to the plane of rotation) and :math:`\pi/2`
+            corresponds to view along the plane of rotation (i.e.
+            standard CT geomtry).
+
     Returns:
         An array of astra "parallel3d_vec" geometry specification vectors,
         as described in the documentation of :class:`.astra.XRayTransform3D`.
