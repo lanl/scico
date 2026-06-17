@@ -85,6 +85,10 @@ def _filter_projection(y: jax.Array, alpha: float) -> jax.Array:
         jnp.sin(jnp.abs(alpha)) / 8.0,
         jnp.where(nu % 2, -jnp.sin(jnp.abs(alpha)) / (2.0 * np.pi**2 * nu**2 + (nu == 0)), 0),
     )
+    # Make filter zero-mean (filter weights are adjusted proportional to their magnitude)
+    Ha = jnp.abs(H)
+    H -= Ha * H.sum() / Ha.sum()
+    # Convolve y with filter
     Hy = convolve(jnp.pad(y, ((0, 0), (0, 0), (0, 1))), H.reshape((1, 1, -1)), mode="same")
     return Hy[..., :-1]
 
