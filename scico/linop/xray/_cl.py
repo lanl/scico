@@ -80,17 +80,17 @@ def _filter_projection(y: jax.Array, alpha: float) -> jax.Array:
     # Adapted from an implementation by Yancey Sechrest
     Nu = y.shape[2]
     nu = jnp.arange(Nu + 1) - Nu // 2
-    H = jnp.where(
+    h = jnp.where(
         nu == 0,
         jnp.sin(jnp.abs(alpha)) / 8.0,
         jnp.where(nu % 2, -jnp.sin(jnp.abs(alpha)) / (2.0 * np.pi**2 * nu**2 + (nu == 0)), 0),
     )
     # Make filter zero-mean (filter weights are adjusted proportional to their magnitude)
-    Ha = jnp.abs(H)
-    H -= Ha * H.sum() / Ha.sum()
+    ha = jnp.abs(h)
+    h -= ha * h.sum() / ha.sum()
     # Convolve y with filter
-    Hy = convolve(jnp.pad(y, ((0, 0), (0, 0), (0, 1))), H.reshape((1, 1, -1)), mode="same")
-    return Hy[..., :-1]
+    hy = convolve(jnp.pad(y, ((0, 0), (0, 0), (0, 1))), h.reshape((1, 1, -1)), mode="same")
+    return hy[..., :-1]
 
 
 @jax.jit(static_argnums=(2,))
