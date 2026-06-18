@@ -368,7 +368,7 @@ class XRayTransform3D(LinearOperator):
 
         self.input_shape: Shape = input_shape
         self.matrices = jnp.asarray(matrices, dtype=np.float32)
-        self.det_shape = det_shape
+        self.det_shape = tuple(det_shape)  # in case det_shape is a list
         self.output_shape = (len(matrices), *det_shape)
         super().__init__(
             input_shape=input_shape,
