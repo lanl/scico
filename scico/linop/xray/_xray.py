@@ -397,7 +397,7 @@ class XRayTransform3D(LinearOperator):
                 matrices.
             det_shape: Shape of detector.
         """
-        BATCH_SIZE = 10
+        BATCH_SIZE = 8
 
         # Apply gradient checkpointing to the underlying core operator
         project_single = jax.remat(XRayTransform3D._project_single)
@@ -449,7 +449,7 @@ class XRayTransform3D(LinearOperator):
             matrix: (num_views, 2, 4) array of homogeneous projection matrices.
             input_shape: Shape of back projection.
         """
-        BATCH_SIZE = 10
+        BATCH_SIZE = 8
 
         # Wrap the single back-project function for gradient checkpointing
         back_project_single = jax.remat(XRayTransform3D._back_project_single)
