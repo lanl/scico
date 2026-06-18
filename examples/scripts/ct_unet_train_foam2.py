@@ -141,7 +141,7 @@ maxn = test_nimg // 2
 start_time = time()
 output = fmap(test_ds["image"][:maxn])
 time_eval = time() - start_time
-output = jax.numpy.clip(output, a_min=0, a_max=1.0)
+output = jax.numpy.clip(output, min=0.0, max=1.0)
 
 
 """
