@@ -397,30 +397,28 @@ class XRayTransform3D(LinearOperator):
                 matrices.
             det_shape: Shape of detector.
         """
-        MAX_SLICE_LEN = 10
-        slice_offsets = list(range(0, im.shape[0], MAX_SLICE_LEN))
+        BATCH_SIZE = 10
 
-        # Provide an accumulator buffer matching the inner target detector size
-        # to avoid tracer buffer mismatch warnings during vmap tracing.
-        view_plane = jnp.zeros(det_shape, dtype=im.dtype)
+        # Apply gradient checkpointing to the underlying core operator
+        project_single = jax.remat(XRayTransform3D._project_single)
 
-        # Compute complete projections across all slice blocks for a single view
-        # matrix.
-        def project_single_matrix(matrix, init_plane):
-            proj_plane = init_plane
-            for slice_offset in slice_offsets:
-                proj_plane = XRayTransform3D._project_single(
-                    im[slice_offset : slice_offset + MAX_SLICE_LEN],
-                    matrix,
-                    proj_plane,
-                    slice_offset=slice_offset,
-                )
-            return proj_plane
+        # Define projection behavior for a single matrix over the full image
+        def project_single_matrix(matrix):
+            # Start with an empty detector plane baseline
+            init_plane = jnp.zeros(det_shape, dtype=im.dtype)
 
-        # Use vmap to process all projection views in parallel
-        mapped_project = jax.vmap(project_single_matrix, in_axes=(0, None))
+            # Call the rematerialized operator on the full image
+            return XRayTransform3D._project_single(
+                im,
+                matrix,
+                init_plane,
+                slice_offset=0,  # No manual loops: processed as a whole
+            )
 
-        return mapped_project(matrices, view_plane)
+        # Automatically chunk and execute views sequentially/parallelized via JAX.
+        # If len(matrices) is not divisible by BATCH_SIZE, JAX natively handles the
+        # remainder.
+        return jax.lax.map(project_single_matrix, matrices, batch_size=BATCH_SIZE)
 
     @staticmethod
     def _project_single(
@@ -451,38 +449,35 @@ class XRayTransform3D(LinearOperator):
             matrix: (num_views, 2, 4) array of homogeneous projection matrices.
             input_shape: Shape of back projection.
         """
-        MAX_SLICE_LEN = 10
-        slice_offsets = list(range(0, input_shape[0], MAX_SLICE_LEN))
+        BATCH_SIZE = 10
 
-        # Provide an accumulator buffer matching the inner target slice size
-        # This acts as the tracer buffer, preventing 'donated buffer' mismatches.
-        im_slice_buffer = jnp.zeros((MAX_SLICE_LEN,) + input_shape[1:], dtype=proj.dtype)
+        # Wrap the single back-project function for gradient checkpointing
+        back_project_single_core = jax.remat(XRayTransform3D._back_project_single)
 
-        # Extract specific image slices across all views simultaneously
-        def back_project_single_slice(slice_offset):
-            # We start with our empty, statically shaped sub-slice buffer
-            im_slice = im_slice_buffer
+        # Process an individual view slice-by-slice natively via map mapping
+        def back_project_single_view(packed_inputs):
+            # Unpack the active iteration variables provided by lax.map
+            single_proj, single_matrix = packed_inputs
 
-            # Sequentially accumulate contributions from all projection views into this slice
-            for view_ind, matrix in enumerate(matrices):
-                im_slice = XRayTransform3D._back_project_single(
-                    proj[view_ind],
-                    matrix,
-                    im_slice,
-                    slice_offset=slice_offset,
-                )
-            return im_slice
+            # Initialize a full-sized target volume structure for this single projection contribution
+            init_volume = jnp.zeros(input_shape, dtype=proj.dtype)
 
-        # Use vmap to calculate all slice blocks in parallel.
-        mapped_back_project = jax.vmap(back_project_single_slice)
-        all_slices = mapped_back_project(jnp.array(slice_offsets))
+            return back_project_single_core(
+                single_proj,
+                single_matrix,
+                init_volume,
+                slice_offset=0,  # Let JAX optimize the internal execution structure
+            )
 
-        # Reshape the stacked vmap output back into a continuous 3D image array
-        # vmap gives (num_slices, MAX_SLICE_LEN, Y, Z), we flatten the first two axes.
-        im = all_slices.reshape((-1,) + input_shape[1:])
+        # Map across the zip-like structure of projections and matrices.
+        # lax.map accumulates a stacked array of individual volume reconstructions.
+        individual_volumes = jax.lax.map(
+            back_project_single_view, (proj, matrices), batch_size=BATCH_SIZE
+        )
 
-        # Trim any padding if the image size isn't perfectly divisible by MAX_SLICE_LEN.
-        return im[: input_shape[0]]
+        # Collapse the mapped axis by summing the independent view contributions
+        # to finalize the reconstructed 3D output image array.
+        return jnp.sum(individual_volumes, axis=0)
 
     @staticmethod
     def _back_project_single(
