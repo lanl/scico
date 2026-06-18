@@ -15,6 +15,7 @@ Computed Tomography
    - ct_astra_noreg_pcg.py
    - ct_astra_3d_tv_admm.py
    - ct_astra_3d_tv_padmm.py
+   - ct_3d_tv_padmm.py
    - ct_tv_admm.py
    - ct_astra_tv_admm.py
    - ct_multi_tv_admm.py
@@ -112,6 +113,7 @@ Total Variation
    - ct_astra_tv_admm.py
    - ct_astra_3d_tv_admm.py
    - ct_astra_3d_tv_padmm.py
+   - ct_3d_tv_padmm.py
    - ct_astra_weighted_tv_admm.py
    - ct_svmbir_tv_multi.py
    - deconv_circ_tv_admm.py
@@ -210,6 +212,7 @@ Proximal ADMM
 ^^^^^^^^^^^^^
 
     - ct_astra_3d_tv_padmm.py
+    - ct_3d_tv_padmm.py
     - deconv_tv_padmm.py
     - denoise_tv_multi.py
     - deconv_ppp_dncnn_padmm.py
