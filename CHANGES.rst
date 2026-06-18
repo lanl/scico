@@ -4,6 +4,9 @@ SCICO Release Notes
 
 Version 0.0.8   (unreleased)
 ----------------------------
+
+• Substantial computational improvement in ``linop.xray.XRayTransform3D``,
+  which is now faster than ``linop.xray.astra.XRayTransform3D``.
 • Enable certain parameters of array creation functions to trigger
  ``BlockArray`` creation when they receive lists (currently ``device``).
 • New functional ``functional.BoxIndicator``.
