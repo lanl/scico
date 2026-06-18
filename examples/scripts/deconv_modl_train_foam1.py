@@ -83,7 +83,7 @@ output_size = 256  # image size
 
 n = 3  # convolution kernel size
 σ = 20.0 / 255  # noise level
-psf = np.ones((n, n)) / (n * n)  # blur kernel
+psf = np.ones((n, n), dtype=np.float32) / (n * n)  # blur kernel
 
 ishape = (output_size, output_size)
 opBlur = CircularConvolve(h=psf, input_shape=ishape)
