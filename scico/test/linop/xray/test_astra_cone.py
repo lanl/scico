@@ -25,7 +25,6 @@ except ModuleNotFoundError as e:
 
 
 N = 128
-RTOL_CPU = 1e-4
 RTOL_GPU = 1e-1
 RTOL_GPU_RANDOM_INPUT = 2.0
 
@@ -43,22 +42,6 @@ def make_volume(Nx, Ny, Nz):
     vol = vol.astype(snp.float32)
 
     return vol
-
-
-def get_tol():
-    if jax.devices()[0].device_kind == "cpu":
-        rtol = RTOL_CPU
-    else:
-        rtol = RTOL_GPU  # astra inaccurate in GPU
-    return rtol
-
-
-def get_tol_random_input():
-    if jax.devices()[0].device_kind == "cpu":
-        rtol = RTOL_CPU
-    else:
-        rtol = RTOL_GPU_RANDOM_INPUT  # astra more inaccurate in GPU for random inputs
-    return rtol
 
 
 class XRayTransform3DConeTest:
@@ -197,7 +180,7 @@ def test_ATA_call(testobj):
     """Test A^T A x = A^T A x property using call interface."""
     Ax = testobj.A(testobj.x)
     ATAx = testobj.A.adj(Ax)
-    np.testing.assert_allclose(np.sum(testobj.x * ATAx), np.linalg.norm(Ax) ** 2, rtol=get_tol())
+    np.testing.assert_allclose(np.sum(testobj.x * ATAx), np.linalg.norm(Ax) ** 2, rtol=RTOL_GPU)
 
 
 @pytest.mark.skipif(jax.devices()[0].platform != "gpu", reason="GPU required for cone beam")
@@ -205,7 +188,7 @@ def test_ATA_matmul(testobj):
     """Test A^T A x = A^T A x property using matmul interface."""
     Ax = testobj.A @ testobj.x
     ATAx = testobj.A.T @ Ax
-    np.testing.assert_allclose(np.sum(testobj.x * ATAx), np.linalg.norm(Ax) ** 2, rtol=get_tol())
+    np.testing.assert_allclose(np.sum(testobj.x * ATAx), np.linalg.norm(Ax) ** 2, rtol=RTOL_GPU)
 
 
 @pytest.mark.skipif(jax.devices()[0].platform != "gpu", reason="GPU required for cone beam")
@@ -213,7 +196,7 @@ def test_AAT_call(testobj):
     """Test A A^T y = A A^T y property using call interface."""
     ATy = testobj.A.adj(testobj.y)
     AATy = testobj.A(ATy)
-    np.testing.assert_allclose(np.sum(testobj.y * AATy), np.linalg.norm(ATy) ** 2, rtol=get_tol())
+    np.testing.assert_allclose(np.sum(testobj.y * AATy), np.linalg.norm(ATy) ** 2, rtol=RTOL_GPU)
 
 
 @pytest.mark.skipif(jax.devices()[0].platform != "gpu", reason="GPU required for cone beam")
@@ -221,7 +204,7 @@ def test_AAT_matmul(testobj):
     """Test A A^T y = A A^T y property using matmul interface."""
     ATy = testobj.A.T @ testobj.y
     AATy = testobj.A @ ATy
-    np.testing.assert_allclose(np.sum(testobj.y * AATy), np.linalg.norm(ATy) ** 2, rtol=get_tol())
+    np.testing.assert_allclose(np.sum(testobj.y * AATy), np.linalg.norm(ATy) ** 2, rtol=RTOL_GPU)
 
 
 @pytest.mark.skipif(jax.devices()[0].platform != "gpu", reason="GPU required for cone beam")
@@ -231,7 +214,7 @@ def test_grad(testobj):
     x = testobj.x
     g = lambda x: jax.numpy.linalg.norm(A(x)) ** 2
     np.testing.assert_allclose(
-        scico.grad(g)(x), 2 * A.adj(A(x)), atol=get_tol() * x.max(), rtol=get_tol()
+        scico.grad(g)(x), 2 * A.adj(A(x)), atol=RTOL_GPU * x.max(), rtol=RTOL_GPU
     )
 
 
@@ -242,14 +225,14 @@ def test_adjoint_grad(testobj):
     x = testobj.x
     Ax = A @ x
     f = lambda y: jax.numpy.linalg.norm(A.T(y)) ** 2
-    np.testing.assert_allclose(scico.grad(f)(Ax), 2 * A(A.adj(Ax)), rtol=get_tol())
+    np.testing.assert_allclose(scico.grad(f)(Ax), 2 * A(A.adj(Ax)), rtol=RTOL_GPU)
 
 
 @pytest.mark.skipif(jax.devices()[0].platform != "gpu", reason="GPU required for cone beam")
 def test_adjoint_random(testobj):
     """Test adjoint property with random input."""
     A = testobj.A
-    adjoint_test(A, rtol=10 * get_tol_random_input())
+    adjoint_test(A, rtol=10 * RTOL_GPU_RANDOM_INPUT)
 
 
 @pytest.mark.skipif(jax.devices()[0].platform != "gpu", reason="GPU required for cone beam")
@@ -257,7 +240,7 @@ def test_adjoint_typical_input(testobj):
     """Test adjoint property with typical input (structured volume)."""
     A = testobj.A
     x = make_volume(A.input_shape[0], A.input_shape[1], A.input_shape[2])
-    adjoint_test(A, x=x, rtol=get_tol())
+    adjoint_test(A, x=x, rtol=RTOL_GPU)
 
 
 @pytest.mark.skipif(jax.devices()[0].platform != "gpu", reason="GPU required for cone beam")
@@ -287,7 +270,7 @@ def test_cone_api_equiv():
     ya = A @ x
     yb = B @ x
 
-    np.testing.assert_allclose(ya, yb, rtol=get_tol())
+    np.testing.assert_allclose(ya, yb, rtol=RTOL_GPU)
 
 
 @pytest.mark.skipif(jax.devices()[0].platform != "gpu", reason="GPU required for cone beam")
