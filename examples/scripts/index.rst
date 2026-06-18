@@ -22,7 +22,6 @@ Computed Tomography
    - ct_svmbir_tv_multi.py
    - ct_svmbir_ppp_bm3d_admm_cg.py
    - ct_svmbir_ppp_bm3d_admm_prox.py
-   - ct_fan_svmbir_ppp_bm3d_admm_prox.py
    - ct_modl_train_foam2.py
    - ct_odp_train_foam2.py
    - ct_unet_train_foam2.py
@@ -47,6 +46,20 @@ Deconvolution
    - deconv_odp_train_foam1.py
 
 
+Denoising
+^^^^^^^^^
+
+   - denoise_l1tv_admm.py
+   - denoise_ptv_pdhg.py
+   - denoise_tv_admm.py
+   - denoise_tv_apgm.py
+   - denoise_tv_multi.py
+   - denoise_approx_tv_multi.py
+   - denoise_cplx_tv_nlpadmm.py
+   - denoise_cplx_tv_pdhg.py
+   - denoise_dncnn_universal.py
+
+
 Sparse Coding
 ^^^^^^^^^^^^^
 
@@ -63,15 +76,6 @@ Miscellaneous
 
    - demosaic_ppp_bm3d_admm.py
    - superres_ppp_dncnn_admm.py
-   - denoise_l1tv_admm.py
-   - denoise_ptv_pdhg.py
-   - denoise_tv_admm.py
-   - denoise_tv_apgm.py
-   - denoise_tv_multi.py
-   - denoise_approx_tv_multi.py
-   - denoise_cplx_tv_nlpadmm.py
-   - denoise_cplx_tv_pdhg.py
-   - denoise_dncnn_universal.py
    - diffusercam_tv_admm.py
    - video_rpca_admm.py
    - ct_datagen_foam2.py
@@ -88,7 +92,6 @@ Plug and Play Priors
 
    - ct_svmbir_ppp_bm3d_admm_cg.py
    - ct_svmbir_ppp_bm3d_admm_prox.py
-   - ct_fan_svmbir_ppp_bm3d_admm_prox.py
    - deconv_ppp_bm3d_admm.py
    - deconv_ppp_bm3d_apgm.py
    - deconv_ppp_dncnn_admm.py
@@ -175,7 +178,6 @@ ADMM
    - ct_svmbir_tv_multi.py
    - ct_svmbir_ppp_bm3d_admm_cg.py
    - ct_svmbir_ppp_bm3d_admm_prox.py
-   - ct_fan_svmbir_ppp_bm3d_admm_prox.py
    - deconv_circ_tv_admm.py
    - deconv_tv_admm.py
    - deconv_tv_admm_tune.py
