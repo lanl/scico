@@ -326,8 +326,8 @@ if stats_object is not None and len(stats_object.iterations) > 0:
     hist = stats_object.history(transpose=True)
     fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(12, 5))
     kplt.plot(
+        hist.Epoch,
         np.array((hist.Train_Loss, hist.Eval_Loss)).T,
-        x=hist.Epoch,
         ylog=True,
         title="Loss function",
         xlabel="Epoch",
@@ -336,8 +336,8 @@ if stats_object is not None and len(stats_object.iterations) > 0:
         ax=ax[0],
     )
     kplt.plot(
+        hist.Epoch,
         np.array((hist.Train_SNR, hist.Eval_SNR)).T,
-        x=hist.Epoch,
         title="Metric",
         xlabel="Epoch",
         ylabel="SNR (dB)",
@@ -351,8 +351,8 @@ if stats_object_ini is not None and len(stats_object_ini.iterations) > 0:
     hist = stats_object_ini.history(transpose=True)
     fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(12, 5))
     kplt.plot(
+        hist.Epoch,
         np.array((hist.Train_Loss, hist.Eval_Loss)).T,
-        x=hist.Epoch,
         ylog=True,
         title="Loss function - Initialization",
         xlabel="Epoch",
@@ -361,8 +361,8 @@ if stats_object_ini is not None and len(stats_object_ini.iterations) > 0:
         ax=ax[0],
     )
     kplt.plot(
+        hist.Epoch,
         np.array((hist.Train_SNR, hist.Eval_SNR)).T,
-        x=hist.Epoch,
         title="Metric - Initialization",
         xlabel="Epoch",
         ylabel="SNR (dB)",
