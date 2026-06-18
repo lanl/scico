@@ -9,7 +9,7 @@ Version 0.0.8   (unreleased)
  ``BlockArray`` creation when they receive lists (currently ``device``).
 • New functional ``functional.BoxIndicator``.
 • New functions supporting computed laminography reconstructions.
-• Support ``jaxlib`` and ``jax`` versions 0.5.0 to 0.10.1.
+• Support ``jaxlib`` and ``jax`` versions 0.5.0 to 0.10.2.
 • Support ``flax`` versions 0.8.0 to 0.12.7.
 • Various bug fixes and minor improvements.
 
