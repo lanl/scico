@@ -408,7 +408,7 @@ class XRayTransform3D(LinearOperator):
             init_plane = jnp.zeros(det_shape, dtype=im.dtype)
 
             # Call the rematerialized operator on the full image
-            return XRayTransform3D._project_single(
+            return project_single(
                 im,
                 matrix,
                 init_plane,
@@ -452,17 +452,18 @@ class XRayTransform3D(LinearOperator):
         BATCH_SIZE = 10
 
         # Wrap the single back-project function for gradient checkpointing
-        back_project_single_core = jax.remat(XRayTransform3D._back_project_single)
+        back_project_single = jax.remat(XRayTransform3D._back_project_single)
 
         # Process an individual view slice-by-slice natively via map mapping
         def back_project_single_view(packed_inputs):
             # Unpack the active iteration variables provided by lax.map
             single_proj, single_matrix = packed_inputs
 
-            # Initialize a full-sized target volume structure for this single projection contribution
+            # Initialize a full-sized target volume structure for this single projection
+            # contribution
             init_volume = jnp.zeros(input_shape, dtype=proj.dtype)
 
-            return back_project_single_core(
+            return back_project_single(
                 single_proj,
                 single_matrix,
                 init_volume,
