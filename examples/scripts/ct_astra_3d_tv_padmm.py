@@ -130,26 +130,56 @@ print(
 
 
 """
-Show the recovered image.
+Show the recovered volume.
 """
-fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(7, 6))
+fig, ax = kplt.subplots(nrows=1, ncols=2, sharex=True, sharey=True, figsize=(7, 6))
 kplt.imview(
     tangle[32],
-    title="Ground truth (central slice)",
-    cmap=kplt.cm.Blues,
+    title="Ground truth",
+    cmap=kplt.cm.viridis,
     show_cbar=None,
     ax=ax[0],
 )
 kplt.imview(
     tangle_recon[32],
-    title="TV Reconstruction (central slice)\nSNR: %.2f (dB), MAE: %.3f"
+    title="TV Reconstruction\nSNR: %.2f (dB), MAE: %.3f"
     % (metric.snr(tangle, tangle_recon), metric.mae(tangle, tangle_recon)),
-    cmap=kplt.cm.Blues,
+    cmap=kplt.cm.viridis,
     ax=ax[1],
 )
 divider = make_axes_locatable(ax[1])
 cax = divider.append_axes("right", size="5%", pad=0.2)
 fig.colorbar(ax[1].get_images()[0], cax=cax, label="arbitrary units")
+fig.suptitle("Central slice on $z$ axis (axis 0)")
+fig.tight_layout()
+fig.show()
+
+fig, ax = kplt.subplots(
+    nrows=1,
+    ncols=2,
+    sharex=True,
+    sharey=True,
+    gridspec_kw={"width_ratios": [1, 1.08]},
+    figsize=(13, 4),
+)
+kplt.imview(
+    tangle[:, 128],
+    title="Ground truth",
+    cmap=kplt.cm.viridis,
+    ax=ax[0],
+)
+kplt.imview(
+    tangle_recon[:, 128],
+    title="TV Reconstruction\nSNR: %.2f (dB), MAE: %.3f"
+    % (metric.snr(tangle, tangle_recon), metric.mae(tangle, tangle_recon)),
+    cmap=kplt.cm.viridis,
+    ax=ax[1],
+)
+divider = make_axes_locatable(ax[1])
+cax = divider.append_axes("right", size="5%", pad=0.2)
+fig.colorbar(ax[1].get_images()[0], ax=ax[1], cax=cax, label="arbitrary units")
+fig.suptitle("Central slice on $y$ axis (axis 1)")
+fig.tight_layout()
 fig.show()
 
 input("\nWaiting for input to close figures and exit")
