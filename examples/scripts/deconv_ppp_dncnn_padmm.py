@@ -97,12 +97,14 @@ hist = solver.itstat_object.history(transpose=True)
 """
 Show the recovered image.
 """
-fig, ax = kplt.subplots(nrows=1, ncols=3, figsize=(15, 5))
-kplt.imview(x_gt, title="Ground truth", ax=ax[0])
+fig, ax = kplt.subplots(nrows=1, ncols=3, sharex=True, sharey=True, figsize=(15, 5))
+kplt.imview(x_gt, cmap="Blues", title="Ground truth", ax=ax[0])
 nc = n // 2
 yc = snp.clip(y[nc:-nc, nc:-nc], 0, 1)
-kplt.imview(y, title="Blurred, noisy image: %.2f (dB)" % metric.psnr(x_gt, yc), ax=ax[1])
-kplt.imview(x, title="Deconvolved image: %.2f (dB)" % metric.psnr(x_gt, x), ax=ax[2])
+kplt.imview(
+    y, cmap="Blues", title="Blurred, noisy image: %.2f (dB)" % metric.psnr(x_gt, yc), ax=ax[1]
+)
+kplt.imview(x, cmap="Blues", title="Deconvolved image: %.2f (dB)" % metric.psnr(x_gt, x), ax=ax[2])
 fig.show()
 
 
