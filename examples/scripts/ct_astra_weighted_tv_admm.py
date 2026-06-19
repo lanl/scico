@@ -21,6 +21,8 @@ likelihood :cite:`sauer-1993-local`, $C$ is a 2D finite difference
 operator, and $\mathbf{x}$ is the reconstructed image.
 """
 
+import warnings
+
 import numpy as np
 
 import komplot as kplt
@@ -37,7 +39,9 @@ Create a ground truth image.
 """
 N = 512  # phantom size
 np.random.seed(0)
-x_gt = discrete_phantom(Soil(porosity=0.60), size=384)
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", category=RuntimeWarning)
+    x_gt = discrete_phantom(Soil(porosity=0.60), size=384)
 x_gt = np.ascontiguousarray(np.pad(x_gt, (64, 64)))
 x_gt = np.clip(x_gt, 0, np.inf)  # clip to positive values
 x_gt = snp.array(x_gt)  # convert to jax type
