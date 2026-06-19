@@ -169,7 +169,7 @@ def plot_recon(x, title, ax):
     )
 
 
-fig, ax = kplt.subplots(nrows=2, ncols=2, figsize=(11, 10))
+fig, ax = kplt.subplots(nrows=2, ncols=2, sharex=True, sharey=True, figsize=(11, 10))
 kplt.imview(x_gt, cmap="Blues", title="Ground truth", ax=ax[0, 0])
 plot_recon(x0, "FBP Reconstruction", ax=ax[0, 1])
 plot_recon(x_unweighted, "Unweighted TV Reconstruction", ax=ax[1, 0])

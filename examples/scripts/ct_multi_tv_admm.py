@@ -164,16 +164,18 @@ fig.show()
 """
 Show the recovered images.
 """
-fig, ax = kplt.subplots(nrows=1, ncols=4, figsize=(15, 5))
-kplt.imview(x_gt, title="Ground truth", ax=ax[0])
+fig, ax = kplt.subplots(nrows=1, ncols=4, sharex=True, sharey=True, figsize=(15, 5))
+kplt.imview(x_gt, cmap="Blues", title="Ground truth", ax=ax[0])
 for n, p in enumerate(projectors.keys()):
     kplt.imview(
         x_rec[p],
+        cmap="Blues",
         title="%s  SNR: %.2f (dB)" % (p, metric.snr(x_gt, x_rec[p])),
         ax=ax[n + 1],
     )
 for ax in ax:
     ax.get_images()[0].set_clim(-0.1, 1.1)
+fig.tight_layout()
 fig.show()
 
 
