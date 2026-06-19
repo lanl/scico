@@ -128,7 +128,7 @@ for p in projectors.keys():
 Display sinogram.
 """
 fig, ax = kplt.subplots(nrows=1, ncols=1, figsize=(15, 3))
-kplt.imview(y, title="sinogram", ax=ax)
+kplt.imview(y, cmap="Blues", title="sinogram", ax=ax)
 fig.show()
 
 
