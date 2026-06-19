@@ -100,7 +100,7 @@ sn = s + σ * noise
 """
 Compute a baseline demosaicing solution.
 """
-imgb = snp.array(bm3d_rgb(demosaic(sn), 3 * σ).astype(np.float32))
+imgb = snp.clip(snp.array(bm3d_rgb(demosaic(sn), 3 * σ).astype(np.float32)), 0.0, 1.0)
 
 
 """
@@ -132,7 +132,7 @@ solver = ADMM(
 Run the solver.
 """
 print(f"Solving on {device_info()}\n")
-x = solver.solve()
+x = snp.clip(solver.solve(), 0.0, 1.0)
 hist = solver.itstat_object.history(transpose=True)
 
 
