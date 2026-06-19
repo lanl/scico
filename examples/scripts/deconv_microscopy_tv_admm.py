@@ -116,7 +116,7 @@ x = x_pad[: y.shape[0], : y.shape[1], : y.shape[2]]
 """
 Show the recovered image.
 """
-fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(14, 7))
+fig, ax = kplt.subplots(nrows=1, ncols=2, sharex=True, sharey=True, figsize=(14, 7))
 kplt.imview(tile_volume_slices(y), title="Blurred measurements", ax=ax[0])
 kplt.imview(tile_volume_slices(x), title="Deconvolved image", ax=ax[1])
 fig.show()

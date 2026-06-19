@@ -89,7 +89,7 @@ hist = solver.itstat_object.history(transpose=True)
 Show slices of the recovered 3D volume.
 """
 show_id = Nz // 2
-fig, ax = kplt.subplots(nrows=1, ncols=3, figsize=(15, 5))
+fig, ax = kplt.subplots(nrows=1, ncols=3, sharex=True, sharey=True, figsize=(15, 5))
 kplt.imview(tile_volume_slices(x_gt), title="Ground truth", ax=ax[0])
 nc = n // 2
 yc = y[nc:-nc, nc:-nc, nc:-nc]
