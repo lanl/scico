@@ -74,9 +74,11 @@ for σ in [0.06, 0.10, 0.20]:
 Show reference and denoised images for σ=0.2 and variant=6N.
 """
 fig, ax = kplt.subplots(nrows=1, ncols=3, sharex=True, sharey=True, figsize=(21, 7))
-kplt.imview(x_gt, title="Reference", ax=ax[0])
-kplt.imview(y, title="Noisy image: %.2f (dB)" % metric.psnr(x_gt, y), ax=ax[1])
-kplt.imview(x_hat, title="Denoised image: %.2f (dB)" % metric.psnr(x_gt, x_hat), ax=ax[2])
+kplt.imview(x_gt, cmap="Blues", title="Reference", ax=ax[0])
+kplt.imview(y, cmap="Blues", title="Noisy image: %.2f (dB)" % metric.psnr(x_gt, y), ax=ax[1])
+kplt.imview(
+    x_hat, cmap="Blues", title="Denoised image: %.2f (dB)" % metric.psnr(x_gt, x_hat), ax=ax[2]
+)
 fig.show()
 
 
