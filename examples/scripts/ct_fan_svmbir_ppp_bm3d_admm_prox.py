@@ -215,11 +215,12 @@ used here.
 """
 norm = kplt.colors.Normalize(vmin=-0.1 * density, vmax=1.2 * density)
 
-fig, ax = plt.subplots(1, 3, figsize=(20, 7))
-kplt.imview(x_gt, title="Ground Truth Image", show_cbar=True, ax=ax[0], norm=norm)
+fig, ax = plt.subplots(1, 3, sharex=True, sharey=True, figsize=(20, 7))
+kplt.imview(x_gt, title="Ground Truth Image", cmap="Blues", show_cbar=True, ax=ax[0], norm=norm)
 kplt.imview(
     x_mrf_parallel,
     title=f"Parallel-beam MRF (PSNR: {metric.psnr(x_gt, x_mrf_parallel):.2f} dB)",
+    cmap="Blues",
     show_cbar=True,
     ax=ax[1],
     norm=norm,
@@ -227,18 +228,21 @@ kplt.imview(
 kplt.imview(
     x_extloss_parallel,
     title=f"Parallel-beam Extended Loss (PSNR: {metric.psnr(x_gt, x_extloss_parallel):.2f} dB)",
+    cmap="Blues",
     show_cbar=True,
     ax=ax[2],
     norm=norm,
 )
+fig.tight_layout()
 fig.show()
 
 
-fig, ax = plt.subplots(1, 3, figsize=(20, 7))
-kplt.imview(x_gt, title="Ground Truth Image", show_cbar=True, ax=ax[0], norm=norm)
+fig, ax = plt.subplots(1, 3, sharex=True, sharey=True, figsize=(20, 7))
+kplt.imview(x_gt, title="Ground Truth Image", cmap="Blues", show_cbar=True, ax=ax[0], norm=norm)
 kplt.imview(
     x_mrf_fan,
     title=f"Fan-beam MRF (PSNR: {metric.psnr(x_gt, x_mrf_fan):.2f} dB)",
+    cmap="Blues",
     show_cbar=True,
     ax=ax[1],
     norm=norm,
@@ -246,10 +250,12 @@ kplt.imview(
 kplt.imview(
     x_extloss_fan,
     title=f"Fan-beam Extended Loss (PSNR: {metric.psnr(x_gt, x_extloss_fan):.2f} dB)",
+    cmap="Blues",
     show_cbar=True,
     ax=ax[2],
     norm=norm,
 )
+fig.tight_layout()
 fig.show()
 
 
