@@ -177,11 +177,12 @@ hist_extloss = solver_extloss.itstat_object.history(transpose=True)
 Show the recovered images.
 """
 norm = kplt.colors.Normalize(vmin=-0.1 * density, vmax=1.2 * density)
-fig, ax = kplt.subplots(2, 2, figsize=(15, 15))
-kplt.imview(x_gt, title="Ground Truth Image", show_cbar=True, ax=ax[0, 0], norm=norm)
+fig, ax = kplt.subplots(2, 2, sharex=True, sharey=True, figsize=(15, 14))
+kplt.imview(x_gt, title="Ground Truth Image", cmap="Blues", show_cbar=True, ax=ax[0, 0], norm=norm)
 kplt.imview(
     x_mrf,
     title=f"MRF (PSNR: {metric.psnr(x_gt, x_mrf):.2f} dB)",
+    cmap="Blues",
     show_cbar=True,
     ax=ax[0, 1],
     norm=norm,
@@ -189,6 +190,7 @@ kplt.imview(
 kplt.imview(
     x_l2loss,
     title=f"SquaredL2Loss + non-negativity (PSNR: {metric.psnr(x_gt, x_l2loss):.2f} dB)",
+    cmap="Blues",
     show_cbar=True,
     ax=ax[1, 0],
     norm=norm,
@@ -196,6 +198,7 @@ kplt.imview(
 kplt.imview(
     x_extloss,
     title=f"ExtendedLoss (PSNR: {metric.psnr(x_gt, x_extloss):.2f} dB)",
+    cmap="Blues",
     show_cbar=True,
     ax=ax[1, 1],
     norm=norm,
