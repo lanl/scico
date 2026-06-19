@@ -37,7 +37,7 @@ Create a ground truth image.
 """
 N = 512  # phantom size
 np.random.seed(0)
-x_gt = discrete_phantom(Soil(porosity=0.80), size=384)
+x_gt = discrete_phantom(Soil(porosity=0.60), size=384)
 x_gt = np.ascontiguousarray(np.pad(x_gt, (64, 64)))
 x_gt = np.clip(x_gt, 0, np.inf)  # clip to positive values
 x_gt = snp.array(x_gt)  # convert to jax type
@@ -159,13 +159,14 @@ def plot_recon(x, title, ax):
     """Plot an image with title indicating error metrics."""
     kplt.imview(
         x,
+        cmap="Blues",
         title=f"{title}\nSNR: {metric.snr(x_gt, x):.2f} (dB), MAE: {metric.mae(x_gt, x):.3f}",
         ax=ax,
     )
 
 
 fig, ax = kplt.subplots(nrows=2, ncols=2, figsize=(11, 10))
-kplt.imview(x_gt, title="Ground truth", ax=ax[0, 0])
+kplt.imview(x_gt, cmap="Blues", title="Ground truth", ax=ax[0, 0])
 plot_recon(x0, "FBP Reconstruction", ax=ax[0, 1])
 plot_recon(x_unweighted, "Unweighted TV Reconstruction", ax=ax[1, 0])
 plot_recon(x_weighted, "Weighted TV Reconstruction", ax=ax[1, 1])
