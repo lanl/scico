@@ -135,7 +135,7 @@ kplt.plot(
 fig.show()
 
 
-fig, ax = kplt.subplots(nrows=2, ncols=4, figsize=(20, 10))
+fig, ax = kplt.subplots(nrows=2, ncols=4, sharex=True, sharey=True, figsize=(20, 10))
 norm = kplt.colors.Normalize(
     vmin=min(snp.abs(x_gt).min(), snp.abs(y).min(), snp.abs(x_tv).min(), snp.abs(x_nltv).min()),
     vmax=max(snp.abs(x_gt).max(), snp.abs(y).max(), snp.abs(x_tv).max(), snp.abs(x_nltv).max()),
