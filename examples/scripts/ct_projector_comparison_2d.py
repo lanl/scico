@@ -170,23 +170,25 @@ for tstr in ("first", "avg"):
 """
 Show projections.
 """
-fig, ax = kplt.subplots(nrows=1, ncols=2, sharex=True, sharey=True, figsize=(12, 6))
+fig, ax = kplt.subplots(
+    nrows=1, ncols=2, sharex=True, sharey=True, layout="constrained", figsize=(9, 6)
+)
 kplt.imview(ys["scico"], title="SCICO projection", cmap="Blues", ax=ax[0])
 kplt.imview(ys["astra"], title="ASTRA projection", cmap="Blues", ax=ax[1])
-fig.tight_layout()
 fig.show()
 
 
 """
 Show back projections of a single detector element, i.e., a line.
 """
-fig, ax = kplt.subplots(nrows=1, ncols=2, sharex=True, sharey=True, figsize=(12, 6))
+fig, ax = kplt.subplots(
+    nrows=1, ncols=2, sharex=True, sharey=True, layout="constrained", figsize=(12, 6)
+)
 kplt.imview(HTys["scico"], title="SCICO back projection (zoom)", cmap="Blues", ax=ax[0])
 kplt.imview(HTys["astra"], title="ASTRA back projection (zoom)", cmap="Blues", ax=ax[1])
 for ax_i in ax:
     ax_i.set_xlim(2 * N / 5, N - 2 * N / 5)
     ax_i.set_ylim(2 * N / 5, N - 2 * N / 5)
-fig.tight_layout()
 fig.show()
 
 
