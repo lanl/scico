@@ -153,24 +153,28 @@ for tstr in ("first", "avg"):
 """
 Show projections.
 """
-fig, ax = kplt.subplots(nrows=3, ncols=2, figsize=(8, 10))
-kplt.imview(y_scico[0], title="SCICO projections", show_cbar=None, ax=ax[0, 0])
-kplt.imview(y_scico[1], show_cbar=None, ax=ax[1, 0])
-kplt.imview(y_scico[2], show_cbar=None, ax=ax[2, 0])
-kplt.imview(y_astra_from_scico[:, 0], title="ASTRA projections", show_cbar=None, ax=ax[0, 1])
-kplt.imview(y_astra_from_scico[:, 1], show_cbar=None, ax=ax[1, 1])
-kplt.imview(y_astra_from_scico[:, 2], show_cbar=None, ax=ax[2, 1])
+fig, ax = kplt.subplots(nrows=3, sharex=True, sharey=True, ncols=2, figsize=(8, 10))
+kplt.imview(y_scico[0], title="SCICO projections", cmap="viridis", show_cbar=None, ax=ax[0, 0])
+kplt.imview(y_scico[1], cmap="viridis", show_cbar=None, ax=ax[1, 0])
+kplt.imview(y_scico[2], cmap="viridis", show_cbar=None, ax=ax[2, 0])
+kplt.imview(
+    y_astra_from_scico[:, 0], cmap="viridis", title="ASTRA projections", show_cbar=None, ax=ax[0, 1]
+)
+kplt.imview(y_astra_from_scico[:, 1], cmap="viridis", show_cbar=None, ax=ax[1, 1])
+kplt.imview(y_astra_from_scico[:, 2], cmap="viridis", show_cbar=None, ax=ax[2, 1])
 fig.suptitle("Using SCICO conventions")
 fig.tight_layout()
 fig.show()
 
-fig, ax = kplt.subplots(nrows=3, ncols=2, figsize=(8, 10))
-kplt.imview(y_scico_from_astra[0], title="SCICO projections", show_cbar=None, ax=ax[0, 0])
-kplt.imview(y_scico_from_astra[1], show_cbar=None, ax=ax[1, 0])
-kplt.imview(y_scico_from_astra[2], show_cbar=None, ax=ax[2, 0])
-kplt.imview(y_astra[:, 0], title="ASTRA projections", show_cbar=None, ax=ax[0, 1])
-kplt.imview(y_astra[:, 1], show_cbar=None, ax=ax[1, 1])
-kplt.imview(y_astra[:, 2], show_cbar=None, ax=ax[2, 1])
+fig, ax = kplt.subplots(nrows=3, ncols=2, sharex=True, sharey=True, figsize=(8, 10))
+kplt.imview(
+    y_scico_from_astra[0], title="SCICO projections", cmap="viridis", show_cbar=None, ax=ax[0, 0]
+)
+kplt.imview(y_scico_from_astra[1], cmap="viridis", show_cbar=None, ax=ax[1, 0])
+kplt.imview(y_scico_from_astra[2], cmap="viridis", show_cbar=None, ax=ax[2, 0])
+kplt.imview(y_astra[:, 0], title="ASTRA projections", cmap="viridis", show_cbar=None, ax=ax[0, 1])
+kplt.imview(y_astra[:, 1], cmap="viridis", show_cbar=None, ax=ax[1, 1])
+kplt.imview(y_astra[:, 2], cmap="viridis", show_cbar=None, ax=ax[2, 1])
 fig.suptitle("Using ASTRA conventions")
 fig.tight_layout()
 fig.show()
@@ -179,16 +183,32 @@ fig.show()
 """
 Show back projections.
 """
-fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(8, 5))
-kplt.imview(HTy_scico[N // 2], title="SCICO back projection", show_cbar=None, ax=ax[0])
-kplt.imview(HTy_astra_from_scico[N // 2], title="ASTRA back projection", show_cbar=None, ax=ax[1])
+fig, ax = kplt.subplots(nrows=1, ncols=2, sharex=True, sharey=True, figsize=(8, 5))
+kplt.imview(
+    HTy_scico[N // 2], title="SCICO back projection", cmap="viridis", show_cbar=None, ax=ax[0]
+)
+kplt.imview(
+    HTy_astra_from_scico[N // 2],
+    title="ASTRA back projection",
+    cmap="viridis",
+    show_cbar=None,
+    ax=ax[1],
+)
 fig.suptitle("Using SCICO conventions")
 fig.tight_layout()
 fig.show()
 
-fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(8, 5))
-kplt.imview(HTy_scico_from_astra[N // 2], title="SCICO back projection", show_cbar=None, ax=ax[0])
-kplt.imview(HTy_astra[N // 2], title="ASTRA back projection", show_cbar=None, ax=ax[1])
+fig, ax = kplt.subplots(nrows=1, ncols=2, sharex=True, sharey=True, figsize=(8, 5))
+kplt.imview(
+    HTy_scico_from_astra[N // 2],
+    title="SCICO back projection",
+    cmap="viridis",
+    show_cbar=None,
+    ax=ax[0],
+)
+kplt.imview(
+    HTy_astra[N // 2], title="ASTRA back projection", cmap="viridis", show_cbar=None, ax=ax[1]
+)
 fig.suptitle("Using ASTRA conventions")
 fig.tight_layout()
 fig.show()
