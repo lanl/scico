@@ -157,21 +157,23 @@ print(f"PSNR: {metric.psnr(x_gt, x_pdhg):.2f} dB\n")
 Show the recovered images.
 """
 norm = kplt.colors.Normalize(vmin=-0.1 * density, vmax=1.2 * density)
-fig, ax = kplt.subplots(1, 2, figsize=[10, 5])
-kplt.imview(x_gt, title="Ground Truth Image", show_cbar=True, ax=ax[0], norm=norm)
+fig, ax = kplt.subplots(1, 2, sharex=True, sharey=True, figsize=[10, 5])
+kplt.imview(x_gt, title="Ground Truth Image", cmap="Blues", show_cbar=True, ax=ax[0], norm=norm)
 kplt.imview(
     x_mrf,
     title=f"MRF (PSNR: {metric.psnr(x_gt, x_mrf):.2f} dB)",
+    cmap="Blues",
     show_cbar=True,
     ax=ax[1],
     norm=norm,
 )
 fig.show()
 
-fig, ax = kplt.subplots(1, 3, figsize=[15, 5])
+fig, ax = kplt.subplots(1, 3, sharex=True, sharey=True, figsize=[15, 5])
 kplt.imview(
     x_admm,
     title=f"TV ADMM (PSNR: {metric.psnr(x_gt, x_admm):.2f} dB)",
+    cmap="Blues",
     show_cbar=True,
     ax=ax[0],
     norm=norm,
@@ -179,6 +181,7 @@ kplt.imview(
 kplt.imview(
     x_ladmm,
     title=f"TV LinADMM (PSNR: {metric.psnr(x_gt, x_ladmm):.2f} dB)",
+    cmap="Blues",
     show_cbar=True,
     ax=ax[1],
     norm=norm,
@@ -186,6 +189,7 @@ kplt.imview(
 kplt.imview(
     x_pdhg,
     title=f"TV PDHG (PSNR: {metric.psnr(x_gt, x_pdhg):.2f} dB)",
+    cmap="Blues",
     show_cbar=True,
     ax=ax[2],
     norm=norm,
