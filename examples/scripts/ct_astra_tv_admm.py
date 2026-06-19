@@ -94,13 +94,13 @@ x_reconstruction = snp.clip(solver.x, 0, 1.0)
 """
 Show the recovered image.
 """
-
-fig, ax = kplt.subplots(nrows=1, ncols=3, figsize=(15, 5))
-kplt.imview(x_gt, title="Ground truth", show_cbar=None, ax=ax[0])
+fig, ax = kplt.subplots(nrows=1, ncols=3, sharex=True, sharey=True, figsize=(15, 5))
+kplt.imview(x_gt, title="Ground truth", cmap=kplt.cm.Blues, show_cbar=None, ax=ax[0])
 kplt.imview(
     x0,
     title="FBP Reconstruction: \nSNR: %.2f (dB), MAE: %.3f"
     % (metric.snr(x_gt, x0), metric.mae(x_gt, x0)),
+    cmap=kplt.cm.Blues,
     show_cbar=None,
     ax=ax[1],
 )
@@ -108,11 +108,13 @@ kplt.imview(
     x_reconstruction,
     title="TV Reconstruction\nSNR: %.2f (dB), MAE: %.3f"
     % (metric.snr(x_gt, x_reconstruction), metric.mae(x_gt, x_reconstruction)),
+    cmap=kplt.cm.Blues,
     ax=ax[2],
 )
 divider = make_axes_locatable(ax[2])
 cax = divider.append_axes("right", size="5%", pad=0.2)
 fig.colorbar(ax[2].get_images()[0], cax=cax, label="arbitrary units")
+fig.tight_layout()
 fig.show()
 
 
