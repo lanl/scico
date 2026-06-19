@@ -80,7 +80,7 @@ solver_tv = PDHG(
 print(f"Solving on {device_info()}\n")
 x_tv = solver_tv.solve()
 hist_tv = solver_tv.itstat_object.history(transpose=True)
-
+print("\n")
 
 """
 Denoise with total variation applied to the magnitude of a complex image.
