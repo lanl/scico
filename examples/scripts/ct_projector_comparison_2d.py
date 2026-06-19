@@ -175,6 +175,7 @@ fig, ax = kplt.subplots(
 )
 kplt.imview(ys["scico"], title="SCICO projection", cmap="Blues", ax=ax[0])
 kplt.imview(ys["astra"], title="ASTRA projection", cmap="Blues", ax=ax[1])
+fig.get_layout_engine().set(w_pad=0.1, h_pad=0.2)
 fig.show()
 
 
@@ -189,6 +190,7 @@ kplt.imview(HTys["astra"], title="ASTRA back projection (zoom)", cmap="Blues", a
 for ax_i in ax:
     ax_i.set_xlim(2 * N / 5, N - 2 * N / 5)
     ax_i.set_ylim(2 * N / 5, N - 2 * N / 5)
+fig.get_layout_engine().set(w_pad=0.1, h_pad=0.2)
 fig.show()
 
 
