@@ -25,6 +25,7 @@ import numpy as np
 
 import komplot as kplt
 import svmbir
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 from xdesign import Foam, discrete_phantom
 
 import scico.numpy as snp
@@ -121,22 +122,27 @@ hist = solver.itstat_object.history(transpose=True)
 Show the recovered image.
 """
 norm = kplt.colors.Normalize(vmin=-0.1 * density, vmax=1.2 * density)
-fig, ax = kplt.subplots(1, 3, figsize=[15, 5])
-kplt.imview(x_gt, title="Ground Truth Image", show_cbar=True, ax=ax[0], norm=norm)
+fig, ax = kplt.subplots(
+    1, 3, sharex=True, sharey=True, gridspec_kw={"width_ratios": [1, 1, 1.12]}, figsize=(15, 5)
+)
+kplt.imview(x_gt, title="Ground Truth Image", cmap="Blues", ax=ax[0], norm=norm)
 kplt.imview(
     x_mrf,
     title=f"MRF (PSNR: {metric.psnr(x_gt, x_mrf):.2f} dB)",
-    show_cbar=True,
+    cmap="Blues",
     ax=ax[1],
     norm=norm,
 )
 kplt.imview(
     x_bm3d,
     title=f"BM3D (PSNR: {metric.psnr(x_gt, x_bm3d):.2f} dB)",
-    show_cbar=True,
+    cmap="Blues",
     ax=ax[2],
     norm=norm,
 )
+divider = make_axes_locatable(ax[2])
+cax = divider.append_axes("right", size="5%", pad=0.2)
+fig.colorbar(ax[2].get_images()[0], ax=ax[2], cax=cax)
 fig.show()
 
 
