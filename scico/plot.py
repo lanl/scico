@@ -13,7 +13,13 @@ plotting functions.
 
 import warnings
 
-import komplot as kplt
+try:
+    import komplot as kplt
+
+    have_komplot = True
+except:
+    have_komplot = False
+
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure, gca, gcf, savefig, subplot, subplots  # noqa
 from mpl_toolkits.mplot3d import Axes3D  # noqa
@@ -88,6 +94,8 @@ def plot(y, x=None, ptyp="plot", xlbl=None, ylbl=None, title=None, lgnd=None, lg
         DeprecationWarning,
         stacklevel=2,
     )
+    if not have_komplot:
+        raise RuntimeError("Package komplot is required for use of this function.")
     ptyp_options = {
         "plot": (False, False),
         "semilogx": (True, False),
@@ -200,6 +208,8 @@ def surf(
         DeprecationWarning,
         stacklevel=2,
     )
+    if not have_komplot:
+        raise RuntimeError("Package komplot is required for use of this function.")
     splt = kplt.surface(
         z,
         x=x,
@@ -299,6 +309,8 @@ def contour(
         DeprecationWarning,
         stacklevel=2,
     )
+    if not have_komplot:
+        raise RuntimeError("Package komplot is required for use of this function.")
     cplt = kplt.contour(
         z,
         x=x,
@@ -391,6 +403,8 @@ def imview(
         DeprecationWarning,
         stacklevel=2,
     )
+    if not have_komplot:
+        raise RuntimeError("Package komplot is required for use of this function.")
     imv = kplt.imview(
         img,
         interpolation=intrp,
@@ -534,4 +548,6 @@ def config_notebook_plotting():
         DeprecationWarning,
         stacklevel=2,
     )
+    if not have_komplot:
+        raise RuntimeError("Package komplot is required for use of this function.")
     kplt.config_notebook_plotting()
