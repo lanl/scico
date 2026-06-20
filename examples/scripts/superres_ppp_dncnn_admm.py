@@ -75,7 +75,7 @@ PPP solver.
 xpinv, info = cg(A.T @ A, A.T @ sn, snp.zeros(input_shape))
 xpinv = snp.clip(xpinv, 0.0, 1.0)
 dncnn = denoiser.DnCNN("17M")
-xden = dncnn(xpinv)
+xden = snp.clip(dncnn(xpinv), 0.0, 1.0)
 
 
 """
