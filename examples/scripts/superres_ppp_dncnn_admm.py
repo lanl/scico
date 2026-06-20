@@ -73,7 +73,7 @@ forward operator. This baseline solution is also used to initialize the
 PPP solver.
 """
 xpinv, info = cg(A.T @ A, A.T @ sn, snp.zeros(input_shape))
-xpinv = np.clip(xpinv, 0.0, 1.0)
+xpinv = snp.clip(xpinv, 0.0, 1.0)
 dncnn = denoiser.DnCNN("17M")
 xden = dncnn(xpinv)
 
@@ -95,7 +95,7 @@ solver = ADMM(
 )
 
 print(f"Solving on {device_info()}\n")
-xppp = np.clip(solver.solve(), 0.0, 1.0)
+xppp = snp.clip(solver.solve(), 0.0, 1.0)
 hist = solver.itstat_object.history(transpose=True)
 
 
@@ -118,7 +118,7 @@ fig = kplt.figure(figsize=(8, 6))
 ax0 = subplot2grid((1, rate + 1), (0, 0), colspan=rate)
 kplt.imview(img, title="Reference", ax=ax0)
 ax1 = subplot2grid((1, rate + 1), (0, rate))
-kplt.imview(np.clip(sn, 0.0, 1.0), title="Downsampled", ax=ax1)
+kplt.imview(snp.clip(sn, 0.0, 1.0), title="Downsampled", ax=ax1)
 fig.show()
 
 
