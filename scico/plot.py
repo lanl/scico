@@ -20,7 +20,13 @@ try:
 except:
     have_komplot = False
 
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.pyplot as plt
+
+    have_matplotlib = True
+except:
+    have_matplotlib = False
+
 from matplotlib.pyplot import figure, gca, gcf, savefig, subplot, subplots  # noqa
 from mpl_toolkits.mplot3d import Axes3D  # noqa
 
@@ -435,6 +441,8 @@ def close(fig=None):
         DeprecationWarning,
         stacklevel=2,
     )
+    if not have_matplotlib:
+        raise RuntimeError("Package matplotlib is required for use of this function.")
     if fig is None:
         plt.close("all")
     else:
@@ -503,6 +511,8 @@ def set_ipython_plot_backend(backend="qt"):
         DeprecationWarning,
         stacklevel=2,
     )
+    if not have_matplotlib:
+        raise RuntimeError("Package matplotlib is required for use of this function.")
     if _in_ipython():
         # See https://stackoverflow.com/questions/35595766
         get_ipython().run_line_magic("matplotlib", backend)
@@ -528,6 +538,8 @@ def set_notebook_plot_backend(backend="inline"):
         DeprecationWarning,
         stacklevel=2,
     )
+    if not have_matplotlib:
+        raise RuntimeError("Package matplotlib is required for use of this function.")
     if _in_notebook():
         # See https://stackoverflow.com/questions/35595766
         get_ipython().run_line_magic("matplotlib", backend)
