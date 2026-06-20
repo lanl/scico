@@ -160,7 +160,7 @@ xm = np.array(XCrop(x[..., ::-1]))
 xmr = xm.transpose((1, 2, 0))[..., np.newaxis] / xm.max()
 cmap = kplt.cm.viridis_r
 cmval = cmap(np.arange(0, xm.shape[0]).reshape(1, 1, -1) / (xm.shape[0] - 1))
-xms = np.sum(cmval * xmr, axis=2)[..., 0:3]
+xms = np.sum(cmval.astype(np.float32) * xmr, axis=2)[..., 0:3]
 
 kplt.imview(xms, cmap=cmap, show_cbar=True, title="Recovered Volume")
 
