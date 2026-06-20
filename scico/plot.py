@@ -22,13 +22,13 @@ except:
 
 try:
     import matplotlib.pyplot as plt
+    from matplotlib.pyplot import figure, gca, gcf, savefig, subplot, subplots  # noqa
+    from mpl_toolkits.mplot3d import Axes3D  # noqa
 
     have_matplotlib = True
 except:
     have_matplotlib = False
 
-from matplotlib.pyplot import figure, gca, gcf, savefig, subplot, subplots  # noqa
-from mpl_toolkits.mplot3d import Axes3D  # noqa
 
 __all__ = [
     "plot",
