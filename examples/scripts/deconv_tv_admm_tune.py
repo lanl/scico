@@ -45,7 +45,6 @@ from scico import functional, linop, loss, metric, plot
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.ray import report, tune
 
-
 """
 Create a ground truth image.
 """

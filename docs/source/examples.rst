@@ -24,22 +24,22 @@ Computed Tomography
 
    examples/ct_abel_tv_admm
    examples/ct_abel_tv_admm_tune
+   examples/ct_symcone_tv_padmm
    examples/ct_astra_noreg_pcg
    examples/ct_astra_3d_tv_admm
    examples/ct_astra_3d_tv_padmm
-   examples/ct_astra_tv_admm
    examples/ct_tv_admm
+   examples/ct_astra_tv_admm
+   examples/ct_multi_tv_admm
    examples/ct_astra_weighted_tv_admm
    examples/ct_svmbir_tv_multi
    examples/ct_svmbir_ppp_bm3d_admm_cg
    examples/ct_svmbir_ppp_bm3d_admm_prox
-   examples/ct_fan_svmbir_ppp_bm3d_admm_prox
    examples/ct_modl_train_foam2
    examples/ct_odp_train_foam2
    examples/ct_unet_train_foam2
    examples/ct_projector_comparison_2d
    examples/ct_projector_comparison_3d
-   examples/ct_multi_tv_admm
 
 Deconvolution
 ^^^^^^^^^^^^^
@@ -60,6 +60,23 @@ Deconvolution
    examples/deconv_ppp_bm4d_admm
    examples/deconv_modl_train_foam1
    examples/deconv_odp_train_foam1
+
+
+Denoising
+^^^^^^^^^
+
+.. toctree::
+   :maxdepth: 1
+
+   examples/denoise_l1tv_admm
+   examples/denoise_ptv_pdhg
+   examples/denoise_tv_admm
+   examples/denoise_tv_apgm
+   examples/denoise_tv_multi
+   examples/denoise_approx_tv_multi
+   examples/denoise_cplx_tv_nlpadmm
+   examples/denoise_cplx_tv_pdhg
+   examples/denoise_dncnn_universal
 
 
 Sparse Coding
@@ -84,15 +101,6 @@ Miscellaneous
 
    examples/demosaic_ppp_bm3d_admm
    examples/superres_ppp_dncnn_admm
-   examples/denoise_l1tv_admm
-   examples/denoise_ptv_pdhg
-   examples/denoise_tv_admm
-   examples/denoise_tv_apgm
-   examples/denoise_tv_multi
-   examples/denoise_approx_tv_multi
-   examples/denoise_cplx_tv_nlpadmm
-   examples/denoise_cplx_tv_pdhg
-   examples/denoise_dncnn_universal
    examples/diffusercam_tv_admm
    examples/video_rpca_admm
    examples/ct_datagen_foam2
@@ -115,7 +123,6 @@ Plug and Play Priors
 
    examples/ct_svmbir_ppp_bm3d_admm_cg
    examples/ct_svmbir_ppp_bm3d_admm_prox
-   examples/ct_fan_svmbir_ppp_bm3d_admm_prox
    examples/deconv_ppp_bm3d_admm
    examples/deconv_ppp_bm3d_apgm
    examples/deconv_ppp_dncnn_admm
@@ -133,12 +140,13 @@ Total Variation
 
    examples/ct_abel_tv_admm
    examples/ct_abel_tv_admm_tune
-   examples/ct_astra_tv_admm
+   examples/ct_symcone_tv_padmm
    examples/ct_tv_admm
+   examples/ct_multi_tv_admm
+   examples/ct_astra_tv_admm
    examples/ct_astra_3d_tv_admm
    examples/ct_astra_3d_tv_padmm
    examples/ct_astra_weighted_tv_admm
-   examples/ct_multi_tv_admm
    examples/ct_svmbir_tv_multi
    examples/deconv_circ_tv_admm
    examples/deconv_tv_admm
@@ -207,6 +215,7 @@ ADMM
 
    examples/ct_abel_tv_admm
    examples/ct_abel_tv_admm_tune
+   examples/ct_symcone_tv_padmm
    examples/ct_astra_tv_admm
    examples/ct_tv_admm
    examples/ct_astra_3d_tv_admm
@@ -215,7 +224,6 @@ ADMM
    examples/ct_svmbir_tv_multi
    examples/ct_svmbir_ppp_bm3d_admm_cg
    examples/ct_svmbir_ppp_bm3d_admm_prox
-   examples/ct_fan_svmbir_ppp_bm3d_admm_prox
    examples/deconv_circ_tv_admm
    examples/deconv_tv_admm
    examples/deconv_tv_admm_tune

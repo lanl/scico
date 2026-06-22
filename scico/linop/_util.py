@@ -1,11 +1,10 @@
-# Copyright (C) 2020-2023 by SCICO Developers
+# Copyright (C) 2020-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
 """Linear operator utility functions."""
-
 
 # Needed to annotate a class method that returns the encapsulating class;
 # see https://www.python.org/dev/peps/pep-0563/
@@ -145,12 +144,12 @@ def valid_adjoint(
         x, key = randn(shape=A.input_shape, key=key, dtype=A.input_dtype)
     else:
         if x.shape != A.input_shape:
-            raise ValueError("Shape of x array not appropriate as an input for operator A")
+            raise ValueError("Shape of 'x' array not appropriate as an input for operator 'A'.")
     if y is None:
         y, key = randn(shape=AT.input_shape, key=key, dtype=AT.input_dtype)
     else:
         if y.shape != AT.input_shape:
-            raise ValueError("Shape of y array not appropriate as an input for operator AT")
+            raise ValueError("Shape of 'y' array not appropriate as an input for operator AT.")
 
     u = A(x)
     v = AT(y)

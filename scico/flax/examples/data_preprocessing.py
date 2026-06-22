@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2024 by SCICO Developers
+# Copyright (C) 2022-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -422,7 +422,7 @@ def get_bsds_data(path: str, verbose: bool = False):  # pragma: no cover
     data_tar_file = "BSR_bsds500.tgz"
     # ensure path directory exists
     if not os.path.isdir(path):
-        raise ValueError(f"Path {path} does not exist or is not a directory")
+        raise ValueError(f"Path {path} does not exist or is not a directory.")
     # create temporary directory
     temp_dir = tempfile.TemporaryDirectory()
     if verbose:

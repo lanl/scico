@@ -1,0 +1,37 @@
+\documentclass{standalone}
+
+\usepackage{tikz, tikz-3dplot}
+\begin{document}
+
+\tdplotsetmaincoords{70}{110}
+
+\begin{tikzpicture}[scale=5,tdplot_main_coords]
+  \footnotesize
+  \draw[thick,->] (0,0,0) -- (1,0,0) node[anchor=north east]{$x$};
+  \draw[thick,->] (0,0,0) -- (0,1,0) node[anchor=north west]{$y$};
+  \draw[thick,->] (0,0,0) -- (0,0,1) node[anchor=south]{$z$};
+
+  \coordinate (O) at (0,0,0);
+  \tdplotsetcoord{P}{1}{30}{40}
+
+  \draw[-stealth,thick,color=red] (O) -- (P);
+  \node[draw=none,color=red] at (0.0,0.11,0.77) {$(x, y, z)$};
+
+  \draw[dashed, color=blue] (P) -- (Pxz);
+  \draw[dashed, color=blue] (P) -- (Pyz);
+  \draw[dashed, color=blue] (O) -- (Pxz);
+  \draw[dashed, color=blue] (O) -- (Pyz);
+  \draw[dashed, color=blue] (Pz) -- (Pxz);
+  \draw[dashed, color=blue] (Pz) -- (Pyz);
+
+  \node[draw=none,color=blue] at (0.38,0.0,0.5) {$r_x$};
+  \node[draw=none,color=blue] at (0.0,0.24,0.4) {$r_y$};
+
+  \tdplotsetthetaplanecoords{0}
+  \tdplotdrawarc[tdplot_rotated_coords,blue,dotted]{(O)}{.25}{22.7}{90}{anchor=mid east}{$\theta_x$}
+  \tdplotsetthetaplanecoords{90}
+  \tdplotdrawarc[tdplot_rotated_coords,blue,dotted]{(O)}{.25}{23}{90}{anchor=mid west}{$\theta_y$}
+
+\end{tikzpicture}
+
+\end{document}

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2025 by SCICO Developers
+# Copyright (C) 2020-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -11,6 +11,8 @@ import re
 import warnings
 from collections import OrderedDict, namedtuple
 from typing import List, NamedTuple, Optional, Tuple, Union
+
+from scico.numpy.util import is_array
 
 
 class IterationStats:
@@ -70,7 +72,7 @@ class IterationStats:
         # Parameter fields must be specified as an OrderedDict to ensure
         # that field order is retained
         if not isinstance(fields, dict):
-            raise TypeError("Parameter fields must be an instance of dict.")
+            raise TypeError("Argument 'fields' must be an instance of dict.")
         # Subsampling rate of results that are to be displayed
         self.period: int = period
         # Offset to iteration count for determining start of period
@@ -99,7 +101,7 @@ class IterationStats:
             fmt = fields[name]
             fmtmatch = fmre.match(fmt)
             if not fmtmatch:
-                raise ValueError(f'Format string "{fmt}" could not be parsed.')
+                raise ValueError(f"Format string '{fmt}' could not be parsed.")
             fmflg, fmlen, fmdot, fmprc, fmtyp = fmtmatch.groups()
             flen = len(fmt % 0)
             # Warn if actual formatted length longer than specified field
@@ -158,7 +160,8 @@ class IterationStats:
             values: Statistics for a single iteration.
         """
 
-        self.iterations.append(self.IterTuple(*values))
+        scalar_values = [v.item() if is_array(v) else v for v in values]
+        self.iterations.append(self.IterTuple(*scalar_values))
 
         if self.display:
             if self.disphdr is not None:

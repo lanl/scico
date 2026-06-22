@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2024 by SCICO Developers
+# Copyright (C) 2021-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
 """Utility functions used by example scripts."""
-
 
 import glob
 import os
@@ -18,7 +17,6 @@ from typing import List, Optional, Tuple, Union
 import numpy as np
 
 import jax
-import jax.numpy as jnp
 
 import imageio.v3 as iio
 
@@ -29,7 +27,7 @@ from scipy.io import loadmat
 from scipy.ndimage import zoom
 
 
-def rgb2gray(rgb: snp.Array) -> snp.Array:
+def rgb2gray(rgb: np.ndarray) -> np.ndarray:
     """Convert an RGB image (or images) to grayscale.
 
     Args:
@@ -44,8 +42,8 @@ def rgb2gray(rgb: snp.Array) -> snp.Array:
         shape = (1, 1, 3)
     else:
         shape = (1, 1, 3, 1)
-    w = snp.array([0.299, 0.587, 0.114], dtype=rgb.dtype).reshape(shape)
-    return snp.sum(w * rgb, axis=2)
+    w = np.array([0.299, 0.587, 0.114], dtype=rgb.dtype).reshape(shape)
+    return np.sum(w * rgb, axis=2)
 
 
 def volume_read(path: str, ext: str = "tif") -> np.ndarray:
@@ -181,9 +179,10 @@ def get_ucb_diffusercam_data(path: str, verbose: bool = False):  # pragma: no co
         verbose: Flag indicating whether to print status messages.
     """
 
-    # data source URL and filenames
+    # data source URL, filenames, and request header
     data_base_url = "https://github.com/Waller-Lab/DiffuserCam/blob/master/example_data/"
     data_files = ["example_psfs.mat", "example_raw.png"]
+    headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64)", "Referer": data_base_url}
 
     # ensure path directory exists
     if not os.path.isdir(path):
@@ -195,7 +194,7 @@ def get_ucb_diffusercam_data(path: str, verbose: bool = False):  # pragma: no co
     for data_file in data_files:
         if verbose:
             print(f"Downloading {data_file} from {data_base_url}")
-        data = util.url_get(data_base_url + data_file + "?raw=true")
+        data = util.url_get(data_base_url + data_file + "?raw=true", headers=headers)
         f = open(os.path.join(temp_dir.name, data_file), "wb")
         f.write(data.read())
         f.close()
@@ -258,7 +257,7 @@ def ucb_diffusercam_data(
     return y, psf
 
 
-def downsample_volume(vol: snp.Array, rate: int) -> snp.Array:
+def downsample_volume(vol: np.ndarray, rate: int) -> np.ndarray:
     """Downsample a 3D array.
 
     Downsample a 3D array. If the volume dimensions can be divided by
@@ -278,16 +277,16 @@ def downsample_volume(vol: snp.Array, rate: int) -> snp.Array:
         return vol
 
     if np.all([n % rate == 0 for n in vol.shape]):
-        vol = snp.mean(snp.reshape(vol, (-1, rate, vol.shape[1], vol.shape[2])), axis=1)
-        vol = snp.mean(snp.reshape(vol, (vol.shape[0], -1, rate, vol.shape[2])), axis=2)
-        vol = snp.mean(snp.reshape(vol, (vol.shape[0], vol.shape[1], -1, rate)), axis=3)
+        vol = np.mean(np.reshape(vol, (-1, rate, vol.shape[1], vol.shape[2])), axis=1)
+        vol = np.mean(np.reshape(vol, (vol.shape[0], -1, rate, vol.shape[2])), axis=2)
+        vol = np.mean(np.reshape(vol, (vol.shape[0], vol.shape[1], -1, rate)), axis=3)
     else:
         vol = zoom(vol, 1.0 / rate)
 
     return vol
 
 
-def tile_volume_slices(x: snp.Array, sep_width: int = 10) -> snp.Array:
+def tile_volume_slices(x: np.ndarray, sep_width: int = 10) -> np.ndarray:
     """Make an image with tiled slices from an input volume.
 
     Make an image with tiled `xy`, `xz`, and `yz` slices from an input
@@ -307,10 +306,10 @@ def tile_volume_slices(x: snp.Array, sep_width: int = 10) -> snp.Array:
         fshape: Tuple[int, ...] = (x.shape[0], sep_width)
     else:
         fshape = (x.shape[0], sep_width, 3)
-    out = snp.concatenate(
+    out = np.concatenate(
         (
             x[:, :, x.shape[2] // 2],
-            snp.full(fshape, snp.nan),
+            np.full(fshape, np.nan),
             x[:, x.shape[1] // 2, :],
         ),
         axis=1,
@@ -325,14 +324,14 @@ def tile_volume_slices(x: snp.Array, sep_width: int = 10) -> snp.Array:
         fshape0 = (sep_width, out.shape[1], 3)
         fshape1 = (x.shape[2], x.shape[2] + sep_width, 3)
         trans = (1, 0, 2)
-    out = snp.concatenate(
+    out = np.concatenate(
         (
             out,
-            snp.full(fshape0, snp.nan),
-            snp.concatenate(
+            np.full(fshape0, np.nan),
+            np.concatenate(
                 (
                     x[x.shape[0] // 2, :, :].transpose(trans),
-                    snp.full(fshape1, snp.nan),
+                    np.full(fshape1, np.nan),
                 ),
                 axis=1,
             ),
@@ -340,34 +339,9 @@ def tile_volume_slices(x: snp.Array, sep_width: int = 10) -> snp.Array:
         axis=0,
     )
 
-    out = snp.where(snp.isnan(out), snp.nanmax(out), out)
+    out = np.where(np.isnan(out), np.nanmax(out), out)
 
     return out
-
-
-def create_cone(img_shape: Shape, center: Optional[List[float]] = None) -> snp.Array:
-    """Compute a 2D map of the distance from a center pixel.
-
-    Args:
-        img_shape: Shape of the image for which the distance map is being
-            computed.
-        center: Tuple of center pixel coordinates. If ``None``, this is
-            set to the center of the image.
-
-    Returns:
-        An image containing a 2D map of the distances.
-    """
-
-    if center is None:
-        center = [(img_dim - 1) / 2 for img_dim in img_shape]
-
-    coords = [snp.arange(0, img_dim) for img_dim in img_shape]
-    coord_mesh = snp.meshgrid(*coords, sparse=True, indexing="ij")
-
-    dist_map = sum([(coord_mesh[i] - center[i]) ** 2 for i in range(len(coord_mesh))])
-    dist_map = snp.sqrt(dist_map)
-
-    return dist_map
 
 
 def gaussian(shape: Shape, sigma: Optional[np.ndarray] = None) -> np.ndarray:
@@ -407,28 +381,57 @@ def gaussian(shape: Shape, sigma: Optional[np.ndarray] = None) -> np.ndarray:
     return const * np.exp(-xtsigmax / 2.0)
 
 
-def create_circular_phantom(
-    img_shape: Shape, radius_list: list, val_list: list, center: Optional[list] = None
-) -> snp.Array:
-    """Construct a circular phantom with given radii and intensities.
+def create_cone(shape: Shape, center: Optional[List[float]] = None) -> np.ndarray:
+    """Compute a map of distances from a center pixel.
 
     Args:
-        img_shape: Shape of the phantom to be created.
-        radius_list: List of radii of the rings in the phantom.
-        val_list: List of intensity values of the rings in the phantom.
-        center: Tuple of center pixel coordinates. If ``None``, this is
-           set to the center of the image.
+        shape: Shape of the array for which the distance map is to be
+            computed.
+        center: Tuple of center coordinates. If ``None``, it is set to
+            the center of the array.
 
     Returns:
-        The computed circular phantom.
+        An array containing a map of the distances.
     """
 
-    dist_map = create_cone(img_shape, center)
+    if center is None:
+        center = [(dim - 1) / 2 for dim in shape]
 
-    img = snp.zeros(img_shape)
+    coords = [np.arange(0, dim) for dim in shape]
+    coord_mesh = np.meshgrid(*coords, sparse=True, indexing="ij")
+
+    dist_map = sum([(coord_mesh[i] - center[i]) ** 2 for i in range(len(coord_mesh))])
+    dist_map = np.sqrt(dist_map)
+
+    return dist_map
+
+
+def create_circular_phantom(
+    shape: Shape, radius_list: list, val_list: list, center: Optional[list] = None
+) -> np.ndarray:
+    """Construct a circular phantom with given radii and intensities.
+
+    This functions supports both circular (``shape`` is 2D) and spherical
+    (``shape`` is 3D) phantoms.
+
+    Args:
+        shape: Shape of the phantom to be created.
+        radius_list: List of radii of the rings in the phantom.
+        val_list: List of intensity values of the rings in the phantom.
+        center: Tuple of center coordinates. If ``None``, it is set to
+           the center of the array.
+
+    Returns:
+        The computed phantom.
+    """
+
+    dist_map = create_cone(shape, center)
+
+    img = np.zeros(shape)
     for r, val in zip(radius_list, val_list):
         # In numpy: img[dist_map < r] = val
-        img = img.at[dist_map < r].set(val)
+        # In jax.numpy: img = img.at[dist_map < r].set(val)
+        img[dist_map < r] = val
 
     return img
 
@@ -440,7 +443,7 @@ def create_3d_foam_phantom(
     r_std: float = 0.001,
     pad: float = 0.01,
     is_random: bool = False,
-) -> snp.Array:
+) -> np.ndarray:
     """Construct a 3D phantom with random radii and centers.
 
     Args:
@@ -464,18 +467,20 @@ def create_3d_foam_phantom(
     if not is_random:
         np.random.seed(1)
 
-    coord_list = [snp.linspace(0, 1, N) for N in im_shape]
-    x = snp.stack(snp.meshgrid(*coord_list, indexing="ij"), axis=-1)
+    coord_list = [np.linspace(0, 1, N) for N in im_shape]
+    x = np.stack(np.meshgrid(*coord_list, indexing="ij"), axis=-1)
 
     centers = np.random.uniform(low=r_mean + pad, high=1 - r_mean - pad, size=(N_sphere, 3))
     radii = r_std * np.random.randn(N_sphere) + r_mean
 
-    im = snp.zeros(im_shape) + c_lo
+    im = np.zeros(im_shape) + c_lo
     for c, r in zip(centers, radii):  # type: ignore
-        dist = snp.sum((x - c) ** 2, axis=-1)
-        if snp.mean(im[dist < r**2] - c_lo) < 0.01 * c_hi:
-            # equivalent to im[dist < r**2] = c_hi in numpy
-            im = im.at[dist < r**2].set(c_hi)
+        dist = np.sum((x - c) ** 2, axis=-1)
+        select = im[dist < r**2]
+        if select.size > 0 and np.mean(select - c_lo) < 0.01 * c_hi:
+            # In numpy: im[dist < r**2] = c_hi
+            # In jax.numpy: im = im.at[dist < r**2].set(c_hi)
+            im[dist < r**2] = c_hi
 
     return im
 
@@ -521,8 +526,24 @@ def create_conv_sparse_phantom(Nx: int, Nnz: int) -> Tuple[np.ndarray, np.ndarra
     return h, x
 
 
-def create_tangle_phantom(nx: int, ny: int, nz: int) -> snp.Array:
-    """Construct a 3D phantom using the tangle function.
+def create_tangle_phantom(nx: int, ny: int, nz: int) -> np.ndarray:
+    r"""Construct a 3D phantom based on the tanglecube function.
+
+    Construct a 3D phantom based on the
+    `tanglecube <https://mathworld.wolfram.com/Tanglecube.html>`__
+    function:
+
+    .. math::
+       t(x, y, z) = 0.2 (x^4 - 5x^2 + y^4 - 5y^2 + z^4 - 5z^2 + 11.8)
+       + 0.5 \;.
+
+    The phantom is computed as
+
+    .. math::
+       p(x, y, z) = \begin{cases}
+                       2 - t(x, y, z) & \text{if } t(x, y, z) \le 2 \\
+                       0 & \text{otherwise} \;.
+                    \end{cases}
 
     Args:
         nx: x-size of output.
@@ -531,14 +552,16 @@ def create_tangle_phantom(nx: int, ny: int, nz: int) -> snp.Array:
 
     Returns:
         An array with shape (nz, ny, nx).
-
     """
-    xs = 1.0 * np.linspace(-1.0, 1.0, nx)
-    ys = 1.0 * np.linspace(-1.0, 1.0, ny)
-    zs = 1.0 * np.linspace(-1.0, 1.0, nz)
+    xs = 1.0 * np.linspace(-1.0, 1.0, nx, dtype=np.float32)
+    ys = 1.0 * np.linspace(-1.0, 1.0, ny, dtype=np.float32)
+    zs = 1.0 * np.linspace(-1.0, 1.0, nz, dtype=np.float32)
 
     # default ordering for meshgrid is `xy`, this makes inputs of length
     # M, N, P will create a mesh of N, M, P. Thus we want ys, zs and xs.
+    xx: np.ndarray
+    yy: np.ndarray
+    zz: np.ndarray
     xx, yy, zz = np.meshgrid(ys, zs, xs, copy=True)
     xx = 3.0 * xx
     yy = 3.0 * yy
@@ -552,11 +575,14 @@ def create_tangle_phantom(nx: int, ny: int, nz: int) -> snp.Array:
         - 5.0 * zz * zz
         + 11.8
     ) * 0.2 + 0.5
-    return (values < 2.0).astype(float)
+    values[values <= 2.0] = 2.0 - values[values <= 2.0]
+    values[values > 2.0] = 0.0
+    values[values < 0.0] = 0.0
+    return values
 
 
 @partial(jax.jit, static_argnums=0)
-def create_block_phantom(out_shape: Shape) -> snp.Array:
+def create_block_phantom(out_shape: Shape) -> np.ndarray:
     """Construct a blocky 3D phantom.
 
     Args:
@@ -567,7 +593,7 @@ def create_block_phantom(out_shape: Shape) -> snp.Array:
 
     """
     # make the phantom at a low resolution
-    low_res = jnp.array(
+    low_res = np.array(
         [
             [
                 [0.0, 0.0, 0.0],
@@ -586,10 +612,10 @@ def create_block_phantom(out_shape: Shape) -> snp.Array:
             ],
         ]
     )
-    positions = jnp.stack(
-        jnp.meshgrid(*[jnp.linspace(-0.5, 2.5, s) for s in out_shape], indexing="ij")
+    positions = np.stack(
+        np.meshgrid(*[np.linspace(-0.5, 2.5, s) for s in out_shape], indexing="ij")
     )
-    indices = jnp.round(positions).astype(int)
+    indices = np.round(positions).astype(int)
     return low_res[indices[0], indices[1], indices[2]]
 
 
@@ -634,6 +660,5 @@ def phase_diff(x: snp.Array, y: snp.Array) -> snp.Array:
     Returns:
         Array of angular distances.
     """
-
     mod = snp.mod(snp.abs(x - y), 2 * snp.pi)
     return snp.minimum(mod, 2 * snp.pi - mod)

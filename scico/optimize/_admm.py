@@ -239,7 +239,7 @@ class ADMM(Optimizer):
             Value of the objective function.
         """
         if (x is None) != (z_list is None):
-            raise ValueError("Both or neither of x and z_list must be supplied.")
+            raise ValueError("Both or neither of arguments 'x' and 'z_list' must be supplied.")
         if x is None:
             x = self.x
             z_list = self.z_list

@@ -11,7 +11,7 @@ from test_trainer import SetupTest
 from flax.traverse_util import flatten_dict
 from scico import flax as sflax
 from scico.flax.train.apply import apply_fn
-from scico.flax.train.checkpoints import checkpoint_save
+from scico.flax.train.checkpoints import checkpoint_save, have_orbax
 from scico.flax.train.input_pipeline import IterateData
 from scico.flax.train.learning_rate import create_cnst_lr_schedule
 from scico.flax.train.state import create_basic_train_state
@@ -23,7 +23,7 @@ def testobj():
 
 
 def test_apply_fn(testobj):
-    key = jax.random.PRNGKey(seed=531)
+    key = jax.random.key(seed=531)
     key1, key2 = jax.random.split(key)
 
     model = sflax.ConvBNNet(
@@ -66,7 +66,7 @@ def test_eval(testobj, model_cls):
         depth = 3
         model = sflax.DnCNNNet(depth, testobj.chn, testobj.model_conf["num_filters"])
 
-    key = jax.random.PRNGKey(123)
+    key = jax.random.key(123)
     variables = model.init(key, testobj.train_ds["image"])
 
     # from train script
@@ -83,11 +83,12 @@ def test_eval(testobj, model_cls):
     np.testing.assert_allclose(out_, out_fmap, atol=5e-6)
 
 
+@pytest.mark.skipif(not have_orbax, reason="orbax.checkpoint package not installed")
 def test_apply_from_checkpoint(testobj):
     depth = 3
     model = sflax.DnCNNNet(depth, testobj.chn, testobj.model_conf["num_filters"])
 
-    key = jax.random.PRNGKey(123)
+    key = jax.random.key(123)
     variables = model.init(key, testobj.train_ds["image"])
 
     temp_dir = tempfile.TemporaryDirectory()

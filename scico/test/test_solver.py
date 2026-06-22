@@ -207,7 +207,7 @@ class TestOptimizeScalar:
 def test_minimize_vector(dtype, method):
     B, M, N = (4, 3, 2)
 
-    # model a 12x8 block-diagonal matrix with 4x3 blocks
+    # model a 12x8 block-diagonal matrix with 3x2 blocks
     A, key = random.randn((B, M, N), dtype=dtype)
     x, key = random.randn((B, N), dtype=dtype, key=key)
     y = snp.sum(A * x[:, None], axis=2)  # contract along the N axis
@@ -223,6 +223,27 @@ def test_minimize_vector(dtype, method):
 
     assert out.x.shape == x.shape
     np.testing.assert_allclose(out.x.ravel(), expected, rtol=5e-4)
+
+
+@pytest.mark.parametrize("dtype", [snp.float32])
+@pytest.mark.parametrize("method", ["CG"])
+def test_minimize_blockarray(dtype, method):
+    # model a 6x8 block-diagonal matrix with 3x4 blocks
+    A, key = random.randn(((3, 4), (3, 4)), dtype=dtype)
+    x, key = random.randn(((4,), (4,)), dtype=dtype, key=key)
+    y = A @ x
+
+    # result by directly inverting the dense matrix
+    A_mat = block_diag(*A)
+    expected = snp.linalg.pinv(A_mat) @ y.stack(axis=0).ravel()
+
+    def f(x):
+        return 0.5 * snp.linalg.norm(y - A @ x) ** 2
+
+    out = solver.minimize(f, x0=snp.zeros_like(x), method=method)
+
+    assert out.x.shape == x.shape
+    np.testing.assert_allclose(solver._ravel(out.x), expected, rtol=5e-4)
 
 
 def test_split_join_array():

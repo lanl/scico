@@ -64,7 +64,7 @@ class VerticalStack(VerticalStackOperator, LinearOperator):
             jit: See `jit` in :class:`LinearOperator`.
         """
         if not all(isinstance(op, LinearOperator) for op in ops):
-            raise TypeError("All elements of ops must be of type LinearOperator.")
+            raise TypeError("All elements of 'ops' must be of type LinearOperator.")
 
         super().__init__(ops=ops, collapse_output=collapse_output, jit=jit, **kwargs)
 
@@ -130,7 +130,7 @@ class DiagonalStack(DiagonalStackOperator, LinearOperator):
 
         """
         if not all(isinstance(op, LinearOperator) for op in ops):
-            raise TypeError("All elements of ops must be of type LinearOperator.")
+            raise TypeError("All elements of 'ops' must be of type LinearOperator.")
 
         super().__init__(
             ops=ops,
@@ -210,7 +210,7 @@ class DiagonalReplicated(DiagonalReplicatedOperator, LinearOperator):
                :func:`jax.vmap`.
         """
         if not isinstance(op, LinearOperator):
-            raise TypeError("Argument op must be of type LinearOperator.")
+            raise TypeError("Argument 'op' must be of type LinearOperator.")
 
         super().__init__(
             op,

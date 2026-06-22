@@ -24,7 +24,7 @@ def test_construct_traversal(testobj, pname):
     if pname == "kernel":
         ndim = 4
 
-    key = jax.random.PRNGKey(seed=432)
+    key = jax.random.key(seed=432)
     input_shape = (1, testobj.N, testobj.N, testobj.chn)
     variables = model.init({"params": key}, np.ones(input_shape, model.dtype))
 

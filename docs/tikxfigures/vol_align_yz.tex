@@ -1,0 +1,30 @@
+\documentclass{standalone}
+
+\usepackage{tikz, tikz-3dplot}
+\begin{document}
+
+\tdplotsetmaincoords{90}{90}
+
+\begin{tikzpicture}[scale=5,tdplot_main_coords]
+  \footnotesize
+  \draw[thick,->] (0,0,0) -- (0,1,0) node[anchor=west]{$y$};
+  \draw[thick,->] (0,0,0) -- (0,0,1) node[anchor=south]{$z$};
+
+  \coordinate (O) at (0,0,0);
+  \tdplotsetcoord{P}{1}{30}{40}
+
+  \draw[-stealth,thick,color=red] (O) -- (P)  node[anchor=west]{$\!(y, z)$};
+
+  \draw[dashed, color=blue] (P) -- (Pxz);
+  \draw[dashed, color=blue] (P) -- (Py);
+
+  \node[draw=none,color=blue] at (0.0,0.35,-0.055) {$r_y \cos (\theta_y)$};
+  \node[draw=none,rotate=90,color=blue] at (0.0,-0.055,0.84) {$r_y \sin (\theta_y)$};
+  \tdplotsetthetaplanecoords{90}
+  \tdplotdrawarc[tdplot_rotated_coords,red,dotted]{(O)}{.25}{23}{90}{anchor=north east}{$\theta_y$}
+
+  \node[draw=none,color=red] at (0.05,0.11,0.5) {$r_y$};
+
+\end{tikzpicture}
+
+\end{document}

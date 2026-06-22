@@ -21,7 +21,7 @@ def testobj():
 
 
 def test_basic_train_step(testobj):
-    key = jax.random.PRNGKey(seed=531)
+    key = jax.random.key(seed=531)
     key1, key2 = jax.random.split(key)
 
     model = sflax.ConvBNNet(
@@ -64,7 +64,7 @@ def test_basic_train_step(testobj):
 
 
 def test_post_train_step(testobj):
-    key = jax.random.PRNGKey(seed=531)
+    key = jax.random.key(seed=531)
     key1, key2 = jax.random.split(key)
 
     model = sflax.ConvBNNet(
@@ -112,7 +112,7 @@ def test_post_train_step(testobj):
 
 
 def test_basic_eval_step(testobj):
-    key = jax.random.PRNGKey(seed=531)
+    key = jax.random.key(seed=531)
     key1, key2 = jax.random.split(key)
 
     model = sflax.ConvBNNet(

@@ -41,9 +41,6 @@ for module in (scico.numpy, scico.numpy.fft, scico.numpy.linalg, scico.numpy.tes
         f.__doc__ = re.sub(r"References\n----------\n.*\n", "", f.__doc__, flags=re.DOTALL)
 
 
-# Remove spurious two-space indentation of entire docstring
-scico.numpy.vectorize.__doc__ = re.sub("^  ", "", scico.numpy.vectorize.__doc__, flags=re.M)
-
 # Fix various docstring formatting errors
 scico.numpy.testing.break_cycles.__doc__ = re.sub(
     "calling gc.collect$",

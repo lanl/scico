@@ -167,7 +167,7 @@ class ProximalADMMBase(Optimizer):
             scalar: Current value of the objective function.
         """
         if (x is None) != (z is None):
-            raise ValueError("Both or neither of x and z must be supplied")
+            raise ValueError("Both or neither of arguments 'x' and 'z' must be supplied")
         if x is None:
             x = self.x
             z = self.z
@@ -312,7 +312,7 @@ class ProximalADMM(ProximalADMMBase):
             Norm of primal residual.
         """
         if (x is None) != (z is None):
-            raise ValueError("Both or neither of x and z must be supplied")
+            raise ValueError("Both or neither of arguments 'x' and 'z' must be supplied")
         if x is None:
             x = self.x
             z = self.z
@@ -393,11 +393,11 @@ class ProximalADMM(ProximalADMMBase):
             values or corresponding squared operator norm values,
             depending on the value of the `factor` parameter.
         """
-        if B is None:
-            B = -Identity(A.output_shape, A.output_dtype)  # type: ignore
-        assert isinstance(B, LinearOperator)
         mu = operator_norm(A, maxiter=maxiter, key=key) ** 2
-        nu = operator_norm(B, maxiter=maxiter, key=key) ** 2
+        if B is None:
+            nu = 1.0
+        else:
+            nu = operator_norm(B, maxiter=maxiter, key=key) ** 2
         if factor is None:
             return (mu, nu)
         else:
@@ -530,7 +530,7 @@ class NonLinearPADMM(ProximalADMMBase):
             Norm of primal residual.
         """
         if (x is None) != (z is None):
-            raise ValueError("Both or neither of x and z must be supplied")
+            raise ValueError("Both or neither of arguments 'x' and 'z' must be supplied")
         if x is None:
             x = self.x
             z = self.z

@@ -389,13 +389,15 @@ class SingleAxisFiniteSum(LinearOperator):
         """
 
         if not isinstance(axis, int):
-            raise TypeError(f"Expected axis to be of type int, got {type(axis)} instead.")
+            raise TypeError(
+                f"Expected argument 'axis' to be of type int, got {type(axis)} instead."
+            )
 
         if axis < 0:
             axis = len(input_shape) + axis
         if axis >= len(input_shape):
             raise ValueError(
-                f"Invalid axis {axis} specified; axis must be less than "
+                f"Invalid argument 'axis' specified ({axis}); 'axis' must be less than "
                 f"len(input_shape)={len(input_shape)}."
             )
         self.axis = axis

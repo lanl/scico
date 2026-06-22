@@ -1,11 +1,10 @@
-# Copyright (C) 2020-2024 by SCICO Developers
+# Copyright (C) 2020-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
 """Miscellaneous linear operator definitions."""
-
 
 # Needed to annotate a class method that returns the encapsulating class;
 # see https://www.python.org/dev/peps/pep-0563/
@@ -56,9 +55,9 @@ class Diagonal(LinearOperator):
         elif not isinstance(diagonal, BlockArray) and not is_nested(input_shape):
             output_shape = snp.broadcast_shapes(input_shape, self._diagonal.shape)
         elif isinstance(diagonal, BlockArray):
-            raise ValueError("Parameter diagonal was a BlockArray but input_shape was not nested.")
+            raise ValueError("Argument 'diagonal' was a BlockArray but input_shape was not nested.")
         else:
-            raise ValueError("Parameter diagonal was not a BlockArray but input_shape was nested.")
+            raise ValueError("Argument 'diagonal' was not a BlockArray but input_shape was nested.")
 
         super().__init__(
             input_shape=input_shape,
@@ -101,13 +100,13 @@ class Diagonal(LinearOperator):
 
     @_wrap_add_sub
     def __add__(self, other):
-        if self.diagonal.shape == other.diagonal.shape:
+        if self.shape == other.shape:
             return Diagonal(diagonal=self.diagonal + other.diagonal)
         raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}.")
 
     @_wrap_add_sub
     def __sub__(self, other):
-        if self.diagonal.shape == other.diagonal.shape:
+        if self.shape == other.shape:
             return Diagonal(diagonal=self.diagonal - other.diagonal)
         raise ValueError(f"Incompatible shapes: {self.shape} != {other.shape}.")
 
@@ -149,7 +148,7 @@ class Diagonal(LinearOperator):
         elif mord in (1, 2):
             mord = snp.inf
         if mord not in ordfunc:
-            raise ValueError(f"Invalid value {ord} for parameter ord.")
+            raise ValueError(f"Invalid value {ord} for argument 'ord'.")
         return ordfunc[mord](self._diagonal)
 
 
@@ -182,7 +181,7 @@ class ScaledIdentity(Diagonal):
 
     @property
     def diagonal(self) -> Union[Array, BlockArray]:
-        return self._diagonal * snp.ones(self.input_shape, dtype=self.input_dtype)
+        return self._diagonal
 
     def conj(self) -> ScaledIdentity:
         """Complex conjugate of this :class:`ScaledIdentity`."""
@@ -266,7 +265,7 @@ class ScaledIdentity(Diagonal):
         elif ord in (-snp.inf, -1, -2, 1, 2, snp.inf):
             return snp.abs(self._diagonal)
         else:
-            raise ValueError(f"Invalid value {ord} for parameter ord.")
+            raise ValueError(f"Invalid value {ord} for argument 'ord'.")
 
 
 class Identity(ScaledIdentity):
@@ -290,12 +289,8 @@ class Identity(ScaledIdentity):
     def _eval(self, x: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         return x
 
-    @property
-    def diagonal(self) -> Union[Array, BlockArray]:
-        return snp.ones(self.input_shape, dtype=self.input_dtype)
-
     def conj(self) -> Identity:
-        """Complex conjugate of this :class:`Diagonal`."""
+        """Complex conjugate of this :class:`Identity`."""
         return self
 
     @property

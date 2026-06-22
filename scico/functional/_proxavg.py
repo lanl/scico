@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2023-2025 by SCICO Developers
+# Copyright (C) 2023-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -56,7 +56,7 @@ class ProximalAverage(Functional):
         """
         self.has_prox = all([f.has_prox for f in func_list])
         if not self.has_prox:
-            raise ValueError("All functionals in func_list must have has_prox == True.")
+            raise ValueError("All functionals in 'func_list' must have has_prox == True.")
         self.has_eval = all([f.has_eval for f in func_list])
         self.no_inf_eval = no_inf_eval
         self.func_list = func_list
@@ -65,7 +65,9 @@ class ProximalAverage(Functional):
             self.alpha_list = [1.0 / N] * N
         else:
             if len(alpha_list) != N:
-                raise ValueError("If specified, alpha_list must have the same length as func_list")
+                raise ValueError(
+                    "If specified, argument 'alpha_list' must have the same length as func_list"
+                )
             alpha_sum = sum(alpha_list)
             if alpha_sum != 1.0:
                 alpha_list = [alpha / alpha_sum for alpha in alpha_list]
@@ -74,10 +76,11 @@ class ProximalAverage(Functional):
     def __repr__(self):
         return (
             Functional.__repr__(self)
-            + "\n  Weights: "
+            + "  components: "
+            + ", ".join([str(f) for f in self.func_list])
+            + "\n  weights:    "
             + ", ".join([str(alpha) for alpha in self.alpha_list])
-            + "\n  Components:\n"
-            + "\n".join(["    " + repr(f) for f in self.func_list])
+            + "\n"
         )
 
     def __call__(self, x: Union[Array, BlockArray]) -> float:
@@ -88,7 +91,9 @@ class ProximalAverage(Functional):
                 weight_func_vals = list(filter(lambda x: not isinf(x), weight_func_vals))
             return sum(weight_func_vals)
         else:
-            raise ValueError("At least one functional in func_list has has_eval == False.")
+            raise ValueError(
+                "At least one functional in argument 'func_list' has has_eval == False."
+            )
 
     def prox(
         self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs

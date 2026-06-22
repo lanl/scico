@@ -42,7 +42,7 @@ ray.init(logging_level=logging.ERROR)  # need to call init before jax import: ra
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, plot
 from scico.examples import create_circular_phantom
-from scico.linop.abel import AbelTransform
+from scico.linop.xray.abel import AbelTransform
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.ray import tune
 

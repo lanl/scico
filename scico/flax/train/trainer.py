@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2024 by SCICO Developers
+# Copyright (C) 2022-2025 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -10,6 +10,7 @@
 
 Assumes sharded batched data and uses data parallel training.
 """
+
 import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
@@ -87,9 +88,9 @@ class BasicFlaxTrainer:
         """
         # Configure seed
         if "seed" not in config:
-            key = jax.random.PRNGKey(0)
+            key = jax.random.key(0)
         else:
-            key = jax.random.PRNGKey(config["seed"])
+            key = jax.random.key(config["seed"])
         # Split seed for data iterators and model initialization
         key1, key2 = jax.random.split(key)
 
@@ -159,7 +160,7 @@ class BasicFlaxTrainer:
 
         # Determine sharded vs. batch partition
         if batch_size % jax.device_count() > 0:
-            raise ValueError("Batch size must be divisible by the number of devices")
+            raise ValueError("Batch size must be divisible by the number of devices.")
         self.local_batch_size: int = batch_size // jax.process_count()
 
         # Training steps
@@ -482,7 +483,7 @@ class BasicFlaxTrainer:
                 self.checkpoint(state)
 
         # Wait for finishing asynchronous execution
-        jax.random.normal(jax.random.PRNGKey(0), ()).block_until_ready()
+        jax.random.normal(jax.random.key(0), ()).block_until_ready()
         # Close object for iteration stats if logging
         if self.logflag:
             assert self.itstat_object is not None

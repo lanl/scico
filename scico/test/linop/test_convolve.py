@@ -14,7 +14,7 @@ from scico.test.linop.test_linop import AbsMatOp, adjoint_test
 
 class TestConvolve:
     def setup_method(self, method):
-        self.key = jax.random.PRNGKey(12345)
+        self.key = jax.random.key(12345)
 
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
     @pytest.mark.parametrize("input_shape", [(16,), (16, 24)])
@@ -50,7 +50,7 @@ class TestConvolve:
 class ConvolveTestObj:
     def __init__(self):
         dtype = np.float32
-        key = jax.random.PRNGKey(12345)
+        key = jax.random.key(12345)
 
         self.psf_A, key = randn((3,), dtype=dtype, key=key)
         self.psf_B, key = randn((3,), dtype=dtype, key=key)
@@ -175,7 +175,7 @@ def test_dimension_mismatch(testobj):
 
 class TestConvolveByX:
     def setup_method(self, method):
-        self.key = jax.random.PRNGKey(12345)
+        self.key = jax.random.key(12345)
 
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
     @pytest.mark.parametrize("input_shape", [(16,), (16, 24)])
@@ -212,7 +212,7 @@ class TestConvolveByX:
 class ConvolveByXTestObj:
     def __init__(self):
         dtype = np.float32
-        key = jax.random.PRNGKey(12345)
+        key = jax.random.key(12345)
 
         self.x_A, key = randn((3,), dtype=dtype, key=key)
         self.x_B, key = randn((3,), dtype=dtype, key=key)

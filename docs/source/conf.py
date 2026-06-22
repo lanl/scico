@@ -78,8 +78,5 @@ def process_docstring(app, what, name, obj, options, lines):
 
 
 def setup(app):
-
-    app.add_css_file("scico.css")
-    app.add_css_file("http://netdna.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css")
     app.connect("builder-inited", class_inherit_diagrams)
     app.connect("autodoc-process-docstring", process_docstring)

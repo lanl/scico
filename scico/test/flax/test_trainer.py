@@ -105,7 +105,7 @@ def test_optimizers_exception(testobj):
 
 
 def test_sync_batch_stats(testobj):
-    key = jax.random.PRNGKey(seed=12345)
+    key = jax.random.key(seed=12345)
     key1, key2 = jax.random.split(key)
 
     model = sflax.ConvBNNet(
@@ -373,7 +373,7 @@ def test_class_train_external_init(testobj, chkflag):
         testobj.model_conf["depth"], testobj.chn, testobj.model_conf["num_filters"]
     )
 
-    key = jax.random.PRNGKey(seed=1234)
+    key = jax.random.key(seed=1234)
     input_shape = (1, testobj.N, testobj.N, testobj.chn)
 
     # Via model initialization

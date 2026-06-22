@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2024 by SCICO Developers
+# Copyright (C) 2021-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -8,7 +8,7 @@
 solving the inverse problems that arise in scientific imaging applications.
 """
 
-__version__ = "0.0.7.dev0"
+__version__ = "0.0.8.dev0"
 
 import logging
 import sys
@@ -28,24 +28,20 @@ from jax import custom_jvp, custom_vjp, hessian, jacfwd, jvp, linearize, vjp
 import jaxlib
 
 from . import numpy
-from ._autograd import cvjp, grad, jacrev, linear_adjoint, value_and_grad
+from ._core import *
+from ._core import __all__ as _core_all
 
 # See https://github.com/google/jax/issues/19444
 jax.config.update("jax_default_matmul_precision", "highest")
 
-__all__ = [
-    "grad",
-    "value_and_grad",
-    "linear_adjoint",
-    "vjp",
-    "cvjp",
-    "jvp",
-    "jacfwd",
-    "jacrev",
-    "linearize",
-    "hessian",
+__all__ = _core_all + [
     "custom_jvp",
     "custom_vjp",
+    "hessian",
+    "jacfwd",
+    "jvp",
+    "linearize",
+    "vjp",
 ]
 
 # Imported items in __all__ appear to originate in top-level functional module

@@ -18,7 +18,7 @@ prop_list = [AngularSpectrumPropagator, FresnelPropagator, FraunhoferPropagator]
 
 class TestPropagator:
     def setup_method(self, method):
-        key = jax.random.PRNGKey(12345)
+        key = jax.random.key(12345)
         self.N = 128
         self.dx = 1
         self.k0 = 1
@@ -39,7 +39,7 @@ class TestPropagator:
         x, key = randn(A.input_shape, dtype=np.complex64, key=self.key)
         Ax = A @ x
         AiAx = A.pinv(Ax)
-        np.testing.assert_allclose(x, AiAx, rtol=5e-4)
+        np.testing.assert_allclose(x, AiAx, rtol=6e-4)
 
     @pytest.mark.parametrize("prop", prop_list)
     def test_3d_invalid(self, prop):

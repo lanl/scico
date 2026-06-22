@@ -74,7 +74,6 @@ from scico.flax.examples import load_ct_data
 from scico.flax.train.traversals import clip_positive, construct_traversal
 from scico.linop.xray import XRayTransform2D
 
-
 platform = get_backend().platform
 print("Platform: ", platform)
 
@@ -270,7 +269,7 @@ if stats_object is not None and len(stats_object.iterations) > 0:
     hist = stats_object.history(transpose=True)
     fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
     plot.plot(
-        np.vstack((hist.Train_Loss, hist.Eval_Loss)).T,
+        np.array((hist.Train_Loss, hist.Eval_Loss)).T,
         x=hist.Epoch,
         ptyp="semilogy",
         title="Loss function",
@@ -281,7 +280,7 @@ if stats_object is not None and len(stats_object.iterations) > 0:
         ax=ax[0],
     )
     plot.plot(
-        np.vstack((hist.Train_SNR, hist.Eval_SNR)).T,
+        np.array((hist.Train_SNR, hist.Eval_SNR)).T,
         x=hist.Epoch,
         title="Metric",
         xlbl="Epoch",

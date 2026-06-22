@@ -1,11 +1,10 @@
-# Copyright (C) 2020-2024 by SCICO Developers
+# Copyright (C) 2020-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
 """Operator base class."""
-
 
 # Needed to annotate a class method that returns the encapsulating class;
 # see https://www.python.org/dev/peps/pep-0563/
@@ -20,9 +19,10 @@ import jax
 import jax.numpy as jnp
 from jax.dtypes import result_type
 
+import scico
 import scico.numpy as snp
 from scico.numpy import Array, BlockArray
-from scico.numpy.util import is_nested, shape_to_size
+from scico.numpy.util import dtype_name, is_nested, shape_to_size
 from scico.typing import BlockShape, DType, Shape
 
 
@@ -62,14 +62,6 @@ def _wrap_mul_div_scalar(func: Callable) -> Callable:
 
 class Operator:
     """Generic operator class."""
-
-    def __repr__(self):
-        return f"""{type(self)}
-shape       : {self.shape}
-matrix_shape : {self.matrix_shape}
-input_dtype : {self.input_dtype}
-output_dtype : {self.output_dtype}
-        """
 
     # See https://numpy.org/doc/stable/user/c-info.beyond-basics.html#ndarray.__array_priority__
     __array_priority__ = 1
@@ -147,19 +139,21 @@ output_dtype : {self.output_dtype}
             self._eval = eval_fn  # type: ignore
         elif not hasattr(self, "_eval"):
             raise NotImplementedError(
-                "Operator is an abstract base class when the eval_fn parameter is not specified."
+                "Operator is an abstract base class when argument 'eval_fn' is not specified."
             )
 
-        # If the shape isn't specified by user we can infer it using by invoking the function
+        # If the output shape/dtype aren't specified, they can be inferred
+        # using scico.eval_shape
         if output_shape is None or output_dtype is None:
-            tmp = self(snp.zeros(self.input_shape, dtype=input_dtype))
+            dts = scico.eval_shape(
+                self._eval, jax.ShapeDtypeStruct(self.input_shape, dtype=input_dtype)
+            )
         if output_shape is None:
-            self.output_shape = tmp.shape  # type: ignore
+            self.output_shape = dts.shape  # type: ignore
         else:
             self.output_shape = (output_shape,) if isinstance(output_shape, int) else output_shape
-
         if output_dtype is None:
-            self.output_dtype = tmp.dtype
+            self.output_dtype = dts.dtype
         else:
             self.output_dtype = output_dtype
 
@@ -178,6 +172,17 @@ output_dtype : {self.output_dtype}
     def jit(self):
         """Activate just-in-time compilation for the `_eval` method."""
         self._eval = jax.jit(self._eval)
+
+    def __str__(self):
+        return f"""{self.__module__}.{self.__class__.__qualname__}"""
+
+    def __repr__(self):
+        return f"""{str(self)}
+  input_shape:  {self.input_shape}
+  output_shape: {self.output_shape}
+  input_dtype:  {dtype_name(self.input_dtype)}
+  output_dtype: {dtype_name(self.output_dtype)}
+"""
 
     def __call__(self, x: Union[Operator, Array, BlockArray]) -> Union[Operator, Array, BlockArray]:
         r"""Evaluate this :class:`Operator` at the point :math:`\mb{x}`.
@@ -365,7 +370,7 @@ output_dtype : {self.output_dtype}
         input_ndim = len(self.input_shape)
         if argnum > input_ndim - 1:
             raise ValueError(
-                f"Parameter argnum to freeze must be less than the number of input arguments to "
+                f"Argument 'argnum' must be fewer than the number of input arguments to "
                 f"this operator ({input_ndim}); got {argnum}."
             )
 

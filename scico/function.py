@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2023 by SCICO Developers
+# Copyright (C) 2022-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -11,9 +11,11 @@ from typing import Any, Callable, Optional, Sequence, Tuple, Union
 
 import jax
 
+import scico
 import scico.numpy as snp
 from scico.linop import LinearOperator, jacobian
 from scico.numpy import Array, BlockArray
+from scico.numpy.util import dtype_name
 from scico.operator import Operator
 from scico.typing import BlockShape, DType, Shape
 
@@ -65,33 +67,33 @@ class Function:
             self._eval = jax.jit(eval_fn) if jit else eval_fn
         elif not hasattr(self, "_eval"):
             raise NotImplementedError(
-                "Function is an abstract base class when the eval_fn parameter is not specified."
+                "Function is an abstract base class when argument 'eval_fn' is not specified."
             )
 
-        # If the output shape or dtype isn't specified, it can be
-        # inferred by calling the evaluation function.
+        # If the output shape/dtype aren't specified, they can be inferred
+        # using scico.eval_shape
         if output_shape is None or output_dtype is None:
-            zeros = [
-                snp.zeros(shape, dtype=dtype)
+            dts_in = [
+                jax.ShapeDtypeStruct(shape, dtype=dtype)
                 for (shape, dtype) in zip(self.input_shapes, self.input_dtypes)
             ]
-            tmp = self._eval(*zeros)
+            dts_out = scico.eval_shape(self._eval, *dts_in)
         if output_shape is None:
-            self.output_shape = tmp.shape  # type: ignore
+            self.output_shape = dts_out.shape  # type: ignore
         else:
             self.output_shape = output_shape
         if output_dtype is None:
-            self.output_dtype = tmp.dtype
+            self.output_dtype = dts_out.dtype
         else:
             self.output_dtype = output_dtype
 
     def __repr__(self):
-        return f"""{type(self)}
-input_shapes   : {self.input_shapes}
-input_dtypes   : {self.input_dtypes}
-output_shape   : {self.output_shape}
-output_dtype   : {self.output_dtype}
-        """
+        return f"""{self.__module__}.{self.__class__.__qualname__}
+  input_shapes: {self.input_shapes}
+  output_shape: {self.output_shape}
+  input_dtypes: {", ".join([dtype_name(dt) for dt in self.input_dtypes])}
+  output_dtype: {dtype_name(self.output_dtype)}
+"""
 
     def __call__(self, *args: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         """Evaluate this function with the specified parameters.
@@ -144,7 +146,7 @@ output_dtype   : {self.output_dtype}
             if dtype != self.input_dtypes[0]:
                 raise ValueError(
                     "The join method may only be applied to Functions that have "
-                    "homogenous input dtypes."
+                    "homogeneous input dtypes."
                 )
 
         def jfunc(blkarr):

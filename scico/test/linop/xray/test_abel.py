@@ -5,7 +5,7 @@ import jax
 import pytest
 
 import scico.numpy as snp
-from scico.linop.abel import AbelTransform
+from scico.linop.xray.abel import AbelTransform
 from scico.test.linop.test_linop import adjoint_test
 
 BIG_INPUT = (128, 128)

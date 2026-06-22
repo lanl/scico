@@ -7,7 +7,6 @@
 
 """X-ray transform classes."""
 
-
 from functools import partial
 from typing import Optional, Tuple
 from warnings import warn

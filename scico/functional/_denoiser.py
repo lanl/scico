@@ -7,7 +7,6 @@
 
 """Pseudo-functionals that have denoisers as their proximal operators."""
 
-
 from typing import Union
 
 from scico import denoiser

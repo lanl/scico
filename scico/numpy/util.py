@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2025 by SCICO Developers
+# Copyright (C) 2022-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SPORCO package. Details of the copyright
 # and user license can be found in the 'LICENSE.txt' file distributed
 # with the package.
 
 """Utility functions for working with jax arrays and BlockArrays."""
-
 
 from __future__ import annotations
 
@@ -18,11 +17,10 @@ import numpy as np
 
 import jax
 
-import scico.numpy as snp
-from scico.numpy import Array
-from scico.typing import ArrayIndex, Axes, AxisIndex, BlockShape, DType, Shape
+from typing_extensions import TypeGuard
 
-from ._blockarray import BlockArray
+import scico.numpy as snp
+from scico.typing import ArrayIndex, Axes, AxisIndex, BlockShape, DType, Shape
 
 
 def transpose_ntpl_of_list(ntpl: NamedTuple) -> List[NamedTuple]:
@@ -55,7 +53,7 @@ def transpose_list_of_ntpl(ntlist: List[NamedTuple]) -> NamedTuple:
     return cls(*[[ntlist[m][n] for m in range(numentry)] for n in range(nfields)])  # type: ignore
 
 
-def namedtuple_to_array(ntpl: NamedTuple) -> Array:
+def namedtuple_to_array(ntpl: NamedTuple) -> snp.Array:
     """Convert a namedtuple to an array.
 
     Convert a :func:`collections.namedtuple` object to a
@@ -77,7 +75,7 @@ def namedtuple_to_array(ntpl: NamedTuple) -> Array:
     )
 
 
-def array_to_namedtuple(array: Array) -> NamedTuple:
+def array_to_namedtuple(array: snp.Array) -> NamedTuple:
     """Convert an array representation of a namedtuple back to a namedtuple.
 
     Convert a :class:`numpy.ndarray` object constructed by
@@ -128,7 +126,7 @@ def normalize_axes(
         if default is None:
             if shape is None:
                 raise ValueError(
-                    "Parameter axes cannot be None without a default or shape specified."
+                    "Argument 'axes' cannot be None without a default or shape specified."
                 )
             axes = tuple(range(len(shape)))
         else:
@@ -138,7 +136,7 @@ def normalize_axes(
     elif isinstance(axes, int):
         axes = (axes,)
     else:
-        raise ValueError(f"Could not understand axes {axes} as a list of axes.")
+        raise ValueError(f"Could not understand argument 'axes' {axes} as a list of axes.")
     if shape is not None:
         if min(axes) < 0:
             axes = tuple([len(shape) + a if a < 0 else a for a in axes])
@@ -268,8 +266,8 @@ def jax_indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int, ...]:
 
 
 def no_nan_divide(
-    x: Union[BlockArray, snp.Array], y: Union[BlockArray, snp.Array]
-) -> Union[BlockArray, snp.Array]:
+    x: Union[snp.BlockArray, snp.Array], y: Union[snp.BlockArray, snp.Array]
+) -> Union[snp.BlockArray, snp.Array]:
     """Return `x/y`, with 0 instead of :data:`~numpy.NaN` where `y` is 0.
 
     Args:
@@ -283,17 +281,73 @@ def no_nan_divide(
     return snp.where(y != 0, snp.divide(x, snp.where(y != 0, y, 1)), 0)
 
 
+def _readable_size(size: int) -> str:
+    """Return a human-readable representation of an array size.
+
+    Args:
+        size: A positive integer array size.
+
+    Returns:
+        A string representation of the size.
+    """
+    factor = [1, 1024, 1024**2, 1024**3, 1024**4]
+    units = ["B", "KB", "MB", "GB", "TB"]
+    idx_tuple = np.nonzero([size // f for f in factor[::-1]])
+    if idx_tuple[0].size == 0:
+        idx = len(factor) - 1
+    else:
+        idx = int(idx_tuple[0][0])
+    val = size // factor[::-1][idx]
+    ustr = units[::-1][idx]
+    return f"{val} {ustr}"
+
+
+def array_info(x: Union[snp.BlockArray, snp.Array]) -> str:
+    """Return a string providing information about an array.
+
+    Args:
+        x: A numpy or jax array or scico :class:`BlockArray`.
+
+    Returns:
+        A string containing information on the array.
+
+    Raises:
+       TypeError: If the array is not of a recognized type.
+    """
+    if isinstance(x, np.ndarray):
+        array_type = "numpy.ndarray"
+    elif isinstance(x, jax.Array):
+        array_type = "jax.Array"
+    elif isinstance(x, snp.BlockArray):
+        array_type = "scico.numpy.BlockArray"
+    else:
+        raise TypeError("Unrecognized array type {type(x)}.")
+    totalbytes = np.sum(x.nbytes).item()  # type: ignore
+    return (
+        f"""{array_type}
+  shape:    {x.shape}
+  size:     {x.size}
+  bytes:    {totalbytes} ({_readable_size(totalbytes)})
+"""
+        + (f"  device:   {x.device}\n" if hasattr(x, "device") else "")
+        + f"""  dtype:    {dtype_name(x.dtype)}
+  id:       {id(x)}
+  min, max: {snp.ravel(x).min()}, {snp.ravel(x).max()}
+"""
+    )
+
+
 def shape_to_size(shape: Union[Shape, BlockShape]) -> int:
     r"""Compute array size corresponding to a specified shape.
 
     Compute array size corresponding to a specified shape, which may be
-    nested, i.e. corresponding to a :class:`.BlockArray`.
+    nested, i.e. corresponding to a :class:`BlockArray`.
 
     Args:
         shape: A shape tuple.
 
     Returns:
-        The number of elements in an array or :class:`.BlockArray` with
+        The number of elements in an array or :class:`BlockArray` with
         shape `shape`.
     """
 
@@ -303,8 +357,23 @@ def shape_to_size(shape: Union[Shape, BlockShape]) -> int:
     return prod(shape)  # type: ignore
 
 
+def is_array(x: Any) -> bool:
+    """Check if input is of type :class:`jax.Array` or :class:`numpy.ndarray`.
+
+    Check if input is an array, of type :class:`jax.Array` or
+    :class:`numpy.ndarray`.
+
+    Args:
+        x: Object to be tested.
+
+    Returns:
+        ``True`` if `x` is an array, ``False`` otherwise.
+    """
+    return isinstance(x, (np.ndarray, jax.Array))
+
+
 def is_arraylike(x: Any) -> bool:
-    """Check if input is of type :class:`jax.ArrayLike`.
+    """Check if input is of type :class:`jax.typing.ArrayLike`.
 
     `isinstance(x, jax.typing.ArrayLike)` does not work in Python < 3.10,
     see https://jax.readthedocs.io/en/latest/jax.typing.html#jax-typing-best-practices.
@@ -340,6 +409,58 @@ def is_nested(x: Any) -> bool:
     return isinstance(x, (list, tuple)) and any([isinstance(_, (list, tuple)) for _ in x])
 
 
+def is_collapsible(shapes: Sequence[Union[Shape, BlockShape]]) -> bool:
+    """Determine whether a sequence of shapes can be collapsed.
+
+    Return ``True`` if the a list of shapes represent arrays that can
+    be stacked, i.e., they are all the same.
+
+    Args:
+        shapes: A sequence of shapes.
+
+    Returns:
+        A boolean value indicating whether the shapes are all the same.
+    """
+    return all(s == shapes[0] for s in shapes)
+
+
+def is_blockable(shapes: Sequence[Union[Shape, BlockShape]]) -> TypeGuard[Union[Shape, BlockShape]]:
+    """Determine whether a sequence of shapes could be a :class:`BlockArray` shape.
+
+    Return ``True`` if the sequence of shapes represent arrays that can
+    be combined into a :class:`BlockArray`, i.e., none are nested.
+
+    Args:
+        shapes: A sequence of shapes.
+
+    Returns:
+        A boolean value indicating whether any of the shapes are nested.
+    """
+    return not any(is_nested(s) for s in shapes)
+
+
+def shape_dtype_rep(
+    shape: Union[Shape, BlockShape], dtype: DType
+) -> Union[jax.ShapeDtypeStruct, snp.BlockArray]:
+    """Construct a representation of array or blockarray shape and dtype.
+
+    Construct a representation of array or block array shape and dtype
+    that is suitable for both jax arrays and scico blockarrays.
+
+    Args:
+       shape: Array or blockarray shape.
+       dtype: Array or blockarray dtype.
+
+    Returns:
+       A :class:`jax.ShapeDtypeStruct` or a :class:`.BlockArray`
+       containing objects of type :class:`jax.ShapeDtypeStruct`.
+    """
+    if is_nested(shape):  # block array
+        return snp.BlockArray([jax.ShapeDtypeStruct(blk_shape, dtype=dtype) for blk_shape in shape])
+    else:  # standard array
+        return jax.ShapeDtypeStruct(shape, dtype=dtype)
+
+
 def broadcast_nested_shapes(
     shape_a: Union[Shape, BlockShape], shape_b: Union[Shape, BlockShape]
 ) -> Union[Shape, BlockShape]:
@@ -348,7 +469,7 @@ def broadcast_nested_shapes(
     Compute the result of applying a broadcasting binary operator to
     (block) arrays with (possibly nested) shapes `shape_a` and `shape_b`.
     Extends :func:`numpy.broadcast_shapes` to also support the nested
-    tuple shapes of :class:`.BlockArray`\ s.
+    tuple shapes of :class:`BlockArray`\ s.
 
     Args:
         shape_a: First array shape.
@@ -436,6 +557,22 @@ def complex_dtype(dtype: DType) -> DType:
     """
 
     return (snp.zeros(1, dtype) + 1j).dtype
+
+
+def dtype_name(dtype: DType) -> str:
+    """Return the name of a dtype.
+
+    Construct a string representation of a dtype name.
+
+    Args:
+        dtype: The dtype for which the name is required.
+
+    Returns:
+        The name of the dtype.
+    """
+    if type(dtype).__module__ == "numpy.dtypes":
+        return f"""numpy.{dtype.name}"""  # type: ignore
+    return f"""{dtype.__module__}.{dtype.__qualname__}"""  # type: ignore
 
 
 def is_scalar_equiv(s: Any) -> bool:

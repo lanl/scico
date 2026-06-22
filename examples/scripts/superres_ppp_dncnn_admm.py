@@ -14,7 +14,6 @@ This example demonstrates the use of the ADMM Plug and Play Priors
 superresolution problem.
 """
 
-
 import scico
 import scico.numpy as snp
 import scico.random
@@ -100,7 +99,7 @@ hist = solver.itstat_object.history(transpose=True)
 Plot convergence statistics.
 """
 plot.plot(
-    snp.vstack((hist.Prml_Rsdl, hist.Dual_Rsdl)).T,
+    snp.array((hist.Prml_Rsdl, hist.Dual_Rsdl)).T,
     ptyp="semilogy",
     title="Residuals",
     xlbl="Iteration",

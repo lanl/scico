@@ -5,6 +5,7 @@ omit =
     scico/test/*
     scico/plot.py
     scico/trace.py
+    scico/linop/xray/_axitom/*.py
 
 [report]
 # Regexes for lines to exclude from consideration

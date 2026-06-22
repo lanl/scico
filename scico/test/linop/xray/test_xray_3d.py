@@ -16,7 +16,10 @@ def test_matched_adjoint():
     det_shape = (det_count, det_count)
 
     M = XRayTransform3D.matrices_from_euler_angles(
-        input_shape, det_shape, "X", np.linspace(0, np.pi, n_projection, endpoint=False)
+        input_shape,
+        det_shape,
+        "X",
+        np.linspace(0, np.pi, n_projection, endpoint=False)[:, None],  # make (n_projection, 1)
     )
     H = XRayTransform3D(input_shape, matrices=M, det_shape=det_shape)
 
@@ -31,7 +34,7 @@ def test_scaling():
     det_shape = x.shape[:2]
 
     # default spacing
-    M = XRayTransform3D.matrices_from_euler_angles(input_shape, det_shape, "X", [0.0])
+    M = XRayTransform3D.matrices_from_euler_angles(input_shape, det_shape, "X", [[0.0]])
     H = XRayTransform3D(input_shape, matrices=M, det_shape=det_shape)
     # fmt: off
     truth = jnp.array(
@@ -44,7 +47,7 @@ def test_scaling():
 
     # bigger voxels in the x (first index) direction
     M = XRayTransform3D.matrices_from_euler_angles(
-        input_shape, det_shape, "X", [0.0], voxel_spacing=[2.0, 1.0, 1.0]
+        input_shape, det_shape, "X", [[0.0]], voxel_spacing=[2.0, 1.0, 1.0]
     )
     H = XRayTransform3D(input_shape, matrices=M, det_shape=det_shape)
     # fmt: off
@@ -58,7 +61,7 @@ def test_scaling():
 
     # bigger detector pixels in the x (first index) direction
     M = XRayTransform3D.matrices_from_euler_angles(
-        input_shape, det_shape, "X", [0.0], det_spacing=[2.0, 1.0]
+        input_shape, det_shape, "X", [[0.0]], det_spacing=[2.0, 1.0]
     )
     H = XRayTransform3D(input_shape, matrices=M, det_shape=det_shape)
     # fmt: off

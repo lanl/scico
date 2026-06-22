@@ -17,7 +17,6 @@ from .pgm import PGM, AcceleratedPGM
 from ._primaldual import PDHG
 from ._padmm import ProximalADMM, NonLinearPADMM, ProximalADMMBase
 
-
 __all__ = [
     "ADMM",
     "LinearizedADMM",

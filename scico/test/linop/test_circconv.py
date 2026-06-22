@@ -27,7 +27,7 @@ SHAPE_SPECS = [
 
 class TestCircularConvolve:
     def setup_method(self, method):
-        self.key = jax.random.PRNGKey(12345)
+        self.key = jax.random.key(12345)
 
     @pytest.mark.parametrize("jit", [True, False])
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
