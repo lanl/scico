@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2023-2024 by SCICO Developers
+# Copyright (C) 2023-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -19,7 +19,7 @@ from jax.typing import ArrayLike
 
 import scico.numpy as snp
 from scico.numpy.util import is_scalar_equiv
-from scico.typing import Shape
+from scico.typing import DType, Shape
 from scipy.spatial.transform import Rotation
 
 from .._linop import LinearOperator
@@ -334,8 +334,9 @@ class XRayTransform3D(LinearOperator):
     For each view, the projection geometry is specified by an array
     with shape (2, 4) that specifies a :math:`2 \times 3` projection
     matrix and a :math:`2 \times 1` offset vector. Denoting the matrix
-    by :math:`\mathbf{M}` and the offset by :math:`\mathbf{t}`, a voxel at array
-    index `(i, j, k)` has its center projected to the detector coordinates
+    by :math:`\mathbf{M}` and the offset by :math:`\mathbf{t}`, a voxel
+    at array index `(i, j, k)` has its center projected to the detector
+    coordinates
 
     .. math::
         \mathbf{M} \begin{bmatrix}
@@ -354,12 +355,15 @@ class XRayTransform3D(LinearOperator):
         input_shape: Shape,
         matrices: ArrayLike,
         det_shape: Shape,
+        input_dtype: DType = np.float32,
     ):
         r"""
         Args:
-            input_shape: Shape of input image.
-            matrices: (num_views, 2, 4) array of homogeneous projection matrices.
+            input_shape: Input array shape.
+            matrices: (num_views, 2, 4) array of homogeneous projection
+               matrices.
             det_shape: Shape of detector.
+            input_dtype: Input array dtype.
         """
 
         self.input_shape: Shape = input_shape
@@ -371,6 +375,8 @@ class XRayTransform3D(LinearOperator):
             output_shape=self.output_shape,
             eval_fn=self.project,
             adj_fn=self.back_project,
+            input_dtype=input_dtype,
+            output_dtype=input_dtype,
         )
 
     def project(self, im: ArrayLike) -> snp.Array:
@@ -386,7 +392,8 @@ class XRayTransform3D(LinearOperator):
         r"""
         Args:
             im: Input image.
-            matrix: (num_views, 2, 4) array of homogeneous projection matrices.
+            matrix: (num_views, 2, 4) array of homogeneous projection
+                matrices.
             det_shape: Shape of detector.
         """
         MAX_SLICE_LEN = 10
@@ -547,11 +554,14 @@ class XRayTransform3D(LinearOperator):
         Args:
             input_shape: Shape of input image.
             output_shape: Shape of output (detector).
-            str: Sequence of axes for rotation. Up to 3 characters belonging to the set {'X', 'Y', 'Z'}
-                for intrinsic rotations, or {'x', 'y', 'z'} for extrinsic rotations. Extrinsic and
-                intrinsic rotations cannot be mixed in one function call.
+            str: Sequence of axes for rotation. Up to 3 characters
+                belonging to the set {'X', 'Y', 'Z'} for intrinsic
+                rotations, or {'x', 'y', 'z'} for extrinsic rotations.
+                Extrinsic and intrinsic rotations cannot be mixed in one
+                function call.
             angles: (num_views, N), N = 1, 2, or 3 Euler angles.
-            degrees: If ``True``, angles are in degrees, otherwise radians. Default: ``True``, radians.
+            degrees: If ``True``, angles are in degrees, otherwise
+                radians. Default: ``True``, radians.
             voxel_spacing: (3,) array giving the spacing of image
                 voxels.  Default: `[1.0, 1.0, 1.0]`. Experimental.
             det_spacing: (2,) array giving the spacing of detector

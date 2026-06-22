@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2024 by SCICO Developers
+# Copyright (C) 2022-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -57,7 +57,7 @@ def py_file_to_string(src):
                 else:
                     n += 1
             # Insert notebook plotting config directly after last import statement
-            lines.insert(-n, "plot.config_notebook_plotting()\n")
+            lines.insert(-n, "kplt.config_notebook_plotting()\n")
 
         # Process remainder of source file
         for line in srcfile:
