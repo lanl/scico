@@ -57,7 +57,7 @@ def py_file_to_string(src):
                 else:
                     n += 1
             # Insert notebook plotting config directly after last import statement
-            lines.insert(-n, "plot.config_notebook_plotting()\n")
+            lines.insert(-n, "kplt.config_notebook_plotting()\n")
 
         # Process remainder of source file
         for line in srcfile:
