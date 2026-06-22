@@ -18,10 +18,10 @@ import numpy as np
 import jax
 import jax.numpy as jnp
 
+import komplot as kplt
 from xdesign import Foam, discrete_phantom
 
 import scico.linop.xray.astra as astra
-from scico import plot
 from scico.linop.xray import XRayTransform2D
 from scico.util import Timer
 
@@ -170,21 +170,27 @@ for tstr in ("first", "avg"):
 """
 Show projections.
 """
-fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 6))
-plot.imview(ys["scico"], title="SCICO projection", cbar=None, fig=fig, ax=ax[0])
-plot.imview(ys["astra"], title="ASTRA projection", cbar=None, fig=fig, ax=ax[1])
+fig, ax = kplt.subplots(
+    nrows=1, ncols=2, sharex=True, sharey=True, layout="constrained", figsize=(9, 6)
+)
+kplt.imview(ys["scico"], title="SCICO projection", cmap="Blues", ax=ax[0])
+kplt.imview(ys["astra"], title="ASTRA projection", cmap="Blues", ax=ax[1])
+fig.get_layout_engine().set(w_pad=0.1, h_pad=0.2)
 fig.show()
 
 
 """
 Show back projections of a single detector element, i.e., a line.
 """
-fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 6))
-plot.imview(HTys["scico"], title="SCICO back projection (zoom)", cbar=None, fig=fig, ax=ax[0])
-plot.imview(HTys["astra"], title="ASTRA back projection (zoom)", cbar=None, fig=fig, ax=ax[1])
+fig, ax = kplt.subplots(
+    nrows=1, ncols=2, sharex=True, sharey=True, layout="constrained", figsize=(12, 6)
+)
+kplt.imview(HTys["scico"], title="SCICO back projection (zoom)", cmap="Blues", ax=ax[0])
+kplt.imview(HTys["astra"], title="ASTRA back projection (zoom)", cmap="Blues", ax=ax[1])
 for ax_i in ax:
     ax_i.set_xlim(2 * N / 5, N - 2 * N / 5)
     ax_i.set_ylim(2 * N / 5, N - 2 * N / 5)
+fig.get_layout_engine().set(w_pad=0.1, h_pad=0.2)
 fig.show()
 
 
