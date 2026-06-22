@@ -1,4 +1,6 @@
 -r ../requirements.txt
+matplotlib
+komplot>=0.0.3
 colorama
 colour_demosaicing
 svmbir>=0.4.0

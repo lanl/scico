@@ -8,11 +8,15 @@
 """Block array class."""
 
 import inspect
+from collections.abc import Iterable
 from functools import WRAPPER_ASSIGNMENTS, wraps
-from typing import Callable
+from typing import Any, Callable, Union
+
+import numpy as np
 
 import jax
 import jax.numpy as jnp
+from jax.typing import ArrayLike
 
 from ._wrapped_function_lists import binary_ops, unary_ops
 from .util import is_collapsible
@@ -49,7 +53,9 @@ class BlockArray:
     # https://docs.scipy.org/doc/numpy-1.10.1/user/c-info.beyond-basics.html#ndarray.__array_priority__
     __array_priority__ = 1
 
-    def __init__(self, inputs):
+    arrays: list[Union[jax.Array, jax.ShapeDtypeStruct]]
+
+    def __init__(self, inputs: Iterable[Union[jax.ShapeDtypeStruct, ArrayLike]]) -> None:
         # convert inputs to jax arrays
         self.arrays = [x if isinstance(x, jax.ShapeDtypeStruct) else jnp.array(x) for x in inputs]
 
@@ -58,7 +64,7 @@ class BlockArray:
             raise ValueError("Heterogeneous dtypes not supported.")
 
     @property
-    def dtype(self):
+    def dtype(self) -> np.dtype:
         """Return the dtype of the blocks, which must currently be homogeneous.
 
         This allows `snp.zeros(x.shape, x.dtype)` to work without a mechanism
@@ -66,10 +72,10 @@ class BlockArray:
         """
         return self.arrays[0].dtype
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.arrays.__len__()
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: Union[int, slice]) -> Union["BlockArray", jax.Array]:
         """Indexing method equivalent to x[key].
 
         This is overridden to make, e.g., x[:2] return a BlockArray
@@ -80,18 +86,18 @@ class BlockArray:
             return BlockArray(result)  # x[k:k+1] returns a BlockArray
         return result  # x[k] returns a jax array
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: int, value: Union["BlockArray", ArrayLike]) -> None:
         self.arrays[key] = value
 
     @staticmethod
-    def blockarray(iterable):
+    def blockarray(iterable: Iterable[ArrayLike]) -> "BlockArray":
         """Construct a :class:`.BlockArray` from a list or tuple of existing array-like."""
         return BlockArray(iterable)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"BlockArray({repr(self.arrays)})"
 
-    def stack(self, axis=0):
+    def stack(self, axis: int = 0) -> jax.Array:
         """Collapse a :class:`.BlockArray` to :class:`jax.Array`.
 
         Collapse a :class:`.BlockArray` to :class:`jax.Array` by stacking
@@ -123,11 +129,11 @@ jax.tree_util.register_pytree_node(
 
 
 # Wrap unary ops like -x.
-def _unary_op_wrapper(op_name):
+def _unary_op_wrapper(op_name: str) -> Callable[["BlockArray"], "BlockArray"]:
     op = getattr(JaxArray, op_name)
 
     @wraps(op)
-    def op_block_array(self):
+    def op_block_array(self: "BlockArray") -> "BlockArray":
         return BlockArray(op(x) for x in self)
 
     return op_block_array
@@ -138,11 +144,11 @@ for op_name in unary_ops:
 
 
 # Wrap binary ops like x + y. """
-def _binary_op_wrapper(op_name):
+def _binary_op_wrapper(op_name: str) -> Callable[["BlockArray", Any], Union["BlockArray", Any]]:
     op = getattr(JaxArray, op_name)
 
     @wraps(op)
-    def op_block_array(self, other):
+    def op_block_array(self: "BlockArray", other: Any) -> Union["BlockArray", Any]:
         # If other is a block array, we can assume the operation is
         # implemented (because block arrays must contain jax arrays)
         if isinstance(other, BlockArray):
@@ -163,12 +169,12 @@ for op_name in binary_ops:
 
 
 # Wrap jax array properties.
-def _jax_array_prop_wrapper(prop_name):
+def _jax_array_prop_wrapper(prop_name: str) -> property:
     prop = getattr(JaxArray, prop_name)
 
     @property
     @wraps(prop)
-    def prop_block_array(self):
+    def prop_block_array(self: "BlockArray") -> Union["BlockArray", tuple]:
         result = tuple(getattr(x, prop_name) for x in self)
 
         # If each jax_array.prop is a jax array, ...
@@ -194,7 +200,7 @@ for prop_name in jax_array_props:
 
 
 # Wrap jax array methods.
-def _jax_array_method_wrapper(method_name):
+def _jax_array_method_wrapper(method_name: str) -> Callable[..., Any]:
     method = getattr(JaxArray, method_name)
 
     # Don't try to set attributes that are None. Not clear why some
@@ -206,7 +212,9 @@ def _jax_array_method_wrapper(method_name):
             wrapper_assignments = tuple(x for x in wrapper_assignments if x != attr)
 
     @wraps(method, assigned=wrapper_assignments)
-    def method_block_array(self, *args, **kwargs):
+    def method_block_array(
+        self: "BlockArray", *args: Any, **kwargs: Any
+    ) -> Union["BlockArray", tuple]:
         result = tuple(getattr(x, method_name)(*args, **kwargs) for x in self)
 
         # If each jax_array.method(...) call returns a jax array, ...
