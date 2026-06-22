@@ -25,9 +25,10 @@ import numpy as np
 
 import jax.numpy as jnp
 
+import komplot as kplt
 from xdesign import Foam, discrete_phantom
 
-from scico import loss, plot
+from scico import loss
 from scico.linop import CircularConvolve
 from scico.linop.xray.astra import XRayTransform2D
 from scico.solver import cg
@@ -76,19 +77,14 @@ M = CircularConvolve(inv_frequency_response, x_gt.shape, h_is_dft=True)
 r"""
 Check that $\mathbf{M}$ does approximately invert $\mathbf{A}^T \mathbf{A}$.
 """
-plot_args = dict(
-    norm=plot.matplotlib.colors.Normalize(vmin=0, vmax=1.5), cmap=plot.matplotlib.cm.Blues_r
-)
+plot_args = dict(norm=kplt.colors.Normalize(vmin=0, vmax=1.5), cmap=kplt.cm.Blues_r)
 
-fig, axes = plot.subplots(nrows=1, ncols=3, figsize=(12, 4.5))
-plot.imview(x_gt, title="Ground truth, $x_{gt}$", fig=fig, ax=axes[0], **plot_args)
-plot.imview(
-    A.T @ A @ x_gt, title=r"$\mathbf{A}^T \mathbf{A} x_{gt}$", fig=fig, ax=axes[1], **plot_args
-)
-plot.imview(
+fig, axes = kplt.subplots(nrows=1, ncols=3, figsize=(12, 4.5))
+kplt.imview(x_gt, title="Ground truth, $x_{gt}$", ax=axes[0], **plot_args)
+kplt.imview(A.T @ A @ x_gt, title=r"$\mathbf{A}^T \mathbf{A} x_{gt}$", ax=axes[1], **plot_args)
+kplt.imview(
     M @ A.T @ A @ x_gt,
     title=r"$\mathbf{M} \mathbf{A}^T \mathbf{A} x_{gt}$",
-    fig=fig,
     ax=axes[2],
     **plot_args,
 )

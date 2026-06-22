@@ -25,10 +25,11 @@ ADMM is used in a [companion example](ct_astra_3d_tv_admm.rst).
 
 import numpy as np
 
+import komplot as kplt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 import scico.numpy as snp
-from scico import functional, linop, loss, metric, plot
+from scico import functional, linop, loss, metric
 from scico.examples import create_tangle_phantom
 from scico.linop.xray.astra import XRayTransform3D, angle_to_vector
 from scico.optimize import ProximalADMM
@@ -129,28 +130,56 @@ print(
 
 
 """
-Show the recovered image.
+Show the recovered volume.
 """
-fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(7, 6))
-plot.imview(
+fig, ax = kplt.subplots(nrows=1, ncols=2, sharex=True, sharey=True, figsize=(7, 6))
+kplt.imview(
     tangle[32],
-    title="Ground truth (central slice)",
-    cmap=plot.cm.Blues,
-    cbar=None,
-    fig=fig,
+    title="Ground truth",
+    cmap=kplt.cm.viridis,
+    show_cbar=None,
     ax=ax[0],
 )
-plot.imview(
+kplt.imview(
     tangle_recon[32],
-    title="TV Reconstruction (central slice)\nSNR: %.2f (dB), MAE: %.3f"
+    title="TV Reconstruction\nSNR: %.2f (dB), MAE: %.3f"
     % (metric.snr(tangle, tangle_recon), metric.mae(tangle, tangle_recon)),
-    cmap=plot.cm.Blues,
-    fig=fig,
+    cmap=kplt.cm.viridis,
     ax=ax[1],
 )
 divider = make_axes_locatable(ax[1])
 cax = divider.append_axes("right", size="5%", pad=0.2)
 fig.colorbar(ax[1].get_images()[0], cax=cax, label="arbitrary units")
+fig.suptitle("Central slice on $z$ axis (axis 0)")
+fig.tight_layout()
+fig.show()
+
+fig, ax = kplt.subplots(
+    nrows=1,
+    ncols=2,
+    sharex=True,
+    sharey=True,
+    gridspec_kw={"width_ratios": [1, 1.08]},
+    figsize=(13, 4),
+)
+kplt.imview(
+    tangle[:, 128],
+    title="Ground truth",
+    cmap=kplt.cm.viridis,
+    ax=ax[0],
+)
+kplt.imview(
+    tangle_recon[:, 128],
+    title="TV Reconstruction\nSNR: %.2f (dB), MAE: %.3f"
+    % (metric.snr(tangle, tangle_recon), metric.mae(tangle, tangle_recon)),
+    cmap=kplt.cm.viridis,
+    ax=ax[1],
+)
+divider = make_axes_locatable(ax[1])
+cax = divider.append_axes("right", size="5%", pad=0.2)
+fig.colorbar(ax[1].get_images()[0], ax=ax[1], cax=cax, label="arbitrary units")
+fig.suptitle("Central slice on $y$ axis (axis 1)")
+fig.tight_layout()
 fig.show()
 
 input("\nWaiting for input to close figures and exit")
