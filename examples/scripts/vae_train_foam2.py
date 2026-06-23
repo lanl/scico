@@ -202,7 +202,7 @@ cycle was done (i.e. if not reading final epoch results from checkpoint).
 """
 if stats_object is not None and len(stats_object.iterations) > 0:
     hist = stats_object.history(transpose=True)
-    fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
+    fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(12, 5))
     kplt.plot(
         hist.Epoch,
         np.vstack((hist.Train_Loss, hist.Eval_Loss)).T,
