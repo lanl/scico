@@ -192,8 +192,8 @@ from numpy import einsum
 import numpy as np
 
 sample_ = einsum("ikjl", np.asarray(sample).reshape(h, w, size, size)).reshape(size * h, size * w)
-fig, ax = plot.subplots(nrows=1, ncols=1, figsize=(7, 7))
-plot.imview(sample_, title="Samples", cbar=None, fig=fig, ax=ax)
+fig, ax = kplt.subplots(nrows=1, ncols=1, figsize=(7, 7))
+kplt.imview(sample_, title="Samples", show_cbar=None, ax=ax)
 fig.show()
 
 """

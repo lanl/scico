@@ -30,12 +30,12 @@ try:
 except ImportError:
     from jax.lib.xla_bridge import get_backend
 
+import komplot as kplt
 
 import flax.linen as nn
 
 import optax
 
-from scico import plot
 from scico import flax as sflax
 from scico.flax.autoencoders.varautoencoders import DenseVAE
 from scico.flax.autoencoders.state import create_vae_train_state
@@ -205,8 +205,8 @@ from numpy import einsum
 import numpy as np
 
 sample_ = einsum("ikjl", np.asarray(sample).reshape(h, w, size, size)).reshape(size * h, size * w)
-fig, ax = plot.subplots(nrows=1, ncols=1, figsize=(7, 7))
-plot.imview(sample_, title="Samples", cbar=None, fig=fig, ax=ax)
+fig, ax = kplt.subplots(nrows=1, ncols=1, figsize=(7, 7))
+kplt.imview(sample_, title="Samples", show_cbar=None, ax=ax)
 fig.show()
 
 """
@@ -215,26 +215,24 @@ cycle was done (i.e. if not reading final epoch results from checkpoint).
 """
 if stats_object is not None and len(stats_object.iterations) > 0:
     hist = stats_object.history(transpose=True)
-    fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
-    plot.plot(
+    fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(12, 5))
+    kplt.plot(
+        hist.Epoch,
         np.vstack((hist.Train_Loss, hist.Eval_Loss)).T,
-        x=hist.Epoch,
-        ptyp="semilogy",
+        ylog=True,
         title="Loss function",
-        xlbl="Epoch",
-        ylbl="Loss value",
-        lgnd=("Train", "Test"),
-        fig=fig,
+        xlabel="Epoch",
+        ylabel="Loss value",
+        legend=("Train", "Test"),
         ax=ax[0],
     )
-    plot.plot(
+    kplt.plot(
+        hist.Epoch,
         np.vstack((hist.Train_KL, hist.Eval_KL)).T,
-        x=hist.Epoch,
         title="Metric",
-        xlbl="Epoch",
-        ylbl="KL Divergence",
-        lgnd=("Train", "Test"),
-        fig=fig,
+        xlabel="Epoch",
+        ylabel="KL Divergence",
+        legend=("Train", "Test"),
         ax=ax[1],
     )
     fig.show()
