@@ -22,6 +22,8 @@ import numpy as np
 
 import jax
 
+import komplot as kplt
+
 try:
     from jax.extend.backend import get_backend  # introduced in jax 0.4.33
 except ImportError:
@@ -32,7 +34,6 @@ platform = get_backend().platform
 print("Platform: ", platform)
 
 
-from scico import plot
 from scico import flax as sflax
 from scico.flax.train.losses import huber_loss
 from scico.flax.diffusion.models import ConditionalUNet
@@ -173,8 +174,8 @@ from numpy import einsum
 import numpy as np
 
 sample_ = einsum("ikjl", np.asarray(sample).reshape(h, w, size, size)).reshape(size * h, size * w)
-fig, ax = plot.subplots(nrows=1, ncols=1, figsize=(7, 7))
-plot.imview(sample_, title="Samples", cbar=None, fig=fig, ax=ax)
+fig, ax = kplt.subplots(nrows=1, ncols=1, figsize=(7, 7))
+kplt.imview(sample_, title="Samples", show_cbar=None, ax=ax)
 fig.show()
 
 """
@@ -183,17 +184,17 @@ cycle was done (i.e. if not reading final epoch results from checkpoint).
 """
 if stats_object is not None and len(stats_object.iterations) > 0:
     hist = stats_object.history(transpose=True)
-    fig, ax = plot.subplots(nrows=1, ncols=1, figsize=(9, 5))
-    plot.plot(
+    fig, ax = kplt.subplots(nrows=1, ncols=1, figsize=(9, 5))
+    kplt.plot(
+        hist.Epoch,
         np.vstack((hist.Train_Loss, hist.Eval_Loss)).T,
-        x=hist.Epoch,
-        ptyp="semilogy",
+        ylog=True,
         title="Loss function",
-        xlbl="Epoch",
-        ylbl="Loss value",
-        lgnd=("Train", "Test"),
-        fig=fig,
+        xlabel="Epoch",
+        ylabel="Loss value",
+        legend=("Train", "Test"),
         ax=ax,
     )
+    fig.show()
 
 input("\nWaiting for input to close figures and exit")

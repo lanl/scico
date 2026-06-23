@@ -20,6 +20,7 @@ from time import time
 
 import numpy as np
 
+import komplot as kplt
 
 import jax
 import jax.numpy as jnp
@@ -32,7 +33,6 @@ except ImportError:
 
 from sklearn.datasets import make_s_curve
 
-from scico import plot
 from scico import flax as sflax
 from scico.flax.train.losses import huber_loss
 from scico.flax.diffusion.models import MLPScore
@@ -161,7 +161,7 @@ Plot samples.
 """
 sample_r = sample.reshape((-1, 2))
 sample_path_r = sample_path.reshape((-1, num_steps, 2))
-fig, ax = plot.subplots(nrows=1, ncols=1, figsize=(7, 7))
+fig, ax = kplt.subplots(nrows=1, ncols=1, figsize=(7, 7))
 ax.scatter(sample_r[:, 0], sample_r[:, 1])
 ax.scatter(sample_path_r[:, 0, 0], sample_path_r[:, 0, 1])
 ax.scatter(init_sample[:, 0], init_sample[:, 1])
@@ -174,7 +174,7 @@ Plot sample paths.
 import numpy as np
 
 N_part = np.random.choice(sample_batch_size, size=5)
-fig, ax = plot.subplots(nrows=1, ncols=1, figsize=(7, 7))
+fig, ax = kplt.subplots(nrows=1, ncols=1, figsize=(7, 7))
 ax.plot(sample_r[:, 0], sample_r[:, 1], "*")
 ax.plot(sample_path_r[:, 0, 0], sample_path_r[:, 0, 1], "*")
 for j in N_part:
@@ -190,16 +190,15 @@ cycle was done (i.e. if not reading final epoch results from checkpoint).
 """
 if stats_object is not None and len(stats_object.iterations) > 0:
     hist = stats_object.history(transpose=True)
-    fig, ax = plot.subplots(nrows=1, ncols=1, figsize=(9, 5))
-    plot.plot(
+    fig, ax = kplt.subplots(nrows=1, ncols=1, figsize=(9, 5))
+    kplt.plot(
+        hist.Epoch,
         np.vstack((hist.Train_Loss, hist.Eval_Loss)).T,
-        x=hist.Epoch,
-        ptyp="semilogy",
+        ylog=True,
         title="Loss function",
-        xlbl="Epoch",
-        ylbl="Loss value",
-        lgnd=("Train", "Test"),
-        fig=fig,
+        xlabel="Epoch",
+        ylabel="Loss value",
+        legend=("Train", "Test"),
         ax=ax,
     )
     fig.show()
