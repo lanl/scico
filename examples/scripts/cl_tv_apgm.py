@@ -56,13 +56,13 @@ alpha = 61.0 * np.pi / 180.0
 theta = np.linspace(0, 2 * np.pi, num_views, endpoint=False)
 vectors = cl_angles_to_vecs(theta, alpha)
 
-if have_gpu:
+if have_gpu:  # use astra projector
     X = astraXRayTransform3D(
         vol_shape,
         det_count=det_shape,
         vectors=vectors,
     )
-else:
+else:  # use scico projector
     matrices = convert_to_scico_geometry(
         input_shape=vol_shape, det_count=det_shape, vectors=vectors
     )
@@ -73,13 +73,15 @@ y = X @ x_gt
 yn = y + 0.05 * np.random.rand(*y.shape).astype(np.float32)
 
 
+"""
+Compute FBP solution for comparison and as initial solution.
+"""
 x_fbp = snp.clip(cl_fbp(y, alpha, X), 0.0, 1.0)
 
 
 """
 Set up problem functional and APGM solver object.
 """
-
 f = loss.SquaredL2Loss(y=yn, A=X)
 λ = 1e0
 g = λ * functional.IsotropicTVNorm(circular=False, input_shape=vol_shape)
@@ -108,7 +110,6 @@ hist = solver.itstat_object.history(transpose=True)
 """
 Show the recovered image.
 """
-
 slice_index = 32
 fig, ax = plot.subplots(nrows=1, ncols=3, figsize=(15, 5))
 plot.imview(x_gt[slice_index], title="Ground truth", cbar=None, cmap="viridis", fig=fig, ax=ax[0])
