@@ -19,8 +19,8 @@ where $C$ is the X-ray transform (the CT forward projection operator),
 $\mathbf{y}$ is the sinogram, $D$ is a 3D finite difference operator,
 and $\mathbf{x}$ is the reconstructed image.
 
-In this example the problem is solved via proximal ADMM, while standard
-ADMM is used in a [companion example](ct_astra_3d_tv_admm.rst).
+This example uses the native scico 3d X-Ray projector, while the
+[companion example](ct_astra_3d_tv_padmm.rst) uses the astra projector.
 """
 
 import numpy as np
@@ -31,7 +31,8 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import scico.numpy as snp
 from scico import functional, linop, loss, metric
 from scico.examples import create_tangle_phantom
-from scico.linop.xray.astra import XRayTransform3D, angle_to_vector
+from scico.linop.xray import XRayTransform3D
+from scico.linop.xray.astra import angle_to_vector, convert_to_scico_geometry
 from scico.optimize import ProximalADMM
 from scico.util import device_info
 
@@ -53,7 +54,8 @@ vectors = angle_to_vector(det_spacing, angles)
 # It would have been more straightforward to use the det_spacing and angles keywords
 # in this case (since vectors is just computed directly from these two quantities), but
 # the more general form is used here as a demonstration.
-C = XRayTransform3D(tangle.shape, det_count=det_count, vectors=vectors)  # CT projection operator
+matrices = convert_to_scico_geometry(input_shape=tangle.shape, det_count=det_count, vectors=vectors)
+C = XRayTransform3D(tangle.shape, matrices, det_count)  # CT projection operator
 y = C @ tangle  # sinogram
 
 
