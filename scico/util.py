@@ -140,7 +140,7 @@ def _dev_info_int(devid: int) -> str:
     return _dev_info_device(dev)
 
 
-def _dev_info_shard(shard: Sharding) -> str:
+def _dev_info_shard(shard: Sharding) -> List[str]:
     """Get a string describing the devices in the specified sharding.
 
     Args:
@@ -157,7 +157,7 @@ def _dev_info_shard(shard: Sharding) -> str:
 
 def device_info(
     dev: Union[int, Device, Sharding] = 0, string: bool = True
-) -> str:  # pragma: no cover
+) -> Union[str, List[str]]:  # pragma: no cover
     """Get a string describing the specified device(s).
 
     Args:
