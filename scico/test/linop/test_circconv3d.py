@@ -48,8 +48,6 @@ class TestCircularConvolve3D:
             np.sum(h_flipped * x[x_inds], axis=sum_axes), Ax[Ax_inds], rtol=1e-5
         )
 
-        # np.testing.assert_allclose(Ax.ravel(), hx.ravel(), rtol=5e-4)
-
     @pytest.mark.parametrize("jit", [True, False])
     @pytest.mark.parametrize("input_dtype", [np.float32, np.complex64])
     @pytest.mark.parametrize("axes_shape_spec", SHAPE_SPECS)
