@@ -265,6 +265,59 @@ def jax_indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int, ...]:
     return tuple(t.item() for t in f(shape, idx))  # type: ignore
 
 
+def _padding(n: int, shape: Shape, axes: Sequence[int], divisors: Sequence[int]) -> int:
+    """Compute padding to make shape divisible by specified factors.
+
+    Compute the padding necessary to make array axes divisible according
+    to the specified list of axes and divisors.
+
+    Args:
+        n: Axis index for which padding is to be computed. Padding is
+           0 if this index is not in `axes`.
+        shape: Shape of array.
+        axes: List of axis indices.
+        divisors: List of factors corresponding to the axis indices.
+
+    Returns:
+        Padding size for axis `n`.
+    """
+    if n in axes:
+        idx = axes.index(n)
+        d = divisors[idx]
+        return int(np.ceil(shape[n] / d) * d) - shape[n]
+    return 0
+
+
+def pad_to_divisible(
+    x: np.ndarray, axes: Union[Sequence[int], int], divisors: Union[Sequence[int], int]
+) -> Tuple[np.ndarray, Tuple[slice]]:
+    """Pad array to make shape divisible by specified factors.
+
+    Pad array so that the specified axes are divisible by the
+    specified divisors.
+
+    Args:
+        x: Array to be padded.
+        axes: List of axis indices. Axes not in this list are not padded.
+        divisors: List of factors corresponding to the axis indices.
+
+    Returns:
+        Padded array and a tuple of slices that can be used to crop the
+        array back to its original shape.
+    """
+    if isinstance(axes, int) != isinstance(divisors, int):
+        raise ValueError("axes and divisors must be of the same type.")
+    if isinstance(axes, int) and isinstance(divisors, int):
+        axes = (axes,)
+        divisors = (divisors,)
+    assert isinstance(axes, (list, tuple)) and isinstance(divisors, (list, tuple))
+    pad_spec = [(0, _padding(n, x.shape, axes, divisors)) for n in range(x.ndim)]
+    x_pad = np.pad(x, pad_spec)
+    assert isinstance(x_pad, np.ndarray)
+    crop_slice = tuple([slice(None, None if p[1] == 0 else -p[1], None) for p in pad_spec])
+    return x_pad, crop_slice  # type: ignore
+
+
 def no_nan_divide(
     x: Union[snp.BlockArray, snp.Array], y: Union[snp.BlockArray, snp.Array]
 ) -> Union[snp.BlockArray, snp.Array]:

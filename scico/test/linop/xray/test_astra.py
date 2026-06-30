@@ -14,7 +14,6 @@ try:
     from scico.linop.xray.astra import (
         XRayTransform2D,
         XRayTransform3D,
-        _ensure_writeable,
         angle_to_vector,
         rotate_vectors,
     )
@@ -361,8 +360,3 @@ def test_vol_coord_to_world_coord():
     vc = np.array([[0.0, 0.0], [1.0, 1.0]])
     wc = scico.linop.xray.astra.volume_coords_to_world_coords(vc, vol_geom)
     assert wc.shape == (2, 2)
-
-
-def test_ensure_writeable():
-    assert isinstance(_ensure_writeable(np.ones((2, 1))), np.ndarray)
-    assert isinstance(_ensure_writeable(snp.ones((2, 1))), np.ndarray)
