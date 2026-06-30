@@ -7,6 +7,7 @@ import pytest
 
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, operator, random
+from scico.linop._circconv3d import have_jaxdecomp
 from scico.optimize import ADMM
 from scico.optimize.admm import (
     CircularConvolve3DSolver,
@@ -465,6 +466,7 @@ class TestCircularConvolveSolve:
         assert metric.mse(x_lin, x_dft) < 1e-9
 
 
+@pytest.mark.skipif(not have_jaxdecomp, reason="jaxdecomp package not installed")
 @pytest.mark.parametrize("center", (None, [-1.0, 2.5, 0.0]))
 class TestCircularConvolve3DSolve:
 
