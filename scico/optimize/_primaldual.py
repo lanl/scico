@@ -13,6 +13,9 @@ from __future__ import annotations
 
 from typing import List, Optional, Union
 
+from jax import Device
+from jax.sharding import Sharding
+
 import scico.numpy as snp
 from scico.functional import Functional
 from scico.linop import LinearOperator, jacobian, operator_norm

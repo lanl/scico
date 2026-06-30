@@ -34,7 +34,7 @@ import numpy as np
 import numpy.typing
 
 import jax
-from jax.sharding import Sharding, SingleDeviceSharding
+from jax.sharding import Sharding
 from jax.typing import ArrayLike
 
 from scipy.spatial.transform import Rotation
@@ -315,7 +315,7 @@ class XRayTransform2D(LinearOperator):
         # apply the forward projector and generate a sinogram
 
         def f(x):
-            x = _ensure_writeable(x)
+            x = np.array(x)
             proj_id, result = astra.create_sino(x, self.proj_id)
             astra.data2d.delete(proj_id)
             return result
@@ -325,7 +325,7 @@ class XRayTransform2D(LinearOperator):
     def _bproj(self, y: jax.Array) -> jax.Array:
         # apply backprojector
         def f(y):
-            y = _ensure_writeable(y)
+            y = np.array(y)
             proj_id, result = astra.create_backprojection(y, self.proj_id)
             astra.data2d.delete(proj_id)
             return result
@@ -354,7 +354,7 @@ class XRayTransform2D(LinearOperator):
             )
 
         def f(sino):
-            sino = _ensure_writeable(sino)
+            sino = np.array(sino)
             sino_id = astra.data2d.create("-sino", self.proj_geom, sino)
 
             # create memory for result
@@ -751,16 +751,14 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
         # apply the forward projector and generate a sinogram
 
         def f(x):
-            x = _ensure_writeable(x)
+            x = np.array(x)
             proj_id, result = astra.create_sino3d_gpu(x, self.proj_geom, self.vol_geom)
             astra.data3d.delete(proj_id)
             return result
 
         y = jax.pure_callback(
             f,
-            jax.ShapeDtypeStruct(
-                self.output_shape, self.output_dtype, sharding=SingleDeviceSharding(self.cpu_dev)
-            ),
+            jax.ShapeDtypeStruct(self.output_shape, self.output_dtype),
             jax.device_put(x, device=self.cpu_dev),
         )
         if self.output_sharding is not None:
@@ -770,19 +768,17 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
     def _bproj(self, y: jax.Array) -> jax.Array:
         # apply backprojector
         def f(y):
-            y = _ensure_writeable(y)
+            y = np.array(y)
             proj_id, result = astra.create_backprojection3d_gpu(y, self.proj_geom, self.vol_geom)
             astra.data3d.delete(proj_id)
             return result
 
         x = jax.pure_callback(
             f,
-            jax.ShapeDtypeStruct(
-                self.input_shape, self.input_dtype, sharding=SingleDeviceSharding(self.cpu_dev)
-            ),
+            jax.ShapeDtypeStruct(self.input_shape, self.input_dtype),
             jax.device_put(y, device=self.cpu_dev),
         )
-        if self.output_sharding is not None:
+        if self.input_sharding is not None:
             x = jax.device_put(x, device=self.input_sharding)
         return x
 
@@ -824,16 +820,3 @@ def rotate_vectors(vectors: np.ndarray, rot: Rotation) -> np.ndarray:
     for k in range(0, 12, 3):
         rot_vecs[:, k : k + 3] = rot.apply(rot_vecs[:, k : k + 3])
     return rot_vecs
-
-
-def _ensure_writeable(x):
-    """Ensure that `x.flags.writeable` is ``True``, copying if needed."""
-    if hasattr(x, "flags"):  # x is a numpy array
-        if not x.flags.writeable:
-            try:
-                x.setflags(write=True)
-            except ValueError:
-                x = x.copy()
-    else:  # x is a jax array (which is immutable)
-        x = np.array(x)
-    return x
