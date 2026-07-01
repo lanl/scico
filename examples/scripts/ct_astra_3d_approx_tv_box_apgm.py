@@ -33,10 +33,11 @@ import jax
 from jax.sharding import AxisType, NamedSharding
 from jax.sharding import PartitionSpec as P
 
+import komplot as kplt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 import scico.numpy as snp
-from scico import functional, linop, loss, metric, plot
+from scico import functional, linop, loss, metric
 from scico.data import foam_phantom
 from scico.linop.xray.astra import XRayTransform3D, angle_to_vector
 from scico.numpy.util import pad_to_divisible
@@ -141,20 +142,20 @@ print(
 """
 Show the recovered image.
 """
-fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(7, 6))
-plot.imview(
+fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(7, 6))
+kplt.imview(
     vol[32],
     title="Ground truth (central slice)",
-    cmap=plot.cm.Blues,
+    cmap=kplt.cm.Blues,
     cbar=None,
     fig=fig,
     ax=ax[0],
 )
-plot.imview(
+kplt.imview(
     vol_recon[32],
     title="TV Reconstruction (central slice)\nSNR: %.2f (dB), MAE: %.3f"
     % (metric.snr(vol, vol_recon), metric.mae(vol, vol_recon)),
-    cmap=plot.cm.Blues,
+    cmap=kplt.cm.Blues,
     fig=fig,
     ax=ax[1],
 )
