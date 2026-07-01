@@ -112,8 +112,8 @@ hist = solver.itstat_object.history(transpose=True)
 Show the recovered image.
 """
 slice_index = 32
-fig, ax = kplt.subplots(nrows=1, ncols=3, figsize=(15, 5))
-kplt.imview(x_gt[slice_index], title="Ground truth", cbar=None, cmap="viridis", fig=fig, ax=ax[0])
+fig, ax = kplt.subplots(nrows=1, ncols=3, layout="constrained", figsize=(15, 5))
+kplt.imview(x_gt[slice_index], title="Ground truth", show_cbar=None, cmap="viridis", ax=ax[0])
 kplt.imview(
     x_fbp[slice_index],
     title="FBP Reconstruction: \nSNR: %.2f (dB), MAE: %.3f"
@@ -132,6 +132,7 @@ kplt.imview(
 divider = make_axes_locatable(ax[2])
 cax = divider.append_axes("right", size="5%", pad=0.2)
 fig.colorbar(ax[2].get_images()[0], cax=cax, label="arbitrary units")
+fig.set_constrained_layout_pads(w_pad=0.55, wspace=0)
 fig.show()
 
 
@@ -142,15 +143,15 @@ fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(12, 5))
 kplt.plot(
     hist.Objective,
     title="Objective function",
-    xlbl="Iteration",
-    ylbl="Functional value",
+    xlabel="Iteration",
+    ylabel="Functional value",
     ax=ax[0],
 )
 kplt.plot(
     hist.Residual,
-    ptyp="semilogy",
+    ylog=True,
     title="Residual",
-    xlbl="Iteration",
+    xlabel="Iteration",
     ax=ax[1],
 )
 fig.show()
