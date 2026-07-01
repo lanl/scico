@@ -142,13 +142,12 @@ print(
 """
 Show the recovered image.
 """
-fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(7, 6))
+fig, ax = kplt.subplots(nrows=1, ncols=2, layout="constrained", figsize=(12.5, 6))
 kplt.imview(
     vol[32],
     title="Ground truth (central slice)",
     cmap=kplt.cm.Blues,
-    cbar=None,
-    fig=fig,
+    show_cbar=None,
     ax=ax[0],
 )
 kplt.imview(
@@ -156,12 +155,12 @@ kplt.imview(
     title="TV Reconstruction (central slice)\nSNR: %.2f (dB), MAE: %.3f"
     % (metric.snr(vol, vol_recon), metric.mae(vol, vol_recon)),
     cmap=kplt.cm.Blues,
-    fig=fig,
     ax=ax[1],
 )
 divider = make_axes_locatable(ax[1])
-cax = divider.append_axes("right", size="5%", pad=0.2)
+cax = divider.append_axes("right", size="5%", pad=0.1)
 fig.colorbar(ax[1].get_images()[0], cax=cax, label="arbitrary units")
+fig.get_layout_engine().set(w_pad=0.55, h_pad=0.05)
 fig.show()
 
 
