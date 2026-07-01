@@ -26,10 +26,11 @@ import numpy as np
 
 import jax
 
+import komplot as kplt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 import scico.numpy as snp
-from scico import functional, linop, loss, metric, optimize, plot
+from scico import functional, linop, loss, metric, optimize
 from scico.examples import create_laminar_phantom
 from scico.linop.xray import XRayTransform3D as scicoXRayTransform3D
 from scico.linop.xray import cl_angles_to_vecs, cl_fbp
@@ -111,23 +112,21 @@ hist = solver.itstat_object.history(transpose=True)
 Show the recovered image.
 """
 slice_index = 32
-fig, ax = plot.subplots(nrows=1, ncols=3, figsize=(15, 5))
-plot.imview(x_gt[slice_index], title="Ground truth", cbar=None, cmap="viridis", fig=fig, ax=ax[0])
-plot.imview(
+fig, ax = kplt.subplots(nrows=1, ncols=3, figsize=(15, 5))
+kplt.imview(x_gt[slice_index], title="Ground truth", cbar=None, cmap="viridis", fig=fig, ax=ax[0])
+kplt.imview(
     x_fbp[slice_index],
     title="FBP Reconstruction: \nSNR: %.2f (dB), MAE: %.3f"
     % (metric.snr(x_gt, x_fbp), metric.mae(x_gt, x_fbp)),
-    cbar=None,
+    show_cbar=None,
     cmap="viridis",
-    fig=fig,
     ax=ax[1],
 )
-plot.imview(
+kplt.imview(
     x_rec[slice_index],
     title="TV Reconstruction\nSNR: %.2f (dB), MAE: %.3f"
     % (metric.snr(x_gt, x_rec), metric.mae(x_gt, x_rec)),
     cmap="viridis",
-    fig=fig,
     ax=ax[2],
 )
 divider = make_axes_locatable(ax[2])
@@ -139,21 +138,19 @@ fig.show()
 """
 Plot convergence statistics.
 """
-fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
-plot.plot(
+fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(12, 5))
+kplt.plot(
     hist.Objective,
     title="Objective function",
     xlbl="Iteration",
     ylbl="Functional value",
-    fig=fig,
     ax=ax[0],
 )
-plot.plot(
+kplt.plot(
     hist.Residual,
     ptyp="semilogy",
     title="Residual",
     xlbl="Iteration",
-    fig=fig,
     ax=ax[1],
 )
 fig.show()
