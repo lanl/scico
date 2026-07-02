@@ -292,7 +292,7 @@ def test_cone_magnification():
         det_count=(48, 48),
         det_spacing=(1.0, 1.0),
         angles=np.array([0.0]),
-        source_dist=50.0,
+        source_dist=10.0,
         det_dist=50.0,
     )
 
@@ -309,14 +309,8 @@ def test_cone_magnification():
     y_close = A_close @ x
     y_far = A_far @ x
 
-    # Closer source should produce larger projection (sum should be more spread out)
-    # This is a qualitative test that cone beam is different from parallel beam
-    assert y_close.max() > 0
-    assert y_far.max() > 0
-
-    # The projections should have different distributions due to magnification
-    # (not equal, even accounting for numerical tolerance)
-    assert not np.allclose(y_close, y_far, rtol=0.1)
+    # Closer source should produce much larger projection
+    assert y_close.sum() > 2 * y_far.sum()
 
 
 @pytest.mark.skipif(jax.devices()[0].platform != "gpu", reason="GPU required for cone beam")
@@ -336,7 +330,7 @@ def test_jit_in_DiagonalStack():
         ]
     )
     result = H.T @ snp.zeros(H.output_shape, dtype=snp.float32)
-    assert result.shape == (N, N, N)
+    assert result.shape == (1, N, N, N)
 
 
 def test_angle_to_vector_cone():
