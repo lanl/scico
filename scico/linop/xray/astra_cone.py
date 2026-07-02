@@ -344,7 +344,6 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
             # start to populate config
             cfg = astra.astra_dict("FDK_CUDA")
             cfg["ReconstructionDataId"] = rec_id
-            # cfg["ProjectorId"] = self.proj_id
             cfg["ProjectionDataId"] = sino_id
             cfg["option"] = kwargs
 
