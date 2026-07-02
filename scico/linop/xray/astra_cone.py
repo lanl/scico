@@ -336,10 +336,10 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
 
         def f(sino):
             sino = _ensure_writeable(sino)
-            sino_id = astra.data2d.create("-sino", self.proj_geom, sino)
+            sino_id = astra.data3d.create("-sino", self.proj_geom, sino)
 
             # create memory for result
-            rec_id = astra.data2d.create("-vol", self.vol_geom)
+            rec_id = astra.data3d.create("-vol", self.vol_geom)
 
             # start to populate config
             cfg = astra.astra_dict("FDK_CUDA")
