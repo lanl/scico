@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2023-2024 by SCICO Developers
+# Copyright (C) 2023-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -15,11 +15,13 @@ import numpy as np
 
 import jax
 import jax.numpy as jnp
+from jax._src.lib import xla_client as xc
+from jax._src.sharding import Sharding
 from jax.typing import ArrayLike
 
 import scico.numpy as snp
 from scico.numpy.util import is_scalar_equiv
-from scico.typing import Shape
+from scico.typing import DType, Shape
 from scipy.spatial.transform import Rotation
 
 from .._linop import LinearOperator
@@ -56,6 +58,8 @@ class XRayTransform2D(LinearOperator):
         dx: Optional[ArrayLike] = None,
         y0: Optional[float] = None,
         det_count: Optional[int] = None,
+        input_device: xc.Device | Sharding | None = None,
+        output_device: xc.Device | Sharding | None = None,
     ):
         r"""
         Args:
@@ -75,6 +79,10 @@ class XRayTransform2D(LinearOperator):
                 default, `-det_count / 2`
             det_count: Number of elements in detector. If ``None``,
                 defaults to the size of the diagonal of `input_shape`.
+            input_device: (optional) :class:`~jax.Device` or :class:`~jax.sharding.Sharding`
+                for input arrays.
+            output_device: (optional) :class:`~jax.Device` or :class:`~jax.sharding.Sharding`
+                for output arrays.
         """
         self.input_shape = input_shape
         self.angles = angles
@@ -116,6 +124,9 @@ class XRayTransform2D(LinearOperator):
         self.fbp_filter: Optional[snp.Array] = None
         self.fbp_mask: Optional[snp.Array] = None
 
+        self.input_device = input_device
+        self.output_device = output_device
+
         super().__init__(
             input_shape=self.input_shape,
             input_dtype=np.float32,
@@ -131,7 +142,9 @@ class XRayTransform2D(LinearOperator):
         Args:
             im: Input array representing the image to project.
         """
-        return XRayTransform2D._project(im, self.x0, self.dx, self.y0, self.ny, self.angles)
+        return XRayTransform2D._project(
+            im, self.x0, self.dx, self.y0, self.ny, self.angles, device=self.output_device
+        )
 
     def back_project(self, y: ArrayLike) -> snp.Array:
         """Compute X-ray back projection, equivalent to `H.T @ y`.
@@ -139,7 +152,9 @@ class XRayTransform2D(LinearOperator):
         Args:
             y: Input array representing the sinogram to back project.
         """
-        return XRayTransform2D._back_project(y, self.x0, self.dx, self.nx, self.y0, self.angles)
+        return XRayTransform2D._back_project(
+            y, self.x0, self.dx, self.nx, self.y0, self.angles, device=self.input_device
+        )
 
     def fbp(self, y: ArrayLike) -> snp.Array:
         r"""Compute filtered back projection (FBP) inverse of projection.
@@ -165,7 +180,7 @@ class XRayTransform2D(LinearOperator):
             self.fbp_filter = XRayTransform2D._ramp_filter(nvec, 1.0).reshape(1, -1)
 
         if self.fbp_mask is None:
-            unit_sino = jnp.ones(self.output_shape, dtype=np.float32)
+            unit_sino = jnp.ones_like(y)
             # Threshold is multiplied by 0.99... fudge factor to account for numerical errors
             # in back projection.
             self.fbp_mask = self.back_project(unit_sino) >= (self.output_shape[0] * (1.0 - 1e-5))  # type: ignore
@@ -209,7 +224,13 @@ class XRayTransform2D(LinearOperator):
     @staticmethod
     @partial(jax.jit, static_argnames=["ny"])
     def _project(
-        im: ArrayLike, x0: ArrayLike, dx: ArrayLike, y0: float, ny: int, angles: ArrayLike
+        im: ArrayLike,
+        x0: ArrayLike,
+        dx: ArrayLike,
+        y0: float,
+        ny: int,
+        angles: ArrayLike,
+        device: xc.Device | Sharding | None = None,
     ) -> snp.Array:
         r"""Compute X-ray projection.
 
@@ -222,6 +243,8 @@ class XRayTransform2D(LinearOperator):
             ny: Number of detector bins.
             angles: (num_angles,) array of angles in radians. Pixels are
                 projected onto unit vectors pointing in these directions.
+            device: (optional) :class:`~jax.Device` or :class:`~jax.sharding.Sharding`
+                to which the output will be committed.
         """
         nx = im.shape
         inds, weights = XRayTransform2D._calc_weights(x0, dx, nx, angles, y0)
@@ -232,7 +255,7 @@ class XRayTransform2D(LinearOperator):
         # Handle out of bounds indices by setting weight to zero
         weights_valid = jnp.where((inds >= 0) * (inds < ny), weights, 0.0)
         y = (
-            jnp.zeros((len(angles), ny), dtype=im.dtype)
+            jnp.zeros((len(angles), ny), dtype=im.dtype, device=device)
             .at[jnp.arange(len(angles)).reshape(-1, 1, 1), inds]
             .add(im * weights_valid)
         )
@@ -245,7 +268,13 @@ class XRayTransform2D(LinearOperator):
     @staticmethod
     @partial(jax.jit, static_argnames=["nx"])
     def _back_project(
-        y: ArrayLike, x0: ArrayLike, dx: ArrayLike, nx: Shape, y0: float, angles: ArrayLike
+        y: ArrayLike,
+        x0: ArrayLike,
+        dx: ArrayLike,
+        nx: Shape,
+        y0: float,
+        angles: ArrayLike,
+        device: xc.Device | Sharding | None = None,
     ) -> snp.Array:
         r"""Compute X-ray back projection.
 
@@ -258,6 +287,8 @@ class XRayTransform2D(LinearOperator):
             y0: Location of the edge of the first detector bin.
             angles: (num_angles,) array of angles in radians. Pixels are
                 projected onto units vectors pointing in these directions.
+            device: (optional) :class:`~jax.Device` or :class:`~jax.sharding.Sharding`
+                to which the output will be committed.
         """
         ny = y.shape[1]
         inds, weights = XRayTransform2D._calc_weights(x0, dx, nx, angles, y0)
@@ -265,7 +296,8 @@ class XRayTransform2D(LinearOperator):
         weights_valid = jnp.where((inds >= 0) * (inds < ny), weights, 0.0)
 
         # the idea: [y[0, inds[0]], y[1, inds[1]], ...]
-        HTy = jnp.sum(y[jnp.arange(len(angles)).reshape(-1, 1, 1), inds] * weights_valid, axis=0)
+        HTy = jnp.zeros(nx, dtype=y.dtype, device=device)
+        HTy += jnp.sum(y[jnp.arange(len(angles)).reshape(-1, 1, 1), inds] * weights_valid, axis=0)
 
         weights_valid = jnp.where((inds + 1 >= 0) * (inds + 1 < ny), 1 - weights, 0.0)
         HTy = HTy + jnp.sum(
@@ -334,8 +366,9 @@ class XRayTransform3D(LinearOperator):
     For each view, the projection geometry is specified by an array
     with shape (2, 4) that specifies a :math:`2 \times 3` projection
     matrix and a :math:`2 \times 1` offset vector. Denoting the matrix
-    by :math:`\mathbf{M}` and the offset by :math:`\mathbf{t}`, a voxel at array
-    index `(i, j, k)` has its center projected to the detector coordinates
+    by :math:`\mathbf{M}` and the offset by :math:`\mathbf{t}`, a voxel
+    at array index `(i, j, k)` has its center projected to the detector
+    coordinates
 
     .. math::
         \mathbf{M} \begin{bmatrix}
@@ -354,46 +387,71 @@ class XRayTransform3D(LinearOperator):
         input_shape: Shape,
         matrices: ArrayLike,
         det_shape: Shape,
+        input_dtype: DType = np.float32,
+        input_device: xc.Device | Sharding | None = None,
+        output_device: xc.Device | Sharding | None = None,
     ):
         r"""
         Args:
-            input_shape: Shape of input image.
-            matrices: (num_views, 2, 4) array of homogeneous projection matrices.
+            input_shape: Input array shape.
+            matrices: (num_views, 2, 4) array of homogeneous projection
+               matrices.
             det_shape: Shape of detector.
+            input_dtype: Input array dtype.
+            input_device: (optional) :class:`~jax.Device` or :class:`~jax.sharding.Sharding`
+                for input arrays.
+            output_device: (optional) :class:`~jax.Device` or :class:`~jax.sharding.Sharding`
+                for output arrays.
         """
 
         self.input_shape: Shape = input_shape
         self.matrices = jnp.asarray(matrices, dtype=np.float32)
         self.det_shape = det_shape
         self.output_shape = (len(matrices), *det_shape)
+        self.input_device = input_device
+        self.output_device = output_device
         super().__init__(
             input_shape=input_shape,
             output_shape=self.output_shape,
             eval_fn=self.project,
             adj_fn=self.back_project,
+            input_dtype=input_dtype,
+            output_dtype=input_dtype,
         )
 
     def project(self, im: ArrayLike) -> snp.Array:
         """Compute X-ray projection."""
-        return XRayTransform3D._project(im, self.matrices, self.det_shape)
+        return XRayTransform3D._project(
+            im, self.matrices, self.det_shape, device=self.output_device
+        )
 
     def back_project(self, proj: ArrayLike) -> snp.Array:
         """Compute X-ray back projection"""
-        return XRayTransform3D._back_project(proj, self.matrices, self.input_shape)
+        return XRayTransform3D._back_project(
+            proj, self.matrices, self.input_shape, device=self.input_device
+        )
 
     @staticmethod
-    def _project(im: ArrayLike, matrices: ArrayLike, det_shape: Shape) -> snp.Array:
+    def _project(
+        im: ArrayLike,
+        matrices: ArrayLike,
+        det_shape: Shape,
+        device: xc.Device | Sharding | None = None,
+    ) -> snp.Array:
         r"""
         Args:
             im: Input image.
-            matrix: (num_views, 2, 4) array of homogeneous projection matrices.
+            matrix: (num_views, 2, 4) array of homogeneous projection
+                matrices.
             det_shape: Shape of detector.
+            device: (optional) :class:`~jax.Device` or :class:`~jax.sharding.Sharding`
+                to which the output will be committed.
         """
         MAX_SLICE_LEN = 10
         slice_offsets = list(range(0, im.shape[0], MAX_SLICE_LEN))
 
         num_views = len(matrices)
-        proj = jnp.zeros((num_views,) + det_shape, dtype=im.dtype)
+        proj = jnp.zeros((num_views,) + det_shape, dtype=im.dtype, device=device)
         for view_ind, matrix in enumerate(matrices):
             for slice_offset in slice_offsets:
                 proj = proj.at[view_ind].set(
@@ -428,17 +486,24 @@ class XRayTransform3D(LinearOperator):
         return proj
 
     @staticmethod
-    def _back_project(proj: ArrayLike, matrices: ArrayLike, input_shape: Shape) -> snp.Array:
+    def _back_project(
+        proj: ArrayLike,
+        matrices: ArrayLike,
+        input_shape: Shape,
+        device: xc.Device | Sharding | None = None,
+    ) -> snp.Array:
         r"""
         Args:
             proj: Input (set of) projection(s).
             matrix: (num_views, 2, 4) array of homogeneous projection matrices.
             input_shape: Shape of desired back projection.
+            device: (optional) :class:`~jax.Device` or :class:`~jax.sharding.Sharding`
+                to which the output will be committed.
         """
         MAX_SLICE_LEN = 10
         slice_offsets = list(range(0, input_shape[0], MAX_SLICE_LEN))
 
-        HTy = jnp.zeros(input_shape, dtype=proj.dtype)
+        HTy = jnp.zeros(input_shape, dtype=proj.dtype, device=device)
         for view_ind, matrix in enumerate(matrices):
             for slice_offset in slice_offsets:
                 HTy = HTy.at[slice_offset : slice_offset + MAX_SLICE_LEN].set(
@@ -547,11 +612,14 @@ class XRayTransform3D(LinearOperator):
         Args:
             input_shape: Shape of input image.
             output_shape: Shape of output (detector).
-            str: Sequence of axes for rotation. Up to 3 characters belonging to the set {'X', 'Y', 'Z'}
-                for intrinsic rotations, or {'x', 'y', 'z'} for extrinsic rotations. Extrinsic and
-                intrinsic rotations cannot be mixed in one function call.
+            str: Sequence of axes for rotation. Up to 3 characters
+                belonging to the set {'X', 'Y', 'Z'} for intrinsic
+                rotations, or {'x', 'y', 'z'} for extrinsic rotations.
+                Extrinsic and intrinsic rotations cannot be mixed in one
+                function call.
             angles: (num_views, N), N = 1, 2, or 3 Euler angles.
-            degrees: If ``True``, angles are in degrees, otherwise radians. Default: ``True``, radians.
+            degrees: If ``True``, angles are in degrees, otherwise
+                radians. Default: ``True``, radians.
             voxel_spacing: (3,) array giving the spacing of image
                 voxels.  Default: `[1.0, 1.0, 1.0]`. Experimental.
             det_spacing: (2,) array giving the spacing of detector

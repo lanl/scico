@@ -21,12 +21,15 @@ likelihood :cite:`sauer-1993-local`, $C$ is a 2D finite difference
 operator, and $\mathbf{x}$ is the reconstructed image.
 """
 
+import warnings
+
 import numpy as np
 
+import komplot as kplt
 from xdesign import Soil, discrete_phantom
 
 import scico.numpy as snp
-from scico import functional, linop, loss, metric, plot
+from scico import functional, linop, loss, metric
 from scico.linop.xray.astra import XRayTransform2D
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
@@ -36,7 +39,9 @@ Create a ground truth image.
 """
 N = 512  # phantom size
 np.random.seed(0)
-x_gt = discrete_phantom(Soil(porosity=0.80), size=384)
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", category=RuntimeWarning)
+    x_gt = discrete_phantom(Soil(porosity=0.60), size=384)
 x_gt = np.ascontiguousarray(np.pad(x_gt, (64, 64)))
 x_gt = np.clip(x_gt, 0, np.inf)  # clip to positive values
 x_gt = snp.array(x_gt)  # convert to jax type
@@ -156,16 +161,16 @@ Show recovered images.
 
 def plot_recon(x, title, ax):
     """Plot an image with title indicating error metrics."""
-    plot.imview(
+    kplt.imview(
         x,
+        cmap="Blues",
         title=f"{title}\nSNR: {metric.snr(x_gt, x):.2f} (dB), MAE: {metric.mae(x_gt, x):.3f}",
-        fig=fig,
         ax=ax,
     )
 
 
-fig, ax = plot.subplots(nrows=2, ncols=2, figsize=(11, 10))
-plot.imview(x_gt, title="Ground truth", fig=fig, ax=ax[0, 0])
+fig, ax = kplt.subplots(nrows=2, ncols=2, sharex=True, sharey=True, figsize=(11, 10))
+kplt.imview(x_gt, cmap="Blues", title="Ground truth", ax=ax[0, 0])
 plot_recon(x0, "FBP Reconstruction", ax=ax[0, 1])
 plot_recon(x_unweighted, "Unweighted TV Reconstruction", ax=ax[1, 0])
 plot_recon(x_weighted, "Weighted TV Reconstruction", ax=ax[1, 1])
