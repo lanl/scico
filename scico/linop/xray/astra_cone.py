@@ -5,7 +5,7 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""X-ray cone beam transform LinearOperators wrapping the ASTRA toolbox.
+r"""X-ray cone beam transform LinearOperators wrapping the ASTRA toolbox.
 
 X-ray cone beam transform :class:`.LinearOperator` wrapping the cone beam
 projections in the
@@ -29,19 +29,19 @@ In the "cone_vec" case, each view is determined by the following vectors:
 .. list-table:: View definition vectors
    :widths: 10 90
 
-   * - :math:`\\mb{s}`
+   * - :math:`\mb{s}`
      - Position of the source
-   * - :math:`\\mb{d}`
+   * - :math:`\mb{d}`
      - Center of the detector
-   * - :math:`\\mb{u}`
+   * - :math:`\mb{u}`
      - Vector from detector pixel (0,0) to (0,1) (direction of
        increasing detector column index)
-   * - :math:`\\mb{v}`
+   * - :math:`\mb{v}`
      - Vector from detector pixel (0,0) to (1,0) (direction of
        increasing detector row index)
 
 These vectors are concatenated into a single row vector
-:math:`(\\mb{s}, \\mb{d}, \\mb{u}, \\mb{v})` to form the full
+:math:`(\mb{s}, \mb{d}, \mb{u}, \mb{v})` to form the full
 geometry specification for a single view.
 """
 
@@ -104,8 +104,8 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
     `source_dist + det_dist`).
 
     In the "cone_vec" case, each view is determined by vectors specifying:
-    the source position :math:`\\mb{s}`, detector center :math:`\\mb{d}`,
-    and detector basis vectors :math:`\\mb{u}` and :math:`\\mb{v}`.
+    the source position :math:`\mb{s}`, detector center :math:`\mb{d}`,
+    and detector basis vectors :math:`\mb{u}` and :math:`\mb{v}`.
     """
 
     def __init__(
