@@ -99,9 +99,9 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
 
     In the "cone" case, the source and detector rotate clockwise about the
     `z` axis in the `x`-`y` plane. The source is positioned at distance
-    `source_origin` from the origin, and the detector is at distance
-    `origin_det` from the origin (making the source-detector distance
-    `source_origin + origin_det`).
+    `source_dist` from the origin, and the detector is at distance
+    `det_dist` from the origin (making the source-detector distance
+    `source_dist + det_dist`).
 
     In the "cone_vec" case, each view is determined by vectors specifying:
     the source position :math:`\\mb{s}`, detector center :math:`\\mb{d}`,
@@ -115,15 +115,15 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
         det_spacing: Optional[Tuple[float, float]] = None,
         det_offset: Optional[Tuple[float, float]] = None,
         angles: Optional[np.ndarray] = None,
-        source_origin: Optional[float] = None,
-        origin_det: Optional[float] = None,
+        source_dist: Optional[float] = None,
+        det_dist: Optional[float] = None,
         vectors: Optional[np.ndarray] = None,
     ):
         """
         .. _astra-proj-geom3: https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries
 
-        Keyword arguments `det_spacing`, `angles`, `source_origin`, and
-        `origin_det` should be specified to use the "cone" geometry, and
+        Keyword arguments `det_spacing`, `angles`, `source_dist`, and
+        `det_dist` should be specified to use the "cone" geometry, and
         keyword argument `vectors` should be specified to use the "cone_vec"
         geometry. These parameters are mutually exclusive.
 
@@ -140,9 +140,9 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
                projection within the image) respectively.
             angles: Array of projection angles in radians. This parameter
                 is mutually exclusive with `vectors`.
-            source_origin: Distance from the source to the origin (center
+            source_dist: Distance from the source to the origin (center
                 of rotation). Required when using `angles`.
-            origin_det: Distance from the origin to the detector. Required
+            det_dist: Distance from the origin to the detector. Required
                 when using `angles`.
             vectors: Array of ASTRA geometry specification vectors. This
                 parameter is mutually exclusive with `angles`. Each row
@@ -162,21 +162,21 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
             (
                 det_spacing is not None
                 and angles is not None
-                and source_origin is not None
-                and origin_det is not None
+                and source_dist is not None
+                and det_dist is not None
                 and vectors is None
             )
             or (
                 vectors is not None
                 and det_spacing is None
                 and angles is None
-                and source_origin is None
-                and origin_det is None
+                and source_dist is None
+                and det_dist is None
             )
         ):
             raise ValueError(
-                "Either keyword arguments 'det_spacing', 'angles', 'source_origin', "
-                "and 'origin_det', or keyword argument 'vectors' must be specified, "
+                "Either keyword arguments 'det_spacing', 'angles', 'source_dist', "
+                "and 'det_dist', or keyword argument 'vectors' must be specified, "
                 "but not both sets."
             )
 
@@ -194,15 +194,15 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
             Nview = angles.size
             self.angles: Optional[np.ndarray] = np.array(angles)
             self.vectors: Optional[np.ndarray] = None
-            self.source_origin = source_origin
-            self.origin_det = origin_det
+            self.source_dist = source_dist
+            self.det_dist = det_dist
         else:
             assert vectors is not None
             Nview = vectors.shape[0]
             self.vectors = np.array(vectors)
             self.angles = None
-            self.source_origin = None
-            self.origin_det = None
+            self.source_dist = None
+            self.det_dist = None
 
         output_shape: Shape = (det_count[0], Nview, det_count[1])
 
@@ -216,8 +216,8 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
             det_count,
             det_spacing=det_spacing,
             angles=self.angles,
-            source_origin=self.source_origin,
-            origin_det=self.origin_det,
+            source_dist=self.source_dist,
+            det_dist=self.det_dist,
             vectors=self.vectors,
         )
 
@@ -246,14 +246,14 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
         det_count: Tuple[int, int],
         det_spacing: Optional[Tuple[float, float]] = None,
         angles: Optional[np.ndarray] = None,
-        source_origin: Optional[float] = None,
-        origin_det: Optional[float] = None,
+        source_dist: Optional[float] = None,
+        det_dist: Optional[float] = None,
         vectors: Optional[np.ndarray] = None,
     ) -> Tuple[dict, dict]:
         """Create ASTRA 3D cone beam geometry objects.
 
-        Keyword arguments `det_spacing`, `angles`, `source_origin`, and
-        `origin_det` should be specified to use the "cone" geometry, and
+        Keyword arguments `det_spacing`, `angles`, `source_dist`, and
+        `det_dist` should be specified to use the "cone" geometry, and
         keyword argument `vectors` should be specified to use the "cone_vec"
         geometry. These parameters are mutually exclusive.
 
@@ -264,8 +264,8 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
             det_spacing: Spacing between detector elements (row spacing,
                column spacing) in the `projection geometry <astra-proj-geom3_>`__.
             angles: Array of projection angles in radians.
-            source_origin: Distance from the source to the origin.
-            origin_det: Distance from the origin to the detector.
+            source_dist: Distance from the source to the origin.
+            det_dist: Distance from the origin to the detector.
             vectors: Array of geometry specification vectors.
 
         Returns:
@@ -278,8 +278,8 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
         # Create projection geometry based on parameters
         if angles is not None:
             assert det_spacing is not None
-            assert source_origin is not None
-            assert origin_det is not None
+            assert source_dist is not None
+            assert det_dist is not None
             proj_geom = astra.create_proj_geom(
                 "cone",
                 det_spacing[0],
@@ -287,8 +287,8 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
                 det_count[0],
                 det_count[1],
                 angles,
-                source_origin,
-                origin_det,
+                source_dist,
+                det_dist,
             )
         else:
             assert vectors is not None
@@ -322,8 +322,8 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
 def angle_to_vector_cone(
     det_spacing: Tuple[float, float],
     angles: np.ndarray,
-    source_origin: float,
-    origin_det: float,
+    source_dist: float,
+    det_dist: float,
 ) -> np.ndarray:
     """Convert cone beam parameters to vector geometry specification.
 
@@ -336,8 +336,8 @@ def angle_to_vector_cone(
             `astra documentation <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
             for more information.
         angles: Array of projection angles in radians.
-        source_origin: Distance from the source to the origin.
-        origin_det: Distance from the origin to the detector.
+        source_dist: Distance from the source to the origin.
+        det_dist: Distance from the origin to the detector.
 
     Returns:
         Array of geometry specification vectors with shape (num_angles, 12).
@@ -346,14 +346,14 @@ def angle_to_vector_cone(
     """
     vectors = np.zeros((angles.size, 12))
 
-    # Source position (rotates around origin at distance source_origin)
-    vectors[:, 0] = np.sin(angles) * source_origin  # x component
-    vectors[:, 1] = -np.cos(angles) * source_origin  # y component
+    # Source position (rotates around origin at distance source_dist)
+    vectors[:, 0] = np.sin(angles) * source_dist  # x component
+    vectors[:, 1] = -np.cos(angles) * source_dist  # y component
     vectors[:, 2] = 0  # z component
 
-    # Detector center (rotates around origin at distance origin_det, opposite side)
-    vectors[:, 3] = -np.sin(angles) * origin_det  # x component
-    vectors[:, 4] = np.cos(angles) * origin_det  # y component
+    # Detector center (rotates around origin at distance det_dist, opposite side)
+    vectors[:, 3] = -np.sin(angles) * det_dist  # x component
+    vectors[:, 4] = np.cos(angles) * det_dist  # y component
     vectors[:, 5] = 0  # z component
 
     # u vector (detector column direction, horizontal)

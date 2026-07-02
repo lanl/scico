@@ -48,8 +48,8 @@ class XRayTransform3DConeTest:
         det_count = (64, 64)  # detector rows, columns
         det_spacing = (1.0, 1.0)
         angles = np.linspace(0, 2 * np.pi, N_proj, endpoint=False)
-        source_origin = 100.0  # distance from source to origin
-        origin_det = 100.0  # distance from origin to detector
+        source_dist = 100.0  # distance from source to origin
+        det_dist = 100.0  # distance from origin to detector
 
         np.random.seed(1234)
         self.x = np.random.randn(32, 32, 32).astype(np.float32)
@@ -59,8 +59,8 @@ class XRayTransform3DConeTest:
             det_count=det_count,
             det_spacing=det_spacing,
             angles=angles,
-            source_origin=source_origin,
-            origin_det=origin_det,
+            source_dist=source_dist,
+            det_dist=det_dist,
         )
 
 
@@ -78,8 +78,8 @@ def test_init():
         det_count=(16, 16),
         det_spacing=(1.0, 1.0),
         angles=np.linspace(0, np.pi, 32, False),
-        source_origin=50.0,
-        origin_det=50.0,
+        source_dist=50.0,
+        det_dist=50.0,
     )
     assert A.input_shape == (16, 16, 16)
     assert A.output_shape == (16, 32, 16)
@@ -101,8 +101,8 @@ def test_init():
             det_count=(16, 16),
             det_spacing=(1.0, 1.0),
             angles=np.linspace(0, np.pi, 32, False),
-            source_origin=50.0,
-            origin_det=50.0,
+            source_dist=50.0,
+            det_dist=50.0,
         )
 
     # Test invalid det_count
@@ -112,8 +112,8 @@ def test_init():
             det_count=16,
             det_spacing=(1.0, 1.0),
             angles=np.linspace(0, np.pi, 32, False),
-            source_origin=50.0,
-            origin_det=50.0,
+            source_dist=50.0,
+            det_dist=50.0,
         )
 
     # Test mutually exclusive parameters
@@ -123,8 +123,8 @@ def test_init():
             det_count=(16, 16),
             det_spacing=(1.0, 1.0),
             angles=np.linspace(0, np.pi, 32, False),
-            source_origin=50.0,
-            origin_det=50.0,
+            source_dist=50.0,
+            det_dist=50.0,
             vectors=vectors,
         )
 
@@ -135,7 +135,7 @@ def test_init():
             det_count=(16, 16),
             det_spacing=(1.0, 1.0),
             angles=np.linspace(0, np.pi, 32, False),
-            # Missing source_origin and origin_det
+            # Missing source_dist and det_dist
         )
 
 
@@ -150,8 +150,8 @@ def test_cone_det_offset():
         det_count=(40, 40),
         det_spacing=(1.0, 1.0),
         angles=np.linspace(0, np.pi, 90),
-        source_origin=100.0,
-        origin_det=100.0,
+        source_dist=100.0,
+        det_dist=100.0,
     )
 
     shift = (2, -3)
@@ -161,8 +161,8 @@ def test_cone_det_offset():
         det_spacing=(1.0, 1.0),
         det_offset=shift,
         angles=np.linspace(0, np.pi, 90),
-        source_origin=100.0,
-        origin_det=100.0,
+        source_dist=100.0,
+        det_dist=100.0,
     )
 
     y = A(x)
@@ -256,8 +256,8 @@ def test_cone_api_equiv():
     det_count = (24, 24)
     det_spacing = (1.0, 1.5)
     angles = snp.linspace(0, snp.pi, 45)
-    source_origin = 80.0
-    origin_det = 80.0
+    source_dist = 80.0
+    det_dist = 80.0
 
     # Angle-based geometry
     A = XRayTransform3DCone(
@@ -265,12 +265,12 @@ def test_cone_api_equiv():
         det_count=det_count,
         det_spacing=det_spacing,
         angles=angles,
-        source_origin=source_origin,
-        origin_det=origin_det,
+        source_dist=source_dist,
+        det_dist=det_dist,
     )
 
     # Vector-based geometry
-    vectors = angle_to_vector_cone(det_spacing, angles, source_origin, origin_det)
+    vectors = angle_to_vector_cone(det_spacing, angles, source_dist, det_dist)
     B = XRayTransform3DCone(x.shape, det_count=det_count, vectors=vectors)
 
     ya = A @ x
@@ -292,8 +292,8 @@ def test_cone_magnification():
         det_count=(48, 48),
         det_spacing=(1.0, 1.0),
         angles=np.array([0.0]),
-        source_origin=50.0,
-        origin_det=50.0,
+        source_dist=50.0,
+        det_dist=50.0,
     )
 
     # Far source (less magnification)
@@ -302,8 +302,8 @@ def test_cone_magnification():
         det_count=(48, 48),
         det_spacing=(1.0, 1.0),
         angles=np.array([0.0]),
-        source_origin=200.0,
-        origin_det=200.0,
+        source_dist=200.0,
+        det_dist=200.0,
     )
 
     y_close = A_close @ x
@@ -330,8 +330,8 @@ def test_jit_in_DiagonalStack():
                 (N, N),
                 det_spacing=(1.0, 1.0),
                 angles=snp.linspace(0, snp.pi, N),
-                source_origin=50.0,
-                origin_det=50.0,
+                source_dist=50.0,
+                det_dist=50.0,
             )
         ]
     )
@@ -343,21 +343,21 @@ def test_angle_to_vector_cone():
     """Test conversion from angles to cone beam vectors."""
     angles = snp.linspace(0, snp.pi, 5)
     det_spacing = (0.9, 1.5)
-    source_origin = 100.0
-    origin_det = 80.0
+    source_dist = 100.0
+    det_dist = 80.0
 
-    vectors = angle_to_vector_cone(det_spacing, angles, source_origin, origin_det)
+    vectors = angle_to_vector_cone(det_spacing, angles, source_dist, det_dist)
 
     assert vectors.shape == (angles.size, 12)
 
     # Check that vectors have the expected structure
-    # Source position should be at distance source_origin
+    # Source position should be at distance source_dist
     source_dist = np.linalg.norm(vectors[:, 0:3], axis=1)
-    np.testing.assert_allclose(source_dist, source_origin, rtol=1e-6)
+    np.testing.assert_allclose(source_dist, source_dist, rtol=1e-6)
 
-    # Detector center should be at distance origin_det (opposite side)
+    # Detector center should be at distance det_dist (opposite side)
     det_dist = np.linalg.norm(vectors[:, 3:6], axis=1)
-    np.testing.assert_allclose(det_dist, origin_det, rtol=1e-6)
+    np.testing.assert_allclose(det_dist, det_dist, rtol=1e-6)
 
     # u vector should have length det_spacing[1]
     u_length = np.linalg.norm(vectors[:, 6:9], axis=1)
@@ -384,8 +384,8 @@ def test_cone_geometry_sanity():
         det_count=(32, 32),
         det_spacing=(1.0, 1.0),
         angles=np.array([0.0]),  # Single angle
-        source_origin=100.0,
-        origin_det=100.0,
+        source_dist=100.0,
+        det_dist=100.0,
     )
 
     y = A @ x
@@ -405,8 +405,8 @@ def test_create_astra_geometry():
     det_count = (32, 36)
     det_spacing = (1.2, 1.5)
     angles = np.linspace(0, 2 * np.pi, 60)
-    source_origin = 150.0
-    origin_det = 100.0
+    source_dist = 150.0
+    det_dist = 100.0
 
     # Test angle-based geometry
     vol_geom, proj_geom = XRayTransform3DCone.create_astra_geometry(
@@ -414,8 +414,8 @@ def test_create_astra_geometry():
         det_count,
         det_spacing=det_spacing,
         angles=angles,
-        source_origin=source_origin,
-        origin_det=origin_det,
+        source_dist=source_dist,
+        det_dist=det_dist,
     )
 
     assert proj_geom["type"] == "cone"
@@ -423,7 +423,7 @@ def test_create_astra_geometry():
     assert proj_geom["DetectorColCount"] == det_count[1]
 
     # Test vector-based geometry
-    vectors = angle_to_vector_cone(det_spacing, angles, source_origin, origin_det)
+    vectors = angle_to_vector_cone(det_spacing, angles, source_dist, det_dist)
     vol_geom2, proj_geom2 = XRayTransform3DCone.create_astra_geometry(
         input_shape, det_count, vectors=vectors
     )
