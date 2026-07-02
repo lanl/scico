@@ -7,6 +7,7 @@ import pytest
 import scico
 import scico.numpy as snp
 from scico.linop import DiagonalStack
+from scico.metric import rel_res
 from scico.test.linop.test_linop import adjoint_test
 
 try:
@@ -279,7 +280,7 @@ def test_cone_api_equiv():
     ya = A @ x
     yb = B @ x
 
-    np.testing.assert_allclose(ya, yb, rtol=RTOL_GPU)
+    assert rel_res(ya, yb) < 1e-3
 
 
 @pytest.mark.skipif(jax.devices()[0].platform != "gpu", reason="GPU required for cone beam")
