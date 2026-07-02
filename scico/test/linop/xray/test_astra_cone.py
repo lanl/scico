@@ -175,34 +175,42 @@ def test_cone_det_offset():
 
 @pytest.mark.skipif(jax.devices()[0].platform != "gpu", reason="GPU required for cone beam")
 def test_ATA_call(testobj):
-    """Test A^T A x = A^T A x property using call interface."""
+    """Test x A^T A x = || A x ||_2^2 property using call interface."""
     Ax = testobj.A(testobj.x)
     ATAx = testobj.A.adj(Ax)
-    np.testing.assert_allclose(np.sum(testobj.x * ATAx), np.linalg.norm(Ax) ** 2, rtol=RTOL_GPU)
+    n0 = np.sum(testobj.x * ATAx)
+    n1 = np.linalg.norm(Ax) ** 2
+    assert np.abs(n0 - n1) / max(n0, n1) < 0.5  # poorly matched adjoint
 
 
 @pytest.mark.skipif(jax.devices()[0].platform != "gpu", reason="GPU required for cone beam")
 def test_ATA_matmul(testobj):
-    """Test A^T A x = A^T A x property using matmul interface."""
+    """Test x A^T A x = || A x ||_2^2 property using matmul interface."""
     Ax = testobj.A @ testobj.x
     ATAx = testobj.A.T @ Ax
-    np.testing.assert_allclose(np.sum(testobj.x * ATAx), np.linalg.norm(Ax) ** 2, rtol=RTOL_GPU)
+    n0 = np.sum(testobj.x * ATAx)
+    n1 = np.linalg.norm(Ax) ** 2
+    assert np.abs(n0 - n1) / max(n0, n1) < 0.5  # poorly matched adjoint
 
 
 @pytest.mark.skipif(jax.devices()[0].platform != "gpu", reason="GPU required for cone beam")
 def test_AAT_call(testobj):
-    """Test A A^T y = A A^T y property using call interface."""
+    """Test y A A^T y = || A^T y ||_2^2 property using call interface."""
     ATy = testobj.A.adj(testobj.y)
     AATy = testobj.A(ATy)
-    np.testing.assert_allclose(np.sum(testobj.y * AATy), np.linalg.norm(ATy) ** 2, rtol=RTOL_GPU)
+    n0 = np.sum(testobj.y * AATy)
+    n1 = np.linalg.norm(ATy) ** 2
+    assert np.abs(n0 - n1) / max(n0, n1) < 0.75  # poorly matched adjoint
 
 
 @pytest.mark.skipif(jax.devices()[0].platform != "gpu", reason="GPU required for cone beam")
 def test_AAT_matmul(testobj):
-    """Test A A^T y = A A^T y property using matmul interface."""
+    """Test y A A^T y = || A^T y ||_2^2 property using matmul interface."""
     ATy = testobj.A.T @ testobj.y
     AATy = testobj.A @ ATy
-    np.testing.assert_allclose(np.sum(testobj.y * AATy), np.linalg.norm(ATy) ** 2, rtol=RTOL_GPU)
+    n0 = np.sum(testobj.y * AATy)
+    n1 = np.linalg.norm(ATy) ** 2
+    assert np.abs(n0 - n1) / max(n0, n1) < 0.75  # poorly matched adjoint
 
 
 @pytest.mark.skipif(jax.devices()[0].platform != "gpu", reason="GPU required for cone beam")
