@@ -143,7 +143,7 @@ def test_init():
 def test_cone_det_offset():
     """Test detector offset functionality."""
     x = np.zeros((32, 32, 32), dtype=np.float32)
-    x[8:-8, 8:-8, 8:-8] = 1.0
+    x[10:-10, 10:-10, 10:-10] = 1.0
 
     A = XRayTransform3DCone(
         x.shape,
@@ -154,7 +154,7 @@ def test_cone_det_offset():
         origin_det=100.0,
     )
 
-    shift = (4, -8)
+    shift = (2, -3)
     As = XRayTransform3DCone(
         x.shape,
         det_count=(40, 40),
