@@ -117,7 +117,7 @@ def test_init():
         )
 
     # Test mutually exclusive parameters
-    with pytest.raises(ValueError, match="mutually exclusive"):
+    with pytest.raises(ValueError, match="Either keyword"):
         XRayTransform3DCone(
             input_shape=(16, 16, 16),
             det_count=(16, 16),
