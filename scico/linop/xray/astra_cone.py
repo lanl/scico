@@ -318,6 +318,51 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
 
         return jax.pure_callback(f, jax.ShapeDtypeStruct(self.input_shape, self.input_dtype), y)
 
+    def fdk(self, sino: jax.Array, **kwargs) -> jax.Array:
+        """Feldkamp-Davis-Kress (FDK) reconstruction.
+
+        Perform tomographic reconstruction using the Feldkamp-Davis-Kress
+        (FDK)algorithm.
+
+        Args:
+            sino: Sinogram to reconstruct.
+            **kwargs: Specify algorithm options, described in in the
+               `ASTRA documentation
+               <https://www.astra-toolbox.com/docs/algs/FDK_CUDA.html>`__.
+
+        Returns:
+            Reconstructed volume.
+        """
+
+        def f(sino):
+            sino = _ensure_writeable(sino)
+            sino_id = astra.data2d.create("-sino", self.proj_geom, sino)
+
+            # create memory for result
+            rec_id = astra.data2d.create("-vol", self.vol_geom)
+
+            # start to populate config
+            cfg = astra.astra_dict("FDK_CUDA")
+            cfg["ReconstructionDataId"] = rec_id
+            cfg["ProjectorId"] = self.proj_id
+            cfg["ProjectionDataId"] = sino_id
+            cfg["option"] = kwargs
+
+            # initialize algorithm; run
+            alg_id = astra.algorithm.create(cfg)
+            astra.algorithm.run(alg_id)
+
+            # get the result
+            out = astra.data3d.get(rec_id)
+
+            # cleanup FDK-specific array
+            astra.algorithm.delete(alg_id)
+            astra.data3d.delete(rec_id)
+            astra.data3d.delete(sino_id)
+            return out
+
+        return jax.pure_callback(f, jax.ShapeDtypeStruct(self.input_shape, self.input_dtype), sino)
+
 
 def angle_to_vector_cone(
     det_spacing: Tuple[float, float],
