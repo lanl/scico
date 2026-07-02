@@ -8,14 +8,12 @@ import scico
 import scico.numpy as snp
 from scico.linop import DiagonalStack
 from scico.test.linop.test_linop import adjoint_test
-from scipy.spatial.transform import Rotation
 
 try:
     from scico.linop.xray.astra_cone import (
         XRayTransform3DCone,
         _ensure_writeable,
         angle_to_vector_cone,
-        rotate_vectors_cone,
     )
 except ModuleNotFoundError as e:
     if e.name == "astra":
@@ -364,38 +362,6 @@ def test_angle_to_vector_cone():
     # v vector should be vertical (in z direction)
     np.testing.assert_allclose(vectors[:, 9:11], 0, atol=1e-7)  # x, y components
     np.testing.assert_allclose(vectors[:, 11], det_spacing[0], rtol=1e-6)  # z component
-
-
-def test_rotate_vectors_cone():
-    """Test rotation of cone beam geometry vectors."""
-    v0 = angle_to_vector_cone((1.0, 1.0), np.linspace(0, np.pi / 2, 4, endpoint=False), 100.0, 80.0)
-    v1 = angle_to_vector_cone(
-        (1.0, 1.0), np.linspace(np.pi / 2, np.pi, 4, endpoint=False), 100.0, 80.0
-    )
-
-    # Rotate v0 by 90 degrees around z-axis
-    r = Rotation.from_euler("z", np.pi / 2)
-    v0r = rotate_vectors_cone(v0, r)
-
-    # Rotated v0 should match v1
-    np.testing.assert_allclose(v1, v0r, atol=1e-7)
-
-
-def test_rotate_vectors_cone_arbitrary():
-    """Test rotation of cone beam vectors with arbitrary rotation."""
-    vectors = angle_to_vector_cone(
-        (1.2, 1.5), np.linspace(0, np.pi, 8, endpoint=False), 120.0, 90.0
-    )
-
-    # Apply an arbitrary rotation
-    r = Rotation.from_euler("xyz", [30, 45, 60], degrees=True)
-    vectors_rot = rotate_vectors_cone(vectors, r)
-
-    # Check that rotated vectors maintain their lengths
-    for i in range(0, 12, 3):
-        orig_lengths = np.linalg.norm(vectors[:, i : i + 3], axis=1)
-        rot_lengths = np.linalg.norm(vectors_rot[:, i : i + 3], axis=1)
-        np.testing.assert_allclose(orig_lengths, rot_lengths, rtol=1e-6)
 
 
 @pytest.mark.skipif(jax.devices()[0].platform != "gpu", reason="GPU required for cone beam")

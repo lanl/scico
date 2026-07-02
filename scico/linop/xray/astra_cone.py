@@ -17,7 +17,8 @@ The cone beam geometry uses the same coordinate system conventions as the
 parallel beam geometry. The volume is fixed with respect to the coordinate
 system, centered at the origin. Geometry axes `z`, `y`, and `x` correspond
 to volume array axes 0, 1, and 2 respectively. The projected array axes 0,
-1, and 2 correspond respectively to detector rows, views, and detector columns.
+1, and 2 correspond respectively to detector rows, views, and detector
+columns.
 
 In the "cone" case, the source and detector rotate clockwise about the `z`
 axis in the `x`-`y` plane. The source-origin distance (SOD) and
@@ -49,8 +50,6 @@ from typing import Optional, Tuple
 import numpy as np
 
 import jax
-
-from scipy.spatial.transform import Rotation
 
 try:
     import astra
@@ -368,82 +367,3 @@ def angle_to_vector_cone(
     vectors[:, 11] = det_spacing[0]  # z component
 
     return vectors
-
-
-def rotate_vectors_cone(vectors: np.ndarray, rot: Rotation) -> np.ndarray:
-    """Rotate cone beam geometry specification vectors.
-
-    Rotate ASTRA "cone_vec" geometry specification vectors.
-
-    Args:
-        vectors: Array of geometry specification vectors with shape
-            (num_angles, 12).
-        rot: Rotation to apply.
-
-    Returns:
-        Rotated geometry specification vectors with the same shape.
-    """
-    rot_vecs = vectors.copy()
-    # Rotate each set of 3D vectors: source, detector center, u, v
-    for k in range(0, 12, 3):
-        rot_vecs[:, k : k + 3] = rot.apply(rot_vecs[:, k : k + 3])
-    return rot_vecs
-
-
-def convert_to_scico_geometry_cone(
-    input_shape: Shape,
-    det_count: Tuple[int, int],
-    det_spacing: Optional[Tuple[float, float]] = None,
-    angles: Optional[np.ndarray] = None,
-    source_origin: Optional[float] = None,
-    origin_det: Optional[float] = None,
-    vectors: Optional[np.ndarray] = None,
-) -> np.ndarray:
-    """Convert cone beam geometry specification to a SCICO projection matrix.
-
-    Convert ASTRA cone beam geometry to SCICO homogeneous projection matrices.
-    Note that cone beam geometries require perspective projection, so the
-    resulting matrices will include perspective division.
-
-    Args:
-        input_shape: Shape of the input array.
-        det_count: Number of detector elements (rows, columns).
-        det_spacing: Spacing between detector elements (row spacing,
-            column spacing).
-        angles: Array of projection angles in radians. This parameter is
-            mutually exclusive with `vectors`.
-        source_origin: Distance from the source to the origin. Required
-            when using `angles`.
-        origin_det: Distance from the origin to the detector. Required
-            when using `angles`.
-        vectors: Array of ASTRA geometry specification vectors. This
-            parameter is mutually exclusive with `angles`.
-
-    Returns:
-        Array of projection matrices. Note that for cone beam geometry,
-        these represent perspective projections.
-    """
-    if angles is not None and vectors is not None:
-        raise ValueError("Arguments 'angles' and 'vectors' are mutually exclusive.")
-    if angles is None and vectors is None:
-        raise ValueError("Exactly one of arguments 'angles' and 'vectors' must be provided.")
-
-    vol_geom, proj_geom = XRayTransform3DCone.create_astra_geometry(
-        input_shape,
-        det_count,
-        det_spacing=det_spacing,
-        angles=angles,
-        source_origin=source_origin,
-        origin_det=origin_det,
-        vectors=vectors,
-    )
-
-    # Note: For cone beam, conversion to SCICO geometry is more complex
-    # due to perspective projection. This would require additional implementation
-    # to properly handle the perspective division. The exact implementation
-    # depends on how SCICO represents perspective projections.
-    raise NotImplementedError(
-        "Conversion of cone beam geometry to SCICO projection matrices "
-        "is not yet implemented. Cone beam geometry involves perspective "
-        "projection which requires special handling."
-    )
