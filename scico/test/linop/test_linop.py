@@ -33,6 +33,10 @@ def adjoint_test(
         A: LinearOperator to test.
         key: PRNGKey for generating `x`.
         rtol: Relative tolerance.
+        x: If not the default ``None``, use the specified array instead
+           of a random array as test vector :math:`\mb{x}`.
+        y: If not the default ``None``, use the specified array instead
+           of a random array as test vector :math:`\mb{y}`.
     """
 
     assert linop.valid_adjoint(A, A.H, key=key, eps=rtol, x=x, y=y)
