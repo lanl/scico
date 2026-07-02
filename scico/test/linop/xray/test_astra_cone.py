@@ -432,6 +432,26 @@ def test_create_astra_geometry():
     assert proj_geom2["Vectors"].shape == (len(angles), 12)
 
 
+@pytest.mark.skipif(jax.devices()[0].platform != "gpu", reason="GPU required for cone beam")
+def test_fdk():
+    x = np.zeros((32, 32, 32), dtype=np.float32)
+    x[8:-8, 8:-8, 8:-8] = 1.0
+
+    A = XRayTransform3DCone(
+        x.shape,
+        det_count=(40, 40),
+        det_spacing=(1.0, 1.0),
+        angles=np.linspace(0, np.pi, 180),
+        source_dist=100.0,
+        det_dist=10.0,
+    )
+
+    y = A @ x
+    x_fdk = A.fdk(y)
+
+    assert rel_res(x, np.clip(x_fdk, 0.0, 1.0)) < 0.3
+
+
 def test_ensure_writeable():
     """Test the _ensure_writeable utility function."""
     # Test with numpy array
