@@ -5,13 +5,15 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-r"""X-ray cone beam transform LinearOperators wrapping the ASTRA toolbox.
+r"""LinearOperator wrapping the ASTRA cone beam X-ray transform.
 
-X-ray cone beam transform :class:`.LinearOperator` wrapping the cone beam
+X-ray transform :class:`.LinearOperator` wrapping the cone beam
 projections in the
-`ASTRA toolbox <https://github.com/astra-toolbox/astra-toolbox>`_.
-This package provides CUDA implementations of core functionality for cone
-beam geometries.
+`ASTRA toolbox <https://github.com/astra-toolbox/astra-toolbox>`_,
+which provides CUDA implementations of core functionality for cone
+beam geometries. Note that this interface involves GPU-host-GPU memory
+copies when transferring JAX arrays. Other JAX features such as automatic
+differentiation are not available.
 
 The cone beam geometry uses the same coordinate system conventions as the
 parallel beam geometry. The volume is fixed with respect to the coordinate
@@ -19,30 +21,6 @@ system, centered at the origin. Geometry axes `z`, `y`, and `x` correspond
 to volume array axes 0, 1, and 2 respectively. The projected array axes 0,
 1, and 2 correspond respectively to detector rows, views, and detector
 columns.
-
-In the "cone" case, the source and detector rotate clockwise about the `z`
-axis in the `x`-`y` plane. The source-origin distance (SOD) and
-source-detector distance (SDD) define the cone beam geometry.
-
-In the "cone_vec" case, each view is determined by the following vectors:
-
-.. list-table:: View definition vectors
-   :widths: 10 90
-
-   * - :math:`\mb{s}`
-     - Position of the source
-   * - :math:`\mb{d}`
-     - Center of the detector
-   * - :math:`\mb{u}`
-     - Vector from detector pixel (0,0) to (0,1) (direction of
-       increasing detector column index)
-   * - :math:`\mb{v}`
-     - Vector from detector pixel (0,0) to (1,0) (direction of
-       increasing detector row index)
-
-These vectors are concatenated into a single row vector
-:math:`(\mb{s}, \mb{d}, \mb{u}, \mb{v})` to form the full
-geometry specification for a single view.
 """
 
 from typing import Optional, Tuple
@@ -103,9 +81,25 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
     `det_dist` from the origin (making the source-detector distance
     `source_dist + det_dist`).
 
-    In the "cone_vec" case, each view is determined by vectors specifying:
-    the source position :math:`\mb{s}`, detector center :math:`\mb{d}`,
-    and detector basis vectors :math:`\mb{u}` and :math:`\mb{v}`.
+    In the "cone_vec" case, each view is determined by the following vectors:
+
+    .. list-table:: View definition vectors
+       :widths: 10 90
+
+       * - :math:`\mb{s}`
+         - Position of the source
+       * - :math:`\mb{d}`
+         - Center of the detector
+       * - :math:`\mb{u}`
+         - Vector from detector pixel (0,0) to (0,1) (direction of
+           increasing detector column index)
+       * - :math:`\mb{v}`
+         - Vector from detector pixel (0,0) to (1,0) (direction of
+           increasing detector row index)
+
+    These vectors are concatenated into a single row vector
+    :math:`(\mb{s}, \mb{d}, \mb{u}, \mb{v})` to form the full
+    geometry specification for a single view.
     """
 
     def __init__(
