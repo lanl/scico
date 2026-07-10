@@ -27,7 +27,7 @@ def adjoint_test(
     x: Optional[snp.Array] = None,
     y: Optional[snp.Array] = None,
 ):
-    """Check the validity of A.conj().T as the adjoint for a LinearOperator A.
+    r"""Check the validity of A.conj().T as the adjoint for a LinearOperator A.
 
     Args:
         A: LinearOperator to test.
