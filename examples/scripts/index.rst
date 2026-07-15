@@ -36,6 +36,7 @@ Deconvolution
    - deconv_tv_padmm.py
    - deconv_tv_admm_tune.py
    - deconv_microscopy_tv_admm.py
+   - deconv_microscopy_tv_admm_shard.py
    - deconv_microscopy_allchn_tv_admm.py
    - deconv_ppp_bm3d_admm.py
    - deconv_ppp_bm3d_apgm.py
@@ -119,6 +120,7 @@ Total Variation
    - deconv_tv_admm_tune.py
    - deconv_tv_padmm.py
    - deconv_microscopy_tv_admm.py
+   - deconv_microscopy_tv_admm_shard.py
    - deconv_microscopy_allchn_tv_admm.py
    - denoise_l1tv_admm.py
    - denoise_ptv_pdhg.py
@@ -182,6 +184,7 @@ ADMM
    - deconv_tv_admm.py
    - deconv_tv_admm_tune.py
    - deconv_microscopy_tv_admm.py
+   - deconv_microscopy_tv_admm_shard.py
    - deconv_microscopy_allchn_tv_admm.py
    - deconv_ppp_bm3d_admm.py
    - deconv_ppp_dncnn_admm.py

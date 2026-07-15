@@ -265,6 +265,40 @@ def jax_indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int, ...]:
     return tuple(t.item() for t in f(shape, idx))  # type: ignore
 
 
+def pad_to_divisible(
+    x: np.ndarray, axes: Union[Sequence[int], int], divisors: Union[Sequence[int], int]
+) -> Tuple[np.ndarray, Tuple[slice]]:
+    """Pad array to make shape divisible by specified factors.
+
+    Pad array so that the specified axes are divisible by the
+    specified divisors.
+
+    Args:
+        x: Array to be padded.
+        axes: List of axis indices. Axes not in this list are not padded.
+        divisors: List of factors corresponding to the axis indices.
+
+    Returns:
+        Padded array and a tuple of slices that can be used to crop the
+        array back to its original shape.
+    """
+    if isinstance(axes, int) != isinstance(divisors, int):
+        raise ValueError("axes and divisors must be of the same type.")
+    if isinstance(axes, int) and isinstance(divisors, int):
+        axes = (axes,)
+        divisors = (divisors,)
+    assert isinstance(axes, (list, tuple)) and isinstance(divisors, (list, tuple))
+    all_divisors = [divisors[axes.index(n)] if n in axes else x.shape[n] for n in range(x.ndim)]
+    pad_spec = [
+        (0, int(np.ceil(x.shape[n] / d) * d) - x.shape[n])
+        for n, d in zip(range(x.ndim), all_divisors)
+    ]
+    x_pad = np.pad(x, pad_spec)
+    assert isinstance(x_pad, np.ndarray)
+    crop_slice = tuple([slice(None, None if p[1] == 0 else -p[1], None) for p in pad_spec])
+    return x_pad, crop_slice  # type: ignore
+
+
 def no_nan_divide(
     x: Union[snp.BlockArray, snp.Array], y: Union[snp.BlockArray, snp.Array]
 ) -> Union[snp.BlockArray, snp.Array]:
