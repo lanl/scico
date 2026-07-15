@@ -314,7 +314,7 @@ def test_cone_magnification():
     y_far = A_far @ x
 
     # Closer source should produce much larger projection
-    assert y_close.sum() > 2 * y_far.sum()
+    assert (y_close > 1e-6).sum() > 2 * (y_far > 1e-6).sum()
 
 
 @pytest.mark.skipif(jax.devices()[0].platform != "gpu", reason="GPU required for cone beam")
