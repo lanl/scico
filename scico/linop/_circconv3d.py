@@ -45,7 +45,6 @@ class CircularConvolve3D(CircularConvolve):
         h_is_dft: bool = False,
         h_center: Optional[Union[snp.Array, np.ndarray, Sequence, float, int]] = None,
         jit: bool = True,
-        **kwargs,
     ):
         """
         Args:
