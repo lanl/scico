@@ -7,6 +7,7 @@ Version 0.0.8   (unreleased)
 
 • Enable certain parameters of array creation functions to trigger
  ``BlockArray`` creation when they receive lists (currently ``device``).
+• New interface to ASTRA Toolbox cone beam X-ray projectors.
 • New functional ``functional.BoxIndicator``.
 • Module ``scico.plot`` deprecated.
 • Support ``jaxlib`` and ``jax`` versions 0.5.0 to 0.10.2.
