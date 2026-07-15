@@ -12,6 +12,7 @@ from scico.util import (
     ContextTimer,
     Timer,
     check_for_tracer,
+    device_info,
     partial,
     rgetattr,
     rsetattr,
@@ -95,6 +96,13 @@ def test_url_get():
 
     url = "about:blank"
     np.testing.assert_raises(urlerror.URLError, url_get, url)
+
+
+def test_device_info():
+    info = device_info()
+    assert isinstance(info, str) and len(info) > 3
+    info = device_info(jax.devices()[0])
+    assert isinstance(info, str) and len(info) > 3
 
 
 def test_check_for_tracer():
