@@ -283,23 +283,28 @@ class PoissonLoss(Loss):
         self,
         y: Union[Array, BlockArray],
         A: Optional[Union[Callable, operator.Operator]] = None,
-        scale: float = 0.5,
+        scale: float = 1.0,
+        include_constant: bool = False,
     ):
         r"""
         Args:
             y: Measurement.
             A: Forward operator. Defaults to ``None``, in which case
                 `self.A` is a :class:`.Identity`.
-            scale: Scaling parameter. Default: 0.5.
+            scale: Scaling parameter. Default: 1.0.
+            include_constant: If ``True`` include the constant term
+                :math:`\log(y!)` in the calculation.
         """
         super().__init__(y=y, A=A, scale=scale)
 
         #: Constant term, :math:`\ln(y!)`, in Poisson log likehood.
-        self.const = gammaln(self.y + 1.0)
+        self.const = gammaln(self.y + 1.0) if include_constant else 0.0
 
     def __call__(self, x: Union[Array, BlockArray]) -> float:
         Ax = self.A(x)
-        return self.scale * snp.sum(Ax - self.y * snp.log(Ax) + self.const)
+        Ax_nz = snp.where(Ax > 0, Ax, 1.0)
+        loss_core = Ax - self.y * snp.log(Ax_nz) + self.const
+        return self.scale * snp.sum(snp.where(self.y > 0, loss_core, Ax))
 
 
 class SquaredL2AbsLoss(Loss):
