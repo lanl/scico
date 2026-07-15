@@ -5,16 +5,15 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""X-ray transform LinearOperators wrapping the ASTRA toolbox.
+"""LinearOperators wrapping the ASTRA parallel beam X-ray transforms.
 
 X-ray transform :class:`.LinearOperator` wrapping the parallel beam
 projections in the
 `ASTRA toolbox <https://github.com/astra-toolbox/astra-toolbox>`_.
 This package provides both C and CUDA implementations of core
-functionality, but note that use of the CUDA/GPU implementation is
-expected to result in GPU-host-GPU memory copies when transferring
-JAX arrays. Other JAX features such as automatic differentiation are
-not available.
+functionality, but note that use of the CUDA/GPU implementation
+involves GPU-host-GPU memory copies when transferring JAX arrays. Other
+JAX features such as automatic differentiation are not available.
 
 Functions here refer to three coordinate systems: world coordinates,
 volume coordinates, and detector coordinates. World coordinates are 3D
