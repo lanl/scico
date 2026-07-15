@@ -41,6 +41,7 @@ class CircularConvolve3D(CircularConvolve):
         self,
         h: snp.Array,
         input_shape: Shape,
+        ndims: int = 3,
         input_dtype: DType = snp.float32,
         h_is_dft: bool = False,
         h_center: Optional[Union[snp.Array, np.ndarray, Sequence, float, int]] = None,
@@ -50,6 +51,10 @@ class CircularConvolve3D(CircularConvolve):
         Args:
             h: Array of filters.
             input_shape: Shape of input array.
+            ndims: This argument is included for compatibility with
+                :class:`CircularConvolve`, from which this class is
+                derived. It is an error to select any value other than
+                the default value of 3.
             input_dtype: `dtype` for input argument. Defaults to
                 :attr:`~numpy.float32`.
             h_is_dft: Flag indicating whether `h` is in the DFT domain.
@@ -63,6 +68,8 @@ class CircularConvolve3D(CircularConvolve):
         if not have_jaxdecomp:
             raise RuntimeError("Package jaxdecomp is required for use of class CircularConvolve3D.")
 
+        if ndims != 3:
+            raise ValueError("Argument 'ndims' is required to have value 3.")
         self.ndims = 3
 
         if h_is_dft and h_center is not None:
