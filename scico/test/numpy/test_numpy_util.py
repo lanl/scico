@@ -162,12 +162,12 @@ def test_indexed_shape(shape, slc):
 
 
 def test_pad_to_divisible():
-    shape = (2, 3, 4, 5)
+    shape = (2, 3, 4, 19)
     x = np.zeros(shape, dtype=np.float32)
     axes = (0, 2, 3)
     divisors = (4, 5, 5)
     x_pad, crop_spec = pad_to_divisible(x, axes, divisors)
-    assert x_pad.shape == (4, 3, 5, 5)
+    assert x_pad.shape == (4, 3, 5, 20)
     assert x_pad[crop_spec].shape == shape
 
 
