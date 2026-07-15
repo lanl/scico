@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2025 by SCICO Developers
+# Copyright (C) 2025-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -20,7 +20,7 @@ from typing import Optional, Tuple
 import numpy as np
 
 import jax.numpy as jnp
-from jax import Array, jit, vjp
+from jax import Array, ShapeDtypeStruct, jit, linear_transpose
 from jax.scipy.ndimage import map_coordinates
 from jax.typing import ArrayLike
 
@@ -162,8 +162,7 @@ class SymConeXRayTransform(LinearOperator):
             eval_fn = lambda x: projection.forward_project(
                 x, self.config, num_slabs=self.num_slabs, input_2d=self.input_2d
             )
-        # use vjp rather than linear_transpose due to jax-ml/jax#30552
-        adj_fn = vjp(eval_fn, jnp.zeros(input_shape))[1]
+        adj_fn = linear_transpose(eval_fn, ShapeDtypeStruct(input_shape, dtype=np.float32))
         super().__init__(
             input_shape=input_shape,
             output_shape=output_shape,

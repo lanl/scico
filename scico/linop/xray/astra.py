@@ -5,16 +5,15 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""X-ray transform LinearOperators wrapping the ASTRA toolbox.
+"""LinearOperators wrapping the ASTRA parallel beam X-ray transforms.
 
 X-ray transform :class:`.LinearOperator` wrapping the parallel beam
 projections in the
 `ASTRA toolbox <https://github.com/astra-toolbox/astra-toolbox>`_.
 This package provides both C and CUDA implementations of core
-functionality, but note that use of the CUDA/GPU implementation is
-expected to result in GPU-host-GPU memory copies when transferring
-JAX arrays. Other JAX features such as automatic differentiation are
-not available.
+functionality, but note that use of the CUDA/GPU implementation
+involves GPU-host-GPU memory copies when transferring JAX arrays. Other
+JAX features such as automatic differentiation are not available.
 
 Functions here refer to three coordinate systems: world coordinates,
 volume coordinates, and detector coordinates. World coordinates are 3D
@@ -34,6 +33,7 @@ import numpy as np
 import numpy.typing
 
 import jax
+from jax.sharding import Sharding
 from jax.typing import ArrayLike
 
 from scipy.spatial.transform import Rotation
@@ -314,7 +314,7 @@ class XRayTransform2D(LinearOperator):
         # apply the forward projector and generate a sinogram
 
         def f(x):
-            x = _ensure_writeable(x)
+            x = np.array(x)
             proj_id, result = astra.create_sino(x, self.proj_id)
             astra.data2d.delete(proj_id)
             return result
@@ -324,7 +324,7 @@ class XRayTransform2D(LinearOperator):
     def _bproj(self, y: jax.Array) -> jax.Array:
         # apply backprojector
         def f(y):
-            y = _ensure_writeable(y)
+            y = np.array(y)
             proj_id, result = astra.create_backprojection(y, self.proj_id)
             astra.data2d.delete(proj_id)
             return result
@@ -353,7 +353,7 @@ class XRayTransform2D(LinearOperator):
             )
 
         def f(sino):
-            sino = _ensure_writeable(sino)
+            sino = np.array(sino)
             sino_id = astra.data2d.create("-sino", self.proj_geom, sino)
 
             # create memory for result
@@ -599,6 +599,8 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
         det_offset: Optional[Tuple[float, float]] = None,
         angles: Optional[np.ndarray] = None,
         vectors: Optional[np.ndarray] = None,
+        input_sharding: Optional[Sharding] = None,
+        output_sharding: Optional[Sharding] = None,
     ):
         """
         .. _astra-proj-geom3: https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries
@@ -623,6 +625,8 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
                 parameter is  mutually exclusive with `vectors`.
             vectors: Array of ASTRA geometry specification vectors. This
                 parameter is mutually exclusive with `angles`.
+            input_sharding: Sharding for operator input (output of adjoint).
+            output_sharding: Sharding for operator output (input of adjoint).
 
         Raises:
             RuntimeError: If a CUDA GPU is not available to the ASTRA
@@ -662,8 +666,12 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
             Nview = vectors.shape[0]
             self.vectors = np.array(vectors)
             self.angles = None
-        output_shape: Shape = (det_count[0], Nview, det_count[1])
 
+        self.input_sharding = input_sharding
+        self.output_sharding = output_sharding
+        self.cpu_dev = jax.devices("cpu")[0]
+
+        output_shape: Shape = (det_count[0], Nview, det_count[1])
         self.det_count = det_count
         self.det_offset = det_offset
         assert isinstance(det_count, (list, tuple))
@@ -742,22 +750,36 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
         # apply the forward projector and generate a sinogram
 
         def f(x):
-            x = _ensure_writeable(x)
+            x = np.array(x)
             proj_id, result = astra.create_sino3d_gpu(x, self.proj_geom, self.vol_geom)
             astra.data3d.delete(proj_id)
             return result
 
-        return jax.pure_callback(f, jax.ShapeDtypeStruct(self.output_shape, self.output_dtype), x)
+        y = jax.pure_callback(
+            f,
+            jax.ShapeDtypeStruct(self.output_shape, self.output_dtype),
+            jax.device_put(x, device=self.cpu_dev),
+        )
+        if self.output_sharding is not None:
+            y = jax.device_put(y, device=self.output_sharding)
+        return y
 
     def _bproj(self, y: jax.Array) -> jax.Array:
         # apply backprojector
         def f(y):
-            y = _ensure_writeable(y)
+            y = np.array(y)
             proj_id, result = astra.create_backprojection3d_gpu(y, self.proj_geom, self.vol_geom)
             astra.data3d.delete(proj_id)
             return result
 
-        return jax.pure_callback(f, jax.ShapeDtypeStruct(self.input_shape, self.input_dtype), y)
+        x = jax.pure_callback(
+            f,
+            jax.ShapeDtypeStruct(self.input_shape, self.input_dtype),
+            jax.device_put(y, device=self.cpu_dev),
+        )
+        if self.input_sharding is not None:
+            x = jax.device_put(x, device=self.input_sharding)
+        return x
 
 
 def angle_to_vector(det_spacing: Tuple[float, float], angles: np.ndarray) -> np.ndarray:
@@ -797,16 +819,3 @@ def rotate_vectors(vectors: np.ndarray, rot: Rotation) -> np.ndarray:
     for k in range(0, 12, 3):
         rot_vecs[:, k : k + 3] = rot.apply(rot_vecs[:, k : k + 3])
     return rot_vecs
-
-
-def _ensure_writeable(x):
-    """Ensure that `x.flags.writeable` is ``True``, copying if needed."""
-    if hasattr(x, "flags"):  # x is a numpy array
-        if not x.flags.writeable:
-            try:
-                x.setflags(write=True)
-            except ValueError:
-                x = x.copy()
-    else:  # x is a jax array (which is immutable)
-        x = np.array(x)
-    return x
