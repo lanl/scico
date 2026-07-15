@@ -12,7 +12,9 @@ from typing import Optional, Sequence, Tuple, Union
 
 import numpy as np
 
+from jax import Device
 from jax.dtypes import result_type
+from jax.sharding import Sharding
 
 import scico.numpy as snp
 from scico.numpy.util import is_nested
@@ -148,7 +150,6 @@ class CircularConvolve(LinearOperator):
             input_dtype=input_dtype,
             output_dtype=output_dtype,
             jit=jit,
-            **kwargs,
         )
 
     def _dft_center_shift(self, input_shape) -> np.ndarray:
@@ -212,7 +213,7 @@ class CircularConvolve(LinearOperator):
         if self.ndims != other.ndims:
             raise ValueError(f"Incompatible ndims: {self.ndims} != {other.ndims}.")
 
-        return CircularConvolve(
+        return self.__class__(
             h=self.h_dft + other.h_dft,
             input_shape=self.input_shape,
             input_dtype=result_type(self.input_dtype, other.input_dtype),
@@ -225,7 +226,7 @@ class CircularConvolve(LinearOperator):
         if self.ndims != other.ndims:
             raise ValueError(f"Incompatible ndims: {self.ndims} != {other.ndims}.")
 
-        return CircularConvolve(
+        return self.__class__(
             h=self.h_dft - other.h_dft,
             input_shape=self.input_shape,
             input_dtype=result_type(self.input_dtype, other.input_dtype),
@@ -235,7 +236,7 @@ class CircularConvolve(LinearOperator):
 
     @_wrap_mul_div_scalar
     def __mul__(self, scalar):
-        return CircularConvolve(
+        return self.__class__(
             h=self.h_dft * scalar,
             input_shape=self.input_shape,
             ndims=self.ndims,
@@ -245,7 +246,7 @@ class CircularConvolve(LinearOperator):
 
     @_wrap_mul_div_scalar
     def __truediv__(self, scalar):
-        return CircularConvolve(
+        return self.__class__(
             h=self.h_dft / scalar,
             input_shape=self.input_shape,
             ndims=self.ndims,
@@ -253,9 +254,14 @@ class CircularConvolve(LinearOperator):
             h_is_dft=True,
         )
 
-    @staticmethod
+    @classmethod
     def from_operator(
-        H: Operator, ndims: Optional[int] = None, center: Optional[Shape] = None, jit: bool = True
+        cls,
+        H: Operator,
+        ndims: Optional[int] = None,
+        center: Optional[Shape] = None,
+        device: Optional[Union[Device, Sharding]] = None,
+        jit: bool = True,
     ):
         r"""Construct a CircularConvolve version of a given operator.
 
@@ -268,6 +274,8 @@ class CircularConvolve(LinearOperator):
             center: Location at which to place the Kronecker delta. For
               LSI inputs, this will not matter. Defaults to the center
               of H.input_shape, i.e., (n_1 // 2, n_2 // 2, ...).
+            device: Device or sharding for array used to construct the
+              filter impulse response.
             jit: If ``True``, jit the resulting `CircularConvolve`.
         """
 
@@ -278,21 +286,18 @@ class CircularConvolve(LinearOperator):
                 "by this function."
             )
 
-        if ndims is None:
-            ndims = len(H.input_shape)
-        else:
-            ndims = ndims
+        ndims = len(H.input_shape) if ndims is None else ndims
 
         if center is None:
             center = tuple(d // 2 for d in H.input_shape[-ndims:])  # type: ignore
 
         # compute impulse response
-        d = snp.zeros(H.input_shape, H.input_dtype)
+        d = snp.zeros(H.input_shape, H.input_dtype, device=device)
         d = d.at[(Ellipsis,) + center].set(1.0)
         Hd = H @ d
 
         # build CircularConvolve
-        return CircularConvolve(
+        return cls(
             Hd,
             H.input_shape,  # type: ignore
             ndims=ndims,
