@@ -20,37 +20,44 @@ Installing a Development Version
 2. Make sure that you have Python 3.10 or later installed in order to
    create a conda virtual environment.
 
-3. Clone your fork from the source repo.
+3. Make sure you have installed `Git LFS <https://git-lfs.com/>`__,
+   which is used by the ``scico-data`` repository.
+
+4. Clone your fork from the source repo.
 
    ::
 
       git clone --recurse-submodules git@github.com:<username>/scico.git
 
-4. Create a conda environment using Python 3.10 or later, e.g.:
+5. Create a conda environment using Python 3.10 or later, e.g.:
 
    ::
 
       conda create -n scico python=3.12
 
-5. Activate the created conda virtual environment:
+   If desired, the utility scripts at ``misc/conda`` in the ``scico``
+   repository may be used to install conda and create an environment
+   with scico dependencies.
+
+6. Activate the created conda virtual environment:
 
    ::
 
       conda activate scico
 
-6. Change directory to the root of the cloned repository:
+7. Change directory to the root of the cloned repository:
 
    ::
 
       cd scico
 
-7. Add the ``scico`` repo as an upstream remote to sync your changes:
+8. Add the ``scico`` repo as an upstream remote to sync your changes:
 
    ::
 
       git remote add upstream https://www.github.com/lanl/scico
 
-8. After adding the upstream, the recommended way to install SCICO and
+9. After adding the upstream, the recommended way to install SCICO and
    its dependencies is via pip:
 
    ::
@@ -63,24 +70,20 @@ Installing a Development Version
    For installing dependencies related to the examples please see :ref:`example_notebooks`.
    Installing these are neccessary for the successfull running of the tests.
 
-9. The SCICO project uses the `black
-   <https://black.readthedocs.io/en/stable/>`_, `isort
-   <https://pypi.org/project/isort/>`_ and `pylint
-   <https://pylint.pycqa.org/en/latest/>`_ code formatting
-   utilities. It is important to set up a `pre-commit hook
-   <https://pre-commit.com>`_ to ensure that any modified code passes
-   format check before it is committed to the development repo:
+10. The SCICO project uses the
+    `black <https://black.readthedocs.io/en/stable/>`_,
+    `isort <https://pypi.org/project/isort/>`_ and
+    `pylint <https://pylint.pycqa.org/en/latest/>`_ code formatting
+    utilities. It is important to set up a
+    `pre-commit hook <https://pre-commit.com>`_ to ensure that any
+    modified code passes format check before it is committed to the
+    development repo:
 
-   ::
+    ::
 
       pre-commit install  # Sets up git pre-commit hooks
 
-   It is also recommended to `pin the conda package version
-   <https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-pkgs.html#preventing-packages-from-updating-pinning>`__
-   of `black <https://black.readthedocs.io/en/stable/>`_ to the version
-   number specified in ``dev_requirements.txt``.
-
-10. For testing see `Tests`_.
+11. For testing see `Tests`_.
 
 
 

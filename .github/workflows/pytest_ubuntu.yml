@@ -32,6 +32,18 @@ jobs:
       - uses: actions/checkout@v5
         with:
           submodules: recursive
+          lfs: true
+      # Configure Git LFS cache
+      - name: Cache Git LFS files
+        uses: actions/cache@v6
+        with:
+          path: .git/lfs
+          key: lfs-${{ runner.os }}-${{ hashFiles('.gitattributes') }}
+          restore-keys: |
+            lfs-${{ runner.os }}
+      # Fetch any uncached Git LFS files
+      - name: Fetch remaining LFS files
+        run: git lfs pull
       # Set up conda environment
       - name: Set up miniconda
         uses: conda-incubator/setup-miniconda@v4
