@@ -307,6 +307,56 @@ class PoissonLoss(Loss):
         return self.scale * snp.sum(snp.where(self.y > 0, loss_core, Ax))
 
 
+class SmoothedPoissonLoss(Loss):
+    r"""Poisson negative log likelihood loss.
+
+    Poisson negative log likelihood loss
+
+    .. math::
+        \alpha \left( \sum_i [A(x)]_i - y_i \log\left( [A(x)]_i \right) +
+        \log(y_i!) \right) \;,
+
+    where :math:`\alpha` is the scaling parameter.
+    """
+
+    def __init__(
+        self,
+        y: Union[Array, BlockArray],
+        A: Optional[Union[Callable, operator.Operator]] = None,
+        epsilon: float = 1e-8,
+        scale: float = 1.0,
+        include_constant: bool = False,
+    ):
+        r"""
+        Args:
+            y: Measurement.
+            A: Forward operator. Defaults to ``None``, in which case
+                `self.A` is a :class:`.Identity`.
+            epsilon: Smoothing parameter.
+            scale: Scaling parameter. Default: 1.0.
+            include_constant: If ``True`` include the constant term
+                :math:`\log(y!)` in the calculation.
+        """
+        super().__init__(y=y, A=A, scale=scale)
+
+        self.epsilon = epsilon
+        #: Constant term, :math:`\ln(y!)`, in Poisson log likehood.
+        self.const = gammaln(self.y + 1.0) if include_constant else 0.0
+
+    def __call__(self, x: Union[Array, BlockArray]) -> float:
+        Ax = self.A(x)
+        Ax_nz = snp.where(Ax > 0.0, Ax, 1.0)
+        loss_core = Ax - self.y * snp.log(Ax_nz)
+
+        dx = Ax - self.epsilon
+        quadratic_core = Ax - self.y * (
+            snp.log(self.epsilon) + (dx / self.epsilon) - (dx**2) / (2 * self.epsilon**2)
+        )
+
+        core = snp.where(Ax > self.epsilon, loss_core, quadratic_core) + self.const
+        return self.scale * snp.sum(core)
+
+
 class SquaredL2AbsLoss(Loss):
     r"""Weighted squared :math:`\ell_2` with absolute value loss.
 
