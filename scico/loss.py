@@ -317,9 +317,9 @@ class PoissonLoss(Loss):
                 "A must be an Identity."
             )
         delta = v - lam
-        dscr = jnp.maximum(jnp.square(delta) + 4.0 * lam * self.y, 0.0)
-        prxval = 0.5 * (delta + jnp.sqrt(dscr))
-        return jnp.maximum(prxval, 0.0)
+        dscr = snp.maximum(snp.square(delta) + 4.0 * lam * self.y, 0.0)
+        prxval = 0.5 * (delta + snp.sqrt(dscr))
+        return snp.maximum(prxval, 0.0)
 
 
 class SmoothedPoissonLoss(Loss):
