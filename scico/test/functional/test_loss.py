@@ -129,12 +129,47 @@ class TestLoss:
         assert cL.scale == self.scalar * L.scale
         assert cL(v) == self.scalar * L(v)
 
+    def test_poisson_prox(self):
+        y = snp.abs(self.y)
+        L = loss.PoissonLoss(y=y)
+        pf = prox_test(self.v, L, L.prox, 0.75)
+
     def test_poisson_grad(self):
         y = snp.abs(self.y)
         x = y.copy()
         y = y.at[0].set(0)
 
         L = loss.PoissonLoss(y=y)
+        z = L.grad(x)
+        assert snp.sum(snp.isnan(z)) == 0
+
+        x = x.at[0].set(0)
+        z = L.grad(x)
+        assert snp.sum(snp.isnan(z)) == 0
+
+    @pytest.mark.parametrize("inc_const", [False, True])
+    def test_smoothedpoisson(self, inc_const):
+        y = snp.abs(self.y)
+        L = loss.SmoothedPoissonLoss(y=y, A=self.Ao_abs, include_constant=inc_const)
+        assert L.has_eval
+        assert not L.has_prox
+
+        # test eval
+        v = snp.abs(self.v)
+        Av = self.Ao_abs @ v
+        np.testing.assert_allclose(L(v), snp.sum(Av - y * snp.log(Av) + L.const))
+
+        cL = self.scalar * L
+        assert L.scale == 1.0  # hasn't changed
+        assert cL.scale == self.scalar * L.scale
+        assert cL(v) == self.scalar * L(v)
+
+    def test_smoothedpoisson_grad(self):
+        y = snp.abs(self.y)
+        x = y.copy()
+        y = y.at[0].set(0)
+
+        L = loss.SmoothedPoissonLoss(y=y)
         z = L.grad(x)
         assert snp.sum(snp.isnan(z)) == 0
 
