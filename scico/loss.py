@@ -299,12 +299,27 @@ class PoissonLoss(Loss):
 
         #: Constant term, :math:`\ln(y!)`, in Poisson log likehood.
         self.const = gammaln(self.y + 1.0) if include_constant else 0.0
+        if isinstance(self.A, linop.Identity):
+            self.has_prox = True
 
     def __call__(self, x: Union[Array, BlockArray]) -> float:
         Ax = self.A(x)
         Ax_nz = snp.where(Ax > 0, Ax, 1.0)
         loss_core = Ax - self.y * snp.log(Ax_nz) + self.const
         return self.scale * snp.sum(snp.where(self.y > 0, loss_core, Ax))
+
+    def prox(
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+    ) -> Union[Array, BlockArray]:
+        if not isinstance(self.A, linop.Identity):
+            raise NotImplementedError(
+                f"Method prox is not implemented for {type(self)} when A is {type(self.A)}; "
+                "A must be an Identity."
+            )
+        delta = v - lam
+        dscr = jnp.maximum(jnp.square(delta) + 4.0 * lam * self.y, 0.0)
+        prxval = 0.5 * (delta + jnp.sqrt(dscr))
+        return jnp.maximum(prxval, 0.0)
 
 
 class SmoothedPoissonLoss(Loss):
