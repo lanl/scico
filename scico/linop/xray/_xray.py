@@ -384,6 +384,7 @@ class XRayTransform3D(LinearOperator):
         input_shape: Shape,
         matrices: ArrayLike,
         det_shape: Shape,
+        batch_size: int = 8,
         input_dtype: DType = np.float32,
         input_device: xc.Device | Sharding | None = None,
         output_device: xc.Device | Sharding | None = None,
@@ -394,6 +395,8 @@ class XRayTransform3D(LinearOperator):
             matrices: (num_views, 2, 4) array of homogeneous projection
                matrices.
             det_shape: Shape of detector.
+            batch_size: Number of projections to compute in parallel.
+                Higher is faster but more memory intensive.
             input_dtype: Input array dtype.
             input_device: (optional) :class:`~jax.Device` or :class:`~jax.sharding.Sharding`
                 for input arrays.
@@ -404,6 +407,7 @@ class XRayTransform3D(LinearOperator):
         self.input_shape: Shape = input_shape
         self.matrices = jnp.asarray(matrices, dtype=np.float32)
         self.det_shape = tuple(det_shape)  # in case det_shape is a list
+        self.batch_size = batch_size
         self.output_shape = (len(matrices), *det_shape)
         self.input_device = input_device
         self.output_device = output_device
@@ -419,21 +423,26 @@ class XRayTransform3D(LinearOperator):
     def project(self, im: ArrayLike) -> snp.Array:
         """Compute X-ray projection."""
         return XRayTransform3D._project(
-            im, self.matrices, self.det_shape, device=self.output_device
+            im, self.matrices, self.det_shape, batch_size=self.batch_size, device=self.output_device
         )
 
     def back_project(self, proj: ArrayLike) -> snp.Array:
         """Compute X-ray back projection"""
         return XRayTransform3D._back_project(
-            proj, self.matrices, self.input_shape, device=self.input_device
+            proj,
+            self.matrices,
+            self.input_shape,
+            batch_size=self.batch_size,
+            device=self.input_device,
         )
 
     @staticmethod
-    @partial(jax.jit, static_argnames="det_shape")
+    @partial(jax.jit, static_argnames=("det_shape", "batch_size"))
     def _project(
         im: ArrayLike,
         matrices: ArrayLike,
         det_shape: Shape,
+        batch_size: int = 8,
         device: xc.Device | Sharding | None = None,
     ) -> snp.Array:
         r"""
@@ -442,31 +451,21 @@ class XRayTransform3D(LinearOperator):
             matrix: (num_views, 2, 4) array of homogeneous projection
                 matrices.
             det_shape: Shape of detector.
+            batch_size: Number of projections to compute in parallel.
+                Higher is faster but more memory intensive.
             device: (optional) :class:`~jax.Device` or :class:`~jax.sharding.Sharding`
                 to which the output will be committed.
         """
-        BATCH_SIZE = 8
 
-        # Apply gradient checkpointing to the underlying core operator
-        project_single = jax.remat(XRayTransform3D._project_single)
-
-        # Define projection behavior for a single matrix over the full image
         def project_single_matrix(matrix):
-            # Start with an empty detector plane baseline
-            init_plane = jnp.zeros(det_shape, dtype=im.dtype, device=device)
-
-            # Call the rematerialized operator on the full image
-            return project_single(
+            init_proj = jnp.zeros(det_shape, dtype=im.dtype, device=device)
+            return XRayTransform3D._project_single(
                 im,
                 matrix,
-                init_plane,
-                slice_offset=0,  # No manual loops: processed as a whole
+                init_proj,
             )
 
-        # Automatically chunk and execute views sequentially/parallelized via JAX.
-        # If len(matrices) is not divisible by BATCH_SIZE, JAX natively handles the
-        # remainder.
-        return jax.lax.map(project_single_matrix, matrices, batch_size=BATCH_SIZE)
+        return jax.lax.map(project_single_matrix, matrices, batch_size=batch_size)
 
     @staticmethod
     def _project_single(
@@ -494,6 +493,7 @@ class XRayTransform3D(LinearOperator):
         proj: ArrayLike,
         matrices: ArrayLike,
         input_shape: Shape,
+        batch_size: int = 8,
         device: xc.Device | Sharding | None = None,
     ) -> snp.Array:
         r"""
@@ -501,39 +501,26 @@ class XRayTransform3D(LinearOperator):
             proj: Input projection data of shape (num_views, *det_shape).
             matrix: (num_views, 2, 4) array of homogeneous projection matrices.
             input_shape: Shape of back projection.
+            batch_size: Number of projections to compute in parallel.
+                Higher is faster but more memory intensive.
             device: (optional) :class:`~jax.Device` or :class:`~jax.sharding.Sharding`
                 to which the output will be committed.
         """
-        BATCH_SIZE = 8
 
-        # Wrap the single back-project function for gradient checkpointing
-        back_project_single = jax.remat(XRayTransform3D._back_project_single)
+        init_volume = jnp.zeros(input_shape, dtype=proj.dtype, device=device)
 
-        # Process an individual view slice-by-slice natively via map mapping
-        def back_project_single_view(packed_inputs):
-            # Unpack the active iteration variables provided by lax.map
-            single_proj, single_matrix = packed_inputs
-
-            # Initialize a full-sized target volume structure for this single projection
-            # contribution
-            init_volume = jnp.zeros(input_shape, dtype=proj.dtype, device=device)
-
-            return back_project_single(
-                single_proj,
-                single_matrix,
-                init_volume,
-                slice_offset=0,  # Let JAX optimize the internal execution structure
+        def scan_func(volume, proj_matrix_tuple):
+            proj, matrix = proj_matrix_tuple
+            volume = XRayTransform3D._back_project_single(
+                proj,
+                matrix,
+                volume,
             )
+            return volume, None
 
-        # Map across the zip-like structure of projections and matrices.
-        # lax.map accumulates a stacked array of individual volume reconstructions.
-        individual_volumes = jax.lax.map(
-            back_project_single_view, (proj, matrices), batch_size=BATCH_SIZE
-        )
+        volume, _ = jax.lax.scan(scan_func, init_volume, (proj, matrices))
 
-        # Collapse the mapped axis by summing the independent view contributions
-        # to finalize the reconstructed 3D output image array.
-        return jnp.sum(individual_volumes, axis=0)
+        return volume
 
     @staticmethod
     def _back_project_single(
