@@ -23,6 +23,8 @@ Computed Tomography
       3D TV-Regularized Sparse-View CT Reconstruction (Proximal ADMM Solver)
    `ct_astra_3d_approx_tv_box_apgm.py <ct_astra_3d_approx_tv_box_apgm.py>`_
       3D TV-Regularized Sparse-View CT Reconstruction (APGM Solver, Sharded)
+   `ct_3d_tv_padmm.py <ct_3d_tv_padmm.py>`_
+      3D TV-Regularized Sparse-View CT Reconstruction (Proximal ADMM Solver)
    `ct_tv_admm.py <ct_tv_admm.py>`_
       TV-Regularized Sparse-View CT Reconstruction (Integrated Projector)
    `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
@@ -189,6 +191,8 @@ Total Variation
       3D TV-Regularized Sparse-View CT Reconstruction (Proximal ADMM Solver)
    `ct_astra_3d_approx_tv_box_apgm.py <ct_astra_3d_approx_tv_box_apgm.py>`_
       3D TV-Regularized Sparse-View CT Reconstruction (APGM Solver, Sharded)
+   `ct_3d_tv_padmm.py <ct_3d_tv_padmm.py>`_
+      3D TV-Regularized Sparse-View CT Reconstruction (Proximal ADMM Solver)
    `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
       TV-Regularized Low-Dose CT Reconstruction
    `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
@@ -359,6 +363,8 @@ Proximal ADMM
 ^^^^^^^^^^^^^
 
     `ct_astra_3d_tv_padmm.py <ct_astra_3d_tv_padmm.py>`_
+       3D TV-Regularized Sparse-View CT Reconstruction (Proximal ADMM Solver)
+    `ct_3d_tv_padmm.py <ct_3d_tv_padmm.py>`_
        3D TV-Regularized Sparse-View CT Reconstruction (Proximal ADMM Solver)
     `deconv_tv_padmm.py <deconv_tv_padmm.py>`_
        Image Deconvolution with TV Regularization (Proximal ADMM Solver)

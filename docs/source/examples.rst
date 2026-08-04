@@ -29,6 +29,7 @@ Computed Tomography
    examples/ct_astra_3d_tv_admm
    examples/ct_astra_3d_tv_padmm
    examples/ct_astra_3d_approx_tv_box_apgm
+   examples/ct_3d_tv_padmm
    examples/ct_tv_admm
    examples/ct_astra_tv_admm
    examples/ct_multi_tv_admm
@@ -149,6 +150,7 @@ Total Variation
    examples/ct_astra_3d_tv_admm
    examples/ct_astra_3d_tv_padmm
    examples/ct_astra_3d_approx_tv_box_apgm
+   examples/ct_3d_tv_padmm
    examples/ct_astra_weighted_tv_admm
    examples/ct_svmbir_tv_multi
    examples/deconv_circ_tv_admm
@@ -267,6 +269,7 @@ Proximal ADMM
    :maxdepth: 1
 
    examples/ct_astra_3d_tv_padmm
+   examples/ct_3d_tv_padmm
    examples/deconv_tv_padmm
    examples/denoise_tv_multi
    examples/deconv_ppp_dncnn_padmm
