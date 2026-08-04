@@ -360,9 +360,6 @@ class XRayTransform3D(LinearOperator):
     adjoint of the forward projector. It is written purely in JAX,
     allowing it to run on either CPU or GPU and minimizing host copies.
 
-    Warning: This class is experimental and may be up to ten times slower
-    than :class:`scico.linop.xray.astra.XRayTransform3D`.
-
     For each view, the projection geometry is specified by an array
     with shape (2, 4) that specifies a :math:`2 \times 3` projection
     matrix and a :math:`2 \times 1` offset vector. Denoting the matrix
@@ -387,6 +384,7 @@ class XRayTransform3D(LinearOperator):
         input_shape: Shape,
         matrices: ArrayLike,
         det_shape: Shape,
+        batch_size: int = 8,
         input_dtype: DType = np.float32,
         input_device: xc.Device | Sharding | None = None,
         output_device: xc.Device | Sharding | None = None,
@@ -397,6 +395,8 @@ class XRayTransform3D(LinearOperator):
             matrices: (num_views, 2, 4) array of homogeneous projection
                matrices.
             det_shape: Shape of detector.
+            batch_size: Number of projections to compute in parallel.
+                Higher is faster but more memory intensive.
             input_dtype: Input array dtype.
             input_device: (optional) :class:`~jax.Device` or :class:`~jax.sharding.Sharding`
                 for input arrays.
@@ -406,7 +406,8 @@ class XRayTransform3D(LinearOperator):
 
         self.input_shape: Shape = input_shape
         self.matrices = jnp.asarray(matrices, dtype=np.float32)
-        self.det_shape = det_shape
+        self.det_shape = tuple(det_shape)  # in case det_shape is a list
+        self.batch_size = batch_size
         self.output_shape = (len(matrices), *det_shape)
         self.input_device = input_device
         self.output_device = output_device
@@ -422,20 +423,25 @@ class XRayTransform3D(LinearOperator):
     def project(self, im: ArrayLike) -> snp.Array:
         """Compute X-ray projection."""
         return XRayTransform3D._project(
-            im, self.matrices, self.det_shape, device=self.output_device
+            im, self.matrices, self.det_shape, batch_size=self.batch_size, device=self.output_device
         )
 
     def back_project(self, proj: ArrayLike) -> snp.Array:
         """Compute X-ray back projection"""
         return XRayTransform3D._back_project(
-            proj, self.matrices, self.input_shape, device=self.input_device
+            proj,
+            self.matrices,
+            self.input_shape,
+            device=self.input_device,
         )
 
     @staticmethod
+    @partial(jax.jit, static_argnames=("det_shape", "batch_size"))
     def _project(
         im: ArrayLike,
         matrices: ArrayLike,
         det_shape: Shape,
+        batch_size: int = 8,
         device: xc.Device | Sharding | None = None,
     ) -> snp.Array:
         r"""
@@ -444,28 +450,23 @@ class XRayTransform3D(LinearOperator):
             matrix: (num_views, 2, 4) array of homogeneous projection
                 matrices.
             det_shape: Shape of detector.
+            batch_size: Number of projections to compute in parallel.
+                Higher is faster but more memory intensive.
             device: (optional) :class:`~jax.Device` or :class:`~jax.sharding.Sharding`
                 to which the output will be committed.
         """
-        MAX_SLICE_LEN = 10
-        slice_offsets = list(range(0, im.shape[0], MAX_SLICE_LEN))
 
-        num_views = len(matrices)
-        proj = jnp.zeros((num_views,) + det_shape, dtype=im.dtype, device=device)
-        for view_ind, matrix in enumerate(matrices):
-            for slice_offset in slice_offsets:
-                proj = proj.at[view_ind].set(
-                    XRayTransform3D._project_single(
-                        im[slice_offset : slice_offset + MAX_SLICE_LEN],
-                        matrix,
-                        proj[view_ind],
-                        slice_offset=slice_offset,
-                    )
-                )
-        return proj
+        def project_single_matrix(matrix):
+            init_proj = jnp.zeros(det_shape, dtype=im.dtype, device=device)
+            return XRayTransform3D._project_single(
+                im,
+                matrix,
+                init_proj,
+            )
+
+        return jax.lax.map(project_single_matrix, matrices, batch_size=batch_size)
 
     @staticmethod
-    @partial(jax.jit, donate_argnames="proj")
     def _project_single(
         im: ArrayLike, matrix: ArrayLike, proj: ArrayLike, slice_offset: int = 0
     ) -> snp.Array:
@@ -486,6 +487,7 @@ class XRayTransform3D(LinearOperator):
         return proj
 
     @staticmethod
+    @partial(jax.jit, static_argnames="input_shape")
     def _back_project(
         proj: ArrayLike,
         matrices: ArrayLike,
@@ -494,32 +496,29 @@ class XRayTransform3D(LinearOperator):
     ) -> snp.Array:
         r"""
         Args:
-            proj: Input (set of) projection(s).
+            proj: Input projection data of shape (num_views, *det_shape).
             matrix: (num_views, 2, 4) array of homogeneous projection matrices.
-            input_shape: Shape of desired back projection.
+            input_shape: Shape of back projection.
             device: (optional) :class:`~jax.Device` or :class:`~jax.sharding.Sharding`
                 to which the output will be committed.
         """
-        MAX_SLICE_LEN = 10
-        slice_offsets = list(range(0, input_shape[0], MAX_SLICE_LEN))
 
-        HTy = jnp.zeros(input_shape, dtype=proj.dtype, device=device)
-        for view_ind, matrix in enumerate(matrices):
-            for slice_offset in slice_offsets:
-                HTy = HTy.at[slice_offset : slice_offset + MAX_SLICE_LEN].set(
-                    XRayTransform3D._back_project_single(
-                        proj[view_ind],
-                        matrix,
-                        HTy[slice_offset : slice_offset + MAX_SLICE_LEN],
-                        slice_offset=slice_offset,
-                    )
-                )
-                HTy.block_until_ready()  # prevent OOM
+        init_volume = jnp.zeros(input_shape, dtype=proj.dtype, device=device)
 
-        return HTy
+        def scan_func(volume, proj_matrix_tuple):
+            proj, matrix = proj_matrix_tuple
+            volume = XRayTransform3D._back_project_single(
+                proj,
+                matrix,
+                volume,
+            )
+            return volume, None
+
+        volume, _ = jax.lax.scan(scan_func, init_volume, (proj, matrices))
+
+        return volume
 
     @staticmethod
-    @partial(jax.jit, donate_argnames="HTy")
     def _back_project_single(
         y: ArrayLike, matrix: ArrayLike, HTy: ArrayLike, slice_offset: int = 0
     ) -> snp.Array:
