@@ -6,7 +6,7 @@ Version 0.0.8   (unreleased)
 ----------------------------
 
 • Enable certain parameters of array creation functions to trigger
- ``BlockArray`` creation when they receive lists (currently ``device``).
+  ``BlockArray`` creation when they receive lists (currently ``device``).
 • New interface to ASTRA Toolbox cone beam X-ray projectors.
 • New functional ``functional.BoxIndicator``.
 • New functions supporting computed laminography reconstructions.
