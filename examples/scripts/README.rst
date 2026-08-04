@@ -21,6 +21,8 @@ Computed Tomography
       3D TV-Regularized Sparse-View CT Reconstruction (ADMM Solver)
    `ct_astra_3d_tv_padmm.py <ct_astra_3d_tv_padmm.py>`_
       3D TV-Regularized Sparse-View CT Reconstruction (Proximal ADMM Solver)
+   `ct_astra_3d_approx_tv_box_apgm.py <ct_astra_3d_approx_tv_box_apgm.py>`_
+      3D TV-Regularized Sparse-View CT Reconstruction (APGM Solver, Sharded)
    `ct_tv_admm.py <ct_tv_admm.py>`_
       TV-Regularized Sparse-View CT Reconstruction (Integrated Projector)
    `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
@@ -59,6 +61,8 @@ Deconvolution
       Parameter Tuning for Image Deconvolution with TV Regularization (ADMM Solver)
    `deconv_microscopy_tv_admm.py <deconv_microscopy_tv_admm.py>`_
       Deconvolution Microscopy (Single Channel)
+   `deconv_microscopy_tv_admm_shard.py <deconv_microscopy_tv_admm_shard.py>`_
+      Deconvolution Microscopy (Single Channel, Sharded)
    `deconv_microscopy_allchn_tv_admm.py <deconv_microscopy_allchn_tv_admm.py>`_
       Deconvolution Microscopy (All Channels)
    `deconv_ppp_bm3d_admm.py <deconv_ppp_bm3d_admm.py>`_
@@ -183,6 +187,8 @@ Total Variation
       3D TV-Regularized Sparse-View CT Reconstruction (ADMM Solver)
    `ct_astra_3d_tv_padmm.py <ct_astra_3d_tv_padmm.py>`_
       3D TV-Regularized Sparse-View CT Reconstruction (Proximal ADMM Solver)
+   `ct_astra_3d_approx_tv_box_apgm.py <ct_astra_3d_approx_tv_box_apgm.py>`_
+      3D TV-Regularized Sparse-View CT Reconstruction (APGM Solver, Sharded)
    `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
       TV-Regularized Low-Dose CT Reconstruction
    `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
@@ -197,6 +203,8 @@ Total Variation
       Image Deconvolution with TV Regularization (Proximal ADMM Solver)
    `deconv_microscopy_tv_admm.py <deconv_microscopy_tv_admm.py>`_
       Deconvolution Microscopy (Single Channel)
+   `deconv_microscopy_tv_admm_shard.py <deconv_microscopy_tv_admm_shard.py>`_
+      Deconvolution Microscopy (Single Channel, Sharded)
    `deconv_microscopy_allchn_tv_admm.py <deconv_microscopy_allchn_tv_admm.py>`_
       Deconvolution Microscopy (All Channels)
    `denoise_l1tv_admm.py <denoise_l1tv_admm.py>`_
@@ -304,6 +312,8 @@ ADMM
       Parameter Tuning for Image Deconvolution with TV Regularization (ADMM Solver)
    `deconv_microscopy_tv_admm.py <deconv_microscopy_tv_admm.py>`_
       Deconvolution Microscopy (Single Channel)
+   `deconv_microscopy_tv_admm_shard.py <deconv_microscopy_tv_admm_shard.py>`_
+      Deconvolution Microscopy (Single Channel, Sharded)
    `deconv_microscopy_allchn_tv_admm.py <deconv_microscopy_allchn_tv_admm.py>`_
       Deconvolution Microscopy (All Channels)
    `deconv_ppp_bm3d_admm.py <deconv_ppp_bm3d_admm.py>`_
@@ -381,6 +391,8 @@ PDHG
 PGM
 ^^^
 
+   `ct_astra_3d_approx_tv_box_apgm.py <ct_astra_3d_approx_tv_box_apgm.py>`_
+      3D TV-Regularized Sparse-View CT Reconstruction (APGM Solver, Sharded)
    `deconv_ppp_bm3d_apgm.py <deconv_ppp_bm3d_apgm.py>`_
       PPP (with BM3D) Image Deconvolution (APGM Solver)
    `sparsecode_apgm.py <sparsecode_apgm.py>`_
