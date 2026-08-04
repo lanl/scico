@@ -88,13 +88,15 @@ From GitHub
 -----------
 
 The development version of SCICO can be downloaded from the `GitHub repo
-<https://github.com/lanl/scico>`_. Note that, since the SCICO repo has
-a submodule, it should be cloned via the command
+<https://github.com/lanl/scico>`__. Since the SCICO repo has a submodule,
+it should be cloned via the command
 ::
 
    git clone --recurse-submodules git@github.com:lanl/scico.git
 
-Install using the commands
+Note that the submodule makes use of `Git LFS <https://git-lfs.com/>`__,
+which must be installed (PyPI and conda packages are available) prior to
+cloning the repo. Install using the commands
 ::
 
    cd scico

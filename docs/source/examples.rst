@@ -28,6 +28,7 @@ Computed Tomography
    examples/ct_astra_noreg_pcg
    examples/ct_astra_3d_tv_admm
    examples/ct_astra_3d_tv_padmm
+   examples/ct_astra_3d_approx_tv_box_apgm
    examples/ct_tv_admm
    examples/ct_astra_tv_admm
    examples/ct_multi_tv_admm
@@ -52,6 +53,7 @@ Deconvolution
    examples/deconv_tv_padmm
    examples/deconv_tv_admm_tune
    examples/deconv_microscopy_tv_admm
+   examples/deconv_microscopy_tv_admm_shard
    examples/deconv_microscopy_allchn_tv_admm
    examples/deconv_ppp_bm3d_admm
    examples/deconv_ppp_bm3d_apgm
@@ -146,6 +148,7 @@ Total Variation
    examples/ct_astra_tv_admm
    examples/ct_astra_3d_tv_admm
    examples/ct_astra_3d_tv_padmm
+   examples/ct_astra_3d_approx_tv_box_apgm
    examples/ct_astra_weighted_tv_admm
    examples/ct_svmbir_tv_multi
    examples/deconv_circ_tv_admm
@@ -153,6 +156,7 @@ Total Variation
    examples/deconv_tv_admm_tune
    examples/deconv_tv_padmm
    examples/deconv_microscopy_tv_admm
+   examples/deconv_microscopy_tv_admm_shard
    examples/deconv_microscopy_allchn_tv_admm
    examples/denoise_l1tv_admm
    examples/denoise_ptv_pdhg
@@ -228,6 +232,7 @@ ADMM
    examples/deconv_tv_admm
    examples/deconv_tv_admm_tune
    examples/deconv_microscopy_tv_admm
+   examples/deconv_microscopy_tv_admm_shard
    examples/deconv_microscopy_allchn_tv_admm
    examples/deconv_ppp_bm3d_admm
    examples/deconv_ppp_dncnn_admm
@@ -294,6 +299,7 @@ PGM
 .. toctree::
    :maxdepth: 1
 
+   examples/ct_astra_3d_approx_tv_box_apgm
    examples/deconv_ppp_bm3d_apgm
    examples/sparsecode_apgm
    examples/sparsecode_nn_apgm
