@@ -28,7 +28,7 @@ from scico.util import ContextTimer, Timer
 """
 Create a ground truth image and set detector dimensions.
 """
-N = 64
+N = 128
 # use rectangular volume to check whether axes are handled correctly
 in_shape = (N + 1, N + 2, N + 3)
 x = create_block_phantom(in_shape)
