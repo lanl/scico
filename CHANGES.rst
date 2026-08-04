@@ -8,7 +8,7 @@ Version 0.0.8   (unreleased)
 • Substantial computational improvement in ``linop.xray.XRayTransform3D``,
   which is now faster than ``linop.xray.astra.XRayTransform3D``.
 • Enable certain parameters of array creation functions to trigger
- ``BlockArray`` creation when they receive lists (currently ``device``).
+  ``BlockArray`` creation when they receive lists (currently ``device``).
 • New interface to ASTRA Toolbox cone beam X-ray projectors.
 • New functional ``functional.BoxIndicator``.
 • Module ``scico.plot`` deprecated.
