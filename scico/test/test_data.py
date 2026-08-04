@@ -17,12 +17,16 @@ pytestmark = pytest.mark.skipif(not os.path.isdir(examples), reason=skipif_reaso
 
 
 class TestSet:
-    def test_kodim23_uint(self):
-        x = data.kodim23()
-        assert x.dtype.name == "uint8"
-        assert x.shape == (512, 768, 3)
+    @pytest.mark.parametrize("options", [(False, "uint8"), (True, "float32")])
+    def test_kodim23(self, options):
+        asfloat, typestr = options
+        img = data.kodim23(asfloat=asfloat)
+        assert img.dtype.name == typestr
+        assert img.shape == (512, 768, 3)
 
-    def test_kodim23_float(self):
-        x = data.kodim23(asfloat=True)
-        assert x.dtype.name == "float32"
-        assert x.shape == (512, 768, 3)
+    @pytest.mark.parametrize("options", [(False, "uint8"), (True, "float32")])
+    def test_foam_phantom(self, options):
+        asfloat, typestr = options
+        vol = data.foam_phantom(asfloat=asfloat)
+        assert vol.dtype.name == typestr
+        assert vol.shape == (512, 512, 512)
