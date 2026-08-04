@@ -432,7 +432,6 @@ class XRayTransform3D(LinearOperator):
             proj,
             self.matrices,
             self.input_shape,
-            batch_size=self.batch_size,
             device=self.input_device,
         )
 
@@ -493,7 +492,6 @@ class XRayTransform3D(LinearOperator):
         proj: ArrayLike,
         matrices: ArrayLike,
         input_shape: Shape,
-        batch_size: int = 8,
         device: xc.Device | Sharding | None = None,
     ) -> snp.Array:
         r"""
@@ -501,8 +499,6 @@ class XRayTransform3D(LinearOperator):
             proj: Input projection data of shape (num_views, *det_shape).
             matrix: (num_views, 2, 4) array of homogeneous projection matrices.
             input_shape: Shape of back projection.
-            batch_size: Number of projections to compute in parallel.
-                Higher is faster but more memory intensive.
             device: (optional) :class:`~jax.Device` or :class:`~jax.sharding.Sharding`
                 to which the output will be committed.
         """
