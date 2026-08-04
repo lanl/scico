@@ -43,13 +43,13 @@ Set up SCICO projection.
 """
 num_angles = 3
 
-
 rot_X = 90.0 - 16.0
 rot_Y = np.linspace(0, 180, num_angles, endpoint=False)
 angles = np.stack(np.broadcast_arrays(rot_X, rot_Y), axis=-1)
 matrices = XRayTransform3D.matrices_from_euler_angles(
     in_shape, out_shape, "XY", angles, degrees=True
 )
+
 
 """
 Specify geometry using SCICO conventions and project.
@@ -83,7 +83,6 @@ timer_scico.td["avg_back"] /= num_repeats
 """
 Convert SCICO geometry to ASTRA and project.
 """
-
 vectors_from_scico = astra.convert_from_scico_geometry(in_shape, matrices, out_shape)
 
 timer_astra = Timer()
@@ -115,7 +114,6 @@ timer_astra.td["avg_back"] /= num_repeats
 """
 Specify geometry with ASTRA conventions and project.
 """
-
 angles = np.random.rand(num_angles) * 180  # random projection angles
 det_spacing = [1.0, 1.0]
 vectors = astra.angle_to_vector(det_spacing, angles)
@@ -129,7 +127,6 @@ HTy_astra = H_astra.T @ y_astra
 """
 Convert ASTRA geometry to SCICO and project.
 """
-
 P_from_astra = astra._astra_to_scico_geometry(H_astra.vol_geom, H_astra.proj_geom)
 H_scico_from_astra = XRayTransform3D(in_shape, P_from_astra, out_shape)
 
@@ -140,6 +137,10 @@ HTy_scico_from_astra = H_scico_from_astra.T @ y_scico_from_astra
 """
 Print timing results.
 """
+print(
+    "X-ray projector timing comparison:\n"
+    f"    astra vs scico, {num_angles} views of a {" x ".join(map(str,in_shape))} volume"
+)
 print(f"init         astra    {timer_astra.td['init']:.2e} s")
 print(f"init         scico    {timer_scico.td['init']:.2e} s")
 print("")
