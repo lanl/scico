@@ -26,9 +26,9 @@ Computed Tomography
    examples/ct_abel_tv_admm_tune
    examples/ct_symcone_tv_padmm
    examples/ct_astra_noreg_pcg
+   examples/ct_astra_3d_approx_tv_box_apgm
    examples/ct_astra_3d_tv_admm
    examples/ct_astra_3d_tv_padmm
-   examples/ct_astra_3d_approx_tv_box_apgm
    examples/ct_3d_tv_padmm
    examples/ct_tv_admm
    examples/ct_astra_tv_admm
@@ -148,8 +148,8 @@ Total Variation
    examples/ct_multi_tv_admm
    examples/ct_astra_tv_admm
    examples/ct_astra_3d_tv_admm
-   examples/ct_astra_3d_tv_padmm
    examples/ct_astra_3d_approx_tv_box_apgm
+   examples/ct_astra_3d_tv_padmm
    examples/ct_3d_tv_padmm
    examples/ct_astra_weighted_tv_admm
    examples/ct_svmbir_tv_multi
