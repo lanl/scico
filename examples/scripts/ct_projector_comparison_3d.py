@@ -18,8 +18,9 @@ import numpy as np
 import jax
 import jax.numpy as jnp
 
+import komplot as kplt
+
 import scico.linop.xray.astra as astra
-from scico import plot
 from scico.examples import create_block_phantom
 from scico.linop.xray import XRayTransform3D
 from scico.util import ContextTimer, Timer
@@ -27,7 +28,7 @@ from scico.util import ContextTimer, Timer
 """
 Create a ground truth image and set detector dimensions.
 """
-N = 64
+N = 128
 # use rectangular volume to check whether axes are handled correctly
 in_shape = (N + 1, N + 2, N + 3)
 x = create_block_phantom(in_shape)
@@ -42,13 +43,13 @@ Set up SCICO projection.
 """
 num_angles = 3
 
-
 rot_X = 90.0 - 16.0
 rot_Y = np.linspace(0, 180, num_angles, endpoint=False)
 angles = np.stack(np.broadcast_arrays(rot_X, rot_Y), axis=-1)
 matrices = XRayTransform3D.matrices_from_euler_angles(
     in_shape, out_shape, "XY", angles, degrees=True
 )
+
 
 """
 Specify geometry using SCICO conventions and project.
@@ -82,7 +83,6 @@ timer_scico.td["avg_back"] /= num_repeats
 """
 Convert SCICO geometry to ASTRA and project.
 """
-
 vectors_from_scico = astra.convert_from_scico_geometry(in_shape, matrices, out_shape)
 
 timer_astra = Timer()
@@ -114,7 +114,6 @@ timer_astra.td["avg_back"] /= num_repeats
 """
 Specify geometry with ASTRA conventions and project.
 """
-
 angles = np.random.rand(num_angles) * 180  # random projection angles
 det_spacing = [1.0, 1.0]
 vectors = astra.angle_to_vector(det_spacing, angles)
@@ -128,7 +127,6 @@ HTy_astra = H_astra.T @ y_astra
 """
 Convert ASTRA geometry to SCICO and project.
 """
-
 P_from_astra = astra._astra_to_scico_geometry(H_astra.vol_geom, H_astra.proj_geom)
 H_scico_from_astra = XRayTransform3D(in_shape, P_from_astra, out_shape)
 
@@ -139,6 +137,10 @@ HTy_scico_from_astra = H_scico_from_astra.T @ y_scico_from_astra
 """
 Print timing results.
 """
+print(
+    "X-ray projector timing comparison:\n"
+    f"    astra vs scico, {num_angles} views of a {" x ".join(map(str,in_shape))} volume"
+)
 print(f"init         astra    {timer_astra.td['init']:.2e} s")
 print(f"init         scico    {timer_scico.td['init']:.2e} s")
 print("")
@@ -152,24 +154,28 @@ for tstr in ("first", "avg"):
 """
 Show projections.
 """
-fig, ax = plot.subplots(nrows=3, ncols=2, figsize=(8, 10))
-plot.imview(y_scico[0], title="SCICO projections", cbar=None, fig=fig, ax=ax[0, 0])
-plot.imview(y_scico[1], cbar=None, fig=fig, ax=ax[1, 0])
-plot.imview(y_scico[2], cbar=None, fig=fig, ax=ax[2, 0])
-plot.imview(y_astra_from_scico[:, 0], title="ASTRA projections", cbar=None, fig=fig, ax=ax[0, 1])
-plot.imview(y_astra_from_scico[:, 1], cbar=None, fig=fig, ax=ax[1, 1])
-plot.imview(y_astra_from_scico[:, 2], cbar=None, fig=fig, ax=ax[2, 1])
+fig, ax = kplt.subplots(nrows=3, sharex=True, sharey=True, ncols=2, figsize=(8, 10))
+kplt.imview(y_scico[0], title="SCICO projections", cmap="viridis", show_cbar=None, ax=ax[0, 0])
+kplt.imview(y_scico[1], cmap="viridis", show_cbar=None, ax=ax[1, 0])
+kplt.imview(y_scico[2], cmap="viridis", show_cbar=None, ax=ax[2, 0])
+kplt.imview(
+    y_astra_from_scico[:, 0], cmap="viridis", title="ASTRA projections", show_cbar=None, ax=ax[0, 1]
+)
+kplt.imview(y_astra_from_scico[:, 1], cmap="viridis", show_cbar=None, ax=ax[1, 1])
+kplt.imview(y_astra_from_scico[:, 2], cmap="viridis", show_cbar=None, ax=ax[2, 1])
 fig.suptitle("Using SCICO conventions")
 fig.tight_layout()
 fig.show()
 
-fig, ax = plot.subplots(nrows=3, ncols=2, figsize=(8, 10))
-plot.imview(y_scico_from_astra[0], title="SCICO projections", cbar=None, fig=fig, ax=ax[0, 0])
-plot.imview(y_scico_from_astra[1], cbar=None, fig=fig, ax=ax[1, 0])
-plot.imview(y_scico_from_astra[2], cbar=None, fig=fig, ax=ax[2, 0])
-plot.imview(y_astra[:, 0], title="ASTRA projections", cbar=None, fig=fig, ax=ax[0, 1])
-plot.imview(y_astra[:, 1], cbar=None, fig=fig, ax=ax[1, 1])
-plot.imview(y_astra[:, 2], cbar=None, fig=fig, ax=ax[2, 1])
+fig, ax = kplt.subplots(nrows=3, ncols=2, sharex=True, sharey=True, figsize=(8, 10))
+kplt.imview(
+    y_scico_from_astra[0], title="SCICO projections", cmap="viridis", show_cbar=None, ax=ax[0, 0]
+)
+kplt.imview(y_scico_from_astra[1], cmap="viridis", show_cbar=None, ax=ax[1, 0])
+kplt.imview(y_scico_from_astra[2], cmap="viridis", show_cbar=None, ax=ax[2, 0])
+kplt.imview(y_astra[:, 0], title="ASTRA projections", cmap="viridis", show_cbar=None, ax=ax[0, 1])
+kplt.imview(y_astra[:, 1], cmap="viridis", show_cbar=None, ax=ax[1, 1])
+kplt.imview(y_astra[:, 2], cmap="viridis", show_cbar=None, ax=ax[2, 1])
 fig.suptitle("Using ASTRA conventions")
 fig.tight_layout()
 fig.show()
@@ -178,20 +184,32 @@ fig.show()
 """
 Show back projections.
 """
-fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(8, 5))
-plot.imview(HTy_scico[N // 2], title="SCICO back projection", cbar=None, fig=fig, ax=ax[0])
-plot.imview(
-    HTy_astra_from_scico[N // 2], title="ASTRA back projection", cbar=None, fig=fig, ax=ax[1]
+fig, ax = kplt.subplots(nrows=1, ncols=2, sharex=True, sharey=True, figsize=(8, 5))
+kplt.imview(
+    HTy_scico[N // 2], title="SCICO back projection", cmap="viridis", show_cbar=None, ax=ax[0]
+)
+kplt.imview(
+    HTy_astra_from_scico[N // 2],
+    title="ASTRA back projection",
+    cmap="viridis",
+    show_cbar=None,
+    ax=ax[1],
 )
 fig.suptitle("Using SCICO conventions")
 fig.tight_layout()
 fig.show()
 
-fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(8, 5))
-plot.imview(
-    HTy_scico_from_astra[N // 2], title="SCICO back projection", cbar=None, fig=fig, ax=ax[0]
+fig, ax = kplt.subplots(nrows=1, ncols=2, sharex=True, sharey=True, figsize=(8, 5))
+kplt.imview(
+    HTy_scico_from_astra[N // 2],
+    title="SCICO back projection",
+    cmap="viridis",
+    show_cbar=None,
+    ax=ax[0],
 )
-plot.imview(HTy_astra[N // 2], title="ASTRA back projection", cbar=None, fig=fig, ax=ax[1])
+kplt.imview(
+    HTy_astra[N // 2], title="ASTRA back projection", cmap="viridis", show_cbar=None, ax=ax[1]
+)
 fig.suptitle("Using ASTRA conventions")
 fig.tight_layout()
 fig.show()

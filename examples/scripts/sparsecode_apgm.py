@@ -19,8 +19,10 @@ and $\mathbf{x}$ is the sparse representation.
 
 import numpy as np
 
+import komplot as kplt
+
 import scico.numpy as snp
-from scico import functional, linop, loss, plot
+from scico import functional, linop, loss
 from scico.optimize.pgm import AcceleratedPGM
 from scico.util import device_info
 
@@ -71,21 +73,19 @@ hist = solver.itstat_object.history(transpose=True)
 """
 Plot the recovered coefficients and convergence statistics.
 """
-fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
-plot.plot(
+fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(12, 5))
+kplt.plot(
     np.vstack((x_gt, x)).T,
     title="Coefficients",
-    lgnd=("Ground Truth", "Recovered"),
-    fig=fig,
+    legend=("Ground Truth", "Recovered"),
     ax=ax[0],
 )
-plot.plot(
+kplt.plot(
     np.array((hist.Objective, hist.Residual)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Convergence",
-    xlbl="Iteration",
-    lgnd=("Objective", "Residual"),
-    fig=fig,
+    xlabel="Iteration",
+    legend=("Objective", "Residual"),
     ax=ax[1],
 )
 fig.show()

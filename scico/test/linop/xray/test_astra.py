@@ -14,7 +14,6 @@ try:
     from scico.linop.xray.astra import (
         XRayTransform2D,
         XRayTransform3D,
-        _ensure_writeable,
         angle_to_vector,
         rotate_vectors,
     )
@@ -107,6 +106,18 @@ def test_init(testobj):
         )
 
 
+def test_2d_det_offset():
+    x = np.zeros((32, 32), dtype=np.float32)
+    x[8:-8, 8:-8] = 1.0
+    A = XRayTransform2D(x.shape, 40, 1.0, np.linspace(0, np.pi, 90))
+    shift = 4
+    As = XRayTransform2D(x.shape, 40, 1.0, np.linspace(0, np.pi, 90), shift)
+    y = A(x)
+    ys = As(x)
+    yss = np.roll(ys, shift, axis=1)
+    np.testing.assert_almost_equal(yss, y, decimal=4)
+
+
 def test_ATA_call(testobj):
     # Test for the call-based interface
     Ax = testobj.A(testobj.x)
@@ -169,7 +180,7 @@ def test_adjoint_typical_input(testobj):
 def test_fbp(testobj):
     x = testobj.A.fbp(testobj.y)
     # Test for a bug (related to calling the Astra CPU FBP implementation
-    # when using a FPU device) that resulted in a constant zero output.
+    # when using a GPU device) that resulted in a constant zero output.
     assert np.sum(np.abs(x)) > 0.0
 
 
@@ -204,6 +215,25 @@ def test_3D_api_equiv():
     ya = A @ x
     yb = B @ x
     np.testing.assert_allclose(ya, yb, rtol=get_tol())
+
+
+@pytest.mark.skipif(jax.devices()[0].platform != "gpu", reason="GPU required for test")
+def test_3d_det_offset():
+    x = np.zeros((32, 32, 32), dtype=np.float32)
+    x[8:-8, 8:-8, 8:-8] = 1.0
+    A = XRayTransform3D(x.shape, (40, 40), det_spacing=(1.0, 1.0), angles=np.linspace(0, np.pi, 90))
+    shift = (4, -8)
+    As = XRayTransform3D(
+        x.shape,
+        (40, 40),
+        det_spacing=(1.0, 1.0),
+        det_offset=shift,
+        angles=np.linspace(0, np.pi, 90),
+    )
+    y = A(x)
+    ys = As(x)
+    yss = np.roll(ys, shift, axis=(2, 0))
+    np.testing.assert_almost_equal(yss, y, decimal=2)
 
 
 def test_angle_to_vector():
@@ -330,8 +360,3 @@ def test_vol_coord_to_world_coord():
     vc = np.array([[0.0, 0.0], [1.0, 1.0]])
     wc = scico.linop.xray.astra.volume_coords_to_world_coords(vc, vol_geom)
     assert wc.shape == (2, 2)
-
-
-def test_ensure_writeable():
-    assert isinstance(_ensure_writeable(np.ones((2, 1))), np.ndarray)
-    assert isinstance(_ensure_writeable(snp.ones((2, 1))), np.ndarray)

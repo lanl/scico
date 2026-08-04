@@ -22,8 +22,10 @@ solution.
 
 import numpy as np
 
+import komplot as kplt
+
 import scico.numpy as snp
-from scico import functional, linop, loss, metric, plot
+from scico import functional, linop, loss, metric
 from scico.examples import create_circular_phantom
 from scico.linop.xray.abel import AbelTransform
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
@@ -92,23 +94,21 @@ x_tv = snp.clip(solver.x, 0.0, 1.0)
 """
 Show results.
 """
-norm = plot.matplotlib.colors.Normalize(vmin=-0.1, vmax=1.2)
-fig, ax = plot.subplots(nrows=2, ncols=2, figsize=(12, 12))
-plot.imview(x_gt, title="Ground Truth", cmap=plot.cm.Blues, fig=fig, ax=ax[0, 0], norm=norm)
-plot.imview(y, title="Measurement", cmap=plot.cm.Blues, fig=fig, ax=ax[0, 1])
-plot.imview(
+norm = kplt.colors.Normalize(vmin=-0.1, vmax=1.2)
+fig, ax = kplt.subplots(nrows=2, ncols=2, figsize=(12, 12))
+kplt.imview(x_gt, title="Ground Truth", cmap=kplt.cm.Blues, ax=ax[0, 0], norm=norm)
+kplt.imview(y, title="Measurement", cmap=kplt.cm.Blues, ax=ax[0, 1])
+kplt.imview(
     x_inv,
     title="Inverse Abel: %.2f (dB)" % metric.psnr(x_gt, x_inv),
-    cmap=plot.cm.Blues,
-    fig=fig,
+    cmap=kplt.cm.Blues,
     ax=ax[1, 0],
     norm=norm,
 )
-plot.imview(
+kplt.imview(
     x_tv,
     title="TV-Regularized Inversion: %.2f (dB)" % metric.psnr(x_gt, x_tv),
-    cmap=plot.cm.Blues,
-    fig=fig,
+    cmap=kplt.cm.Blues,
     ax=ax[1, 1],
     norm=norm,
 )

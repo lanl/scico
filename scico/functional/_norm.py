@@ -326,7 +326,7 @@ class L1MinusL2Norm(Functional):
 
     @staticmethod
     def _prox_vamx_ge_thresh(v, va, vs, alpha, beta):
-        u = snp.zeros(v.shape, dtype=v.dtype)
+        u = snp.zeros_like(v)
         idx = va.ravel().argmax()
         u = (
             u.ravel().at[idx].set((va.ravel()[idx] + (beta - 1.0) * alpha) * vs.ravel()[idx])
@@ -337,7 +337,7 @@ class L1MinusL2Norm(Functional):
     def _prox_vamx_le_alpha(v, va, vs, vamx, alpha, beta):
         return snp.where(
             vamx < (1.0 - beta) * alpha,
-            snp.zeros(v.shape, dtype=v.dtype),
+            snp.zeros_like(v),
             L1MinusL2Norm._prox_vamx_ge_thresh(v, va, vs, alpha, beta),
         )
 
@@ -371,7 +371,7 @@ class L1MinusL2Norm(Functional):
         return snp.where(
             vamx > 0.0,
             L1MinusL2Norm._prox_vamx_gt_0(v, va, vs, vamx, alpha, beta),
-            snp.zeros(v.shape, dtype=v.dtype),
+            snp.zeros_like(v),
         )
 
     def prox(

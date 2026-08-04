@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021-2025 by SCICO Developers
+# Copyright (C) 2021-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -111,9 +111,7 @@ class LinearizedADMM(Optimizer):
         self.nu: float = nu
 
         if x0 is None:
-            input_shape = C.input_shape
-            dtype = C.input_dtype
-            x0 = snp.zeros(input_shape, dtype=dtype)
+            x0 = snp.zeros(C.input_shape, dtype=C.input_dtype)
         self.x = x0
         self.z, self.z_old = self.z_init(self.x)
         self.u = self.u_init(self.x)
@@ -247,7 +245,7 @@ class LinearizedADMM(Optimizer):
         Args:
             x0: Starting point for :math:`\mb{x}`.
         """
-        u = snp.zeros(self.C.output_shape, dtype=self.C.output_dtype)
+        u = snp.zeros(self.C.output_shape, dtype=self.C.output_dtype, device=self.z.sharding)
         return u
 
     def step(self):

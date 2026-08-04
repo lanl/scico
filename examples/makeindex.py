@@ -62,8 +62,10 @@ with open(src, "r") as srcfile:
         else:
             rst_text += line
 # Convert text from rst to markdown
-md_format = "markdown_github+tex_math_dollars+fenced_code_attributes"
-md_text = pypandoc.convert_text(rst_text, md_format, format="rst", extra_args=["--atx-headers"])
+md_format = "markdown+tex_math_dollars+fenced_code_attributes"
+md_text = pypandoc.convert_text(
+    rst_text, md_format, format="rst", extra_args=["--markdown-headings=atx"]
+)
 md_text = '"""' + md_text + '"""'
 # Convert from python to notebook format and write notebook
 nb = py2jn.py_string_to_notebook(md_text)

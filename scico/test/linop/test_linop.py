@@ -27,12 +27,16 @@ def adjoint_test(
     x: Optional[snp.Array] = None,
     y: Optional[snp.Array] = None,
 ):
-    """Check the validity of A.conj().T as the adjoint for a LinearOperator A.
+    r"""Check the validity of A.conj().T as the adjoint for a LinearOperator A.
 
     Args:
         A: LinearOperator to test.
         key: PRNGKey for generating `x`.
         rtol: Relative tolerance.
+        x: If not the default ``None``, use the specified array instead
+           of a random array as test vector :math:`\mb{x}`.
+        y: If not the default ``None``, use the specified array instead
+           of a random array as test vector :math:`\mb{y}`.
     """
 
     assert linop.valid_adjoint(A, A.H, key=key, eps=rtol, x=x, y=y)

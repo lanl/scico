@@ -62,7 +62,7 @@ trap cleanupexit SIGINT
 
 # Define regex strings.
 re1="s/'maxiter' ?: ?[0-9]+/'maxiter': 2/g; "
-re2="s/^maxiter ?= ?[0-9]+/maxiter = 2/g; "
+re2="s/maxiter ?= ?[0-9]+/maxiter = 2/g; "
 re3="s/^N ?= ?[0-9]+/N = 32/g; "
 re4="s/num_samples= ?[0-9]+/num_samples = 2/g; "
 re5='s/\"cpu\": ?[0-9]+/\"cpu\": 1/g; '

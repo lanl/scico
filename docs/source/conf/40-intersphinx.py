@@ -7,6 +7,7 @@ intersphinx_mapping = {
     "jax": ("https://docs.jax.dev/en/latest/", None),
     "flax": ("https://flax.readthedocs.io/en/latest/", None),
     "ray": ("https://docs.ray.io/en/latest/", None),
+    "astra": ("https://astra-toolbox.com/", None),
     "svmbir": ("https://svmbir.readthedocs.io/en/latest/", None),
 }
 # Added timeout due to periodic scipy.org down time

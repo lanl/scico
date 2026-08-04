@@ -17,10 +17,14 @@ Computed Tomography
       TV-Regularized Cone Beam CT for Symmetric Objects
    `ct_astra_noreg_pcg.py <ct_astra_noreg_pcg.py>`_
       CT Reconstruction with CG and PCG
+   `ct_astra_3d_approx_tv_box_apgm.py <ct_astra_3d_approx_tv_box_apgm.py>`_
+      3D TV-Regularized Sparse-View CT Reconstruction (APGM Solver, Sharded)
    `ct_astra_3d_tv_admm.py <ct_astra_3d_tv_admm.py>`_
       3D TV-Regularized Sparse-View CT Reconstruction (ADMM Solver)
    `ct_astra_3d_tv_padmm.py <ct_astra_3d_tv_padmm.py>`_
-      3D TV-Regularized Sparse-View CT Reconstruction (Proximal ADMM Solver)
+      3D TV-Regularized Sparse-View CT Reconstruction (Proximal ADMM Solver, ASTRA Projector)
+   `ct_3d_tv_padmm.py <ct_3d_tv_padmm.py>`_
+      3D TV-Regularized Sparse-View CT Reconstruction (Proximal ADMM Solver, SCICO Projector)
    `ct_tv_admm.py <ct_tv_admm.py>`_
       TV-Regularized Sparse-View CT Reconstruction (Integrated Projector)
    `ct_astra_tv_admm.py <ct_astra_tv_admm.py>`_
@@ -35,8 +39,6 @@ Computed Tomography
       PPP (with BM3D) CT Reconstruction (ADMM with CG Subproblem Solver)
    `ct_svmbir_ppp_bm3d_admm_prox.py <ct_svmbir_ppp_bm3d_admm_prox.py>`_
       PPP (with BM3D) CT Reconstruction (ADMM with Fast SVMBIR Prox)
-   `ct_fan_svmbir_ppp_bm3d_admm_prox.py <ct_fan_svmbir_ppp_bm3d_admm_prox.py>`_
-      PPP (with BM3D) Fan-Beam CT Reconstruction
    `ct_modl_train_foam2.py <ct_modl_train_foam2.py>`_
       CT Training and Reconstruction with MoDL
    `ct_odp_train_foam2.py <ct_odp_train_foam2.py>`_
@@ -61,6 +63,8 @@ Deconvolution
       Parameter Tuning for Image Deconvolution with TV Regularization (ADMM Solver)
    `deconv_microscopy_tv_admm.py <deconv_microscopy_tv_admm.py>`_
       Deconvolution Microscopy (Single Channel)
+   `deconv_microscopy_tv_admm_shard.py <deconv_microscopy_tv_admm_shard.py>`_
+      Deconvolution Microscopy (Single Channel, Sharded)
    `deconv_microscopy_allchn_tv_admm.py <deconv_microscopy_allchn_tv_admm.py>`_
       Deconvolution Microscopy (All Channels)
    `deconv_ppp_bm3d_admm.py <deconv_ppp_bm3d_admm.py>`_
@@ -77,6 +81,29 @@ Deconvolution
       Deconvolution Training and Reconstructions with MoDL
    `deconv_odp_train_foam1.py <deconv_odp_train_foam1.py>`_
       Deconvolution Training and Reconstructions with ODP
+
+
+Denoising
+^^^^^^^^^
+
+   `denoise_l1tv_admm.py <denoise_l1tv_admm.py>`_
+      ℓ1 Total Variation Denoising
+   `denoise_ptv_pdhg.py <denoise_ptv_pdhg.py>`_
+      Polar Total Variation Denoising (PDHG)
+   `denoise_tv_admm.py <denoise_tv_admm.py>`_
+      Total Variation Denoising (ADMM)
+   `denoise_tv_apgm.py <denoise_tv_apgm.py>`_
+      Total Variation Denoising with Constraint (APGM)
+   `denoise_tv_multi.py <denoise_tv_multi.py>`_
+      Comparison of Optimization Algorithms for Total Variation Denoising
+   `denoise_approx_tv_multi.py <denoise_approx_tv_multi.py>`_
+      Denoising with Approximate Total Variation Proximal Operator
+   `denoise_cplx_tv_nlpadmm.py <denoise_cplx_tv_nlpadmm.py>`_
+      Complex Total Variation Denoising with NLPADMM Solver
+   `denoise_cplx_tv_pdhg.py <denoise_cplx_tv_pdhg.py>`_
+      Complex Total Variation Denoising with PDHG Solver
+   `denoise_dncnn_universal.py <denoise_dncnn_universal.py>`_
+      Comparison of DnCNN Variants for Image Denoising
 
 
 Sparse Coding
@@ -103,24 +130,6 @@ Miscellaneous
       PPP (with BM3D) Image Demosaicing
    `superres_ppp_dncnn_admm.py <superres_ppp_dncnn_admm.py>`_
       PPP (with DnCNN) Image Superresolution
-   `denoise_l1tv_admm.py <denoise_l1tv_admm.py>`_
-      ℓ1 Total Variation Denoising
-   `denoise_ptv_pdhg.py <denoise_ptv_pdhg.py>`_
-      Polar Total Variation Denoising (PDHG)
-   `denoise_tv_admm.py <denoise_tv_admm.py>`_
-      Total Variation Denoising (ADMM)
-   `denoise_tv_apgm.py <denoise_tv_apgm.py>`_
-      Total Variation Denoising with Constraint (APGM)
-   `denoise_tv_multi.py <denoise_tv_multi.py>`_
-      Comparison of Optimization Algorithms for Total Variation Denoising
-   `denoise_approx_tv_multi.py <denoise_approx_tv_multi.py>`_
-      Denoising with Approximate Total Variation Proximal Operator
-   `denoise_cplx_tv_nlpadmm.py <denoise_cplx_tv_nlpadmm.py>`_
-      Complex Total Variation Denoising with NLPADMM Solver
-   `denoise_cplx_tv_pdhg.py <denoise_cplx_tv_pdhg.py>`_
-      Complex Total Variation Denoising with PDHG Solver
-   `denoise_dncnn_universal.py <denoise_dncnn_universal.py>`_
-      Comparison of DnCNN Variants for Image Denoising
    `diffusercam_tv_admm.py <diffusercam_tv_admm.py>`_
       TV-Regularized 3D DiffuserCam Reconstruction
    `video_rpca_admm.py <video_rpca_admm.py>`_
@@ -145,8 +154,6 @@ Plug and Play Priors
       PPP (with BM3D) CT Reconstruction (ADMM with CG Subproblem Solver)
    `ct_svmbir_ppp_bm3d_admm_prox.py <ct_svmbir_ppp_bm3d_admm_prox.py>`_
       PPP (with BM3D) CT Reconstruction (ADMM with Fast SVMBIR Prox)
-   `ct_fan_svmbir_ppp_bm3d_admm_prox.py <ct_fan_svmbir_ppp_bm3d_admm_prox.py>`_
-      PPP (with BM3D) Fan-Beam CT Reconstruction
    `deconv_ppp_bm3d_admm.py <deconv_ppp_bm3d_admm.py>`_
       PPP (with BM3D) Image Deconvolution (ADMM Solver)
    `deconv_ppp_bm3d_apgm.py <deconv_ppp_bm3d_apgm.py>`_
@@ -180,8 +187,12 @@ Total Variation
       TV-Regularized Sparse-View CT Reconstruction (ASTRA Projector)
    `ct_astra_3d_tv_admm.py <ct_astra_3d_tv_admm.py>`_
       3D TV-Regularized Sparse-View CT Reconstruction (ADMM Solver)
+   `ct_astra_3d_approx_tv_box_apgm.py <ct_astra_3d_approx_tv_box_apgm.py>`_
+      3D TV-Regularized Sparse-View CT Reconstruction (APGM Solver, Sharded)
    `ct_astra_3d_tv_padmm.py <ct_astra_3d_tv_padmm.py>`_
-      3D TV-Regularized Sparse-View CT Reconstruction (Proximal ADMM Solver)
+      3D TV-Regularized Sparse-View CT Reconstruction (Proximal ADMM Solver, ASTRA Projector)
+   `ct_3d_tv_padmm.py <ct_3d_tv_padmm.py>`_
+      3D TV-Regularized Sparse-View CT Reconstruction (Proximal ADMM Solver, SCICO Projector)
    `ct_astra_weighted_tv_admm.py <ct_astra_weighted_tv_admm.py>`_
       TV-Regularized Low-Dose CT Reconstruction
    `ct_svmbir_tv_multi.py <ct_svmbir_tv_multi.py>`_
@@ -196,6 +207,8 @@ Total Variation
       Image Deconvolution with TV Regularization (Proximal ADMM Solver)
    `deconv_microscopy_tv_admm.py <deconv_microscopy_tv_admm.py>`_
       Deconvolution Microscopy (Single Channel)
+   `deconv_microscopy_tv_admm_shard.py <deconv_microscopy_tv_admm_shard.py>`_
+      Deconvolution Microscopy (Single Channel, Sharded)
    `deconv_microscopy_allchn_tv_admm.py <deconv_microscopy_allchn_tv_admm.py>`_
       Deconvolution Microscopy (All Channels)
    `denoise_l1tv_admm.py <denoise_l1tv_admm.py>`_
@@ -295,8 +308,6 @@ ADMM
       PPP (with BM3D) CT Reconstruction (ADMM with CG Subproblem Solver)
    `ct_svmbir_ppp_bm3d_admm_prox.py <ct_svmbir_ppp_bm3d_admm_prox.py>`_
       PPP (with BM3D) CT Reconstruction (ADMM with Fast SVMBIR Prox)
-   `ct_fan_svmbir_ppp_bm3d_admm_prox.py <ct_fan_svmbir_ppp_bm3d_admm_prox.py>`_
-      PPP (with BM3D) Fan-Beam CT Reconstruction
    `deconv_circ_tv_admm.py <deconv_circ_tv_admm.py>`_
       Circulant Blur Image Deconvolution with TV Regularization
    `deconv_tv_admm.py <deconv_tv_admm.py>`_
@@ -305,6 +316,8 @@ ADMM
       Parameter Tuning for Image Deconvolution with TV Regularization (ADMM Solver)
    `deconv_microscopy_tv_admm.py <deconv_microscopy_tv_admm.py>`_
       Deconvolution Microscopy (Single Channel)
+   `deconv_microscopy_tv_admm_shard.py <deconv_microscopy_tv_admm_shard.py>`_
+      Deconvolution Microscopy (Single Channel, Sharded)
    `deconv_microscopy_allchn_tv_admm.py <deconv_microscopy_allchn_tv_admm.py>`_
       Deconvolution Microscopy (All Channels)
    `deconv_ppp_bm3d_admm.py <deconv_ppp_bm3d_admm.py>`_
@@ -350,7 +363,9 @@ Proximal ADMM
 ^^^^^^^^^^^^^
 
     `ct_astra_3d_tv_padmm.py <ct_astra_3d_tv_padmm.py>`_
-       3D TV-Regularized Sparse-View CT Reconstruction (Proximal ADMM Solver)
+       3D TV-Regularized Sparse-View CT Reconstruction (Proximal ADMM Solver, ASTRA Projector)
+    `ct_3d_tv_padmm.py <ct_3d_tv_padmm.py>`_
+       3D TV-Regularized Sparse-View CT Reconstruction (Proximal ADMM Solver, SCICO Projector)
     `deconv_tv_padmm.py <deconv_tv_padmm.py>`_
        Image Deconvolution with TV Regularization (Proximal ADMM Solver)
     `denoise_tv_multi.py <denoise_tv_multi.py>`_
@@ -382,6 +397,8 @@ PDHG
 PGM
 ^^^
 
+   `ct_astra_3d_approx_tv_box_apgm.py <ct_astra_3d_approx_tv_box_apgm.py>`_
+      3D TV-Regularized Sparse-View CT Reconstruction (APGM Solver, Sharded)
    `deconv_ppp_bm3d_apgm.py <deconv_ppp_bm3d_apgm.py>`_
       PPP (with BM3D) Image Deconvolution (APGM Solver)
    `sparsecode_apgm.py <sparsecode_apgm.py>`_

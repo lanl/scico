@@ -26,12 +26,13 @@ np.sctypes = {
     "float": [np.float16, np.float32, np.float64, np.longdouble],
     "int": [np.int8, np.int16, np.int32, np.int64],
 }
+import komplot as kplt
 from colour_demosaicing import demosaicing_CFA_Bayer_Menon2007
 
 import scico
 import scico.numpy as snp
 import scico.random
-from scico import functional, linop, loss, metric, plot
+from scico import functional, linop, loss, metric
 from scico.data import kodim23
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
@@ -99,7 +100,7 @@ sn = s + σ * noise
 """
 Compute a baseline demosaicing solution.
 """
-imgb = snp.array(bm3d_rgb(demosaic(sn), 3 * σ).astype(np.float32))
+imgb = snp.clip(snp.array(bm3d_rgb(demosaic(sn), 3 * σ).astype(np.float32)), 0.0, 1.0)
 
 
 """
@@ -131,29 +132,29 @@ solver = ADMM(
 Run the solver.
 """
 print(f"Solving on {device_info()}\n")
-x = solver.solve()
+x = snp.clip(solver.solve(), 0.0, 1.0)
 hist = solver.itstat_object.history(transpose=True)
 
 
 """
 Show reference and demosaiced images.
 """
-fig, ax = plot.subplots(nrows=1, ncols=3, sharex=True, sharey=True, figsize=(21, 7))
-plot.imview(img, title="Reference", fig=fig, ax=ax[0])
-plot.imview(imgb, title="Baseline demoisac: %.2f (dB)" % metric.psnr(img, imgb), fig=fig, ax=ax[1])
-plot.imview(x, title="PPP demoisac: %.2f (dB)" % metric.psnr(img, x), fig=fig, ax=ax[2])
+fig, ax = kplt.subplots(nrows=1, ncols=3, sharex=True, sharey=True, figsize=(21, 7))
+kplt.imview(img, title="Reference", ax=ax[0])
+kplt.imview(imgb, title="Baseline demoisac: %.2f (dB)" % metric.psnr(img, imgb), ax=ax[1])
+kplt.imview(x, title="PPP demoisac: %.2f (dB)" % metric.psnr(img, x), ax=ax[2])
 fig.show()
 
 
 """
 Plot convergence statistics.
 """
-plot.plot(
+kplt.plot(
     snp.array((hist.Prml_Rsdl, hist.Dual_Rsdl)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Residuals",
-    xlbl="Iteration",
-    lgnd=("Primal", "Dual"),
+    xlabel="Iteration",
+    legend=("Primal", "Dual"),
 )
 
 

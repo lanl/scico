@@ -20,11 +20,12 @@ where $R$ is the isotropic TV: the sum of the norms of the gradient
 vectors at each point in the image $\mathbf{x}$.
 """
 
+import komplot as kplt
 from xdesign import SiemensStar, discrete_phantom
 
 import scico.numpy as snp
 import scico.random
-from scico import functional, linop, loss, plot
+from scico import functional, linop, loss
 from scico.optimize import PDHG, LinearizedADMM, ProximalADMM
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
@@ -155,7 +156,7 @@ solver_pdhg.solve()
 hist_pdhg = solver_pdhg.itstat_object.history(transpose=True)
 
 
-"""
+r"""
 Plot results. It is worth noting that:
 
 1. PDHG outperforms ADMM both with respect to iterations and time.
@@ -167,77 +168,71 @@ Plot results. It is worth noting that:
    cheaply, with only 2 CG iterations. If more CG iterations were required,
    the time comparison would be favorable to Linearized ADMM.
 """
-fig, ax = plot.subplots(nrows=1, ncols=3, sharex=True, sharey=False, figsize=(27, 6))
-plot.plot(
+fig, ax = kplt.subplots(nrows=1, ncols=3, sharex=True, sharey=False, figsize=(27, 6))
+kplt.plot(
     snp.array(
         (hist_admm.Objective, hist_ladmm.Objective, hist_padmm.Objective, hist_pdhg.Objective)
     ).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Objective function",
-    xlbl="Iteration",
-    lgnd=("ADMM", "LinADMM", "ProxADMM", "PDHG"),
-    fig=fig,
+    xlabel="Iteration",
+    legend=("ADMM", "LinADMM", "ProxADMM", "PDHG"),
     ax=ax[0],
 )
-plot.plot(
+kplt.plot(
     snp.array(
         (hist_admm.Prml_Rsdl, hist_ladmm.Prml_Rsdl, hist_padmm.Prml_Rsdl, hist_pdhg.Prml_Rsdl)
     ).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Primal residual",
-    xlbl="Iteration",
-    lgnd=("ADMM", "LinADMM", "ProxADMM", "PDHG"),
-    fig=fig,
+    xlabel="Iteration",
+    legend=("ADMM", "LinADMM", "ProxADMM", "PDHG"),
     ax=ax[1],
 )
-plot.plot(
+kplt.plot(
     snp.array(
         (hist_admm.Dual_Rsdl, hist_ladmm.Dual_Rsdl, hist_padmm.Dual_Rsdl, hist_pdhg.Dual_Rsdl)
     ).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Dual residual",
-    xlbl="Iteration",
-    lgnd=("ADMM", "LinADMM", "ProxADMM", "PDHG"),
-    fig=fig,
+    xlabel="Iteration",
+    legend=("ADMM", "LinADMM", "ProxADMM", "PDHG"),
     ax=ax[2],
 )
 fig.show()
 
-fig, ax = plot.subplots(nrows=1, ncols=3, sharex=True, sharey=False, figsize=(27, 6))
-plot.plot(
+fig, ax = kplt.subplots(nrows=1, ncols=3, sharex=True, sharey=False, figsize=(27, 6))
+kplt.plot(
+    snp.array((hist_admm.Time, hist_ladmm.Time, hist_padmm.Time, hist_pdhg.Time)).T,
     snp.array(
         (hist_admm.Objective, hist_ladmm.Objective, hist_padmm.Objective, hist_pdhg.Objective)
     ).T,
-    snp.array((hist_admm.Time, hist_ladmm.Time, hist_padmm.Time, hist_pdhg.Time)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Objective function",
-    xlbl="Time (s)",
-    lgnd=("ADMM", "LinADMM", "ProxADMM", "PDHG"),
-    fig=fig,
+    xlabel="Time (s)",
+    legend=("ADMM", "LinADMM", "ProxADMM", "PDHG"),
     ax=ax[0],
 )
-plot.plot(
+kplt.plot(
+    snp.array((hist_admm.Time, hist_ladmm.Time, hist_padmm.Time, hist_pdhg.Time)).T,
     snp.array(
         (hist_admm.Prml_Rsdl, hist_ladmm.Prml_Rsdl, hist_padmm.Prml_Rsdl, hist_pdhg.Prml_Rsdl)
     ).T,
-    snp.array((hist_admm.Time, hist_ladmm.Time, hist_padmm.Time, hist_pdhg.Time)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Primal residual",
-    xlbl="Time (s)",
-    lgnd=("ADMM", "LinADMM", "ProxADMM", "PDHG"),
-    fig=fig,
+    xlabel="Time (s)",
+    legend=("ADMM", "LinADMM", "ProxADMM", "PDHG"),
     ax=ax[1],
 )
-plot.plot(
+kplt.plot(
+    snp.array((hist_admm.Time, hist_ladmm.Time, hist_padmm.Time, hist_pdhg.Time)).T,
     snp.array(
         (hist_admm.Dual_Rsdl, hist_ladmm.Dual_Rsdl, hist_padmm.Dual_Rsdl, hist_pdhg.Dual_Rsdl)
     ).T,
-    snp.array((hist_admm.Time, hist_ladmm.Time, hist_padmm.Time, hist_pdhg.Time)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Dual residual",
-    xlbl="Time (s)",
-    lgnd=("ADMM", "LinADMM", "ProxADMM", "PDHG"),
-    fig=fig,
+    xlabel="Time (s)",
+    legend=("ADMM", "LinADMM", "ProxADMM", "PDHG"),
     ax=ax[2],
 )
 fig.show()

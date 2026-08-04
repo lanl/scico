@@ -65,8 +65,9 @@ except ImportError:
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
+import komplot as kplt
 from scico import flax as sflax
-from scico import metric, plot
+from scico import metric
 from scico.flax.examples import load_blur_data
 from scico.flax.train.traversals import clip_positive, construct_traversal
 from scico.linop import CircularConvolve
@@ -82,7 +83,7 @@ output_size = 256  # image size
 
 n = 3  # convolution kernel size
 σ = 20.0 / 255  # noise level
-psf = np.ones((n, n)) / (n * n)  # blur kernel
+psf = np.ones((n, n), dtype=np.float32) / (n * n)  # blur kernel
 
 ishape = (output_size, output_size)
 opBlur = CircularConvolve(h=psf, input_shape=ishape)
@@ -290,27 +291,25 @@ Plot comparison.
 np.random.seed(123)
 indx = np.random.randint(0, high=maxn)
 
-fig, ax = plot.subplots(nrows=1, ncols=3, figsize=(15, 5))
-plot.imview(test_ds["label"][indx, ..., 0], title="Ground truth", cbar=None, fig=fig, ax=ax[0])
-plot.imview(
+fig, ax = kplt.subplots(nrows=1, ncols=3, figsize=(15, 5))
+kplt.imview(test_ds["label"][indx, ..., 0], title="Ground truth", show_cbar=None, ax=ax[0])
+kplt.imview(
     test_ds["image"][indx, ..., 0],
     title="Blurred: \nSNR: %.2f (dB), PSNR: %.2f"
     % (
         metric.snr(test_ds["label"][indx, ..., 0], test_ds["image"][indx, ..., 0]),
         metric.psnr(test_ds["label"][indx, ..., 0], test_ds["image"][indx, ..., 0]),
     ),
-    cbar=None,
-    fig=fig,
+    show_cbar=None,
     ax=ax[1],
 )
-plot.imview(
+kplt.imview(
     output[indx, ..., 0],
     title="MoDLNet Reconstruction\nSNR: %.2f (dB), PSNR: %.2f"
     % (
         metric.snr(test_ds["label"][indx, ..., 0], output[indx, ..., 0]),
         metric.psnr(test_ds["label"][indx, ..., 0], output[indx, ..., 0]),
     ),
-    fig=fig,
     ax=ax[2],
 )
 divider = make_axes_locatable(ax[2])
@@ -325,26 +324,24 @@ cycle was done (i.e. if not reading final epoch results from checkpoint).
 """
 if stats_object is not None and len(stats_object.iterations) > 0:
     hist = stats_object.history(transpose=True)
-    fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
-    plot.plot(
+    fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(12, 5))
+    kplt.plot(
+        hist.Epoch,
         np.array((hist.Train_Loss, hist.Eval_Loss)).T,
-        x=hist.Epoch,
-        ptyp="semilogy",
+        ylog=True,
         title="Loss function",
-        xlbl="Epoch",
-        ylbl="Loss value",
-        lgnd=("Train", "Test"),
-        fig=fig,
+        xlabel="Epoch",
+        ylabel="Loss value",
+        legend=("Train", "Test"),
         ax=ax[0],
     )
-    plot.plot(
+    kplt.plot(
+        hist.Epoch,
         np.array((hist.Train_SNR, hist.Eval_SNR)).T,
-        x=hist.Epoch,
         title="Metric",
-        xlbl="Epoch",
-        ylbl="SNR (dB)",
-        lgnd=("Train", "Test"),
-        fig=fig,
+        xlabel="Epoch",
+        ylabel="SNR (dB)",
+        legend=("Train", "Test"),
         ax=ax[1],
     )
     fig.show()
@@ -352,26 +349,24 @@ if stats_object is not None and len(stats_object.iterations) > 0:
 # Stats for initialization loop
 if stats_object_ini is not None and len(stats_object_ini.iterations) > 0:
     hist = stats_object_ini.history(transpose=True)
-    fig, ax = plot.subplots(nrows=1, ncols=2, figsize=(12, 5))
-    plot.plot(
+    fig, ax = kplt.subplots(nrows=1, ncols=2, figsize=(12, 5))
+    kplt.plot(
+        hist.Epoch,
         np.array((hist.Train_Loss, hist.Eval_Loss)).T,
-        x=hist.Epoch,
-        ptyp="semilogy",
+        ylog=True,
         title="Loss function - Initialization",
-        xlbl="Epoch",
-        ylbl="Loss value",
-        lgnd=("Train", "Test"),
-        fig=fig,
+        xlabel="Epoch",
+        ylabel="Loss value",
+        legend=("Train", "Test"),
         ax=ax[0],
     )
-    plot.plot(
+    kplt.plot(
+        hist.Epoch,
         np.array((hist.Train_SNR, hist.Eval_SNR)).T,
-        x=hist.Epoch,
         title="Metric - Initialization",
-        xlbl="Epoch",
-        ylbl="SNR (dB)",
-        lgnd=("Train", "Test"),
-        fig=fig,
+        xlabel="Epoch",
+        ylabel="SNR (dB)",
+        legend=("Train", "Test"),
         ax=ax[1],
     )
     fig.show()

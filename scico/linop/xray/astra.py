@@ -1,20 +1,19 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2020-2025 by SCICO Developers
+# Copyright (C) 2020-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""X-ray transform LinearOperators wrapping the ASTRA toolbox.
+"""LinearOperators wrapping the ASTRA parallel beam X-ray transforms.
 
 X-ray transform :class:`.LinearOperator` wrapping the parallel beam
 projections in the
 `ASTRA toolbox <https://github.com/astra-toolbox/astra-toolbox>`_.
 This package provides both C and CUDA implementations of core
-functionality, but note that use of the CUDA/GPU implementation is
-expected to result in GPU-host-GPU memory copies when transferring
-JAX arrays. Other JAX features such as automatic differentiation are
-not available.
+functionality, but note that use of the CUDA/GPU implementation
+involves GPU-host-GPU memory copies when transferring JAX arrays. Other
+JAX features such as automatic differentiation are not available.
 
 Functions here refer to three coordinate systems: world coordinates,
 volume coordinates, and detector coordinates. World coordinates are 3D
@@ -34,6 +33,7 @@ import numpy as np
 import numpy.typing
 
 import jax
+from jax.sharding import Sharding
 from jax.typing import ArrayLike
 
 from scipy.spatial.transform import Rotation
@@ -213,24 +213,30 @@ class XRayTransform2D(LinearOperator):
         det_count: int,
         det_spacing: float,
         angles: np.ndarray,
+        det_offset: float = 0.0,
         volume_geometry: Optional[List[float]] = None,
         device: str = "auto",
     ):
         """
+        .. _astra-proj-geom2: https://www.astra-toolbox.com/docs/geom2d.html#projection-geometries
+
         Args:
             input_shape: Shape of the input array.
-            det_count: Number of detector elements. See the
-               `astra documentation <https://www.astra-toolbox.com/docs/geom2d.html#projection-geometries>`__
-               for more information.
-            det_spacing: Spacing between detector elements. See the
-               `astra documentation <https://www.astra-toolbox.com/docs/geom2d.html#projection-geometries>`__
-               for more information..
+            det_count: Number of detector elements in the
+               `projection geometry <astra-proj-geom2_>`__.
+            det_spacing: Spacing between detector elements in the
+               `projection geometry <astra-proj-geom2_>`__.
             angles: Array of projection angles in radians.
+            det_offset: Offset of the detector center. Negative/positive
+               values correspond to left/right detector shifts (i.e.
+               right/left shifts of the projection within the image)
+               respectively. Note that :meth:`.fbp` cannot be used when
+               this offset is non-zero.
             volume_geometry: Specification of the shape of the
-               discretized reconstruction volume. Must either ``None``,
-               in which case it is inferred from `input_shape`, or
-               follow the syntax described in the
-               `astra documentation <https://www.astra-toolbox.com/docs/geom2d.html#volume-geometries>`__.
+               discretized reconstruction volume. Must either be ``None``,
+               in which case it is inferred from `input_shape`, or be a
+               list of ``int`` or ``float`` scalars corresponding to the
+               valid parameters of :func:`astra.creators.create_vol_geom`.
             device: Specifies device for projection operation.
                One of ["auto", "gpu", "cpu"]. If "auto", a GPU is used if
                available, otherwise, the CPU is used.
@@ -248,11 +254,14 @@ class XRayTransform2D(LinearOperator):
         # Set up all the ASTRA config
         self.det_spacing = det_spacing
         self.det_count = det_count
+        self.det_offset = det_offset
         self.angles: np.ndarray = np.array(angles)
 
         self.proj_geom: dict = astra.create_proj_geom(
             "parallel", det_spacing, det_count, self.angles
         )
+        if det_offset != 0.0:
+            self.proj_geom = astra.functions.geom_postalignment(self.proj_geom, det_offset)
 
         self.proj_id: Optional[int]
         self.input_shape: tuple = input_shape
@@ -305,7 +314,7 @@ class XRayTransform2D(LinearOperator):
         # apply the forward projector and generate a sinogram
 
         def f(x):
-            x = _ensure_writeable(x)
+            x = np.array(x)
             proj_id, result = astra.create_sino(x, self.proj_id)
             astra.data2d.delete(proj_id)
             return result
@@ -315,7 +324,7 @@ class XRayTransform2D(LinearOperator):
     def _bproj(self, y: jax.Array) -> jax.Array:
         # apply backprojector
         def f(y):
-            y = _ensure_writeable(y)
+            y = np.array(y)
             proj_id, result = astra.create_backprojection(y, self.proj_id)
             astra.data2d.delete(proj_id)
             return result
@@ -331,15 +340,20 @@ class XRayTransform2D(LinearOperator):
         Args:
             sino: Sinogram to reconstruct.
             filter_type: Select the filter to use. For a list of options
-               see `cfg.FilterType` in the `ASTRA documentation
+               see ``cfg.FilterType`` in the `ASTRA documentation
                <https://www.astra-toolbox.com/docs/algs/FBP_CUDA.html>`__.
 
         Returns:
             Reconstructed volume.
         """
 
+        if self.det_offset != 0.0:
+            raise ValueError(
+                "The fbp method may not be called when the detector offset" " is non-zero."
+            )
+
         def f(sino):
-            sino = _ensure_writeable(sino)
+            sino = np.array(sino)
             sino_id = astra.data2d.create("-sino", self.proj_geom, sino)
 
             # create memory for result
@@ -359,7 +373,7 @@ class XRayTransform2D(LinearOperator):
             # get the result
             out = astra.data2d.get(rec_id)
 
-            # cleanup FBP-specific arra
+            # cleanup FBP-specific array
             astra.algorithm.delete(alg_id)
             astra.data2d.delete(rec_id)
             astra.data2d.delete(sino_id)
@@ -582,10 +596,15 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
         input_shape: Shape,
         det_count: Tuple[int, int],
         det_spacing: Optional[Tuple[float, float]] = None,
+        det_offset: Optional[Tuple[float, float]] = None,
         angles: Optional[np.ndarray] = None,
         vectors: Optional[np.ndarray] = None,
+        input_sharding: Optional[Sharding] = None,
+        output_sharding: Optional[Sharding] = None,
     ):
         """
+        .. _astra-proj-geom3: https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries
+
         Keyword arguments `det_spacing` and `angles` should be specified
         to use the "parallel3d" geometry, and keyword argument `vectors`
         should be specified to use the "parallel3d_vec" geometry. These
@@ -593,16 +612,21 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
 
         Args:
             input_shape: Shape of the input array.
-            det_count: Number of detector elements. See the
-               `astra documentation <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
-               for more information.
-            det_spacing: Spacing between detector elements. See the
-               `astra documentation <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
-               for more information.
+            det_count: Number of detector elements in the
+               `projection geometry <astra-proj-geom3_>`__.
+            det_spacing: Spacing between detector elements in the
+               `projection geometry <astra-proj-geom3_>`__.
+            det_offset: Offset of the the detector center as a tuple
+               (horizontal shift, vertical shift). Negative/positive
+               values correspond to left/right and up/down detector
+               shifts (i.e. right/left and down/up shifts of the
+               projection within the image) respectively.
             angles: Array of projection angles in radians. This
                 parameter is  mutually exclusive with `vectors`.
             vectors: Array of ASTRA geometry specification vectors. This
                 parameter is mutually exclusive with `angles`.
+            input_sharding: Sharding for operator input (output of adjoint).
+            output_sharding: Sharding for operator output (input of adjoint).
 
         Raises:
             RuntimeError: If a CUDA GPU is not available to the ASTRA
@@ -642,9 +666,14 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
             Nview = vectors.shape[0]
             self.vectors = np.array(vectors)
             self.angles = None
-        output_shape: Shape = (det_count[0], Nview, det_count[1])
 
+        self.input_sharding = input_sharding
+        self.output_sharding = output_sharding
+        self.cpu_dev = jax.devices("cpu")[0]
+
+        output_shape: Shape = (det_count[0], Nview, det_count[1])
         self.det_count = det_count
+        self.det_offset = det_offset
         assert isinstance(det_count, (list, tuple))
         self.input_shape: tuple = input_shape
         self.vol_geom, self.proj_geom = self.create_astra_geometry(
@@ -654,6 +683,8 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
             angles=self.angles,
             vectors=self.vectors,
         )
+        if det_offset is not None:
+            self.proj_geom = astra.functions.geom_postalignment(self.proj_geom, det_offset)
 
         # Wrap our non-jax function to indicate we will supply fwd/rev mode functions
         self._eval = jax.custom_vjp(self._proj)
@@ -687,12 +718,10 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
 
         Args:
             input_shape: Shape of the input array.
-            det_count: Number of detector elements. See the
-               `astra documentation <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
-               for more information.
-            det_spacing: Spacing between detector elements. See the
-               `astra documentation <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
-               for more information.
+            det_count: Number of detector elements in the
+               `projection geometry <astra-proj-geom3_>`__.
+            det_spacing: Spacing between detector elements in the
+               `projection geometry <astra-proj-geom3_>`__.
             angles: Array of projection angles in radians.
             vectors: Array of geometry specification vectors.
 
@@ -721,22 +750,36 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
         # apply the forward projector and generate a sinogram
 
         def f(x):
-            x = _ensure_writeable(x)
+            x = np.array(x)
             proj_id, result = astra.create_sino3d_gpu(x, self.proj_geom, self.vol_geom)
             astra.data3d.delete(proj_id)
             return result
 
-        return jax.pure_callback(f, jax.ShapeDtypeStruct(self.output_shape, self.output_dtype), x)
+        y = jax.pure_callback(
+            f,
+            jax.ShapeDtypeStruct(self.output_shape, self.output_dtype),
+            jax.device_put(x, device=self.cpu_dev),
+        )
+        if self.output_sharding is not None:
+            y = jax.device_put(y, device=self.output_sharding)
+        return y
 
     def _bproj(self, y: jax.Array) -> jax.Array:
         # apply backprojector
         def f(y):
-            y = _ensure_writeable(y)
+            y = np.array(y)
             proj_id, result = astra.create_backprojection3d_gpu(y, self.proj_geom, self.vol_geom)
             astra.data3d.delete(proj_id)
             return result
 
-        return jax.pure_callback(f, jax.ShapeDtypeStruct(self.input_shape, self.input_dtype), y)
+        x = jax.pure_callback(
+            f,
+            jax.ShapeDtypeStruct(self.input_shape, self.input_dtype),
+            jax.device_put(y, device=self.cpu_dev),
+        )
+        if self.input_sharding is not None:
+            x = jax.device_put(x, device=self.input_sharding)
+        return x
 
 
 def angle_to_vector(det_spacing: Tuple[float, float], angles: np.ndarray) -> np.ndarray:
@@ -776,16 +819,3 @@ def rotate_vectors(vectors: np.ndarray, rot: Rotation) -> np.ndarray:
     for k in range(0, 12, 3):
         rot_vecs[:, k : k + 3] = rot.apply(rot_vecs[:, k : k + 3])
     return rot_vecs
-
-
-def _ensure_writeable(x):
-    """Ensure that `x.flags.writeable` is ``True``, copying if needed."""
-    if hasattr(x, "flags"):  # x is a numpy array
-        if not x.flags.writeable:
-            try:
-                x.setflags(write=True)
-            except ValueError:
-                x = x.copy()
-    else:  # x is a jax array (which is immutable)
-        x = np.array(x)
-    return x

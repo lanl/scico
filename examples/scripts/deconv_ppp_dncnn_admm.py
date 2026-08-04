@@ -16,10 +16,11 @@ using the ADMM Plug-and-Play Priors (PPP) algorithm
 
 import numpy as np
 
+import komplot as kplt
 from xdesign import Foam, discrete_phantom
 
 import scico.numpy as snp
-from scico import functional, linop, loss, metric, plot, random
+from scico import functional, linop, loss, metric, random
 from scico.optimize.admm import ADMM, LinearSubproblemSolver
 from scico.util import device_info
 
@@ -94,24 +95,26 @@ hist = solver.itstat_object.history(transpose=True)
 """
 Show the recovered image.
 """
-fig, ax = plot.subplots(nrows=1, ncols=3, figsize=(15, 5))
-plot.imview(x_gt, title="Ground truth", fig=fig, ax=ax[0])
+fig, ax = kplt.subplots(nrows=1, ncols=3, sharex=True, sharey=True, figsize=(15, 5))
+kplt.imview(x_gt, cmap="Blues", title="Ground truth", ax=ax[0])
 nc = n // 2
 yc = snp.clip(y[nc:-nc, nc:-nc], 0, 1)
-plot.imview(y, title="Blurred, noisy image: %.2f (dB)" % metric.psnr(x_gt, yc), fig=fig, ax=ax[1])
-plot.imview(x, title="Deconvolved image: %.2f (dB)" % metric.psnr(x_gt, x), fig=fig, ax=ax[2])
+kplt.imview(
+    y, cmap="Blues", title="Blurred, noisy image: %.2f (dB)" % metric.psnr(x_gt, yc), ax=ax[1]
+)
+kplt.imview(x, cmap="Blues", title="Deconvolved image: %.2f (dB)" % metric.psnr(x_gt, x), ax=ax[2])
 fig.show()
 
 
 """
 Plot convergence statistics.
 """
-plot.plot(
+kplt.plot(
     snp.array((hist.Prml_Rsdl, hist.Dual_Rsdl)).T,
-    ptyp="semilogy",
+    ylog=True,
     title="Residuals",
-    xlbl="Iteration",
-    lgnd=("Primal", "Dual"),
+    xlabel="Iteration",
+    legend=("Primal", "Dual"),
 )
 
 
