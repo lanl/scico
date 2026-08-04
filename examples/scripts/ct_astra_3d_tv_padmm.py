@@ -5,8 +5,8 @@
 # with the package.
 
 r"""
-3D TV-Regularized Sparse-View CT Reconstruction (Proximal ADMM Solver)
-======================================================================
+3D TV-Regularized Sparse-View CT Reconstruction (Proximal ADMM Solver, ASTRA Projector)
+=======================================================================================
 
 This example demonstrates solution of a sparse-view, 3D CT
 reconstruction problem with isotropic total variation (TV)
