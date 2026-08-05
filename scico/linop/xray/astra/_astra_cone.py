@@ -28,6 +28,7 @@ from typing import Optional, Tuple
 import numpy as np
 
 import jax
+from jax.sharding import Sharding
 
 import astra
 
