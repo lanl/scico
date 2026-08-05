@@ -331,7 +331,7 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
         """
 
         def f(sino):
-            sino = _ensure_writeable(sino)
+            sino = np.array(sino)
             sino_id = astra.data3d.create("-sino", self.proj_geom, sino)
 
             # create memory for result
@@ -356,7 +356,14 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
             astra.data3d.delete(sino_id)
             return out
 
-        return jax.pure_callback(f, jax.ShapeDtypeStruct(self.input_shape, self.input_dtype), sino)
+        x = jax.pure_callback(
+            f,
+            jax.ShapeDtypeStruct(self.input_shape, self.input_dtype),
+            jax.device_put(sino, device=self.cpu_dev),
+        )
+        if self.input_sharding is not None:
+            x = jax.device_put(x, device=self.input_sharding)
+        return x
 
 
 def angle_to_vector_cone(
