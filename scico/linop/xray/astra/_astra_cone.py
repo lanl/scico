@@ -29,15 +29,7 @@ import numpy as np
 
 import jax
 
-try:
-    import astra
-except ModuleNotFoundError as e:
-    if e.name == "astra":
-        new_e = ModuleNotFoundError("Could not import astra; please install the ASTRA toolbox.")
-        new_e.name = "astra"
-        raise new_e from e
-    else:
-        raise e
+import astra
 
 from scico.linop import LinearOperator
 from scico.typing import Shape
