@@ -416,13 +416,13 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
                `projection geometry <astra-proj-geom3_>`__.
             det_spacing: Spacing between detector elements in the
                `projection geometry <astra-proj-geom3_>`__.
-            det_offset: Offset of the the detector center as a tuple
+            det_offset: Offset of the detector center as a tuple
                (horizontal shift, vertical shift). Negative/positive
                values correspond to left/right and up/down detector
                shifts (i.e. right/left and down/up shifts of the
                projection within the image) respectively.
             angles: Array of projection angles in radians. This
-                parameter is  mutually exclusive with `vectors`.
+                parameter is mutually exclusive with `vectors`.
             vectors: Array of ASTRA geometry specification vectors. This
                 parameter is mutually exclusive with `angles`.
             input_sharding: Sharding for operator input (output of adjoint).
@@ -547,7 +547,7 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
         return vol_geom, proj_geom
 
     def _proj(self, x: jax.Array) -> jax.Array:
-        # apply the forward projector and generate a sinogram
+        """Apply the forward projector and generate a sinogram."""
 
         def f(x):
             x = np.array(x)
@@ -565,7 +565,8 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
         return y
 
     def _bproj(self, y: jax.Array) -> jax.Array:
-        # apply backprojector
+        """Apply backprojector."""
+
         def f(y):
             y = np.array(y)
             proj_id, result = astra.create_backprojection3d_gpu(y, self.proj_geom, self.vol_geom)
