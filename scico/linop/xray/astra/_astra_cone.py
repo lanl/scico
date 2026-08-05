@@ -35,19 +35,6 @@ from scico.linop import LinearOperator
 from scico.typing import Shape
 
 
-def _ensure_writeable(x):
-    """Ensure that `x.flags.writeable` is ``True``, copying if needed."""
-    if hasattr(x, "flags"):  # x is a numpy array
-        if not x.flags.writeable:
-            try:
-                x.setflags(write=True)
-            except ValueError:
-                x = x.copy()
-    else:  # x is a jax array (which is immutable)
-        x = np.array(x)
-    return x
-
-
 class XRayTransform3DCone(LinearOperator):  # pragma: no cover
     r"""3D cone beam X-ray transform based on the ASTRA toolbox.
 
@@ -104,6 +91,8 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
         source_dist: Optional[float] = None,
         det_dist: Optional[float] = None,
         vectors: Optional[np.ndarray] = None,
+        input_sharding: Optional[Sharding] = None,
+        output_sharding: Optional[Sharding] = None,
     ):
         """
         .. _astra-proj-geom3: https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries
@@ -134,6 +123,8 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
                 parameter is mutually exclusive with `angles`. Each row
                 should contain 12 values: source position (3), detector
                 center (3), u vector (3), v vector (3).
+            input_sharding: Sharding for operator input (output of adjoint).
+            output_sharding: Sharding for operator output (input of adjoint).
 
         Raises:
             RuntimeError: If a CUDA GPU is not available to the ASTRA
@@ -189,6 +180,10 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
             self.angles = None
             self.source_dist = None
             self.det_dist = None
+
+        self.input_sharding = input_sharding
+        self.output_sharding = output_sharding
+        self.cpu_dev = jax.devices("cpu")[0]
 
         output_shape: Shape = (det_count[0], Nview, det_count[1])
 
@@ -286,23 +281,37 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
         """Apply the forward projector and generate a sinogram."""
 
         def f(x):
-            x = _ensure_writeable(x)
+            x = np.array(x)
             proj_id, result = astra.create_sino3d_gpu(x, self.proj_geom, self.vol_geom)
             astra.data3d.delete(proj_id)
             return result
 
-        return jax.pure_callback(f, jax.ShapeDtypeStruct(self.output_shape, self.output_dtype), x)
+        y = jax.pure_callback(
+            f,
+            jax.ShapeDtypeStruct(self.output_shape, self.output_dtype),
+            jax.device_put(x, device=self.cpu_dev),
+        )
+        if self.output_sharding is not None:
+            y = jax.device_put(y, device=self.output_sharding)
+        return y
 
     def _bproj(self, y: jax.Array) -> jax.Array:
         """Apply backprojector."""
 
         def f(y):
-            y = _ensure_writeable(y)
+            y = np.array(y)
             proj_id, result = astra.create_backprojection3d_gpu(y, self.proj_geom, self.vol_geom)
             astra.data3d.delete(proj_id)
             return result
 
-        return jax.pure_callback(f, jax.ShapeDtypeStruct(self.input_shape, self.input_dtype), y)
+        x = jax.pure_callback(
+            f,
+            jax.ShapeDtypeStruct(self.input_shape, self.input_dtype),
+            jax.device_put(y, device=self.cpu_dev),
+        )
+        if self.input_sharding is not None:
+            x = jax.device_put(x, device=self.input_sharding)
+        return x
 
     def fdk(self, sino: jax.Array, **kwargs) -> jax.Array:
         """Feldkamp-Davis-Kress (FDK) reconstruction.
