@@ -364,9 +364,6 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
          - Vector from detector pixel (0,0) to (1,0) (direction of
            increasing detector row index)
 
-    Note that the components of these vectors are in `x`, `y`, `z` order,
-    not the `z`, `y`, `x` order of the volume axes.
-
     .. plot:: pyfigures/xray_3d_vec.py
        :align: center
        :include-source: False
@@ -375,6 +372,10 @@ class XRayTransform3D(LinearOperator):  # pragma: no cover
     Vector :math:`\mb{r}` is not illustrated to avoid cluttering the
     figure, but will typically be directed toward the center of the
     detector (i.e. in the direction of :math:`\mb{d}` in the figure.)
+
+    Note that the components of these vectors are in `x`, `y`, `z` order,
+    not the `z`, `y`, `x` order of the volume axes.
+
     Since the volume-detector distance does not have a geometric effect
     for a parallel-beam configuration, :math:`\mb{d}` may be set to the
     zero vector when the detector and beam centers coincide (e.g., as in

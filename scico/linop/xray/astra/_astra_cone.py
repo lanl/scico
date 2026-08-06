@@ -77,9 +77,25 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
          - Vector from detector pixel (0,0) to (1,0) (direction of
            increasing detector row index)
 
+    .. plot:: pyfigures/xray_cone_vec.py
+       :align: center
+       :include-source: False
+       :show-source-link: False
+
+    Note that the components of these vectors are in `x`, `y`, `z` order,
+    not the `z`, `y`, `x` order of the volume axes.
+
+    Note also that the view images must be displayed with the origin at
+    the bottom left (i.e. vertically inverted from the top left origin
+    image indexing convention) in order for the row indexing of the
+    projections to correspond to the direction of :math:`\mb{v}` in the
+    figure.
+
     These vectors are concatenated into a single row vector
-    :math:`(\mb{s}, \mb{d}, \mb{u}, \mb{v})` to form the full
-    geometry specification for a single view.
+    :math:`(\mb{r}, \mb{d}, \mb{u}, \mb{v})` to form the full
+    geometry specification for a single view, and multiple such
+    row vectors are stacked to specify the geometry for a set
+    of views.
     """
 
     def __init__(
