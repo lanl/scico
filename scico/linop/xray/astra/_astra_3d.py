@@ -187,16 +187,18 @@ def convert_from_scico_geometry(
 ) -> np.ndarray:
     """Convert SCICO projection matrices into ASTRA "parallel3d_vec" vectors.
 
+    .. _astra-p3dv: https://astra-toolbox.com/docs/geom3d.html#parallel3d-vec
+
     For 3D arrays,
     in ASTRA, the dimensions go (slices, rows, columns) and (z, y, x);
     in SCICO, the dimensions go (x, y, z).
 
-    In ASTRA, the x-grid (recon) is centered on the origin and the y-grid (projection) can move.
-    In SCICO, the x-grid origin is the center of x[0, 0, 0], the y-grid origin is the center
-    of y[0, 0].
+    In ASTRA, the x-grid (recon) is centered on the origin and the y-grid
+    (projection) can move. In SCICO, the x-grid origin is the center of
+    x[0, 0, 0], the y-grid origin is the center of y[0, 0].
 
-    See section "parallel3d_vec" in the
-    `astra documentation <https://astra-toolbox.com/docs/geom3d.html#projection-geometries>`__.
+    For further details, see the ASTRA `parallel3d_vec <astra-p3dv_>`__
+    documentation.
 
     Args:
         in_shape: Shape of input image.
@@ -204,7 +206,8 @@ def convert_from_scico_geometry(
         det_shape: Shape of detector.
 
     Returns:
-        (num_angles, 12) vector array in the ASTRA "parallel3d_vec" convention.
+        (num_angles, 12) vector array in the ASTRA
+        `parallel3d_vec <astra-p3dv_>`__ convention.
     """
     # ray is perpendicular to projection axes
     ray = np.cross(matrices[:, 0, :3], matrices[:, 1, :3])
@@ -231,8 +234,10 @@ def convert_from_scico_geometry(
 def _astra_to_scico_geometry(vol_geom: VolumeGeometry, proj_geom: ProjectionGeometry) -> np.ndarray:
     """Convert ASTRA geometry objects into a SCICO projection matrix.
 
+    .. _astra-p3dv: https://astra-toolbox.com/docs/geom3d.html#parallel3d-vec
+
     Convert ASTRA volume and projection geometry into a SCICO X-ray
-    projection matrix, assuming "parallel3d_vec" format.
+    projection matrix, assuming `parallel3d_vec <astra-p3dv_>`__ format.
 
     The approach is to locate 3 points in the volume domain,
     deduce the corresponding projection locations, and, then, solve a
@@ -268,22 +273,25 @@ def convert_to_scico_geometry(
 ) -> np.ndarray:
     """Convert X-ray geometry specification to a SCICO projection matrix.
 
+    .. _astra-p3dv: https://astra-toolbox.com/docs/geom3d.html#parallel3d-vec
+
+    .. _astra-proj-geom3: https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries
+
     The approach is to locate 3 points in the volume domain,
     deduce the corresponding projection locations, and, then, solve a
     linear system to determine the affine relationship between them.
 
     Args:
         input_shape: Shape of the input array.
-        det_count: Number of detector elements. See the
-           `astra documentation <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
-           for more information.
-        det_spacing: Spacing between detector elements. See the
-           `astra documentation <https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries>`__
-           for more information.
+        det_count: Number of detector elements in the
+               `projection geometry <astra-proj-geom3_>`__.
+        det_spacing: Spacing between detector elements in the
+               `projection geometry <astra-proj-geom3_>`__.
         angles: Array of projection angles in radians. This parameter is
             mutually exclusive with `vectors`.
-        vectors: Array of ASTRA geometry specification vectors. This
-            parameter is mutually exclusive with `angles`.
+        vectors: Array of ASTRA geometry `parallel3d_vec <astra-p3dv_>`__
+            specification vectors. This parameter is mutually exclusive
+            with `angles`.
 
     Returns:
         (num_angles, 2, 4) array of homogeneous projection matrices.
