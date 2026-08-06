@@ -19,7 +19,7 @@ from jax.scipy.ndimage import map_coordinates
 from jax.typing import ArrayLike
 
 try:
-    pass
+    from .astra import XRayTransform2D
 
     have_astra = True
 except ModuleNotFoundError as e:
@@ -189,7 +189,7 @@ def image_alignment_rotation(
     det_count = int(
         1.05 * (img.shape[0] * np.sin(max_angle_rad) + img.shape[1] * np.cos(max_angle_rad))
     )
-    A = scico.linop.xray.astra.XRayTransform2D(
+    A = XRayTransform2D(
         img.shape,
         det_count=det_count,
         det_spacing=1.0,
