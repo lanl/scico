@@ -75,3 +75,5 @@ class ConfigDict(TypedDict):
     eval_step_fn: Callable
     #: List of post-processing functions to apply after a train step (if any).
     post_lst: List[Callable]
+    #: Size of buffer for shuffling data for large trainig sets
+    shuffle_buffer_size: int

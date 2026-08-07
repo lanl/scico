@@ -11,6 +11,7 @@
 
 Assumes sharded batched data and uses data parallel training.
 """
+from functools import partial
 from typing import Callable, Optional
 
 import jax
@@ -83,25 +84,36 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
 
     def configure_data_iterators(
         self,
+        config: ConfigDict,
     ):
         """Configure data iterators.
 
         Generate training data set only from inputs.
 
+        Args:
+            config: Hyperparameter configuration.
         """
+        # Define buffer size for shuffling
+        if "shuffle_buffer_size" in config:
+            shuffle_buffer_size: int = config["shuffle_buffer_size"]
+        else:
+            shuffle_buffer_size: int = 20000
+
+        # Define data iterators depending on conditioning function
         if self.model.conditioner is None:
-            self.dt_iterator_fn: Callable = iterate_x_dataset
+            self.dt_iterator_fn: Callable = partial(
+                iterate_x_dataset, shuffle_buffer_size=shuffle_buffer_size
+            )
             # Connect data iterators with train/eval steps (for data sharding)
             self.one_train_epoch_fn: Callable = self.one_train_epoch_x
             self.one_eval_epoch_fn: Callable = self.one_eval_epoch_x
         else:
-            self.dt_iterator_fn: Callable = iterate_xy_dataset
+            self.dt_iterator_fn: Callable = partial(
+                iterate_xy_dataset, shuffle_buffer_size=shuffle_buffer_size
+            )
             # Connect data iterators with train/eval steps (for data sharding)
             self.one_train_epoch_fn: Callable = self.one_train_epoch_xy
             self.one_eval_epoch_fn: Callable = self.one_eval_epoch_xy
-
-        # Estimate number of batches per epoch
-        self.nbatches = self.train_ds["image"].shape[0] // self.batch_size
 
         self.log_data_snapshot()
 
@@ -121,9 +133,11 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
         """
         shuffle = True
         key, subkey1, subkey2 = jax.random.split(key, 3)
-        for batch in self.dt_iterator_fn(
-            self.train_ds, self.nbatches, self.batch_size, subkey1, shuffle
-        ):
+        # Convert JAX key to NumPy seed: safer conversion: extract raw key data
+        # JAX keys are typically uint32[2] arrays
+        key_data = jax.random.key_data(subkey1)
+        seed = int(key_data[0]) & 0x7FFFFFFF  # Ensure positive int32
+        for batch in self.dt_iterator_fn(self.train_ds, self.batch_size, shuffle, seed):
             # Shard data
             x = jax.device_put(batch, self.data_sharding)
             # Train
@@ -149,9 +163,11 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
         """
         shuffle = True
         key, subkey1, subkey2 = jax.random.split(key, 3)
-        for batch in self.dt_iterator_fn(
-            self.train_ds, self.nbatches, self.batch_size, subkey1, shuffle
-        ):
+        # Convert JAX key to NumPy seed: safer conversion: extract raw key data
+        # JAX keys are typically uint32[2] arrays
+        key_data = jax.random.key_data(subkey1)
+        seed = int(key_data[0]) & 0x7FFFFFFF  # Ensure positive int32
+        for batch in self.dt_iterator_fn(self.train_ds, self.batch_size, shuffle, seed):
             # Shard data
             x, y = jax.device_put(batch, self.data_sharding)
             # Train
@@ -175,8 +191,7 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
         """
         self.model.eval()  # Switch to eval mode
         shuffle = False
-        ntestbatches = self.test_ds["image"].shape[0] // self.batch_size
-        for batch in self.dt_iterator_fn(self.test_ds, ntestbatches, self.batch_size, shuffle):
+        for batch in self.dt_iterator_fn(self.test_ds, self.batch_size, shuffle):
             # Shard data
             x = jax.device_put(batch, self.data_sharding)
             # Eval step
@@ -200,8 +215,7 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
         """
         self.model.eval()  # Switch to eval mode
         shuffle = False
-        ntestbatches = self.test_ds["image"].shape[0] // self.batch_size
-        for batch in self.dt_iterator_fn(self.test_ds, ntestbatches, self.batch_size, shuffle):
+        for batch in self.dt_iterator_fn(self.test_ds, self.batch_size, shuffle):
             # Shard data
             x, y = jax.device_put(batch, self.data_sharding)
             # Eval step
