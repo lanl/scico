@@ -22,14 +22,13 @@ import jax
 from jax.experimental import mesh_utils
 from jax.typing import ArrayLike
 
-import optax
-
 from flax import nnx
 from scico.diagnostics import IterationStats
 
 from .checkpoints import checkpoint_restore, checkpoint_save
 from .diagnostics import ArgumentStruct, stats_obj
 from .input_pipeline import iterate_xy_dataset
+from .losses import mse_loss
 from .optax_utils import build_optax_optimizer
 from .steps import eval_step, jax_train_step  # , train_step_post
 from .typed_dict import ConfigDict, DataSetDict
@@ -206,7 +205,7 @@ class BasicFlaxNNXTrainer:
         if "criterion" in config:
             self.criterion: Callable = config["criterion"]
         else:
-            self.criterion = optax.l2_loss
+            self.criterion = mse_loss
 
         if "train_step_fn" in config:
             self.train_step_fn: Callable = config["train_step_fn"]
@@ -358,7 +357,8 @@ class BasicFlaxNNXTrainer:
 
         # Execute training loop and register stats
         shuffle = True
-        key = jax.random.PRNGKey(self.config["seed"])
+        if key is None:
+            key = jax.random.PRNGKey(self.config["seed"])
         t0 = time.time()
         for epoch in range(epochs_offset, self.train_epochs):
             loss, state, key = self.one_train_epoch_fn(graphdef, state, key)
