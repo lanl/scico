@@ -114,19 +114,21 @@ class ConditionalUNet(nnx.Module):
         for ind, (feat_in, feat_out) in enumerate(in_out_f):
 
             downs.append(
-                [
-                    block_klass(feat_in, feat_in, time_emb_dim=time_dim, rngs=rngs),
-                    block_klass(feat_in, feat_in, time_emb_dim=time_dim, rngs=rngs),
-                    Residual(PreNorm(feat_in, LinearAttention(feat_in, rngs=rngs), rngs=rngs)),
-                    (
-                        Downsample(
-                            feat_in,
-                            feat_out,
-                            factor=self.dim_mults[ind],
-                            rngs=rngs,
-                        )
-                    ),
-                ]
+                nnx.List(
+                    [
+                        block_klass(feat_in, feat_in, time_emb_dim=time_dim, rngs=rngs),
+                        block_klass(feat_in, feat_in, time_emb_dim=time_dim, rngs=rngs),
+                        Residual(PreNorm(feat_in, LinearAttention(feat_in, rngs=rngs), rngs=rngs)),
+                        (
+                            Downsample(
+                                feat_in,
+                                feat_out,
+                                factor=self.dim_mults[ind],
+                                rngs=rngs,
+                            )
+                        ),
+                    ]
+                )
             )
 
         # Configure bottleneck of Unet.
@@ -139,18 +141,20 @@ class ConditionalUNet(nnx.Module):
         for ind, (feat_in, feat_out) in enumerate(reversed(in_out_f)):
 
             ups.append(
-                [
-                    block_klass(2 * feat_in, feat_in, time_emb_dim=time_dim, rngs=rngs),
-                    block_klass(2 * feat_in, feat_in, time_emb_dim=time_dim, rngs=rngs),
-                    Residual(PreNorm(feat_in, LinearAttention(feat_in, rngs=rngs), rngs=rngs)),
-                    (
-                        partial(
-                            Upsample,
-                            ftrs=feat_out,
-                            ftrs_out=feat_in,
-                        )
-                    ),
-                ]
+                nnx.List(
+                    [
+                        block_klass(2 * feat_in, feat_in, time_emb_dim=time_dim, rngs=rngs),
+                        block_klass(2 * feat_in, feat_in, time_emb_dim=time_dim, rngs=rngs),
+                        Residual(PreNorm(feat_in, LinearAttention(feat_in, rngs=rngs), rngs=rngs)),
+                        (
+                            partial(
+                                Upsample,
+                                ftrs=feat_out,
+                                ftrs_out=feat_in,
+                            )
+                        ),
+                    ]
+                )
             )
 
         self.downs = downs
