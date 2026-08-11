@@ -140,3 +140,31 @@ class DnCNN(Functional):
             Denoised output.
         """
         return self._denoise(x, lam)
+
+
+class CondUNetDenoiser(Functional):
+    """Pseudo-functional a conditional UNet denoiser prox.
+
+    A pseudo-functional that has a conditional UNet denoiser as its
+    proximal operator, implemented via :class:`.denoiser.CondUNetDenoiser`.
+    """
+
+    has_eval = False
+    has_prox = True
+
+    def __init__(self):
+        self.cudenoiser = denoiser.CondUNetDenoiser()
+
+    def prox(self, x: Array, lam: float = 1.0, **kwargs) -> Array:  # type: ignore
+        r"""Apply conditional UNet  denoiser.
+
+        Args:
+            x: Input array.
+            lam: Noise parameter.
+            **kwargs: Additional arguments that may be used by derived
+                classes.
+
+        Returns:
+            Denoised output.
+        """
+        return self.cudenoiser(x, lam)

@@ -31,7 +31,7 @@ from ._norm import (
 from ._tvnorm import AnisotropicTVNorm, IsotropicTVNorm, TVNorm
 from ._proxavg import ProximalAverage
 from ._indicator import NonNegativeIndicator, L2BallIndicator, BoxIndicator
-from ._denoiser import BM3D, BM4D, DnCNN
+from ._denoiser import BM3D, BM4D, DnCNN, CondUNetDenoiser
 from ._dist import SetDistance, SquaredSetDistance
 
 __all__ = [
@@ -61,6 +61,7 @@ __all__ = [
     "BM3D",
     "BM4D",
     "DnCNN",
+    "CondUNetDenoiser",
 ]
 
 # Imported items in __all__ appear to originate in top-level functional module

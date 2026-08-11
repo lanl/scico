@@ -87,3 +87,16 @@ class TestNonBlindDnCNN:
         y0 = self.f.prox(self.x_mltchn, 0.7)
         y1 = self.dncnn(self.x_mltchn, 0.7)
         np.testing.assert_allclose(y0, y1, rtol=1e-5)
+
+
+class TestCondUNetDenoiser:
+    def setup_method(self):
+        key = None
+        self.x, key = randn((32, 33), key=key, dtype=np.float32)
+        self.den = denoiser.CondUNetDenoiser()
+        self.f = functional.CondUNetDenoiser()
+
+    def test_den(self):
+        y0 = self.f.prox(self.x, 0.5)
+        y1 = self.den(self.x, 0.5)
+        np.testing.assert_allclose(y0, y1, rtol=1e-5)
