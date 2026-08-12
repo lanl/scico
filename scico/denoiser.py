@@ -331,7 +331,7 @@ class CondUNetDenoiser:
         self.batch_size = map_batch_size
         filename = _flax_data_path("dncun.pkl.xz")
         with lzma.open(filename, "rb") as f:
-            model = load_model(model, f)
+            model = load_model(model, f)  # type: ignore
         self.model = model
 
     def __call__(self, x: snp.Array, sigma: float) -> snp.Array:
