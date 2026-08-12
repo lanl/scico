@@ -15,7 +15,6 @@ from functools import partial
 from typing import Optional, Tuple
 
 import jax.numpy as jnp
-from jax import jit
 from jax.typing import ArrayLike
 
 from flax import nnx
@@ -168,7 +167,7 @@ class ConditionalUNet(nnx.Module):
         )
         self.final_conv = nnx.Conv(features[0], self.out_channels, kernel_size=(1, 1), rngs=rngs)
 
-    @jit
+    @nnx.jit
     def __call__(self, x: ArrayLike, time: ArrayLike, x_self_cond: ArrayLike = None) -> ArrayLike:
         """Apply conditional Unet model.
 
