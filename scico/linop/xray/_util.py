@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2024-2025 by SCICO Developers
+# Copyright (C) 2024-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -19,7 +19,7 @@ from jax.scipy.ndimage import map_coordinates
 from jax.typing import ArrayLike
 
 try:
-    import scico.linop.xray.astra
+    from .astra import XRayTransform2D
 
     have_astra = True
 except ModuleNotFoundError as e:
@@ -189,7 +189,7 @@ def image_alignment_rotation(
     det_count = int(
         1.05 * (img.shape[0] * np.sin(max_angle_rad) + img.shape[1] * np.cos(max_angle_rad))
     )
-    A = scico.linop.xray.astra.XRayTransform2D(
+    A = XRayTransform2D(
         img.shape,
         det_count=det_count,
         det_spacing=1.0,

@@ -28,32 +28,12 @@ from typing import Optional, Tuple
 import numpy as np
 
 import jax
+from jax.sharding import Sharding
 
-try:
-    import astra
-except ModuleNotFoundError as e:
-    if e.name == "astra":
-        new_e = ModuleNotFoundError("Could not import astra; please install the ASTRA toolbox.")
-        new_e.name = "astra"
-        raise new_e from e
-    else:
-        raise e
+import astra
 
 from scico.linop import LinearOperator
 from scico.typing import Shape
-
-
-def _ensure_writeable(x):
-    """Ensure that `x.flags.writeable` is ``True``, copying if needed."""
-    if hasattr(x, "flags"):  # x is a numpy array
-        if not x.flags.writeable:
-            try:
-                x.setflags(write=True)
-            except ValueError:
-                x = x.copy()
-    else:  # x is a jax array (which is immutable)
-        x = np.array(x)
-    return x
 
 
 class XRayTransform3DCone(LinearOperator):  # pragma: no cover
@@ -97,9 +77,25 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
          - Vector from detector pixel (0,0) to (1,0) (direction of
            increasing detector row index)
 
+    .. plot:: pyfigures/xray_cone_vec.py
+       :align: center
+       :include-source: False
+       :show-source-link: False
+
+    Note that the components of these vectors are in `x`, `y`, `z` order,
+    not the `z`, `y`, `x` order of the volume axes.
+
+    Note also that the view images must be displayed with the origin at
+    the bottom left (i.e. vertically inverted from the top left origin
+    image indexing convention) in order for the row indexing of the
+    projections to correspond to the direction of :math:`\mb{v}` in the
+    figure.
+
     These vectors are concatenated into a single row vector
-    :math:`(\mb{s}, \mb{d}, \mb{u}, \mb{v})` to form the full
-    geometry specification for a single view.
+    :math:`(\mb{r}, \mb{d}, \mb{u}, \mb{v})` to form the full
+    geometry specification for a single view, and multiple such
+    row vectors are stacked to specify the geometry for a set
+    of views.
     """
 
     def __init__(
@@ -112,6 +108,8 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
         source_dist: Optional[float] = None,
         det_dist: Optional[float] = None,
         vectors: Optional[np.ndarray] = None,
+        input_sharding: Optional[Sharding] = None,
+        output_sharding: Optional[Sharding] = None,
     ):
         """
         .. _astra-proj-geom3: https://www.astra-toolbox.com/docs/geom3d.html#projection-geometries
@@ -142,6 +140,8 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
                 parameter is mutually exclusive with `angles`. Each row
                 should contain 12 values: source position (3), detector
                 center (3), u vector (3), v vector (3).
+            input_sharding: Sharding for operator input (output of adjoint).
+            output_sharding: Sharding for operator output (input of adjoint).
 
         Raises:
             RuntimeError: If a CUDA GPU is not available to the ASTRA
@@ -197,6 +197,10 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
             self.angles = None
             self.source_dist = None
             self.det_dist = None
+
+        self.input_sharding = input_sharding
+        self.output_sharding = output_sharding
+        self.cpu_dev = jax.devices("cpu")[0]
 
         output_shape: Shape = (det_count[0], Nview, det_count[1])
 
@@ -294,23 +298,37 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
         """Apply the forward projector and generate a sinogram."""
 
         def f(x):
-            x = _ensure_writeable(x)
+            x = np.array(x)
             proj_id, result = astra.create_sino3d_gpu(x, self.proj_geom, self.vol_geom)
             astra.data3d.delete(proj_id)
             return result
 
-        return jax.pure_callback(f, jax.ShapeDtypeStruct(self.output_shape, self.output_dtype), x)
+        y = jax.pure_callback(
+            f,
+            jax.ShapeDtypeStruct(self.output_shape, self.output_dtype),
+            jax.device_put(x, device=self.cpu_dev),
+        )
+        if self.output_sharding is not None:
+            y = jax.device_put(y, device=self.output_sharding)
+        return y
 
     def _bproj(self, y: jax.Array) -> jax.Array:
         """Apply backprojector."""
 
         def f(y):
-            y = _ensure_writeable(y)
+            y = np.array(y)
             proj_id, result = astra.create_backprojection3d_gpu(y, self.proj_geom, self.vol_geom)
             astra.data3d.delete(proj_id)
             return result
 
-        return jax.pure_callback(f, jax.ShapeDtypeStruct(self.input_shape, self.input_dtype), y)
+        x = jax.pure_callback(
+            f,
+            jax.ShapeDtypeStruct(self.input_shape, self.input_dtype),
+            jax.device_put(y, device=self.cpu_dev),
+        )
+        if self.input_sharding is not None:
+            x = jax.device_put(x, device=self.input_sharding)
+        return x
 
     def fdk(self, sino: jax.Array, **kwargs) -> jax.Array:
         """Feldkamp-Davis-Kress (FDK) reconstruction.
@@ -329,7 +347,7 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
         """
 
         def f(sino):
-            sino = _ensure_writeable(sino)
+            sino = np.array(sino)
             sino_id = astra.data3d.create("-sino", self.proj_geom, sino)
 
             # create memory for result
@@ -354,7 +372,14 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
             astra.data3d.delete(sino_id)
             return out
 
-        return jax.pure_callback(f, jax.ShapeDtypeStruct(self.input_shape, self.input_dtype), sino)
+        x = jax.pure_callback(
+            f,
+            jax.ShapeDtypeStruct(self.input_shape, self.input_dtype),
+            jax.device_put(sino, device=self.cpu_dev),
+        )
+        if self.input_sharding is not None:
+            x = jax.device_put(x, device=self.input_sharding)
+        return x
 
 
 def angle_to_vector_cone(
