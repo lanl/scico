@@ -367,7 +367,7 @@ class CondUNetDenoiser:
         else:
             x = x[..., np.newaxis]
 
-        fn = lambda z: self.model(z, sigma)
+        fn = lambda z: jax.lax.squeeze(self.model(jax.lax.expand_dims(z, (0,)), sigma), (0,))
         delta = jax.lax.map(fn, x, batch_size=self.batch_size)
         y = x + delta
         y = y.reshape(x_in_shape)
