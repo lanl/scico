@@ -11,9 +11,8 @@ from scico.metric import rel_res
 from scico.test.linop.test_linop import adjoint_test
 
 try:
-    from scico.linop.xray.astra_cone import (
+    from scico.linop.xray.astra import (
         XRayTransform3DCone,
-        _ensure_writeable,
         angle_to_vector_cone,
     )
 except ModuleNotFoundError as e:
@@ -450,12 +449,3 @@ def test_fdk():
     x_fdk = A.fdk(y)
 
     assert rel_res(x, np.clip(x_fdk, 0.0, 1.0)) < 0.3
-
-
-def test_ensure_writeable():
-    """Test the _ensure_writeable utility function."""
-    # Test with numpy array
-    assert isinstance(_ensure_writeable(np.ones((2, 1))), np.ndarray)
-
-    # Test with JAX array
-    assert isinstance(_ensure_writeable(snp.ones((2, 1))), np.ndarray)
