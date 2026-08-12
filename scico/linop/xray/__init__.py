@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2023-2025 by SCICO Developers
+# Copyright (C) 2023-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -53,11 +53,12 @@ other two transforms is
 There are more significant differences in the interfaces for the 3D SCICO
 and ASTRA transforms. The SCICO 3D transform :class:`.xray.XRayTransform3D`
 defines the projection geometry in terms of a set of projection matrices,
-while the geometry for the ASTRA 3D transform
-:class:`.astra.XRayTransform3D` may either be specified in terms of a set
-of view angles, or via a more general set of vectors specifying projection
-direction and detector orientation. A number of support functions are
-provided for convering between these conventions.
+while the geometry for the ASTRA 3D transforms
+:class:`.astra.XRayTransform3D` and :class:`.astra.XRayTransform3DCone`
+may either be specified in terms of a set of view angles, or via a more
+general set of vectors specifying projection direction and detector
+orientation. A number of support functions are provided for convering
+between these conventions.
 
 Note that the SCICO transform is implemented in JAX and can be run on
 both CPU and GPU devices, while the ASTRA transform is implemented in
@@ -74,7 +75,8 @@ from ._util import (
     rotate_volume,
     volume_alignment_rotation,
 )
-from ._xray import XRayTransform2D, XRayTransform3D
+from ._xray2d import XRayTransform2D
+from ._xray3d import XRayTransform3D
 
 __all__ = [
     "XRayTransform2D",

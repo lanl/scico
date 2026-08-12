@@ -6,16 +6,17 @@ import pytest
 
 import scico
 import scico.numpy as snp
-from scico.linop import DiagonalStack
-from scico.test.linop.test_linop import adjoint_test
 from scipy.spatial.transform import Rotation
 
 try:
     from scico.linop.xray.astra import (
-        XRayTransform2D,
         XRayTransform3D,
         angle_to_vector,
         rotate_vectors,
+    )
+    from scico.linop.xray.astra._astra_3d import (
+        _astra_to_scico_geometry,
+        _project_coords,
     )
 except ModuleNotFoundError as e:
     if e.name == "astra":
@@ -55,140 +56,6 @@ def get_tol_random_input():
     else:
         rtol = RTOL_GPU_RANDOM_INPUT  # astra more inaccurate in GPU for random inputs
     return rtol
-
-
-class XRayTransform2DTest:
-    def __init__(self, volume_geometry):
-        N_proj = 180  # number of projection angles
-        N_det = 384
-        det_spacing = 1
-        angles = np.linspace(0, np.pi, N_proj, False)
-
-        np.random.seed(1234)
-        self.x = np.random.randn(N, N).astype(np.float32)
-        self.y = np.random.randn(N_proj, N_det).astype(np.float32)
-        self.A = XRayTransform2D(
-            input_shape=(N, N),
-            det_count=N_det,
-            det_spacing=det_spacing,
-            angles=angles,
-            volume_geometry=volume_geometry,
-        )
-
-
-@pytest.fixture(params=[None, [-N / 2, N / 2, -N / 2, N / 2]])
-def testobj(request):
-    yield XRayTransform2DTest(request.param)
-
-
-def test_init(testobj):
-    with pytest.raises(ValueError):
-        A = XRayTransform2D(
-            input_shape=(16, 16, 16),
-            det_count=16,
-            det_spacing=1.0,
-            angles=np.linspace(0, np.pi, 32, False),
-        )
-    with pytest.raises(ValueError):
-        A = XRayTransform2D(
-            input_shape=(16, 16),
-            det_count=16.3,
-            det_spacing=1.0,
-            angles=np.linspace(0, np.pi, 32, False),
-        )
-    with pytest.raises(ValueError):
-        A = XRayTransform2D(
-            input_shape=(16, 16),
-            det_count=16,
-            det_spacing=1.0,
-            angles=np.linspace(0, np.pi, 32, False),
-            device="invalid",
-        )
-
-
-def test_2d_det_offset():
-    x = np.zeros((32, 32), dtype=np.float32)
-    x[8:-8, 8:-8] = 1.0
-    A = XRayTransform2D(x.shape, 40, 1.0, np.linspace(0, np.pi, 90))
-    shift = 4
-    As = XRayTransform2D(x.shape, 40, 1.0, np.linspace(0, np.pi, 90), shift)
-    y = A(x)
-    ys = As(x)
-    yss = np.roll(ys, shift, axis=1)
-    np.testing.assert_almost_equal(yss, y, decimal=4)
-
-
-def test_ATA_call(testobj):
-    # Test for the call-based interface
-    Ax = testobj.A(testobj.x)
-    ATAx = testobj.A.adj(Ax)
-    np.testing.assert_allclose(np.sum(testobj.x * ATAx), np.linalg.norm(Ax) ** 2, rtol=get_tol())
-
-
-def test_ATA_matmul(testobj):
-    # Test for the matmul interface
-    Ax = testobj.A @ testobj.x
-    ATAx = testobj.A.T @ Ax
-    np.testing.assert_allclose(np.sum(testobj.x * ATAx), np.linalg.norm(Ax) ** 2, rtol=get_tol())
-
-
-def test_AAT_call(testobj):
-    # Test for the call-based interface
-    ATy = testobj.A.adj(testobj.y)
-    AATy = testobj.A(ATy)
-    np.testing.assert_allclose(np.sum(testobj.y * AATy), np.linalg.norm(ATy) ** 2, rtol=get_tol())
-
-
-def test_AAT_matmul(testobj):
-    # Test for the matmul interface
-    ATy = testobj.A.T @ testobj.y
-    AATy = testobj.A @ ATy
-    np.testing.assert_allclose(np.sum(testobj.y * AATy), np.linalg.norm(ATy) ** 2, rtol=get_tol())
-
-
-def test_grad(testobj):
-    # ensure that we can take grad on a function using our projector
-    # grad || A(x) ||_2^2 == 2 A.T @ A x
-    A = testobj.A
-    x = testobj.x
-    g = lambda x: jax.numpy.linalg.norm(A(x)) ** 2
-    np.testing.assert_allclose(
-        scico.grad(g)(x), 2 * A.adj(A(x)), atol=get_tol() * x.max(), rtol=get_tol()
-    )
-
-
-def test_adjoint_grad(testobj):
-    A = testobj.A
-    x = testobj.x
-    Ax = A @ x
-    f = lambda y: jax.numpy.linalg.norm(A.T(y)) ** 2
-    np.testing.assert_allclose(scico.grad(f)(Ax), 2 * A(A.adj(Ax)), rtol=get_tol())
-
-
-def test_adjoint_random(testobj):
-    A = testobj.A
-    adjoint_test(A, rtol=10 * get_tol_random_input())
-
-
-def test_adjoint_typical_input(testobj):
-    A = testobj.A
-    x = make_im(A.input_shape[0], A.input_shape[1], is_3d=False)
-
-    adjoint_test(A, x=x, rtol=get_tol())
-
-
-def test_fbp(testobj):
-    x = testobj.A.fbp(testobj.y)
-    # Test for a bug (related to calling the Astra CPU FBP implementation
-    # when using a GPU device) that resulted in a constant zero output.
-    assert np.sum(np.abs(x)) > 0.0
-
-
-def test_jit_in_DiagonalStack():
-    """See https://github.com/lanl/scico/issues/331"""
-    N = 10
-    H = DiagonalStack([XRayTransform2D((N, N), N, 1.0, snp.linspace(0, snp.pi, N))])
-    H.T @ snp.zeros(H.output_shape, dtype=snp.float32)
 
 
 @pytest.mark.skipif(jax.devices()[0].platform != "gpu", reason="checking GPU behavior")
@@ -326,7 +193,7 @@ def test_project_coords(test_geometry):
     x_proj_gt = np.array(
         [[x_vol[1] - 2, x_vol[2] - 1]]
     )  # projection along slices removes first index
-    x_proj = scico.linop.xray.astra._project_coords(x_vol, vol_geom, proj_geom)
+    x_proj = _project_coords(x_vol, vol_geom, proj_geom)
     np.testing.assert_array_equal(x_proj_gt, x_proj)
 
 
@@ -335,7 +202,7 @@ def test_convert_to_scico_geometry(test_geometry):
     Basic regression test, `test_project_coords` tests the logic.
     """
     vol_geom, proj_geom = test_geometry
-    matrices_truth = scico.linop.xray.astra._astra_to_scico_geometry(vol_geom, proj_geom)
+    matrices_truth = _astra_to_scico_geometry(vol_geom, proj_geom)
     truth = np.array([[[0.0, 1.0, 0.0, -2.0], [0.0, 0.0, 1.0, -1.0]]])
     np.testing.assert_allclose(matrices_truth, truth)
 
