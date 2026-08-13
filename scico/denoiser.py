@@ -312,7 +312,11 @@ class DnCNN(FlaxMap):
 class CondUNetDenoiser:
     """Flax NNX implementation of a conditional UNet denoiser."""
 
-    def __init__(self):
+    def __init__(self, map_batch_size: int = 8):
+        r"""
+        Args:
+            map_batch_size: Batch size for processing across batch axis.
+        """
         model = ConditionalUNet(
             shape=(64, 64),
             channels=1,
@@ -324,9 +328,10 @@ class CondUNetDenoiser:
             ),
         )
 
+        self.batch_size = map_batch_size
         filename = _flax_data_path("dncun.pkl.xz")
         with lzma.open(filename, "rb") as f:
-            model = load_model(model, f)
+            model = load_model(model, f)  # type: ignore
         self.model = model
 
     def __call__(self, x: snp.Array, sigma: float) -> snp.Array:
@@ -362,7 +367,9 @@ class CondUNetDenoiser:
         else:
             x = x[..., np.newaxis]
 
-        y = x + self.model(x, sigma)
+        fn = lambda z: jax.lax.squeeze(self.model(jax.lax.expand_dims(z, (0,)), sigma), (0,))
+        delta = jax.lax.map(fn, x, batch_size=self.batch_size)
+        y = x + delta
         y = y.reshape(x_in_shape)
 
         return y
