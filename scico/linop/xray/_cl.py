@@ -15,7 +15,7 @@ import jax
 import jax.numpy as jnp
 from jax.scipy.signal import convolve
 
-from ._xray import XRayTransform3D as scicoXRayTransform3D
+from ._xray3d import XRayTransform3D as scicoXRayTransform3D
 
 try:  # scico.astra cannot be imported if astra is not installed
     from .astra import XRayTransform3D as astraXRayTransform3D
