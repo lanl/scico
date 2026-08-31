@@ -96,7 +96,6 @@ def _filter_projection(y: jax.Array, alpha: float) -> jax.Array:
     return hy[..., :-1]
 
 
-@jax.jit(static_argnums=(2,))
 def cl_fbp(
     y: jax.Array, alpha: float, X: Union[scicoXRayTransform3D, astraXRayTransform3D]
 ) -> jax.Array:
