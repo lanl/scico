@@ -617,7 +617,7 @@ def create_block_phantom(out_shape: Shape) -> np.ndarray:
 
 
 def _extract_blocks(
-    img: np.ndarray, blksz: Tuple[int, int], stpsz: Optional[Tuple[int, int]] = None
+    img: np.ndarray, blksz: Tuple[int, ...], stpsz: Optional[Tuple[int, ...]] = None
 ) -> np.ndarray:
     """Extract blocks from an ndarray image into an ndarray.
 
@@ -666,7 +666,7 @@ def create_laminar_phantom() -> np.ndarray:
     Returns:
         Laminar phantom.
     """
-    vol = np.zeros((64, 256, 256), dtype=np.float32)
+    vol: np.ndarray = np.zeros((64, 256, 256), dtype=np.float32)
 
     layer1 = np.zeros(vol.shape[1:])
     layer1blks = _extract_blocks(layer1, (48, 48), (64, 64))
