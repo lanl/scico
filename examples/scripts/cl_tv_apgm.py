@@ -29,7 +29,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 import scico.numpy as snp
 from scico import functional, linop, loss, metric, optimize
-from scico.examples import create_laminar_phantom
+from scico.examples import create_laminar_phantom, downsample_volume
 from scico.linop.xray import XRayTransform3D as scicoXRayTransform3D
 from scico.linop.xray import cl_angles_to_vecs, cl_fbp
 from scico.linop.xray.astra import XRayTransform3D as astraXRayTransform3D
@@ -42,7 +42,10 @@ have_gpu = True if jax.devices()[0].platform == "gpu" else False
 """
 Create a ground truth image.
 """
+downsampling_rate = 1
 x_gt = create_laminar_phantom()
+if downsampling_rate > 1:
+    x_gt = downsample_volume(x_gt, downsampling_rate)
 
 
 """
@@ -109,7 +112,7 @@ hist = solver.itstat_object.history(transpose=True)
 """
 Show the recovered image.
 """
-slice_index = 32
+slice_index = vol_shape[0] // 2
 fig, ax = kplt.subplots(nrows=1, ncols=3, layout="constrained", figsize=(15, 5))
 kplt.imview(x_gt[slice_index], title="Ground truth", show_cbar=None, cmap="viridis", ax=ax[0])
 kplt.imview(
