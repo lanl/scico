@@ -10,6 +10,7 @@ Version 0.0.8   (unreleased)
   ``BlockArray`` creation when they receive lists (currently ``device``).
 • New interface to ASTRA Toolbox cone beam X-ray projectors.
 • New functional ``functional.BoxIndicator``.
+• New functions supporting computed laminography reconstructions.
 • Module ``scico.plot`` deprecated.
 • Support ``jaxlib`` and ``jax`` versions 0.5.0 to 0.11.1.
 • Support ``flax`` versions 0.8.0 to 0.12.9.
