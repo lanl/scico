@@ -25,7 +25,8 @@ have_gpu = True if jax.devices()[0].platform == "gpu" else False
 
 def test_cl_angles_to_vecs():
     angles = np.array([0.0, np.pi / 2])
-    vecs = cl_angles_to_vecs(angles)
+    alpha = 65.0 * np.pi / 180.0
+    vecs = cl_angles_to_vecs(angles, alpha)
     assert vecs.shape == (2, 12)
 
 
