@@ -73,9 +73,9 @@ def _filter_projection(y: jax.Array, alpha: float) -> jax.Array:
     :cite:`myagotin-2013-efficient`).
 
     Args:
-        y: Projection array of shape (Nrow, Nview, Ncol) where Nview is
-           the number of views, and the sensor consists of Nrow
-           :math:`\times` Ncol pixiels.
+        y: Projection array of shape (Nrow, Nview, Ncol) or
+           (Nview, Nrow, Ncol) where Nview is the number of views, and
+           the sensor consists of Nrow :math:`\times` Ncol pixels.
         alpha: Laminography tilt angle (see angle :math:`\alpha` in Fig.
            3(a) in :cite:`aarle-2016-fast`) in radians.
 
@@ -91,7 +91,7 @@ def _filter_projection(y: jax.Array, alpha: float) -> jax.Array:
         jnp.where(nu % 2, -jnp.sin(jnp.abs(alpha)) / (2.0 * np.pi**2 * nu**2 + (nu == 0)), 0),
     )
 
-    # Convolve y with filter
+    # Convolve final axis of y with 1d filter
     hy = convolve(jnp.pad(y, ((0, 0), (0, 0), (0, 1))), h.reshape((1, 1, -1)), mode="same")
     return hy[..., :-1]
 
@@ -105,9 +105,12 @@ def cl_fbp(
     proposed in :cite:`myagotin-2013-efficient`.
 
     Args:
-        y: Projection array of shape (Nrow, Nview, Ncol) where Nview is
-           the number of views, and the sensor consists of Nrow
-           :math:`\times` Ncol pixels.
+        y: Projection array of shape (Nrow, Nview, Ncol) or
+           (Nview, Nrow, Ncol) where Nview is the number of views, and
+           the sensor consists of Nrow :math:`\times` Ncol pixels. The
+           former shape is required when `X` is of type
+           :class:`.astra.XRayTransform3D`, and the latter when `X` is of
+           type :class:`.xray.XRayTransform3D`.
         alpha: Laminography tilt angle (see angle :math:`\alpha` in Fig.
            3(a) in :cite:`aarle-2016-fast`) in radians.
         X: :class:`.xray.XRayTransform3D` or :class:`.astra.XRayTransform3D`
@@ -116,8 +119,10 @@ def cl_fbp(
     Returns:
         FBP reconstruction.
     """
+    # Filter is applied along final axis, which is the same for both
+    # scico and astra axis ordering in y
     yf = _filter_projection(y, alpha)
-    # scico projector order is (Nview, Nrow, Ncol) while astra order
+    # Scico projector order is (Nview, Nrow, Ncol) while astra order
     # is (Nrows, Nview, Ncol).
     n_proj = y.shape[0] if isinstance(X, scicoXRayTransform3D) else y.shape[1]
     x = (2 * np.pi / n_proj) * (X.T @ yf)
