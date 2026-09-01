@@ -8,18 +8,16 @@ r"""
 TV-Regularized Computed Laminography Reconstruction
 ===================================================
 
-This example demonstrates solution of a sparse-view CT reconstruction
-problem with isotropic total variation (TV) regularization
+This example demonstrates solution of a sparse-view computed laminography
+(CL) reconstruction problem with isotropic total variation (TV)
+regularization
 
   $$\mathrm{argmin}_{\mathbf{x}} \; (1/2) \| \mathbf{y} - A \mathbf{x}
   \|_2^2 + \lambda \| C \mathbf{x} \|_{2,1} \;,$$
 
-where $A$ is the X-ray transform (the CT forward projection operator),
-$\mathbf{y}$ is the sinogram, $C$ is a 2D finite difference operator, and
-$\mathbf{x}$ is the reconstructed image. This example uses the CT
-projector integrated into scico, while the companion
-[example script](ct_astra_tv_admm.rst) uses the projector provided by
-the astra package.
+where $A$ is the X-ray transform (the CL forward projection operator),
+$\mathbf{y}$ is the projection array, $C$ is a 3D finite difference
+operator, and $\mathbf{x}$ is the reconstructed volume.
 """
 
 import numpy as np
