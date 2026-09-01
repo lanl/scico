@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2023 by SCICO Developers
+# Copyright (C) 2022-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -10,7 +10,7 @@
 Assumes sharded batched data.
 """
 
-from typing import Callable, Dict, Tuple, Union
+from typing import Callable, Dict, List, Tuple, Union
 
 from scico.diagnostics import IterationStats
 
@@ -28,7 +28,7 @@ class ArgumentStruct:
 
 
 def create_itstat(
-    itstat_fields: IterationStats, itstat_attrib: Callable
+    itstat_fields: dict[str, str], itstat_attrib: List[str]
 ) -> Tuple[IterationStats, Callable]:
     """Function to create objects for logging training statistics.
 
@@ -47,7 +47,7 @@ def create_itstat(
     itstat_return = "return(" + ", ".join(["obj." + attr for attr in itstat_attrib]) + ")"
     scope: Dict[str, Callable] = {}
     exec("def itstat_func(obj): " + itstat_return, scope)
-    default_itstat_options: Dict[str, Union[dict, Callable, bool]] = {
+    default_itstat_options: Dict[str, Union[dict[str, str], Callable, bool]] = {
         "fields": itstat_fields,
         "itstat_func": scope["itstat_func"],
         "display": True,
