@@ -583,11 +583,10 @@ def create_block_phantom(out_shape: Shape) -> np.ndarray:
     """Construct a blocky 3D phantom.
 
     Args:
-        out_shape: desired phantom shape.
+        out_shape: Desired phantom shape.
 
     Returns:
         Phantom.
-
     """
     # make the phantom at a low resolution
     low_res = np.array(
@@ -607,10 +606,13 @@ def create_block_phantom(out_shape: Shape) -> np.ndarray:
                 [0.0, 0.0, 0.0],
                 [0.0, 0.0, 0.0],
             ],
-        ]
+        ],
+        dtype=np.float32,
     )
     positions = np.stack(
-        np.meshgrid(*[np.linspace(-0.5, 2.5, s) for s in out_shape], indexing="ij")
+        np.meshgrid(
+            *[np.linspace(-0.5, 2.5, s, dtype=np.float32) for s in out_shape], indexing="ij"
+        )
     )
     indices = np.round(positions).astype(int)
     return low_res[indices[0], indices[1], indices[2]]
