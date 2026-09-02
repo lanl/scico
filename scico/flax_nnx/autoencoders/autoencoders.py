@@ -11,7 +11,7 @@ import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
-from typing import Callable, Optional, Sequence, Tuple
+from typing import Callable, List, Tuple, Union
 
 from numpy import prod
 
@@ -37,10 +37,11 @@ class Encoder(nnx.Module):
         Args:
             kwargs: Keyword arguments.
         """
-        super().__init__()
+        super().__init__(**kwargs)
+        self.dim_latent: int = 0
 
     @property
-    def latent_dim(self):
+    def latent_dim(self) -> int:
         """Expose the latent dimension attribute as a property (getter)."""
         return self.dim_latent
 
@@ -103,7 +104,9 @@ class AutoEncoder(nnx.Module):
         x = self.decoder(x)
         return x
 
-    def __call__(self, x: ArrayLike, latent_rep: bool = False) -> Tuple[ArrayLike, ArrayLike]:
+    def __call__(
+        self, x: ArrayLike, latent_rep: bool = False
+    ) -> Union[ArrayLike, Tuple[ArrayLike, ArrayLike]]:
         """Apply sequence of encoder and decoder modules.
 
         Args:
@@ -128,7 +131,7 @@ class MLPEncoder(Encoder):
     def __init__(
         self,
         dim_in: int,
-        widths_encoder: Sequence[int],
+        widths_encoder: List[int],
         dim_latent: int,
         activation_fn: Callable = nnx.leaky_relu,
         batch_norm: bool = False,
@@ -162,7 +165,7 @@ class MLPEncoder(Encoder):
             rngs=rngs,
         )
 
-    def __call__(self, x: ArrayLike) -> ArrayLike:
+    def __call__(self, x: ArrayLike, *args) -> ArrayLike:
         """Apply dense encoder.
 
         Args:
@@ -171,7 +174,7 @@ class MLPEncoder(Encoder):
         Returns:
             The encoded array.
         """
-        return self.mlp(x)
+        return self.mlp(x, *args)
 
 
 class MLPDecoder(Decoder):
@@ -180,8 +183,8 @@ class MLPDecoder(Decoder):
     def __init__(
         self,
         dim_latent: int,
-        widths_decoder: Sequence[int],
-        shape_out: Tuple[int],
+        widths_decoder: List[int],
+        shape_out: Tuple[int, int, int],
         activation_fn: Callable = nnx.leaky_relu,
         batch_norm: bool = False,
         reshape_final: bool = True,
@@ -225,7 +228,7 @@ class MLPDecoder(Decoder):
             rngs=rngs,
         )
 
-    def __call__(self, x: ArrayLike) -> ArrayLike:
+    def __call__(self, x: ArrayLike, *args) -> ArrayLike:
         """Apply dense encoder.
 
         Args:
@@ -234,7 +237,7 @@ class MLPDecoder(Decoder):
         Returns:
             The encoded array.
         """
-        x = self.mlp(x)
+        x = self.mlp(x, *args)
         if self.reshape_final:
             x = x.reshape((x.shape[0],) + self.shape_out)
         return x
@@ -242,10 +245,10 @@ class MLPDecoder(Decoder):
 
 def MLPAutoEncoder(
     dim_in: int,
-    widths_encoder: Tuple[int],
+    widths_encoder: List[int],
     dim_latent: int,
-    widths_decoder: Tuple[int],
-    shape_out: Tuple[int],
+    widths_decoder: List[int],
+    shape_out: Tuple[int, int, int],
     activation_fn: Callable = nnx.leaky_relu,
     batch_norm: bool = False,
     rngs: nnx.Rngs = nnx.Rngs(0),
@@ -300,11 +303,11 @@ class ConvEncoder(Encoder):
 
     def __init__(
         self,
-        shape_in: Tuple[int],
+        shape_in: Tuple[int, int],
         channels: int,
-        filters_encoder: Sequence[int],
+        filters_encoder: List[int],
         flat_latent: bool = False,
-        dim_latent: Optional[int] = None,
+        dim_latent: int = 0,
         kernel_size: Tuple[int, int] = (3, 3),
         strides: Tuple[int, int] = (2, 2),
         activation_fn: Callable = nnx.leaky_relu,
@@ -348,7 +351,7 @@ class ConvEncoder(Encoder):
         d1 = shape_in[1] // divisor
         self.shape_latent = (d0, d1, filters_encoder[-1])
         self.flat_latent = flat_latent
-        if flat_latent and dim_latent is not None:
+        if flat_latent and dim_latent > 0:
             size_pre_latent = int(prod(self.shape_latent))
             self.linear_latent = nnx.Linear(size_pre_latent, dim_latent, rngs=rngs)
             self.dim_latent = dim_latent
@@ -369,15 +372,15 @@ class ConvDecoder(Decoder):
 
     def __init__(
         self,
-        filters_decoder: Sequence[int],
-        shape_latent: Tuple[int],
+        filters_decoder: List[int],
+        shape_latent: Tuple[int, int, int],
         channels: int,
         flat_latent: bool = False,
-        dim_latent: Optional[int] = None,
+        dim_latent: int = 0,
         kernel_size: Tuple[int, int] = (3, 3),
         strides: Tuple[int, int] = (2, 2),
         activation_fn: Callable = nnx.leaky_relu,
-        batch_norm=False,
+        batch_norm: bool = False,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
         """Initialize ConvDecoder model.
@@ -404,7 +407,7 @@ class ConvDecoder(Decoder):
         self.shape_latent = shape_latent
         self.flat_latent = flat_latent
 
-        if flat_latent and dim_latent is not None:
+        if flat_latent and dim_latent > 0:
             len_latent = int(prod(shape_latent))
             self.initial_layer = nnx.Linear(dim_latent, len_latent, rngs=rngs)
             self.dim_latent = dim_latent
@@ -431,12 +434,12 @@ class ConvDecoder(Decoder):
 
 
 def ConvAutoEncoder(
-    shape_in: Tuple[int],
+    shape_in: Tuple[int, int],
     channels: int,
-    filters_encoder: Sequence[int],
-    filters_decoder: Sequence[int],
+    filters_encoder: List[int],
+    filters_decoder: List[int],
     flat_latent: bool = False,
-    dim_latent: Optional[int] = None,
+    dim_latent: int = 0,
     kernel_size_encoder: Tuple[int, int] = (3, 3),
     strides_encoder: Tuple[int, int] = (2, 2),
     activation_fn_encoder: Callable = nnx.leaky_relu,

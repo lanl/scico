@@ -8,7 +8,7 @@
 """Definition of typed dictionaries for objects in training functionality."""
 
 import sys
-from typing import Callable, List
+from typing import Any, Callable, List
 
 if sys.version_info >= (3, 8):
     from typing import TypedDict  # pylint: disable=no-name-in-module
@@ -77,3 +77,5 @@ class ConfigDict(TypedDict):
     post_lst: List[Callable]
     #: Size of buffer for shuffling data for large trainig sets
     shuffle_buffer_size: int
+    #: Function to create objects for logging training statistics.
+    stats_obj: Any  # type: ignore

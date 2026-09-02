@@ -87,6 +87,8 @@ class ConfigDict(TypedDict):
     eval_step_fn: Callable
     #: Function to track metrics during training.
     metrics_fn: Callable
+    #: Function to create objects for logging training statistics.
+    stats_obj: Any  # type: ignore
     #: List of post-processing functions to apply after a train step (if any).
     post_lst: List[Callable]
 

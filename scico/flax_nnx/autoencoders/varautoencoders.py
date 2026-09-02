@@ -11,7 +11,8 @@ import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
-from typing import Callable, Optional, Sequence, Tuple
+
+from typing import Callable, List, Optional, Tuple
 
 from numpy import prod
 
@@ -147,7 +148,7 @@ class VAE(nnx.Module):
         self,
         encoder: Encoder,
         decoder: Decoder,
-        conditioner: Optional[Encoder] = None,
+        conditioner: Optional[Encoder] = None,  # for mypy type checking
     ):
         """Initialize VAE.
         Args:
@@ -163,6 +164,14 @@ class VAE(nnx.Module):
         self.encoder = encoder
         self.decoder = decoder
         self.conditioner = conditioner
+
+    @property
+    def has_conditioner(self) -> bool:
+        """Check if the VAE has a conditioner."""
+        if self.conditioner is None:
+            return False
+        else:
+            return True
 
     def encode(self, x: ArrayLike) -> Tuple[ArrayLike, ArrayLike]:
         """Variational encoding.
@@ -231,17 +240,17 @@ class VAE(nnx.Module):
 
 def MLPVarAutoEncoder(
     dim_in: int,
-    widths_mean_encoder: Tuple[int],
-    widths_logvar_encoder: Tuple[int],
+    widths_mean_encoder: List[int],
+    widths_logvar_encoder: List[int],
     dim_latent: int,
-    widths_decoder: Tuple[int],
-    shape_out: Tuple[int],
+    widths_decoder: List[int],
+    shape_out: Tuple[int, int, int],
     activation_fn: Callable = nnx.leaky_relu,
     batch_norm: bool = False,
     conditional: bool = False,
-    dim_cond_in: int = None,
-    widths_condproc_encoder: Optional[Tuple[int]] = None,
-    widths_cond_encoder: Optional[Tuple[int]] = None,
+    dim_cond_in: int = 0,
+    widths_condproc_encoder: List[int] = [],
+    widths_cond_encoder: List[int] = [],
     rngs: nnx.Rngs = nnx.Rngs(0),
 ):
     """Function to construct variational autoencoder network using multi
@@ -309,8 +318,8 @@ def MLPVarAutoEncoder(
 
     conditioner = None
     if conditional:
-        assert widths_condproc_encoder is not None
-        assert widths_cond_encoder is not None
+        assert len(widths_condproc_encoder) > 0
+        assert len(widths_cond_encoder) > 0
         # Build components for conditioning
         proc_block = MLPEncoder(
             dim_latent,
@@ -335,30 +344,30 @@ def MLPVarAutoEncoder(
 
 
 def ConvVarAutoEncoder(
-    shape_in: Tuple[int],
+    shape_in: Tuple[int, int],
     channels: int,
-    filters_mean_encoder: Sequence[int],
-    filters_logvar_encoder: Sequence[int],
-    filters_decoder: Sequence[int],
+    filters_mean_encoder: List[int],
+    filters_logvar_encoder: List[int],
+    filters_decoder: List[int],
     kernel_size_mean_encoder: Tuple[int, int] = (3, 3),
     kernel_size_logvar_encoder: Tuple[int, int] = (3, 3),
     kernel_size_decoder: Tuple[int, int] = (3, 3),
     activation_fn: Callable = nnx.leaky_relu,
     batch_norm: bool = False,
     flat_latent: bool = False,
-    dim_latent: Optional[int] = None,
+    dim_latent: int = 0,
     conditional: bool = False,
     mode_cond: str = "conv",
-    filters_condproc_decoder: Optional[Tuple[int]] = None,
-    kernel_size_condproc_decoder: Optional[Tuple[int, int]] = (3, 3),
-    strides_condproc_decoder: Optional[Tuple[int, int]] = (1, 1),
-    shape_cond_in: Optional[Tuple[int]] = None,
-    channels_cond: Optional[int] = None,
-    filters_cond_encoder: Optional[Tuple[int]] = None,
-    kernel_size_cond_encoder: Optional[Tuple[int, int]] = (3, 3),
-    widths_condproc_encoder: Optional[Tuple[int]] = None,
-    dim_cond_in: Optional[int] = None,
-    widths_cond_encoder: Optional[Tuple[int]] = None,
+    filters_condproc_decoder: List[int] = [],
+    kernel_size_condproc_decoder: Tuple[int, int] = (3, 3),
+    strides_condproc_decoder: Tuple[int, int] = (1, 1),
+    shape_cond_in: Tuple[int, int] = (0, 0),
+    channels_cond: int = 0,
+    filters_cond_encoder: List[int] = [],
+    kernel_size_cond_encoder: Tuple[int, int] = (3, 3),
+    widths_condproc_encoder: List[int] = [],
+    dim_cond_in: int = 0,
+    widths_cond_encoder: List[int] = [],
     rngs: nnx.Rngs = nnx.Rngs(0),
 ):
     """Function to construct variational autoencoder network using convolutional layers.
@@ -460,16 +469,17 @@ def ConvVarAutoEncoder(
     if conditional:
 
         if mode_cond == "conv":
-            assert shape_cond_in is not None
-            assert channels_cond is not None
-            assert filters_condproc_decoder is not None
-            assert filters_cond_encoder is not None
+            assert shape_cond_in[0] > 0
+            assert shape_cond_in[1] > 0
+            assert channels_cond > 0
+            assert len(filters_condproc_decoder) > 0
+            assert len(filters_cond_encoder) > 0
         else:
-            assert dim_cond_in is not None
-            assert widths_condproc_encoder is not None
-            assert widths_cond_encoder is not None
+            assert dim_cond_in > 0
+            assert len(widths_condproc_encoder) > 0
+            assert len(widths_cond_encoder) > 0
 
-        if dim_latent is None:
+        if dim_latent == 0:
             dim_latent = int(prod(mean_block.shape_latent))
 
         # Build components for conditioning

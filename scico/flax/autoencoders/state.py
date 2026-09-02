@@ -25,6 +25,13 @@ PyTree = Any
 ArrayTree = optax.Params
 
 
+class ConfigDictAE(ConfigDict):
+    """Configuration dictionary for variational autoencoders."""
+
+    #: Number of classes in the dataset. This is only used for class conditional models.
+    num_classes: int
+
+
 def initialize(key: KeyArray, model: ModuleDef, ishape: Shape) -> Tuple[PyTree, ...]:
     """Initialize Flax model.
 
@@ -80,7 +87,7 @@ def initialize_class_conditional(
 
 def create_vae_train_state(
     key: KeyArray,
-    config: ConfigDict,
+    config: ConfigDictAE,
     model: ModuleDef,
     ishape: Shape,
     learning_rate_fn: optax._src.base.Schedule,

@@ -24,6 +24,18 @@ from scico.flax_nnx.train.typed_dict import ConfigDict, DataSetDict
 
 from .diagnostics import stats_obj
 from .steps import _kl_loss_fn, eval_step_vae, jax_train_step_vae
+from .varautoencoders import VAE
+
+
+class ConfigDictAE(ConfigDict):
+    """Configuration dictionary for variational autoencoders."""
+
+    #: Number of classes in the dataset. This is only used for class conditional models.
+    num_classes: int
+    #: Function to compute KL divergence loss term.
+    kl_loss_fn: Callable
+    #: Weighting factor for KL divergence loss term.
+    kl_weight: float
 
 
 class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
@@ -31,8 +43,8 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
 
     def __init__(
         self,
-        config: ConfigDict,
-        model: Callable,
+        config: ConfigDictAE,
+        model: VAE,
         train_ds: DataSetDict,
         test_ds: Optional[DataSetDict] = None,
     ):
@@ -67,11 +79,11 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
 
         # Define KL divergence term
         if "kl_loss_fn" not in config:
-            self.kl_loss_fn = _kl_loss_fn
+            self.kl_loss_fn: Callable = _kl_loss_fn
         else:
             self.kl_loss_fn = config["kl_loss_fn"]
         if "kl_weight" not in config:
-            self.kl_weight = 0.5
+            self.kl_weight: float = 0.5
         else:
             self.kl_weight = config["kl_weight"]
 
@@ -97,23 +109,23 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
         if "shuffle_buffer_size" in config:
             shuffle_buffer_size: int = config["shuffle_buffer_size"]
         else:
-            shuffle_buffer_size: int = 20000
+            shuffle_buffer_size = 20000
 
         # Define data iterators depending on conditioning function
-        if self.model.conditioner is None:
+        if self.model.has_conditioner:
+            self.dt_iterator_fn = partial(
+                iterate_xy_dataset, shuffle_buffer_size=shuffle_buffer_size
+            )
+            # Connect data iterators with train/eval steps (for data sharding)
+            self.one_train_epoch_fn = self.one_train_epoch_xy
+            self.one_eval_epoch_fn = self.one_eval_epoch_xy
+        else:
             self.dt_iterator_fn: Callable = partial(
                 iterate_x_dataset, shuffle_buffer_size=shuffle_buffer_size
             )
             # Connect data iterators with train/eval steps (for data sharding)
             self.one_train_epoch_fn: Callable = self.one_train_epoch_x
             self.one_eval_epoch_fn: Callable = self.one_eval_epoch_x
-        else:
-            self.dt_iterator_fn: Callable = partial(
-                iterate_xy_dataset, shuffle_buffer_size=shuffle_buffer_size
-            )
-            # Connect data iterators with train/eval steps (for data sharding)
-            self.one_train_epoch_fn: Callable = self.one_train_epoch_xy
-            self.one_eval_epoch_fn: Callable = self.one_eval_epoch_xy
 
         self.log_data_snapshot()
 

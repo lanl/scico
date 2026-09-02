@@ -50,7 +50,7 @@ def _step_t(batch: ArrayLike, key: ArrayLike, **kwargs) -> Tuple[ArrayLike, Arra
 
 
 def _step_x(
-    batch: ArrayLike, key: ArrayLike, stddev_prior, **kwargs
+    batch: ArrayLike, key: ArrayLike, t: ArrayLike, stddev_prior: float
 ) -> Tuple[ArrayLike, ArrayLike, ArrayLike]:
     """Default x computation for diffusion step."""
     z = jax.random.normal(key, batch["image"].shape)
@@ -110,9 +110,9 @@ def train_step_diffusion(
         step_loss = _step_loss
 
     key, step_key = jax.random.split(key)
-    t, batch_t = _step_t(batch, step_key, kwargs)
+    t, batch_t = _step_t(batch, step_key)
     key, step_key = jax.random.split(key)
-    z, std, batch_x = _step_x(batch, step_key, stddev_prior, kwargs)
+    z, std, batch_x = _step_x(batch, step_key, t, stddev_prior)
 
     def loss_fn(params):
         output = state.apply_fn({"params": params}, batch_x, batch_t)
@@ -175,9 +175,9 @@ def eval_step_diffusion(
         step_loss = _step_loss
 
     key, step_key = jax.random.split(key)
-    t, batch_t = _step_t(batch, step_key, kwargs)
+    t, batch_t = _step_t(batch, step_key)
     key, step_key = jax.random.split(key)
-    z, std, batch_x = _step_x(batch, step_key, stddev_prior, kwargs)
+    z, std, batch_x = _step_x(batch, step_key, t, stddev_prior)
 
     output = state.apply_fn({"params": state.params}, batch_x, batch_t)
     loss = _step_loss(criterion, z, std, output)

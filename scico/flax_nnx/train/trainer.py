@@ -119,7 +119,7 @@ class BasicFlaxNNXTrainer:
         """
         # Set required defaults if not present
         if "batch_size" not in config:
-            self.batch_size = 2 * jax.device_count()
+            self.batch_size: int = 2 * jax.device_count()
         else:
             self.batch_size = config["batch_size"]
 

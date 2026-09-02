@@ -14,7 +14,7 @@ warnings.simplefilter(action="ignore", category=FutureWarning)
 from inspect import isfunction
 
 
-def exists(x):
+def exists(x) -> bool:
     """Determine if x is not none."""
     return x is not None
 

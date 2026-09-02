@@ -306,7 +306,7 @@ class BasicFlaxTrainer:
     def construct_data_iterators(
         self,
         train_ds: DataSetDict,
-        test_ds: DataSetDict,
+        test_ds: Optional[DataSetDict],
         key: KeyArray,
         mdtype: DType,
     ):
@@ -330,7 +330,7 @@ class BasicFlaxTrainer:
             mdtype,
             train=True,
         )
-        if self.len_test > 0:  # test data available
+        if test_ds is not None and self.len_test > 0:  # test data available
             self.eval_dt_iter = create_input_iter(
                 key,  # eval: no permutation
                 test_ds,
@@ -506,6 +506,7 @@ class BasicFlaxTrainer:
         else:
             dvar = {
                 "params": state.params,
+                "batch_stats": None,
             }
 
         self.train_time = time.time() - t0
