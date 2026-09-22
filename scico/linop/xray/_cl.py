@@ -20,7 +20,7 @@ from ._xray3d import XRayTransform3D as scicoXRayTransform3D
 try:  # scico.astra cannot be imported if astra is not installed
     from .astra import XRayTransform3D as astraXRayTransform3D
 except ModuleNotFoundError:
-    astraXRayTransform3D = scicoXRayTransform3D
+    astraXRayTransform3D = scicoXRayTransform3D  # type: ignore
 
 
 def cl_angles_to_vecs(theta: np.ndarray, alpha: float) -> np.ndarray:
