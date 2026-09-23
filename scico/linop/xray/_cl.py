@@ -20,6 +20,9 @@ from ._xray3d import XRayTransform3D as scicoXRayTransform3D
 try:  # scico.astra cannot be imported if astra is not installed
     from .astra import XRayTransform3D as astraXRayTransform3D
 except ModuleNotFoundError:
+    # Kludge to account for the possibility that the astra toolbox is not
+    # installed. The definitions of scicoXRayTransform3D and
+    # astraXRayTransform3D are only used for typing.
     astraXRayTransform3D = scicoXRayTransform3D  # type: ignore
 
 
