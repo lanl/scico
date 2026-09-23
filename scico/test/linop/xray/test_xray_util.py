@@ -16,10 +16,10 @@ from scico.linop.xray import (
 )
 
 try:
-    import astra  # noqa
+    from astra import create_vol_geom  # noqa
 
     have_astra = True
-except ModuleNotFoundError as e:
+except ImportError as e:
     if e.name == "astra":
         have_astra = False
     else:
