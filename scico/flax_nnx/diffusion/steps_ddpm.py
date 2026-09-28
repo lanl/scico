@@ -6,8 +6,8 @@
 # package.
 
 """Definition of steps to iterate during training or evaluation of
-diffusion models under Denoising Diffusion Probabilistic Models (DDPM)
-formulation."""
+diffusion models under the Denoising Diffusion Probabilistic Models
+(DDPM) formulation :cite:`ho-2020-ddpm`."""
 
 from functools import partial
 from typing import Callable, Tuple

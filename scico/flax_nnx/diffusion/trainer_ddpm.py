@@ -7,7 +7,7 @@
 
 """Integrated access to functionality for training Flax
 model under the Denoising Diffusion Probabilistic Models
-(DDPM) formulation.
+(DDPM) formulation :cite:`ho-2020-ddpm`.
 """
 
 import warnings
