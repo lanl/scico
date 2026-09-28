@@ -9,9 +9,11 @@ import pytest
 import scico.numpy as snp
 from scico.examples import (
     create_3d_foam_phantom,
+    create_block_phantom,
     create_circular_phantom,
     create_cone,
     create_conv_sparse_phantom,
+    create_laminar_phantom,
     create_tangle_phantom,
     downsample_volume,
     epfl_deconv_data,
@@ -141,6 +143,18 @@ def test_conv_sparse_phantom():
 def test_tangle_phantom():
     v = create_tangle_phantom(3, 4, 5)
     assert v.shape == (5, 4, 3)
+
+
+def test_create_block_phantom():
+    x = create_block_phantom((16, 15, 14))
+    assert x.shape == (16, 15, 14)
+    assert x.dtype == np.float32
+
+
+def test_create_laminar_phantom():
+    x = create_laminar_phantom()
+    assert x.shape == (64, 256, 256)
+    assert x.dtype == np.float32
 
 
 def test_spnoise():
