@@ -8,13 +8,13 @@ from scico.linop.xray import XRayTransform3D as scicoXRayTransform3D
 from scico.linop.xray._cl import _filter_projection, cl_angles_to_vecs, cl_fbp
 
 try:
-    import astra  # noqa
+    from astra import create_vol_geom  # noqa
 
     from scico.linop.xray.astra import XRayTransform3D as astraXRayTransform3D
     from scico.linop.xray.astra import convert_to_scico_geometry
 
     have_astra = True
-except ModuleNotFoundError as e:
+except ImportError as e:
     if e.name == "astra":
         have_astra = False
     else:
