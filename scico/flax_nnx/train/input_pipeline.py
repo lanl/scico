@@ -11,6 +11,7 @@ import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
+from collections.abc import Generator
 from typing import Optional, Tuple
 
 import numpy as np
@@ -26,7 +27,7 @@ def iterate_xy_dataset(
     seed: Optional[int] = None,
     shuffle_buffer_size: int = 10000,
     drop_last: bool = False,
-) -> Tuple[npt.NDArray[np.float32], npt.NDArray[np.float32]]:
+) -> Generator[Tuple[npt.NDArray[np.float32], npt.NDArray[np.float32]], None, None]:
     """Yield chunks of dataset for training/evaluating ML model.
 
     Yield the whole dataset in chunks of size `batch_size`. It
@@ -86,7 +87,7 @@ def iterate_x_dataset(
     seed: Optional[int] = None,
     shuffle_buffer_size: int = 10000,
     drop_last: bool = False,
-) -> npt.NDArray[np.float32]:
+) -> Generator[npt.NDArray[np.float32], None, None]:
     """Yield chunks of dataset for training/evaluating ML model.
 
     Yield the whole dataset in chunks of size `batch_size`. It

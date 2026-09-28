@@ -36,12 +36,23 @@ from .steps import (
 )
 
 
+class ConfigDictScore(ConfigDict):
+    """Configuration dictionary for score training."""
+
+    #: Function to compute t for diffusion step.
+    step_t: Callable
+    #: Function to compute x for diffusion step.
+    step_x: Callable
+    #: Function to compute loss for diffusion step.
+    step_loss: Callable
+
+
 class FlaxNNXScoreTrainer(BasicFlaxNNXTrainer):
     """Class encapsulating Flax NNX score training configuration and execution."""
 
     def __init__(
         self,
-        config: ConfigDict,
+        config: ConfigDictScore,
         model: Callable,
         train_ds: DataSetDict,
         test_ds: Optional[DataSetDict] = None,
@@ -82,7 +93,7 @@ class FlaxNNXScoreTrainer(BasicFlaxNNXTrainer):
 
     def set_data_processing_functions(
         self,
-        config: ConfigDict,
+        config: ConfigDictScore,
     ):
         """Extract configuration parameters and construct training functions.
 
@@ -124,7 +135,7 @@ class FlaxNNXScoreTrainer(BasicFlaxNNXTrainer):
         if "shuffle_buffer_size" in config:
             shuffle_buffer_size: int = config["shuffle_buffer_size"]
         else:
-            shuffle_buffer_size: int = 20000
+            shuffle_buffer_size = 20000
         self.dt_iterator_fn: Callable = partial(
             iterate_x_dataset, shuffle_buffer_size=shuffle_buffer_size
         )

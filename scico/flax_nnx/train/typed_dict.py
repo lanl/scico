@@ -54,6 +54,8 @@ class ConfigDict(TypedDict):
     lr_decay_rate: float
     #: Number of epochs if warmup scheduling is used.
     warmup_epochs: int
+    #: Number of epochs with no improvement after which learning rate will be reduced (if enabled).
+    patience: int
     #: Period of training epochs to print current train and test metrics.
     log_every_epochs: int
     #: Period of training epochs to save model (if checkpointing is ``True``).

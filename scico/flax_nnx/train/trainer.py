@@ -17,7 +17,7 @@ warnings.simplefilter(action="ignore", category=FutureWarning)
 
 import time
 from functools import partial
-from typing import Any, Callable, Dict, Optional
+from typing import Callable, Dict, Optional
 
 import jax
 from jax.experimental import mesh_utils
@@ -124,7 +124,7 @@ class BasicFlaxNNXTrainer:
             self.batch_size = config["batch_size"]
 
         if "num_epochs" not in config:
-            self.train_epochs = 10
+            self.train_epochs: int = 10
         else:
             self.train_epochs = config["num_epochs"]
 
@@ -237,7 +237,7 @@ class BasicFlaxNNXTrainer:
         if "shuffle_buffer_size" in config:
             shuffle_buffer_size: int = config["shuffle_buffer_size"]
         else:
-            shuffle_buffer_size: int = 20000
+            shuffle_buffer_size = 20000
         self.dt_iterator_fn: Callable = partial(
             iterate_xy_dataset, shuffle_buffer_size=shuffle_buffer_size
         )
@@ -425,7 +425,7 @@ class BasicFlaxNNXTrainer:
         if not self.logflag:
             return
 
-        summary: Dict[Any] = {}
+        summary: Dict[str, int | float] = {}
 
         # Get current learning rate from optax optimizer (configured to store it).
         summary["train_learning_rate"] = self.optimizer.opt_state.hyperparams["learning_rate"]

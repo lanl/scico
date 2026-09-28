@@ -36,12 +36,27 @@ from .steps_ddpm import (
 )
 
 
+class ConfigDictDDPM(ConfigDict):
+    """Configuration dictionary for DDPM training."""
+
+    #: Maximum number of diffusion steps.
+    maxsteps: int
+    #: Function to compute beta variance schedule.
+    beta_schedule_fn: Callable
+    #: Function to compute t for diffusion step.
+    step_t: Callable
+    #: Function to compute x for diffusion step.
+    step_x: Callable
+    #: Function to compute loss for diffusion step.
+    step_loss: Callable
+
+
 class FlaxNNXDDPMTrainer(BasicFlaxNNXTrainer):
     """Class encapsulating Flax NNX training configuration and execution for DDPM."""
 
     def __init__(
         self,
-        config: ConfigDict,
+        config: ConfigDictDDPM,
         model: Callable,
         train_ds: DataSetDict,
         test_ds: Optional[DataSetDict] = None,
@@ -99,7 +114,7 @@ class FlaxNNXDDPMTrainer(BasicFlaxNNXTrainer):
 
     def set_data_processing_functions(
         self,
-        config: ConfigDict,
+        config: ConfigDictDDPM,
     ):
         """Extract configuration parameters and construct training functions.
 
@@ -141,7 +156,7 @@ class FlaxNNXDDPMTrainer(BasicFlaxNNXTrainer):
         if "shuffle_buffer_size" in config:
             shuffle_buffer_size: int = config["shuffle_buffer_size"]
         else:
-            shuffle_buffer_size: int = 20000
+            shuffle_buffer_size = 20000
         self.dt_iterator_fn: Callable = partial(
             iterate_x_dataset, shuffle_buffer_size=shuffle_buffer_size
         )
