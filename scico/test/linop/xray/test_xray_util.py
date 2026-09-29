@@ -30,7 +30,7 @@ def test_image_centroid():
     v = np.zeros((4, 5))
     v[1:-1, 1:-1] = 1
     assert image_centroid(v) == (1.5, 2.0)
-    image_centroid(v, center_offset=True) == (0.0, 0.0)
+    assert image_centroid(v, center_offset=True) == (0.0, 0.0)
 
 
 def test_center_image():
