@@ -38,7 +38,7 @@ def alpha_fn(alpha_bar_schedule: ArrayLike, batch_t: ArrayLike) -> ArrayLike:
     return alpha_eval
 
 
-def _step_t(batch_x: ArrayLike, key: ArrayLike, **kwargs) -> Tuple[ArrayLike, ArrayLike]:
+def _step_t(batch_x: ArrayLike, key: ArrayLike, **kwargs) -> ArrayLike:
     """t computation for diffusion step in DDPM formulation.
 
     Args:
@@ -90,7 +90,7 @@ def loss_fn(
     batch_t: ArrayLike,
     batch_z: ArrayLike,
     batch_std: ArrayLike,
-) -> Tuple[ArrayLike, ArrayLike]:
+) -> ArrayLike:
     """Loss function definition for diffusion step.
 
     Args:
@@ -121,7 +121,7 @@ def jax_train_step_diffusion(
     batch_t: ArrayLike,
     batch_z: ArrayLike,
     batch_std: ArrayLike,
-) -> ArrayLike:
+) -> Tuple[ArrayLike, nnx.State]:
     """Train for a single step.
 
     This function uses data and a criterion to optimize model parameters. It returns

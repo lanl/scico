@@ -41,7 +41,7 @@ class BasicFlaxNNXTrainer:
     def __init__(
         self,
         config: ConfigDict,
-        model: Callable,
+        model: nnx.Module,
         train_ds: DataSetDict,
         test_ds: Optional[DataSetDict] = None,
     ):

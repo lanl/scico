@@ -40,7 +40,7 @@ from einops import rearrange
 
 from flax import nnx
 from flax.core import Scope  # noqa
-from scico.flax.diffusion.helpers import default, exists
+from scico.flax.diffusion.helpers import default
 
 # The import of Scope above is required to silence "cannot resolve
 # forward reference" warnings when building sphinx api docs.
@@ -238,7 +238,7 @@ class ConvGroupNBlock(nnx.Module):
         """Apply group normalization."""
         x = self.proj(x)
         x = self.norm(x)
-        if exists(scale_shift):
+        if scale_shift is not None:
             scale, shift = scale_shift
             x = x * (scale + 1) + shift
 
@@ -253,7 +253,7 @@ class ResnetBlock(nnx.Module):
         self,
         dim: int,
         dim_out: int,
-        time_emb_dim: Optional[int] = None,
+        time_emb_dim: Optional[int] = 0,
         groups: int = 8,
         kernel_size: Tuple[int, int] = (3, 3),
         act: Callable[..., ArrayLike] = nnx.silu,
@@ -274,7 +274,7 @@ class ResnetBlock(nnx.Module):
 
         self.mlp = (
             nnx.Sequential(*[nnx.silu, nnx.Linear(time_emb_dim, dim_out * 2, rngs=rngs)])
-            if exists(time_emb_dim)
+            if time_emb_dim is not None and time_emb_dim > 0
             else None
         )
 
@@ -293,7 +293,7 @@ class ResnetBlock(nnx.Module):
     def __call__(self, x: ArrayLike, time_emb=None) -> ArrayLike:
         """Apply block."""
         scale_shift = None
-        if exists(self.mlp) and exists(time_emb):
+        if self.mlp is not None and time_emb is not None:
             time_emb = self.mlp(time_emb)
             time_emb = rearrange(time_emb, "b c -> b 1 1 c")  # channel last in flax
             scale_shift = jnp.split(time_emb, 2, axis=-1)

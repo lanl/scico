@@ -38,7 +38,7 @@ class Encoder(nnx.Module):
             kwargs: Keyword arguments.
         """
         super().__init__(**kwargs)
-        self.dim_latent: int = 0
+        self.dim_latent: int = 0  # type: ignore
 
     @property
     def latent_dim(self) -> int:
