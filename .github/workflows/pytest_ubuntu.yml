@@ -103,7 +103,7 @@ jobs:
           pytest -x --cov --level=2 --durations-path=$DURATIONS_FILE --splits=5 --group=${{ matrix.group }} --pyargs scico
       # Upload coverage data
       - name: Upload coverage
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           include-hidden-files: true
           name: coverage${{ matrix.group }}
