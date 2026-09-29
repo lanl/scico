@@ -41,7 +41,7 @@ case "$OS" in
     *)        echo "Error: unsupported operating system $OS" >&2; exit 2;;
 esac
 ARCH=$(uname -m)
-SOURCEURL=$URLROOT$MCOS"-"$ARCH".sh"
+SOURCEURL="$URLROOT$MCOS"-"$ARCH".sh
 
 
 if [ ! "$(which wget 2>/dev/null)" ]; then
