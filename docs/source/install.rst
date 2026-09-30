@@ -3,7 +3,7 @@
 Installing SCICO
 ================
 
-SCICO requires Python version 3.8 or later. (Version 3.12 is
+SCICO requires Python version 3.8 or later. (Version 3.14 is
 recommended as it is the version under which SCICO is tested in GitHub
 continuous integration, and since the most recent versions of JAX require
 version 3.10 or later.) SCICO is supported on both Linux and
