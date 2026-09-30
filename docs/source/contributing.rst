@@ -17,8 +17,7 @@ Installing a Development Version
 1. Fork both the ``scico`` and ``scico-data`` repositories, creating
    copies of these repositories in your own git account.
 
-2. Make sure that you have Python 3.12 or later installed in order to
-   create a conda virtual environment.
+2. Create a conda virtual environment with Python 3.12 or later.
 
 3. Make sure you have installed `Git LFS <https://git-lfs.com/>`__,
    which is used by the ``scico-data`` repository.
