@@ -248,7 +248,7 @@ def test_broadcast_nested_shapes():
     assert snp.util.broadcast_nested_shapes((1, 1, 3), ((2, 3), (7, 3))) == ((1, 2, 3), (1, 7, 3))
 
     # nested + nested
-    snp.util.broadcast_nested_shapes(((1, 1, 3), (1, 7, 1, 3)), ((2, 3), (7, 4, 3))) == (
+    assert snp.util.broadcast_nested_shapes(((1, 1, 3), (1, 7, 1, 3)), ((2, 3), (7, 4, 3))) == (
         (1, 2, 3),
         (1, 7, 4, 3),
     )
