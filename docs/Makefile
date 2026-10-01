@@ -28,7 +28,7 @@ clean:
 	  b=$$(basename $$f) ; \
 	  if [ ! -f "source/examples/$$b" ]; then \
 	      echo Creating soft link for notebook $$b ; \
-	      ln -s -t source/examples "../../$$f" ; \
+	      ln -s "../../$$f" source/examples ; \
 	  fi \
 	done
 	$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)

@@ -4,9 +4,7 @@
 #
 # Run with -h flag for usage information
 
-URLROOT=https://repo.continuum.io/miniconda/
-INSTLINUX=Miniconda3-latest-Linux-x86_64.sh
-INSTMACOSX=Miniconda3-latest-MacOSX-x86_64.sh
+URLROOT="https://repo.continuum.io/miniconda/Miniconda3-latest-"
 
 SCRIPT=$(basename $0)
 USAGE=$(cat <<-EOF
@@ -36,12 +34,15 @@ if [ ! $# -eq 1 ] ; then
     exit 1
 fi
 
-OS=$(uname -a | cut -d ' ' -f 1)
+OS=$(uname -s)
 case "$OS" in
-    Linux)    SOURCEURL=$URLROOT$INSTLINUX;;
-    Darwin)   SOURCEURL=$URLROOT$INSTMACOSX;;
+    Linux)    MCOS="Linux";;
+    Darwin)   MCOS="MacOSX";;
     *)        echo "Error: unsupported operating system $OS" >&2; exit 2;;
 esac
+ARCH=$(uname -m)
+SOURCEURL="$URLROOT$MCOS"-"$ARCH".sh
+
 
 if [ ! "$(which wget 2>/dev/null)" ]; then
     has_wget=0
