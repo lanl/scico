@@ -14,50 +14,47 @@ location within the existing package structure.
 Installing a Development Version
 --------------------------------
 
-1. Fork both the ``scico`` and ``scico-data`` repositories, creating
+#. Fork both the ``scico`` and ``scico-data`` repositories, creating
    copies of these repositories in your own git account.
 
-2. Make sure that you have Python 3.10 or later installed in order to
-   create a conda virtual environment.
-
-3. Make sure you have installed `Git LFS <https://git-lfs.com/>`__,
+#. Make sure you have installed `Git LFS <https://git-lfs.com/>`__,
    which is used by the ``scico-data`` repository.
 
-4. Clone your fork from the source repo.
+#. Clone your fork from the source repo.
 
    ::
 
       git clone --recurse-submodules git@github.com:<username>/scico.git
 
-5. Create a conda environment using Python 3.10 or later, e.g.:
+#. Create a conda environment, e.g.:
 
    ::
 
-      conda create -n scico python=3.12
+      conda create -n scico python=3.14
 
    If desired, the utility scripts at ``misc/conda`` in the ``scico``
    repository may be used to install conda and create an environment
    with scico dependencies.
 
-6. Activate the created conda virtual environment:
+#. Activate the created conda virtual environment:
 
    ::
 
       conda activate scico
 
-7. Change directory to the root of the cloned repository:
+#. Change directory to the root of the cloned repository:
 
    ::
 
       cd scico
 
-8. Add the ``scico`` repo as an upstream remote to sync your changes:
+#. Add the ``scico`` repo as an upstream remote to sync your changes:
 
    ::
 
       git remote add upstream https://www.github.com/lanl/scico
 
-9. After adding the upstream, the recommended way to install SCICO and
+#. After adding the upstream, the recommended way to install SCICO and
    its dependencies is via pip:
 
    ::
@@ -70,7 +67,7 @@ Installing a Development Version
    For installing dependencies related to the examples please see :ref:`example_notebooks`.
    Installing these are neccessary for the successfull running of the tests.
 
-10. The SCICO project uses the
+#. The SCICO project uses the
     `black <https://black.readthedocs.io/en/stable/>`_,
     `isort <https://pypi.org/project/isort/>`_ and
     `pylint <https://pylint.pycqa.org/en/latest/>`_ code formatting
@@ -83,7 +80,7 @@ Installing a Development Version
 
       pre-commit install  # Sets up git pre-commit hooks
 
-11. For testing see `Tests`_.
+#. For testing see `Tests`_.
 
 
 

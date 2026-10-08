@@ -47,7 +47,7 @@ on `JAXopt <https://github.com/google/jaxopt>`__.
 """
 
 from functools import wraps
-from typing import Any, Callable, Optional, Sequence, Tuple, Union
+from typing import Any, Callable, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -195,8 +195,8 @@ def _unravel(x: Array, shape: Union[Shape, BlockShape]) -> Union[Array, BlockArr
         Array or blockarray with original shape.
     """
     if is_nested(shape):
-        sizes = [np.prod(e).item() for e in shape]
-        indices = np.cumsum(sizes[:-1])
+        sizes: List[int] = [int(np.prod(e).item()) for e in shape]
+        indices: np.ndarray = np.cumsum(sizes[:-1])
         chunks = jnp.split(x, indices)
         return snp.BlockArray([chunks[k].reshape(cs) for k, cs in enumerate(shape)])
     else:

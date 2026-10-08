@@ -325,7 +325,7 @@ def test_default_cache_path():
         print(e)
         assert 0
     else:
-        cache_path_display == "~/.cache/scico/examples/data"
+        assert cache_path_display == "~/.cache/scico/examples/data"
 
 
 def test_cache_path():
@@ -337,5 +337,5 @@ def test_cache_path():
         print(e)
         assert 0
     else:
-        cache_path_ == cache_path
-        cache_path_display == cache_path
+        assert cache_path_ == cache_path
+        assert cache_path_display == cache_path
