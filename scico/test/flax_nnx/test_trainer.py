@@ -1,3 +1,5 @@
+import tempfile
+
 import numpy as np
 
 import jax
@@ -10,6 +12,7 @@ from scico import random
 
 # from scico.flax_nnx.train.clu_utils import flatten_dict
 from scico.flax_nnx._models import ConvBNNet, DnCNNNet, ResNet, UNet
+from scico.flax_nnx.train.checkpoints import checkpoint_restore, checkpoint_save
 from scico.flax_nnx.train.steps import eval_step, jax_train_step
 from scico.flax_nnx.train.trainer import BasicFlaxNNXTrainer
 from scico.flax_nnx.train.typed_dict import ConfigDict
@@ -149,6 +152,28 @@ def test_class_train_default_noseed(testobj):
     except Exception as e:
         print(e)
         assert 0
+
+
+def test_class_train_default_criterion(testobj):
+    model = ResNet(
+        testobj.model_conf["depth"],
+        testobj.chn,
+        testobj.model_conf["num_filters"],
+        rngs=nnx.Rngs(0),
+    )
+    train_conf = dict(testobj.train_conf)
+    try:
+        trainer = BasicFlaxNNXTrainer(
+            testobj.train_conf,
+            model,
+            testobj.train_ds,
+            testobj.test_ds,
+        )
+    except Exception as e:
+        print(e)
+        assert 0
+    else:
+        assert trainer.criterion is not None
 
 
 def test_class_train_nolog(testobj):
@@ -382,3 +407,64 @@ def test_class_train_update_metrics_nolog(testobj):
         assert 0
     else:
         assert stats_object is None
+
+
+def test_checkpoint_save(testobj):
+    model = ResNet(
+        testobj.model_conf["depth"],
+        testobj.chn,
+        testobj.model_conf["num_filters"],
+        rngs=nnx.Rngs(0),
+    )
+    train_conf = dict(testobj.train_conf)
+    temp_dir = tempfile.TemporaryDirectory()
+    train_conf["workdir"] = temp_dir.name
+
+    tx = optax.adam(learning_rate=0.01)
+    optimizer = nnx.Optimizer(model, tx, wrt=nnx.Param)
+    state = nnx.state((model, optimizer))
+
+    try:
+        checkpoint_save(state, 0, train_conf, train_conf["workdir"])
+    except Exception as e:
+        print(e)
+        assert 0
+
+
+@pytest.mark.parametrize("chkflag", [False, True])
+def test_checkpoint_restore(testobj, chkflag):
+    model = ResNet(
+        testobj.model_conf["depth"],
+        testobj.chn,
+        testobj.model_conf["num_filters"],
+        rngs=nnx.Rngs(0),
+    )
+    train_conf = dict(testobj.train_conf)
+    temp_dir = tempfile.TemporaryDirectory()
+    train_conf["workdir"] = temp_dir.name
+    train_conf["checkpointing"] = chkflag
+    train_conf["log"] = False
+
+    trainer = BasicFlaxNNXTrainer(
+        train_conf,
+        model,
+        testobj.train_ds,
+        testobj.test_ds,
+    )
+
+    state = nnx.state((trainer.model, trainer.optimizer))
+
+    try:
+        trainer.train()
+    except Exception as e:
+        print(e)
+        assert 0
+    else:
+        ok_no_ckpt = True  # It is ok if no checkpoint is found
+        state_restored, step = checkpoint_restore(state, train_conf["workdir"], ok_no_ckpt)
+        if chkflag:
+            assert state_restored is not None
+            assert step == train_conf["num_epochs"]
+        else:
+            assert state_restored == state
+            assert step is None

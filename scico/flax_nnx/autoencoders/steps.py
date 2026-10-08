@@ -69,8 +69,7 @@ def loss_fn(
         Evaluated loss, KL term and reconstruction output.
     """
     output, mean, logvar = model(x, key, y)
-    reduce_dims = list(range(1, len(x.shape)))
-    reconstruction_loss = (1.0 - kl_weight) * criterion(output, x).sum(axis=reduce_dims).mean()
+    reconstruction_loss = (1.0 - kl_weight) * criterion(output, x)
     kl_loss = kl_weight * kl_loss_fn(mean, logvar)
     loss = reconstruction_loss + kl_loss
     return loss, (kl_loss, output)

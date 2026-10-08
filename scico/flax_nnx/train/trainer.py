@@ -66,15 +66,16 @@ class BasicFlaxNNXTrainer:
 
         # Object for storing iteration stats
         self.itstat_object: Optional[IterationStats] = None
-
-        # Configure training loop
-        self.set_training_parameters(config)
-        self.construct_optimizer(config)
+        self.configure_reporting(config)
 
         # Store datasets
         self.train_ds = train_ds
         self.test_ds = test_ds
         self.configure_data_iterators(config)
+
+        # Configure training loop
+        self.set_training_parameters(config)
+        self.construct_optimizer(config)
 
         # Create nnx metrics object for registering training stats
         self.metrics = nnx.MultiMetric(
@@ -105,7 +106,6 @@ class BasicFlaxNNXTrainer:
             config: Hyperparameter configuration.
         """
         self.configure_steps(config)
-        self.configure_reporting(config)
         self.configure_training_functions(config)
 
     def configure_steps(
@@ -206,7 +206,14 @@ class BasicFlaxNNXTrainer:
         if "criterion" in config:
             self.criterion: Callable = config["criterion"]
         else:
-            self.criterion = mse_loss
+            if "label" in self.train_ds.keys():
+                self.criterion = partial(
+                    mse_loss, reduce_dims=range(1, self.train_ds["label"].ndim)
+                )
+            else:
+                self.criterion = partial(
+                    mse_loss, reduce_dims=range(1, self.train_ds["image"].ndim)
+                )
 
         if "train_step_fn" in config:
             self.train_step_fn: Callable = config["train_step_fn"]
@@ -358,6 +365,7 @@ class BasicFlaxNNXTrainer:
             state, step = checkpoint_restore(state, self.workdir, ok_no_ckpt)
             if step is not None:
                 epochs_offset = step - 1  # > 0 if restarting from checkpoint
+        epoch = epochs_offset
         # Distribute state according to model sharding
         state = jax.device_put(state, self.model_sharding)
         nnx.update((self.model, self.optimizer), state)
