@@ -110,6 +110,18 @@ class HuberNormNonSep(functional.HuberNorm):
         super().__init__(delta=delta, separable=False)
 
 
+@pytest.mark.parametrize("lam", [0.3, 1.0, 2.5])
+def test_l0norm_prox_is_minimizer(lam):
+    # The l0 prox problem is separable, and each entry of its minimizer is
+    # either 0 or v_i. prox_test cannot check this: its local search starts
+    # at the computed prox and the cost is not continuous.
+    v = np.linspace(-3.0, 3.0, 61)
+    p = np.asarray(functional.L0Norm.prox(snp.array(v), lam))
+    cost_prox = lam * (p != 0) + 0.5 * (p - v) ** 2
+    cost_best = np.minimum(lam, 0.5 * v**2)
+    np.testing.assert_allclose(cost_prox, cost_best, rtol=1e-12, atol=1e-12)
+
+
 class TestNormProx:
     normlist = [
         functional.L0Norm,
