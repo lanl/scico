@@ -46,20 +46,23 @@ class L0Norm(Functional):
 
             \left[ \prox_{\lambda\| \cdot \|_0}(\mb{v}) \right]_i =
             \begin{cases}
-            v_i  & \text{ if } \abs{v_i} \geq \lambda \\
-            0  & \text{ otherwise } \;.
+            v_i  & \text{ if } \abs{v_i} \geq \sqrt{2 \lambda} \\
+            0  & \text{ otherwise } \;,
             \end{cases}
+
+        since keeping :math:`v_i` costs :math:`\lambda` while setting it
+        to zero costs :math:`\frac{1}{2} \abs{v_i}^2`.
 
         Args:
             v: Input array :math:`\mb{v}`.
-            lam: Thresholding parameter :math:`\lambda`.
+            lam: Proximal parameter :math:`\lambda`.
             **kwargs: Additional arguments that may be used by derived
                 classes.
 
         Returns:
             Result of evaluating the scaled proximal operator at `v`.
         """
-        return snp.where(snp.abs(v) >= lam, v, 0)
+        return snp.where(snp.abs(v) >= snp.sqrt(2.0 * lam), v, 0)
 
 
 class L1Norm(Functional):
@@ -68,7 +71,7 @@ class L1Norm(Functional):
     Computes
 
     .. math::
-       \norm{\mb{x}}_1 = \sum_i \abs{x_i}^2 \;.
+       \norm{\mb{x}}_1 = \sum_i \abs{x_i} \;.
     """
 
     has_eval = True
