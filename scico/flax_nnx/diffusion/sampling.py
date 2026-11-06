@@ -87,6 +87,54 @@ def Euler_Maruyama_sampler(
     return mean_x, x_tot
 
 
+def sampling_score(
+    batch_size: int,
+    xshape: Tuple[int],
+    maxsteps: int,
+    sigma: ArrayLike,
+    model: Callable,
+    key: PRNGKey,
+    return_path: bool = False,
+    eps: float = 2e-5,
+):
+    """Function to sample using Gradients of the Data Distribution
+        (score) formulation.
+
+    Args:
+        batch_size: Size of sample to generate.
+        xshape: Shape of signal to generate.
+        maxsteps: Maximum steps to use in annealed Langevin dynamics.
+        sigma: Noise schedule. Allows for different schedule than the one used in training.
+        model: Trained score model to sample from.
+        key: Key for jax random generation.
+        return_path: Flag to indicate if generation path is to be returned.
+        eps: Minimum time to sample in Langevin dynamics.
+
+    Returns:
+        Array with generated samples, generation path (optional) and key.
+    """
+    key, subkey = jax.random.split(key)
+    x = jax.random.normal(subkey, (batch_size,) + xshape)
+    xpath = None
+    if return_path:
+        xpath = jnp.zeros((maxsteps + 1,) + x.shape)
+        xpath = xpath.at[0].set(x)
+
+    L = sigma.shape[0]
+    for i in range(L):
+        alpha_i = eps * sigma[i] ** 2 / sigma[-1] ** 2
+        for t in range(maxsteps):
+            key, subkey = jax.random.split(key)
+            z = jax.random.normal(subkey, x.shape)
+            x = x + alpha_i * model(x, sigma[i]) / 2.0 + jnp.sqrt(alpha_i) * z
+            if return_path:
+                xpath = xpath.at[t].set(x)
+
+    if return_path:
+        return x, xpath, key
+    return x, key
+
+
 def sampling_ddpm(
     batch_size: int,
     xshape: Tuple[int],
