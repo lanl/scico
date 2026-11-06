@@ -19,7 +19,7 @@ from scico import flax as sflax
 from scico.flax.examples import load_image_data
 from scico.flax_nnx.diffusion.diagnostics import stats_obj
 from scico.flax_nnx.diffusion.models import ConditionalUNet
-from scico.flax_nnx.diffusion.trainer_input_transform import FlaxNNXScoreTrainer
+from scico.flax_nnx.diffusion.trainer_score import FlaxNNXScoreTrainer
 from scico.flax_nnx.utils import save_model
 
 """
@@ -138,6 +138,9 @@ train_conf["step_t"] = partial(_step_t, sigvec=σv)
 train_conf["step_x"] = _step_x
 train_conf["step_loss"] = _step_loss
 train_conf["stats_obj"] = stats_obj()
+train_conf["sigma_min"] = 1e-2
+train_conf["sigma_max"] = 5e0
+train_conf["max_sigma_steps"] = 10
 
 
 """
