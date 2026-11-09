@@ -27,7 +27,7 @@ from scico.flax_nnx.train.input_pipeline import iterate_x_dataset
 from scico.flax_nnx.train.trainer import BasicFlaxNNXTrainer
 from scico.flax_nnx.train.typed_dict import ConfigDict, DataSetDict
 
-from .steps import (
+from .steps_score import (
     _step_loss,
     _step_t,
     _step_x,
