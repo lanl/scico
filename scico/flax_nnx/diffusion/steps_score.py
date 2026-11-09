@@ -18,50 +18,33 @@ from jax.typing import ArrayLike
 
 from flax import nnx
 
-
-def set_sigma_schedule(sigma_min: float, sigma_max: float, max_sigma_steps: int) -> ArrayLike:
-    """Computation of noise schedule for score matching formulation.
-
-    Args:
-        sigma_min: Minimum noise level.
-        sigma_max: Maximum noise level.
-        max_sigma_steps: Maximum number of noise levels.
-
-    Returns:
-        Array of noise levels.
-    """
-    return jnp.geomspace(sigma_max, sigma_min, max_sigma_steps)
+eps = 1e-5  # Minimum t to sample
 
 
-def _step_x(batch: ArrayLike, key: ArrayLike, **kwargs) -> Tuple[ArrayLike, ArrayLike, ArrayLike]:
-    """x computation for diffusion step in score matching formulation.
+def _step_t(batch_x: ArrayLike, key: ArrayLike, **kwargs) -> Tuple[ArrayLike, ArrayLike]:
+    """Default t computation for diffusion step."""
+    tshp = (batch_x.shape[0],) + (1,) * len(batch_x.shape[1:])
+    batch_t = jax.random.uniform(key, (batch_x.shape[0], 1), minval=eps, maxval=1.0)
+    t = batch_t.reshape(tshp)
+    return t, batch_t
 
-    Args:
-        batch: Array of a batch of original data.
-        key: Key for random generation.
-        kwargs: Keyword arguments. Relevant here: the processed :math:`\sigma_i`.
 
-    Returns:
-        Noise generated, noise std and noisy data.
-    """
-    sigma_schedule = kwargs.pop("sigma_schedule")
-    key, subkey1, subkey2 = jax.random.split(key, 3)
-    z = jax.random.normal(subkey1, batch.shape)
-    shp = (batch.shape[0],) + (1,) * len(batch.shape[1:])
-    batch_sigma = jax.random.choice(
-        subkey2, sigma_schedule, shape=(batch.shape[0], 1), replace=True
-    )
-    noise = batch_sigma.reshape(shp) ** 2 * z
-    batch_x = batch + noise
-
-    return noise, batch_sigma, batch_x
+def _step_x(
+    batch: ArrayLike, key: ArrayLike, t: ArrayLike, **kwargs
+) -> Tuple[ArrayLike, ArrayLike, ArrayLike]:
+    """Default x computation for diffusion step."""
+    stddev_prior = kwargs.pop("stddev_prior")
+    z = jax.random.normal(key, batch.shape)
+    batch_std = jnp.sqrt((stddev_prior ** (2 * t) - 1.0) / 2.0 / jnp.log(stddev_prior))
+    batch_x = batch + z * batch_std
+    return z, batch_std, batch_x
 
 
 def _step_loss(
-    criterion: Callable, noise: ArrayLike, sigma: ArrayLike, output: ArrayLike, **kwargs
+    criterion: Callable, z: ArrayLike, std: ArrayLike, output: ArrayLike, **kwargs
 ) -> ArrayLike:
     """Default loss computation for diffusion step."""
-    return criterion(output * sigma**2, -noise)
+    return criterion(output * std, -z)
 
 
 def loss_fn(
@@ -69,9 +52,10 @@ def loss_fn(
     criterion: Callable,
     step_loss: Callable,
     batch_x: ArrayLike,
-    batch_sigma: ArrayLike,
-    noise: ArrayLike,
-) -> ArrayLike:
+    batch_t: ArrayLike,
+    batch_z: ArrayLike,
+    batch_std: ArrayLike,
+) -> Tuple[ArrayLike, ArrayLike]:
     """Loss function definition for diffusion step..
 
     Args:
@@ -80,15 +64,15 @@ def loss_fn(
         step_loss: Function to evaluate difference between expected
                     and produced outputs.
         batch_x: Noisy image data array.
-        batch_sigma: Standard deviation of noise applied.
-        noise: Noise array.
+        batch_t: Time embedding array.
+        batch_z: Standard Gaussian random variable array.
+        batch_std: Corresponding noise level array.
 
     Returns:
         Evaluated loss.
     """
-    output = model(batch_x, batch_sigma)
-    shp = (batch_x.shape[0],) + (1,) * len(batch_x.shape[1:])
-    loss = step_loss(criterion, noise, batch_sigma.reshape(shp), output).mean()
+    output = model(batch_x, batch_t)
+    loss = step_loss(criterion, batch_z, batch_std, output).mean()
     return loss
 
 
@@ -100,9 +84,10 @@ def jax_train_step_diffusion(
     criterion: Callable,
     step_loss: Callable,
     batch_x: ArrayLike,
-    batch_sigma: ArrayLike,
-    noise: ArrayLike,
-) -> Tuple[ArrayLike, nnx.State]:
+    batch_t: ArrayLike,
+    batch_z: ArrayLike,
+    batch_std: ArrayLike,
+) -> ArrayLike:
     """Train for a single step.
 
     This function uses data and a criterion to optimize model parameters. It returns
@@ -116,8 +101,9 @@ def jax_train_step_diffusion(
         step_loss: Function to evaluate difference between expected
                     and produced outputs.
         batch_x: Noisy image data array.
-        batch_sigma: Standard deviation of noise applied.
-        noise: Noise array.
+        batch_t: Time embedding array.
+        batch_z: Standard Gaussian random variable array.
+        batch_std: Corresponding noise level array.
 
     Returns:
         Loss evaluated.
@@ -126,7 +112,7 @@ def jax_train_step_diffusion(
     model, optimizer, metrics = nnx.merge(graphdef, state)
 
     grad_fn = nnx.value_and_grad(loss_fn)
-    loss, grads = grad_fn(model, criterion, step_loss, batch_x, batch_sigma, noise)
+    loss, grads = grad_fn(model, criterion, step_loss, batch_x, batch_t, batch_z, batch_std)
     optimizer.update(model, grads, value=loss)  # In-place updates.
     metrics.update(loss=loss)  # In-place updates.
 
@@ -141,8 +127,9 @@ def eval_step_diffusion(
     step_loss: Callable,
     metrics: nnx.MultiMetric,
     batch_x: ArrayLike,
-    batch_sigma: ArrayLike,
-    noise: ArrayLike,
+    batch_t: ArrayLike,
+    batch_z: ArrayLike,
+    batch_std: ArrayLike,
 ) -> ArrayLike:
     """Evaluate for a single step.
 
@@ -156,16 +143,17 @@ def eval_step_diffusion(
                     and produced outputs.
         metrics: Dictionary of metrics to evaluate.
         batch_x: Noisy image data array.
-        batch_sigma: Standard deviation of noise applied.
-        noise: Noise array.
+        batch_t: Time embedding array.
+        batch_z: Standard Gaussian random variable array.
+        batch_std: Corresponding noise level array.
 
     Returns:
         Loss evaluated.
     """
 
     # with model.eval():
-    #    loss = loss_fn(model, criterion, step_loss, batch_x, batch_sigma, noise)
-    loss = loss_fn(model, criterion, step_loss, batch_x, batch_sigma, noise)
+    #    loss = loss_fn(model, criterion, step_loss, batch_x, batch_t, batch_z, batch_std)
+    loss = loss_fn(model, criterion, step_loss, batch_x, batch_t, batch_z, batch_std)
     metrics.update(loss=loss)  # In-place updates.
 
     return loss

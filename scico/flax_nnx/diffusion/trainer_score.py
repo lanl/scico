@@ -6,8 +6,10 @@
 # package.
 
 """Integrated access to functionality for training Flax
-model under score, i.e. gradient of the log of the data
-distribution, formulation :cite:`song-2019-score`..
+   models that use only input data (e.g. autoencoders) that can be
+   transformed from epoch to epoch (e.g. score models).
+
+Assumes sharded batched data and uses data parallel training.
 """
 
 import warnings
@@ -25,25 +27,20 @@ from scico.flax_nnx.train.input_pipeline import iterate_x_dataset
 from scico.flax_nnx.train.trainer import BasicFlaxNNXTrainer
 from scico.flax_nnx.train.typed_dict import ConfigDict, DataSetDict
 
-from .diagnostics import stats_obj
-from .steps_score import (
+from .steps import (
     _step_loss,
+    _step_t,
     _step_x,
     eval_step_diffusion,
     jax_train_step_diffusion,
-    set_sigma_schedule,
 )
 
 
 class ConfigDictScore(ConfigDict):
     """Configuration dictionary for score training."""
 
-    #: Maximum number of noise levels.
-    max_sigma_steps: int
-    #: Minimum noise level.
-    sigma_min: float
-    #: Maximum noise level.
-    sigma_max: float
+    #: Function to compute t for diffusion step.
+    step_t: Callable
     #: Function to compute x for diffusion step.
     step_x: Callable
     #: Function to compute loss for diffusion step.
@@ -84,15 +81,7 @@ class FlaxNNXScoreTrainer(BasicFlaxNNXTrainer):
         if "eval_step_fn" not in config:
             config["eval_step_fn"] = eval_step_diffusion
 
-        if "stats_obj" not in config:
-            config["stats_obj"] = stats_obj()
-
         super().__init__(config, model, train_ds, test_ds)
-
-        # Noise schedule
-        self.noise_schedule = set_sigma_schedule(
-            config["sigma_min"], config["sigma_max"], config["max_sigma_steps"]
-        )
 
         # Configure processing for training loop
         self.set_data_processing_functions(config)
@@ -116,10 +105,15 @@ class FlaxNNXScoreTrainer(BasicFlaxNNXTrainer):
             config: Hyperparameter configuration.
         """
 
+        if "step_t" in config:
+            self.step_t: Callable = config["step_t"]
+        else:
+            self.step_t = _step_t
+
         if "step_x" in config:
             self.step_x: Callable = config["step_x"]
         else:
-            self.step_x = partial(_step_x, sigma_schedule=self.noise_schedule)
+            self.step_x = partial(_step_x, stddev_prior=self.config["stddev_prior"])
 
         if "step_loss" in config:
             self.step_loss: Callable = config["step_loss"]
@@ -181,11 +175,12 @@ class FlaxNNXScoreTrainer(BasicFlaxNNXTrainer):
             x = jax.device_put(batch, self.data_sharding)
             # Train
             # self.model.train() # Switch to train mode
-            subkey2, step_key = jax.random.split(subkey2)
-            noise, batch_sigma, batch_x = self.step_x(x, step_key)
+            subkey2, step_key1, step_key2 = jax.random.split(subkey2, 3)
+            t, batch_t = self.step_t(x, step_key1)
+            z, batch_std, batch_x = self.step_x(x, step_key2, t)
 
             loss, state = self.train_step_fn(
-                graphdef, state, self.criterion, self.step_loss, batch_x, batch_sigma, noise
+                graphdef, state, self.criterion, self.step_loss, batch_x, batch_t, z, batch_std
             )
         return loss, state, key
 
@@ -207,9 +202,10 @@ class FlaxNNXScoreTrainer(BasicFlaxNNXTrainer):
             # Shard data
             x = jax.device_put(batch, self.data_sharding)
             # Eval step
-            key, step_key = jax.random.split(key)
-            noise, batch_sigma, batch_x = self.step_x(x, step_key)
+            key, step_key1, step_key2 = jax.random.split(key, 3)
+            t, batch_t = self.step_t(x, step_key1)
+            z, batch_std, batch_x = self.step_x(x, step_key2, t)
             loss = self.eval_step_fn(
-                self.model, self.criterion, self.step_loss, metrics, batch_x, batch_sigma, noise
+                self.model, self.criterion, self.step_loss, metrics, batch_x, batch_t, z, batch_std
             )
         return loss, metrics, key
