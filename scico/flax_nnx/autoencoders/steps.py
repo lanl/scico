@@ -7,9 +7,11 @@
 
 """Definition of steps to iterate during training or evaluation of
 autoencoder models."""
+from __future__ import annotations  # for typing support for python 3.9 or earlier
 
+from collections.abc import Callable
 from functools import partial
-from typing import Any, Callable, Optional, Tuple
+from typing import Any
 
 import jax
 import jax.numpy as jnp
@@ -50,9 +52,9 @@ def loss_fn(
     kl_loss_fn: Callable,
     kl_weight: float,
     x: ArrayLike,
-    key: ArrayLike,
+    key: jax.Array,
     y: ArrayLike,
-) -> Tuple[ArrayLike, ArrayLike]:
+) -> tuple[ArrayLike, ArrayLike]:
     """Loss function definition for diffusion step..
 
     Args:
@@ -83,9 +85,9 @@ def jax_train_step_vae(
     kl_loss_fn: Callable,
     kl_weight: float,
     x: ArrayLike,
-    key: ArrayLike,
-    y: Optional[ArrayLike] = None,
-) -> Tuple[ArrayLike, Any]:
+    key: jax.Array,
+    y: ArrayLike | None = None,
+) -> tuple[ArrayLike, Any]:
     """Train VAE for a single step.
 
     This function uses data and a criterion to optimize model parameters. It returns
@@ -127,8 +129,8 @@ def eval_step_vae(
     kl_weight: float,
     metrics: nnx.MultiMetric,
     x: ArrayLike,
-    key: ArrayLike,
-    y: Optional[ArrayLike] = None,
+    key: jax.Array,
+    y: ArrayLike | None = None,
 ) -> ArrayLike:
     """Evaluate VAE for a single step.
 
@@ -158,7 +160,7 @@ def eval_step_vae(
     return loss
 
 
-def generate_sample(model: nnx.Module, key: ArrayLike, num_samples: int) -> ArrayLike:
+def generate_sample(model: nnx.Module, key: jax.Array, num_samples: int) -> ArrayLike:
     """Generate samples from latent representation.
 
     Args:
@@ -178,7 +180,7 @@ def generate_sample(model: nnx.Module, key: ArrayLike, num_samples: int) -> Arra
     return y
 
 
-def generate_conditioned_sample(model: nnx.Module, key: ArrayLike, c: ArrayLike) -> ArrayLike:
+def generate_conditioned_sample(model: nnx.Module, key: jax.Array, c: ArrayLike) -> ArrayLike:
     """Generate samples from latent representation using a conditioning property.
 
     Args:

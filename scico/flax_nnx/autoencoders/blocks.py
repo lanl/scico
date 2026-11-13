@@ -6,12 +6,13 @@
 # package.
 
 """Flax nnx implementation of different neural network blocks for autoencoders."""
+from __future__ import annotations  # for typing support for python 3.9 or earlier
 
 import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
-from typing import Callable, Sequence, Tuple
+from collections.abc import Callable, Sequence
 
 from jax.typing import ArrayLike
 
@@ -123,8 +124,8 @@ class CNN(nnx.Module):
         self,
         channels: int,
         num_filters: Sequence[int],
-        kernel_size: Tuple[int, int] = (3, 3),
-        strides: Tuple[int, int] = (1, 1),
+        kernel_size: tuple[int, int] = (3, 3),
+        strides: tuple[int, int] = (1, 1),
         activation_fn: Callable = nnx.relu,
         flatten_final: bool = False,
         conv_final: bool = True,
@@ -218,8 +219,8 @@ class CTpNN(nnx.Module):
         channels_in: int,
         channels_out: int,
         num_filters: Sequence[int],
-        kernel_size: Tuple[int, int] = (3, 3),
-        strides: Tuple[int, int] = (2, 2),
+        kernel_size: tuple[int, int] = (3, 3),
+        strides: tuple[int, int] = (2, 2),
         activation_fn: Callable = nnx.relu,
         batch_norm: bool = False,
         kernel_init: Callable = nnx.initializers.kaiming_normal,

@@ -6,18 +6,20 @@
 # package.
 
 """Flax NNX implementations of variational autoencoders."""
+from __future__ import annotations  # for typing support for python 3.9 or earlier
 
 import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
 
-from typing import Callable, List, Optional, Tuple
+from collections.abc import Callable
 
 from numpy import prod
 
+import jax
 import jax.numpy as jnp
-from jax.random import PRNGKey, normal
+from jax.random import normal
 from jax.typing import ArrayLike
 
 from flax import nnx
@@ -36,7 +38,7 @@ from .autoencoders import (
 # forward reference" warnings when building sphinx api docs.
 
 
-def reparameterize(mean: ArrayLike, logvar: ArrayLike, key: PRNGKey) -> ArrayLike:
+def reparameterize(mean: ArrayLike, logvar: ArrayLike, key: jax.Array) -> ArrayLike:
     """Reparametrization trick for sample generation.
 
     Args:
@@ -86,7 +88,7 @@ class VarEncoder(Encoder):
         else:
             self.shape_latent = mean_block.shape_latent
 
-    def __call__(self, x: ArrayLike) -> Tuple[ArrayLike, ArrayLike]:
+    def __call__(self, x: ArrayLike) -> tuple[ArrayLike, ArrayLike]:
         """Apply variational encoder.
 
         Args:
@@ -148,7 +150,7 @@ class VAE(nnx.Module):
         self,
         encoder: Encoder,
         decoder: Decoder,
-        conditioner: Optional[Encoder] = None,  # for mypy type checking
+        conditioner: Encoder | None = None,  # for mypy type checking
     ):
         """Initialize VAE.
         Args:
@@ -173,7 +175,7 @@ class VAE(nnx.Module):
         else:
             return True
 
-    def encode(self, x: ArrayLike) -> Tuple[ArrayLike, ArrayLike]:
+    def encode(self, x: ArrayLike) -> tuple[ArrayLike, ArrayLike]:
         """Variational encoding.
 
         Args:
@@ -215,8 +217,8 @@ class VAE(nnx.Module):
         return self.decoder(x)
 
     def __call__(
-        self, x: ArrayLike, key: PRNGKey, c: Optional[ArrayLike] = None
-    ) -> Tuple[ArrayLike, ArrayLike, ArrayLike]:
+        self, x: ArrayLike, key: jax.Array, c: ArrayLike | None = None
+    ) -> tuple[ArrayLike, ArrayLike, ArrayLike]:
         """Apply sequence of variational encoder and decoder modules.
 
         Args:
@@ -240,17 +242,17 @@ class VAE(nnx.Module):
 
 def MLPVarAutoEncoder(
     dim_in: int,
-    widths_mean_encoder: List[int],
-    widths_logvar_encoder: List[int],
+    widths_mean_encoder: list[int],
+    widths_logvar_encoder: list[int],
     dim_latent: int,
-    widths_decoder: List[int],
-    shape_out: Tuple[int, int, int],
+    widths_decoder: list[int],
+    shape_out: tuple[int, int, int],
     activation_fn: Callable = nnx.leaky_relu,
     batch_norm: bool = False,
     conditional: bool = False,
     dim_cond_in: int = 0,
-    widths_condproc_encoder: List[int] = [],
-    widths_cond_encoder: List[int] = [],
+    widths_condproc_encoder: list[int] = [],
+    widths_cond_encoder: list[int] = [],
     rngs: nnx.Rngs = nnx.Rngs(0),
 ):
     """Function to construct variational autoencoder network using multi
@@ -344,30 +346,30 @@ def MLPVarAutoEncoder(
 
 
 def ConvVarAutoEncoder(
-    shape_in: Tuple[int, int],
+    shape_in: tuple[int, int],
     channels: int,
-    filters_mean_encoder: List[int],
-    filters_logvar_encoder: List[int],
-    filters_decoder: List[int],
-    kernel_size_mean_encoder: Tuple[int, int] = (3, 3),
-    kernel_size_logvar_encoder: Tuple[int, int] = (3, 3),
-    kernel_size_decoder: Tuple[int, int] = (3, 3),
+    filters_mean_encoder: list[int],
+    filters_logvar_encoder: list[int],
+    filters_decoder: list[int],
+    kernel_size_mean_encoder: tuple[int, int] = (3, 3),
+    kernel_size_logvar_encoder: tuple[int, int] = (3, 3),
+    kernel_size_decoder: tuple[int, int] = (3, 3),
     activation_fn: Callable = nnx.leaky_relu,
     batch_norm: bool = False,
     flat_latent: bool = False,
     dim_latent: int = 0,
     conditional: bool = False,
     mode_cond: str = "conv",
-    filters_condproc_decoder: List[int] = [],
-    kernel_size_condproc_decoder: Tuple[int, int] = (3, 3),
-    strides_condproc_decoder: Tuple[int, int] = (1, 1),
-    shape_cond_in: Tuple[int, int] = (0, 0),
+    filters_condproc_decoder: list[int] = [],
+    kernel_size_condproc_decoder: tuple[int, int] = (3, 3),
+    strides_condproc_decoder: tuple[int, int] = (1, 1),
+    shape_cond_in: tuple[int, int] = (0, 0),
     channels_cond: int = 0,
-    filters_cond_encoder: List[int] = [],
-    kernel_size_cond_encoder: Tuple[int, int] = (3, 3),
-    widths_condproc_encoder: List[int] = [],
+    filters_cond_encoder: list[int] = [],
+    kernel_size_cond_encoder: tuple[int, int] = (3, 3),
+    widths_condproc_encoder: list[int] = [],
     dim_cond_in: int = 0,
-    widths_cond_encoder: List[int] = [],
+    widths_cond_encoder: list[int] = [],
     rngs: nnx.Rngs = nnx.Rngs(0),
 ):
     """Function to construct variational autoencoder network using convolutional layers.
@@ -420,7 +422,7 @@ def ConvVarAutoEncoder(
     Returns:
         Variational autoencoder model with architecture based on convolutional layers.
     """
-    strides: Tuple[int, int] = (2, 2)
+    strides: tuple[int, int] = (2, 2)
 
     # Build components for encoder
     mean_block = ConvEncoder(

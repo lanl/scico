@@ -6,12 +6,13 @@
 # package.
 
 """Flax nnx implementations of autoencoders."""
+from __future__ import annotations  # for typing support for python 3.9 or earlier
 
 import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
-from typing import Callable, List, Tuple, Union
+from collections.abc import Callable
 
 from numpy import prod
 
@@ -106,7 +107,7 @@ class AutoEncoder(nnx.Module):
 
     def __call__(
         self, x: ArrayLike, latent_rep: bool = False
-    ) -> Union[ArrayLike, Tuple[ArrayLike, ArrayLike]]:
+    ) -> ArrayLike | tuple[ArrayLike, ArrayLike]:
         """Apply sequence of encoder and decoder modules.
 
         Args:
@@ -131,7 +132,7 @@ class MLPEncoder(Encoder):
     def __init__(
         self,
         dim_in: int,
-        widths_encoder: List[int],
+        widths_encoder: list[int],
         dim_latent: int,
         activation_fn: Callable = nnx.leaky_relu,
         batch_norm: bool = False,
@@ -183,8 +184,8 @@ class MLPDecoder(Decoder):
     def __init__(
         self,
         dim_latent: int,
-        widths_decoder: List[int],
-        shape_out: Tuple[int, int, int],
+        widths_decoder: list[int],
+        shape_out: tuple[int, int, int],
         activation_fn: Callable = nnx.leaky_relu,
         batch_norm: bool = False,
         reshape_final: bool = True,
@@ -245,10 +246,10 @@ class MLPDecoder(Decoder):
 
 def MLPAutoEncoder(
     dim_in: int,
-    widths_encoder: List[int],
+    widths_encoder: list[int],
     dim_latent: int,
-    widths_decoder: List[int],
-    shape_out: Tuple[int, int, int],
+    widths_decoder: list[int],
+    shape_out: tuple[int, int, int],
     activation_fn: Callable = nnx.leaky_relu,
     batch_norm: bool = False,
     rngs: nnx.Rngs = nnx.Rngs(0),
@@ -303,13 +304,13 @@ class ConvEncoder(Encoder):
 
     def __init__(
         self,
-        shape_in: Tuple[int, int],
+        shape_in: tuple[int, int],
         channels: int,
-        filters_encoder: List[int],
+        filters_encoder: list[int],
         flat_latent: bool = False,
         dim_latent: int = 0,
-        kernel_size: Tuple[int, int] = (3, 3),
-        strides: Tuple[int, int] = (2, 2),
+        kernel_size: tuple[int, int] = (3, 3),
+        strides: tuple[int, int] = (2, 2),
         activation_fn: Callable = nnx.leaky_relu,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
@@ -372,13 +373,13 @@ class ConvDecoder(Decoder):
 
     def __init__(
         self,
-        filters_decoder: List[int],
-        shape_latent: Tuple[int, int, int],
+        filters_decoder: list[int],
+        shape_latent: tuple[int, int, int],
         channels: int,
         flat_latent: bool = False,
         dim_latent: int = 0,
-        kernel_size: Tuple[int, int] = (3, 3),
-        strides: Tuple[int, int] = (2, 2),
+        kernel_size: tuple[int, int] = (3, 3),
+        strides: tuple[int, int] = (2, 2),
         activation_fn: Callable = nnx.leaky_relu,
         batch_norm: bool = False,
         rngs: nnx.Rngs = nnx.Rngs(0),
@@ -434,17 +435,17 @@ class ConvDecoder(Decoder):
 
 
 def ConvAutoEncoder(
-    shape_in: Tuple[int, int],
+    shape_in: tuple[int, int],
     channels: int,
-    filters_encoder: List[int],
-    filters_decoder: List[int],
+    filters_encoder: list[int],
+    filters_decoder: list[int],
     flat_latent: bool = False,
     dim_latent: int = 0,
-    kernel_size_encoder: Tuple[int, int] = (3, 3),
-    strides_encoder: Tuple[int, int] = (2, 2),
+    kernel_size_encoder: tuple[int, int] = (3, 3),
+    strides_encoder: tuple[int, int] = (2, 2),
     activation_fn_encoder: Callable = nnx.leaky_relu,
-    kernel_size_decoder: Tuple[int, int] = (3, 3),
-    strides_decoder: Tuple[int, int] = (2, 2),
+    kernel_size_decoder: tuple[int, int] = (3, 3),
+    strides_decoder: tuple[int, int] = (2, 2),
     activation_fn_decoder: Callable = nnx.leaky_relu,
     batch_norm: bool = False,
     rngs: nnx.Rngs = nnx.Rngs(0),
