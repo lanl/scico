@@ -7,11 +7,11 @@
 
 """Neural networks for diffusion generative models."""
 
+from __future__ import annotations  # for type support python 3.9 or earlier
+
 import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
-
-from __future__ import annotations
 
 from functools import partial
 

@@ -7,7 +7,7 @@
 
 """Definition of functions to generate new samples from diffusion models."""
 
-from __future__ import annotations
+from __future__ import annotations  # for type support python 3.9 or earlier
 
 from collections.abc import Callable
 

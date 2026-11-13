@@ -7,8 +7,11 @@
 
 """Definition of typed dictionaries for objects in training functionality."""
 
+from __future__ import annotations  # for typing support for python 3.9 or earlier
+
 import sys
-from typing import Any, Callable, List
+from collections.abc import Callable
+from typing import Any
 
 if sys.version_info >= (3, 8):
     from typing import TypedDict  # pylint: disable=no-name-in-module
@@ -76,7 +79,7 @@ class ConfigDict(TypedDict):
     #: Function to execute each evaluation step.
     eval_step_fn: Callable
     #: List of post-processing functions to apply after a train step (if any).
-    post_lst: List[Callable]
+    post_lst: list[Callable]
     #: Size of buffer for shuffling data for large trainig sets
     shuffle_buffer_size: int
     #: Function to create objects for logging training statistics.

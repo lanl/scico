@@ -7,7 +7,7 @@
 
 """Definition of loss functions for model optimization."""
 
-from __future__ import annotations
+from __future__ import annotations  # for typing support for python 3.9 or earlier
 
 import optax
 

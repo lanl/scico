@@ -25,11 +25,11 @@ differences:
   and :class:`Downsample` blocks.
 """
 
+from __future__ import annotations  # for typing support for python 3.9 or earlier
+
 import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
-
-from __future__ import annotations
 
 import math
 from collections.abc import Callable

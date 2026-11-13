@@ -7,8 +7,8 @@
 
 """Utilities to configure Optax optimizer."""
 
+from collections.abc import Callable
 from functools import partial
-from typing import Callable
 
 import optax
 

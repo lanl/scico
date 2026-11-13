@@ -7,12 +7,14 @@
 
 """Flax nnx implementation of different convolutional nets."""
 
+from __future__ import annotations  # for typing support for python 3.9 or earlier
+
 import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
+from collections.abc import Callable
 from functools import partial
-from typing import Callable, Tuple
 
 import jax.numpy as jnp
 from jax.typing import ArrayLike
@@ -44,8 +46,8 @@ class DnCNNNet(nnx.Module):
         depth: int,
         channels: int,
         num_filters: int = 64,
-        kernel_size: Tuple[int, int] = (3, 3),
-        strides: Tuple[int, int] = (1, 1),
+        kernel_size: tuple[int, int] = (3, 3),
+        strides: tuple[int, int] = (1, 1),
         act: Callable[..., ArrayLike] = nnx.relu,
         kernel_init: Callable = nnx.initializers.kaiming_normal,
         dtype=jnp.float32,
@@ -136,8 +138,8 @@ class ResNet(nnx.Module):
         depth: int,
         channels: int,
         num_filters: int = 64,
-        kernel_size: Tuple[int, int] = (3, 3),
-        strides: Tuple[int, int] = (1, 1),
+        kernel_size: tuple[int, int] = (3, 3),
+        strides: tuple[int, int] = (1, 1),
         act: Callable[..., ArrayLike] = nnx.relu,
         kernel_init: Callable = nnx.initializers.xavier_normal,
         dtype=jnp.float32,
@@ -218,8 +220,8 @@ class ConvBNNet(nnx.Module):
         depth: int,
         channels: int,
         num_filters: int = 64,
-        kernel_size: Tuple[int, int] = (3, 3),
-        strides: Tuple[int, int] = (1, 1),
+        kernel_size: tuple[int, int] = (3, 3),
+        strides: tuple[int, int] = (1, 1),
         act: Callable[..., ArrayLike] = nnx.relu,
         kernel_init: Callable = nnx.initializers.xavier_normal,
         dtype=jnp.float32,
@@ -295,10 +297,10 @@ class UNet(nnx.Module):
         depth: int,
         channels: int,
         num_filters: int = 64,
-        kernel_size: Tuple[int, int] = (3, 3),
-        strides: Tuple[int, int] = (1, 1),
+        kernel_size: tuple[int, int] = (3, 3),
+        strides: tuple[int, int] = (1, 1),
         block_depth: int = 2,
-        window_shape: Tuple[int, int] = (2, 2),
+        window_shape: tuple[int, int] = (2, 2),
         upsampling: int = 2,
         act: Callable[..., ArrayLike] = nnx.relu,
         kernel_init: Callable = nnx.initializers.kaiming_normal,

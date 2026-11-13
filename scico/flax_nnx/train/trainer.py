@@ -10,18 +10,19 @@
 
 Assumes sharded batched data and uses data parallel training.
 """
+from __future__ import annotations  # for typing support for python 3.9 or earlier
 
 import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
+
 import time
+from collections.abc import Callable
 from functools import partial
-from typing import Callable, Dict, Optional
 
 import jax
 from jax.experimental import mesh_utils
-from jax.typing import ArrayLike
 
 from flax import nnx
 from scico.diagnostics import IterationStats
@@ -43,7 +44,7 @@ class BasicFlaxNNXTrainer:
         config: ConfigDict,
         model: nnx.Module,
         train_ds: DataSetDict,
-        test_ds: Optional[DataSetDict] = None,
+        test_ds: DataSetDict | None = None,
     ):
         """Initializer for :class:`BasicFlaxNNXTrainer`.
 
@@ -65,7 +66,7 @@ class BasicFlaxNNXTrainer:
         self.model = model
 
         # Object for storing iteration stats
-        self.itstat_object: Optional[IterationStats] = None
+        self.itstat_object: IterationStats | None = None
         self.configure_reporting(config)
 
         # Store datasets
@@ -343,7 +344,7 @@ class BasicFlaxNNXTrainer:
             loss = self.eval_step_fn(self.model, self.criterion, metrics, x, y)
         return loss, metrics, key
 
-    def train(self, key: Optional[ArrayLike] = None) -> Optional[IterationStats]:
+    def train(self, key: jax.Array | None = None) -> IterationStats | None:
         """Execute training loop.
 
         Args:
@@ -414,7 +415,7 @@ class BasicFlaxNNXTrainer:
         epoch: int,
         metrics,
         t0,
-        key: Optional[ArrayLike] = None,
+        key: jax.Array | None = None,
     ):
         """Compute metrics for current model state.
 
@@ -433,7 +434,7 @@ class BasicFlaxNNXTrainer:
         if not self.logflag:
             return
 
-        summary: Dict[str, int | float] = {}
+        summary: dict[str, int | float] = {}
 
         # Get current learning rate from optax optimizer (configured to store it).
         summary["train_learning_rate"] = self.optimizer.opt_state.hyperparams["learning_rate"]

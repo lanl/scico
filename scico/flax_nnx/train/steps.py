@@ -7,8 +7,10 @@
 
 """Definition of steps to iterate during training or evaluation."""
 
+from __future__ import annotations  # for typing support for python 3.9 or earlier
+
+from collections.abc import Callable
 from functools import partial
-from typing import Callable, Tuple
 
 import jax
 from jax.typing import ArrayLike
@@ -19,7 +21,7 @@ from scico.metric import snr as snr_fn
 
 def loss_fn(
     model: Callable, criterion: Callable, x: ArrayLike, y: ArrayLike
-) -> Tuple[ArrayLike, ArrayLike]:
+) -> tuple[ArrayLike, ArrayLike]:
     """Loss function definition.
 
     Args:

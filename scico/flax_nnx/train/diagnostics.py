@@ -10,7 +10,9 @@
 Assumes sharded batched data.
 """
 
-from typing import Callable, Dict, List, Tuple, Union
+from __future__ import annotations
+
+from collections.abc import Callable
 
 from scico.diagnostics import IterationStats
 
@@ -28,8 +30,8 @@ class ArgumentStruct:
 
 
 def create_itstat(
-    itstat_fields: dict[str, str], itstat_attrib: List[str]
-) -> Tuple[IterationStats, Callable]:
+    itstat_fields: dict[str, str], itstat_attrib: list[str]
+) -> tuple[IterationStats, Callable]:
     """Function to create objects for logging training statistics.
 
     These objects are created and used if logging is enabled during training.
@@ -45,9 +47,9 @@ def create_itstat(
     """
     # dynamically create itstat_func; see https://stackoverflow.com/questions/24733831
     itstat_return = "return(" + ", ".join(["obj." + attr for attr in itstat_attrib]) + ")"
-    scope: Dict[str, Callable] = {}
+    scope: dict[str, Callable] = {}
     exec("def itstat_func(obj): " + itstat_return, scope)
-    default_itstat_options: Dict[str, Union[dict[str, str], Callable, bool]] = {
+    default_itstat_options: dict[str, dict[str, str] | Callable | bool] = {
         "fields": itstat_fields,
         "itstat_func": scope["itstat_func"],
         "display": True,
@@ -58,7 +60,7 @@ def create_itstat(
     return itstat_object, itstat_insert_func
 
 
-def stats_obj() -> Tuple[IterationStats, Callable]:
+def stats_obj() -> tuple[IterationStats, Callable]:
     """Functionality to log and store a specific subset of iteration statistics.
 
     This function specifies some statistics to register while training
