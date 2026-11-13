@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2022-2023 by SCICO Developers
+# Copyright (C) 2022-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -7,15 +7,14 @@
 
 """Definition of loss functions for model optimization."""
 
-
-from typing import List, Optional
+from __future__ import annotations
 
 import optax
 
 from scico.numpy import Array
 
 
-def mse_loss(output: Array, labels: Array, reduce_dims: Optional[List[int]] = None) -> float:
+def mse_loss(output: Array, labels: Array, reduce_dims: list[int] | range | None = None) -> float:
     """Compute Mean Squared Error (MSE) loss for training via Optax.
 
     Args:
@@ -33,7 +32,7 @@ def mse_loss(output: Array, labels: Array, reduce_dims: Optional[List[int]] = No
     return mse.sum(axis=reduce_dims).mean()
 
 
-def huber_loss(output: Array, labels: Array, reduce_dims: Optional[List[int]] = None) -> float:
+def huber_loss(output: Array, labels: Array, reduce_dims: list[int] | range | None = None) -> float:
     """Compute Hubber loss for training via Optax.
 
     Args:

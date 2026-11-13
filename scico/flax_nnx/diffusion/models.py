@@ -11,8 +11,9 @@ import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
+from __future__ import annotations
+
 from functools import partial
-from typing import Optional, Tuple
 
 import jax.numpy as jnp
 from jax import jit
@@ -37,14 +38,14 @@ class ConditionalUNet(nnx.Module):
 
     def __init__(
         self,
-        shape: Tuple[int, int],
+        shape: tuple[int, int],
         channels: int = 3,
-        init_channels: Optional[int] = None,
-        out_channels: Optional[int] = None,
-        dim_mults: Tuple[int, ...] = (1, 2, 4, 8),
+        init_channels: int | None = None,
+        out_channels: int | None = None,
+        dim_mults: tuple[int, ...] = (1, 2, 4, 8),
         self_condition: bool = False,
         resnet_block_groups: int = 4,
-        kernel_size: Tuple[int, int] = (7, 7),
+        kernel_size: tuple[int, int] = (7, 7),
         time_embed: bool = True,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):

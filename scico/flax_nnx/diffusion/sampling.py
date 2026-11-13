@@ -7,16 +7,15 @@
 
 """Definition of functions to generate new samples from diffusion models."""
 
-from typing import Any, Callable, Tuple
+from __future__ import annotations
+
+from collections.abc import Callable
 
 import jax
 import jax.numpy as jnp
-from jax.random import PRNGKey
 from jax.typing import ArrayLike
 
 import flax.nnx
-
-PyTree = Any
 
 
 def score_fn(score_model: Callable, x: ArrayLike, t: ArrayLike):
@@ -35,10 +34,10 @@ p_score_fn = jax.pmap(score_fn, static_broadcasted_argnums=(0,))
 
 
 def Euler_Maruyama_sampler(
-    key: ArrayLike,
+    key: jax.Array,
     score_model: flax.nnx.Module,
     stddev_prior: float,
-    xshape: Tuple[int],
+    xshape: tuple[int],
     num_steps: int,
     batch_size: int,
     eps: float = 1e-3,
@@ -89,11 +88,11 @@ def Euler_Maruyama_sampler(
 
 def sampling_score(
     batch_size: int,
-    xshape: Tuple[int],
+    xshape: tuple[int],
     maxsteps: int,
     sigma: ArrayLike,
     model: Callable,
-    key: PRNGKey,
+    key: jax.Array,
     return_path: bool = False,
     eps: float = 2e-5,
 ):
@@ -115,7 +114,7 @@ def sampling_score(
     """
     key, subkey = jax.random.split(key)
     x = jax.random.normal(subkey, (batch_size,) + xshape)
-    xpath = None
+    xpath: ArrayLike | None = None
     if return_path:
         xpath = jnp.zeros((maxsteps + 1,) + x.shape)
         xpath = xpath.at[0].set(x)
@@ -127,7 +126,7 @@ def sampling_score(
             key, subkey = jax.random.split(key)
             z = jax.random.normal(subkey, x.shape)
             x = x + alpha_i * model(x, sigma[i]) / 2.0 + jnp.sqrt(alpha_i) * z
-            if return_path:
+            if return_path and xpath is not None:
                 xpath = xpath.at[t].set(x)
 
     if return_path:
@@ -137,13 +136,13 @@ def sampling_score(
 
 def sampling_ddpm(
     batch_size: int,
-    xshape: Tuple[int],
+    xshape: tuple[int],
     maxsteps: int,
     alpha_schedule: ArrayLike,
     alpha_bar_schedule: ArrayLike,
     sigma: ArrayLike,
     model: Callable,
-    key: PRNGKey,
+    key: jax.Array,
     return_path: bool = False,
 ):
     """Function to sample using Denoising Diffusion Probabilistic Models

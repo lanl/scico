@@ -29,8 +29,10 @@ import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
+from __future__ import annotations
+
 import math
-from typing import Callable, Optional, Tuple
+from collections.abc import Callable
 
 import jax
 import jax.numpy as jnp
@@ -119,9 +121,9 @@ class Upsample(nnx.Module):
     def __init__(
         self,
         ftrs: int,
-        ftrs_out: Optional[int] = None,
+        ftrs_out: int | None = None,
         factor: float = 2,
-        shp_out: Optional[Tuple[int, int]] = None,
+        shp_out: tuple[int, int] | None = None,
         method: str = "bilinear",
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
@@ -166,9 +168,9 @@ class Downsample(nnx.Module):
     def __init__(
         self,
         ftrs: int,
-        ftrs_out: Optional[int] = None,
+        ftrs_out: int | None = None,
         factor: float = 2,
-        shp_out: Optional[Tuple[int, int]] = None,
+        shp_out: tuple[int, int] | None = None,
         method="bilinear",
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
@@ -214,7 +216,7 @@ class ConvGroupNBlock(nnx.Module):
         dim: int,
         dim_out: int,
         groups: int = 8,
-        kernel_size: Tuple[int, int] = (3, 3),
+        kernel_size: tuple[int, int] = (3, 3),
         act: Callable[..., ArrayLike] = nnx.silu,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
@@ -253,9 +255,9 @@ class ResnetBlock(nnx.Module):
         self,
         dim: int,
         dim_out: int,
-        time_emb_dim: Optional[int] = 0,
+        time_emb_dim: int | None = 0,
         groups: int = 8,
-        kernel_size: Tuple[int, int] = (3, 3),
+        kernel_size: tuple[int, int] = (3, 3),
         act: Callable[..., ArrayLike] = nnx.silu,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
