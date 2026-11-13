@@ -40,7 +40,7 @@ from einops import rearrange
 
 from flax import nnx
 from flax.core import Scope  # noqa
-from scico.flax.diffusion.helpers import default
+from scico.flax_nnx.diffusion.helpers import default
 
 # The import of Scope above is required to silence "cannot resolve
 # forward reference" warnings when building sphinx api docs.

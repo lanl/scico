@@ -19,7 +19,6 @@ from jax import jit
 from jax.typing import ArrayLike
 
 from flax import nnx
-from scico.flax.diffusion.helpers import default
 from scico.flax_nnx.diffusion.blocks import (
     Attention,
     Downsample,
@@ -30,6 +29,7 @@ from scico.flax_nnx.diffusion.blocks import (
     SinusoidalPositionEmbeddings,
     Upsample,
 )
+from scico.flax_nnx.diffusion.helpers import default
 
 
 class ConditionalUNet(nnx.Module):
