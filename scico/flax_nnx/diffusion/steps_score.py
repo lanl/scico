@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2025 by SCICO Developers
+# Copyright (C) 2021-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -7,10 +7,11 @@
 
 """Definition of steps to iterate during training or evaluation of
 diffusion models under score, i.e. gradient of the log of the data
-distribution, formulation :cite:`song-2019-score`."""
+distribution. This interface uses time in (0, 1]."""
+from __future__ import annotations  # for type support python 3.9 or earlier
 
+from collections.abc import Callable
 from functools import partial
-from typing import Callable, Tuple
 
 import jax
 import jax.numpy as jnp
@@ -21,7 +22,7 @@ from flax import nnx
 eps = 1e-5  # Minimum t to sample
 
 
-def _step_t(batch_x: ArrayLike, key: ArrayLike, **kwargs) -> Tuple[ArrayLike, ArrayLike]:
+def _step_t(batch_x: ArrayLike, key: jax.Array, **kwargs) -> tuple[ArrayLike, ArrayLike]:
     """Default t computation for diffusion step."""
     tshp = (batch_x.shape[0],) + (1,) * len(batch_x.shape[1:])
     batch_t = jax.random.uniform(key, (batch_x.shape[0], 1), minval=eps, maxval=1.0)
@@ -30,8 +31,8 @@ def _step_t(batch_x: ArrayLike, key: ArrayLike, **kwargs) -> Tuple[ArrayLike, Ar
 
 
 def _step_x(
-    batch: ArrayLike, key: ArrayLike, t: ArrayLike, **kwargs
-) -> Tuple[ArrayLike, ArrayLike, ArrayLike]:
+    batch: ArrayLike, key: jax.Array, t: ArrayLike, **kwargs
+) -> tuple[ArrayLike, ArrayLike, ArrayLike]:
     """Default x computation for diffusion step."""
     stddev_prior = kwargs.pop("stddev_prior")
     z = jax.random.normal(key, batch.shape)
@@ -55,7 +56,7 @@ def loss_fn(
     batch_t: ArrayLike,
     batch_z: ArrayLike,
     batch_std: ArrayLike,
-) -> Tuple[ArrayLike, ArrayLike]:
+) -> tuple[ArrayLike, ArrayLike]:
     """Loss function definition for diffusion step..
 
     Args:

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2025 by SCICO Developers
+# Copyright (C) 2021-2026 by SCICO Developers
 # All rights reserved. BSD 3-clause License.
 # This file is part of the SCICO package. Details of the copyright and
 # user license can be found in the 'LICENSE' file distributed with the
@@ -8,9 +8,10 @@
 """Definition of steps to iterate during training or evaluation of
 diffusion models under the Denoising Diffusion Probabilistic Models
 (DDPM) formulation :cite:`ho-2020-ddpm`."""
+from __future__ import annotations  # for type support python 3.9 or earlier
 
+from collections.abc import Callable
 from functools import partial
-from typing import Callable, Tuple
 
 import jax
 import jax.numpy as jnp
@@ -38,7 +39,7 @@ def alpha_fn(alpha_bar_schedule: ArrayLike, batch_t: ArrayLike) -> ArrayLike:
     return alpha_eval
 
 
-def _step_t(batch_x: ArrayLike, key: ArrayLike, **kwargs) -> ArrayLike:
+def _step_t(batch_x: ArrayLike, key: jax.Array, **kwargs) -> ArrayLike:
     """t computation for diffusion step in DDPM formulation.
 
     Args:
@@ -55,8 +56,8 @@ def _step_t(batch_x: ArrayLike, key: ArrayLike, **kwargs) -> ArrayLike:
 
 
 def _step_x(
-    batch: ArrayLike, key: ArrayLike, t: ArrayLike, **kwargs
-) -> Tuple[ArrayLike, ArrayLike, ArrayLike]:
+    batch: ArrayLike, key: jax.Array, t: ArrayLike, **kwargs
+) -> tuple[ArrayLike, ArrayLike, ArrayLike]:
     """x computation for diffusion step in DDPM formulation.
 
     Args:
@@ -121,7 +122,7 @@ def jax_train_step_diffusion(
     batch_t: ArrayLike,
     batch_z: ArrayLike,
     batch_std: ArrayLike,
-) -> Tuple[ArrayLike, nnx.State]:
+) -> tuple[ArrayLike, nnx.State]:
     """Train for a single step.
 
     This function uses data and a criterion to optimize model parameters. It returns

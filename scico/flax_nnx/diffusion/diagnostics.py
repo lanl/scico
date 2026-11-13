@@ -9,14 +9,15 @@
 
 Assumes sharded batched data.
 """
+from __future__ import annotations  # for typing support for python 3.9 or earlier
 
-from typing import Callable, Tuple
+from collections.abc import Callable
 
 from scico.diagnostics import IterationStats
 from scico.flax_nnx.train.diagnostics import create_itstat
 
 
-def stats_obj() -> Tuple[IterationStats, Callable]:
+def stats_obj() -> tuple[IterationStats, Callable]:
     """Functionality to log and store a specific subset of diffusion
     models training statistics.
 

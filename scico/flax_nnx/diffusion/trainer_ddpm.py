@@ -9,17 +9,17 @@
 model under the Denoising Diffusion Probabilistic Models
 (DDPM) formulation :cite:`ho-2020-ddpm`.
 """
+from __future__ import annotations  # for type support python 3.9 or earlier
 
 import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
+from collections.abc import Callable
 from functools import partial
-from typing import Callable, Optional
 
 import jax
 import jax.numpy as jnp
-from jax.typing import ArrayLike
 
 from flax import nnx
 from scico.flax_nnx.train.input_pipeline import iterate_x_dataset
@@ -59,7 +59,7 @@ class FlaxNNXDDPMTrainer(BasicFlaxNNXTrainer):
         config: ConfigDictDDPM,
         model: Callable,
         train_ds: DataSetDict,
-        test_ds: Optional[DataSetDict] = None,
+        test_ds: DataSetDict | None = None,
     ):
         """Initializer for :class:`FlaxNNXDDPMTrainer`.
 
@@ -167,7 +167,7 @@ class FlaxNNXDDPMTrainer(BasicFlaxNNXTrainer):
 
         self.log_data_snapshot()
 
-    def one_train_epoch_x(self, graphdef, state, key: ArrayLike):
+    def one_train_epoch_x(self, graphdef, state, key: jax.Array):
         """Function that defines one epoch of training for a VAE that uses only input data.
 
         This function iterates over the whole training set using randomly shuffled batches.

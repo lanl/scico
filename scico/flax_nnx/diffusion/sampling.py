@@ -37,7 +37,7 @@ def Euler_Maruyama_sampler(
     key: jax.Array,
     score_model: flax.nnx.Module,
     stddev_prior: float,
-    xshape: tuple[int],
+    xshape: tuple[int, ...],
     num_steps: int,
     batch_size: int,
     eps: float = 1e-3,
@@ -88,7 +88,7 @@ def Euler_Maruyama_sampler(
 
 def sampling_score(
     batch_size: int,
-    xshape: tuple[int],
+    xshape: tuple[int, ...],
     maxsteps: int,
     sigma: ArrayLike,
     model: Callable,
@@ -136,7 +136,7 @@ def sampling_score(
 
 def sampling_ddpm(
     batch_size: int,
-    xshape: tuple[int],
+    xshape: tuple[int, ...],
     maxsteps: int,
     alpha_schedule: ArrayLike,
     alpha_bar_schedule: ArrayLike,
