@@ -91,7 +91,7 @@ def sampling_score(
     xshape: tuple[int, ...],
     maxsteps: int,
     sigma: ArrayLike,
-    model: Callable,
+    model: flax.nnx.Module,
     key: jax.Array,
     return_path: bool = False,
     eps: float = 2e-5,
@@ -112,6 +112,7 @@ def sampling_score(
     Returns:
         Array with generated samples, generation path (optional) and key.
     """
+    model.eval()
     key, subkey = jax.random.split(key)
     x = jax.random.normal(subkey, (batch_size,) + xshape)
     xpath: ArrayLike | None = None
@@ -141,7 +142,7 @@ def sampling_ddpm(
     alpha_schedule: ArrayLike,
     alpha_bar_schedule: ArrayLike,
     sigma: ArrayLike,
-    model: Callable,
+    model: flax.nnx.Module,
     key: jax.Array,
     return_path: bool = False,
 ):
@@ -166,6 +167,7 @@ def sampling_ddpm(
     Returns:
         Array with generated samples, generation path (optional) and key.
     """
+    model.eval()
     key, subkey = jax.random.split(key)
     x = jax.random.normal(subkey, (batch_size,) + xshape)
     if return_path:

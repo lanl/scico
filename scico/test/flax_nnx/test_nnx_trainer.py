@@ -57,7 +57,7 @@ class SetupTest:
             "momentum": 0.9,
             "batch_size": self.bsize,
             "num_epochs": 1,
-            "base_learning_rate": 1e-3,
+            "base_learning_rate": 1.0e-3,
             "lr_decay_rate": 0.95,
             "warmup_epochs": 0,
             "log_every_epochs": 10,
