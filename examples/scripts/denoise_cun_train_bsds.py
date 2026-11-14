@@ -153,7 +153,7 @@ trainer = FlaxNNXScoreTrainer(
     test_ds,
 )
 
-key = jax.random.PRNGKey(0x1234)
+key = jax.random.key(0x1234)
 start_time = time()
 stats_object = trainer.train(key)
 time_train = time() - start_time

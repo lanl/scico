@@ -40,7 +40,7 @@ def initialize(key: KeyArray, model: ModuleDef, ishape: Shape) -> Tuple[PyTree, 
     """Initialize Flax model.
 
     Args:
-        key: A PRNGKey used as the random key.
+        key: A key for the random number generation.
         model: Flax model to train.
         ishape: Shape of signal (image) to process by `model`. Make sure
             that no batch dimension is included.
@@ -71,7 +71,7 @@ def create_basic_train_state(
     """Create Flax basic train state and initialize.
 
     Args:
-        key: A PRNGKey used as the random key.
+        key: A key used for the random number generation.
         config: Dictionary of configuration. The values to use correspond
             to keywords: `opt_type` and `momentum`.
         model: Flax model to train.

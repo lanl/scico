@@ -317,7 +317,7 @@ class BasicFlaxTrainer:
                 and labels).
             test_ds: Dictionary of testing data (includes images
                 and labels).
-            key: A PRNGKey used as the random key.
+            key: A key for random generation.
             mdtype: Output type of Flax model to be trained.
         """
         size_device_prefetch = 2  # Set for GPU
@@ -410,7 +410,7 @@ class BasicFlaxTrainer:
 
         Args:
             config: Hyperparameter configuration.
-            key: A PRNGKey used as the random key.
+            key: A key for random generation.
             model: Flax model to train.
             variables0: Optional initial state of model parameters.
         """

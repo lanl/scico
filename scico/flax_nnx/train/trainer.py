@@ -378,7 +378,7 @@ class BasicFlaxNNXTrainer:
         # Execute training loop and register stats
         shuffle = True
         if key is None:
-            key = jax.random.PRNGKey(self.config["seed"])
+            key = jax.random.key(self.config["seed"])
         t0 = time.time()
         for epoch in range(epochs_offset, self.train_epochs):
             loss, state, key = self.one_train_epoch_fn(graphdef, state, key)
@@ -391,7 +391,7 @@ class BasicFlaxNNXTrainer:
                 self.checkpoint(nnx.state((self.model, self.optimizer)), epoch + 1)
 
         # Wait for finishing asynchronous execution --> check if this is needed
-        jax.random.normal(jax.random.PRNGKey(0), ()).block_until_ready()
+        jax.random.normal(jax.random.key(0), ()).block_until_ready()
 
         self.train_time = time.time() - t0
 

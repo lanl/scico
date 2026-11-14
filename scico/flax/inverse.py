@@ -13,6 +13,7 @@ warnings.simplefilter(action="ignore", category=FutureWarning)
 from functools import partial
 from typing import Any, Callable, Tuple
 
+import jax
 import jax.numpy as jnp
 from jax import jit, lax, random
 
@@ -22,7 +23,7 @@ from flax.linen.module import Module, compact
 from scico.flax import ResNet
 from scico.linop import LinearOperator
 from scico.numpy import Array
-from scico.typing import DType, PRNGKey, Shape
+from scico.typing import DType, Shape
 
 # The imports of Scope and _Sentinel (above) are required to silence
 # "cannot resolve forward reference" warnings when building sphinx api
@@ -77,7 +78,7 @@ class MoDLNet(Module):
             The reconstructed signal.
         """
 
-        def lmbda_init_wrap(rng: PRNGKey, shape: Shape, dtype: DType = self.dtype) -> Array:
+        def lmbda_init_wrap(rng: jax.Array, shape: Shape, dtype: DType = self.dtype) -> Array:
             return jnp.ones(shape, dtype) * self.lmbda_ini
 
         lmbda = self.param("lmbda", lmbda_init_wrap, (1,))
@@ -206,7 +207,7 @@ class ODPProxDnBlock(Module):
             The block output (i.e. next stage of denoised signal).
         """
 
-        def alpha_init_wrap(rng: PRNGKey, shape: Shape, dtype: DType = self.dtype) -> Array:
+        def alpha_init_wrap(rng: jax.Array, shape: Shape, dtype: DType = self.dtype) -> Array:
             return jnp.ones(shape, dtype) * self.alpha_ini
 
         alpha = self.param("alpha", alpha_init_wrap, (1,))
@@ -273,7 +274,7 @@ class ODPProxDcnvBlock(Module):
             dtype=self.dtype,
         )
 
-        def alpha_init_wrap(rng: PRNGKey, shape: Shape, dtype: DType = self.dtype) -> Array:
+        def alpha_init_wrap(rng: jax.Array, shape: Shape, dtype: DType = self.dtype) -> Array:
             return jnp.ones(shape, dtype) * self.alpha_ini
 
         self.alpha = self.param("alpha", alpha_init_wrap, (1,))
@@ -362,7 +363,7 @@ class ODPGrDescBlock(Module):
             dtype=self.dtype,
         )
 
-        def alpha_init_wrap(rng: PRNGKey, shape: Shape, dtype: DType = self.dtype) -> Array:
+        def alpha_init_wrap(rng: jax.Array, shape: Shape, dtype: DType = self.dtype) -> Array:
             return jnp.ones(shape, dtype) * self.alpha_ini
 
         self.alpha = self.param("alpha", alpha_init_wrap, (1,))
@@ -481,7 +482,7 @@ def power_iteration(A: LinearOperator, maxiter: int = 100):
             - **v**: Eigenvector of `A` with eigenvalue `mu`.
 
     """
-    key = random.PRNGKey(0)
+    key = random.key(0)
     v = random.normal(key, shape=A.input_shape, dtype=A.input_dtype)
 
     v = v / jnp.linalg.norm(v)

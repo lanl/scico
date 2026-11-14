@@ -75,7 +75,7 @@ def test_optimizers(testobj, opt_type):
         testobj.model_conf["depth"],
         testobj.chn,
         testobj.model_conf["num_filters"],
-        rngs=nnx.Rngs(0),
+        rngs=nnx.Rngs(np.random.randint(10)),
     )
 
     train_conf = dict(testobj.train_conf)
@@ -98,7 +98,7 @@ def test_optimizers_exception(testobj):
         testobj.model_conf["depth"],
         testobj.chn,
         testobj.model_conf["num_filters"],
-        rngs=nnx.Rngs(0),
+        rngs=nnx.Rngs(np.random.randint(10)),
     )
 
     train_conf = dict(testobj.train_conf)
@@ -117,7 +117,7 @@ def test_class_train_default_init(testobj):
         testobj.model_conf["depth"],
         testobj.chn,
         testobj.model_conf["num_filters"],
-        rngs=nnx.Rngs(0),
+        rngs=nnx.Rngs(np.random.randint(10)),
     )
     try:
         trainer = BasicFlaxNNXTrainer(
@@ -138,7 +138,7 @@ def test_class_train_default_noseed(testobj):
         testobj.model_conf["depth"],
         testobj.chn,
         testobj.model_conf["num_filters"],
-        rngs=nnx.Rngs(0),
+        rngs=nnx.Rngs(np.random.randint(10)),
     )
     train_conf = dict(testobj.train_conf)
     train_conf.pop("seed", None)
@@ -159,7 +159,7 @@ def test_class_train_default_criterion(testobj):
         testobj.model_conf["depth"],
         testobj.chn,
         testobj.model_conf["num_filters"],
-        rngs=nnx.Rngs(0),
+        rngs=nnx.Rngs(np.random.randint(10)),
     )
     train_conf = dict(testobj.train_conf)
     try:
@@ -181,7 +181,7 @@ def test_class_train_nolog(testobj):
         testobj.model_conf["depth"],
         testobj.chn,
         testobj.model_conf["num_filters"],
-        rngs=nnx.Rngs(0),
+        rngs=nnx.Rngs(np.random.randint(10)),
     )
 
     train_conf = dict(testobj.train_conf)
@@ -206,7 +206,7 @@ def test_except_class_train_batch_size(testobj):
         testobj.model_conf["depth"],
         testobj.chn,
         testobj.model_conf["num_filters"],
-        rngs=nnx.Rngs(0),
+        rngs=nnx.Rngs(np.random.randint(10)),
     )
     train_conf = dict(testobj.train_conf)
     train_conf["batch_size"] = jax.device_count() + 1
@@ -224,7 +224,7 @@ def test_class_train_set_epochs(testobj):
         testobj.model_conf["depth"],
         testobj.chn,
         testobj.model_conf["num_filters"],
-        rngs=nnx.Rngs(0),
+        rngs=nnx.Rngs(np.random.randint(10)),
     )
     train_conf = dict(testobj.train_conf)
     train_conf.pop("num_epochs", None)
@@ -250,7 +250,7 @@ def test_class_train_set_reporting(testobj):
         testobj.model_conf["depth"],
         testobj.chn,
         testobj.model_conf["num_filters"],
-        rngs=nnx.Rngs(0),
+        rngs=nnx.Rngs(np.random.randint(10)),
     )
     train_conf = dict(testobj.train_conf)
     train_conf["log"] = True
@@ -277,7 +277,7 @@ def test_class_train_set_functions(testobj):
         testobj.model_conf["depth"],
         testobj.chn,
         testobj.model_conf["num_filters"],
-        rngs=nnx.Rngs(0),
+        rngs=nnx.Rngs(np.random.randint(10)),
     )
 
     def huber_loss(output, labels):
@@ -308,7 +308,7 @@ def test_class_train_set_iterators(testobj):
         testobj.model_conf["depth"],
         testobj.chn,
         testobj.model_conf["num_filters"],
-        rngs=nnx.Rngs(0),
+        rngs=nnx.Rngs(np.random.randint(10)),
     )
     try:
         trainer = BasicFlaxNNXTrainer(
@@ -327,10 +327,17 @@ def test_class_train_set_iterators(testobj):
 @pytest.mark.parametrize("model_cls", [DnCNNNet, ResNet, ConvBNNet, UNet])
 def test_class_train_train_loop(testobj, model_cls):
     depth = testobj.model_conf["depth"]
-    model = model_cls(depth, testobj.chn, testobj.model_conf["num_filters"], rngs=nnx.Rngs(0))
+    model = model_cls(
+        depth, testobj.chn, testobj.model_conf["num_filters"], rngs=nnx.Rngs(np.random.randint(10))
+    )
     if isinstance(model, DnCNNNet):
         depth = 3
-        model = DnCNNNet(depth, testobj.chn, testobj.model_conf["num_filters"], rngs=nnx.Rngs(0))
+        model = DnCNNNet(
+            depth,
+            testobj.chn,
+            testobj.model_conf["num_filters"],
+            rngs=nnx.Rngs(np.random.randint(10)),
+        )
 
     train_conf = dict(testobj.train_conf)
     train_conf["log"] = True
@@ -359,7 +366,7 @@ def test_class_train_update_metrics(testobj):
         testobj.model_conf["depth"],
         testobj.chn,
         testobj.model_conf["num_filters"],
-        rngs=nnx.Rngs(0),
+        rngs=nnx.Rngs(np.random.randint(10)),
     )
 
     train_conf = dict(testobj.train_conf)
@@ -388,7 +395,7 @@ def test_class_train_update_metrics_nolog(testobj):
         testobj.model_conf["depth"],
         testobj.chn,
         testobj.model_conf["num_filters"],
-        rngs=nnx.Rngs(0),
+        rngs=nnx.Rngs(np.random.randint(10)),
     )
 
     train_conf = dict(testobj.train_conf)
@@ -414,7 +421,7 @@ def test_checkpoint_save(testobj):
         testobj.model_conf["depth"],
         testobj.chn,
         testobj.model_conf["num_filters"],
-        rngs=nnx.Rngs(0),
+        rngs=nnx.Rngs(np.random.randint(10)),
     )
     train_conf = dict(testobj.train_conf)
     temp_dir = tempfile.TemporaryDirectory()
@@ -437,7 +444,7 @@ def test_checkpoint_restore(testobj, chkflag):
         testobj.model_conf["depth"],
         testobj.chn,
         testobj.model_conf["num_filters"],
-        rngs=nnx.Rngs(0),
+        rngs=nnx.Rngs(np.random.randint(10)),
     )
     train_conf = dict(testobj.train_conf)
     temp_dir = tempfile.TemporaryDirectory()

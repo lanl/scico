@@ -1,3 +1,5 @@
+import numpy as np
+
 import pytest
 
 from flax import nnx
@@ -32,21 +34,21 @@ class TestSet:
             dim_in=self.N,
             widths_encoder=self.widths_encoder,
             dim_latent=self.dim_latent,
-            rngs=nnx.Rngs(10),
+            rngs=nnx.Rngs(np.random.randint(10)),
         )
 
         self.mlpencoder2 = MLPEncoder(
             dim_in=self.N,
             widths_encoder=(10, 10),
             dim_latent=self.dim_latent,
-            rngs=nnx.Rngs(100),
+            rngs=nnx.Rngs(np.random.randint(10)),
         )
 
         self.mlpdecoder = MLPDecoder(
             dim_latent=self.dim_latent,
             widths_decoder=self.widths_decoder,
             shape_out=(self.N, self.N, self.chn),
-            rngs=nnx.Rngs(1000),
+            rngs=nnx.Rngs(np.random.randint(10)),
         )
 
     def test_varencoder_default(self):
@@ -100,7 +102,7 @@ class TestSet:
                 dim_latent=self.dim_latent,
                 widths_decoder=self.widths_encoder,
                 shape_out=(self.N, self.N, self.chn),
-                rngs=nnx.Rngs(4),
+                rngs=nnx.Rngs(np.random.randint(10)),
             )
         except Exception as e:
             print(e)
@@ -119,7 +121,7 @@ class TestSet:
                 dim_cond_in=self.N,
                 widths_condproc_encoder=self.widths_encoder,
                 widths_cond_encoder=self.widths_encoder,
-                rngs=nnx.Rngs(44),
+                rngs=nnx.Rngs(np.random.randint(10)),
             )
         except Exception as e:
             print(e)
@@ -135,7 +137,7 @@ class TestSet:
                 widths_decoder=self.widths_encoder,
                 shape_out=(self.N, self.N, self.chn),
                 conditional=True,
-                rngs=nnx.Rngs(444),
+                rngs=nnx.Rngs(np.random.randint(100)),
             )
 
     def test_convvae_flat_default(self):
@@ -148,7 +150,7 @@ class TestSet:
                 filters_decoder=self.filters_decoder,
                 flat_latent=True,
                 dim_latent=self.dim_latent,
-                rngs=nnx.Rngs(4),
+                rngs=nnx.Rngs(np.random.randint(100)),
             )
         except Exception as e:
             print(e)
@@ -169,7 +171,7 @@ class TestSet:
                 shape_cond_in=(self.N, self.N),
                 channels_cond=self.chn,
                 filters_cond_encoder=self.filters_encoder,
-                rngs=nnx.Rngs(44),
+                rngs=nnx.Rngs(np.random.randint(100)),
             )
         except Exception as e:
             print(e)
@@ -186,5 +188,5 @@ class TestSet:
                 flat_latent=True,
                 dim_latent=self.dim_latent,
                 conditional=True,
-                rngs=nnx.Rngs(444),
+                rngs=nnx.Rngs(np.random.randint(4444)),
             )

@@ -45,7 +45,7 @@ class IterateData:
             train: Flag indicating use of iterator for training. Iterator
                 for training is infinite, iterator for testing passes
                 once through the data. Default: ``True``.
-            key: A PRNGKey used as the random key. Default: ``None``.
+            key: A key used as the random key. Default: ``None``.
         """
         self.dt = dt
         self.batch_size = batch_size
@@ -113,7 +113,7 @@ def create_input_iter(
     on device.
 
     Args:
-        key: A PRNGKey used for random data permutations.
+        key: A key used for random data permutations.
         dataset: Dictionary of data for supervised training including
             images and labels.
         batch_size: Size of batch for iterating through the data.
