@@ -7,6 +7,8 @@
 
 """Utilities for checkpointing Flax models."""
 
+import importlib
+import json
 from pathlib import Path
 
 import jax
@@ -52,6 +54,7 @@ def checkpoint_restore(state, workdir: str | Path, ok_no_ckpt: bool = False):
     """
     if not have_orbax:
         raise RuntimeError("Package orbax.checkpoint is required for use of this function.")
+    step = None
     # Check if workdir is Path or convert to Path
     workdir_ = workdir
     if isinstance(workdir_, str):
@@ -68,6 +71,7 @@ def checkpoint_restore(state, workdir: str | Path, ok_no_ckpt: bool = False):
             mngr.wait_until_finished()
             mngr.close()
             state = restored.state
+            print(f"Model read from checkpoint id {step}\n\n")
     elif not ok_no_ckpt:
         raise FileNotFoundError("Could not read from checkpoint: " + str(workdir) + ".")
 
@@ -100,16 +104,118 @@ def checkpoint_save(state, epoch: int, config: ConfigDict, workdir: str | Path):
             options=options,
         )
         step = epoch
-        # Remove non-serializable partial functools in post_lst if it exists
-        config_ = config.copy()
-        if "post_lst" in config_:
-            config_.pop("post_lst", None)  # type: ignore
+        ## Remove non-serializable partial functools in post_lst if it exists
+        # config_ = config.copy()
+        # if "post_lst" in config_:
+        #    config_.pop("post_lst", None)  # type: ignore
         mngr.save(
             step,
             args=ocp.args.Composite(
                 state=ocp.args.StandardSave(state),
-                config=ocp.args.JsonSave(config_),
+                # config=ocp.args.JsonSave(config_),
+                config=ocp.args.JsonSave(serialize_metadata(config)),
             ),
         )
         mngr.wait_until_finished()
         mngr.close()
+
+
+def checkpoint_restore_with_config(state, workdir: str | Path, ok_no_ckpt: bool = False):
+    """Load model, optimiser state and trainer configuration.
+
+    Args:
+        state: Flax train state which includes model and optimiser
+            parameters.
+        workdir: Checkpoint file or directory of checkpoints to restore
+            from.
+        ok_no_ckpt: Flag to indicate if a checkpoint is expected. If
+            ``False``, an error is generated if a checkpoint is not
+            found.
+
+    Returns:
+        A restored Flax train state and training configuration updated from
+        checkpoint file are returned. If no checkpoint files are present and checkpoints are
+        not strictly expected it returns the passed-in `state` and `config` unchanged.
+
+    Raises:
+        FileNotFoundError: If a checkpoint is expected and is not found.
+    """
+    if not have_orbax:
+        raise RuntimeError("Package orbax.checkpoint is required for use of this function.")
+    step = None
+    config = None
+    # Check if workdir is Path or convert to Path
+    workdir_ = workdir
+    if isinstance(workdir_, str):
+        workdir_ = Path(workdir_)
+    if workdir_.exists():
+        mngr = ocp.CheckpointManager(
+            workdir_,
+        )
+        step = mngr.latest_step()
+        if step is not None:
+            restored = mngr.restore(
+                step,
+                args=ocp.args.Composite(
+                    state=ocp.args.StandardRestore(state), config=ocp.args.JsonRestore()
+                ),
+            )
+            mngr.wait_until_finished()
+            mngr.close()
+            state = restored.state
+            config = deserialize_metadata(restored.config)
+            print(f"Model read from checkpoint id {step}\n\n")
+    elif not ok_no_ckpt:
+        raise FileNotFoundError("Could not read from checkpoint: " + str(workdir) + ".")
+
+    return state, config, step
+
+
+def serialize_metadata(obj):
+    """Function to preprocess metadata that is not serializable
+    before saving to file.
+
+    Args:
+        obj: Object to serialize.
+
+    Returns:
+        A serialized instance.
+    """
+    if isinstance(obj, dict):
+        return {str(k): serialize_metadata(v) for k, v in obj.items()}
+    elif isinstance(obj, (list, tuple)):
+        return [serialize_metadata(v) for v in obj]
+    elif callable(obj) and hasattr(obj, "__module__") and hasattr(obj, "__qualname__"):
+        # Store full import path so it can be reconstructed later
+        return {"__callable__": f"{obj.__module__}.{obj.__qualname__}"}
+    else:
+        try:
+            json.dumps(obj)
+            return obj
+        except (TypeError, OverflowError):
+            return str(obj)
+
+
+def deserialize_metadata(obj):
+    """Function to preprocess metadata to convert it to the
+    original object after reading from file.
+
+    Args:
+        obj: Object to deserialize.
+
+    Returns:
+        A deserialized instance.
+    """
+    if isinstance(obj, dict):
+        # Check if this dict represents a serialized class or function
+        if set(obj.keys()) == {"__callable__"}:
+            module_path, _, attr_path = obj["__callable__"].rpartition(".")
+            module = importlib.import_module(module_path)
+            target = module
+            for attr in attr_path.split("."):
+                target = getattr(target, attr)
+            return target
+        return {k: deserialize_metadata(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [deserialize_metadata(v) for v in obj]
+    return obj
