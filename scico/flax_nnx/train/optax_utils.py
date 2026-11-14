@@ -49,8 +49,17 @@ def build_optax_optimizer(config: ConfigDict):
             f"Optimizer specified {config['opt_type']} has not been included."
         )
 
-    # Build optax optimizer to be able to get lr later
-    tx = optax.inject_hyperparams(opt_core)(learning_rate=learning_rate_fn)
+    # Add gradient clipping
+    max_grad_norm = 1.0e3  # Default clipping value
+    if "opt_grad_max_norm" in config.keys():
+        max_grad_norm = config["opt_grad_max_norm"]
+
+    # Build optax optimizer with gradient clipping and lr tracking
+    tx = optax.chain(
+        optax.clip_by_global_norm(max_grad_norm),  # Clip gradients here
+        # Inject hyperparameters to be able to get lr later
+        optax.inject_hyperparams(opt_core)(learning_rate=learning_rate_fn),
+    )
 
     return tx
 

@@ -437,7 +437,7 @@ class BasicFlaxNNXTrainer:
         summary: dict[str, int | float] = {}
 
         # Get current learning rate from optax optimizer (configured to store it).
-        summary["train_learning_rate"] = self.optimizer.opt_state.hyperparams["learning_rate"]
+        summary["train_learning_rate"] = self.optimizer.opt_state[1].hyperparams["learning_rate"]
 
         # Log the training metrics
         for metric, value in metrics.compute().items():  # Compute the metrics

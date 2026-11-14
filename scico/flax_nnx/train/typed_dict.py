@@ -45,6 +45,8 @@ class ConfigDict(TypedDict):
     seed: float
     #: Type of optimizer. Options: SGD, ADAM, ADAMW.
     opt_type: str
+    #: Default clipping value for gradient norm in optimizer.
+    opt_grad_max_norm: float
     #: Momentum for SGD optimizer in case Nesterov is ``True``.
     momentum: float
     #: Size of batch for training.
