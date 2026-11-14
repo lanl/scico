@@ -8,7 +8,6 @@
 """Utilities for checkpointing Flax models."""
 
 from pathlib import Path
-from typing import Union
 
 import jax
 
@@ -31,7 +30,7 @@ if have_orbax:
 from .typed_dict import ConfigDict
 
 
-def checkpoint_restore(state, workdir: Union[str, Path], ok_no_ckpt: bool = False):
+def checkpoint_restore(state, workdir: str | Path, ok_no_ckpt: bool = False):
     """Load model and optimiser state.
 
     Args:
@@ -75,7 +74,7 @@ def checkpoint_restore(state, workdir: Union[str, Path], ok_no_ckpt: bool = Fals
     return state, step
 
 
-def checkpoint_save(state, epoch: int, config: ConfigDict, workdir: Union[str, Path]):
+def checkpoint_save(state, epoch: int, config: ConfigDict, workdir: str | Path):
     """Store model, model configuration, and optimiser state.
 
     Note that naming is slightly different to distinguish from Flax
