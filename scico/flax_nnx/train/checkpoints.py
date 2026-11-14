@@ -46,8 +46,13 @@ def checkpoint_restore(state, workdir: str | Path, ok_no_ckpt: bool = False):
 
     Returns:
         A restored Flax train state updated from checkpoint file is
-        returned. If no checkpoint files are present and checkpoints are
-        not strictly expected it returns the passed-in `state` unchanged.
+        returned. Among all the checkpoints available in the specified
+        path, this function looks for the latest step, i.e. the
+        checkpoint at the largest number of training iterations,
+        and reads the corresponding checkpoint. The actual step index
+        is also returned. If no checkpoint files are present and checkpoints
+        are not strictly expected, it returns the passed-in `state` unchanged
+        and step as ``None``.
 
     Raises:
         FileNotFoundError: If a checkpoint is expected and is not found.
