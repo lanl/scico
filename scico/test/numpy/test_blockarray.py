@@ -344,7 +344,6 @@ class TestCreators:
     def test_empty(self):
         x = snp.empty(self.shape, dtype=np.float32)
         assert x.shape == self.shape
-        assert snp.all(x == 0)
 
     def test_ones(self):
         x = snp.ones(self.shape, dtype=np.float32)

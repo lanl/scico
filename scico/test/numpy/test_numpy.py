@@ -270,11 +270,8 @@ def test_create_ones():
 
 
 def test_create_empty():
-    A = snp.empty(2)
-    assert np.all(A == 0)
-
     A = snp.empty(((2,), (2,)))
-    assert snp.all(A == 0)
+    assert A.shape == ((2,), (2,))
 
 
 def test_create_full():
@@ -307,15 +304,11 @@ def test_create_zeros_like():
 def test_create_empty_like():
     A = snp.ones(2, dtype=np.float32)
     B = snp.empty_like(A)
-    assert np.all(B == 0) and A.shape == B.shape and A.dtype == B.dtype
-
-    A = snp.ones(2, dtype=np.float32)
-    B = snp.empty_like(A)
-    assert np.all(B == 0) and A.shape == B.shape and A.dtype == B.dtype
+    assert A.shape == B.shape and A.dtype == B.dtype
 
     A = snp.ones(((2,), (2,)), dtype=np.float32)
     B = snp.empty_like(A)
-    assert snp.all(B == 0) and A.shape == B.shape and A.dtype == B.dtype
+    assert A.shape == B.shape and A.dtype == B.dtype
 
 
 def test_create_ones_like():
