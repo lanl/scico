@@ -9,8 +9,6 @@
 
 from __future__ import annotations  # for type support python 3.9 or earlier
 
-from collections.abc import Callable
-
 import jax
 import jax.numpy as jnp
 
@@ -18,7 +16,7 @@ import flax.nnx
 from scico.numpy import Array
 
 
-def score_fn(score_model: Callable, x: Array, t: Array):
+def score_fn(score_model: flax.nnx.Module, x: Array, t: Array):
     """Function to evaluate score model.
 
     Args:

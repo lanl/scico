@@ -64,7 +64,7 @@ def _step_loss(criterion: Callable, noise: Array, sigma: Array, output: Array, *
 
 
 def loss_fn(
-    model: Callable,
+    model: nnx.Module,
     criterion: Callable,
     step_loss: Callable,
     batch_x: Array,
@@ -135,7 +135,7 @@ def jax_train_step_diffusion(
 
 @nnx.jit(static_argnums=(1, 2))
 def eval_step_diffusion(
-    model: Callable,
+    model: nnx.Module,
     criterion: Callable,
     step_loss: Callable,
     metrics: nnx.MultiMetric,

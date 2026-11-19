@@ -19,7 +19,7 @@ from scico.metric import snr as snr_fn
 from scico.numpy import Array
 
 
-def loss_fn(model: Callable, criterion: Callable, x: Array, y: Array) -> tuple[Array, Array]:
+def loss_fn(model: nnx.Module, criterion: Callable, x: Array, y: Array) -> tuple[Array, Array]:
     """Loss function definition.
 
     Args:
@@ -70,7 +70,7 @@ def jax_train_step(
 
 @nnx.jit(static_argnums=1)
 def eval_step(
-    model: Callable, criterion: Callable, metrics: nnx.MultiMetric, x: Array, y: Array
+    model: nnx.Module, criterion: Callable, metrics: nnx.MultiMetric, x: Array, y: Array
 ) -> Array:
     """Evaluate for a single step.
 

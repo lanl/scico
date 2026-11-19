@@ -21,6 +21,8 @@ from flax import nnx
 from scico.metric import snr as snr_fn
 from scico.numpy import Array
 
+from .varautoencoders import VAE
+
 
 def _kl_loss_fn(mean: Array, logvar: Array) -> Array:
     """Compute KL divergence loss from given mean and log variance.
@@ -48,13 +50,13 @@ def _kl_loss_fn(mean: Array, logvar: Array) -> Array:
 
 
 def loss_fn(
-    model: Callable,
+    model: VAE,
     criterion: Callable,
     kl_loss_fn: Callable,
     kl_weight: float,
     x: Array,
     key: jax.Array,
-    y: Array,
+    y: Array | None = None,
 ) -> tuple[Array, tuple[Array, Array]]:
     """Loss function definition for variational autoencoder step.
 
@@ -66,7 +68,8 @@ def loss_fn(
             reconstruction and KL losses.
         x: Input data array.
         key: Key for random generation in VAE forward pass.
-        y: Conditioning data array.
+        y: Conditioning data array, or ``None`` for an unconditional
+            model.
 
     Returns:
         Evaluated loss, KL term and reconstruction output.
@@ -124,7 +127,7 @@ def jax_train_step_vae(
 
 @nnx.jit(static_argnums=(1, 2))
 def eval_step_vae(
-    model: Callable,
+    model: VAE,
     criterion: Callable,
     kl_loss_fn: Callable,
     kl_weight: float,
@@ -161,7 +164,7 @@ def eval_step_vae(
     return loss
 
 
-def generate_sample(model: nnx.Module, key: jax.Array, num_samples: int) -> Array:
+def generate_sample(model: VAE, key: jax.Array, num_samples: int) -> Array:
     """Generate samples from latent representation.
 
     Args:
@@ -181,7 +184,7 @@ def generate_sample(model: nnx.Module, key: jax.Array, num_samples: int) -> Arra
     return y
 
 
-def generate_conditioned_sample(model: nnx.Module, key: jax.Array, c: Array) -> Array:
+def generate_conditioned_sample(model: VAE, key: jax.Array, c: Array) -> Array:
     """Generate samples from latent representation using a conditioning property.
 
     Args:

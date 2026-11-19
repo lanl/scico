@@ -14,6 +14,7 @@ import warnings
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
 from collections.abc import Callable
+from typing import Any
 
 from numpy import prod
 
@@ -27,11 +28,20 @@ from scico.numpy import Array
 
 
 class Encoder(nnx.Module):
-    """Generic encoder definition in Flax NNX."""
+    """Generic encoder definition in Flax NNX.
+
+    Attributes:
+        dim_latent: Dimension of the latent representation.
+        flat_latent: Flag indicating whether the latent representation is
+            flat, i.e. a vector per sample rather than multidimensional.
+        shape_latent: Shape of the latent representation of a single
+            sample, excluding the batch dimension. Empty if the encoder
+            does not define a multidimensional latent shape.
+    """
 
     def __init__(
         self,
-        **kwargs,
+        **kwargs: Any,
     ):
         """Initialize Encoder.
 
@@ -39,7 +49,9 @@ class Encoder(nnx.Module):
             kwargs: Keyword arguments.
         """
         super().__init__(**kwargs)
-        self.dim_latent: int = 0  # type: ignore
+        self.dim_latent: int = 0
+        self.flat_latent: bool = False
+        self.shape_latent: tuple[int, ...] = ()
 
     @property
     def latent_dim(self) -> int:
@@ -372,7 +384,7 @@ class ConvDecoder(Decoder):
     def __init__(
         self,
         filters_decoder: list[int],
-        shape_latent: tuple[int, int, int],
+        shape_latent: tuple[int, ...],
         channels: int,
         flat_latent: bool = False,
         dim_latent: int = 0,

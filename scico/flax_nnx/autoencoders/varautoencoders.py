@@ -62,8 +62,8 @@ class VarEncoder(Encoder):
 
     def __init__(
         self,
-        mean_block: Callable,
-        logvar_block: Callable,
+        mean_block: Encoder,
+        logvar_block: Encoder,
     ):
         """Initialize VarEncoder.
 
@@ -85,12 +85,16 @@ class VarEncoder(Encoder):
         self.dim_latent = mean_block.latent_dim
         self.flat_latent = mean_block.flat_latent
         if self.flat_latent:
-            self.shape_latent = mean_block.latent_dim
+            self.shape_latent = (mean_block.latent_dim,)
         else:
             self.shape_latent = mean_block.shape_latent
 
-    def __call__(self, x: Array) -> tuple[Array, Array]:
+    def __call__(self, x: Array) -> tuple[Array, Array]:  # type: ignore[override]
         """Apply variational encoder.
+
+        Unlike a plain :class:`~.autoencoders.Encoder`, which maps an input
+        to a single array, a variational encoder maps it to the pair of
+        parameters of a distribution over the latent space.
 
         Args:
             x: The array to be encoded.
@@ -109,10 +113,10 @@ class Conditioner(Encoder):
 
     def __init__(
         self,
-        processing_block: Callable,
-        conditioning_block: Callable,
+        processing_block: Encoder,
+        conditioning_block: Encoder,
     ):
-        """Initialize VarEncoder.
+        """Initialize Conditioner.
 
         Args:
             processing_block: Flax NNX module representing the processing on
@@ -149,13 +153,15 @@ class VAE(nnx.Module):
 
     def __init__(
         self,
-        encoder: Encoder,
+        encoder: VarEncoder,
         decoder: Decoder,
-        conditioner: Encoder | None = None,  # for mypy type checking
+        conditioner: Encoder | None = None,
     ):
         """Initialize VAE.
         Args:
-            encoder: Variational encoder module in Flax NNX.
+            encoder: Variational encoder module in Flax NNX, mapping an
+                input to the mean and log variance of a distribution over
+                the latent space.
             decoder: Decoder module in Flax NNX.
             conditioner: Flax NNX module for conditional decoding. If
                 ``None``, no conditional decoding is learned.

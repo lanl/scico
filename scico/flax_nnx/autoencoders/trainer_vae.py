@@ -113,7 +113,10 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
         else:
             shuffle_buffer_size = 20000
 
-        # Define data iterators depending on conditioning function
+        # Define data iterators depending on conditioning function.
+        # The isinstance check narrows the model type declared by the base
+        # class; it always holds for the model type accepted by __init__.
+        assert isinstance(self.model, VAE)
         if self.model.has_conditioner:
             self.dt_iterator_fn = partial(
                 iterate_xy_dataset, shuffle_buffer_size=shuffle_buffer_size

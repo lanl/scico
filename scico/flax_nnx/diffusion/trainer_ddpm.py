@@ -58,7 +58,7 @@ class FlaxNNXDDPMTrainer(BasicFlaxNNXTrainer):
     def __init__(
         self,
         config: ConfigDictDDPM,
-        model: Callable,
+        model: nnx.Module,
         train_ds: DataSetDict,
         test_ds: DataSetDict | None = None,
     ):
