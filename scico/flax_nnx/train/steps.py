@@ -38,7 +38,9 @@ def loss_fn(
 
 # @jax.jit(static_argnums=2)
 @partial(jax.jit, static_argnums=2)
-def jax_train_step(graphdef, state, criterion: Callable, x: ArrayLike, y: ArrayLike) -> ArrayLike:
+def jax_train_step(
+    graphdef, state, criterion: Callable, x: ArrayLike, y: ArrayLike
+) -> tuple[ArrayLike, nnx.State]:
     """Train for a single step.
 
     This function uses data and a criterion to optimize model parameters. It returns

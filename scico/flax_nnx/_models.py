@@ -55,7 +55,7 @@ class DnCNNNet(nnx.Module):
     ):
         """Initialize DnCNN model.
 
-        Attributes:
+        Args:
             depth: Number of layers in the neural network.
             channels: Number of channels of input tensor.
             num_filters: Number of filters in the convolutional layers.

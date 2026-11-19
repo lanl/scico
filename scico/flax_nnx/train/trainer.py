@@ -355,8 +355,9 @@ class BasicFlaxNNXTrainer:
         Returns:
             Iteration stats object obtained after executing the training
             loop. Note that the iteration stats object is not ``None`` only
-            if log is enabled when configuring the training loop.
-            The trained model is avaiable in the at
+            if log is enabled when configuring the training loop. The
+            trained model is not returned: it is updated in place, and is
+            available as the ``model`` attribute of this object.
         """
         epochs_offset = 0
         # Handle distributed training using nnx state

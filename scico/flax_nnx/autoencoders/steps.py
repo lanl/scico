@@ -55,8 +55,8 @@ def loss_fn(
     x: ArrayLike,
     key: jax.Array,
     y: ArrayLike,
-) -> tuple[ArrayLike, ArrayLike]:
-    """Loss function definition for diffusion step..
+) -> tuple[ArrayLike, tuple[ArrayLike, ArrayLike]]:
+    """Loss function definition for variational autoencoder step.
 
     Args:
         model: Model to train.

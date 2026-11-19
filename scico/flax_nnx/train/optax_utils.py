@@ -19,7 +19,11 @@ def build_optax_optimizer(config: ConfigDict):
     """Build optax optimizer to include in NNX optimizer.
 
     Args:
-        opt_type: Type of optimizer to use. It can be: SGD, ADAM, ADAMW.
+        config: Dictionary of configuration. The value to use for the
+            optimizer type corresponds to the `opt_type` keyword, which
+            may be SGD, ADAM or ADAMW. The optional keywords
+            `lr_schedule`, `momentum` and `opt_grad_max_norm` are also
+            used if present.
 
     Returns:
         Optax optimizer object.

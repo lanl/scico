@@ -170,7 +170,9 @@ class ConditionalUNet(nnx.Module):
         self.final_conv = nnx.Conv(features[0], self.out_channels, kernel_size=(1, 1), rngs=rngs)
 
     @jit
-    def __call__(self, x: ArrayLike, time: ArrayLike, x_self_cond: ArrayLike = None) -> ArrayLike:
+    def __call__(
+        self, x: ArrayLike, time: ArrayLike, x_self_cond: ArrayLike | None = None
+    ) -> ArrayLike:
         """Apply conditional Unet model.
 
         Args:

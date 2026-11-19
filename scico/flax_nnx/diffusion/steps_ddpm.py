@@ -28,7 +28,7 @@ def alpha_fn(alpha_bar_schedule: ArrayLike, batch_t: ArrayLike) -> ArrayLike:
     :math:`\alpha_t = 1 - \beta_t`.
 
     Args:
-        alpha_var_schedule: Array of alpha products computed for the whole t range.
+        alpha_bar_schedule: Array of alpha products computed for the whole t range.
         batch_t: Array of time steps to evaluate alpha.
 
     Returns:

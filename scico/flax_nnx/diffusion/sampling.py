@@ -22,7 +22,7 @@ def score_fn(score_model: Callable, x: ArrayLike, t: ArrayLike):
     """Function to evaluate score model.
 
     Args:
-        model: Score model to generate samples from.
+        score_model: Score model to evaluate.
         x: Current state to evaluate.
         t: Current time to evaluate.
     """

@@ -57,8 +57,8 @@ def loss_fn(
     batch_t: ArrayLike,
     batch_z: ArrayLike,
     batch_std: ArrayLike,
-) -> tuple[ArrayLike, ArrayLike]:
-    """Loss function definition for diffusion step..
+) -> ArrayLike:
+    """Loss function definition for diffusion step.
 
     Args:
         model: Model to train.
@@ -89,7 +89,7 @@ def jax_train_step_diffusion(
     batch_t: ArrayLike,
     batch_z: ArrayLike,
     batch_std: ArrayLike,
-) -> ArrayLike:
+) -> tuple[ArrayLike, nnx.State]:
     """Train for a single step.
 
     This function uses data and a criterion to optimize model parameters. It returns
