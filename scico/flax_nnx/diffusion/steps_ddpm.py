@@ -22,7 +22,7 @@ from flax import nnx
 
 
 def alpha_fn(alpha_bar_schedule: ArrayLike, batch_t: ArrayLike) -> ArrayLike:
-    """Computation of alpha for the given time steps in DDPM formulation.
+    r"""Computation of alpha for the given time steps in DDPM formulation.
 
     Alpha is related to the forward process variances beta by:
     :math:`\alpha_t = 1 - \beta_t`.
@@ -59,7 +59,7 @@ def _step_t(batch_x: ArrayLike, key: jax.Array, **kwargs) -> ArrayLike:
 def _step_x(
     batch: ArrayLike, key: jax.Array, t: ArrayLike, **kwargs
 ) -> tuple[ArrayLike, ArrayLike, ArrayLike]:
-    """x computation for diffusion step in DDPM formulation.
+    r"""x computation for diffusion step in DDPM formulation.
 
     Args:
         batch: Array of a batch of original data.

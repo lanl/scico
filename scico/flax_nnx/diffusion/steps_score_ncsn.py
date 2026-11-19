@@ -35,7 +35,7 @@ def set_sigma_schedule(sigma_min: float, sigma_max: float, max_sigma_steps: int)
 
 
 def _step_x(batch: ArrayLike, key: jax.Array, **kwargs) -> tuple[ArrayLike, ArrayLike, ArrayLike]:
-    """x computation for diffusion step in NCSN.
+    r"""x computation for diffusion step in NCSN.
 
     Args:
         batch: Array of a batch of original data.
