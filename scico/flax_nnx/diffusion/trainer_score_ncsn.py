@@ -21,6 +21,8 @@ from functools import partial
 
 import jax
 
+from typing_extensions import NotRequired
+
 from flax import nnx
 from scico.flax_nnx.train.input_pipeline import iterate_x_dataset
 from scico.flax_nnx.train.trainer import BasicFlaxNNXTrainer
@@ -46,9 +48,9 @@ class ConfigDictNCSN(ConfigDict):
     #: Maximum noise level.
     sigma_max: float
     #: Function to compute x for diffusion step.
-    step_x: Callable
+    step_x: NotRequired[Callable]
     #: Function to compute loss for diffusion step.
-    step_loss: Callable
+    step_loss: NotRequired[Callable]
 
 
 class FlaxNNXNCSNTrainer(BasicFlaxNNXTrainer):

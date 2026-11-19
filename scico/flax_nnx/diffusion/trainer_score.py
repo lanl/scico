@@ -23,6 +23,8 @@ from functools import partial
 
 import jax
 
+from typing_extensions import NotRequired
+
 from flax import nnx
 from scico.flax_nnx.train.input_pipeline import iterate_x_dataset
 from scico.flax_nnx.train.trainer import BasicFlaxNNXTrainer
@@ -41,11 +43,13 @@ class ConfigDictScore(ConfigDict):
     """Configuration dictionary for score training."""
 
     #: Function to compute t for diffusion step.
-    step_t: Callable
+    step_t: NotRequired[Callable]
     #: Function to compute x for diffusion step.
-    step_x: Callable
+    step_x: NotRequired[Callable]
     #: Function to compute loss for diffusion step.
-    step_loss: Callable
+    step_loss: NotRequired[Callable]
+    #: Standard deviation of the prior noise. Required unless `step_x` is given.
+    stddev_prior: NotRequired[float]
 
 
 class FlaxNNXScoreTrainer(BasicFlaxNNXTrainer):
@@ -114,7 +118,7 @@ class FlaxNNXScoreTrainer(BasicFlaxNNXTrainer):
         if "step_x" in config:
             self.step_x: Callable = config["step_x"]
         else:
-            self.step_x = partial(_step_x, stddev_prior=self.config["stddev_prior"])
+            self.step_x = partial(_step_x, stddev_prior=config["stddev_prior"])
 
         if "step_loss" in config:
             self.step_loss: Callable = config["step_loss"]

@@ -22,6 +22,8 @@ from functools import partial
 import jax
 import jax.numpy as jnp
 
+from typing_extensions import NotRequired
+
 from flax import nnx
 from scico.flax_nnx.train.input_pipeline import iterate_x_dataset
 from scico.flax_nnx.train.trainer import BasicFlaxNNXTrainer
@@ -45,11 +47,11 @@ class ConfigDictDDPM(ConfigDict):
     #: Function to compute beta variance schedule.
     beta_schedule_fn: Callable
     #: Function to compute t for diffusion step.
-    step_t: Callable
+    step_t: NotRequired[Callable]
     #: Function to compute x for diffusion step.
-    step_x: Callable
+    step_x: NotRequired[Callable]
     #: Function to compute loss for diffusion step.
-    step_loss: Callable
+    step_loss: NotRequired[Callable]
 
 
 class FlaxNNXDDPMTrainer(BasicFlaxNNXTrainer):

@@ -19,6 +19,8 @@ from functools import partial
 
 import jax
 
+from typing_extensions import NotRequired
+
 from flax import nnx
 from scico.flax_nnx.train.input_pipeline import iterate_x_dataset, iterate_xy_dataset
 from scico.flax_nnx.train.trainer import BasicFlaxNNXTrainer
@@ -33,11 +35,11 @@ class ConfigDictAE(ConfigDict):
     """Configuration dictionary for variational autoencoders."""
 
     #: Number of classes in the dataset. This is only used for class conditional models.
-    num_classes: int
+    num_classes: NotRequired[int]
     #: Function to compute KL divergence loss term.
-    kl_loss_fn: Callable
+    kl_loss_fn: NotRequired[Callable]
     #: Weighting factor for KL divergence loss term.
-    kl_weight: float
+    kl_weight: NotRequired[float]
 
 
 class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
