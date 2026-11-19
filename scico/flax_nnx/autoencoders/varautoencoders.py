@@ -158,6 +158,7 @@ class VAE(nnx.Module):
         conditioner: Encoder | None = None,
     ):
         """Initialize VAE.
+
         Args:
             encoder: Variational encoder module in Flax NNX, mapping an
                 input to the mean and log variance of a distribution over
@@ -395,7 +396,7 @@ def ConvVarAutoEncoder(
         kernel_size_logvar_encoder: A shape tuple defining the size of the convolution
                 filters for the logvar encoder.
         kernel_size_decoder: A shape tuple defining the size of the convolution
-                filters for encoder.
+                filters for decoder.
         activation_fn: Flax function defining the activation operation
             to apply after each layer (except output layer) in encoder.
         batch_norm: Flag to indicate if batch norm is to be applied or not.

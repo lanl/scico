@@ -119,7 +119,7 @@ def jax_train_step_diffusion(
         noise: Noise array.
 
     Returns:
-        Loss evaluated.
+        Evaluated loss and the updated NNX state.
     """
     # merge at the beginning of the function
     model, optimizer, metrics = nnx.merge(graphdef, state)
@@ -149,11 +149,11 @@ def eval_step_diffusion(
     It returns the current loss evaluated in the testing set.
 
     Args:
-        model: Model to train.
-        criterion: Criterion to use for training.
+        model: Model to evaluate.
+        criterion: Criterion to use for evaluation.
         step_loss: Function to evaluate difference between expected
                     and produced outputs.
-        metrics: Dictionary of metrics to evaluate.
+        metrics: Multi-metric object in which to accumulate metrics.
         batch_x: Noisy image data array.
         batch_sigma: Standard deviation of noise applied.
         noise: Noise array.

@@ -54,9 +54,9 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
 
         Initializer for :class:`FlaxNNXVAETrainer` to configure model
         training and evaluation loop. The trainer assumes that only input
-        data is needed for the training. Also, if conditioning this will be modified
-        on the fly using other auxiliary processing functions (e.g. step_t,
-        step_x, etc.)
+        data is needed for the training, except for a conditional model,
+        for which the conditioning data is taken from the labels of the
+        data set.
 
         Args:
             config: Hyperparameter configuration.
@@ -102,7 +102,8 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
     ):
         """Configure data iterators.
 
-        Generate training data set only from inputs.
+        Generate training data set from inputs alone, or from (input,
+        conditioning) pairs if the model has a conditioner.
 
         Args:
             config: Hyperparameter configuration.
@@ -200,7 +201,7 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
         This function iterates over the whole testing set using sequential batches.
 
         Args:
-            metrics: Dictionary of metrics to evaluate.
+            metrics: Multi-metric object in which to accumulate metrics.
             key: Key for random generation in VAE forward pass.
 
         Returns:
@@ -224,7 +225,7 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
         This function iterates over the whole testing set using sequential batches.
 
         Args:
-            metrics: Dictionary of metrics to evaluate.
+            metrics: Multi-metric object in which to accumulate metrics.
             key: Key for random generation in VAE forward pass.
 
         Returns:

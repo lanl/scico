@@ -47,7 +47,7 @@ def Euler_Maruyama_sampler(
 
     Args:
         key: A JAX random state.
-        score_model: A `flax.linen.Module` object that represents the
+        score_model: A :class:`flax.nnx.Module` object that represents the
             architecture of a score-based model.
         stddev_prior: Standard deviation of prior noise.
         xshape: Shape of signal to generate.
@@ -58,7 +58,8 @@ def Euler_Maruyama_sampler(
         eps: The smallest time step for numerical stability.
 
     Returns:
-        Samples.
+        The generated samples, and the full sampling path, of shape
+        (devices, samples per device, `num_steps`) + `xshape`.
     """
     score_model.eval()
 

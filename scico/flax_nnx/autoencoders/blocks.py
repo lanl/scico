@@ -226,7 +226,7 @@ class CTpNN(nnx.Module):
         kernel_init: Callable = nnx.initializers.kaiming_normal,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
-        """Initialization of CNN.
+        """Initialization of CTpNN.
 
         Args:
             channels_in: Number of channels of signal at input.
@@ -312,7 +312,7 @@ class CTpNN(nnx.Module):
         )
 
     def __call__(self, x: Array) -> Array:
-        """Apply convolutional layer(s) and activation(s).
+        """Apply transpose convolutional layer(s) and activation(s).
 
         Args:
             x: The array to be transformed.

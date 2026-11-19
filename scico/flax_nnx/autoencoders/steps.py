@@ -110,7 +110,7 @@ def jax_train_step_vae(
         y: Conditioning data array (if training model with conditioning).
 
     Returns:
-        Loss evaluated.
+        Evaluated loss and the updated NNX state.
     """
     # Merge at the beginning of the function
     model, optimizer, metrics = nnx.merge(graphdef, state)
@@ -142,12 +142,12 @@ def eval_step_vae(
     It returns the current loss evaluated in the testing batch.
 
     Args:
-        model: Model to train.
+        model: Model to evaluate.
         criterion: Criterion to evaluate autoencoder reconstruction.
         kl_loss_fn: Function to evaluate KL divergence in latent space.
         kl_weight: Weight for KL term in loss function which is the weighted combination of
             reconstruction and KL losses.
-        metrics: Dictionary of metrics to evaluate.
+        metrics: Multi-metric object in which to accumulate metrics.
         x: Input data array.
         key: Key for random generation in VAE forward pass.
         y: Conditioning data array (if training model with conditioning).

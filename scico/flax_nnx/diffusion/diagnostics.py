@@ -29,10 +29,9 @@ def stats_obj() -> tuple[IterationStats, Callable]:
     during training.
 
     Returns:
-        An object :class:`~.diagnostics.IterationStats` to log and store
-        iteration statistics and an object
-        :class:`~.diagnostics.IterationStats` to printing stats to command
-        line and storing them for further analysis.
+        An object :class:`~.diagnostics.IterationStats` that logs and stores
+        the iteration statistics, and a function that extracts the
+        registered statistics from an object, for insertion into it.
     """
     # epoch time learning_rate noise_std loss (train and eval) fields
     itstat_fields = {

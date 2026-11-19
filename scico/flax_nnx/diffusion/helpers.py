@@ -21,6 +21,7 @@ def exists(x) -> bool:
 
 def default(val, d):
     """Return default value if given. Otherwise return object d.
+
     Args:
         val: Default value.
         d: Function or variable to return if no default value provided.

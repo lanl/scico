@@ -53,7 +53,7 @@ def jax_train_step(
         y: Output (labels) array.
 
     Returns:
-        Loss evaluated.
+        Evaluated loss and the updated NNX state.
     """
     # merge at the beginning of the function
     model, optimizer, metrics = nnx.merge(graphdef, state)
@@ -78,9 +78,9 @@ def eval_step(
     It returns the current loss evaluated in the testing set.
 
     Args:
-        model: Model to train.
-        criterion: Criterion to use for training.
-        metrics: Dictionary of metrics to evaluate.
+        model: Model to evaluate.
+        criterion: Criterion to use for evaluation.
+        metrics: Multi-metric object in which to accumulate metrics.
         x: Input (features) array.
         y: Output (labels) array.
 

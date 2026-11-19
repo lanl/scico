@@ -169,7 +169,7 @@ class FlaxNNXDDPMTrainer(BasicFlaxNNXTrainer):
         self.log_data_snapshot()
 
     def one_train_epoch_x(self, graphdef, state, key: jax.Array):
-        """Function that defines one epoch of training for a VAE that uses only input data.
+        """Function that defines one epoch of training for a diffusion model using only inputs.
 
         This function iterates over the whole training set using randomly shuffled batches.
 
@@ -177,7 +177,7 @@ class FlaxNNXDDPMTrainer(BasicFlaxNNXTrainer):
             graphdef: Graph representation of model.
             state: NNX state object including pytrees for all the
                 model and optimizer graph nodes.
-            key: Key for random generation in VAE forward pass.
+            key: Key for random generation in the diffusion step functions.
 
         Returns:
             Training loss and updated state and key.
@@ -203,13 +203,13 @@ class FlaxNNXDDPMTrainer(BasicFlaxNNXTrainer):
         return loss, state, key
 
     def one_eval_epoch_x(self, metrics, key):
-        """Function that defines one epoch of evaluation for a VAE that uses only input data.
+        """Function that defines one epoch of evaluation for a diffusion model using only inputs.
 
         This function iterates over the whole testing set using sequential batches.
 
         Args:
-            metrics: Dictionary of metrics to evaluate.
-            key: Key for random generation in VAE forward pass.
+            metrics: Multi-metric object in which to accumulate metrics.
+            key: Key for random generation in the diffusion step functions.
 
         Returns:
             Testing loss and updated metrics and key.

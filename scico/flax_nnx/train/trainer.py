@@ -187,19 +187,13 @@ class BasicFlaxNNXTrainer:
         The parameters configured correspond to
 
         - **criterion**: A function that specifies the loss being minimized
-              in training. Default: :meth:`~scico.flax.train.losses.mse_loss`.
+              in training. Default: :func:`~scico.flax_nnx.train.losses.mse_loss`.
         - **train_step_fn**: A function that executes a training step.
-              Default: :meth:`~scico.flax.train.steps.train_step`, i.e.
-              use the standard train step.
+              Default: :func:`~scico.flax_nnx.train.steps.jax_train_step`,
+              i.e. use the standard train step.
         - **eval_step_fn**: A function that executes an eval step. Default:
-              :meth:`~scico.flax.train.steps.eval_step`, i.e. use the
+              :func:`~scico.flax_nnx.train.steps.eval_step`, i.e. use the
               standard eval step.
-        - **metrics_fn**: A function that computes metrics. Default:
-              :meth:`~scico.flax.train.diagnostics.compute_metrics`, i.e.
-              use the standard compute metrics function.
-        - **post_lst**: List of postprocessing functions to apply to
-              parameter set after optimizer step (e.g. clip to a specified
-              range, normalize, etc.).
 
         Args:
             config: Hyperparameter configuration.
@@ -237,7 +231,7 @@ class BasicFlaxNNXTrainer:
     ):
         """Configure data iterators.
 
-        Choose between generating (input, label) pairs or only inputs.
+        Generate training data set from (input, label) pairs.
 
         Args:
             config: Hyperparameter configuration.
@@ -296,7 +290,7 @@ class BasicFlaxNNXTrainer:
         self.optimizer = nnx.Optimizer(self.model, tx, wrt=nnx.Param)
 
     def one_train_epoch_xy(self, graphdef, state, key):
-        """Function that defines one epoch of training for a VAE that uses input and conditioning data.
+        """Function that defines one epoch of training using input and output data.
 
         This function iterates over the whole training set using randomly shuffled batches.
 
@@ -304,7 +298,7 @@ class BasicFlaxNNXTrainer:
             graphdef: Graph representation of model.
             state: NNX state object including pytrees for all the
                 model and optimizer graph nodes.
-            key: Key for random generation in VAE forward pass.
+            key: Key for random generation of the data shuffling seed.
 
         Returns:
             Training loss and updated state and key.
@@ -325,13 +319,15 @@ class BasicFlaxNNXTrainer:
         return loss, state, key
 
     def one_eval_epoch_xy(self, metrics, key):
-        """Function that defines one epoch of evaluation for a VAE that uses input and conditioning data.
+        """Function that defines one epoch of evaluation using input and output data.
 
         This function iterates over the whole testing set using sequential batches.
 
         Args:
-            metrics: Dictionary of metrics to evaluate.
-            key: Key for random generation in VAE forward pass.
+            metrics: Multi-metric object in which to accumulate metrics.
+            key: Key for random generation. Not used by this method, which
+                evaluates in a fixed order; accepted and returned unchanged
+                so that all the epoch functions share a signature.
 
         Returns:
             Testing loss and updated metrics and key.

@@ -22,17 +22,19 @@ from scico.numpy import Array
 
 
 def alpha_fn(alpha_bar_schedule: Array, batch_t: Array) -> Array:
-    r"""Computation of alpha for the given time steps in DDPM formulation.
+    r"""Computation of alpha bar for the given time steps in DDPM formulation.
 
-    Alpha is related to the forward process variances beta by:
-    :math:`\alpha_t = 1 - \beta_t`.
+    Alpha bar is the cumulative product
+    :math:`\bar{\alpha}_t = \prod_{s=1}^{t} \alpha_s` of the quantities
+    :math:`\alpha_t = 1 - \beta_t` determined by the forward process
+    variances :math:`\beta_t`.
 
     Args:
         alpha_bar_schedule: Array of alpha products computed for the whole t range.
-        batch_t: Array of time steps to evaluate alpha.
+        batch_t: Array of time steps at which to evaluate alpha bar.
 
     Returns:
-        Array of alpha values evaluated for the given time steps.
+        Array of alpha bar values evaluated for the given time steps.
     """
     alpha_eval = jnp.zeros(batch_t.shape[0])
     for i, tt in enumerate(batch_t):
@@ -101,7 +103,9 @@ def loss_fn(
         batch_x: Noisy image data array.
         batch_t: Time array.
         batch_z: Standard Gaussian random variable array.
-        batch_std: Corresponding noise level array.
+        batch_std: Corresponding noise level array. Not used by the DDPM
+            step loss; accepted so that all the diffusion step variants
+            share a single signature.
 
     Returns:
         Evaluated loss.
@@ -137,10 +141,12 @@ def jax_train_step_diffusion(
         batch_x: Noisy image data array.
         batch_t: Time array.
         batch_z: Standard Gaussian random noise array.
-        batch_std: Corresponding noise level array.
+        batch_std: Corresponding noise level array. Not used by the DDPM
+            step loss; accepted so that all the diffusion step variants
+            share a single signature.
 
     Returns:
-        Loss evaluated.
+        Evaluated loss and the updated NNX state.
     """
     # merge at the beginning of the function
     model, optimizer, metrics = nnx.merge(graphdef, state)
@@ -171,15 +177,17 @@ def eval_step_diffusion(
     It returns the current loss evaluated in the testing set.
 
     Args:
-        model: Model to train.
-        criterion: Criterion to use for training.
-        metrics: Dictionary of metrics to evaluate.
+        model: Model to evaluate.
+        criterion: Criterion to use for evaluation.
         step_loss: Function to evaluate difference between expected
                     and produced outputs.
+        metrics: Multi-metric object in which to accumulate metrics.
         batch_x: Noisy image data array.
         batch_t: Time embedding array.
         batch_z: Standard Gaussian random variable array.
-        batch_std: Corresponding noise level array.
+        batch_std: Corresponding noise level array. Not used by the DDPM
+            step loss; accepted so that all the diffusion step variants
+            share a single signature.
 
     Returns:
         Loss evaluated.

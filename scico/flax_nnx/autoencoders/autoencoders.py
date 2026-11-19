@@ -84,6 +84,7 @@ class AutoEncoder(nnx.Module):
         decoder: Decoder,
     ):
         """Initialization of autoencoder.
+
         Args:
             encoder: Encoder module in Flax nnx.
             decoder: Decoder module in Flax nnx.
@@ -240,13 +241,13 @@ class MLPDecoder(Decoder):
         )
 
     def __call__(self, x: Array, *args) -> Array:
-        """Apply dense encoder.
+        """Apply dense decoder.
 
         Args:
-            x: The array to be encoded.
+            x: The latent array to be decoded.
 
         Returns:
-            The encoded array.
+            The decoded array.
         """
         x = self.mlp(x, *args)
         if self.reshape_final:
@@ -479,11 +480,11 @@ def ConvAutoEncoder(
         activation_fn_encoder: Flax function defining the activation operation
             to apply after each layer (except output layer) in encoder.
         kernel_size_decoder: A shape tuple defining the size of the convolution
-                filters for encoder.
+                filters for decoder.
         strides_decoder: A shape tuple defining the size of strides in
-                convolution for encoder.
+                convolution for decoder.
         activation_fn_decoder: Flax function defining the activation operation
-            to apply after each layer (except output layer) in encoder.
+            to apply after each layer (except output layer) in decoder.
         batch_norm: Flag to indicate if batch norm is to be applied or not.
         rngs: Random generation key.
 
