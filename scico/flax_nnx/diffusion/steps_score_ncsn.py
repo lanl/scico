@@ -7,6 +7,7 @@
 
 """Definition of steps to iterate during training or evaluation of
 Noise Conditional Score Networks (NCSN) :cite:`song-2019-score`."""
+
 from __future__ import annotations  # for type support python 3.9 or earlier
 
 from collections.abc import Callable

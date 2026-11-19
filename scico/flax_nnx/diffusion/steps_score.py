@@ -8,6 +8,7 @@
 """Definition of steps to iterate during training or evaluation of
 diffusion models under score, i.e. gradient of the log of the data
 distribution. This interface uses time in (0, 1]."""
+
 from __future__ import annotations  # for type support python 3.9 or earlier
 
 from collections.abc import Callable
