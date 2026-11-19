@@ -7,6 +7,7 @@
 
 """Utilities for computing and displaying performance metrics during training
 of autoencoder models."""
+
 from __future__ import annotations  # for typing support for python 3.9 or earlier
 
 from collections.abc import Callable

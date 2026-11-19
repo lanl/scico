@@ -11,6 +11,7 @@
 
 Assumes sharded batched data and uses data parallel training.
 """
+
 from __future__ import annotations  # for type support python 3.9 or earlier
 
 import warnings

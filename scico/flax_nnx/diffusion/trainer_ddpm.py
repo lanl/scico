@@ -9,6 +9,7 @@
 model under the Denoising Diffusion Probabilistic Models
 (DDPM) formulation :cite:`ho-2020-ddpm`.
 """
+
 from __future__ import annotations  # for type support python 3.9 or earlier
 
 import warnings

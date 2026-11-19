@@ -11,6 +11,7 @@
 
 Assumes sharded batched data and uses data parallel training.
 """
+
 from __future__ import annotations  # for typing support for python 3.9 or earlier
 
 from collections.abc import Callable

@@ -6,6 +6,7 @@
 # package.
 
 """Flax nnx implementations of autoencoders."""
+
 from __future__ import annotations  # for typing support for python 3.9 or earlier
 
 import warnings
