@@ -16,12 +16,12 @@ from functools import partial
 
 import jax
 import jax.numpy as jnp
-from jax.typing import ArrayLike
 
 from flax import nnx
+from scico.numpy import Array
 
 
-def alpha_fn(alpha_bar_schedule: ArrayLike, batch_t: ArrayLike) -> ArrayLike:
+def alpha_fn(alpha_bar_schedule: Array, batch_t: Array) -> Array:
     r"""Computation of alpha for the given time steps in DDPM formulation.
 
     Alpha is related to the forward process variances beta by:
@@ -40,7 +40,7 @@ def alpha_fn(alpha_bar_schedule: ArrayLike, batch_t: ArrayLike) -> ArrayLike:
     return alpha_eval
 
 
-def _step_t(batch_x: ArrayLike, key: jax.Array, **kwargs) -> ArrayLike:
+def _step_t(batch_x: Array, key: jax.Array, **kwargs) -> Array:
     """t computation for diffusion step in DDPM formulation.
 
     Args:
@@ -56,9 +56,7 @@ def _step_t(batch_x: ArrayLike, key: jax.Array, **kwargs) -> ArrayLike:
     return batch_t
 
 
-def _step_x(
-    batch: ArrayLike, key: jax.Array, t: ArrayLike, **kwargs
-) -> tuple[ArrayLike, ArrayLike, ArrayLike]:
+def _step_x(batch: Array, key: jax.Array, t: Array, **kwargs) -> tuple[Array, Array, Array]:
     r"""x computation for diffusion step in DDPM formulation.
 
     Args:
@@ -79,7 +77,7 @@ def _step_x(
     return z, batch_std, batch_x
 
 
-def _step_loss(criterion: Callable, z: ArrayLike, output: ArrayLike, **kwargs) -> ArrayLike:
+def _step_loss(criterion: Callable, z: Array, output: Array, **kwargs) -> Array:
     """Loss computation for diffusion step in DDPM formulation."""
     return criterion(output, z)
 
@@ -88,11 +86,11 @@ def loss_fn(
     model: Callable,
     criterion: Callable,
     step_loss: Callable,
-    batch_x: ArrayLike,
-    batch_t: ArrayLike,
-    batch_z: ArrayLike,
-    batch_std: ArrayLike,
-) -> ArrayLike:
+    batch_x: Array,
+    batch_t: Array,
+    batch_z: Array,
+    batch_std: Array,
+) -> Array:
     """Loss function definition for diffusion step.
 
     Args:
@@ -119,11 +117,11 @@ def jax_train_step_diffusion(
     state,
     criterion: Callable,
     step_loss: Callable,
-    batch_x: ArrayLike,
-    batch_t: ArrayLike,
-    batch_z: ArrayLike,
-    batch_std: ArrayLike,
-) -> tuple[ArrayLike, nnx.State]:
+    batch_x: Array,
+    batch_t: Array,
+    batch_z: Array,
+    batch_std: Array,
+) -> tuple[Array, nnx.State]:
     """Train for a single step.
 
     This function uses data and a criterion to optimize model parameters. It returns
@@ -162,11 +160,11 @@ def eval_step_diffusion(
     criterion: Callable,
     step_loss: Callable,
     metrics: nnx.MultiMetric,
-    batch_x: ArrayLike,
-    batch_t: ArrayLike,
-    batch_z: ArrayLike,
-    batch_std: ArrayLike,
-) -> ArrayLike:
+    batch_x: Array,
+    batch_t: Array,
+    batch_z: Array,
+    batch_std: Array,
+) -> Array:
     """Evaluate for a single step.
 
     This function uses data and a criterion to evaluate performance of current model.

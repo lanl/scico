@@ -15,10 +15,9 @@ warnings.simplefilter(action="ignore", category=FutureWarning)
 
 from collections.abc import Callable, Sequence
 
-from jax.typing import ArrayLike
-
 from flax import nnx
 from flax.core import Scope  # noqa
+from scico.numpy import Array
 
 # The import of Scope above is required to silence "cannot resolve
 # forward reference" warnings when building sphinx api docs.
@@ -98,7 +97,7 @@ class MLP(nnx.Module):
                 nnx.Linear(in_features=layer_widths[-1], out_features=dim_out, rngs=rngs),
             )
 
-    def __call__(self, x: ArrayLike) -> ArrayLike:
+    def __call__(self, x: Array) -> Array:
         """Apply fully connected (i.e. dense) layer(s) and activation(s).
 
         Args:
@@ -190,7 +189,7 @@ class CNN(nnx.Module):
             num_filters[-1], channels, kernel_size=(1, 1), use_bias=False, rngs=rngs
         )
 
-    def __call__(self, x: ArrayLike) -> ArrayLike:
+    def __call__(self, x: Array) -> Array:
         """Apply convolutional layer(s) and activation(s).
 
         Args:
@@ -312,7 +311,7 @@ class CTpNN(nnx.Module):
             num_filters[-1], channels_out, kernel_size=(1, 1), use_bias=False, rngs=rngs
         )
 
-    def __call__(self, x: ArrayLike) -> ArrayLike:
+    def __call__(self, x: Array) -> Array:
         """Apply convolutional layer(s) and activation(s).
 
         Args:

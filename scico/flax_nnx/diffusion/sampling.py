@@ -13,12 +13,12 @@ from collections.abc import Callable
 
 import jax
 import jax.numpy as jnp
-from jax.typing import ArrayLike
 
 import flax.nnx
+from scico.numpy import Array
 
 
-def score_fn(score_model: Callable, x: ArrayLike, t: ArrayLike):
+def score_fn(score_model: Callable, x: Array, t: Array):
     """Function to evaluate score model.
 
     Args:
@@ -90,7 +90,7 @@ def sampling_score(
     batch_size: int,
     xshape: tuple[int, ...],
     maxsteps: int,
-    sigma: ArrayLike,
+    sigma: Array,
     model: flax.nnx.Module,
     key: jax.Array,
     return_path: bool = False,
@@ -115,7 +115,7 @@ def sampling_score(
     model.eval()
     key, subkey = jax.random.split(key)
     x = jax.random.normal(subkey, (batch_size,) + xshape)
-    xpath: ArrayLike | None = None
+    xpath: Array | None = None
     if return_path:
         xpath = jnp.zeros((maxsteps + 1,) + x.shape)
         xpath = xpath.at[0].set(x)
@@ -139,9 +139,9 @@ def sampling_ddpm(
     batch_size: int,
     xshape: tuple[int, ...],
     maxsteps: int,
-    alpha_schedule: ArrayLike,
-    alpha_bar_schedule: ArrayLike,
-    sigma: ArrayLike,
+    alpha_schedule: Array,
+    alpha_bar_schedule: Array,
+    sigma: Array,
     model: flax.nnx.Module,
     key: jax.Array,
     return_path: bool = False,

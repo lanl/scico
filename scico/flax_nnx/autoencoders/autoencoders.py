@@ -17,11 +17,10 @@ from collections.abc import Callable
 
 from numpy import prod
 
-from jax.typing import ArrayLike
-
 from flax import nnx
 from flax.core import Scope  # noqa
 from scico.flax_nnx.autoencoders.blocks import CNN, MLP, CTpNN
+from scico.numpy import Array
 
 # The import of Scope above is required to silence "cannot resolve
 # forward reference" warnings when building sphinx api docs.
@@ -47,7 +46,7 @@ class Encoder(nnx.Module):
         """Expose the latent dimension attribute as a property (getter)."""
         return self.dim_latent
 
-    def __call__(self, x: ArrayLike, *args) -> ArrayLike:
+    def __call__(self, x: Array, *args) -> Array:
         """Apply encoder.
 
         Args:
@@ -82,7 +81,7 @@ class AutoEncoder(nnx.Module):
         self.encoder = encoder
         self.decoder = decoder
 
-    def encode(self, x: ArrayLike) -> ArrayLike:
+    def encode(self, x: Array) -> Array:
         """Apply encoder module.
 
         Args:
@@ -94,7 +93,7 @@ class AutoEncoder(nnx.Module):
         x = self.encoder(x)
         return x
 
-    def decode(self, x: ArrayLike):
+    def decode(self, x: Array):
         """Apply decoder module.
 
         Args:
@@ -106,9 +105,7 @@ class AutoEncoder(nnx.Module):
         x = self.decoder(x)
         return x
 
-    def __call__(
-        self, x: ArrayLike, latent_rep: bool = False
-    ) -> ArrayLike | tuple[ArrayLike, ArrayLike]:
+    def __call__(self, x: Array, latent_rep: bool = False) -> Array | tuple[Array, Array]:
         """Apply sequence of encoder and decoder modules.
 
         Args:
@@ -167,7 +164,7 @@ class MLPEncoder(Encoder):
             rngs=rngs,
         )
 
-    def __call__(self, x: ArrayLike, *args) -> ArrayLike:
+    def __call__(self, x: Array, *args) -> Array:
         """Apply dense encoder.
 
         Args:
@@ -230,7 +227,7 @@ class MLPDecoder(Decoder):
             rngs=rngs,
         )
 
-    def __call__(self, x: ArrayLike, *args) -> ArrayLike:
+    def __call__(self, x: Array, *args) -> Array:
         """Apply dense encoder.
 
         Args:
@@ -361,7 +358,7 @@ class ConvEncoder(Encoder):
             self.dim_latent = int(prod(self.shape_latent))
             self.linear_latent = nnx.nn.activations.identity
 
-    def __call__(self, x: ArrayLike) -> ArrayLike:
+    def __call__(self, x: Array) -> Array:
         return self.linear_latent(self.cnn(x))
 
 
@@ -428,7 +425,7 @@ class ConvDecoder(Decoder):
             rngs=rngs,
         )
 
-    def __call__(self, x: ArrayLike) -> ArrayLike:
+    def __call__(self, x: Array) -> Array:
         x = self.initial_layer(x)
         if self.flat_latent:
             x = x.reshape((x.shape[0],) + self.shape_latent)

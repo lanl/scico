@@ -18,7 +18,7 @@ if sys.version_info >= (3, 8):
 else:
     from typing_extensions import TypedDict
 
-from jax.typing import ArrayLike
+from scico.numpy import Array
 
 
 class DataSetDict(TypedDict):
@@ -29,9 +29,9 @@ class DataSetDict(TypedDict):
     """
 
     #: Input (Num. samples x Height x Width x Channels).
-    image: ArrayLike
+    image: Array
     #: Output (Num. samples x Height x Width x Channels) or (Num. samples x Classes).
-    label: ArrayLike
+    label: Array
 
 
 class ConfigDict(TypedDict):

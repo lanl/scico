@@ -15,12 +15,12 @@ from functools import partial
 
 import jax
 import jax.numpy as jnp
-from jax.typing import ArrayLike
 
 from flax import nnx
+from scico.numpy import Array
 
 
-def set_sigma_schedule(sigma_min: float, sigma_max: float, max_sigma_steps: int) -> ArrayLike:
+def set_sigma_schedule(sigma_min: float, sigma_max: float, max_sigma_steps: int) -> Array:
     """Computation of noise schedule for NCSN.
 
     Args:
@@ -34,7 +34,7 @@ def set_sigma_schedule(sigma_min: float, sigma_max: float, max_sigma_steps: int)
     return jnp.geomspace(sigma_max, sigma_min, max_sigma_steps)
 
 
-def _step_x(batch: ArrayLike, key: jax.Array, **kwargs) -> tuple[ArrayLike, ArrayLike, ArrayLike]:
+def _step_x(batch: Array, key: jax.Array, **kwargs) -> tuple[Array, Array, Array]:
     r"""x computation for diffusion step in NCSN.
 
     Args:
@@ -58,9 +58,7 @@ def _step_x(batch: ArrayLike, key: jax.Array, **kwargs) -> tuple[ArrayLike, Arra
     return noise, batch_sigma, batch_x
 
 
-def _step_loss(
-    criterion: Callable, noise: ArrayLike, sigma: ArrayLike, output: ArrayLike, **kwargs
-) -> ArrayLike:
+def _step_loss(criterion: Callable, noise: Array, sigma: Array, output: Array, **kwargs) -> Array:
     """Default loss computation for diffusion step."""
     return criterion(output * sigma**2, -noise)
 
@@ -69,10 +67,10 @@ def loss_fn(
     model: Callable,
     criterion: Callable,
     step_loss: Callable,
-    batch_x: ArrayLike,
-    batch_sigma: ArrayLike,
-    noise: ArrayLike,
-) -> ArrayLike:
+    batch_x: Array,
+    batch_sigma: Array,
+    noise: Array,
+) -> Array:
     """Loss function definition for diffusion step.
 
     Args:
@@ -100,10 +98,10 @@ def jax_train_step_diffusion(
     state,
     criterion: Callable,
     step_loss: Callable,
-    batch_x: ArrayLike,
-    batch_sigma: ArrayLike,
-    noise: ArrayLike,
-) -> tuple[ArrayLike, nnx.State]:
+    batch_x: Array,
+    batch_sigma: Array,
+    noise: Array,
+) -> tuple[Array, nnx.State]:
     """Train for a single step.
 
     This function uses data and a criterion to optimize model parameters. It returns
@@ -141,10 +139,10 @@ def eval_step_diffusion(
     criterion: Callable,
     step_loss: Callable,
     metrics: nnx.MultiMetric,
-    batch_x: ArrayLike,
-    batch_sigma: ArrayLike,
-    noise: ArrayLike,
-) -> ArrayLike:
+    batch_x: Array,
+    batch_sigma: Array,
+    noise: Array,
+) -> Array:
     """Evaluate for a single step.
 
     This function uses data and a criterion to evaluate performance of current model.

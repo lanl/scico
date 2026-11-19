@@ -17,10 +17,10 @@ from collections.abc import Callable
 from functools import partial
 
 import jax.numpy as jnp
-from jax.typing import ArrayLike
 
 from flax import nnx
 from flax.core import Scope  # noqa
+from scico.numpy import Array
 
 from .blocks import (
     ConvBNBlock,
@@ -48,7 +48,7 @@ class DnCNNNet(nnx.Module):
         num_filters: int = 64,
         kernel_size: tuple[int, int] = (3, 3),
         strides: tuple[int, int] = (1, 1),
-        act: Callable[..., ArrayLike] = nnx.relu,
+        act: Callable[..., Array] = nnx.relu,
         kernel_init: Callable = nnx.initializers.kaiming_normal,
         dtype=jnp.float32,
         rngs: nnx.Rngs = nnx.Rngs(0),
@@ -111,7 +111,7 @@ class DnCNNNet(nnx.Module):
             ),
         )
 
-    def __call__(self, inputs: ArrayLike) -> ArrayLike:
+    def __call__(self, inputs: Array) -> Array:
         """Apply DnCNN denoiser.
 
         Args:
@@ -140,7 +140,7 @@ class ResNet(nnx.Module):
         num_filters: int = 64,
         kernel_size: tuple[int, int] = (3, 3),
         strides: tuple[int, int] = (1, 1),
-        act: Callable[..., ArrayLike] = nnx.relu,
+        act: Callable[..., Array] = nnx.relu,
         kernel_init: Callable = nnx.initializers.xavier_normal,
         dtype=jnp.float32,
         rngs: nnx.Rngs = nnx.Rngs(0),
@@ -195,7 +195,7 @@ class ResNet(nnx.Module):
             ),
         )
 
-    def __call__(self, x: ArrayLike) -> ArrayLike:
+    def __call__(self, x: Array) -> Array:
         """Apply ResNet.
 
         Args:
@@ -222,7 +222,7 @@ class ConvBNNet(nnx.Module):
         num_filters: int = 64,
         kernel_size: tuple[int, int] = (3, 3),
         strides: tuple[int, int] = (1, 1),
-        act: Callable[..., ArrayLike] = nnx.relu,
+        act: Callable[..., Array] = nnx.relu,
         kernel_init: Callable = nnx.initializers.xavier_normal,
         dtype=jnp.float32,
         rngs: nnx.Rngs = nnx.Rngs(0),
@@ -277,7 +277,7 @@ class ConvBNNet(nnx.Module):
             ),
         )
 
-    def __call__(self, x: ArrayLike) -> ArrayLike:
+    def __call__(self, x: Array) -> Array:
         """Apply ConvBNNet.
 
         Args:
@@ -302,7 +302,7 @@ class UNet(nnx.Module):
         block_depth: int = 2,
         window_shape: tuple[int, int] = (2, 2),
         upsampling: int = 2,
-        act: Callable[..., ArrayLike] = nnx.relu,
+        act: Callable[..., Array] = nnx.relu,
         kernel_init: Callable = nnx.initializers.kaiming_normal,
         dtype=jnp.float32,
         rngs: nnx.Rngs = nnx.Rngs(0),
@@ -424,7 +424,7 @@ class UNet(nnx.Module):
             rngs=rngs,
         )
 
-    def __call__(self, x: ArrayLike) -> ArrayLike:
+    def __call__(self, x: Array) -> Array:
         """Apply U-Net.
 
         Args:

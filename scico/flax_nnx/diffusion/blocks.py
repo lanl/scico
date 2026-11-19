@@ -36,19 +36,19 @@ from collections.abc import Callable
 
 import jax
 import jax.numpy as jnp
-from jax.typing import ArrayLike
 
 from einops import rearrange
 
 from flax import nnx
 from flax.core import Scope  # noqa
 from scico.flax_nnx.diffusion.helpers import default
+from scico.numpy import Array
 
 # The import of Scope above is required to silence "cannot resolve
 # forward reference" warnings when building sphinx api docs.
 
 
-def get_timestep_embedding(timesteps: ArrayLike, embedding_dim: int = 128):
+def get_timestep_embedding(timesteps: Array, embedding_dim: int = 128):
     """Construct an embedding for a sequence of time steps.
 
     Args:
@@ -104,7 +104,7 @@ class Residual(nnx.Module):
         super().__init__()
         self.fn = fn
 
-    def __call__(self, x: ArrayLike, *args, **kwargs) -> ArrayLike:
+    def __call__(self, x: Array, *args, **kwargs) -> Array:
         """Apply residual block, i.e. add input to block output.
 
         Args:
@@ -149,7 +149,7 @@ class Upsample(nnx.Module):
             ftrs, default(ftrs_out, ftrs), kernel_size=(3, 3), padding=1, rngs=rngs
         )
 
-    def __call__(self, x: ArrayLike) -> ArrayLike:
+    def __call__(self, x: Array) -> Array:
         """Apply upsample."""
         B, H, W, C = x.shape
         if self.shp_out is not None:
@@ -217,7 +217,7 @@ class ConvGroupNBlock(nnx.Module):
         dim_out: int,
         groups: int = 8,
         kernel_size: tuple[int, int] = (3, 3),
-        act: Callable[..., ArrayLike] = nnx.silu,
+        act: Callable[..., Array] = nnx.silu,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
         """Initialize group normalization for convolution block.
@@ -258,7 +258,7 @@ class ResnetBlock(nnx.Module):
         time_emb_dim: int | None = 0,
         groups: int = 8,
         kernel_size: tuple[int, int] = (3, 3),
-        act: Callable[..., ArrayLike] = nnx.silu,
+        act: Callable[..., Array] = nnx.silu,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
         """Initialize ResNet block.
@@ -292,7 +292,7 @@ class ResnetBlock(nnx.Module):
             else nnx.nn.activations.identity
         )
 
-    def __call__(self, x: ArrayLike, time_emb=None) -> ArrayLike:
+    def __call__(self, x: Array, time_emb=None) -> Array:
         """Apply block."""
         scale_shift = None
         if self.mlp is not None and time_emb is not None:
@@ -331,7 +331,7 @@ class Attention(nnx.Module):
         self.qkv_ = nnx.Conv(dim, hidden_dim * 3, kernel_size=(1, 1), use_bias=False, rngs=rngs)
         self.out_ = nnx.Conv(hidden_dim, dim, kernel_size=(1, 1), rngs=rngs)
 
-    def __call__(self, x: ArrayLike) -> ArrayLike:
+    def __call__(self, x: Array) -> Array:
         """Apply attention block."""
         b, h, w, c = x.shape  # channel last in flax
         qkv = self.qkv_(x)
@@ -378,7 +378,7 @@ class LinearAttention(nnx.Module):
             ]
         )
 
-    def __call__(self, x: ArrayLike) -> ArrayLike:
+    def __call__(self, x: Array) -> Array:
         """Apply linear attention block."""
 
         b, h, w, c = x.shape  # channel last in Flax
@@ -412,7 +412,7 @@ class PreNorm(nnx.Module):
         self.fn = fn
         self.norm = nnx.GroupNorm(num_features=dim, num_groups=1, rngs=rngs)
 
-    def __call__(self, x: ArrayLike) -> ArrayLike:
+    def __call__(self, x: Array) -> Array:
         """Apply group norm before block."""
         x = self.norm(x)
         return self.fn(x)

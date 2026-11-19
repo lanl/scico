@@ -16,13 +16,13 @@ from typing import Any
 
 import jax
 import jax.numpy as jnp
-from jax.typing import ArrayLike
 
 from flax import nnx
 from scico.metric import snr as snr_fn
+from scico.numpy import Array
 
 
-def _kl_loss_fn(mean: ArrayLike, logvar: ArrayLike) -> ArrayLike:
+def _kl_loss_fn(mean: Array, logvar: Array) -> Array:
     """Compute KL divergence loss from given mean and log variance.
 
     This KL loss is computed with respect to a standard normal distribution.
@@ -52,10 +52,10 @@ def loss_fn(
     criterion: Callable,
     kl_loss_fn: Callable,
     kl_weight: float,
-    x: ArrayLike,
+    x: Array,
     key: jax.Array,
-    y: ArrayLike,
-) -> tuple[ArrayLike, tuple[ArrayLike, ArrayLike]]:
+    y: Array,
+) -> tuple[Array, tuple[Array, Array]]:
     """Loss function definition for variational autoencoder step.
 
     Args:
@@ -85,10 +85,10 @@ def jax_train_step_vae(
     criterion: Callable,
     kl_loss_fn: Callable,
     kl_weight: float,
-    x: ArrayLike,
+    x: Array,
     key: jax.Array,
-    y: ArrayLike | None = None,
-) -> tuple[ArrayLike, Any]:
+    y: Array | None = None,
+) -> tuple[Array, Any]:
     """Train VAE for a single step.
 
     This function uses data and a criterion to optimize model parameters. It returns
@@ -129,10 +129,10 @@ def eval_step_vae(
     kl_loss_fn: Callable,
     kl_weight: float,
     metrics: nnx.MultiMetric,
-    x: ArrayLike,
+    x: Array,
     key: jax.Array,
-    y: ArrayLike | None = None,
-) -> ArrayLike:
+    y: Array | None = None,
+) -> Array:
     """Evaluate VAE for a single step.
 
     This function uses data and a criterion to evaluate performance of current model.
@@ -161,7 +161,7 @@ def eval_step_vae(
     return loss
 
 
-def generate_sample(model: nnx.Module, key: jax.Array, num_samples: int) -> ArrayLike:
+def generate_sample(model: nnx.Module, key: jax.Array, num_samples: int) -> Array:
     """Generate samples from latent representation.
 
     Args:
@@ -181,7 +181,7 @@ def generate_sample(model: nnx.Module, key: jax.Array, num_samples: int) -> Arra
     return y
 
 
-def generate_conditioned_sample(model: nnx.Module, key: jax.Array, c: ArrayLike) -> ArrayLike:
+def generate_conditioned_sample(model: nnx.Module, key: jax.Array, c: Array) -> Array:
     """Generate samples from latent representation using a conditioning property.
 
     Args:

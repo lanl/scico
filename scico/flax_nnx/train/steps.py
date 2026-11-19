@@ -13,15 +13,13 @@ from collections.abc import Callable
 from functools import partial
 
 import jax
-from jax.typing import ArrayLike
 
 from flax import nnx
 from scico.metric import snr as snr_fn
+from scico.numpy import Array
 
 
-def loss_fn(
-    model: Callable, criterion: Callable, x: ArrayLike, y: ArrayLike
-) -> tuple[ArrayLike, ArrayLike]:
+def loss_fn(model: Callable, criterion: Callable, x: Array, y: Array) -> tuple[Array, Array]:
     """Loss function definition.
 
     Args:
@@ -39,8 +37,8 @@ def loss_fn(
 # @jax.jit(static_argnums=2)
 @partial(jax.jit, static_argnums=2)
 def jax_train_step(
-    graphdef, state, criterion: Callable, x: ArrayLike, y: ArrayLike
-) -> tuple[ArrayLike, nnx.State]:
+    graphdef, state, criterion: Callable, x: Array, y: Array
+) -> tuple[Array, nnx.State]:
     """Train for a single step.
 
     This function uses data and a criterion to optimize model parameters. It returns
@@ -72,8 +70,8 @@ def jax_train_step(
 
 @nnx.jit(static_argnums=1)
 def eval_step(
-    model: Callable, criterion: Callable, metrics: nnx.MultiMetric, x: ArrayLike, y: ArrayLike
-) -> ArrayLike:
+    model: Callable, criterion: Callable, metrics: nnx.MultiMetric, x: Array, y: Array
+) -> Array:
     """Evaluate for a single step.
 
     This function uses data and a criterion to evaluate performance of current model.

@@ -17,7 +17,6 @@ from functools import partial
 
 import jax.numpy as jnp
 from jax import jit
-from jax.typing import ArrayLike
 
 from flax import nnx
 from scico.flax_nnx.diffusion.blocks import (
@@ -31,6 +30,7 @@ from scico.flax_nnx.diffusion.blocks import (
     Upsample,
 )
 from scico.flax_nnx.diffusion.helpers import default
+from scico.numpy import Array
 
 
 class ConditionalUNet(nnx.Module):
@@ -170,9 +170,7 @@ class ConditionalUNet(nnx.Module):
         self.final_conv = nnx.Conv(features[0], self.out_channels, kernel_size=(1, 1), rngs=rngs)
 
     @jit
-    def __call__(
-        self, x: ArrayLike, time: ArrayLike, x_self_cond: ArrayLike | None = None
-    ) -> ArrayLike:
+    def __call__(self, x: Array, time: Array, x_self_cond: Array | None = None) -> Array:
         """Apply conditional Unet model.
 
         Args:

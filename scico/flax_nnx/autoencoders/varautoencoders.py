@@ -21,10 +21,10 @@ from numpy import prod
 import jax
 import jax.numpy as jnp
 from jax.random import normal
-from jax.typing import ArrayLike
 
 from flax import nnx
 from flax.core import Scope  # noqa
+from scico.numpy import Array
 
 from .autoencoders import (
     ConvDecoder,
@@ -39,7 +39,7 @@ from .autoencoders import (
 # forward reference" warnings when building sphinx api docs.
 
 
-def reparameterize(mean: ArrayLike, logvar: ArrayLike, key: jax.Array) -> ArrayLike:
+def reparameterize(mean: Array, logvar: Array, key: jax.Array) -> Array:
     """Reparametrization trick for sample generation.
 
     Args:
@@ -89,7 +89,7 @@ class VarEncoder(Encoder):
         else:
             self.shape_latent = mean_block.shape_latent
 
-    def __call__(self, x: ArrayLike) -> tuple[ArrayLike, ArrayLike]:
+    def __call__(self, x: Array) -> tuple[Array, Array]:
         """Apply variational encoder.
 
         Args:
@@ -130,7 +130,7 @@ class Conditioner(Encoder):
         self.conditioning_block = conditioning_block
         self.dim_latent = processing_block.latent_dim
 
-    def __call__(self, x: ArrayLike, c: ArrayLike) -> ArrayLike:
+    def __call__(self, x: Array, c: Array) -> Array:
         """Apply conditioner module.
 
         Args:
@@ -176,7 +176,7 @@ class VAE(nnx.Module):
         else:
             return True
 
-    def encode(self, x: ArrayLike) -> tuple[ArrayLike, ArrayLike]:
+    def encode(self, x: Array) -> tuple[Array, Array]:
         """Variational encoding.
 
         Args:
@@ -187,7 +187,7 @@ class VAE(nnx.Module):
         """
         return self.encoder(x)  # yields: mean, logvar
 
-    def decode_cond(self, x: ArrayLike, c: ArrayLike):
+    def decode_cond(self, x: Array, c: Array):
         """Conditional decoding.
 
         Args:
@@ -206,7 +206,7 @@ class VAE(nnx.Module):
             x = self.decoder(x)
         return x
 
-    def decode(self, x: ArrayLike):
+    def decode(self, x: Array):
         """Class-independent decoding.
 
         Args:
@@ -218,8 +218,8 @@ class VAE(nnx.Module):
         return self.decoder(x)
 
     def __call__(
-        self, x: ArrayLike, key: jax.Array, c: ArrayLike | None = None
-    ) -> tuple[ArrayLike, ArrayLike, ArrayLike]:
+        self, x: Array, key: jax.Array, c: Array | None = None
+    ) -> tuple[Array, Array, Array]:
         """Apply sequence of variational encoder and decoder modules.
 
         Args:
