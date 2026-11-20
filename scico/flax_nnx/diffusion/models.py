@@ -99,17 +99,15 @@ class ConditionalUNet(nnx.Module):
         time_dim = dim * 4
 
         self.time_mlp = nnx.Sequential(
-            *[
-                SinusoidalPositionEmbeddings(dim),
-                nnx.Linear(dim, time_dim, rngs=rngs),
-                nnx.gelu,
-                nnx.Linear(time_dim, time_dim, rngs=rngs),
-            ]
+            SinusoidalPositionEmbeddings(dim),
+            nnx.Linear(dim, time_dim, rngs=rngs),
+            nnx.gelu,
+            nnx.Linear(time_dim, time_dim, rngs=rngs),
         )
 
         # Define layer storage.
-        downs = nnx.List([])
-        ups = nnx.List([])
+        downs: nnx.List = nnx.List([])
+        ups: nnx.List = nnx.List([])
         num_resolutions = len(in_out_f)
 
         # Configure down path of Unet.

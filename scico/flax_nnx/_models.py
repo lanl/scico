@@ -343,7 +343,7 @@ class UNet(nnx.Module):
         )
 
         # Downsampling path
-        self.down = nnx.List([])
+        self.down: nnx.List = nnx.List([])
         for j in range(depth - 1):
             self.down.append(
                 nnx.Sequential(
@@ -379,7 +379,7 @@ class UNet(nnx.Module):
         upfn = partial(upscale_nn, scale=upsampling)
 
         # Upsampling path
-        self.up = nnx.List([])
+        self.up: nnx.List = nnx.List([])
         for j in reversed(range(depth - 1)):
             self.up.append(
                 nnx.List(

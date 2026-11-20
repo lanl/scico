@@ -494,7 +494,7 @@ def ConvVarAutoEncoder(
 
         # Build components for conditioning
         if mode_cond == "conv":
-            proc_block = ConvDecoder(
+            proc_block: Encoder = ConvDecoder(
                 filters_condproc_decoder,
                 mean_block.shape_latent,
                 mean_block.shape_latent[-1],
@@ -506,7 +506,7 @@ def ConvVarAutoEncoder(
                 batch_norm=batch_norm,
                 rngs=rngs,
             )
-            cond_block = ConvEncoder(
+            cond_block: Encoder = ConvEncoder(
                 shape_cond_in,
                 channels_cond,
                 filters_cond_encoder,

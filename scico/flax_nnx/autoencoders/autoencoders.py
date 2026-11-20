@@ -365,7 +365,9 @@ class ConvEncoder(Encoder):
         self.flat_latent = flat_latent
         if flat_latent and dim_latent > 0:
             size_pre_latent = int(prod(self.shape_latent))
-            self.linear_latent = nnx.Linear(size_pre_latent, dim_latent, rngs=rngs)
+            self.linear_latent: Callable[[Array], Array] = nnx.Linear(
+                size_pre_latent, dim_latent, rngs=rngs
+            )
             self.dim_latent = dim_latent
         else:
             self.dim_latent = int(prod(self.shape_latent))
@@ -421,7 +423,9 @@ class ConvDecoder(Decoder):
 
         if flat_latent and dim_latent > 0:
             len_latent = int(prod(shape_latent))
-            self.initial_layer = nnx.Linear(dim_latent, len_latent, rngs=rngs)
+            self.initial_layer: Callable[[Array], Array] = nnx.Linear(
+                dim_latent, len_latent, rngs=rngs
+            )
             self.dim_latent = dim_latent
         else:
             self.initial_layer = nnx.nn.activations.identity

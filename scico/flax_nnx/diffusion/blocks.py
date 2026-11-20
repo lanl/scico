@@ -59,10 +59,10 @@ def get_timestep_embedding(timesteps: Array, embedding_dim: int = 128):
         Time steps as an embedded sequence with specified dimension.
     """
     half_dim = embedding_dim // 2
-    emb = math.log(10000) / (half_dim - 1)
-    emb = jnp.exp(jnp.arange(half_dim, dtype=jnp.float32) * -emb)
+    log_scale = math.log(10000) / (half_dim - 1)
+    freq = jnp.exp(jnp.arange(half_dim, dtype=jnp.float32) * -log_scale)
 
-    emb = jnp.asarray(timesteps, dtype=jnp.float32) * emb[None, :]
+    emb = jnp.asarray(timesteps, dtype=jnp.float32) * freq[None, :]
     emb = jnp.concatenate([jnp.sin(emb), jnp.cos(emb)], axis=-1)
     if embedding_dim % 2 == 1:  # zero pad
         emb = jnp.pad(emb, [0, 1], mode="constant")
@@ -275,7 +275,7 @@ class ResnetBlock(nnx.Module):
         super().__init__()
 
         self.mlp = (
-            nnx.Sequential(*[nnx.silu, nnx.Linear(time_emb_dim, dim_out * 2, rngs=rngs)])
+            nnx.Sequential(nnx.silu, nnx.Linear(time_emb_dim, dim_out * 2, rngs=rngs))
             if time_emb_dim is not None and time_emb_dim > 0
             else None
         )
@@ -335,8 +335,10 @@ class Attention(nnx.Module):
         """Apply attention block."""
         b, h, w, c = x.shape  # channel last in flax
         qkv = self.qkv_(x)
-        qkv = jnp.split(qkv, 3, axis=-1)  # channel last in flax
-        q, k, v = map(lambda t: rearrange(t, "b x y (h c)  -> b (x y) h c", h=self.heads), qkv)
+        qkv_split = jnp.split(qkv, 3, axis=-1)  # channel last in flax
+        q, k, v = map(
+            lambda t: rearrange(t, "b x y (h c)  -> b (x y) h c", h=self.heads), qkv_split
+        )
         q = q * self.scale
 
         sim = jnp.einsum("b d h i, b d h j -> b i h j", q, k)
@@ -383,8 +385,10 @@ class LinearAttention(nnx.Module):
 
         b, h, w, c = x.shape  # channel last in Flax
         qkv = self.qkv_(x)
-        qkv = jnp.split(qkv, 3, axis=-1)  # channel last in Flax
-        q, k, v = map(lambda t: rearrange(t, "b x y (h c)  -> b (x y) h c", h=self.heads), qkv)
+        qkv_split = jnp.split(qkv, 3, axis=-1)  # channel last in Flax
+        q, k, v = map(
+            lambda t: rearrange(t, "b x y (h c)  -> b (x y) h c", h=self.heads), qkv_split
+        )
         q = nnx.softmax(q, axis=-2)
         k = nnx.softmax(k, axis=-1)
 
