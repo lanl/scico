@@ -34,7 +34,3 @@ known_jax = ['jax']
 known_numpy = ['numpy']
 sections = ['FUTURE', 'STDLIB', 'NUMPY', 'JAX', 'THIRDPARTY', 'FIRSTPARTY', 'LOCALFOLDER']
 src_paths = ["scico", "examples/scripts"]
-
-[mypy]
-python_version = 3.12
-disable_error_code = ['attr-defined']
