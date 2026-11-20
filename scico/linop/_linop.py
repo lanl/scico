@@ -11,7 +11,7 @@
 from __future__ import annotations
 
 from functools import wraps
-from typing import Callable, Optional, Union, overload
+from typing import Callable, Optional, Union, cast, overload
 
 import numpy as np
 
@@ -256,6 +256,15 @@ class LinearOperator(Operator):
             input_dtype=self.input_dtype,
             output_dtype=result_type(self.output_dtype, other),
         )
+
+    def __neg__(self) -> LinearOperator:
+        # Operator.__neg__ returns -1.0 * self and is annotated as returning an
+        # Operator, because that is all it can promise for a nonlinear operator.
+        # Scaling a LinearOperator yields a LinearOperator, verified for Identity,
+        # Diagonal, MatrixOperator, Convolve and FiniteDifference, so this override
+        # records the narrower return type. Narrowing a return type in an override
+        # is covariant and therefore sound.
+        return cast(LinearOperator, super().__neg__())
 
     def __matmul__(self, other):
         # self @ other

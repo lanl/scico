@@ -263,6 +263,10 @@ class ProximalADMM(ProximalADMMBase):
                 initializer of base class :class:`.Optimizer`.
         """
         self.A: LinearOperator = A
+        # Operator.__neg__ is declared as returning an Operator, so without this
+        # declaration B is inferred as one and its adjoint is not visible. Negating
+        # an Identity in fact yields a ScaledIdentity, which is a LinearOperator.
+        self.B: LinearOperator
         if B is None:
             self.B = -Identity(self.A.output_shape, self.A.output_dtype)
         else:
