@@ -11,7 +11,7 @@
 from __future__ import annotations
 
 from functools import wraps
-from typing import Callable, Optional, Union
+from typing import Callable, Optional, Union, overload
 
 import numpy as np
 
@@ -276,9 +276,27 @@ class LinearOperator(Operator):
             f"Operation __rmatmul__ not defined between {type(self)} and {type(other)}."
         )
 
-    def __call__(
-        self, x: Union[LinearOperator, Array, BlockArray]
-    ) -> Union[LinearOperator, Array, BlockArray]:
+    # As for Operator.__call__, the return type depends on the argument type, with
+    # the additional case that composition with a LinearOperator yields a
+    # LinearOperator rather than a plain Operator. The implementation signature
+    # admits Operator because the fall-through to Operator.__call__ handles it.
+    #
+    # The override is sound: every argument the supertype accepts is accepted here
+    # too, so nothing is narrowed, and the extra overload only refines the return
+    # type for an argument that is already an Operator, which is safe because
+    # LinearOperator is a subtype of Operator and return types are covariant. mypy
+    # compares overload lists pairwise and cannot express that, so it reports the
+    # override as incompatible.
+    @overload  # type: ignore[override]
+    def __call__(self, x: LinearOperator) -> LinearOperator: ...
+
+    @overload
+    def __call__(self, x: Operator) -> Operator: ...
+
+    @overload
+    def __call__(self, x: Union[Array, BlockArray]) -> Union[Array, BlockArray]: ...
+
+    def __call__(self, x: Union[Operator, Array, BlockArray]) -> Union[Operator, Array, BlockArray]:
         r"""Evaluate this :class:`LinearOperator` at the point :math:`\mb{x}`.
 
         Args:

@@ -11,7 +11,7 @@
 from __future__ import annotations
 
 from functools import wraps
-from typing import Callable, Optional, Tuple, Union
+from typing import Callable, Optional, Tuple, Union, overload
 
 import numpy as np
 
@@ -183,6 +183,16 @@ class Operator:
   input_dtype:  {dtype_name(self.input_dtype)}
   output_dtype: {dtype_name(self.output_dtype)}
 """
+
+    # Calling an Operator on another Operator composes the two, while calling it on
+    # an array evaluates it, so the return type depends on the argument type. The
+    # overloads express that; without them every evaluation is typed as possibly
+    # returning an Operator, which makes arithmetic on the result an error.
+    @overload
+    def __call__(self, x: Operator) -> Operator: ...
+
+    @overload
+    def __call__(self, x: Union[Array, BlockArray]) -> Union[Array, BlockArray]: ...
 
     def __call__(self, x: Union[Operator, Array, BlockArray]) -> Union[Operator, Array, BlockArray]:
         r"""Evaluate this :class:`Operator` at the point :math:`\mb{x}`.

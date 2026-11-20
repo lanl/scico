@@ -47,7 +47,7 @@ on `JAXopt <https://github.com/google/jaxopt>`__.
 """
 
 from functools import wraps
-from typing import Any, Callable, List, Optional, Sequence, Tuple, Union
+from typing import Any, Callable, List, Optional, Sequence, Tuple, Union, cast
 
 import numpy as np
 
@@ -147,7 +147,9 @@ def _split_real_imag(x: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         BlockArray.
     """
     if isinstance(x, BlockArray):
-        return snp.blockarray([_split_real_imag(_) for _ in x])
+        # Iterating a BlockArray yields arrays, so the recursive call returns an
+        # array rather than a BlockArray, which its declared type cannot express.
+        return snp.blockarray([cast(Array, _split_real_imag(_)) for _ in x])
     return snp.stack((snp.real(x), snp.imag(x)))
 
 
@@ -165,7 +167,9 @@ def _join_real_imag(x: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         and `x[1]` respectively.
     """
     if isinstance(x, BlockArray):
-        return snp.blockarray([_join_real_imag(_) for _ in x])
+        # Iterating a BlockArray yields arrays, so the recursive call returns an
+        # array rather than a BlockArray, which its declared type cannot express.
+        return snp.blockarray([cast(Array, _join_real_imag(_)) for _ in x])
     return x[0] + 1j * x[1]
 
 
@@ -333,7 +337,7 @@ def cg(
     maxiter: int = 1000,
     info: bool = True,
     M: Optional[Callable] = None,
-) -> Tuple[Array, dict]:
+) -> Union[Array, Tuple[Array, dict]]:
     r"""Conjugate Gradient solver.
 
     Solve the linear system :math:`A\mb{x} = \mb{b}`, where :math:`A` is
@@ -351,7 +355,7 @@ def cg(
         atol: Absolute residual stopping tolerance. Convergence occurs
            when `norm(residual) <= max(tol * norm(b), atol)`.
         maxiter: Maximum iterations. Default: 1000.
-        info: If ``True`` return a tuple consting of the solution array
+        info: If ``True`` return a tuple consisting of the solution array
            and a dictionary containing diagnostic information, otherwise
            just return the solution.
         M: Preconditioner for `A`. The preconditioner should approximate
@@ -359,7 +363,8 @@ def cg(
            preconditioner.
 
     Returns:
-        tuple: A tuple (x, info) containing:
+        The solution array if `info` is ``False``, otherwise a tuple
+        `(x, info)` containing:
 
             - **x** : Solution array.
             - **info**: Dictionary containing diagnostic information.
@@ -414,7 +419,7 @@ def lstsq(
     maxiter: int = 1000,
     info: bool = False,
     M: Optional[Callable] = None,
-) -> Tuple[Array, dict]:
+) -> Union[Array, Tuple[Array, dict]]:
     r"""Least squares solver.
 
     Solve the least squares problem
@@ -436,7 +441,7 @@ def lstsq(
         atol: Absolute residual stopping tolerance. Convergence occurs
            when `norm(residual) <= max(tol * norm(b), atol)`.
         maxiter: Maximum iterations. Default: 1000.
-        info: If ``True`` return a tuple consting of the solution array
+        info: If ``True`` return a tuple consisting of the solution array
            and a dictionary containing diagnostic information, otherwise
            just return the solution.
         M: Preconditioner for `A`. The preconditioner should approximate
@@ -444,7 +449,8 @@ def lstsq(
            preconditioner.
 
     Returns:
-        tuple: A tuple (x, info) containing:
+        The solution array if `info` is ``False``, otherwise a tuple
+        `(x, info)` containing:
 
             - **x** : Solution array.
             - **info**: Dictionary containing diagnostic information.
@@ -476,7 +482,7 @@ def bisect(
     maxiter: int = 100,
     full_output: bool = False,
     range_check: bool = True,
-) -> Union[Array, dict]:
+) -> Union[Array, Tuple[Array, dict]]:
     """Vectorised root finding via bisection method.
 
     Vectorised root finding via bisection method, supporting
@@ -507,7 +513,8 @@ def bisect(
             `[a, b]` range brackets the root of `f`.
 
     Returns:
-        tuple: A tuple `(x, info)` containing:
+        The root array if `full_output` is ``False``, otherwise a tuple
+        `(x, info)` containing:
 
             - **x** : Root array.
             - **info**: Dictionary containing diagnostic information.
@@ -549,7 +556,7 @@ def golden(
     xtol: float = 1e-7,
     maxiter: int = 100,
     full_output: bool = False,
-) -> Union[Array, dict]:
+) -> Union[Array, Tuple[Array, dict]]:
     """Vectorised scalar minimization via golden section method.
 
     Vectorised scalar minimization via golden section method, supporting
@@ -574,12 +581,13 @@ def golden(
         xtol: Stopping tolerance based on maximum search interval length
             over array.
         maxiter: Maximum number of algorithm iterations.
-        full_output: If ``False``, return just the minizer, otherwise
+        full_output: If ``False``, return just the minimizer, otherwise
             return a tuple `(x, info)` where `x` is the minimizer and
             `info` is a dict containing algorithm status information.
 
     Returns:
-        tuple: A tuple `(x, info)` containing:
+        The minimizer array if `full_output` is ``False``, otherwise a
+        tuple `(x, info)` containing:
 
             - **x** : Minimizer array.
             - **info**: Dictionary containing diagnostic information.
@@ -751,49 +759,56 @@ class MatrixATADSolver:
         """
         A = jnp.array(A)
 
+        # The diagonal of a Diagonal is declared Array | BlockArray, but only the
+        # array case is supported here, as the dimensionality checks below imply.
+        # Narrowed copies are bound to separate names rather than to the parameters
+        # themselves, so that the declared parameter types remain accurate.
+        Dm: Array
         if isinstance(D, Diagonal):
-            D = D.diagonal
-            if D.ndim > 1:  # Identity operator has 0D diagonal
+            Dm = cast(Array, D.diagonal)
+            if Dm.ndim > 1:  # Identity operator has 0D diagonal
                 raise ValueError("If Diagonal, 'D' should have a 0D or 1D diagonal.")
         else:
-            D = jnp.array(D)
-            if not D.ndim in [1, 2]:
+            Dm = jnp.array(D)
+            if not Dm.ndim in [1, 2]:
                 raise ValueError("If array or MatrixOperator, 'D' should be 1D or 2D.")
 
+        Wm: Array
         if W is None:
-            W = snp.ones(A.shape[0], dtype=A.dtype)
+            Wm = snp.ones(A.shape[0], dtype=A.dtype)
         elif isinstance(W, Diagonal):
-            W = W.diagonal
-            assert hasattr(W, "ndim")
-            if W.ndim > 1:  # Identity operator has 0D diagonal
+            Wm = cast(Array, W.diagonal)
+            assert hasattr(Wm, "ndim")
+            if Wm.ndim > 1:  # Identity operator has 0D diagonal
                 raise ValueError("If Diagonal, 'W' should have a 0D or 1D diagonal.")
         elif not isinstance(W, Array):
             raise TypeError(
                 f"Operator 'W' is required to be None, a Diagonal, or an array; got a {type(W)}."
             )
+        else:
+            Wm = W
 
         self.A = A
-        self.D = D
-        self.W = W
+        self.D: Array = Dm
+        self.W: Array = Wm
         self.cho_factor = cho_factor
         self.lower = lower
         self.check_finite = check_finite
 
-        assert isinstance(W, Array)
         N, M = A.shape
-        if N < M and D.ndim <= 1:
-            D2 = D if D.ndim == 0 else D[:, snp.newaxis]
-            if W.ndim == 1:
-                G = snp.diag(1.0 / W) + A @ (A.T.conj() / D2)
+        if N < M and Dm.ndim <= 1:
+            D2 = Dm if Dm.ndim == 0 else Dm[:, snp.newaxis]
+            if Wm.ndim == 1:
+                G = snp.diag(1.0 / Wm) + A @ (A.T.conj() / D2)
             else:  # W is 0 dimensional (scalar equivalent)
                 G = A @ (A.T.conj() / D2)
-                G = jnp.fill_diagonal(G, G.diagonal() + (1.0 / W), inplace=False)
+                G = jnp.fill_diagonal(G, G.diagonal() + (1.0 / Wm), inplace=False)
         else:
-            W2 = W if W.ndim == 0 else W[:, snp.newaxis]
-            if D.ndim == 1:
-                G = A.T.conj() @ (W2 * A) + snp.diag(D)
+            W2 = Wm if Wm.ndim == 0 else Wm[:, snp.newaxis]
+            if Dm.ndim == 1:
+                G = A.T.conj() @ (W2 * A) + snp.diag(Dm)
             else:
-                G = A.T.conj() @ (W2 * A) + D
+                G = A.T.conj() @ (W2 * A) + Dm
 
         if cho_factor:
             c, lower = jsl.cho_factor(G, lower=lower, check_finite=check_finite)
@@ -851,7 +866,6 @@ class MatrixATADSolver:
             D = self.D
         else:
             D = self.D[:, snp.newaxis]
-        assert isinstance(self.W, Array)
         return rel_res(self.A.T.conj() @ (self.W[:, snp.newaxis] * self.A) @ x + D * x, b)
 
 
