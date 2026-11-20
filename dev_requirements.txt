@@ -7,3 +7,4 @@ pre-commit
 black>=24.3.0
 isort
 autoflake
+flake8
