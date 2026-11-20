@@ -8,12 +8,17 @@ This module contains various utility functions that does not have any
 other obvious home.
 """
 
+from typing import Tuple, Union, cast
+
 import numpy as np
 
 import jax.numpy as jnp
+from jax import Array
 
 
-def _find_center_of_gravity_in_projection(projection, background_internsity=0.9):
+def _find_center_of_gravity_in_projection(
+    projection: Union[np.ndarray, Array], background_internsity: float = 0.9
+) -> Tuple[np.floating, np.floating]:
     """Find axis of rotation in the projection.
     This is done by binarization of the image into object and background
     and determining the center of gravity of the object.
@@ -49,9 +54,13 @@ def _find_center_of_gravity_in_projection(projection, background_internsity=0.9)
     object_pixels = binary_proj[non_zero_columns, :][:, non_zero_rows]
     area_x = area_x[non_zero_columns]
     area_y = area_y[non_zero_rows]
-    # The two-argument overload of np.meshgrid is generic in both scalar types,
-    # which mypy cannot solve when the arguments are themselves Any, as they are
-    # under --follow-imports=skip; it then asks for these annotations.
+    # non_zero_rows and non_zero_columns are Any, numpy being unfollowed under
+    # --follow-imports=skip, and the two-argument overload of np.meshgrid is
+    # generic in both scalar types, so it cannot be solved from them. Annotating
+    # the targets is what mypy asks for. These no longer draw an
+    # annotation-unchecked note, as they did while this function was unannotated:
+    # that note reports a variable annotation inside a body mypy is not checking,
+    # and the body of an annotated function is checked.
     xs: np.ndarray
     ys: np.ndarray
     xs, ys = np.meshgrid(non_zero_rows, non_zero_columns)
@@ -62,7 +71,11 @@ def _find_center_of_gravity_in_projection(projection, background_internsity=0.9)
     return center_of_grav_x, center_of_grav_y
 
 
-def find_center_of_rotation(projection, background_internsity=0.9, method="center_of_gravity"):
+def find_center_of_rotation(
+    projection: Union[np.ndarray, Array],
+    background_internsity: float = 0.9,
+    method: str = "center_of_gravity",
+) -> Tuple[np.floating, np.floating]:
     """Find the axis of rotation of the object in the projection
 
     Parameters
@@ -96,7 +109,11 @@ def find_center_of_rotation(projection, background_internsity=0.9, method="cente
     return center_v, center_u
 
 
-def rotate_coordinates(xs_array, ys_array, angle_rad):
+def rotate_coordinates(
+    xs_array: Union[np.ndarray, Array],
+    ys_array: Union[np.ndarray, Array],
+    angle_rad: Union[float, Array],
+) -> Tuple[Array, Array]:
     """Rotate coordinate arrays by a given angle
 
     Parameters
@@ -118,4 +135,10 @@ def rotate_coordinates(xs_array, ys_array, angle_rad):
     """
     rx = xs_array * jnp.cos(angle_rad) + ys_array * jnp.sin(angle_rad)
     ry = -xs_array * jnp.sin(angle_rad) + ys_array * jnp.cos(angle_rad)
-    return rx, ry
+    # Each product is a jax array whichever type the coordinate arrays have:
+    # jax's Array sets __array_priority__ to 100, against numpy's 0, so numpy
+    # defers to jax's reflected operators rather than returning an ndarray.
+    # Verified for a numpy array against both a jax array and a jax scalar.
+    # numpy's stubs do not model that priority, so mypy infers the union when
+    # numpy is followed; the casts record what the operators in fact return.
+    return cast(Array, rx), cast(Array, ry)
