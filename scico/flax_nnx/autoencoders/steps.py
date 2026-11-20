@@ -83,8 +83,8 @@ def loss_fn(
 
 @partial(jax.jit, static_argnums=(2, 3))
 def jax_train_step_vae(
-    graphdef,
-    state,
+    graphdef: nnx.GraphDef,
+    state: nnx.State,
     criterion: Callable,
     kl_loss_fn: Callable,
     kl_weight: float,

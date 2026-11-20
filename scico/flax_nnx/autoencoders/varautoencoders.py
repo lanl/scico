@@ -194,7 +194,7 @@ class VAE(nnx.Module):
         """
         return self.encoder(x)  # yields: mean, logvar
 
-    def decode_cond(self, x: Array, c: Array):
+    def decode_cond(self, x: Array, c: Array) -> Array:
         """Conditional decoding.
 
         Args:
@@ -213,7 +213,7 @@ class VAE(nnx.Module):
             x = self.decoder(x)
         return x
 
-    def decode(self, x: Array):
+    def decode(self, x: Array) -> Array:
         """Class-independent decoding.
 
         Args:
@@ -262,7 +262,7 @@ def MLPVarAutoEncoder(
     widths_condproc_encoder: list[int] = [],
     widths_cond_encoder: list[int] = [],
     rngs: nnx.Rngs = nnx.Rngs(0),
-):
+) -> VAE:
     """Function to construct variational autoencoder network using multi
     layer perceptron (MLP), i.e. dense layers.
 
@@ -379,7 +379,7 @@ def ConvVarAutoEncoder(
     dim_cond_in: int = 0,
     widths_cond_encoder: list[int] = [],
     rngs: nnx.Rngs = nnx.Rngs(0),
-):
+) -> VAE:
     """Function to construct variational autoencoder network using convolutional layers.
 
     Args:

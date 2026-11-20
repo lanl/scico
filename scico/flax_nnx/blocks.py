@@ -12,7 +12,7 @@ import warnings
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
 from functools import partial
-from typing import Callable, Tuple
+from typing import Any, Callable, Tuple
 
 import jax.numpy as jnp
 
@@ -35,7 +35,7 @@ class ConvBNBlock(nnx.Module):
         kernel_size: Tuple[int, int] = (3, 3),
         strides: Tuple[int, int] = (1, 1),
         kernel_init: Callable = nnx.initializers.kaiming_normal,
-        dtype=jnp.float32,
+        dtype: Any = jnp.float32,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
         """Initialize convolution, batch normalization and activation block.
@@ -96,7 +96,7 @@ class ConvBlock(nnx.Module):
         kernel_size: Tuple[int, int] = (3, 3),
         strides: Tuple[int, int] = (1, 1),
         kernel_init: Callable = nnx.initializers.kaiming_normal,
-        dtype=jnp.float32,
+        dtype: Any = jnp.float32,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
         """Initialize convolution and activation block.
@@ -159,7 +159,7 @@ class ConvBNPoolBlock(nnx.Module):
         strides: Tuple[int, int] = (1, 1),
         window_shape: Tuple[int, int] = (1, 1),
         kernel_init: Callable = nnx.initializers.kaiming_normal,
-        dtype=jnp.float32,
+        dtype: Any = jnp.float32,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
         """Initialize convolution, batch normalization and pooling block.
@@ -228,7 +228,7 @@ class ConvBNUpsampleBlock(nnx.Module):
         kernel_size: Tuple[int, int] = (3, 3),
         strides: Tuple[int, int] = (1, 1),
         kernel_init: Callable = nnx.initializers.kaiming_normal,
-        dtype=jnp.float32,
+        dtype: Any = jnp.float32,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
         """Initialize convolution, batch normalization and upsample block.
@@ -294,7 +294,7 @@ class ConvBNMultiBlock(nnx.Module):
         kernel_size: Tuple[int, int] = (3, 3),
         strides: Tuple[int, int] = (1, 1),
         kernel_init: Callable = nnx.initializers.kaiming_normal,
-        dtype=jnp.float32,
+        dtype: Any = jnp.float32,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
         """Initialize convolution, batch normalization and activation multi-block.

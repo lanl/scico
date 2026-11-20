@@ -32,7 +32,8 @@ import warnings
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
 import math
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
+from typing import Any
 
 import jax
 import jax.numpy as jnp
@@ -48,7 +49,7 @@ from scico.numpy import Array
 # forward reference" warnings when building sphinx api docs.
 
 
-def get_timestep_embedding(timesteps: Array, embedding_dim: int = 128):
+def get_timestep_embedding(timesteps: Array, embedding_dim: int = 128) -> Array:
     """Construct an embedding for a sequence of time steps.
 
     Args:
@@ -82,12 +83,12 @@ class SinusoidalPositionEmbeddings(nnx.Module):
         super().__init__()
         self.dim = dim
 
-    def __call__(self, time):
+    def __call__(self, time: Array) -> Array:
         """Compute embeddings."""
         half_dim = self.dim // 2
-        embeddings = math.log(10000) / (half_dim - 1)
-        embeddings = jnp.exp(jnp.arange(half_dim, dtype=jnp.float32) * -embeddings)
-        embeddings = jnp.asarray(time, dtype=jnp.float32) * embeddings[None, :]
+        log_scale = math.log(10000) / (half_dim - 1)
+        freq = jnp.exp(jnp.arange(half_dim, dtype=jnp.float32) * -log_scale)
+        embeddings = jnp.asarray(time, dtype=jnp.float32) * freq[None, :]
         embeddings = jnp.concatenate([jnp.sin(embeddings), jnp.cos(embeddings)], axis=-1)
         return embeddings
 
@@ -104,7 +105,7 @@ class Residual(nnx.Module):
         super().__init__()
         self.fn = fn
 
-    def __call__(self, x: Array, *args, **kwargs) -> Array:
+    def __call__(self, x: Array, *args: Any, **kwargs: Any) -> Array:
         """Apply residual block, i.e. add input to block output.
 
         Args:
@@ -171,7 +172,7 @@ class Downsample(nnx.Module):
         ftrs_out: int | None = None,
         factor: float = 2,
         shp_out: tuple[int, int] | None = None,
-        method="bilinear",
+        method: str = "bilinear",
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
         """Initialize downsample Flax block.
@@ -195,7 +196,7 @@ class Downsample(nnx.Module):
         in_features = int(ftrs * factor * factor)
         self.out_ = nnx.Conv(in_features, default(ftrs_out, ftrs), kernel_size=(1, 1), rngs=rngs)
 
-    def __call__(self, x):
+    def __call__(self, x: Array) -> Array:
         """Apply downsample."""
         B, H, W, C = x.shape
         if self.shp_out is not None:
@@ -236,7 +237,7 @@ class ConvGroupNBlock(nnx.Module):
         self.norm = nnx.GroupNorm(num_features=dim_out, num_groups=groups, rngs=rngs)
         self.act = act
 
-    def __call__(self, x, scale_shift=None):
+    def __call__(self, x: Array, scale_shift: Sequence[Array] | None = None) -> Array:
         """Apply group normalization."""
         x = self.proj(x)
         x = self.norm(x)
@@ -292,7 +293,7 @@ class ResnetBlock(nnx.Module):
             else nnx.nn.activations.identity
         )
 
-    def __call__(self, x: Array, time_emb=None) -> Array:
+    def __call__(self, x: Array, time_emb: Array | None = None) -> Array:
         """Apply block."""
         scale_shift = None
         if self.mlp is not None and time_emb is not None:

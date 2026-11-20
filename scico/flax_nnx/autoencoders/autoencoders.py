@@ -58,7 +58,7 @@ class Encoder(nnx.Module):
         """Expose the latent dimension attribute as a property (getter)."""
         return self.dim_latent
 
-    def __call__(self, x: Array, *args) -> Array:
+    def __call__(self, x: Array, *args: Any) -> Array:
         """Apply encoder.
 
         Args:
@@ -106,7 +106,7 @@ class AutoEncoder(nnx.Module):
         x = self.encoder(x)
         return x
 
-    def decode(self, x: Array):
+    def decode(self, x: Array) -> Array:
         """Apply decoder module.
 
         Args:
@@ -177,7 +177,7 @@ class MLPEncoder(Encoder):
             rngs=rngs,
         )
 
-    def __call__(self, x: Array, *args) -> Array:
+    def __call__(self, x: Array, *args: Any) -> Array:
         """Apply dense encoder.
 
         Args:
@@ -240,7 +240,7 @@ class MLPDecoder(Decoder):
             rngs=rngs,
         )
 
-    def __call__(self, x: Array, *args) -> Array:
+    def __call__(self, x: Array, *args: Any) -> Array:
         """Apply dense decoder.
 
         Args:
@@ -264,7 +264,7 @@ def MLPAutoEncoder(
     activation_fn: Callable = nnx.leaky_relu,
     batch_norm: bool = False,
     rngs: nnx.Rngs = nnx.Rngs(0),
-):
+) -> AutoEncoder:
     """Function to construct autoencoder network using multi-layer
     perceptron (MLP), i.e. dense layers.
 
@@ -464,7 +464,7 @@ def ConvAutoEncoder(
     activation_fn_decoder: Callable = nnx.leaky_relu,
     batch_norm: bool = False,
     rngs: nnx.Rngs = nnx.Rngs(0),
-):
+) -> AutoEncoder:
     """Function to construct autoencoder network using convolutional layers.
 
     Args:

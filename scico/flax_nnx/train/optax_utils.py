@@ -15,7 +15,7 @@ import optax
 from .typed_dict import ConfigDict
 
 
-def build_optax_optimizer(config: ConfigDict):
+def build_optax_optimizer(config: ConfigDict) -> optax.GradientTransformation:
     """Build optax optimizer to include in NNX optimizer.
 
     Args:
@@ -145,8 +145,8 @@ def create_reduce_on_plateau_schedule(
     cooldown: int = 5,
     factor: float = 0.5,
     rtol: float = 1e-4,
-    accumulation_size=5,
-):
+    accumulation_size: int = 5,
+) -> optax.GradientTransformation:
     """Create scheduler to reduce learning rate if loss does not improve.
 
     Args:

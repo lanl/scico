@@ -13,6 +13,7 @@ Assumes sharded batched data.
 from __future__ import annotations
 
 from collections.abc import Callable
+from typing import Any
 
 from scico.diagnostics import IterationStats
 
@@ -25,7 +26,7 @@ class ArgumentStruct:
     both modes of access (dictionary or object entries) can be used.
     """
 
-    def __init__(self, **entries):
+    def __init__(self, **entries: Any):
         self.__dict__.update(entries)
 
 

@@ -16,9 +16,10 @@ from numpy import pi
 import jax.numpy as jnp
 
 from flax.nnx import sigmoid
+from scico.numpy import Array
 
 
-def cosine_beta_schedule(timesteps: int, s: float = 0.008):
+def cosine_beta_schedule(timesteps: int, s: float = 0.008) -> Array:
     """
     cosine schedule as proposed in https://arxiv.org/abs/2102.09672
     """
@@ -30,17 +31,23 @@ def cosine_beta_schedule(timesteps: int, s: float = 0.008):
     return jnp.clip(betas, 0.0001, 0.9999)
 
 
-def linear_beta_schedule(timesteps: int, beta_start: float = 0.0001, beta_end: float = 0.02):
+def linear_beta_schedule(
+    timesteps: int, beta_start: float = 0.0001, beta_end: float = 0.02
+) -> Array:
     """Linear schedule."""
     return jnp.linspace(beta_start, beta_end, timesteps)
 
 
-def quadratic_beta_schedule(timesteps: int, beta_start: float = 0.0001, beta_end: float = 0.02):
+def quadratic_beta_schedule(
+    timesteps: int, beta_start: float = 0.0001, beta_end: float = 0.02
+) -> Array:
     """Quadratic schedule."""
     return jnp.linspace(beta_start**0.5, beta_end**0.5, timesteps) ** 2
 
 
-def sigmoid_beta_schedule(timesteps: int, beta_start: float = 0.0001, beta_end: float = 0.02):
+def sigmoid_beta_schedule(
+    timesteps: int, beta_start: float = 0.0001, beta_end: float = 0.02
+) -> Array:
     """Sigmoid schedule."""
     betas = jnp.linspace(-6, 6, timesteps)
     return sigmoid(betas) * (beta_end - beta_start) + beta_start

@@ -13,6 +13,7 @@ from __future__ import annotations  # for type support python 3.9 or earlier
 
 from collections.abc import Callable
 from functools import partial
+from typing import Any
 
 import jax
 import jax.numpy as jnp
@@ -23,7 +24,7 @@ from scico.numpy import Array
 eps = 1e-5  # Minimum t to sample
 
 
-def _step_t(batch_x: Array, key: jax.Array, **kwargs) -> tuple[Array, Array]:
+def _step_t(batch_x: Array, key: jax.Array, **kwargs: Any) -> tuple[Array, Array]:
     """Default t computation for diffusion step."""
     tshp = (batch_x.shape[0],) + (1,) * len(batch_x.shape[1:])
     batch_t = jax.random.uniform(key, (batch_x.shape[0], 1), minval=eps, maxval=1.0)
@@ -31,7 +32,7 @@ def _step_t(batch_x: Array, key: jax.Array, **kwargs) -> tuple[Array, Array]:
     return t, batch_t
 
 
-def _step_x(batch: Array, key: jax.Array, t: Array, **kwargs) -> tuple[Array, Array, Array]:
+def _step_x(batch: Array, key: jax.Array, t: Array, **kwargs: Any) -> tuple[Array, Array, Array]:
     """Default x computation for diffusion step."""
     stddev_prior = kwargs.pop("stddev_prior")
     z = jax.random.normal(key, batch.shape)
@@ -40,7 +41,7 @@ def _step_x(batch: Array, key: jax.Array, t: Array, **kwargs) -> tuple[Array, Ar
     return z, batch_std, batch_x
 
 
-def _step_loss(criterion: Callable, z: Array, std: Array, output: Array, **kwargs) -> Array:
+def _step_loss(criterion: Callable, z: Array, std: Array, output: Array, **kwargs: Any) -> Array:
     """Default loss computation for diffusion step."""
     return criterion(output * std, -z)
 
@@ -77,8 +78,8 @@ def loss_fn(
 # @jax.jit(static_argnums=(2, 3))
 @partial(jax.jit, static_argnums=(2, 3))
 def jax_train_step_diffusion(
-    graphdef,
-    state,
+    graphdef: nnx.GraphDef,
+    state: nnx.State,
     criterion: Callable,
     step_loss: Callable,
     batch_x: Array,

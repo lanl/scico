@@ -27,6 +27,7 @@ from jax.experimental import mesh_utils
 
 from flax import nnx
 from scico.diagnostics import IterationStats
+from scico.numpy import Array
 
 from .checkpoints import checkpoint_restore, checkpoint_save
 from .diagnostics import ArgumentStruct, stats_obj
@@ -97,7 +98,7 @@ class BasicFlaxNNXTrainer:
     def set_training_parameters(
         self,
         config: ConfigDict,
-    ):
+    ) -> None:
         """Extract configuration parameters and construct training functions.
 
         Parameters and functions are passed in the configuration
@@ -113,7 +114,7 @@ class BasicFlaxNNXTrainer:
     def configure_steps(
         self,
         config: ConfigDict,
-    ):
+    ) -> None:
         """Configure training epochs and frequency for monitoring and checkpointing.
 
         Args:
@@ -141,7 +142,7 @@ class BasicFlaxNNXTrainer:
         else:
             self.log_every_epochs = config["log_every_epochs"]
 
-    def configure_reporting(self, config: ConfigDict):
+    def configure_reporting(self, config: ConfigDict) -> None:
         """Configure logging and checkpointing.
 
         The parameters configured correspond to
@@ -179,7 +180,7 @@ class BasicFlaxNNXTrainer:
         else:
             self.checkpointing = False
 
-    def configure_training_functions(self, config: ConfigDict):
+    def configure_training_functions(self, config: ConfigDict) -> None:
         """Construct training functions.
 
         Default functions are used if not specified in configuration.
@@ -228,7 +229,7 @@ class BasicFlaxNNXTrainer:
     def configure_data_iterators(
         self,
         config: ConfigDict,
-    ):
+    ) -> None:
         """Configure data iterators.
 
         Generate training data set from (input, label) pairs.
@@ -252,7 +253,7 @@ class BasicFlaxNNXTrainer:
 
     def log_data_snapshot(
         self,
-    ):
+    ) -> None:
         """Log datasets information.
 
         Log information about the loaded training and testing datasets.
@@ -280,7 +281,7 @@ class BasicFlaxNNXTrainer:
             )
         )
 
-    def construct_optimizer(self, config: ConfigDict):
+    def construct_optimizer(self, config: ConfigDict) -> None:
         """Construct Optax optimizer for model training.
 
         Args:
@@ -289,7 +290,9 @@ class BasicFlaxNNXTrainer:
         tx = build_optax_optimizer(config)
         self.optimizer = nnx.Optimizer(self.model, tx, wrt=nnx.Param)
 
-    def one_train_epoch_xy(self, graphdef, state, key):
+    def one_train_epoch_xy(
+        self, graphdef: nnx.GraphDef, state: nnx.State, key: jax.Array
+    ) -> tuple[Array, nnx.State, jax.Array]:
         """Function that defines one epoch of training using input and output data.
 
         This function iterates over the whole training set using randomly shuffled batches.
@@ -318,7 +321,9 @@ class BasicFlaxNNXTrainer:
 
         return loss, state, key
 
-    def one_eval_epoch_xy(self, metrics, key):
+    def one_eval_epoch_xy(
+        self, metrics: nnx.MultiMetric, key: jax.Array
+    ) -> tuple[Array, nnx.MultiMetric, jax.Array]:
         """Function that defines one epoch of evaluation using input and output data.
 
         This function iterates over the whole testing set using sequential batches.
@@ -411,10 +416,10 @@ class BasicFlaxNNXTrainer:
     def update_metrics(
         self,
         epoch: int,
-        metrics,
-        t0,
+        metrics: nnx.MultiMetric,
+        t0: float,
         key: jax.Array | None = None,
-    ):
+    ) -> nnx.MultiMetric:
         """Compute metrics for current model state.
 
         Metrics for training and testing (eval) sets are computed and
@@ -430,7 +435,10 @@ class BasicFlaxNNXTrainer:
                 randomness for training/evaluation (e.g. score).
         """
         if not self.logflag:
-            return
+            return metrics
+
+        if key is None:
+            key = jax.random.key(self.config["seed"])
 
         summary: dict[str, int | float] = {}
 
@@ -461,7 +469,7 @@ class BasicFlaxNNXTrainer:
 
         return metrics
 
-    def checkpoint(self, state, epoch: int):  # pragma: no cover
+    def checkpoint(self, state: nnx.State, epoch: int) -> None:  # pragma: no cover
         """Checkpoint training state if enabled.
 
         Args:
@@ -471,7 +479,7 @@ class BasicFlaxNNXTrainer:
         if self.checkpointing:
             checkpoint_save(state, epoch, self.config, self.workdir)
 
-    def log(self, logstr: str):
+    def log(self, logstr: str) -> None:
         """Print stats to output terminal if logging is enabled.
 
         Args:

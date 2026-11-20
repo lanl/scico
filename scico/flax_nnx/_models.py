@@ -15,6 +15,7 @@ warnings.simplefilter(action="ignore", category=FutureWarning)
 
 from collections.abc import Callable
 from functools import partial
+from typing import Any
 
 import jax.numpy as jnp
 
@@ -50,7 +51,7 @@ class DnCNNNet(nnx.Module):
         strides: tuple[int, int] = (1, 1),
         act: Callable[..., Array] = nnx.relu,
         kernel_init: Callable = nnx.initializers.kaiming_normal,
-        dtype=jnp.float32,
+        dtype: Any = jnp.float32,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
         """Initialize DnCNN model.
@@ -142,7 +143,7 @@ class ResNet(nnx.Module):
         strides: tuple[int, int] = (1, 1),
         act: Callable[..., Array] = nnx.relu,
         kernel_init: Callable = nnx.initializers.xavier_normal,
-        dtype=jnp.float32,
+        dtype: Any = jnp.float32,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
         """Initialize ResNet model.
@@ -224,7 +225,7 @@ class ConvBNNet(nnx.Module):
         strides: tuple[int, int] = (1, 1),
         act: Callable[..., Array] = nnx.relu,
         kernel_init: Callable = nnx.initializers.xavier_normal,
-        dtype=jnp.float32,
+        dtype: Any = jnp.float32,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
         """Initialize ConvBNNet model.
@@ -304,7 +305,7 @@ class UNet(nnx.Module):
         upsampling: int = 2,
         act: Callable[..., Array] = nnx.relu,
         kernel_init: Callable = nnx.initializers.kaiming_normal,
-        dtype=jnp.float32,
+        dtype: Any = jnp.float32,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
         """Initialize U-Net model.

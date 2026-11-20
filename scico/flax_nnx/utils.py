@@ -14,7 +14,7 @@ from flax import nnx
 from flax.serialization import from_state_dict, to_state_dict
 
 
-def save_model(model: nnx.Module, file: str | BufferedWriter):
+def save_model(model: nnx.Module, file: str | BufferedWriter) -> None:
     """Save Flax model.
 
     Save a Flax NNX neural network model.

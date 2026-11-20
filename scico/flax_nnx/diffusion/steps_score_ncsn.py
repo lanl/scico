@@ -12,6 +12,7 @@ from __future__ import annotations  # for type support python 3.9 or earlier
 
 from collections.abc import Callable
 from functools import partial
+from typing import Any
 
 import jax
 import jax.numpy as jnp
@@ -34,7 +35,7 @@ def set_sigma_schedule(sigma_min: float, sigma_max: float, max_sigma_steps: int)
     return jnp.geomspace(sigma_max, sigma_min, max_sigma_steps)
 
 
-def _step_x(batch: Array, key: jax.Array, **kwargs) -> tuple[Array, Array, Array]:
+def _step_x(batch: Array, key: jax.Array, **kwargs: Any) -> tuple[Array, Array, Array]:
     r"""x computation for diffusion step in NCSN.
 
     Args:
@@ -58,7 +59,9 @@ def _step_x(batch: Array, key: jax.Array, **kwargs) -> tuple[Array, Array, Array
     return noise, batch_sigma, batch_x
 
 
-def _step_loss(criterion: Callable, noise: Array, sigma: Array, output: Array, **kwargs) -> Array:
+def _step_loss(
+    criterion: Callable, noise: Array, sigma: Array, output: Array, **kwargs: Any
+) -> Array:
     """Default loss computation for diffusion step."""
     return criterion(output * sigma**2, -noise)
 
@@ -94,8 +97,8 @@ def loss_fn(
 # @jax.jit(static_argnums=(2, 3))
 @partial(jax.jit, static_argnums=(2, 3))
 def jax_train_step_diffusion(
-    graphdef,
-    state,
+    graphdef: nnx.GraphDef,
+    state: nnx.State,
     criterion: Callable,
     step_loss: Callable,
     batch_x: Array,

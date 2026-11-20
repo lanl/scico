@@ -29,6 +29,7 @@ from flax import nnx
 from scico.flax_nnx.train.input_pipeline import iterate_x_dataset
 from scico.flax_nnx.train.trainer import BasicFlaxNNXTrainer
 from scico.flax_nnx.train.typed_dict import ConfigDict, DataSetDict
+from scico.numpy import Array
 
 from .steps_score import (
     _step_loss,
@@ -99,7 +100,7 @@ class FlaxNNXScoreTrainer(BasicFlaxNNXTrainer):
     def set_data_processing_functions(
         self,
         config: ConfigDictScore,
-    ):
+    ) -> None:
         """Extract configuration parameters and construct training functions.
 
         Parameters and functions are passed in the configuration
@@ -128,7 +129,7 @@ class FlaxNNXScoreTrainer(BasicFlaxNNXTrainer):
     def configure_data_iterators(
         self,
         config: ConfigDict,
-    ):
+    ) -> None:
         """Configure data iterators.
 
         Generate training data set only from inputs.
@@ -150,7 +151,9 @@ class FlaxNNXScoreTrainer(BasicFlaxNNXTrainer):
 
         self.log_data_snapshot()
 
-    def one_train_epoch_x(self, graphdef, state, key: jax.Array):
+    def one_train_epoch_x(
+        self, graphdef: nnx.GraphDef, state: nnx.State, key: jax.Array
+    ) -> tuple[Array, nnx.State, jax.Array]:
         """Function that defines one epoch of training for a diffusion model using only inputs.
 
         This function iterates over the whole training set using randomly shuffled batches.
@@ -189,7 +192,9 @@ class FlaxNNXScoreTrainer(BasicFlaxNNXTrainer):
             )
         return loss, state, key
 
-    def one_eval_epoch_x(self, metrics, key: jax.Array):
+    def one_eval_epoch_x(
+        self, metrics: nnx.MultiMetric, key: jax.Array
+    ) -> tuple[Array, nnx.MultiMetric, jax.Array]:
         """Function that defines one epoch of evaluation for a diffusion model using only inputs.
 
         This function iterates over the whole testing set using sequential batches.

@@ -8,18 +8,19 @@
 """Helper functions for diffusion generative models."""
 
 import warnings
+from typing import Any
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
 from inspect import isfunction
 
 
-def exists(x) -> bool:
+def exists(x: Any) -> bool:
     """Determine if x is not none."""
     return x is not None
 
 
-def default(val, d):
+def default(val: Any, d: Any) -> Any:
     """Return default value if given. Otherwise return object d.
 
     Args:
@@ -31,7 +32,7 @@ def default(val, d):
     return d() if isfunction(d) else d
 
 
-def num_to_groups(num, divisor):
+def num_to_groups(num: int, divisor: int) -> list[int]:
     """Group setup."""
     groups = num // divisor
     remainder = num % divisor

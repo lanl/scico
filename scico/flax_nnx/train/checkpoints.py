@@ -10,6 +10,7 @@
 import importlib
 import json
 from pathlib import Path
+from typing import Any
 
 import jax
 
@@ -29,10 +30,14 @@ if have_orbax:
 
     logging.getLogger("absl").addFilter(logging.Filter("could not be identified as a temporary"))
 
+from flax import nnx
+
 from .typed_dict import ConfigDict
 
 
-def checkpoint_restore(state, workdir: str | Path, ok_no_ckpt: bool = False):
+def checkpoint_restore(
+    state: nnx.State, workdir: str | Path, ok_no_ckpt: bool = False
+) -> tuple[nnx.State, int | None]:
     """Load model and optimiser state.
 
     Args:
@@ -83,7 +88,7 @@ def checkpoint_restore(state, workdir: str | Path, ok_no_ckpt: bool = False):
     return state, step
 
 
-def checkpoint_save(state, epoch: int, config: ConfigDict, workdir: str | Path):
+def checkpoint_save(state: nnx.State, epoch: int, config: ConfigDict, workdir: str | Path) -> None:
     """Store model, model configuration, and optimiser state.
 
     Note that naming is slightly different to distinguish from Flax
@@ -125,7 +130,9 @@ def checkpoint_save(state, epoch: int, config: ConfigDict, workdir: str | Path):
         mngr.close()
 
 
-def checkpoint_restore_with_config(state, workdir: str | Path, ok_no_ckpt: bool = False):
+def checkpoint_restore_with_config(
+    state: nnx.State, workdir: str | Path, ok_no_ckpt: bool = False
+) -> tuple[nnx.State, ConfigDict | None, int | None]:
     """Load model, optimiser state and trainer configuration.
 
     Args:
@@ -176,7 +183,7 @@ def checkpoint_restore_with_config(state, workdir: str | Path, ok_no_ckpt: bool 
     return state, config, step
 
 
-def serialize_metadata(obj):
+def serialize_metadata(obj: Any) -> Any:
     """Function to preprocess metadata that is not serializable
     before saving to file.
 
@@ -201,7 +208,7 @@ def serialize_metadata(obj):
             return str(obj)
 
 
-def deserialize_metadata(obj):
+def deserialize_metadata(obj: Any) -> Any:
     """Function to preprocess metadata to convert it to the
     original object after reading from file.
 

@@ -37,7 +37,7 @@ def loss_fn(model: nnx.Module, criterion: Callable, x: Array, y: Array) -> tuple
 # @jax.jit(static_argnums=2)
 @partial(jax.jit, static_argnums=2)
 def jax_train_step(
-    graphdef, state, criterion: Callable, x: Array, y: Array
+    graphdef: nnx.GraphDef, state: nnx.State, criterion: Callable, x: Array, y: Array
 ) -> tuple[Array, nnx.State]:
     """Train for a single step.
 

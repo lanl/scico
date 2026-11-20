@@ -25,6 +25,7 @@ from flax import nnx
 from scico.flax_nnx.train.input_pipeline import iterate_x_dataset, iterate_xy_dataset
 from scico.flax_nnx.train.trainer import BasicFlaxNNXTrainer
 from scico.flax_nnx.train.typed_dict import ConfigDict, DataSetDict
+from scico.numpy import Array
 
 from .diagnostics import stats_obj
 from .steps import _kl_loss_fn, eval_step_vae, jax_train_step_vae
@@ -101,7 +102,7 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
     def configure_data_iterators(
         self,
         config: ConfigDict,
-    ):
+    ) -> None:
         """Configure data iterators.
 
         Generate training data set from inputs alone, or from (input,
@@ -137,7 +138,9 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
 
         self.log_data_snapshot()
 
-    def one_train_epoch_x(self, graphdef, state, key: jax.Array):
+    def one_train_epoch_x(
+        self, graphdef: nnx.GraphDef, state: nnx.State, key: jax.Array
+    ) -> tuple[Array, nnx.State, jax.Array]:
         """Function that defines one epoch of training for a VAE that uses only input data.
 
         This function iterates over the whole training set using randomly shuffled batches.
@@ -167,7 +170,9 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
             )
         return loss, state, key
 
-    def one_train_epoch_xy(self, graphdef, state, key: jax.Array):
+    def one_train_epoch_xy(
+        self, graphdef: nnx.GraphDef, state: nnx.State, key: jax.Array
+    ) -> tuple[Array, nnx.State, jax.Array]:
         """Function that defines one epoch of training for a VAE that uses input and conditioning data.
 
         This function iterates over the whole training set using randomly shuffled batches.
@@ -197,7 +202,9 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
             )
         return loss, state, key
 
-    def one_eval_epoch_x(self, metrics, key: jax.Array):
+    def one_eval_epoch_x(
+        self, metrics: nnx.MultiMetric, key: jax.Array
+    ) -> tuple[Array, nnx.MultiMetric, jax.Array]:
         """Function that defines one epoch of evaluation for a VAE that uses only input data.
 
         This function iterates over the whole testing set using sequential batches.
@@ -221,7 +228,9 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
             )
         return loss, metrics, key
 
-    def one_eval_epoch_xy(self, metrics, key: jax.Array):
+    def one_eval_epoch_xy(
+        self, metrics: nnx.MultiMetric, key: jax.Array
+    ) -> tuple[Array, nnx.MultiMetric, jax.Array]:
         """Function that defines one epoch of evaluation for a VAE that uses input and conditioning data.
 
         This function iterates over the whole testing set using sequential batches.

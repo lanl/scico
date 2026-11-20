@@ -16,7 +16,7 @@ import flax.nnx
 from scico.numpy import Array
 
 
-def score_fn(score_model: flax.nnx.Module, x: Array, t: Array):
+def score_fn(score_model: flax.nnx.Module, x: Array, t: Array) -> Array:
     """Function to evaluate score model.
 
     Args:
@@ -39,7 +39,7 @@ def Euler_Maruyama_sampler(
     num_steps: int,
     batch_size: int,
     eps: float = 1e-3,
-):
+) -> tuple[Array, Array]:
     """Euler-Maruyama sampling.
 
     Generate samples from score-based models with the Euler-Maruyama
@@ -94,7 +94,7 @@ def sampling_score(
     key: jax.Array,
     return_path: bool = False,
     eps: float = 2e-5,
-):
+) -> tuple[Array, Array, jax.Array] | tuple[Array, jax.Array]:
     """Function to sample using Gradients of the Data Distribution
         (score) formulation.
 
@@ -130,6 +130,7 @@ def sampling_score(
                 xpath = xpath.at[t].set(x)
 
     if return_path:
+        assert xpath is not None  # for mypy
         return x, xpath, key
     return x, key
 
@@ -144,7 +145,7 @@ def sampling_ddpm(
     model: flax.nnx.Module,
     key: jax.Array,
     return_path: bool = False,
-):
+) -> tuple[Array, Array, jax.Array] | tuple[Array, jax.Array]:
     """Function to sample using Denoising Diffusion Probabilistic Models
     (DDPM) formulation.
 
@@ -185,5 +186,6 @@ def sampling_ddpm(
             xpath = xpath.at[t_int].set(x)
         t_int = t_int - 1
     if return_path:
+        assert xpath is not None  # for mypy
         return x, xpath, key
     return x, key
