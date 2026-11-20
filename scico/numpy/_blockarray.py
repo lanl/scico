@@ -10,7 +10,7 @@
 import inspect
 from collections.abc import Iterable, Iterator
 from functools import WRAPPER_ASSIGNMENTS, wraps
-from typing import TYPE_CHECKING, Any, Callable, Union
+from typing import TYPE_CHECKING, Any, Callable, List, Tuple, Union, cast
 
 import numpy as np
 
@@ -75,7 +75,9 @@ class BlockArray:
     def __len__(self) -> int:
         return self.arrays.__len__()
 
-    def __getitem__(self, key: Union[int, slice]) -> Union["BlockArray", jax.Array]:
+    def __getitem__(
+        self, key: Union[int, slice]
+    ) -> Union["BlockArray", jax.Array, jax.ShapeDtypeStruct]:
         """Indexing method equivalent to x[key].
 
         This is overridden to make, e.g., x[:2] return a BlockArray
@@ -86,8 +88,12 @@ class BlockArray:
             return BlockArray(result)  # x[k:k+1] returns a BlockArray
         return result  # x[k] returns a jax array
 
-    def __setitem__(self, key: int, value: Union["BlockArray", ArrayLike]) -> None:
-        self.arrays[key] = value
+    def __setitem__(self, key: int, value: Union[jax.ShapeDtypeStruct, ArrayLike]) -> None:
+        # Apply the same conversion as __init__. Storing the value unconverted
+        # leaves the BlockArray inconsistent: after assigning a list, dtype
+        # raises AttributeError and shape reports the shape of the list's
+        # elements rather than of the block.
+        self.arrays[key] = value if isinstance(value, jax.ShapeDtypeStruct) else jnp.array(value)
 
     @staticmethod
     def blockarray(iterable: Iterable[ArrayLike]) -> "BlockArray":
@@ -114,7 +120,11 @@ class BlockArray:
                stackable.
         """
         if is_collapsible(self.shape):
-            return jnp.stack(self.arrays, axis=axis)
+            # Only a BlockArray of arrays can be stacked. The sole source of
+            # ShapeDtypeStruct blocks is scico.numpy.util.shape_dtype_rep, which
+            # builds a shape and dtype representation rather than data; calling
+            # this method on one raises a TypeError from jnp.stack.
+            return jnp.stack(cast(List[jax.Array], self.arrays), axis=axis)
         else:
             raise ValueError(f"BlockArray of shape {self.shape} cannot be collapsed to an Array.")
 
@@ -215,7 +225,6 @@ for op_name in binary_ops:
 def _jax_array_prop_wrapper(prop_name: str) -> property:
     prop = getattr(JaxArray, prop_name)
 
-    @property
     @wraps(prop)
     def prop_block_array(self: "BlockArray") -> Union["BlockArray", tuple]:
         result = tuple(getattr(x, prop_name) for x in self)
@@ -228,7 +237,9 @@ def _jax_array_prop_wrapper(prop_name: str) -> property:
         # ... otherwise return a tuple.
         return result
 
-    return prop_block_array
+    # property is applied here rather than as a decorator above wraps, which is
+    # the same call but which mypy cannot follow through the wrapper object.
+    return property(prop_block_array)
 
 
 skip_props = ("at",)
@@ -249,7 +260,7 @@ def _jax_array_method_wrapper(method_name: str) -> Callable[..., Any]:
     # Don't try to set attributes that are None. Not clear why some
     # functions/methods (e.g. block_until_ready) have None values
     # for these attributes.
-    wrapper_assignments = WRAPPER_ASSIGNMENTS
+    wrapper_assignments: Tuple[str, ...] = WRAPPER_ASSIGNMENTS
     for attr in ("__name__", "__qualname__"):
         if getattr(method, attr) is None:
             wrapper_assignments = tuple(x for x in wrapper_assignments if x != attr)
@@ -275,10 +286,7 @@ skip_methods = ()
 jax_array_methods = [
     k
     for k, v in dict(inspect.getmembers(JaxArray)).items()  # (name, method) pairs
-    if isinstance(v, Callable)
-    and k[0] != "_"
-    and k not in dir(BlockArray)
-    and k not in skip_methods
+    if callable(v) and k[0] != "_" and k not in dir(BlockArray) and k not in skip_methods
 ]
 
 for method_name in jax_array_methods:
