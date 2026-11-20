@@ -71,7 +71,7 @@ class Loss(functional.Functional):
         self.y = y
         if A is None:
             # y and x must have same shape
-            A = linop.Identity(input_shape=self.y.shape, input_dtype=self.y.dtype)  # type: ignore
+            A = linop.Identity(input_shape=self.y.shape, input_dtype=self.y.dtype)
         self.A = A
         self.f = f
         self.scale = scale
@@ -186,9 +186,9 @@ class SquaredL2Loss(Loss):
         self.W: linop.Diagonal
 
         if W is None:
-            self.W = linop.Identity(y.shape)  # type: ignore
+            self.W = linop.Identity(y.shape)
         elif isinstance(W, linop.Diagonal):
-            if snp.all(W.diagonal >= 0):  # type: ignore
+            if snp.all(W.diagonal >= 0):
                 self.W = W
             else:
                 raise ValueError("The weights, W.diagonal, must be non-negative.")
@@ -219,10 +219,12 @@ class SquaredL2Loss(Loss):
 
         if isinstance(self.A, linop.Diagonal):
             c = 2.0 * self.scale * lam
-            A = self.A.diagonal
-            W = self.W.diagonal
-            lhs = c * A.conj() * W * self.y + v  # type: ignore
-            ATWA = c * A.conj() * W * A  # type: ignore
+            # The diagonals, not the operators: bound to separate names so that A
+            # and W below retain the operator types they are given there.
+            Ad = self.A.diagonal
+            Wd = self.W.diagonal
+            lhs = c * Ad.conj() * Wd * self.y + v
+            ATWA = c * Ad.conj() * Wd * Ad
             return lhs / (ATWA + 1.0)
 
         #   prox_f(v) = arg min  1/2 || v - x ||_2^2 + λ 𝛼 || A x - y ||^2_W
@@ -256,8 +258,8 @@ class SquaredL2Loss(Loss):
             return linop.LinearOperator(
                 input_shape=A.input_shape,
                 output_shape=A.input_shape,
-                eval_fn=lambda x: 2 * self.scale * A.adj(W(A(x))),  # type: ignore
-                adj_fn=lambda x: 2 * self.scale * A.adj(W(A(x))),  # type: ignore
+                eval_fn=lambda x: 2 * self.scale * A.adj(W(A(x))),
+                adj_fn=lambda x: 2 * self.scale * A.adj(W(A(x))),
                 input_dtype=A.input_dtype,
             )
 
