@@ -120,6 +120,25 @@ class FlaxNNXNCSNTrainer(BasicFlaxNNXTrainer):
 
         Args:
             config: Hyperparameter configuration.
+
+        Note:
+            The `step_x` and `step_loss` entries of `config` replace the
+            defaults in
+            :mod:`~scico.flax_nnx.diffusion.steps_score_ncsn`. A
+            replacement must accept and return the same values as the
+            default it displaces, which for this formulation is
+
+            - `step_x(x, key)` returning
+              `(noise, batch_sigma, batch_x)`, and taking no time step,
+              since the noise level is drawn from the sigma schedule;
+            - `step_loss(criterion, noise, sigma, output)` returning the
+              loss.
+
+            This formulation has no `step_t`, and these signatures
+            differ from those of
+            :mod:`~scico.flax_nnx.diffusion.steps_score` and
+            :mod:`~scico.flax_nnx.diffusion.steps_ddpm`, so the
+            implementations are not interchangeable.
         """
 
         if "step_x" in config:

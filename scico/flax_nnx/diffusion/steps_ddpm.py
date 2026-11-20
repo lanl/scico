@@ -50,10 +50,15 @@ def _step_t(batch_x: Array, key: jax.Array, **kwargs: Any) -> Array:
     Args:
         batch_x: Array of a batch of original data.
         key: Key for random generation.
-        kwargs: Keyword arguments. Relevant here: maximum number of steps in t range.
+        kwargs: Keyword arguments. Must include `maxsteps`, the maximum
+            number of steps in the t range; the trainer binds it via
+            :func:`functools.partial`.
 
     Returns:
         Random generation of a batch of time steps for training.
+
+    Raises:
+        KeyError: If `maxsteps` is not in `kwargs`.
     """
     maxsteps = kwargs.pop("maxsteps")
     batch_t = jax.random.randint(key, (batch_x.shape[0], 1), minval=1, maxval=maxsteps)
@@ -67,10 +72,15 @@ def _step_x(batch: Array, key: jax.Array, t: Array, **kwargs: Any) -> tuple[Arra
         batch: Array of a batch of original data.
         key: Key for random generation.
         t: Array of a batch of time steps in the diffusion process.
-        kwargs: Keyword arguments. Relevant here: the processed :math:`\bar{\alpha}_t`.
+        kwargs: Keyword arguments. Must include `alpha_bar_schedule`,
+            the processed :math:`\bar{\alpha}_t`; the trainer binds it
+            via :func:`functools.partial`.
 
     Returns:
         Noise generated, equivalent standard deviation and noisy data.
+
+    Raises:
+        KeyError: If `alpha_bar_schedule` is not in `kwargs`.
     """
     alpha_bar_schedule = kwargs.pop("alpha_bar_schedule")
     z = jax.random.normal(key, batch.shape)
@@ -82,7 +92,19 @@ def _step_x(batch: Array, key: jax.Array, t: Array, **kwargs: Any) -> tuple[Arra
 
 
 def _step_loss(criterion: Callable, z: Array, output: Array, **kwargs: Any) -> Array:
-    """Loss computation for diffusion step in DDPM formulation."""
+    """Loss computation for diffusion step in DDPM formulation.
+
+    Args:
+        criterion: Criterion to use for training.
+        z: Noise added to the batch.
+        output: Model output.
+        kwargs: Unused; accepted so that all `step_loss` implementations
+            share a signature. Note that, unlike the score variant, this
+            one takes no standard deviation.
+
+    Returns:
+        Loss between the model output and the noise.
+    """
     return criterion(output, z)
 
 

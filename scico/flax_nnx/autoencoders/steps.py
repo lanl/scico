@@ -23,7 +23,7 @@ from scico.numpy import Array
 from .varautoencoders import VAE
 
 
-def _kl_loss_fn(mean: Array, logvar: Array) -> Array:
+def _kl_loss_fn(mean: Array | list[Array], logvar: Array | list[Array]) -> Array:
     """Compute KL divergence loss from given mean and log variance.
 
     This KL loss is computed with respect to a standard normal distribution.
@@ -33,15 +33,22 @@ def _kl_loss_fn(mean: Array, logvar: Array) -> Array:
             of means for each latent level.
         logvar: Log variances in latent space. For multi-level VAE
             this is a list of log variances for each latent level.
+
+    Returns:
+        KL divergence with respect to a standard normal distribution,
+        summed over all but the batch dimension and averaged over the
+        batch. For a multi-level VAE the per-level losses are summed.
     """
     if isinstance(mean, list):  # For multi-level VAE
-        kl_loss = 0.0
+        assert isinstance(logvar, list)  # for mypy
+        kl_loss = jnp.zeros(())
         for j, m in enumerate(mean):
             reduce_dims = list(range(1, len(m.shape)))
             kl_loss = kl_loss + jnp.mean(
                 -0.5 * jnp.sum(1 + logvar[j] - m**2 - jnp.exp(logvar[j]), axis=reduce_dims)
             )
     else:  # For regular VAE
+        assert not isinstance(logvar, list)  # for mypy
         reduce_dims = list(range(1, len(mean.shape)))
         kl_loss = jnp.mean(-0.5 * jnp.sum(1 + logvar - mean**2 - jnp.exp(logvar), axis=reduce_dims))
 

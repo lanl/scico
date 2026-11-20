@@ -34,7 +34,28 @@ from scico.numpy import Array
 
 
 class ConditionalUNet(nnx.Module):
-    """Define Flax conditional U-Net model."""
+    """Define Flax conditional U-Net model.
+
+    Attributes:
+        channels: Number of channels of the input signal.
+        out_channels: Number of channels of the output signal.
+        dim_mults: Channel multipliers defining the depth and width of
+            the down and up paths.
+        self_condition: Flag indicating whether the model is
+            self-conditioned, i.e. whether `__call__` accepts
+            `x_self_cond`.
+        time_embed: Flag indicating that the model uses a time
+            embedding.
+        time_mlp: Module mapping a time step to its embedding.
+        init_conv: Convolution applied before the down path.
+        downs: Down path blocks.
+        mid_block1: First middle residual block.
+        mid_attn: Middle attention block.
+        mid_block2: Second middle residual block.
+        ups: Up path blocks.
+        final_res_block: Residual block applied after the up path.
+        final_conv: Convolution producing the output signal.
+    """
 
     def __init__(
         self,
@@ -52,7 +73,8 @@ class ConditionalUNet(nnx.Module):
         """Initialize Flax conditional U-Net model.
 
         Args:
-            shape: Shape of signal.
+            shape: Spatial shape of the signal. Only `max(shape)` is
+                used, to derive the dimension of the time embedding.
             channels: Number of channels of signal to process.
             init_channels: Optional features (a.k.a. output channels) of
                 first convolution layer.
@@ -174,10 +196,18 @@ class ConditionalUNet(nnx.Module):
         Args:
             x: The array to process.
             time: The array with the time embedding component.
-            x_self_cond: The array for conditional processing.
+            x_self_cond: The array for conditional processing. Used only
+                if the model was constructed with `self_condition`; it
+                defaults to zeros when not supplied.
 
         Returns:
             The processed array.
+
+        Note:
+            An :class:`~flax.nnx.Rngs` seeded with 0 is constructed on
+            every call, because the upsampling modules of the up path
+            require one at construction. Calls are therefore not
+            independently seeded.
         """
         rngs: nnx.Rngs = nnx.Rngs(0)  # Needs to be passed on construction of upsample module
 

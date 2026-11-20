@@ -43,10 +43,15 @@ def _step_x(batch: Array, key: jax.Array, **kwargs: Any) -> tuple[Array, Array, 
     Args:
         batch: Array of a batch of original data.
         key: Key for random generation.
-        kwargs: Keyword arguments. Relevant here: the processed :math:`\sigma_i`.
+        kwargs: Keyword arguments. Must include `sigma_schedule`, the
+            processed :math:`\sigma_i`; the trainer binds it via
+            :func:`functools.partial`.
 
     Returns:
         Noise generated, noise std and noisy data.
+
+    Raises:
+        KeyError: If `sigma_schedule` is not in `kwargs`.
     """
     sigma_schedule = kwargs.pop("sigma_schedule")
     key, subkey1, subkey2 = jax.random.split(key, 3)
@@ -64,7 +69,19 @@ def _step_x(batch: Array, key: jax.Array, **kwargs: Any) -> tuple[Array, Array, 
 def _step_loss(
     criterion: Callable, noise: Array, sigma: Array, output: Array, **kwargs: Any
 ) -> Array:
-    """Default loss computation for diffusion step."""
+    """Loss computation for diffusion step in NCSN formulation.
+
+    Args:
+        criterion: Criterion to use for training.
+        noise: Noise added to the batch.
+        sigma: Noise level corresponding to the sampled schedule entries.
+        output: Model output.
+        kwargs: Unused; accepted so that all `step_loss` implementations
+            share a signature.
+
+    Returns:
+        Loss between the scaled model output and the negated noise.
+    """
     return criterion(output * sigma**2, -noise)
 
 

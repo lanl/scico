@@ -15,6 +15,7 @@ warnings.simplefilter(action="ignore", category=FutureWarning)
 
 
 from collections.abc import Callable
+from typing import Literal
 
 from numpy import prod
 
@@ -365,7 +366,7 @@ def ConvVarAutoEncoder(
     flat_latent: bool = False,
     dim_latent: int = 0,
     conditional: bool = False,
-    mode_cond: str = "conv",
+    mode_cond: Literal["conv", "mlp"] = "conv",
     filters_condproc_decoder: list[int] = [],
     kernel_size_condproc_decoder: tuple[int, int] = (3, 3),
     strides_condproc_decoder: tuple[int, int] = (1, 1),
@@ -403,9 +404,10 @@ def ConvVarAutoEncoder(
             true and a meaningful value is provided).
         conditional: Flag to specify if decoding will be
             conditioned on a given property (e.g. class membership).
-        mode_cond: Mode of model for conditional signal. It can be conv, requiring
-            shape, channels, filters and kernel size. If MLP, it requires dim in and
-            widths for layers.
+        mode_cond: Mode of model for conditional signal. Either `"conv"`,
+            requiring shape, channels, filters and kernel size, or
+            `"mlp"`, requiring dim in and widths for layers. Any value
+            other than `"conv"` selects the MLP path.
         filters_condproc_decoder: List with number of filters per layer in the
             CNN conditional processing decoder (if using conv).
         kernel_size_condproc_decoder: A shape tuple defining the size of the convolution
@@ -427,6 +429,13 @@ def ConvVarAutoEncoder(
 
     Returns:
         Variational autoencoder model with architecture based on convolutional layers.
+
+    Note:
+        Unlike :func:`~scico.flax_nnx.autoencoders.ConvAutoEncoder`, the
+        strides of the encoder and decoder convolutions are fixed at
+        `(2, 2)` and cannot be specified. If `conditional` is set and
+        `dim_latent` is zero, `dim_latent` is replaced by the flattened
+        size of the mean encoder latent shape.
     """
     strides: tuple[int, int] = (2, 2)
 

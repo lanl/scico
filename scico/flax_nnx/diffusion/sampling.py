@@ -27,7 +27,9 @@ def score_fn(score_model: flax.nnx.Module, x: Array, t: Array) -> Array:
     return score_model(x, t)
 
 
-# Define parallel evaluation of model
+#: Parallel evaluation of :func:`score_fn` over the available devices,
+#: via :func:`jax.pmap`. The model is a static argument, so a change of
+#: model triggers recompilation.
 p_score_fn = jax.pmap(score_fn, static_broadcasted_argnums=(0,))
 
 

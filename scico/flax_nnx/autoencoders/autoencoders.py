@@ -71,7 +71,9 @@ class Encoder(nnx.Module):
         raise NotImplementedError
 
 
-# Create an alias
+#: Alias of :class:`Encoder`. A decoder has the same interface as an
+#: encoder, so the two are structurally identical; the distinct name is
+#: retained for readability at the point of use.
 Decoder = Encoder
 
 
@@ -182,6 +184,8 @@ class MLPEncoder(Encoder):
 
         Args:
             x: The array to be encoded.
+            args: Additional positional arguments, forwarded to the MLP
+                submodule.
 
         Returns:
             The encoded array.
@@ -245,6 +249,8 @@ class MLPDecoder(Decoder):
 
         Args:
             x: The latent array to be decoded.
+            args: Additional positional arguments, forwarded to the MLP
+                submodule.
 
         Returns:
             The decoded array.
@@ -373,6 +379,16 @@ class ConvEncoder(Encoder):
             self.linear_latent = nnx.nn.activations.identity
 
     def __call__(self, x: Array) -> Array:
+        """Apply the convolutional encoder.
+
+        Args:
+            x: Input array, channel last.
+
+        Returns:
+            Latent representation: a vector per sample if the encoder was
+            constructed with `flat_latent` and a positive `dim_latent`,
+            otherwise an array of shape `shape_latent`.
+        """
         return self.linear_latent(self.cnn(x))
 
 
@@ -442,6 +458,15 @@ class ConvDecoder(Decoder):
         )
 
     def __call__(self, x: Array) -> Array:
+        """Apply the convolutional decoder.
+
+        Args:
+            x: Latent representation, flat or of shape `shape_latent`
+                according to how the decoder was constructed.
+
+        Returns:
+            Reconstructed array, channel last.
+        """
         x = self.initial_layer(x)
         if self.flat_latent:
             x = x.reshape((x.shape[0],) + self.shape_latent)

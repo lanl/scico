@@ -61,6 +61,7 @@ def checkpoint_restore(
 
     Raises:
         FileNotFoundError: If a checkpoint is expected and is not found.
+        RuntimeError: If package `orbax.checkpoint` is not installed.
     """
     if not have_orbax:
         raise RuntimeError("Package orbax.checkpoint is required for use of this function.")
@@ -100,6 +101,9 @@ def checkpoint_save(state: nnx.State, epoch: int, config: ConfigDict, workdir: s
         epoch: Epoch where the model is being saved.
         config: Python dictionary including model train configuration.
         workdir: Path in which to store checkpoint files.
+
+    Raises:
+        RuntimeError: If package `orbax.checkpoint` is not installed.
     """
     if not have_orbax:
         raise RuntimeError("Package orbax.checkpoint is required for use of this function.")
@@ -151,6 +155,7 @@ def checkpoint_restore_with_config(
 
     Raises:
         FileNotFoundError: If a checkpoint is expected and is not found.
+        RuntimeError: If package `orbax.checkpoint` is not installed.
     """
     if not have_orbax:
         raise RuntimeError("Package orbax.checkpoint is required for use of this function.")
@@ -186,6 +191,13 @@ def checkpoint_restore_with_config(
 def serialize_metadata(obj: Any) -> Any:
     """Preprocess metadata that is not serializable before saving to file.
 
+    Dicts, lists and tuples are processed recursively. A callable is
+    replaced by a dict of the form ``{"__callable__": path}``, where
+    `path` is its fully qualified import path, so that
+    :func:`deserialize_metadata` can reconstruct it. Any remaining value
+    that :func:`json.dumps` cannot represent is replaced by its
+    :func:`str`, which is lossy and not reversible.
+
     Args:
         obj: Object to serialize.
 
@@ -209,6 +221,15 @@ def serialize_metadata(obj: Any) -> Any:
 
 def deserialize_metadata(obj: Any) -> Any:
     """Restore metadata to the original object after reading from file.
+
+    Inverts :func:`serialize_metadata`, resolving each
+    ``{"__callable__": path}`` entry by importing `path`.
+
+    .. warning::
+       Resolving a callable imports the module named in the checkpoint
+       file. Only load checkpoints from a trusted source: loading one
+       that has been tampered with will import an arbitrary module, and
+       hence execute arbitrary code at import time.
 
     Args:
         obj: Object to deserialize.

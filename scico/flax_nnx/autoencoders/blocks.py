@@ -150,6 +150,8 @@ class CNN(nnx.Module):
                 number of channels of the input signal.
             conv_final: Flag to indicate if the output should be mapped back
                 to the number of channels of the input signal.
+            kernel_init: Flax function for initializing the convolution
+                kernels.
             rngs: Random generation key.
         """
         super().__init__()
@@ -242,6 +244,8 @@ class CTpNN(nnx.Module):
             activation_fn: Flax function defining the activation operation
                 to apply after each layer.
             batch_norm: Flag to indicate if batch norm is to be applied or not.
+            kernel_init: Flax function for initializing the convolution
+                kernels.
             rngs: Random generation key.
         """
         super().__init__()

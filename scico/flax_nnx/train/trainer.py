@@ -38,7 +38,40 @@ from .typed_dict import ConfigDict, DataSetDict
 
 
 class BasicFlaxNNXTrainer:
-    """Class encapsulating Flax NNX training configuration and execution."""
+    """Class encapsulating Flax NNX training configuration and execution.
+
+    Attributes:
+        model: Model being trained. Updated in place by :meth:`train`.
+        config: Configuration dictionary the trainer was constructed
+            with.
+        criterion: Loss function used for training and evaluation.
+        optimizer: NNX optimizer wrapping the optax transformation built
+            from `config`.
+        metrics: Multi-metric object in which training and evaluation
+            metrics are accumulated.
+        train_ds: Training data set.
+        test_ds: Evaluation data set, or ``None`` if none was given.
+        batch_size: Batch size used by the data iterators.
+        train_epochs: Total number of epochs to train for.
+        logflag: Flag indicating whether metrics are logged.
+        log_every_epochs: Interval, in epochs, at which metrics are
+            computed and logged.
+        itstat_object: Iteration statistics object holding the logged
+            history, or ``None`` until logging is configured.
+        train_time: Wall-clock duration of the last call to
+            :meth:`train`, in seconds.
+        checkpointing: Flag indicating whether checkpoints are written.
+        checkpoint_every_epochs: Interval, in epochs, at which
+            checkpoints are written.
+        workdir: Directory in which checkpoints are stored.
+        model_sharding: Sharding applied to the model state.
+        data_sharding: Sharding applied to each batch.
+        dt_iterator_fn: Data iterator used to produce batches.
+        train_step_fn: Function implementing a single training step.
+        eval_step_fn: Function implementing a single evaluation step.
+        one_train_epoch_fn: Function implementing one training epoch.
+        one_eval_epoch_fn: Function implementing one evaluation epoch.
+    """
 
     def __init__(
         self,
