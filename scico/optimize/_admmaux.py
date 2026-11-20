@@ -55,6 +55,11 @@ class SubproblemSolver:
             solver is attached.
     """
 
+    #: True if the solver computes its accuracy after each solve. Declared, but
+    #: not given a value, because :class:`.ADMM` reads it while only the solvers
+    #: that support an accuracy check set it in their initializers.
+    check_solve: bool
+
     def internal_init(self, admm: soa.ADMM):
         """Second stage initializer to be called by :meth:`.ADMM.__init__`.
 
@@ -63,6 +68,19 @@ class SubproblemSolver:
                :class:`.SubproblemSolver` object is to be attached.
         """
         self.admm = admm
+
+    def solve(self, x0: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
+        """Solve the ADMM step.
+
+        Args:
+            x0: Initial value.
+
+        Returns:
+            Computed solution.
+        """
+        # Subclasses are required to override this method; it is declared here
+        # because ADMM.step calls it on whichever solver it was given.
+        raise NotImplementedError(f"Solver {type(self)} does not implement the solve method.")
 
 
 class GenericSubproblemSolver(SubproblemSolver):
