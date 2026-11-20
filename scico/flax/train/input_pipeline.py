@@ -15,7 +15,7 @@ import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
-from typing import Any, Union
+from typing import Any, Union, cast
 
 import jax
 import jax.numpy as jnp
@@ -82,7 +82,9 @@ class IterateData:
                 self.reset()
             else:
                 self.ns = 0
-        batch = {k: v[self.perms[self.ns], ...] for k, v in self.dt.items()}
+        # TypedDict.items() is typed as yielding object values, because a TypedDict
+        # is heterogeneous in general; every value of a DataSetDict is an Array.
+        batch = {k: cast(Array, v)[self.perms[self.ns], ...] for k, v in self.dt.items()}
         self.ns += 1
         return batch
 
