@@ -8,6 +8,7 @@
 """3D X-ray transform classes."""
 
 from functools import partial
+from typing import Optional
 
 import numpy as np
 
@@ -15,7 +16,6 @@ import jax
 import jax.numpy as jnp
 from jax._src.lib import xla_client as xc
 from jax._src.sharding import Sharding
-from jax.typing import ArrayLike
 
 import scico.numpy as snp
 from scico.typing import DType, Shape
@@ -54,7 +54,7 @@ class XRayTransform3D(LinearOperator):
     def __init__(
         self,
         input_shape: Shape,
-        matrices: ArrayLike,
+        matrices: snp.Array,
         det_shape: Shape,
         batch_size: int = 8,
         input_dtype: DType = np.float32,
@@ -92,13 +92,13 @@ class XRayTransform3D(LinearOperator):
             output_dtype=input_dtype,
         )
 
-    def project(self, im: ArrayLike) -> snp.Array:
+    def project(self, im: snp.Array) -> snp.Array:
         """Compute X-ray projection."""
         return XRayTransform3D._project(
             im, self.matrices, self.det_shape, batch_size=self.batch_size, device=self.output_device
         )
 
-    def back_project(self, proj: ArrayLike) -> snp.Array:
+    def back_project(self, proj: snp.Array) -> snp.Array:
         """Compute X-ray back projection"""
         return XRayTransform3D._back_project(
             proj,
@@ -110,8 +110,8 @@ class XRayTransform3D(LinearOperator):
     @staticmethod
     @partial(jax.jit, static_argnames=("det_shape", "batch_size"))
     def _project(
-        im: ArrayLike,
-        matrices: ArrayLike,
+        im: snp.Array,
+        matrices: snp.Array,
         det_shape: Shape,
         batch_size: int = 8,
         device: xc.Device | Sharding | None = None,
@@ -140,7 +140,7 @@ class XRayTransform3D(LinearOperator):
 
     @staticmethod
     def _project_single(
-        im: ArrayLike, matrix: ArrayLike, proj: ArrayLike, slice_offset: int = 0
+        im: snp.Array, matrix: snp.Array, proj: snp.Array, slice_offset: int = 0
     ) -> snp.Array:
         r"""
         Args:
@@ -161,8 +161,8 @@ class XRayTransform3D(LinearOperator):
     @staticmethod
     @partial(jax.jit, static_argnames="input_shape")
     def _back_project(
-        proj: ArrayLike,
-        matrices: ArrayLike,
+        proj: snp.Array,
+        matrices: snp.Array,
         input_shape: Shape,
         device: xc.Device | Sharding | None = None,
     ) -> snp.Array:
@@ -192,7 +192,7 @@ class XRayTransform3D(LinearOperator):
 
     @staticmethod
     def _back_project_single(
-        y: ArrayLike, matrix: ArrayLike, HTy: ArrayLike, slice_offset: int = 0
+        y: snp.Array, matrix: snp.Array, HTy: snp.Array, slice_offset: int = 0
     ) -> snp.Array:
         ul_ind, ul_weight, ur_weight, ll_weight, lr_weight = XRayTransform3D._calc_weights(
             HTy.shape, matrix, y.shape, slice_offset
@@ -270,10 +270,10 @@ class XRayTransform3D(LinearOperator):
         input_shape: Shape,
         output_shape: Shape,
         seq: str,
-        angles: ArrayLike,
+        angles: np.typing.ArrayLike,
         degrees: bool = False,
-        voxel_spacing: ArrayLike = None,
-        det_spacing: ArrayLike = None,
+        voxel_spacing: Optional[np.typing.ArrayLike] = None,
+        det_spacing: Optional[np.typing.ArrayLike] = None,
     ) -> snp.Array:
         """
         Create a set of projection matrices from Euler angles. The

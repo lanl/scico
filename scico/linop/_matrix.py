@@ -17,7 +17,6 @@ from functools import partial, wraps
 import numpy as np
 
 import jax.numpy as jnp
-from jax.typing import ArrayLike
 
 import scico.numpy as snp
 from scico.operator._operator import Operator
@@ -64,7 +63,7 @@ def _wrap_add_sub_matrix(func, op):
 class MatrixOperator(LinearOperator):
     """Linear operator implementing matrix multiplication."""
 
-    def __init__(self, A: ArrayLike, input_cols: int = 0):
+    def __init__(self, A: snp.Array | np.ndarray, input_cols: int = 0):
         """
         Args:
             A: Dense array. The action of the created
@@ -76,7 +75,7 @@ class MatrixOperator(LinearOperator):
                 (two-dimensional array), this parameter should specify
                 number of columns in the matrix.
         """
-        self.A: snp.Array  #: Dense array implementing this matrix
+        self.A: snp.Array | np.ndarray  #: Dense array implementing this matrix
 
         # Ensure that A is a numpy or jax array.
         if not snp.util.is_arraylike(A):
