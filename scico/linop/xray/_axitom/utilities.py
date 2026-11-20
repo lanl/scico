@@ -36,7 +36,7 @@ def _find_center_of_gravity_in_projection(projection, background_internsity=0.9)
     """
     m, n = np.shape(projection)
 
-    binary_proj = np.zeros_like(projection, dtype=np.float)
+    binary_proj = np.zeros_like(projection, dtype=float)
     binary_proj[projection < background_internsity] = 1.0
 
     area_x = np.sum(binary_proj, axis=1)
@@ -49,6 +49,11 @@ def _find_center_of_gravity_in_projection(projection, background_internsity=0.9)
     object_pixels = binary_proj[non_zero_columns, :][:, non_zero_rows]
     area_x = area_x[non_zero_columns]
     area_y = area_y[non_zero_rows]
+    # The two-argument overload of np.meshgrid is generic in both scalar types,
+    # which mypy cannot solve when the arguments are themselves Any, as they are
+    # under --follow-imports=skip; it then asks for these annotations.
+    xs: np.ndarray
+    ys: np.ndarray
     xs, ys = np.meshgrid(non_zero_rows, non_zero_columns)
 
     # Determine center of gravity
