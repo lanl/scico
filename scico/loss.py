@@ -191,7 +191,7 @@ class SquaredL2Loss(Loss):
             if snp.all(W.diagonal >= 0):  # type: ignore
                 self.W = W
             else:
-                raise ValueError(f"The weights, W.diagonal, must be non-negative.")
+                raise ValueError("The weights, W.diagonal, must be non-negative.")
         else:
             raise TypeError(f"Parameter W must be None or a linop.Diagonal, got {type(W)}.")
 
@@ -358,7 +358,7 @@ class SquaredL2AbsLoss(Loss):
         self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[Array, BlockArray]:
         if not self.has_prox:
-            raise NotImplementedError(f"Method prox is not implemented.")
+            raise NotImplementedError("Method prox is not implemented.")
 
         𝛼 = lam * 2.0 * self.scale * self.W.diagonal
         y = self.y
@@ -564,7 +564,7 @@ class SquaredL2SquaredAbsLoss(Loss):
         self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
     ) -> Union[Array, BlockArray]:
         if not self.has_prox:
-            raise NotImplementedError(f"Method prox is not implemented.")
+            raise NotImplementedError("Method prox is not implemented.")
 
         𝛼 = lam * 4.0 * self.scale * self.W.diagonal
         𝛽 = snp.abs(v)

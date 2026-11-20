@@ -373,7 +373,6 @@ def gaussian(shape: Shape, sigma: Optional[np.ndarray] = None) -> np.ndarray:
     except np.linalg.LinAlgError as e:
         raise ValueError(f"Invalid covariance matrix {sigma}.") from e
     grd = np.stack(np.mgrid[[slice(-(n - 1) / 2, (n + 1) / 2) for n in shape]], axis=-1)
-    sigmax = np.dot(grd, sigmainv)
     xtsigmax = np.sum(grd * np.dot(grd, sigmainv), axis=-1)
     const = ((2.0 * np.pi) ** (-N / 2.0)) * (sigmadet ** (-1.0 / 2.0))
     return const * np.exp(-xtsigmax / 2.0)

@@ -39,7 +39,7 @@ from jax.typing import ArrayLike
 from scipy.spatial.transform import Rotation
 
 try:
-    from collections import Iterable  # type: ignore
+    from collections import Iterable  # type: ignore  # noqa: F401
 except ImportError:
     import collections
 

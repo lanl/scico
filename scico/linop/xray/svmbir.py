@@ -384,7 +384,7 @@ class SVMBIRExtendedLoss(Loss):
             if snp.all(W.diagonal >= 0):
                 self.W = W
             else:
-                raise ValueError(f"The weights, W, must be non-negative.")
+                raise ValueError("The weights, W, must be non-negative.")
         else:
             raise TypeError(f"Argument 'W' must be None or a linop.Diagonal, got {type(W)}.")
 

@@ -10,4 +10,4 @@
 This modules currently serves simply as a namespace for :mod:`scico.scipy.special`.
 """
 
-from . import special
+from . import special  # noqa: F401

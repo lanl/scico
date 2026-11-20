@@ -11,7 +11,7 @@ import os
 
 os.environ["RAY_ACCEL_ENV_VAR_OVERRIDE_ON_ZERO"] = "0"  # suppress ray warning
 try:
-    from ray import get, put
-    from ray.tune import report
+    from ray import get, put  # noqa: F401
+    from ray.tune import report  # noqa: F401
 except ImportError:
     raise ImportError("Could not import ray; please install it.")

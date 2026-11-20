@@ -17,7 +17,7 @@ from scico.typing import ArrayIndex, BlockShape, DType, Shape
 
 from ._linop import LinearOperator
 
-__all__ = ["operator_from_function", "Tranpose", "Sum", "Crop", "Pad", "Reshape", "Slice"]
+__all__ = ["linop_from_function", "Transpose", "Sum", "Crop", "Pad", "Reshape", "Slice"]
 
 
 def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = None):
@@ -80,7 +80,7 @@ def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = Non
         super().__init__(input_shape, input_dtype=input_dtype, output_shape=output_shape, output_dtype=output_dtype, jit=jit)  # type: ignore
 
     OpClass = type(classname, (LinearOperator,), {"__init__": __init__})
-    __class__ = OpClass  # needed for super() to work
+    __class__ = OpClass  # needed for super() to work  # noqa: F841
 
     OpClass.__doc__ = f"Linear operator version of :func:`{f_name}`."
     OpClass.__init__.__doc__ = f_doc  # type: ignore

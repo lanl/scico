@@ -111,7 +111,8 @@ def plot(y, x=None, ptyp="plot", xlbl=None, ylbl=None, title=None, lgnd=None, lg
     xlog, ylog = ptyp_options[ptyp]
     fgsz = kwargs.pop("fgsz", None)
     fgnm = kwargs.pop("fgnm", None)
-    fig = kwargs.pop("fig", None)
+    # fig is accepted for backward compatibility but not supported by komplot
+    kwargs.pop("fig", None)
     ax = kwargs.pop("ax", None)
     if x is None:
         lplt = kplt.plot(
@@ -515,6 +516,8 @@ def set_ipython_plot_backend(backend="qt"):
         raise RuntimeError("Package matplotlib is required for use of this function.")
     if _in_ipython():
         # See https://stackoverflow.com/questions/35595766
+        from IPython import get_ipython
+
         get_ipython().run_line_magic("matplotlib", backend)
 
 
@@ -542,6 +545,8 @@ def set_notebook_plot_backend(backend="inline"):
         raise RuntimeError("Package matplotlib is required for use of this function.")
     if _in_notebook():
         # See https://stackoverflow.com/questions/35595766
+        from IPython import get_ipython
+
         get_ipython().run_line_magic("matplotlib", backend)
 
 

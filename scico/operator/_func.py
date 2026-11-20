@@ -80,7 +80,7 @@ def operator_from_function(f: Callable, classname: str, f_name: Optional[str] = 
         super().__init__(input_shape, input_dtype=input_dtype, output_shape=output_shape, output_dtype=output_dtype, jit=jit)  # type: ignore
 
     OpClass = type(classname, (Operator,), {"__init__": __init__})
-    __class__ = OpClass  # needed for super() to work
+    __class__ = OpClass  # needed for super() to work  # noqa: F841
 
     OpClass.__doc__ = f"Operator version of :func:`{f_name}`."
     OpClass.__init__.__doc__ = f_doc  # type: ignore

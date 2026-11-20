@@ -104,7 +104,6 @@ def _fdk_axisym(projection_filtered, config, angles, device=None):
         tomogram where Z is the symmetry axis.
     """
     proj_width, proj_height = projection_filtered.shape
-    proj_center = int(proj_width / 2)
 
     # Allocate an empty array
     recon_slice = jnp.zeros((proj_width, proj_height), dtype=jnp.float32, device=device)
