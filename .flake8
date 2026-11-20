@@ -1,5 +1,9 @@
 [flake8]
 max-line-length = 100
-ignore =
+# extend-ignore rather than ignore: the latter replaces pycodestyle's default
+# ignore list (E121,E123,E126,E226,E24,E704,W503,W504) instead of adding to it,
+# which enables codes that conflict with the black formatting this project uses.
+# W503 and E704 in particular are produced by black's own output.
+extend-ignore =
 #E731: do not assign a lambda expression, use a def
   E731
