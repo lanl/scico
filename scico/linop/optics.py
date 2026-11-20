@@ -170,16 +170,19 @@ class Propagator(LinearOperator):
         )  # computational plane size
         #: Transverse Fourier coordinates (radial)
         self.kp = radial_transverse_frequency(self.padded_shape, dx)
-        #: Source plane sampling interval
-        self.dx: Union[float, Tuple[float, ...]] = dx
+        #: Source plane sampling interval. Always a tuple: a scalar argument is
+        #: expanded to one per dimension by the _isscalar branch above.
+        self.dx: Tuple[float, ...] = dx
         #: Propagation distance
         self.z: float = z
 
         # Fourier operator
         self.F = DFT(input_shape=input_shape, axes_shape=self.padded_shape, jit=False)
 
-        # Diagonal operator; phase shifting
-        self.D: LinearOperator = Identity(self.kp.shape)
+        # Diagonal operator; phase shifting. Identity is a ScaledIdentity, hence a
+        # Diagonal, and each subclass replaces it with a Diagonal of its own phase;
+        # declaring that here is what lets pinv read the diagonal.
+        self.D: Diagonal = Identity(self.kp.shape)
 
         super().__init__(
             input_shape=input_shape,
@@ -460,6 +463,11 @@ class FraunhoferPropagator(LinearOperator):
          \Delta x_S \geq \sqrt{\frac{2 \pi z}{N_x k_0}} \quad \text{and}
          \quad \Delta y_S \geq \sqrt{\frac{2 \pi z}{N_y k_0}} \;.
     """
+
+    # Operator declares input_shape as Shape | BlockShape, but this class accepts
+    # only a Shape, as its constructor signature states, so iterating it yields
+    # ints rather than ints or tuples.
+    input_shape: Shape
 
     def __init__(
         self,

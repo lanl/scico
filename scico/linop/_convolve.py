@@ -25,6 +25,12 @@ from ._linop import LinearOperator, _wrap_add_sub, _wrap_mul_div_scalar
 class Convolve(LinearOperator):
     """A convolution linear operator."""
 
+    # Operator declares input_shape as Shape | BlockShape, but this class accepts
+    # only a Shape, as its constructor signature states, so the attribute is
+    # always a Shape here. Re-declaring it narrowly lets the arithmetic methods
+    # below pass it back to the constructor without a cast at each site.
+    input_shape: Shape
+
     def __init__(
         self,
         h: snp.Array,
@@ -140,6 +146,12 @@ class ConvolveByX(LinearOperator):
     The :class:`LinearOperator` `ConvolveByX(x=x)(y)` implements
     `jax.scipy.signal.convolve(x, y)`.
     """
+
+    # Operator declares input_shape as Shape | BlockShape, but this class accepts
+    # only a Shape, as its constructor signature states, so the attribute is
+    # always a Shape here. Re-declaring it narrowly lets the arithmetic methods
+    # below pass it back to the constructor without a cast at each site.
+    input_shape: Shape
 
     def __init__(
         self,
