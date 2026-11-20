@@ -5,9 +5,11 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Integrated access to functionality for training Flax
-model under the Denoising Diffusion Probabilistic Models
-(DDPM) formulation :cite:`ho-2020-ddpm`.
+"""Training of Flax NNX models under the DDPM formulation.
+
+Integrated access to functionality for training a Flax NNX model under the
+Denoising Diffusion Probabilistic Models (DDPM) formulation
+:cite:`ho-2020-ddpm`.
 """
 
 from __future__ import annotations  # for type support python 3.9 or earlier

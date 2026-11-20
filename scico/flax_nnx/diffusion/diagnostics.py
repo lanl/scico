@@ -19,8 +19,7 @@ from scico.flax_nnx.train.diagnostics import create_itstat
 
 
 def stats_obj() -> tuple[IterationStats, Callable]:
-    """Functionality to log and store a specific subset of diffusion
-    models training statistics.
+    """Log and store a specific subset of diffusion model training statistics.
 
     This function specifies some statistics to register while training
     together with their titles and printing format. The statistics

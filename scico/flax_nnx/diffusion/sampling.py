@@ -95,8 +95,7 @@ def sampling_score(
     return_path: bool = False,
     eps: float = 2e-5,
 ) -> tuple[Array, Array, jax.Array] | tuple[Array, jax.Array]:
-    """Function to sample using Gradients of the Data Distribution
-        (score) formulation.
+    """Sample using the gradients of the data distribution (score) formulation.
 
     Args:
         batch_size: Size of sample to generate.
@@ -146,8 +145,7 @@ def sampling_ddpm(
     key: jax.Array,
     return_path: bool = False,
 ) -> tuple[Array, Array, jax.Array] | tuple[Array, jax.Array]:
-    """Function to sample using Denoising Diffusion Probabilistic Models
-    (DDPM) formulation.
+    """Sample using the Denoising Diffusion Probabilistic Models (DDPM) formulation.
 
     Args:
         batch_size: Size of sample to generate.

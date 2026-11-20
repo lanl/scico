@@ -5,9 +5,11 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Integrated access to functionality for training Flax
-   models that use only input data (e.g. autoencoders) that can be
-   transformed from epoch to epoch (e.g. score models).
+"""Training of Flax NNX models with epoch-wise input transformation.
+
+Integrated access to functionality for training Flax NNX models that use
+only input data (e.g. autoencoders) that can be transformed from epoch to
+epoch (e.g. score models).
 
 Assumes sharded batched data and uses data parallel training.
 """

@@ -5,8 +5,7 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Flax NNX implementation of different neural network blocks for
-diffusion generative models.
+"""Flax NNX neural network blocks for diffusion generative models.
 
 The form of these blocks is based on `PyTorch code for diffusion models
 <https://huggingface.co/blog/annotated-diffusion>`_, but with a number of

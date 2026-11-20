@@ -37,13 +37,13 @@ def build_optax_optimizer(config: ConfigDict) -> optax.GradientTransformation:
 
     # Build optimizer
     if config["opt_type"] == "SGD":
-        # Stochastic Gradient Descent optimiser
+        # Stochastic Gradient Descent optimizer
         if "momentum" in config:
             opt_core = partial(optax.sgd, momentum=config["momentum"], nesterov=True)
         else:
             opt_core = optax.sgd
     elif config["opt_type"] == "ADAM":
-        # Adam optimiser
+        # Adam optimizer
         opt_core = optax.adam
     elif config["opt_type"] == "ADAMW":
         # Adam with weight decay regularization
@@ -72,8 +72,7 @@ def build_optax_optimizer(config: ConfigDict) -> optax.GradientTransformation:
 
 
 def create_cnst_lr_schedule(config: ConfigDict) -> optax._src.base.Schedule:
-    """Create learning rate to be a constant specified
-    value.
+    """Create a learning rate schedule with a constant specified value.
 
     Args:
         config: Dictionary of configuration. The value to use corresponds
@@ -152,8 +151,10 @@ def create_reduce_on_plateau_schedule(
     Args:
         config: Dictionary of configuration. The values to use correspond
             to `patience` and `lr_decay_rate`.
-        patience: Number of epochs with no improvement after which learning rate will be reduced.
-        cooldown: Number of epochs to wait before resuming normal operation after the learning rate reduction.
+        patience: Number of epochs with no improvement after which the
+            learning rate will be reduced.
+        cooldown: Number of epochs to wait before resuming normal operation
+            after the learning rate reduction.
         factor: Factor by which to reduce the learning rate.
         rtol: Relative tolerance for measuring the new optimum.
         accumulation_size: Number of iterations to accumulate an average value

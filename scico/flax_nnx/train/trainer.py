@@ -5,8 +5,7 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Class providing integrated access to functionality for training Flax
-   models.
+"""Integrated access to functionality for training Flax NNX models.
 
 Assumes sharded batched data and uses data parallel training.
 """

@@ -87,7 +87,7 @@ class ConfigDict(TypedDict):
     eval_step_fn: NotRequired[Callable]
     #: List of post-processing functions to apply after a train step (if any).
     post_lst: NotRequired[list[Callable]]
-    #: Size of buffer for shuffling data for large trainig sets
+    #: Size of buffer for shuffling data for large training sets
     shuffle_buffer_size: NotRequired[int]
     #: Function to create objects for logging training statistics.
     stats_obj: NotRequired[Any]  # type: ignore

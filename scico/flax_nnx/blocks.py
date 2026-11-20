@@ -283,7 +283,7 @@ class ConvBNUpsampleBlock(nnx.Module):
 
 
 class ConvBNMultiBlock(nnx.Module):
-    """Block constructed from sucessive applications of :class:`ConvBNBlock`."""
+    """Block constructed from successive applications of :class:`ConvBNBlock`."""
 
     def __init__(
         self,
@@ -343,9 +343,9 @@ class ConvBNMultiBlock(nnx.Module):
         self,
         x: Array,
     ) -> Array:
-        """Apply sucessive convolution, normalization and activation blocks.
+        """Apply successive convolution, normalization and activation blocks.
 
-        Apply sucessive blocks, each one composed of convolution
+        Apply successive blocks, each one composed of convolution
         normalization and activation.
 
         Args:

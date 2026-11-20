@@ -38,10 +38,10 @@ from .typed_dict import ConfigDict
 def checkpoint_restore(
     state: nnx.State, workdir: str | Path, ok_no_ckpt: bool = False
 ) -> tuple[nnx.State, int | None]:
-    """Load model and optimiser state.
+    """Load model and optimizer state.
 
     Args:
-        state: Flax train state which includes model and optimiser
+        state: Flax train state which includes model and optimizer
             parameters.
         workdir: Checkpoint file or directory of checkpoints to restore
             from.
@@ -89,13 +89,13 @@ def checkpoint_restore(
 
 
 def checkpoint_save(state: nnx.State, epoch: int, config: ConfigDict, workdir: str | Path) -> None:
-    """Store model, model configuration, and optimiser state.
+    """Store model, model configuration, and optimizer state.
 
     Note that naming is slightly different to distinguish from Flax
     functions.
 
     Args:
-        state: Flax train state which includes model and optimiser
+        state: Flax train state which includes model and optimizer
             parameters.
         epoch: Epoch where the model is being saved.
         config: Python dictionary including model train configuration.
@@ -133,10 +133,10 @@ def checkpoint_save(state: nnx.State, epoch: int, config: ConfigDict, workdir: s
 def checkpoint_restore_with_config(
     state: nnx.State, workdir: str | Path, ok_no_ckpt: bool = False
 ) -> tuple[nnx.State, ConfigDict | None, int | None]:
-    """Load model, optimiser state and trainer configuration.
+    """Load model, optimizer state and trainer configuration.
 
     Args:
-        state: Flax train state which includes model and optimiser
+        state: Flax train state which includes model and optimizer
             parameters.
         workdir: Checkpoint file or directory of checkpoints to restore
             from.
@@ -184,8 +184,7 @@ def checkpoint_restore_with_config(
 
 
 def serialize_metadata(obj: Any) -> Any:
-    """Function to preprocess metadata that is not serializable
-    before saving to file.
+    """Preprocess metadata that is not serializable before saving to file.
 
     Args:
         obj: Object to serialize.
@@ -209,8 +208,7 @@ def serialize_metadata(obj: Any) -> Any:
 
 
 def deserialize_metadata(obj: Any) -> Any:
-    """Function to preprocess metadata to convert it to the
-    original object after reading from file.
+    """Restore metadata to the original object after reading from file.
 
     Args:
         obj: Object to deserialize.

@@ -5,9 +5,11 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Integrated access to functionality for training Flax
-model under of Noise Conditional Score Networks
-(NCSN) :cite:`song-2019-score`.
+"""Training of Flax NNX models under the NCSN formulation.
+
+Integrated access to functionality for training a Flax NNX model under the
+Noise Conditional Score Networks (NCSN) formulation
+:cite:`song-2019-score`.
 """
 
 from __future__ import annotations  # for type support python 3.9 or earlier

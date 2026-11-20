@@ -265,8 +265,7 @@ def MLPAutoEncoder(
     batch_norm: bool = False,
     rngs: nnx.Rngs = nnx.Rngs(0),
 ) -> AutoEncoder:
-    """Function to construct autoencoder network using multi-layer
-    perceptron (MLP), i.e. dense layers.
+    """Construct an autoencoder network from dense (MLP) layers.
 
     Output is reshaped to given output shape via a properly sized layer
     added automatically to the tuple of the decoder widths.
@@ -332,9 +331,9 @@ class ConvEncoder(Encoder):
             channels: Number of channels of signal to encode.
             filters_encoder: List with number of filters per layer in the
                 CNN encoder.
-            flat_latent: Flag to specify if the latent representation should be flatten.
+            flat_latent: Flag to specify if the latent representation should be flattened.
             dim_latent: Latent dimension of encoder (only used if flag for flattening is
-                true and a meanigful value is provided).
+                true and a meaningful value is provided).
             kernel_size: A shape tuple defining the size of the convolution
                 filters.
             strides: A shape tuple defining the size of strides in
@@ -407,7 +406,7 @@ class ConvDecoder(Decoder):
             channels: Number of channels of signal to decode.
             flat_latent: Flag to specify if the latent representation is flat.
             dim_latent: Latent dimension (only used if flag for flattening is
-                true and a meanigful value is provided).
+                true and a meaningful value is provided).
             kernel_size: A shape tuple defining the size of the convolution
                 filters.
             strides: A shape tuple defining the size of strides in
@@ -474,9 +473,9 @@ def ConvAutoEncoder(
                 CNN encoder.
         filters_decoder: List with number of filters per layer in the
                 convolutional decoder.
-        flat_latent: Flag to specify if the latent representation should be flatten.
+        flat_latent: Flag to specify if the latent representation should be flattened.
         dim_latent: Latent dimension of encoder (only used if flag for flattening is
-            true and a meanigful value is provided).
+            true and a meaningful value is provided).
         kernel_size_encoder: A shape tuple defining the size of the convolution
                 filters for encoder.
         strides_encoder: A shape tuple defining the size of strides in

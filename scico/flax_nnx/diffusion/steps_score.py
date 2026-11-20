@@ -5,9 +5,10 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Definition of steps to iterate during training or evaluation of
-diffusion models under score, i.e. gradient of the log of the data
-distribution. This interface uses time in (0, 1]."""
+"""Steps to iterate during training or evaluation of score models.
+
+Applies to diffusion models under score, i.e. the gradient of the log of
+the data distribution. This interface uses time in (0, 1]."""
 
 from __future__ import annotations  # for type support python 3.9 or earlier
 

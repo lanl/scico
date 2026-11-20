@@ -24,8 +24,7 @@ from scico.numpy import Array
 
 
 class MLP(nnx.Module):
-    """Basic definition of a multi layer perceptron (MLP) as a Flax
-    nnx block."""
+    """Basic definition of a multi-layer perceptron (MLP) as a Flax NNX block."""
 
     def __init__(
         self,
@@ -49,7 +48,7 @@ class MLP(nnx.Module):
                 to apply after each layer.
             activate_final: Flag to indicate if the activation function is
                 to be applied after the final layer or not.
-            flatten_first: Flag to indicate if the input signal should be flatten
+            flatten_first: Flag to indicate if the input signal should be flattened
                 before passing through the MLP.
             batch_norm: Flag to indicate if batch norm is to be applied or not.
             rngs: Random generation key.
@@ -117,8 +116,9 @@ class MLP(nnx.Module):
 
 
 class CNN(nnx.Module):
-    """Basic definition of a network with multiple convolutional layers as a Flax
-    nnx block."""
+    """Basic definition of a network with multiple convolutional layers.
+
+    Implemented as a Flax NNX block."""
 
     def __init__(
         self,
@@ -148,7 +148,8 @@ class CNN(nnx.Module):
                 as a flattened array (preserving batch dimension). If not,
                 the output is returned as it is, or, if requested, mapped back to the
                 number of channels of the input signal.
-            conv_final: Flag to indicate if the output should be mapped back to the number of channels of the input signal.
+            conv_final: Flag to indicate if the output should be mapped back
+                to the number of channels of the input signal.
             rngs: Random generation key.
         """
         super().__init__()
@@ -197,7 +198,7 @@ class CNN(nnx.Module):
 
         Returns:
             The input after being transformed by multiple convolutional
-            layers. It has been flatten or has the same number of
+            layers. It has been flattened or has the same number of
             channels as the given input.
         """
         x = self.layers(x)
@@ -211,8 +212,9 @@ class CNN(nnx.Module):
 
 
 class CTpNN(nnx.Module):
-    """Basic definition of a network with multiple convolutional transpose layers as a
-    Flax nnx block."""
+    """Basic definition of a network with multiple convolutional transpose layers.
+
+    Implemented as a Flax NNX block."""
 
     def __init__(
         self,

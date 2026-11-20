@@ -130,7 +130,7 @@ class DnCNNNet(nnx.Module):
 class ResNet(nnx.Module):
     """Flax nnx implementation of convolutional network with residual connection.
 
-    Net constructed from sucessive applications of convolution plus batch
+    Net constructed from successive applications of convolution plus batch
     normalization blocks and ending with residual connection (i.e. adding
     the input to the output of the block)."""
 
@@ -213,7 +213,7 @@ class ResNet(nnx.Module):
 class ConvBNNet(nnx.Module):
     """Convolution and batch normalization net.
 
-    Net constructed from sucessive applications of convolution plus batch
+    Net constructed from successive applications of convolution plus batch
     normalization and activation blocks. No residual connection."""
 
     def __init__(

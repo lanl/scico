@@ -148,8 +148,7 @@ class Conditioner(Encoder):
 
 
 class VAE(nnx.Module):
-    """Basic definition of a variational autoencoder (VAE) network as a
-    Flax NNX model."""
+    """Basic definition of a variational autoencoder (VAE) Flax NNX model."""
 
     def __init__(
         self,
@@ -263,8 +262,7 @@ def MLPVarAutoEncoder(
     widths_cond_encoder: list[int] = [],
     rngs: nnx.Rngs = nnx.Rngs(0),
 ) -> VAE:
-    """Function to construct variational autoencoder network using multi
-    layer perceptron (MLP), i.e. dense layers.
+    """Construct a variational autoencoder (VAE) network from dense (MLP) layers.
 
     Args:
         dim_in: Dimension of input signal.
@@ -400,9 +398,9 @@ def ConvVarAutoEncoder(
         activation_fn: Flax function defining the activation operation
             to apply after each layer (except output layer) in encoder.
         batch_norm: Flag to indicate if batch norm is to be applied or not.
-        flat_latent: Flag to specify if the latent representation should be flatten.
+        flat_latent: Flag to specify if the latent representation should be flattened.
         dim_latent: Latent dimension of encoder (only used if flag for flattening is
-            true and a meanigful value is provided).
+            true and a meaningful value is provided).
         conditional: Flag to specify if decoding will be
             conditioned on a given property (e.g. class membership).
         mode_cond: Mode of model for conditional signal. It can be conv, requiring

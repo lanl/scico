@@ -5,9 +5,11 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Integrated access to functionality for training Flax NNX
-   models that require random generation during forward
-   passes (e.g. variational autoencoders).
+"""Training of Flax NNX models that require random generation.
+
+Integrated access to functionality for training Flax NNX models that
+require random generation during forward passes (e.g. variational
+autoencoders).
 
 Assumes sharded batched data and uses data parallel training.
 """
@@ -44,7 +46,10 @@ class ConfigDictAE(ConfigDict):
 
 
 class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
-    """Class encapsulating Flax NNX variational autoencoder (VAE) training configuration and execution."""
+    """Flax NNX variational autoencoder (VAE) training.
+
+    Encapsulates the training configuration and its execution.
+    """
 
     def __init__(
         self,
@@ -173,7 +178,7 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
     def one_train_epoch_xy(
         self, graphdef: nnx.GraphDef, state: nnx.State, key: jax.Array
     ) -> tuple[Array, nnx.State, jax.Array]:
-        """Function that defines one epoch of training for a VAE that uses input and conditioning data.
+        """Define one epoch of training for a VAE using input and conditioning data.
 
         This function iterates over the whole training set using randomly shuffled batches.
 
@@ -231,7 +236,7 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
     def one_eval_epoch_xy(
         self, metrics: nnx.MultiMetric, key: jax.Array
     ) -> tuple[Array, nnx.MultiMetric, jax.Array]:
-        """Function that defines one epoch of evaluation for a VAE that uses input and conditioning data.
+        """Define one epoch of evaluation for a VAE using input and conditioning data.
 
         This function iterates over the whole testing set using sequential batches.
 

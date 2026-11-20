@@ -5,8 +5,7 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Utilities for computing and displaying performance metrics during training
-of autoencoder models."""
+"""Utilities for computing and displaying autoencoder training metrics."""
 
 from __future__ import annotations  # for typing support for python 3.9 or earlier
 
@@ -17,8 +16,7 @@ from scico.flax_nnx.train.diagnostics import create_itstat
 
 
 def stats_obj() -> tuple[IterationStats, Callable]:
-    """Functionality to log and store a specific subset of autoencoders
-    training statistics.
+    """Log and store a specific subset of autoencoder training statistics.
 
     This function specifies some statistics to register while training
     together with their titles and printing format. The statistics

@@ -5,8 +5,7 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Definition of steps to iterate during training or evaluation of
-autoencoder models."""
+"""Steps to iterate during training or evaluation of autoencoder models."""
 
 from __future__ import annotations  # for typing support for python 3.9 or earlier
 
