@@ -1,4 +1,4 @@
-# Run isort and black on pushes to main and any pull requests
+# Run isort, black, pylint and flake8 on pushes to main and any pull requests
 
 name: lint
 
@@ -26,3 +26,7 @@ jobs:
         run: |
           pip install pylint
           pylint --disable=all --enable=missing-docstring,broad-exception-raised scico
+      - name: Flake8 pyflakes checks
+        run: |
+          pip install flake8
+          flake8 --select=F --exclude=scico/test scico
