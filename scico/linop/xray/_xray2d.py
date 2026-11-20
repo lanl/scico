@@ -8,7 +8,7 @@
 """2D X-ray transform class."""
 
 from functools import partial
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple, Union, cast
 from warnings import warn
 
 import numpy as np
@@ -53,7 +53,7 @@ class XRayTransform2D(LinearOperator):
         input_shape: Shape,
         angles: snp.Array,
         x0: Optional[snp.Array] = None,
-        dx: Optional[snp.Array] = None,
+        dx: Optional[Union[float, snp.Array]] = None,
         y0: Optional[float] = None,
         det_count: Optional[int] = None,
         input_device: xc.Device | Sharding | None = None,
@@ -86,14 +86,27 @@ class XRayTransform2D(LinearOperator):
         self.angles = angles
 
         self.nx = tuple(input_shape)
+        # dx may be given as a scalar, applying to both axes, or as a pair of
+        # values, and defaults to a pair. The normalised pair is bound to a
+        # separate name rather than back to the parameter, so that the declared
+        # parameter type remains accurate. is_scalar_equiv is false for a tuple,
+        # so the branches below are those of the two sequential tests they
+        # replace. The element type is left open because a 0D array argument is
+        # carried through as it is given, rather than converted to a float.
+        dxn: Union[Tuple[Any, ...], snp.Array]
         if dx is None:
-            dx = 2 * (np.sqrt(2) / 2,)
-        if is_scalar_equiv(dx):
-            dx = 2 * (dx,)
-        self.dx = dx
+            dxn = 2 * (np.sqrt(2) / 2,)
+        elif is_scalar_equiv(dx):
+            dxn = 2 * (dx,)
+        else:
+            # Neither None nor scalar equivalent, so a pair of values. The cast is
+            # needed because is_scalar_equiv is an ordinary predicate rather than a
+            # type guard, so mypy cannot narrow the float out of dx here.
+            dxn = cast(snp.Array, dx)
+        self.dx = dxn
 
         # check projected pixel width assumption
-        Pdx = np.stack((dx[0] * jnp.cos(angles), dx[1] * jnp.sin(angles)))
+        Pdx = np.stack((dxn[0] * jnp.cos(angles), dxn[1] * jnp.sin(angles)))
         Pdiag1 = np.abs(Pdx[0] + Pdx[1])
         Pdiag2 = np.abs(Pdx[0] - Pdx[1])
         max_width: float = np.max(np.maximum(Pdiag1, Pdiag2))
@@ -104,9 +117,12 @@ class XRayTransform2D(LinearOperator):
                 "which will reduce projector accuracy."
             )
 
+        x0n: Union[snp.Array, np.ndarray]
         if x0 is None:
-            x0 = -(np.array(self.nx) * self.dx) / 2
-        self.x0 = x0
+            x0n = -(np.array(self.nx) * self.dx) / 2
+        else:
+            x0n = x0
+        self.x0 = x0n
 
         if det_count is None:
             det_count = int(np.ceil(np.linalg.norm(input_shape)))
@@ -192,7 +208,7 @@ class XRayTransform2D(LinearOperator):
             :, (N - 1) // 2 : -(N - 1) // 2
         ].real.astype(jnp.float32)
 
-        x = (jnp.pi * self.dx[0] * self.dx[1] / y.shape[0]) * self.fbp_mask * self.back_project(hy)  # type: ignore
+        x = (jnp.pi * self.dx[0] * self.dx[1] / y.shape[0]) * self.fbp_mask * self.back_project(hy)
         return x
 
     @staticmethod
@@ -336,10 +352,12 @@ class XRayTransform2D(LinearOperator):
         # detector bin inds
         inds = jnp.floor(Px).astype(int)
 
-        # weights
-        Pdx = jnp.array(u) * jnp.array(dx)
-        diag1 = jnp.abs(Pdx[0] + Pdx[1])
-        diag2 = jnp.abs(Pdx[0] - Pdx[1])
+        # weights. Pdxa is the array form of the Pdx list above, holding the same
+        # values; it is given its own name rather than rebinding Pdx, which holds a
+        # list, to an array.
+        Pdxa = jnp.array(u) * jnp.array(dx)
+        diag1 = jnp.abs(Pdxa[0] + Pdxa[1])
+        diag2 = jnp.abs(Pdxa[0] - Pdxa[1])
         w = jnp.max(jnp.array([diag1, diag2]))
         f = jnp.min(jnp.array([diag1, diag2]))
 
