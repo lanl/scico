@@ -57,6 +57,24 @@ class Functional:
             return FunctionalSum(self, other)
         return NotImplemented
 
+    # The Union[Array, BlockArray] annotated on the array arguments of this class
+    # and its subclasses is the disjunction over all functionals, not a claim that
+    # any one functional accepts both: a given functional is defined on one or the
+    # other. Subclasses that are defined on only one therefore narrow the argument
+    # type, which is a Liskov violation that mypy reports as [override]. Those
+    # reports are suppressed individually, with a comment at each site recording
+    # what the class is defined on.
+    #
+    # Expressing this properly needs Functional to be generic in its array type,
+    # with prox typed (ArrayT) -> ArrayT. Because the parameter then appears in both
+    # argument and return position it must be invariant, so Functional[Array] is not
+    # assignable where Functional[Union[Array, BlockArray]] is expected, and the
+    # parameter has to be threaded through Loss and every class that accepts a
+    # functional (ADMM, PGM, PDHG, the ProximalADMM variants, ProximalAverage,
+    # TVNorm). Those would have to accept Functional[Any] regardless, because an
+    # ADMM g_list is routinely heterogeneous in array type: each g_i is applied to
+    # C_i(x), and the C_i need not agree. The type parameter would therefore be
+    # discarded at the public API boundary, which is where it would have to pay off.
     def __call__(self, x: Union[Array, BlockArray]) -> float:
         r"""Evaluate this functional at point :math:`\mb{x}`.
 
@@ -233,7 +251,10 @@ class SeparableFunctional(Functional):
             + "\n"
         )
 
-    def __call__(self, x: BlockArray) -> float:
+    # A SeparableFunctional is defined only on a BlockArray, as the class docstring
+    # states; see the comment on Functional.__call__ for why the narrowing is
+    # suppressed rather than expressed in the type system.
+    def __call__(self, x: BlockArray) -> float:  # type: ignore[override]
         if len(x.shape) == len(self.functional_list):
             return snp.sum(snp.array([fi(xi) for fi, xi in zip(self.functional_list, x)]))
         raise ValueError(
@@ -241,7 +262,9 @@ class SeparableFunctional(Functional):
             f"{len(self.functional_list)}, do not match."
         )
 
-    def prox(self, v: BlockArray, lam: float = 1.0, **kwargs) -> BlockArray:
+    def prox(  # type: ignore[override]  # BlockArray only; see Functional.__call__
+        self, v: BlockArray, lam: float = 1.0, **kwargs
+    ) -> BlockArray:
         r"""Evaluate proximal operator of the separable functional.
 
         Evaluate proximal operator of the separable functional (see
@@ -312,7 +335,7 @@ class ComposedFunctional(Functional):
             + f"""  composition of: {self.functional.__str__()} and {self.linop.__str__()}\n"""
         )
 
-    def __call__(self, x: BlockArray) -> float:
+    def __call__(self, x: Union[Array, BlockArray]) -> float:
         return self.functional(self.linop(x))
 
     def prox(

@@ -365,7 +365,9 @@ class MatrixSubproblemSolver(LinearSubproblemSolver):
         )
         self.solver = MatrixATADSolver(A, Csum, W, **self.solve_kwargs)
 
-    def solve(self, x0: Array) -> Array:
+    # This solver is backed by MatrixATADSolver, which handles arrays only, so it
+    # narrows the Union[Array, BlockArray] declared by LinearSubproblemSolver.solve.
+    def solve(self, x0: Array) -> Array:  # type: ignore[override]
         """Solve the ADMM step.
 
         Args:

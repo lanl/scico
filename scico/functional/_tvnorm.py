@@ -101,7 +101,9 @@ class TVNorm(Functional):
         )
         return G
 
-    def __call__(self, x: Array) -> float:
+    # The TV norm is defined only on an Array; see the comment on
+    # Functional.__call__ for why the narrowing is suppressed.
+    def __call__(self, x: Array) -> float:  # type: ignore[override]
         """Compute the TV norm of an array.
 
         Args:
@@ -205,7 +207,9 @@ class TVNorm(Functional):
         # part of array (when circular==False).
         return (1.0 / K) * CWT(WPv)
 
-    def prox(self, v: Array, lam: float = 1.0, **kwargs) -> Array:
+    def prox(  # type: ignore[override]  # Array only; see Functional.__call__
+        self, v: Array, lam: float = 1.0, **kwargs
+    ) -> Array:
         r"""Approximate scaled proximal operator of the TV norm.
 
         Approximation of the scaled proximal operator of the TV norm,

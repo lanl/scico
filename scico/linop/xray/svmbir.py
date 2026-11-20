@@ -388,13 +388,18 @@ class SVMBIRExtendedLoss(Loss):
         else:
             raise TypeError(f"Argument 'W' must be None or a linop.Diagonal, got {type(W)}.")
 
-    def __call__(self, x: snp.Array) -> float:
+    # The svmbir projectors operate on arrays, not BlockArrays, so this loss is
+    # defined only on an Array; see the comment on Functional.__call__ for why the
+    # narrowing is suppressed. It is reported against both Loss and Functional.
+    def __call__(self, x: snp.Array) -> float:  # type: ignore[override]
         if self.positivity and snp.sum(x < 0) > 0:
             return snp.inf
         else:
             return self.scale * (self.W.diagonal * snp.abs(self.y - self.A(x)) ** 2).sum()
 
-    def prox(self, v: snp.Array, lam: float = 1, **kwargs) -> snp.Array:
+    def prox(  # type: ignore[override]  # Array only; see Functional.__call__
+        self, v: snp.Array, lam: float = 1, **kwargs
+    ) -> snp.Array:
         v = v.reshape(self.A.svmbir_input_shape)
         y = self.y.reshape(self.A.svmbir_output_shape)
         weights = self.W.diagonal.reshape(self.A.svmbir_output_shape)
