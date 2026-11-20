@@ -464,8 +464,11 @@ def _in_ipython():
         stacklevel=2,
     )
     try:
-        # See https://stackoverflow.com/questions/15411967
-        shell = get_ipython().__class__.__name__
+        # See https://stackoverflow.com/questions/15411967. IPython injects
+        # get_ipython into builtins, so the name exists only when running under
+        # IPython, and the except clause below is how its absence is detected.
+        # pyflakes recognises that idiom; mypy has no special case for it.
+        shell = get_ipython().__class__.__name__  # type: ignore[name-defined]
         return bool(shell == "TerminalInteractiveShell")
     except NameError:
         return False
@@ -485,8 +488,9 @@ def _in_notebook():
         stacklevel=2,
     )
     try:
-        # See https://stackoverflow.com/questions/15411967
-        shell = get_ipython().__class__.__name__
+        # As in _in_ipython above, get_ipython is a builtin injected by IPython.
+        # See https://stackoverflow.com/questions/15411967.
+        shell = get_ipython().__class__.__name__  # type: ignore[name-defined]
         return bool(shell == "ZMQInteractiveShell")
     except NameError:
         return False
