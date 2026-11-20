@@ -17,7 +17,7 @@ functions unique to SCICO in :mod:`.util`.
 
 import sys
 from functools import partial
-from typing import Union
+from typing import TYPE_CHECKING, Any, Union
 
 import numpy as np
 
@@ -84,3 +84,12 @@ _wrappers.wrap_recursively(
 
 # clean up
 del np, jnp, _wrappers
+
+
+if TYPE_CHECKING:
+    # Most of the public names in this module are injected into its namespace
+    # at import time by the _wrappers calls above, which static analysis cannot
+    # follow. Without this declaration every reference to one of them is
+    # reported as a missing module attribute. Defined only for type checkers, so
+    # attribute errors at run time are unaffected.
+    def __getattr__(name: str) -> Any: ...
