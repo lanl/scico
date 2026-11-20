@@ -15,11 +15,15 @@ import optax
 from .typed_dict import ConfigDict
 
 
-def build_optax_optimizer(config: ConfigDict):
+def build_optax_optimizer(config: ConfigDict) -> optax.GradientTransformation:
     """Build optax optimizer to include in NNX optimizer.
 
     Args:
-        opt_type: Type of optimizer to use. It can be: SGD, ADAM, ADAMW.
+        config: Dictionary of configuration. The value to use for the
+            optimizer type corresponds to the `opt_type` keyword, which
+            may be SGD, ADAM or ADAMW. The optional keywords
+            `lr_schedule`, `momentum` and `opt_grad_max_norm` are also
+            used if present.
 
     Returns:
         Optax optimizer object.
@@ -33,13 +37,13 @@ def build_optax_optimizer(config: ConfigDict):
 
     # Build optimizer
     if config["opt_type"] == "SGD":
-        # Stochastic Gradient Descent optimiser
+        # Stochastic Gradient Descent optimizer
         if "momentum" in config:
             opt_core = partial(optax.sgd, momentum=config["momentum"], nesterov=True)
         else:
             opt_core = optax.sgd
     elif config["opt_type"] == "ADAM":
-        # Adam optimiser
+        # Adam optimizer
         opt_core = optax.adam
     elif config["opt_type"] == "ADAMW":
         # Adam with weight decay regularization
@@ -68,8 +72,7 @@ def build_optax_optimizer(config: ConfigDict):
 
 
 def create_cnst_lr_schedule(config: ConfigDict) -> optax._src.base.Schedule:
-    """Create learning rate to be a constant specified
-    value.
+    """Create a learning rate schedule with a constant specified value.
 
     Args:
         config: Dictionary of configuration. The value to use corresponds
@@ -141,31 +144,37 @@ def create_reduce_on_plateau_schedule(
     cooldown: int = 5,
     factor: float = 0.5,
     rtol: float = 1e-4,
-    accumulation_size=5,
-):
+    accumulation_size: int = 5,
+) -> optax.GradientTransformation:
     """Create scheduler to reduce learning rate if loss does not improve.
 
     Args:
         config: Dictionary of configuration. The values to use correspond
             to `patience` and `lr_decay_rate`.
-        patience: Number of epochs with no improvement after which learning rate will be reduced.
-        cooldown: Number of epochs to wait before resuming normal operation after the learning rate reduction.
+        patience: Number of epochs with no improvement after which the
+            learning rate will be reduced.
+        cooldown: Number of epochs to wait before resuming normal operation
+            after the learning rate reduction.
         factor: Factor by which to reduce the learning rate.
         rtol: Relative tolerance for measuring the new optimum.
         accumulation_size: Number of iterations to accumulate an average value
 
     Returns:
-        schedule: A function that maps step counts to values.
+        An optax gradient transformation that scales updates in response
+        to the loss, not a learning rate schedule.
+
+    Note:
+        Despite its name, this function returns a gradient transformation
+        rather than a schedule, so it cannot be used as the `lr_schedule`
+        entry of the configuration dictionary read by
+        :func:`build_optax_optimizer`, which expects a callable mapping a
+        step count to a learning rate.
     """
     if "patience" in config:
         patience = config["patience"]
-    else:
-        patience = patience
 
     if "lr_decay_rate" in config:
         factor = config["lr_decay_rate"]
-    else:
-        factor = factor
 
     schedule = optax.contrib.reduce_on_plateau(
         patience=patience,

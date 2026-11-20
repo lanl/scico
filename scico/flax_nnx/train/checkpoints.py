@@ -10,6 +10,7 @@
 import importlib
 import json
 from pathlib import Path
+from typing import Any
 
 import jax
 
@@ -29,14 +30,18 @@ if have_orbax:
 
     logging.getLogger("absl").addFilter(logging.Filter("could not be identified as a temporary"))
 
+from flax import nnx
+
 from .typed_dict import ConfigDict
 
 
-def checkpoint_restore(state, workdir: str | Path, ok_no_ckpt: bool = False):
-    """Load model and optimiser state.
+def checkpoint_restore(
+    state: nnx.State, workdir: str | Path, ok_no_ckpt: bool = False
+) -> tuple[nnx.State, int | None]:
+    """Load model and optimizer state.
 
     Args:
-        state: Flax train state which includes model and optimiser
+        state: Flax train state which includes model and optimizer
             parameters.
         workdir: Checkpoint file or directory of checkpoints to restore
             from.
@@ -56,6 +61,7 @@ def checkpoint_restore(state, workdir: str | Path, ok_no_ckpt: bool = False):
 
     Raises:
         FileNotFoundError: If a checkpoint is expected and is not found.
+        RuntimeError: If package `orbax.checkpoint` is not installed.
     """
     if not have_orbax:
         raise RuntimeError("Package orbax.checkpoint is required for use of this function.")
@@ -83,18 +89,21 @@ def checkpoint_restore(state, workdir: str | Path, ok_no_ckpt: bool = False):
     return state, step
 
 
-def checkpoint_save(state, epoch: int, config: ConfigDict, workdir: str | Path):
-    """Store model, model configuration, and optimiser state.
+def checkpoint_save(state: nnx.State, epoch: int, config: ConfigDict, workdir: str | Path) -> None:
+    """Store model, model configuration, and optimizer state.
 
     Note that naming is slightly different to distinguish from Flax
     functions.
 
     Args:
-        state: Flax train state which includes model and optimiser
+        state: Flax train state which includes model and optimizer
             parameters.
         epoch: Epoch where the model is being saved.
         config: Python dictionary including model train configuration.
         workdir: Path in which to store checkpoint files.
+
+    Raises:
+        RuntimeError: If package `orbax.checkpoint` is not installed.
     """
     if not have_orbax:
         raise RuntimeError("Package orbax.checkpoint is required for use of this function.")
@@ -125,11 +134,13 @@ def checkpoint_save(state, epoch: int, config: ConfigDict, workdir: str | Path):
         mngr.close()
 
 
-def checkpoint_restore_with_config(state, workdir: str | Path, ok_no_ckpt: bool = False):
-    """Load model, optimiser state and trainer configuration.
+def checkpoint_restore_with_config(
+    state: nnx.State, workdir: str | Path, ok_no_ckpt: bool = False
+) -> tuple[nnx.State, ConfigDict | None, int | None]:
+    """Load model, optimizer state and trainer configuration.
 
     Args:
-        state: Flax train state which includes model and optimiser
+        state: Flax train state which includes model and optimizer
             parameters.
         workdir: Checkpoint file or directory of checkpoints to restore
             from.
@@ -144,6 +155,7 @@ def checkpoint_restore_with_config(state, workdir: str | Path, ok_no_ckpt: bool 
 
     Raises:
         FileNotFoundError: If a checkpoint is expected and is not found.
+        RuntimeError: If package `orbax.checkpoint` is not installed.
     """
     if not have_orbax:
         raise RuntimeError("Package orbax.checkpoint is required for use of this function.")
@@ -176,9 +188,15 @@ def checkpoint_restore_with_config(state, workdir: str | Path, ok_no_ckpt: bool 
     return state, config, step
 
 
-def serialize_metadata(obj):
-    """Function to preprocess metadata that is not serializable
-    before saving to file.
+def serialize_metadata(obj: Any) -> Any:
+    """Preprocess metadata that is not serializable before saving to file.
+
+    Dicts, lists and tuples are processed recursively. A callable is
+    replaced by a dict of the form ``{"__callable__": path}``, where
+    `path` is its fully qualified import path, so that
+    :func:`deserialize_metadata` can reconstruct it. Any remaining value
+    that :func:`json.dumps` cannot represent is replaced by its
+    :func:`str`, which is lossy and not reversible.
 
     Args:
         obj: Object to serialize.
@@ -201,9 +219,17 @@ def serialize_metadata(obj):
             return str(obj)
 
 
-def deserialize_metadata(obj):
-    """Function to preprocess metadata to convert it to the
-    original object after reading from file.
+def deserialize_metadata(obj: Any) -> Any:
+    """Restore metadata to the original object after reading from file.
+
+    Inverts :func:`serialize_metadata`, resolving each
+    ``{"__callable__": path}`` entry by importing `path`.
+
+    .. warning::
+       Resolving a callable imports the module named in the checkpoint
+       file. Only load checkpoints from a trusted source: loading one
+       that has been tampered with will import an arbitrary module, and
+       hence execute arbitrary code at import time.
 
     Args:
         obj: Object to deserialize.

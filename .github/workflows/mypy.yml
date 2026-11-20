@@ -24,6 +24,22 @@ jobs:
       - name: Install dependencies
         run: |
           pip install mypy
+          # scico's own dependencies, without which the scico.flax_nnx check
+          # below cannot resolve annotations and silently passes regardless
+          pip install -r requirements.txt
       - name: Run mypy
         run: |
           mypy --follow-imports=skip --ignore-missing-imports  --exclude "(numpy|test)" scico/ scico/numpy/util.py
+      # Check scico.flax_nnx with imports followed, so that annotations resolve
+      # to real types rather than being erased to Any by --follow-imports=skip.
+      # "silent" rather than "normal" analyses the imported modules but does not
+      # report errors in them, which keeps this step scoped to scico.flax_nnx
+      # while the rest of the package still has pre-existing errors.
+      # This submodule is fully annotated, so it is also checked strictly:
+      # --disallow-untyped-defs keeps it that way, and --check-untyped-defs
+      # ensures that any function that does slip through unannotated still has
+      # its body checked rather than silently skipped.
+      - name: Run mypy on scico.flax_nnx with imports followed
+        run: |
+          mypy --follow-imports=silent --ignore-missing-imports \
+            --disallow-untyped-defs --check-untyped-defs scico/flax_nnx/

@@ -12,13 +12,13 @@ import warnings
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
 from functools import partial
-from typing import Callable, Tuple
+from typing import Any, Callable, Tuple
 
 import jax.numpy as jnp
-from jax.typing import ArrayLike
 
 from flax import nnx
 from flax.core import Scope  # noqa
+from scico.numpy import Array
 
 # The import of Scope above is required to silence "cannot resolve
 # forward reference" warnings when building sphinx api docs.
@@ -31,11 +31,11 @@ class ConvBNBlock(nnx.Module):
         self,
         channels_in: int,
         num_filters: int,
-        act: Callable[..., ArrayLike],
+        act: Callable[..., Array],
         kernel_size: Tuple[int, int] = (3, 3),
         strides: Tuple[int, int] = (1, 1),
         kernel_init: Callable = nnx.initializers.kaiming_normal,
-        dtype=jnp.float32,
+        dtype: Any = jnp.float32,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
         """Initialize convolution, batch normalization and activation block.
@@ -71,8 +71,8 @@ class ConvBNBlock(nnx.Module):
 
     def __call__(
         self,
-        inputs: ArrayLike,
-    ) -> ArrayLike:
+        inputs: Array,
+    ) -> Array:
         """Apply convolution followed by normalization and activation.
 
         Args:
@@ -92,11 +92,11 @@ class ConvBlock(nnx.Module):
         self,
         channels_in: int,
         num_filters: int,
-        act: Callable[..., ArrayLike],
+        act: Callable[..., Array],
         kernel_size: Tuple[int, int] = (3, 3),
         strides: Tuple[int, int] = (1, 1),
         kernel_init: Callable = nnx.initializers.kaiming_normal,
-        dtype=jnp.float32,
+        dtype: Any = jnp.float32,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
         """Initialize convolution and activation block.
@@ -132,8 +132,8 @@ class ConvBlock(nnx.Module):
 
     def __call__(
         self,
-        inputs: ArrayLike,
-    ) -> ArrayLike:
+        inputs: Array,
+    ) -> Array:
         """Apply convolution followed by activation.
 
         Args:
@@ -153,13 +153,13 @@ class ConvBNPoolBlock(nnx.Module):
         self,
         channels_in: int,
         num_filters: int,
-        act: Callable[..., ArrayLike],
-        pool: Callable[..., ArrayLike],
+        act: Callable[..., Array],
+        pool: Callable[..., Array],
         kernel_size: Tuple[int, int] = (3, 3),
         strides: Tuple[int, int] = (1, 1),
         window_shape: Tuple[int, int] = (1, 1),
         kernel_init: Callable = nnx.initializers.kaiming_normal,
-        dtype=jnp.float32,
+        dtype: Any = jnp.float32,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
         """Initialize convolution, batch normalization and pooling block.
@@ -201,8 +201,8 @@ class ConvBNPoolBlock(nnx.Module):
 
     def __call__(
         self,
-        inputs: ArrayLike,
-    ) -> ArrayLike:
+        inputs: Array,
+    ) -> Array:
         """Apply convolution followed by normalization, activation and pooling.
 
         Args:
@@ -223,12 +223,12 @@ class ConvBNUpsampleBlock(nnx.Module):
         self,
         channels_in: int,
         num_filters: int,
-        act: Callable[..., ArrayLike],
-        upfn: Callable[..., ArrayLike],
+        act: Callable[..., Array],
+        upfn: Callable[..., Array],
         kernel_size: Tuple[int, int] = (3, 3),
         strides: Tuple[int, int] = (1, 1),
         kernel_init: Callable = nnx.initializers.kaiming_normal,
-        dtype=jnp.float32,
+        dtype: Any = jnp.float32,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
         """Initialize convolution, batch normalization and upsample block.
@@ -267,8 +267,8 @@ class ConvBNUpsampleBlock(nnx.Module):
 
     def __call__(
         self,
-        inputs: ArrayLike,
-    ) -> ArrayLike:
+        inputs: Array,
+    ) -> Array:
         """Apply convolution followed by normalization, activation and upsampling.
 
         Args:
@@ -283,18 +283,18 @@ class ConvBNUpsampleBlock(nnx.Module):
 
 
 class ConvBNMultiBlock(nnx.Module):
-    """Block constructed from sucessive applications of :class:`ConvBNBlock`."""
+    """Block constructed from successive applications of :class:`ConvBNBlock`."""
 
     def __init__(
         self,
         channels_in: int,
         num_blocks: int,
         num_filters: int,
-        act: Callable[..., ArrayLike],
+        act: Callable[..., Array],
         kernel_size: Tuple[int, int] = (3, 3),
         strides: Tuple[int, int] = (1, 1),
         kernel_init: Callable = nnx.initializers.kaiming_normal,
-        dtype=jnp.float32,
+        dtype: Any = jnp.float32,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
         """Initialize convolution, batch normalization and activation multi-block.
@@ -341,11 +341,11 @@ class ConvBNMultiBlock(nnx.Module):
 
     def __call__(
         self,
-        x: ArrayLike,
-    ) -> ArrayLike:
-        """Apply sucessive convolution, normalization and activation blocks.
+        x: Array,
+    ) -> Array:
+        """Apply successive convolution, normalization and activation blocks.
 
-        Apply sucessive blocks, each one composed of convolution
+        Apply successive blocks, each one composed of convolution
         normalization and activation.
 
         Args:
@@ -357,7 +357,7 @@ class ConvBNMultiBlock(nnx.Module):
         return self.blocks(x)
 
 
-def upscale_nn(x: ArrayLike, scale: int = 2) -> ArrayLike:
+def upscale_nn(x: Array, scale: int = 2) -> Array:
     """Nearest neighbor upscale for image batches of shape (N, H, W, C).
 
     Args:

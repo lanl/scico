@@ -8,14 +8,13 @@
 """Utilities for loading and saving Flax models under NNX interface."""
 
 import pickle
-from collections.abc import Callable
 from io import BufferedReader, BufferedWriter
 
 from flax import nnx
 from flax.serialization import from_state_dict, to_state_dict
 
 
-def save_model(model: Callable, file: str | BufferedWriter):
+def save_model(model: nnx.Module, file: str | BufferedWriter) -> None:
     """Save Flax model.
 
     Save a Flax NNX neural network model.
@@ -38,17 +37,20 @@ def save_model(model: Callable, file: str | BufferedWriter):
         pickle.dump(pure_dict, file)
 
 
-def load_model(model: Callable, file: str | BufferedReader) -> Callable:
+def load_model(model: nnx.Module, file: str | BufferedReader) -> nnx.Module:
     """Load Flax model.
 
-    Load a Flax NNX neural network model.
+    Load a Flax NNX neural network model. The state read from `file` is
+    applied to `model` in place, so the passed model is modified as well
+    as being returned.
 
     Args:
-        model: Flax model to load.
+        model: Flax model into which to load the saved state. Used as the
+            target structure, and updated in place.
         file: Filename or file stream object.
 
     Returns:
-        Model with restored data.
+        The same `model` object, with restored data.
     """
     # Use model instance to serve as the target structure
     state_target = nnx.state(model)

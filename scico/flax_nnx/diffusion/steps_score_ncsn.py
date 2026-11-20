@@ -5,21 +5,25 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Definition of steps to iterate during training or evaluation of
-Noise Conditional Score Networks (NCSN) :cite:`song-2019-score`."""
+"""Steps to iterate during training or evaluation of NCSN models.
+
+Applies to Noise Conditional Score Networks (NCSN)
+:cite:`song-2019-score`."""
+
 from __future__ import annotations  # for type support python 3.9 or earlier
 
 from collections.abc import Callable
 from functools import partial
+from typing import Any
 
 import jax
 import jax.numpy as jnp
-from jax.typing import ArrayLike
 
 from flax import nnx
+from scico.numpy import Array
 
 
-def set_sigma_schedule(sigma_min: float, sigma_max: float, max_sigma_steps: int) -> ArrayLike:
+def set_sigma_schedule(sigma_min: float, sigma_max: float, max_sigma_steps: int) -> Array:
     """Computation of noise schedule for NCSN.
 
     Args:
@@ -33,16 +37,21 @@ def set_sigma_schedule(sigma_min: float, sigma_max: float, max_sigma_steps: int)
     return jnp.geomspace(sigma_max, sigma_min, max_sigma_steps)
 
 
-def _step_x(batch: ArrayLike, key: jax.Array, **kwargs) -> tuple[ArrayLike, ArrayLike, ArrayLike]:
-    """x computation for diffusion step in NCSN.
+def _step_x(batch: Array, key: jax.Array, **kwargs: Any) -> tuple[Array, Array, Array]:
+    r"""x computation for diffusion step in NCSN.
 
     Args:
         batch: Array of a batch of original data.
         key: Key for random generation.
-        kwargs: Keyword arguments. Relevant here: the processed :math:`\sigma_i`.
+        kwargs: Keyword arguments. Must include `sigma_schedule`, the
+            processed :math:`\sigma_i`; the trainer binds it via
+            :func:`functools.partial`.
 
     Returns:
         Noise generated, noise std and noisy data.
+
+    Raises:
+        KeyError: If `sigma_schedule` is not in `kwargs`.
     """
     sigma_schedule = kwargs.pop("sigma_schedule")
     key, subkey1, subkey2 = jax.random.split(key, 3)
@@ -58,20 +67,32 @@ def _step_x(batch: ArrayLike, key: jax.Array, **kwargs) -> tuple[ArrayLike, Arra
 
 
 def _step_loss(
-    criterion: Callable, noise: ArrayLike, sigma: ArrayLike, output: ArrayLike, **kwargs
-) -> ArrayLike:
-    """Default loss computation for diffusion step."""
+    criterion: Callable, noise: Array, sigma: Array, output: Array, **kwargs: Any
+) -> Array:
+    """Loss computation for diffusion step in NCSN formulation.
+
+    Args:
+        criterion: Criterion to use for training.
+        noise: Noise added to the batch.
+        sigma: Noise level corresponding to the sampled schedule entries.
+        output: Model output.
+        kwargs: Unused; accepted so that all `step_loss` implementations
+            share a signature.
+
+    Returns:
+        Loss between the scaled model output and the negated noise.
+    """
     return criterion(output * sigma**2, -noise)
 
 
 def loss_fn(
-    model: Callable,
+    model: nnx.Module,
     criterion: Callable,
     step_loss: Callable,
-    batch_x: ArrayLike,
-    batch_sigma: ArrayLike,
-    noise: ArrayLike,
-) -> ArrayLike:
+    batch_x: Array,
+    batch_sigma: Array,
+    noise: Array,
+) -> Array:
     """Loss function definition for diffusion step.
 
     Args:
@@ -95,14 +116,14 @@ def loss_fn(
 # @jax.jit(static_argnums=(2, 3))
 @partial(jax.jit, static_argnums=(2, 3))
 def jax_train_step_diffusion(
-    graphdef,
-    state,
+    graphdef: nnx.GraphDef,
+    state: nnx.State,
     criterion: Callable,
     step_loss: Callable,
-    batch_x: ArrayLike,
-    batch_sigma: ArrayLike,
-    noise: ArrayLike,
-) -> tuple[ArrayLike, nnx.State]:
+    batch_x: Array,
+    batch_sigma: Array,
+    noise: Array,
+) -> tuple[Array, nnx.State]:
     """Train for a single step.
 
     This function uses data and a criterion to optimize model parameters. It returns
@@ -120,7 +141,7 @@ def jax_train_step_diffusion(
         noise: Noise array.
 
     Returns:
-        Loss evaluated.
+        Evaluated loss and the updated NNX state.
     """
     # merge at the beginning of the function
     model, optimizer, metrics = nnx.merge(graphdef, state)
@@ -136,25 +157,25 @@ def jax_train_step_diffusion(
 
 @nnx.jit(static_argnums=(1, 2))
 def eval_step_diffusion(
-    model: Callable,
+    model: nnx.Module,
     criterion: Callable,
     step_loss: Callable,
     metrics: nnx.MultiMetric,
-    batch_x: ArrayLike,
-    batch_sigma: ArrayLike,
-    noise: ArrayLike,
-) -> ArrayLike:
+    batch_x: Array,
+    batch_sigma: Array,
+    noise: Array,
+) -> Array:
     """Evaluate for a single step.
 
     This function uses data and a criterion to evaluate performance of current model.
     It returns the current loss evaluated in the testing set.
 
     Args:
-        model: Model to train.
-        criterion: Criterion to use for training.
+        model: Model to evaluate.
+        criterion: Criterion to use for evaluation.
         step_loss: Function to evaluate difference between expected
                     and produced outputs.
-        metrics: Dictionary of metrics to evaluate.
+        metrics: Multi-metric object in which to accumulate metrics.
         batch_x: Noisy image data array.
         batch_sigma: Standard deviation of noise applied.
         noise: Noise array.
