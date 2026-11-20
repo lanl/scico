@@ -403,7 +403,7 @@ class Attention(nnx.Module):
         Returns:
             Array of the same shape as `x`.
         """
-        b, h, w, c = x.shape  # channel last in flax
+        _, height, width, _ = x.shape  # channel last in flax
         qkv = self.qkv_(x)
         qkv_split = jnp.split(qkv, 3, axis=-1)  # channel last in flax
         q, k, v = map(
@@ -415,7 +415,7 @@ class Attention(nnx.Module):
         sim = sim - jnp.amax(sim, axis=-1, keepdims=True)
         attn = nnx.softmax(sim, axis=-1)
         out = jnp.einsum("b i h j, b d h j -> b d h i", attn, v)
-        out = rearrange(out, "b (x y) h c  -> b x y (h c)", x=h, y=w)
+        out = rearrange(out, "b (x y) h c  -> b x y (h c)", x=height, y=width)
         return self.out_(out)
 
 
@@ -460,7 +460,7 @@ class LinearAttention(nnx.Module):
             Array of the same shape as `x`.
         """
 
-        b, h, w, c = x.shape  # channel last in Flax
+        _, height, width, _ = x.shape  # channel last in Flax
         qkv = self.qkv_(x)
         qkv_split = jnp.split(qkv, 3, axis=-1)  # channel last in Flax
         q, k, v = map(
@@ -472,7 +472,7 @@ class LinearAttention(nnx.Module):
         q = q * self.scale
         context = jnp.einsum("b n h d, b n h e -> b d h e", k, v)
         out = jnp.einsum("b d h e, b n h d -> b n h e", context, q)
-        out = rearrange(out, "b (x y) h c  -> b x y (h c)", h=self.heads, x=h, y=w)
+        out = rearrange(out, "b (x y) h c  -> b x y (h c)", h=self.heads, x=height, y=width)
 
         return self.out_(out)
 

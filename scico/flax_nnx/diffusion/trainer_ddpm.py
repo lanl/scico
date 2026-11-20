@@ -28,7 +28,7 @@ from typing_extensions import NotRequired
 
 from flax import nnx
 from scico.flax_nnx.train.input_pipeline import iterate_x_dataset
-from scico.flax_nnx.train.trainer import BasicFlaxNNXTrainer
+from scico.flax_nnx.train.trainer import BasicFlaxNNXTrainer, _epoch_loss
 from scico.flax_nnx.train.typed_dict import ConfigDict, DataSetDict
 from scico.numpy import Array
 
@@ -216,6 +216,7 @@ class FlaxNNXDDPMTrainer(BasicFlaxNNXTrainer):
         # JAX keys are typically uint32[2] arrays
         key_data = jax.random.key_data(subkey1)
         seed = int(key_data[0]) & 0x7FFFFFFF  # Ensure positive int32
+        loss: Array | None = None
         for batch in self.dt_iterator_fn(self.train_ds, self.batch_size, shuffle, seed):
             # Shard data
             x = jax.device_put(batch, self.data_sharding)
@@ -228,7 +229,7 @@ class FlaxNNXDDPMTrainer(BasicFlaxNNXTrainer):
             loss, state = self.train_step_fn(
                 graphdef, state, self.criterion, self.step_loss, batch_x, batch_t, z, batch_std
             )
-        return loss, state, key
+        return _epoch_loss(loss, "training"), state, key
 
     def one_eval_epoch_x(
         self, metrics: nnx.MultiMetric, key: jax.Array
@@ -246,6 +247,7 @@ class FlaxNNXDDPMTrainer(BasicFlaxNNXTrainer):
         """
         self.model.eval()  # Switch to eval mode
         shuffle = False
+        loss: Array | None = None
         for batch in self.dt_iterator_fn(self.test_ds, self.batch_size, shuffle):
             # Shard data
             x = jax.device_put(batch, self.data_sharding)
@@ -257,4 +259,4 @@ class FlaxNNXDDPMTrainer(BasicFlaxNNXTrainer):
             loss = self.eval_step_fn(
                 self.model, self.criterion, self.step_loss, metrics, batch_x, batch_t, z, batch_std
             )
-        return loss, metrics, key
+        return _epoch_loss(loss, "evaluation"), metrics, key

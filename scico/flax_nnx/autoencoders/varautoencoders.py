@@ -259,8 +259,8 @@ def MLPVarAutoEncoder(
     batch_norm: bool = False,
     conditional: bool = False,
     dim_cond_in: int = 0,
-    widths_condproc_encoder: list[int] = [],
-    widths_cond_encoder: list[int] = [],
+    widths_condproc_encoder: list[int] | None = None,
+    widths_cond_encoder: list[int] | None = None,
     rngs: nnx.Rngs = nnx.Rngs(0),
 ) -> VAE:
     """Construct a variational autoencoder (VAE) network from dense (MLP) layers.
@@ -291,6 +291,10 @@ def MLPVarAutoEncoder(
     Returns:
         Variational autoencoder model with architecture based on MLP, i.e. dense layers.
     """
+    if widths_condproc_encoder is None:
+        widths_condproc_encoder = []
+    if widths_cond_encoder is None:
+        widths_cond_encoder = []
     # Build components for encoder
     mean_block = MLPEncoder(
         dim_in,
@@ -367,16 +371,16 @@ def ConvVarAutoEncoder(
     dim_latent: int = 0,
     conditional: bool = False,
     mode_cond: Literal["conv", "mlp"] = "conv",
-    filters_condproc_decoder: list[int] = [],
+    filters_condproc_decoder: list[int] | None = None,
     kernel_size_condproc_decoder: tuple[int, int] = (3, 3),
     strides_condproc_decoder: tuple[int, int] = (1, 1),
     shape_cond_in: tuple[int, int] = (0, 0),
     channels_cond: int = 0,
-    filters_cond_encoder: list[int] = [],
+    filters_cond_encoder: list[int] | None = None,
     kernel_size_cond_encoder: tuple[int, int] = (3, 3),
-    widths_condproc_encoder: list[int] = [],
+    widths_condproc_encoder: list[int] | None = None,
     dim_cond_in: int = 0,
-    widths_cond_encoder: list[int] = [],
+    widths_cond_encoder: list[int] | None = None,
     rngs: nnx.Rngs = nnx.Rngs(0),
 ) -> VAE:
     """Function to construct variational autoencoder network using convolutional layers.
@@ -437,6 +441,14 @@ def ConvVarAutoEncoder(
         `dim_latent` is zero, `dim_latent` is replaced by the flattened
         size of the mean encoder latent shape.
     """
+    if widths_condproc_encoder is None:
+        widths_condproc_encoder = []
+    if widths_cond_encoder is None:
+        widths_cond_encoder = []
+    if filters_condproc_decoder is None:
+        filters_condproc_decoder = []
+    if filters_cond_encoder is None:
+        filters_cond_encoder = []
     strides: tuple[int, int] = (2, 2)
 
     # Build components for encoder

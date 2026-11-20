@@ -160,17 +160,21 @@ def create_reduce_on_plateau_schedule(
         accumulation_size: Number of iterations to accumulate an average value
 
     Returns:
-        schedule: A function that maps step counts to values.
+        An optax gradient transformation that scales updates in response
+        to the loss, not a learning rate schedule.
+
+    Note:
+        Despite its name, this function returns a gradient transformation
+        rather than a schedule, so it cannot be used as the `lr_schedule`
+        entry of the configuration dictionary read by
+        :func:`build_optax_optimizer`, which expects a callable mapping a
+        step count to a learning rate.
     """
     if "patience" in config:
         patience = config["patience"]
-    else:
-        patience = patience
 
     if "lr_decay_rate" in config:
         factor = config["lr_decay_rate"]
-    else:
-        factor = factor
 
     schedule = optax.contrib.reduce_on_plateau(
         patience=patience,

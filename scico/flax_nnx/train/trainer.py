@@ -37,6 +37,30 @@ from .steps import eval_step, jax_train_step  # , train_step_post
 from .typed_dict import ConfigDict, DataSetDict
 
 
+def _epoch_loss(loss: Array | None, which: str) -> Array:
+    """Return the loss of the final batch of an epoch.
+
+    Args:
+        loss: Loss of the final batch, or ``None`` if the data iterator
+            yielded no batches at all.
+        which: Name of the data set, used in the error message.
+
+    Returns:
+        The loss of the final batch.
+
+    Raises:
+        ValueError: If the data iterator yielded no batches, in which
+            case `loss` was never assigned.
+    """
+    if loss is None:
+        raise ValueError(
+            f"The {which} data set yielded no batches, so no loss was computed; it may"
+            " hold fewer samples than one batch, in which case a batch is only produced"
+            " if drop_last is False."
+        )
+    return loss
+
+
 class BasicFlaxNNXTrainer:
     """Class encapsulating Flax NNX training configuration and execution.
 
@@ -344,6 +368,7 @@ class BasicFlaxNNXTrainer:
         # JAX keys are typically uint32[2] arrays
         key_data = jax.random.key_data(step_key)
         seed = int(key_data[0]) & 0x7FFFFFFF  # Ensure positive int32
+        loss: Array | None = None
         for batch in self.dt_iterator_fn(self.train_ds, self.batch_size, shuffle, seed):
             # Shard data
             x, y = jax.device_put(batch, self.data_sharding)
@@ -351,7 +376,7 @@ class BasicFlaxNNXTrainer:
             # self.model.train() # Switch to train mode
             loss, state = self.train_step_fn(graphdef, state, self.criterion, x, y)
 
-        return loss, state, key
+        return _epoch_loss(loss, "training"), state, key
 
     def one_eval_epoch_xy(
         self, metrics: nnx.MultiMetric, key: jax.Array
@@ -371,12 +396,13 @@ class BasicFlaxNNXTrainer:
         """
         self.model.eval()  # Switch to eval mode
         shuffle = False
+        loss: Array | None = None
         for batch in self.dt_iterator_fn(self.test_ds, self.batch_size, shuffle):
             # Shard data
             x, y = jax.device_put(batch, self.data_sharding)
             # Eval step
             loss = self.eval_step_fn(self.model, self.criterion, metrics, x, y)
-        return loss, metrics, key
+        return _epoch_loss(loss, "evaluation"), metrics, key
 
     def train(self, key: jax.Array | None = None) -> IterationStats | None:
         """Execute training loop.
