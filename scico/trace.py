@@ -214,10 +214,10 @@ def call_trace(func: Callable) -> Callable:
             and isinstance(args[0], method_class)
         ):  # first argument is self for a method call
             arg_idx = 1  # skip self in handling arguments
-            if args[0].__hash__() in call_trace.instance_hash:
+            if args[0].__hash__() in call_trace.instance_hash:  # type: ignore
                 # self object registered using register_variable
                 name = (
-                    f"{clr_rvar}{call_trace.instance_hash[args[0].__hash__()]}."
+                    f"{clr_rvar}{call_trace.instance_hash[args[0].__hash__()]}."  # type: ignore
                     f"{clr_func}{func.__name__}"
                 )
             else:
@@ -238,18 +238,18 @@ def call_trace(func: Callable) -> Callable:
         kwargs_repr = [f"{key}={_trace_arg_repr(val)}" for key, val in kwargs.items()]
         args_str = clr_args + ", ".join(args_repr + kwargs_repr) + clr_main
         print(
-            f"{clr_main}>> {' ' * 2 * call_trace.trace_level}{name}"
+            f"{clr_main}>> {' ' * 2 * call_trace.trace_level}{name}"  # type: ignore
             f"({args_str}{clr_func}){clr_reset}",
             file=sys.stderr,
         )
         # call wrapped function
-        call_trace.trace_level += 1
+        call_trace.trace_level += 1  # type: ignore
         ret = _call_wrapped_function(func, *args, **kwargs)
-        call_trace.trace_level -= 1
+        call_trace.trace_level -= 1  # type: ignore
         # print representation of return value
-        if ret is not None and call_trace.show_return_value:
+        if ret is not None and call_trace.show_return_value:  # type: ignore
             print(
-                f"{clr_main}<< {' ' * 2 * call_trace.trace_level}{clr_retv}"
+                f"{clr_main}<< {' ' * 2 * call_trace.trace_level}{clr_retv}"  # type: ignore
                 f"{_trace_arg_repr(ret)}{clr_reset}",
                 file=sys.stderr,
             )
