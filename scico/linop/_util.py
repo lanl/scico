@@ -114,8 +114,8 @@ def valid_adjoint(
     A: LinearOperator,
     AT: LinearOperator,
     eps: Optional[float] = 1e-7,
-    x: Optional[snp.Array] = None,
-    y: Optional[snp.Array] = None,
+    x: Optional[Union[snp.Array, snp.BlockArray]] = None,
+    y: Optional[Union[snp.Array, snp.BlockArray]] = None,
     key: Optional[PRNGKey] = None,
 ) -> Union[bool, float]:
     r"""Check whether :class:`.LinearOperator` `AT` is the adjoint of `A`.
@@ -175,8 +175,8 @@ def valid_adjoint(
 
     u = A(x)
     v = AT(y)
-    yTu = snp.sum(y.conj() * u)  # type: ignore
-    vTx = snp.sum(v.conj() * x)  # type: ignore
+    yTu = snp.sum(y.conj() * u)
+    vTx = snp.sum(v.conj() * x)
     err = snp.abs(yTu - vTx) / max(snp.abs(yTu), snp.abs(vTx))
     if eps is None:
         return err

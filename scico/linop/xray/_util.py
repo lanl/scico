@@ -124,7 +124,11 @@ def rotate_volume(
     gx, gy, gz = jnp.meshgrid(x - center[0], y - center[1], z - center[2], indexing="ij")
     crd = jnp.stack((gx.ravel(), gy.ravel(), gz.ravel()))
     rot_crd = rot.as_matrix() @ crd + center[:, jnp.newaxis]  # faster than rot.apply(crd.T)
-    rot_vol = map_coordinates(vol, rot_crd.reshape((3,) + shape), order=1)
+    # map_coordinates takes a sequence of coordinate arrays, one per axis, rather
+    # than a single array with the axes stacked on the leading dimension. It
+    # iterates whatever it is given, so the two are equivalent, as verified, but
+    # only the sequence matches the declared signature.
+    rot_vol = map_coordinates(vol, list(rot_crd.reshape((3,) + shape)), order=1)
     return rot_vol
 
 
