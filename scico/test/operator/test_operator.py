@@ -85,13 +85,13 @@ def test_binary_op_same(testobj, operator):
 
 @pytest.mark.parametrize("operator", [op.mul, op.truediv])
 @pytest.mark.parametrize("scalar", SCALARS)
-def test_scalar_left(testobj, operator, scalar):
+def test_scalar_second(testobj, operator, scalar):
     scalar_test(testobj.A, testobj.x, scalar, operator)
 
 
 @pytest.mark.parametrize("operator", [op.mul, op.truediv])
 @pytest.mark.parametrize("scalar", SCALARS)
-def test_scalar_right(testobj, operator, scalar):
+def test_scalar_first(testobj, operator, scalar):
     if operator == op.truediv:
         pytest.xfail("scalar / Operator is not supported")
     scalar_test(testobj.A, testobj.x, scalar, operator, scalar_first=True)

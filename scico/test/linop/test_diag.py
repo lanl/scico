@@ -126,7 +126,7 @@ class TestDiagonal:
             operator(D1, D2)
 
     @pytest.mark.parametrize("operator", [op.mul, op.truediv])
-    def test_scalar_right(self, operator):
+    def test_scalar_first(self, operator):
         if operator == op.truediv:
             pytest.xfail("scalar / LinearOperator is not supported")
 
@@ -147,7 +147,7 @@ class TestDiagonal:
         )
 
     @pytest.mark.parametrize("operator", [op.mul, op.truediv])
-    def test_scalar_left(self, operator):
+    def test_scalar_second(self, operator):
         input_shape = (8,)
         diagonal, key = randn(input_shape, dtype=np.float32, key=self.key)
         scalar = np.random.randn()

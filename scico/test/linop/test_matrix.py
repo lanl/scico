@@ -98,7 +98,7 @@ class TestMatrix:
             operator(Ao, Co)
 
     @pytest.mark.parametrize("operator", [op.add, op.sub, op.mul, op.truediv])
-    def test_scalar_left(self, operator):
+    def test_scalar_first(self, operator):
         scalar = np.float32(np.random.randn())
 
         A, key = randn((4, 6), key=self.key)
@@ -108,7 +108,7 @@ class TestMatrix:
         np.testing.assert_allclose(operator(scalar, Ao) @ x, operator(scalar, A) @ x, rtol=5e-5)
 
     @pytest.mark.parametrize("operator", [op.add, op.sub, op.mul, op.truediv])
-    def test_scalar_right(self, operator):
+    def test_scalar_second(self, operator):
         scalar = np.float32(np.random.randn())
 
         A, key = randn((4, 6), key=self.key)

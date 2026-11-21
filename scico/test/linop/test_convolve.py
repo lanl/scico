@@ -86,7 +86,7 @@ def test_init(testobj):
 
 
 @pytest.mark.parametrize("operator", [op.mul, op.truediv])
-def test_scalar_left(testobj, operator):
+def test_scalar_second(testobj, operator):
     A = operator(testobj.A, testobj.scalar)
     x = testobj.x
     B = Convolve(input_shape=(16,), h=operator(testobj.psf_A, testobj.scalar))
@@ -94,7 +94,7 @@ def test_scalar_left(testobj, operator):
 
 
 @pytest.mark.parametrize("operator", [op.mul, op.truediv])
-def test_scalar_right(testobj, operator):
+def test_scalar_first(testobj, operator):
     if operator == op.truediv:
         pytest.xfail("scalar / LinearOperator is not supported")
     A = operator(testobj.scalar, testobj.A)

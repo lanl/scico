@@ -63,7 +63,7 @@ def test_binary_op(testobj, operator):
 
 @pytest.mark.parametrize("operator", [op.mul, op.truediv])
 @pytest.mark.parametrize("scalar", SCALARS)
-def test_scalar_left(testobj, operator, scalar):
+def test_scalar_second(testobj, operator, scalar):
     comp_mat = operator(testobj.A, scalar)
     comp_op = operator(testobj.Ao, scalar)
     assert isinstance(comp_op, linop.LinearOperator)  # Ensure we don't get a Map
@@ -74,7 +74,7 @@ def test_scalar_left(testobj, operator, scalar):
 
 @pytest.mark.parametrize("operator", [op.mul, op.truediv])
 @pytest.mark.parametrize("scalar", SCALARS)
-def test_scalar_right(testobj, operator, scalar):
+def test_scalar_first(testobj, operator, scalar):
     if operator == op.truediv:
         pytest.xfail("scalar / LinearOperator is not supported")
     comp_mat = operator(scalar, testobj.A)
