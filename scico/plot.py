@@ -45,9 +45,7 @@ __all__ = [
 def plot(y, x=None, ptyp="plot", xlbl=None, ylbl=None, title=None, lgnd=None, lglc=None, **kwargs):
     """Plot points or lines in 2D.
 
-    Plot points or lines in 2D. If a figure object is specified then the
-    plot is drawn in that figure, and `fig.show()` is not called. The
-    figure is closed on key entry 'q'.
+    Plot points or lines in 2D. The figure is closed on key entry 'q'.
 
     Args:
         y (array_like): 1d or 2d array of data to plot. If a 2d array,
@@ -82,8 +80,8 @@ def plot(y, x=None, ptyp="plot", xlbl=None, ylbl=None, title=None, lgnd=None, lg
             =====  ==================== ===================================
             fgsz   tuple (width,height) Specify figure dimensions in inches
             fgnm   integer              Figure number of figure
-            fig    |mplfg|              Draw in specified figure instead of
-                                        creating one
+            fig    |mplfg|              Accepted for backward compatibility
+                                        and ignored
             ax     |mplax|              Plot in specified axes instead of
                                         current axes of figure
             =====  ==================== ===================================
@@ -169,9 +167,7 @@ def surf(
 ):
     """Plot a 2D surface in 3D.
 
-    Plot a 2D surface in 3D. If a figure object is specified then the
-    surface is drawn in that figure, and `fig.show()` is not called.
-    The figure is closed on key entry 'q'.
+    Plot a 2D surface in 3D. The figure is closed on key entry 'q'.
 
     Args:
         z (array_like): 2d array of data to plot.
@@ -199,7 +195,8 @@ def surf(
             figure dimensions in inches.
         fgnm (integer, optional (default ``None``)): Figure number of figure.
         fig (:class:`matplotlib.figure.Figure` object, optional (default ``None``)):
-            Draw in specified figure instead of creating one.
+            Accepted for backward compatibility, and ignored: drawing
+            into an existing figure is not supported by komplot.
         ax (:class:`matplotlib.axes.Axes` object, optional (default ``None``)):
             Plot in specified axes instead of creating one.
 
@@ -217,6 +214,8 @@ def surf(
     )
     if not have_komplot:
         raise RuntimeError("Package komplot is required for use of this function.")
+    # The fig parameter is accepted for backward compatibility but is not
+    # forwarded: komplot does not support drawing into an existing figure.
     splt = kplt.surface(
         z,
         x=x,
@@ -262,9 +261,7 @@ def contour(
 ):
     """Contour plot of a 2D surface.
 
-    Contour plot of a 2D surface. If a figure object is specified then
-    the plot is drawn in that figure, and `fig.show()` is not called.
-    The figure is closed on key entry 'q'.
+    Contour plot of a 2D surface. The figure is closed on key entry 'q'.
 
     Args:
         z (array_like): 2d array of data to plot.
@@ -300,7 +297,8 @@ def contour(
             figure dimensions in inches.
         fgnm (integer, optional (default ``None``)): Figure number of figure.
         fig (:class:`matplotlib.figure.Figure` object, optional (default ``None``)):
-            Draw in specified figure instead of creating one.
+            Accepted for backward compatibility, and ignored: drawing
+            into an existing figure is not supported by komplot.
         ax (:class:`matplotlib.axes.Axes` object, optional (default ``None``)):
             Plot in specified axes instead of current axes of figure.
 
@@ -318,6 +316,8 @@ def contour(
     )
     if not have_komplot:
         raise RuntimeError("Package komplot is required for use of this function.")
+    # The fig parameter is accepted for backward compatibility but is not
+    # forwarded: komplot does not support drawing into an existing figure.
     cplt = kplt.contour(
         z,
         x=x,
@@ -359,9 +359,7 @@ def imview(
     """Display an image.
 
     Display an image. Pixel values are displayed when the pointer is over
-    valid image data. If a figure object is specified then the image is
-    drawn in that figure, and `fig.show()` is not called. The figure is
-    closed on key entry 'q'.
+    valid image data. The figure is closed on key entry 'q'.
 
     Args:
         img (array_like, shape (Nr, Nc) or (Nr, Nc, 3) or (Nr, Nc, 4)):
@@ -391,7 +389,8 @@ def imview(
         fgnm (integer, optional (default ``None``)): Figure number of
             figure.
         fig (:class:`matplotlib.figure.Figure` object, optional (default ``None``)):
-            Draw in specified figure instead of creating one.
+            Accepted for backward compatibility, and ignored: drawing
+            into an existing figure is not supported by komplot.
         ax (:class:`matplotlib.axes.Axes` object, optional (default ``None``)):
             Plot in specified axes instead of current axes of figure.
 
@@ -412,6 +411,8 @@ def imview(
     )
     if not have_komplot:
         raise RuntimeError("Package komplot is required for use of this function.")
+    # The fig parameter is accepted for backward compatibility but is not
+    # forwarded: komplot does not support drawing into an existing figure.
     imv = kplt.imview(
         img,
         interpolation=intrp,
