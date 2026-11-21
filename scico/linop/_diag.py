@@ -94,7 +94,7 @@ class Diagonal(LinearOperator):
         """Gram operator of this :class:`Diagonal`.
 
         Return a new :class:`Diagonal` `G` such that
-        :code:`G(x) = A.adj(A(x)))`.
+        :code:`G(x) = A.adj(A(x))`.
         """
         return Diagonal(diagonal=self.diagonal.conj() * self.diagonal)
 

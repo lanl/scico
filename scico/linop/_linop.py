@@ -370,8 +370,8 @@ class LinearOperator(Operator):
         :class:`LinearOperator` `A.H` is equivalent to `A.T`. For a
         complex-valued :class:`LinearOperator` `A` (`A.input_dtype` is
         :attr:`~numpy.complex64` or :attr:`~numpy.complex128`), the
-        :class:`LinearOperator` `A.H` implements the adjoint of `A :
-        A.H @ y == A.adj(y) == A.conj().T @ y)`.
+        :class:`LinearOperator` `A.H` implements the adjoint of `A`:
+        :code:`A.H @ y == A.adj(y) == A.conj().T @ y`.
 
         For the non-conjugate transpose, see :meth:`.T`.
         """
@@ -405,7 +405,7 @@ class LinearOperator(Operator):
         """Gram operator of this :class:`LinearOperator`.
 
         Return a new :class:`LinearOperator` `G` such that
-        `G(x) = A.adj(A(x)))`.
+        :code:`G(x) = A.adj(A(x))`.
         """
         if self._gram is None:
             self._set_gram()
@@ -422,7 +422,7 @@ class LinearOperator(Operator):
     def gram(
         self, x: Union[LinearOperator, Array, BlockArray]
     ) -> Union[LinearOperator, Array, BlockArray]:
-        """Compute `A.adj(A(x)).`
+        """Compute :code:`A.adj(A(x))`.
 
         Args:
             x: Point at which to evaluate the gram operator. If `x` is
