@@ -403,19 +403,20 @@ def apply_decorator(
             print(f"{indent}Class: {qualname}")
 
         # Iterate over methods in class
-        for name, func in inspect.getmembers(
-            cls, lambda obj: isinstance(obj, (types.FunctionType, PjitFunction))
+        # inspect.getmembers_static is used rather than inspect.getmembers
+        # because the latter uses plain getattr internally, which resolves
+        # the descriptor and thereby interferes with identification of
+        # static methods. A staticmethod has to be admitted by the
+        # predicate because the static value of one is not a plain
+        # function. A classmethod is deliberately not admitted, and so is
+        # not wrapped, as was also the case when getmembers was used.
+        for name, func in inspect.getmembers_static(
+            cls, lambda obj: isinstance(obj, (types.FunctionType, staticmethod, PjitFunction))
         ):
             if name in skip:
                 continue
             qualname = func.__module__ + "." + func.__qualname__  # type: ignore
             if not seen[qualname]:  # avoid multiple applications of decorator
-                # Can't use cls returned by inspect.getmembers because it uses plain
-                # getattr internally, which interferes with identification of static
-                # methods. From Python 3.11 onwards one could use
-                # inspect.getmembers_static instead of inspect.getmembers, but that
-                # would imply incompatibility with earlier Python versions.
-                func = inspect.getattr_static(cls, name)
                 setattr(cls, name, decorator(func))
                 seen[qualname] += 1
                 if verbose:
