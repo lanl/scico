@@ -11,7 +11,7 @@ import scico.numpy as snp
 from scico import linop
 from scico.linop import MatrixOperator
 from scico.random import randn
-from scico.test.linop.test_linop import AbsMatOp
+from scico.test.helpers import AbsMatOp
 
 
 class TestMatrix:

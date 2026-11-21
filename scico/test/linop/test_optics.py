@@ -11,7 +11,7 @@ from scico.linop.optics import (
     radial_transverse_frequency,
 )
 from scico.random import randn
-from scico.test.linop.test_linop import adjoint_test
+from scico.test.helpers import adjoint_test
 
 prop_list = [AngularSpectrumPropagator, FresnelPropagator, FraunhoferPropagator]
 

@@ -13,7 +13,7 @@ import scico.numpy as snp
 from scico import linop
 from scico.operator import Operator
 from scico.random import randn
-from scico.test.linop.test_linop import AbsMatOp
+from scico.test.helpers import AbsMatOp
 
 
 def test_valid_adjoint():

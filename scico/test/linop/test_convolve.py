@@ -9,7 +9,7 @@ import pytest
 
 from scico.linop import Convolve, ConvolveByX, LinearOperator
 from scico.random import randn
-from scico.test.linop.test_linop import AbsMatOp, adjoint_test
+from scico.test.helpers import AbsMatOp, adjoint_test
 
 
 class TestConvolve:

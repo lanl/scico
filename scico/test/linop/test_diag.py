@@ -11,11 +11,10 @@ config.update("jax_enable_x64", True)
 
 import jax
 
-from test_linop import adjoint_test
-
 import scico.numpy as snp
 from scico import linop
 from scico.random import randn
+from scico.test.helpers import adjoint_test
 
 
 class TestDiagonal:

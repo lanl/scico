@@ -9,7 +9,7 @@ import pytest
 import scico.numpy as snp
 from scico.linop import CircularConvolve, Convolve, Diagonal
 from scico.random import randint, randn, uniform
-from scico.test.linop.test_linop import adjoint_test
+from scico.test.helpers import adjoint_test
 
 SHAPE_SPECS = [
     ((12,), None, (3,)),  # 1D
