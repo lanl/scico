@@ -93,7 +93,7 @@ class Diagonal(LinearOperator):
     def gram_op(self) -> Diagonal:
         """Gram operator of this :class:`Diagonal`.
 
-        Return a new :class:`Diagonal` :code:`G` such that
+        Return a new :class:`Diagonal` `G` such that
         :code:`G(x) = A.adj(A(x)))`.
         """
         return Diagonal(diagonal=self.diagonal.conj() * self.diagonal)

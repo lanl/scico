@@ -118,13 +118,13 @@ class GenericSubproblemSolver(SubproblemSolver):
 class LinearSubproblemSolver(SubproblemSolver):
     r"""Solver for quadratic functionals.
 
-    Solver for the case in which :code:`f` is a quadratic function of
+    Solver for the case in which `f` is a quadratic function of
     :math:`\mb{x}`. It is a specialization of :class:`.SubproblemSolver`
-    for the case where :code:`f` is an :math:`\ell_2` or weighted
-    :math:`\ell_2` norm, and :code:`f.A` is a linear operator, so that
+    for the case where `f` is an :math:`\ell_2` or weighted
+    :math:`\ell_2` norm, and `f.A` is a linear operator, so that
     the subproblem involves solving a linear equation. This requires that
-    :code:`f.functional` be an instance of :class:`.SquaredL2Loss` and
-    for the forward operator :code:`f.A` to be an instance of
+    `f.functional` be an instance of :class:`.SquaredL2Loss` and
+    for the forward operator `f.A` to be an instance of
     :class:`.LinearOperator`.
 
     The :math:`\mb{x}`-update step is

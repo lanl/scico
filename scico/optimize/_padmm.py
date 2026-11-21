@@ -161,10 +161,10 @@ class ProximalADMMBase(Optimizer):
         Args:
             x: Point at which to evaluate objective function. If
                ``None``, the objective is evaluated at the current
-               iterate :code:`self.x`.
+               iterate `self.x`.
             z: Point at which to evaluate objective function. If
                ``None``, the objective is evaluated at the current
-               iterate :code:`self.z`.
+               iterate `self.z`.
 
         Returns:
             scalar: Current value of the objective function.
@@ -306,10 +306,10 @@ class ProximalADMM(ProximalADMMBase):
         Args:
             x: Point at which to evaluate primal residual. If ``None``,
                the primal residual is evaluated at the current iterate
-               :code:`self.x`.
+               `self.x`.
             z: Point at which to evaluate primal residual. If ``None``,
                the primal residual is evaluated at the current iterate
-               :code:`self.z`.
+               `self.z`.
 
         Returns:
             Norm of primal residual.
@@ -528,10 +528,10 @@ class NonLinearPADMM(ProximalADMMBase):
         Args:
             x: Point at which to evaluate primal residual. If ``None``,
                the primal residual is evaluated at the current iterate
-               :code:`self.x`.
+               `self.x`.
             z: Point at which to evaluate primal residual. If ``None``,
                the primal residual is evaluated at the current iterate
-               :code:`self.z`.
+               `self.z`.
 
         Returns:
             Norm of primal residual.

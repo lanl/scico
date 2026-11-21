@@ -45,10 +45,10 @@ class CircularConvolveSolver(LinearSubproblemSolver):
     r"""Solver for linear operators diagonalized in the DFT domain.
 
     Specialization of :class:`.LinearSubproblemSolver` for the case
-    where :code:`f` is ``None``, or an instance of
-    :class:`.SquaredL2Loss` with a forward operator :code:`f.A` that is
+    where `f` is ``None``, or an instance of
+    :class:`.SquaredL2Loss` with a forward operator `f.A` that is
     either an instance of :class:`.Identity` or
-    :class:`.CircularConvolve`, and the :code:`C_i` are all shift
+    :class:`.CircularConvolve`, and the `C_i` are all shift
     invariant linear operators, examples of which include instances of
     :class:`.Identity` as well as some instances (depending on
     initializer parameters) of :class:`.CircularConvolve` and
@@ -75,8 +75,8 @@ class CircularConvolveSolver(LinearSubproblemSolver):
                 involved in the :class:`.CircularConvolve` convolutions.
                 In most cases this value is automatically determined from
                 the optimization problem specification, but this is not
-                possible when :code:`f` is ``None`` and none of the
-                :code:`C_i` are of type :class:`.CircularConvolve`. When
+                possible when `f` is ``None`` and none of the
+                `C_i` are of type :class:`.CircularConvolve`. When
                 not ``None``, this parameter overrides the automatic
                 mechanism.
             conv_class: Circular convolution linear operator class for
@@ -199,8 +199,8 @@ class FBlockCircularConvolveSolver(LinearSubproblemSolver):
     r"""Solver for linear operators block-diagonalized in the DFT domain.
 
     Specialization of :class:`.LinearSubproblemSolver` for the case where
-    :code:`f` is an instance of :class:`.SquaredL2Loss`, the forward
-    operator :code:`f.A` is a composition of a :class:`.Sum` operator and
+    `f` is an instance of :class:`.SquaredL2Loss`, the forward
+    operator `f.A` is a composition of a :class:`.Sum` operator and
     a :class:`.CircularConvolve` operator. The former must sum over the
     first axis of its input, and the latter must be initialized so that
     it convolves a set of filters, indexed by the first axis, with an
@@ -366,7 +366,7 @@ class G0BlockCircularConvolveSolver(SubproblemSolver):
     domain.
 
     Specialization of :class:`.LinearSubproblemSolver` for the case
-    where :math:`f = 0` (i.e, :code:`f` is a :class:`.ZeroFunctional`),
+    where :math:`f = 0` (i.e, `f` is a :class:`.ZeroFunctional`),
     :math:`g_1` is an instance of :class:`.SquaredL2Loss`, :math:`C_1`
     is a composition of a :class:`.Sum` operator an a
     :class:`.CircularConvolve` operator.  The former must sum over the

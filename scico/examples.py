@@ -409,8 +409,8 @@ def create_circular_phantom(
 ) -> np.ndarray:
     """Construct a circular phantom with given radii and intensities.
 
-    This functions supports both circular (``shape`` is 2D) and spherical
-    (``shape`` is 3D) phantoms.
+    This functions supports both circular (`shape` is 2D) and spherical
+    (`shape` is 3D) phantoms.
 
     Args:
         shape: Shape of the phantom to be created.

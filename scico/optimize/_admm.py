@@ -74,13 +74,13 @@ class ADMM(Optimizer):
         f (:class:`.Functional`): Functional :math:`f` (usually a
             :class:`.Loss`)
         g_list (list of :class:`.Functional`): List of :math:`g_i`
-            functionals. Must be same length as :code:`C_list` and
-            :code:`rho_list`.
+            functionals. Must be same length as `C_list` and
+            `rho_list`.
         C_list (list of :class:`.LinearOperator`): List of :math:`C_i`
             operators.
         rho_list (list of scalars): List of :math:`\rho_i` penalty
-            parameters. Must be same length as :code:`C_list` and
-            :code:`g_list`.
+            parameters. Must be same length as `C_list` and
+            `g_list`.
         alpha (float): Relaxation parameter.
         u_list (list of array-like): List of scaled Lagrange multipliers
             :math:`\mb{u}_i` at current iteration.
@@ -109,10 +109,10 @@ class ADMM(Optimizer):
         Args:
             f: Functional :math:`f` (usually a loss function).
             g_list: List of :math:`g_i` functionals. Must be same length
-                 as :code:`C_list` and :code:`rho_list`.
+                 as `C_list` and `rho_list`.
             C_list: List of :math:`C_i` operators.
             rho_list: List of :math:`\rho_i` penalty parameters.
-                Must be same length as :code:`C_list` and :code:`g_list`.
+                Must be same length as `C_list` and `g_list`.
             alpha: Relaxation parameter. No relaxation for default 1.0.
             x0: Initial value for :math:`\mb{x}`. If ``None``, defaults
                 to an array of zeros.
@@ -230,10 +230,10 @@ class ADMM(Optimizer):
         Args:
             x: Point at which to evaluate objective function. If ``None``,
                 the objective is  evaluated at the current iterate
-                :code:`self.x`.
+                `self.x`.
             z_list: Point at which to evaluate objective function. If
                 ``None``, the objective is evaluated at the current iterate
-                :code:`self.z_list`.
+                `self.z_list`.
 
         Returns:
             Value of the objective function.
@@ -263,7 +263,7 @@ class ADMM(Optimizer):
         Args:
             x: Point at which to evaluate primal residual. If ``None``,
                 the primal residual is evaluated at the current iterate
-                :code:`self.x`.
+                `self.x`.
 
         Returns:
             Norm of primal residual.
@@ -304,7 +304,7 @@ class ADMM(Optimizer):
         .. math::
             \mb{z}_i = C_i \mb{x}^{(0)} \;.
 
-        :code:`z_list` and :code:`z_list_old` are initialized to the same
+        `z_list` and `z_list_old` are initialized to the same
         value.
 
         Args:

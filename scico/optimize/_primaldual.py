@@ -179,7 +179,7 @@ class PDHG(Optimizer):
         Args:
             x: Point at which to evaluate objective function. If ``None``,
                 the objective is evaluated at the current iterate
-                :code:`self.x`
+                `self.x`
 
         Returns:
             scalar: Value of the objective function.

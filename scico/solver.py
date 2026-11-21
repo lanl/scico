@@ -719,8 +719,8 @@ class MatrixATADSolver:
     represent the conjugate transpose.
 
     To solve problems directly involving a matrix of the form
-    :math:`A W A^T + D`, initialize with :code:`A.T` (or
-    :code:`A.T.conj()` for complex problems) instead of :code:`A`.
+    :math:`A W A^T + D`, initialize with `A.T` (or
+    :code:`A.T.conj()` for complex problems) instead of `A`.
     """
 
     def __init__(
