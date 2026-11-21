@@ -15,6 +15,17 @@ Version 0.0.8   (unreleased)
 • Support ``jaxlib`` and ``jax`` versions 0.5.0 to 0.12.0.
 • Support ``flax`` versions 0.8.0 to 0.12.10.
 • Add limited support for sharded arrays.
+• Fix shape computation in ``numpy.util.indexed_shape`` for index
+  expressions including ``np.newaxis``, which also affects ``linop.Slice``.
+• Fix ``linop.operator_norm`` and the ``estimate_parameters`` methods of
+  ``optimize.ProximalADMM`` and ``optimize.PDHG``, which returned arrays
+  where floats were documented.
+• Parameters ``collapse_input`` and ``collapse_output`` of the
+  ``VerticalStack`` and ``DiagonalStack`` classes are now typed ``bool``
+  rather than ``Optional[bool]``.
+• Extensive type annotation additions and corrections, with stricter
+  ``mypy`` and ``flake8`` checking in CI, the former now configured in
+  ``pyproject.toml``.
 • Various bug fixes and minor improvements.
 
 
