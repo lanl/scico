@@ -24,7 +24,7 @@ from ._operator import Operator
 
 
 def collapse_shapes(
-    shapes: Sequence[Union[Shape, BlockShape]], allow_collapse=True
+    shapes: Sequence[Union[Shape, BlockShape]], allow_collapse: bool = True
 ) -> Tuple[Union[Shape, BlockShape], bool]:
     """Compute the collapsed representation of a sequence of shapes.
 
@@ -63,7 +63,7 @@ class VerticalStack(Operator):
     def __init__(
         self,
         ops: Sequence[Operator],
-        collapse_output: Optional[bool] = True,
+        collapse_output: bool = True,
         jit: bool = True,
         **kwargs: Any,
     ):
@@ -167,8 +167,8 @@ class DiagonalStack(Operator):
     def __init__(
         self,
         ops: Sequence[Operator],
-        collapse_input: Optional[bool] = True,
-        collapse_output: Optional[bool] = True,
+        collapse_input: bool = True,
+        collapse_output: bool = True,
         jit: bool = True,
         **kwargs: Any,
     ):

@@ -50,7 +50,7 @@ class VerticalStack(VerticalStackOperator, LinearOperator):
     def __init__(
         self,
         ops: Sequence[LinearOperator],
-        collapse_output: Optional[bool] = True,
+        collapse_output: bool = True,
         jit: bool = True,
         **kwargs: Any,
     ):
@@ -114,8 +114,8 @@ class DiagonalStack(DiagonalStackOperator, LinearOperator):
     def __init__(
         self,
         ops: Sequence[LinearOperator],
-        collapse_input: Optional[bool] = True,
-        collapse_output: Optional[bool] = True,
+        collapse_input: bool = True,
+        collapse_output: bool = True,
         jit: bool = True,
         **kwargs: Any,
     ):
