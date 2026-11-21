@@ -7,7 +7,7 @@
 
 """Distance functions."""
 
-from typing import Any, Callable, Union
+from typing import Any, Callable, Tuple, Union
 
 from scico import numpy as snp
 from scico.numpy import Array, BlockArray
@@ -38,7 +38,7 @@ class SetDistance(Functional):
     has_eval = True
     has_prox = True
 
-    def __init__(self, proj: Callable, args=()):
+    def __init__(self, proj: Callable, args: Tuple[Any, ...] = ()):
         r"""
         Args:
             proj: Function computing the projection into the convex set.
@@ -109,7 +109,7 @@ class SquaredSetDistance(Functional):
     has_eval = True
     has_prox = True
 
-    def __init__(self, proj: Callable, args=()):
+    def __init__(self, proj: Callable, args: Tuple[Any, ...] = ()):
         r"""
         Args:
             proj: Function computing the projection into the convex set.

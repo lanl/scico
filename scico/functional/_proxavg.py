@@ -37,7 +37,7 @@ class ProximalAverage(Functional):
         self,
         func_list: List[Functional],
         alpha_list: Optional[List[float]] = None,
-        no_inf_eval=True,
+        no_inf_eval: bool = True,
     ):
         """
         Args:

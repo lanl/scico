@@ -289,7 +289,10 @@ def preprocess_images(
 
 
 def build_image_dataset(
-    imgs_train, imgs_test, config: ConfigImageSetDict, transf: Optional[Callable] = None
+    imgs_train: Array,
+    imgs_test: Array,
+    config: ConfigImageSetDict,
+    transf: Optional[Callable] = None,
 ) -> Tuple[DataSetDict, ...]:
     """Preprocess and assemble dataset for training.
 

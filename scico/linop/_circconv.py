@@ -158,7 +158,7 @@ class CircularConvolve(LinearOperator):
             jit=jit,
         )
 
-    def _dft_center_shift(self, input_shape) -> np.ndarray:
+    def _dft_center_shift(self, input_shape: Shape) -> np.ndarray:
         """Compute DFT domain shift required for centering.
 
         See doi:10.1109/78.700979 and doi:10.1109/LSP.2012.2191280 for

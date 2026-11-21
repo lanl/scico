@@ -473,7 +473,9 @@ class BasicFlaxTrainer:
 
         return dvar, self.itstat_object  # type: ignore
 
-    def update_metrics(self, state: TrainState, step: int, train_metrics: List[MetricsDict], t0):
+    def update_metrics(
+        self, state: TrainState, step: int, train_metrics: List[MetricsDict], t0: float
+    ) -> None:
         """Compute metrics for current model state.
 
         Metrics for training and testing (eval) sets are computed and

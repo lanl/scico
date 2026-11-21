@@ -67,7 +67,7 @@ def operator_from_function(f: Callable, classname: str, f_name: Optional[str] = 
         """
 
     def __init__(
-        self,
+        self: Any,
         input_shape: Union[Shape, BlockShape],
         *args: Any,
         input_dtype: DType = snp.float32,

@@ -8,7 +8,7 @@
 """Generation and loading of data used in Flax example scripts."""
 
 import os
-from typing import Callable, Optional, Tuple, Union
+from typing import Callable, NoReturn, Optional, Tuple, Union
 
 import numpy as np
 
@@ -650,7 +650,7 @@ def print_data_warning(idstring: str, requested: int, available: int) -> None:  
 
 def runtime_error_scalar(
     type: str, idstring: str, requested: Union[int, float], available: Union[int, float]
-):
+) -> NoReturn:
     """Raise run time error related to unsatisfied scalar parameter request.
 
     Raise run time error related to scalar parameter request not satisfied
@@ -669,7 +669,7 @@ def runtime_error_scalar(
     )
 
 
-def runtime_error_array(type: str, idstring: str, maxdiff: float):
+def runtime_error_array(type: str, idstring: str, maxdiff: float) -> NoReturn:
     """Raise run time error related to unsatisfied array parameter request.
 
     Raise run time error related to array parameter request not satisfied

@@ -25,7 +25,7 @@ def _partial_forward_project(
     volume: Array,
     uu: Array,
     vv: Array,
-    irslab,
+    irslab: Array,
     config: Config,
     input_2d: bool = False,
 ) -> Array:
