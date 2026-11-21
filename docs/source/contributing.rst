@@ -249,7 +249,7 @@ To run the type checker, execute the following from the scico repository root:
 
 ::
 
-   mypy --follow-imports=skip --ignore-missing-imports --check-untyped-defs --exclude "(numpy|test)" scico/ scico/numpy/util.py
+   mypy --follow-imports=skip --ignore-missing-imports --check-untyped-defs --disallow-incomplete-defs --exclude "(numpy|test)" scico/ scico/numpy/util.py
 
 
 
