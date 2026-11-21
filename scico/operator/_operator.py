@@ -136,7 +136,7 @@ class Operator:
 
         # Allows for dynamic creation of new Operator/LinearOperator, e.g. for adjoints
         if eval_fn:
-            self._eval = eval_fn  # type: ignore
+            self._eval = eval_fn
         elif not hasattr(self, "_eval"):
             raise NotImplementedError(
                 "Operator is an abstract base class when argument 'eval_fn' is not specified."
@@ -149,7 +149,7 @@ class Operator:
                 self._eval, jax.ShapeDtypeStruct(self.input_shape, dtype=input_dtype)
             )
         if output_shape is None:
-            self.output_shape = dts.shape  # type: ignore
+            self.output_shape = dts.shape
         else:
             self.output_shape = (output_shape,) if isinstance(output_shape, int) else output_shape
         if output_dtype is None:

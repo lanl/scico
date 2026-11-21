@@ -56,7 +56,7 @@ class AbelTransform(LinearOperator):
             self.output_dtype
         )
 
-    def _adj(self, x: jax.Array) -> jax.Array:  # type: ignore
+    def _adj(self, x: jax.Array) -> jax.Array:
         return _pyabel_transform(x, direction="transpose", proj_mat_quad=self.proj_mat_quad).astype(
             self.input_dtype
         )

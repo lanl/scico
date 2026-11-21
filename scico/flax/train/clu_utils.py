@@ -82,7 +82,7 @@ def count_parameters(params: PyTree) -> int:
         The number of parameters in the model.
     """
     flat_params = flatten_dict(params)
-    return sum(np.prod(v.shape) for v in flat_params.values())  # type: ignore
+    return sum(np.prod(v.shape) for v in flat_params.values())
 
 
 def get_parameter_rows(

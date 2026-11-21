@@ -68,7 +68,7 @@ class VerticalStack(VerticalStackOperator, LinearOperator):
 
         super().__init__(ops=ops, collapse_output=collapse_output, jit=jit, **kwargs)
 
-    def _adj(self, y: Union[Array, BlockArray]) -> Array:  # type: ignore
+    def _adj(self, y: Union[Array, BlockArray]) -> Array:
         return sum([op.adj(y_block) for y_block, op in zip(y, self.ops)])  # type: ignore
 
 
@@ -140,7 +140,7 @@ class DiagonalStack(DiagonalStackOperator, LinearOperator):
             **kwargs,
         )
 
-    def _adj(self, y: Union[Array, BlockArray]) -> Union[Array, BlockArray]:  # type: ignore
+    def _adj(self, y: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         result = tuple(op.T @ y_n for op, y_n in zip(self.ops, y))  # type: ignore
         if self.collapse_input:
             return snp.stack(result)

@@ -180,7 +180,7 @@ class CircularConvolve(LinearOperator):
                         np.exp(-1j * k * 2 * np.pi * np.arange(s) / s),
                         np.cos(k * np.pi),
                         np.exp(1j * k * 2 * np.pi * (s - np.arange(s)) / s),
-                    ],  # type: ignore
+                    ],
                 )
                 for k, s in zip(offset, input_shape[-self.ndims :])
             )
@@ -202,7 +202,7 @@ class CircularConvolve(LinearOperator):
             hx = hx.real
         return hx
 
-    def _adj(self, x: snp.Array) -> snp.Array:  # type: ignore
+    def _adj(self, x: snp.Array) -> snp.Array:
         x_dft = snp.fft.fftn(x, axes=self.ifft_axes)
         H_adj_x = snp.fft.ifftn(
             snp.conj(self.h_dft) * x_dft,

@@ -205,7 +205,7 @@ class PDHG(Optimizer):
             Current norm of primal residual.
         """
 
-        return norm(self.x - self.x_old) / self.tau  # type: ignore
+        return norm(self.x - self.x_old) / self.tau
 
     def norm_dual_residual(self) -> float:
         r"""Compute the :math:`\ell_2` norm of the dual residual.

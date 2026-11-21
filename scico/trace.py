@@ -398,7 +398,7 @@ def apply_decorator(
     for name, cls in inspect.getmembers(
         module, lambda obj: inspect.isclass(obj) and _in_module(module, obj)
     ):
-        qualname = cls.__module__ + "." + cls.__qualname__  # type: ignore
+        qualname = cls.__module__ + "." + cls.__qualname__
         if verbose:
             print(f"{indent}Class: {qualname}")
 
@@ -408,7 +408,7 @@ def apply_decorator(
         ):
             if name in skip:
                 continue
-            qualname = func.__module__ + "." + func.__qualname__  # type: ignore
+            qualname = func.__module__ + "." + func.__qualname__
             if not seen[qualname]:  # avoid multiple applications of decorator
                 # Can't use cls returned by inspect.getmembers because it uses plain
                 # getattr internally, which interferes with identification of static

@@ -79,7 +79,7 @@ class Function:
             ]
             dts_out = scico.eval_shape(self._eval, *dts_in)
         if output_shape is None:
-            self.output_shape = dts_out.shape  # type: ignore
+            self.output_shape = dts_out.shape
         else:
             self.output_shape = output_shape
         if output_dtype is None:

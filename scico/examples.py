@@ -473,7 +473,7 @@ def create_3d_foam_phantom(
     radii = r_std * np.random.randn(N_sphere) + r_mean
 
     im = np.zeros(im_shape) + c_lo
-    for c, r in zip(centers, radii):  # type: ignore
+    for c, r in zip(centers, radii):
         dist = np.sum((x - c) ** 2, axis=-1)
         select = im[dist < r**2]
         if select.size > 0 and np.mean(select - c_lo) < 0.01 * c_hi:
@@ -768,7 +768,7 @@ def spnoise(
     """
 
     if isinstance(img, np.ndarray):
-        spm = np.random.uniform(-1.0, 1.0, img.shape)  # type: ignore
+        spm = np.random.uniform(-1.0, 1.0, img.shape)
         imgn = img.copy()
         imgn[spm < nfrac - 1.0] = nmin
         imgn[spm > 1.0 - nfrac] = nmax
@@ -776,7 +776,7 @@ def spnoise(
         spm, key = random.uniform(shape=img.shape, minval=-1.0, maxval=1.0, seed=0)  # type: ignore
         imgn = img
         imgn = imgn.at[spm < nfrac - 1.0].set(nmin)  # type: ignore
-        imgn = imgn.at[spm > 1.0 - nfrac].set(nmax)  # type: ignore
+        imgn = imgn.at[spm > 1.0 - nfrac].set(nmax)
     return imgn
 
 

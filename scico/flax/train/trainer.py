@@ -462,7 +462,7 @@ class BasicFlaxTrainer:
         # Extract one copy of state
         state = jax_utils.unreplicate(state)
         if self.return_state:
-            return state, self.itstat_object  # type: ignore
+            return state, self.itstat_object
 
         dvar: ModelVarDict = {
             "params": state.params,

@@ -128,7 +128,7 @@ class TVNorm(Functional):
             if self.circular
             # non-circular boundary: shape of input array on non-differenced
             #    axes and one greater for axes that are differenced
-            else tuple([s + 1 if i in axes else s for i, s in enumerate(input_shape)])  # type: ignore
+            else tuple([s + 1 if i in axes else s for i, s in enumerate(input_shape)])
         )
         W = HaarTransform(w_input_shape, input_dtype=input_dtype, axes=axes, jit=True)  # type: ignore
         if self.circular:
@@ -143,12 +143,10 @@ class TVNorm(Functional):
             slce = (
                 snp.s_[:],
                 snp.s_[1],
-            ) + tuple(
-                [snp.s_[:-1] if i in axes else snp.s_[:] for i, s in enumerate(input_shape)]
-            )  # type: ignore
+            ) + tuple([snp.s_[:-1] if i in axes else snp.s_[:] for i, s in enumerate(input_shape)])
             # Replicate-pad to the right (resulting in a zero after finite differencing)
             # on all axes subject to finite differencing.
-            pad_width = [(0, 1) if i in axes else (0, 0) for i, s in enumerate(input_shape)]  # type: ignore
+            pad_width = [(0, 1) if i in axes else (0, 0) for i, s in enumerate(input_shape)]
             P = Pad(
                 input_shape, input_dtype=input_dtype, pad_width=pad_width, mode="edge", jit=True
             )

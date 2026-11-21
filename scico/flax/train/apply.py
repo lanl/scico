@@ -99,7 +99,7 @@ def only_apply(
                 variables = {
                     "params": state.params,
                     "batch_stats": state.batch_stats,
-                }  # type: ignore
+                }
                 print(get_parameter_overview(variables["params"]))
                 print(get_parameter_overview(variables["batch_stats"]))
             else:
@@ -142,4 +142,4 @@ def only_apply(
     # Remove leading dimension
     output = output.reshape((-1,) + output.shape[-3:])
 
-    return output, variables  # type: ignore
+    return output, variables

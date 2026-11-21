@@ -297,7 +297,7 @@ def jax_indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int, ...]:
     # This compiles each time it gets new arguments because all arguments are static.
     f = jax.jit(get_shape, static_argnums=(0, 1))
 
-    return tuple(t.item() for t in f(shape, idx))  # type: ignore
+    return tuple(t.item() for t in f(shape, idx))
 
 
 def pad_to_divisible(
@@ -391,7 +391,7 @@ def array_info(x: Union[BlockArray, Array]) -> str:
         array_type = "scico.numpy.BlockArray"
     else:
         raise TypeError("Unrecognized array type {type(x)}.")
-    totalbytes = np.sum(x.nbytes).item()  # type: ignore
+    totalbytes = np.sum(x.nbytes).item()
     return (
         f"""{array_type}
   shape:    {x.shape}
