@@ -203,7 +203,7 @@ class Tuner(ray.tune.Tuner):
         hyperopt: bool = True,
         verbose: bool = True,
         storage_path: Optional[str] = None,
-        **kwargs,
+        **kwargs: Any,
     ):
         """
         Args:

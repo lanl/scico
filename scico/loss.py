@@ -11,7 +11,7 @@
 import warnings
 from copy import copy
 from functools import wraps
-from typing import Callable, Optional, Union
+from typing import Any, Callable, Optional, Union
 
 import jax
 
@@ -100,7 +100,7 @@ class Loss(functional.Functional):
         return self.scale * self.f(self.A(x) - self.y)
 
     def prox(
-        self, v: Union[Array, BlockArray], lam: float = 1, **kwargs
+        self, v: Union[Array, BlockArray], lam: float = 1, **kwargs: Any
     ) -> Union[Array, BlockArray]:
         r"""Scaled proximal operator of loss function.
 
@@ -209,7 +209,7 @@ class SquaredL2Loss(Loss):
         return self.scale * snp.sum(self.W.diagonal * snp.abs(self.y - self.A(x)) ** 2)
 
     def prox(
-        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs: Any
     ) -> Union[Array, BlockArray]:
         if not isinstance(self.A, linop.LinearOperator):
             raise NotImplementedError(
@@ -357,7 +357,7 @@ class SquaredL2AbsLoss(Loss):
         return self.scale * snp.sum(self.W.diagonal * snp.abs(self.y - snp.abs(self.A(x))) ** 2)
 
     def prox(
-        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs: Any
     ) -> Union[Array, BlockArray]:
         if not self.has_prox:
             raise NotImplementedError("Method prox is not implemented.")
@@ -563,7 +563,7 @@ class SquaredL2SquaredAbsLoss(Loss):
         )
 
     def prox(
-        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs: Any
     ) -> Union[Array, BlockArray]:
         if not self.has_prox:
             raise NotImplementedError("Method prox is not implemented.")

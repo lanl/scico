@@ -156,7 +156,7 @@ def register_variable(var: Any, name: str) -> None:
     call_trace.instance_hash[hash] = name  # type: ignore
 
 
-def _call_wrapped_function(func: Callable, *args, **kwargs) -> Any:
+def _call_wrapped_function(func: Callable, *args: Any, **kwargs: Any) -> Any:
     """Call a wrapped function within the wrapper.
 
     Handle different call mechanisms required for static and class

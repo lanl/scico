@@ -109,7 +109,7 @@ class Crop(LinearOperator):
         input_shape: Shape,
         input_dtype: DType = snp.float32,
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""
         Args:
@@ -153,7 +153,7 @@ class Slice(LinearOperator):
         input_shape: Union[Shape, BlockShape],
         input_dtype: DType = snp.float32,
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""
         This operator may be applied to either a :class:`jax.Array` or a

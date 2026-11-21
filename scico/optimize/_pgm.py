@@ -11,7 +11,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Tuple, Union, cast
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 import scico.numpy as snp
 from scico.functional import Functional
@@ -66,7 +66,7 @@ class PGM(Optimizer):
         L0: float,
         x0: Union[Array, BlockArray],
         step_size: Optional[PGMStepSize] = None,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""
 
@@ -202,7 +202,7 @@ class AcceleratedPGM(PGM):
         L0: float,
         x0: Union[Array, BlockArray],
         step_size: Optional[PGMStepSize] = None,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""
         Args:

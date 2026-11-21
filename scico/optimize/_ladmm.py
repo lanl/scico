@@ -11,7 +11,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import scico.numpy as snp
 from scico.functional import Functional
@@ -89,7 +89,7 @@ class LinearizedADMM(Optimizer):
         mu: float,
         nu: float,
         x0: Optional[Union[Array, BlockArray]] = None,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""Initialize a :class:`LinearizedADMM` object.
 

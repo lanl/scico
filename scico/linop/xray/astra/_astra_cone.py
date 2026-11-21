@@ -23,7 +23,7 @@ to volume array axes 0, 1, and 2 respectively. The projected array axes 0,
 columns.
 """
 
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 
 import numpy as np
 
@@ -330,7 +330,7 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
             x = jax.device_put(x, device=self.input_sharding)
         return x
 
-    def fdk(self, sino: jax.Array, **kwargs) -> jax.Array:
+    def fdk(self, sino: jax.Array, **kwargs: Any) -> jax.Array:
         """Feldkamp-Davis-Kress (FDK) reconstruction.
 
         Perform tomographic reconstruction using the Feldkamp-Davis-Kress

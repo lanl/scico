@@ -11,7 +11,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import List, Optional, Union
+from typing import Any, List, Optional, Union
 
 import scico
 from scico import numpy as snp
@@ -88,7 +88,7 @@ class Functional:
         raise NotImplementedError(f"Functional {type(self)} cannot be evaluated.")
 
     def prox(
-        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs: Any
     ) -> Union[Array, BlockArray]:
         r"""Scaled proximal operator of functional.
 
@@ -118,7 +118,7 @@ class Functional:
         raise NotImplementedError(f"Functional {type(self)} does not have a prox.")
 
     def conj_prox(
-        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs: Any
     ) -> Union[Array, BlockArray]:
         r"""Scaled proximal operator of convex conjugate of functional.
 
@@ -183,7 +183,7 @@ class ScaledFunctional(Functional):
         return NotImplemented
 
     def prox(
-        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs: Any
     ) -> Union[Array, BlockArray]:
         r"""Evaluate the scaled proximal operator of the scaled functional.
 
@@ -263,7 +263,7 @@ class SeparableFunctional(Functional):
         )
 
     def prox(  # type: ignore[override]  # BlockArray only; see Functional.__call__
-        self, v: BlockArray, lam: float = 1.0, **kwargs
+        self, v: BlockArray, lam: float = 1.0, **kwargs: Any
     ) -> BlockArray:
         r"""Evaluate proximal operator of the separable functional.
 
@@ -339,7 +339,7 @@ class ComposedFunctional(Functional):
         return self.functional(self.linop(x))
 
     def prox(
-        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs: Any
     ) -> Union[Array, BlockArray]:
         r"""Evaluate proximal operator of a composed functional.
 
@@ -396,6 +396,6 @@ class ZeroFunctional(Functional):
         return 0.0
 
     def prox(
-        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs: Any
     ) -> Union[Array, BlockArray]:
         return v

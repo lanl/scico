@@ -8,6 +8,8 @@ This module contains the Config class which has all the settings that are
 used during the reconstruction of the tomogram.
 """
 
+from typing import Any
+
 import numpy as np
 
 
@@ -22,7 +24,7 @@ class Config:
         pixel_size_v: float,
         source_to_detector_dist: float,
         source_to_object_dist: float,
-        **kwargs,
+        **kwargs: Any,
     ):
         """
         Note that invalid arguments are neglected without warning.

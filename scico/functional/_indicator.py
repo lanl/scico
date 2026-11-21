@@ -7,7 +7,7 @@
 
 """Functionals that are indicator functions/constraints."""
 
-from typing import Union
+from typing import Any, Union
 
 import jax
 
@@ -42,7 +42,7 @@ class NonNegativeIndicator(Functional):
         return jax.lax.cond(snp.any(x < 0), lambda x: snp.inf, lambda x: 0.0, None)
 
     def prox(
-        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs: Any
     ) -> Union[Array, BlockArray]:
         r"""The scaled proximal operator of the non-negative indicator.
 
@@ -100,7 +100,7 @@ class L2BallIndicator(Functional):
         return jax.lax.cond(norm(x) > self.radius, lambda x: snp.inf, lambda x: 0.0, None)
 
     def prox(
-        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs: Any
     ) -> Union[Array, BlockArray]:
         r"""The scaled proximal operator of the :math:`\ell_2` ball indicator.
 
@@ -154,7 +154,7 @@ class BoxIndicator(Functional):
         return jax.lax.cond(snp.all(constr), lambda x: 0.0, lambda x: snp.inf, None)
 
     def prox(
-        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs
+        self, v: Union[Array, BlockArray], lam: float = 1.0, **kwargs: Any
     ) -> Union[Array, BlockArray]:
         r"""The scaled proximal operator of the box indicator.
 

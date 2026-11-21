@@ -8,7 +8,7 @@
 """Circular convolution linear operator."""
 
 import math
-from typing import Optional, Sequence, Tuple, Union
+from typing import Any, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -91,7 +91,7 @@ class CircularConvolve(LinearOperator):
         h_is_dft: bool = False,
         h_center: Optional[Union[snp.Array, np.ndarray, Sequence, float, int]] = None,
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         """
         Args:

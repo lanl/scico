@@ -11,7 +11,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import Literal, Optional, Union
+from typing import Any, Literal, Optional, Union
 
 import numpy as np
 
@@ -53,7 +53,7 @@ class FiniteDifference(VerticalStack):
         append: Optional[Union[Literal[0], Literal[1]]] = None,
         circular: bool = False,
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""
         Args:
@@ -163,7 +163,7 @@ class SingleAxisFiniteDifference(LinearOperator):
         append: Optional[Union[Literal[0], Literal[1]]] = None,
         circular: bool = False,
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""
         Args:

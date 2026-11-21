@@ -9,7 +9,7 @@
 
 from __future__ import annotations
 
-from typing import Optional, Sequence, Tuple, Union
+from typing import Any, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -65,7 +65,7 @@ class VerticalStack(Operator):
         ops: Sequence[Operator],
         collapse_output: Optional[bool] = True,
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""
         Args:
@@ -170,7 +170,7 @@ class DiagonalStack(Operator):
         collapse_input: Optional[bool] = True,
         collapse_output: Optional[bool] = True,
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         """
         Args:
@@ -267,7 +267,7 @@ class DiagonalReplicated(Operator):
         input_axis: int = 0,
         output_axis: Optional[int] = None,
         map_type: str = "auto",
-        **kwargs,
+        **kwargs: Any,
     ):
         """
         Args:

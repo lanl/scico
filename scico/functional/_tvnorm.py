@@ -8,7 +8,7 @@
 """Total variation norms."""
 
 from functools import partial
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 
 import jax
 
@@ -208,7 +208,7 @@ class TVNorm(Functional):
         return (1.0 / K) * CWT(WPv)
 
     def prox(  # type: ignore[override]  # Array only; see Functional.__call__
-        self, v: Array, lam: float = 1.0, **kwargs
+        self, v: Array, lam: float = 1.0, **kwargs: Any
     ) -> Array:
         r"""Approximate scaled proximal operator of the TV norm.
 
@@ -380,7 +380,7 @@ class SingleAxisFiniteSum(LinearOperator):
         input_dtype: DType = snp.float32,
         axis: int = -1,
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""
         Args:
@@ -433,7 +433,7 @@ class FiniteSum(VerticalStack):
         input_dtype: DType = snp.float32,
         axes: Optional[Axes] = None,
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""
         Args:
@@ -475,7 +475,7 @@ class SingleAxisHaarTransform(VerticalStack):
         input_dtype: DType = snp.float32,
         axis: int = -1,
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""
         Args:
@@ -515,7 +515,7 @@ class HaarTransform(VerticalStack):
         input_dtype: DType = snp.float32,
         axes: Optional[Axes] = None,
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""
         Args:

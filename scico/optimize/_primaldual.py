@@ -12,7 +12,7 @@
 from __future__ import annotations
 
 import math
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from jax import Device
 from jax.sharding import Sharding
@@ -106,7 +106,7 @@ class PDHG(Optimizer):
         alpha: float = 1.0,
         x0: Optional[Union[Array, BlockArray]] = None,
         z0: Optional[Union[Array, BlockArray]] = None,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""Initialize a :class:`PDHG` object.
 

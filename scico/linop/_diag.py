@@ -10,7 +10,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 import scico.numpy as snp
 from scico.numpy import Array, BlockArray
@@ -31,7 +31,7 @@ class Diagonal(LinearOperator):
         diagonal: Union[Array, BlockArray],
         input_shape: Optional[Union[Shape, BlockShape]] = None,
         input_dtype: Optional[DType] = None,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""
         Args:
@@ -160,7 +160,7 @@ class ScaledIdentity(Diagonal):
         scalar: float,
         input_shape: Union[Shape, BlockShape],
         input_dtype: DType = snp.float32,
-        **kwargs,
+        **kwargs: Any,
     ):
         """
         Args:
@@ -272,7 +272,7 @@ class Identity(ScaledIdentity):
     """Identity operator."""
 
     def __init__(
-        self, input_shape: Union[Shape, BlockShape], input_dtype: DType = snp.float32, **kwargs
+        self, input_shape: Union[Shape, BlockShape], input_dtype: DType = snp.float32, **kwargs: Any
     ):
         """
         Args:

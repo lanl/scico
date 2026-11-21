@@ -11,6 +11,8 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 
 from jax.dtypes import result_type
@@ -38,7 +40,7 @@ class Convolve(LinearOperator):
         input_dtype: DType = np.float32,
         mode: str = "full",
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""Wrap :func:`jax.scipy.signal.convolve` as a :class:`.LinearOperator`.
 
@@ -160,7 +162,7 @@ class ConvolveByX(LinearOperator):
         input_dtype: DType = np.float32,
         mode: str = "full",
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""
 

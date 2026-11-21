@@ -52,7 +52,7 @@ class VerticalStack(VerticalStackOperator, LinearOperator):
         ops: Sequence[LinearOperator],
         collapse_output: Optional[bool] = True,
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""
         Args:
@@ -117,7 +117,7 @@ class DiagonalStack(DiagonalStackOperator, LinearOperator):
         collapse_input: Optional[bool] = True,
         collapse_output: Optional[bool] = True,
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         """
         Args:
@@ -194,7 +194,7 @@ class DiagonalReplicated(DiagonalReplicatedOperator, LinearOperator):
         input_axis: int = 0,
         output_axis: Optional[int] = None,
         map_type: str = "auto",
-        **kwargs,
+        **kwargs: Any,
     ):
         """
         Args:

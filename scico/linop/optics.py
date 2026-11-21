@@ -127,7 +127,7 @@ class Propagator(LinearOperator):
         k0: float,
         z: float,
         pad_factor: int = 1,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""
         Args:
@@ -261,7 +261,7 @@ class AngularSpectrumPropagator(Propagator):
         z: float,
         pad_factor: int = 1,
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""
         Args:
@@ -375,7 +375,7 @@ class FresnelPropagator(Propagator):
         z: float,
         pad_factor: int = 1,
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         super().__init__(
             input_shape=input_shape, dx=dx, k0=k0, z=z, pad_factor=pad_factor, **kwargs
@@ -476,7 +476,7 @@ class FraunhoferPropagator(LinearOperator):
         k0: float,
         z: float,
         jit: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""
         Args:

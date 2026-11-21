@@ -11,7 +11,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from jax import Device
 from jax.sharding import Sharding
@@ -68,7 +68,7 @@ class ProximalADMMBase(Optimizer):
         z0: Optional[Union[Array, BlockArray]] = None,
         u0: Optional[Union[Array, BlockArray]] = None,
         fast_dual_residual: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""Initialize a :class:`ProximalADMMBase` object.
 
@@ -240,7 +240,7 @@ class ProximalADMM(ProximalADMMBase):
         z0: Optional[Union[Array, BlockArray]] = None,
         u0: Optional[Union[Array, BlockArray]] = None,
         fast_dual_residual: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""Initialize a :class:`ProximalADMM` object.
 
@@ -478,7 +478,7 @@ class NonLinearPADMM(ProximalADMMBase):
         z0: Optional[Union[Array, BlockArray]] = None,
         u0: Optional[Union[Array, BlockArray]] = None,
         fast_dual_residual: bool = True,
-        **kwargs,
+        **kwargs: Any,
     ):
         r"""Initialize a :class:`NonLinearPADMM` object.
 
