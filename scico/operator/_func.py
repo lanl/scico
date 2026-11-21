@@ -37,7 +37,7 @@ def operator_from_function(f: Callable, classname: str, f_name: Optional[str] = 
         classname: Name of the resulting class.
         f_name: Name of `f` for use in docstrings. Useful for getting
             the correct version of wrapped functions. Defaults to
-            `f"{f.__module__}.{f.__name__}"`.
+            :code:`f"{f.__module__}.{f.__name__}"`.
     """
 
     if f_name is None:

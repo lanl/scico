@@ -81,14 +81,14 @@ def radial_transverse_frequency(
             samples per dimension, i.e. :math:`(N_x,)` or
             :math:`(N_x, N_y)`
         dx: Sampling interval at source plane. If a float and
-            `len(input_shape)==2` the same sampling interval is applied
+            :code:`len(input_shape)==2` the same sampling interval is applied
             to both dimensions. If `dx` is a tuple, it must have same
             length as `input_shape`, and corresponds to either
             :math:`(\Delta x,)` or :math:`(\Delta x, \Delta y)`.
 
     Returns:
-        If `len(input_shape)==1`, returns an ndarray containing
-        corresponding Fourier coordinates. If `len(input_shape) == 2`,
+        If :code:`len(input_shape)==1`, returns an ndarray containing
+        corresponding Fourier coordinates. If :code:`len(input_shape) == 2`,
         returns an ndarray containing the radial Fourier coordinates
         :math:`\sqrt{k_x^2 + k_y^2}\,`.
     """
@@ -135,7 +135,7 @@ class Propagator(LinearOperator):
                1 or 2, corresponding to :math:`(N_x,)` or
                :math:`(N_x, N_y)`.
             dx: Sampling interval at source plane. If a float and
-               `len(input_shape)==2` the same sampling interval is applied
+               :code:`len(input_shape)==2` the same sampling interval is applied
                to both dimensions. If `dx` is a tuple, it must have same
                length as `input_shape`, and corresponds to either
                :math:`(\Delta x,)` or :math:`(\Delta x, \Delta y)`.
@@ -265,7 +265,7 @@ class AngularSpectrumPropagator(Propagator):
             input_shape: Shape of input array. Can be a tuple of length
                2 or 3.
             dx: Sampling interval, :math:`\Delta x`, at source plane. If
-               a float and `len(input_shape)==2` the same sampling
+               a float and :code:`len(input_shape)==2` the same sampling
                interval is applied to both dimensions. If `dx` is a tuple,
                must have same length as `input_shape`.
             k0: Illumination wavenumber, :math:`k_0`, corresponding to
@@ -476,7 +476,7 @@ class FraunhoferPropagator(LinearOperator):
                1 or 2, corresponding to :math:`(N_x,)` or
                :math:`(N_x, N_y)`.
             dx: Sampling interval at source plane. If a float and
-               `len(input_shape)==2` the same sampling interval is applied
+               :code:`len(input_shape)==2` the same sampling interval is applied
                to both dimensions. If `dx` is a tuple, it must have same
                length as `input_shape`, and corresponds to either
                :math:`(\Delta x,)` or :math:`(\Delta x, \Delta y)`.

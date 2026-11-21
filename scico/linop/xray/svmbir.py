@@ -78,8 +78,8 @@ class XRayTransform(LinearOperator):
     ):
         """
         The output of this linear operator is an array of shape
-        `(num_angles, num_channels)` when input_shape is 2D, or of shape
-        `(num_angles, num_slices, num_channels)` when input_shape is 3D,
+        :code:`(num_angles, num_channels)` when input_shape is 2D, or of shape
+        :code:`(num_angles, num_slices, num_channels)` when input_shape is 3D,
         where `num_angles` is the length of the `angles` argument, and
         `num_slices` is inferred from the `input_shape` argument.
 
@@ -91,9 +91,9 @@ class XRayTransform(LinearOperator):
         Args:
             input_shape: Shape of the input array. May be of length 2 (a
                 2D array) or 3 (a 3D array). When specifying a 2D array,
-                the format for the input_shape is `(num_rows, num_cols)`.
+                the format for the input_shape is :code:`(num_rows, num_cols)`.
                 For a 3D array, the format for the input_shape is
-                `(num_slices, num_rows, num_cols)`, where `num_slices`
+                :code:`(num_slices, num_rows, num_cols)`, where `num_slices`
                 denotes the number of slices in the input, and `num_rows`
                 and `num_cols` denote the number of rows and columns in a
                 single slice of the input. A slice is a plane
@@ -101,8 +101,8 @@ class XRayTransform(LinearOperator):
                 system. At angle zero, each row is oriented along the
                 X-rays (parallel beam) or the X-ray beam directed toward
                 the detector center (fan beam).  Note that
-                `input_shape=(num_rows, num_cols)` and
-                `input_shape=(1, num_rows, num_cols)` result in the
+                :code:`input_shape=(num_rows, num_cols)` and
+                :code:`input_shape=(1, num_rows, num_cols)` result in the
                 same underlying projector.
             angles: Array of projection angles in radians, should be
                 increasing.
@@ -322,7 +322,7 @@ class SVMBIRExtendedLoss(Loss):
     to :class:`scico.linop.Identity`.
 
     The extended loss differs from a typical weighted squared
-    :math:`\ell_2` loss as follows. When `positivity=True`, the prox
+    :math:`\ell_2` loss as follows. When :code:`positivity=True`, the prox
     projects onto the non-negative orthant and the loss is infinite if
     any element of the input is negative. When the `is_masked` option
     of the associated :class:`.XRayTransform` is ``True``, the

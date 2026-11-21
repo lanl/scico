@@ -372,7 +372,7 @@ def _cbrt(x: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
     """Compute the cube root of the argument.
 
     The two standard options for computing the cube root of an array are
-    :func:`numpy.cbrt`, or raising to the power of (1/3), i.e. `x ** (1/3)`.
+    :func:`numpy.cbrt`, or raising to the power of (1/3), i.e. :code:`x ** (1/3)`.
     The former cannot be used for complex values, and the latter returns
     a complex root of a negative real value. This functions can be used
     for both real and complex values, and returns the real root of

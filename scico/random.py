@@ -75,7 +75,7 @@ def _add_seed(fun):
            argument that is used to create a :func:`jax.random.key`
            that is passed along as the `key`. The `key` argument may
            still be used, but is moved to be second-to-last. By default,
-           `seed=0`. The `seed` argument is added last. Other arguments
+           :code:`seed=0`. The `seed` argument is added last. Other arguments
            are unchanged.
     """
 

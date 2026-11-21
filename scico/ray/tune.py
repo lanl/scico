@@ -120,7 +120,7 @@ def run(
             value and the parameters at which it was reported.
         storage_path: Directory in which to save tuning results. Defaults to
             a subdirectory "<username>/ray_results" within the path returned by
-            `tempfile.gettempdir()`, corresponding e.g. to
+            :code:`tempfile.gettempdir()`, corresponding e.g. to
             "/tmp/<username>/ray_results" under Linux.
 
     Returns:
@@ -237,7 +237,7 @@ class Tuner(ray.tune.Tuner):
               value and the parameters at which it was reported.
            storage_path: Directory in which to save tuning results. Defaults
               to a subdirectory "<username>/ray_results" within the path
-              returned by `tempfile.gettempdir()`, corresponding e.g. to
+              returned by :code:`tempfile.gettempdir()`, corresponding e.g. to
               "/tmp/<username>/ray_results" under Linux.
         """
 

@@ -33,7 +33,7 @@ class BiConvolve(Operator):
     the second.
 
     If `A` is a :class:`.BiConvolve` operator, then
-    `A(snp.blockarray([x, h]))` equals `jax.scipy.signal.convolve(x, h)`.
+    :code:`A(snp.blockarray([x, h]))` equals :code:`jax.scipy.signal.convolve(x, h)`.
 
     """
 
@@ -87,8 +87,8 @@ class BiConvolve(Operator):
         Return a new :class:`.LinearOperator` with block argument
         `argnum` fixed to value `val`.
 
-        If `argnum == 0`, a :class:`.ConvolveByX` object is returned.
-        If `argnum == 1`, a :class:`.Convolve` object is returned.
+        If :code:`argnum == 0`, a :class:`.ConvolveByX` object is returned.
+        If :code:`argnum == 1`, a :class:`.Convolve` object is returned.
 
         Args:
             argnum: Index of block to freeze. Must be 0 or 1.

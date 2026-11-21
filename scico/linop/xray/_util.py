@@ -138,7 +138,7 @@ def image_alignment_rotation(
     the image with the vertical axis.
 
     The approach is roughly based on that used in the
-    `find_img_rotation_2D` function in the `cSAXS base package`
+    `find_img_rotation_2D` function in the cSAXS base package
     released by the CXS group at the Paul Scherrer Institute, which
     finds the rotation angle that results in the sparsest column sum
     according to the sparsity measure proposed in Sec 3.1 of

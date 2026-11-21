@@ -113,7 +113,7 @@ def normalize_axes(
            If not ``None``, `axes` is checked to make sure its entries
            refer to axes that exist in `shape`.
         default: Default value to return if `axes` is ``None``. By
-           default, `tuple(range(len(shape)))`.
+           default, :code:`tuple(range(len(shape)))`.
         sort: If ``True``, sort the returned axis indices.
 
     Returns:
@@ -302,14 +302,14 @@ def pad_to_divisible(
 def no_nan_divide(
     x: Union[snp.BlockArray, snp.Array], y: Union[snp.BlockArray, snp.Array]
 ) -> Union[snp.BlockArray, snp.Array]:
-    """Return `x/y`, with 0 instead of :data:`~numpy.NaN` where `y` is 0.
+    """Return :code:`x/y`, with 0 instead of :data:`~numpy.NaN` where `y` is 0.
 
     Args:
         x: Numerator.
         y: Denominator.
 
     Returns:
-        `x / y` with 0 wherever `y == 0`.
+        :code:`x / y` with 0 wherever :code:`y == 0`.
     """
 
     return snp.where(y != 0, snp.divide(x, snp.where(y != 0, y, 1)), 0)
@@ -409,7 +409,7 @@ def is_array(x: Any) -> bool:
 def is_arraylike(x: Any) -> bool:
     """Check if input is of type :class:`jax.typing.ArrayLike`.
 
-    `isinstance(x, jax.typing.ArrayLike)` does not work in Python < 3.10,
+    :code:`isinstance(x, jax.typing.ArrayLike)` does not work in Python < 3.10,
     see https://jax.readthedocs.io/en/latest/jax.typing.html#jax-typing-best-practices.
 
     Args:

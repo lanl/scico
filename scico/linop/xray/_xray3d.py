@@ -36,7 +36,7 @@ class XRayTransform3D(LinearOperator):
     with shape (2, 4) that specifies a :math:`2 \times 3` projection
     matrix and a :math:`2 \times 1` offset vector. Denoting the matrix
     by :math:`\mathbf{M}` and the offset by :math:`\mathbf{t}`, a voxel
-    at array index `(i, j, k)` has its center projected to the detector
+    at array index :code:`(i, j, k)` has its center projected to the detector
     coordinates
 
     .. math::
@@ -44,7 +44,7 @@ class XRayTransform3D(LinearOperator):
         i + \frac{1}{2} \\ j + \frac{1}{2} \\ k + \frac{1}{2}
         \end{bmatrix} + \mathbf{t} \,.
 
-    The detector pixel at index `(i, j)` covers detector coordinates
+    The detector pixel at index :code:`(i, j)` covers detector coordinates
     :math:`[i+1) \times [j+1)`.
 
     :meth:`XRayTransform3D.matrices_from_euler_angles` can help to
@@ -292,9 +292,9 @@ class XRayTransform3D(LinearOperator):
             degrees: If ``True``, angles are in degrees, otherwise
                 radians. Default: ``True``, radians.
             voxel_spacing: (3,) array giving the spacing of image
-                voxels.  Default: `[1.0, 1.0, 1.0]`. Experimental.
+                voxels.  Default: :code:`[1.0, 1.0, 1.0]`. Experimental.
             det_spacing: (2,) array giving the spacing of detector
-                pixels.  Default: `[1.0, 1.0]`. Experimental.
+                pixels.  Default: :code:`[1.0, 1.0]`. Experimental.
 
 
         Returns:

@@ -67,7 +67,7 @@ class BlockArray:
     def dtype(self) -> np.dtype:
         """Return the dtype of the blocks, which must currently be homogeneous.
 
-        This allows `snp.zeros(x.shape, x.dtype)` to work without a mechanism
+        This allows :code:`snp.zeros(x.shape, x.dtype)` to work without a mechanism
         to handle lists of dtypes.
         """
         return self.arrays[0].dtype

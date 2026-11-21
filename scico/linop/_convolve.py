@@ -38,7 +38,7 @@ class Convolve(LinearOperator):
 
         Args:
             h: Convolutional filter. Must have same number of dimensions
-                as `len(input_shape)`.
+                as :code:`len(input_shape)`.
             input_shape: Shape of input array.
             input_dtype: `dtype` for input argument. Defaults to
                 :attr:`~numpy.float32`.
@@ -137,8 +137,8 @@ class Convolve(LinearOperator):
 class ConvolveByX(LinearOperator):
     """A LinearOperator that performs convolution as a function of the first argument.
 
-    The :class:`LinearOperator` `ConvolveByX(x=x)(y)` implements
-    `jax.scipy.signal.convolve(x, y)`.
+    The :class:`LinearOperator` :code:`ConvolveByX(x=x)(y)` implements
+    :code:`jax.scipy.signal.convolve(x, y)`.
     """
 
     def __init__(
@@ -154,7 +154,7 @@ class ConvolveByX(LinearOperator):
 
         Args:
             x: Convolutional filter. Must have same number of dimensions
-                as `len(input_shape)`.
+                as :code:`len(input_shape)`.
             input_shape: Shape of input array.
             input_dtype: `dtype` for input argument. Defaults to
                 :attr:`~numpy.float32`.

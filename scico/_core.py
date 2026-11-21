@@ -194,8 +194,8 @@ def cvjp(fun: Callable, *primals, jidx: Optional[int] = None) -> Tuple[Tuple[Any
            to which the Jacobian is taken.
 
     Returns:
-        A pair `(primals_out, conj_vjp)` where `primals_out` is the
-        output of `fun` evaluated at `primals`, i.e. `primals_out
+        A pair :code:`(primals_out, conj_vjp)` where `primals_out` is the
+        output of `fun` evaluated at `primals`, i.e. :code:`primals_out
         = fun(*primals)`, and `conj_vjp` is a function that computes the
         product of the conjugate (Hermitian) transpose of the Jacobian of
         `fun` and its argument. If the `jidx` parameter is an integer,

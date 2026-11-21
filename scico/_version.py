@@ -15,10 +15,10 @@ from typing import Any, Optional, Tuple, Union
 
 
 def root_init_path() -> str:  # pragma: no cover
-    """Get the path to the package root `__init__.py` file.
+    """Get the path to the package root ``__init__.py`` file.
 
     Returns:
-       Path to the package root `__init__.py` file.
+       Path to the package root ``__init__.py`` file.
     """
     return os.path.join(os.path.dirname(__file__), "__init__.py")
 
@@ -48,7 +48,7 @@ def variable_assign_value(path: str, var: str) -> Any:
 
 
 def init_variable_assign_value(var: str) -> Any:  # pragma: no cover
-    """Get variable initialization value from package `__init__.py` file.
+    """Get variable initialization value from package ``__init__.py`` file.
 
     Args:
         var: Name of variable.

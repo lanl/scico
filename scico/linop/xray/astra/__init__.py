@@ -19,10 +19,10 @@ The 3D projection functions here refer to three coordinate systems: world
 coordinates, volume coordinates, and detector coordinates. World
 coordinates are 3D coordinates representing a point in physical space.
 Volume coordinates refer to a position in the reconstruction volume,
-where the voxel with its intensity value stored at `vol[i, j, k]` has
+where the voxel with its intensity value stored at :code:`vol[i, j, k]` has
 its center at volume coordinate (i+0.5, j+0.5, k+0.5) and side lengths of
 1. Detector coordinates refer to a position on the detector array, and
-the pixel at `det[i, j]` has its center at detector coordinates (i+0.5,
+the pixel at :code:`det[i, j]` has its center at detector coordinates (i+0.5,
 j+0.5) and side lengths of one.
 """
 

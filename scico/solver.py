@@ -161,8 +161,8 @@ def _join_real_imag(x: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         x: Array to join.
 
     Returns:
-        A complex array with real and imaginary parts taken from `x[0]`
-        and `x[1]` respectively.
+        A complex array with real and imaginary parts taken from :code:`x[0]`
+        and :code:`x[1]` respectively.
     """
     if isinstance(x, BlockArray):
         return snp.blockarray([_join_real_imag(_) for _ in x])
@@ -347,9 +347,9 @@ def cg(
           parameter need not be specified, and defaults to a zero array.
           Otherwise, it is required.
         tol: Relative residual stopping tolerance. Convergence occurs
-           when `norm(residual) <= max(tol * norm(b), atol)`.
+           when :code:`norm(residual) <= max(tol * norm(b), atol)`.
         atol: Absolute residual stopping tolerance. Convergence occurs
-           when `norm(residual) <= max(tol * norm(b), atol)`.
+           when :code:`norm(residual) <= max(tol * norm(b), atol)`.
         maxiter: Maximum iterations. Default: 1000.
         info: If ``True`` return a tuple consting of the solution array
            and a dictionary containing diagnostic information, otherwise
@@ -432,9 +432,9 @@ def lstsq(
           parameter need not be specified, and defaults to a zero array.
           Otherwise, it is required.
         tol: Relative residual stopping tolerance. Convergence occurs
-           when `norm(residual) <= max(tol * norm(b), atol)`.
+           when :code:`norm(residual) <= max(tol * norm(b), atol)`.
         atol: Absolute residual stopping tolerance. Convergence occurs
-           when `norm(residual) <= max(tol * norm(b), atol)`.
+           when :code:`norm(residual) <= max(tol * norm(b), atol)`.
         maxiter: Maximum iterations. Default: 1000.
         info: If ``True`` return a tuple consting of the solution array
            and a dictionary containing diagnostic information, otherwise
@@ -483,7 +483,7 @@ def bisect(
     simultaneous finding of multiple roots on a function defined over a
     multi-dimensional array. When the function is array-valued, each of
     these values is treated as the independent application of a scalar
-    function. The initial interval `[a, b]` must bracket the root for all
+    function. The initial interval :code:`[a, b]` must bracket the root for all
     scalar functions.
 
     The interface is similar to that of :func:`scipy.optimize.bisect`,
@@ -501,13 +501,13 @@ def bisect(
             over array.
         maxiter: Maximum number of algorithm iterations.
         full_output: If ``False``, return just the root, otherwise return a
-            tuple `(x, info)` where `x` is the root and `info` is a dict
+            tuple :code:`(x, info)` where `x` is the root and `info` is a dict
             containing algorithm status information.
         range_check: If ``True``, check to ensure that the initial
-            `[a, b]` range brackets the root of `f`.
+            :code:`[a, b]` range brackets the root of `f`.
 
     Returns:
-        tuple: A tuple `(x, info)` containing:
+        tuple: A tuple :code:`(x, info)` containing:
 
             - **x** : Root array.
             - **info**: Dictionary containing diagnostic information.
@@ -556,7 +556,7 @@ def golden(
     simultaneous minimization of a function defined over a
     multi-dimensional array. When the function is array-valued, each of
     these values is treated as the independent application of a scalar
-    function. The minimizer must lie within the interval `(a, b)` for all
+    function. The minimizer must lie within the interval :code:`(a, b)` for all
     scalar functions, and, if specified `c` must be within that interval.
 
 
@@ -569,17 +569,17 @@ def golden(
         a: Lower bound of interval on which to search.
         b: Upper bound of interval on which to search.
         c: Initial value for first search point interior to bounding
-            interval `(a, b)`
+            interval :code:`(a, b)`
         args: Additional arguments for function `f`.
         xtol: Stopping tolerance based on maximum search interval length
             over array.
         maxiter: Maximum number of algorithm iterations.
         full_output: If ``False``, return just the minizer, otherwise
-            return a tuple `(x, info)` where `x` is the minimizer and
+            return a tuple :code:`(x, info)` where `x` is the minimizer and
             `info` is a dict containing algorithm status information.
 
     Returns:
-        tuple: A tuple `(x, info)` containing:
+        tuple: A tuple :code:`(x, info)` containing:
 
             - **x** : Minimizer array.
             - **info**: Dictionary containing diagnostic information.

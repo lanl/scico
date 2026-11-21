@@ -17,10 +17,10 @@ that it can be referenced by name in the call trace.
 The call trace is color-code as follows if
 `colorama <https://github.com/tartley/colorama>`_ is installed:
 
-- `module and class names`: light red
-- `function and method names`: dark red
-- `arguments and return values`: light blue
-- `names of registered variables`: light yellow
+- *module and class names*: light red
+- *function and method names*: dark red
+- *arguments and return values*: light blue
+- *names of registered variables*: light yellow
 
 When a method defined in a class is called for an object of a derived
 class type, the class of that object is displayed in light magenta, in

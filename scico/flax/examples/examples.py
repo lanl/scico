@@ -62,9 +62,9 @@ def load_ct_data(
 
     If no cached file is found or not enough data is contained in the
     file a new data set is generated and stored in `cache_path`. The
-    data is stored in `.npz` format for convenient access via
+    data is stored in ``.npz`` format for convenient access via
     :func:`numpy.load`. The data is saved in two distinct files:
-    `ct_foam2_train.npz` and `ct_foam2_test.npz` to keep separated
+    ``ct_foam2_train.npz`` and ``ct_foam2_test.npz`` to keep separated
     training and testing partitions.
 
     Args:
@@ -194,9 +194,9 @@ def load_blur_data(
 
     If no cached file is found or not enough data is contained in the
     file a new data set is generated and stored in `cache_path`. The
-    data is stored in `.npz` format for convenient access via
+    data is stored in ``.npz`` format for convenient access via
     :func:`numpy.load`. The data is saved in two distinct files:
-    `dcnv_foam1_train.npz` and `dcnv_foam1_test.npz` to keep separated
+    ``dcnv_foam1_train.npz`` and ``dcnv_foam1_test.npz`` to keep separated
     training and testing partitions.
 
     Args:
@@ -357,9 +357,9 @@ def load_image_data(
 
     If no cached file is found or not enough images were sampled and
     stored in the file, a new data set is generated and stored in
-    `cache_path`. The data is stored in `.npz` format for convenient
+    `cache_path`. The data is stored in ``.npz`` format for convenient
     access via :func:`numpy.load`. The data is saved in two distinct
-    files: `*_bsds_train.npz` and `*_bsds_test.npz` to keep separated
+    files: ``*_bsds_train.npz`` and ``*_bsds_test.npz`` to keep separated
     training and testing partitions. The * stands for `dn` if
     denoising problem or `dcnv` if deconvolution problem. Other types
     of pre-processings may be specified via the `transf` operator.
