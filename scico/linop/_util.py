@@ -190,7 +190,7 @@ def valid_adjoint(
     return float(err) < eps
 
 
-def jacobian(F: Operator, u: snp.Array, include_eval: Optional[bool] = False) -> LinearOperator:
+def jacobian(F: Operator, u: snp.Array, include_eval: bool = False) -> LinearOperator:
     """Construct Jacobian linear operator for a general operator.
 
     For a specified :class:`.Operator`, construct a corresponding

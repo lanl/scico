@@ -189,7 +189,7 @@ class Function:
         return F.jvp(var_arg, v)
 
     def vjp(
-        self, index: int, *args: Union[Array, BlockArray], conjugate: Optional[bool] = True
+        self, index: int, *args: Union[Array, BlockArray], conjugate: bool = True
     ) -> Tuple[Tuple[Any, ...], Callable]:
         """Vector-Jacobian product with respect to a single parameter.
 
@@ -215,7 +215,7 @@ class Function:
         return F.vjp(var_arg, conjugate=conjugate)
 
     def jacobian(
-        self, index: int, *args: Union[Array, BlockArray], include_eval: Optional[bool] = False
+        self, index: int, *args: Union[Array, BlockArray], include_eval: bool = False
     ) -> LinearOperator:
         """Construct Jacobian linear operator for the function.
 

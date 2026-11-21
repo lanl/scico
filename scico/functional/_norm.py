@@ -8,7 +8,7 @@
 """Functionals that are norms."""
 
 from functools import partial
-from typing import Any, Optional, Tuple, Union
+from typing import Any, Tuple, Union
 
 from jax import jit, lax
 
@@ -247,7 +247,7 @@ class L21Norm(Functional):
     @staticmethod
     @partial(jit, static_argnames=("axis", "keepdims"))
     def _l2norm(
-        x: Union[Array, BlockArray], axis: Union[None, int, Tuple], keepdims: Optional[bool] = False
+        x: Union[Array, BlockArray], axis: Union[None, int, Tuple], keepdims: bool = False
     ) -> Union[Array, BlockArray]:
         r"""Return the :math:`\ell_2` norm of an array."""
         return snp.sqrt((snp.abs(x) ** 2).sum(axis=axis, keepdims=keepdims))

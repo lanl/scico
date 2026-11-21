@@ -75,7 +75,7 @@ def map_func_over_args(
     func: Callable,
     map_if_nested_args: Optional[list[str]] = [],
     map_if_list_args: Optional[list[str]] = [],
-    is_void: Optional[bool] = False,
+    is_void: bool = False,
 ):
     """
     Wrap a function so that it automatically maps over its arguments,
