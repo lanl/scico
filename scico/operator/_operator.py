@@ -68,8 +68,8 @@ class Operator:
 
     def __init__(
         self,
-        input_shape: Union[Shape, BlockShape],
-        output_shape: Optional[Union[Shape, BlockShape]] = None,
+        input_shape: Union[int, Shape, BlockShape],
+        output_shape: Optional[Union[int, Shape, BlockShape]] = None,
         eval_fn: Optional[Callable] = None,
         input_dtype: DType = np.float32,
         output_dtype: Optional[DType] = None,
@@ -77,10 +77,14 @@ class Operator:
     ):
         r"""
         Args:
-            input_shape: Shape of input array.
+            input_shape: Shape of input array. A bare integer is
+                accepted as a shorthand for a one-dimensional shape, and
+                is recorded in the `input_shape` attribute as a
+                length-one tuple.
             output_shape: Shape of output array. Defaults to ``None``.
                 If ``None``, `output_shape` is determined by evaluating
-                `self.__call__` on an input array of zeros.
+                `self.__call__` on an input array of zeros. A bare
+                integer is accepted, as for `input_shape`.
             eval_fn: Function used in evaluating this :class:`.Operator`.
                 Defaults to ``None``. Required unless `__init__` is being
                 called from a derived class with an `_eval` method.
