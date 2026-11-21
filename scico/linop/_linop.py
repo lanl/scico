@@ -30,7 +30,7 @@ from scico.typing import BlockShape, DType, Shape
 def _wrap_add_sub(func: Callable) -> Callable:
     r"""Wrapper function for defining `__add__` and `__sub__`.
 
-    Wrapper function for defining `__add__` and ` __sub__` between
+    Wrapper function for defining `__add__` and `__sub__` between
     :class:`LinearOperator` and derived classes. Operations
     between :class:`LinearOperator` and :class:`.Operator`
     types are also supported.

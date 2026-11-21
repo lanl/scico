@@ -47,7 +47,7 @@ class BiConvolve(Operator):
         r"""
         Args:
             input_shape: Shape of input :class:`.BlockArray`. Must
-                correspond to a :class:`.`BlockArray` with two blocks of
+                correspond to a :class:`.BlockArray` with two blocks of
                 equal ndims.
             input_dtype: `dtype` for input argument. Defaults to
                 :attr:`~numpy.float32`.
