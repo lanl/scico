@@ -77,7 +77,7 @@ def operator_norm(
     maxiter: int = 100,
     key: Optional[PRNGKey] = None,
     device: Optional[Union[Device, Sharding]] = None,
-) -> snp.Array:
+) -> float:
     r"""Estimate the norm of a :class:`.LinearOperator`.
 
     Estimate the operator norm
@@ -107,7 +107,14 @@ def operator_norm(
     Returns:
         float: Norm of operator :math:`A`.
     """
-    return snp.sqrt(power_iteration(A.H @ A, maxiter=maxiter, key=key, device=device)[0].real)
+    # float(): power_iteration returns a 0D array, so the square root of it is
+    # one too, while this function is documented as returning a float and its
+    # callers treat it as one. Nothing here is jittable, power_iteration driving
+    # its iteration with a Python loop, so the conversion cannot be reached with
+    # a traced value.
+    return float(
+        snp.sqrt(power_iteration(A.H @ A, maxiter=maxiter, key=key, device=device)[0].real)
+    )
 
 
 def valid_adjoint(

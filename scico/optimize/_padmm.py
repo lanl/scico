@@ -378,7 +378,7 @@ class ProximalADMM(ProximalADMMBase):
         key: Optional[PRNGKey] = None,
         xdevice: Optional[Union[Device, Sharding]] = None,
         zdevice: Optional[Union[Device, Sharding]] = None,
-    ) -> Tuple[Union[float, Array], Union[float, Array]]:
+    ) -> Tuple[float, float]:
         r"""Estimate `mu` and `nu` parameters of :class:`ProximalADMM`.
 
         Find values of the `mu` and `nu` parameters of :class:`ProximalADMM`
@@ -409,10 +409,7 @@ class ProximalADMM(ProximalADMMBase):
             depending on the value of the `factor` parameter.
         """
         mu = operator_norm(A, maxiter=maxiter, key=key, device=xdevice) ** 2
-        # Declared, rather than inferred from the first branch alone, because the
-        # two branches give it different types: a plain float when there is no
-        # second operator, and operator_norm's array otherwise.
-        nu: Union[float, Array]
+        nu: float
         if B is None:
             nu = 1.0
         else:
@@ -615,7 +612,7 @@ class NonLinearPADMM(ProximalADMMBase):
         key: Optional[PRNGKey] = None,
         xdevice: Optional[Union[Device, Sharding]] = None,
         zdevice: Optional[Union[Device, Sharding]] = None,
-    ) -> Tuple[Union[float, Array], Union[float, Array]]:
+    ) -> Tuple[float, float]:
         r"""Estimate `mu` and `nu` parameters of :class:`NonLinearPADMM`.
 
         Find values of the `mu` and `nu` parameters of :class:`NonLinearPADMM`

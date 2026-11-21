@@ -11,6 +11,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
+import math
 from typing import Dict, List, Optional, Tuple, Union
 
 from jax import Device
@@ -243,7 +244,7 @@ class PDHG(Optimizer):
         maxiter: int = 100,
         key: Optional[PRNGKey] = None,
         device: Optional[Union[Device, Sharding]] = None,
-    ) -> Tuple[Array, Array]:
+    ) -> Tuple[float, float]:
         r"""Estimate `tau` and `sigma` parameters of :class:`PDHG`.
 
         Find values of the `tau` and `sigma` parameters of :class:`PDHG`
@@ -287,6 +288,9 @@ class PDHG(Optimizer):
         else:
             J = jacobian(C, x)
         Cnrm = operator_norm(J, maxiter=maxiter, key=key, device=device)
-        tau = snp.sqrt(factor / ratio) / Cnrm
+        # math.sqrt, not snp.sqrt: the argument is a Python scalar, and snp.sqrt
+        # would return a 0D array, making tau and sigma arrays even though Cnrm
+        # is a float. PDHG declares both parameters as floats.
+        tau = math.sqrt(factor / ratio) / Cnrm
         sigma = ratio * tau
         return (tau, sigma)
