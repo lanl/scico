@@ -138,7 +138,13 @@ def test_slice_length_other(length, slc):
         assert x[slc].size == slice_length(length, slc)
 
 
-@pytest.mark.parametrize("shape", ((8, 8, 1), (7, 1, 6, 5)))
+# The first two shapes have a repeated axis length and a unit axis length
+# respectively, either of which can hide an error in the mapping from a
+# position in the index expression to the axis of the shape it indexes. The
+# last two have distinct axis lengths, none of them unity, so no such error
+# can go unnoticed. All four are kept: singleton axes are worth covering in
+# their own right.
+@pytest.mark.parametrize("shape", ((8, 8, 1), (7, 1, 6, 5), (3, 4, 5), (2, 3, 4, 5)))
 @pytest.mark.parametrize(
     "slc",
     (
@@ -153,12 +159,32 @@ def test_slice_length_other(length, slc):
         np.s_[:, np.newaxis],
         np.s_[np.newaxis, :, np.newaxis],
         np.s_[np.newaxis, ..., 0:2, :],
+        # A new axis combined with an index or slice of another axis, which
+        # the expressions above do not exercise: each of these distinguishes
+        # a correct implementation from one that lets the position in the
+        # index expression stand in for the axis being indexed.
+        np.s_[np.newaxis, 1],
+        np.s_[np.newaxis, 1, :],
+        np.s_[np.newaxis, 2:, :],
+        np.s_[:, np.newaxis, 1:],
+        np.s_[..., np.newaxis],
+        np.s_[np.newaxis, 0, np.newaxis],
+        np.s_[np.newaxis, :, :, :],
     ),
 )
 def test_indexed_shape(shape, slc):
     x = np.zeros(shape, dtype=np.float32)
     assert x[slc].shape == indexed_shape(shape, slc)
     assert x[slc].shape == jax_indexed_shape(shape, slc)
+
+
+@pytest.mark.parametrize(
+    "slc", (np.s_[..., ...], np.s_[0, 0, 0, 0], np.s_[:, :, :, :], np.s_[np.newaxis, 0, 0, 0, 0])
+)
+def test_indexed_shape_invalid(slc):
+    # More than one Ellipsis, or more axes indexed than the shape has.
+    with pytest.raises(ValueError):
+        indexed_shape((3, 4), slc)
 
 
 def test_pad_to_divisible():
