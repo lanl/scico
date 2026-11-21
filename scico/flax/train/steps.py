@@ -54,7 +54,7 @@ def train_step(
         Updated parameters and diagnostic statistics.
     """
 
-    def loss_fn(params: PyTree):
+    def loss_fn(params: PyTree) -> Tuple[Array, Tuple[Any, Array]]:
         """Loss function used for training."""
         output, new_model_state = state.apply_fn(
             {

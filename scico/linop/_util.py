@@ -10,7 +10,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import Optional, Union
+from typing import Optional, Tuple, Union
 
 import jax
 from jax import Device
@@ -29,7 +29,7 @@ def power_iteration(
     maxiter: int = 100,
     key: Optional[PRNGKey] = None,
     device: Optional[Union[Device, Sharding]] = None,
-):
+) -> Tuple[Union[float, snp.Array], snp.Array]:
     """Compute largest eigenvalue of a diagonalizable :class:`.LinearOperator`.
 
     Compute largest eigenvalue of a diagonalizable
@@ -77,7 +77,7 @@ def operator_norm(
     maxiter: int = 100,
     key: Optional[PRNGKey] = None,
     device: Optional[Union[Device, Sharding]] = None,
-):
+) -> snp.Array:
     r"""Estimate the norm of a :class:`.LinearOperator`.
 
     Estimate the operator norm

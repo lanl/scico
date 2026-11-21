@@ -87,7 +87,7 @@ class Function:
         else:
             self.output_dtype = output_dtype
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"""{self.__module__}.{self.__class__.__qualname__}
   input_shapes: {self.input_shapes}
   output_shape: {self.output_shape}

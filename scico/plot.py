@@ -450,7 +450,7 @@ def close(fig=None):
         plt.close(fig)
 
 
-def _in_ipython():
+def _in_ipython() -> bool:
     """Determine whether code is running in an ipython shell.
 
     Returns:
@@ -474,7 +474,7 @@ def _in_ipython():
         return False
 
 
-def _in_notebook():
+def _in_notebook() -> bool:
     """Determine whether code is running in a Jupyter Notebook shell.
 
     Returns:

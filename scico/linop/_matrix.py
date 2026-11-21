@@ -144,7 +144,7 @@ class MatrixOperator(LinearOperator):
     def __rsub__(self, other):
         return -self + other
 
-    def __neg__(self):
+    def __neg__(self) -> MatrixOperator:
         return MatrixOperator(-self.A)
 
     # Could write another wrapper for mul, truediv, and rtuediv, but there is
@@ -209,7 +209,7 @@ class MatrixOperator(LinearOperator):
         return self.A[key]
 
     @property
-    def T(self):
+    def T(self) -> MatrixOperator:
         """Transpose of this :class:`.MatrixOperator`.
 
         Return a :class:`.MatrixOperator` corresponding to the transpose
@@ -218,7 +218,7 @@ class MatrixOperator(LinearOperator):
         return MatrixOperator(self.A.T)
 
     @property
-    def H(self):
+    def H(self) -> MatrixOperator:
         """Hermitian (conjugate) transpose of this :class:`.MatrixOperator`.
 
         Return a :class:`.MatrixOperator` corresponding to the Hermitian
@@ -226,7 +226,7 @@ class MatrixOperator(LinearOperator):
         """
         return MatrixOperator(self.A.conj().T)
 
-    def conj(self):
+    def conj(self) -> MatrixOperator:
         """Complex conjugate of this :class:`.MatrixOperator`.
 
         Return a :class:`.MatrixOperator` with complex conjugated
@@ -237,12 +237,12 @@ class MatrixOperator(LinearOperator):
     def adj(self, y):
         return self.A.conj().T @ y
 
-    def to_array(self):
+    def to_array(self) -> np.ndarray:
         """Return a :class:`numpy.ndarray` containing `self.A`."""
         return np.array(self.A)
 
     @property
-    def gram_op(self):
+    def gram_op(self) -> MatrixOperator:
         """Gram operator of this :class:`.MatrixOperator`.
 
         Return a new :class:`.LinearOperator` `G` such that

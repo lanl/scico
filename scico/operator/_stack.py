@@ -128,7 +128,7 @@ class VerticalStack(Operator):
             return snp.stack([op(x) for op in self.ops])
         return BlockArray([op(x) for op in self.ops])
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         crepr = ", ".join([str(f) for f in self.ops])
         return Operator.__repr__(self) + f"""  components: {crepr}\n"""
 
@@ -223,7 +223,7 @@ class DiagonalStack(Operator):
             return snp.stack(result)
         return snp.blockarray(result)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         crepr = ", ".join([str(f) for f in self.ops])
         return Operator.__repr__(self) + f"""  components: {crepr}\n"""
 
@@ -331,7 +331,7 @@ class DiagonalReplicated(Operator):
             **kwargs,
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             Operator.__repr__(self)
             + f"""  component:  {str(self.op)}\n  replicates: {self.replicates}\n"""

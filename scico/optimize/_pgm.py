@@ -11,7 +11,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Tuple, Union, cast
 
 import scico.numpy as snp
 from scico.functional import Functional
@@ -124,11 +124,15 @@ class PGM(Optimizer):
         """
         return snp.all(snp.isfinite(self.x))
 
-    def _objective_evaluatable(self):
+    def _objective_evaluatable(self) -> bool:
         """Determine whether the objective function can be evaluated."""
-        return self.f.has_eval and self.g.has_eval
+        # bool(): Functional.has_eval is declared Optional[bool], being None until a
+        # subclass sets it, so the conjunction below is Optional[bool] while the base
+        # class declares this method as returning bool. The value is only ever used in
+        # a boolean test, so None and False are already equivalent to every caller.
+        return bool(self.f.has_eval and self.g.has_eval)
 
-    def _itstat_extra_fields(self):
+    def _itstat_extra_fields(self) -> Tuple[Dict[str, str], List[str]]:
         """Define linearized ADMM-specific iteration statistics fields."""
         itstat_fields = {"L": "%9.3e", "Residual": "%9.3e"}
         itstat_attrib = ["L", "norm_residual()"]
@@ -229,7 +233,10 @@ class AcceleratedPGM(PGM):
         if isinstance(self.step_size, RobustLineSearchStepSize):
             # Robust line search step size uses a different extrapolation sequence.
             # Update in solution is computed while updating the reciprocal of step size.
-            self.x = self.step_size.Z
+            # RobustLineSearchStepSize.update, called just above, ends by
+            # assigning Z unconditionally, so it is set by here; the attribute is
+            # declared Optional because it is None before the first update.
+            self.x = cast(Union[Array, BlockArray], self.step_size.Z)
             self.fixed_point_residual = snp.linalg.norm(self.x - x_old)
         else:
             self.x = self.x_step(self.v, self.L)

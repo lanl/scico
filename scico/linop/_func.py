@@ -20,7 +20,7 @@ from ._linop import LinearOperator
 __all__ = ["linop_from_function", "Transpose", "Sum", "Crop", "Pad", "Reshape", "Slice"]
 
 
-def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = None):
+def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = None) -> Any:
     """Make a :class:`LinearOperator` from a function.
 
     Example
@@ -85,6 +85,12 @@ def linop_from_function(f: Callable, classname: str, f_name: Optional[str] = Non
     OpClass.__doc__ = f"Linear operator version of :func:`{f_name}`."
     OpClass.__init__.__doc__ = f_doc  # type: ignore
 
+    # Any, not Type[LinearOperator]: the returned class is built here, and its
+    # __init__ forwards keyword arguments to f and records them as self.kwargs,
+    # as the example above shows for axis. Type[LinearOperator] describes the
+    # hierarchy correctly but gives the class LinearOperator's own __init__, so
+    # every call passing one of those keywords is then reported as an error, and
+    # a synthesized signature cannot be expressed as a static type.
     return OpClass
 
 

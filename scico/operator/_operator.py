@@ -173,10 +173,10 @@ class Operator:
         """Activate just-in-time compilation for the `_eval` method."""
         self._eval = jax.jit(self._eval)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"""{self.__module__}.{self.__class__.__qualname__}"""
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"""{str(self)}
   input_shape:  {self.input_shape}
   output_shape: {self.output_shape}

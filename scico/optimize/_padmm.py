@@ -11,7 +11,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from jax import Device
 from jax.sharding import Sharding
@@ -130,11 +130,15 @@ class ProximalADMMBase(Optimizer):
             and snp.all(snp.isfinite(self.u))
         )
 
-    def _objective_evaluatable(self):
+    def _objective_evaluatable(self) -> bool:
         """Determine whether the objective function can be evaluated."""
-        return self.f.has_eval and self.g.has_eval
+        # bool(): Functional.has_eval is declared Optional[bool], being None until a
+        # subclass sets it, so the conjunction below is Optional[bool] while the base
+        # class declares this method as returning bool. The value is only ever used in
+        # a boolean test, so None and False are already equivalent to every caller.
+        return bool(self.f.has_eval and self.g.has_eval)
 
-    def _itstat_extra_fields(self):
+    def _itstat_extra_fields(self) -> Tuple[Dict[str, str], List[str]]:
         """Define linearized ADMM-specific iteration statistics fields."""
         itstat_fields = {"Prml Rsdl": "%9.3e", "Dual Rsdl": "%9.3e"}
         itstat_attrib = ["norm_primal_residual()", "norm_dual_residual()"]
@@ -374,7 +378,7 @@ class ProximalADMM(ProximalADMMBase):
         key: Optional[PRNGKey] = None,
         xdevice: Optional[Union[Device, Sharding]] = None,
         zdevice: Optional[Union[Device, Sharding]] = None,
-    ) -> Tuple[float, float]:
+    ) -> Tuple[Union[float, Array], Union[float, Array]]:
         r"""Estimate `mu` and `nu` parameters of :class:`ProximalADMM`.
 
         Find values of the `mu` and `nu` parameters of :class:`ProximalADMM`
@@ -405,6 +409,10 @@ class ProximalADMM(ProximalADMMBase):
             depending on the value of the `factor` parameter.
         """
         mu = operator_norm(A, maxiter=maxiter, key=key, device=xdevice) ** 2
+        # Declared, rather than inferred from the first branch alone, because the
+        # two branches give it different types: a plain float when there is no
+        # second operator, and operator_norm's array otherwise.
+        nu: Union[float, Array]
         if B is None:
             nu = 1.0
         else:
@@ -607,7 +615,7 @@ class NonLinearPADMM(ProximalADMMBase):
         key: Optional[PRNGKey] = None,
         xdevice: Optional[Union[Device, Sharding]] = None,
         zdevice: Optional[Union[Device, Sharding]] = None,
-    ) -> Tuple[float, float]:
+    ) -> Tuple[Union[float, Array], Union[float, Array]]:
         r"""Estimate `mu` and `nu` parameters of :class:`NonLinearPADMM`.
 
         Find values of the `mu` and `nu` parameters of :class:`NonLinearPADMM`

@@ -22,7 +22,7 @@ __all__ = [
 ]
 
 
-def operator_from_function(f: Callable, classname: str, f_name: Optional[str] = None):
+def operator_from_function(f: Callable, classname: str, f_name: Optional[str] = None) -> Any:
     """Make an :class:`.Operator` from a function.
 
     Example
@@ -85,6 +85,12 @@ def operator_from_function(f: Callable, classname: str, f_name: Optional[str] = 
     OpClass.__doc__ = f"Operator version of :func:`{f_name}`."
     OpClass.__init__.__doc__ = f_doc  # type: ignore
 
+    # Any, not Type[Operator]: the returned class is built here, and its
+    # __init__ forwards keyword arguments to f and records them as self.kwargs,
+    # as the example above shows for axis. Type[Operator] describes the
+    # hierarchy correctly but gives the class Operator's own __init__, so
+    # every call passing one of those keywords is then reported as an error, and
+    # a synthesized signature cannot be expressed as a static type.
     return OpClass
 
 

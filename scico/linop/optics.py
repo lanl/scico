@@ -193,7 +193,7 @@ class Propagator(LinearOperator):
             **kwargs,
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         extra_repr = f"""  k0:  {self.k0}
   λ:   {2*np.pi/self.k0}
   z:   {self.z}
@@ -293,7 +293,7 @@ class AngularSpectrumPropagator(Propagator):
         if jit:
             self.jit()
 
-    def adequate_sampling(self):
+    def adequate_sampling(self) -> np.bool_:
         r"""Verify the angular spectrum kernel is not aliased.
 
         Checks the condition for adequate sampling
@@ -389,7 +389,7 @@ class FresnelPropagator(Propagator):
         if jit:
             self.jit()
 
-    def adequate_sampling(self):
+    def adequate_sampling(self) -> np.bool_:
         r"""Verify the Fresnel propagation kernel is not aliased.
 
         Checks the condition for adequate sampling
@@ -551,7 +551,7 @@ class FraunhoferPropagator(LinearOperator):
         if jit:
             self.jit()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         extra_repr = f"""  k0:   {self.k0}
   λ:    {2*np.pi/self.k0}
   z:    {self.z}
@@ -568,7 +568,7 @@ class FraunhoferPropagator(LinearOperator):
         y = snp.fft.ifftshift(y)
         return y
 
-    def adequate_sampling(self):
+    def adequate_sampling(self) -> np.bool_:
         r"""Verify the Fraunhofer propagation kernel is not aliased.
 
         Checks the condition for adequate sampling

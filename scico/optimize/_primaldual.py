@@ -11,7 +11,7 @@
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from jax import Device
 from jax.sharding import Sharding
@@ -149,11 +149,15 @@ class PDHG(Optimizer):
         """
         return snp.all(snp.isfinite(self.x)) and snp.all(snp.isfinite(self.z))
 
-    def _objective_evaluatable(self):
+    def _objective_evaluatable(self) -> bool:
         """Determine whether the objective function can be evaluated."""
-        return self.f.has_eval and self.g.has_eval
+        # bool(): Functional.has_eval is declared Optional[bool], being None until a
+        # subclass sets it, so the conjunction below is Optional[bool] while the base
+        # class declares this method as returning bool. The value is only ever used in
+        # a boolean test, so None and False are already equivalent to every caller.
+        return bool(self.f.has_eval and self.g.has_eval)
 
-    def _itstat_extra_fields(self):
+    def _itstat_extra_fields(self) -> Tuple[Dict[str, str], List[str]]:
         """Define linearized ADMM-specific iteration statistics fields."""
         itstat_fields = {"Prml Rsdl": "%9.3e", "Dual Rsdl": "%9.3e"}
         itstat_attrib = ["norm_primal_residual()", "norm_dual_residual()"]
@@ -239,7 +243,7 @@ class PDHG(Optimizer):
         maxiter: int = 100,
         key: Optional[PRNGKey] = None,
         device: Optional[Union[Device, Sharding]] = None,
-    ):
+    ) -> Tuple[Array, Array]:
         r"""Estimate `tau` and `sigma` parameters of :class:`PDHG`.
 
         Find values of the `tau` and `sigma` parameters of :class:`PDHG`

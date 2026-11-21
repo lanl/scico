@@ -508,7 +508,7 @@ class ContextTimer:
         self.label = label
         self.action = action
 
-    def __enter__(self):
+    def __enter__(self) -> ContextTimer:
         """Start the timer and return this ContextTimer instance."""
 
         if self.action == "StartStop":

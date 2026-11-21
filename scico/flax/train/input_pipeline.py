@@ -15,7 +15,7 @@ import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
-from typing import Any, Union, cast
+from typing import Any, Dict, Union, cast
 
 import jax
 import jax.numpy as jnp
@@ -23,7 +23,7 @@ import jax.numpy as jnp
 from flax import jax_utils
 from scico.numpy import Array
 
-from .typed_dict import DataSetDict
+from .typed_dict import DataSetDict, PyTree
 
 DType = Any
 KeyArray = Union[Array, jax.Array]
@@ -69,10 +69,10 @@ class IterateData:
         self.perms = self.perms.reshape((self.steps_per_epoch, self.batch_size))
         self.ns = 0
 
-    def __iter__(self):
+    def __iter__(self) -> "IterateData":
         return self
 
-    def __next__(self):
+    def __next__(self) -> Dict[str, Array]:
         """Get next batch.
 
         During training it reshuffles the batches when the data is
@@ -89,7 +89,9 @@ class IterateData:
         return batch
 
 
-def prepare_data(xs: Array) -> Any:
+# PyTree, not Array: this tree_maps over whatever it is given, which is a
+# batch dict when IterateData is mapped over it and a bare array in the tests.
+def prepare_data(xs: PyTree) -> Any:
     """Reshape input batch for parallel training."""
     local_device_count = jax.local_device_count()
 

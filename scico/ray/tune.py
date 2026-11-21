@@ -41,7 +41,7 @@ from ray.tune.search.hyperopt import HyperOptSearch
 class _CustomReporter(TuneReporterBase):
     """Custom status reporter for :mod:`ray.tune`."""
 
-    def should_report(self, trials: List[Trial], done: bool = False):
+    def should_report(self, trials: List[Trial], done: bool = False) -> bool:
         """Return boolean indicating whether progress should be reported."""
         # Don't report on final call when done to avoid duplicate final output.
         return not done

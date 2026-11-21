@@ -73,7 +73,7 @@ class ProximalAverage(Functional):
                 alpha_list = [alpha / alpha_sum for alpha in alpha_list]
             self.alpha_list = alpha_list
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             Functional.__repr__(self)
             + "  components: "

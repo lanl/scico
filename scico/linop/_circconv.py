@@ -268,7 +268,7 @@ class CircularConvolve(LinearOperator):
         center: Optional[Shape] = None,
         device: Optional[Union[Device, Sharding]] = None,
         jit: bool = True,
-    ):
+    ) -> "CircularConvolve":
         r"""Construct a CircularConvolve version of a given operator.
 
         Construct a CircularConvolve version of a given operator,

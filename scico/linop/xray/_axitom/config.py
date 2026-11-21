@@ -83,7 +83,7 @@ class Config:
             np.arange(self.n_pixels_v, dtype=np.float32) - self.n_pixels_v / 2.0
         ) * self.pixel_size_v
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         str = f"Source-object distance: {self.source_to_object_dist}  "
         str += f"Source-detector distance: {self.source_to_detector_dist}\n"
         str += f"Detector pixels: {self.n_pixels_u}, {self.n_pixels_v}  "

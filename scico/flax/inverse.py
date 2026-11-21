@@ -255,7 +255,7 @@ class ODPProxDcnvBlock(Module):
     alpha_ini: float = 0.99
     dtype: Any = jnp.float32
 
-    def setup(self):
+    def setup(self) -> None:
         """Computing operator norm and setting operator for batch
         evaluation and defining network layers."""
         self.operator_norm = jnp.sqrt(power_iteration(self.operator.H @ self.operator)[0].real)
@@ -346,7 +346,7 @@ class ODPGrDescBlock(Module):
     alpha_ini: float = 0.2
     dtype: Any = jnp.float32
 
-    def setup(self):
+    def setup(self) -> None:
         """Setting operator for batch evaluation and defining network layers."""
         self.ah_f = lambda v: jnp.atleast_3d(
             self.operator.adj(v.reshape(self.operator.output_shape))
@@ -462,7 +462,7 @@ class ODPNet(Module):
 
 
 @partial(jit, static_argnums=0)
-def power_iteration(A: LinearOperator, maxiter: int = 100):
+def power_iteration(A: LinearOperator, maxiter: int = 100) -> Tuple[Array, Array]:
     """Compute largest eigenvalue of a diagonalizable :class:`.LinearOperator`.
 
     Compute largest eigenvalue of a diagonalizable :class:`LinearOperator`

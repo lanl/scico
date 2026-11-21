@@ -48,7 +48,7 @@ def _l2_normalize(x: Array, eps: float = 1e-12) -> Array:
 # From https://nbviewer.org/gist/shoyer/fa9a29fd0880e2e033d7696585978bfc
 def estimate_spectral_norm(
     f: Callable, input_shape: Shape, seed: float = 0, n_steps: int = 10, eps: float = 1e-12
-):
+) -> Array:
     """Estimate spectral norm of operator.
 
     This function estimates the spectral norm of an operator by

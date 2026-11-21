@@ -38,10 +38,10 @@ class Functional:
     def __init__(self) -> None:
         self._grad = scico.grad(self.__call__)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"""{self.__module__}.{self.__class__.__qualname__}"""
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__() + f"""\n  has_eval: {self.has_eval}\n  has_prox: {self.has_prox}\n"""
 
     def __mul__(self, other: Union[float, int]) -> ScaledFunctional:
@@ -145,7 +145,7 @@ class Functional:
         """
         return v - lam * self.prox(v / lam, 1.0 / lam, **kwargs)
 
-    def grad(self, x: Union[Array, BlockArray]):
+    def grad(self, x: Union[Array, BlockArray]) -> Union[Array, BlockArray]:
         r"""Evaluate the gradient of this functional at :math:`\mb{x}`.
 
         Args:
@@ -167,7 +167,7 @@ class ScaledFunctional(Functional):
         self.has_prox = functional.has_prox
         super().__init__()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"""{Functional.__repr__(self)}"""
             f"""  functional: {Functional.__str__(self.functional)}\n"""
@@ -243,7 +243,7 @@ class SeparableFunctional(Functional):
         self.has_prox: bool = all(fi.has_prox for fi in functional_list)
         super().__init__()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             Functional.__repr__(self)
             + "  components: "
@@ -329,7 +329,7 @@ class ComposedFunctional(Functional):
         self.has_prox = functional.has_prox
         super().__init__()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             Functional.__repr__(self)
             + f"""  composition of: {self.functional.__str__()} and {self.linop.__str__()}\n"""
@@ -375,7 +375,7 @@ class FunctionalSum(Functional):
         self.has_prox = False
         super().__init__()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             Functional.__repr__(self)
             + f"""  sum of functionals: {Functional.__str__(self.functional1)} and """

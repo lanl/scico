@@ -469,7 +469,7 @@ def build_blur_kernel(
     kernel_size: Shape,
     blur_sigma: float,
     dtype: Any = np.float32,
-):
+) -> Array:
     """Construct a blur kernel as specified.
 
     Args:
