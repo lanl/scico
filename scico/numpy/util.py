@@ -171,7 +171,7 @@ def slice_length(length: int, idx: AxisIndex) -> Optional[int]:
     Raises:
         ValueError: If `idx` is an integer index that is out bounds for
             the axis length or if the type of `idx` is not one of
-            `Ellipsis`, `int`, or `slice`.
+            ``Ellipsis``, ``int``, or ``slice``.
     """
     if idx is Ellipsis:
         return length
@@ -197,15 +197,15 @@ def indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int, ...]:
 
     Args:
         shape: Shape of array.
-        idx: Indexing expression (singleton or tuple of `Ellipsis`,
-           `int`, `slice`, or ``None`` (`np.newaxis`)).
+        idx: Indexing expression (singleton or tuple of ``Ellipsis``,
+           ``int``, ``slice``, or ``None`` (`np.newaxis`)).
 
     Returns:
         Shape of indexed/sliced array.
 
     Raises:
-        ValueError: If any element of `idx` is not one of `Ellipsis`,
-        `int`, `slice`, or ``None`` (`np.newaxis`), or if an integer
+        ValueError: If any element of `idx` is not one of ``Ellipsis``,
+        ``int``, ``slice``, or ``None`` (`np.newaxis`), or if an integer
         index is out bounds for the corresponding axis length.
     """
     if not isinstance(idx, tuple):
@@ -238,8 +238,8 @@ def jax_indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int, ...]:
 
     Args:
         shape: Shape of array.
-        idx: Indexing expression (singleton or tuple of `Ellipsis`,
-           `int`, `slice`, or ``None`` (`np.newaxis`)).
+        idx: Indexing expression (singleton or tuple of ``Ellipsis``,
+           ``int``, ``slice``, or ``None`` (`np.newaxis`)).
 
     Returns:
         Shape of indexed/sliced array.

@@ -181,7 +181,7 @@ class XRayTransform2D(LinearOperator):
         Args:
             sino: Sinogram to reconstruct.
             filter_type: Select the filter to use. For a list of options
-               see ``cfg.FilterType`` in the `ASTRA documentation
+               see `cfg.FilterType` in the `ASTRA documentation
                <https://www.astra-toolbox.com/docs/algs/FBP_CUDA.html>`__.
 
         Returns:
