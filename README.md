@@ -1,4 +1,4 @@
-[![Python \>= 3.8](https://img.shields.io/badge/python-3.8+-green.svg)](https://www.python.org/)
+[![Python \>= 3.11](https://img.shields.io/badge/python-3.11+-green.svg)](https://www.python.org/)
 [![Package License](https://img.shields.io/github/license/lanl/scico.svg)](https://github.com/lanl/scico/blob/main/LICENSE)
 [![Code style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Documentation Status](https://readthedocs.org/projects/scico/badge/?version=latest)](http://scico.readthedocs.io/en/latest/?badge=latest)
