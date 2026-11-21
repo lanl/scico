@@ -7,17 +7,8 @@
 
 """Type definitions."""
 
-from typing import Any, List, Tuple, Union
-
-try:
-    # available in python 3.10
-    from types import EllipsisType  # type: ignore
-    from typing import TypeAlias  # type: ignore
-except ImportError:
-    from typing_extensions import TypeAlias  # type: ignore
-
-    EllipsisType: TypeAlias = Any  # type: ignore
-
+from types import EllipsisType
+from typing import List, Tuple, TypeAlias, Union
 
 import jax.numpy as jnp
 from jax import Array

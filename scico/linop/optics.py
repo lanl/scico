@@ -51,12 +51,10 @@ and :math:`y` to axis 1 (columns, increasing to the right).
 # see https://www.python.org/dev/peps/pep-0563/
 from __future__ import annotations
 
-from typing import Any, Tuple, Union
+from typing import Any, Tuple, TypeGuard, Union
 
 import numpy as np
 from numpy.lib.scimath import sqrt  # complex sqrt
-
-from typing_extensions import TypeGuard
 
 import scico.numpy as snp
 from scico.linop import Diagonal, Identity, LinearOperator

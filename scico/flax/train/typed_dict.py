@@ -7,13 +7,7 @@
 
 """Definition of typed dictionaries for objects in training functionality."""
 
-import sys
-from typing import Any, Callable, List
-
-if sys.version_info >= (3, 8):
-    from typing import TypedDict  # pylint: disable=no-name-in-module
-else:
-    from typing_extensions import TypedDict
+from typing import Any, Callable, List, TypedDict
 
 from scico.numpy import Array
 

@@ -11,13 +11,11 @@ from __future__ import annotations
 
 import collections
 from math import prod
-from typing import Any, List, NamedTuple, Optional, Sequence, Tuple, Union
+from typing import Any, List, NamedTuple, Optional, Sequence, Tuple, TypeGuard, Union
 
 import numpy as np
 
 import jax
-
-from typing_extensions import TypeGuard
 
 import scico.numpy as snp
 from scico.typing import ArrayIndex, Axes, AxisIndex, BlockShape, DType, Shape
@@ -409,8 +407,12 @@ def is_array(x: Any) -> bool:
 def is_arraylike(x: Any) -> bool:
     """Check if input is of type :class:`jax.typing.ArrayLike`.
 
-    `isinstance(x, jax.typing.ArrayLike)` does not work in Python < 3.10,
-    see https://jax.readthedocs.io/en/latest/jax.typing.html#jax-typing-best-practices.
+    Note that this function is not equivalent to
+    `isinstance(x, jax.typing.ArrayLike)`, which became possible in Python
+    3.10 (see
+    https://jax.readthedocs.io/en/latest/jax.typing.html#jax-typing-best-practices):
+    :func:`numpy.isscalar` also accepts :class:`str` and :class:`bytes`,
+    which are not :obj:`jax.typing.ArrayLike`.
 
     Args:
         x: Object to be tested.
