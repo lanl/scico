@@ -15,6 +15,7 @@ Version 0.0.8   (unreleased)
 • Support ``jaxlib`` and ``jax`` versions 0.5.0 to 0.12.0.
 • Support ``flax`` versions 0.8.0 to 0.12.10.
 • Add limited support for sharded arrays.
+• Improve consistency of inline markup in docstrings and documentation.
 • Various bug fixes and minor improvements.
 
 
