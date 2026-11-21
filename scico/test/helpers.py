@@ -11,14 +11,6 @@ from typing import Optional
 
 import numpy as np
 
-from jax import config
-
-# Enable 64-bit mode for output dtype checks. This is required here, and not
-# only in the test modules that check dtypes, because importing the utilities
-# below previously imported test_linop, which enables it. Test modules that
-# depend on 64-bit mode being enabled therefore continue to get it.
-config.update("jax_enable_x64", True)
-
 import scico.numpy as snp
 from scico import linop
 from scico.typing import PRNGKey

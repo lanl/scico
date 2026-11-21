@@ -2,6 +2,12 @@ import operator as op
 
 import numpy as np
 
+from jax import config
+
+# enable 64-bit mode, as this module compares arrays created by numpy, which
+# default to 64-bit, against the same arrays converted to jax arrays
+config.update("jax_enable_x64", True)
+
 import jax
 import jax.numpy as jnp
 
