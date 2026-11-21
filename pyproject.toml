@@ -34,3 +34,15 @@ known_jax = ['jax']
 known_numpy = ['numpy']
 sections = ['FUTURE', 'STDLIB', 'NUMPY', 'JAX', 'THIRDPARTY', 'FIRSTPARTY', 'LOCALFOLDER']
 src_paths = ["scico", "examples/scripts"]
+
+[tool.mypy]
+files = ["scico/", "scico/numpy/util.py"]
+exclude = "(numpy|test)"
+follow_imports = "skip"
+ignore_missing_imports = true
+check_untyped_defs = true
+disallow_incomplete_defs = true
+warn_redundant_casts = true
+no_implicit_optional = true
+strict_equality = true
+extra_checks = true
