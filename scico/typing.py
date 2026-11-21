@@ -52,9 +52,10 @@ BlockShape: TypeAlias = Tuple[Tuple[int, ...], ...]
 Axes: TypeAlias = Union[int, Tuple[int, ...], List[int]]
 """Specification of one or more array axes."""
 
-AxisIndex: TypeAlias = Union[slice, EllipsisType, int]
+AxisIndex: TypeAlias = Union[slice, EllipsisType, int, None]
 """An entity suitable for indexing/slicing of a single array axis; either
-a slice object, Ellipsis, or int."""
+a slice object, Ellipsis, int, or ``None`` (:data:`numpy.newaxis`, which
+inserts a new axis of length one)."""
 
 ArrayIndex: TypeAlias = Union[AxisIndex, Tuple[AxisIndex, ...]]
 """An entity suitable for indexing/slicing of multi-dimentional arrays."""

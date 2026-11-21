@@ -240,24 +240,41 @@ def indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int, ...]:
 
     Raises:
         ValueError: If any element of `idx` is not one of `Ellipsis`,
-        `int`, `slice`, or ``None`` (`np.newaxis`), or if an integer
-        index is out bounds for the corresponding axis length.
+        `int`, `slice`, or ``None`` (`np.newaxis`), if an integer
+        index is out bounds for the corresponding axis length, if `idx`
+        includes more than one `Ellipsis`, or if it indexes more axes
+        than `shape` has.
     """
     if not isinstance(idx, tuple):
         idx = (idx,)
-    idx_shape: List[Optional[int]] = list(shape)
-    offset = 0
-    newaxis = 0
-    for axis, ax_idx in enumerate(idx):
+    # An entry that is None inserts an axis without consuming one, and an
+    # Ellipsis consumes however many are left over, so the position in idx
+    # is not the axis of shape being indexed and has to be tracked
+    # separately. Getting that wrong is invisible for a shape whose axis
+    # lengths repeat, which is why it went unnoticed.
+    if sum(1 for ax_idx in idx if ax_idx is Ellipsis) > 1:
+        raise ValueError("An index may include at most one Ellipsis.")
+    consumed = sum(1 for ax_idx in idx if ax_idx is not None and ax_idx is not Ellipsis)
+    if consumed > len(shape):
+        raise ValueError(f"Index expression {idx} indexes more axes than shape {shape} has.")
+    idx_shape: List[int] = []
+    axis = 0
+    for ax_idx in idx:
         if ax_idx is None:
-            idx_shape.insert(axis, 1)
-            newaxis += 1
-            continue
-        if ax_idx is Ellipsis:
-            offset = len(shape) - len(idx)
-            continue
-        idx_shape[axis + offset + newaxis] = slice_length(shape[axis + offset], ax_idx)
-    return tuple(filter(lambda x: x is not None, idx_shape))  # type: ignore
+            idx_shape.append(1)
+        elif ax_idx is Ellipsis:
+            fill = len(shape) - consumed
+            idx_shape.extend(shape[axis : axis + fill])
+            axis += fill
+        else:
+            length = slice_length(shape[axis], ax_idx)
+            # None means an integer index, which removes the axis entirely
+            if length is not None:
+                idx_shape.append(length)
+            axis += 1
+    # Axes beyond the end of the index expression are unaffected
+    idx_shape.extend(shape[axis:])
+    return tuple(idx_shape)
 
 
 def jax_indexed_shape(shape: Shape, idx: ArrayIndex) -> Tuple[int, ...]:
