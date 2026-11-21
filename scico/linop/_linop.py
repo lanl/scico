@@ -184,18 +184,18 @@ class LinearOperator(Operator):
         if jit:
             self.jit()
 
-    def _set_adjoint(self):
+    def _set_adjoint(self) -> None:
         """Automatically create adjoint method."""
         adj_fun = linear_adjoint(
             self._eval, jax.ShapeDtypeStruct(self.input_shape, dtype=self.input_dtype)
         )
         self._adj = lambda x: adj_fun(x)[0]
 
-    def _set_gram(self):
+    def _set_gram(self) -> None:
         """Automatically create gram method."""
         self._gram = lambda x: self.adj(self(x))
 
-    def jit(self):
+    def jit(self) -> None:
         """Replace the private functions :meth:`._eval`, :meth:`_adj`, :meth:`._gram`
         with jitted versions.
         """
@@ -206,8 +206,12 @@ class LinearOperator(Operator):
             self._set_gram()
 
         self._eval = jax.jit(self._eval)
-        self._adj = jax.jit(self._adj)
-        self._gram = jax.jit(self._gram)
+        # _set_adjoint and _set_gram, called just above when the corresponding
+        # attribute is still None, each assign it unconditionally, so neither is
+        # None by this point. mypy cannot see that through the method call, and
+        # both attributes are declared Optional because they are None until set.
+        self._adj = jax.jit(cast(Callable, self._adj))
+        self._gram = jax.jit(cast(Callable, self._gram))
 
     @_wrap_add_sub
     def __add__(self, other):

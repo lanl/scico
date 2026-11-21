@@ -75,7 +75,7 @@ def operator_from_function(f: Callable, classname: str, f_name: Optional[str] = 
         output_dtype: Optional[DType] = None,
         jit: bool = True,
         **kwargs: Any,
-    ):
+    ) -> None:
         self._eval = lambda x: f(x, *args, **kwargs)
         super().__init__(input_shape, input_dtype=input_dtype, output_shape=output_shape, output_dtype=output_dtype, jit=jit)  # type: ignore
 

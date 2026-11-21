@@ -331,7 +331,7 @@ class ADMM(Optimizer):
         u_list = [snp.zeros(zi.shape, dtype=zi.dtype, device=zi.sharding) for zi in self.z_list]
         return u_list
 
-    def step(self):
+    def step(self) -> None:
         r"""Perform a single ADMM iteration.
 
         The primary variable :math:`\mb{x}` is updated by solving the the

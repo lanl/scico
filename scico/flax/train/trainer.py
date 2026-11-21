@@ -113,7 +113,7 @@ class BasicFlaxTrainer:
         config: ConfigDict,
         len_train: int,
         len_test: int,
-    ):
+    ) -> None:
         """Extract configuration parameters and construct training functions.
 
         Parameters and functions are passed in the configuration
@@ -134,7 +134,7 @@ class BasicFlaxTrainer:
         config: ConfigDict,
         len_train: int,
         len_test: int,
-    ):
+    ) -> None:
         """Configure training, evaluation and monitoring steps.
 
         Args:
@@ -180,7 +180,7 @@ class BasicFlaxTrainer:
         else:
             self.log_every_steps = config["log_every_steps"]
 
-    def configure_reporting(self, config: ConfigDict):
+    def configure_reporting(self, config: ConfigDict) -> None:
         """Configure logging and checkpointing.
 
         The parameters configured correspond to
@@ -226,7 +226,7 @@ class BasicFlaxTrainer:
             # Return model variables
             self.return_state = False
 
-    def configure_training_functions(self, config: ConfigDict):
+    def configure_training_functions(self, config: ConfigDict) -> None:
         """Construct training functions.
 
         Default functions are used if not specified in configuration.
@@ -299,7 +299,7 @@ class BasicFlaxTrainer:
         test_ds: DataSetDict,
         key: KeyArray,
         mdtype: DType,
-    ):
+    ) -> None:
         """Construct iterators for training and testing (evaluation) sets.
 
         Args:
@@ -341,7 +341,7 @@ class BasicFlaxTrainer:
             )
         )
 
-    def define_parallel_training_functions(self):
+    def define_parallel_training_functions(self) -> None:
         """Construct parallel versions of training functions.
 
         Construct parallel versions of training functions via
@@ -382,7 +382,7 @@ class BasicFlaxTrainer:
         key: KeyArray,
         model: ModuleDef,
         variables0: Optional[ModelVarDict] = None,
-    ):
+    ) -> None:
         """Construct and initialize Flax train state.
 
         A train state object helps to keep optimizer and module
@@ -520,7 +520,7 @@ class BasicFlaxTrainer:
         assert isinstance(self.itstat_object, IterationStats)  # for mypy
         self.itstat_object.insert(self.itstat_insert_func(ArgumentStruct(**summary)))
 
-    def checkpoint(self, state: TrainState):  # pragma: no cover
+    def checkpoint(self, state: TrainState) -> None:  # pragma: no cover
         """Checkpoint training state if enabled.
 
         Args:
@@ -529,7 +529,7 @@ class BasicFlaxTrainer:
         if self.checkpointing:
             checkpoint_save(jax_utils.unreplicate(state), self.config, self.workdir)
 
-    def log(self, logstr: str):
+    def log(self, logstr: str) -> None:
         """Print stats to output terminal if logging is enabled.
 
         Args:

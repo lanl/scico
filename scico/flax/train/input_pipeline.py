@@ -57,7 +57,7 @@ class IterateData:
         self.steps_per_epoch = self.n // batch_size
         self.reset()
 
-    def reset(self):
+    def reset(self) -> None:
         """Re-shuffle data in training."""
         if self.train:
             self.key, subkey = jax.random.split(self.key)

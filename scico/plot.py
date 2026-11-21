@@ -554,7 +554,7 @@ def set_notebook_plot_backend(backend="inline"):
         get_ipython().run_line_magic("matplotlib", backend)
 
 
-def config_notebook_plotting():
+def config_notebook_plotting() -> None:
     """Configure plotting functions for inline plotting.
 
     Configure plotting functions for inline plotting within a Jupyter

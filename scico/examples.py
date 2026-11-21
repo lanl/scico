@@ -67,7 +67,9 @@ def volume_read(path: str, ext: str = "tif") -> np.ndarray:
     return np.dstack(slices)
 
 
-def get_epfl_deconv_data(channel: int, path: str, verbose: bool = False):  # pragma: no cover
+def get_epfl_deconv_data(
+    channel: int, path: str, verbose: bool = False
+) -> None:  # pragma: no cover
     """Download example data from EPFL Biomedical Imaging Group.
 
     Download deconvolution problem data from EPFL Biomedical Imaging
@@ -163,7 +165,7 @@ def epfl_deconv_data(
     return y, psf
 
 
-def get_ucb_diffusercam_data(path: str, verbose: bool = False):  # pragma: no cover
+def get_ucb_diffusercam_data(path: str, verbose: bool = False) -> None:  # pragma: no cover
     """Download data from UC Berkeley Waller Lab diffusercam project.
 
     Download deconvolution problem data from UC Berkeley Waller Lab

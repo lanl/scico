@@ -248,7 +248,7 @@ class LinearizedADMM(Optimizer):
         u = snp.zeros(self.C.output_shape, dtype=self.C.output_dtype, device=self.z.sharding)
         return u
 
-    def step(self):
+    def step(self) -> None:
         r"""Perform a single linearized ADMM iteration.
 
         The primary variable :math:`\mb{x}` is updated by computing

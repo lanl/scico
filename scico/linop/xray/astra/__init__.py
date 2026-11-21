@@ -40,7 +40,7 @@ except ModuleNotFoundError as e:
         raise e
 
 
-def set_astra_gpu_index(idx: Union[int, Sequence[int]]):
+def set_astra_gpu_index(idx: Union[int, Sequence[int]]) -> None:
     """Set the index/indices of GPU(s) to be used by astra.
 
     Args:

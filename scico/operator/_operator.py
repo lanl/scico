@@ -169,7 +169,7 @@ class Operator:
         if jit:
             self.jit()
 
-    def jit(self):
+    def jit(self) -> None:
         """Activate just-in-time compilation for the `_eval` method."""
         self._eval = jax.jit(self._eval)
 

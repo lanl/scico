@@ -60,7 +60,7 @@ class SubproblemSolver:
     #: that support an accuracy check set it in their initializers.
     check_solve: bool
 
-    def internal_init(self, admm: soa.ADMM):
+    def internal_init(self, admm: soa.ADMM) -> None:
         """Second stage initializer to be called by :meth:`.ADMM.__init__`.
 
         Args:
@@ -220,7 +220,7 @@ class LinearSubproblemSolver(SubproblemSolver):
         self.info = None
         self.device = device
 
-    def internal_init(self, admm: soa.ADMM):
+    def internal_init(self, admm: soa.ADMM) -> None:
         if admm.f is not None:
             if not isinstance(admm.f, SquaredL2Loss):
                 raise TypeError(
@@ -349,7 +349,7 @@ class MatrixSubproblemSolver(LinearSubproblemSolver):
         self.solve_kwargs = default_solve_kwargs
         self.device = device
 
-    def internal_init(self, admm: soa.ADMM):
+    def internal_init(self, admm: soa.ADMM) -> None:
         if admm.f is not None:
             if not isinstance(admm.f, SquaredL2Loss):
                 raise TypeError(

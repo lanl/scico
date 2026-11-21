@@ -146,7 +146,7 @@ class Loss(functional.Functional):
         new_loss.set_scale(self.scale / other)
         return new_loss
 
-    def set_scale(self, new_scale: float):
+    def set_scale(self, new_scale: float) -> None:
         r"""Update the scale attribute."""
         self.scale = new_scale
 
@@ -395,7 +395,7 @@ def _check_root(
     p: Union[Array, BlockArray],
     q: Union[Array, BlockArray],
     tol: float = 1e-4,
-):
+) -> None:
     """Check the precision of a cubic equation solution.
 
     Check the precision of an array of depressed cubic equation solutions,

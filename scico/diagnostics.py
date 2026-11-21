@@ -153,7 +153,7 @@ class IterationStats:
                 + "-" * self.headlength
             )
 
-    def insert(self, values: Union[List, Tuple]):
+    def insert(self, values: Union[List, Tuple]) -> None:
         """Insert a list of values for a single iteration.
 
         Args:
@@ -177,7 +177,7 @@ class IterationStats:
                 if (len(self.iterations) - self.period_offset) % self.period == 0:
                     print((" " * self.colsep).join(self.fieldformat) % values)
 
-    def end(self):
+    def end(self) -> None:
         """Mark end of iterations.
 
         This method should be called at the end of a set of iterations.

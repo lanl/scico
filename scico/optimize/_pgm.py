@@ -171,7 +171,7 @@ class PGM(Optimizer):
         """
         return self.fixed_point_residual
 
-    def step(self):
+    def step(self) -> None:
         """Take a single PGM step."""
         # Update reciprocal of step size using current solution.
         self.L = self.step_size.update(self.x)
@@ -218,7 +218,7 @@ class AcceleratedPGM(PGM):
         self.v = x0
         self.t = 1.0
 
-    def step(self):
+    def step(self) -> None:
         """Take a single AcceleratedPGM step."""
         x_old = self.x
         # Update reciprocal of step size using current extrapolation.

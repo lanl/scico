@@ -37,7 +37,7 @@ class PGMStepSize:
            attached.
     """
 
-    def internal_init(self, pgm: sop.PGM):
+    def internal_init(self, pgm: sop.PGM) -> None:
         """Second stage initializer to be called by :meth:`.PGM.__init__`.
 
         Args:
@@ -86,10 +86,12 @@ class BBStepSize(PGMStepSize):
            attached.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize a :class:`BBStepSize` object."""
-        self.xprev = None
-        self.gradprev = None
+        # Optional: both are None until the first update, which is how that
+        # iteration is detected, and hold the previous iterate thereafter.
+        self.xprev: Optional[Union[Array, BlockArray]] = None
+        self.gradprev: Optional[Union[Array, BlockArray]] = None
 
     def update(self, v: Union[Array, BlockArray]) -> float:
         """Update the reciprocal of the step size.
@@ -173,8 +175,11 @@ class AdaptiveBBStepSize(PGMStepSize):
             kappa : Threshold for step size selection :math:`\kappa`.
         """
         self.kappa: float = kappa
-        self.xprev: Union[Array, BlockArray] = None
-        self.gradprev: Union[Array, BlockArray] = None
+        # Optional, as in BBStepSize: the declared type did not admit the None
+        # it is given here, which went unreported only because the body of this
+        # initializer was unchecked while it carried no return annotation.
+        self.xprev: Optional[Union[Array, BlockArray]] = None
+        self.gradprev: Optional[Union[Array, BlockArray]] = None
         self.Lbb1prev: Optional[float] = None
         self.Lbb2prev: Optional[float] = None
 

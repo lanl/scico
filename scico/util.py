@@ -45,7 +45,7 @@ def rgetattr(obj: object, name: str, default: Optional[Any] = None) -> Any:
             raise e
 
 
-def rsetattr(obj: object, name: str, value: Any):
+def rsetattr(obj: object, name: str, value: Any) -> None:
     """Recursive version of :func:`setattr`.
 
     Args:
@@ -281,7 +281,7 @@ class Timer:
                 self.td[lbl] = 0.0
                 self.t0[lbl] = None
 
-    def start(self, labels: Optional[Union[str, List[str]]] = None):
+    def start(self, labels: Optional[Union[str, List[str]]] = None) -> None:
         """Start specified timer(s).
 
         Args:
@@ -311,7 +311,7 @@ class Timer:
             if self.t0[lbl] is None:
                 self.t0[lbl] = t
 
-    def stop(self, labels: Optional[Union[str, List[str]]] = None):
+    def stop(self, labels: Optional[Union[str, List[str]]] = None) -> None:
         """Stop specified timer(s).
 
         Args:
@@ -348,7 +348,7 @@ class Timer:
                 # Set start time to None to indicate timer is not running
                 self.t0[lbl] = None
 
-    def reset(self, labels: Optional[Union[str, List[str]]] = None):
+    def reset(self, labels: Optional[Union[str, List[str]]] = None) -> None:
         """Reset specified timer(s).
 
         Args:

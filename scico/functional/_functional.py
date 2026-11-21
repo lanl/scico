@@ -35,7 +35,7 @@ class Functional:
     #: This attribute must be overridden and set to True or False in any derived classes.
     has_prox: Optional[bool] = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._grad = scico.grad(self.__call__)
 
     def __str__(self):

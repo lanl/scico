@@ -216,7 +216,7 @@ class PDHG(Optimizer):
         """
         return norm(self.z - self.z_old) / self.sigma
 
-    def step(self):
+    def step(self) -> None:
         """Perform a single iteration."""
         self.x_old = self.x
         self.z_old = self.z

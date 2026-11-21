@@ -138,7 +138,7 @@ def _trace_arg_repr(val: Any) -> str:
             return f"[{type(val).__name__}]"
 
 
-def register_variable(var: Any, name: str):
+def register_variable(var: Any, name: str) -> None:
     """Register a variable name for call tracing.
 
     Any hashable object (or numpy array, with the memory address
@@ -441,7 +441,7 @@ def apply_decorator(
     return seen
 
 
-def trace_scico_calls(verbose: bool = False):
+def trace_scico_calls(verbose: bool = False) -> None:
     """Enable tracing of calls to all significant scico functions/methods.
 
     Enable tracing of calls to all significant scico functions and

@@ -99,7 +99,7 @@ class VerticalStack(Operator):
         )
 
     @staticmethod
-    def check_if_stackable(ops: Sequence[Operator]):
+    def check_if_stackable(ops: Sequence[Operator]) -> None:
         """Check that input ops are suitable for stack creation."""
         if not isinstance(ops, (list, tuple)):
             raise TypeError("Expected a list of Operator.")
@@ -205,7 +205,7 @@ class DiagonalStack(Operator):
         )
 
     @staticmethod
-    def check_if_stackable(ops: Sequence[Operator]):
+    def check_if_stackable(ops: Sequence[Operator]) -> None:
         """Check that input ops are suitable for stack creation."""
         if not isinstance(ops, (list, tuple)):
             raise TypeError("Expected a list of Operator.")

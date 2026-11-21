@@ -350,7 +350,7 @@ class ProximalADMM(ProximalADMMBase):
             rsdl = self.A.H(self.B(self.z - self.z_old))
         return norm(rsdl)
 
-    def step(self):
+    def step(self) -> None:
         r"""Perform a single algorithm iteration.
 
         Perform a single algorithm iteration.
@@ -582,7 +582,7 @@ class NonLinearPADMM(ProximalADMMBase):
             rsdl = AH(B(self.z - self.z_old))
         return norm(rsdl)
 
-    def step(self):
+    def step(self) -> None:
         r"""Perform a single algorithm iteration.
 
         Perform a single algorithm iteration.

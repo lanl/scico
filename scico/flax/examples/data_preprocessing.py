@@ -398,7 +398,7 @@ def images_read(path: str, ext: str = "jpg") -> Array:  # pragma: no cover
     return np.stack(slices)
 
 
-def get_bsds_data(path: str, verbose: bool = False):  # pragma: no cover
+def get_bsds_data(path: str, verbose: bool = False) -> None:  # pragma: no cover
     """Download BSDS500 data from the BSDB project.
 
     Download the BSDS500 dataset, a set of 500 color images of size

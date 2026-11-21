@@ -46,7 +46,7 @@ class _CustomReporter(TuneReporterBase):
         # Don't report on final call when done to avoid duplicate final output.
         return not done
 
-    def report(self, trials: List[Trial], done: bool, *sys_info: Dict):
+    def report(self, trials: List[Trial], done: bool, *sys_info: Dict) -> None:
         """Report progress across trials."""
         # Get dict of trials in each state.
         trials_by_state = _get_trials_by_state(trials)
