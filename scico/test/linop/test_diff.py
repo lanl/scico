@@ -5,7 +5,7 @@ import pytest
 import scico.numpy as snp
 from scico.linop import FiniteDifference, SingleAxisFiniteDifference
 from scico.random import randn
-from scico.test.linop.test_linop import adjoint_test
+from scico.test.helpers import adjoint_test
 
 
 def test_eval():

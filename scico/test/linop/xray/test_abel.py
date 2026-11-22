@@ -6,7 +6,7 @@ import pytest
 
 import scico.numpy as snp
 from scico.linop.xray.abel import AbelTransform
-from scico.test.linop.test_linop import adjoint_test
+from scico.test.helpers import adjoint_test
 
 BIG_INPUT = (128, 128)
 SMALL_INPUT = (4, 5)

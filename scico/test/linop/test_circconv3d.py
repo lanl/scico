@@ -10,7 +10,7 @@ import scico.numpy as snp
 from scico.linop import CircularConvolve3D, Convolve, Diagonal
 from scico.linop._circconv3d import have_jaxdecomp
 from scico.random import randint, randn, uniform
-from scico.test.linop.test_linop import adjoint_test
+from scico.test.helpers import adjoint_test
 
 SHAPE_SPECS = [
     ((6, 8, 12), None, (3, 2, 4)),
@@ -63,7 +63,7 @@ class TestCircularConvolve3D:
     @pytest.mark.parametrize("jit", [True, False])
     @pytest.mark.parametrize("axes_shape_spec", SHAPE_SPECS)
     @pytest.mark.parametrize("operator", [op.mul, op.truediv])
-    def test_scalar_left(self, axes_shape_spec, operator, jit):
+    def test_scalar_second(self, axes_shape_spec, operator, jit):
         input_dtype = np.float32
         scalar = np.float32(3.141)
 
@@ -80,7 +80,7 @@ class TestCircularConvolve3D:
     @pytest.mark.parametrize("jit", [True, False])
     @pytest.mark.parametrize("axes_shape_spec", SHAPE_SPECS)
     @pytest.mark.parametrize("operator", [op.mul])
-    def test_scalar_right(self, axes_shape_spec, operator, jit):
+    def test_scalar_first(self, axes_shape_spec, operator, jit):
         input_dtype = np.float32
         scalar = np.float32(3.141)
 
