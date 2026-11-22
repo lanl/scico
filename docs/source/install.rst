@@ -2,9 +2,10 @@
 
 Installing SCICO
 ================
-Python version 3.14 is recommended for SCICO as it is the version under
-which SCICO is tested in GitHub continuous integration.
-Python versions as early as 3.8 may be compatible with SCICO.
+Python version 3.14 is recommended for SCICO as it is the primary
+version under which SCICO is tested in GitHub continuous integration.
+Python 3.11 is the minimum supported version, and is also tested in
+continuous integration.
 SCICO is supported on both Linux and
 MacOS, but is not currently supported on Windows due to the limited
 support for ``jaxlib`` on Windows. However, Windows users can use
@@ -65,13 +66,7 @@ package with broken dependencies.
 
 Note, however, that installation from conda forge is only possible on a Linux
 platform since there is no conda package for the secondary dependency
-``tensorstore`` under MacOS. There are also complications on Linux platforms
-with Python versions 3.9 or earlier due to the automatic installation of a
-version of secondary dependency ``etils`` that does not support Python versions
-earlier than 3.10. This can be rectified by
-::
-
-  conda install etils=1.5.1
+``tensorstore`` under MacOS.
 
 The most recent SCICO conda forge package also includes dependencies for
 the example scripts, except for ``bm3d``, ``bm4d``, and

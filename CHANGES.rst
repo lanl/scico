@@ -15,6 +15,7 @@ Version 0.0.8   (unreleased)
 • Support ``jaxlib`` and ``jax`` versions 0.8.0 to 0.12.1.
 • Support ``flax`` versions 0.8.0 to 0.12.10.
 • Add limited support for sharded arrays.
+• Increase minimum supported Python version to 3.11.
 • Various bug fixes and minor improvements.
 
 

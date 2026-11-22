@@ -1,0 +1,89 @@
+# Install scico requirements and run pytest under the minimum supported
+# Python version, so that the version declared in setup.py is tested
+# rather than merely asserted. The primary test workflows run under the
+# recommended version instead.
+
+name: unit tests (minimum python)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  workflow_dispatch:
+
+jobs:
+
+  test:
+    runs-on: ubuntu-latest
+    name: pytest (minimum python, ubuntu)
+    defaults:
+      run:
+        shell: bash -l {0}
+    steps:
+      # Check-out the repository under $GITHUB_WORKSPACE
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          lfs: true
+      # Configure Git LFS cache
+      - name: Cache Git LFS files
+        uses: actions/cache@v6
+        with:
+          path: .git/lfs
+          key: lfs-${{ runner.os }}-${{ hashFiles('.gitattributes') }}
+          restore-keys: |
+            lfs-${{ runner.os }}
+      # Fetch any uncached Git LFS files
+      - name: Fetch remaining LFS files
+        run: git lfs pull
+      # Set up conda environment. The Python version here is the minimum
+      # supported version, and should be kept in step with the
+      # python_requires value in setup.py.
+      - name: Set up miniconda
+        uses: conda-incubator/setup-miniconda@v4
+        with:
+            miniforge-version: latest
+            activate-environment: test-env
+            python-version: "3.11"
+      # The conda environment is deliberately not cached: the cache key used
+      # by the primary test workflows does not include the Python version,
+      # so sharing it would allow an environment built for one version to be
+      # restored for the other.
+      # Display environment details
+      - name: Display environment details
+        run: |
+          conda info
+          python --version
+      # Install required system package
+      - name: Install required system package
+        run: sudo apt-get install -y libopenblas-dev
+      # Install dependencies in conda environment. Only the primary and
+      # development dependencies are installed; the optional dependencies
+      # installed by the primary test workflows are omitted, and the tests
+      # that require them are skipped.
+      - name: Install dependencies
+        run: |
+          conda install -c conda-forge pytest
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r dev_requirements.txt
+      # Install package to be tested
+      - name: Install package to be tested
+        run: pip install -e .
+      # Confirm that the environment is the one intended, so that this
+      # workflow cannot pass by silently running under another version.
+      # The resolved jax and flax versions are reported because the newest
+      # versions permitted by requirements.txt do not support the minimum
+      # Python version, and are therefore not the ones tested here.
+      - name: Confirm environment
+        run: |
+          python -c "import sys; assert sys.version_info[:2] == (3, 11), sys.version"
+          python -c "import sys; print('python', sys.version)"
+          python -c "import jax; print('jax', jax.__version__)"
+          python -c "import flax; print('flax', flax.__version__)"
+          python -c "import scico; print('scico', scico.__version__)"
+      # Run unit tests
+      - name: Run unit tests
+        run: pytest -x --level=2 --pyargs scico

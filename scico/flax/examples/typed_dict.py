@@ -7,13 +7,7 @@
 
 """Definition of typed dictionaries for training data."""
 
-import sys
-from typing import Optional, Union
-
-if sys.version_info >= (3, 8):
-    from typing import TypedDict  # pylint: disable=no-name-in-module
-else:
-    from typing_extensions import TypedDict
+from typing import Optional, TypedDict, Union
 
 from scico.numpy import Array
 from scico.typing import Shape
