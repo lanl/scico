@@ -73,7 +73,7 @@ class ConditionalUNet(nnx.Module):
         """Initialize Flax conditional U-Net model.
 
         Args:
-            shape: Spatial shape of the signal. Only `max(shape)` is
+            shape: Spatial shape of the signal. Only :code:`max(shape)` is
                 used, to derive the dimension of the time embedding.
             channels: Number of channels of signal to process.
             init_channels: Optional features (a.k.a. output channels) of

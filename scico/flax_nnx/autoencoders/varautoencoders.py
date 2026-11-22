@@ -408,10 +408,10 @@ def ConvVarAutoEncoder(
             true and a meaningful value is provided).
         conditional: Flag to specify if decoding will be
             conditioned on a given property (e.g. class membership).
-        mode_cond: Mode of model for conditional signal. Either `"conv"`,
+        mode_cond: Mode of model for conditional signal. Either ``"conv"``,
             requiring shape, channels, filters and kernel size, or
-            `"mlp"`, requiring dim in and widths for layers. Any value
-            other than `"conv"` selects the MLP path.
+            ``"mlp"``, requiring dim in and widths for layers. Any value
+            other than ``"conv"`` selects the MLP path.
         filters_condproc_decoder: List with number of filters per layer in the
             CNN conditional processing decoder (if using conv).
         kernel_size_condproc_decoder: A shape tuple defining the size of the convolution
@@ -437,7 +437,7 @@ def ConvVarAutoEncoder(
     Note:
         Unlike :func:`~scico.flax_nnx.autoencoders.ConvAutoEncoder`, the
         strides of the encoder and decoder convolutions are fixed at
-        `(2, 2)` and cannot be specified. If `conditional` is set and
+        :code:`(2, 2)` and cannot be specified. If `conditional` is set and
         `dim_latent` is zero, `dim_latent` is replaced by the flattened
         size of the mean encoder latent shape.
     """

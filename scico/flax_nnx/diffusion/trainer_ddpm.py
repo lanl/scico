@@ -138,12 +138,12 @@ class FlaxNNXDDPMTrainer(BasicFlaxNNXTrainer):
             must accept and return the same values as the default it
             displaces, which for this formulation is
 
-            - `step_t(x, key)` returning `batch_t`, a single array of
+            - :code:`step_t(x, key)` returning `batch_t`, a single array of
               integer time steps, rather than the pair returned by the
               score formulation;
-            - `step_x(x, key, t)` returning
-              `(z, batch_std, batch_x)`;
-            - `step_loss(criterion, z, output)` returning the loss, with
+            - :code:`step_x(x, key, t)` returning
+              :code:`(z, batch_std, batch_x)`;
+            - :code:`step_loss(criterion, z, output)` returning the loss, with
               no standard deviation argument.
 
             These signatures differ between the three diffusion

@@ -128,10 +128,10 @@ class FlaxNNXNCSNTrainer(BasicFlaxNNXTrainer):
             replacement must accept and return the same values as the
             default it displaces, which for this formulation is
 
-            - `step_x(x, key)` returning
-              `(noise, batch_sigma, batch_x)`, and taking no time step,
+            - :code:`step_x(x, key)` returning
+              :code:`(noise, batch_sigma, batch_x)`, and taking no time step,
               since the noise level is drawn from the sigma schedule;
-            - `step_loss(criterion, noise, sigma, output)` returning the
+            - :code:`step_loss(criterion, noise, sigma, output)` returning the
               loss.
 
             This formulation has no `step_t`, and these signatures

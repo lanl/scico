@@ -38,8 +38,8 @@ def _step_t(batch_x: Array, key: jax.Array, **kwargs: Any) -> tuple[Array, Array
 
     Returns:
         Time steps shaped for broadcasting against `batch_x`, and the
-        same values shaped `(batch, 1)`, both drawn uniformly from
-        `[eps, 1]`.
+        same values shaped :code:`(batch, 1)`, both drawn uniformly from
+        :code:`[eps, 1]`.
     """
     tshp = (batch_x.shape[0],) + (1,) * len(batch_x.shape[1:])
     batch_t = jax.random.uniform(key, (batch_x.shape[0], 1), minval=eps, maxval=1.0)

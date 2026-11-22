@@ -19,7 +19,7 @@ differences:
   affords more flexibility.
 - Some block names have been changed to provide a more specific
   description (e.g. :class:`ConvGroupNBlock` instead of `Block`).
-- Block ``WeightStandardizedConv2d`` has not been implemented.
+- Block `WeightStandardizedConv2d` has not been implemented.
 - The UNet specification has changed to use the custom :class:`Upsample`
   and :class:`Downsample` blocks.
 """
@@ -91,10 +91,10 @@ class SinusoidalPositionEmbeddings(nnx.Module):
         """Compute the sinusoidal embedding of a batch of time steps.
 
         Args:
-            time: Time steps to embed, of shape `(batch, 1)`.
+            time: Time steps to embed, of shape :code:`(batch, 1)`.
 
         Returns:
-            Embedding of shape `(batch, dim)`, the concatenation of the
+            Embedding of shape :code:`(batch, dim)`, the concatenation of the
             sine and cosine of the scaled time steps.
         """
         half_dim = self.dim // 2
@@ -278,7 +278,7 @@ class ConvGroupNBlock(nnx.Module):
         Args:
             x: Input array, channel last.
             scale_shift: Optional pair of arrays applied to the
-                normalized array as `x * (scale + 1) + shift`, by which
+                normalized array as :code:`x * (scale + 1) + shift`, by which
                 time conditioning enters the block. Supplied by
                 :class:`ResnetBlock` as the two halves of its time
                 embedding.

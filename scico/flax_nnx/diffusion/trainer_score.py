@@ -119,13 +119,13 @@ class FlaxNNXScoreTrainer(BasicFlaxNNXTrainer):
             must accept and return the same values as the default it
             displaces, which for this formulation is
 
-            - `step_t(x, key)` returning `(t, batch_t)`, the time steps
+            - :code:`step_t(x, key)` returning :code:`(t, batch_t)`, the time steps
               shaped for broadcasting against `x` and shaped
-              `(batch, 1)` respectively;
-            - `step_x(x, key, t)` returning
-              `(z, batch_std, batch_x)`, the noise, its standard
+              :code:`(batch, 1)` respectively;
+            - :code:`step_x(x, key, t)` returning
+              :code:`(z, batch_std, batch_x)`, the noise, its standard
               deviation and the noisy data;
-            - `step_loss(criterion, z, std, output)` returning the loss.
+            - :code:`step_loss(criterion, z, std, output)` returning the loss.
 
             These signatures differ between the three diffusion
             formulations, so the implementations in
