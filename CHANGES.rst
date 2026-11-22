@@ -12,7 +12,7 @@ Version 0.0.8   (unreleased)
 • New functional ``functional.BoxIndicator``.
 • New functions supporting computed laminography reconstructions.
 • Module ``scico.plot`` deprecated.
-• Support ``jaxlib`` and ``jax`` versions 0.8.0 to 0.12.0.
+• Support ``jaxlib`` and ``jax`` versions 0.8.0 to 0.12.1.
 • Support ``flax`` versions 0.8.0 to 0.12.10.
 • Add limited support for sharded arrays.
 • Various bug fixes and minor improvements.
