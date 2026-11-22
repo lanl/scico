@@ -157,10 +157,10 @@ class DiagonalStack(Operator):
 
     By default, if the inputs :math:`\mb{x}_1, \mb{x}_2, \dots,
     \mb{x}_N` all have the same (possibly nested) shape, `S`, this
-    operator will work on the stack, i.e., have an input shape of `(N,
+    operator will work on the stack, i.e., have an input shape of :code:`(N,
     *S)`. If the inputs have distinct shapes, `S1`, `S2`, ..., `SN`,
     this operator will work on the block concatenation, i.e.,
-    have an input shape of `(S1, S2, ..., SN)`. The same holds for the
+    have an input shape of :code:`(S1, S2, ..., SN)`. The same holds for the
     output shape.
     """
 
@@ -253,9 +253,9 @@ class DiagonalReplicated(Operator):
     computed using :func:`jax.pmap` or :func:`jax.vmap`. The input shape
     for operator :math:`A` should exclude the array axis on which
     :math:`A` is replicated to form :math:`H`. For example, if :math:`A`
-    has input shape `(3, 4)` and :math:`H` is constructed to replicate
+    has input shape :code:`(3, 4)` and :math:`H` is constructed to replicate
     on axis 0 with 2 replicates, the input shape of :math:`H` will be
-    `(2, 3, 4)`.
+    :code:`(2, 3, 4)`.
 
     Operators taking :class:`.BlockArray` input are not supported.
     """

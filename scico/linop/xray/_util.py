@@ -104,9 +104,9 @@ def rotate_volume(
     Args:
         vol: Array to be rotated.
         rot: Rotation specification.
-        x: Coordinates for :code:`x` axis (axis 0).
-        y: Coordinates for :code:`y` axis (axis 1).
-        z: Coordinates for :code:`z` axis (axis 2).
+        x: Coordinates for `x` axis (axis 0).
+        y: Coordinates for `y` axis (axis 1).
+        z: Coordinates for `z` axis (axis 2).
         center: A 3-vector specifying the center of rotation.
            Defaults to the center of the array.
 
@@ -138,7 +138,7 @@ def image_alignment_rotation(
     the image with the vertical axis.
 
     The approach is roughly based on that used in the
-    :code:`find_img_rotation_2D` function in the `cSAXS base package`
+    `find_img_rotation_2D` function in the cSAXS base package
     released by the CXS group at the Paul Scherrer Institute, which
     finds the rotation angle that results in the sparsest column sum
     according to the sparsity measure proposed in Sec 3.1 of
@@ -168,8 +168,8 @@ def image_alignment_rotation(
 
     Notes:
         The number number of detector pixels for the 2D X-ray transform
-        is chosen based on the shape :math:`(N_0, N_1)` of :code:`img`
-        and the value :math:`\theta` of parameter :code:`max_angle`, as
+        is chosen based on the shape :math:`(N_0, N_1)` of `img`
+        and the value :math:`\theta` of parameter `max_angle`, as
         indicated in Fig. 1.
 
         .. figure:: /figures/img_align.svg

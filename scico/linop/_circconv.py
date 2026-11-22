@@ -99,7 +99,7 @@ class CircularConvolve(LinearOperator):
             h_is_dft: Flag indicating whether `h` is in the DFT domain.
             h_center: Array of length `ndims` specifying the center of
                 the filter. Defaults to the upper left corner, i.e.,
-                `h_center = [0, 0, ..., 0]`, may be noninteger. May be a
+                :code:`h_center = [0, 0, ..., 0]`, may be noninteger. May be a
                 ``float`` or ``int`` if `h` is one-dimensional.
             jit:  If ``True``, jit the evaluation, adjoint, and gram
                 functions of the :class:`LinearOperator`.

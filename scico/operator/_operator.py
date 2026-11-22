@@ -33,18 +33,18 @@ def _wrap_mul_div_scalar(func: Callable) -> Callable:
     `__truediv__` between a scalar and an `Operator`.
 
     If one of these binary operations are called in the form
-    `binop(Operator, other)` and 'b' is a scalar, specialized
+    :code:`binop(Operator, other)` and 'b' is a scalar, specialized
     :class:`.Operator` constructors can be called.
 
     Args:
-        func: should be either `.__mul__()`, `.__rmul__()`,
-           or `.__truediv__()`.
+        func: should be either :code:`.__mul__()`, :code:`.__rmul__()`,
+           or :code:`.__truediv__()`.
 
     Returns:
        Wrapped version of `func`.
 
     Raises:
-        TypeError: If a binop with the form `binop(Operator, other)` is
+        TypeError: If a binop with the form :code:`binop(Operator, other)` is
         called and `other` is not a scalar.
     """
 
@@ -190,9 +190,9 @@ class Operator:
         Args:
             x: Point at which to evaluate this :class:`.Operator`. If `x`
                is a :class:`jax.Array` or :class:`.BlockArray`, it must
-               have `shape == self.input_shape`. If `x` is a
+               have :code:`shape == self.input_shape`. If `x` is a
                :class:`.Operator` or :class:`.LinearOperator`, it must
-               have `x.output_shape == self.input_shape`.
+               have :code:`x.output_shape == self.input_shape`.
 
         Returns:
              :class:`.Operator` evaluated at `x`.

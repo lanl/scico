@@ -58,7 +58,7 @@ def wrap_recursively(
     names: Iterable[str],
     wrap: Callable,
 ):
-    """Call wrap functions in `target_dict`, correctly handling names like `"linalg.norm"`."""
+    """Call wrap functions in `target_dict`, correctly handling names like ``"linalg.norm"``."""
 
     for name in names:
         if "." in name:

@@ -198,17 +198,17 @@ Non-differentiable Functionals
 :func:`scico.grad` can be applied to any function, but has undefined
 behavior for non-differentiable functions. For non-differerentiable
 functions, :func:`scico.grad` may or may not return a valid
-subgradient. As an example, ``scico.grad(snp.abs)(0.) = 0``, which is
-a valid subgradient. However, ``scico.grad(snp.linalg.norm)([0., 0.])
-= [nan, nan]``.
+subgradient. As an example, :code:`scico.grad(snp.abs)(0.) = 0`, which is
+a valid subgradient. However, :code:`scico.grad(snp.linalg.norm)([0., 0.])
+= [nan, nan]`.
 
 Differentiable functions that are written as the composition of a
 differentiable and non-differentiable function should be avoided. As
-an example, :math:`f(x) = \norm{x}_2^2` can be implemented in as ``f =
-lambda x: snp.linalg.norm(x)**2``. This involves first calculating the
+an example, :math:`f(x) = \norm{x}_2^2` can be implemented in as :code:`f =
+lambda x: snp.linalg.norm(x)**2`. This involves first calculating the
 non-squared :math:`\ell_2` norm, then squaring it. The un-squared
 :math:`\ell_2` norm is not differentiable at zero. When evaluating
-the gradient of ``f`` at 0, :func:`scico.grad` returns :data:`~numpy.NaN`:
+the gradient of `f` at 0, :func:`scico.grad` returns :data:`~numpy.NaN`:
 
 ::
 
@@ -270,7 +270,7 @@ to GPU. Consider this toy example on a system with a GPU present:
    z = y + x                 # x must be transfered to GPU again
 
 
-The unnecessary transfer can be avoided by first converting ``A`` and ``x`` to
+The unnecessary transfer can be avoided by first converting `A` and `x` to
 JAX arrays:
 
 ::

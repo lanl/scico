@@ -359,7 +359,7 @@ def distributed_data_generation(
     to avoid the risk of errors when running with GPU devices, in which
     case jax is initialized to expect the availability of GPUs, which are
     then not available within the `ray.remote` function due to the absence
-    of any declared GPUs as a `num_gpus` parameter of `@ray.remote`.
+    of any declared GPUs as a `num_gpus` parameter of :code:`@ray.remote`.
 
     Args:
         imagenf: Function for batch-data generation.

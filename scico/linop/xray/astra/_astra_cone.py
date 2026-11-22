@@ -59,7 +59,7 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
     `z` axis in the `x`-`y` plane. The source is positioned at distance
     `source_dist` from the origin, and the detector is at distance
     `det_dist` from the origin (making the source-detector distance
-    `source_dist + det_dist`).
+    :code:`source_dist + det_dist`).
 
     In the "cone_vec" case, each view is determined by the following vectors:
 
@@ -267,7 +267,7 @@ class XRayTransform3DCone(LinearOperator):  # pragma: no cover
             vectors: Array of geometry specification vectors.
 
         Returns:
-            A tuple `(vol_geom, proj_geom)` of ASTRA volume geometry and
+            A tuple :code:`(vol_geom, proj_geom)` of ASTRA volume geometry and
             projection geometry objects.
         """
         # Create volume geometry (same for both cone types)

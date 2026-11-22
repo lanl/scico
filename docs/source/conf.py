@@ -42,6 +42,17 @@ exclude_patterns = ["_build", "**tests**", "**README.rst", "include"]
 # If true, '()' will be appended to :func: etc. cross-reference text.
 add_function_parentheses = False
 
+# Role applied to single backtick markup. Without this setting the
+# default is the docutils "title-reference" role, which renders in
+# italics, so that a name in single backticks and a name in double
+# backticks are rendered quite differently. The "obj" role renders as
+# a literal, matching double backticks, and additionally links to the
+# corresponding entry in the API documentation when the name can be
+# resolved. Names that cannot be resolved, which includes most
+# parameter names, are rendered as literals without a link, and do not
+# generate a warning unless nitpicky mode is enabled.
+default_role = "obj"
+
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
 

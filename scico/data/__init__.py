@@ -74,9 +74,9 @@ def foam_phantom(size: int = 512, asfloat: bool = True):
     """Return a 3D foam phantom.
 
     Args:
-        size: Size of cubic volume. Default value is `512`, selecting the
-           512 x 512 x 512 voxel version. Other valid options are `1024`
-           and `2048`.
+        size: Size of cubic volume. Default value is ``512``, selecting the
+           512 x 512 x 512 voxel version. Other valid options are ``1024``
+           and ``2048``.
         asfloat: Flag indicating whether the returned image should be
           converted to :attr:`~numpy.float32` dtype with a range [0, 1]
           from the original :attr:`~numpy.uint8` dtype with a range

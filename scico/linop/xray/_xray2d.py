@@ -68,14 +68,14 @@ class XRayTransform2D(LinearOperator):
                 angle of 0 corresponds to summing rows, an angle of pi/2
                 corresponds to summing columns, and an angle of pi/4
                 corresponds to summing along antidiagonals.
-            x0: (x, y) position of the corner of the pixel `im[0,0]`. By
-                default, `(-input_shape * dx[0] / 2, -input_shape * dx[1] / 2)`.
+            x0: (x, y) position of the corner of the pixel :code:`im[0,0]`. By
+                default, :code:`(-input_shape * dx[0] / 2, -input_shape * dx[1] / 2)`.
             dx: Image pixel side length in x- and y-direction (axis 0 and
                 1 respectively). Must be set so that the width of a
                 projected pixel is never larger than 1.0. By default,
                 [:math:`\sqrt{2}/2`, :math:`\sqrt{2}/2`].
             y0: Location of the edge of the first detector bin. By
-                default, `-det_count / 2`
+                default, :code:`-det_count / 2`
             det_count: Number of elements in detector. If ``None``,
                 defaults to the size of the diagonal of `input_shape`.
             input_device: (optional) :class:`~jax.Device` or :class:`~jax.sharding.Sharding`
@@ -136,7 +136,7 @@ class XRayTransform2D(LinearOperator):
         )
 
     def project(self, im: ArrayLike) -> snp.Array:
-        """Compute X-ray projection, equivalent to `H @ im`.
+        """Compute X-ray projection, equivalent to :code:`H @ im`.
 
         Args:
             im: Input array representing the image to project.
@@ -146,7 +146,7 @@ class XRayTransform2D(LinearOperator):
         )
 
     def back_project(self, y: ArrayLike) -> snp.Array:
-        """Compute X-ray back projection, equivalent to `H.T @ y`.
+        """Compute X-ray back projection, equivalent to :code:`H.T @ y`.
 
         Args:
             y: Input array representing the sinogram to back project.
@@ -164,7 +164,7 @@ class XRayTransform2D(LinearOperator):
         projection angles are assumed to be evenly spaced in
         :math:`[0, \pi)`; reconstruction quality may be poor if
         this assumption is violated. Poor quality reconstructions should
-        also be expected when `dx[0]` and `dx[1]` are not equal.
+        also be expected when :code:`dx[0]` and :code:`dx[1]` are not equal.
 
         Args:
             y: Input projection, (num_angles, N).

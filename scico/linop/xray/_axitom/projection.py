@@ -33,7 +33,7 @@ def _partial_forward_project(
 
     Partial projection of a cylindrically symmetric volume onto a sensor
     plane using conical beam geometry: this functional only sums along
-    the section of the imaging direction specified by :code:`ratios`.
+    the section of the imaging direction specified by `ratios`.
 
     Args:
       volume: The volume that will be projected onto the sensor.

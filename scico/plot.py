@@ -46,7 +46,7 @@ def plot(y, x=None, ptyp="plot", xlbl=None, ylbl=None, title=None, lgnd=None, lg
     """Plot points or lines in 2D.
 
     Plot points or lines in 2D. If a figure object is specified then the
-    plot is drawn in that figure, and `fig.show()` is not called. The
+    plot is drawn in that figure, and :code:`fig.show()` is not called. The
     figure is closed on key entry 'q'.
 
     Args:
@@ -66,7 +66,7 @@ def plot(y, x=None, ptyp="plot", xlbl=None, ylbl=None, title=None, lgnd=None, lg
             properties.
 
             Keyword arguments specifying :class:`matplotlib.lines.Line2D`
-            properties, e.g. `lw=2.0` sets a line width of 2, or
+            properties, e.g. :code:`lw=2.0` sets a line width of 2, or
             properties of the figure and axes. If not specified, the
             defaults for line width (`lw`) and marker size (`ms`) are
             1.5 and 6.0 respectively. The valid figure and axes keyword
@@ -169,7 +169,7 @@ def surf(
     """Plot a 2D surface in 3D.
 
     Plot a 2D surface in 3D. If a figure object is specified then the
-    surface is drawn in that figure, and `fig.show()` is not called.
+    surface is drawn in that figure, and :code:`fig.show()` is not called.
     The figure is closed on key entry 'q'.
 
     Args:
@@ -262,7 +262,7 @@ def contour(
     """Contour plot of a 2D surface.
 
     Contour plot of a 2D surface. If a figure object is specified then
-    the plot is drawn in that figure, and `fig.show()` is not called.
+    the plot is drawn in that figure, and :code:`fig.show()` is not called.
     The figure is closed on key entry 'q'.
 
     Args:
@@ -359,7 +359,7 @@ def imview(
 
     Display an image. Pixel values are displayed when the pointer is over
     valid image data. If a figure object is specified then the image is
-    drawn in that figure, and `fig.show()` is not called. The figure is
+    drawn in that figure, and :code:`fig.show()` is not called. The figure is
     closed on key entry 'q'.
 
     Args:
@@ -495,7 +495,7 @@ def set_ipython_plot_backend(backend="qt"):
     """Set matplotlib backend within an ipython shell.
 
     Set matplotlib backend within an ipython shell. This function has the
-    same effect as the line magic `%matplotlib [backend]` but is called
+    same effect as the line magic ``%matplotlib [backend]`` but is called
     as a function and includes a check to determine whether the code is
     running in an ipython shell, so that it can safely be used within a
     normal python script since it has no effect when not running in an
@@ -503,7 +503,7 @@ def set_ipython_plot_backend(backend="qt"):
 
     Args:
         backend (string, optional (default 'qt')): Name of backend to be
-            passed to the `%matplotlib` line magic command.
+            passed to the ``%matplotlib`` line magic command.
     """
     warnings.warn(
         "The scico.plot submodule is deprecated; use the corresponding "
@@ -522,7 +522,7 @@ def set_notebook_plot_backend(backend="inline"):
     """Set matplotlib backend within a Jupyter Notebook shell.
 
     Set matplotlib backend within a Jupyter Notebook shell. This function
-    has the same effect as the line magic `%matplotlib [backend]` but
+    has the same effect as the line magic ``%matplotlib [backend]`` but
     is called as a function and includes a check to determine whether the
     code is running in a notebook shell, so that it can safely be used
     within a normal python script since it has no effect when not running
@@ -530,7 +530,7 @@ def set_notebook_plot_backend(backend="inline"):
 
     Args:
         backend (string, optional (default 'inline')): Name of backend to
-            be passed to the `%matplotlib` line magic command.
+            be passed to the ``%matplotlib`` line magic command.
     """
     warnings.warn(
         "The scico.plot submodule is deprecated; use the corresponding "

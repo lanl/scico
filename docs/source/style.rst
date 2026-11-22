@@ -506,6 +506,25 @@ The following components require the recommended markup taken from the
   Should be written between double back-ticks (e.g. \`\`int\`\`, rendered as ``int``).
   NumPy dtypes, however, should be written using cross-reference syntax, e.g.
   \:attr\:\`~numpy.float32\` for :attr:`~numpy.float32`.
+- Brief inline code expressions:
+  Should be written using the code role (e.g. \:code\:\`x[0] \*\* 2\`,
+  rendered as :code:`x[0] ** 2`). Double back-ticks should be used instead for
+  literal text that is not a code expression, such as file names, environment
+  variables, and commands to be entered at a shell prompt.
+
+Single back-ticks are interpreted as the ``obj`` role, which is configured as
+the ``default_role``, so that a name is rendered as a literal, matching the
+rendering of double back-ticks, and is linked to its entry in the API
+documentation when it can be resolved. A name that cannot be resolved, which
+includes most parameter names, is rendered as a literal without a link.
+
+Names, literal text, and code expressions are therefore all rendered in a
+monospaced font, and are not distinguishable by a reader of the rendered
+documentation. The distinction is nevertheless worth maintaining: each form is
+given a distinct class in the generated HTML, so that they may be styled
+differently in future without any change to the source, and the code role can
+be extended to provide syntax highlighting, which double back-ticks cannot. A
+distinction that has been discarded cannot be recovered.
 
 Other components can use \*italics\*, \*\*bold\*\*, and \`\`monospace\`\`
 (respectively rendered as *italics*, **bold**, and ``monospace``) if needed, but

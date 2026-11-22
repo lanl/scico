@@ -181,7 +181,7 @@ class Function:
 
         Returns:
            A pair consisting of the operator evaluated at the parameters
-           specified by `*args` and the Jacobian-vector product.
+           specified by :code:`*args` and the Jacobian-vector product.
         """
         var_arg = args[index]
         fix_args = args[0:index] + args[(index + 1) :]
@@ -206,7 +206,7 @@ class Function:
 
         Returns:
            A pair consisting of the operator evaluated at the parameters
-           specified by `*args` and a function that computes the
+           specified by :code:`*args` and a function that computes the
            vector-Jacobian product.
         """
         var_arg = args[index]

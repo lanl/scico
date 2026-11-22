@@ -10,24 +10,24 @@
 JIT must be disabled for tracing to function correctly (set environment
 variable :code:`JAX_DISABLE_JIT=1`, or call
 :code:`jax.config.update('jax_disable_jit', True)` before importing `jax`
-or `scico`). Call :code:`trace_scico_calls` to initialize tracing, and
-call :code:`register_variable` to associate a name with a variable so
+or `scico`). Call `trace_scico_calls` to initialize tracing, and
+call `register_variable` to associate a name with a variable so
 that it can be referenced by name in the call trace.
 
 The call trace is color-code as follows if
 `colorama <https://github.com/tartley/colorama>`_ is installed:
 
-- `module and class names`: light red
-- `function and method names`: dark red
-- `arguments and return values`: light blue
-- `names of registered variables`: light yellow
+- *module and class names*: light red
+- *function and method names*: dark red
+- *arguments and return values*: light blue
+- *names of registered variables*: light yellow
 
 When a method defined in a class is called for an object of a derived
 class type, the class of that object is displayed in light magenta, in
 square brackets. Function names and return values are distinguished by
 initial ``>>`` and ``<<`` characters respectively.
 
-A usage example is provided in the script :code:`trace_example.py`.
+A usage example is provided in the script ``trace_example.py``.
 """
 
 from __future__ import annotations

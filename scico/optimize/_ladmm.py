@@ -163,10 +163,10 @@ class LinearizedADMM(Optimizer):
         Args:
             x: Point at which to evaluate objective function. If
                ``None``, the objective is evaluated at the current
-               iterate :code:`self.x`.
+               iterate `self.x`.
             z: Point at which to evaluate objective function. If
                ``None``, the objective is evaluated at the current
-               iterate :code:`self.z`.
+               iterate `self.z`.
 
         Returns:
             scalar: Value of the objective function.
@@ -189,7 +189,7 @@ class LinearizedADMM(Optimizer):
         Args:
             x: Point at which to evaluate primal residual. If ``None``,
                the primal residual is evaluated at the current iterate
-               :code:`self.x`.
+               `self.x`.
 
         Returns:
             Norm of primal residual.
@@ -222,7 +222,7 @@ class LinearizedADMM(Optimizer):
         .. math::
             \mb{z} = C \mb{x}^{(0)} \;.
 
-        :code:`z` and :code:`z_old` are initialized to the same value.
+        `z` and `z_old` are initialized to the same value.
 
         Args:
             x0: Starting point for :math:`\mb{x}`.

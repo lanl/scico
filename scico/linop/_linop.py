@@ -30,13 +30,13 @@ from scico.typing import BlockShape, DType, Shape
 def _wrap_add_sub(func: Callable) -> Callable:
     r"""Wrapper function for defining `__add__` and `__sub__`.
 
-    Wrapper function for defining `__add__` and ` __sub__` between
+    Wrapper function for defining `__add__` and `__sub__` between
     :class:`LinearOperator` and derived classes. Operations
     between :class:`LinearOperator` and :class:`.Operator`
     types are also supported.
 
     Handles shape checking and function dispatch based on types of
-    operands `a` and `b` in the call `func(a, b)`. Note that `func`
+    operands `a` and `b` in the call :code:`func(a, b)`. Note that `func`
     will always be a method of the type of `a`, and since this wrapper
     should only be applied within :class:`LinearOperator` or derived
     classes, we can assume that `a` is always an instance of
@@ -53,15 +53,15 @@ def _wrap_add_sub(func: Callable) -> Callable:
       is raised.
     - If the shapes of `a` and `b` do not match, a :exc:`ValueError` is
       raised.
-    - If `b` is an instance of the type of `a` then `func(a, b)` is
+    - If `b` is an instance of the type of `a` then :code:`func(a, b)` is
       called where `func` is the argument of this wrapper, i.e.
       the unwrapped function defined in the class of `a`.
-    - If `a` is an instance of the type of `b` then `func(a, b)` is
+    - If `a` is an instance of the type of `b` then :code:`func(a, b)` is
       called where `func` is the unwrapped function defined in the class
       of `b`.
-    - If `b` is a :class:`LinearOperator` then `func(a, b)` is called
+    - If `b` is a :class:`LinearOperator` then :code:`func(a, b)` is called
       where `func` is the operator defined in :class:`LinearOperator`.
-    - Othwerwise, `func(a, b)` is called where `func` is the operator
+    - Othwerwise, :code:`func(a, b)` is called where `func` is the operator
       defined in :class:`.Operator`.
 
     Args:
@@ -284,9 +284,9 @@ class LinearOperator(Operator):
         Args:
             x: Point at which to evaluate this :class:`LinearOperator`.
                If `x` is a :class:`jax.Array` or :class:`.BlockArray`,
-               must have `shape == self.input_shape`. If `x` is a
+               must have :code:`shape == self.input_shape`. If `x` is a
                :class:`LinearOperator`, must have
-               `x.output_shape == self.input_shape`.
+               :code:`x.output_shape == self.input_shape`.
         """
         if isinstance(x, LinearOperator):
             return ComposedLinearOperator(self, x)
@@ -304,9 +304,9 @@ class LinearOperator(Operator):
         Args:
             y: Point at which to compute adjoint. If `y` is
                 :class:`jax.Array` or :class:`.BlockArray`, must have
-                `shape == self.output_shape`. If `y` is a
+                :code:`shape == self.output_shape`. If `y` is a
                 :class:`LinearOperator`, must have
-                `y.output_shape == self.output_shape`.
+                :code:`y.output_shape == self.output_shape`.
 
         Returns:
             Adjoint evaluated at `y`.
@@ -335,10 +335,10 @@ class LinearOperator(Operator):
         :class:`LinearOperator` `A` (`A.input_dtype` is
         :attr:`~numpy.float32` or :attr:`~numpy.float64`), the
         :class:`LinearOperator` `A.T` implements the adjoint:
-        `A.T(y) == A.adj(y)`. For a complex-valued :class:`LinearOperator`
+        :code:`A.T(y) == A.adj(y)`. For a complex-valued :class:`LinearOperator`
         `A` (`A.input_dtype` is :attr:`~numpy.complex64` or
         :attr:`~numpy.complex128`), the :class:`LinearOperator` `A.T` is
-        not the adjoint. For the conjugate transpose, use `.conj().T` or
+        not the adjoint. For the conjugate transpose, use :code:`.conj().T` or
         :meth:`.H`.
         """
         if is_complex_dtype(self.input_dtype):
@@ -370,8 +370,8 @@ class LinearOperator(Operator):
         :class:`LinearOperator` `A.H` is equivalent to `A.T`. For a
         complex-valued :class:`LinearOperator` `A` (`A.input_dtype` is
         :attr:`~numpy.complex64` or :attr:`~numpy.complex128`), the
-        :class:`LinearOperator` `A.H` implements the adjoint of `A :
-        A.H @ y == A.adj(y) == A.conj().T @ y)`.
+        :class:`LinearOperator` `A.H` implements the adjoint of `A`:
+        :code:`A.H @ y == A.adj(y) == A.conj().T @ y`.
 
         For the non-conjugate transpose, see :meth:`.T`.
         """
@@ -388,7 +388,7 @@ class LinearOperator(Operator):
         """Complex conjugate of this :class:`LinearOperator`.
 
         Return a new :class:`LinearOperator` `Ac` such that
-        `Ac(x) = conj(A)(x)`.
+        :code:`Ac(x) = conj(A)(x)`.
         """
         # A.conj() x == (A @ x.conj()).conj()
         return LinearOperator(
@@ -405,7 +405,7 @@ class LinearOperator(Operator):
         """Gram operator of this :class:`LinearOperator`.
 
         Return a new :class:`LinearOperator` `G` such that
-        `G(x) = A.adj(A(x)))`.
+        :code:`G(x) = A.adj(A(x))`.
         """
         if self._gram is None:
             self._set_gram()
@@ -422,17 +422,17 @@ class LinearOperator(Operator):
     def gram(
         self, x: Union[LinearOperator, Array, BlockArray]
     ) -> Union[LinearOperator, Array, BlockArray]:
-        """Compute `A.adj(A(x)).`
+        """Compute :code:`A.adj(A(x))`.
 
         Args:
             x: Point at which to evaluate the gram operator. If `x` is
                a :class:`jax.Array` or :class:`.BlockArray`, must have
-               `shape == self.input_shape`. If `x` is a
+               :code:`shape == self.input_shape`. If `x` is a
                :class:`LinearOperator`, must have
-               `x.output_shape == self.input_shape`.
+               :code:`x.output_shape == self.input_shape`.
 
         Returns:
-            Result of `A.adj(A(x))`.
+            Result of :code:`A.adj(A(x))`.
         """
         if self._gram is None:
             self._set_gram()
@@ -450,12 +450,12 @@ class ComposedLinearOperator(LinearOperator):
     def __init__(self, A: LinearOperator, B: LinearOperator, jit: bool = False):
         r"""
         A :class:`ComposedLinearOperator` `AB` implements
-        `AB @ x == A @ B @ x`. :class:`LinearOperator` `A` and `B` are
+        :code:`AB @ x == A @ B @ x`. :class:`LinearOperator` `A` and `B` are
         stored as attributes of the :class:`ComposedLinearOperator`.
 
         :class:`LinearOperator` `A` and `B` must have compatible shapes
-        and dtypes: `A.input_shape == B.output_shape` and
-        `A.input_dtype == B.input_dtype`.
+        and dtypes: :code:`A.input_shape == B.output_shape` and
+        :code:`A.input_dtype == B.input_dtype`.
 
         Args:
             A: First (left) :class:`LinearOperator`.

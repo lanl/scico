@@ -218,7 +218,7 @@ class SeparableFunctional(Functional):
         Args:
             functional_list: List of component functionals f_i. This
                functional takes as an input a :class:`.BlockArray` with
-               `num_blocks == len(functional_list)`.
+               :code:`num_blocks == len(functional_list)`.
         """
         self.functional_list: List[Functional] = functional_list
         self.has_eval: bool = all(fi.has_eval for fi in functional_list)

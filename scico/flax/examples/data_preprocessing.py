@@ -373,7 +373,7 @@ def images_read(path: str, ext: str = "jpg") -> Array:  # pragma: no cover
 
     Read a collection of color images from a set of files in the
     specified directory. All files with extension `ext` (i.e.
-    matching glob `*.ext`) in directory `path` are assumed to be image
+    matching glob ``*.ext``) in directory `path` are assumed to be image
     files and are read. Images may have different aspect ratios,
     therefore, they are transposed to keep the aspect ratio of the first
     image read.
@@ -405,9 +405,9 @@ def get_bsds_data(path: str, verbose: bool = False):  # pragma: no cover
     481x321 or 321x481, from the Berkeley Segmentation Dataset and
     Benchmark project.
 
-    The downloaded data is converted to `.npz` format for
+    The downloaded data is converted to ``.npz`` format for
     convenient access via :func:`numpy.load`. The converted data
-    is saved in a file `bsds500.npz` in the directory specified by
+    is saved in a file ``bsds500.npz`` in the directory specified by
     `path`. Note that train and test folders are merged to get a
     set of 400 images for training while the val folder is reserved
     as a set of 100 images for testing. This is done in multiple

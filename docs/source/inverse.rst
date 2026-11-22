@@ -108,7 +108,7 @@ this operator by
        H1 = scico.linop.Sum(input_shape, axis=1)
        H = scico.linop.VerticalStack((H0, H1))
 
-The result of applying ``H`` to an image with shape ``(130, 50)`` is a
+The result of applying `H` to an image with shape ``(130, 50)`` is a
 :class:`.BlockArray` with shape ``((50,), (130,))``. This result is
 compatible with the rest of SCICO and may be used, e.g., as the input
 of other operators.
@@ -252,7 +252,7 @@ is the alternating direction method of multipliers (ADMM)
 
 .. math:: \mathop{\mathrm{arg\,min}}_{\mb{x}} \; f(\mb{x}) + \sum_{i=1}^N g_i(C_i \mb{x}) \,.
 
-When :math:`f(\cdot)` is an instance of ``scico.loss.SquaredL2Loss``,
+When :math:`f(\cdot)` is an instance of `scico.loss.SquaredL2Loss`,
 i.e.,
 
 .. math:: f(\mb{x}) = (1/2) \| A \mb{x} - \mb{y} \|_2^2 \,,

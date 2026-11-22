@@ -247,7 +247,7 @@ class MatrixOperator(LinearOperator):
         """Gram operator of this :class:`.MatrixOperator`.
 
         Return a new :class:`.LinearOperator` `G` such that
-        `G(x) = A.adj(A(x)))`."""
+        :code:`G(x) = A.adj(A(x))`."""
         return MatrixOperator(A=self.A.conj().T @ self.A)
 
     def norm(self, ord=None, axis=None, keepdims=False):  # pylint: disable=W0622

@@ -47,7 +47,7 @@ def rgb2gray(rgb: np.ndarray) -> np.ndarray:
 def volume_read(path: str, ext: str = "tif") -> np.ndarray:
     """Read a 3D volume from a set of files in the specified directory.
 
-    All files with extension `ext` (i.e. matching glob `*.ext`)
+    All files with extension `ext` (i.e. matching glob ``*.ext``)
     in directory `path` are assumed to be image files and are read.
     The filenames are assumed to be such that their alphanumeric
     ordering corresponds to their order as volume slices.
@@ -71,9 +71,9 @@ def get_epfl_deconv_data(channel: int, path: str, verbose: bool = False):  # pra
     """Download example data from EPFL Biomedical Imaging Group.
 
     Download deconvolution problem data from EPFL Biomedical Imaging
-    Group. The downloaded data is converted to `.npz` format for
+    Group. The downloaded data is converted to ``.npz`` format for
     convenient access via :func:`numpy.load`. The converted data is saved
-    in a file `epfl_big_deconv_<channel>.npz` in the directory specified
+    in a file ``epfl_big_deconv_<channel>.npz`` in the directory specified
     by `path`.
 
     Args:
@@ -135,7 +135,7 @@ def epfl_deconv_data(
         channel: Channel number between 0 and 2.
         verbose: Flag indicating whether to print status messages.
         cache_path: Directory in which downloaded data is cached. The
-           default is `~/.cache/scico/examples`, where `~` represents
+           default is ``~/.cache/scico/examples``, where ``~`` represents
            the user home directory.
 
     Returns:
@@ -167,9 +167,9 @@ def get_ucb_diffusercam_data(path: str, verbose: bool = False):  # pragma: no co
     """Download data from UC Berkeley Waller Lab diffusercam project.
 
     Download deconvolution problem data from UC Berkeley Waller Lab
-    diffusercam project.  The downloaded data is converted to `.npz`
+    diffusercam project.  The downloaded data is converted to ``.npz``
     format for convenient access via :func:`numpy.load`.  The
-    converted data is saved in a file `ucb_diffcam_data.npz.npz` in
+    converted data is saved in a file ``ucb_diffcam_data.npz.npz`` in
     the directory specified by `path`.
 
     Args:
@@ -227,7 +227,7 @@ def ucb_diffusercam_data(
     Args:
         verbose: Flag indicating whether to print status messages.
         cache_path: Directory in which downloaded data is cached. The
-           default is `~/.cache/scico/examples`, where `~` represents
+           default is ``~/.cache/scico/examples``, where ``~`` represents
            the user home directory.
 
     Returns:
@@ -409,8 +409,8 @@ def create_circular_phantom(
 ) -> np.ndarray:
     """Construct a circular phantom with given radii and intensities.
 
-    This functions supports both circular (``shape`` is 2D) and spherical
-    (``shape`` is 3D) phantoms.
+    This functions supports both circular (`shape` is 2D) and spherical
+    (`shape` is 3D) phantoms.
 
     Args:
         shape: Shape of the phantom to be created.

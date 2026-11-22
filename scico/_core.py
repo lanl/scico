@@ -59,7 +59,7 @@ def eval_shape(fun: Callable, *args, **kwargs) -> Any:
     """Compute the shape and dtype of a function without executing it.
 
     Compute the shape and dtype of a function without executing it, via
-    a call to :func:`jax.eval_shape`, with ``args`` and ``kwargs`` mapped
+    a call to :func:`jax.eval_shape`, with `args` and `kwargs` mapped
     to handle :class:`jax.ShapeDtypeStruct` objects with nested shapes
     corresponding to :class:`.BlockArray` objects.
     """
@@ -194,8 +194,8 @@ def cvjp(fun: Callable, *primals, jidx: Optional[int] = None) -> Tuple[Tuple[Any
            to which the Jacobian is taken.
 
     Returns:
-        A pair `(primals_out, conj_vjp)` where `primals_out` is the
-        output of `fun` evaluated at `primals`, i.e. `primals_out
+        A pair :code:`(primals_out, conj_vjp)` where `primals_out` is the
+        output of `fun` evaluated at `primals`, i.e. :code:`primals_out
         = fun(*primals)`, and `conj_vjp` is a function that computes the
         product of the conjugate (Hermitian) transpose of the Jacobian of
         `fun` and its argument. If the `jidx` parameter is an integer,

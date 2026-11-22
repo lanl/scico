@@ -65,12 +65,12 @@ class FiniteDifference(VerticalStack):
                 evaluated along all axes.
             prepend: Flag indicating handling of the left/top/etc.
                 boundary. If ``None``, there is no boundary extension.
-                Values of `0` or `1` indicate respectively that zeros or
+                Values of ``0`` or ``1`` indicate respectively that zeros or
                 the initial value in the array are prepended to the
                 difference array.
             append: Flag indicating handling of the right/bottom/etc.
                 boundary. If ``None``, there is no boundary extension.
-                Values of `0` or `1` indicate respectively that zeros or
+                Values of ``0`` or ``1`` indicate respectively that zeros or
                 -1 times the final value in the array are appended to the
                 difference array.
             circular: If ``True``, perform circular differences, i.e.,
@@ -126,7 +126,7 @@ class SingleAxisFiniteDifference(LinearOperator):
        \end{array}\right) \;.
 
     Other possible choices include `prepend` set to ``None`` and `append`
-    set to `0`, giving the :math:`\mbb{R}^N \rightarrow \mbb{R}^N`
+    set to ``0``, giving the :math:`\mbb{R}^N \rightarrow \mbb{R}^N`
     mapping
 
     .. math::
@@ -139,7 +139,7 @@ class SingleAxisFiniteDifference(LinearOperator):
        0 & 0 & \dots & 0 & 0
        \end{array}\right) \;,
 
-    and both `prepend` and `append` set to `1`, giving the
+    and both `prepend` and `append` set to ``1``, giving the
     :math:`\mbb{R}^N \rightarrow \mbb{R}^{N+1}` mapping
 
     .. math::
@@ -173,12 +173,12 @@ class SingleAxisFiniteDifference(LinearOperator):
             axis: Axis over which to apply finite difference operator.
             prepend: Flag indicating handling of the left/top/etc.
                 boundary. If ``None``, there is no boundary extension.
-                Values of `0` or `1` indicate respectively that zeros or
+                Values of ``0`` or ``1`` indicate respectively that zeros or
                 the initial value in the array are prepended to the
                 difference array.
             append: Flag indicating handling of the right/bottom/etc.
                 boundary. If ``None``, there is no boundary extension.
-                Values of `0` or `1` indicate respectively that zeros or
+                Values of ``0`` or ``1`` indicate respectively that zeros or
                 -1 times the final value in the array are appended to the
                 difference array.
             circular: If ``True``, perform circular differences, i.e.,

@@ -241,7 +241,7 @@ class DnCNN(FlaxMap):
 
         Args:
             x: Input array.
-            sigma: Noise standard deviation (for variants `6N` and `17N`).
+            sigma: Noise standard deviation (for variants ``6N`` and ``17N``).
 
         Returns:
             Denoised output.
