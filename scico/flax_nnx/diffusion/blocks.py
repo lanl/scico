@@ -5,8 +5,7 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Flax NNX implementation of different neural network blocks for
-diffusion generative models.
+"""Flax NNX neural network blocks for diffusion generative models.
 
 The form of these blocks is based on `PyTorch code for diffusion models
 <https://huggingface.co/blog/annotated-diffusion>`_, but with a number of
@@ -20,7 +19,7 @@ differences:
   affords more flexibility.
 - Some block names have been changed to provide a more specific
   description (e.g. :class:`ConvGroupNBlock` instead of `Block`).
-- Block :class:`WeightStandardizedConv2d` has not been implemented.
+- Block `WeightStandardizedConv2d` has not been implemented.
 - The UNet specification has changed to use the custom :class:`Upsample`
   and :class:`Downsample` blocks.
 """
@@ -32,23 +31,24 @@ import warnings
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
 import math
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
+from typing import Any
 
 import jax
 import jax.numpy as jnp
-from jax.typing import ArrayLike
 
 from einops import rearrange
 
 from flax import nnx
 from flax.core import Scope  # noqa
 from scico.flax_nnx.diffusion.helpers import default
+from scico.numpy import Array
 
 # The import of Scope above is required to silence "cannot resolve
 # forward reference" warnings when building sphinx api docs.
 
 
-def get_timestep_embedding(timesteps: ArrayLike, embedding_dim: int = 128):
+def get_timestep_embedding(timesteps: Array, embedding_dim: int = 128) -> Array:
     """Construct an embedding for a sequence of time steps.
 
     Args:
@@ -57,12 +57,17 @@ def get_timestep_embedding(timesteps: ArrayLike, embedding_dim: int = 128):
 
     Returns:
         Time steps as an embedded sequence with specified dimension.
+
+    Note:
+        Functional equivalent of :class:`SinusoidalPositionEmbeddings`,
+        retained as a standalone function; the models in this package use
+        the class.
     """
     half_dim = embedding_dim // 2
-    emb = math.log(10000) / (half_dim - 1)
-    emb = jnp.exp(jnp.arange(half_dim, dtype=jnp.float32) * -emb)
+    log_scale = math.log(10000) / (half_dim - 1)
+    freq = jnp.exp(jnp.arange(half_dim, dtype=jnp.float32) * -log_scale)
 
-    emb = jnp.asarray(timesteps, dtype=jnp.float32) * emb[None, :]
+    emb = jnp.asarray(timesteps, dtype=jnp.float32) * freq[None, :]
     emb = jnp.concatenate([jnp.sin(emb), jnp.cos(emb)], axis=-1)
     if embedding_dim % 2 == 1:  # zero pad
         emb = jnp.pad(emb, [0, 1], mode="constant")
@@ -82,12 +87,20 @@ class SinusoidalPositionEmbeddings(nnx.Module):
         super().__init__()
         self.dim = dim
 
-    def __call__(self, time):
-        """Compute embeddings."""
+    def __call__(self, time: Array) -> Array:
+        """Compute the sinusoidal embedding of a batch of time steps.
+
+        Args:
+            time: Time steps to embed, of shape :code:`(batch, 1)`.
+
+        Returns:
+            Embedding of shape :code:`(batch, dim)`, the concatenation of the
+            sine and cosine of the scaled time steps.
+        """
         half_dim = self.dim // 2
-        embeddings = math.log(10000) / (half_dim - 1)
-        embeddings = jnp.exp(jnp.arange(half_dim, dtype=jnp.float32) * -embeddings)
-        embeddings = jnp.asarray(time, dtype=jnp.float32) * embeddings[None, :]
+        log_scale = math.log(10000) / (half_dim - 1)
+        freq = jnp.exp(jnp.arange(half_dim, dtype=jnp.float32) * -log_scale)
+        embeddings = jnp.asarray(time, dtype=jnp.float32) * freq[None, :]
         embeddings = jnp.concatenate([jnp.sin(embeddings), jnp.cos(embeddings)], axis=-1)
         return embeddings
 
@@ -104,13 +117,16 @@ class Residual(nnx.Module):
         super().__init__()
         self.fn = fn
 
-    def __call__(self, x: ArrayLike, *args, **kwargs) -> ArrayLike:
+    def __call__(self, x: Array, *args: Any, **kwargs: Any) -> Array:
         """Apply residual block, i.e. add input to block output.
 
         Args:
             x: The array to be transformed.
             args: Arguments of given processing block.
             kwargs: Keyword arguments of given processing block.
+
+        Returns:
+            Sum of `x` and the output of the wrapped block.
         """
         return self.fn(x, *args, **kwargs) + x
 
@@ -149,8 +165,16 @@ class Upsample(nnx.Module):
             ftrs, default(ftrs_out, ftrs), kernel_size=(3, 3), padding=1, rngs=rngs
         )
 
-    def __call__(self, x: ArrayLike) -> ArrayLike:
-        """Apply upsample."""
+    def __call__(self, x: Array) -> Array:
+        """Apply upsample.
+
+        Args:
+            x: Input array, channel last.
+
+        Returns:
+            Spatially upsampled array, with the channel count reduced by
+            the square of the resizing factor.
+        """
         B, H, W, C = x.shape
         if self.shp_out is not None:
             hnew, wnew = self.shp_out
@@ -171,7 +195,7 @@ class Downsample(nnx.Module):
         ftrs_out: int | None = None,
         factor: float = 2,
         shp_out: tuple[int, int] | None = None,
-        method="bilinear",
+        method: str = "bilinear",
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
         """Initialize downsample Flax block.
@@ -179,7 +203,10 @@ class Downsample(nnx.Module):
         Args:
             ftrs: Number of features (a.k.a. channels).
             ftrs_out: Optional number of output features (a.k.a. channels).
-            factor: Factor to use in the spatial downsample.
+            factor: Factor to use in the spatial downsample. The
+                convolution input channel count is correspondingly scaled
+                by its square, so that the resize discards no
+                information.
             shp_out: Shape of output signal. If given, it is prioritized
                 over the factor argument.
             method: Method for downsampling. Options (strings): "nearest",
@@ -195,8 +222,17 @@ class Downsample(nnx.Module):
         in_features = int(ftrs * factor * factor)
         self.out_ = nnx.Conv(in_features, default(ftrs_out, ftrs), kernel_size=(1, 1), rngs=rngs)
 
-    def __call__(self, x):
-        """Apply downsample."""
+    def __call__(self, x: Array) -> Array:
+        """Apply downsample.
+
+        Args:
+            x: Input array, channel last.
+
+        Returns:
+            Spatially downsampled array, with the channel count increased
+            by the square of the resizing factor before the output
+            convolution.
+        """
         B, H, W, C = x.shape
         if self.shp_out is not None:
             hnew, wnew = self.shp_out
@@ -217,7 +253,7 @@ class ConvGroupNBlock(nnx.Module):
         dim_out: int,
         groups: int = 8,
         kernel_size: tuple[int, int] = (3, 3),
-        act: Callable[..., ArrayLike] = nnx.silu,
+        act: Callable[..., Array] = nnx.silu,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
         """Initialize group normalization for convolution block.
@@ -236,8 +272,21 @@ class ConvGroupNBlock(nnx.Module):
         self.norm = nnx.GroupNorm(num_features=dim_out, num_groups=groups, rngs=rngs)
         self.act = act
 
-    def __call__(self, x, scale_shift=None):
-        """Apply group normalization."""
+    def __call__(self, x: Array, scale_shift: Sequence[Array] | None = None) -> Array:
+        """Apply convolution, group normalization and activation.
+
+        Args:
+            x: Input array, channel last.
+            scale_shift: Optional pair of arrays applied to the
+                normalized array as :code:`x * (scale + 1) + shift`, by which
+                time conditioning enters the block. Supplied by
+                :class:`ResnetBlock` as the two halves of its time
+                embedding.
+
+        Returns:
+            Array of the same spatial shape as `x`, with `dim_out`
+            channels.
+        """
         x = self.proj(x)
         x = self.norm(x)
         if scale_shift is not None:
@@ -258,7 +307,7 @@ class ResnetBlock(nnx.Module):
         time_emb_dim: int | None = 0,
         groups: int = 8,
         kernel_size: tuple[int, int] = (3, 3),
-        act: Callable[..., ArrayLike] = nnx.silu,
+        act: Callable[..., Array] = nnx.silu,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
         """Initialize ResNet block.
@@ -266,7 +315,9 @@ class ResnetBlock(nnx.Module):
         Args:
             dim: Dimensionality of input signal.
             dim_out: Dimensionality of output signal.
-            time_emb_dim: Dimensionality of time embedding.
+            time_emb_dim: Dimensionality of time embedding. The time
+                embedding MLP, and hence time conditioning of this block,
+                is disabled if this is either ``None`` or zero.
             groups: Number of groups.
             kernel_size: Size of convolutional filter.
             act: Activation function.
@@ -275,7 +326,7 @@ class ResnetBlock(nnx.Module):
         super().__init__()
 
         self.mlp = (
-            nnx.Sequential(*[nnx.silu, nnx.Linear(time_emb_dim, dim_out * 2, rngs=rngs)])
+            nnx.Sequential(nnx.silu, nnx.Linear(time_emb_dim, dim_out * 2, rngs=rngs))
             if time_emb_dim is not None and time_emb_dim > 0
             else None
         )
@@ -292,8 +343,20 @@ class ResnetBlock(nnx.Module):
             else nnx.nn.activations.identity
         )
 
-    def __call__(self, x: ArrayLike, time_emb=None) -> ArrayLike:
-        """Apply block."""
+    def __call__(self, x: Array, time_emb: Array | None = None) -> Array:
+        """Apply the residual block, optionally conditioned on time.
+
+        Args:
+            x: Input array, channel last.
+            time_emb: Optional time embedding. Used only if this block was
+                constructed with a non-zero `time_emb_dim`; it is passed
+                through an MLP and split into the scale and shift applied
+                by the first :class:`ConvGroupNBlock`.
+
+        Returns:
+            Array with `dim_out` channels, the block output added to a
+            projection of `x`.
+        """
         scale_shift = None
         if self.mlp is not None and time_emb is not None:
             time_emb = self.mlp(time_emb)
@@ -331,19 +394,28 @@ class Attention(nnx.Module):
         self.qkv_ = nnx.Conv(dim, hidden_dim * 3, kernel_size=(1, 1), use_bias=False, rngs=rngs)
         self.out_ = nnx.Conv(hidden_dim, dim, kernel_size=(1, 1), rngs=rngs)
 
-    def __call__(self, x: ArrayLike) -> ArrayLike:
-        """Apply attention block."""
-        b, h, w, c = x.shape  # channel last in flax
+    def __call__(self, x: Array) -> Array:
+        """Apply attention block.
+
+        Args:
+            x: Input array, channel last.
+
+        Returns:
+            Array of the same shape as `x`.
+        """
+        _, height, width, _ = x.shape  # channel last in flax
         qkv = self.qkv_(x)
-        qkv = jnp.split(qkv, 3, axis=-1)  # channel last in flax
-        q, k, v = map(lambda t: rearrange(t, "b x y (h c)  -> b (x y) h c", h=self.heads), qkv)
+        qkv_split = jnp.split(qkv, 3, axis=-1)  # channel last in flax
+        q, k, v = map(
+            lambda t: rearrange(t, "b x y (h c)  -> b (x y) h c", h=self.heads), qkv_split
+        )
         q = q * self.scale
 
         sim = jnp.einsum("b d h i, b d h j -> b i h j", q, k)
         sim = sim - jnp.amax(sim, axis=-1, keepdims=True)
         attn = nnx.softmax(sim, axis=-1)
         out = jnp.einsum("b i h j, b d h j -> b d h i", attn, v)
-        out = rearrange(out, "b (x y) h c  -> b x y (h c)", x=h, y=w)
+        out = rearrange(out, "b (x y) h c  -> b x y (h c)", x=height, y=width)
         return self.out_(out)
 
 
@@ -378,20 +450,29 @@ class LinearAttention(nnx.Module):
             ]
         )
 
-    def __call__(self, x: ArrayLike) -> ArrayLike:
-        """Apply linear attention block."""
+    def __call__(self, x: Array) -> Array:
+        """Apply linear attention block.
 
-        b, h, w, c = x.shape  # channel last in Flax
+        Args:
+            x: Input array, channel last.
+
+        Returns:
+            Array of the same shape as `x`.
+        """
+
+        _, height, width, _ = x.shape  # channel last in Flax
         qkv = self.qkv_(x)
-        qkv = jnp.split(qkv, 3, axis=-1)  # channel last in Flax
-        q, k, v = map(lambda t: rearrange(t, "b x y (h c)  -> b (x y) h c", h=self.heads), qkv)
+        qkv_split = jnp.split(qkv, 3, axis=-1)  # channel last in Flax
+        q, k, v = map(
+            lambda t: rearrange(t, "b x y (h c)  -> b (x y) h c", h=self.heads), qkv_split
+        )
         q = nnx.softmax(q, axis=-2)
         k = nnx.softmax(k, axis=-1)
 
         q = q * self.scale
         context = jnp.einsum("b n h d, b n h e -> b d h e", k, v)
         out = jnp.einsum("b d h e, b n h d -> b n h e", context, q)
-        out = rearrange(out, "b (x y) h c  -> b x y (h c)", h=self.heads, x=h, y=w)
+        out = rearrange(out, "b (x y) h c  -> b x y (h c)", h=self.heads, x=height, y=width)
 
         return self.out_(out)
 
@@ -412,7 +493,14 @@ class PreNorm(nnx.Module):
         self.fn = fn
         self.norm = nnx.GroupNorm(num_features=dim, num_groups=1, rngs=rngs)
 
-    def __call__(self, x: ArrayLike) -> ArrayLike:
-        """Apply group norm before block."""
+    def __call__(self, x: Array) -> Array:
+        """Apply group normalization before the wrapped block.
+
+        Args:
+            x: Input array, channel last.
+
+        Returns:
+            Output of the wrapped block applied to the normalized `x`.
+        """
         x = self.norm(x)
         return self.fn(x)

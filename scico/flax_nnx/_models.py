@@ -15,12 +15,13 @@ warnings.simplefilter(action="ignore", category=FutureWarning)
 
 from collections.abc import Callable
 from functools import partial
+from typing import Any
 
 import jax.numpy as jnp
-from jax.typing import ArrayLike
 
 from flax import nnx
 from flax.core import Scope  # noqa
+from scico.numpy import Array
 
 from .blocks import (
     ConvBNBlock,
@@ -48,14 +49,14 @@ class DnCNNNet(nnx.Module):
         num_filters: int = 64,
         kernel_size: tuple[int, int] = (3, 3),
         strides: tuple[int, int] = (1, 1),
-        act: Callable[..., ArrayLike] = nnx.relu,
+        act: Callable[..., Array] = nnx.relu,
         kernel_init: Callable = nnx.initializers.kaiming_normal,
-        dtype=jnp.float32,
+        dtype: Any = jnp.float32,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
         """Initialize DnCNN model.
 
-        Attributes:
+        Args:
             depth: Number of layers in the neural network.
             channels: Number of channels of input tensor.
             num_filters: Number of filters in the convolutional layers.
@@ -111,7 +112,7 @@ class DnCNNNet(nnx.Module):
             ),
         )
 
-    def __call__(self, inputs: ArrayLike) -> ArrayLike:
+    def __call__(self, inputs: Array) -> Array:
         """Apply DnCNN denoiser.
 
         Args:
@@ -129,7 +130,7 @@ class DnCNNNet(nnx.Module):
 class ResNet(nnx.Module):
     """Flax nnx implementation of convolutional network with residual connection.
 
-    Net constructed from sucessive applications of convolution plus batch
+    Net constructed from successive applications of convolution plus batch
     normalization blocks and ending with residual connection (i.e. adding
     the input to the output of the block)."""
 
@@ -140,9 +141,9 @@ class ResNet(nnx.Module):
         num_filters: int = 64,
         kernel_size: tuple[int, int] = (3, 3),
         strides: tuple[int, int] = (1, 1),
-        act: Callable[..., ArrayLike] = nnx.relu,
+        act: Callable[..., Array] = nnx.relu,
         kernel_init: Callable = nnx.initializers.xavier_normal,
-        dtype=jnp.float32,
+        dtype: Any = jnp.float32,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
         """Initialize ResNet model.
@@ -195,7 +196,7 @@ class ResNet(nnx.Module):
             ),
         )
 
-    def __call__(self, x: ArrayLike) -> ArrayLike:
+    def __call__(self, x: Array) -> Array:
         """Apply ResNet.
 
         Args:
@@ -212,7 +213,7 @@ class ResNet(nnx.Module):
 class ConvBNNet(nnx.Module):
     """Convolution and batch normalization net.
 
-    Net constructed from sucessive applications of convolution plus batch
+    Net constructed from successive applications of convolution plus batch
     normalization and activation blocks. No residual connection."""
 
     def __init__(
@@ -222,9 +223,9 @@ class ConvBNNet(nnx.Module):
         num_filters: int = 64,
         kernel_size: tuple[int, int] = (3, 3),
         strides: tuple[int, int] = (1, 1),
-        act: Callable[..., ArrayLike] = nnx.relu,
+        act: Callable[..., Array] = nnx.relu,
         kernel_init: Callable = nnx.initializers.xavier_normal,
-        dtype=jnp.float32,
+        dtype: Any = jnp.float32,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
         """Initialize ConvBNNet model.
@@ -277,7 +278,7 @@ class ConvBNNet(nnx.Module):
             ),
         )
 
-    def __call__(self, x: ArrayLike) -> ArrayLike:
+    def __call__(self, x: Array) -> Array:
         """Apply ConvBNNet.
 
         Args:
@@ -302,9 +303,9 @@ class UNet(nnx.Module):
         block_depth: int = 2,
         window_shape: tuple[int, int] = (2, 2),
         upsampling: int = 2,
-        act: Callable[..., ArrayLike] = nnx.relu,
+        act: Callable[..., Array] = nnx.relu,
         kernel_init: Callable = nnx.initializers.kaiming_normal,
-        dtype=jnp.float32,
+        dtype: Any = jnp.float32,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
         """Initialize U-Net model.
@@ -343,7 +344,7 @@ class UNet(nnx.Module):
         )
 
         # Downsampling path
-        self.down = nnx.List([])
+        self.down: nnx.List = nnx.List([])
         for j in range(depth - 1):
             self.down.append(
                 nnx.Sequential(
@@ -379,7 +380,7 @@ class UNet(nnx.Module):
         upfn = partial(upscale_nn, scale=upsampling)
 
         # Upsampling path
-        self.up = nnx.List([])
+        self.up: nnx.List = nnx.List([])
         for j in reversed(range(depth - 1)):
             self.up.append(
                 nnx.List(
@@ -424,7 +425,7 @@ class UNet(nnx.Module):
             rngs=rngs,
         )
 
-    def __call__(self, x: ArrayLike) -> ArrayLike:
+    def __call__(self, x: Array) -> Array:
         """Apply U-Net.
 
         Args:

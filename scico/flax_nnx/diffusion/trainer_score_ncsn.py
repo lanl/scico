@@ -5,10 +5,13 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Integrated access to functionality for training Flax
-model under of Noise Conditional Score Networks
-(NCSN) :cite:`song-2019-score`.
+"""Training of Flax NNX models under the NCSN formulation.
+
+Integrated access to functionality for training a Flax NNX model under the
+Noise Conditional Score Networks (NCSN) formulation
+:cite:`song-2019-score`.
 """
+
 from __future__ import annotations  # for type support python 3.9 or earlier
 
 import warnings
@@ -20,10 +23,13 @@ from functools import partial
 
 import jax
 
+from typing_extensions import NotRequired
+
 from flax import nnx
 from scico.flax_nnx.train.input_pipeline import iterate_x_dataset
-from scico.flax_nnx.train.trainer import BasicFlaxNNXTrainer
+from scico.flax_nnx.train.trainer import BasicFlaxNNXTrainer, _epoch_loss
 from scico.flax_nnx.train.typed_dict import ConfigDict, DataSetDict
+from scico.numpy import Array
 
 from .diagnostics import stats_obj
 from .steps_score_ncsn import (
@@ -36,7 +42,7 @@ from .steps_score_ncsn import (
 
 
 class ConfigDictNCSN(ConfigDict):
-    """Configuration dictionary for score training."""
+    """Configuration dictionary for NCSN score training."""
 
     #: Maximum number of noise levels.
     max_sigma_steps: int
@@ -45,9 +51,9 @@ class ConfigDictNCSN(ConfigDict):
     #: Maximum noise level.
     sigma_max: float
     #: Function to compute x for diffusion step.
-    step_x: Callable
+    step_x: NotRequired[Callable]
     #: Function to compute loss for diffusion step.
-    step_loss: Callable
+    step_loss: NotRequired[Callable]
 
 
 class FlaxNNXNCSNTrainer(BasicFlaxNNXTrainer):
@@ -56,7 +62,7 @@ class FlaxNNXNCSNTrainer(BasicFlaxNNXTrainer):
     def __init__(
         self,
         config: ConfigDictNCSN,
-        model: Callable,
+        model: nnx.Module,
         train_ds: DataSetDict,
         test_ds: DataSetDict | None = None,
     ):
@@ -105,7 +111,7 @@ class FlaxNNXNCSNTrainer(BasicFlaxNNXTrainer):
     def set_data_processing_functions(
         self,
         config: ConfigDictNCSN,
-    ):
+    ) -> None:
         """Extract configuration parameters and construct training functions.
 
         Parameters and functions are passed in the configuration
@@ -114,6 +120,25 @@ class FlaxNNXNCSNTrainer(BasicFlaxNNXTrainer):
 
         Args:
             config: Hyperparameter configuration.
+
+        Note:
+            The `step_x` and `step_loss` entries of `config` replace the
+            defaults in
+            :mod:`~scico.flax_nnx.diffusion.steps_score_ncsn`. A
+            replacement must accept and return the same values as the
+            default it displaces, which for this formulation is
+
+            - :code:`step_x(x, key)` returning
+              :code:`(noise, batch_sigma, batch_x)`, and taking no time step,
+              since the noise level is drawn from the sigma schedule;
+            - :code:`step_loss(criterion, noise, sigma, output)` returning the
+              loss.
+
+            This formulation has no `step_t`, and these signatures
+            differ from those of
+            :mod:`~scico.flax_nnx.diffusion.steps_score` and
+            :mod:`~scico.flax_nnx.diffusion.steps_ddpm`, so the
+            implementations are not interchangeable.
         """
 
         if "step_x" in config:
@@ -129,7 +154,7 @@ class FlaxNNXNCSNTrainer(BasicFlaxNNXTrainer):
     def configure_data_iterators(
         self,
         config: ConfigDict,
-    ):
+    ) -> None:
         """Configure data iterators.
 
         Generate training data set only from inputs.
@@ -151,8 +176,10 @@ class FlaxNNXNCSNTrainer(BasicFlaxNNXTrainer):
 
         self.log_data_snapshot()
 
-    def one_train_epoch_x(self, graphdef, state, key: jax.Array):
-        """Function that defines one epoch of training for a VAE that uses only input data.
+    def one_train_epoch_x(
+        self, graphdef: nnx.GraphDef, state: nnx.State, key: jax.Array
+    ) -> tuple[Array, nnx.State, jax.Array]:
+        """Function that defines one epoch of training for a diffusion model using only inputs.
 
         This function iterates over the whole training set using randomly shuffled batches.
 
@@ -160,7 +187,7 @@ class FlaxNNXNCSNTrainer(BasicFlaxNNXTrainer):
             graphdef: Graph representation of model.
             state: NNX state object including pytrees for all the
                 model and optimizer graph nodes.
-            key: Key for random generation in VAE forward pass.
+            key: Key for random generation in the diffusion step functions.
 
         Returns:
             Training loss and updated state and key.
@@ -171,6 +198,7 @@ class FlaxNNXNCSNTrainer(BasicFlaxNNXTrainer):
         # JAX keys are typically uint32[2] arrays
         key_data = jax.random.key_data(subkey1)
         seed = int(key_data[0]) & 0x7FFFFFFF  # Ensure positive int32
+        loss: Array | None = None
         for batch in self.dt_iterator_fn(
             self.train_ds,
             self.batch_size,
@@ -187,22 +215,25 @@ class FlaxNNXNCSNTrainer(BasicFlaxNNXTrainer):
             loss, state = self.train_step_fn(
                 graphdef, state, self.criterion, self.step_loss, batch_x, batch_sigma, noise
             )
-        return loss, state, key
+        return _epoch_loss(loss, "training"), state, key
 
-    def one_eval_epoch_x(self, metrics, key: jax.Array):
-        """Function that defines one epoch of evaluation for a VAE that uses only input data.
+    def one_eval_epoch_x(
+        self, metrics: nnx.MultiMetric, key: jax.Array
+    ) -> tuple[Array, nnx.MultiMetric, jax.Array]:
+        """Function that defines one epoch of evaluation for a diffusion model using only inputs.
 
         This function iterates over the whole testing set using sequential batches.
 
         Args:
-            metrics: Dictionary of metrics to evaluate.
-            key: Key for random generation in VAE forward pass.
+            metrics: Multi-metric object in which to accumulate metrics.
+            key: Key for random generation in the diffusion step functions.
 
         Returns:
             Testing loss and updated metrics and key.
         """
         self.model.eval()  # Switch to eval mode
         shuffle = False
+        loss: Array | None = None
         for batch in self.dt_iterator_fn(self.test_ds, self.batch_size, shuffle):
             # Shard data
             x = jax.device_put(batch, self.data_sharding)
@@ -212,4 +243,4 @@ class FlaxNNXNCSNTrainer(BasicFlaxNNXTrainer):
             loss = self.eval_step_fn(
                 self.model, self.criterion, self.step_loss, metrics, batch_x, batch_sigma, noise
             )
-        return loss, metrics, key
+        return _epoch_loss(loss, "evaluation"), metrics, key

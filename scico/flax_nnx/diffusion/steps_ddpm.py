@@ -5,33 +5,38 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Definition of steps to iterate during training or evaluation of
-diffusion models under the Denoising Diffusion Probabilistic Models
-(DDPM) formulation :cite:`ho-2020-ddpm`."""
+"""Steps to iterate during training or evaluation of DDPM models.
+
+Applies to diffusion models under the Denoising Diffusion Probabilistic
+Models (DDPM) formulation :cite:`ho-2020-ddpm`."""
+
 from __future__ import annotations  # for type support python 3.9 or earlier
 
 from collections.abc import Callable
 from functools import partial
+from typing import Any
 
 import jax
 import jax.numpy as jnp
-from jax.typing import ArrayLike
 
 from flax import nnx
+from scico.numpy import Array
 
 
-def alpha_fn(alpha_bar_schedule: ArrayLike, batch_t: ArrayLike) -> ArrayLike:
-    """Computation of alpha for the given time steps in DDPM formulation.
+def alpha_fn(alpha_bar_schedule: Array, batch_t: Array) -> Array:
+    r"""Computation of alpha bar for the given time steps in DDPM formulation.
 
-    Alpha is related to the forward process variances beta by:
-    :math:`\alpha_t = 1 - \beta_t`.
+    Alpha bar is the cumulative product
+    :math:`\bar{\alpha}_t = \prod_{s=1}^{t} \alpha_s` of the quantities
+    :math:`\alpha_t = 1 - \beta_t` determined by the forward process
+    variances :math:`\beta_t`.
 
     Args:
-        alpha_var_schedule: Array of alpha products computed for the whole t range.
-        batch_t: Array of time steps to evaluate alpha.
+        alpha_bar_schedule: Array of alpha products computed for the whole t range.
+        batch_t: Array of time steps at which to evaluate alpha bar.
 
     Returns:
-        Array of alpha values evaluated for the given time steps.
+        Array of alpha bar values evaluated for the given time steps.
     """
     alpha_eval = jnp.zeros(batch_t.shape[0])
     for i, tt in enumerate(batch_t):
@@ -39,35 +44,43 @@ def alpha_fn(alpha_bar_schedule: ArrayLike, batch_t: ArrayLike) -> ArrayLike:
     return alpha_eval
 
 
-def _step_t(batch_x: ArrayLike, key: jax.Array, **kwargs) -> ArrayLike:
+def _step_t(batch_x: Array, key: jax.Array, **kwargs: Any) -> Array:
     """t computation for diffusion step in DDPM formulation.
 
     Args:
         batch_x: Array of a batch of original data.
         key: Key for random generation.
-        kwargs: Keyword arguments. Relevant here: maximum number of steps in t range.
+        kwargs: Keyword arguments. Must include `maxsteps`, the maximum
+            number of steps in the t range; the trainer binds it via
+            :func:`functools.partial`.
 
     Returns:
         Random generation of a batch of time steps for training.
+
+    Raises:
+        KeyError: If `maxsteps` is not in `kwargs`.
     """
     maxsteps = kwargs.pop("maxsteps")
     batch_t = jax.random.randint(key, (batch_x.shape[0], 1), minval=1, maxval=maxsteps)
     return batch_t
 
 
-def _step_x(
-    batch: ArrayLike, key: jax.Array, t: ArrayLike, **kwargs
-) -> tuple[ArrayLike, ArrayLike, ArrayLike]:
-    """x computation for diffusion step in DDPM formulation.
+def _step_x(batch: Array, key: jax.Array, t: Array, **kwargs: Any) -> tuple[Array, Array, Array]:
+    r"""x computation for diffusion step in DDPM formulation.
 
     Args:
         batch: Array of a batch of original data.
         key: Key for random generation.
         t: Array of a batch of time steps in the diffusion process.
-        kwargs: Keyword arguments. Relevant here: the processed :math:`\bar{\alpha}_t`.
+        kwargs: Keyword arguments. Must include `alpha_bar_schedule`,
+            the processed :math:`\bar{\alpha}_t`; the trainer binds it
+            via :func:`functools.partial`.
 
     Returns:
         Noise generated, equivalent standard deviation and noisy data.
+
+    Raises:
+        KeyError: If `alpha_bar_schedule` is not in `kwargs`.
     """
     alpha_bar_schedule = kwargs.pop("alpha_bar_schedule")
     z = jax.random.normal(key, batch.shape)
@@ -78,20 +91,32 @@ def _step_x(
     return z, batch_std, batch_x
 
 
-def _step_loss(criterion: Callable, z: ArrayLike, output: ArrayLike, **kwargs) -> ArrayLike:
-    """Loss computation for diffusion step in DDPM formulation."""
+def _step_loss(criterion: Callable, z: Array, output: Array, **kwargs: Any) -> Array:
+    """Loss computation for diffusion step in DDPM formulation.
+
+    Args:
+        criterion: Criterion to use for training.
+        z: Noise added to the batch.
+        output: Model output.
+        kwargs: Unused; accepted so that all `step_loss` implementations
+            share a signature. Note that, unlike the score variant, this
+            one takes no standard deviation.
+
+    Returns:
+        Loss between the model output and the noise.
+    """
     return criterion(output, z)
 
 
 def loss_fn(
-    model: Callable,
+    model: nnx.Module,
     criterion: Callable,
     step_loss: Callable,
-    batch_x: ArrayLike,
-    batch_t: ArrayLike,
-    batch_z: ArrayLike,
-    batch_std: ArrayLike,
-) -> ArrayLike:
+    batch_x: Array,
+    batch_t: Array,
+    batch_z: Array,
+    batch_std: Array,
+) -> Array:
     """Loss function definition for diffusion step.
 
     Args:
@@ -102,7 +127,9 @@ def loss_fn(
         batch_x: Noisy image data array.
         batch_t: Time array.
         batch_z: Standard Gaussian random variable array.
-        batch_std: Corresponding noise level array.
+        batch_std: Corresponding noise level array. Not used by the DDPM
+            step loss; accepted so that all the diffusion step variants
+            share a single signature.
 
     Returns:
         Evaluated loss.
@@ -114,15 +141,15 @@ def loss_fn(
 
 @partial(jax.jit, static_argnums=(2, 3))
 def jax_train_step_diffusion(
-    graphdef,
-    state,
+    graphdef: nnx.GraphDef,
+    state: nnx.State,
     criterion: Callable,
     step_loss: Callable,
-    batch_x: ArrayLike,
-    batch_t: ArrayLike,
-    batch_z: ArrayLike,
-    batch_std: ArrayLike,
-) -> tuple[ArrayLike, nnx.State]:
+    batch_x: Array,
+    batch_t: Array,
+    batch_z: Array,
+    batch_std: Array,
+) -> tuple[Array, nnx.State]:
     """Train for a single step.
 
     This function uses data and a criterion to optimize model parameters. It returns
@@ -138,10 +165,12 @@ def jax_train_step_diffusion(
         batch_x: Noisy image data array.
         batch_t: Time array.
         batch_z: Standard Gaussian random noise array.
-        batch_std: Corresponding noise level array.
+        batch_std: Corresponding noise level array. Not used by the DDPM
+            step loss; accepted so that all the diffusion step variants
+            share a single signature.
 
     Returns:
-        Loss evaluated.
+        Evaluated loss and the updated NNX state.
     """
     # merge at the beginning of the function
     model, optimizer, metrics = nnx.merge(graphdef, state)
@@ -157,30 +186,32 @@ def jax_train_step_diffusion(
 
 @nnx.jit(static_argnums=(1, 2))
 def eval_step_diffusion(
-    model: Callable,
+    model: nnx.Module,
     criterion: Callable,
     step_loss: Callable,
     metrics: nnx.MultiMetric,
-    batch_x: ArrayLike,
-    batch_t: ArrayLike,
-    batch_z: ArrayLike,
-    batch_std: ArrayLike,
-) -> ArrayLike:
+    batch_x: Array,
+    batch_t: Array,
+    batch_z: Array,
+    batch_std: Array,
+) -> Array:
     """Evaluate for a single step.
 
     This function uses data and a criterion to evaluate performance of current model.
     It returns the current loss evaluated in the testing set.
 
     Args:
-        model: Model to train.
-        criterion: Criterion to use for training.
-        metrics: Dictionary of metrics to evaluate.
+        model: Model to evaluate.
+        criterion: Criterion to use for evaluation.
         step_loss: Function to evaluate difference between expected
                     and produced outputs.
+        metrics: Multi-metric object in which to accumulate metrics.
         batch_x: Noisy image data array.
         batch_t: Time embedding array.
         batch_z: Standard Gaussian random variable array.
-        batch_std: Corresponding noise level array.
+        batch_std: Corresponding noise level array. Not used by the DDPM
+            step loss; accepted so that all the diffusion step variants
+            share a single signature.
 
     Returns:
         Loss evaluated.

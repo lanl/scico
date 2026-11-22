@@ -9,6 +9,7 @@
 
 Assumes sharded batched data.
 """
+
 from __future__ import annotations  # for typing support for python 3.9 or earlier
 
 from collections.abc import Callable
@@ -18,8 +19,7 @@ from scico.flax_nnx.train.diagnostics import create_itstat
 
 
 def stats_obj() -> tuple[IterationStats, Callable]:
-    """Functionality to log and store a specific subset of diffusion
-    models training statistics.
+    """Log and store a specific subset of diffusion model training statistics.
 
     This function specifies some statistics to register while training
     together with their titles and printing format. The statistics
@@ -28,10 +28,9 @@ def stats_obj() -> tuple[IterationStats, Callable]:
     during training.
 
     Returns:
-        An object :class:`~.diagnostics.IterationStats` to log and store
-        iteration statistics and an object
-        :class:`~.diagnostics.IterationStats` to printing stats to command
-        line and storing them for further analysis.
+        An object :class:`~.diagnostics.IterationStats` that logs and stores
+        the iteration statistics, and a function that extracts the
+        registered statistics from an object, for insertion into it.
     """
     # epoch time learning_rate noise_std loss (train and eval) fields
     itstat_fields = {

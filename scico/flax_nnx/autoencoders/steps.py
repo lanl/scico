@@ -5,8 +5,8 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Definition of steps to iterate during training or evaluation of
-autoencoder models."""
+"""Steps to iterate during training or evaluation of autoencoder models."""
+
 from __future__ import annotations  # for typing support for python 3.9 or earlier
 
 from collections.abc import Callable
@@ -15,13 +15,15 @@ from typing import Any
 
 import jax
 import jax.numpy as jnp
-from jax.typing import ArrayLike
 
 from flax import nnx
 from scico.metric import snr as snr_fn
+from scico.numpy import Array
+
+from .varautoencoders import VAE
 
 
-def _kl_loss_fn(mean: ArrayLike, logvar: ArrayLike) -> ArrayLike:
+def _kl_loss_fn(mean: Array | list[Array], logvar: Array | list[Array]) -> Array:
     """Compute KL divergence loss from given mean and log variance.
 
     This KL loss is computed with respect to a standard normal distribution.
@@ -31,15 +33,22 @@ def _kl_loss_fn(mean: ArrayLike, logvar: ArrayLike) -> ArrayLike:
             of means for each latent level.
         logvar: Log variances in latent space. For multi-level VAE
             this is a list of log variances for each latent level.
+
+    Returns:
+        KL divergence with respect to a standard normal distribution,
+        summed over all but the batch dimension and averaged over the
+        batch. For a multi-level VAE the per-level losses are summed.
     """
     if isinstance(mean, list):  # For multi-level VAE
-        kl_loss = 0.0
+        assert isinstance(logvar, list)  # for mypy
+        kl_loss = jnp.zeros(())
         for j, m in enumerate(mean):
             reduce_dims = list(range(1, len(m.shape)))
             kl_loss = kl_loss + jnp.mean(
                 -0.5 * jnp.sum(1 + logvar[j] - m**2 - jnp.exp(logvar[j]), axis=reduce_dims)
             )
     else:  # For regular VAE
+        assert not isinstance(logvar, list)  # for mypy
         reduce_dims = list(range(1, len(mean.shape)))
         kl_loss = jnp.mean(-0.5 * jnp.sum(1 + logvar - mean**2 - jnp.exp(logvar), axis=reduce_dims))
 
@@ -47,15 +56,15 @@ def _kl_loss_fn(mean: ArrayLike, logvar: ArrayLike) -> ArrayLike:
 
 
 def loss_fn(
-    model: Callable,
+    model: VAE,
     criterion: Callable,
     kl_loss_fn: Callable,
     kl_weight: float,
-    x: ArrayLike,
+    x: Array,
     key: jax.Array,
-    y: ArrayLike,
-) -> tuple[ArrayLike, ArrayLike]:
-    """Loss function definition for diffusion step..
+    y: Array | None = None,
+) -> tuple[Array, tuple[Array, Array]]:
+    """Loss function definition for variational autoencoder step.
 
     Args:
         model: Model to train.
@@ -65,7 +74,8 @@ def loss_fn(
             reconstruction and KL losses.
         x: Input data array.
         key: Key for random generation in VAE forward pass.
-        y: Conditioning data array.
+        y: Conditioning data array, or ``None`` for an unconditional
+            model.
 
     Returns:
         Evaluated loss, KL term and reconstruction output.
@@ -79,15 +89,15 @@ def loss_fn(
 
 @partial(jax.jit, static_argnums=(2, 3))
 def jax_train_step_vae(
-    graphdef,
-    state,
+    graphdef: nnx.GraphDef,
+    state: nnx.State,
     criterion: Callable,
     kl_loss_fn: Callable,
     kl_weight: float,
-    x: ArrayLike,
+    x: Array,
     key: jax.Array,
-    y: ArrayLike | None = None,
-) -> tuple[ArrayLike, Any]:
+    y: Array | None = None,
+) -> tuple[Array, Any]:
     """Train VAE for a single step.
 
     This function uses data and a criterion to optimize model parameters. It returns
@@ -106,7 +116,7 @@ def jax_train_step_vae(
         y: Conditioning data array (if training model with conditioning).
 
     Returns:
-        Loss evaluated.
+        Evaluated loss and the updated NNX state.
     """
     # Merge at the beginning of the function
     model, optimizer, metrics = nnx.merge(graphdef, state)
@@ -123,27 +133,27 @@ def jax_train_step_vae(
 
 @nnx.jit(static_argnums=(1, 2))
 def eval_step_vae(
-    model: Callable,
+    model: VAE,
     criterion: Callable,
     kl_loss_fn: Callable,
     kl_weight: float,
     metrics: nnx.MultiMetric,
-    x: ArrayLike,
+    x: Array,
     key: jax.Array,
-    y: ArrayLike | None = None,
-) -> ArrayLike:
+    y: Array | None = None,
+) -> Array:
     """Evaluate VAE for a single step.
 
     This function uses data and a criterion to evaluate performance of current model.
     It returns the current loss evaluated in the testing batch.
 
     Args:
-        model: Model to train.
+        model: Model to evaluate.
         criterion: Criterion to evaluate autoencoder reconstruction.
         kl_loss_fn: Function to evaluate KL divergence in latent space.
         kl_weight: Weight for KL term in loss function which is the weighted combination of
             reconstruction and KL losses.
-        metrics: Dictionary of metrics to evaluate.
+        metrics: Multi-metric object in which to accumulate metrics.
         x: Input data array.
         key: Key for random generation in VAE forward pass.
         y: Conditioning data array (if training model with conditioning).
@@ -160,7 +170,7 @@ def eval_step_vae(
     return loss
 
 
-def generate_sample(model: nnx.Module, key: jax.Array, num_samples: int) -> ArrayLike:
+def generate_sample(model: VAE, key: jax.Array, num_samples: int) -> Array:
     """Generate samples from latent representation.
 
     Args:
@@ -180,7 +190,7 @@ def generate_sample(model: nnx.Module, key: jax.Array, num_samples: int) -> Arra
     return y
 
 
-def generate_conditioned_sample(model: nnx.Module, key: jax.Array, c: ArrayLike) -> ArrayLike:
+def generate_conditioned_sample(model: VAE, key: jax.Array, c: Array) -> Array:
     """Generate samples from latent representation using a conditioning property.
 
     Args:

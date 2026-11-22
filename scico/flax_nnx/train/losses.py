@@ -20,8 +20,8 @@ def mse_loss(output: Array, labels: Array, reduce_dims: list[int] | range | None
     Args:
         output: Comparison signal.
         labels: Reference signal.
-        reduce_dims: Dimensions to reduce over. If None, all dimensions (except the first,
-        assumed as batch) are reduced.
+        reduce_dims: Dimensions to reduce over. If ``None``, all dimensions
+            except the first, assumed to be the batch dimension, are reduced.
 
     Returns:
         MSE between `output` and `labels`.
@@ -33,13 +33,13 @@ def mse_loss(output: Array, labels: Array, reduce_dims: list[int] | range | None
 
 
 def huber_loss(output: Array, labels: Array, reduce_dims: list[int] | range | None = None) -> float:
-    """Compute Hubber loss for training via Optax.
+    """Compute Huber loss for training via Optax.
 
     Args:
         output: Comparison signal.
         labels: Reference signal.
-        reduce_dims: Dimensions to reduce over. If None, all dimensions (except the first,
-        assumed as batch) are reduced.
+        reduce_dims: Dimensions to reduce over. If ``None``, all dimensions
+            except the first, assumed to be the batch dimension, are reduced.
 
     Returns:
         Huber loss between `output` and `labels`.

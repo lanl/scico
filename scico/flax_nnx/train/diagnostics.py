@@ -13,6 +13,7 @@ Assumes sharded batched data.
 from __future__ import annotations
 
 from collections.abc import Callable
+from typing import Any
 
 from scico.diagnostics import IterationStats
 
@@ -25,7 +26,7 @@ class ArgumentStruct:
     both modes of access (dictionary or object entries) can be used.
     """
 
-    def __init__(self, **entries):
+    def __init__(self, **entries: Any):
         self.__dict__.update(entries)
 
 
@@ -41,9 +42,9 @@ def create_itstat(
         itstat_attrib: List of names of registered statistics.
 
     Returns:
-        An object :class:`~.diagnostics.IterationStats` to log and store iteration
-        statistics and an object :class:`~.diagnostics.IterationStats` to printing stats
-        to command line and storing them for further analysis.
+        An object :class:`~.diagnostics.IterationStats` that logs and stores
+        the iteration statistics, and a function that extracts the
+        registered statistics from an object, for insertion into it.
     """
     # dynamically create itstat_func; see https://stackoverflow.com/questions/24733831
     itstat_return = "return(" + ", ".join(["obj." + attr for attr in itstat_attrib]) + ")"
@@ -69,10 +70,9 @@ def stats_obj() -> tuple[IterationStats, Callable]:
     and loss and snr in evaluation.
 
     Returns:
-        An object :class:`~.diagnostics.IterationStats` to log and store iteration
-        statistics if logging is enabled during training and an object
-        :class:`~.diagnostics.IterationStats` to printing stats to command line and
-        storing them for further analysis.
+        An object :class:`~.diagnostics.IterationStats` that logs and stores
+        the iteration statistics, and a function that extracts the
+        registered statistics from an object, for insertion into it.
     """
     # epoch, time learning rate loss and snr (train and
     # eval) fields

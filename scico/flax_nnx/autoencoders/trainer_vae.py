@@ -5,12 +5,15 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Integrated access to functionality for training Flax NNX
-   models that require random generation during forward
-   passes (e.g. variational autoencoders).
+"""Training of Flax NNX models that require random generation.
+
+Integrated access to functionality for training Flax NNX models that
+require random generation during forward passes (e.g. variational
+autoencoders).
 
 Assumes sharded batched data and uses data parallel training.
 """
+
 from __future__ import annotations  # for typing support for python 3.9 or earlier
 
 from collections.abc import Callable
@@ -18,10 +21,13 @@ from functools import partial
 
 import jax
 
+from typing_extensions import NotRequired
+
 from flax import nnx
 from scico.flax_nnx.train.input_pipeline import iterate_x_dataset, iterate_xy_dataset
-from scico.flax_nnx.train.trainer import BasicFlaxNNXTrainer
+from scico.flax_nnx.train.trainer import BasicFlaxNNXTrainer, _epoch_loss
 from scico.flax_nnx.train.typed_dict import ConfigDict, DataSetDict
+from scico.numpy import Array
 
 from .diagnostics import stats_obj
 from .steps import _kl_loss_fn, eval_step_vae, jax_train_step_vae
@@ -32,15 +38,18 @@ class ConfigDictAE(ConfigDict):
     """Configuration dictionary for variational autoencoders."""
 
     #: Number of classes in the dataset. This is only used for class conditional models.
-    num_classes: int
+    num_classes: NotRequired[int]
     #: Function to compute KL divergence loss term.
-    kl_loss_fn: Callable
+    kl_loss_fn: NotRequired[Callable]
     #: Weighting factor for KL divergence loss term.
-    kl_weight: float
+    kl_weight: NotRequired[float]
 
 
 class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
-    """Class encapsulating Flax NNX variational autoencoder (VAE) training configuration and execution."""
+    """Flax NNX variational autoencoder (VAE) training.
+
+    Encapsulates the training configuration and its execution.
+    """
 
     def __init__(
         self,
@@ -53,9 +62,9 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
 
         Initializer for :class:`FlaxNNXVAETrainer` to configure model
         training and evaluation loop. The trainer assumes that only input
-        data is needed for the training. Also, if conditioning this will be modified
-        on the fly using other auxiliary processing functions (e.g. step_t,
-        step_x, etc.)
+        data is needed for the training, except for a conditional model,
+        for which the conditioning data is taken from the labels of the
+        data set.
 
         Args:
             config: Hyperparameter configuration.
@@ -98,10 +107,11 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
     def configure_data_iterators(
         self,
         config: ConfigDict,
-    ):
+    ) -> None:
         """Configure data iterators.
 
-        Generate training data set only from inputs.
+        Generate training data set from inputs alone, or from (input,
+        conditioning) pairs if the model has a conditioner.
 
         Args:
             config: Hyperparameter configuration.
@@ -112,7 +122,10 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
         else:
             shuffle_buffer_size = 20000
 
-        # Define data iterators depending on conditioning function
+        # Define data iterators depending on conditioning function.
+        # The isinstance check narrows the model type declared by the base
+        # class; it always holds for the model type accepted by __init__.
+        assert isinstance(self.model, VAE)
         if self.model.has_conditioner:
             self.dt_iterator_fn = partial(
                 iterate_xy_dataset, shuffle_buffer_size=shuffle_buffer_size
@@ -130,7 +143,9 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
 
         self.log_data_snapshot()
 
-    def one_train_epoch_x(self, graphdef, state, key: jax.Array):
+    def one_train_epoch_x(
+        self, graphdef: nnx.GraphDef, state: nnx.State, key: jax.Array
+    ) -> tuple[Array, nnx.State, jax.Array]:
         """Function that defines one epoch of training for a VAE that uses only input data.
 
         This function iterates over the whole training set using randomly shuffled batches.
@@ -150,6 +165,7 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
         # JAX keys are typically uint32[2] arrays
         key_data = jax.random.key_data(subkey1)
         seed = int(key_data[0]) & 0x7FFFFFFF  # Ensure positive int32
+        loss: Array | None = None
         for batch in self.dt_iterator_fn(self.train_ds, self.batch_size, shuffle, seed):
             # Shard data
             x = jax.device_put(batch, self.data_sharding)
@@ -158,10 +174,12 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
             loss, state = self.train_step_fn(
                 graphdef, state, self.criterion, self.kl_loss_fn, self.kl_weight, x, subkey2
             )
-        return loss, state, key
+        return _epoch_loss(loss, "training"), state, key
 
-    def one_train_epoch_xy(self, graphdef, state, key: jax.Array):
-        """Function that defines one epoch of training for a VAE that uses input and conditioning data.
+    def one_train_epoch_xy(
+        self, graphdef: nnx.GraphDef, state: nnx.State, key: jax.Array
+    ) -> tuple[Array, nnx.State, jax.Array]:
+        """Define one epoch of training for a VAE using input and conditioning data.
 
         This function iterates over the whole training set using randomly shuffled batches.
 
@@ -180,6 +198,7 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
         # JAX keys are typically uint32[2] arrays
         key_data = jax.random.key_data(subkey1)
         seed = int(key_data[0]) & 0x7FFFFFFF  # Ensure positive int32
+        loss: Array | None = None
         for batch in self.dt_iterator_fn(self.train_ds, self.batch_size, shuffle, seed):
             # Shard data
             x, y = jax.device_put(batch, self.data_sharding)
@@ -188,15 +207,17 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
             loss, state = self.train_step_fn(
                 graphdef, state, self.criterion, self.kl_loss_fn, self.kl_weight, x, subkey2, y
             )
-        return loss, state, key
+        return _epoch_loss(loss, "training"), state, key
 
-    def one_eval_epoch_x(self, metrics, key: jax.Array):
+    def one_eval_epoch_x(
+        self, metrics: nnx.MultiMetric, key: jax.Array
+    ) -> tuple[Array, nnx.MultiMetric, jax.Array]:
         """Function that defines one epoch of evaluation for a VAE that uses only input data.
 
         This function iterates over the whole testing set using sequential batches.
 
         Args:
-            metrics: Dictionary of metrics to evaluate.
+            metrics: Multi-metric object in which to accumulate metrics.
             key: Key for random generation in VAE forward pass.
 
         Returns:
@@ -204,6 +225,7 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
         """
         self.model.eval()  # Switch to eval mode
         shuffle = False
+        loss: Array | None = None
         for batch in self.dt_iterator_fn(self.test_ds, self.batch_size, shuffle):
             # Shard data
             x = jax.device_put(batch, self.data_sharding)
@@ -212,15 +234,17 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
             loss = self.eval_step_fn(
                 self.model, self.criterion, self.kl_loss_fn, self.kl_weight, metrics, x, step_key
             )
-        return loss, metrics, key
+        return _epoch_loss(loss, "evaluation"), metrics, key
 
-    def one_eval_epoch_xy(self, metrics, key: jax.Array):
-        """Function that defines one epoch of evaluation for a VAE that uses input and conditioning data.
+    def one_eval_epoch_xy(
+        self, metrics: nnx.MultiMetric, key: jax.Array
+    ) -> tuple[Array, nnx.MultiMetric, jax.Array]:
+        """Define one epoch of evaluation for a VAE using input and conditioning data.
 
         This function iterates over the whole testing set using sequential batches.
 
         Args:
-            metrics: Dictionary of metrics to evaluate.
+            metrics: Multi-metric object in which to accumulate metrics.
             key: Key for random generation in VAE forward pass.
 
         Returns:
@@ -228,6 +252,7 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
         """
         self.model.eval()  # Switch to eval mode
         shuffle = False
+        loss: Array | None = None
         for batch in self.dt_iterator_fn(self.test_ds, self.batch_size, shuffle):
             # Shard data
             x, y = jax.device_put(batch, self.data_sharding)
@@ -236,4 +261,4 @@ class FlaxNNXVAETrainer(BasicFlaxNNXTrainer):
             loss = self.eval_step_fn(
                 self.model, self.criterion, self.kl_loss_fn, self.kl_weight, metrics, x, step_key, y
             )
-        return loss, metrics, key
+        return _epoch_loss(loss, "evaluation"), metrics, key

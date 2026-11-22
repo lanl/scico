@@ -5,12 +5,15 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Integrated access to functionality for training Flax
-   models that use only input data (e.g. autoencoders) that can be
-   transformed from epoch to epoch (e.g. score models).
+"""Training of Flax NNX models with epoch-wise input transformation.
+
+Integrated access to functionality for training Flax NNX models that use
+only input data (e.g. autoencoders) that can be transformed from epoch to
+epoch (e.g. score models).
 
 Assumes sharded batched data and uses data parallel training.
 """
+
 from __future__ import annotations  # for type support python 3.9 or earlier
 
 import warnings
@@ -22,10 +25,13 @@ from functools import partial
 
 import jax
 
+from typing_extensions import NotRequired
+
 from flax import nnx
 from scico.flax_nnx.train.input_pipeline import iterate_x_dataset
-from scico.flax_nnx.train.trainer import BasicFlaxNNXTrainer
+from scico.flax_nnx.train.trainer import BasicFlaxNNXTrainer, _epoch_loss
 from scico.flax_nnx.train.typed_dict import ConfigDict, DataSetDict
+from scico.numpy import Array
 
 from .steps_score import (
     _step_loss,
@@ -40,11 +46,13 @@ class ConfigDictScore(ConfigDict):
     """Configuration dictionary for score training."""
 
     #: Function to compute t for diffusion step.
-    step_t: Callable
+    step_t: NotRequired[Callable]
     #: Function to compute x for diffusion step.
-    step_x: Callable
+    step_x: NotRequired[Callable]
     #: Function to compute loss for diffusion step.
-    step_loss: Callable
+    step_loss: NotRequired[Callable]
+    #: Standard deviation of the prior noise. Required unless `step_x` is given.
+    stddev_prior: NotRequired[float]
 
 
 class FlaxNNXScoreTrainer(BasicFlaxNNXTrainer):
@@ -53,7 +61,7 @@ class FlaxNNXScoreTrainer(BasicFlaxNNXTrainer):
     def __init__(
         self,
         config: ConfigDictScore,
-        model: Callable,
+        model: nnx.Module,
         train_ds: DataSetDict,
         test_ds: DataSetDict | None = None,
     ):
@@ -94,7 +102,7 @@ class FlaxNNXScoreTrainer(BasicFlaxNNXTrainer):
     def set_data_processing_functions(
         self,
         config: ConfigDictScore,
-    ):
+    ) -> None:
         """Extract configuration parameters and construct training functions.
 
         Parameters and functions are passed in the configuration
@@ -103,6 +111,27 @@ class FlaxNNXScoreTrainer(BasicFlaxNNXTrainer):
 
         Args:
             config: Hyperparameter configuration.
+
+        Note:
+            The `step_t`, `step_x` and `step_loss` entries of `config`
+            replace the defaults in
+            :mod:`~scico.flax_nnx.diffusion.steps_score`. A replacement
+            must accept and return the same values as the default it
+            displaces, which for this formulation is
+
+            - :code:`step_t(x, key)` returning :code:`(t, batch_t)`, the time steps
+              shaped for broadcasting against `x` and shaped
+              :code:`(batch, 1)` respectively;
+            - :code:`step_x(x, key, t)` returning
+              :code:`(z, batch_std, batch_x)`, the noise, its standard
+              deviation and the noisy data;
+            - :code:`step_loss(criterion, z, std, output)` returning the loss.
+
+            These signatures differ between the three diffusion
+            formulations, so the implementations in
+            :mod:`~scico.flax_nnx.diffusion.steps_ddpm` and
+            :mod:`~scico.flax_nnx.diffusion.steps_score_ncsn` are not
+            interchangeable with these.
         """
 
         if "step_t" in config:
@@ -113,7 +142,7 @@ class FlaxNNXScoreTrainer(BasicFlaxNNXTrainer):
         if "step_x" in config:
             self.step_x: Callable = config["step_x"]
         else:
-            self.step_x = partial(_step_x, stddev_prior=self.config["stddev_prior"])
+            self.step_x = partial(_step_x, stddev_prior=config["stddev_prior"])
 
         if "step_loss" in config:
             self.step_loss: Callable = config["step_loss"]
@@ -123,7 +152,7 @@ class FlaxNNXScoreTrainer(BasicFlaxNNXTrainer):
     def configure_data_iterators(
         self,
         config: ConfigDict,
-    ):
+    ) -> None:
         """Configure data iterators.
 
         Generate training data set only from inputs.
@@ -145,8 +174,10 @@ class FlaxNNXScoreTrainer(BasicFlaxNNXTrainer):
 
         self.log_data_snapshot()
 
-    def one_train_epoch_x(self, graphdef, state, key: jax.Array):
-        """Function that defines one epoch of training for a VAE that uses only input data.
+    def one_train_epoch_x(
+        self, graphdef: nnx.GraphDef, state: nnx.State, key: jax.Array
+    ) -> tuple[Array, nnx.State, jax.Array]:
+        """Function that defines one epoch of training for a diffusion model using only inputs.
 
         This function iterates over the whole training set using randomly shuffled batches.
 
@@ -154,7 +185,7 @@ class FlaxNNXScoreTrainer(BasicFlaxNNXTrainer):
             graphdef: Graph representation of model.
             state: NNX state object including pytrees for all the
                 model and optimizer graph nodes.
-            key: Key for random generation in VAE forward pass.
+            key: Key for random generation in the diffusion step functions.
 
         Returns:
             Training loss and updated state and key.
@@ -165,6 +196,7 @@ class FlaxNNXScoreTrainer(BasicFlaxNNXTrainer):
         # JAX keys are typically uint32[2] arrays
         key_data = jax.random.key_data(subkey1)
         seed = int(key_data[0]) & 0x7FFFFFFF  # Ensure positive int32
+        loss: Array | None = None
         for batch in self.dt_iterator_fn(
             self.train_ds,
             self.batch_size,
@@ -182,22 +214,25 @@ class FlaxNNXScoreTrainer(BasicFlaxNNXTrainer):
             loss, state = self.train_step_fn(
                 graphdef, state, self.criterion, self.step_loss, batch_x, batch_t, z, batch_std
             )
-        return loss, state, key
+        return _epoch_loss(loss, "training"), state, key
 
-    def one_eval_epoch_x(self, metrics, key: jax.Array):
-        """Function that defines one epoch of evaluation for a VAE that uses only input data.
+    def one_eval_epoch_x(
+        self, metrics: nnx.MultiMetric, key: jax.Array
+    ) -> tuple[Array, nnx.MultiMetric, jax.Array]:
+        """Function that defines one epoch of evaluation for a diffusion model using only inputs.
 
         This function iterates over the whole testing set using sequential batches.
 
         Args:
-            metrics: Dictionary of metrics to evaluate.
-            key: Key for random generation in VAE forward pass.
+            metrics: Multi-metric object in which to accumulate metrics.
+            key: Key for random generation in the diffusion step functions.
 
         Returns:
             Testing loss and updated metrics and key.
         """
         self.model.eval()  # Switch to eval mode
         shuffle = False
+        loss: Array | None = None
         for batch in self.dt_iterator_fn(self.test_ds, self.batch_size, shuffle):
             # Shard data
             x = jax.device_put(batch, self.data_sharding)
@@ -208,4 +243,4 @@ class FlaxNNXScoreTrainer(BasicFlaxNNXTrainer):
             loss = self.eval_step_fn(
                 self.model, self.criterion, self.step_loss, metrics, batch_x, batch_t, z, batch_std
             )
-        return loss, metrics, key
+        return _epoch_loss(loss, "evaluation"), metrics, key

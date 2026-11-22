@@ -6,6 +6,7 @@
 # package.
 
 """Flax nnx implementation of different neural network blocks for autoencoders."""
+
 from __future__ import annotations  # for typing support for python 3.9 or earlier
 
 import warnings
@@ -14,18 +15,16 @@ warnings.simplefilter(action="ignore", category=FutureWarning)
 
 from collections.abc import Callable, Sequence
 
-from jax.typing import ArrayLike
-
 from flax import nnx
 from flax.core import Scope  # noqa
+from scico.numpy import Array
 
 # The import of Scope above is required to silence "cannot resolve
 # forward reference" warnings when building sphinx api docs.
 
 
 class MLP(nnx.Module):
-    """Basic definition of a multi layer perceptron (MLP) as a Flax
-    nnx block."""
+    """Basic definition of a multi-layer perceptron (MLP) as a Flax NNX block."""
 
     def __init__(
         self,
@@ -49,7 +48,7 @@ class MLP(nnx.Module):
                 to apply after each layer.
             activate_final: Flag to indicate if the activation function is
                 to be applied after the final layer or not.
-            flatten_first: Flag to indicate if the input signal should be flatten
+            flatten_first: Flag to indicate if the input signal should be flattened
                 before passing through the MLP.
             batch_norm: Flag to indicate if batch norm is to be applied or not.
             rngs: Random generation key.
@@ -97,7 +96,7 @@ class MLP(nnx.Module):
                 nnx.Linear(in_features=layer_widths[-1], out_features=dim_out, rngs=rngs),
             )
 
-    def __call__(self, x: ArrayLike) -> ArrayLike:
+    def __call__(self, x: Array) -> Array:
         """Apply fully connected (i.e. dense) layer(s) and activation(s).
 
         Args:
@@ -117,8 +116,9 @@ class MLP(nnx.Module):
 
 
 class CNN(nnx.Module):
-    """Basic definition of a network with multiple convolutional layers as a Flax
-    nnx block."""
+    """Basic definition of a network with multiple convolutional layers.
+
+    Implemented as a Flax NNX block."""
 
     def __init__(
         self,
@@ -148,7 +148,10 @@ class CNN(nnx.Module):
                 as a flattened array (preserving batch dimension). If not,
                 the output is returned as it is, or, if requested, mapped back to the
                 number of channels of the input signal.
-            conv_final: Flag to indicate if the output should be mapped back to the number of channels of the input signal.
+            conv_final: Flag to indicate if the output should be mapped back
+                to the number of channels of the input signal.
+            kernel_init: Flax function for initializing the convolution
+                kernels.
             rngs: Random generation key.
         """
         super().__init__()
@@ -189,7 +192,7 @@ class CNN(nnx.Module):
             num_filters[-1], channels, kernel_size=(1, 1), use_bias=False, rngs=rngs
         )
 
-    def __call__(self, x: ArrayLike) -> ArrayLike:
+    def __call__(self, x: Array) -> Array:
         """Apply convolutional layer(s) and activation(s).
 
         Args:
@@ -197,7 +200,7 @@ class CNN(nnx.Module):
 
         Returns:
             The input after being transformed by multiple convolutional
-            layers. It has been flatten or has the same number of
+            layers. It has been flattened or has the same number of
             channels as the given input.
         """
         x = self.layers(x)
@@ -211,8 +214,9 @@ class CNN(nnx.Module):
 
 
 class CTpNN(nnx.Module):
-    """Basic definition of a network with multiple convolutional transpose layers as a
-    Flax nnx block."""
+    """Basic definition of a network with multiple convolutional transpose layers.
+
+    Implemented as a Flax NNX block."""
 
     def __init__(
         self,
@@ -226,7 +230,7 @@ class CTpNN(nnx.Module):
         kernel_init: Callable = nnx.initializers.kaiming_normal,
         rngs: nnx.Rngs = nnx.Rngs(0),
     ):
-        """Initialization of CNN.
+        """Initialization of CTpNN.
 
         Args:
             channels_in: Number of channels of signal at input.
@@ -240,6 +244,8 @@ class CTpNN(nnx.Module):
             activation_fn: Flax function defining the activation operation
                 to apply after each layer.
             batch_norm: Flag to indicate if batch norm is to be applied or not.
+            kernel_init: Flax function for initializing the convolution
+                kernels.
             rngs: Random generation key.
         """
         super().__init__()
@@ -311,8 +317,8 @@ class CTpNN(nnx.Module):
             num_filters[-1], channels_out, kernel_size=(1, 1), use_bias=False, rngs=rngs
         )
 
-    def __call__(self, x: ArrayLike) -> ArrayLike:
-        """Apply convolutional layer(s) and activation(s).
+    def __call__(self, x: Array) -> Array:
+        """Apply transpose convolutional layer(s) and activation(s).
 
         Args:
             x: The array to be transformed.

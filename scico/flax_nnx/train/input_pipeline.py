@@ -43,11 +43,11 @@ def iterate_xy_dataset(
             the data is returned with the ordering of the original dataset.
         seed: Seed for NumPy random generation.
         shuffle_buffer_size: Size of buffer for shuffling data indices.
-        drop_last: Drop the last batch if the set is not exactly divisible
-            by the batch size.
+        drop_last: If ``True``, drop the final batch when the number of
+            samples is not an exact multiple of the batch size.
 
-    Returns:
-        Input and output arrays.
+    Yields:
+        Input and output arrays, of at most `batch_size` samples each.
     """
     ndata = ds["image"].shape[0]
 
@@ -56,7 +56,8 @@ def iterate_xy_dataset(
             seed = 0
         # Use NumPy for shuffling (more efficient for large datasets)
         rng = np.random.default_rng(seed)
-        # Use reservoir sampling for large datasets
+        # Permute within each buffer-sized block of indices rather than
+        # across the whole data set
         indices = np.arange(ndata)
         for i in range(0, ndata, shuffle_buffer_size):
             buffer_end = min(i + shuffle_buffer_size, ndata)
@@ -70,7 +71,7 @@ def iterate_xy_dataset(
         num_batches += 1
 
     # Iterate and transfer only needed batches to device
-    for i in range(0, ndata, batch_size):
+    for i in range(0, num_batches * batch_size, batch_size):
         batch_indices = indices[i : i + batch_size]
 
         # Index using NumPy arrays to avoid device memory issues
@@ -95,19 +96,19 @@ def iterate_x_dataset(
     the entire dataset.
 
     Args:
-        ds: Data set to iterate. It is a dictionary where `image` keyword
-            defines the input (feature) data and `label` keyword defines
-            the output data.
+        ds: Data set to iterate. It is a dictionary where the `image`
+            keyword defines the input (feature) data. Any `label` entry is
+            ignored.
         batch_size: Number of samples in each chunk.
         shuffle: If ``True``, the data is randomly ordered. Otherwise,
             the data is returned with the ordering of the original dataset.
         seed: Seed for NumPy random generation.
         shuffle_buffer_size: Size of buffer for shuffling data indices.
-        drop_last: Drop the last batch if the set is not exactly divisible
-            by the batch size.
+        drop_last: If ``True``, drop the final batch when the number of
+            samples is not an exact multiple of the batch size.
 
-    Returns:
-        Input arrays.
+    Yields:
+        Input arrays, of at most `batch_size` samples each.
     """
     ndata = ds["image"].shape[0]
 
@@ -116,7 +117,8 @@ def iterate_x_dataset(
             seed = 0
         # Use NumPy for shuffling (more efficient for large datasets)
         rng = np.random.default_rng(seed)
-        # Use reservoir sampling for large datasets
+        # Permute within each buffer-sized block of indices rather than
+        # across the whole data set
         indices = np.arange(ndata)
         for i in range(0, ndata, shuffle_buffer_size):
             buffer_end = min(i + shuffle_buffer_size, ndata)
@@ -130,7 +132,7 @@ def iterate_x_dataset(
         num_batches += 1
 
     # Iterate and transfer only needed batches to device
-    for i in range(0, ndata, batch_size):
+    for i in range(0, num_batches * batch_size, batch_size):
         batch_indices = indices[i : i + batch_size]
 
         # Index using NumPy arrays to avoid device memory issues

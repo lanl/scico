@@ -5,11 +5,11 @@
 # user license can be found in the 'LICENSE' file distributed with the
 # package.
 
-"""Class providing integrated access to functionality for training Flax
-   models.
+"""Integrated access to functionality for training Flax NNX models.
 
 Assumes sharded batched data and uses data parallel training.
 """
+
 from __future__ import annotations  # for typing support for python 3.9 or earlier
 
 import warnings
@@ -26,6 +26,7 @@ from jax.experimental import mesh_utils
 
 from flax import nnx
 from scico.diagnostics import IterationStats
+from scico.numpy import Array
 
 from .checkpoints import checkpoint_restore, checkpoint_save
 from .diagnostics import ArgumentStruct, stats_obj
@@ -36,8 +37,65 @@ from .steps import eval_step, jax_train_step  # , train_step_post
 from .typed_dict import ConfigDict, DataSetDict
 
 
+def _epoch_loss(loss: Array | None, which: str) -> Array:
+    """Return the loss of the final batch of an epoch.
+
+    Args:
+        loss: Loss of the final batch, or ``None`` if the data iterator
+            yielded no batches at all.
+        which: Name of the data set, used in the error message.
+
+    Returns:
+        The loss of the final batch.
+
+    Raises:
+        ValueError: If the data iterator yielded no batches, in which
+            case `loss` was never assigned.
+    """
+    if loss is None:
+        raise ValueError(
+            f"The {which} data set yielded no batches, so no loss was computed; it may"
+            " hold fewer samples than one batch, in which case a batch is only produced"
+            " if drop_last is False."
+        )
+    return loss
+
+
 class BasicFlaxNNXTrainer:
-    """Class encapsulating Flax NNX training configuration and execution."""
+    """Class encapsulating Flax NNX training configuration and execution.
+
+    Attributes:
+        model: Model being trained. Updated in place by :meth:`train`.
+        config: Configuration dictionary the trainer was constructed
+            with.
+        criterion: Loss function used for training and evaluation.
+        optimizer: NNX optimizer wrapping the optax transformation built
+            from `config`.
+        metrics: Multi-metric object in which training and evaluation
+            metrics are accumulated.
+        train_ds: Training data set.
+        test_ds: Evaluation data set, or ``None`` if none was given.
+        batch_size: Batch size used by the data iterators.
+        train_epochs: Total number of epochs to train for.
+        logflag: Flag indicating whether metrics are logged.
+        log_every_epochs: Interval, in epochs, at which metrics are
+            computed and logged.
+        itstat_object: Iteration statistics object holding the logged
+            history, or ``None`` until logging is configured.
+        train_time: Wall-clock duration of the last call to
+            :meth:`train`, in seconds.
+        checkpointing: Flag indicating whether checkpoints are written.
+        checkpoint_every_epochs: Interval, in epochs, at which
+            checkpoints are written.
+        workdir: Directory in which checkpoints are stored.
+        model_sharding: Sharding applied to the model state.
+        data_sharding: Sharding applied to each batch.
+        dt_iterator_fn: Data iterator used to produce batches.
+        train_step_fn: Function implementing a single training step.
+        eval_step_fn: Function implementing a single evaluation step.
+        one_train_epoch_fn: Function implementing one training epoch.
+        one_eval_epoch_fn: Function implementing one evaluation epoch.
+    """
 
     def __init__(
         self,
@@ -96,7 +154,7 @@ class BasicFlaxNNXTrainer:
     def set_training_parameters(
         self,
         config: ConfigDict,
-    ):
+    ) -> None:
         """Extract configuration parameters and construct training functions.
 
         Parameters and functions are passed in the configuration
@@ -112,7 +170,7 @@ class BasicFlaxNNXTrainer:
     def configure_steps(
         self,
         config: ConfigDict,
-    ):
+    ) -> None:
         """Configure training epochs and frequency for monitoring and checkpointing.
 
         Args:
@@ -140,7 +198,7 @@ class BasicFlaxNNXTrainer:
         else:
             self.log_every_epochs = config["log_every_epochs"]
 
-    def configure_reporting(self, config: ConfigDict):
+    def configure_reporting(self, config: ConfigDict) -> None:
         """Configure logging and checkpointing.
 
         The parameters configured correspond to
@@ -178,7 +236,7 @@ class BasicFlaxNNXTrainer:
         else:
             self.checkpointing = False
 
-    def configure_training_functions(self, config: ConfigDict):
+    def configure_training_functions(self, config: ConfigDict) -> None:
         """Construct training functions.
 
         Default functions are used if not specified in configuration.
@@ -186,19 +244,13 @@ class BasicFlaxNNXTrainer:
         The parameters configured correspond to
 
         - **criterion**: A function that specifies the loss being minimized
-              in training. Default: :meth:`~scico.flax.train.losses.mse_loss`.
+              in training. Default: :func:`~scico.flax_nnx.train.losses.mse_loss`.
         - **train_step_fn**: A function that executes a training step.
-              Default: :meth:`~scico.flax.train.steps.train_step`, i.e.
-              use the standard train step.
+              Default: :func:`~scico.flax_nnx.train.steps.jax_train_step`,
+              i.e. use the standard train step.
         - **eval_step_fn**: A function that executes an eval step. Default:
-              :meth:`~scico.flax.train.steps.eval_step`, i.e. use the
+              :func:`~scico.flax_nnx.train.steps.eval_step`, i.e. use the
               standard eval step.
-        - **metrics_fn**: A function that computes metrics. Default:
-              :meth:`~scico.flax.train.diagnostics.compute_metrics`, i.e.
-              use the standard compute metrics function.
-        - **post_lst**: List of postprocessing functions to apply to
-              parameter set after optimizer step (e.g. clip to a specified
-              range, normalize, etc.).
 
         Args:
             config: Hyperparameter configuration.
@@ -233,10 +285,10 @@ class BasicFlaxNNXTrainer:
     def configure_data_iterators(
         self,
         config: ConfigDict,
-    ):
+    ) -> None:
         """Configure data iterators.
 
-        Choose between generating (input, label) pairs or only inputs.
+        Generate training data set from (input, label) pairs.
 
         Args:
             config: Hyperparameter configuration.
@@ -257,7 +309,7 @@ class BasicFlaxNNXTrainer:
 
     def log_data_snapshot(
         self,
-    ):
+    ) -> None:
         """Log datasets information.
 
         Log information about the loaded training and testing datasets.
@@ -285,7 +337,7 @@ class BasicFlaxNNXTrainer:
             )
         )
 
-    def construct_optimizer(self, config: ConfigDict):
+    def construct_optimizer(self, config: ConfigDict) -> None:
         """Construct Optax optimizer for model training.
 
         Args:
@@ -294,8 +346,10 @@ class BasicFlaxNNXTrainer:
         tx = build_optax_optimizer(config)
         self.optimizer = nnx.Optimizer(self.model, tx, wrt=nnx.Param)
 
-    def one_train_epoch_xy(self, graphdef, state, key):
-        """Function that defines one epoch of training for a VAE that uses input and conditioning data.
+    def one_train_epoch_xy(
+        self, graphdef: nnx.GraphDef, state: nnx.State, key: jax.Array
+    ) -> tuple[Array, nnx.State, jax.Array]:
+        """Function that defines one epoch of training using input and output data.
 
         This function iterates over the whole training set using randomly shuffled batches.
 
@@ -303,7 +357,7 @@ class BasicFlaxNNXTrainer:
             graphdef: Graph representation of model.
             state: NNX state object including pytrees for all the
                 model and optimizer graph nodes.
-            key: Key for random generation in VAE forward pass.
+            key: Key for random generation of the data shuffling seed.
 
         Returns:
             Training loss and updated state and key.
@@ -314,6 +368,7 @@ class BasicFlaxNNXTrainer:
         # JAX keys are typically uint32[2] arrays
         key_data = jax.random.key_data(step_key)
         seed = int(key_data[0]) & 0x7FFFFFFF  # Ensure positive int32
+        loss: Array | None = None
         for batch in self.dt_iterator_fn(self.train_ds, self.batch_size, shuffle, seed):
             # Shard data
             x, y = jax.device_put(batch, self.data_sharding)
@@ -321,28 +376,33 @@ class BasicFlaxNNXTrainer:
             # self.model.train() # Switch to train mode
             loss, state = self.train_step_fn(graphdef, state, self.criterion, x, y)
 
-        return loss, state, key
+        return _epoch_loss(loss, "training"), state, key
 
-    def one_eval_epoch_xy(self, metrics, key):
-        """Function that defines one epoch of evaluation for a VAE that uses input and conditioning data.
+    def one_eval_epoch_xy(
+        self, metrics: nnx.MultiMetric, key: jax.Array
+    ) -> tuple[Array, nnx.MultiMetric, jax.Array]:
+        """Function that defines one epoch of evaluation using input and output data.
 
         This function iterates over the whole testing set using sequential batches.
 
         Args:
-            metrics: Dictionary of metrics to evaluate.
-            key: Key for random generation in VAE forward pass.
+            metrics: Multi-metric object in which to accumulate metrics.
+            key: Key for random generation. Not used by this method, which
+                evaluates in a fixed order; accepted and returned unchanged
+                so that all the epoch functions share a signature.
 
         Returns:
             Testing loss and updated metrics and key.
         """
         self.model.eval()  # Switch to eval mode
         shuffle = False
+        loss: Array | None = None
         for batch in self.dt_iterator_fn(self.test_ds, self.batch_size, shuffle):
             # Shard data
             x, y = jax.device_put(batch, self.data_sharding)
             # Eval step
             loss = self.eval_step_fn(self.model, self.criterion, metrics, x, y)
-        return loss, metrics, key
+        return _epoch_loss(loss, "evaluation"), metrics, key
 
     def train(self, key: jax.Array | None = None) -> IterationStats | None:
         """Execute training loop.
@@ -354,8 +414,9 @@ class BasicFlaxNNXTrainer:
         Returns:
             Iteration stats object obtained after executing the training
             loop. Note that the iteration stats object is not ``None`` only
-            if log is enabled when configuring the training loop.
-            The trained model is avaiable in the at
+            if log is enabled when configuring the training loop. The
+            trained model is not returned: it is updated in place, and is
+            available as the `model` attribute of this object.
         """
         epochs_offset = 0
         # Handle distributed training using nnx state
@@ -413,10 +474,10 @@ class BasicFlaxNNXTrainer:
     def update_metrics(
         self,
         epoch: int,
-        metrics,
-        t0,
+        metrics: nnx.MultiMetric,
+        t0: float,
         key: jax.Array | None = None,
-    ):
+    ) -> nnx.MultiMetric:
         """Compute metrics for current model state.
 
         Metrics for training and testing (eval) sets are computed and
@@ -432,7 +493,10 @@ class BasicFlaxNNXTrainer:
                 randomness for training/evaluation (e.g. score).
         """
         if not self.logflag:
-            return
+            return metrics
+
+        if key is None:
+            key = jax.random.key(self.config["seed"])
 
         summary: dict[str, int | float] = {}
 
@@ -463,7 +527,7 @@ class BasicFlaxNNXTrainer:
 
         return metrics
 
-    def checkpoint(self, state, epoch: int):  # pragma: no cover
+    def checkpoint(self, state: nnx.State, epoch: int) -> None:  # pragma: no cover
         """Checkpoint training state if enabled.
 
         Args:
@@ -473,7 +537,7 @@ class BasicFlaxNNXTrainer:
         if self.checkpointing:
             checkpoint_save(state, epoch, self.config, self.workdir)
 
-    def log(self, logstr: str):
+    def log(self, logstr: str) -> None:
         """Print stats to output terminal if logging is enabled.
 
         Args:

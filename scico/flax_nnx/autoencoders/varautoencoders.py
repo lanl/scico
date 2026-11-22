@@ -6,6 +6,7 @@
 # package.
 
 """Flax NNX implementations of variational autoencoders."""
+
 from __future__ import annotations  # for typing support for python 3.9 or earlier
 
 import warnings
@@ -14,16 +15,17 @@ warnings.simplefilter(action="ignore", category=FutureWarning)
 
 
 from collections.abc import Callable
+from typing import Literal
 
 from numpy import prod
 
 import jax
 import jax.numpy as jnp
 from jax.random import normal
-from jax.typing import ArrayLike
 
 from flax import nnx
 from flax.core import Scope  # noqa
+from scico.numpy import Array
 
 from .autoencoders import (
     ConvDecoder,
@@ -38,7 +40,7 @@ from .autoencoders import (
 # forward reference" warnings when building sphinx api docs.
 
 
-def reparameterize(mean: ArrayLike, logvar: ArrayLike, key: jax.Array) -> ArrayLike:
+def reparameterize(mean: Array, logvar: Array, key: jax.Array) -> Array:
     """Reparametrization trick for sample generation.
 
     Args:
@@ -61,8 +63,8 @@ class VarEncoder(Encoder):
 
     def __init__(
         self,
-        mean_block: Callable,
-        logvar_block: Callable,
+        mean_block: Encoder,
+        logvar_block: Encoder,
     ):
         """Initialize VarEncoder.
 
@@ -84,12 +86,16 @@ class VarEncoder(Encoder):
         self.dim_latent = mean_block.latent_dim
         self.flat_latent = mean_block.flat_latent
         if self.flat_latent:
-            self.shape_latent = mean_block.latent_dim
+            self.shape_latent = (mean_block.latent_dim,)
         else:
             self.shape_latent = mean_block.shape_latent
 
-    def __call__(self, x: ArrayLike) -> tuple[ArrayLike, ArrayLike]:
+    def __call__(self, x: Array) -> tuple[Array, Array]:  # type: ignore[override]
         """Apply variational encoder.
+
+        Unlike a plain :class:`~.autoencoders.Encoder`, which maps an input
+        to a single array, a variational encoder maps it to the pair of
+        parameters of a distribution over the latent space.
 
         Args:
             x: The array to be encoded.
@@ -108,10 +114,10 @@ class Conditioner(Encoder):
 
     def __init__(
         self,
-        processing_block: Callable,
-        conditioning_block: Callable,
+        processing_block: Encoder,
+        conditioning_block: Encoder,
     ):
-        """Initialize VarEncoder.
+        """Initialize Conditioner.
 
         Args:
             processing_block: Flax NNX module representing the processing on
@@ -129,7 +135,7 @@ class Conditioner(Encoder):
         self.conditioning_block = conditioning_block
         self.dim_latent = processing_block.latent_dim
 
-    def __call__(self, x: ArrayLike, c: ArrayLike) -> ArrayLike:
+    def __call__(self, x: Array, c: Array) -> Array:
         """Apply conditioner module.
 
         Args:
@@ -143,18 +149,20 @@ class Conditioner(Encoder):
 
 
 class VAE(nnx.Module):
-    """Basic definition of a variational autoencoder (VAE) network as a
-    Flax NNX model."""
+    """Basic definition of a variational autoencoder (VAE) Flax NNX model."""
 
     def __init__(
         self,
-        encoder: Encoder,
+        encoder: VarEncoder,
         decoder: Decoder,
-        conditioner: Encoder | None = None,  # for mypy type checking
+        conditioner: Encoder | None = None,
     ):
         """Initialize VAE.
+
         Args:
-            encoder: Variational encoder module in Flax NNX.
+            encoder: Variational encoder module in Flax NNX, mapping an
+                input to the mean and log variance of a distribution over
+                the latent space.
             decoder: Decoder module in Flax NNX.
             conditioner: Flax NNX module for conditional decoding. If
                 ``None``, no conditional decoding is learned.
@@ -175,7 +183,7 @@ class VAE(nnx.Module):
         else:
             return True
 
-    def encode(self, x: ArrayLike) -> tuple[ArrayLike, ArrayLike]:
+    def encode(self, x: Array) -> tuple[Array, Array]:
         """Variational encoding.
 
         Args:
@@ -186,7 +194,7 @@ class VAE(nnx.Module):
         """
         return self.encoder(x)  # yields: mean, logvar
 
-    def decode_cond(self, x: ArrayLike, c: ArrayLike):
+    def decode_cond(self, x: Array, c: Array) -> Array:
         """Conditional decoding.
 
         Args:
@@ -205,7 +213,7 @@ class VAE(nnx.Module):
             x = self.decoder(x)
         return x
 
-    def decode(self, x: ArrayLike):
+    def decode(self, x: Array) -> Array:
         """Class-independent decoding.
 
         Args:
@@ -217,8 +225,8 @@ class VAE(nnx.Module):
         return self.decoder(x)
 
     def __call__(
-        self, x: ArrayLike, key: jax.Array, c: ArrayLike | None = None
-    ) -> tuple[ArrayLike, ArrayLike, ArrayLike]:
+        self, x: Array, key: jax.Array, c: Array | None = None
+    ) -> tuple[Array, Array, Array]:
         """Apply sequence of variational encoder and decoder modules.
 
         Args:
@@ -251,12 +259,11 @@ def MLPVarAutoEncoder(
     batch_norm: bool = False,
     conditional: bool = False,
     dim_cond_in: int = 0,
-    widths_condproc_encoder: list[int] = [],
-    widths_cond_encoder: list[int] = [],
+    widths_condproc_encoder: list[int] | None = None,
+    widths_cond_encoder: list[int] | None = None,
     rngs: nnx.Rngs = nnx.Rngs(0),
-):
-    """Function to construct variational autoencoder network using multi
-    layer perceptron (MLP), i.e. dense layers.
+) -> VAE:
+    """Construct a variational autoencoder (VAE) network from dense (MLP) layers.
 
     Args:
         dim_in: Dimension of input signal.
@@ -284,6 +291,10 @@ def MLPVarAutoEncoder(
     Returns:
         Variational autoencoder model with architecture based on MLP, i.e. dense layers.
     """
+    if widths_condproc_encoder is None:
+        widths_condproc_encoder = []
+    if widths_cond_encoder is None:
+        widths_cond_encoder = []
     # Build components for encoder
     mean_block = MLPEncoder(
         dim_in,
@@ -359,19 +370,19 @@ def ConvVarAutoEncoder(
     flat_latent: bool = False,
     dim_latent: int = 0,
     conditional: bool = False,
-    mode_cond: str = "conv",
-    filters_condproc_decoder: list[int] = [],
+    mode_cond: Literal["conv", "mlp"] = "conv",
+    filters_condproc_decoder: list[int] | None = None,
     kernel_size_condproc_decoder: tuple[int, int] = (3, 3),
     strides_condproc_decoder: tuple[int, int] = (1, 1),
     shape_cond_in: tuple[int, int] = (0, 0),
     channels_cond: int = 0,
-    filters_cond_encoder: list[int] = [],
+    filters_cond_encoder: list[int] | None = None,
     kernel_size_cond_encoder: tuple[int, int] = (3, 3),
-    widths_condproc_encoder: list[int] = [],
+    widths_condproc_encoder: list[int] | None = None,
     dim_cond_in: int = 0,
-    widths_cond_encoder: list[int] = [],
+    widths_cond_encoder: list[int] | None = None,
     rngs: nnx.Rngs = nnx.Rngs(0),
-):
+) -> VAE:
     """Function to construct variational autoencoder network using convolutional layers.
 
     Args:
@@ -388,18 +399,19 @@ def ConvVarAutoEncoder(
         kernel_size_logvar_encoder: A shape tuple defining the size of the convolution
                 filters for the logvar encoder.
         kernel_size_decoder: A shape tuple defining the size of the convolution
-                filters for encoder.
+                filters for decoder.
         activation_fn: Flax function defining the activation operation
             to apply after each layer (except output layer) in encoder.
         batch_norm: Flag to indicate if batch norm is to be applied or not.
-        flat_latent: Flag to specify if the latent representation should be flatten.
+        flat_latent: Flag to specify if the latent representation should be flattened.
         dim_latent: Latent dimension of encoder (only used if flag for flattening is
-            true and a meanigful value is provided).
+            true and a meaningful value is provided).
         conditional: Flag to specify if decoding will be
             conditioned on a given property (e.g. class membership).
-        mode_cond: Mode of model for conditional signal. It can be conv, requiring
-            shape, channels, filters and kernel size. If MLP, it requires dim in and
-            widths for layers.
+        mode_cond: Mode of model for conditional signal. Either ``"conv"``,
+            requiring shape, channels, filters and kernel size, or
+            ``"mlp"``, requiring dim in and widths for layers. Any value
+            other than ``"conv"`` selects the MLP path.
         filters_condproc_decoder: List with number of filters per layer in the
             CNN conditional processing decoder (if using conv).
         kernel_size_condproc_decoder: A shape tuple defining the size of the convolution
@@ -421,7 +433,22 @@ def ConvVarAutoEncoder(
 
     Returns:
         Variational autoencoder model with architecture based on convolutional layers.
+
+    Note:
+        Unlike :func:`~scico.flax_nnx.autoencoders.ConvAutoEncoder`, the
+        strides of the encoder and decoder convolutions are fixed at
+        :code:`(2, 2)` and cannot be specified. If `conditional` is set and
+        `dim_latent` is zero, `dim_latent` is replaced by the flattened
+        size of the mean encoder latent shape.
     """
+    if widths_condproc_encoder is None:
+        widths_condproc_encoder = []
+    if widths_cond_encoder is None:
+        widths_cond_encoder = []
+    if filters_condproc_decoder is None:
+        filters_condproc_decoder = []
+    if filters_cond_encoder is None:
+        filters_cond_encoder = []
     strides: tuple[int, int] = (2, 2)
 
     # Build components for encoder
@@ -486,7 +513,7 @@ def ConvVarAutoEncoder(
 
         # Build components for conditioning
         if mode_cond == "conv":
-            proc_block = ConvDecoder(
+            proc_block: Encoder = ConvDecoder(
                 filters_condproc_decoder,
                 mean_block.shape_latent,
                 mean_block.shape_latent[-1],
@@ -498,7 +525,7 @@ def ConvVarAutoEncoder(
                 batch_norm=batch_norm,
                 rngs=rngs,
             )
-            cond_block = ConvEncoder(
+            cond_block: Encoder = ConvEncoder(
                 shape_cond_in,
                 channels_cond,
                 filters_cond_encoder,

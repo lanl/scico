@@ -9,27 +9,27 @@
 
 from __future__ import annotations  # for type support python 3.9 or earlier
 
-from collections.abc import Callable
-
 import jax
 import jax.numpy as jnp
-from jax.typing import ArrayLike
 
 import flax.nnx
+from scico.numpy import Array
 
 
-def score_fn(score_model: Callable, x: ArrayLike, t: ArrayLike):
+def score_fn(score_model: flax.nnx.Module, x: Array, t: Array) -> Array:
     """Function to evaluate score model.
 
     Args:
-        model: Score model to generate samples from.
+        score_model: Score model to evaluate.
         x: Current state to evaluate.
         t: Current time to evaluate.
     """
     return score_model(x, t)
 
 
-# Define parallel evaluation of model
+#: Parallel evaluation of :func:`score_fn` over the available devices,
+#: via :func:`jax.pmap`. The model is a static argument, so a change of
+#: model triggers recompilation.
 p_score_fn = jax.pmap(score_fn, static_broadcasted_argnums=(0,))
 
 
@@ -41,7 +41,7 @@ def Euler_Maruyama_sampler(
     num_steps: int,
     batch_size: int,
     eps: float = 1e-3,
-):
+) -> tuple[Array, Array]:
     """Euler-Maruyama sampling.
 
     Generate samples from score-based models with the Euler-Maruyama
@@ -49,7 +49,7 @@ def Euler_Maruyama_sampler(
 
     Args:
         key: A JAX random state.
-        score_model: A `flax.linen.Module` object that represents the
+        score_model: A :class:`flax.nnx.Module` object that represents the
             architecture of a score-based model.
         stddev_prior: Standard deviation of prior noise.
         xshape: Shape of signal to generate.
@@ -60,7 +60,8 @@ def Euler_Maruyama_sampler(
         eps: The smallest time step for numerical stability.
 
     Returns:
-        Samples.
+        The generated samples, and the full sampling path, of shape
+        (devices, samples per device, `num_steps`) + `xshape`.
     """
     score_model.eval()
 
@@ -90,14 +91,13 @@ def sampling_score(
     batch_size: int,
     xshape: tuple[int, ...],
     maxsteps: int,
-    sigma: ArrayLike,
+    sigma: Array,
     model: flax.nnx.Module,
     key: jax.Array,
     return_path: bool = False,
     eps: float = 2e-5,
-):
-    """Function to sample using Gradients of the Data Distribution
-        (score) formulation.
+) -> tuple[Array, Array, jax.Array] | tuple[Array, jax.Array]:
+    """Sample using the gradients of the data distribution (score) formulation.
 
     Args:
         batch_size: Size of sample to generate.
@@ -115,7 +115,7 @@ def sampling_score(
     model.eval()
     key, subkey = jax.random.split(key)
     x = jax.random.normal(subkey, (batch_size,) + xshape)
-    xpath: ArrayLike | None = None
+    xpath: Array | None = None
     if return_path:
         xpath = jnp.zeros((maxsteps + 1,) + x.shape)
         xpath = xpath.at[0].set(x)
@@ -131,6 +131,7 @@ def sampling_score(
                 xpath = xpath.at[t].set(x)
 
     if return_path:
+        assert xpath is not None  # for mypy
         return x, xpath, key
     return x, key
 
@@ -139,15 +140,14 @@ def sampling_ddpm(
     batch_size: int,
     xshape: tuple[int, ...],
     maxsteps: int,
-    alpha_schedule: ArrayLike,
-    alpha_bar_schedule: ArrayLike,
-    sigma: ArrayLike,
+    alpha_schedule: Array,
+    alpha_bar_schedule: Array,
+    sigma: Array,
     model: flax.nnx.Module,
     key: jax.Array,
     return_path: bool = False,
-):
-    """Function to sample using Denoising Diffusion Probabilistic Models
-    (DDPM) formulation.
+) -> tuple[Array, Array, jax.Array] | tuple[Array, jax.Array]:
+    """Sample using the Denoising Diffusion Probabilistic Models (DDPM) formulation.
 
     Args:
         batch_size: Size of sample to generate.
@@ -186,5 +186,6 @@ def sampling_ddpm(
             xpath = xpath.at[t_int].set(x)
         t_int = t_int - 1
     if return_path:
+        assert xpath is not None  # for mypy
         return x, xpath, key
     return x, key

@@ -6,6 +6,7 @@
 # package.
 
 """Flax nnx implementations of autoencoders."""
+
 from __future__ import annotations  # for typing support for python 3.9 or earlier
 
 import warnings
@@ -13,25 +14,34 @@ import warnings
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
 from collections.abc import Callable
+from typing import Any
 
 from numpy import prod
-
-from jax.typing import ArrayLike
 
 from flax import nnx
 from flax.core import Scope  # noqa
 from scico.flax_nnx.autoencoders.blocks import CNN, MLP, CTpNN
+from scico.numpy import Array
 
 # The import of Scope above is required to silence "cannot resolve
 # forward reference" warnings when building sphinx api docs.
 
 
 class Encoder(nnx.Module):
-    """Generic encoder definition in Flax NNX."""
+    """Generic encoder definition in Flax NNX.
+
+    Attributes:
+        dim_latent: Dimension of the latent representation.
+        flat_latent: Flag indicating whether the latent representation is
+            flat, i.e. a vector per sample rather than multidimensional.
+        shape_latent: Shape of the latent representation of a single
+            sample, excluding the batch dimension. Empty if the encoder
+            does not define a multidimensional latent shape.
+    """
 
     def __init__(
         self,
-        **kwargs,
+        **kwargs: Any,
     ):
         """Initialize Encoder.
 
@@ -39,14 +49,16 @@ class Encoder(nnx.Module):
             kwargs: Keyword arguments.
         """
         super().__init__(**kwargs)
-        self.dim_latent: int = 0  # type: ignore
+        self.dim_latent: int = 0
+        self.flat_latent: bool = False
+        self.shape_latent: tuple[int, ...] = ()
 
     @property
     def latent_dim(self) -> int:
         """Expose the latent dimension attribute as a property (getter)."""
         return self.dim_latent
 
-    def __call__(self, x: ArrayLike, *args) -> ArrayLike:
+    def __call__(self, x: Array, *args: Any) -> Array:
         """Apply encoder.
 
         Args:
@@ -59,7 +71,9 @@ class Encoder(nnx.Module):
         raise NotImplementedError
 
 
-# Create an alias
+#: Alias of :class:`Encoder`. A decoder has the same interface as an
+#: encoder, so the two are structurally identical; the distinct name is
+#: retained for readability at the point of use.
 Decoder = Encoder
 
 
@@ -72,6 +86,7 @@ class AutoEncoder(nnx.Module):
         decoder: Decoder,
     ):
         """Initialization of autoencoder.
+
         Args:
             encoder: Encoder module in Flax nnx.
             decoder: Decoder module in Flax nnx.
@@ -81,7 +96,7 @@ class AutoEncoder(nnx.Module):
         self.encoder = encoder
         self.decoder = decoder
 
-    def encode(self, x: ArrayLike) -> ArrayLike:
+    def encode(self, x: Array) -> Array:
         """Apply encoder module.
 
         Args:
@@ -93,7 +108,7 @@ class AutoEncoder(nnx.Module):
         x = self.encoder(x)
         return x
 
-    def decode(self, x: ArrayLike):
+    def decode(self, x: Array) -> Array:
         """Apply decoder module.
 
         Args:
@@ -105,9 +120,7 @@ class AutoEncoder(nnx.Module):
         x = self.decoder(x)
         return x
 
-    def __call__(
-        self, x: ArrayLike, latent_rep: bool = False
-    ) -> ArrayLike | tuple[ArrayLike, ArrayLike]:
+    def __call__(self, x: Array, latent_rep: bool = False) -> Array | tuple[Array, Array]:
         """Apply sequence of encoder and decoder modules.
 
         Args:
@@ -166,11 +179,13 @@ class MLPEncoder(Encoder):
             rngs=rngs,
         )
 
-    def __call__(self, x: ArrayLike, *args) -> ArrayLike:
+    def __call__(self, x: Array, *args: Any) -> Array:
         """Apply dense encoder.
 
         Args:
             x: The array to be encoded.
+            args: Additional positional arguments, forwarded to the MLP
+                submodule.
 
         Returns:
             The encoded array.
@@ -229,14 +244,16 @@ class MLPDecoder(Decoder):
             rngs=rngs,
         )
 
-    def __call__(self, x: ArrayLike, *args) -> ArrayLike:
-        """Apply dense encoder.
+    def __call__(self, x: Array, *args: Any) -> Array:
+        """Apply dense decoder.
 
         Args:
-            x: The array to be encoded.
+            x: The latent array to be decoded.
+            args: Additional positional arguments, forwarded to the MLP
+                submodule.
 
         Returns:
-            The encoded array.
+            The decoded array.
         """
         x = self.mlp(x, *args)
         if self.reshape_final:
@@ -253,9 +270,8 @@ def MLPAutoEncoder(
     activation_fn: Callable = nnx.leaky_relu,
     batch_norm: bool = False,
     rngs: nnx.Rngs = nnx.Rngs(0),
-):
-    """Function to construct autoencoder network using multi-layer
-    perceptron (MLP), i.e. dense layers.
+) -> AutoEncoder:
+    """Construct an autoencoder network from dense (MLP) layers.
 
     Output is reshaped to given output shape via a properly sized layer
     added automatically to the tuple of the decoder widths.
@@ -321,9 +337,9 @@ class ConvEncoder(Encoder):
             channels: Number of channels of signal to encode.
             filters_encoder: List with number of filters per layer in the
                 CNN encoder.
-            flat_latent: Flag to specify if the latent representation should be flatten.
+            flat_latent: Flag to specify if the latent representation should be flattened.
             dim_latent: Latent dimension of encoder (only used if flag for flattening is
-                true and a meanigful value is provided).
+                true and a meaningful value is provided).
             kernel_size: A shape tuple defining the size of the convolution
                 filters.
             strides: A shape tuple defining the size of strides in
@@ -354,13 +370,25 @@ class ConvEncoder(Encoder):
         self.flat_latent = flat_latent
         if flat_latent and dim_latent > 0:
             size_pre_latent = int(prod(self.shape_latent))
-            self.linear_latent = nnx.Linear(size_pre_latent, dim_latent, rngs=rngs)
+            self.linear_latent: Callable[[Array], Array] = nnx.Linear(
+                size_pre_latent, dim_latent, rngs=rngs
+            )
             self.dim_latent = dim_latent
         else:
             self.dim_latent = int(prod(self.shape_latent))
             self.linear_latent = nnx.nn.activations.identity
 
-    def __call__(self, x: ArrayLike) -> ArrayLike:
+    def __call__(self, x: Array) -> Array:
+        """Apply the convolutional encoder.
+
+        Args:
+            x: Input array, channel last.
+
+        Returns:
+            Latent representation: a vector per sample if the encoder was
+            constructed with `flat_latent` and a positive `dim_latent`,
+            otherwise an array of shape `shape_latent`.
+        """
         return self.linear_latent(self.cnn(x))
 
 
@@ -374,7 +402,7 @@ class ConvDecoder(Decoder):
     def __init__(
         self,
         filters_decoder: list[int],
-        shape_latent: tuple[int, int, int],
+        shape_latent: tuple[int, ...],
         channels: int,
         flat_latent: bool = False,
         dim_latent: int = 0,
@@ -394,7 +422,7 @@ class ConvDecoder(Decoder):
             channels: Number of channels of signal to decode.
             flat_latent: Flag to specify if the latent representation is flat.
             dim_latent: Latent dimension (only used if flag for flattening is
-                true and a meanigful value is provided).
+                true and a meaningful value is provided).
             kernel_size: A shape tuple defining the size of the convolution
                 filters.
             strides: A shape tuple defining the size of strides in
@@ -410,7 +438,9 @@ class ConvDecoder(Decoder):
 
         if flat_latent and dim_latent > 0:
             len_latent = int(prod(shape_latent))
-            self.initial_layer = nnx.Linear(dim_latent, len_latent, rngs=rngs)
+            self.initial_layer: Callable[[Array], Array] = nnx.Linear(
+                dim_latent, len_latent, rngs=rngs
+            )
             self.dim_latent = dim_latent
         else:
             self.initial_layer = nnx.nn.activations.identity
@@ -427,7 +457,16 @@ class ConvDecoder(Decoder):
             rngs=rngs,
         )
 
-    def __call__(self, x: ArrayLike) -> ArrayLike:
+    def __call__(self, x: Array) -> Array:
+        """Apply the convolutional decoder.
+
+        Args:
+            x: Latent representation, flat or of shape `shape_latent`
+                according to how the decoder was constructed.
+
+        Returns:
+            Reconstructed array, channel last.
+        """
         x = self.initial_layer(x)
         if self.flat_latent:
             x = x.reshape((x.shape[0],) + self.shape_latent)
@@ -449,7 +488,7 @@ def ConvAutoEncoder(
     activation_fn_decoder: Callable = nnx.leaky_relu,
     batch_norm: bool = False,
     rngs: nnx.Rngs = nnx.Rngs(0),
-):
+) -> AutoEncoder:
     """Function to construct autoencoder network using convolutional layers.
 
     Args:
@@ -459,9 +498,9 @@ def ConvAutoEncoder(
                 CNN encoder.
         filters_decoder: List with number of filters per layer in the
                 convolutional decoder.
-        flat_latent: Flag to specify if the latent representation should be flatten.
+        flat_latent: Flag to specify if the latent representation should be flattened.
         dim_latent: Latent dimension of encoder (only used if flag for flattening is
-            true and a meanigful value is provided).
+            true and a meaningful value is provided).
         kernel_size_encoder: A shape tuple defining the size of the convolution
                 filters for encoder.
         strides_encoder: A shape tuple defining the size of strides in
@@ -469,11 +508,11 @@ def ConvAutoEncoder(
         activation_fn_encoder: Flax function defining the activation operation
             to apply after each layer (except output layer) in encoder.
         kernel_size_decoder: A shape tuple defining the size of the convolution
-                filters for encoder.
+                filters for decoder.
         strides_decoder: A shape tuple defining the size of strides in
-                convolution for encoder.
+                convolution for decoder.
         activation_fn_decoder: Flax function defining the activation operation
-            to apply after each layer (except output layer) in encoder.
+            to apply after each layer (except output layer) in decoder.
         batch_norm: Flag to indicate if batch norm is to be applied or not.
         rngs: Random generation key.
 

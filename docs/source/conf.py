@@ -73,7 +73,7 @@ def process_docstring(app, what, name, obj, options, lines):
     #
     # See https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html
     # for documentation of the autodoc-process-docstring event used here.
-    if what == "class" and "scico.flax." in name:
+    if what == "class" and ("scico.flax." in name or "scico.flax_nnx." in name):
         options["inherited-members"] = False
 
 
