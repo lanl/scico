@@ -2,12 +2,6 @@ import operator as op
 
 import numpy as np
 
-from jax import config
-
-# enable 64-bit mode, as this module compares arrays created by numpy, which
-# default to 64-bit, against the same arrays converted to jax arrays
-config.update("jax_enable_x64", True)
-
 import jax
 import jax.numpy as jnp
 
@@ -18,6 +12,11 @@ from scico import linop
 from scico.linop import MatrixOperator
 from scico.random import randn
 from scico.test.helpers import AbsMatOp
+
+# Enable 64-bit mode, as this module compares arrays created by numpy, which
+# default to 64-bit, against the same arrays converted to jax arrays. Scoped
+# to this module by a fixture in scico/test/conftest.py.
+pytestmark = pytest.mark.x64
 
 
 class TestMatrix:

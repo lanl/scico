@@ -1,14 +1,14 @@
 import numpy as np
 
-from jax import config
-
+import pytest
 from prox import prox_test
 
 from scico import functional, linop
 from scico.random import randn
 
-# enable 64-bit mode for output dtype checks
-config.update("jax_enable_x64", True)
+# Enable 64-bit mode for output dtype checks, scoped to this module by a
+# fixture in scico/test/conftest.py.
+pytestmark = pytest.mark.x64
 
 
 class TestComposed:

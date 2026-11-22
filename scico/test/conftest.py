@@ -1,6 +1,8 @@
 """
-Configure the --level pytest option and its functionality.
+Configure the --level pytest option and the x64 marker.
 """
+
+import jax
 
 import pytest
 
@@ -20,8 +22,11 @@ def pytest_addoption(parser, pluginmanager):
 
 
 def pytest_configure(config):
-    """Add marker description."""
+    """Add marker descriptions."""
     config.addinivalue_line("markers", "slow: mark test as slow to run")
+    config.addinivalue_line(
+        "markers", "x64: run the tests in the marked module with 64-bit mode enabled"
+    )
 
 
 def pytest_collection_modifyitems(config, items):
@@ -33,3 +38,26 @@ def pytest_collection_modifyitems(config, items):
     for item in items:
         if "slow" in item.keywords:
             item.add_marker(level_skip)
+
+
+@pytest.fixture(scope="module", autouse=True)
+def enable_x64(request):
+    """Enable 64-bit mode for the tests in modules marked with "x64".
+
+    Some tests require 64-bit mode, most commonly because they check the
+    dtype of an operator output. Enabling it via `jax.config.update` at
+    module level would be a global change that persists for the remainder
+    of the session, so that a test could behave differently when run on its
+    own than when run after such a module. Enabling it via this fixture
+    confines it to the modules that ask for it, leaving 32-bit defaults, as
+    seen by users of the package, in place everywhere else.
+
+    The fixture is autouse so that it is entered before any other fixture
+    of the same scope, including module scope fixtures that construct the
+    arrays on which the tests operate.
+    """
+    if request.node.get_closest_marker("x64") is None:
+        yield
+    else:
+        with jax.enable_x64(True):
+            yield

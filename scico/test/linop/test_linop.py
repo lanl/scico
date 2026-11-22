@@ -2,18 +2,17 @@ import operator as op
 
 import numpy as np
 
-from jax import config
+import jax
 
 import pytest
-
-# enable 64-bit mode for output dtype checks
-config.update("jax_enable_x64", True)
-
-import jax
 
 from scico import linop
 from scico.random import randn
 from scico.test.helpers import SCALARS, AbsMatOp
+
+# Enable 64-bit mode for output dtype checks, scoped to this module by a
+# fixture in scico/test/conftest.py.
+pytestmark = pytest.mark.x64
 
 
 class LinearOperatorTestObj:

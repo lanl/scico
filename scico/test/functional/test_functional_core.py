@@ -1,11 +1,6 @@
 import numpy as np
 
 import jax.numpy as jnp
-from jax import config
-
-# enable 64-bit mode for output dtype checks
-config.update("jax_enable_x64", True)
-
 
 import pytest
 from prox import prox_test
@@ -13,6 +8,10 @@ from prox import prox_test
 import scico.numpy as snp
 from scico import functional
 from scico.random import randn
+
+# Enable 64-bit mode for output dtype checks, scoped to this module by a
+# fixture in scico/test/conftest.py.
+pytestmark = pytest.mark.x64
 
 NO_BLOCK_ARRAY = [
     functional.L21Norm,

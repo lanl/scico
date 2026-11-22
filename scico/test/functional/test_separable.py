@@ -1,17 +1,15 @@
 import numpy as np
 
-from jax import config
-
-# enable 64-bit mode for output dtype checks
-config.update("jax_enable_x64", True)
-
-
 import pytest
 
 from scico import functional
 from scico.numpy import blockarray
 from scico.numpy.testing import assert_allclose
 from scico.random import randn
+
+# Enable 64-bit mode for output dtype checks, scoped to this module by a
+# fixture in scico/test/conftest.py.
+pytestmark = pytest.mark.x64
 
 
 class SeparableTestObject:

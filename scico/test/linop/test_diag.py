@@ -2,19 +2,18 @@ import operator as op
 
 import numpy as np
 
-from jax import config
+import jax
 
 import pytest
-
-# enable 64-bit mode for output dtype checks
-config.update("jax_enable_x64", True)
-
-import jax
 
 import scico.numpy as snp
 from scico import linop
 from scico.random import randn
 from scico.test.helpers import adjoint_test, scalar_test
+
+# Enable 64-bit mode for output dtype checks, scoped to this module by a
+# fixture in scico/test/conftest.py.
+pytestmark = pytest.mark.x64
 
 
 class TestDiagonal:

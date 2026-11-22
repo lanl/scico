@@ -6,6 +6,11 @@ import pytest
 
 import scico.random
 
+# Enable 64-bit mode: test_add_seed_adapter checks that the dtype argument is
+# passed through correctly, which requires the requested dtype to be available.
+# Scoped to this module by a fixture in scico/test/conftest.py.
+pytestmark = pytest.mark.x64
+
 
 @pytest.mark.parametrize("seed", [None, 42])
 def test_wrapped_funcs(seed):
