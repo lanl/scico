@@ -98,7 +98,7 @@ def test_blur_data_generation():
     N = 32
     nimg = 8
     n = 3  # convolution kernel size
-    blur_kernel = np.ones((n, n)) / (n * n)
+    blur_kernel = np.ones((n, n), dtype=np.float32) / (n * n)
 
     def random_img_gen(seed, size, ndata):
         np.random.seed(seed)
