@@ -2,9 +2,20 @@
 Configure the --level pytest option and the x64 marker.
 """
 
+import os
+
 import jax
 
 import pytest
+
+# Make a request for a 64-bit dtype that is not available an error rather than
+# a warning. Such a request indicates a test that needs 64-bit mode but does
+# not enable it, which is otherwise easy to miss: the test continues to pass,
+# because its assertions are self-consistent, while silently checking 32-bit
+# behaviour instead. Skipped if the environment already selects a mode, so that
+# the check can be turned off with JAX_EXPLICIT_X64_DTYPES=warn.
+if "JAX_EXPLICIT_X64_DTYPES" not in os.environ:
+    jax.config.update("jax_explicit_x64_dtypes", "error")
 
 
 def pytest_addoption(parser, pluginmanager):
