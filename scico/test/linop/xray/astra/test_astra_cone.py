@@ -8,7 +8,7 @@ import scico
 import scico.numpy as snp
 from scico.linop import DiagonalStack
 from scico.metric import rel_res
-from scico.test.linop.test_linop import adjoint_test
+from scico.test.helpers import adjoint_test
 
 try:
     from scico.linop.xray.astra import (

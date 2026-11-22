@@ -15,7 +15,7 @@ from scico.linop import (
 )
 from scico.operator import Abs
 from scico.random import randn
-from scico.test.linop.test_linop import adjoint_test
+from scico.test.helpers import adjoint_test
 
 
 class TestVerticalStack:

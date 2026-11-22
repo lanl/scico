@@ -2,20 +2,18 @@ import operator as op
 
 import numpy as np
 
-from jax import config
-
-import pytest
-
-# enable 64-bit mode for output dtype checks
-config.update("jax_enable_x64", True)
-
 import jax
 
-from test_linop import adjoint_test
+import pytest
 
 import scico.numpy as snp
 from scico import linop
 from scico.random import randn
+from scico.test.helpers import adjoint_test, scalar_test
+
+# Enable 64-bit mode for output dtype checks, scoped to this module by a
+# fixture in scico/test/conftest.py.
+pytestmark = pytest.mark.x64
 
 
 class TestDiagonal:
@@ -127,35 +125,34 @@ class TestDiagonal:
             operator(D1, D2)
 
     @pytest.mark.parametrize("operator", [op.mul, op.truediv])
-    def test_scalar_right(self, operator):
+    def test_scalar_first(self, operator):
         if operator == op.truediv:
             pytest.xfail("scalar / LinearOperator is not supported")
 
-        diagonal_dtype = np.float32
         input_shape = (8,)
-
-        diagonal1, key = randn(input_shape, dtype=diagonal_dtype, key=self.key)
+        diagonal, key = randn(input_shape, dtype=np.float32, key=self.key)
         scalar = np.random.randn()
-        x, key = randn(input_shape, dtype=diagonal_dtype, key=key)
+        x, key = randn(input_shape, dtype=np.float32, key=key)
 
-        D = linop.Diagonal(diagonal=diagonal1)
-        scaled_D = operator(scalar, D)
-
-        np.testing.assert_allclose(scaled_D @ x, operator(scalar, D @ x), rtol=5e-5)
+        # check_dtype is disabled because this test did not previously make
+        # that check, and the scalar here is a 64-bit float.
+        scalar_test(
+            linop.Diagonal(diagonal=diagonal),
+            x,
+            scalar,
+            operator,
+            scalar_first=True,
+            check_dtype=False,
+        )
 
     @pytest.mark.parametrize("operator", [op.mul, op.truediv])
-    def test_scalar_left(self, operator):
-        diagonal_dtype = np.float32
+    def test_scalar_second(self, operator):
         input_shape = (8,)
-
-        diagonal1, key = randn(input_shape, dtype=diagonal_dtype, key=self.key)
+        diagonal, key = randn(input_shape, dtype=np.float32, key=self.key)
         scalar = np.random.randn()
-        x, key = randn(input_shape, dtype=diagonal_dtype, key=key)
+        x, key = randn(input_shape, dtype=np.float32, key=key)
 
-        D = linop.Diagonal(diagonal=diagonal1)
-        scaled_D = operator(D, scalar)
-
-        np.testing.assert_allclose(scaled_D @ x, operator(D @ x, scalar), rtol=5e-5)
+        scalar_test(linop.Diagonal(diagonal=diagonal), x, scalar, operator, check_dtype=False)
 
     @pytest.mark.parametrize("diagonal_dtype", [np.float32, np.complex64])
     def test_gram_op(self, diagonal_dtype):

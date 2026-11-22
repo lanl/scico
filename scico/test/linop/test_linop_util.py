@@ -1,19 +1,18 @@
 import numpy as np
 
-from jax import config
+import jax
 
 import pytest
-
-# enable 64-bit mode for output dtype checks
-config.update("jax_enable_x64", True)
-
-import jax
 
 import scico.numpy as snp
 from scico import linop
 from scico.operator import Operator
 from scico.random import randn
-from scico.test.linop.test_linop import AbsMatOp
+from scico.test.helpers import AbsMatOp
+
+# Enable 64-bit mode for output dtype checks, scoped to this module by a
+# fixture in scico/test/conftest.py.
+pytestmark = pytest.mark.x64
 
 
 def test_valid_adjoint():

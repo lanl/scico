@@ -1,18 +1,16 @@
 import numpy as np
 
-from jax import config
-
 import pytest
-
-# enable 64-bit mode for output dtype checks
-config.update("jax_enable_x64", True)
-
 from prox import prox_test
 
 import scico.numpy as snp
 from scico import functional, linop, loss
 from scico.numpy.util import complex_dtype
 from scico.random import randn, uniform
+
+# Enable 64-bit mode for output dtype checks, scoped to this module by a
+# fixture in scico/test/conftest.py.
+pytestmark = pytest.mark.x64
 
 
 class TestLoss:

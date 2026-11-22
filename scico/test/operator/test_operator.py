@@ -2,20 +2,18 @@ import operator as op
 
 import numpy as np
 
-from jax import config
+import jax
 
 import pytest
-
-# enable 64-bit mode for output dtype checks
-config.update("jax_enable_x64", True)
-
-import jax
 
 import scico.numpy as snp
 from scico.operator import Abs, Angle, Exp, Operator, operator_from_function
 from scico.random import randn
+from scico.test.helpers import SCALARS, scalar_test
 
-SCALARS = (2, 1e0, snp.array(1.0))
+# Enable 64-bit mode for output dtype checks, scoped to this module by a
+# fixture in scico/test/conftest.py.
+pytestmark = pytest.mark.x64
 
 
 class AbsOperator(Operator):
@@ -86,24 +84,16 @@ def test_binary_op_same(testobj, operator):
 
 @pytest.mark.parametrize("operator", [op.mul, op.truediv])
 @pytest.mark.parametrize("scalar", SCALARS)
-def test_scalar_left(testobj, operator, scalar):
-    x = testobj.x
-    comp_op = operator(testobj.A, scalar)
-    res = operator(testobj.A(x), scalar)
-    assert comp_op.output_dtype == res.dtype
-    np.testing.assert_allclose(comp_op(x), res, rtol=5e-5)
+def test_scalar_second(testobj, operator, scalar):
+    scalar_test(testobj.A, testobj.x, scalar, operator)
 
 
 @pytest.mark.parametrize("operator", [op.mul, op.truediv])
 @pytest.mark.parametrize("scalar", SCALARS)
-def test_scalar_right(testobj, operator, scalar):
+def test_scalar_first(testobj, operator, scalar):
     if operator == op.truediv:
         pytest.xfail("scalar / Operator is not supported")
-    x = testobj.x
-    comp_op = operator(scalar, testobj.A)
-    res = operator(scalar, testobj.A(x))
-    assert comp_op.output_dtype == res.dtype
-    np.testing.assert_allclose(comp_op(x), res, rtol=5e-5)
+    scalar_test(testobj.A, testobj.x, scalar, operator, scalar_first=True)
 
 
 def test_negation(testobj):

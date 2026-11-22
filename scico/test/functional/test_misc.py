@@ -99,7 +99,10 @@ def test_scalar_vmap():
     non_vmap = np.array([foo(c) for c in c_list])
 
     vmapped = jax.vmap(foo)(snp.array(c_list))
-    np.testing.assert_allclose(non_vmap, vmapped)
+    # The loop and the mapped computation are compiled differently, so their
+    # float32 results may differ in the final bit. The numpy default rtol of
+    # 1e-7 is below float32 resolution and so requires exact equality.
+    np.testing.assert_allclose(non_vmap, vmapped, rtol=1e-6)
 
 
 def test_scalar_pmap():
@@ -112,7 +115,8 @@ def test_scalar_pmap():
     c_list = np.random.randn(jax.device_count())
     non_pmap = np.array([foo(c) for c in c_list])
     pmapped = jax.pmap(foo)(c_list)
-    np.testing.assert_allclose(non_pmap, pmapped)
+    # As in test_scalar_vmap, a tolerance coarser than float32 resolution.
+    np.testing.assert_allclose(non_pmap, pmapped, rtol=1e-6)
 
 
 def test_scalar_aggregation():

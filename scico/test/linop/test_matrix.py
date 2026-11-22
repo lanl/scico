@@ -11,7 +11,12 @@ import scico.numpy as snp
 from scico import linop
 from scico.linop import MatrixOperator
 from scico.random import randn
-from scico.test.linop.test_linop import AbsMatOp
+from scico.test.helpers import AbsMatOp
+
+# Enable 64-bit mode, as this module compares arrays created by numpy, which
+# default to 64-bit, against the same arrays converted to jax arrays. Scoped
+# to this module by a fixture in scico/test/conftest.py.
+pytestmark = pytest.mark.x64
 
 
 class TestMatrix:
@@ -98,7 +103,7 @@ class TestMatrix:
             operator(Ao, Co)
 
     @pytest.mark.parametrize("operator", [op.add, op.sub, op.mul, op.truediv])
-    def test_scalar_left(self, operator):
+    def test_scalar_first(self, operator):
         scalar = np.float32(np.random.randn())
 
         A, key = randn((4, 6), key=self.key)
@@ -108,7 +113,7 @@ class TestMatrix:
         np.testing.assert_allclose(operator(scalar, Ao) @ x, operator(scalar, A) @ x, rtol=5e-5)
 
     @pytest.mark.parametrize("operator", [op.add, op.sub, op.mul, op.truediv])
-    def test_scalar_right(self, operator):
+    def test_scalar_second(self, operator):
         scalar = np.float32(np.random.randn())
 
         A, key = randn((4, 6), key=self.key)
