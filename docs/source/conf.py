@@ -61,3 +61,21 @@ def class_inherit_diagrams(_):
 
 def setup(app):
     app.connect("builder-inited", class_inherit_diagrams)
+
+    # Required due to bug in sphinx-autodoc-typehints 3.17.6
+    # Guard sphinx_autodoc_typehints against objects whose unwrapped callable has __qualname__ = None
+    for listener in list(app.events.listeners.get("autodoc-process-docstring", [])):
+        if listener.handler.__module__.startswith("sphinx_autodoc_typehints"):
+            orig_handler = listener.handler
+            priority = listener.priority
+            app.disconnect(listener.id)
+
+            def _guarded_handler(app, what, name, obj, options, lines, _orig=orig_handler):
+                try:
+                    return _orig(app, what, name, obj, options, lines)
+                except AttributeError as exc:
+                    if "'NoneType' object has no attribute 'split'" in str(exc):
+                        return
+                    raise
+
+            app.connect("autodoc-process-docstring", _guarded_handler, priority=priority)
