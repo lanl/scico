@@ -62,7 +62,7 @@ def class_inherit_diagrams(_):
 def setup(app):
     app.connect("builder-inited", class_inherit_diagrams)
 
-    # Required due to bug in sphinx-autodoc-typehints 3.17.6
+    # Required due to bug in sphinx-autodoc-typehints 3.17.6 (see tox-dev/sphinx-autodoc-typehints#1143)
     # Guard sphinx_autodoc_typehints against objects whose unwrapped callable has __qualname__ = None
     for listener in list(app.events.listeners.get("autodoc-process-docstring", [])):
         if listener.handler.__module__.startswith("sphinx_autodoc_typehints"):
