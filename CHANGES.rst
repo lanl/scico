@@ -26,6 +26,9 @@ Version 0.0.8   (unreleased)
 • Extensive type annotation additions and corrections, with stricter
   ``mypy`` and ``flake8`` checking in CI, the former now configured in
   ``pyproject.toml``.
+• Type alias ``typing.DType`` is now an alias of ``jax.typing.DTypeLike``
+  rather than a union of the ``jax.numpy`` scalar types, which was not
+  valid as a type annotation.
 • Various bug fixes and minor improvements.
 
 
