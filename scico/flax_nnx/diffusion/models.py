@@ -21,7 +21,6 @@ from jax.typing import ArrayLike
 
 from flax import nnx
 from scico.flax_nnx.diffusion.blocks import (
-    Attention,
     Downsample,
     LinearAttention,
     PreNorm,
@@ -135,9 +134,9 @@ class ConditionalUNet(nnx.Module):
 
         # Configure bottleneck of Unet.
         mid_feat = features[-1]
-        self.mid_block1 = block_klass(mid_feat, mid_feat, time_emb_dim=time_dim, rngs=rngs)
-        self.mid_attn = Residual(PreNorm(mid_feat, Attention(mid_feat, rngs=rngs), rngs=rngs))
-        self.mid_block2 = block_klass(mid_feat, mid_feat, time_emb_dim=time_dim, rngs=rngs)
+        # self.mid_block1 = block_klass(mid_feat, mid_feat, time_emb_dim=time_dim, rngs=rngs)
+        # self.mid_attn = Residual(PreNorm(mid_feat, Attention(mid_feat, rngs=rngs), rngs=rngs))
+        # self.mid_block2 = block_klass(mid_feat, mid_feat, time_emb_dim=time_dim, rngs=rngs)
 
         # Configure up path of Unet.
         for ind, (feat_in, feat_out) in enumerate(reversed(in_out_f)):
@@ -204,9 +203,9 @@ class ConditionalUNet(nnx.Module):
 
             x = downsample(x)
 
-        x = self.mid_block1(x, t)
-        x = self.mid_attn(x)
-        x = self.mid_block2(x, t)
+        # x = self.mid_block1(x, t)
+        # x = self.mid_attn(x)
+        # x = self.mid_block2(x, t)
 
         for block1, block2, attn, upmodule in self.ups:
             # Configure upsample to match shape of concatenating array
