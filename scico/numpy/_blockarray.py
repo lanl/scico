@@ -172,8 +172,6 @@ for op_name in binary_ops:
 def _jax_array_prop_wrapper(prop_name: str) -> property:
     prop = getattr(JaxArray, prop_name)
 
-    @property
-    @wraps(prop)
     def prop_block_array(self: "BlockArray") -> Union["BlockArray", tuple]:
         result = tuple(getattr(x, prop_name) for x in self)
 
@@ -185,7 +183,17 @@ def _jax_array_prop_wrapper(prop_name: str) -> property:
         # ... otherwise return a tuple.
         return result
 
-    return prop_block_array
+    # Note: functools.wraps is not applicable here since the wrapped object
+    # is a property rather than a function. As well as attempting to copy
+    # attributes that a property does not have, it would set the __wrapped__
+    # attribute of the wrapper to the property, which would cause
+    # inspect.signature (and therefore sphinx.ext.autodoc) to raise a
+    # TypeError when applied to the wrapper.
+    prop_block_array.__name__ = prop_name
+    prop_block_array.__qualname__ = f"BlockArray.{prop_name}"
+    prop_block_array.__doc__ = prop.__doc__
+
+    return property(prop_block_array)
 
 
 skip_props = ("at",)
@@ -203,13 +211,14 @@ for prop_name in jax_array_props:
 def _jax_array_method_wrapper(method_name: str) -> Callable[..., Any]:
     method = getattr(JaxArray, method_name)
 
-    # Don't try to set attributes that are None. Not clear why some
-    # functions/methods (e.g. block_until_ready) have None values
-    # for these attributes.
-    wrapper_assignments = WRAPPER_ASSIGNMENTS
-    for attr in ("__name__", "__qualname__"):
-        if getattr(method, attr) is None:
-            wrapper_assignments = tuple(x for x in wrapper_assignments if x != attr)
+    # Attributes __name__, __qualname__, and __module__ are not copied
+    # from the wrapped method because they have None values for some of
+    # the jax array methods (which are compiled extension functions), and
+    # because the wrapper is a BlockArray rather than a jax array method.
+    # They are set explicitly below.
+    wrapper_assignments = tuple(
+        x for x in WRAPPER_ASSIGNMENTS if x not in ("__name__", "__qualname__", "__module__")
+    )
 
     @wraps(method, assigned=wrapper_assignments)
     def method_block_array(
@@ -224,6 +233,25 @@ def _jax_array_method_wrapper(method_name: str) -> Callable[..., Any]:
 
         # ... otherwise return a tuple.
         return result
+
+    # A qualified name that does not include a "<locals>" component, and
+    # a module within which that qualified name can be resolved, are
+    # required to avoid warnings from sphinx_autodoc_typehints.
+    method_block_array.__name__ = method_name
+    method_block_array.__qualname__ = f"BlockArray.{method_name}"
+    method_block_array.__module__ = BlockArray.__module__
+
+    # The __wrapped__ attribute set by functools.wraps causes
+    # inspect.signature (and therefore sphinx.ext.autodoc) to report the
+    # signature of the wrapped jax method rather than that of the wrapper,
+    # which is desirable when that signature is available. Some of the jax
+    # array methods are compiled extension functions for which it is not,
+    # in which case inspect.signature raises a ValueError, and the
+    # __wrapped__ attribute has to be deleted to avoid it.
+    try:
+        inspect.signature(method)
+    except (TypeError, ValueError):
+        del method_block_array.__wrapped__
 
     return method_block_array
 
