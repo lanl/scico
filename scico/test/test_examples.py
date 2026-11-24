@@ -1,9 +1,5 @@
-import os
-import tempfile
-
 import numpy as np
 
-import imageio.v3 as iio
 import pytest
 
 import scico.numpy as snp
@@ -16,14 +12,11 @@ from scico.examples import (
     create_laminar_phantom,
     create_tangle_phantom,
     downsample_volume,
-    epfl_deconv_data,
     gaussian,
     phase_diff,
     rgb2gray,
     spnoise,
     tile_volume_slices,
-    ucb_diffusercam_data,
-    volume_read,
 )
 
 # These tests are for the scico.examples module, NOT the example scripts
@@ -33,34 +26,6 @@ def test_rgb2gray():
     rgb = np.ones((31, 32, 3), dtype=np.float32)
     gry = rgb2gray(rgb)
     assert np.abs(gry.mean() - 1.0) < 1e-6
-
-
-def test_volume_read():
-    temp_dir = tempfile.TemporaryDirectory()
-    v0 = np.zeros((32, 32), dtype=np.uint16)
-    v1 = np.ones((32, 32), dtype=np.uint16)
-    iio.imwrite(os.path.join(temp_dir.name, "v0.tif"), v0)
-    iio.imwrite(os.path.join(temp_dir.name, "v1.tif"), v1)
-    vol = volume_read(temp_dir.name, ext="tif")
-    assert np.allclose(v0, vol[..., 0]) and np.allclose(v1, vol[..., 1])
-
-
-def test_epfl_deconv_data():
-    temp_dir = tempfile.TemporaryDirectory()
-    y0 = np.zeros((32, 32), dtype=np.uint16)
-    psf0 = np.ones((32, 32), dtype=np.uint16)
-    np.savez(os.path.join(temp_dir.name, "epfl_big_deconv_0.npz"), y=y0, psf=psf0)
-    y, psf = epfl_deconv_data(0, cache_path=temp_dir.name)
-    assert np.allclose(y0, y) and np.allclose(psf0, psf)
-
-
-def test_ucb_diffusercam_data():
-    temp_dir = tempfile.TemporaryDirectory()
-    y0 = np.zeros((32, 32), dtype=np.uint16)
-    psf0 = np.ones((8, 32, 32), dtype=np.uint16)
-    np.savez(os.path.join(temp_dir.name, "ucb_diffcam_data.npz"), y=y0, psf=psf0)
-    y, psf = ucb_diffusercam_data(cache_path=temp_dir.name)
-    assert np.allclose(y0, y) and np.allclose(psf0, psf)
 
 
 def test_downsample_volume():

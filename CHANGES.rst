@@ -15,6 +15,10 @@ Version 0.0.8   (unreleased)
 • Support ``jaxlib`` and ``jax`` versions 0.8.0 to 0.12.1.
 • Support ``flax`` versions 0.8.0 to 0.12.10.
 • Add limited support for sharded arrays.
+• Data acquisition functions ``volume_read``, ``epfl_deconv_data``,
+  ``get_epfl_deconv_data``, ``ucb_diffusercam_data`` and
+  ``get_ucb_diffusercam_data`` moved from module ``scico.examples`` to
+  module ``scico.data``.
 • Various bug fixes and minor improvements.
 
 

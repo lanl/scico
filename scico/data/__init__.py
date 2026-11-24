@@ -10,9 +10,26 @@
 import sys
 
 from ._blocks import sample_image_blocks, select_image_files, split_sequence
-from ._examples import flax_data_path, foam_phantom, kodim23
+from ._examples import flax_data_path, foam_phantom, kodim23, volume_read
+from ._fetch import (
+    epfl_deconv_data,
+    get_epfl_deconv_data,
+    get_ucb_diffusercam_data,
+    ucb_diffusercam_data,
+)
 
-__all__ = ["kodim23", "foam_phantom", "split_sequence", "select_image_files", "sample_image_blocks"]
+__all__ = [
+    "kodim23",
+    "foam_phantom",
+    "volume_read",
+    "epfl_deconv_data",
+    "get_epfl_deconv_data",
+    "ucb_diffusercam_data",
+    "get_ucb_diffusercam_data",
+    "split_sequence",
+    "select_image_files",
+    "sample_image_blocks",
+]
 
 # Imported items in __all__ appear to originate in top-level functional module
 for name in __all__:

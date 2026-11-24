@@ -46,7 +46,7 @@ import numpy as np
 import komplot as kplt
 
 import scico.numpy as snp
-from scico.examples import ucb_diffusercam_data
+from scico.data import ucb_diffusercam_data
 from scico.functional import L1Norm, L21Norm, ZeroFunctional
 from scico.linop import CircularConvolve, Crop, FiniteDifference, Identity, Sum
 from scico.loss import SquaredL2Loss

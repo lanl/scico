@@ -7,6 +7,7 @@
 
 """Data files for usage examples."""
 
+import glob
 import os.path
 from typing import Optional
 
@@ -66,6 +67,29 @@ def npzread(filename: str, array: str, path: Optional[str] = None) -> np.ndarray
         path = os.path.join(os.path.dirname(__file__), "examples")
     npz = np.load(os.path.join(path, filename), allow_pickle=True)
     return npz[array]
+
+
+def volume_read(path: str, ext: str = "tif") -> np.ndarray:
+    """Read a 3D volume from a set of files in the specified directory.
+
+    All files with extension `ext` (i.e. matching glob `*.ext`)
+    in directory `path` are assumed to be image files and are read.
+    The filenames are assumed to be such that their alphanumeric
+    ordering corresponds to their order as volume slices.
+
+    Args:
+        path: Path to directory containing the image files.
+        ext: Filename extension.
+
+    Returns:
+        Volume as a 3D array.
+    """
+
+    slices = []
+    for file in sorted(glob.glob(os.path.join(path, "*." + ext))):
+        image = iio.imread(file)
+        slices.append(image)
+    return np.dstack(slices)
 
 
 def foam_phantom(size: int = 512, asfloat: bool = True) -> np.ndarray:

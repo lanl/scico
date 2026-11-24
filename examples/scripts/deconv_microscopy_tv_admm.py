@@ -32,7 +32,8 @@ import komplot as kplt
 
 import scico.numpy as snp
 from scico import functional, linop, loss, util
-from scico.examples import downsample_volume, epfl_deconv_data, tile_volume_slices
+from scico.data import epfl_deconv_data
+from scico.examples import downsample_volume, tile_volume_slices
 from scico.optimize.admm import ADMM, CircularConvolveSolver
 
 """
